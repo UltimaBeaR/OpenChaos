@@ -115,7 +115,40 @@
 
 #include "psystem.h"
 
+// Chunk 1 migrated to src/new/engine/animation/figure.cpp + figure_globals.cpp (iteration 146).
+// Globals and functions now come from:
+#include "engine/animation/figure.h"
+#include "engine/animation/figure_globals.h"
+
+// Forward declarations for functions defined in chunk 5 (still in old/), called from chunk 3 (still in old/).
+bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
+    int iMatrixNum,
+    SLONG prim,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    SLONG recurse_level,
+    Thing* p_thing);
+
+void FIGURE_draw_prim_tween_person_only(
+    SLONG prim,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    SLONG recurse_level,
+    Thing* p_thing);
+
 extern BOOL allow_debug_keys;
+
+// ALIGNED_STATIC_ARRAY: aligns a static char storage buffer and assigns the typed pointer.
+// Kept here (outside #if 0) because it is still used by chunk 3+ code below.
+#define ALIGNED_STATIC_ARRAY(def, name, number, mytype, align)                        \
+    static char c##name##mytype##align##StaticArray[align + number * sizeof(mytype)]; \
+    def name = (mytype*)(((DWORD)c##name##mytype##align##StaticArray + (align - 1)) & ~(align - 1))
+
+#if 0 // MIGRATED to src/new/engine/animation/figure.cpp + figure_globals.cpp (iteration 146) [chunk 1: globals, DeadAndBuried, BuildMMLightingTable, MSMesh, MSOptimizeIndexedList, steam/flame helpers, FIGURE_rotate_obj*, FIGURE_find_face_D3D_texture_page, LRU cache, FIGURE_TPO_init_3d_object]
 
 SLONG FIGURE_alpha = 255;
 
@@ -1560,6 +1593,8 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj /*, int iThrashIndex = 0
 
     // Ready for action.
 }
+
+#endif // MIGRATED to src/new/engine/animation/figure.cpp + figure_globals.cpp (iteration 146) [chunk 1]
 
 // Add a prim to this 3D object.
 // prim = the prim number to add.

@@ -76829,6 +76829,756 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_alpha",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "FIGURE_alpha",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "steam_seed",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "steam_seed",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "body_part_upper",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "body_part_upper",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "fire_pal",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "fire_pal",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "jacket_lookup",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "jacket_lookup",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_NUMBER_D3D_PRIMS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MAX_NUMBER_D3D_PRIMS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "D3DObj",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "D3DObj",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "m_fObjectBoundingSphereRadius",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "m_fObjectBoundingSphereRadius",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "NUM_ROPERS_THINGIES",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "NUM_ROPERS_THINGIES",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_NUMBER_D3D_PEOPLE",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MAX_NUMBER_D3D_PEOPLE",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "D3DPeopleObj",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "D3DPeopleObj",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "m_iLRUQueueSize",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "m_iLRUQueueSize",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_LRU_QUEUE_LENGTH",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PRIM_LRU_QUEUE_LENGTH",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PRIM_LRU_QUEUE_SIZE",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PRIM_LRU_QUEUE_SIZE",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ptpoLRUQueue",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "ptpoLRUQueue",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "dwGameTurnLastUsed",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "dwGameTurnLastUsed",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "m_dwSizeOfQueue",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "m_dwSizeOfQueue",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pVert",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pVert",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pStripIndices",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pStripIndices",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pListIndices",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pListIndices",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_piVertexRemap",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_piVertexRemap",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_piVertexLinks",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_piVertexLinks",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pCurVertex",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pCurVertex",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pCurStripIndex",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pCurStripIndex",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pCurListIndex",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pCurListIndex",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_pPrimObj",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_pPrimObj",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_iNumListIndices",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_iNumListIndices",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_iNumStripIndices",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_iNumStripIndices",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_iNumVertices",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_iNumVertices",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_MAX_NUMBER_PRIMS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_MAX_NUMBER_PRIMS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_iNumPrims",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_iNumPrims",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_PrimObjects",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_PrimObjects",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_ubPrimObjMMIndex",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_ubPrimObjMMIndex",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TPO_iPrimObjIndexOffset",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "TPO_iPrimObjIndexOffset",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_VERTS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MAX_VERTS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_INDICES",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MAX_INDICES",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_pcFadeTable",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_pcFadeTable",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_pcFadeTableTint",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_pcFadeTableTint",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_pMatrix",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_pMatrix",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_Vertex",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_Vertex",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_pNormal",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_pNormal",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_vLightDir",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_vLightDir",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MM_bLightTableAlreadySetUp",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MM_bLightTableAlreadySetUp",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "mesh",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "mesh",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": true,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DeadAndBuried",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "DeadAndBuried",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AMBIENT_FACTOR",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "AMBIENT_FACTOR",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "BuildMMLightingTable",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "BuildMMLightingTable",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EdgeList",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "EdgeList",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "tagIndexTri",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "tagIndexTri",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "tagIndexVert",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "tagIndexVert",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "MSMesh",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "class",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSOptimizeIndexedList",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "MSOptimizeIndexedList",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "get_steam_rand",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "get_steam_rand",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_STEAM",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MAX_STEAM",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "draw_steam",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "draw_steam",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "init_flames",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "init_flames",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "draw_flames",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "draw_flames",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "draw_flame_element",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "draw_flame_element",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_rotate_obj2",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_rotate_obj2",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_rotate_obj",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_rotate_obj",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_find_face_D3D_texture_page",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_find_face_D3D_texture_page",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_clean_LRU_slot",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_clean_LRU_slot",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_clean_all_LRU_slots",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_clean_all_LRU_slots",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_find_and_clean_prim_queue_item",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_find_and_clean_prim_queue_item",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_touch_LRU_of_object",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_touch_LRU_of_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_TPO_init_3d_object",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_TPO_init_3d_object",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::MSMesh",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::MSMesh",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::SetSize",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::SetSize",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::~MSMesh",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::~MSMesh",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::FindOrAddVertex",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::FindOrAddVertex",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::AddTri",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::AddTri",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::ClearTempDone",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::ClearTempDone",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::StripLen",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::StripLen",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::GetStrip",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::GetStrip",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MSMesh::NextTri",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "MSMesh::NextTri",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

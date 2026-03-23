@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 146 — figure.cpp chunk 1: globals + MSMesh + steam/flame + LRU cache + FIGURE_TPO_init_3d_object (2026-03-23)
+
+- Созданы `engine/animation/figure.h`, `engine/animation/figure.cpp`, `engine/animation/figure_globals.h`, `engine/animation/figure_globals.cpp`.
+- `ALIGNED_STATIC_ARRAY` macro — перенесён наружу из `#if 0` блока в old/figure.cpp (нужен chunk 3+); в new/ заменён на static char storage arrays + anonymous namespace constructor в figure_globals.cpp.
+- `mesh` (static MSMesh) → переименован `g_mesh` (конфликт с возможным глобальным `mesh`); определён в figure_globals.cpp, MSMesh class вынесен в figure.h.
+- `allow_debug_keys` — исходно `BOOL`, исправлено (было `bool` в forward declaration).
+- `FIGURE_rotate_obj/obj2` — параметры `SLONG` (≠ `int`), исправлено в декларациях figure.h.
+- `BuildMMLightingTable` — default argument только в .h декларации, убран из .cpp определения.
+- `engine/lighting/night.h` включён в figure.cpp (BuildMMLightingTable читает NIGHT_* globals) — cross-engine зависимость из оригинала, помечена комментарием, будет решена в Stage 7.
+- `EdgeList`, `tagIndexTri`, `tagIndexVert` — перемещены в figure.h (нужны figure_globals.cpp для MSMesh).
+
+---
+
 ## Итерация 145 — facet.cpp chunk 3 (последний): FACET_draw_walkable + DRAW_ladder + FACET_project_crinkled_shadow (2026-03-23)
 
 - Добавлены includes: `engine/lighting/smap.h` (SMAP_Link/SMAP_project_onto_poly), `fallen/Headers/prim.h` (Temporary: PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4).
