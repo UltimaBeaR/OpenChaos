@@ -629,4 +629,17 @@ extern UBYTE record_video;
 // Renders interior warehouse/building scenes (migrated to new/aeng.cpp).
 void AENG_draw_warehouse(void);
 
+// ---------------------------------------------------------------------------
+// Globals for chunk 5b: top-level draw, viewport, editor helpers, inside floor
+// ---------------------------------------------------------------------------
+
+// uc_orig: AENG_transparent_warehouses (fallen/DDEngine/Source/aeng.cpp)
+// When non-zero, warehouse geometry is rendered on top of the city view (debug toggle).
+extern UBYTE AENG_transparent_warehouses;
+
+// uc_orig: AENG_drawing_a_warehouse (fallen/DDEngine/Source/aeng.cpp)
+// Set to UC_TRUE during the warehouse rendering pass; consulted by facet.cpp
+// to skip outdoor shadow rendering on warehouse geometry.
+extern SLONG AENG_drawing_a_warehouse;
+
 #endif // ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H

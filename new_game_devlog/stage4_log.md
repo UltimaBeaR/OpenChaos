@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 161 — aeng.cpp chunk 5b (AENG_unlock..AENG_draw_inside_floor) — aeng.cpp полностью мигрирован (2026-03-23)
+
+- `AENG_transparent_warehouses`, `AENG_drawing_a_warehouse` — file-scope globals в old/aeng.cpp; перенесены в `aeng_globals`. Были extern-declared в new/facet.cpp с комментарием "not yet migrated" — redundant extern декларации оставлены (valid C++, uc_orig присутствуют).
+- `AENG_demo_attract` — тело целиком в `/* */` (dead code), перенесено as-is с сохранением мёртвого `/* */` блока.
+- Большой `/* */` блок stereo/left-eye/right-eye внутри `AENG_draw` — мёртвый код в оригинале, оставлен кратким placeholder-комментарием внутри `/* */`.
+- Два списка forward declarations в old/aeng.cpp (для `AENG_draw_box_around_recessed_door` и др.) — заменены комментариями; все эти функции теперь объявлены в aeng.h.
+- Добавлены Temporary includes: `world/navigation/inside2.h`, `world/environment/ns.h`, `missions/eway.h`, `actors/core/thing_globals.h`, `world/map/supermap_globals.h`.
+- Весь old/aeng.cpp (7 chunks) теперь в `#if 0` блоках — файл полностью мигрирован, но не удалён (содержит includes и macro-секцию, нужную компилятору).
+
+---
+
 ## Итерация 160 — aeng.cpp chunk 5a (AENG_draw_far_facets..AENG_lock) (2026-03-23)
 
 - `AENG_draw_scanner` — пустая функция-заглушка, `AENG_draw_power` — тело целиком в `/* */` (dead code), обе перенесены as-is.

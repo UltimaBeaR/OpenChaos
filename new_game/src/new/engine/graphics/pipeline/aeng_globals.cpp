@@ -293,3 +293,9 @@ UBYTE index_lookup[] = { 0, 1, 3, 2 };
 
 // uc_orig: record_video (fallen/DDEngine/Source/aeng.cpp)
 UBYTE record_video = 0;
+
+// uc_orig: AENG_transparent_warehouses (fallen/DDEngine/Source/aeng.cpp)
+UBYTE AENG_transparent_warehouses = 0;
+
+// uc_orig: AENG_drawing_a_warehouse (fallen/DDEngine/Source/aeng.cpp)
+SLONG AENG_drawing_a_warehouse = 0;

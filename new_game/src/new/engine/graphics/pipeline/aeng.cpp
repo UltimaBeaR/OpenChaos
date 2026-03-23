@@ -64,6 +64,13 @@
 // Additional includes for chunks 4b and 5a
 #include "engine/graphics/resources/font2d.h"          // Temporary: FONT2D_DrawString (AENG_draw_FPS, AENG_draw_warehouse)
 
+// Additional includes for chunk 5b
+#include "world/navigation/inside2.h"      // Temporary: get_inside_alt (AENG_raytraced_position)
+#include "world/environment/ns.h"          // Temporary: NS_there_is_a_los, NS_los_fail_* (AENG_raytraced_position)
+#include "missions/eway.h"                 // Temporary: EWAY_grab_camera, EWAY_camera_warehouse (AENG_draw)
+#include "actors/core/thing_globals.h"     // Temporary: playback_file, verifier_file (AENG_draw)
+#include "world/map/supermap_globals.h"    // Temporary: next_dfacet (AENG_get_rid_of_unused_dfcache_lighting)
+
 // Additional includes for AENG_draw_city() (chunk 4b)
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"
@@ -8533,4 +8540,1364 @@ void AENG_clear_screen()
 SLONG AENG_lock()
 {
     return SLONG(the_display.screen_lock());
+}
+
+// =============================================================================
+// Chunk 5b: unlock/flip/blit, editor 3D debug lines, raycast, light/waypoint/
+//           trigger draw, viewport clear, top-level AENG_draw, detail level I/O,
+//           recessed door box, dfcache pruning, indoor floor renderer.
+// =============================================================================
+
+// uc_orig: AENG_unlock (fallen/DDEngine/Source/aeng.cpp)
+// Unlocks the display surface after direct pixel writes.
+void AENG_unlock()
+{
+    the_display.screen_unlock();
+}
+
+// uc_orig: AENG_flip (fallen/DDEngine/Source/aeng.cpp)
+// Flips the back buffer to the primary surface. Comment notes PerMedia2 requires
+// DDFLIP_WAIT; dropping it causes corruption on that GPU.
+void AENG_flip()
+{
+    FLIP(NULL, DDFLIP_WAIT);
+}
+
+// uc_orig: AENG_blit (fallen/DDEngine/Source/aeng.cpp)
+// Blits the back buffer to the primary surface (non-flipping path).
+void AENG_blit()
+{
+    the_display.blit_back_buffer();
+}
+
+// uc_orig: AENG_e_draw_3d_line (fallen/DDEngine/Source/aeng.cpp)
+// Draws a white debug line in 3D world space.
+void AENG_e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2)
+{
+    AENG_world_line(
+        x1, y1, z1, 8, 0x00ffffff,
+        x2, y2, z2, 8, 0x00ffffff,
+        UC_TRUE);
+}
+
+// uc_orig: AENG_e_draw_3d_line_dir (fallen/DDEngine/Source/aeng.cpp)
+// Draws a directional debug line: thick white start, thin brown end.
+void AENG_e_draw_3d_line_dir(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2)
+{
+    AENG_world_line(
+        x1, y1, z1, 32, 0x00ffffff,
+        x2, y2, z2, 0, 0x00553311,
+        UC_TRUE);
+}
+
+// uc_orig: AENG_e_draw_3d_line_col (fallen/DDEngine/Source/aeng.cpp)
+// Draws a coloured debug line sorted to front.
+void AENG_e_draw_3d_line_col(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG r, SLONG g, SLONG b)
+{
+    ULONG colour;
+
+    colour = r << 16;
+    colour |= g << 8;
+    colour |= b << 0;
+
+    AENG_world_line(
+        x1, y1, z1, 8, colour,
+        x2, y2, z2, 8, colour,
+        UC_TRUE);
+}
+
+// uc_orig: AENG_e_draw_3d_line_col_sorted (fallen/DDEngine/Source/aeng.cpp)
+// Draws a coloured debug line with depth sort disabled (UC_FALSE).
+void AENG_e_draw_3d_line_col_sorted(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG r, SLONG g, SLONG b)
+{
+    ULONG colour;
+
+    colour = r << 16;
+    colour |= g << 8;
+    colour |= b << 0;
+
+    AENG_world_line(
+        x1, y1, z1, 8, colour,
+        x2, y2, z2, 8, colour,
+        UC_FALSE);
+}
+
+// uc_orig: AENG_e_draw_3d_mapwho (fallen/DDEngine/Source/aeng.cpp)
+// Draws a unit square outline at the given map tile position at y=0 (debug).
+void AENG_e_draw_3d_mapwho(SLONG x1, SLONG z1)
+{
+    x1 <<= ELE_SHIFT;
+    z1 <<= ELE_SHIFT;
+
+    e_draw_3d_line(x1, 0, z1, x1 + 256, 0, z1);
+    e_draw_3d_line(x1 + 256, 0, z1, x1 + 256, 0, z1 + 256);
+    e_draw_3d_line(x1 + 256, 0, z1 + 256, x1, 0, z1 + 256);
+    e_draw_3d_line(x1, 0, z1 + 256, x1, 0, z1);
+}
+
+// uc_orig: AENG_e_draw_3d_mapwho_y (fallen/DDEngine/Source/aeng.cpp)
+// Draws a unit square outline at the given map tile position at specified y (debug).
+void AENG_e_draw_3d_mapwho_y(SLONG x1, SLONG y1, SLONG z1)
+{
+    x1 <<= ELE_SHIFT;
+    z1 <<= ELE_SHIFT;
+
+    e_draw_3d_line(x1, y1, z1, x1 + 256, y1, z1);
+    e_draw_3d_line(x1 + 256, y1, z1, x1 + 256, y1, z1 + 256);
+    e_draw_3d_line(x1 + 256, y1, z1 + 256, x1, y1, z1 + 256);
+    e_draw_3d_line(x1, y1, z1 + 256, x1, y1, z1);
+}
+
+// uc_orig: AENG_demo_attract (fallen/DDEngine/Source/aeng.cpp)
+// Attract-mode text overlay — body is fully commented out in the original.
+void AENG_demo_attract(SLONG x, SLONG y, CBYTE* text)
+{
+    /*
+
+    static flash = 0;
+
+    POLY_frame_init(UC_FALSE,UC_FALSE);
+
+
+    text_fudge = UC_TRUE;
+
+
+    draw_centre_text_at(x,y,text,1,1);
+
+    //if (flash++ & 0x10)	Do it all the time!
+    {
+        text_fudge  = UC_FALSE;
+        text_colour = 0x00eeeeff;
+
+        draw_centre_text_at(
+                320, 30,
+                "Press any button to play demo\n",
+                0,0);
+    }
+
+    POLY_frame_draw(UC_FALSE,UC_TRUE);
+
+    */
+}
+
+// uc_orig: AENG_raytraced_position (fallen/DDEngine/Source/aeng.cpp)
+// Casts a ray from the camera through screen pixel (sx,sy) and finds where it
+// intersects the ground surface (or indoor floor). Returns UC_TRUE on hit; fills
+// world_x/y/z with the intersection point.
+SLONG AENG_raytraced_position(
+    SLONG sx,
+    SLONG sy,
+    SLONG* world_x,
+    SLONG* world_y,
+    SLONG* world_z,
+    SLONG indoors)
+{
+    SLONG i;
+
+    float ax;
+    float ay;
+
+    float ex;
+    float ey;
+    float ez;
+
+    float dx;
+    float dy;
+    float dz;
+    float len;
+
+    SLONG wx;
+    SLONG wy;
+    SLONG wz;
+
+    float rx = AENG_cam_x;
+    float ry = AENG_cam_y;
+    float rz = AENG_cam_z;
+
+    // Use the view frustum cone to find the direction of the ray through (sx, sy).
+    ax = float(sx) * (1.0F / 640.0F);
+    ay = float(sy) * (1.0F / 480.0F);
+
+    ex = AENG_cone[1].x;
+    ey = AENG_cone[1].y;
+    ez = AENG_cone[1].z;
+
+    ex += ax * (AENG_cone[0].x - AENG_cone[1].x);
+    ey += ax * (AENG_cone[0].y - AENG_cone[1].y);
+    ez += ax * (AENG_cone[0].z - AENG_cone[1].z);
+
+    ex += ay * (AENG_cone[2].x - AENG_cone[1].x);
+    ey += ay * (AENG_cone[2].y - AENG_cone[1].y);
+    ez += ay * (AENG_cone[2].z - AENG_cone[1].z);
+
+    // All in mapsquare coordinates, not world coordinates.
+    ex *= 256.0F;
+    ey *= 256.0F;
+    ez *= 256.0F;
+
+    // Direction of the ray.
+    dx = ex - rx;
+    dy = ey - ry;
+    dz = ez - rz;
+
+    len = sqrt(dx * dx + dy * dy + dz * dz);
+
+// uc_orig: AENG_RAYTRACE_ACCURACY (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_RAYTRACE_ACCURACY 16
+
+    dx *= (256.0F / AENG_RAYTRACE_ACCURACY) / len;
+    dy *= (256.0F / AENG_RAYTRACE_ACCURACY) / len;
+    dz *= (256.0F / AENG_RAYTRACE_ACCURACY) / len;
+
+    if (GAME_FLAGS & GF_SEWERS) {
+        // Use the sewer LOS function.
+        SLONG x1 = SLONG(rx);
+        SLONG y1 = SLONG(ry);
+        SLONG z1 = SLONG(rz);
+
+        SLONG x2 = SLONG(rx + dx * (AENG_RAYTRACE_ACCURACY * 16));
+        SLONG y2 = SLONG(ry + dy * (AENG_RAYTRACE_ACCURACY * 16));
+        SLONG z2 = SLONG(rz + dz * (AENG_RAYTRACE_ACCURACY * 16));
+
+        if (NS_there_is_a_los(
+                x1, y1, z1,
+                x2, y2, z2)) {
+            return UC_FALSE;
+        }
+
+        *world_x = NS_los_fail_x;
+        *world_y = NS_los_fail_y;
+        *world_z = NS_los_fail_z;
+
+        if (!WITHIN(*world_x, 0, (PAP_SIZE_HI << 8) - 1) || !WITHIN(*world_z, 0, (PAP_SIZE_HI << 8) - 1)) {
+            return UC_FALSE;
+        } else {
+            return UC_TRUE;
+        }
+    }
+
+    // Intersect the ray with the world by stepping along it.
+    rx += dx * AENG_RAYTRACE_ACCURACY;
+    ry += dy * AENG_RAYTRACE_ACCURACY;
+    rz += dz * AENG_RAYTRACE_ACCURACY;
+
+    for (i = 0; i < AENG_RAYTRACE_ACCURACY * (AENG_DRAW_DIST - 1); i++) {
+        wx = (SLONG)rx;
+        wy = (SLONG)ry;
+        wz = (SLONG)rz;
+
+        if (
+            (indoors && (wy < get_inside_alt(indoors))) || ((!indoors) && (wy < PAP_calc_map_height_at(wx, wz)))) {
+            if (indoors)
+                wy = get_inside_alt(indoors);
+            else
+                wy = PAP_calc_map_height_at(wx, wz);
+
+            *world_x = wx;
+            *world_y = wy;
+            *world_z = wz;
+
+            if (!WITHIN(*world_x, 0, (PAP_SIZE_HI << 8) - 1) || !WITHIN(*world_z, 0, (PAP_SIZE_HI << 8) - 1)) {
+                return UC_FALSE;
+            } else {
+                return UC_TRUE;
+            }
+        }
+
+        rx += dx;
+        ry += dy;
+        rz += dz;
+    }
+
+    return UC_FALSE;
+}
+
+// uc_orig: AENG_light_draw (fallen/DDEngine/Source/aeng.cpp)
+// Renders a light source in the editor as two spheres connected by a line:
+// one at ground level, one at the light height. Returns bitmask of which sphere
+// the mouse (mx, my) is over: AENG_MOUSE_OVER_LIGHT_BOT | AENG_MOUSE_OVER_LIGHT_TOP.
+ULONG AENG_light_draw(
+    SLONG mx,
+    SLONG my,
+    SLONG lx,
+    SLONG ly,
+    SLONG lz,
+    ULONG colour,
+    UBYTE highlight)
+{
+    ULONG ans = 0;
+
+    SLONG h1 = PAP_calc_map_height_at(lx, lz);
+    SLONG h2 = ly;
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    // Draw a couple of spheres connected by a line.
+    SHAPE_alpha_sphere(
+        lx,
+        h1,
+        lz,
+        30,
+        0x00ffffff,
+        0xff000000);
+
+    SHAPE_alpha_sphere(
+        lx,
+        h2,
+        lz,
+        30 + (highlight >> 4),
+        colour, 0xFF000000);
+
+    AENG_world_line(
+        lx, h1, lz, 32, 0xffffff,
+        lx, h2, lz, 0, colour,
+        UC_FALSE);
+
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+
+    // Was either sphere under the mouse cursor?
+    SLONG dx;
+    SLONG dy;
+    SLONG dist;
+
+    SLONG sx;
+    SLONG sy;
+    SLONG swidth;
+
+    if (POLY_get_sphere_circle(
+            float(lx),
+            float(h1),
+            float(lz),
+            30.0F,
+            &sx,
+            &sy,
+            &swidth)) {
+        dx = abs(sx - mx);
+        dy = abs(sy - my);
+
+        dist = QDIST2(dx, dy);
+
+        if (dist < swidth * 3) {
+            ans |= AENG_MOUSE_OVER_LIGHT_BOT;
+        }
+    }
+
+    if (POLY_get_sphere_circle(
+            float(lx),
+            float(h2),
+            float(lz),
+            30.0F,
+            &sx,
+            &sy,
+            &swidth)) {
+        dx = abs(sx - mx);
+        dy = abs(sy - my);
+
+        dist = QDIST2(dx, dy);
+
+        if (dist < swidth * 3) {
+            ans |= AENG_MOUSE_OVER_LIGHT_TOP;
+        }
+    }
+
+    return ans;
+}
+
+// uc_orig: AENG_world_text (fallen/DDEngine/Source/aeng.cpp)
+// Projects a world-space point and queues a formatted text string at the result.
+// Used by editor and debug HUD to label objects in 3D.
+void AENG_world_text(
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    UBYTE red,
+    UBYTE blue,
+    UBYTE green,
+    UBYTE shadowed_or_not,
+    CBYTE* fmt, ...)
+{
+    POLY_Point pp;
+
+    POLY_transform(
+        float(x),
+        float(y),
+        float(z),
+        &pp);
+
+    if (pp.IsValid()) {
+        CBYTE message[FONT_MAX_LENGTH];
+        va_list ap;
+
+        va_start(ap, fmt);
+        vsprintf(message, fmt, ap);
+        va_end(ap);
+
+        FONT_buffer_add(
+            pp.X,
+            pp.Y,
+            red,
+            green,
+            blue,
+            shadowed_or_not,
+            message);
+    }
+}
+
+// uc_orig: AENG_waypoint_draw (fallen/DDEngine/Source/aeng.cpp)
+// Renders an AI waypoint as a single sphere in the editor. Returns
+// AENG_MOUSE_OVER_WAYPOINT if the mouse cursor is over it.
+ULONG AENG_waypoint_draw(
+    SLONG mx,
+    SLONG my,
+    SLONG lx,
+    SLONG ly,
+    SLONG lz,
+    ULONG colour,
+    UBYTE highlight)
+{
+    ULONG ans = 0;
+
+    SLONG h2 = ly;
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    // Draw a single sphere. Alpha version inside, solid outside.
+    if (INDOORS_INDEX)
+        SHAPE_alpha_sphere(
+            lx,
+            h2,
+            lz,
+            30 + (highlight >> 4),
+            colour,
+            0xff000000);
+    else
+        SHAPE_sphere(
+            lx,
+            h2,
+            lz,
+            30 + (highlight >> 4),
+            colour);
+
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+
+    SLONG dx;
+    SLONG dy;
+    SLONG dist;
+
+    SLONG sx;
+    SLONG sy;
+    SLONG swidth;
+
+    if (POLY_get_sphere_circle(
+            float(lx),
+            float(h2),
+            float(lz),
+            (float)(30 + (highlight >> 4)),
+            &sx,
+            &sy,
+            &swidth)) {
+        dx = abs(sx - mx);
+        dy = abs(sy - my);
+
+        dist = QDIST2(dx, dy);
+
+        if (dist < swidth * 2) {
+            ans |= AENG_MOUSE_OVER_WAYPOINT;
+        }
+    }
+
+    return ans;
+}
+
+// uc_orig: AENG_rad_trigger_draw (fallen/DDEngine/Source/aeng.cpp)
+// Renders a radius trigger as a transparent alpha sphere in the editor.
+// Returns AENG_MOUSE_OVER_WAYPOINT if the mouse is over it.
+ULONG AENG_rad_trigger_draw(
+    SLONG mx,
+    SLONG my,
+    SLONG lx,
+    SLONG ly,
+    SLONG lz,
+    ULONG rad,
+    ULONG colour,
+    UBYTE highlight)
+{
+    ULONG ans = 0;
+
+    SLONG h1 = PAP_calc_map_height_at(lx, lz);
+    SLONG h2 = ly;
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    /*
+            SHAPE_sphere(
+                    lx,
+                    h1,
+                    lz,
+                    30 + (highlight >> 4),
+                    colour);
+    */
+
+    SHAPE_alpha_sphere(
+        lx,
+        h2,
+        lz,
+        rad,
+        colour,
+        0x88000000);
+
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+
+    SLONG dx;
+    SLONG dy;
+    SLONG dist;
+
+    SLONG sx;
+    SLONG sy;
+    SLONG swidth;
+
+    if (POLY_get_sphere_circle(
+            float(lx),
+            float(h1),
+            float(lz),
+            (float)(30 + (highlight >> 4)),
+            &sx,
+            &sy,
+            &swidth)) {
+        dx = abs(sx - mx);
+        dy = abs(sy - my);
+
+        dist = QDIST2(dx, dy);
+
+        if (dist < swidth * 2) {
+            ans |= AENG_MOUSE_OVER_WAYPOINT;
+        }
+    }
+
+    return ans;
+}
+
+// uc_orig: AENG_groundsquare_draw (fallen/DDEngine/Source/aeng.cpp)
+// Draws a translucent quad covering one map square at the given position.
+// polyinit bit 1: call POLY_frame_init; bit 2: call POLY_frame_draw.
+void AENG_groundsquare_draw(
+    SLONG lx,
+    SLONG ly,
+    SLONG lz,
+    ULONG colour,
+    UBYTE polyinit)
+{
+    POLY_Point pp[4];
+    POLY_Point* quad[4];
+    SLONG x, y, z, id, diff;
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    POLY_transform(lx, ly, lz, &pp[0]);
+    POLY_transform(lx + 256, ly, lz, &pp[1]);
+    POLY_transform(lx, ly, lz + 256, &pp[2]);
+    POLY_transform(lx + 256, ly, lz + 256, &pp[3]);
+
+    pp[0].specular = pp[1].specular = pp[2].specular = pp[3].specular = 0xFF000000;
+    pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = colour;
+
+    if (polyinit & 1)
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid() && pp[3].MaybeValid()) {
+        POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE);
+    }
+
+    if (polyinit & 2)
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+}
+
+// uc_orig: AENG_clear_viewport (fallen/DDEngine/Source/aeng.cpp)
+// Clears the viewport each frame. Indoors/sewers always use black. Outdoors
+// uses the sky colour (or grey when draw_3d stereo mode is active, or black
+// during fade_black transitions).
+void AENG_clear_viewport()
+{
+    if (INDOORS_INDEX || (GAME_FLAGS & GF_SEWERS) || (GAME_FLAGS & GF_INDOORS)) {
+        SET_BLACK_BACKGROUND;
+        CLEAR_VIEWPORT;
+    } else {
+        if (draw_3d) {
+            SLONG white = NIGHT_sky_colour.red + NIGHT_sky_colour.green + NIGHT_sky_colour.blue;
+
+            white /= 3;
+
+            the_display.SetUserColour(
+                white,
+                white,
+                white);
+        } else {
+            if (fade_black) {
+                the_display.SetUserColour(0, 0, 0);
+            } else {
+                the_display.SetUserColour(
+                    NIGHT_sky_colour.red,
+                    NIGHT_sky_colour.green,
+                    NIGHT_sky_colour.blue);
+            }
+        }
+
+        the_display.SetUserBackground();
+        the_display.ClearViewport();
+    }
+
+    BreakTime("Cleared Viewport");
+}
+
+// uc_orig: AENG_draw (fallen/DDEngine/Source/aeng.cpp)
+// Top-level frame render entry point, called once per game tick.
+// Handles: cloud movement, dynamic lighting, splitscreen vs single-camera,
+// cutscene camera override, playback/record of camera data, warehouse vs city.
+void AENG_draw(SLONG draw_3d)
+{
+    /*
+
+    if (Keys[KB_PPOINT])
+    {
+            Keys[KB_PPOINT] = 0;
+
+            NIGHT_amb_red   <<= 1;
+            NIGHT_amb_green <<= 1;
+            NIGHT_amb_blue  <<= 1;
+
+            NIGHT_Colour amb_colour;
+
+            amb_colour.red   = NIGHT_amb_red;
+            amb_colour.green = NIGHT_amb_green;
+            amb_colour.blue  = NIGHT_amb_blue;
+
+            NIGHT_get_d3d_colour(
+                    amb_colour,
+               &NIGHT_amb_d3d_colour,
+               &NIGHT_amb_d3d_specular);
+
+            NIGHT_cache_recalc();
+            NIGHT_dfcache_recalc();
+            NIGHT_generate_walkable_lighting();
+    }
+
+    */
+
+    SLONG i;
+    SLONG warehouse;
+
+    FC_Cam* fc;
+
+    /*
+            if (Keys[KB_RBRACE])
+            {
+                    Keys[KB_RBRACE] = 0;
+
+                    AENG_transparent_warehouses ^= 1;
+            }
+    */
+
+    AENG_drawing_a_warehouse = UC_FALSE;
+
+    // Update stuff.
+    // d	AENG_movie_update();
+    move_clouds();
+    POLY_set_wibble(62, 137, 17, 178, 20, 25);
+
+    AENG_clear_viewport();
+
+    // Reclaim vertex buffers.
+    TheVPool->ReclaimBuffers();
+
+    // Put in the dynamic lighting.
+    NIGHT_dlight_squares_up();
+
+    POLY_colour_restrict = 0;
+    POLY_force_additive_alpha = UC_FALSE;
+
+    // Mark all NIGHT cache squares for deletion.
+    AENG_mark_night_squares_as_deleteme();
+
+    if (FC_cam[1].focus) {
+        // Splitscreen mode.
+        SUPERMAP_counter_increase(0);
+        SUPERMAP_counter_increase(1);
+
+        for (i = 0; i < FC_MAX_CAMS; i++) {
+            fc = &FC_cam[i];
+
+            AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F));
+
+            AENG_set_camera_radians(
+                fc->x >> 8,
+                fc->y >> 8,
+                fc->z >> 8,
+                float(fc->yaw) * (2.0F * PI / (2048.0F * 256.0F)),
+                float(fc->pitch) * (2.0F * PI / (2048.0F * 256.0F)),
+                float(fc->roll) * (2.0F * PI / (2048.0F * 256.0F)),
+                (i == 0) ? POLY_SPLITSCREEN_TOP : POLY_SPLITSCREEN_BOTTOM);
+
+            AENG_cur_fc_cam = i;
+
+            if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Ware) {
+                AENG_ensure_appropriate_caching(UC_TRUE);
+                AENG_draw_warehouse();
+            } else {
+                AENG_ensure_appropriate_caching(UC_FALSE);
+                AENG_draw_city();
+            }
+        }
+
+        AENG_get_rid_of_deleteme_squares();
+        AENG_get_rid_of_unused_dfcache_lighting(UC_TRUE);
+    } else {
+        fc = &FC_cam[0];
+
+        SUPERMAP_counter_increase(0);
+
+        // Not splitscreen. We might have to use the cutscene camera.
+        SLONG old_cam_x = fc->x;
+        SLONG old_cam_y = fc->y;
+        SLONG old_cam_z = fc->z;
+        SLONG old_cam_yaw = fc->yaw;
+        SLONG old_cam_pitch = fc->pitch;
+        SLONG old_cam_roll = fc->roll;
+        SLONG old_cam_lens = fc->lens;
+
+        // If there is a cut-scene camera, let EWAY override the FC_cam fields.
+        if (EWAY_grab_camera(
+                &fc->x,
+                &fc->y,
+                &fc->z,
+                &fc->yaw,
+                &fc->pitch,
+                &fc->roll,
+                &fc->lens)) {
+            warehouse = EWAY_camera_warehouse();
+        } else {
+            warehouse = (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Ware);
+        }
+
+        extern MFFileHandle playback_file;
+        extern MFFileHandle verifier_file;
+
+        if (GAME_STATE & GS_PLAYBACK) {
+            FileRead(playback_file, &fc->x, sizeof(fc->x));
+            FileRead(playback_file, &fc->y, sizeof(fc->y));
+            FileRead(playback_file, &fc->z, sizeof(fc->z));
+            FileRead(playback_file, &fc->yaw, sizeof(fc->yaw));
+            FileRead(playback_file, &fc->pitch, sizeof(fc->pitch));
+            FileRead(playback_file, &fc->roll, sizeof(fc->roll));
+            FileRead(playback_file, &fc->lens, sizeof(fc->lens));
+
+            if (verifier_file) {
+                extern void check_thing_data();
+                check_thing_data();
+            }
+        } else if (GAME_STATE & GS_RECORD) {
+            FileWrite(playback_file, &fc->x, sizeof(fc->x));
+            FileWrite(playback_file, &fc->y, sizeof(fc->y));
+            FileWrite(playback_file, &fc->z, sizeof(fc->z));
+            FileWrite(playback_file, &fc->yaw, sizeof(fc->yaw));
+            FileWrite(playback_file, &fc->pitch, sizeof(fc->pitch));
+            FileWrite(playback_file, &fc->roll, sizeof(fc->roll));
+            FileWrite(playback_file, &fc->lens, sizeof(fc->lens));
+
+            if (verifier_file) {
+                extern void store_thing_data();
+                store_thing_data();
+            }
+        }
+
+        AENG_lens = fc->lens * (1.0F / float(65536.0F));
+
+        AENG_set_camera_radians(
+            fc->x >> 8,
+            fc->y >> 8,
+            fc->z >> 8,
+            float(fc->yaw) * (2.0F * PI / (2048.0F * 256.0F)),
+            float(fc->pitch) * (2.0F * PI / (2048.0F * 256.0F)),
+            float(fc->roll) * (2.0F * PI / (2048.0F * 256.0F)),
+            POLY_SPLITSCREEN_NONE);
+
+        AENG_cur_fc_cam = 0;
+
+        if (warehouse) {
+            AENG_drawing_a_warehouse = UC_TRUE;
+
+            AENG_ensure_appropriate_caching(UC_TRUE);
+            AENG_draw_warehouse();
+        } else {
+            AENG_ensure_appropriate_caching(UC_FALSE);
+            AENG_draw_city();
+
+            if (AENG_transparent_warehouses) {
+                SUPERMAP_counter_increase(0);
+
+                AENG_ensure_appropriate_caching(UC_TRUE);
+                AENG_draw_warehouse();
+            }
+        }
+
+        AENG_get_rid_of_deleteme_squares();
+        AENG_get_rid_of_unused_dfcache_lighting(UC_FALSE);
+
+        // Restore the camera to its pre-cutscene values.
+        fc->x = old_cam_x;
+        fc->y = old_cam_y;
+        fc->z = old_cam_z;
+        fc->yaw = old_cam_yaw;
+        fc->pitch = old_cam_pitch;
+        fc->roll = old_cam_roll;
+        fc->lens = old_cam_lens;
+    }
+
+    /*
+
+    if (draw_3d)
+    {
+            ...stereo/left-eye/right-eye block (commented out in original)...
+    }
+    else
+    {
+    ...
+    }
+
+    */
+
+    // Take out the dynamic lighting.
+    NIGHT_dlight_squares_down();
+
+    POLY_colour_restrict = 0;
+    POLY_force_additive_alpha = UC_FALSE;
+
+    // SPONG
+    // #if !USE_TOMS_ENGINE_PLEASE_BOB
+    //
+    //  Do it here so that AENG_world_line works during the game.
+    //
+    POLY_frame_init(UC_FALSE, UC_FALSE);
+    // #endif
+}
+
+// uc_orig: AENG_read_detail_levels (fallen/DDEngine/Source/aeng.cpp)
+// Reads per-feature detail level settings from the environment (ini/registry).
+void AENG_read_detail_levels()
+{
+    AENG_estimate_detail_levels = ENV_get_value_number("estimate_detail_levels", 1, "Render");
+
+    AENG_detail_stars = ENV_get_value_number("detail_stars", 1, "Render");
+    AENG_detail_shadows = ENV_get_value_number("detail_shadows", 1, "Render");
+    AENG_detail_moon_reflection = ENV_get_value_number("detail_moon_reflection", 1, "Render");
+    AENG_detail_people_reflection = ENV_get_value_number("detail_people_reflection", 1, "Render");
+    AENG_detail_puddles = ENV_get_value_number("detail_puddles", 1, "Render");
+    AENG_detail_dirt = ENV_get_value_number("detail_dirt", 1, "Render");
+    AENG_detail_mist = ENV_get_value_number("detail_mist", 1, "Render");
+    AENG_detail_rain = ENV_get_value_number("detail_rain", 1, "Render");
+    AENG_detail_skyline = ENV_get_value_number("detail_skyline", 1, "Render");
+    AENG_detail_filter = ENV_get_value_number("detail_filter", 1, "Render");
+    AENG_detail_perspective = ENV_get_value_number("detail_perspective", 1, "Render");
+    AENG_detail_crinkles = ENV_get_value_number("detail_crinkles", 1, "Render");
+}
+
+// uc_orig: AENG_draw_box_around_recessed_door (fallen/DDEngine/Source/aeng.cpp)
+// Draws a short tunnel segment connecting a recessed door to the street,
+// using per-tile floor textures and sky-coloured ceiling/walls.
+// inside_out flips the door direction (for rendering the inside-facing side).
+void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
+{
+    SLONG i;
+
+    SLONG x;
+    SLONG z;
+
+    SLONG dx;
+    SLONG dz;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG page;
+    SLONG upto;
+
+    ULONG sky_colour;
+    ULONG sky_specular;
+
+    SLONG col_page;
+    SLONG specular;
+
+    NIGHT_get_d3d_colour(
+        NIGHT_sky_colour,
+        &sky_colour,
+        &sky_specular);
+
+    sky_specular |= 0xff000000;
+
+    PAP_Hi* ph;
+
+    float wx;
+    float wy;
+    float wz;
+
+// uc_orig: MAX_DOOR_LENGTH (fallen/DDEngine/Source/aeng.cpp)
+#define MAX_DOOR_LENGTH 8
+
+    POLY_Point lower[MAX_DOOR_LENGTH][2];
+    POLY_Point upper[MAX_DOOR_LENGTH][2];
+
+    POLY_Point* pp;
+    POLY_Point* quad[4];
+
+    if (inside_out) {
+        SWAP(df->x[0], df->x[1]);
+        SWAP(df->z[0], df->z[1]);
+    }
+
+    col_page = POLY_PAGE_COLOUR_WITH_FOG;
+    specular = 0xff000000;
+
+    // Create the points along the door span.
+    x = df->x[0];
+    z = df->z[0];
+
+    dx = df->x[1] - df->x[0];
+    dz = df->z[1] - df->z[0];
+
+    dx = SIGN(dx);
+    dz = SIGN(dz);
+
+    upto = 0;
+
+    while (1) {
+        ASSERT(WITHIN(upto, 0, MAX_DOOR_LENGTH - 1));
+
+        for (i = 0; i < 4; i++) {
+            wx = float(x << 8);
+            wz = float(z << 8);
+            wy = float(df->Y[0]);
+
+            if (i & 1) {
+                // One block inside the warehouse.
+                wx += float(-dz << 8);
+                wz += float(+dx << 8);
+            }
+
+            if (i & 2) {
+                // The upper level.
+                pp = &upper[upto][i & 1];
+                wy += 256.0F;
+            } else {
+                // The lower level.
+                pp = &lower[upto][i & 1];
+            }
+
+            POLY_transform(
+                wx,
+                wy,
+                wz,
+                pp);
+
+            if (i == 0) {
+                if (inside_out) {
+                    pp->colour = 0xffaaaaaa;
+                    pp->specular = 0xff000000;
+                } else {
+                    pp->colour = 0xffaaaaaa;
+                    pp->specular = 0xff000000;
+                }
+            } else {
+                if (inside_out) {
+                    pp->colour = 0xffffffff;
+                    pp->specular = 0x01000000; // Completely fogged out.
+                } else {
+                    pp->colour = 0xff000000;
+                    pp->specular = 0xff000000;
+                }
+            }
+
+            pp->u = 0.0F;
+            pp->v = 0.0F;
+        }
+
+        upto += 1;
+
+        if (x == df->x[1] && z == df->z[1]) {
+            break;
+        }
+
+        x += dx;
+        z += dz;
+    }
+
+    ASSERT(upto >= 2);
+
+    // Floor and ceiling faces along the span.
+    x = df->x[0];
+    z = df->z[0];
+
+    for (i = 0; i < upto - 1; i++) {
+        mx = (x << 8) + dx - dz >> 8;
+        mz = (z << 8) + dz + dx >> 8;
+
+        // The floor.
+        ph = &PAP_2HI(mx, mz);
+
+        quad[0] = &lower[i + 0][0];
+        quad[1] = &lower[i + 0][1];
+        quad[2] = &lower[i + 1][0];
+        quad[3] = &lower[i + 1][1];
+
+        if (POLY_valid_quad(quad)) {
+            TEXTURE_get_minitexturebits_uvs(
+                ph->Texture,
+                &page,
+                &quad[0]->u,
+                &quad[0]->v,
+                &quad[1]->u,
+                &quad[1]->v,
+                &quad[2]->u,
+                &quad[2]->v,
+                &quad[3]->u,
+                &quad[3]->v);
+
+            POLY_add_quad(quad, page, UC_FALSE);
+        }
+
+        // The ceiling.
+        quad[0] = &upper[i + 0][0];
+        quad[1] = &upper[i + 0][1];
+        quad[2] = &upper[i + 1][0];
+        quad[3] = &upper[i + 1][1];
+
+        if (POLY_valid_quad(quad)) {
+            POLY_add_quad(quad, col_page, UC_FALSE);
+        }
+
+        // The back wall.
+        quad[0] = &lower[i + 0][1];
+        quad[1] = &lower[i + 1][1];
+        quad[2] = &upper[i + 0][1];
+        quad[3] = &upper[i + 1][1];
+
+        if (POLY_valid_quad(quad)) {
+            POLY_add_quad(quad, col_page, UC_FALSE);
+        }
+
+        x += dx;
+        z += dz;
+    }
+
+    // End cap faces.
+    quad[0] = &upper[0][0];
+    quad[2] = &upper[0][1];
+    quad[1] = &lower[0][0];
+    quad[3] = &lower[0][1];
+
+    if (POLY_valid_quad(quad)) {
+        if (!inside_out) {
+            quad[0]->colour = 0xff000000;
+            quad[0]->specular = 0xff000000;
+            quad[1]->colour = 0xff000000;
+            quad[1]->specular = 0xff000000;
+        }
+
+        POLY_add_quad(quad, col_page, UC_TRUE);
+    }
+
+    quad[0] = &upper[upto - 1][0];
+    quad[1] = &upper[upto - 1][1];
+    quad[2] = &lower[upto - 1][0];
+    quad[3] = &lower[upto - 1][1];
+
+    if (POLY_valid_quad(quad)) {
+        if (!inside_out) {
+            quad[0]->colour = 0xff000000;
+            quad[0]->specular = 0xff000000;
+            quad[2]->colour = 0xff000000;
+            quad[2]->specular = 0xff000000;
+        }
+
+        POLY_add_quad(quad, col_page, UC_TRUE);
+    }
+
+    if (inside_out) {
+        SWAP(df->x[0], df->x[1]);
+        SWAP(df->z[0], df->z[1]);
+    }
+}
+
+// uc_orig: AENG_get_rid_of_unused_dfcache_lighting (fallen/DDEngine/Source/aeng.cpp)
+// Walks the NIGHT dfcache linked list and frees cached per-facet lighting for
+// any facet that was not drawn this frame. In splitscreen mode, a facet is
+// kept alive if it was drawn by either camera.
+void AENG_get_rid_of_unused_dfcache_lighting(SLONG splitscreen) // Splitscreen = UC_TRUE or UC_FALSE
+{
+    SLONG dfcache;
+    SLONG next;
+
+    NIGHT_Dfcache* ndf;
+
+    for (dfcache = NIGHT_dfcache_used; dfcache; dfcache = next) {
+        ASSERT(WITHIN(dfcache, 1, NIGHT_MAX_DFCACHES - 1));
+
+        ndf = &NIGHT_dfcache[dfcache];
+        next = ndf->next;
+
+        // Was this facet drawn this gameturn? If not, free its cached lighting.
+        ASSERT(WITHIN(ndf->dfacet, 1, next_dfacet - 1));
+        ASSERT(dfacets[ndf->dfacet].Dfcache == dfcache);
+
+        if (dfacets[ndf->dfacet].Counter[0] != SUPERMAP_counter[0]) {
+            if (splitscreen) {
+                // Might have been drawn from the second camera.
+                if (dfacets[ndf->dfacet].Counter[1] == SUPERMAP_counter[1]) {
+                    // It was drawn from the second camera — don't free it.
+                    continue;
+                }
+            }
+
+            // Free the cached lighting for this facet.
+            dfacets[ndf->dfacet].Dfcache = 0;
+
+            NIGHT_dfcache_destroy(dfcache);
+        }
+    }
+}
+
+// uc_orig: AENG_draw_inside_floor (fallen/DDEngine/Source/aeng.cpp)
+// Renders the floor tiles visible through the indoor overlay for the given
+// indoor section and room. Each tile is textured with the indoor floor texture
+// and optionally lit from the cached NIGHT lighting grid.
+void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
+{
+    SLONG x, z;
+    SLONG page;
+
+    float world_x;
+    float world_y, floor_y, roof_y;
+    float world_z;
+
+    POLY_Point pp[4];
+    MapElement* me;
+
+    PAP_Lo* pl;
+    PAP_Hi* ph;
+
+    POLY_Point* quad[4];
+
+    struct InsideStorey* p_inside;
+    SLONG in_width;
+    UBYTE* in_block;
+    SLONG min_z, max_z;
+    SLONG c0;
+    SLONG floor_type;
+    SLONG do_light;
+
+    if (inside_index == light_inside)
+        do_light = 1;
+    else
+        do_light = 0;
+
+    // Draw the internal walls.
+    extern void draw_insides(SLONG indoor_index, SLONG room, UBYTE fade);
+    draw_insides(inside_index, inside_room, fade);
+
+    p_inside = &inside_storeys[inside_index];
+
+    floor_type = p_inside->TexType;
+
+    floor_y = (float)p_inside->StoreyY;
+    roof_y = floor_y + 256.0f;
+
+    min_z = MAX(NGAMUT_point_zmin, p_inside->MinZ);
+    max_z = MIN(NGAMUT_point_zmax, p_inside->MaxZ);
+
+    in_width = p_inside->MaxX - p_inside->MinX;
+
+    in_block = &inside_block[p_inside->InsideBlock];
+
+    for (c0 = 0; c0 < 4; c0++) {
+        pp[c0].colour = 0xffffff;
+        pp[c0].specular = 0xff000000;
+    }
+
+    quad[0] = &pp[0];
+    quad[1] = &pp[1];
+    quad[2] = &pp[2];
+    quad[3] = &pp[3];
+
+    quad[0]->u = 0.0;
+    quad[0]->v = 0.0;
+    quad[1]->u = 1.0;
+    quad[1]->v = 0.0;
+    quad[2]->u = 0.0;
+    quad[2]->v = 1.0;
+    quad[3]->u = 1.0;
+    quad[3]->v = 1.0;
+
+    for (z = min_z; z < max_z; z++) {
+        SLONG min_x, max_x;
+        float face_y;
+        SLONG col;
+        min_x = MAX(NGAMUT_point_gamut[z].xmin, p_inside->MinX);
+        max_x = MIN(NGAMUT_point_gamut[z].xmax, p_inside->MaxX);
+
+        for (x = min_x; x < max_x; x++) {
+            ASSERT(WITHIN(x, 0, MAP_WIDTH - 1));
+            ASSERT(WITHIN(z, 0, MAP_HEIGHT - 1));
+
+            me = &MAP[MAP_INDEX(x, z)];
+            ph = &PAP_2HI(x, z);
+
+            if ((PAP_2HI(x, z).Flags & (PAP_FLAG_HIDDEN))) {
+                SLONG room_id;
+                SLONG px, pz, dx, dz, square;
+                NIGHT_Square* nq;
+
+                room_id = in_block[(x - p_inside->MinX) + (z - p_inside->MinZ) * in_width] & (0xf | 0x80 | 0x40);
+                if (!(room_id & 0xc0)) {
+                    if (1 || (room_id & 0xf) == inside_room) {
+                        face_y = floor_y;
+                        col = 0xffffff;
+                    } else {
+                        face_y = roof_y;
+                        col = 0;
+                    }
+
+                    col = col | ((fade & 255) << 24);
+                    if (room_id) {
+
+                        world_x = x * 256.0F;
+                        world_z = z * 256.0F;
+                        POLY_transform(world_x, face_y, world_z, &pp[0]);
+
+                        if (do_light) {
+                            px = x >> 2;
+                            pz = z >> 2;
+
+                            ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                            ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                            square = NIGHT_cache[px][pz];
+                            ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                            ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+                            if (!square)
+                                return;
+                            nq = &NIGHT_square[square];
+
+                            NIGHT_get_d3d_colour(
+                                nq->colour[(x & 3) + (z & 3) * PAP_BLOCKS],
+                                &pp->colour,
+                                &pp->specular);
+                            pp->colour |= fade << 24;
+                        } else {
+                            pp->colour = 0x7f7f7f | (fade << 24);
+                            pp->specular = 0xff000000;
+                        }
+
+                        world_x = (x + 1) * 256.0F;
+                        world_z = z * 256.0F;
+                        POLY_transform(world_x, face_y, world_z, &pp[1]);
+
+                        if (do_light) {
+                            if ((x + 1) >> 2 != px) {
+                                px = (x + 1) >> 2;
+
+                                ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                                ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                                square = NIGHT_cache[px][pz];
+                                ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                                ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+                                if (!square)
+                                    return;
+                                nq = &NIGHT_square[square];
+                            }
+                            NIGHT_get_d3d_colour(
+                                nq->colour[((x + 1) & 3) + (z & 3) * PAP_BLOCKS],
+                                &(pp[1].colour),
+                                &(pp[1].specular));
+
+                            pp[1].colour |= fade << 24;
+                        } else {
+                            pp[1].colour = 0x7f7f7f | (fade << 24);
+                            pp[1].specular = 0xff000000;
+                        }
+
+                        world_x = x * 256.0F;
+                        world_z = (z + 1) * 256.0F;
+                        POLY_transform(world_x, face_y, world_z, &pp[2]);
+
+                        if (do_light) {
+                            if ((z + 1) >> 2 != pz || (x >> 2) != px) {
+                                px = x >> 2;
+                                pz = (z + 1) >> 2;
+
+                                ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                                ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                                square = NIGHT_cache[px][pz];
+                                ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                                ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+                                if (!square)
+                                    return;
+                                nq = &NIGHT_square[square];
+                            }
+
+                            NIGHT_get_d3d_colour(
+                                nq->colour[(x & 3) + ((z + 1) & 3) * PAP_BLOCKS],
+                                &(pp[2].colour),
+                                &(pp[2].specular));
+                            pp[2].colour |= fade << 24;
+                        } else {
+                            pp[2].colour = 0x7f7f7f | (fade << 24);
+                            pp[2].specular = 0xff000000;
+                        }
+
+                        world_x = (x + 1) * 256.0F;
+                        world_z = (z + 1) * 256.0F;
+                        POLY_transform(world_x, face_y, world_z, &pp[3]);
+
+                        if (do_light) {
+                            if ((x + 1) >> 2 != px || (z + 1) >> 2 != pz) {
+                                px = (x + 1) >> 2;
+                                pz = (z + 1) >> 2;
+
+                                ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                                ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                                square = NIGHT_cache[px][pz];
+                                if (!square)
+                                    return;
+                                ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                                ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+                                nq = &NIGHT_square[square];
+                            }
+
+                            NIGHT_get_d3d_colour(
+                                nq->colour[((x + 1) & 3) + ((z + 1) & 3) * PAP_BLOCKS],
+                                &(pp[3].colour),
+                                &(pp[3].specular));
+                            pp[3].colour |= fade << 24;
+                        } else {
+                            pp[3].colour = 0x7f7f7f | (fade << 24);
+                            pp[3].specular = 0xff000000;
+                        }
+
+                        if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid() && pp[3].MaybeValid()) {
+                            pp[0].colour = col;
+                            pp[1].colour = col;
+                            pp[2].colour = col;
+                            pp[3].colour = col;
+                            page = inside_tex[floor_type][room_id - 1] + START_PAGE_FOR_FLOOR * 64; // temp
+                            POLY_add_quad(quad, page, UC_FALSE);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

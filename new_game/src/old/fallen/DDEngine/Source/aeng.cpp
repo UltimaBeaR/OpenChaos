@@ -133,10 +133,9 @@
 
 // #ifdef DEBUG
 
-void AENG_draw_far_facets(void);
-void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out);
-void AENG_get_rid_of_unused_dfcache_lighting(SLONG splitscreen);
-void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade);
+// Forward declarations for AENG_draw_far_facets, AENG_draw_box_around_recessed_door,
+// AENG_get_rid_of_unused_dfcache_lighting, AENG_draw_inside_floor removed:
+// all now declared in aeng.h (reached via aeng_globals.h).
 
 UBYTE aeng_draw_cloud_flag = 1;
 UWORD light_inside = 0;
@@ -1652,11 +1651,9 @@ float AENG_project_fadeout_z;
 
 #endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 155) [chunk 1]
 
-// Forward declarations for private helpers defined later in this file.
-void AENG_draw_far_facets(void);
-void AENG_draw_box_around_recessed_door(struct DFacet* df, SLONG inside_out);
-void AENG_get_rid_of_unused_dfcache_lighting(SLONG splitscreen);
-void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade);
+// Forward declarations for private helpers are now in aeng.h (reached via aeng_globals.h).
+// AENG_draw_far_facets, AENG_draw_box_around_recessed_door,
+// AENG_get_rid_of_unused_dfcache_lighting, AENG_draw_inside_floor.
 
 // Macros and local data needed by remaining chunks in this file (moved to new/aeng.cpp above).
 #define POLY_set_local_rotation_none() {}
@@ -9751,6 +9748,7 @@ SLONG AENG_lock()
 
 #endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 160) [chunk 5a: AENG_draw_far_facets..AENG_lock]
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 161) [chunk 5b: unlock/flip/blit, editor debug lines, raycast, light/waypoint/trigger draw, viewport, AENG_draw, detail levels, recessed door box, dfcache prune, indoor floor]
 void AENG_unlock()
 {
     the_display.screen_unlock();
@@ -11314,3 +11312,4 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
         }
     }
 }
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 161) [chunk 5b]

@@ -83759,6 +83759,266 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_transparent_warehouses",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_transparent_warehouses",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_drawing_a_warehouse",
+      "file": "new/engine/graphics/pipeline/aeng_globals.h",
+      "orig_name": "AENG_drawing_a_warehouse",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_unlock",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_unlock",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_flip",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_flip",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_blit",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_blit",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_e_draw_3d_line",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_e_draw_3d_line",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_e_draw_3d_line_dir",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_e_draw_3d_line_dir",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_e_draw_3d_line_col",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_e_draw_3d_line_col",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_e_draw_3d_line_col_sorted",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_e_draw_3d_line_col_sorted",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_e_draw_3d_mapwho",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_e_draw_3d_mapwho",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_e_draw_3d_mapwho_y",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_e_draw_3d_mapwho_y",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_demo_attract",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_demo_attract",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_RAYTRACE_ACCURACY",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_RAYTRACE_ACCURACY",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_raytraced_position",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_raytraced_position",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_light_draw",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_light_draw",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_world_text",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_world_text",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_waypoint_draw",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_waypoint_draw",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_rad_trigger_draw",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_rad_trigger_draw",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_groundsquare_draw",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_groundsquare_draw",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_clear_viewport",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_clear_viewport",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_read_detail_levels",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_read_detail_levels",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_DOOR_LENGTH",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "MAX_DOOR_LENGTH",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_box_around_recessed_door",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_box_around_recessed_door",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_get_rid_of_unused_dfcache_lighting",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_get_rid_of_unused_dfcache_lighting",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "AENG_draw_inside_floor",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "AENG_draw_inside_floor",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
