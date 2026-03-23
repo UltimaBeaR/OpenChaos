@@ -163,7 +163,7 @@ STATUS: BLOCKED
 ### При SUCCESS:
 ```bash
 git add new_game/src/ new_game_devlog/ new_game_planning/
-git commit -m "stage 4 - iteration (auto commit by ai)"
+git commit -m "stage 4 - 4.0 final stage iteration (auto commit by ai)"
 ```
 Затем сразу запускает следующий субагент.
 
