@@ -76,6 +76,17 @@ void AENG_set_camera_radians(
     float pitch,
     float roll);
 
+// uc_orig: AENG_set_camera_radians (fallen/DDEngine/Headers/aeng.h)
+// Overload with explicit splitscreen mode (POLY_SPLITSCREEN_*).
+void AENG_set_camera_radians(
+    SLONG world_x,
+    SLONG world_y,
+    SLONG world_z,
+    float yaw,
+    float pitch,
+    float roll,
+    SLONG splitscreen);
+
 // uc_orig: AENG_set_draw_distance (fallen/DDEngine/Headers/aeng.h)
 void AENG_set_draw_distance(SLONG dist);
 

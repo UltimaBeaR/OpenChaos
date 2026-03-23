@@ -1,5 +1,18 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 155 — aeng.cpp chunk 1 (cloud system, init/fini, gamut, camera, lighting cache) (2026-03-23)
+
+- aeng.cpp — крупнейший оставшийся файл (11270 строк). Chunk 1 = строки 123–1648.
+- `AENG_cone`: в оригинале анонимная struct; дала имя `AENG_ConePoint` для внешней линковки из old/aeng.cpp.
+- `StoreLine`, `Lines`, `next_line`, `AENG_cone` перенесены в `aeng_globals` (rule: все глобалы в _globals).
+- Ревью (CHECK B) выявило, что `Lines`, `next_line`, `AENG_cone` изначально остались в `aeng.cpp` — исправлено.
+- `apply_cloud` было `inline` — убрал `inline` (poly.h объявляет не-inline; иначе символ не эмитируется).
+- В old/aeng.cpp после `#endif` переопределены все нужные макросы и форварды; `struct AENG_ConePoint` убрана — теперь берётся из `aeng_globals.h`.
+- `AENG_set_camera_radians` — добавлен 7-параметровый overload (splitscreen) в aeng.h, реализован в aeng.cpp.
+- `AENG_dx_prim_points`: `building.h` (needed for RMAX_PRIM_POINTS) даёт cascade типов; заменил на `#define RMAX_PRIM_POINTS 65000` прямо в globals.cpp.
+
+---
+
 ## Итерация 154 — outro: os.cpp (весь платформенный слой, 2837 строк) (2026-03-23)
 
 - Весь файл перенесён единым куском (не двумя чанками) — разбивка невозможна: chunk 2 использовал `OS_frame`, `OS_Texture`, `OS_pipeline_method_mul` из chunk 1.

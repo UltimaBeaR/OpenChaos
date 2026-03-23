@@ -243,6 +243,8 @@ set(SOURCES_NEW
 
 set(SOURCES_DDENGINE
     src/old/fallen/DDEngine/Source/aeng.cpp
+    src/new/engine/graphics/pipeline/aeng.cpp
+    src/new/engine/graphics/pipeline/aeng_globals.cpp
     src/old/fallen/DDEngine/Source/drawxtra.cpp
     src/old/fallen/DDEngine/Source/facet.cpp
     src/new/engine/animation/figure.cpp

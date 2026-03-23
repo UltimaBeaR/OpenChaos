@@ -119,6 +119,9 @@
 
 #include "polypage.h"
 #include "DCLowLevel.h"
+#include "engine/graphics/pipeline/aeng_globals.h"
+
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 155) [chunk 1: cloud system, init/fini, world lines, gamut, camera, lighting cache]
 
 #define POLY_set_local_rotation_none() \
     {                                  \
@@ -1646,6 +1649,31 @@ float AENG_project_fadeout_x;
 float AENG_project_fadeout_z;
 
 #define SHADOW_Z_BIAS_BODGE 0.0001f
+
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 155) [chunk 1]
+
+// Forward declarations for private helpers defined later in this file.
+void AENG_draw_far_facets(void);
+void AENG_draw_box_around_recessed_door(struct DFacet* df, SLONG inside_out);
+void AENG_get_rid_of_unused_dfcache_lighting(SLONG splitscreen);
+void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade);
+
+// Macros and local data needed by remaining chunks in this file (moved to new/aeng.cpp above).
+#define POLY_set_local_rotation_none() {}
+#define AENG_MAX_BBOXES 8
+#define AENG_BBOX_PUSH_IN 16
+#define AENG_BBOX_PUSH_OUT 4
+#define ALT_SHIFT (3)
+#define AENG_DRAW_DIST (CurDrawDistance >> 8)
+#define AENG_DRAW_DIST_PRECISE (CurDrawDistance)
+#define AENG_DRAW_PEOPLE_DIST (CurDrawDistance + 128)
+#define AENG_LENS (AENG_lens)
+#define SHADOW_Z_BIAS_BODGE 0.0001f
+#define MIN_CLOUD 48
+#define SWAP_FRAME(a, b) { COMP_Frame* spare; spare = (a); (a) = (b); (b) = spare; }
+#define MAX_FPM_ALPHA 160
+
+// AENG_cone and AENG_ConePoint are declared in aeng_globals.h (iteration 155).
 
 void AENG_add_projected_shadow_poly(SMAP_Link* sl)
 {
