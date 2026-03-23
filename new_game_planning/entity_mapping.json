@@ -103179,6 +103179,656 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "M31",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "M31",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "M33",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "M33",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Camera",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "Camera",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Engine",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "Engine",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SVECTOR_F",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "SVECTOR_F",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Coord",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "Coord",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DDEnginePoint",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "DDEnginePoint",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EnginePointF",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EnginePointF",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "the_engine",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "the_engine",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "current_vertex",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "current_vertex",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENGINE_multiply_colour",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "ENGINE_multiply_colour",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "approx_vector_length",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "approx_vector_length",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "vector_normalisation",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "vector_normalisation",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "init_M33",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "init_M33",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "rotate_on_x",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "rotate_on_x",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "rotate_on_y",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "rotate_on_y",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "rotate_on_z",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "rotate_on_z",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "angle_vector",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "angle_vector",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "roll_vector",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "roll_vector",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "tilt_vector",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "tilt_vector",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_X",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_X",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_Y",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_Y",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_Z",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_Z",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_OFF_LEFT",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_OFF_LEFT",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_OFF_RIGHT",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_OFF_RIGHT",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_FAR_OUT",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_FAR_OUT",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_BEHIND_YOU",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_BEHIND_YOU",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_VERTICES",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "MAX_VERTICES",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "TEXTURE_MUL",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "TEXTURE_MUL",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_Z",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "MAX_Z",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MIN_Z",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "MIN_Z",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "transform_point",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "transform_point",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "set_camera",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "set_camera",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "render_buckets",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "render_buckets",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "do_map_who",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "do_map_who",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "GamutElement",
+      "file": "engine/lighting/gamut.h",
+      "orig_name": "GamutElement",
+      "orig_file": "fallen/DDEngine/Headers/Gamut.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_GAMUT_RADIUS",
+      "file": "engine/lighting/gamut.h",
+      "orig_name": "MAX_GAMUT_RADIUS",
+      "orig_file": "fallen/DDEngine/Headers/Gamut.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "gamut_ele_pool",
+      "file": "engine/lighting/gamut.h",
+      "orig_name": "gamut_ele_pool",
+      "orig_file": "fallen/DDEngine/Source/Gamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "gamut_ele_ptr",
+      "file": "engine/lighting/gamut.h",
+      "orig_name": "gamut_ele_ptr",
+      "orig_file": "fallen/DDEngine/Source/Gamut.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "build_gamut_table",
+      "file": "engine/lighting/gamut.h",
+      "orig_name": "build_gamut_table",
+      "orig_file": "fallen/DDEngine/Source/Gamut.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "draw_gamut",
+      "file": "engine/lighting/gamut.h",
+      "orig_name": "draw_gamut",
+      "orig_file": "fallen/DDEngine/Source/Gamut.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SET_M31",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "SET_M31",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VECTOR_LENGTH_SQUARED",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "VECTOR_LENGTH_SQUARED",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VECTOR_LENGTH",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "VECTOR_LENGTH",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DOT_PRODUCT",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "DOT_PRODUCT",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CROSS_PRODUCT",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "CROSS_PRODUCT",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_XX",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_XX",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_YX",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_YX",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_ZX",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_ZX",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_XY",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_XY",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_YY",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_YY",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_ZY",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_ZY",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_XZ",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_XZ",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_YZ",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_YZ",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "UV_ZZ",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "UV_ZZ",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_OFF_TOP",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_OFF_TOP",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_OFF_BOTTOM",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_OFF_BOTTOM",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_TRANSLATED",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_TRANSLATED",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_TOO_BIG",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_TOO_BIG",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_CLIPFLAGS",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_CLIPFLAGS",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EF_CLIPZFLAGS",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "EF_CLIPZFLAGS",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SHADE_MUL",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "SHADE_MUL",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ELE_SIZE_F",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "ELE_SIZE_F",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ELE_SHIFT_F",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "ELE_SHIFT_F",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SCALE_SZ",
+      "file": "engine/graphics/pipeline/engine_types.h",
+      "orig_name": "SCALE_SZ",
+      "orig_file": "fallen/DDEngine/Headers/Engine.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

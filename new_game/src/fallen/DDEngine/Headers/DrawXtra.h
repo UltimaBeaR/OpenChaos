@@ -1,17 +1,8 @@
-//
-// DrawXtra.h
-// Matthew Rosenfeld	12 October 1998
-//
-// Redirect header: all entities migrated to src/new/ (iteration 135-136).
-//
+// DrawXtra.h — redirect stub. All entities migrated to new structure in iteration 135-136.
+// No remaining consumers (grenade.cpp, vehicle.cpp, plat.cpp updated in iteration 181).
 
 #ifndef FALLEN_DDENGINE_HEADERS_DRAWXTRA_H
 #define FALLEN_DDENGINE_HEADERS_DRAWXTRA_H
-
-#include "MFStdLib.h"
-#include "game.h"
-#include "thing.h"
-#include "ribbon.h"
 
 // Migrated to new/engine/graphics/geometry/bloom.h
 #include "engine/graphics/geometry/bloom.h"
@@ -29,17 +20,13 @@
 #include "effects/ribbon.h"
 // Migrated to new/engine/graphics/geometry/sprite.h
 #include "engine/graphics/geometry/sprite.h"
-// Migrated to new/actors/items/special.h (DRAWXTRA_Special)
+// Migrated to new/actors/items/special.h
 #include "actors/items/special.h"
-// Migrated to new/actors/characters/person.h (DRAWXTRA_MIB_destruct)
+// Migrated to new/actors/characters/person.h
 #include "actors/characters/person.h"
-// Migrated to new/effects/glow.h (DRAWXTRA_final_glow)
+// Migrated to new/effects/glow.h
 #include "effects/glow.h"
-
-// Migrated to new/actors/animals/animal.h (ANIMAL_draw)
+// Migrated to new/actors/animals/animal.h
 #include "actors/animals/animal.h"
-
-// Pyro sprite throttle functions — migrated to new/effects/pyro.h
-// (declared there via IWouldLikeSomePyroSpritesHowManyCanIHave, Pyros_EndOfFrameMarker)
 
 #endif // FALLEN_DDENGINE_HEADERS_DRAWXTRA_H

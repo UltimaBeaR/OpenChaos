@@ -10,7 +10,7 @@
 #include "psystem.h"
 #include "panel.h"
 #include "poly.h"
-#include "DrawXtra.h"
+#include "engine/graphics/geometry/bloom.h" // BLOOM_draw, BLOOM_BEAM, BLOOM_LENSFLARE
 
 #include "world/environment/prim.h"    // get_prim_info, slide_along_prim
 #include "world/environment/plat.h"

@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 181 — DDEngine/Headers/Engine.h + Gamut.h → engine_types.h + gamut.h; DrawXtra.h зачищен (2026-03-23)
+
+- `Engine.h` преобразован в redirect; весь контент перенесён в `engine/graphics/pipeline/engine_types.h` (M31/M33/Camera/Engine/SVECTOR_F/DDEnginePoint/EnginePointF + inline math + EF_*/MAX_VERTICES + transform_point/set_camera/render_buckets/do_map_who).
+- `Gamut.h` преобразован в redirect; GamutElement + build/draw_gamut → `engine/lighting/gamut.h`.
+- `DrawXtra.h` зачищен от legacy includes (MFStdLib.h, game.h, thing.h, ribbon.h были лишними в redirect-заглушке).
+- `interfac.cpp`: убран `Engine.h // Temporary:` — SIN/COS/QDIST2 приходят транзитивно через MFStdLib→StdMaths.
+- `grenade.cpp`: заменён `DrawXtra.h` на `aeng.h` + `psystem.h` (PFLAG_* шли транзитивно).
+- `vehicle.cpp`: убран `DrawXtra.h` (bloom.h уже был явно включён ниже).
+- `plat.cpp`: заменён `DrawXtra.h` на `bloom.h`.
+- Temporary: 445 → 443.
+
 ## Итерация 180 — fallen/Headers/prim.h + fallen/Headers/building.h → prim_types.h + building_types.h (2026-03-23)
 
 - Создан `world/environment/prim_types.h`: все константы и структуры из `Prim.h` (FACE_FLAG_*, PRIM_OBJ_*, PRIM_COLLIDE_*, PRIM_SHADOW_*, ANIM_PRIM_TYPE_*, TEXTURE_PAGE_*, RMAX/MAX_PRIM_*, сортировочные макросы, PrimPoint/PrimFace3/4/PSX/PrimObject/PrimInfo и т.д.) + структуры из `building.h` (OldPrimPoint, PrimNormal, RoofFace4, PrimMultiObject).

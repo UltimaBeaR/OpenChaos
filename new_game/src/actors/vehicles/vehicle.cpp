@@ -26,7 +26,6 @@
 #include "world/map/ob_globals.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
-#include "fallen/DDEngine/Headers/DrawXtra.h"
 #include "engine/graphics/geometry/bloom.h"
 #include "fallen/DDEngine/Headers/aeng.h"
 #include "fallen/DDEngine/Headers/mesh.h"

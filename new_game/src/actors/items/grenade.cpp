@@ -7,8 +7,9 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "mesh.h"                    // Temporary: MESH_draw_poly
 #include "actors/core/statedef.h"
-#include "DrawXtra.h"                // Temporary: AENG_world_line_nondebug
+#include "engine/graphics/pipeline/aeng.h"   // AENG_world_line_nondebug
 #include "engine/graphics/geometry/bloom.h"
+#include "engine/effects/psystem.h"           // PFLAG_* particle flags
 #include "actors/items/grenade.h"
 #include "actors/items/grenade_globals.h"
 

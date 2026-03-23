@@ -37,7 +37,7 @@
 #include "engine/physics/collide.h"
 #include "ai/combat.h"
 #include "fallen/DDLibrary/Headers/DDLib.h" // Temporary: DIJOYSTATE
-#include "fallen/DDEngine/Headers/Engine.h" // Temporary: SIN, COS, QDIST2, etc.
+// Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
 #include "ui/camera/cam.h"
 #include "ui/menus/cnet.h"

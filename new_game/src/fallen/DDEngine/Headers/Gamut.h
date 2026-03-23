@@ -1,30 +1,9 @@
-// Gamut.h
-// Guy Simmons, 4th November 1997.
+// Gamut.h — redirect stub. All entities migrated to:
+//   src/engine/lighting/gamut.h
 
 #ifndef FALLEN_DDENGINE_HEADERS_GAMUT_H
 #define FALLEN_DDENGINE_HEADERS_GAMUT_H
 
-//---------------------------------------------------------------
-
-#define MAX_GAMUT_RADIUS (24)
-
-//---------------------------------------------------------------
-
-typedef struct
-{
-    SBYTE DX,
-        DZ;
-    SWORD Angle;
-} GamutElement;
-
-//---------------------------------------------------------------
-
-extern GamutElement gamut_ele_pool[],
-    *gamut_ele_ptr[];
-
-void build_gamut_table(void);
-void draw_gamut(SLONG x, SLONG y);
-
-//---------------------------------------------------------------
+#include "engine/lighting/gamut.h"
 
 #endif // FALLEN_DDENGINE_HEADERS_GAMUT_H
