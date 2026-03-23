@@ -167,14 +167,111 @@ void FIGURE_draw_prim_tween(
     SLONG part_number = 0xffffffff,
     ULONG colour_and = 0xffffffff);
 
-// --- The following will be added in future chunks as they are migrated ---
-// FIGURE_draw_prim_tween_warped          (chunk 3)
-// FIGURE_draw_hierarchical_prim_recurse  (chunk 3)
-// FIGURE_draw                            (chunk 4)
-// ANIM_obj_draw                          (chunk 4)
-// ANIM_obj_draw_warped                   (chunk 4)
-// FIGURE_draw_prim_tween_reflection      (chunk 4)
-// FIGURE_draw_reflection                 (chunk 5)
-// FIGURE_draw_prim_tween_person_only     (chunk 5)
+// Variant of FIGURE_draw_prim_tween that applies a sinusoidal Z-dependent position warp.
+// Used for cloaking/teleport visual distortion effects.
+// uc_orig: FIGURE_draw_prim_tween_warped (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_prim_tween_warped(
+    SLONG prim,
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG tween,
+    struct GameKeyFrameElement* anim_info,
+    struct GameKeyFrameElement* anim_info_next,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    ULONG colour,
+    ULONG specular,
+    Thing* p_thing);
+
+// LCG pseudo-random number generator for per-character clothing colour variation.
+// Bug preserved from original: local_set_seed() does not actually set local_seed.
+// uc_orig: mandom (fallen/DDEngine/Source/figure.cpp)
+SLONG mandom(void);
+
+// Does not actually set local_seed (bug preserved from original).
+// uc_orig: local_set_seed (fallen/DDEngine/Source/figure.cpp)
+void local_set_seed(SLONG seed);
+
+// Optimised hierarchical 15-body-part character renderer using D3D MultiMatrix extension.
+// Batches all 15 body part transforms, then issues a single DrawIndPrimMM call.
+// Falls back to FIGURE_draw_hierarchical_prim_recurse_individual_cull on partial visibility.
+// uc_orig: FIGURE_draw_hierarchical_prim_recurse (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person);
+
+// Slower fallback that culls individual body parts separately.
+// Called when not all 15 body parts pass the near-Z test together.
+// uc_orig: FIGURE_draw_hierarchical_prim_recurse_individual_cull (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person);
+
+// Computes a sort-Z adjustment for a character at (px, pz) based on nearby wall caps.
+// Only relevant for the software rendering depth-sort path.
+// uc_orig: get_sort_z_bodge (fallen/DDEngine/Source/figure.cpp)
+SLONG get_sort_z_bodge(SLONG px, SLONG pz);
+
+// Top-level entry point: renders one character Thing* for the current frame.
+// Dispatches to hierarchical (15-part D3D path) or flat loop depending on ElementCount.
+// uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw(Thing* p_thing);
+
+// Draws an animated non-character object using the DrawTween keyframe system.
+// Uses flat body-part loop (no hierarchical dispatch). Calls NIGHT_find() for lighting.
+// uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
+void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
+
+// Same as ANIM_obj_draw but applies sinusoidal warp to each body part vertex.
+// uc_orig: ANIM_obj_draw_warped (fallen/DDEngine/Source/figure.cpp)
+void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt);
+
+// Renders one body-part mesh into FIGURE_rpoint[] for the water reflection effect.
+// Mirrors and fades vertices relative to FIGURE_reflect_height.
+// uc_orig: FIGURE_draw_prim_tween_reflection (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_prim_tween_reflection(
+    SLONG prim,
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG tween,
+    struct GameKeyFrameElement* anim_info,
+    struct GameKeyFrameElement* anim_info_next,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    ULONG colour,
+    ULONG specular,
+    Thing* p_thing);
+
+// Top-level water reflection renderer: reflects all body parts about the given Y height.
+// uc_orig: FIGURE_draw_reflection (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_reflection(Thing* p_thing, SLONG height);
+
+// "Matrix-only" body-part step for the D3D MultiMatrix fast path.
+// Computes and stores the transform matrix + light vector for one body part without emitting geometry.
+// Returns UC_TRUE if the body part passes the near-Z cull, UC_FALSE if it should be skipped.
+// uc_orig: FIGURE_draw_prim_tween_person_only_just_set_matrix (fallen/DDEngine/Source/figure.cpp)
+bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
+    int iMatrixNum,
+    SLONG prim,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    SLONG recurse_level,
+    Thing* p_thing);
+
+// Full software-renderer fallback for one body part in person-only mode.
+// Transforms all vertices and submits quads/tris to the software rasteriser.
+// uc_orig: FIGURE_draw_prim_tween_person_only (fallen/DDEngine/Source/figure.cpp)
+void FIGURE_draw_prim_tween_person_only(
+    SLONG prim,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    SLONG recurse_level,
+    Thing* p_thing);
 
 #endif // ENGINE_ANIMATION_FIGURE_H

@@ -2218,8 +2218,1231 @@ no_muzzle_calcs:
     }
 }
 
-// Chunk 3+ (FIGURE_draw_prim_tween_warped, FIGURE_draw_hierarchical_prim_recurse,
-// part_type, mandom, local_set_seed, FIGURE_draw, ANIM_obj_draw, ANIM_obj_draw_warped,
-// FIGURE_draw_prim_tween_reflection, FIGURE_draw_reflection,
+// Temporary: needed for SPECIAL_GRENADE used in FIGURE_draw
+#include "fallen/Headers/Special.h"
+// Temporary: calc_sub_objects_position / calc_sub_objects_position_global
+#include "actors/core/interact.h"
+// Temporary: ControlFlag used in FIGURE_draw_reflection (chunk 4)
+#include "engine/input/keyboard_globals.h"
+// Temporary: body_part_children used in hierarchical draw
+#include "actors/core/hierarchy.h"
+
+// uc_orig: mandom (fallen/DDEngine/Source/figure.cpp)
+// LCG PRNG for per-character clothing colour randomisation.
+SLONG mandom(void)
+{
+    local_seed = local_seed * 123456789 + 314159265;
+    return (local_seed);
+}
+
+// uc_orig: local_set_seed (fallen/DDEngine/Source/figure.cpp)
+// Bug preserved from original: assigns seed to local (not to local_seed).
+void local_set_seed(SLONG seed)
+{
+    seed = local_seed;
+}
+
+// uc_orig: FIGURE_draw_prim_tween_warped (fallen/DDEngine/Source/figure.cpp)
+// Variant of FIGURE_draw_prim_tween with sinusoidal Z-dependent vertex warp.
+// Used for cloaking/teleport distortion effects.
+void FIGURE_draw_prim_tween_warped(
+    SLONG prim,
+    SLONG x,
+    SLONG y,
+    SLONG z,
+    SLONG tween,
+    struct GameKeyFrameElement* anim_info,
+    struct GameKeyFrameElement* anim_info_next,
+    struct Matrix33* rot_mat,
+    SLONG off_dx,
+    SLONG off_dy,
+    SLONG off_dz,
+    ULONG colour,
+    ULONG specular,
+    Thing* p_thing)
+{
+    SLONG i;
+    SLONG j;
+
+    SLONG sp;
+    SLONG ep;
+
+    SLONG p0;
+    SLONG p1;
+    SLONG p2;
+    SLONG p3;
+
+    ULONG red;
+    ULONG green;
+    ULONG blue;
+    ULONG r;
+    ULONG g;
+    ULONG b;
+    ULONG face_colour;
+
+    SLONG page;
+
+    Matrix31 offset;
+    Matrix33 mat2;
+    float local_mat[9];
+    float angle, sint, cost, tmpx, tmpz;
+
+    SVector temp;
+    SVector_F temp2;
+
+    PrimFace4* p_f4;
+    PrimFace3* p_f3;
+    PrimObject* p_obj;
+
+    POLY_Point* pp;
+    POLY_Point* ps;
+
+    POLY_Point* tri[3];
+    POLY_Point* quad[4];
+
+    red = (colour >> 16) & 0xff;
+    green = (colour >> 8) & 0xff;
+    blue = (colour >> 0) & 0xff;
+
+    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
+    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
+    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
+
+    offset.M[0] = anim_info->OffsetX + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween >> 8);
+    offset.M[1] = anim_info->OffsetY + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween >> 8);
+    offset.M[2] = anim_info->OffsetZ + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween >> 8);
+
+    matrix_transformZMY((struct Matrix31*)&temp, rot_mat, &offset);
+
+    SLONG character_scale = person_get_scale(p_thing);
+
+    temp.X = (temp.X * character_scale) / 256;
+    temp.Y = (temp.Y * character_scale) / 256;
+    temp.Z = (temp.Z * character_scale) / 256;
+
+    x += temp.X;
+    y += temp.Y;
+    z += temp.Z;
+
+    CMatrix33 m1, m2;
+    GetCMatrix(anim_info, &m1);
+    GetCMatrix(anim_info_next, &m2);
+
+    build_tween_matrix(&mat2, &m1, &m2, tween);
+    normalise_matrix(&mat2);
+
+    mat2.M[0][0] = (mat2.M[0][0] * character_scale) / 256;
+    mat2.M[0][1] = (mat2.M[0][1] * character_scale) / 256;
+    mat2.M[0][2] = (mat2.M[0][2] * character_scale) / 256;
+    mat2.M[1][0] = (mat2.M[1][0] * character_scale) / 256;
+    mat2.M[1][1] = (mat2.M[1][1] * character_scale) / 256;
+    mat2.M[1][2] = (mat2.M[1][2] * character_scale) / 256;
+    mat2.M[2][0] = (mat2.M[2][0] * character_scale) / 256;
+    mat2.M[2][1] = (mat2.M[2][1] * character_scale) / 256;
+    mat2.M[2][2] = (mat2.M[2][2] * character_scale) / 256;
+
+    float off_x;
+    float off_y;
+    float off_z;
+    float fmatrix[9];
+
+    off_x = float(x);
+    off_y = float(y);
+    off_z = float(z);
+
+    fmatrix[0] = float(rot_mat->M[0][0]) * (1.0F / 32768.0F);
+    fmatrix[1] = float(rot_mat->M[0][1]) * (1.0F / 32768.0F);
+    fmatrix[2] = float(rot_mat->M[0][2]) * (1.0F / 32768.0F);
+    fmatrix[3] = float(rot_mat->M[1][0]) * (1.0F / 32768.0F);
+    fmatrix[4] = float(rot_mat->M[1][1]) * (1.0F / 32768.0F);
+    fmatrix[5] = float(rot_mat->M[1][2]) * (1.0F / 32768.0F);
+    fmatrix[6] = float(rot_mat->M[2][0]) * (1.0F / 32768.0F);
+    fmatrix[7] = float(rot_mat->M[2][1]) * (1.0F / 32768.0F);
+    fmatrix[8] = float(rot_mat->M[2][2]) * (1.0F / 32768.0F);
+
+    local_mat[0] = float(mat2.M[0][0]) * (1.0F / 32768.0F);
+    local_mat[1] = float(mat2.M[0][1]) * (1.0F / 32768.0F);
+    local_mat[2] = float(mat2.M[0][2]) * (1.0F / 32768.0F);
+    local_mat[3] = float(mat2.M[1][0]) * (1.0F / 32768.0F);
+    local_mat[4] = float(mat2.M[1][1]) * (1.0F / 32768.0F);
+    local_mat[5] = float(mat2.M[1][2]) * (1.0F / 32768.0F);
+    local_mat[6] = float(mat2.M[2][0]) * (1.0F / 32768.0F);
+    local_mat[7] = float(mat2.M[2][1]) * (1.0F / 32768.0F);
+    local_mat[8] = float(mat2.M[2][2]) * (1.0F / 32768.0F);
+
+    POLY_set_local_rotation(
+        off_x,
+        off_y,
+        off_z,
+        fmatrix);
+
+    p_obj = &prim_objects[prim];
+
+    sp = p_obj->StartPoint;
+    ep = p_obj->EndPoint;
+
+    POLY_buffer_upto = 0;
+
+    for (i = sp; i < ep; i++) {
+        ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+
+        temp2 = AENG_dx_prim_points[i];
+
+        angle = (temp2.Z + offset.M[2]) * 2;
+        angle = angle * PI / 180;
+        sint = sin(angle);
+        cost = cos(angle);
+
+        tmpx = (temp2.X * cost) + (temp2.Z * sint);
+        tmpz = -(temp2.X * sint) + (temp2.Z * cost);
+        temp2.X = tmpx;
+        temp2.Z = tmpz;
+
+        MATRIX_MUL(local_mat, temp2.X, temp2.Y, temp2.Z);
+
+        /*
+            angle=(temp2.Z+offset.M[2])*2;
+            angle=angle*PI/180;
+            sint=sin(angle);
+            cost=cos(angle);
+
+            tmpx = (temp2.X*cost)+(temp2.Z*sint);
+            tmpz =-(temp2.X*sint)+(temp2.Z*cost);
+            temp2.X=tmpx; temp2.Z=tmpz;
+        */
+
+        pp = &POLY_buffer[POLY_buffer_upto++];
+
+        POLY_transform_using_local_rotation(temp2.X, temp2.Y, temp2.Z, pp);
+
+        pp->colour = colour;
+        pp->specular = specular;
+    }
+
+    for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
+        p_f4 = &prim_faces4[i];
+
+        p0 = p_f4->Points[0] - sp;
+        p1 = p_f4->Points[1] - sp;
+        p2 = p_f4->Points[2] - sp;
+        p3 = p_f4->Points[3] - sp;
+
+        ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
+
+        quad[0] = &POLY_buffer[p0];
+        quad[1] = &POLY_buffer[p1];
+        quad[2] = &POLY_buffer[p2];
+        quad[3] = &POLY_buffer[p3];
+
+        if (POLY_valid_quad(quad)) {
+            if (p_f4->DrawFlags & POLY_FLAG_TEXTURED) {
+                quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+                quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
+
+                quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
+                quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
+
+                quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
+                quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
+
+                quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
+                quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
+
+                page = p_f4->UV[0][0] & 0xc0;
+                page <<= 2;
+                page |= p_f4->TexturePage;
+                page += FACE_PAGE_OFFSET;
+
+                POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
+            } else {
+                r = ENGINE_palette[p_f4->Col2].red;
+                g = ENGINE_palette[p_f4->Col2].green;
+                b = ENGINE_palette[p_f4->Col2].blue;
+
+                r = r * red >> 8;
+                g = g * green >> 8;
+                b = b * blue >> 8;
+
+                face_colour = (r << 16) | (g << 8) | (b << 0);
+
+                quad[0]->colour = face_colour;
+                quad[1]->colour = face_colour;
+                quad[2]->colour = face_colour;
+                quad[3]->colour = face_colour;
+
+                POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
+
+                quad[0]->colour = colour;
+                quad[1]->colour = colour;
+                quad[2]->colour = colour;
+                quad[3]->colour = colour;
+            }
+        }
+    }
+
+    for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
+        p_f3 = &prim_faces3[i];
+
+        p0 = p_f3->Points[0] - sp;
+        p1 = p_f3->Points[1] - sp;
+        p2 = p_f3->Points[2] - sp;
+
+        ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+
+        tri[0] = &POLY_buffer[p0];
+        tri[1] = &POLY_buffer[p1];
+        tri[2] = &POLY_buffer[p2];
+
+        if (POLY_valid_triangle(tri)) {
+            if (p_f3->DrawFlags & POLY_FLAG_TEXTURED) {
+                tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+                tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
+
+                tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
+                tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
+
+                tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
+                tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
+
+                page = p_f3->UV[0][0] & 0xc0;
+                page <<= 2;
+                page |= p_f3->TexturePage;
+                page += FACE_PAGE_OFFSET;
+
+                POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
+            } else {
+                r = ENGINE_palette[p_f3->Col2].red;
+                g = ENGINE_palette[p_f3->Col2].green;
+                b = ENGINE_palette[p_f3->Col2].blue;
+
+                r = r * red >> 8;
+                g = g * green >> 8;
+                b = b * blue >> 8;
+
+                face_colour = (r << 16) | (g << 8) | (b << 0);
+
+                tri[0]->colour = face_colour;
+                tri[1]->colour = face_colour;
+                tri[2]->colour = face_colour;
+
+                POLY_add_triangle(tri, POLY_PAGE_COLOUR, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
+
+                tri[0]->colour = colour;
+                tri[1]->colour = colour;
+                tri[2]->colour = colour;
+            }
+        }
+    }
+}
+
+// uc_orig: FIGURE_draw_hierarchical_prim_recurse (fallen/DDEngine/Source/figure.cpp)
+// Optimised 15-body-part character renderer using D3D MultiMatrix batching.
+// First pass: builds D3D mesh (if not cached) via FIGURE_TPO_*.
+// Second pass: calls FIGURE_draw_prim_tween_person_only_just_set_matrix per part,
+// then issues one DrawIndPrimMM call. Falls back to individual-cull variant if
+// partial visibility is detected.
+void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
+{
+    SLONG recurse_level = 0;
+    SLONG dx, dy, dz;
+    UWORD f1, f2;
+    SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
+    struct Matrix33* rot_mat;
+
+    f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
+    f2 = p_person->Draw.Tweened->NextFrame->Flags;
+
+    dx = ((f1 & 0xe) << (28)) >> 21;
+    dx -= ((f2 & 0xe) << (28)) >> 21;
+
+    dy = ((f1 & 0xff00) << (16)) >> 16;
+    dy -= ((f2 & 0xff00) << (16)) >> 16;
+
+    dz = ((f1 & 0x70) << (25)) >> 21;
+    dz -= ((f1 & 0x70) << (25)) >> 21;
+
+    ASSERT(p_person->Class == CLASS_PERSON);
+
+    ASSERT(recurse_level == 0);
+    ASSERT(FIGURE_dhpr_rdata1[0].current_child_number == 0);
+
+    int iIndex = (int)(FIGURE_dhpr_data.bPersonType);
+    ASSERT(FIGURE_dhpr_data.bPersonType >= 0);
+    ASSERT(FIGURE_dhpr_data.bPersonType < PERSON_NUM_TYPES);
+    if (FIGURE_dhpr_data.bPersonType == PERSON_CIV) {
+        iIndex = (int)(FIGURE_dhpr_data.bPersonID & 0x1f) + PERSON_NUM_TYPES;
+    } else if (FIGURE_dhpr_data.bPersonType == PERSON_ROPER) {
+        ASSERT((FIGURE_dhpr_data.bPersonID >> 5) < NUM_ROPERS_THINGIES);
+        iIndex = (int)(FIGURE_dhpr_data.bPersonID >> 5) + PERSON_NUM_TYPES + 32;
+    }
+
+    structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1_0_copy = FIGURE_dhpr_rdata1[0];
+    structFIGURE_dhpr_data FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;
+
+    ASSERT(iIndex < MAX_NUMBER_D3D_PEOPLE);
+    ASSERT((PERSON_NUM_TYPES + 32 + NUM_ROPERS_THINGIES) <= MAX_NUMBER_D3D_PEOPLE);
+    TomsPrimObject* pPrimObj = &(D3DPeopleObj[iIndex]);
+    if (pPrimObj->wNumMaterials == 0) {
+        FIGURE_TPO_init_3d_object(pPrimObj);
+        int iTPOPartNumber = 0;
+
+        recurse_level = 0;
+        while (recurse_level >= 0) {
+            structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
+            int iPartNumber = pDHPR1->part_number;
+            if (pDHPR1->current_child_number == 0) {
+                SLONG body_part;
+
+                ASSERT(iPartNumber >= 0);
+                ASSERT(iPartNumber <= 14);
+
+                body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
+
+                SLONG prim = FIGURE_dhpr_data.start_object + body_part;
+
+                PrimObject* p_obj = &prim_objects[prim];
+                FIGURE_TPO_add_prim_to_current_object(prim, iTPOPartNumber);
+                iTPOPartNumber++;
+            }
+
+            if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
+                structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
+
+                pDHPR1Inc->current_child_number = 0;
+
+                ASSERT(iPartNumber >= 0);
+                ASSERT(iPartNumber <= 14);
+                pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
+
+                pDHPR1Inc->current_child_number = 0;
+
+                pDHPR1->current_child_number++;
+
+                recurse_level++;
+            } else {
+                recurse_level--;
+            }
+        }
+
+        FIGURE_TPO_finish_3d_object(pPrimObj, 1);
+
+        FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
+        FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;
+    }
+
+    int iTPOPartNumber = -1;
+    bool bWholePersonVisible = UC_TRUE;
+    bool bBitsOfPersonVisible = UC_FALSE;
+
+    recurse_level = 0;
+    while (recurse_level >= 0) {
+
+        structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
+        int iPartNumber = pDHPR1->part_number;
+
+        if (pDHPR1->current_child_number == 0) {
+            {
+                SLONG body_part;
+                SLONG id;
+
+                ASSERT(iPartNumber >= 0);
+                ASSERT(iPartNumber <= 14);
+
+                body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
+                rot_mat = FIGURE_dhpr_data.world_mat;
+
+                iTPOPartNumber++;
+                ASSERT(iTPOPartNumber < MAX_NUM_BODY_PARTS_AT_ONCE);
+                bool bVisible = FIGURE_draw_prim_tween_person_only_just_set_matrix(
+                    iTPOPartNumber,
+                    FIGURE_dhpr_data.start_object + body_part,
+                    rot_mat,
+                    FIGURE_dhpr_data.dx + dx,
+                    FIGURE_dhpr_data.dy + dy,
+                    FIGURE_dhpr_data.dz + dz,
+                    recurse_level,
+                    p_person);
+
+                bWholePersonVisible &= bVisible;
+                bBitsOfPersonVisible |= bVisible;
+
+                if (p_person->Genus.Person->PersonType != PERSON_ROPER)
+                    if ((id = (p_person->Draw.Tweened->PersonID >> 5))) {
+
+                        SLONG hand;
+                        if (id == 2)
+                            hand = SUB_OBJECT_RIGHT_HAND;
+                        else
+                            hand = SUB_OBJECT_LEFT_HAND;
+
+                        if (iPartNumber == hand) {
+                            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
+                                SLONG prim;
+                                bool bDrawMuzzleFlash = UC_FALSE;
+                                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
+                                switch (p_person->Draw.Tweened->PersonID >> 5) {
+                                case 1:
+                                    prim = 261;
+                                    bDrawMuzzleFlash = UC_TRUE;
+                                    break;
+
+                                case 3:
+                                    prim = 262;
+                                    bDrawMuzzleFlash = UC_TRUE;
+                                    break;
+
+                                case 5:
+                                    prim = 263;
+                                    bDrawMuzzleFlash = UC_TRUE;
+                                    break;
+
+                                default:
+                                    break;
+                                }
+
+                                if (bDrawMuzzleFlash) {
+                                    FIGURE_draw_prim_tween_person_only(
+                                        prim,
+                                        FIGURE_dhpr_data.world_mat,
+                                        FIGURE_dhpr_data.dx + dx,
+                                        FIGURE_dhpr_data.dy + dy,
+                                        FIGURE_dhpr_data.dz + dz,
+                                        recurse_level,
+                                        p_person);
+                                }
+                            }
+
+                            FIGURE_draw_prim_tween_person_only(
+                                255 + (p_person->Draw.Tweened->PersonID >> 5),
+                                FIGURE_dhpr_data.world_mat,
+                                FIGURE_dhpr_data.dx + dx,
+                                FIGURE_dhpr_data.dy + dy,
+                                FIGURE_dhpr_data.dz + dz,
+                                recurse_level,
+                                p_person);
+                        }
+                    }
+            }
+        }
+
+        if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
+
+            structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
+
+            pDHPR1Inc->current_child_number = 0;
+
+            pDHPR1->pos.M[0] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetX;
+            pDHPR1->pos.M[1] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetY;
+            pDHPR1->pos.M[2] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetZ;
+
+            ASSERT(iPartNumber >= 0);
+            ASSERT(iPartNumber <= 14);
+            pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
+            CMatrix33 tmat;
+            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat);
+            pDHPR1Inc->parent_base_mat = &tmat;
+            pDHPR1Inc->parent_base_pos = &(pDHPR1->pos);
+            pDHPR1Inc->parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
+            pDHPR1Inc->parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
+            pDHPR1Inc->current_child_number = 0;
+
+            pDHPR1->current_child_number++;
+            recurse_level++;
+        } else {
+            recurse_level--;
+        }
+    };
+
+    if (!bWholePersonVisible) {
+        if (bBitsOfPersonVisible) {
+            FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
+            FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;
+            FIGURE_draw_hierarchical_prim_recurse_individual_cull(p_person);
+        }
+        return;
+    }
+
+    iTPOPartNumber++;
+    ASSERT(iTPOPartNumber <= MAX_NUM_BODY_PARTS_AT_ONCE);
+
+    SLONG face_colour;
+
+    SLONG page;
+
+    Matrix31 offset;
+    Matrix33 mat2;
+    Matrix33 mat_final;
+
+    ULONG qc0;
+    ULONG qc1;
+    ULONG qc2;
+    ULONG qc3;
+
+    SVector temp;
+
+    PrimFace4* p_f4;
+    PrimFace3* p_f3;
+    PrimObject* p_obj;
+    NIGHT_Found* nf;
+
+    POLY_Point* pp;
+    POLY_Point* ps;
+
+    POLY_Point* tri[3];
+    POLY_Point* quad[4];
+    SLONG tex_page_offset;
+
+    tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
+
+    ASSERT(MM_bLightTableAlreadySetUp);
+
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
+
+    FIGURE_touch_LRU_of_object(pPrimObj);
+
+    ASSERT(pPrimObj->pD3DVertices != NULL);
+    ASSERT(pPrimObj->pMaterials != NULL);
+    ASSERT(pPrimObj->pwListIndices != NULL);
+    ASSERT(pPrimObj->pwStripIndices != NULL);
+    ASSERT(pPrimObj->wNumMaterials != 0);
+
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+
+    D3DMULTIMATRIX d3dmm;
+    d3dmm.lpd3dMatrices = MMBodyParts_pMatrix;
+    d3dmm.lpvLightDirs = MMBodyParts_pNormal;
+
+    D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
+    UWORD* pwListIndices = pPrimObj->pwListIndices;
+    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
+    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
+
+        UWORD wPage = pMat->wTexturePage;
+        UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
+
+        if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
+            wRealPage = jacket_lookup[wRealPage][GET_SKILL(p_person) >> 2];
+            wRealPage += FACE_PAGE_OFFSET;
+        } else if (wPage & TEXTURE_PAGE_FLAG_OFFSET) {
+            if (tex_page_offset == 0) {
+                wRealPage += FACE_PAGE_OFFSET;
+            } else {
+                wRealPage = alt_texture[wRealPage - (10 * 64)] + tex_page_offset - 1;
+            }
+        }
+
+        extern D3DMATRIX g_matWorld;
+
+        PolyPage* pa = &(POLY_Page[wRealPage]);
+        {
+            if (wPage & TEXTURE_PAGE_FLAG_TINT) {
+                d3dmm.lpLightTable = MM_pcFadeTableTint;
+            } else {
+                d3dmm.lpLightTable = MM_pcFadeTable;
+            }
+            d3dmm.lpvVertices = pVertex;
+
+            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
+            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
+            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+            pa->RS.SetChanged();
+
+            HRESULT hres;
+
+            {
+                hres = DrawIndPrimMM(
+                    (the_display.lp_D3D_Device),
+                    D3DFVF_VERTEX,
+                    &d3dmm,
+                    pMat->wNumVertices,
+                    pwStripIndices,
+                    pMat->wNumStripIndices);
+            }
+        }
+
+        pVertex += pMat->wNumVertices;
+        pwListIndices += pMat->wNumListIndices;
+        pwStripIndices += pMat->wNumStripIndices;
+
+        pMat++;
+    }
+
+    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+
+    ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
+
+    ASSERT(MM_bLightTableAlreadySetUp);
+}
+
+// uc_orig: FIGURE_draw_hierarchical_prim_recurse_individual_cull (fallen/DDEngine/Source/figure.cpp)
+// Slower fallback that culls individual body parts separately (when the fast-path full-person
+// visibility test fails). Calls FIGURE_draw_prim_tween_person_only per body part.
+void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
+{
+    SLONG recurse_level = 0;
+    SLONG dx, dy, dz;
+    UWORD f1, f2;
+    SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
+    struct Matrix33* rot_mat;
+
+    f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
+    f2 = p_person->Draw.Tweened->NextFrame->Flags;
+
+    dx = ((f1 & 0xe) << (28)) >> 21;
+    dx -= ((f2 & 0xe) << (28)) >> 21;
+
+    dy = ((f1 & 0xff00) << (16)) >> 16;
+    dy -= ((f2 & 0xff00) << (16)) >> 16;
+
+    dz = ((f1 & 0x70) << (25)) >> 21;
+    dz -= ((f1 & 0x70) << (25)) >> 21;
+
+    ASSERT(p_person->Class == CLASS_PERSON);
+
+    recurse_level = 0;
+    while (recurse_level >= 0) {
+
+        structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
+        int iPartNumber = pDHPR1->part_number;
+
+        if (pDHPR1->current_child_number == 0) {
+            {
+                SLONG body_part;
+                SLONG id;
+
+                ASSERT(iPartNumber >= 0);
+                ASSERT(iPartNumber <= 14);
+
+                body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
+                rot_mat = FIGURE_dhpr_data.world_mat;
+
+                FIGURE_draw_prim_tween_person_only(
+                    FIGURE_dhpr_data.start_object + body_part,
+                    rot_mat,
+                    FIGURE_dhpr_data.dx + dx,
+                    FIGURE_dhpr_data.dy + dy,
+                    FIGURE_dhpr_data.dz + dz,
+                    recurse_level,
+                    p_person);
+
+                if (p_person->Genus.Person->PersonType != PERSON_ROPER)
+                    if ((id = (p_person->Draw.Tweened->PersonID >> 5))) {
+
+                        SLONG hand;
+                        if (id == 2)
+                            hand = SUB_OBJECT_RIGHT_HAND;
+                        else
+                            hand = SUB_OBJECT_LEFT_HAND;
+
+                        if (iPartNumber == hand) {
+                            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
+                                SLONG prim;
+                                bool bDrawMuzzleFlash = UC_FALSE;
+                                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
+                                switch (p_person->Draw.Tweened->PersonID >> 5) {
+                                case 1:
+                                    prim = 261;
+                                    bDrawMuzzleFlash = UC_TRUE;
+                                    break;
+
+                                case 3:
+                                    prim = 262;
+                                    bDrawMuzzleFlash = UC_TRUE;
+                                    break;
+
+                                case 5:
+                                    prim = 263;
+                                    bDrawMuzzleFlash = UC_TRUE;
+                                    break;
+
+                                default:
+                                    break;
+                                }
+
+                                if (bDrawMuzzleFlash) {
+                                    FIGURE_draw_prim_tween_person_only(
+                                        prim,
+                                        FIGURE_dhpr_data.world_mat,
+                                        FIGURE_dhpr_data.dx + dx,
+                                        FIGURE_dhpr_data.dy + dy,
+                                        FIGURE_dhpr_data.dz + dz,
+                                        recurse_level,
+                                        p_person);
+                                }
+                            }
+
+                            FIGURE_draw_prim_tween_person_only(
+                                255 + (p_person->Draw.Tweened->PersonID >> 5),
+                                FIGURE_dhpr_data.world_mat,
+                                FIGURE_dhpr_data.dx + dx,
+                                FIGURE_dhpr_data.dy + dy,
+                                FIGURE_dhpr_data.dz + dz,
+                                recurse_level,
+                                p_person);
+                        }
+                    }
+            }
+        }
+
+        if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
+
+            structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
+
+            pDHPR1Inc->current_child_number = 0;
+
+            pDHPR1->pos.M[0] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetX;
+            pDHPR1->pos.M[1] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetY;
+            pDHPR1->pos.M[2] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetZ;
+
+            ASSERT(iPartNumber >= 0);
+            ASSERT(iPartNumber <= 14);
+            pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
+            CMatrix33 tmat;
+            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat);
+            pDHPR1Inc->parent_base_mat = &tmat;
+            pDHPR1Inc->parent_base_pos = &(pDHPR1->pos);
+            pDHPR1Inc->parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
+            pDHPR1Inc->parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
+            pDHPR1Inc->current_child_number = 0;
+
+            pDHPR1->current_child_number++;
+            recurse_level++;
+        } else {
+            recurse_level--;
+        }
+    };
+}
+
+// uc_orig: get_sort_z_bodge (fallen/DDEngine/Source/figure.cpp)
+// Computes a sort-Z depth hint for a character based on nearby wall caps.
+// Returns 100 if the character is beside an impassable wall, 0 otherwise.
+// Only relevant for the software renderer depth-sort path.
+SLONG get_sort_z_bodge(SLONG px, SLONG pz)
+{
+    SLONG dx, dz;
+    UBYTE cap;
+    dx = px - POLY_cam_x;
+    dz = pz - POLY_cam_z;
+
+    if (abs(dz) < abs(dx)) {
+        if (dx < 0) {
+            if ((px & 0xff) > 128) {
+                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_XL);
+                if (!(cap & MAV_CAPS_GOTO)) {
+                    return (100);
+                }
+            }
+
+        } else {
+            if ((px & 0xff) < 128) {
+                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_XS);
+                if (!(cap & MAV_CAPS_GOTO)) {
+                    return (100);
+                }
+            }
+        }
+
+    } else {
+        if (dz < 0) {
+            if ((pz & 0xff) > 128) {
+                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_ZL);
+                if (!(cap & MAV_CAPS_GOTO)) {
+                    return (100);
+                }
+            }
+
+        } else {
+            if ((pz & 0xff) < 128) {
+                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_ZS);
+                if (!(cap & MAV_CAPS_GOTO)) {
+                    return (100);
+                }
+            }
+        }
+    }
+    return (0);
+}
+
+// uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
+// Top-level entry point: renders one character Thing* for the current frame.
+// Dispatches to hierarchical (15-part D3D) or flat loop depending on ElementCount.
+// Also renders held grenade and handles immolation (Pyro fire overlay).
+void FIGURE_draw(Thing* p_thing)
+{
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    SLONG wx, wy, wz;
+
+    ULONG colour;
+    ULONG specular;
+
+    Matrix33 r_matrix;
+
+    GameKeyFrameElement* ae1;
+    GameKeyFrameElement* ae2;
+
+    DrawTween* dt = p_thing->Draw.Tweened;
+
+    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
+        MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
+        return;
+    }
+
+    dx = 0;
+    dy = 0;
+    dz = 0;
+
+    FIGURE_rotate_obj(
+        dt->Tilt,
+        dt->Angle,
+        (dt->Roll + 2048) & 2047,
+        &r_matrix);
+
+    wx = 0;
+    wy = 0;
+    wz = 0;
+
+    ae1 = dt->CurrentFrame->FirstElement;
+    ae2 = dt->NextFrame->FirstElement;
+
+    colour = 0;
+    specular = 0;
+
+    SLONG lx;
+    SLONG ly;
+    SLONG lz;
+
+    NIGHT_Colour col;
+
+    calc_sub_objects_position(
+        p_thing,
+        dt->AnimTween,
+        0,
+        &lx, &ly, &lz);
+
+    lx += p_thing->WorldPos.X >> 8;
+    ly += p_thing->WorldPos.Y >> 8;
+    lz += p_thing->WorldPos.Z >> 8;
+
+    NIGHT_find(lx, ly, lz);
+
+    ASSERT(!MM_bLightTableAlreadySetUp);
+
+    Pyro* p = NULL;
+    if (p_thing->Class == CLASS_PERSON && p_thing->Genus.Person->BurnIndex) {
+        p = TO_PYRO(p_thing->Genus.Person->BurnIndex - 1);
+        if (p->PyroType != PYRO_IMMOLATE) {
+            p = NULL;
+        }
+    }
+
+    BuildMMLightingTable(p, 0);
+
+    MM_bLightTableAlreadySetUp = UC_TRUE;
+
+    SLONG ele_count;
+    SLONG start_object;
+    SLONG object_offset;
+
+    ele_count = dt->TheChunk->ElementCount;
+    start_object = prim_multi_objects[dt->TheChunk->MultiObject[dt->MeshID]].StartObject;
+
+    if (ele_count == 15) {
+        Matrix31 pos;
+        pos.M[0] = (p_thing->WorldPos.X >> 8) + wx;
+        pos.M[1] = (p_thing->WorldPos.Y >> 8) + wy;
+        pos.M[2] = (p_thing->WorldPos.Z >> 8) + wz;
+
+        FIGURE_dhpr_rdata1[0].part_number = 0;
+        FIGURE_dhpr_rdata1[0].current_child_number = 0;
+        FIGURE_dhpr_rdata1[0].parent_base_mat = NULL;
+        FIGURE_dhpr_rdata1[0].parent_base_pos = NULL;
+        FIGURE_dhpr_rdata1[0].parent_current_mat = NULL;
+        FIGURE_dhpr_rdata1[0].parent_current_pos = NULL;
+
+        FIGURE_dhpr_data.start_object = start_object;
+        if (p_thing->Genus.Person->PersonType == PERSON_ROPER)
+            FIGURE_dhpr_data.body_def = &dt->TheChunk->PeopleTypes[(dt->PersonID >> 5)];
+        else
+            FIGURE_dhpr_data.body_def = &dt->TheChunk->PeopleTypes[(dt->PersonID & 0x1f)];
+        FIGURE_dhpr_data.world_pos = &pos;
+        FIGURE_dhpr_data.tween = dt->AnimTween;
+        FIGURE_dhpr_data.ae1 = ae1;
+        FIGURE_dhpr_data.ae2 = ae2;
+        FIGURE_dhpr_data.world_mat = &r_matrix;
+        FIGURE_dhpr_data.dx = dx;
+        FIGURE_dhpr_data.dy = dy;
+        FIGURE_dhpr_data.dz = dz;
+        FIGURE_dhpr_data.colour = colour;
+        FIGURE_dhpr_data.specular = specular;
+
+        FIGURE_dhpr_data.bPersonType = p_thing->Genus.Person->PersonType;
+        FIGURE_dhpr_data.bPersonID = dt->PersonID;
+
+        FIGURE_draw_hierarchical_prim_recurse(p_thing);
+    } else {
+        for (int i = 0; i < ele_count; i++) {
+            object_offset = dt->TheChunk->PeopleTypes[(dt->PersonID & 0x1f)].BodyPart[i];
+
+            FIGURE_draw_prim_tween(
+                start_object + object_offset,
+                p_thing->WorldPos.X >> 8,
+                (p_thing->WorldPos.Y >> 8),
+                p_thing->WorldPos.Z >> 8,
+                dt->AnimTween,
+                &ae1[i],
+                &ae2[i],
+                &r_matrix,
+                dx, dy, dz,
+                colour,
+                specular,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                p_thing);
+        }
+    }
+
+    ASSERT(MM_bLightTableAlreadySetUp);
+    MM_bLightTableAlreadySetUp = UC_FALSE;
+
+    if (p_thing->Class == CLASS_PERSON) {
+
+        Thing* p_person = p_thing;
+
+        if (p_person->Genus.Person->SpecialUse && TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType == SPECIAL_GRENADE) {
+            SLONG px;
+            SLONG py;
+            SLONG pz;
+            SLONG prim;
+
+            calc_sub_objects_position(
+                p_person,
+                p_person->Draw.Tweened->AnimTween,
+                SUB_OBJECT_LEFT_HAND,
+                &px,
+                &py,
+                &pz);
+
+            px += p_person->WorldPos.X >> 8;
+            py += p_person->WorldPos.Y >> 8;
+            pz += p_person->WorldPos.Z >> 8;
+
+            kludge_shrink = UC_TRUE;
+
+            MESH_draw_poly(
+                PRIM_OBJ_ITEM_GRENADE,
+                px,
+                py,
+                pz,
+                0, 0, 0,
+                NULL, 0xff);
+
+            kludge_shrink = UC_FALSE;
+        }
+    }
+    p_thing->Flags &= ~FLAGS_PERSON_AIM_AND_RUN;
+}
+
+// uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
+// Draws an animated non-character object using the DrawTween keyframe system.
+// Uses flat body-part loop (no hierarchical dispatch). Calls NIGHT_find() for lighting.
+void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
+{
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+
+    ULONG colour;
+    ULONG specular;
+
+    Matrix33 r_matrix;
+
+    GameKeyFrameElement* ae1;
+    GameKeyFrameElement* ae2;
+
+    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
+        MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
+        return;
+    }
+
+    /*
+
+    {
+            AnimPrimBbox *apb = &anim_prim_bbox[p_thing->Index];
+
+            AENG_world_line(
+                    apb->minx + (p_thing->WorldPos.X >> 8),
+                    apb->miny + (p_thing->WorldPos.Y >> 8),
+                    apb->minz + (p_thing->WorldPos.Z >> 8),
+                    0x16,
+                    0x00ffffff,
+                    apb->maxx + (p_thing->WorldPos.X >> 8),
+                    apb->maxy + (p_thing->WorldPos.Y >> 8),
+                    apb->maxz + (p_thing->WorldPos.Z >> 8),
+                    0x16,
+                    0x000ccccff,
+                    UC_TRUE);
+    }
+
+    */
+
+    dx = 0;
+    dy = 0;
+    dz = 0;
+
+    ae1 = dt->CurrentFrame->FirstElement;
+    ae2 = dt->NextFrame->FirstElement;
+
+    if (!ae1 || !ae2) {
+        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
+
+        return;
+    }
+
+    FIGURE_rotate_obj(
+        dt->Tilt,
+        dt->Angle,
+        (dt->Roll + 2048) & 2047,
+        &r_matrix);
+
+    colour = 0;
+    specular = 0;
+
+    SLONG lx;
+    SLONG ly;
+    SLONG lz;
+
+    NIGHT_Colour col;
+
+    lx = (p_thing->WorldPos.X >> 8);
+    ly = (p_thing->WorldPos.Y >> 8) + 0x60;
+    lz = (p_thing->WorldPos.Z >> 8);
+
+    NIGHT_find(lx, ly, lz);
+
+    SLONG i;
+    SLONG ele_count;
+    SLONG start_object;
+    SLONG object_offset;
+
+    ele_count = dt->TheChunk->ElementCount;
+    start_object = prim_multi_objects[dt->TheChunk->MultiObject[0]].StartObject;
+
+    for (i = 0; i < ele_count; i++) {
+        object_offset = i;
+        FIGURE_draw_prim_tween(
+            start_object + object_offset,
+            p_thing->WorldPos.X >> 8,
+            (p_thing->WorldPos.Y >> 8),
+            p_thing->WorldPos.Z >> 8,
+            dt->AnimTween,
+            &ae1[i],
+            &ae2[i],
+            &r_matrix,
+            dx, dy, dz,
+            colour,
+            specular,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            p_thing,
+            i,
+            0xffff00ff);
+    }
+}
+
+// uc_orig: ANIM_obj_draw_warped (fallen/DDEngine/Source/figure.cpp)
+// Same as ANIM_obj_draw but applies sinusoidal warp to each body part.
+// Used for objects under cloaking/teleportation visual effects.
+void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt)
+{
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+
+    ULONG colour;
+    ULONG specular;
+
+    Matrix33 r_matrix;
+
+    GameKeyFrameElement* ae1;
+    GameKeyFrameElement* ae2;
+
+    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
+        MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
+        return;
+    }
+
+    dx = 0;
+    dy = 0;
+    dz = 0;
+
+    ae1 = dt->CurrentFrame->FirstElement;
+    ae2 = dt->NextFrame->FirstElement;
+
+    if (!ae1 || !ae2) {
+        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
+
+        return;
+    }
+
+    FIGURE_rotate_obj(
+        dt->Tilt,
+        dt->Angle,
+        (dt->Roll + 2048) & 2047,
+        &r_matrix);
+
+    NIGHT_get_d3d_colour(
+        NIGHT_get_light_at(
+            (p_thing->WorldPos.X >> 8),
+            (p_thing->WorldPos.Y >> 8),
+            (p_thing->WorldPos.Z >> 8)),
+        &colour,
+        &specular);
+
+    colour &= ~POLY_colour_restrict;
+    specular &= ~POLY_colour_restrict;
+
+    SLONG i;
+    SLONG ele_count;
+    SLONG start_object;
+    SLONG object_offset;
+
+    ele_count = dt->TheChunk->ElementCount;
+    start_object = prim_multi_objects[dt->TheChunk->MultiObject[0]].StartObject;
+
+    for (i = 0; i < ele_count; i++) {
+        object_offset = i;
+
+        FIGURE_draw_prim_tween_warped(
+            start_object + object_offset,
+            p_thing->WorldPos.X >> 8,
+            (p_thing->WorldPos.Y >> 8),
+            p_thing->WorldPos.Z >> 8,
+            dt->AnimTween,
+            &ae1[i],
+            &ae2[i],
+            &r_matrix,
+            dx, dy, dz,
+            colour,
+            specular,
+            p_thing);
+    }
+}
+
+// Chunk 4 (FIGURE_draw_prim_tween_reflection, FIGURE_draw_reflection,
 // FIGURE_draw_prim_tween_person_only_just_set_matrix, FIGURE_draw_prim_tween_person_only)
-// — deferred to future iterations.
+// — deferred to next iteration.

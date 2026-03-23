@@ -5,6 +5,8 @@
 #include "Game.h"
 #include "fallen/Headers/building.h"   // Temporary: MAX_PRIM_OBJECTS
 #include "fallen/Headers/prim.h"        // Temporary: TomsPrimObject, Matrix33, etc.
+#include "fallen/Headers/anim.h"        // Temporary: BodyDef, GameKeyFrameElement, CMatrix33
+#include "engine/graphics/pipeline/poly.h" // POLY_Point
 
 // Forward declaration: MSMesh is fully declared in figure.h (included by figure.cpp).
 // figure_globals.h intentionally does not include figure.h to avoid circular dependency.
@@ -159,5 +161,118 @@ extern bool MM_bLightTableAlreadySetUp;
 // File-private MSMesh instance used during FIGURE_TPO_finish_3d_object.
 // Renamed g_mesh to avoid conflict with potential future global 'mesh'.
 extern MSMesh g_mesh;
+
+// --- Hierarchical body-part draw state ---
+// Global iterative-recursion data for FIGURE_draw_hierarchical_prim_recurse.
+
+// uc_orig: MAX_RECURSION (fallen/DDEngine/Source/figure.cpp)
+// Maximum bone hierarchy depth (15 parts uses at most 4 levels).
+#define MAX_RECURSION 5
+
+// uc_orig: structFIGURE_dhpr_data (fallen/DDEngine/Source/figure.cpp)
+// Input data block for FIGURE_draw_hierarchical_prim_recurse: the thing to draw.
+struct structFIGURE_dhpr_data {
+    SLONG start_object;
+    BodyDef* body_def;
+    Matrix31* world_pos;
+    SLONG tween;
+    GameKeyFrameElement* ae1;
+    GameKeyFrameElement* ae2;
+    Matrix33* world_mat;
+    Matrix33* world_mat2;
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    ULONG colour;
+    ULONG specular;
+    BYTE bPersonType;
+    BYTE bPersonID;
+};
+
+// uc_orig: structFIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
+// Per-level recursion state block 1 for the hierarchical draw traversal.
+struct structFIGURE_dhpr_rdata1 {
+    SLONG part_number;
+    SLONG current_child_number;
+    CMatrix33* parent_base_mat;
+    Matrix31* parent_base_pos;
+    Matrix33* parent_current_mat;
+    Matrix31* parent_current_pos;
+    Matrix31 pos;
+};
+
+// uc_orig: structFIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
+// Per-level recursion state block 2 (end position/matrix for parent-to-child transform).
+struct structFIGURE_dhpr_rdata2 {
+    Matrix31 end_pos;
+    Matrix33 end_mat;
+};
+
+// uc_orig: FIGURE_dhpr_data (fallen/DDEngine/Source/figure.cpp)
+extern structFIGURE_dhpr_data FIGURE_dhpr_data;
+
+// uc_orig: FIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
+extern structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
+
+// uc_orig: FIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
+extern structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
+
+// uc_orig: PART_FACE (fallen/DDEngine/Source/figure.cpp)
+#define PART_FACE 1
+// uc_orig: PART_TROUSERS (fallen/DDEngine/Source/figure.cpp)
+#define PART_TROUSERS 2
+// uc_orig: PART_JACKET (fallen/DDEngine/Source/figure.cpp)
+#define PART_JACKET 3
+// uc_orig: PART_SHOES (fallen/DDEngine/Source/figure.cpp)
+#define PART_SHOES 4
+// uc_orig: PART_PELVIS (fallen/DDEngine/Source/figure.cpp)
+#define PART_PELVIS 5
+// uc_orig: PART_HANDS (fallen/DDEngine/Source/figure.cpp)
+#define PART_HANDS 6
+
+// uc_orig: part_type (fallen/DDEngine/Source/figure.cpp)
+// Body-part clothing category for each of the 15 character body parts (PART_* constants).
+extern UBYTE part_type[15];
+
+// uc_orig: local_seed (fallen/DDEngine/Source/figure.cpp)
+// LCG seed used by mandom() for per-character clothing colour randomisation.
+extern ULONG local_seed;
+
+// uc_orig: jacket_col (fallen/DDEngine/Source/figure.cpp)
+// Current jacket colour value computed per character during hierarchical draw.
+extern ULONG jacket_col;
+
+// uc_orig: leg_col (fallen/DDEngine/Source/figure.cpp)
+// Current leg/trouser colour value computed per character during hierarchical draw.
+extern ULONG leg_col;
+
+// uc_orig: MAX_NUM_BODY_PARTS_AT_ONCE (fallen/DDEngine/Source/figure.cpp)
+// Maximum number of body parts batched in one DrawIndPrimMM call.
+#define MAX_NUM_BODY_PARTS_AT_ONCE 20
+
+// uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
+// Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE D3DMATRIX objects.
+// Initialised at startup by MMBodyPartsInit. Passed as lpd3dMatrices in D3DMULTIMATRIX.
+extern D3DMATRIX* MMBodyParts_pMatrix;
+
+// uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
+// Pointer to aligned float storage for MAX_NUM_BODY_PARTS_AT_ONCE * 4 light direction floats.
+// Initialised at startup by MMBodyPartsInit. Passed as lpvLightDirs in D3DMULTIMATRIX.
+extern float* MMBodyParts_pNormal;
+
+// --- Misc character draw state ---
+
+// uc_orig: peep_recol (fallen/DDEngine/Source/figure.cpp)
+// 16-entry RGB colour table for civilian clothing variation (r/g/b scaled 0-70).
+// PeepRecolEntry is a new name for the anonymous struct used in the original.
+struct PeepRecolEntry {
+    SWORD r, g, b;
+};
+// uc_orig: peep_recol (fallen/DDEngine/Source/figure.cpp)
+extern PeepRecolEntry peep_recol[16];
+
+// uc_orig: kludge_shrink (fallen/DDEngine/Source/figure.cpp)
+// When true, scales down the next MESH_draw_poly call (used for grenade-in-hand rendering).
+extern UBYTE kludge_shrink;
 
 #endif // ENGINE_ANIMATION_FIGURE_GLOBALS_H

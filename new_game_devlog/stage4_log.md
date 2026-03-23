@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 148 — figure.cpp chunk 3: warped/hierarchical/main draw (2026-03-23)
+
+- `FIGURE_Rpoint` typedef и reflection globals (`FIGURE_rpoint[]` и др.) — не перенесены: chunk 4 код ещё активен в old/figure.cpp, typedef бы конфликтовал. Отложено на chunk 4.
+- `MMBodyParts_pMatrix/pNormal` — исходно `ALIGNED_STATIC_ARRAY`; перенесены как два новых static char storage + инициализация в MMLightingTableInit constructor в figure_globals.cpp.
+- `local_set_seed` — баг из оригинала сохранён: `seed = local_seed` (no-op, параметр не присваивается).
+- CHECK A fix: `PeepRecolEntry` struct изначально без собственного `uc_orig` — добавлен во время ревью.
+
+---
+
 ## Итерация 147 — figure.cpp chunk 2: FIGURE_TPO_add_prim_to_current_object + FIGURE_TPO_finish_3d_object + FIGURE_generate_D3D_object + FIGURE_draw_prim_tween (2026-03-23)
 
 - `CLOSE_ENOUGH` — #define внутри тела функции FIGURE_TPO_finish_3d_object; перенесён как есть (function-scope macro).

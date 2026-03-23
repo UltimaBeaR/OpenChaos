@@ -2842,6 +2842,8 @@ no_muzzle_calcs:
 
 #endif // MIGRATED to src/new/engine/animation/figure.cpp (iteration 147) [chunk 2]
 
+#if 0 // MIGRATED to src/new/engine/animation/figure.cpp (iteration 148) [chunk 3: FIGURE_draw_prim_tween_warped, mandom, local_set_seed, hierarchical draw structs/globals, FIGURE_draw_hierarchical_prim_recurse, FIGURE_draw_hierarchical_prim_recurse_individual_cull, get_sort_z_bodge, FIGURE_draw, ANIM_obj_draw, ANIM_obj_draw_warped]
+
 // claude-ai: FIGURE_draw_prim_tween_warped — variant of FIGURE_draw_prim_tween used for
 // claude-ai: warped/distorted character rendering (e.g., heat shimmer, teleport effect).
 // claude-ai: Applies a Z-dependent rotation warp to vertex positions after the normal keyframe
@@ -4536,6 +4538,8 @@ void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt)
             p_thing);
     }
 }
+
+#endif // MIGRATED to src/new/engine/animation/figure.cpp (iteration 148) [chunk 3]
 
 // ========================================================
 //

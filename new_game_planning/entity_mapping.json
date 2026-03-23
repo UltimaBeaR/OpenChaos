@@ -77669,6 +77669,326 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "mandom",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "mandom",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "local_set_seed",
+      "file": "new/engine/animation/figure.cpp",
+      "orig_name": "local_set_seed",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_prim_tween_warped",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_draw_prim_tween_warped",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_hierarchical_prim_recurse",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_draw_hierarchical_prim_recurse",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw_hierarchical_prim_recurse_individual_cull",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_draw_hierarchical_prim_recurse_individual_cull",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "get_sort_z_bodge",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "get_sort_z_bodge",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_draw",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "FIGURE_draw",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_obj_draw",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "ANIM_obj_draw",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ANIM_obj_draw_warped",
+      "file": "new/engine/animation/figure.h",
+      "orig_name": "ANIM_obj_draw_warped",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_RECURSION",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MAX_RECURSION",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "structFIGURE_dhpr_data",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "structFIGURE_dhpr_data",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "structFIGURE_dhpr_rdata1",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "structFIGURE_dhpr_rdata1",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "structFIGURE_dhpr_rdata2",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "structFIGURE_dhpr_rdata2",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_dhpr_data",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "FIGURE_dhpr_data",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_dhpr_rdata1",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "FIGURE_dhpr_rdata1",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FIGURE_dhpr_rdata2",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "FIGURE_dhpr_rdata2",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PART_FACE",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PART_FACE",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PART_TROUSERS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PART_TROUSERS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PART_JACKET",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PART_JACKET",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PART_SHOES",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PART_SHOES",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PART_PELVIS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PART_PELVIS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PART_HANDS",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "PART_HANDS",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "part_type",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "part_type",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "local_seed",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "local_seed",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "jacket_col",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "jacket_col",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "leg_col",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "leg_col",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_NUM_BODY_PARTS_AT_ONCE",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "MAX_NUM_BODY_PARTS_AT_ONCE",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MMBodyParts_pMatrix",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "MMBodyParts_pMatrix",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MMBodyParts_pNormal",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "MMBodyParts_pNormal",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "PeepRecolEntry",
+      "file": "new/engine/animation/figure_globals.h",
+      "orig_name": "peep_recol (struct tag)",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "peep_recol",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "peep_recol",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "kludge_shrink",
+      "file": "new/engine/animation/figure_globals.cpp",
+      "orig_name": "kludge_shrink",
+      "orig_file": "fallen/DDEngine/Source/figure.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
