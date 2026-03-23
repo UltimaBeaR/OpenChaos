@@ -11,7 +11,8 @@
 #include "fallen/Headers/memory.h"
 #include "fallen/Headers/Sound.h"
 #include "fallen/Headers/mav.h"
-#include "fallen/Headers/collide.h"
+#include "engine/physics/collide.h"
+#include "engine/physics/collide_globals.h"
 #include "fallen/Headers/building.h"
 #include "fallen/Headers/barrel.h"
 #include "fallen/Headers/Person.h"
@@ -19,7 +20,6 @@
 #include "actors/characters/darci_globals.h"
 
 // Forward declarations for functions not in any header (declared inline in originals).
-extern SLONG calc_height_at(SLONG x, SLONG z);
 extern SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
 extern void locked_anim_change(Thing* p_person, UWORD locked_object, UWORD anim, SLONG dangle = 0);
@@ -27,11 +27,6 @@ extern void fn_person_moveing(Thing* p_person);
 extern void fn_person_idle(Thing* p_person);
 extern SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y);
 extern SLONG person_slide_inside(SLONG inside_index, SLONG x1, SLONG y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2);
-extern SLONG actual_sliding;
-extern SLONG last_slide_dist;
-extern SLONG last_slide_colvect;
-extern SLONG slide_into_warehouse;
-extern SLONG slide_outof_warehouse;
 
 // Gravity applied to Darci's DY each tick: 4<<8 = 1024 units/tick.
 // uc_orig: GRAVITY (fallen/Source/Darci.cpp)

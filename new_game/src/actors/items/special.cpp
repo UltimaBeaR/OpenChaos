@@ -38,8 +38,7 @@
 #include "assets/xlat_str.h"
 #include "world/map/pap.h"
 #include "core/memory.h"
-// Temporary: collide.h for create_shockwave
-#include "fallen/Headers/collide.h"
+#include "engine/physics/collide.h"
 // Temporary: panel.h for PANEL_new_info_message, PANEL_new_text
 #include "fallen/DDEngine/Headers/panel.h"
 // Temporary: cnet.h for CNET_num_players (used via NO_PLAYERS macro from Game.h)

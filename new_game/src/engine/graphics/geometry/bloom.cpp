@@ -3,8 +3,7 @@
 
 #include "fallen/DDLibrary/Headers/DDLib.h"
 #include "fallen/DDEngine/Headers/poly.h"
-#include "fallen/Headers/Game.h"              // Temporary: THING_INDEX and structs needed by collide.h
-#include "fallen/Headers/collide.h"           // Temporary: there_is_a_los, LOS_FLAG_IGNORE_PRIMS
+#include "engine/physics/collide.h"
 #include "fallen/Headers/fc.h"                // Temporary: FC_cam
 #include "fallen/Headers/eway.h"              // Temporary: EWAY_grab_camera
 

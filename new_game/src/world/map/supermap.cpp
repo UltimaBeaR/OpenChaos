@@ -15,8 +15,7 @@
 #include "fallen/Headers/mav.h"
 // Temporary: texture.h — TEXTURE_load_needed
 #include "..\ddengine\headers\texture.h"
-// Temporary: collide.h — distance_to_line
-#include "fallen/Headers/collide.h"
+#include "engine/physics/collide.h"
 // Temporary: io.h — FileRead
 #include "fallen/Headers/io.h"
 #include <MFStdLib.h>

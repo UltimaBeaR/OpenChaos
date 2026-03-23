@@ -13,7 +13,7 @@
 #include "fallen/Headers/pcom.h"       // Temporary: PCOM_AI_NONE, PCOM_AI_SUICIDE — pcom not yet migrated
 #include "missions/memory.h"
 #include "engine/lighting/night.h"
-#include "fallen/Headers/collide.h"    // Temporary: there_is_a_los, create_shockwave — collide not yet migrated
+#include "engine/physics/collide.h"
 #include "effects/pyro.h"
 #include "assets/level_loader.h"       // load_anim_prim_object
 

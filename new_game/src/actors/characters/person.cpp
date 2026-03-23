@@ -28,10 +28,11 @@
 #include "fallen/Headers/dirt.h"    // Temporary: dirt effects
 #include "fallen/Headers/hook.h"    // Temporary: grappling hook
 #include "fallen/Headers/pcom.h"    // Temporary: PCOM AI types
-#include "fallen/Headers/tracks.h"  // Temporary: TRACKS_Add, track types
+#include "effects/tracks.h"
 #include "fallen/DDEngine/Headers/Matrix.h" // Temporary: matrix utilities
 #include "fallen/Headers/ob.h"      // Temporary: OB_ob, OB_FLAG_HIDDEN_ITEM
-#include "fallen/Headers/wmove.h"   // Temporary: WMOVE types
+#include "world/navigation/wmove.h"
+#include "world/navigation/wmove_globals.h"
 #include "fallen/Headers/balloon.h" // Temporary: BALLOON_release
 #include "fallen/Headers/inside2.h" // Temporary: inside building types
 #include "fallen/Headers/walkable.h" // Temporary: walkable utilities
@@ -49,7 +50,8 @@
 #include "fallen/Headers/frontend.h" // Temporary: frontend utilities
 #include "fallen/DDEngine/Headers/aeng.h" // Temporary: AENG_ utilities
 #include "fallen/DDEngine/Headers/panel.h" // Temporary: panel/HUD utilities
-#include "fallen/Headers/collide.h"  // Temporary: there_is_a_los, LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG
+#include "engine/physics/collide.h"
+#include "engine/physics/collide_globals.h"
 #include "fallen/Headers/building.h" // Temporary: CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*, get_cable_along
 
 #include "actors/characters/person.h"
@@ -127,8 +129,7 @@ extern SLONG continue_firing(Thing* p_person); // interfac.cpp
 // should_i_block: declared via ai/combat.h (already included)
 extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 
-// Local collision query buffer (shares the global col_with pool; MAX_COL_WITH = 16).
-#define MAX_COL_WITH 16
+// MAX_COL_WITH defined in engine/physics/collide_globals.h
 
 // uc_orig: set_stats (fallen/Source/Person.cpp)
 void set_stats(void)

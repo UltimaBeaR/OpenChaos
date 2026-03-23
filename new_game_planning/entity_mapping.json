@@ -94849,6 +94849,436 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "CollisionVectLink",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "CollisionVectLink",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CollisionVect",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "CollisionVect",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WalkLink",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "WalkLink",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_COL_VECT_LINK",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "MAX_COL_VECT_LINK",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_COL_VECT",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "MAX_COL_VECT",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_WALK_POOL",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "MAX_WALK_POOL",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DONT_INTERSECT",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "DONT_INTERSECT",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DO_INTERSECT",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "DO_INTERSECT",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COLLINEAR",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "COLLINEAR",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SLIDE_ALONG_FLAG_CRAWL",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "SLIDE_ALONG_FLAG_CRAWL",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SLIDE_ALONG_FLAG_CARRYING",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "SLIDE_ALONG_FLAG_CARRYING",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SLIDE_ALONG_FLAG_JUMPING",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "SLIDE_ALONG_FLAG_JUMPING",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LOS_FLAG_IGNORE_PRIMS",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "LOS_FLAG_IGNORE_PRIMS",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LOS_FLAG_IGNORE_UNDERGROUND_CHECK",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "LOS_FLAG_IGNORE_UNDERGROUND_CHECK",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LOS_FLAG_INCLUDE_CARS",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "LOS_FLAG_INCLUDE_CARS",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COLLIDE_Fastnavrow",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "COLLIDE_Fastnavrow",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COLLIDE_can_i_fastnav",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "COLLIDE_can_i_fastnav",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "col_vects_links",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "col_vects_links",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "col_vects",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "col_vects",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "there_is_a_los_things",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "there_is_a_los_things",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "there_is_a_los",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "there_is_a_los",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "in_my_fov",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "in_my_fov",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "find_nearby_person",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "find_nearby_person",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "find_intersected_colvect",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "find_intersected_colvect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "box_box_early_out",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "box_box_early_out",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "slide_around_circle",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "slide_around_circle",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "collide_box",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "collide_box",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "collide_box_with_line",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "collide_box_with_line",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "collide_against_sausage",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "collide_against_sausage",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "insert_collision_vect",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "insert_collision_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "remove_collision_vect",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "remove_collision_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "get_point_dist_from_col_vect",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "get_point_dist_from_col_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "check_vect_circle",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "check_vect_circle",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "check_vect_vect",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "check_vect_vect",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "find_face_for_this_pos",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "find_face_for_this_pos",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "calc_map_height_at",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "calc_map_height_at",
+      "orig_file": "fallen/Headers/collide.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "insert_collision_facets",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "insert_collision_facets",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "create_shockwave",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "create_shockwave",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COLLIDE_find_seethrough_fences",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "COLLIDE_find_seethrough_fences",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COLLIDE_calc_fastnav_bits",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "COLLIDE_calc_fastnav_bits",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COLLIDE_debug_fastnav",
+      "file": "new_game/src/engine/physics/collide.h",
+      "orig_name": "COLLIDE_debug_fastnav",
+      "orig_file": "fallen/Source/collide.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

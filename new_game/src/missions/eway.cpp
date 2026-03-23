@@ -20,7 +20,8 @@
 #include "world/map/supermap.h"
 #include "fallen/Headers/sound.h"
 #include "fallen/Headers/statedef.h"
-#include "fallen/Headers/wmove.h"      // Temporary: WMOVE_create
+#include "world/navigation/wmove.h"
+#include "world/navigation/wmove_globals.h"
 #include "fallen/DDEngine/Headers/aeng.h"
 #include "fallen/DDEngine/Headers/panel.h"
 #include "missions/memory.h"
@@ -39,7 +40,8 @@
 #include "fallen/Headers/env.h"
 #include "fallen/Headers/prim.h"       // Temporary: find_anim_prim, PrimInfo
 #include "fallen/Headers/vehicle.h"    // Temporary: VEH_create, Vehicle not migrated
-#include "fallen/Headers/collide.h"    // Temporary: there_is_a_los
+#include "engine/physics/collide.h"
+#include "engine/physics/collide_globals.h"
 #include "effects/pyro.h"              // Temporary: PYRO_create, PYRO_construct, IRONICWATERFALL_state_function
 #include "fallen/Headers/barrel.h"     // Temporary: BARREL_alloc, BARREL_dissapear
 #include "fallen/Headers/plat.h"       // Temporary: PLAT_create

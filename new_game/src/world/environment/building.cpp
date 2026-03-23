@@ -21,8 +21,8 @@
 #include "fallen/Headers/memory.h"
 // Temporary: pap.h exposes PAP_calc_height_at
 #include "pap.h"
-// Temporary: collide.h exposes walk_links, next_walk_link, MAX_WALK_POOL, FACE_FLAG_WALKABLE
-#include "fallen/Headers/collide.h"
+#include "engine/physics/collide.h"
+#include "engine/physics/collide_globals.h"
 // Temporary: aeng.h exposes AENG_dx_prim_points, SVector_F
 #include "engine/graphics/pipeline/aeng.h"
 // Temporary: prim.h exposes OR_SORT_LEVEL, FACE_FLAG_NON_PLANAR (FACE_FLAG_WALKABLE via interact chain)

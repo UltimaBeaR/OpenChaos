@@ -34,7 +34,7 @@
 
 #include "actors/characters/anim_ids.h"
 #include "fallen/Headers/statedef.h"  // Temporary: ACTION_* constants (not yet in new/)
-#include "fallen/Headers/collide.h"   // Temporary: there_is_a_los, LOS_FLAG_*, signed_dist_to_line_with_normal
+#include "engine/physics/collide.h"
 #include "fallen/Headers/combat.h"    // Temporary: should_person_get_item
 #include "fallen/DDLibrary/Headers/DDLib.h" // Temporary: DIJOYSTATE
 #include "fallen/DDEngine/Headers/Engine.h" // Temporary: SIN, COS, QDIST2, etc.

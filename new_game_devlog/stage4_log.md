@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 171 — fallen/Headers/collide.h → engine/physics/collide.h (редирект) + wmove/tracks redirects (2026-03-23)
+
+- Все сущности из legacy `collide.h` перенесены в `engine/physics/collide.h`: структуры `CollisionVectLink`, `CollisionVect`, `WalkLink`; 4 макроса SLIDE, 4 макроса LOS, `COLLIDE_Fastnavrow`, `COLLIDE_can_i_fastnav`, 6 pool-size константы; extern-декларации `col_vects_links[]`, `col_vects[]`; ~20 функций (there_is_a_los*, in_my_fov, find_nearby_person, box/circle/sausage collision, insert/remove_collision_vect, create_shockwave, COLLIDE_calc_fastnav_bits, etc.).
+- Определения `col_vects_links[MAX_COL_VECT_LINK]` и `col_vects[MAX_COL_VECT]` добавлены в `collide_globals.cpp` (были пропущены при начальной миграции — обнаружено при Check B).
+- `collide_globals.h` теперь включает `engine/physics/collide.h` напрямую (убрана цепочка Game.h → fallen/Headers/collide.h).
+- `engine/physics/collide.h` включает `world/map/pap_globals.h` (нужен для PAP_lo в cone.cpp/farfacet.cpp — транзитивная зависимость была через Game.h → old collide.h → pap.h redirect).
+- `fallen/Headers/wmove.h` и `fallen/Headers/tracks.h` были уже редиректами — их `// Temporary:` includes заменены на прямые пути в 5 файлах.
+- Temporary: 654 → 632.
+
 ## Итерация 170 — startscr.h → assets/startscr.h + зачистка 4 неиспользуемых legacy headers (2026-03-23)
 
 - `startscr.h` → `assets/startscr.h`: все 16 сущностей (`STARTS_*`, `StartMenu`, `StartMenuItemSimple`, `StartMenuItemComplex`, `STARTSCR_notify_gameover`, `MISSION_callback`, `MissionListCallback`). `attract.cpp` переключён с bare `"startscr.h"` на `"assets/startscr.h"`, `frontend.cpp` — Temporary include убран (уже имел `assets/startscr.h` на строке 51).

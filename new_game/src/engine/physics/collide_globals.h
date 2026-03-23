@@ -1,9 +1,7 @@
 #ifndef ENGINE_PHYSICS_COLLIDE_GLOBALS_H
 #define ENGINE_PHYSICS_COLLIDE_GLOBALS_H
 
-// Temporary: Game.h provides THING_INDEX and other base types needed by fallen/Headers/collide.h
-#include "Game.h"
-#include "fallen/Headers/collide.h"
+#include "engine/physics/collide.h"
 
 // uc_orig: dprod (fallen/Source/collide.cpp)
 // Shared dot product accumulator used across geometry helper functions.
@@ -222,8 +220,6 @@ extern SLONG failed;
 // Bit array: one bit per PAP_HI map cell. 1 = fastnav allowed (no nearby DFacets).
 // Allocated externally (see COLLIDE_calc_fastnav_bits). PAP_SIZE_HI rows,
 // each row is a (PAP_SIZE_HI >> 3) byte array packed as UBYTE.
-// Note: COLLIDE_Fastnavrow typedef and COLLIDE_can_i_fastnav macro come from
-// fallen/Headers/collide.h (included via engine/physics/collide.h).
 extern COLLIDE_Fastnavrow* COLLIDE_fastnav;
 
 // ========================================================================

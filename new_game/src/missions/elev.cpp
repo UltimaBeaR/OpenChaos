@@ -64,7 +64,7 @@
 #include "fallen/Headers/prim.h"        // Temporary: get_prim_info, prim object constants
 #include "fallen/Headers/statedef.h"    // Temporary: player/person type constants
 #include "fallen/Headers/mav.h"         // Temporary: MAV_init, MAV_precalculate
-#include "fallen/Headers/collide.h"     // Temporary: COLLIDE_calc_fastnav_bits, insert_collision_facets
+#include "engine/physics/collide.h"
 #include "assets/startscr_globals.h"    // STARTSCR_mission
 #include "actors/core/thing_globals.h"  // playback_file
 

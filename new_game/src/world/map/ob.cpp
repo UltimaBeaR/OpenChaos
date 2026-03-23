@@ -25,8 +25,7 @@
 #include "fallen/Headers/special.h"
 // Temporary: barrel.h — BARREL_alloc (actors/items/barrel.h)
 #include "actors/items/barrel.h"
-// Temporary: collide.h — create_shockwave, mav.h — MAV_inside
-#include "fallen/Headers/collide.h"
+#include "engine/physics/collide.h"
 #include "fallen/Headers/mav.h"
 // Temporary: pyro.h — PYRO_create, PYRO_FIREBOMB
 #include "effects/pyro.h"

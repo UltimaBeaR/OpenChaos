@@ -9,6 +9,14 @@ SLONG cprod = 0;
 // uc_orig: global_on (fallen/Source/collide.cpp)
 SLONG global_on = 0;
 
+// uc_orig: col_vects_links (fallen/Source/collide.cpp)
+// Per-cell linked list nodes binding collision barriers to PAP LO cells. ~40KB.
+struct CollisionVectLink col_vects_links[MAX_COL_VECT_LINK];
+
+// uc_orig: col_vects (fallen/Source/collide.cpp)
+// Pool of all linear collision barriers for the current level. ~300KB.
+struct CollisionVect col_vects[MAX_COL_VECT];
+
 // uc_orig: next_col_vect (fallen/Source/collide.cpp)
 UWORD next_col_vect = 1;
 

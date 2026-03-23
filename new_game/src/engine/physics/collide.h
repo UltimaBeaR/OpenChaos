@@ -1,10 +1,123 @@
 #ifndef ENGINE_PHYSICS_COLLIDE_H
 #define ENGINE_PHYSICS_COLLIDE_H
 
-// Temporary: Game.h provides THING_INDEX and other base types needed by fallen/Headers/collide.h
-#include "Game.h"
-#include "fallen/Headers/collide.h"
-#include "engine/physics/collide_globals.h"
+#include "core/types.h"
+// Note: engine/ → world/ is a DAG violation, but PAP cell data is required by collision
+// detection throughout the engine. This dependency is accepted as known tech debt.
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+
+// Forward declarations — full definitions in their respective headers.
+// Consumers that need globals should also include engine/physics/collide_globals.h.
+struct Thing;
+struct DFacet;
+
+// ========================================================================
+// Pool size limits
+// ========================================================================
+
+// uc_orig: MAX_COL_VECT_LINK (fallen/Headers/collide.h)
+// Maximum number of collision vector links (per-cell linked list nodes).
+#define MAX_COL_VECT_LINK 10000
+
+// uc_orig: MAX_COL_VECT (fallen/Headers/collide.h)
+// Maximum number of linear collision barriers stored in the level.
+#define MAX_COL_VECT 10000
+
+// uc_orig: MAX_WALK_POOL (fallen/Headers/collide.h)
+// Maximum number of walkable surface records (PAP LO-cell linked lists).
+#define MAX_WALK_POOL (30000)
+
+// uc_orig: DONT_INTERSECT (fallen/Headers/collide.h)
+#define DONT_INTERSECT 0
+// uc_orig: DO_INTERSECT (fallen/Headers/collide.h)
+#define DO_INTERSECT 1
+// uc_orig: COLLINEAR (fallen/Headers/collide.h)
+#define COLLINEAR 2
+
+// ========================================================================
+// Collision barrier data structures
+// ========================================================================
+
+// uc_orig: CollisionVectLink (fallen/Headers/collide.h)
+// Links a collision barrier to a LO-res PAP cell (4 bytes). Stored in col_vects_links[].
+struct CollisionVectLink {
+    UWORD Next;       // next entry in the linked list for this cell (0 = end)
+    UWORD VectIndex;  // index into col_vects[]
+};
+
+// uc_orig: CollisionVect (fallen/Headers/collide.h)
+// A linear collision barrier in 3D (wall, fence, staircase, etc.). ~20 bytes.
+// Stored in col_vects[MAX_COL_VECT].
+struct CollisionVect {
+    SLONG X[2];       // world X of barrier start/end
+    SWORD Y[2];       // bottom/top height of barrier
+    SLONG Z[2];       // world Z of barrier start/end
+    UBYTE PrimType;   // storey type (wall, fence, ladder, etc.)
+    UBYTE PrimExtra;  // extra parameter depending on PrimType
+    SWORD Face;       // DFacet index, or -1 if not tied to a facet
+};
+
+// uc_orig: WalkLink (fallen/Headers/collide.h)
+// Walkable surface record (4 bytes). Stored in walk_links[MAX_WALK_POOL].
+struct WalkLink {
+    UWORD Next;  // next entry in the linked list for this PAP LO cell
+    SWORD Face;  // face index (building face the character can walk on)
+};
+
+// ========================================================================
+// Global collision arrays (declared in collide_globals.h via _globals.cpp)
+// ========================================================================
+
+// uc_orig: col_vects_links (fallen/Source/collide.cpp)
+// Per-cell linked list nodes binding barriers to PAP LO cells.
+extern struct CollisionVectLink col_vects_links[MAX_COL_VECT_LINK];
+
+// uc_orig: col_vects (fallen/Source/collide.cpp)
+// Pool of all collision barriers loaded for the current level.
+extern struct CollisionVect col_vects[MAX_COL_VECT];
+
+// ========================================================================
+// Slide-along flags
+// ========================================================================
+
+// uc_orig: SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT (fallen/Headers/collide.h)
+#define SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT (-0x50)
+
+// uc_orig: SLIDE_ALONG_FLAG_CRAWL (fallen/Headers/collide.h)
+#define SLIDE_ALONG_FLAG_CRAWL    (1 << 0)
+// uc_orig: SLIDE_ALONG_FLAG_CARRYING (fallen/Headers/collide.h)
+#define SLIDE_ALONG_FLAG_CARRYING (1 << 1)
+// uc_orig: SLIDE_ALONG_FLAG_JUMPING (fallen/Headers/collide.h)
+#define SLIDE_ALONG_FLAG_JUMPING  (1 << 2)
+
+// ========================================================================
+// Line-of-sight flags
+// ========================================================================
+
+// uc_orig: LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG (fallen/Headers/collide.h)
+#define LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG (1 << 0)
+// uc_orig: LOS_FLAG_IGNORE_PRIMS (fallen/Headers/collide.h)
+#define LOS_FLAG_IGNORE_PRIMS                 (1 << 1)
+// uc_orig: LOS_FLAG_IGNORE_UNDERGROUND_CHECK (fallen/Headers/collide.h)
+#define LOS_FLAG_IGNORE_UNDERGROUND_CHECK     (1 << 2)
+// uc_orig: LOS_FLAG_INCLUDE_CARS (fallen/Headers/collide.h)
+// Only relevant when prims are not ignored.
+#define LOS_FLAG_INCLUDE_CARS                 (1 << 3)
+
+// ========================================================================
+// Fastnav bit array
+// ========================================================================
+
+// uc_orig: COLLIDE_Fastnavrow (fallen/Headers/collide.h)
+// One row of the fastnav bit array: one bit per PAP HI cell in the row.
+typedef UBYTE COLLIDE_Fastnavrow[PAP_SIZE_HI >> 3];
+
+// uc_orig: COLLIDE_can_i_fastnav (fallen/Headers/collide.h)
+// Returns true if the map cell (x,z) allows fast-nav (no nearby DFacets in that cell).
+#define COLLIDE_can_i_fastnav(x, z) \
+    (!(WITHIN((x), 0, PAP_SIZE_HI - 1) || !WITHIN((z), 0, PAP_SIZE_HI - 1) \
+       || (COLLIDE_fastnav[x][(z) >> 3] & (1 << ((z) & 0x7)))))
 
 // ========================================================================
 // Geometry math — 2D line and segment utilities
@@ -306,10 +419,182 @@ SLONG there_is_a_los_mav(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SL
 SLONG there_is_a_los_car(SLONG x1, SLONG my_y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
 // ========================================================================
+// LOS full-world tests
+// ========================================================================
+
+// uc_orig: there_is_a_los_things (fallen/Source/collide.cpp)
+// Checks LOS between two Things. Returns UC_TRUE if line of sight is clear.
+SLONG there_is_a_los_things(Thing* p_person_a, Thing* p_person_b, SLONG los_flags);
+
+// uc_orig: there_is_a_los (fallen/Source/collide.cpp)
+// Checks LOS between two world-space points. Returns UC_TRUE if clear.
+SLONG there_is_a_los(
+    SLONG x1, SLONG y1, SLONG z1,
+    SLONG x2, SLONG y2, SLONG z2,
+    SLONG los_flag);
+
+// uc_orig: in_my_fov (fallen/Source/collide.cpp)
+// Returns UC_TRUE if (him_x,him_z) is within FOV looking from (me_x,me_z)
+// in direction (im_looking_x, im_looking_z).
+SLONG in_my_fov(
+    SLONG me_x, SLONG me_z,
+    SLONG him_x, SLONG him_z,
+    SLONG im_looking_x,
+    SLONG im_looking_z);
+
+// uc_orig: find_nearby_person (fallen/Source/collide.cpp)
+// Finds the nearest visible person of the given type within max_range.
+// person_type_bits: one bit per person type. Returns THING_INDEX or -1.
+THING_INDEX find_nearby_person(
+    THING_INDEX me,
+    UWORD person_type_bits,
+    SLONG max_range);
+
+// ========================================================================
+// Intersection query
+// ========================================================================
+
+// uc_orig: find_intersected_colvect (fallen/Source/collide.cpp)
+// Returns the index of a col_vect that intersects segment (x1,z1)-(x2,z2) at height y,
+// preferring ladders and fences. Returns -1 if none found.
+SLONG find_intersected_colvect(
+    SLONG x1, SLONG z1,
+    SLONG x2, SLONG z2,
+    SLONG y);
+
+// ========================================================================
+// Box / circle intersection tests (early-out helpers)
+// ========================================================================
+
+// uc_orig: box_box_early_out (fallen/Headers/collide.h)
+// Returns UC_TRUE if the two OBBs definitely do not collide (early exit).
+void box_box_early_out(
+    SLONG box1_mid_x, SLONG box1_mid_z,
+    SLONG box1_min_x, SLONG box1_min_z,
+    SLONG box1_max_x, SLONG box1_max_z,
+    SLONG box1_yaw,
+    SLONG box2_mid_x, SLONG box2_mid_z,
+    SLONG box2_min_x, SLONG box2_min_z,
+    SLONG box2_max_x, SLONG box2_max_z,
+    SLONG box2_yaw);
+
+// uc_orig: slide_around_circle (fallen/Headers/collide.h)
+// Slides endpoint (*x2,*z2) around a circle (cx,cz,cradius).
+// Returns UC_TRUE if a collision and slide occurred.
+SLONG slide_around_circle(
+    SLONG cx, SLONG cz, SLONG cradius,
+    SLONG x1, SLONG z1,
+    SLONG* x2, SLONG* z2);
+
+// uc_orig: collide_box (fallen/Headers/collide.h)
+// Returns UC_TRUE if a collision vector intersects a rotated bounding box.
+SLONG collide_box(
+    SLONG midx, SLONG midy, SLONG midz,
+    SLONG minx, SLONG minz,
+    SLONG maxx, SLONG maxz,
+    SLONG yaw);
+
+// uc_orig: collide_box_with_line (fallen/Headers/collide.h)
+// Returns UC_TRUE if a line segment intersects the rotated bounding box.
+SLONG collide_box_with_line(
+    SLONG midx, SLONG midz,
+    SLONG minx, SLONG minz,
+    SLONG maxx, SLONG maxz,
+    SLONG yaw,
+    SLONG lx1, SLONG lz1,
+    SLONG lx2, SLONG lz2);
+
+// uc_orig: collide_against_sausage (fallen/Headers/collide.h)
+// Orthogonal sausage-shape collision. Slides (vx2,vz2) away from sausage.
+// Returns UC_TRUE on collision.
+SLONG collide_against_sausage(
+    SLONG sx1, SLONG sz1,
+    SLONG sx2, SLONG sz2,
+    SLONG swidth,
+    SLONG vx1, SLONG vz1,
+    SLONG vx2, SLONG vz2,
+    SLONG* slide_x,
+    SLONG* slide_z);
+
+// ========================================================================
+// Col-vect management
+// ========================================================================
+
+// uc_orig: insert_collision_vect (fallen/Source/collide.cpp)
+// Allocates a new CollisionVect and links it into PAP LO cells.
+// Returns the index of the new barrier, or -1 on overflow.
+SLONG insert_collision_vect(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2,
+    UBYTE prim, UBYTE prim_extra, SWORD face);
+
+// uc_orig: remove_collision_vect (fallen/Source/collide.cpp)
+// Removes a collision barrier from the pool and unlists it from PAP cells.
+void remove_collision_vect(UWORD vect);
+
+// uc_orig: get_point_dist_from_col_vect (fallen/Source/collide.cpp)
+// Returns the distance from (x,z) to the barrier at index vect.
+// Also writes the clamped nearest point to (*ret_x, *ret_z) offset by new_dist.
+SLONG get_point_dist_from_col_vect(SLONG vect, SLONG x, SLONG z,
+    SLONG* ret_x, SLONG* ret_z, SLONG new_dist);
+
+// uc_orig: check_vect_circle (fallen/Source/collide.cpp)
+// Tests if the movement delta (m_dx,m_dy,m_dz) for p_thing with radius
+// intersects any collision barrier. Returns non-zero if blocked.
+SLONG check_vect_circle(SLONG m_dx, SLONG m_dy, SLONG m_dz, Thing* p_thing, SLONG radius);
+
+// uc_orig: check_vect_vect (fallen/Source/collide.cpp)
+// Tests movement delta against collision barriers, treating the thing as a thin vector.
+SLONG check_vect_vect(SLONG m_dx, SLONG m_dy, SLONG m_dz, Thing* p_thing, SLONG scale);
+
+// ========================================================================
+// Height / face queries
+// ========================================================================
+
+// uc_orig: find_face_for_this_pos (fallen/Source/collide.cpp)
+// Returns the walkable face index below (x,y,z). ignore_faces_of_this_building: skip one building.
+// flag: controls search mode. Returns -1 if no face found.
+SLONG find_face_for_this_pos(SLONG x, SLONG y, SLONG z, SLONG* ret_y,
+    SLONG ignore_faces_of_this_building, UBYTE flag);
+
+// uc_orig: calc_map_height_at (fallen/Headers/collide.h)
+// Returns the map height at (x,z): building top if inside one, else calc_height_at().
+SLONG calc_map_height_at(SLONG x, SLONG z);
+
+// ========================================================================
+// Level setup helpers
+// ========================================================================
+
+// uc_orig: insert_collision_facets (fallen/Source/collide.cpp)
+// Inserts STOREY_TYPE_JUST_COLLISION barriers to block Darci at level boundaries.
+void insert_collision_facets(void);
+
+// uc_orig: create_shockwave (fallen/Source/collide.cpp)
+// Creates an area-of-effect shockwave that damages and knocks down nearby people/things.
+// maxdamage: max health loss (person max = 200). just_people: if non-zero, only affect people.
+void create_shockwave(
+    SLONG x, SLONG y, SLONG z,
+    SLONG radius,
+    SLONG maxdamage,
+    Thing* p_aggressor, ULONG just_people = 0);
+
+// uc_orig: COLLIDE_find_seethrough_fences (fallen/Source/collide.cpp)
+// Marks fence facets with see-through textures as FACET_FLAG_SEETHROUGH.
+void COLLIDE_find_seethrough_fences(void);
+
+// ========================================================================
+// Fastnav helpers
+// ========================================================================
+
+// uc_orig: COLLIDE_calc_fastnav_bits (fallen/Source/collide.cpp)
+// Builds the fastnav bit array from current DFacets.
+void COLLIDE_calc_fastnav_bits(void);
+
+// uc_orig: COLLIDE_debug_fastnav (fallen/Source/collide.cpp)
+// Debug: draws a cross over each fastnav square near the given world position.
+void COLLIDE_debug_fastnav(SLONG world_x, SLONG world_z);
+
+// ========================================================================
 // Circle / sausage / box collision — chunk 5b
 // ========================================================================
-// Note: most chunk 5b declarations come from the included fallen/Headers/collide.h.
-// Only the functions NOT in that header are declared here.
 
 // uc_orig: collide_with_circle (fallen/Source/collide.cpp)
 // Returns UC_TRUE if (*x2, *z2) is strictly inside the circle. Does not push out.

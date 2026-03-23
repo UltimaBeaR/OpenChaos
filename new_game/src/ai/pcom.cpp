@@ -10,7 +10,7 @@
 #include "ai/combat_globals.h"
 #include "missions/eway.h"
 #include "missions/memory_globals.h"    // Temporary: dfacets, DFacet, next_dfacet
-#include "fallen/Headers/collide.h"     // Temporary: there_is_a_los_mav, can_a_see_b
+#include "engine/physics/collide.h"
 #include "fallen/Headers/road.h"        // Temporary: ROAD_get_dest
 #include "fallen/Headers/wand.h"        // Temporary: PAP_*, PAP_FLAG_*
 #include "fallen/Headers/ware.h"        // Temporary: WARE_mav_enter etc

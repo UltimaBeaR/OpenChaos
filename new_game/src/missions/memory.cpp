@@ -5,7 +5,8 @@
 #include "fallen/Headers/Game.h"      // Temporary: Game struct, Thing system types, macro helpers
 #include "fallen/Headers/ob.h"        // Temporary: OB_ob, OB_mapwho, OB_ob_upto
 #include "fallen/Headers/fc.h"        // Temporary: FC_look_at, FC_force_camera_behind
-#include "fallen/Headers/wmove.h"     // Temporary: WMOVE_Face, WMOVE_face, WMOVE_face_upto, RWMOVE_MAX_FACES
+#include "world/navigation/wmove.h"
+#include "world/navigation/wmove_globals.h"
 #include "world/map/supermap.h"
 #include "fallen/Headers/night.h"     // Temporary: NIGHT_slight, NIGHT_smap, NIGHT_dlight types and counts
 #include "fallen/Headers/barrel.h"    // Temporary: BARREL_sphere, BARREL_barrel, barrel types
@@ -14,7 +15,7 @@
 #include "fallen/Headers/mav.h"       // Temporary: MAV_opt, MAV_nav, MAV_MAX_OPTS
 #include "fallen/Headers/road.h"      // Temporary: ROAD_node, ROAD_edge types
 #include "fallen/Headers/balloon.h"   // Temporary: BALLOON_balloon
-#include "fallen/Headers/tracks.h"    // Temporary: tracks, TRACK_BUFFER_LENGTH, Track type
+#include "effects/tracks.h"
 #include "fallen/Headers/ware.h"      // Temporary: WARE_ware, WARE_nav, WARE_height, WARE_rooftex
 #include "fallen/Headers/trip.h"      // Temporary: TRIP_wire
 #include "fallen/Headers/psystem.h"   // Temporary: PYROS, MAX_PYROS, Pyro type

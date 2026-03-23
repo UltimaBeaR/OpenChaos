@@ -12,7 +12,8 @@
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 
-#include "fallen/Headers/collide.h"       // Temporary: there_is_a_los, los_failure_dfacet, two4_line_intersection, find_nearby_ladder_colvect_radius
+#include "engine/physics/collide.h"
+#include "engine/physics/collide_globals.h"
 #include "fallen/Headers/prim.h"          // Temporary: PrimInfo, get_prim_info, does_fence_lie_along_line, RFACE_FLAG_NODRAW, RoofFace4
 #include "fallen/Headers/building.h"      // Temporary: BUILDING_TYPE_WAREHOUSE, DBuilding, STOREY_TYPE_FENCE_FLAT, STOREY_TYPE_LADDER, FACET_FLAG_UNCLIMBABLE
 #include "fallen/Headers/memory.h"        // Temporary: roof_faces4, next_dbuilding, next_dwalkable, dwalkables, next_dfacet
