@@ -59,6 +59,9 @@
 #define DT_FLAG_UNUSED (1 << 7)
 // uc_orig: DT_FLAG_GUNFLASH (fallen/Headers/drawtype.h)
 #define DT_FLAG_GUNFLASH (1 << 6)
+// Shadow-cast enable flag stored in DrawTween.Flags.
+// uc_orig: FLAGS_DRAW_SHADOW (fallen/Headers/Structs.h)
+#define FLAGS_DRAW_SHADOW (1 << 0)
 
 // uc_orig: DrawTween (fallen/Headers/drawtype.h)
 // Animation state for a vertex-morphing character (DT_TWEEN).

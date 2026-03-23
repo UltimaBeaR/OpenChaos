@@ -15,13 +15,13 @@
 #include <string.h>
 
 // Include core types and the COMMON macro before struct definitions that use them.
-#include "fallen/Headers/Structs.h"  // COMMON, MiniTextureBits, MAV_Action
-#include "fallen/Headers/State.h"    // StateFunction — needed by Furn.h, Animal.h, etc.
+#include "fallen/Headers/Structs.h"  // redirect: COMMON, MiniTextureBits, MAV_Action
+#include "fallen/Headers/State.h"    // StateFunction — needed by animal.h, etc.
 #include "fallen/Headers/drawtype.h" // DrawTween, DrawMesh — needed by Vehicle.h, Chopper.h
 
 // Pool object type definitions. Order matches original Game.h.
 #include "fallen/Headers/building.h"
-#include "fallen/Headers/Furn.h"
+#include "actors/vehicles/furn.h"
 #include "fallen/Headers/Vehicle.h"
 #include "fallen/Headers/inline.h"
 #include "fallen/Headers/Person.h"

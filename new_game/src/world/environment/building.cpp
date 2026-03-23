@@ -31,6 +31,8 @@
 // Needed for calc_ladder_ends (used by calc_ladder_pos in this file)
 #include "world/environment/build2.h"
 
+// Needed for MiniTextureBits (packed texture descriptor used in building face data).
+#include "assets/texture.h"
 #include "world/environment/building.h"
 #include "world/environment/building_globals.h"
 

@@ -5,12 +5,7 @@
 #include "core/vector.h"
 #include "actors/core/state.h"
 
-// Temporary: Player struct uses COMMON (needs THING_INDEX) and GameCoord.
-// THING_INDEX is normally defined by Game.h before Structs.h; replicate here for standalone use.
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-#include "fallen/Headers/Structs.h"
+#include "actors/core/common.h"
 
 struct Thing;
 

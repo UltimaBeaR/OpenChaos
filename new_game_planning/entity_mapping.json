@@ -97089,6 +97089,246 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "MAV_Action",
+      "file": "new/ai/mav_action.h",
+      "orig_name": "MAV_Action",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MiniTextureBits",
+      "file": "new/assets/texture.h",
+      "orig_name": "MiniTextureBits",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAGS_DRAW_SHADOW",
+      "file": "new/actors/core/drawtype.h",
+      "orig_name": "FLAGS_DRAW_SHADOW",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "COMMON",
+      "file": "new/actors/core/common.h",
+      "orig_name": "COMMON",
+      "orig_file": "fallen/Headers/Structs.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_FURN_DRIVING",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FLAG_FURN_DRIVING",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_FURN_WHEEL1_GRIP",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FLAG_FURN_WHEEL1_GRIP",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_FURN_WHEEL2_GRIP",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FLAG_FURN_WHEEL2_GRIP",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_FURN_WHEEL3_GRIP",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FLAG_FURN_WHEEL3_GRIP",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FLAG_FURN_WHEEL4_GRIP",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FLAG_FURN_WHEEL4_GRIP",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "Furniture",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "Furniture",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FurniturePtr",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FurniturePtr",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAX_FURNITURE",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "MAX_FURNITURE",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_statefunctions",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_statefunctions",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "init_furniture",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "init_furniture",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "free_furniture",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "free_furniture",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_alloc_furniture",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_alloc_furniture",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_create",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_create",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "VEHICLE_create",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "VEHICLE_create",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_turn_into_door",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_turn_into_door",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_slide_along",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_slide_along",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_avoid",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_avoid",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_hypermatterise",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_hypermatterise",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_push",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_push",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FURN_add_walkable",
+      "file": "new/actors/vehicles/furn.h",
+      "orig_name": "FURN_add_walkable",
+      "orig_file": "fallen/Headers/Furn.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

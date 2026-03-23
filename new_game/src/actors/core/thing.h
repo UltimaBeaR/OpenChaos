@@ -8,7 +8,7 @@
 // Use the lowest-level header that defines the struct and *Ptr typedef to avoid
 // pulling in function declarations (which might conflict with forward decls in .cpp files).
 #include "actors/vehicles/vehicle.h"   // Vehicle, VehiclePtr
-#include "fallen/Headers/Furn.h"       // Temporary: Furniture, FurniturePtr (not yet in new/)
+#include "actors/vehicles/furn.h"
 #include <string.h>                       // Person.h → Structs.h → anim.h uses strcpy
 #include "fallen/Headers/Person.h"        // Temporary: Person, PersonPtr (new/person.h adds fn decls we don't want here)
 #include "actors/animals/animal.h"     // Animal, AnimalPtr

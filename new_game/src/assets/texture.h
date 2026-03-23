@@ -243,7 +243,18 @@ void TEXTURE_86_unlock(void);
 // uc_orig: TEXTURE_86_update (fallen/DDEngine/Headers/texture.h)
 void TEXTURE_86_update(void);
 
-// MiniTextureBits struct is defined in fallen/Headers/Structs.h (pending migration).
+// Packed texture coordinate descriptor stored as a UWORD in building/prim data.
+// Fields encode texture page, UV tile offset, rotation and size in 16 bits total.
+// uc_orig: MiniTextureBits (fallen/Headers/Structs.h)
+struct MiniTextureBits {
+    UWORD X : 3;
+    UWORD Y : 3;
+    UWORD Page : 4;
+    UWORD Rot : 2;
+    UWORD Flip : 2;
+    UWORD Size : 2;
+};
+
 // uc_orig: TEXTURE_get_minitexturebits_uvs (fallen/DDEngine/Headers/texture.h)
 // Returns UV coordinates for a MiniTextureBits texture descriptor.
 void TEXTURE_get_minitexturebits_uvs(

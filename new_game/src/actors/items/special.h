@@ -3,14 +3,7 @@
 
 #include "core/types.h"
 
-// THING_INDEX and the COMMON() struct header macro come from Structs.h.
-// Guard protects against double-definition when Game.h is included first (Game.h defines THING_INDEX
-// before including Special.h, which now redirects here).
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-#include <string.h>
-#include "fallen/Headers/Structs.h"
+#include "actors/core/common.h"
 
 // Forward declaration: only pointer-to-Thing is used in function signatures.
 struct Thing;

@@ -3,12 +3,7 @@
 
 #include "core/types.h"
 
-// Temporary: Switch struct uses COMMON macro (needs THING_INDEX) defined in Structs.h.
-// THING_INDEX is normally set by Game.h; replicate here for standalone use.
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-#include "fallen/Headers/Structs.h"
+#include "actors/core/common.h"
 
 struct Thing;
 

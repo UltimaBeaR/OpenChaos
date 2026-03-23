@@ -1,10 +1,7 @@
 #ifndef WORLD_NAVIGATION_WAND_H
 #define WORLD_NAVIGATION_WAND_H
 
-// Temporary: Thing type needed for WAND_get_next_place / WAND_square_for_person
-#ifndef THING_INDEX
-#include "fallen/Headers/Structs.h"
-#endif
+#include "core/types.h"
 
 // uc_orig: WAND_init (fallen/Headers/wand.h)
 // Marks walkable squares near roads with PAP_FLAG_WANDER.

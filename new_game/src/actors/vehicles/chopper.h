@@ -3,14 +3,10 @@
 
 #include <string.h>
 #include "core/types.h"
+#include "core/vector.h"
 #include "actors/core/state.h"
 #include "actors/core/drawtype.h"
 
-// Temporary: needs THING_INDEX, GameCoord without pulling in game.h.
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-#include "fallen/Headers/Structs.h"
 
 struct Thing;
 

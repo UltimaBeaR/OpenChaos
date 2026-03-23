@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 175 — Furn.h → actors/vehicles/furn.h; Structs.h → redirect; удалены 4 editor-only headers (2026-03-23)
+
+- `Structs.h` разобран: `COMMON` → `actors/core/common.h`, `MAV_Action` → `ai/mav_action.h`, `MiniTextureBits` → `assets/texture.h`, `FLAGS_DRAW_SHADOW` → `actors/core/drawtype.h`. `Structs.h` превращён в redirect. 8 потребителей обновлены на прямые include.
+- `Furn.h` → `actors/vehicles/furn.h`. `Structs.h` больше не тянет тяжёлый `assets/texture.h` через mav-chain — `MiniTextureBits` из `Structs.h` убран, `building.cpp` получил явный `#include "assets/texture.h"`.
+- `Wallhug.h`, `WSpace.h`, `Level.h`, `Command.h` — удалены: нет ни одного `#include` в активном коде (только editor/GEdit-код, не входящий в CMakeLists).
+- Temporary: 496 → 491.
+
 ## Итерация 174 — Массовая зачистка // Temporary: у redirect-заголовков (2026-03-23)
 
 - Нет новых миграций сущностей — только замена `fallen/Headers/X.h // Temporary:` на прямые пути в 30 файлах.

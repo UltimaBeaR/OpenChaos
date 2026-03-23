@@ -2,16 +2,13 @@
 #define ACTORS_ANIMALS_ANIMAL_H
 
 #include "core/types.h"
+#include "core/vector.h"
 #include "actors/core/state.h"
+#include <stddef.h>
 
 struct Thing;
 
-// GameCoord is defined in Structs.h — use guard pattern for standalone use.
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-#include <string.h>
-#include "fallen/Headers/Structs.h"
+struct GameKeyFrameChunk;
 
 // uc_orig: MAX_ANIMALS (fallen/Headers/animal.h)
 #define MAX_ANIMALS 6

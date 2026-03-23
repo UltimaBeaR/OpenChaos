@@ -2,15 +2,10 @@
 #define ACTORS_ITEMS_BARREL_H
 
 #include "core/types.h"
+#include "core/vector.h"
 
 struct Thing;
 
-// GameCoord and THING_INDEX come from Structs.h.
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-#include <string.h>
-#include "fallen/Headers/Structs.h"
 
 // uc_orig: BARREL_MAX_SPHERES (fallen/Headers/barrel.h)
 #define BARREL_MAX_SPHERES 80
