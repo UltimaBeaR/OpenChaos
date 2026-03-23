@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 159 — aeng.cpp chunk 4b (AENG_draw_city — 3063 lines) (2026-03-23)
+
+- `AENG_draw_city` — single 3063-line function, migrated whole (per NEVER SKIP CODE rule).
+- Added Temporary includes: `assets/anim_tmap.h` (AnimTmap/anim_tmaps), `fallen/Headers/statedef.h` (STATE_DEAD).
+- `AENG_NUM_SHADOWS`, `AENG_MAX_DONE`, `AENG_TRIPWIRE_WIDTH` are #define'd inside the function body — kept as-is.
+- `MAX_FPM_ALPHA` was file-level define in old/aeng.cpp — migrated to new/aeng.cpp.
+
+---
+
 ## Итерация 158 — aeng.cpp chunk 4a (draw_quick_floor, index_lookup) (2026-03-23)
 
 - `MAVHEIGHT` не был включён в new/aeng.cpp → добавлен `#include "fallen/Headers/mav.h"` (// Temporary:).

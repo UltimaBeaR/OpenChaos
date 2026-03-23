@@ -61,6 +61,49 @@
 #include "core/timer.h"                    // Temporary: StartStopwatch, StopStopwatch (AENG_draw_some_polys)
 #include "engine/io/env.h"                 // Temporary: ENV_set_value_number (AENG_set/guess_detail_levels)
 
+// Additional includes for AENG_draw_city() (chunk 4b)
+#include "world/environment/puddle.h"
+#include "world/environment/puddle_globals.h"
+#include "effects/mist.h"
+#include "effects/mist_globals.h"
+#include "engine/graphics/pipeline/wibble.h"
+#include "engine/graphics/geometry/bloom.h"
+#include "engine/graphics/geometry/bloom_globals.h"
+#include "engine/graphics/geometry/cone.h"
+#include "engine/graphics/geometry/cone_globals.h"
+#include "world/environment/tripwire.h"
+#include "world/environment/tripwire_globals.h"
+#include "engine/physics/sm.h"
+#include "engine/physics/sm_globals.h"
+#include "engine/effects/psystem.h"
+#include "engine/effects/psystem_globals.h"
+#include "effects/ribbon.h"
+#include "effects/ribbon_globals.h"
+#include "effects/pyro.h"
+#include "effects/pyro_globals.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
+#include "world/map/supermap.h"
+#include "engine/graphics/geometry/facet.h"
+#include "engine/graphics/geometry/facet_globals.h"
+#include "engine/graphics/geometry/farfacet.h"
+#include "actors/core/interact.h"
+#include "actors/animals/bat.h"
+#include "actors/characters/person.h"
+#include "actors/items/special.h"
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/chopper.h"
+#include "actors/items/grenade.h"
+#include "ai/pcom.h"
+#include "effects/glow.h"
+#include "effects/tracks.h"
+#include "engine/graphics/geometry/oval.h"
+#include "ui/interfac_globals.h"
+#include "ui/controls_globals.h"
+#include "fallen/Headers/animate.h"         // Temporary: SUB_OBJECT_PELVIS
+#include "assets/anim_tmap.h"               // Temporary: AnimTmap, anim_tmaps (wibble texture animation)
+#include "fallen/Headers/statedef.h"        // Temporary: STATE_DEAD
+
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)
 #define POLY_set_local_rotation_none() \
     {                                  \
@@ -4043,3 +4086,3073 @@ void draw_quick_floor(SLONG warehouse)
     END_SCENE;
 }
 
+
+// uc_orig: MAX_FPM_ALPHA (fallen/DDEngine/Source/aeng.cpp)
+// Alpha threshold used in first-person mode blending.
+#define MAX_FPM_ALPHA 160
+
+// uc_orig: AENG_draw_city (fallen/DDEngine/Source/aeng.cpp)
+// Main outdoor city scene renderer. Draws sky, terrain, buildings, Things, effects, and HUD.
+// This is the primary render path for exterior gameplay (not used for indoor/sewer sections).
+void AENG_draw_city()
+{
+
+    // LOG_ENTER ( AENG_Draw_City )
+
+    // TRACE ( "AengIn" );
+
+    // DumpTracies();
+
+    SLONG i;
+
+    SLONG x;
+    SLONG y;
+    SLONG z;
+
+    SLONG dx;
+    SLONG dy;
+    SLONG dz;
+    SLONG dist;
+
+    SLONG nx;
+    SLONG nz;
+
+    SLONG page;
+    SLONG shadow;
+    SLONG square;
+
+    float world_x;
+    float world_y;
+    float world_z;
+
+    POLY_Point* pp;
+    POLY_Point* ppl;
+    MapElement* me;
+
+    PAP_Lo* pl;
+    PAP_Hi* ph;
+
+    THING_INDEX t_index;
+    Thing* p_thing;
+
+    POLY_Point* tri[3];
+    POLY_Point* quad[4];
+
+    NIGHT_Square* nq;
+
+    SLONG red;
+    SLONG green;
+    SLONG blue;
+
+    SLONG px;
+    SLONG pz;
+
+    SLONG sx;
+    SLONG sz;
+
+    SLONG px1;
+    SLONG pz1;
+    SLONG px2;
+    SLONG pz2;
+
+    SLONG mx;
+    SLONG mz;
+
+    SLONG worked_out_colour;
+    ULONG colour;
+    ULONG specular;
+
+    OB_Info* oi;
+
+    LIGHT_Colour pcol;
+    static int outside = 1;
+    static int sea_offset = 0;
+
+    AENG_total_polys_drawn = 0;
+    void draw_all_boxes(void);
+    draw_all_boxes();
+
+    extern SLONG tick_tock_unclipped;
+    sea_offset += (tick_tock_unclipped);
+
+    //
+    // Work out which things are in view.
+    //
+
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            t_index = PAP_2LO(x, z).MapWho;
+
+            while (t_index) {
+                p_thing = TO_THING(t_index);
+
+                if (p_thing->Flags & FLAGS_IN_BUILDING) {
+                    //
+                    // Dont draw things inside buildings when we are outdoors.
+                    //
+                } else {
+                    switch (p_thing->Class) {
+                    case CLASS_PERSON:
+
+                        //
+                        // We only have a rejection test for people now.
+                        //
+
+                        if (p_thing->Genus.Person->PlayerID && !p_thing->Genus.Person->Ware)
+                            p_thing->Flags |= FLAGS_IN_VIEW;
+                        else if (!p_thing->Genus.Person->Ware && FC_can_see_person(AENG_cur_fc_cam, p_thing)) {
+                            if (POLY_sphere_visible(
+                                    float(p_thing->WorldPos.X >> 8),
+                                    float(p_thing->WorldPos.Y >> 8) + 0x80,
+                                    float(p_thing->WorldPos.Z >> 8),
+                                    256.0F / (AENG_DRAW_DIST * 256.0F))) {
+                                p_thing->Flags |= FLAGS_IN_VIEW;
+                            }
+                        }
+
+                        break;
+
+                    default:
+                        p_thing->Flags |= FLAGS_IN_VIEW;
+                        break;
+                    }
+                }
+
+                t_index = p_thing->Child;
+            }
+
+            NIGHT_square[NIGHT_cache[x][z]].flag &= ~NIGHT_SQUARE_FLAG_DELETEME;
+        }
+    }
+
+    BreakTime("Worked out things in view");
+
+    //
+    // Points out of the ambient light.
+    //
+
+    shadow = ((NIGHT_amb_red >> 1) << 16) | ((NIGHT_amb_green >> 1) << 8) | ((NIGHT_amb_blue >> 1) << 0);
+
+    if (Keys[KB_L] && ControlFlag) {
+        outside ^= 1;
+    }
+
+    if (INDOORS_INDEX) {
+        POLY_frame_draw(UC_TRUE, UC_TRUE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
+        if (INDOORS_INDEX_NEXT)
+            AENG_draw_inside_floor(INDOORS_INDEX_NEXT, INDOORS_ROOM_NEXT, 0);
+
+        //		POLY_frame_draw(UC_TRUE,UC_TRUE);
+        if (INDOORS_INDEX)
+            AENG_draw_inside_floor(INDOORS_INDEX, INDOORS_ROOM, INDOORS_INDEX_FADE);
+        POLY_frame_draw(UC_TRUE, UC_TRUE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
+        //		return;
+    }
+
+    //
+    // Rotate all the points.   //draw_floor
+    //
+
+    colour = 0x00888888;
+    specular = 0xff000000;
+
+    if (!INDOORS_INDEX || outside)
+        for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
+            for (x = NGAMUT_point_gamut[z].xmin; x <= NGAMUT_point_gamut[z].xmax; x++) {
+                ASSERT(WITHIN(x, 0, MAP_WIDTH - 1));
+                ASSERT(WITHIN(z, 0, MAP_HEIGHT - 1));
+
+                extern UBYTE player_visited[16][128];
+                //			player_visited[x>>3][z]|=1<<(x&7);
+
+                ph = &PAP_2HI(x, z);
+                // show_gamut_hi(x,z);
+
+                //
+                // The upper point.
+                //
+
+                world_x = x * 256.0F;
+                world_y = ph->Alt * float(1 << ALT_SHIFT);
+                world_z = z * 256.0F;
+
+                worked_out_colour = UC_FALSE;
+
+                if (!(ph->Flags & PAP_FLAG_NOUPPER)) {
+                    pp = &AENG_upper[x & 63][z & 63];
+
+                    POLY_transform(world_x, world_y, world_z, pp);
+
+                    if (pp->MaybeValid()) {
+                        //
+                        // Work out the colour of this point... what a palaver!
+                        //
+
+                        if (INDOORS_INDEX) {
+                            /*
+                                                                            NIGHT_get_d3d_colour_dim(
+                                                                                    nq->colour[dx + dz * PAP_BLOCKS],
+                                                                               &pp->colour,
+                                                                               &pp->specular);
+                            */
+                            pp->colour = 0x80808080; // 202020;
+                            pp->specular = 0x80000000;
+                        } else {
+                            px = x >> 2;
+                            pz = z >> 2;
+
+                            dx = x & 0x3;
+                            dz = z & 0x3;
+
+                            ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                            ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                            square = NIGHT_cache[px][pz];
+
+                            ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                            ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+
+                            nq = &NIGHT_square[square];
+
+                            NIGHT_get_d3d_colour(
+                                nq->colour[dx + dz * PAP_BLOCKS],
+                                &pp->colour,
+                                &pp->specular);
+                        }
+
+                        apply_cloud((SLONG)world_x, (SLONG)world_y, (SLONG)world_z, &pp->colour);
+
+                        POLY_fadeout_point(pp);
+
+                        colour = pp->colour;
+                        specular = pp->specular;
+
+                        worked_out_colour = UC_TRUE;
+                    }
+                }
+
+                //
+                // The lower point.
+                //
+
+                if (ph->Flags & PAP_FLAG_SINK_POINT || (MAV_SPARE(x, z) & MAV_SPARE_FLAG_WATER)) {
+
+                    if (ph->Flags & PAP_FLAG_SINK_POINT) {
+                        world_y -= KERB_HEIGHT;
+                    } else {
+                        world_y += (COS(((x << 8) + (sea_offset >> 1)) & 2047) + SIN(((z << 8) + (sea_offset >> 1) + 700) & 2047)) >> 13;
+                    }
+
+                    ppl = &AENG_lower[x & 63][z & 63];
+
+                    POLY_transform(world_x, world_y, world_z, ppl);
+
+                    if (ppl->MaybeValid()) {
+                        if (worked_out_colour) {
+                            //
+                            // Use the colour of the upper point...
+                            //
+
+                            ppl->colour = colour;
+                            ppl->specular = specular;
+                        } else {
+                            //
+                            // Work out the colour of this point... what a palaver!
+                            //
+
+                            if (INDOORS_INDEX) {
+                                /*
+                                                                                        NIGHT_get_d3d_colour_dim(
+                                                                                                nq->colour[dx + dz * PAP_BLOCKS],
+                                                                                           &ppl->colour,
+                                                                                           &ppl->specular);
+                                */
+                                ppl->colour = 0x202020;
+                                ppl->specular = 0xff000000;
+
+                            } else {
+                                px = x >> 2;
+                                pz = z >> 2;
+
+                                dx = x & 0x3;
+                                dz = z & 0x3;
+
+                                ASSERT(WITHIN(px, 0, PAP_SIZE_LO - 1));
+                                ASSERT(WITHIN(pz, 0, PAP_SIZE_LO - 1));
+
+                                square = NIGHT_cache[px][pz];
+
+                                ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+                                ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+
+                                nq = &NIGHT_square[square];
+
+                                NIGHT_get_d3d_colour(
+                                    nq->colour[dx + dz * PAP_BLOCKS],
+                                    &ppl->colour,
+                                    &ppl->specular);
+                            }
+
+                            POLY_fadeout_point(ppl);
+                        }
+                        apply_cloud((SLONG)world_x, (SLONG)world_y, (SLONG)world_z, &ppl->colour);
+                    }
+                }
+            }
+        }
+    BreakTime("Rotated points");
+
+    //
+    // No reflection and shadow stuff second time round during 3d mode.
+    //
+
+    if (AENG_detail_stars && !(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
+        //
+        // Draw the stars...
+        //
+        if (the_display.screen_lock()) {
+            BreakTime("Locked for stars");
+
+            SKY_draw_stars(
+                AENG_cam_x,
+                AENG_cam_y,
+                AENG_cam_z,
+                AENG_DRAW_DIST * 256.0F);
+
+            BreakTime("Drawn stars");
+
+            the_display.screen_unlock();
+        }
+    }
+
+    BreakTime("Done stars");
+
+    //
+    // Shadows.
+    //
+
+#define AENG_NUM_SHADOWS 4
+
+    struct
+    {
+        Thing* p_person;
+        SLONG dist;
+
+    } shadow_person[AENG_NUM_SHADOWS];
+    SLONG shadow_person_upto = 0;
+
+    if (AENG_detail_shadows) {
+        Thing* darci = FC_cam[AENG_cur_fc_cam].focus;
+
+        //
+        // How many people do we generate shadows for?
+        //
+
+        SLONG shadow_person_worst_dist = -UC_INFINITY;
+        SLONG shadow_person_worst_person;
+
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                t_index = PAP_2LO(x, z).MapWho;
+
+                while (t_index) {
+                    p_thing = TO_THING(t_index);
+
+                    if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
+                        //
+                        // Distance from darci.
+                        //
+
+                        dx = p_thing->WorldPos.X - darci->WorldPos.X;
+                        dz = p_thing->WorldPos.Z - darci->WorldPos.Z;
+
+                        dist = abs(dx) + abs(dz);
+
+                        if (dist < 0x60000) {
+                            if (shadow_person_upto < AENG_NUM_SHADOWS) {
+                                //
+                                // Put this person in the shadow array.
+                                //
+
+                                shadow_person[shadow_person_upto].p_person = p_thing;
+                                shadow_person[shadow_person_upto].dist = dist;
+
+                                //
+                                // Keep track of the furthest person away.
+                                //
+
+                                if (dist > shadow_person_worst_dist) {
+                                    shadow_person_worst_dist = dist;
+                                    shadow_person_worst_person = shadow_person_upto;
+                                }
+
+                                shadow_person_upto += 1;
+                            } else {
+                                if (dist < shadow_person_worst_dist) {
+                                    //
+                                    // Replace the worst person.
+                                    //
+
+                                    ASSERT(WITHIN(shadow_person_worst_person, 0, AENG_NUM_SHADOWS - 1));
+
+                                    shadow_person[shadow_person_worst_person].p_person = p_thing;
+                                    shadow_person[shadow_person_worst_person].dist = dist;
+
+                                    //
+                                    // Find the worst person
+                                    //
+
+                                    shadow_person_worst_dist = -UC_INFINITY;
+
+                                    for (i = 0; i < AENG_NUM_SHADOWS; i++) {
+                                        if (shadow_person[i].dist > shadow_person_worst_dist) {
+                                            shadow_person_worst_dist = shadow_person[i].dist;
+                                            shadow_person_worst_person = i;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    t_index = p_thing->Child;
+                }
+            }
+        }
+
+        //
+        // Draw the people's shadow maps.
+        //
+
+        SLONG offset_x;
+        SLONG offset_y;
+
+        POLY_flush_local_rot();
+
+        for (i = 0; i < shadow_person_upto; i++) {
+            darci = shadow_person[i].p_person;
+
+            memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
+
+            SMAP_person(
+                darci,
+                (UBYTE*)AENG_aa_buffer,
+                AENG_AA_BUF_SIZE,
+                AENG_AA_BUF_SIZE,
+                147,
+                -148,
+                -147);
+
+            //
+            // Where do we put it in the shadow texture page? Hard code everything!
+            //
+
+            ASSERT(AENG_AA_BUF_SIZE == 32);
+            ASSERT(TEXTURE_SHADOW_SIZE == 64);
+
+            offset_x = (i & 1) << 5;
+            offset_y = (i & 2) << 4;
+
+            //
+            // Plonk it into the shadow texture page.
+            //
+
+            if (TEXTURE_shadow_lock()) {
+                SLONG x;
+                SLONG y;
+                UWORD* line;
+                UBYTE* buf = (UBYTE*)AENG_aa_buffer;
+                UWORD* mapping = GetShadowPixelMapping();
+
+                for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
+                    line = &TEXTURE_shadow_bitmap[((y + offset_y) * TEXTURE_shadow_pitch >> 1) + offset_x];
+
+                    for (x = AENG_AA_BUF_SIZE - 1; x >= 0; x--) {
+                        *line++ = mapping[*buf++];
+                    }
+                }
+
+                TEXTURE_shadow_unlock();
+            }
+
+            //
+            // How we map floating points coordinates from 0 to 1 onto
+            // where we plonked the shadow map in the texture page.
+            //
+
+            AENG_project_offset_u = float(offset_x) / float(TEXTURE_SHADOW_SIZE);
+            AENG_project_offset_v = float(offset_y) / float(TEXTURE_SHADOW_SIZE);
+            AENG_project_mul_u = float(AENG_AA_BUF_SIZE) / float(TEXTURE_SHADOW_SIZE);
+            AENG_project_mul_v = float(AENG_AA_BUF_SIZE) / float(TEXTURE_SHADOW_SIZE);
+
+            //
+            // The position from which the shadow fades out.
+            //
+
+            AENG_project_fadeout_x = float(darci->WorldPos.X >> 8);
+            AENG_project_fadeout_z = float(darci->WorldPos.Z >> 8);
+
+            {
+                //
+                // Map this poly onto the mapsquares surrounding darci.
+                //
+
+                SLONG i;
+
+                SLONG mx;
+                SLONG mz;
+                SLONG dx;
+                SLONG dz;
+
+                SLONG mx1;
+                SLONG mz1;
+                SLONG mx2;
+                SLONG mz2;
+                SLONG exit = UC_FALSE;
+
+                SLONG mx_lo;
+                SLONG mz_lo;
+
+                MapElement* me[4];
+                PAP_Hi* ph[4];
+
+                SVector_F poly[4];
+                SMAP_Link* projected;
+
+                SLONG v_list;
+                SLONG i_vect;
+
+                DFacet* df;
+
+                SLONG w_list;
+                SLONG w_face;
+
+                PrimFace4* p_f4;
+                PrimPoint* pp;
+
+                SLONG wall;
+                SLONG storey;
+                SLONG building;
+                SLONG thing;
+                SLONG face_height;
+                UBYTE face_order[4] = { 0, 1, 3, 2 };
+
+                Thing* p_fthing;
+
+                //
+                // Colvects we have already done.
+                //
+
+#define AENG_MAX_DONE 8
+
+                SLONG done[AENG_MAX_DONE];
+                SLONG done_upto = 0;
+
+                for (dx = -1; dx <= 1; dx++)
+                    for (dz = -1; dz <= 1; dz++) {
+                        mx = (darci->WorldPos.X >> 16) + dx;
+                        mz = (darci->WorldPos.Z >> 16) + dz;
+
+                        if (WITHIN(mx, 0, MAP_WIDTH - 2) && WITHIN(mz, 0, MAP_HEIGHT - 2)) {
+                            me[0] = &MAP[MAP_INDEX(mx + 0, mz + 0)];
+                            me[1] = &MAP[MAP_INDEX(mx + 1, mz + 0)];
+                            me[2] = &MAP[MAP_INDEX(mx + 1, mz + 1)];
+                            me[3] = &MAP[MAP_INDEX(mx + 0, mz + 1)];
+
+                            ph[0] = &PAP_2HI(mx + 0, mz + 0);
+                            ph[1] = &PAP_2HI(mx + 1, mz + 0);
+                            ph[2] = &PAP_2HI(mx + 1, mz + 1);
+                            ph[3] = &PAP_2HI(mx + 0, mz + 1);
+
+                            if ((!(PAP_2HI(mx, mz).Flags & (PAP_FLAG_HIDDEN | PAP_FLAG_WATER))) || (PAP_2HI(mx, mz).Flags & (PAP_FLAG_ROOF_EXISTS))) {
+                                poly[3].X = float(mx << 8);
+                                poly[3].Z = float(mz << 8);
+
+                                poly[0].X = poly[3].X + 256.0F;
+                                poly[0].Z = poly[3].Z;
+
+                                poly[1].X = poly[3].X + 256.0F;
+                                poly[1].Z = poly[3].Z + 256.0F;
+
+                                poly[2].X = poly[3].X;
+                                poly[2].Z = poly[3].Z + 256.0F;
+
+                                if (PAP_2HI(mx, mz).Flags & (PAP_FLAG_ROOF_EXISTS)) {
+                                    poly[0].Y = poly[1].Y = poly[2].Y = poly[3].Y = MAVHEIGHT(mx, mz) << 6;
+                                } else {
+                                    poly[3].Y = float(ph[0]->Alt << ALT_SHIFT);
+                                    poly[2].Y = float(ph[3]->Alt << ALT_SHIFT);
+                                    poly[0].Y = float(ph[1]->Alt << ALT_SHIFT);
+                                    poly[1].Y = float(ph[2]->Alt << ALT_SHIFT);
+                                }
+
+                                if (PAP_2HI(mx, mz).Flags & PAP_FLAG_SINK_SQUARE) {
+                                    poly[0].Y -= KERB_HEIGHT;
+                                    poly[1].Y -= KERB_HEIGHT;
+                                    poly[2].Y -= KERB_HEIGHT;
+                                    poly[3].Y -= KERB_HEIGHT;
+                                }
+
+                                if (ph[0]->Alt == ph[1]->Alt && ph[0]->Alt == ph[2]->Alt && ph[0]->Alt == ph[3]->Alt) {
+                                    //
+                                    // This quad is coplanar.
+                                    //
+
+                                    projected = SMAP_project_onto_poly(poly, 4);
+
+                                    if (projected) {
+                                        AENG_add_projected_fadeout_shadow_poly(projected);
+                                    }
+                                } else {
+                                    //
+                                    // Do each triangle separatly.
+                                    //
+
+                                    projected = SMAP_project_onto_poly(poly, 3);
+
+                                    if (projected) {
+                                        AENG_add_projected_fadeout_shadow_poly(projected);
+                                    }
+
+                                    //
+                                    // The triangles are 0,1,2 and 0,2,3.
+                                    //
+
+                                    poly[1] = poly[0];
+
+                                    projected = SMAP_project_onto_poly(poly + 1, 3);
+
+                                    if (projected) {
+                                        AENG_add_projected_fadeout_shadow_poly(projected);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                mx1 = (darci->WorldPos.X >> 8) - 0x100 >> PAP_SHIFT_LO;
+                mz1 = (darci->WorldPos.Z >> 8) - 0x100 >> PAP_SHIFT_LO;
+
+                mx2 = (darci->WorldPos.X >> 8) + 0x100 >> PAP_SHIFT_LO;
+                mz2 = (darci->WorldPos.Z >> 8) + 0x100 >> PAP_SHIFT_LO;
+
+                SATURATE(mx1, 0, PAP_SIZE_LO - 1);
+                SATURATE(mz1, 0, PAP_SIZE_LO - 1);
+                SATURATE(mx2, 0, PAP_SIZE_LO - 1);
+                SATURATE(mz2, 0, PAP_SIZE_LO - 1);
+
+                for (mx_lo = mx1; mx_lo <= mx2; mx_lo++)
+                    for (mz_lo = mz1; mz_lo <= mz2; mz_lo++) {
+                        SLONG count = 0;
+
+                        //
+                        // Project onto nearby colvects...
+                        //
+
+                        v_list = PAP_2LO(mx_lo, mz_lo).ColVectHead;
+
+                        if (v_list) {
+                            exit = UC_FALSE;
+
+                            while (!exit) {
+                                i_vect = facet_links[v_list];
+
+                                if (i_vect < 0) {
+                                    i_vect = -i_vect;
+
+                                    exit = UC_TRUE;
+                                }
+
+                                df = &dfacets[i_vect];
+
+                                if (df->FacetType == STOREY_TYPE_NORMAL) {
+                                    for (i = 0; i < done_upto; i++) {
+                                        if (done[i] == i_vect) {
+                                            //
+                                            // Dont do this facet again
+                                            //
+
+                                            goto ignore_this_facet;
+                                        }
+                                    }
+
+                                    if (1 /* Fast facet shadows */) {
+                                        float facet_height = float((df->BlockHeight << 4) * (df->Height >> 2));
+
+                                        poly[0].X = float(df->x[1] << 8);
+                                        poly[0].Y = float(df->Y[1]);
+                                        poly[0].Z = float(df->z[1] << 8);
+
+                                        poly[1].X = float(df->x[1] << 8);
+                                        poly[1].Y = float(df->Y[1]) + facet_height;
+                                        poly[1].Z = float(df->z[1] << 8);
+
+                                        poly[2].X = float(df->x[0] << 8);
+                                        poly[2].Y = float(df->Y[0]) + facet_height;
+                                        poly[2].Z = float(df->z[0] << 8);
+
+                                        poly[3].X = float(df->x[0] << 8);
+                                        poly[3].Y = float(df->Y[0]);
+                                        poly[3].Z = float(df->z[0] << 8);
+
+                                        if (df->FHeight) {
+                                            //
+                                            // Foundations go down deep into the ground...
+                                            //
+
+                                            poly[0].Y -= 512.0F;
+                                            poly[3].Y -= 512.0F;
+                                        }
+
+                                        projected = SMAP_project_onto_poly(poly, 4);
+
+                                        if (projected) {
+                                            AENG_add_projected_fadeout_shadow_poly(projected);
+                                        }
+                                    } else {
+                                        //
+                                        // Slow crinkled-shadows!
+                                        //
+
+                                        FACET_project_crinkled_shadow(i_vect);
+                                    }
+
+                                    //
+                                    // Remember We've already done this facet.
+                                    //
+
+                                    if (done_upto < AENG_MAX_DONE) {
+                                        done[done_upto++] = i_vect;
+                                    }
+                                }
+
+                            ignore_this_facet:;
+
+                                v_list++;
+                            }
+                        }
+
+                        // if (darci->OnFace) Always do this.
+                        {
+                            //
+                            // Cast shadow on walkable faces.
+                            //
+
+                            w_face = PAP_2LO(mx_lo, mz_lo).Walkable;
+
+                            while (w_face) {
+                                if (w_face > 0) {
+                                    p_f4 = &prim_faces4[w_face];
+                                    face_height = prim_points[p_f4->Points[0]].Y;
+
+                                    if (face_height > ((darci->WorldPos.Y + 0x11000) >> 8)) {
+                                        //
+                                        // This face is above Darci, so don't put her shadow
+                                        // on it.
+                                        //
+                                    } else {
+                                        for (i = 0; i < 4; i++) {
+                                            pp = &prim_points[p_f4->Points[face_order[i]]];
+
+                                            poly[i].X = float(pp->X);
+                                            poly[i].Y = float(pp->Y);
+                                            poly[i].Z = float(pp->Z);
+                                        }
+
+                                        projected = SMAP_project_onto_poly(poly, 4);
+
+                                        if (projected) {
+                                            AENG_add_projected_fadeout_shadow_poly(projected);
+                                        }
+                                    }
+
+                                    w_face = p_f4->Col2;
+                                } else {
+                                    struct RoofFace4* rf;
+                                    rf = &roof_faces4[-w_face];
+                                    face_height = rf->Y;
+
+                                    if (face_height > ((darci->WorldPos.Y + 0x11000) >> 8)) {
+                                        //
+                                        // This face is above Darci, so don't put her shadow
+                                        // on it.
+                                        //
+                                    } else {
+                                        SLONG mx, mz;
+                                        mx = (rf->RX & 127) << 8;
+                                        mz = (rf->RZ & 127) << 8;
+
+                                        poly[0].X = (float)(mx);
+                                        poly[0].Y = (float)(rf->Y);
+                                        poly[0].Z = (float)(mz);
+
+                                        poly[1].X = (float)(mx + 256);
+                                        poly[1].Y = (float)(rf->Y + (rf->DY[0] << ROOF_SHIFT));
+                                        poly[1].Z = (float)(mz);
+
+                                        poly[2].X = (float)(mx + 256);
+                                        poly[2].Y = (float)(rf->Y + (rf->DY[1] << ROOF_SHIFT));
+                                        poly[2].Z = (float)(mz + 256);
+
+                                        poly[3].X = (float)(mx);
+                                        poly[3].Y = (float)(rf->Y + (rf->DY[2] << ROOF_SHIFT));
+                                        poly[3].Z = (float)(mz + 256);
+
+                                        projected = SMAP_project_onto_poly(poly, 4);
+
+                                        if (projected) {
+                                            AENG_add_projected_fadeout_shadow_poly(projected);
+                                        }
+                                    }
+
+                                    w_face = rf->Next;
+                                }
+                            }
+                        }
+                    }
+            }
+
+            TEXTURE_shadow_update();
+        }
+    }
+
+    BreakTime("Done shadows");
+
+    // No reflections on DC.
+
+    //
+    // Where we remember the bounding boxes of reflections.
+    //
+
+    struct
+    {
+        SLONG x1;
+        SLONG y1;
+        SLONG x2;
+        SLONG y2;
+        SLONG water_box;
+
+    } bbox[AENG_MAX_BBOXES];
+    SLONG bbox_upto = 0;
+
+    if (AENG_detail_moon_reflection && !(NIGHT_flag & NIGHT_FLAG_DAYTIME) && !(GAME_FLAGS & GF_NO_FLOOR)) {
+        //
+        // The moon upside down...
+        //
+
+        float moon_x1;
+        float moon_y1;
+        float moon_x2;
+        float moon_y2;
+
+        if (SKY_draw_moon_reflection(
+                AENG_cam_x,
+                AENG_cam_y,
+                AENG_cam_z,
+                AENG_DRAW_DIST * 256.0F,
+                &moon_x1,
+                &moon_y1,
+                &moon_x2,
+                &moon_y2)) {
+            /*
+
+            //
+            // The moon is wibbled with polys now.
+            //
+
+            bbox[0].x1 = MAX((SLONG)moon_x1 - AENG_BBOX_PUSH_OUT, AENG_BBOX_PUSH_IN);
+            bbox[0].y1 = MAX((SLONG)moon_y1, 0);
+            bbox[0].x2 = MIN((SLONG)moon_x2 + AENG_BBOX_PUSH_OUT, DisplayWidth  - AENG_BBOX_PUSH_IN);
+            bbox[0].y2 = MIN((SLONG)moon_y2, DisplayHeight);
+
+            bbox[0].water_box = UC_FALSE;
+
+            bbox_upto = 1;
+
+            */
+        }
+    }
+
+    //
+    // Draw the reflections of people.
+    //
+
+    if (AENG_detail_people_reflection)
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                t_index = PAP_2LO(x, z).MapWho;
+
+                while (t_index) {
+                    p_thing = TO_THING(t_index);
+
+                    if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
+                        //
+                        // This is a person... Is she standing near a puddle or some water?
+                        //
+
+                        mx = p_thing->WorldPos.X >> 16;
+                        mz = p_thing->WorldPos.Z >> 16;
+
+                        if (!PAP_on_map_hi(mx, mz)) {
+                            //
+                            // Off the map.
+                            //
+                        } else {
+                            ph = &PAP_2HI(mx, mz);
+
+                            if (ph->Flags & (PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER)) {
+                                //
+                                // Not too far away?
+                                //
+
+                                dx = abs(p_thing->WorldPos.X - FC_cam[AENG_cur_fc_cam].x >> 8);
+                                dz = abs(p_thing->WorldPos.Z - FC_cam[AENG_cur_fc_cam].z >> 8);
+
+                                if (dx + dz < 0x600) {
+                                    SLONG reflect_height;
+
+                                    //
+                                    // Puddles are always on the floor nowadays...
+                                    //
+
+                                    if (ph->Flags & PAP_FLAG_REFLECTIVE) {
+                                        reflect_height = PAP_calc_height_at(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+                                    } else {
+                                        //
+                                        // The height of the water is given by the lo-res mapsquare corresponding
+                                        // to the hi-res mapsquare that Darci is standing on.
+                                        //
+
+                                        pl = &PAP_2LO(
+                                            p_thing->WorldPos.X >> (8 + PAP_SHIFT_LO),
+                                            p_thing->WorldPos.Z >> (8 + PAP_SHIFT_LO));
+
+                                        reflect_height = pl->water << ALT_SHIFT;
+                                    }
+
+                                    //
+                                    // Draw the reflection!
+                                    //
+
+                                    FIGURE_draw_reflection(p_thing, reflect_height);
+
+                                    if (WITHIN(bbox_upto, 0, AENG_MAX_BBOXES - 1)) {
+                                        //
+                                        // Create a new bounding box
+                                        //
+
+                                        bbox[bbox_upto].x1 = MAX(FIGURE_reflect_x1 - AENG_BBOX_PUSH_OUT, AENG_BBOX_PUSH_IN);
+                                        bbox[bbox_upto].y1 = MAX(FIGURE_reflect_y1, 0);
+                                        bbox[bbox_upto].x2 = MIN(FIGURE_reflect_x2 + AENG_BBOX_PUSH_OUT, DisplayWidth - AENG_BBOX_PUSH_IN);
+                                        bbox[bbox_upto].y2 = MIN(FIGURE_reflect_y2, DisplayHeight);
+
+                                        bbox[bbox_upto].water_box = ph->Flags & PAP_FLAG_WATER;
+
+                                        bbox_upto += 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    t_index = p_thing->Child;
+                }
+            }
+        }
+
+    /*
+
+    //
+    // Draw the reflections of the OBs.
+    //
+
+    if(DETAIL_LEVEL&DETAIL_REFLECTIONS)
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++)
+    {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++)
+            {
+                    for (oi = OB_find(x,z); oi->prim; oi += 1)
+                    {
+                            //
+                            // On map?
+                            //
+
+                            mx = oi->x >> 8;
+                            mz = oi->z >> 8;
+
+                            if (WITHIN(mx, 0, PAP_SIZE_HI - 1) &&
+                                    WITHIN(mz, 0, PAP_SIZE_HI - 1))
+                            {
+                                    //
+                                    // On a reflective square?
+                                    //
+
+                                    if (PAP_2HI(mx,mz).Flags & (PAP_FLAG_WATER|PAP_FLAG_REFLECTIVE))
+                                    {
+                                            //
+                                            // Not too far away?
+                                            //
+
+                                            dx = abs(oi->x - (FC_cam[AENG_cur_fc_cam].x >> 8));
+                                            dz = abs(oi->z - (FC_cam[AENG_cur_fc_cam].z >> 8));
+
+                                            if (dx + dz < 0x00)
+                                            {
+                                                    MESH_draw_reflection(
+                                                            oi->prim,
+                                                            oi->x,
+                                                            oi->y,
+                                                            oi->z,
+                                                            oi->yaw,
+                                                            NULL);
+                                            }
+                                    }
+                            }
+                    }
+            }
+    }
+
+    */
+
+    BreakTime("Drawn reflections");
+
+    {
+        //
+        // Drips inside puddles only...
+        //
+
+        AENG_draw_drips(1);
+
+        //
+        // Draw the reflections and drips.  Clear the poly lists.
+        //
+
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        POLY_frame_init(UC_TRUE, UC_TRUE);
+        BreakTime("Done first poly flush");
+    }
+
+    //
+    // Draw the puddles.
+    //
+
+    if (AENG_detail_puddles && !(GAME_FLAGS & GF_NO_FLOOR)) {
+        SLONG i;
+
+        PUDDLE_Info* pi;
+
+        float px1;
+        float pz1;
+        float px2;
+        float pz2;
+
+        float world_x;
+        float world_y;
+        float world_z;
+
+        static struct
+        {
+            float u;
+            float v;
+
+        } texture_coords[4] = {
+            { 0.0F, 0.0F },
+            { 1.0F, 0.0F },
+            { 1.0F, 1.0F },
+            { 0.0F, 1.0F }
+        };
+
+        POLY_Point pp[4];
+        POLY_Point* quad[4];
+
+        quad[0] = &pp[0];
+        quad[1] = &pp[1];
+        quad[2] = &pp[2];
+        quad[3] = &pp[3];
+
+        for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
+            PUDDLE_get_start(z, NGAMUT_gamut[z].xmin, NGAMUT_gamut[z].xmax);
+
+            while (pi = PUDDLE_get_next()) {
+                px1 = float(pi->x1);
+                pz1 = float(pi->z1);
+                px2 = float(pi->x2);
+                pz2 = float(pi->z2);
+
+                world_y = float(pi->y);
+
+                for (i = 0; i < 4; i++) {
+                    world_x = (i & 0x1) ? px1 : px2;
+                    world_z = (i & 0x2) ? pz1 : pz2;
+
+                    POLY_transform(
+                        world_x,
+                        world_y,
+                        world_z,
+                        &pp[i]);
+
+                    if (pp[i].MaybeValid()) {
+                        pp[i].u = ((i & 0x1) ? float(pi->u1) : float(pi->u2)) * (1.0F / 256.0F);
+                        pp[i].v = ((i & 0x2) ? float(pi->v1) : float(pi->v2)) * (1.0F / 256.0F);
+                        pp[i].colour = 0xffffffff;
+
+                        if (ControlFlag) {
+                            pp[i].colour = 0x44ffffff;
+                        }
+                        if (ShiftFlag) {
+                            pp[i].colour = 0x88ffffff;
+                        }
+
+                        pp[i].specular = 0xff000000;
+                    } else {
+                        goto ignore_this_puddle;
+                    }
+                }
+
+                if (POLY_valid_quad(quad)) {
+                    if ((GAME_FLAGS & GF_RAINING) && (rand() & 0x100)) {
+                        float drip_along_x;
+                        float drip_along_z;
+
+                        //
+                        // Choose somewhere in the puddle to put a drip.
+                        //
+
+                        drip_along_x = float(rand() & 0xff) * (1.0F / 256.0F);
+                        drip_along_z = float(rand() & 0xff) * (1.0F / 256.0F);
+
+                        world_x = px1 + (px2 - px1) * drip_along_x;
+                        world_z = pz1 + (pz2 - pz1) * drip_along_z;
+
+                        DRIP_create(
+                            UWORD(world_x),
+                            SWORD(world_y),
+                            UWORD(world_z),
+                            1);
+
+                        if (rand() & 0x11) {
+                            //
+                            // Don't splash.
+                            //
+                        } else {
+                            //
+                            // Splash the puddle.
+                            //
+
+                            PUDDLE_splash(
+                                SLONG(world_x),
+                                SLONG(world_y),
+                                SLONG(world_z));
+                        }
+                    }
+
+                    if (pi->rotate_uvs) {
+                        SWAP_FL(pp[0].u, pp[1].u);
+                        SWAP_FL(pp[1].u, pp[3].u);
+                        SWAP_FL(pp[3].u, pp[2].u);
+
+                        SWAP_FL(pp[0].v, pp[1].v);
+                        SWAP_FL(pp[1].v, pp[3].v);
+                        SWAP_FL(pp[3].v, pp[2].v);
+                    }
+
+                    POLY_add_quad(quad, POLY_PAGE_PUDDLE, UC_FALSE);
+
+                    if (pi->puddle_s1 | pi->puddle_s2) {
+                        //
+                        // Find the bounding box of this puddle quad on screen.
+                        //
+
+                        SLONG px;
+                        SLONG py;
+                        SLONG px1 = +UC_INFINITY;
+                        SLONG py1 = +UC_INFINITY;
+                        SLONG px2 = -UC_INFINITY;
+                        SLONG py2 = -UC_INFINITY;
+
+                        for (i = 0; i < 4; i++) {
+                            px = SLONG(pp[i].X);
+                            py = SLONG(pp[i].Y);
+
+                            if (px < px1) {
+                                px1 = px;
+                            }
+                            if (py < py1) {
+                                py1 = py;
+                            }
+                            if (px > px2) {
+                                px2 = px;
+                            }
+                            if (py > py2) {
+                                py2 = py;
+                            }
+                        }
+
+                        //
+                        // Wibble the intersection of this bounding box with the bounding
+                        // box of each reflection we have drawn.
+                        //
+
+                        SLONG ix1;
+                        SLONG iy1;
+                        SLONG ix2;
+                        SLONG iy2;
+
+                        for (i = 0; i < bbox_upto; i++) {
+                            if (bbox[i].water_box) {
+                                //
+                                // This box always gets wibbled anyway.
+                                //
+
+                                continue;
+                            }
+
+                            ix1 = MAX(px1, bbox[i].x1);
+                            iy1 = MAX(py1, bbox[i].y1);
+                            ix2 = MIN(px2, bbox[i].x2);
+                            iy2 = MIN(py2, bbox[i].y2);
+
+                            if (ix1 < ix2 && iy1 < iy2) {
+                                if (the_display.screen_lock()) {
+                                    //
+                                    // Wibble away!
+                                    //
+
+                                    WIBBLE_simple(
+                                        ix1, iy1,
+                                        ix2, iy2,
+                                        pi->puddle_y1,
+                                        pi->puddle_y2,
+                                        pi->puddle_g1,
+                                        pi->puddle_g2,
+                                        pi->puddle_s1,
+                                        pi->puddle_s2);
+
+                                    the_display.screen_unlock();
+                                }
+                            }
+                        }
+                    }
+                }
+
+            ignore_this_puddle:;
+            }
+        }
+    }
+
+    BreakTime("Drawn puddles");
+
+    if (AENG_detail_people_reflection) {
+        SLONG oldcolour[4];
+        SLONG oldspecular[4];
+
+        //
+        // Draw all the floor-reflective squares
+        //
+
+        for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
+            for (x = NGAMUT_gamut[z].xmin; x <= NGAMUT_gamut[z].xmax; x++) {
+                me = &MAP[MAP_INDEX(x, z)];
+                ph = &PAP_2HI(x, z);
+
+                if (ph->Flags & PAP_FLAG_HIDDEN) {
+                    continue;
+                }
+
+                if (!(ph->Flags & PAP_FLAG_REFLECTIVE)) {
+                    continue;
+                }
+
+                //
+                // The four points of the quad.
+                //
+
+                if (ph->Flags & PAP_FLAG_SINK_SQUARE) {
+                    quad[0] = &AENG_lower[(x + 0) & 63][(z + 0) & 63];
+                    quad[1] = &AENG_lower[(x + 1) & 63][(z + 0) & 63];
+                    quad[2] = &AENG_lower[(x + 0) & 63][(z + 1) & 63];
+                    quad[3] = &AENG_lower[(x + 1) & 63][(z + 1) & 63];
+                } else {
+                    quad[0] = &AENG_upper[(x + 0) & 63][(z + 0) & 63];
+                    quad[1] = &AENG_upper[(x + 1) & 63][(z + 0) & 63];
+                    quad[2] = &AENG_upper[(x + 0) & 63][(z + 1) & 63];
+                    quad[3] = &AENG_upper[(x + 1) & 63][(z + 1) & 63];
+                }
+
+                if (POLY_valid_quad(quad)) {
+                    //
+                    // Darken the quad.
+                    //
+
+                    for (i = 0; i < 4; i++) {
+                        oldcolour[i] = quad[i]->colour;
+                        oldspecular[i] = quad[i]->specular;
+
+                        quad[i]->colour >>= 1;
+                        quad[i]->colour &= 0x007f7f7f;
+                        quad[i]->specular = 0xff000000;
+                    }
+
+                    //
+                    // Texture the quad.
+                    //
+
+                    if (ph->Flags & PAP_FLAG_ANIM_TMAP) {
+                        struct AnimTmap* p_a;
+                        SLONG cur;
+                        p_a = &anim_tmaps[ph->Texture];
+                        cur = p_a->Current;
+
+                        quad[0]->u = float(p_a->UV[cur][0][0] & 0x3f) * (1.0F / 32.0F);
+                        quad[0]->v = float(p_a->UV[cur][0][1]) * (1.0F / 32.0F);
+
+                        quad[1]->u = float(p_a->UV[cur][1][0]) * (1.0F / 32.0F);
+                        quad[1]->v = float(p_a->UV[cur][1][1]) * (1.0F / 32.0F);
+
+                        quad[2]->u = float(p_a->UV[cur][2][0]) * (1.0F / 32.0F);
+                        quad[2]->v = float(p_a->UV[cur][2][1]) * (1.0F / 32.0F);
+
+                        quad[3]->u = float(p_a->UV[cur][3][0]) * (1.0F / 32.0F);
+                        quad[3]->v = float(p_a->UV[cur][3][1]) * (1.0F / 32.0F);
+
+                        page = p_a->UV[cur][0][0] & 0xc0;
+                        page <<= 2;
+                        page |= p_a->Page[cur];
+                    } else {
+                        TEXTURE_get_minitexturebits_uvs(
+                            ph->Texture,
+                            &page,
+                            &quad[0]->u,
+                            &quad[0]->v,
+                            &quad[1]->u,
+                            &quad[1]->v,
+                            &quad[2]->u,
+                            &quad[2]->v,
+                            &quad[3]->u,
+                            &quad[3]->v);
+                    }
+
+                    POLY_add_quad(quad, page, UC_FALSE);
+
+                    //
+                    // Restore old colour info.
+                    //
+
+                    for (i = 0; i < 4; i++) {
+                        quad[i]->colour = oldcolour[i];
+                        quad[i]->specular = oldspecular[i];
+                    }
+                }
+            }
+        }
+    }
+    BreakTime("Drawn reflective squares");
+
+    /*
+
+    //
+    // Draw the water in the city.
+    //
+
+    {
+            SLONG dmx;
+            SLONG dmz;
+
+            SLONG dx;
+            SLONG dz;
+
+            SLONG px;
+            SLONG py;
+            SLONG pz;
+
+            SLONG ix;
+            SLONG iz;
+
+            POLY_Point  water_pp[5][5];
+            POLY_Point *quad[4];
+            POLY_Point *pp;
+
+            SLONG user_upto = 1;
+
+            for (i = 0, pp = &water_pp[0][0]; i < 25; i++, pp++)
+            {
+                    pp->user = 0;
+            }
+
+            for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++)
+            {
+                    for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++)
+                    {
+                            pl = &PAP_2LO(x,z);
+
+                            if (pl->water == PAP_LO_NO_WATER)
+                            {
+                                    //
+                                    // No water in this square.
+                                    //
+                            }
+                            else
+                            {
+                                    //
+                                    // The height of water in this lo-res mapsquare.
+                                    //
+
+                                    py = pl->water << ALT_SHIFT;
+
+                                    //
+                                    // Look for water in the hi-res mapsquare enclosed by this
+                                    // lo-res mapsqure.
+                                    //
+
+                                    for (dmx = 0; dmx < 4; dmx++)
+                                    for (dmz = 0; dmz < 4; dmz++)
+                                    {
+                                            mx = (x << 2) + dmx;
+                                            mz = (z << 2) + dmz;
+
+                                            ph = &PAP_2HI(mx,mz);
+
+                                            if (ph->Flags & PAP_FLAG_WATER)
+                                            {
+                                                    //
+                                                    // Transform all the points.
+                                                    //
+
+                                                    i = 0;
+
+                                                    for (i = 0; i < 4; i++)
+                                                    {
+                                                            dx = i &  1;
+                                                            dz = i >> 1;
+
+                                                            ix = dmx + dx;
+                                                            iz = dmz + dz;
+
+                                                            if (water_pp[ix][iz].user == user_upto)
+                                                            {
+                                                                    //
+                                                                    // Already transformed.
+                                                                    //
+                                                            }
+                                                            else
+                                                            {
+                                                                    //
+                                                                    // Transform this point.
+                                                                    //
+
+                                                                    water_pp[ix][iz].user = user_upto;
+
+                                                                    px = mx + dx << 8;
+                                                                    pz = mz + dz << 8;
+
+                                                                    POLY_transform(
+                                                                            float(px),
+                                                                            float(py),
+                                                                            float(pz),
+                                                                       &water_pp[ix][iz]);
+
+                                                                    water_pp[ix][iz].colour   = 0x44608564;
+                                                                    water_pp[ix][iz].specular = 0xff000000;
+
+                                                                    POLY_fadeout_point(&water_pp[ix][iz]);
+
+                                                                    //
+                                                                    // This point's (u,v) coordinates are a function of its
+                                                                    // position and the time.
+                                                                    //
+
+                                                                    {
+                                                                            float angle_u = float(((((mx + dx) * 5 + (mz + dz) * 6) & 0x1f) + 0x1f) * GAME_TURN) * (1.0F / 1754.0F);
+                                                                            float angle_v = float(((((mx + dx) * 4 + (mz + dz) * 7) & 0x1f) + 0x1f) * GAME_TURN) * (1.0F / 1816.0F);
+
+                                                                            water_pp[ix][iz].u = px * (1.0F / 256.0F) + sin(angle_u) * 0.15F;
+                                                                            water_pp[ix][iz].v = pz * (1.0F / 256.0F) + cos(angle_v) * 0.15F;
+                                                                    }
+                                                            }
+
+                                                            if (!water_pp[ix][iz].MaybeValid())
+                                                            {
+                                                                    goto abandon_poly;
+                                                            }
+
+                                                            quad[i] = &water_pp[ix][iz];
+                                                    }
+
+                                                    if (POLY_valid_quad(quad))
+                                                    {
+                                                            POLY_add_quad(quad, POLY_PAGE_SEWATER, UC_FALSE);
+                                                    }
+                                            }
+
+                                      abandon_poly:;
+                                    }
+
+                                    user_upto += 1;
+                            }
+                    }
+            }
+    }
+
+    */
+
+    // End of reflection stuff.
+
+    //
+    // The sky.
+    //
+
+    extern void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float world_camera_z, float world_camera_yaw, float max_dist, ULONG bot_colour, ULONG top_colour);
+
+    if (AENG_detail_skyline)
+        SKY_draw_poly_sky_old(AENG_cam_x, AENG_cam_y, AENG_cam_z, AENG_cam_yaw, AENG_DRAW_DIST * 256.0F, 0xffffff, 0xffffff);
+    /*
+            SKY_draw_poly_clouds(
+                    AENG_cam_x,
+                    AENG_cam_y,
+                    AENG_cam_z,
+                    AENG_DRAW_DIST * 256.0F);
+      */
+    if (!INDOORS_INDEX || outside)
+        if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
+            SKY_draw_poly_moon(
+                AENG_cam_x,
+                AENG_cam_y,
+                AENG_cam_z,
+                /*AENG_DRAW_DIST * 256.0F*/
+                256.0f * 22.0f);
+        }
+
+    //
+    // Draw the puddles and clear the poly lists.
+    //
+
+    {
+        POLY_frame_draw_odd();
+        POLY_frame_draw_puddles();
+
+        POLY_frame_init(UC_TRUE, UC_TRUE);
+    }
+    BreakTime("Done second polygon flush");
+
+    //
+    // FAR FACETS!!!!!!!!!!!!!
+    //
+
+    FARFACET_draw(
+        AENG_cam_x,
+        AENG_cam_y,
+        AENG_cam_z,
+        AENG_cam_yaw,
+        AENG_cam_pitch,
+        AENG_cam_roll,
+        // Draw dist changes dynamically, so do it to a fixed distance.
+        // AENG_DRAW_DIST * 4,
+        90.0F * 256.0F,
+
+        AENG_LENS);
+
+    // #if defined(NDEBUG) || defined(TARGET_DC)
+    //	if (AENG_detail_skyline)
+    //		AENG_draw_far_facets();
+    // #endif
+
+    //
+    // Create all the squares.
+    //
+
+    //
+    // draw floor draw_floor  //things to search for
+    //
+
+    SLONG num_squares_drawn = 0;
+
+    {
+        if (!INDOORS_INDEX || outside)
+            for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
+                for (x = NGAMUT_gamut[z].xmin; x <= NGAMUT_gamut[z].xmax; x++) {
+                    ASSERT(WITHIN(x, 0, PAP_SIZE_HI - 2));
+                    ASSERT(WITHIN(z, 0, PAP_SIZE_HI - 2));
+
+                    ph = &PAP_2HI(x, z);
+
+                    if ((ph->Flags & (PAP_FLAG_HIDDEN | PAP_FLAG_ROOF_EXISTS)) == PAP_FLAG_HIDDEN) {
+                        continue;
+                    }
+
+                    /*
+
+                    if (ph->Flags & PAP_FLAG_WATER)
+                    {
+                            //
+                            // We don't draw the ground because it is covered by water.
+                            //
+                    }
+                    else
+
+                    */
+                    {
+                        POLY_Point fake_roof[4];
+
+                        //
+                        // The four points of the quad.
+                        //
+                        if ((ph->Flags & (PAP_FLAG_ROOF_EXISTS))) {
+                            SLONG c0, light_lookup;
+                            float y;
+
+                            y = MAVHEIGHT(x, z) << 6; //(PAP_hi[x][z].Height<<6);
+                            // 0   1
+                            //
+                            // 2   3
+
+                            POLY_transform((x) << 8, y, (z) << 8, &fake_roof[0]);
+                            POLY_transform((x + 1) << 8, y, (z) << 8, &fake_roof[1]);
+                            POLY_transform((x) << 8, y, (z + 1) << 8, &fake_roof[3]);
+                            POLY_transform((x + 1) << 8, y, (z + 1) << 8, &fake_roof[2]);
+
+                            light_lookup = hidden_roof_index[x][z];
+
+                            ASSERT(light_lookup);
+
+                            for (c0 = 0; c0 < 4; c0++) {
+                                SLONG c0_bodge;
+                                c0_bodge = index_lookup[c0];
+                                pp = &fake_roof[c0];
+                                //						pp->colour=0x808080;
+
+                                if (pp->MaybeValid()) {
+                                    NIGHT_get_d3d_colour(NIGHT_ROOF_WALKABLE_POINT(light_lookup, c0), &pp->colour, &pp->specular);
+
+                                    apply_cloud((x + (c0_bodge & 1)) << 8, y, (z + ((c0_bodge & 2) >> 1)) << 8, &pp->colour);
+
+                                    POLY_fadeout_point(pp);
+                                }
+                                //						pp->specular=0xff000000;
+                                //						pp->colour=0xff000000;
+                            }
+
+                            quad[0] = &fake_roof[0];
+                            quad[1] = &fake_roof[1];
+                            quad[2] = &fake_roof[3];
+                            quad[3] = &fake_roof[2];
+
+                        } else {
+                            if (GAME_FLAGS & GF_NO_FLOOR) {
+                                //
+                                // Don't draw the floor if there isn't any!
+                                //
+
+                                continue;
+                            }
+
+                            if (ph->Flags & PAP_FLAG_SINK_SQUARE) {
+                                quad[0] = &AENG_lower[(x + 0) & 63][(z + 0) & 63];
+                                quad[1] = &AENG_lower[(x + 1) & 63][(z + 0) & 63];
+                                quad[2] = &AENG_lower[(x + 0) & 63][(z + 1) & 63];
+                                quad[3] = &AENG_lower[(x + 1) & 63][(z + 1) & 63];
+                            } else {
+
+                                if ((MAV_SPARE(x, z) & MAV_SPARE_FLAG_WATER))
+                                    quad[0] = &AENG_lower[(x + 0) & 63][(z + 0) & 63];
+                                else
+                                    quad[0] = &AENG_upper[(x + 0) & 63][(z + 0) & 63];
+
+                                if ((MAV_SPARE(x + 1, z) & MAV_SPARE_FLAG_WATER))
+                                    quad[1] = &AENG_lower[(x + 1) & 63][(z + 0) & 63];
+                                else
+                                    quad[1] = &AENG_upper[(x + 1) & 63][(z + 0) & 63];
+
+                                if ((MAV_SPARE(x, z + 1) & MAV_SPARE_FLAG_WATER))
+                                    quad[2] = &AENG_lower[(x + 0) & 63][(z + 1) & 63];
+                                else
+                                    quad[2] = &AENG_upper[(x + 0) & 63][(z + 1) & 63];
+
+                                if ((MAV_SPARE(x + 1, z + 1) & MAV_SPARE_FLAG_WATER))
+                                    quad[3] = &AENG_lower[(x + 1) & 63][(z + 1) & 63];
+                                else
+                                    quad[3] = &AENG_upper[(x + 1) & 63][(z + 1) & 63];
+                            }
+                        }
+
+                        if (POLY_valid_quad(quad)) {
+                            num_squares_drawn += 1;
+
+                            {
+                                //
+                                // Texture the quad.
+                                //
+                                /*
+                                                                                if (ph->Flags & PAP_FLAG_ANIM_TMAP)
+                                                                                {
+                                                                                        struct	AnimTmap	*p_a;
+                                                                                        SLONG	cur;
+                                                                                        p_a=&anim_tmaps[ph->Texture];
+                                                                                        cur=p_a->Current;
+
+                                                                                        quad[0]->u = float(p_a->UV[cur][0][0] & 0x3f) * (1.0F / 32.0F);
+                                                                                        quad[0]->v = float(p_a->UV[cur][0][1]       ) * (1.0F / 32.0F);
+
+                                                                                        quad[1]->u = float(p_a->UV[cur][1][0]       ) * (1.0F / 32.0F);
+                                                                                        quad[1]->v = float(p_a->UV[cur][1][1]       ) * (1.0F / 32.0F);
+
+                                                                                        quad[2]->u = float(p_a->UV[cur][2][0]       ) * (1.0F / 32.0F);
+                                                                                        quad[2]->v = float(p_a->UV[cur][2][1]       ) * (1.0F / 32.0F);
+
+                                                                                        quad[3]->u = float(p_a->UV[cur][3][0]       ) * (1.0F / 32.0F);
+                                                                                        quad[3]->v = float(p_a->UV[cur][3][1]       ) * (1.0F / 32.0F);
+
+                                                                                        page   = p_a->UV[cur][0][0] & 0xc0;
+                                                                                        page <<= 2;
+                                                                                        page  |= p_a->Page[cur];
+                                                                                }
+                                                                                else
+                                */
+                                {
+                                    TEXTURE_get_minitexturebits_uvs(
+                                        ph->Texture,
+                                        &page,
+                                        &quad[0]->u,
+                                        &quad[0]->v,
+                                        &quad[1]->u,
+                                        &quad[1]->v,
+                                        &quad[2]->u,
+                                        &quad[2]->v,
+                                        &quad[3]->u,
+                                        &quad[3]->v);
+
+                                    // page = 86;
+                                }
+
+                                if (AENG_detail_shadows)
+                                    if (page == 4 * 64 + 53) {
+                                        SLONG dx, dz, dist;
+
+                                        dx = abs((((SLONG)AENG_cam_x) >> 8) - (x));
+                                        dz = abs((((SLONG)AENG_cam_z) >> 8) - (z));
+
+                                        dist = QDIST2(dx, dz);
+
+                                        if (dist < 15) {
+                                            SLONG sx, sy, sz;
+                                            void draw_steam(SLONG x, SLONG y, SLONG z, SLONG lod);
+                                            switch ((ph->Texture >> 0xa) & 0x3) {
+                                            case 0:
+                                                sx = 190;
+                                                sz = 128;
+                                                break;
+                                            case 1:
+                                                sx = 128;
+                                                sz = 66;
+                                                break;
+                                            case 2:
+                                                sx = 66;
+                                                sz = 128;
+                                                break;
+                                            case 3:
+                                                sx = 128;
+                                                sz = 190;
+                                                break;
+                                            default:
+                                                ASSERT(0);
+                                                break;
+                                            }
+                                            sx += x << 8;
+                                            sz += z << 8;
+                                            sy = PAP_calc_height_at(sx, sz);
+
+                                            draw_steam(sx, sy, sz, 10 + (15 - dist) * 3);
+                                        }
+                                    }
+
+                                if (ph->Flags & (PAP_FLAG_SHADOW_1 | PAP_FLAG_SHADOW_2 | PAP_FLAG_SHADOW_3)) {
+                                    POLY_Point ps[4];
+
+                                    //
+                                    // Create four darkened points.
+                                    //
+
+                                    ps[0] = *(quad[0]);
+                                    ps[1] = *(quad[1]);
+                                    ps[2] = *(quad[2]);
+                                    ps[3] = *(quad[3]);
+
+                                    //
+                                    // Darken the points.
+                                    //
+
+                                    for (i = 0; i < 4; i++) {
+                                        red = (ps[i].colour >> 16) & 0xff;
+                                        green = (ps[i].colour >> 8) & 0xff;
+                                        blue = (ps[i].colour >> 0) & 0xff;
+
+                                        red -= 120;
+                                        green -= 120;
+                                        blue -= 120;
+
+                                        if (red < 0) {
+                                            red = 0;
+                                        }
+                                        if (green < 0) {
+                                            green = 0;
+                                        }
+                                        if (blue < 0) {
+                                            blue = 0;
+                                        }
+
+                                        ps[i].colour = (red << 16) | (green << 8) | (blue << 0) | (0xff000000);
+                                    }
+
+                                    ASSERT(PAP_FLAG_SHADOW_1 == 1);
+
+                                    switch (ph->Flags & (PAP_FLAG_SHADOW_1 | PAP_FLAG_SHADOW_2 | PAP_FLAG_SHADOW_3)) {
+                                    case 0:
+                                        ASSERT(0); // We shouldn't be doing any of this in this case.
+                                        break;
+
+                                    case 1:
+
+                                        tri[0] = &ps[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = quad[3];
+                                        tri[2] = quad[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    case 2:
+
+                                        tri[0] = &ps[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = quad[3];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    case 3:
+
+                                        // ps[2].colour += 0x00101010;
+
+                                        tri[0] = quad[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = quad[3];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    case 4:
+
+                                        tri[0] = quad[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = &ps[3];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    case 5:
+
+                                        tri[0] = &ps[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = &ps[3];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    case 6:
+
+                                        tri[0] = &ps[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = quad[3];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    case 7:
+
+                                        tri[0] = quad[0];
+                                        tri[1] = quad[1];
+                                        tri[2] = quad[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        tri[0] = quad[1];
+                                        tri[1] = &ps[3];
+                                        tri[2] = &ps[2];
+
+                                        POLY_add_triangle(tri, page, UC_TRUE);
+
+                                        break;
+
+                                    default:
+                                        ASSERT(0);
+                                        break;
+                                    }
+                                } else {
+
+                                    {
+                                        POLY_add_quad(quad, page, UC_FALSE);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (ph->Flags & (PAP_FLAG_SINK_SQUARE | PAP_FLAG_WATER)) {
+                        //
+                        // Do the curbs now.
+                        //
+
+                        static struct
+                        {
+                            SLONG dpx1;
+                            SLONG dpz1;
+                            SLONG dpx2;
+                            SLONG dpz2;
+
+                            SLONG dsx;
+                            SLONG dsz;
+
+                        } curb[4] = {
+                            { 0, 0, 0, 1, -1, 0 },
+                            { 0, 1, 1, 1, 0, +1 },
+                            { 1, 1, 1, 0, +1, 0 },
+                            { 1, 0, 0, 0, 0, -1 }
+                        };
+
+                        for (i = 0; i < 4; i++) {
+                            nx = x + curb[i].dsx;
+                            nz = z + curb[i].dsz;
+
+                            if (PAP_on_map_hi(nx, nz)) {
+                                if (PAP_2HI(nx, nz).Flags & (PAP_FLAG_SINK_SQUARE | PAP_FLAG_WATER)) {
+                                    //
+                                    // No need for a curb here.
+                                    //
+                                } else {
+                                    quad[0] = &AENG_lower[(x + curb[i].dpx1) & 63][(z + curb[i].dpz1) & 63];
+                                    quad[1] = &AENG_lower[(x + curb[i].dpx2) & 63][(z + curb[i].dpz2) & 63];
+                                    quad[2] = &AENG_upper[(x + curb[i].dpx1) & 63][(z + curb[i].dpz1) & 63];
+                                    quad[3] = &AENG_upper[(x + curb[i].dpx2) & 63][(z + curb[i].dpz2) & 63];
+
+                                    if (POLY_valid_quad(quad)) {
+                                        TEXTURE_get_minitexturebits_uvs(
+                                            0,
+                                            &page,
+                                            &quad[0]->u,
+                                            &quad[0]->v,
+                                            &quad[1]->u,
+                                            &quad[1]->v,
+                                            &quad[2]->u,
+                                            &quad[2]->v,
+                                            &quad[3]->u,
+                                            &quad[3]->v);
+
+                                        //
+                                        // Add the poly.
+                                        //
+
+                                        POLY_add_quad(quad, page, UC_TRUE);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+    }
+    BreakTime("Drawn floors");
+
+    //	POLY_frame_draw(UC_FALSE,UC_FALSE);
+    //	POLY_frame_init(UC_TRUE,UC_TRUE);
+    //	BreakTime("Done another flush");
+
+    //
+    // Draw the objects and the things.
+    //
+
+    dfacets_drawn_this_gameturn = 0;
+    {
+
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                OB_Info* oi;
+                NIGHT_Colour* col;
+
+                //
+                // The cached lighting for this low-res mapsquare.
+                //
+
+                ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
+                ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
+
+                // ASSERT(WITHIN(NIGHT_cache[x][z], 1, NIGHT_MAX_SQUARES - 1));
+
+                col = NIGHT_square[NIGHT_cache[x][z]].colour;
+
+                //
+                // Skip over the mapsquares.
+                //
+
+                col += PAP_BLOCKS * PAP_BLOCKS;
+
+                //
+                // The objects on this mapsquare.
+                //
+
+                oi = OB_find(x, z);
+
+                while (oi->prim) {
+                    if (!(oi->flags & OB_FLAG_WAREHOUSE)) {
+                        if (oi->prim == 133 || oi->prim == 235) {
+                            //
+                            // This prim slowly rotates...
+                            //
+
+                            oi->yaw = (GAME_TURN << 1) & 2047;
+                        }
+
+                        UBYTE fade = 0xff;
+
+                        col = MESH_draw_poly(
+                            oi->prim,
+                            oi->x,
+                            oi->y,
+                            oi->z,
+                            oi->yaw,
+                            oi->pitch,
+                            oi->roll,
+                            col,
+                            fade,
+                            oi->crumple);
+                        SHAPE_prim_shadow(oi);
+
+                        if ((prim_objects[oi->prim].flag & PRIM_FLAG_GLARE)) {
+                            if (oi->prim == 230) {
+                                BLOOM_draw(oi->x, oi->y + 48, oi->z, 0, 0, 0, 0x808080, BLOOM_RAISE_LOS);
+                            } else {
+                                BLOOM_draw(oi->x, oi->y, oi->z, 0, 0, 0, 0x808080, 0);
+                            }
+                        } else if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
+
+                            switch (oi->prim) {
+                            case 2:
+                                /*
+                                BLOOM_draw(oi->x+270,oi->y+350,oi->z, 0,-255,0,0x7f6500,BLOOM_BEAM);
+                                BLOOM_draw(oi->x-270,oi->y+350,oi->z, 0,-255,0,0x7f6500,BLOOM_BEAM);
+                                BLOOM_draw(oi->x,oi->y+350,oi->z+270, 0,-255,0,0x7f6500,BLOOM_BEAM);
+                                BLOOM_draw(oi->x,oi->y+350,oi->z-270, 0,-255,0,0x7f6500,BLOOM_BEAM);
+                                */
+                                break;
+                            case 190:
+                                BLOOM_draw(oi->x, oi->y, oi->z, 0, 0, 0, 0x808080, 0);
+                                break;
+                            }
+                        }
+
+                        //
+                        // As good a place as any to put this!
+                        //
+
+                        if (prim_objects[oi->prim].flag & PRIM_FLAG_ITEM) {
+                            OB_ob[oi->index].yaw += 1;
+                        }
+                    }
+
+                    oi += 1;
+                }
+            }
+        }
+
+        BreakTime("Drawn prims");
+        //		POLY_frame_draw(UC_FALSE,UC_FALSE);
+        //		POLY_frame_init(UC_TRUE,UC_TRUE);
+        //		BreakTime("Flushed prims");
+
+        POLY_set_local_rotation_none();
+
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                //
+                // The cached lighting for this low-res mapsquare.
+                //
+
+                ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
+                ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
+
+                //
+                // Look at the colvects on this square.
+                //
+
+                {
+                    SLONG f_list;
+                    SLONG facet;
+                    SLONG build;
+                    SLONG exit = UC_FALSE;
+
+                    f_list = PAP_2LO(x, z).ColVectHead;
+
+                    show_gamut_lo(x, z);
+
+                    if (f_list) {
+                        SLONG count = 0;
+                        while (!exit) {
+                            struct DFacet* p_vect;
+                            facet = facet_links[f_list];
+
+                            p_vect = &dfacets[facet];
+                            /*
+                                                                                    AENG_world_text(x<<10,(PAP_2HI(x<<2,z<<2).Alt<<3)+count*50,z<<10,128,128,128,1,"x %d z %d %d type %d",x,z,facet,p_vect->FacetType);
+                                                                                    if(x==13 && z==5)
+                                                                                    AENG_world_line_infinite(p_vect->X[0],p_vect->Y[0]+10+count*50,p_vect->Z[0],2,0xffffff,
+                                                                                      p_vect->X[1],p_vect->Y[1]+10+count*50,p_vect->Z[1],2,0xffffff,0);
+                                                                                      */
+
+                            count++;
+
+                            ASSERT(facet);
+
+                            if (facet < 0) {
+                                //
+                                // The last facet in the list for each square
+                                // is negative.
+                                //
+
+                                facet = -facet;
+                                exit = UC_TRUE;
+                            }
+
+                            if (dfacets[facet].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
+                                //								ASSERT(facet!=676);
+                                //
+                                // Mark this facet as drawn this gameturn already.
+                                //
+
+                                dfacets[facet].Counter[AENG_cur_fc_cam] = SUPERMAP_counter[AENG_cur_fc_cam];
+
+                                if (dfacets[facet].FacetType == STOREY_TYPE_NORMAL)
+                                    build = dfacets[facet].Building;
+                                else
+                                    build = 0;
+
+                                //
+                                // Don't draw inside facets
+                                //
+                                if (build && dbuildings[build].Type == BUILDING_TYPE_CRATE_IN || (dfacets[facet].FacetFlags & FACET_FLAG_INSIDE)) {
+                                    //
+                                    // Don't draw inside buildings outside.
+                                    //
+                                } else if (dfacets[facet].FacetType == STOREY_TYPE_DOOR) {
+                                    //
+                                    // Draw the warehouse ground around this facet but don't draw
+                                    // the facet.
+                                    //
+
+                                    AENG_draw_box_around_recessed_door(&dfacets[facet], UC_FALSE);
+                                } else {
+                                    //
+                                    // Draw the facet.
+                                    //
+
+                                    show_facet(facet);
+                                    FACET_draw(facet, 0);
+
+                                    //
+                                    // Has this facet's building been processed this
+                                    // gameturn yet?
+                                    //
+
+                                    switch (dfacets[facet].FacetType) {
+                                    case STOREY_TYPE_NORMAL:
+
+                                        if (build) {
+                                            if (dbuildings[build].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
+                                                //
+                                                // Draw all the walkable faces for this building.
+                                                //
+
+                                                FACET_draw_walkable(build);
+
+                                                //
+                                                // Mark the buiding as procesed this gameturn.
+                                                //
+
+                                                dbuildings[build].Counter[AENG_cur_fc_cam] = SUPERMAP_counter[AENG_cur_fc_cam];
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+
+                            f_list++;
+                        }
+                    }
+                }
+            }
+        }
+
+        BreakFacets(dfacets_drawn_this_gameturn);
+        BreakTime("Drawn facets");
+        //		POLY_frame_draw(UC_FALSE,UC_FALSE);
+        //		POLY_frame_init(UC_TRUE,UC_TRUE);
+        //		BreakTime("Flushed facets");
+
+        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+                //
+                // The cached lighting for this low-res mapsquare.
+                //
+
+                ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
+                ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
+
+                t_index = PAP_2LO(x, z).MapWho;
+
+                while (t_index) {
+                    p_thing = TO_THING(t_index);
+
+                    if (p_thing->Flags & FLAGS_IN_VIEW) {
+                        //						p_thing->Flags &=~FLAGS_IN_VIEW;
+                        switch (p_thing->DrawType) {
+                        case DT_NONE:
+                            break;
+
+                        case DT_BUILDING:
+                            break;
+
+                        case DT_PRIM:
+                            break;
+                        case DT_ANIM_PRIM:
+                            extern void ANIM_obj_draw(Thing * p_thing, DrawTween * dt);
+                            ANIM_obj_draw(p_thing, p_thing->Draw.Tweened);
+
+                            if (p_thing->Class == CLASS_BAT && p_thing->Genus.Bat->type == BAT_TYPE_BANE) {
+                                DRAWXTRA_final_glow(
+                                    p_thing->WorldPos.X >> 8,
+                                    p_thing->WorldPos.Y + 0x8000 >> 8,
+                                    p_thing->WorldPos.Z >> 8,
+                                    p_thing->Genus.Bat->glow >> 8);
+                            }
+                            break;
+
+                        case DT_ROT_MULTI:
+
+                            /*
+                            if (ControlFlag)
+                            if (p_thing->Genus.Person->PlayerID)
+                            {
+                                    //
+                                    // Draw some wheels above Darci's head!
+                                    //
+
+                                    AENG_set_bike_wheel_rotation((GAME_TURN << 3) & 2047, PRIM_OBJ_BIKE_BWHEEL);
+
+                                    MESH_draw_poly(
+                                                    PRIM_OBJ_BIKE_BWHEEL,
+                                                    p_thing->WorldPos.X          >> 8,
+                                                    p_thing->WorldPos.Y + 0xa000 >> 8,
+                                                    p_thing->WorldPos.Z          >> 8,
+                                                    p_thing->Draw.Tweened->Angle,
+                                                    0,0,
+                                                    NULL,0);
+
+                                    AENG_set_bike_wheel_rotation((GAME_TURN << 3) & 2047, PRIM_OBJ_VAN_WHEEL);
+
+                                    MESH_draw_poly(
+                                                    PRIM_OBJ_VAN_WHEEL,
+                                                    p_thing->WorldPos.X           >> 8,
+                                                    p_thing->WorldPos.Y + 0x10000 >> 8,
+                                                    p_thing->WorldPos.Z           >> 8,
+                                                    p_thing->Draw.Tweened->Angle,
+                                                    0,0,
+                                                    NULL,0);
+
+                                    AENG_set_bike_wheel_rotation((GAME_TURN << 3) & 2047, PRIM_OBJ_CAR_WHEEL);
+
+                                    MESH_draw_poly(
+                                                    PRIM_OBJ_CAR_WHEEL,
+                                                    p_thing->WorldPos.X           >> 8,
+                                                    p_thing->WorldPos.Y + 0x16000 >> 8,
+                                                    p_thing->WorldPos.Z           >> 8,
+                                                    p_thing->Draw.Tweened->Angle,
+                                                    0,0,
+                                                    NULL,0);
+                            }
+                            */
+
+                            {
+                                ASSERT(p_thing->Class == CLASS_PERSON);
+
+                                {
+                                    if (p_thing->Genus.Person->PlayerID) {
+                                        if (FirstPersonMode) {
+                                            FirstPersonAlpha -= (TICK_RATIO * 16) >> TICK_SHIFT;
+                                            if (FirstPersonAlpha < MAX_FPM_ALPHA)
+                                                FirstPersonAlpha = MAX_FPM_ALPHA;
+                                        } else {
+                                            FirstPersonAlpha += (TICK_RATIO * 16) >> TICK_SHIFT;
+                                            if (FirstPersonAlpha > 255)
+                                                FirstPersonAlpha = 255;
+                                        }
+
+                                        // FIGURE_alpha = FirstPersonAlpha;
+                                        FIGURE_draw(p_thing);
+                                        // FIGURE_alpha = 255;
+                                    } else {
+                                        SLONG dx, dy, dz, dist;
+
+                                        dx = fabs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
+                                        dy = fabs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
+                                        dz = fabs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
+
+                                        dist = QDIST3(dx, dy, dz);
+
+                                        if (dist < AENG_DRAW_PEOPLE_DIST) {
+
+                                            FIGURE_draw(p_thing);
+                                        }
+                                    }
+                                }
+
+                                p_thing->Draw.Tweened->Drawn = (UBYTE)SUPERMAP_counter;
+
+                                if (ControlFlag && allow_debug_keys) {
+                                    AENG_world_text(
+                                        (p_thing->WorldPos.X >> 8),
+                                        (p_thing->WorldPos.Y >> 8) + 0x60,
+                                        (p_thing->WorldPos.Z >> 8),
+                                        200,
+                                        180,
+                                        50,
+                                        UC_TRUE,
+                                        PCOM_person_state_debug(p_thing));
+                                }
+                            }
+
+                            if (p_thing->State == STATE_DEAD) {
+                                if (p_thing->Genus.Person->Timer1 > 10) {
+                                    if (p_thing->Genus.Person->PersonType == PERSON_MIB1 || p_thing->Genus.Person->PersonType == PERSON_MIB2 || p_thing->Genus.Person->PersonType == PERSON_MIB3) {
+                                        //
+                                        // Dead MIB self destruct!
+                                        //
+                                        DRAWXTRA_MIB_destruct(p_thing);
+                                        /*
+                                                                                                                                SLONG px;
+                                                                                                                                SLONG py;
+                                                                                                                                SLONG pz;
+
+                                                                                                                                calc_sub_objects_position(
+                                                                                                                                        p_thing,
+                                                                                                                                        p_thing->Draw.Tweened->AnimTween,
+                                                                                                                                        SUB_OBJECT_PELVIS,
+                                                                                                                                   &px,
+                                                                                                                                   &py,
+                                                                                                                                   &pz);
+
+                                                                                                                                px += p_thing->WorldPos.X >> 8;
+                                                                                                                                py += p_thing->WorldPos.Y >> 8;
+                                                                                                                                pz += p_thing->WorldPos.Z >> 8;
+
+                                                                                                                                //
+                                                                                                                                // Ripped from the DRAWXTRA_special!
+                                                                                                                                //
+
+                                                                                                                                // (So why didn't you put it there?!)
+
+                                                                                                                                {
+                                                                                                                                        SLONG c0;
+                                                                                                                                        SLONG dx;
+                                                                                                                                        SLONG dz;
+
+                                                                                                                                  c0=3+(THING_NUMBER(p_thing)&7);
+                                                                                                                                  c0=(((GAME_TURN*c0)+(THING_NUMBER(p_thing)*9))<<4)&2047;
+                                                                                                                                  dx=SIN(c0)>>8;
+                                                                                                                                  dz=COS(c0)>>8;
+                                                                                                                                  BLOOM_draw(
+                                                                                                                                        px, py+15, pz,
+                                                                                                                                        dx,0,dz,0x9F2040,0);
+                                                                                                                                }*/
+                                    }
+                                }
+                            }
+
+                            if (p_thing->Genus.Person->pcom_ai == PCOM_AI_BANE) {
+                                DRAWXTRA_final_glow(
+                                    p_thing->WorldPos.X >> 8,
+                                    p_thing->WorldPos.Y + 0x8000 >> 8,
+                                    p_thing->WorldPos.Z >> 8,
+                                    -p_thing->Draw.Tweened->Tilt);
+                            }
+
+                            break;
+
+                        case DT_EFFECT:
+                            break;
+
+                        case DT_MESH:
+
+                        {
+                            // Weapons & other powerups.
+                            if (p_thing->Class == CLASS_SPECIAL)
+                                DRAWXTRA_Special(p_thing);
+
+                            MESH_draw_poly(
+                                p_thing->Draw.Mesh->ObjectId,
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                p_thing->Draw.Mesh->Angle,
+                                p_thing->Draw.Mesh->Tilt,
+                                p_thing->Draw.Mesh->Roll,
+                                NULL, 0xff, 0);
+                        }
+
+                        break;
+
+                        case DT_VEHICLE:
+
+                            if (p_thing->Class == CLASS_VEHICLE) {
+                                if (p_thing->Genus.Vehicle->Driver) {
+                                    TO_THING(p_thing->Genus.Vehicle->Driver)->Flags |= FLAGS_IN_VIEW;
+                                }
+                            }
+                            //
+                            // Set the tinted colour of this van.
+                            //
+
+                            {
+                                ULONG car_colours[6] = {
+                                    0xffffff00,
+                                    0xffff00ff,
+                                    0xff00ffff,
+                                    0xffff0000,
+                                    0xff00ff00,
+                                    0xf00000ff
+                                };
+
+                                MESH_colour_and = car_colours[THING_NUMBER(p_thing) % 6];
+                            }
+
+                            extern void draw_car(Thing * p_car);
+
+                            draw_car(p_thing);
+
+                            if (ControlFlag && allow_debug_keys) {
+                                //
+                                // Draw a line towards where you have to be
+                                // to get into the van.
+                                //
+
+                                SLONG dx = -SIN(p_thing->Genus.Vehicle->Draw.Angle);
+                                SLONG dz = -COS(p_thing->Genus.Vehicle->Draw.Angle);
+
+                                SLONG ix = p_thing->WorldPos.X >> 8;
+                                SLONG iz = p_thing->WorldPos.Z >> 8;
+
+                                ix += dx >> 9;
+                                iz += dz >> 9;
+
+                                ix -= dz >> 9;
+                                iz += dx >> 9;
+
+                                AENG_world_line(
+                                    p_thing->WorldPos.X >> 8, p_thing->WorldPos.Y >> 8, p_thing->WorldPos.Z >> 8, 64, 0x00ffffff,
+                                    ix, p_thing->WorldPos.Y >> 8, iz, 0, 0x0000ff00, UC_TRUE);
+                            }
+
+                            break;
+
+                        case DT_CHOPPER:
+                            CHOPPER_draw_chopper(p_thing);
+                            break;
+
+                        case DT_PYRO:
+                            PYRO_draw_pyro(p_thing);
+                            break;
+                        case DT_ANIMAL_PRIM:
+
+                            break;
+
+                        case DT_TRACK:
+                            if (!INDOORS_INDEX)
+                                TRACKS_DrawTrack(p_thing);
+                            break;
+
+                        default:
+                            ASSERT(0);
+                            break;
+                        }
+                    }
+                    t_index = p_thing->Child;
+                }
+            }
+        }
+    }
+
+    BreakTime("Drawn things");
+
+    //	POLY_frame_draw(UC_FALSE,UC_FALSE);
+    //	POLY_frame_init(UC_TRUE,UC_TRUE);
+    //	BreakTime("Flushed things");
+
+    //
+    // debug info for the car movement
+    //
+    // void	draw_car_tracks(void);
+    //	if(!INDOORS_INDEX||outside)
+    //		draw_car_tracks();
+
+    //
+    // Do oval shadows.
+    //
+
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            t_index = PAP_2LO(x, z).MapWho;
+
+            while (t_index) {
+                p_thing = TO_THING(t_index);
+
+                if (p_thing->Flags & FLAGS_IN_VIEW) {
+                    bool draw = true;
+
+                    for (int ii = 0; ii < shadow_person_upto; ii++) {
+                        if (shadow_person[ii].p_person == p_thing) {
+                            draw = false;
+                            break;
+                        }
+                    }
+
+                    if (draw) {
+                        switch (p_thing->Class) {
+                        case CLASS_PERSON:
+
+                        {
+
+                            SLONG px;
+                            SLONG py;
+                            SLONG pz;
+
+                            calc_sub_objects_position(
+                                p_thing,
+                                p_thing->Draw.Tweened->AnimTween,
+                                SUB_OBJECT_PELVIS,
+                                &px,
+                                &py,
+                                &pz);
+
+                            px += p_thing->WorldPos.X >> 8;
+                            py += p_thing->WorldPos.Y >> 8;
+                            pz += p_thing->WorldPos.Z >> 8;
+
+                            OVAL_add(
+                                px,
+                                py,
+                                pz,
+                                130);
+                        }
+
+                        break;
+
+                        case CLASS_SPECIAL:
+
+                            OVAL_add(
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                100);
+
+                            break;
+
+                        case CLASS_BARREL:
+
+                            OVAL_add(
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                128);
+
+                            break;
+
+                        default:
+                            break;
+                        }
+                    }
+                }
+
+                t_index = p_thing->Child;
+            }
+        }
+    }
+
+    // Grenades should be drawn here.
+    DrawGrenades();
+
+    //
+    // The balloons that nobody is holding.
+    //
+
+    if (!INDOORS_INDEX || outside)
+        AENG_draw_released_balloons();
+
+    //
+    // The POWs!
+    //
+
+    AENG_draw_pows();
+
+    //
+    // Draw the mist.
+    //
+
+    if (!INDOORS_INDEX || outside)
+        if (AENG_detail_mist) {
+            SLONG i;
+
+            SLONG sx;
+            SLONG sz;
+
+            SLONG px;
+            SLONG pz;
+            SLONG detail;
+
+            SLONG wx;
+            SLONG wy;
+            SLONG wz;
+
+            // Internal gubbins.
+            POLY_flush_local_rot();
+
+            POLY_Point* pp;
+            POLY_Point* quad[4];
+
+#define MAX_MIST_DETAIL 32
+
+            POLY_Point mist_pp[MAX_MIST_DETAIL][MAX_MIST_DETAIL];
+
+            MIST_get_start();
+
+            while (detail = MIST_get_detail()) {
+                //
+                // Only draw as much as we can!
+                //
+
+                if (detail > MAX_MIST_DETAIL) {
+                    detail = MAX_MIST_DETAIL;
+                }
+
+                for (px = 0; px < detail; px++)
+                    for (pz = 0; pz < detail; pz++) {
+                        pp = &mist_pp[px][pz];
+
+                        MIST_get_point(px, pz,
+                            &wx,
+                            &wy,
+                            &wz);
+
+                        POLY_transform(
+                            float(wx),
+                            float(wy),
+                            float(wz),
+                            pp);
+
+                        if (pp->MaybeValid()) {
+                            pp->colour = 0x88666666;
+                            pp->specular = 0xff000000;
+
+                            MIST_get_texture(
+                                px,
+                                pz,
+                                &pp->u,
+                                &pp->v);
+
+                            POLY_fadeout_point(pp);
+                        }
+                    }
+
+                for (sx = 0; sx < detail - 1; sx++)
+                    for (sz = 0; sz < detail - 1; sz++) {
+                        quad[0] = &mist_pp[sx + 0][sz + 0];
+                        quad[1] = &mist_pp[sx + 1][sz + 0];
+                        quad[2] = &mist_pp[sx + 0][sz + 1];
+                        quad[3] = &mist_pp[sx + 1][sz + 1];
+
+                        if (POLY_valid_quad(quad)) {
+                            POLY_add_quad(quad, POLY_PAGE_FOG, UC_FALSE);
+                        }
+                    }
+            }
+        }
+
+    //
+    // Rain.
+    //
+
+    /*
+    #ifdef _DEBUG	// about time we removed this kind of crap
+            if (Keys[KB_R] && !ShiftFlag)
+            {
+                    Keys[KB_R] = 0;
+
+                    GAME_FLAGS ^= GF_RAINING;
+            }
+    #endif
+    */
+
+    if (!INDOORS_INDEX || outside) {
+        if (GAME_FLAGS & GF_RAINING) {
+            if (AENG_detail_rain)
+                AENG_draw_rain();
+        }
+    }
+
+    //
+    // Drawing the steam.
+    //
+
+    //	void draw_steam(SLONG x,SLONG y,SLONG z,SLONG lod);
+    //	void draw_flames(SLONG x,SLONG y,SLONG z,SLONG lod);
+
+    //
+    // Pyrotechincs.
+    //
+
+    if (!INDOORS_INDEX || outside)
+        AENG_draw_bangs();
+    if (!INDOORS_INDEX || outside)
+        AENG_draw_fire();
+    if (!INDOORS_INDEX || outside)
+        AENG_draw_sparks();
+    //	ANEG_draw_messages();
+
+    /*
+
+          for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++)
+          {
+                  PUDDLE_Info *pi;
+                          SLONG	sx,sy,sz;
+                          SLONG	dx,dy,dz,dist,lod;
+                          PUDDLE_get_start(z, NGAMUT_gamut[z].xmin, NGAMUT_gamut[z].xmax);
+
+                          while(pi = PUDDLE_get_next())
+                          {
+                                  sx = (pi->x1+pi->x2)>>1;
+                                  sz = (pi->z1+pi->z2)>>1;
+                                  sy = pi->y;
+
+                                  dx=abs( ((SLONG)AENG_cam_x>>0)-sx);
+  //				dy=abs( ((SLONG)AENG_cam_y>>0)-SLONG(world_y))*4;
+                                  dy=abs( ((SLONG)AENG_cam_y>>0)-sy);
+                                  dz=abs( ((SLONG)AENG_cam_z>>0)-sz);
+
+                                  dist=QDIST3(dx,dy,dz);
+
+                                  lod = 90-(dist/(32*2));
+                                  if(lod>0)
+                                          draw_steam(sx,sy,sz,lod);
+  //                    draw_flames(sx,sy,sz,lod);
+                          }
+                  }
+  */
+
+    //	if (Keys[KB_RBRACE] && !ShiftFlag) {Keys[KB_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
+
+    //
+    // Draw a torch out of darci...
+    //
+
+    if (AENG_torch_on) {
+        Thing* darci = NET_PERSON(0);
+
+        float angle;
+
+        float dx;
+        float dy;
+        float dz;
+
+        SLONG x;
+        SLONG y;
+        SLONG z;
+
+        calc_sub_objects_position(
+            darci,
+            darci->Draw.Tweened->AnimTween,
+            0, // Torso?
+            &x,
+            &y,
+            &z);
+
+        x += darci->WorldPos.X >> 8;
+        y += darci->WorldPos.Y >> 8;
+        z += darci->WorldPos.Z >> 8;
+
+        angle = float(darci->Draw.Tweened->Angle);
+        angle *= 2.0F * PI / 2048.0F;
+
+        float dyaw = ((float)sin(float(GAME_TURN) * 0.025F)) * 0.25F;
+        float dpitch = ((float)cos(float(GAME_TURN) * 0.020F) - 0.5F) * 0.25F;
+
+        float matrix[3];
+
+        dyaw += angle;
+        dyaw += PI;
+
+        MATRIX_vector(
+            matrix,
+            dyaw,
+            dpitch);
+
+        dx = matrix[0];
+        dy = matrix[1];
+        dz = matrix[2];
+
+        // experimental light bloom
+        //		BLOOM_draw(x,y,z,dx*256,dy*256,dz*256,0x00666600);
+        BLOOM_draw(x, y, z, dx * 256, dy * 256, dz * 256, 0x00ffffa0);
+
+        CONE_create(
+            float(x),
+            float(y),
+            float(z),
+            dx,
+            dy,
+            dz,
+            256.0F * 4.0F,
+            256.0F,
+            0x00666600,
+            0x00000000,
+            50);
+
+        CONE_intersect_with_map();
+
+        //		CONE_draw();
+    }
+
+    //
+    // Draw the tripwires.
+    //
+
+    {
+        SLONG map_x1;
+        SLONG map_z1;
+
+        SLONG map_x2;
+        SLONG map_z2;
+
+        TRIP_Info* ti;
+
+        // Deal with internal bollocks.
+        POLY_flush_local_rot();
+
+        TRIP_get_start();
+
+        while (ti = TRIP_get_next()) {
+            //
+            // Check whether this tripwire is on the map.
+            //
+
+            map_x1 = ti->x1 >> 8;
+            map_z1 = ti->z1 >> 8;
+
+            map_x2 = ti->x2 >> 8;
+            map_z2 = ti->z2 >> 8;
+
+            if ((WITHIN(map_z1, NGAMUT_zmin, NGAMUT_zmax) && WITHIN(map_x1, NGAMUT_gamut[map_z1].xmin, NGAMUT_gamut[map_z1].xmax)) || (WITHIN(map_z2, NGAMUT_zmin, NGAMUT_zmax) && WITHIN(map_x2, NGAMUT_gamut[map_z2].xmin, NGAMUT_gamut[map_z2].xmax))) {
+                //
+                // Draw the bugger.
+                //
+
+#define AENG_TRIPWIRE_WIDTH 0x3
+
+                SHAPE_tripwire(
+                    ti->x1,
+                    ti->y,
+                    ti->z1,
+                    ti->x2,
+                    ti->y,
+                    ti->z2,
+                    AENG_TRIPWIRE_WIDTH,
+                    0x00661122,
+                    ti->counter,
+                    ti->along);
+            }
+        }
+    }
+
+    //
+    // Draw the hook.
+    //
+
+    if (!INDOORS_INDEX || outside)
+        AENG_draw_hook();
+
+    //
+    // Draw the sphere-matter.
+    //
+
+    if (!INDOORS_INDEX || outside) {
+        SM_Info* si;
+
+        SM_get_start();
+
+        while (si = SM_get_next()) {
+            SHAPE_sphere(
+                si->x,
+                si->y,
+                si->z,
+                si->radius,
+                si->colour);
+        }
+    }
+
+    //
+    // Draw the drips... again!
+    //
+
+    if (!INDOORS_INDEX || outside)
+        AENG_draw_drips(0);
+
+    //
+    // Draw the particle system
+    //
+
+    if (!INDOORS_INDEX || outside)
+        PARTICLE_Draw();
+
+    //
+    // Draw the ribbon system
+    //
+
+    if (!INDOORS_INDEX || outside)
+        RIBBON_draw();
+
+    //
+    // Draw the tyre tracks (changed -- now turned into things)
+    //
+    /*
+            if (ControlFlag) {
+                    TRACKS_Draw();
+            }*/
+
+    //
+    // Draw the cloth.
+    //
+
+    //	if(!INDOORS_INDEX||outside)
+    //	AENG_draw_cloth();
+
+    //
+    // Draw.
+    //
+    //
+    // Draw the people messages.
+    //
+
+    AENG_draw_people_messages();
+
+    //	MSG_add(" draw insides %d and %d \n",INDOORS_INDEX,INDOORS_INDEX_NEXT);
+
+    /*
+
+    POLY_frame_draw(UC_TRUE,UC_TRUE);
+    if(INDOORS_INDEX_NEXT)
+            AENG_draw_inside_floor(INDOORS_INDEX_NEXT,INDOORS_ROOM_NEXT,255); //downtairs non transparent
+
+    POLY_frame_draw(UC_TRUE,UC_TRUE);
+    if(INDOORS_INDEX)
+    {
+            AENG_draw_inside_floor(INDOORS_INDEX,INDOORS_ROOM,INDOORS_INDEX_FADE);
+
+    }
+
+    */
+
+    BreakTime("Drawn other crap");
+
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+
+    BreakTime("Done final polygon flush");
+
+    //
+    // The dirt.
+    //
+
+    if (!INDOORS_INDEX || outside)
+        if (AENG_detail_dirt)
+            AENG_draw_dirt();
+
+    // Cope with some wacky internals.
+    POLY_set_local_rotation_none();
+    POLY_flush_local_rot();
+
+    // Tell the pyros we've done a frame.
+    Pyros_EndOfFrameMarker();
+
+    //	ANEG_draw_messages();
+
+    /*
+
+    //
+    // This really _is_ shite!
+    //
+
+    if (ShiftFlag)
+    {
+            static float focus = 0.95F;
+
+            if (Keys[KB_P7]) {focus += 0.001F;}
+            if (Keys[KB_P4]) {focus -= 0.001F;}
+
+            POLY_frame_draw_focused(focus);
+    }
+
+    */
+
+    //	TRACE("Total polys = %d\n", AENG_total_polys_drawn);
+
+    // LOG_EXIT ( AENG_Draw_City )
+
+    // TRACE ( "AengOut" );
+}

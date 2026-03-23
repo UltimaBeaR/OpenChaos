@@ -5100,6 +5100,7 @@ UBYTE index_lookup[] = { 0, 1, 3, 2 };
 
 #endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 158) [chunk 4a]
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 159) [chunk 4b: AENG_draw_city]
 // claude-ai: AENG_draw_city — renders the entire outdoor city scene for one camera.
 // claude-ai: This is the MAIN render loop for exterior gameplay (not used inside warehouses).
 // claude-ai: Order of rendering (painter's algorithm, near-to-far with Z-buffer):
@@ -8174,6 +8175,7 @@ void AENG_draw_city()
 
     // TRACE ( "AengOut" );
 }
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 159) [chunk 4b: AENG_draw_city]
 
 void AENG_draw_far_facets(void)
 {
