@@ -83549,6 +83549,26 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "draw_quick_floor",
+      "file": "new/engine/graphics/pipeline/aeng.cpp",
+      "orig_name": "draw_quick_floor",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "index_lookup",
+      "file": "new/engine/graphics/pipeline/aeng_globals.cpp",
+      "orig_name": "index_lookup",
+      "orig_file": "fallen/DDEngine/Source/aeng.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

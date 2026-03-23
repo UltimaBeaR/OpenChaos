@@ -4456,6 +4456,8 @@ inline void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode)
 
 #endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp (iteration 157) [chunk 3]
 
+#if 0 // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 158) [chunk 4a: draw_quick_floor, index_lookup]
+
 void draw_quick_floor(SLONG warehouse)
 {
     PAP_Hi* ph;
@@ -5095,6 +5097,8 @@ void draw_quick_floor(SLONG warehouse)
 }
 
 UBYTE index_lookup[] = { 0, 1, 3, 2 };
+
+#endif // MIGRATED to src/new/engine/graphics/pipeline/aeng.cpp + aeng_globals.cpp (iteration 158) [chunk 4a]
 
 // claude-ai: AENG_draw_city — renders the entire outdoor city scene for one camera.
 // claude-ai: This is the MAIN render loop for exterior gameplay (not used inside warehouses).

@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 158 — aeng.cpp chunk 4a (draw_quick_floor, index_lookup) (2026-03-23)
+
+- `MAVHEIGHT` не был включён в new/aeng.cpp → добавлен `#include "fallen/Headers/mav.h"` (// Temporary:).
+- `index_lookup` — file-scope array между `draw_quick_floor` и `AENG_draw_city`; перенесён в `aeng_globals` (не в `aeng.cpp`).
+- `static int init_stats`, `static SLONG biggest` внутри `draw_quick_floor` — function-local statics, не глобалы, остаются в теле функции.
+
+---
+
 ## Итерация 157 — aeng.cpp chunk 3 (balloons, sky, 2D rects/tris, bike wheel, detail levels, floor tile infra) (2026-03-23)
 
 - aeng.cpp строки 3244–4454: 19 функций, 3 структуры (RRect, FloorStore, GroupInfo), ~18 макросов, 14 переменных.

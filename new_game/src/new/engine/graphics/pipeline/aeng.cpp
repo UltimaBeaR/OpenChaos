@@ -27,6 +27,7 @@
 #include "fallen/Headers/memory.h"
 #include "fallen/Headers/inside2.h"  // Temporary: InsideStorey
 #include "fallen/Headers/pap.h"
+#include "fallen/Headers/mav.h"      // Temporary: MAVHEIGHT (draw_quick_floor)
 #include "fallen/DDLibrary/Headers/DDLib.h"
 #include "missions/memory_globals.h" // Temporary: inside_storeys
 
@@ -3487,5 +3488,558 @@ void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode)
             count_steam++;
         }
     }
+}
+
+// uc_orig: draw_quick_floor (fallen/DDEngine/Source/aeng.cpp)
+// Renders all visible ground tiles as indexed triangle strips, batched by texture page.
+// Handles kerb geometry between sunken (road) and normal squares.
+// Also processes shadow-lit quads which require an extra split vertex.
+// `warehouse` non-zero: only render hidden (PAP_FLAG_HIDDEN) tiles for warehouse floor-over-city.
+void draw_quick_floor(SLONG warehouse)
+{
+    PAP_Hi* ph;
+
+    SLONG c0;
+    SLONG x, z;
+    float dy, y;
+    UWORD index;
+
+    SLONG page, page2, prev_page = -10000, apage = 0;
+
+    SLONG current_set = 0;
+
+    struct GroupInfo group[IPRIM_COUNT];
+
+    PolyPage* pp;
+    LPDIRECT3DTEXTURE2 tex_handle;
+
+    UWORD kerb_indicies[KERB_INDICIES];
+
+    UWORD* p_indicies;
+
+    D3DMATRIX* m_view;
+    D3DLVERTEX *p_verts[IPRIM_COUNT], *pv, *kerb_verts;
+
+    UBYTE some_data[sizeof(D3DMATRIX) + 32]; // 32-byte alignment staging buffer
+    UBYTE* ptr32;
+
+    SLONG index_count[IPRIM_COUNT], vert_count[IPRIM_COUNT], age[IPRIM_COUNT], kerb_counti = 0, kerb_countv = 0;
+
+    SLONG bin_set;
+
+    D3DMULTIMATRIX mm_draw_floor;
+
+    static int init_stats = 1;
+
+    static SLONG biggest = 0;
+
+    struct FloorStore row[MAX_DRAW_WIDTH * 2 + 2];
+    struct FloorStore *p1, *p2;
+    SLONG startx, endx, offsetx;
+    SLONG no_floor = 0;
+    SLONG is_shadow;
+
+    pp = &POLY_Page[0];
+
+    kerb_du = pp->m_UOffset;
+    kerb_dv = pp->m_VOffset;
+    kerb_scaleu = pp->m_UScale;
+    kerb_scalev = pp->m_VScale;
+
+    if (GAME_FLAGS & GF_NO_FLOOR)
+        no_floor = 1;
+
+    general_steam(0, 0, 0, 0); // init it
+
+    memset(group, 0, sizeof(struct GroupInfo) * IPRIM_COUNT);
+
+    if (init_stats) {
+        init_stats = 0;
+    }
+
+    ptr32 = (UBYTE*)(((ULONG)(some_data + 32)) & 0xffffffe0);
+    m_view = (D3DMATRIX*)ptr32;
+
+    mm_draw_floor.lpd3dMatrices = m_view;
+    mm_draw_floor.lpvLightDirs = NULL;
+    mm_draw_floor.lpLightTable = NULL;
+
+    ptr32 = (UBYTE*)(((ULONG)(m_vert_mem_block32 + 32)) & 0xffffffe0);
+
+    kerb_verts = (D3DLVERTEX*)ptr32;
+    ptr32 += sizeof(D3DLVERTEX) * KERB_VERTS;
+
+    for (c0 = 0; c0 < IPRIM_COUNT; c0++) {
+        p_verts[c0] = (D3DLVERTEX*)ptr32;
+        ptr32 += sizeof(D3DLVERTEX) * MAX_VERTS_FOR_STRIPS;
+        index_count[c0] = 0;
+        vert_count[c0] = 0;
+        age[c0] = 0x7fff;
+    }
+
+    BEGIN_SCENE;
+
+    RenderState default_renderstate;
+
+    default_renderstate.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
+    default_renderstate.SetChanged();
+
+    GenerateMMMatrixFromStandardD3DOnes(m_view, &g_matProjection, NULL, &g_viewData);
+
+    z = NGAMUT_zmin;
+
+    startx = NGAMUT_point_gamut[z].xmin;
+    endx = NGAMUT_point_gamut[z].xmax;
+
+    extern SLONG NGAMUT_xmin;
+
+    offsetx = startx - (NGAMUT_xmin);
+
+    ASSERT(offsetx < MAX_DRAW_WIDTH);
+    ASSERT(offsetx + endx - startx < MAX_DRAW_WIDTH);
+    if (z & 1) {
+        p1 = &row[0 + offsetx];
+    } else {
+        p1 = &row[MAX_DRAW_WIDTH + offsetx];
+    }
+    cache_a_row(startx, z, p1, endx);
+
+    if (!INDOORS_INDEX)
+        for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
+
+            startx = NGAMUT_point_gamut[z + 1].xmin;
+            endx = NGAMUT_point_gamut[z + 1].xmax;
+            offsetx = startx - (NGAMUT_xmin);
+
+            ASSERT(offsetx < MAX_DRAW_WIDTH);
+            ASSERT(offsetx + endx - startx < MAX_DRAW_WIDTH);
+
+            if (z & 1) {
+                p2 = &row[MAX_DRAW_WIDTH + offsetx];
+                memset(&row[MAX_DRAW_WIDTH], 0, MAX_DRAW_WIDTH * sizeof(struct FloorStore));
+            } else {
+                p2 = &row[0 + offsetx];
+                memset(&row[0], 0, MAX_DRAW_WIDTH * sizeof(struct FloorStore));
+            }
+
+            cache_a_row(startx, z + 1, p2, endx);
+
+            offsetx = NGAMUT_gamut[z].xmin - (NGAMUT_xmin);
+
+            ASSERT(offsetx < MAX_DRAW_WIDTH);
+            ASSERT(offsetx + endx - startx < MAX_DRAW_WIDTH);
+
+            if (z & 1) {
+                p1 = &row[0 + offsetx];
+                p2 = &row[MAX_DRAW_WIDTH + offsetx];
+            } else {
+                p1 = &row[MAX_DRAW_WIDTH + offsetx];
+                p2 = &row[0 + offsetx];
+            }
+
+            for (x = NGAMUT_gamut[z].xmin; x <= NGAMUT_gamut[z].xmax; x++, p1++, p2++) {
+                ASSERT(WITHIN(x, 0, MAP_WIDTH - 1));
+                ASSERT(WITHIN(z, 0, MAP_HEIGHT - 1));
+
+                ASSERT(p1 >= &row[0]);
+                ASSERT(p2 >= &row[0]);
+                ASSERT(p1 < &row[MAX_DRAW_WIDTH * 2 + 2]);
+                ASSERT(p2 < &row[MAX_DRAW_WIDTH * 2 + 2]);
+
+                ph = &PAP_2HI(x, z);
+
+                if (warehouse) {
+                    if (!(p1->Flags & PAP_FLAG_HIDDEN)) {
+                        continue;
+                    }
+
+                } else {
+                    SLONG s1, s2;
+
+                    s1 = p1->Flags & PAP_FLAG_SINK_SQUARE;
+                    s2 = (p1 + 1)->Flags & PAP_FLAG_SINK_SQUARE;
+
+                    if (s1 != s2) {
+                        // change of sink status along x — draw a kerb edge
+                        if (kerb_countv >= KERB_VERTS - 4) {
+                            draw_i_prim(POLY_Page[0].RS.GetTexture(), kerb_verts, kerb_indicies, &kerb_countv, &kerb_counti, &mm_draw_floor);
+                        }
+
+                        if (add_kerb((p1 + 1)->Alt, (p2 + 1)->Alt, x + 1, z, 0, 1, &kerb_verts[kerb_countv], &kerb_indicies[kerb_counti], kerb_countv, (p1 + 1)->Colour, (p2 + 1)->Colour, s1)) {
+                            kerb_countv += 4;
+                            kerb_counti += 5;
+                        }
+                    }
+
+                    s1 = p1->Flags & PAP_FLAG_SINK_SQUARE;
+                    s2 = (p2)->Flags & PAP_FLAG_SINK_SQUARE;
+
+                    if (s1 != s2) {
+                        // change of sink status along z — draw a kerb edge
+                        if (kerb_countv >= KERB_VERTS - 4) {
+                            draw_i_prim(POLY_Page[0].RS.GetTexture(), kerb_verts, kerb_indicies, &kerb_countv, &kerb_counti, &mm_draw_floor);
+                        }
+
+                        if (add_kerb((p2)->Alt, (p2 + 1)->Alt, x, z + 1, 1, 0, &kerb_verts[kerb_countv], &kerb_indicies[kerb_counti], kerb_countv, (p2)->Colour, (p2 + 1)->Colour, s2)) {
+                            kerb_countv += 4;
+                            kerb_counti += 5;
+                        }
+                    }
+
+                    // MikeD: must be inside the else block.
+                    if ((p1->Flags & (PAP_FLAG_HIDDEN | PAP_FLAG_ROOF_EXISTS)) == PAP_FLAG_HIDDEN) {
+                        continue;
+                    }
+                }
+
+                if (warehouse == 0 && (p1->Flags & (PAP_FLAG_ROOF_EXISTS))) {
+                    y = MAVHEIGHT(x, z) << 6;
+                    if (y > AENG_cam_y)
+                        continue;
+                } else {
+                    if (no_floor) {
+                        // Don't draw the floor if there isn't any (like the final level).
+                        continue;
+                    }
+                }
+
+                if (warehouse)
+                    is_shadow = 0;
+                else
+                    is_shadow = p1->Flags & (PAP_FLAG_SHADOW_1 | PAP_FLAG_SHADOW_2 | PAP_FLAG_SHADOW_3);
+
+                page = p1->Texture & 0x3ff;
+
+                if (page == 4 * 64 + 53)
+                    general_steam(x, z, p1->Texture, 1); // store it
+
+                pp = &POLY_Page[page];
+
+                tex_handle = pp->RS.GetTexture();
+
+                current_set = -1;
+
+                // age the iprims
+                for (c0 = 0; c0 < IPRIM_COUNT; c0++)
+                    age[c0]++;
+
+                for (c0 = 0; c0 < IPRIM_COUNT; c0++) {
+                    if (group[c0].page == tex_handle) {
+                        age[c0] = 0;
+                        current_set = c0;
+                        break;
+                    }
+                }
+
+                bin_set = -1;
+                if (current_set == -1) {
+                    SLONG oldest = -1;
+                    // no group currently supports this new page, find empty or evict oldest
+                    for (c0 = 0; c0 < IPRIM_COUNT; c0++) {
+                        if (vert_count[c0] == 0) {
+                            bin_set = -1; // no need to bin an empty one
+                            current_set = c0;
+
+                            group[current_set].page = tex_handle;
+
+                            break;
+                        }
+
+                        if (age[c0] > oldest) {
+                            bin_set = c0;
+                            current_set = c0;
+                            oldest = age[c0];
+                        }
+                    }
+
+                } else {
+                    SLONG cv = 4, ci = 5;
+                    if (is_shadow) {
+                        cv = 5; // shadow squares require more verts and indicies as quads are drawn as two separate tri's
+                        ci = 8;
+                    }
+                    // do we have to bin (draw) a prim because it is too full?
+                    if (vert_count[current_set] >= MAX_VERTS_FOR_STRIPS - cv || index_count[current_set] >= MAX_INDICES_FOR_STRIPS - ci)
+                        bin_set = current_set;
+                }
+                age[current_set] = 0;
+
+                ASSERT(current_set >= 0 && current_set < IPRIM_COUNT);
+
+                // Draw this prim because its buffer is full, or its buffer is required for new texture page.
+                if (bin_set >= 0) {
+                    if (vert_count[bin_set]) {
+                        draw_i_prim(group[bin_set].page, p_verts[bin_set], &m_indicies[bin_set][0], &vert_count[bin_set], &index_count[bin_set], &mm_draw_floor);
+
+                        ASSERT(bin_set == current_set);
+
+                        group[current_set].page = tex_handle;
+                    }
+                }
+
+                // build the floor quad
+                pv = &p_verts[current_set][vert_count[current_set]];
+                p_indicies = &m_indicies[current_set][index_count[current_set]];
+
+                ASSERT(vert_count[current_set] < MAX_VERTS_FOR_STRIPS);
+                ASSERT(index_count[current_set] < MAX_INDICES_FOR_STRIPS);
+
+                if ((p1->Flags & PAP_FLAG_SINK_SQUARE) && warehouse == 0) {
+                    dy = -KERB_HEIGHT;
+                } else {
+                    dy = 0.0f;
+                }
+
+                //   0   1        0    1          1
+                //
+                //   3   2        3          3   2
+
+                pv->x = x * 256.0F;
+                pv->z = z * 256.0F;
+                pv->color = p1->Colour;
+                pv->specular = 0xff000000;
+                SET_MM_INDEX(*pv, 0);
+                pv++;
+
+                pv->x = (x + 1) * 256.0F;
+                pv->z = z * 256.0F;
+                pv->color = (p1 + 1)->Colour;
+                pv->specular = 0xff000000;
+                SET_MM_INDEX(*pv, 0);
+                pv++;
+
+                pv->x = (x + 1) * 256.0F;
+                pv->z = (z + 1) * 256.0F;
+                pv->color = (p2 + 1)->Colour;
+                pv->specular = 0xff000000;
+                SET_MM_INDEX(*pv, 0);
+                pv++;
+
+                pv->x = x * 256.0F;
+                pv->z = (z + 1) * 256.0F;
+                pv->color = p2->Colour;
+                pv->specular = 0xff000000;
+                SET_MM_INDEX(*pv, 0);
+
+                pv -= 3;
+
+                TEXTURE_get_minitexturebits_uvs(
+                    p1->Texture,
+                    &page2,
+                    &pv[0].tu,
+                    &pv[0].tv,
+                    &pv[1].tu,
+                    &pv[1].tv,
+                    &pv[3].tu,
+                    &pv[3].tv,
+                    &pv[2].tu,
+                    &pv[2].tv);
+
+                pv[0].tu = pv[0].tu * pp->m_UScale + pp->m_UOffset;
+                pv[1].tu = pv[1].tu * pp->m_UScale + pp->m_UOffset;
+                pv[2].tu = pv[2].tu * pp->m_UScale + pp->m_UOffset;
+                pv[3].tu = pv[3].tu * pp->m_UScale + pp->m_UOffset;
+
+                pv[0].tv = pv[0].tv * pp->m_VScale + pp->m_VOffset;
+                pv[1].tv = pv[1].tv * pp->m_VScale + pp->m_VOffset;
+                pv[2].tv = pv[2].tv * pp->m_VScale + pp->m_VOffset;
+                pv[3].tv = pv[3].tv * pp->m_VScale + pp->m_VOffset;
+
+                if ((p1->Flags & (PAP_FLAG_ROOF_EXISTS)) && warehouse == 0) {
+                    y = MAVHEIGHT(x, z) << 6;
+
+                    pv[0].y = y;
+                    pv[1].y = y;
+                    pv[2].y = y;
+                    pv[3].y = y;
+                } else {
+
+                    pv[0].y = p1->Alt + dy;
+                    pv[1].y = (p1 + 1)->Alt + dy;
+                    pv[2].y = (p2 + 1)->Alt + dy;
+                    pv[3].y = (p2)->Alt + dy;
+                }
+
+                {
+                    SLONG i;
+
+                    float dx;
+                    float dy;
+                    float dz;
+
+                    float dprod;
+
+                    dx = (pv[0].x + pv[2].x) * 0.5F - AENG_cam_x;
+                    dy = (pv[0].y + pv[2].y) * 0.5F - AENG_cam_y;
+                    dz = (pv[0].z + pv[2].z) * 0.5F - AENG_cam_z;
+
+                    float dist;
+
+                    float adx;
+                    float ady;
+                    float adz;
+
+                    adx = fabsf(dx);
+                    ady = fabsf(dy);
+                    adz = fabsf(dz);
+
+                    dist = 0;
+                    dist += adx;
+                    dist += ady;
+                    dist += adz;
+
+                    if (dist > 512.0F) {
+                        // No need to zclip — tile is far from camera.
+                    } else {
+                        ULONG zclip = 0;
+                        float along[4];
+
+                        for (i = 0; i < 4; i++) {
+                            dx = pv[i].x - AENG_cam_x;
+                            dy = pv[i].y - AENG_cam_y;
+                            dz = pv[i].z - AENG_cam_z;
+
+                            dprod = dx * AENG_cam_matrix[6] + dy * AENG_cam_matrix[7] + dz * AENG_cam_matrix[8];
+
+                            if (dprod < 8.0F) {
+                                // Too close to camera — zclip.
+                                along[i] = 8.0F - dprod;
+
+                                zclip |= 1 << i;
+                            }
+                        }
+
+                        if (zclip) {
+                            if (zclip == 0xf) {
+                                // Reject whole quad.
+                                goto abandon_quad;
+                            }
+
+                            for (i = 0; i < 4; i++) {
+                                if (zclip & (1 << i)) {
+                                    pv[i].x += along[i] * AENG_cam_matrix[6];
+                                    pv[i].y += along[i] * AENG_cam_matrix[7];
+                                    pv[i].z += along[i] * AENG_cam_matrix[8];
+                                }
+                            }
+                        }
+                    }
+                }
+
+                pv += 4;
+
+                // shadows
+                if (is_shadow) {
+                    // For shadows we need to duplicate the diagonal verts.
+                    // Shadow quads are drawn as two separate triangles, not a strip.
+
+                    pv -= 4;
+                    pv[4] = pv[3];
+
+                    // to be compatible with shadow.h we have to rotate quad by 180 degrees
+                    //     3          2   4
+                    //
+                    // 1   0          1
+
+                    switch (is_shadow) {
+                    case 0:
+                        ASSERT(0); // We shouldn't be doing any of this in this case.
+                        break;
+
+                    case 1:
+                        HALF_COL(pv[0].color);
+                        HALF_COL(pv[3].color);
+
+                        break;
+
+                    case 2:
+                    case 6:
+                        HALF_COL(pv[4].color);
+                        HALF_COL(pv[3].color);
+                        HALF_COL(pv[0].color);
+
+                        break;
+
+                    case 3:
+                        HALF_COL(pv[4].color);
+                        HALF_COL(pv[3].color);
+
+                        break;
+
+                    case 4:
+                        HALF_COL(pv[2].color);
+                        HALF_COL(pv[3].color);
+                        HALF_COL(pv[4].color);
+
+                        break;
+
+                    case 5:
+                        HALF_COL(pv[2].color);
+                        HALF_COL(pv[0].color);
+                        HALF_COL(pv[4].color);
+                        HALF_COL(pv[3].color);
+                        break;
+
+                    case 7:
+                        HALF_COL(pv[2].color);
+                        HALF_COL(pv[4].color);
+                        break;
+
+                    default:
+                        ASSERT(0);
+                        break;
+                    }
+                    pv += 5;
+
+                    // make the indicies for the 5-vert shadow split quad
+                    SLONG count = vert_count[current_set];
+
+                    *p_indicies++ = count + 3;
+                    *p_indicies++ = count + 0;
+                    *p_indicies++ = count + 1;
+                    *p_indicies++ = 0xffff;
+
+                    *p_indicies++ = count + 2;
+                    *p_indicies++ = count + 4;
+                    *p_indicies++ = count + 1;
+                    *p_indicies++ = 0xffff;
+
+                    vert_count[current_set] += 5;
+                    index_count[current_set] += 8; // 8 per quad: two separate tris
+
+                } else {
+                    // make the indicies for the normal 4-vert quad
+                    SLONG count = vert_count[current_set];
+
+                    *p_indicies++ = count + 0;
+                    *p_indicies++ = count + 1;
+                    *p_indicies++ = count + 3;
+                    *p_indicies++ = count + 2;
+                    *p_indicies++ = 0xffff;
+
+                    vert_count[current_set] += 4;
+                    index_count[current_set] += 5; // 5 per quad: terminates with -1
+                }
+
+            abandon_quad:;
+            }
+        }
+
+    // Draw any prims left with data in them.
+    for (c0 = 0; c0 < IPRIM_COUNT; c0++) {
+        if (vert_count[c0]) {
+            draw_i_prim(group[c0].page, p_verts[c0], &m_indicies[c0][0], &vert_count[c0], &index_count[c0], &mm_draw_floor);
+        }
+    }
+
+    if (kerb_countv) {
+        draw_i_prim(POLY_Page[0].RS.GetTexture(), kerb_verts, kerb_indicies, &kerb_countv, &kerb_counti, &mm_draw_floor);
+    }
+    general_steam(0, 0, 0, 2); // draw it
+
+    POLY_set_local_rotation_none();
+    general_steam(0, 0, 0, 2); // draw it
+
+    END_SCENE;
 }
 

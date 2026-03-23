@@ -287,3 +287,6 @@ float kerb_scalev;
 float kerb_du;
 // uc_orig: kerb_dv (fallen/DDEngine/Source/aeng.cpp)
 float kerb_dv;
+
+// uc_orig: index_lookup (fallen/DDEngine/Source/aeng.cpp)
+UBYTE index_lookup[] = { 0, 1, 3, 2 };

@@ -613,4 +613,8 @@ float AENG_draw_some_polys(bool large, bool blend);
 // Auto-selects detail settings based on GPU speed; only runs once if estimate flag is set.
 void AENG_guess_detail_levels(void);
 
+// uc_orig: index_lookup (fallen/DDEngine/Source/aeng.cpp)
+// Maps quad corner index 0-3 to face winding order for roof tile rendering inside AENG_draw_city.
+extern UBYTE index_lookup[4];
+
 #endif // ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H
