@@ -2,8 +2,7 @@
 // MAP_WIDTH, MAP_HEIGHT, FLOOR_HEIGHT_SHIFT, CLASS_BUILDING, DT_BUILDING, DT_NONE,
 // TO_THING, alloc_primary_thing, add_thing_to_map, and the Thing struct.
 #include "game.h"
-// Temporary: edmap.h needed for EDIT_MAP_WIDTH, EDIT_MAP_DEPTH (used in clear_map2 and wibble_floor)
-#include "fallen/Headers/edmap.h"
+#include "world/environment/edmap.h"
 // Needed for PAP_SIZE_LO, PAP_Lo type (for clear_map2 which zeros PAP_lo array)
 #include "world/map/pap_globals.h"
 // Needed for each_point[] (used in calc_building_normals)

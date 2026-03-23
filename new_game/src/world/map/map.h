@@ -4,15 +4,9 @@
 #include "core/types.h"
 #include "core/vector.h"
 
-// Temporary: light.h needs THING_INDEX and GameCoord, and RMAX_PRIM_POINTS before it can compile.
-// THING_INDEX is defined in game.h as #define THING_INDEX UWORD — replicate here for standalone use:
-#ifndef THING_INDEX
-#define THING_INDEX UWORD
-#endif
-// Also needs RMAX_PRIM_POINTS (from building.h)
+// Temporary: building.h needed for RMAX_PRIM_POINTS (used in light.h)
 #include "fallen/Headers/building.h"
-// Temporary: light.h needed for LIGHT_Colour and LIGHT_Map (not yet migrated to new/)
-#include "fallen/Headers/light.h"
+#include "engine/lighting/light.h"
 
 // Map dimensions and indexing.
 // uc_orig: MAP_HEIGHT_SHIFT (fallen/Headers/Map.h)

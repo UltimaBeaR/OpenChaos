@@ -4,7 +4,7 @@
 #include "core/types.h"                // SWORD, UWORD, SLONG, UBYTE, etc.
 #include "core/vector.h"               // SVector (needed by building.h for PrimNormal typedef)
 #include "fallen/Headers/building.h"   // Temporary: FBuilding, FStorey, FWall, FWindow, BuildingFacet, BuildingObject, BoundBox, TXTY, DXTXTY, TextureInfo, RoomID, MAX_*
-#include "fallen/Headers/edmap.h"      // Temporary: DepthStrip, EDIT_MAP_WIDTH, EDIT_MAP_DEPTH
+#include "world/environment/edmap.h"
 
 // uc_orig: edit_map (fallen/Source/Building.cpp)
 extern struct DepthStrip edit_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];

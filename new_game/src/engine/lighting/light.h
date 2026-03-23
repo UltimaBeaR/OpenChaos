@@ -1,0 +1,188 @@
+#ifndef ENGINE_LIGHTING_LIGHT_H
+#define ENGINE_LIGHTING_LIGHT_H
+
+#include "core/types.h"
+#include "core/vector.h" // GameCoord
+#include "fallen/Headers/building.h" // Temporary: RMAX_PRIM_POINTS (not yet in new structure)
+
+// uc_orig: LIGHT_Save (fallen/Headers/light.h)
+// On-disk format for a single light, used during level save/load.
+typedef struct
+{
+    SLONG x;
+    SLONG y;
+    SLONG z;
+    UBYTE red;
+    UBYTE green;
+    UBYTE blue;
+    UBYTE range;
+    UBYTE type;
+    UBYTE param;
+    UWORD dummy;
+
+} LIGHT_Save;
+
+// uc_orig: LIGHT_Colour (fallen/Headers/light.h)
+// RGB colour value for a light, each channel 0..LIGHT_MAX_BRIGHT.
+typedef struct
+{
+    UBYTE red;
+    UBYTE green;
+    UBYTE blue;
+
+} LIGHT_Colour;
+
+// uc_orig: LIGHT_MAX_BRIGHT (fallen/Headers/light.h)
+// UBYTE light values go from 0 to LIGHT_MAX_BRIGHT; values above are clamped to maximum.
+#define LIGHT_MAX_BRIGHT 64
+
+// uc_orig: LIGHT_MAX_RANGE (fallen/Headers/light.h)
+// Maximum range of a light in world coordinates.
+#define LIGHT_MAX_RANGE 0x600
+
+// uc_orig: LIGHT_Map (fallen/Headers/light.h)
+// Callback table used to apply lighting to a height-field.
+// The LIGHT_Map passed to LIGHT_set_hf is copied internally so it may live on the stack.
+typedef struct
+{
+    SLONG width;
+    SLONG height;
+
+    SLONG (*get_height)(SLONG x, SLONG z); // 0 <= x < width, 0 <= z < height
+    LIGHT_Colour (*get_light)(SLONG x, SLONG z);
+    void (*set_light)(SLONG x, SLONG z, LIGHT_Colour light);
+
+} LIGHT_Map;
+
+// uc_orig: LIGHT_set_hf (fallen/Headers/light.h)
+void LIGHT_set_hf(LIGHT_Map* map);
+
+// uc_orig: LIGHT_amb_colour (fallen/Headers/light.h)
+// Do not set these directly — use LIGHT_set_ambient().
+extern LIGHT_Colour LIGHT_amb_colour;
+// uc_orig: LIGHT_amb_norm_x (fallen/Headers/light.h)
+extern SLONG LIGHT_amb_norm_x;
+// uc_orig: LIGHT_amb_norm_y (fallen/Headers/light.h)
+extern SLONG LIGHT_amb_norm_y;
+// uc_orig: LIGHT_amb_norm_z (fallen/Headers/light.h)
+extern SLONG LIGHT_amb_norm_z;
+
+// uc_orig: LIGHT_set_ambient (fallen/Headers/light.h)
+// Sets ambient colour and directional normal (length 255).
+void LIGHT_set_ambient(
+    LIGHT_Colour amb_colour,
+    SLONG amb_norm_x,
+    SLONG amb_norm_y,
+    SLONG amb_norm_z);
+
+// uc_orig: LIGHT_init (fallen/Headers/light.h)
+// Removes all lights and clears all cached light data.
+void LIGHT_init(void);
+
+// uc_orig: LIGHT_building_point (fallen/Headers/light.h)
+// Per-vertex lighting results for building prims, indexed by prim point index.
+extern LIGHT_Colour LIGHT_building_point[RMAX_PRIM_POINTS];
+
+// uc_orig: LIGHT_recalc_hf (fallen/Headers/light.h)
+// Recalculates all lighting on the current height-field and fills LIGHT_building_point[].
+void LIGHT_recalc_hf(void);
+
+// uc_orig: LIGHT_Index (fallen/Headers/light.h)
+typedef UWORD LIGHT_Index;
+
+// uc_orig: LIGHT_TYPE_NORMAL (fallen/Headers/light.h)
+#define LIGHT_TYPE_NORMAL 1
+// uc_orig: LIGHT_TYPE_BROKEN (fallen/Headers/light.h)
+// param = flicker-off frequency.
+#define LIGHT_TYPE_BROKEN 2
+// uc_orig: LIGHT_TYPE_PULSE (fallen/Headers/light.h)
+// param = flash speed.
+#define LIGHT_TYPE_PULSE  3
+// uc_orig: LIGHT_TYPE_FADE (fallen/Headers/light.h)
+// param = lifetime in ticks.
+#define LIGHT_TYPE_FADE   4
+
+// uc_orig: LIGHT_create (fallen/Headers/light.h)
+LIGHT_Index LIGHT_create(
+    GameCoord where,
+    LIGHT_Colour colour,
+    UBYTE range,
+    UBYTE type,
+    UBYTE param);
+
+// uc_orig: LIGHT_destroy (fallen/Headers/light.h)
+void LIGHT_destroy(LIGHT_Index l_index);
+
+// uc_orig: LIGHT_pos_get (fallen/Headers/light.h)
+GameCoord LIGHT_pos_get(LIGHT_Index l_index);
+// uc_orig: LIGHT_pos_set (fallen/Headers/light.h)
+void LIGHT_pos_set(LIGHT_Index l_index, GameCoord pos);
+
+// uc_orig: LIGHT_process (fallen/Headers/light.h)
+void LIGHT_process(void);
+
+// uc_orig: LIGHT_get_context (fallen/Headers/light.h)
+// Returns a value identifying the lighting context of the given thing.
+// If the context changes the thing needs to be re-lit.
+SLONG LIGHT_get_context(THING_INDEX t_index);
+
+// uc_orig: LIGHT_get_point (fallen/Headers/light.h)
+// Returns the colour of light at the given point, using the last LIGHT_get_context call.
+LIGHT_Colour LIGHT_get_point(SLONG x, SLONG y, SLONG z);
+
+// uc_orig: LIGHT_prim (fallen/Headers/light.h)
+// Lights the given prim, writing results into LIGHT_point_colour[].
+// Requires calc_prim_normals() to have been called first.
+void LIGHT_prim(THING_INDEX t_index);
+// uc_orig: LIGHT_prim_use_normals (fallen/Headers/light.h)
+void LIGHT_prim_use_normals(THING_INDEX t_index);
+
+// uc_orig: LIGHT_building_use_normals (fallen/Headers/light.h)
+void LIGHT_building_use_normals(THING_INDEX t_index);
+
+// uc_orig: LIGHT_MAX_POINTS (fallen/Headers/light.h)
+#define LIGHT_MAX_POINTS 2560
+
+// uc_orig: LIGHT_point_colour (fallen/Headers/light.h)
+extern LIGHT_Colour LIGHT_point_colour[LIGHT_MAX_POINTS];
+// uc_orig: LIGHT_point_colour_upto (fallen/Headers/light.h)
+extern SLONG LIGHT_point_colour_upto;
+
+// uc_orig: LIGHT_get_d3d_colour (fallen/Headers/light.h)
+// Converts LIGHT_Colour to Direct3D packed colour + specular highlight.
+// Overflow above 255 is halved into the specular channel (white wash effect).
+inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
+{
+    SLONG red   = col.red;
+    SLONG green = col.green;
+    SLONG blue  = col.blue;
+
+    SLONG wred   = 0;
+    SLONG wgreen = 0;
+    SLONG wblue  = 0;
+
+    red   *= (256 / LIGHT_MAX_BRIGHT);
+    green *= (256 / LIGHT_MAX_BRIGHT);
+    blue  *= (256 / LIGHT_MAX_BRIGHT);
+
+    if (red > 255) {
+        wred = red - 255 >> 1;
+        red = 255;
+        if (wred > 255) wred = 255;
+    }
+    if (green > 255) {
+        wgreen = green - 255 >> 1;
+        green = 255;
+        if (wgreen > 255) wgreen = 255;
+    }
+    if (blue > 255) {
+        wblue = blue - 255 >> 1;
+        blue = 255;
+        if (wblue > 255) wblue = 255;
+    }
+
+    *colour   = (red << 16) | (green << 8) | (blue << 0);
+    *specular = (wred << 16) | (wgreen << 8) | (wblue << 0);
+}
+
+#endif // ENGINE_LIGHTING_LIGHT_H

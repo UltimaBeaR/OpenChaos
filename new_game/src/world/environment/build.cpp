@@ -3,8 +3,7 @@
 #include "game.h"
 #include "aeng.h"
 #include "engine/graphics/pipeline/poly.h"
-// Temporary: light.h needed for LIGHT_get_d3d_colour inline
-#include "fallen/Headers/light.h"
+#include "engine/lighting/light.h"
 // Temporary: memory.h needed for prim_faces4/prim_faces3 externs
 #include "fallen/Headers/memory.h"
 #include "world/environment/build.h"

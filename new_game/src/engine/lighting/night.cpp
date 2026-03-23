@@ -12,8 +12,7 @@
 #include "core/fmatrix.h"
 // Temporary: supermap.h not yet migrated
 #include "world/map/supermap.h"
-// Temporary: ed.h (light editor structures for NIGHT_load_ed_file)
-#include "fallen/Headers/ed.h"
+#include "engine/lighting/ed_light.h"
 // Temporary: memory.h (prim_objects, dfacets, prim_normal, etc.)
 #include "fallen/Headers/memory.h"
 // Temporary: ware.h (WARE_in)

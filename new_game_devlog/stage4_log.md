@@ -1797,3 +1797,12 @@ Entity mapping обновлён (33 записи — file path).
 - `qmap.cpp` не включает `game.h` — `MSG_add` идёт через `engine/graphics/pipeline/message.h`, `MemAlloc`/`MemFree` через `core/memory.h`; macros `ASSERT`/`WITHIN`/`SATURATE`/`SWAP`/`MAX`/`MIN` — через `<MFStdLib.h>` (→ Always.h)
 
 ---
+
+## Итерация 64 — engine/lighting/light + ed_light + world/environment/edmap (2026-03-23)
+
+- `light.h` (fallen/Headers/light.h) → `engine/lighting/light.h`; 23 сущности; `RMAX_PRIM_POINTS` ещё в `fallen/Headers/building.h` (Temporary)
+- `ed.h` (fallen/Ledit/Headers/ed.h) → `engine/lighting/ed_light.h`; 30 сущностей
+- `edmap.h` (fallen/Editor/Headers/map.h) → `world/environment/edmap.h`; 11 сущностей
+- В `map.h` удалён лишний `#ifndef THING_INDEX` блок — `THING_INDEX` теперь приходит через `engine/lighting/light.h` → `core/types.h`
+
+---

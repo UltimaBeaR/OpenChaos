@@ -96349,6 +96349,746 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_Save",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_Save",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_Colour",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_Colour",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_MAX_BRIGHT",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_MAX_BRIGHT",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_MAX_RANGE",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_MAX_RANGE",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_Map",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_Map",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_set_hf",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_set_hf",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_amb_colour",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_amb_colour",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_amb_norm_x",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_amb_norm_x",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_amb_norm_y",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_amb_norm_y",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_amb_norm_z",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_amb_norm_z",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_set_ambient",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_set_ambient",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_init",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_init",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_building_point",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_building_point",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_recalc_hf",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_recalc_hf",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_Index",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_Index",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_TYPE_NORMAL",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_TYPE_NORMAL",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_TYPE_BROKEN",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_TYPE_BROKEN",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_TYPE_PULSE",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_TYPE_PULSE",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_TYPE_FADE",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_TYPE_FADE",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_create",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_create",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_destroy",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_destroy",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_pos_get",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_pos_get",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_pos_set",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_pos_set",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_process",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_process",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_get_context",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_get_context",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_get_point",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_get_point",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_prim",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_prim",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_prim_use_normals",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_prim_use_normals",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_building_use_normals",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_building_use_normals",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_MAX_POINTS",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_MAX_POINTS",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_point_colour",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_point_colour",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_point_colour_upto",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_point_colour_upto",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_get_d3d_colour",
+      "file": "engine/lighting/light.h",
+      "orig_name": "LIGHT_get_d3d_colour",
+      "orig_file": "fallen/Headers/light.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "LIGHT_FLAGS_INSIDE",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "LIGHT_FLAGS_INSIDE",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_Light",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_Light",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_MAX_LIGHTS",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_MAX_LIGHTS",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_light",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_light",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_light_free",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_light_free",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_init",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_init",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_create",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_create",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_delete",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_delete",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_delete_all",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_delete_all",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_light_move",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_light_move",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_light_change",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_light_change",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_amb_get",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_amb_get",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_amb_set",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_amb_set",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_lampost_on_get",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_lampost_on_get",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_lampost_on_set",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_lampost_on_set",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_night_get",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_night_get",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_night_set",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_night_set",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_darken_bottoms_on_get",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_darken_bottoms_on_get",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_darken_bottoms_on_set",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_darken_bottoms_on_set",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_lampost_get",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_lampost_get",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_lampost_set",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_lampost_set",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_sky_get",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_sky_get",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_sky_set",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_sky_set",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_undo_store",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_undo_store",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_undo_undo",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_undo_undo",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_undo_redo",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_undo_redo",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_undo_undo_valid",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_undo_undo_valid",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_undo_redo_valid",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_undo_redo_valid",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_load",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_load",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ED_save",
+      "file": "engine/lighting/ed_light.h",
+      "orig_name": "ED_save",
+      "orig_file": "fallen/Ledit/Headers/ed.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ELE_SHIFT",
+      "file": "world/environment/edmap.h",
+      "orig_name": "ELE_SHIFT",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ELE_SIZE",
+      "file": "world/environment/edmap.h",
+      "orig_name": "ELE_SIZE",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "HALF_ELE_SIZE",
+      "file": "world/environment/edmap.h",
+      "orig_name": "HALF_ELE_SIZE",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ELE_AND",
+      "file": "world/environment/edmap.h",
+      "orig_name": "ELE_AND",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EDIT_MAP_WIDTH",
+      "file": "world/environment/edmap.h",
+      "orig_name": "EDIT_MAP_WIDTH",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EDIT_MAP_HEIGHT",
+      "file": "world/environment/edmap.h",
+      "orig_name": "EDIT_MAP_HEIGHT",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "EDIT_MAP_DEPTH",
+      "file": "world/environment/edmap.h",
+      "orig_name": "EDIT_MAP_DEPTH",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "DepthStrip",
+      "file": "world/environment/edmap.h",
+      "orig_name": "DepthStrip",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "edit_map",
+      "file": "world/environment/edmap.h",
+      "orig_name": "edit_map",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "edit_map_roof_height",
+      "file": "world/environment/edmap.h",
+      "orig_name": "edit_map_roof_height",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "tex_map",
+      "file": "world/environment/edmap.h",
+      "orig_name": "tex_map",
+      "orig_file": "fallen/Editor/Headers/map.h",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

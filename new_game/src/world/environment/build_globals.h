@@ -4,8 +4,7 @@
 // Temporary: game.h brings in THING_INDEX, GameCoord, SVector, RMAX_PRIM_POINTS,
 // and everything else required by light.h and building.h.
 #include "game.h"
-// Temporary: light.h needed for LIGHT_Colour struct
-#include "fallen/Headers/light.h"
+#include "engine/lighting/light.h"
 
 // Per-vertex lighting results for building primitives, indexed by prim point index.
 // Filled by LIGHT_building_use_normals; declared as extern in light.h.

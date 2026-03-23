@@ -2,7 +2,7 @@
 #define UI_CONTROLS_GLOBALS_H
 
 #include "fallen/Headers/Game.h"    // Temporary: base types
-#include "fallen/Headers/light.h"   // LIGHT_Colour
+#include "engine/lighting/light.h"
 
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
 // Temporary: defined in Controls.cpp (not yet migrated). When set, colours >255 generate specular.

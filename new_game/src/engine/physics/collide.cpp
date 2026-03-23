@@ -9,8 +9,7 @@
 #include "missions/memory_globals.h"
 // Temporary: statedef.h for SUB_STATE_RUNNING_JUMP_FLY, STOREY_TYPE_* constants
 #include "statedef.h"
-// Temporary: edmap.h for DFacet, CollisionVect
-#include "fallen/Headers/edmap.h"
+#include "world/environment/edmap.h"
 
 // Temporary: e_draw_3d_line (graphics debug line)
 extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
