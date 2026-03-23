@@ -30,10 +30,6 @@ find_package(OpenAL CONFIG REQUIRED)
 # ---------------------------------------------------------------------------
 # Source files (mirrors Fallen.vcxproj ClCompile list)
 # ---------------------------------------------------------------------------
-set(SOURCES_MFSTDLIB
-    src/old/MFStdLib/Source/StdLib/StdFile.cpp
-)
-
 set(SOURCES_NEW
     src/new/core/memory.cpp
     src/new/core/memory_globals.cpp
@@ -239,43 +235,18 @@ set(SOURCES_NEW
     src/new/engine/graphics/geometry/superfacet_globals.cpp
     src/new/assets/level_loader.cpp
     src/new/assets/level_loader_globals.cpp
-)
-
-set(SOURCES_DDENGINE
-    src/old/fallen/DDEngine/Source/aeng.cpp
     src/new/engine/graphics/pipeline/aeng.cpp
     src/new/engine/graphics/pipeline/aeng_globals.cpp
-    src/old/fallen/DDEngine/Source/drawxtra.cpp
-    src/old/fallen/DDEngine/Source/facet.cpp
     src/new/engine/animation/figure.cpp
     src/new/engine/animation/figure_globals.cpp
     src/new/engine/graphics/geometry/mesh.cpp
     src/new/engine/graphics/geometry/mesh_globals.cpp
-    src/old/fallen/DDEngine/Source/mesh.cpp
     src/new/engine/graphics/pipeline/poly.cpp
     src/new/engine/graphics/pipeline/poly_globals.cpp
     src/new/engine/graphics/geometry/shape.cpp
     src/new/engine/graphics/geometry/shape_globals.cpp
     src/new/assets/texture.cpp
     src/new/assets/texture_globals.cpp
-)
-
-set(SOURCES_DDLIBRARY
-    src/old/fallen/DDLibrary/Source/GDisplay.cpp
-)
-
-set(SOURCES_OUTRO
-    src/old/fallen/outro/back.cpp
-    src/old/fallen/outro/cam.cpp
-    src/old/fallen/outro/credits.cpp
-    src/old/fallen/outro/imp.cpp
-    src/old/fallen/outro/mf.cpp
-    src/old/fallen/outro/os.cpp
-    src/old/fallen/outro/outroFont.cpp
-    src/old/fallen/outro/outroMain.cpp
-    src/old/fallen/outro/outroMatrix.cpp
-    src/old/fallen/outro/OutroTga.cpp
-    src/old/fallen/outro/wire.cpp
     src/new/ui/cutscenes/outro/outro_tga.cpp
     src/new/ui/cutscenes/outro/outro_matrix.cpp
     src/new/ui/cutscenes/outro/outro_back.cpp
@@ -294,60 +265,56 @@ set(SOURCES_OUTRO
     src/new/ui/cutscenes/outro/outro_mf_globals.cpp
     src/new/ui/cutscenes/outro/outro_os.cpp
     src/new/ui/cutscenes/outro/outro_os_globals.cpp
-)
-
-set(SOURCES_GAME
-    src/old/fallen/Source/Anim.cpp
     src/new/ui/attract.cpp
     src/new/ui/attract_globals.cpp
     src/new/actors/items/barrel.cpp
     src/new/actors/items/barrel_globals.cpp
     src/new/actors/animals/bat.cpp
     src/new/actors/animals/bat_globals.cpp
-    src/old/fallen/Source/building.cpp
+    # src/old/fallen/Source/building.cpp  # TEST: removed
     src/new/actors/animals/canid.cpp
     src/new/actors/animals/canid_globals.cpp
     src/new/ui/menus/cnet.cpp
     src/new/ui/menus/cnet_globals.cpp
-    src/old/fallen/Source/collide.cpp
+    # src/old/fallen/Source/collide.cpp  # TEST: removed
     src/new/ai/combat.cpp
     src/new/ai/combat_globals.cpp
-    src/old/fallen/Source/Controls.cpp
-    src/old/fallen/Source/dirt.cpp
+    # src/old/fallen/Source/Controls.cpp  # TEST: removed
+    # src/old/fallen/Source/dirt.cpp  # TEST: removed
     src/new/world/environment/door.cpp
     src/new/world/environment/door_globals.cpp
-    src/old/fallen/Source/drawtype.cpp
+    # src/old/fallen/Source/drawtype.cpp  # TEST: removed
     src/new/actors/core/effect.cpp
-    src/old/fallen/Source/elev.cpp
+    # src/old/fallen/Source/elev.cpp  # TEST: removed
     src/new/actors/characters/enemy.cpp
 
-    src/old/fallen/Source/eway.cpp
+    # src/old/fallen/Source/eway.cpp  # TEST: removed
     src/new/missions/eway.cpp
     src/new/missions/eway_globals.cpp
     src/new/ui/camera/fc.cpp
     src/new/ui/camera/fc_globals.cpp
-    src/old/fallen/Source/fog.cpp
-    src/old/fallen/Source/frontend.cpp
+    # src/old/fallen/Source/fog.cpp  # TEST: removed
+    # src/old/fallen/Source/frontend.cpp  # TEST: removed
     src/new/ui/frontend.cpp
     src/new/ui/frontend_globals.cpp
-    src/old/fallen/Source/Game.cpp
+    # src/old/fallen/Source/Game.cpp  # TEST: removed
     src/new/missions/game.cpp
     src/new/missions/game_globals.cpp
     src/new/ui/menus/gamemenu.cpp
     src/new/ui/menus/gamemenu_globals.cpp
     src/new/actors/items/guns.cpp
-    src/old/fallen/Source/hm.cpp
-    src/old/fallen/Source/interfac.cpp
-    src/old/fallen/Source/io.cpp
+    # src/old/fallen/Source/hm.cpp  # TEST: removed
+    # src/old/fallen/Source/interfac.cpp  # TEST: removed
+    # src/old/fallen/Source/io.cpp  # TEST: removed
     src/new/missions/main.cpp
     src/new/ai/mav.cpp
     src/new/ai/mav_globals.cpp
-    src/old/fallen/Source/mav.cpp
-    src/old/fallen/Source/memory.cpp
-    src/old/fallen/Source/night.cpp
+    # src/old/fallen/Source/mav.cpp  # TEST: removed
+    # src/old/fallen/Source/memory.cpp  # TEST: removed
+    # src/old/fallen/Source/night.cpp  # TEST: removed
     src/new/world/environment/ns.cpp
     src/new/world/environment/ns_globals.cpp
-    src/old/fallen/Source/ns.cpp
+    # src/old/fallen/Source/ns.cpp  # TEST: removed
     src/new/world/environment/prim.cpp
     src/new/world/environment/prim_globals.cpp
     src/new/world/map/ob.cpp
@@ -360,14 +327,14 @@ set(SOURCES_GAME
     src/new/ui/pause.cpp
     src/new/ai/pcom.cpp
     src/new/ai/pcom_globals.cpp
-    src/old/fallen/Source/pcom.cpp
-    src/old/fallen/Source/Person.cpp
+    # src/old/fallen/Source/pcom.cpp  # TEST: removed
+    # src/old/fallen/Source/Person.cpp  # TEST: removed
     src/new/actors/items/projectile.cpp
     src/new/world/environment/plat.cpp
     src/new/world/environment/plat_globals.cpp
     src/new/ui/cutscenes/playcuts.cpp
     src/new/ui/cutscenes/playcuts_globals.cpp
-    src/old/fallen/Source/Prim.cpp
+    # src/old/fallen/Source/Prim.cpp  # TEST: removed
     src/new/world/environment/puddle.cpp
     src/new/world/environment/puddle_globals.cpp
     src/new/effects/pyro.cpp
@@ -387,7 +354,7 @@ set(SOURCES_GAME
     src/new/missions/save_globals.cpp
     src/new/missions/elev.cpp
     src/new/missions/elev_globals.cpp
-    src/old/fallen/Source/shadow.cpp
+    # src/old/fallen/Source/shadow.cpp  # TEST: removed
     src/new/engine/physics/sm.cpp
     src/new/engine/physics/sm_globals.cpp
     src/new/engine/physics/hm.cpp
@@ -404,7 +371,7 @@ set(SOURCES_GAME
     src/new/world/map/supermap_globals.cpp
     src/new/world/environment/tripwire.cpp
     src/new/world/environment/tripwire_globals.cpp
-    src/old/fallen/Source/vehicle.cpp
+    # src/old/fallen/Source/vehicle.cpp  # TEST: removed
 
     src/new/world/navigation/wand.cpp
     src/new/world/environment/ware.cpp
@@ -424,11 +391,6 @@ set(SOURCES_GAME
 # ---------------------------------------------------------------------------
 add_executable(Fallen WIN32
     ${SOURCES_NEW}
-    ${SOURCES_MFSTDLIB}
-    ${SOURCES_DDENGINE}
-    ${SOURCES_DDLIBRARY}
-    ${SOURCES_OUTRO}
-    ${SOURCES_GAME}
 )
 
 # ---------------------------------------------------------------------------
