@@ -1,5 +1,17 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 154 — outro: os.cpp (весь платформенный слой, 2837 строк) (2026-03-23)
+
+- Весь файл перенесён единым куском (не двумя чанками) — разбивка невозможна: chunk 2 использовал `OS_frame`, `OS_Texture`, `OS_pipeline_method_mul` из chunk 1.
+- `OS_Framework`, `OS_Tformat` — внутренние типы; помещены в `outro_os_globals.h` (нужны для объявления `extern OS_frame`/`extern OS_tformat[]`).
+- `OS_Trans` перенесена в `outro_os_globals.h` (plain POD); `outro_os.h` включает `outro_os_globals.h` — так все externs доступны без дублирования.
+- `os_texture`, `os_buffer` — полное определение только в `outro_os.cpp` (opaque pointer pattern); в globals.h — только forward declaration `struct os_texture`.
+- Ревью (CHECK B) выявило: `OS_frame`, `OS_tformat`, `OS_texture_head`, `OS_trans`, `OS_trans_upto`, `OS_buffer_free` изначально остались в `outro_os.cpp` — исправлено перемещением в `outro_os_globals`.
+- `OS_calculate_mask_and_shift` переиспользована из `engine/graphics/resources/d3d_texture.cpp` (уже мигрирована).
+- `OS_sound_init/start/volume` — пустые заглушки (MIDAS был удалён); сохранены как есть.
+
+---
+
 ## Итерация 153 — outro: mf.cpp (mesh rendering functions) (2026-03-23)
 
 - `/* ... */` закомментированный блок (альтернативная реализация `MF_add_triangles_specular_bumpmapped`) — мёртвый код, не перенесён.

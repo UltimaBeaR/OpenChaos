@@ -1,3 +1,8 @@
+#include "ui/cutscenes/outro/outro_os.h"
+#include "ui/cutscenes/outro/outro_os_globals.h"
+
+#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_os.cpp + outro_os_globals.cpp (iteration 154) [OS_Framework, OS_frame, globals, OS_joy_poll, texture functions, render state functions, OS_string..OS_sound_loop_process]
+
 #include <windows.h>
 #include <windowsx.h>
 
@@ -2835,3 +2840,5 @@ void OS_sound_loop_process()
     MUSIC_mode_process();
     MFX_update();
 }
+
+#endif // MIGRATED to src/new/ui/cutscenes/outro/outro_os.cpp + outro_os_globals.cpp (iteration 154)

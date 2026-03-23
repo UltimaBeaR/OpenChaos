@@ -290,6 +290,8 @@ set(SOURCES_OUTRO
     src/new/ui/cutscenes/outro/outro_imp.cpp
     src/new/ui/cutscenes/outro/outro_mf.cpp
     src/new/ui/cutscenes/outro/outro_mf_globals.cpp
+    src/new/ui/cutscenes/outro/outro_os.cpp
+    src/new/ui/cutscenes/outro/outro_os_globals.cpp
 )
 
 set(SOURCES_GAME

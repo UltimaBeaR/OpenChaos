@@ -79829,6 +79829,1636 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CARRY_ON",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CARRY_ON",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_QUIT_GAME",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_QUIT_GAME",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_TEXTURE_FORMAT_RGB",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_TEXTURE_FORMAT_RGB",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_TEXTURE_FORMAT_1555",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_TEXTURE_FORMAT_1555",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_TEXTURE_FORMAT_4444",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_TEXTURE_FORMAT_4444",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_TEXTURE_FORMAT_8",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_TEXTURE_FORMAT_8",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_TEXTURE_FORMAT_NUMBER",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_TEXTURE_FORMAT_NUMBER",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_BITMAP_UWORD_PIXEL",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_BITMAP_UWORD_PIXEL",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_BITMAP_UWORD_COLOUR",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_BITMAP_UWORD_COLOUR",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_BITMAP_UWORD_PLOT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_BITMAP_UWORD_PLOT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_BITMAP_UBYTE_PIXEL",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_BITMAP_UBYTE_PIXEL",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_BITMAP_UBYTE_PLOT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_BITMAP_UBYTE_PLOT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_TOP",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_TOP",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_BOTTOM",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_BOTTOM",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_LEFT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_LEFT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_RIGHT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_RIGHT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_FAR",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_FAR",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_NEAR",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_NEAR",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_ROTATED",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_ROTATED",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_TRANSFORMED",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_TRANSFORMED",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_CLIP_OFFSCREEN",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_CLIP_OFFSCREEN",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_ZCLIP_PLANE",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_ZCLIP_PLANE",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_MAX_TRANS",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_MAX_TRANS",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_Trans",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_Trans",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_Vert",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_Vert",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_FADE_TOP",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_FADE_TOP",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_FADE_BOTTOM",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_FADE_BOTTOM",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_FADE_LEFT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_FADE_LEFT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_FADE_RIGHT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_FADE_RIGHT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_NORMAL",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_NORMAL",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_ADD",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_ADD",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_MULTIPLY",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_MULTIPLY",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_CLAMP",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_CLAMP",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_DECAL",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_DECAL",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_TRANSPARENT",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_TRANSPARENT",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_DOUBLESIDED",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_DOUBLESIDED",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_NOZWRITE",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_NOZWRITE",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_ALPHAREF",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_ALPHAREF",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_ZREVERSE",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_ZREVERSE",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_ZALWAYS",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_ZALWAYS",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_CULLREVERSE",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_CULLREVERSE",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_NODITHER",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_NODITHER",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_ALPHABLEND",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_ALPHABLEND",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_TEX_NONE",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_TEX_NONE",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_TEX_MUL",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_TEX_MUL",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_NOFILTER",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_NOFILTER",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_DRAW_MULBYONE",
+      "file": "new/ui/cutscenes/outro/outro_os.h",
+      "orig_name": "OS_DRAW_MULBYONE",
+      "orig_file": "fallen/outro/os.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_joy_poll",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_joy_poll",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bit_count",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_bit_count",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_enumerate_pixel_formats",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_enumerate_pixel_formats",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_create",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_create",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_finished_creating",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_finished_creating",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_size",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_size",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_lock",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_lock",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_unlock",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_unlock",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_init_renderstates",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_init_renderstates",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_pipeline_calculate",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_pipeline_calculate",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_change_renderstate_for_type",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_change_renderstate_for_type",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_undo_renderstate_type_changes",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_undo_renderstate_type_changes",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_string",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_string",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_ticks",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_ticks",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_ticks_reset",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_ticks_reset",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_mouse_get",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_mouse_get",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_mouse_set",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_mouse_set",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_process_messages",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_process_messages",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_camera_set",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_camera_set",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_transform",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_transform",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_clear_screen",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_clear_screen",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_scene_begin",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_scene_begin",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_scene_end",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_scene_end",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_fps",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_fps",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_show",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_show",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_create",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_create",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_get",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_get",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_give",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_give",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_new",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_new",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_grow_flerts",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_grow_flerts",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_grow_indices",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_grow_indices",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_vert",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_vert",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_triangle",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_triangle",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_sprite",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_sprite",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_sprite_rot",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_sprite_rot",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_sprite_arbitrary",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_sprite_arbitrary",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_line_3d",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_line_3d",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_add_line_2d",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_add_line_2d",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_draw",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_draw",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_sound_init",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_sound_init",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_sound_start",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_sound_start",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_sound_volume",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_sound_volume",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_hack",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_hack",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_sound_loop_start",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_sound_loop_start",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_sound_loop_process",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_sound_loop_process",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_this_instance",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_this_instance",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_last_instance",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_last_instance",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_command_line",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_command_line",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_start_show_state",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_start_show_state",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_application_name",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_application_name",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_wcl",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_wcl",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_window_handle",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_window_handle",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_frame_is_fullscreen",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_frame_is_fullscreen",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_frame_is_hardware",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_frame_is_hardware",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KEY_on",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "KEY_on",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KEY_inkey",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "KEY_inkey",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "KEY_shift",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "KEY_shift",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_midas_ok",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_midas_ok",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_joy_x",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_joy_x",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_joy_y",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_joy_y",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_joy_button",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_joy_button",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_joy_button_down",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_joy_button_down",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_joy_button_up",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_joy_button_up",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_screen_width",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_screen_width",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_screen_height",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_screen_height",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_game_start_tick_count",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_game_start_tick_count",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_x",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_x",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_y",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_y",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_z",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_z",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_aspect",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_aspect",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_lens",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_lens",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_view_dist",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_view_dist",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_over_view_dist",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_over_view_dist",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_matrix",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_matrix",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_view_matrix",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_view_matrix",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_x1",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_x1",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_y1",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_y1",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_x2",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_x2",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_y2",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_y2",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_width",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_width",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_height",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_height",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_mid_x",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_mid_x",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_mid_y",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_mid_y",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_mul_x",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_mul_x",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_cam_screen_mul_y",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_cam_screen_mul_y",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_format",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_format",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_uword_screen",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_uword_screen",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_uword_pitch",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_uword_pitch",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_ubyte_screen",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_ubyte_screen",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_ubyte_pitch",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_ubyte_pitch",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_width",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_width",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_height",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_height",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_mask_r",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_mask_r",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_mask_g",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_mask_g",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_mask_b",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_mask_b",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_mask_a",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_mask_a",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_shift_r",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_shift_r",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_shift_g",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_shift_g",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_shift_b",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_shift_b",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_bitmap_shift_a",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_bitmap_shift_a",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_pipeline_method_mul",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "OS_pipeline_method_mul",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "sound",
+      "file": "new/ui/cutscenes/outro/outro_os_globals.cpp",
+      "orig_name": "sound",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_trans",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_trans",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_trans_upto",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_trans_upto",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_texture_head",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_texture_head",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_tformat",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_tformat",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_buffer_free",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_buffer_free",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_frame",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_frame",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_Framework",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_Framework",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_Tformat",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_Tformat",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "os_texture",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "os_texture",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_Flert",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_Flert",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "os_buffer",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "os_buffer",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_TEXTURE_DIR",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_TEXTURE_DIR",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_METHOD_NUMBER_MUL",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_METHOD_NUMBER_MUL",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "OS_FLERT_FORMAT",
+      "file": "new/ui/cutscenes/outro/outro_os.cpp",
+      "orig_name": "OS_FLERT_FORMAT",
+      "orig_file": "fallen/outro/os.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
