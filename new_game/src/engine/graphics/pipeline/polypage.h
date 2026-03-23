@@ -4,7 +4,6 @@
 #include "engine/graphics/pipeline/render_state.h"
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "engine/graphics/pipeline/polypoint.h"
-// Temporary: poly.h not yet migrated to new/. Provides POLY_Point struct.
 #include "fallen/DDEngine/Headers/poly.h"
 
 // Forward declaration — D3DTexture is in DDLibrary, not yet migrated.

@@ -1065,30 +1065,19 @@ void PYRO_hitspang(Thing* p_person, SLONG x, SLONG y, SLONG z)
 
 // ---- Drawing functions migrated from drawxtra.cpp ----
 
-// Temporary: fire_pal is defined in figure.cpp (not yet migrated).
 // 256-entry RGB palette loaded from data\flames1.pal, used for flame colour lookup.
 extern UBYTE fire_pal[768];
-// Temporary: draw_flames and draw_flame_element are defined in figure.cpp (not yet migrated).
 void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset);
 void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE rand = 1);
-// Temporary: needed for AENG_dx_prim_points
 #include "engine/graphics/pipeline/aeng.h"
-// Temporary: needed for prim_objects (PrimObject struct)
-#include "missions/memory_globals.h"
-// Temporary: needed for BARREL_fire_pos
+#include "world/level_pools.h"
 #include "actors/items/barrel.h"
-// Temporary: needed for RIBBON_extend
 #include "effects/ribbon.h"
 #include "actors/characters/anim_ids.h"
-// Temporary: needed for POLY_add_triangle, POLY_add_quad, POLY_transform
 #include "engine/graphics/pipeline/poly.h"
-// Temporary: needed for SPRITE_draw_tex, SPRITE_SORT_NORMAL/FRONT
 #include "engine/graphics/geometry/sprite.h"
-// Temporary: needed for SPARK_create, SPARK_Pinfo, SPARK_TYPE_*
 #include "effects/spark.h"
-// Temporary: needed for GetSeed, SetSeed
 #include "world/environment/id.h"
-// Temporary: needed for PAP_calc_map_height_at (PYRO_draw_armageddon)
 #include "world/map/pap.h"
 // BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.
 #include "engine/graphics/geometry/bloom.h"

@@ -20,7 +20,6 @@
 #include "pow.h"
 #include "dirt.h"
 #include "panel.h"
-// Temporary: pyro.h not yet migrated to new/
 #include "effects/pyro.h"
 
 // uc_orig: BARREL_FLAG_STACKED (fallen/Source/barrel.cpp)

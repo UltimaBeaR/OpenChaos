@@ -6,7 +6,7 @@
 // Corresponds to fallen/Source/Controls.cpp.
 
 #include <MFStdLib.h>                 // Basic types: SLONG, UBYTE, etc.
-#include "ui/menus/widget.h"          // Temporary: Form, Widget
+#include "ui/menus/widget.h"
 
 // Forward declaration (full type from Game.h, which includes this header transitively).
 struct Thing;

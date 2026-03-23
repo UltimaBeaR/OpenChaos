@@ -6,7 +6,6 @@
 // CAM_MORE_IN=0.75F: PC camera is 25% closer to the player than the PSX version.
 
 #include <MFStdLib.h>
-// Temporary: ui→actors DAG violation: FC_Cam.focus is Thing*, FC_kill/unkill_player_cam take Thing*
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
 

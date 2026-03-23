@@ -4,7 +4,6 @@
 #include "core/macros.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
-// Temporary: font.h not yet migrated
 #include "fallen/DDEngine/Headers/font.h"
 #include <cstdio>
 #include <cstdarg>

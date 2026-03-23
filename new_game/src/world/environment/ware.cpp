@@ -1,13 +1,13 @@
 #include "fallen/Headers/game.h"
 #include "world/environment/prim.h"   // get_prim_info
 #include "ai/mav.h"
-#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (dfacets, prim_faces4 externs)
+#include "world/level_pools.h"
 #include "world/map/supermap.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
-#include "missions/elev.h" // Temporary: world → missions DAG violation (ELEV_fname_map)
+#include "missions/elev.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 #include "world/map/pap.h"

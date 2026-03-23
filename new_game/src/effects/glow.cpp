@@ -4,7 +4,7 @@
 
 #include "fallen/DDEngine/Headers/poly.h"
 #include "core/math.h"              // SIN, COS lookup tables
-#include "missions/game_types.h"    // Temporary: effects→missions DAG violation (TICK_RATIO, TICK_SHIFT)
+#include "missions/game_types.h"
 
 #include "effects/glow.h"
 

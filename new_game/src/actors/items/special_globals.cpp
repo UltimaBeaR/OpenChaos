@@ -1,6 +1,5 @@
 #include "actors/items/special_globals.h"
 #include "world/environment/prim_types.h" // PRIM_OBJ_ITEM_* constants
-// Temporary: dirt.h needed for DIRT_Info type used in dead global special_di
 #include "effects/dirt.h"
 
 // uc_orig: SPECIAL_info (fallen/Source/Special.cpp)

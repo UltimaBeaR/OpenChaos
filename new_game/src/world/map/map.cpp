@@ -1,4 +1,3 @@
-// Temporary: game.h must come first — light.h (included by map.h) needs THING_INDEX/GameCoord
 #include "fallen/Headers/game.h"
 
 #include "world/map/map.h"

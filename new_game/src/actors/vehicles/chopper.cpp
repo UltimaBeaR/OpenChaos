@@ -8,7 +8,7 @@
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "effects/dirt.h"
-#include "missions/eway.h" // Temporary: actors → missions DAG violation (EWAY_grab_camera)
+#include "missions/eway.h"
 #include <stdio.h>
 
 #include "actors/vehicles/chopper.h"
@@ -560,9 +560,7 @@ void CHOPPER_init_state(Thing* chopper_thing, UBYTE new_state)
     chopper->substate = new_state;
 }
 
-// Temporary: mesh.h not yet migrated — needed for MESH_draw_poly_inv_matrix
 #include "fallen/DDEngine/Headers/mesh.h"
-// Temporary: cone.h accessed via new/ but needs the full include chain
 #include "engine/graphics/geometry/cone.h"
 #include "actors/characters/anim_ids.h"
 

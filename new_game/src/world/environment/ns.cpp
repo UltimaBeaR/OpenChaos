@@ -1,13 +1,12 @@
 // Sewer/cavern subsystem — chunk 1: init, cache init, vertex/face scratch, floors, wallstrip helpers.
 // See ns.h for the full sewer system API.
 
-// Temporary: game.h provides ASSERT, WITHIN, NULL, memset, rand, and base types.
 #include "game.h"
 #include "world/environment/ns.h"
 #include "world/environment/ns_globals.h"
 #include "core/heap.h"
 #include "world/map/pap.h"
-#include "engine/physics/collide.h" // Temporary: for slide_around_sausage
+#include "engine/physics/collide.h"
 
 // Internal constants are defined in ns_globals.h (shared with remaining old ns.cpp chunks).
 

@@ -2,7 +2,7 @@
 #define ENGINE_LIGHTING_NIGHT_H
 
 #include <MFStdLib.h>              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
-#include "world/map/pap_globals.h" // Temporary: engine → world DAG violation (PAP_SIZE_LO, PAP_Hi, pap macros)
+#include "world/map/pap_globals.h"
 
 // uc_orig: NIGHT_MAX_SLIGHTS (fallen/Headers/Night.h)
 #define NIGHT_MAX_SLIGHTS 256
@@ -145,7 +145,6 @@ typedef struct
 #define NIGHT_MAX_BRIGHT 64
 
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
-// Temporary: defined in Controls.cpp (not yet migrated). When set, colours >255 generate specular.
 extern SLONG NIGHT_specular_enable;
 
 // uc_orig: NIGHT_get_d3d_colour (fallen/Headers/Night.h)

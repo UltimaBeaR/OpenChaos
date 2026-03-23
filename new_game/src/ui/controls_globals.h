@@ -5,7 +5,6 @@
 #include "engine/lighting/light.h"
 
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
-// Temporary: defined in Controls.cpp (not yet migrated). When set, colours >255 generate specular.
 extern SLONG NIGHT_specular_enable;
 
 // uc_orig: draw_3d (fallen/Source/Controls.cpp)

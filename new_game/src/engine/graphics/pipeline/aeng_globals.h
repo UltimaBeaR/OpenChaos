@@ -7,8 +7,8 @@
 #include "engine/graphics/pipeline/render_state.h" // D3DMATRIX, D3DLVERTEX
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/lighting/smap.h"                  // SMAP_Link
-#include "assets/compression.h" // Temporary: COMP_Frame type used in movie playback
-#include "world/map/map.h"      // Temporary: MAP_WIDTH, MAP_HEIGHT (for AENG_upper/lower arrays)
+#include "assets/compression.h"
+#include "world/map/map.h"
 
 // uc_orig: StoreLine (fallen/DDEngine/Source/aeng.cpp)
 // One entry in the debug line draw list.

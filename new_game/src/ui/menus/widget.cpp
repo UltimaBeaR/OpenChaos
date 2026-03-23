@@ -9,7 +9,6 @@
 
 // DRAW2D_Box/Tri/Sprite migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
-// Temporary: interfac.h not yet migrated — needed for get_hardware_input, INPUT_TYPE_JOY,
 // INPUT_MASK_*, and ShiftFlag is already in keyboard_globals.h.
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"

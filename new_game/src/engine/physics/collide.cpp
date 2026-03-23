@@ -1,33 +1,24 @@
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 
-// Temporary: engine→actors DAG violation: need Thing pool types before game_types.h
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
-// Temporary: pap.h for PAP_2LO, PAP_hi, PAP_FLAG_ROOF_EXISTS, MAVHEIGHT, ROOF_HIDDEN_GET_FACE, etc.
 #include "world/map/pap_globals.h"
-// Temporary: missions/memory_globals.h for prim_faces4, prim_points, roof_faces4
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 #include "actors/core/statedef.h"
 #include "world/environment/edmap.h"
 
-// Temporary: e_draw_3d_line (graphics debug line)
 extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
-// Temporary: allow_debug_keys (Controls.cpp)
 extern BOOL allow_debug_keys;
 
-// Temporary: is_thing_on_this_quad (not yet migrated)
 extern SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face);
 
-// Temporary: walkable.h provides calc_height_on_face (macro alias to get_height_on_face_quad64_at),
 // calc_height_on_rface, find_face_for_this_pos, FIND_ANYFACE, FIND_FACE_NEAR_BELOW, GRAB_FLOOR.
 #include "world/navigation/walkable.h"
 
-// Temporary: set_tween_for_dy (actors/characters/person.cpp, already migrated)
 extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 
-// Temporary: person-related headers for chunk 2 ladder/feet functions
 #include "ai/mav.h"
 #include "actors/characters/anim_ids.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
 #include "actors/core/interact.h"       // calc_sub_objects_position
@@ -38,47 +29,29 @@ extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 #include "engine/graphics/resources/console.h"  // CONSOLE_text
 #include "engine/input/keyboard_globals.h"      // ControlFlag
 
-// Temporary: add_debug_line (aeng.cpp, not yet migrated)
 extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);
 
-// Temporary: darci_globals.h for just_started_falling_off_backwards
 #include "actors/characters/darci_globals.h"
-// Temporary: supermap.h for SUPERMAP_counter_increase, SUPERMAP_counter
 #include "world/map/supermap.h"
-// Temporary: supermap_globals.h for next_dfacet
 #include "world/map/supermap_globals.h"
-// Temporary: anim_globals.h for next_prim_face4
 #include "assets/anim_globals.h"
 
 #include "world/environment/prim_types.h"  // PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
 #include "world/environment/prim.h"        // slide_along_prim, prim_get_collision_model, get_prim_info
-// Temporary: ob.h for OB_find, OB_avoid, OB_Info, OB_ob, OB_ob_upto
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
-// Temporary: vehicle.h for get_vehicle_body_prim, get_vehicle_body_offset, get_vehicle_driver
 #include "actors/vehicles/vehicle.h"
 #include "ai/pcom.h"
-// Temporary: combat.h for people_allowed_to_hit_each_other
 #include "ai/combat.h"
-// Temporary: inside2.h for find_inside_room
 #include "world/navigation/inside2.h"
-// Temporary: barrel.h for BARREL_hit_with_sphere
 #include "actors/items/barrel.h"
-// Temporary: mist.h for MIST_gust
 #include "effects/mist.h"
-// Temporary: dirt.h for DIRT_gust (not yet migrated to new/)
 #include "effects/dirt.h"
-// Temporary: ai/mav_globals.h for MAV_opt (used in there_is_a_los_mav, there_is_a_los_car)
 #include "ai/mav_globals.h"
-// Temporary: ui/camera/fc.h for FC_explosion (camera shake on shockwave)
 #include "ui/camera/fc.h"
-// Temporary: actors/animals/bat.h for BAT_apply_hit
 #include "actors/animals/bat.h"
-// Temporary: engine/graphics/pipeline/aeng.h for AENG_world_line (fastnav debug visualisation)
 #include "engine/graphics/pipeline/aeng.h"
-// Temporary: world/environment/build2.h for add_facet_to_map (insert_collision_facets)
 #include "world/environment/build2.h"
-// Temporary: world/map/pap.h already included for PAP_calc_height_at; also needs PAP_calc_map_height_at
 #include "world/map/pap.h"
 
 // uc_orig: BLOCK_SIZE (fallen/Source/collide.cpp)
@@ -2536,7 +2509,7 @@ void slide_along_redges(
 //          drop_on_heads, move_thing
 // ============================================================================
 
-// Temporary: forward declarations for functions not yet migrated to new/
+// Forward declarations for functions not yet fully migrated:
 // collide_with_circle is defined in old/fallen/Source/collide.cpp (chunk 6+)
 SLONG collide_with_circle(SLONG cx, SLONG cz, SLONG cradius, SLONG* x2, SLONG* z2);
 

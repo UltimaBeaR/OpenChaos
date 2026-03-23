@@ -1,7 +1,6 @@
 #ifndef WORLD_ENVIRONMENT_BUILD_GLOBALS_H
 #define WORLD_ENVIRONMENT_BUILD_GLOBALS_H
 
-// Temporary: game.h brings in THING_INDEX, GameCoord, SVector, RMAX_PRIM_POINTS,
 // and everything else required by light.h and building.h.
 #include "game.h"
 #include "engine/lighting/light.h"

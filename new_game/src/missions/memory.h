@@ -11,7 +11,6 @@
 // Also contains the quick save/load system (F5/F9 in PC build) via MEMORY_quick_*.
 
 #include "core/types.h"
-// Temporary: missions→actors DAG violation: Thing* and anim types in convert_* function signatures
 #include "actors/core/thing.h"
 #include "engine/animation/anim_types.h"
 #include "missions/memory_globals.h"

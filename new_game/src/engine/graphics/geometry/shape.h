@@ -7,7 +7,6 @@
 #include "core/types.h"
 #include "engine/graphics/geometry/shape_globals.h"
 
-// Temporary: OB_Info not yet migrated
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 

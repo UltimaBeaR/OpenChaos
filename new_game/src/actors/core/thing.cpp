@@ -2,7 +2,6 @@
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
 #include "actors/core/thing_globals.h"
-// Temporary: pap.h needed for PAP_2LO/PAP_SHIFT_LO/ON_PAP_LO/PAP_SIZE_LO used in map management
 // functions (add_thing_to_map etc). Pre-existing coupling from original Thing.cpp.
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"

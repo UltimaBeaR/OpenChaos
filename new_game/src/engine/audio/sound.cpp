@@ -3,7 +3,7 @@
 #include "cnet.h"
 #include "engine/audio/sound.h"
 #include "MFStdLib.h"
-#include "world/map/pap.h" // Temporary: process_weather calls PAP_calc_map_height_at; engine/audio/ → world/map/ DAG violation
+#include "world/map/pap.h"
 #include "ns.h"
 #include "fc.h"
 #include "mfx.h"

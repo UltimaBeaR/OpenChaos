@@ -4,15 +4,12 @@
 #include "world/map/road_globals.h"
 #include "world/map/map.h"
 #include "world/map/pap.h"
-// Temporary: world/ should not depend on actors/ — pre-existing coupling from original (game.h -> Thing.h).
 #include "actors/core/thing.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/resources/console.h"
 #include "assets/texture.h"
 
-// Temporary: elev.h not yet migrated — needed for ELEV_fname_map.
 #include "missions/elev.h"
-// Temporary: mav.h not yet migrated — needed for MAVHEIGHT macro.
 #include "ai/mav.h"
 
 // TEXTURE_set is defined in texture.cpp (not yet migrated to new/).

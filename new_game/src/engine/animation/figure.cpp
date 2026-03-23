@@ -1,17 +1,17 @@
-// Temporary: D3D-specific character rendering system from DDEngine.
+// D3D-specific character rendering system from DDEngine.
 // This entire file will be replaced in Stage 7 (new renderer).
 // Preserved 1:1 here for Stage 4 completeness.
 
 #include "engine/animation/figure.h"
 #include "engine/animation/figure_globals.h"
 
-// Temporary: D3D, game types, and all subsystems needed throughout the original file.
+// D3D, game types, and all subsystems needed throughout the original file.
 #include "Game.h"
 #include "aeng.h"
 #include "poly.h"
 #include "sprite.h"
 #include "..\headers\fmatrix.h"
-#include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
+#include "ai/mav.h"
 #include "..\headers\interact.h"
 #include "night.h"
 #include "shadow.h"
@@ -2218,14 +2218,10 @@ no_muzzle_calcs:
     }
 }
 
-// Temporary: needed for SPECIAL_GRENADE used in FIGURE_draw
 #include "actors/items/special.h"
 #include "actors/items/special_globals.h"
-// Temporary: calc_sub_objects_position / calc_sub_objects_position_global
 #include "actors/core/interact.h"
-// Temporary: ControlFlag used in FIGURE_draw_reflection (chunk 4)
 #include "engine/input/keyboard_globals.h"
-// Temporary: body_part_children used in hierarchical draw
 #include "actors/core/hierarchy.h"
 
 // uc_orig: mandom (fallen/DDEngine/Source/figure.cpp)

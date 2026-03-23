@@ -8,7 +8,7 @@
 #include "world/map/pap_globals.h"
 #include "ai/pcom.h"
 #include "world/environment/ns.h"
-#include "missions/memory_globals.h" // Temporary: actors → missions DAG violation (dfacets)
+#include "world/level_pools.h"
 #include "engine/audio/sound.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"

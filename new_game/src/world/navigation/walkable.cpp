@@ -3,13 +3,12 @@
 // The PAP heightfield is the fallback when no explicit face is found.
 // All quads are treated as 10% larger than actual geometry for collision tolerance.
 
-// Temporary: game.h for prim_faces4, roof_faces4, GRAB_FLOOR, prim_points, etc.
 #include "fallen/Headers/Game.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "world/navigation/walkable.h"
 #include "world/navigation/walkable_globals.h"
-#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (prim_faces4, prim_points, roof_faces4)
+#include "world/level_pools.h"
 #include "ai/mav.h"
 
 // Forward declaration for highlighting (defined in aeng.cpp, not yet migrated).

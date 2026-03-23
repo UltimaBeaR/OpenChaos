@@ -6,7 +6,7 @@
 #include "fallen/Headers/Game.h"
 #include "world/environment/prim.h"    // clear_prims
 
-// Temporary: until these modules are migrated
+// These modules are not yet fully migrated:
 #include "ui/attract.h"
 #include "world/environment/id.h"
 #include "assets/level_loader.h"
@@ -88,7 +88,6 @@
 #include "effects/tracks.h"     // (transitively)
 #include "engine/effects/psystem.h" // PARTICLE_Run
 
-// Temporary: dirt and grenade (not yet migrated)
 #include "effects/dirt.h"
 #include "actors/items/grenade.h"
 #include "effects/ribbon.h"

@@ -5,9 +5,9 @@
 #include "engine/graphics/graphics_api/gd_display.h"   // DisplayWidth, DisplayHeight constants
 #include "fallen/DDEngine/Headers/poly.h"
 #include "engine/physics/collide.h"
-#include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera position)
+#include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-#include "missions/eway.h" // Temporary: EWAY_grab_camera
+#include "missions/eway.h"
 
 #include "engine/graphics/geometry/bloom.h"
 #include "engine/graphics/geometry/bloom_globals.h"

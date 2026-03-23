@@ -13,13 +13,13 @@
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
 #include "world/environment/prim.h"       // get_prim_info
 #include "core/math.h"
-#include "world/map/pap_globals.h" // Temporary: engine → world DAG violation (PAP_calc_height_at, PAP_Hi)
+#include "world/map/pap_globals.h"
 #include "core/matrix.h"
 
 #include "engine/physics/hm.h"
 #include "engine/physics/hm_globals.h"
-#include "missions/memory_globals.h" // Temporary: prim_objects, prim_points, prim_faces4
-#include "assets/anim_globals.h"     // Temporary: next_prim_object
+#include "world/level_pools.h"
+#include "assets/anim_globals.h"
 #include "core/memory.h"              // MemAlloc, MemFree
 
 // Forward declarations for debug drawing functions (defined in the graphics engine).

@@ -5,10 +5,9 @@
 #include "core/fmatrix.h"
 #include "statedef.h"
 
-// Temporary: Vehicle.h not yet migrated; needed for get_vehicle_body_offset/prim.
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
-#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (prim_points, prim_faces4 pool pointers)
+#include "world/level_pools.h"
 #include "world/environment/prim_types.h" // PrimFace4, PrimPoint, FACE_FLAG_*
 #include "world/environment/prim.h"       // get_prim_info, slide_along_prim
 

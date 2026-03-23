@@ -3,7 +3,7 @@
 #include "engine/animation/anim_types.h"  // KeyFrameChunk, GameKeyFrameChunk, KeyFrameElement, etc.
 #include "world/environment/prim_types.h"  // PrimObject, PrimFace3/4, PrimPoint, PRIM_OBJ_*
 #include "world/environment/prim_globals.h" // prim_names[]
-#include "missions/memory_globals.h" // Temporary: prim_points, prim_faces3/4, prim_objects, prim_multi_objects
+#include "world/level_pools.h"
 
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
@@ -11,7 +11,7 @@
 #include "assets/anim.h"                   // free_game_chunk
 #include "assets/level_loader.h"           // change_extension, DATA_DIR, read_object_name
 #include "assets/level_loader_globals.h"
-#include "world/map/supermap_globals.h"    // Temporary: DONT_load (load_anim_system uses it to skip unused skins)
+#include "world/map/supermap_globals.h"
 
 #include <stdio.h>
 #include <string.h>

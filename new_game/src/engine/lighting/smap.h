@@ -2,7 +2,6 @@
 #define ENGINE_LIGHTING_SMAP_H
 
 #include "core/types.h"
-// Temporary: engine/lighting/ -> engine/graphics/pipeline/ DAG violation.
 // SVector_F is used in the public API of SMAP_project_onto_poly.
 #include "engine/graphics/pipeline/aeng.h"
 

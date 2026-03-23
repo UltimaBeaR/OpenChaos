@@ -8,13 +8,10 @@
 #include <AL/al.h>
 #include <AL/alext.h>
 #include <SDL2/SDL_audio.h>
-// Temporary: fc.h not yet migrated
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-// Temporary: env.h not yet migrated
 #include "engine/io/env.h"
 #include "engine/io/file.h"
-// Temporary: sound_id.h not yet migrated
 #include "assets/sound_id.h"
 
 // uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)

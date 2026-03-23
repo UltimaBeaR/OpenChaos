@@ -1,4 +1,3 @@
-// Temporary: game.h needed for FALSE, NULL and base type definitions.
 #include "game.h"
 #include "world/environment/ns_globals.h"
 #include "core/heap.h"

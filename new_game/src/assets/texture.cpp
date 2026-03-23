@@ -20,7 +20,7 @@
 #include "engine/io/env.h"
 #include "engine/io/drive.h"
 #include "assets/tga.h"
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 #include "assets/level_loader.h"
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"

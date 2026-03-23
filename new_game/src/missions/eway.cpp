@@ -54,7 +54,7 @@
 #include "actors/vehicles/vehicle_globals.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "effects/pyro.h"              // Temporary: PYRO_create, PYRO_construct, IRONICWATERFALL_state_function
+#include "effects/pyro.h"
 #include "actors/items/barrel.h"
 #include "actors/items/barrel_globals.h"
 #include "world/environment/plat.h"

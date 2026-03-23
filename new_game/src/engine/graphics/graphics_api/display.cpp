@@ -23,7 +23,6 @@
 #include "core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
-// Temporary: vertex buffer init/term lives in engine but not yet fully wired.
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"

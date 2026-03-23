@@ -6,7 +6,7 @@
 #include "core/fmatrix.h"
 #include "actors/items/dike.h"
 #include "actors/items/dike_globals.h"
-#include "engine/graphics/pipeline/aeng.h"    // Temporary: actors→engine DAG violation (AENG_world_line)
+#include "engine/graphics/pipeline/aeng.h"
 
 // Physical constants for the bike simulation.
 // uc_orig: DIKE_WHEEL_APART (fallen/Source/dike.cpp)

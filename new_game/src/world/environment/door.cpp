@@ -7,7 +7,7 @@
 #include "fallen/Headers/Game.h"         // INFINITY, SIGN, QDIST2, SATURATE, TRUE/FALSE/NULL
 #include "world/map/supermap.h"
 #include "world/environment/building.h"
-#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (dfacets externs for door facet links)
+#include "world/level_pools.h"
 #include "ai/mav.h"
 
 // Finds the nearest STOREY_TYPE_OUTSIDE_DOOR facet within 0x200 units of the given world position.

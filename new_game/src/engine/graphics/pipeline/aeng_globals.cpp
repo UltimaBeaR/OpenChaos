@@ -1,6 +1,6 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
-#include "engine/graphics/pipeline/polypage.h"  // Temporary: D3DLVERTEX (m_vert_mem_block32, m_indicies)
-#include "assets/compression.h" // Temporary: COMP_Frame
+#include "engine/graphics/pipeline/polypage.h"
+#include "assets/compression.h"
 
 // uc_orig: AENG_dx_prim_points (fallen/DDEngine/Source/aeng.cpp)
 SVector_F AENG_dx_prim_points[RMAX_PRIM_POINTS];

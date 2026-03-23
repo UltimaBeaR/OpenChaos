@@ -7,63 +7,63 @@
 
 #include "missions/game_types.h"       // NET_PERSON, NET_PLAYER, GAME_STATE, GAME_TURN, the_game
 #include "ai/pcom.h"
-#include "assets/sound_id.h"           // Temporary: S_NULL, S_TUNE_DANGER_RED, S_TUNE_DANGER_GREEN (Waves enum)
-#include "engine/audio/music.h"        // Temporary: MUSIC_mode, MUSIC_bodge_code, MUSIC_MODE_*
-#include "engine/audio/sound.h"       // Temporary: MUSIC_REF
-#include "engine/audio/mfx.h"          // Temporary: MFX_play_ambient, MFX_OVERLAP, MFX_load_wave_list
-#include "engine/graphics/resources/console.h" // Temporary: CONSOLE_text
-#include "engine/lighting/night.h"     // Temporary: NIGHT_cache_recalc, NIGHT_dfcache_recalc, NIGHT_generate_walkable_lighting
-#include "engine/lighting/night_globals.h" // Temporary: NIGHT_amb_red/green/blue
-#include "world/map/pap.h"             // Temporary: PAP_calc_height_at, PAP_2HI
+#include "assets/sound_id.h"
+#include "engine/audio/music.h"
+#include "engine/audio/sound.h"
+#include "engine/audio/mfx.h"
+#include "engine/graphics/resources/console.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
+#include "world/map/pap.h"
 #include "world/map/road.h"
-#include "missions/eway.h"             // Temporary: EWAY_Way, EWAY_Edef
-#include "missions/eway_globals.h"    // Temporary: EWAY_way, EWAY_way_upto, EWAY_edef, EWAY_edef_upto, EWAY_DO_*
-#include "effects/pyro.h"              // Temporary: PYRO_create, PYRO_GAMEOVER
-#include "actors/characters/person.h"  // Temporary: set_person_idle, set_person_item_away, set_person_draw_item, set_person_draw_gun
-#include "actors/core/thing.h"         // Temporary: move_thing_on_map, THING_NUMBER, THING_find_sphere, THING_array, THING_ARRAY_SIZE, TO_THING
+#include "missions/eway.h"
+#include "missions/eway_globals.h"
+#include "effects/pyro.h"
+#include "actors/characters/person.h"
+#include "actors/core/thing.h"
 #include "actors/core/statedef.h"
 // ANIM_TYPE_DARCI, ANIM_TYPE_ROPER come from fallen/Headers/Person.h via actors/characters/person.h
-#include "assets/anim_globals.h"      // Temporary: game_chunk
-#include "world/environment/ware.h"    // Temporary: WARE_Ware type
-#include "world/environment/ware_globals.h" // Temporary: WARE_ware
-#include "engine/graphics/pipeline/polypage.h"   // Temporary: PolyPage::EnableAlphaSort, DisableAlphaSort, AlphaSortEnabled, SetGreenScreen
-#include "engine/graphics/pipeline/vertex_buffer.h"   // Temporary: TheVPool, VertexBufferPool
-#include "engine/graphics/graphics_api/gd_display.h"  // Temporary: the_display, Display
-#include "assets/tga.h"                          // Temporary: TGA_save, TGA_Pixel
+#include "assets/anim_globals.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/vertex_buffer.h"
+#include "engine/graphics/graphics_api/gd_display.h"
+#include "assets/tga.h"
 #include "engine/io/file.h"
-#include "missions/memory_globals.h"             // Temporary: roof_faces4, next_roof_face4, dfacets, next_dfacet
-#include "world/map/supermap.h"                  // Temporary: DFacet, RoofFace4, STOREY_TYPE_*
-#include "world/map/supermap_globals.h"          // Temporary: supermap globals
-#include "actors/items/special.h"                // Temporary: SPECIAL_info, SPECIAL_GROUP_*, SPECIAL_SHOTGUN, SPECIAL_AK47, SPECIAL_GRENADE, SPECIAL_BASEBALLBAT, SPECIAL_KNIFE, SPECIAL_EXPLOSIVES, SPECIAL_WIRE_CUTTER
-#include "missions/elev_globals.h"               // Temporary: ELEV_fname_level, ELEV_fname_map
-#include "ui/camera/fc.h"                        // Temporary: FC_force_camera_behind, FC_setup_initial_camera
-#include "ui/camera/fc_globals.h"                // Temporary: FC_cam array
+#include "world/level_pools.h"
+#include "world/map/supermap.h"
+#include "world/map/supermap_globals.h"
+#include "actors/items/special.h"
+#include "missions/elev_globals.h"
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
 #include "actors/characters/anim_ids.h"
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
-#include "ui/menus/cnet_globals.h"               // Temporary: CNET_player_id, CNET_num_players (for PLAYER_ID/NO_PLAYERS macros)
+#include "ui/menus/cnet_globals.h"
 
-#include "effects/dirt.h"              // Temporary: DIRT_set_focus, DIRT_new_water, DIRT_init
-#include "effects/mist.h"              // Temporary: MIST_process
-#include "effects/spark.h"             // Temporary: SPARK_process, SPARK_create, SPARK_in_sphere
-#include "effects/glitter.h"           // Temporary: GLITTER_process
-#include "effects/ribbon.h"            // Temporary: RIBBON_alloc, RIBBON_extend, RIBBON_FLAG_*
-#include "actors/items/hook.h"         // Temporary: HOOK_process, HOOK_get_state, HOOK_spin, HOOK_release, HOOK_STATE_SPINNING
-#include "actors/characters/snipe.h"   // Temporary: SNIPE_process, SNIPE_on, SNIPE_mode_off, SNIPE_mode_on, SNIPE_shoot
-#include "actors/items/barrel.h"       // Temporary: BARREL_hit_with_sphere, BARREL_alloc, BARREL_TYPE_NORMAL
-#include "actors/vehicles/vehicle.h"   // Temporary: VEH_create, VEH_TYPE_NUMBER
-#include "actors/vehicles/chopper.h"   // Temporary: CHOPPER_create, CHOPPER_CIVILIAN
-#include "world/navigation/wmove.h"    // Temporary: WMOVE_create
-#include "world/navigation/wand.h"     // Temporary: WAND_draw
-#include "world/map/ob.h"              // Temporary: OB_create
-#include "engine/effects/psystem.h"    // Temporary: PARTICLE_Add, PFLAG_*, PFLAG_SPRITEANI, etc.
-#include "engine/physics/collide.h"    // Temporary: COLLIDE_debug_fastnav
-#include "engine/input/mouse.h"        // Temporary: RecenterMouse, MouseX, MouseY
-#include "engine/graphics/pipeline/poly_render.h"  // Temporary: POLY_frame_init, POLY_frame_draw
-#include "engine/graphics/graphics_api/host.h"     // Temporary: hDDLibWindow
-#include "ai/mav.h"                    // Temporary: MAV_draw, MAV_precalculate, MAVHEIGHT
-#include "missions/save.h"             // Temporary: save_whole_game, load_whole_game
-#include "assets/anim_tmap.h"          // Temporary: animate_texture_maps
+#include "effects/dirt.h"
+#include "effects/mist.h"
+#include "effects/spark.h"
+#include "effects/glitter.h"
+#include "effects/ribbon.h"
+#include "actors/items/hook.h"
+#include "actors/characters/snipe.h"
+#include "actors/items/barrel.h"
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/chopper.h"
+#include "world/navigation/wmove.h"
+#include "world/navigation/wand.h"
+#include "world/map/ob.h"
+#include "engine/effects/psystem.h"
+#include "engine/physics/collide.h"
+#include "engine/input/mouse.h"
+#include "engine/graphics/pipeline/poly_render.h"
+#include "engine/graphics/graphics_api/host.h"
+#include "ai/mav.h"
+#include "missions/save.h"
+#include "assets/anim_tmap.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 
@@ -78,8 +78,8 @@ extern UWORD fade_black;
 extern void reload_level(void);
 extern SLONG plant_feet(Thing* p_person);
 extern UWORD count_gang(Thing* p_target);
-extern SLONG mouse_input;            // Temporary: defined in interfac.cpp (not yet migrated)
-extern UBYTE aeng_draw_cloud_flag;   // Temporary: defined in aeng.cpp (not yet migrated)
+extern SLONG mouse_input;            // defined in interfac.cpp
+extern UBYTE aeng_draw_cloud_flag;   // defined in aeng.cpp
 
 // tga[] is file-local, used only by tga_dump and plan_view_shot.
 // uc_orig: tga (fallen/Source/Controls.cpp)

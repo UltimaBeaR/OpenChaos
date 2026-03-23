@@ -1,8 +1,8 @@
 #include <MFStdLib.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
-#include "core/math.h"                                        // Temporary: Arctan (for SPRITE_draw_rotated)
-#include "engine/graphics/graphics_api/gd_display.h"         // Temporary: DisplayWidth, DisplayHeight
+#include "core/math.h"
+#include "engine/graphics/graphics_api/gd_display.h"
 
 // uc_orig: SPRITE_draw_tex_distorted (fallen/DDEngine/Source/sprite.cpp)
 void SPRITE_draw_tex_distorted(

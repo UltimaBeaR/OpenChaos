@@ -7,14 +7,14 @@
 #include "world/map/supermap.h"
 #include "core/fmatrix.h"
 #include "missions/memory.h"
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 #include "ai/mav.h"
 #include "actors/characters/anim_ids.h"
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
-#include "engine/graphics/pipeline/aeng.h"   // Temporary: actors→engine DAG violation (MSG_add)
+#include "engine/graphics/pipeline/aeng.h"
 
 // Forward declarations for functions not yet migrated to new/.
 // uc_orig: nearest_point_on_line_and_dist_and_along (fallen/Source/interact.cpp)

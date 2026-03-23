@@ -9,7 +9,7 @@
 #include "world/environment/ware_globals.h"
 #include "actors/core/statedef.h"
 #include "missions/eway.h"
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 #include "world/map/pap.h"

@@ -8,7 +8,7 @@
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "world/map/supermap.h"
-#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (dfacets, prim_faces4)
+#include "world/level_pools.h"
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
 #include "core/matrix.h"

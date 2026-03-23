@@ -7,7 +7,7 @@
 #include "actors/characters/anim_ids.h"
 #include "effects/dirt.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "mesh.h"                    // Temporary: MESH_draw_poly
+#include "mesh.h"
 #include "actors/core/statedef.h"
 #include "engine/graphics/pipeline/aeng.h"   // AENG_world_line_nondebug
 #include "engine/graphics/geometry/bloom.h"

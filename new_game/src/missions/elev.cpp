@@ -76,8 +76,8 @@
 #include "engine/audio/sound.h"
 
 #include "actors/animals/bat.h"
-#include "world/map/supermap_globals.h" // Temporary: PAP_* macros
-#include "actors/items/special.h"       // Temporary: SPECIAL_* item type constants
+#include "world/map/supermap_globals.h"
+#include "actors/items/special.h"
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 #include "world/environment/plat.h"

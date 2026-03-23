@@ -6,7 +6,6 @@
 
 // game.h must come before gd_display.h: game.h → MFStdLib.h declares extern SLONG DisplayWidth/Height,
 // then gd_display.h #defines them as 640/480. Wrong order causes syntax errors.
-// Temporary: game.h needed for Thing, NET_PERSON, NET_PLAYER, CLASS_*, PERSON_*, FLAGS_HAS_GUN,
 //            TO_THING, DisplayWidth/DisplayHeight, SPECIAL_info, PRIM_OBJ_ITEM_GUN, SPECIAL_NUM_TYPES
 #include "fallen/Headers/game.h"
 #include "engine/graphics/graphics_api/gd_display.h"
@@ -14,17 +13,13 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/text.h"
 #include "assets/texture.h"
-// Temporary: mav.h needed for MAV_get_caps, MAV_CAPS_*, MAV_DIR_*
 #include "ai/mav.h"
 #include "engine/graphics/resources/menufont.h"
 #include "core/matrix.h"
 #include "engine/graphics/resources/font2d.h"
-// Temporary: fc.h and fc_globals.h needed for FC_cam in MAP_draw_onscreen_beacons
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-// Temporary: memory.h needed for prim_points/prim_faces4/prim_faces3/prim_objects, MAP_beacon
 #include "missions/memory_globals.h"
-// Temporary: aeng.h needed for AENG_clear_screen, POLY_frame_init, POLY_frame_draw
 #include "engine/graphics/pipeline/aeng.h"
 
 // EWAY_get_mess returns the message string for a beacon label.

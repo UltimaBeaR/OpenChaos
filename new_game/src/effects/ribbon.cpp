@@ -1,7 +1,7 @@
 #include "game.h"
 #include "effects/ribbon.h"
 #include "effects/ribbon_globals.h"
-#include "engine/graphics/pipeline/poly.h" // Temporary: POLY_add_triangle, POLY_transform
+#include "engine/graphics/pipeline/poly.h"
 
 // Helper: constructs a GameCoord inline.
 // uc_orig: Coord (fallen/Source/ribbon.cpp)

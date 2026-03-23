@@ -2,24 +2,17 @@
 // Handles .iam map files, .prm static prim objects, .all animated prim objects,
 // and .tma texture style tables.
 
-// Temporary: game.h must come first — brings in all core type definitions and cross-module externs.
 #include "fallen/Headers/game.h"
 #include "assets/mapthing.h"
-// Temporary: pap.h for PAP grid, PAP_Hi, PAP_SIZE_HI, PAP_2HI/PAP_2LO macros.
 #include "world/map/pap_globals.h"
-// Temporary: ob.h for OB_ob[], OB_mapwho, OB_load_needed_prims, PRIM_OBJ_* constants.
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
-// Temporary: supermap.h for load_super_map().
 #include "world/map/supermap.h"
-// Temporary: eway.h for EWAY_way[], EWAY_way_upto, EWAY_DO_CREATE_ANIMAL, EWAY_SUBTYPE_ANIMAL_*.
 #include "missions/eway.h"
-// Temporary: memory.h for psx_textures_xy, inside_tex, anim_chunk[], next_anim_chunk.
 #include "missions/memory_globals.h"
 #include "world/environment/building_globals.h" // textures_xy, textures_flags, building_list, etc.
 #include "world/environment/prim_globals.h"     // prim_names[]
 #include "world/environment/prim.h"             // clear_prims
-// Temporary: sound.h for world_type extern and WORLD_TYPE_* constants.
 #include "engine/audio/sound.h"
 #include "engine/audio/sound_globals.h"
 

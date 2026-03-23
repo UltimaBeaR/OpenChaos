@@ -4,7 +4,7 @@
 #include "actors/characters/anim_ids.h"
 #include "actors/core/statedef.h"
 #include "engine/audio/sound.h"
-#include "missions/eway.h" // Temporary: actors → missions DAG violation (EWAY types and functions)
+#include "missions/eway.h"
 #include "engine/effects/psystem.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ai/mav.h"

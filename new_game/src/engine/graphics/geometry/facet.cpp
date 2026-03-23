@@ -4,8 +4,8 @@
 
 #include "core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
 #include "core/matrix.h"                     // MATRIX_calc
-#include "missions/game_types.h" // Temporary: engine→missions DAG violation (GAME_TURN, INDOORS_INDEX, the_game)
-#include "engine/graphics/pipeline/aeng.h"   // Temporary: AENG_detail_crinkles, AENG_world_line
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -25,8 +25,8 @@
 #include "world/navigation/inside2_globals.h"
 #include "world/environment/building.h"         // building API
 #include "world/environment/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
-#include "missions/memory_globals.h"         // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
-#include "assets/texture.h"                  // Temporary: TEXTURE_crinkle, TEXTURE_get_minitexturebits_uvs
+#include "world/level_pools.h"               // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
+#include "assets/texture.h"
 #include "world/environment/ware.h"          // WARE_Ware struct
 #include "world/environment/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
 #include "ui/controls_globals.h"             // allow_debug_keys

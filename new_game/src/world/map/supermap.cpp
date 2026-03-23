@@ -9,14 +9,10 @@
 #include "world/map/ob_globals.h"
 #include "world/environment/build2.h"
 #include "engine/io/env.h"
-// Temporary: memory.h — dbuildings, dfacets, dwalkables, roof_faces4 etc. not yet in new/
-#include "missions/memory_globals.h"
-// Temporary: mav.h — MAV_opt_upto (for make_all_clumps — build tool, dead in runtime)
+#include "world/level_pools.h"
 #include "ai/mav.h"
-// Temporary: texture.h — TEXTURE_load_needed
 #include "..\ddengine\headers\texture.h"
 #include "engine/physics/collide.h"
-// Temporary: io.h — FileRead
 #include "assets/level_loader.h"
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"

@@ -27,9 +27,8 @@
 #include "ui/camera/fc_globals.h"
 #include "effects/dirt.h"
 
-// Temporary: functions not yet migrated to new/
 #include "world/map/supermap.h"
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 // actors/characters/person.h already included above (line 14)
 
 #include "actors/characters/anim_ids.h"
@@ -55,7 +54,6 @@
 // uc_orig: reset_gang_attack (fallen/Source/pcom.cpp)
 extern void reset_gang_attack(Thing* p_target);
 
-// Temporary: declared only as extern in original code (not in any header)
 extern SLONG set_person_search(Thing* p_person, SLONG ob_index, SLONG ox, SLONG oy, SLONG oz);
 extern SLONG set_person_search_corpse(Thing* p_person, Thing* p_personb);
 extern SLONG find_searchable_person(Thing* p_person);
@@ -1233,7 +1231,7 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
             // If this person is useable...
             //
 
-            extern UBYTE is_semtex; // Temporary: defined in frontend.cpp (not yet migrated)
+            extern UBYTE is_semtex; // defined in frontend.cpp
 
             if (is_semtex && (use == 193 || use == 195)) {
                 // skip the wetback line in stern revenge, (skymiss2)  PC && DREAMCAST

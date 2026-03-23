@@ -3,7 +3,6 @@
 #include <cstdio>
 #include <cstring>
 #include "core/types.h"
-// Temporary: env.h not yet migrated
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 

@@ -4,7 +4,7 @@
 
 #include <MFStdLib.h>
 #include "actors/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
-#include "missions/game_types.h"   // Temporary: engine→missions DAG violation (GAME_TURN, TICK_RATIO, TICK_SHIFT, NORMAL_TICK_TOCK, Random, the_game pool macros)
+#include "missions/game_types.h"
 #include "ai/mav.h"
 #include "core/fmatrix.h"          // FMATRIX_calc, FMATRIX_TRANSPOSE, FMATRIX_MUL
 #include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
@@ -13,7 +13,7 @@
 #include "effects/pow.h"
 #include "effects/pow_globals.h"
 #include "actors/characters/anim_ids.h"
-#include "ui/camera/fc.h"      // Temporary: engine/effects → ui/camera DAG violation (FC_cam used to check Ware)
+#include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
@@ -655,7 +655,6 @@ UWORD PARTICLE_SGrenade(Thing* object, UBYTE time)
     return res;
 }
 
-// Temporary: sprite.h needed for SPRITE_draw_tex, SPRITE_SORT_NORMAL
 #include "engine/graphics/geometry/sprite.h"
 
 // uc_orig: PARTICLE_Draw (fallen/DDEngine/Source/drawxtra.cpp)

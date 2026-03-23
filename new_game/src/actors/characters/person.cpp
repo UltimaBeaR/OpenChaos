@@ -20,7 +20,7 @@
 #include "ui/menus/cnet_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
-#include "missions/eway.h"    // Temporary: EWAY types
+#include "missions/eway.h"
 #include "effects/spark.h"
 #include "effects/drip.h"
 #include "world/environment/puddle.h"
@@ -45,7 +45,7 @@
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "missions/memory_globals.h"  // Temporary: dfacets extern via memory globals
+#include "world/level_pools.h"
 #include "core/fmatrix.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
@@ -69,19 +69,19 @@
 
 #include "actors/characters/person.h"
 #include "actors/characters/person_globals.h"
-#include "actors/vehicles/vehicle.h"         // Temporary: VEH_find_door
-#include "actors/vehicles/vehicle_globals.h" // Temporary: sneaky_do_it_for_positioning_a_person_to_do_the_enter_anim
-#include "effects/pyro_globals.h"   // Temporary: col_with[] array (shared collision buffer)
-#include "actors/items/guns.h"      // Temporary: find_target_new
-#include "actors/items/special.h"   // Temporary: alloc_special, special_drop, person_has_special
-#include "effects/pyro.h"           // Temporary: PYRO_hitspang
-#include "actors/animals/bat.h"     // Temporary: BAT_apply_hit
-#include "actors/items/barrel.h"    // Temporary: BARREL_shoot
-#include "actors/core/interact.h"   // Temporary: find_grab_face (chunk 6)
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/vehicle_globals.h"
+#include "effects/pyro_globals.h"
+#include "actors/items/guns.h"
+#include "actors/items/special.h"
+#include "effects/pyro.h"
+#include "actors/animals/bat.h"
+#include "actors/items/barrel.h"
+#include "actors/core/interact.h"
 #include "world/environment/prim_types.h" // PrimFace3/4, FACE_FLAG_*, PRIM_OBJ_*
 #include "world/environment/prim.h"       // does_fence_lie_along_line (chunk 6)
 #include "ai/pcom.h"
-#include "ui/hud/overlay.h"         // Temporary: track_enemy (chunk 11)
+#include "ui/hud/overlay.h"
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -10597,11 +10597,8 @@ void fn_person_moveing(Thing* p_person)
 // chunk 10: set_person_ko_recoil..fn_person_gun (Person.cpp lines 13982–15728)
 // ===========================================================================
 
-// Temporary: until tracks is fully migrated
 #include "effects/tracks.h"
-// Temporary: until hook is fully migrated
 #include "actors/items/hook.h"
-// Temporary: until puddle is migrated
 #include "world/environment/puddle.h"
 
 extern SLONG look_pitch; // interfac.cpp

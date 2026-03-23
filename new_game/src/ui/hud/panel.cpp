@@ -12,7 +12,6 @@
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/resources/font2d_globals.h"
 
-// Temporary: AENG functions defined in aeng.cpp (not yet migrated)
 #include "fallen/DDEngine/Headers/aeng.h"
 
 // Thing, Class constants, person types, special items
@@ -27,10 +26,8 @@
 // S_RADIO_MESSAGE sound ID
 #include "assets/sound_id.h"
 
-// Temporary: EWAY cut-scene/tutorial functions
 #include "missions/eway.h"
 
-// Temporary: NET_PERSON macro (network player access)
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"
 
@@ -38,16 +35,13 @@
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 
-// Temporary: PCOM_person_wants_to_kill for scanner threat detection
 // (DAG violation: ui/ → ai/, pre-existing coupling from original)
 #include "ai/pcom.h"
 
-// Temporary: THING_find_sphere, THING_array, THING_ARRAY_SIZE for scanner
 // (DAG violation: ui/ → actors/, pre-existing coupling from original)
 #include "actors/core/thing.h"
 #include "actors/core/thing_globals.h"
 
-// Temporary: MAP_beacon, MAP_Beacon, MAP_MAX_BEACONS for navigation beacons
 // (DAG violation: ui/ → missions/, pre-existing coupling from original)
 #include "missions/memory_globals.h"
 

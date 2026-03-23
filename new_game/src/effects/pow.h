@@ -3,7 +3,7 @@
 
 #include <MFStdLib.h>      // for ASSERT
 #include "core/types.h"
-#include "world/map/pap.h" // Temporary: for PAP_SIZE_LO (POW_mapwho array size)
+#include "world/map/pap.h"
 
 // Sprite-based visual explosion effect (no damage, purely cosmetic).
 // Each explosion is a POW_Pow that owns a linked list of POW_Sprite particles.

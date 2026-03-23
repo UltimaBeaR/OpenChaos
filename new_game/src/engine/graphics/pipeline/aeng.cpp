@@ -5,8 +5,8 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
-#include "engine/graphics/pipeline/polypage.h"   // Temporary: PolyPage, D3DMULTIMATRIX, DrawIndPrimMM, SET_MM_INDEX
-#include "engine/graphics/pipeline/polypoint.h"  // Temporary: PolyPoint2D (AENG_draw_some_polys)
+#include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/lighting/ngamut.h"
 #include "engine/lighting/ngamut_globals.h"
@@ -19,20 +19,19 @@
 #include "assets/texture_globals.h"
 #include "core/matrix.h"
 
-// Temporary: FMatrix, FC_cam, Keys, HEAP, prim_points, save_table, NIGHT_cache
 #include "core/fmatrix.h"
-#include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera state)
+#include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-#include "missions/game_types.h"      // Temporary: engine→missions DAG violation (Game struct, GAME_STATE, TICK_RATIO, pool macros, etc.)
+#include "missions/game_types.h"
 #include "world/environment/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
-#include "world/map/pap.h"          // Temporary: engine → world DAG violation
-#include "world/map/pap_globals.h"  // Temporary: engine → world DAG violation
-#include "ai/mav.h"      // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
+#include "world/map/pap.h"
+#include "world/map/pap_globals.h"
+#include "ai/mav.h"
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
-#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, dfacets, roof_faces4)
+#include "world/level_pools.h"
 
 #include <MFStdLib.h>
 #include <math.h>
@@ -60,19 +59,19 @@
 #include "effects/pow.h"
 #include "actors/items/hook.h"
 // PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN are in world/environment/prim_types.h (included above)
-#include "actors/items/balloon_globals.h"  // Temporary: BALLOON_balloon, BALLOON_balloon_upto
-#include "core/timer.h"                    // Temporary: StartStopwatch, StopStopwatch (AENG_draw_some_polys)
-#include "engine/io/env.h"                 // Temporary: ENV_set_value_number (AENG_set/guess_detail_levels)
+#include "actors/items/balloon_globals.h"
+#include "core/timer.h"
+#include "engine/io/env.h"
 
 // Additional includes for chunks 4b and 5a
-#include "engine/graphics/resources/font2d.h"          // Temporary: FONT2D_DrawString (AENG_draw_FPS, AENG_draw_warehouse)
+#include "engine/graphics/resources/font2d.h"
 
 // Additional includes for chunk 5b
-#include "world/navigation/inside2.h"      // Temporary: get_inside_alt (AENG_raytraced_position)
-#include "world/environment/ns.h"          // Temporary: NS_there_is_a_los, NS_los_fail_* (AENG_raytraced_position)
-#include "missions/eway.h"                 // Temporary: EWAY_grab_camera, EWAY_camera_warehouse (AENG_draw)
-#include "actors/core/thing_globals.h"     // Temporary: playback_file, verifier_file (AENG_draw)
-#include "world/map/supermap_globals.h"    // Temporary: next_dfacet (AENG_get_rid_of_unused_dfcache_lighting)
+#include "world/navigation/inside2.h"
+#include "world/environment/ns.h"
+#include "missions/eway.h"
+#include "actors/core/thing_globals.h"
+#include "world/map/supermap_globals.h"
 
 // Additional includes for AENG_draw_city() (chunk 4b)
 #include "world/environment/puddle.h"
@@ -114,7 +113,7 @@
 #include "ui/interfac_globals.h"
 #include "ui/controls_globals.h"
 #include "actors/characters/anim_ids.h"
-#include "assets/anim_tmap.h"               // Temporary: AnimTmap, anim_tmaps (wibble texture animation)
+#include "assets/anim_tmap.h"
 #include "actors/core/statedef.h"
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)

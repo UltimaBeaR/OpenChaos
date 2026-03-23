@@ -1,4 +1,3 @@
-// Temporary: game.h brings in ASSERT, MSG_add, Root, SDIST2, WITHIN, ELE_SHIFT, MAP_INDEX,
 // MAP_WIDTH, MAP_HEIGHT, FLOOR_HEIGHT_SHIFT, CLASS_BUILDING, DT_BUILDING, DT_NONE,
 // TO_THING, alloc_primary_thing, add_thing_to_map, and the Thing struct.
 #include "game.h"
@@ -7,22 +6,16 @@
 #include "world/map/pap_globals.h"
 // Needed for each_point[] (used in calc_building_normals)
 #include "world/environment/prim_globals.h"
-// Temporary: prim_normal[] is logically world-level data but currently lives in missions/memory.
 // DAG violation (world should not depend on missions) — needs reclassification in a later pass.
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 // Needed for load_all_individual_prims (called in create_city)
 #include "assets/level_loader.h"
-// Temporary: pap.h needed for PAP_2HI, MAP2, MAP macros (supermap abstraction)
 #include "world/map/pap_globals.h"
-// Temporary: supermap.h needed for MAP, MAP2 struct access patterns
 #include "world/map/supermap.h"
-// Temporary: memory.h needed for MemAlloc, MemFree, prim_faces4, prim_points, AENG_dx_prim_points
-#include "missions/memory_globals.h"
-// Temporary: pap.h exposes PAP_calc_height_at
+
 #include "pap.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-// Temporary: aeng.h exposes AENG_dx_prim_points, SVector_F
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/environment/prim_types.h"     // OR_SORT_LEVEL, FACE_FLAG_NON_PLANAR, FACE_FLAG_WALKABLE, etc.
 #include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding etc.

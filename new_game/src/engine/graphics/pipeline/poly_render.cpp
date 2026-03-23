@@ -9,7 +9,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/render_state.h"
 #include "engine/graphics/graphics_api/gd_display.h"
-#include "assets/texture.h"          // Temporary: engine/ -> assets/ DAG violation; needed for TEXTURE_page_* globals
+#include "assets/texture.h"
 
 // DefRenderState is defined in poly.cpp (not yet migrated).
 // uc_orig: DefRenderState (fallen/DDEngine/Source/poly.cpp)

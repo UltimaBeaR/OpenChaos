@@ -1,30 +1,20 @@
-// Temporary: heap.h not yet migrated to new/
 #include "core/heap.h"
-// Temporary: engine→actors DAG violation: need Thing pool types before game_types.h
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
-// Temporary: ob.h not yet migrated
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
-// Temporary: pap.h not yet migrated
 #include "world/map/pap_globals.h"
-// Temporary: fmatrix.h is in core/ already
 #include "core/fmatrix.h"
-// Temporary: supermap.h not yet migrated
 #include "world/map/supermap.h"
 #include "engine/lighting/ed_light.h"
-// Temporary: memory.h (prim_objects, dfacets, prim_normal, etc.)
-#include "missions/memory_globals.h"
-// Temporary: ware.h (WARE_in)
+#include "world/level_pools.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
-// Temporary: mav.h not yet fully migrated
-#include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
+#include "ai/mav.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_LAMPOST
 #include "world/environment/prim.h"       // get_prim_info
-// Temporary: file.h (FileOpen, FileRead, FileClose)
 #include "engine/io/file.h"
 
 

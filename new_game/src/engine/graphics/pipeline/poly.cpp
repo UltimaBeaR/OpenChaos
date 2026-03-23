@@ -15,11 +15,11 @@
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/lighting/crinkle.h"
 #include "core/matrix.h"
-#include "assets/texture.h"          // Temporary: assets/ dependency from engine/
-#include "missions/game_types.h"     // Temporary: engine→missions DAG violation (GAME_FLAGS, GF_SEWERS, GF_INDOORS)
+#include "assets/texture.h"
+#include "missions/game_types.h"
 #include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"    // Temporary: NIGHT_sky_colour, NIGHT_amb_norm_*
-#include "missions/eway.h"                   // Temporary: EWAY_stop_player_moving
+#include "engine/lighting/night_globals.h"
+#include "missions/eway.h"
 
 
 // draw_3d is defined in aeng.cpp (not yet migrated).

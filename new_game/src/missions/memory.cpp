@@ -8,8 +8,8 @@
 #include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
 #include "assets/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
 #include "world/environment/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
-#include "assets/texture.h"                    // Temporary: missions→assets DAG violation (TEXTURE_choose_set)
-#include "engine/graphics/pipeline/aeng.h"     // Temporary: missions→engine DAG violation (AENG_create_dx_prim_points)
+#include "assets/texture.h"
+#include "engine/graphics/pipeline/aeng.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "ui/camera/fc.h"

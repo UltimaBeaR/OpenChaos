@@ -11,13 +11,13 @@
 #include "world/environment/ns.h"
 #include "actors/core/interact.h"
 #include "ai/pcom.h"
-#include "missions/game_types.h"       // Temporary: effects→missions DAG violation (GAME_FLAGS, GF_*, GAME_TURN, NET_PERSON, calc_angle)
+#include "missions/game_types.h"
 #include "ai/mav.h"
 #include "world/environment/prim_types.h" // PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
-#include "assets/sound_id.h"     // Temporary: S_KICK_CAN
+#include "assets/sound_id.h"
 #include "engine/audio/sound.h"
-#include "engine/graphics/pipeline/poly.h"  // Temporary: POLY_PAGE_EXPLODE1_ADDITIVE, POLY_PAGE_EXPLODE2_ADDITIVE
-#include "missions/memory_globals.h"   // Temporary: prim_objects
+#include "engine/graphics/pipeline/poly.h"
+#include "world/level_pools.h"
 #include "actors/characters/anim_ids.h"
 
 // uc_orig: TICK_SHIFT_LOWRES (fallen/Source/dirt.cpp)

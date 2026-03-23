@@ -6,17 +6,17 @@
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "engine/animation/morph.h"
-#include "assets/texture.h"           // Temporary: FACE_PAGE_OFFSET
+#include "assets/texture.h"
 #include "core/matrix.h"
 #include "core/types.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, PRIM_FLAG_*, FACE_FLAG_*
 #include "world/environment/prim.h"       // get_prim_info
 #include "engine/graphics/pipeline/poly.h"
-#include "missions/game_types.h"       // Temporary: engine→missions DAG violation (GAME_TURN)
-#include "engine/graphics/geometry/shape_globals.h"  // Temporary: SHAPE_balloon_colour
-#include "missions/memory_globals.h"   // Temporary: prim_objects, prim_faces3, prim_faces4, prim_normal
+#include "missions/game_types.h"
+#include "engine/graphics/geometry/shape_globals.h"
+#include "world/level_pools.h"
 #include "core/memory.h"               // MemAlloc, MemFree (used by reflection mesh cache)
-#include "assets/anim_tmap.h"          // Temporary: AnimTmap, anim_tmaps[] (FACE_FLAG_ANIMATE paths in draw_morph/draw_guts)
+#include "assets/anim_tmap.h"
 
 #include <math.h>
 #include <stdlib.h>                    // realloc, fabs

@@ -18,20 +18,20 @@
 #include "world/map/pap.h"              // PAP_calc_height_at, PAP_2LO, PAP_SIZE_LO, PAP_SIZE_HI, PAP_SHIFT_LO
 #include "world/navigation/walkable.h"  // find_height_for_this_pos
 #include "engine/physics/collide.h"     // slide_around_box
-#include "actors/core/thing.h"          // Temporary: alloc_primary_thing, TO_THING, THING_find_sphere, CLASS_ANIM_PRIM, add_thing_to_map (world/ → actors/ cross-layer dep)
-#include "actors/vehicles/vehicle.h"    // Temporary: VEH_init_vehinfo (world/ → actors/ cross-layer dep)
-#include "actors/characters/person.h"   // Temporary: advance_keyframe (world/ → actors/ cross-layer dep)
+#include "actors/core/thing.h"
+#include "actors/vehicles/vehicle.h"
+#include "actors/characters/person.h"
 
 // Anim types needed for expand_anim_prim_bbox / fn_anim_prim_normal
 #include "engine/animation/anim_types.h"  // GameKeyFrameElement, GetCMatrix, CMatrix33, Matrix33, KeyFrameChunk
 #include "world/environment/prim_types.h"     // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
 #include "world/environment/building_types.h" // BoundBox, MAX_BUILDINGS, STOREY_TYPE_*, FACET_FLAG_*
 #include "world/map/supermap.h"
-#include "missions/game_types.h"   // Temporary: world→missions DAG violation (TICK_RATIO, TICK_SHIFT, the_game pool macros)
+#include "missions/game_types.h"
 #include "world/environment/building_globals.h" // end_prim_point, end_prim_face4, end_prim_face3, end_prim_object, end_prim_multi_object, building_list, building_facets
-#include "assets/anim_globals.h"                // Temporary: world→assets DAG violation (next_prim_point/face3/face4/object, anim_chunk, MAX_ANIM_CHUNKS)
-#include "engine/graphics/pipeline/aeng.h"     // Temporary: world→engine DAG violation (MSG_add)
-#include "missions/memory_globals.h"    // Temporary: world → missions DAG violation (next_roof_face4, roof_faces4, prim_points/faces, prim_info)
+#include "assets/anim_globals.h"
+#include "engine/graphics/pipeline/aeng.h"
+#include "world/level_pools.h"
 
 // Forward declaration for advance_keyframe (defined in person.cpp / old Person.cpp).
 // uc_orig: advance_keyframe (fallen/Source/Person.cpp)

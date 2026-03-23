@@ -1,7 +1,6 @@
 #include <MFStdLib.h>
 #include <stdio.h>
 #include <stdlib.h>
-// Temporary: game.h — pulls in THING_INDEX, game types, all dependent headers (not yet migrated)
 #include "fallen/Headers/game.h"
 #include "assets/anim.h"
 #include "core/memory.h"

@@ -9,7 +9,7 @@
 #include "ai/combat.h"
 #include "ai/combat_globals.h"
 #include "missions/eway.h"
-#include "missions/memory_globals.h"    // Temporary: dfacets, DFacet, next_dfacet
+#include "world/level_pools.h"
 #include "world/environment/prim.h"    // get_prim_info
 #include "engine/physics/collide.h"
 #include "world/map/road.h"
@@ -22,9 +22,9 @@
 #include "actors/characters/anim_ids.h"
 #include "actors/core/statedef.h"
 #include "actors/characters/person.h"   // set_person_idle, set_person_goto_xz, set_person_circle, etc.
-#include "engine/audio/mfx.h"           // Temporary: MFX_play_thing
-#include "engine/audio/sound.h"         // Temporary: SOUND_Range
-#include "assets/sound_id.h"            // Temporary: S_COP_ARREST_START, S_COP_ARREST_END, sound IDs
+#include "engine/audio/mfx.h"
+#include "engine/audio/sound.h"
+#include "assets/sound_id.h"
 #include "effects/spark.h"
 #include "actors/items/balloon.h"
 #include "actors/items/balloon_globals.h"
@@ -34,9 +34,9 @@
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "actors/core/interact.h"         // Temporary: calc_sub_objects_position
-#include "actors/core/thing.h"            // Temporary: THING_find_nearest, add_thing_to_map, remove_thing_from_map
-#include "actors/items/special.h"         // Temporary: SPECIAL_BOMB, SPECIAL_SUBSTATE_ACTIVATED, SPECIAL_SUBSTATE_NONE
+#include "actors/core/interact.h"
+#include "actors/core/thing.h"
+#include "actors/items/special.h"
 
 // --- Internal movement state constants (file-local) ---
 

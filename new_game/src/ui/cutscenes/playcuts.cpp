@@ -4,7 +4,6 @@
 #include "actors/characters/person.h"
 #include "engine/effects/psystem.h"
 #include "effects/ribbon.h"
-// Temporary: dirt.cpp not yet migrated.
 #include "effects/dirt.h"
 #include "actors/items/balloon.h"
 #include "effects/pow.h"
@@ -19,7 +18,6 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/navigation/wmove.h"
 
-// Temporary: FC_cam (fc.h) not yet migrated.
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 // DRAW2D_Box migrated to draw2d.h (iteration 136).

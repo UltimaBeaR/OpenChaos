@@ -2,7 +2,6 @@
 #define ACTORS_ITEMS_SPECIAL_GLOBALS_H
 
 #include "actors/items/special.h"
-// Temporary: dirt.h needed for DIRT_Info in special_di declaration
 #include "effects/dirt.h"
 
 // Master table: item type index -> display name, mesh prim ID, and group flag.

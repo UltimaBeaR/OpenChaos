@@ -1,6 +1,5 @@
 #include "engine/graphics/graphics_api/dd_manager.h"   // LPDIRECTDRAWSURFACE4
 #include "ui/frontend_globals.h"
-// Temporary: xlat_str.h for X_* string IDs used in raw_menu_data[] initializer
 #include "assets/xlat_str.h"
 
 // ---- Script buffer ---------------------------------------------------------

@@ -1,17 +1,13 @@
-// Temporary: game.h must be first — sets up all cross-module types
 #include "fallen/Headers/game.h"
 
 #include "effects/tracks.h"
 #include "effects/tracks_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 
-// Temporary: pap.h needed for PAP_2HI, PAP_calc_map_height_at, PAP_calc_height_at_thing
 #include "world/map/pap_globals.h"
 #include "actors/characters/anim_ids.h"
-// Temporary: puddle.h needed for PUDDLE_in
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"
-// Temporary: interact.h needed for calc_sub_objects_position declaration
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
 

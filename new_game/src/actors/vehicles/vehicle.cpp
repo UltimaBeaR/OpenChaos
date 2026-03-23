@@ -42,7 +42,7 @@
 #include "world/map/road_globals.h"
 #include "engine/graphics/resources/font2d.h"
 #include "missions/memory.h"
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 #include "engine/audio/mfx.h"
 #include "effects/tracks.h"
 #include "engine/effects/psystem.h"

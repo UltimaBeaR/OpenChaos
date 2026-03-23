@@ -7,31 +7,21 @@
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
 
-// Temporary: xlat_str.h for X_* string IDs
 #include "assets/xlat_str.h"
-// Temporary: interfac.h for init_joypad_config, DIJOYSTATE
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
-// Temporary: menufont.h for MENUFONT_Draw, MENUFONT_Dimensions, etc.
 #include "fallen/DDEngine/Headers/menufont.h"
-// Temporary: font2d.h for FONT2D_DrawStringRightJustify
 #include "fallen/DDEngine/Headers/font2d.h"
-// Temporary: polypage.h for POLY_add_quad
 #include "fallen/DDEngine/Headers/polypage.h"
-// Temporary: poly.h for POLY_PAGE_* constants, POLY_Point
 #include "fallen/DDEngine/Headers/poly.h"
-// Temporary: fmatrix.h for FMATRIX_calc, FMATRIX_MUL
 #include "core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
-// Temporary: io.h for FileOpen, FileRead, FileClose, FileSeek, FileWrite
 #include "assets/level_loader.h"
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
-// Temporary: music.h for MUSIC_mode, MUSIC_MODE_FRONTEND, stop_all_fx_and_music
 #include "engine/audio/music.h"
-// Temporary: game.h for MemAlloc, MemFree, Random, DATA_DIR
 #include "fallen/Headers/Game.h"
 
 // Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
@@ -931,23 +921,14 @@ void FRONTEND_kibble_flurry()
 
 // ---- Additional includes for chunk 2 ----------------------------------------
 
-// Temporary: drive.h for GetSpeechPath
 #include "engine/io/drive.h"
-// Temporary: mfx.h for MFX_QUICK_play, MFX_get_volumes, MFX_play_stereo
 #include "engine/audio/mfx.h"
-// Temporary: sound_id.h for S_TUNE_BONUS
 #include "assets/sound_id.h"
-// Temporary: dd_manager.h for DDDriverInfo, DDDriverManager
 #include "engine/graphics/graphics_api/dd_manager.h"
-// Temporary: dd_manager_globals.h for the_manager
 #include "engine/graphics/graphics_api/dd_manager_globals.h"
-// Temporary: wind_procs.h for ChangeDDInfo
 #include "engine/graphics/graphics_api/wind_procs.h"
-// Temporary: gd_display.h for RealDisplayWidth, DisplayBPP
 #include "engine/graphics/graphics_api/gd_display.h"
-// Temporary: aeng.h for AENG_get_detail_levels, AENG_set_detail_levels
 #include "engine/graphics/pipeline/aeng.h"
-// Temporary: env.h for ENV_get_value_number, ENV_set_value_number
 #include "engine/io/env.h"
 
 // ---- Kibble process ---------------------------------------------------------

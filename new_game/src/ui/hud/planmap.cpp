@@ -1,6 +1,4 @@
-// Temporary: game.h needed for PAP_2HI, PAP_FLAG_HIDDEN, GAME_TURN and related macros
 #include "game.h"
-// Temporary: pap.h needed for PAP_2HI, PAP_Hi struct and PAP_FLAG_ defines
 #include "pap.h"
 #include "world/map/road.h"
 #include "ui/hud/planmap.h"

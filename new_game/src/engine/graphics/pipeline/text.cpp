@@ -9,7 +9,6 @@
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "engine/graphics/resources/d3d_texture.h"
 
-// Temporary: these externs live in texture.cpp (still in old/), migrated here
 // once texture.cpp is split out.
 extern D3DTexture TEXTURE_texture[];
 extern SLONG TEXTURE_page_font;

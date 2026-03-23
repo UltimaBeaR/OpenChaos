@@ -4,7 +4,6 @@
 #include <MFStdLib.h>
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
-// Temporary: game.h for GAME_FLAGS/GF_NO_FLOOR, Thing struct, WARE_calc_height_at, etc.
 #include "fallen/Headers/Game.h"
 #include "ai/mav.h"
 #include "world/environment/ware.h"

@@ -3,8 +3,8 @@
 #include <MFStdLib.h>
 #include "core/math.h"             // SIN, COS lookup tables
 #include "core/fixed_math.h"       // MUL64
-#include "missions/game_types.h"   // Temporary: ai→missions DAG violation (Random macro, TICK_RATIO)
-#include "engine/graphics/pipeline/aeng.h"   // Temporary: ai→engine DAG violation (AENG_world_line debug)
+#include "missions/game_types.h"
+#include "engine/graphics/pipeline/aeng.h"
 
 #include "ai/mav.h"
 #include "ai/mav_globals.h"
@@ -21,7 +21,7 @@
 #include "world/environment/prim_types.h"    // PrimInfo, RFACE_FLAG_NODRAW, RoofFace4
 #include "world/environment/prim.h"         // get_prim_info, does_fence_lie_along_line
 #include "world/environment/building_types.h" // BUILDING_TYPE_WAREHOUSE, STOREY_TYPE_FENCE_FLAT, STOREY_TYPE_LADDER, FACET_FLAG_UNCLIMBABLE
-#include "missions/memory_globals.h"
+#include "world/level_pools.h"
 
 // TRACE was a no-op debug print macro in the original release build.
 #ifndef TRACE

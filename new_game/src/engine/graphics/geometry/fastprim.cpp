@@ -10,11 +10,11 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "core/matrix.h"
-#include "assets/texture.h"          // Temporary: engine/ -> assets/ DAG violation; needed for FACE_PAGE_OFFSET
+#include "assets/texture.h"
 #include "world/environment/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
 #include "world/environment/prim.h"          // get_prim_info
 #include "world/environment/building_types.h" // TEXTURE_PIECE_*
-#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, prim_faces4)
+#include "world/level_pools.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 

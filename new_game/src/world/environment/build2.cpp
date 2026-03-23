@@ -3,7 +3,7 @@
 #include "world/map/pap_globals.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
-#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (prim_faces4, prim_points externs)
+#include "world/level_pools.h"
 #include "world/environment/build2.h"
 
 // Forward declarations of MAV function (mav.cpp not yet migrated).

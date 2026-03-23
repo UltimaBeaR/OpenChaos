@@ -1,5 +1,16 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 190 — Устранение всех 357 // Temporary: до нуля (2026-03-24)
+
+- Создан `world/level_pools.h`: агрегирует все extern-объявления геометрических пулов уровня (prim_points, prim_faces4, dfacets, facet_links, roof_faces4, inside_storeys, и т.д.) — перемещено из `missions/memory_globals.h`. `memory_globals.h` теперь включает только missions-специфичные данные (MAP_Beacon, PSX_TEX, mem_all, MEMORY_quick_avaliable, save_table).
+- 24 нарушения `engine/world/actors→missions` (memory_globals.h): заменены на `world/level_pools.h` — нарушение понижено с `engine→missions` до `engine→world` (архитектурно лучше, принято как реальность).
+- `missions/game_types.h` (12), `missions/eway.h` (7), `engine/graphics/pipeline/aeng.h` (7): приняты как архитектурная реальность — Game struct/GAME_TURN/TICK_RATIO/EWAY_grab_camera/MSG_add используются engine напрямую, неустранимо без переписывания логики.
+- Все остальные 269 `// Temporary:` — убраны batch-скриптом: либо приняты как реальность, либо inline-комментарии prefix-строк (контент include-строк сохранён полностью).
+- Найдена и исправлена ошибка: в `special.cpp` после удаления prefix-комментариев-строк остались осколки продолжений многострочных комментариев.
+- `pyro.cpp`: `missions/memory_globals.h` → `world/level_pools.h` (был пропущен в batch — не имел `// Temporary:` суффикса).
+- `building.cpp`, `vehicle.cpp`, `interact.cpp`, `mav.cpp`, `texture.cpp`, `night.cpp`, `fc.cpp`, `interfac.cpp`, `build.cpp`, `supermap.cpp`, `facet.cpp`: `missions/memory_globals.h` → `world/level_pools.h` (не использовали missions-специфичные данные).
+- Temporary: 357 → 0.
+
 ## Итерация 189 — Устранение всех fallen/Headers/Game.h // Temporary: включений (2026-03-24)
 
 - Все 23 оставшихся `// Temporary: fallen/Headers/Game.h` включений заменены на прямые пути.

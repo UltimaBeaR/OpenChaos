@@ -2,16 +2,12 @@
 #include <string.h>
 
 #include "actors/core/statedef.h"
-// Temporary: eway.h for EWAY_is_active, EWAY_get_person, EWAY_counter
 #include "missions/eway.h"
 #include "ai/pcom.h"
-// Temporary: actors→engine DAG violation: NIGHT_flag, night light accessors
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
-// Temporary: dirt.h for DIRT_gust, DIRT_Info
 #include "effects/dirt.h"
 #include "actors/characters/anim_ids.h"
-// Temporary: Vehicle.h for vehicle_wheel_pos_init/get
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 
@@ -25,20 +21,14 @@
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "assets/sound_id_globals.h"
-// Temporary: effects layer is above actors in the DAG; these will stay until a cleaner
-// dependency is established (actors triggering effects via callbacks or event system).
 #include "effects/pyro.h"
 #include "effects/pow.h"
-// Temporary: ui/hud layer is above actors in the DAG; add_damage_text belongs in a shared
-// utility layer or should be called via callback — kept here until restructured.
 #include "ui/hud/overlay.h"
 #include "assets/xlat_str.h"
 #include "world/map/pap.h"
 #include "core/memory.h"
 #include "engine/physics/collide.h"
-// Temporary: panel.h for PANEL_new_info_message, PANEL_new_text
 #include "fallen/DDEngine/Headers/panel.h"
-// Temporary: cnet.h for CNET_num_players (used via NO_PLAYERS macro from Game.h)
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"
 #include "engine/audio/sound.h"

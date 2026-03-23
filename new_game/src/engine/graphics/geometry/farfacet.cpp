@@ -5,7 +5,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "world/map/supermap.h"
-#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (dfacets, prim_faces4)
+#include "world/level_pools.h"
 #include "core/matrix.h"
 #include <math.h>
 #include "engine/graphics/geometry/farfacet.h"
