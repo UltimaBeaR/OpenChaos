@@ -5,7 +5,7 @@
 // Includes Windows handles, DirectDraw/D3D objects, screen dimensions,
 // key state, joystick state, texture/buffer management lists, and transform array.
 
-#include "fallen/outro/always.h"
+#include "ui/cutscenes/outro/outro_always.h"
 
 #include <windows.h>
 #ifndef DIRECTINPUT_VERSION

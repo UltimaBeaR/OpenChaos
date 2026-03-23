@@ -1,9 +1,8 @@
 #include "ui/cutscenes/outro/outro_credits.h"
 #include "ui/cutscenes/outro/outro_credits_globals.h"
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
-#include "fallen/outro/key.h"    // Temporary: KEY_on[], KEY_S
-#include "fallen/outro/os.h"     // Temporary: OS_ticks()
-#include "fallen/outro/font.h"   // Temporary: FONT_draw, FONT_FLAG_*
+#include "ui/cutscenes/outro/outro_key.h"
+#include "ui/cutscenes/outro/outro_os.h"
+#include "ui/cutscenes/outro/outro_font.h"
 
 // uc_orig: CREDITS_init (fallen/outro/credits.cpp)
 void CREDITS_init()

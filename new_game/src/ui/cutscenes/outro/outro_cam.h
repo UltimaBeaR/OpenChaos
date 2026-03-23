@@ -1,7 +1,7 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_CAM_H
 #define UI_CUTSCENES_OUTRO_OUTRO_CAM_H
 
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
+#include "ui/cutscenes/outro/outro_always.h"
 
 // uc_orig: CAM_x (fallen/outro/cam.h)
 extern float CAM_x;

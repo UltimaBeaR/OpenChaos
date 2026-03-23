@@ -5,8 +5,8 @@
 #include "ui/cutscenes/outro/outro_credits.h"
 #include "ui/cutscenes/outro/outro_font.h"
 #include "ui/cutscenes/outro/outro_wire.h"
-#include "fallen/outro/key.h"  // Temporary: KEY_on, KEY_ESCAPE
-#include "fallen/outro/os.h"   // Temporary: OS_ticks, OS_ticks_reset, OS_clear_screen, OS_scene_begin/end, OS_show, OS_process_messages, OS_camera_set, OS_sound_*
+#include "ui/cutscenes/outro/outro_key.h"
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: MAIN_main (fallen/outro/outroMain.cpp)
 void MAIN_main()

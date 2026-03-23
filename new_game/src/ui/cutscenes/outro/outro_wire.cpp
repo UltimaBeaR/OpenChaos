@@ -1,10 +1,9 @@
 #include "ui/cutscenes/outro/outro_wire.h"
 #include "ui/cutscenes/outro/outro_wire_globals.h"
-#include "fallen/outro/key.h"    // Temporary: KEY_on, KEY_S, KEY_P, KEY_J
-#include "fallen/outro/imp.h"    // Temporary: IMP_Mesh, IMP_binary_load
-#include "fallen/outro/matrix.h" // Temporary: MATRIX_calc, MATRIX_MUL
-#include "fallen/outro/mf.h"     // Temporary: MF_load_textures, MF_backup, MF_rotate_mesh, MF_*
-#include "fallen/outro/os.h"     // Temporary: OS_Buffer, OS_buffer_*, OS_transform, OS_trans, OS_ticks, OS_texture_create
+#include "ui/cutscenes/outro/outro_key.h"
+#include "ui/cutscenes/outro/outro_matrix.h"
+#include "ui/cutscenes/outro/outro_mf.h"
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: WIRE_plane_init (fallen/outro/wire.cpp)
 // Initialises the bounding-box plane corners to just outside the given mesh extents.

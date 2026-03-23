@@ -14,21 +14,18 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "fallen/outro/always.h"
-#include "fallen/outro/key.h"
-#include "fallen/outro/matrix.h"        // Temporary: MATRIX_calc, MATRIX_skew, MATRIX_MUL
-#include "fallen/outro/tga.h"           // Temporary: OUTRO_TGA_load, OUTRO_TGA_Info, OUTRO_TGA_Pixel
-#include <MFStdLib.h>   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
-#include "engine/graphics/graphics_api/display_macros.h"  // CLEAR_VIEWPORT, FLIP, the_display, SHELL_ACTIVE
-#include "engine/input/keyboard_globals.h"                  // Keys
-#include "engine/input/keyboard.h"                          // KB_ESC
+#include "ui/cutscenes/outro/outro_os.h"
+#include "ui/cutscenes/outro/outro_os_globals.h"
+#include "ui/cutscenes/outro/outro_key.h"
+#include "ui/cutscenes/outro/outro_matrix.h"
+#include "ui/cutscenes/outro/outro_tga.h"
+#include <MFStdLib.h>
+#include "engine/graphics/graphics_api/display_macros.h"
+#include "engine/input/keyboard_globals.h"
+#include "engine/input/keyboard.h"
 #include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
-
-#include "ui/cutscenes/outro/outro_os.h"
-#include "ui/cutscenes/outro/outro_os_globals.h"
-#include "ui/cutscenes/outro/outro_tga.h"
 
 // OS_calculate_mask_and_shift is defined in engine/graphics/resources/d3d_texture.cpp
 // and declared here for use in OS_texture_lock and OS_hack.

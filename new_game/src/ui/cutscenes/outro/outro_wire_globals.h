@@ -1,9 +1,8 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_WIRE_GLOBALS_H
 #define UI_CUTSCENES_OUTRO_OUTRO_WIRE_GLOBALS_H
 
-#include "fallen/outro/always.h" // Temporary: outro type definitions
-#include "fallen/outro/imp.h"    // Temporary: IMP_Mesh
-#include "fallen/outro/os.h"     // Temporary: OS_Texture, OS_Vert
+#include "ui/cutscenes/outro/outro_imp.h"
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: WIRE_NUM_MESHES (fallen/outro/wire.cpp)
 #define WIRE_NUM_MESHES 4

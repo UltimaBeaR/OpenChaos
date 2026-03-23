@@ -1,9 +1,8 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_FONT_GLOBALS_H
 #define UI_CUTSCENES_OUTRO_OUTRO_FONT_GLOBALS_H
 
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
-#include "fallen/outro/Tga.h"    // Temporary: OUTRO_TGA_Pixel
-#include "fallen/outro/os.h"     // Temporary: OS_Texture
+#include "ui/cutscenes/outro/outro_tga.h"
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: FONT_Letter (fallen/outro/outroFont.cpp)
 // UV and width data for each letter in the font texture.

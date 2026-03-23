@@ -1,7 +1,7 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_FONT_H
 #define UI_CUTSCENES_OUTRO_OUTRO_FONT_H
 
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
+#include "ui/cutscenes/outro/outro_always.h"
 
 // uc_orig: FONT_FLAG_JUSTIFY_LEFT (fallen/outro/font.h)
 #define FONT_FLAG_JUSTIFY_LEFT 0

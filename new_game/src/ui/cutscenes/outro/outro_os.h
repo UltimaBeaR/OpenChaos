@@ -8,7 +8,6 @@
 // The main game uses its own equivalent in DDLibrary — this is the outro's
 // self-contained version.
 
-#include "fallen/outro/always.h"
 #include "ui/cutscenes/outro/outro_os_globals.h"
 
 // ========================================================

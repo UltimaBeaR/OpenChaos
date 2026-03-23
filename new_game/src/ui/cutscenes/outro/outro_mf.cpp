@@ -1,9 +1,7 @@
 #include "ui/cutscenes/outro/outro_mf.h"
 #include "ui/cutscenes/outro/outro_mf_globals.h"
 #include "ui/cutscenes/outro/outro_matrix.h"
-#include "fallen/outro/Matrix.h"  // Temporary: MATRIX_MUL, MATRIX_calc
-#include "fallen/outro/os.h"      // Temporary: OS_trans[], OS_MAX_TRANS, OS_transform, OS_buffer_*,
-                                  //            OS_Vert, OS_Trans, OS_cam_x/y/z, OS_DRAW_*, OS_CLIP_TRANSFORMED
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: MF_load_textures (fallen/outro/mf.cpp)
 void MF_load_textures(IMP_Mesh* im)

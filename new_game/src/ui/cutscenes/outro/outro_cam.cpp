@@ -1,8 +1,8 @@
 #include "ui/cutscenes/outro/outro_cam.h"
 #include "ui/cutscenes/outro/outro_cam_globals.h"
-#include "fallen/outro/os.h"     // Temporary: OS_* render functions
-#include "fallen/outro/key.h"    // Temporary: KEY_on[], KEY_shift, KEY_* scancodes
-#include "fallen/outro/Matrix.h" // Temporary: MATRIX_calc, MATRIX_MUL
+#include "ui/cutscenes/outro/outro_os.h"
+#include "ui/cutscenes/outro/outro_key.h"
+#include "ui/cutscenes/outro/outro_matrix.h"
 
 #define CAM_TYPE_LOCKED 0
 #define CAM_TYPE_FREE 1

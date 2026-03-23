@@ -1,7 +1,7 @@
 #include "ui/cutscenes/outro/outro_font.h"
 #include "ui/cutscenes/outro/outro_font_globals.h"
-#include "ui/cutscenes/outro/outro_tga.h" // Temporary: OUTRO_TGA_Info, OUTRO_TGA_load
-#include "fallen/outro/os.h"              // Temporary: OS_Buffer, OS_Texture, OS_buffer_*, OS_ticks
+#include "ui/cutscenes/outro/outro_tga.h"
+#include "ui/cutscenes/outro/outro_os.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <math.h>

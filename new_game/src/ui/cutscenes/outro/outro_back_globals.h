@@ -1,8 +1,7 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_BACK_GLOBALS_H
 #define UI_CUTSCENES_OUTRO_OUTRO_BACK_GLOBALS_H
 
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
-#include "fallen/outro/os.h"     // Temporary: OS_Texture type
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: BACK_ot_roper (fallen/outro/back.cpp)
 extern OS_Texture* BACK_ot_roper;

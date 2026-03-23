@@ -104019,6 +104019,1756 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "outro_always.h",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "always.h",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_key.h",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "key.h",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "file",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "Point3d",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "Point3d",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "Point2d",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "Point2d",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "Pointhf",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "Pointhf",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "Pointuv",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "Pointuv",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "Direction",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "Direction",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "Colour",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "Colour",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "ftol",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "ftol",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "qdist2",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "qdist2",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "qdist3",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "qdist3",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "frand",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "frand",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "OUTRO_TGA_Pixel",
+      "file": "ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "TGA_Pixel",
+      "orig_file": "fallen/outro/Tga.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "OUTRO_TGA_Info",
+      "file": "ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "TGA_Info",
+      "orig_file": "fallen/outro/Tga.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_calc",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_calc",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_calc_arb",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_calc_arb",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_skew",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_skew",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_3x3mul",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_3x3mul",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_find_angles",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_find_angles",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_construct",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_construct",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_init",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_init",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_draw",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_draw",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_char_is_valid",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_char_is_valid",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "PI",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "PI",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "UC_INFINITY",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "UC_INFINITY",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MIN",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "MIN",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MAX",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "MAX",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MAX3",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "MAX3",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MIN3",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "MIN3",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MIN4",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "MIN4",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MAX4",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "MAX4",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_UB",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_UB",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_UW",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_UW",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_FL",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_FL",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_DB",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_DB",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_HF",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_HF",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_P3",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_P3",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_VD",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_VD",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_UWP",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_UWP",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SWAP_UBP",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWAP_UBP",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "WITHIN",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "WITHIN",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SATURATE",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SATURATE",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SIGN",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SIGN",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "QLEN",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "QLEN",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "XOR",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "XOR",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "SQRT16",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SQRT16",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "UC_FALSE",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "UC_FALSE",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "UC_TRUE",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "UC_TRUE",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "ASSERT",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "ASSERT",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "VERIFY",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "VERIFY",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_SLONG",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SLONG",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_ULONG",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "ULONG",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_SWORD",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SWORD",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_UWORD",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "UWORD",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_SBYTE",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "SBYTE",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_UBYTE",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "UBYTE",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "outro_CBYTE",
+      "file": "ui/cutscenes/outro/outro_always.h",
+      "orig_name": "CBYTE",
+      "orig_file": "fallen/outro/always.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_SHIFT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_SHIFT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_ALT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_ALT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_CONTROL",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_CONTROL",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_ESCAPE",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_ESCAPE",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_1",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_1",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_2",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_2",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_3",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_3",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_4",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_4",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_5",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_5",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_6",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_6",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_7",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_7",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_8",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_8",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_9",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_9",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_0",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_0",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_MINUS",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_MINUS",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_EQUAL",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_EQUAL",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_BACKSPACE",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_BACKSPACE",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_TAB",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_TAB",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_Q",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_Q",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_W",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_W",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_E",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_E",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_R",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_R",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_T",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_T",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_Y",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_Y",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_U",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_U",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_I",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_I",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_O",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_O",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_LSBRACKET",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_LSBRACKET",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_RSBRACKET",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_RSBRACKET",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_RETURN",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_RETURN",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_LCONTROL",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_LCONTROL",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_RCONTROL",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_RCONTROL",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_A",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_A",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_S",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_S",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_D",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_D",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_G",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_G",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_H",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_H",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_J",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_J",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_K",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_K",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_L",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_L",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_COLON",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_COLON",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_QUOTE",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_QUOTE",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_QUOTE2",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_QUOTE2",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_LSHIFT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_LSHIFT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_HASH",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_HASH",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_BACKSLASH",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_BACKSLASH",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_Z",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_Z",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_X",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_X",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_C",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_C",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_V",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_V",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_B",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_B",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_N",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_N",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_M",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_M",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_COMMA",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_COMMA",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_POINT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_POINT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_SLASH",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_SLASH",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_RSHIFT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_RSHIFT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_LALT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_LALT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_RALT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_RALT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_SPACE",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_SPACE",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_CAPS",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_CAPS",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F1",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F1",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F2",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F2",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F3",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F3",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F4",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F4",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F5",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F5",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F6",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F6",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F7",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F7",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F8",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F8",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F9",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F9",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F10",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F10",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F11",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F11",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_F12",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_F12",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_HOME",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_HOME",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_UP",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_UP",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_PAGEUP",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_PAGEUP",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_LEFT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_LEFT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_RIGHT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_RIGHT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_END",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_END",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_DOWN",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_DOWN",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_PAGEDOWN",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_PAGEDOWN",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_INSERT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_INSERT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_DELETE",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_DELETE",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_NUM_LOCK",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_NUM_LOCK",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_PMINUS",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_PMINUS",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_PADD",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_PADD",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_PSLASH",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_PSLASH",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_ASTERISK",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_ASTERISK",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_PDOT",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_PDOT",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_ENTER",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_ENTER",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P7",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P7",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P8",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P8",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P9",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P9",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P4",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P4",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P5",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P5",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P6",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P6",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P1",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P1",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P2",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P2",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P3",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P3",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "KEY_P0",
+      "file": "ui/cutscenes/outro/outro_key.h",
+      "orig_name": "KEY_P0",
+      "orig_file": "fallen/outro/key.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_MUL",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_MUL",
+      "orig_file": "fallen/outro/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_MUL_BY_TRANSPOSE",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_MUL_BY_TRANSPOSE",
+      "orig_file": "fallen/outro/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_TRANSPOSE",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_TRANSPOSE",
+      "orig_file": "fallen/outro/Matrix.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_rotate_about_its_x",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_rotate_about_its_x",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_rotate_about_its_y",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_rotate_about_its_y",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_rotate_about_its_z",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_rotate_about_its_z",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_scale",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_scale",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "MATRIX_vector",
+      "file": "ui/cutscenes/outro/outro_matrix.h",
+      "orig_name": "MATRIX_vector",
+      "orig_file": "fallen/outro/outroMatrix.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "TGA_FLAG_CONTAINS_ALPHA",
+      "file": "ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "TGA_FLAG_CONTAINS_ALPHA",
+      "orig_file": "fallen/outro/Tga.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "TGA_FLAG_ONE_BIT_ALPHA",
+      "file": "ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "TGA_FLAG_ONE_BIT_ALPHA",
+      "orig_file": "fallen/outro/Tga.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "TGA_FLAG_GRAYSCALE",
+      "file": "ui/cutscenes/outro/outro_tga.h",
+      "orig_name": "TGA_FLAG_GRAYSCALE",
+      "orig_file": "fallen/outro/Tga.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_FLAG_JUSTIFY_LEFT",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_JUSTIFY_LEFT",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_FLAG_JUSTIFY_CENTRE",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_JUSTIFY_CENTRE",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_FLAG_JUSTIFY_RIGHT",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_JUSTIFY_RIGHT",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
+    },
+    {
+      "name": "FONT_FLAG_ITALIC",
+      "file": "ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_ITALIC",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-24"
     }
   ]
 }

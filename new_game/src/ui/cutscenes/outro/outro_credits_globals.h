@@ -1,7 +1,7 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_CREDITS_GLOBALS_H
 #define UI_CUTSCENES_OUTRO_OUTRO_CREDITS_GLOBALS_H
 
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
+#include "ui/cutscenes/outro/outro_always.h"
 
 // uc_orig: CREDITS_current_section (fallen/outro/credits.cpp)
 extern SLONG CREDITS_current_section;

@@ -1,10 +1,36 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_TGA_H
 #define UI_CUTSCENES_OUTRO_OUTRO_TGA_H
 
-// Use the original outro Tga.h for type definitions to avoid ODR violations
-// with outroFont.cpp which is still compiled from old/ and uses the same types.
-#include "fallen/outro/always.h" // Temporary: provides UBYTE, SLONG, ULONG etc. for Tga.h
-#include "fallen/outro/Tga.h"   // Temporary: OUTRO_TGA_Pixel, OUTRO_TGA_Info, TGA_FLAG_*
+#include "ui/cutscenes/outro/outro_always.h"
+
+// BGRA pixel from a 32-bit uncompressed TGA.
+// Named OUTRO_TGA_Pixel to avoid collision with the main game's TGA_Pixel in DDLibrary.
+// uc_orig: TGA_Pixel (fallen/outro/Tga.h)
+typedef struct
+{
+    UBYTE blue;
+    UBYTE green;
+    UBYTE red;
+    UBYTE alpha;
+} OUTRO_TGA_Pixel;
+
+// Result descriptor from OUTRO_TGA_load. Uses a flag bitmask rather than the main
+// game's TGA_Info (which has a single SLONG contains_alpha field).
+// uc_orig: TGA_Info (fallen/outro/Tga.h)
+// uc_orig: TGA_FLAG_CONTAINS_ALPHA (fallen/outro/Tga.h)
+#define TGA_FLAG_CONTAINS_ALPHA (1 << 0)
+// uc_orig: TGA_FLAG_ONE_BIT_ALPHA (fallen/outro/Tga.h)
+#define TGA_FLAG_ONE_BIT_ALPHA  (1 << 1)
+// uc_orig: TGA_FLAG_GRAYSCALE (fallen/outro/Tga.h)
+#define TGA_FLAG_GRAYSCALE      (1 << 2)
+
+typedef struct
+{
+    SLONG valid;
+    SLONG width;
+    SLONG height;
+    ULONG flag;  // TGA_FLAG_* bitmask
+} OUTRO_TGA_Info;
 
 // uc_orig: OUTRO_TGA_FileLoad_Error (fallen/outro/OutroTga.cpp)
 // Helper: closes file handle and marks the result as invalid.

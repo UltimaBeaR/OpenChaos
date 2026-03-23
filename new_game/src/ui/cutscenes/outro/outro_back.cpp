@@ -1,7 +1,6 @@
 #include "ui/cutscenes/outro/outro_back.h"
 #include "ui/cutscenes/outro/outro_back_globals.h"
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
-#include "fallen/outro/os.h"     // Temporary: OS_Texture, OS_Buffer, OS_DRAW_*, OS_FADE_RIGHT
+#include "ui/cutscenes/outro/outro_os.h"
 
 // uc_orig: BACK_init (fallen/outro/back.cpp)
 void BACK_init()

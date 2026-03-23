@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 185 — fallen/outro/: Always.h, Key.h, Matrix.h, Tga.h, os.h, font.h → outro_always.h, outro_key.h, outro_matrix.h (2026-03-24)
+
+- Outro использует собственную систему типов изолированно от main game MFStdLib — типы `SLONG/UBYTE` в `outro_always.h` не конфликтуют, они в отдельном translation unit.
+- `KEY_on/inkey/shift` — extern-декларации остались только в `outro_os_globals.h`; из `outro_key.h` убраны (дублирование, источник — `os.cpp`).
+- `outro_matrix.h` был неполным (только `MATRIX_scale`); дополнен полным контентом из `Matrix.h` — все 9 функций + 3 макроса.
+- `outro_tga.h` получил определения `OUTRO_TGA_Pixel`, `OUTRO_TGA_Info`, `TGA_FLAG_*` из `Tga.h` (раньше тянул через Temporary include).
+- `fallen/outro/` файлы Always.h, Key.h, Matrix.h, Tga.h, os.h, font.h → redirect-заглушки.
+- Temporary: 415 → 371 (-44).
+
 ## Итерация 184 — Массовая замена fallen/Headers/ redirect-заглушек прямыми путями (2026-03-24)
 
 - Заменены все `fallen/Headers/pap.h` → `world/map/pap_globals.h` (19 файлов).

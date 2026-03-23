@@ -1,8 +1,7 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_MF_H
 #define UI_CUTSCENES_OUTRO_OUTRO_MF_H
 
-#include "fallen/outro/always.h"  // Temporary: outro type definitions (SLONG, ULONG, etc.)
-#include "fallen/outro/os.h"      // Temporary: OS_Texture*, OS_Buffer*
+#include "ui/cutscenes/outro/outro_os.h"
 #include "ui/cutscenes/outro/outro_imp.h"
 
 // Maximum number of shared vertices in a single mesh draw call.

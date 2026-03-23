@@ -1,8 +1,7 @@
 #ifndef UI_CUTSCENES_OUTRO_OUTRO_IMP_H
 #define UI_CUTSCENES_OUTRO_OUTRO_IMP_H
 
-#include "fallen/outro/always.h" // Temporary: outro uses its own type definitions
-#include "fallen/outro/os.h"     // Temporary: OS_Texture*, OS_Buffer* — until os.cpp is migrated
+#include "ui/cutscenes/outro/outro_os.h"
 
 // Alpha blending modes for IMP_Mat.
 // uc_orig: IMP_ALPHA_FILTERED (fallen/outro/imp.h)
