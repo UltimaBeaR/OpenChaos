@@ -3,7 +3,7 @@
 #include "world/navigation/inside2_globals.h"
 #include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, FWall, STAIR_FLAG_*, etc.
 #include "world/environment/prim_types.h"     // PrimObject, PRIM_OBJ_* (used by stair logic)
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (dwalkables, prim_faces4 externs)
 
 // Forward declaration of slide_door (defined in door.cpp, not yet fully migrated here).
 extern SLONG slide_door;

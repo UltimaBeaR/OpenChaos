@@ -5,7 +5,8 @@
 #include "engine/graphics/graphics_api/dd_manager.h"   // D3DLVERTEX, D3DMATRIX, LPDIRECT3DTEXTURE2
 #include "core/types.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "fallen/Headers/Night.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
 
 // uc_orig: SUPERFACET_CALL_FLAG_USED (fallen/DDEngine/Source/superfacet.cpp)
 #define SUPERFACET_CALL_FLAG_USED (1 << 0)

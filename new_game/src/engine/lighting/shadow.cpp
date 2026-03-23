@@ -1,10 +1,10 @@
 #include "engine/lighting/shadow.h"
 #include "engine/lighting/shadow_globals.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/pap.h"
+#include "world/map/pap_globals.h" // Temporary: engine → world DAG violation (PAP_Hi, PAP_lo, pap macros)
 #include "world/map/supermap.h"
 #include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, prim_faces4, roof_faces4)
 
 // Fixed directional light vector components (sun direction, world-space fixed-point).
 // uc_orig: SHADOW_DIR_X (fallen/Source/shadow.cpp)

@@ -1,7 +1,7 @@
 #include "actors/characters/roper.h"
 #include "actors/characters/roper_globals.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
 
 // uc_orig: calc_height_at (fallen/Source/Roper.cpp)

@@ -4,7 +4,8 @@
 #include "engine/audio/mfx.h"
 #include <AL/alc.h>
 // Temporary: thing.h not yet migrated
-#include "fallen/Headers/thing.h"
+#include "actors/core/thing.h"
+#include "actors/core/thing_globals.h"
 
 // Internal types used by the audio globals below.
 

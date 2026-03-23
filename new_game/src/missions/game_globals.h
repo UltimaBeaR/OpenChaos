@@ -2,7 +2,8 @@
 #define MISSIONS_GAME_GLOBALS_H
 
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/widget.h"
+#include "ui/menus/widget.h"
+#include "ui/menus/widget_globals.h"
 
 // Number of tips shown during loading screens.
 #define NUM_BULLETS 15

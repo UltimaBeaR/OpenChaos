@@ -6,9 +6,10 @@
 // Temporary: game.h needed for NETPERSON/NET_PERSON, TICK_RATIO via REAL_TICK_RATIO
 #include "fallen/Headers/game.h"
 // Temporary: ware.h needed for WARE_ware[].ambience in MUSIC_mode_process
-#include "fallen/Headers/ware.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
 // Temporary: sound.h needed for SOUND_Range inline helper
-#include "fallen/Headers/sound.h"
+#include "engine/audio/sound.h"
 
 // REAL_TICK_RATIO is defined in Thing.cpp; it mirrors TICK_RATIO but is frozen when game is paused.
 extern SLONG REAL_TICK_RATIO;

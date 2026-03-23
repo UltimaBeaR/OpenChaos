@@ -15,13 +15,15 @@
 #include "world/environment/prim.h"        // get_prim_info, slide_along_prim, etc.
 
 // Temporary: balloon data not yet migrated
-#include "fallen/Headers/balloon.h"
+#include "actors/items/balloon.h"
+#include "actors/items/balloon_globals.h"
 
 // Temporary: mesh.h not yet fully migrated (MESH_draw_poly)
 #include "fallen/DDEngine/Headers/mesh.h"
 
 // Temporary: Night.h for NIGHT_get_d3d_colour, NIGHT_ambient_at_point
-#include "fallen/Headers/Night.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
 
 // Small Z offset applied to shadow quads to prevent Z-fighting with the floor.
 #define DC_SHADOW_Z_ADJUST 0.0001f

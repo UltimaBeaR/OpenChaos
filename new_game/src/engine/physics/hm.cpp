@@ -13,7 +13,7 @@
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
 #include "world/environment/prim.h"       // get_prim_info
 #include "core/math.h"
-#include "fallen/Headers/pap.h"      // Temporary: PAP_calc_height_at
+#include "world/map/pap_globals.h" // Temporary: engine → world DAG violation (PAP_calc_height_at, PAP_Hi)
 #include "core/matrix.h"
 
 #include "engine/physics/hm.h"

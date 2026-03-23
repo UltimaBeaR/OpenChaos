@@ -3,7 +3,8 @@
 
 #include "world/environment/building_types.h" // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
 #include "world/map/supermap.h"               // DFacet (used in function params)
-#include "fallen/Headers/Thing.h"
+#include "actors/core/thing.h"
+#include "actors/core/thing_globals.h"
 #include "assets/anim_globals.h"
 
 // Returns fractional position along a cable facet for world XZ point.

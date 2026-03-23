@@ -17,7 +17,7 @@
 #include "world/environment/prim_types.h"    // PrimInfo, RFACE_FLAG_NODRAW, RoofFace4
 #include "world/environment/prim.h"         // get_prim_info, does_fence_lie_along_line
 #include "world/environment/building_types.h" // BUILDING_TYPE_WAREHOUSE, STOREY_TYPE_FENCE_FLAT, STOREY_TYPE_LADDER, FACET_FLAG_UNCLIMBABLE
-#include "fallen/Headers/memory.h"        // Temporary: roof_faces4, next_dbuilding, next_dwalkable, dwalkables, next_dfacet
+#include "missions/memory_globals.h"
 
 // TRACE was a no-op debug print macro in the original release build.
 #ifndef TRACE

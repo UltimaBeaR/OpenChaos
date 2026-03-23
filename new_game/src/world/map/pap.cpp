@@ -7,7 +7,8 @@
 // Temporary: game.h for GAME_FLAGS/GF_NO_FLOOR, Thing struct, WARE_calc_height_at, etc.
 #include "fallen/Headers/Game.h"
 #include "ai/mav.h"
-#include "fallen/Headers/ware.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
 
 // uc_orig: PAP_on_map_lo (fallen/Source/pap.cpp)
 SLONG PAP_on_map_lo(SLONG x, SLONG z)

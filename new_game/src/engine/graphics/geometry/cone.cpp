@@ -4,7 +4,7 @@
 #include "engine/graphics/geometry/cone.h"
 #include "world/map/pap.h"
 #include "world/map/supermap.h"
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, prim_faces4)
 #include <math.h>
 #include "engine/graphics/geometry/cone_globals.h"
 

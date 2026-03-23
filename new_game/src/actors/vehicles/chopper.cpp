@@ -2,13 +2,13 @@
 // Helicopter (CLASS_CHOPPER) — allocation, AI state machine, and flight physics.
 
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/statedef.h"
-#include "fallen/Headers/pap.h"
+#include "actors/core/statedef.h"
+#include "world/map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/mfx.h"
-#include "fallen/Headers/sound_id.h"
-#include "fallen/Headers/dirt.h"
-#include "fallen/Headers/eway.h"
+#include "assets/sound_id.h"
+#include "effects/dirt.h"
+#include "missions/eway.h" // Temporary: actors → missions DAG violation (EWAY_grab_camera)
 #include <stdio.h>
 
 #include "actors/vehicles/chopper.h"

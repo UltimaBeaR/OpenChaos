@@ -6,12 +6,14 @@
 #include "engine/graphics/pipeline/poly.h"
 
 // Temporary: pap.h needed for PAP_2HI, PAP_calc_map_height_at, PAP_calc_height_at_thing
-#include "fallen/Headers/pap.h"
+#include "world/map/pap_globals.h"
 #include "actors/characters/anim_ids.h"
 // Temporary: puddle.h needed for PUDDLE_in
-#include "fallen/Headers/puddle.h"
+#include "world/environment/puddle.h"
+#include "world/environment/puddle_globals.h"
 // Temporary: interact.h needed for calc_sub_objects_position declaration
-#include "fallen/Headers/interact.h"
+#include "actors/core/interact.h"
+#include "actors/core/interact_globals.h"
 
 // world_type is in Sound.cpp; WORLD_TYPE_SNOW from sound.h (pulled via game.h chain indirectly)
 // but we use extern to avoid the sound.h → Structs.h → anim.h inclusion issues

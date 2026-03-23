@@ -4,7 +4,7 @@
 // Temporary: Game.h for base types (QDIST2, ASSERT, CBYTE, etc.)
 #include "Game.h"
 // Temporary: pap.h for PAP_2LO, PAP_hi, PAP_FLAG_ROOF_EXISTS, MAVHEIGHT, ROOF_HIDDEN_GET_FACE, etc.
-#include "fallen/Headers/pap.h"
+#include "world/map/pap_globals.h"
 // Temporary: missions/memory_globals.h for prim_faces4, prim_points, roof_faces4
 #include "missions/memory_globals.h"
 #include "actors/core/statedef.h"
@@ -66,7 +66,7 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 // Temporary: mist.h for MIST_gust
 #include "effects/mist.h"
 // Temporary: dirt.h for DIRT_gust (not yet migrated to new/)
-#include "fallen/Headers/dirt.h"
+#include "effects/dirt.h"
 // Temporary: ai/mav_globals.h for MAV_opt (used in there_is_a_los_mav, there_is_a_los_car)
 #include "ai/mav_globals.h"
 // Temporary: ui/camera/fc.h for FC_explosion (camera shake on shockwave)

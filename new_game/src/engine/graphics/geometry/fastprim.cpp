@@ -14,8 +14,9 @@
 #include "world/environment/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
 #include "world/environment/prim.h"          // get_prim_info
 #include "world/environment/building_types.h" // TEXTURE_PIECE_*
-#include "fallen/Headers/memory.h"
-#include "fallen/Headers/Night.h"
+#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, prim_faces4)
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
 
 // uc_orig: FASTPRIM_find_texture_from_page (fallen/DDEngine/Source/fastprim.cpp)
 LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)

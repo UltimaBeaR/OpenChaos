@@ -8,7 +8,7 @@
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
 #include "actors/characters/anim_ids.h"
 #include "actors/core/statedef.h"
-#include "fallen/Headers/pap.h"       // Temporary: PAP_calc_height_at_thing, PAP_SIZE_HI, PAP_SHIFT_HI
+#include "world/map/pap_globals.h"
 #include "engine/audio/sound.h"
 #include "assets/anim_globals.h"      // estate, semtex (already migrated)
 #include "effects/dirt.h"

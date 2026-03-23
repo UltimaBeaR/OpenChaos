@@ -2219,7 +2219,8 @@ no_muzzle_calcs:
 }
 
 // Temporary: needed for SPECIAL_GRENADE used in FIGURE_draw
-#include "fallen/Headers/Special.h"
+#include "actors/items/special.h"
+#include "actors/items/special_globals.h"
 // Temporary: calc_sub_objects_position / calc_sub_objects_position_global
 #include "actors/core/interact.h"
 // Temporary: ControlFlag used in FIGURE_draw_reflection (chunk 4)

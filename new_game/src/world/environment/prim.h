@@ -3,7 +3,6 @@
 
 #include "core/types.h"
 #include "core/vector.h"                        // SVector
-#include "fallen/Headers/structs.h"             // Temporary: Thing and other base types
 #include "world/environment/prim_types.h"       // PrimObject, PrimFace3/4, PrimPoint, PrimNormal, PrimInfo, FACE_FLAG_*, PRIM_OBJ_*, etc.
 
 // ---- Pool management ----

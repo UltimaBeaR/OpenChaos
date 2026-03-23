@@ -1,6 +1,6 @@
 #include "actors/core/drawtype.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h" // Temporary: actors → missions DAG violation (dfacets, prim externs)
 
 // Sentinel value stored in DrawMesh.Angle to mark the slot as free.
 // uc_orig: DRAW_MESH_NULL_ANGLE (fallen/Source/drawtype.cpp)

@@ -7,15 +7,17 @@
 #include "fallen/Headers/Game.h"
 #include "actors/core/statedef.h"
 // Temporary: eway.h for EWAY_is_active, EWAY_get_person, EWAY_counter
-#include "fallen/Headers/eway.h"
+#include "missions/eway.h"
 #include "ai/pcom.h"
 // Temporary: night.h for... (used via game.h chain)
-#include "fallen/Headers/night.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
 // Temporary: dirt.h for DIRT_gust, DIRT_Info
-#include "fallen/Headers/dirt.h"
+#include "effects/dirt.h"
 #include "actors/characters/anim_ids.h"
 // Temporary: Vehicle.h for vehicle_wheel_pos_init/get
-#include "fallen/Headers/Vehicle.h"
+#include "actors/vehicles/vehicle.h"
+#include "actors/vehicles/vehicle_globals.h"
 
 #include "actors/items/special.h"
 #include "actors/items/special_globals.h"
@@ -40,7 +42,8 @@
 // Temporary: panel.h for PANEL_new_info_message, PANEL_new_text
 #include "fallen/DDEngine/Headers/panel.h"
 // Temporary: cnet.h for CNET_num_players (used via NO_PLAYERS macro from Game.h)
-#include "fallen/Headers/cnet.h"
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
 #include "engine/audio/sound.h"
 #include "engine/graphics/geometry/bloom.h"
 

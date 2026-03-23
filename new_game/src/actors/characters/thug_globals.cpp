@@ -1,7 +1,7 @@
 #include "fallen/Headers/Game.h"
 #include "actors/characters/thug_globals.h"
 #include "actors/characters/thug.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 
 // uc_orig: thug_states (fallen/Source/Thug.cpp)
 // State table for thug NPCs. fn_thug_init has ASSERT(0) — thugs are initialized via fn_cop_init

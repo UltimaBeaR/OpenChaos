@@ -1,7 +1,7 @@
 #include "actors/characters/cop.h"
 #include "actors/characters/cop_globals.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
 
 // Forward declarations for functions defined in other not-yet-migrated files.

@@ -13,11 +13,11 @@
 // Needed for load_all_individual_prims (called in create_city)
 #include "assets/level_loader.h"
 // Temporary: pap.h needed for PAP_2HI, MAP2, MAP macros (supermap abstraction)
-#include "fallen/Headers/pap.h"
+#include "world/map/pap_globals.h"
 // Temporary: supermap.h needed for MAP, MAP2 struct access patterns
 #include "world/map/supermap.h"
 // Temporary: memory.h needed for MemAlloc, MemFree, prim_faces4, prim_points, AENG_dx_prim_points
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h"
 // Temporary: pap.h exposes PAP_calc_height_at
 #include "pap.h"
 #include "engine/physics/collide.h"

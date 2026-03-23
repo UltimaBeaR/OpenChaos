@@ -4,7 +4,7 @@
 #include <cstring>
 #include "core/types.h"  // CBYTE/SLONG needed by env.h
 // Temporary: env.h not yet migrated
-#include "fallen/Headers/env.h"
+#include "engine/io/env.h"
 // Temporary: MF_Fopen/MF_Fclose from MFStdLib (not yet migrated)
 #include <MFStdLib.h>
 

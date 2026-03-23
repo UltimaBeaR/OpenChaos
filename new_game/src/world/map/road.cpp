@@ -11,7 +11,7 @@
 #include "assets/texture.h"
 
 // Temporary: elev.h not yet migrated — needed for ELEV_fname_map.
-#include "fallen/Headers/elev.h"
+#include "missions/elev.h"
 // Temporary: mav.h not yet migrated — needed for MAVHEIGHT macro.
 #include "ai/mav.h"
 

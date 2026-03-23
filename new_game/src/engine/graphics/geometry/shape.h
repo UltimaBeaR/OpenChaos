@@ -8,7 +8,8 @@
 #include "engine/graphics/geometry/shape_globals.h"
 
 // Temporary: OB_Info not yet migrated
-#include "fallen/Headers/ob.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
 
 // uc_orig: SHAPE_MAX_SPARKY_POINTS (fallen/DDEngine/Headers/shape.h)
 #define SHAPE_MAX_SPARKY_POINTS 16

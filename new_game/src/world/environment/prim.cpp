@@ -29,8 +29,7 @@
 #include "world/map/supermap.h"
 #include "fallen/Headers/Game.h" // Temporary: FLAGS_SWITCHED_ON, TICK_RATIO, TICK_SHIFT, DT_ANIM_PRIM, DT_ROT_MULTI, alloc_draw_tween, DrawTween typedef, THING_INDEX
 #include "world/environment/building_globals.h" // end_prim_point, end_prim_face4, end_prim_face3, end_prim_object, end_prim_multi_object, next_prim_*, building_list, building_facets
-#include "fallen/Headers/memory.h"      // Temporary: next_roof_face4, roof_faces4, prim_points/faces arrays
-#include "missions/memory_globals.h"    // Temporary: prim_info extern (same variable as prim_globals.cpp)
+#include "missions/memory_globals.h"    // Temporary: world → missions DAG violation (next_roof_face4, roof_faces4, prim_points/faces, prim_info)
 
 // Forward declaration for advance_keyframe (defined in person.cpp / old Person.cpp).
 // uc_orig: advance_keyframe (fallen/Source/Person.cpp)

@@ -16,7 +16,8 @@
 #include "fallen/DDEngine/Headers/aeng.h"
 
 // Thing, Class constants, person types, special items
-#include "fallen/Headers/Thing.h" // Temporary: Thing struct, CLASS_* constants
+#include "actors/core/thing.h"
+#include "actors/core/thing_globals.h"
 #include "actors/characters/person.h"
 #include "actors/items/special.h"
 #include "actors/items/special_globals.h"
@@ -27,10 +28,11 @@
 #include "assets/sound_id.h"
 
 // Temporary: EWAY cut-scene/tutorial functions
-#include "fallen/Headers/eway.h"
+#include "missions/eway.h"
 
 // Temporary: NET_PERSON macro (network player access)
-#include "fallen/Headers/cnet.h"
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
 
 // FC_cam[] for compass bearing calculation in PANEL_last
 #include "ui/camera/fc.h"

@@ -1,7 +1,7 @@
 #include "fallen/Headers/Game.h"
 #include "actors/core/switch.h"
 #include "actors/core/switch_globals.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 
 // uc_orig: init_switches (fallen/Source/Switch.cpp)
 void init_switches(void)

@@ -1,9 +1,9 @@
 #include "actors/characters/thug.h"
 #include "actors/characters/thug_globals.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/pap.h"
+#include "world/map/pap_globals.h"
 
 // uc_orig: calc_height_at (fallen/Source/Thug.cpp)
 extern SLONG calc_height_at(SLONG x, SLONG z);

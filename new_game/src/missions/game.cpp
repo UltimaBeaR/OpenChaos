@@ -7,35 +7,51 @@
 #include "world/environment/prim.h"    // clear_prims
 
 // Temporary: until these modules are migrated
-#include "fallen/Headers/attract.h"   // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw
-#include "fallen/Headers/id.h"       // SetSeed
-#include "fallen/Headers/io.h"       // FileCreate, FileOpen, FileClose, FileRead, FileWrite, FILE_CREATION_ERROR
-#include "fallen/Headers/heap.h"     // init_memory (via MEMORY_quick_init)
+#include "ui/attract.h"
+#include "world/environment/id.h"
+#include "assets/level_loader.h"
+#include "assets/level_loader_globals.h"
+#include "assets/anim_loader.h"
+#include "assets/anim_loader_globals.h"
+#include "core/heap.h"
 #include "ai/mav.h"
-#include "fallen/Headers/fog.h"      // (included via game.h chain)
-#include "fallen/Headers/mist.h"
-#include "fallen/Headers/cnet.h"     // CNET_network_game, CNET_configure
-#include "fallen/Headers/interfac.h" // DIJOYSTATE, ReadInputDevice, get_hardware_input, process_controls, process_ambient_effects, process_weather, ControlFlag
-#include "fallen/Headers/gamemenu.h" // GAMEMENU_init, GAMEMENU_process, GAMEMENU_draw, GAMEMENU_is_paused, GAMEMENU_DO_*
+#include "effects/fog.h"
+#include "effects/fog_globals.h"
+#include "effects/mist.h"
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
+#include "ui/menus/gamemenu.h"
 #include "world/environment/bang.h"  // (transitively)
-#include "fallen/Headers/spark.h"    // SPARK_show_electric_fences
-#include "fallen/Headers/statedef.h" // GS_*, GF_*
-#include "fallen/Headers/ob.h"       // OB_process
-#include "fallen/Headers/morph.h"    // MORPH_load
-#include "fallen/Headers/qedit.h"    // (transitively)
-#include "fallen/Headers/night.h"    // NIGHT_dlight_move (referenced in comment)
-#include "fallen/Headers/shadow.h"   // (transitively)
-#include "fallen/Headers/ns.h"       // (transitively)
+#include "effects/spark.h"
+#include "actors/core/statedef.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
+#include "engine/animation/morph.h"
+#include "world/map/qedit.h"
+#include "world/map/qedit_globals.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
+#include "engine/lighting/shadow.h"
+#include "engine/lighting/shadow_globals.h"
+#include "world/environment/ns.h"
 #include "world/map/supermap.h"
-#include "fallen/Headers/build2.h"   // (transitively)
-#include "fallen/Headers/pow.h"      // POW_process, check_pows
-#include "fallen/Headers/widget.h"   // Form, Widget, FORM_Process, FORM_Free, FORM_Draw
-#include "fallen/Headers/memory.h"   // MEMORY_quick_init, init_memory
-#include "fallen/Headers/fc.h"       // FC_init, FC_cam, FC_process
-#include "fallen/Headers/save.h"     // (transitively)
-#include "fallen/Headers/balloon.h"  // BALLOON_process
-#include "fallen/Headers/env.h"      // ENV_get_value_number
-#include "fallen/Headers/wmove.h"    // WMOVE_draw
+#include "world/environment/build2.h"
+#include "effects/pow.h"
+#include "effects/pow_globals.h"
+#include "ui/menus/widget.h"
+#include "ui/menus/widget_globals.h"
+#include "missions/memory_globals.h"
+#include "missions/memory.h"         // MEMORY_quick_init, init_memory
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"
+#include "missions/save.h"
+#include "actors/items/balloon.h"
+#include "actors/items/balloon_globals.h"
+#include "engine/io/env.h"
+#include "world/navigation/wmove.h"
+#include "world/navigation/wmove_globals.h"
 #include "fallen/DDEngine/Headers/console.h"  // CONSOLE_draw, CONSOLE_font
 #include "fallen/DDEngine/Headers/poly.h"     // POLY_frame_init, POLY_frame_draw
 #include "fallen/DDEngine/Headers/map.h"      // MAP_process
@@ -73,22 +89,27 @@
 #include "engine/effects/psystem.h" // PARTICLE_Run
 
 // Temporary: dirt and grenade (not yet migrated)
-#include "fallen/Headers/dirt.h"    // DIRT_process
-#include "fallen/Headers/grenade.h" // ProcessGrenades
-#include "fallen/Headers/ribbon.h"  // (old header, if needed)
+#include "effects/dirt.h"
+#include "actors/items/grenade.h"
+#include "effects/ribbon.h"
 #include "world/environment/water.h"
-#include "fallen/Headers/drip.h"    // DRIP_process
-#include "fallen/Headers/xlat_str.h"// XLAT_str, X_*
+#include "effects/drip.h"
+#include "assets/xlat_str.h"
 #include "fallen/DDEngine/Headers/font2d.h"  // FONT2D_DrawStringWrapTo
-#include "fallen/Headers/overlay.h" // OVERLAY_handle (old header)
-#include "fallen/Headers/music.h"   // MUSIC_mode, MUSIC_mode_process, MUSIC_reset, MUSIC_WORLD
+#include "ui/hud/overlay.h"
+#include "engine/audio/music.h"
 #include "fallen/DDEngine/Headers/panel.h"   // PANEL_wide_top_person, PANEL_wide_bot_person
-#include "fallen/Headers/frontend.h"// FRONTEND_level_won, FRONTEND_level_lost, InitBackImage, ResetBackImage, ShowBackImage
-#include "fallen/Headers/snipe.h"   // (transitively)
-#include "fallen/Headers/trip.h"    // TRIP_process
-#include "fallen/Headers/door.h"    // DOOR_process
-#include "fallen/Headers/puddle.h"  // PUDDLE_process (if separate)
-#include "fallen/Headers/pap.h"     // plan_view_shot
+#include "ui/frontend.h"
+#include "ui/frontend_globals.h"
+#include "actors/characters/snipe.h"
+#include "actors/characters/snipe_globals.h"
+#include "world/environment/tripwire.h"
+#include "world/environment/tripwire_globals.h"
+#include "world/environment/door.h"
+#include "world/environment/door_globals.h"
+#include "world/environment/puddle.h"
+#include "world/environment/puddle_globals.h"
+#include "world/map/pap_globals.h"
 #include "ui/camera/cam.h"
 
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL

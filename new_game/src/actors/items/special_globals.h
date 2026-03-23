@@ -3,7 +3,7 @@
 
 #include "actors/items/special.h"
 // Temporary: dirt.h needed for DIRT_Info in special_di declaration
-#include "fallen/Headers/dirt.h"
+#include "effects/dirt.h"
 
 // Master table: item type index -> display name, mesh prim ID, and group flag.
 // uc_orig: SPECIAL_info (fallen/Source/Special.cpp)

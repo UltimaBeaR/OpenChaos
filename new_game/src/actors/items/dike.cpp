@@ -1,5 +1,5 @@
 #include "fallen/Headers/Game.h"    // Temporary: TICK_RATIO, TICK_SHIFT, MUL64, DIV64, Root, calc_angle, WITHIN, QDIST2, SATURATE
-#include "fallen/Headers/pap.h"     // Temporary: PAP_calc_map_height_at
+#include "world/map/pap_globals.h"
 #include "world/map/road.h"
 #include "core/fmatrix.h"
 #include "actors/items/dike.h"

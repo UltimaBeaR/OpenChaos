@@ -1,7 +1,7 @@
 #include "fallen/Headers/Game.h"
 #include "actors/characters/cop_globals.h"
 #include "actors/characters/cop.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 
 // uc_orig: cop_states (fallen/Source/Cop.cpp)
 // State table for cops and most NPC person types. fn_cop_normal is a no-op stub in pre-release —

@@ -3,7 +3,7 @@
 
 #include "fallen/Headers/Game.h"
 #include "world/environment/prim_types.h" // PRIM_OBJ_* constants for veh_info initializer
-#include "fallen/Headers/statedef.h"  // STATE_* constants for VEH_statefunctions
+#include "actors/core/statedef.h"
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
 

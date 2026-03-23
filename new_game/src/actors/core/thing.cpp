@@ -10,9 +10,11 @@
 #include "engine/audio/mfx.h"
 #include "engine/input/keyboard_globals.h"  // Keys[] (volatile UBYTE[256])
 #include "engine/net/net.h"                 // NET_Message, NET_message_*
-#include "fallen/Headers/cnet.h"            // CNET_network_game, CNET_player_id, etc.
-#include "fallen/Headers/interfac.h"        // INPUT_TYPE_ALL, get_hardware_input
-#include "fallen/Headers/statedef.h"        // STATE_INIT
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
+#include "actors/core/statedef.h"
 
 // Forward declarations for external functions not yet migrated.
 // uc_orig: Time (MFStdLib/Headers/MFStdLib.h)

@@ -1,7 +1,7 @@
 #include "fallen/Headers/Game.h"
 #include "actors/characters/roper_globals.h"
 #include "actors/characters/roper.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 
 // uc_orig: roper_states (fallen/Source/Roper.cpp)
 // State table for Roper. fn_roper_normal is a no-op stub — Roper AI was never completed in pre-release.

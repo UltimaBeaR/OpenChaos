@@ -9,20 +9,24 @@
 #include "core/math.h"
 #include "core/fmatrix.h"
 // Temporary: dirt.cpp not yet migrated
-#include "fallen/Headers/dirt.h"
+#include "effects/dirt.h"
 // Temporary: pow.h (effects/pow.h) — for POW system (effects layer)
 #include "effects/pow.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
 #include "world/environment/prim.h"       // slide_along_prim, get_prim_info
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h" // Temporary: world → missions DAG violation (prim_points, dfacets externs)
 // Temporary: poly.h — POLY_page_flag, FACE_PAGE_OFFSET not yet in new/ pipeline
 
 #include "..\ddengine\headers\poly.h"
 #include "..\ddengine\headers\texture.h"
 // Temporary: io.h — load_prim_object not yet migrated
-#include "fallen/Headers/io.h"
+#include "assets/level_loader.h"
+#include "assets/level_loader_globals.h"
+#include "assets/anim_loader.h"
+#include "assets/anim_loader_globals.h"
 // Temporary: special.h — SPECIAL_info, SPECIAL_NUM_TYPES not yet migrated
-#include "fallen/Headers/special.h"
+#include "actors/items/special.h"
+#include "actors/items/special_globals.h"
 // Temporary: barrel.h — BARREL_alloc (actors/items/barrel.h)
 #include "actors/items/barrel.h"
 #include "engine/physics/collide.h"

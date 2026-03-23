@@ -3,19 +3,20 @@
 // Physics, movement, and state initialisation for Darci.
 
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/pap.h"
-#include "fallen/Headers/pcom.h"
-#include "fallen/Headers/ns.h"
-#include "fallen/Headers/memory.h"
-#include "fallen/Headers/Sound.h"
+#include "world/map/pap_globals.h"
+#include "ai/pcom.h"
+#include "world/environment/ns.h"
+#include "missions/memory_globals.h" // Temporary: actors → missions DAG violation (dfacets)
+#include "engine/audio/sound.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 #include "world/environment/building_types.h"  // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
 #include "world/environment/building.h"        // get_cable_along, make_cable_taut_along, etc.
-#include "fallen/Headers/barrel.h"
+#include "actors/items/barrel.h"
+#include "actors/items/barrel_globals.h"
 #include "actors/characters/person.h"
 #include "actors/characters/darci.h"
 #include "actors/characters/darci_globals.h"

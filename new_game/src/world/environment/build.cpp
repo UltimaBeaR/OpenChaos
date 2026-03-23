@@ -5,7 +5,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/lighting/light.h"
 // Temporary: memory.h needed for prim_faces4/prim_faces3 externs
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h"
 #include "world/environment/build.h"
 #include "world/environment/build_globals.h"
 

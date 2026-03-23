@@ -20,11 +20,12 @@
 #include "ui/menus/cnet_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
-#include "fallen/Headers/eway.h"    // Temporary: EWAY types
+#include "missions/eway.h"    // Temporary: EWAY types
 #include "effects/spark.h"
 #include "effects/drip.h"
-#include "fallen/Headers/puddle.h"  // Temporary: puddle effects
-#include "fallen/Headers/pap.h"     // Temporary: PAP_2HI, PAP_FLAG_HIDDEN, PAP_calc_height_at_thing
+#include "world/environment/puddle.h"
+#include "world/environment/puddle_globals.h"
+#include "world/map/pap_globals.h"
 #include "world/map/supermap.h"
 #include "world/environment/ns.h"
 #include "effects/dirt.h"
@@ -44,7 +45,7 @@
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "fallen/Headers/memory.h"  // Temporary: dfacets extern via memory globals
+#include "missions/memory_globals.h"  // Temporary: dfacets extern via memory globals
 #include "core/fmatrix.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"

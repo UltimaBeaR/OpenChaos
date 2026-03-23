@@ -2,8 +2,8 @@
 #include "actors/characters/snipe.h"
 #include "actors/characters/snipe_globals.h"
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/guns.h"
-#include "fallen/Headers/combat.h"
+#include "actors/items/guns.h"
+#include "ai/combat.h"
 
 // uc_orig: SNIPE_mode_on (fallen/Source/snipe.cpp)
 void SNIPE_mode_on(SLONG x, SLONG y, SLONG z, SLONG initial_yaw)

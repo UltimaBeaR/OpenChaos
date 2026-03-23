@@ -2,7 +2,7 @@
 #define MISSIONS_MEMORY_GLOBALS_H
 
 #include "core/types.h"
-#include "fallen/Headers/structs.h"             // Temporary: SVector
+#include "core/vector.h"                        // SVector
 #include "world/map/supermap.h"
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"

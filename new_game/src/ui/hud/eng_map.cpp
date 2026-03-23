@@ -23,7 +23,7 @@
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 // Temporary: memory.h needed for prim_points/prim_faces4/prim_faces3/prim_objects, MAP_beacon
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h"
 // Temporary: aeng.h needed for AENG_clear_screen, POLY_frame_init, POLY_frame_draw
 #include "engine/graphics/pipeline/aeng.h"
 

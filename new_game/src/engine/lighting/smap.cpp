@@ -9,7 +9,7 @@
 #include "engine/graphics/geometry/aa.h"
 #include "core/matrix.h"
 #include "core/fmatrix.h"
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, dfacets, prim_objects)
 #include "fallen/Headers/Game.h"
 #include "actors/characters/person_types.h"  // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
 

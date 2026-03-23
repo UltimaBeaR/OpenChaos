@@ -4,7 +4,7 @@
 // in the pre-release build.
 
 #include "fallen/Headers/Game.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 #include "actors/animals/animal.h"
 #include "actors/animals/animal_globals.h"
 

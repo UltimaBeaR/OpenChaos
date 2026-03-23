@@ -10,7 +10,7 @@
 // string.h must come first (memory.h → structs.h → anim.h uses strcpy).
 #include <string.h>
 #include <MFStdLib.h>
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h"
 
 // --- screen layout ---
 

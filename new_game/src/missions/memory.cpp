@@ -16,8 +16,8 @@
 #include "engine/lighting/night_globals.h"
 #include "actors/items/barrel.h"
 #include "actors/items/barrel_globals.h"
-#include "fallen/Headers/eway.h"      // Temporary: EWAY_mess, EWAY_way, EWAY_cond, EWAY_edef, EWAY_timer
-#include "fallen/Headers/pap.h"       // Temporary: PAP_hi, PAP_lo, PAP_SIZE_HI, PAP_SIZE_LO
+#include "missions/eway.h"
+#include "world/map/pap_globals.h"
 #include "ai/mav.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"

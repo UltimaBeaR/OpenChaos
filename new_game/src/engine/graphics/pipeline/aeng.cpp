@@ -20,20 +20,19 @@
 #include "core/matrix.h"
 
 // Temporary: FMatrix, FC_cam, Keys, HEAP, prim_points, save_table, NIGHT_cache
-#include "fallen/Headers/FMatrix.h"
+#include "core/fmatrix.h"
 #include "ui/camera/fc.h"       // Temporary: engine/graphics → ui/camera DAG violation (FC_cam camera state)
 #include "ui/camera/fc_globals.h"
 #include "fallen/Headers/Game.h"      // Temporary: large umbrella header, not yet split
 #include "world/environment/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
-#include "fallen/Headers/memory.h"    // Temporary: MemAlloc/MemFree wrappers
 #include "world/navigation/inside2.h"
 #include "world/navigation/inside2_globals.h"
 #include "world/map/pap.h"          // Temporary: engine → world DAG violation
 #include "world/map/pap_globals.h"  // Temporary: engine → world DAG violation
 #include "ai/mav.h"      // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
-#include "missions/memory_globals.h" // Temporary: inside_storeys
+#include "missions/memory_globals.h" // Temporary: engine → missions DAG violation (prim_points, dfacets, roof_faces4)
 
 #include <MFStdLib.h>
 #include <math.h>

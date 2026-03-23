@@ -5,7 +5,8 @@
 // with DrawIndPrimMM or DrawIndexedPrimitive, skipping per-frame geometry rebuild.
 
 #include <MFStdLib.h>
-#include "fallen/Headers/Night.h"
+#include "engine/lighting/night.h"
+#include "engine/lighting/night_globals.h"
 
 // uc_orig: FASTPRIM_init (fallen/DDEngine/Headers/fastprim.h)
 void FASTPRIM_init(void);

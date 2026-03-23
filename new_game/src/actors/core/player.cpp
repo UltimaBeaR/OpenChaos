@@ -1,10 +1,12 @@
 #include "fallen/Headers/Game.h"
 #include "actors/core/player.h"
 #include "actors/core/player_globals.h"
-#include "fallen/Headers/statedef.h"
-#include "fallen/Headers/furn.h"
-#include "fallen/Headers/cnet.h"
-#include "fallen/Headers/interfac.h"
+#include "actors/core/statedef.h"
+#include "actors/vehicles/furn.h"
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
 
 // uc_orig: set_up_camera (fallen/Source/Player.cpp)
 extern void set_up_camera(Thing* t_camera, GameCoord* start_pos, Thing* track_thing);

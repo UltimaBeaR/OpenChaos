@@ -1,5 +1,5 @@
 #include "actors/vehicles/chopper_globals.h"
-#include "fallen/Headers/statedef.h"
+#include "actors/core/statedef.h"
 
 // Forward declarations for state functions defined in chopper.cpp.
 void CHOPPER_fn_init(Thing*);

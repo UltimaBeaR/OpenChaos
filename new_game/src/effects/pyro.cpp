@@ -1087,7 +1087,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 // Temporary: needed for SPARK_create, SPARK_Pinfo, SPARK_TYPE_*
 #include "effects/spark.h"
 // Temporary: needed for GetSeed, SetSeed
-#include "fallen/Headers/id.h"
+#include "world/environment/id.h"
 // Temporary: needed for PAP_calc_map_height_at (PYRO_draw_armageddon)
 #include "world/map/pap.h"
 // BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.

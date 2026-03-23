@@ -1,5 +1,19 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 184 — Массовая замена fallen/Headers/ redirect-заглушек прямыми путями (2026-03-24)
+
+- Заменены все `fallen/Headers/pap.h` → `world/map/pap_globals.h` (19 файлов).
+- Заменены все `fallen/Headers/eway.h` → `missions/eway.h` (12 файлов).
+- Заменены все `fallen/Headers/memory.h` → `missions/memory_globals.h` (29 файлов); `game.cpp` → `missions/memory_globals.h` + `missions/memory.h`.
+- Заменены `fallen/Headers/structs.h` в `memory_globals.h`, `prim.h`, `prim_globals.h` → `core/vector.h` (SVector уже был там, structs.h был избыточен).
+- Заменён `fallen/Headers/Thing.h` в `panel.cpp`, `interact.h` → прямые пути.
+- Массовая замена ~60 других redirect-заглушек в 30+ файлах: statedef, Sound, interact, interfac, cnet, pcom, ns, barrel, guns, combat, furn, building, elev, Night, ob, special, Vehicle, FMatrix, ribbon, grenade, drip, widget, puddle, dirt, xlat_str, music, frontend, snipe, trip, door, overlay, fc, ware, io, build2, pow, pyro, night, gamemenu, id, fog, hook, mist, glitter, spark, tracks, wand, balloon, playcuts, env, morph, qedit, shadow, save, wmove.
+- `aeng.cpp`: обнаружен дубликат `missions/memory_globals.h` (был уже на строке 36) — лишний удалён.
+- `prim.cpp`: аналогичный дубликат — два `missions/memory_globals.h` слиты в один.
+- Добавлены `// Temporary:` маркеры к ~15 DAG-нарушениям engine/world/actors→missions которые остались без маркеров после замены строк.
+- Temporary: 413 → 415 (рост из-за добавления маркеров к ранее немаркированным нарушениям).
+- Non-Game.h fallen/Headers/ включений осталось: 0.
+
 ## Итерация 183 — Зачистка redirect-заглушек DDEngine/DDLibrary: прямые пути + удаление нулевых файлов (2026-03-23)
 
 - Удалены `sw.h`, `fall.h`, `DrawXtra.h` — нет потребителей в новом коде (sw.cpp/fall.cpp не мигрированы).

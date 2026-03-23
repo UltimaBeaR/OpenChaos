@@ -1,22 +1,24 @@
 // Temporary: Game.h must be first — sets up cross-module types.
 #include "fallen/Headers/Game.h"
 // Temporary: heap.h not yet migrated to new/
-#include "fallen/Headers/heap.h"
+#include "core/heap.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 // Temporary: ob.h not yet migrated
-#include "fallen/Headers/ob.h"
+#include "world/map/ob.h"
+#include "world/map/ob_globals.h"
 // Temporary: pap.h not yet migrated
-#include "fallen/Headers/pap.h"
+#include "world/map/pap_globals.h"
 // Temporary: fmatrix.h is in core/ already
 #include "core/fmatrix.h"
 // Temporary: supermap.h not yet migrated
 #include "world/map/supermap.h"
 #include "engine/lighting/ed_light.h"
 // Temporary: memory.h (prim_objects, dfacets, prim_normal, etc.)
-#include "fallen/Headers/memory.h"
+#include "missions/memory_globals.h"
 // Temporary: ware.h (WARE_in)
-#include "fallen/Headers/ware.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h"
 // Temporary: mav.h not yet fully migrated
 #include "ai/mav.h"          // Temporary: engine->ai DAG violation (was via fallen/Headers/mav.h)
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_LAMPOST

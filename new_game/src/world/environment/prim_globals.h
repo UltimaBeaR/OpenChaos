@@ -3,7 +3,6 @@
 
 #include "core/types.h"
 #include "core/vector.h"                        // SVector
-#include "fallen/Headers/structs.h"             // Temporary: base game types
 #include "world/environment/prim_types.h"       // PrimFace3/4, PrimObject, PrimPoint, PrimMultiObject, MAX_PRIM_OBJECTS
 
 // ---- Internal constants ----

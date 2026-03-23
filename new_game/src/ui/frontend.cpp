@@ -8,9 +8,10 @@
 #include "ui/frontend_globals.h"
 
 // Temporary: xlat_str.h for X_* string IDs
-#include "fallen/Headers/xlat_str.h"
+#include "assets/xlat_str.h"
 // Temporary: interfac.h for init_joypad_config, DIJOYSTATE
-#include "fallen/Headers/interfac.h"
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
 // Temporary: menufont.h for MENUFONT_Draw, MENUFONT_Dimensions, etc.
 #include "fallen/DDEngine/Headers/menufont.h"
 // Temporary: font2d.h for FONT2D_DrawStringRightJustify
@@ -20,13 +21,16 @@
 // Temporary: poly.h for POLY_PAGE_* constants, POLY_Point
 #include "fallen/DDEngine/Headers/poly.h"
 // Temporary: fmatrix.h for FMATRIX_calc, FMATRIX_MUL
-#include "fallen/Headers/FMatrix.h"
+#include "core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
 // Temporary: io.h for FileOpen, FileRead, FileClose, FileSeek, FileWrite
-#include "fallen/Headers/io.h"
+#include "assets/level_loader.h"
+#include "assets/level_loader_globals.h"
+#include "assets/anim_loader.h"
+#include "assets/anim_loader_globals.h"
 // Temporary: music.h for MUSIC_mode, MUSIC_MODE_FRONTEND, stop_all_fx_and_music
-#include "fallen/Headers/music.h"
+#include "engine/audio/music.h"
 // Temporary: game.h for MemAlloc, MemFree, Random, DATA_DIR
 #include "fallen/Headers/Game.h"
 

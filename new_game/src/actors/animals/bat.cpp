@@ -2,9 +2,9 @@
 #include "actors/animals/bat_globals.h"
 #include "actors/animals/bat.h"
 #include "actors/characters/anim_ids.h"
-#include "fallen/Headers/statedef.h"
-#include "fallen/Headers/Sound.h"
-#include "fallen/Headers/eway.h"
+#include "actors/core/statedef.h"
+#include "engine/audio/sound.h"
+#include "missions/eway.h" // Temporary: actors → missions DAG violation (EWAY types and functions)
 #include "engine/effects/psystem.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ai/mav.h"
