@@ -1,71 +1,14 @@
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_wire.cpp + outro_wire_globals.cpp (iteration 151) [WIRE_NUM_MESHES, WIRE_mesh, WIRE_ot_line, WIRE_ot_dot, WIRE_last, WIRE_now, WIRE_Point, WIRE_NUM_POINTS, WIRE_point, WIRE_MODE_NONE_WIRE, WIRE_MODE_WIRE_BRIGHT, WIRE_MODE_BRIGHT_TEXTURE, WIRE_MODE_TEXTURE_NONE, WIRE_current_mesh, WIRE_current_mode, WIRE_current_countdown, WIRE_plane_init, WIRE_plane_rotate, WIRE_plane_process, WIRE_plane_draw, WIRE_init, WIRE_draw]
-//
-// The wire-frame spinny objects
-//
+#include "ui/cutscenes/outro/outro_wire.h"
+#include "ui/cutscenes/outro/outro_wire_globals.h"
+#include "fallen/outro/key.h"    // Temporary: KEY_on, KEY_S, KEY_P, KEY_J
+#include "fallen/outro/imp.h"    // Temporary: IMP_Mesh, IMP_binary_load
+#include "fallen/outro/matrix.h" // Temporary: MATRIX_calc, MATRIX_MUL
+#include "fallen/outro/mf.h"     // Temporary: MF_load_textures, MF_backup, MF_rotate_mesh, MF_*
+#include "fallen/outro/os.h"     // Temporary: OS_Buffer, OS_buffer_*, OS_transform, OS_trans, OS_ticks, OS_texture_create
 
-#include "always.h"
-#include "key.h"
-#include "imp.h"
-#include "matrix.h"
-#include "mf.h"
-#include "os.h"
-#include "wire.h"
-
-//
-// Our meshes.
-//
-
-#define WIRE_NUM_MESHES 4
-
-IMP_Mesh WIRE_mesh[WIRE_NUM_MESHES];
-
-//
-// The textures.
-//
-
-OS_Texture* WIRE_ot_line;
-OS_Texture* WIRE_ot_dot;
-
-SLONG WIRE_last;
-SLONG WIRE_now;
-
-//
-// The box we use as the zbuffer hack.
-//
-
-typedef struct
-{
-    float x;
-    float y;
-    float z;
-
-    OS_Vert ov;
-
-} WIRE_Point;
-
-#define WIRE_NUM_POINTS 8
-
-WIRE_Point WIRE_point[WIRE_NUM_POINTS];
-
-//
-// The current mesh we are drawing and how we are drawing it...
-//
-
-#define WIRE_MODE_NONE_WIRE 0
-#define WIRE_MODE_WIRE_BRIGHT 1
-#define WIRE_MODE_BRIGHT_TEXTURE 2
-#define WIRE_MODE_TEXTURE_NONE 3
-
-SLONG WIRE_current_mesh;
-SLONG WIRE_current_mode;
-SLONG WIRE_current_countdown;
-
-//
-// Initialises the box so it will encompass the given mesh, no
-// matter how it is rotated.
-//
-
-void WIRE_plane_init(IMP_Mesh* im)
+// uc_orig: WIRE_plane_init (fallen/outro/wire.cpp)
+// Initialises the bounding-box plane corners to just outside the given mesh extents.
+static void WIRE_plane_init(IMP_Mesh* im)
 {
     SLONG i;
 
@@ -76,7 +19,9 @@ void WIRE_plane_init(IMP_Mesh* im)
     }
 }
 
-void WIRE_plane_rotate(IMP_Mesh* im, float angle)
+// uc_orig: WIRE_plane_rotate (fallen/outro/wire.cpp)
+// Rotates the bounding-box corners around the Y axis by the given angle.
+static void WIRE_plane_rotate(IMP_Mesh* im, float angle)
 {
     SLONG i;
 
@@ -100,11 +45,9 @@ void WIRE_plane_rotate(IMP_Mesh* im, float angle)
     }
 }
 
-//
-// Makes the plane sink down.
-//
-
-void WIRE_plane_process()
+// uc_orig: WIRE_plane_process (fallen/outro/wire.cpp)
+// Advances the plane animation: moves upper points down (or up during TEXTURE_NONE fade-out).
+static void WIRE_plane_process()
 {
     SLONG i;
 
@@ -139,17 +82,15 @@ void WIRE_plane_process()
     }
 }
 
-void WIRE_plane_draw()
+// uc_orig: WIRE_plane_draw (fallen/outro/wire.cpp)
+// Transforms and submits the bounding-box faces as transparent polygons (z-buffer hack).
+static void WIRE_plane_draw()
 {
     SLONG i;
 
     OS_Buffer* ob = OS_buffer_new();
     OS_Vert* ov;
     WIRE_Point* wp;
-
-    //
-    // Rotate all the points.
-    //
 
     for (i = 0; i < WIRE_NUM_POINTS; i++) {
         wp = &WIRE_point[i];
@@ -171,10 +112,6 @@ void WIRE_plane_draw()
         ov->colour = 0x44444444;
         ov->specular = 0x00000000;
     }
-
-    //
-    // Add each face to our buffer.
-    //
 
     struct
     {
@@ -208,6 +145,7 @@ void WIRE_plane_draw()
     OS_buffer_draw(ob, NULL, NULL, OS_DRAW_TRANSPARENT | OS_DRAW_ZALWAYS);
 }
 
+// uc_orig: WIRE_init (fallen/outro/wire.cpp)
 void WIRE_init()
 {
     SLONG i;
@@ -226,37 +164,16 @@ void WIRE_init()
         WIRE_mesh[2] = IMP_binary_load("Meshes\\tallpot.imp");
         WIRE_mesh[3] = IMP_binary_load("Meshes\\capsule.imp");
 
-        //
-        // Process each mesh.
-        //
-
         for (i = 0; i < WIRE_NUM_MESHES; i++) {
-            //
-            // Load the textures.
-            //
-
             MF_load_textures(&WIRE_mesh[i]);
-
-            //
-            // So we can rotate it later...
-            //
-
             MF_backup(&WIRE_mesh[i]);
         }
-
-        //
-        // The wireframe textures.
-        //
 
         WIRE_ot_line = OS_texture_create("line.tga");
         WIRE_ot_dot = OS_texture_create("dot.tga");
 
         done = UC_TRUE;
     }
-
-    //
-    // The plane.
-    //
 
     WIRE_plane_init(&WIRE_mesh[0]);
 
@@ -267,6 +184,7 @@ void WIRE_init()
     WIRE_last = 0;
 }
 
+// uc_orig: WIRE_draw (fallen/outro/wire.cpp)
 void WIRE_draw()
 {
     IMP_Mesh* im = &WIRE_mesh[WIRE_current_mesh];
@@ -274,10 +192,6 @@ void WIRE_draw()
     SLONG mode_over;
 
     if (OS_ticks() < 7000) {
-        //
-        // Nothing for a while...
-        //
-
         //		return;
     }
 
@@ -311,17 +225,9 @@ void WIRE_draw()
     }
 
     if (mode_over) {
-        //
-        // Start another sweep.
-        //
-
         WIRE_current_mode += 1;
 
         if (WIRE_current_mode > WIRE_MODE_TEXTURE_NONE) {
-            //
-            // Start a new mesh.
-            //
-
             WIRE_current_mode = 0;
             WIRE_current_mesh += 1;
 
@@ -341,20 +247,15 @@ void WIRE_draw()
         WIRE_plane_init(im);
     }
 
-    //
-    // Rotate the mesh and plane.
-    //
-
     float angle = OS_ticks() * 0.001F;
 
     MF_rotate_mesh(im, angle);
     WIRE_plane_rotate(im, angle);
 
-    //
-    // Work out where the light source is.
-    //
-
+    // Light direction macros — use keyboard override in debug.
+    // uc_orig: WIRE_LIGHT_YAW (fallen/outro/wire.cpp)
 #define WIRE_LIGHT_YAW ((KEY_on[KEY_J]) ? (130 * 180 / PI) : (190 * 180 / PI))
+    // uc_orig: WIRE_LIGHT_PITCH (fallen/outro/wire.cpp)
 #define WIRE_LIGHT_PITCH (-PI / 4)
 
     float light_x;
@@ -438,5 +339,3 @@ void WIRE_draw()
         ASSERT(0);
     }
 }
-
-#endif // MIGRATED

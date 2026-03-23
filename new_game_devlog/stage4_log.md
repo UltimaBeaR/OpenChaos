@@ -1,5 +1,15 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 151 — outro: outroFont, wire, outroMain (2026-03-23)
+
+- `the_end` в `outroMain.cpp` исходно объявлена `extern UBYTE the_end;` внутри тела функции; сохранено 1:1 (не заменять на include `missions/game_globals.h` — DAG нарушение ui→missions).
+- Во время ревью: добавлены `uc_orig` для `FONT_SHIMMER_SEGS/DANGLE/AMOUNT` (function-scope macros) и `WIRE_LIGHT_YAW/PITCH` (function-scope macros) — пропущены при первичном написании.
+- `FONT_Letter` struct в `outro_font_globals.h` — uc_orig изначально указывал `FONT_letter` (переменная); исправлено на `FONT_Letter` (struct).
+- `FONT_NUM_FOREIGN` и `FONT_NUM_LETTERS` разделены на отдельные uc_orig комментарии.
+- Баг при ревью: лишняя `{` попала в тело `MAIN_main` после правки extern; исправлено.
+
+---
+
 ## Итерация 150 — outro: outroTga, outroMatrix, back, cam, credits (2026-03-23)
 
 - Начало миграции `old/fallen/outro/` — первый батч из 5 файлов.

@@ -282,6 +282,11 @@ set(SOURCES_OUTRO
     src/new/ui/cutscenes/outro/outro_cam_globals.cpp
     src/new/ui/cutscenes/outro/outro_credits.cpp
     src/new/ui/cutscenes/outro/outro_credits_globals.cpp
+    src/new/ui/cutscenes/outro/outro_font.cpp
+    src/new/ui/cutscenes/outro/outro_font_globals.cpp
+    src/new/ui/cutscenes/outro/outro_wire.cpp
+    src/new/ui/cutscenes/outro/outro_wire_globals.cpp
+    src/new/ui/cutscenes/outro/outro_main.cpp
 )
 
 set(SOURCES_GAME

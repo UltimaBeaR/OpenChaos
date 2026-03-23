@@ -1,27 +1,22 @@
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_main.cpp (iteration 151) [MAIN_main]
-//
-// The mnain outro loop.
-//
+#include "ui/cutscenes/outro/outro_main.h"
+#include "ui/cutscenes/outro/outro_back.h"
+#include "ui/cutscenes/outro/outro_cam.h"
+#include "ui/cutscenes/outro/outro_cam_globals.h"
+#include "ui/cutscenes/outro/outro_credits.h"
+#include "ui/cutscenes/outro/outro_font.h"
+#include "ui/cutscenes/outro/outro_wire.h"
+#include "fallen/outro/key.h"  // Temporary: KEY_on, KEY_ESCAPE
+#include "fallen/outro/os.h"   // Temporary: OS_ticks, OS_ticks_reset, OS_clear_screen, OS_scene_begin/end, OS_show, OS_process_messages, OS_camera_set, OS_sound_*
 
-#include "always.h"
-#include "back.h"
-#include "cam.h"
-#include "credits.h"
-#include "key.h"
-#include "font.h"
-#include "os.h"
-#include "wire.h"
-
+// uc_orig: MAIN_main (fallen/outro/outroMain.cpp)
 void MAIN_main()
 {
-    SLONG time1 = OS_ticks();
-
+    // Preserve original extern declaration: the_end lives in Game.cpp (missions layer).
     extern UBYTE the_end;
 
-    //
-    // Quickly clear the screen.
-    //
+    SLONG time1 = OS_ticks();
 
+    // Show a loading or "THE END" screen while the rest of the outro initialises.
     FONT_init();
     OS_clear_screen();
     OS_scene_begin();
@@ -41,19 +36,12 @@ void MAIN_main()
     OS_scene_end();
     OS_show();
 
-    //
-    // Continue with initialisation...
-    //
-
     CAM_init();
     BACK_init();
     CREDITS_init();
     WIRE_init();
 
-    //
-    // Make sure we display the word, "THE END" for at least 4 seconds...
-    //
-
+    // Keep "THE END" visible for at least 4 seconds before starting the sequence.
     if (the_end) {
         while (OS_ticks() < time1 + 4000)
             ;
@@ -89,10 +77,6 @@ void MAIN_main()
 
         OS_scene_begin();
 
-        //
-        // Clear the screen...
-        //
-
         BACK_draw();
 
         WIRE_draw();
@@ -115,5 +99,3 @@ void MAIN_main()
         OS_show();
     }
 }
-
-#endif // MIGRATED

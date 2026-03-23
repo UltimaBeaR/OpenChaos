@@ -1,100 +1,87 @@
-#if 0 // MIGRATED to src/new/ui/cutscenes/outro/outro_font.cpp + outro_font_globals.cpp (iteration 151) [FONT_LETTER_HEIGHT, FONT_LOWERCASE, FONT_UPPERCASE, FONT_NUMBERS, FONT_PUNCT_PLING, FONT_PUNCT_DQUOTE, FONT_PUNCT_POUND, FONT_PUNCT_DOLLAR, FONT_PUNCT_PERCENT, FONT_PUNCT_POWER, FONT_PUNCT_AMPERSAND, FONT_PUNCT_ASTERISK, FONT_PUNCT_OPEN, FONT_PUNCT_CLOSE, FONT_PUNCT_COPEN, FONT_PUNCT_CCLOSE, FONT_PUNCT_SOPEN, FONT_PUNCT_SCLOSE, FONT_PUNCT_LT, FONT_PUNCT_GT, FONT_PUNCT_BSLASH, FONT_PUNCT_FSLASH, FONT_PUNCT_COLON, FONT_PUNCT_SEMICOLON, FONT_PUNCT_QUOTE, FONT_PUNCT_AT, FONT_PUNCT_HASH, FONT_PUNCT_TILDE, FONT_PUNCT_QMARK, FONT_PUNCT_MINUS, FONT_PUNCT_EQUALS, FONT_PUNCT_PLUS, FONT_PUNCT_DOT, FONT_PUNCT_COMMA, FONT_NUM_FOREIGN, FONT_NUM_LETTERS, FONT_Letter, FONT_letter, FONT_punct, FONT_ot, FONT_data, FONT_end_x, FONT_end_y, FONT_found_data, FONT_init, FONT_get_index, FONT_char_is_valid, FONT_get_letter_width, FONT_draw_letter, FONT_get_width, FONT_draw]
-//
-// A font! That's all there is to it.
-//
+#include "ui/cutscenes/outro/outro_font.h"
+#include "ui/cutscenes/outro/outro_font_globals.h"
+#include "ui/cutscenes/outro/outro_tga.h" // Temporary: OUTRO_TGA_Info, OUTRO_TGA_load
+#include "fallen/outro/os.h"              // Temporary: OS_Buffer, OS_Texture, OS_buffer_*, OS_ticks
+#include <stdarg.h>
+#include <stdio.h>
+#include <math.h>
 
-#include "always.h"
-#include "font.h"
-#include "os.h"
-#include "tga.h"
-
-//
-// Each of the letters
-//
-
-typedef struct
-{
-    float u;
-    float v;
-    float uwidth;
-
-} FONT_Letter;
-
+// uc_orig: FONT_LETTER_HEIGHT (fallen/outro/outroFont.cpp)
 #define FONT_LETTER_HEIGHT 21
 
+// uc_orig: FONT_LOWERCASE (fallen/outro/outroFont.cpp)
 #define FONT_LOWERCASE 0
+// uc_orig: FONT_UPPERCASE (fallen/outro/outroFont.cpp)
 #define FONT_UPPERCASE 26
+// uc_orig: FONT_NUMBERS (fallen/outro/outroFont.cpp)
 #define FONT_NUMBERS 52
+// uc_orig: FONT_PUNCT_PLING (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_PLING 62
+// uc_orig: FONT_PUNCT_DQUOTE (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_DQUOTE 63
+// uc_orig: FONT_PUNCT_POUND (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_POUND 64
+// uc_orig: FONT_PUNCT_DOLLAR (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_DOLLAR 65
+// uc_orig: FONT_PUNCT_PERCENT (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_PERCENT 66
+// uc_orig: FONT_PUNCT_POWER (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_POWER 67
+// uc_orig: FONT_PUNCT_AMPERSAND (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_AMPERSAND 68
+// uc_orig: FONT_PUNCT_ASTERISK (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_ASTERISK 69
+// uc_orig: FONT_PUNCT_OPEN (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_OPEN 70
+// uc_orig: FONT_PUNCT_CLOSE (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_CLOSE 71
+// uc_orig: FONT_PUNCT_COPEN (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_COPEN 72
+// uc_orig: FONT_PUNCT_CCLOSE (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_CCLOSE 73
+// uc_orig: FONT_PUNCT_SOPEN (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_SOPEN 74
+// uc_orig: FONT_PUNCT_SCLOSE (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_SCLOSE 75
+// uc_orig: FONT_PUNCT_LT (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_LT 76
+// uc_orig: FONT_PUNCT_GT (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_GT 77
+// uc_orig: FONT_PUNCT_BSLASH (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_BSLASH 78
+// uc_orig: FONT_PUNCT_FSLASH (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_FSLASH 79
+// uc_orig: FONT_PUNCT_COLON (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_COLON 80
+// uc_orig: FONT_PUNCT_SEMICOLON (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_SEMICOLON 81
+// uc_orig: FONT_PUNCT_QUOTE (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_QUOTE 82
+// uc_orig: FONT_PUNCT_AT (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_AT 83
+// uc_orig: FONT_PUNCT_HASH (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_HASH 84
+// uc_orig: FONT_PUNCT_TILDE (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_TILDE 85
+// uc_orig: FONT_PUNCT_QMARK (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_QMARK 86
+// uc_orig: FONT_PUNCT_MINUS (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_MINUS 87
+// uc_orig: FONT_PUNCT_EQUALS (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_EQUALS 88
+// uc_orig: FONT_PUNCT_PLUS (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_PLUS 89
+// uc_orig: FONT_PUNCT_DOT (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_DOT 90
+// uc_orig: FONT_PUNCT_COMMA (fallen/outro/outroFont.cpp)
 #define FONT_PUNCT_COMMA 91
-#define FONT_NUM_FOREIGN 66
-#define FONT_NUM_LETTERS (92 + FONT_NUM_FOREIGN)
 
-FONT_Letter FONT_letter[FONT_NUM_LETTERS];
-
-//
-// This is the order the punctuation characters come in.
-//
-
-CBYTE FONT_punct[] = {
-    "!\""
-    "\xa3"
-    "$%^&*(){}[]<>\\/:;'@#~?-=+.,"
-
-    "\xa9\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfc\xfd\xfe\xff"
-};
-
-//
-// The texture and another place where we store the font data
-// apart from the texture!
-//
-
-OS_Texture* FONT_ot;
-OUTRO_TGA_Pixel FONT_data[256][256];
-
-//
-// Where the next character would have been drawn.
-//
-
-float FONT_end_x;
-float FONT_end_y;
-
-//
-// Returns UC_TRUE if it finds pixel data at (x,y)
-//
-
-SLONG FONT_found_data(SLONG x, SLONG y)
+// uc_orig: FONT_found_data (fallen/outro/outroFont.cpp)
+// Returns UC_TRUE if any pixel in a vertical strip at column x has non-zero alpha.
+// Used to locate left/right edges of each glyph in the font texture.
+static SLONG FONT_found_data(SLONG x, SLONG y)
 {
     SLONG dy;
-
     SLONG px;
     SLONG py;
 
@@ -114,6 +101,7 @@ SLONG FONT_found_data(SLONG x, SLONG y)
     return UC_FALSE;
 }
 
+// uc_orig: FONT_init (fallen/outro/outroFont.cpp)
 void FONT_init()
 {
     SLONG i;
@@ -123,15 +111,7 @@ void FONT_init()
 
     FONT_Letter* fl;
 
-    //
-    // Load the texture.
-    //
-
     FONT_ot = OS_texture_create("font.tga");
-
-    //
-    // Load in the font bitmap.
-    //
 
     OUTRO_TGA_Info ti;
 
@@ -145,20 +125,12 @@ void FONT_init()
     ASSERT(ti.width == 256);
     ASSERT(ti.height == 256);
 
-    //
-    // Work out the position of each of the letters.
-    //
-
     x = 0;
     y = 19;
     line = 0;
 
     for (i = 0; i < FONT_NUM_LETTERS; i++) {
         fl = &FONT_letter[i];
-
-        //
-        // Look for the start of the letter.
-        //
 
         while (!FONT_found_data(x, y)) {
             x += 1;
@@ -177,10 +149,6 @@ void FONT_init()
         fl->u = float(x);
         fl->v = float(y);
 
-        //
-        // Look for the end of the letter.
-        //
-
         x += 3;
 
         while (FONT_found_data(x, y)) {
@@ -189,10 +157,6 @@ void FONT_init()
 
         fl->uwidth = (x - fl->u) * (1.0F / 256.0F);
 
-        //
-        // Convert the (u,v)s
-        //
-
         fl->u *= 1.0F / 256.0F;
         fl->v *= 1.0F / 256.0F;
 
@@ -200,17 +164,11 @@ void FONT_init()
     }
 }
 
-//
-// Returns the index of the given character
-//
-
-SLONG FONT_get_index(CBYTE chr)
+// uc_orig: FONT_get_index (fallen/outro/outroFont.cpp)
+// Returns the font letter array index for the given character.
+static SLONG FONT_get_index(CBYTE chr)
 {
     SLONG letter;
-
-    //
-    // Find our letter index.
-    //
 
     if (WITHIN(chr, 'a', 'z')) {
         letter = FONT_LOWERCASE + chr - 'a';
@@ -219,10 +177,6 @@ SLONG FONT_get_index(CBYTE chr)
     } else if (WITHIN(chr, '0', '9')) {
         letter = FONT_NUMBERS + chr - '0';
     } else {
-        //
-        // Look for the punctuation letter.
-        //
-
         letter = FONT_PUNCT_PLING;
 
         for (CBYTE* ch = FONT_punct; *ch && *ch != chr; ch++, letter++)
@@ -236,6 +190,7 @@ SLONG FONT_get_index(CBYTE chr)
     return letter;
 }
 
+// uc_orig: FONT_char_is_valid (fallen/outro/outroFont.cpp)
 SLONG FONT_char_is_valid(CBYTE ch)
 {
     if (FONT_get_index(ch) == FONT_PUNCT_QMARK && ch != '?') {
@@ -245,7 +200,9 @@ SLONG FONT_char_is_valid(CBYTE ch)
     }
 }
 
-float FONT_get_letter_width(CBYTE chr)
+// uc_orig: FONT_get_letter_width (fallen/outro/outroFont.cpp)
+// Returns normalised width of a single character (space = 8/256).
+static float FONT_get_letter_width(CBYTE chr)
 {
     SLONG letter;
 
@@ -260,7 +217,10 @@ float FONT_get_letter_width(CBYTE chr)
     return FONT_letter[letter].uwidth + (1.0F / 256.0F);
 }
 
-float FONT_draw_letter(
+// uc_orig: FONT_draw_letter (fallen/outro/outroFont.cpp)
+// Adds a single glyph sprite to the buffer. Returns the advance width.
+// shimmer != 0 draws the glyph in horizontal strips with a sine-wave wobble.
+static float FONT_draw_letter(
     OS_Buffer* ob,
     CBYTE chr,
     float x,
@@ -276,15 +236,7 @@ float FONT_draw_letter(
 
     FONT_Letter* fl;
 
-    //
-    // How much the character leans...
-    //
-
     lean = (italic) ? scale * 0.02F : 0.0F;
-
-    //
-    // Space is a special case!
-    //
 
     if (chr == ' ') {
         width = (10.0F / 256.0F) * scale;
@@ -335,8 +287,11 @@ float FONT_draw_letter(
         } else {
             SLONG i;
 
+// uc_orig: FONT_SHIMMER_SEGS (fallen/outro/outroFont.cpp)
 #define FONT_SHIMMER_SEGS 12
+// uc_orig: FONT_SHIMMER_DANGLE (fallen/outro/outroFont.cpp)
 #define FONT_SHIMMER_DANGLE 0.8F
+// uc_orig: FONT_SHIMMER_AMOUNT (fallen/outro/outroFont.cpp)
 #define FONT_SHIMMER_AMOUNT 0.01F
 
             float dx_last;
@@ -347,16 +302,8 @@ float FONT_draw_letter(
             float angle = OS_ticks() * 0.004F;
             float dlean = lean * (1.0F / FONT_SHIMMER_SEGS);
 
-            //
-            // Scale the amount we shimmer by...
-            //
-
             shimmer *= scale;
             shimmer *= FONT_SHIMMER_AMOUNT;
-
-            //
-            // Draw in horizontal strips...
-            //
 
             dx_last = sin(angle - FONT_SHIMMER_DANGLE) * shimmer + lean;
 
@@ -386,11 +333,9 @@ float FONT_draw_letter(
     return (width + 1.0F / 256.0F) * scale;
 }
 
-//
-// Returns the width of the given string.
-//
-
-float FONT_get_width(CBYTE* str, float scale)
+// uc_orig: FONT_get_width (fallen/outro/outroFont.cpp)
+// Returns the total width of a string in normalised screen coordinates.
+static float FONT_get_width(CBYTE* str, float scale)
 {
     float ans = 0.0F;
 
@@ -401,6 +346,7 @@ float FONT_get_width(CBYTE* str, float scale)
     return ans;
 }
 
+// uc_orig: FONT_draw (fallen/outro/outroFont.cpp)
 void FONT_draw(SLONG flag, float start_x, float start_y, ULONG colour, float scale, SLONG cursor, float shimmer, CBYTE* fmt, ...)
 {
     CBYTE message[4096];
@@ -414,22 +360,10 @@ void FONT_draw(SLONG flag, float start_x, float start_y, ULONG colour, float sca
         va_end(ap);
     }
 
-    //
-    // So that a scale of 1.0F is normal size.
-    //
-
+    // A scale of 1.0F is normal size.
     scale *= 0.5F;
 
-    //
-    // The buffer we use to hold the sprites.
-    //
-
     OS_Buffer* ob = OS_buffer_new();
-
-    //
-    // Make sure the colour component has alpha- otherwise the
-    // font will be invisible!
-    //
 
     SLONG alpha;
 
@@ -455,10 +389,6 @@ void FONT_draw(SLONG flag, float start_x, float start_y, ULONG colour, float sca
             y += (FONT_LETTER_HEIGHT + 1.0F) * scale;
         } else {
             if (cursor-- == 0) {
-                //
-                // Draw a cursor here.
-                //
-
                 {
                     OS_Buffer* ob = OS_buffer_new();
 
@@ -481,10 +411,6 @@ void FONT_draw(SLONG flag, float start_x, float start_y, ULONG colour, float sca
     }
 
     if (cursor-- == 0) {
-        //
-        // Draw a cursor here.
-        //
-
         {
             OS_Buffer* ob = OS_buffer_new();
 
@@ -502,12 +428,6 @@ void FONT_draw(SLONG flag, float start_x, float start_y, ULONG colour, float sca
 
     OS_buffer_draw(ob, FONT_ot, NULL, OS_DRAW_DOUBLESIDED | OS_DRAW_ZALWAYS | OS_DRAW_NOZWRITE | OS_DRAW_ALPHABLEND);
 
-    //
-    // Where the next character would have been drawn.
-    //
-
     FONT_end_x = x;
     FONT_end_y = y;
 }
-
-#endif // MIGRATED

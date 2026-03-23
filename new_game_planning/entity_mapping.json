@@ -78539,6 +78539,836 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_Letter",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_Letter",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_NUM_FOREIGN",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_NUM_FOREIGN",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_NUM_LETTERS",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_NUM_LETTERS",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_letter",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_letter",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_punct",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_punct",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_ot",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_ot",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_data",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_data",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_end_x",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_end_x",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_end_y",
+      "file": "new/ui/cutscenes/outro/outro_font_globals.h",
+      "orig_name": "FONT_end_y",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_FLAG_JUSTIFY_LEFT",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_JUSTIFY_LEFT",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_FLAG_JUSTIFY_CENTRE",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_JUSTIFY_CENTRE",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_FLAG_JUSTIFY_RIGHT",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_JUSTIFY_RIGHT",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_FLAG_ITALIC",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_FLAG_ITALIC",
+      "orig_file": "fallen/outro/font.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_init",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_init",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_char_is_valid",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_char_is_valid",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_draw",
+      "file": "new/ui/cutscenes/outro/outro_font.h",
+      "orig_name": "FONT_draw",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_LETTER_HEIGHT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_LETTER_HEIGHT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_LOWERCASE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_LOWERCASE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_UPPERCASE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_UPPERCASE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_NUMBERS",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_NUMBERS",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_PLING",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_PLING",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_DQUOTE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_DQUOTE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_POUND",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_POUND",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_DOLLAR",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_DOLLAR",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_PERCENT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_PERCENT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_POWER",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_POWER",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_AMPERSAND",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_AMPERSAND",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_ASTERISK",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_ASTERISK",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_OPEN",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_OPEN",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_CLOSE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_CLOSE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_COPEN",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_COPEN",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_CCLOSE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_CCLOSE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_SOPEN",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_SOPEN",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_SCLOSE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_SCLOSE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_LT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_LT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_GT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_GT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_BSLASH",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_BSLASH",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_FSLASH",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_FSLASH",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_COLON",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_COLON",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_SEMICOLON",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_SEMICOLON",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_QUOTE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_QUOTE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_AT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_AT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_HASH",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_HASH",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_TILDE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_TILDE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_QMARK",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_QMARK",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_MINUS",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_MINUS",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_EQUALS",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_EQUALS",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_PLUS",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_PLUS",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_DOT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_DOT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_PUNCT_COMMA",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_PUNCT_COMMA",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_found_data",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_found_data",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_get_index",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_get_index",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_get_letter_width",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_get_letter_width",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_draw_letter",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_draw_letter",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_get_width",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_get_width",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_SHIMMER_SEGS",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_SHIMMER_SEGS",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_SHIMMER_DANGLE",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_SHIMMER_DANGLE",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "FONT_SHIMMER_AMOUNT",
+      "file": "new/ui/cutscenes/outro/outro_font.cpp",
+      "orig_name": "FONT_SHIMMER_AMOUNT",
+      "orig_file": "fallen/outro/outroFont.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_NUM_MESHES",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_NUM_MESHES",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_mesh",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_mesh",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_ot_line",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_ot_line",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_ot_dot",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_ot_dot",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_last",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_last",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_now",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_now",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_Point",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_Point",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_NUM_POINTS",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_NUM_POINTS",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_point",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_point",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_MODE_NONE_WIRE",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_MODE_NONE_WIRE",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_MODE_WIRE_BRIGHT",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_MODE_WIRE_BRIGHT",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_MODE_BRIGHT_TEXTURE",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_MODE_BRIGHT_TEXTURE",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_MODE_TEXTURE_NONE",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_MODE_TEXTURE_NONE",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_current_mesh",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_current_mesh",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_current_mode",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_current_mode",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_current_countdown",
+      "file": "new/ui/cutscenes/outro/outro_wire_globals.h",
+      "orig_name": "WIRE_current_countdown",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_init",
+      "file": "new/ui/cutscenes/outro/outro_wire.h",
+      "orig_name": "WIRE_init",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_draw",
+      "file": "new/ui/cutscenes/outro/outro_wire.h",
+      "orig_name": "WIRE_draw",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_plane_init",
+      "file": "new/ui/cutscenes/outro/outro_wire.cpp",
+      "orig_name": "WIRE_plane_init",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_plane_rotate",
+      "file": "new/ui/cutscenes/outro/outro_wire.cpp",
+      "orig_name": "WIRE_plane_rotate",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_plane_process",
+      "file": "new/ui/cutscenes/outro/outro_wire.cpp",
+      "orig_name": "WIRE_plane_process",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_plane_draw",
+      "file": "new/ui/cutscenes/outro/outro_wire.cpp",
+      "orig_name": "WIRE_plane_draw",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_LIGHT_YAW",
+      "file": "new/ui/cutscenes/outro/outro_wire.cpp",
+      "orig_name": "WIRE_LIGHT_YAW",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "WIRE_LIGHT_PITCH",
+      "file": "new/ui/cutscenes/outro/outro_wire.cpp",
+      "orig_name": "WIRE_LIGHT_PITCH",
+      "orig_file": "fallen/outro/wire.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MAIN_main",
+      "file": "new/ui/cutscenes/outro/outro_main.h",
+      "orig_name": "MAIN_main",
+      "orig_file": "fallen/outro/outroMain.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
