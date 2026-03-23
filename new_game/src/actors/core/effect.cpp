@@ -1,7 +1,7 @@
 // Expanding-ring effect: prototype code from December 1997, never used in the final game.
 // init_effect has no external callers; process_effect is only set as a StateFn internally.
 
-#include "game.h"
+#include "missions/game_types.h"
 
 #include "actors/core/effect.h"
 

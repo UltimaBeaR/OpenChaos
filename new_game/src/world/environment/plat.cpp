@@ -3,14 +3,14 @@
 #include <MFStdLib.h>
 #include "missions/game_types.h"
 #include "actors/characters/person.h"  // set_face_thing
-#include "eway.h"
-#include "ob.h"
-#include "statedef.h"
-#include "wmove.h"
+#include "missions/eway.h"
+#include "world/map/ob.h"
+#include "actors/core/statedef.h"
+#include "world/navigation/wmove.h"
 #include "actors/characters/anim_ids.h"
-#include "psystem.h"
-#include "panel.h"
-#include "poly.h"
+#include "engine/effects/psystem.h"
+#include "ui/hud/panel.h"
+#include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/bloom.h" // BLOOM_draw, BLOOM_BEAM, BLOOM_LENSFLARE
 
 #include "world/environment/prim.h"    // get_prim_info, slide_along_prim

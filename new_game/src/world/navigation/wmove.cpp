@@ -6,7 +6,7 @@
 #include "world/navigation/wmove_globals.h"
 #include "world/environment/build2.h"
 #include "core/fmatrix.h"
-#include "statedef.h"
+#include "actors/core/statedef.h"
 
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"

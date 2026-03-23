@@ -48,6 +48,8 @@
 #include "engine/effects/psystem.h"
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
+#include "actors/characters/person.h"          // set_person_exit_vehicle, knock_person_down, set_person_flip, set_person_ko_recoil, person_is_lying_on_what
+#include "engine/physics/collide.h"            // collide_box_with_line, distance_to_line
 
 #include "ai/pcom.h"
 // engine/effects/psystem.h already included above; psystem_globals needed too

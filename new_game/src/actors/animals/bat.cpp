@@ -17,6 +17,9 @@
 #include "engine/physics/collide.h"
 #include "effects/pyro.h"
 #include "assets/level_loader.h"       // load_anim_prim_object
+#include "actors/characters/person.h"  // set_person_dead, set_face_thing, set_person_recoil, set_person_float_up
+#include "assets/anim_globals.h"       // anim_chunk
+#include "actors/core/interact.h"      // calc_sub_objects_position
 
 // Bitmask flags stored in Bat::flag.
 // uc_orig: BAT_FLAG_ATTACKED (fallen/Source/bat.cpp)

@@ -1,7 +1,7 @@
 // Global state and dispatch tables for the pyrotechnics system.
-#include "game.h"
+#include "missions/game_types.h"
 #include "effects/pyro_globals.h"
-#include "statedef.h"
+#include "actors/core/statedef.h"
 
 // uc_orig: PYRO_defaultpoints (fallen/Source/pyro.cpp)
 RadPoint PYRO_defaultpoints[16];

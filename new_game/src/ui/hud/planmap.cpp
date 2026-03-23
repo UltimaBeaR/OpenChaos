@@ -1,5 +1,6 @@
-#include "game.h"
-#include "pap.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
+#include "world/map/pap_globals.h"
 #include "world/map/road.h"
 #include "ui/hud/planmap.h"
 #include "ui/hud/planmap_globals.h"

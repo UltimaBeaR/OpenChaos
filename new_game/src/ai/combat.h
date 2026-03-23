@@ -1,7 +1,7 @@
 #ifndef AI_COMBAT_H
 #define AI_COMBAT_H
 
-#include "Game.h"
+#include "missions/game.h"
 #include "ai/combat_globals.h"
 
 // Hit type constants: identify the kind of hit that landed.

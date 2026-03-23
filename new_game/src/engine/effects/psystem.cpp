@@ -17,6 +17,7 @@
 #include "ui/camera/fc_globals.h"
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
+#include "engine/physics/collide.h"
 
 #include "engine/effects/psystem_globals.h"
 #include "world/map/pap.h"  // PAP_calc_map_height_at

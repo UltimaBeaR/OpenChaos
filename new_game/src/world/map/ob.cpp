@@ -15,8 +15,8 @@
 #include "world/environment/prim.h"       // slide_along_prim, get_prim_info
 #include "world/level_pools.h"
 
-#include "..\ddengine\headers\poly.h"
-#include "..\ddengine\headers\texture.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "assets/texture.h"
 #include "assets/level_loader.h"
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"

@@ -3,8 +3,8 @@
 // contains the main level loading pipeline, not elevator mechanics.
 // Elevator/platform logic lives in world/environment/plat.cpp and actors/core/interact.cpp.
 
-#include "Game.h"
-#include "ddlib.h"
+#include "missions/game.h"
+#include "engine/graphics/graphics_api/gd_display.h"
 
 #include "missions/elev.h"
 #include "missions/elev_globals.h"

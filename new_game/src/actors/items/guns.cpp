@@ -2,13 +2,15 @@
 // The old calc_target_score/find_target functions are commented out in the original
 // and replaced by calc_target_score_new/find_target_new.
 
-#include "game.h"
-#include "statedef.h"
-#include "pcom.h"
-#include "memory.h"
-#include "wmove.h"
+#include "missions/game_types.h"
+#include "actors/core/statedef.h"
+#include "ai/pcom.h"
+#include "missions/memory.h"
+#include "world/navigation/wmove.h"
 #include "actors/characters/anim_ids.h"
 #include "actors/items/guns.h"
+#include "actors/characters/person.h"  // can_a_see_b
+#include "engine/physics/collide.h"    // LOS_FLAG_IGNORE_PRIMS
 
 // uc_orig: is_person_dead (fallen/Source/guns.cpp)
 extern SLONG is_person_dead(Thing* p_person);

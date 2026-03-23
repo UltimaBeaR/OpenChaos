@@ -3,7 +3,7 @@
 #include "missions/game_types.h"
 
 #include <MFStdLib.h>
-#include <DDLib.h>
+#include "engine/graphics/graphics_api/gd_display.h"
 #include <math.h>
 
 #include "engine/graphics/geometry/shape.h"

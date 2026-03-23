@@ -1,7 +1,8 @@
 // Prototype enemy initializer from December 1997. Dead code — init_enemy is never called.
 
-#include "game.h"
-#include "person.h"
+#include "missions/game_types.h"
+#include "actors/characters/person.h"
+#include "assets/anim_globals.h"  // game_chunk
 #include "actors/characters/anim_ids.h"
 
 #include "actors/characters/enemy.h"

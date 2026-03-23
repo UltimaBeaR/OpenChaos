@@ -1,7 +1,8 @@
 #ifndef AI_PCOM_H
 #define AI_PCOM_H
 
-#include "game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 
 // ============================================================
 // PCOM — Person COMportment — NPC AI system

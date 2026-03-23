@@ -1,16 +1,20 @@
 #include "missions/game_types.h"
 
-#include "cnet.h"
+#include "ui/menus/cnet.h"
+#include "ui/menus/cnet_globals.h"       // CNET_player_id
 #include "engine/audio/sound.h"
-#include "MFStdLib.h"
+#include <MFStdLib.h>
 #include "world/map/pap.h"
-#include "ns.h"
-#include "fc.h"
-#include "mfx.h"
-#include "statedef.h"
-#include "ware.h"
-#include "frontend.h"
-#include "eway.h"
+#include "world/environment/ns.h"
+#include "ui/camera/fc.h"
+#include "ui/camera/fc_globals.h"         // FC_cam
+#include "engine/audio/mfx.h"
+#include "actors/core/statedef.h"
+#include "world/environment/ware.h"
+#include "world/environment/ware_globals.h" // WARE_ware
+#include "ui/frontend.h"
+#include "ui/frontend_globals.h"          // IsEnglish
+#include "missions/eway.h"
 
 // Internal height category used by PlayAmbient3D.
 // uc_orig: HeightType (fallen/Source/Sound.cpp)

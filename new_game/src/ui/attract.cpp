@@ -6,21 +6,21 @@
 #include "engine/input/joystick.h"                       // ReadInputDevice
 #include "engine/input/joystick_globals.h"               // DIJOYSTATE the_state
 #include "engine/net/net.h"                              // NET_init
-#include "font2d.h"
-#include "poly.h"
-#include "panel.h"
+#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "ui/hud/panel.h"
 #include "assets/startscr.h"
 #define DEMO
 #include "ui/attract.h"
-#include "env.h"
-#include "overlay.h"
-#include "Sound.h"
-#include "mfx.h"
-#include "eway.h"
-#include "interfac.h"
-#include "xlat_str.h"
-#include "frontend.h"
-#include "statedef.h"
+#include "engine/io/env.h"
+#include "ui/hud/overlay.h"
+#include "engine/audio/sound.h"
+#include "engine/audio/mfx.h"
+#include "missions/eway.h"
+#include "ui/interfac.h"
+#include "assets/xlat_str.h"
+#include "ui/frontend.h"
+#include "actors/core/statedef.h"
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)

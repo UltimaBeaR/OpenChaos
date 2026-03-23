@@ -378,11 +378,8 @@ add_executable(Fallen WIN32
 target_include_directories(Fallen PRIVATE
     # Main source root: resolves #include "core/types.h", "engine/...", etc.
     src
-    # Legacy headers still referenced by Temporary: includes (will shrink as migration progresses)
-    src/fallen/Headers
-    src/fallen/DDLibrary/Headers
-    src/fallen/DDEngine/Headers
-    src/MFStdLib/Headers
+    # Platform abstraction: resolves #include <MFStdLib.h> and StdFile/StdKeybd/StdMaths/StdMouse
+    src/platform
 )
 
 # ---------------------------------------------------------------------------

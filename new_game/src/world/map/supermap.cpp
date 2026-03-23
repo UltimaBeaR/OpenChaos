@@ -11,7 +11,7 @@
 #include "engine/io/env.h"
 #include "world/level_pools.h"
 #include "ai/mav.h"
-#include "..\ddengine\headers\texture.h"
+#include "assets/texture.h"
 #include "engine/physics/collide.h"
 #include "assets/level_loader.h"
 #include "assets/level_loader_globals.h"

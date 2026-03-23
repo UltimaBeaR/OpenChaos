@@ -1,9 +1,10 @@
 // MAP_WIDTH, MAP_HEIGHT, FLOOR_HEIGHT_SHIFT, CLASS_BUILDING, DT_BUILDING, DT_NONE,
 // TO_THING, alloc_primary_thing, add_thing_to_map, and the Thing struct.
-#include "game.h"
+#include "missions/game_types.h"
 #include "world/environment/edmap.h"
 // Needed for PAP_SIZE_LO, PAP_Lo type (for clear_map2 which zeros PAP_lo array)
 #include "world/map/pap_globals.h"
+#include "assets/anim_globals.h"
 // Needed for each_point[] (used in calc_building_normals)
 #include "world/environment/prim_globals.h"
 // DAG violation (world should not depend on missions) — needs reclassification in a later pass.
@@ -11,9 +12,11 @@
 // Needed for load_all_individual_prims (called in create_city)
 #include "assets/level_loader.h"
 #include "world/map/pap_globals.h"
+#include "assets/anim_globals.h"
 #include "world/map/supermap.h"
 
-#include "pap.h"
+#include "world/map/pap_globals.h"
+#include "assets/anim_globals.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 #include "engine/graphics/pipeline/aeng.h"

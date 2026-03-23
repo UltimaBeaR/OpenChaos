@@ -21,6 +21,9 @@
 #include "actors/characters/person.h"
 #include "actors/characters/darci.h"
 #include "actors/characters/darci_globals.h"
+#include "actors/core/interact.h"              // calc_sub_objects_position
+#include "assets/anim_globals.h"               // game_chunk
+#include "engine/graphics/pipeline/aeng.h"    // MSG_add
 
 // Forward declarations for functions not in any header (declared inline in originals).
 extern SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);

@@ -3,24 +3,26 @@
 // Physics states: STACKED (dormant, on another barrel) → STILL (dormant, on ground) → moving (active).
 // Types: NORMAL (explodes), CONE (small, no stack), BURNING (starts on fire), BIN (rubbish+cans).
 
-#include "game.h"
+#include "missions/game_types.h"
 #include "world/environment/prim.h"    // get_prim_info
 #include "actors/items/barrel.h"
 #include "actors/items/barrel_globals.h"
-#include "fmatrix.h"
+#include "core/fmatrix.h"
 #include "ai/mav.h"
-#include "pap.h"
-#include "statedef.h"
+#include "world/map/pap_globals.h"
+#include "actors/core/statedef.h"
 #include "actors/characters/anim_ids.h"
-#include "pcom.h"
-#include "psystem.h"
-#include "poly.h"
-#include "eway.h"
-#include "sound.h"
-#include "pow.h"
-#include "dirt.h"
-#include "panel.h"
+#include "ai/pcom.h"
+#include "engine/effects/psystem.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "missions/eway.h"
+#include "engine/audio/sound.h"
+#include "effects/pow.h"
+#include "effects/dirt.h"
+#include "ui/hud/panel.h"
 #include "effects/pyro.h"
+#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
+#include "engine/physics/collide.h"          // create_shockwave
 
 // uc_orig: BARREL_FLAG_STACKED (fallen/Source/barrel.cpp)
 #define BARREL_FLAG_STACKED  (1 << 0)

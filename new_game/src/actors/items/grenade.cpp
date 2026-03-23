@@ -7,13 +7,15 @@
 #include "actors/characters/anim_ids.h"
 #include "effects/dirt.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "mesh.h"
+#include "engine/graphics/geometry/mesh.h"
 #include "actors/core/statedef.h"
 #include "engine/graphics/pipeline/aeng.h"   // AENG_world_line_nondebug
 #include "engine/graphics/geometry/bloom.h"
 #include "engine/effects/psystem.h"           // PFLAG_* particle flags
 #include "actors/items/grenade.h"
 #include "actors/items/grenade_globals.h"
+#include "actors/core/interact.h"       // calc_sub_objects_position
+#include "engine/physics/collide.h"     // create_shockwave
 
 // Forward declarations for functions not yet migrated.
 // uc_orig: PANEL_draw_gun_sight (fallen/Source/gamemenu.cpp or frontend.cpp)

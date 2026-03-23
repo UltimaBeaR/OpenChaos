@@ -5,12 +5,13 @@
 // Pre-release NOTE: CANID_fn_normal() has its substate dispatch commented out,
 // so canids are visually inert in this codebase. The final game completed this system.
 
-#include "game.h"
+#include "missions/game_types.h"
 #include "actors/animals/canid.h"
-#include "statedef.h"
+#include "actors/core/statedef.h"
 #include "ai/mav.h"
-#include "pap.h"
-#include "dirt.h"  // DIRT_gust for footstep particles
+#include "world/map/pap_globals.h"
+#include "effects/dirt.h"              // DIRT_gust for footstep particles
+#include "engine/physics/collide.h"    // there_is_a_los
 
 // uc_orig: CANID_SUBSTATE_NONE (fallen/Source/canid.cpp)
 #define CANID_SUBSTATE_NONE   0

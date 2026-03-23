@@ -3,7 +3,7 @@
 #include "missions/game_types.h"
 #include "actors/items/projectile.h"
 #include "actors/core/thing.h"
-#include "statedef.h"
+#include "actors/core/statedef.h"
 
 // uc_orig: init_projectiles (fallen/Source/Pjectile.cpp)
 void init_projectiles(void)

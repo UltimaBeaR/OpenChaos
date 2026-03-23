@@ -69,6 +69,7 @@
 
 #include "ui/controls.h"
 #include "ui/controls_globals.h"
+#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line, AENG_raytraced_position
 
 // Forward declarations for functions not yet migrated from old/
 extern SLONG am_i_a_thug(Thing* p_person);

@@ -1,5 +1,46 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Внеитерационный фикс — Устранение ошибок сборки после удаления src/fallen/ и src/MFStdLib/ (2026-03-24)
+
+Контекст: папки `src/fallen/` и `src/MFStdLib/` удалены, `src/platform/MFStdLib.h` создан взамен.
+CMakeLists обновлён: include path теперь `src` + `src/platform`.
+После удаления сломались транзитивные зависимости, которые раньше разрешались через старые include paths.
+
+Исправлено 34 файла (только строки `#include` — логика не тронута):
+
+**Заголовки с неверными путями (fatal "file not found"):**
+- `grenade.cpp`: `"mesh.h"` → `"engine/graphics/geometry/mesh.h"`
+- `ai/combat.h`, `ai/combat_globals.h`, `ai/pcom.h`, `engine/animation/figure_globals.h`: `"Game.h"` → `"missions/game.h"` (или `"missions/game_types.h"` + `<MFStdLib.h>`)
+- `engine/graphics/geometry/shape.cpp`: `<DDLib.h>` → `"engine/graphics/graphics_api/gd_display.h"`
+- `engine/animation/figure.cpp`: весь блок legacy-includes заменён корректными путями (poly, sprite, fmatrix, shadow, matrix, mesh, dirt, texture, interfac, Hierarchy→hierarchy, Quaternion→quaternion, person, pcom, eway, ddlib, panel, renderstate, polypage, psystem)
+- `actors/animals/canid.cpp`, `canid_globals.cpp`, `actors/items/barrel.cpp`, `actors/items/guns.cpp`, `actors/items/projectile.cpp`, `effects/pyro.cpp`, `effects/pyro_globals.cpp`, `missions/save.cpp`, `world/navigation/wmove.cpp`, `world/environment/plat.cpp`: `"statedef.h"` → `"actors/core/statedef.h"`
+- `barrel.cpp`: `"fmatrix.h"`, `"pcom.h"`, `"psystem.h"`, `"poly.h"`, `"eway.h"`, `"pow.h"`, `"dirt.h"`, `"panel.h"` → корректные пути
+- `actors/characters/enemy.cpp`: `"person.h"` → `"actors/characters/person.h"`
+- `missions/eway.cpp`: `"Game.h"`, `"bang.h"`, `"ob.h"`, `"fmatrix.h"`, `"trip.h"` → корректные пути; `"trip.h"` → `"world/environment/tripwire.h"`
+- `missions/elev.cpp`: `"Game.h"` + `"ddlib.h"` → `"missions/game.h"` + `"engine/graphics/graphics_api/gd_display.h"`
+- `ui/attract.cpp`: `"font2d.h"`, `"poly.h"`, `"panel.h"`, `"env.h"`, `"overlay.h"`, `"Sound.h"`, `"mfx.h"`, `"eway.h"`, `"interfac.h"`, `"xlat_str.h"`, `"frontend.h"`, `"statedef.h"` → корректные пути
+- `ui/menus/gamemenu.cpp`: `"panel.h"`, `"poly.h"`, `"menufont.h"`, `"xlat_str.h"`, `"mfx.h"`, `"sound_id.h"`, `"music.h"` → корректные пути
+- `engine/audio/sound.cpp`: `"cnet.h"`, `"ns.h"`, `"fc.h"`, `"mfx.h"`, `"statedef.h"`, `"ware.h"`, `"frontend.h"`, `"eway.h"` → корректные пути
+- `world/map/ob.cpp`, `world/map/supermap.cpp`: `"..\ddengine\headers\poly.h"`, `"..\ddengine\headers\texture.h"` → корректные пути
+- `missions/save.cpp`: `"pcom.h"`, `"statedef.h"`, `"eway.h"`, `"special.h"`, `"tracks.h"` → корректные пути
+- `world/environment/ns.cpp`: добавлен `<MFStdLib.h>` (ASSERT, rand, abs не были доступны)
+
+**Недостающие includes (undeclared identifier):**
+- `bat.cpp`: + `actors/characters/person.h`, `assets/anim_globals.h`, `actors/core/interact.h`
+- `darci.cpp`: + `actors/core/interact.h`, `assets/anim_globals.h`, `engine/graphics/pipeline/aeng.h`
+- `vehicle.cpp`: + `actors/characters/person.h`, `engine/physics/collide.h`
+- `canid.cpp`: + `engine/physics/collide.h`
+- `actors/characters/enemy.cpp`: + `assets/anim_globals.h`
+- `actors/items/barrel.cpp`, `actors/items/guns.cpp`, `effects/pyro.cpp`: + `engine/physics/collide.h` (create_shockwave, LOS flags)
+- `ai/combat.cpp`: + `actors/core/interact.h`, `actors/characters/person.h`, `engine/graphics/pipeline/aeng.h`, `engine/physics/collide.h`
+- `engine/audio/sound.cpp`: + `ui/menus/cnet_globals.h`, `ui/camera/fc_globals.h`, `world/environment/ware_globals.h`, `ui/frontend_globals.h`
+- `ai/pcom.h`: + `<MFStdLib.h>` (для BOOL); было `"game.h"` (неверный путь) → `"missions/game_types.h"`
+- `missions/save.cpp`: + `actors/characters/person.h` (set_anim)
+- `ui/controls.cpp`: + `engine/graphics/pipeline/aeng.h` (AENG_world_line, AENG_raytraced_position)
+- `ui/interfac.cpp`: + `engine/graphics/pipeline/aeng.h`, `engine/graphics/resources/console.h`
+
+Результат: `make build-release` — 328/328 единиц, линковка успешна. Только warnings.
+
 ## Итерация 191 — Устранение всех fallen/ и MFStdLib/ include из нового кода (2026-03-24)
 
 - `fallen/` includes в новом коде: 124 → 0. `MFStdLib/` было 0 и осталось 0.

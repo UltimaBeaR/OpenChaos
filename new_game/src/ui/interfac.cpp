@@ -49,6 +49,8 @@
 #include "engine/input/mouse_globals.h"
 #include "missions/game.h"
 #include "missions/game_globals.h"
+#include "engine/graphics/pipeline/aeng.h"       // MSG_add
+#include "engine/graphics/resources/console.h"   // CONSOLE_text_at
 
 // Forward declaration for gang-attack reset (defined in pcom.cpp, not yet in pcom.h).
 // uc_orig: reset_gang_attack (fallen/Source/pcom.cpp)

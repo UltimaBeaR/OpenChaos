@@ -1,13 +1,15 @@
 #include <MFStdLib.h>
-#include "game.h"
+#include "missions/game_types.h"
 #include "effects/spark.h"
 #include "effects/spark_globals.h"
 #include "effects/glitter.h"
 #include "effects/glitter_globals.h"
-#include "sound.h"
-#include "pap.h"
+#include "engine/audio/sound.h"
+#include "world/map/pap_globals.h"
 #include "engine/audio/mfx.h"
-#include "memory.h"
+#include "engine/physics/collide.h"
+#include "actors/core/interact.h"
+#include "missions/memory.h"
 
 // uc_orig: SPARK_init (fallen/Source/spark.cpp)
 void SPARK_init()

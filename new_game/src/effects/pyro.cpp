@@ -4,19 +4,21 @@
 // All 18 pyro types share the same PYRO_fn_init/PYRO_fn_normal dispatch,
 // except PYRO_EXPLODE which uses PYRO_fn_init_ex/PYRO_fn_normal_ex.
 
-#include "game.h"
+#include "missions/game_types.h"
 #include "effects/pyro.h"
 #include "effects/pyro_globals.h"
-#include "statedef.h"
-#include "ribbon.h"
-#include "night.h"
-#include "dirt.h"
-#include "sound.h"
-#include "psystem.h"
-#include "pcom.h"
-#include "gamemenu.h"
+#include "actors/core/statedef.h"
+#include "effects/ribbon.h"
+#include "engine/lighting/night.h"
+#include "effects/dirt.h"
+#include "engine/audio/sound.h"
+#include "engine/effects/psystem.h"
+#include "ai/pcom.h"
+#include "ui/menus/gamemenu.h"
 #include "actors/characters/anim_ids.h"
-#include "combat.h"
+#include "ai/combat.h"
+#include "actors/core/interact.h"      // calc_sub_objects_position
+#include "actors/characters/person.h"  // set_person_dead, knock_person_down
 #include "engine/graphics/pipeline/poly.h"
 
 // uc_orig: init_pyros (fallen/Source/pyro.cpp)

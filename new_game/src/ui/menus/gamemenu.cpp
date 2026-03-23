@@ -1,16 +1,16 @@
 // In-game pause/won/lost menus rendered as an overlay during gameplay.
 // Menu type constants are private — only DO_* return codes leave this file.
 
-#include "game.h"
+#include "missions/game_types.h"
 
-#include "panel.h"
-#include "poly.h"
-#include "menufont.h"
-#include "xlat_str.h"
-#include "mfx.h"
-#include "sound_id.h"
-#include "music.h"
-#include "memory.h"
+#include "ui/hud/panel.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/resources/menufont.h"
+#include "assets/xlat_str.h"
+#include "engine/audio/mfx.h"
+#include "assets/sound_id.h"
+#include "engine/audio/music.h"
+#include "missions/memory.h"
 
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"

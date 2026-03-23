@@ -1,7 +1,8 @@
 // Sewer/cavern subsystem — chunk 1: init, cache init, vertex/face scratch, floors, wallstrip helpers.
 // See ns.h for the full sewer system API.
 
-#include "game.h"
+#include <MFStdLib.h>
+#include "missions/game_types.h"
 #include "world/environment/ns.h"
 #include "world/environment/ns_globals.h"
 #include "core/heap.h"

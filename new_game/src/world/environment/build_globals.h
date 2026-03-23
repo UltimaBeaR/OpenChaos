@@ -2,7 +2,7 @@
 #define WORLD_ENVIRONMENT_BUILD_GLOBALS_H
 
 // and everything else required by light.h and building.h.
-#include "game.h"
+#include "missions/game_types.h"
 #include "engine/lighting/light.h"
 
 // Per-vertex lighting results for building primitives, indexed by prim point index.
