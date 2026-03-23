@@ -94689,6 +94689,166 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_START",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_START",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_EDITOR",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_EDITOR",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_LOAD",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_LOAD",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_EXIT",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_EXIT",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_HOST",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_HOST",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_JOIN",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_JOIN",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_PLAYBACK",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_PLAYBACK",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_PSX",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_PSX",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_MULTI",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_MULTI",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTS_LANGUAGE_CHANGE",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTS_LANGUAGE_CHANGE",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "StartMenu",
+      "file": "new/assets/startscr.h",
+      "orig_name": "StartMenu",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "StartMenuItemSimple",
+      "file": "new/assets/startscr.h",
+      "orig_name": "StartMenuItemSimple",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "StartMenuItemComplex",
+      "file": "new/assets/startscr.h",
+      "orig_name": "StartMenuItemComplex",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "STARTSCR_notify_gameover",
+      "file": "new/assets/startscr.h",
+      "orig_name": "STARTSCR_notify_gameover",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MISSION_callback",
+      "file": "new/assets/startscr.h",
+      "orig_name": "MISSION_callback",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "type",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MissionListCallback",
+      "file": "new/assets/startscr.h",
+      "orig_name": "MissionListCallback",
+      "orig_file": "fallen/Headers/startscr.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

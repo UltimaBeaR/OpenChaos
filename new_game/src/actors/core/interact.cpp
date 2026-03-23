@@ -9,7 +9,6 @@
 #include "fallen/Headers/mav.h"
 #include "actors/characters/anim_ids.h"
 #include "fallen/Headers/FMatrix.h"
-#include "fallen/Headers/prim_draw.h"
 #include "actors/core/interact.h"
 #include "actors/core/interact_globals.h"
 

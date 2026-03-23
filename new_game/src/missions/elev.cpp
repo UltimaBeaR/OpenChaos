@@ -47,7 +47,6 @@
 #include "fallen/Headers/ribbon.h"
 #include "actors/items/barrel.h"
 #include "fallen/Headers/fc.h"
-#include "fallen/Headers/briefing.h"
 #include "world/environment/ware.h"
 #include "missions/memory.h"
 #include "fallen/Headers/playcuts.h"

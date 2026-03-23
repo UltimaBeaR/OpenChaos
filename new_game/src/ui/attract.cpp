@@ -4,8 +4,7 @@
 #include "font2d.h"
 #include "poly.h"
 #include "panel.h"
-#include "startscr.h"
-#include "briefing.h"
+#include "assets/startscr.h"
 #define DEMO
 #include "ui/attract.h"
 #include "env.h"

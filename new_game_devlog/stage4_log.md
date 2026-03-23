@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 170 — startscr.h → assets/startscr.h + зачистка 4 неиспользуемых legacy headers (2026-03-23)
+
+- `startscr.h` → `assets/startscr.h`: все 16 сущностей (`STARTS_*`, `StartMenu`, `StartMenuItemSimple`, `StartMenuItemComplex`, `STARTSCR_notify_gameover`, `MISSION_callback`, `MissionListCallback`). `attract.cpp` переключён с bare `"startscr.h"` на `"assets/startscr.h"`, `frontend.cpp` — Temporary include убран (уже имел `assets/startscr.h` на строке 51).
+- `briefing.h` — удалён: `BRIEFING_*` не использовались ни в одном .cpp; `briefing.cpp` не мигрирован и не в CMakeLists. Includes убраны из `elev.cpp` и `attract.cpp`.
+- `prim_draw.h` — удалён: `draw_a_*` только в editor-коде (не в CMakeLists); `init_matrix33`/`matrix_mult33`/`rotate_obj` уже в `core/fmatrix.h`. Include в `interact.cpp` убран.
+- `pigeon.h` — удалён: нет потребителей в новой структуре; `pigeon.cpp` не мигрирован и не в CMakeLists.
+- `WayWind.h` — удалён: только GEdit/editor consumers, не в CMakeLists.
+- Temporary: 655 → 654.
+
 ## Итерация 169 — supermap.h → world/map/supermap.h, cam.h → ui/camera/cam.h, lead.h → actors/animals/lead.h (2026-03-23)
 
 - `supermap.h`: структуры `DStorey`, `DFacet`, `DBuilding`, `DWalkable`, `DInsideRect` + все `MAX_*`, `CALC_INSIDE_*`, `GET_INSIDE_*` + `save_super_map`/`create_super_dbuilding` перенесены в `world/map/supermap.h` (который уже существовал с функциями). `supermap.h` → редирект. `supermap.h` теперь включает `supermap_globals.h` — это убрало зависимость потребителей от явного включения globals.

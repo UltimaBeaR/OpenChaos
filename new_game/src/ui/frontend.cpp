@@ -8,8 +8,6 @@
 
 // Temporary: xlat_str.h for X_* string IDs
 #include "fallen/Headers/xlat_str.h"
-// Temporary: startscr.h for StartMenu, MissionListCallback, etc.
-#include "fallen/Headers/startscr.h"
 // Temporary: interfac.h for init_joypad_config, DIJOYSTATE
 #include "fallen/Headers/interfac.h"
 // Temporary: menufont.h for MENUFONT_Draw, MENUFONT_Dimensions, etc.
