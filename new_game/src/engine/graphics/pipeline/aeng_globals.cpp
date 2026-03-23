@@ -117,8 +117,7 @@ float AENG_cam_matrix[9];
 SLONG AENG_cam_vec[3];
 
 // uc_orig: AENG_sewer_page (fallen/DDEngine/Source/aeng.cpp)
-// Temporary: POLY_PAGE_WATER and SEWER_PAGE_NUMBER come from not-yet-migrated headers.
-#include "fallen/Headers/sewer.h"
+#include "world/environment/sewer.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 SLONG AENG_sewer_page[SEWER_PAGE_NUMBER] = {
     3,

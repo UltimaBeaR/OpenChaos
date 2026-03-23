@@ -95889,6 +95889,466 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_SIZE",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_SIZE",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_DEPTH",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_DEPTH",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_EDGE_XS",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_EDGE_XS",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_EDGE_XL",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_EDGE_XL",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_EDGE_ZS",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_EDGE_ZS",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_EDGE_ZL",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_EDGE_ZL",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_PAGE_FLOOR",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_PAGE_FLOOR",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_PAGE_WALL",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_PAGE_WALL",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_PAGE_PILLAR",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_PAGE_PILLAR",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_PAGE_WATER",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_PAGE_WATER",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_PAGE_NUMBER",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_PAGE_NUMBER",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_Face",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_Face",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_init",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_init",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_square_on",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_square_on",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_ladder_on",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_ladder_on",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_pillar_on",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_pillar_on",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_precalc",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_precalc",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_save",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_save",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_load",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_load",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_can_i_enter",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_can_i_enter",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_colvects_insert",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_colvects_insert",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_colvects_remove",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_colvects_remove",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_calc_height_at",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_calc_height_at",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_get_start",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_get_start",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_get_next",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_get_next",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "SEWER_get_water",
+      "file": "new_game/src/world/environment/sewer.h",
+      "orig_name": "SEWER_get_water",
+      "orig_file": "fallen/Headers/sewer.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_TYPE_UNUSED",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_TYPE_UNUSED",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_TYPE_FLAG",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_TYPE_FLAG",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_TYPE_CLOAK",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_TYPE_CLOAK",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_WIDTH",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_WIDTH",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_HEIGHT",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_HEIGHT",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_INDEX",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_INDEX",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_Drawp",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_Drawp",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_Info",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_Info",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_init",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_init",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_create",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_create",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_point_lock",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_point_lock",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_point_move",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_point_move",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_process",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_process",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_get_first",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_get_first",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "CLOTH_get_info",
+      "file": "new_game/src/effects/cloth.h",
+      "orig_name": "CLOTH_get_info",
+      "orig_file": "fallen/Headers/cloth.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENTER_Okay",
+      "file": "new_game/src/world/environment/enter.h",
+      "orig_name": "ENTER_Okay",
+      "orig_file": "fallen/Headers/Enter.h",
+      "kind": "struct",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENTER_can_i",
+      "file": "new_game/src/world/environment/enter.h",
+      "orig_name": "ENTER_can_i",
+      "orig_file": "fallen/Headers/Enter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENTER_leave",
+      "file": "new_game/src/world/environment/enter.h",
+      "orig_name": "ENTER_leave",
+      "orig_file": "fallen/Headers/Enter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENTER_get_extents",
+      "file": "new_game/src/world/environment/enter.h",
+      "orig_name": "ENTER_get_extents",
+      "orig_file": "fallen/Headers/Enter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "ENTER_setup",
+      "file": "new_game/src/world/environment/enter.h",
+      "orig_name": "ENTER_setup",
+      "orig_file": "fallen/Headers/Enter.h",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

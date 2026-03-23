@@ -1,5 +1,12 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 173 — sewer.h → world/environment/sewer.h, cloth.h → effects/cloth.h, Enter.h → world/environment/enter.h (2026-03-23)
+
+- `sewer.h`: include в `person.cpp` удалён как лишний — файл не использует ни одну `SEWER_*` сущность (только `FLAGS_IN_SEWERS` и `S_FOOTS_SEWER_*`, которые уже в `thing.h` и `sound_id.h`).
+- `cloth.h`: нет активных потребителей — весь CLOTH-код в `controls.cpp` находится внутри `/* */` комментариев.
+- `Enter.h`: include в `interfac.cpp` удалён как лишний — файл не использует ни одну `ENTER_*` функцию; в `controls.cpp` ENTER-код тоже в `/* */` блоках.
+- Temporary: 631 → 628.
+
 ## Итерация 172 — bang/water/cache/Nav/az/mapthing → new structure (2026-03-23)
 
 - Попытка мигрировать `Structs.h` заблокирована циклической зависимостью: `ai/mav.h` → `fallen/Headers/mav.h` → `structs.h` → `MAV_Action`; `mav_globals.h` зависит от `fallen/Headers/mav.h` напрямую. `Structs.h` остаётся до миграции `mav.h`.

@@ -15,7 +15,6 @@
 #include "assets/sound_id.h"
 #include "fallen/Headers/guns.h"    // Temporary: gun/special types
 #include "fallen/Headers/cnet.h"    // Temporary: NETPERSON, NETPLAYERS
-#include "fallen/Headers/sewer.h"   // Temporary: sewer utilities
 #include "fallen/Headers/mav.h"     // Temporary: MAV_Action, MAV_SPARE, MAV_SPARE_FLAG_WATER
 #include "fallen/Headers/Sound.h"   // Temporary: SOUND_Range, SOUND_FXGroups
 #include "fallen/Headers/eway.h"    // Temporary: EWAY types

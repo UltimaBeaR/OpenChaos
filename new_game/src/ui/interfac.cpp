@@ -39,7 +39,6 @@
 #include "fallen/DDLibrary/Headers/DDLib.h" // Temporary: DIJOYSTATE
 #include "fallen/DDEngine/Headers/Engine.h" // Temporary: SIN, COS, QDIST2, etc.
 #include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
-#include "fallen/Headers/enter.h"     // Temporary: set_person_exit_vehicle, etc.
 #include "ui/camera/cam.h"
 #include "fallen/Headers/cnet.h"      // Temporary: CNET_network_game, CNET_player_id (PLAYER_ID)
 #include "engine/audio/mfx.h"
