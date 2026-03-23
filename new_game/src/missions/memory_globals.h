@@ -8,7 +8,7 @@
 #include "world/navigation/inside2_globals.h"
 #include "world/environment/prim_types.h"       // BoundBox->building_types, PrimPoint, PrimFace4/3, PrimObject, PrimMultiObject, PrimNormal, PrimInfo, RMAX_PRIM_POINTS, etc.
 #include "world/environment/building_types.h"   // BoundBox, MAX_BUILDINGS, MAX_STOREYS, etc.
-#include "fallen/Headers/Game.h"                // Temporary: MemTable (needed for save_table[] extern declaration)
+#include "missions/save.h"                      // MemTable, save_table[] (moved out of Game.h)
 
 // Types declared in old memory.h that have not yet moved to their own subsystem headers.
 

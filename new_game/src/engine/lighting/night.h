@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_NIGHT_H
 #define ENGINE_LIGHTING_NIGHT_H
 
-#include "fallen/Headers/Game.h" // Temporary: UBYTE/SLONG and other base types
+#include <MFStdLib.h>              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
 #include "world/map/pap_globals.h" // Temporary: engine → world DAG violation (PAP_SIZE_LO, PAP_Hi, pap macros)
 
 // uc_orig: NIGHT_MAX_SLIGHTS (fallen/Headers/Night.h)

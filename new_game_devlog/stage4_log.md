@@ -1910,3 +1910,12 @@ Entity mapping обновлён (33 записи — file path).
 - В `map.h` удалён лишний `#ifndef THING_INDEX` блок — `THING_INDEX` теперь приходит через `engine/lighting/light.h` → `core/types.h`
 
 ---
+
+## Итерация 65 — устранение Game.h в memory_globals.h + night.h + controls_globals.h (2026-03-24)
+
+- `memory_globals.h`: `fallen/Headers/Game.h` → `missions/save.h` (нужен только `MemTable`; `MemTable` уже живёт в `save.h` с core/types.h зависимостью)
+- `night.h`: `fallen/Headers/Game.h` → `<MFStdLib.h>` (нужны только базовые типы UBYTE/SLONG/etc.)
+- `controls_globals.h`: `fallen/Headers/Game.h` → `<MFStdLib.h>` (нужны только базовые типы + BOOL через windows.h)
+- Temporary: 371 → 368
+
+---
