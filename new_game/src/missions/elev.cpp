@@ -57,9 +57,9 @@
 #include "fallen/Headers/playcuts.h"
 #include "actors/items/grenade.h"
 #include "fallen/Headers/env.h"
-#include "fallen/DDEngine/Headers/panel.h"
+#include "ui/hud/panel.h"
+#include "ui/hud/panel_globals.h"
 #include "engine/audio/sound.h"
-#include "DCLowLevel.h"
 
 #include "actors/animals/bat.h"
 #include "world/map/supermap_globals.h" // Temporary: PAP_* macros

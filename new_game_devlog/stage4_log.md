@@ -1,5 +1,13 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 183 — Зачистка redirect-заглушек DDEngine/DDLibrary: прямые пути + удаление нулевых файлов (2026-03-23)
+
+- Удалены `sw.h`, `fall.h`, `DrawXtra.h` — нет потребителей в новом коде (sw.cpp/fall.cpp не мигрированы).
+- `DDEngine/Headers/figure.h` (legacy stub с 4 объявлениями) преобразован в redirect → `engine/animation/figure.h` + `figure_globals.h`; все объявления там уже есть.
+- Удалены 3 стейл-включения `DCLowLevel.h` (sound.cpp, elev.cpp, attract.cpp): DCLL_* функции не используются ни одним из потребителей.
+- Replaced 18 `// Temporary:` включений redirect-заглушек прямыми путями: Matrix.h→core/matrix.h, poly.h→pipeline/poly.h, aeng.h→pipeline/aeng.h, panel.h→ui/hud/panel.h+panel_globals.h, font2d.h→resources/font2d.h, DDManager.h→dd_manager.h, GDisplay.h→gd_display.h, MFX.h/mfx.h→engine/audio/mfx.h, StdFile.h→engine/io/file.h, MFStdLib/Headers/MFStdLib.h→`<MFStdLib.h>`.
+- Temporary: 433 → 413.
+
 ## Итерация 182 — DDLib.h + Debug.h → engine/graphics/graphics_api/display_macros.h (2026-03-23)
 
 - Созданы `display_macros.h`: 14 макросов из `DDlib.h` (SET_*_BACKGROUND, BEGIN/END_SCENE, CLEAR_VIEWPORT, FLIP, DRAW_PRIMITIVE, DRAW_INDEXED_PRIMITIVE, REALLY_SET_*×4) + 3 debug-заглушки из `Debug.h` (dd_error, d3d_error, di_error).

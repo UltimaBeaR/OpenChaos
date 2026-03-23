@@ -22,7 +22,7 @@
 #include "engine/graphics/graphics_api/display_macros.h"  // CLEAR_VIEWPORT, FLIP, the_display, SHELL_ACTIVE
 #include "engine/input/keyboard_globals.h"                  // Keys
 #include "engine/input/keyboard.h"                          // KB_ESC
-#include "fallen/DDLibrary/Headers/mfx.h"   // Temporary: MFX_play_stereo, MFX_update, MFX_stop, MFX_LOOPED
+#include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
 

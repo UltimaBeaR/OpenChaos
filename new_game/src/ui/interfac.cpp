@@ -39,7 +39,8 @@
 #include "engine/input/joystick.h"             // ReadInputDevice
 #include "engine/input/joystick_globals.h"  // DIJOYSTATE, the_state
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
-#include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
+#include "ui/hud/panel.h"
+#include "ui/hud/panel_globals.h"
 #include "ui/camera/cam.h"
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"

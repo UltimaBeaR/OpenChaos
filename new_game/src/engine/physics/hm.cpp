@@ -14,7 +14,7 @@
 #include "world/environment/prim.h"       // get_prim_info
 #include "core/math.h"
 #include "fallen/Headers/pap.h"      // Temporary: PAP_calc_height_at
-#include "fallen/DDEngine/Headers/Matrix.h"   // Temporary: MATRIX_calc, MATRIX_MUL, MATRIX_MUL_BY_TRANSPOSE, MATRIX_find_angles, Direction
+#include "core/matrix.h"
 
 #include "engine/physics/hm.h"
 #include "engine/physics/hm_globals.h"

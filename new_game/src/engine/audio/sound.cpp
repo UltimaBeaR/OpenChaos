@@ -11,7 +11,6 @@
 #include "ware.h"
 #include "frontend.h"
 #include "eway.h"
-#include "DCLowLevel.h"
 
 // Internal height category used by PlayAmbient3D.
 // uc_orig: HeightType (fallen/Source/Sound.cpp)

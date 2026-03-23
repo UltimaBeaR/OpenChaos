@@ -23,18 +23,16 @@
 #include "core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
-// Temporary: vertex buffer init/term lives in DDLibrary (not yet migrated).
-#include "fallen/DDEngine/Headers/vertexbuffer.h"
-// Temporary: TheVPool (vertex pool) and its Create method.
-#include "fallen/DDEngine/Headers/poly.h"
-// Temporary: PolyPage::SetScaling lives in polypage (not yet migrated).
-#include "fallen/DDEngine/Headers/polypage.h"
-// Temporary: PANEL_screensaver_draw and PANEL_ResetDepthBodge (panel.cpp not yet migrated).
+// Temporary: vertex buffer init/term lives in engine but not yet fully wired.
+#include "engine/graphics/pipeline/vertex_buffer.h"
+#include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"
 // panel.h uses Thing* — forward-declare Thing so panel.h can compile without the full Thing header.
 struct Thing;
-#include "fallen/DDEngine/Headers/panel.h"
-// Temporary: get_hardware_input/INPUT_* declared in interfac.h (not yet migrated).
-#include "fallen/Headers/interfac.h"
+#include "ui/hud/panel.h"
+#include "ui/hud/panel_globals.h"
+#include "ui/interfac.h"
+#include "ui/interfac_globals.h"
 
 extern CBYTE DATA_DIR[];
 

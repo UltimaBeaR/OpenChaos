@@ -38,7 +38,7 @@
 #include "ui/cutscenes/playcuts.h"
 #include "ui/cutscenes/playcuts_globals.h"
 #include "actors/core/statedef.h"
-#include "fallen/DDEngine/Headers/poly.h" // Temporary: POLY_PAGE_BLOODSPLAT
+#include "engine/graphics/pipeline/poly.h"
 #include "engine/audio/sound.h"
 
 #include "missions/memory.h"

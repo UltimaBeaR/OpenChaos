@@ -33,7 +33,7 @@
 #include "ui/hud/overlay.h"
 #include "actors/vehicles/vehicle.h"
 #include "actors/vehicles/vehicle_globals.h"
-#include "fallen/DDEngine/Headers/aeng.h" // Temporary: AENG_world_line (debug view line)
+#include "engine/graphics/pipeline/aeng.h"
 #include "actors/core/interact.h"         // Temporary: calc_sub_objects_position
 #include "actors/core/thing.h"            // Temporary: THING_find_nearest, add_thing_to_map, remove_thing_from_map
 #include "actors/items/special.h"         // Temporary: SPECIAL_BOMB, SPECIAL_SUBSTATE_ACTIVATED, SPECIAL_SUBSTATE_NONE

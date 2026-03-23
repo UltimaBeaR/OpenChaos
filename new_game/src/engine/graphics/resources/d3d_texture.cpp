@@ -1,8 +1,8 @@
 #include <MFStdLib.h>                             // ASSERT, MFnew, MFdelete
 #include "engine/graphics/resources/d3d_texture.h"
 #include "engine/graphics/resources/d3d_texture_globals.h"
-#include "fallen/DDLibrary/Headers/DDManager.h"  // Temporary: DDModeInfo, D3DDeviceInfo until dd_manager is migrated
-#include "fallen/DDLibrary/Headers/GDisplay.h"    // Temporary: the_display until display is migrated
+#include "engine/graphics/graphics_api/dd_manager.h"
+#include "engine/graphics/graphics_api/gd_display.h"
 #include "engine/graphics/pipeline/message.h"     // for POLY_reset_render_states extern
 
 // VERIFY is a no-op wrapper used in place of checked HRESULT asserts in release builds.

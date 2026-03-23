@@ -39,7 +39,7 @@
 #include "actors/items/barrel_globals.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"
-#include "fallen/DDEngine/Headers/font2d.h" // Temporary: font2d lives in DDEngine, not Headers/
+#include "engine/graphics/resources/font2d.h"
 #include "missions/memory.h"
 #include "missions/memory_globals.h"
 #include "engine/audio/mfx.h"

@@ -12,8 +12,8 @@
 #include "fallen/Headers/fc.h"
 // Temporary: env.h not yet migrated
 #include "fallen/Headers/env.h"
-// Temporary: MF_Fopen/MF_Fclose from MFStdLib
-#include "MFStdLib/Headers/MFStdLib.h"
+// Temporary: MF_Fopen/MF_Fclose from MFStdLib (not yet migrated)
+#include <MFStdLib.h>
 // Temporary: sound_id.h not yet migrated
 #include "fallen/Headers/sound_id.h"
 

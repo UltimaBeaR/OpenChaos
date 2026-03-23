@@ -30,7 +30,7 @@
 #include "engine/graphics/pipeline/vertex_buffer.h"   // Temporary: TheVPool, VertexBufferPool
 #include "engine/graphics/graphics_api/gd_display.h"  // Temporary: the_display, Display
 #include "assets/tga.h"                          // Temporary: TGA_save, TGA_Pixel
-#include "MFStdLib/Headers/StdFile.h"             // Temporary: MF_Fopen, MF_Fclose
+#include "engine/io/file.h"
 #include "missions/memory_globals.h"             // Temporary: roof_faces4, next_roof_face4, dfacets, next_dfacet
 #include "world/map/supermap.h"                  // Temporary: DFacet, RoofFace4, STOREY_TYPE_*
 #include "world/map/supermap_globals.h"          // Temporary: supermap globals
@@ -64,7 +64,8 @@
 #include "ai/mav.h"                    // Temporary: MAV_draw, MAV_precalculate, MAVHEIGHT
 #include "missions/save.h"             // Temporary: save_whole_game, load_whole_game
 #include "assets/anim_tmap.h"          // Temporary: animate_texture_maps
-#include "fallen/DDEngine/Headers/panel.h"  // Temporary: PANEL_new_text
+#include "ui/hud/panel.h"
+#include "ui/hud/panel_globals.h"
 
 #include "ui/controls.h"
 #include "ui/controls_globals.h"

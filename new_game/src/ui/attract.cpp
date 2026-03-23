@@ -19,7 +19,6 @@
 #include "xlat_str.h"
 #include "frontend.h"
 #include "statedef.h"
-#include "DCLowLevel.h"
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)

@@ -5,8 +5,8 @@
 #include "core/types.h"  // CBYTE/SLONG needed by env.h
 // Temporary: env.h not yet migrated
 #include "fallen/Headers/env.h"
-// Temporary: MF_Fopen/MF_Fclose from MFStdLib
-#include "MFStdLib/Headers/MFStdLib.h"
+// Temporary: MF_Fopen/MF_Fclose from MFStdLib (not yet migrated)
+#include <MFStdLib.h>
 
 // uc_orig: LocateCDROM (fallen/DDLibrary/Source/Drive.cpp)
 void LocateCDROM(void)

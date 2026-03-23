@@ -31,7 +31,7 @@
 #include "actors/items/hook.h"
 #include "actors/items/hook_globals.h"
 #include "effects/tracks.h"
-#include "fallen/DDEngine/Headers/Matrix.h" // Temporary: matrix utilities
+#include "core/matrix.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "world/navigation/wmove.h"
@@ -43,12 +43,12 @@
 #include "world/navigation/walkable.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
-#include "fallen/DDEngine/Headers/poly.h" // Temporary: POLY types
+#include "engine/graphics/pipeline/poly.h"
 #include "fallen/Headers/memory.h"  // Temporary: dfacets extern via memory globals
 #include "core/fmatrix.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-#include "fallen/DDLibrary/Headers/MFX.h" // Temporary: MFX_play_thing, MFX_stop, MFX_play_ambient
+#include "engine/audio/mfx.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "world/environment/ware.h"
@@ -58,8 +58,9 @@
 #include "effects/pow_globals.h"
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
-#include "fallen/DDEngine/Headers/aeng.h" // Temporary: AENG_ utilities
-#include "fallen/DDEngine/Headers/panel.h" // Temporary: panel/HUD utilities
+#include "engine/graphics/pipeline/aeng.h"
+#include "ui/hud/panel.h"
+#include "ui/hud/panel_globals.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 #include "world/environment/building_types.h"  // CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*
