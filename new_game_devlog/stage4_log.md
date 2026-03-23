@@ -1,5 +1,11 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 153 — outro: mf.cpp (mesh rendering functions) (2026-03-23)
+
+- `/* ... */` закомментированный блок (альтернативная реализация `MF_add_triangles_specular_bumpmapped`) — мёртвый код, не перенесён.
+
+---
+
 ## Итерация 152 — outro: imp.cpp (SEX mesh importer) (2026-03-23)
 
 - `IMP_norm_similar`, `IMP_normalise_vector`, `IMP_add_line` — статические хелперы в оригинале; сохранены как `static` в `outro_imp.cpp`.

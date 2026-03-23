@@ -79629,6 +79629,206 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "MF_MAX_SVERTS",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_MAX_SVERTS",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "macro",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_vert",
+      "file": "new/ui/cutscenes/outro/outro_mf_globals.h",
+      "orig_name": "MF_vert",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "variable",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_load_textures",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_load_textures",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_backup",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_backup",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_rotate_mesh",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_rotate_mesh",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_transform_points",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_transform_points",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_invert_zeds",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_invert_zeds",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_ambient",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_ambient",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_diffuse_spotlight",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_diffuse_spotlight",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_specular_spotlight",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_specular_spotlight",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_normal",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_normal",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_normal_colour",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_normal_colour",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_light",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_light",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_light_bumpmapped",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_light_bumpmapped",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_specular",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_specular",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_specular_bumpmapped",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_specular_bumpmapped",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_specular_shadowed",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_specular_shadowed",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_wireframe",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_wireframe",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_bumpmapped_pass",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_bumpmapped_pass",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
+    },
+    {
+      "name": "MF_add_triangles_texture_after_bumpmap",
+      "file": "new/ui/cutscenes/outro/outro_mf.h",
+      "orig_name": "MF_add_triangles_texture_after_bumpmap",
+      "orig_file": "fallen/outro/mf.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }
