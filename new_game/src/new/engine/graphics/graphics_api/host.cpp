@@ -348,3 +348,18 @@ int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, in
 
     return ERROR_ALREADY_EXISTS;
 }
+
+// uc_orig: TraceText (MFStdLib/Source/StdLib/StdFile.cpp)
+// Formats a message string and sends it to the debugger via OutputDebugString.
+// Used via the TRACE macro throughout the codebase for debug logging.
+void TraceText(char* fmt, ...)
+{
+    char message[512];
+    va_list ap;
+
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
+
+    OutputDebugString(message);
+}

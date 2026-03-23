@@ -88119,6 +88119,16 @@
       "conflict": false,
       "stage": 4,
       "date": "2026-03-23"
+    },
+    {
+      "name": "TraceText",
+      "file": "new/engine/graphics/graphics_api/host.cpp",
+      "orig_name": "TraceText",
+      "orig_file": "MFStdLib/Source/StdLib/StdFile.cpp",
+      "kind": "function",
+      "conflict": false,
+      "stage": 4,
+      "date": "2026-03-23"
     }
   ]
 }

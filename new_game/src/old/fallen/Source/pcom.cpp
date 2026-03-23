@@ -269,6 +269,8 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
 
 #endif // MIGRATED (string arrays part 1)
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 82) [PCOM_MOVE_STATE_* + PCOM_MOVE_SPEED_* macros]
+
 //
 // The movement states a person can be in.
 //
@@ -300,6 +302,8 @@ CBYTE* PCOM_move_name[PCOM_MOVE_NUMBER] = {
 #define PCOM_MOVE_SPEED_YOMP PERSON_SPEED_YOMP
 #define PCOM_MOVE_SPEED_SPRINT PERSON_SPEED_SPRINT
 
+#endif // MIGRATED [PCOM_MOVE_STATE_* + PCOM_MOVE_SPEED_* macros]
+
 #if 0 // MIGRATED (PCOM_move_state_name to new/ai/pcom_globals.cpp — iteration 82)
 CBYTE* PCOM_move_state_name[] = {
     "Player",
@@ -326,6 +330,8 @@ CBYTE* PCOM_move_state_name[] = {
     "Unused"
 };
 #endif // MIGRATED (PCOM_move_state_name)
+
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 82) [PCOM_MOVE_SUBSTATE_* + PCOM_MOVE_FLAG_* + PCOM_EXCAR_* + PCOM_ARRIVE_DIST + PCOM_TICKS_* + PCOM_MAX_GANG_PEOPLE]
 
 //
 // While mavigating, a person is either running/walking to a point or
@@ -379,6 +385,8 @@ CBYTE* PCOM_move_state_name[] = {
 //
 
 #define PCOM_MAX_GANG_PEOPLE 64
+
+#endif // MIGRATED [PCOM_MOVE_SUBSTATE_* + PCOM_MOVE_FLAG_* + PCOM_EXCAR_* + PCOM_ARRIVE_DIST + PCOM_TICKS_* + PCOM_MAX_GANG_PEOPLE]
 
 #if 0 // MIGRATED to src/new/ai/pcom.cpp + pcom_globals.cpp (iteration 82)
 
@@ -6505,7 +6513,9 @@ void PCOM_process_wander(Thing* p_person)
 
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 85)
 
+#if 0 // MIGRATED — timer_bored extern redundant: defined in new/actors/characters/person_globals.cpp
 extern ULONG timer_bored;
+#endif
 
 #if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 86)
 
@@ -10241,6 +10251,7 @@ void PCOM_process_state_change(Thing* p_person)
 }
 #endif // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_process_state_change]
 
+#if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_RUNOVER_* macros]
 //
 // For a person driving a car.. this function looks ahead of the car and
 // returns what actions you should take to avoid any obsticles.
@@ -10258,6 +10269,7 @@ void PCOM_process_state_change(Thing* p_person)
 // PCOM_runover_scary_person moved to pcom_globals.cpp (iteration 88)
 
 // no messing here, -ve dangle means turning LEFT as most people would imagine it would
+#endif // MIGRATED [PCOM_RUNOVER_* macros]
 
 #if 0 // MIGRATED to src/new/ai/pcom.cpp (iteration 88) [PCOM_find_runover_thing + PCOM_process_movement]
 // claude-ai: PCOM_find_runover_thing - obstacle detection for driving AI: scans things ahead of vehicle and returns PCOM_RUNOVER_* flags; handles pedestrians (stop/beep/shout), parked cars (stop/avoid), moving cars (stop), junction priority (yield), armed pedestrians (runaway)

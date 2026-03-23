@@ -1,5 +1,14 @@
 # Лог Этапа 4 — Реструктуризация кодовая базы
 
+## Итерация 165 — TraceText + зачистка #if 0 в pcom/drawxtra/Controls (2026-03-23)
+
+- `TraceText` → `new/engine/graphics/graphics_api/host.cpp` + `host.h`. Последняя немигрированная функция из `old/MFStdLib/Source/StdLib/StdFile.cpp`.
+- Обёрнуты в `#if 0` ранее пропущенные макросы в `old/pcom.cpp`: `PCOM_MOVE_STATE_*`, `PCOM_MOVE_SPEED_*`, `PCOM_MOVE_SUBSTATE_*`, `PCOM_MOVE_FLAG_*`, `PCOM_EXCAR_*`, `PCOM_ARRIVE_DIST`, `PCOM_TICKS_*`, `PCOM_MAX_GANG_PEOPLE`, `PCOM_RUNOVER_*` + `extern ULONG timer_bored`.
+- Обёрнуты в `#if 0` в `old/drawxtra.cpp`: `DUSTWAVE_SECTORS`, `FIREBOMB_SPRITES`, `DUSTWAVE_MULTIPLY`, `POLY_add_line_tex_uv` forward decl. `extern SLONG AENG_cam_vec[3]` закомментирован как redundant (уже в `aeng_globals.h`).
+- Обёрнут в `#if 0` `INVENTORY_FADE_SPEED` в `old/Controls.cpp`.
+
+---
+
 ## Итерация 164 — Game.h мега-хедер → missions/game_types.h (2026-03-23)
 
 - `Game` struct + все GS_*/GF_*/GAME_*/DETAIL_*/TICK_*/POLY_*/CLASS_* макросы + accessor macros + функции → `new/missions/game_types.h`. `old/Game.h` → redirect.

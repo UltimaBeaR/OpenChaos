@@ -368,13 +368,14 @@ void PARTICLE_Draw()
  *
  */
 
-// These macros are needed by PYRO_draw_dustwave (not yet migrated) below.
+#if 0 // MIGRATED to src/new/effects/pyro.cpp (iteration 164) [DUSTWAVE_SECTORS, FIREBOMB_SPRITES, DUSTWAVE_MULTIPLY macros + POLY_add_line_tex_uv forward decl]
+// These macros and forward decl are now in pyro.cpp (new/).
 #define DUSTWAVE_SECTORS 16
 #define FIREBOMB_SPRITES 16
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_SECTORS)
 
-// Forward declaration needed by PYRO_draw_dustwave etc. (chunk 2, not yet migrated).
 void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front);
+#endif // MIGRATED [DUSTWAVE_SECTORS, FIREBOMB_SPRITES, DUSTWAVE_MULTIPLY, POLY_add_line_tex_uv]
 
 #if 0 // MIGRATED to src/new/effects/pyro.cpp (iteration 134) [pyro_seed..PYRO_draw_pyro]
 
@@ -2392,7 +2393,10 @@ void RIBBON_draw_ribbon(Ribbon* ribbon)
 // dx,dy,dz its direction normal, scaled so 0 -> 0, 1 -> 256, or 0,0,0 for an omni light
 // col is an 0x00RRGGBB colour value. Brightness does count.
 
+// AENG_cam_vec is declared in aeng_globals.h; the extern below is redundant (dead code).
+/*
 extern SLONG AENG_cam_vec[3];
+*/
 
 /*
 void BLOOM_draw_floats(float x, float y, float z, float dx, float dy, float dz, SLONG col) {

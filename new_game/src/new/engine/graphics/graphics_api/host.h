@@ -46,4 +46,9 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 // Fills *the_time with the current local wall-clock time via GetLocalTime / GetTickCount.
 void Time(MFTime* the_time);
 
+// uc_orig: TraceText (MFStdLib/Source/StdLib/StdFile.cpp)
+// Printf-style debug trace: formats a message and sends it to the debugger via
+// OutputDebugString. Defined as the TRACE macro in release builds.
+void TraceText(char* fmt, ...);
+
 #endif // ENGINE_GRAPHICS_GRAPHICS_API_HOST_H

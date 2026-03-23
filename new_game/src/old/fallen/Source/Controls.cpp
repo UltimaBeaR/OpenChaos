@@ -82,8 +82,10 @@ extern SLONG analogue;
 extern SLONG mouse_input;
 extern UBYTE aeng_draw_cloud_flag;
 
+#if 0 // MIGRATED to src/new/ui/controls.cpp (iteration 124) [INVENTORY_FADE_SPEED macro]
 // Used by process_controls (inventory panel fade speed).
 #define INVENTORY_FADE_SPEED (32)
+#endif // MIGRATED [INVENTORY_FADE_SPEED]
 
 #if 0 // MIGRATED to src/new/ui/controls.cpp + controls_globals.cpp (iteration 124) [globals..set_danger_level]
 
