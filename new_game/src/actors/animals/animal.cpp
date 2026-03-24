@@ -11,9 +11,6 @@
 #include "actors/animals/animal.h"
 #include "actors/animals/animal_globals.h"
 
-// Forward declarations for not-yet-migrated functions.
-extern SLONG load_anim_system(struct GameKeyFrameChunk* game_chunk, CBYTE* name, SLONG peep = 0);
-
 // uc_orig: init_animals (fallen/Source/animal.cpp)
 void init_animals(void)
 {
@@ -104,11 +101,4 @@ Animal* ANIMAL_get_animal(struct Thing* animal_thing)
 void ANIMAL_draw(Thing* p_thing)
 {
     // Stub.
-}
-
-// uc_orig: GameKeyFrameChunk* ANIMAL_register (fallen/Headers/animal.h)
-// Registers an animal body-part animation file. Stub in the pre-release build.
-struct GameKeyFrameChunk* ANIMAL_register(char* filename)
-{
-    return NULL;
 }

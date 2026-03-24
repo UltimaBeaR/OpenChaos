@@ -44,9 +44,6 @@ extern void* mem_all;
 // uc_orig: mem_all_size (fallen/Source/memory.cpp)
 extern ULONG mem_all_size;
 
-// uc_orig: psx_remap (fallen/Source/memory.cpp)
-extern UWORD* psx_remap;
-
 // Whether a quick save exists and can be loaded.
 // uc_orig: MEMORY_quick_avaliable (fallen/Source/memory.cpp)
 extern SLONG MEMORY_quick_avaliable;

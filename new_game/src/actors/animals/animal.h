@@ -8,8 +8,6 @@
 
 struct Thing;
 
-struct GameKeyFrameChunk;
-
 // uc_orig: MAX_ANIMALS (fallen/Headers/animal.h)
 #define MAX_ANIMALS 6
 
@@ -56,10 +54,6 @@ struct Thing* alloc_animal(UBYTE type);
 // uc_orig: free_animal (fallen/Headers/animal.h)
 // Frees an animal's Thing, DrawTween, and Animal structures.
 void free_animal(struct Thing* animal_thing);
-
-// uc_orig: GameKeyFrameChunk* ANIMAL_register (fallen/Headers/animal.h)
-// Registers an animal body part from an animation file. Currently unused stub.
-struct GameKeyFrameChunk* ANIMAL_register(char* filename);
 
 // uc_orig: ANIMAL_create (fallen/Headers/animal.h)
 // Creates an animal Thing at the given position and triggers its STATE_INIT.

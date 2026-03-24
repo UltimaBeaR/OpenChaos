@@ -917,7 +917,7 @@ void highlight_gun_target(Thing* p_person, Thing* p_target);
 // uc_orig: fn_person_gun (fallen/Source/Person.cpp)
 void fn_person_gun(Thing* p_person);
 
-// --- chunk 11: person_new_combat_node..mav_arrived ---
+// --- chunk 11: person_new_combat_node..fn_person_goto ---
 
 // Combo accuracy threshold: number of game ticks allowed between combo inputs.
 // uc_orig: COMBO_ACCURACY (fallen/Source/Person.cpp)
@@ -990,44 +990,6 @@ void set_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG speed);
 // STATE_GOTOING state machine: aims person at GotoX/GotoZ and moves them there.
 // uc_orig: fn_person_goto (fallen/Source/Person.cpp)
 void fn_person_goto(Thing* p_person);
-
-// Checks if person has reached (x,z) within dist. Always asserts (dead code in original).
-// uc_orig: process_person_goto_xz (fallen/Source/Person.cpp)
-SLONG process_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG dist);
-
-// STATE_NAVIGATING placeholder — always asserts (disabled in original).
-// uc_orig: fn_person_navigate (fallen/Source/Person.cpp)
-void fn_person_navigate(Thing* p_person);
-
-// Initialises person command queue — always asserts (disabled in original).
-// uc_orig: init_person_command (fallen/Source/Person.cpp)
-void init_person_command(Thing* p_person);
-
-// Returns true if person has arrived at MAV target — always asserts (disabled).
-// uc_orig: mav_arrived (fallen/Source/Person.cpp)
-SLONG mav_arrived(Thing* p_person);
-
-// --- chunk 12: person_mav_again..push_people_apart ---
-
-// Always asserts — dead stub left from unfinished MAV system.
-// uc_orig: person_mav_again (fallen/Source/Person.cpp)
-SLONG person_mav_again(Thing* p_person);
-
-// Always asserts — dead stub; MAV navigation was never shipped.
-// uc_orig: get_dx_dz_for_dir (fallen/Source/Person.cpp)
-void get_dx_dz_for_dir(SLONG dir, SLONG* dx, SLONG* dz);
-
-// Always asserts — dead stub.
-// uc_orig: init_new_mav (fallen/Source/Person.cpp)
-void init_new_mav(Thing* p_person);
-
-// Always asserts — dead stub.
-// uc_orig: fn_person_mavigate_action (fallen/Source/Person.cpp)
-void fn_person_mavigate_action(Thing* p_person);
-
-// STATE_MAVIGATING state machine — always asserts (disabled in original).
-// uc_orig: fn_person_mavigate (fallen/Source/Person.cpp)
-void fn_person_mavigate(Thing* p_person);
 
 // Starts the grappling hook pickup animation and enters STATE_GRAPPLING/pickup sub-state.
 // uc_orig: set_person_grappling_hook_pickup (fallen/Source/Person.cpp)

@@ -414,49 +414,6 @@ void game(void)
     game_shutdown();
 }
 
-// uc_orig: TAB_MAP_MIN_X (fallen/Source/Game.cpp)
-#define TAB_MAP_MIN_X 9
-// uc_orig: TAB_MAP_MIN_Z (fallen/Source/Game.cpp)
-#define TAB_MAP_MIN_Z 13
-// uc_orig: TAB_MAP_SIZE (fallen/Source/Game.cpp)
-#define TAB_MAP_SIZE 448
-
-// uc_orig: GAME_map_draw_old (fallen/Source/Game.cpp)
-void GAME_map_draw_old(void)
-{
-    Thing* darci = NET_PERSON(0);
-
-    SLONG x, z, dx, dz, ndx, ndz, angle;
-
-    POLY_frame_init(UC_FALSE, UC_FALSE);
-    ShowBackImage();
-    the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER);
-
-    x = darci->WorldPos.X >> 8;
-    z = darci->WorldPos.Z >> 8;
-
-    x = (x * TAB_MAP_SIZE) >> 15;
-    z = (z * TAB_MAP_SIZE) >> 15;
-
-    angle = darci->Draw.Tweened->Angle;
-
-    dx = -SIN(angle);
-    dz = -COS(angle);
-    ndx = -dz;
-    ndz = dx;
-
-    dx >>= 12;
-    dz >>= 12;
-    ndx >>= 14;
-    ndz >>= 14;
-
-    x += TAB_MAP_MIN_X;
-    z += TAB_MAP_MIN_Z;
-    AENG_draw_col_tri(x + ndx, z + ndz, 0xff0000, x + dx, z + dz, 0xff0000, x - ndx, z - ndz, 0xff0000, 0);
-
-    POLY_frame_draw(UC_FALSE, UC_TRUE);
-}
-
 // uc_orig: GAME_map_draw (fallen/Source/Game.cpp)
 void GAME_map_draw(void)
 {
@@ -521,12 +478,6 @@ void lock_frame_rate(SLONG fps)
         }
     }
     tick1 = tick2;
-}
-
-// uc_orig: demo_timeout (fallen/Source/Game.cpp)
-void demo_timeout(SLONG flag)
-{
-    // TIMEOUT_DEMO is 0 in all builds — intentionally empty.
 }
 
 // uc_orig: do_leave_map_form (fallen/Source/Game.cpp)
@@ -746,8 +697,6 @@ round_again:;
         last_fudge_message = 0;
         last_fudge_camera = 0;
 
-        demo_timeout(1);
-
         PANEL_fadeout_init();
         GAMEMENU_init();
 
@@ -828,8 +777,6 @@ round_again:;
                     }
                 }
             }
-
-            demo_timeout(0);
 
             if (special_keys())
                 return (1);

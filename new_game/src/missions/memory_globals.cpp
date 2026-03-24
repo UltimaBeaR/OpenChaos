@@ -116,7 +116,6 @@ struct MemTable save_table[] = {
     { M_("Trip_Wire"), (void**)&TRIP_wire, MEM_DYNAMIC, &TRIP_wire_upto, 0, TRIP_MAX_WIRES, sizeof(TRIP_Wire), 0 }, // 61
     { M_("Road_edges"), (void**)&ROAD_edge, MEM_DYNAMIC, 0, &ROAD_edge_upto, ROAD_MAX_EDGES, sizeof(UBYTE), 0 }, // 62
     { M_("Thing_heads"), (void**)&thing_class_head, MEM_STATIC, 0, 0, CLASS_END, sizeof(UWORD), 0 }, // 63
-    { M_("psx_remap"), (void**)&psx_remap, MEM_STATIC, 0, 0, 128, sizeof(UWORD), 0 }, // 64
     { M_("psx_tex_xy"), (void**)&psx_textures_xy, MEM_STATIC, 0, 0, 200 * 5, sizeof(UWORD), 0 }, // 65
     { M_("map_beacon"), (void**)&MAP_beacon, MEM_STATIC, 0, 0, MAP_MAX_BEACONS, sizeof(MAP_Beacon), 0 }, // 66
     { M_("cutscene_data"), (void**)&PLAYCUTS_cutscenes, MEM_DYNAMIC, 0, &PLAYCUTS_cutscene_ctr, MAX_CUTSCENES, sizeof(CPData), 0 },
@@ -142,9 +141,6 @@ PSX_TEX* psx_textures_xy;
 void* mem_all = 0;
 // uc_orig: mem_all_size (fallen/Source/memory.cpp)
 ULONG mem_all_size = 0;
-
-// uc_orig: psx_remap (fallen/Source/memory.cpp)
-UWORD* psx_remap;
 
 // uc_orig: facet_links (fallen/Source/memory.cpp)
 SWORD* facet_links;

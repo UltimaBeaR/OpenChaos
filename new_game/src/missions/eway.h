@@ -3,13 +3,6 @@
 
 #include "missions/eway_globals.h"
 
-// Conversation sub-indices (used internally in EWAY_process_conversation).
-// uc_orig: EWAY_CONV_TALK_A (fallen/Source/eway.cpp)
-#define EWAY_CONV_TALK_A 0
-
-// uc_orig: EWAY_CONV_TALK_B (fallen/Source/eway.cpp)
-#define EWAY_CONV_TALK_B 1
-
 // Extracts the level filename word (e.g. "Rescue1" from "path\Rescue1.ucm").
 // Used for building speech filenames.
 // uc_orig: get_level_word (fallen/Source/eway.cpp)

@@ -115,8 +115,4 @@ SLONG MEMORY_quick_load_available(void);
 // uc_orig: MEMORY_quick_load (fallen/Headers/memory.h)
 SLONG MEMORY_quick_load(void);
 
-// Saves game state in Dreamcast .dad format (used for DC target only).
-// uc_orig: save_dreamcast_wad (fallen/Source/memory.cpp)
-void save_dreamcast_wad(CBYTE* fname);
-
 #endif // MISSIONS_MEMORY_H

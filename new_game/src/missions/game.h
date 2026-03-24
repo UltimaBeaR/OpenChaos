@@ -40,11 +40,6 @@ void game_fini(void);
 // uc_orig: game (fallen/Source/Game.cpp)
 void game(void);
 
-// Draws the overhead map view using plan_view_shot into screen_mem, then blits to screen.
-// (Old version using AENG_draw_col_tri — replaced by GAME_map_draw.)
-// uc_orig: GAME_map_draw_old (fallen/Source/Game.cpp)
-void GAME_map_draw_old(void);
-
 // Draws the overhead map view: plan_view_shot → overlay_beacons → blit to display.
 // uc_orig: GAME_map_draw (fallen/Source/Game.cpp)
 void GAME_map_draw(void);
@@ -60,10 +55,6 @@ void process_bullet_points(void);
 // Busy-waits until the current frame has taken at least 1000/fps milliseconds.
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
 void lock_frame_rate(SLONG fps);
-
-// No-op placeholder for demo timeout logic (TIMEOUT_DEMO is 0 in all builds).
-// uc_orig: demo_timeout (fallen/Source/Game.cpp)
-void demo_timeout(SLONG flag);
 
 // Processes and draws the "Leave map?" dialog; sets GAME_STATE=0 if confirmed.
 // uc_orig: do_leave_map_form (fallen/Source/Game.cpp)

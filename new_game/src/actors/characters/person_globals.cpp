@@ -106,11 +106,11 @@ StateFunction generic_people_functions[] = {
     { STATE_GUN,            fn_person_gun },
     { 0, NULL },
     { 0, NULL },
-    { STATE_NAVIGATING,     fn_person_navigate },
+    { 0, NULL }, // STATE_NAVIGATING removed (dead MAV stub)
     { STATE_WAIT,           fn_person_wait },
     { STATE_FIGHT,          fn_person_fight },
     { 0, NULL }, // stand up (unused slot)
-    { STATE_MAVIGATING,     fn_person_mavigate },
+    { 0, NULL }, // STATE_MAVIGATING removed (dead MAV stub)
     { STATE_GRAPPLING,      fn_person_grapple },
     { STATE_GOTOING,        fn_person_goto },
     { STATE_CANNING,        fn_person_can },

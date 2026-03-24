@@ -42,14 +42,10 @@ extern void fn_person_dead(Thing* p_person);
 extern void fn_person_gun(Thing* p_person);
 // uc_orig: fn_person_wait (fallen/Source/Cop.cpp)
 extern void fn_person_wait(Thing* p_person);
-// uc_orig: fn_person_navigate (fallen/Source/Cop.cpp)
-extern void fn_person_navigate(Thing* p_person);
 // uc_orig: fn_person_fight (fallen/Source/Cop.cpp)
 extern void fn_person_fight(Thing* p_person);
 // uc_orig: fn_person_stand_up (fallen/Source/Cop.cpp)
 extern void fn_person_stand_up(Thing* p_person);
-// uc_orig: fn_person_mavigate (fallen/Source/Cop.cpp)
-extern void fn_person_mavigate(Thing* p_person);
 
 // uc_orig: fn_cop_init (fallen/Source/Cop.cpp)
 void fn_cop_init(Thing* t_thing)

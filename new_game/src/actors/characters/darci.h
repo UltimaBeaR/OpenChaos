@@ -11,10 +11,6 @@ struct Thing;
 // Initialises a Darci thing: sets draw type, animation, and adds it to the map.
 void fn_darci_init(Thing* t_thing);
 
-// uc_orig: fn_darci_normal (fallen/Headers/Darci.h)
-// Darci has no normal AI mode — declared for completeness but never invoked.
-void fn_darci_normal(Thing* t_thing);
-
 // uc_orig: advance_keyframe (fallen/Source/Darci.cpp)
 // Advances a KeyFrame pointer by `count` steps following NextFrame links.
 KeyFrame* advance_keyframe(KeyFrame* frame, SLONG count);
@@ -61,10 +57,5 @@ void change_velocity_to_slow(Thing* p_thing, SWORD velocity);
 // uc_orig: trickle_velocity_to (fallen/Source/Darci.cpp)
 // Moves velocity towards target by 1 unit per tick.
 void trickle_velocity_to(Thing* p_thing, SWORD velocity);
-
-
-// uc_orig: show_walkable (fallen/Source/Darci.cpp)
-// Debug stub: was intended to visualise the walkable grid for a map cell. No-op in current build.
-void show_walkable(SLONG mx, SLONG mz);
 
 #endif // ACTORS_CHARACTERS_DARCI_H

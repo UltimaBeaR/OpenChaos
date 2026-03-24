@@ -58,12 +58,6 @@ void fn_darci_init(Thing* t_thing)
     add_thing_to_map(t_thing);
 }
 
-// uc_orig: fn_darci_normal (fallen/Headers/Darci.h)
-void fn_darci_normal(Thing* t_thing)
-{
-    // Intentionally empty — Darci has no AI normal mode; driven by player input.
-}
-
 // Forward declaration for already-migrated matrix function (core/fmatrix.h).
 void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 
@@ -659,11 +653,4 @@ void set_thing_velocity(Thing* t_thing, SLONG vel)
 {
     vel = (vel * 3) >> 2;
     t_thing->Velocity = vel;
-}
-
-// uc_orig: show_walkable (fallen/Source/Darci.cpp)
-// Debug stub — was intended to visualise the walkable map grid; returns immediately.
-void show_walkable(SLONG mx, SLONG mz)
-{
-    return;
 }

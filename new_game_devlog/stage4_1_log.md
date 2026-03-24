@@ -174,7 +174,7 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 |----------|--------|--------|----------------------|
 | **3.1** ✅ | `ai/`, `effects/`, `platform/` | ~61 | Leaf-модули. Удалено 22 сущности (1 файл целиком) |
 | **3.2** ✅ | `assets/`, `ui/` | ~140 | Презентационный слой. Удалено 33 сущности (2 файла целиком) |
-| **3.3** | `actors/`, `missions/` | ~121 | Геймплей: actors зависят от engine/world, но мало кто зависит от actors. missions/ — game flow |
+| **3.3** ✅ | `actors/`, `missions/` | ~121 | Геймплей. Удалено 20 сущностей (4 файла целиком). ~75 internal-only в missions/ → Шаг 5 |
 | **3.4** | `world/`, `engine/`, `core/` | ~349 | Инфраструктура: многое зависит от этих модулей, удалять осторожнее. core/ — только очевидно мёртвое |
 
 ### Итерация 3.1 — ai/, effects/, platform/ (2026-03-24)
@@ -224,6 +224,38 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 - **eng_map.h/.cpp** — 1 функция: `MAP_draw_onscreen_beacons`. Убраны `#include "ui/camera/fc.h"`,
   `fc_globals.h`
 - **CMakeLists.txt** — убрана строка `image_compression_globals.cpp`
+
+---
+
+### Итерация 3.3 — actors/, missions/ (2026-03-24)
+
+Удалено 20 сущностей из 20 файлов. 4 файла удалены целиком.
+
+**actors/ — 14 сущностей:**
+
+- **effect.h/.cpp** — удалены целиком: `init_effect` + внутренняя `process_effect` (прототип 1997)
+- **enemy.h/.cpp** — удалены целиком: `init_enemy` (прототип 1997, не вызывается)
+- **animal.h/.cpp** — 1 функция: `ANIMAL_register` (stub return NULL). Убраны осиротевшие
+  `struct GameKeyFrameChunk`, extern `load_anim_system`
+- **darci.h/.cpp** — 2 функции: `fn_darci_normal` (пустой handler), `show_walkable` (debug stub)
+- **person.h/.cpp** — 9 MAV-стабов (все `ASSERT(0)`): `person_mav_again`, `get_dx_dz_for_dir`,
+  `init_new_mav`, `fn_person_mavigate_action`, `fn_person_mavigate`, `process_person_goto_xz`,
+  `fn_person_navigate`, `init_person_command`, `mav_arrived`.
+  В `person_globals.cpp` записи STATE_NAVIGATING и STATE_MAVIGATING заменены на `{ 0, NULL }`.
+  В `cop.cpp` убраны extern-декларации `fn_person_navigate`, `fn_person_mavigate`
+- **CMakeLists.txt** — убраны `effect.cpp`, `enemy.cpp`
+
+**missions/ — 6 сущностей:**
+
+- **game.h/.cpp** — 2 функции: `GAME_map_draw_old` (заменена на `GAME_map_draw`),
+  `demo_timeout` (no-op, TIMEOUT_DEMO=0). Также удалены макросы `TAB_MAP_MIN_X/Z`, `TAB_MAP_SIZE`
+  и два вызова `demo_timeout()` в game_loop
+- **memory.h/.cpp** — 1 функция: `save_dreamcast_wad` (~230 строк, Dreamcast only)
+- **memory_globals.h/.cpp** — 1 переменная: `psx_remap` (PSX only) + запись из save_table
+- **eway.h** — 2 макроса: `EWAY_CONV_TALK_A`, `EWAY_CONV_TALK_B`
+
+**Примечание:** missions/ содержит ещё ~75 сущностей которые используются только внутри своего .cpp
+но экспортируются через .h — это тема Шага 5 (orphaned declarations), не Шага 3.
 
 ---
 

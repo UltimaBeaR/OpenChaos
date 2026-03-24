@@ -11702,7 +11702,7 @@ void fn_person_gun(Thing* p_person)
 
 
 // =============================================================================
-// chunk 11: person_new_combat_node .. mav_arrived (lines 15734-17267 of Person.cpp)
+// chunk 11: person_new_combat_node .. fn_person_goto (lines 15734-17267 of Person.cpp)
 // =============================================================================
 
 // uc_orig: person_new_combat_node (fallen/Source/Person.cpp)
@@ -12819,80 +12819,6 @@ void fn_person_goto(Thing* p_person)
             break;
         }
     }
-}
-
-// Dead code -- always asserts. Left as a stub to preserve link compatibility.
-// uc_orig: process_person_goto_xz (fallen/Source/Person.cpp)
-SLONG process_person_goto_xz(Thing* p_person, SLONG x, SLONG z, SLONG dist)
-{
-    ASSERT(0);
-
-    return 0;
-}
-
-// Dead code -- always asserts. Left as a stub to preserve link compatibility.
-// uc_orig: fn_person_navigate (fallen/Source/Person.cpp)
-void fn_person_navigate(Thing* p_person)
-{
-    ASSERT(0);
-}
-
-// Dead code -- always asserts. Left as a stub to preserve link compatibility.
-// uc_orig: init_person_command (fallen/Source/Person.cpp)
-void init_person_command(Thing* p_person)
-{
-    ASSERT(0);
-}
-
-// Dead code -- always asserts. Left as a stub to preserve link compatibility.
-// uc_orig: mav_arrived (fallen/Source/Person.cpp)
-SLONG mav_arrived(Thing* p_person)
-{
-    ASSERT(0);
-
-    return 0;
-}
-
-// ============================================================
-// chunk 12: person_mav_again..push_people_apart
-// (lines 17272-19165 of original Person.cpp)
-// ============================================================
-
-// Dead stub — MAV movement system was not completed.
-// uc_orig: person_mav_again (fallen/Source/Person.cpp)
-SLONG person_mav_again(Thing* p_person)
-{
-    ASSERT(0);
-
-    return 0;
-}
-
-// Dead stub — direction-to-XZ helper for unfinished MAV navigation.
-// uc_orig: get_dx_dz_for_dir (fallen/Source/Person.cpp)
-void get_dx_dz_for_dir(SLONG dir, SLONG* dx, SLONG* dz)
-{
-    ASSERT(0);
-}
-
-// Dead stub — MAV initialisation never completed.
-// uc_orig: init_new_mav (fallen/Source/Person.cpp)
-void init_new_mav(Thing* p_person)
-{
-    ASSERT(0);
-}
-
-// Dead stub — MAV action handler never completed.
-// uc_orig: fn_person_mavigate_action (fallen/Source/Person.cpp)
-void fn_person_mavigate_action(Thing* p_person)
-{
-    ASSERT(0);
-}
-
-// Dead stub — STATE_MAVIGATING handler; MAV system was never shipped.
-// uc_orig: fn_person_mavigate (fallen/Source/Person.cpp)
-void fn_person_mavigate(Thing* p_person)
-{
-    ASSERT(0);
 }
 
 // Plays the grappling hook pickup animation and enters STATE_GRAPPLING pickup sub-state.

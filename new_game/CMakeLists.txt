@@ -268,8 +268,6 @@ set(SOURCES_NEW
     src/ai/combat_globals.cpp
     src/world/environment/door.cpp
     src/world/environment/door_globals.cpp
-    src/actors/core/effect.cpp
-    src/actors/characters/enemy.cpp
 
     src/missions/eway.cpp
     src/missions/eway_globals.cpp
