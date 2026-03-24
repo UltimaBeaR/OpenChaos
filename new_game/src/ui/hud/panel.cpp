@@ -29,8 +29,8 @@
 
 
 // FC_cam[] for compass bearing calculation in PANEL_last
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 
 // (DAG violation: ui/ → ai/, pre-existing coupling from original)
 #include "ai/pcom.h"

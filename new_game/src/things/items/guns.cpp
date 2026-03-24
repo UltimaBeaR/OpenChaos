@@ -6,7 +6,7 @@
 #include "things/core/statedef.h"
 #include "ai/pcom.h"
 #include "missions/memory.h"
-#include "world/navigation/wmove.h"
+#include "navigation/wmove.h"
 #include "things/characters/anim_ids.h"
 #include "things/items/guns.h"
 #include "things/characters/person.h"  // can_a_see_b

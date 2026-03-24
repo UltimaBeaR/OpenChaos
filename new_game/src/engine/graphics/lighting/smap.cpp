@@ -9,7 +9,7 @@
 #include "engine/graphics/geometry/aa.h"
 #include "engine/core/matrix.h"
 #include "engine/core/fmatrix.h"
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 #include "game/game_types.h"
 #include "engine/animation/anim_types.h"    // GameKeyFrame, GameKeyFrameElement, GameKeyFrameChunk, GetCMatrix
 #include "things/characters/person_types.h" // Person struct, FLAG_PERSON_*, ANIM_TYPE_*

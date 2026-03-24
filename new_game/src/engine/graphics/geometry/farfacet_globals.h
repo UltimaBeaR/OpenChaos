@@ -5,7 +5,7 @@
 #include "engine/graphics/graphics_api/dd_manager.h"   // D3DLVERTEX, D3DMATRIX
 #include "engine/core/types.h"
 #include "engine/graphics/graphics_api/render_state.h"
-#include "world/map/pap.h"
+#include "map/pap.h"
 
 // uc_orig: FARFACET_RATIO (fallen/DDEngine/Source/farfacet.cpp)
 #define FARFACET_RATIO (4)

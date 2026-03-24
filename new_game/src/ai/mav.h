@@ -8,7 +8,7 @@
 #include "engine/platform/uc_common.h"               // ASSERT
 #include "engine/core/macros.h"            // WITHIN
 #include "ai/mav_globals.h"         // MAV_Opt, MAV_MAX_OPTS, extern vars, MAV_LOOKAHEAD
-#include "world/map/pap_globals.h"  // PAP_hi — required for MAVHEIGHT macro
+#include "map/pap_globals.h"  // PAP_hi — required for MAVHEIGHT macro
 
 // MAV_nav UWORD packing: 10 bits nav index | 4 bits car flags | 2 bits spare.
 // uc_orig: MAV_NAV (fallen/Headers/mav.h)

@@ -14,7 +14,7 @@
 #include "engine/graphics/pipeline/poly.h"     // POLY_FLAG_* (used in POLY_* combined macros below)
 
 // The Game struct contains MapElement (the world grid) and GameCoord.
-#include "world/map/map.h" // MapElement, MAP_SIZE, MAP_WIDTH, MAP_HEIGHT, MAP_INDEX, ELE_SHIFT
+#include "map/map.h" // MapElement, MAP_SIZE, MAP_WIDTH, MAP_HEIGHT, MAP_INDEX, ELE_SHIFT
 #include "engine/core/vector.h"   // GameCoord
 
 // game_types.h is self-sufficient: pulls in all pool type definitions via thing.h.

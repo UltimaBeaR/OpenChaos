@@ -5,10 +5,10 @@
 #include "effects/environment/tracks_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "things/characters/anim_ids.h"
-#include "world/environment/puddle.h"
-#include "world/environment/puddle_globals.h"
+#include "objects/puddle.h"
+#include "objects/puddle_globals.h"
 #include "things/core/interact.h"
 #include "things/core/interact_globals.h"
 

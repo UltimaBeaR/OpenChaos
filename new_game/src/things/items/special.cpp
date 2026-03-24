@@ -25,7 +25,7 @@
 #include "effects/combat/pow.h"
 #include "ui/hud/overlay.h"
 #include "assets/xlat_str.h"
-#include "world/map/pap.h"
+#include "map/pap.h"
 #include "engine/core/memory.h"
 #include "engine/physics/collide.h"
 #include "ui/hud/panel.h"

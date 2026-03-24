@@ -18,21 +18,21 @@
 #include "engine/graphics/lighting/night_globals.h"   // NIGHT_dfcache
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/input/keyboard_globals.h"   // ControlFlag, Keys, ShiftFlag
-#include "world/map/pap.h"
-#include "world/map/pap_globals.h"           // PAP_hi
-#include "world/map/supermap_globals.h"      // next_dfacet, next_dbuilding
-#include "world/navigation/inside2.h"
-#include "world/navigation/inside2_globals.h"
-#include "world/environment/building.h"         // building API
-#include "world/environment/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
-#include "world/level_pools.h"               // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
+#include "map/pap.h"
+#include "map/pap_globals.h"           // PAP_hi
+#include "map/supermap_globals.h"      // next_dfacet, next_dbuilding
+#include "navigation/inside2.h"
+#include "navigation/inside2_globals.h"
+#include "buildings/building.h"         // building API
+#include "buildings/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
+#include "map/level_pools.h"               // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
 #include "assets/texture.h"
-#include "world/environment/ware.h"          // WARE_Ware struct
-#include "world/environment/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
+#include "objects/ware.h"          // WARE_Ware struct
+#include "objects/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
 #include "game/game_tick_globals.h"             // allow_debug_keys
-#include "ui/camera/fc_globals.h"            // FC_cam
+#include "camera/fc_globals.h"            // FC_cam
 #include "engine/graphics/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
-#include "world/environment/prim_types.h"    // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
+#include "buildings/prim_types.h"    // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
 
 // POLY_set_local_rotation_none is a no-op on PC. On Dreamcast it reset the local
 // rotation matrix before DrawIndexedPrimitive. Defined as a macro here to match

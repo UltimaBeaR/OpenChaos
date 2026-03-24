@@ -6,7 +6,7 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/animation/anim_types.h"     // GameKeyFrame, GameKeyFrameChunk
-#include "assets/anim_globals.h"              // game_chunk, global_anim_array
+#include "assets/formats/anim_globals.h"              // game_chunk, global_anim_array
 #include "things/core/statedef.h"
 #include "things/animals/animal.h"
 #include "things/animals/animal_globals.h"

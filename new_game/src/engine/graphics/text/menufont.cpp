@@ -1,6 +1,6 @@
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/menufont_globals.h"
-#include "assets/tga.h"
+#include "assets/formats/tga.h"
 #include "engine/graphics/pipeline/poly.h"
 
 // Forward declaration for PANEL_draw_quad (defined in old/panel.cpp,

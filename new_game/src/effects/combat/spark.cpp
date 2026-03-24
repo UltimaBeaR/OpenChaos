@@ -5,7 +5,7 @@
 #include "effects/combat/glitter.h"
 #include "effects/combat/glitter_globals.h"
 #include "engine/audio/sound.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "engine/audio/mfx.h"
 #include "engine/physics/collide.h"
 #include "things/core/interact.h"

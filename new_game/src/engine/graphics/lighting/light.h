@@ -3,7 +3,7 @@
 
 #include "engine/core/types.h"
 #include "engine/core/vector.h" // GameCoord
-#include "world/environment/prim_types.h" // RMAX_PRIM_POINTS
+#include "buildings/prim_types.h" // RMAX_PRIM_POINTS
 
 // uc_orig: LIGHT_Save (fallen/Headers/light.h)
 // On-disk format for a single light, used during level save/load.

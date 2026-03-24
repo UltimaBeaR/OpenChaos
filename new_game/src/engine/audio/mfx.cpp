@@ -7,8 +7,8 @@
 #include <AL/al.h>
 #include <AL/alext.h>
 #include <SDL2/SDL_audio.h>
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "assets/sound_id.h"

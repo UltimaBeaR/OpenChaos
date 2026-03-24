@@ -13,25 +13,25 @@
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/geometry/sky.h"
-#include "assets/compression.h"
-#include "assets/tga.h"
+#include "engine/compression/compression.h"
+#include "assets/formats/tga.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
 #include "engine/core/matrix.h"
 
 #include "engine/core/fmatrix.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 #include "game/game_types.h"
-#include "world/environment/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
-#include "world/environment/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
-#include "world/navigation/inside2.h"
-#include "world/navigation/inside2_globals.h"
-#include "world/map/pap.h"
-#include "world/map/pap_globals.h"
+#include "buildings/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
+#include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
+#include "navigation/inside2.h"
+#include "navigation/inside2_globals.h"
+#include "map/pap.h"
+#include "map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
 #include <math.h>
@@ -45,7 +45,7 @@
 #include "engine/graphics/lighting/smap_globals.h"
 #include "engine/audio/sound.h"   // WORLD_TYPE_SNOW
 #include "engine/audio/sound_globals.h" // world_type
-#include "assets/anim_globals.h"  // estate
+#include "assets/formats/anim_globals.h"  // estate
 #include "effects/weather/drip.h"
 #include "effects/weather/drip_globals.h"
 #include "effects/environment/fire.h"
@@ -67,15 +67,15 @@
 #include "engine/graphics/text/font2d.h"
 
 // Additional includes for chunk 5b
-#include "world/navigation/inside2.h"
-#include "world/environment/ns.h"
+#include "navigation/inside2.h"
+#include "underground/ns.h"
 #include "missions/eway.h"
 #include "things/core/thing_globals.h"
-#include "world/map/supermap_globals.h"
+#include "map/supermap_globals.h"
 
 // Additional includes for AENG_draw_city() (chunk 4b)
-#include "world/environment/puddle.h"
-#include "world/environment/puddle_globals.h"
+#include "objects/puddle.h"
+#include "objects/puddle_globals.h"
 #include "effects/weather/mist.h"
 #include "effects/weather/mist_globals.h"
 #include "engine/graphics/postprocess/wibble.h"
@@ -83,8 +83,8 @@
 #include "engine/graphics/postprocess/bloom_globals.h"
 #include "engine/graphics/geometry/cone.h"
 #include "engine/graphics/geometry/cone_globals.h"
-#include "world/environment/tripwire.h"
-#include "world/environment/tripwire_globals.h"
+#include "objects/tripwire.h"
+#include "objects/tripwire_globals.h"
 #include "engine/physics/sm.h"
 #include "engine/physics/sm_globals.h"
 #include "engine/effects/psystem.h"
@@ -93,9 +93,9 @@
 #include "effects/environment/ribbon_globals.h"
 #include "effects/combat/pyro.h"
 #include "effects/combat/pyro_globals.h"
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
-#include "world/map/supermap.h"
+#include "map/ob.h"
+#include "map/ob_globals.h"
+#include "map/supermap.h"
 #include "engine/graphics/geometry/facet.h"
 #include "engine/graphics/geometry/facet_globals.h"
 #include "engine/graphics/geometry/farfacet.h"
@@ -113,7 +113,7 @@
 #include "game/input_actions_globals.h"
 #include "game/game_tick_globals.h"
 #include "things/characters/anim_ids.h"
-#include "assets/anim_tmap.h"
+#include "assets/formats/anim_tmap.h"
 #include "things/core/statedef.h"
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)

@@ -9,13 +9,13 @@
 #include "assets/texture.h"
 #include "engine/core/matrix.h"
 #include "engine/core/types.h"
-#include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, PRIM_FLAG_*, FACE_FLAG_*
-#include "world/environment/prim.h"       // get_prim_info
+#include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, PRIM_FLAG_*, FACE_FLAG_*
+#include "buildings/prim.h"       // get_prim_info
 #include "game/game_types.h"
 #include "engine/graphics/geometry/shape_globals.h"
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 #include "engine/core/memory.h"               // MemAlloc, MemFree (used by reflection mesh cache)
-#include "assets/anim_tmap.h"
+#include "assets/formats/anim_tmap.h"
 
 #include <math.h>
 #include <stdlib.h>                    // realloc, fabs

@@ -50,16 +50,16 @@ set(SOURCES_NEW
     src/engine/core/fmatrix.cpp
     src/engine/core/quaternion.cpp
     src/engine/core/quaternion_globals.cpp
-    src/assets/file_clump.cpp
-    src/assets/tga.cpp
-    src/assets/tga_globals.cpp
-    src/assets/image_compression.cpp
-    src/assets/compression.cpp
-    src/assets/compression_globals.cpp
-    src/assets/anim.cpp
-    src/assets/anim_globals.cpp
-    src/assets/anim_loader.cpp
-    src/assets/anim_loader_globals.cpp
+    src/assets/formats/file_clump.cpp
+    src/assets/formats/tga.cpp
+    src/assets/formats/tga_globals.cpp
+    src/engine/compression/image_compression.cpp
+    src/engine/compression/compression.cpp
+    src/engine/compression/compression_globals.cpp
+    src/assets/formats/anim.cpp
+    src/assets/formats/anim_globals.cpp
+    src/assets/formats/anim_loader.cpp
+    src/assets/formats/anim_loader_globals.cpp
     src/engine/graphics/lighting/ngamut.cpp
     src/engine/graphics/lighting/ngamut_globals.cpp
     src/engine/graphics/graphics_api/work_screen.cpp
@@ -92,7 +92,7 @@ set(SOURCES_NEW
     src/engine/graphics/text/menufont_globals.cpp
     src/engine/graphics/pipeline/qeng.cpp
     src/engine/graphics/pipeline/qeng_globals.cpp
-    src/world/map/qmap_globals.cpp
+    src/map/qmap_globals.cpp
     src/engine/graphics/text/text.cpp
     src/engine/graphics/text/text_globals.cpp
     src/assets/xlat_str.cpp
@@ -104,11 +104,11 @@ set(SOURCES_NEW
     src/engine/console/console_globals.cpp
     src/engine/core/heap.cpp
     src/engine/core/heap_globals.cpp
-    src/assets/anim_tmap.cpp
-    src/assets/anim_tmap_globals.cpp
+    src/assets/formats/anim_tmap.cpp
+    src/assets/formats/anim_tmap_globals.cpp
     src/engine/animation/morph.cpp
     src/engine/animation/morph_globals.cpp
-    src/world/environment/outline.cpp
+    src/buildings/outline.cpp
     src/engine/graphics/lighting/crinkle.cpp
     src/engine/effects/flamengine.cpp
     src/engine/effects/psystem.cpp
@@ -135,10 +135,10 @@ set(SOURCES_NEW
     src/effects/weather/drip_globals.cpp
     src/engine/graphics/geometry/oval.cpp
     src/engine/graphics/geometry/oval_globals.cpp
-    src/world/environment/build.cpp
-    src/world/environment/build_globals.cpp
-    src/world/environment/building.cpp
-    src/world/environment/building_globals.cpp
+    src/buildings/build.cpp
+    src/buildings/build_globals.cpp
+    src/buildings/building.cpp
+    src/buildings/building_globals.cpp
     src/ui/hud/planmap.cpp
     src/ui/hud/planmap_globals.cpp
     src/ui/hud/eng_map.cpp
@@ -152,18 +152,18 @@ set(SOURCES_NEW
     src/effects/weather/fog.cpp
     src/effects/weather/fog_globals.cpp
     src/things/core/drawtype.cpp
-    src/world/map/pap.cpp
-    src/world/map/pap_globals.cpp
-    src/world/navigation/walkable.cpp
-    src/world/navigation/walkable_globals.cpp
+    src/map/pap.cpp
+    src/map/pap_globals.cpp
+    src/navigation/walkable.cpp
+    src/navigation/walkable_globals.cpp
     src/engine/audio/music.cpp
     src/engine/audio/music_globals.cpp
     src/engine/audio/soundenv.cpp
     src/engine/audio/soundenv_globals.cpp
     src/effects/environment/tracks.cpp
     src/effects/environment/tracks_globals.cpp
-    src/world/map/map.cpp
-    src/world/map/map_globals.cpp
+    src/map/map.cpp
+    src/map/map_globals.cpp
     src/engine/graphics/geometry/cone.cpp
     src/engine/graphics/geometry/cone_globals.cpp
     src/engine/graphics/geometry/farfacet.cpp
@@ -180,9 +180,9 @@ set(SOURCES_NEW
     src/engine/graphics/lighting/smap_globals.cpp
     src/engine/graphics/lighting/night.cpp
     src/engine/graphics/lighting/night_globals.cpp
-    src/world/navigation/inside2.cpp
-    src/world/navigation/inside2_globals.cpp
-    src/world/environment/build2.cpp
+    src/navigation/inside2.cpp
+    src/navigation/inside2_globals.cpp
+    src/buildings/build2.cpp
     src/things/core/state.cpp
     src/things/core/switch.cpp
     src/things/core/switch_globals.cpp
@@ -226,8 +226,8 @@ set(SOURCES_NEW
     src/effects/combat/pow_globals.cpp
     src/engine/graphics/geometry/superfacet.cpp
     src/engine/graphics/geometry/superfacet_globals.cpp
-    src/assets/level_loader.cpp
-    src/assets/level_loader_globals.cpp
+    src/assets/formats/level_loader.cpp
+    src/assets/formats/level_loader_globals.cpp
     src/engine/graphics/pipeline/aeng.cpp
     src/engine/graphics/pipeline/aeng_globals.cpp
     src/engine/graphics/geometry/figure.cpp
@@ -264,13 +264,13 @@ set(SOURCES_NEW
     src/things/items/barrel_globals.cpp
     src/ai/combat.cpp
     src/ai/combat_globals.cpp
-    src/world/environment/door.cpp
-    src/world/environment/door_globals.cpp
+    src/objects/door.cpp
+    src/objects/door_globals.cpp
 
     src/missions/eway.cpp
     src/missions/eway_globals.cpp
-    src/ui/camera/fc.cpp
-    src/ui/camera/fc_globals.cpp
+    src/camera/fc.cpp
+    src/camera/fc_globals.cpp
     src/ui/frontend.cpp
     src/ui/frontend_globals.cpp
     src/game/game.cpp
@@ -282,12 +282,12 @@ set(SOURCES_NEW
     src/game/startup.cpp
     src/ai/mav.cpp
     src/ai/mav_globals.cpp
-    src/world/environment/ns.cpp
-    src/world/environment/ns_globals.cpp
-    src/world/environment/prim.cpp
-    src/world/environment/prim_globals.cpp
-    src/world/map/ob.cpp
-    src/world/map/ob_globals.cpp
+    src/underground/ns.cpp
+    src/underground/ns_globals.cpp
+    src/buildings/prim.cpp
+    src/buildings/prim_globals.cpp
+    src/map/ob.cpp
+    src/map/ob_globals.cpp
     src/ui/hud/overlay.cpp
     src/ui/hud/overlay_globals.cpp
     src/ui/hud/panel.cpp
@@ -297,27 +297,27 @@ set(SOURCES_NEW
     src/ai/pcom.cpp
     src/ai/pcom_globals.cpp
     src/things/items/projectile.cpp
-    src/world/environment/plat.cpp
-    src/world/environment/plat_globals.cpp
+    src/objects/plat.cpp
+    src/objects/plat_globals.cpp
     src/missions/playcuts.cpp
     src/missions/playcuts_globals.cpp
-    src/world/environment/puddle.cpp
-    src/world/environment/puddle_globals.cpp
+    src/objects/puddle.cpp
+    src/objects/puddle_globals.cpp
     src/effects/combat/pyro.cpp
     src/effects/combat/pyro_globals.cpp
     src/effects/combat/glow.cpp
     src/engine/graphics/postprocess/bloom.cpp
     src/engine/graphics/postprocess/bloom_globals.cpp
     src/engine/graphics/pipeline/draw2d.cpp
-    src/world/map/qmap.cpp
-    src/world/map/road.cpp
-    src/world/map/road_globals.cpp
+    src/map/qmap.cpp
+    src/map/road.cpp
+    src/map/road_globals.cpp
     src/missions/memory.cpp
     src/missions/memory_globals.cpp
     src/missions/save.cpp
     src/missions/save_globals.cpp
-    src/missions/elev.cpp
-    src/missions/elev_globals.cpp
+    src/assets/formats/elev.cpp
+    src/assets/formats/elev_globals.cpp
     src/engine/physics/sm.cpp
     src/engine/physics/sm_globals.cpp
     src/engine/physics/hm.cpp
@@ -328,24 +328,24 @@ set(SOURCES_NEW
     src/engine/audio/sound_globals.cpp
     src/things/items/special.cpp
     src/things/items/special_globals.cpp
-    src/world/environment/stair.cpp
-    src/world/environment/stair_globals.cpp
-    src/world/map/supermap.cpp
-    src/world/map/supermap_globals.cpp
-    src/world/environment/tripwire.cpp
-    src/world/environment/tripwire_globals.cpp
+    src/buildings/stair.cpp
+    src/buildings/stair_globals.cpp
+    src/map/supermap.cpp
+    src/map/supermap_globals.cpp
+    src/objects/tripwire.cpp
+    src/objects/tripwire_globals.cpp
 
-    src/world/navigation/wand.cpp
-    src/world/environment/ware.cpp
-    src/world/environment/ware_globals.cpp
+    src/navigation/wand.cpp
+    src/objects/ware.cpp
+    src/objects/ware_globals.cpp
     src/game/game_tick.cpp
     src/game/game_tick_globals.cpp
     src/game/input_actions.cpp
     src/game/input_actions_globals.cpp
     src/ui/menus/widget.cpp
     src/ui/menus/widget_globals.cpp
-    src/world/navigation/wmove.cpp
-    src/world/navigation/wmove_globals.cpp
+    src/navigation/wmove.cpp
+    src/navigation/wmove_globals.cpp
 )
 
 # ---------------------------------------------------------------------------

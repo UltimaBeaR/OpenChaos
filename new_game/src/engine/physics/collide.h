@@ -4,8 +4,8 @@
 #include "engine/core/types.h"
 // Note: engine/ → world/ is a DAG violation, but PAP cell data is required by collision
 // detection throughout the engine. This dependency is accepted as known tech debt.
-#include "world/map/pap.h"
-#include "world/map/pap_globals.h"
+#include "map/pap.h"
+#include "map/pap_globals.h"
 
 // Forward declarations — full definitions in their respective headers.
 // Consumers that need globals should also include engine/physics/collide_globals.h.

@@ -17,10 +17,10 @@
 #include "engine/core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
-#include "assets/level_loader.h"
-#include "assets/level_loader_globals.h"
-#include "assets/anim_loader.h"
-#include "assets/anim_loader_globals.h"
+#include "assets/formats/level_loader.h"
+#include "assets/formats/level_loader_globals.h"
+#include "assets/formats/anim_loader.h"
+#include "assets/formats/anim_loader_globals.h"
 #include "engine/audio/music.h"
 #include "game/game_types.h"
 
@@ -39,7 +39,7 @@
 #include "game/input_actions_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
 #include "assets/startscr_globals.h"          // STARTSCR_mission
 #include "assets/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
-#include "world/map/supermap_globals.h"       // DONT_load
+#include "map/supermap_globals.h"       // DONT_load
 #include "game/game_tick_globals.h"              // allow_debug_keys
 #include "game/game_globals.h"            // VIOLENCE
 

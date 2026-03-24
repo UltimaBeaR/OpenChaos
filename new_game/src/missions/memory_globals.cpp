@@ -3,41 +3,41 @@
 
 #include "things/core/thing.h"         // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
 #include "game/game_types.h"      // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
-#include "world/navigation/wmove.h"
-#include "world/navigation/wmove_globals.h"
-#include "world/map/supermap.h"
+#include "map/ob.h"
+#include "map/ob_globals.h"
+#include "navigation/wmove.h"
+#include "navigation/wmove_globals.h"
+#include "map/supermap.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
 #include "missions/eway.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "ai/mav.h"
-#include "world/map/road.h"
-#include "world/map/road_globals.h"
+#include "map/road.h"
+#include "map/road_globals.h"
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
 #include "effects/environment/tracks.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h"
-#include "world/environment/tripwire.h"
-#include "world/environment/tripwire_globals.h"
+#include "objects/ware.h"
+#include "objects/ware_globals.h"
+#include "objects/tripwire.h"
+#include "objects/tripwire_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "things/animals/bat.h"
-#include "world/environment/door.h"
-#include "world/environment/door_globals.h"
+#include "objects/door.h"
+#include "objects/door_globals.h"
 #include "missions/playcuts.h"
 #include "missions/playcuts_globals.h"
 #include "engine/audio/sound.h"
 
 #include "missions/memory_globals.h"
 #include "missions/memory.h"
-#include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
-#include "assets/anim_globals.h"                // next_prim_point, next_prim_face3/4/object, game_chunk, anim_chunk
-#include "world/environment/plat_globals.h"    // PLAT_plat (PLAT_plat_upto)
+#include "buildings/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
+#include "assets/formats/anim_globals.h"                // next_prim_point, next_prim_face3/4/object, game_chunk, anim_chunk
+#include "objects/plat_globals.h"    // PLAT_plat (PLAT_plat_upto)
 #include "engine/physics/collide_globals.h"    // COLLIDE_fastnav
 
 // EWAY_counter is defined in eway.cpp (not yet migrated) and not in eway.h.

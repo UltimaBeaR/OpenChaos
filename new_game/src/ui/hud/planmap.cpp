@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "world/map/pap_globals.h"
-#include "world/map/road.h"
+#include "map/pap_globals.h"
+#include "map/road.h"
 #include "ui/hud/planmap.h"
 #include "ui/hud/planmap_globals.h"
 

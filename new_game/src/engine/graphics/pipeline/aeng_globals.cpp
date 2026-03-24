@@ -1,6 +1,6 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "assets/compression.h"
+#include "engine/compression/compression.h"
 
 // uc_orig: AENG_dx_prim_points (fallen/DDEngine/Source/aeng.cpp)
 SVector_F AENG_dx_prim_points[RMAX_PRIM_POINTS];

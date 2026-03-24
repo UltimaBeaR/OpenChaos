@@ -19,7 +19,7 @@
 #include "things/items/special.h"      // Special, SpecialPtr
 #include "things/core/switch.h"        // Switch, SwitchPtr
 #include "effects/environment/tracks.h"            // Track, TrackPtr
-#include "world/environment/plat.h"    // Plat, PlatPtr
+#include "objects/plat.h"    // Plat, PlatPtr
 #include "things/items/barrel.h"       // Barrel, BarrelPtr
 #include "things/animals/bat.h"        // Bat, BatPtr
 

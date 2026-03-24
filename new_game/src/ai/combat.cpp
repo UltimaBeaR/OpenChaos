@@ -8,9 +8,9 @@
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
 #include "things/characters/anim_ids.h"
 #include "things/core/statedef.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "engine/audio/sound.h"
-#include "assets/anim_globals.h"      // estate, semtex (already migrated)
+#include "assets/formats/anim_globals.h"      // estate, semtex (already migrated)
 #include "effects/environment/dirt.h"
 #include "missions/eway.h"            // EWAY_get_person (already migrated)
 #include "things/core/interact.h"     // calc_sub_objects_position

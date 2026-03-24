@@ -9,19 +9,19 @@
 #include "ai/mav.h"
 #include "ai/mav_globals.h"
 
-#include "world/map/pap.h"
-#include "world/map/supermap.h"
-#include "world/map/ob.h"
-#include "world/navigation/walkable.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h"
+#include "map/pap.h"
+#include "map/supermap.h"
+#include "map/ob.h"
+#include "navigation/walkable.h"
+#include "objects/ware.h"
+#include "objects/ware_globals.h"
 
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "world/environment/prim_types.h"    // PrimInfo, RFACE_FLAG_NODRAW, RoofFace4
-#include "world/environment/prim.h"         // get_prim_info, does_fence_lie_along_line
-#include "world/environment/building_types.h" // BUILDING_TYPE_WAREHOUSE, STOREY_TYPE_FENCE_FLAT, STOREY_TYPE_LADDER, FACET_FLAG_UNCLIMBABLE
-#include "world/level_pools.h"
+#include "buildings/prim_types.h"    // PrimInfo, RFACE_FLAG_NODRAW, RoofFace4
+#include "buildings/prim.h"         // get_prim_info, does_fence_lie_along_line
+#include "buildings/building_types.h" // BUILDING_TYPE_WAREHOUSE, STOREY_TYPE_FENCE_FLAT, STOREY_TYPE_LADDER, FACET_FLAG_UNCLIMBABLE
+#include "map/level_pools.h"
 
 // TRACE was a no-op debug print macro in the original release build.
 #ifndef TRACE

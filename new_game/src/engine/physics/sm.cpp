@@ -3,8 +3,8 @@
 #include "engine/physics/sm.h"
 #include "engine/physics/sm_globals.h"
 #include "engine/core/fixed_math.h"
-#include "world/map/pap.h"
-#include "world/map/pap_globals.h"
+#include "map/pap.h"
+#include "map/pap_globals.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 

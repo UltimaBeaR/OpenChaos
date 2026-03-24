@@ -2,7 +2,7 @@
 #define EFFECTS_COMBAT_SPARK_GLOBALS_H
 
 #include "effects/combat/spark.h"
-#include "world/map/map.h"
+#include "map/map.h"
 
 // Internal spark structure (not exposed in the public API header).
 // uc_orig: SPARK_Point (fallen/Source/spark.cpp)

@@ -1070,14 +1070,14 @@ extern UBYTE fire_pal[768];
 void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset);
 void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE rand = 1);
 #include "engine/graphics/pipeline/aeng.h"
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 #include "things/items/barrel.h"
 #include "effects/environment/ribbon.h"
 #include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "effects/combat/spark.h"
-#include "world/environment/id.h"
-#include "world/map/pap.h"
+#include "buildings/id.h"
+#include "map/pap.h"
 // BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.
 #include "engine/graphics/postprocess/bloom.h"
 

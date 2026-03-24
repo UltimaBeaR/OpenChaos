@@ -4,12 +4,12 @@
 // Types: NORMAL (explodes), CONE (small, no stack), BURNING (starts on fire), BIN (rubbish+cans).
 
 #include "game/game_types.h"
-#include "world/environment/prim.h"    // get_prim_info
+#include "buildings/prim.h"    // get_prim_info
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
 #include "engine/core/fmatrix.h"
 #include "ai/mav.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 #include "ai/pcom.h"

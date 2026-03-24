@@ -4,32 +4,32 @@
 #include "game/game_types.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
-#include "assets/anim_globals.h"   // next_prim_face3, next_prim_face4
+#include "assets/formats/anim_globals.h"   // next_prim_face3, next_prim_face4
 #include "engine/graphics/pipeline/aeng.h"
-#include "assets/anim_tmap.h"
-#include "world/map/supermap.h"
+#include "assets/formats/anim_tmap.h"
+#include "map/supermap.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "world/map/pap.h"
+#include "map/pap.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "engine/graphics/graphics_api/d3d_texture.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/console/message.h"
 #include "engine/audio/sound.h"
-#include "world/environment/ware.h"
+#include "objects/ware.h"
 #include "engine/graphics/text/truetype.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/io/env.h"
-#include "assets/tga.h"
-#include "world/level_pools.h"
-#include "assets/level_loader.h"
-#include "assets/level_loader_globals.h"
-#include "assets/anim_loader.h"
-#include "assets/anim_loader_globals.h"
-#include "world/environment/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
-#include "world/environment/building_globals.h" // dx_textures_xy, building_list
-#include "world/map/supermap_globals.h" // next_dfacet
-#include "world/environment/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
-#include "world/map/map.h" // MAP_WIDTH, MAP_HEIGHT
+#include "assets/formats/tga.h"
+#include "map/level_pools.h"
+#include "assets/formats/level_loader.h"
+#include "assets/formats/level_loader_globals.h"
+#include "assets/formats/anim_loader.h"
+#include "assets/formats/anim_loader_globals.h"
+#include "buildings/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
+#include "buildings/building_globals.h" // dx_textures_xy, building_list
+#include "map/supermap_globals.h" // next_dfacet
+#include "objects/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
+#include "map/map.h" // MAP_WIDTH, MAP_HEIGHT
 
 // Internal page-count constants.
 // uc_orig: TEXTURE_NORM_SIZE (fallen/DDEngine/Source/texture.cpp)

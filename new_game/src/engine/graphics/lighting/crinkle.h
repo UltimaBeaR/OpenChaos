@@ -4,7 +4,7 @@
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "assets/file_clump.h"
+#include "assets/formats/file_clump.h"
 
 // Crinkle = per-surface bump-mapping approximation using pre-computed normal meshes.
 // Each crinkle is a dense triangle mesh that is extruded from a flat quad at render time

@@ -3,8 +3,8 @@
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"
 // functions (add_thing_to_map etc). Pre-existing coupling from original Thing.cpp.
-#include "world/map/pap.h"
-#include "world/map/pap_globals.h"
+#include "map/pap.h"
+#include "map/pap_globals.h"
 #include "engine/input/keyboard.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/audio/mfx.h"

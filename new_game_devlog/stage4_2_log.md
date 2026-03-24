@@ -137,3 +137,15 @@
 - `cnet` удалён (сетевая заглушка). CNET_* globals сохранены как `game/network_state_globals.*`
 - CNET_configure() вызов в game.cpp заменён на прямое `GAME_STATE = GS_ATTRACT_MODE`
 - Транзитивные include breakages: elev*.h/.cpp нуждались в `game/game_types.h` (было через Game.h), mission.h нуждался в uc_common.h (для _MAX_PATH)
+
+### Итерация 8 — разбиение world/, camera, assets/formats, compression (2026-03-25)
+
+- `world/` удалена, содержимое → top-level модули:
+  - `world/map/` → `map/` (+ level_pools.h)
+  - `world/navigation/` → `navigation/`
+  - `world/environment/` → разбито на `buildings/`, `objects/`, `underground/`
+- `ui/camera/` → `camera/` (камера — не UI)
+- `assets/` внутренняя: загрузчики форматов → `assets/formats/`
+- `missions/elev` → `assets/formats/elev` (загрузчик .ucm формата)
+- `assets/compression` + `assets/image_compression` → `engine/compression/` (универсальные алгоритмы)
+- 210 файлов обновлены, 854 include-пути

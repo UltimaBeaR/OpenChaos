@@ -7,15 +7,15 @@
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"  // playback_file, verifier_file
 #include "game/game_tick.h"                // process_controls
-#include "world/environment/prim.h"    // clear_prims
+#include "buildings/prim.h"    // clear_prims
 
 // These modules are not yet fully migrated:
 #include "ui/attract.h"
-#include "world/environment/id.h"
-#include "assets/level_loader.h"
-#include "assets/level_loader_globals.h"
-#include "assets/anim_loader.h"
-#include "assets/anim_loader_globals.h"
+#include "buildings/id.h"
+#include "assets/formats/level_loader.h"
+#include "assets/formats/level_loader_globals.h"
+#include "assets/formats/anim_loader.h"
+#include "assets/formats/anim_loader_globals.h"
 #include "engine/core/heap.h"
 #include "ai/mav.h"
 #include "effects/weather/fog.h"
@@ -26,30 +26,30 @@
 #include "ui/menus/gamemenu.h"
 #include "effects/combat/spark.h"
 #include "things/core/statedef.h"
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
+#include "map/ob.h"
+#include "map/ob_globals.h"
 #include "engine/animation/morph.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/lighting/shadow.h"
 #include "engine/graphics/lighting/shadow_globals.h"
-#include "world/environment/ns.h"
-#include "world/map/supermap.h"
-#include "world/environment/build2.h"
+#include "underground/ns.h"
+#include "map/supermap.h"
+#include "buildings/build2.h"
 #include "effects/combat/pow.h"
 #include "effects/combat/pow_globals.h"
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
 #include "missions/memory_globals.h"
 #include "missions/memory.h"         // MEMORY_quick_init, init_memory
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 #include "missions/save.h"
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
 #include "engine/io/env.h"
-#include "world/navigation/wmove.h"
-#include "world/navigation/wmove_globals.h"
+#include "navigation/wmove.h"
+#include "navigation/wmove_globals.h"
 #include "engine/console/console.h"  // CONSOLE_draw, CONSOLE_font
 #include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw
 #include "ui/hud/eng_map.h"  // MAP_process
@@ -62,25 +62,25 @@
 #include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
 #include "engine/graphics/geometry/fastprim_globals.h"
 
-#include "missions/elev.h"      // ELEV_load_user, ELEV_load_name, ELEV_fname_level
-#include "missions/elev_globals.h"
+#include "assets/formats/elev.h"      // ELEV_load_user, ELEV_load_name, ELEV_fname_level
+#include "assets/formats/elev_globals.h"
 #include "missions/eway.h"      // EWAY_process, EWAY_grab_camera, EWAY_tutorial_string, EWAY_tutorial_counter
 #include "missions/eway_globals.h"
 
-#include "world/environment/build2.h" // (transitively, if needed)
-#include "world/map/supermap.h"
+#include "buildings/build2.h" // (transitively, if needed)
+#include "map/supermap.h"
 
 #include "ui/attract.h"         // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
 #include "ui/attract_globals.h" // go_into_game
 #include "ui/menus/gamemenu.h"
 #include "ui/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
 #include "ui/hud/overlay.h"     // OVERLAY_handle
-#include "ui/camera/fc.h"       // FC_init, FC_process, FC_cam
+#include "camera/fc.h"       // FC_init, FC_process, FC_cam
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
-#include "assets/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
-#include "assets/anim_loader.h" // setup_people_anims, setup_extra_anims, setup_global_anim_array
-#include "assets/level_loader.h"// (transitively)
+#include "assets/formats/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
+#include "assets/formats/anim_loader.h" // setup_people_anims, setup_extra_anims, setup_global_anim_array
+#include "assets/formats/level_loader.h"// (transitively)
 #include "assets/texture.h"     // TEXTURE_load_needed
 
 #include "effects/environment/ribbon.h"     // RIBBON_process
@@ -101,14 +101,14 @@
 #include "ui/frontend_globals.h"
 #include "things/characters/snipe.h"
 #include "things/characters/snipe_globals.h"
-#include "world/environment/tripwire.h"
-#include "world/environment/tripwire_globals.h"
-#include "world/environment/door.h"
-#include "world/environment/door_globals.h"
-#include "world/environment/puddle.h"
-#include "world/environment/puddle_globals.h"
-#include "world/map/pap_globals.h"
-#include "ui/camera/cam.h"
+#include "objects/tripwire.h"
+#include "objects/tripwire_globals.h"
+#include "objects/door.h"
+#include "objects/door_globals.h"
+#include "objects/puddle.h"
+#include "objects/puddle_globals.h"
+#include "map/pap_globals.h"
+#include "camera/cam.h"
 
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 

@@ -11,10 +11,10 @@
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
-#include "world/environment/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
-#include "world/environment/prim.h"          // get_prim_info
-#include "world/environment/building_types.h" // TEXTURE_PIECE_*
-#include "world/level_pools.h"
+#include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
+#include "buildings/prim.h"          // get_prim_info
+#include "buildings/building_types.h" // TEXTURE_PIECE_*
+#include "map/level_pools.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 

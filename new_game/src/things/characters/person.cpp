@@ -11,7 +11,7 @@
 #include "things/characters/roper.h"
 #include "things/characters/roper_globals.h"
 #include "things/characters/thug.h"
-#include "world/environment/id.h"
+#include "buildings/id.h"
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 #include "ai/combat.h"
@@ -21,37 +21,37 @@
 #include "missions/eway.h"
 #include "effects/combat/spark.h"
 #include "effects/weather/drip.h"
-#include "world/environment/puddle.h"
-#include "world/environment/puddle_globals.h"
-#include "world/map/pap_globals.h"
-#include "world/map/supermap.h"
-#include "world/environment/ns.h"
+#include "objects/puddle.h"
+#include "objects/puddle_globals.h"
+#include "map/pap_globals.h"
+#include "map/supermap.h"
+#include "underground/ns.h"
 #include "effects/environment/dirt.h"
 #include "things/items/hook.h"
 #include "things/items/hook_globals.h"
 #include "effects/environment/tracks.h"
 #include "engine/core/matrix.h"
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
-#include "world/navigation/wmove.h"
-#include "world/navigation/wmove_globals.h"
+#include "map/ob.h"
+#include "map/ob_globals.h"
+#include "navigation/wmove.h"
+#include "navigation/wmove_globals.h"
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
-#include "world/navigation/inside2.h"
-#include "world/navigation/inside2_globals.h"
-#include "world/navigation/walkable.h"
+#include "navigation/inside2.h"
+#include "navigation/inside2_globals.h"
+#include "navigation/walkable.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 #include "engine/core/fmatrix.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 #include "engine/audio/mfx.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h"
+#include "objects/ware.h"
+#include "objects/ware_globals.h"
 #include "assets/xlat_str.h"
 #include "effects/combat/pow.h"
 #include "effects/combat/pow_globals.h"
@@ -62,8 +62,8 @@
 #include "ui/hud/panel_globals.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "world/environment/building_types.h"  // CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*
-#include "world/environment/building.h"        // make_cable_taut_along, make_cable_flabby, etc.
+#include "buildings/building_types.h"  // CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*
+#include "buildings/building.h"        // make_cable_taut_along, make_cable_flabby, etc.
 
 #include "things/characters/person.h"
 #include "things/characters/person_globals.h"
@@ -76,8 +76,8 @@
 #include "things/animals/bat.h"
 #include "things/items/barrel.h"
 #include "things/core/interact.h"
-#include "world/environment/prim_types.h" // PrimFace3/4, FACE_FLAG_*, PRIM_OBJ_*
-#include "world/environment/prim.h"       // does_fence_lie_along_line (chunk 6)
+#include "buildings/prim_types.h" // PrimFace3/4, FACE_FLAG_*, PRIM_OBJ_*
+#include "buildings/prim.h"       // does_fence_lie_along_line (chunk 6)
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"
 
@@ -10430,7 +10430,7 @@ void fn_person_moveing(Thing* p_person)
 
 #include "effects/environment/tracks.h"
 #include "things/items/hook.h"
-#include "world/environment/puddle.h"
+#include "objects/puddle.h"
 
 extern SLONG look_pitch; // interfac.cpp
 

@@ -2,7 +2,7 @@
 #include "game/game_types.h"
 #include "things/items/hook.h"
 #include "things/items/hook_globals.h"
-#include "world/map/pap.h"
+#include "map/pap.h"
 #include "engine/core/fmatrix.h"
 
 // Physics constants for the rope simulation.

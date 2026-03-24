@@ -1,11 +1,11 @@
 #ifndef THINGS_CORE_INTERACT_H
 #define THINGS_CORE_INTERACT_H
 
-#include "world/environment/building_types.h" // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
-#include "world/map/supermap.h"               // DFacet (used in function params)
+#include "buildings/building_types.h" // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
+#include "map/supermap.h"               // DFacet (used in function params)
 #include "things/core/thing.h"
 #include "things/core/thing_globals.h"
-#include "assets/anim_globals.h"
+#include "assets/formats/anim_globals.h"
 
 // Returns fractional position along a cable facet for world XZ point.
 // Result in CABLE_ALONG_SHIFT fixed-point units.

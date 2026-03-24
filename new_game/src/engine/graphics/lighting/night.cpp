@@ -3,18 +3,18 @@
 #include "game/game_types.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
-#include "world/map/pap_globals.h"
+#include "map/ob.h"
+#include "map/ob_globals.h"
+#include "map/pap_globals.h"
 #include "engine/core/fmatrix.h"
-#include "world/map/supermap.h"
+#include "map/supermap.h"
 #include "engine/graphics/lighting/ed_light.h"
-#include "world/level_pools.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h"
+#include "map/level_pools.h"
+#include "objects/ware.h"
+#include "objects/ware_globals.h"
 #include "ai/mav.h"
-#include "world/environment/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_LAMPOST
-#include "world/environment/prim.h"       // get_prim_info
+#include "buildings/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_LAMPOST
+#include "buildings/prim.h"       // get_prim_info
 #include "engine/io/file.h"
 
 

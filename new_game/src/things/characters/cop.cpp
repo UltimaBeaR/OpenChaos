@@ -3,7 +3,7 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/animation/anim_types.h"      // GameKeyFrame
-#include "assets/anim_globals.h"               // global_anim_array
+#include "assets/formats/anim_globals.h"               // global_anim_array
 #include "things/characters/person.h"          // set_thing_velocity, set_person_idle, health, set_anim
 #include "things/characters/person_globals.h"  // health[]
 #include "things/core/statedef.h"

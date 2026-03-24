@@ -3,12 +3,12 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/animation/anim_types.h"      // GameKeyFrame
-#include "assets/anim_globals.h"               // game_chunk
+#include "assets/formats/anim_globals.h"               // game_chunk
 #include "things/characters/person.h"          // set_thing_velocity, health, set_anim
 #include "things/characters/person_globals.h"  // health[]
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 
 // uc_orig: calc_height_at (fallen/Source/Thug.cpp)
 extern SLONG calc_height_at(SLONG x, SLONG z);

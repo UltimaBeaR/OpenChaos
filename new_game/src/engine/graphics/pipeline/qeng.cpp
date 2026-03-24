@@ -4,7 +4,7 @@
 #include "engine/graphics/pipeline/qeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/graphics_api/vertex_buffer.h"
-#include "world/map/qmap_globals.h"
+#include "map/qmap_globals.h"
 
 // uc_orig: QENG_set_camera (fallen/DDEngine/Source/qeng.cpp)
 void QENG_set_camera(float x, float y, float z, float yaw, float pitch, float roll)

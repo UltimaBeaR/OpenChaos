@@ -1,10 +1,10 @@
 #include "game/game_types.h"
 #include "effects/weather/drip.h"
 #include "effects/weather/drip_globals.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "world/environment/puddle.h"
+#include "objects/puddle.h"
 #include "ai/mav.h"
 #include "missions/memory.h"
 

@@ -2,7 +2,7 @@
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/font2d_globals.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "assets/tga.h"
+#include "assets/formats/tga.h"
 
 // 256×256 array of TGA pixels — the actual type behind the void* font2d_data global.
 // uc_orig: MyArrayType (fallen/DDEngine/Source/font2d.cpp)

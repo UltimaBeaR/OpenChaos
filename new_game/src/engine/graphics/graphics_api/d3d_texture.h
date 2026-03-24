@@ -4,8 +4,8 @@
 #include <windows.h>
 #include <ddraw.h>
 #include <d3d.h>
-#include "assets/tga.h"
-#include "assets/file_clump.h"
+#include "assets/formats/tga.h"
+#include "assets/formats/file_clump.h"
 #include "engine/io/file.h"
 
 // uc_orig: NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit (fallen/DDLibrary/Headers/D3DTexture.h)

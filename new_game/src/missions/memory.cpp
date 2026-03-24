@@ -4,41 +4,41 @@
 
 #include "things/core/thing.h"         // pool types (Vehicle, Person, etc.)
 #include "game/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
-#include "world/environment/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
-#include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
-#include "assets/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
-#include "world/environment/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
+#include "buildings/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
+#include "buildings/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
+#include "assets/formats/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
+#include "objects/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
 #include "assets/texture.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
-#include "world/navigation/wmove.h"
-#include "world/navigation/wmove_globals.h"
-#include "world/map/supermap.h"
+#include "map/ob.h"
+#include "map/ob_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
+#include "navigation/wmove.h"
+#include "navigation/wmove_globals.h"
+#include "map/supermap.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
 #include "missions/eway.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "ai/mav.h"
-#include "world/map/road.h"
-#include "world/map/road_globals.h"
+#include "map/road.h"
+#include "map/road_globals.h"
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
 #include "effects/environment/tracks.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h"
-#include "world/environment/tripwire.h"
-#include "world/environment/tripwire_globals.h"
+#include "objects/ware.h"
+#include "objects/ware_globals.h"
+#include "objects/tripwire.h"
+#include "objects/tripwire_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "engine/io/env.h"
 #include "things/animals/bat.h"
-#include "world/environment/door.h"
-#include "world/environment/door_globals.h"
+#include "objects/door.h"
+#include "objects/door_globals.h"
 #include "effects/combat/spark.h"
 #include "missions/playcuts.h"
 #include "missions/playcuts_globals.h"

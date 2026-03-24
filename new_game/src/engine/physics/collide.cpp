@@ -3,10 +3,10 @@
 
 #include "things/core/thing.h"
 #include "game/game_types.h"
-#include "world/map/pap_globals.h"
-#include "world/level_pools.h"
+#include "map/pap_globals.h"
+#include "map/level_pools.h"
 #include "things/core/statedef.h"
-#include "world/map/map_constants.h"
+#include "map/map_constants.h"
 
 extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
@@ -15,7 +15,7 @@ extern BOOL allow_debug_keys;
 extern SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face);
 
 // calc_height_on_rface, find_face_for_this_pos, FIND_ANYFACE, FIND_FACE_NEAR_BELOW, GRAB_FLOOR.
-#include "world/navigation/walkable.h"
+#include "navigation/walkable.h"
 
 extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 
@@ -25,34 +25,34 @@ extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 #include "things/core/state.h"          // set_generic_person_state_function, STATE_CLIMB_LADDER
 #include "things/core/thing.h"          // move_thing_on_map
 #include "things/characters/person.h"   // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
-#include "world/map/pap.h"              // PAP_calc_height_at, PAP_calc_height_at_thing
+#include "map/pap.h"              // PAP_calc_height_at, PAP_calc_height_at_thing
 #include "engine/console/console.h"  // CONSOLE_text
 #include "engine/input/keyboard_globals.h"      // ControlFlag
 
 extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);
 
 #include "things/characters/darci_globals.h"
-#include "world/map/supermap.h"
-#include "world/map/supermap_globals.h"
-#include "assets/anim_globals.h"
+#include "map/supermap.h"
+#include "map/supermap_globals.h"
+#include "assets/formats/anim_globals.h"
 
-#include "world/environment/prim_types.h"  // PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
-#include "world/environment/prim.h"        // slide_along_prim, prim_get_collision_model, get_prim_info
-#include "world/map/ob.h"
-#include "world/map/ob_globals.h"
+#include "buildings/prim_types.h"  // PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
+#include "buildings/prim.h"        // slide_along_prim, prim_get_collision_model, get_prim_info
+#include "map/ob.h"
+#include "map/ob_globals.h"
 #include "things/vehicles/vehicle.h"
 #include "ai/pcom.h"
 #include "ai/combat.h"
-#include "world/navigation/inside2.h"
+#include "navigation/inside2.h"
 #include "things/items/barrel.h"
 #include "effects/weather/mist.h"
 #include "effects/environment/dirt.h"
 #include "ai/mav_globals.h"
-#include "ui/camera/fc.h"
+#include "camera/fc.h"
 #include "things/animals/bat.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "world/environment/build2.h"
-#include "world/map/pap.h"
+#include "buildings/build2.h"
+#include "map/pap.h"
 
 // uc_orig: BLOCK_SIZE (fallen/Source/collide.cpp)
 // Undefs any prior definition and sets it to 64, the height increment per storey level.

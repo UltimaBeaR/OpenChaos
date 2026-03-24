@@ -2,10 +2,10 @@
 
 #include "game/game.h"
 #include "things/characters/person.h" // can_a_see_b, set_person_idle and other person functions used in this file
-#include "ui/camera/cam.h"
-#include "world/map/ob.h"
+#include "camera/cam.h"
+#include "map/ob.h"
 #include "engine/core/fmatrix.h"
-#include "world/environment/tripwire.h"
+#include "objects/tripwire.h"
 #include "effects/environment/dirt.h"
 #include "things/core/thing.h"
 #include "effects/combat/pow.h"
@@ -19,22 +19,22 @@
 #include "things/animals/animal.h"
 #include "things/animals/animal_globals.h"
 #include "ai/pcom.h"
-#include "world/map/supermap.h"
+#include "map/supermap.h"
 #include "engine/audio/sound.h"
 #include "things/core/statedef.h"
-#include "world/navigation/wmove.h"
-#include "world/navigation/wmove_globals.h"
+#include "navigation/wmove.h"
+#include "navigation/wmove_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 #include "missions/memory.h"
 #include "engine/audio/mfx.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h"
-#include "world/environment/door.h"
-#include "world/environment/door_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
+#include "objects/ware.h"
+#include "objects/ware_globals.h"
+#include "objects/door.h"
+#include "objects/door_globals.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
 #include "engine/effects/psystem.h"
@@ -46,8 +46,8 @@
 #include "effects/weather/mist.h"
 #include "ui/menus/gamemenu.h"
 #include "engine/io/env.h"
-#include "world/environment/prim_types.h" // PrimInfo
-#include "world/environment/prim.h"       // find_anim_prim
+#include "buildings/prim_types.h" // PrimInfo
+#include "buildings/prim.h"       // find_anim_prim
 #include "things/vehicles/vehicle.h"
 #include "things/vehicles/vehicle_globals.h"
 #include "engine/physics/collide.h"
@@ -55,7 +55,7 @@
 #include "effects/combat/pyro.h"
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
-#include "world/environment/plat.h"
+#include "objects/plat.h"
 
 // Forward declaration not in any header.
 // uc_orig: person_ok_for_conversation (fallen/Source/eway.cpp)

@@ -8,7 +8,7 @@
 #include "effects/environment/dirt.h"
 #include "things/items/balloon.h"
 #include "effects/combat/pow.h"
-#include "world/environment/puddle.h"
+#include "objects/puddle.h"
 #include "effects/weather/drip.h"
 #include "engine/audio/mfx.h"
 #include "engine/audio/sound.h"
@@ -17,10 +17,10 @@
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "world/navigation/wmove.h"
+#include "navigation/wmove.h"
 
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 // DRAW2D_Box migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
 

@@ -3,12 +3,12 @@
 
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "world/environment/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
+#include "buildings/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
 #include "engine/graphics/graphics_api/render_state.h" // D3DMATRIX, D3DLVERTEX
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/graphics/lighting/smap.h"                  // SMAP_Link
-#include "assets/compression.h"
-#include "world/map/map.h"
+#include "engine/compression/compression.h"
+#include "map/map.h"
 
 // uc_orig: StoreLine (fallen/DDEngine/Source/aeng.cpp)
 // One entry in the debug line draw list.

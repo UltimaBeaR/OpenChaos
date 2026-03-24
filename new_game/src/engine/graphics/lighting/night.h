@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_LIGHTING_NIGHT_H
 
 #include "engine/platform/uc_common.h"              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 
 // uc_orig: NIGHT_MAX_SLIGHTS (fallen/Headers/Night.h)
 #define NIGHT_MAX_SLIGHTS 256

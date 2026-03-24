@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
-#include "ui/camera/cam.h"
+#include "camera/cam.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"

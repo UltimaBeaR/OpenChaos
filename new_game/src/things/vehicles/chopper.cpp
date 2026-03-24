@@ -5,7 +5,7 @@
 #include "game/game_types.h"
 #include "things/core/interact.h"   // calc_sub_objects_position
 #include "things/core/statedef.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"

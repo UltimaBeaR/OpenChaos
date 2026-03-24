@@ -6,23 +6,23 @@
 #include "game/game_types.h"
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "ai/pcom.h"
-#include "world/environment/ns.h"
-#include "world/level_pools.h"
+#include "underground/ns.h"
+#include "map/level_pools.h"
 #include "engine/audio/sound.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "world/environment/building_types.h"  // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
-#include "world/environment/building.h"        // get_cable_along, make_cable_taut_along, etc.
+#include "buildings/building_types.h"  // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
+#include "buildings/building.h"        // get_cable_along, make_cable_taut_along, etc.
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
 #include "things/characters/person.h"
 #include "things/characters/darci.h"
 #include "things/characters/darci_globals.h"
 #include "things/core/interact.h"              // calc_sub_objects_position
-#include "assets/anim_globals.h"               // game_chunk
+#include "assets/formats/anim_globals.h"               // game_chunk
 #include "engine/graphics/pipeline/aeng.h"    // MSG_add
 
 // Forward declarations for functions not in any header (declared inline in originals).

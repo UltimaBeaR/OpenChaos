@@ -2,7 +2,7 @@
 #include "effects/weather/fog_globals.h"
 #include "game/game_types.h"
 #include "engine/platform/uc_common.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 
 // calc_height_at is defined in collide.cpp. Not including collide.h to avoid
 // pulling in thing.h and its transitive includes. This function is not actually

@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_QENG_H
 #define ENGINE_GRAPHICS_PIPELINE_QENG_H
 
-#include "world/map/qmap.h"
+#include "map/qmap.h"
 #include "engine/console/message.h"
 
 // Minimal 3D engine for rendering QMAP world data using the POLY pipeline.

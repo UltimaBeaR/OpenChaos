@@ -13,14 +13,14 @@
 #include "effects/combat/pow.h"
 #include "effects/combat/pow_globals.h"
 #include "things/characters/anim_ids.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 #include "things/core/interact.h"
 #include "things/core/interact_globals.h"
 #include "engine/physics/collide.h"
 
 #include "engine/effects/psystem_globals.h"
-#include "world/map/pap.h"  // PAP_calc_map_height_at
+#include "map/pap.h"  // PAP_calc_map_height_at
 
 // fire_pal is a 256-entry RGB palette (768 bytes) loaded from data\flames1.pal by figure.cpp.
 // Alpha value of a PFLAG_FIRE particle indexes into the palette to give a fire colour gradient.

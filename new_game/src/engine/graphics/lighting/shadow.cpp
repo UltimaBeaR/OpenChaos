@@ -2,11 +2,11 @@
 #include "engine/graphics/lighting/shadow_globals.h"
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "world/map/pap_globals.h"
-#include "world/map/supermap.h"
+#include "map/pap_globals.h"
+#include "map/supermap.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 
 // Fixed directional light vector components (sun direction, world-space fixed-point).
 // uc_orig: SHADOW_DIR_X (fallen/Source/shadow.cpp)

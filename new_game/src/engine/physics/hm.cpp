@@ -12,16 +12,16 @@
 
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
-#include "world/environment/prim.h"       // get_prim_info
+#include "buildings/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
+#include "buildings/prim.h"       // get_prim_info
 #include "engine/core/math.h"
-#include "world/map/pap_globals.h"
+#include "map/pap_globals.h"
 #include "engine/core/matrix.h"
 
 #include "engine/physics/hm.h"
 #include "engine/physics/hm_globals.h"
-#include "world/level_pools.h"
-#include "assets/anim_globals.h"
+#include "map/level_pools.h"
+#include "assets/formats/anim_globals.h"
 #include "engine/core/memory.h"              // MemAlloc, MemFree
 
 // Forward declarations for debug drawing functions (defined in the graphics engine).

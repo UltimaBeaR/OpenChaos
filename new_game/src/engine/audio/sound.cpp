@@ -2,14 +2,14 @@
 
 #include "engine/audio/sound.h"
 #include "engine/platform/uc_common.h"
-#include "world/map/pap.h"
-#include "world/environment/ns.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"         // FC_cam
+#include "map/pap.h"
+#include "underground/ns.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"         // FC_cam
 #include "engine/audio/mfx.h"
 #include "things/core/statedef.h"
-#include "world/environment/ware.h"
-#include "world/environment/ware_globals.h" // WARE_ware
+#include "objects/ware.h"
+#include "objects/ware_globals.h" // WARE_ware
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"          // IsEnglish
 #include "missions/eway.h"

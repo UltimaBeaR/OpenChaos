@@ -9,16 +9,16 @@
 #include "engine/effects/psystem.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ai/mav.h"
-#include "world/navigation/wand.h"
+#include "navigation/wand.h"
 #include "effects/combat/spark.h"
 #include "ai/pcom.h"
 #include "missions/memory.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/physics/collide.h"
 #include "effects/combat/pyro.h"
-#include "assets/level_loader.h"       // load_anim_prim_object
+#include "assets/formats/level_loader.h"       // load_anim_prim_object
 #include "things/characters/person.h"  // set_person_dead, set_face_thing, set_person_recoil, set_person_float_up
-#include "assets/anim_globals.h"       // anim_chunk
+#include "assets/formats/anim_globals.h"       // anim_chunk
 #include "things/core/interact.h"      // calc_sub_objects_position
 
 // Bitmask flags stored in Bat::flag.

@@ -4,10 +4,10 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/cone.h"
-#include "world/map/pap.h"
-#include "world/map/pap_globals.h"
-#include "world/map/supermap.h"
-#include "world/level_pools.h"
+#include "map/pap.h"
+#include "map/pap_globals.h"
+#include "map/supermap.h"
+#include "map/level_pools.h"
 #include <math.h>
 #include "engine/graphics/geometry/cone_globals.h"
 

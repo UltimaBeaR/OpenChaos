@@ -5,8 +5,8 @@
 #include "engine/graphics/graphics_api/gd_display.h"   // DisplayWidth, DisplayHeight constants
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
+#include "camera/fc.h"
+#include "camera/fc_globals.h"
 #include "missions/eway.h"
 
 #include "engine/graphics/postprocess/bloom.h"

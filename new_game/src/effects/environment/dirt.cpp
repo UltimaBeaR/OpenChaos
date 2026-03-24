@@ -6,18 +6,18 @@
 #include "engine/animation/morph.h"
 #include "engine/audio/mfx.h"
 #include "engine/core/fmatrix.h"
-#include "world/map/pap.h"
-#include "world/map/ob.h"
-#include "world/environment/ns.h"
+#include "map/pap.h"
+#include "map/ob.h"
+#include "underground/ns.h"
 #include "things/core/interact.h"
 #include "ai/pcom.h"
 #include "game/game_types.h"
 #include "ai/mav.h"
-#include "world/environment/prim_types.h" // PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
+#include "buildings/prim_types.h" // PRIM_FLAG_TREE, PRIM_OBJ_CAN, PRIM_OBJ_ITEM_KEY
 #include "assets/sound_id.h"
 #include "engine/audio/sound.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "world/level_pools.h"
+#include "map/level_pools.h"
 #include "things/characters/anim_ids.h"
 
 // uc_orig: TICK_SHIFT_LOWRES (fallen/Source/dirt.cpp)

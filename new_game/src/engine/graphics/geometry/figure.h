@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_GEOMETRY_FIGURE_H
 
 #include "engine/graphics/geometry/figure_globals.h"
-#include "world/environment/prim_types.h" // Matrix33 (via fmatrix.h), TomsPrimObject
+#include "buildings/prim_types.h" // Matrix33 (via fmatrix.h), TomsPrimObject
 
 struct Thing;
 
