@@ -2,7 +2,7 @@
 // each frame. Uses DrawIndPrimMM for opaque/tinted prims, DrawIndexedPrimitive for alpha and
 // environment-mapped ones.
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "engine/graphics/geometry/fastprim.h"
 #include "engine/graphics/geometry/fastprim_globals.h"
 #include "engine/graphics/pipeline/poly.h"

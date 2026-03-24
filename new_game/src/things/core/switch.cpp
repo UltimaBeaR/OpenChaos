@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "things/core/switch.h"
 #include "things/core/switch_globals.h"

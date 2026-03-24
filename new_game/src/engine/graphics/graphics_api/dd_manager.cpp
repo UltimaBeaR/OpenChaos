@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include <tchar.h>
 #include "engine/graphics/graphics_api/dd_manager.h"
 #include "engine/graphics/graphics_api/dd_manager_globals.h"

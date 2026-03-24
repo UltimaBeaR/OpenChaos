@@ -2,7 +2,7 @@
 // Pool is split into a doubly-linked "used" list (iterated backwards) and a singly-linked "free" list.
 // particles[0] is a permanent sentinel so that the used-list always has a non-null head.
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "things/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
 #include "missions/game_types.h"
 #include "ai/mav.h"

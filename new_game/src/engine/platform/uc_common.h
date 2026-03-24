@@ -3,8 +3,8 @@
 // Guy Simmons, 18th December 1997.
 // Main platform abstraction header: Windows/DirectX includes, core types, host API.
 
-#ifndef ENGINE_PLATFORM_PLATFORM_H
-#define ENGINE_PLATFORM_PLATFORM_H
+#ifndef ENGINE_PLATFORM_UC_COMMON_H
+#define ENGINE_PLATFORM_UC_COMMON_H
 
 // Standard C includes.
 #include <time.h>
@@ -110,4 +110,4 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 
 #include "engine/core/macros.h"
 
-#endif // ENGINE_PLATFORM_PLATFORM_H
+#endif // ENGINE_PLATFORM_UC_COMMON_H

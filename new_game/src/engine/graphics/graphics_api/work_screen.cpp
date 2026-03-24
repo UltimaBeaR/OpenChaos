@@ -1,5 +1,5 @@
 #include "work_screen.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "engine/graphics/graphics_api/dd_manager.h"   // InitStruct macro
 

@@ -1,7 +1,7 @@
 #ifndef UI_MENUS_WIDGET_H
 #define UI_MENUS_WIDGET_H
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 
 // Widget state flags.
 

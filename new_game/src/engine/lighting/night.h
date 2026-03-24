@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_NIGHT_H
 #define ENGINE_LIGHTING_NIGHT_H
 
-#include "engine/platform/platform.h"              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
+#include "engine/platform/uc_common.h"              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
 #include "world/map/pap_globals.h"
 
 // uc_orig: NIGHT_MAX_SLIGHTS (fallen/Headers/Night.h)

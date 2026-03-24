@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 
 #include "engine/graphics/pipeline/text.h"
 #include "engine/graphics/pipeline/text_globals.h"

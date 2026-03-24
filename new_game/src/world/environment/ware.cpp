@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
 #include "world/environment/prim.h"   // get_prim_info

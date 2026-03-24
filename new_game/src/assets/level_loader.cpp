@@ -2,7 +2,7 @@
 // Handles .iam map files, .prm static prim objects, .all animated prim objects,
 // and .tma texture style tables.
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "assets/mapthing.h"
 #include "world/map/pap_globals.h"

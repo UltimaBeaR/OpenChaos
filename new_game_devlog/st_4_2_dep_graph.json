@@ -45,7 +45,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/physics/collide.h",
       "engine/physics/collide_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/building_types.h",
       "world/environment/prim.h",
@@ -61,7 +61,7 @@
     "ai/mav.h": [
       "ai/mav_globals.h",
       "engine/core/macros.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/pap_globals.h"
     ],
     "ai/mav_action.h": [
@@ -111,7 +111,7 @@
       "world/navigation/wand.h"
     ],
     "ai/pcom.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "ai/pcom_globals.cpp": [
@@ -124,7 +124,7 @@
     "assets/anim.cpp": [
       "assets/anim.h",
       "engine/core/memory.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/person_types.h"
@@ -135,11 +135,11 @@
     ],
     "assets/anim_globals.cpp": [
       "assets/anim_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/anim_globals.h": [
       "engine/animation/anim_types.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/anim_loader.cpp": [
       "assets/anim.h",
@@ -149,7 +149,7 @@
       "assets/level_loader.h",
       "assets/level_loader_globals.h",
       "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/prim_globals.h",
       "world/environment/prim_types.h",
@@ -184,7 +184,7 @@
       "assets/compression.h",
       "assets/image_compression.h",
       "assets/tga.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/compression.h": [
       "assets/compression_globals.h",
@@ -206,11 +206,11 @@
     "assets/image_compression.cpp": [
       "assets/image_compression.h",
       "assets/tga.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/image_compression.h": [
       "assets/tga.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/level_loader.cpp": [
       "assets/level_loader.h",
@@ -220,7 +220,7 @@
       "engine/audio/sound.h",
       "engine/audio/sound_globals.h",
       "engine/io/file.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "missions/memory_globals.h",
@@ -245,7 +245,7 @@
       "assets/anim.h"
     ],
     "assets/sound_id.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/sound_id_globals.cpp": [
       "assets/sound_id_globals.h"
@@ -258,7 +258,7 @@
       "assets/startscr_globals.h"
     ],
     "assets/startscr.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/startscr_globals.cpp": [
       "assets/startscr_globals.h"
@@ -284,7 +284,7 @@
       "engine/graphics/resources/truetype.h",
       "engine/io/env.h",
       "engine/lighting/crinkle.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/building_globals.h",
       "world/environment/building_types.h",
@@ -331,7 +331,7 @@
       "engine/io/file.h"
     ],
     "assets/xlat_str.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "assets/xlat_str_globals.cpp": [
       "assets/xlat_str_globals.h"
@@ -394,7 +394,7 @@
     "effects/fire.cpp": [
       "effects/fire.h",
       "effects/fire_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "effects/fire.h": [
@@ -409,7 +409,7 @@
     "effects/fog.cpp": [
       "effects/fog.h",
       "effects/fog_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/map/pap_globals.h"
     ],
@@ -425,7 +425,7 @@
     "effects/glitter.cpp": [
       "effects/glitter.h",
       "effects/glitter_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "effects/glitter.h": [
       "engine/core/types.h"
@@ -448,7 +448,7 @@
     "effects/mist.cpp": [
       "effects/mist.h",
       "effects/mist_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "effects/mist.h": [
@@ -464,12 +464,12 @@
       "effects/pow.h",
       "effects/pow_globals.h",
       "engine/core/fmatrix.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "effects/pow.h": [
       "engine/core/types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/pap.h"
     ],
     "effects/pow_globals.cpp": [
@@ -522,7 +522,7 @@
       "effects/ribbon.h",
       "effects/ribbon_globals.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "effects/ribbon.h": [
@@ -543,7 +543,7 @@
       "engine/audio/mfx.h",
       "engine/audio/sound.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "missions/memory.h",
       "things/core/interact.h",
@@ -563,7 +563,7 @@
       "effects/tracks.h",
       "effects/tracks_globals.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/core/interact.h",
@@ -637,7 +637,7 @@
       "engine/animation/morph.h",
       "engine/animation/morph_globals.h",
       "engine/core/macros.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/animation/morph.h": [
       "engine/core/types.h"
@@ -674,7 +674,7 @@
       "engine/audio/music.h",
       "engine/audio/music_globals.h",
       "engine/audio/sound.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/ware.h",
       "world/environment/ware_globals.h"
@@ -691,7 +691,7 @@
     "engine/audio/sound.cpp": [
       "engine/audio/mfx.h",
       "engine/audio/sound.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/core/statedef.h",
@@ -720,7 +720,7 @@
     "engine/audio/soundenv.cpp": [
       "engine/audio/soundenv.h",
       "engine/audio/soundenv_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/audio/soundenv.h": [],
     "engine/audio/soundenv_globals.cpp": [
@@ -745,7 +745,7 @@
       "engine/core/heap.h",
       "engine/core/heap_globals.h",
       "engine/core/macros.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/core/heap.h": [
       "engine/core/types.h"
@@ -843,7 +843,7 @@
       "engine/graphics/geometry/sprite.h",
       "engine/graphics/pipeline/poly.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/core/interact.h",
@@ -901,7 +901,7 @@
       "engine/graphics/geometry/cone_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/level_pools.h",
       "world/map/pap.h",
@@ -936,7 +936,7 @@
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
       "engine/lighting/smap.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/camera/fc_globals.h",
       "ui/controls_globals.h",
@@ -976,7 +976,7 @@
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/render_state.h",
       "engine/input/keyboard.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/level_pools.h",
       "world/map/pap.h",
@@ -993,7 +993,7 @@
       "engine/core/types.h",
       "engine/graphics/graphics_api/dd_manager.h",
       "engine/graphics/pipeline/render_state.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/pap.h"
     ],
     "engine/graphics/geometry/fastprim.cpp": [
@@ -1007,7 +1007,7 @@
       "engine/graphics/pipeline/polypage.h",
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/environment/building_types.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h",
@@ -1016,14 +1016,14 @@
     "engine/graphics/geometry/fastprim.h": [
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/geometry/fastprim_globals.cpp": [
       "engine/graphics/geometry/fastprim_globals.h"
     ],
     "engine/graphics/geometry/fastprim_globals.h": [
       "engine/core/types.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/geometry/mesh.cpp": [
       "assets/anim_tmap.h",
@@ -1079,7 +1079,7 @@
       "engine/graphics/pipeline/poly.h",
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/items/balloon.h",
       "things/items/balloon_globals.h",
@@ -1103,7 +1103,7 @@
       "engine/graphics/geometry/sprite.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/geometry/sprite.h": [
       "engine/core/types.h"
@@ -1119,7 +1119,7 @@
       "engine/graphics/pipeline/polypoint.h",
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/interfac.h",
       "ui/interfac_globals.h",
@@ -1138,7 +1138,7 @@
       "engine/graphics/pipeline/polypage.h",
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/dd_manager.cpp": [
       "engine/core/memory.h",
@@ -1146,7 +1146,7 @@
       "engine/graphics/graphics_api/dd_manager_globals.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/io/env.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/dd_manager.h": [
       "engine/core/types.h"
@@ -1170,7 +1170,7 @@
       "engine/graphics/pipeline/vertex_buffer.h",
       "engine/io/env.h",
       "engine/io/file.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "ui/hud/panel.h",
       "ui/hud/panel_globals.h",
       "ui/interfac.h",
@@ -1189,7 +1189,7 @@
     "engine/graphics/graphics_api/gd_display.h": [
       "engine/graphics/graphics_api/dd_manager.h",
       "engine/graphics/resources/d3d_texture.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/host.cpp": [
       "engine/audio/mfx.h",
@@ -1197,13 +1197,13 @@
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/graphics_api/host.h",
       "engine/graphics/graphics_api/host_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "engine/platform/wind_procs.h",
       "engine/platform/wind_procs_globals.h",
       "missions/game_types.h"
     ],
     "engine/graphics/graphics_api/host.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/host_globals.cpp": [
       "engine/graphics/graphics_api/host_globals.h"
@@ -1215,11 +1215,11 @@
       "engine/graphics/graphics_api/dd_manager.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/graphics_api/work_screen.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/work_screen.h": [
       "engine/graphics/graphics_api/work_screen_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/work_screen_globals.cpp": [
       "engine/graphics/graphics_api/work_screen_globals.h"
@@ -1293,7 +1293,7 @@
       "engine/lighting/smap_globals.h",
       "engine/physics/sm.h",
       "engine/physics/sm_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/animals/bat.h",
@@ -1405,7 +1405,7 @@
       "engine/lighting/crinkle.h",
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h"
     ],
@@ -1430,7 +1430,7 @@
       "engine/graphics/pipeline/poly_render_globals.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/render_state.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/poly_render.h": [
       "engine/graphics/pipeline/poly.h"
@@ -1447,7 +1447,7 @@
       "engine/graphics/pipeline/polypage_globals.h",
       "engine/graphics/pipeline/vertex_buffer_globals.h",
       "engine/graphics/resources/d3d_texture.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/polypage.h": [
       "engine/graphics/pipeline/poly.h",
@@ -1470,7 +1470,7 @@
       "engine/graphics/pipeline/qeng.h",
       "engine/graphics/pipeline/qeng_globals.h",
       "engine/graphics/pipeline/vertex_buffer.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/qmap_globals.h"
     ],
     "engine/graphics/pipeline/qeng.h": [
@@ -1486,7 +1486,7 @@
     "engine/graphics/pipeline/render_state.cpp": [
       "engine/graphics/graphics_api/display_macros.h",
       "engine/graphics/pipeline/render_state.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/render_state.h": [],
     "engine/graphics/pipeline/sky.cpp": [
@@ -1496,7 +1496,7 @@
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/sky.h",
       "engine/graphics/pipeline/sky_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "engine/graphics/pipeline/sky.h": [
@@ -1517,7 +1517,7 @@
       "engine/graphics/pipeline/text_globals.h",
       "engine/graphics/pipeline/vertex_buffer.h",
       "engine/graphics/resources/d3d_texture.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/text.h": [
       "engine/core/types.h"
@@ -1532,10 +1532,10 @@
       "engine/graphics/graphics_api/dd_manager.h",
       "engine/graphics/pipeline/vertex_buffer.h",
       "engine/graphics/pipeline/vertex_buffer_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/vertex_buffer.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/vertex_buffer_globals.cpp": [
       "engine/graphics/pipeline/vertex_buffer_globals.h"
@@ -1548,7 +1548,7 @@
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/wibble.h",
       "engine/graphics/pipeline/wibble_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "engine/graphics/pipeline/wibble.h": [
@@ -1582,7 +1582,7 @@
       "engine/graphics/pipeline/message.h",
       "engine/graphics/resources/d3d_texture.h",
       "engine/graphics/resources/d3d_texture_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/resources/d3d_texture.h": [
       "assets/file_clump.h",
@@ -1600,7 +1600,7 @@
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/resources/font.h",
       "engine/graphics/resources/font_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/resources/font.h": [
       "engine/core/types.h"
@@ -1610,7 +1610,7 @@
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/resources/font2d.h",
       "engine/graphics/resources/font2d_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/resources/font2d.h": [
       "engine/core/types.h",
@@ -1636,7 +1636,7 @@
       "engine/graphics/resources/menufont_globals.h"
     ],
     "engine/graphics/resources/menufont.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/resources/menufont_globals.cpp": [
       "engine/graphics/resources/menufont_globals.h"
@@ -1651,7 +1651,7 @@
       "engine/graphics/resources/truetype.h",
       "engine/graphics/resources/truetype_globals.h",
       "engine/io/env.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/graphics/resources/truetype.h": [
       "engine/core/types.h",
@@ -1749,7 +1749,7 @@
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
       "engine/lighting/crinkle.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/lighting/crinkle.h": [
       "assets/file_clump.h",
@@ -1770,18 +1770,18 @@
     ],
     "engine/lighting/ngamut.cpp": [
       "engine/lighting/ngamut.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/lighting/ngamut.h": [
       "engine/lighting/ngamut_globals.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/lighting/ngamut_globals.cpp": [
       "engine/lighting/ngamut_globals.h"
     ],
     "engine/lighting/ngamut_globals.h": [
       "engine/lighting/ngamut.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "engine/lighting/night.cpp": [
       "ai/mav.h",
@@ -1804,7 +1804,7 @@
       "world/map/supermap.h"
     ],
     "engine/lighting/night.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/pap_globals.h"
     ],
     "engine/lighting/night_globals.cpp": [
@@ -1819,7 +1819,7 @@
       "engine/lighting/shadow.h",
       "engine/lighting/shadow_globals.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/level_pools.h",
       "world/map/pap_globals.h",
@@ -1841,7 +1841,7 @@
       "engine/graphics/geometry/aa.h",
       "engine/lighting/smap.h",
       "engine/lighting/smap_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/person.h",
       "things/characters/person_types.h",
@@ -1918,7 +1918,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/physics/hm.h",
       "engine/physics/hm_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h",
@@ -1941,7 +1941,7 @@
       "engine/input/keyboard_globals.h",
       "engine/physics/sm.h",
       "engine/physics/sm_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/pap.h",
       "world/map/pap_globals.h"
     ],
@@ -1954,7 +1954,7 @@
     "engine/physics/sm_globals.h": [
       "engine/physics/sm.h"
     ],
-    "engine/platform/platform.h": [
+    "engine/platform/uc_common.h": [
       "engine/core/macros.h",
       "engine/core/math.h",
       "engine/core/memory.h",
@@ -1965,7 +1965,7 @@
     ],
     "engine/platform/wind_procs.cpp": [
       "engine/graphics/graphics_api/gd_display.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "engine/platform/wind_procs.h",
       "engine/platform/wind_procs_globals.h",
       "missions/game_types.h"
@@ -2198,7 +2198,7 @@
       "engine/lighting/night_globals.h",
       "engine/lighting/shadow.h",
       "engine/lighting/shadow_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/elev.h",
       "missions/elev_globals.h",
       "missions/eway.h",
@@ -2263,7 +2263,7 @@
       "missions/game_globals.h"
     ],
     "missions/game_globals.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/thing.h",
       "ui/menus/widget.h",
@@ -2281,7 +2281,7 @@
       "engine/graphics/graphics_api/host.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/io/env.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game.h"
     ],
     "missions/memory.cpp": [
@@ -2412,7 +2412,7 @@
     "things/animals/animal.cpp": [
       "assets/anim_globals.h",
       "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/animals/animal.h",
       "things/animals/animal_globals.h",
@@ -2441,7 +2441,7 @@
       "engine/graphics/pipeline/poly.h",
       "engine/lighting/night.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "missions/memory.h",
@@ -2467,7 +2467,7 @@
     "things/characters/cop.cpp": [
       "assets/anim_globals.h",
       "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/cop.h",
@@ -2481,7 +2481,7 @@
       "things/core/state.h"
     ],
     "things/characters/cop_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/characters/cop.h",
       "things/characters/cop_globals.h",
       "things/core/statedef.h"
@@ -2497,7 +2497,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/physics/collide.h",
       "engine/physics/collide_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/darci.h",
@@ -2607,7 +2607,7 @@
       "world/navigation/wmove_globals.h"
     ],
     "things/characters/person.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/characters/person_globals.h",
       "things/characters/person_types.h",
       "things/core/thing.h"
@@ -2634,7 +2634,7 @@
       "things/core/common.h"
     ],
     "things/characters/roper.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/person.h",
@@ -2648,7 +2648,7 @@
       "things/core/state.h"
     ],
     "things/characters/roper_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/characters/roper.h",
       "things/characters/roper_globals.h",
       "things/core/statedef.h"
@@ -2658,7 +2658,7 @@
     ],
     "things/characters/snipe.cpp": [
       "ai/combat.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/snipe.h",
       "things/characters/snipe_globals.h",
@@ -2676,7 +2676,7 @@
     "things/characters/thug.cpp": [
       "assets/anim_globals.h",
       "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/person.h",
@@ -2691,7 +2691,7 @@
       "things/core/state.h"
     ],
     "things/characters/thug_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/characters/thug.h",
       "things/characters/thug_globals.h",
       "things/core/statedef.h"
@@ -2703,7 +2703,7 @@
       "engine/core/types.h"
     ],
     "things/core/drawtype.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/drawtype.h",
       "world/level_pools.h"
@@ -2731,7 +2731,7 @@
       "ai/mav.h",
       "engine/core/fmatrix.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "missions/memory.h",
       "things/characters/anim_ids.h",
@@ -2754,15 +2754,15 @@
       "world/map/supermap.h"
     ],
     "things/core/interact_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/core/interact_globals.h"
     ],
     "things/core/interact_globals.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/environment/prim_types.h"
     ],
     "things/core/player.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/person.h",
       "things/core/player.h",
@@ -2781,7 +2781,7 @@
       "things/core/state.h"
     ],
     "things/core/player_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/characters/roper_globals.h",
       "things/core/player_globals.h"
     ],
@@ -2790,7 +2790,7 @@
     ],
     "things/core/state.cpp": [
       "effects/pyro_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/animals/animal_globals.h",
       "things/characters/person_globals.h",
@@ -2804,7 +2804,7 @@
     ],
     "things/core/statedef.h": [],
     "things/core/switch.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/statedef.h",
       "things/core/switch.h",
@@ -2815,7 +2815,7 @@
       "things/core/common.h"
     ],
     "things/core/switch_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/core/switch.h",
       "things/core/switch_globals.h"
     ],
@@ -2828,7 +2828,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/statedef.h",
       "things/core/thing.h",
@@ -2869,7 +2869,7 @@
     ],
     "things/items/balloon.cpp": [
       "ai/mav.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/core/interact.h",
@@ -2928,7 +2928,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/core/interact.h",
@@ -2962,7 +2962,7 @@
     ],
     "things/items/hook.cpp": [
       "engine/core/fmatrix.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/items/hook.h",
       "things/items/hook_globals.h",
@@ -2978,7 +2978,7 @@
       "engine/core/types.h"
     ],
     "things/items/projectile.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/statedef.h",
       "things/core/thing.h",
@@ -3002,7 +3002,7 @@
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
@@ -3042,7 +3042,7 @@
       "engine/audio/mfx.h",
       "engine/graphics/geometry/cone.h",
       "engine/graphics/geometry/mesh.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
@@ -3091,7 +3091,7 @@
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "missions/memory.h",
       "things/characters/anim_ids.h",
@@ -3121,7 +3121,7 @@
       "things/core/state.h"
     ],
     "things/vehicles/vehicle_globals.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "things/core/statedef.h",
       "things/vehicles/vehicle.h",
       "things/vehicles/vehicle_globals.h",
@@ -3141,7 +3141,7 @@
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/resources/font2d.h",
       "engine/io/env.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/core/statedef.h",
@@ -3173,7 +3173,7 @@
     "ui/camera/fc.cpp": [
       "engine/core/fmatrix.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
@@ -3188,7 +3188,7 @@
       "world/navigation/walkable_globals.h"
     ],
     "ui/camera/fc.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/thing.h"
     ],
@@ -3263,7 +3263,7 @@
       "world/navigation/wmove.h"
     ],
     "ui/controls.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "ui/menus/widget.h"
     ],
     "ui/controls_globals.cpp": [
@@ -3271,7 +3271,7 @@
     ],
     "ui/controls_globals.h": [
       "engine/lighting/light.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "ui/cutscenes/outro/outro_always.h": [],
     "ui/cutscenes/outro/outro_back.cpp": [
@@ -3384,7 +3384,7 @@
       "engine/graphics/resources/d3d_texture.h",
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "ui/cutscenes/outro/outro_key.h",
       "ui/cutscenes/outro/outro_matrix.h",
       "ui/cutscenes/outro/outro_os.h",
@@ -3435,7 +3435,7 @@
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/resources/font2d.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/person.h",
       "things/items/balloon.h",
@@ -3450,7 +3450,7 @@
     "ui/cutscenes/playcuts.h": [
       "engine/core/types.h",
       "engine/core/vector.h",
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "ui/cutscenes/playcuts_globals.cpp": [
       "ui/cutscenes/playcuts_globals.h"
@@ -3487,7 +3487,7 @@
       "engine/input/joystick_globals.h",
       "engine/input/keyboard_globals.h",
       "engine/io/env.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "engine/platform/wind_procs.h",
       "missions/game_globals.h",
       "missions/game_types.h",
@@ -3499,7 +3499,7 @@
       "world/map/supermap_globals.h"
     ],
     "ui/frontend.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "ui/frontend_globals.cpp": [
       "assets/xlat_str.h",
@@ -3519,7 +3519,7 @@
       "engine/graphics/pipeline/text.h",
       "engine/graphics/resources/font2d.h",
       "engine/graphics/resources/menufont.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "missions/memory_globals.h",
       "ui/hud/eng_map.h",
@@ -3533,7 +3533,7 @@
     ],
     "ui/hud/eng_map_globals.h": [
       "engine/core/types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/memory_globals.h"
     ],
     "ui/hud/overlay.cpp": [
@@ -3541,7 +3541,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/resources/font2d.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/core/interact.h",
@@ -3555,7 +3555,7 @@
       "ui/hud/panel_globals.h"
     ],
     "ui/hud/overlay.h": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
     "ui/hud/overlay_globals.cpp": [
@@ -3603,7 +3603,7 @@
       "engine/graphics/pipeline/poly.h"
     ],
     "ui/hud/planmap.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/hud/planmap.h",
       "ui/hud/planmap_globals.h",
@@ -3677,7 +3677,7 @@
       "engine/core/types.h"
     ],
     "ui/menus/cnet.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/menus/cnet.h",
       "ui/menus/cnet_globals.h"
@@ -3722,14 +3722,14 @@
       "engine/graphics/resources/menufont.h",
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "ui/interfac.h",
       "ui/interfac_globals.h",
       "ui/menus/widget.h",
       "ui/menus/widget_globals.h"
     ],
     "ui/menus/widget.h": [
-      "engine/platform/platform.h"
+      "engine/platform/uc_common.h"
     ],
     "ui/menus/widget_globals.cpp": [
       "ui/menus/widget.h",
@@ -3744,7 +3744,7 @@
       "engine/graphics/resources/d3d_texture.h",
       "engine/graphics/resources/font2d.h",
       "engine/input/keyboard.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/hud/panel.h",
       "ui/hud/panel_globals.h",
@@ -3765,7 +3765,7 @@
     ],
     "world/environment/build.h": [],
     "world/environment/build2.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/build2.h",
       "world/level_pools.h",
@@ -3824,7 +3824,7 @@
     ],
     "world/environment/door.cpp": [
       "ai/mav.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/building.h",
       "world/environment/door.h",
@@ -3852,7 +3852,7 @@
     "world/environment/ns.cpp": [
       "engine/core/heap.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/ns.h",
       "world/environment/ns_globals.h",
@@ -3873,7 +3873,7 @@
     ],
     "world/environment/outline.cpp": [
       "engine/core/macros.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/environment/outline.h"
     ],
     "world/environment/outline.h": [
@@ -3883,7 +3883,7 @@
       "engine/effects/psystem.h",
       "engine/graphics/geometry/bloom.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
@@ -3915,7 +3915,7 @@
       "engine/core/memory.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/person.h",
       "things/core/thing.h",
@@ -3952,7 +3952,7 @@
     "world/environment/puddle.cpp": [
       "ai/mav.h",
       "engine/core/macros.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/environment/puddle.h",
       "world/environment/puddle_globals.h",
       "world/map/map.h",
@@ -3970,7 +3970,7 @@
     ],
     "world/environment/stair.cpp": [
       "engine/core/fixed_math.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/environment/building_types.h",
       "world/environment/stair.h",
       "world/environment/stair_globals.h"
@@ -3986,7 +3986,7 @@
       "world/environment/id.h"
     ],
     "world/environment/tripwire.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/core/interact.h",
@@ -4007,7 +4007,7 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/elev.h",
       "missions/game_types.h",
       "world/environment/prim.h",
@@ -4040,7 +4040,7 @@
       "world/navigation/inside2_globals.h"
     ],
     "world/map/map.cpp": [
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/map/map.h",
       "world/map/map_globals.h"
@@ -4073,7 +4073,7 @@
       "engine/core/math.h",
       "engine/graphics/pipeline/poly.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/items/barrel.h",
       "things/items/special.h",
@@ -4099,7 +4099,7 @@
     "world/map/pap.cpp": [
       "ai/mav.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/ware.h",
       "world/environment/ware_globals.h",
@@ -4118,7 +4118,7 @@
     "world/map/qmap.cpp": [
       "engine/core/memory.h",
       "engine/graphics/pipeline/message.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/map/qmap.h",
       "world/map/qmap_globals.h"
     ],
@@ -4161,7 +4161,7 @@
       "assets/texture.h",
       "engine/io/env.h",
       "engine/physics/collide.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/build2.h",
       "world/level_pools.h",
@@ -4176,7 +4176,7 @@
     ],
     "world/map/supermap.h": [
       "engine/core/types.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "world/environment/building_types.h",
       "world/map/supermap_globals.h"
     ],
@@ -4189,7 +4189,7 @@
     ],
     "world/navigation/inside2.cpp": [
       "engine/graphics/pipeline/aeng.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/building_types.h",
       "world/environment/prim_types.h",
@@ -4208,7 +4208,7 @@
     ],
     "world/navigation/walkable.cpp": [
       "ai/mav.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/level_pools.h",
       "world/map/pap.h",
@@ -4228,7 +4228,7 @@
     "world/navigation/wand.cpp": [
       "engine/core/macros.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/prim.h",
       "world/map/ob.h",
@@ -4246,7 +4246,7 @@
       "assets/anim_globals.h",
       "engine/core/fmatrix.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/platform/platform.h",
+      "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/core/statedef.h",
       "things/vehicles/vehicle.h",

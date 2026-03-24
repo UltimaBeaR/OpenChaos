@@ -33,7 +33,7 @@
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
 #include "world/level_pools.h"
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include <math.h>
 #include <stdio.h>
 

@@ -2,7 +2,7 @@
 // as variables; gd_display.h would then redefine them as macros causing a syntax error.
 #include "missions/game_types.h"
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include <math.h>
 

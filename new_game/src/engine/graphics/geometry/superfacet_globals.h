@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_SUPERFACET_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_SUPERFACET_GLOBALS_H
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_api/dd_manager.h"   // D3DLVERTEX, D3DMATRIX, LPDIRECT3DTEXTURE2
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/polypage.h"

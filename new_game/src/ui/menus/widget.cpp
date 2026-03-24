@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
 #include "engine/graphics/resources/menufont.h"

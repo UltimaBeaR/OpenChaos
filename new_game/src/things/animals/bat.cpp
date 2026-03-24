@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "things/animals/bat_globals.h"
 #include "things/animals/bat.h"

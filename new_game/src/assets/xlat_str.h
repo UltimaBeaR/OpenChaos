@@ -1,7 +1,7 @@
 #ifndef ASSETS_XLAT_STR_H
 #define ASSETS_XLAT_STR_H
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 
 // uc_orig: MAX_STRING_SPACE (fallen/Headers/xlat_str.h)
 #define MAX_STRING_SPACE (8192)

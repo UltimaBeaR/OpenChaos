@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-#include "engine/platform/platform.h"            // base types, ASSERT
+#include "engine/platform/uc_common.h"            // base types, ASSERT
 #include "missions/game_types.h" // Game struct, TICK_RATIO, pool macros
 #include "engine/core/matrix.h"
 #include "engine/graphics/pipeline/poly.h"

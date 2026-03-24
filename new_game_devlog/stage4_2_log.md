@@ -90,3 +90,10 @@
 - `actors/*` (93 файла) → `things/*` — переименование папки
 - Thing — оригинальное название системы в коде, "actors" подразумевает только активных агентов
 - 117 файлов с include-путями обновлены, 49 include guards ACTORS_ → THINGS_
+
+### Итерация 3 — platform.h → uc_common.h (2026-03-24)
+
+- `engine/platform/platform.h` → `engine/platform/uc_common.h`
+- Название "platform" создавало ложное впечатление платформенной абстракции, на деле это легаси umbrella-заголовок (бывший MFStdLib.h) — тянет Windows/D3D, типы, math, memory, io, input
+- Разбиение на отдельные заголовки → этап 9
+- 145 include-путей обновлены

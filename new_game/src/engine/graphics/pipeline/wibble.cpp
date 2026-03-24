@@ -1,7 +1,7 @@
 // Include Game.h first to avoid macro conflicts: Game.h -> MFStdLib.h declares
 // `extern SLONG DisplayWidth/DisplayHeight` which must precede gd_display.h's
 // `#define DisplayWidth 640` / `#define DisplayHeight 480`.
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/wibble.h"
 #include "engine/graphics/pipeline/wibble_globals.h"

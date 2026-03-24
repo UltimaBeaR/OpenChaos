@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "things/characters/snipe.h"
 #include "things/characters/snipe_globals.h"
 #include "missions/game_types.h"

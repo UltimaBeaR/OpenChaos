@@ -1,7 +1,7 @@
 // uc_orig: vehicle_globals.cpp (fallen/Source/Vehicle.cpp)
 // Global state definitions for the vehicle system.
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "world/environment/prim_types.h" // PRIM_OBJ_* constants for veh_info initializer
 #include "things/core/statedef.h"
 #include "things/vehicles/vehicle.h"

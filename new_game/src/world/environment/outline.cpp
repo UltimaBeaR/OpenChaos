@@ -1,6 +1,6 @@
 #include "world/environment/outline.h"
 #include "engine/core/macros.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include <cstdlib>
 #include <cstring>
 

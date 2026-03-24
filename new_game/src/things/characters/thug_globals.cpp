@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "things/characters/thug_globals.h"
 #include "things/characters/thug.h"
 #include "things/core/statedef.h"

@@ -1,7 +1,7 @@
 #include "engine/core/heap.h"
 #include "engine/core/heap_globals.h"
 #include "engine/core/macros.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 
 // Free list node — stored inline at the start of each free block.
 // uc_orig: HEAP_Free (fallen/Source/heap.cpp)

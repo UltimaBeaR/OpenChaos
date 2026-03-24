@@ -4,7 +4,7 @@
 // QMAP was intended as a debug/test renderer for the map editor; it is not
 // used in the final game's main rendering path.
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "world/map/qmap.h"
 #include "world/map/qmap_globals.h"
 #include "engine/graphics/pipeline/message.h"

@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "world/map/map.h"   // MAP_WIDTH, MAP_HEIGHT, ELE_SHIFT, MapElement
 #include "engine/core/macros.h"     // WITHIN, SWAP
 #include "ai/mav.h"

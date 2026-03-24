@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_HOST_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_HOST_H
 
-#include "engine/platform/platform.h"   // MFTime
+#include "engine/platform/uc_common.h"   // MFTime
 #include <windows.h>
 
 // Real WinMain implementation — called from src/main.cpp.

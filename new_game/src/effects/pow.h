@@ -1,7 +1,7 @@
 #ifndef EFFECTS_POW_H
 #define EFFECTS_POW_H
 
-#include "engine/platform/platform.h"      // for ASSERT
+#include "engine/platform/uc_common.h"      // for ASSERT
 #include "engine/core/types.h"
 #include "world/map/pap.h"
 

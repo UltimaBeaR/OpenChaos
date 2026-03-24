@@ -1,7 +1,7 @@
 #ifndef ASSETS_STARTSCR_H
 #define ASSETS_STARTSCR_H
 
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 
 // Action codes returned by the start screen / frontend loop.
 // uc_orig: STARTS_START (fallen/Headers/startscr.h)

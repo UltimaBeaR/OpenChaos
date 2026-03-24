@@ -2,7 +2,7 @@
 #define ASSETS_IMAGE_COMPRESSION_H
 
 #include "assets/tga.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 
 // S3-style compressed block: two 5:6:5 endpoint colours and a 2-bit-per-pixel index bitfield.
 // uc_orig: IC_Packet (fallen/DDEngine/Headers/ic.h)

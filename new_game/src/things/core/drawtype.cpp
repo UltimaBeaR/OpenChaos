@@ -1,5 +1,5 @@
 #include "things/core/drawtype.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "world/level_pools.h"
 

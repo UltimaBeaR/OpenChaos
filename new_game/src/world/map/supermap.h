@@ -2,7 +2,7 @@
 #define WORLD_MAP_SUPERMAP_H
 
 #include "engine/core/types.h"
-#include "engine/platform/platform.h"                          // MFFileHandle (used in load_super_map / save_super_map)
+#include "engine/platform/uc_common.h"                          // MFFileHandle (used in load_super_map / save_super_map)
 #include "world/environment/building_types.h"  // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, etc.
 // Global state: allocation cursors, level list.
 #include "world/map/supermap_globals.h"

@@ -1,6 +1,6 @@
 #include "things/characters/cop.h"
 #include "things/characters/cop_globals.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "engine/animation/anim_types.h"      // GameKeyFrame
 #include "assets/anim_globals.h"               // global_anim_array

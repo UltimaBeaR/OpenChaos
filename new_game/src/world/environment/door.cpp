@@ -4,7 +4,7 @@
 #include "world/map/pap_globals.h"
 
 // Temporary includes — not yet migrated:
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "world/map/supermap.h"
 #include "world/environment/building.h"

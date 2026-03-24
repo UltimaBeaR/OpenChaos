@@ -2,7 +2,7 @@
 #define ASSETS_ANIM_GLOBALS_H
 
 #include <string.h>
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "engine/animation/anim_types.h"
 
 // ---- Globals from Anim.cpp ----

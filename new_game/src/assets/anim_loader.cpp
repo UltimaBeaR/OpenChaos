@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"              // MFFileHandle, UBYTE etc.
+#include "engine/platform/uc_common.h"              // MFFileHandle, UBYTE etc.
 #include "missions/game_types.h"   // Game struct, ENGINE_palette macro
 #include "engine/animation/anim_types.h"  // KeyFrameChunk, GameKeyFrameChunk, KeyFrameElement, etc.
 #include "world/environment/prim_types.h"  // PrimObject, PrimFace3/4, PrimPoint, PRIM_OBJ_*

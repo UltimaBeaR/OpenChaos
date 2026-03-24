@@ -9,7 +9,7 @@
 // MFStdLib.h must come first (memory.h → supermap.h needs MFFileHandle).
 // string.h must come first (memory.h → structs.h → anim.h uses strcpy).
 #include <string.h>
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/memory_globals.h"
 
 // --- screen layout ---

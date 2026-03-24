@@ -1,4 +1,4 @@
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "engine/audio/soundenv.h"
 #include "engine/audio/soundenv_globals.h"
 

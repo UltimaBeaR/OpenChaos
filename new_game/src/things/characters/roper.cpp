@@ -1,6 +1,6 @@
 #include "things/characters/roper.h"
 #include "things/characters/roper_globals.h"
-#include "engine/platform/platform.h"
+#include "engine/platform/uc_common.h"
 #include "missions/game_types.h"
 #include "things/characters/person.h"          // set_person_idle, health
 #include "things/characters/person_globals.h"  // health[]
