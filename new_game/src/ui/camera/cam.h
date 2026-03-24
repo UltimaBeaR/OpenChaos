@@ -73,15 +73,6 @@ void CAM_set_zoom(SLONG zoom);
 // uc_orig: CAM_set_collision (fallen/Headers/cam.h)
 void CAM_set_collision(SLONG boolean);
 
-// uc_orig: CAM_set_behind_up (fallen/Headers/cam.h)
-void CAM_set_behind_up(SLONG behind_up);
-
-// uc_orig: CAM_set_pos (fallen/Headers/cam.h)
-void CAM_set_pos(SLONG world_x, SLONG world_y, SLONG world_z);
-
-// uc_orig: CAM_set_angle (fallen/Headers/cam.h)
-void CAM_set_angle(SLONG yaw, SLONG pitch, SLONG roll);
-
 // Applies a camera shake of the given magnitude (0=none, 255=max).
 // uc_orig: CAM_set_shake (fallen/Headers/cam.h)
 void CAM_set_shake(UBYTE amount);
@@ -90,21 +81,9 @@ void CAM_set_shake(UBYTE amount);
 // uc_orig: CAM_set_dangle (fallen/Headers/cam.h)
 void CAM_set_dangle(SLONG dyaw, SLONG dpitch);
 
-// Reads back the first-person delta angles.
-// uc_orig: CAM_get_dangle (fallen/Headers/cam.h)
-void CAM_get_dangle(SLONG* dyaw, SLONG* dpitch);
-
-// Sets camera position relative to the focus thing (dpos = offset, yaw/pitch = orientation).
-// uc_orig: CAM_set_dpos (fallen/Headers/cam.h)
-void CAM_set_dpos(SLONG dpos_x, SLONG dpos_y, SLONG dpos_z, SLONG yaw, SLONG pitch);
-
 // Positions the camera for watching the player climb out of the sewers.
 // uc_orig: CAM_set_to_leave_sewers_position (fallen/Headers/cam.h)
 void CAM_set_to_leave_sewers_position(Thing*);
-
-// Snaps the camera to look at the focus thing. swoop != 0 means smooth transition.
-// uc_orig: CAM_look_at_thing (fallen/Headers/cam.h)
-void CAM_look_at_thing(SLONG swoop);
 
 // ---- Camera getters ----
 
@@ -128,20 +107,10 @@ void CAM_get(
 // uc_orig: CAM_get_pos (fallen/Headers/cam.h)
 void CAM_get_pos(SLONG* world_x, SLONG* world_y, SLONG* world_z);
 
-// Returns camera position relative to the focus thing.
-// uc_orig: CAM_get_dpos (fallen/Headers/cam.h)
-void CAM_get_dpos(SLONG* dpos_x, SLONG* dpos_y, SLONG* dpos_z, SLONG* yaw, SLONG* pitch);
-
 // ---- Camera update ----
 
 // Runs the camera simulation for one game tick.
 // uc_orig: CAM_process (fallen/Headers/cam.h)
 void CAM_process(void);
-
-// Rotates camera left/right about the focus thing (normal mode only).
-// uc_orig: CAM_rotate_left (fallen/Headers/cam.h)
-void CAM_rotate_left(void);
-// uc_orig: CAM_rotate_right (fallen/Headers/cam.h)
-void CAM_rotate_right(void);
 
 #endif // UI_CAMERA_CAM_H

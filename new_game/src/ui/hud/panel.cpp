@@ -153,14 +153,6 @@ void PANEL_draw_quad(
     POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
 }
 
-// Draws a drop-shadowed debug text string at screen position (x, y).
-// uc_orig: PANEL_crap_text (fallen/DDEngine/Source/panel.cpp)
-void PANEL_crap_text(int x, int y, char* string)
-{
-    FONT2D_DrawString(string, x + 1, y + 1, 0x000000, 256, POLY_PAGE_FONT2D, 0);
-    FONT2D_DrawString(string, x, y, 0xffffee, 256, POLY_PAGE_FONT2D, 0);
-}
-
 // Draws one of the face thumbnails (used by the old-style panel).
 // face: 1..6 selecting which face icon.
 // uc_orig: PANEL_draw_face (fallen/DDEngine/Source/panel.cpp)
@@ -196,122 +188,6 @@ void PANEL_draw_health_bar(long x, long y, long percentage)
         0xff0000,
         1,
         POLY_PAGE_COLOUR);
-}
-
-// 7-segment digit renderer using rectangles.
-// digit must be 0..9.
-// uc_orig: PANEL_draw_number (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_number(float x, float y, unsigned char digit)
-{
-#define B0 (1 << 0)
-#define B1 (1 << 1)
-#define B2 (1 << 2)
-#define B3 (1 << 3)
-#define B4 (1 << 4)
-#define B5 (1 << 5)
-#define B6 (1 << 6)
-#define PANEL_SEG_L (16.0F)
-#define PANEL_SEG_W (4.0F)
-
-    unsigned char number[10] = {
-        B0 | B1 | B2 | B4 | B5 | B6,
-        B2 | B5,
-        B0 | B2 | B3 | B4 | B6,
-        B0 | B2 | B3 | B5 | B6,
-        B1 | B2 | B3 | B5,
-        B0 | B1 | B3 | B5 | B6,
-        B0 | B1 | B3 | B4 | B5 | B6,
-        B0 | B2 | B5,
-        B0 | B1 | B2 | B3 | B4 | B5 | B6,
-        B0 | B1 | B2 | B3 | B5
-    };
-
-    struct {
-        unsigned char d1;
-        unsigned char d2;
-        float dx;
-        float dy;
-    } bit[7] = {
-        { 0, 1, 0.0F, PANEL_SEG_W / 2.0F },
-        { 0, 2, PANEL_SEG_W / 2.0F, 0.0F },
-        { 1, 3, PANEL_SEG_W / 2.0F, 0.0F },
-        { 2, 3, 0.0F, PANEL_SEG_W / 2.0F },
-        { 2, 4, PANEL_SEG_W / 2.0F, 0.0F },
-        { 3, 5, PANEL_SEG_W / 2.0F, 0.0F },
-        { 4, 5, 0.0F, PANEL_SEG_W / 2.0F },
-    };
-
-    POLY_Point pp[4];
-    POLY_Point* quad[4];
-
-    quad[0] = &pp[0];
-    quad[1] = &pp[1];
-    quad[2] = &pp[2];
-    quad[3] = &pp[3];
-
-    ASSERT(WITHIN(digit, 0, 9));
-
-    for (int b = 0; b < 7; b++) {
-        float x1 = x + ((bit[b].d1 & 1) ? PANEL_SEG_L : 0.0F);
-        float y1 = y + (bit[b].d1 >> 1) * PANEL_SEG_L;
-        float x2 = x + ((bit[b].d2 & 1) ? PANEL_SEG_L : 0.0F);
-        float y2 = y + (bit[b].d2 >> 1) * PANEL_SEG_L;
-
-        unsigned int colour = (number[digit] & (1 << b)) ? 0xeeff0000 : 0x88110000;
-
-        float dx = bit[b].dx;
-        float dy = bit[b].dy;
-
-        float fWDepthBodge = PANEL_GetNextDepthBodge();
-        float fZDepthBodge = 1.0f - fWDepthBodge;
-
-        pp[0].X = x1 - dx;
-        pp[0].Y = y1 - dy;
-        pp[0].z = fZDepthBodge;
-        pp[0].Z = fWDepthBodge;
-        pp[0].u = 0.0F;
-        pp[0].v = 0.0F;
-        pp[0].colour = colour;
-        pp[0].specular = 0xff000000;
-
-        pp[1].X = x2 - dx;
-        pp[1].Y = y2 - dy;
-        pp[1].z = fZDepthBodge;
-        pp[1].Z = fWDepthBodge;
-        pp[1].u = 1.0F;
-        pp[1].v = 0.0F;
-        pp[1].colour = colour;
-        pp[1].specular = 0xff000000;
-
-        pp[2].X = x1 + dx;
-        pp[2].Y = y1 + dy;
-        pp[2].z = fZDepthBodge;
-        pp[2].Z = fWDepthBodge;
-        pp[2].u = 0.0F;
-        pp[2].v = 1.0F;
-        pp[2].colour = colour;
-        pp[2].specular = 0xff000000;
-
-        pp[3].X = x2 + dx;
-        pp[3].Y = y2 + dy;
-        pp[3].z = fZDepthBodge;
-        pp[3].Z = fWDepthBodge;
-        pp[3].u = 1.0F;
-        pp[3].v = 1.0F;
-        pp[3].colour = colour;
-        pp[3].specular = 0xff000000;
-
-        POLY_add_quad(quad, POLY_PAGE_ALPHA, UC_FALSE, UC_TRUE);
-    }
-#undef B0
-#undef B1
-#undef B2
-#undef B3
-#undef B4
-#undef B5
-#undef B6
-#undef PANEL_SEG_L
-#undef PANEL_SEG_W
 }
 
 // Queues a countdown timer display for PANEL_draw_buffered() to render.
@@ -1538,15 +1414,6 @@ void PANEL_darken_screen(SLONG x)
     PANEL_draw_quad(640.0F - float(x), 0.0F, 640.0F, 480.0F, POLY_PAGE_ALPHA_OVERLAY, 0x88000000);
 }
 
-// Converts a LASTPANEL_ALPHA page index to its ADDALPHA equivalent.
-// uc_orig: BodgePageIntoAddAlpha (fallen/DDEngine/Source/panel.cpp)
-SLONG BodgePageIntoAddAlpha(SLONG oldpage)
-{
-    if (oldpage == POLY_PAGE_LASTPANEL_ALPHA)
-        return POLY_PAGE_LASTPANEL_ADDALPHA;
-    return POLY_PAGE_LASTPANEL2_ADDALPHA;
-}
-
 // Converts a LASTPANEL_ALPHA page index to its ADD equivalent.
 // uc_orig: BodgePageIntoAdd (fallen/DDEngine/Source/panel.cpp)
 SLONG BodgePageIntoAdd(SLONG oldpage)
@@ -1554,15 +1421,6 @@ SLONG BodgePageIntoAdd(SLONG oldpage)
     if (oldpage == POLY_PAGE_LASTPANEL_ALPHA)
         return POLY_PAGE_LASTPANEL_ADD;
     return POLY_PAGE_LASTPANEL2_ADD;
-}
-
-// Converts a LASTPANEL_ALPHA page index to its SUB equivalent.
-// uc_orig: BodgePageIntoSub (fallen/DDEngine/Source/panel.cpp)
-SLONG BodgePageIntoSub(SLONG oldpage)
-{
-    if (oldpage == POLY_PAGE_LASTPANEL_ALPHA)
-        return POLY_PAGE_LASTPANEL_SUB;
-    return POLY_PAGE_LASTPANEL2_SUB;
 }
 
 // Draws a single weapon sprite at (x,y) in the pop-up inventory bar.

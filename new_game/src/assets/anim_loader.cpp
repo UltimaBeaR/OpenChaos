@@ -16,18 +16,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h>
 
 // These functions are defined in memory.cpp (not yet migrated).
 extern void convert_keyframe_to_pointer(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count);
 extern void convert_animlist_to_pointer(GameKeyFrame** p, GameKeyFrame* p_anim, SLONG count);
 extern void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG count);
 extern CBYTE* body_part_names[];
-extern void write_a_prim(SLONG prim, MFFileHandle handle);
-extern void add_point(SLONG x, SLONG y, SLONG z);
-extern struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD texture_style, SWORD texture_piece);
-extern SLONG build_prim_object(SLONG sp, SLONG sf3, SLONG sf4);
-extern void save_prim_asc(UWORD prim, UWORD version);
 extern void free_game_chunk(GameKeyFrameChunk* the_chunk);
 
 // uc_orig: load_frame_numbers (fallen/Source/io.cpp)
@@ -92,27 +86,6 @@ void load_frame_numbers(CBYTE* vue_name, UWORD* frames, SLONG max_frames)
     }
 }
 
-// uc_orig: invert_mult (fallen/Source/io.cpp)
-void invert_mult(struct Matrix33* mat, struct PrimPoint* pp)
-{
-    Matrix33 temp_mat;
-    SLONG i, j;
-    SLONG x, y, z;
-
-    for (i = 0; i < 3; i++)
-        for (j = 0; j < 3; j++) {
-            temp_mat.M[i][j] = mat->M[j][i];
-        }
-
-    x = (pp->X * temp_mat.M[0][0]) + (pp->Y * temp_mat.M[0][1]) + (pp->Z * temp_mat.M[0][2]) >> 15;
-    y = (pp->X * temp_mat.M[1][0]) + (pp->Y * temp_mat.M[1][1]) + (pp->Z * temp_mat.M[1][2]) >> 15;
-    z = (pp->X * temp_mat.M[2][0]) + (pp->Y * temp_mat.M[2][1]) + (pp->Z * temp_mat.M[2][2]) >> 15;
-
-    pp->X = x;
-    pp->Y = y;
-    pp->Z = z;
-}
-
 // uc_orig: sort_multi_object (fallen/Source/io.cpp)
 void sort_multi_object(struct KeyFrameChunk* the_chunk)
 {
@@ -138,25 +111,6 @@ void make_compress_matrix(struct KeyFrameElement* the_element, struct Matrix33* 
     the_element->CMatrix.M[0] = ((((matrix->M[0][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[0][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[0][2] >> 6)) << 0) & CMAT2_MASK);
     the_element->CMatrix.M[1] = ((((matrix->M[1][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[1][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[1][2] >> 6)) << 0) & CMAT2_MASK);
     the_element->CMatrix.M[2] = ((((matrix->M[2][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[2][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[2][2] >> 6)) << 0) & CMAT2_MASK);
-}
-
-// uc_orig: normalise_max_matrix (fallen/Source/io.cpp)
-void normalise_max_matrix(float fe_matrix[3][3], float* x, float* y, float* z)
-{
-    float len;
-    SLONG h;
-
-    len = fe_matrix[0][0] * fe_matrix[0][0];
-    len += fe_matrix[0][1] * fe_matrix[0][1];
-    len += fe_matrix[0][2] * fe_matrix[0][2];
-
-    len = sqrt(len);
-
-    for (h = 0; h < 3; h++) {
-        fe_matrix[h][0] = fe_matrix[h][0] / len;
-        fe_matrix[h][1] = fe_matrix[h][1] / len;
-        fe_matrix[h][2] = fe_matrix[h][2] / len;
-    }
 }
 
 // uc_orig: load_multi_vue (fallen/Source/io.cpp)
@@ -447,28 +401,6 @@ SLONG load_a_multi_prim(CBYTE* name)
         return (0);
 }
 
-// uc_orig: find_matching_face (fallen/Source/io.cpp)
-SLONG find_matching_face(struct PrimPoint* p1, struct PrimPoint* p2, struct PrimPoint* p3, UWORD prim)
-{
-    SLONG c0, sf, ef;
-    sf = prim_objects[prim].StartFace4;
-    ef = prim_objects[prim].EndFace4;
-
-    for (c0 = sf; c0 <= ef; c0++) {
-        if (prim_points[prim_faces4[c0].Points[0]].X == p1->X && prim_points[prim_faces4[c0].Points[0]].Y == p1->Y && prim_points[prim_faces4[c0].Points[0]].Z == p1->Z && prim_points[prim_faces4[c0].Points[1]].X == p2->X && prim_points[prim_faces4[c0].Points[1]].Y == p2->Y && prim_points[prim_faces4[c0].Points[1]].Z == p2->Z && prim_points[prim_faces4[c0].Points[2]].X == p3->X && prim_points[prim_faces4[c0].Points[2]].Y == p3->Y && prim_points[prim_faces4[c0].Points[2]].Z == p3->Z) {
-            return (c0);
-        }
-    }
-    return (-1);
-}
-
-// uc_orig: create_kline_bottle (fallen/Source/io.cpp)
-void create_kline_bottle(void)
-{
-    // Disabled in original — mesh generation code is fully commented out.
-    return;
-}
-
 // uc_orig: load_palette (fallen/Source/io.cpp)
 void load_palette(CBYTE* palette)
 {
@@ -498,27 +430,6 @@ file_error:;
         ENGINE_palette[i].green = rand();
         ENGINE_palette[i].blue = rand();
     }
-}
-
-// uc_orig: save_insert_a_multi_prim (fallen/Source/io.cpp)
-SLONG save_insert_a_multi_prim(MFFileHandle handle, SLONG multi)
-{
-    // Not implemented in this build — save path is disabled.
-    return (0);
-}
-
-// uc_orig: save_insert_game_chunk (fallen/Source/io.cpp)
-SLONG save_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_chunk)
-{
-    // Not implemented in this build.
-    return (1);
-}
-
-// uc_orig: save_anim_system (fallen/Source/io.cpp)
-SLONG save_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name)
-{
-    // Not implemented in this build.
-    return (0);
 }
 
 // uc_orig: load_insert_game_chunk (fallen/Source/io.cpp)

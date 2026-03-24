@@ -173,7 +173,7 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 | Итерация | Модули | Файлов | Почему в этом порядке |
 |----------|--------|--------|----------------------|
 | **3.1** ✅ | `ai/`, `effects/`, `platform/` | ~61 | Leaf-модули. Удалено 22 сущности (1 файл целиком) |
-| **3.2** | `assets/`, `ui/` | ~140 | Презентационный слой: assets/ (ресурсы, текстуры) и ui/ (меню, HUD, катсцены) — высокий потенциал |
+| **3.2** ✅ | `assets/`, `ui/` | ~140 | Презентационный слой. Удалено 33 сущности (2 файла целиком) |
 | **3.3** | `actors/`, `missions/` | ~121 | Геймплей: actors зависят от engine/world, но мало кто зависит от actors. missions/ — game flow |
 | **3.4** | `world/`, `engine/`, `core/` | ~349 | Инфраструктура: многое зависит от этих модулей, удалять осторожнее. core/ — только очевидно мёртвое |
 
@@ -189,6 +189,41 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
   каскадная чистка get_start + 4 глобалок оставлена на будущее
 - **platform.h** — 5 мёртвых сущностей: `FadeDisplay` (нет реализации), `FLAGS_USE_3DFX` (3DFX),
   `SHELL_NAME`, `NoError`, `SHELL_CHANGED` (дубликат из gd_display.h)
+
+### Итерация 3.2 — assets/, ui/ (2026-03-24)
+
+Удалено 33 сущности из 22 файлов. 2 файла удалены целиком.
+
+**assets/ — 11 сущностей:**
+
+- **anim_loader.h/.cpp** — 7 функций: `invert_mult`, `find_matching_face`, `normalise_max_matrix`,
+  `create_kline_bottle`, `save_insert_a_multi_prim`, `save_insert_game_chunk`, `save_anim_system`.
+  Все стабы или хелперы без внешних вызовов. Также удалены 5 осиротевших extern деклараций
+  (`write_a_prim`, `add_point`, `create_a_quad`, `build_prim_object`, `save_prim_asc`),
+  forward declaration `struct PrimPoint`, `#include <math.h>`
+- **level_loader.h/.cpp** — 2 функции: `revert_to_prim_status` (вызов только в закомментированном коде),
+  `find_colour` (нигде не вызывается). `load_needed_anim_prims` — убрана из .h, сделана `static`
+  (вызывается только внутри level_loader.cpp)
+- **image_compression_globals.h/.cpp** — удалены целиком: содержали только `TGA_Pixel test[256*256]`
+  (debug массив ~256KB). Каскадно удалена `IC_test()` из image_compression.h/.cpp (единственный
+  потребитель `test[]`, сама нигде не вызывается). Убран `#include "image_compression_globals.h"`
+
+**ui/ — 22 сущности:**
+
+- **cam.h** — 9 orphaned деклараций без реализации: `CAM_look_at_thing`, `CAM_set_behind_up`,
+  `CAM_set_pos`, `CAM_set_angle`, `CAM_get_dangle`, `CAM_set_dpos`, `CAM_get_dpos`,
+  `CAM_rotate_left`, `CAM_rotate_right`
+- **interfac.h/.cpp** — 3 сущности: `player_apply_move_analgue` (декларация без реализации),
+  `remove_action_used`, `get_analogue_dxdz`
+- **panel.h/.cpp** — 4 функции: `PANEL_crap_text`, `PANEL_draw_number` (7-segment renderer),
+  `BodgePageIntoAddAlpha`, `BodgePageIntoSub`
+- **overlay.h/.cpp** — 2 функции: `arrow_object`, `arrow_pos`. Убран `#include "assets/xlat_str.h"`
+- **attract.h/.cpp** — 1 функция: `any_button_pressed` (stub). Убраны `#include "engine/input/joystick.h"`,
+  `joystick_globals.h`, `extern DIJOYSTATE the_state`
+- **fc.h/.cpp** — 1 функция: `FC_unkill_player_cam`
+- **eng_map.h/.cpp** — 1 функция: `MAP_draw_onscreen_beacons`. Убраны `#include "ui/camera/fc.h"`,
+  `fc_globals.h`
+- **CMakeLists.txt** — убрана строка `image_compression_globals.cpp`
 
 ---
 

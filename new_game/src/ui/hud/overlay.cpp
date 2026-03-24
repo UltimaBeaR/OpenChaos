@@ -10,7 +10,6 @@
 #include "actors/core/interact_globals.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-#include "assets/xlat_str.h"
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "ui/hud/overlay.h"
@@ -93,38 +92,6 @@ SLONG should_i_add_message(SLONG type)
     } else {
         return UC_FALSE;
     }
-}
-
-// Displays a floating hint arrow above a Thing (e.g. "press action to use vehicle").
-// uc_orig: arrow_object (fallen/Source/overlay.cpp)
-void arrow_object(Thing* p_special, SLONG dir, SLONG type)
-{
-    SLONG x, y, z;
-
-    if (!should_i_add_message(type)) {
-        return;
-    }
-
-    x = p_special->WorldPos.X >> 8;
-    y = p_special->WorldPos.Y >> 8;
-    z = p_special->WorldPos.Z >> 8;
-
-    y += ((GAME_TURN + THING_INDEX(p_special)) << 3) & 63;
-
-    add_damage_text(x, y, z, XLAT_str(help_xlat[type]));
-}
-
-// Displays a floating hint arrow at a world position.
-// uc_orig: arrow_pos (fallen/Source/overlay.cpp)
-void arrow_pos(SLONG x, SLONG y, SLONG z, SLONG dir, SLONG type)
-{
-    y += ((GAME_TURN + x) << 3) & 63;
-
-    if (!should_i_add_message(type)) {
-        return;
-    }
-
-    add_damage_text(x, y, z, XLAT_str(help_xlat[type]));
 }
 
 // Empty stub — help text display was disabled pre-release.

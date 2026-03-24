@@ -226,8 +226,6 @@ extern SLONG find_best_action_from_tree(SLONG action, ULONG input, ULONG* input_
 extern SLONG get_camera_angle(void);
 // uc_orig: player_stop_move (fallen/Source/interfac.cpp)
 extern void player_stop_move(Thing* p_thing, ULONG input);
-// uc_orig: get_analogue_dxdz (fallen/Source/interfac.cpp)
-extern void get_analogue_dxdz(SLONG in_dx, SLONG in_dz, SLONG* dx, SLONG* dz);
 // uc_orig: player_interface_move (fallen/Source/interfac.cpp)
 extern void player_interface_move(Thing* p_thing, ULONG input);
 // uc_orig: lock_to_compass (fallen/Source/interfac.cpp)
@@ -245,8 +243,6 @@ extern void process_analogue_movement(Thing* p_thing, SLONG input);
 extern SLONG player_turn_left_right(Thing* p_thing, SLONG input);
 // uc_orig: player_apply_move (fallen/Source/interfac.cpp)
 extern void player_apply_move(Thing* p_thing, ULONG input);
-// uc_orig: player_apply_move_analgue (fallen/Source/interfac.cpp)
-extern void player_apply_move_analgue(Thing* p_thing, ULONG input);
 // uc_orig: person_enter_fight_mode (fallen/Source/interfac.cpp)
 extern void person_enter_fight_mode(Thing* p_person);
 
@@ -278,7 +274,4 @@ SLONG continue_firing(Thing* p_person);
 SLONG continue_moveing(Thing* p_person);
 // uc_orig: continue_blocking (fallen/Source/interfac.cpp)
 SLONG continue_blocking(Thing* p_person);
-// uc_orig: remove_action_used (fallen/Source/interfac.cpp)
-void remove_action_used(Thing* p_person);
-
 #endif // UI_INTERFAC_H

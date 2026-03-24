@@ -77,10 +77,6 @@ void FC_rotate_right(SLONG cam);
 // uc_orig: FC_kill_player_cam (fallen/Headers/fc.h)
 void FC_kill_player_cam(Thing* p_thing);
 
-// uc_orig: FC_unkill_player_cam (fallen/Headers/fc.h)
-// Not declared in original fc.h but defined in fc.cpp
-void FC_unkill_player_cam(Thing* p_thing);
-
 // uc_orig: FC_process (fallen/Headers/fc.h)
 void FC_process(void);
 

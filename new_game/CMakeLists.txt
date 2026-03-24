@@ -54,7 +54,6 @@ set(SOURCES_NEW
     src/assets/tga.cpp
     src/assets/tga_globals.cpp
     src/assets/image_compression.cpp
-    src/assets/image_compression_globals.cpp
     src/assets/compression.cpp
     src/assets/compression_globals.cpp
     src/assets/anim.cpp

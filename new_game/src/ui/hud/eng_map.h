@@ -31,8 +31,4 @@ UBYTE MAP_beacon_create(SLONG x, SLONG z, SLONG index, UWORD track_my_position);
 // uc_orig: MAP_beacon_remove (fallen/DDEngine/Headers/map.h)
 void MAP_beacon_remove(UBYTE beacon);
 
-// Draws on-screen directional arrows for off-screen beacons (shown during normal gameplay).
-// uc_orig: MAP_draw_onscreen_beacons (fallen/DDEngine/Headers/map.h)
-void MAP_draw_onscreen_beacons(void);
-
 #endif // UI_HUD_ENG_MAP_H

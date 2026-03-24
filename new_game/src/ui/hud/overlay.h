@@ -28,12 +28,6 @@ extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 // uc_orig: add_damage_value_thing (fallen/Source/overlay.cpp)
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
 
-// uc_orig: arrow_object (fallen/Source/overlay.cpp)
-extern void arrow_object(Thing* p_special, SLONG dir, SLONG type);
-
-// uc_orig: arrow_pos (fallen/Source/overlay.cpp)
-extern void arrow_pos(SLONG x, SLONG y, SLONG z, SLONG dir, SLONG type);
-
 // uc_orig: should_i_add_message (fallen/Source/overlay.cpp)
 extern SLONG should_i_add_message(SLONG type);
 

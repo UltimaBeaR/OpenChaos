@@ -101,16 +101,8 @@ void PANEL_draw_quad(
 // uc_orig: PANEL_inventory (fallen/DDEngine/Source/panel.cpp)
 void PANEL_inventory(struct Thing* darci, struct Thing* player);
 
-// Internal helpers used by later chunks of panel.cpp (chunk 2+) before they are migrated.
-// Will become static-equivalent once all chunks are migrated.
-// uc_orig: PANEL_crap_text (fallen/DDEngine/Source/panel.cpp)
-void PANEL_crap_text(int x, int y, char* string);
-
 // uc_orig: PANEL_draw_face (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_face(long x, long y, long face, long size);
-
-// uc_orig: PANEL_draw_number (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_number(float x, float y, unsigned char digit);
 
 // uc_orig: PANEL_draw_local_health (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_local_health(long mx, long my, long mz, long percentage, long radius = 60);
@@ -196,11 +188,6 @@ void PANEL_last_arrow(float x, float y, float angle, float size, unsigned long c
 // uc_orig: PANEL_last_bubble (fallen/DDEngine/Source/panel.cpp)
 void PANEL_last_bubble(float x1, float y1, float x2, float y2);
 
-// uc_orig: BodgePageIntoAddAlpha (fallen/DDEngine/Source/panel.cpp)
-long BodgePageIntoAddAlpha(long oldpage);
 // uc_orig: BodgePageIntoAdd (fallen/DDEngine/Source/panel.cpp)
 long BodgePageIntoAdd(long oldpage);
-// uc_orig: BodgePageIntoSub (fallen/DDEngine/Source/panel.cpp)
-long BodgePageIntoSub(long oldpage);
-
 #endif // UI_HUD_PANEL_H

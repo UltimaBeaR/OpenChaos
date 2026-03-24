@@ -8,7 +8,6 @@
 // Forward declarations for types defined in old/ headers that are not yet migrated.
 struct KeyFrameChunk;
 struct GameKeyFrameChunk;
-struct PrimPoint;
 struct Matrix33;
 struct KeyFrameElement;
 
@@ -17,11 +16,6 @@ struct KeyFrameElement;
 // If the .TXT is missing, frames are loaded in sequential order (0..max-1).
 // uc_orig: load_frame_numbers (fallen/Source/io.cpp)
 void load_frame_numbers(CBYTE* vue_name, UWORD* frames, SLONG max_frames);
-
-// Apply the transpose of mat to the point pp, modifying pp in place.
-// Used during VUE animation loading to un-rotate body part offsets into object space.
-// uc_orig: invert_mult (fallen/Source/io.cpp)
-void invert_mult(struct Matrix33* mat, struct PrimPoint* pp);
 
 // Sort body part sub-objects within an animation chunk by matching them to named body parts.
 // Currently a no-op body (code commented out in the original).
@@ -37,11 +31,6 @@ void set_default_people_types(struct KeyFrameChunk* the_chunk);
 // Three rows are encoded at 10 bits each into three 32-bit words.
 // uc_orig: make_compress_matrix (fallen/Source/io.cpp)
 void make_compress_matrix(struct KeyFrameElement* the_element, struct Matrix33* matrix);
-
-// Normalise all rows of a 3×3 float matrix to unit length (divides all by the row-0 magnitude).
-// Also rescales x/y/z output parameters (unused in practice — parameters not modified after call).
-// uc_orig: normalise_max_matrix (fallen/Source/io.cpp)
-void normalise_max_matrix(float fe_matrix[3][3], float* x, float* y, float* z);
 
 // Load a .VUE text-format animation file into a KeyFrameChunk.
 // Parses frame/transform records, builds KeyFrame and KeyFrameElement arrays in place.
@@ -68,31 +57,10 @@ void read_a_prim(SLONG prim, MFFileHandle handle, SLONG save_type);
 // uc_orig: load_a_multi_prim (fallen/Source/io.cpp)
 SLONG load_a_multi_prim(CBYTE* name);
 
-// Find a quad face in prim 'prim' whose first three vertices match p1, p2, p3.
-// Returns the face index or -1 if not found.
-// uc_orig: find_matching_face (fallen/Source/io.cpp)
-SLONG find_matching_face(struct PrimPoint* p1, struct PrimPoint* p2, struct PrimPoint* p3, UWORD prim);
-
-// Stub: would create a Klein bottle mesh (disabled with early return in original).
-// uc_orig: create_kline_bottle (fallen/Source/io.cpp)
-void create_kline_bottle(void);
-
 // Load a 256-entry 8-bit palette file into ENGINE_palette[].
 // On read failure, fills palette entries with random colours.
 // uc_orig: load_palette (fallen/Source/io.cpp)
 void load_palette(CBYTE* palette);
-
-// Stub: save a multi-prim object block into an open .all file handle. Returns 0.
-// uc_orig: save_insert_a_multi_prim (fallen/Source/io.cpp)
-SLONG save_insert_a_multi_prim(MFFileHandle handle, SLONG multi);
-
-// Stub: save a GameKeyFrameChunk block into an open file handle. Returns 1.
-// uc_orig: save_insert_game_chunk (fallen/Source/io.cpp)
-SLONG save_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_chunk);
-
-// Stub: save a complete .all animation bundle. Returns 0.
-// uc_orig: save_anim_system (fallen/Source/io.cpp)
-SLONG save_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name);
 
 // Load the GameKeyFrameChunk section from an open .all file handle.
 // Allocates all sub-arrays (PeopleTypes, AnimKeyFrames, AnimList, TheElements, FightCols)

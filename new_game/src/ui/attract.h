@@ -26,7 +26,4 @@ void ATTRACT_loadscreen_init(void);
 // uc_orig: ATTRACT_loadscreen_draw (fallen/Source/Attract.cpp)
 void ATTRACT_loadscreen_draw(SLONG completion); // completion is 8-bit fixed point 0-256
 
-// uc_orig: any_button_pressed (fallen/Source/Attract.cpp)
-SLONG any_button_pressed(void);
-
 #endif // UI_ATTRACT_H

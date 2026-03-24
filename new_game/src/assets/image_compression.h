@@ -34,10 +34,4 @@ void IC_unpack(
     SLONG px,
     SLONG py);
 
-// Debug test: load "test.tga", compress and decompress every 4x4 block, save to "testcomp.tga".
-// uc_orig: IC_test (fallen/DDEngine/Headers/ic.h)
-void IC_test(void);
-
-#include "image_compression_globals.h"
-
 #endif // ASSETS_IMAGE_COMPRESSION_H

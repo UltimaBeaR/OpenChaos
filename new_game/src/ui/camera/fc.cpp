@@ -1398,12 +1398,3 @@ void FC_kill_player_cam(Thing* p_thing)
     FC_force_camera_behind(0);
     GAME_cut_scene = 1;
 }
-
-// Restores normal camera tracking after death/cut-scene.
-// uc_orig: FC_unkill_player_cam (fallen/Source/fc.cpp)
-void FC_unkill_player_cam(Thing* p_thing)
-{
-    FC_cam[0].focus = p_thing;
-    FC_force_camera_behind(0);
-    GAME_cut_scene = 0;
-}

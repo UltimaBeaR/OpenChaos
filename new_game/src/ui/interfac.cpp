@@ -1483,39 +1483,6 @@ void player_stop_move(Thing* p_thing, ULONG input)
     }
 }
 
-// uc_orig: get_analogue_dxdz (fallen/Source/interfac.cpp)
-// Converts raw analog stick (dx, dz) from stick-relative to world-relative coordinates,
-// accounting for camera angle. Output saturated to -128..+127.
-void get_analogue_dxdz(SLONG in_dx, SLONG in_dz, SLONG* dx, SLONG* dz)
-{
-    SLONG angle;
-    SLONG ca;
-
-    SLONG dist;
-
-    dist = Root(in_dx * in_dx + in_dz * in_dz);
-
-    angle = Arctan(-in_dx, in_dz);
-
-    ca = get_camera_angle();
-
-    angle += ca;
-    angle -= 512;
-    angle = (angle + 2048) & 2047;
-
-    in_dx = -COS(angle) >> 8;
-    in_dz = SIN(angle) >> 8;
-
-    in_dx = (in_dx * dist) >> 8;
-    in_dz = (in_dz * dist) >> 8;
-
-    SATURATE(in_dx, -128, 127);
-    SATURATE(in_dz, -128, 127);
-
-    *dx = in_dx;
-    *dz = in_dz;
-}
-
 // uc_orig: player_interface_move (fallen/Source/interfac.cpp)
 // Dispatches to the active movement handler. USER_INTERFACE==0 is the only active path.
 // Filters simultaneous left+right input (clears both bits).
@@ -4098,16 +4065,5 @@ SLONG continue_blocking(Thing* p_person)
         }
     } else {
         return 0;
-    }
-}
-
-// uc_orig: remove_action_used (fallen/Source/interfac.cpp)
-// Clears the InputDone flag for ACTION so it can fire again next frame.
-void remove_action_used(Thing* p_person)
-{
-    Thing* p_player;
-    if (p_person->Genus.Person->PlayerID) {
-        p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
-        p_player->Genus.Player->InputDone &= ~INPUT_MASK_ACTION;
     }
 }

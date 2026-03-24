@@ -3,8 +3,6 @@
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "ui/camera/cam.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
-#include "engine/input/joystick.h"                       // ReadInputDevice
-#include "engine/input/joystick_globals.h"               // DIJOYSTATE the_state
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ui/hud/panel.h"
@@ -36,20 +34,6 @@ extern BOOL text_fudge;
 
 // uc_orig: do_start_menu (fallen/Source/frontend.cpp)
 extern SLONG do_start_menu(void);
-
-extern DIJOYSTATE the_state;
-
-// Returns 1 if any joystick button is pressed.
-// uc_orig: any_button_pressed (fallen/Source/Attract.cpp)
-SLONG any_button_pressed(void)
-{
-    if (ReadInputDevice()) {
-        if (the_state.rgbButtons[0] || the_state.rgbButtons[1] || the_state.rgbButtons[2] || the_state.rgbButtons[3] || the_state.rgbButtons[4] || the_state.rgbButtons[5] || the_state.rgbButtons[6] || the_state.rgbButtons[7] || the_state.rgbButtons[8] || the_state.rgbButtons[9]) {
-            return (1);
-        }
-    }
-    return (0);
-}
 
 // Main attract/frontend loop. Runs the main menu (FRONTEND_loop) until the player starts a mission.
 // Sets GAME_STATE flags and calls ATTRACT_loadscreen_init() when a mission is selected.

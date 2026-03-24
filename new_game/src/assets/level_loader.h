@@ -38,14 +38,6 @@ extern CBYTE TEXTURE_WORLD_DIR[100];
 // uc_orig: record_prim_status (fallen/Source/io.cpp)
 void record_prim_status(void);
 
-// Restore prim database cursors to the last recorded snapshot.
-// uc_orig: revert_to_prim_status (fallen/Source/io.cpp)
-void revert_to_prim_status(void);
-
-// Find the closest palette index to the given RGB triple.
-// uc_orig: find_colour (fallen/Source/io.cpp)
-SLONG find_colour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b);
-
 // Replace the extension of 'name' with 'add' (3-char string), writing result to 'new_name'.
 // uc_orig: change_extension (fallen/Source/io.cpp)
 void change_extension(CBYTE* name, CBYTE* add, CBYTE* new_name);
@@ -62,10 +54,6 @@ void load_texture_styles(UBYTE editor, UBYTE world);
 // Short-circuits if the slot is already loaded.
 // uc_orig: load_anim_prim_object (fallen/Source/io.cpp)
 SLONG load_anim_prim_object(SLONG prim);
-
-// Post-map-load pass: ensure all anim prims required by Things on the map are loaded.
-// uc_orig: load_needed_anim_prims (fallen/Source/io.cpp)
-void load_needed_anim_prims(void);
 
 // Load anim prims required by EWAY waypoints (EWAY_DO_CREATE_ANIMAL events).
 // uc_orig: load_level_anim_prims (fallen/Source/io.cpp)

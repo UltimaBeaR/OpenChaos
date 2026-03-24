@@ -17,8 +17,6 @@
 #include "engine/graphics/resources/menufont.h"
 #include "core/matrix.h"
 #include "engine/graphics/resources/font2d.h"
-#include "ui/camera/fc.h"
-#include "ui/camera/fc_globals.h"
 #include "missions/memory_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 
@@ -1412,36 +1410,4 @@ void MAP_process()
 {
     MAP_process_beacons();
     MAP_process_pulses();
-}
-
-// Draws directional 3D arrows for beacons that are off-screen during normal gameplay.
-// Uses the camera (FC_cam[0]) to compute relative angle.
-// uc_orig: MAP_draw_onscreen_beacons (fallen/DDEngine/Source/engineMap.cpp)
-void MAP_draw_onscreen_beacons(void)
-{
-    SLONG i;
-
-    float dx;
-    float dz;
-    float angle;
-
-    SLONG colour;
-
-    MAP_Beacon* mb;
-
-    for (i = 1; i < MAP_MAX_BEACONS; i++) {
-        mb = &MAP_beacon[i];
-
-        if (!mb->used) {
-            continue;
-        }
-
-        dx    = float(mb->wx - (FC_cam[0].x >> 8));
-        dz    = float(mb->wz - (FC_cam[0].z >> 8));
-        angle = -atan2(dx, dz) - float(FC_cam[0].yaw) * (2.0F * PI / (2048.0F * 256.0F));
-
-        colour = MAP_beacon_colour[i % MAP_MAX_BEACON_COLOURS];
-
-        MAP_draw_3d_arrow(angle, colour);
-    }
 }

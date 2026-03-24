@@ -50,55 +50,6 @@ void record_prim_status(void)
     local_next_prim_multi_object = next_prim_multi_object;
 }
 
-// uc_orig: revert_to_prim_status (fallen/Source/io.cpp)
-void revert_to_prim_status(void)
-{
-    next_prim_point = local_next_prim_point;
-    next_prim_face4 = local_next_prim_face4;
-    next_prim_face3 = local_next_prim_face3;
-    next_prim_object = local_next_prim_object;
-    next_prim_multi_object = local_next_prim_multi_object;
-}
-
-// Find the closest palette entry to the given RGB triple by squared distance.
-// uc_orig: find_colour (fallen/Source/io.cpp)
-SLONG find_colour(UBYTE* the_palette, SLONG r, SLONG g, SLONG b)
-{
-    SLONG found = -1;
-    SLONG dist = 0x7fffffff,
-          c0,
-          dist2,
-          tr,
-          tg,
-          tb;
-
-    if (r > 255)
-        r = 255;
-    if (g > 255)
-        g = 255;
-    if (b > 255)
-        b = 255;
-
-    for (c0 = 0; c0 < 256; c0++) {
-        tr = *the_palette++;
-        tg = *the_palette++;
-        tb = *the_palette++;
-
-        tr -= r;
-        tg -= g;
-        tb -= b;
-
-        dist2 = abs(tr * tr) * 1 + abs(tg * tg) * 1 + abs(tb * tb) * 1;
-        if (dist2 < dist) {
-            found = c0;
-            dist = dist2;
-            if (dist < 8)
-                return (c0);
-        }
-    }
-    return (found);
-}
-
 // Replace the extension in 'name' (up to the first '.') with 'add' (3-char string).
 // Writes the result into 'new_name'. If no '.' found, appends extension.
 // uc_orig: change_extension (fallen/Source/io.cpp)
@@ -250,7 +201,7 @@ SLONG load_anim_prim_object(SLONG prim)
 // Post-map-load: scan all Things and load anim prims for CLASS_ANIM_PRIM entries.
 // Also loads balrog (3) and bane (4) if their per-level flags are set.
 // uc_orig: load_needed_anim_prims (fallen/Source/io.cpp)
-void load_needed_anim_prims()
+static void load_needed_anim_prims()
 {
     SLONG c0;
 
