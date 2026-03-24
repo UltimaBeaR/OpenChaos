@@ -292,78 +292,64 @@ python tools/entity_map.py rename --name OLD --new-name NEW   # for future renam
 
 # Target Structure of `src/`
 
+See `new_game/README.md` for the full annotated directory tree.
+
 ```
 src/
-├── core/                      — math, memory, utilities. No dependencies.
+├── engine/                    — game engine (UC-agnostic, reusable)
+│   ├── core/                  — types, math, memory, heap, timer
+│   ├── platform/              — uc_common.h (legacy umbrella), host, wind_procs
+│   ├── graphics/
+│   │   ├── graphics_api/      — D3D device, DDManager, vertex_buffer, render_state, d3d_texture
+│   │   ├── pipeline/          — aeng, bucket, poly, polypage, draw2d, qeng
+│   │   ├── geometry/          — mesh, facet, superfacet, farfacet, fastprim, figure, cone, oval, shape, sprite, sky, aa
+│   │   ├── lighting/          — gamut, night, shadow, smap, crinkle
+│   │   ├── postprocess/       — bloom, wibble
+│   │   └── text/              — font, font2d, menufont, truetype, text
+│   ├── console/               — debug console + on-screen messages
+│   ├── io/                    — file, async_file, env
+│   ├── audio/                 — mfx, music, sound, soundenv
+│   ├── input/                 — keyboard, mouse, joystick
+│   ├── animation/             — morph, anim_types
+│   ├── effects/               — psystem, flamengine
+│   ├── physics/               — collide, hm, sm
+│   └── compression/           — delta compression, S3 block compression
 │
-├── engine/                    — game engine (doesn't know about Urban Chaos)
-│   ├── graphics/              — graphics engine (all DirectX — only here)
-│   │   ├── graphics_api/      — D3D device, DDManager, GDisplay, GWorkScreen
-│   │   ├── pipeline/          — facets, buckets, pages, poly submission
-│   │   ├── geometry/          — mesh, shape, poly, cone, oval
-│   │   └── resources/         — D3DTexture, fonts, sprites (D3D-specific resources)
-│   ├── io/                    — raw file I/O: Drive, AsyncFile. Only open/read files,
-│   │                            no knowledge of formats. Separated from parsing.
-│   ├── animation/             — figure system, vertex morphing (tween)
-│   ├── lighting/              — gamut, crinkle (bump mapping), shadow, light
-│   ├── effects/               — effects infrastructure: PSys, billboard rendering
-│   ├── physics/               — collision detection, movement (tech debt: response code here too)
-│   ├── audio/                 — MSS32 wrapper + sound management
-│   └── input/                 — DirectInput, keyboard, mouse
-│
-├── world/                     — UC game world
-│   ├── map/                   — map, supermap, qmap, road, water
-│   ├── environment/           — building, terrain, doors, elevators, env
-│   └── navigation/            — walkable data, inside detection, nav mesh
-│
-├── actors/                    — Thing system (UC game objects)
-│   ├── core/                  — Thing allocation, base types, drawtype
-│   ├── characters/            — Person, Player, Cop, Darci, Thug, Roper...
-│   ├── vehicles/              — Vehicle, Chopper
-│   ├── items/                 — Barrel, Balloon, Grenade, Guns...
-│   └── animals/               — Animal, Canid, Bat
-│
-├── assets/                    — UC-specific loaders and format parsers:
-│                                FileClump (.gob/.ilf), Tga, BinkClient, level loading,
-│                                texture atlases, animations, .ucm missions.
-│                                Everything that knows about specific UC binary formats — here.
-│
-├── effects/                   — UC-specific effects: fire, pyro, spark, ribbon, mist
-│                                (UC logic — not engine; rendering via engine/effects/)
-│
-├── ai/                        — NPC behavior, state machines, UC combat
-│
-├── missions/                  — EWAY engine + UC mission content
-│
-└── ui/                        — UC interface
-    ├── frontend/
-    ├── hud/
-    ├── menus/
-    └── cutscenes/
+├── game/                      — game loop, startup, input mapping, game state
+├── things/                    — Thing system (core, characters, vehicles, items, animals)
+├── map/                       — heightfield map, roads, supermap, sewers, ob
+├── buildings/                 — building geometry, prim, stair, outline, id, ware
+├── navigation/                — walkable, inside2, wmove, wand
+├── world_objects/             — door, plat, tripwire, puddle, dirt
+├── effects/                   — UC effects (weather/, combat/, environment/)
+├── camera/                    — follow camera, modes
+├── combat/                    — melee combat system
+├── shooting/                  — guns (auto-aim), projectile pool
+├── ai/                        — pathfinding (mav), NPC AI (pcom)
+├── missions/                  — EWAY scripting, playcuts, save, memory
+├── assets/                    — UC resources (formats/, texture, sound_id, xlat_str)
+├── ui/                        — UI (frontend/, hud/, menus/)
+├── outro/                     — end credits (core/ engine + content)
+└── main.cpp
 ```
-
-**About `outro/`:** Contains the last game level and specific mechanics. Common mechanics
-(e.g. file loading) go to `engine/io/` or appropriate engine module. UC-specific content →
-wherever it fits by meaning (`world/`, `missions/`, etc.).
 
 ## Placement Criteria
 
-- **`engine/`** = "HOW" — algorithm, mechanism, service. Low-level as possible. Doesn't know about UC characters/items. Reusable in another game.
+- **`engine/`** = "HOW" — algorithm, mechanism, service. Doesn't know about UC characters/items. Reusable in another game.
 - **`engine/graphics/`** = "HOW to draw geometry and textures." Knows about vertices, polygons, textures. Doesn't know what a "cop" or "fire" is.
 - **`engine/graphics/graphics_api/`** = Thinnest wrapper over DirectX. When replacing DirectX with OpenGL/Vulkan → **only this layer** changes.
-- **`engine/io/`** = Raw file I/O: open, read bytes, buffering. Doesn't know about file formats. If a function just reads bytes from disk → it's here.
-- **`assets/`** = UC-specific format parsers: knows about .gob, .ilf, .ucm, animation file structure. Uses `engine/io/` for reading, only parses format structure. Everything where code knows about a specific UC binary format — only here.
-- **Everything else** (actors, world, ai, missions, ui, effects) = "WHAT does X do in Urban Chaos." Implements mechanics by combining engine functions.
+- **`engine/io/`** = Raw file I/O: open, read bytes, buffering. Doesn't know about file formats.
+- **`assets/formats/`** = UC-specific format parsers: .gob, .ilf, .ucm, animation files. Uses `engine/io/` for reading.
+- **Everything else** (things, map, buildings, ai, missions, ui, effects, combat, shooting, camera, etc.) = "WHAT does X do in Urban Chaos." Implements mechanics by combining engine functions.
 
-Effects boundary example:
-- `engine/effects/` — PSys infrastructure, billboard rendering → **engine**
-- `effects/` (game) — fire.cpp, pyro.cpp, specific UC fire → **game**
+Effects boundary:
+- `engine/effects/` — PSys infrastructure, flame texture generator → **engine**
+- `effects/` (game) — fire, pyro, spark, fog — specific UC effects → **game**
 
 Dependency order (only downward):
 ```
-core → io → graphics_api → graphics → engine/* → world/actors → ai → missions/ui
+engine/core → engine/io → engine/graphics/graphics_api → engine/graphics → engine/* → game-layer modules
 ```
-A dependency from outside `engine/` directly into `engine/graphics/` is a visible architecture violation.
 
 ---
 

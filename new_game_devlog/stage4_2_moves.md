@@ -37,3 +37,23 @@
 | `world/environment/edmap.h` | `world/map/map_constants.h` | Map constants, не editor (переименован) |
 | `effects/*` | `effects/{weather,combat,environment}/*` | Группировка эффектов по типу |
 | `ui/menus/cnet.*` | **удалён** | Сетевая заглушка. CNET_* globals → game/network_state_globals |
+| `world/map/*` | `map/*` | Top-level модуль |
+| `world/level_pools.h` | `map/level_pools.h` | Пулы геометрии, часть карты |
+| `world/navigation/*` | `navigation/*` | Top-level модуль |
+| `world/environment/` (здания) | `buildings/*` | Геометрия зданий |
+| `world/environment/` (объекты) | `world_objects/*` | Мировые объекты |
+| `world/environment/ns.*` | `map/sewers.*` | Канализация = слой карты, переименование |
+| `ui/camera/*` | `camera/*` | Камера — не UI |
+| `assets/` (загрузчики) | `assets/formats/*` | Парсеры форматов в подпапку |
+| `missions/elev.*` | `assets/formats/elev.*` | Загрузчик .ucm |
+| `assets/compression.*` | `engine/compression/*` | Универсальные алгоритмы |
+| `assets/image_compression.*` | `engine/compression/*` | Универсальные алгоритмы |
+| `world_objects/ware.*` | `buildings/ware.*` | Внутренние помещения |
+| `effects/environment/dirt.*` | `world_objects/dirt.*` | Не эффект, интерактивная подсистема |
+| `ui/frontend.*` | `ui/frontend/frontend.*` | Подпапка для фронтенда |
+| `ui/attract.*` | `ui/frontend/attract.*` | Связан с frontend |
+| `ui/pause.*` | `ui/menus/pause.*` | Рядом с gamemenu |
+| `ai/combat.*` | `combat/combat.*` | Общая боевая система, не только AI |
+| `things/items/guns.*` | `shooting/guns.*` | Система стрельбы, не item |
+| `things/items/projectile.*` | `shooting/projectile.*` | Снаряды, часть стрельбы |
+| `assets/startscr.*` | `ui/frontend/startscr.*` | Данные фронтенда, не ресурс |
