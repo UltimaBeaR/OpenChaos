@@ -164,7 +164,7 @@ CPData* PLAYCUTS_Read(MFFileHandle handle)
 // uc_orig: PLAYCUTS_Free (fallen/Source/playcuts.cpp)
 void PLAYCUTS_Free(CPData* cutscene)
 {
-    // Pool-allocated; freeing is a no-op. Use PLAYCUTS_Reset() to reclaim.
+    // Stub — pool-allocated, use PLAYCUTS_Reset() to reclaim.
 }
 
 // uc_orig: PLAYCUTS_Reset (fallen/Source/playcuts.cpp)

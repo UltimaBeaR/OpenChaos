@@ -453,9 +453,11 @@ void ATTRACT_loadscreen_draw(SLONG completion)
     AENG_flip();
 }
 
-// Dead code stubs — level_won/level_lost were replaced by the GAMEMENU overlay system.
+// Stub — replaced by GAMEMENU overlay system.
 // uc_orig: level_won (fallen/Headers/attract.h)
 void level_won(void) {}
 
+// Stub — replaced by GAMEMENU overlay system.
 // uc_orig: level_lost (fallen/Headers/attract.h)
 void level_lost(void) {}
+

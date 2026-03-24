@@ -428,9 +428,7 @@ OS_Texture* OS_texture_create(SLONG size, SLONG format)
 // uc_orig: OS_texture_finished_creating (fallen/outro/os.cpp)
 void OS_texture_finished_creating()
 {
-    /*
-    ... original commented-out body for pre-loading textures into VRAM ...
-    */
+    // Stub — body commented out in original.
 }
 
 // uc_orig: OS_texture_size (fallen/outro/os.cpp)
@@ -1610,19 +1608,19 @@ void OS_buffer_draw(OS_Buffer* ob, OS_Texture* ot1, OS_Texture* ot2, ULONG draw)
 // uc_orig: OS_sound_init (fallen/outro/os.cpp)
 void OS_sound_init()
 {
-    // Empty — MIDAS implementation was removed.
+    // Stub — MIDAS implementation was removed.
 }
 
 // uc_orig: OS_sound_start (fallen/outro/os.cpp)
 void OS_sound_start(void)
 {
-    // Empty — MIDAS implementation was removed.
+    // Stub — MIDAS implementation was removed.
 }
 
 // uc_orig: OS_sound_volume (fallen/outro/os.cpp)
 void OS_sound_volume(float vol)
 {
-    // Empty — MIDAS implementation was removed.
+    // Stub — MIDAS implementation was removed.
 }
 
 // Selects a random music track and initialises the D3D/DD pointers from the main

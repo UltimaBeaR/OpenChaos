@@ -211,7 +211,7 @@ SLONG col_is_fence(SLONG col)
 // uc_orig: set_person_in_building_through_roof (fallen/Source/Darci.cpp)
 void set_person_in_building_through_roof(Thing* p_person, SLONG face)
 {
-    // Stub — body intentionally empty in the pre-release source.
+    // Stub — body empty in pre-release source.
 }
 
 // uc_orig: damage_person_on_land (fallen/Source/Darci.cpp)

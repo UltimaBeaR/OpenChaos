@@ -139,7 +139,7 @@ UBYTE two4_line_intersection(SLONG x1, SLONG my_y1, SLONG x2, SLONG y2, SLONG x3
 // uc_orig: clear_all_col_info (fallen/Source/collide.cpp)
 void clear_all_col_info(void)
 {
-    // Stub — was used for debug collision reset.
+    // Stub — debug collision reset.
 }
 
 // uc_orig: get_height_along_vect (fallen/Source/collide.cpp)

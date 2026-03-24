@@ -98,13 +98,13 @@ SLONG should_i_add_message(SLONG type)
 // uc_orig: show_help_text (fallen/Source/overlay.cpp)
 void show_help_text(SLONG index)
 {
-    // Body fully commented out in original.
+    // Stub — help text display was disabled pre-release.
 }
 
-// Empty stub — enemy face tracking system was disabled pre-release.
 // uc_orig: track_enemy (fallen/Source/overlay.cpp)
 void track_enemy(Thing* p_thing)
 {
+    // Stub — enemy tracking overlay was cut.
 }
 
 // Registers a Thing as a gun sight target for this frame.
@@ -328,6 +328,7 @@ void OVERLAY_handle(void)
 // uc_orig: overlay_beacons (fallen/Source/overlay.cpp)
 void overlay_beacons(void)
 {
+    // Stub — beacon overlay was cut.
 }
 
 // Empty stubs — DAMAGE_TEXT system was behind #ifdef DAMAGE_TEXT (never defined).

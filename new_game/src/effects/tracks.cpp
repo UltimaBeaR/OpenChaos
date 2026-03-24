@@ -47,7 +47,7 @@ void TRACKS_Reset(SWORD size)
 // uc_orig: TRACKS_Draw (fallen/Source/tracks.cpp)
 void TRACKS_Draw()
 {
-    // Commented out in original.
+    // Stub — commented out in original.
 }
 
 // uc_orig: TRACKS_CalcDiffs (fallen/Source/tracks.cpp)

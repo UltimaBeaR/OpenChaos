@@ -10,7 +10,6 @@
 // uc_orig: game_attract_mode (fallen/Source/Attract.cpp)
 void game_attract_mode(void);
 
-// level_won / level_lost are dead code in the pre-release (#if 0), kept as ABI stubs.
 // uc_orig: level_won (fallen/Headers/attract.h)
 void level_won(void);
 

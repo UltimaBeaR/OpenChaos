@@ -6,7 +6,7 @@
 // uc_orig: SOUNDENV_precalc (fallen/Source/soundenv.cpp)
 void SOUNDENV_precalc(void)
 {
-    // Body is commented out in the original — sewer quad detection was disabled.
+    // Stub — sewer quad detection was disabled.
 }
 
 // Camera position externs used by SOUNDENV_upload (currently stub).
@@ -17,5 +17,5 @@ extern SLONG CAM_pos_x,
 // uc_orig: SOUNDENV_upload (fallen/Source/soundenv.cpp)
 void SOUNDENV_upload(void)
 {
-    // Stub in the original.
+    // Stub — Direct3D handles the upload.
 }

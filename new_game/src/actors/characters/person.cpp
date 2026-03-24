@@ -3145,19 +3145,19 @@ SLONG person_backwards_animate(Thing* p_person)
 // uc_orig: camera_shoot (fallen/Source/Person.cpp)
 void camera_shoot(void)
 {
-    // Camera mode adjustments removed from Person.cpp before shipping.
+    // Stub — camera mode adjustments removed before shipping.
 }
 
 // uc_orig: camera_fight (fallen/Source/Person.cpp)
 void camera_fight(void)
 {
-    // Camera mode adjustments removed from Person.cpp before shipping.
+    // Stub — camera mode adjustments removed before shipping.
 }
 
 // uc_orig: camera_normal (fallen/Source/Person.cpp)
 void camera_normal(void)
 {
-    // Camera mode adjustments removed from Person.cpp before shipping.
+    // Stub — camera mode adjustments removed before shipping.
 }
 
 // ============================================================

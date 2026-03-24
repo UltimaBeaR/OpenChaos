@@ -89,7 +89,7 @@ void load_frame_numbers(CBYTE* vue_name, UWORD* frames, SLONG max_frames)
 // uc_orig: sort_multi_object (fallen/Source/io.cpp)
 void sort_multi_object(struct KeyFrameChunk* the_chunk)
 {
-    // Body is fully commented out in the original — no-op.
+    // Stub — body commented out in original.
 }
 
 // uc_orig: set_default_people_types (fallen/Source/io.cpp)

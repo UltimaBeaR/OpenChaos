@@ -29,7 +29,7 @@ static SLONG CONSOLE_no_text(void)
 // uc_orig: CONSOLE_font (fallen/DDEngine/Headers/console.h)
 void CONSOLE_font(CBYTE* fontpath, float scale)
 {
-    // Font selection is stubbed — was intended for a 3D font object.
+    // Stub — 3D font object was never implemented.
 }
 
 // uc_orig: CONSOLE_draw (fallen/DDEngine/Headers/console.h)

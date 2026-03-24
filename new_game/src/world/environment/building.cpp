@@ -395,21 +395,9 @@ void add_quad_to_walkable_list(SWORD face)
 }
 
 // uc_orig: add_tri_to_walkable_list (fallen/Source/Building.cpp)
-// Stub: the body is commented out in the original codebase ("wrong wrong wrong").
 void add_tri_to_walkable_list(SWORD face)
 {
-    /* wrong wrong wrong
-    SLONG	x,z;
-    SLONG	p0;
-    struct PrimFace3 *p_f3;
-
-    p_f3=&prim_faces3[face];
-    //for now just take one corner and add it to map at that corner
-    p0=p_f3->Points[0];
-    x=prim_points[p0].X>>ELE_SHIFT;
-    z=prim_points[p0].Z>>ELE_SHIFT;
-    add_walk_face_to_map(-face,x,z);
-    */
+    // Stub — walkable list generation was cut.
 }
 
 // uc_orig: place_building_at (fallen/Source/Building.cpp)
@@ -6614,18 +6602,7 @@ void calc_building_normals(void)
 }
 
 // uc_orig: fn_building_normal (fallen/Source/Building.cpp)
-// Per-frame state function for building Things. Currently a no-op; the switch-trigger
-// logic (unlock building on switch trigger) is commented out in the original.
 void fn_building_normal(Thing* b_thing)
 {
-    /*
-            if(b_thing->SwitchThing)
-            {
-                    Switch* the_switch = TO_THING(b_thing->SwitchThing)->Genus.Switch;
-                    if(the_switch->Flags&SWITCH_FLAGS_TRIGGERED)
-                    {
-                            b_thing->Flags &= ~FLAGS_LOCKED;
-                    }
-            }
-            */
+    // Stub — building state machine was cut.
 }

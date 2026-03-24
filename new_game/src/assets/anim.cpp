@@ -282,7 +282,7 @@ void reset_anim_stuff(void)
 // uc_orig: setup_anim_stuff (fallen/Source/Anim.cpp)
 static void setup_anim_stuff(void)
 {
-    // intentionally empty (see original comment)
+    // Stub — intentionally empty.
 }
 
 // uc_orig: set_next_prim_point (fallen/Source/Anim.cpp)

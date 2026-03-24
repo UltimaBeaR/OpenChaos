@@ -7743,84 +7743,9 @@ void AENG_draw_scanner(
 }
 
 // uc_orig: AENG_draw_power (fallen/DDEngine/Source/aeng.cpp)
-// Draws a power/health bar rectangle (body commented out in original — dead code).
 void AENG_draw_power(SLONG x, SLONG y, SLONG w, SLONG h, SLONG val, SLONG max)
 {
-    /*
-
-    SLONG	left,right,top,bottom;
-    POLY_Point  pp  [4];
-    POLY_Point *quad[4];
-
-    left=x;
-    right=left+w;
-    top=y;
-    bottom=y+h;
-
-    POLY_clip_line_box(
-            x,
-            y,
-            x+w,
-            y+h);
-
-    POLY_frame_init(UC_FALSE,UC_FALSE);
-
-    #define AENG_PBORDER_COLOUR 0x003355cc
-    #define AENG_PFOREGROUND_COLOUR 0x55888800
-
-    POLY_add_line_2d(left,  top,    right, top,    AENG_PBORDER_COLOUR);
-    POLY_add_line_2d(right, top,    right, bottom, AENG_PBORDER_COLOUR);
-    POLY_add_line_2d(right, bottom, left,  bottom, AENG_PBORDER_COLOUR);
-    POLY_add_line_2d(left,  bottom, left,  top,    AENG_PBORDER_COLOUR);
-
-    right=left+(val*w)/max;
-
-    pp[0].X        = left;
-    pp[0].Y        = top;
-    pp[0].z        = 0.0F;
-    pp[0].Z        = 1.0F;
-    pp[0].u        = 0.0F;
-    pp[0].v        = 0.0F;
-    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
-    pp[0].specular = 0;
-
-    pp[1].X        = right;
-    pp[1].Y        = top;
-    pp[1].z        = 0.0F;
-    pp[1].Z        = 1.0F;
-    pp[1].u        = 0.0F;
-    pp[1].v        = 0.0F;
-    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
-    pp[1].specular = 0;
-
-    pp[2].X        = left;
-    pp[2].Y        = bottom;
-    pp[2].z        = 0.0F;
-    pp[2].Z        = 1.0F;
-    pp[2].u        = 0.0F;
-    pp[2].v        = 0.0F;
-    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
-    pp[2].specular = 0;
-
-    pp[3].X        = right;
-    pp[3].Y        = bottom;
-    pp[3].z        = 0.0F;
-    pp[3].Z        = 1.0F;
-    pp[3].u        = 0.0F;
-    pp[3].v        = 0.0F;
-    pp[1].colour   = AENG_PFOREGROUND_COLOUR;
-    pp[3].specular = 0;
-
-    quad[0] = &pp[0];
-    quad[1] = &pp[1];
-    quad[2] = &pp[2];
-    quad[3] = &pp[3];
-
-    POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_FALSE, UC_TRUE);
-
-    POLY_frame_draw(UC_TRUE,UC_TRUE);
-
-    */
+    // Stub — power bar rendering was cut.
 }
 
 // uc_orig: AENG_screen_shot (fallen/DDEngine/Source/aeng.cpp)
@@ -8296,35 +8221,9 @@ void AENG_e_draw_3d_mapwho_y(SLONG x1, SLONG y1, SLONG z1)
 }
 
 // uc_orig: AENG_demo_attract (fallen/DDEngine/Source/aeng.cpp)
-// Attract-mode text overlay — body is fully commented out in the original.
 void AENG_demo_attract(SLONG x, SLONG y, CBYTE* text)
 {
-    /*
-
-    static flash = 0;
-
-    POLY_frame_init(UC_FALSE,UC_FALSE);
-
-
-    text_fudge = UC_TRUE;
-
-
-    draw_centre_text_at(x,y,text,1,1);
-
-    //if (flash++ & 0x10)	Do it all the time!
-    {
-        text_fudge  = UC_FALSE;
-        text_colour = 0x00eeeeff;
-
-        draw_centre_text_at(
-                320, 30,
-                "Press any button to play demo\n",
-                0,0);
-    }
-
-    POLY_frame_draw(UC_FALSE,UC_TRUE);
-
-    */
+    // Stub — demo attract text rendering was cut.
 }
 
 // uc_orig: AENG_raytraced_position (fallen/DDEngine/Source/aeng.cpp)

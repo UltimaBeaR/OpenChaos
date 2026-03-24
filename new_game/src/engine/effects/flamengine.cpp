@@ -72,7 +72,7 @@ static void TEXTURE_flame_unlock()
 // uc_orig: TEXTURE_flame_update (fallen/DDEngine/Source/flamengine.cpp)
 static void TEXTURE_flame_update()
 {
-    // Intentionally empty — Direct3D handles the upload.
+    // Stub — intentionally empty.
 }
 
 // uc_orig: FlameRand (fallen/DDEngine/Source/flamengine.cpp)

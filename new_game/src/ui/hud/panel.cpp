@@ -85,7 +85,7 @@ float PANEL_GetNextDepthBodge(void)
 // uc_orig: PANEL_ResetDepthBodge (fallen/DDEngine/Source/panel.cpp)
 void PANEL_ResetDepthBodge(void)
 {
-    // Nothing — static depth value is always 0.9f.
+    // Stub — static depth value is always 0.9f.
 }
 
 // Draws a textured quad at fixed screen coordinates using the depth bodge

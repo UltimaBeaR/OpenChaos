@@ -1973,7 +1973,7 @@ SLONG DIRT_shoot(Thing* p_person)
 // uc_orig: DIRT_behead_person (fallen/Source/dirt.cpp)
 void DIRT_behead_person(Thing* p_person, Thing* p_attacker)
 {
-    // Stub in this codebase — no implementation.
+    // Stub — no implementation in this codebase.
 }
 
 // uc_orig: DIRT_create_mine (fallen/Source/dirt.cpp)
@@ -2182,5 +2182,5 @@ void DIRT_create_brass(
 // uc_orig: DIRT_gale (fallen/Headers/dirt.h)
 void DIRT_gale(SLONG dx, SLONG dz)
 {
-    // Dead in original: DIRT_gale_height was commented out.
+    // Stub — DIRT_gale_height was cut.
 }

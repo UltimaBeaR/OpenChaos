@@ -263,11 +263,9 @@ void LoadBackImage(UBYTE* image_data)
 }
 
 // uc_orig: PlayQuickMovie (fallen/DDLibrary/Source/GDisplay.cpp)
-// Bink video playback removed. This function is kept as a stub because it is
-// called from Display::RunFMV and Display::RunCutscene.
 void PlayQuickMovie(SLONG type, SLONG language_ignored, bool bIgnored)
 {
-    // Bink video subsystem removed; FMV playback is not available.
+    // Stub — Bink video subsystem removed.
 }
 
 // ---------------------------------------------------------------------------

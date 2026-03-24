@@ -626,12 +626,11 @@ void play_music(UWORD id, UBYTE track)
 // uc_orig: SOUND_SewerPrecalc (fallen/Source/Sound.cpp)
 void SOUND_SewerPrecalc()
 {
-    // Body fully commented out in original — sewer waterfall sound system was cut.
+    // Stub — sewer sound system was cut.
 }
 
-// Sewer waterfall positional sound processing — body commented out in original (cut feature).
 // uc_orig: SewerSoundProcess (fallen/Source/Sound.cpp)
 void SewerSoundProcess()
 {
-    // Body fully commented out in original — sewer waterfall sound system was cut.
+    // Stub — sewer sound system was cut.
 }

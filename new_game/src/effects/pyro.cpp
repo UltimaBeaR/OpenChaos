@@ -1105,17 +1105,15 @@ int IWouldLikeSomePyroSpritesHowManyCanIHave(int iIWantThisMany)
 }
 
 // uc_orig: IHaveToHaveSomePyroSprites (fallen/DDEngine/Source/drawxtra.cpp)
-// PC build stub — no-op.
 inline void IHaveToHaveSomePyroSprites(int iINeedThisMany)
 {
-    // Does nothing in this case.
+    // Stub — PC build no-op.
 }
 
 // uc_orig: Pyros_EndOfFrameMarker (fallen/DDEngine/Source/drawxtra.cpp)
-// PC build stub — called once per frame to reset throttle state; no-op here.
 void Pyros_EndOfFrameMarker(void)
 {
-    // Does nothing in this case.
+    // Stub — PC build no-op.
 }
 
 // uc_orig: get_pyro_rand (fallen/DDEngine/Source/drawxtra.cpp)
