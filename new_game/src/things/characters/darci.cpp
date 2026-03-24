@@ -8,7 +8,7 @@
 #include "things/characters/anim_ids.h"
 #include "map/pap_globals.h"
 #include "ai/pcom.h"
-#include "underground/ns.h"
+#include "map/sewers.h"
 #include "map/level_pools.h"
 #include "engine/audio/sound.h"
 #include "ai/mav.h"

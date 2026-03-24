@@ -10,8 +10,8 @@
 #include "map/supermap.h"
 #include "engine/graphics/lighting/ed_light.h"
 #include "map/level_pools.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
 #include "ai/mav.h"
 #include "buildings/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_LAMPOST
 #include "buildings/prim.h"       // get_prim_info

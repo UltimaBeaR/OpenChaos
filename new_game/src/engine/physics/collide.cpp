@@ -46,7 +46,7 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "navigation/inside2.h"
 #include "things/items/barrel.h"
 #include "effects/weather/mist.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "ai/mav_globals.h"
 #include "camera/fc.h"
 #include "things/animals/bat.h"

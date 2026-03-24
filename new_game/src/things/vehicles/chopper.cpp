@@ -9,7 +9,7 @@
 #include "ai/mav.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "missions/eway.h"
 #include <stdio.h>
 

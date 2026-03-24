@@ -9,7 +9,7 @@
 #include "engine/audio/sound.h"
 #include "engine/core/math.h"
 #include "engine/core/fmatrix.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "effects/combat/pow.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
 #include "buildings/prim.h"       // slide_along_prim, get_prim_info

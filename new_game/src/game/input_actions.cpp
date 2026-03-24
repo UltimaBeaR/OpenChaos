@@ -17,7 +17,7 @@
 #include "things/vehicles/vehicle.h"
 #include "map/ob.h"
 #include "map/pap.h"
-#include "objects/ware.h"
+#include "buildings/ware.h"
 #include "buildings/id.h"
 #include "ai/mav.h"
 #include "ai/pcom.h"
@@ -25,7 +25,7 @@
 #include "missions/eway_globals.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 
 #include "map/supermap.h"
 #include "map/level_pools.h"

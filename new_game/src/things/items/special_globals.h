@@ -2,7 +2,7 @@
 #define THINGS_ITEMS_SPECIAL_GLOBALS_H
 
 #include "things/items/special.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 
 // Master table: item type index -> display name, mesh prim ID, and group flag.
 // uc_orig: SPECIAL_info (fallen/Source/Special.cpp)

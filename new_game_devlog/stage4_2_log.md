@@ -33,6 +33,7 @@
 6. `make build-release` — должен пройти
 7. `python tools/st_4_2_dep_graph.py generate` — регенерировать граф
 8. Обновить таблицу в [stage4_2_moves.md](stage4_2_moves.md)
+9. Обновить `new_game/README.md` — карту директорий
 
 ### Шаг 3 — Внутрифайловая реструктуризация
 
@@ -149,3 +150,12 @@
 - `missions/elev` → `assets/formats/elev` (загрузчик .ucm формата)
 - `assets/compression` + `assets/image_compression` → `engine/compression/` (универсальные алгоритмы)
 - 210 файлов обновлены, 854 include-пути
+
+### Итерация 9 — world_objects, dirt, ware, sewers, ui подпапки (2026-03-25)
+
+- `objects/` → `world_objects/` (переименование, objects слишком generic)
+- `effects/environment/dirt` → `world_objects/` (не эффект — интерактивная подсистема: подбор/бросок банок)
+- `world_objects/ware` → `buildings/` (внутренние помещения = строительная геометрия)
+- `underground/ns` → `map/sewers` (канализация = слой карты, переименование ns→sewers, underground/ удалена)
+- `ui/frontend.*` + `ui/attract.*` → `ui/frontend/` (связаны, attract вызывает FRONTEND_loop)
+- `ui/pause.*` → `ui/menus/` (рядом с gamemenu, оба про паузу)

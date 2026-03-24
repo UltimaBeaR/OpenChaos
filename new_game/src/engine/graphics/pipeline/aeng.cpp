@@ -54,8 +54,8 @@
 #include "effects/combat/spark_globals.h"
 #include "effects/combat/glitter.h"
 #include "effects/combat/glitter_globals.h"
-#include "effects/environment/dirt.h"
-#include "effects/environment/dirt_globals.h"
+#include "world_objects/dirt.h"
+#include "world_objects/dirt_globals.h"
 #include "effects/combat/pow.h"
 #include "things/items/hook.h"
 // PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN are in world/environment/prim_types.h (included above)
@@ -68,14 +68,14 @@
 
 // Additional includes for chunk 5b
 #include "navigation/inside2.h"
-#include "underground/ns.h"
+#include "map/sewers.h"
 #include "missions/eway.h"
 #include "things/core/thing_globals.h"
 #include "map/supermap_globals.h"
 
 // Additional includes for AENG_draw_city() (chunk 4b)
-#include "objects/puddle.h"
-#include "objects/puddle_globals.h"
+#include "world_objects/puddle.h"
+#include "world_objects/puddle_globals.h"
 #include "effects/weather/mist.h"
 #include "effects/weather/mist_globals.h"
 #include "engine/graphics/postprocess/wibble.h"
@@ -83,8 +83,8 @@
 #include "engine/graphics/postprocess/bloom_globals.h"
 #include "engine/graphics/geometry/cone.h"
 #include "engine/graphics/geometry/cone_globals.h"
-#include "objects/tripwire.h"
-#include "objects/tripwire_globals.h"
+#include "world_objects/tripwire.h"
+#include "world_objects/tripwire_globals.h"
 #include "engine/physics/sm.h"
 #include "engine/physics/sm_globals.h"
 #include "engine/effects/psystem.h"

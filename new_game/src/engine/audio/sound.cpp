@@ -3,15 +3,15 @@
 #include "engine/audio/sound.h"
 #include "engine/platform/uc_common.h"
 #include "map/pap.h"
-#include "underground/ns.h"
+#include "map/sewers.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"         // FC_cam
 #include "engine/audio/mfx.h"
 #include "things/core/statedef.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h" // WARE_ware
-#include "ui/frontend.h"
-#include "ui/frontend_globals.h"          // IsEnglish
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h" // WARE_ware
+#include "ui/frontend/frontend.h"
+#include "ui/frontend/frontend_globals.h"          // IsEnglish
 #include "missions/eway.h"
 
 // Internal height category used by PlayAmbient3D.

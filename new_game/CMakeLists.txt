@@ -121,8 +121,8 @@ set(SOURCES_NEW
     src/engine/graphics/text/truetype_globals.cpp
     src/effects/environment/fire.cpp
     src/effects/environment/fire_globals.cpp
-    src/effects/environment/dirt.cpp
-    src/effects/environment/dirt_globals.cpp
+    src/world_objects/dirt.cpp
+    src/world_objects/dirt_globals.cpp
     src/effects/weather/mist.cpp
     src/effects/weather/mist_globals.cpp
     src/effects/combat/glitter.cpp
@@ -258,21 +258,21 @@ set(SOURCES_NEW
     src/outro/core/outro_mf_globals.cpp
     src/outro/core/outro_os.cpp
     src/outro/core/outro_os_globals.cpp
-    src/ui/attract.cpp
-    src/ui/attract_globals.cpp
+    src/ui/frontend/attract.cpp
+    src/ui/frontend/attract_globals.cpp
     src/things/items/barrel.cpp
     src/things/items/barrel_globals.cpp
     src/ai/combat.cpp
     src/ai/combat_globals.cpp
-    src/objects/door.cpp
-    src/objects/door_globals.cpp
+    src/world_objects/door.cpp
+    src/world_objects/door_globals.cpp
 
     src/missions/eway.cpp
     src/missions/eway_globals.cpp
     src/camera/fc.cpp
     src/camera/fc_globals.cpp
-    src/ui/frontend.cpp
-    src/ui/frontend_globals.cpp
+    src/ui/frontend/frontend.cpp
+    src/ui/frontend/frontend_globals.cpp
     src/game/game.cpp
     src/game/game_globals.cpp
     src/game/network_state_globals.cpp
@@ -282,8 +282,8 @@ set(SOURCES_NEW
     src/game/startup.cpp
     src/ai/mav.cpp
     src/ai/mav_globals.cpp
-    src/underground/ns.cpp
-    src/underground/ns_globals.cpp
+    src/map/sewers.cpp
+    src/map/sewers_globals.cpp
     src/buildings/prim.cpp
     src/buildings/prim_globals.cpp
     src/map/ob.cpp
@@ -293,16 +293,16 @@ set(SOURCES_NEW
     src/ui/hud/panel.cpp
     src/ui/hud/panel_globals.cpp
 
-    src/ui/pause.cpp
+    src/ui/menus/pause.cpp
     src/ai/pcom.cpp
     src/ai/pcom_globals.cpp
     src/things/items/projectile.cpp
-    src/objects/plat.cpp
-    src/objects/plat_globals.cpp
+    src/world_objects/plat.cpp
+    src/world_objects/plat_globals.cpp
     src/missions/playcuts.cpp
     src/missions/playcuts_globals.cpp
-    src/objects/puddle.cpp
-    src/objects/puddle_globals.cpp
+    src/world_objects/puddle.cpp
+    src/world_objects/puddle_globals.cpp
     src/effects/combat/pyro.cpp
     src/effects/combat/pyro_globals.cpp
     src/effects/combat/glow.cpp
@@ -332,12 +332,12 @@ set(SOURCES_NEW
     src/buildings/stair_globals.cpp
     src/map/supermap.cpp
     src/map/supermap_globals.cpp
-    src/objects/tripwire.cpp
-    src/objects/tripwire_globals.cpp
+    src/world_objects/tripwire.cpp
+    src/world_objects/tripwire_globals.cpp
 
     src/navigation/wand.cpp
-    src/objects/ware.cpp
-    src/objects/ware_globals.cpp
+    src/buildings/ware.cpp
+    src/buildings/ware_globals.cpp
     src/game/game_tick.cpp
     src/game/game_tick_globals.cpp
     src/game/input_actions.cpp

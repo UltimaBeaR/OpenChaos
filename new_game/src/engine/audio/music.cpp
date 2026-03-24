@@ -5,8 +5,8 @@
 
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
 #include "engine/audio/sound.h"
 
 // REAL_TICK_RATIO is defined in Thing.cpp; it mirrors TICK_RATIO but is frozen when game is paused.

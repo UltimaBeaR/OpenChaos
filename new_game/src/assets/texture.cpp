@@ -15,7 +15,7 @@
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/console/message.h"
 #include "engine/audio/sound.h"
-#include "objects/ware.h"
+#include "buildings/ware.h"
 #include "engine/graphics/text/truetype.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/io/env.h"
@@ -28,7 +28,7 @@
 #include "buildings/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
 #include "buildings/building_globals.h" // dx_textures_xy, building_list
 #include "map/supermap_globals.h" // next_dfacet
-#include "objects/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
+#include "buildings/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
 #include "map/map.h" // MAP_WIDTH, MAP_HEIGHT
 
 // Internal page-count constants.

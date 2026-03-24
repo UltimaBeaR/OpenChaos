@@ -20,15 +20,15 @@
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
 #include "effects/environment/tracks.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
-#include "objects/tripwire.h"
-#include "objects/tripwire_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
+#include "world_objects/tripwire.h"
+#include "world_objects/tripwire_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "things/animals/bat.h"
-#include "objects/door.h"
-#include "objects/door_globals.h"
+#include "world_objects/door.h"
+#include "world_objects/door_globals.h"
 #include "missions/playcuts.h"
 #include "missions/playcuts_globals.h"
 #include "engine/audio/sound.h"
@@ -37,7 +37,7 @@
 #include "missions/memory.h"
 #include "buildings/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
 #include "assets/formats/anim_globals.h"                // next_prim_point, next_prim_face3/4/object, game_chunk, anim_chunk
-#include "objects/plat_globals.h"    // PLAT_plat (PLAT_plat_upto)
+#include "world_objects/plat_globals.h"    // PLAT_plat (PLAT_plat_upto)
 #include "engine/physics/collide_globals.h"    // COLLIDE_fastnav
 
 // EWAY_counter is defined in eway.cpp (not yet migrated) and not in eway.h.

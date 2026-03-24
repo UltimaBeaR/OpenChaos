@@ -6,7 +6,7 @@
 #include "ai/pcom.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "things/characters/anim_ids.h"
 #include "things/vehicles/vehicle.h"
 #include "things/vehicles/vehicle_globals.h"

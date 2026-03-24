@@ -4,7 +4,7 @@
 #include "map/pap_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "objects/puddle.h"
+#include "world_objects/puddle.h"
 #include "ai/mav.h"
 #include "missions/memory.h"
 

@@ -34,7 +34,7 @@
 #include "effects/combat/pow_globals.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"

@@ -18,7 +18,7 @@
 #include "missions/eway.h"
 #include "engine/audio/sound.h"
 #include "effects/combat/pow.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "ui/hud/panel.h"
 #include "effects/combat/pyro.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line

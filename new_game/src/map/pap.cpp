@@ -7,8 +7,8 @@
 #include "game/game_types.h"
 #include "ai/mav.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
 
 // uc_orig: PAP_on_map_lo (fallen/Source/pap.cpp)
 SLONG PAP_on_map_lo(SLONG x, SLONG z)

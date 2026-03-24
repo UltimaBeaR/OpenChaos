@@ -16,7 +16,7 @@
 #include "engine/core/matrix.h"
 #include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/mesh.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"  // alt_texture
 #include <math.h>

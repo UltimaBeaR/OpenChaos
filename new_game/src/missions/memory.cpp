@@ -7,7 +7,7 @@
 #include "buildings/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
 #include "buildings/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
 #include "assets/formats/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
-#include "objects/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
+#include "world_objects/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
 #include "assets/texture.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "map/ob.h"
@@ -29,16 +29,16 @@
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
 #include "effects/environment/tracks.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
-#include "objects/tripwire.h"
-#include "objects/tripwire_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
+#include "world_objects/tripwire.h"
+#include "world_objects/tripwire_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "engine/io/env.h"
 #include "things/animals/bat.h"
-#include "objects/door.h"
-#include "objects/door_globals.h"
+#include "world_objects/door.h"
+#include "world_objects/door_globals.h"
 #include "effects/combat/spark.h"
 #include "missions/playcuts.h"
 #include "missions/playcuts_globals.h"

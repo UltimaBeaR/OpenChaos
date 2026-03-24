@@ -10,7 +10,7 @@
 #include "things/core/statedef.h"
 #include "effects/environment/ribbon.h"
 #include "engine/graphics/lighting/night.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "engine/audio/sound.h"
 #include "engine/effects/psystem.h"
 #include "ai/pcom.h"

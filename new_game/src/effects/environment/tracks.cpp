@@ -7,8 +7,8 @@
 
 #include "map/pap_globals.h"
 #include "things/characters/anim_ids.h"
-#include "objects/puddle.h"
-#include "objects/puddle_globals.h"
+#include "world_objects/puddle.h"
+#include "world_objects/puddle_globals.h"
 #include "things/core/interact.h"
 #include "things/core/interact_globals.h"
 

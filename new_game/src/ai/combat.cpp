@@ -11,7 +11,7 @@
 #include "map/pap_globals.h"
 #include "engine/audio/sound.h"
 #include "assets/formats/anim_globals.h"      // estate, semtex (already migrated)
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "missions/eway.h"            // EWAY_get_person (already migrated)
 #include "things/core/interact.h"     // calc_sub_objects_position
 #include "things/characters/person.h" // can_a_see_b, set_anim

@@ -5,7 +5,7 @@
 #include "engine/core/fmatrix.h"
 #include "ai/pcom.h"
 #include "things/characters/anim_ids.h"
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "things/core/statedef.h"

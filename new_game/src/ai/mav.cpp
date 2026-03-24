@@ -13,8 +13,8 @@
 #include "map/supermap.h"
 #include "map/ob.h"
 #include "navigation/walkable.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
 
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"

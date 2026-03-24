@@ -10,7 +10,7 @@
 #include "buildings/prim.h"    // clear_prims
 
 // These modules are not yet fully migrated:
-#include "ui/attract.h"
+#include "ui/frontend/attract.h"
 #include "buildings/id.h"
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
@@ -33,7 +33,7 @@
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/lighting/shadow.h"
 #include "engine/graphics/lighting/shadow_globals.h"
-#include "underground/ns.h"
+#include "map/sewers.h"
 #include "map/supermap.h"
 #include "buildings/build2.h"
 #include "effects/combat/pow.h"
@@ -70,10 +70,10 @@
 #include "buildings/build2.h" // (transitively, if needed)
 #include "map/supermap.h"
 
-#include "ui/attract.h"         // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
-#include "ui/attract_globals.h" // go_into_game
+#include "ui/frontend/attract.h"         // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
+#include "ui/frontend/attract_globals.h" // go_into_game
 #include "ui/menus/gamemenu.h"
-#include "ui/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
+#include "ui/menus/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
 
@@ -87,7 +87,7 @@
 #include "effects/environment/tracks.h"     // (transitively)
 #include "engine/effects/psystem.h" // PARTICLE_Run
 
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "things/items/grenade.h"
 #include "effects/environment/ribbon.h"
 #include "effects/weather/drip.h"
@@ -97,16 +97,16 @@
 #include "engine/audio/music.h"
 #include "ui/hud/panel.h"  // PANEL_wide_top_person, PANEL_wide_bot_person
 #include "ui/hud/panel_globals.h"
-#include "ui/frontend.h"
-#include "ui/frontend_globals.h"
+#include "ui/frontend/frontend.h"
+#include "ui/frontend/frontend_globals.h"
 #include "things/characters/snipe.h"
 #include "things/characters/snipe_globals.h"
-#include "objects/tripwire.h"
-#include "objects/tripwire_globals.h"
-#include "objects/door.h"
-#include "objects/door_globals.h"
-#include "objects/puddle.h"
-#include "objects/puddle_globals.h"
+#include "world_objects/tripwire.h"
+#include "world_objects/tripwire_globals.h"
+#include "world_objects/door.h"
+#include "world_objects/door_globals.h"
+#include "world_objects/puddle.h"
+#include "world_objects/puddle_globals.h"
 #include "map/pap_globals.h"
 #include "camera/cam.h"
 

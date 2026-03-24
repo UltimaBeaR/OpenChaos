@@ -24,8 +24,8 @@
 #include "things/core/statedef.h"
 // ANIM_TYPE_DARCI, ANIM_TYPE_ROPER come from fallen/Headers/Person.h via actors/characters/person.h
 #include "assets/formats/anim_globals.h"
-#include "objects/ware.h"
-#include "objects/ware_globals.h"
+#include "buildings/ware.h"
+#include "buildings/ware_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_api/vertex_buffer.h"
 #include "engine/graphics/graphics_api/gd_display.h"
@@ -42,7 +42,7 @@
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
 
-#include "effects/environment/dirt.h"
+#include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "effects/combat/spark.h"
 #include "effects/combat/glitter.h"

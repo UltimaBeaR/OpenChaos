@@ -27,8 +27,8 @@
 #include "buildings/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
 #include "map/level_pools.h"               // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
 #include "assets/texture.h"
-#include "objects/ware.h"          // WARE_Ware struct
-#include "objects/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
+#include "buildings/ware.h"          // WARE_Ware struct
+#include "buildings/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
 #include "game/game_tick_globals.h"             // allow_debug_keys
 #include "camera/fc_globals.h"            // FC_cam
 #include "engine/graphics/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
