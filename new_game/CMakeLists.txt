@@ -230,8 +230,8 @@ set(SOURCES_NEW
     src/assets/level_loader_globals.cpp
     src/engine/graphics/pipeline/aeng.cpp
     src/engine/graphics/pipeline/aeng_globals.cpp
-    src/engine/animation/figure.cpp
-    src/engine/animation/figure_globals.cpp
+    src/engine/graphics/geometry/figure.cpp
+    src/engine/graphics/geometry/figure_globals.cpp
     src/engine/graphics/geometry/mesh.cpp
     src/engine/graphics/geometry/mesh_globals.cpp
     src/engine/graphics/pipeline/poly.cpp

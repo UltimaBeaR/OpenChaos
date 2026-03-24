@@ -2,8 +2,8 @@
 // This entire file will be replaced in Stage 7 (new renderer).
 // Preserved 1:1 here for Stage 4 completeness.
 
-#include "engine/animation/figure.h"
-#include "engine/animation/figure_globals.h"
+#include "engine/graphics/geometry/figure.h"
+#include "engine/graphics/geometry/figure_globals.h"
 
 // D3D, game types, and all subsystems needed throughout the original file.
 #include "missions/game.h"

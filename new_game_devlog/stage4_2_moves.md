@@ -24,3 +24,4 @@
 | `engine/graphics/pipeline/render_state.*` | `engine/graphics/graphics_api/render_state.*` | Чистый D3D |
 | `engine/graphics/resources/d3d_texture.*` | `engine/graphics/graphics_api/d3d_texture.*` | Чистый D3D |
 | `engine/graphics/graphics_api/host.*` | `engine/platform/host.*` | Создание окна, не graphics API |
+| `engine/animation/figure.*` | `engine/graphics/geometry/figure.*` | D3D рендерер мешей, не анимация |

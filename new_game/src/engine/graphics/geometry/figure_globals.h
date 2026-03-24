@@ -1,5 +1,5 @@
-#ifndef ENGINE_ANIMATION_FIGURE_GLOBALS_H
-#define ENGINE_ANIMATION_FIGURE_GLOBALS_H
+#ifndef ENGINE_GRAPHICS_GEOMETRY_FIGURE_GLOBALS_H
+#define ENGINE_GRAPHICS_GEOMETRY_FIGURE_GLOBALS_H
 
 #include "missions/game.h"
 #include "world/environment/prim_types.h"  // MAX_PRIM_OBJECTS, TomsPrimObject, Matrix33 (via fmatrix.h)
@@ -317,4 +317,4 @@ extern SLONG FIGURE_reflect_y2;
 // World-space Y coordinate of the water reflection plane.
 extern float FIGURE_reflect_height;
 
-#endif // ENGINE_ANIMATION_FIGURE_GLOBALS_H
+#endif // ENGINE_GRAPHICS_GEOMETRY_FIGURE_GLOBALS_H

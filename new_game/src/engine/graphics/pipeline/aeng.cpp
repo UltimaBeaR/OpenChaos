@@ -37,8 +37,8 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "engine/animation/figure.h"
-#include "engine/animation/figure_globals.h"  // kludge_shrink
+#include "engine/graphics/geometry/figure.h"
+#include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
 #include "engine/graphics/graphics_api/gd_display.h"  // the_display
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"

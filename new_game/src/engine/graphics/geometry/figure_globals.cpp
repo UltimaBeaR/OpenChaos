@@ -1,5 +1,5 @@
-#include "engine/animation/figure_globals.h"
-#include "engine/animation/figure.h"
+#include "engine/graphics/geometry/figure_globals.h"
+#include "engine/graphics/geometry/figure.h"
 
 // uc_orig: FIGURE_alpha (fallen/DDEngine/Source/figure.cpp)
 SLONG FIGURE_alpha = 255;

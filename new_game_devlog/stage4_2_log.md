@@ -115,3 +115,9 @@
 - d3d_texture: resources/ → graphics_api/ (чистый D3D)
 - host: graphics_api/ → platform/ (создание окна, не graphics API)
 - `graphics/resources/` удалена (пустая)
+
+### Итерация 6 — figure → graphics/geometry/ (2026-03-25)
+
+- `engine/animation/figure.*` (4 файла) → `engine/graphics/geometry/`
+- D3D рендерер мешей персонажей — аналог mesh.cpp, не анимационная логика
+- morph + anim_types остаются в animation/ (чистая анимация, не рендеринг)

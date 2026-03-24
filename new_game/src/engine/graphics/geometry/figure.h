@@ -1,7 +1,7 @@
-#ifndef ENGINE_ANIMATION_FIGURE_H
-#define ENGINE_ANIMATION_FIGURE_H
+#ifndef ENGINE_GRAPHICS_GEOMETRY_FIGURE_H
+#define ENGINE_GRAPHICS_GEOMETRY_FIGURE_H
 
-#include "engine/animation/figure_globals.h"
+#include "engine/graphics/geometry/figure_globals.h"
 #include "world/environment/prim_types.h" // Matrix33 (via fmatrix.h), TomsPrimObject
 
 struct Thing;
@@ -256,4 +256,4 @@ void FIGURE_draw_prim_tween_person_only(
     SLONG recurse_level,
     Thing* p_thing);
 
-#endif // ENGINE_ANIMATION_FIGURE_H
+#endif // ENGINE_GRAPHICS_GEOMETRY_FIGURE_H
