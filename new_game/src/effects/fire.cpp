@@ -219,32 +219,3 @@ void FIRE_get_start(UBYTE z, UBYTE xmin, UBYTE xmax)
     FIRE_get_xmax = xmax;
 }
 
-// uc_orig: FIRE_get_next (fallen/Source/fire.cpp)
-// Returns the next flame's render data or NULL when exhausted.
-// NOTE: point-assembly was never implemented in the pre-release build; always returns NULL.
-FIRE_Info* FIRE_get_next()
-{
-    if (FIRE_get_flame == NULL) {
-        while (1) {
-            ASSERT(WITHIN(FIRE_get_fire_upto, 0, FIRE_MAX_FIRE - 1));
-
-            if (FIRE_fire[FIRE_get_fire_upto].num) {
-                FIRE_get_flame = FIRE_fire[FIRE_get_fire_upto].next;
-                FIRE_get_fire_upto += 1;
-
-                break;
-            }
-
-            FIRE_get_fire_upto += 1;
-
-            if (FIRE_get_fire_upto >= FIRE_MAX_FIRE) {
-                return NULL;
-            }
-        }
-    }
-
-    ASSERT(WITHIN(FIRE_get_flame, 1, FIRE_MAX_FLAMES - 1));
-
-    // Point projection / screen-space assembly was never written; stub returns NULL.
-    return NULL;
-}

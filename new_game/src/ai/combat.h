@@ -141,8 +141,4 @@ Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG 
 // uc_orig: is_person_under_attack (fallen/Source/Combat.cpp)
 Thing* is_person_under_attack(Thing* p_person);
 
-// Declared but never defined in the codebase; kept for source compatibility.
-// uc_orig: is_anyone_nearby_alive (fallen/Headers/combat.h)
-Thing* is_anyone_nearby_alive(Thing* p_person);
-
 #endif // AI_COMBAT_H

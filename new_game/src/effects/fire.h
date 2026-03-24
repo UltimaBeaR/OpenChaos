@@ -7,7 +7,7 @@
 // Each fire is a linked list of FIRE_Flame nodes drawn from a global pool.
 // Fire intensity (size) decreases over time; flames die naturally as size shrinks.
 // This system is separate from the particle system (psystem.cpp).
-// The renderer iterates flames via FIRE_get_start / FIRE_get_next.
+// The renderer initializes iteration via FIRE_get_start.
 
 // Max flame control points per flame sprite.
 // uc_orig: FIRE_MAX_FLAME_POINTS (fallen/Source/fire.cpp)
@@ -85,10 +85,5 @@ void FIRE_process(void);
 
 // uc_orig: FIRE_get_start (fallen/Headers/fire.h)
 void FIRE_get_start(UBYTE z, UBYTE x_min, UBYTE x_max);
-
-// uc_orig: FIRE_get_next (fallen/Headers/fire.h)
-// Returns the next flame render info, or NULL when done.
-// NOTE: unfinished in pre-release — always returns NULL.
-FIRE_Info* FIRE_get_next(void);
 
 #endif // EFFECTS_FIRE_H

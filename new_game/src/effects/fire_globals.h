@@ -15,7 +15,7 @@ extern FIRE_Fire FIRE_fire[FIRE_MAX_FIRE];
 // uc_orig: FIRE_fire_last (fallen/Source/fire.cpp)
 extern SLONG FIRE_fire_last;
 
-// Renderer iterator state (FIRE_get_start / FIRE_get_next).
+// Renderer iterator state (FIRE_get_start).
 // uc_orig: FIRE_get_z (fallen/Source/fire.cpp)
 extern UBYTE FIRE_get_z;
 // uc_orig: FIRE_get_xmin (fallen/Source/fire.cpp)

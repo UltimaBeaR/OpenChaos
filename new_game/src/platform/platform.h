@@ -54,7 +54,6 @@
 #include "engine/input/mouse.h"
 
 // Display
-#define FLAGS_USE_3DFX (1 << 0)
 #define FLAGS_USE_3D (1 << 1)
 #define FLAGS_USE_WORKSCREEN (1 << 2)
 
@@ -71,17 +70,14 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags);
 SLONG SetDisplay(ULONG width, ULONG height, ULONG depth);
 SLONG CloseDisplay(void);
 SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b);
-void FadeDisplay(UBYTE mode);
 void* LockWorkScreen(void);
 void UnlockWorkScreen(void);
 void ShowWorkScreen(ULONG flags);
 void ClearWorkScreen(UBYTE colour);
 
 // Host
-#define SHELL_NAME "Mucky Foot Shell\0"
 #define H_CREATE_LOG (1 << 0)
 #define SHELL_ACTIVE (LibShellActive())
-#define SHELL_CHANGED (LibShellChanged())
 
 #define main(ac, av) MF_main(ac, av)
 
@@ -105,8 +101,6 @@ void TraceText(char* error, ...);
 BOOL LibShellActive(void);
 BOOL LibShellChanged(void);
 BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
-
-#define NoError 0
 
 #ifndef ASSERT
 #define ASSERT(e) \

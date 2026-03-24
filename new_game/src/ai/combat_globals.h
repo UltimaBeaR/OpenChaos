@@ -33,21 +33,6 @@ struct GangAttack {
     UBYTE Count;
 };
 
-// Columns of fight_tree[][10]. The table uses raw SWORD arrays for data compactness.
-// uc_orig: FightTree (fallen/Source/Combat.cpp)
-struct FightTree {
-    UBYTE Anim;
-    UBYTE Finish;
-    UBYTE NextPunch1;
-    UBYTE NextPunch2;
-    UBYTE NextKick1;
-    UBYTE NextKick2;
-    UBYTE NextJump;
-    UBYTE NextBlock;
-    UBYTE Damage;
-    UBYTE HitType;
-};
-
 // Per-grapple move: proximity and angle requirements for the attacker.
 // Peep=1 means Darci only, Peep=2 means Roper only.
 // uc_orig: Grapples (fallen/Source/Combat.cpp)
@@ -67,8 +52,17 @@ struct Grapples {
 #define FIGHT_TREE_HIT_TYPE 9
 
 // Melee combat state machine: 22 nodes (0 = root/idle).
-// Columns: [Anim, Finish, NextPunch1, NextPunch2, NextKick1, NextKick2,
-//           NextJump, NextBlock, Damage, HitType]
+// Each row is a FightTree node with 10 SWORD columns:
+//   [0] Anim        — animation to play
+//   [1] Finish      — return-to-idle node
+//   [2] NextPunch1  — next node on first punch input
+//   [3] NextPunch2  — next node on second punch input
+//   [4] NextKick1   — next node on first kick input
+//   [5] NextKick2   — next node on second kick input
+//   [6] NextJump    — next node on jump input
+//   [7] NextBlock   — next node on block input
+//   [8] Damage      — damage dealt (FIGHT_TREE_DAMAGE)
+//   [9] HitType     — COMBAT_PUNCH/KICK/KNIFE/NONE (FIGHT_TREE_HIT_TYPE)
 // uc_orig: fight_tree (fallen/Source/Combat.cpp)
 extern SWORD fight_tree[][10];
 
