@@ -6,12 +6,6 @@
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "world/map/qmap_globals.h"
 
-// uc_orig: QENG_init (fallen/DDEngine/Source/qeng.cpp)
-void QENG_init()
-{
-    POLY_init();
-}
-
 // uc_orig: QENG_set_camera (fallen/DDEngine/Source/qeng.cpp)
 void QENG_set_camera(float x, float y, float z, float yaw, float pitch, float roll)
 {
@@ -148,9 +142,4 @@ void QENG_clear_screen()
     SET_BLACK_BACKGROUND;
     CLEAR_VIEWPORT;
     TheVPool->ReclaimBuffers();
-}
-
-// uc_orig: QENG_fini (fallen/DDEngine/Source/qeng.cpp)
-void QENG_fini()
-{
 }

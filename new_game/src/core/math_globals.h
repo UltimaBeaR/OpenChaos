@@ -11,11 +11,9 @@ extern SLONG SinTable[];
 // uc_orig: CosTable (MFStdLib/Headers/StdMaths.h)
 extern SLONG* CosTable;
 
-// Float sine table (512 entries, 0-90 deg only) and cosine pointer.
-
+// Float sine/cosine tables (2048 entries + 512 offset for cosine).
 // uc_orig: SinTableF (MFStdLib/Headers/StdMaths.h)
 extern float SinTableF[];
-
 // uc_orig: CosTableF (MFStdLib/Headers/StdMaths.h)
 extern float* CosTableF;
 
@@ -23,10 +21,5 @@ extern float* CosTableF;
 
 // uc_orig: AtanTable (MFStdLib/Headers/StdMaths.h)
 extern SWORD AtanTable[];
-
-// Perspective correction lookup (512 entries, indexed via PROP macro).
-
-// uc_orig: Proportions (MFStdLib/Headers/StdMaths.h)
-extern SLONG Proportions[];
 
 #endif // CORE_MATH_GLOBALS_H

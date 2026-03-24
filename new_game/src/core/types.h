@@ -67,12 +67,8 @@ typedef unsigned long DWORD;
 #define COMMON_INDEX UWORD
 #endif
 
-// World-space coordinate aliases at different fixed-point precisions.
-// uc_orig: MAPCO8 (fallen/Headers/Game.h)
-typedef SLONG MAPCO8;
+// World-space coordinate alias at 16-bit fixed-point precision.
 // uc_orig: MAPCO16 (fallen/Headers/Game.h)
 typedef SLONG MAPCO16;
-// uc_orig: MAPCO24 (fallen/Headers/Game.h)
-typedef SLONG MAPCO24;
 
 #endif // CORE_TYPES_H

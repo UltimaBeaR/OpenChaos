@@ -186,15 +186,6 @@ void FIGURE_draw_prim_tween_warped(
     ULONG specular,
     Thing* p_thing);
 
-// LCG pseudo-random number generator for per-character clothing colour variation.
-// Bug preserved from original: local_set_seed() does not actually set local_seed.
-// uc_orig: mandom (fallen/DDEngine/Source/figure.cpp)
-SLONG mandom(void);
-
-// Does not actually set local_seed (bug preserved from original).
-// uc_orig: local_set_seed (fallen/DDEngine/Source/figure.cpp)
-void local_set_seed(SLONG seed);
-
 // Optimised hierarchical 15-body-part character renderer using D3D MultiMatrix extension.
 // Batches all 15 body part transforms, then issues a single DrawIndPrimMM call.
 // Falls back to FIGURE_draw_hierarchical_prim_recurse_individual_cull on partial visibility.
@@ -206,11 +197,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person);
 // uc_orig: FIGURE_draw_hierarchical_prim_recurse_individual_cull (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person);
 
-// Computes a sort-Z adjustment for a character at (px, pz) based on nearby wall caps.
-// Only relevant for the software rendering depth-sort path.
-// uc_orig: get_sort_z_bodge (fallen/DDEngine/Source/figure.cpp)
-SLONG get_sort_z_bodge(SLONG px, SLONG pz);
-
 // Top-level entry point: renders one character Thing* for the current frame.
 // Dispatches to hierarchical (15-part D3D path) or flat loop depending on ElementCount.
 // uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
@@ -220,10 +206,6 @@ void FIGURE_draw(Thing* p_thing);
 // Uses flat body-part loop (no hierarchical dispatch). Calls NIGHT_find() for lighting.
 // uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
 void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
-
-// Same as ANIM_obj_draw but applies sinusoidal warp to each body part vertex.
-// uc_orig: ANIM_obj_draw_warped (fallen/DDEngine/Source/figure.cpp)
-void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt);
 
 // Renders one body-part mesh into FIGURE_rpoint[] for the water reflection effect.
 // Mirrors and fades vertices relative to FIGURE_reflect_height.

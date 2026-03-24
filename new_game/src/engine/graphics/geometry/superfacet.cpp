@@ -1,5 +1,4 @@
 #include <platform.h>
-#include "engine/graphics/graphics_api/gd_display.h"   // the_display
 
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -12,8 +11,6 @@
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
 #include "core/matrix.h"
-#include "engine/input/keyboard.h"
-#include "engine/input/keyboard_globals.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/geometry/superfacet_globals.h"
 
@@ -768,99 +765,6 @@ void SUPERFACET_start_frame()
 {
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
-}
-
-// uc_orig: SUPERFACET_draw (fallen/DDEngine/Headers/superfacet.h)
-// Attempts to render the given facet using the batched DrawIndexedPrimitive path.
-// Returns UC_FALSE if the facet cannot be handled (R key override or no data).
-SLONG SUPERFACET_draw(SLONG facet)
-{
-    SLONG i;
-
-    SUPERFACET_Facet* sf;
-    SUPERFACET_Call* sc;
-
-    // R key disables superfacet rendering (debug toggle).
-    if (Keys[KB_R]) {
-        return UC_FALSE;
-    }
-
-    ASSERT(WITHIN(facet, 0, SUPERFACET_MAX_FACETS - 1));
-
-    sf = &SUPERFACET_facet[facet];
-
-    if (sf->num == 0) {
-        SUPERFACET_convert_facet(facet);
-    }
-
-    if (dfacets[facet].FacetFlags & FACET_FLAG_DLIT) {
-        SUPERFACET_redo_lighting(facet);
-    }
-
-    POLY_set_local_rotation_none();
-    POLY_flush_local_rot();
-
-    // Set up render states for opaque lit geometry.
-    the_display.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-    the_display.SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-    the_display.SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-    the_display.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1);
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-    the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
-    the_display.lp_D3D_Device->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
-    the_display.lp_D3D_Device->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-
-    for (i = 0; i < sf->num; i++) {
-        ASSERT(WITHIN(sf->call + i, 0, SUPERFACET_MAX_CALLS - 1));
-
-        sc = &SUPERFACET_call[sf->call + i];
-
-        ASSERT(sc->flag & SUPERFACET_CALL_FLAG_USED);
-
-        if (!sc->indexcount) {
-            continue;
-        }
-
-        the_display.lp_D3D_Device->SetTexture(0, sc->texture);
-
-        the_display.lp_D3D_Device->DrawIndexedPrimitive(
-            D3DPT_TRIANGLELIST,
-            D3DFVF_LVERTEX,
-            SUPERFACET_lvert + sc->lvert,
-            sc->lvertcount,
-            SUPERFACET_index + sc->index,
-            sc->indexcount,
-            0);
-
-        // 2-pass texture pages require a second draw with alpha blending enabled.
-        if (sc->flag & SUPERFACET_CALL_FLAG_2PASS) {
-            the_display.lp_D3D_Device->SetTexture(0, sc->texture_2pass);
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-            the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
-
-            the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_LVERTEX,
-                SUPERFACET_lvert + sc->lvert,
-                sc->lvertcount,
-                SUPERFACET_index + sc->index,
-                sc->indexcount,
-                0);
-
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
-            the_display.lp_D3D_Device->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-        }
-    }
-
-    return UC_TRUE;
 }
 
 // uc_orig: SUPERFACET_fini (fallen/DDEngine/Headers/superfacet.h)

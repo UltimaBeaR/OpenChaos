@@ -11,15 +11,6 @@
 // allow_debug_keys defined in Controls.cpp
 extern BOOL allow_debug_keys;
 
-// uc_orig: MSG_clear (fallen/DDEngine/Source/Message.cpp)
-void MSG_clear(void)
-{
-    SLONG i;
-    for (i = 0; i < MSG_MAX_MESSAGES; i++) {
-        MSG_message[i].timer = 0;
-    }
-}
-
 // uc_orig: MSG_TIMER (fallen/DDEngine/Source/Message.cpp)
 #define MSG_TIMER 128
 

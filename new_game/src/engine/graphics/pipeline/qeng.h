@@ -7,9 +7,6 @@
 // Minimal 3D engine for rendering QMAP world data using the POLY pipeline.
 // Used by the level editor (qedit.cpp). Not used in the shipping game.
 
-// uc_orig: QENG_init (fallen/DDEngine/Headers/qeng.h)
-void QENG_init(void);
-
 // Camera position set last by QENG_set_camera.
 // uc_orig: QENG_mouse_over (fallen/DDEngine/Headers/qeng.h)
 extern SLONG QENG_mouse_over;
@@ -41,8 +38,5 @@ void QENG_render(void);
 
 // uc_orig: QENG_flip (fallen/DDEngine/Headers/qeng.h)
 void QENG_flip(void);
-
-// uc_orig: QENG_fini (fallen/DDEngine/Headers/qeng.h)
-void QENG_fini(void);
 
 #endif // ENGINE_GRAPHICS_PIPELINE_QENG_H

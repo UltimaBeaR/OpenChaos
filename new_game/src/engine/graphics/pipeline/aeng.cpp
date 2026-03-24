@@ -351,14 +351,6 @@ file_error:;
     return;
 }
 
-// uc_orig: AENG_movie_update (fallen/DDEngine/Source/aeng.cpp)
-// Decodes and uploads the next movie frame to the video texture page.
-// NOTE: returns immediately at top (movie playback disabled in this build).
-void AENG_movie_update()
-{
-    return;
-}
-
 // uc_orig: AENG_get_draw_distance (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_get_draw_distance()
 {

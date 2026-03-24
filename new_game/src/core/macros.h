@@ -5,27 +5,6 @@
 
 // General-purpose utility macros.
 
-// uc_orig: sgn (MFStdLib/Headers/MFStdLib.h)
-#define sgn(a) (((a) < 0) ? -1 : 1)
-
-// uc_orig: swap (MFStdLib/Headers/MFStdLib.h)
-#define swap(a, b) \
-    {              \
-        a ^= b;    \
-        b ^= a;    \
-        a ^= b;    \
-    }
-
-// Clamp 'a' to [min, max] range.
-// uc_orig: in_range (MFStdLib/Headers/MFStdLib.h)
-#define in_range(a, min, max) \
-    {                         \
-        if (a > (max))        \
-            a = (max);        \
-        else if (a < (min))   \
-            a = (min);        \
-    }
-
 // uc_orig: min (MFStdLib/Headers/MFStdLib.h)
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))

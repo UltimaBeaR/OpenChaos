@@ -247,9 +247,6 @@ void move_clouds(void);
 // uc_orig: AENG_movie_init (fallen/DDEngine/Source/aeng.cpp)
 void AENG_movie_init(void);
 
-// uc_orig: AENG_movie_update (fallen/DDEngine/Source/aeng.cpp)
-void AENG_movie_update(void);
-
 // uc_orig: AENG_calc_gamut (fallen/DDEngine/Source/aeng.cpp)
 // Computes the full view frustum gamut for camera-based culling.
 void AENG_calc_gamut(float x, float y, float z,

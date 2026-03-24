@@ -8,16 +8,8 @@
 // Integer 3x3 matrix operations using PSX angle system (0-2047 = full rotation).
 // Fixed-point 16.16: 65536 = 1.0. Uses SIN/COS lookup tables and MUL64.
 
-// Bit field shifts and masks for the compressed CMatrix33 format.
+// Bit field masks for the compressed CMatrix33 format.
 // Each SLONG in CMatrix33.M[] packs three 10-bit signed values.
-// uc_orig: SMAT_SHIFT0 (fallen/Headers/prim.h)
-#define SMAT_SHIFT0 (2)
-// uc_orig: SMAT_SHIFT1 (fallen/Headers/prim.h)
-#define SMAT_SHIFT1 (12)
-// uc_orig: SMAT_SHIFT2 (fallen/Headers/prim.h)
-#define SMAT_SHIFT2 (22)
-// uc_orig: SMAT_SHIFTD (fallen/Headers/prim.h)
-#define SMAT_SHIFTD (22)
 // uc_orig: CMAT0_MASK (fallen/Headers/prim.h)
 #define CMAT0_MASK (0x3ff00000)
 // uc_orig: CMAT1_MASK (fallen/Headers/prim.h)

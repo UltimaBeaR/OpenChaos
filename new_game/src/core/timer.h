@@ -8,13 +8,13 @@
 // uc_orig: BreakStart (fallen/DDEngine/Headers/BreakTimer.h)
 #define BreakStart() 0
 // uc_orig: BreakEnd (fallen/DDEngine/Headers/BreakTimer.h)
-#define BreakEnd(X) 0
+#define BreakEnd(X)
+// uc_orig: BreakFacets (fallen/DDEngine/Headers/BreakTimer.h)
+#define BreakFacets(N)
+// uc_orig: BreakFrame (fallen/DDEngine/Headers/BreakTimer.h)
+#define BreakFrame()
 // uc_orig: BreakTime (fallen/DDEngine/Headers/BreakTimer.h)
 #define BreakTime(X) 0
-// uc_orig: BreakFacets (fallen/DDEngine/Headers/BreakTimer.h)
-#define BreakFacets(N) 0
-// uc_orig: BreakFrame (fallen/DDEngine/Headers/BreakTimer.h)
-#define BreakFrame() 0
 
 // uc_orig: StartStopwatch (fallen/DDEngine/Source/BreakTimer.cpp)
 void StartStopwatch();

@@ -11,7 +11,6 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "core/fmatrix.h"
-#include "ai/mav.h"
 #include "actors/core/interact.h"
 #include "engine/lighting/shadow.h"
 #include "core/matrix.h"
@@ -2176,21 +2175,6 @@ no_muzzle_calcs:
 #include "engine/input/keyboard_globals.h"
 #include "actors/core/hierarchy.h"
 
-// uc_orig: mandom (fallen/DDEngine/Source/figure.cpp)
-// LCG PRNG for per-character clothing colour randomisation.
-SLONG mandom(void)
-{
-    local_seed = local_seed * 123456789 + 314159265;
-    return (local_seed);
-}
-
-// uc_orig: local_set_seed (fallen/DDEngine/Source/figure.cpp)
-// Bug preserved from original: assigns seed to local (not to local_seed).
-void local_set_seed(SLONG seed)
-{
-    seed = local_seed;
-}
-
 // uc_orig: FIGURE_draw_prim_tween_warped (fallen/DDEngine/Source/figure.cpp)
 // Variant of FIGURE_draw_prim_tween with sinusoidal Z-dependent vertex warp.
 // Used for cloaking/teleport distortion effects.
@@ -2931,56 +2915,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     };
 }
 
-// uc_orig: get_sort_z_bodge (fallen/DDEngine/Source/figure.cpp)
-// Computes a sort-Z depth hint for a character based on nearby wall caps.
-// Returns 100 if the character is beside an impassable wall, 0 otherwise.
-// Only relevant for the software renderer depth-sort path.
-SLONG get_sort_z_bodge(SLONG px, SLONG pz)
-{
-    SLONG dx, dz;
-    UBYTE cap;
-    dx = px - POLY_cam_x;
-    dz = pz - POLY_cam_z;
-
-    if (abs(dz) < abs(dx)) {
-        if (dx < 0) {
-            if ((px & 0xff) > 128) {
-                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_XL);
-                if (!(cap & MAV_CAPS_GOTO)) {
-                    return (100);
-                }
-            }
-
-        } else {
-            if ((px & 0xff) < 128) {
-                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_XS);
-                if (!(cap & MAV_CAPS_GOTO)) {
-                    return (100);
-                }
-            }
-        }
-
-    } else {
-        if (dz < 0) {
-            if ((pz & 0xff) > 128) {
-                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_ZL);
-                if (!(cap & MAV_CAPS_GOTO)) {
-                    return (100);
-                }
-            }
-
-        } else {
-            if ((pz & 0xff) < 128) {
-                cap = MAV_get_caps(px >> 8, pz >> 8, MAV_DIR_ZS);
-                if (!(cap & MAV_CAPS_GOTO)) {
-                    return (100);
-                }
-            }
-        }
-    }
-    return (0);
-}
-
 // uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
 // Top-level entry point: renders one character Thing* for the current frame.
 // Dispatches to hierarchical (15-part D3D) or flat loop depending on ElementCount.
@@ -3269,85 +3203,6 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
             p_thing,
             i,
             0xffff00ff);
-    }
-}
-
-// uc_orig: ANIM_obj_draw_warped (fallen/DDEngine/Source/figure.cpp)
-// Same as ANIM_obj_draw but applies sinusoidal warp to each body part.
-// Used for objects under cloaking/teleportation visual effects.
-void ANIM_obj_draw_warped(Thing* p_thing, DrawTween* dt)
-{
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-
-    ULONG colour;
-    ULONG specular;
-
-    Matrix33 r_matrix;
-
-    GameKeyFrameElement* ae1;
-    GameKeyFrameElement* ae2;
-
-    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
-        return;
-    }
-
-    dx = 0;
-    dy = 0;
-    dz = 0;
-
-    ae1 = dt->CurrentFrame->FirstElement;
-    ae2 = dt->NextFrame->FirstElement;
-
-    if (!ae1 || !ae2) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
-
-        return;
-    }
-
-    FIGURE_rotate_obj(
-        dt->Tilt,
-        dt->Angle,
-        (dt->Roll + 2048) & 2047,
-        &r_matrix);
-
-    NIGHT_get_d3d_colour(
-        NIGHT_get_light_at(
-            (p_thing->WorldPos.X >> 8),
-            (p_thing->WorldPos.Y >> 8),
-            (p_thing->WorldPos.Z >> 8)),
-        &colour,
-        &specular);
-
-    colour &= ~POLY_colour_restrict;
-    specular &= ~POLY_colour_restrict;
-
-    SLONG i;
-    SLONG ele_count;
-    SLONG start_object;
-    SLONG object_offset;
-
-    ele_count = dt->TheChunk->ElementCount;
-    start_object = prim_multi_objects[dt->TheChunk->MultiObject[0]].StartObject;
-
-    for (i = 0; i < ele_count; i++) {
-        object_offset = i;
-
-        FIGURE_draw_prim_tween_warped(
-            start_object + object_offset,
-            p_thing->WorldPos.X >> 8,
-            (p_thing->WorldPos.Y >> 8),
-            p_thing->WorldPos.Z >> 8,
-            dt->AnimTween,
-            &ae1[i],
-            &ae2[i],
-            &r_matrix,
-            dx, dy, dz,
-            colour,
-            specular,
-            p_thing);
     }
 }
 

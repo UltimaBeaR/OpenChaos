@@ -26,7 +26,6 @@
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
 #include "ui/menus/gamemenu.h"
-#include "world/environment/bang.h"  // (transitively)
 #include "effects/spark.h"
 #include "actors/core/statedef.h"
 #include "world/map/ob.h"
@@ -93,7 +92,6 @@
 #include "effects/dirt.h"
 #include "actors/items/grenade.h"
 #include "effects/ribbon.h"
-#include "world/environment/water.h"
 #include "effects/drip.h"
 #include "assets/xlat_str.h"
 #include "engine/graphics/resources/font2d.h"  // FONT2D_DrawStringWrapTo

@@ -114,9 +114,8 @@ float AENG_cam_matrix[9];
 SLONG AENG_cam_vec[3];
 
 // uc_orig: AENG_sewer_page (fallen/DDEngine/Source/aeng.cpp)
-#include "world/environment/sewer.h"
 #include "engine/graphics/pipeline/poly_globals.h"
-SLONG AENG_sewer_page[SEWER_PAGE_NUMBER] = {
+SLONG AENG_sewer_page[4] = { // 4 == SEWER_PAGE_NUMBER from deleted sewer.h
     3,
     4,
     5,

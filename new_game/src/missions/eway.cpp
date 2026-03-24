@@ -3,7 +3,6 @@
 #include "missions/game.h"
 #include "actors/characters/person.h" // can_a_see_b, set_person_idle and other person functions used in this file
 #include "ui/camera/cam.h"
-#include "world/environment/bang.h"
 #include "world/map/ob.h"
 #include "core/fmatrix.h"
 #include "world/environment/tripwire.h"

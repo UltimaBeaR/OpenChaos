@@ -175,7 +175,7 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 | **3.1** ✅ | `ai/`, `effects/`, `platform/` | ~61 | Leaf-модули. Удалено 22 сущности (1 файл целиком) |
 | **3.2** ✅ | `assets/`, `ui/` | ~140 | Презентационный слой. Удалено 33 сущности (2 файла целиком) |
 | **3.3** ✅ | `actors/`, `missions/` | ~121 | Геймплей. Удалено 20 сущностей (4 файла целиком). ~75 internal-only в missions/ → Шаг 5 |
-| **3.4** | `world/`, `engine/`, `core/` | ~349 | Инфраструктура: многое зависит от этих модулей, удалять осторожнее. core/ — только очевидно мёртвое |
+| **3.4** ✅ | `world/`, `engine/`, `core/` | ~349 | Инфраструктура. Удалено ~35 сущностей (6 хедеров целиком), ~1249 строк |
 
 ### Итерация 3.1 — ai/, effects/, platform/ (2026-03-24)
 
@@ -256,6 +256,42 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 
 **Примечание:** missions/ содержит ещё ~75 сущностей которые используются только внутри своего .cpp
 но экспортируются через .h — это тема Шага 5 (orphaned declarations), не Шага 3.
+
+### Итерация 3.4 — world/, engine/, core/ (2026-03-24)
+
+Удалено ~35 сущностей из 28 файлов. 6 хедеров удалены целиком, ~1249 строк.
+
+**world/ — 6 stub-хедеров без реализации (удалены целиком):**
+
+- **bang.h** — `BANG_get_next`, `BANG_Info`, `BANG_BIG` (эффекты взрывов, нет .cpp)
+- **water.h** — 10+ функций `WATER_*` (водная система, нет .cpp)
+- **sewer.h** — `SEWER_save/load/colvects_*/get_water` (канализация, нет .cpp).
+  `SEWER_PAGE_NUMBER` использовался в `aeng_globals.cpp` — заменён на литерал `4`
+- **enter.h** — `ENTER_can_i/leave/setup/get_extents` (вход в здания, нет .cpp)
+- **nav.h** — `NAV_*` (навигация, нет .cpp)
+- **az.h** — `AZ_create_lines/init`, `AZ_line[]`, `AZ_line_upto` (action zones, нет .cpp)
+- Удалены includes из: elev.cpp (3), eway.cpp (1), game.cpp (2)
+
+**engine/ — 9 мёртвых функций:**
+
+- **figure.h/.cpp** — 4 функции: `mandom` (legacy PRNG), `local_set_seed` (баг seed),
+  `ANIM_obj_draw_warped` (cloaking эффект), `get_sort_z_bodge` (SW renderer).
+  Убран `#include "ai/mav.h"`
+- **aeng_globals.h/.cpp** — `AENG_movie_update` (stub, return immediately)
+- **message.h/.cpp** — `MSG_clear`
+- **qeng.h/.cpp** — `QENG_init`, `QENG_fini` (неиспользуемый alt pipeline)
+- **superfacet.h/.cpp** — `SUPERFACET_draw`. Убраны 3 осиротевших include
+
+**core/ — ~20 сущностей:**
+
+- **math.h** — `Hypotenuse` (inline, не вызывается), `PROP`/`PROPTABLE_SIZE` макросы, `#include <cstdlib>`
+- **vector.h** — 3 struct'а: `SmallSVector`, `SVECTOR`, `TinyXZ`
+- **types.h** — 2 typedef: `MAPCO8`, `MAPCO24`
+- **macros.h** — 3 макроса-дубликата: `sgn`, `swap`, `in_range`
+- **fmatrix.h** — 4 shift-константы: `SMAT_SHIFT0/1/2/D`
+- **math_globals.h/.cpp** — `Proportions[]` (514 строк) удалён.
+  `SinTableF[]`/`CosTableF` оставлены (используются через `SIN_F`/`COS_F` в engine_types.h)
+- **timer.h** — `BreakStart/End/Facets/Frame` оставлены (вызываются в game.cpp, aeng.cpp)
 
 ---
 
