@@ -1,4 +1,4 @@
-#include "engine/lighting/crinkle.h"
+#include "engine/graphics/lighting/crinkle.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/platform/uc_common.h"

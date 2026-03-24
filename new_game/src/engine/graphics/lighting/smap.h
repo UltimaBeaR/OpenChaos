@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_SMAP_H
-#define ENGINE_LIGHTING_SMAP_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_SMAP_H
+#define ENGINE_GRAPHICS_LIGHTING_SMAP_H
 
 #include "engine/core/types.h"
 // SVector_F is used in the public API of SMAP_project_onto_poly.
@@ -56,4 +56,4 @@ SMAP_Link* SMAP_project_onto_poly(
     SVector_F poly[],
     SLONG num_points);
 
-#endif // ENGINE_LIGHTING_SMAP_H
+#endif // ENGINE_GRAPHICS_LIGHTING_SMAP_H

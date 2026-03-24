@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_CACHE_H
-#define ENGINE_LIGHTING_CACHE_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_CACHE_H
+#define ENGINE_GRAPHICS_LIGHTING_CACHE_H
 
 #include "engine/core/types.h"
 
@@ -49,4 +49,4 @@ void CACHE_flag_clear(CACHE_Index c_index);
 // uc_orig: CACHE_invalidate_unflagged (fallen/Headers/cache.h)
 void CACHE_invalidate_unflagged(void);
 
-#endif // ENGINE_LIGHTING_CACHE_H
+#endif // ENGINE_GRAPHICS_LIGHTING_CACHE_H

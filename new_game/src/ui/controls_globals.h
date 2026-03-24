@@ -2,7 +2,7 @@
 #define UI_CONTROLS_GLOBALS_H
 
 #include "engine/platform/uc_common.h"              // SLONG, UBYTE, UWORD, CBYTE, BOOL base types
-#include "engine/lighting/light.h"
+#include "engine/graphics/lighting/light.h"
 
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
 extern SLONG NIGHT_specular_enable;

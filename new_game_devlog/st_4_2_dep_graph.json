@@ -276,6 +276,7 @@
       "assets/tga.h",
       "engine/audio/sound.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/crinkle.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/message.h",
       "engine/graphics/pipeline/poly.h",
@@ -283,7 +284,6 @@
       "engine/graphics/resources/font2d.h",
       "engine/graphics/resources/truetype.h",
       "engine/io/env.h",
-      "engine/lighting/crinkle.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
       "world/environment/building_globals.h",
@@ -298,16 +298,16 @@
     ],
     "assets/texture.h": [
       "engine/core/types.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/lighting/crinkle.h"
+      "engine/graphics/lighting/crinkle.h",
+      "engine/graphics/resources/d3d_texture.h"
     ],
     "assets/texture_globals.cpp": [
       "assets/texture_globals.h"
     ],
     "assets/texture_globals.h": [
       "engine/core/types.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/lighting/crinkle.h"
+      "engine/graphics/lighting/crinkle.h",
+      "engine/graphics/resources/d3d_texture.h"
     ],
     "assets/tga.cpp": [
       "assets/tga.h",
@@ -490,9 +490,9 @@
       "engine/effects/psystem.h",
       "engine/graphics/geometry/bloom.h",
       "engine/graphics/geometry/sprite.h",
+      "engine/graphics/lighting/night.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/person.h",
@@ -599,14 +599,14 @@
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/sprite.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
+      "engine/graphics/lighting/shadow.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/render_state.h",
       "engine/input/keyboard_globals.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/lighting/shadow.h",
       "missions/eway.h",
       "missions/game.h",
       "missions/memory.h",
@@ -927,15 +927,15 @@
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/sprite.h",
       "engine/graphics/geometry/superfacet.h",
+      "engine/graphics/lighting/crinkle.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
+      "engine/graphics/lighting/smap.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/poly_globals.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/input/keyboard_globals.h",
-      "engine/lighting/crinkle.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/lighting/smap.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/camera/fc_globals.h",
@@ -955,8 +955,8 @@
     "engine/graphics/geometry/facet.h": [
       "engine/core/types.h",
       "engine/graphics/geometry/facet_globals.h",
+      "engine/graphics/lighting/night.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
       "world/environment/building_types.h",
       "world/map/supermap.h"
     ],
@@ -1002,11 +1002,11 @@
       "engine/graphics/geometry/fastprim.h",
       "engine/graphics/geometry/fastprim_globals.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/platform/uc_common.h",
       "world/environment/building_types.h",
       "world/environment/prim.h",
@@ -1014,8 +1014,8 @@
       "world/level_pools.h"
     ],
     "engine/graphics/geometry/fastprim.h": [
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/platform/uc_common.h"
     ],
     "engine/graphics/geometry/fastprim_globals.cpp": [
@@ -1035,11 +1035,11 @@
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/mesh_globals.h",
       "engine/graphics/geometry/shape_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/poly_globals.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "missions/game_types.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h",
@@ -1047,7 +1047,7 @@
     ],
     "engine/graphics/geometry/mesh.h": [
       "engine/core/types.h",
-      "engine/lighting/night.h"
+      "engine/graphics/lighting/night.h"
     ],
     "engine/graphics/geometry/mesh_globals.cpp": [
       "engine/graphics/geometry/mesh.h",
@@ -1075,10 +1075,10 @@
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/shape.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/items/balloon.h",
@@ -1114,11 +1114,11 @@
       "engine/graphics/geometry/facet_globals.h",
       "engine/graphics/geometry/superfacet.h",
       "engine/graphics/geometry/superfacet_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/polypoint.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
       "ui/interfac.h",
@@ -1135,9 +1135,9 @@
     "engine/graphics/geometry/superfacet_globals.h": [
       "engine/core/types.h",
       "engine/graphics/graphics_api/dd_manager.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/platform/uc_common.h"
     ],
     "engine/graphics/graphics_api/dd_manager.cpp": [
@@ -1227,6 +1227,124 @@
     "engine/graphics/graphics_api/work_screen_globals.h": [
       "engine/core/types.h"
     ],
+    "engine/graphics/lighting/cache.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/lighting/crinkle.cpp": [
+      "engine/graphics/lighting/crinkle.h",
+      "engine/input/keyboard.h",
+      "engine/input/keyboard_globals.h",
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/lighting/crinkle.h": [
+      "assets/file_clump.h",
+      "engine/core/types.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/graphics/pipeline/poly.h"
+    ],
+    "engine/graphics/lighting/ed_light.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/lighting/gamut.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/lighting/light.h": [
+      "engine/core/types.h",
+      "engine/core/vector.h",
+      "world/environment/prim_types.h"
+    ],
+    "engine/graphics/lighting/ngamut.cpp": [
+      "engine/graphics/lighting/ngamut.h",
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/lighting/ngamut.h": [
+      "engine/graphics/lighting/ngamut_globals.h",
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/lighting/ngamut_globals.cpp": [
+      "engine/graphics/lighting/ngamut_globals.h"
+    ],
+    "engine/graphics/lighting/ngamut_globals.h": [
+      "engine/graphics/lighting/ngamut.h",
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/lighting/night.cpp": [
+      "ai/mav.h",
+      "engine/core/fmatrix.h",
+      "engine/core/heap.h",
+      "engine/graphics/lighting/ed_light.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
+      "engine/io/file.h",
+      "missions/game_types.h",
+      "things/core/thing.h",
+      "world/environment/prim.h",
+      "world/environment/prim_types.h",
+      "world/environment/ware.h",
+      "world/environment/ware_globals.h",
+      "world/level_pools.h",
+      "world/map/ob.h",
+      "world/map/ob_globals.h",
+      "world/map/pap_globals.h",
+      "world/map/supermap.h"
+    ],
+    "engine/graphics/lighting/night.h": [
+      "engine/platform/uc_common.h",
+      "world/map/pap_globals.h"
+    ],
+    "engine/graphics/lighting/night_globals.cpp": [
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h"
+    ],
+    "engine/graphics/lighting/night_globals.h": [
+      "engine/graphics/lighting/night.h"
+    ],
+    "engine/graphics/lighting/shadow.cpp": [
+      "ai/mav.h",
+      "engine/graphics/lighting/shadow.h",
+      "engine/graphics/lighting/shadow_globals.h",
+      "engine/physics/collide.h",
+      "engine/platform/uc_common.h",
+      "missions/game_types.h",
+      "world/level_pools.h",
+      "world/map/pap_globals.h",
+      "world/map/supermap.h"
+    ],
+    "engine/graphics/lighting/shadow.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/lighting/shadow_globals.cpp": [
+      "engine/graphics/lighting/shadow_globals.h"
+    ],
+    "engine/graphics/lighting/shadow_globals.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/lighting/smap.cpp": [
+      "engine/animation/anim_types.h",
+      "engine/core/fmatrix.h",
+      "engine/core/matrix.h",
+      "engine/graphics/geometry/aa.h",
+      "engine/graphics/lighting/smap.h",
+      "engine/graphics/lighting/smap_globals.h",
+      "engine/platform/uc_common.h",
+      "missions/game_types.h",
+      "things/characters/person.h",
+      "things/characters/person_types.h",
+      "things/core/interact.h",
+      "world/level_pools.h"
+    ],
+    "engine/graphics/lighting/smap.h": [
+      "engine/core/types.h",
+      "engine/graphics/pipeline/aeng.h"
+    ],
+    "engine/graphics/lighting/smap_globals.cpp": [
+      "engine/graphics/lighting/smap.h",
+      "engine/graphics/lighting/smap_globals.h"
+    ],
+    "engine/graphics/lighting/smap_globals.h": [
+      "engine/core/types.h",
+      "engine/graphics/lighting/smap.h"
+    ],
     "engine/graphics/pipeline/aeng.cpp": [
       "ai/mav.h",
       "ai/pcom.h",
@@ -1276,6 +1394,12 @@
       "engine/graphics/geometry/shape.h",
       "engine/graphics/graphics_api/display_macros.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/ngamut.h",
+      "engine/graphics/lighting/ngamut_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
+      "engine/graphics/lighting/smap.h",
+      "engine/graphics/lighting/smap_globals.h",
       "engine/graphics/pipeline/aeng_globals.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/poly_globals.h",
@@ -1285,12 +1409,6 @@
       "engine/graphics/pipeline/wibble.h",
       "engine/graphics/resources/font2d.h",
       "engine/io/env.h",
-      "engine/lighting/ngamut.h",
-      "engine/lighting/ngamut_globals.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/lighting/smap.h",
-      "engine/lighting/smap_globals.h",
       "engine/physics/sm.h",
       "engine/physics/sm_globals.h",
       "engine/platform/uc_common.h",
@@ -1343,10 +1461,10 @@
     "engine/graphics/pipeline/aeng_globals.h": [
       "assets/compression.h",
       "engine/core/types.h",
+      "engine/graphics/lighting/smap.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/render_state.h",
-      "engine/lighting/smap.h",
       "world/environment/prim_types.h",
       "world/map/map.h"
     ],
@@ -1395,6 +1513,9 @@
       "engine/core/matrix.h",
       "engine/graphics/geometry/superfacet.h",
       "engine/graphics/graphics_api/display_macros.h",
+      "engine/graphics/lighting/crinkle.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/poly_globals.h",
       "engine/graphics/pipeline/poly_render.h",
@@ -1402,9 +1523,6 @@
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/render_state.h",
       "engine/graphics/pipeline/vertex_buffer.h",
-      "engine/lighting/crinkle.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h"
@@ -1742,124 +1860,6 @@
     "engine/io/file_globals.h": [
       "engine/core/types.h"
     ],
-    "engine/lighting/cache.h": [
-      "engine/core/types.h"
-    ],
-    "engine/lighting/crinkle.cpp": [
-      "engine/input/keyboard.h",
-      "engine/input/keyboard_globals.h",
-      "engine/lighting/crinkle.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/lighting/crinkle.h": [
-      "assets/file_clump.h",
-      "engine/core/types.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/pipeline/poly.h"
-    ],
-    "engine/lighting/ed_light.h": [
-      "engine/core/types.h"
-    ],
-    "engine/lighting/gamut.h": [
-      "engine/core/types.h"
-    ],
-    "engine/lighting/light.h": [
-      "engine/core/types.h",
-      "engine/core/vector.h",
-      "world/environment/prim_types.h"
-    ],
-    "engine/lighting/ngamut.cpp": [
-      "engine/lighting/ngamut.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/lighting/ngamut.h": [
-      "engine/lighting/ngamut_globals.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/lighting/ngamut_globals.cpp": [
-      "engine/lighting/ngamut_globals.h"
-    ],
-    "engine/lighting/ngamut_globals.h": [
-      "engine/lighting/ngamut.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/lighting/night.cpp": [
-      "ai/mav.h",
-      "engine/core/fmatrix.h",
-      "engine/core/heap.h",
-      "engine/io/file.h",
-      "engine/lighting/ed_light.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "missions/game_types.h",
-      "things/core/thing.h",
-      "world/environment/prim.h",
-      "world/environment/prim_types.h",
-      "world/environment/ware.h",
-      "world/environment/ware_globals.h",
-      "world/level_pools.h",
-      "world/map/ob.h",
-      "world/map/ob_globals.h",
-      "world/map/pap_globals.h",
-      "world/map/supermap.h"
-    ],
-    "engine/lighting/night.h": [
-      "engine/platform/uc_common.h",
-      "world/map/pap_globals.h"
-    ],
-    "engine/lighting/night_globals.cpp": [
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h"
-    ],
-    "engine/lighting/night_globals.h": [
-      "engine/lighting/night.h"
-    ],
-    "engine/lighting/shadow.cpp": [
-      "ai/mav.h",
-      "engine/lighting/shadow.h",
-      "engine/lighting/shadow_globals.h",
-      "engine/physics/collide.h",
-      "engine/platform/uc_common.h",
-      "missions/game_types.h",
-      "world/level_pools.h",
-      "world/map/pap_globals.h",
-      "world/map/supermap.h"
-    ],
-    "engine/lighting/shadow.h": [
-      "engine/core/types.h"
-    ],
-    "engine/lighting/shadow_globals.cpp": [
-      "engine/lighting/shadow_globals.h"
-    ],
-    "engine/lighting/shadow_globals.h": [
-      "engine/core/types.h"
-    ],
-    "engine/lighting/smap.cpp": [
-      "engine/animation/anim_types.h",
-      "engine/core/fmatrix.h",
-      "engine/core/matrix.h",
-      "engine/graphics/geometry/aa.h",
-      "engine/lighting/smap.h",
-      "engine/lighting/smap_globals.h",
-      "engine/platform/uc_common.h",
-      "missions/game_types.h",
-      "things/characters/person.h",
-      "things/characters/person_types.h",
-      "things/core/interact.h",
-      "world/level_pools.h"
-    ],
-    "engine/lighting/smap.h": [
-      "engine/core/types.h",
-      "engine/graphics/pipeline/aeng.h"
-    ],
-    "engine/lighting/smap_globals.cpp": [
-      "engine/lighting/smap.h",
-      "engine/lighting/smap_globals.h"
-    ],
-    "engine/lighting/smap_globals.h": [
-      "engine/core/types.h",
-      "engine/lighting/smap.h"
-    ],
     "engine/physics/collide.cpp": [
       "ai/combat.h",
       "ai/mav.h",
@@ -2008,13 +2008,13 @@
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
+      "engine/graphics/lighting/shadow.h",
+      "engine/graphics/lighting/shadow_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/resources/console.h",
       "engine/io/env.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/lighting/shadow.h",
-      "engine/lighting/shadow_globals.h",
       "engine/physics/collide.h",
       "missions/elev.h",
       "missions/elev_globals.h",
@@ -2181,6 +2181,10 @@
       "engine/graphics/geometry/fastprim_globals.h",
       "engine/graphics/geometry/superfacet.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
+      "engine/graphics/lighting/shadow.h",
+      "engine/graphics/lighting/shadow_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/resources/console.h",
@@ -2194,10 +2198,6 @@
       "engine/input/mouse.h",
       "engine/input/mouse_globals.h",
       "engine/io/env.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/lighting/shadow.h",
-      "engine/lighting/shadow_globals.h",
       "engine/platform/uc_common.h",
       "missions/elev.h",
       "missions/elev_globals.h",
@@ -2293,11 +2293,11 @@
       "engine/audio/sound.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/io/env.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "missions/eway.h",
       "missions/game_types.h",
       "missions/memory.h",
@@ -2344,8 +2344,8 @@
       "engine/audio/sound.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/physics/collide_globals.h",
       "missions/eway.h",
       "missions/game_types.h",
@@ -2438,8 +2438,8 @@
       "effects/spark.h",
       "engine/audio/sound.h",
       "engine/effects/psystem.h",
+      "engine/graphics/lighting/night.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
       "engine/physics/collide.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
@@ -2546,10 +2546,10 @@
       "engine/core/matrix.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/physics/collide.h",
       "engine/physics/collide_globals.h",
       "missions/eway.h",
@@ -2710,7 +2710,7 @@
     ],
     "things/core/drawtype.h": [
       "engine/core/types.h",
-      "engine/lighting/cache.h"
+      "engine/graphics/lighting/cache.h"
     ],
     "things/core/hierarchy.cpp": [
       "engine/core/matrix.h",
@@ -2999,8 +2999,8 @@
       "engine/audio/sound.h",
       "engine/core/memory.h",
       "engine/graphics/geometry/bloom.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/physics/collide.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
@@ -3085,11 +3085,11 @@
       "engine/graphics/geometry/bloom.h",
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/oval.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/resources/font2d.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/physics/collide.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
@@ -3217,6 +3217,8 @@
       "engine/effects/psystem.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/graphics_api/host.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly_render.h",
       "engine/graphics/pipeline/polypage.h",
@@ -3224,8 +3226,6 @@
       "engine/graphics/resources/console.h",
       "engine/input/mouse.h",
       "engine/io/file.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/physics/collide.h",
       "missions/elev_globals.h",
       "missions/eway.h",
@@ -3270,7 +3270,7 @@
       "ui/controls_globals.h"
     ],
     "ui/controls_globals.h": [
-      "engine/lighting/light.h",
+      "engine/graphics/lighting/light.h",
       "engine/platform/uc_common.h"
     ],
     "ui/cutscenes/outro/outro_always.h": [],
@@ -3754,9 +3754,9 @@
       "engine/core/types.h"
     ],
     "world/environment/build.cpp": [
+      "engine/graphics/lighting/light.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/lighting/light.h",
       "missions/game_types.h",
       "world/environment/build.h",
       "world/environment/build_globals.h",
@@ -3781,7 +3781,7 @@
       "world/environment/build_globals.h"
     ],
     "world/environment/build_globals.h": [
-      "engine/lighting/light.h",
+      "engine/graphics/lighting/light.h",
       "missions/game_types.h"
     ],
     "world/environment/building.cpp": [
@@ -4004,9 +4004,9 @@
     ],
     "world/environment/ware.cpp": [
       "ai/mav.h",
+      "engine/graphics/lighting/night.h",
+      "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
       "engine/platform/uc_common.h",
       "missions/elev.h",
       "missions/game_types.h",
@@ -4048,7 +4048,7 @@
     "world/map/map.h": [
       "engine/core/types.h",
       "engine/core/vector.h",
-      "engine/lighting/light.h"
+      "engine/graphics/lighting/light.h"
     ],
     "world/map/map_globals.cpp": [
       "world/map/map_globals.h"

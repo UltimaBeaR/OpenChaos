@@ -3,7 +3,7 @@
 
 #include "engine/core/types.h"
 #include "engine/graphics/resources/d3d_texture.h"
-#include "engine/lighting/crinkle.h"
+#include "engine/graphics/lighting/crinkle.h"
 
 // Internal constants also needed by external consumers.
 // uc_orig: TEXTURE_NUM_STANDARD (fallen/DDEngine/Source/texture.cpp)

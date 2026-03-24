@@ -12,7 +12,7 @@
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/core/fmatrix.h"
 #include "things/core/interact.h"
-#include "engine/lighting/shadow.h"
+#include "engine/graphics/lighting/shadow.h"
 #include "engine/core/matrix.h"
 #include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/mesh.h"
@@ -35,8 +35,8 @@
 
 // Note: animation depends on lighting (BuildMMLightingTable reads NIGHT_* globals).
 // This cross-engine coupling exists in the original; will be resolved in Stage 7.
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"
 
 // uc_orig: DeadAndBuried (fallen/DDEngine/Source/figure.cpp)
 // Paints a solid 50x50 colour block on the front DirectDraw surface for crash diagnostics.

@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_CRINKLE_H
-#define ENGINE_LIGHTING_CRINKLE_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_CRINKLE_H
+#define ENGINE_GRAPHICS_LIGHTING_CRINKLE_H
 
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -55,4 +55,4 @@ void CRINKLE_project(
     SVector_F poly[4],
     SLONG flip);
 
-#endif // ENGINE_LIGHTING_CRINKLE_H
+#endif // ENGINE_GRAPHICS_LIGHTING_CRINKLE_H

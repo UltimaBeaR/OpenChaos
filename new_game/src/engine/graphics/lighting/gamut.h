@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_GAMUT_H
-#define ENGINE_LIGHTING_GAMUT_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_GAMUT_H
+#define ENGINE_GRAPHICS_LIGHTING_GAMUT_H
 
 #include "engine/core/types.h"
 
@@ -36,4 +36,4 @@ void build_gamut_table(void);
 // Debug visualisation: draws the gamut grid centred at screen (x, y).
 void draw_gamut(SLONG x, SLONG y);
 
-#endif // ENGINE_LIGHTING_GAMUT_H
+#endif // ENGINE_GRAPHICS_LIGHTING_GAMUT_H

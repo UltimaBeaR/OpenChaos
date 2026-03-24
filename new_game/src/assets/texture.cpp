@@ -12,7 +12,7 @@
 #include "world/map/pap.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "engine/graphics/resources/d3d_texture.h"
-#include "engine/lighting/crinkle.h"
+#include "engine/graphics/lighting/crinkle.h"
 #include "engine/graphics/pipeline/message.h"
 #include "engine/audio/sound.h"
 #include "world/environment/ware.h"

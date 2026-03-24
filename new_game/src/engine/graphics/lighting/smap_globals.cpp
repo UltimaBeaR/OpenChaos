@@ -1,5 +1,5 @@
-#include "engine/lighting/smap_globals.h"
-#include "engine/lighting/smap.h"
+#include "engine/graphics/lighting/smap_globals.h"
+#include "engine/graphics/lighting/smap.h"
 
 // uc_orig: SMAP_plane_ux (fallen/DDEngine/Source/smap.cpp)
 float SMAP_plane_ux;

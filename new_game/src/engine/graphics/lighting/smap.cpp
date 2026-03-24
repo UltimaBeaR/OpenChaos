@@ -4,8 +4,8 @@
 
 #include "engine/platform/uc_common.h"
 #include <math.h>
-#include "engine/lighting/smap.h"
-#include "engine/lighting/smap_globals.h"
+#include "engine/graphics/lighting/smap.h"
+#include "engine/graphics/lighting/smap_globals.h"
 #include "engine/graphics/geometry/aa.h"
 #include "engine/core/matrix.h"
 #include "engine/core/fmatrix.h"

@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_NGAMUT_GLOBALS_H
-#define ENGINE_LIGHTING_NGAMUT_GLOBALS_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_NGAMUT_GLOBALS_H
+#define ENGINE_GRAPHICS_LIGHTING_NGAMUT_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
 #include "ngamut.h"
@@ -34,4 +34,4 @@ extern SLONG NGAMUT_lo_zmin;
 // uc_orig: NGAMUT_lo_zmax (fallen/DDEngine/Source/NGamut.cpp)
 extern SLONG NGAMUT_lo_zmax;
 
-#endif // ENGINE_LIGHTING_NGAMUT_GLOBALS_H
+#endif // ENGINE_GRAPHICS_LIGHTING_NGAMUT_GLOBALS_H

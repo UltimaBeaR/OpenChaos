@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_NIGHT_H
-#define ENGINE_LIGHTING_NIGHT_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_NIGHT_H
+#define ENGINE_GRAPHICS_LIGHTING_NIGHT_H
 
 #include "engine/platform/uc_common.h"              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
 #include "world/map/pap_globals.h"
@@ -452,4 +452,4 @@ void NIGHT_light_prim(SLONG prim, SLONG prim_x, SLONG prim_y, SLONG prim_z, SLON
 // uc_orig: NIGHT_generate_roof_walkable (fallen/Source/night.cpp)
 void NIGHT_generate_roof_walkable(void);
 
-#endif // ENGINE_LIGHTING_NIGHT_H
+#endif // ENGINE_GRAPHICS_LIGHTING_NIGHT_H

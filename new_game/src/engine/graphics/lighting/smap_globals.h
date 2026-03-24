@@ -1,8 +1,8 @@
-#ifndef ENGINE_LIGHTING_SMAP_GLOBALS_H
-#define ENGINE_LIGHTING_SMAP_GLOBALS_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_SMAP_GLOBALS_H
+#define ENGINE_GRAPHICS_LIGHTING_SMAP_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/lighting/smap.h"
+#include "engine/graphics/lighting/smap.h"
 
 // Internal point structure used during shadow map construction.
 // uc_orig: SMAP_Point (fallen/DDEngine/Source/smap.cpp)
@@ -94,4 +94,4 @@ extern SMAP_Link SMAP_link[SMAP_MAX_LINKS];
 // uc_orig: SMAP_link_upto (fallen/DDEngine/Source/smap.cpp)
 extern SLONG SMAP_link_upto;
 
-#endif // ENGINE_LIGHTING_SMAP_GLOBALS_H
+#endif // ENGINE_GRAPHICS_LIGHTING_SMAP_GLOBALS_H

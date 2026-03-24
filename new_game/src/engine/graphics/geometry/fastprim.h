@@ -5,8 +5,8 @@
 // with DrawIndPrimMM or DrawIndexedPrimitive, skipping per-frame geometry rebuild.
 
 #include "engine/platform/uc_common.h"
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"
 
 // uc_orig: FASTPRIM_init (fallen/DDEngine/Headers/fastprim.h)
 void FASTPRIM_init(void);

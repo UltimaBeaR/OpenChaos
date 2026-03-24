@@ -14,9 +14,9 @@
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/geometry/superfacet.h"
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"   // NIGHT_dfcache
-#include "engine/lighting/crinkle.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"   // NIGHT_dfcache
+#include "engine/graphics/lighting/crinkle.h"
 #include "engine/input/keyboard_globals.h"   // ControlFlag, Keys, ShiftFlag
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"           // PAP_hi
@@ -31,7 +31,7 @@
 #include "world/environment/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
 #include "ui/controls_globals.h"             // allow_debug_keys
 #include "ui/camera/fc_globals.h"            // FC_cam
-#include "engine/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
+#include "engine/graphics/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
 #include "world/environment/prim_types.h"    // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
 
 // POLY_set_local_rotation_none is a no-op on PC. On Dreamcast it reset the local

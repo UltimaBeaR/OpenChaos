@@ -4,7 +4,7 @@
 #include "engine/core/types.h"
 #include "engine/core/vector.h"
 
-#include "engine/lighting/light.h" // light.h now includes prim_types.h for RMAX_PRIM_POINTS
+#include "engine/graphics/lighting/light.h" // light.h now includes prim_types.h for RMAX_PRIM_POINTS
 
 // Map dimensions and indexing.
 // uc_orig: MAP_HEIGHT_SHIFT (fallen/Headers/Map.h)

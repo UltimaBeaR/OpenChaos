@@ -97,3 +97,9 @@
 - Название "platform" создавало ложное впечатление платформенной абстракции, на деле это легаси umbrella-заголовок (бывший MFStdLib.h) — тянет Windows/D3D, типы, math, memory, io, input
 - Разбиение на отдельные заголовки → этап 9
 - 145 include-путей обновлены
+
+### Итерация 4 — lighting/ → graphics/lighting/ (2026-03-24)
+
+- `engine/lighting/*` (22 файла) → `engine/graphics/lighting/*`
+- Освещение — чисто визуальная подсистема (view frustum, shadows, per-vertex lighting), не влияет на геймплей
+- 41 файл с include-путями, 13 include guards обновлены

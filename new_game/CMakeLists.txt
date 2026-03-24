@@ -60,8 +60,8 @@ set(SOURCES_NEW
     src/assets/anim_globals.cpp
     src/assets/anim_loader.cpp
     src/assets/anim_loader_globals.cpp
-    src/engine/lighting/ngamut.cpp
-    src/engine/lighting/ngamut_globals.cpp
+    src/engine/graphics/lighting/ngamut.cpp
+    src/engine/graphics/lighting/ngamut_globals.cpp
     src/engine/graphics/graphics_api/work_screen.cpp
     src/engine/graphics/graphics_api/work_screen_globals.cpp
     src/engine/graphics/geometry/aa.cpp
@@ -109,7 +109,7 @@ set(SOURCES_NEW
     src/engine/animation/morph.cpp
     src/engine/animation/morph_globals.cpp
     src/world/environment/outline.cpp
-    src/engine/lighting/crinkle.cpp
+    src/engine/graphics/lighting/crinkle.cpp
     src/engine/effects/flamengine.cpp
     src/engine/effects/psystem.cpp
     src/engine/effects/psystem_globals.cpp
@@ -147,8 +147,8 @@ set(SOURCES_NEW
     src/engine/graphics/graphics_api/dd_manager_globals.cpp
     src/engine/graphics/graphics_api/display.cpp
     src/engine/graphics/graphics_api/display_globals.cpp
-    src/engine/lighting/shadow.cpp
-    src/engine/lighting/shadow_globals.cpp
+    src/engine/graphics/lighting/shadow.cpp
+    src/engine/graphics/lighting/shadow_globals.cpp
     src/effects/fog.cpp
     src/effects/fog_globals.cpp
     src/things/core/drawtype.cpp
@@ -176,10 +176,10 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/fastprim_globals.cpp
     src/engine/graphics/pipeline/poly_render.cpp
     src/engine/graphics/pipeline/poly_render_globals.cpp
-    src/engine/lighting/smap.cpp
-    src/engine/lighting/smap_globals.cpp
-    src/engine/lighting/night.cpp
-    src/engine/lighting/night_globals.cpp
+    src/engine/graphics/lighting/smap.cpp
+    src/engine/graphics/lighting/smap_globals.cpp
+    src/engine/graphics/lighting/night.cpp
+    src/engine/graphics/lighting/night_globals.cpp
     src/world/navigation/inside2.cpp
     src/world/navigation/inside2_globals.cpp
     src/world/environment/build2.cpp

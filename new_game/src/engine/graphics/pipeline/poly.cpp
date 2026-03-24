@@ -13,12 +13,12 @@
 #include "engine/graphics/pipeline/render_state.h"
 #include "engine/graphics/pipeline/vertex_buffer.h"
 #include "engine/graphics/geometry/superfacet.h"
-#include "engine/lighting/crinkle.h"
+#include "engine/graphics/lighting/crinkle.h"
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
 #include "missions/game_types.h"
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"
 #include "missions/eway.h"
 
 

@@ -13,7 +13,7 @@
 #include "effects/spark.h"
 #include "ai/pcom.h"
 #include "missions/memory.h"
-#include "engine/lighting/night.h"
+#include "engine/graphics/lighting/night.h"
 #include "engine/physics/collide.h"
 #include "effects/pyro.h"
 #include "assets/level_loader.h"       // load_anim_prim_object

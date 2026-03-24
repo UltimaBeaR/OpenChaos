@@ -10,3 +10,4 @@
 | `engine/graphics/graphics_api/wind_procs.*` | `engine/platform/wind_procs.*` | Win32 WndProc — platform, не graphics |
 | `actors/*` | `things/*` | Thing — оригинальное название системы в коде, точнее чем "actors" |
 | `engine/platform/platform.h` | `engine/platform/uc_common.h` | Не платформенная абстракция, а легаси umbrella (бывший MFStdLib.h) |
+| `engine/lighting/*` | `engine/graphics/lighting/*` | Чисто визуальная подсистема — к графике |

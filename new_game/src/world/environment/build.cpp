@@ -2,7 +2,7 @@
 #include "world/environment/building_globals.h" // building_objects[], building_facets[]
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/lighting/light.h"
+#include "engine/graphics/lighting/light.h"
 #include "world/level_pools.h"
 #include "world/environment/build.h"
 #include "world/environment/build_globals.h"

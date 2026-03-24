@@ -9,7 +9,7 @@
 #include "effects/pyro_globals.h"
 #include "things/core/statedef.h"
 #include "effects/ribbon.h"
-#include "engine/lighting/night.h"
+#include "engine/graphics/lighting/night.h"
 #include "effects/dirt.h"
 #include "engine/audio/sound.h"
 #include "engine/effects/psystem.h"

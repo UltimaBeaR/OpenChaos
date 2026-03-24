@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_GEOMETRY_MESH_H
 
 #include "engine/core/types.h"
-#include "engine/lighting/night.h"
+#include "engine/graphics/lighting/night.h"
 
 // uc_orig: MESH_colour_and (fallen/DDEngine/Source/mesh.cpp)
 // When a face has FACE_FLAG_TINT set, all vertex colours are ANDed with this value.

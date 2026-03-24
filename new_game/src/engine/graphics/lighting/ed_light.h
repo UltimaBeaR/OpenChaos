@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_ED_LIGHT_H
-#define ENGINE_LIGHTING_ED_LIGHT_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_ED_LIGHT_H
+#define ENGINE_GRAPHICS_LIGHTING_ED_LIGHT_H
 
 // Light editor API — used at load time to apply baked level lighting.
 // Original source: fallen/Ledit/Headers/ed.h + fallen/Ledit/Source/ed.cpp
@@ -123,4 +123,4 @@ void ED_undo_store(void);
 void ED_undo_undo(void);
 // uc_orig: ED_undo_redo (fallen/Ledit/Headers/ed.h)
 void ED_undo_redo(void);
-#endif // ENGINE_LIGHTING_ED_LIGHT_H
+#endif // ENGINE_GRAPHICS_LIGHTING_ED_LIGHT_H

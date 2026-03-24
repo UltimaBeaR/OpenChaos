@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_SHADOW_GLOBALS_H
-#define ENGINE_LIGHTING_SHADOW_GLOBALS_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_SHADOW_GLOBALS_H
+#define ENGINE_GRAPHICS_LIGHTING_SHADOW_GLOBALS_H
 
 #include "engine/core/types.h"
 
@@ -7,4 +7,4 @@
 // Distance multiplier for the shadow ray cast (number of light-direction steps).
 extern SLONG shadow_dist;
 
-#endif // ENGINE_LIGHTING_SHADOW_GLOBALS_H
+#endif // ENGINE_GRAPHICS_LIGHTING_SHADOW_GLOBALS_H

@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_NGAMUT_H
-#define ENGINE_LIGHTING_NGAMUT_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_NGAMUT_H
+#define ENGINE_GRAPHICS_LIGHTING_NGAMUT_H
 
 #include "engine/platform/uc_common.h"
 
@@ -36,4 +36,4 @@ void NGAMUT_calculate_lo_gamut(void);
 
 #include "ngamut_globals.h"
 
-#endif // ENGINE_LIGHTING_NGAMUT_H
+#endif // ENGINE_GRAPHICS_LIGHTING_NGAMUT_H

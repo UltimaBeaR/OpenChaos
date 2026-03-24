@@ -19,8 +19,8 @@
 
 #include "engine/graphics/geometry/mesh.h"
 
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"
 
 // Small Z offset applied to shadow quads to prevent Z-fighting with the floor.
 #define DC_SHADOW_Z_ADJUST 0.0001f

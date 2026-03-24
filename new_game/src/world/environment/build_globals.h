@@ -3,7 +3,7 @@
 
 // and everything else required by light.h and building.h.
 #include "missions/game_types.h"
-#include "engine/lighting/light.h"
+#include "engine/graphics/lighting/light.h"
 
 // Per-vertex lighting results for building primitives, indexed by prim point index.
 // Filled by LIGHT_building_use_normals; declared as extern in light.h.

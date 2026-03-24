@@ -8,10 +8,10 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/geometry/mesh.h"
-#include "engine/lighting/ngamut.h"
-#include "engine/lighting/ngamut_globals.h"
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"
+#include "engine/graphics/lighting/ngamut.h"
+#include "engine/graphics/lighting/ngamut_globals.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/pipeline/sky.h"
 #include "assets/compression.h"
 #include "assets/tga.h"
@@ -41,8 +41,8 @@
 #include "engine/animation/figure_globals.h"  // kludge_shrink
 #include "engine/graphics/graphics_api/gd_display.h"  // the_display
 #include "engine/graphics/geometry/shape.h"
-#include "engine/lighting/smap.h"
-#include "engine/lighting/smap_globals.h"
+#include "engine/graphics/lighting/smap.h"
+#include "engine/graphics/lighting/smap_globals.h"
 #include "engine/audio/sound.h"   // WORLD_TYPE_SNOW
 #include "engine/audio/sound_globals.h" // world_type
 #include "assets/anim_globals.h"  // estate

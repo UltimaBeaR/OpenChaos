@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_SHADOW_H
-#define ENGINE_LIGHTING_SHADOW_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_SHADOW_H
+#define ENGINE_GRAPHICS_LIGHTING_SHADOW_H
 
 #include "engine/core/types.h"
 
@@ -21,4 +21,4 @@ void SHADOW_do(void);
 // Uses a line-of-sight ray cast toward the fixed light direction.
 SLONG SHADOW_in(SLONG x, SLONG y, SLONG z);
 
-#endif // ENGINE_LIGHTING_SHADOW_H
+#endif // ENGINE_GRAPHICS_LIGHTING_SHADOW_H

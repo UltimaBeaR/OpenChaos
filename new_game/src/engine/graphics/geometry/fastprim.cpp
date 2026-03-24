@@ -15,8 +15,8 @@
 #include "world/environment/prim.h"          // get_prim_info
 #include "world/environment/building_types.h" // TEXTURE_PIECE_*
 #include "world/level_pools.h"
-#include "engine/lighting/night.h"
-#include "engine/lighting/night_globals.h"
+#include "engine/graphics/lighting/night.h"
+#include "engine/graphics/lighting/night_globals.h"
 
 // uc_orig: FASTPRIM_find_texture_from_page (fallen/DDEngine/Source/fastprim.cpp)
 LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)

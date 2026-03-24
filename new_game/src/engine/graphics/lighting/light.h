@@ -1,5 +1,5 @@
-#ifndef ENGINE_LIGHTING_LIGHT_H
-#define ENGINE_LIGHTING_LIGHT_H
+#ifndef ENGINE_GRAPHICS_LIGHTING_LIGHT_H
+#define ENGINE_GRAPHICS_LIGHTING_LIGHT_H
 
 #include "engine/core/types.h"
 #include "engine/core/vector.h" // GameCoord
@@ -164,4 +164,4 @@ inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specula
     *specular = (wred << 16) | (wgreen << 8) | (wblue << 0);
 }
 
-#endif // ENGINE_LIGHTING_LIGHT_H
+#endif // ENGINE_GRAPHICS_LIGHTING_LIGHT_H
