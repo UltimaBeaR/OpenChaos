@@ -2,7 +2,7 @@
 #include "engine/platform/wind_procs_globals.h"
 #include "engine/platform/uc_common.h"                            // must come before gd_display.h (which defines DisplayWidth macro)
 #include "engine/graphics/graphics_api/gd_display.h"     // the_display, hDDLibWindow
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 extern void MFX_QUICK_stop(void);
 

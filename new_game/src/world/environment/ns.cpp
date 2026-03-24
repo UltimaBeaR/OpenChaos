@@ -2,7 +2,7 @@
 // See ns.h for the full sewer system API.
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/ns.h"
 #include "world/environment/ns_globals.h"
 #include "engine/core/heap.h"

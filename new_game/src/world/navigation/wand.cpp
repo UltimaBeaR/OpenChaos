@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"              // ASSERT, base types
 #include "engine/core/macros.h"           // WITHIN, SATURATE, QDIST2
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/prim.h" // prim_get_collision_model
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"

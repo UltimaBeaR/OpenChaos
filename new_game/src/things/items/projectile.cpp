@@ -1,6 +1,6 @@
 #include <string.h>
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/items/projectile.h"
 #include "things/core/thing.h"
 #include "things/core/statedef.h"

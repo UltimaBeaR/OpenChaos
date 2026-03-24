@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/animals/bat_globals.h"
 #include "things/animals/bat.h"
 #include "things/characters/anim_ids.h"
@@ -10,12 +10,12 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "ai/mav.h"
 #include "world/navigation/wand.h"
-#include "effects/spark.h"
+#include "effects/combat/spark.h"
 #include "ai/pcom.h"
 #include "missions/memory.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/physics/collide.h"
-#include "effects/pyro.h"
+#include "effects/combat/pyro.h"
 #include "assets/level_loader.h"       // load_anim_prim_object
 #include "things/characters/person.h"  // set_person_dead, set_face_thing, set_person_recoil, set_person_float_up
 #include "assets/anim_globals.h"       // anim_chunk

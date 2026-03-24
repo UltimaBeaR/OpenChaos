@@ -2,7 +2,7 @@
 // The old calc_target_score/find_target functions are commented out in the original
 // and replaced by calc_target_score_new/find_target_new.
 
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/core/statedef.h"
 #include "ai/pcom.h"
 #include "missions/memory.h"

@@ -1,7 +1,7 @@
 #include "things/characters/thug.h"
 #include "things/characters/thug_globals.h"
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/animation/anim_types.h"      // GameKeyFrame
 #include "assets/anim_globals.h"               // game_chunk
 #include "things/characters/person.h"          // set_thing_velocity, health, set_anim

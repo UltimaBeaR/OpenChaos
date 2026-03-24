@@ -1,4 +1,4 @@
-#include "Game.h"
+#include "game/game_types.h"
 #include "missions/elev_globals.h"
 
 // Path to the last map file that was loaded. Stored so it can be reused on level restart.

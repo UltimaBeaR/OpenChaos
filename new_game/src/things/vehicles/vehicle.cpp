@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include "engine/platform/uc_common.h"            // base types, ASSERT
-#include "missions/game_types.h" // Game struct, TICK_RATIO, pool macros
+#include "game/game_types.h" // Game struct, TICK_RATIO, pool macros
 #include "engine/core/matrix.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/oval.h"
@@ -30,12 +30,12 @@
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
-#include "effects/pow.h"
-#include "effects/pow_globals.h"
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
-#include "effects/dirt.h"
-#include "effects/mist.h"
+#include "effects/combat/pow.h"
+#include "effects/combat/pow_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
+#include "effects/environment/dirt.h"
+#include "effects/weather/mist.h"
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
 #include "world/map/road.h"
@@ -44,7 +44,7 @@
 #include "missions/memory.h"
 #include "world/level_pools.h"
 #include "engine/audio/mfx.h"
-#include "effects/tracks.h"
+#include "effects/environment/tracks.h"
 #include "engine/effects/psystem.h"
 #include "things/vehicles/vehicle.h"
 #include "things/vehicles/vehicle_globals.h"

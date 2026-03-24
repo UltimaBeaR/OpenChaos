@@ -1,7 +1,7 @@
 #ifndef MISSIONS_ELEV_H
 #define MISSIONS_ELEV_H
 
-#include "Game.h"
+#include "game/game_types.h"
 #include "missions/elev_globals.h"
 
 // Parses a .ucm mission file and translates all EventPoints into EWAY waypoints.

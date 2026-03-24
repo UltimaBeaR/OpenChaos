@@ -119,20 +119,20 @@ set(SOURCES_NEW
     src/engine/graphics/postprocess/wibble_globals.cpp
     src/engine/graphics/text/truetype.cpp
     src/engine/graphics/text/truetype_globals.cpp
-    src/effects/fire.cpp
-    src/effects/fire_globals.cpp
-    src/effects/dirt.cpp
-    src/effects/dirt_globals.cpp
-    src/effects/mist.cpp
-    src/effects/mist_globals.cpp
-    src/effects/glitter.cpp
-    src/effects/glitter_globals.cpp
-    src/effects/spark.cpp
-    src/effects/spark_globals.cpp
-    src/effects/ribbon.cpp
-    src/effects/ribbon_globals.cpp
-    src/effects/drip.cpp
-    src/effects/drip_globals.cpp
+    src/effects/environment/fire.cpp
+    src/effects/environment/fire_globals.cpp
+    src/effects/environment/dirt.cpp
+    src/effects/environment/dirt_globals.cpp
+    src/effects/weather/mist.cpp
+    src/effects/weather/mist_globals.cpp
+    src/effects/combat/glitter.cpp
+    src/effects/combat/glitter_globals.cpp
+    src/effects/combat/spark.cpp
+    src/effects/combat/spark_globals.cpp
+    src/effects/environment/ribbon.cpp
+    src/effects/environment/ribbon_globals.cpp
+    src/effects/weather/drip.cpp
+    src/effects/weather/drip_globals.cpp
     src/engine/graphics/geometry/oval.cpp
     src/engine/graphics/geometry/oval_globals.cpp
     src/world/environment/build.cpp
@@ -149,8 +149,8 @@ set(SOURCES_NEW
     src/engine/graphics/graphics_api/display_globals.cpp
     src/engine/graphics/lighting/shadow.cpp
     src/engine/graphics/lighting/shadow_globals.cpp
-    src/effects/fog.cpp
-    src/effects/fog_globals.cpp
+    src/effects/weather/fog.cpp
+    src/effects/weather/fog_globals.cpp
     src/things/core/drawtype.cpp
     src/world/map/pap.cpp
     src/world/map/pap_globals.cpp
@@ -160,8 +160,8 @@ set(SOURCES_NEW
     src/engine/audio/music_globals.cpp
     src/engine/audio/soundenv.cpp
     src/engine/audio/soundenv_globals.cpp
-    src/effects/tracks.cpp
-    src/effects/tracks_globals.cpp
+    src/effects/environment/tracks.cpp
+    src/effects/environment/tracks_globals.cpp
     src/world/map/map.cpp
     src/world/map/map_globals.cpp
     src/engine/graphics/geometry/cone.cpp
@@ -222,8 +222,8 @@ set(SOURCES_NEW
     src/things/items/grenade_globals.cpp
     src/things/items/hook.cpp
     src/things/items/hook_globals.cpp
-    src/effects/pow.cpp
-    src/effects/pow_globals.cpp
+    src/effects/combat/pow.cpp
+    src/effects/combat/pow_globals.cpp
     src/engine/graphics/geometry/superfacet.cpp
     src/engine/graphics/geometry/superfacet_globals.cpp
     src/assets/level_loader.cpp
@@ -240,30 +240,28 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/shape_globals.cpp
     src/assets/texture.cpp
     src/assets/texture_globals.cpp
-    src/ui/cutscenes/outro/outro_tga.cpp
-    src/ui/cutscenes/outro/outro_matrix.cpp
-    src/ui/cutscenes/outro/outro_back.cpp
-    src/ui/cutscenes/outro/outro_back_globals.cpp
-    src/ui/cutscenes/outro/outro_cam.cpp
-    src/ui/cutscenes/outro/outro_cam_globals.cpp
-    src/ui/cutscenes/outro/outro_credits.cpp
-    src/ui/cutscenes/outro/outro_credits_globals.cpp
-    src/ui/cutscenes/outro/outro_font.cpp
-    src/ui/cutscenes/outro/outro_font_globals.cpp
-    src/ui/cutscenes/outro/outro_wire.cpp
-    src/ui/cutscenes/outro/outro_wire_globals.cpp
-    src/ui/cutscenes/outro/outro_main.cpp
-    src/ui/cutscenes/outro/outro_imp.cpp
-    src/ui/cutscenes/outro/outro_mf.cpp
-    src/ui/cutscenes/outro/outro_mf_globals.cpp
-    src/ui/cutscenes/outro/outro_os.cpp
-    src/ui/cutscenes/outro/outro_os_globals.cpp
+    src/outro/core/outro_tga.cpp
+    src/outro/core/outro_matrix.cpp
+    src/outro/outro_back.cpp
+    src/outro/outro_back_globals.cpp
+    src/outro/core/outro_cam.cpp
+    src/outro/core/outro_cam_globals.cpp
+    src/outro/outro_credits.cpp
+    src/outro/outro_credits_globals.cpp
+    src/outro/core/outro_font.cpp
+    src/outro/core/outro_font_globals.cpp
+    src/outro/outro_wire.cpp
+    src/outro/outro_wire_globals.cpp
+    src/outro/outro_main.cpp
+    src/outro/core/outro_imp.cpp
+    src/outro/core/outro_mf.cpp
+    src/outro/core/outro_mf_globals.cpp
+    src/outro/core/outro_os.cpp
+    src/outro/core/outro_os_globals.cpp
     src/ui/attract.cpp
     src/ui/attract_globals.cpp
     src/things/items/barrel.cpp
     src/things/items/barrel_globals.cpp
-    src/ui/menus/cnet.cpp
-    src/ui/menus/cnet_globals.cpp
     src/ai/combat.cpp
     src/ai/combat_globals.cpp
     src/world/environment/door.cpp
@@ -275,12 +273,13 @@ set(SOURCES_NEW
     src/ui/camera/fc_globals.cpp
     src/ui/frontend.cpp
     src/ui/frontend_globals.cpp
-    src/missions/game.cpp
-    src/missions/game_globals.cpp
+    src/game/game.cpp
+    src/game/game_globals.cpp
+    src/game/network_state_globals.cpp
     src/ui/menus/gamemenu.cpp
     src/ui/menus/gamemenu_globals.cpp
     src/things/items/guns.cpp
-    src/missions/main.cpp
+    src/game/startup.cpp
     src/ai/mav.cpp
     src/ai/mav_globals.cpp
     src/world/environment/ns.cpp
@@ -300,13 +299,13 @@ set(SOURCES_NEW
     src/things/items/projectile.cpp
     src/world/environment/plat.cpp
     src/world/environment/plat_globals.cpp
-    src/ui/cutscenes/playcuts.cpp
-    src/ui/cutscenes/playcuts_globals.cpp
+    src/missions/playcuts.cpp
+    src/missions/playcuts_globals.cpp
     src/world/environment/puddle.cpp
     src/world/environment/puddle_globals.cpp
-    src/effects/pyro.cpp
-    src/effects/pyro_globals.cpp
-    src/effects/glow.cpp
+    src/effects/combat/pyro.cpp
+    src/effects/combat/pyro_globals.cpp
+    src/effects/combat/glow.cpp
     src/engine/graphics/postprocess/bloom.cpp
     src/engine/graphics/postprocess/bloom_globals.cpp
     src/engine/graphics/pipeline/draw2d.cpp
@@ -339,10 +338,10 @@ set(SOURCES_NEW
     src/world/navigation/wand.cpp
     src/world/environment/ware.cpp
     src/world/environment/ware_globals.cpp
-    src/ui/controls.cpp
-    src/ui/controls_globals.cpp
-    src/ui/interfac.cpp
-    src/ui/interfac_globals.cpp
+    src/game/game_tick.cpp
+    src/game/game_tick_globals.cpp
+    src/game/input_actions.cpp
+    src/game/input_actions_globals.cpp
     src/ui/menus/widget.cpp
     src/ui/menus/widget_globals.cpp
     src/world/navigation/wmove.cpp

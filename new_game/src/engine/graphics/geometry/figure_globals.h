@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FIGURE_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_FIGURE_GLOBALS_H
 
-#include "missions/game.h"
+#include "game/game.h"
 #include "world/environment/prim_types.h"  // MAX_PRIM_OBJECTS, TomsPrimObject, Matrix33 (via fmatrix.h)
 #include "engine/animation/anim_types.h"  // BodyDef, GameKeyFrameElement, CMatrix33, etc.
 #include "engine/graphics/pipeline/poly.h" // POLY_Point

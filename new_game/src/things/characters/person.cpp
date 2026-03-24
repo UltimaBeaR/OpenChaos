@@ -3,7 +3,7 @@
 // helper queries, animation setters, and death-slide helpers.
 // (lines ~1-1757 of original Person.cpp)
 
-#include "missions/game_types.h"    // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
+#include "game/game_types.h"    // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
 #include "things/characters/cop.h"
 #include "things/characters/cop_globals.h"
 #include "things/characters/darci.h"
@@ -16,22 +16,20 @@
 #include "things/characters/anim_ids.h"
 #include "ai/combat.h"
 #include "assets/sound_id.h"
-#include "ui/menus/cnet.h"
-#include "ui/menus/cnet_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
 #include "missions/eway.h"
-#include "effects/spark.h"
-#include "effects/drip.h"
+#include "effects/combat/spark.h"
+#include "effects/weather/drip.h"
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"
 #include "world/map/pap_globals.h"
 #include "world/map/supermap.h"
 #include "world/environment/ns.h"
-#include "effects/dirt.h"
+#include "effects/environment/dirt.h"
 #include "things/items/hook.h"
 #include "things/items/hook_globals.h"
-#include "effects/tracks.h"
+#include "effects/environment/tracks.h"
 #include "engine/core/matrix.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
@@ -55,8 +53,8 @@
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 #include "assets/xlat_str.h"
-#include "effects/pow.h"
-#include "effects/pow_globals.h"
+#include "effects/combat/pow.h"
+#include "effects/combat/pow_globals.h"
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
@@ -71,10 +69,10 @@
 #include "things/characters/person_globals.h"
 #include "things/vehicles/vehicle.h"
 #include "things/vehicles/vehicle_globals.h"
-#include "effects/pyro_globals.h"
+#include "effects/combat/pyro_globals.h"
 #include "things/items/guns.h"
 #include "things/items/special.h"
-#include "effects/pyro.h"
+#include "effects/combat/pyro.h"
 #include "things/animals/bat.h"
 #include "things/items/barrel.h"
 #include "things/core/interact.h"
@@ -10430,7 +10428,7 @@ void fn_person_moveing(Thing* p_person)
 // chunk 10: set_person_ko_recoil..fn_person_gun (Person.cpp lines 13982–15728)
 // ===========================================================================
 
-#include "effects/tracks.h"
+#include "effects/environment/tracks.h"
 #include "things/items/hook.h"
 #include "world/environment/puddle.h"
 

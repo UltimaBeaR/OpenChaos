@@ -3,7 +3,7 @@
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display, hDDLibWindow
 #include "engine/platform/wind_procs.h"    // DDLibShellProc
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"                  // MFX_init, MFX_term (already migrated)
 #include "engine/platform/uc_common.h"                           // MFTime, SetupMemory, ResetMemory, MF_main

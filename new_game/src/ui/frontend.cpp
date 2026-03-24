@@ -8,8 +8,8 @@
 #include "ui/frontend_globals.h"
 
 #include "assets/xlat_str.h"
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -22,7 +22,7 @@
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
 #include "engine/audio/music.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 // Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
 #include "engine/audio/music.h"               // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code
@@ -35,13 +35,13 @@
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
 #include "engine/graphics/graphics_api/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
-#include "ui/interfac.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
-#include "ui/interfac_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
+#include "game/input_actions.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
+#include "game/input_actions_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
 #include "assets/startscr_globals.h"          // STARTSCR_mission
 #include "assets/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
 #include "world/map/supermap_globals.h"       // DONT_load
-#include "ui/controls_globals.h"              // allow_debug_keys
-#include "missions/game_globals.h"            // VIOLENCE
+#include "game/game_tick_globals.h"              // allow_debug_keys
+#include "game/game_globals.h"            // VIOLENCE
 
 extern void CopyBackground(UBYTE* image_data, IDirectDrawSurface4* surface);
 

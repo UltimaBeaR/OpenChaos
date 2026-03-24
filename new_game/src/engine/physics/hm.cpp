@@ -11,7 +11,7 @@
 #include "engine/graphics/pipeline/aeng.h"  // MSG_add
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
 #include "world/environment/prim.h"       // get_prim_info
 #include "engine/core/math.h"

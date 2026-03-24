@@ -2,7 +2,7 @@
 #define UI_HUD_OVERLAY_H
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 // uc_orig: OVERLAY_handle (fallen/Source/overlay.cpp)
 extern void OVERLAY_handle(void);

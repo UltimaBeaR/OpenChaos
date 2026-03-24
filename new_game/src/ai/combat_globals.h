@@ -1,7 +1,7 @@
 #ifndef AI_COMBAT_GLOBALS_H
 #define AI_COMBAT_GLOBALS_H
 
-#include "missions/game.h"
+#include "game/game.h"
 
 // Maximum pool size for GangAttack / history structs.
 // Reused LRU-style when the pool is full.

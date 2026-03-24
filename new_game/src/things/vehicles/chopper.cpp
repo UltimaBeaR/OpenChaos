@@ -2,14 +2,14 @@
 // Helicopter (CLASS_CHOPPER) — allocation, AI state machine, and flight physics.
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/core/interact.h"   // calc_sub_objects_position
 #include "things/core/statedef.h"
 #include "world/map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
-#include "effects/dirt.h"
+#include "effects/environment/dirt.h"
 #include "missions/eway.h"
 #include <stdio.h>
 

@@ -3,7 +3,7 @@
 #include "engine/platform/uc_common.h"
 #include "engine/core/math.h"             // SIN, COS lookup tables
 #include "engine/core/fixed_math.h"       // MUL64
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"
 
 #include "ai/mav.h"

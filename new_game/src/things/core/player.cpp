@@ -1,14 +1,12 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/characters/person.h"  // create_person
 #include "things/core/player.h"
 #include "things/core/player_globals.h"
 #include "things/core/statedef.h"
 #include "things/vehicles/furn.h"
-#include "ui/menus/cnet.h"
-#include "ui/menus/cnet_globals.h"
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
 
 // uc_orig: set_up_camera (fallen/Source/Player.cpp)
 extern void set_up_camera(Thing* t_camera, GameCoord* start_pos, Thing* track_thing);

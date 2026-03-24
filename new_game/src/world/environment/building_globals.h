@@ -4,7 +4,7 @@
 #include "engine/core/types.h"                        // SWORD, UWORD, SLONG, UBYTE, etc.
 #include "engine/core/vector.h"                       // SVector
 #include "world/environment/building_types.h"  // FBuilding, FStorey, FWall, FWindow, BuildingFacet, BuildingObject, BoundBox, TXTY, DXTXTY, TextureInfo, RoomID, MAX_*
-#include "world/environment/edmap.h"
+#include "world/map/map_constants.h"
 
 // uc_orig: edit_map (fallen/Source/Building.cpp)
 extern struct DepthStrip edit_map[EDIT_MAP_WIDTH][EDIT_MAP_DEPTH];

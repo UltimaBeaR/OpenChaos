@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/core/interact.h"   // calc_sub_objects_position
 #include "things/characters/anim_ids.h"
 #include "ai/mav.h"

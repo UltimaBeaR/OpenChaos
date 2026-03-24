@@ -3,7 +3,7 @@
 // Physics, movement, and state initialisation for Darci.
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 #include "world/map/pap_globals.h"

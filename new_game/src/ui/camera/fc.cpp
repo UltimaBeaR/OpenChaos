@@ -1,7 +1,7 @@
 // game.h must come first: MFStdLib.h declares extern DisplayWidth/DisplayHeight,
 // and gd_display.h redefines them as #define 640/480. Reversed order = syntax error.
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/physics/collide.h"     // LOS_FLAG_* constants
 #include "things/characters/anim_ids.h"
 #include "engine/core/fmatrix.h"

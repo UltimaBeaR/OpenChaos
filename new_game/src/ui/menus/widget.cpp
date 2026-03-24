@@ -10,8 +10,8 @@
 // DRAW2D_Box/Tri/Sprite migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
 // INPUT_MASK_*, and ShiftFlag is already in keyboard_globals.h.
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display.IsFullScreen()
 
 // Sound-to-wave ID mapping for widget events. Uses S_MENU_START/S_MENU_END from sound_id.h.

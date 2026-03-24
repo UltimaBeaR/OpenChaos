@@ -7,7 +7,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "things/core/thing.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 // uc_orig: FC_Cam (fallen/Headers/fc.h)
 typedef struct {

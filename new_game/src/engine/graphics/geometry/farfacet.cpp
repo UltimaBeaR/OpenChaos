@@ -1,6 +1,6 @@
 // Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "engine/graphics/pipeline/poly.h"

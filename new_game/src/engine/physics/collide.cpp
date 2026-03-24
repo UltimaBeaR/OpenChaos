@@ -2,11 +2,11 @@
 #include "engine/physics/collide_globals.h"
 
 #include "things/core/thing.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/map/pap_globals.h"
 #include "world/level_pools.h"
 #include "things/core/statedef.h"
-#include "world/environment/edmap.h"
+#include "world/map/map_constants.h"
 
 extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
@@ -45,8 +45,8 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "ai/combat.h"
 #include "world/navigation/inside2.h"
 #include "things/items/barrel.h"
-#include "effects/mist.h"
-#include "effects/dirt.h"
+#include "effects/weather/mist.h"
+#include "effects/environment/dirt.h"
 #include "ai/mav_globals.h"
 #include "ui/camera/fc.h"
 #include "things/animals/bat.h"

@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "assets/anim.h"
 #include "engine/core/memory.h"
 #include "things/characters/anim_ids.h"

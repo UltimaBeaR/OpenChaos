@@ -1,6 +1,6 @@
 // Must come before gd_display.h: game.h -> MFStdLib.h declares extern DisplayWidth/Height,
 // while gd_display.h redefines them as macros (#define 640/480). Wrong order causes syntax errors.
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/geometry/sky.h"

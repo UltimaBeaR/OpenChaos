@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "assets/anim_globals.h"   // next_prim_point, next_prim_face4
 #include "world/map/pap.h"
 #include "world/map/ob.h"
@@ -9,8 +9,8 @@
 #include "engine/audio/sound.h"
 #include "engine/core/math.h"
 #include "engine/core/fmatrix.h"
-#include "effects/dirt.h"
-#include "effects/pow.h"
+#include "effects/environment/dirt.h"
+#include "effects/combat/pow.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
 #include "world/environment/prim.h"       // slide_along_prim, get_prim_info
 #include "world/level_pools.h"
@@ -26,7 +26,7 @@
 #include "things/items/barrel.h"
 #include "engine/physics/collide.h"
 #include "ai/mav.h"
-#include "effects/pyro.h"
+#include "effects/combat/pyro.h"
 
 // Chopper prims not defined in prim.h but used in load_general_prims.
 // Both values are also defined locally in supermap.cpp.

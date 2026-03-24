@@ -1,7 +1,7 @@
 // Temporary includes — these modules are not yet migrated.
 // game.h pulls in the core game types (Thing, GameCoord, TICK_RATIO, etc.)
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/characters/person.h"  // set_face_thing
 #include "missions/eway.h"
 #include "world/map/ob.h"

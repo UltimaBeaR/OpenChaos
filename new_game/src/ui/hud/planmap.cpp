@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/map/pap_globals.h"
 #include "world/map/road.h"
 #include "ui/hud/planmap.h"

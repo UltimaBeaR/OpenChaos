@@ -1,7 +1,7 @@
 // In-game pause/won/lost menus rendered as an overlay during gameplay.
 // Menu type constants are private — only DO_* return codes leave this file.
 
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"

@@ -2,7 +2,7 @@
 #define AI_PCOM_H
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
 // ============================================================
 // PCOM — Person COMportment — NPC AI system

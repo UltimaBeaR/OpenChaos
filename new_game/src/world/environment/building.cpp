@@ -1,7 +1,7 @@
 // MAP_WIDTH, MAP_HEIGHT, FLOOR_HEIGHT_SHIFT, CLASS_BUILDING, DT_BUILDING, DT_NONE,
 // TO_THING, alloc_primary_thing, add_thing_to_map, and the Thing struct.
-#include "missions/game_types.h"
-#include "world/environment/edmap.h"
+#include "game/game_types.h"
+#include "world/map/map_constants.h"
 // Needed for PAP_SIZE_LO, PAP_Lo type (for clear_map2 which zeros PAP_lo array)
 #include "world/map/pap_globals.h"
 #include "assets/anim_globals.h"

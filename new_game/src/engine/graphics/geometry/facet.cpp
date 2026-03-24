@@ -4,7 +4,7 @@
 
 #include "engine/core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
 #include "engine/core/matrix.h"                     // MATRIX_calc
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
@@ -29,7 +29,7 @@
 #include "assets/texture.h"
 #include "world/environment/ware.h"          // WARE_Ware struct
 #include "world/environment/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
-#include "ui/controls_globals.h"             // allow_debug_keys
+#include "game/game_tick_globals.h"             // allow_debug_keys
 #include "ui/camera/fc_globals.h"            // FC_cam
 #include "engine/graphics/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
 #include "world/environment/prim_types.h"    // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4

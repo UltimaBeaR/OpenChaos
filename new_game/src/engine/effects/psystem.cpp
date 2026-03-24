@@ -4,14 +4,14 @@
 
 #include "engine/platform/uc_common.h"
 #include "things/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "ai/mav.h"
 #include "engine/core/fmatrix.h"          // FMATRIX_calc, FMATRIX_TRANSPOSE, FMATRIX_MUL
 #include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
 #include "engine/audio/sound.h"
 #include "ai/pcom.h"
-#include "effects/pow.h"
-#include "effects/pow_globals.h"
+#include "effects/combat/pow.h"
+#include "effects/combat/pow_globals.h"
 #include "things/characters/anim_ids.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"

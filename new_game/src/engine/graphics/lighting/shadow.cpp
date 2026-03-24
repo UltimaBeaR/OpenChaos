@@ -1,7 +1,7 @@
 #include "engine/graphics/lighting/shadow.h"
 #include "engine/graphics/lighting/shadow_globals.h"
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/map/pap_globals.h"
 #include "world/map/supermap.h"
 #include "ai/mav.h"

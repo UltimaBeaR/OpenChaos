@@ -1,6 +1,6 @@
 #include "engine/core/heap.h"
 #include "things/core/thing.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "world/map/ob.h"

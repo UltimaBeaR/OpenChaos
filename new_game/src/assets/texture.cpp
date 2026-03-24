@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include <string.h>
 #include <stdlib.h>
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
 #include "assets/anim_globals.h"   // next_prim_face3, next_prim_face4

@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "ui/camera/cam.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
@@ -14,7 +14,7 @@
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"
 #include "missions/eway.h"
-#include "ui/interfac.h"
+#include "game/input_actions.h"
 #include "assets/xlat_str.h"
 #include "ui/frontend.h"
 #include "things/core/statedef.h"

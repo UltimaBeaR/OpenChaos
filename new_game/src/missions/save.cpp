@@ -3,14 +3,14 @@
 // On save: walks all THING_array slots and emits a compressed or full record per thing class.
 // On load: restores all living things from the stream and rebuilds the linked lists.
 
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "missions/memory.h"
 #include "ai/pcom.h"
 #include "things/core/statedef.h"
 #include "missions/eway.h"
 #include "things/characters/anim_ids.h"
 #include "things/items/special.h"
-#include "effects/tracks.h"
+#include "effects/environment/tracks.h"
 
 #include "missions/save.h"
 #include "missions/save_globals.h"

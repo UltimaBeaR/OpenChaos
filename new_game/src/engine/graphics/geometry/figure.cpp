@@ -6,7 +6,7 @@
 #include "engine/graphics/geometry/figure_globals.h"
 
 // D3D, game types, and all subsystems needed throughout the original file.
-#include "missions/game.h"
+#include "game/game.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
@@ -16,11 +16,11 @@
 #include "engine/core/matrix.h"
 #include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/mesh.h"
-#include "effects/dirt.h"
+#include "effects/environment/dirt.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"  // alt_texture
 #include <math.h>
-#include "ui/interfac.h"
+#include "game/input_actions.h"
 #include "things/core/hierarchy.h"
 #include "engine/core/quaternion.h"
 #include "missions/memory.h"

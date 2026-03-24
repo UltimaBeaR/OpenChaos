@@ -13,12 +13,12 @@
 #include "things/characters/person_types.h"  // Person, PersonPtr
 #include "things/animals/animal.h"     // Animal, AnimalPtr
 #include "things/vehicles/chopper.h"   // Chopper, ChopperPtr
-#include "effects/pyro.h"              // Pyro, PyroPtr
+#include "effects/combat/pyro.h"              // Pyro, PyroPtr
 #include "things/core/player.h"        // Player, PlayerPtr
 #include "things/items/projectile.h"   // Projectile, ProjectilePtr
 #include "things/items/special.h"      // Special, SpecialPtr
 #include "things/core/switch.h"        // Switch, SwitchPtr
-#include "effects/tracks.h"            // Track, TrackPtr
+#include "effects/environment/tracks.h"            // Track, TrackPtr
 #include "world/environment/plat.h"    // Plat, PlatPtr
 #include "things/items/barrel.h"       // Barrel, BarrelPtr
 #include "things/animals/bat.h"        // Bat, BatPtr

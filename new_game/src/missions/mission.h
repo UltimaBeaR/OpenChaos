@@ -5,7 +5,7 @@
 // all waypoint/trigger/entity spawn type constants, and the mission management API.
 // This is the core data model for the EWAY scripting engine.
 
-#include "engine/core/types.h"
+#include "engine/platform/uc_common.h"  // BOOL, _MAX_PATH, base types
 
 //-----------------------------------------------------------------------------
 // EventPoint — a scripted game event placed in the level editor.

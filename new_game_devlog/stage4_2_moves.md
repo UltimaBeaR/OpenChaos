@@ -25,3 +25,15 @@
 | `engine/graphics/resources/d3d_texture.*` | `engine/graphics/graphics_api/d3d_texture.*` | Чистый D3D |
 | `engine/graphics/graphics_api/host.*` | `engine/platform/host.*` | Создание окна, не graphics API |
 | `engine/animation/figure.*` | `engine/graphics/geometry/figure.*` | D3D рендерер мешей, не анимация |
+| `missions/main.cpp` | `game/startup.cpp` | Точка входа игры, не миссия |
+| `missions/game.*` | `game/game.*` | Game loop, не миссия |
+| `missions/game_types.h` | `game/game_types.h` | Game struct, не миссия |
+| `missions/game_globals.*` | `game/game_globals.*` | Globals для game |
+| `ui/controls.*` | `game/game_tick.*` | Per-frame game dispatcher (переименован) |
+| `ui/interfac.*` | `game/input_actions.*` | Input→action mapping (переименован) |
+| `ui/cutscenes/playcuts.*` | `missions/playcuts.*` | Кат-сцены вызываются из EWAY |
+| `ui/cutscenes/outro/* (движок)` | `outro/core/*` | Движок титров |
+| `ui/cutscenes/outro/* (контент)` | `outro/*` | Контент титров |
+| `world/environment/edmap.h` | `world/map/map_constants.h` | Map constants, не editor (переименован) |
+| `effects/*` | `effects/{weather,combat,environment}/*` | Группировка эффектов по типу |
+| `ui/menus/cnet.*` | **удалён** | Сетевая заглушка. CNET_* globals → game/network_state_globals |

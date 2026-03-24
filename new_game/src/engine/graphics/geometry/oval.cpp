@@ -1,5 +1,5 @@
 #include <math.h>
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "ai/mav.h"
 #include "engine/graphics/geometry/oval.h"
 #include "engine/graphics/geometry/oval_globals.h"

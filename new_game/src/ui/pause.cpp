@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "assets/xlat_str.h"
 #include "engine/input/keyboard.h"
 #include "ui/pause.h"

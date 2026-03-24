@@ -1,4 +1,4 @@
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/building_globals.h" // building_objects[], building_facets[]
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"

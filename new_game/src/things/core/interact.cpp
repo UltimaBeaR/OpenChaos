@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "things/core/thing.h"   // pool types
-#include "missions/game_types.h" // Game struct, TICK_RATIO, PEOPLE, etc.
+#include "game/game_types.h" // Game struct, TICK_RATIO, PEOPLE, etc.
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "world/environment/ns.h"

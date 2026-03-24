@@ -13,4 +13,16 @@
 
 `collide.cpp` содержит collision response завязанный на UC-геймплей. Общий collision detection — engine, UC-специфичный response — game-слой.
 
+### Инвертировать зависимость engine → game в цепочке запуска
+
+Сейчас: `main.cpp → engine/platform/host.cpp → game/startup.cpp → game/game.cpp`
+Engine напрямую вызывает game (HOST_run → MF_main) — нарушение DAG.
+
+Правильно: game регистрирует свой entry point (callback) в engine во время setup,
+engine вызывает его когда готов. Зависимость: game → engine, не наоборот.
+
+### Переписать outro на основном движке
+
+`outro/core/` — самодостаточный мини-движок финальных титров (свой рендерер, матрицы, шрифт, TGA-лоадер, камера). Дубликаты движковых систем. Заменить на вызовы основного engine.
+
 > **Примечание:** задачи по разделению D3D и разбиению `uc_common.h` перенесены в пре-стадию [этапа 7](stage7.md) — они необходимы до замены рендерера.

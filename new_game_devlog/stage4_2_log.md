@@ -38,9 +38,12 @@
 
 Разбить/объединить файлы где оправдано.
 
-### Шаг 4 — Аудит правил Этапа 4
+### Шаг 4 — Финализация
 
-Глобалки → `_globals`, `uc_orig`, DAG, include guards.
+- Обновить `entity_mapping.json` — пути изменились после перемещений
+- Обновить `stage4_2_files.md` — описания файлов (новые пути, новые имена)
+- Обновить скиллы `.claude/skills/stage4-migrate/SKILL.md` — Target Structure
+- Аудит: глобалки → `_globals`, `uc_orig`, DAG, include guards
 
 ---
 
@@ -121,3 +124,16 @@
 - `engine/animation/figure.*` (4 файла) → `engine/graphics/geometry/`
 - D3D рендерер мешей персонажей — аналог mesh.cpp, не анимационная логика
 - morph + anim_types остаются в animation/ (чистая анимация, не рендеринг)
+
+### Итерация 7 — game-layer реструктуризация (2026-03-25)
+
+Большой батч: новые top-level модули, перемещения, удаления, группировка.
+
+- Новый `game/`: startup.cpp (из missions/main), game.* + game_types (из missions/), game_tick (из ui/controls), input_actions (из ui/interfac)
+- Новый `outro/`: финальные титры выделены из ui/cutscenes/outro/. core/ = движок, корень = контент
+- `playcuts.*` из ui/cutscenes/ → missions/ (вызывается из EWAY)
+- `edmap.h` → `world/map/map_constants.h` (переименование, map constants а не editor)
+- `effects/` сгруппированы: weather/ (fog, mist, drip), combat/ (spark, glitter, pow, pyro, glow), environment/ (fire, dirt, tracks, ribbon)
+- `cnet` удалён (сетевая заглушка). CNET_* globals сохранены как `game/network_state_globals.*`
+- CNET_configure() вызов в game.cpp заменён на прямое `GAME_STATE = GS_ATTRACT_MODE`
+- Транзитивные include breakages: elev*.h/.cpp нуждались в `game/game_types.h` (было через Game.h), mission.h нуждался в uc_common.h (для _MAX_PATH)

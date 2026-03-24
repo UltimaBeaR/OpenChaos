@@ -3,7 +3,7 @@
 // and .tma texture style tables.
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "assets/mapthing.h"
 #include "world/map/pap_globals.h"
 #include "world/map/ob.h"

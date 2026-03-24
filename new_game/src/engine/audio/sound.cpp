@@ -1,7 +1,5 @@
-#include "missions/game_types.h"
+#include "game/game_types.h"
 
-#include "ui/menus/cnet.h"
-#include "ui/menus/cnet_globals.h"       // CNET_player_id
 #include "engine/audio/sound.h"
 #include "engine/platform/uc_common.h"
 #include "world/map/pap.h"

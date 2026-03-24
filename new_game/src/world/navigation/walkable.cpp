@@ -4,7 +4,7 @@
 // All quads are treated as 10% larger than actual geometry for collision tolerance.
 
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "world/navigation/walkable.h"

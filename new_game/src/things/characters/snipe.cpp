@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include "things/characters/snipe.h"
 #include "things/characters/snipe_globals.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/items/guns.h"
 #include "ai/combat.h"
 

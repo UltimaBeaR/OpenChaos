@@ -1,7 +1,7 @@
 #ifndef AI_PCOM_GLOBALS_H
 #define AI_PCOM_GLOBALS_H
 
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "ai/pcom.h"
 
 // uc_orig: PCOM_ai_state_name (fallen/Source/pcom.cpp)

@@ -1,6 +1,6 @@
 #include "things/core/drawtype.h"
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/level_pools.h"
 
 // Sentinel value stored in DrawMesh.Angle to mark the slot as free.

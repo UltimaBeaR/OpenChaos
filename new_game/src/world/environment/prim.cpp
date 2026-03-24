@@ -27,7 +27,7 @@
 #include "world/environment/prim_types.h"     // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
 #include "world/environment/building_types.h" // BoundBox, MAX_BUILDINGS, STOREY_TYPE_*, FACET_FLAG_*
 #include "world/map/supermap.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/building_globals.h" // end_prim_point, end_prim_face4, end_prim_face3, end_prim_object, end_prim_multi_object, building_list, building_facets
 #include "assets/anim_globals.h"
 #include "engine/graphics/pipeline/aeng.h"

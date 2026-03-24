@@ -1,6 +1,6 @@
 #include "things/items/special_globals.h"
 #include "world/environment/prim_types.h" // PRIM_OBJ_ITEM_* constants
-#include "effects/dirt.h"
+#include "effects/environment/dirt.h"
 
 // uc_orig: SPECIAL_info (fallen/Source/Special.cpp)
 SPECIAL_Info SPECIAL_info[SPECIAL_NUM_TYPES] = {

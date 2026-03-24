@@ -27,8 +27,6 @@
 
 #include "missions/eway.h"
 
-#include "ui/menus/cnet.h"
-#include "ui/menus/cnet_globals.h"
 
 // FC_cam[] for compass bearing calculation in PANEL_last
 #include "ui/camera/fc.h"

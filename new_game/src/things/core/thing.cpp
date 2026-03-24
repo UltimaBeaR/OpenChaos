@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "things/core/thing.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "things/core/thing_globals.h"
 // functions (add_thing_to_map etc). Pre-existing coupling from original Thing.cpp.
 #include "world/map/pap.h"
@@ -9,10 +9,8 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/audio/mfx.h"
 #include "engine/input/keyboard_globals.h"  // Keys[] (volatile UBYTE[256])
-#include "ui/menus/cnet.h"
-#include "ui/menus/cnet_globals.h"
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
 #include "things/core/statedef.h"
 
 // Forward declarations for external functions not yet migrated.

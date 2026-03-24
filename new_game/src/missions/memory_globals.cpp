@@ -2,7 +2,7 @@
 // Global variable definitions for the game-level memory allocation system.
 
 #include "things/core/thing.h"         // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
-#include "missions/game_types.h"      // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
+#include "game/game_types.h"      // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "world/navigation/wmove.h"
@@ -19,7 +19,7 @@
 #include "world/map/road_globals.h"
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
-#include "effects/tracks.h"
+#include "effects/environment/tracks.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 #include "world/environment/tripwire.h"
@@ -29,8 +29,8 @@
 #include "things/animals/bat.h"
 #include "world/environment/door.h"
 #include "world/environment/door_globals.h"
-#include "ui/cutscenes/playcuts.h"
-#include "ui/cutscenes/playcuts_globals.h"
+#include "missions/playcuts.h"
+#include "missions/playcuts_globals.h"
 #include "engine/audio/sound.h"
 
 #include "missions/memory_globals.h"

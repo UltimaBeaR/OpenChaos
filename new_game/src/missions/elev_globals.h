@@ -1,7 +1,7 @@
 #ifndef MISSIONS_ELEV_GLOBALS_H
 #define MISSIONS_ELEV_GLOBALS_H
 
-#include "Game.h"
+#include "game/game_types.h"
 #include "missions/mission.h"
 #include "missions/mission_globals.h"
 

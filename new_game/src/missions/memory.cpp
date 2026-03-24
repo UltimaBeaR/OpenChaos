@@ -3,7 +3,7 @@
 // First chunk: globals init, level memory table, pointer/index conversion, anim serialization.
 
 #include "things/core/thing.h"         // pool types (Vehicle, Person, etc.)
-#include "missions/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
+#include "game/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
 #include "world/environment/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
 #include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
 #include "assets/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
@@ -28,7 +28,7 @@
 #include "world/map/road_globals.h"
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
-#include "effects/tracks.h"
+#include "effects/environment/tracks.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
 #include "world/environment/tripwire.h"
@@ -39,9 +39,9 @@
 #include "things/animals/bat.h"
 #include "world/environment/door.h"
 #include "world/environment/door_globals.h"
-#include "effects/spark.h"
-#include "ui/cutscenes/playcuts.h"
-#include "ui/cutscenes/playcuts_globals.h"
+#include "effects/combat/spark.h"
+#include "missions/playcuts.h"
+#include "missions/playcuts_globals.h"
 #include "things/core/statedef.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/audio/sound.h"

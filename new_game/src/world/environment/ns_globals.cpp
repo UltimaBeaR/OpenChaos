@@ -1,4 +1,4 @@
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/ns_globals.h"
 #include "engine/core/heap.h"
 

@@ -29,8 +29,8 @@
 struct Thing;
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
 
 extern CBYTE DATA_DIR[];
 

@@ -2,7 +2,7 @@
 // `extern SLONG DisplayWidth/DisplayHeight` which must precede gd_display.h's
 // `#define DisplayWidth 640` / `#define DisplayHeight 480`.
 #include "engine/platform/uc_common.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/postprocess/wibble.h"
 #include "engine/graphics/postprocess/wibble_globals.h"
 #include "engine/graphics/graphics_api/gd_display.h"

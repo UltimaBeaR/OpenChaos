@@ -3,7 +3,7 @@
 // Physics states: STACKED (dormant, on another barrel) → STILL (dormant, on ground) → moving (active).
 // Types: NORMAL (explodes), CONE (small, no stack), BURNING (starts on fire), BIN (rubbish+cans).
 
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "world/environment/prim.h"    // get_prim_info
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
@@ -17,10 +17,10 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "missions/eway.h"
 #include "engine/audio/sound.h"
-#include "effects/pow.h"
-#include "effects/dirt.h"
+#include "effects/combat/pow.h"
+#include "effects/environment/dirt.h"
 #include "ui/hud/panel.h"
-#include "effects/pyro.h"
+#include "effects/combat/pyro.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
 #include "engine/physics/collide.h"          // create_shockwave
 

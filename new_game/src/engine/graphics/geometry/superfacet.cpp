@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -8,8 +8,8 @@
 #include "engine/graphics/lighting/night_globals.h"
 #include "world/map/supermap.h"
 #include "world/level_pools.h"
-#include "ui/interfac.h"
-#include "ui/interfac_globals.h"
+#include "game/input_actions.h"
+#include "game/input_actions_globals.h"
 #include "engine/core/matrix.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/geometry/superfacet_globals.h"

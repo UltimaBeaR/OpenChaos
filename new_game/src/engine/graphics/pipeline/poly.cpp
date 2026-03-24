@@ -16,7 +16,7 @@
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
-#include "missions/game_types.h"
+#include "game/game_types.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "missions/eway.h"
