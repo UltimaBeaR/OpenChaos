@@ -6,7 +6,7 @@
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ui/hud/panel.h"
-#include "assets/startscr.h"
+#include "ui/frontend/startscr.h"
 #define DEMO
 #include "ui/frontend/attract.h"
 #include "engine/io/env.h"

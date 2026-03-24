@@ -214,8 +214,8 @@ set(SOURCES_NEW
     src/things/vehicles/chopper_globals.cpp
     src/things/vehicles/vehicle.cpp
     src/things/vehicles/vehicle_globals.cpp
-    src/assets/startscr.cpp
-    src/assets/startscr_globals.cpp
+    src/ui/frontend/startscr.cpp
+    src/ui/frontend/startscr_globals.cpp
     src/things/items/balloon.cpp
     src/things/items/balloon_globals.cpp
     src/things/items/grenade.cpp
@@ -262,8 +262,8 @@ set(SOURCES_NEW
     src/ui/frontend/attract_globals.cpp
     src/things/items/barrel.cpp
     src/things/items/barrel_globals.cpp
-    src/ai/combat.cpp
-    src/ai/combat_globals.cpp
+    src/combat/combat.cpp
+    src/combat/combat_globals.cpp
     src/world_objects/door.cpp
     src/world_objects/door_globals.cpp
 
@@ -278,7 +278,7 @@ set(SOURCES_NEW
     src/game/network_state_globals.cpp
     src/ui/menus/gamemenu.cpp
     src/ui/menus/gamemenu_globals.cpp
-    src/things/items/guns.cpp
+    src/shooting/guns.cpp
     src/game/startup.cpp
     src/ai/mav.cpp
     src/ai/mav_globals.cpp
@@ -296,7 +296,7 @@ set(SOURCES_NEW
     src/ui/menus/pause.cpp
     src/ai/pcom.cpp
     src/ai/pcom_globals.cpp
-    src/things/items/projectile.cpp
+    src/shooting/projectile.cpp
     src/world_objects/plat.cpp
     src/world_objects/plat_globals.cpp
     src/missions/playcuts.cpp

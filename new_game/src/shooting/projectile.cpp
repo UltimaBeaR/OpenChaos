@@ -1,7 +1,7 @@
 #include <string.h>
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "things/items/projectile.h"
+#include "shooting/projectile.h"
 #include "things/core/thing.h"
 #include "things/core/statedef.h"
 

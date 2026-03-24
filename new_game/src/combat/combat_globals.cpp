@@ -1,4 +1,4 @@
-#include "ai/combat_globals.h"
+#include "combat/combat_globals.h"
 #include "things/characters/anim_ids.h"
 
 // uc_orig: fight_tree (fallen/Source/Combat.cpp)

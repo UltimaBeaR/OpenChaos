@@ -1,5 +1,5 @@
-#ifndef AI_COMBAT_GLOBALS_H
-#define AI_COMBAT_GLOBALS_H
+#ifndef COMBAT_COMBAT_GLOBALS_H
+#define COMBAT_COMBAT_GLOBALS_H
 
 #include "game/game.h"
 
@@ -97,4 +97,4 @@ extern THING_INDEX found[16];
 // uc_orig: gang_attacks (fallen/Headers/combat.h)
 extern struct GangAttack gang_attacks[MAX_HISTORY];
 
-#endif // AI_COMBAT_GLOBALS_H
+#endif // COMBAT_COMBAT_GLOBALS_H

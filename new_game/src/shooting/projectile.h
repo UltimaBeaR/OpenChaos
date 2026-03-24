@@ -1,5 +1,5 @@
-#ifndef THINGS_ITEMS_PROJECTILE_H
-#define THINGS_ITEMS_PROJECTILE_H
+#ifndef SHOOTING_PROJECTILE_H
+#define SHOOTING_PROJECTILE_H
 
 #include "engine/core/types.h"
 
@@ -38,4 +38,4 @@ Thing* alloc_projectile(UBYTE type);
 // uc_orig: free_projectile (fallen/Source/Pjectile.cpp)
 void free_projectile(Thing* proj_thing);
 
-#endif // THINGS_ITEMS_PROJECTILE_H
+#endif // SHOOTING_PROJECTILE_H

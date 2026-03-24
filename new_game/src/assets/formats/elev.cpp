@@ -81,7 +81,7 @@
 #include "things/core/statedef.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
-#include "assets/startscr_globals.h"    // STARTSCR_mission
+#include "ui/frontend/startscr_globals.h"    // STARTSCR_mission
 #include "things/core/thing_globals.h"  // playback_file
 #include "things/characters/person.h"  // init_persons
 #include "engine/console/console.h" // CONSOLE_clear

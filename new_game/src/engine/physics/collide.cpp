@@ -42,7 +42,7 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "map/ob_globals.h"
 #include "things/vehicles/vehicle.h"
 #include "ai/pcom.h"
-#include "ai/combat.h"
+#include "combat/combat.h"
 #include "navigation/inside2.h"
 #include "things/items/barrel.h"
 #include "effects/weather/mist.h"

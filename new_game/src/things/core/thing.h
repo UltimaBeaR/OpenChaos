@@ -15,7 +15,7 @@
 #include "things/vehicles/chopper.h"   // Chopper, ChopperPtr
 #include "effects/combat/pyro.h"              // Pyro, PyroPtr
 #include "things/core/player.h"        // Player, PlayerPtr
-#include "things/items/projectile.h"   // Projectile, ProjectilePtr
+#include "shooting/projectile.h"   // Projectile, ProjectilePtr
 #include "things/items/special.h"      // Special, SpecialPtr
 #include "things/core/switch.h"        // Switch, SwitchPtr
 #include "effects/environment/tracks.h"            // Track, TrackPtr

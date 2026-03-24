@@ -8,7 +8,7 @@
 #include "missions/memory.h"
 #include "navigation/wmove.h"
 #include "things/characters/anim_ids.h"
-#include "things/items/guns.h"
+#include "shooting/guns.h"
 #include "things/characters/person.h"  // can_a_see_b
 #include "engine/physics/collide.h"    // LOS_FLAG_IGNORE_PRIMS
 

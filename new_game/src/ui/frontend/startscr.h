@@ -1,5 +1,5 @@
-#ifndef ASSETS_STARTSCR_H
-#define ASSETS_STARTSCR_H
+#ifndef UI_FRONTEND_STARTSCR_H
+#define UI_FRONTEND_STARTSCR_H
 
 #include "engine/platform/uc_common.h"
 
@@ -68,4 +68,4 @@ typedef void (*MISSION_callback)(CBYTE* filename);
 // uc_orig: MissionListCallback (fallen/Headers/startscr.h)
 void MissionListCallback(CBYTE* script, MISSION_callback cb);
 
-#endif // ASSETS_STARTSCR_H
+#endif // UI_FRONTEND_STARTSCR_H

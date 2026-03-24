@@ -6,8 +6,8 @@
 #include "ai/pcom.h"
 #include "ai/pcom_globals.h"
 #include "ai/mav.h"
-#include "ai/combat.h"
-#include "ai/combat_globals.h"
+#include "combat/combat.h"
+#include "combat/combat_globals.h"
 #include "missions/eway.h"
 #include "map/level_pools.h"
 #include "buildings/prim.h"    // get_prim_info
@@ -1315,7 +1315,7 @@ extern void set_person_arrest(Thing* p_person, SLONG who_to_arrest);
 extern SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b);
 
 // uc_orig: get_gangattack (fallen/Source/Combat.cpp)  [declared in ai/combat.h]
-// already declared via #include "ai/combat.h"
+// already declared via #include "combat/combat.h"
 
 // Halt the person in place and set move state to STILL.
 // uc_orig: PCOM_set_person_move_still (fallen/Source/pcom.cpp)

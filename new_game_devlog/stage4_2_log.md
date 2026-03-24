@@ -159,3 +159,12 @@
 - `underground/ns` → `map/sewers` (канализация = слой карты, переименование ns→sewers, underground/ удалена)
 - `ui/frontend.*` + `ui/attract.*` → `ui/frontend/` (связаны, attract вызывает FRONTEND_loop)
 - `ui/pause.*` → `ui/menus/` (рядом с gamemenu, оба про паузу)
+
+### Итерация 10 — combat → top-level (2026-03-25)
+
+- `ai/combat.*` → `combat/` — общая боевая система для всех персонажей (не только AI, игрок тоже)
+
+### Итерация 11 — shooting → top-level (2026-03-25)
+
+- `things/items/guns.*` → `shooting/` — система наведения/auto-aim, общая для игрока и NPC
+- `things/items/projectile.*` → `shooting/` — пул снарядов, часть системы стрельбы

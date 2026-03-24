@@ -37,8 +37,8 @@
 #include "engine/graphics/graphics_api/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
 #include "game/input_actions.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
 #include "game/input_actions_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
-#include "assets/startscr_globals.h"          // STARTSCR_mission
-#include "assets/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
+#include "ui/frontend/startscr_globals.h"          // STARTSCR_mission
+#include "ui/frontend/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
 #include "map/supermap_globals.h"       // DONT_load
 #include "game/game_tick_globals.h"              // allow_debug_keys
 #include "game/game_globals.h"            // VIOLENCE

@@ -1,8 +1,8 @@
-#ifndef AI_COMBAT_H
-#define AI_COMBAT_H
+#ifndef COMBAT_COMBAT_H
+#define COMBAT_COMBAT_H
 
 #include "game/game.h"
-#include "ai/combat_globals.h"
+#include "combat/combat_globals.h"
 
 // Hit type constants: identify the kind of hit that landed.
 // H/M/L = High/Mid/Low -- determines which recoil animation the victim plays.
@@ -141,4 +141,4 @@ Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG 
 // uc_orig: is_person_under_attack (fallen/Source/Combat.cpp)
 Thing* is_person_under_attack(Thing* p_person);
 
-#endif // AI_COMBAT_H
+#endif // COMBAT_COMBAT_H

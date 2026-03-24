@@ -108,8 +108,14 @@ src/
 │
 ├── ai/                     — NPC behavior
 │   ├── mav.*               — A* pathfinding on 128x128 nav grid
-│   ├── pcom.*              — NPC AI: timing, navigation, gang management, alerts
-│   └── combat.*            — Melee/ranged hit resolution, fight-tree combos
+│   └── pcom.*              — NPC AI: timing, navigation, gang management, alerts
+│
+├── combat/                 — Melee combat system (all characters, player included)
+│   └── combat.*            — Hit resolution, fight-tree combos, blocking
+│
+├── shooting/               — Ranged combat system
+│   ├── guns.*              — Auto-aim scoring, target selection
+│   └── projectile.*        — Projectile pool, alloc/free
 │
 ├── missions/               — Mission system
 │   ├── eway.*              — EWAY scripting engine (42 conditions, 52 actions)
@@ -127,14 +133,13 @@ src/
 │   │   ├── anim_tmap.*     — Animated UV texture maps (tmap.ani)
 │   │   ├── level_loader.*  — Level resource loading (.tma style-tables)
 │   │   ├── elev.*          — Level loader: parse .ucm mission files
-│   │   └── mapthing.h      — PSX map thing structs
+│   │   └── mapthing.h      — Map thing structs for level file parsing
 │   ├── texture.*           — D3D texture page management
 │   ├── sound_id.*          — Sound filename enum (Waves)
-│   ├── xlat_str.*          — Localization string system
-│   └── startscr.*          — Start screen menu data
+│   └── xlat_str.*          — Localization string system
 │
 ├── ui/                     — User interface
-│   ├── frontend/           — Main menu: mission select, briefing, attract mode
+│   ├── frontend/           — Main menu: mission select, briefing, attract mode, start screen data
 │   ├── hud/                — Panel (health, inventory), overlay (tracking, popups), planmap, eng_map
 │   └── menus/              — Widget/Form GUI framework, gamemenu (pause/won/lost), pause overlay
 │

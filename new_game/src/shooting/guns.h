@@ -1,5 +1,5 @@
-#ifndef THINGS_ITEMS_GUNS_H
-#define THINGS_ITEMS_GUNS_H
+#ifndef SHOOTING_GUNS_H
+#define SHOOTING_GUNS_H
 
 // Gun targeting system: auto-aim scoring and target selection.
 // Used by both player (calc_target_score_new/find_target_new) and NPCs.
@@ -36,4 +36,4 @@ SLONG calc_snipe_target_score(Thing* p_person, Thing* p_target);
 // uc_orig: find_snipe_target (fallen/Source/guns.cpp)
 THING_INDEX find_snipe_target(Thing* p_person);
 
-#endif // THINGS_ITEMS_GUNS_H
+#endif // SHOOTING_GUNS_H

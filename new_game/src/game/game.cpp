@@ -121,7 +121,7 @@
 #include "engine/input/joystick.h"  // GetInputDevice, JOYSTICK
 #include "engine/input/joystick_globals.h"
 
-#include "assets/startscr.h"        // (transitively)
+#include "ui/frontend/startscr.h"        // (transitively)
 
 #include <math.h>
 #include <string.h>  // strstr

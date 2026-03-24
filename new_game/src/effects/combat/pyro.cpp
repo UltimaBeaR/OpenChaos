@@ -16,7 +16,7 @@
 #include "ai/pcom.h"
 #include "ui/menus/gamemenu.h"
 #include "things/characters/anim_ids.h"
-#include "ai/combat.h"
+#include "combat/combat.h"
 #include "things/core/interact.h"      // calc_sub_objects_position
 #include "things/characters/person.h"  // set_person_dead, knock_person_down
 #include "engine/graphics/pipeline/poly.h"

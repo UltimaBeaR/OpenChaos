@@ -1,4 +1,4 @@
-#include "ai/combat.h"
+#include "combat/combat.h"
 
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"            // track_enemy (already migrated)
