@@ -1,5 +1,5 @@
 #include "engine/core/heap.h"
-#include "actors/core/thing.h"
+#include "things/core/thing.h"
 #include "missions/game_types.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"

@@ -1,0 +1,6 @@
+#ifndef THINGS_VEHICLES_CHOPPER_GLOBALS_H
+#define THINGS_VEHICLES_CHOPPER_GLOBALS_H
+
+#include "things/vehicles/chopper.h"
+
+#endif // THINGS_VEHICLES_CHOPPER_GLOBALS_H

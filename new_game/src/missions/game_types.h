@@ -18,7 +18,7 @@
 
 // game_types.h is self-sufficient: pulls in all pool type definitions via thing.h.
 // This avoids the need for callers to include thing.h before game_types.h.
-#include "actors/core/thing.h"
+#include "things/core/thing.h"
 
 // Draw distance: number of map tiles rendered in each direction from the player.
 // PC value is 22; original PSX value was 13.

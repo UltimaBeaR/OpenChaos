@@ -6,7 +6,7 @@
 // CAM_MORE_IN=0.75F: PC camera is 25% closer to the player than the PSX version.
 
 #include "engine/platform/platform.h"
-#include "actors/core/thing.h"
+#include "things/core/thing.h"
 #include "missions/game_types.h"
 
 // uc_orig: FC_Cam (fallen/Headers/fc.h)

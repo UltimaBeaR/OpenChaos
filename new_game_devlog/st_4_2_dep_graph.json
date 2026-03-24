@@ -6,733 +6,7 @@
     "edge_count": 2963
   },
   "graph": {
-    "actors/animals/animal.cpp": [
-      "actors/animals/animal.h",
-      "actors/animals/animal_globals.h",
-      "actors/core/statedef.h",
-      "assets/anim_globals.h",
-      "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/animals/animal.h": [
-      "actors/core/state.h",
-      "engine/core/types.h",
-      "engine/core/vector.h"
-    ],
-    "actors/animals/animal_globals.cpp": [
-      "actors/animals/animal_globals.h"
-    ],
-    "actors/animals/animal_globals.h": [
-      "actors/animals/animal.h"
-    ],
-    "actors/animals/bat.cpp": [
-      "actors/animals/bat.h",
-      "actors/animals/bat_globals.h",
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "ai/mav.h",
-      "ai/pcom.h",
-      "assets/anim_globals.h",
-      "assets/level_loader.h",
-      "effects/pyro.h",
-      "effects/spark.h",
-      "engine/audio/sound.h",
-      "engine/effects/psystem.h",
-      "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
-      "engine/physics/collide.h",
-      "engine/platform/platform.h",
-      "missions/eway.h",
-      "missions/game_types.h",
-      "missions/memory.h",
-      "world/navigation/wand.h"
-    ],
-    "actors/animals/bat.h": [
-      "engine/core/types.h"
-    ],
-    "actors/animals/bat_globals.cpp": [
-      "actors/animals/bat.h",
-      "actors/animals/bat_globals.h"
-    ],
-    "actors/animals/bat_globals.h": [
-      "actors/animals/bat.h"
-    ],
-    "actors/characters/anim_ids.h": [],
-    "actors/characters/cop.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/cop.h",
-      "actors/characters/cop_globals.h",
-      "actors/characters/person.h",
-      "actors/characters/person_globals.h",
-      "actors/core/statedef.h",
-      "assets/anim_globals.h",
-      "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/characters/cop.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/characters/cop_globals.cpp": [
-      "actors/characters/cop.h",
-      "actors/characters/cop_globals.h",
-      "actors/core/statedef.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/characters/cop_globals.h": [
-      "actors/core/state.h"
-    ],
-    "actors/characters/darci.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/darci.h",
-      "actors/characters/darci_globals.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/items/barrel.h",
-      "actors/items/barrel_globals.h",
-      "ai/mav.h",
-      "ai/pcom.h",
-      "assets/anim_globals.h",
-      "engine/audio/sound.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/physics/collide.h",
-      "engine/physics/collide_globals.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "world/environment/building.h",
-      "world/environment/building_types.h",
-      "world/environment/ns.h",
-      "world/level_pools.h",
-      "world/map/pap_globals.h"
-    ],
-    "actors/characters/darci.h": [
-      "actors/core/state.h",
-      "engine/animation/anim_types.h",
-      "engine/core/types.h"
-    ],
-    "actors/characters/darci_globals.cpp": [
-      "actors/characters/darci_globals.h",
-      "actors/core/statedef.h"
-    ],
-    "actors/characters/darci_globals.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/characters/person.cpp": [
-      "actors/animals/bat.h",
-      "actors/characters/anim_ids.h",
-      "actors/characters/cop.h",
-      "actors/characters/cop_globals.h",
-      "actors/characters/darci.h",
-      "actors/characters/darci_globals.h",
-      "actors/characters/person.h",
-      "actors/characters/person_globals.h",
-      "actors/characters/roper.h",
-      "actors/characters/roper_globals.h",
-      "actors/characters/thug.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
-      "actors/items/barrel.h",
-      "actors/items/guns.h",
-      "actors/items/hook.h",
-      "actors/items/hook_globals.h",
-      "actors/items/special.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
-      "ai/combat.h",
-      "ai/mav.h",
-      "ai/pcom.h",
-      "assets/sound_id.h",
-      "assets/xlat_str.h",
-      "effects/dirt.h",
-      "effects/drip.h",
-      "effects/pow.h",
-      "effects/pow_globals.h",
-      "effects/pyro.h",
-      "effects/pyro_globals.h",
-      "effects/spark.h",
-      "effects/tracks.h",
-      "engine/audio/mfx.h",
-      "engine/audio/sound.h",
-      "engine/core/fmatrix.h",
-      "engine/core/matrix.h",
-      "engine/effects/psystem.h",
-      "engine/effects/psystem_globals.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/pipeline/poly.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/physics/collide.h",
-      "engine/physics/collide_globals.h",
-      "missions/eway.h",
-      "missions/game_types.h",
-      "ui/camera/fc.h",
-      "ui/camera/fc_globals.h",
-      "ui/frontend.h",
-      "ui/frontend_globals.h",
-      "ui/hud/overlay.h",
-      "ui/hud/panel.h",
-      "ui/hud/panel_globals.h",
-      "ui/menus/cnet.h",
-      "ui/menus/cnet_globals.h",
-      "world/environment/building.h",
-      "world/environment/building_types.h",
-      "world/environment/id.h",
-      "world/environment/ns.h",
-      "world/environment/prim.h",
-      "world/environment/prim_types.h",
-      "world/environment/puddle.h",
-      "world/environment/puddle_globals.h",
-      "world/environment/ware.h",
-      "world/environment/ware_globals.h",
-      "world/level_pools.h",
-      "world/map/ob.h",
-      "world/map/ob_globals.h",
-      "world/map/pap_globals.h",
-      "world/map/supermap.h",
-      "world/navigation/inside2.h",
-      "world/navigation/inside2_globals.h",
-      "world/navigation/walkable.h",
-      "world/navigation/wmove.h",
-      "world/navigation/wmove_globals.h"
-    ],
-    "actors/characters/person.h": [
-      "actors/characters/person_globals.h",
-      "actors/characters/person_types.h",
-      "actors/core/thing.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/characters/person_globals.cpp": [
-      "actors/characters/cop.h",
-      "actors/characters/cop_globals.h",
-      "actors/characters/darci.h",
-      "actors/characters/darci_globals.h",
-      "actors/characters/person.h",
-      "actors/characters/roper.h",
-      "actors/characters/roper_globals.h",
-      "actors/core/statedef.h"
-    ],
-    "actors/characters/person_globals.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/characters/person_types.h": [
-      "actors/core/common.h",
-      "ai/mav_action.h",
-      "engine/core/types.h",
-      "engine/core/vector.h",
-      "missions/save.h"
-    ],
-    "actors/characters/roper.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/characters/person_globals.h",
-      "actors/characters/roper.h",
-      "actors/characters/roper_globals.h",
-      "actors/core/statedef.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/characters/roper.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/characters/roper_globals.cpp": [
-      "actors/characters/roper.h",
-      "actors/characters/roper_globals.h",
-      "actors/core/statedef.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/characters/roper_globals.h": [
-      "actors/core/state.h"
-    ],
-    "actors/characters/snipe.cpp": [
-      "actors/characters/snipe.h",
-      "actors/characters/snipe_globals.h",
-      "actors/items/guns.h",
-      "ai/combat.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/characters/snipe.h": [
-      "engine/core/types.h"
-    ],
-    "actors/characters/snipe_globals.cpp": [
-      "actors/characters/snipe_globals.h"
-    ],
-    "actors/characters/snipe_globals.h": [
-      "engine/core/types.h"
-    ],
-    "actors/characters/thug.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/characters/person_globals.h",
-      "actors/characters/thug.h",
-      "actors/characters/thug_globals.h",
-      "actors/core/statedef.h",
-      "assets/anim_globals.h",
-      "engine/animation/anim_types.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "world/map/pap_globals.h"
-    ],
-    "actors/characters/thug.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/characters/thug_globals.cpp": [
-      "actors/characters/thug.h",
-      "actors/characters/thug_globals.h",
-      "actors/core/statedef.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/characters/thug_globals.h": [
-      "actors/core/state.h"
-    ],
-    "actors/core/common.h": [
-      "engine/core/types.h"
-    ],
-    "actors/core/drawtype.cpp": [
-      "actors/core/drawtype.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "world/level_pools.h"
-    ],
-    "actors/core/drawtype.h": [
-      "engine/core/types.h",
-      "engine/lighting/cache.h"
-    ],
-    "actors/core/hierarchy.cpp": [
-      "actors/core/hierarchy.h",
-      "actors/core/hierarchy_globals.h",
-      "engine/core/matrix.h"
-    ],
-    "actors/core/hierarchy.h": [
-      "engine/core/fmatrix.h",
-      "engine/core/types.h"
-    ],
-    "actors/core/hierarchy_globals.cpp": [
-      "actors/core/hierarchy_globals.h"
-    ],
-    "actors/core/hierarchy_globals.h": [
-      "engine/core/types.h"
-    ],
-    "actors/core/interact.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/core/interact_globals.h",
-      "actors/core/thing.h",
-      "ai/mav.h",
-      "engine/core/fmatrix.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "missions/memory.h",
-      "world/environment/ns.h",
-      "world/environment/ware.h",
-      "world/environment/ware_globals.h",
-      "world/level_pools.h",
-      "world/map/pap.h",
-      "world/map/pap_globals.h",
-      "world/map/supermap.h"
-    ],
-    "actors/core/interact.h": [
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "assets/anim_globals.h",
-      "world/environment/building_types.h",
-      "world/map/supermap.h"
-    ],
-    "actors/core/interact_globals.cpp": [
-      "actors/core/interact_globals.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/core/interact_globals.h": [
-      "engine/platform/platform.h",
-      "world/environment/prim_types.h"
-    ],
-    "actors/core/player.cpp": [
-      "actors/characters/person.h",
-      "actors/core/player.h",
-      "actors/core/player_globals.h",
-      "actors/core/statedef.h",
-      "actors/vehicles/furn.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "ui/interfac.h",
-      "ui/interfac_globals.h",
-      "ui/menus/cnet.h",
-      "ui/menus/cnet_globals.h"
-    ],
-    "actors/core/player.h": [
-      "actors/core/common.h",
-      "actors/core/state.h",
-      "engine/core/types.h",
-      "engine/core/vector.h"
-    ],
-    "actors/core/player_globals.cpp": [
-      "actors/characters/roper_globals.h",
-      "actors/core/player_globals.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/core/player_globals.h": [
-      "actors/core/player.h"
-    ],
-    "actors/core/state.cpp": [
-      "actors/animals/animal_globals.h",
-      "actors/characters/person_globals.h",
-      "actors/core/player_globals.h",
-      "actors/core/state.h",
-      "actors/vehicles/chopper_globals.h",
-      "actors/vehicles/vehicle_globals.h",
-      "effects/pyro_globals.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/core/state.h": [
-      "engine/core/types.h"
-    ],
-    "actors/core/statedef.h": [],
-    "actors/core/switch.cpp": [
-      "actors/core/statedef.h",
-      "actors/core/switch.h",
-      "actors/core/switch_globals.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/core/switch.h": [
-      "actors/core/common.h",
-      "engine/core/types.h"
-    ],
-    "actors/core/switch_globals.cpp": [
-      "actors/core/switch.h",
-      "actors/core/switch_globals.h",
-      "engine/platform/platform.h"
-    ],
-    "actors/core/switch_globals.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/core/thing.cpp": [
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "engine/audio/mfx.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/input/keyboard.h",
-      "engine/input/keyboard_globals.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "ui/interfac.h",
-      "ui/interfac_globals.h",
-      "ui/menus/cnet.h",
-      "ui/menus/cnet_globals.h",
-      "world/map/pap.h",
-      "world/map/pap_globals.h"
-    ],
-    "actors/core/thing.h": [
-      "actors/animals/animal.h",
-      "actors/animals/bat.h",
-      "actors/characters/person_types.h",
-      "actors/core/drawtype.h",
-      "actors/core/player.h",
-      "actors/core/switch.h",
-      "actors/items/barrel.h",
-      "actors/items/projectile.h",
-      "actors/items/special.h",
-      "actors/vehicles/chopper.h",
-      "actors/vehicles/furn.h",
-      "actors/vehicles/vehicle.h",
-      "effects/pyro.h",
-      "effects/tracks.h",
-      "engine/core/types.h",
-      "engine/core/vector.h",
-      "world/environment/plat.h"
-    ],
-    "actors/core/thing_globals.cpp": [
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h"
-    ],
-    "actors/core/thing_globals.h": [
-      "engine/core/types.h",
-      "engine/io/file.h"
-    ],
-    "actors/items/balloon.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
-      "ai/mav.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/items/balloon.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/balloon_globals.cpp": [
-      "actors/items/balloon_globals.h"
-    ],
-    "actors/items/balloon_globals.h": [
-      "actors/items/balloon.h"
-    ],
-    "actors/items/barrel.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/statedef.h",
-      "actors/items/barrel.h",
-      "actors/items/barrel_globals.h",
-      "ai/mav.h",
-      "ai/pcom.h",
-      "effects/dirt.h",
-      "effects/pow.h",
-      "effects/pyro.h",
-      "engine/audio/sound.h",
-      "engine/core/fmatrix.h",
-      "engine/effects/psystem.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/pipeline/poly.h",
-      "engine/physics/collide.h",
-      "missions/eway.h",
-      "missions/game_types.h",
-      "ui/hud/panel.h",
-      "world/environment/prim.h",
-      "world/map/pap_globals.h"
-    ],
-    "actors/items/barrel.h": [
-      "engine/core/types.h",
-      "engine/core/vector.h"
-    ],
-    "actors/items/barrel_globals.cpp": [
-      "actors/items/barrel_globals.h"
-    ],
-    "actors/items/barrel_globals.h": [
-      "actors/items/barrel.h"
-    ],
-    "actors/items/grenade.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/grenade.h",
-      "actors/items/grenade_globals.h",
-      "ai/pcom.h",
-      "effects/dirt.h",
-      "engine/audio/sound.h",
-      "engine/core/fmatrix.h",
-      "engine/effects/psystem.h",
-      "engine/graphics/geometry/bloom.h",
-      "engine/graphics/geometry/mesh.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/pipeline/poly.h",
-      "engine/physics/collide.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/items/grenade.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/grenade_globals.cpp": [
-      "actors/items/grenade_globals.h"
-    ],
-    "actors/items/grenade_globals.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/guns.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/statedef.h",
-      "actors/items/guns.h",
-      "ai/pcom.h",
-      "engine/physics/collide.h",
-      "missions/game_types.h",
-      "missions/memory.h",
-      "world/navigation/wmove.h"
-    ],
-    "actors/items/guns.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/hook.cpp": [
-      "actors/items/hook.h",
-      "actors/items/hook_globals.h",
-      "engine/core/fmatrix.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "world/map/pap.h"
-    ],
-    "actors/items/hook.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/hook_globals.cpp": [
-      "actors/items/hook_globals.h"
-    ],
-    "actors/items/hook_globals.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/projectile.cpp": [
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/projectile.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h"
-    ],
-    "actors/items/projectile.h": [
-      "engine/core/types.h"
-    ],
-    "actors/items/special.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "actors/items/grenade.h",
-      "actors/items/special.h",
-      "actors/items/special_globals.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
-      "ai/pcom.h",
-      "assets/sound_id.h",
-      "assets/sound_id_globals.h",
-      "assets/xlat_str.h",
-      "effects/dirt.h",
-      "effects/pow.h",
-      "effects/pyro.h",
-      "engine/audio/mfx.h",
-      "engine/audio/sound.h",
-      "engine/core/memory.h",
-      "engine/graphics/geometry/bloom.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/physics/collide.h",
-      "engine/platform/platform.h",
-      "missions/eway.h",
-      "missions/game_types.h",
-      "ui/hud/overlay.h",
-      "ui/hud/panel.h",
-      "ui/hud/panel_globals.h",
-      "ui/menus/cnet.h",
-      "ui/menus/cnet_globals.h",
-      "world/map/pap.h"
-    ],
-    "actors/items/special.h": [
-      "actors/core/common.h",
-      "engine/core/types.h"
-    ],
-    "actors/items/special_globals.cpp": [
-      "actors/items/special_globals.h",
-      "effects/dirt.h",
-      "world/environment/prim_types.h"
-    ],
-    "actors/items/special_globals.h": [
-      "actors/items/special.h",
-      "effects/dirt.h"
-    ],
-    "actors/vehicles/chopper.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/vehicles/chopper.h",
-      "actors/vehicles/chopper_globals.h",
-      "ai/mav.h",
-      "assets/sound_id.h",
-      "effects/dirt.h",
-      "engine/audio/mfx.h",
-      "engine/graphics/geometry/cone.h",
-      "engine/graphics/geometry/mesh.h",
-      "engine/platform/platform.h",
-      "missions/eway.h",
-      "missions/game_types.h",
-      "world/map/pap_globals.h"
-    ],
-    "actors/vehicles/chopper.h": [
-      "actors/core/drawtype.h",
-      "actors/core/state.h",
-      "engine/core/types.h",
-      "engine/core/vector.h"
-    ],
-    "actors/vehicles/chopper_globals.cpp": [
-      "actors/core/statedef.h",
-      "actors/vehicles/chopper_globals.h"
-    ],
-    "actors/vehicles/chopper_globals.h": [
-      "actors/vehicles/chopper.h"
-    ],
-    "actors/vehicles/furn.h": [
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/vehicles/vehicle.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/interact_globals.h",
-      "actors/core/statedef.h",
-      "actors/items/barrel.h",
-      "actors/items/barrel_globals.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
-      "ai/pcom.h",
-      "effects/dirt.h",
-      "effects/mist.h",
-      "effects/pow.h",
-      "effects/pow_globals.h",
-      "effects/tracks.h",
-      "engine/audio/mfx.h",
-      "engine/audio/sound.h",
-      "engine/core/fmatrix.h",
-      "engine/core/matrix.h",
-      "engine/effects/psystem.h",
-      "engine/effects/psystem_globals.h",
-      "engine/graphics/geometry/bloom.h",
-      "engine/graphics/geometry/mesh.h",
-      "engine/graphics/geometry/oval.h",
-      "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/lighting/night.h",
-      "engine/lighting/night_globals.h",
-      "engine/physics/collide.h",
-      "engine/platform/platform.h",
-      "missions/game_types.h",
-      "missions/memory.h",
-      "ui/interfac.h",
-      "ui/interfac_globals.h",
-      "world/environment/prim.h",
-      "world/environment/prim_types.h",
-      "world/level_pools.h",
-      "world/map/ob.h",
-      "world/map/ob_globals.h",
-      "world/map/pap.h",
-      "world/map/pap_globals.h",
-      "world/map/road.h",
-      "world/map/road_globals.h"
-    ],
-    "actors/vehicles/vehicle.h": [
-      "actors/core/drawtype.h",
-      "actors/core/state.h",
-      "engine/core/types.h"
-    ],
-    "actors/vehicles/vehicle_globals.cpp": [
-      "actors/core/statedef.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
-      "engine/platform/platform.h",
-      "world/environment/prim_types.h"
-    ],
-    "actors/vehicles/vehicle_globals.h": [
-      "actors/vehicles/vehicle.h",
-      "engine/core/types.h"
-    ],
     "ai/combat.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
       "ai/combat.h",
       "ai/pcom.h",
       "assets/anim_globals.h",
@@ -744,6 +18,10 @@
       "engine/graphics/pipeline/poly.h",
       "engine/physics/collide.h",
       "missions/eway.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
       "ui/hud/overlay.h",
       "world/map/pap_globals.h"
     ],
@@ -752,8 +30,8 @@
       "missions/game.h"
     ],
     "ai/combat_globals.cpp": [
-      "actors/characters/anim_ids.h",
-      "ai/combat_globals.h"
+      "ai/combat_globals.h",
+      "things/characters/anim_ids.h"
     ],
     "ai/combat_globals.h": [
       "missions/game.h"
@@ -797,16 +75,6 @@
       "world/map/map.h"
     ],
     "ai/pcom.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
-      "actors/items/special.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
       "ai/combat.h",
       "ai/combat_globals.h",
       "ai/mav.h",
@@ -819,6 +87,16 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/physics/collide.h",
       "missions/eway.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h",
+      "things/items/special.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
       "ui/hud/overlay.h",
       "ui/menus/cnet.h",
       "ui/menus/cnet_globals.h",
@@ -844,12 +122,12 @@
       "missions/game_types.h"
     ],
     "assets/anim.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person_types.h",
       "assets/anim.h",
       "engine/core/memory.h",
       "engine/platform/platform.h",
-      "missions/game_types.h"
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person_types.h"
     ],
     "assets/anim.h": [
       "assets/anim_globals.h",
@@ -1062,8 +340,6 @@
       "assets/xlat_str.h"
     ],
     "effects/dirt.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
       "ai/mav.h",
       "ai/pcom.h",
       "assets/sound_id.h",
@@ -1078,6 +354,8 @@
       "engine/effects/psystem.h",
       "engine/graphics/pipeline/poly.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
       "world/environment/ns.h",
       "world/environment/prim_types.h",
       "world/level_pools.h",
@@ -1201,11 +479,6 @@
       "effects/pow.h"
     ],
     "effects/pyro.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/items/barrel.h",
       "ai/combat.h",
       "ai/pcom.h",
       "effects/dirt.h",
@@ -1221,20 +494,25 @@
       "engine/graphics/pipeline/poly.h",
       "engine/lighting/night.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/items/barrel.h",
       "ui/menus/gamemenu.h",
       "world/environment/id.h",
       "world/level_pools.h",
       "world/map/pap.h"
     ],
     "effects/pyro.h": [
-      "actors/core/state.h",
       "engine/core/types.h",
-      "engine/core/vector.h"
+      "engine/core/vector.h",
+      "things/core/state.h"
     ],
     "effects/pyro_globals.cpp": [
-      "actors/core/statedef.h",
       "effects/pyro_globals.h",
-      "missions/game_types.h"
+      "missions/game_types.h",
+      "things/core/statedef.h"
     ],
     "effects/pyro_globals.h": [
       "effects/pyro.h",
@@ -1258,7 +536,6 @@
       "effects/ribbon.h"
     ],
     "effects/spark.cpp": [
-      "actors/core/interact.h",
       "effects/glitter.h",
       "effects/glitter_globals.h",
       "effects/spark.h",
@@ -1269,6 +546,7 @@
       "engine/platform/platform.h",
       "missions/game_types.h",
       "missions/memory.h",
+      "things/core/interact.h",
       "world/map/pap_globals.h"
     ],
     "effects/spark.h": [
@@ -1282,14 +560,14 @@
       "world/map/map.h"
     ],
     "effects/tracks.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/core/interact_globals.h",
       "effects/tracks.h",
       "effects/tracks_globals.h",
       "engine/graphics/pipeline/poly.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/core/interact_globals.h",
       "world/environment/puddle.h",
       "world/environment/puddle_globals.h",
       "world/map/pap_globals.h"
@@ -1308,12 +586,6 @@
       "engine/core/types.h"
     ],
     "engine/animation/figure.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/hierarchy.h",
-      "actors/core/interact.h",
-      "actors/items/special.h",
-      "actors/items/special_globals.h",
       "ai/pcom.h",
       "assets/texture.h",
       "assets/texture_globals.h",
@@ -1338,6 +610,12 @@
       "missions/eway.h",
       "missions/game.h",
       "missions/memory.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/hierarchy.h",
+      "things/core/interact.h",
+      "things/items/special.h",
+      "things/items/special_globals.h",
       "ui/hud/panel.h",
       "ui/interfac.h"
     ],
@@ -1386,9 +664,9 @@
       "engine/audio/mfx_globals.h"
     ],
     "engine/audio/mfx_globals.h": [
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "engine/audio/mfx.h"
+      "engine/audio/mfx.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h"
     ],
     "engine/audio/music.cpp": [
       "assets/sound_id.h",
@@ -1411,12 +689,12 @@
       "engine/core/types.h"
     ],
     "engine/audio/sound.cpp": [
-      "actors/core/statedef.h",
       "engine/audio/mfx.h",
       "engine/audio/sound.h",
       "engine/platform/platform.h",
       "missions/eway.h",
       "missions/game_types.h",
+      "things/core/statedef.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/frontend.h",
@@ -1555,10 +833,6 @@
       "engine/io/file.h"
     ],
     "engine/effects/psystem.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
-      "actors/core/interact_globals.h",
-      "actors/core/thing.h",
       "ai/mav.h",
       "ai/pcom.h",
       "effects/pow.h",
@@ -1571,6 +845,10 @@
       "engine/physics/collide.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/core/interact_globals.h",
+      "things/core/thing.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "world/map/pap.h"
@@ -1793,8 +1071,6 @@
     ],
     "engine/graphics/geometry/oval_globals.h": [],
     "engine/graphics/geometry/shape.cpp": [
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
       "engine/core/matrix.h",
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/shape.h",
@@ -1805,6 +1081,8 @@
       "engine/lighting/night_globals.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h"
     ],
@@ -1950,18 +1228,6 @@
       "engine/core/types.h"
     ],
     "engine/graphics/pipeline/aeng.cpp": [
-      "actors/animals/bat.h",
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/statedef.h",
-      "actors/core/thing_globals.h",
-      "actors/items/balloon_globals.h",
-      "actors/items/grenade.h",
-      "actors/items/hook.h",
-      "actors/items/special.h",
-      "actors/vehicles/chopper.h",
-      "actors/vehicles/vehicle.h",
       "ai/mav.h",
       "ai/pcom.h",
       "assets/anim_globals.h",
@@ -2030,6 +1296,18 @@
       "engine/platform/platform.h",
       "missions/eway.h",
       "missions/game_types.h",
+      "things/animals/bat.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/core/thing_globals.h",
+      "things/items/balloon_globals.h",
+      "things/items/grenade.h",
+      "things/items/hook.h",
+      "things/items/special.h",
+      "things/vehicles/chopper.h",
+      "things/vehicles/vehicle.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/controls_globals.h",
@@ -2506,7 +1784,6 @@
       "engine/platform/platform.h"
     ],
     "engine/lighting/night.cpp": [
-      "actors/core/thing.h",
       "ai/mav.h",
       "engine/core/fmatrix.h",
       "engine/core/heap.h",
@@ -2515,6 +1792,7 @@
       "engine/lighting/night.h",
       "engine/lighting/night_globals.h",
       "missions/game_types.h",
+      "things/core/thing.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h",
       "world/environment/ware.h",
@@ -2557,9 +1835,6 @@
       "engine/core/types.h"
     ],
     "engine/lighting/smap.cpp": [
-      "actors/characters/person.h",
-      "actors/characters/person_types.h",
-      "actors/core/interact.h",
       "engine/animation/anim_types.h",
       "engine/core/fmatrix.h",
       "engine/core/matrix.h",
@@ -2568,6 +1843,9 @@
       "engine/lighting/smap_globals.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/characters/person.h",
+      "things/characters/person_types.h",
+      "things/core/interact.h",
       "world/level_pools.h"
     ],
     "engine/lighting/smap.h": [
@@ -2583,16 +1861,6 @@
       "engine/lighting/smap.h"
     ],
     "engine/physics/collide.cpp": [
-      "actors/animals/bat.h",
-      "actors/characters/anim_ids.h",
-      "actors/characters/darci_globals.h",
-      "actors/characters/person.h",
-      "actors/core/interact.h",
-      "actors/core/state.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/barrel.h",
-      "actors/vehicles/vehicle.h",
       "ai/combat.h",
       "ai/mav.h",
       "ai/mav_globals.h",
@@ -2606,6 +1874,16 @@
       "engine/physics/collide.h",
       "engine/physics/collide_globals.h",
       "missions/game_types.h",
+      "things/animals/bat.h",
+      "things/characters/anim_ids.h",
+      "things/characters/darci_globals.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/state.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/barrel.h",
+      "things/vehicles/vehicle.h",
       "ui/camera/fc.h",
       "world/environment/build2.h",
       "world/environment/edmap.h",
@@ -2705,19 +1983,6 @@
       "engine/graphics/graphics_api/host.h"
     ],
     "missions/elev.cpp": [
-      "actors/animals/bat.h",
-      "actors/characters/person.h",
-      "actors/core/statedef.h",
-      "actors/core/thing_globals.h",
-      "actors/items/balloon.h",
-      "actors/items/barrel.h",
-      "actors/items/grenade.h",
-      "actors/items/hook.h",
-      "actors/items/hook_globals.h",
-      "actors/items/special.h",
-      "actors/vehicles/chopper.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
       "ai/mav.h",
       "ai/pcom.h",
       "assets/anim_loader.h",
@@ -2758,6 +2023,19 @@
       "missions/memory.h",
       "missions/mission.h",
       "missions/mission_globals.h",
+      "things/animals/bat.h",
+      "things/characters/person.h",
+      "things/core/statedef.h",
+      "things/core/thing_globals.h",
+      "things/items/balloon.h",
+      "things/items/barrel.h",
+      "things/items/grenade.h",
+      "things/items/hook.h",
+      "things/items/hook_globals.h",
+      "things/items/special.h",
+      "things/vehicles/chopper.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
       "ui/attract.h",
       "ui/camera/cam.h",
       "ui/camera/fc.h",
@@ -2803,17 +2081,6 @@
       "missions/mission_globals.h"
     ],
     "missions/eway.cpp": [
-      "actors/animals/animal.h",
-      "actors/animals/animal_globals.h",
-      "actors/characters/person.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/barrel.h",
-      "actors/items/barrel_globals.h",
-      "actors/vehicles/chopper.h",
-      "actors/vehicles/chopper_globals.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
       "ai/pcom.h",
       "assets/xlat_str.h",
       "effects/dirt.h",
@@ -2836,6 +2103,17 @@
       "missions/eway.h",
       "missions/game.h",
       "missions/memory.h",
+      "things/animals/animal.h",
+      "things/animals/animal_globals.h",
+      "things/characters/person.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/barrel.h",
+      "things/items/barrel_globals.h",
+      "things/vehicles/chopper.h",
+      "things/vehicles/chopper_globals.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
       "ui/camera/cam.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
@@ -2873,14 +2151,6 @@
       "engine/core/types.h"
     ],
     "missions/game.cpp": [
-      "actors/characters/snipe.h",
-      "actors/characters/snipe_globals.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
-      "actors/items/grenade.h",
       "ai/mav.h",
       "assets/anim.h",
       "assets/anim_loader.h",
@@ -2938,6 +2208,14 @@
       "missions/memory.h",
       "missions/memory_globals.h",
       "missions/save.h",
+      "things/characters/snipe.h",
+      "things/characters/snipe_globals.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h",
+      "things/items/grenade.h",
       "ui/attract.h",
       "ui/attract_globals.h",
       "ui/camera/cam.h",
@@ -2985,18 +2263,18 @@
       "missions/game_globals.h"
     ],
     "missions/game_globals.h": [
-      "actors/core/thing.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/core/thing.h",
       "ui/menus/widget.h",
       "ui/menus/widget_globals.h"
     ],
     "missions/game_types.h": [
-      "actors/core/thing.h",
       "engine/core/types.h",
       "engine/core/vector.h",
       "engine/graphics/pipeline/poly.h",
       "missions/save.h",
+      "things/core/thing.h",
       "world/map/map.h"
     ],
     "missions/main.cpp": [
@@ -3007,13 +2285,6 @@
       "missions/game.h"
     ],
     "missions/memory.cpp": [
-      "actors/animals/bat.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
-      "actors/items/barrel.h",
-      "actors/items/barrel_globals.h",
       "ai/mav.h",
       "assets/anim_globals.h",
       "assets/texture.h",
@@ -3031,6 +2302,13 @@
       "missions/game_types.h",
       "missions/memory.h",
       "missions/memory_globals.h",
+      "things/animals/bat.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h",
+      "things/items/barrel.h",
+      "things/items/barrel_globals.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/cutscenes/playcuts.h",
@@ -3054,18 +2332,12 @@
       "world/navigation/wmove_globals.h"
     ],
     "missions/memory.h": [
-      "actors/core/thing.h",
       "engine/animation/anim_types.h",
       "engine/core/types.h",
-      "missions/memory_globals.h"
+      "missions/memory_globals.h",
+      "things/core/thing.h"
     ],
     "missions/memory_globals.cpp": [
-      "actors/animals/bat.h",
-      "actors/core/thing.h",
-      "actors/items/balloon.h",
-      "actors/items/balloon_globals.h",
-      "actors/items/barrel.h",
-      "actors/items/barrel_globals.h",
       "ai/mav.h",
       "assets/anim_globals.h",
       "effects/tracks.h",
@@ -3079,6 +2351,12 @@
       "missions/game_types.h",
       "missions/memory.h",
       "missions/memory_globals.h",
+      "things/animals/bat.h",
+      "things/core/thing.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h",
+      "things/items/barrel.h",
+      "things/items/barrel_globals.h",
       "ui/cutscenes/playcuts.h",
       "ui/cutscenes/playcuts_globals.h",
       "world/environment/building_globals.h",
@@ -3110,17 +2388,17 @@
       "missions/mission.h"
     ],
     "missions/save.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/statedef.h",
-      "actors/items/special.h",
       "ai/pcom.h",
       "effects/tracks.h",
       "missions/eway.h",
       "missions/game_types.h",
       "missions/memory.h",
       "missions/save.h",
-      "missions/save_globals.h"
+      "missions/save_globals.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/statedef.h",
+      "things/items/special.h"
     ],
     "missions/save.h": [
       "engine/core/types.h"
@@ -3131,8 +2409,729 @@
     "missions/save_globals.h": [
       "engine/core/types.h"
     ],
+    "things/animals/animal.cpp": [
+      "assets/anim_globals.h",
+      "engine/animation/anim_types.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/animals/animal.h",
+      "things/animals/animal_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/animals/animal.h": [
+      "engine/core/types.h",
+      "engine/core/vector.h",
+      "things/core/state.h"
+    ],
+    "things/animals/animal_globals.cpp": [
+      "things/animals/animal_globals.h"
+    ],
+    "things/animals/animal_globals.h": [
+      "things/animals/animal.h"
+    ],
+    "things/animals/bat.cpp": [
+      "ai/mav.h",
+      "ai/pcom.h",
+      "assets/anim_globals.h",
+      "assets/level_loader.h",
+      "effects/pyro.h",
+      "effects/spark.h",
+      "engine/audio/sound.h",
+      "engine/effects/psystem.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/lighting/night.h",
+      "engine/physics/collide.h",
+      "engine/platform/platform.h",
+      "missions/eway.h",
+      "missions/game_types.h",
+      "missions/memory.h",
+      "things/animals/bat.h",
+      "things/animals/bat_globals.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "world/navigation/wand.h"
+    ],
+    "things/animals/bat.h": [
+      "engine/core/types.h"
+    ],
+    "things/animals/bat_globals.cpp": [
+      "things/animals/bat.h",
+      "things/animals/bat_globals.h"
+    ],
+    "things/animals/bat_globals.h": [
+      "things/animals/bat.h"
+    ],
+    "things/characters/anim_ids.h": [],
+    "things/characters/cop.cpp": [
+      "assets/anim_globals.h",
+      "engine/animation/anim_types.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/cop.h",
+      "things/characters/cop_globals.h",
+      "things/characters/person.h",
+      "things/characters/person_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/cop.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/characters/cop_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/characters/cop.h",
+      "things/characters/cop_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/cop_globals.h": [
+      "things/core/state.h"
+    ],
+    "things/characters/darci.cpp": [
+      "ai/mav.h",
+      "ai/pcom.h",
+      "assets/anim_globals.h",
+      "engine/audio/sound.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/physics/collide.h",
+      "engine/physics/collide_globals.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/darci.h",
+      "things/characters/darci_globals.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/items/barrel.h",
+      "things/items/barrel_globals.h",
+      "world/environment/building.h",
+      "world/environment/building_types.h",
+      "world/environment/ns.h",
+      "world/level_pools.h",
+      "world/map/pap_globals.h"
+    ],
+    "things/characters/darci.h": [
+      "engine/animation/anim_types.h",
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/characters/darci_globals.cpp": [
+      "things/characters/darci_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/darci_globals.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/characters/person.cpp": [
+      "ai/combat.h",
+      "ai/mav.h",
+      "ai/pcom.h",
+      "assets/sound_id.h",
+      "assets/xlat_str.h",
+      "effects/dirt.h",
+      "effects/drip.h",
+      "effects/pow.h",
+      "effects/pow_globals.h",
+      "effects/pyro.h",
+      "effects/pyro_globals.h",
+      "effects/spark.h",
+      "effects/tracks.h",
+      "engine/audio/mfx.h",
+      "engine/audio/sound.h",
+      "engine/core/fmatrix.h",
+      "engine/core/matrix.h",
+      "engine/effects/psystem.h",
+      "engine/effects/psystem_globals.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/lighting/night.h",
+      "engine/lighting/night_globals.h",
+      "engine/physics/collide.h",
+      "engine/physics/collide_globals.h",
+      "missions/eway.h",
+      "missions/game_types.h",
+      "things/animals/bat.h",
+      "things/characters/anim_ids.h",
+      "things/characters/cop.h",
+      "things/characters/cop_globals.h",
+      "things/characters/darci.h",
+      "things/characters/darci_globals.h",
+      "things/characters/person.h",
+      "things/characters/person_globals.h",
+      "things/characters/roper.h",
+      "things/characters/roper_globals.h",
+      "things/characters/thug.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h",
+      "things/items/barrel.h",
+      "things/items/guns.h",
+      "things/items/hook.h",
+      "things/items/hook_globals.h",
+      "things/items/special.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
+      "ui/camera/fc.h",
+      "ui/camera/fc_globals.h",
+      "ui/frontend.h",
+      "ui/frontend_globals.h",
+      "ui/hud/overlay.h",
+      "ui/hud/panel.h",
+      "ui/hud/panel_globals.h",
+      "ui/menus/cnet.h",
+      "ui/menus/cnet_globals.h",
+      "world/environment/building.h",
+      "world/environment/building_types.h",
+      "world/environment/id.h",
+      "world/environment/ns.h",
+      "world/environment/prim.h",
+      "world/environment/prim_types.h",
+      "world/environment/puddle.h",
+      "world/environment/puddle_globals.h",
+      "world/environment/ware.h",
+      "world/environment/ware_globals.h",
+      "world/level_pools.h",
+      "world/map/ob.h",
+      "world/map/ob_globals.h",
+      "world/map/pap_globals.h",
+      "world/map/supermap.h",
+      "world/navigation/inside2.h",
+      "world/navigation/inside2_globals.h",
+      "world/navigation/walkable.h",
+      "world/navigation/wmove.h",
+      "world/navigation/wmove_globals.h"
+    ],
+    "things/characters/person.h": [
+      "engine/platform/platform.h",
+      "things/characters/person_globals.h",
+      "things/characters/person_types.h",
+      "things/core/thing.h"
+    ],
+    "things/characters/person_globals.cpp": [
+      "things/characters/cop.h",
+      "things/characters/cop_globals.h",
+      "things/characters/darci.h",
+      "things/characters/darci_globals.h",
+      "things/characters/person.h",
+      "things/characters/roper.h",
+      "things/characters/roper_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/person_globals.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/characters/person_types.h": [
+      "ai/mav_action.h",
+      "engine/core/types.h",
+      "engine/core/vector.h",
+      "missions/save.h",
+      "things/core/common.h"
+    ],
+    "things/characters/roper.cpp": [
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/characters/person_globals.h",
+      "things/characters/roper.h",
+      "things/characters/roper_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/roper.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/characters/roper_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/characters/roper.h",
+      "things/characters/roper_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/roper_globals.h": [
+      "things/core/state.h"
+    ],
+    "things/characters/snipe.cpp": [
+      "ai/combat.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/snipe.h",
+      "things/characters/snipe_globals.h",
+      "things/items/guns.h"
+    ],
+    "things/characters/snipe.h": [
+      "engine/core/types.h"
+    ],
+    "things/characters/snipe_globals.cpp": [
+      "things/characters/snipe_globals.h"
+    ],
+    "things/characters/snipe_globals.h": [
+      "engine/core/types.h"
+    ],
+    "things/characters/thug.cpp": [
+      "assets/anim_globals.h",
+      "engine/animation/anim_types.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/characters/person_globals.h",
+      "things/characters/thug.h",
+      "things/characters/thug_globals.h",
+      "things/core/statedef.h",
+      "world/map/pap_globals.h"
+    ],
+    "things/characters/thug.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/characters/thug_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/characters/thug.h",
+      "things/characters/thug_globals.h",
+      "things/core/statedef.h"
+    ],
+    "things/characters/thug_globals.h": [
+      "things/core/state.h"
+    ],
+    "things/core/common.h": [
+      "engine/core/types.h"
+    ],
+    "things/core/drawtype.cpp": [
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/core/drawtype.h",
+      "world/level_pools.h"
+    ],
+    "things/core/drawtype.h": [
+      "engine/core/types.h",
+      "engine/lighting/cache.h"
+    ],
+    "things/core/hierarchy.cpp": [
+      "engine/core/matrix.h",
+      "things/core/hierarchy.h",
+      "things/core/hierarchy_globals.h"
+    ],
+    "things/core/hierarchy.h": [
+      "engine/core/fmatrix.h",
+      "engine/core/types.h"
+    ],
+    "things/core/hierarchy_globals.cpp": [
+      "things/core/hierarchy_globals.h"
+    ],
+    "things/core/hierarchy_globals.h": [
+      "engine/core/types.h"
+    ],
+    "things/core/interact.cpp": [
+      "ai/mav.h",
+      "engine/core/fmatrix.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "missions/memory.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/core/interact_globals.h",
+      "things/core/thing.h",
+      "world/environment/ns.h",
+      "world/environment/ware.h",
+      "world/environment/ware_globals.h",
+      "world/level_pools.h",
+      "world/map/pap.h",
+      "world/map/pap_globals.h",
+      "world/map/supermap.h"
+    ],
+    "things/core/interact.h": [
+      "assets/anim_globals.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h",
+      "world/environment/building_types.h",
+      "world/map/supermap.h"
+    ],
+    "things/core/interact_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/core/interact_globals.h"
+    ],
+    "things/core/interact_globals.h": [
+      "engine/platform/platform.h",
+      "world/environment/prim_types.h"
+    ],
+    "things/core/player.cpp": [
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/person.h",
+      "things/core/player.h",
+      "things/core/player_globals.h",
+      "things/core/statedef.h",
+      "things/vehicles/furn.h",
+      "ui/interfac.h",
+      "ui/interfac_globals.h",
+      "ui/menus/cnet.h",
+      "ui/menus/cnet_globals.h"
+    ],
+    "things/core/player.h": [
+      "engine/core/types.h",
+      "engine/core/vector.h",
+      "things/core/common.h",
+      "things/core/state.h"
+    ],
+    "things/core/player_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/characters/roper_globals.h",
+      "things/core/player_globals.h"
+    ],
+    "things/core/player_globals.h": [
+      "things/core/player.h"
+    ],
+    "things/core/state.cpp": [
+      "effects/pyro_globals.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/animals/animal_globals.h",
+      "things/characters/person_globals.h",
+      "things/core/player_globals.h",
+      "things/core/state.h",
+      "things/vehicles/chopper_globals.h",
+      "things/vehicles/vehicle_globals.h"
+    ],
+    "things/core/state.h": [
+      "engine/core/types.h"
+    ],
+    "things/core/statedef.h": [],
+    "things/core/switch.cpp": [
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/core/statedef.h",
+      "things/core/switch.h",
+      "things/core/switch_globals.h"
+    ],
+    "things/core/switch.h": [
+      "engine/core/types.h",
+      "things/core/common.h"
+    ],
+    "things/core/switch_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/core/switch.h",
+      "things/core/switch_globals.h"
+    ],
+    "things/core/switch_globals.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/core/thing.cpp": [
+      "engine/audio/mfx.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/input/keyboard.h",
+      "engine/input/keyboard_globals.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h",
+      "ui/interfac.h",
+      "ui/interfac_globals.h",
+      "ui/menus/cnet.h",
+      "ui/menus/cnet_globals.h",
+      "world/map/pap.h",
+      "world/map/pap_globals.h"
+    ],
+    "things/core/thing.h": [
+      "effects/pyro.h",
+      "effects/tracks.h",
+      "engine/core/types.h",
+      "engine/core/vector.h",
+      "things/animals/animal.h",
+      "things/animals/bat.h",
+      "things/characters/person_types.h",
+      "things/core/drawtype.h",
+      "things/core/player.h",
+      "things/core/switch.h",
+      "things/items/barrel.h",
+      "things/items/projectile.h",
+      "things/items/special.h",
+      "things/vehicles/chopper.h",
+      "things/vehicles/furn.h",
+      "things/vehicles/vehicle.h",
+      "world/environment/plat.h"
+    ],
+    "things/core/thing_globals.cpp": [
+      "things/core/thing.h",
+      "things/core/thing_globals.h"
+    ],
+    "things/core/thing_globals.h": [
+      "engine/core/types.h",
+      "engine/io/file.h"
+    ],
+    "things/items/balloon.cpp": [
+      "ai/mav.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/items/balloon.h",
+      "things/items/balloon_globals.h"
+    ],
+    "things/items/balloon.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/balloon_globals.cpp": [
+      "things/items/balloon_globals.h"
+    ],
+    "things/items/balloon_globals.h": [
+      "things/items/balloon.h"
+    ],
+    "things/items/barrel.cpp": [
+      "ai/mav.h",
+      "ai/pcom.h",
+      "effects/dirt.h",
+      "effects/pow.h",
+      "effects/pyro.h",
+      "engine/audio/sound.h",
+      "engine/core/fmatrix.h",
+      "engine/effects/psystem.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/physics/collide.h",
+      "missions/eway.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/statedef.h",
+      "things/items/barrel.h",
+      "things/items/barrel_globals.h",
+      "ui/hud/panel.h",
+      "world/environment/prim.h",
+      "world/map/pap_globals.h"
+    ],
+    "things/items/barrel.h": [
+      "engine/core/types.h",
+      "engine/core/vector.h"
+    ],
+    "things/items/barrel_globals.cpp": [
+      "things/items/barrel_globals.h"
+    ],
+    "things/items/barrel_globals.h": [
+      "things/items/barrel.h"
+    ],
+    "things/items/grenade.cpp": [
+      "ai/pcom.h",
+      "effects/dirt.h",
+      "engine/audio/sound.h",
+      "engine/core/fmatrix.h",
+      "engine/effects/psystem.h",
+      "engine/graphics/geometry/bloom.h",
+      "engine/graphics/geometry/mesh.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/physics/collide.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/grenade.h",
+      "things/items/grenade_globals.h"
+    ],
+    "things/items/grenade.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/grenade_globals.cpp": [
+      "things/items/grenade_globals.h"
+    ],
+    "things/items/grenade_globals.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/guns.cpp": [
+      "ai/pcom.h",
+      "engine/physics/collide.h",
+      "missions/game_types.h",
+      "missions/memory.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/statedef.h",
+      "things/items/guns.h",
+      "world/navigation/wmove.h"
+    ],
+    "things/items/guns.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/hook.cpp": [
+      "engine/core/fmatrix.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/items/hook.h",
+      "things/items/hook_globals.h",
+      "world/map/pap.h"
+    ],
+    "things/items/hook.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/hook_globals.cpp": [
+      "things/items/hook_globals.h"
+    ],
+    "things/items/hook_globals.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/projectile.cpp": [
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/projectile.h"
+    ],
+    "things/items/projectile.h": [
+      "engine/core/types.h"
+    ],
+    "things/items/special.cpp": [
+      "ai/pcom.h",
+      "assets/sound_id.h",
+      "assets/sound_id_globals.h",
+      "assets/xlat_str.h",
+      "effects/dirt.h",
+      "effects/pow.h",
+      "effects/pyro.h",
+      "engine/audio/mfx.h",
+      "engine/audio/sound.h",
+      "engine/core/memory.h",
+      "engine/graphics/geometry/bloom.h",
+      "engine/lighting/night.h",
+      "engine/lighting/night_globals.h",
+      "engine/physics/collide.h",
+      "engine/platform/platform.h",
+      "missions/eway.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h",
+      "things/items/grenade.h",
+      "things/items/special.h",
+      "things/items/special_globals.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
+      "ui/hud/overlay.h",
+      "ui/hud/panel.h",
+      "ui/hud/panel_globals.h",
+      "ui/menus/cnet.h",
+      "ui/menus/cnet_globals.h",
+      "world/map/pap.h"
+    ],
+    "things/items/special.h": [
+      "engine/core/types.h",
+      "things/core/common.h"
+    ],
+    "things/items/special_globals.cpp": [
+      "effects/dirt.h",
+      "things/items/special_globals.h",
+      "world/environment/prim_types.h"
+    ],
+    "things/items/special_globals.h": [
+      "effects/dirt.h",
+      "things/items/special.h"
+    ],
+    "things/vehicles/chopper.cpp": [
+      "ai/mav.h",
+      "assets/sound_id.h",
+      "effects/dirt.h",
+      "engine/audio/mfx.h",
+      "engine/graphics/geometry/cone.h",
+      "engine/graphics/geometry/mesh.h",
+      "engine/platform/platform.h",
+      "missions/eway.h",
+      "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
+      "things/core/statedef.h",
+      "things/vehicles/chopper.h",
+      "things/vehicles/chopper_globals.h",
+      "world/map/pap_globals.h"
+    ],
+    "things/vehicles/chopper.h": [
+      "engine/core/types.h",
+      "engine/core/vector.h",
+      "things/core/drawtype.h",
+      "things/core/state.h"
+    ],
+    "things/vehicles/chopper_globals.cpp": [
+      "things/core/statedef.h",
+      "things/vehicles/chopper_globals.h"
+    ],
+    "things/vehicles/chopper_globals.h": [
+      "things/vehicles/chopper.h"
+    ],
+    "things/vehicles/furn.h": [
+      "engine/core/types.h",
+      "things/core/state.h"
+    ],
+    "things/vehicles/vehicle.cpp": [
+      "ai/pcom.h",
+      "effects/dirt.h",
+      "effects/mist.h",
+      "effects/pow.h",
+      "effects/pow_globals.h",
+      "effects/tracks.h",
+      "engine/audio/mfx.h",
+      "engine/audio/sound.h",
+      "engine/core/fmatrix.h",
+      "engine/core/matrix.h",
+      "engine/effects/psystem.h",
+      "engine/effects/psystem_globals.h",
+      "engine/graphics/geometry/bloom.h",
+      "engine/graphics/geometry/mesh.h",
+      "engine/graphics/geometry/oval.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/graphics/resources/font2d.h",
+      "engine/lighting/night.h",
+      "engine/lighting/night_globals.h",
+      "engine/physics/collide.h",
+      "engine/platform/platform.h",
+      "missions/game_types.h",
+      "missions/memory.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/interact.h",
+      "things/core/interact_globals.h",
+      "things/core/statedef.h",
+      "things/items/barrel.h",
+      "things/items/barrel_globals.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
+      "ui/interfac.h",
+      "ui/interfac_globals.h",
+      "world/environment/prim.h",
+      "world/environment/prim_types.h",
+      "world/level_pools.h",
+      "world/map/ob.h",
+      "world/map/ob_globals.h",
+      "world/map/pap.h",
+      "world/map/pap_globals.h",
+      "world/map/road.h",
+      "world/map/road_globals.h"
+    ],
+    "things/vehicles/vehicle.h": [
+      "engine/core/types.h",
+      "things/core/drawtype.h",
+      "things/core/state.h"
+    ],
+    "things/vehicles/vehicle_globals.cpp": [
+      "engine/platform/platform.h",
+      "things/core/statedef.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
+      "world/environment/prim_types.h"
+    ],
+    "things/vehicles/vehicle_globals.h": [
+      "engine/core/types.h",
+      "things/vehicles/vehicle.h"
+    ],
     "ui/attract.cpp": [
-      "actors/core/statedef.h",
       "assets/startscr.h",
       "assets/xlat_str.h",
       "engine/audio/mfx.h",
@@ -3145,6 +3144,7 @@
       "engine/platform/platform.h",
       "missions/eway.h",
       "missions/game_types.h",
+      "things/core/statedef.h",
       "ui/attract.h",
       "ui/camera/cam.h",
       "ui/frontend.h",
@@ -3163,21 +3163,21 @@
       "engine/core/types.h"
     ],
     "ui/camera/cam.h": [
-      "actors/core/thing.h",
       "engine/core/types.h",
+      "things/core/thing.h",
       "ui/camera/cam_globals.h"
     ],
     "ui/camera/cam_globals.h": [
       "engine/core/types.h"
     ],
     "ui/camera/fc.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/statedef.h",
       "engine/core/fmatrix.h",
       "engine/physics/collide.h",
       "engine/platform/platform.h",
       "missions/eway.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/statedef.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "world/environment/ware.h",
@@ -3188,9 +3188,9 @@
       "world/navigation/walkable_globals.h"
     ],
     "ui/camera/fc.h": [
-      "actors/core/thing.h",
       "engine/platform/platform.h",
-      "missions/game_types.h"
+      "missions/game_types.h",
+      "things/core/thing.h"
     ],
     "ui/camera/fc_globals.cpp": [
       "ui/camera/fc_globals.h"
@@ -3199,16 +3199,6 @@
       "ui/camera/fc.h"
     ],
     "ui/controls.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/characters/snipe.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/items/barrel.h",
-      "actors/items/hook.h",
-      "actors/items/special.h",
-      "actors/vehicles/chopper.h",
-      "actors/vehicles/vehicle.h",
       "ai/mav.h",
       "ai/pcom.h",
       "assets/anim_globals.h",
@@ -3242,6 +3232,16 @@
       "missions/eway_globals.h",
       "missions/game_types.h",
       "missions/save.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/characters/snipe.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/items/barrel.h",
+      "things/items/hook.h",
+      "things/items/special.h",
+      "things/vehicles/chopper.h",
+      "things/vehicles/vehicle.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/controls.h",
@@ -3423,9 +3423,6 @@
       "ui/cutscenes/outro/outro_os.h"
     ],
     "ui/cutscenes/playcuts.cpp": [
-      "actors/characters/person.h",
-      "actors/items/balloon.h",
-      "actors/items/grenade.h",
       "effects/dirt.h",
       "effects/drip.h",
       "effects/pow.h",
@@ -3440,6 +3437,9 @@
       "engine/graphics/resources/font2d.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/characters/person.h",
+      "things/items/balloon.h",
+      "things/items/grenade.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/cutscenes/playcuts.h",
@@ -3537,9 +3537,6 @@
       "missions/memory_globals.h"
     ],
     "ui/hud/overlay.cpp": [
-      "actors/core/interact.h",
-      "actors/core/interact_globals.h",
-      "actors/core/statedef.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
@@ -3547,6 +3544,9 @@
       "engine/platform/platform.h",
       "missions/eway.h",
       "missions/game_types.h",
+      "things/core/interact.h",
+      "things/core/interact_globals.h",
+      "things/core/statedef.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/hud/overlay.h",
@@ -3566,12 +3566,6 @@
       "engine/core/types.h"
     ],
     "ui/hud/panel.cpp": [
-      "actors/characters/person.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "actors/items/special.h",
-      "actors/items/special_globals.h",
       "ai/pcom.h",
       "assets/sound_id.h",
       "assets/xlat_str.h",
@@ -3586,6 +3580,12 @@
       "engine/io/env.h",
       "missions/eway.h",
       "missions/memory_globals.h",
+      "things/characters/person.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h",
+      "things/items/special.h",
+      "things/items/special_globals.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
       "ui/hud/panel.h",
@@ -3620,19 +3620,6 @@
       "engine/core/types.h"
     ],
     "ui/interfac.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/hierarchy.h",
-      "actors/core/interact.h",
-      "actors/core/player.h",
-      "actors/core/player_globals.h",
-      "actors/core/state.h",
-      "actors/core/statedef.h",
-      "actors/core/thing.h",
-      "actors/core/thing_globals.h",
-      "actors/items/hook.h",
-      "actors/items/special.h",
-      "actors/vehicles/vehicle.h",
       "ai/combat.h",
       "ai/mav.h",
       "ai/pcom.h",
@@ -3651,6 +3638,19 @@
       "missions/eway_globals.h",
       "missions/game.h",
       "missions/game_globals.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/hierarchy.h",
+      "things/core/interact.h",
+      "things/core/player.h",
+      "things/core/player_globals.h",
+      "things/core/state.h",
+      "things/core/statedef.h",
+      "things/core/thing.h",
+      "things/core/thing_globals.h",
+      "things/items/hook.h",
+      "things/items/special.h",
+      "things/vehicles/vehicle.h",
       "ui/camera/cam.h",
       "ui/camera/fc.h",
       "ui/camera/fc_globals.h",
@@ -3880,15 +3880,15 @@
       "engine/core/types.h"
     ],
     "world/environment/plat.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/characters/person.h",
-      "actors/core/statedef.h",
       "engine/effects/psystem.h",
       "engine/graphics/geometry/bloom.h",
       "engine/graphics/pipeline/poly.h",
       "engine/platform/platform.h",
       "missions/eway.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/characters/person.h",
+      "things/core/statedef.h",
       "ui/hud/panel.h",
       "world/environment/plat.h",
       "world/environment/plat_globals.h",
@@ -3906,9 +3906,6 @@
       "world/environment/plat.h"
     ],
     "world/environment/prim.cpp": [
-      "actors/characters/person.h",
-      "actors/core/thing.h",
-      "actors/vehicles/vehicle.h",
       "assets/anim_globals.h",
       "engine/animation/anim_types.h",
       "engine/core/fmatrix.h",
@@ -3920,6 +3917,9 @@
       "engine/physics/collide.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/characters/person.h",
+      "things/core/thing.h",
+      "things/vehicles/vehicle.h",
       "world/environment/building_globals.h",
       "world/environment/building_types.h",
       "world/environment/prim.h",
@@ -3986,10 +3986,10 @@
       "world/environment/id.h"
     ],
     "world/environment/tripwire.cpp": [
-      "actors/characters/anim_ids.h",
-      "actors/core/interact.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/characters/anim_ids.h",
+      "things/core/interact.h",
       "world/environment/tripwire.h",
       "world/environment/tripwire_globals.h"
     ],
@@ -4057,9 +4057,6 @@
       "world/map/map.h"
     ],
     "world/map/ob.cpp": [
-      "actors/items/barrel.h",
-      "actors/items/special.h",
-      "actors/items/special_globals.h",
       "ai/mav.h",
       "assets/anim_globals.h",
       "assets/anim_loader.h",
@@ -4078,6 +4075,9 @@
       "engine/physics/collide.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/items/barrel.h",
+      "things/items/special.h",
+      "things/items/special_globals.h",
       "world/environment/build2.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h",
@@ -4132,12 +4132,12 @@
       "world/map/qmap.h"
     ],
     "world/map/road.cpp": [
-      "actors/core/thing.h",
       "ai/mav.h",
       "assets/texture.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/resources/console.h",
       "missions/elev.h",
+      "things/core/thing.h",
       "world/map/map.h",
       "world/map/pap.h",
       "world/map/road.h",
@@ -4181,7 +4181,7 @@
       "world/map/supermap_globals.h"
     ],
     "world/map/supermap_globals.cpp": [
-      "actors/characters/person_types.h",
+      "things/characters/person_types.h",
       "world/map/supermap_globals.h"
     ],
     "world/map/supermap_globals.h": [
@@ -4243,14 +4243,14 @@
       "engine/core/types.h"
     ],
     "world/navigation/wmove.cpp": [
-      "actors/core/statedef.h",
-      "actors/vehicles/vehicle.h",
-      "actors/vehicles/vehicle_globals.h",
       "assets/anim_globals.h",
       "engine/core/fmatrix.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/platform/platform.h",
       "missions/game_types.h",
+      "things/core/statedef.h",
+      "things/vehicles/vehicle.h",
+      "things/vehicles/vehicle_globals.h",
       "world/environment/build2.h",
       "world/environment/prim.h",
       "world/environment/prim_types.h",

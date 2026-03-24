@@ -18,9 +18,9 @@
 #include "world/map/pap.h"              // PAP_calc_height_at, PAP_2LO, PAP_SIZE_LO, PAP_SIZE_HI, PAP_SHIFT_LO
 #include "world/navigation/walkable.h"  // find_height_for_this_pos
 #include "engine/physics/collide.h"     // slide_around_box
-#include "actors/core/thing.h"
-#include "actors/vehicles/vehicle.h"
-#include "actors/characters/person.h"
+#include "things/core/thing.h"
+#include "things/vehicles/vehicle.h"
+#include "things/characters/person.h"
 
 // Anim types needed for expand_anim_prim_bbox / fn_anim_prim_normal
 #include "engine/animation/anim_types.h"  // GameKeyFrameElement, GetCMatrix, CMatrix33, Matrix33, KeyFrameChunk

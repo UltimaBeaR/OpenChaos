@@ -151,7 +151,7 @@ set(SOURCES_NEW
     src/engine/lighting/shadow_globals.cpp
     src/effects/fog.cpp
     src/effects/fog_globals.cpp
-    src/actors/core/drawtype.cpp
+    src/things/core/drawtype.cpp
     src/world/map/pap.cpp
     src/world/map/pap_globals.cpp
     src/world/navigation/walkable.cpp
@@ -183,45 +183,45 @@ set(SOURCES_NEW
     src/world/navigation/inside2.cpp
     src/world/navigation/inside2_globals.cpp
     src/world/environment/build2.cpp
-    src/actors/core/state.cpp
-    src/actors/core/switch.cpp
-    src/actors/core/switch_globals.cpp
-    src/actors/core/hierarchy.cpp
-    src/actors/core/hierarchy_globals.cpp
-    src/actors/core/player.cpp
-    src/actors/core/player_globals.cpp
-    src/actors/core/thing.cpp
-    src/actors/core/thing_globals.cpp
-    src/actors/core/interact.cpp
-    src/actors/core/interact_globals.cpp
-    src/actors/characters/cop.cpp
-    src/actors/characters/cop_globals.cpp
-    src/actors/characters/roper.cpp
-    src/actors/characters/roper_globals.cpp
-    src/actors/characters/thug.cpp
-    src/actors/characters/thug_globals.cpp
-    src/actors/characters/snipe.cpp
-    src/actors/characters/snipe_globals.cpp
-    src/actors/characters/darci.cpp
-    src/actors/characters/darci_globals.cpp
-    src/actors/characters/person.cpp
-    src/actors/characters/person_globals.cpp
-    src/actors/animals/animal.cpp
-    src/actors/animals/animal_globals.cpp
-    src/actors/animals/bat.cpp
-    src/actors/animals/bat_globals.cpp
-    src/actors/vehicles/chopper.cpp
-    src/actors/vehicles/chopper_globals.cpp
-    src/actors/vehicles/vehicle.cpp
-    src/actors/vehicles/vehicle_globals.cpp
+    src/things/core/state.cpp
+    src/things/core/switch.cpp
+    src/things/core/switch_globals.cpp
+    src/things/core/hierarchy.cpp
+    src/things/core/hierarchy_globals.cpp
+    src/things/core/player.cpp
+    src/things/core/player_globals.cpp
+    src/things/core/thing.cpp
+    src/things/core/thing_globals.cpp
+    src/things/core/interact.cpp
+    src/things/core/interact_globals.cpp
+    src/things/characters/cop.cpp
+    src/things/characters/cop_globals.cpp
+    src/things/characters/roper.cpp
+    src/things/characters/roper_globals.cpp
+    src/things/characters/thug.cpp
+    src/things/characters/thug_globals.cpp
+    src/things/characters/snipe.cpp
+    src/things/characters/snipe_globals.cpp
+    src/things/characters/darci.cpp
+    src/things/characters/darci_globals.cpp
+    src/things/characters/person.cpp
+    src/things/characters/person_globals.cpp
+    src/things/animals/animal.cpp
+    src/things/animals/animal_globals.cpp
+    src/things/animals/bat.cpp
+    src/things/animals/bat_globals.cpp
+    src/things/vehicles/chopper.cpp
+    src/things/vehicles/chopper_globals.cpp
+    src/things/vehicles/vehicle.cpp
+    src/things/vehicles/vehicle_globals.cpp
     src/assets/startscr.cpp
     src/assets/startscr_globals.cpp
-    src/actors/items/balloon.cpp
-    src/actors/items/balloon_globals.cpp
-    src/actors/items/grenade.cpp
-    src/actors/items/grenade_globals.cpp
-    src/actors/items/hook.cpp
-    src/actors/items/hook_globals.cpp
+    src/things/items/balloon.cpp
+    src/things/items/balloon_globals.cpp
+    src/things/items/grenade.cpp
+    src/things/items/grenade_globals.cpp
+    src/things/items/hook.cpp
+    src/things/items/hook_globals.cpp
     src/effects/pow.cpp
     src/effects/pow_globals.cpp
     src/engine/graphics/geometry/superfacet.cpp
@@ -260,8 +260,8 @@ set(SOURCES_NEW
     src/ui/cutscenes/outro/outro_os_globals.cpp
     src/ui/attract.cpp
     src/ui/attract_globals.cpp
-    src/actors/items/barrel.cpp
-    src/actors/items/barrel_globals.cpp
+    src/things/items/barrel.cpp
+    src/things/items/barrel_globals.cpp
     src/ui/menus/cnet.cpp
     src/ui/menus/cnet_globals.cpp
     src/ai/combat.cpp
@@ -279,7 +279,7 @@ set(SOURCES_NEW
     src/missions/game_globals.cpp
     src/ui/menus/gamemenu.cpp
     src/ui/menus/gamemenu_globals.cpp
-    src/actors/items/guns.cpp
+    src/things/items/guns.cpp
     src/missions/main.cpp
     src/ai/mav.cpp
     src/ai/mav_globals.cpp
@@ -297,7 +297,7 @@ set(SOURCES_NEW
     src/ui/pause.cpp
     src/ai/pcom.cpp
     src/ai/pcom_globals.cpp
-    src/actors/items/projectile.cpp
+    src/things/items/projectile.cpp
     src/world/environment/plat.cpp
     src/world/environment/plat_globals.cpp
     src/ui/cutscenes/playcuts.cpp
@@ -327,8 +327,8 @@ set(SOURCES_NEW
     src/engine/physics/collide_globals.cpp
     src/engine/audio/sound.cpp
     src/engine/audio/sound_globals.cpp
-    src/actors/items/special.cpp
-    src/actors/items/special_globals.cpp
+    src/things/items/special.cpp
+    src/things/items/special_globals.cpp
     src/world/environment/stair.cpp
     src/world/environment/stair_globals.cpp
     src/world/map/supermap.cpp

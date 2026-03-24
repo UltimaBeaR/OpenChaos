@@ -1,11 +1,11 @@
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 
-#include "actors/core/thing.h"
+#include "things/core/thing.h"
 #include "missions/game_types.h"
 #include "world/map/pap_globals.h"
 #include "world/level_pools.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "world/environment/edmap.h"
 
 extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
@@ -20,18 +20,18 @@ extern SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face);
 extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 
 #include "ai/mav.h"
-#include "actors/characters/anim_ids.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
-#include "actors/core/interact.h"       // calc_sub_objects_position
-#include "actors/core/state.h"          // set_generic_person_state_function, STATE_CLIMB_LADDER
-#include "actors/core/thing.h"          // move_thing_on_map
-#include "actors/characters/person.h"   // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
+#include "things/characters/anim_ids.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
+#include "things/core/interact.h"       // calc_sub_objects_position
+#include "things/core/state.h"          // set_generic_person_state_function, STATE_CLIMB_LADDER
+#include "things/core/thing.h"          // move_thing_on_map
+#include "things/characters/person.h"   // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
 #include "world/map/pap.h"              // PAP_calc_height_at, PAP_calc_height_at_thing
 #include "engine/graphics/resources/console.h"  // CONSOLE_text
 #include "engine/input/keyboard_globals.h"      // ControlFlag
 
 extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);
 
-#include "actors/characters/darci_globals.h"
+#include "things/characters/darci_globals.h"
 #include "world/map/supermap.h"
 #include "world/map/supermap_globals.h"
 #include "assets/anim_globals.h"
@@ -40,16 +40,16 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "world/environment/prim.h"        // slide_along_prim, prim_get_collision_model, get_prim_info
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
-#include "actors/vehicles/vehicle.h"
+#include "things/vehicles/vehicle.h"
 #include "ai/pcom.h"
 #include "ai/combat.h"
 #include "world/navigation/inside2.h"
-#include "actors/items/barrel.h"
+#include "things/items/barrel.h"
 #include "effects/mist.h"
 #include "effects/dirt.h"
 #include "ai/mav_globals.h"
 #include "ui/camera/fc.h"
-#include "actors/animals/bat.h"
+#include "things/animals/bat.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/environment/build2.h"
 #include "world/map/pap.h"

@@ -14,8 +14,8 @@
 #include "world/environment/prim_types.h"  // PrimObject, PrimInfo, PRIM_FLAG_*, FACE_FLAG_*, PRIM_OBJ_*
 #include "world/environment/prim.h"        // get_prim_info, slide_along_prim, etc.
 
-#include "actors/items/balloon.h"
-#include "actors/items/balloon_globals.h"
+#include "things/items/balloon.h"
+#include "things/items/balloon_globals.h"
 
 #include "engine/graphics/geometry/mesh.h"
 

@@ -14,11 +14,11 @@
 
 
 // Thing, Class constants, person types, special items
-#include "actors/core/thing.h"
-#include "actors/core/thing_globals.h"
-#include "actors/characters/person.h"
-#include "actors/items/special.h"
-#include "actors/items/special_globals.h"
+#include "things/core/thing.h"
+#include "things/core/thing_globals.h"
+#include "things/characters/person.h"
+#include "things/items/special.h"
+#include "things/items/special_globals.h"
 
 // MFX sound playback (MFX_play_ambient)
 #include "engine/audio/mfx.h"
@@ -38,8 +38,8 @@
 #include "ai/pcom.h"
 
 // (DAG violation: ui/ → actors/, pre-existing coupling from original)
-#include "actors/core/thing.h"
-#include "actors/core/thing_globals.h"
+#include "things/core/thing.h"
+#include "things/core/thing_globals.h"
 
 // (DAG violation: ui/ → missions/, pre-existing coupling from original)
 #include "missions/memory_globals.h"
@@ -55,7 +55,7 @@
 #include "engine/io/env.h"
 
 // STATE_DEAD, STATE_SEARCH, SUB_STATE_DEAD_INJURED for beacon/scanner logic
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 
 #include <math.h>
 #include <string.h>

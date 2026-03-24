@@ -11,20 +11,20 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/core/fmatrix.h"
-#include "actors/core/interact.h"
+#include "things/core/interact.h"
 #include "engine/lighting/shadow.h"
 #include "engine/core/matrix.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "effects/dirt.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"  // alt_texture
 #include <math.h>
 #include "ui/interfac.h"
-#include "actors/core/hierarchy.h"
+#include "things/core/hierarchy.h"
 #include "engine/core/quaternion.h"
 #include "missions/memory.h"
-#include "actors/characters/person.h"
+#include "things/characters/person.h"
 #include "ai/pcom.h"
 #include "missions/eway.h"
 #include "engine/graphics/graphics_api/gd_display.h"
@@ -2169,11 +2169,11 @@ no_muzzle_calcs:
     }
 }
 
-#include "actors/items/special.h"
-#include "actors/items/special_globals.h"
-#include "actors/core/interact.h"
+#include "things/items/special.h"
+#include "things/items/special_globals.h"
+#include "things/core/interact.h"
 #include "engine/input/keyboard_globals.h"
-#include "actors/core/hierarchy.h"
+#include "things/core/hierarchy.h"
 
 // uc_orig: FIGURE_draw_prim_tween_warped (fallen/DDEngine/Source/figure.cpp)
 // Variant of FIGURE_draw_prim_tween with sinusoidal Z-dependent vertex warp.

@@ -7,7 +7,7 @@
 #include "missions/game_types.h"
 #include "effects/pyro.h"
 #include "effects/pyro_globals.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "effects/ribbon.h"
 #include "engine/lighting/night.h"
 #include "effects/dirt.h"
@@ -15,10 +15,10 @@
 #include "engine/effects/psystem.h"
 #include "ai/pcom.h"
 #include "ui/menus/gamemenu.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "ai/combat.h"
-#include "actors/core/interact.h"      // calc_sub_objects_position
-#include "actors/characters/person.h"  // set_person_dead, knock_person_down
+#include "things/core/interact.h"      // calc_sub_objects_position
+#include "things/characters/person.h"  // set_person_dead, knock_person_down
 #include "engine/graphics/pipeline/poly.h"
 
 // uc_orig: init_pyros (fallen/Source/pyro.cpp)
@@ -1071,9 +1071,9 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset);
 void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE rand = 1);
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/level_pools.h"
-#include "actors/items/barrel.h"
+#include "things/items/barrel.h"
 #include "effects/ribbon.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "effects/spark.h"
 #include "world/environment/id.h"

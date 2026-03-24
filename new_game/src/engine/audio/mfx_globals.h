@@ -3,8 +3,8 @@
 
 #include "engine/audio/mfx.h"
 #include <AL/alc.h>
-#include "actors/core/thing.h"
-#include "actors/core/thing_globals.h"
+#include "things/core/thing.h"
+#include "things/core/thing_globals.h"
 
 // Internal types used by the audio globals below.
 

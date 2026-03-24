@@ -8,3 +8,4 @@
 | `core/*` | `engine/core/*` | engine — самодостаточный движок-комбайн, core его фундамент |
 | `platform/*` | `engine/platform/*` | платформенная абстракция — часть движка |
 | `engine/graphics/graphics_api/wind_procs.*` | `engine/platform/wind_procs.*` | Win32 WndProc — platform, не graphics |
+| `actors/*` | `things/*` | Thing — оригинальное название системы в коде, точнее чем "actors" |

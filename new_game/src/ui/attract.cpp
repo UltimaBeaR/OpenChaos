@@ -17,7 +17,7 @@
 #include "ui/interfac.h"
 #include "assets/xlat_str.h"
 #include "ui/frontend.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)

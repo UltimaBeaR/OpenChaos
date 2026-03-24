@@ -8,7 +8,7 @@
 #include "world/map/pap_globals.h"
 #include "engine/audio/mfx.h"
 #include "engine/physics/collide.h"
-#include "actors/core/interact.h"
+#include "things/core/interact.h"
 #include "missions/memory.h"
 
 // uc_orig: SPARK_init (fallen/Source/spark.cpp)

@@ -2,7 +2,7 @@
 #define UI_CAMERA_CAM_H
 
 #include "engine/core/types.h"
-#include "actors/core/thing.h"
+#include "things/core/thing.h"
 #include "ui/camera/cam_globals.h"
 
 // High-level camera API for game code. Sets camera mode, focus, zoom, shake,

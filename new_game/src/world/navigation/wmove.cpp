@@ -6,10 +6,10 @@
 #include "world/navigation/wmove_globals.h"
 #include "world/environment/build2.h"
 #include "engine/core/fmatrix.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 
-#include "actors/vehicles/vehicle.h"
-#include "actors/vehicles/vehicle_globals.h"
+#include "things/vehicles/vehicle.h"
+#include "things/vehicles/vehicle_globals.h"
 #include "world/level_pools.h"
 #include "world/environment/prim_types.h" // PrimFace4, PrimPoint, FACE_FLAG_*
 #include "world/environment/prim.h"       // get_prim_info, slide_along_prim

@@ -2,12 +2,12 @@
 // game.h pulls in the core game types (Thing, GameCoord, TICK_RATIO, etc.)
 #include "engine/platform/platform.h"
 #include "missions/game_types.h"
-#include "actors/characters/person.h"  // set_face_thing
+#include "things/characters/person.h"  // set_face_thing
 #include "missions/eway.h"
 #include "world/map/ob.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "world/navigation/wmove.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "engine/effects/psystem.h"
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"

@@ -1,6 +1,0 @@
-#ifndef ACTORS_ANIMALS_ANIMAL_GLOBALS_H
-#define ACTORS_ANIMALS_ANIMAL_GLOBALS_H
-
-#include "actors/animals/animal.h"
-
-#endif // ACTORS_ANIMALS_ANIMAL_GLOBALS_H

@@ -57,9 +57,9 @@
 #include "effects/dirt.h"
 #include "effects/dirt_globals.h"
 #include "effects/pow.h"
-#include "actors/items/hook.h"
+#include "things/items/hook.h"
 // PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN are in world/environment/prim_types.h (included above)
-#include "actors/items/balloon_globals.h"
+#include "things/items/balloon_globals.h"
 #include "engine/core/timer.h"
 #include "engine/io/env.h"
 
@@ -70,7 +70,7 @@
 #include "world/navigation/inside2.h"
 #include "world/environment/ns.h"
 #include "missions/eway.h"
-#include "actors/core/thing_globals.h"
+#include "things/core/thing_globals.h"
 #include "world/map/supermap_globals.h"
 
 // Additional includes for AENG_draw_city() (chunk 4b)
@@ -99,22 +99,22 @@
 #include "engine/graphics/geometry/facet.h"
 #include "engine/graphics/geometry/facet_globals.h"
 #include "engine/graphics/geometry/farfacet.h"
-#include "actors/core/interact.h"
-#include "actors/animals/bat.h"
-#include "actors/characters/person.h"
-#include "actors/items/special.h"
-#include "actors/vehicles/vehicle.h"
-#include "actors/vehicles/chopper.h"
-#include "actors/items/grenade.h"
+#include "things/core/interact.h"
+#include "things/animals/bat.h"
+#include "things/characters/person.h"
+#include "things/items/special.h"
+#include "things/vehicles/vehicle.h"
+#include "things/vehicles/chopper.h"
+#include "things/items/grenade.h"
 #include "ai/pcom.h"
 #include "effects/glow.h"
 #include "effects/tracks.h"
 #include "engine/graphics/geometry/oval.h"
 #include "ui/interfac_globals.h"
 #include "ui/controls_globals.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "assets/anim_tmap.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)
 #define POLY_set_local_rotation_none() \

@@ -1,7 +1,7 @@
 // uc_orig: memory.cpp (fallen/Source/memory.cpp)
 // Global variable definitions for the game-level memory allocation system.
 
-#include "actors/core/thing.h"         // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
+#include "things/core/thing.h"         // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
 #include "missions/game_types.h"      // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
@@ -10,15 +10,15 @@
 #include "world/map/supermap.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
-#include "actors/items/barrel.h"
-#include "actors/items/barrel_globals.h"
+#include "things/items/barrel.h"
+#include "things/items/barrel_globals.h"
 #include "missions/eway.h"
 #include "world/map/pap_globals.h"
 #include "ai/mav.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"
-#include "actors/items/balloon.h"
-#include "actors/items/balloon_globals.h"
+#include "things/items/balloon.h"
+#include "things/items/balloon_globals.h"
 #include "effects/tracks.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
@@ -26,7 +26,7 @@
 #include "world/environment/tripwire_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
-#include "actors/animals/bat.h"
+#include "things/animals/bat.h"
 #include "world/environment/door.h"
 #include "world/environment/door_globals.h"
 #include "ui/cutscenes/playcuts.h"

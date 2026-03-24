@@ -6,15 +6,15 @@
 #include "missions/game_types.h"
 #include "missions/memory.h"
 #include "ai/pcom.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "missions/eway.h"
-#include "actors/characters/anim_ids.h"
-#include "actors/items/special.h"
+#include "things/characters/anim_ids.h"
+#include "things/items/special.h"
 #include "effects/tracks.h"
 
 #include "missions/save.h"
 #include "missions/save_globals.h"
-#include "actors/characters/person.h"  // set_anim
+#include "things/characters/person.h"  // set_anim
 
 // Record type tags written into the save stream to identify what follows.
 // uc_orig: SAVE_PERSON_TYPE_NORMAL (fallen/Source/save.cpp)

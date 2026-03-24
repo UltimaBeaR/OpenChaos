@@ -1,0 +1,6 @@
+#ifndef THINGS_ANIMALS_ANIMAL_GLOBALS_H
+#define THINGS_ANIMALS_ANIMAL_GLOBALS_H
+
+#include "things/animals/animal.h"
+
+#endif // THINGS_ANIMALS_ANIMAL_GLOBALS_H

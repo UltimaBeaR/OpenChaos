@@ -2,7 +2,7 @@
 #define MISSIONS_GAME_GLOBALS_H
 
 #include "engine/platform/platform.h"
-#include "actors/core/thing.h"     // Pool type definitions (Vehicle, Person, Animal, etc.) needed by game_types.h
+#include "things/core/thing.h"     // Pool type definitions (Vehicle, Person, Animal, etc.) needed by game_types.h
 #include "missions/game_types.h"
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"

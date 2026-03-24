@@ -22,8 +22,8 @@
 #include "effects/dirt.h"
 #include "effects/fog.h"
 #include "effects/fog_globals.h"
-#include "actors/items/hook.h"
-#include "actors/items/hook_globals.h"
+#include "things/items/hook.h"
+#include "things/items/hook_globals.h"
 #include "effects/mist.h"
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"
@@ -40,7 +40,7 @@
 #include "world/environment/ns.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"
-#include "actors/vehicles/chopper.h"
+#include "things/vehicles/chopper.h"
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"
 #include "ui/interfac.h"
@@ -56,36 +56,36 @@
 #include "ai/pcom.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
-#include "actors/items/balloon.h"
+#include "things/items/balloon.h"
 #include "world/navigation/wand.h"
 #include "effects/ribbon.h"
-#include "actors/items/barrel.h"
+#include "things/items/barrel.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 #include "world/environment/ware.h"
 #include "missions/memory.h"
 #include "ui/cutscenes/playcuts.h"
 #include "ui/cutscenes/playcuts_globals.h"
-#include "actors/items/grenade.h"
+#include "things/items/grenade.h"
 #include "engine/io/env.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 #include "engine/audio/sound.h"
 
-#include "actors/animals/bat.h"
+#include "things/animals/bat.h"
 #include "world/map/supermap_globals.h"
-#include "actors/items/special.h"
-#include "actors/vehicles/vehicle.h"
-#include "actors/vehicles/vehicle_globals.h"
+#include "things/items/special.h"
+#include "things/vehicles/vehicle.h"
+#include "things/vehicles/vehicle_globals.h"
 #include "world/environment/plat.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PRIM_OBJ_*
 #include "world/environment/prim.h"       // get_prim_info
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "assets/startscr_globals.h"    // STARTSCR_mission
-#include "actors/core/thing_globals.h"  // playback_file
-#include "actors/characters/person.h"  // init_persons
+#include "things/core/thing_globals.h"  // playback_file
+#include "things/characters/person.h"  // init_persons
 #include "engine/graphics/resources/console.h" // CONSOLE_clear
 #include "assets/texture.h"            // TEXTURE_fix_prim_textures
 #include "engine/graphics/pipeline/aeng.h"  // AENG_create_dx_prim_points, TEXTURE_load_needed

@@ -1,5 +1,5 @@
 #include "world/map/supermap_globals.h"
-#include "actors/characters/person_types.h"
+#include "things/characters/person_types.h"
 
 // uc_orig: level_index (fallen/Source/supermap.cpp)
 ULONG level_index = 0;

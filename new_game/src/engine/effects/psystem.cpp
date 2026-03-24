@@ -3,7 +3,7 @@
 // particles[0] is a permanent sentinel so that the used-list always has a non-null head.
 
 #include "engine/platform/platform.h"
-#include "actors/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
+#include "things/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
 #include "missions/game_types.h"
 #include "ai/mav.h"
 #include "engine/core/fmatrix.h"          // FMATRIX_calc, FMATRIX_TRANSPOSE, FMATRIX_MUL
@@ -12,11 +12,11 @@
 #include "ai/pcom.h"
 #include "effects/pow.h"
 #include "effects/pow_globals.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-#include "actors/core/interact.h"
-#include "actors/core/interact_globals.h"
+#include "things/core/interact.h"
+#include "things/core/interact_globals.h"
 #include "engine/physics/collide.h"
 
 #include "engine/effects/psystem_globals.h"

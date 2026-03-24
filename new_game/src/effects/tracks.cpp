@@ -6,11 +6,11 @@
 #include "engine/graphics/pipeline/poly.h"
 
 #include "world/map/pap_globals.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"
-#include "actors/core/interact.h"
-#include "actors/core/interact_globals.h"
+#include "things/core/interact.h"
+#include "things/core/interact_globals.h"
 
 // world_type is in Sound.cpp; WORLD_TYPE_SNOW from sound.h (pulled via game.h chain indirectly)
 // but we use extern to avoid the sound.h → Structs.h → anim.h inclusion issues

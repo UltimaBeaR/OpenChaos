@@ -7,7 +7,7 @@
 
 #include "engine/core/types.h"
 #include "engine/core/vector.h"
-#include "actors/core/state.h"
+#include "things/core/state.h"
 
 struct Thing;
 

@@ -2,7 +2,7 @@
 // Game-level memory management and level save/load system.
 // First chunk: globals init, level memory table, pointer/index conversion, anim serialization.
 
-#include "actors/core/thing.h"         // pool types (Vehicle, Person, etc.)
+#include "things/core/thing.h"         // pool types (Vehicle, Person, etc.)
 #include "missions/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
 #include "world/environment/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
 #include "world/environment/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
@@ -19,15 +19,15 @@
 #include "world/map/supermap.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
-#include "actors/items/barrel.h"
-#include "actors/items/barrel_globals.h"
+#include "things/items/barrel.h"
+#include "things/items/barrel_globals.h"
 #include "missions/eway.h"
 #include "world/map/pap_globals.h"
 #include "ai/mav.h"
 #include "world/map/road.h"
 #include "world/map/road_globals.h"
-#include "actors/items/balloon.h"
-#include "actors/items/balloon_globals.h"
+#include "things/items/balloon.h"
+#include "things/items/balloon_globals.h"
 #include "effects/tracks.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"
@@ -36,13 +36,13 @@
 #include "engine/effects/psystem.h"
 #include "engine/effects/psystem_globals.h"
 #include "engine/io/env.h"
-#include "actors/animals/bat.h"
+#include "things/animals/bat.h"
 #include "world/environment/door.h"
 #include "world/environment/door_globals.h"
 #include "effects/spark.h"
 #include "ui/cutscenes/playcuts.h"
 #include "ui/cutscenes/playcuts_globals.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/audio/sound.h"
 

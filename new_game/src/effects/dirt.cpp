@@ -9,7 +9,7 @@
 #include "world/map/pap.h"
 #include "world/map/ob.h"
 #include "world/environment/ns.h"
-#include "actors/core/interact.h"
+#include "things/core/interact.h"
 #include "ai/pcom.h"
 #include "missions/game_types.h"
 #include "ai/mav.h"
@@ -18,7 +18,7 @@
 #include "engine/audio/sound.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "world/level_pools.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 
 // uc_orig: TICK_SHIFT_LOWRES (fallen/Source/dirt.cpp)
 #define TICK_SHIFT_LOWRES (TICK_SHIFT - 2)

@@ -5,7 +5,7 @@
 #include "missions/game.h"
 #include "engine/platform/platform.h"
 #include "missions/game_types.h"
-#include "actors/core/thing_globals.h"  // playback_file, verifier_file
+#include "things/core/thing_globals.h"  // playback_file, verifier_file
 #include "ui/controls.h"                // process_controls
 #include "world/environment/prim.h"    // clear_prims
 
@@ -27,7 +27,7 @@
 #include "ui/interfac_globals.h"
 #include "ui/menus/gamemenu.h"
 #include "effects/spark.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "engine/animation/morph.h"
@@ -47,8 +47,8 @@
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 #include "missions/save.h"
-#include "actors/items/balloon.h"
-#include "actors/items/balloon_globals.h"
+#include "things/items/balloon.h"
+#include "things/items/balloon_globals.h"
 #include "engine/io/env.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
@@ -79,7 +79,7 @@
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "ui/camera/fc.h"       // FC_init, FC_process, FC_cam
 
-#include "actors/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
+#include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
 #include "assets/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
 #include "assets/anim_loader.h" // setup_people_anims, setup_extra_anims, setup_global_anim_array
 #include "assets/level_loader.h"// (transitively)
@@ -90,7 +90,7 @@
 #include "engine/effects/psystem.h" // PARTICLE_Run
 
 #include "effects/dirt.h"
-#include "actors/items/grenade.h"
+#include "things/items/grenade.h"
 #include "effects/ribbon.h"
 #include "effects/drip.h"
 #include "assets/xlat_str.h"
@@ -101,8 +101,8 @@
 #include "ui/hud/panel_globals.h"
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
-#include "actors/characters/snipe.h"
-#include "actors/characters/snipe_globals.h"
+#include "things/characters/snipe.h"
+#include "things/characters/snipe_globals.h"
 #include "world/environment/tripwire.h"
 #include "world/environment/tripwire_globals.h"
 #include "world/environment/door.h"

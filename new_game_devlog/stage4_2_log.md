@@ -84,3 +84,9 @@
 - `wind_procs.*` (4 файла) из `engine/graphics/graphics_api/` → `engine/platform/` — WndProc это platform, не graphics
 - CMakeLists.txt: source paths + include_directories (`src/platform` → `src/engine/platform`)
 - Include guards обновлены во всех .h
+
+### Итерация 2 — actors/ → things/ (2026-03-24)
+
+- `actors/*` (93 файла) → `things/*` — переименование папки
+- Thing — оригинальное название системы в коде, "actors" подразумевает только активных агентов
+- 117 файлов с include-путями обновлены, 49 include guards ACTORS_ → THINGS_

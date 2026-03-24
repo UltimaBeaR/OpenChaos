@@ -6,15 +6,15 @@
 #include "engine/audio/sound.h"       // PainSound (already migrated)
 #include "engine/effects/psystem.h"   // PARTICLE_Add, PFLAG_* (already migrated)
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
-#include "actors/characters/anim_ids.h"
-#include "actors/core/statedef.h"
+#include "things/characters/anim_ids.h"
+#include "things/core/statedef.h"
 #include "world/map/pap_globals.h"
 #include "engine/audio/sound.h"
 #include "assets/anim_globals.h"      // estate, semtex (already migrated)
 #include "effects/dirt.h"
 #include "missions/eway.h"            // EWAY_get_person (already migrated)
-#include "actors/core/interact.h"     // calc_sub_objects_position
-#include "actors/characters/person.h" // can_a_see_b, set_anim
+#include "things/core/interact.h"     // calc_sub_objects_position
+#include "things/characters/person.h" // can_a_see_b, set_anim
 #include "engine/graphics/pipeline/aeng.h"  // MSG_add
 #include "engine/physics/collide.h"   // LOS_FLAG_IGNORE_*
 

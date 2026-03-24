@@ -1,5 +1,5 @@
 #include "ai/combat_globals.h"
-#include "actors/characters/anim_ids.h"
+#include "things/characters/anim_ids.h"
 
 // uc_orig: fight_tree (fallen/Source/Combat.cpp)
 SWORD fight_tree[][10] = {

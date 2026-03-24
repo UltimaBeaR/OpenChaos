@@ -1,7 +1,7 @@
 #include "engine/platform/platform.h"
 #include "missions/game_types.h"
-#include "actors/core/interact.h"      // calc_sub_objects_position
-#include "actors/characters/anim_ids.h"
+#include "things/core/interact.h"      // calc_sub_objects_position
+#include "things/characters/anim_ids.h"
 #include "world/environment/tripwire.h"
 #include "world/environment/tripwire_globals.h"
 

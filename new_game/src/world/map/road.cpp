@@ -4,7 +4,7 @@
 #include "world/map/road_globals.h"
 #include "world/map/map.h"
 #include "world/map/pap.h"
-#include "actors/core/thing.h"
+#include "things/core/thing.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/resources/console.h"
 #include "assets/texture.h"

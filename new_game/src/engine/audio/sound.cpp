@@ -9,7 +9,7 @@
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"         // FC_cam
 #include "engine/audio/mfx.h"
-#include "actors/core/statedef.h"
+#include "things/core/statedef.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h" // WARE_ware
 #include "ui/frontend.h"
