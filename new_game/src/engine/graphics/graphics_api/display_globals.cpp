@@ -47,9 +47,6 @@ UBYTE* image_mem = NULL;
 // uc_orig: image (fallen/DDLibrary/Source/GDisplay.cpp)
 UBYTE* image = NULL;
 
-// uc_orig: mirror (fallen/DDLibrary/Source/GDisplay.cpp)
-LPDIRECTDRAWSURFACE4 mirror = NULL;
-
 // uc_orig: m_lpLastBackground (fallen/DDLibrary/Source/GDisplay.cpp)
 LPDIRECTDRAWSURFACE4 m_lpLastBackground = NULL;
 

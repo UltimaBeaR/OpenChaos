@@ -921,7 +921,6 @@ void FRONTEND_kibble_flurry()
 
 // ---- Additional includes for chunk 2 ----------------------------------------
 
-#include "engine/io/drive.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/graphics/graphics_api/dd_manager.h"
@@ -1562,7 +1561,7 @@ void FRONTEND_MissionBrief(CBYTE* script, UBYTE i)
 
     if ((mdata->ObjID) && (mdata->ObjID < 34) && (0 != strcmp(brief_wav[mdata->ObjID], "none"))) {
         CBYTE path[_MAX_PATH];
-        strcpy(path, GetSpeechPath());
+        strcpy(path, ".\\");
         strcat(path, "talk2\\");
         strcat(path, brief_wav[mdata->ObjID]);
         MFX_QUICK_play(path);

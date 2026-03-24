@@ -5,7 +5,6 @@
 #include "engine/graphics/graphics_api/host.h"                 // SetupHost, ResetHost
 #include "engine/graphics/pipeline/aeng.h"                     // AENG_read_detail_levels
 #include "engine/io/env.h"                                      // ENV_load
-#include "engine/io/drive.h"                                    // LocateCDROM
 #include "missions/game.h"                                      // game
 
 // uc_orig: main (fallen/Source/Main.cpp)
@@ -16,8 +15,6 @@ SLONG main(UWORD argc, TCHAR* argv[])
     FileSetBasePath("");
 
     ENV_load("config.ini");
-
-    LocateCDROM();
 
     AENG_read_detail_levels();
 

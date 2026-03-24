@@ -71,9 +71,6 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/message_globals.cpp
     src/core/timer.cpp
     src/core/timer_globals.cpp
-    src/assets/bink_client.cpp
-    src/engine/io/drive.cpp
-    src/engine/io/drive_globals.cpp
     src/engine/audio/mfx.cpp
     src/engine/audio/mfx_globals.cpp
     src/engine/graphics/resources/d3d_texture.cpp
@@ -112,8 +109,6 @@ set(SOURCES_NEW
     src/assets/anim_tmap_globals.cpp
     src/engine/animation/morph.cpp
     src/engine/animation/morph_globals.cpp
-    src/engine/net/net.cpp
-    src/engine/net/net_globals.cpp
     src/world/environment/outline.cpp
     src/engine/lighting/crinkle.cpp
     src/engine/effects/flamengine.cpp
@@ -226,8 +221,6 @@ set(SOURCES_NEW
     src/actors/items/balloon_globals.cpp
     src/actors/items/grenade.cpp
     src/actors/items/grenade_globals.cpp
-    src/actors/items/dike.cpp
-    src/actors/items/dike_globals.cpp
     src/actors/items/hook.cpp
     src/actors/items/hook_globals.cpp
     src/effects/pow.cpp
@@ -270,10 +263,6 @@ set(SOURCES_NEW
     src/ui/attract_globals.cpp
     src/actors/items/barrel.cpp
     src/actors/items/barrel_globals.cpp
-    src/actors/animals/bat.cpp
-    src/actors/animals/bat_globals.cpp
-    src/actors/animals/canid.cpp
-    src/actors/animals/canid_globals.cpp
     src/ui/menus/cnet.cpp
     src/ui/menus/cnet_globals.cpp
     src/ai/combat.cpp
@@ -324,8 +313,6 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/bloom.cpp
     src/engine/graphics/geometry/bloom_globals.cpp
     src/engine/graphics/pipeline/draw2d.cpp
-    src/world/map/qedit.cpp
-    src/world/map/qedit_globals.cpp
     src/world/map/qmap.cpp
     src/world/map/road.cpp
     src/world/map/road_globals.cpp

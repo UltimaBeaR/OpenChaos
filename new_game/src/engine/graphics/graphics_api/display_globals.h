@@ -15,10 +15,6 @@ extern UBYTE* image_mem;
 // Pointer into image_mem used during background image loading.
 extern UBYTE* image;
 
-// uc_orig: mirror (fallen/DDLibrary/Source/GDisplay.cpp)
-// Temporary system-memory surface used by the Bink video flipper callback.
-extern LPDIRECTDRAWSURFACE4 mirror;
-
 // uc_orig: m_lpLastBackground (fallen/DDLibrary/Source/GDisplay.cpp)
 // Last background surface used by the display; reset on mode change.
 extern LPDIRECTDRAWSURFACE4 m_lpLastBackground;

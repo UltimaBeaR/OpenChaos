@@ -11,7 +11,6 @@
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 #include "assets/xlat_str.h"
-#include "engine/net/net.h"
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "ui/hud/overlay.h"

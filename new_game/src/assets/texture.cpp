@@ -19,7 +19,6 @@
 #include "engine/graphics/resources/truetype.h"
 #include "engine/graphics/resources/font2d.h"
 #include "engine/io/env.h"
-#include "engine/io/drive.h"
 #include "assets/tga.h"
 #include "world/level_pools.h"
 #include "assets/level_loader.h"
@@ -430,7 +429,7 @@ void TEXTURE_initialise_clumping(CBYTE* fname_level)
                 fname_level++;
         } while (*fname_level++ == '\\');
 
-        sprintf(filename, "%sclumps\\", GetTexturePath());
+        sprintf(filename, ".\\clumps\\");
         char* fptr = filename + strlen(filename);
         while (*leafname != '.')
             *fptr++ = *leafname++;

@@ -19,7 +19,6 @@
 #include "engine/graphics/graphics_api/display_macros.h"   // dd_error, d3d_error macros
 #include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
 #include "assets/tga.h"                // OpenTGAClump, CloseTGAClump
-#include "assets/bink_client.h"        // BinkPlay, BinkMessage
 #include "core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
@@ -42,21 +41,9 @@ static void RenderStreamToSurface(IDirectDrawSurface* pSurface, IMultiMediaStrea
 static void RenderFileToMMStream(const char* szFileName, IMultiMediaStream** ppMMStream, IDirectDraw* pDD);
 // uc_orig: calculate_mask_and_shift (fallen/DDLibrary/Source/GDisplay.cpp)
 static void calculate_mask_and_shift(ULONG bitmask, SLONG* mask, SLONG* shift);
-// uc_orig: quick_flipper (fallen/DDLibrary/Source/GDisplay.cpp)
-static bool quick_flipper();
-
 // Forward declarations of panel/poly functions accessed by Flip.
 extern void PreFlipTT();
 
-// Movie filename patterns for the intro sequence and in-game cutscenes.
-// uc_orig: FMV1a (fallen/DDLibrary/Source/GDisplay.cpp)
-#define FMV1a "eidos"
-// uc_orig: FMV1b (fallen/DDLibrary/Source/GDisplay.cpp)
-#define FMV1b "logo24"
-// uc_orig: FMV2 (fallen/DDLibrary/Source/GDisplay.cpp)
-#define FMV2 "pcintro_withsound"
-// uc_orig: FMV3 (fallen/DDLibrary/Source/GDisplay.cpp)
-#define FMV3 "new_pccutscene%d_300"
 
 // RGB 5-6-5 and 5-5-5 pixel format structs used by LoadBackImage.
 // uc_orig: RGB_565 (fallen/DDLibrary/Source/GDisplay.cpp)
@@ -416,53 +403,12 @@ void LoadBackImage(UBYTE* image_data)
     }
 }
 
-// uc_orig: quick_flipper (fallen/DDLibrary/Source/GDisplay.cpp)
-// Bink callback: blits the decoded frame from the system-memory mirror surface to the front buffer.
-static bool quick_flipper()
-{
-    the_display.lp_DD_FrontSurface->Blt(&the_display.DisplayRect, mirror, NULL, DDBLT_WAIT, NULL);
-
-    return true;
-}
-
 // uc_orig: PlayQuickMovie (fallen/DDLibrary/Source/GDisplay.cpp)
-// Creates a system-memory mirror of the back surface and uses Bink to play a video into it,
-// flipping to the front buffer for each frame via quick_flipper.
-// type=0 plays the intro sequence; type>0 plays in-game cutscene #type.
+// Bink video playback removed. This function is kept as a stub because it is
+// called from Display::RunFMV and Display::RunCutscene.
 void PlayQuickMovie(SLONG type, SLONG language_ignored, bool bIgnored)
 {
-    DDSURFACEDESC2 back;
-    DDSURFACEDESC2 mine;
-
-    InitStruct(back);
-
-    the_display.lp_DD_BackSurface->GetSurfaceDesc(&back);
-
-    InitStruct(mine);
-
-    mine.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
-    mine.dwWidth = 640;
-    mine.dwHeight = 480;
-    mine.ddpfPixelFormat = back.ddpfPixelFormat;
-    mine.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
-
-    HRESULT result = the_display.lp_DD4->CreateSurface(&mine, &mirror, NULL);
-
-    IDirectDrawSurface* lpdds;
-
-    if (SUCCEEDED(mirror->QueryInterface(IID_IDirectDrawSurface, (void**)&lpdds))) {
-        if (!type) {
-            BinkPlay("bink\\" FMV1a ".bik", lpdds, quick_flipper);
-            BinkPlay("bink\\" FMV1b ".bik", lpdds, quick_flipper);
-            BinkPlay("bink\\" FMV2 ".bik", lpdds, quick_flipper);
-        } else {
-            char filename[MAX_PATH];
-            sprintf(filename, "bink\\" FMV3 ".bik", type);
-            BinkPlay(filename, lpdds, quick_flipper);
-        }
-    }
-
-    mirror->Release();
+    // Bink video subsystem removed; FMV playback is not available.
 }
 
 // ---------------------------------------------------------------------------

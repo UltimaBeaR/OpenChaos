@@ -32,8 +32,6 @@
 #include "world/map/ob.h"
 #include "world/map/ob_globals.h"
 #include "engine/animation/morph.h"
-#include "world/map/qedit.h"
-#include "world/map/qedit_globals.h"
 #include "engine/lighting/night.h"
 #include "engine/lighting/night_globals.h"
 #include "engine/lighting/shadow.h"
@@ -66,7 +64,6 @@
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
 #include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
 #include "engine/graphics/geometry/fastprim_globals.h"
-#include "engine/net/net.h"  // NET_kill, NET_PERSON, NET_PLAYER, NO_PLAYERS, PLAYER_ID
 
 #include "missions/elev.h"      // ELEV_load_user, ELEV_load_name, ELEV_fname_level
 #include "missions/elev_globals.h"
@@ -127,7 +124,6 @@
 #include "engine/input/mouse_globals.h"
 #include "engine/input/joystick.h"  // GetInputDevice, JOYSTICK
 #include "engine/input/joystick_globals.h"
-#include "engine/io/drive.h"        // (transitively)
 
 #include "assets/startscr.h"        // (transitively)
 
@@ -222,7 +218,6 @@ void game_shutdown(void)
 {
     CloseDisplay();
 
-    NET_kill();
     AENG_fini();
     ANIM_fini();
 }

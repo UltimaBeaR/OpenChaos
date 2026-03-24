@@ -5,7 +5,6 @@
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
 #include "engine/input/joystick.h"                       // ReadInputDevice
 #include "engine/input/joystick_globals.h"               // DIJOYSTATE the_state
-#include "engine/net/net.h"                              // NET_init
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ui/hud/panel.h"
@@ -191,7 +190,6 @@ reinit_because_of_language_change:
                     GAME_STATE = GS_EDITOR;
                     break;
                 case STARTS_MULTI:
-                    NET_init();
                     GAME_STATE = GS_CONFIGURE_NET;
                     break;
                 case STARTS_EXIT:

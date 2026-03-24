@@ -19,7 +19,6 @@
 #include "actors/vehicles/chopper_globals.h"
 #include "actors/animals/animal.h"
 #include "actors/animals/animal_globals.h"
-#include "engine/io/drive.h"
 #include "ai/pcom.h"
 #include "world/map/supermap.h"
 #include "engine/audio/sound.h"
@@ -172,7 +171,7 @@ void EWAY_talk(ULONG waypoint)
     CBYTE level[100];
 
     get_level_word(level);
-    sprintf(str, "%stalk2\\%s.ucm%d.wav", GetSpeechPath(), level, waypoint);
+    sprintf(str, ".\\talk2\\%s.ucm%d.wav", level, waypoint);
 
     if (MUSIC_is_playing()) {
         MFX_QUICK_stop();
@@ -209,7 +208,7 @@ void EWAY_talk_conv(ULONG waypoint, SLONG conversation)
 
     talk_thing = NULL;
     get_level_word(level);
-    sprintf(str, "%stalk2\\%s.ucm%d%c.wav", GetSpeechPath(), level, waypoint, 65 + conversation);
+    sprintf(str, ".\\talk2\\%s.ucm%d%c.wav", level, waypoint, 65 + conversation);
 
     if (MUSIC_is_playing()) {
         MFX_QUICK_stop();

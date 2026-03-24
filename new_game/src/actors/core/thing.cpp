@@ -9,7 +9,6 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/audio/mfx.h"
 #include "engine/input/keyboard_globals.h"  // Keys[] (volatile UBYTE[256])
-#include "engine/net/net.h"                 // NET_Message, NET_message_*
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"
 #include "ui/interfac.h"
@@ -371,103 +370,45 @@ void wait_ticks(SLONG wait)
 void do_packets(void)
 {
     ULONG input, count = 0;
-    NET_Message answer;
     NET_packet packets[10];
     SLONG c0;
 
-    {
-        if (!CNET_network_game) {
-            if (NO_PLAYERS > 1) {
+    if (NO_PLAYERS > 1) {
 
-                for (c0 = 0; c0 < NO_PLAYERS; c0++) {
-                    input = get_hardware_input(input_type[c0]);
-                    packets[c0].Input = input;
-                    PACKET_DATA(c0) = packets[c0].Input;
-                }
-
-            } else {
-
-                input = get_hardware_input(INPUT_TYPE_ALL);
-                packets[PLAYER_ID].Input = input;
-
-                if (GAME_STATE & GS_PLAYBACK) {
-                    SLONG check;
-                    FileRead(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
-                    FileRead(playback_file, &TICK_RATIO, sizeof(TICK_RATIO));
-                    FileRead(playback_file, &TICK_INV_RATIO, sizeof(TICK_INV_RATIO));
-                    FileRead(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
-
-                    for (count = 0; count < (unsigned)NO_PLAYERS; count++) {
-                        if (FileRead(playback_file, &packets[count], sizeof(NET_packet)) != sizeof(NET_packet))
-                            GAME_STATE &= ~GS_PLAY_GAME;
-                    }
-                } else if (GAME_STATE & GS_RECORD) {
-                    FileWrite(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
-                    FileWrite(playback_file, &TICK_RATIO, sizeof(TICK_RATIO));
-                    FileWrite(playback_file, &TICK_INV_RATIO, sizeof(TICK_INV_RATIO));
-                    FileWrite(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
-
-                    for (count = 0; count < NO_PLAYERS; count++) {
-                        FileWrite(playback_file, &packets[count], sizeof(NET_packet));
-                    }
-                }
-
-                PACKET_DATA(PLAYER_ID) = packets[PLAYER_ID].Input;
-            }
-
-            return;
+        for (c0 = 0; c0 < NO_PLAYERS; c0++) {
+            input = get_hardware_input(input_type[c0]);
+            packets[c0].Input = input;
+            PACKET_DATA(c0) = packets[c0].Input;
         }
+
+    } else {
 
         input = get_hardware_input(INPUT_TYPE_ALL);
-
         packets[PLAYER_ID].Input = input;
-        packets[PLAYER_ID].Check1 = 0;
-        for (c0 = 0; c0 < NO_PLAYERS; c0++)
-            packets[PLAYER_ID].Check1 += NET_PERSON(c0)->WorldPos.X + NET_PERSON(c0)->WorldPos.Z;
 
-        if (PLAYER_ID != 0)
-            NET_message_send(0, &packets[PLAYER_ID], sizeof(NET_packet));
+        if (GAME_STATE & GS_PLAYBACK) {
+            SLONG check;
+            FileRead(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
+            FileRead(playback_file, &TICK_RATIO, sizeof(TICK_RATIO));
+            FileRead(playback_file, &TICK_INV_RATIO, sizeof(TICK_INV_RATIO));
+            FileRead(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
 
-        if (PLAYER_ID == 0 && CNET_network_game) {
-            while (SHELL_ACTIVE && count < (unsigned)(NO_PLAYERS - 1) && LastKey != KB_ESC) {
-                if (NET_message_waiting()) {
-                    NET_message_get(&answer);
-                    if (answer.player_id == NET_PLAYER_SYSTEM) {
-                        MSG_add(" sysmessage %d \n", answer.system.sysmess);
-                    } else {
-                        count++;
-                        packets[answer.player_id] = *(NET_packet*)(answer.player.data);
-                    }
-                }
+            for (count = 0; count < (unsigned)NO_PLAYERS; count++) {
+                if (FileRead(playback_file, &packets[count], sizeof(NET_packet)) != sizeof(NET_packet))
+                    GAME_STATE &= ~GS_PLAY_GAME;
             }
+        } else if (GAME_STATE & GS_RECORD) {
+            FileWrite(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
+            FileWrite(playback_file, &TICK_RATIO, sizeof(TICK_RATIO));
+            FileWrite(playback_file, &TICK_INV_RATIO, sizeof(TICK_INV_RATIO));
+            FileWrite(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
 
-            NET_message_send(NET_PLAYER_ALL, &packets[0], NO_PLAYERS * sizeof(NET_packet));
-        }
-
-        if (PLAYER_ID != 0 && CNET_network_game) {
-            SLONG got_message = 0;
-            while (SHELL_ACTIVE && !got_message && LastKey != KB_ESC) {
-                if (NET_message_waiting()) {
-                    NET_message_get(&answer);
-                    if (answer.player_id == NET_PLAYER_SYSTEM) {
-                        MSG_add(" sysmessage %d \n", answer.system.sysmess);
-                    } else {
-                        got_message = 1;
-                        memcpy(&packets[0], answer.player.data, answer.player.num_bytes);
-                    }
-                }
+            for (count = 0; count < NO_PLAYERS; count++) {
+                FileWrite(playback_file, &packets[count], sizeof(NET_packet));
             }
         }
-        if (0)
-            for (c0 = 0; c0 < NO_PLAYERS; c0++) {
-            }
-        for (count = 0; count < NO_PLAYERS; count++) {
-            if (packets[count].Check1 != packets[PLAYER_ID].Check1) {
-                MSG_add(" out of sync player %d ", PLAYER_ID);
-                ASSERT(0);
-            }
-            PACKET_DATA(count) = packets[count].Input;
-        }
+
+        PACKET_DATA(PLAYER_ID) = packets[PLAYER_ID].Input;
     }
 }
 

@@ -3,7 +3,6 @@
 
 #include "engine/audio/mfx_globals.h"
 #include "core/math.h"
-#include "engine/io/drive.h"
 #include <cmath>
 #include <AL/al.h>
 #include <AL/alext.h>
@@ -144,7 +143,7 @@ static char* GetFullName(char* fname)
     if (strchr(fname, '-')) {
         CHAR* ptr = strrchr(fname, '\\') + 1;
         sprintf(buf, "talk2\\misc\\%s", ptr);
-        strcpy(pathname, GetSFXPath());
+        strcpy(pathname, ".\\");
         strcat(pathname, buf);
         return pathname;
     } else {
@@ -158,7 +157,7 @@ static char* GetFullName(char* fname)
         }
     }
 
-    strcpy(pathname, GetSFXPath());
+    strcpy(pathname, ".\\");
     strcat(pathname, buf);
 
     return pathname;
