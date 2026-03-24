@@ -189,7 +189,6 @@ void MAV_turn_off_square(
     UBYTE opt[4];
 
     SLONG i;
-    SLONG j;
 
     SLONG mx;
     SLONG mz;
@@ -236,7 +235,6 @@ void MAV_turn_off_whole_square(
     UBYTE opt[4];
 
     SLONG i;
-    SLONG j;
 
     SLONG mx;
     SLONG mz;
@@ -345,7 +343,6 @@ void MAV_remove_facet_car(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 // uc_orig: MAV_turn_movement_off (fallen/Source/mav.cpp)
 void MAV_turn_movement_off(UBYTE mx, UBYTE mz, UBYTE dir)
 {
-    SLONG j;
     SLONG mo_index;
     MAV_Opt mo;
 
@@ -363,7 +360,6 @@ void MAV_turn_movement_off(UBYTE mx, UBYTE mz, UBYTE dir)
 // uc_orig: MAV_turn_movement_on (fallen/Source/mav.cpp)
 void MAV_turn_movement_on(UBYTE mx, UBYTE mz, UBYTE dir)
 {
-    SLONG j;
     SLONG mo_index;
     MAV_Opt mo;
 
@@ -401,17 +397,9 @@ void MAV_precalculate()
     SLONG tx;
     SLONG tz;
 
-    SLONG rx;
-    SLONG rz;
-
     SLONG dh;
 
-    SLONG useangle;
-    SLONG matrix[4];
     SLONG ladder;
-
-    SLONG sin_yaw;
-    SLONG cos_yaw;
 
     SLONG both_ground;
 
@@ -452,9 +440,6 @@ void MAV_precalculate()
 
                         SLONG rx;
                         SLONG rz;
-
-                        SLONG sx;
-                        SLONG sz;
 
                         useangle = -oi->yaw;
                         useangle &= 2047;
@@ -716,9 +701,6 @@ void MAV_precalculate()
                         SLONG rx;
                         SLONG rz;
 
-                        SLONG sx;
-                        SLONG sz;
-
                         useangle = -oi->yaw;
                         useangle &= 2047;
 
@@ -872,8 +854,6 @@ void MAV_precalculate()
     {
         SLONG mx;
         SLONG mz;
-
-        SLONG angle;
 
         for (mx = 0; mx < PAP_SIZE_HI; mx++)
             for (mz = 0; mz < PAP_SIZE_HI; mz++) {
@@ -1355,7 +1335,6 @@ MAV_Action MAV_do(
     UBYTE caps)
 {
     SLONG i;
-    SLONG j;
 
     UBYTE opt;
     UBYTE move_one;
@@ -1746,8 +1725,6 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
 
     SLONG sin_yaw;
     SLONG cos_yaw;
-
-    SLONG both_ground;
 
     struct
     {

@@ -387,7 +387,6 @@ void do_packets(void)
         packets[PLAYER_ID].Input = input;
 
         if (GAME_STATE & GS_PLAYBACK) {
-            SLONG check;
             FileRead(playback_file, &TICK_TOCK, sizeof(TICK_TOCK));
             FileRead(playback_file, &TICK_RATIO, sizeof(TICK_RATIO));
             FileRead(playback_file, &TICK_INV_RATIO, sizeof(TICK_INV_RATIO));

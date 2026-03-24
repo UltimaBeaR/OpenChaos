@@ -339,8 +339,6 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
     SLONG xfrac;
     SLONG zfrac;
 
-    SLONG answer;
-
     PAP_Hi* ph;
 
     SLONG mx = x >> PAP_SHIFT_HI;
@@ -379,16 +377,14 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
         zfrac = z & 0xff;
 
         if (xfrac + zfrac < 0x100) {
-            SLONG vx, vy, vz;
-            SLONG wx, wy, wz;
+            SLONG vx, vy;
+            SLONG wy, wz;
             SLONG rx, ry, rz;
             SLONG len;
 
             vx = 256;
             vy = h2 - h0;
-            vz = 0;
 
-            wx = 0;
             wy = h1 - h0;
             wz = -256;
 
@@ -410,16 +406,14 @@ SLONG PAP_on_slope(SLONG x, SLONG z, SLONG* angle)
             return (abs(256 - (len >> 8)));
 
         } else {
-            SLONG vx, vy, vz;
-            SLONG wx, wy, wz;
+            SLONG vx, vy;
+            SLONG wy, wz;
             SLONG rx, ry, rz;
             SLONG len;
 
             vx = -256;
             vy = h1 - h3;
-            vz = 0;
 
-            wx = 0;
             wy = h2 - h3;
             wz = -256;
 

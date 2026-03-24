@@ -589,7 +589,6 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
     SLONG page;
     float scale;
     float u, v, w, h;
-    UBYTE* palptr;
     SLONG palndx;
     float wx1, wy1, wx2, wy2, wx3, wy3, wx4, wy4;
     UBYTE type;
@@ -648,7 +647,6 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
             case 1:
                 dy >>= 1;
             case 2:
-                palptr = (trans * 3) + fire_pal;
                 palndx = (256 - trans) * 3;
                 trans <<= 24;
                 trans += (fire_pal[palndx] << 16) + (fire_pal[palndx + 1] << 8) + fire_pal[palndx + 2];
@@ -688,7 +686,6 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
     SLONG page;
     float scale;
     float u, v, w, h;
-    UBYTE* palptr;
     SLONG palndx;
     float wx1, wy1, wx2, wy2, wx3, wy3, wx4, wy4;
     SLONG dx, dy, dz;
@@ -743,14 +740,12 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
     if (trans >= 1) {
         switch (page) {
         case POLY_PAGE_FLAMES:
-            palptr = (trans * 3) + fire_pal;
             palndx = (256 - trans) * 3;
             trans <<= 24;
             trans += (fire_pal[palndx] << 16) + (fire_pal[palndx + 1] << 8) + fire_pal[palndx + 2];
             scale = 50;
             break;
         case POLY_PAGE_FLAMES2:
-            palptr = (trans * 3) + fire_pal;
             palndx = (256 - trans) * 3;
             trans <<= 24;
             trans += (fire_pal[palndx] << 16) + (fire_pal[palndx + 1] << 8) + fire_pal[palndx + 2];
@@ -1204,9 +1199,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
             for (; iOuterFaceNum < iOuterFaceEnd; iOuterFaceNum++) {
                 UWORD wTexturePage = FIGURE_find_face_D3D_texture_page(iOuterFaceNum, bOuterTris);
 
-                // Find the rendered page (allows texture paging/aliasing).
-                UWORD wRealPage = wTexturePage & TEXTURE_PAGE_MASK;
-
                 PolyPage* pRenderedPage = NULL;
 
                 if ((wTexturePage & ~TEXTURE_PAGE_MASK) != 0) {
@@ -1659,7 +1651,6 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
 // Called lazily on first draw of each body-part prim.
 void FIGURE_generate_D3D_object(SLONG prim)
 {
-    PrimObject* p_obj = &prim_objects[prim];
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
 
     FIGURE_TPO_init_3d_object(pPrimObj);
@@ -1702,7 +1693,6 @@ void FIGURE_draw_prim_tween(
 {
 
     SLONG i;
-    SLONG j;
 
     SLONG sp;
     SLONG ep;
@@ -1712,44 +1702,17 @@ void FIGURE_draw_prim_tween(
     SLONG p2;
     SLONG p3;
 
-    SLONG nx;
-    SLONG ny;
-    SLONG nz;
-
-    SLONG red;
-    SLONG green;
-    SLONG blue;
-    SLONG dprod;
-    SLONG r;
-    SLONG g;
-    SLONG b;
-
-    SLONG dr;
-    SLONG dg;
-    SLONG db;
-
-    SLONG face_colour;
-
     SLONG page;
 
     Matrix31 offset;
     Matrix33 mat2;
     Matrix33 mat_final;
 
-    ULONG qc0;
-    ULONG qc1;
-    ULONG qc2;
-    ULONG qc3;
-
-    SVector temp;
-
     PrimFace4* p_f4;
     PrimFace3* p_f3;
     PrimObject* p_obj;
-    NIGHT_Found* nf;
 
     POLY_Point* pp;
-    POLY_Point* ps;
 
     POLY_Point* tri[3];
     POLY_Point* quad[4];
@@ -1885,12 +1848,6 @@ void FIGURE_draw_prim_tween(
     }
 
     */
-
-    if (prim == 267) {
-        static int count = 0;
-
-        count += 1;
-    }
 
     POLY_set_local_rotation(
         off_x,
@@ -2153,7 +2110,6 @@ no_muzzle_calcs:
     d3dmm.lpvLightDirs = MM_pNormal;
 
     D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
-    UWORD* pwListIndices = pPrimObj->pwListIndices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
         UWORD wPage = pMat->wTexturePage;
@@ -2188,10 +2144,8 @@ no_muzzle_calcs:
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
 
-            HRESULT hres;
-
             {
-                hres = DrawIndPrimMM(
+                DrawIndPrimMM(
                     (the_display.lp_D3D_Device),
                     D3DFVF_VERTEX,
                     &d3dmm,
@@ -2205,7 +2159,6 @@ no_muzzle_calcs:
         }
 
         pVertex += pMat->wNumVertices;
-        pwListIndices += pMat->wNumListIndices;
         pwStripIndices += pMat->wNumStripIndices;
 
         pMat++;
@@ -2258,7 +2211,6 @@ void FIGURE_draw_prim_tween_warped(
     Thing* p_thing)
 {
     SLONG i;
-    SLONG j;
 
     SLONG sp;
     SLONG ep;
@@ -2291,7 +2243,6 @@ void FIGURE_draw_prim_tween_warped(
     PrimObject* p_obj;
 
     POLY_Point* pp;
-    POLY_Point* ps;
 
     POLY_Point* tri[3];
     POLY_Point* quad[4];
@@ -2547,7 +2498,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     SLONG recurse_level = 0;
     SLONG dx, dy, dz;
     UWORD f1, f2;
-    SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
     struct Matrix33* rot_mat;
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
@@ -2601,7 +2551,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
                 SLONG prim = FIGURE_dhpr_data.start_object + body_part;
 
-                PrimObject* p_obj = &prim_objects[prim];
                 FIGURE_TPO_add_prim_to_current_object(prim, iTPOPartNumber);
                 iTPOPartNumber++;
             }
@@ -2766,34 +2715,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     iTPOPartNumber++;
     ASSERT(iTPOPartNumber <= MAX_NUM_BODY_PARTS_AT_ONCE);
 
-    SLONG face_colour;
-
-    SLONG page;
-
-    Matrix31 offset;
-    Matrix33 mat2;
-    Matrix33 mat_final;
-
-    ULONG qc0;
-    ULONG qc1;
-    ULONG qc2;
-    ULONG qc3;
-
-    SVector temp;
-
-    PrimFace4* p_f4;
-    PrimFace3* p_f3;
-    PrimObject* p_obj;
-    NIGHT_Found* nf;
-
-    POLY_Point* pp;
-    POLY_Point* ps;
-
-    POLY_Point* tri[3];
-    POLY_Point* quad[4];
-    SLONG tex_page_offset;
-
-    tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
+    SLONG tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
@@ -2814,7 +2736,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     d3dmm.lpvLightDirs = MMBodyParts_pNormal;
 
     D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
-    UWORD* pwListIndices = pPrimObj->pwListIndices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
 
@@ -2848,10 +2769,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
 
-            HRESULT hres;
-
             {
-                hres = DrawIndPrimMM(
+                DrawIndPrimMM(
                     (the_display.lp_D3D_Device),
                     D3DFVF_VERTEX,
                     &d3dmm,
@@ -2862,7 +2781,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         }
 
         pVertex += pMat->wNumVertices;
-        pwListIndices += pMat->wNumListIndices;
         pwStripIndices += pMat->wNumStripIndices;
 
         pMat++;
@@ -2883,7 +2801,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     SLONG recurse_level = 0;
     SLONG dx, dy, dz;
     UWORD f1, f2;
-    SLONG civ_flag = 0, legs, body, shoes, face, hands, pelvis;
     struct Matrix33* rot_mat;
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
@@ -3114,8 +3031,6 @@ void FIGURE_draw(Thing* p_thing)
     SLONG ly;
     SLONG lz;
 
-    NIGHT_Colour col;
-
     calc_sub_objects_position(
         p_thing,
         dt->AnimTween,
@@ -3219,7 +3134,6 @@ void FIGURE_draw(Thing* p_thing)
             SLONG px;
             SLONG py;
             SLONG pz;
-            SLONG prim;
 
             calc_sub_objects_position(
                 p_person,
@@ -3317,8 +3231,6 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
     SLONG lx;
     SLONG ly;
     SLONG lz;
-
-    NIGHT_Colour col;
 
     lx = (p_thing->WorldPos.X >> 8);
     ly = (p_thing->WorldPos.Y >> 8) + 0x60;
@@ -3466,7 +3378,6 @@ void FIGURE_draw_prim_tween_reflection(
     Thing* p_thing)
 {
     SLONG i;
-    SLONG j;
 
     SLONG sp;
     SLONG ep;
@@ -3479,13 +3390,6 @@ void FIGURE_draw_prim_tween_reflection(
     SLONG px;
     SLONG py;
 
-    ULONG red;
-    ULONG green;
-    ULONG blue;
-    ULONG r;
-    ULONG g;
-    ULONG b;
-    ULONG face_colour;
     SLONG fog;
 
     float world_x;
@@ -3517,10 +3421,6 @@ void FIGURE_draw_prim_tween_reflection(
 
     colour |= 0xff000000;
     specular |= 0xff000000;
-
-    red = (colour >> 16) & 0xff;
-    green = (colour >> 8) & 0xff;
-    blue = (colour >> 0) & 0xff;
 
     void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
     void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
@@ -3806,8 +3706,6 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     ULONG colour;
     ULONG specular;
 
-    POLY_Point* pp;
-
     Matrix33 r_matrix;
 
     GameKeyFrameElement* ae1;
@@ -3820,22 +3718,9 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
         return;
     }
 
-    // if (dt->Locked)
-    if (0) {
-        SLONG x1, y1, z1;
-        SLONG x2, y2, z2;
-
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 0, dt->Locked, &x1, &y1, &z1);
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 256, dt->Locked, &x2, &y2, &z2);
-
-        dx = x1 - x2;
-        dy = y1 - y2;
-        dz = z1 - z2;
-    } else {
-        dx = 0;
-        dy = 0;
-        dz = 0;
-    }
+    dx = 0;
+    dy = 0;
+    dz = 0;
 
     ae1 = dt->CurrentFrame->FirstElement;
     ae2 = dt->NextFrame->FirstElement;
@@ -3910,12 +3795,9 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     specular &= ~POLY_colour_restrict;
 
     SLONG i;
-    SLONG j;
     SLONG ele_count;
     SLONG start_object;
     SLONG object_offset;
-    SLONG px;
-    SLONG py;
 
     ele_count = dt->TheChunk->ElementCount;
     start_object = prim_multi_objects[dt->TheChunk->MultiObject[dt->MeshID]].StartObject;
@@ -3961,8 +3843,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     SLONG tween = FIGURE_dhpr_data.tween;
     struct GameKeyFrameElement* anim_info = &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number];
     struct GameKeyFrameElement* anim_info_next = &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number];
-    ULONG colour = FIGURE_dhpr_data.colour;
-    ULONG specular = FIGURE_dhpr_data.specular;
     CMatrix33* parent_base_mat = FIGURE_dhpr_rdata1[recurse_level].parent_base_mat;
     Matrix31* parent_base_pos = FIGURE_dhpr_rdata1[recurse_level].parent_base_pos;
     Matrix33* parent_curr_mat = FIGURE_dhpr_rdata1[recurse_level].parent_current_mat;
@@ -3971,60 +3851,16 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     Matrix31* end_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
 
     SLONG i;
-    SLONG j;
 
     SLONG sp;
-    SLONG ep;
-
-    SLONG p0;
-    SLONG p1;
-    SLONG p2;
-    SLONG p3;
-
-    SLONG nx;
-    SLONG ny;
-    SLONG nz;
-
-    SLONG red;
-    SLONG green;
-    SLONG blue;
-    SLONG dprod;
-    SLONG r;
-    SLONG g;
-    SLONG b;
-
-    SLONG dr;
-    SLONG dg;
-    SLONG db;
-
-    SLONG face_colour;
-
-    SLONG page;
 
     Matrix31 offset;
     Matrix33 mat2;
     Matrix33 mat_final;
 
-    ULONG qc0;
-    ULONG qc1;
-    ULONG qc2;
-    ULONG qc3;
-
-    SVector temp;
-
-    PrimFace4* p_f4;
-    PrimFace3* p_f3;
     PrimObject* p_obj;
-    NIGHT_Found* nf;
 
     POLY_Point* pp;
-    POLY_Point* ps;
-
-    POLY_Point* tri[3];
-    POLY_Point* quad[4];
-    SLONG tex_page_offset;
-
-    tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
     void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
     void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
@@ -4125,7 +3961,6 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     p_obj = &prim_objects[prim];
 
     sp = p_obj->StartPoint;
-    ep = p_obj->EndPoint;
 
     POLY_buffer_upto = 0;
 
@@ -4271,18 +4106,14 @@ void FIGURE_draw_prim_tween_person_only(
     SLONG tween = FIGURE_dhpr_data.tween;
     struct GameKeyFrameElement* anim_info = &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number];
     struct GameKeyFrameElement* anim_info_next = &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number];
-    ULONG colour = FIGURE_dhpr_data.colour;
-    ULONG specular = FIGURE_dhpr_data.specular;
     CMatrix33* parent_base_mat = FIGURE_dhpr_rdata1[recurse_level].parent_base_mat;
     Matrix31* parent_base_pos = FIGURE_dhpr_rdata1[recurse_level].parent_base_pos;
     Matrix33* parent_curr_mat = FIGURE_dhpr_rdata1[recurse_level].parent_current_mat;
     Matrix31* parent_curr_pos = FIGURE_dhpr_rdata1[recurse_level].parent_current_pos;
     Matrix33* end_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
     Matrix31* end_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
-    SLONG part_number = FIGURE_dhpr_rdata1[recurse_level].part_number;
 
     SLONG i;
-    SLONG j;
 
     SLONG sp;
     SLONG ep;
@@ -4292,44 +4123,17 @@ void FIGURE_draw_prim_tween_person_only(
     SLONG p2;
     SLONG p3;
 
-    SLONG nx;
-    SLONG ny;
-    SLONG nz;
-
-    SLONG red;
-    SLONG green;
-    SLONG blue;
-    SLONG dprod;
-    SLONG r;
-    SLONG g;
-    SLONG b;
-
-    SLONG dr;
-    SLONG dg;
-    SLONG db;
-
-    SLONG face_colour;
-
-    SLONG page;
-
     Matrix31 offset;
     Matrix33 mat2;
     Matrix33 mat_final;
 
-    ULONG qc0;
-    ULONG qc1;
-    ULONG qc2;
-    ULONG qc3;
-
-    SVector temp;
+    SLONG page;
 
     PrimFace4* p_f4;
     PrimFace3* p_f3;
     PrimObject* p_obj;
-    NIGHT_Found* nf;
 
     POLY_Point* pp;
-    POLY_Point* ps;
 
     POLY_Point* tri[3];
     POLY_Point* quad[4];
@@ -4668,7 +4472,6 @@ no_muzzle_calcs:
     d3dmm.lpvLightDirs = MM_pNormal;
 
     D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
-    UWORD* pwListIndices = pPrimObj->pwListIndices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
         UWORD wPage = pMat->wTexturePage;
@@ -4704,10 +4507,8 @@ no_muzzle_calcs:
             pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
             pa->RS.SetChanged();
 
-            HRESULT hres;
-
             {
-                hres = DrawIndPrimMM(
+                DrawIndPrimMM(
                     (the_display.lp_D3D_Device),
                     D3DFVF_VERTEX,
                     &d3dmm,
@@ -4726,7 +4527,6 @@ no_muzzle_calcs:
 
         // Next material
         pVertex += pMat->wNumVertices;
-        pwListIndices += pMat->wNumListIndices;
         pwStripIndices += pMat->wNumStripIndices;
 
         pMat++;

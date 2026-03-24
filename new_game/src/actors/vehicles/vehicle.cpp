@@ -730,25 +730,8 @@ void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz);
 // uc_orig: animate_car (fallen/Source/Vehicle.cpp)
 void animate_car(Thing* p_car)
 {
-    SLONG tween_step;
-    DrawTween* draw_info;
     ASSERT(0);
     return;
-
-    draw_info = &p_car->Genus.Vehicle->Draw;
-    tween_step = draw_info->CurrentFrame->TweenStep << 1;
-
-    tween_step = (tween_step * TICK_RATIO) >> TICK_SHIFT;
-    if (tween_step == 0)
-        tween_step = 1;
-    draw_info->AnimTween += tween_step;
-
-    if (p_car->Genus.Vehicle->Draw.AnimTween > 256) {
-        p_car->Genus.Vehicle->Draw.AnimTween -= 256;
-
-        SLONG advance_keyframe(DrawTween * draw_info);
-        advance_keyframe(&p_car->Genus.Vehicle->Draw);
-    }
 }
 
 // Renders the vehicle body mesh, wheels, lights, smoke, skidmarks, and shadow.
@@ -757,7 +740,6 @@ void animate_car(Thing* p_car)
 // uc_orig: draw_car (fallen/Source/Vehicle.cpp)
 void draw_car(Thing* p_car)
 {
-    SLONG x[8], y[8], z[8];
     SLONG vector[3];
     SLONG dx, dy, dz;
     SLONG c0 = 0;
@@ -769,184 +751,170 @@ void draw_car(Thing* p_car)
     info = &veh_info[p_car->Genus.Vehicle->Type];
 
     make_car_matrix(p_car->Genus.Vehicle);
-    if (0) {
-        extern void ANIM_obj_draw(Thing * p_thing, DrawTween * dt);
+    MESH_set_crumple(info->VertexAssignments, p_car->Genus.Vehicle->damage);
 
-        p_car->WorldPos.Y -= info->BodyOffset;
-
-        p_car->Genus.Vehicle->Draw.Angle = p_car->Genus.Vehicle->Angle;
-        p_car->Genus.Vehicle->Draw.Tilt = p_car->Genus.Vehicle->Tilt;
-        p_car->Genus.Vehicle->Draw.Roll = p_car->Genus.Vehicle->Roll;
-
-        ANIM_obj_draw(p_car, &p_car->Genus.Vehicle->Draw);
-
-        p_car->WorldPos.Y += info->BodyOffset;
-    } else {
-        MESH_set_crumple(info->VertexAssignments, p_car->Genus.Vehicle->damage);
-
-        if (MESH_draw_poly(
-                info->BodyPrim,
-                p_car->WorldPos.X >> 8,
-                p_car->WorldPos.Y - get_vehicle_body_offset(p_car->Genus.Vehicle->Type) >> 8,
-                p_car->WorldPos.Z >> 8,
-                p_car->Genus.Vehicle->Angle,
-                p_car->Genus.Vehicle->Tilt,
-                p_car->Genus.Vehicle->Roll,
-                NULL,
-                0xff,
-                -1)
-            == NULL)
-        {
-            // body culled — could skip wheels here, but doesn't
-        }
-
-        OVAL_add(
+    if (MESH_draw_poly(
+            info->BodyPrim,
             p_car->WorldPos.X >> 8,
             p_car->WorldPos.Y - get_vehicle_body_offset(p_car->Genus.Vehicle->Type) >> 8,
             p_car->WorldPos.Z >> 8,
-            float(veh_info[p_car->Genus.Vehicle->Type].shad_size) * 2.0F,
-            float(veh_info[p_car->Genus.Vehicle->Type].shad_elongate) * (1.0F / 64.0F),
-            float(p_car->Genus.Vehicle->Angle) * (2.0F * PI / 2048.0F),
-            OVAL_TYPE_SQUARE);
+            p_car->Genus.Vehicle->Angle,
+            p_car->Genus.Vehicle->Tilt,
+            p_car->Genus.Vehicle->Roll,
+            NULL,
+            0xff,
+            -1)
+        == NULL)
+    {
+        // body culled — could skip wheels here, but doesn't
+    }
 
-        FMATRIX_TRANSPOSE(car_matrix);
-        if (p_car->Genus.Vehicle->Flags & FLAG_FURN_DRIVING) {
-            // headlights — only at night
-            if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
-                static SLONG xyz[5][3] = { -255, 0, 0, -254, 12, 16, -251, 24, 32, -247, 36, 48, -243, 48, 60 };
+    OVAL_add(
+        p_car->WorldPos.X >> 8,
+        p_car->WorldPos.Y - get_vehicle_body_offset(p_car->Genus.Vehicle->Type) >> 8,
+        p_car->WorldPos.Z >> 8,
+        float(veh_info[p_car->Genus.Vehicle->Type].shad_size) * 2.0F,
+        float(veh_info[p_car->Genus.Vehicle->Type].shad_elongate) * (1.0F / 64.0F),
+        float(p_car->Genus.Vehicle->Angle) * (2.0F * PI / 2048.0F),
+        OVAL_TYPE_SQUARE);
 
-                dz = xyz[p_car->Genus.Vehicle->damage[1]][0];
-                dy = xyz[p_car->Genus.Vehicle->damage[1]][1];
-                dx = xyz[p_car->Genus.Vehicle->damage[1]][2];
-                FMATRIX_MUL(car_matrix, dx, dy, dz);
+    FMATRIX_TRANSPOSE(car_matrix);
+    if (p_car->Genus.Vehicle->Flags & FLAG_FURN_DRIVING) {
+        // headlights — only at night
+        if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
+            static SLONG xyz[5][3] = { -255, 0, 0, -254, 12, 16, -251, 24, 32, -247, 36, 48, -243, 48, 60 };
 
-                vector[2] = info->HLX;
-                vector[1] = info->HLY;
-                vector[0] = info->HLZ;
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-                BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, 0x606040, BLOOM_FLENSFLARE | BLOOM_BEAM);
+            dz = xyz[p_car->Genus.Vehicle->damage[1]][0];
+            dy = xyz[p_car->Genus.Vehicle->damage[1]][1];
+            dx = xyz[p_car->Genus.Vehicle->damage[1]][2];
+            FMATRIX_MUL(car_matrix, dx, dy, dz);
 
-                dz = xyz[p_car->Genus.Vehicle->damage[0]][0];
-                dy = -xyz[p_car->Genus.Vehicle->damage[0]][1];
-                dx = -xyz[p_car->Genus.Vehicle->damage[0]][2];
-                FMATRIX_MUL(car_matrix, dx, dy, dz);
+            vector[2] = info->HLX;
+            vector[1] = info->HLY;
+            vector[0] = info->HLZ;
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+            BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, 0x606040, BLOOM_FLENSFLARE | BLOOM_BEAM);
 
-                vector[2] = info->HLX;
-                vector[1] = info->HLY;
-                vector[0] = -info->HLZ;
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-                BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, 0x606040, BLOOM_FLENSFLARE | BLOOM_BEAM);
-            }
-            // flashing emergency lights (police, ambulance, meatwagon)
-            if (info->FLZ && (vp->Siren == 1)) {
-                SLONG rx, rz;
+            dz = xyz[p_car->Genus.Vehicle->damage[0]][0];
+            dy = -xyz[p_car->Genus.Vehicle->damage[0]][1];
+            dx = -xyz[p_car->Genus.Vehicle->damage[0]][2];
+            FMATRIX_MUL(car_matrix, dx, dy, dz);
 
-                rx = SIN((SLONG(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
-                rz = COS((SLONG(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
-
-                vector[2] = info->FLX + (rx >> 6);
-                vector[1] = info->FLY;
-                vector[0] = info->FLZ + (rz >> 6);
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-
-                SLONG colour = info->FLRED ? 0xDF0000 : 0x0000DF;
-
-                BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], rx, 0, rz, colour, 0);
-
-                vector[2] = info->FLX + (rx >> 6);
-                vector[1] = info->FLY;
-                vector[0] = -info->FLZ + (rz >> 6);
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-
-                BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], rz, 0, rx, 0xDF0000, 0);
-            }
+            vector[2] = info->HLX;
+            vector[1] = info->HLY;
+            vector[0] = -info->HLZ;
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+            BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, 0x606040, BLOOM_FLENSFLARE | BLOOM_BEAM);
         }
+        // flashing emergency lights (police, ambulance, meatwagon)
+        if (info->FLZ && (vp->Siren == 1)) {
+            SLONG rx, rz;
 
-        // engine smoke — probability increases as health drops
-        {
-            if ((Random() & 0x7f) > p_car->Genus.Vehicle->Health) {
-                vector[2] = info->HLX * 0.7f;
-                vector[1] = info->HLY;
-                vector[0] = 0;
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+            rx = SIN((SLONG(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
+            rz = COS((SLONG(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
+
+            vector[2] = info->FLX + (rx >> 6);
+            vector[1] = info->FLY;
+            vector[0] = info->FLZ + (rz >> 6);
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+
+            SLONG colour = info->FLRED ? 0xDF0000 : 0x0000DF;
+
+            BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], rx, 0, rz, colour, 0);
+
+            vector[2] = info->FLX + (rx >> 6);
+            vector[1] = info->FLY;
+            vector[0] = -info->FLZ + (rz >> 6);
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+
+            BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], rz, 0, rx, 0xDF0000, 0);
+        }
+    }
+
+    // engine smoke — probability increases as health drops
+    {
+        if ((Random() & 0x7f) > p_car->Genus.Vehicle->Health) {
+            vector[2] = info->HLX * 0.7f;
+            vector[1] = info->HLY;
+            vector[0] = 0;
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+            PARTICLE_Add(
+                p_car->WorldPos.X + (vector[0] << 8) + (Random() & 0x3fff) - 0x1fff,
+                p_car->WorldPos.Y + (vector[1] << 8),
+                p_car->WorldPos.Z + (vector[2] << 8) + (Random() & 0x3fff) - 0x1fff,
+                vp->VelX + (Random() & 0xff) - 0x7f,
+                0x3ff + (Random() & 0xff),
+                vp->VelZ + (Random() & 0xff) - 0x7f,
+                POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
+                PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
+                75, 40 + (rand() & 31), 1, 4, 1);
+
+            if (p_car->Genus.Vehicle->Health <= 0) {
+                // additional smoke from rear when health exhausted
                 PARTICLE_Add(
-                    p_car->WorldPos.X + (vector[0] << 8) + (Random() & 0x3fff) - 0x1fff,
-                    p_car->WorldPos.Y + (vector[1] << 8),
-                    p_car->WorldPos.Z + (vector[2] << 8) + (Random() & 0x3fff) - 0x1fff,
+                    p_car->WorldPos.X - (vector[0] << 8) + (Random() & 0x7fff) - 0x3fff,
+                    p_car->WorldPos.Y - (vector[1] << 8),
+                    p_car->WorldPos.Z - (vector[2] << 8) + (Random() & 0x7fff) - 0x3fff,
                     vp->VelX + (Random() & 0xff) - 0x7f,
                     0x3ff + (Random() & 0xff),
                     vp->VelZ + (Random() & 0xff) - 0x7f,
                     POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                     PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
                     75, 40 + (rand() & 31), 1, 4, 1);
-
-                if (p_car->Genus.Vehicle->Health <= 0) {
-                    // additional smoke from rear when health exhausted
-                    PARTICLE_Add(
-                        p_car->WorldPos.X - (vector[0] << 8) + (Random() & 0x7fff) - 0x3fff,
-                        p_car->WorldPos.Y - (vector[1] << 8),
-                        p_car->WorldPos.Z - (vector[2] << 8) + (Random() & 0x7fff) - 0x3fff,
-                        vp->VelX + (Random() & 0xff) - 0x7f,
-                        0x3ff + (Random() & 0xff),
-                        vp->VelZ + (Random() & 0xff) - 0x7f,
-                        POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
-                        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
-                        75, 40 + (rand() & 31), 1, 4, 1);
-                }
             }
         }
-
-        // brakelights — shown day and night
-        if (info->BLZ) {
-            SLONG colour = 0;
-
-            switch (p_car->Genus.Vehicle->Dir) {
-            case -1:
-            case 1:
-                p_car->Genus.Vehicle->Brakelight = is_driven_by_player(p_car) ? 1 : 10;
-                break;
-
-            case -2:
-                p_car->Genus.Vehicle->Brakelight = 0;
-                if (p_car->Genus.Vehicle->DControl & VEH_DECEL)
-                    colour = 0x303030;
-                break;
-
-            case 2:
-                p_car->Genus.Vehicle->Brakelight = 0;
-                break;
-
-            case 0:
-                break;
-            }
-
-            if (p_car->Genus.Vehicle->Brakelight) {
-                p_car->Genus.Vehicle->Brakelight--;
-                colour = 0x600000;
-            }
-
-            if (colour) {
-                dx = 0;
-                dy = 0;
-                dz = 255;
-                FMATRIX_MUL(car_matrix, dx, dy, dz);
-
-                vector[2] = info->BLX;
-                vector[1] = info->BLY;
-                vector[0] = info->BLZ;
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-                BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, colour, 0);
-
-                vector[2] = info->BLX;
-                vector[1] = info->BLY;
-                vector[0] = -info->BLZ;
-                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-                BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, colour, 0);
-            }
-        }
-
-        FMATRIX_TRANSPOSE(car_matrix);
     }
+
+    // brakelights — shown day and night
+    if (info->BLZ) {
+        SLONG colour = 0;
+
+        switch (p_car->Genus.Vehicle->Dir) {
+        case -1:
+        case 1:
+            p_car->Genus.Vehicle->Brakelight = is_driven_by_player(p_car) ? 1 : 10;
+            break;
+
+        case -2:
+            p_car->Genus.Vehicle->Brakelight = 0;
+            if (p_car->Genus.Vehicle->DControl & VEH_DECEL)
+                colour = 0x303030;
+            break;
+
+        case 2:
+            p_car->Genus.Vehicle->Brakelight = 0;
+            break;
+
+        case 0:
+            break;
+        }
+
+        if (p_car->Genus.Vehicle->Brakelight) {
+            p_car->Genus.Vehicle->Brakelight--;
+            colour = 0x600000;
+        }
+
+        if (colour) {
+            dx = 0;
+            dy = 0;
+            dz = 255;
+            FMATRIX_MUL(car_matrix, dx, dy, dz);
+
+            vector[2] = info->BLX;
+            vector[1] = info->BLY;
+            vector[0] = info->BLZ;
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+            BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, colour, 0);
+
+            vector[2] = info->BLX;
+            vector[1] = info->BLY;
+            vector[0] = -info->BLZ;
+            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
+            BLOOM_draw((p_car->WorldPos.X >> 8) + vector[0], (p_car->WorldPos.Y >> 8) + vector[1], (p_car->WorldPos.Z >> 8) + vector[2], dx, dy, dz, colour, 0);
+        }
+    }
+
+    FMATRIX_TRANSPOSE(car_matrix);
 
     tilt = p_car->Genus.Vehicle->Spin;
 
@@ -1127,7 +1095,6 @@ void VEH_collide_find_things(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG igno
     Thing* p_found;
     VEH_Col* vc;
     PrimInfo* pi;
-    AnimPrimBbox* apb;
     OB_Info* oi;
 
     // Bike system is unfinished — only check vehicles, anim prims, and bats (Balrog).
@@ -1414,7 +1381,6 @@ void VEH_co_damage(Thing* v1, Thing* v2)
 
     UBYTE c1 = find_closest_car_point(v2->WorldPos.X >> 8, v2->WorldPos.Y >> 8, v2->WorldPos.Z >> 8, v1);
     UBYTE c2 = find_closest_car_point(v1->WorldPos.X >> 8, v1->WorldPos.Y >> 8, v1->WorldPos.Z >> 8, v2);
-    SLONG damage;
 
     MFX_play_thing(THING_NUMBER(v1), SOUND_Range(S_CAR_SMASH_START, S_CAR_SMASH_END), 0, v1);
     // Give most damage to the slower vehicle (the faster one is already penalised by physics).
@@ -1603,7 +1569,6 @@ extern SBYTE last_mav_dz;
 static SLONG CollideCar(Thing* p_car, SLONG step)
 {
     Vehicle* veh = p_car->Genus.Vehicle;
-    VehInfo* vinfo = &veh_info[veh->Type];
 
     SLONG x[4], y[4], z[4];
     int ii;
@@ -2054,13 +2019,8 @@ void VEH_throw_out_person(Thing* p_person, Thing* p_vehicle)
 // uc_orig: VEH_driving (fallen/Source/Vehicle.cpp)
 void VEH_driving(Thing* p_thing)
 {
-    DrawMesh* dm = p_thing->Draw.Mesh;
     Vehicle* veh = p_thing->Genus.Vehicle;
-    SLONG dx, dy, dz;
-    SLONG coltype;
-    SLONG dwheel;
-
-    dy = 0;
+    SLONG dx, dz;
 
     ASSERT(p_thing->Class == CLASS_VEHICLE);
 
@@ -2179,7 +2139,7 @@ void VEH_driving(Thing* p_thing)
         THING_NUMBER(p_thing),
         ignore_prims);
 
-    coltype = CollideCar(p_thing, TICK_RATIO);
+    CollideCar(p_thing, TICK_RATIO);
 
     // Apply velocities to position and angle.
     GameCoord new_pos;
@@ -2924,7 +2884,6 @@ static void process_car(Thing* p_car)
 {
     SLONG count;
     SLONG wheel;
-    SLONG c0;
     SLONG wx[4], wy[4], wz[4];
     SLONG dy[4];
     VehInfo* info;
@@ -2940,8 +2899,6 @@ static void process_car(Thing* p_car)
     }
 
     make_car_matrix(vp);
-
-    UBYTE on_road = 0;
 
     {
         int in_air = 0;
@@ -2966,9 +2923,6 @@ static void process_car(Thing* p_car)
             SLONG papz = wz[wheel] + (p_car->WorldPos.Z >> 8);
 
             height = PAP_calc_map_height_at(papx, papz) << 8;
-
-            if (ROAD_is_road(papx >> 8, papz >> 8))
-                on_road |= (1 << wheel);
 
             SLONG y_pos;
 
@@ -3229,20 +3183,17 @@ static void calc_tilt_and_roll(SLONG* tilt, SLONG* roll, SLONG* whx, SLONG* why,
 static void do_car_fall_and_tilt(Thing* car, SLONG* wx, SLONG* wy, SLONG* wz, SLONG* dy)
 {
     SLONG min_dy, max_dy;
-    SLONG c0, pos_count, neg_count;
+    SLONG c0, pos_count;
     SLONG remove;
     SLONG tilt, roll;
 
     min_dy = 0x7FFFFFFF;
     max_dy = 0x80000000;
     pos_count = 0;
-    neg_count = 0;
 
     for (c0 = 0; c0 < 4; c0++) {
         if (dy[c0] > 0)
             pos_count++;
-        if (dy[c0] < 0)
-            neg_count++;
         if (dy[c0] > max_dy)
             max_dy = dy[c0];
         if (dy[c0] < min_dy)

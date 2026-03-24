@@ -40,9 +40,6 @@ void SMAP_init(
     UBYTE res_u,
     UBYTE res_v)
 {
-    float len;
-    float overlen;
-
     SMAP_bitmap = bitmap;
     SMAP_res_u = res_u;
     SMAP_res_v = res_v;
@@ -279,7 +276,6 @@ static UWORD SMAP_add_tweened_points(
     Thing* p_thing)
 {
     SLONG i;
-    SLONG j;
 
     SLONG sp;
     SLONG ep;
@@ -287,8 +283,6 @@ static UWORD SMAP_add_tweened_points(
     Matrix31 offset;
     Matrix33 mat2;
     Matrix33 mat_final;
-    Matrix33* mat;
-    Matrix33* mat_next;
 
     UWORD ans;
 
@@ -370,11 +364,6 @@ void SMAP_person(
     SLONG dx;
     SLONG dy;
     SLONG dz;
-
-    SLONG i_frame;
-    SLONG i_steer;
-    SLONG i_fwheel;
-    SLONG i_bwheel;
 
     Matrix33 r_matrix;
 

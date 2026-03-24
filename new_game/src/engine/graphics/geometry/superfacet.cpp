@@ -780,8 +780,6 @@ SLONG SUPERFACET_draw(SLONG facet)
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;
 
-    D3DMULTIMATRIX d3dmm;
-
     // R key disables superfacet rendering (debug toggle).
     if (Keys[KB_R]) {
         return UC_FALSE;

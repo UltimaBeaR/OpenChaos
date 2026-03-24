@@ -45,11 +45,6 @@ void SKY_init(CBYTE* star_file)
     SLONG yaw;
     SLONG pitch;
     SLONG bright;
-    SLONG red;
-    SLONG green;
-    SLONG blue;
-    ULONG colour;
-    ULONG spread;
     SLONG match;
 
     FILE* handle;
@@ -160,11 +155,7 @@ void SKY_draw_stars(
 {
     SLONG i;
 
-    float yaw;
-    float pitch;
-
     SVector_F temp;
-    SVector_F pos;
     POLY_Point pp;
 
     SKY_Star* ss;
@@ -230,8 +221,6 @@ void SKY_draw_poly_clouds(
     float vector[3];
 
     SVector_F temp;
-    SVector_F pos;
-    ULONG flag;
 
     float screen_width = float(DisplayWidth);
     float screen_height = float(DisplayHeight);
@@ -240,7 +229,6 @@ void SKY_draw_poly_clouds(
     float height;
 
     SKY_Cloud* sc;
-    SKY_Texture* st;
 
     POLY_Point mid;
     POLY_Point pp[4];
@@ -346,12 +334,6 @@ void SKY_draw_poly_moon(
     float mid_z,
     float max_dist)
 {
-    static SLONG on_screen_for = 0;
-    static SLONG last_cam_dyaw = 0;
-    static SLONG last_cam_dpitch = 0;
-    static SLONG draw_man = 0;
-
-    SLONG i;
     SLONG j;
 
     float yaw;
@@ -359,14 +341,9 @@ void SKY_draw_poly_moon(
     float vector[3];
 
     SVector_F temp;
-    SVector_F pos;
-    ULONG flag;
 
     float screen_width = float(DisplayWidth);
     float screen_height = float(DisplayHeight);
-
-    float width;
-    float height;
 
     POLY_Point mid;
     POLY_Point pp[4];
@@ -418,12 +395,8 @@ void SKY_draw_poly_moon(
         temp.Z,
         &mid);
 
-    if (!mid.IsValid()) {
-        on_screen_for = 0;
-    } else {
-        if (mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > screen_width || mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > screen_height) {
-            on_screen_for = 0;
-        } else {
+    if (mid.IsValid()) {
+        if (!(mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > screen_width || mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > screen_height)) {
             mid.Z = SKY_VERY_FAR_AWAY;
             mid.colour = 0xffaaaa88;
             mid.specular = 0x00000000;
@@ -439,8 +412,6 @@ void SKY_draw_poly_moon(
             }
 
             POLY_add_quad(quad, POLY_PAGE_MOON, UC_FALSE, UC_TRUE);
-
-            on_screen_for += 1;
         }
     }
 
@@ -461,7 +432,6 @@ SLONG SKY_draw_moon_reflection(
     SLONG i;
     SLONG j;
 
-    float x;
     float y;
     float v;
 
@@ -470,14 +440,9 @@ SLONG SKY_draw_moon_reflection(
     float vector[3];
 
     SVector_F temp;
-    SVector_F pos;
-    ULONG flag;
 
     float screen_width = float(DisplayWidth);
     float screen_height = float(DisplayHeight);
-
-    float width;
-    float height;
 
     POLY_Point mid;
     POLY_Point pp[4];
@@ -751,7 +716,6 @@ void SKY_draw_poly_sky_old(float world_camera_x, float world_camera_y, float wor
     SLONG p2;
 
     float x;
-    float y;
     float z;
 
     float angle;

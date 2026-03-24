@@ -345,8 +345,6 @@ void STAIR_storey_wall(UBYTE x1, UBYTE z1, UBYTE x2, UBYTE z2, SLONG opposite)
 // uc_orig: STAIR_storey_finish (fallen/Source/Stair.cpp)
 SLONG STAIR_storey_finish()
 {
-    SLONG i;
-
     SLONG x;
     SLONG z;
 
@@ -357,11 +355,7 @@ SLONG STAIR_storey_finish()
     UBYTE next1;
     UBYTE next2;
 
-    STAIR_Storey* st;
-
     ASSERT(WITHIN(STAIR_storey_upto - 1, 0, STAIR_MAX_STOREYS - 1));
-
-    st = &STAIR_storey[STAIR_storey_upto - 1];
 
     for (z = STAIR_z1; z < STAIR_z2; z++) {
         next = STAIR_EDGE(z);
@@ -782,7 +776,6 @@ void STAIR_calculate(UWORD seed)
 SLONG STAIR_get(SLONG handle, ID_Stair** stair, SLONG* num_stairs)
 {
     SLONG i;
-    SLONG storey;
 
     STAIR_Storey* st;
     STAIR_Stair* ss;

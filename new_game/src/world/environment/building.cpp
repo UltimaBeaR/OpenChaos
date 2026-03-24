@@ -323,19 +323,14 @@ void scan_walk_triangle(SLONG x0, SLONG y0, SLONG z0,
                         SLONG x1, SLONG y1, SLONG z1,
                         SLONG x2, SLONG y2, SLONG z2, SLONG face)
 {
-    SLONG px, py, pz;
-    SLONG face_x, face_y, face_z;
-    SLONG c0;
+    SLONG px, pz;
+    SLONG face_x, face_z;
     SLONG s, t, step_s, step_t;
     SLONG vx, vy, vz, wx, wy, wz;
-    struct DepthStrip* me;
     SLONG prev_x, prev_z;
-    SLONG quad;
     SLONG len;
-    UBYTE info = 0;
 
     face_x = x0;
-    face_y = y0;
     face_z = z0;
 
     vx = x1 - x0;
@@ -367,8 +362,6 @@ void scan_walk_triangle(SLONG x0, SLONG y0, SLONG z0,
             px = face_x + ((s * vx) >> 8) + ((t * wx) >> 8);
             pz = face_z + ((s * vz) >> 8) + ((t * wz) >> 8);
             if ((px >> 8) != prev_x || (pz >> 8) != prev_z) {
-                py = face_y + ((s * vy) >> 8) + ((t * wy) >> 8);
-
                 if (WITHIN(px >> ELE_SHIFT, 0, MAP_WIDTH - 1) && WITHIN(pz >> ELE_SHIFT, 0, MAP_HEIGHT - 1)) {
                     add_walk_face_to_map(face, px >> 8, pz >> 8);
                 }
@@ -424,8 +417,6 @@ void add_tri_to_walkable_list(SWORD face)
 // In DX mode: allocates a primary Thing, sets DrawType=DT_BUILDING, links to building_list[].
 SLONG place_building_at(UWORD building, UWORD prim, SLONG x, SLONG y, SLONG z)
 {
-    UWORD map_thing;
-
     switch (build_mode) {
     case BUILD_MODE_EDITOR:
         break;
@@ -538,7 +529,6 @@ SLONG build_row_wall_points_at_floor_alt(SLONG y, SLONG x1, SLONG z1, SLONG x2, 
 {
     SLONG wcount, wwidth, wallwidth, dx, dz, dist;
     SLONG start_point;
-    SLONG ny;
 
     start_point = next_prim_point;
     wwidth = BLOCK_SIZE;
@@ -836,8 +826,7 @@ void set_cut_blocks_z(SLONG x, SLONG z)
 void scan_line_z(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
 {
     SLONG dx, dz, count;
-    SLONG x, z;
-    SWORD type;
+    SLONG z;
 
     dz = z2 - z1;
     dx = x2 - x1;
@@ -890,7 +879,7 @@ void scan_line_z(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
 UBYTE scan_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG flag)
 {
     SLONG dx, dz, count;
-    SLONG x, z;
+    SLONG x;
     SWORD type;
 
     if (z1 == z2)
@@ -1260,7 +1249,6 @@ void build_free_quad_texture_info(struct PrimFace4* p_f4, SLONG mx, SLONG mz)
 
     SLONG dtx_down, dty_down;
     SLONG dtx_down_r, dty_down_r;
-    SLONG dtx_across, dty_across;
 
     texture = get_map_texture(mx, mz);
 
@@ -1324,7 +1312,7 @@ void scan_45(SLONG x1, SLONG z1, SLONG dx, SLONG dz)
 {
     UBYTE type = 0;
     SLONG count;
-    SLONG pp, p0, p1, p2, p3;
+    SLONG pp, p1, p2, p3;
     struct PrimFace3* p_f3;
 
     count = abs(dx) >> ELE_SHIFT;
@@ -1498,10 +1486,9 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
     struct PrimFace4* p_f4;
     SLONG small_dy = 9999999;
     SLONG lmin_x = 9999999, lmax_x = -9999999, lmin_z = 9999999, lmax_z = -9999999;
-    SLONG flatten = 0;
     SLONG maxy = -9999;
 
-    SLONG sp, ep, sf4, ef4;
+    SLONG sp, sf4;
 
     sp = next_prim_point;
     sf4 = next_prim_face4;
@@ -1510,7 +1497,6 @@ SLONG build_easy_roof(SLONG min_x, SLONG edge_min_z, SLONG max_x, SLONG depth, S
         SLONG polarity = 0;
         SLONG edge;
         SLONG dy = 0;
-        SLONG prev_x_in = 0;
         edge = edge_heads_ptr[z];
 
         for (x = min_x - 256 + 128; x < max_x + 256 && edge; x += ELE_SIZE) {
@@ -1776,7 +1762,7 @@ SLONG do_storeys_overlap(SLONG s1, SLONG s2)
 SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
 {
     SLONG min_x = 9999999, max_x = 0, min_z = 9999999, max_z = 0;
-    SLONG width, depth;
+    SLONG depth;
     SLONG x, z;
 
     SLONG wall;
@@ -1814,7 +1800,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
     max_x += ELE_SIZE;
     max_z += ELE_SIZE;
 
-    width = (max_x - min_x) >> ELE_SHIFT;
     depth = (max_z - min_z) >> ELE_SHIFT;
 
     edge_min_z = min_z;
@@ -1856,7 +1841,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
         SLONG polarity = 0;
         SLONG edge;
         SLONG dy;
-        SLONG prev_x_in = 0;
         edge = edge_heads_ptr[z];
 
         for (x = min_x - 256; x < max_x; x += ELE_SIZE) {
@@ -1873,8 +1857,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
                 } else if (x == edge_pool_ptr[edge].X) {
                     polarity++;
                     {
-                        struct DepthStrip* me;
-
                         dy = get_map_height((x >> ELE_SHIFT), z + (edge_min_z >> ELE_SHIFT)) << FLOOR_HEIGHT_SHIFT - global_y;
                         add_point(x, y, (z << ELE_SHIFT) + edge_min_z);
                         flag_blocks[(x >> ELE_SHIFT) + z * MAX_BOUND_SIZE] = next_prim_point - 1;
@@ -1918,9 +1900,6 @@ SLONG build_roof_grid(SLONG storey, SLONG y, SLONG flat_flag)
     }
 
     for (z = 0; z < depth; z++) {
-        SLONG polarity = 0;
-        SLONG edge;
-        edge = edge_heads_ptr[z];
         for (x = min_x >> ELE_SHIFT; x < max_x >> ELE_SHIFT; x++) {
             SLONG p0, p1, p2, p3;
             // p0   p1
@@ -2290,7 +2269,7 @@ SLONG is_storey_circular(SLONG storey)
 void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags)
 {
     SLONG min_x = 9999999, max_x = 0, min_z = 9999999, max_z = 0;
-    SLONG width, depth;
+    SLONG depth;
     SLONG x, z;
 
     SLONG wall;
@@ -2313,7 +2292,6 @@ void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags)
     max_x += ELE_SIZE;
     max_z += ELE_SIZE;
 
-    width = (max_x - min_x) >> ELE_SHIFT;
     depth = (max_z - min_z) >> ELE_SHIFT;
 
     edge_min_z = min_z;
@@ -2329,8 +2307,6 @@ void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags)
             while (!done && edge) {
                 if (x < edge_pool_ptr[edge].X) {
                     if (polarity & 1) {
-                        struct DepthStrip* me;
-
                         set_map_flag(
                             x >> PAP_SHIFT_HI,
                             z + (edge_min_z >> PAP_SHIFT_HI),
@@ -2340,8 +2316,6 @@ void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags)
                 } else if (x == edge_pool_ptr[edge].X) {
                     polarity += edge_pool_ptr[edge].Count;
                     if (polarity & 1) {
-                        struct DepthStrip* me;
-
                         set_map_flag(
                             x >> PAP_SHIFT_HI,
                             z + (edge_min_z >> PAP_SHIFT_HI),
@@ -2353,27 +2327,6 @@ void set_floor_hidden(SLONG storey, UWORD lower, UWORD flags)
                     polarity += edge_pool_ptr[edge].Count;
                     edge = edge_pool_ptr[edge].Next;
                 }
-            }
-        }
-    }
-
-    if (0) // lower
-    {
-        for (z = 0; z < depth; z++) {
-            UWORD pfu, pfl;
-            pfu = get_map_flags(min_x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI));
-            pfl = get_map_flags(min_x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI) + 1);
-
-            for (x = min_x + (1 << PAP_SHIFT_HI); x < max_x - (1 << PAP_SHIFT_HI); x += (1 << PAP_SHIFT_HI)) {
-                UWORD fu, fl;
-                fu = get_map_flags(x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI));
-                fl = get_map_flags(x >> PAP_SHIFT_HI, z + (edge_min_z >> PAP_SHIFT_HI) + 1);
-                if ((fu & fl & pfu & pfl & PAP_FLAG_HIDDEN)) {
-                    set_map_height((x >> PAP_SHIFT_HI) + 1, z + (edge_min_z >> PAP_SHIFT_HI) + 1, -256 >> 2);
-                }
-
-                pfu = fu;
-                pfl = fl;
             }
         }
     }
@@ -2411,7 +2364,6 @@ void build_fire_escape_points(UWORD storey, SLONG y, SLONG flag)
 {
     SLONG walls[3], count = 0, wall;
     SLONG mx, mz, mx2, mz2;
-    SLONG p0 = 0;
     if (flag == 0) {
         add_point(storey_list[storey].DX, y, storey_list[storey].DZ);
     }
@@ -2560,7 +2512,6 @@ struct PrimFace4* create_a_quad(UWORD p1, UWORD p0, UWORD p3, UWORD p2, SWORD te
     SLONG tx, ty;
     SLONG theight = 31;
     SLONG add_page = 1;
-    SLONG page_to;
     SLONG flip;
 
     if (texture_style == 0)
@@ -2665,7 +2616,6 @@ struct PrimFace4* create_a_quad_tex(UWORD p1, UWORD p0, UWORD p3, UWORD p2, UWOR
     struct PrimFace4* p4;
     SLONG tx, ty;
     SLONG flip;
-    SLONG page_to;
 
     p4 = &prim_faces4[next_prim_face4];
     next_prim_face4++;
@@ -2993,7 +2943,6 @@ void build_ladder_points(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, SLONG 
 // extra_height accounts for terrain slope below the ladder.
 void calc_ladder_pos(SLONG* x1, SLONG* z1, SLONG* x2, SLONG* z2, SLONG* y, SLONG* extra_height)
 {
-    SLONG dx, dz;
     *extra_height = 0;
 
     calc_ladder_ends(x1, z1, x2, z2);
@@ -3071,7 +3020,6 @@ SLONG build_skylight(SLONG storey)
     SLONG count = 0;
     SLONG index, c0;
     SLONG dx, dz;
-    SLONG px, pz, rx, rz;
     SLONG x, y, z, wall;
     SLONG ox, oz;
     SLONG pcount;
@@ -3147,7 +3095,6 @@ SLONG build_skylight(SLONG storey)
 void build_ladder(SLONG storey)
 {
     SLONG y = 0, c0;
-    SLONG count = 0;
     struct PrimFace4* p4;
     SLONG wall;
     SLONG extra_height;
@@ -3621,7 +3568,6 @@ SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip)
     SLONG count = 0;
     SLONG index, c0;
     SLONG dx, dz;
-    SLONG px, pz, rx, rz;
     SLONG x, z, wall;
     SLONG ox, oz;
     SLONG pcount;
@@ -3729,19 +3675,17 @@ SLONG build_ledge2(SLONG y, SLONG storey, SLONG out, SLONG height, SLONG dip)
 #define RECESS_SIZE (32)
 void append_recessed_wall_prim(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLONG height)
 {
-    SLONG x2, y2, z2;
+    SLONG x2, z2;
     SLONG dx, dz, len;
     SLONG texture, texture_style;
     SLONG texture_style2;
     struct PrimFace4* p_f4;
     SLONG c0;
     UBYTE* ptexture1;
-    SLONG tcount1;
     UBYTE* ptexture2;
     SLONG tcount2;
 
     ptexture1 = wall_list[wall].Textures;
-    tcount1 = wall_list[wall].Tcount;
     ptexture2 = wall_list[wall].Textures2;
     tcount2 = wall_list[wall].Tcount2;
 
@@ -4146,13 +4090,10 @@ void scan_triangle(SLONG x0, SLONG y0, SLONG z0, SLONG x1, SLONG y1, SLONG z1, S
 
     SLONG px, py, pz;
     SLONG face_x, face_y, face_z;
-    SLONG c0;
     SLONG s, t, step_s, step_t;
     SLONG vx, vy, vz, wx, wy, wz;
     struct DepthStrip* me;
-    SLONG quad;
     SLONG len;
-    UBYTE info = 0;
 
     face_x = x0;
     face_y = y0;
@@ -4185,8 +4126,6 @@ void scan_triangle(SLONG x0, SLONG y0, SLONG z0, SLONG x1, SLONG y1, SLONG z1, S
             px = face_x + (vx * s >> 7) + (wx * t >> 7);
             py = face_y + (vy * s >> 7) + (wy * t >> 7);
             pz = face_z + (vz * s >> 7) + (wz * t >> 7);
-
-            quad = MAP_INDEX(px >> ELE_SHIFT, pz >> ELE_SHIFT);
 
             if (WITHIN(px >> ELE_SHIFT, 0, MAP_WIDTH - 1) && WITHIN(pz >> ELE_SHIFT, 0, MAP_WIDTH - 1)) {
                 if (build_mode == BUILD_MODE_EDITOR) {
@@ -4257,21 +4196,8 @@ void flag_floor_tiles_for_tri(SLONG p0, SLONG p1, SLONG p2)
 // by "&&0" so it is dead in both pre-release and final. Falls through to build_roof_grid().
 SLONG build_roof(UWORD storey, SLONG y, SLONG flat_flag)
 {
-    SLONG wall;
-    SLONG roof;
-    SLONG p0, p1, p2, p3;
-    SLONG count;
-    SLONG roof_height = BLOCK_SIZE * 3;
-    SLONG c0;
-    SLONG overlap;
-
-    SLONG roof_flags;
-    SLONG roof_rim;
     SLONG overlap_height = BLOCK_SIZE >> 1;
 
-    SLONG poox, pooz;
-
-    overlap = BLOCK_SIZE >> 1;
     /*
             roof=storey_list[storey].Roof;
             roof_flags=storey_list[roof].StoreyFlags;
@@ -4291,66 +4217,7 @@ SLONG build_roof(UWORD storey, SLONG y, SLONG flat_flag)
                     overlap=BLOCK_SIZE;
     */
 
-    if ((storey_list[storey].StoreyFlags & FLAG_STOREY_ROOF_RIM) && 0) {
-
-        if (storey_list[storey].WallHead)
-        {
-
-            start_point[0] = next_prim_point;
-            add_point(storey_list[storey].DX, y + 2, storey_list[storey].DZ);
-            wall = storey_list[storey].WallHead;
-            count = 0;
-            while (wall) {
-
-                add_point(wall_list[wall].DX, y + 2, wall_list[wall].DZ);
-                wall = wall_list[wall].Next;
-                count++;
-            }
-
-            start_point[1] = next_prim_point;
-            create_recessed_storey_points(y, storey, count, overlap);
-
-            start_point[2] = next_prim_point;
-            roof_rim = next_prim_point;
-            for (c0 = 0; c0 < start_point[2] - start_point[1]; c0++) {
-                SLONG x, z;
-                x = prim_points[c0 + start_point[1]].X;
-                z = prim_points[c0 + start_point[1]].Z;
-
-                add_point(x, y + (overlap_height), z);
-            }
-
-            start_point[4] = next_prim_point;
-
-            start_point[5] = next_prim_point;
-            roof_rim = next_prim_point;
-            create_recessed_storey_points(y + overlap_height, storey, count, -3);
-
-            for (c0 = 0; c0 <= count; c0++) {
-                create_a_quad(start_point[1] + c0, start_point[1] + c0 + 1, start_point[0] + c0, start_point[0] + c0 + 1, 0, 23);
-                create_a_quad(start_point[2] + c0, start_point[2] + c0 + 1, start_point[1] + c0, start_point[1] + c0 + 1, 0, 23);
-                create_a_quad(start_point[5] + c0, start_point[5] + c0 + 1, start_point[2] + c0, start_point[2] + c0 + 1, 0, 23);
-            }
-
-            /* //forget walled for now
-                            if(roof_flags&FLAG_ROOF_WALLED)
-                            {
-                                    for(c0=0;c0<=count;c0++)
-                                    {
-                                            create_a_quad(start_point[4]+c0,start_point[4]+c0+1,start_point[2]+c0,start_point[2]+c0+1,0,23);
-                                            create_a_quad(start_point[5]+c0,start_point[5]+c0+1,start_point[4]+c0,start_point[4]+c0+1,0,23);
-                                    }
-
-                            }
-                            if( (roof_flags&(FLAG_ROOF_WALLED|FLAG_ROOF_FLAT)) ==(FLAG_ROOF_WALLED)) //ANGLED ROOF WITH WALL
-                            {
-                                    for(c0=0;c0<=count;c0++)
-                                            create_a_quad(start_point[6]+c0,start_point[6]+c0+1,start_point[5]+c0,start_point[5]+c0+1,0,23);
-                            }
-            */
-        }
-    } else
-        overlap_height = 0;
+    overlap_height = 0;
     return (build_roof_grid(storey, y + overlap_height, flat_flag));
 }
 
@@ -4425,7 +4292,6 @@ void create_split_quad_into_16(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wal
 {
     SLONG p01, p13, p32, p20, p03;
     SLONG x, z;
-    struct PrimFace4* p_f4;
 
     p01 = next_prim_point;
     x = (prim_points[p1].X + prim_points[p0].X) >> 1;
@@ -4464,7 +4330,6 @@ void create_split_quad_into_48(SLONG p0, SLONG p1, SLONG p2, SLONG p3, SLONG wal
 {
     SLONG p01, p13, p32, p20, p03;
     SLONG x, z;
-    struct PrimFace4* p_f4;
 
     p01 = next_prim_point;
     x = (prim_points[p1].X + prim_points[p0].X) >> 1;
@@ -4588,7 +4453,6 @@ void center_object(SLONG sp, SLONG ep)
 // Stores the explicit (x,z) as the current building centroid.
 void center_object_about_xz(SLONG sp, SLONG ep, SLONG x, SLONG z)
 {
-    SLONG c0;
     if (ep - sp < 0) {
         return;
     }
@@ -4727,7 +4591,7 @@ void find_next_last_coord(SWORD wall, SLONG* x, SLONG* z)
 void build_single_ledge(struct LedgeInfo* p_ledge)
 {
 
-    SLONG sp[4], count = 0;
+    SLONG sp[4];
     SLONG rx, rz, rx2, rz2;
 
     SLONG y, height;
@@ -4821,7 +4685,7 @@ void build_staircase(SLONG storey)
     SLONG wall;
     SLONG wall_count = 0;
     SLONG count;
-    SLONG step_count, step_size, step_height, len, step_y, step_pos, step_length;
+    SLONG step_count, step_size, step_height, len, step_pos, step_length;
     SLONG row = 0;
     SLONG c0, c1;
     SLONG y, start_y = 0;
@@ -4892,7 +4756,6 @@ void build_staircase(SLONG storey)
     if (step_count == 0)
         return;
     step_size = (len << 8) / step_count;
-    step_y = storey_list[storey].DY;
 
     step_pos = len << 8;
     y = start_y;
@@ -5029,7 +4892,7 @@ void make_cable_taut_along(SLONG along, SLONG building, SLONG* x_middle, SLONG* 
     SLONG dx, dy, dz;
     SLONG h;
     SLONG V, v1, v2;
-    SLONG L, l1, l2;
+    SLONG L, l1;
     SLONG x1, y1, z1;
     SLONG x2, y2, z2;
     SLONG xm, ym, zm;
@@ -5181,21 +5044,14 @@ SLONG create_suspended_light(SLONG x, SLONG y, SLONG z, SLONG flags)
 void build_cable(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWORD wall, SWORD type, SLONG saggysize)
 {
     SLONG p1;
-    UWORD start_point;
-    UWORD start_face3, start_face4;
     struct PrimFace4* p_f4;
-    SLONG prim;
     SLONG len, dx, dy, dz, count;
     SLONG px, py, pz;
     SLONG c0;
-    SLONG light_x, light_y, light_z;
     SLONG step_angle1, step_angle2, angle;
 
     wall = wall;
     type = type;
-    start_point = next_prim_point;
-    start_face3 = next_prim_face3;
-    start_face4 = next_prim_face4;
 
     dx = abs(x2 - x1);
     dy = abs(y2 - y1);
@@ -5253,11 +5109,6 @@ void build_cable(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWO
         ey = y1 + (c0 * dy) / count;
         ey -= (COS((angle + 2048) & 2047) * saggysize) >> 16;
         ez = z1 + (c0 * dz) / count;
-        if (c0 == (count >> 1)) {
-            light_x = ex;
-            light_y = ey;
-            light_z = ez;
-        }
         p1 = next_prim_point;
         add_point(ex, ey, ez);
         add_point(ex, ey + 8, ez);
@@ -5279,20 +5130,13 @@ void build_cable(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWO
 void build_cable_old(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SWORD wall, SWORD type)
 {
     SLONG p1;
-    UWORD start_point;
-    UWORD start_face3, start_face4;
     struct PrimFace4* p_f4;
-    SLONG prim;
     SLONG len, dx, dy, dz, count;
     SLONG px, py, pz;
     SLONG c0;
-    SLONG light_x, light_y, light_z;
 
     wall = wall;
     type = type;
-    start_point = next_prim_point;
-    start_face3 = next_prim_face3;
-    start_face4 = next_prim_face4;
 
     dx = abs(x2 - x1);
     dy = abs(y2 - y1);
@@ -5318,11 +5162,6 @@ void build_cable_old(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2,
         angle = (angle + 2048) & 2047;
         ey -= COS(angle) >> 9;
         ez = z1 + (c0 * dz) / count;
-        if (c0 == (count >> 1)) {
-            light_x = ex;
-            light_y = ey;
-            light_z = ez;
-        }
         p1 = next_prim_point;
         add_point(ex, ey, ez);
         add_point(ex, ey + 8, ez);
@@ -5391,7 +5230,6 @@ SLONG build_cables(SWORD storey, SLONG prev_facet)
 void build_fence_points_and_faces(SLONG y1, SLONG y2, SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG wall, UBYTE posts)
 {
     SLONG wcount, wwidth, dx, dz, dist;
-    SLONG start_point;
     SLONG texture, texture_style;
     struct PrimFace4* p_f4;
     SLONG px, pz;
@@ -5405,7 +5243,6 @@ void build_fence_points_and_faces(SLONG y1, SLONG y2, SLONG x1, SLONG z1, SLONG 
 
     texture_style = wall_list[wall].TextureStyle;
     texture = TEXTURE_PIECE_MIDDLE;
-    start_point = next_prim_point;
 
     dx = abs(x2 - x1);
     dz = abs(z2 - z1);
@@ -5426,7 +5263,7 @@ void build_fence_points_and_faces(SLONG y1, SLONG y2, SLONG x1, SLONG z1, SLONG 
     pz = -((dx * (10)) >> 10);
 
     while (wcount) {
-        SLONG p, p1, p2;
+        SLONG p, p1;
         SLONG floor_1, floor_2;
         p = next_prim_point;
         floor_1 = PAP_calc_height_at(x1, z1);
@@ -5551,8 +5388,6 @@ void build_height_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLO
     struct PrimFace4* p_f4;
     UBYTE* ptexture1;
     SLONG tcount1;
-    UBYTE* ptexture2;
-    SLONG tcount2;
     SLONG count;
 
     texture_style = wall_list[wall].TextureStyle;
@@ -5561,8 +5396,6 @@ void build_height_fence(SLONG x, SLONG y, SLONG z, SLONG wall, SLONG storey, SLO
 
     ptexture1 = wall_list[wall].Textures;
     tcount1 = wall_list[wall].Tcount;
-    ptexture2 = wall_list[wall].Textures2;
-    tcount2 = wall_list[wall].Tcount2;
 
     if (alt_mode == 1) {
         sp[0] = build_row_wall_only_points_at_floor_alt(height, x, z, wall_list[wall].DX, wall_list[wall].DZ, wall);
@@ -5996,17 +5829,12 @@ void insert_recessed_wall_vect(
 SLONG build_storey_floor(SLONG storey, SLONG y, SLONG flag)
 {
     SLONG min_x = 9999999, max_x = 0, min_z = 9999999, max_z = 0;
-    SLONG width, depth;
-    SLONG x, z;
+    SLONG depth;
 
     SLONG wall;
-    struct PrimFace4* p_f4;
-    struct PrimFace3* p_f3;
     SLONG face_wall;
     SLONG angles;
-    SLONG building;
 
-    building = storey_list[storey].BuildingHead;
     face_wall = -storey_list[storey].WallHead;
 
     global_y = get_map_height((storey_list[storey].DX >> ELE_SHIFT), storey_list[storey].DZ >> ELE_SHIFT) << FLOOR_HEIGHT_SHIFT;
@@ -6026,7 +5854,6 @@ SLONG build_storey_floor(SLONG storey, SLONG y, SLONG flag)
     max_x += ELE_SIZE;
     max_z += ELE_SIZE;
 
-    width = (max_x - min_x) >> ELE_SHIFT;
     depth = (max_z - min_z) >> ELE_SHIFT;
 
     edge_min_z = min_z;
@@ -6131,12 +5958,9 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
     ULONG obj_start_face3, obj_start_face4;
     ULONG prev_facet = 0;
     SLONG wall_count = 0;
-    SWORD fire_escape_count = 0;
-    SWORD ladder_count = 0;
     SLONG first = 0;
     SLONG valid = 0;
     SLONG col_vect;
-    UBYTE *textures, tcount;
 
     SLONG circular;
 
@@ -6290,8 +6114,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
 
                 x1 = x2;
                 z1 = z2;
-                textures = wall_list[wall].Textures;
-                tcount = wall_list[wall].Tcount;
 
                 wall = wall_list[wall].Next;
                 wall_count++;
@@ -6305,7 +6127,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
             wall = find_wall_for_fe(storey_list[storey].DX, storey_list[storey].DZ, building_list[building].StoreyHead);
             if (wall >= 0)
                 wall_for_fe[wall] = storey;
-            fire_escape_count++;
             break;
         case STOREY_TYPE_TRENCH:
             prev_facet = build_trench(prev_facet, storey);
@@ -6430,25 +6251,6 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
     start_face4 = next_prim_face4;
 
     if (valid) {
-        // Retexture quads for crates — disabled (wrapped in if(0)) in original.
-        if (0)
-            if (building_list[building].BuildingType == BUILDING_TYPE_CRATE_IN || building_list[building].BuildingType == BUILDING_TYPE_CRATE_OUT) {
-                SLONG i;
-                PrimFace4* p_f4;
-                for (i = obj_start_face4; i < next_prim_face4; i++) {
-                    p_f4 = &prim_faces4[i];
-                    p_f4->UV[0][0] = 7 * 32 + 0;
-                    p_f4->UV[0][1] = 7 * 32 + 0;
-                    p_f4->UV[1][0] = 7 * 32 + 31;
-                    p_f4->UV[1][1] = 7 * 32 + 0;
-                    p_f4->UV[2][0] = 7 * 32 + 0;
-                    p_f4->UV[2][1] = 7 * 32 + 31;
-                    p_f4->UV[3][0] = 7 * 32 + 31;
-                    p_f4->UV[3][1] = 7 * 32 + 31;
-                    p_f4->TexturePage = 0;
-                }
-            }
-
         return (build_building(obj_start_point, obj_start_face3, obj_start_face4, prev_facet));
     } else {
         return (0);
@@ -6459,14 +6261,13 @@ SLONG create_building_prim(UWORD building, SLONG* small_y)
 // Stub: was intended to copy editor map to game map. Body is empty in original.
 void copy_to_game_map(void)
 {
-    SLONG x, z, c0;
 }
 
 // uc_orig: clear_map2 (fallen/Source/Building.cpp)
 // Resets all building/prim/map counters and zeroes prim arrays for a fresh city rebuild.
 void clear_map2(void)
 {
-    SLONG x, z, c0;
+    SLONG x, z;
 
     memset((UBYTE*)&PAP_lo[0][0], 0, sizeof(PAP_Lo) * PAP_SIZE_LO * PAP_SIZE_LO);
 
@@ -6499,21 +6300,13 @@ void clear_map2(void)
 // Stub: was intended to clear ladder floor flags. Body is empty in original.
 void clear_floor_ladder(void)
 {
-    SLONG x, z;
 }
 
 // uc_orig: wibble_floor (fallen/Source/Building.cpp)
 // Debug/editor function to animate floor heights with sin/cos. Always returns immediately.
 void wibble_floor(void)
 {
-    SLONG dx, dz;
     return;
-    // #ifdef EDITOR
-    for (dx = 0; dx < EDIT_MAP_WIDTH; dx++)
-        for (dz = 0; dz < EDIT_MAP_DEPTH; dz++) {
-            set_map_height(dx, dz, (COS((dx * 15) & 2047) + SIN((dz * 15) & 2047)) >> 10);
-        }
-    // #endif
 }
 
 // uc_orig: clip_building_prim (fallen/Source/Building.cpp)
@@ -6521,11 +6314,8 @@ void wibble_floor(void)
 void clip_building_prim(SLONG prim, SLONG x, SLONG y, SLONG z)
 {
     SLONG index;
-    SLONG best_z = -999999, az;
     struct BuildingFacet* p_facet;
     SLONG sp, ep;
-    struct PrimFace4* p_f4;
-    struct PrimFace3* p_f3;
     SLONG c0;
 
     index = building_objects[prim].FacetHead;
@@ -6602,13 +6392,6 @@ void count_floor(void)
 void create_city(UBYTE mode)
 {
     SLONG c0;
-    SLONG bcount = 0;
-    SLONG temp_next_prim;
-    SLONG temp_next_face3;
-    SLONG temp_next_face4;
-    SLONG temp_next_point;
-    SLONG temp_next_building_object;
-    SLONG temp_next_building_facet;
 
     diff_page_count1 = 0;
     diff_page_count2 = 0;
@@ -6628,13 +6411,6 @@ void create_city(UBYTE mode)
     next_col_vect_link = 1;
     next_walk_link = 1;
 
-    temp_next_prim = next_prim_object;
-    temp_next_face3 = next_prim_face3;
-    temp_next_face4 = next_prim_face4;
-    temp_next_point = next_prim_point;
-    temp_next_building_object = next_building_object;
-    temp_next_building_facet = next_building_facet;
-
     for (c0 = 1; c0 < MAX_BUILDINGS; c0++) {
         SLONG prim;
         if (building_list[c0].BuildingFlags) {
@@ -6647,8 +6423,6 @@ void create_city(UBYTE mode)
                 // save_asc: editor-only function defined in io.cpp (not yet migrated),
                 // kept as inline extern to preserve the call site pattern from the original.
                 extern void save_asc(UWORD building, UWORD version);
-
-                bcount++;
             }
         }
     }
@@ -6658,28 +6432,6 @@ void create_city(UBYTE mode)
     calc_building_normals();
     clear_floor_ladder();
 
-    {
-        SLONG high = 0;
-        for (c0 = 0; c0 < MAX_WALLS; c0++) {
-            if (wall_list[c0].WallFlags)
-                high = c0;
-        }
-    }
-    {
-        SLONG high = 0;
-        for (c0 = 0; c0 < MAX_STOREYS; c0++) {
-            if (storey_list[c0].StoreyFlags)
-                high = c0;
-        }
-    }
-    {
-        SLONG high = 0;
-        for (c0 = 0; c0 < MAX_BUILDINGS; c0++) {
-            if (building_list[c0].BuildingFlags)
-                high = c0;
-        }
-    }
-
     for (c0 = 1; c0 < next_dwalkable; c0++) {
         SLONG face;
 
@@ -6687,13 +6439,6 @@ void create_city(UBYTE mode)
             prim_faces4[face].ThingIndex = c0;
             // attach_walkable_to_map is defined in build2.cpp (already migrated).
             void attach_walkable_to_map(SLONG face);
-
-            {
-                SLONG point, c0;
-                for (c0 = 0; c0 < 4; c0++) {
-                    point = prim_faces4[face].Points[c0];
-                }
-            }
 
             attach_walkable_to_map(face);
             prim_faces4[face].FaceFlags |= FACE_FLAG_WALKABLE;
@@ -6766,7 +6511,6 @@ void calc_building_normals(void)
     BuildingObject* p_obj;
     PrimFace3* p_f3;
     PrimFace4* p_f4;
-    PrimPoint* p_pt;
 
     for (i = 1; i < next_building_object; i++) {
         p_obj = &building_objects[i];
@@ -6845,15 +6589,7 @@ void calc_building_normals(void)
             }
         }
 
-        SLONG old_nx;
-        SLONG old_ny;
-        SLONG old_nz;
-
         for (j = p_obj->StartPoint; j < p_obj->EndPoint; j++) {
-            old_nx = prim_normal[j].X;
-            old_ny = prim_normal[j].Y;
-            old_nz = prim_normal[j].Z;
-
             dx = abs(prim_normal[j].X);
             dy = abs(prim_normal[j].Y);
             dz = abs(prim_normal[j].Z);
@@ -6882,12 +6618,10 @@ void calc_building_normals(void)
 // logic (unlock building on switch trigger) is commented out in the original.
 void fn_building_normal(Thing* b_thing)
 {
-    Switch* the_switch;
-
     /*
             if(b_thing->SwitchThing)
             {
-                    the_switch = TO_THING(b_thing->SwitchThing)->Genus.Switch;
+                    Switch* the_switch = TO_THING(b_thing->SwitchThing)->Genus.Switch;
                     if(the_switch->Flags&SWITCH_FLAGS_TRIGGERED)
                     {
                             b_thing->Flags &= ~FLAGS_LOCKED;

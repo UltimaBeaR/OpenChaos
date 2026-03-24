@@ -26,8 +26,6 @@ void MSG_clear(void)
 // uc_orig: MSG_add (fallen/DDEngine/Source/Message.cpp)
 void MSG_add(char* fmt, ...)
 {
-    SLONG oldest = 0, oldtimer = UC_INFINITY;
-
     if (!allow_debug_keys)
         return;
 
@@ -64,7 +62,6 @@ void MSG_draw(void)
     SLONG i, x, y;
     UBYTE red, green, blue;
     SLONG pos;
-    static int draw_flag = 0;
     SLONG size = 1;
 
     if (!allow_debug_keys)

@@ -132,9 +132,6 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
     SLONG group;
     SLONG match;
 
-    float pivot_x;
-    float pivot_y;
-    float pivot_z;
     SLONG pivot_valid = UC_FALSE;
 
     SLONG offset_vert;
@@ -224,10 +221,6 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
 
         if (match == 3) {
             if (!pivot_valid) {
-                pivot_x = x;
-                pivot_y = y;
-                pivot_z = z;
-
                 pivot_valid = UC_TRUE;
             }
 

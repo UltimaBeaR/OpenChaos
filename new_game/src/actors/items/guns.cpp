@@ -293,7 +293,6 @@ THING_INDEX find_target_new(Thing* p_person)
     SLONG best_target = NULL;
 
     Thing* p_found;
-    Thing* p_enemy;
 
     if (!get_gun_aim_stats(p_person, &range, &spread)) {
         // This person hasn't got a gun out, so no target.

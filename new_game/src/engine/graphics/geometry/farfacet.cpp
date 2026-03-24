@@ -103,9 +103,7 @@ static void FARFACET_create_square(SLONG square_x, SLONG square_z)
     SLONG j;
     SLONG f_list;
     SLONG facet;
-    SLONG build;
     SLONG exit;
-    SLONG lvert_memory;
     SLONG old_outline_upto;
 
     SLONG v1;
@@ -435,7 +433,6 @@ void FARFACET_draw(
     float width;
     float height;
     float depth;
-    float aspect;
     float matrix[9];
 
     struct
@@ -567,7 +564,6 @@ void FARFACET_draw(
     float dy;
     float dz;
 
-    float dist;
     float dprod;
 
     FARFACET_Square* fs;

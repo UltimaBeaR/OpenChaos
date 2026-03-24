@@ -16,14 +16,6 @@ LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam);
 // and initiates the normal quit sequence on WM_CLOSE.
 LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    int result;
-    SLONG w, h, bpp, refresh;
-    ChangeDDInfo change_info;
-    GUID *D3D_guid,
-        *DD_guid;
-    HMENU hMenu;
-    HINSTANCE hInstance;
-
     switch (message) {
     case WM_ACTIVATEAPP:
 

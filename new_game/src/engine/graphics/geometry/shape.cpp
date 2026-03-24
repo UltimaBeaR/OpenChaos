@@ -492,8 +492,6 @@ void SHAPE_sphere(
 
     SLONG index1;
     SLONG index2;
-    SLONG index3;
-    SLONG index4;
 
     SLONG line1;
     SLONG line2;
@@ -670,7 +668,6 @@ void SHAPE_sparky_line(
     float pnx;
     float pny;
     SLONG n1_valid;
-    SLONG n2_valid;
 
     POLY_Point pp1;
     POLY_Point pp2;
@@ -711,7 +708,6 @@ void SHAPE_sparky_line(
             p2 = i + 1;
 
             n1_valid = UC_FALSE;
-            n2_valid = UC_FALSE;
 
             if (p1 > 0 && pp[p1].IsValid()) {
                 dx = pp[i].X - pp[p1].X;
@@ -755,7 +751,6 @@ void SHAPE_sparky_line(
                     pny = dx;
                 }
 
-                n2_valid = UC_TRUE;
             }
 
             nx[i] = pnx;
@@ -1632,8 +1627,6 @@ void SHAPE_alpha_sphere(
 
     SLONG index1;
     SLONG index2;
-    SLONG index3;
-    SLONG index4;
 
     SLONG line1;
     SLONG line2;
@@ -1787,8 +1780,6 @@ void SHAPE_alpha_sphere(
 void SHAPE_draw_balloon(SLONG balloon)
 {
     SLONG i;
-
-    POLY_Point pp[BALLOON_POINTS_PER_BALLOON];
 
     ASSERT(WITHIN(balloon, 1, BALLOON_balloon_upto - 1));
 

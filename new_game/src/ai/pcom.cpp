@@ -1130,10 +1130,6 @@ SLONG PCOM_find_hiding_place(
     SLONG dist;
     SLONG score;
 
-    SLONG ndx;
-    SLONG ndz;
-    SLONG ndist;
-
     SLONG mid_x = p_person->WorldPos.X >> 16;
     SLONG mid_z = p_person->WorldPos.Z >> 16;
 
@@ -1151,8 +1147,6 @@ SLONG PCOM_find_hiding_place(
     SLONG x2;
     SLONG y2;
     SLONG z2;
-
-    MAV_Action ma;
 
     PAP_Hi* ph;
 
@@ -1202,9 +1196,6 @@ SLONG PCOM_find_hiding_place(
 // uc_orig: PCOM_player_is_doing_something_naughty (fallen/Source/pcom.cpp)
 SLONG PCOM_player_is_doing_something_naughty(Thing* darci)
 {
-    SLONG map_x;
-    SLONG map_z;
-
     // She isn't allowed to be fighting anyone.
     if (darci->Genus.Person->Mode == PERSON_MODE_FIGHT) {
         return UC_TRUE;
@@ -1262,8 +1253,6 @@ void PCOM_alert_my_gang_to_a_fight(Thing* p_person, Thing* p_target)
 
         if (p_gang->Class == CLASS_PERSON)
             if (p_gang != p_person) {
-                SLONG dx = p_gang->WorldPos.X - p_target->WorldPos.X;
-                SLONG dz = p_gang - p_target;
 
                 if (!(p_gang->Genus.Person->Flags & FLAG_PERSON_HELPLESS))
                     if (p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOWING || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_SEARCHING || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_TAUNT || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_INVESTIGATING) {
@@ -1352,7 +1341,6 @@ void PCOM_set_person_move_mav_to_xz(Thing* p_person, SLONG dest_x, SLONG dest_z,
     SLONG goal_z;
 
     SLONG start_x;
-    SLONG start_y;
     SLONG start_z;
 
     start_x = p_person->WorldPos.X >> 16;
@@ -1945,7 +1933,6 @@ void PCOM_set_person_move_goto_thing_slide(Thing* p_person, Thing* p_target)
 void PCOM_renav(Thing* p_person)
 {
     SLONG dest_x;
-    SLONG dest_y;
     SLONG dest_z;
 
     Thing* p_target;
@@ -2148,7 +2135,6 @@ void PCOM_set_person_move_draw_gun(Thing* p_person)
 // uc_orig: PCOM_set_person_move_draw_h2h (fallen/Source/pcom.cpp)
 void PCOM_set_person_move_draw_h2h(Thing* p_person, SLONG special)
 {
-    Thing* p_special;
 
     {
         set_person_draw_item(p_person, special);
@@ -2202,7 +2188,7 @@ void PCOM_set_person_move_shoot(Thing* p_person)
 void check_players_gang(Thing* p_target)
 {
     SLONG gang;
-    SLONG c0, count = 0;
+    SLONG c0;
     Thing* p_person;
 
     gang = p_target->Genus.Person->GangAttack;
@@ -2249,7 +2235,7 @@ UWORD count_gang(Thing* p_target)
 UWORD get_any_gang_member(Thing* p_target)
 {
     SLONG gang;
-    SLONG c0, count = 0, ret;
+    SLONG c0, ret;
 
     gang = p_target->Genus.Person->GangAttack;
     if (gang == 0)
@@ -2270,7 +2256,7 @@ UWORD get_any_gang_member(Thing* p_target)
 UWORD get_nearest_gang_member(Thing* p_target)
 {
     SLONG gang;
-    SLONG c0, count = 0, ret;
+    SLONG c0, ret;
     SLONG bdist = 99999999, best_targ = 0, dist;
 
     gang = p_target->Genus.Person->GangAttack;
@@ -2295,7 +2281,7 @@ UWORD get_nearest_gang_member(Thing* p_target)
 UWORD find_target_from_gang(Thing* p_target)
 {
     SLONG gang;
-    SLONG c0, perp;
+    SLONG perp;
 
     gang = p_target->Genus.Person->GangAttack;
     if (gang == 0)
@@ -2401,7 +2387,6 @@ void process_gang_attack(Thing* p_person, Thing* p_target)
     SLONG gang;
     SLONG c0;
     SLONG me;
-    SLONG attack_count = 0;
 
     me = THING_NUMBER(p_person);
 
@@ -2415,7 +2400,6 @@ void process_gang_attack(Thing* p_person, Thing* p_target)
                 switch (TO_THING(perp)->SubState) {
                 case SUB_STATE_CIRCLING_CIRCLE:
                     TO_THING(perp)->Genus.Person->Agression = -100;
-                    attack_count++;
                     break;
                 }
             }
@@ -3186,8 +3170,6 @@ void PCOM_set_person_ai_warm_hands(Thing* p_person)
 // uc_orig: PCOM_set_person_ai_hands_up (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_hands_up(Thing* p_person, Thing* p_cop)
 {
-    UWORD anim;
-
     set_face_thing(p_person, p_cop);
 
     PCOM_set_person_move_animation(p_person, ANIM_HANDS_UP);
@@ -4836,7 +4818,6 @@ void PCOM_process_wander(Thing* p_person)
 
                     if (should_person_regen(p_person))
                     {
-                        SLONG nx, nz;
                         p_person->Genus.Person->InsideRoom = 240;
 
                         if (PCOM_do_regen(p_person))
@@ -4933,8 +4914,6 @@ void PCOM_process_wander(Thing* p_person)
 void PCOM_process_killing(Thing* p_person)
 {
     Thing* p_target = TO_THING(p_person->Genus.Person->pcom_ai_arg);
-    SLONG quick_kick = 0;
-
     if (p_person->State == STATE_JUMPING) {
         return;
     }
@@ -6552,7 +6531,6 @@ void PCOM_teleport_home(Thing* p_person)
 void PCOM_process_normal(Thing* p_person)
 {
     UWORD i_target;
-    Thing* p_target;
     SLONG dist;
 
     switch (p_person->Genus.Person->pcom_move) {
@@ -7017,8 +6995,6 @@ extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor
 // uc_orig: PCOM_process_state_change (fallen/Source/pcom.cpp)
 void PCOM_process_state_change(Thing* p_person)
 {
-    SLONG dx;
-    SLONG dz;
     SLONG dist;
     SLONG home_x;
     SLONG home_z;
@@ -7681,20 +7657,7 @@ SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
     SLONG dx;
     SLONG dz;
 
-    SLONG px;
-    SLONG pz;
-
-    SLONG cx;
-    SLONG cz;
-
-    SLONG x1;
-    SLONG z1;
-    SLONG x2;
-    SLONG z2;
-
     SLONG what;
-    SLONG dist;
-    SLONG cprod;
     SLONG angle;
 
     UWORD found[PCOM_RUNOVER_FIND];
@@ -7969,29 +7932,12 @@ SLONG PCOM_find_runover_thing(Thing* p_person, SLONG dangle)
 // uc_orig: PCOM_process_movement (fallen/Source/pcom.cpp)
 void PCOM_process_movement(Thing* p_person)
 {
-    SLONG dx;
-    SLONG dz;
     SLONG dist;
-    SLONG what;
-    SLONG dest_x;
-    SLONG dest_z;
     SLONG goal_x;
     SLONG goal_z;
     SLONG ladder;
-    SLONG wangle;
-    SLONG dangle;
-    SLONG wspeed;
-    SLONG dspeed;
-    SLONG dlane;
 
     SLONG renav = UC_FALSE;
-
-    Thing* p_vehicle;
-    Thing* p_target;
-    Thing* p_bike;
-
-    SLONG steer;
-    SLONG accel;
 
     if (p_person->State == STATE_DYING || p_person->State == STATE_DEAD)
         return;
@@ -9399,7 +9345,6 @@ void DriveCar(Thing* p_person)
     SLONG dist;
     SLONG dest_x;
     SLONG dest_z;
-    SLONG wangle;
     SLONG dangle;
     SLONG dlane;
     SLONG dspeed;

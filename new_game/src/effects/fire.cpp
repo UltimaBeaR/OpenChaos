@@ -224,8 +224,6 @@ void FIRE_get_start(UBYTE z, UBYTE xmin, UBYTE xmax)
 // NOTE: point-assembly was never implemented in the pre-release build; always returns NULL.
 FIRE_Info* FIRE_get_next()
 {
-    FIRE_Flame* fl;
-
     if (FIRE_get_flame == NULL) {
         while (1) {
             ASSERT(WITHIN(FIRE_get_fire_upto, 0, FIRE_MAX_FIRE - 1));
@@ -246,8 +244,6 @@ FIRE_Info* FIRE_get_next()
     }
 
     ASSERT(WITHIN(FIRE_get_flame, 1, FIRE_MAX_FLAMES - 1));
-
-    fl = &FIRE_flame[FIRE_get_flame];
 
     // Point projection / screen-space assembly was never written; stub returns NULL.
     return NULL;

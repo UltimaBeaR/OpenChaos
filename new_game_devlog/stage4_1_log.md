@@ -86,4 +86,36 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 | `world/map/pap.cpp` | `PAP_assert_if_off_map_lo`, `PAP_assert_if_off_map_hi` |
 | `world/map/qmap.cpp` | `QMAP_get_style_texture` |
 
+### Шаг 2b — Удаление unreachable code
+
+Удалён мёртвый код из 42 мест в ~30 файлах. Категории:
+
+- **Code after return** (22): функции со стабами `ASSERT(0); return;` и мёртвым телом после return —
+  удалены тела, стабы оставлены. Файлы: animal.cpp, vehicle.cpp, texture.cpp, host.cpp, aeng.cpp,
+  console.cpp, crinkle.cpp, night.cpp, collide.cpp, eway.cpp, outro_os.cpp, building.cpp
+- **if(0)/if(1) dead branches** (16): удалены мёртвые ветки. Файлы: person.cpp, vehicle.cpp,
+  figure.cpp, facet.cpp, mesh.cpp, aeng.cpp, collide.cpp, eway.cpp, fc.cpp, interfac.cpp, building.cpp
+- **Dead case/break** (2): person.cpp (copy-paste артефакт), elev.cpp (дубликат return)
+- **Unreachable error blocks** (2): elev.cpp
+
+Оставлено **5 warnings** (осознанно):
+- `outro_mf.cpp:218,334` — код после ASSERT(0), документирует инвариант
+- `building.cpp:1962` — декларации в switch перед первым case (false positive)
+- `async_file.cpp:160` — for-loop всегда return на первой итерации (структурный паттерн)
+
+### Шаг 2c — Удаление unused variables
+
+Массовая чистка: **~1400 неиспользуемых переменных** удалены из ~80 файлов.
+
+Паттерны:
+- Переменные объявленные но не используемые (C-стиль: всё объявлялось наверху функции)
+- set-but-not-used: переменные вычисленные но нигде не прочитанные. Где RHS имел side effects
+  (D3D вызовы, FileRead, и т.п.) — вызов сохранён как standalone expression
+- Каскадные удаления: удаление diff-loop в texture.cpp после удаления diff_r/g/b
+
+Оставлено **27 warnings** — все ASSERT-only переменные (используются только внутри ASSERT(),
+который в Release сборке раскрывается в пустое выражение). Примеры: `hres`, `res` (D3D error checks),
+`dwRead` (file read verification), `wmove_index`, `pFirstStripIndex` (index bounds checks).
+
+**Итог Шага 2:** warning-флаги убраны из CMakeLists.txt. Сборка чистая.
 

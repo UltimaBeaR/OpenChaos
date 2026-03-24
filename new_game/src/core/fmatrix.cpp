@@ -267,13 +267,6 @@ void FMATRIX_find_angles(SLONG* matrix, SLONG* yaw, SLONG* pitch, SLONG* roll)
     if (abs(cos_pitch) == 0) {
         *roll = 0;
     } else {
-        SLONG temp_pitch;
-        if (cos_pitch < 0) {
-            temp_pitch = -((-cos_pitch) >> 2);
-        } else {
-            temp_pitch = -(cos_pitch >> 2);
-        }
-
         cos_roll = (matrix[4] << 14) / cos_pitch;
         sin_roll = (matrix[1] << 14) / -cos_pitch;
 

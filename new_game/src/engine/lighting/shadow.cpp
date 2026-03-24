@@ -168,11 +168,7 @@ void SHADOW_do()
         PrimPoint* p3;
 
         SLONG x;
-        SLONG y;
         SLONG z;
-
-        SLONG shadow_1;
-        SLONG shadow_2;
 
         for (i = 0; i < number_of_walkable_prim_faces4; i++) {
             ASSERT(WITHIN(first_walkable_prim_face4 + i, 1, next_prim_face4 - 1));
@@ -190,7 +186,6 @@ void SHADOW_do()
             p3 = &prim_points[f4->Points[3]];
 
             x = (p0->X + p1->X + p2->X + p3->X) >> 2;
-            y = (p0->Y + p1->Y + p2->Y + p3->Y) >> 2;
             z = (p0->Z + p1->Z + p2->Z + p3->Z) >> 2;
 
             f4->FaceFlags &= ~(FACE_FLAG_SHADOW_1 | FACE_FLAG_SHADOW_2 | FACE_FLAG_SHADOW_3);

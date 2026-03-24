@@ -57,7 +57,6 @@ inline void SetFlagsFromKeyArray()
 LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam)
 {
     UBYTE key_code;
-    ULONG virtual_keycode = wParam;
 
     if (code < 0) {
         return CallNextHookEx(KeyboardHook, code, wParam, lParam);

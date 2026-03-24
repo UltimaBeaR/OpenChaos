@@ -109,7 +109,6 @@ static void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube
     SLONG i;
     SLONG j;
 
-    SLONG x;
     SLONG y;
     SLONG z;
 
@@ -126,9 +125,7 @@ static void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube
     SLONG mx2;
     SLONG mz2;
 
-    SLONG lx1;
     SLONG lz1;
-    SLONG lx2;
     SLONG lz2;
 
     SLONG look_x;
@@ -181,10 +178,7 @@ static void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube
     mz2 = map_z + 1 << 5;
 
     // Clip the cube to the mapsquare.
-    lx1 = MAX(x1, mx1);
     lz1 = MAX(z1, mz1);
-
-    lx2 = MIN(x2, mx2);
     lz2 = MIN(z2, mz2);
 
     // For each edge of the cube: XS
@@ -192,6 +186,7 @@ static void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube
         // This edge of the cube is not on the mapsquare.
     } else {
         ASSERT(x1 < mx2);
+        (void)mx2;
 
         // Make sure we only create the faces of the cube
         // that are above this mapsquare.
@@ -399,11 +394,6 @@ static void QMAP_create_cube(QMAP_Draw* qd, SLONG map_x, SLONG map_z, SLONG cube
 // uc_orig: QMAP_init (fallen/Source/qmap.cpp)
 void QMAP_init()
 {
-    SLONG x;
-    SLONG z;
-
-    QMAP_Map* qm;
-
     // Initialise all data structures.
     QMAP_style_upto = 0;
     QMAP_road_upto = 0;
@@ -420,12 +410,6 @@ void QMAP_init()
     // Clear the map.
     memset(QMAP_map, 0, sizeof(QMAP_map));
 
-    for (x = 0; x < QMAP_MAPSIZE; x++)
-        for (z = 0; z < QMAP_MAPSIZE; z++) {
-            qm = &QMAP_map[x][z];
-            // Nothing to do in here!
-        }
-
     // Setup the linked lists of points and faces.
     QMAP_draw_init();
 }
@@ -435,8 +419,6 @@ void QMAP_add_road(
     SLONG x1, SLONG z1,
     SLONG x2, SLONG z2)
 {
-    SLONG i;
-
     SLONG x;
     SLONG z;
 
@@ -521,8 +503,6 @@ void QMAP_add_cube(
     SLONG x2, SLONG z2,
     SLONG height)
 {
-    SLONG i;
-
     SLONG x;
     SLONG z;
 
@@ -749,18 +729,9 @@ void QMAP_draw_init()
 void QMAP_create(QMAP_Draw* qd, SLONG map_x, SLONG map_z)
 {
     SLONG i;
-    SLONG j;
 
     SLONG x;
     SLONG z;
-
-    SLONG x1;
-    SLONG y1;
-    SLONG z1;
-
-    SLONG x2;
-    SLONG y2;
-    SLONG z2;
 
     SLONG base;
     SLONG index;

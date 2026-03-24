@@ -171,9 +171,7 @@ void GLITTER_process()
 {
     SLONG i;
 
-    SLONG dx;
     SLONG dy;
-    SLONG dz;
 
     UBYTE spark;
     UBYTE next;

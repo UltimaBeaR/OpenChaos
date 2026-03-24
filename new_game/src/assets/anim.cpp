@@ -341,9 +341,6 @@ void setup_people_anims(void)
 // uc_orig: setup_extra_anims (fallen/Source/Anim.cpp)
 void setup_extra_anims(void)
 {
-    Anim* key_list;
-    key_list = NULL;
-
     next_game_chunk = 4;
 }
 
@@ -478,7 +475,6 @@ void setup_global_anim_array(void)
 // uc_orig: calc_sub_objects_position_no_tween (fallen/Source/Anim.cpp)
 void calc_sub_objects_position_no_tween(GameKeyFrame* cur_frame, UWORD object, SLONG* x, SLONG* y, SLONG* z)
 {
-    struct Matrix31 offset;
     struct GameKeyFrameElement* anim_info;
 
     anim_info = &cur_frame->FirstElement[object];
@@ -493,11 +489,6 @@ void calc_sub_objects_position_no_tween(GameKeyFrame* cur_frame, UWORD object, S
 // uc_orig: fix_multi_object_for_anim (fallen/Source/Anim.cpp)
 void fix_multi_object_for_anim(UWORD obj, struct PrimMultiAnim* p_anim)
 {
-    SLONG sp, ep;
-    UWORD c0, c1;
-    struct PrimObject* p_obj;
-    struct Matrix33* mat;
-    struct Matrix31 temp;
 }
 
 // ---- Anim class methods ----

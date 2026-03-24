@@ -142,7 +142,7 @@ static CBYTE* XLAT_load_string(MFFileHandle& file, CBYTE* txt)
 // uc_orig: XLAT_compress_tokens (fallen/Source/xlat_str.cpp)
 static void XLAT_compress_tokens(CBYTE* txt)
 {
-    CBYTE *test, *scan, *ptr = txt;
+    CBYTE *test, *scan;
     CBYTE buff[10];
     UWORD skip;
     while (scan = mbcs_strchr(txt, '|')) {

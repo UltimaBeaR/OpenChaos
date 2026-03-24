@@ -54,8 +54,6 @@ static void BALLOON_get_attached_point(UWORD thing, SLONG* ax, SLONG* ay, SLONG*
 // uc_orig: BALLOON_init (fallen/Source/balloon.cpp)
 void BALLOON_init()
 {
-    SLONG i;
-
     memset(BALLOON_balloon, 0, sizeof(BALLOON_Balloon) * BALLOON_MAX_BALLOONS);
 
     BALLOON_balloon_upto = 1;

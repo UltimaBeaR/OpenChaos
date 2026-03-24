@@ -314,7 +314,6 @@ void WMOVE_create(Thing* p_thing)
     SLONG dbz = 0;
 
     SLONG face4;
-    SLONG wmove;
     SLONG number;
 
     PrimPoint* pp;
@@ -378,7 +377,6 @@ void WMOVE_create(Thing* p_thing)
         }
 
         face4 = next_prim_face4;
-        wmove = WMOVE_face_upto;
 
         next_prim_face4 += 1;
         next_prim_point += 4;
@@ -529,7 +527,6 @@ void WMOVE_relative_pos(
     PrimPoint* pp0;
     PrimPoint* pp1;
     PrimPoint* pp2;
-    PrimPoint* pp3;
 
     ASSERT(WITHIN(wmove_index, 1, WMOVE_face_upto - 1));
 
@@ -547,7 +544,6 @@ void WMOVE_relative_pos(
     pp0 = &prim_points[f4->Points[0]];
     pp1 = &prim_points[f4->Points[1]];
     pp2 = &prim_points[f4->Points[2]];
-    pp3 = &prim_points[f4->Points[3]];
 
     /*
     // If the face hasn't moved - then don't update the position.

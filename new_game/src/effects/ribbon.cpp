@@ -21,7 +21,7 @@ void RIBBON_draw_ribbon(Ribbon* ribbon)
     POLY_Point pp[3];
     POLY_Point* tri[3] = { &pp[0], &pp[1], &pp[2] };
     UBYTE i, p, ctr;
-    SLONG id, spread;
+    SLONG id;
     float vo, vs;
 
     i = ribbon->Tail;

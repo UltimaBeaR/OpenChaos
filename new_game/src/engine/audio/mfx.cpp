@@ -55,7 +55,6 @@ void MFX_init()
     AllocatedRAM = 0;
 
     NumSamples = 0;
-    CBYTE buf[_MAX_PATH];
     CBYTE** names = sound_list;
     MFX_Sample* sptr = Samples;
 

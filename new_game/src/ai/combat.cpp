@@ -247,9 +247,7 @@ SLONG find_possible_grapple_target(struct GameFightCol* p_fight, SLONG x, SLONG 
 SLONG find_hit_value(Thing* p_person, SLONG anim, Thing** p_victim)
 {
     GameKeyFrame* current;
-    struct GameFightCol* fight_info;
     SLONG x, y, z;
-    SLONG dx, dy, dz;
     SLONG hits = 0;
 
     current = global_anim_array[p_person->Genus.Person->AnimType][anim];
@@ -273,13 +271,8 @@ SLONG find_hit_value(Thing* p_person, SLONG anim, Thing** p_victim)
 // uc_orig: find_grapple_value (fallen/Source/Combat.cpp)
 SLONG find_grapple_value(Thing* p_person, SLONG anim, Thing** p_victim, SLONG grapple_idx)
 {
-    GameKeyFrame* current;
-    struct GameFightCol* fight_info;
     SLONG x, y, z;
-    SLONG dx, dy, dz;
     SLONG hits = 0;
-
-    current = global_anim_array[p_person->Genus.Person->AnimType][anim];
 
     x = p_person->WorldPos.X >> 8;
     y = p_person->WorldPos.Y >> 8;
@@ -294,8 +287,7 @@ SLONG find_grapple_value(Thing* p_person, SLONG anim, Thing** p_victim, SLONG gr
 // uc_orig: set_grapple_pos (fallen/Source/Combat.cpp)
 void set_grapple_pos(Thing* p_person, Thing* p_victim, SLONG dist, SLONG anim, SLONG grapple_idx)
 {
-    SLONG dx, dy, dz, len;
-    SLONG angle;
+    SLONG dx, dz;
     GameCoord new_position;
 
     dx = -(SIN(p_person->Draw.Tweened->Angle) * dist) >> 16;
@@ -486,14 +478,8 @@ SLONG find_anim_fight_height(SLONG anim, SLONG person)
 // uc_orig: should_i_block (fallen/Source/Combat.cpp)
 SLONG should_i_block(Thing* p_person, Thing* p_agressor, SLONG anim)
 {
-    SLONG pos;
-    SLONG history;
-    SLONG count;
-    SLONG perp;
     SLONG block_prob = (20 * 256) / 100;
-    SLONG fheight;
     SLONG same = 0, other = 0;
-    SLONG can_see = 0;
 
     if (p_person->Genus.Person->PlayerID) {
         if (p_person->SubState == SUB_STATE_STEP_FORWARD) {
@@ -504,8 +490,7 @@ SLONG should_i_block(Thing* p_person, Thing* p_agressor, SLONG anim)
         return (0);
     }
 
-    fheight = find_anim_fight_height(anim, p_agressor->Genus.Person->AnimType);
-    perp = THING_NUMBER(p_agressor);
+    find_anim_fight_height(anim, p_agressor->Genus.Person->AnimType);
 
     block_prob = 60 + GET_SKILL(p_person) * 12;
 
@@ -534,7 +519,6 @@ void show_fight_range(Thing* p_thing)
     SLONG temp_angle, temp_angle2;
     SLONG x, z;
     struct GameFightCol* fight;
-    SLONG dist;
 
     x = p_thing->WorldPos.X >> 8;
     z = p_thing->WorldPos.Z >> 8;
@@ -640,7 +624,7 @@ SLONG check_combat_hit_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MAPCO1
 #define COMBAT_HIT_DIST_LEEWAY 0x30
 
     if (WITHIN(dist, 0, fight->Dist2 + COMBAT_HIT_DIST_LEEWAY + 128)) {
-        SLONG angle, temp_angle;
+        SLONG angle;
 
         if (fight->Dist1 < 40) {
             // Intersecting the enemy
@@ -709,7 +693,7 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
     dist = QDIST2(adx, adz);
 
     if (abs(dist - pg->Dist) < pg->Range) {
-        SLONG angle, temp_angle;
+        SLONG angle;
 
         // Angle between victim's and attacker's facing directions
         angle = ((p_victim->Draw.Tweened->Angle + 2048) & 2047) - ((p_agressor->Draw.Tweened->Angle + 2048) & 2047);
@@ -736,7 +720,6 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
         angle = angle & 2047;
 
         if (angle < (FIGHT_ANGLE_RANGE >> 1) || angle > 2048 - (FIGHT_ANGLE_RANGE >> 1)) {
-            SLONG dx, dz;
             return (1);
         } else {
             return (0);
@@ -794,7 +777,6 @@ SLONG is_combo_anim(SLONG anim)
 SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage, Thing* p_aggressor, struct GameFightCol* fight)
 {
     SLONG hit_wave;
-    DrawTween* draw_info;
     SLONG behind;
     SLONG block = 0;
     UBYTE player_hit = 0;
@@ -1039,8 +1021,6 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
         }
     }
 
-    draw_info = p_thing->Draw.Tweened;
-
     MFX_stop(THING_NUMBER(p_thing), S_SEARCH_END);
 
     if (block == 0) {
@@ -1201,7 +1181,6 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
     if (!ko_ed) {
         SLONG anim, flag;
         SLONG height;
-        UBYTE history;
 
         if (fight) {
             height = fight->Height;
@@ -1478,7 +1457,7 @@ SLONG find_attack_stance(
     SLONG* stance_angle)
 {
     SLONG i;
-    SLONG dx, dy, dz;
+    SLONG dx, dz;
     SLONG angle, dangle, wangle;
     SLONG px, py, pz;
     SLONG dist, score;
@@ -1486,7 +1465,7 @@ SLONG find_attack_stance(
     Thing* p_target;
     SLONG best_score, best_angle;
     Thing* best_target;
-    SLONG best_dist, best_dx, best_dz;
+    SLONG best_dx, best_dz;
     SLONG ox, oy, oz;
     SLONG found_upto;
 
@@ -1500,7 +1479,6 @@ SLONG find_attack_stance(
         THING_FIND_PEOPLE);
 
     best_target = NULL;
-    best_dist = 0;
     best_dx = 0;
     best_dz = 0;
     best_angle = p_person->Draw.Tweened->Angle;
@@ -1553,7 +1531,6 @@ SLONG find_attack_stance(
 
         calc_sub_objects_position(p_target, p_target->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS, &ox, &oy, &oz);
         dx = ox + (p_target->WorldPos.X - p_person->WorldPos.X >> 8);
-        dy = oy + (p_target->WorldPos.Y - p_person->WorldPos.Y >> 8);
         dz = oz + (p_target->WorldPos.Z - p_person->WorldPos.Z >> 8);
 
         dist = QDIST2(abs(dx), abs(dz));
@@ -1614,7 +1591,6 @@ SLONG find_attack_stance(
             best_angle = angle;
             best_dx = ox;
             best_dz = oz;
-            best_dist = dist;
         }
     }
 
@@ -1713,9 +1689,8 @@ SLONG turn_to_direction_and_find_target(Thing* p_person, SLONG find_dir)
     Thing* stance_target;
     GameCoord stance_position;
     SLONG stance_angle;
-    SLONG ret;
 
-    ret = find_attack_stance(
+    find_attack_stance(
         p_person,
         find_dir & FIND_DIR_MASK,
         0xf0, // Hard-coded extended fight distance

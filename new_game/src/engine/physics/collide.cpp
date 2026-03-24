@@ -282,23 +282,19 @@ UBYTE check_big_point_triangle_col(SLONG x, SLONG y, SLONG ux, SLONG uy, SLONG v
 // uc_orig: point_in_quad_old (fallen/Source/collide.cpp)
 SLONG point_in_quad_old(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD face)
 {
-    SLONG x1, my_y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+    SLONG x1, z1, x2, z2, x3, z3, x4, z4;
     SLONG ret;
 
     x1 = x + prim_points[prim_faces4[face].Points[0]].X;
-    my_y1 = y + prim_points[prim_faces4[face].Points[0]].Y;
     z1 = z + prim_points[prim_faces4[face].Points[0]].Z;
 
     x2 = x + prim_points[prim_faces4[face].Points[1]].X;
-    y2 = y + prim_points[prim_faces4[face].Points[1]].Y;
     z2 = z + prim_points[prim_faces4[face].Points[1]].Z;
 
     x3 = x + prim_points[prim_faces4[face].Points[2]].X;
-    y3 = y + prim_points[prim_faces4[face].Points[2]].Y;
     z3 = z + prim_points[prim_faces4[face].Points[2]].Z;
 
     x4 = x + prim_points[prim_faces4[face].Points[3]].X;
-    y4 = y + prim_points[prim_faces4[face].Points[3]].Y;
     z4 = z + prim_points[prim_faces4[face].Points[3]].Z;
 
     ret = check_big_point_triangle_col(px - x1, pz - z1, x1 - x1, z1 - z1, x2 - x1, z2 - z1, x3 - x1, z3 - z1);
@@ -928,77 +924,18 @@ SLONG collision_storey(SLONG type)
 void highlight_face(SLONG face)
 {
     return;
-    if (face > 0) {
-        SLONG face_x, face_y, face_z;
-        SLONG p0, p1, p2, p3;
-
-        face_x = 0;
-        face_y = 0;
-        face_z = 0;
-
-        p0 = prim_faces4[face].Points[0];
-        p1 = prim_faces4[face].Points[1];
-        p2 = prim_faces4[face].Points[2];
-        p3 = prim_faces4[face].Points[3];
-
-        e_draw_3d_line(prim_points[p1].X + face_x, prim_points[p1].Y + face_y, prim_points[p1].Z + face_z,
-            prim_points[p3].X + face_x, prim_points[p3].Y + face_y, prim_points[p3].Z + face_z);
-
-        e_draw_3d_line(
-            prim_points[p3].X + face_x, prim_points[p3].Y + face_y, prim_points[p3].Z + face_z,
-            prim_points[p2].X + face_x, prim_points[p2].Y + face_y, prim_points[p2].Z + face_z);
-
-        e_draw_3d_line(
-            prim_points[p2].X + face_x, prim_points[p2].Y + face_y, prim_points[p2].Z + face_z,
-            prim_points[p0].X + face_x, prim_points[p0].Y + face_y, prim_points[p0].Z + face_z);
-    }
 }
 
 // uc_orig: highlight_rface (fallen/Source/collide.cpp)
 void highlight_rface(SLONG rface)
 {
     return;
-    if (rface > 0) {
-        SLONG x, y, z;
-
-        x = (roof_faces4[rface].RX & 127) << 8;
-        y = roof_faces4[rface].Y;
-        z = (roof_faces4[rface].RZ & 127) << 8;
-
-        e_draw_3d_line(x, y, z, x + 256, y, z);
-        e_draw_3d_line(x + 256, y, z, x + 256, y, z + 256);
-        e_draw_3d_line(x + 256, y, z + 256, x, y, z + 256);
-        e_draw_3d_line(x, y, z + 256, x, y, z);
-    }
 }
 
 // uc_orig: highlight_quad (fallen/Source/collide.cpp)
 void highlight_quad(SLONG face, SLONG face_x, SLONG face_y, SLONG face_z)
 {
     return;
-
-    if (face > 0) {
-        SLONG p0, p1, p2, p3;
-
-        p0 = prim_faces4[face].Points[0];
-        p1 = prim_faces4[face].Points[1];
-        p2 = prim_faces4[face].Points[2];
-        p3 = prim_faces4[face].Points[3];
-
-        e_draw_3d_line(prim_points[p0].X + face_x, prim_points[p0].Y + face_y, prim_points[p0].Z + face_z,
-            prim_points[p1].X + face_x, prim_points[p1].Y + face_y, prim_points[p1].Z + face_z);
-
-        e_draw_3d_line(prim_points[p1].X + face_x, prim_points[p1].Y + face_y, prim_points[p1].Z + face_z,
-            prim_points[p3].X + face_x, prim_points[p3].Y + face_y, prim_points[p3].Z + face_z);
-
-        e_draw_3d_line(
-            prim_points[p3].X + face_x, prim_points[p3].Y + face_y, prim_points[p3].Z + face_z,
-            prim_points[p2].X + face_x, prim_points[p2].Y + face_y, prim_points[p2].Z + face_z);
-
-        e_draw_3d_line(
-            prim_points[p2].X + face_x, prim_points[p2].Y + face_y, prim_points[p2].Z + face_z,
-            prim_points[p0].X + face_x, prim_points[p0].Y + face_y, prim_points[p0].Z + face_z);
-    }
 }
 
 // uc_orig: vect_intersect_wall (fallen/Source/collide.cpp)
@@ -1421,11 +1358,7 @@ SLONG height_above_anything(Thing* p_person, SLONG body_part, SWORD* onface)
     fy += p_person->WorldPos.Y >> 8;
     fz += p_person->WorldPos.Z >> 8;
 
-    // FIND_ANYFACE branch is dead code — the condition is always true.
-    if (1 || p_person->Genus.Person->Ware)
-        on_face = find_face_for_this_pos(fx, fy, fz, &new_y, 0, FIND_FACE_NEAR_BELOW);
-    else
-        on_face = find_face_for_this_pos(fx, fy, fz, &new_y, 0, FIND_ANYFACE);
+    on_face = find_face_for_this_pos(fx, fy, fz, &new_y, 0, FIND_FACE_NEAR_BELOW);
 
     if (on_face) {
         *onface = on_face;
@@ -1674,8 +1607,6 @@ SLONG slide_along(
     SWORD f_list;
     SWORD i_facet;
 
-    UWORD last_slide;
-
     DFacet* df;
     UBYTE exit;
     UBYTE fence = 0;
@@ -1690,7 +1621,6 @@ SLONG slide_along(
         radius += radius >> 1;
     }
 
-    last_slide = 0;
     last_slide_colvect = NULL;
     slide_door = 0;
     slide_ladder = 0;
@@ -2133,9 +2063,6 @@ SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
     SLONG v_list;
     SLONG i_vect;
 
-    SLONG num_slides;
-    SLONG last_slide;
-
     DFacet* p_vect;
 
     SLONG already_upto = 0;
@@ -2154,15 +2081,12 @@ SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
     maxx = ((x2)) + radius >> PAP_SHIFT_LO;
     maxz = ((z2)) + radius >> PAP_SHIFT_LO;
 
-    num_slides = 0;
-    last_slide = 0;
     last_slide_colvect = NULL;
     slide_door = 0;
     actual_sliding = UC_FALSE;
 
     for (mx = minx; mx <= maxx; mx++)
         for (mz = minz; mz <= maxz; mz++) {
-            SLONG fence = 0;
             if (WITHIN(mx, 0, PAP_SIZE_LO - 1) && WITHIN(mz, 0, PAP_SIZE_LO - 1)) {
                 SLONG exit = 0;
 
@@ -2198,7 +2122,6 @@ SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
                                         SLONG height;
 
                                         height = (p_vect->Height * p_vect->BlockHeight) << 2;
-                                        fence = 0;
                                         vect_y = p_vect->Y[0];
 
                                         y_bot = vect_y - 64;
@@ -2303,10 +2226,6 @@ SLONG bump_person(Thing* p_person, THING_INDEX index, SLONG x1, SLONG my_y1, SLO
         dist2 = QDIST2(odx, odz);
 
         if (dist < dist2) {
-            SLONG angle;
-
-            angle = Arctan(-ddx, ddz) + 1024;
-
             *x2 = x1;
             *z2 = z1;
 
@@ -2540,10 +2459,6 @@ SLONG collide_against_objects(
 {
     OB_Info* oi;
 
-    SLONG old_x2;
-    SLONG old_y2;
-    SLONG old_z2;
-
     SLONG mx;
     SLONG mz;
 
@@ -2590,10 +2505,6 @@ SLONG collide_against_objects(
                 switch (prim_get_collision_model(oi->prim)) {
                 case PRIM_COLLIDE_BOX:
                 case PRIM_COLLIDE_SMALLBOX:
-
-                    old_x2 = *x2;
-                    old_y2 = *y2;
-                    old_z2 = *z2;
 
                     if (slide_along_prim(
                             oi->prim,
@@ -3040,7 +2951,6 @@ void drop_on_heads(Thing* p_thing)
 {
     UBYTE i;
     UBYTE col_with_upto;
-    UBYTE collide_or_not;
     Thing* col_thing;
     ULONG collide_types;
     SLONG fx, fy, fz, hx, hy, hz;
@@ -3067,7 +2977,7 @@ void drop_on_heads(Thing* p_thing)
     ASSERT(col_with_upto <= MAX_COL_WITH);
 
     for (i = 0; i < col_with_upto; i++) {
-        SLONG dx, dy, dz;
+        SLONG dx, dz;
         col_thing = TO_THING(col_with_things[i]);
 
         ASSERT(col_thing->Class == CLASS_PERSON);
@@ -3128,7 +3038,6 @@ ULONG move_thing(
     SLONG dz,
     Thing* p_thing)
 {
-    SLONG col;
     SLONG radius;
     SLONG new_y;
     SLONG new_face;
@@ -3340,8 +3249,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
             }
         }
     } else {
-        UWORD person_inside = 0, look_for_face = 0;
-        SLONG cd = 0;
 
         /*
 
@@ -3375,11 +3282,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
 
         */
         {
-            SLONG ox2, oy2, oz2;
-
-            ox2 = x2;
-            oy2 = y2;
-            oz2 = z2;
 
             {
 
@@ -3400,7 +3302,7 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
                                                 }
                 */
 
-                col = slide_along(
+                slide_along(
                     x1, my_y1, z1,
                     &x2, &y2, &z2,
                     SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT,
@@ -4134,8 +4036,6 @@ SLONG there_is_a_los_mav(
     SLONG end_mx;
     SLONG end_mz;
 
-    SLONG sdx;
-    SLONG sdz;
 
     SLONG frac;
 
@@ -4150,8 +4050,6 @@ SLONG there_is_a_los_mav(
     SLONG adx = abs(dx);
     SLONG adz = abs(dz);
 
-    sdx = SIGN(dx);
-    sdz = SIGN(dz);
 
     mx = x1 >> PAP_SHIFT_HI;
     mz = z1 >> PAP_SHIFT_HI;
@@ -4210,17 +4108,6 @@ SLONG there_is_a_los_mav(
                 }
 
                 if (!(mo->opt[direction] & MAV_CAPS_GOTO)) {
-                    SLONG x1, z1, x2, z2;
-                    x1 = mx;
-                    x2 = mx + (dx > 0) ? 1 : -1;
-                    if (direction == MAV_DIR_ZL) {
-                        z1 = mz + 1;
-                        z2 = z1;
-                    } else {
-                        z1 = mz;
-                        z2 = z1;
-                    }
-
                     return (2);
                 }
 
@@ -4234,12 +4121,6 @@ SLONG there_is_a_los_mav(
                     return 0;
                 }
                 if (!(mo->opt[MAV_DIR_XL] & MAV_CAPS_GOTO)) {
-                    SLONG x1, z1, x2, z2;
-                    x1 = mx + 1;
-                    x2 = mx + 1;
-                    z1 = mz;
-                    z2 = z1 + 1;
-
                     return (1);
                 }
                 mx += 1;
@@ -4250,12 +4131,6 @@ SLONG there_is_a_los_mav(
                     return 0;
                 }
                 if (!(mo->opt[MAV_DIR_XS] & MAV_CAPS_GOTO)) {
-                    SLONG x1, z1, x2, z2;
-                    x1 = mx;
-                    x2 = mx;
-                    z1 = mz;
-                    z2 = z1 + 1;
-
                     return (1);
                 }
                 mx -= 1;
@@ -4304,17 +4179,6 @@ SLONG there_is_a_los_mav(
                 mo = &MAV_opt[MAV_NAV(mx, mz)];
 
                 if (!(mo->opt[direction] & MAV_CAPS_GOTO)) {
-                    SLONG x1, z1, x2, z2;
-                    if (direction = MAV_DIR_XL) {
-                        x1 = mx + 1;
-                        x2 = mx + 1;
-                    } else {
-                        x1 = mx;
-                        x2 = mx;
-                    }
-                    z1 = mz;
-                    z2 = z1 + 1;
-
                     return (1);
                 }
 
@@ -4328,12 +4192,6 @@ SLONG there_is_a_los_mav(
                     return 0;
                 }
                 if (!(mo->opt[MAV_DIR_ZL] & MAV_CAPS_GOTO)) {
-                    SLONG x1, z1, x2, z2;
-
-                    x1 = mx;
-                    x2 = mx + 1;
-                    z1 = (mz + 1);
-                    z2 = z1 + 1;
 
                     return (2);
                 }
@@ -4345,12 +4203,6 @@ SLONG there_is_a_los_mav(
                     return 0;
                 }
                 if (!(mo->opt[MAV_DIR_ZS] & MAV_CAPS_GOTO)) {
-                    SLONG x1, z1, x2, z2;
-
-                    x1 = mx;
-                    x2 = mx + 1;
-                    z1 = (mz);
-                    z2 = z1;
 
                     return (2);
                 }
@@ -4381,8 +4233,6 @@ SLONG there_is_a_los_car(
     SLONG end_mx;
     SLONG end_mz;
 
-    SLONG sdx;
-    SLONG sdz;
 
     SLONG frac;
 
@@ -4395,8 +4245,6 @@ SLONG there_is_a_los_car(
     SLONG adx = abs(dx);
     SLONG adz = abs(dz);
 
-    sdx = SIGN(dx);
-    sdz = SIGN(dz);
 
     mx = x1 >> PAP_SHIFT_HI;
     mz = z1 >> PAP_SHIFT_HI;
@@ -4857,12 +4705,6 @@ SLONG stop_movement_between(
     PAP_Hi* ph1 = &PAP_2HI(mx1, mz1);
     PAP_Hi* ph2 = &PAP_2HI(mx2, mz2);
 
-    SLONG normal = UC_TRUE;
-
-    if ((ph1->Flags & (PAP_FLAG_WATER | PAP_FLAG_HIDDEN)) || (ph2->Flags & (PAP_FLAG_WATER | PAP_FLAG_HIDDEN))) {
-        normal = UC_FALSE;
-    }
-
     if ((ph1->Flags & PAP_FLAG_WATER) && !(ph2->Flags & PAP_FLAG_WATER)) {
         // The edge of some water — block movement.
         return UC_TRUE;
@@ -5069,13 +4911,9 @@ SLONG slide_around_box(
     SLONG* x2,
     SLONG* z2)
 {
-    SLONG tx1;
-    SLONG tz1;
     SLONG tx2;
     SLONG tz2;
 
-    SLONG rx1;
-    SLONG rz1;
     SLONG rx2;
     SLONG rz2;
 
@@ -5116,14 +4954,10 @@ SLONG slide_around_box(
     matrix[3] = cos_yaw;
 
     // Rotate positions into box-local space.
-    tx1 = x1 - box_mid_x;
-    tz1 = z1 - box_mid_z;
 
     tx2 = *x2 - box_mid_x;
     tz2 = *z2 - box_mid_z;
 
-    rx1 = MUL64(tx1, matrix[0]) + MUL64(tz1, matrix[1]);
-    rz1 = MUL64(tx1, matrix[2]) + MUL64(tz1, matrix[3]);
 
     rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
     rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
@@ -5225,13 +5059,9 @@ inline SLONG slide_around_box_lowstack(
     SLONG* x2,
     SLONG* z2)
 {
-    SLONG tx1;
-    SLONG tz1;
     SLONG tx2;
     SLONG tz2;
 
-    SLONG rx1;
-    SLONG rz1;
     SLONG rx2;
     SLONG rz2;
 
@@ -5267,14 +5097,10 @@ inline SLONG slide_around_box_lowstack(
     matrix[2] = -sin_yaw;
     matrix[3] = cos_yaw;
 
-    tx1 = x1 - box_mid_x;
-    tz1 = z1 - box_mid_z;
 
     tx2 = *x2 - box_mid_x;
     tz2 = *z2 - box_mid_z;
 
-    rx1 = MUL64(tx1, matrix[0]) + MUL64(tz1, matrix[1]);
-    rz1 = MUL64(tx1, matrix[2]) + MUL64(tz1, matrix[3]);
 
     rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
     rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);

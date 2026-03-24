@@ -106,7 +106,7 @@ void fix_faces_for_del_points(SLONG start, SLONG count)
 // uc_orig: fix_objects_for_del_points (fallen/Source/Prim.cpp)
 void fix_objects_for_del_points(SLONG start, SLONG count)
 {
-    SLONG c0, c1;
+    SLONG c0;
     for (c0 = 1; c0 < next_prim_object; c0++) {
         if (prim_objects[c0].StartPoint > start) {
             prim_objects[c0].StartPoint -= count;
@@ -118,7 +118,7 @@ void fix_objects_for_del_points(SLONG start, SLONG count)
 // uc_orig: fix_objects_for_del_faces3 (fallen/Source/Prim.cpp)
 void fix_objects_for_del_faces3(SLONG start, SLONG count)
 {
-    SLONG c0, c1;
+    SLONG c0;
     for (c0 = 1; c0 < next_prim_object; c0++) {
         if (prim_objects[c0].StartFace3 > start) {
             prim_objects[c0].StartFace3 -= count;
@@ -130,7 +130,7 @@ void fix_objects_for_del_faces3(SLONG start, SLONG count)
 // uc_orig: fix_objects_for_del_faces4 (fallen/Source/Prim.cpp)
 void fix_objects_for_del_faces4(SLONG start, SLONG count)
 {
-    SLONG c0, c1;
+    SLONG c0;
     for (c0 = 1; c0 < next_prim_object; c0++) {
         if (prim_objects[c0].StartFace4 > start) {
             prim_objects[c0].StartFace4 -= count;
@@ -146,7 +146,6 @@ void fix_objects_for_del_faces4(SLONG start, SLONG count)
 void compress_prims(void)
 {
     SLONG c0, c1;
-    SLONG sp, ep, sf, ef;
     UBYTE* pf;
     SLONG count;
 
@@ -241,7 +240,7 @@ void clear_prims(void)
 // uc_orig: sum_shared_brightness_prim (fallen/Source/Prim.cpp)
 SLONG sum_shared_brightness_prim(SWORD shared_point, struct PrimObject* p_obj)
 {
-    SLONG c0, point;
+    SLONG point;
     SLONG face;
     SLONG bright = 0;
     SLONG count = 0;
@@ -270,7 +269,7 @@ SLONG sum_shared_brightness_prim(SWORD shared_point, struct PrimObject* p_obj)
 // uc_orig: set_shared_brightness_prim (fallen/Source/Prim.cpp)
 void set_shared_brightness_prim(SWORD shared_point, SWORD bright, struct PrimObject* p_obj)
 {
-    SLONG c0, point;
+    SLONG point;
     SLONG face;
 
     for (face = p_obj->StartFace3; face < p_obj->EndFace3; face++)
@@ -537,11 +536,7 @@ void quick_normal(SWORD face, SLONG* nx, SLONG* ny, SLONG* nz)
     SLONG vx, vy, vz, wx, wy, wz;
     struct PrimFace3* this_face3;
     struct PrimFace4* this_face4;
-    SLONG length;
     struct PrimPoint *p_op0, *p_op1, *p_op2;
-    if (face == -9823) {
-        length = 1;
-    }
 
     if (face < 0) {
         this_face3 = &prim_faces3[-face];
@@ -584,26 +579,19 @@ void quick_normal(SWORD face, SLONG* nx, SLONG* ny, SLONG* nz)
 // uc_orig: apply_ambient_light_to_object (fallen/Source/Prim.cpp)
 UWORD apply_ambient_light_to_object(UWORD object, SLONG lnx, SLONG lny, SLONG lnz, UWORD intense)
 {
-    struct MyMapElement* me;
-    struct MyObject* mo;
-    SLONG count, offset = 0, fred = 0;
     struct PrimFace3* this_face;
     SLONG nx, ny, nz;
-    SLONG tmp_shade;
     UWORD no_faces;
     UWORD start_face, current_face;
-    SLONG ratio, light, repeat = 0;
-    SLONG object_y;
+    SLONG light;
     UWORD next = 0;
     UWORD no_faces4, start_face4;
-    SLONG ox, oy, oz;
     struct PrimFace4* this_face4;
 
     start_face4 = prim_objects[object].StartFace4;
     no_faces4 = prim_objects[object].EndFace4 - prim_objects[object].StartFace4;
     start_face = prim_objects[object].StartFace3;
     no_faces = prim_objects[object].EndFace3 - prim_objects[object].StartFace3;
-    ox = 0; oy = 0; oz = 0;
 
     for (current_face = 0; current_face < no_faces; current_face++) {
         struct SVector normal;
@@ -656,7 +644,7 @@ UWORD apply_ambient_light_to_object(UWORD object, SLONG lnx, SLONG lny, SLONG ln
 // uc_orig: calc_prim_info (fallen/Source/Prim.cpp)
 void calc_prim_info()
 {
-    SLONG i, j, dist, below, num_points;
+    SLONG i, j, dist, below;
     PrimObject* obj;
     PrimInfo* inf;
     PrimPoint* pt;
@@ -780,7 +768,6 @@ void calc_prim_normals(void)
     PrimObject* p_obj;
     PrimFace3* p_f3;
     PrimFace4* p_f4;
-    PrimPoint* p_pt;
 
     for (i = 1; i < next_prim_object; i++) {
         p_obj = &prim_objects[i];
@@ -851,12 +838,8 @@ void calc_prim_normals(void)
         }
 
         // Normalise all vertex normals to length 256 and negate them.
-        SLONG old_nx, old_ny, old_nz;
         for (j = p_obj->StartPoint; j < p_obj->EndPoint; j++) {
             ASSERT(j < MAX_PRIM_POINTS);
-            old_nx = prim_normal[j].X;
-            old_ny = prim_normal[j].Y;
-            old_nz = prim_normal[j].Z;
 
             dx = abs(prim_normal[j].X);
             dy = abs(prim_normal[j].Y);
@@ -898,7 +881,7 @@ PrimInfo* get_prim_info(SLONG prim)
 // uc_orig: calc_slide_edges_roof (fallen/Source/Prim.cpp)
 void calc_slide_edges_roof()
 {
-    SLONG c0, c1;
+    SLONG c0;
     struct RoofFace4 *rf1, *rf2;
     SLONG dx, dz;
 
@@ -1007,7 +990,7 @@ void calc_slide_edges_roof()
 void calc_slide_edges()
 {
     SLONG i, j, p;
-    SLONG dx, dy, dz, len;
+    SLONG dx, dz, len;
     SLONG bx, by, bz;
     SLONG px, pz;
     SLONG x1, z1, x2, z2;
@@ -1122,7 +1105,7 @@ void calc_slide_edges()
             by = ip1y + ip2y >> 1;
             bz = ip1z + ip2z >> 1;
 
-            dx = ip2x - ip1x; dy = ip2y - ip1y; dz = ip2z - ip1z;
+            dx = ip2x - ip1x; dz = ip2z - ip1z;
             len = QDIST2(abs(dx), abs(dz)) + 1;
 
             dx = dx * SLIDE_EDGE_PROBE / len;
@@ -1283,7 +1266,6 @@ UBYTE prim_get_shadow_type(SLONG prim)
 // uc_orig: fn_anim_prim_normal (fallen/Source/Prim.cpp)
 void fn_anim_prim_normal(Thing* p_thing)
 {
-    Switch* the_switch;
     SLONG tween_step;
     DrawTween* draw_info;
 
@@ -1610,7 +1592,6 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
     SLONG mz2 = z2 + 0x80 >> PAP_SHIFT_LO;
 
     SLONG minx, maxx, minz, maxz;
-    SLONG px1, pz1, px2, pz2;
     SLONG mx, mz;
     SLONG f_list, exit, facet;
     DFacet* df;

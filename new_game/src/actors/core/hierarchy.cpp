@@ -51,7 +51,7 @@ void HIERARCHY_Get_Body_Part_Offset(
     Matrix33* parent_curr_matrix,
     Matrix31* parent_curr_position)
 {
-    struct Matrix33 pmatq, pmati, cmati;
+    struct Matrix33 pmatq, pmati;
 
     uncompress_matrix(parent_base_matrix, &pmati);
     pmatq = *parent_curr_matrix;

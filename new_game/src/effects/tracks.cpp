@@ -124,7 +124,6 @@ UWORD TRACKS_Add(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, UBYTE 
     UBYTE age = last >> 8;
     UBYTE lastkind = last & 0xff;
     SLONG code, kind, page, colour;
-    CBYTE msg[20];
 
     switch (type) {
     case TRACK_TYPE_TYRE_SKID:
@@ -326,7 +325,7 @@ void TRACKS_Bloodpool(Thing* bleeder)
 void TRACKS_DrawTrack(Thing* p_thing)
 {
     Track* walk = p_thing->Genus.Track;
-    SLONG x, y, z, id, diff;
+    SLONG x, y, z, diff;
     POLY_Point pp[4];
     POLY_Point* quad[4];
     UBYTE fade;

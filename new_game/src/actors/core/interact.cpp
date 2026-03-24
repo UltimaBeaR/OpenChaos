@@ -179,7 +179,7 @@ SLONG check_grab_cable_facet(SLONG facet, SLONG* grab_x, SLONG* grab_y, SLONG* g
     *grab_z = near_z;
     *grab_y = cable_y;
     {
-        SLONG dx, dz, angle;
+        SLONG dx, dz;
         dx = p_facet->x[1] - p_facet->x[0] << 8;
         dz = p_facet->z[1] - p_facet->z[0] << 8;
         *grab_angle = calc_angle(dx, dz);
@@ -195,7 +195,6 @@ SLONG check_grab_ladder_facet(SLONG facet, SLONG* grab_x, SLONG* grab_y, SLONG* 
     struct DFacet* p_facet;
     SLONG near_x, near_z, along;
     SLONG dist;
-    SLONG cable_y;
     SLONG top, bot;
 
     p_facet = &dfacets[facet];
@@ -255,12 +254,8 @@ SLONG find_grab_face(
     SLONG face;
     SLONG near_x, near_y, near_z;
     SLONG dist;
-    SLONG mid_x, mid_z;
-    SLONG angle_to_face;
-    SLONG count = 0, count2 = 0;
+    SLONG count = 0;
     SLONG cable = 0;
-    SLONG thing;
-    Thing* p_thing;
     SLONG pass = 0;
 
     best_dist = radius;
@@ -348,7 +343,7 @@ round_again:;
                 {
                     SLONG p;
                     SLONG c0;
-                    SLONG p0, p1, p2, p3;
+                    SLONG p0, p1;
                     SLONG face_angle;
                     SLONG dangle;
 
@@ -523,10 +518,8 @@ round_again:;
                                                 SLONG cy2 = grab_py[p0];
                                                 SLONG cz2 = near_z;
                                                 SLONG cx3 = near_x;
-                                                SLONG cy3 = grab_py[p0];
                                                 SLONG cz3 = near_z;
                                                 SLONG cx4 = near_x;
-                                                SLONG cy4 = grab_py[p0];
                                                 SLONG cz4 = near_z;
 
                                                 SLONG dx = SIGN((grab_px[p1] - grab_px[p0]) / 8);
@@ -545,9 +538,6 @@ round_again:;
                                                 SLONG height2;
                                                 SLONG height3;
                                                 SLONG height4;
-
-                                                SLONG face1;
-                                                SLONG face2;
 
                                                 if (p_person->Genus.Person->Ware) {
                                                     height1 = WARE_calc_height_at(p_person->Genus.Person->Ware, cx1, cz1);
@@ -764,12 +754,9 @@ SLONG find_grab_face_in_sewers(
 // uc_orig: calc_sub_objects_position (fallen/Source/interact.cpp)
 void calc_sub_objects_position(Thing* p_mthing, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z)
 {
-    struct SVector temp;
     struct GameKeyFrameElement* anim_info;
     struct GameKeyFrameElement* anim_info_next;
-    struct Matrix33* rot_mat;
     SLONG wx, wy, wz;
-    DrawTween* dt = p_mthing->Draw.Tweened;
 
     wx = 0;
     wy = 0;
@@ -845,10 +832,7 @@ void calc_sub_objects_position_fix8(Thing* p_mthing, SLONG tween, UWORD object, 
     struct Matrix31 offset;
     struct GameKeyFrameElement* anim_info;
     struct GameKeyFrameElement* anim_info_next;
-    struct Matrix33* rot_mat;
     SLONG wx, wy, wz;
-
-    DrawTween* dt = p_mthing->Draw.Tweened;
 
     wx = 0;
     wy = 0;
@@ -892,10 +876,7 @@ void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, 
     struct Matrix31 offset;
     struct GameKeyFrameElement* anim_info;
     struct GameKeyFrameElement* anim_info_next;
-    struct Matrix33* rot_mat;
     SLONG wx, wy, wz;
-
-    DrawTween* dt = p_mthing->Draw.Tweened;
 
     wx = 0;
     wy = 0;
@@ -934,7 +915,6 @@ void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, 
 // uc_orig: calc_sub_objects_position_global (fallen/Source/interact.cpp)
 void calc_sub_objects_position_global(GameKeyFrame* cur_frame, GameKeyFrame* next_frame, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z)
 {
-    struct Matrix31 offset;
     struct GameKeyFrameElement* anim_info;
     struct GameKeyFrameElement* anim_info_next;
     SLONG wx, wy, wz;

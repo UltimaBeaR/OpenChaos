@@ -134,11 +134,6 @@ void DIRT_init(
     SLONG i;
     SLONG prob_sum;
 
-    DIRT_Dirt* dd;
-
-    THING_INDEX index;
-    Thing* p_thing;
-
     DIRT_focus_x = 0;
     DIRT_focus_z = 0;
     DIRT_focus_radius = 0x100;
@@ -237,14 +232,11 @@ void DIRT_set_focus(
 {
     SLONG i;
     SLONG j;
-    SLONG k;
 
     SLONG lx;
     SLONG lz;
     SLONG cx;
     SLONG cz;
-    SLONG nx;
-    SLONG nz;
     SLONG mx;
     SLONG mz;
 
@@ -256,24 +248,6 @@ void DIRT_set_focus(
     SLONG done;
 
     DIRT_Dirt* dd;
-    PAP_Hi* ph;
-    PAP_Hi* ph2;
-
-    struct
-    {
-        SBYTE dx;
-        SBYTE dz;
-
-    } order[8] = {
-        { -1, -1 },
-        { 0, -1 },
-        { +1, -1 },
-        { -1, 0 },
-        { +1, 0 },
-        { -1, +1 },
-        { 0, +1 },
-        { +1, +1 }
-    };
 
     DIRT_focus_x = x;
     DIRT_focus_z = z;
@@ -1029,11 +1003,9 @@ void DIRT_process(void)
     SLONG floor;
     SLONG under;
     SLONG waftz;
-    SLONG wafty;
     SLONG waftx;
     SLONG mx;
     SLONG mz;
-    SLONG speed;
     SLONG oldx;
     SLONG oldy;
     SLONG oldz;

@@ -113,8 +113,6 @@ SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, S
     SLONG ret;
     GameCoord temp_pos;
     SLONG temp_velocity, temp_dy;
-    SLONG c0;
-    SLONG dx, dy, dz;
 
     temp_pos = p_thing->WorldPos;
     temp_velocity = p_thing->Velocity;
@@ -155,11 +153,7 @@ SLONG predict_collision_with_floor(Thing* p_thing, SWORD pelvis, SLONG* new_y, S
 SLONG predict_collision_with_face(Thing* p_thing, SLONG wx, SLONG wy, SLONG wz, SWORD pelvis, SLONG* new_y, SLONG* foot_y)
 {
     SLONG ret;
-    GameCoord temp_pos;
-    SLONG temp_velocity, temp_dy;
-    SLONG c0;
-
-    SLONG dx, dy, dz, fx, fy, fz;
+    SLONG fx, fy, fz;
 
     SLONG ignore_building;
     if (p_thing->DY > 0)
@@ -223,7 +217,6 @@ SLONG col_is_fence(SLONG col)
 // uc_orig: set_person_in_building_through_roof (fallen/Source/Darci.cpp)
 void set_person_in_building_through_roof(Thing* p_person, SLONG face)
 {
-    SLONG building, storey, wall, best_storey = 0;
     // Stub — body intentionally empty in the pre-release source.
 }
 
@@ -296,14 +289,12 @@ SLONG damage_person_on_land(Thing* p_thing)
 SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 {
     GameCoord new_position;
-    DrawTween* draw_info;
     SLONG face;
     SLONG ret = 0;
     SLONG col = 0;
 
     SLONG dx, dy, dz;
 
-    draw_info = p_thing->Draw.Tweened;
     new_position = p_thing->WorldPos;
 
     dx = (SIN(p_thing->Draw.Tweened->Angle) * p_thing->Velocity) >> 8;
@@ -467,7 +458,7 @@ SLONG projectile_move_thing(Thing* p_thing, SLONG flag)
 
     if (flag & (2 | 4)) // under feet
     {
-        SLONG new_y, on_face, foot_y;
+        SLONG new_y, foot_y;
         if (face = predict_collision_with_face(p_thing, new_position.X >> 8, new_position.Y >> 8, new_position.Z >> 8, flag & 4, &new_y, &foot_y)) {
             {
                 if (!(GAME_FLAGS & GF_INDOORS))

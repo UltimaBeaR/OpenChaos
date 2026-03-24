@@ -733,8 +733,6 @@ void CONE_draw()
     POLY_Point* tri[3];
 
     CONE_Point* cp;
-    CONE_Point* cp1;
-    CONE_Point* cp2;
 
     // Project the cone origin.
     POLY_transform(

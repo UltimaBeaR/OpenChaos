@@ -186,7 +186,7 @@ void move_clouds(void)
 // Writes the result to global_b. Only active during daytime (NIGHT_FLAG_DAYTIME).
 void calc_global_cloud(SLONG x, SLONG y, SLONG z)
 {
-    SLONG in, r, g, b;
+    SLONG in;
     SLONG in1, in2, in3, in0;
     SLONG dx, dz, mx, mz;
     if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME))
@@ -267,69 +267,6 @@ void use_global_cloud(ULONG* col)
 void apply_cloud(SLONG x, SLONG y, SLONG z, ULONG* col)
 {
     return;
-
-    if (!aeng_draw_cloud_flag)
-        return;
-
-    SLONG in, r, g, b;
-    SLONG in1, in2, in3, in0;
-    SLONG dx, dz, mx, mz;
-    if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME))
-        return;
-    y >>= 1;
-
-    x = (x + (cloud_x)-y);
-    z = (z + (cloud_z)-y);
-
-    mx = (x >> 8) & 0x1f;
-    mz = (z >> 8) & 0x1f;
-
-    in0 = cloud_data[mx][mz];
-    in1 = cloud_data[(mx + 1) & 0x1f][mz];
-    in2 = cloud_data[(mx) & 0x1f][(mz + 1) & 0x1f];
-    in3 = cloud_data[(mx + 1) & 0x1f][(mz + 1) & 0x1f];
-
-    dx = x & 0xff;
-    dz = z & 0xff;
-
-    if (dx + dz < 256) {
-        in = in0;
-        in += ((in1 - in0) * dx) >> 8;
-        in += ((in2 - in0) * dz) >> 8;
-    } else {
-        in = in3;
-        in += ((in2 - in3) * (256 - dx)) >> 8;
-        in += ((in1 - in3) * (256 - dz)) >> 8;
-    }
-    if (in < 0)
-        in = 0;
-
-    r = ((*col) & 0xff0000) >> 16;
-
-    in = (in * (r)) >> 8;
-
-    {
-        r -= in;
-        if (r < 0)
-            r = 0;
-    }
-
-    g = ((*col) & 0xff00) >> 8;
-    {
-        g -= in;
-        if (g < 0)
-            g = 0;
-    }
-
-    b = ((*col) & 0xff);
-
-    {
-        b -= in;
-        if (b < 0)
-            b = 0;
-    }
-
-    *col = (*col & 0xff000000) | (r << 16) | (g << 8) | (b);
 }
 
 // uc_orig: init_clouds (fallen/DDEngine/Source/aeng.cpp)
@@ -420,74 +357,6 @@ file_error:;
 void AENG_movie_update()
 {
     return;
-    if (AENG_frame_number == 0) {
-        return;
-    }
-
-    COMP_Delta* cd;
-
-    AENG_frame_tick += TICK_RATIO >> 1;
-
-    if (AENG_frame_tick >= (1 << TICK_SHIFT)) {
-        AENG_frame_tick -= (1 << TICK_SHIFT);
-        AENG_frame_tick &= (1 << TICK_SHIFT) - 1;
-
-        AENG_frame_count += 1;
-
-        if (AENG_frame_count >= AENG_frame_number) {
-            if (AENG_frame_count < AENG_frame_number + 32) {
-                return;
-            }
-
-            AENG_frame_count = 0;
-            AENG_movie_upto = AENG_movie_data;
-        }
-
-        cd = (COMP_Delta*)AENG_movie_upto;
-
-        COMP_decomp(
-            AENG_frame_last,
-            cd,
-            AENG_frame_next);
-
-        AENG_movie_upto += cd->size + 4;
-
-        ASSERT(TEXTURE_VIDEO_SIZE == COMP_SIZE);
-
-        if (TEXTURE_86_lock()) {
-            SLONG x;
-            SLONG y;
-
-            UWORD* data;
-            UWORD pixel;
-
-            TGA_Pixel* tp;
-
-            for (y = 0; y < TEXTURE_VIDEO_SIZE; y++) {
-                tp = &AENG_frame_next->p[y][0];
-
-                data = TEXTURE_shadow_bitmap;
-                data += y * (TEXTURE_shadow_pitch >> 1);
-
-                for (x = 0; x < TEXTURE_VIDEO_SIZE; x++) {
-                    pixel = 0;
-                    pixel |= (tp->red >> TEXTURE_shadow_mask_red) << TEXTURE_shadow_shift_red;
-                    pixel |= (tp->green >> TEXTURE_shadow_mask_green) << TEXTURE_shadow_shift_green;
-                    pixel |= (tp->blue >> TEXTURE_shadow_mask_blue) << TEXTURE_shadow_shift_blue;
-
-                    *data = pixel;
-
-                    tp += 1;
-                    data += 1;
-                }
-            }
-
-            TEXTURE_86_unlock();
-            TEXTURE_86_update();
-        }
-
-        SWAP_FRAME(AENG_frame_last, AENG_frame_next);
-    }
 }
 
 // uc_orig: AENG_get_draw_distance (fallen/DDEngine/Source/aeng.cpp)
@@ -683,7 +552,6 @@ void AENG_calc_gamut(
     float width;
     float height;
     float depth;
-    float aspect;
     float matrix[9];
 
     MATRIX_calc(
@@ -783,7 +651,6 @@ void AENG_calc_gamut_lo_only(
     float width;
     float height;
     float depth;
-    float aspect;
     float matrix[9];
 
     MATRIX_calc(
@@ -1140,14 +1007,11 @@ void AENG_do_cached_lighting_old(void)
     SLONG i;
     SLONG x;
     SLONG z;
-    SLONG kept = 0, new_squares = 0;
-
     NIGHT_Square* nq;
 
     extern SLONG HEAP_max_free(void);
 
     if (HEAP_max_free() < 4000 || Keys[KB_Q]) {
-        CBYTE str[100];
         NIGHT_destroy_all_cached_info();
     } else {
         for (i = 1; i < NIGHT_MAX_SQUARES; i++) {
@@ -1155,7 +1019,6 @@ void AENG_do_cached_lighting_old(void)
 
             if (nq->flag & NIGHT_SQUARE_FLAG_USED) {
                 if (WITHIN(nq->lo_map_z, NGAMUT_lo_zmin, NGAMUT_lo_zmax) && WITHIN(nq->lo_map_x, NGAMUT_lo_gamut[nq->lo_map_z].xmin, NGAMUT_lo_gamut[nq->lo_map_z].xmax)) {
-                    kept++;
                 } else {
                     NIGHT_cache_destroy(i);
                 }
@@ -1176,8 +1039,6 @@ void AENG_do_cached_lighting_old(void)
         {
             SLONG x, z, floor_y;
             struct InsideStorey* p_inside;
-            SLONG in_width;
-            UBYTE* in_block;
             SLONG min_z, max_z;
             SLONG min_x, max_x;
 
@@ -1187,8 +1048,6 @@ void AENG_do_cached_lighting_old(void)
 
             min_z = MAX(NGAMUT_lo_zmin, p_inside->MinZ >> 2);
             max_z = MIN(NGAMUT_lo_zmax, p_inside->MaxZ >> 2);
-
-            in_width = p_inside->MaxX - p_inside->MinX;
 
             for (z = min_z; z <= max_z + 1; z++) {
                 min_x = MAX(NGAMUT_lo_gamut[z].xmin, p_inside->MinX >> 2);
@@ -1202,7 +1061,6 @@ void AENG_do_cached_lighting_old(void)
                 for (x = min_x; x <= max_x + 1; x++) {
                     if (NIGHT_cache[x][z] == NULL) {
                         NIGHT_cache_create_inside(x, z, floor_y);
-                        new_squares++;
                     }
                 }
             }
@@ -1594,17 +1452,10 @@ void AENG_draw_rain()
     float y1;
     float z1;
 
-    float x2;
-    float y2;
-    float z2;
-
     float matrix[9];
 
     float fade;
     SLONG bright;
-    SLONG r;
-    SLONG g;
-    SLONG b;
     ULONG colour;
 
     MATRIX_calc(
@@ -1785,8 +1636,6 @@ void AENG_draw_drips(UBYTE puddles_only)
 // Stub — bang rendering was not implemented in this build.
 void AENG_draw_bangs()
 {
-    float u_mid;
-    float v_mid;
 }
 
 // uc_orig: AENG_draw_cloth (fallen/DDEngine/Source/aeng.cpp)
@@ -1800,9 +1649,6 @@ void AENG_draw_cloth(void)
 void AENG_draw_fire()
 {
     SLONG z;
-
-    FIRE_Info* fi;
-    FIRE_Point* fp;
 
     for (z = NGAMUT_point_zmin; z <= NGAMUT_point_zmax; z++) {
         FIRE_get_start(
@@ -1989,17 +1835,12 @@ void AENG_draw_dirt()
 #define LEAF_UP 8
 #define LEAF_SIZE (20.0F + (float)(i & 15))
 
-    SLONG j;
-
-    float fyaw;
     float fpitch;
     float froll;
     float ubase;
     float vbase;
 
     float matrix[9];
-    float angle;
-    SVector_F temp[4];
     PolyPage* pp;
     D3DLVERTEX* lv;
     ULONG rubbish_colour;
@@ -2009,13 +1850,6 @@ void AENG_draw_dirt()
         0x243224,
         0x123320,
         0x332f07
-    };
-
-    ULONG leaf_colour_choice_grey[4] = {
-        0x333333,
-        0x444444,
-        0x222222,
-        0x383838
     };
 
     if (AENG_dirt_uvlookup_valid && AENG_dirt_uvlookup_world_type == world_type) {
@@ -2054,9 +1888,7 @@ void AENG_draw_dirt()
         leaf_colour_choice_rgb[i] = AENG_colour_mult(leaf_colour_choice_rgb[i], NIGHT_amb_d3d_colour);
     }
 
-    ULONG flag[4];
     ULONG leaf_colour;
-    ULONG leaf_specular;
 
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
@@ -2776,14 +2608,6 @@ void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG
     float offset = 0.0;
     POLY_Point pp[4];
     POLY_Point* tri[4];
-    POLY_Point* quad[4];
-
-    float left, right, top, bottom;
-
-    left = 100.0;
-    right = 200.0;
-    top = 100.0;
-    bottom = 200.0;
 
     offset = ((float)layer) * 0.0001f;
 
@@ -2889,53 +2713,6 @@ void show_gamut_hi(SLONG x, SLONG z)
 void AENG_draw_people_messages()
 {
     return;
-
-    SLONG x;
-    SLONG z;
-
-    SLONG t_index;
-    Thing* p_thing;
-
-    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
-        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
-            t_index = PAP_2LO(x, z).MapWho;
-
-            while (t_index) {
-                p_thing = TO_THING(t_index);
-
-                if (p_thing->Flags & FLAGS_IN_BUILDING) {
-                    // Don't draw things inside buildings when outdoors.
-                } else {
-                    switch (p_thing->DrawType) {
-                    case DT_ROT_MULTI:
-
-                        if (POLY_sphere_visible(
-                                float(p_thing->WorldPos.X >> 8),
-                                float(p_thing->WorldPos.Y >> 8) + KERB_HEIGHT,
-                                float(p_thing->WorldPos.Z >> 8),
-                                256.0F / (AENG_DRAW_DIST * 256.0F))) {
-                            CBYTE str[100];
-
-                            sprintf(str, "%d %d", p_thing->State, p_thing->SubState);
-                            AENG_world_text(
-                                (p_thing->WorldPos.X >> 8),
-                                (p_thing->WorldPos.Y >> 8) + 0x60,
-                                (p_thing->WorldPos.Z >> 8),
-                                200,
-                                180,
-                                50,
-                                UC_TRUE,
-                                str);
-                        }
-
-                        break;
-                    }
-                }
-
-                t_index = p_thing->Child;
-            }
-        }
-    }
 }
 
 // uc_orig: AENG_set_bike_wheel_rotation (fallen/DDEngine/Source/aeng.cpp)
@@ -3238,14 +3015,11 @@ void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx)
 {
     SLONG px, pz, dx, dz;
     SLONG square;
-    SLONG mapz;
     NIGHT_Square* nq;
     PAP_Hi* ph;
-    ULONG spec;
     SLONG y;
 
     for (ph = &PAP_2HI(x, z); x <= endx; x++, ph += PAP_SIZE_HI) {
-        float dist;
 
         y = ph->Alt << ALT_SHIFT;
 
@@ -3483,7 +3257,7 @@ void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode)
         return;
 
     if (AENG_detail_shadows) {
-        SLONG dx, dz, dist, sx, sy, sz;
+        SLONG dx, dz, dist;
 
         dx = abs((((SLONG)AENG_cam_x) >> 8) - (x));
         dz = abs((((SLONG)AENG_cam_z) >> 8) - (z));
@@ -3533,14 +3307,10 @@ void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode)
 // `warehouse` non-zero: only render hidden (PAP_FLAG_HIDDEN) tiles for warehouse floor-over-city.
 void draw_quick_floor(SLONG warehouse)
 {
-    PAP_Hi* ph;
-
     SLONG c0;
     SLONG x, z;
     float dy, y;
-    UWORD index;
-
-    SLONG page, page2, prev_page = -10000, apage = 0;
+    SLONG page, page2;
 
     SLONG current_set = 0;
 
@@ -3566,8 +3336,6 @@ void draw_quick_floor(SLONG warehouse)
     D3DMULTIMATRIX mm_draw_floor;
 
     static int init_stats = 1;
-
-    static SLONG biggest = 0;
 
     struct FloorStore row[MAX_DRAW_WIDTH * 2 + 2];
     struct FloorStore *p1, *p2;
@@ -3681,8 +3449,6 @@ void draw_quick_floor(SLONG warehouse)
                 ASSERT(p2 >= &row[0]);
                 ASSERT(p1 < &row[MAX_DRAW_WIDTH * 2 + 2]);
                 ASSERT(p2 < &row[MAX_DRAW_WIDTH * 2 + 2]);
-
-                ph = &PAP_2HI(x, z);
 
                 if (warehouse) {
                     if (!(p1->Flags & PAP_FLAG_HIDDEN)) {
@@ -4099,11 +3865,9 @@ void AENG_draw_city()
     SLONG i;
 
     SLONG x;
-    SLONG y;
     SLONG z;
 
     SLONG dx;
-    SLONG dy;
     SLONG dz;
     SLONG dist;
 
@@ -4111,7 +3875,6 @@ void AENG_draw_city()
     SLONG nz;
 
     SLONG page;
-    SLONG shadow;
     SLONG square;
 
     float world_x;
@@ -4120,7 +3883,6 @@ void AENG_draw_city()
 
     POLY_Point* pp;
     POLY_Point* ppl;
-    MapElement* me;
 
     PAP_Lo* pl;
     PAP_Hi* ph;
@@ -4140,24 +3902,12 @@ void AENG_draw_city()
     SLONG px;
     SLONG pz;
 
-    SLONG sx;
-    SLONG sz;
-
-    SLONG px1;
-    SLONG pz1;
-    SLONG px2;
-    SLONG pz2;
-
     SLONG mx;
     SLONG mz;
 
     SLONG worked_out_colour;
     ULONG colour;
     ULONG specular;
-
-    OB_Info* oi;
-
-    LIGHT_Colour pcol;
     static int outside = 1;
     static int sea_offset = 0;
 
@@ -4223,8 +3973,6 @@ void AENG_draw_city()
     //
     // Points out of the ambient light.
     //
-
-    shadow = ((NIGHT_amb_red >> 1) << 16) | ((NIGHT_amb_green >> 1) << 8) | ((NIGHT_amb_blue >> 1) << 0);
 
     if (Keys[KB_L] && ControlFlag) {
         outside ^= 1;
@@ -4619,20 +4367,13 @@ void AENG_draw_city()
 
                 DFacet* df;
 
-                SLONG w_list;
                 SLONG w_face;
 
                 PrimFace4* p_f4;
                 PrimPoint* pp;
 
-                SLONG wall;
-                SLONG storey;
-                SLONG building;
-                SLONG thing;
                 SLONG face_height;
                 UBYTE face_order[4] = { 0, 1, 3, 2 };
-
-                Thing* p_fthing;
 
                 //
                 // Colvects we have already done.
@@ -4738,8 +4479,6 @@ void AENG_draw_city()
 
                 for (mx_lo = mx1; mx_lo <= mx2; mx_lo++)
                     for (mz_lo = mz1; mz_lo <= mz2; mz_lo++) {
-                        SLONG count = 0;
-
                         //
                         // Project onto nearby colvects...
                         //
@@ -4771,45 +4510,37 @@ void AENG_draw_city()
                                         }
                                     }
 
-                                    if (1 /* Fast facet shadows */) {
-                                        float facet_height = float((df->BlockHeight << 4) * (df->Height >> 2));
+                                    float facet_height = float((df->BlockHeight << 4) * (df->Height >> 2));
 
-                                        poly[0].X = float(df->x[1] << 8);
-                                        poly[0].Y = float(df->Y[1]);
-                                        poly[0].Z = float(df->z[1] << 8);
+                                    poly[0].X = float(df->x[1] << 8);
+                                    poly[0].Y = float(df->Y[1]);
+                                    poly[0].Z = float(df->z[1] << 8);
 
-                                        poly[1].X = float(df->x[1] << 8);
-                                        poly[1].Y = float(df->Y[1]) + facet_height;
-                                        poly[1].Z = float(df->z[1] << 8);
+                                    poly[1].X = float(df->x[1] << 8);
+                                    poly[1].Y = float(df->Y[1]) + facet_height;
+                                    poly[1].Z = float(df->z[1] << 8);
 
-                                        poly[2].X = float(df->x[0] << 8);
-                                        poly[2].Y = float(df->Y[0]) + facet_height;
-                                        poly[2].Z = float(df->z[0] << 8);
+                                    poly[2].X = float(df->x[0] << 8);
+                                    poly[2].Y = float(df->Y[0]) + facet_height;
+                                    poly[2].Z = float(df->z[0] << 8);
 
-                                        poly[3].X = float(df->x[0] << 8);
-                                        poly[3].Y = float(df->Y[0]);
-                                        poly[3].Z = float(df->z[0] << 8);
+                                    poly[3].X = float(df->x[0] << 8);
+                                    poly[3].Y = float(df->Y[0]);
+                                    poly[3].Z = float(df->z[0] << 8);
 
-                                        if (df->FHeight) {
-                                            //
-                                            // Foundations go down deep into the ground...
-                                            //
-
-                                            poly[0].Y -= 512.0F;
-                                            poly[3].Y -= 512.0F;
-                                        }
-
-                                        projected = SMAP_project_onto_poly(poly, 4);
-
-                                        if (projected) {
-                                            AENG_add_projected_fadeout_shadow_poly(projected);
-                                        }
-                                    } else {
+                                    if (df->FHeight) {
                                         //
-                                        // Slow crinkled-shadows!
+                                        // Foundations go down deep into the ground...
                                         //
 
-                                        FACET_project_crinkled_shadow(i_vect);
+                                        poly[0].Y -= 512.0F;
+                                        poly[3].Y -= 512.0F;
+                                    }
+
+                                    projected = SMAP_project_onto_poly(poly, 4);
+
+                                    if (projected) {
+                                        AENG_add_projected_fadeout_shadow_poly(projected);
                                     }
 
                                     //
@@ -5145,18 +4876,6 @@ void AENG_draw_city()
         float world_y;
         float world_z;
 
-        static struct
-        {
-            float u;
-            float v;
-
-        } texture_coords[4] = {
-            { 0.0F, 0.0F },
-            { 1.0F, 0.0F },
-            { 1.0F, 1.0F },
-            { 0.0F, 1.0F }
-        };
-
         POLY_Point pp[4];
         POLY_Point* quad[4];
 
@@ -5347,7 +5066,6 @@ void AENG_draw_city()
 
         for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
             for (x = NGAMUT_gamut[z].xmin; x <= NGAMUT_gamut[z].xmax; x++) {
-                me = &MAP[MAP_INDEX(x, z)];
                 ph = &PAP_2HI(x, z);
 
                 if (ph->Flags & PAP_FLAG_HIDDEN) {
@@ -5659,7 +5377,6 @@ void AENG_draw_city()
     // draw floor draw_floor  //things to search for
     //
 
-    SLONG num_squares_drawn = 0;
 
     {
         if (!INDOORS_INDEX || outside)
@@ -5770,8 +5487,6 @@ void AENG_draw_city()
                         }
 
                         if (POLY_valid_quad(quad)) {
-                            num_squares_drawn += 1;
-
                             {
                                 //
                                 // Texture the quad.
@@ -6229,20 +5944,15 @@ void AENG_draw_city()
                     show_gamut_lo(x, z);
 
                     if (f_list) {
-                        SLONG count = 0;
                         while (!exit) {
-                            struct DFacet* p_vect;
                             facet = facet_links[f_list];
 
-                            p_vect = &dfacets[facet];
                             /*
-                                                                                    AENG_world_text(x<<10,(PAP_2HI(x<<2,z<<2).Alt<<3)+count*50,z<<10,128,128,128,1,"x %d z %d %d type %d",x,z,facet,p_vect->FacetType);
+                                                                                    AENG_world_text(x<<10,(PAP_2HI(x<<2,z<<2).Alt<<3)+50,z<<10,128,128,128,1,"x %d z %d %d type %d",x,z,facet,dfacets[facet].FacetType);
                                                                                     if(x==13 && z==5)
-                                                                                    AENG_world_line_infinite(p_vect->X[0],p_vect->Y[0]+10+count*50,p_vect->Z[0],2,0xffffff,
-                                                                                      p_vect->X[1],p_vect->Y[1]+10+count*50,p_vect->Z[1],2,0xffffff,0);
+                                                                                    AENG_world_line_infinite(dfacets[facet].X[0],dfacets[facet].Y[0]+10,dfacets[facet].Z[0],2,0xffffff,
+                                                                                      dfacets[facet].X[1],dfacets[facet].Y[1]+10,dfacets[facet].Z[1],2,0xffffff,0);
                                                                                       */
-
-                            count++;
 
                             ASSERT(facet);
 
@@ -6742,8 +6452,6 @@ void AENG_draw_city()
 
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_mist) {
-            SLONG i;
-
             SLONG sx;
             SLONG sz;
 
@@ -7195,10 +6903,7 @@ void AENG_draw_far_facets(void)
                 if (f_list) {
 
                     while (!exit) {
-                        struct DFacet* p_vect;
                         facet = facet_links[f_list];
-
-                        p_vect = &dfacets[facet];
 
                         ASSERT(facet);
 
@@ -7270,13 +6975,6 @@ void AENG_draw_warehouse()
     SLONG facet;
     SLONG f_list;
     SLONG exit;
-    SLONG balloon;
-    SLONG dfcache;
-    SLONG next;
-
-    ULONG colour;
-    ULONG specular;
-
     float world_x;
     float world_y;
     float world_z;
@@ -7291,7 +6989,6 @@ void AENG_draw_warehouse()
     PAP_Hi* ph;
     NIGHT_Square* nq;
     NIGHT_Colour* col;
-    NIGHT_Dfcache* ndf;
     POLY_Point* pp;
     DFacet* df;
     // BALLOON_Balloon *bb;
@@ -7392,9 +7089,6 @@ void AENG_draw_warehouse()
                 apply_cloud((SLONG)world_x, (SLONG)world_y, (SLONG)world_z, &pp->colour);
 
                 POLY_fadeout_point(pp);
-
-                colour = pp->colour;
-                specular = pp->specular;
             }
         }
     }
@@ -7534,7 +7228,6 @@ void AENG_draw_warehouse()
                 SLONG mz1;
                 SLONG mx2;
                 SLONG mz2;
-                SLONG exit = UC_FALSE;
 
                 SLONG mx_lo;
                 SLONG mz_lo;
@@ -7545,32 +7238,13 @@ void AENG_draw_warehouse()
                 SVector_F poly[4];
                 SMAP_Link* projected;
 
-                SLONG v_list;
-                SLONG i_vect;
-
-                DFacet* df;
-
-                SLONG w_list;
                 SLONG w_face;
 
                 PrimFace4* p_f4;
                 PrimPoint* pp;
 
-                SLONG wall;
-                SLONG storey;
-                SLONG building;
-                SLONG thing;
                 SLONG face_height;
                 UBYTE face_order[4] = { 0, 1, 3, 2 };
-
-                Thing* p_fthing;
-
-                // Colvects we have already done.
-                // uc_orig: AENG_MAX_DONE (fallen/DDEngine/Source/aeng.cpp)
-#define AENG_MAX_DONE 8
-
-                SLONG done[AENG_MAX_DONE];
-                SLONG done_upto = 0;
 
                 for (dx = -1; dx <= 1; dx++)
                     for (dz = -1; dz <= 1; dz++) {
@@ -7808,8 +7482,6 @@ void AENG_draw_warehouse()
     }
 
     // Draw the objects and the things.
-    SLONG pos = 0;
-
     for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
         for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
             /*
@@ -9072,7 +8744,6 @@ void AENG_groundsquare_draw(
 {
     POLY_Point pp[4];
     POLY_Point* quad[4];
-    SLONG x, y, z, id, diff;
 
     quad[0] = &pp[0];
     quad[1] = &pp[1];
@@ -9410,7 +9081,6 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
     ULONG sky_specular;
 
     SLONG col_page;
-    SLONG specular;
 
     NIGHT_get_d3d_colour(
         NIGHT_sky_colour,
@@ -9440,7 +9110,6 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
     }
 
     col_page = POLY_PAGE_COLOUR_WITH_FOG;
-    specular = 0xff000000;
 
     // Create the points along the door span.
     x = df->x[0];
@@ -9660,14 +9329,10 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
     SLONG page;
 
     float world_x;
-    float world_y, floor_y, roof_y;
+    float floor_y;
     float world_z;
 
     POLY_Point pp[4];
-    MapElement* me;
-
-    PAP_Lo* pl;
-    PAP_Hi* ph;
 
     POLY_Point* quad[4];
 
@@ -9693,7 +9358,6 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
     floor_type = p_inside->TexType;
 
     floor_y = (float)p_inside->StoreyY;
-    roof_y = floor_y + 256.0f;
 
     min_z = MAX(NGAMUT_point_zmin, p_inside->MinZ);
     max_z = MIN(NGAMUT_point_zmax, p_inside->MaxZ);
@@ -9732,23 +9396,15 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
             ASSERT(WITHIN(x, 0, MAP_WIDTH - 1));
             ASSERT(WITHIN(z, 0, MAP_HEIGHT - 1));
 
-            me = &MAP[MAP_INDEX(x, z)];
-            ph = &PAP_2HI(x, z);
-
             if ((PAP_2HI(x, z).Flags & (PAP_FLAG_HIDDEN))) {
                 SLONG room_id;
-                SLONG px, pz, dx, dz, square;
+                SLONG px, pz, square;
                 NIGHT_Square* nq;
 
                 room_id = in_block[(x - p_inside->MinX) + (z - p_inside->MinZ) * in_width] & (0xf | 0x80 | 0x40);
                 if (!(room_id & 0xc0)) {
-                    if (1 || (room_id & 0xf) == inside_room) {
-                        face_y = floor_y;
-                        col = 0xffffff;
-                    } else {
-                        face_y = roof_y;
-                        col = 0;
-                    }
+                    face_y = floor_y;
+                    col = 0xffffff;
 
                     col = col | ((fade & 255) << 24);
                     if (room_id) {

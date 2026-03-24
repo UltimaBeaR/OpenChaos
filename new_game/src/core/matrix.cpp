@@ -198,7 +198,6 @@ Direction MATRIX_find_angles_old(float matrix[9])
 
     if (fabsf(x) + fabsf(z) < MATRIX_FA_VECTOR_TOO_SMALL) {
         float x1 = matrix[0];
-        float y1 = matrix[1];
         float z1 = matrix[2];
 
         ans.yaw = atan2(-z1, x1);

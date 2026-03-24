@@ -139,8 +139,6 @@ HRESULT CALLBACK OS_texture_enumerate_pixel_formats(
     LPDDPIXELFORMAT lpddpf,
     LPVOID context)
 {
-    SLONG format;
-
     OS_Tformat* otf = (OS_Tformat*)malloc(sizeof(OS_Tformat));
 
     if (otf == NULL) {
@@ -266,31 +264,6 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
         &ot->ddsd,
         &ot->ddsurface,
         NULL);
-
-    CBYTE* err;
-
-    switch (res) {
-    case DDERR_INCOMPATIBLEPRIMARY:         err = "DDERR_INCOMPATIBLEPRIMARY			"; break;
-    case DDERR_INVALIDCAPS:                 err = "DDERR_INVALIDCAPS					"; break;
-    case DDERR_INVALIDOBJECT:               err = "DDERR_INVALIDOBJECT  				"; break;
-    case DDERR_INVALIDPARAMS:               err = "DDERR_INVALIDPARAMS  				"; break;
-    case DDERR_INVALIDPIXELFORMAT:          err = "DDERR_INVALIDPIXELFORMAT  			"; break;
-    case DDERR_NOALPHAHW:                   err = "DDERR_NOALPHAHW  					"; break;
-    case DDERR_NOCOOPERATIVELEVELSET:       err = "DDERR_NOCOOPERATIVELEVELSET  		"; break;
-    case DDERR_NODIRECTDRAWHW:              err = "DDERR_NODIRECTDRAWHW  				"; break;
-    case DDERR_NOEMULATION:                 err = "DDERR_NOEMULATION  				"; break;
-    case DDERR_NOEXCLUSIVEMODE:             err = "DDERR_NOEXCLUSIVEMODE  			"; break;
-    case DDERR_NOFLIPHW:                    err = "DDERR_NOFLIPHW  					"; break;
-    case DDERR_NOMIPMAPHW:                  err = "DDERR_NOMIPMAPHW  					"; break;
-    case DDERR_NOOVERLAYHW:                 err = "DDERR_NOOVERLAYHW  				"; break;
-    case DDERR_NOZBUFFERHW:                 err = "DDERR_NOZBUFFERHW  				"; break;
-    case DDERR_OUTOFMEMORY:                 err = "DDERR_OUTOFMEMORY  				"; break;
-    case DDERR_OUTOFVIDEOMEMORY:            err = "DDERR_OUTOFVIDEOMEMORY  			"; break;
-    case DDERR_PRIMARYSURFACEALREADYEXISTS: err = "DDERR_PRIMARYSURFACEALREADYEXISTS  "; break;
-    case DDERR_UNSUPPORTEDMODE:             err = "DDERR_UNSUPPORTEDMODE  			"; break;
-    case DD_OK:                             err = "No error"; break;
-    default:                                err = "Unknown error"; break;
-    }
 
     ASSERT(res == DD_OK);
 
@@ -856,25 +829,6 @@ SLONG OS_process_messages()
     }
 
     return OS_CARRY_ON;
-
-    MSG msg;
-    int ret;
-
-    OS_joy_poll();
-
-    while (1) {
-        if (!PeekMessage(&msg, NULL, NULL, NULL, PM_NOREMOVE)) {
-            return OS_CARRY_ON;
-        }
-
-        ret = GetMessage(&msg, NULL, 0, 0);
-
-        if (ret == 0 || ret == -1) {
-            return OS_QUIT_GAME;
-        }
-
-        DispatchMessage(&msg);
-    }
 }
 
 // ========================================================

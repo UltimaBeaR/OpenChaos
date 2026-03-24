@@ -263,8 +263,6 @@ SLONG should_person_get_item(Thing* p_person, Thing* p_special)
 // uc_orig: person_get_item (fallen/Source/Special.cpp)
 void person_get_item(Thing* p_person, Thing* p_special)
 {
-    Thing* p_gun;
-
     SLONG keep = UC_FALSE;
     SLONG x_message = 0;
     SLONG overflow = 0;
@@ -923,7 +921,6 @@ Thing* alloc_special(
     SLONG world_z,
     UWORD waypoint)
 {
-    SLONG c0;
     DrawMesh* dm;
     Special* new_special;
     Thing* special_thing = NULL;

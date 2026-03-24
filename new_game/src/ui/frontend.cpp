@@ -764,7 +764,7 @@ void FRONTEND_DrawKey(MenuData* md)
 // Draws the name of the joypad button assigned to a menu action.
 void FRONTEND_DrawPad(MenuData* md)
 {
-    SLONG x, y, dy, c0, rgb;
+    SLONG x, y, dy, rgb;
     CBYTE str[20];
     rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_pad && ((menu_data + menu_state.selected == md) && ((GetTickCount() & 0x7ff) < 0x3ff))));
     dy = md->Y + menu_state.base - menu_state.scroll;
@@ -1170,9 +1170,6 @@ bool FRONTEND_load_savegame(UBYTE slot)
 void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
 {
     CBYTE dir[_MAX_PATH], ttl[_MAX_PATH];
-    WIN32_FIND_DATA data;
-    HANDLE handle;
-    BOOL ok;
     SLONG c0;
     MenuData* md = menu_data;
     CBYTE* str = menu_buffer;
@@ -1220,12 +1217,9 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
 // Returns the .ucm filename for the i-th available mission in the selected district.
 CBYTE* FRONTEND_MissionFilename(CBYTE* script, UBYTE i)
 {
-    MFFileHandle file;
     CBYTE *text, *str = menu_buffer;
     SLONG ver;
     MissionData* mdata = MFnew<MissionData>();
-    MenuData* md = menu_data;
-    SLONG x, y, y2 = 0;
 
     *str = 0;
 
@@ -1280,13 +1274,11 @@ CBYTE* FRONTEND_MissionFilename(CBYTE* script, UBYTE i)
 // Updates district_flash/district_selected to the earliest suggest_order mission.
 void FRONTEND_MissionHierarchy(CBYTE* script)
 {
-    MFFileHandle file;
     SLONG best_score;
     CBYTE* text;
     SLONG ver;
     MissionData* mdata = MFnew<MissionData>();
-    MenuData* md = menu_data;
-    UBYTE i = 0, j, flag;
+    UBYTE j, flag;
     UBYTE newtheme;
 
     bonus_this_turn = 0;
@@ -1513,12 +1505,9 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
 // selected district. Also plays the mission briefing voice-over if available.
 void FRONTEND_MissionBrief(CBYTE* script, UBYTE i)
 {
-    MFFileHandle file;
     CBYTE *text, *str = menu_buffer;
     SLONG ver;
     MissionData* mdata = MFnew<MissionData>();
-    MenuData* md = menu_data;
-    SLONG x, y, y2 = 0;
 
     *str = 0;
     i++;
@@ -1599,8 +1588,7 @@ void FRONTEND_MissionList(CBYTE* script, UBYTE district)
 // Reads the mission script and caches all mission entries into mission_cache[].
 void FRONTEND_CacheMissionList(CBYTE* script)
 {
-    MFFileHandle file;
-    CBYTE *text, *str;
+    CBYTE *text;
     SLONG ver;
     MissionData* mdata = MFnew<MissionData>();
     UBYTE i = 0;
@@ -1637,10 +1625,8 @@ void FRONTEND_CacheMissionList(CBYTE* script)
 // array (sorted by map X coordinate for consistent display order).
 void FRONTEND_districts(CBYTE* script)
 {
-    MFFileHandle file;
     CBYTE *text, *str = menu_buffer;
     SLONG ver, mapx = 0, mapy = 0;
-    MenuData* md = menu_data;
     SLONG x, y;
     UBYTE i = 0, ct, index = 0;
     SWORD temp_dist[40][3];
@@ -1877,11 +1863,9 @@ void FRONTEND_store_video_data()
 // the DirectDraw driver list and current display settings.
 void FRONTEND_do_drivers()
 {
-    SLONG result, count = 0, selected = 0;
-    ChangeDDInfo* change_info;
+    SLONG count = 0, selected = 0;
     DDDriverInfo *current_driver = 0,
                  *driver_list;
-    GUID* DD_guid;
     TCHAR szBuff[80];
     CBYTE *str = menu_buffer, *str_tmp;
 
@@ -2012,7 +1996,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
 {
     dwAutoPlayFMVTimeout = timeGetTime() + AUTOPLAY_FMV_DELAY;
 
-    SBYTE last = menu_state.mode;
     fade_mode = 1;
     ZeroMemory(menu_data, sizeof(menu_data));
     menu_state.items = 0;
@@ -2114,7 +2097,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
         menu_state.title = XLAT_str_ptr(X_EXIT);
         break;
     case FE_CONFIG_VIDEO: {
-        int a, b, c, d, e, f, g, h, i, j, k;
         if (bDoTransition) {
             FRONTEND_init_xition();
         }
@@ -2367,9 +2349,6 @@ void FRONTEND_display()
     UBYTE whichmap[] = { 2, 0, 1, 3 };
     UBYTE arrow = 0;
 
-    LPDIRECT3DDEVICE3 dev = the_display.lp_D3D_Device;
-    HRESULT hres;
-
     D3DVIEWPORT2 vp;
     vp.dwSize = sizeof(vp);
     vp.dwX = the_display.ViewportRect.x1;
@@ -2382,7 +2361,7 @@ void FRONTEND_display()
     vp.dvClipHeight = (float)vp.dwHeight;
     vp.dvMinZ = 0.0f;
     vp.dvMaxZ = 1.0f;
-    hres = the_display.lp_D3D_Viewport->SetViewport2(&vp);
+    the_display.lp_D3D_Viewport->SetViewport2(&vp);
 
     the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER | D3DCLEAR_TARGET);
 

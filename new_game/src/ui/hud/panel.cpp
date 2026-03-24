@@ -1477,8 +1477,6 @@ void PANEL_last_bubble(float x1, float y1, float x2, float y2)
     SET_PP(15, x1 + 8.0F, y2 - 8.0F, pls->u1 + (8.0F / 256.0F), pls->v2 - (8.0F / 256.0F));
 
     SLONG i;
-    SLONG p1;
-    SLONG p2;
 
     POLY_Point* quad[4];
 
@@ -1639,11 +1637,11 @@ void PANEL_inventory(Thing* darci, Thing* player)
     }
 #define ITEM_SEPERATION (150)
 
-    SLONG rgb, rgb2;
+    SLONG rgb;
     CBYTE draw_list[10];
     UBYTE draw_count = 0;
     Thing* p_special = NULL;
-    SLONG x, c0;
+    SLONG c0;
     UBYTE current_item = 0;
     SLONG sel;
 
@@ -1707,7 +1705,6 @@ void PANEL_inventory(Thing* darci, Thing* player)
     }
 
     rgb = CONTROLS_inv_fade - 1;
-    rgb2 = rgb | (rgb << 8) | (rgb << 24);
     rgb |= (rgb << 8) | (rgb << 16) | (rgb << 24);
     for (c0 = 0; c0 < draw_count; c0++) {
         if (draw_list[c0] != sel) {
@@ -1786,10 +1783,7 @@ void PANEL_last(void)
     CBYTE text[64];
     text[0] = '\000';
 
-    int iGrenadeCountdown = -1;
-
     if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
-        Thing* p_vehicle = TO_THING(darci->Genus.Person->InCar);
         sprite = PANEL_LSPRITE_LOW_GEAR;
     } else {
         if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
@@ -1941,12 +1935,6 @@ void PANEL_last(void)
                 m_iPanelYPos - 116,
                 0xffffff);
         }
-    }
-
-    {
-        CBYTE timing[256];
-        float strip;
-        SLONG c;
     }
 
     // Draw the circular health/stamina arc for the player.
@@ -2119,11 +2107,6 @@ void PANEL_last(void)
         float x;
         float y;
 
-        BOOL thugly;
-
-        POLY_Point pp[3];
-        POLY_Point* tri[3];
-
         MAP_Beacon* mb;
 
         ULONG colour;
@@ -2138,8 +2121,6 @@ void PANEL_last(void)
                 continue;
             }
 
-            thugly = UC_FALSE;
-
             if (mb->track_thing) {
                 Thing* p_track = TO_THING(mb->track_thing);
 
@@ -2149,15 +2130,6 @@ void PANEL_last(void)
                 extern SLONG is_person_dead(Thing * p_person);
 
                 if (p_track->Class == CLASS_PERSON) {
-                    switch (p_track->Genus.Person->PersonType) {
-                    case PERSON_THUG_RASTA:
-                    case PERSON_THUG_GREY:
-                    case PERSON_THUG_RED:
-                    case PERSON_MIB1:
-                    case PERSON_MIB2:
-                    case PERSON_MIB3:
-                        thugly = UC_TRUE;
-                    }
                     if (p_track->State == STATE_DEAD) {
                         if (p_track->SubState == SUB_STATE_DEAD_INJURED) {
                             if (p_track->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
@@ -2567,10 +2539,6 @@ void PANEL_last(void)
         }
     }
 
-    {
-        int iYPos = bPanelIsAtBottomOfScreen ? 0 : 360;
-    }
-
     // PSX-mode debug indicator (activated by iamapsx env var).
     static SLONG i_know = 0;
     static SLONG the_answer = 0;
@@ -2652,7 +2620,6 @@ void PANEL_draw_completion_bar(SLONG completion)
 #define END_G 216
 #define END_B 208
 
-    SLONG along;
     SLONG r;
     SLONG g;
     SLONG b;

@@ -90,7 +90,6 @@ void TRIP_process()
     SLONG lfx, lfy, lfz;
     SLONG rfx, rfy, rfz;
     SLONG hx, hy, hz;
-    SLONG tx, tz;
     SLONG dist;
     SLONG along;
     SLONG feet, head;

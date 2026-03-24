@@ -107,7 +107,6 @@ void FONT_init()
     SLONG i;
     SLONG y;
     SLONG x;
-    SLONG line;
 
     FONT_Letter* fl;
 
@@ -127,7 +126,6 @@ void FONT_init()
 
     x = 0;
     y = 19;
-    line = 0;
 
     for (i = 0; i < FONT_NUM_LETTERS; i++) {
         fl = &FONT_letter[i];
@@ -137,7 +135,6 @@ void FONT_init()
 
             if (x >= 256) {
                 x = 0;
-                line += 1;
                 y += 22;
 
                 if (y > 256) {

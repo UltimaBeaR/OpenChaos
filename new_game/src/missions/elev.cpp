@@ -118,16 +118,9 @@ void ELEV_load_level(CBYTE* fname_level)
     SLONG load_ok = UC_FALSE;
     SLONG flag;
 
-    SLONG ew_id;
-    SLONG ew_type;
-    SLONG ew_subtype;
     SLONG ew_world_x;
     SLONG ew_world_y;
     SLONG ew_world_z;
-    SLONG ew_active;
-    SLONG ew_active_arg;
-    SLONG ew_stay;
-    SLONG ew_stay_arg;
     SLONG ew_colour;
     SLONG ew_group;
     SLONG ew_yaw;
@@ -139,10 +132,8 @@ void ELEV_load_level(CBYTE* fname_level)
     SLONG water_level = -0x80;
 
     MFFileHandle handle = NULL;
-    CBYTE* error;
 
     SLONG enemy_type;
-    SLONG enemy_count;
     SLONG follow;
     SLONG kludge_index;
 
@@ -586,11 +577,9 @@ void ELEV_load_level(CBYTE* fname_level)
 
                         if (version >= 3) {
                             enemy_type = event_point.Data[0] & 0xffff;
-                            enemy_count = event_point.Data[0] >> 16;
                             follow = event_point.Data[1];
                         } else {
                             enemy_type = event_point.Data[0];
-                            enemy_count = event_point.Data[1];
                             follow = NULL;
                         }
 
@@ -1454,18 +1443,6 @@ void ELEV_load_level(CBYTE* fname_level)
                     continue;
                 } else {
                     continue;
-                }
-
-                {
-                    CBYTE title[256];
-
-                    sprintf(title, "Error loading waypoint %d", i);
-
-                    MessageBox(
-                        hDDLibWindow,
-                        error,
-                        title,
-                        MB_OK | MB_ICONERROR | MB_APPLMODAL);
                 }
             }
         }
@@ -2352,8 +2329,6 @@ try_again:;
             else
                 return (0);
         }
-
-        return (ELEV_load_name(ELEV_fname_level) ? 5 : 0);
 
     case IDNO:
 

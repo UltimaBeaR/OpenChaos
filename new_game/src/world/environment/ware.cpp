@@ -108,8 +108,7 @@ void WARE_init()
     SLONG x, z;
     SLONG x1, z1, x2, z2;
     SLONG mx, mz;
-    SLONG door_x, door_y, door_z, door_angle;
-    SLONG dx, dy, dz;
+    SLONG dx, dz;
     SLONG rx, rz;
     SLONG sx, sz;
     SLONG bx1, bz1, bx2, bz2;
@@ -122,7 +121,6 @@ void WARE_init()
     DFacet* df;
     WARE_Ware* ww;
     OB_Info* oi;
-    PrimInfo* pi;
     RoofFace4* p_f4;
     DWalkable* p_walk;
 

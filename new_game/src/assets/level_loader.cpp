@@ -181,7 +181,7 @@ void load_texture_styles(UBYTE editor, UBYTE world)
             FileRead(handle, (UBYTE*)&temp2, 2);
             ASSERT(temp == 200);
             if (save_type < 5) {
-                SLONG c0, c1;
+                SLONG c0;
                 ASSERT(temp2 == 8);
                 for (c0 = 0; c0 < temp; c0++) {
                     FileSeek(handle, SEEK_MODE_CURRENT, sizeof(struct TXTY) * 3);
@@ -316,11 +316,8 @@ void load_game_map(CBYTE* name)
     SLONG save_type = 1, ob_size;
     SWORD x, z;
     SWORD c0;
-    MapElement me;
-    Thing th;
     struct MapThingPSX* t_mthing;
 
-    UWORD count1, count2, count3, count4;
     CBYTE fname[100];
 
     sprintf(fname, "%s%s", DATA_DIR, name);

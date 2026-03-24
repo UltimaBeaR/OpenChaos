@@ -360,7 +360,6 @@ struct ActionInfo* action_tree[] = {
 // uc_orig: init_joypad_config (fallen/Source/interfac.cpp)
 void init_joypad_config(void)
 {
-    SLONG val;
     /*
             //was
             joypad_button_use[JOYPAD_BUTTON_KICK]		= ENV_get_value_number("joypad_kick",		2, "Joypad");
@@ -583,7 +582,6 @@ SLONG bad_place_for_car(Thing* p_person, Thing* p_vehicle)
     SLONG dz;
     SLONG ix, jx;
     SLONG iz, jz;
-    SLONG width, length;
 
     SLONG dist, vx, vz, on;
 
@@ -633,7 +631,6 @@ void get_car_enter_xz(Thing* p_vehicle, SLONG door, SLONG* cx, SLONG* cz)
     SLONG dz;
     SLONG ix;
     SLONG iz;
-    SLONG dist;
     SLONG width, length;
 
     ASSERT(door == 0 || door == 1);
@@ -787,10 +784,7 @@ SLONG person_get_in_car(Thing* p_thing, SLONG* door)
 // uc_orig: do_an_action (fallen/Source/interfac.cpp)
 ULONG do_an_action(Thing* p_thing, ULONG input)
 {
-    ULONG closest;
-    SLONG ladder_col;
     Thing* special_thing;
-    THING_INDEX anim_switch;
     THING_INDEX special_index;
     SLONG dist;
     SLONG door;
@@ -1485,17 +1479,7 @@ void player_stop_move(Thing* p_thing, ULONG input)
         ASSERT(0);
     if (p_thing->SubState != SUB_STATE_STOPPING && p_thing->SubState != SUB_STATE_STOPPING_DEAD && p_thing->SubState != SUB_STATE_RUN_STOP && p_thing->SubState != SUB_STATE_STOPPING_OT && p_thing->SubState != SUB_STATE_SLIPPING && p_thing->SubState != SUB_STATE_SLIPPING_END && p_thing->SubState != SUB_STATE_RUNNING_VAULT && p_thing->SubState != SUB_STATE_RUNNING_HIT_WALL) {
 
-        if (1) {
-            p_thing->SubState = SUB_STATE_STOPPING;
-
-        }
-
-        else
-
-        {
-            set_anim(p_thing, ANIM_STOP_RUN);
-            p_thing->SubState = SUB_STATE_RUN_STOP;
-        }
+        p_thing->SubState = SUB_STATE_STOPPING;
     }
 }
 
@@ -1749,7 +1733,6 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
 {
     SLONG dx, dz, velocity;
     SLONG angle = -1;
-    SLONG rel_x, rel_y;
     SLONG ca;
 
     dx = GET_JOYX(input);
@@ -1762,9 +1745,6 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
 
     angle += ca;
     angle = (angle + 2048) & 2047;
-
-    rel_x = COS(angle);
-    rel_y = -SIN(angle);
 
     SLONG dangle = (ca & 2047) - (p_thing->Draw.Tweened->Angle & 20247);
 
@@ -3213,9 +3193,6 @@ ULONG get_last_input(UWORD type)
 ULONG get_hardware_input(UWORD type)
 {
     ULONG input = 0;
-    ULONG padd;
-    SLONG dist;
-    UWORD c0;
 
     static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
 
@@ -3236,7 +3213,6 @@ ULONG get_hardware_input(UWORD type)
 
     if (type & INPUT_TYPE_JOY) {
         if (ReadInputDevice()) {
-            DIJOYSTATE my_copy_of_the_state;
             {
                 ULONG ulAxisMax = AXIS_MAX;
                 ULONG ulAxisMin = AXIS_MIN;
@@ -3512,7 +3488,6 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 {
     static SLONG look_ami = UC_FALSE;
     SLONG fpm = UC_FALSE;
-    SLONG gun = 0;
 
     *processed = 0;
 
@@ -3691,7 +3666,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
     SLONG i;
 
     ULONG input;
-    ULONG last;
     ULONG processed = 0;
     // BUGFIX-OC-TICK-OVERFLOW: original used SLONG which can go negative after ~25 days uptime.
     DWORD tick = GetTickCount();
@@ -3972,7 +3946,7 @@ SLONG continue_action(Thing* p_person)
 SLONG continue_pressing_action(Thing* p_person)
 {
     Thing* p_player;
-    ULONG input, input_used, new_action;
+    ULONG input;
     if (p_person->Genus.Person->PlayerID) {
         p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
         input = p_player->Genus.Player->Input;
@@ -4132,7 +4106,6 @@ SLONG continue_blocking(Thing* p_person)
 void remove_action_used(Thing* p_person)
 {
     Thing* p_player;
-    ULONG input;
     if (p_person->Genus.Person->PlayerID) {
         p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
         p_player->Genus.Player->InputDone &= ~INPUT_MASK_ACTION;

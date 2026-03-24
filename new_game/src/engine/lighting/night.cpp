@@ -180,8 +180,6 @@ SLONG NIGHT_slight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SB
     {
         UWORD calc_inside_for_xyz(SLONG x, SLONG y, SLONG z, UWORD * room);
 
-        UWORD room;
-
         // Inside test: use height as proxy — if light is below terrain, it's inside.
         {
             if (y < PAP_calc_map_height_at(x, z)) {
@@ -277,11 +275,6 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
     NIGHT_Preblock* precalc;
     ASSERT(HEAP_PAD_SIZE >= sizeof(NIGHT_Preblock) * PAP_BLOCKS);
     precalc = (NIGHT_Preblock*)HEAP_pad;
-
-    // Random seed for subtle per-square lighting variation.
-    ULONG seed = lo_map_x + (lo_map_z << 5);
-    seed *= 328573;
-    seed += 123456789;
 
     ASSERT(WITHIN(lo_map_x, 0, PAP_SIZE_LO - 1));
     ASSERT(WITHIN(lo_map_z, 0, PAP_SIZE_LO - 1));
@@ -615,9 +608,6 @@ void NIGHT_light_prim(SLONG prim, SLONG prim_x, SLONG prim_y, SLONG prim_z, SLON
 
     PrimObject* p_obj = &prim_objects[prim];
     PrimInfo* p_info = get_prim_info(prim);
-
-    NIGHT_Point* np;
-    NIGHT_Point* np_base = (NIGHT_Point*)HEAP_pad;
 
     NIGHT_Smap* ns;
     NIGHT_Slight* nsl;
@@ -1204,7 +1194,6 @@ void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE ware)
     SLONG square;
     SLONG vector[3];
 
-    OB_Info* ofound;
     OB_Info* oi;
     NIGHT_Square* nq;
     NIGHT_Colour* nc;
@@ -1292,12 +1281,6 @@ void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE ware)
 
     NIGHT_light_mapsquare(lo_map_x, lo_map_z, nq->colour, 0, 0);
 
-    // Overrun detection (debug).
-    UBYTE debug1 = (((UBYTE*)(nq->colour)) + memory)[0];
-    UBYTE debug2 = (((UBYTE*)(nq->colour)) + memory)[1];
-    UBYTE debug3 = (((UBYTE*)(nq->colour)) + memory)[2];
-    UBYTE debug4 = (((UBYTE*)(nq->colour)) + memory)[3];
-
     nc = nq->colour + (PAP_BLOCKS * PAP_BLOCKS);
 
     for (oi = OB_find(lo_map_x, lo_map_z); oi->prim; oi++) {
@@ -1373,11 +1356,6 @@ void NIGHT_cache_create_inside(UBYTE lo_map_x, UBYTE lo_map_z, SLONG floor_y)
     ASSERT(nq->colour);
 
     NIGHT_light_mapsquare(lo_map_x, lo_map_z, nq->colour, floor_y, 1);
-
-    UBYTE debug1 = (((UBYTE*)(nq->colour)) + memory)[0];
-    UBYTE debug2 = (((UBYTE*)(nq->colour)) + memory)[1];
-    UBYTE debug3 = (((UBYTE*)(nq->colour)) + memory)[2];
-    UBYTE debug4 = (((UBYTE*)(nq->colour)) + memory)[3];
 
     nc = nq->colour + (PAP_BLOCKS * PAP_BLOCKS);
 
@@ -1483,20 +1461,11 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
     SLONG dz;
 
     SLONG nx;
-    SLONG ny;
     SLONG nz;
 
     SLONG x;
     SLONG y;
     SLONG z;
-
-    SLONG dsx1;
-    SLONG dsy1;
-    SLONG dsz1;
-
-    SLONG dsx2;
-    SLONG dsy2;
-    SLONG dsz2;
 
     SLONG dlx;
     SLONG dly;
@@ -1528,7 +1497,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
     NIGHT_Smap* ns;
     NIGHT_Slight* nsl;
 
-    UBYTE inside = 0;
     ULONG flags;
 
 #define NIGHT_MAX_SLIGHTS_PER_FACET 16
@@ -1586,7 +1554,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index)
     ASSERT(nd->colour != NULL);
 
     nx = -dz;
-    ny = 0;
     nz = dx;
 
     dprod = NIGHT_amb_norm_x * nx + NIGHT_amb_norm_z * nz >> 8;
@@ -1994,8 +1961,6 @@ void NIGHT_find(SLONG x, SLONG y, SLONG z)
     NIGHT_Smap* ns;
     NIGHT_Slight* nsl;
 
-    NIGHT_Colour ans;
-
     OB_Info* oi;
 
     NIGHT_found_upto = 0;
@@ -2182,7 +2147,6 @@ void NIGHT_init()
 // Used by NIGHT_generate_roof_walkable and NIGHT_generate_walkable_lighting.
 static void calc_lighting__for_point(SLONG prim_x, SLONG prim_y, SLONG prim_z, NIGHT_Colour* nc)
 {
-    SLONG i;
     SLONG j;
 
     SLONG mx, mz;
@@ -2291,32 +2255,7 @@ static void calc_lighting__for_point(SLONG prim_x, SLONG prim_y, SLONG prim_z, N
 void NIGHT_generate_roof_walkable()
 {
     SLONG i;
-    SLONG j;
     SLONG b;
-
-    SLONG mx;
-    SLONG mz;
-
-    SLONG mx1;
-    SLONG mz1;
-    SLONG mx2;
-    SLONG mz2;
-
-    SLONG map_x;
-    SLONG map_z;
-
-    SLONG lradius;
-    SLONG lx;
-    SLONG ly;
-    SLONG lz;
-
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-
-    SLONG dist;
-    SLONG dprod;
-    SLONG bright;
     SLONG walk;
 
     SLONG amb_amount;
@@ -2324,12 +2263,6 @@ void NIGHT_generate_roof_walkable()
     SLONG amb_green;
     SLONG amb_blue;
 
-    SLONG red;
-    SLONG green;
-    SLONG blue;
-
-    NIGHT_Smap* ns;
-    NIGHT_Slight* nsl;
     NIGHT_Colour* nc;
 
     DBuilding* db;
@@ -2361,7 +2294,6 @@ void NIGHT_generate_roof_walkable()
             for (i = dw->StartFace4; i < dw->EndFace4; i++) {
                 struct RoofFace4* rf;
                 SLONG prim_x, prim_y, prim_z, point;
-                SLONG mx, mz;
                 SLONG roof_face_x, roof_face_z;
 
                 rf = &roof_faces4[i];
@@ -2471,144 +2403,11 @@ void NIGHT_generate_roof_walkable()
 // The early return after NIGHT_generate_roof_walkable matches the original.
 void NIGHT_generate_walkable_lighting()
 {
-    SLONG i;
-    SLONG j;
-
-    SLONG mx;
-    SLONG mz;
-
-    SLONG mx1;
-    SLONG mz1;
-
-    SLONG mx2;
-    SLONG mz2;
-
-    SLONG map_x;
-    SLONG map_z;
-
-    SLONG lradius;
-    SLONG lx;
-    SLONG ly;
-    SLONG lz;
-
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-
-    SLONG dist;
-    SLONG dprod;
-    SLONG bright;
-
-    SLONG amb_amount;
-    SLONG amb_red;
-    SLONG amb_green;
-    SLONG amb_blue;
-
-    SLONG red;
-    SLONG green;
-    SLONG blue;
-
-    PrimPoint* pp;
-    NIGHT_Smap* ns;
-    NIGHT_Slight* nsl;
-    NIGHT_Colour* nc;
-
     NIGHT_generate_roof_walkable();
 
     NIGHT_first_walkable_prim_point = first_walkable_prim_point;
 
     return;
-
-    amb_amount = 128;
-    amb_amount += -NIGHT_amb_norm_y >> 1;
-    amb_amount *= NIGHT_LIGHT_MULTIPLIER;
-
-    amb_red = NIGHT_amb_red * amb_amount >> 8;
-    amb_green = NIGHT_amb_green * amb_amount >> 8;
-    amb_blue = NIGHT_amb_blue * amb_amount >> 8;
-
-    for (i = 0; i < number_of_walkable_prim_points; i++) {
-        ASSERT(WITHIN(i, 0, NIGHT_MAX_WALKABLE));
-        ASSERT(WITHIN(first_walkable_prim_point + i, 1, next_prim_point - 1));
-
-        pp = &prim_points[first_walkable_prim_point + i];
-
-        nc = &NIGHT_walkable[i];
-
-        nc->red = amb_red;
-        nc->green = amb_green;
-        nc->blue = amb_blue;
-
-        mx1 = pp->X - 0x400 >> PAP_SHIFT_LO;
-        mz1 = pp->Z - 0x400 >> PAP_SHIFT_LO;
-
-        mx2 = pp->X + 0x400 >> PAP_SHIFT_LO;
-        mz2 = pp->Z + 0x400 >> PAP_SHIFT_LO;
-
-        SATURATE(mx1, 0, PAP_SIZE_LO - 1);
-        SATURATE(mz1, 0, PAP_SIZE_LO - 1);
-
-        SATURATE(mx2, 0, PAP_SIZE_LO - 1);
-        SATURATE(mz2, 0, PAP_SIZE_LO - 1);
-
-        for (mx = mx1; mx <= mx2; mx++)
-            for (mz = mz1; mz <= mz2; mz++) {
-                map_x = mx << PAP_SHIFT_LO;
-                map_z = mz << PAP_SHIFT_LO;
-
-                ASSERT(WITHIN(mx, 0, PAP_SIZE_LO - 1));
-                ASSERT(WITHIN(mz, 0, PAP_SIZE_LO - 1));
-
-                ns = &NIGHT_smap[mx][mz];
-
-                for (j = 0; j < ns->number; j++) {
-                    ASSERT(WITHIN(ns->index + j, 0, NIGHT_MAX_SLIGHTS - 1));
-
-                    nsl = &NIGHT_slight[ns->index + j];
-
-                    lx = (nsl->x << 2) + map_x;
-                    ly = nsl->y;
-                    lz = (nsl->z << 2) + map_z;
-
-                    lradius = nsl->radius << 2;
-
-                    if (ly <= pp->Y) {
-                        continue;
-                    }
-
-                    dx = pp->X - lx;
-                    dy = pp->Y - ly;
-                    dz = pp->Z - lz;
-
-                    dist = QDIST3(abs(dx), abs(dy), abs(dz)) + 1;
-
-                    if (dist > lradius) {
-                        continue;
-                    }
-
-                    dprod = -256 * dy;
-                    dprod /= dist;
-                    bright = 256 - (dist << 8) / lradius;
-                    bright = (bright * dprod >> 8) * NIGHT_LIGHT_MULTIPLIER;
-
-                    red = nc->red;
-                    green = nc->green;
-                    blue = nc->blue;
-
-                    red += nsl->red * bright >> 8;
-                    green += nsl->green * bright >> 8;
-                    blue += nsl->blue * bright >> 8;
-
-                    SATURATE(red, 0, 255);
-                    SATURATE(green, 0, 255);
-                    SATURATE(blue, 0, 255);
-
-                    nc->red = red;
-                    nc->green = green;
-                    nc->blue = blue;
-                }
-            }
-    }
 }
 
 // uc_orig: NIGHT_destroy_all_cached_info (fallen/Source/night.cpp)
@@ -2631,12 +2430,8 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     SLONG ed_max_lights;
     SLONG sizeof_night_colour;
     SLONG ed_light_free;
-    SLONG data_left;
-    UBYTE version = 0;
 
     ED_Light el;
-
-    NIGHT_Colour col;
 
     MFFileHandle handle;
 
@@ -2653,7 +2448,6 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     if (FileRead(handle, &sizeof_night_colour, sizeof(SLONG)) < 0)
         goto file_error;
 
-    version = sizeof_ed_light >> 16;
     sizeof_ed_light &= 0xffff;
 
     if (sizeof_ed_light != sizeof(ED_Light) || sizeof_night_colour != sizeof(NIGHT_Colour)) {
@@ -2663,13 +2457,10 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
     }
 
     for (i = 0; i < ed_max_lights; i++) {
-        SLONG count = 0;
         if (FileRead(handle, &el, sizeof(ED_Light)) < 0)
             goto file_error;
 
         if (el.used) {
-            count++;
-
             NIGHT_slight_create(
                 el.x,
                 el.y,

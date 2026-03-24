@@ -387,12 +387,10 @@ static SLONG SAVE_eways(void)
 // uc_orig: SAVE_ingame (fallen/Source/save.cpp)
 SLONG SAVE_ingame(CBYTE* fname)
 {
-    SLONG ret = 1;
-
     SAVE_handle = MF_Fopen("ingame.sav", "wb");
 
-    ret &= SAVE_things();
-    ret &= SAVE_eways();
+    SAVE_things();
+    SAVE_eways();
 
     MF_Fclose(SAVE_handle);
     return (UC_TRUE);
@@ -583,10 +581,7 @@ static void LOAD_vehicle_full(Thing* p_vehicle)
 static SLONG LOAD_types(void)
 {
     UBYTE type;
-    UWORD thing = 0;
     Thing* p_thing;
-
-    SLONG special = 0, person = 0, car = 0;
 
     p_thing = TO_THING(0);
     while (LOAD_in_data(&type, 1)) {
@@ -608,15 +603,12 @@ static SLONG LOAD_types(void)
             break;
         case SAVE_PERSON_TYPE_FULL:
             LOAD_person_full(p_thing);
-            person++;
             break;
         case SAVE_SPECIAL_TYPE_FULL:
             LOAD_special_full(p_thing);
-            special++;
             break;
         case SAVE_VEHICLE_TYPE_FULL:
             LOAD_vehicle_full(p_thing);
-            car++;
             break;
         case SAVE_GAME_EWAY:
             LOAD_eways();
@@ -650,7 +642,6 @@ static SLONG LOAD_types(void)
             break;
         }
         p_thing++;
-        thing++;
     }
 
     return 0;
@@ -706,8 +697,6 @@ static void remove_specials(void)
 // uc_orig: LOAD_ingame (fallen/Source/save.cpp)
 SLONG LOAD_ingame(CBYTE* fname)
 {
-    SLONG ret = 1;
-
     TRACKS_Reset();
 
     remove_specials();

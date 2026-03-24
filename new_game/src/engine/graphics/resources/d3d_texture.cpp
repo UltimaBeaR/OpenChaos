@@ -83,8 +83,6 @@ void FreeAllD3DPages(void)
 // Clears the per-session embed state and resets polygon render states before a new load batch.
 void D3DTexture::BeginLoading()
 {
-    SLONG first_time = UC_TRUE;
-
     EmbedSource = NULL;
     EmbedSurface = NULL;
     EmbedTexture = NULL;
@@ -864,8 +862,6 @@ HRESULT D3DTexture::Reload(void)
 // Does not free the D3DTexture object itself.
 HRESULT D3DTexture::Destroy(void)
 {
-    int a = 0, b = 0, c = 0, d = 0;
-
     Font *current_font,
         *next_font;
 
@@ -880,12 +876,12 @@ HRESULT D3DTexture::Destroy(void)
     }
 
     if (lp_Texture) {
-        a = lp_Texture->Release();
+        lp_Texture->Release();
         lp_Texture = NULL;
     }
 
     if (lp_Surface) {
-        c = lp_Surface->Release();
+        lp_Surface->Release();
         lp_Surface = NULL;
     }
 

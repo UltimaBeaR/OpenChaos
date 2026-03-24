@@ -73,7 +73,7 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
     SLONG alpha, beta;
     SLONG x, y, z;
 
-    SLONG mx = 0, my = 0, mz = 0;
+    SLONG mx = 0, mz = 0;
     UWORD c0;
     SLONG on_face = 1;
     ASSERT(face >= 0);
@@ -424,7 +424,6 @@ SLONG find_height_for_this_pos(SLONG x, SLONG z, SLONG* ret_face)
 {
     UBYTE mx;
     UBYTE mz;
-    SLONG dy;
     SLONG facey;
     SWORD index;
     SLONG groundy;
@@ -530,16 +529,14 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
 
         if (rf->RX & (1 << 7)) {
             if (xfrac + (256 - zfrac) < 0x100) {
-                SLONG vx, vy, vz;
-                SLONG wx, wy, wz;
+                SLONG vx, vy;
+                SLONG wy, wz;
                 SLONG rx, ry, rz;
                 SLONG len;
 
                 vx = 256;
                 vy = h3 - h1;
-                vz = 0;
 
-                wx = 0;
                 wy = h0 - h1;
                 wz = 256;
 
@@ -561,16 +558,14 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
                 return (abs(256 - (len >> 8)));
 
             } else {
-                SLONG vx, vy, vz;
-                SLONG wx, wy, wz;
+                SLONG vx, vy;
+                SLONG wy, wz;
                 SLONG rx, ry, rz;
                 SLONG len;
 
                 vx = -256;
                 vy = h0 - h2;
-                vz = 0;
 
-                wx = 0;
                 wy = h3 - h2;
                 wz = 256;
 
@@ -594,16 +589,14 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
         } else {
 
             if (xfrac + zfrac < 0x100) {
-                SLONG vx, vy, vz;
-                SLONG wx, wy, wz;
+                SLONG vx, vy;
+                SLONG wy, wz;
                 SLONG rx, ry, rz;
                 SLONG len;
 
                 vx = 256;
                 vy = h2 - h0;
-                vz = 0;
 
-                wx = 0;
                 wy = h1 - h0;
                 wz = -256;
 
@@ -625,16 +618,14 @@ SLONG RFACE_on_slope(SLONG face, SLONG x, SLONG z, SLONG* angle)
                 return (abs(256 - (len >> 8)));
 
             } else {
-                SLONG vx, vy, vz;
-                SLONG wx, wy, wz;
+                SLONG vx, vy;
+                SLONG wy, wz;
                 SLONG rx, ry, rz;
                 SLONG len;
 
                 vx = -256;
                 vy = h1 - h3;
-                vz = 0;
 
-                wx = 0;
                 wy = h2 - h3;
                 wz = -256;
 

@@ -68,8 +68,6 @@ void NS_precalculate()
     SLONG z;
     SLONG top;
     SLONG num;
-    SLONG used;
-    SLONG above;
     SLONG nx;
     SLONG nz;
     SLONG dx;
@@ -1080,7 +1078,6 @@ void NS_cache_create_curve_sewer(SLONG sx, SLONG sz)
     SLONG dx2;
     SLONG dz2;
     SLONG px;
-    SLONG py;
     SLONG pz;
     SLONG p[4];
     SLONG curve;
@@ -1285,9 +1282,6 @@ void NS_cache_create_curve_top(SLONG sx, SLONG sz)
     SLONG ox = sx << 8;
     SLONG oz = sz << 8;
     SLONG p[4];
-    SLONG px;
-    SLONG py;
-    SLONG pz;
     NS_Hi* nh;
 
     ASSERT(WITHIN(sx, 1, PAP_SIZE_HI - 2));
@@ -1568,7 +1562,6 @@ void NS_cache_create_grates(UBYTE mx, UBYTE mz)
     SLONG z2;
     SLONG sx;
     SLONG sz;
-    SLONG fall;
     NS_Hi* nh;
     SLONG p[4];
 
@@ -1812,7 +1805,6 @@ void NS_slide_along(
 {
     SLONG i;
     SLONG height;
-    SLONG collided = UC_FALSE;
     SLONG mx;
     SLONG mz;
     SLONG dx;

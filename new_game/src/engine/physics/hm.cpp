@@ -65,7 +65,6 @@ void HM_init()
 void HM_load(CBYTE* fname)
 {
     SLONG i;
-    SLONG j;
 
     HM_Header hm_h;
     FILE* handle;
@@ -210,17 +209,15 @@ UBYTE HM_create(
     SLONG i;
     SLONG x, y, z;
     SLONG dx, dy, dz;
-    SLONG index, index1, index2;
+    SLONG index1, index2;
     SLONG num_points, num_edges;
     SLONG edge_upto, point_upto;
     SLONG ans;
     float dpx, dpy, dpz, size;
 
     HM_Object* ho;
-    HM_Point* hp;
     HM_Point* hp1;
     HM_Point* hp2;
-    HM_Edge* he;
 
     // Find a free slot.
     for (i = 0; i < HM_MAX_OBJECTS; i++) {
@@ -252,8 +249,6 @@ found_unused_hm_object:;
     PrimObject* po = &prim_objects[prim];
     PrimInfo* pi = get_prim_info(prim);
     PrimPoint* pp;
-    PrimFace3* f3;
-    PrimFace4* f4;
 
     ASSERT(WITHIN(x_res, 2, HM_MAX_RES));
     ASSERT(WITHIN(y_res, 2, HM_MAX_RES));
@@ -1005,7 +1000,7 @@ static void HM_rel_cube_to_world(
     float* world_x, float* world_y, float* world_z)
 {
     float wx, wy, wz;
-    float len, matrix[9];
+    float matrix[9];
     HM_Point *hp_o, *hp_x, *hp_y, *hp_z;
     SLONG index_o, index_x, index_y, index_z;
 
@@ -1144,27 +1139,22 @@ static SLONG HM_bump_dead(HM_Object* ho, HM_Bump* hb)
 void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
 {
     SLONG i, j, k;
-    SLONG dx, dy, dz;
-    SLONG px, py, pz;
-    SLONG index;
     SLONG sx, sy, sz;
 
     float dpx, dpy, dpz;
-    float fx, fy, fz;
     float rel_x, rel_y, rel_z;
     float last_rel_x, last_rel_y, last_rel_z;
     float along_x, along_y, along_z;
     float along_enter;
     float enter_rel_x, enter_rel_y, enter_rel_z;
     float out_x, out_y, out_z;
-    float total_dist, dist, ddist, pdist, squash, wantdist, squaredist;
+    float total_dist, dist;
 
     SLONG byte, bit;
 
     HM_Object* ho1;
     HM_Object* ho2;
     HM_Point* hp;
-    HM_Point* hp2;
     HM_Bump* hb;
 
 // uc_orig: HM_ALREADY_BYTES (fallen/Source/hm.cpp)
@@ -1338,12 +1328,10 @@ void HM_collide(UBYTE hm_index1, UBYTE hm_index2)
 void HM_process()
 {
     SLONG i, j, k;
-    float ddx, ddy, ddz;
     float squaredist, dpx, dpy, dpz, pdist, wantdist;
-    float wantdistx, wantdisty, wantdistz;
-    float ddist, ddistx, ddisty, ddistz, squash;
+    float ddist, squash;
     float fx, fy, fz;
-    float gy, av_div;
+    float gy;
 
     HM_Object* ho;
     HM_Point* hp;

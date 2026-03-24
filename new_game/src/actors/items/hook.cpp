@@ -37,7 +37,6 @@
 static void HOOK_make_loop(SLONG x, SLONG z)
 {
     SLONG i;
-    SLONG y;
     SLONG dy;
     SLONG angle;
     SLONG dx;

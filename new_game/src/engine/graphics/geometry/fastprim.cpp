@@ -101,8 +101,6 @@ void FASTPRIM_free_cached_prim(SLONG prim)
 // uc_orig: FASTPRIM_free_queue_for_call (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
 {
-    SLONG duplicates = 0;
-
     SLONG old_lvert_free_end;
     SLONG old_index_free_end;
 
@@ -137,8 +135,6 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
             }
 
             return;
-        } else {
-            duplicates += 1;
         }
     }
 }

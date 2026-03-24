@@ -293,9 +293,7 @@ SLONG OB_avoid(
     SLONG ob_yaw, SLONG ob_prim,
     SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 {
-    SLONG x, y, z;
     SLONG dx, dz;
-    SLONG da, db;
     SLONG dist, dist1, dist2;
     SLONG px1, pz1, px2, pz2;
     SLONG ob_radius;
@@ -442,8 +440,6 @@ void OB_load_needed_prims()
     }
     load_general_prims();
 
-    SLONG page;
-
     for (i = 1; i < SPECIAL_NUM_TYPES; i++) {
         load_prim_object(SPECIAL_info[i].prim);
 
@@ -579,7 +575,6 @@ void OB_add_walkable_faces()
     SLONG px, py, pz;
     SLONG mx, mz;
     PrimObject* po;
-    PrimPoint* pp;
     PrimFace4* f4;
     OB_Info* oi;
     SLONG matrix[9];
@@ -934,7 +929,6 @@ SLONG OB_inside_prim(SLONG x, SLONG y, SLONG z)
     SLONG mx2 = x + 0x180 >> 10;
     SLONG mz2 = z + 0x180 >> 10;
     OB_Info* oi;
-    PrimInfo* pi;
 
     for (mx = mx1; mx <= mx2; mx++)
         for (mz = mz1; mz <= mz2; mz++) {

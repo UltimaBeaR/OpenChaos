@@ -471,9 +471,7 @@ void PYRO_fn_init_ex(Thing* thing)
 void PYRO_fn_normal(Thing* thing)
 {
     GameCoord new_pos;
-    SLONG mag, rpos, altitude;
     UBYTE i;
-    CBYTE msg[300];
 
     Pyro* pyro = PYRO_get_pyro(thing);
 
@@ -738,7 +736,7 @@ void PYRO_fn_normal(Thing* thing)
 
     case PYRO_FLICKER: {
         GameCoord pos;
-        SLONG dx, dz, nx, nz, cr, cosa, sina;
+        SLONG dx, dz, nx, nz, cosa, sina;
 
         pyro->counter++;
         if (pyro->Dummy & 1)
@@ -1235,7 +1233,6 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
     SLONG page;
     float scale;
     float u, v, w, h;
-    UBYTE* palptr;
     SLONG palndx;
     SLONG dx, dy, dz;
 
@@ -1268,7 +1265,6 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
     if (trans >= 1) {
         switch (page) {
         case POLY_PAGE_FLAMES:
-            palptr = (trans * 3) + fire_pal;
             palndx = (256 - trans) * 3;
             trans <<= 24;
             trans += (fire_pal[palndx] << 16) + (fire_pal[palndx + 1] << 8) + fire_pal[palndx + 2];
@@ -1842,7 +1838,7 @@ static void PYRO_draw_explosion(Pyrex* pyro)
     POLY_Point pp[3];
     POLY_Point* tri[3];
     UBYTE i, j;
-    SLONG ok, spec;
+    SLONG spec;
     SLONG cx, cy, cz;
     RadPoint points[17];
 
@@ -1962,10 +1958,9 @@ static void PYRO_draw_dustwave(Pyro* pyro)
 {
     POLY_Point pp[3], mid;
     POLY_Point* tri[3] = { &pp[0], &pp[1], &pp[2] };
-    SLONG cx, cy, cz, ok, fade;
+    SLONG cx, cy, cz, fade;
     UBYTE sections, pass, sector, next;
     SLONG dxs[DUSTWAVE_SECTORS], dys[DUSTWAVE_SECTORS], dists[4], heights[4];
-    float thisscale, nextscale;
 
     cx = pyro->thing->WorldPos.X >> 8;
     cy = pyro->thing->WorldPos.Y >> 8;
@@ -2014,9 +2009,6 @@ static void PYRO_draw_dustwave(Pyro* pyro)
             if (next == iNumSectors)
                 next = 0;
 
-            thisscale = TEXSCALE * ((4.0f - pass) * 0.25f);
-            nextscale = TEXSCALE * ((3.0f - pass) * 0.25f);
-
             POLY_transform(cx + ((dists[pass] * dxs[sector]) / 256), cy + heights[pass], cz + ((dists[pass] * dys[sector]) / 256), &pp[0]);
             POLY_transform(cx + ((dists[pass] * dxs[next]) / 256), cy + heights[pass], cz + ((dists[pass] * dys[next]) / 256), &pp[1]);
             pp[0].u = 0.0f;
@@ -2033,7 +2025,6 @@ static void PYRO_draw_dustwave(Pyro* pyro)
             }
             pp[0].colour = pp[1].colour = pp[2].colour = 0xFFFFFF | fade;
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000;
-            ok = pp[0].clip & pp[1].clip & pp[2].clip;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
                 POLY_add_triangle(tri, POLY_PAGE_DUSTWAVE, UC_FALSE);
             }
@@ -2073,7 +2064,7 @@ static void PYRO_draw_explosion2(Pyro* pyro)
     POLY_Point pp[3];
     POLY_Point* tri[3];
     UBYTE i, j, k, b;
-    SLONG ok, spec, fade[4];
+    SLONG spec, fade[4];
     SLONG cx, cy, cz;
     RadPoint points[33];
     SLONG sc_radius;
@@ -2184,7 +2175,6 @@ static void PYRO_draw_explosion2(Pyro* pyro)
             pp[0].colour = 0xFFFFFF + fade[k];
             pp[1].colour = pp[2].colour = 0xFFFFFF + fade[k + 1];
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
-            ok = pp[0].clip & pp[1].clip & pp[2].clip;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
                 POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
             }
@@ -2242,7 +2232,7 @@ static void PYRO_draw_newdome(Pyro* pyro)
     POLY_Point pp[3];
     POLY_Point* tri[3];
     UBYTE i, j, k, b;
-    SLONG ok, spec, fade[4];
+    SLONG spec, fade[4];
     SLONG cx, cy, cz;
     RadPoint points[33];
     SLONG sc_radius;
@@ -2372,7 +2362,6 @@ static void PYRO_draw_newdome(Pyro* pyro)
             pp[0].colour = 0xFFFFFF + fade[k];
             pp[1].colour = pp[2].colour = 0xFFFFFF + fade[k + 1];
             pp[0].specular = pp[1].specular = pp[2].specular = 0xFF000000 + spec;
-            ok = pp[0].clip & pp[1].clip & pp[2].clip;
             if (pp[0].MaybeValid() && pp[1].MaybeValid() && pp[2].MaybeValid()) {
                 POLY_add_triangle(tri, POLY_PAGE_BIGBANG, UC_FALSE);
             }
@@ -2468,7 +2457,7 @@ static void PYRO_alpha_line(
 static void PYRO_draw_twanger(Pyro* pyro)
 {
     SLONG cx, cy, cz, c;
-    SLONG dx, dy, dz, tx, ty;
+    SLONG dx, dy, dz;
     SLONG col1, col2, dir, ang;
     UBYTE i;
 
@@ -2554,7 +2543,6 @@ static void PYRO_draw_armageddon(Pyro* pyro)
 {
     Thing* thing;
     GameCoord pos;
-    SWORD i, j;
 
     if (GAMEMENU_is_paused())
         return;

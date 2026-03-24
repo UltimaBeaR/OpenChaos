@@ -57,11 +57,6 @@ SLONG any_button_pressed(void)
 void game_attract_mode(void)
 {
     float y;
-    UBYTE *image_mem = NULL,
-          *image = NULL;
-    SLONG height,
-        image_size;
-    MFFileHandle image_file;
     SLONG dont_leave_for_a_while = 25;
 
     extern void NIGHT_init();
@@ -85,8 +80,6 @@ reinit_because_of_language_change:
     bReinitBecauseOfLanguageChange = UC_FALSE;
 
     LPDIRECT3DDEVICE3 dev = the_display.lp_D3D_Device;
-    HRESULT hres;
-
     D3DVIEWPORT2 vp;
     vp.dwSize = sizeof(vp);
     vp.dwX = the_display.ViewportRect.x1;
@@ -99,7 +92,7 @@ reinit_because_of_language_change:
     vp.dvClipHeight = (float)vp.dwHeight;
     vp.dvMinZ = 0.0f;
     vp.dvMaxZ = 1.0f;
-    hres = the_display.lp_D3D_Viewport->SetViewport2(&vp);
+    the_display.lp_D3D_Viewport->SetViewport2(&vp);
 
     dev->SetRenderState(D3DRENDERSTATE_FILLMODE, D3DFILL_SOLID);
     dev->SetRenderState(D3DRENDERSTATE_STIPPLEDALPHA, UC_FALSE);
@@ -232,8 +225,6 @@ reinit_because_of_language_change:
         if (go_into_game) {
             ShowBackImage(UC_FALSE);
             AENG_flip();
-        } else {
-            SLONG c0;
         }
     }
 
@@ -258,8 +249,7 @@ void ScoresDraw(void)
     // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
     extern DWORD stat_start_time, stat_game_time;
 
-    SLONG y = 35;
-    SLONG count = 0, count_bonus = 0, count_bonus_left = 0, c0;
+    SLONG count = 0, count_bonus_left = 0, c0;
     SLONG ticks, h, m, s;
     ticks = stat_game_time;
 

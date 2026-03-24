@@ -1106,10 +1106,6 @@ void BAT_normal(Thing* p_thing)
     SLONG wangle;
     SLONG dangle;
 
-    SLONG goto_x;
-    SLONG goto_y;
-    SLONG goto_z;
-
     SLONG ground;
 
     SLONG end;

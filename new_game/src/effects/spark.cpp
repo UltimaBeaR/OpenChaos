@@ -591,8 +591,6 @@ void SPARK_in_sphere(
     UBYTE max_life,
     UBYTE max_create)
 {
-    SLONG i;
-
     SLONG x1;
     SLONG z1;
     SLONG x2;
@@ -611,14 +609,6 @@ void SPARK_in_sphere(
     } choice[SPARK_MAX_CHOICES];
     SLONG choice_upto = 0;
 
-    SPARK_Pinfo* sp1;
-    SPARK_Pinfo* sp2;
-
-#define SPARK_MAX_DONE 64
-
-    UWORD done[SPARK_MAX_DONE];
-    SLONG done_upto = 0;
-
     x1 = mid_x - radius >> 8;
     z1 = mid_z - radius >> 8;
     x2 = mid_x + radius >> 8;
@@ -631,18 +621,9 @@ void SPARK_in_sphere(
 
     for (mx = x1; mx <= x2; mx++)
         for (mz = z1; mz <= z2; mz++) {
-            MapElement* me = &MAP[MAP_INDEX(mx, mz)];
-
             /*
             // (prim-based spark origins — commented out in original)
             */
-
-            SLONG v_list;
-            SLONG i_vect;
-
-            CollisionVect* p_vect;
-
-            v_list = MAP2(mx, mz).ColVectHead;
         }
 
     SLONG choose;
@@ -668,7 +649,6 @@ void SPARK_show_electric_fences()
     SLONG i;
 
     SLONG dx;
-    SLONG dy;
     SLONG dz;
 
     SLONG bottom;

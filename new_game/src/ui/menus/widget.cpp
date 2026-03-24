@@ -245,7 +245,7 @@ void INPUT_Init(Widget* widget)
 void INPUT_Draw(Widget* widget)
 {
     WidgetPoint pt, pt2;
-    SLONG flags = 0, len, xd, yd, w;
+    SLONG flags = 0, len, xd, yd;
     ULONG rgb = widget->form->textcolour;
     CBYTE* str = 0;
 
@@ -470,7 +470,7 @@ void TEXTS_Free(Widget* widget)
 void TEXTS_Draw(Widget* widget)
 {
     WidgetPoint pt, pt2, pt3, ctr = WIDGET_Centre(widget);
-    ListEntry *item, *item2;
+    ListEntry* item;
     SLONG flags, y, ys, yctr = 0;
     UBYTE shift = widget->state & WIDGET_STATE_FOCUS ? 0 : 1;
     ULONG rgb, localctr = widget->form->age * 6;
@@ -613,8 +613,6 @@ SLONG TEXTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
 // uc_orig: TEXTS_Char (fallen/Source/widget.cpp)
 BOOL TEXTS_Char(Widget* widget, CBYTE key)
 {
-    ListEntry* item;
-
     if (widget->state & WIDGET_STATE_DISABLED)
         return 0;
     if (key == 13)
@@ -872,7 +870,6 @@ void GLYPH_Draw(Widget* widget)
 void SHADE_Draw(Widget* widget)
 {
     WidgetPoint pt, pt2;
-    float x, y, ox, oy;
     SLONG rgb, a;
 
     pt = FORM_To_Screen(widget->form, TO_WIDGETPNT(widget->x, widget->y));
@@ -922,7 +919,7 @@ void WIDGET_menu(Form* form, ...)
     UBYTE count, i;
     SLONG ox = (form->ox - form->x);
     SLONG oy = (form->oy - form->y);
-    SLONG xofs, yofs, pos;
+    SLONG yofs, pos;
     CBYTE* txt;
 
     va_start(marker, form);

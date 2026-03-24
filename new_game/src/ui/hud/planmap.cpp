@@ -188,8 +188,6 @@ static void get_screen_xy(SLONG* x, SLONG* z)
 // uc_orig: map_beacon_draw (fallen/DDEngine/Source/planmap.cpp)
 void map_beacon_draw(SLONG x, SLONG z, ULONG col, ULONG flag, UWORD dir)
 {
-    UBYTE radius;
-    SLONG screen_pitch;
     SLONG mx, mz;
     SLONG size = 3;
 
@@ -243,15 +241,9 @@ void map_beacon_draw(SLONG x, SLONG z, ULONG col, ULONG flag, UWORD dir)
 void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG w, SLONG h, UBYTE* mem)
 {
     SLONG minx, maxx, minz, maxz;
-    SLONG lminx, lmaxx, lminz, lmaxz;
-    SLONG x, z, csx, csy, c0;
+    SLONG x, z, csx, csy;
     SLONG r, g, b, shadow;
     SLONG edge;
-    UBYTE* m;
-
-    MFFileHandle image_file;
-    SLONG height;
-    UBYTE* image;
 
     // image_mem: defined in GDisplay.cpp, holds a captured screenshot of the background.
     extern UBYTE* image_mem;
@@ -265,8 +257,6 @@ void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG 
     screen_mx = wx;
     screen_mz = wz;
     block_size = pixelw;
-
-    m = mem;
 
     clip_left = sx;
     clip_right = sx + w;

@@ -25,8 +25,6 @@ void init_best_found(void);
 // keyboard and sound. Returns UC_TRUE if the window was created successfully.
 BOOL SetupHost(ULONG flags)
 {
-    DWORD id;
-
     ShellActive = UC_FALSE;
 
     if (!SetupMemory())
@@ -99,21 +97,6 @@ void ResetHost(void)
 void ShellPaused(void)
 {
     return;
-
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    DWORD timeout;
-
-    if (PauseFlags & PAUSE) {
-        PauseFlags |= PAUSE_ACK;
-        timeout = GetTickCount();
-        while (PauseFlags & PAUSE)
-        {
-            if (Keys[KB_L]) {
-                LibShellMessage("ShellPauseOff: Timeout", __FILE__, __LINE__);
-            }
-        }
-        PauseFlags |= PAUSE_ACK;
-    }
 }
 
 // uc_orig: ShellPauseOn (fallen/DDLibrary/Source/GHost.cpp)
@@ -124,24 +107,6 @@ void ShellPauseOn(void)
 {
     the_display.toGDI();
     return;
-
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    DWORD timeout;
-
-    PauseCount++;
-    if (PauseCount == 1) {
-        PauseFlags |= PAUSE;
-        timeout = GetTickCount();
-        while (!(PauseFlags & PAUSE_ACK))
-        {
-            if (Keys[KB_L]) {
-                LibShellMessage("ShellPauseOff: Timeout", __FILE__, __LINE__);
-            }
-        }
-        PauseFlags &= ~PAUSE_ACK;
-
-        the_display.toGDI();
-    }
 }
 
 // uc_orig: ShellPauseOff (fallen/DDLibrary/Source/GHost.cpp)
@@ -150,27 +115,6 @@ void ShellPauseOn(void)
 void ShellPauseOff(void)
 {
     return;
-
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    DWORD timeout;
-
-    if (PauseCount == 0)
-        return;
-
-    if (PauseCount == 1) {
-        the_display.fromGDI();
-
-        PauseFlags &= ~PAUSE;
-        timeout = GetTickCount();
-        while (!(PauseFlags & PAUSE_ACK))
-        {
-            if (Keys[KB_L]) {
-                LibShellMessage("ShellPauseOff: Timeout", __FILE__, __LINE__);
-            }
-        }
-        PauseFlags &= ~PAUSE_ACK;
-    }
-    PauseCount--;
 }
 
 // uc_orig: LibShellActive (fallen/DDLibrary/Source/GHost.cpp)
@@ -308,7 +252,7 @@ int HOST_run(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWin
     // CreateEventA always succeeds; if the event already existed ERROR_ALREADY_EXISTS
     // is set, meaning another instance is running — bail out.
     // The event is automatically destroyed when the process exits.
-    HANDLE hEvent = CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
+    CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
         return MF_main(argc, argv);
     }

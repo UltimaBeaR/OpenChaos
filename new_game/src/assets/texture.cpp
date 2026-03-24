@@ -294,7 +294,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     int iEndCompletionBar,
     int iNumberTexturesProbablyLoaded)
 {
-    SLONG i, j, k;
+    SLONG i, k;
     SLONG x;
     SLONG z;
 
@@ -305,9 +305,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     float u[4];
     float v[4];
 
-    SLONG c0, c1;
-
-    MapElement* me;
 
     extern UBYTE loading_screen_active;
 
@@ -1111,21 +1108,7 @@ void TEXTURE_fix_prim_textures()
 // Attempts to set a colour key on a texture page (returns immediately — was never used on D3D path).
 void TEXTURE_set_colour_key(SLONG page)
 {
-    DDCOLORKEY ck;
-
     return;
-
-    ASSERT(WITHIN(page, 0, TEXTURE_num_textures - 1));
-
-    if (TEXTURE_fiddled) {
-        ck.dwColorSpaceLowValue = 0x00000000;
-        ck.dwColorSpaceHighValue = 0x00000000;
-    } else {
-        ck.dwColorSpaceLowValue = 0;
-        ck.dwColorSpaceHighValue = 0;
-    }
-
-    TEXTURE_texture[page].SetColorKey(DDCKEY_SRCBLT, &ck);
 }
 
 // uc_orig: TEXTURE_shadow_lock (fallen/DDEngine/Source/texture.cpp)
@@ -1238,7 +1221,6 @@ void TEXTURE_set_tga(SLONG page, CBYTE* fn)
 // Sets TEXTURE_liney, TEXTURE_av_r/g/b as side effects.
 SLONG TEXTURE_looks_like(SLONG page)
 {
-    SLONG i;
     SLONG j;
     SLONG px;
     SLONG py;
@@ -1263,19 +1245,13 @@ SLONG TEXTURE_looks_like(SLONG page)
     SLONG av_r;
     SLONG av_g;
     SLONG av_b;
-    SLONG diff_r;
-    SLONG diff_g;
-    SLONG diff_b;
     SLONG dir;
-    SLONG diff;
     SLONG pdiff_r;
     SLONG pdiff_g;
     SLONG pdiff_b;
     SLONG diff_along;
     SLONG diff_left;
     SLONG diff_right;
-    SLONG ddiff_l;
-    SLONG ddiff_r;
     SLONG lines;
 
     ASSERT(WITHIN(page, 0, 511));
@@ -1321,40 +1297,8 @@ SLONG TEXTURE_looks_like(SLONG page)
             }
         }
 
-        diff_r = 0;
-        diff_g = 0;
-        diff_b = 0;
-
 #define TEXTURE_SAMPLE_DIFF1 128
 #define TEXTURE_SAMPLE_DIFF2 4
-
-        for (i = 0; i < TEXTURE_SAMPLE_DIFF1; i++) {
-            px1 = rand() & (dt->size - 1);
-            py1 = rand() & (dt->size - 1);
-            pixel = bitmap[px1 + py1 * pitch];
-            r1 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-            g1 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-            b1 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-
-            for (j = 0; j < TEXTURE_SAMPLE_DIFF2; j++) {
-                px2 = px1 + (rand() & 0x7) - 0x3;
-                py2 = py1 + (rand() & 0x7) - 0x3;
-                px2 &= dt->size - 1;
-                py2 &= dt->size - 1;
-                pixel = bitmap[px2 + py2 * pitch];
-                r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-                g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-                b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
-                diff_r += abs(r2 - r1);
-                diff_g += abs(g2 - g1);
-                diff_b += abs(b2 - b1);
-            }
-        }
-
-        diff_r /= TEXTURE_SAMPLE_DIFF1 * TEXTURE_SAMPLE_DIFF2;
-        diff_g /= TEXTURE_SAMPLE_DIFF1 * TEXTURE_SAMPLE_DIFF2;
-        diff_b /= TEXTURE_SAMPLE_DIFF1 * TEXTURE_SAMPLE_DIFF2;
-        diff = diff_r + diff_g + diff_b;
 
         lines = 0;
 

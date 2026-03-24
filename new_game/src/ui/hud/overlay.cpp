@@ -288,8 +288,6 @@ void OVERLAY_handle(void)
     Thing* player = NET_PLAYER(0);
     SLONG panel = 1;
 
-    CBYTE str[8];
-
     POLY_flush_local_rot();
 
     // Reset viewport to full screen (required for letterbox mode so HUD draws edge-to-edge).
@@ -306,7 +304,7 @@ void OVERLAY_handle(void)
     viewData.dvClipHeight = 2.0f;
     viewData.dvMinZ = 0.0f;
     viewData.dvMaxZ = 1.0f;
-    HRESULT hres = (the_display.lp_D3D_Viewport)->SetViewport2(&viewData);
+    (the_display.lp_D3D_Viewport)->SetViewport2(&viewData);
 
     PANEL_start();
 
@@ -325,8 +323,6 @@ void OVERLAY_handle(void)
     }
 
     if (!draw_map_screen) {
-        SLONG crime;
-
         if (darci) {
             if (darci->State == STATE_SEARCH) {
                 // PC search progress display was commented out in original.
@@ -346,7 +342,6 @@ void OVERLAY_handle(void)
         extern SLONG SW_tick1;
         extern SLONG SW_tick2;
         extern ULONG debug_input;
-        ULONG in = debug_input;
 
         extern SLONG geom;
         extern SLONG EWAY_cam_jumped;

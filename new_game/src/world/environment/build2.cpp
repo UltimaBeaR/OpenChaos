@@ -203,7 +203,6 @@ void add_facet_to_map(SLONG facet)
 
     switch (p_f->FacetType) {
     case STOREY_TYPE_LADDER: {
-        SLONG y, extra_height;
         calc_ladder_ends(&x1, &z1, &x2, &z2);
     } break;
     }

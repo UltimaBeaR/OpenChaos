@@ -116,14 +116,6 @@ void invert_mult(struct Matrix33* mat, struct PrimPoint* pp)
 // uc_orig: sort_multi_object (fallen/Source/io.cpp)
 void sort_multi_object(struct KeyFrameChunk* the_chunk)
 {
-    SLONG c0, c1, c2,
-        so, eo,
-        sp, ep;
-    struct KeyFrameElement* the_element;
-    struct PrimObject* p_obj;
-    struct KeyFrame* the_keyframe;
-    SLONG multi;
-
     // Body is fully commented out in the original — no-op.
 }
 
@@ -143,9 +135,6 @@ void set_default_people_types(struct KeyFrameChunk* the_chunk)
 // uc_orig: make_compress_matrix (fallen/Source/io.cpp)
 void make_compress_matrix(struct KeyFrameElement* the_element, struct Matrix33* matrix)
 {
-    ULONG encode;
-    SLONG u, v, w;
-
     the_element->CMatrix.M[0] = ((((matrix->M[0][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[0][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[0][2] >> 6)) << 0) & CMAT2_MASK);
     the_element->CMatrix.M[1] = ((((matrix->M[1][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[1][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[1][2] >> 6)) << 0) & CMAT2_MASK);
     the_element->CMatrix.M[2] = ((((matrix->M[2][0] >> 6)) << 20) & CMAT0_MASK) + ((((matrix->M[2][1] >> 6)) << 10) & CMAT1_MASK) + ((((matrix->M[2][2] >> 6)) << 0) & CMAT2_MASK);
@@ -155,7 +144,7 @@ void make_compress_matrix(struct KeyFrameElement* the_element, struct Matrix33* 
 void normalise_max_matrix(float fe_matrix[3][3], float* x, float* y, float* z)
 {
     float len;
-    SLONG h, w;
+    SLONG h;
 
     len = fe_matrix[0][0] * fe_matrix[0][0];
     len += fe_matrix[0][1] * fe_matrix[0][1];
@@ -187,13 +176,8 @@ void load_multi_vue(struct KeyFrameChunk* the_chunk, float shrink_me)
     struct Matrix33 temp_matrix;
     struct KeyFrame* the_key_frame;
     struct KeyFrameElement* the_element;
-    SLONG pivot;
     UWORD frame_id[4501];
-    SLONG funny_fanny = 0;
     SLONG c2;
-
-    if (the_chunk->ElementCount != 15)
-        funny_fanny = 1;
 
     set_default_people_types(the_chunk);
 
@@ -228,11 +212,6 @@ void load_multi_vue(struct KeyFrameChunk* the_chunk, float shrink_me)
                             for (c2 = 0; c2 < strlen(transform_name); c2++) {
                                 transform_name[c2] = tolower(transform_name[c2]);
                             }
-
-                            if ((!strcmp(transform_name, "lfoot")) || (!strcmp(transform_name, "pivot")))
-                                pivot = 1;
-                            else
-                                pivot = 0;
 
                             fscanf(f_handle, "%f%f%f", &fe_matrix[0][0], &fe_matrix[0][1], &fe_matrix[0][2]);
                             fscanf(f_handle, "%f%f%f", &fe_matrix[1][0], &fe_matrix[1][1], &fe_matrix[1][2]);
@@ -471,7 +450,7 @@ SLONG load_a_multi_prim(CBYTE* name)
 // uc_orig: find_matching_face (fallen/Source/io.cpp)
 SLONG find_matching_face(struct PrimPoint* p1, struct PrimPoint* p2, struct PrimPoint* p3, UWORD prim)
 {
-    SLONG c0, sf, ef, point;
+    SLONG c0, sf, ef;
     sf = prim_objects[prim].StartFace4;
     ef = prim_objects[prim].EndFace4;
 
@@ -486,12 +465,6 @@ SLONG find_matching_face(struct PrimPoint* p1, struct PrimPoint* p2, struct Prim
 // uc_orig: create_kline_bottle (fallen/Source/io.cpp)
 void create_kline_bottle(void)
 {
-    float x, y, z, u, v;
-    float sqrt_2, a = 1.0;
-    struct PrimFace4* p_f4;
-
-    float step = PI / 10.0;
-
     // Disabled in original — mesh generation code is fully commented out.
     return;
 }
@@ -552,7 +525,6 @@ SLONG save_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name)
 SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_chunk)
 {
     SLONG save_type = 0, c0;
-    SLONG temp;
     ULONG addr1, addr2, a_off, ae_off;
     ULONG af_off, addr3;
     UWORD check;
@@ -729,7 +701,7 @@ SLONG load_insert_a_multi_prim(MFFileHandle handle)
 // uc_orig: load_anim_system (fallen/Source/io.cpp)
 SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG type)
 {
-    SLONG c0, point;
+    SLONG c0;
     MFFileHandle handle;
     SLONG save_type = 0;
     CBYTE ext_name[100];
@@ -831,13 +803,10 @@ SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG typ
 // uc_orig: load_append_game_chunk (fallen/Source/io.cpp)
 SLONG load_append_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_chunk, SLONG start_frame)
 {
-    SLONG save_type = 0, c0;
-    SLONG temp;
-    ULONG addr1, addr2, a_off, ae_off;
-    ULONG af_off, addr3;
+    SLONG save_type = 0;
+    ULONG addr1, addr2;
+    ULONG addr3;
     UWORD check;
-
-    struct GameKeyFrameElementBig* temp_mem;
 
     SLONG ElementCount;
     SWORD MaxPeopleTypes;
@@ -845,8 +814,6 @@ SLONG load_append_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     SWORD MaxAnimFrames;
     SWORD MaxFightCols;
     SLONG MaxElements;
-
-    ULONG error;
 
     FileRead(handle, (UBYTE*)&save_type, sizeof(save_type));
 
@@ -907,7 +874,6 @@ void skip_a_prim(SLONG prim, MFFileHandle handle, SLONG save_type)
 {
     SLONG c0;
     SLONG sf3, ef3, sf4, ef4, sp, ep;
-    SLONG dp;
 
     if (handle != FILE_OPEN_ERROR) {
         FileSeek(handle, SEEK_MODE_CURRENT, 32); // skip object name
@@ -959,7 +925,7 @@ void skip_load_a_multi_prim(MFFileHandle handle)
 // uc_orig: append_anim_system (fallen/Source/io.cpp)
 SLONG append_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG start_anim, SLONG load_mesh)
 {
-    SLONG c0, point;
+    SLONG c0;
     MFFileHandle handle;
     SLONG save_type = 0;
     CBYTE ext_name[100];

@@ -45,7 +45,7 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
 {
     TGA_Pixel* temp;
     UBYTE* pt;
-    UWORD x, y, ox, oy, ofs, yofs;
+    UWORD x, y, ox, oy, ofs;
     CBYTE tmp[_MAX_PATH];
 
     if (!stricmp(fn, FontName))
@@ -69,7 +69,6 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
                 FontInfo[*pt].x = ox = x + 1;
                 FontInfo[*pt].y = oy = y + 1;
                 ofs += 257;
-                yofs = 0;
                 while (!Red(ofs + 1, temp)) {
                     ofs++;
                     ox++;
@@ -78,7 +77,6 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
                 while (!Red(ofs + 256, temp)) {
                     ofs += 256;
                     oy++;
-                    yofs++;
                 }
                 FontInfo[*pt].oy = oy;
 
@@ -108,7 +106,6 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
 // uc_orig: MENUFONT_Draw (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max)
 {
-    const UBYTE haloscale = 3;
     SLONG width = 0, height, c0, len = strlen(msg);
     UBYTE* pt;
     POLY_Point pp[4];
@@ -194,7 +191,6 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
 // uc_orig: MENUFONT_Draw_floats (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags)
 {
-    const UBYTE haloscale = 3;
     SLONG c0, len = strlen(msg);
     float width = 0, height;
     UBYTE* pt;

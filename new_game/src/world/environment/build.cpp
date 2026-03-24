@@ -25,19 +25,14 @@ void BUILD_draw(Thing* p_thing)
 
     PrimFace4* p_f4;
     PrimFace3* p_f3;
-    PrimObject* p_obj;
 
     POLY_Point* pp;
-    POLY_Point* ps;
 
     POLY_Point* tri[3];
     POLY_Point* quad[4];
 
     SLONG page;
     SLONG backface_cull;
-    ULONG shadow;
-    ULONG face_colour;
-    ULONG face_specular;
 
     float bx = float(p_thing->WorldPos.X >> 8);
     float by = float(p_thing->WorldPos.Y >> 8);
@@ -51,9 +46,6 @@ void BUILD_draw(Thing* p_thing)
 
     bo_index = p_thing->Index;
     bo = &building_objects[bo_index];
-
-    // Shadow colour derived from ambient light.
-    shadow = ((LIGHT_amb_colour.red >> 1) << 16) | ((LIGHT_amb_colour.green >> 1) << 8) | ((LIGHT_amb_colour.blue >> 1) << 0);
 
     ULONG colour;
     ULONG specular;

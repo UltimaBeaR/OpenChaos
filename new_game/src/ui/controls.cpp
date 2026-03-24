@@ -86,13 +86,6 @@ extern UBYTE aeng_draw_cloud_flag;   // defined in aeng.cpp
 // uc_orig: tga (fallen/Source/Controls.cpp)
 static TGA_Pixel tga[480][640];
 
-// Widget pointers used by form_proc — declared here, visible to form_proc only.
-// uc_orig: test_form (fallen/Source/Controls.cpp)
-static Form* test_form;
-// uc_orig: widget_text (fallen/Source/Controls.cpp)
-static Widget* widget_text;
-// uc_orig: widget_ok (fallen/Source/Controls.cpp)
-static Widget* widget_ok;
 
 // uc_orig: INVENTORY_FADE_SPEED (fallen/Source/Controls.cpp)
 // Inventory panel fade speed in opacity units per frame.
@@ -1168,11 +1161,6 @@ void set_danger_level()
 // uc_orig: process_controls (fallen/Source/Controls.cpp)
 void process_controls(void)
 {
-    SLONG i;
-    SLONG j;
-    SLONG x;
-    SLONG z;
-
     Thing* darci = NET_PERSON(0);
 
     /*
@@ -1214,21 +1202,12 @@ void process_controls(void)
         //
 
         SLONG list;
-        SLONG num_mibs = 0;
         Thing* p_thing;
 
         for (list = thing_class_head[CLASS_PERSON]; list; list = p_thing->NextLink) {
             p_thing = TO_THING(list);
 
             ASSERT(p_thing->Class == CLASS_PERSON);
-
-            if (p_thing->Genus.Person->PersonType == PERSON_MIB1 || p_thing->Genus.Person->PersonType == PERSON_MIB2 || p_thing->Genus.Person->PersonType == PERSON_MIB3) {
-                //
-                // Found an mib...
-                //
-
-                num_mibs += 1;
-            }
         }
 
         /*
@@ -1478,9 +1457,6 @@ void process_controls(void)
     //	SM_process();
     SNIPE_process();
 
-    GameCoord position;
-    Thing* t_thing;
-
     // console processing
 
     static BOOL is_inputing = 0;
@@ -1575,8 +1551,6 @@ void process_controls(void)
                 CONTROLS_inventory_mode -= TICK_TOCK;
                 if (CONTROLS_inventory_mode < 0)
                     CONTROLS_inventory_mode = 0;
-
-                Thing* p_special = NULL;
 
                 if (!ShiftFlag) {
 
@@ -1808,8 +1782,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     }
 
     */
-
-    static UBYTE playing = 0;
 
     /*	if (playing&&(Keys[KB_3]||Keys[KB_4]||Keys[KB_5])) {
                     MFX_stop(THING_NUMBER(darci),MFX_WAVE_ALL);
@@ -2073,9 +2045,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         }
     }
 
-    static UBYTE hm_1 = 255;
-    static UBYTE hm_2 = 255;
-
     /*
     {
             SLONG process;
@@ -2163,16 +2132,12 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         */
     }
 
-    static THING_INDEX fti = 0;
-
     //
     // Tell the ID module where the player is, so that
     // it can draw the correct rooms.
     //
 
     //	ID_this_is_where_i_am((darci->WorldPos.X>>8) >> ELE_SHIFT, (darci->WorldPos.Z>>8) >> ELE_SHIFT);
-
-    static GameCoord enter_pos = { 0, 0, 0 }; // Where Darci entered the building.
 
     /*
 
@@ -2222,7 +2187,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     {
         static SLONG ribbon_id = -1;
         static UBYTE which_pyro = 0;
-        static SLONG line = 0;
         GameCoord posn;
 
         if (Keys[KB_P7]) {
@@ -2606,9 +2570,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         //		if (!psystem.Add(darci->WorldPos.X,darci->WorldPos.Y+0x300,darci->WorldPos.Z,0,0,0,POLY_PAGE_STEAM,1+((rand()&3)<<2),0x7FFFFFFF,PFLAGS_SMOKE|PFLAG_WANDER,128,4,1,2,3))
         //		if (!psystem.Exhaust(darci->WorldPos.X,darci->WorldPos.Y+0x300,darci->WorldPos.Z,2,10))
     }
-
-    static SLONG nav_x = 0;
-    static SLONG nav_z = 0;
 
     static SLONG ma_valid = 0;
     static MAV_Action ma = { 0, 0, 0, 0 };

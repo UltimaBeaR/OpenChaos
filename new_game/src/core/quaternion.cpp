@@ -250,8 +250,6 @@ BOOL is_unit(float a, float b, float c)
 // uc_orig: check_isonormal (fallen/DDEngine/Source/Quaternion.cpp)
 BOOL check_isonormal(FloatMatrix& m)
 {
-    BOOL r = UC_TRUE;
-
     if ((m.M[0][0] == 0) && (m.M[0][1] == 0) && (m.M[0][2] == 0))
         return UC_TRUE;
 

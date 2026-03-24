@@ -287,7 +287,7 @@ void CHOPPER_damp(Chopper* chopper, UBYTE factor)
 // uc_orig: CHOPPER_radius_broken (fallen/Source/chopper.cpp)
 UBYTE CHOPPER_radius_broken(GameCoord pnt, GameCoord ctr, SLONG radius)
 {
-    SLONG dist, dx, dz;
+    SLONG dx, dz;
 
     dx = (pnt.X - ctr.X) >> 8;
     dz = (pnt.Z - ctr.Z) >> 8;
@@ -297,7 +297,7 @@ UBYTE CHOPPER_radius_broken(GameCoord pnt, GameCoord ctr, SLONG radius)
 // uc_orig: CHOPPER_predict_altitude (fallen/Source/chopper.cpp)
 void CHOPPER_predict_altitude(Thing* thing, Chopper* chopper)
 {
-    SLONG tx, tz, dx, dz, altitude, gnd;
+    SLONG tx, tz, dx, dz, altitude;
     SLONG dist;
 
     if ((chopper->dx == 0) && (chopper->dz == 0))
@@ -311,8 +311,6 @@ void CHOPPER_predict_altitude(Thing* thing, Chopper* chopper)
 
     tx += dx;
     tz += dz;
-
-    gnd = PAP_calc_height_at(tx, tz) + 0x10;
 
     altitude = (675 << 8) + (PAP_calc_map_height_at(tx, tz) << 8);
 
@@ -340,7 +338,6 @@ void CHOPPER_predict_altitude(Thing* thing, Chopper* chopper)
 void CHOPPER_fn_init(Thing* thing)
 {
     Chopper* chopper = CHOPPER_get_chopper(thing);
-    DrawMesh* dm = CHOPPER_get_drawmesh(thing);
 
     chopper->home.X = thing->WorldPos.X;
     chopper->home.Y = thing->WorldPos.Y;
@@ -354,7 +351,6 @@ void CHOPPER_fn_normal(Thing* thing)
 {
     GameCoord new_pos;
     SLONG mag, rpos, altitude;
-    CBYTE msg[300];
 
     // Track player 0 (Darci) as default target.
     Thing* darci = NET_PERSON(0);
@@ -617,7 +613,6 @@ void CHOPPER_draw_chopper(Thing* p_chopper)
         target_y += chopper->target->WorldPos.Y;
         target_z += chopper->target->WorldPos.Z;
 
-        SLONG dx, dz, dist;
         SLONG maxspd = chopper->speed << 6;
 
         if (chopper->spotx > target_x)

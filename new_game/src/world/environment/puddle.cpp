@@ -139,7 +139,6 @@ void PUDDLE_init()
 {
     SLONG x;
     SLONG z;
-    MapElement* me;
 
     memset(PUDDLE_puddle, 0, sizeof(PUDDLE_puddle));
     memset(PUDDLE_mapwho, 0, sizeof(PUDDLE_mapwho));

@@ -519,15 +519,12 @@ TGA_Info TGA_load_remap(const CBYTE* file, const CBYTE* pname, SLONG max_width, 
     SLONG y1;
     SLONG y2;
 
-    SLONG tga_pixel_depth;
-    SLONG tga_image_type;
     SLONG tga_id_length;
 
     SLONG tga_pal;
 
     UBYTE header[18];
     UBYTE junk;
-    UBYTE definitely_no_alpha;
 
     FILE *handle, *phandle;
 
@@ -577,10 +574,8 @@ TGA_Info TGA_load_remap(const CBYTE* file, const CBYTE* pname, SLONG max_width, 
 
     tga_id_length = header[0x0];
     tga_pal = header[1];
-    tga_image_type = header[0x2];
     tga_width = header[0xc] + header[0xd] * 256;
     tga_height = header[0xe] + header[0xf] * 256;
-    tga_pixel_depth = header[0x10];
 
     ans.valid = 0;
     ans.width = tga_width;
@@ -629,7 +624,6 @@ TGA_Info TGA_load_remap(const CBYTE* file, const CBYTE* pname, SLONG max_width, 
             data[i].blue = remap_pal[col * 4 + 2];
             data[i].alpha = 255;
         }
-        definitely_no_alpha = 1;
     }
 
     MF_Fclose(handle);

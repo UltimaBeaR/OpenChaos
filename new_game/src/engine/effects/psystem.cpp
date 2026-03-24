@@ -59,10 +59,9 @@ void PARTICLE_Reset()
 // uc_orig: PARTICLE_Run (fallen/Source/psystem.cpp)
 void PARTICLE_Run()
 {
-    SLONG ctr, tx, ty, tz;
+    SLONG tx, ty, tz;
     Particle* p;
     SLONG trans;
-    UBYTE* palptr;
     SLONG palndx;
     UBYTE isWare;
 
@@ -170,7 +169,6 @@ void PARTICLE_Run()
             // As alpha decreases (particle fades), colour shifts from white-hot to dark red.
             if (p->flags & PFLAG_FIRE) {
                 trans = (p->colour & 0xFF000000) >> 24;
-                palptr = (trans * 3) + fire_pal;
                 palndx = (256 - trans) * 3;
                 trans <<= 24;
                 p->colour = trans + (fire_pal[palndx] << 16) + (fire_pal[palndx + 1] << 8) + fire_pal[palndx + 2];
@@ -275,7 +273,6 @@ void PARTICLE_Run()
                     SLONG i;
                     UWORD hurt[8];
                     SLONG num;
-                    THING_INDEX i_hurt;
 
                     num = THING_find_sphere(
                         p->x >> 8,
@@ -575,7 +572,7 @@ UWORD PARTICLE_Exhaust2(Thing* object, UBYTE density, UBYTE disperse)
 UWORD PARTICLE_Steam(SLONG x, SLONG y, SLONG z, UBYTE axis, SLONG vel, SLONG range, UBYTE time)
 {
     Particle p;
-    UBYTE i, dir;
+    UBYTE i;
     SLONG res = 1;
     SLONG dx, dy, dz, rx, ry, rz;
 
@@ -664,7 +661,6 @@ UWORD PARTICLE_SGrenade(Thing* object, UBYTE time)
 // split mode (0=full, 1=half, 2=quarter), sprite>>2 gives the cell index within the sheet.
 void PARTICLE_Draw()
 {
-    SLONG ctr;
     UBYTE ndx;
     Particle* p;
     float u, v, w, h, sz;

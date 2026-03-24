@@ -37,11 +37,6 @@ extern UWORD fade_black;
 #define COMBO_FALSE 0
 // uc_orig: COMBO_TRUE (fallen/DDEngine/Source/poly.cpp)
 #define COMBO_TRUE 1
-// uc_orig: COMBO_DIRTY (fallen/DDEngine/Source/poly.cpp)
-#define COMBO_DIRTY 2
-// uc_orig: m_iCurrentCombo (fallen/DDEngine/Source/poly.cpp)
-// Tracks whether a D3D vertex buffer combo (lock) is currently active.
-static int m_iCurrentCombo = COMBO_DIRTY;
 
 // Near-clip plane distance used throughout all clipping functions.
 // uc_orig: POLY_Z_NEARPLANE (fallen/DDEngine/Source/poly.cpp)
@@ -263,8 +258,6 @@ void POLY_camera_set(
         POLY_cam_lens,
         POLY_cam_over_view_dist);
 
-    HRESULT hres;
-
     // View matrix is identity — all transforms are concatenated into the world matrix.
     D3DMATRIX matTemp;
     matTemp._11 = 1.0f;
@@ -283,7 +276,7 @@ void POLY_camera_set(
     matTemp._24 = 0.0f;
     matTemp._34 = 0.0f;
     matTemp._44 = 1.0f;
-    hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_VIEW, &matTemp);
+    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_VIEW, &matTemp);
 
     // Projection matrix: identity-ish, with Z shifted by POLY_ZCLIP_PLANE.
     g_matProjection._11 = -1.0f;
@@ -303,7 +296,7 @@ void POLY_camera_set(
     g_matProjection._34 = 1.0f;
     g_matProjection._44 = 0.0f;
 
-    hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
+    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
 
     // Viewport: maps clip-space [-1,1] to pixel coordinates.
     memset(&g_viewData, 0, sizeof(D3DVIEWPORT2));
@@ -323,7 +316,7 @@ void POLY_camera_set(
     g_viewData.dvMinZ = 0.0f;
     g_viewData.dvMaxZ = 1.0f;
 
-    hres = (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
+    (the_display.lp_D3D_Viewport)->SetViewport2(&g_viewData);
 
     SUPERFACET_start_frame();
 }
@@ -549,7 +542,7 @@ void POLY_set_local_rotation(
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
+    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
 }
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Headers/poly.h)
@@ -582,7 +575,7 @@ void POLY_set_local_rotation_none(void)
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    HRESULT hres = (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
+    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
 }
 
 // uc_orig: POLY_transform_using_local_rotation_and_wibble (fallen/DDEngine/Headers/poly.h)
@@ -1081,7 +1074,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
     {
         SLONG i;
-        SLONG j;
         SLONG laura;
         SLONG poly_points;
 
@@ -1893,7 +1885,6 @@ void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour
 void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 {
     SLONG i;
-    SLONG j;
     SLONG k;
 
     PolyPage* pa;
@@ -2058,7 +2049,6 @@ extern void	show_text(void);
 void POLY_frame_draw_odd()
 {
     SLONG i;
-    SLONG j;
 
     PolyPage* pa;
 
@@ -2119,7 +2109,6 @@ void POLY_frame_draw_odd()
 void POLY_frame_draw_puddles()
 {
     PolyPage* pp = &POLY_Page[POLY_PAGE_PUDDLE];
-    PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
     if (pp->NeedsRendering()) {
         BEGIN_SCENE;

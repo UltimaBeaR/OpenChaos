@@ -65,7 +65,6 @@ void MIST_gust(
     SLONG gx2, SLONG gz2)
 {
     SLONG i;
-    SLONG j;
 
     SLONG sx;
     SLONG sz;

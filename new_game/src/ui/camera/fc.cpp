@@ -85,18 +85,6 @@ extern void set_slow_motion(UWORD motion);
 // uc_orig: FC_alter_for_pos (fallen/Source/fc.cpp)
 SLONG FC_alter_for_pos(FC_Cam* fc, SLONG* dheight, SLONG* ddist)
 {
-    SLONG dx, dz;
-    UBYTE cap;
-    SLONG px, pz;
-    SLONG height1, height2;
-    SLONG p = 0;
-
-    extern float POLY_cam_x;
-    extern float POLY_cam_z;
-
-    px = fc->focus->WorldPos.X >> 8;
-    pz = fc->focus->WorldPos.Z >> 8;
-
     if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING))) {
         *dheight = 0;
         *ddist = 200;
@@ -126,57 +114,8 @@ SLONG FC_alter_for_pos(FC_Cam* fc, SLONG* dheight, SLONG* ddist)
         return (0);
     }
 
-    dx = px - (SLONG)POLY_cam_x;
-    dz = pz - (SLONG)POLY_cam_z;
-
-    height1 = MAVHEIGHT(px >> 8, pz >> 8) << 6;
-    height2 = height1;
-
-    if (abs(dz) < abs(dx)) {
-        if (dx < 0) {
-            if ((px & 0xff) < 128) {
-                p = 128 - (px & 0xff);
-                if (px > (127 << 8))
-                    height2 = 0;
-                else
-                    height2 = MAVHEIGHT((px >> 8) + 1, pz >> 8) << 6;
-            }
-        } else {
-            if ((px & 0xff) > 128) {
-                p = (px & 0xff) - 128;
-                if (px < 256)
-                    height2 = 0;
-                else
-                    height2 = MAVHEIGHT((px >> 8) - 1, pz >> 8) << 6;
-            }
-        }
-    } else {
-        if (dz < 0) {
-            if ((pz & 0xff) < 128) {
-                p = 128 - (pz & 0xff);
-                if (pz > (127 << 8))
-                    height2 = 0;
-                else
-                    height2 = MAVHEIGHT(px >> 8, (pz >> 8) + 1) << 6;
-            }
-        } else {
-            if ((pz & 0xff) > 128) {
-                p = (pz & 0xff) - 128;
-                if (pz < 256)
-                    height2 = 0;
-                else
-                    height2 = MAVHEIGHT((px) >> 8, (pz >> 8) - 1) << 6;
-            }
-        }
-    }
-
-    if (height2 < height1 - 100 && 0) {
-        *dheight = (0x10000 * p) >> 7;
-        *ddist = 128 + ((128 * (128 - p)) >> 7);
-    } else {
-        *dheight = 0;
-        *ddist = 256;
-    }
+    *dheight = 0;
+    *ddist = 256;
 
     return (0);
 }
@@ -268,8 +207,6 @@ void FC_move_to(SLONG cam, SLONG world_x, SLONG world_y, SLONG world_z)
 // uc_orig: FC_focus_above (fallen/Source/fc.cpp)
 SLONG FC_focus_above(FC_Cam* fc)
 {
-    SLONG ground;
-    SLONG focus;
     SLONG above;
     SLONG lower = 0;
 
@@ -297,8 +234,6 @@ SLONG FC_focus_above(FC_Cam* fc)
     if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->InsideIndex) {
         above = fc->cam_height + (fc->cam_height >> 1);
     } else {
-        ground = PAP_calc_height_at(fc->focus_x >> 8, fc->focus_z >> 8);
-        focus = fc->focus_y >> 8;
         above = fc->cam_height;
 
         if (FC_cam[1].focus) {
@@ -375,7 +310,6 @@ void FC_calc_focus(FC_Cam* fc)
 
             fc->focus_yaw = yaw_car & 2047;
         } else {
-            SLONG dyaw;
             fc->focus_yaw = fc->focus->Draw.Tweened->Angle;
 
             if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE) {
@@ -431,9 +365,9 @@ void FC_calc_focus(FC_Cam* fc)
 
     case CLASS_VEHICLE:
     {
+        SLONG dyaw;
         SLONG yaw_car;
         SLONG yaw_cam;
-        SLONG dyaw;
 
         yaw_car = fc->focus->Genus.Vehicle->Angle;
         yaw_cam = fc->yaw >> 8;
@@ -894,8 +828,7 @@ void FC_process()
     SLONG dist;
     SLONG ddist;
     SLONG xforce, yforce, zforce;
-    SLONG shift;
-    SLONG behind_x, behind_y, behind_z;
+    SLONG behind_x, behind_z;
 
     UBYTE used_to_be_in_warehouse;
     SLONG offset_dist, offset_height;

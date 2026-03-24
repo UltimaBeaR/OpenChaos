@@ -385,12 +385,6 @@ target_compile_options(Fallen PRIVATE
     $<$<CONFIG:Release>:/clang:-O2>
     $<$<CONFIG:Release>:/clang:-fno-inline-functions>
     $<$<CONFIG:Release>:/clang:-fno-strict-aliasing>
-
-    # --- TEMPORARY: Stage 4.1 dead code detection (remove after cleanup) ---
-    /clang:-Wunused-function
-    /clang:-Wunused-variable
-    /clang:-Wunused-but-set-variable
-    /clang:-Wunreachable-code
 )
 
 # ---------------------------------------------------------------------------

@@ -1248,14 +1248,7 @@ void BARREL_shoot(
     Thing* p_barrel,
     Thing* p_shooter)
 {
-    ULONG in_the_air;
     SWORD wave;
-
-    if ((p_barrel->Genus.Barrel->flag & BARREL_FLAG_STILL) && !(p_barrel->Genus.Barrel->flag & BARREL_FLAG_STACKED)) {
-        in_the_air = UC_FALSE;
-    } else {
-        in_the_air = UC_TRUE;
-    }
 
     GameCoord barrelpos = p_barrel->WorldPos;
 

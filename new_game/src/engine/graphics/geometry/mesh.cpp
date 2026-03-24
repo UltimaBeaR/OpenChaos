@@ -102,7 +102,6 @@ static NIGHT_Colour* MESH_draw_guts(
     ULONG qc3;
 
     SLONG page;
-    ULONG colour_and = MESH_colour_and;
 
     PrimFace4* p_f4;
     PrimFace3* p_f3;
@@ -400,57 +399,6 @@ static NIGHT_Colour* MESH_draw_guts(
         }
     }
 
-    // Cinema screen special case: draw page-86 faces backwards with specular.
-    // Guarded by if(0) in the original — dead but kept as-is.
-    if (0)
-        if (prim == 122) {
-            for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-                p_f4 = &prim_faces4[i];
-
-                page = p_f4->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f4->TexturePage;
-
-                if (page == 86) {
-                    p0 = p_f4->Points[2] - sp;
-                    p1 = p_f4->Points[3] - sp;
-                    p2 = p_f4->Points[0] - sp;
-                    p3 = p_f4->Points[1] - sp;
-
-                    ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-                    ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-                    ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-                    ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
-
-                    quad[0] = &POLY_buffer[p0];
-                    quad[1] = &POLY_buffer[p1];
-                    quad[2] = &POLY_buffer[p2];
-                    quad[3] = &POLY_buffer[p3];
-
-                    if (POLY_valid_quad(quad)) {
-                        quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                        quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
-                        quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
-                        quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
-                        quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
-                        quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
-                        quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
-                        quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
-
-                        quad[0]->specular |= (0x00888888 & ~POLY_colour_restrict);
-                        quad[1]->specular |= (0x00888888 & ~POLY_colour_restrict);
-                        quad[2]->specular |= (0x00888888 & ~POLY_colour_restrict);
-                        quad[3]->specular |= (0x00888888 & ~POLY_colour_restrict);
-
-                        POLY_add_quad(quad, 86, UC_TRUE);
-                    }
-                }
-            }
-        }
-
     // Re-submit faces with environment mapping UV (sphere mapping from vertex normals).
     if (p_obj->flag & PRIM_FLAG_ENVMAPPED) {
         float nx;
@@ -656,7 +604,6 @@ void MESH_draw_morph(
 {
     SLONG i;
     SLONG sp;
-    SLONG ep;
 
     SLONG p0;
     SLONG p1;
@@ -715,7 +662,6 @@ void MESH_draw_morph(
     p_obj = &prim_objects[prim];
 
     sp = p_obj->StartPoint;
-    ep = p_obj->EndPoint;
 
     POLY_buffer_upto = 0;
     POLY_shadow_upto = 0;

@@ -95,7 +95,7 @@ void get_level_word(CBYTE* str)
 SLONG playing_combat_tutorial(void)
 {
 
-    SLONG c0 = 0, c1 = 0;
+    SLONG c0 = 0;
 
     while (ELEV_fname_level[c0] != '\\' && c0 < 101) {
         c0++;
@@ -120,7 +120,7 @@ SLONG playing_combat_tutorial(void)
 // uc_orig: playing_level (fallen/Source/eway.cpp)
 SLONG playing_level(const CBYTE* name)
 {
-    SLONG c0 = 0, c1 = 0;
+    SLONG c0 = 0;
 
     while (ELEV_fname_level[c0] != '\\' && c0 < 101) {
         c0++;
@@ -392,7 +392,6 @@ UWORD EWAY_create_enemy(
     SLONG random)
 {
     THING_INDEX p_index;
-    Thing* p_person;
     ULONG f1 = 0, f2 = 0;
 
     if (zone & (1 << 4)) {
@@ -425,8 +424,6 @@ UWORD EWAY_create_enemy(
         world_z << 8,
         yaw << 3,
         random, f1, f2);
-
-    p_person = TO_THING(p_index);
 
     return p_index;
 }
@@ -1076,10 +1073,6 @@ SLONG EWAY_find_id(SLONG id)
 // uc_orig: EWAY_fix_cond (fallen/Source/eway.cpp)
 void EWAY_fix_cond(EWAY_Cond* ec)
 {
-    SLONG id;
-    SLONG id1;
-    SLONG id2;
-
     if (ec->type == EWAY_COND_DEPENDENT || ec->type == EWAY_COND_PERSON_DEAD || ec->type == EWAY_COND_HALF_DEAD || ec->type == EWAY_COND_PERSON_USED || ec->type == EWAY_COND_ITEM_HELD || ec->type == EWAY_COND_CONVERSE_END || ec->type == EWAY_COND_PERSON_ARRESTED || ec->type == EWAY_COND_COUNTDOWN || ec->type == EWAY_COND_COUNTDOWN_SEE || ec->type == EWAY_COND_PERSON_NEAR || ec->type == EWAY_COND_IS_MURDERER || ec->type == EWAY_COND_KILLED_NOT_ARRESTED || ec->type == EWAY_COND_THING_RADIUS_DIR || ec->type == EWAY_COND_SPECIFIC_ITEM_HELD || ec->type == EWAY_COND_MOVE_RADIUS_DIR || ec->type == EWAY_COND_RANDOM) {
         ec->arg1 = EWAY_find_id(ec->arg1);
 
@@ -1109,10 +1102,6 @@ void EWAY_fix_cond(EWAY_Cond* ec)
 // uc_orig: EWAY_fix_do (fallen/Source/eway.cpp)
 void EWAY_fix_do(EWAY_Do* ed, EWAY_Way* ew)
 {
-    SLONG id;
-    SLONG id1;
-    SLONG id2;
-
     if (ed->type == EWAY_DO_CHANGE_ENEMY || ed->type == EWAY_DO_KILL_WAYPOINT || ed->type == EWAY_DO_LOCK_VEHICLE || ed->type == EWAY_DO_CHANGE_ENEMY_FLG || ed->type == EWAY_DO_STALL_CAR || ed->type == EWAY_DO_EXTEND_COUNTDOWN || ed->type == EWAY_DO_TRANSFER_PLAYER || ed->type == EWAY_DO_MAKE_PERSON_PEE || ed->type == EWAY_DO_MOVE_THING) {
         ed->arg1 = EWAY_find_id(ed->arg1);
     } else if (ed->type == EWAY_DO_CONVERSATION || ed->type == EWAY_DO_AMBIENT_CONV) {
@@ -1209,7 +1198,6 @@ SLONG EWAY_load_message_file(CBYTE* fname, UWORD* index, UWORD* number)
 void EWAY_load_fake_wander_text(CBYTE* fname)
 {
     CBYTE name_buffer[_MAX_PATH];
-    CBYTE str[100];
 
     EWAY_fake_wander_text_normal_index = NULL;
     EWAY_fake_wander_text_normal_number = 0;
@@ -1331,7 +1319,6 @@ CBYTE* EWAY_get_fake_wander_message(SLONG type)
 void EWAY_created_last_waypoint()
 {
     SLONG i;
-    SLONG id;
     SLONG points;
     SLONG total_points;
     SLONG num_guilty_people;
@@ -1595,7 +1582,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
         {
             SLONG depend = ec->arg1;
-            SLONG timer = ec->arg2;
 
             ASSERT(depend == 0 || WITHIN(depend, 1, EWAY_way_upto - 1));
 
@@ -1832,7 +1818,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
         {
             SLONG i;
-            SLONG found_at_least_one_person;
             SLONG eway_max = EWAY_way_upto;
 
             EWAY_Way* ew2;
@@ -2149,7 +2134,6 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 
         {
             UWORD person;
-            UWORD vehicle;
 
             person = EWAY_get_person(ec->arg1);
 
@@ -2488,12 +2472,9 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
 // uc_orig: EWAY_create_camera (fallen/Source/eway.cpp)
 void EWAY_create_camera(SLONG waypoint)
 {
-    SLONG i;
-
     ASSERT(WITHIN(waypoint, 1, EWAY_way_upto - 1));
 
     EWAY_Way* ew;
-    EWAY_Way* ew_target;
 
     ew = &EWAY_way[waypoint];
 
@@ -3436,13 +3417,10 @@ void EWAY_set_active(EWAY_Way* ew)
     case EWAY_DO_NAV_BEACON:
 
         {
-            CBYTE* str;
             UWORD track_thing = NULL;
 
             if (!WITHIN(ew->ed.arg1, 0, EWAY_MAX_MESSES - 1)) {
                 CONSOLE_text("Too many navbeacon messages for the waypoint system! Tell Mark!");
-            } else {
-                str = EWAY_mess[ew->ed.arg1];
             }
 
             track_thing = EWAY_get_person(ew->ed.arg2);
@@ -3683,20 +3661,7 @@ void EWAY_set_active(EWAY_Way* ew)
         // NOTE: Never actually reached at runtime — WPT_BONUS_POINTS is translated
         // to EWAY_DO_MESSAGE via a dead if(0) block in elev.cpp. Legacy code.
         {
-            UWORD mess = ew->ed.arg1;
             SLONG percent = ew->ed.arg2 * CRIME_RATE_SCORE_MUL >> 8;
-
-            CBYTE* str;
-
-            if (!WITHIN(mess, 0, EWAY_MAX_MESSES - 1)) {
-                str = "Too many messages for the waypoint system! Tell Mark!";
-            } else {
-                if (EWAY_mess[mess] == NULL) {
-                    str = "No objective message";
-                } else {
-                    str = EWAY_mess[mess];
-                }
-            }
 
             CRIME_RATE -= percent;
 
@@ -3872,8 +3837,6 @@ void EWAY_set_active(EWAY_Way* ew)
     case EWAY_DO_LOCK_VEHICLE:
 
     {
-        Thing* p_vehicle;
-
         if (!WITHIN(ew->ed.arg1, 1, EWAY_way_upto - 1)) {
         } else {
             EWAY_Way* ewv = &EWAY_way[ew->ed.arg1];
@@ -4245,21 +4208,11 @@ void EWAY_process_penalties()
 extern SWORD people_types[50];
 
 // Counts how many CREATE_ENEMY waypoints of each subtype exist.
-// Starts with an early return — body is dead code but preserved from original.
+// Always returns immediately — body is unreachable in original.
 // uc_orig: count_people_types (fallen/Source/eway.cpp)
 void count_people_types(void)
 {
     return;
-
-    EWAY_Way* ew;
-    SLONG i;
-
-    for (i = 1; i < EWAY_way_upto; i++) {
-        ew = &EWAY_way[i];
-        if (ew->ed.type == EWAY_DO_CREATE_ENEMY) {
-            people_types[ew->ed.subtype]++;
-        }
-    }
 }
 
 // Main mission update tick. Evaluates every waypoint each frame:
@@ -4828,7 +4781,6 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
     SLONG dx;
     SLONG dy;
     SLONG dz;
-    SLONG dist;
 
     SLONG cam_dist;
 
@@ -4865,44 +4817,6 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
     dx = abs(p_thing->WorldPos.X - x);
     dy = abs(p_thing->WorldPos.Y - y);
     dz = abs(p_thing->WorldPos.Z - z);
-
-    dist = QDIST3(dx, dy, dz) >> 8;
-
-    if (WITHIN(dist, 0x180, 0x700) && 0) {
-        dx = abs(p_listener->WorldPos.X - x);
-        dy = abs(p_listener->WorldPos.Y - y);
-        dz = abs(p_listener->WorldPos.Z - z);
-
-        dist = QDIST3(dx, dy, dz) >> 8;
-
-        if (WITHIN(dist, 0x200, 0x700)) {
-            x >>= 8;
-            y >>= 8;
-            z >>= 8;
-
-            if (there_is_a_los(
-                    x, y, z,
-                    p_thing->WorldPos.X >> 8,
-                    p_thing->WorldPos.Y + 0x6000 >> 8,
-                    p_thing->WorldPos.Z >> 8,
-                    LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-                if (there_is_a_los(
-                        x, y, z,
-                        p_listener->WorldPos.X >> 8,
-                        p_listener->WorldPos.Y + 0x6000 >> 8,
-                        p_listener->WorldPos.Z >> 8,
-                        LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-                    EWAY_cam_x = x << 8;
-                    EWAY_cam_y = y << 8;
-                    EWAY_cam_z = z << 8;
-
-                    EWAY_cam_active = UC_TRUE;
-
-                    return;
-                }
-            }
-        }
-    }
 
     // Distance between speakers determines how far back the camera sits.
     dx = p_listener->WorldPos.X - p_thing->WorldPos.X >> 8;
@@ -5088,7 +5002,6 @@ void EWAY_cam_look_at(Thing* p_thing)
     SLONG best_score;
 
     UWORD thing_yaw;
-    UWORD angle;
 
     SLONG view[EWAY_CAM_VIEW_ANGLES];
 

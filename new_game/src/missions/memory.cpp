@@ -103,7 +103,6 @@ void init_memory(void)
     SLONG mem_size, mem_cumlative = 0;
     struct MemTable* p_tab;
     UBYTE* p_all;
-    SLONG temp;
 
     // Override runtime maxima based on engine constants.
     save_table[SAVE_TABLE_PEOPLE].Maximum = RMAX_PEOPLE;
@@ -117,7 +116,6 @@ void init_memory(void)
 
     // Sum up total memory needed for all array slots.
     while (save_table[c0].Point) {
-        void* ptr;
         p_tab = &save_table[c0];
         mem_size = p_tab->StructSize * p_tab->Maximum;
         mem_cumlative += mem_size;
@@ -140,7 +138,6 @@ void init_memory(void)
 
     // Partition the flat block among all entries, aligning each to 4 bytes.
     while (save_table[c0].Point) {
-        void* ptr;
         p_tab = &save_table[c0];
         mem_size = p_tab->StructSize * p_tab->Maximum;
 
@@ -160,11 +157,7 @@ void init_memory(void)
 // uc_orig: set_darci_normals (fallen/Source/memory.cpp)
 void set_darci_normals(void)
 {
-    SLONG count_vertex;
-    SLONG c0, c1, index;
-    SLONG sp, ep;
-    SLONG last_point = 0, first_point = 0x7fffffff;
-    SLONG start_object;
+    SLONG c0;
     for (c0 = 1; c0 < darci_normal_count; c0++) {
         SLONG nx, ny, nz, c;
 
@@ -328,7 +321,6 @@ void convert_pointers_to_index(void)
     SLONG c0, i;
     static int max_people = 0, max_car = 0, max_mesh = 0, max_tween = 0, max_anim = 0, max_special = 0, max_bat = 0;
     SLONG count_people = 0, count_car = 0, count_mesh = 0, count_tween = 0, count_anim = 0, count_special = 0, count_bat = 0;
-    SLONG gap = 0;
 
     for (c0 = 0; c0 < MAX_THINGS; c0++) {
         convert_thing_to_index(TO_THING(c0));
@@ -1107,9 +1099,7 @@ void flag_v_faces(void)
 void load_whole_game(CBYTE* gamename)
 {
     SLONG c0 = 0, id;
-    SLONG* p_slong;
-    UWORD* p_uword;
-    UBYTE *p_mem, *p_all;
+    UBYTE* p_all;
     SLONG mem_size;
     struct MemTable* ptab;
     MFFileHandle handle = FILE_OPEN_ERROR;
@@ -1671,10 +1661,8 @@ file_error:;
 void save_dreamcast_wad(CBYTE* fname)
 {
     SLONG c0 = 0;
-    SLONG* p_slong;
-    UWORD* p_uword;
     UBYTE* p_mem;
-    SLONG mem_size, mem_cumlative = 0;
+    SLONG mem_size;
     struct MemTable* ptab;
     MFFileHandle handle = FILE_OPEN_ERROR;
     SLONG count;
@@ -1752,8 +1740,6 @@ void save_dreamcast_wad(CBYTE* fname)
                 FileWrite(handle, (UBYTE*)&mem_size, 4 - (mem_size & 3));
 
             FileWrite(handle, (UBYTE*)p_mem, mem_size);
-
-            mem_cumlative += mem_size;
 
             c0++;
         }

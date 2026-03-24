@@ -91,7 +91,7 @@ void SND_BeginAmbient()
 // uc_orig: new_outdoors_effects (fallen/Source/Sound.cpp)
 static void new_outdoors_effects()
 {
-    SLONG c0, dx, dy, dz, wave_id;
+    SLONG dx, wave_id;
 
     siren_time--;
     if (siren_time < 0) {
@@ -130,7 +130,6 @@ static void new_outdoors_effects()
         thunder_time--;
         if (thunder_time < 0) {
             dx = Random() & 2047;
-            dz = COS(dx) >> 8;
             dx = SIN(dx) >> 8;
 
             thunder_time = 300 + ((Random() & 0xFFFF) >> 5);
@@ -587,23 +586,7 @@ void SOUND_InitFXGroups(CBYTE* fn)
 // uc_orig: play_ambient_wave (fallen/Source/Sound.cpp)
 SLONG play_ambient_wave(SLONG sample, SLONG id, SLONG mode, SLONG range, UBYTE flags)
 {
-    SLONG x, y, z, dx, dy, dz, ang;
-
-    if (flags & 1)
-        ang = 896 + (Random() & 0xff);
-    else
-        ang = 1024;
-    ang += FC_cam[0].yaw;
-    ang &= 2047;
-
-    dx = (SIN(ang) / 256);
-    dz = (COS(ang) / 256);
-    if (range != 256) {
-        dx *= range;
-        dz *= range;
-        dx /= 256;
-        dz /= 256;
-    }
+    SLONG x, y, z;
 
     x = FC_cam[0].x;
     y = FC_cam[0].y;

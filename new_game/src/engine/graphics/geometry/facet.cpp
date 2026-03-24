@@ -769,7 +769,6 @@ void draw_insides(SLONG indoor_index, SLONG room, UBYTE fade)
 void DRAW_door(float sx, float sy, float sz, float fx, float fy, float fz, float block_height, SLONG count, ULONG fade_alpha, SLONG style, SLONG flipx)
 {
     float dy, dx, dz;
-    SLONG start_index;
     SLONG page;
     UBYTE flip;
 
@@ -777,7 +776,6 @@ void DRAW_door(float sx, float sy, float sz, float fx, float fy, float fz, float
     POLY_Point* quad[4];
     SLONG c0, face;
 
-    start_index = POLY_buffer_upto;
     dy = block_height * 0.7f;
 
     dx = fx * 0.3f;
@@ -908,14 +906,11 @@ void draw_wall_thickness(struct DFacet* p_facet, ULONG fade_alpha)
 void FACET_barbedwire_top(struct DFacet* p_facet)
 {
     float dx = (p_facet->x[1] - p_facet->x[0] << 8);
-    float dy = (p_facet->Y[1] - p_facet->Y[0]);
     float dz = (p_facet->z[1] - p_facet->z[0] << 8);
     float mag = sqrt((dx * dx) + (dz * dz));
     float stepx = (dx / mag) * 10;
-    float stepy = (dy / mag) * 10;
     float stepz = (dz / mag) * 10;
     SLONG cx = p_facet->x[0] << 8;
-    SLONG cy = p_facet->Y[0];
     SLONG cz = p_facet->z[0] << 8;
     SLONG seed = 54321678;
     float base = 0;
@@ -962,7 +957,6 @@ void FACET_barbedwire_top(struct DFacet* p_facet)
 
         base += 10;
         cx += stepx;
-        cy += stepy;
         cz += stepz;
     }
 }
@@ -1290,7 +1284,7 @@ void FACET_draw_quick(SLONG facet, UBYTE alpha)
 {
     POLY_Point* pp;
     POLY_Point* quad[4];
-    float fx1, fx2, fz1, fz2, fy1, fy2, height;
+    float fx1, fx2, fz1, fz2, fy1, fy2;
     ULONG col = 0xff000000;
     struct DFacet* p_facet;
 
@@ -2016,29 +2010,18 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
 void FACET_draw(SLONG facet, UBYTE alpha)
 {
     struct DFacet* p_facet;
-    static SWORD rows[100];
-    SLONG c0, count;
+    SLONG count;
     SLONG dx, dz;
-    float x, y, z, sx, sy, sz, fdx, fdz;
+    float sx, sy, sz, fdx, fdz;
     SLONG height;
-    POLY_Point* pp;
     SLONG hf;
-    POLY_Point* quad[4];
     SLONG style_index;
     NIGHT_Colour* col;
-    SLONG max_height;
     SLONG foundation = 0;
-    static float diff_y[128];
     float block_height = 256.0;
 
-    SLONG diag = 0;
-    SLONG facet_backwards = 0;
-    ULONG fade_alpha = alpha << 24;
-    SLONG inside_clip = 0;
-    SLONG reverse_textures = 0;
     // SLONG		style_index_offset=1;
     SLONG style_index_step = 2;
-    SLONG flipx = 0;
 
     ASSERT(facet > 0 && facet < next_dfacet);
     p_facet = &dfacets[facet];
@@ -2227,8 +2210,6 @@ void FACET_draw(SLONG facet, UBYTE alpha)
 
     ASSERT((GAME_FLAGS & GF_INDOORS) == 0);
 
-    max_height = UC_INFINITY;
-
     //
     // If there is no cached lighting for this facet, then we
     // must make some.
@@ -2362,8 +2343,6 @@ void FACET_draw_walkable(SLONG build)
     SLONG i;
     SLONG j;
 
-    SLONG ep;
-
     SLONG red;
     SLONG green;
     SLONG blue;
@@ -2378,7 +2357,6 @@ void FACET_draw_walkable(SLONG build)
     struct DBuilding* p_dbuilding;
 
     POLY_Point* pp;
-    POLY_Point* ps;
 
     POLY_Point* tri[3];
     POLY_Point* quad[4];
@@ -2768,12 +2746,10 @@ void FACET_draw_walkable_old(SLONG build)
     SLONG walkable;
 
     PrimFace4* p_f4;
-    PrimFace3* p_f3;
     struct DWalkable* p_walk;
     struct DBuilding* p_dbuilding;
 
     POLY_Point* pp;
-    POLY_Point* ps;
 
     POLY_Point* tri[3];
     POLY_Point* quad[4];
@@ -3282,14 +3258,8 @@ void DRAW_ladder(struct DFacet* p_facet)
     if (p_facet->FacetFlags & FACET_FLAG_LADDER_LINK) {
         // These facets are always drawn.
     } else {
-        if (0 && (p_facet->FacetFlags & FACET_FLAG_IN_SEWERS)) {
-            if (!(GAME_FLAGS & GF_SEWERS)) {
-                return;
-            }
-        } else {
-            if (GAME_FLAGS & GF_SEWERS) {
-                return;
-            }
+        if (GAME_FLAGS & GF_SEWERS) {
+            return;
         }
     }
 
@@ -3457,9 +3427,6 @@ void FACET_project_crinkled_shadow(SLONG facet)
 
     float block_height = float(p_facet->BlockHeight << 4);
     SLONG height = p_facet->Height;
-    SLONG max_height = UC_INFINITY;
-
-    NIGHT_Colour* col = NULL; // No cached lighting needed.
 
     SLONG foundation = (p_facet->FHeight) ? 2 : 0;
 

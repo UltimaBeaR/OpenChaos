@@ -992,9 +992,6 @@ static void MAP_beacon_draw_all()
 
     float list = 0.05F;
 
-    float dx;
-    float dy;
-    float dist;
     float angle;
 
     SLONG colour;
@@ -1014,9 +1011,7 @@ static void MAP_beacon_draw_all()
         colour = MAP_fadeout_colour(x, y);
 
         if ((colour & 0xff) < 64) {
-            dist =
-
-                angle = atan2(x - MAP_screen_x, y - MAP_screen_y);
+            angle = atan2(x - MAP_screen_x, y - MAP_screen_y);
 
             colour &= 0xff;
             colour *= 4;
@@ -1160,9 +1155,6 @@ static void MAP_draw_weapons(Thing* p_person)
 // uc_orig: MAP_draw (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_draw()
 {
-    float x;
-    float z;
-
     float u0;
     float v0;
     float u1;
@@ -1431,7 +1423,6 @@ void MAP_draw_onscreen_beacons(void)
 
     float dx;
     float dz;
-    float dist;
     float angle;
 
     SLONG colour;
@@ -1448,7 +1439,6 @@ void MAP_draw_onscreen_beacons(void)
         dx    = float(mb->wx - (FC_cam[0].x >> 8));
         dz    = float(mb->wz - (FC_cam[0].z >> 8));
         angle = -atan2(dx, dz) - float(FC_cam[0].yaw) * (2.0F * PI / (2048.0F * 256.0F));
-        dist  = fabs(dx) + fabs(dz);
 
         colour = MAP_beacon_colour[i % MAP_MAX_BEACON_COLOURS];
 

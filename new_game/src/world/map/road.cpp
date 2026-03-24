@@ -444,10 +444,7 @@ void ROAD_sink()
     SLONG dist;
     SLONG best_dist;
 
-    SLONG page;
-
     PAP_Hi* ph;
-    MapElement* me;
 
     for (mx = 0; mx < MAP_WIDTH - 1; mx++)
         for (mz = 0; mz < MAP_HEIGHT - 1; mz++) {
@@ -713,7 +710,6 @@ void ROAD_find_me_somewhere_to_appear(
 
         ROAD_Node* rn1 = &ROAD_node[ROAD_edge[i]];
         ROAD_Node* rn2 = &ROAD_node[rn1->c[0]];
-
         ASSERT(rn1->x == rn2->x || rn1->z == rn2->z);
     }
 

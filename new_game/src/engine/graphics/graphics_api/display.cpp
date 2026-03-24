@@ -217,7 +217,6 @@ void LoadBackImage(UBYTE* image_data)
         width;
     DDSURFACEDESC2 dd_sd;
     HRESULT result;
-    RGB_565 rgb;
 
     {
         InitStruct(dd_sd);
@@ -1540,8 +1539,6 @@ void Display::PlotFormattedPixel(SLONG x, SLONG y, ULONG colour)
 // Reads back a pixel from the locked back buffer.
 void Display::GetPixel(SLONG x, SLONG y, UBYTE* red, UBYTE* green, UBYTE* blue)
 {
-    SLONG index;
-
     ULONG colour;
 
     *red = 0;

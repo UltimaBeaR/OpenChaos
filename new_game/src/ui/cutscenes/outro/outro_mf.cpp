@@ -575,14 +575,12 @@ void MF_add_triangles_specular_bumpmapped(IMP_Mesh* im, OS_Texture* ot, ULONG dr
     OS_Vert* ov;
     IMP_Mat* it;
     IMP_Face* ic;
-    IMP_Vert* iv;
 
     ASSERT(im->num_sverts <= MF_MAX_SVERTS);
 
     for (i = 0; i < im->num_sverts; i++) {
         is = &im->svert[i];
         ov = &MF_vert[i];
-        iv = &im->vert[is->vert];
 
         ov->trans    = is->vert;
         ov->index    = NULL;
@@ -688,7 +686,6 @@ void MF_add_triangles_bumpmapped_pass(IMP_Mesh* im, SLONG pass, ULONG draw)
     OS_Vert* ov;
     IMP_Mat* it;
     IMP_Face* ic;
-    IMP_Vert* iv;
 
     if (pass == 0) {
         ASSERT(im->num_sverts <= MF_MAX_SVERTS);
@@ -696,7 +693,6 @@ void MF_add_triangles_bumpmapped_pass(IMP_Mesh* im, SLONG pass, ULONG draw)
         for (i = 0; i < im->num_sverts; i++) {
             is = &im->svert[i];
             ov = &MF_vert[i];
-            iv = &im->vert[is->vert];
 
             ov->trans    = is->vert;
             ov->index    = NULL;
@@ -714,7 +710,6 @@ void MF_add_triangles_bumpmapped_pass(IMP_Mesh* im, SLONG pass, ULONG draw)
         for (i = 0; i < im->num_sverts; i++) {
             is = &im->svert[i];
             ov = &MF_vert[i];
-            iv = &im->vert[is->vert];
 
             ov->trans    = is->vert;
             ov->index    = NULL;
