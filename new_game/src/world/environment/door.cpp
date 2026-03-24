@@ -91,26 +91,6 @@ static UWORD DOOR_find(
     return best_facet;
 }
 
-// Stub: was intended to apply forces to characters in the door's sweep arc.
-// Not implemented in this codebase (body is empty).
-// uc_orig: DOOR_knock_over_people (fallen/Source/door.cpp)
-static void DOOR_knock_over_people(DFacet* df, SLONG side)
-{
-    SLONG dx;
-    SLONG dz;
-
-    SLONG x1;
-    SLONG z1;
-
-    SLONG x2;
-    SLONG z2;
-
-    dx = df->x[1] - df->x[0];
-    dz = df->z[1] - df->z[0];
-
-    // Not implemented.
-    (void)dx; (void)dz; (void)x1; (void)z1; (void)x2; (void)z2; (void)side;
-}
 
 // Begins opening the door nearest to (world_x, world_z).
 // Sets FACET_FLAG_OPEN, registers the facet in DOOR_door[] for per-frame animation,

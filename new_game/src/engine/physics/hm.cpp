@@ -31,33 +31,6 @@ void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 // uc_orig: e_draw_3d_line_col_sorted (fallen/Source/hm.cpp)
 void e_draw_3d_line_col_sorted(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG r, SLONG g, SLONG b);
 
-// uc_orig: qdist (fallen/Source/hm.cpp)
-// Fast 3D vector length approximation using the largest-component heuristic.
-// Formula: max + 0.2941 * (sum of other two). Max error ~5%.
-// Used for broad-phase distance checks where exact sqrt is too expensive.
-static inline float qdist(float x, float y, float z)
-{
-    float ans;
-
-    ASSERT(x >= 0.0F);
-    ASSERT(y >= 0.0F);
-    ASSERT(z >= 0.0F);
-
-    if (x > y) {
-        if (x > z) {
-            ans = x + (y + z) * 0.2941F;
-            return ans;
-        }
-    } else {
-        if (y > z) {
-            ans = y + (x + z) * 0.2941F;
-            return ans;
-        }
-    }
-
-    ans = z + (x + y) * 0.2941F;
-    return ans;
-}
 
 // uc_orig: HM_index (fallen/Source/hm.cpp)
 // Converts 3D grid coordinates to a flat index into ho->index[].
@@ -768,14 +741,6 @@ void HM_colvect_add(UBYTE hm, SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 // uc_orig: calc_height_at (fallen/Source/hm.cpp)
 SLONG calc_height_at(SLONG x, SLONG z);
 
-// uc_orig: HM_height_at (fallen/Source/hm.cpp)
-// Queries terrain height via PAP. Note: HM_process() uses hardcoded gy=0 instead —
-// HM objects bounce on the flat y=0 plane, not on the actual terrain.
-static float HM_height_at(float x, float z)
-{
-    SLONG ans = PAP_calc_height_at(SLONG(x), SLONG(z));
-    return float(ans);
-}
 
 // uc_orig: HM_find_mesh_point (fallen/Source/hm.cpp)
 // Reconstructs a visual vertex position from the deformed lattice using barycentric coords.

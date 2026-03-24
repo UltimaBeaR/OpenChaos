@@ -832,12 +832,6 @@ SLONG OB_find_min_y(SLONG prim)
     return min_y;
 }
 
-// Empty stub — was functional but disabled and replaced ("FIXED IN ANOTHER WAY NOW").
-// uc_orig: OB_height_fiddle_de_dee (fallen/Source/ob.cpp)
-static void OB_height_fiddle_de_dee(void)
-{
-    // Body is fully commented out in the original; kept as dead stub.
-}
 
 // uc_orig: OB_damage (fallen/Source/ob.cpp)
 void OB_damage(

@@ -377,25 +377,6 @@ UWORD* GetShadowPixelMapping()
     return mapping;
 }
 
-// uc_orig: add_debug_line (fallen/DDEngine/Source/aeng.cpp)
-// Queues a debug world-space line segment for drawing this frame.
-static void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour)
-{
-    SLONG line;
-
-    line = next_line % MAX_LINES;
-
-    Lines[line].x1 = x1;
-    Lines[line].y1 = y1;
-    Lines[line].z1 = z1;
-
-    Lines[line].x2 = x2;
-    Lines[line].y2 = y2;
-    Lines[line].z2 = z2;
-    Lines[line].col = colour;
-    next_line++;
-}
-
 // uc_orig: AENG_movie_init (fallen/DDEngine/Source/aeng.cpp)
 // Loads the pre-rendered movie file (movie\bond.mmv) into AENG_movie_data.
 void AENG_movie_init()

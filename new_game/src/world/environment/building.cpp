@@ -6561,68 +6561,6 @@ void clip_building_prim(SLONG prim, SLONG x, SLONG y, SLONG z)
     }
 }
 
-// uc_orig: calc_win (fallen/Source/Building.cpp)
-// Probability helper: counts dice wins between two sorted die sets.
-// Used only by calc_prob (debug/dev function, never called at runtime).
-static SLONG calc_win(UWORD* attack, SLONG c1, UWORD* def, SLONG c2)
-{
-    SLONG b1 = 0, b2 = 0;
-    UWORD data[10];
-    SLONG a1, a2, d1, d2;
-    SLONG wins = 0;
-
-    memcpy((UBYTE*)data, (UBYTE*)def, 10);
-
-    if (data[0] < data[1]) {
-        SWAP(data[0], data[1]);
-    }
-    if (data[1] < data[2]) {
-        SWAP(data[1], data[2]);
-    }
-    if (data[0] < data[1]) {
-        SWAP(data[0], data[1]);
-    }
-
-    if (c2 > 1) {
-        if (data[c1] < data[c1 + 1])
-            SWAP(data[c1], data[c1 + 1]);
-
-        if (data[1] > data[c1 + 1]) {
-            wins--;
-        } else {
-            wins++;
-        }
-    }
-    if (data[0] > data[c1]) {
-        wins--;
-    } else {
-        wins++;
-    }
-
-    return (wins);
-}
-
-// uc_orig: calc_prob (fallen/Source/Building.cpp)
-// Debug probability enumeration — never called at runtime; kept for completeness.
-static void calc_prob(void)
-{
-    UWORD c[6];
-    SLONG total = 0, total_win1 = 0, total_win2 = 0;
-
-    for (c[0] = 1; c[0] < 7; c[0]++)
-        for (c[1] = 1; c[1] < 7; c[1]++)
-            for (c[2] = 1; c[2] < 7; c[2]++)
-                for (c[3] = 1; c[3] < 7; c[3]++)
-                    for (c[4] = 1; c[4] < 7; c[4]++) {
-                        SLONG win;
-                        win = calc_win(&c[0], 3, &c[3], 2);
-                        total_win2 += win;
-                        win = calc_win(&c[0], 3, &c[3], 1);
-                        total_win1 += win;
-                        total++;
-                    }
-}
-
 // uc_orig: fix_furniture (fallen/Source/Building.cpp)
 // Snaps all furniture Things to terrain height.
 // Called commented-out at end of create_city — kept 1:1.

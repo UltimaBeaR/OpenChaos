@@ -11,13 +11,6 @@
 // Temporary transformed crinkle vertex buffer for one CRINKLE_do call.
 static POLY_Point CRINKLE_pp[CRINKLE_MAX_POINTS_PER_CRINKLE];
 
-// uc_orig: DontDoAnythingWithThis (fallen/DDEngine/Source/Crinkle.cpp)
-// Dummy function — prevents the compiler from optimising out entire loops.
-static void DontDoAnythingWithThis(DWORD blibble)
-{
-    // Intentionally empty.
-}
-
 // Internal types -------------------------------------------------------
 
 // uc_orig: CRINKLE_Point (fallen/DDEngine/Source/Crinkle.cpp)

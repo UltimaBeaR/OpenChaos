@@ -43,12 +43,8 @@ static int NewCacheLine();
 static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width);
 // uc_orig: BlitText (fallen/DDEngine/Source/truetype.cpp)
 static void BlitText();
-// uc_orig: ShowTextures (fallen/DDEngine/Source/truetype.cpp)
-static void ShowTextures();
 // uc_orig: TexBlit (fallen/DDEngine/Source/truetype.cpp)
 static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, ULONG scale);
-// uc_orig: ShowDebug (fallen/DDEngine/Source/truetype.cpp)
-static void ShowDebug();
 
 // uc_orig: TT_Init (fallen/DDEngine/Source/truetype.cpp)
 void TT_Init()
@@ -574,27 +570,6 @@ static void BlitText()
     if (ctex) {
         END_SCENE;
     }
-}
-
-// uc_orig: ShowTextures (fallen/DDEngine/Source/truetype.cpp)
-static void ShowTextures()
-{
-    BEGIN_SCENE;
-
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-
-    REALLY_SET_TEXTURE(Texture[0].GetD3DTexture());
-
-    TexBlit(0, 0, 256, 256, 0, FontHeight * AA_SIZE, 0xFFFFFFFF, 256);
-
-    END_SCENE;
 }
 
 // uc_orig: TexBlit (fallen/DDEngine/Source/truetype.cpp)

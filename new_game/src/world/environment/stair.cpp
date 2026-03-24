@@ -18,11 +18,6 @@ static inline void STAIR_srand(ULONG seed)
     STAIR_rand_seed = seed;
 }
 
-// uc_orig: STAIR_grand (fallen/Source/Stair.cpp)
-static inline ULONG STAIR_grand(void)
-{
-    return STAIR_rand_seed;
-}
 
 // LCG step: seed = seed * 328573 + 123456789; returns upper bits.
 // uc_orig: STAIR_rand (fallen/Source/Stair.cpp)
@@ -116,18 +111,6 @@ static UBYTE STAIR_get_bit_from_square(UBYTE square[STAIR_MAX_SIZE][STAIR_MAX_SI
     return square[off_z][byte] & (1 << bit);
 }
 
-// Debug helper: asserts that z is within the bounding box.
-// uc_orig: STAIR_check_edge (fallen/Source/Stair.cpp)
-static void STAIR_check_edge(SLONG z)
-{
-    SLONG sz;
-
-    ASSERT(WITHIN(z, STAIR_z1, STAIR_z2 - 1));
-
-    sz = z - STAIR_z1;
-
-    ASSERT(WITHIN(sz, 0, STAIR_MAX_SIZE - 1));
-}
 
 // Adds the stair index to the given storey's stair slot array.
 // uc_orig: STAIR_add_to_storey (fallen/Source/Stair.cpp)

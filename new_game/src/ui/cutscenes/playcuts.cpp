@@ -160,11 +160,6 @@ CPData* PLAYCUTS_Read(MFFileHandle handle)
     return cutscene;
 }
 
-// uc_orig: PLAYCUTS_Free_Chan (fallen/Source/playcuts.cpp)
-static void PLAYCUTS_Free_Chan(CPChannel* chan)
-{
-    // Nothing to free: packets are pool-allocated; text is dealt with separately.
-}
 
 // uc_orig: PLAYCUTS_Free (fallen/Source/playcuts.cpp)
 void PLAYCUTS_Free(CPData* cutscene)

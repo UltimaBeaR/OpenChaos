@@ -2197,8 +2197,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
 // Forward declarations for internal helpers used before their definitions.
 // uc_orig: FRONTEND_draw_districts (fallen/Source/frontend.cpp)
 static void FRONTEND_draw_districts(void);
-// uc_orig: FRONTEND_shadowed_text (fallen/Source/frontend.cpp)
-static void FRONTEND_shadowed_text(char* pcString, int iX, int iY, DWORD dwColour);
 // uc_orig: FRONTEND_input (fallen/Source/frontend.cpp)
 static UBYTE FRONTEND_input(void);
 // uc_orig: FRONTEND_storedata (fallen/Source/frontend.cpp)
@@ -2356,15 +2354,6 @@ static void FRONTEND_draw_districts(void)
     }
 }
 
-// uc_orig: FRONTEND_shadowed_text (fallen/Source/frontend.cpp)
-// Draws text with a drop shadow effect (black shadow at +2, half-bright at +1, full colour at origin).
-static void FRONTEND_shadowed_text(char* pcString, int iX, int iY, DWORD dwColour)
-{
-    FONT2D_DrawString(pcString, iX + 2, iY + 2, 0, 256, POLY_PAGE_FONT2D, 0);
-    FONT2D_DrawString(pcString, iX - 1, iY - 1, 0, 256, POLY_PAGE_FONT2D, 0);
-    FONT2D_DrawString(pcString, iX + 1, iY + 1, (dwColour & 0xfefefefe) >> 1, 256, POLY_PAGE_FONT2D, 0);
-    FONT2D_DrawString(pcString, iX, iY, dwColour, 256, POLY_PAGE_FONT2D, 0);
-}
 
 // uc_orig: FRONTEND_display (fallen/Source/frontend.cpp)
 // Main per-frame frontend render: clear viewport, background, kibble particles,

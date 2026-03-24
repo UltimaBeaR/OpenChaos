@@ -241,20 +241,6 @@ reinit_because_of_language_change:
     ResetBackImage();
 }
 
-// Helper for printing 2D text in ScoresDraw, incrementing y by 20 each call.
-// uc_orig: printf2d (fallen/Source/Attract.cpp)
-static inline void printf2d(SLONG x, SLONG& y, CBYTE* fmt, ...)
-{
-    CBYTE msg[_MAX_PATH];
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsprintf(msg, fmt, ap);
-    va_end(ap);
-
-    FONT2D_DrawString(msg, x, y, 0x00ff00, 256, POLY_PAGE_FONT2D);
-    y += 20;
-}
 
 // uc_orig: SCORE_SPACER (fallen/Source/Attract.cpp)
 #define SCORE_SPACER 20

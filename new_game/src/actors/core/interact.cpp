@@ -63,25 +63,6 @@ static SLONG angle_diff(SLONG angle1, SLONG angle2)
     return diff;
 }
 
-// Checks whether the given direction is a valid grab angle against a wall edge.
-// Always returns 1 — validation was disabled in the original.
-// uc_orig: valid_grab_angle (fallen/Source/interact.cpp)
-static SLONG valid_grab_angle(SLONG angle, SLONG dx, SLONG dz)
-{
-    SLONG wall_angle, diff;
-    return (1);
-
-    wall_angle = calc_angle(dx, dz);
-    wall_angle += 512;
-
-    diff = angle_diff(angle, wall_angle);
-    diff = abs(diff);
-    if (diff < 256 || abs(diff - 1024) < 256)
-        return (1);
-    else {
-        return (0);
-    }
-}
 
 // Returns the Y height of a cable facet at fractional position `along` (0..CABLE_ALONG_MAX).
 // The cable sags in a cosine-curve shape with a dip at the midpoint.

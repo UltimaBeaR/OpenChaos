@@ -29,12 +29,6 @@ static inline CBYTE* mbcs_prev_char(CBYTE* c, CBYTE* base)
     return c - 1;
 }
 
-// Decrement character pointer in-place.
-// uc_orig: mbcs_dec_char (fallen/Source/xlat_str.cpp)
-static inline CBYTE* mbcs_dec_char(CBYTE*& c, CBYTE* base)
-{
-    return --c;
-}
 
 // MBCS-safe strchr: finds first occurrence of c in str.
 // uc_orig: mbcs_strchr (fallen/Source/xlat_str.cpp)
@@ -49,18 +43,6 @@ static CBYTE* mbcs_strchr(CBYTE* str, CBYTE c)
     return 0;
 }
 
-// MBCS-safe strncpy: copies n characters (not bytes) from src to dst.
-// uc_orig: mbcs_strncpy (fallen/Source/xlat_str.cpp)
-static void mbcs_strncpy(CBYTE* dst, CBYTE* src, CBYTE n)
-{
-    CBYTE *scan = src, *end = src + strlen(src);
-    while (n && (scan < end)) {
-        *dst = *scan;
-        dst++;
-        scan++;
-        n--;
-    }
-}
 
 // MBCS-safe strspnp: skips characters found in badlist, returns first non-match.
 // uc_orig: mbcs_strspnp (fallen/Source/xlat_str.cpp)

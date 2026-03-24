@@ -1096,8 +1096,6 @@ static void PYRO_draw_dustwave(Pyro* pyro);
 static void PYRO_draw_streamer(Pyro* pyro);
 // uc_orig: PYRO_draw_twanger (fallen/DDEngine/Source/drawxtra.cpp)
 static void PYRO_draw_twanger(Pyro* pyro);
-// uc_orig: PYRO_draw_blob (fallen/DDEngine/Source/drawxtra.cpp)
-static void PYRO_draw_blob(Pyro* pyro);
 // uc_orig: PYRO_draw_armageddon (fallen/DDEngine/Source/drawxtra.cpp)
 static void PYRO_draw_armageddon(Pyro* pyro);
 
@@ -1129,26 +1127,6 @@ static SLONG get_pyro_rand(void)
     pyro_seed *= 31415965;
     pyro_seed += 123456789;
     return (pyro_seed >> 8);
-}
-
-// uc_orig: lerp_long (fallen/DDEngine/Source/drawxtra.cpp)
-// Fixed-point linear interpolation: lerp(a, b, pos/256).
-static inline SLONG lerp_long(SLONG a, SLONG b, UBYTE pos)
-{
-    return ((a * (256 - pos)) >> 8) + ((b * pos) >> 8);
-}
-
-// uc_orig: lerp_vector (fallen/DDEngine/Source/drawxtra.cpp)
-// Component-wise lerp of a GameCoord by fraction pos/256.
-static GameCoord lerp_vector(GameCoord a, GameCoord b, UBYTE pos)
-{
-    GameCoord result;
-
-    result.X = lerp_long(a.X, b.X, pos);
-    result.Y = lerp_long(a.Y, b.Y, pos);
-    result.Z = lerp_long(a.Z, b.Z, pos);
-
-    return result;
 }
 
 // uc_orig: SPRITE_draw_tex2 (fallen/DDEngine/Source/drawxtra.cpp)
@@ -2568,11 +2546,6 @@ static void PYRO_draw_streamer(Pyro* pyro)
         }
 }
 
-// uc_orig: PYRO_draw_blob (fallen/DDEngine/Source/drawxtra.cpp)
-// PYRO_BLOB draw stub — not implemented in the pre-release build.
-static void PYRO_draw_blob(Pyro* p_thing)
-{
-}
 
 // uc_orig: PYRO_draw_armageddon (fallen/DDEngine/Source/drawxtra.cpp)
 // Draws PYRO_GAMEOVER (final boss): spawns PYRO_NEWDOME and meteor particles around Darci's

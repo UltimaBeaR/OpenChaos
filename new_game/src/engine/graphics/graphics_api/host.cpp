@@ -20,40 +20,6 @@ extern void ClearLatchedKeys();
 // Forward declaration for best-found device initialisation.
 void init_best_found(void);
 
-// uc_orig: DDLibThread (fallen/DDLibrary/Source/GHost.cpp)
-// Shell thread entry point. Creates the main window, runs the Win32 message loop,
-// and sets ShellActive to UC_FALSE when the loop exits.
-static DWORD DDLibThread(LPVOID param)
-{
-    MSG msg;
-
-    hDDLibWindow = CreateWindowEx(
-        0,
-        "Urban Chaos",
-        "Urban Chaos",
-        WS_POPUP,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        HWND_DESKTOP,
-        NULL,
-        hGlobalThisInst,
-        NULL);
-
-    ShowWindow(hDDLibWindow, iGlobalWinMode);
-    UpdateWindow(hDDLibWindow);
-
-    ShellActive = UC_TRUE;
-    while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    ShellActive = UC_FALSE;
-
-    return 0;
-}
-
 // uc_orig: SetupHost (fallen/DDLibrary/Source/GHost.cpp)
 // Registers the window class, creates the main window, and initialises memory,
 // keyboard and sound. Returns UC_TRUE if the window was created successfully.

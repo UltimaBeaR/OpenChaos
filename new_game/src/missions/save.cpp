@@ -127,8 +127,6 @@ static void remove_specials(void);
 static void set_person_default_data(Thing* p_person, SAVE_Person* sp);
 // uc_orig: LOAD_open (fallen/Source/save.cpp)
 static FILE* LOAD_open(void);
-// uc_orig: SAVE_open (fallen/Source/save.cpp)
-static FILE* SAVE_open(void);
 // uc_orig: SAVE_things (fallen/Source/save.cpp)
 static SLONG SAVE_things(void);
 // uc_orig: SAVE_eways (fallen/Source/save.cpp)
@@ -175,11 +173,6 @@ static FILE* LOAD_open()
     return MF_Fopen("ingame.sav", "rb");
 }
 
-// uc_orig: SAVE_open (fallen/Source/save.cpp)
-static FILE* SAVE_open()
-{
-    return MF_Fopen("ingame.sav", "wb");
-}
 
 // Serializes a special-class thing (full state: header + Special + DrawMesh + Thing blobs).
 // uc_orig: SAVE_special (fallen/Source/save.cpp)

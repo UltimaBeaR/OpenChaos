@@ -260,64 +260,6 @@ static void SMAP_add_prim_triangles(
     }
 }
 
-// uc_orig: SMAP_prim_points (fallen/DDEngine/Source/smap.cpp)
-// Transforms a prim's points into world space and adds them to the shadow mapper.
-// Returns the index of the first point added.
-static SLONG SMAP_prim_points(
-    SLONG prim,
-    SLONG world_x,
-    SLONG world_y,
-    SLONG world_z,
-    SLONG yaw,
-    SLONG pitch,
-    SLONG roll)
-{
-    SLONG i;
-    float px;
-    float py;
-    float pz;
-    float ox = float(world_x);
-    float oy = float(world_y);
-    float oz = float(world_z);
-    SLONG base = -1;
-    SLONG index;
-    float matrix[9];
-
-    PrimObject* p_obj = &prim_objects[prim];
-
-    MATRIX_calc(
-        matrix,
-        float(yaw) * (2.0F * PI / 2048.0F),
-        float(pitch) * (2.0F * PI / 2048.0F),
-        float(roll) * (2.0F * PI / 2048.0F));
-
-    for (i = p_obj->StartPoint; i < p_obj->EndPoint; i++) {
-        px = AENG_dx_prim_points[i].X;
-        py = AENG_dx_prim_points[i].Y;
-        pz = AENG_dx_prim_points[i].Z;
-
-        MATRIX_MUL_BY_TRANSPOSE(
-            matrix,
-            px,
-            py,
-            pz);
-
-        px += world_x;
-        py += world_y;
-        pz += world_z;
-
-        index = SMAP_point_add(
-            px,
-            py,
-            pz);
-
-        if (base == -1) {
-            base = index;
-        }
-    }
-
-    return base;
-}
 
 // uc_orig: SMAP_add_tweened_points (fallen/DDEngine/Source/smap.cpp)
 // Adds all shadow-map points for one body part at a tweened position.

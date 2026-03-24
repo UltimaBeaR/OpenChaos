@@ -43,13 +43,6 @@ void TRACKS_Reset(SWORD size)
     TRACKS_InitOnce(size);
 }
 
-// uc_orig: RShift8 (fallen/Source/tracks.cpp)
-static inline void RShift8(SLONG& x, SLONG& y, SLONG& z)
-{
-    x >>= 8;
-    y >>= 8;
-    z >>= 8;
-}
 
 // uc_orig: TRACKS_Draw (fallen/Source/tracks.cpp)
 void TRACKS_Draw()

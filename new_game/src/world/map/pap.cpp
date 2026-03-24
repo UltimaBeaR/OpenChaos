@@ -30,17 +30,6 @@ SLONG PAP_on_map_hi(SLONG x, SLONG z)
     }
 }
 
-// uc_orig: PAP_assert_if_off_map_lo (fallen/Source/pap.cpp)
-static void PAP_assert_if_off_map_lo(SLONG x, SLONG z)
-{
-    ASSERT(PAP_on_map_lo(x, z));
-}
-
-// uc_orig: PAP_assert_if_off_map_hi (fallen/Source/pap.cpp)
-static void PAP_assert_if_off_map_hi(SLONG x, SLONG z)
-{
-    ASSERT(PAP_on_map_hi(x, z));
-}
 
 // uc_orig: PAP_clear (fallen/Source/pap.cpp)
 void PAP_clear(void)
