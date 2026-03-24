@@ -536,15 +536,6 @@ void remove_collision_vect(UWORD vect);
 SLONG get_point_dist_from_col_vect(SLONG vect, SLONG x, SLONG z,
     SLONG* ret_x, SLONG* ret_z, SLONG new_dist);
 
-// uc_orig: check_vect_circle (fallen/Source/collide.cpp)
-// Tests if the movement delta (m_dx,m_dy,m_dz) for p_thing with radius
-// intersects any collision barrier. Returns non-zero if blocked.
-SLONG check_vect_circle(SLONG m_dx, SLONG m_dy, SLONG m_dz, Thing* p_thing, SLONG radius);
-
-// uc_orig: check_vect_vect (fallen/Source/collide.cpp)
-// Tests movement delta against collision barriers, treating the thing as a thin vector.
-SLONG check_vect_vect(SLONG m_dx, SLONG m_dy, SLONG m_dz, Thing* p_thing, SLONG scale);
-
 // ========================================================================
 // Height / face queries
 // ========================================================================

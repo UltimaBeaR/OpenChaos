@@ -309,10 +309,6 @@ typedef struct
 
 } Engine;
 
-// uc_orig: the_engine (fallen/DDEngine/Headers/Engine.h)
-// Global Engine instance; set by AENG_set_camera_radians each frame.
-extern Engine the_engine;
-
 // uc_orig: DDEnginePoint (fallen/DDEngine/Headers/Engine.h)
 // Result of transform_point: projected 2D screen position and depth.
 typedef struct
@@ -362,10 +358,6 @@ struct EnginePointF {
 // uc_orig: SCALE_SZ (fallen/DDEngine/Headers/Engine.h)
 #define SCALE_SZ (MIN_Z / MAX_Z)
 
-// uc_orig: current_vertex (fallen/DDEngine/Headers/Engine.h)
-// Index of the next free slot in vertex_pool[]. Incremented as vertices are emitted.
-extern UWORD current_vertex;
-
 // uc_orig: ENGINE_multiply_colour (fallen/DDEngine/Headers/Engine.h)
 // Multiplies each RGB channel of a packed D3D colour by (r,g,b)/256.
 inline ULONG ENGINE_multiply_colour(ULONG colour, SLONG r, SLONG g, SLONG b)
@@ -390,9 +382,6 @@ inline ULONG ENGINE_multiply_colour(ULONG colour, SLONG r, SLONG g, SLONG b)
 }
 
 // Transform and rendering functions (implementations in DDEngine — not migrated yet).
-// uc_orig: transform_point (fallen/DDEngine/Headers/Engine.h)
-// Projects a world-space SVECTOR_F into screen space; returns EF_* clip flags.
-ULONG transform_point(SVECTOR_F* v, SVECTOR_F* r);
 
 // uc_orig: set_camera (fallen/DDEngine/Headers/Engine.h)
 // Applies a Camera to the_engine, rebuilding the view matrix.

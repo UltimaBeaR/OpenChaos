@@ -41,10 +41,6 @@ void HOOK_release(void);
 // uc_orig: HOOK_process (fallen/Headers/hook.h)
 void HOOK_process(void);
 
-// Reels in the hook string. Returns CONTINUE, REELED_IN, or REELED_TAUT.
-// uc_orig: HOOK_reel (fallen/Headers/hook.h)
-SLONG HOOK_reel(void);
-
 // Returns the world position and orientation of the grapple head (point 0).
 // Positions are in high-res coordinates (16 bits per map square).
 // uc_orig: HOOK_pos_grapple (fallen/Headers/hook.h)

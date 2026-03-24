@@ -55,10 +55,6 @@
 // uc_orig: CAM_set_type (fallen/Headers/cam.h)
 void CAM_set_type(SLONG type);
 
-// Returns the last type set by CAM_set_type(), or 0 if none.
-// uc_orig: CAM_get_type (fallen/Headers/cam.h)
-SLONG CAM_get_type(void);
-
 // ---- Camera setters ----
 
 // uc_orig: CAM_set_mode (fallen/Headers/cam.h)
@@ -89,9 +85,6 @@ void CAM_set_to_leave_sewers_position(Thing*);
 
 // uc_orig: CAM_get_mode (fallen/Headers/cam.h)
 SLONG CAM_get_mode(void);
-
-// uc_orig: CAM_get_zoom (fallen/Headers/cam.h)
-SLONG CAM_get_zoom(void);
 
 // Returns current camera yaw in radians.
 // uc_orig: CAM_get_ryaw (fallen/Headers/cam.h)

@@ -313,7 +313,37 @@ furn.h (struct Furniture встроена в Thing), startscr (коды дейс
 
 ---
 
-## Шаг 5 — Orphaned declarations в хедерах
+## Шаг 5 — Orphaned declarations в хедерах (2026-03-24)
 
-TODO: найти в .h объявления без определений в .cpp (после всех удалений на шагах 3-4)
+Найти в .h объявления функций/переменных без определений в .cpp — удалить.
+
+Найдено и удалено **~46 orphaned function declarations** + **1 orphaned extern variable**
+из 16 файлов. 259 строк удалено.
+
+### По файлам:
+
+- **hook.h** — `HOOK_reel`
+- **furn.h** — `FURN_alloc_furniture`
+- **engine_types.h** — `transform_point`, `extern Engine the_engine`, `extern UWORD current_vertex`
+- **poly.h** — `POLY_interpolate_colour`
+- **gd_display.h** — `InitWork`, `FiniWork` (методы класса Display)
+- **cache.h** — `CACHE_is_valid`, `CACHE_get_info`
+- **ed_light.h** — 7 editor функций + `extern ED_light_free`
+- **light.h** — `LIGHT_pos_get`, `LIGHT_get_context`, `LIGHT_get_point`,
+  `extern LIGHT_amb_norm_x/y/z`, `extern LIGHT_point_colour_upto`
+- **collide.h** — `check_vect_circle`, `check_vect_vect`
+- **mission.h** — 9 editor/export функций (`alloc_map`, `alloc_mission`, `alloc_eventpoint`,
+  `export_mission`, `valid_mission`, `HasText`, `GetTextID`, `GetEPTextID`, `GetEPText`)
+- **mission_globals.h** — `extern EventPoint* current_ep`
+- **cam.h** — `CAM_get_type`, `CAM_get_zoom`
+- **id.h** — все 37 функций `ID_*` (struct'ы и define'ы оставлены — используются)
+
+### Ошибочно удалённое и восстановленное:
+
+- **mouse_globals.h** — `OldMouseX`, `OldMouseY` (используются в mouse.cpp) — восстановлены
+- **work_screen_globals.h** — все `WorkScreen*`/`WorkWindow*` (используются в work_screen.cpp) — восстановлены
+- **host_globals.h** — `hGlobalPrevInst`, `hGlobalThisInst` (используются в host.cpp) — восстановлены
+
+**Итог Этапа 4.1:** Шаги 1-5 завершены. Только используемый код, нет висящих файлов,
+функций, переменных.
 

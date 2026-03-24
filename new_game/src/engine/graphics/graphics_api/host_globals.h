@@ -4,6 +4,11 @@
 #include <windows.h>
 #include "core/types.h"
 
+// uc_orig: hGlobalPrevInst (fallen/DDLibrary/Headers/GHost.h)
+extern HINSTANCE hGlobalPrevInst;
+// uc_orig: hGlobalThisInst (fallen/DDLibrary/Headers/GHost.h)
+extern HINSTANCE hGlobalThisInst;
+
 // uc_orig: iGlobalWinMode (fallen/DDLibrary/Source/GHost.cpp)
 // Window show mode passed in from WinMain (SW_SHOW, SW_SHOWMAXIMIZED, etc.).
 extern int iGlobalWinMode;
@@ -19,14 +24,6 @@ extern HACCEL hDDLibAccel;
 // uc_orig: hDDLibThread (fallen/DDLibrary/Source/GHost.cpp)
 // Handle to the DDLib shell thread.
 extern HANDLE hDDLibThread;
-
-// uc_orig: hGlobalPrevInst (fallen/DDLibrary/Source/GHost.cpp)
-// Previous instance handle forwarded from WinMain (always NULL on Win32).
-extern HINSTANCE hGlobalPrevInst;
-
-// uc_orig: hGlobalThisInst (fallen/DDLibrary/Source/GHost.cpp)
-// Current application instance handle forwarded from WinMain.
-extern HINSTANCE hGlobalThisInst;
 
 // uc_orig: lpszGlobalArgs (fallen/DDLibrary/Source/GHost.cpp)
 // Command-line argument string forwarded from WinMain.

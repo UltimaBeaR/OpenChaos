@@ -32,9 +32,6 @@ typedef struct
 
 // uc_orig: ED_light (fallen/Ledit/Headers/ed.h)
 extern ED_Light ED_light[ED_MAX_LIGHTS];
-// uc_orig: ED_light_free (fallen/Ledit/Headers/ed.h)
-extern SLONG ED_light_free;
-
 // uc_orig: ED_init (fallen/Ledit/Headers/ed.h)
 // Clears all light info.
 void ED_init(void);
@@ -83,18 +80,12 @@ void ED_amb_set(
     SLONG green,
     SLONG blue);
 
-// uc_orig: ED_lampost_on_get (fallen/Ledit/Headers/ed.h)
-SLONG ED_lampost_on_get(void);
 // uc_orig: ED_lampost_on_set (fallen/Ledit/Headers/ed.h)
 void ED_lampost_on_set(SLONG lamposts_are_on);
 
-// uc_orig: ED_night_get (fallen/Ledit/Headers/ed.h)
-SLONG ED_night_get(void);
 // uc_orig: ED_night_set (fallen/Ledit/Headers/ed.h)
 void ED_night_set(SLONG its_night_time);
 
-// uc_orig: ED_darken_bottoms_on_get (fallen/Ledit/Headers/ed.h)
-SLONG ED_darken_bottoms_on_get(void);
 // uc_orig: ED_darken_bottoms_on_set (fallen/Ledit/Headers/ed.h)
 void ED_darken_bottoms_on_set(SLONG darken_bottoms_on);
 
@@ -132,16 +123,4 @@ void ED_undo_store(void);
 void ED_undo_undo(void);
 // uc_orig: ED_undo_redo (fallen/Ledit/Headers/ed.h)
 void ED_undo_redo(void);
-// uc_orig: ED_undo_undo_valid (fallen/Ledit/Headers/ed.h)
-SLONG ED_undo_undo_valid(void);
-// uc_orig: ED_undo_redo_valid (fallen/Ledit/Headers/ed.h)
-SLONG ED_undo_redo_valid(void);
-
-// uc_orig: ED_load (fallen/Ledit/Headers/ed.h)
-// Loads light data from file. Returns TRUE on success.
-SLONG ED_load(CBYTE* name);
-// uc_orig: ED_save (fallen/Ledit/Headers/ed.h)
-// Saves light data to file. Returns TRUE on success.
-SLONG ED_save(CBYTE* name);
-
 #endif // ENGINE_LIGHTING_ED_LIGHT_H

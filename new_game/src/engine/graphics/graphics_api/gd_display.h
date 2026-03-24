@@ -197,9 +197,6 @@ public:
     HRESULT FiniViewport(void);
     HRESULT UpdateViewport(void);
 
-    HRESULT InitWork(void);
-    HRESULT FiniWork(void);
-
     void RunFMV();
     void RunCutscene(int which, int language = 0, bool bAllowButtonsToExit = UC_TRUE);
 

@@ -39,8 +39,6 @@ extern volatile SLONG MouseDX;
 // uc_orig: MouseDY (fallen/DDLibrary/Source/GMouse.cpp)
 extern volatile SLONG MouseDY;
 
-// Internal mouse state.
-
 // uc_orig: OldMouseX (fallen/DDLibrary/Source/GMouse.cpp)
 extern SLONG OldMouseX;
 // uc_orig: OldMouseY (fallen/DDLibrary/Source/GMouse.cpp)

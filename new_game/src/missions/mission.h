@@ -697,30 +697,20 @@ struct GameMap {
 // uc_orig: MISSION_init (fallen/Headers/Mission.h)
 void MISSION_init(void);
 
-// uc_orig: alloc_map (fallen/Headers/Mission.h)
-UWORD alloc_map(void);
 // uc_orig: free_map (fallen/Headers/Mission.h)
 void free_map(UWORD map);
-// uc_orig: alloc_mission (fallen/Headers/Mission.h)
-UWORD alloc_mission(UWORD map_ref);
 // uc_orig: free_mission (fallen/Headers/Mission.h)
 void free_mission(UWORD mission);
 // uc_orig: init_mission (fallen/Headers/Mission.h)
 void init_mission(UWORD mission_ref, CBYTE* mission_name);
-// uc_orig: alloc_eventpoint (fallen/Headers/Mission.h)
-EventPoint* alloc_eventpoint(void);
 // uc_orig: free_eventpoint (fallen/Headers/Mission.h)
 void free_eventpoint(EventPoint* the_ep);
 // uc_orig: write_event_extra (fallen/Headers/Mission.h)
 void write_event_extra(FILE* file_handle, EventPoint* ep);
 // uc_orig: read_event_extra (fallen/Headers/Mission.h)
 void read_event_extra(FILE* file_handle, EventPoint* ep, EventPoint* base, SLONG ver = 0);
-// uc_orig: export_mission (fallen/Headers/Mission.h)
-BOOL export_mission(void);
 // uc_orig: import_mission (fallen/Headers/Mission.h)
 void import_mission(void);
-// uc_orig: valid_mission (fallen/Headers/Mission.h)
-BOOL valid_mission(void);
 // uc_orig: ResetFreepoint (fallen/Headers/Mission.h)
 void ResetFreepoint(Mission* mission);
 // uc_orig: ResetUsedpoint (fallen/Headers/Mission.h)
@@ -729,15 +719,6 @@ void ResetUsedpoint(Mission* mission);
 void ResetFreelist(Mission* mission);
 // uc_orig: ResetUsedlist (fallen/Headers/Mission.h)
 void ResetUsedlist(Mission* mission);
-// uc_orig: HasText (fallen/Headers/Mission.h)
-BOOL HasText(EventPoint* ep);
-// uc_orig: GetTextID (fallen/Headers/Mission.h)
-UWORD GetTextID(CBYTE* msg);
-// uc_orig: GetEPTextID (fallen/Headers/Mission.h)
-UWORD GetEPTextID(EventPoint* ep);
 // uc_orig: SetEPTextID (fallen/Headers/Mission.h)
 void SetEPTextID(EventPoint* ep, SLONG value = -1);
-// uc_orig: GetEPText (fallen/Headers/Mission.h)
-CBYTE* GetEPText(EventPoint* ep);
-
 #endif // MISSIONS_MISSION_H

@@ -655,10 +655,6 @@ void POLY_frame_draw_puddles(void);
 // Draws only the sewer-water texture page.
 void POLY_frame_draw_sewater(void);
 
-// uc_orig: POLY_interpolate_colour (fallen/DDEngine/Headers/poly.h)
-// Linearly interpolates between two ARGB colours at fraction v in [0,1].
-ULONG POLY_interpolate_colour(float v, ULONG colour1, ULONG colour2);
-
 // uc_orig: POLY_frame_draw_focused (fallen/DDEngine/Headers/poly.h)
 // Draws the frame with depth-of-field focus applied at 'focus' (0=near, 1=far).
 void POLY_frame_draw_focused(float focus);

@@ -32,13 +32,6 @@ CACHE_Index CACHE_create(
     void* data,
     UWORD num_bytes);
 
-// uc_orig: CACHE_is_valid (fallen/Headers/cache.h)
-// Returns TRUE if the given CACHE_Index contains valid data.
-SLONG CACHE_is_valid(CACHE_Index c_index);
-
-// uc_orig: CACHE_get_info (fallen/Headers/cache.h)
-CACHE_Info CACHE_get_info(CACHE_Index c_index);
-
 // uc_orig: CACHE_invalidate (fallen/Headers/cache.h)
 void CACHE_invalidate(CACHE_Index c_index);
 // uc_orig: CACHE_invalidate_all (fallen/Headers/cache.h)

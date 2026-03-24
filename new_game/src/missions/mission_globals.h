@@ -3,10 +3,6 @@
 
 #include "missions/mission.h"
 
-// Currently active event point (set by EWAY during processing).
-// uc_orig: current_ep (fallen/Headers/Mission.h)
-extern EventPoint* current_ep;
-
 // Flat pool of all mission slots. Indexed by mission number.
 // uc_orig: mission_pool (fallen/Headers/Mission.h)
 extern Mission mission_pool[MAX_MISSIONS];

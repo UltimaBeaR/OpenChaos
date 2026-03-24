@@ -60,13 +60,6 @@ void LIGHT_set_hf(LIGHT_Map* map);
 // uc_orig: LIGHT_amb_colour (fallen/Headers/light.h)
 // Do not set these directly — use LIGHT_set_ambient().
 extern LIGHT_Colour LIGHT_amb_colour;
-// uc_orig: LIGHT_amb_norm_x (fallen/Headers/light.h)
-extern SLONG LIGHT_amb_norm_x;
-// uc_orig: LIGHT_amb_norm_y (fallen/Headers/light.h)
-extern SLONG LIGHT_amb_norm_y;
-// uc_orig: LIGHT_amb_norm_z (fallen/Headers/light.h)
-extern SLONG LIGHT_amb_norm_z;
-
 // uc_orig: LIGHT_set_ambient (fallen/Headers/light.h)
 // Sets ambient colour and directional normal (length 255).
 void LIGHT_set_ambient(
@@ -113,22 +106,11 @@ LIGHT_Index LIGHT_create(
 // uc_orig: LIGHT_destroy (fallen/Headers/light.h)
 void LIGHT_destroy(LIGHT_Index l_index);
 
-// uc_orig: LIGHT_pos_get (fallen/Headers/light.h)
-GameCoord LIGHT_pos_get(LIGHT_Index l_index);
 // uc_orig: LIGHT_pos_set (fallen/Headers/light.h)
 void LIGHT_pos_set(LIGHT_Index l_index, GameCoord pos);
 
 // uc_orig: LIGHT_process (fallen/Headers/light.h)
 void LIGHT_process(void);
-
-// uc_orig: LIGHT_get_context (fallen/Headers/light.h)
-// Returns a value identifying the lighting context of the given thing.
-// If the context changes the thing needs to be re-lit.
-SLONG LIGHT_get_context(THING_INDEX t_index);
-
-// uc_orig: LIGHT_get_point (fallen/Headers/light.h)
-// Returns the colour of light at the given point, using the last LIGHT_get_context call.
-LIGHT_Colour LIGHT_get_point(SLONG x, SLONG y, SLONG z);
 
 // uc_orig: LIGHT_prim (fallen/Headers/light.h)
 // Lights the given prim, writing results into LIGHT_point_colour[].
@@ -145,9 +127,6 @@ void LIGHT_building_use_normals(THING_INDEX t_index);
 
 // uc_orig: LIGHT_point_colour (fallen/Headers/light.h)
 extern LIGHT_Colour LIGHT_point_colour[LIGHT_MAX_POINTS];
-// uc_orig: LIGHT_point_colour_upto (fallen/Headers/light.h)
-extern SLONG LIGHT_point_colour_upto;
-
 // uc_orig: LIGHT_get_d3d_colour (fallen/Headers/light.h)
 // Converts LIGHT_Colour to Direct3D packed colour + specular highlight.
 // Overflow above 255 is halved into the specular channel (white wash effect).

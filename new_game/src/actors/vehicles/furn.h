@@ -64,9 +64,6 @@ void init_furniture(void);
 // uc_orig: free_furniture (fallen/Headers/Furn.h)
 void free_furniture(Thing* furniture_thing);
 
-// uc_orig: FURN_alloc_furniture (fallen/Headers/Furn.h)
-Furniture* FURN_alloc_furniture(void);
-
 // Creates a static furniture Thing at the given world position with the specified prim mesh.
 // uc_orig: FURN_create (fallen/Headers/Furn.h)
 THING_INDEX FURN_create(
