@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "engine/graphics/graphics_api/host.h"
+#include "engine/platform/host.h"
 
 // Win32 application entry point.
 // This is a thin wrapper — all real startup logic lives in HOST_run().

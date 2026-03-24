@@ -33,7 +33,7 @@
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"
 #include "engine/audio/sound.h"
-#include "engine/graphics/geometry/bloom.h"
+#include "engine/graphics/postprocess/bloom.h"
 
 // Prototype: free_special is used before its definition in this file.
 // uc_orig: free_special (fallen/Source/Special.cpp)

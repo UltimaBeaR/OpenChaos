@@ -11,7 +11,7 @@
 #include "engine/effects/psystem.h"
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/geometry/bloom.h" // BLOOM_draw, BLOOM_BEAM, BLOOM_LENSFLARE
+#include "engine/graphics/postprocess/bloom.h" // BLOOM_draw, BLOOM_BEAM, BLOOM_LENSFLARE
 
 #include "world/environment/prim.h"    // get_prim_info, slide_along_prim
 #include "world/environment/plat.h"

@@ -66,42 +66,42 @@ set(SOURCES_NEW
     src/engine/graphics/graphics_api/work_screen_globals.cpp
     src/engine/graphics/geometry/aa.cpp
     src/engine/graphics/geometry/aa_globals.cpp
-    src/engine/graphics/pipeline/message.cpp
-    src/engine/graphics/pipeline/message_globals.cpp
+    src/engine/console/message.cpp
+    src/engine/console/message_globals.cpp
     src/engine/core/timer.cpp
     src/engine/core/timer_globals.cpp
     src/engine/audio/mfx.cpp
     src/engine/audio/mfx_globals.cpp
-    src/engine/graphics/resources/d3d_texture.cpp
-    src/engine/graphics/resources/d3d_texture_globals.cpp
+    src/engine/graphics/graphics_api/d3d_texture.cpp
+    src/engine/graphics/graphics_api/d3d_texture_globals.cpp
     src/engine/platform/wind_procs.cpp
     src/engine/platform/wind_procs_globals.cpp
-    src/engine/graphics/graphics_api/host.cpp
-    src/engine/graphics/graphics_api/host_globals.cpp
-    src/engine/graphics/pipeline/render_state.cpp
+    src/engine/platform/host.cpp
+    src/engine/platform/host_globals.cpp
+    src/engine/graphics/graphics_api/render_state.cpp
     src/engine/graphics/pipeline/bucket.cpp
     src/engine/graphics/pipeline/bucket_globals.cpp
-    src/engine/graphics/pipeline/vertex_buffer.cpp
-    src/engine/graphics/pipeline/vertex_buffer_globals.cpp
+    src/engine/graphics/graphics_api/vertex_buffer.cpp
+    src/engine/graphics/graphics_api/vertex_buffer_globals.cpp
     src/engine/graphics/pipeline/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
-    src/engine/graphics/resources/font.cpp
-    src/engine/graphics/resources/font_globals.cpp
+    src/engine/graphics/text/font.cpp
+    src/engine/graphics/text/font_globals.cpp
     src/engine/graphics/geometry/sprite.cpp
-    src/engine/graphics/resources/menufont.cpp
-    src/engine/graphics/resources/menufont_globals.cpp
+    src/engine/graphics/text/menufont.cpp
+    src/engine/graphics/text/menufont_globals.cpp
     src/engine/graphics/pipeline/qeng.cpp
     src/engine/graphics/pipeline/qeng_globals.cpp
     src/world/map/qmap_globals.cpp
-    src/engine/graphics/pipeline/text.cpp
-    src/engine/graphics/pipeline/text_globals.cpp
+    src/engine/graphics/text/text.cpp
+    src/engine/graphics/text/text_globals.cpp
     src/assets/xlat_str.cpp
     src/assets/xlat_str_globals.cpp
     src/assets/sound_id_globals.cpp
-    src/engine/graphics/resources/font2d.cpp
-    src/engine/graphics/resources/font2d_globals.cpp
-    src/engine/graphics/resources/console.cpp
-    src/engine/graphics/resources/console_globals.cpp
+    src/engine/graphics/text/font2d.cpp
+    src/engine/graphics/text/font2d_globals.cpp
+    src/engine/console/console.cpp
+    src/engine/console/console_globals.cpp
     src/engine/core/heap.cpp
     src/engine/core/heap_globals.cpp
     src/assets/anim_tmap.cpp
@@ -115,10 +115,10 @@ set(SOURCES_NEW
     src/engine/effects/psystem_globals.cpp
     src/engine/io/env.cpp
     src/engine/io/env_globals.cpp
-    src/engine/graphics/pipeline/wibble.cpp
-    src/engine/graphics/pipeline/wibble_globals.cpp
-    src/engine/graphics/resources/truetype.cpp
-    src/engine/graphics/resources/truetype_globals.cpp
+    src/engine/graphics/postprocess/wibble.cpp
+    src/engine/graphics/postprocess/wibble_globals.cpp
+    src/engine/graphics/text/truetype.cpp
+    src/engine/graphics/text/truetype_globals.cpp
     src/effects/fire.cpp
     src/effects/fire_globals.cpp
     src/effects/dirt.cpp
@@ -170,8 +170,8 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/farfacet_globals.cpp
     src/engine/graphics/geometry/facet.cpp
     src/engine/graphics/geometry/facet_globals.cpp
-    src/engine/graphics/pipeline/sky.cpp
-    src/engine/graphics/pipeline/sky_globals.cpp
+    src/engine/graphics/geometry/sky.cpp
+    src/engine/graphics/geometry/sky_globals.cpp
     src/engine/graphics/geometry/fastprim.cpp
     src/engine/graphics/geometry/fastprim_globals.cpp
     src/engine/graphics/pipeline/poly_render.cpp
@@ -307,8 +307,8 @@ set(SOURCES_NEW
     src/effects/pyro.cpp
     src/effects/pyro_globals.cpp
     src/effects/glow.cpp
-    src/engine/graphics/geometry/bloom.cpp
-    src/engine/graphics/geometry/bloom_globals.cpp
+    src/engine/graphics/postprocess/bloom.cpp
+    src/engine/graphics/postprocess/bloom_globals.cpp
     src/engine/graphics/pipeline/draw2d.cpp
     src/world/map/qmap.cpp
     src/world/map/road.cpp

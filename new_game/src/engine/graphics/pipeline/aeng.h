@@ -2,8 +2,8 @@
 #define ENGINE_GRAPHICS_PIPELINE_AENG_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/resources/font.h"
-#include "engine/graphics/resources/console.h"
+#include "engine/graphics/text/font.h"
+#include "engine/console/console.h"
 
 // uc_orig: KERB_HEIGHT (fallen/DDEngine/Headers/aeng.h)
 // Height of a kerb in world units (float).

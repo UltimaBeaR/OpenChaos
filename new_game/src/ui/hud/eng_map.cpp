@@ -11,12 +11,12 @@
 #include "engine/graphics/graphics_api/gd_display.h"
 
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/pipeline/text.h"
+#include "engine/graphics/text/text.h"
 #include "assets/texture.h"
 #include "ai/mav.h"
-#include "engine/graphics/resources/menufont.h"
+#include "engine/graphics/text/menufont.h"
 #include "engine/core/matrix.h"
-#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/text/font2d.h"
 #include "missions/memory_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 

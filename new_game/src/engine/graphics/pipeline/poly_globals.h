@@ -5,7 +5,7 @@
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/pipeline/render_state.h"
+#include "engine/graphics/graphics_api/render_state.h"
 
 // Camera state set once per frame by POLY_camera_set().
 

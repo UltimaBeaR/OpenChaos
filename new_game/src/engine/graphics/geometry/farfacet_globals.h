@@ -4,7 +4,7 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_api/dd_manager.h"   // D3DLVERTEX, D3DMATRIX
 #include "engine/core/types.h"
-#include "engine/graphics/pipeline/render_state.h"
+#include "engine/graphics/graphics_api/render_state.h"
 #include "world/map/pap.h"
 
 // uc_orig: FARFACET_RATIO (fallen/DDEngine/Source/farfacet.cpp)

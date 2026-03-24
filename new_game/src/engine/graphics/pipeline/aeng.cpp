@@ -12,7 +12,7 @@
 #include "engine/graphics/lighting/ngamut_globals.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
-#include "engine/graphics/pipeline/sky.h"
+#include "engine/graphics/geometry/sky.h"
 #include "assets/compression.h"
 #include "assets/tga.h"
 #include "assets/texture.h"
@@ -64,7 +64,7 @@
 #include "engine/io/env.h"
 
 // Additional includes for chunks 4b and 5a
-#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/text/font2d.h"
 
 // Additional includes for chunk 5b
 #include "world/navigation/inside2.h"
@@ -78,9 +78,9 @@
 #include "world/environment/puddle_globals.h"
 #include "effects/mist.h"
 #include "effects/mist_globals.h"
-#include "engine/graphics/pipeline/wibble.h"
-#include "engine/graphics/geometry/bloom.h"
-#include "engine/graphics/geometry/bloom_globals.h"
+#include "engine/graphics/postprocess/wibble.h"
+#include "engine/graphics/postprocess/bloom.h"
+#include "engine/graphics/postprocess/bloom_globals.h"
 #include "engine/graphics/geometry/cone.h"
 #include "engine/graphics/geometry/cone_globals.h"
 #include "world/environment/tripwire.h"

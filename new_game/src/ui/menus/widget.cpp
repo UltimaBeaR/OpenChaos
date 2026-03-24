@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
-#include "engine/graphics/resources/menufont.h"
+#include "engine/graphics/text/menufont.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"

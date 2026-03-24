@@ -10,7 +10,7 @@
 #include "engine/graphics/geometry/mesh.h"
 #include "things/core/statedef.h"
 #include "engine/graphics/pipeline/aeng.h"   // AENG_world_line_nondebug
-#include "engine/graphics/geometry/bloom.h"
+#include "engine/graphics/postprocess/bloom.h"
 #include "engine/effects/psystem.h"           // PFLAG_* particle flags
 #include "things/items/grenade.h"
 #include "things/items/grenade_globals.h"

@@ -3,7 +3,7 @@
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "ui/camera/cam.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display
-#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ui/hud/panel.h"
 #include "assets/startscr.h"

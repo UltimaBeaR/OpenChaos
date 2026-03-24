@@ -6,7 +6,7 @@
 // macros come first, that extern declaration becomes "extern SLONG 640" and fails.
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_api/dd_manager.h"
-#include "engine/graphics/resources/d3d_texture.h"
+#include "engine/graphics/graphics_api/d3d_texture.h"
 
 // uc_orig: SHELL_ACTIVE (fallen/DDLibrary/Headers/GDisplay.h)
 #define SHELL_ACTIVE   (LibShellActive())

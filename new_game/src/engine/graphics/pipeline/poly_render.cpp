@@ -7,7 +7,7 @@
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/pipeline/render_state.h"
+#include "engine/graphics/graphics_api/render_state.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "assets/texture.h"
 

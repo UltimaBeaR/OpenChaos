@@ -4,7 +4,7 @@
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/environment/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
-#include "engine/graphics/pipeline/render_state.h" // D3DMATRIX, D3DLVERTEX
+#include "engine/graphics/graphics_api/render_state.h" // D3DMATRIX, D3DLVERTEX
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/graphics/lighting/smap.h"                  // SMAP_Link
 #include "assets/compression.h"

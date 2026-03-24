@@ -26,7 +26,7 @@ extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 #include "things/core/thing.h"          // move_thing_on_map
 #include "things/characters/person.h"   // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
 #include "world/map/pap.h"              // PAP_calc_height_at, PAP_calc_height_at_thing
-#include "engine/graphics/resources/console.h"  // CONSOLE_text
+#include "engine/console/console.h"  // CONSOLE_text
 #include "engine/input/keyboard_globals.h"      // ControlFlag
 
 extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);

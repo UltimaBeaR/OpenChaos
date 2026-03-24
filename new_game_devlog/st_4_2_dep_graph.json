@@ -275,14 +275,14 @@
       "assets/texture_globals.h",
       "assets/tga.h",
       "engine/audio/sound.h",
+      "engine/console/message.h",
+      "engine/graphics/graphics_api/d3d_texture.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/lighting/crinkle.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/pipeline/message.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/graphics/resources/truetype.h",
+      "engine/graphics/text/font2d.h",
+      "engine/graphics/text/truetype.h",
       "engine/io/env.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
@@ -298,16 +298,16 @@
     ],
     "assets/texture.h": [
       "engine/core/types.h",
-      "engine/graphics/lighting/crinkle.h",
-      "engine/graphics/resources/d3d_texture.h"
+      "engine/graphics/graphics_api/d3d_texture.h",
+      "engine/graphics/lighting/crinkle.h"
     ],
     "assets/texture_globals.cpp": [
       "assets/texture_globals.h"
     ],
     "assets/texture_globals.h": [
       "engine/core/types.h",
-      "engine/graphics/lighting/crinkle.h",
-      "engine/graphics/resources/d3d_texture.h"
+      "engine/graphics/graphics_api/d3d_texture.h",
+      "engine/graphics/lighting/crinkle.h"
     ],
     "assets/tga.cpp": [
       "assets/tga.h",
@@ -488,11 +488,11 @@
       "effects/spark.h",
       "engine/audio/sound.h",
       "engine/effects/psystem.h",
-      "engine/graphics/geometry/bloom.h",
       "engine/graphics/geometry/sprite.h",
       "engine/graphics/lighting/night.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
+      "engine/graphics/postprocess/bloom.h",
       "missions/game_types.h",
       "things/characters/anim_ids.h",
       "things/characters/person.h",
@@ -599,13 +599,13 @@
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/sprite.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/graphics/lighting/night.h",
       "engine/graphics/lighting/night_globals.h",
       "engine/graphics/lighting/shadow.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/render_state.h",
       "engine/input/keyboard_globals.h",
       "missions/eway.h",
       "missions/game.h",
@@ -727,6 +727,38 @@
       "engine/audio/soundenv_globals.h"
     ],
     "engine/audio/soundenv_globals.h": [
+      "engine/core/types.h"
+    ],
+    "engine/console/console.cpp": [
+      "engine/console/console.h",
+      "engine/console/console_globals.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/graphics/text/font.h",
+      "engine/graphics/text/font2d.h"
+    ],
+    "engine/console/console.h": [
+      "engine/core/types.h"
+    ],
+    "engine/console/console_globals.cpp": [
+      "engine/console/console_globals.h"
+    ],
+    "engine/console/console_globals.h": [
+      "engine/console/console.h"
+    ],
+    "engine/console/message.cpp": [
+      "engine/console/message.h",
+      "engine/console/message_globals.h",
+      "engine/core/macros.h",
+      "engine/core/types.h",
+      "engine/graphics/text/font.h",
+      "engine/input/keyboard.h",
+      "engine/input/keyboard_globals.h"
+    ],
+    "engine/console/message.h": [],
+    "engine/console/message_globals.cpp": [
+      "engine/console/message_globals.h"
+    ],
+    "engine/console/message_globals.h": [
       "engine/core/types.h"
     ],
     "engine/core/fixed_math.h": [
@@ -876,26 +908,6 @@
     "engine/graphics/geometry/aa_globals.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/geometry/bloom.cpp": [
-      "engine/graphics/geometry/bloom.h",
-      "engine/graphics/geometry/bloom_globals.h",
-      "engine/graphics/geometry/sprite.h",
-      "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/pipeline/poly.h",
-      "engine/physics/collide.h",
-      "missions/eway.h",
-      "ui/camera/fc.h",
-      "ui/camera/fc_globals.h"
-    ],
-    "engine/graphics/geometry/bloom.h": [
-      "engine/core/types.h"
-    ],
-    "engine/graphics/geometry/bloom_globals.cpp": [
-      "engine/graphics/geometry/bloom_globals.h"
-    ],
-    "engine/graphics/geometry/bloom_globals.h": [
-      "engine/core/types.h"
-    ],
     "engine/graphics/geometry/cone.cpp": [
       "engine/graphics/geometry/cone.h",
       "engine/graphics/geometry/cone_globals.h",
@@ -971,10 +983,10 @@
       "engine/graphics/geometry/farfacet.h",
       "engine/graphics/geometry/farfacet_globals.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/render_state.h",
       "engine/input/keyboard.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
@@ -992,7 +1004,7 @@
     "engine/graphics/geometry/farfacet_globals.h": [
       "engine/core/types.h",
       "engine/graphics/graphics_api/dd_manager.h",
-      "engine/graphics/pipeline/render_state.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/platform/uc_common.h",
       "world/map/pap.h"
     ],
@@ -1098,6 +1110,25 @@
     "engine/graphics/geometry/shape_globals.h": [
       "engine/core/types.h"
     ],
+    "engine/graphics/geometry/sky.cpp": [
+      "engine/core/matrix.h",
+      "engine/graphics/geometry/sky.h",
+      "engine/graphics/geometry/sky_globals.h",
+      "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/pipeline/aeng.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/platform/uc_common.h",
+      "missions/game_types.h"
+    ],
+    "engine/graphics/geometry/sky.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/geometry/sky_globals.cpp": [
+      "engine/graphics/geometry/sky_globals.h"
+    ],
+    "engine/graphics/geometry/sky_globals.h": [
+      "engine/core/types.h"
+    ],
     "engine/graphics/geometry/sprite.cpp": [
       "engine/core/math.h",
       "engine/graphics/geometry/sprite.h",
@@ -1140,6 +1171,25 @@
       "engine/graphics/pipeline/polypage.h",
       "engine/platform/uc_common.h"
     ],
+    "engine/graphics/graphics_api/d3d_texture.cpp": [
+      "engine/console/message.h",
+      "engine/graphics/graphics_api/d3d_texture.h",
+      "engine/graphics/graphics_api/d3d_texture_globals.h",
+      "engine/graphics/graphics_api/dd_manager.h",
+      "engine/graphics/graphics_api/gd_display.h",
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/graphics_api/d3d_texture.h": [
+      "assets/file_clump.h",
+      "assets/tga.h",
+      "engine/io/file.h"
+    ],
+    "engine/graphics/graphics_api/d3d_texture_globals.cpp": [
+      "engine/graphics/graphics_api/d3d_texture_globals.h"
+    ],
+    "engine/graphics/graphics_api/d3d_texture_globals.h": [
+      "engine/graphics/graphics_api/d3d_texture.h"
+    ],
     "engine/graphics/graphics_api/dd_manager.cpp": [
       "engine/core/memory.h",
       "engine/graphics/graphics_api/dd_manager.h",
@@ -1165,9 +1215,9 @@
       "engine/graphics/graphics_api/display_globals.h",
       "engine/graphics/graphics_api/display_macros.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/vertex_buffer.h",
       "engine/io/env.h",
       "engine/io/file.h",
       "engine/platform/uc_common.h",
@@ -1187,29 +1237,30 @@
       "engine/graphics/graphics_api/gd_display.h"
     ],
     "engine/graphics/graphics_api/gd_display.h": [
+      "engine/graphics/graphics_api/d3d_texture.h",
       "engine/graphics/graphics_api/dd_manager.h",
-      "engine/graphics/resources/d3d_texture.h",
       "engine/platform/uc_common.h"
     ],
-    "engine/graphics/graphics_api/host.cpp": [
-      "engine/audio/mfx.h",
-      "engine/audio/sound.h",
-      "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/graphics_api/host.h",
-      "engine/graphics/graphics_api/host_globals.h",
-      "engine/platform/uc_common.h",
-      "engine/platform/wind_procs.h",
-      "engine/platform/wind_procs_globals.h",
-      "missions/game_types.h"
-    ],
-    "engine/graphics/graphics_api/host.h": [
+    "engine/graphics/graphics_api/render_state.cpp": [
+      "engine/graphics/graphics_api/display_macros.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/platform/uc_common.h"
     ],
-    "engine/graphics/graphics_api/host_globals.cpp": [
-      "engine/graphics/graphics_api/host_globals.h"
+    "engine/graphics/graphics_api/render_state.h": [],
+    "engine/graphics/graphics_api/vertex_buffer.cpp": [
+      "engine/graphics/graphics_api/dd_manager.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
+      "engine/graphics/graphics_api/vertex_buffer_globals.h",
+      "engine/platform/uc_common.h"
     ],
-    "engine/graphics/graphics_api/host_globals.h": [
-      "engine/core/types.h"
+    "engine/graphics/graphics_api/vertex_buffer.h": [
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/graphics_api/vertex_buffer_globals.cpp": [
+      "engine/graphics/graphics_api/vertex_buffer_globals.h"
+    ],
+    "engine/graphics/graphics_api/vertex_buffer_globals.h": [
+      "engine/graphics/graphics_api/vertex_buffer.h"
     ],
     "engine/graphics/graphics_api/work_screen.cpp": [
       "engine/graphics/graphics_api/dd_manager.h",
@@ -1382,8 +1433,6 @@
       "engine/core/timer.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
-      "engine/graphics/geometry/bloom.h",
-      "engine/graphics/geometry/bloom_globals.h",
       "engine/graphics/geometry/cone.h",
       "engine/graphics/geometry/cone_globals.h",
       "engine/graphics/geometry/facet.h",
@@ -1392,6 +1441,7 @@
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/oval.h",
       "engine/graphics/geometry/shape.h",
+      "engine/graphics/geometry/sky.h",
       "engine/graphics/graphics_api/display_macros.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/lighting/ngamut.h",
@@ -1405,9 +1455,10 @@
       "engine/graphics/pipeline/poly_globals.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/polypoint.h",
-      "engine/graphics/pipeline/sky.h",
-      "engine/graphics/pipeline/wibble.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/postprocess/bloom.h",
+      "engine/graphics/postprocess/bloom_globals.h",
+      "engine/graphics/postprocess/wibble.h",
+      "engine/graphics/text/font2d.h",
       "engine/io/env.h",
       "engine/physics/sm.h",
       "engine/physics/sm_globals.h",
@@ -1448,9 +1499,9 @@
       "world/navigation/inside2_globals.h"
     ],
     "engine/graphics/pipeline/aeng.h": [
+      "engine/console/console.h",
       "engine/core/types.h",
-      "engine/graphics/resources/console.h",
-      "engine/graphics/resources/font.h"
+      "engine/graphics/text/font.h"
     ],
     "engine/graphics/pipeline/aeng_globals.cpp": [
       "assets/compression.h",
@@ -1461,10 +1512,10 @@
     "engine/graphics/pipeline/aeng_globals.h": [
       "assets/compression.h",
       "engine/core/types.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/graphics/lighting/smap.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/pipeline/render_state.h",
       "world/environment/prim_types.h",
       "world/map/map.h"
     ],
@@ -1492,27 +1543,13 @@
       "engine/core/math.h",
       "engine/core/types.h"
     ],
-    "engine/graphics/pipeline/message.cpp": [
-      "engine/core/macros.h",
-      "engine/core/types.h",
-      "engine/graphics/pipeline/message.h",
-      "engine/graphics/pipeline/message_globals.h",
-      "engine/graphics/resources/font.h",
-      "engine/input/keyboard.h",
-      "engine/input/keyboard_globals.h"
-    ],
-    "engine/graphics/pipeline/message.h": [],
-    "engine/graphics/pipeline/message_globals.cpp": [
-      "engine/graphics/pipeline/message_globals.h"
-    ],
-    "engine/graphics/pipeline/message_globals.h": [
-      "engine/core/types.h"
-    ],
     "engine/graphics/pipeline/poly.cpp": [
       "assets/texture.h",
       "engine/core/matrix.h",
       "engine/graphics/geometry/superfacet.h",
       "engine/graphics/graphics_api/display_macros.h",
+      "engine/graphics/graphics_api/render_state.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
       "engine/graphics/lighting/crinkle.h",
       "engine/graphics/lighting/night.h",
       "engine/graphics/lighting/night_globals.h",
@@ -1521,8 +1558,6 @@
       "engine/graphics/pipeline/poly_render.h",
       "engine/graphics/pipeline/poly_render_globals.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/render_state.h",
-      "engine/graphics/pipeline/vertex_buffer.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h"
@@ -1536,18 +1571,18 @@
     "engine/graphics/pipeline/poly_globals.h": [
       "engine/core/types.h",
       "engine/graphics/graphics_api/dd_manager.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/render_state.h"
+      "engine/graphics/pipeline/polypage.h"
     ],
     "engine/graphics/pipeline/poly_render.cpp": [
       "assets/texture.h",
       "engine/graphics/graphics_api/gd_display.h",
+      "engine/graphics/graphics_api/render_state.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/poly_render.h",
       "engine/graphics/pipeline/poly_render_globals.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/render_state.h",
       "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/poly_render.h": [
@@ -1561,17 +1596,17 @@
     ],
     "engine/graphics/pipeline/polypage.cpp": [
       "engine/core/matrix.h",
+      "engine/graphics/graphics_api/d3d_texture.h",
+      "engine/graphics/graphics_api/vertex_buffer_globals.h",
       "engine/graphics/pipeline/polypage.h",
       "engine/graphics/pipeline/polypage_globals.h",
-      "engine/graphics/pipeline/vertex_buffer_globals.h",
-      "engine/graphics/resources/d3d_texture.h",
       "engine/platform/uc_common.h"
     ],
     "engine/graphics/pipeline/polypage.h": [
+      "engine/graphics/graphics_api/render_state.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/pipeline/polypoint.h",
-      "engine/graphics/pipeline/render_state.h",
-      "engine/graphics/pipeline/vertex_buffer.h"
+      "engine/graphics/pipeline/polypoint.h"
     ],
     "engine/graphics/pipeline/polypage_globals.cpp": [
       "engine/graphics/pipeline/polypage_globals.h"
@@ -1584,15 +1619,15 @@
     ],
     "engine/graphics/pipeline/qeng.cpp": [
       "engine/graphics/graphics_api/display_macros.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/qeng.h",
       "engine/graphics/pipeline/qeng_globals.h",
-      "engine/graphics/pipeline/vertex_buffer.h",
       "engine/platform/uc_common.h",
       "world/map/qmap_globals.h"
     ],
     "engine/graphics/pipeline/qeng.h": [
-      "engine/graphics/pipeline/message.h",
+      "engine/console/message.h",
       "world/map/qmap.h"
     ],
     "engine/graphics/pipeline/qeng_globals.cpp": [
@@ -1601,187 +1636,132 @@
     "engine/graphics/pipeline/qeng_globals.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/pipeline/render_state.cpp": [
-      "engine/graphics/graphics_api/display_macros.h",
-      "engine/graphics/pipeline/render_state.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/graphics/pipeline/render_state.h": [],
-    "engine/graphics/pipeline/sky.cpp": [
-      "engine/core/matrix.h",
+    "engine/graphics/postprocess/bloom.cpp": [
+      "engine/graphics/geometry/sprite.h",
       "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/pipeline/sky.h",
-      "engine/graphics/pipeline/sky_globals.h",
-      "engine/platform/uc_common.h",
-      "missions/game_types.h"
+      "engine/graphics/postprocess/bloom.h",
+      "engine/graphics/postprocess/bloom_globals.h",
+      "engine/physics/collide.h",
+      "missions/eway.h",
+      "ui/camera/fc.h",
+      "ui/camera/fc_globals.h"
     ],
-    "engine/graphics/pipeline/sky.h": [
+    "engine/graphics/postprocess/bloom.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/pipeline/sky_globals.cpp": [
-      "engine/graphics/pipeline/sky_globals.h"
+    "engine/graphics/postprocess/bloom_globals.cpp": [
+      "engine/graphics/postprocess/bloom_globals.h"
     ],
-    "engine/graphics/pipeline/sky_globals.h": [
+    "engine/graphics/postprocess/bloom_globals.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/pipeline/text.cpp": [
-      "engine/graphics/pipeline/poly.h",
-      "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/polypoint.h",
-      "engine/graphics/pipeline/render_state.h",
-      "engine/graphics/pipeline/text.h",
-      "engine/graphics/pipeline/text_globals.h",
-      "engine/graphics/pipeline/vertex_buffer.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/graphics/pipeline/text.h": [
-      "engine/core/types.h"
-    ],
-    "engine/graphics/pipeline/text_globals.cpp": [
-      "engine/graphics/pipeline/text_globals.h"
-    ],
-    "engine/graphics/pipeline/text_globals.h": [
-      "engine/core/types.h"
-    ],
-    "engine/graphics/pipeline/vertex_buffer.cpp": [
-      "engine/graphics/graphics_api/dd_manager.h",
-      "engine/graphics/pipeline/vertex_buffer.h",
-      "engine/graphics/pipeline/vertex_buffer_globals.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/graphics/pipeline/vertex_buffer.h": [
-      "engine/platform/uc_common.h"
-    ],
-    "engine/graphics/pipeline/vertex_buffer_globals.cpp": [
-      "engine/graphics/pipeline/vertex_buffer_globals.h"
-    ],
-    "engine/graphics/pipeline/vertex_buffer_globals.h": [
-      "engine/graphics/pipeline/vertex_buffer.h"
-    ],
-    "engine/graphics/pipeline/wibble.cpp": [
+    "engine/graphics/postprocess/wibble.cpp": [
       "engine/core/math.h",
       "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/pipeline/wibble.h",
-      "engine/graphics/pipeline/wibble_globals.h",
+      "engine/graphics/postprocess/wibble.h",
+      "engine/graphics/postprocess/wibble_globals.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h"
     ],
-    "engine/graphics/pipeline/wibble.h": [
+    "engine/graphics/postprocess/wibble.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/pipeline/wibble_globals.cpp": [
-      "engine/graphics/pipeline/wibble_globals.h"
+    "engine/graphics/postprocess/wibble_globals.cpp": [
+      "engine/graphics/postprocess/wibble_globals.h"
     ],
-    "engine/graphics/pipeline/wibble_globals.h": [
+    "engine/graphics/postprocess/wibble_globals.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/resources/console.cpp": [
-      "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/console.h",
-      "engine/graphics/resources/console_globals.h",
-      "engine/graphics/resources/font.h",
-      "engine/graphics/resources/font2d.h"
-    ],
-    "engine/graphics/resources/console.h": [
-      "engine/core/types.h"
-    ],
-    "engine/graphics/resources/console_globals.cpp": [
-      "engine/graphics/resources/console_globals.h"
-    ],
-    "engine/graphics/resources/console_globals.h": [
-      "engine/graphics/resources/console.h"
-    ],
-    "engine/graphics/resources/d3d_texture.cpp": [
-      "engine/graphics/graphics_api/dd_manager.h",
-      "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/pipeline/message.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/graphics/resources/d3d_texture_globals.h",
-      "engine/platform/uc_common.h"
-    ],
-    "engine/graphics/resources/d3d_texture.h": [
-      "assets/file_clump.h",
-      "assets/tga.h",
-      "engine/io/file.h"
-    ],
-    "engine/graphics/resources/d3d_texture_globals.cpp": [
-      "engine/graphics/resources/d3d_texture_globals.h"
-    ],
-    "engine/graphics/resources/d3d_texture_globals.h": [
-      "engine/graphics/resources/d3d_texture.h"
-    ],
-    "engine/graphics/resources/font.cpp": [
+    "engine/graphics/text/font.cpp": [
       "engine/core/macros.h",
       "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/resources/font.h",
-      "engine/graphics/resources/font_globals.h",
+      "engine/graphics/text/font.h",
+      "engine/graphics/text/font_globals.h",
       "engine/platform/uc_common.h"
     ],
-    "engine/graphics/resources/font.h": [
+    "engine/graphics/text/font.h": [
       "engine/core/types.h"
     ],
-    "engine/graphics/resources/font2d.cpp": [
+    "engine/graphics/text/font2d.cpp": [
       "assets/tga.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/graphics/resources/font2d_globals.h",
+      "engine/graphics/text/font2d.h",
+      "engine/graphics/text/font2d_globals.h",
       "engine/platform/uc_common.h"
     ],
-    "engine/graphics/resources/font2d.h": [
+    "engine/graphics/text/font2d.h": [
       "engine/core/types.h",
       "engine/graphics/pipeline/poly.h"
     ],
-    "engine/graphics/resources/font2d_globals.cpp": [
-      "engine/graphics/resources/font2d_globals.h"
+    "engine/graphics/text/font2d_globals.cpp": [
+      "engine/graphics/text/font2d_globals.h"
     ],
-    "engine/graphics/resources/font2d_globals.h": [
-      "engine/graphics/resources/font2d.h"
+    "engine/graphics/text/font2d_globals.h": [
+      "engine/graphics/text/font2d.h"
     ],
-    "engine/graphics/resources/font_globals.cpp": [
-      "engine/graphics/resources/font_globals.h"
+    "engine/graphics/text/font_globals.cpp": [
+      "engine/graphics/text/font_globals.h"
     ],
-    "engine/graphics/resources/font_globals.h": [
+    "engine/graphics/text/font_globals.h": [
       "engine/core/types.h",
-      "engine/graphics/resources/font.h"
+      "engine/graphics/text/font.h"
     ],
-    "engine/graphics/resources/menufont.cpp": [
+    "engine/graphics/text/menufont.cpp": [
       "assets/tga.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/menufont.h",
-      "engine/graphics/resources/menufont_globals.h"
+      "engine/graphics/text/menufont.h",
+      "engine/graphics/text/menufont_globals.h"
     ],
-    "engine/graphics/resources/menufont.h": [
+    "engine/graphics/text/menufont.h": [
       "engine/platform/uc_common.h"
     ],
-    "engine/graphics/resources/menufont_globals.cpp": [
-      "engine/graphics/resources/menufont_globals.h"
+    "engine/graphics/text/menufont_globals.cpp": [
+      "engine/graphics/text/menufont_globals.h"
     ],
-    "engine/graphics/resources/menufont_globals.h": [
+    "engine/graphics/text/menufont_globals.h": [
       "engine/core/types.h",
-      "engine/graphics/resources/menufont.h"
+      "engine/graphics/text/menufont.h"
     ],
-    "engine/graphics/resources/truetype.cpp": [
+    "engine/graphics/text/text.cpp": [
+      "engine/graphics/graphics_api/d3d_texture.h",
+      "engine/graphics/graphics_api/render_state.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
+      "engine/graphics/pipeline/poly.h",
+      "engine/graphics/pipeline/polypage.h",
+      "engine/graphics/pipeline/polypoint.h",
+      "engine/graphics/text/text.h",
+      "engine/graphics/text/text_globals.h",
+      "engine/platform/uc_common.h"
+    ],
+    "engine/graphics/text/text.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/text/text_globals.cpp": [
+      "engine/graphics/text/text_globals.h"
+    ],
+    "engine/graphics/text/text_globals.h": [
+      "engine/core/types.h"
+    ],
+    "engine/graphics/text/truetype.cpp": [
       "engine/graphics/graphics_api/display_macros.h",
       "engine/graphics/pipeline/polypoint.h",
-      "engine/graphics/resources/truetype.h",
-      "engine/graphics/resources/truetype_globals.h",
+      "engine/graphics/text/truetype.h",
+      "engine/graphics/text/truetype_globals.h",
       "engine/io/env.h",
       "engine/platform/uc_common.h"
     ],
-    "engine/graphics/resources/truetype.h": [
+    "engine/graphics/text/truetype.h": [
       "engine/core/types.h",
-      "engine/graphics/resources/d3d_texture.h"
+      "engine/graphics/graphics_api/d3d_texture.h"
     ],
-    "engine/graphics/resources/truetype_globals.cpp": [
-      "engine/graphics/resources/truetype_globals.h"
+    "engine/graphics/text/truetype_globals.cpp": [
+      "engine/graphics/text/truetype_globals.h"
     ],
-    "engine/graphics/resources/truetype_globals.h": [
+    "engine/graphics/text/truetype_globals.h": [
       "engine/core/types.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/graphics/resources/truetype.h"
+      "engine/graphics/graphics_api/d3d_texture.h",
+      "engine/graphics/text/truetype.h"
     ],
     "engine/input/joystick.cpp": [
       "engine/input/joystick.h"
@@ -1868,8 +1848,8 @@
       "assets/anim_globals.h",
       "effects/dirt.h",
       "effects/mist.h",
+      "engine/console/console.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/resources/console.h",
       "engine/input/keyboard_globals.h",
       "engine/physics/collide.h",
       "engine/physics/collide_globals.h",
@@ -1954,6 +1934,26 @@
     "engine/physics/sm_globals.h": [
       "engine/physics/sm.h"
     ],
+    "engine/platform/host.cpp": [
+      "engine/audio/mfx.h",
+      "engine/audio/sound.h",
+      "engine/graphics/graphics_api/gd_display.h",
+      "engine/platform/host.h",
+      "engine/platform/host_globals.h",
+      "engine/platform/uc_common.h",
+      "engine/platform/wind_procs.h",
+      "engine/platform/wind_procs_globals.h",
+      "missions/game_types.h"
+    ],
+    "engine/platform/host.h": [
+      "engine/platform/uc_common.h"
+    ],
+    "engine/platform/host_globals.cpp": [
+      "engine/platform/host_globals.h"
+    ],
+    "engine/platform/host_globals.h": [
+      "engine/core/types.h"
+    ],
     "engine/platform/uc_common.h": [
       "engine/core/macros.h",
       "engine/core/math.h",
@@ -1980,7 +1980,7 @@
       "engine/core/types.h"
     ],
     "main.cpp": [
-      "engine/graphics/graphics_api/host.h"
+      "engine/platform/host.h"
     ],
     "missions/elev.cpp": [
       "ai/mav.h",
@@ -2005,6 +2005,7 @@
       "effects/tracks.h",
       "engine/audio/music.h",
       "engine/audio/sound.h",
+      "engine/console/console.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
       "engine/graphics/graphics_api/gd_display.h",
@@ -2013,7 +2014,6 @@
       "engine/graphics/lighting/shadow.h",
       "engine/graphics/lighting/shadow_globals.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/resources/console.h",
       "engine/io/env.h",
       "engine/physics/collide.h",
       "missions/elev.h",
@@ -2090,13 +2090,13 @@
       "engine/audio/mfx.h",
       "engine/audio/music.h",
       "engine/audio/sound.h",
+      "engine/console/console.h",
       "engine/core/fmatrix.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/console.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/text/font2d.h",
       "engine/io/env.h",
       "engine/physics/collide.h",
       "engine/physics/collide_globals.h",
@@ -2173,6 +2173,7 @@
       "engine/animation/morph.h",
       "engine/audio/music.h",
       "engine/audio/sound.h",
+      "engine/console/console.h",
       "engine/core/heap.h",
       "engine/core/timer.h",
       "engine/effects/psystem.h",
@@ -2187,10 +2188,9 @@
       "engine/graphics/lighting/shadow_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/console.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/graphics/resources/menufont.h",
-      "engine/graphics/resources/truetype.h",
+      "engine/graphics/text/font2d.h",
+      "engine/graphics/text/menufont.h",
+      "engine/graphics/text/truetype.h",
       "engine/input/joystick.h",
       "engine/input/joystick_globals.h",
       "engine/input/keyboard.h",
@@ -2278,9 +2278,9 @@
       "world/map/map.h"
     ],
     "missions/main.cpp": [
-      "engine/graphics/graphics_api/host.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/io/env.h",
+      "engine/platform/host.h",
       "engine/platform/uc_common.h",
       "missions/game.h"
     ],
@@ -2923,10 +2923,10 @@
       "engine/audio/sound.h",
       "engine/core/fmatrix.h",
       "engine/effects/psystem.h",
-      "engine/graphics/geometry/bloom.h",
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
+      "engine/graphics/postprocess/bloom.h",
       "engine/physics/collide.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
@@ -2998,9 +2998,9 @@
       "engine/audio/mfx.h",
       "engine/audio/sound.h",
       "engine/core/memory.h",
-      "engine/graphics/geometry/bloom.h",
       "engine/graphics/lighting/night.h",
       "engine/graphics/lighting/night_globals.h",
+      "engine/graphics/postprocess/bloom.h",
       "engine/physics/collide.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
@@ -3082,14 +3082,14 @@
       "engine/core/matrix.h",
       "engine/effects/psystem.h",
       "engine/effects/psystem_globals.h",
-      "engine/graphics/geometry/bloom.h",
       "engine/graphics/geometry/mesh.h",
       "engine/graphics/geometry/oval.h",
       "engine/graphics/lighting/night.h",
       "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/postprocess/bloom.h",
+      "engine/graphics/text/font2d.h",
       "engine/physics/collide.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
@@ -3139,7 +3139,7 @@
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/text/font2d.h",
       "engine/io/env.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
@@ -3214,19 +3214,19 @@
       "engine/audio/mfx.h",
       "engine/audio/music.h",
       "engine/audio/sound.h",
+      "engine/console/console.h",
       "engine/effects/psystem.h",
       "engine/graphics/graphics_api/gd_display.h",
-      "engine/graphics/graphics_api/host.h",
+      "engine/graphics/graphics_api/vertex_buffer.h",
       "engine/graphics/lighting/night.h",
       "engine/graphics/lighting/night_globals.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly_render.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/pipeline/vertex_buffer.h",
-      "engine/graphics/resources/console.h",
       "engine/input/mouse.h",
       "engine/io/file.h",
       "engine/physics/collide.h",
+      "engine/platform/host.h",
       "missions/elev_globals.h",
       "missions/eway.h",
       "missions/eway_globals.h",
@@ -3380,8 +3380,8 @@
       "assets/sound_id.h",
       "engine/audio/mfx.h",
       "engine/audio/music.h",
+      "engine/graphics/graphics_api/d3d_texture.h",
       "engine/graphics/graphics_api/display_macros.h",
-      "engine/graphics/resources/d3d_texture.h",
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
       "engine/platform/uc_common.h",
@@ -3434,7 +3434,7 @@
       "engine/graphics/pipeline/draw2d.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/text/font2d.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
       "things/characters/person.h",
@@ -3479,10 +3479,10 @@
       "engine/graphics/pipeline/draw2d.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/polypage.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/graphics/resources/font2d_globals.h",
-      "engine/graphics/resources/menufont.h",
-      "engine/graphics/resources/menufont_globals.h",
+      "engine/graphics/text/font2d.h",
+      "engine/graphics/text/font2d_globals.h",
+      "engine/graphics/text/menufont.h",
+      "engine/graphics/text/menufont_globals.h",
       "engine/input/joystick.h",
       "engine/input/joystick_globals.h",
       "engine/input/keyboard_globals.h",
@@ -3516,9 +3516,9 @@
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/pipeline/text.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/graphics/resources/menufont.h",
+      "engine/graphics/text/font2d.h",
+      "engine/graphics/text/menufont.h",
+      "engine/graphics/text/text.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
       "missions/memory_globals.h",
@@ -3540,7 +3540,7 @@
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/text/font2d.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
@@ -3573,8 +3573,8 @@
       "engine/graphics/pipeline/aeng.h",
       "engine/graphics/pipeline/poly.h",
       "engine/graphics/pipeline/poly_globals.h",
-      "engine/graphics/resources/font2d.h",
-      "engine/graphics/resources/font2d_globals.h",
+      "engine/graphics/text/font2d.h",
+      "engine/graphics/text/font2d_globals.h",
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
       "engine/io/env.h",
@@ -3626,8 +3626,8 @@
       "assets/sound_id.h",
       "effects/dirt.h",
       "engine/audio/mfx.h",
+      "engine/console/console.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/resources/console.h",
       "engine/input/joystick.h",
       "engine/input/joystick_globals.h",
       "engine/input/keyboard_globals.h",
@@ -3697,7 +3697,7 @@
       "engine/audio/mfx.h",
       "engine/audio/music.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/menufont.h",
+      "engine/graphics/text/menufont.h",
       "missions/game_types.h",
       "missions/memory.h",
       "ui/hud/panel.h",
@@ -3719,7 +3719,7 @@
       "engine/audio/mfx.h",
       "engine/graphics/graphics_api/gd_display.h",
       "engine/graphics/pipeline/draw2d.h",
-      "engine/graphics/resources/menufont.h",
+      "engine/graphics/text/menufont.h",
       "engine/input/keyboard.h",
       "engine/input/keyboard_globals.h",
       "engine/platform/uc_common.h",
@@ -3740,9 +3740,9 @@
     ],
     "ui/pause.cpp": [
       "assets/xlat_str.h",
+      "engine/graphics/graphics_api/d3d_texture.h",
       "engine/graphics/pipeline/poly.h",
-      "engine/graphics/resources/d3d_texture.h",
-      "engine/graphics/resources/font2d.h",
+      "engine/graphics/text/font2d.h",
       "engine/input/keyboard.h",
       "engine/platform/uc_common.h",
       "missions/game_types.h",
@@ -3881,8 +3881,8 @@
     ],
     "world/environment/plat.cpp": [
       "engine/effects/psystem.h",
-      "engine/graphics/geometry/bloom.h",
       "engine/graphics/pipeline/poly.h",
+      "engine/graphics/postprocess/bloom.h",
       "engine/platform/uc_common.h",
       "missions/eway.h",
       "missions/game_types.h",
@@ -4116,8 +4116,8 @@
       "world/map/pap.h"
     ],
     "world/map/qmap.cpp": [
+      "engine/console/message.h",
       "engine/core/memory.h",
-      "engine/graphics/pipeline/message.h",
       "engine/platform/uc_common.h",
       "world/map/qmap.h",
       "world/map/qmap_globals.h"
@@ -4134,8 +4134,8 @@
     "world/map/road.cpp": [
       "ai/mav.h",
       "assets/texture.h",
+      "engine/console/console.h",
       "engine/graphics/pipeline/aeng.h",
-      "engine/graphics/resources/console.h",
       "missions/elev.h",
       "things/core/thing.h",
       "world/map/map.h",

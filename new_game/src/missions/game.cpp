@@ -52,13 +52,13 @@
 #include "engine/io/env.h"
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
-#include "engine/graphics/resources/console.h"  // CONSOLE_draw, CONSOLE_font
+#include "engine/console/console.h"  // CONSOLE_draw, CONSOLE_font
 #include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw
 #include "ui/hud/eng_map.h"  // MAP_process
 #include "ui/hud/eng_map_globals.h"
-#include "engine/graphics/resources/menufont.h"  // MENUFONT_Draw
+#include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
 #include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
-#include "engine/graphics/resources/truetype.h"  // PreFlipTT (if defined)
+#include "engine/graphics/text/truetype.h"  // PreFlipTT (if defined)
 #include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
 #include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
@@ -94,7 +94,7 @@
 #include "effects/ribbon.h"
 #include "effects/drip.h"
 #include "assets/xlat_str.h"
-#include "engine/graphics/resources/font2d.h"  // FONT2D_DrawStringWrapTo
+#include "engine/graphics/text/font2d.h"  // FONT2D_DrawStringWrapTo
 #include "ui/hud/overlay.h"
 #include "engine/audio/music.h"
 #include "ui/hud/panel.h"  // PANEL_wide_top_person, PANEL_wide_bot_person

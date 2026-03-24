@@ -9,8 +9,8 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/resources/font2d.h"
-#include "engine/graphics/resources/font2d_globals.h"
+#include "engine/graphics/text/font2d.h"
+#include "engine/graphics/text/font2d_globals.h"
 
 
 // Thing, Class constants, person types, special items

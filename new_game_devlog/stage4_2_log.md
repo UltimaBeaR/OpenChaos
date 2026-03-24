@@ -103,3 +103,15 @@
 - `engine/lighting/*` (22 файла) → `engine/graphics/lighting/*`
 - Освещение — чисто визуальная подсистема (view frustum, shadows, per-vertex lighting), не влияет на геймплей
 - 41 файл с include-путями, 13 include guards обновлены
+
+### Итерация 5 — реструктуризация engine/graphics/ (2026-03-24)
+
+14 модулей перемещены внутри engine/graphics/ + новые подпапки:
+- Новая `graphics/postprocess/`: bloom (из geometry/), wibble (из pipeline/)
+- Новая `graphics/text/`: text (из pipeline/), font+font2d+menufont+truetype (из resources/)
+- Новая `engine/console/`: console (из resources/), message (из pipeline/) — дебаг-подсистема движка
+- sky: pipeline/ → geometry/ (создаёт визуальный вывод)
+- vertex_buffer, render_state: pipeline/ → graphics_api/ (чистый D3D)
+- d3d_texture: resources/ → graphics_api/ (чистый D3D)
+- host: graphics_api/ → platform/ (создание окна, не graphics API)
+- `graphics/resources/` удалена (пустая)

@@ -10,8 +10,8 @@
 #include "assets/xlat_str.h"
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
-#include "engine/graphics/resources/menufont.h"
-#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/text/menufont.h"
+#include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/core/fmatrix.h"
@@ -32,8 +32,8 @@
 #include "engine/input/keyboard_globals.h"    // Keys[], LastKey, ControlFlag, ShiftFlag
 #include "engine/input/joystick.h"             // ReadInputDevice
 #include "engine/input/joystick_globals.h"    // the_state (DIJOYSTATE)
-#include "engine/graphics/resources/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
-#include "engine/graphics/resources/menufont_globals.h" // FontPage
+#include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
+#include "engine/graphics/text/menufont_globals.h" // FontPage
 #include "engine/graphics/graphics_api/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
 #include "ui/interfac.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
 #include "ui/interfac_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel

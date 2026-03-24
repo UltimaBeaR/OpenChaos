@@ -86,7 +86,7 @@
 #include "assets/startscr_globals.h"    // STARTSCR_mission
 #include "things/core/thing_globals.h"  // playback_file
 #include "things/characters/person.h"  // init_persons
-#include "engine/graphics/resources/console.h" // CONSOLE_clear
+#include "engine/console/console.h" // CONSOLE_clear
 #include "assets/texture.h"            // TEXTURE_fix_prim_textures
 #include "engine/graphics/pipeline/aeng.h"  // AENG_create_dx_prim_points, TEXTURE_load_needed
 

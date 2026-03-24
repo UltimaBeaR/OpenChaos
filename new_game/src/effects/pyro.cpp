@@ -1079,7 +1079,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 #include "world/environment/id.h"
 #include "world/map/pap.h"
 // BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.
-#include "engine/graphics/geometry/bloom.h"
+#include "engine/graphics/postprocess/bloom.h"
 
 // Forward declarations for draw functions defined later in this file.
 // uc_orig: PYRO_draw_explosion (fallen/DDEngine/Source/drawxtra.cpp)

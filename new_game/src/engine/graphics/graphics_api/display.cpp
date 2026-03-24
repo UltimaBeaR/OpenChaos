@@ -22,7 +22,7 @@
 #include "engine/core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
-#include "engine/graphics/pipeline/vertex_buffer.h"
+#include "engine/graphics/graphics_api/vertex_buffer.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 // panel.h uses Thing* — forward-declare Thing so panel.h can compile without the full Thing header.

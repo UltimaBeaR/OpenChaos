@@ -5,7 +5,7 @@
 
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/resources/menufont.h"
+#include "engine/graphics/text/menufont.h"
 #include "assets/xlat_str.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"

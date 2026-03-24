@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_PIPELINE_QENG_H
 
 #include "world/map/qmap.h"
-#include "engine/graphics/pipeline/message.h"
+#include "engine/console/message.h"
 
 // Minimal 3D engine for rendering QMAP world data using the POLY pipeline.
 // Used by the level editor (qedit.cpp). Not used in the shipping game.

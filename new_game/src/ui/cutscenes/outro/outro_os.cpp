@@ -29,7 +29,7 @@
 
 // OS_calculate_mask_and_shift is defined in engine/graphics/resources/d3d_texture.cpp
 // and declared here for use in OS_texture_lock and OS_hack.
-#include "engine/graphics/resources/d3d_texture.h"
+#include "engine/graphics/graphics_api/d3d_texture.h"
 
 // Entry point from outro system.
 extern void MAIN_main(void);

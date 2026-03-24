@@ -14,7 +14,7 @@
 #include "engine/audio/sound.h"
 #include "things/items/grenade.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/navigation/wmove.h"

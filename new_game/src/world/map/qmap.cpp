@@ -7,7 +7,7 @@
 #include "engine/platform/uc_common.h"
 #include "world/map/qmap.h"
 #include "world/map/qmap_globals.h"
-#include "engine/graphics/pipeline/message.h"
+#include "engine/console/message.h"
 #include "engine/core/memory.h"
 
 // uc_orig: QMAP_compress_all (fallen/Source/qmap.cpp)

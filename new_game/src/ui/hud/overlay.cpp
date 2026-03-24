@@ -10,7 +10,7 @@
 #include "things/core/interact_globals.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
-#include "engine/graphics/resources/font2d.h"
+#include "engine/graphics/text/font2d.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"

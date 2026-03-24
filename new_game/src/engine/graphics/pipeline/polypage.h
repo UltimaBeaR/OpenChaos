@@ -1,8 +1,8 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 #define ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 
-#include "engine/graphics/pipeline/render_state.h"
-#include "engine/graphics/pipeline/vertex_buffer.h"
+#include "engine/graphics/graphics_api/render_state.h"
+#include "engine/graphics/graphics_api/vertex_buffer.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/poly.h"
 

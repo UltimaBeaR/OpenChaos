@@ -6,7 +6,7 @@
 #include "world/map/pap.h"
 #include "things/core/thing.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/resources/console.h"
+#include "engine/console/console.h"
 #include "assets/texture.h"
 
 #include "missions/elev.h"
