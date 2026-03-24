@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FARFACET_H
 #define ENGINE_GRAPHICS_GEOMETRY_FARFACET_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // FarFacet: LOD renderer for distant building walls.
 // At init time, building wall (DFacet) geometry is merged and pre-built into

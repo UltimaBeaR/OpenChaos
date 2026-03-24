@@ -1,7 +1,7 @@
 #ifndef EFFECTS_GLOW_H
 #define EFFECTS_GLOW_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Renders the rotating glow overlay used for the Guardian of Baalrog (final boss).
 // Draws four overlapping rotated sprite quads that spin in alternating directions.

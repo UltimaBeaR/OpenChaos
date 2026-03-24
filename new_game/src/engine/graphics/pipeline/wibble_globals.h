@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_WIBBLE_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_WIBBLE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Horizontal warp multipliers and gamma multipliers for the two wibble waves.
 // uc_orig: mul_y1 (fallen/DDEngine/Source/wibble.cpp)

@@ -5,7 +5,7 @@
 // A texture can cycle through up to 16 UV frames at runtime.
 // The data is loaded from "data/tmap.ani" at level start.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MAX_TMAP_FRAMES (fallen/Headers/animtmap.h)
 #define MAX_TMAP_FRAMES 16

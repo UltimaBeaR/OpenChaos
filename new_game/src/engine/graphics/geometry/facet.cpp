@@ -1,9 +1,9 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 
 #include <math.h>
 
-#include "core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
-#include "core/matrix.h"                     // MATRIX_calc
+#include "engine/core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
+#include "engine/core/matrix.h"                     // MATRIX_calc
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"

@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <string.h>
 
 #include "actors/core/statedef.h"
@@ -26,7 +26,7 @@
 #include "ui/hud/overlay.h"
 #include "assets/xlat_str.h"
 #include "world/map/pap.h"
-#include "core/memory.h"
+#include "engine/core/memory.h"
 #include "engine/physics/collide.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"

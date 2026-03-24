@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "world/environment/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
 #include "engine/graphics/pipeline/render_state.h" // D3DMATRIX, D3DLVERTEX

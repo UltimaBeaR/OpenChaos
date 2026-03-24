@@ -1,7 +1,7 @@
 #ifndef ASSETS_TEXTURE_H
 #define ASSETS_TEXTURE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/resources/d3d_texture.h"
 #include "engine/lighting/crinkle.h"
 

@@ -1,7 +1,7 @@
 #ifndef ENGINE_AUDIO_SOUND_GLOBALS_H
 #define ENGINE_AUDIO_SOUND_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: SOUNDFXG (fallen/Headers/Sound.h)
 typedef UWORD SOUNDFXG[2];

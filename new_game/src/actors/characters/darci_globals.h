@@ -1,7 +1,7 @@
 #ifndef ACTORS_CHARACTERS_DARCI_GLOBALS_H
 #define ACTORS_CHARACTERS_DARCI_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/state.h"
 
 // THING_INDEX is defined in Game.h; replicate guard pattern for standalone use.

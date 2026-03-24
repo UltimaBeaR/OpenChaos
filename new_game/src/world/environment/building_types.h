@@ -5,7 +5,7 @@
 // pool limits, and all STOREY_TYPE_*/FACET_FLAG_*/FLAG_* constants.
 // These are the static data structures for procedural building geometry.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "world/environment/prim_types.h" // PrimPoint, PrimFace3/4, etc.
 
 // =====================================================================

@@ -2,8 +2,8 @@
 #define ACTORS_VEHICLES_CHOPPER_H
 
 #include <string.h>
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 #include "actors/core/state.h"
 #include "actors/core/drawtype.h"
 

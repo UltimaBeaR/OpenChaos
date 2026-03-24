@@ -1,6 +1,6 @@
 #include "actors/characters/roper.h"
 #include "actors/characters/roper_globals.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "actors/characters/person.h"          // set_person_idle, health
 #include "actors/characters/person_globals.h"  // health[]

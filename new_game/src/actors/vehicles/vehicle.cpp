@@ -7,15 +7,15 @@
 
 #include <math.h>
 
-#include <platform.h>            // base types, ASSERT
+#include "engine/platform/platform.h"            // base types, ASSERT
 #include "missions/game_types.h" // Game struct, TICK_RATIO, pool macros
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/oval.h"
 
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 #include "actors/core/statedef.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
 #include "world/environment/prim.h"       // slide_along_prim, get_prim_info, etc.

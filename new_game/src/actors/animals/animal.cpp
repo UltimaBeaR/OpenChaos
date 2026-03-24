@@ -3,7 +3,7 @@
 // Note: Most functions contain ASSERT(0) stubs — the animal system was not completed
 // in the pre-release build.
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "engine/animation/anim_types.h"     // GameKeyFrame, GameKeyFrameChunk
 #include "assets/anim_globals.h"              // game_chunk, global_anim_array

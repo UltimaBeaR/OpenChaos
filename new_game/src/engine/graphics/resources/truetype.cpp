@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, REALLY_SET_*, the_display
 #include <mbctype.h>
 #include <mbstring.h>

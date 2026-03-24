@@ -1,7 +1,7 @@
 #ifndef EFFECTS_SPARK_H
 #define EFFECTS_SPARK_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Animated electric spark effect: each spark is a branching lightning bolt between two world
 // points. Sparks live for a random number of ticks, wiggle via velocity, and spawn GLITTER

@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_SKY_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_SKY_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Star entry: position as yaw/pitch angles + precomputed world vector.
 // uc_orig: SKY_Star (fallen/DDEngine/Source/sky.cpp)

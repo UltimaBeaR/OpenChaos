@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_SPRITE_H
 #define ENGINE_GRAPHICS_GEOMETRY_SPRITE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: SPRITE_SORT_NORMAL (fallen/DDEngine/Headers/sprite.h)
 #define SPRITE_SORT_NORMAL 1

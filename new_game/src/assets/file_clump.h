@@ -1,7 +1,7 @@
 #ifndef ASSETS_FILE_CLUMP_H
 #define ASSETS_FILE_CLUMP_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include <cstdio>
 
 // Container format for bundling multiple files into a single archive (.gob/.ilf/.txc).

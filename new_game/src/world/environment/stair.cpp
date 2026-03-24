@@ -1,5 +1,5 @@
-#include <platform.h>
-#include "core/fixed_math.h"
+#include "engine/platform/platform.h"
+#include "engine/core/fixed_math.h"
 
 #include "world/environment/building_types.h" // STAIR_FLAG_UP, STAIR_FLAG_DOWN
 #include "world/environment/stair.h"

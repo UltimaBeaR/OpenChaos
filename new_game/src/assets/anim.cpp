@@ -1,9 +1,9 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "missions/game_types.h"
 #include "assets/anim.h"
-#include "core/memory.h"
+#include "engine/core/memory.h"
 #include "actors/characters/anim_ids.h"
 #include "actors/characters/person_types.h"  // ANIM_TYPE_DARCI/ROPER/CIV/ROPER2
 

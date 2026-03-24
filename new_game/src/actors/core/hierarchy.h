@@ -1,8 +1,8 @@
 #ifndef ACTORS_CORE_HIERARCHY_H
 #define ACTORS_CORE_HIERARCHY_H
 
-#include "core/types.h"
-#include "core/fmatrix.h"
+#include "engine/core/types.h"
+#include "engine/core/fmatrix.h"
 
 // Bone hierarchy data for skeletal animation.
 // 15 body parts: pelvis, leg joints, torso, arm joints, skull.

@@ -1,7 +1,7 @@
 #ifndef ENGINE_IO_FILE_H
 #define ENGINE_IO_FILE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Windows API for HANDLE, BOOL.
 // Temporary dependency until Stage 8 (cross-platform).

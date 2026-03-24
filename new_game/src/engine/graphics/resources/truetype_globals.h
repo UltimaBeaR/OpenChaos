@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <ddraw.h>
 #include <d3d.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/resources/truetype.h"
 #include "engine/graphics/resources/d3d_texture.h"
 

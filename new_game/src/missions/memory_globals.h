@@ -1,7 +1,7 @@
 #ifndef MISSIONS_MEMORY_GLOBALS_H
 #define MISSIONS_MEMORY_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 // All level geometry pools (prim_points, prim_faces4, dfacets, etc.) live here:
 #include "world/level_pools.h"
 #include "missions/save.h"                      // MemTable, save_table[] (moved out of Game.h)

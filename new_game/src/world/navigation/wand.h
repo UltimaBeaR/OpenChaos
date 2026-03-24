@@ -1,7 +1,7 @@
 #ifndef WORLD_NAVIGATION_WAND_H
 #define WORLD_NAVIGATION_WAND_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: WAND_init (fallen/Headers/wand.h)
 // Marks walkable squares near roads with PAP_FLAG_WANDER.

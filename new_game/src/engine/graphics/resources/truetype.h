@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_RESOURCES_TRUETYPE_H
 #define ENGINE_GRAPHICS_RESOURCES_TRUETYPE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/resources/d3d_texture.h"
 
 // If TRUETYPE is defined, TrueType fonts are used; otherwise the bitmap font system is used.

@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "ngamut.h"
 
 // uc_orig: MIN3 (fallen/DDEngine/Source/NGamut.cpp)

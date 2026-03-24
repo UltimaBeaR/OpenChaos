@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_MESH_H
 #define ENGINE_GRAPHICS_GEOMETRY_MESH_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/lighting/night.h"
 
 // uc_orig: MESH_colour_and (fallen/DDEngine/Source/mesh.cpp)

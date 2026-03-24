@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_MESSAGE_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_MESSAGE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MSG_MAX_LENGTH (fallen/DDEngine/Source/Message.cpp)
 #define MSG_MAX_LENGTH 256

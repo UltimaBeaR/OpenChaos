@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_OVAL_H
 #define ENGINE_GRAPHICS_GEOMETRY_OVAL_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Oval type constants — passed to OVAL_add to select the shadow texture page.
 // uc_orig: OVAL_TYPE_OVAL (fallen/DDEngine/Headers/oval.h)

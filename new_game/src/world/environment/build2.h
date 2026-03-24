@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_BUILD2_H
 #define WORLD_ENVIRONMENT_BUILD2_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Build2: city spatial index construction, facet/walkable registration, ladder geometry.
 // Functions here populate the PAP lo-res map with DFacet and walkable face

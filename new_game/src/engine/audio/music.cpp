@@ -3,7 +3,7 @@
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "world/environment/ware.h"
 #include "world/environment/ware_globals.h"

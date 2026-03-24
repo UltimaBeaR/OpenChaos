@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_AA_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_AA_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: AA_MAX_SPAN_X (fallen/DDEngine/Source/aa.cpp)
 #define AA_MAX_SPAN_X 33

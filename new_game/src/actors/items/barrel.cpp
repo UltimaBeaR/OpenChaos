@@ -7,7 +7,7 @@
 #include "world/environment/prim.h"    // get_prim_info
 #include "actors/items/barrel.h"
 #include "actors/items/barrel_globals.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 #include "ai/mav.h"
 #include "world/map/pap_globals.h"
 #include "actors/core/statedef.h"

@@ -1,7 +1,7 @@
 #ifndef ASSETS_LEVEL_LOADER_H
 #define ASSETS_LEVEL_LOADER_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include <stdio.h>
 
 // In-map record for an animated prim placement loaded from the .iam file.

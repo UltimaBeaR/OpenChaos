@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_TRIPWIRE_H
 #define WORLD_ENVIRONMENT_TRIPWIRE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: TRIP_X1_DEACTIVATED (fallen/Headers/trip.h)
 #define TRIP_X1_DEACTIVATED 0xffff

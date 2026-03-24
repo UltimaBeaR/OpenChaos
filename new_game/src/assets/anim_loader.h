@@ -1,7 +1,7 @@
 #ifndef ASSETS_ANIM_LOADER_H
 #define ASSETS_ANIM_LOADER_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/io/file.h"
 #include <stdio.h>
 

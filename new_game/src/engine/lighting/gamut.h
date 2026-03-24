@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_GAMUT_H
 #define ENGINE_LIGHTING_GAMUT_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // View frustum gamut system — divides the world into a radial grid of cells
 // to quickly determine which map squares are visible from the current camera.

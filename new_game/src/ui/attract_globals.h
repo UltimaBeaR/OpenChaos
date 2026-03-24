@@ -1,7 +1,7 @@
 #ifndef UI_ATTRACT_GLOBALS_H
 #define UI_ATTRACT_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: demo_text (fallen/Source/Attract.cpp)
 extern CBYTE demo_text[];

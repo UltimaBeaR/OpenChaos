@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FACET_H
 #define ENGINE_GRAPHICS_GEOMETRY_FACET_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"    // POLY_Point
 #include "engine/lighting/night.h"             // NIGHT_Colour
 #include "engine/graphics/geometry/facet_globals.h"  // all facet globals (FacetRows, FacetDiffY, flip, etc.)

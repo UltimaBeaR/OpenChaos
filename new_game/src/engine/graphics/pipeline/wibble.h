@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_WIBBLE_H
 #define ENGINE_GRAPHICS_PIPELINE_WIBBLE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Horizontally distorts a rectangular region of the locked back buffer in-place,
 // creating a wavy "wibble" effect. Operates on raw framebuffer memory.

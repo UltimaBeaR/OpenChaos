@@ -1,10 +1,10 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <tchar.h>
 #include "engine/graphics/graphics_api/dd_manager.h"
 #include "engine/graphics/graphics_api/dd_manager_globals.h"
 #include "engine/graphics/graphics_api/gd_display.h"  // DEFAULT_WIDTH/HEIGHT/DEPTH
 #include "engine/io/env.h"                              // ENV_get_value_number, ENV_set_value_number
-#include "core/memory.h"                                // MemAlloc, MemFree
+#include "engine/core/memory.h"                                // MemAlloc, MemFree
 
 // Forward declaration: defined in engine/graphics/resources/d3d_texture.cpp.
 // Avoids a graphics_api/ → graphics/resources/ include dependency.

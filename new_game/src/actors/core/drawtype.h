@@ -5,7 +5,7 @@
 // Every Thing in the game has a DrawType field that selects the rendering path.
 // DrawTween = vertex-morphing animated characters; DrawMesh = static oriented mesh objects.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/lighting/cache.h"
 
 // uc_orig: RMAX_DRAW_TWEENS (fallen/Headers/drawtype.h)

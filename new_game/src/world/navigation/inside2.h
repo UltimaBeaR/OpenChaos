@@ -1,7 +1,7 @@
 #ifndef WORLD_NAVIGATION_INSIDE2_H
 #define WORLD_NAVIGATION_INSIDE2_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Forward declaration — Thing is defined in fallen/Headers/Game.h (not yet migrated).
 struct Thing;

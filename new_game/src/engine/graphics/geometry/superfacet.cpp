@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -10,7 +10,7 @@
 #include "world/level_pools.h"
 #include "ui/interfac.h"
 #include "ui/interfac_globals.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/geometry/superfacet_globals.h"
 

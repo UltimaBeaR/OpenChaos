@@ -2,14 +2,14 @@
 // as variables; gd_display.h would then redefine them as macros causing a syntax error.
 #include "missions/game_types.h"
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include <math.h>
 
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 
 #include "world/environment/prim_types.h"  // PrimObject, PrimInfo, PRIM_FLAG_*, FACE_FLAG_*, PRIM_OBJ_*
 #include "world/environment/prim.h"        // get_prim_info, slide_along_prim, etc.

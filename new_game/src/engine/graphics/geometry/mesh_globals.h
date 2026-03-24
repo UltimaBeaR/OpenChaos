@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_MESH_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_MESH_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MESH_Crumple (fallen/DDEngine/Source/mesh.cpp)
 // Per-vertex random displacement used for generic crumple levels (damaged objects).

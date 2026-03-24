@@ -1,7 +1,7 @@
 #ifndef UI_CAMERA_CAM_H
 #define UI_CAMERA_CAM_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/thing.h"
 #include "ui/camera/cam_globals.h"
 

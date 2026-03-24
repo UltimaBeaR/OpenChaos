@@ -1,7 +1,7 @@
 #ifndef ACTORS_CORE_HIERARCHY_GLOBALS_H
 #define ACTORS_CORE_HIERARCHY_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: body_part_parent (fallen/Source/Hierarchy.cpp)
 extern CBYTE* body_part_parent[][2];

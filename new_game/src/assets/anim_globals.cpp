@@ -1,5 +1,5 @@
 #include <string.h>
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "assets/anim_globals.h"
 
 // uc_orig: global_anim_array (fallen/Source/interact.cpp)

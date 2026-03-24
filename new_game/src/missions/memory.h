@@ -10,7 +10,7 @@
 //
 // Also contains the quick save/load system (F5/F9 in PC build) via MEMORY_quick_*.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/thing.h"
 #include "engine/animation/anim_types.h"
 #include "missions/memory_globals.h"

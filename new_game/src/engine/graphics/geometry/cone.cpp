@@ -1,5 +1,5 @@
 // Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"

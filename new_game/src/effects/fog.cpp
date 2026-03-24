@@ -1,7 +1,7 @@
 #include "effects/fog.h"
 #include "effects/fog_globals.h"
 #include "missions/game_types.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "world/map/pap_globals.h"
 
 // calc_height_at is defined in collide.cpp. Not including collide.h to avoid

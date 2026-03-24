@@ -4,7 +4,7 @@
 // Light editor API — used at load time to apply baked level lighting.
 // Original source: fallen/Ledit/Headers/ed.h + fallen/Ledit/Source/ed.cpp
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: LIGHT_FLAGS_INSIDE (fallen/Ledit/Headers/ed.h)
 // Set when a light is placed inside a building.

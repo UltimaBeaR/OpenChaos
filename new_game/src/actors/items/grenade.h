@@ -1,7 +1,7 @@
 #ifndef ACTORS_ITEMS_GRENADE_H
 #define ACTORS_ITEMS_GRENADE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Forward declaration — avoid pulling in all of Game.h in this header.
 struct Thing;

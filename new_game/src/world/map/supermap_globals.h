@@ -1,7 +1,7 @@
 #ifndef WORLD_MAP_SUPERMAP_GLOBALS_H
 #define WORLD_MAP_SUPERMAP_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Global state for the supermap system: allocation cursors, level list, per-frame counters.
 

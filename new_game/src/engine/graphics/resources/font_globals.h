@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_RESOURCES_FONT_GLOBALS_H
 #define ENGINE_GRAPHICS_RESOURCES_FONT_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/resources/font.h"
 
 // Internal character bitmap type. Defined here (not in font.h) because font.h

@@ -1,7 +1,7 @@
 #ifndef ACTORS_ITEMS_PROJECTILE_H
 #define ACTORS_ITEMS_PROJECTILE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MAX_PROJECTILES (fallen/Headers/Pjectile.h)
 #define MAX_PROJECTILES 10

@@ -1,7 +1,7 @@
 #include "engine/animation/morph.h"
 #include "engine/animation/morph_globals.h"
-#include "core/macros.h"
-#include <platform.h>
+#include "engine/core/macros.h"
+#include "engine/platform/platform.h"
 #include <cstdio>
 
 // uc_orig: MORPH_load (fallen/Source/morph.cpp)

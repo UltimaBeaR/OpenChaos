@@ -1,7 +1,7 @@
 #ifndef EFFECTS_DIRT_H
 #define EFFECTS_DIRT_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Ambient debris and interactive throwable objects.
 // Manages a pool of 1024 dirt entries that float near the camera focus.

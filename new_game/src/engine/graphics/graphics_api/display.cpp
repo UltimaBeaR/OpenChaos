@@ -7,7 +7,7 @@
 #include <stdio.h>
 // MFStdLib before gd_display.h: MFStdLib.h declares 'extern SLONG DisplayWidth/Height'
 // which would conflict with '#define DisplayWidth 640' from gd_display.h.
-#include <platform.h>                  // ASSERT, InitStruct
+#include "engine/platform/platform.h"                  // ASSERT, InitStruct
 #include <mmstream.h>  // IMultiMediaStream, IMediaStream
 #include <amstream.h>  // IAMMultiMediaStream, CLSID_AMMultiMediaStream
 #include <ddstream.h>  // IDirectDrawMediaStream, IDirectDrawStreamSample
@@ -19,7 +19,7 @@
 #include "engine/graphics/graphics_api/display_macros.h"   // dd_error, d3d_error macros
 #include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
 #include "assets/tga.h"                // OpenTGAClump, CloseTGAClump
-#include "core/memory.h"               // MemAlloc, MemFree
+#include "engine/core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
 #include "engine/graphics/pipeline/vertex_buffer.h"

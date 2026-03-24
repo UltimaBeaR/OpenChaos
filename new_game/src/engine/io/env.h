@@ -1,7 +1,7 @@
 #ifndef ENGINE_IO_ENV_H
 #define ENGINE_IO_ENV_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Loads the INI configuration file. Path is relative to the working directory.
 // Must be called once at startup before any ENV_get_* calls.

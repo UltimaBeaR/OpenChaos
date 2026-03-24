@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_RESOURCES_MENUFONT_GLOBALS_H
 
 #include "engine/graphics/resources/menufont.h"
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: FontName (fallen/DDEngine/Source/menufont.cpp)
 extern CBYTE FontName[_MAX_PATH];

@@ -1,7 +1,7 @@
 #ifndef ACTORS_CORE_STATE_H
 #define ACTORS_CORE_STATE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 struct Thing;
 

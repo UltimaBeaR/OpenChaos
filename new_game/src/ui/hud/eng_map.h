@@ -5,7 +5,7 @@
 // people and vehicle dots, and pulsing nav markers.
 // Corresponds to fallen/DDEngine/Source/engineMap.cpp
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Initialises beacon and pulse arrays. Called from ELEVATOR_reset (elev.cpp) on level load.
 // uc_orig: MAP_beacon_init (fallen/DDEngine/Source/engineMap.cpp)

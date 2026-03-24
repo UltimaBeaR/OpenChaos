@@ -5,7 +5,7 @@
 // Original source: fallen/Editor/Headers/map.h (renamed to edmap.h to avoid
 // conflict with standard/system headers named "map.h").
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: ELE_SHIFT (fallen/Editor/Headers/map.h)
 #undef ELE_SIZE

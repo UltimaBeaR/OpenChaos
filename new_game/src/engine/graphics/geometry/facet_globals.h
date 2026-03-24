@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FACET_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_FACET_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: FACET_direction_matrix (fallen/DDEngine/Source/facet.cpp)
 extern float FACET_direction_matrix[9];

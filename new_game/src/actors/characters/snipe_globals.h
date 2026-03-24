@@ -1,7 +1,7 @@
 #ifndef ACTORS_CHARACTERS_SNIPE_GLOBALS_H
 #define ACTORS_CHARACTERS_SNIPE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: SNIPE_on (fallen/Source/snipe.cpp)
 extern SLONG SNIPE_on;

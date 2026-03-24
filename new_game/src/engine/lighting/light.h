@@ -1,8 +1,8 @@
 #ifndef ENGINE_LIGHTING_LIGHT_H
 #define ENGINE_LIGHTING_LIGHT_H
 
-#include "core/types.h"
-#include "core/vector.h" // GameCoord
+#include "engine/core/types.h"
+#include "engine/core/vector.h" // GameCoord
 #include "world/environment/prim_types.h" // RMAX_PRIM_POINTS
 
 // uc_orig: LIGHT_Save (fallen/Headers/light.h)

@@ -5,7 +5,7 @@
 // An outline is a set of orthogonal line segments on a 2D integer grid.
 // Originally from the editor codebase; used at runtime for building placement validation.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Opaque handle to an outline instance.
 // uc_orig: OUTLINE_Outline (fallen/Editor/Headers/outline.h)

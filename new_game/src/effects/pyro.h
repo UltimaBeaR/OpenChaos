@@ -5,8 +5,8 @@
 // Each active pyro is a CLASS_PYRO Thing managed by state machine (STATE_INIT -> STATE_NORMAL).
 // MAX_PYROS pyro slots (PC = 64); slots are shared across all concurrent effects.
 
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 #include "actors/core/state.h"
 
 struct Thing;

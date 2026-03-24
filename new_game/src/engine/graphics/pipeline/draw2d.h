@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_DRAW2D_H
 #define ENGINE_GRAPHICS_PIPELINE_DRAW2D_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // 2D screen-space drawing utilities: filled boxes, triangles, and textured quads.
 // Used by the UI and widget system for flat overlays drawn on top of the 3D scene.

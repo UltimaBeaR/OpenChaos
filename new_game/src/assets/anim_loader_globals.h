@@ -1,7 +1,7 @@
 #ifndef ASSETS_ANIM_LOADER_GLOBALS_H
 #define ASSETS_ANIM_LOADER_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Total number of keyframes accumulated during load_multi_vue().
 // uc_orig: key_frame_count (fallen/Source/io.cpp)

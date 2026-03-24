@@ -1,8 +1,8 @@
 #ifndef EFFECTS_POW_H
 #define EFFECTS_POW_H
 
-#include <platform.h>      // for ASSERT
-#include "core/types.h"
+#include "engine/platform/platform.h"      // for ASSERT
+#include "engine/core/types.h"
 #include "world/map/pap.h"
 
 // Sprite-based visual explosion effect (no damage, purely cosmetic).

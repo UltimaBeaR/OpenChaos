@@ -1,7 +1,7 @@
 #ifndef ACTORS_CORE_COMMON_H
 #define ACTORS_CORE_COMMON_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // COMMON(TYPE) — header macro for all secondary-Thing genus structs.
 // Declares the required first fields: a type byte, a padding byte,

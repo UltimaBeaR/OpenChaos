@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <ddraw.h>
 #include <d3d.h>
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <stdio.h>
 
 // Initialize and tear down the global vertex buffer pool.

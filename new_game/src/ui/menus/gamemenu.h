@@ -1,7 +1,7 @@
 #ifndef UI_MENUS_GAMEMENU_H
 #define UI_MENUS_GAMEMENU_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // In-game pause/won/lost menus (not the frontend).
 // Menu types: NONE, PAUSE, WON, LOST, SURE (abandon confirmation).

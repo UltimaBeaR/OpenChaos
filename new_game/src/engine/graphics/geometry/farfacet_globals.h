@@ -1,9 +1,9 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FARFACET_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_FARFACET_GLOBALS_H
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/graphics_api/dd_manager.h"   // D3DLVERTEX, D3DMATRIX
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/pipeline/render_state.h"
 #include "world/map/pap.h"
 

@@ -1,7 +1,7 @@
 #ifndef ACTORS_ITEMS_BALLOON_H
 #define ACTORS_ITEMS_BALLOON_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: BALLOON_Point (fallen/Headers/balloon.h)
 typedef struct {

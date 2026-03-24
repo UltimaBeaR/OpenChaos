@@ -3,7 +3,7 @@
 
 // Global variable declarations for the person subsystem.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/state.h"  // GenusFunctions, StateFunction
 
 // Dispatch table: PERSON_TYPE -> state function table (darci_states / cop_states).

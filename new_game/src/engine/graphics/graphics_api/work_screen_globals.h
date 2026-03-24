@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_WORK_SCREEN_GLOBALS_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_WORK_SCREEN_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: CurrentPalette (fallen/DDLibrary/Source/GWorkScreen.cpp)
 extern UBYTE CurrentPalette[256 * 3];

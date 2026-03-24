@@ -1,9 +1,9 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "actors/items/hook.h"
 #include "actors/items/hook_globals.h"
 #include "world/map/pap.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 
 // Physics constants for the rope simulation.
 // uc_orig: HOOK_POINT_DIST (fallen/Source/hook.cpp)

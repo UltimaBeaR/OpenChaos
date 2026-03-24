@@ -1,7 +1,7 @@
 #ifndef ENGINE_INPUT_JOYSTICK_GLOBALS_H
 #define ENGINE_INPUT_JOYSTICK_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include <windows.h>
 #ifndef DIRECTINPUT_VERSION
 #define DIRECTINPUT_VERSION 0x0700

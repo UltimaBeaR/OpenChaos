@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
 #include "actors/core/thing_globals.h"

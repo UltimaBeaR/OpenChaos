@@ -1,7 +1,7 @@
 #ifndef EFFECTS_GLITTER_H
 #define EFFECTS_GLITTER_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Glitter: collections of coloured line-segment sparks grouped into "glitters".
 // Each glitter owns a linked list of GLITTER_Spark nodes from a shared pool.

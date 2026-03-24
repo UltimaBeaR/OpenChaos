@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_ID_H
 #define WORLD_ENVIRONMENT_ID_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Interior design module: generates floorplans (rooms, furniture, stairs) for buildings.
 // Given the outline of a building storey (walls), produces a layout of rooms and stair positions.

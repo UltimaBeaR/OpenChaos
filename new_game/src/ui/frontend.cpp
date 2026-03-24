@@ -2,7 +2,7 @@
 // kibble particle system, FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
-#include <platform.h>   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
+#include "engine/platform/platform.h"   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
 #include "engine/graphics/graphics_api/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4, HRESULT
 #include "ui/frontend.h"
 #include "ui/frontend_globals.h"
@@ -14,7 +14,7 @@
 #include "engine/graphics/resources/font2d.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
 #include "assets/level_loader.h"
@@ -925,7 +925,7 @@ void FRONTEND_kibble_flurry()
 #include "assets/sound_id.h"
 #include "engine/graphics/graphics_api/dd_manager.h"
 #include "engine/graphics/graphics_api/dd_manager_globals.h"
-#include "engine/graphics/graphics_api/wind_procs.h"
+#include "engine/platform/wind_procs.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"

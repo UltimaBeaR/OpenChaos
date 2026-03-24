@@ -1,8 +1,8 @@
 // MFStdLib first: brings in windows.h and base types; supermap.h also includes it but
 // must see correct WIN32 defines before any other windows headers.
-#include <platform.h>
-#include "core/math.h"             // SIN, COS lookup tables
-#include "core/fixed_math.h"       // MUL64
+#include "engine/platform/platform.h"
+#include "engine/core/math.h"             // SIN, COS lookup tables
+#include "engine/core/fixed_math.h"       // MUL64
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"
 
@@ -1299,7 +1299,7 @@ SLONG PQ_better(PQ_Type* a, PQ_Type* b)
 }
 
 // Include the generic heap template. Requires PQ_Type, PQ_HEAP_MAX_SIZE, PQ_better above.
-#include "core/pq.h"
+#include "engine/core/pq.h"
 
 // Heuristic: straight-line QDIST2 distance from (x,z) to MAV_dest, scaled x2, capped at 255.
 // This is the sole cost — no accumulated path cost — making this greedy best-first search.

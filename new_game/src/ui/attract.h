@@ -1,7 +1,7 @@
 #ifndef UI_ATTRACT_H
 #define UI_ATTRACT_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "ui/attract_globals.h"
 
 // uc_orig: MAX_PLAYBACKS (fallen/Source/Attract.cpp)

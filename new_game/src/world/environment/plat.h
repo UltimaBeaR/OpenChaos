@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_PLAT_H
 #define WORLD_ENVIRONMENT_PLAT_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Moving platforms: dynamic mesh prims that follow waypoint paths.
 // Platforms can patrol between waypoints or stop permanently.

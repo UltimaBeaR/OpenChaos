@@ -4,7 +4,7 @@
 // Vehicle physics system — ground vehicles (CLASS_VEHICLE).
 // Covers physics, collision, rendering, damage model, and enter/exit sequencing.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/state.h"
 #include "actors/core/drawtype.h"
 

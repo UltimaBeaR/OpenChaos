@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLYPAGE_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_POLYPAGE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Shared index buffer used when submitting polygons to D3D.
 // Large static array — shared across all PolyPage::Render and DrawSinglePoly calls.

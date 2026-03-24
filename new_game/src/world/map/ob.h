@@ -1,7 +1,7 @@
 #ifndef WORLD_MAP_OB_H
 #define WORLD_MAP_OB_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "world/map/pap.h"
 
 // Forward declaration — Thing is defined in fallen/Headers/Game.h (not yet migrated).

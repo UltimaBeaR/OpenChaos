@@ -1,8 +1,8 @@
 #ifndef WORLD_ENVIRONMENT_PRIM_GLOBALS_H
 #define WORLD_ENVIRONMENT_PRIM_GLOBALS_H
 
-#include "core/types.h"
-#include "core/vector.h"                        // SVector
+#include "engine/core/types.h"
+#include "engine/core/vector.h"                        // SVector
 #include "world/environment/prim_types.h"       // PrimFace3/4, PrimObject, PrimPoint, PrimMultiObject, MAX_PRIM_OBJECTS
 
 // ---- Internal constants ----

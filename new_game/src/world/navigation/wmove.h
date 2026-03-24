@@ -1,7 +1,7 @@
 #ifndef WORLD_NAVIGATION_WMOVE_H
 #define WORLD_NAVIGATION_WMOVE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 struct Thing;
 

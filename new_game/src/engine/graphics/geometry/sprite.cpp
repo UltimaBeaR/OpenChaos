@@ -1,7 +1,7 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
-#include "core/math.h"
+#include "engine/core/math.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 
 // uc_orig: SPRITE_draw_tex_distorted (fallen/DDEngine/Source/sprite.cpp)

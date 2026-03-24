@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_RESOURCES_FONT_H
 #define ENGINE_GRAPHICS_RESOURCES_FONT_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Maximum rendered character dimensions.
 // uc_orig: FONT_HEIGHT (fallen/DDEngine/Headers/Font.h)

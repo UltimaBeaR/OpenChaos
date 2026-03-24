@@ -3,13 +3,13 @@
 
 // Global state for the full-screen minimap (engineMap.cpp).
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // MAP_Beacon struct and MAP_MAX_BEACONS defined in fallen/Headers/memory.h.
 // MFStdLib.h must come first (memory.h → supermap.h needs MFFileHandle).
 // string.h must come first (memory.h → structs.h → anim.h uses strcpy).
 #include <string.h>
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/memory_globals.h"
 
 // --- screen layout ---

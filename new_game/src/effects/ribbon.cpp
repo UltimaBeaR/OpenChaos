@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "effects/ribbon.h"
 #include "effects/ribbon_globals.h"

@@ -2,13 +2,13 @@
 // to use as a blob shadow. SMAP_person() builds the map; SMAP_project_onto_poly()
 // maps it onto a ground quad in world space.
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <math.h>
 #include "engine/lighting/smap.h"
 #include "engine/lighting/smap_globals.h"
 #include "engine/graphics/geometry/aa.h"
-#include "core/matrix.h"
-#include "core/fmatrix.h"
+#include "engine/core/matrix.h"
+#include "engine/core/fmatrix.h"
 #include "world/level_pools.h"
 #include "missions/game_types.h"
 #include "engine/animation/anim_types.h"    // GameKeyFrame, GameKeyFrameElement, GameKeyFrameChunk, GetCMatrix

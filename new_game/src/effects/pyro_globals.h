@@ -1,7 +1,7 @@
 #ifndef EFFECTS_PYRO_GLOBALS_H
 #define EFFECTS_PYRO_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "effects/pyro.h"
 
 // Precalculated hemisphere vertex positions for PYRO_EXPLODE old-style explosion.

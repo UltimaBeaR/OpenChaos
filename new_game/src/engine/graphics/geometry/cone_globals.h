@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_CONE_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_CONE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 
 // File-private struct for cone base points; exposed here for _globals extern arrays.

@@ -1,8 +1,8 @@
 #ifndef ACTORS_ITEMS_BARREL_H
 #define ACTORS_ITEMS_BARREL_H
 
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 
 struct Thing;
 

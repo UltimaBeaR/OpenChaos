@@ -1,7 +1,7 @@
 #ifndef EFFECTS_DRIP_H
 #define EFFECTS_DRIP_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Drip effect: expanding, fading ripple circles on water surfaces.
 // Created when objects fall into puddles or water tiles.

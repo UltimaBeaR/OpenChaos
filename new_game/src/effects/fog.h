@@ -1,7 +1,7 @@
 #ifndef EFFECTS_FOG_H
 #define EFFECTS_FOG_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Fog system: manages a pool of animated fog sprites around a focus point.
 // Fog exists only within the active radius; particles outside are recycled

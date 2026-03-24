@@ -1,7 +1,7 @@
 #ifndef UI_MENUS_GAMEMENU_GLOBALS_H
 #define UI_MENUS_GAMEMENU_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Each menu entry: word[0] is the title string id, word[1..7] are the selectable item ids.
 // uc_orig: GAMEMENU_Menu (fallen/Source/gamemenu.cpp)

@@ -5,7 +5,7 @@
 // Each morph is a set of 3D vertex positions loaded from an .ASC (3DS Max ASCII) file.
 // Vertex interpolation between morphs is done by the renderer (see DT_TWEEN draw path).
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MORPH_PIGEON_WALK1 (fallen/Headers/morph.h)
 #define MORPH_PIGEON_WALK1 0

@@ -3,7 +3,7 @@
 
 // Global state for the vehicle system.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/vehicles/vehicle.h"
 
 // Per-type static vehicle parameters: wheel positions, engine tuning,

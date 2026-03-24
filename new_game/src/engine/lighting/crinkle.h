@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_CRINKLE_H
 #define ENGINE_LIGHTING_CRINKLE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "assets/file_clump.h"

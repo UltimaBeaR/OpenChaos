@@ -8,13 +8,13 @@
 // Historically everything in this header lived in fallen/Headers/Game.h,
 // which was the mega-header included by virtually every .cpp in the game.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "missions/save.h"                     // MemTable, save_table[], SAVE_TABLE_* indices
 #include "engine/graphics/pipeline/poly.h"     // POLY_FLAG_* (used in POLY_* combined macros below)
 
 // The Game struct contains MapElement (the world grid) and GameCoord.
 #include "world/map/map.h" // MapElement, MAP_SIZE, MAP_WIDTH, MAP_HEIGHT, MAP_INDEX, ELE_SHIFT
-#include "core/vector.h"   // GameCoord
+#include "engine/core/vector.h"   // GameCoord
 
 // game_types.h is self-sufficient: pulls in all pool type definitions via thing.h.
 // This avoids the need for callers to include thing.h before game_types.h.

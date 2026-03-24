@@ -4,7 +4,7 @@
 // Gun targeting system: auto-aim scoring and target selection.
 // Used by both player (calc_target_score_new/find_target_new) and NPCs.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 struct Thing;
 

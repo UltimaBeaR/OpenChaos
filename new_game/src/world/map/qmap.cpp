@@ -4,11 +4,11 @@
 // QMAP was intended as a debug/test renderer for the map editor; it is not
 // used in the final game's main rendering path.
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "world/map/qmap.h"
 #include "world/map/qmap_globals.h"
 #include "engine/graphics/pipeline/message.h"
-#include "core/memory.h"
+#include "engine/core/memory.h"
 
 // uc_orig: QMAP_compress_all (fallen/Source/qmap.cpp)
 static void QMAP_compress_all(void)

@@ -1,7 +1,7 @@
 #ifndef ENGINE_INPUT_KEYBOARD_GLOBALS_H
 #define ENGINE_INPUT_KEYBOARD_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include <windows.h>
 
 // Public keyboard state.

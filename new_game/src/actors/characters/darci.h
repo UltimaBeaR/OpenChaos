@@ -1,7 +1,7 @@
 #ifndef ACTORS_CHARACTERS_DARCI_H
 #define ACTORS_CHARACTERS_DARCI_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/state.h"
 #include "engine/animation/anim_types.h"  // KeyFrame
 

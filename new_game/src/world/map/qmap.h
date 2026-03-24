@@ -1,7 +1,7 @@
 #ifndef WORLD_MAP_QMAP_H
 #define WORLD_MAP_QMAP_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: QMAP_SIZE (fallen/Headers/qmap.h)
 #define QMAP_SIZE 1024

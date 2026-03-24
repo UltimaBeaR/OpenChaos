@@ -1,9 +1,9 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_FASTPRIM_GLOBALS_H
 #define ENGINE_GRAPHICS_GEOMETRY_FASTPRIM_GLOBALS_H
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <d3d.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // D3D vertex/index buffer for all batched prim draws.
 // uc_orig: FASTPRIM_lvert_buffer (fallen/DDEngine/Source/fastprim.cpp)

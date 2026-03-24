@@ -1,9 +1,9 @@
 #ifndef UI_CUTSCENES_PLAYCUTS_H
 #define UI_CUTSCENES_PLAYCUTS_H
 
-#include <platform.h>
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/platform/platform.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 
 // Cutscene playback system: reads .cutscene files and drives characters + camera
 // along recorded tracks. Used for in-game cutscenes authored in the level editor.

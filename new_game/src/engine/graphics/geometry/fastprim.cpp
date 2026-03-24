@@ -2,14 +2,14 @@
 // each frame. Uses DrawIndPrimMM for opaque/tinted prims, DrawIndexedPrimitive for alpha and
 // environment-mapped ones.
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/geometry/fastprim.h"
 #include "engine/graphics/geometry/fastprim_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/graphics_api/gd_display.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 #include "assets/texture.h"
 #include "world/environment/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
 #include "world/environment/prim.h"          // get_prim_info

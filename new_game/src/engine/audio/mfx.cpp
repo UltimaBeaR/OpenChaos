@@ -2,7 +2,7 @@
 #define TALK_3D 0
 
 #include "engine/audio/mfx_globals.h"
-#include "core/math.h"
+#include "engine/core/math.h"
 #include <cmath>
 #include <AL/al.h>
 #include <AL/alext.h>

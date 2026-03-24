@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_WARE_H
 #define WORLD_ENVIRONMENT_WARE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "ai/mav.h"
 
 // Forward declaration to avoid pulling in Thing.h here.

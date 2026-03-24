@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <ddraw.h>
 #include <d3d.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: DD_DRIVER_INIT (fallen/DDLibrary/Headers/DDManager.h)
 #define DD_DRIVER_INIT (1 << 0)

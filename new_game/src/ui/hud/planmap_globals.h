@@ -1,7 +1,7 @@
 #ifndef UI_HUD_PLANMAP_GLOBALS_H
 #define UI_HUD_PLANMAP_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Pointer to screen memory for direct pixel drawing.
 // uc_orig: screenmem (fallen/DDEngine/Source/planmap.cpp)

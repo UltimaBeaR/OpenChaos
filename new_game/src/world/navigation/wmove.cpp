@@ -1,11 +1,11 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
 #include "assets/anim_globals.h"             // next_prim_point, next_prim_face4
 #include "world/navigation/wmove.h"
 #include "world/navigation/wmove_globals.h"
 #include "world/environment/build2.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 #include "actors/core/statedef.h"
 
 #include "actors/vehicles/vehicle.h"

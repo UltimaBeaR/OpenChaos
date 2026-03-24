@@ -5,7 +5,7 @@
 // FC_MAX_CAMS=2 for split-screen support; FC_cam[1] is unused in the shipped game.
 // CAM_MORE_IN=0.75F: PC camera is 25% closer to the player than the PSX version.
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "actors/core/thing.h"
 #include "missions/game_types.h"
 

@@ -32,10 +32,10 @@ find_package(OpenAL CONFIG REQUIRED)
 # ---------------------------------------------------------------------------
 set(SOURCES_NEW
     src/main.cpp
-    src/core/memory.cpp
-    src/core/memory_globals.cpp
-    src/core/math.cpp
-    src/core/math_globals.cpp
+    src/engine/core/memory.cpp
+    src/engine/core/memory_globals.cpp
+    src/engine/core/math.cpp
+    src/engine/core/math_globals.cpp
     src/engine/io/file.cpp
     src/engine/io/file_globals.cpp
     src/engine/io/async_file.cpp
@@ -46,10 +46,10 @@ set(SOURCES_NEW
     src/engine/input/mouse_globals.cpp
     src/engine/input/joystick.cpp
     src/engine/input/joystick_globals.cpp
-    src/core/matrix.cpp
-    src/core/fmatrix.cpp
-    src/core/quaternion.cpp
-    src/core/quaternion_globals.cpp
+    src/engine/core/matrix.cpp
+    src/engine/core/fmatrix.cpp
+    src/engine/core/quaternion.cpp
+    src/engine/core/quaternion_globals.cpp
     src/assets/file_clump.cpp
     src/assets/tga.cpp
     src/assets/tga_globals.cpp
@@ -68,14 +68,14 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/aa_globals.cpp
     src/engine/graphics/pipeline/message.cpp
     src/engine/graphics/pipeline/message_globals.cpp
-    src/core/timer.cpp
-    src/core/timer_globals.cpp
+    src/engine/core/timer.cpp
+    src/engine/core/timer_globals.cpp
     src/engine/audio/mfx.cpp
     src/engine/audio/mfx_globals.cpp
     src/engine/graphics/resources/d3d_texture.cpp
     src/engine/graphics/resources/d3d_texture_globals.cpp
-    src/engine/graphics/graphics_api/wind_procs.cpp
-    src/engine/graphics/graphics_api/wind_procs_globals.cpp
+    src/engine/platform/wind_procs.cpp
+    src/engine/platform/wind_procs_globals.cpp
     src/engine/graphics/graphics_api/host.cpp
     src/engine/graphics/graphics_api/host_globals.cpp
     src/engine/graphics/pipeline/render_state.cpp
@@ -102,8 +102,8 @@ set(SOURCES_NEW
     src/engine/graphics/resources/font2d_globals.cpp
     src/engine/graphics/resources/console.cpp
     src/engine/graphics/resources/console_globals.cpp
-    src/core/heap.cpp
-    src/core/heap_globals.cpp
+    src/engine/core/heap.cpp
+    src/engine/core/heap_globals.cpp
     src/assets/anim_tmap.cpp
     src/assets/anim_tmap_globals.cpp
     src/engine/animation/morph.cpp
@@ -363,7 +363,7 @@ target_include_directories(Fallen PRIVATE
     # Main source root: resolves #include "core/types.h", "engine/...", etc.
     src
     # Platform abstraction: resolves #include <MFStdLib.h> and StdFile/StdKeybd/StdMaths/StdMouse
-    src/platform
+    src/engine/platform
 )
 
 # ---------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 #ifndef WORLD_MAP_MAP_H
 #define WORLD_MAP_MAP_H
 
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 
 #include "engine/lighting/light.h" // light.h now includes prim_types.h for RMAX_PRIM_POINTS
 

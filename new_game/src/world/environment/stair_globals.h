@@ -2,7 +2,7 @@
 #define WORLD_ENVIRONMENT_STAIR_GLOBALS_H
 
 #include "world/environment/id.h"
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Max building footprint in tile units (must be a multiple of 8 for bitfield packing).
 // uc_orig: STAIR_MAX_SIZE (fallen/Source/Stair.cpp)

@@ -1,7 +1,7 @@
 #ifndef ACTORS_CORE_THING_GLOBALS_H
 #define ACTORS_CORE_THING_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/io/file.h"   // MFFileHandle
 
 // Need THING_INDEX without pulling in all of Game.h

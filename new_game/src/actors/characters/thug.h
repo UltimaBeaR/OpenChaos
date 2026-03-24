@@ -1,7 +1,7 @@
 #ifndef ACTORS_CHARACTERS_THUG_H
 #define ACTORS_CHARACTERS_THUG_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "actors/core/state.h"
 
 struct Thing;

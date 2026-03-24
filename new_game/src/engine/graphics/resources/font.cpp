@@ -2,10 +2,10 @@
 #include "engine/graphics/resources/font_globals.h"
 
 // MFStdLib.h must come first to pull in <windows.h>/<ddraw.h>/<d3d.h> before DDManager.h.
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display (PlotPixel, screen_lock/unlock)
 
-#include "core/macros.h"
+#include "engine/core/macros.h"
 #include <math.h>
 
 // uc_orig: FONT_TAB (fallen/DDEngine/Source/Font.cpp)

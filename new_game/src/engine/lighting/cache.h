@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_CACHE_H
 #define ENGINE_LIGHTING_CACHE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Small fixed-size cache for per-object lighting data.
 // Each entry stores a user-supplied blob (e.g. precomputed light colours)

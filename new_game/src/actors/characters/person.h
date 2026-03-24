@@ -3,7 +3,7 @@
 
 // Person subsystem: Person struct, flags, type constants, and full public API.
 
-#include <platform.h>                         // BOOL, SLONG, base types (pulls in Windows headers)
+#include "engine/platform/platform.h"                         // BOOL, SLONG, base types (pulls in Windows headers)
 #include "actors/core/thing.h"               // Thing (needed for all function declarations)
 #include "actors/characters/person_types.h"  // Person, PersonPtr, FLAG_PERSON_*, PERSON_* constants
 #include "actors/characters/person_globals.h"

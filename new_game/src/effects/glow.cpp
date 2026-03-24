@@ -3,7 +3,7 @@
 
 
 #include "engine/graphics/pipeline/poly.h"
-#include "core/math.h"              // SIN, COS lookup tables
+#include "engine/core/math.h"              // SIN, COS lookup tables
 #include "missions/game_types.h"
 
 #include "effects/glow.h"

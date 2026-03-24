@@ -2,7 +2,7 @@
 #define MISSIONS_SAVE_GLOBALS_H
 
 #include <stdio.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Shared file handle used by all SAVE_out_data / LOAD_in_data calls during a save or load.
 // uc_orig: SAVE_handle (fallen/Source/save.cpp)

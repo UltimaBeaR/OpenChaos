@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_PUDDLE_H
 #define WORLD_ENVIRONMENT_PUDDLE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: PUDDLE_init (fallen/Headers/puddle.h)
 void PUDDLE_init(void);

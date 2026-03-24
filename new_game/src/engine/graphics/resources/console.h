@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_RESOURCES_CONSOLE_H
 #define ENGINE_GRAPHICS_RESOURCES_CONSOLE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Sets the font used for console output.
 // uc_orig: CONSOLE_font (fallen/DDEngine/Headers/console.h)

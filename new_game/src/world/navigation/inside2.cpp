@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // MSG_add
 #include "world/navigation/inside2.h"

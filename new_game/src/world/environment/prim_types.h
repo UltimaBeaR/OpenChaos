@@ -5,9 +5,9 @@
 // These are the binary-format-compatible data structures for static world geometry
 // (vertex pools, face pools, object headers) loaded from .SEX/.GOB files.
 
-#include "core/types.h"
-#include "core/vector.h"  // SVector (used for PrimNormal typedef)
-#include "core/fmatrix.h" // Matrix33, CMAT, SMAT macros
+#include "engine/core/types.h"
+#include "engine/core/vector.h"  // SVector (used for PrimNormal typedef)
+#include "engine/core/fmatrix.h" // Matrix33, CMAT, SMAT macros
 
 // =====================================================================
 // Pool size limits (static and dynamic)

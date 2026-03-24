@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLY_H
 #define ENGINE_GRAPHICS_PIPELINE_POLY_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Polygon attribute flags. Stored per-face and passed to the renderer
 // to select the draw mode (textured, masked, semi-transparent, etc.).

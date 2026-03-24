@@ -7,14 +7,14 @@
 #include "engine/lighting/night_globals.h"
 #include "engine/animation/morph.h"
 #include "assets/texture.h"
-#include "core/matrix.h"
-#include "core/types.h"
+#include "engine/core/matrix.h"
+#include "engine/core/types.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, PRIM_FLAG_*, FACE_FLAG_*
 #include "world/environment/prim.h"       // get_prim_info
 #include "missions/game_types.h"
 #include "engine/graphics/geometry/shape_globals.h"
 #include "world/level_pools.h"
-#include "core/memory.h"               // MemAlloc, MemFree (used by reflection mesh cache)
+#include "engine/core/memory.h"               // MemAlloc, MemFree (used by reflection mesh cache)
 #include "assets/anim_tmap.h"
 
 #include <math.h>

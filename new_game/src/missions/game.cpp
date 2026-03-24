@@ -3,7 +3,7 @@
 // handling level win/loss, and dispatching to attract mode.
 
 #include "missions/game.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "actors/core/thing_globals.h"  // playback_file, verifier_file
 #include "ui/controls.h"                // process_controls
@@ -16,7 +16,7 @@
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
-#include "core/heap.h"
+#include "engine/core/heap.h"
 #include "ai/mav.h"
 #include "effects/fog.h"
 #include "effects/fog_globals.h"
@@ -57,7 +57,7 @@
 #include "ui/hud/eng_map.h"  // MAP_process
 #include "ui/hud/eng_map_globals.h"
 #include "engine/graphics/resources/menufont.h"  // MENUFONT_Draw
-#include "core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
+#include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
 #include "engine/graphics/resources/truetype.h"  // PreFlipTT (if defined)
 #include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini

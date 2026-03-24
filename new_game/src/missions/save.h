@@ -1,7 +1,7 @@
 #ifndef MISSIONS_SAVE_H
 #define MISSIONS_SAVE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Memory allocation table entry. The engine uses a flat array of these (save_table[])
 // to describe every object pool (vehicles, people, specials, etc.). At level load,

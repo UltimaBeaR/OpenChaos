@@ -1,7 +1,7 @@
 #ifndef ENGINE_PHYSICS_SM_H
 #define ENGINE_PHYSICS_SM_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Sphere-Matter: a jelly/physics simulation using masses connected by elastic links.
 // Objects are composed of spheres (SM_Sphere) connected by spring-like links (SM_Link).

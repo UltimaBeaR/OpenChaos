@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_SHADOW_H
 #define ENGINE_LIGHTING_SHADOW_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Static shadow pre-computation for city geometry.
 // Computes 3-bit shadow values for each map square and face,

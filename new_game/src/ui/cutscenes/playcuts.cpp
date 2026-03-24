@@ -1,6 +1,6 @@
 #include "ui/cutscenes/playcuts.h"
 #include "ui/cutscenes/playcuts_globals.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "actors/characters/person.h"
 #include "engine/effects/psystem.h"

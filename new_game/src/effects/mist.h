@@ -1,7 +1,7 @@
 #ifndef EFFECTS_MIST_H
 #define EFFECTS_MIST_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Quad-patch mist/fog overlay effect.
 // Up to 8 simultaneous mist layers, each a detail x detail grid of MIST_Point entries.

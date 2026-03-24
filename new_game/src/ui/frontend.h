@@ -5,7 +5,7 @@
 // Main frontend / menu system for Urban Chaos.
 // Handles the main menu, mission select, briefing, config screens.
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 
 // ---- Structs ---------------------------------------------------------------
 

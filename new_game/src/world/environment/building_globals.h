@@ -1,8 +1,8 @@
 #ifndef WORLD_ENVIRONMENT_BUILDING_GLOBALS_H
 #define WORLD_ENVIRONMENT_BUILDING_GLOBALS_H
 
-#include "core/types.h"                        // SWORD, UWORD, SLONG, UBYTE, etc.
-#include "core/vector.h"                       // SVector
+#include "engine/core/types.h"                        // SWORD, UWORD, SLONG, UBYTE, etc.
+#include "engine/core/vector.h"                       // SVector
 #include "world/environment/building_types.h"  // FBuilding, FStorey, FWall, FWindow, BuildingFacet, BuildingObject, BoundBox, TXTY, DXTXTY, TextureInfo, RoomID, MAX_*
 #include "world/environment/edmap.h"
 

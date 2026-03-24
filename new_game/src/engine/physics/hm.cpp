@@ -10,19 +10,19 @@
 #include <string.h>
 #include "engine/graphics/pipeline/aeng.h"  // MSG_add
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimInfo, PrimFace4, PrimPoint, PrimFace3
 #include "world/environment/prim.h"       // get_prim_info
-#include "core/math.h"
+#include "engine/core/math.h"
 #include "world/map/pap_globals.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 
 #include "engine/physics/hm.h"
 #include "engine/physics/hm_globals.h"
 #include "world/level_pools.h"
 #include "assets/anim_globals.h"
-#include "core/memory.h"              // MemAlloc, MemFree
+#include "engine/core/memory.h"              // MemAlloc, MemFree
 
 // Forward declarations for debug drawing functions (defined in the graphics engine).
 // Not included via header to avoid pulling in all graphics headers.

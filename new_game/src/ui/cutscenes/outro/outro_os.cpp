@@ -19,7 +19,7 @@
 #include "ui/cutscenes/outro/outro_key.h"
 #include "ui/cutscenes/outro/outro_matrix.h"
 #include "ui/cutscenes/outro/outro_tga.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/graphics_api/display_macros.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"

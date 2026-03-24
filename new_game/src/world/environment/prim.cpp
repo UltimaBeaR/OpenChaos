@@ -5,16 +5,16 @@
 // slide edges, animated prims, and misc utilities.
 
 // MFStdLib first: pulls in windows.h with correct defines (WIN32, _WIN32) before any other headers.
-#include <platform.h>
+#include "engine/platform/platform.h"
 
 #include "world/environment/prim.h"
 #include "world/environment/prim_globals.h"
 
-#include "core/fmatrix.h"               // FMATRIX_calc, FMATRIX_MUL_BY_TRANSPOSE, build_tween_matrix
-#include "core/matrix.h"                // MATRIX_MUL
-#include "core/math.h"                  // Root
-#include "core/macros.h"                // ASSERT, WITHIN, SATURATE, SWAP, INFINITY, QDIST2, Random
-#include "core/memory.h"                // MSG_add
+#include "engine/core/fmatrix.h"               // FMATRIX_calc, FMATRIX_MUL_BY_TRANSPOSE, build_tween_matrix
+#include "engine/core/matrix.h"                // MATRIX_MUL
+#include "engine/core/math.h"                  // Root
+#include "engine/core/macros.h"                // ASSERT, WITHIN, SATURATE, SWAP, INFINITY, QDIST2, Random
+#include "engine/core/memory.h"                // MSG_add
 #include "world/map/pap.h"              // PAP_calc_height_at, PAP_2LO, PAP_SIZE_LO, PAP_SIZE_HI, PAP_SHIFT_LO
 #include "world/navigation/walkable.h"  // find_height_for_this_pos
 #include "engine/physics/collide.h"     // slide_around_box

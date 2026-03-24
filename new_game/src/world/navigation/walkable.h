@@ -6,7 +6,7 @@
 // RoofFace4 (procedural roof quad, negative index). The PAP heightfield is the fallback.
 // All walkable faces are treated as 10% larger than their real geometry for collision purposes.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Aliases for calc_height_on_face; maps to get_height_on_face_quad64_at.
 // uc_orig: calc_height_on_face (fallen/Headers/walkable.h)

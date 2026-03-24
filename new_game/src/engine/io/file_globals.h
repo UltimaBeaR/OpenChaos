@@ -1,7 +1,7 @@
 #ifndef ENGINE_IO_FILE_GLOBALS_H
 #define ENGINE_IO_FILE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MAX_LENGTH_OF_BASE_PATH (MFStdLib/Source/StdLib/StdFile.cpp)
 #define MAX_LENGTH_OF_BASE_PATH 64

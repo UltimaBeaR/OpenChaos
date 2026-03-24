@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_TEXT_H
 #define ENGINE_GRAPHICS_PIPELINE_TEXT_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Renders proportional bitmap text using D3D texture-mapped quads.
 // Font data is stored in the texture page referenced by TEXTURE_page_font.

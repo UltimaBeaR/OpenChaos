@@ -1,8 +1,8 @@
 #ifndef ACTORS_CORE_THING_H
 #define ACTORS_CORE_THING_H
 
-#include "core/types.h"
-#include "core/vector.h"          // GameCoord
+#include "engine/core/types.h"
+#include "engine/core/vector.h"          // GameCoord
 #include "actors/core/drawtype.h" // DrawTween, DrawMesh
 // *Ptr typedef headers for all class-specific data stored in Thing.Genus.
 // Use the lowest-level header that defines the struct and *Ptr typedef to avoid

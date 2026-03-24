@@ -23,7 +23,16 @@
 
 ### Шаг 2 — Перемещения файлов
 
-По согласованному плану: двигать файлы, обновлять includes, CMakeLists.txt.
+По согласованному плану. Чеклист на каждое перемещение:
+
+1. `git mv` файлов в новое место
+2. Обновить `#include` пути во **всех** потребителях (grep → replace)
+3. Обновить `CMakeLists.txt` — пути к .cpp файлам + `target_include_directories`
+4. Обновить include guards в перемещённых .h файлах (`PATH_FROM_SRC_UPPERCASED_H`)
+5. Обновить includes **внутри** самих перемещённых файлов (они тоже могут ссылаться на другие перемещённые)
+6. `make build-release` — должен пройти
+7. `python tools/st_4_2_dep_graph.py generate` — регенерировать граф
+8. Обновить таблицу в [stage4_2_moves.md](stage4_2_moves.md)
 
 ### Шаг 3 — Внутрифайловая реструктуризация
 
@@ -35,44 +44,43 @@
 
 ---
 
-## Статистика DAG
+## Статистика DAG (после перемещений итерации 1)
 
 ```
 Файлов: 658 (345 .h, 313 .cpp)
 Рёбер: 2963 (среднее 4.5 на файл)
 
 По слоям:
-  engine/:   226
+  engine/:   256  (было 226 + core 29 + platform 1)
   ui/:        94
   actors/:    93
   world/:     87
   effects/:   46
   assets/:    44
-  core/:      29
   missions/:  24
   ai/:        13
-  platform/:   1
   (root):      1
 
 Циклы (2):
   compression.h ↔ compression_globals.h
   ngamut.h ↔ ngamut_globals.h
-
-Самые зависимые (top 5):
-  208 ← core/types.h
-  145 ← platform/platform.h
-  100 ← missions/game_types.h
-   64 ← engine/graphics/pipeline/poly.h
-   48 ← engine/graphics/pipeline/aeng.h
 ```
 
 ## Известные проблемы
 
-- `engine/graphics/graphics_api/wind_procs.h/.cpp` — Win32 WndProc, не graphics API → `platform/`
-- `platform/platform.h` — мега-umbrella (145 rdeps), тянет core + engine + io
+- `engine/platform/platform.h` — мега-umbrella (145 rdeps), тянет core + io + input
 
 ---
 
 ## Лог
 
-(пока пусто — записи будут по мере работы)
+### Итерация 1 — core/, platform/, wind_procs (2026-03-24)
+
+Принцип: engine = самодостаточный движок-комбайн (а-ля Unity), всё базовое — внутри.
+
+- `core/*` (29 файлов) → `engine/core/*` — 332 include-пути в 272 файлах
+- `platform/platform.h` → `engine/platform/platform.h` — 145 include-путей
+  - Было `#include <platform.h>` (angle brackets через include root) → стало `#include "engine/platform/platform.h"`
+- `wind_procs.*` (4 файла) из `engine/graphics/graphics_api/` → `engine/platform/` — WndProc это platform, не graphics
+- CMakeLists.txt: source paths + include_directories (`src/platform` → `src/engine/platform`)
+- Include guards обновлены во всех .h

@@ -1,7 +1,7 @@
 #ifndef MISSIONS_GAME_GLOBALS_H
 #define MISSIONS_GAME_GLOBALS_H
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "actors/core/thing.h"     // Pool type definitions (Vehicle, Person, Animal, etc.) needed by game_types.h
 #include "missions/game_types.h"
 #include "ui/menus/widget.h"

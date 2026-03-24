@@ -1,7 +1,7 @@
 #ifndef ACTORS_ITEMS_SPECIAL_H
 #define ACTORS_ITEMS_SPECIAL_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 #include "actors/core/common.h"
 

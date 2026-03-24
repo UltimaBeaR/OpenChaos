@@ -1,8 +1,8 @@
 #ifndef ACTORS_CORE_PLAYER_H
 #define ACTORS_CORE_PLAYER_H
 
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 #include "actors/core/state.h"
 
 #include "actors/core/common.h"

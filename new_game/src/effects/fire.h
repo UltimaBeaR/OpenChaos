@@ -1,7 +1,7 @@
 #ifndef EFFECTS_FIRE_H
 #define EFFECTS_FIRE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Pool-based fire effect: up to 8 simultaneous fires, 256 shared flames.
 // Each fire is a linked list of FIRE_Flame nodes drawn from a global pool.

@@ -1,8 +1,8 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 
 #include "engine/physics/sm.h"
 #include "engine/physics/sm_globals.h"
-#include "core/fixed_math.h"
+#include "engine/core/fixed_math.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "engine/input/keyboard_globals.h"

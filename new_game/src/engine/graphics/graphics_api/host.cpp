@@ -1,12 +1,12 @@
 #include "engine/graphics/graphics_api/host.h"
 #include "engine/graphics/graphics_api/host_globals.h"
-#include "engine/graphics/graphics_api/wind_procs_globals.h"  // app_inactive, restore_surfaces
+#include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
 #include "engine/graphics/graphics_api/gd_display.h"   // the_display, hDDLibWindow
-#include "engine/graphics/graphics_api/wind_procs.h"    // DDLibShellProc
+#include "engine/platform/wind_procs.h"    // DDLibShellProc
 #include "missions/game_types.h"
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"                  // MFX_init, MFX_term (already migrated)
-#include <platform.h>                           // MFTime, SetupMemory, ResetMemory, MF_main
+#include "engine/platform/platform.h"                           // MFTime, SetupMemory, ResetMemory, MF_main
 
 #define PAUSE_TIMEOUT 500
 #define PAUSE         (1 << 0)

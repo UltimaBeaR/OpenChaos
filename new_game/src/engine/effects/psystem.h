@@ -1,7 +1,7 @@
 #ifndef ENGINE_EFFECTS_PSYSTEM_H
 #define ENGINE_EFFECTS_PSYSTEM_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Particle pool capacity — 2048 particles active simultaneously (PC build).
 // uc_orig: PSYSTEM_MAX_PARTICLES (fallen/Headers/PSystem.h)

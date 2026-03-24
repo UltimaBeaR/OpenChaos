@@ -8,8 +8,8 @@
 // All types are defined in world/environment/prim_types.h and world/map/supermap.h.
 // The actual allocations and definitions live in missions/memory.cpp (memory_globals.cpp).
 
-#include "core/types.h"
-#include "core/vector.h"                        // SVector
+#include "engine/core/types.h"
+#include "engine/core/vector.h"                        // SVector
 #include "world/environment/prim_types.h"       // PrimPoint, PrimFace3/4, PrimObject, PrimMultiObject, PrimNormal, PrimInfo, RoofFace4
 #include "world/environment/building_types.h"   // BoundBox
 #include "world/map/supermap.h"                 // DBuilding, DFacet, DWalkable, DStorey, DInsideRect

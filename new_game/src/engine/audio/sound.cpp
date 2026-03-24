@@ -3,7 +3,7 @@
 #include "ui/menus/cnet.h"
 #include "ui/menus/cnet_globals.h"       // CNET_player_id
 #include "engine/audio/sound.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "world/map/pap.h"
 #include "world/environment/ns.h"
 #include "ui/camera/fc.h"

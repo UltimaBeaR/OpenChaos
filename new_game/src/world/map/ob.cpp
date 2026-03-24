@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "assets/anim_globals.h"   // next_prim_point, next_prim_face4
 #include "world/map/pap.h"
@@ -7,8 +7,8 @@
 #include "world/environment/build2.h"
 #include "engine/audio/mfx.h"
 #include "engine/audio/sound.h"
-#include "core/math.h"
-#include "core/fmatrix.h"
+#include "engine/core/math.h"
+#include "engine/core/fmatrix.h"
 #include "effects/dirt.h"
 #include "effects/pow.h"
 #include "world/environment/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*

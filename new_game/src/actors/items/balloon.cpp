@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "actors/core/interact.h"   // calc_sub_objects_position
 #include "actors/characters/anim_ids.h"

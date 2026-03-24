@@ -2,8 +2,8 @@
 #define ENGINE_GRAPHICS_PIPELINE_ENGINE_TYPES_H
 
 #include <math.h>
-#include "core/types.h"
-#include "core/math.h"
+#include "engine/core/types.h"
+#include "engine/core/math.h"
 
 // THING_INDEX is defined in game headers; replicate the guard pattern for standalone use.
 #ifndef THING_INDEX

@@ -1,8 +1,8 @@
 #ifndef EFFECTS_RIBBON_H
 #define EFFECTS_RIBBON_H
 
-#include "core/types.h"
-#include "core/vector.h"
+#include "engine/core/types.h"
+#include "engine/core/vector.h"
 
 // Ribbon system: circular-buffer trail renderer for fire, smoke, and other streaking effects.
 // Each ribbon is a sequence of 3D points rendered as a textured triangle strip.

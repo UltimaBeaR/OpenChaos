@@ -1,7 +1,7 @@
 #ifndef ACTORS_CHARACTERS_SNIPE_H
 #define ACTORS_CHARACTERS_SNIPE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Snipe (rifle scope) mode — activates a zoomed camera and directional snipe aiming.
 

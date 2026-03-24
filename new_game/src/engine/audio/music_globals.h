@@ -1,7 +1,7 @@
 #ifndef ENGINE_AUDIO_MUSIC_GLOBALS_H
 #define ENGINE_AUDIO_MUSIC_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: music_current_wave (fallen/Source/music.cpp)
 extern UWORD music_current_wave;

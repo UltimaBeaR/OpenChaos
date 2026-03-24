@@ -5,7 +5,7 @@
 // Includes the map arrays, scratch buffers, and per-cell light definitions.
 
 #include "world/environment/ns.h"
-#include "core/heap.h"
+#include "engine/core/heap.h"
 
 // === Map arrays ===
 

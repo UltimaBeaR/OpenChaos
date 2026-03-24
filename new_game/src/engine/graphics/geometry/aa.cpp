@@ -1,6 +1,6 @@
 #include "engine/graphics/geometry/aa.h"
 #include "engine/graphics/geometry/aa_globals.h"
-#include "core/macros.h"
+#include "engine/core/macros.h"
 
 // Fixed-point precision: 10 bits sub-pixel, 1024 units per pixel.
 // uc_orig: AA_FIX (fallen/DDEngine/Source/aa.cpp)

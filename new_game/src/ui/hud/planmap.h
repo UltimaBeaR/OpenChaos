@@ -1,7 +1,7 @@
 #ifndef UI_HUD_PLANMAP_H
 #define UI_HUD_PLANMAP_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Flags for map_beacon_draw.
 // uc_orig: BEACON_FLAG_BEACON (fallen/DDEngine/Headers/planmap.h)

@@ -1,7 +1,7 @@
 #ifndef ENGINE_INPUT_MOUSE_GLOBALS_H
 #define ENGINE_INPUT_MOUSE_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: LastMouse (MFStdLib/Headers/StdMouse.h)
 struct LastMouse {

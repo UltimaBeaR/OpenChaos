@@ -1,6 +1,6 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "world/map/map.h"   // MAP_WIDTH, MAP_HEIGHT, ELE_SHIFT, MapElement
-#include "core/macros.h"     // WITHIN, SWAP
+#include "engine/core/macros.h"     // WITHIN, SWAP
 #include "ai/mav.h"
 #include "world/environment/puddle.h"
 #include "world/environment/puddle_globals.h"

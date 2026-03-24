@@ -4,7 +4,7 @@
 // Primitive shape rendering: spheres, lines, tripwires, shadows, balloons.
 // All shapes are submitted as POLY_Point geometry through the standard POLY pipeline.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/geometry/shape_globals.h"
 
 #include "world/map/ob.h"

@@ -1,7 +1,7 @@
 #ifndef UI_PAUSE_H
 #define UI_PAUSE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Handles the pause menu: reads joystick/keyboard input, draws the menu overlay,
 // and processes Resume / Restart / Exit choices.

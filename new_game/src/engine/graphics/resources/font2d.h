@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_RESOURCES_FONT2D_H
 #define ENGINE_GRAPHICS_RESOURCES_FONT2D_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 
 // Per-character UV coordinates and pixel width for the 2D font atlas.

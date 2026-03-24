@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <ddraw.h>
 #include <d3d.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Bucket sort rendering system.
 // Polygons are sorted by Z into one of MAX_LISTS render lists,

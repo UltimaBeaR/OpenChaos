@@ -1,7 +1,7 @@
 #ifndef AI_MAV_ACTION_H
 #define AI_MAV_ACTION_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Single navigation action result returned by MAV_do().
 // Describes one step the NPC should take to reach its destination:

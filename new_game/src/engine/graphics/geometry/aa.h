@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_AA_H
 #define ENGINE_GRAPHICS_GEOMETRY_AA_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Anti-aliased triangle rasterizer.
 // Draws a coverage-weighted alpha mask into a bitmap buffer.

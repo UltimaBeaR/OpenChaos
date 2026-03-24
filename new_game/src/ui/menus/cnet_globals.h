@@ -1,7 +1,7 @@
 #ifndef UI_MENUS_CNET_GLOBALS_H
 #define UI_MENUS_CNET_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: CNET_network_game (fallen/Source/cnet.cpp)
 extern UBYTE CNET_network_game;

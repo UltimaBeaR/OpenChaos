@@ -5,7 +5,7 @@
 #include "engine/effects/psystem.h"
 #include "engine/animation/morph.h"
 #include "engine/audio/mfx.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 #include "world/map/pap.h"
 #include "world/map/ob.h"
 #include "world/environment/ns.h"

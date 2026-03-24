@@ -1,7 +1,7 @@
 #ifndef ACTORS_ITEMS_HOOK_H
 #define ACTORS_ITEMS_HOOK_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: HOOK_NUM_POINTS (fallen/Headers/hook.h)
 #define HOOK_NUM_POINTS 256

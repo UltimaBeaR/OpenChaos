@@ -17,9 +17,9 @@
 #include "assets/tga.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 #include "ui/camera/fc.h"
 #include "ui/camera/fc_globals.h"
 #include "missions/game_types.h"
@@ -33,7 +33,7 @@
 #include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
 #include "world/level_pools.h"
 
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -60,7 +60,7 @@
 #include "actors/items/hook.h"
 // PRIM_OBJ_CAN, PRIM_OBJ_HOOK, PRIM_OBJ_ITEM_AMMO_SHOTGUN are in world/environment/prim_types.h (included above)
 #include "actors/items/balloon_globals.h"
-#include "core/timer.h"
+#include "engine/core/timer.h"
 #include "engine/io/env.h"
 
 // Additional includes for chunks 4b and 5a

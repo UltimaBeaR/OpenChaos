@@ -1,4 +1,4 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "assets/image_compression.h"
 #include "assets/tga.h"
 

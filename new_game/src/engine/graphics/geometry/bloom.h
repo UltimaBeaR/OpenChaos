@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_BLOOM_H
 #define ENGINE_GRAPHICS_GEOMETRY_BLOOM_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Option flags for BLOOM_draw.
 // uc_orig: BLOOM_GLOW_ALWAYS (fallen/DDEngine/Headers/DrawXtra.h)

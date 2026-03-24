@@ -7,7 +7,7 @@
 // Each object is represented as a grid of mass-points connected by springs.
 // At most HM_MAX_OBJECTS (8) can exist simultaneously.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: HM_MAX_RES (fallen/Headers/hm.h)
 #define HM_MAX_RES 8

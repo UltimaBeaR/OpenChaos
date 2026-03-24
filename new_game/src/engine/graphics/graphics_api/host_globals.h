@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_GRAPHICS_API_HOST_GLOBALS_H
 
 #include <windows.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: hGlobalPrevInst (fallen/DDLibrary/Headers/GHost.h)
 extern HINSTANCE hGlobalPrevInst;

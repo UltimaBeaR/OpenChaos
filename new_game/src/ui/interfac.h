@@ -5,7 +5,7 @@
 // Player input system: hardware input reading, action dispatch, movement processing.
 // Translates keyboard/gamepad state into game actions (INPUT_MASK_* / ACTION_*).
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Forward declarations
 struct Thing;

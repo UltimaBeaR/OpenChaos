@@ -5,7 +5,7 @@
 // The "NS" (New Sewer) system manages a separate low-res/high-res grid describing sewer tunnels
 // beneath the city map.
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "world/map/pap.h"
 
 // === High-res sewer map cell ===

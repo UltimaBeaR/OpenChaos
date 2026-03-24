@@ -1,7 +1,7 @@
 #ifndef WORLD_ENVIRONMENT_DOOR_H
 #define WORLD_ENVIRONMENT_DOOR_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: DOOR_Door (fallen/Headers/door.h)
 typedef struct

@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_SMAP_H
 #define ENGINE_LIGHTING_SMAP_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 // SVector_F is used in the public API of SMAP_project_onto_poly.
 #include "engine/graphics/pipeline/aeng.h"
 

@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_QENG_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_QENG_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: QENG_cam_x (fallen/DDEngine/Source/qeng.cpp)
 extern SLONG QENG_cam_x;

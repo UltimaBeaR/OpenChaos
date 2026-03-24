@@ -1,6 +1,6 @@
 #include "actors/core/hierarchy.h"
 #include "actors/core/hierarchy_globals.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 
 // uc_orig: uncompress_matrix (fallen/Source/Hierarchy.cpp)
 // Decompresses a 10-bit-per-component CMatrix33 into a full Matrix33.

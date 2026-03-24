@@ -1,7 +1,7 @@
 #ifndef ENGINE_INPUT_KEYBOARD_H
 #define ENGINE_INPUT_KEYBOARD_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // DirectInput keyboard scancodes.
 // Extended keys (right ctrl, arrows, etc.) have 0x80 added.

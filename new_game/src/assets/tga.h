@@ -2,7 +2,7 @@
 #define ASSETS_TGA_H
 
 #include "assets/file_clump.h"
-#include "core/types.h"
+#include "engine/core/types.h"
 #include <windows.h>
 
 // RGBA pixel layout matching the TGA file format (stored as BGRA on disk).

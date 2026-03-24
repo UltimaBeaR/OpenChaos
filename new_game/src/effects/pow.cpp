@@ -1,8 +1,8 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "effects/pow.h"
 #include "effects/pow_globals.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 
 // Debug check stub — originally scanned for list corruption; empty in pre-release.
 // uc_orig: check_pows (fallen/Source/pow.cpp)

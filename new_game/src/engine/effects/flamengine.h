@@ -1,7 +1,7 @@
 #ifndef ENGINE_EFFECTS_FLAMENGINE_H
 #define ENGINE_EFFECTS_FLAMENGINE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/io/file.h"
 
 // 2D fire/flame effect engine. Simulates a 256x256 cellular automaton (fire field)

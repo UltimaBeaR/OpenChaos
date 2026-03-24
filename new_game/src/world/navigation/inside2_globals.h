@@ -1,7 +1,7 @@
 #ifndef WORLD_NAVIGATION_INSIDE2_GLOBALS_H
 #define WORLD_NAVIGATION_INSIDE2_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: next_inside_storey (fallen/Source/inside2.cpp)
 extern UWORD next_inside_storey;

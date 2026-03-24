@@ -1,8 +1,8 @@
 #ifndef WORLD_ENVIRONMENT_PRIM_H
 #define WORLD_ENVIRONMENT_PRIM_H
 
-#include "core/types.h"
-#include "core/vector.h"                        // SVector
+#include "engine/core/types.h"
+#include "engine/core/vector.h"                        // SVector
 #include "world/environment/prim_types.h"       // PrimObject, PrimFace3/4, PrimPoint, PrimNormal, PrimInfo, FACE_FLAG_*, PRIM_OBJ_*, etc.
 
 struct Thing; // forward declaration for fn_anim_prim_normal / set_anim_prim_anim parameters

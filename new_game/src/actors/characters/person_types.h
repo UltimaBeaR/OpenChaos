@@ -5,8 +5,8 @@
 // Kept separate from person.h so headers that only need the struct (e.g. thing.h)
 // do not pull in the full person API.
 
-#include "core/types.h"
-#include "core/vector.h"          // GameCoord (used by GunMuzzle)
+#include "engine/core/types.h"
+#include "engine/core/vector.h"          // GameCoord (used by GunMuzzle)
 #include "actors/core/common.h"   // COMMON macro
 #include "ai/mav_action.h"        // MAV_Action
 #include "missions/save.h"        // save_table[], SAVE_TABLE_PEOPLE (needed by MAX_PEOPLE)

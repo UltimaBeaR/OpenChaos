@@ -5,7 +5,7 @@
 // Two-tier heightfield: 128x128 hi-res cells and 32x32 lo-res cells.
 // Each hi-res cell covers 256 world units; each lo-res cell covers 1024 world units (4x4 hi-res).
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 struct Thing;
 

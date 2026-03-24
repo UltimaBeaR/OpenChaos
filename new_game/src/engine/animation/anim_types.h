@@ -7,8 +7,8 @@
 // These types are used by both the game runtime (engine/animation/) and
 // asset loading (assets/anim.*).
 
-#include "core/types.h"
-#include "core/fmatrix.h"  // Matrix33, CMatrix33, SVector
+#include "engine/core/types.h"
+#include "engine/core/fmatrix.h"  // Matrix33, CMatrix33, SVector
 #include <string.h>        // strcpy used by Anim::SetAnimName
 
 // ---- Creature/people limits ----

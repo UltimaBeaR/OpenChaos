@@ -1,7 +1,7 @@
 #ifndef ASSETS_TGA_GLOBALS_H
 #define ASSETS_TGA_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "assets/file_clump.h"
 
 // uc_orig: tga_width (fallen/DDLibrary/Source/Tga.cpp)

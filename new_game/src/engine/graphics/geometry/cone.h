@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_CONE_H
 #define ENGINE_GRAPHICS_GEOMETRY_CONE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Cone geometry: a cone shape defined by an origin point, a direction, length, and base radius.
 // Cones can be clipped against planar polygons and intersected with the map's collision geometry.

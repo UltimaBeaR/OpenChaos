@@ -1,5 +1,5 @@
 // Temporary includes: game.h, supermap.h, memory.h (fallen) not yet migrated
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "missions/game_types.h"
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
@@ -9,7 +9,7 @@
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "world/map/supermap.h"
 #include "world/level_pools.h"
-#include "core/matrix.h"
+#include "engine/core/matrix.h"
 #include <math.h>
 #include "engine/graphics/geometry/farfacet.h"
 #include "engine/graphics/geometry/farfacet_globals.h"

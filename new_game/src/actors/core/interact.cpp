@@ -1,11 +1,11 @@
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "actors/core/thing.h"   // pool types
 #include "missions/game_types.h" // Game struct, TICK_RATIO, PEOPLE, etc.
 #include "world/map/pap.h"
 #include "world/map/pap_globals.h"
 #include "world/environment/ns.h"
 #include "world/map/supermap.h"
-#include "core/fmatrix.h"
+#include "engine/core/fmatrix.h"
 #include "missions/memory.h"
 #include "world/level_pools.h"
 #include "world/environment/ware.h"

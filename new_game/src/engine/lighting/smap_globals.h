@@ -1,7 +1,7 @@
 #ifndef ENGINE_LIGHTING_SMAP_GLOBALS_H
 #define ENGINE_LIGHTING_SMAP_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "engine/lighting/smap.h"
 
 // Internal point structure used during shadow map construction.

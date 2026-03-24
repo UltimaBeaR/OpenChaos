@@ -17,7 +17,7 @@
 #include "assets/level_loader_globals.h"
 #include "assets/anim_loader.h"
 #include "assets/anim_loader_globals.h"
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include <string.h>
 
 extern UBYTE roper_pickup;

@@ -4,7 +4,7 @@
 // MFStdLib.h must be included before this header defines DisplayWidth/DisplayHeight
 // as #define macros (640/480). MFStdLib declares them as extern SLONG — if the
 // macros come first, that extern declaration becomes "extern SLONG 640" and fails.
-#include <platform.h>
+#include "engine/platform/platform.h"
 #include "engine/graphics/graphics_api/dd_manager.h"
 #include "engine/graphics/resources/d3d_texture.h"
 

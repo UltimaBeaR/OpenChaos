@@ -1,7 +1,7 @@
 #ifndef ENGINE_AUDIO_MUSIC_H
 #define ENGINE_AUDIO_MUSIC_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // uc_orig: MUSIC_MODE_SILENT (fallen/Headers/music.h)
 #define MUSIC_MODE_SILENT (0)

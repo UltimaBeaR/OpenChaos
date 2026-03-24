@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_SKY_H
 #define ENGINE_GRAPHICS_PIPELINE_SKY_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Initialise sky system: generates clouds and loads star positions.
 // If star_file is NULL, stars are randomly generated.

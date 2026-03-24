@@ -2,7 +2,7 @@
 #define WORLD_ENVIRONMENT_WARE_GLOBALS_H
 
 #include <string.h>
-#include "core/types.h"
+#include "engine/core/types.h"
 #include "world/environment/ware.h"
 
 // All warehouse descriptor records. Index 0 unused; 1..WARE_ware_upto-1 are valid.

@@ -1,7 +1,7 @@
 #ifndef ACTORS_ITEMS_HOOK_GLOBALS_H
 #define ACTORS_ITEMS_HOOK_GLOBALS_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // Internal struct for individual string/rope segment points.
 // uc_orig: HOOK_Point (fallen/Source/hook.cpp)

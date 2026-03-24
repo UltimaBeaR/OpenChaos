@@ -5,8 +5,8 @@
 // A* search on a 128x128 map of movement options.
 // Each cell stores packed walk/car/spare bits in a UWORD.
 
-#include <platform.h>               // ASSERT
-#include "core/macros.h"            // WITHIN
+#include "engine/platform/platform.h"               // ASSERT
+#include "engine/core/macros.h"            // WITHIN
 #include "ai/mav_globals.h"         // MAV_Opt, MAV_MAX_OPTS, extern vars, MAV_LOOKAHEAD
 #include "world/map/pap_globals.h"  // PAP_hi — required for MAVHEIGHT macro
 

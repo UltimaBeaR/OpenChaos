@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_SUPERFACET_H
 #define ENGINE_GRAPHICS_GEOMETRY_SUPERFACET_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 
 // SuperFacet: optimized batched-facet renderer using DrawIndexedPrimitive.
 // Accumulates building wall (DFacet) geometry into large indexed vertex buffers

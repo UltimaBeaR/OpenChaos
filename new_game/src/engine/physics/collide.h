@@ -1,7 +1,7 @@
 #ifndef ENGINE_PHYSICS_COLLIDE_H
 #define ENGINE_PHYSICS_COLLIDE_H
 
-#include "core/types.h"
+#include "engine/core/types.h"
 // Note: engine/ → world/ is a DAG violation, but PAP cell data is required by collision
 // detection throughout the engine. This dependency is accepted as known tech debt.
 #include "world/map/pap.h"

@@ -3,7 +3,7 @@
 
 // Global variables for the player input system (interfac.cpp).
 
-#include "core/types.h"
+#include "engine/core/types.h"
 #include <windows.h>  // DWORD for g_dwLastInputChangeTime
 
 // uc_orig: player_relative (fallen/Source/interfac.cpp)
