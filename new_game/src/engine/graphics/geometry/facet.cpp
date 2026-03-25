@@ -1221,7 +1221,9 @@ void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation, SLONG 
                 POLY_Page[page].RS.WrapJustOnce();
             }
 
-            if (AENG_detail_crinkles && (GAME_TURN & 0x20)) {
+            // Pre-release: (GAME_TURN & 0x20) toggled crinkles on/off every 32 ticks
+            // as a performance optimization for 1999 hardware — caused visible flickering.
+            if (AENG_detail_crinkles) {
                 if (page < 64 * 8) {
                     if (TEXTURE_crinkle[page]) {
                         if (quad[0]->z > 0.6F) {
