@@ -18,7 +18,7 @@
 
 - **LICENSE** (корень) — MIT лицензия проекта OpenChaos (Copyright UltimaBeaR + contributors + оригинальный dizzy2003)
 - **original_game/LICENSE** — оригинальная MIT лицензия dizzy2003 (для оригинального кода)
-- **THIRD_PARTY_LICENSES.md** — лицензии всех сторонних зависимостей (SDL2, OpenAL Soft, fmt и др.)
+- **THIRD_PARTY_LICENSES.md** — лицензии всех сторонних зависимостей (SDL3, OpenAL Soft, fmt, Dualsense-Multiplatform и др.)
 - **README.md** — секция Legal с указанием правообладателя, ссылкой на Steam и отказом от претензий на IP
 - **Ассеты** — не включены в репозиторий, загитигнорены
 

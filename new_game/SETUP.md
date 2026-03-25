@@ -53,7 +53,7 @@ make configure
 ```
 
 This sets up the VS x86 build environment (`vcvarsall.bat x86`) and runs CMake.
-**vcpkg packages (SDL2, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
+**vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
 — no separate vcpkg command needed. Re-run if `CMakeLists.txt` changes.
 
 ### Step 3 — Prepare build output (copy resources into build folders)
@@ -117,30 +117,3 @@ new_game/
 
 `build/` and `vcpkg_installed/` are gitignored and not committed.
 
----
-
-## Code formatting
-
-The project uses `clang-format` to keep code style consistent. Run it periodically, especially after bulk edits. Not required to build or run the game.
-
-### Install clang-format
-
-**Windows:**
-```
-winget install LLVM.LLVM
-```
-Make sure to add LLVM to PATH during installation (or add `C:\Program Files\LLVM\bin` manually).
-
-**macOS:**
-```
-brew install clang-format
-```
-
-### Run formatter
-
-From the `new_game/` directory (Windows: use Git Bash):
-```bash
-find . -regex '.*\.\(c\|cpp\|h\|hpp\)' -exec clang-format -style=file -i {} \;
-```
-
-Config is in `.clang-format` (project root of `new_game/`).

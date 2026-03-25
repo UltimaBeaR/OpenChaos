@@ -4,7 +4,7 @@ Modernized version of Urban Chaos (1999, MuckyFoot Productions).
 
 Based on the original source code by Mike Diskett: https://github.com/dizzy2003/MuckyFoot-UrbanChaos
 
-For prerequisites and first-time setup see [SETUP.md](SETUP.md).
+For prerequisites and first-time setup see [SETUP.md](SETUP.md). For development notes see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ---
 

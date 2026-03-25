@@ -18,7 +18,7 @@ CMAKE      := "/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE
 #      (makes Windows SDK headers/libs visible to clang-cl).
 #   2. Runs CMake with Ninja Multi-Config generator — one configure covers
 #      both Debug and Release builds.
-#   3. Installs vcpkg packages (SDL2, OpenAL, fmt) into new_game/vcpkg_installed/
+#   3. Installs vcpkg packages (SDL3, OpenAL, fmt) into new_game/vcpkg_installed/
 #      automatically via vcpkg manifest mode (vcpkg.json).
 # ---------------------------------------------------------------------------
 

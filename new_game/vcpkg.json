@@ -2,7 +2,7 @@
   "name": "my-project",
   "version-string": "1.0.0",
   "dependencies": [
-    "sdl2",
+    "sdl3",
     "openal-soft"
   ],
   "builtin-baseline": "7d1d86a0786d928fd81c9897ba089422716a0755"

@@ -45,7 +45,7 @@ SYSTEM_PREFIXES = {
     "mmsystem", "objbase", "initguid", "tchar", "commctrl",
     "wingdi", "commdlg", "shlobj", "direct",
     "windef", "mmstream", "amstream", "mbctype", "mbstring",
-    "stddef", "al/", "sdl2/", "process",
+    "stddef", "al/", "sdl3/", "process",
 }
 
 INCLUDE_RE = re.compile(r'^\s*#\s*include\s+[<"]([^>"]+)[>"]', re.MULTILINE)

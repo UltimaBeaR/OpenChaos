@@ -4,7 +4,7 @@ This file lists all third-party libraries used by OpenChaos and their licenses.
 
 ---
 
-## SDL2
+## SDL3
 
 - **Website:** https://www.libsdl.org/
 - **License:** zlib

@@ -24,7 +24,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release")
 # ---------------------------------------------------------------------------
 # Dependencies (via vcpkg)
 # ---------------------------------------------------------------------------
-find_package(SDL2   CONFIG REQUIRED)
+find_package(SDL3   CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
 
 # ---------------------------------------------------------------------------
@@ -77,6 +77,7 @@ set(SOURCES_NEW
     src/engine/platform/wind_procs.cpp
     src/engine/platform/wind_procs_globals.cpp
     src/engine/platform/host.cpp
+    src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/host_globals.cpp
     src/engine/graphics/graphics_api/render_state.cpp
     src/engine/graphics/pipeline/bucket.cpp
@@ -368,6 +369,14 @@ target_include_directories(Fallen PRIVATE
 # ---------------------------------------------------------------------------
 # Compiler flags
 # ---------------------------------------------------------------------------
+
+# Files that include SDL3 headers need default struct alignment (/Zp8) because
+# SDL3 has static_asserts on struct layout that fail under /Zp1.
+# SDL3 is isolated in thin wrappers — game code never includes SDL3 headers directly.
+set_source_files_properties(src/engine/platform/sdl3_bridge.cpp
+    PROPERTIES COMPILE_OPTIONS "/Zp8"
+)
+
 target_compile_options(Fallen PRIVATE
     # 1-byte struct alignment — required for binary resource format compatibility
     # (.gob, .ilf, .spd, .ucm etc. are read by casting raw bytes to structs).
@@ -413,7 +422,7 @@ target_link_options(Fallen PRIVATE /SAFESEH:NO)
 # ---------------------------------------------------------------------------
 target_link_libraries(Fallen PRIVATE
     # vcpkg packages
-    SDL2::SDL2
+    SDL3::SDL3
     OpenAL::OpenAL
 
     # Windows system
@@ -442,12 +451,12 @@ target_link_libraries(Fallen PRIVATE
 # Copy vcpkg DLLs to output directory.
 # (VCPKG_APPLOCAL_DEPS is OFF because its applocal.ps1 requires powershell.exe on PATH.)
 # vcpkg_installed/ lives at new_game/vcpkg_installed/ (next to vcpkg.json, outside build/).
-# Debug and Release DLL names differ: SDL2d.dll / fmtd.dll for Debug, SDL2.dll / fmt.dll for Release.
+# Debug and Release DLL names differ: fmtd.dll for Debug, fmt.dll for Release.
 # OpenAL32.dll has the same name in both configs.
 set(VCPKG_BIN       "${CMAKE_SOURCE_DIR}/vcpkg_installed/x86-windows/bin")
 set(VCPKG_DEBUG_BIN "${CMAKE_SOURCE_DIR}/vcpkg_installed/x86-windows/debug/bin")
 
-foreach(_dll SDL2.dll OpenAL32.dll fmt.dll)
+foreach(_dll SDL3.dll OpenAL32.dll fmt.dll)
     add_custom_command(TARGET Fallen POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${VCPKG_BIN}/${_dll}"
@@ -457,7 +466,7 @@ foreach(_dll SDL2.dll OpenAL32.dll fmt.dll)
     )
 endforeach()
 
-foreach(_dll SDL2d.dll OpenAL32.dll fmtd.dll)
+foreach(_dll SDL3.dll OpenAL32.dll fmtd.dll)
     add_custom_command(TARGET Fallen POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${VCPKG_DEBUG_BIN}/${_dll}"

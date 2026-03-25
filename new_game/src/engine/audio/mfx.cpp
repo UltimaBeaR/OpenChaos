@@ -6,7 +6,7 @@
 #include <cmath>
 #include <AL/al.h>
 #include <AL/alext.h>
-#include <SDL2/SDL_audio.h>
+#include "engine/platform/sdl3_bridge.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/io/env.h"
@@ -835,22 +835,20 @@ static void LoadWaveFile(MFX_Sample* sptr)
         return;
     }
 
-    SDL_AudioSpec spec;
-    Uint32 bufferSize;
-    Uint8* dataBuffer;
-    if (!SDL_LoadWAV(GetFullName(sptr->fname), &spec, &dataBuffer, &bufferSize)) {
+    SDL3_WavData wav;
+    if (!sdl3_load_wav(GetFullName(sptr->fname), &wav)) {
         return;
     }
 
-    sptr->size = bufferSize;
-    AllocatedRAM += bufferSize;
+    sptr->size = wav.size;
+    AllocatedRAM += wav.size;
 
     sptr->loading = false;
-    sptr->is3D = sptr->is3D && spec.channels == 1;
+    sptr->is3D = sptr->is3D && wav.channels == 1;
     alGenBuffers(1, &sptr->handle);
-    alBufferData(sptr->handle, spec.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
-        dataBuffer, bufferSize, spec.freq);
-    SDL_FreeWAV(dataBuffer);
+    alBufferData(sptr->handle, wav.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
+        wav.buffer, wav.size, wav.freq);
+    sdl3_free_wav(wav.buffer);
 }
 
 // uc_orig: LoadTalkFile (fallen/DDLibrary/Source/MFX.cpp)
@@ -862,22 +860,20 @@ static void LoadTalkFile(char* filename)
         TalkSample.handle = 0;
     }
 
-    SDL_AudioSpec spec;
-    Uint32 bufferSize;
-    Uint8* dataBuffer;
-    if (!SDL_LoadWAV(filename, &spec, &dataBuffer, &bufferSize)) {
+    SDL3_WavData wav;
+    if (!sdl3_load_wav(filename, &wav)) {
         return;
     }
 
-    TalkSample.size = bufferSize;
+    TalkSample.size = wav.size;
     AllocatedRAM += TalkSample.size;
 
     TalkSample.loading = false;
-    TalkSample.is3D = TalkSample.is3D && spec.channels == 1;
+    TalkSample.is3D = TalkSample.is3D && wav.channels == 1;
     alGenBuffers(1, &TalkSample.handle);
-    alBufferData(TalkSample.handle, spec.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
-        dataBuffer, bufferSize, spec.freq);
-    SDL_FreeWAV(dataBuffer);
+    alBufferData(TalkSample.handle, wav.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16,
+        wav.buffer, wav.size, wav.freq);
+    sdl3_free_wav(wav.buffer);
 }
 
 // uc_orig: UnloadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
