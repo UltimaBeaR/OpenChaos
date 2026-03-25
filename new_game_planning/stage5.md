@@ -19,3 +19,12 @@
 (`figure.cpp:5130-5260`), отсутствующий в пре-релизе. Оказался мёртвым кодом:
 CLASS_VEHICLE рисуется через `MESH_draw_poly()` (не figure.cpp), envmap в mesh.cpp
 уже работает (стёкла, хромированные бамперы). CLASS_BIKE — байков нет ни на одном уровне.
+
+### Банки с колой (и гильзы) не видны ✅
+
+`AENG_draw_dirt()` вызывается после финального `POLY_frame_draw()` в `AENG_draw_city()`.
+Банки (`DIRT_TYPE_CAN`) и гильзы (`DIRT_TYPE_BRASS`) рендерятся через `MESH_draw_poly()` →
+deferred PolyPage буфер, но flush уже прошёл — полигоны терялись. В Dreamcast-порте
+(оригинал `aeng.cpp:13844`) flush после dirt присутствует. Фикс — добавлен
+`POLY_frame_draw(UC_TRUE, UC_TRUE)` после `AENG_draw_dirt()`. Подтверждено в PieroZ/MuckyFoot-UrbanChaos
+(коммит `15e4607` двигал вызов dirt, коммит `4a53506` чинил deferred draw path).

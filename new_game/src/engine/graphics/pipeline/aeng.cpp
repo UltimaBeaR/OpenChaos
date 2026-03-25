@@ -6816,6 +6816,12 @@ void AENG_draw_city()
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
+    // Pre-release bug: AENG_draw_dirt() adds polygons via MESH_draw_poly() (cans, brass,
+    // etc.) into the deferred PolyPage buffer, but the final POLY_frame_draw() above runs
+    // BEFORE dirt. Without this flush, those polygons are never rendered. The Dreamcast port
+    // has a flush after dirt (original aeng.cpp:13844), confirming this was fixed in later builds.
+    POLY_frame_draw(UC_TRUE, UC_TRUE);
+
     // Cope with some wacky internals.
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
