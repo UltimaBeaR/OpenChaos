@@ -47,7 +47,7 @@ Development is structured into phases and stages. See [`new_game_planning/phases
 This is an unofficial, non-commercial, fan-made project.
 The author does not claim any ownership of the Urban Chaos IP, trademark, or original game assets.
 
-- **Source code:** [MIT license](LICENSE.md) (based on the [original release](https://github.com/dizzy2003/MuckyFoot-UrbanChaos) by Mike Diskett) — covers code only
+- **Source code:** [MIT license](LICENSE) (based on the [original release](https://github.com/dizzy2003/MuckyFoot-UrbanChaos) by Mike Diskett) — covers code only
 - **Game assets:** property of the rights holder — **not included**, bring your own from a [legal copy](https://store.steampowered.com/app/243060/Urban_Chaos/)
 - **Custom content** (new maps, HD models, mods): original work by project contributors
 

@@ -17,7 +17,7 @@
 
 ## Текущее состояние атрибуции в проекте
 
-- **LICENSE.md** (корень) — MIT лицензия проекта OpenChaos (Copyright UltimaBeaR + contributors + оригинальный dizzy2003)
+- **LICENSE** (корень) — MIT лицензия проекта OpenChaos (Copyright UltimaBeaR + contributors + оригинальный dizzy2003)
 - **original_game/LICENSE** — оригинальная MIT лицензия dizzy2003 (для оригинального кода)
 - **THIRD_PARTY_LICENSES.md** — лицензии всех сторонних зависимостей (SDL2, OpenAL Soft, fmt и др.)
 - **README.md** — секция Legal с указанием правообладателя, ссылкой на Steam и отказом от претензий на IP

@@ -7,7 +7,7 @@
 - Собрать все лицензии зависимостей (vcpkg, vendored libs) в `THIRD_PARTY_LICENSES.md`
   - SDL3 (zlib), Gamepad-Core (MIT), и другие зависимости актуальные на момент релиза
   - vcpkg хранит лицензии в `vcpkg_installed/.../licenses/` — извлечь оттуда
-- Проверить что `LICENSE.md` в корне корректен (наш copyright + оригинальный)
+- Проверить что `LICENSE` в корне корректен (наш copyright + оригинальный)
 - Проверить что `original_game/LICENSE` на месте
 - Проверить что vendored библиотеки (`new_game/libs/`) содержат свои LICENSE файлы
 - Убедиться что `README.md` и `CONTRIBUTORS.md` актуальны
