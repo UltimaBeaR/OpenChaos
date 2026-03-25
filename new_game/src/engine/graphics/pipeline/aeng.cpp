@@ -117,9 +117,11 @@
 #include "things/core/statedef.h"
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Source/aeng.cpp)
-#define POLY_set_local_rotation_none() \
-    {                                  \
-    }
+// Pre-release: was an empty macro `#define POLY_set_local_rotation_none() {}`.
+// This caused MESH_draw_poly calls (cans, brass) inside AENG_draw_dirt to leave the D3D
+// world transform set to the object's position, so subsequent DrawIndexedPrimitive for
+// leaves used the wrong transform — making leaves flicker in groups depending on camera angle.
+// Fix: use the real function from poly.cpp which resets D3D world transform to camera-only.
 
 // uc_orig: AENG_MAX_BBOXES (fallen/DDEngine/Source/aeng.cpp)
 #define AENG_MAX_BBOXES 8
