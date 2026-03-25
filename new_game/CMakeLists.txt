@@ -46,6 +46,8 @@ set(SOURCES_NEW
     src/engine/input/mouse_globals.cpp
     src/engine/input/joystick.cpp
     src/engine/input/joystick_globals.cpp
+    src/engine/input/gamepad.cpp
+    src/engine/input/gamepad_globals.cpp
     src/engine/core/matrix.cpp
     src/engine/core/fmatrix.cpp
     src/engine/core/quaternion.cpp
