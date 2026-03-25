@@ -30,11 +30,6 @@
 #include <windowsx.h>
 #include <d3dtypes.h>
 #include <ddraw.h>
-// For the DX8 headers, you need to define this to get old interfaces.
-#ifndef DIRECTINPUT_VERSION
-#define DIRECTINPUT_VERSION 0x0700
-#endif
-#include <dinput.h>
 #include <d3d.h>
 
 #include "engine/core/types.h"

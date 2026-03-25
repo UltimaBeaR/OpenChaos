@@ -36,10 +36,7 @@ static SWORD selected;
 #define PAUSE_MENU_EXIT    2
 #define PAUSE_MENU_SIZE    3
 
-// Forward declaration: reads the DirectInput joystick state into the_state.
-extern BOOL ReadInputDevice(void);
-// Joystick state filled by ReadInputDevice().
-extern DIJOYSTATE the_state;
+#include "engine/input/joystick.h"
 
 // uc_orig: PAUSE_handler (fallen/Source/pause.cpp)
 SLONG PAUSE_handler()

@@ -36,7 +36,7 @@
 #include "engine/physics/collide.h"
 #include "combat/combat.h"
 #include "engine/input/joystick.h"             // ReadInputDevice
-#include "engine/input/joystick_globals.h"  // DIJOYSTATE, the_state
+#include "engine/input/joystick_globals.h"  // the_state (GamepadState)
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
@@ -3170,9 +3170,7 @@ ULONG get_hardware_input(UWORD type)
 #define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
 #define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
 
-    // DirectInput state: the_state (DIJOYSTATE) is filled by ReadInputDevice() each frame.
-    // Replace with SDL_GetGamepadState() + SDL_GetGamepadAxis/Button when porting.
-    extern DIJOYSTATE the_state;
+    // the_state (GamepadState) is filled by ReadInputDevice() → gamepad_poll() each frame.
 
     DWORD dwCurrentTime = 0;
 
@@ -3456,9 +3454,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    // DirectInput state needed directly for the 1st-person button check.
-    // Replace with SDL_GetGamepadButton when porting.
-    extern DIJOYSTATE the_state;
+    // the_state (GamepadState) for the 1st-person button check.
 
     if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]]) {
         fpm = UC_TRUE;

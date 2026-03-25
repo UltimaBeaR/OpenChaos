@@ -75,3 +75,49 @@ Makefile, README.md, SETUP.md, legal/attribution.md, tools/st_4_2_dep_graph.py, 
 ```
 
 Ещё не подключено к игре — компилируется рядом. Подключение на шаге A3.
+
+## Шаг A3 — Замена DirectInput на gamepad layer (2026-03-26)
+
+**Модель:** Opus (1M контекст)
+
+### Изменения
+
+**Полностью переписаны:**
+- `joystick.cpp` — весь DirectInput код (COM init, enum, acquire, poll) заменён на вызовы
+  `gamepad_init()` / `gamepad_poll()`. Файл стал тонкой обёрткой (~20 строк).
+- `joystick_globals.h` — `DIJOYSTATE the_state` → `#define the_state gamepad_state`.
+  Убраны `IDirectInput*`, `IDirectInputDevice*`, `OS_joy_*_range` переменные.
+- `joystick_globals.cpp` — убраны все DI глобалы, файл пустой (kept for uc_orig traceability).
+- `outro_os.cpp` — `OS_joy_poll()` переписан: читает из `gamepad_state` вместо DI.
+
+**Убраны extern DIJOYSTATE:**
+- `game.cpp`, `input_actions.cpp` (2 места), `pause.cpp` — заменены на include хедеров.
+
+**Убран `#include <dinput.h>`:**
+- `uc_common.h`, `joystick_globals.h`, `joystick.cpp`, `outro_os_globals.h`, `outro_os.cpp`.
+
+**CMakeLists.txt:**
+- Убран `dinput8` из link libraries. `dxguid` оставлен — нужен для DirectDraw/D3D IID.
+
+### Проблема: types после удаления dinput.h
+
+`joystick.h` использует `BOOL`, `UBYTE` — раньше приходили транзитивно через `dinput.h` → `windows.h`.
+После удаления добавлены прямые `#include <windows.h>` и `#include "engine/core/types.h"`.
+
+### Проверка
+
+Release и Debug собираются. Проверено в игре:
+- **Клавиатура** — работает как раньше.
+- **Xbox контроллер** — работает! Подключение/отключение на лету — моментальное переключение.
+- **Стик** — отклонение распознаётся, но нет плавного аналогового управления:
+  Дарси сразу бежит при любом отклонении за деадзону.
+
+### Найдена проблема: аналоговый режим стика
+
+В `input_actions.cpp` стик обрабатывается двумя путями одновременно:
+1. **Цифровые флаги** (строки 3183-3198): если стик за деадзоной → `INPUT_MASK_FORWARDS/RIGHT/...` → полная скорость бега.
+2. **Аналоговые биты** (строки 3208-3211): значения стика пакуются в биты 18-31, но цифровые флаги перебивают.
+
+На PS1 аналоговый стик напрямую управлял скоростью (маленькое отклонение = шаг, полное = бег).
+PC-код ставит цифровые флаги от стика всегда → Дарси всегда бежит.
+**Исправление → шаг A4** (вместе с маппингом кнопок).

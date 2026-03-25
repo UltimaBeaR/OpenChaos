@@ -437,7 +437,6 @@ target_link_libraries(Fallen PRIVATE
 
     # DirectX
     ddraw
-    dinput8
     dxguid
 
     # DirectShow

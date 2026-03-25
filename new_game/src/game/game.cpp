@@ -138,7 +138,6 @@ extern void draw_text_at(float x, float y, CBYTE* message, SLONG font_id);
 extern void draw_debug_lines(void);
 extern void overlay_beacons(void);
 extern SLONG draw_3d;
-extern DIJOYSTATE the_state;
 extern SLONG GAMEMENU_menu_type;
 extern SLONG BARREL_fx_rate;
 extern UBYTE combo_display;

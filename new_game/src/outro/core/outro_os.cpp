@@ -7,13 +7,10 @@
 #include <ddraw.h>
 #include <d3d.h>
 #include <d3dtypes.h>
-#ifndef DIRECTINPUT_VERSION
-#define DIRECTINPUT_VERSION 0x0700
-#endif
-#include <dinput.h>
 #include <stdarg.h>
 #include <string.h>
 
+#include "engine/input/gamepad_globals.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
 #include "outro/core/outro_key.h"
@@ -63,59 +60,34 @@ typedef struct os_texture {
 // ========================================================
 
 // uc_orig: OS_joy_poll (fallen/outro/os.cpp)
+// Rewritten: reads from gamepad_state (filled by gamepad_poll) instead of DirectInput.
 void OS_joy_poll(void)
 {
-    HRESULT hr;
-
-    if (OS_joy_direct_input == NULL || OS_joy_input_device == NULL || OS_joy_input_device2 == NULL) {
-        OS_joy_x          = 0.0F;
-        OS_joy_y          = 0.0F;
-        OS_joy_button     = 0;
+    if (!gamepad_state.connected) {
+        OS_joy_x           = 0.0F;
+        OS_joy_y           = 0.0F;
+        OS_joy_button      = 0;
         OS_joy_button_down = 0;
-        OS_joy_button_up  = 0;
+        OS_joy_button_up   = 0;
         return;
     }
 
-    hr = OS_joy_input_device->Acquire();
+    // gamepad_state.lX/lY are 0..65535 (centre 32768). Convert to -1..+1.
+    OS_joy_x = (float(gamepad_state.lX) / 32768.0F) - 1.0F;
+    OS_joy_y = (float(gamepad_state.lY) / 32768.0F) - 1.0F;
 
-    if (hr == DI_OK) {
-        DIJOYSTATE js;
+    ULONG last = OS_joy_button;
+    ULONG now  = 0;
 
-        OS_joy_input_device2->Poll();
-
-        hr = OS_joy_input_device->GetDeviceState(sizeof(js), &js);
-
-        if (!FAILED(hr)) {
-            SLONG dx = OS_joy_x_range_max - OS_joy_x_range_min;
-            SLONG dy = OS_joy_y_range_max - OS_joy_y_range_min;
-
-            OS_joy_x = 0.0F;
-            OS_joy_y = 0.0F;
-
-            if (dx) {
-                OS_joy_x = float(js.lX - OS_joy_x_range_min) * 2.0F / float(dx) - 1.0F;
-            }
-            if (dy) {
-                OS_joy_y = float(js.lY - OS_joy_y_range_min) * 2.0F / float(dy) - 1.0F;
-            }
-
-            SLONG i;
-            ULONG last = OS_joy_button;
-            ULONG now  = 0;
-
-            for (i = 0; i < 32; i++) {
-                if (js.rgbButtons[i] & 0x80) {
-                    now |= 1 << i;
-                }
-            }
-
-            OS_joy_button      = now;
-            OS_joy_button_down = now & ~last;
-            OS_joy_button_up   = last & ~now;
+    for (SLONG i = 0; i < 32; i++) {
+        if (gamepad_state.rgbButtons[i] & 0x80) {
+            now |= 1 << i;
         }
-
-        OS_joy_input_device->Unacquire();
     }
+
+    OS_joy_button      = now;
+    OS_joy_button_down = now & ~last;
+    OS_joy_button_up   = last & ~now;
 }
 
 // ========================================================

@@ -1,23 +1,18 @@
 #ifndef ENGINE_INPUT_JOYSTICK_H
 #define ENGINE_INPUT_JOYSTICK_H
 
+#include <windows.h>
+#include "engine/core/types.h"
 #include "engine/input/joystick_globals.h"
 
-// DirectInput device type aliases.
-
-// uc_orig: MOUSE (fallen/DDLibrary/Headers/DIManager.h)
-#define MOUSE DIDEVTYPE_MOUSE
-// uc_orig: KEYBOARD (fallen/DDLibrary/Headers/DIManager.h)
-#define KEYBOARD DIDEVTYPE_KEYBOARD
+// Legacy device type constants (kept for API compatibility).
 // uc_orig: JOYSTICK (fallen/DDLibrary/Headers/DIManager.h)
-#define JOYSTICK DIDEVTYPE_JOYSTICK
+#define JOYSTICK 4
 
 // uc_orig: DI_DRIVER_INIT (fallen/DDLibrary/Headers/DIManager.h)
 #define DI_DRIVER_INIT (1 << 0)
 // uc_orig: DI_DEVICE_VALID (fallen/DDLibrary/Headers/DIManager.h)
 #define DI_DEVICE_VALID (1 << 0)
-// uc_orig: DI_DEVICE_NEEDS_POLL (fallen/DDLibrary/Headers/DIManager.h)
-#define DI_DEVICE_NEEDS_POLL (1 << 1)
 
 // uc_orig: ENABLE_REMAPPING (fallen/DDLibrary/Headers/DIManager.h)
 #define ENABLE_REMAPPING 0

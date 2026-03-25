@@ -8,10 +8,6 @@
 #include "outro/core/outro_always.h"
 
 #include <windows.h>
-#ifndef DIRECTINPUT_VERSION
-#define DIRECTINPUT_VERSION 0x0700
-#endif
-#include <dinput.h>
 #include <ddraw.h>
 #include <d3d.h>
 
@@ -62,21 +58,6 @@ extern ULONG OS_joy_button_down;
 // uc_orig: OS_joy_button_up (fallen/outro/os.cpp)
 extern ULONG OS_joy_button_up;
 
-// Joystick DirectInput objects — extern because they are defined in the main game's DIManager.
-// uc_orig: OS_joy_direct_input (fallen/outro/os.cpp)
-extern IDirectInput* OS_joy_direct_input;
-// uc_orig: OS_joy_input_device (fallen/outro/os.cpp)
-extern IDirectInputDevice* OS_joy_input_device;
-// uc_orig: OS_joy_input_device2 (fallen/outro/os.cpp)
-extern IDirectInputDevice2* OS_joy_input_device2;
-// uc_orig: OS_joy_x_range_min (fallen/outro/os.cpp)
-extern SLONG OS_joy_x_range_min;
-// uc_orig: OS_joy_x_range_max (fallen/outro/os.cpp)
-extern SLONG OS_joy_x_range_max;
-// uc_orig: OS_joy_y_range_min (fallen/outro/os.cpp)
-extern SLONG OS_joy_y_range_min;
-// uc_orig: OS_joy_y_range_max (fallen/outro/os.cpp)
-extern SLONG OS_joy_y_range_max;
 
 // Screen dimensions — set from RealDisplayWidth/Height during OS_hack().
 // uc_orig: OS_screen_width (fallen/outro/os.cpp)
