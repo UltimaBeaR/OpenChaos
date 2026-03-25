@@ -612,7 +612,7 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 pTLVert[i].dvRHW = 1.0f / pTLVert[i].dvSZ;
                 pTLVert[i].dvSX *= pTLVert[i].dvRHW;
                 pTLVert[i].dvSY *= pTLVert[i].dvRHW;
-                pTLVert[i].dvSZ *= (POLY_ZCLIP_PLANE);
+                pTLVert[i].dvSZ = 1.0f - POLY_ZCLIP_PLANE / pTLVert[i].dvSZ; // BUGFIX-OC-ZBUF-MISMATCH: match POLY path's inverse-z space
 
                 pTLVert[i].dvTU = pLVert[wIndex[i]].dvTU;
                 pTLVert[i].dvTV = pLVert[wIndex[i]].dvTV;

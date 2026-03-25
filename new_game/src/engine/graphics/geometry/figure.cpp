@@ -2165,6 +2165,12 @@ no_muzzle_calcs:
 
     (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
 
+    // uc_orig: Environment mapping for CLASS_VEHICLE exists in the original (figure.cpp:5130-5260)
+    // but is dead code: CLASS_VEHICLE things use DT_VEHICLE → draw_car() → MESH_draw_poly(),
+    // which has its own envmap handling in mesh.cpp. They never reach FIGURE_draw_prim_tween.
+    // CLASS_BIKE also exists in the codebase but bikes are not present in any shipping level.
+    // Envmap for vehicles via mesh.cpp already works (visible on windshields and chrome bumpers).
+
     if (!MM_bLightTableAlreadySetUp) {
     }
 }
