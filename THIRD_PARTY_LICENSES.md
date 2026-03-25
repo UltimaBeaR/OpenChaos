@@ -39,11 +39,16 @@ freely, subject to the following restrictions:
 - **License:** LGPL-2.0
 - **Installed via:** vcpkg (dynamic linking)
 
+```
+Copyright (C) 1999-2014 by authors.
+Authors: Chris Robinson, et al.
+
 OpenAL Soft is licensed under the GNU Library General Public License, Version 2.
 Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
+Full source code:  https://github.com/kcat/openal-soft
+```
 
-As LGPL-2.0, OpenAL Soft is dynamically linked — no modifications to the library
-source are made. The full source code is available at the repository linked above.
+OpenAL Soft is dynamically linked — no modifications to the library source are made.
 
 ---
 
