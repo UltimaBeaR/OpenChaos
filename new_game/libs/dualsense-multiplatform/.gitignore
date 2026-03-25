@@ -1,0 +1,12 @@
+# Dualsense-Multiplatform vendored library
+# Only track what we need for the build; ignore everything else.
+
+Dualsense-Multiplatform/*
+
+# What we keep:
+!Dualsense-Multiplatform/Source/
+!Dualsense-Multiplatform/Libs/
+!Dualsense-Multiplatform/CMakeLists.txt
+!Dualsense-Multiplatform/LICENSE
+
+# Source/CMakeLists.txt is inside Source/ so it's already included

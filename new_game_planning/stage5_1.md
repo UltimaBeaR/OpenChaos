@@ -92,13 +92,13 @@ SDL3 оси (-32768..+32767) транслируются в DI диапазон (
   → получаем `new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/` (папка репы)
   → удаляем `Dualsense-Multiplatform/.git/`
   → коммитим файлы как часть нашей репы
-- Из клона **удаляем:** `.git/`, `Tests/`, `.github/`
-- **miniaudio оставляем** — нужен для audio→haptic конверсии в итерации B
-  (подача PCM-аудио на haptic-моторы DualSense — например звук автомата → вибрация в руках)
+- Из клона **удаляем ТОЛЬКО** `Dualsense-Multiplatform/.git/`
+- **Ничего больше не удаляем** — ненужное для сборки игнорируем через `.gitignore`
 - Наши файлы живут **на уровень выше** (рядом с папкой репы, не внутри):
+  - `.gitignore` — игнорирует всё в Dualsense-Multiplatform/ кроме Source/, Libs/, CMakeLists.txt, LICENSE
   - `VENDORED.md` — коммит-хеш, дата, URL, инструкция обновления
   - `README.md` — наш README с объяснением: что это, зачем, как обновлять
-    (удалить старое содержимое Dualsense-Multiplatform/, git clone, удалить .git/, готово)
+    (удалить папку Dualsense-Multiplatform/, git clone, удалить .git/, готово)
 - LICENSE остаётся внутри Dualsense-Multiplatform/ из репы
 - Добавить запись в `THIRD_PARTY_LICENSES.md`
 
@@ -106,19 +106,22 @@ SDL3 оси (-32768..+32767) транслируются в DI диапазон (
 ```
 new_game/libs/
   dualsense-multiplatform/
+    .gitignore                    ← НАШ: игнорируем ненужное из репы
     README.md                     ← НАШ: что это, как обновлять
     VENDORED.md                   ← НАШ: коммит-хеш, дата
     Dualsense-Multiplatform/      ← содержимое репы (без .git/)
-      Source/
+      Source/                     ← ТРЕКАЕТСЯ
         Public/
         Private/
         CMakeLists.txt
-      Libs/
+      Libs/                       ← ТРЕКАЕТСЯ (miniaudio для audio→haptic)
         miniaudio/
-      CMakeLists.txt
-      LICENSE
-      README.md                   ← оригинальный README репы
-      ...
+      CMakeLists.txt              ← ТРЕКАЕТСЯ
+      LICENSE                     ← ТРЕКАЕТСЯ
+      Tests/                      ← игнорируется .gitignore
+      .github/                    ← игнорируется .gitignore
+      README.md                   ← игнорируется .gitignore
+      ...                         ← всё остальное игнорируется
 ```
 
 ### Шаг A1 — Миграция SDL2 → SDL3 (ПЕРВЫМ ДЕЛОМ, до любой работы с геймпадом)
