@@ -29,7 +29,8 @@ original_game_knowledge_base_dense/ — компактная версия все
 new_game_planning/                  — планирование новой игры (параллельный процесс)
   phases.md                         — фазы разработки и текущий статус
   stages.md                         — этапы Фазы 3 с критериями
-  prerelease_fixes.md               — пре-релизные баги оригинала (обязательны перед Этапом 5)
+  prerelease_fixes.md               — пре-релизные баги оригинала (выполненные фиксы)
+  known_issues_and_bugs.md          — известные проблемы и баги (бессрочный список, не привязан к этапу)
   tech_and_architecture.md          — стек, архитектура, все принятые решения
   testing.md                        — стратегия тестирования, чеклисты, replay
   porting_notes.md                  — заметки по портированию подсистем
@@ -62,7 +63,8 @@ CLAUDE.md                           — этот файл
 | Фазы разработки, текущий статус | `new_game_planning/phases.md` |
 | Этапы Фазы 3, текущий этап | `new_game_planning/stages.md` (индекс) |
 | **Работа на Этапе 4** | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` (триггерятся автоматически) |
-| Пре-релизные баги для фикса | `new_game_planning/prerelease_fixes.md` |
+| Пре-релизные баги (выполненные фиксы) | `new_game_planning/prerelease_fixes.md` |
+| Известные проблемы и баги (бессрочный список) | `new_game_planning/known_issues_and_bugs.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
 
@@ -106,7 +108,8 @@ CLAUDE.md                           — этот файл
   - Технологии и архитектура новой игры → `new_game_planning/tech_and_architecture.md`
   - Фазы разработки → `new_game_planning/phases.md`
   - Этапы Фазы 3 → `new_game_planning/stages.md` (индекс) + `new_game_planning/stage*.md`
-  - Пре-релизные баги → `new_game_planning/prerelease_fixes.md`
+  - Пре-релизные баги (фиксы) → `new_game_planning/prerelease_fixes.md`
+  - Известные проблемы и баги → `new_game_planning/known_issues_and_bugs.md`
   - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
     - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON
   - Правила работы → этот файл (CLAUDE.md)
