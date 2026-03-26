@@ -4,6 +4,7 @@
 
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
+#include "engine/input/keyboard_globals.h" // Keys[] for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "game/input_actions_globals.h"
 #include <cstring>
@@ -53,6 +54,16 @@ void gamepad_shutdown()
 
 void gamepad_poll()
 {
+    // Detect keyboard activity — switch to keyboard mode if any key is held.
+    // Gamepad activity check below will override this if gamepad is also active,
+    // so "last device wins" works naturally.
+    for (int i = 0; i < 256; i++) {
+        if (Keys[i]) {
+            active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
+            break;
+        }
+    }
+
     // Process connect/disconnect events.
     SDL3_GamepadEvent event;
     while (sdl3_gamepad_poll_event(&event)) {
@@ -162,7 +173,7 @@ void gamepad_set_shock(int fast, int slow)
 void gamepad_rumble_tick()
 {
     if (!s_motor_fast && !s_motor_slow) return;
-    if (!s_gamepad) {
+    if (!s_gamepad || active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
         s_motor_fast = 0;
         s_motor_slow = 0;
         return;

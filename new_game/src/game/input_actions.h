@@ -90,14 +90,29 @@ struct Thing;
 // uc_orig: INPUT_MASK_ALL_BUTTONS (fallen/Headers/interfac.h)
 #define INPUT_MASK_ALL_BUTTONS (0x3ffff)
 
-// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h)
-#define INPUT_CAR_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE | INPUT_MASK_PUNCH)
-// uc_orig: INPUT_CAR_DECELERATE (fallen/Headers/interfac.h)
-#define INPUT_CAR_DECELERATE (INPUT_MASK_BACKWARDS | INPUT_MASK_KICK)
-// uc_orig: INPUT_CAR_GOFASTER (fallen/Headers/interfac.h)
-#define INPUT_CAR_GOFASTER (INPUT_CAR_ACCELERATE | INPUT_CAR_DECELERATE)
-// uc_orig: INPUT_CAR_SIREN (fallen/Headers/interfac.h)
-#define INPUT_CAR_SIREN (INPUT_MASK_JUMP)
+// Vehicle button mapping — two variants from the original (fallen/Headers/interfac.h).
+// Keyboard uses the PC variant; gamepad uses the PSX variant (matches PS1 Config 0).
+// apply_button_input_car() picks the right set based on active_input_device.
+//
+// Keyboard (PC): Z=accel, X=brake, Space=siren
+// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h, PC variant)
+#define INPUT_CAR_KB_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE | INPUT_MASK_PUNCH)
+// uc_orig: INPUT_CAR_DECELERATE (fallen/Headers/interfac.h, PC variant)
+#define INPUT_CAR_KB_DECELERATE (INPUT_MASK_BACKWARDS | INPUT_MASK_KICK)
+// uc_orig: INPUT_CAR_GOFASTER (fallen/Headers/interfac.h, PC variant)
+#define INPUT_CAR_KB_GOFASTER (INPUT_CAR_KB_ACCELERATE | INPUT_CAR_KB_DECELERATE)
+// uc_orig: INPUT_CAR_SIREN (fallen/Headers/interfac.h, PC variant)
+#define INPUT_CAR_KB_SIREN (INPUT_MASK_JUMP)
+//
+// Gamepad (PSX): Cross/A=accel, Square/X=brake, Triangle/Y=siren
+// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h, PSX variant)
+#define INPUT_CAR_PAD_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE | INPUT_MASK_JUMP)
+// uc_orig: INPUT_CAR_DECELERATE (fallen/Headers/interfac.h, PSX variant)
+#define INPUT_CAR_PAD_DECELERATE (INPUT_MASK_BACKWARDS | INPUT_MASK_PUNCH)
+// uc_orig: INPUT_CAR_GOFASTER (fallen/Headers/interfac.h, PSX variant)
+#define INPUT_CAR_PAD_GOFASTER (INPUT_CAR_PAD_ACCELERATE | INPUT_CAR_PAD_DECELERATE)
+// uc_orig: INPUT_CAR_SIREN (fallen/Headers/interfac.h, PSX variant)
+#define INPUT_CAR_PAD_SIREN (INPUT_MASK_KICK)
 
 // uc_orig: INPUT_MASKM_CAM_TYPE (fallen/Headers/interfac.h)
 #define INPUT_MASKM_CAM_TYPE (INPUT_MASK_CAM_LEFT | INPUT_MASK_CAM_RIGHT)

@@ -34,7 +34,8 @@
 #include "effects/combat/pow_globals.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
-#include "engine/input/gamepad.h"    // gamepad_set_shock
+#include "engine/input/gamepad.h"        // gamepad_set_shock
+#include "engine/input/gamepad_globals.h" // active_input_device
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "things/items/barrel.h"
@@ -2448,7 +2449,7 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
             veh->Dir = -1;
             friction -= 4;
             accel = vinfo->SoftBrake;
-            move_cancel = INPUT_CAR_ACCELERATE;
+            move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_ACCELERATE : INPUT_CAR_PAD_ACCELERATE;
         } else {
             veh->Dir = +2;
             accel = vinfo->FwdAccel;
@@ -2472,7 +2473,7 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
             veh->Dir = +1;
             friction -= 4;
             accel = -vinfo->SoftBrake;
-            move_cancel = INPUT_CAR_DECELERATE;
+            move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_DECELERATE : INPUT_CAR_PAD_DECELERATE;
 
             if (!veh->Skid) {
                 if ((veh->DControl & VEH_FASTER) && (velocity > 1600))
@@ -2509,7 +2510,7 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
     // Siren toggle.
     if (veh->DControl & VEH_SIREN) {
         siren(veh, !veh->Siren);
-        move_cancel = INPUT_CAR_SIREN;
+        move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_SIREN : INPUT_CAR_PAD_SIREN;
     }
 }
 
@@ -2539,7 +2540,7 @@ static void do_car_input(Thing* p_thing)
 
         pedals(veh, vinfo, p_thing->Velocity, friction = 7, move_cancel = 0, accel = 0, p_thing);
 
-        if (move_cancel == INPUT_CAR_SIREN && p_thing->Genus.Vehicle->Driver) {
+        if ((move_cancel == INPUT_CAR_KB_SIREN || move_cancel == INPUT_CAR_PAD_SIREN) && p_thing->Genus.Vehicle->Driver) {
             Thing* p_driver;
             p_driver = TO_THING(p_thing->Genus.Vehicle->Driver);
             if (p_driver->Genus.Person->PlayerID) {

@@ -440,3 +440,64 @@ DualSense q=4-6 (внутри). После фикса Xbox q=0 в покое.
 
 - `outro/core/outro_os.cpp` — gamepad_poll + OS_joy_poll в OS_process_messages
 - `outro/outro_main.cpp` — Cross/A выход + include outro_os_globals.h
+
+## Фикс: маппинг кнопок в авто — PS1 для геймпада, PC для клавиатуры (2026-03-27)
+
+**Модель:** Opus 4.6 (1M контекст)
+
+### Проблема
+
+Маппинг кнопок в машине не соответствовал PS1: Square=вперёд, Cross=мигалки.
+На PS1: Cross=газ, Square=тормоз, Triangle=мигалка.
+
+### Причина
+
+В оригинале `fallen/Headers/interfac.h` были два варианта `INPUT_CAR_*` макросов —
+`#ifdef PSX` и PC. При миграции взяли PC-вариант, но кнопки геймпада замаппили как
+PS1 Config 0 (Cross=JUMP, Square=PUNCH, Triangle=KICK).
+
+PC: ACCELERATE=PUNCH(Z), DECELERATE=KICK(X), SIREN=JUMP(Space).
+PSX: ACCELERATE=JUMP(Cross), DECELERATE=PUNCH(Square), SIREN=KICK(Triangle).
+
+### Решение — два набора макросов
+
+Нельзя использовать один набор — он сломает либо клавиатуру, либо геймпад, т.к.
+маски INPUT_MASK_JUMP/PUNCH/KICK маппятся на разные физические кнопки/клавиши.
+
+**input_actions.h:** `INPUT_CAR_KB_*` (PC вариант) + `INPUT_CAR_PAD_*` (PSX вариант).
+
+**input_actions.cpp — `apply_button_input_car()`:** if/else по `active_input_device`,
+каждая ветка использует свой набор макросов для `DControl`.
+
+**vehicle.cpp — `pedals()`:** три `move_cancel =` назначения + одно `==` сравнение
+используют тернарник по `active_input_device`. Нужно для корректного `InputDone`
+маскирования — `move_cancel` должен содержать реальные биты нажатых кнопок,
+иначе кнопка не будет "consumed" и сработает повторно.
+
+### Централизованное переключение active_input_device
+
+До этого фикса `active_input_device` переключался на клавиатуру **только при отключении
+геймпада** (hotplug event). При подключённом геймпаде устройство всегда было XBOX/DUALSENSE,
+даже если играли на клавиатуре → vehicle code использовал PSX маппинг для клавиатуры.
+
+**Фикс в `gamepad_poll()`:** в начале функции сканируем `Keys[0..255]` — если любая клавиша
+нажата → `INPUT_DEVICE_KEYBOARD_MOUSE`. Затем идёт проверка геймпада — если кнопки/стик
+за дедзоной → XBOX/DUALSENSE. Кто последний нажал — тот и активный.
+
+Работает на **всех экранах** (меню, геймплей, пауза, outro), т.к. все вызывают
+`ReadInputDevice()` → `gamepad_poll()`.
+
+### Вибрация: только в режиме геймпада
+
+Добавлена проверка `active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE` в
+`gamepad_rumble_tick()` — моторы сбрасываются и rumble не отправляется в режиме клавиатуры.
+
+### Изменённые файлы
+
+- `game/input_actions.h` — два набора макросов INPUT_CAR_KB_* / INPUT_CAR_PAD_*
+- `game/input_actions.cpp` — include gamepad_globals.h, if/else в apply_button_input_car()
+- `things/vehicles/vehicle.cpp` — include gamepad_globals.h, тернарники в pedals(),
+  двойная проверка в do_car_input()
+- `engine/input/gamepad.cpp` — include keyboard_globals.h, сканирование Keys[] в
+  gamepad_poll() для переключения на клавиатуру, проверка active_input_device в
+  gamepad_rumble_tick()

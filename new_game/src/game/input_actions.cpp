@@ -37,6 +37,7 @@
 #include "combat/combat.h"
 #include "engine/input/joystick.h"             // ReadInputDevice
 #include "engine/input/joystick_globals.h"  // the_state (GamepadState)
+#include "engine/input/gamepad_globals.h"   // active_input_device
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
@@ -3124,14 +3125,27 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
 
     veh->DControl = 0;
 
-    if (input & INPUT_CAR_ACCELERATE)
-        veh->DControl |= VEH_ACCEL;
-    else if (input & INPUT_CAR_DECELERATE)
-        veh->DControl |= VEH_DECEL;
-    if (input & INPUT_CAR_GOFASTER)
-        veh->DControl |= VEH_FASTER;
-    if (input & INPUT_CAR_SIREN)
-        veh->DControl |= VEH_SIREN;
+    // Keyboard uses PC button→action mapping (Z=accel, X=brake, Space=siren).
+    // Gamepad uses PSX mapping (Cross=accel, Square=brake, Triangle=siren).
+    if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+        if (input & INPUT_CAR_KB_ACCELERATE)
+            veh->DControl |= VEH_ACCEL;
+        else if (input & INPUT_CAR_KB_DECELERATE)
+            veh->DControl |= VEH_DECEL;
+        if (input & INPUT_CAR_KB_GOFASTER)
+            veh->DControl |= VEH_FASTER;
+        if (input & INPUT_CAR_KB_SIREN)
+            veh->DControl |= VEH_SIREN;
+    } else {
+        if (input & INPUT_CAR_PAD_ACCELERATE)
+            veh->DControl |= VEH_ACCEL;
+        else if (input & INPUT_CAR_PAD_DECELERATE)
+            veh->DControl |= VEH_DECEL;
+        if (input & INPUT_CAR_PAD_GOFASTER)
+            veh->DControl |= VEH_FASTER;
+        if (input & INPUT_CAR_PAD_SIREN)
+            veh->DControl |= VEH_SIREN;
+    }
 
     return (processed_input);
 }

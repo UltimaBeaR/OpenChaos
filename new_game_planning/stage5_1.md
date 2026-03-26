@@ -321,6 +321,13 @@ API: C++20, HID напрямую, input + output (LED, triggers, haptics, gyro, 
 **Конфликт с SDL3:** обе открывают HID. При обнаружении DualSense → SDL3 отпускает
 (`SDL_HINT_JOYSTICK_HIDAPI_PS5 = "0"`), DS-lib берёт всё на себя.
 
+**⚠️ Учитывать `active_input_device`:** все DualSense-фичи (LED, adaptive triggers, haptics,
+gyro, touchpad, audio-to-haptic) должны активироваться **только когда `active_input_device`
+= `INPUT_DEVICE_DUALSENSE`**. Если игрок переключился на клавиатуру — все output-фичи
+отключаются (LED гаснет, триггеры сбрасываются, вибрация не отправляется). При переключении
+обратно на DualSense — возобновляются. Аналогично rumble уже работает для Xbox (проверка
+в `gamepad_rumble_tick()`).
+
 ### Шаг B0 — Интеграция библиотеки
 - Подключить к CMake (static library)
 - Реализовать device registry policy для нашего движка
