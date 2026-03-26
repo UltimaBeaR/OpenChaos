@@ -3189,8 +3189,15 @@ ULONG get_hardware_input(UWORD type)
                     // process_analogue_movement() uses these for proportional speed.
                     // Digital direction flags set only for menus (not movement).
                     analogue = 1;
-                    input |= ((the_state.lX >> 9) + 0) << 18;
-                    input |= ((the_state.lY >> 9) + 0) << 25;
+                    // Apply deadzone before packing — stick drift within NOISE_TOLERANCE
+                    // must pack as centre, otherwise continue_moveing() sees phantom input.
+                    SLONG pack_x = the_state.lX;
+                    SLONG pack_y = the_state.lY;
+                    if (pack_x >= (SLONG)ulAxisMin && pack_x <= (SLONG)ulAxisMax) pack_x = AXIS_CENTRE;
+                    if (pack_y >= (SLONG)ulAxisMin && pack_y <= (SLONG)ulAxisMax) pack_y = AXIS_CENTRE;
+                    input |= ((pack_x >> 9) + 0) << 18;
+                    input |= ((pack_y >> 9) + 0) << 25;
+
                 } else {
                     // D-Pad or no gamepad: digital mode (full speed).
                     analogue = 0;
@@ -4026,6 +4033,7 @@ SLONG continue_moveing(Thing* p_person)
 
             dx = abs((SLONG)GET_JOYX(input));
             dy = abs((SLONG)GET_JOYY(input));
+
             if (QDIST2(dx, dy) < ANALOGUE_MIN_VELOCITY) {
                 return (0);
             }
