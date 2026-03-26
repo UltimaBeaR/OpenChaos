@@ -323,3 +323,56 @@ KB (`psx_controls.md`) утверждает: "Аналог только эмул
 `sdl3_gamepad_poll_event()` использовал `SDL_PollEvent()` который **жрал ВСЕ** SDL события,
 не только геймпадные. Заменён на `SDL_PumpEvents()` + `SDL_PeepEvents()` с фильтром
 `SDL_EVENT_GAMEPAD_ADDED..SDL_EVENT_GAMEPAD_REMOVED`. Не-геймпадные события больше не теряются.
+
+## Шаг A5 — Вибрация PS1-style (2026-03-26)
+
+**Модель:** Opus (1M контекст)
+
+### Архитектура
+
+Вместо одноразового `gamepad_rumble(freq, freq, duration_ms)` реализована PS1-style система
+с затуханием моторов:
+
+- `gamepad_set_shock(fast, slow)` — совместим с оригинальным `PSX_SetShock(fast, slow)`.
+  `fast` = 0/1 (малый мотор вкл/выкл), `slow` = 0-255 (интенсивность большого мотора).
+  Использует maximum tracking: мотор обновляется только если новое значение > текущее.
+- `gamepad_rumble_tick()` — вызывается каждый игровой тик из game loop (`game.cpp`).
+  Применяет затухание (малый мотор `>>=1`, большой `*7>>3`) и отправляет значения на контроллер
+  через SDL3 (`SDL_RumbleGamepad` с 100ms duration, обновляется каждый тик).
+- Проверяет `g_bEngineVibrations` — глобальный флаг вкл/выкл вибрации.
+
+Маппинг PS1→SDL3: `high_freq = fast ? 65535 : 0`, `low_freq = slow * 257` (0-255→0-65535).
+
+### Добавлены вызовы вибрации (6 мест)
+
+| Файл | Событие | Оригинал | Параметры |
+|------|---------|----------|-----------|
+| `combat/combat.cpp` | Урон игрока в бою | Combat.cpp:2468 | fast=1, slow=(damage<<4)+96, max 255 |
+| `things/characters/person.cpp` | Урон от пуль | Person.cpp:2965 | fast=1, slow=hitpoints+56 |
+| `things/characters/person.cpp` | Подсечка (sweep) | Person.cpp:2085 | fast=1, slow=128 (фиксированный) |
+| `things/characters/darci.cpp` | Урон от падения | Darci.cpp:513 | fast=0, slow=damage+48 |
+| `camera/fc.cpp` | Взрыв (камера) | fc.cpp:2171 | fast=0, slow=shake (0-255) |
+| `things/vehicles/vehicle.cpp` | Столкновение (2 места: DoDamage + kerb) | Vehicle.cpp:4177 | fast=(shock>128)?1:0, slow=SATURATE(velocity>>1, 64, 192) |
+
+### Не реализовано (пока)
+
+- **Engine vibration** (interfac.cpp:8310) — был `#if 0` в оригинале, пропущен.
+- **PSXENG/engine.cpp:781** — power-up вибрация, PSX-only код, не портирован.
+- **Видеовставки** (mdec.cpp MDEC_vibra[]) — frame-synchronized vibration для intro/endgame.
+  Требует интеграции с видеоплеером, отложено.
+- **Меню** (Wadmenu.cpp) — тест-вибрация при включении опции в настройках. Опция пока не в UI.
+
+### Изменённые файлы
+
+- `engine/input/gamepad.h` — добавлены `gamepad_set_shock()`, `gamepad_rumble_tick()`
+- `engine/input/gamepad.cpp` — реализация PS1-style моторов с decay + include input_actions_globals.h
+- `combat/combat.cpp` — rumble при урон от боя (PlayerID check)
+- `things/characters/person.cpp` — rumble при пулевом уроне + подсечке
+- `things/characters/darci.cpp` — rumble при падении
+- `camera/fc.cpp` — rumble при взрыве (proportional to shake)
+- `things/vehicles/vehicle.cpp` — rumble при столкновениях (2 места)
+- `game/game.cpp` — `gamepad_rumble_tick()` в game loop
+
+### Проверка
+
+Release и Debug собираются без ошибок. Протестировано с Xbox контроллером — работает.

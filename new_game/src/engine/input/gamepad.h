@@ -26,6 +26,17 @@ void gamepad_init();
 void gamepad_shutdown();
 void gamepad_poll();
 void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms);
+
+// PS1-style vibration: fast motor (0=off, 1=on) + slow motor (0-255 intensity).
+// Uses maximum tracking: only updates a motor if new value > current value.
+// Motors decay each tick via gamepad_rumble_tick().
+// uc_orig: PSX_SetShock (fallen/psxlib/Source/GDisplay.cpp)
+void gamepad_set_shock(int fast, int slow);
+
+// Apply per-tick motor decay and send current values to controller.
+// Call once per game tick from the main loop.
+void gamepad_rumble_tick();
+
 InputDeviceType gamepad_get_device_type();
 
 // Mark a button to be consumed (zeroed) on every poll until released.

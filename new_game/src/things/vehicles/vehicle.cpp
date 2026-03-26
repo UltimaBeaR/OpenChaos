@@ -34,6 +34,7 @@
 #include "effects/combat/pow_globals.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "engine/input/gamepad.h"    // gamepad_set_shock
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "things/items/barrel.h"
@@ -1440,6 +1441,13 @@ static void DoDamage(Thing* p_car, VEH_Col* col)
             }
         }
 
+        // uc_orig: PSX_SetShock (fallen/Source/Vehicle.cpp:4177)
+        if (is_driven_by_player(p_car)) {
+            SLONG shock = p_car->Velocity >> 1;
+            SATURATE(shock, 64, 192);
+            gamepad_set_shock((shock > 128) ? 1 : 0, shock);
+        }
+
         VEH_co_damage(p_car, col->veh);
     }
     if (col->ob_index) {
@@ -1756,6 +1764,13 @@ static SLONG CollideCar(Thing* p_car, SLONG step)
 
         if (speed > 0) {
             veh->Health -= speed >> 1;
+
+            // Vibrate on kerb/wall collision when player is driving.
+            if (is_driven_by_player(p_car)) {
+                SLONG shock = p_car->Velocity >> 1;
+                SATURATE(shock, 64, 192);
+                gamepad_set_shock((shock > 128) ? 1 : 0, shock);
+            }
         }
     }
 

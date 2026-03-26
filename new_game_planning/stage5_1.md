@@ -22,8 +22,10 @@
 - Dualsense-Multiplatform vendored в `libs/`, пока не подключена (итерация B).
 
 **Осталось в итерации A:**
-- A5: Вибрация (PS1-style rumble)
 - A6: Hotplug и динамическое переключение
+
+**Завершено (после A5):**
+- A5: Вибрация — PS1-style `gamepad_set_shock(fast, slow)` + tick decay. 6 мест: combat, bullets, sweep, fall, explosion, vehicle
 
 **Завершено (после A4):**
 - Системный проход по всем менюшкам (кнопки, debounce стика, repeat delay) — см. девлог

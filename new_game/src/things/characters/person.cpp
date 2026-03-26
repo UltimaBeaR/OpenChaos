@@ -80,6 +80,7 @@
 #include "buildings/prim.h"       // does_fence_lie_along_line (chunk 6)
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"
+#include "engine/input/gamepad.h"    // gamepad_set_shock
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -1278,6 +1279,11 @@ void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type)
     } else {
         if (!p_person->Genus.Person->PlayerID)
             p_person->Genus.Person->Health -= 49;
+
+        // uc_orig: PSX_SetShock (fallen/Source/Person.cpp:2085)
+        if (p_person->Genus.Person->PlayerID) {
+            gamepad_set_shock(1, 128);
+        }
     }
 
     if (p_person->Genus.Person->Health <= 0) {
@@ -1794,6 +1800,11 @@ void knock_person_down(
         // Nothing hurts this person.
     } else {
         p_person->Genus.Person->Health -= hitpoints;
+
+        // uc_orig: PSX_SetShock (fallen/Source/Person.cpp:2965)
+        if (p_person->Genus.Person->PlayerID) {
+            gamepad_set_shock(1, hitpoints + 56);
+        }
     }
 
     if (p_person->Genus.Person->Health <= 0) {

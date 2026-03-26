@@ -76,6 +76,7 @@
 #include "ui/menus/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
+#include "engine/input/gamepad.h"    // gamepad_rumble_tick
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
 #include "assets/formats/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
@@ -805,6 +806,9 @@ round_again:;
 
             } else {
             }
+
+            // Update rumble motor decay and send to controller every frame.
+            gamepad_rumble_tick();
 
             {
                 PUDDLE_process();

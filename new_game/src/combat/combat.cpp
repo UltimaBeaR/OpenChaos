@@ -17,6 +17,7 @@
 #include "things/characters/person.h" // can_a_see_b, set_anim
 #include "engine/graphics/pipeline/aeng.h"  // MSG_add
 #include "engine/physics/collide.h"   // LOS_FLAG_IGNORE_*
+#include "engine/input/gamepad.h"    // gamepad_set_shock
 
 // Functions not yet in any header: declared inline here as in the original.
 // uc_orig: set_face_thing (fallen/Source/Person.cpp)
@@ -1110,6 +1111,13 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
             // Invulnerable -- skip damage
         } else {
             p_thing->Genus.Person->Health -= damage;
+
+            // uc_orig: PSX_SetShock (fallen/Source/Combat.cpp:2468)
+            if (p_thing->Genus.Person->PlayerID) {
+                SLONG dam = (damage << 4) + 96;
+                if (dam > 255) dam = 255;
+                gamepad_set_shock(1, dam);
+            }
         }
 
         if (p_thing->Genus.Person->Health <= 0) {

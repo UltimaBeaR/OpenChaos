@@ -15,6 +15,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "map/pap.h"
+#include "engine/input/gamepad.h"    // gamepad_set_shock
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
 // Applied to cam_dist and camera height offsets.
@@ -1386,6 +1387,9 @@ void FC_explosion(SLONG x, SLONG y, SLONG z, SLONG force)
             shake = 256 * ((force * 16) - dist) / (force * 16);
             SATURATE(shake, 0, 255);
             fc->shake = shake;
+
+            // uc_orig: PSX_SetShock (fallen/Source/fc.cpp:2171)
+            gamepad_set_shock(0, shake);
         }
     }
 }

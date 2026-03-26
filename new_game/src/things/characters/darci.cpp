@@ -22,6 +22,7 @@
 #include "things/characters/darci.h"
 #include "things/characters/darci_globals.h"
 #include "things/core/interact.h"              // calc_sub_objects_position
+#include "engine/input/gamepad.h"              // gamepad_set_shock
 #include "assets/formats/anim_globals.h"               // game_chunk
 #include "engine/graphics/pipeline/aeng.h"    // MSG_add
 
@@ -263,6 +264,11 @@ SLONG damage_person_on_land(Thing* p_thing)
         }
 
         p_thing->Genus.Person->Health -= damage;
+
+        // uc_orig: PSX_SetShock (fallen/Source/Darci.cpp:513)
+        if (p_thing->Genus.Person->PlayerID) {
+            gamepad_set_shock(0, damage + 48);
+        }
 
         if (p_thing->Genus.Person->Health <= 0) {
             set_person_dead(

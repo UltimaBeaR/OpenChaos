@@ -5,6 +5,7 @@
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/platform/sdl3_bridge.h"
+#include "game/input_actions_globals.h"
 #include <cstring>
 
 // Sony vendor/product IDs for DualSense detection.
@@ -15,6 +16,11 @@ static constexpr uint16_t DUALSENSE_EDGE_PRODUCT_ID = 0x0DF2;
 static SDL3_GamepadHandle s_gamepad = nullptr;
 static bool s_is_dualsense = false;
 static uint32_t s_consume_mask = 0; // bitmask of button indices to consume until released
+
+// PS1-style motor state (maximum tracking + per-tick decay).
+// uc_orig: psx_motor[2] (fallen/psxlib/Source/GDisplay.cpp)
+static int s_motor_fast = 0; // small motor: 0 or 1 (decays >>= 1)
+static int s_motor_slow = 0; // large motor: 0-255 (decays * 7 >> 3)
 
 static bool is_dualsense(SDL3_GamepadHandle handle)
 {
@@ -142,6 +148,34 @@ void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)
     if (s_gamepad) {
         sdl3_gamepad_rumble(s_gamepad, low_freq, high_freq, duration_ms);
     }
+}
+
+void gamepad_set_shock(int fast, int slow)
+{
+    if (!g_bEngineVibrations) return;
+    if (slow > 255) slow = 255;
+    // Maximum tracking: only update if new value exceeds current.
+    if (fast > s_motor_fast) s_motor_fast = fast;
+    if (slow > s_motor_slow) s_motor_slow = slow;
+}
+
+void gamepad_rumble_tick()
+{
+    if (!s_motor_fast && !s_motor_slow) return;
+    if (!s_gamepad) {
+        s_motor_fast = 0;
+        s_motor_slow = 0;
+        return;
+    }
+
+    // Send current motor values to controller.
+    uint16_t low = static_cast<uint16_t>(s_motor_slow * 257);  // 0-255 → 0-65535
+    uint16_t high = s_motor_fast ? 65535 : 0;
+    sdl3_gamepad_rumble(s_gamepad, low, high, 100); // 100ms — refreshed every tick
+
+    // Decay motors.
+    s_motor_fast >>= 1;               // small motor: off after 1 tick
+    s_motor_slow = (s_motor_slow * 7) >> 3; // large motor: gradual fade
 }
 
 InputDeviceType gamepad_get_device_type()
