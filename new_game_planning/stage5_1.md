@@ -21,14 +21,15 @@
 - `gamepad_consume_until_released()` — предотвращает протекание кнопок из меню в геймплей.
 - Dualsense-Multiplatform vendored в `libs/`, пока не подключена (итерация B).
 
-**Осталось в итерации A:**
-- A6: Hotplug и динамическое переключение
+**Итерация A — ЗАВЕРШЕНА.**
 
-**Завершено (после A5):**
-- A5: Вибрация — PS1-style `gamepad_set_shock(fast, slow)` + tick decay. 6 мест: combat, bullets, sweep, fall, explosion, vehicle
-
-**Завершено (после A4):**
-- Системный проход по всем менюшкам (кнопки, debounce стика, repeat delay) — см. девлог
+**Завершено:**
+- A0-A4: SDL3, gamepad абстракция, DirectInput→SDL3, маппинг PS1 Config 0, аналоговый стик
+- Системный проход по всем менюшкам (кнопки, debounce стика, repeat delay)
+- A5: Вибрация — PS1-style `gamepad_set_shock(fast, slow)` + tick decay
+- A6: Hotplug — SDL3 events (ADDED/REMOVED), active_input_device автодетект, все экраны
+- Фикс: stick drift deadzone для аналоговых бит (Xbox)
+- Фикс: outro gamepad polling + Cross/A выход
 
 ## Архитектура
 
