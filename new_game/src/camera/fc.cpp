@@ -16,6 +16,7 @@
 #include "camera/fc_globals.h"
 #include "map/pap.h"
 #include "engine/input/gamepad.h"    // gamepad_set_shock
+#include "engine/input/gamepad_globals.h" // gamepad_state (right stick camera)
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
 // Applied to cam_dist and camera height offsets.
@@ -58,6 +59,7 @@
 
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
+
 
 // uc_orig: person_has_gun_out (fallen/Source/fc.cpp)
 extern SLONG person_has_gun_out(Thing* p_person);
@@ -730,7 +732,7 @@ void FC_rotate_left(SLONG cam)
     FC_Cam* fc = &FC_cam[cam];
 
     if (FC_allowed_to_rotate(fc, FC_ROTATE_DIR_LEFT)) {
-        fc->rotate = -0x600;
+        fc->rotate = +0x600;
     }
 }
 
@@ -742,7 +744,7 @@ void FC_rotate_right(SLONG cam)
     FC_Cam* fc = &FC_cam[cam];
 
     if (FC_allowed_to_rotate(fc, FC_ROTATE_DIR_RIGHT)) {
-        fc->rotate = +0x600;
+        fc->rotate = -0x600;
     }
 }
 
@@ -894,6 +896,39 @@ void FC_process()
                 }
 
                 fc->nobehind = 0x2000;
+            }
+
+            // Right stick: continuous camera orbit and height adjustment.
+            // X axis: horizontal orbit (same math as L2/R2 rotate, proportional to deflection).
+            // Y axis: camera height offset (stick up = higher, stick down = lower).
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.connected) {
+                SLONG stick_x = gamepad_state.rX - 32768; // signed, -32768..+32767
+                SLONG stick_y = gamepad_state.rY - 32768;
+
+                if (abs(stick_x) > 8000) {
+                    SLONG rot_speed = (stick_x * 0x600) / 32767;
+
+                    dx = fc->focus_x - fc->want_x >> 3;
+                    dz = fc->focus_z - fc->want_z >> 3;
+
+                    fc->want_x += dz * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
+                    fc->want_z -= dx * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
+
+                    fc->nobehind = 0x2000;
+                }
+
+                // Height: directly move want_y (bypasses the slow Y smoothing).
+                // Stick up (negative Y) = raise camera, stick down = lower camera.
+                if (abs(stick_y) > 8000) {
+                    SLONG height_delta = (stick_y * 0x3100) / 32767 * TICK_RATIO >> TICK_SHIFT;
+                    fc->want_y += height_delta;
+
+                    // Clamp: don't go below character feet, don't go too high above.
+                    SLONG min_y = fc->focus_y + 0x2000;
+                    SLONG max_y = fc->focus_y + 0x28000;
+                    if (fc->want_y < min_y) fc->want_y = min_y;
+                    if (fc->want_y > max_y) fc->want_y = max_y;
+                }
             }
         } else {
             fc->rotate = 0;

@@ -99,6 +99,8 @@ void gamepad_poll()
     // Translate SDL3 axes (-32768..+32767) to DI range (0..65535).
     gamepad_state.lX = static_cast<int32_t>(sdl_state.axis_left_x) + 32768;
     gamepad_state.lY = static_cast<int32_t>(sdl_state.axis_left_y) + 32768;
+    gamepad_state.rX = static_cast<int32_t>(sdl_state.axis_right_x) + 32768;
+    gamepad_state.rY = static_cast<int32_t>(sdl_state.axis_right_y) + 32768;
 
     // D-Pad overrides axes (like PS1: D-Pad and analog stick share the same output).
     uint32_t btns = sdl_state.buttons;
@@ -149,7 +151,9 @@ void gamepad_poll()
     // (Keyboard detection is done elsewhere — here we just flag gamepad activity.)
     if (btns || sdl_state.trigger_left > 8000 || sdl_state.trigger_right > 8000 ||
         sdl_state.axis_left_x < -8000 || sdl_state.axis_left_x > 8000 ||
-        sdl_state.axis_left_y < -8000 || sdl_state.axis_left_y > 8000) {
+        sdl_state.axis_left_y < -8000 || sdl_state.axis_left_y > 8000 ||
+        sdl_state.axis_right_x < -8000 || sdl_state.axis_right_x > 8000 ||
+        sdl_state.axis_right_y < -8000 || sdl_state.axis_right_y > 8000) {
         active_input_device = s_is_dualsense ? INPUT_DEVICE_DUALSENSE : INPUT_DEVICE_XBOX;
     }
 }
