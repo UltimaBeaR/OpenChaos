@@ -39,6 +39,19 @@ find_package(SDL3   CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
 
 # ---------------------------------------------------------------------------
+# GamepadCore (Dualsense-Multiplatform) — vendored static library
+# ---------------------------------------------------------------------------
+# GamepadCore: include Source/ directly (skip the top-level CMakeLists.txt which has
+# a CMAKE_SOURCE_DIR bug that breaks miniaudio detection under add_subdirectory).
+add_subdirectory(libs/dualsense-multiplatform/Dualsense-Multiplatform/Source EXCLUDE_FROM_ALL)
+
+# Add miniaudio audio module to GamepadCore (audio-to-haptic, step B7).
+set(GAMEPADCORE_MINIAUDIO "${CMAKE_CURRENT_SOURCE_DIR}/libs/dualsense-multiplatform/Dualsense-Multiplatform/Libs/miniaudio")
+target_sources(GamepadCore PRIVATE "${GAMEPADCORE_MINIAUDIO}/miniaudio_impl.cpp")
+target_include_directories(GamepadCore PUBLIC "${GAMEPADCORE_MINIAUDIO}")
+target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
+
+# ---------------------------------------------------------------------------
 # Source files (mirrors Fallen.vcxproj ClCompile list)
 # ---------------------------------------------------------------------------
 set(SOURCES_NEW
@@ -91,6 +104,7 @@ set(SOURCES_NEW
     src/engine/platform/wind_procs_globals.cpp
     src/engine/platform/host.cpp
     src/engine/platform/sdl3_bridge.cpp
+    src/engine/platform/ds_bridge.cpp
     src/engine/platform/host_globals.cpp
     src/engine/graphics/graphics_api/render_state.cpp
     src/engine/graphics/pipeline/bucket.cpp
@@ -386,7 +400,11 @@ target_include_directories(Fallen PRIVATE
 # Files that include SDL3 headers need default struct alignment (/Zp8) because
 # SDL3 has static_asserts on struct layout that fail under /Zp1.
 # SDL3 is isolated in thin wrappers — game code never includes SDL3 headers directly.
-set_source_files_properties(src/engine/platform/sdl3_bridge.cpp
+# Files that include SDL3 or GamepadCore headers need default struct alignment (/Zp8)
+# because those libraries have static_asserts/layouts that fail under /Zp1.
+set_source_files_properties(
+    src/engine/platform/sdl3_bridge.cpp
+    src/engine/platform/ds_bridge.cpp
     PROPERTIES COMPILE_OPTIONS "/Zp8"
 )
 
@@ -437,6 +455,9 @@ target_link_libraries(Fallen PRIVATE
     # vcpkg packages
     SDL3::SDL3
     OpenAL::OpenAL
+
+    # Vendored
+    GamepadCore
 
     # Windows system
     odbc32

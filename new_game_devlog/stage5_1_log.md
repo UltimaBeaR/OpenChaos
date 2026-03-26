@@ -562,3 +562,73 @@ PSX: ACCELERATE=JUMP(Cross), DECELERATE=PUNCH(Square), SIREN=KICK(Triangle).
 - `register SLONG ax, bx` в `Arctan()` — единственное место в кодовой базе с `register`.
   C++17 удалил этот keyword, C++20 наследует запрет → ошибка компиляции.
   Убрано без влияния на поведение (современные компиляторы игнорируют `register`).
+
+---
+
+## B0 (интеграция) — GamepadCore + ds_bridge + SDL_hidapi HID layer
+
+### Что сделано
+
+Библиотека Dualsense-Multiplatform (GamepadCore) подключена к сборке.
+Создан ds_bridge — мост между GamepadCore и игрой (аналог sdl3_bridge).
+Реализован кросс-платформенный HID layer через SDL3 hidapi (`SDL_hid_*`).
+gamepad.cpp обновлён: DualSense → ds_bridge, Xbox → sdl3_bridge, автопереключение.
+
+### Архитектура
+
+GamepadCore требует реализацию `IPlatformHardwareInfo` (Read/Write/Detect/CreateHandle).
+Готовых реализаций в библиотеке нет — это by design, каждый движок пишет свой.
+Референсные реализации найдены в [Gamepad-Core-Tests](https://github.com/rafaelvaloto/Gamepad-Core-Tests):
+Windows через Win32 API, Linux через SDL_hidapi.
+
+Выбран **SDL_hidapi для всех платформ** — один код, три платформы (Win/Linux/Mac).
+SDL3 у нас уже есть, `SDL_hid_*` — кросс-платформенная обёртка над HID.
+
+### Новые файлы
+
+- `engine/platform/ds_bridge.h` — C API: init, shutdown, poll, input, LED, triggers, vibration
+- `engine/platform/ds_bridge.cpp` — реализация: SDL_hidapi HID policy + GamepadCore registry.
+  Компилируется с `/Zp8` (SDL3 + GamepadCore хедеры требуют стандартное выравнивание).
+
+### Изменения
+
+- `CMakeLists.txt` — `add_subdirectory(GamepadCore)`, ds_bridge с `/Zp8`, link GamepadCore
+- `gamepad.cpp` — два пути input: DualSense (ds_bridge) и Xbox (sdl3_bridge).
+  `SDL_HINT_JOYSTICK_HIDAPI_PS5 = "0"` — SDL3 не трогает DualSense, ds_bridge берёт на себя.
+  Rumble через оба бэкенда (DS-lib SetVibration vs SDL3 RumbleGamepad).
+- `Libs/miniaudio/` — стянуты miniaudio.h + miniaudio_impl.cpp из
+  [Gamepad-Core-Audio](https://github.com/rafaelvaloto/Gamepad-Core-Audio).
+  Нужны для audio-to-haptic (B7), но подключены сейчас чтобы не патчить библиотеку.
+
+### Баг в библиотеке (workaround без правки vendored кода)
+
+Верхний `CMakeLists.txt` библиотеки использует `CMAKE_SOURCE_DIR` для поиска miniaudio.
+При включении через `add_subdirectory` этот путь указывает на наш проект, а не на
+библиотеку → miniaudio не находится → `GAMEPAD_CORE_HAS_AUDIO=0` →
+`AudioHapticUpdate(int16_t)` не компилируется.
+
+**Workaround:** подключаем `Source/` напрямую (минуя багнутый верхний CMake) и добавляем
+miniaudio вручную в нашем CMakeLists.txt. Vendored код не модифицирован.
+
+### Проверка
+
+- `make build-release` и `make build-debug` — оба конфига собираются
+- GamepadCore Audio module ENABLED
+- DualSense подключён → лог: `DualSense detected (GamepadCore/ds_bridge)` ✅
+- Xbox подключён → лог: `Xbox/generic controller detected (SDL3)` ✅
+- Hotplug DualSense → Xbox → DualSense — работает ✅
+- Управление в игре через DualSense — работает ✅
+
+### Баг: DualSense hotplug не работал
+
+`ds_poll_registry()` вызывался только внутри `poll_dualsense()`, которая запускалась
+только при `s_is_dualsense == true`. После отключения DualSense сканирование
+прекращалось → повторное подключение не детектилось.
+
+**Фикс:** `ds_poll_registry()` вынесен в `gamepad_poll()` — вызывается безусловно
+(registry имеет внутренний cooldown 1 сек).
+
+### Отладочный лог
+
+`gamepad_log.txt` — пишется в папку игры, только в Debug (`#ifdef _DEBUG`).
+Append-режим, логирует: init, ds_disconnected, ds_hotplug, sdl3_connected, sdl3_disconnected.

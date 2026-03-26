@@ -1,0 +1,20 @@
+# C++
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+*.out
+*.app
+
+# IDEs
+.idea/
+.vscode/
+cmake-build-*/
+out/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

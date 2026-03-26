@@ -26,4 +26,6 @@ Dualsense-Multiplatform/   -- full clone (minus .git/)
 2. From this directory (`new_game/libs/dualsense-multiplatform/`):
    `git clone https://github.com/rafaelvaloto/Dualsense-Multiplatform.git Dualsense-Multiplatform`
 3. Remove only `Dualsense-Multiplatform/.git/`
-4. Update `VENDORED.md` with new commit hash and date
+4. Pull the miniaudio submodule:
+   `cd Dualsense-Multiplatform && git clone https://github.com/rafaelvaloto/Gamepad-Core-Audio.git Libs/miniaudio && rm -rf Libs/miniaudio/.git`
+5. Update `VENDORED.md` with new commit hash and date
