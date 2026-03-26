@@ -4022,18 +4022,16 @@ SLONG continue_moveing(Thing* p_person)
         p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
         input = p_player->Genus.Player->Input;
         if (analogue) {
-            // During a jump, always continue — don't check stick deadzone
-            // (prevents premature drop when stick briefly returns to center).
-            if (p_person->State == STATE_JUMPING)
-                return (1);
-
             SLONG angle, dx, dy;
 
-            dx = llabs(GET_JOYX(input));
-            dy = llabs(GET_JOYY(input));
+            dx = abs((SLONG)GET_JOYX(input));
+            dy = abs((SLONG)GET_JOYY(input));
             if (QDIST2(dx, dy) < ANALOGUE_MIN_VELOCITY) {
                 return (0);
             }
+
+            if (p_person->State == STATE_JUMPING)
+                return (1);
 
             angle = get_joy_angle(input, JOY_REL_CAMERA);
 
