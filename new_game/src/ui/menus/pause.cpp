@@ -43,6 +43,7 @@ SLONG PAUSE_handler()
 {
     SLONG i, text_colour, input, temp;
     static SLONG lastinput = 0;
+    static DWORD dir_next_fire = 0;
     SLONG ans = UC_FALSE;
 
     input = 0;
@@ -58,17 +59,43 @@ SLONG PAUSE_handler()
         if (the_state.rgbButtons[6])
             input |= PAUSED_KEY_START;
 
-        // Any face button → confirm.
-        for (i = 0; i < 32; i++) {
-            if (i == 6) continue; // skip Start (handled above)
-            if (the_state.rgbButtons[i])
-                input |= PAUSED_KEY_OKAY;
-        }
+        // Cross/A (index 0) = confirm selection.
+        if (the_state.rgbButtons[0])
+            input |= PAUSED_KEY_OKAY;
+
+        // Triangle/Y (index 3) = unpause (back/cancel, PS1 behavior).
+        if (the_state.rgbButtons[3])
+            input |= PAUSED_KEY_START;
     }
 
-    // Edge-detect: only trigger on new presses.
+    // Edge-detect for buttons, ticker-based repeat for directions.
     temp = input;
-    input = input & (~lastinput);
+    {
+        SLONG dir_mask = PAUSED_KEY_UP | PAUSED_KEY_DOWN;
+        SLONG dir_input = input & dir_mask;
+        SLONG btn_input = input & ~dir_mask;
+        SLONG last_btn = lastinput & ~dir_mask;
+        SLONG last_dir = lastinput & dir_mask;
+
+        // Buttons: edge-detect only.
+        btn_input = btn_input & (~last_btn);
+
+        // Directions: time-based auto-repeat (same values as gamemenu).
+        {
+            DWORD now = GetTickCount();
+            if (dir_input) {
+                if (dir_input != last_dir) {
+                    dir_next_fire = now + 400;
+                } else if (now < dir_next_fire) {
+                    dir_input = 0;
+                } else {
+                    dir_next_fire = now + 150;
+                }
+            }
+        }
+
+        input = dir_input | btn_input;
+    }
     lastinput = temp;
 
     if (Keys[KB_ESC]) {
@@ -84,6 +111,24 @@ SLONG PAUSE_handler()
     if (!(GAME_FLAGS & GF_PAUSED))
         return UC_FALSE;
 
+    // Keyboard repeat delay (time-based, same values as controller).
+    {
+        static DWORD kb_next_fire = 0;
+        static UBYTE kb_last_dir = 0;
+        UBYTE kb_dir = (Keys[KB_UP] ? 1 : 0) | (Keys[KB_DOWN] ? 2 : 0);
+        DWORD now = GetTickCount();
+
+        if (kb_dir) {
+            if (kb_dir != kb_last_dir) {
+                kb_next_fire = now + 400;
+            } else if (now < kb_next_fire) {
+                Keys[KB_UP] = Keys[KB_DOWN] = 0;
+            } else {
+                kb_next_fire = now + 150;
+            }
+        }
+        kb_last_dir = kb_dir;
+    }
     if (Keys[KB_UP]) {
         Keys[KB_UP] = 0;
         input |= PAUSED_KEY_UP;

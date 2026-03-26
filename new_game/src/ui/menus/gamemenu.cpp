@@ -14,6 +14,15 @@
 
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
+#include "engine/input/joystick.h"
+#include "engine/input/gamepad.h"
+#include "engine/input/gamepad_globals.h"
+
+// Joystick axis deadzone for menu navigation.
+#define GM_AXIS_CENTRE 32768
+#define GM_NOISE_TOLERANCE 4096
+#define GM_AXIS_MIN (GM_AXIS_CENTRE - GM_NOISE_TOLERANCE)
+#define GM_AXIS_MAX (GM_AXIS_CENTRE + GM_NOISE_TOLERANCE)
 
 extern void process_things_tick(SLONG frame_rate_independant);
 
@@ -36,6 +45,14 @@ extern void process_things_tick(SLONG frame_rate_independant);
 // uc_orig: GAMEMENU_initialise (fallen/Source/gamemenu.cpp)
 void GAMEMENU_initialise(SLONG menu)
 {
+    // When closing the menu, consume held gamepad buttons so they don't leak
+    // to gameplay (e.g. Triangle=KICK, Cross=JUMP, Start would re-trigger).
+    if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE && menu == GAMEMENU_MENU_TYPE_NONE) {
+        gamepad_consume_until_released(0);  // Cross/A
+        gamepad_consume_until_released(3);  // Triangle/Y
+        gamepad_consume_until_released(6);  // Start
+    }
+
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE || menu == GAMEMENU_MENU_TYPE_NONE) {
         MENUFONT_fadein_init();
 
@@ -127,6 +144,68 @@ SLONG GAMEMENU_process()
         GAME_cut_scene = UC_FALSE;
     }
 
+    // Poll gamepad and translate to keyboard keys for menu input.
+    {
+        static UBYTE gm_last_start = 0;
+        static UBYTE gm_last_triangle = 0;
+        static UBYTE gm_last_cross = 0;
+        static SLONG gm_last_dir = 0;
+        static DWORD gm_dir_next_fire = 0;
+
+        ReadInputDevice();
+
+        // Start button (index 6) → ESC (toggle pause). Always active (even during gameplay).
+        UBYTE start_now = the_state.rgbButtons[6] ? 1 : 0;
+        if (start_now && !gm_last_start)
+            Keys[KB_ESC] = 1;
+        gm_last_start = start_now;
+
+        // Navigation/confirm/cancel — only when a menu is actually active.
+        // Setting Keys[] during gameplay would cause infinite walking (Keys never auto-clear).
+        if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
+            // Triangle/Y (index 3) → ESC (back/cancel). Edge-detect.
+            UBYTE triangle_now = the_state.rgbButtons[3] ? 1 : 0;
+            if (triangle_now && !gm_last_triangle)
+                Keys[KB_ESC] = 1;
+            gm_last_triangle = triangle_now;
+
+            // Cross/A (index 0) → Enter (confirm). Edge-detect.
+            UBYTE cross_now = the_state.rgbButtons[0] ? 1 : 0;
+            if (cross_now && !gm_last_cross)
+                Keys[KB_ENTER] = 1;
+            gm_last_cross = cross_now;
+
+            // Stick/D-Pad → Up/Down with time-based auto-repeat.
+            SLONG dir = 0;
+            if (the_state.lY < GM_AXIS_MIN)
+                dir = 1; // up
+            else if (the_state.lY > GM_AXIS_MAX)
+                dir = 2; // down
+
+            {
+                DWORD now = GetTickCount();
+                if (dir) {
+                    if (dir != gm_last_dir) {
+                        if (dir == 1) Keys[KB_UP] = 1;
+                        else Keys[KB_DOWN] = 1;
+                        gm_dir_next_fire = now + 400;
+                    } else if (now >= gm_dir_next_fire) {
+                        if (dir == 1) Keys[KB_UP] = 1;
+                        else Keys[KB_DOWN] = 1;
+                        gm_dir_next_fire = now + 150;
+                    }
+                }
+            }
+            gm_last_dir = dir;
+        } else {
+            // Menu not active — reset edge-detect state so first press is clean on menu open.
+            gm_last_triangle = the_state.rgbButtons[3] ? 1 : 0;
+            gm_last_cross = the_state.rgbButtons[0] ? 1 : 0;
+            gm_last_dir = 0;
+            gm_dir_next_fire = 0;
+        }
+    }
+
     if (Keys[KB_ESC]) {
         Keys[KB_ESC] = 0;
 
@@ -171,6 +250,25 @@ SLONG GAMEMENU_process()
         SATURATE(GAMEMENU_fadein_x, 0, 800 << 8);
 
         if (GAMEMENU_background > 200) {
+            // Keyboard repeat delay (time-based, same values as controller).
+            {
+                static DWORD kb_next_fire = 0;
+                static UBYTE kb_last_dir = 0;
+                UBYTE kb_dir = (Keys[KB_UP] ? 1 : 0) | (Keys[KB_DOWN] ? 2 : 0);
+                DWORD now = GetTickCount();
+
+                if (kb_dir) {
+                    if (kb_dir != kb_last_dir) {
+                        kb_next_fire = now + 400;
+                    } else if (now < kb_next_fire) {
+                        Keys[KB_UP] = Keys[KB_DOWN] = 0;
+                    } else {
+                        kb_next_fire = now + 150;
+                    }
+                }
+                kb_last_dir = kb_dir;
+            }
+
             if (Keys[KB_UP]) {
                 Keys[KB_UP] = 0;
 

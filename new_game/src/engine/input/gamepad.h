@@ -27,3 +27,7 @@ void gamepad_shutdown();
 void gamepad_poll();
 void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms);
 InputDeviceType gamepad_get_device_type();
+
+// Mark a button to be consumed (zeroed) on every poll until released.
+// Use when exiting a menu to prevent the button from triggering a gameplay action.
+void gamepad_consume_until_released(uint8_t button_index);

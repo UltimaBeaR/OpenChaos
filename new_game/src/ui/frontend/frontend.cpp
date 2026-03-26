@@ -2567,6 +2567,9 @@ static UBYTE FRONTEND_input(void)
     static SLONG last_input = 0;
     static UBYTE last_button = 0;
     static UBYTE first_pad = 1;
+    static int dir_ticker = 0;
+    static int held_x = 0; // hysteresis state: -1=LEFT, 0=center, 1=RIGHT
+    static int held_y = 0; // hysteresis state: -1=UP, 0=center, 1=DOWN
 
     SLONG input = 0;
 
@@ -2594,43 +2597,111 @@ static UBYTE FRONTEND_input(void)
         }
         return 0;
     } else {
-        // Use a looser dead zone for the menu than the in-game one in interfac.cpp.
+        // Axis reading with hysteresis to prevent stick wobble near threshold.
+        // Activation zone is wider, release zone is tighter — once a direction is detected,
+        // small oscillations around the threshold don't flip it on/off.
 #define AXIS_CENTRE 32768
-#define NOISE_TOLERANCE 4096
-#define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
-#define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
+#define ACTIVATE_ZONE 4096
+#define RELEASE_ZONE 2048
 
         input = get_hardware_input(INPUT_TYPE_JOY);
 
         input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS);
-        if (the_state.lX > AXIS_MAX) {
-            input |= INPUT_MASK_RIGHT;
-        } else if (the_state.lX < AXIS_MIN) {
-            input |= INPUT_MASK_LEFT;
-        }
 
-        // Do not allow diagonals in the menu.
-        if (the_state.lY > AXIS_MAX) {
-            input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
-            input |= INPUT_MASK_BACKWARDS;
-        } else if (the_state.lY < AXIS_MIN) {
-            input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
-            input |= INPUT_MASK_FORWARDS;
-        }
+        // Gamepad axes — only process if connected (disconnected state has lX/lY=0 which
+        // would be misread as far-up-left).
+        if (the_state.connected) {
+            // X axis hysteresis.
+            if (held_x == 0) {
+                if (the_state.lX > AXIS_CENTRE + ACTIVATE_ZONE) held_x = 1;
+                else if (the_state.lX < AXIS_CENTRE - ACTIVATE_ZONE) held_x = -1;
+            } else if (held_x > 0) {
+                if (the_state.lX < AXIS_CENTRE + RELEASE_ZONE) held_x = 0;
+            } else {
+                if (the_state.lX > AXIS_CENTRE - RELEASE_ZONE) held_x = 0;
+            }
 
-        if (input == last_input) {
-            input = 0;
-            any_button = 0;
+            // Y axis hysteresis.
+            if (held_y == 0) {
+                if (the_state.lY > AXIS_CENTRE + ACTIVATE_ZONE) held_y = 1;
+                else if (the_state.lY < AXIS_CENTRE - ACTIVATE_ZONE) held_y = -1;
+            } else if (held_y > 0) {
+                if (the_state.lY < AXIS_CENTRE + RELEASE_ZONE) held_y = 0;
+            } else {
+                if (the_state.lY > AXIS_CENTRE - RELEASE_ZONE) held_y = 0;
+            }
+
+            // No diagonals — dominant axis wins (prevents Y wobble from overriding X).
+            int32_t dx = the_state.lX > AXIS_CENTRE ? the_state.lX - AXIS_CENTRE : AXIS_CENTRE - the_state.lX;
+            int32_t dy = the_state.lY > AXIS_CENTRE ? the_state.lY - AXIS_CENTRE : AXIS_CENTRE - the_state.lY;
+
+            if (held_y != 0 && (dy >= dx || held_x == 0)) {
+                if (held_y > 0) input |= INPUT_MASK_BACKWARDS;
+                else input |= INPUT_MASK_FORWARDS;
+            } else if (held_x != 0) {
+                if (held_x > 0) input |= INPUT_MASK_RIGHT;
+                else input |= INPUT_MASK_LEFT;
+            } else if (held_y != 0) {
+                if (held_y > 0) input |= INPUT_MASK_BACKWARDS;
+                else input |= INPUT_MASK_FORWARDS;
+            }
         } else {
+            held_x = 0;
+            held_y = 0;
+        }
+
+        {
+            // Merge keyboard arrows into the gamepad direction path — one unified repeat.
+            // Don't clear Keys[] — it's populated by async keyboard hook, clearing causes
+            // gaps between auto-repeat events that make the ticker stutter.
+            if (Keys[KB_UP])    input |= INPUT_MASK_FORWARDS;
+            if (Keys[KB_DOWN])  input |= INPUT_MASK_BACKWARDS;
+            if (Keys[KB_LEFT])  input |= INPUT_MASK_LEFT;
+            if (Keys[KB_RIGHT]) input |= INPUT_MASK_RIGHT;
+
+            // Split into directions (need auto-repeat) and buttons (edge-detect only).
+            SLONG dir_mask = INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS;
+            SLONG dir_input = input & dir_mask;
+            SLONG btn_input = input & ~dir_mask;
+            SLONG last_dir = last_input & dir_mask;
+            SLONG last_btn = last_input & ~dir_mask;
+
+            // Buttons: edge-detect only — fire once per press.
+            any_button = 0;
+            if (btn_input != last_btn) {
+                // Cross/A (index 0) = confirm. Triangle/Y = cancel (via INPUT_MASK_CANCEL).
+                any_button = the_state.rgbButtons[0];
+            } else {
+                btn_input = 0;
+            }
+
+            // Directions: ticker-based auto-repeat. Reset on release for clean quick taps.
+            if (dir_input) {
+                if (dir_input != last_dir) {
+                    // New direction or first press — fire immediately.
+                    dir_ticker = 12;
+                } else if (dir_ticker < 1) {
+                    // Same direction held long enough — repeat.
+                    dir_ticker = 5;
+                } else {
+                    // Waiting for repeat — suppress.
+                    dir_input = 0;
+                    dir_ticker--;
+                }
+            } else {
+                // Released — reset immediately so next tap fires cleanly.
+                dir_ticker = 0;
+            }
+
             last_input = input;
-            // Cross/A (index 0) = confirm. Circle/B (index 1) = cancel (handled via INPUT_MASK_CANCEL).
-            any_button = the_state.rgbButtons[0];
+            input = dir_input | btn_input;
+
             // Suppress very first movement: PC joysticks have a strange habit of doing
             // one spurious movement on boot-up for some reason.
             if (first_pad) {
                 if (any_button)
                     first_pad = 0;
-                else if (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS)) {
+                else if (dir_input) {
                     first_pad = 0;
                     input = 0;
                 }
@@ -2698,8 +2769,7 @@ static UBYTE FRONTEND_input(void)
         while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
             menu_state.selected++;
     }
-    if (Keys[KB_UP] || (input & INPUT_MASK_FORWARDS)) {
-        Keys[KB_UP] = 0;
+    if (input & INPUT_MASK_FORWARDS) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         if (menu_state.selected > 0)
             menu_state.selected--;
@@ -2714,8 +2784,7 @@ static UBYTE FRONTEND_input(void)
         if ((menu_state.mode == FE_MAPSCREEN) && mission_selected)
             mission_selected--;
     }
-    if (Keys[KB_DOWN] || (input & INPUT_MASK_BACKWARDS)) {
-        Keys[KB_DOWN] = 0;
+    if (input & INPUT_MASK_BACKWARDS) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         if (menu_state.selected < menu_state.items - 1)
             menu_state.selected++;
@@ -2898,8 +2967,7 @@ static UBYTE FRONTEND_input(void)
             break;
         }
     }
-    if (Keys[KB_LEFT] || (input & INPUT_MASK_LEFT)) {
-        Keys[KB_LEFT] = 0;
+    if (input & INPUT_MASK_LEFT) {
         MenuData* item = menu_data + menu_state.selected;
         if ((item->Type == OT_SLIDER) && (item->Data > 0)) {
             item->Data--;
@@ -2930,8 +2998,7 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
     }
-    if (Keys[KB_RIGHT] || (input & INPUT_MASK_RIGHT)) {
-        Keys[KB_RIGHT] = 0;
+    if (input & INPUT_MASK_RIGHT) {
         MenuData* item = menu_data + menu_state.selected;
         if ((item->Type == OT_SLIDER) && (item->Data < 255)) {
             item->Data++;

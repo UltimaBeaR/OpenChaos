@@ -244,9 +244,79 @@ KB (`psx_controls.md`) утверждает: "Аналог только эмул
 
 8. **Стрелки влево/вправо на клаве в игре** — фикс написан (очистка бит 18-31), ПРОВЕРЕН, работает.
 
-**Принцип:** Cross = подтверждение, Circle = отмена/назад, Start = пауза, стик/D-Pad = навигация.
-Для каждого меню: найти где читаются кнопки (`rgbButtons`, `the_state`, `any_button`),
-привести к новым индексам (0=Cross, 1=Circle, 6=Start, ...), добавить repeat delay для стика.
+**Принцип (уточнён по PS1):** Cross = подтверждение, **Triangle = назад/отмена** (не Circle!), Start = пауза, стик/D-Pad = навигация. Circle в меню ничего не делает (подтверждено на PS1).
+
+### Системный проход по менюшкам — ЗАВЕРШЁН (2026-03-26)
+
+**Модель:** Opus (1M контекст)
+
+**Изменённые файлы (7 файлов):**
+
+1. **`game/input_actions.cpp`** — `INPUT_MASK_CANCEL` перенесён с Circle/ACTION на Triangle/KICK (PS1 behavior).
+
+2. **`ui/frontend/frontend.cpp`** — полная переработка input:
+   - Гистерезис на осях стика (activate=4096, release=2048) — анти-вобл.
+   - Dominant-axis: ось с большим отклонением побеждает (предотвращает Y-вобл при горизонтальном нажатии).
+   - Клавиатура и геймпад слиты в один ticker (unified repeat path). Клавиатурные стрелки
+     вливаются в `input` перед ticker'ом, `Keys[]` не очищаются (async keyboard hook).
+   - Кнопки: Cross=confirm, Triangle=cancel (edge-detect). Убран `||` с keyboard из direction handlers.
+
+3. **`ui/menus/gamemenu.cpp`** — полная поддержка геймпада в игровом пауз-меню:
+   - Start=пауза (всегда), Triangle=назад, Cross=подтвердить (только при активном меню).
+   - Stick/D-Pad навигация с time-based repeat (400ms initial, 150ms repeat).
+   - Keyboard repeat с теми же таймингами.
+   - `gamepad_consume_until_released()` при закрытии меню — кнопки не протекают в геймплей.
+
+4. **`ui/menus/pause.cpp`** — Cross=confirm, Triangle=unpause. Time-based repeat для контроллера
+   и клавиатуры (400ms/150ms).
+
+5. **`ui/menus/widget.cpp`** — Cross=confirm, Triangle=ESC/cancel. Добавлены LEFT/RIGHT для стика.
+
+6. **`engine/input/gamepad.h/cpp`** — `gamepad_consume_until_released()`: механизм подавления
+   кнопок при выходе из меню. Кнопка зануляется в `gamepad_poll()` пока физически зажата,
+   предотвращая протекание (Triangle→KICK, Cross→JUMP, Start→re-pause).
+
+**Проблемы и решения:**
+
+- **Бесконечный бег после паузы:** gamemenu инжектировал `Keys[KB_UP]=1` во время геймплея.
+  Фикс: навигация/confirm/cancel только при `GAMEMENU_menu_type != NONE`.
+
+- **Кик при закрытии паузы:** `process_things()` не вызывается во время паузы → `pl->LastInput`
+  устаревает → при снятии паузы Triangle определяется как "новое нажатие" → KICK.
+  Фикс: `gamepad_consume_until_released()` в `GAMEMENU_initialise(NONE)`.
+
+- **Стик лево/право глючит на миссиях:** Y-вобл при горизонтальном нажатии стика вызывал
+  переключение на UP/DOWN. Фикс: dominant-axis (ось с большим отклонением побеждает).
+
+- **Клавиатура: рваный repeat:** два параллельных ticker'а (kb + gamepad) конфликтовали.
+  Затем: `Keys[]=0` после чтения вызывал пробелы (async keyboard hook не успевал переставить 1).
+  Фикс: слить клаву в gamepad ticker, не очищать `Keys[]`.
+
+- **Разная скорость repeat:** frame-based ticker даёт разную скорость при разном FPS.
+  Фикс: time-based repeat (GetTickCount) в gamemenu и pause (400ms initial, 150ms repeat).
+  Frontend использует frame-based ticker (12/5 кадров) — клава и геймпад через один путь.
+
+- **Auto-fire при отключённом контроллере:** `the_state` при отключении обнуляется (`lX=lY=0`),
+  гистерезис видит это как "стик вверх-влево", ticker повторяет каждые 5 кадров.
+  Фикс: `if (the_state.connected)` guard — вся гистерезис-секция в frontend скипается если
+  контроллер не подключён, `held_x/held_y` сбрасываются в 0.
+
+- **`Keys[]=0` в direction хендлерах нельзя ставить:** async keyboard hook (WH_KEYBOARD) ставит
+  `Keys[scancode]=1` по событиям, а не каждый кадр. Если хендлер обнуляет `Keys[KB_UP]` при
+  срабатывании ticker'а, следующие 1-2 кадра `Keys[KB_UP]=0` (hook ещё не re-fired) →
+  ticker видит "released" → сбрасывается → hook ставит 1 → "new direction" → двойное
+  срабатывание. Решение: `Keys[]` НИКОГДА не очищаются в direction хендлерах frontend'а.
+  Keyboard merge читает `Keys[]` read-only. Это безопасно потому что `Keys[KB_UP] ||` убран
+  из условий хендлеров — они проверяют только `input & INPUT_MASK_*`.
+
+**Важная особенность Keys[]:** заполняется через `SetWindowsHookEx(WH_KEYBOARD)` — async hook,
+не polling. `Keys[scancode]=1` ставится на key-down event, `=0` на key-up. Auto-repeat
+генерируется Windows с настройками пользователя (~30ms). Между auto-repeat событиями
+`Keys[]` может быть 0 на несколько кадров. Поэтому нельзя обнулять `Keys[]` и ожидать
+что hook мгновенно переставит обратно.
+
+**Записано в stage9.md:** задача на унификацию input pipeline (единая очередь MenuAction)
+для устранения дублирования repeat-логики между файлами.
 
 ### SDL3 event handling fix
 

@@ -3227,6 +3227,7 @@ ULONG get_hardware_input(UWORD type)
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
                     input |= INPUT_MASK_KICK;
+                    input |= INPUT_MASK_CANCEL; // Triangle/Y = back/cancel in menus (PS1 behavior)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
@@ -3263,7 +3264,6 @@ ULONG get_hardware_input(UWORD type)
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_ACTION]])) {
                     MSG_add(" action pressed \n");
                     input |= INPUT_MASK_ACTION;
-                    input |= INPUT_MASK_CANCEL; // Circle/B = cancel in menus (PS1 behavior)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
             }

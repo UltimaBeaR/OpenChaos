@@ -11,18 +11,22 @@
 
 ## Контекст
 
-**Текущее состояние (после шагов A0-A4):**
+**Текущее состояние (после шагов A0-A4 + системный проход по менюшкам):**
 - SDL3 заменил SDL2 (аудио + геймпады). DirectInput удалён.
 - SDL3 хедеры изолированы в `engine/platform/sdl3_bridge.cpp` (единственный файл с `/Zp8`).
 - Gamepad абстракция: `engine/input/gamepad.h/cpp` → `sdl3_bridge` → SDL3.
 - Joystick legacy shim: `the_state` = `gamepad_state` (через `#define`), `ReadInputDevice()` → `gamepad_poll()`.
 - Маппинг кнопок: PS1 Config 0. Аналоговый стик: плавная скорость.
+- Меню: Cross=confirm, Triangle=back, Start=pause. Гистерезис на стике, ticker repeat, hotplug-safe.
+- `gamepad_consume_until_released()` — предотвращает протекание кнопок из меню в геймплей.
 - Dualsense-Multiplatform vendored в `libs/`, пока не подключена (итерация B).
 
 **Осталось в итерации A:**
 - A5: Вибрация (PS1-style rumble)
 - A6: Hotplug и динамическое переключение
-- Системный проход по всем менюшкам (кнопки, debounce стика)
+
+**Завершено (после A4):**
+- Системный проход по всем менюшкам (кнопки, debounce стика, repeat delay) — см. девлог
 
 ## Архитектура
 

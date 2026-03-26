@@ -14,6 +14,7 @@ static constexpr uint16_t DUALSENSE_EDGE_PRODUCT_ID = 0x0DF2;
 
 static SDL3_GamepadHandle s_gamepad = nullptr;
 static bool s_is_dualsense = false;
+static uint32_t s_consume_mask = 0; // bitmask of button indices to consume until released
 
 static bool is_dualsense(SDL3_GamepadHandle handle)
 {
@@ -113,6 +114,20 @@ void gamepad_poll()
 
     gamepad_state.connected = true;
 
+    // Consume buttons marked by gamepad_consume_until_released().
+    // Zero them until released, so menu-closing buttons don't leak to gameplay.
+    if (s_consume_mask) {
+        for (int i = 0; i < 32; i++) {
+            if (s_consume_mask & (1u << i)) {
+                if (gamepad_state.rgbButtons[i]) {
+                    gamepad_state.rgbButtons[i] = 0; // still held — consume
+                } else {
+                    s_consume_mask &= ~(1u << i);    // released — stop consuming
+                }
+            }
+        }
+    }
+
     // Track that gamepad is the active input device.
     // (Keyboard detection is done elsewhere — here we just flag gamepad activity.)
     if (btns || sdl_state.trigger_left > 8000 || sdl_state.trigger_right > 8000 ||
@@ -132,4 +147,11 @@ void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)
 InputDeviceType gamepad_get_device_type()
 {
     return active_input_device;
+}
+
+void gamepad_consume_until_released(uint8_t button_index)
+{
+    if (button_index < 32) {
+        s_consume_mask |= (1u << button_index);
+    }
 }

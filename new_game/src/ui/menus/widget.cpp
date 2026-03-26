@@ -1067,9 +1067,15 @@ SLONG FORM_Process(Form* form)
 
     input = get_hardware_input(INPUT_TYPE_JOY);
     if (input && (input != lastinput) && (ticker < 1)) {
-        if (input & (INPUT_MASK_JUMP | INPUT_MASK_KICK | INPUT_MASK_PUNCH | INPUT_MASK_ACTION)) {
+        // Cross/A = confirm (JUMP maps to Cross in PS1 Config 0).
+        if (input & INPUT_MASK_JUMP) {
             key = 13;
             Keys[KB_ENTER] = 1;
+        }
+        // Triangle/Y = cancel/back (KICK+CANCEL maps to Triangle).
+        if (input & INPUT_MASK_CANCEL) {
+            key = 27;
+            Keys[KB_ESC] = 1;
         }
         if (input & INPUT_MASK_FORWARDS) {
             key = 11;
@@ -1078,6 +1084,14 @@ SLONG FORM_Process(Form* form)
         if (input & INPUT_MASK_BACKWARDS) {
             key = 10;
             Keys[KB_DOWN] = 1;
+        }
+        if (input & INPUT_MASK_LEFT) {
+            key = 8;
+            Keys[KB_LEFT] = 1;
+        }
+        if (input & INPUT_MASK_RIGHT) {
+            key = 9;
+            Keys[KB_RIGHT] = 1;
         }
         if (input & INPUT_MASK_START) {
             form->returncode = -69;
