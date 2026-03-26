@@ -539,3 +539,26 @@ PSX: ACCELERATE=JUMP(Cross), DECELERATE=PUNCH(Square), SIREN=KICK(Triangle).
   учёт правого стика в детекции активности геймпада (> 8000)
 - `camera/fc.cpp` — include `gamepad_globals.h`, блок правого стика в `FC_process()`
   после L2/R2 rotate, перед collision/get-behind
+
+---
+
+## B0 (подготовка) — C++20 в CMake
+
+### Что сделано
+
+Указан стандарт C++20 в CMake и минимальная версия Clang 20+.
+Это подготовительный шаг перед интеграцией Dualsense-Multiplatform (библиотека требует C++20).
+
+### Изменения
+
+- `CMakeLists.txt` — добавлены `CMAKE_CXX_STANDARD 20`, `CMAKE_CXX_STANDARD_REQUIRED ON`,
+  `CMAKE_CXX_EXTENSIONS OFF`, проверка `Clang >= 20` через `message(FATAL_ERROR)`
+- `engine/core/math.cpp` — убран `register` keyword в `Arctan()` (запрещён с C++17)
+- `SETUP.md` — добавлено требование Clang 20+ в prerequisites, инструкция проверки версии
+- `tech_and_architecture.md` — обновлён статус: TODO заменён на факт (C++20 указан, Clang 20+ required)
+
+### Проблемы
+
+- `register SLONG ax, bx` в `Arctan()` — единственное место в кодовой базе с `register`.
+  C++17 удалил этот keyword, C++20 наследует запрет → ошибка компиляции.
+  Убрано без влияния на поведение (современные компиляторы игнорируют `register`).

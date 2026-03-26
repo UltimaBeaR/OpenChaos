@@ -15,6 +15,17 @@ set(X_VCPKG_APPLOCAL_DEPS_INSTALL OFF)
 project(Fallen LANGUAGES CXX)
 
 # ---------------------------------------------------------------------------
+# C++20 standard — required for Dualsense-Multiplatform and future modules (Stage 9)
+# ---------------------------------------------------------------------------
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "20.0")
+    message(FATAL_ERROR "Clang 20+ is required. Found: ${CMAKE_CXX_COMPILER_VERSION}")
+endif()
+
+# ---------------------------------------------------------------------------
 # Build output: new_game/build/Debug/ and new_game/build/Release/
 # All generated artifacts stay inside build/ — a single gitignore entry covers everything.
 # ---------------------------------------------------------------------------

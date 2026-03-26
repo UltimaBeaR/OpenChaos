@@ -16,7 +16,7 @@
 // uc_orig: Arctan (MFStdLib/Source/StdLib/StdMaths.cpp)
 SLONG Arctan(SLONG X, SLONG Y)
 {
-    register SLONG ax, bx;
+    SLONG ax, bx;
 
     ax = X;
     if (ax)

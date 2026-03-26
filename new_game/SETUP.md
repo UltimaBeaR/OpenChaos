@@ -15,6 +15,15 @@ Additionally, in "Individual components", make sure these are checked:
 - **C++ Clang-cl tools for Windows** (x86/x64)
 - **C++ CMake tools for Windows** (provides `cmake.exe` used by the build scripts)
 
+**Clang version:** 20 or newer is required (C++20 support). Check your version:
+```bash
+clang --version
+```
+Visual Studio 2022 17.14+ / Visual Studio 2026 ship with Clang 20+.
+Earlier VS versions may bundle Clang 18 — in that case, install LLVM 20+ separately
+from [github.com/llvm/llvm-project/releases](https://github.com/llvm/llvm-project/releases)
+and ensure it's on PATH before the VS-bundled version.
+
 ### GNU make
 
 Included with [Git for Windows](https://gitforwindows.org/) (available in Git Bash).
