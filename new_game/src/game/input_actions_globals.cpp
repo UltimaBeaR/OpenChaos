@@ -20,7 +20,8 @@ SLONG input_mode = 0;
 SLONG mouse_input = 0;
 
 // uc_orig: analogue (fallen/Source/interfac.cpp)
-// Set to 1 when analog stick input is in use.
+// Analog stick mode: smooth movement speed based on stick deflection.
+// Dynamically set to 1 when gamepad is active, 0 for keyboard.
 SLONG analogue = 0;
 
 // uc_orig: g_bEngineVibrations (fallen/Source/interfac.cpp)

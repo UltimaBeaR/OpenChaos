@@ -373,17 +373,21 @@ void init_joypad_config(void)
             joypad_button_use[JOYPAD_BUTTON_1STPERSON]	= ENV_get_value_number("joypad_1stperson",	4, "Joypad");
     */
 
-    joypad_button_use[JOYPAD_BUTTON_KICK] = ENV_get_value_number("joypad_kick", 4, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_PUNCH] = ENV_get_value_number("joypad_punch", 3, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_JUMP] = ENV_get_value_number("joypad_jump", 0, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_ACTION] = ENV_get_value_number("joypad_action", 1, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_MOVE] = ENV_get_value_number("joypad_move", 7, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_START] = ENV_get_value_number("joypad_start", 8, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_SELECT] = ENV_get_value_number("joypad_select", 2, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_CAMERA] = ENV_get_value_number("joypad_camera", 6, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT] = ENV_get_value_number("joypad_cam_left", 9, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT] = ENV_get_value_number("joypad_cam_right", 10, "Joypad");
-    joypad_button_use[JOYPAD_BUTTON_1STPERSON] = ENV_get_value_number("joypad_1stperson", 5, "Joypad");
+    // PS1 Config 0 (Classic) adapted for Xbox/DualSense layout.
+    // SDL3 button indices: 0=South(A/Cross), 1=East(B/Circle), 2=West(X/Square),
+    // 3=North(Y/Triangle), 4=Back, 6=Start, 7=L3, 8=R3, 9=LB/L1, 10=RB/R1,
+    // 15=LT/L2(digital), 16=RT/R2(digital).
+    joypad_button_use[JOYPAD_BUTTON_JUMP]       = ENV_get_value_number("joypad_jump",       0, "Joypad");  // A / Cross
+    joypad_button_use[JOYPAD_BUTTON_ACTION]     = ENV_get_value_number("joypad_action",     1, "Joypad");  // B / Circle
+    joypad_button_use[JOYPAD_BUTTON_PUNCH]      = ENV_get_value_number("joypad_punch",      2, "Joypad");  // X / Square
+    joypad_button_use[JOYPAD_BUTTON_KICK]       = ENV_get_value_number("joypad_kick",       3, "Joypad");  // Y / Triangle
+    joypad_button_use[JOYPAD_BUTTON_SELECT]     = ENV_get_value_number("joypad_select",     4, "Joypad");  // Back / Select
+    joypad_button_use[JOYPAD_BUTTON_START]      = ENV_get_value_number("joypad_start",      6, "Joypad");  // Start
+    joypad_button_use[JOYPAD_BUTTON_CAMERA]     = ENV_get_value_number("joypad_camera",     9, "Joypad");  // LB / L1
+    joypad_button_use[JOYPAD_BUTTON_1STPERSON]  = ENV_get_value_number("joypad_1stperson",  9, "Joypad");  // LB / L1 (same as PS1)
+    joypad_button_use[JOYPAD_BUTTON_MOVE]       = ENV_get_value_number("joypad_move",      10, "Joypad");  // RB / R1 (step/strafe)
+    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]   = ENV_get_value_number("joypad_cam_left",  15, "Joypad");  // LT / L2
+    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]  = ENV_get_value_number("joypad_cam_right", 16, "Joypad");  // RT / R2
 
     keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("keyboard_left", 203, "Keyboard");
     keybrd_button_use[KEYBRD_BUTTON_RIGHT] = ENV_get_value_number("keyboard_right", 205, "Keyboard");
@@ -3180,6 +3184,19 @@ ULONG get_hardware_input(UWORD type)
                 ULONG ulAxisMax = AXIS_MAX;
                 ULONG ulAxisMin = AXIS_MIN;
 
+                if (the_state.connected && !the_state.dpad_active) {
+                    // Analog stick mode: pack position into bits 18-31.
+                    // process_analogue_movement() uses these for proportional speed.
+                    // Digital direction flags set only for menus (not movement).
+                    analogue = 1;
+                    input |= ((the_state.lX >> 9) + 0) << 18;
+                    input |= ((the_state.lY >> 9) + 0) << 25;
+                } else {
+                    // D-Pad or no gamepad: digital mode (full speed).
+                    analogue = 0;
+                }
+
+                // Always set digital direction flags from axes (needed for menus, D-Pad).
                 if (the_state.lX > ulAxisMax) {
                     g_dwLastInputChangeTime = dwCurrentTime;
                     input |= INPUT_MASK_RIGHT;
@@ -3201,13 +3218,6 @@ ULONG get_hardware_input(UWORD type)
                     m_bForceWalk = UC_TRUE;
                 } else {
                     m_bForceWalk = UC_FALSE;
-                }
-
-                // Pack analog axes into bits 18-24 (X) and 25-31 (Y) of the input word.
-                // DirectInput range 0-65535 >> 9 gives 0-127; GET_JOYX/GET_JOYY unpack to -128..+127.
-                if (analogue) {
-                    input |= ((the_state.lX >> 9) + 0) << 18;
-                    input |= ((the_state.lY >> 9) + 0) << 25;
                 }
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_JUMP]])) {
@@ -3253,34 +3263,35 @@ ULONG get_hardware_input(UWORD type)
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_ACTION]])) {
                     MSG_add(" action pressed \n");
                     input |= INPUT_MASK_ACTION;
+                    input |= INPUT_MASK_CANCEL; // Circle/B = cancel in menus (PS1 behavior)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
             }
 
             if (input) {
                 input_mode = INPUT_JOYPAD;
-                m_CurrentInput = input;
-
-                if (bLastInputWasntAnInputCozThereWasNoController) {
-                    // Ignore buttons that were already held when the controller was inserted.
-                    m_PreviousInput = m_CurrentInput;
-                    bLastInputWasntAnInputCozThereWasNoController = UC_FALSE;
-                }
-
-                m_CurrentGoneDownInput = (m_CurrentInput & ~(m_PreviousInput)) & INPUT_MASK_ALL_BUTTONS;
-                m_PreviousInput = m_CurrentInput;
-                if (type & INPUT_TYPE_GONEDOWN) {
-                    return (m_CurrentGoneDownInput);
-                } else {
-                    return (m_CurrentInput);
-                }
             }
         } else {
             bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
         }
     }
 
+    // When gamepad is connected, disable analog mode if keyboard provides input
+    // (analog mode is re-enabled next frame if gamepad has stick input).
+
     if (type & INPUT_TYPE_KEY) {
+
+        // If any movement key is pressed, switch to digital mode
+        // (analog mode only makes sense with a stick).
+        // Also clear analog bits 18-31 — otherwise player_turn_left_right sees
+        // non-zero upper bits and treats centered stick (value 0) as analog input.
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]] ||
+            Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]] ||
+            Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]] ||
+            Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+            analogue = 0;
+            input &= 0x0003FFFF;
+        }
 
         if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
             input |= INPUT_MASK_FORWARDS;
@@ -4011,6 +4022,11 @@ SLONG continue_moveing(Thing* p_person)
         p_player = NET_PLAYER(p_person->Genus.Person->PlayerID - 1);
         input = p_player->Genus.Player->Input;
         if (analogue) {
+            // During a jump, always continue — don't check stick deadzone
+            // (prevents premature drop when stick briefly returns to center).
+            if (p_person->State == STATE_JUMPING)
+                return (1);
+
             SLONG angle, dx, dy;
 
             dx = llabs(GET_JOYX(input));
@@ -4018,9 +4034,6 @@ SLONG continue_moveing(Thing* p_person)
             if (QDIST2(dx, dy) < ANALOGUE_MIN_VELOCITY) {
                 return (0);
             }
-
-            if (p_person->State == STATE_JUMPING)
-                return (1);
 
             angle = get_joy_angle(input, JOY_REL_CAMERA);
 

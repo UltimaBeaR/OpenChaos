@@ -13,6 +13,7 @@ struct GamepadState {
     int32_t lY;            // left stick Y, 0..65535 (center 32768)
     uint8_t rgbButtons[32]; // 0x80 = pressed, compatible with DIJOYSTATE
     bool connected;
+    bool dpad_active;      // true when D-Pad is providing axis values (digital, not analog)
 };
 
 enum InputDeviceType {

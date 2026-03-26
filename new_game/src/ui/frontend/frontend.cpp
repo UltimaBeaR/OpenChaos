@@ -2623,8 +2623,8 @@ static UBYTE FRONTEND_input(void)
             any_button = 0;
         } else {
             last_input = input;
-            for (scan = 0; scan < 8; scan++)
-                any_button |= the_state.rgbButtons[scan];
+            // Cross/A (index 0) = confirm. Circle/B (index 1) = cancel (handled via INPUT_MASK_CANCEL).
+            any_button = the_state.rgbButtons[0];
             // Suppress very first movement: PC joysticks have a strange habit of doing
             // one spurious movement on boot-up for some reason.
             if (first_pad) {

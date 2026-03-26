@@ -11,12 +11,18 @@
 
 ## Контекст
 
-Текущий геймпад-ввод работает через DirectInput 7 (Windows-only, COM-based).
-SDL2 используется только для аудио. Нужно:
-1. Мигрировать SDL2 → SDL3 (сначала аудио, проверить что звук работает)
-2. Затем добавить геймпад-поддержку через SDL3 — кросс-платформенный, все контроллеры
-3. Добавить полноценную поддержку DualSense через Dualsense-Multiplatform (vendored)
-4. Воспроизвести PS1 DualShock управление с полноценным аналоговым стиком, затем расширить DualSense фичами
+**Текущее состояние (после шагов A0-A4):**
+- SDL3 заменил SDL2 (аудио + геймпады). DirectInput удалён.
+- SDL3 хедеры изолированы в `engine/platform/sdl3_bridge.cpp` (единственный файл с `/Zp8`).
+- Gamepad абстракция: `engine/input/gamepad.h/cpp` → `sdl3_bridge` → SDL3.
+- Joystick legacy shim: `the_state` = `gamepad_state` (через `#define`), `ReadInputDevice()` → `gamepad_poll()`.
+- Маппинг кнопок: PS1 Config 0. Аналоговый стик: плавная скорость.
+- Dualsense-Multiplatform vendored в `libs/`, пока не подключена (итерация B).
+
+**Осталось в итерации A:**
+- A5: Вибрация (PS1-style rumble)
+- A6: Hotplug и динамическое переключение
+- Системный проход по всем менюшкам (кнопки, debounce стика)
 
 ## Архитектура
 

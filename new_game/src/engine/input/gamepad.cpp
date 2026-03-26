@@ -82,11 +82,18 @@ void gamepad_poll()
     gamepad_state.lX = static_cast<int32_t>(sdl_state.axis_left_x) + 32768;
     gamepad_state.lY = static_cast<int32_t>(sdl_state.axis_left_y) + 32768;
 
+    // D-Pad overrides axes (like PS1: D-Pad and analog stick share the same output).
+    uint32_t btns = sdl_state.buttons;
+    uint32_t dpad = btns & (SDL3_BTN_DPAD_LEFT | SDL3_BTN_DPAD_RIGHT | SDL3_BTN_DPAD_UP | SDL3_BTN_DPAD_DOWN);
+    gamepad_state.dpad_active = (dpad != 0);
+    if (btns & SDL3_BTN_DPAD_LEFT)  gamepad_state.lX = 0;
+    if (btns & SDL3_BTN_DPAD_RIGHT) gamepad_state.lX = 65535;
+    if (btns & SDL3_BTN_DPAD_UP)    gamepad_state.lY = 0;
+    if (btns & SDL3_BTN_DPAD_DOWN)  gamepad_state.lY = 65535;
+
     // Map SDL3 buttons to rgbButtons[] (0x80 = pressed).
     // Button indices match the joypad_button_use[] mapping in input_actions.cpp.
     memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
-
-    uint32_t btns = sdl_state.buttons;
     // SDL3 gamepad button order → rgbButtons index.
     // Index 0-14 map directly to SDL_GamepadButton enum order.
     for (int i = 0; i < 15; i++) {

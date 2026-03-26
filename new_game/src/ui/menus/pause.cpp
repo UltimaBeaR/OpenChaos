@@ -54,7 +54,13 @@ SLONG PAUSE_handler()
         if (the_state.lY < AXIS_MIN)
             input |= PAUSED_KEY_UP;
 
-        for (i = 0; i < 8; i++) {
+        // Start button (index 6) → toggle pause.
+        if (the_state.rgbButtons[6])
+            input |= PAUSED_KEY_START;
+
+        // Any face button → confirm.
+        for (i = 0; i < 32; i++) {
+            if (i == 6) continue; // skip Start (handled above)
             if (the_state.rgbButtons[i])
                 input |= PAUSED_KEY_OKAY;
         }

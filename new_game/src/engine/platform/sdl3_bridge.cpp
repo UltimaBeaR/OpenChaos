@@ -47,8 +47,14 @@ bool sdl3_gamepad_poll_event(SDL3_GamepadEvent* event)
 {
     event->type = SDL3_GAMEPAD_EVENT_NONE;
 
+    // Pump events to update internal SDL state (axes, buttons) without consuming
+    // non-gamepad events from the queue.
+    SDL_PumpEvents();
+
+    // Pull only gamepad connect/disconnect events, leave everything else.
     SDL_Event e;
-    while (SDL_PollEvent(&e)) {
+    while (SDL_PeepEvents(&e, 1, SDL_GETEVENT,
+               SDL_EVENT_GAMEPAD_ADDED, SDL_EVENT_GAMEPAD_REMOVED) > 0) {
         if (e.type == SDL_EVENT_GAMEPAD_ADDED) {
             event->type = SDL3_GAMEPAD_EVENT_ADDED;
             return true;
