@@ -40,7 +40,7 @@ new_game/src/
 structure, update all `// Temporary:` includes to point to the new locations, delete the
 legacy directories. After this, `src/` contains only the new structure.
 
-**C++23 modules — not yet.** Plain `.h/.cpp` with include guards. Module conversion is a separate
+**C++20 modules — not yet.** Plain `.h/.cpp` with include guards. Module conversion is a separate
 step after the structure is complete — only then will there be a meaningful DAG to convert.
 
 ## Before Starting
@@ -439,6 +439,6 @@ Don't load KB proactively — for most migrations it's not needed.
 
 # Future (after migration is complete)
 
-- **C++23 modules** — analyze DAG on the new fine-grained structure, then convert
+- **C++20 modules** — analyze DAG on the new fine-grained structure, then convert
 - **Namespaces** — introduce together with modules. All under `namespace oc` — discuss separately
 - **Globals** — consider replacing global state with explicit dependency passing

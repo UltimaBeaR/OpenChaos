@@ -312,29 +312,56 @@ INPUT_DEVICE_DUALSENSE       — DualSense (через Dualsense-Multiplatform)
 
 ---
 
-## Итерация B: DualSense-специфика (ОРИЕНТИРОВОЧНЫЙ план, уточняется после работающей Итерации A)
+## Итерация B: DualSense-специфика (Dualsense-Multiplatform)
 
-### Шаг B1 — Adaptive triggers
-- L2/R2 сопротивление при прицеливании (weapon tension)
-- Разные режимы для разного оружия
+**Подробный план:** [stage5_1_dualsense.md](stage5_1_dualsense.md) — API библиотеки, архитектура, все шаги.
+
+Библиотека: `libs/dualsense-multiplatform/` (vendored, шаг A0).
+API: C++20, HID напрямую, input + output (LED, triggers, haptics, gyro, touch).
+**Конфликт с SDL3:** обе открывают HID. При обнаружении DualSense → SDL3 отпускает
+(`SDL_HINT_JOYSTICK_HIDAPI_PS5 = "0"`), DS-lib берёт всё на себя.
+
+### Шаг B0 — Интеграция библиотеки
+- Подключить к CMake (static library)
+- Реализовать device registry policy для нашего движка
+- Инициализация/shutdown в `gamepad_init()`/`gamepad_shutdown()`
+- Детекция DualSense → SDL3 отпускает устройство
+- Проверка: библиотека компилируется, DualSense детектится
+
+### Шаг B1 — Input через DS-lib
+- Заменить SDL3 input path для DualSense: стики, кнопки, триггеры
+- Маппинг DS-lib input → GamepadState (совместимость с существующим кодом)
+- Проверка: все действия работают через DS-lib
 
 ### Шаг B2 — LED (lightbar)
 - Цвет по здоровью: зелёный → жёлтый → красный
 - Мигание при критическом здоровье
+- Player LED indicator
 
-### Шаг B3 — Тачпад
-- Исследовать возможности: камера? карта? быстрый доступ к инвентарю?
+### Шаг B3 — Adaptive triggers
+- L2/R2 сопротивление при прицеливании (weapon tension)
+- Разные режимы: SetResistance (по умолчанию), SetWeapon25 (пушки), SetBow22 (арбалет)
+- В машине: SetMachine27 (ощущение газа/тормоза)
 
-### Шаг B4 — Гироскоп
+### Шаг B4 — Вибрация через DS-lib
+- Заменить SDL3 rumble на DS-lib SetVibration для DualSense
+- Та же PS1-style система (gamepad_set_shock → DS-lib)
+
+### Отложено (после основной интеграции):
+
+### Шаг B5 — Тачпад
+- EnableTouch(), читать TouchPosition/TouchRelative
+- Исследовать: камера? карта? быстрый доступ к инвентарю?
+
+### Шаг B6 — Гироскоп
+- EnableMotionSensor(), читать Gyroscope/Accelerometer
 - Точное прицеливание в first-person mode
 
-### Шаг B5 — Audio-to-haptic (miniaudio)
-- Конвертация игровых звуков в тактильную обратную связь через haptic-моторы DualSense
-- Приоритетные эффекты: стрельба из автомата (ощущение отдачи), взрывы, удары,
+### Шаг B7 — Audio-to-haptic (miniaudio)
+- AudioHapticUpdate() — конвертация игровых звуков в тактильную обратную связь
+- Приоритетные эффекты: стрельба (отдача), взрывы, удары,
   двигатель машины (ощущение оборотов), шаги по разным поверхностям
-- Используется miniaudio (уже включён в библиотеку) для конвертации PCM→haptic
-
-Конкретика итерации B определится после того как базовое управление полностью работает.
+- Используется miniaudio (уже включён в библиотеку)
 
 ---
 
