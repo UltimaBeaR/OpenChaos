@@ -1,20 +1,33 @@
 # OpenChaos — Fan Modernization of Urban Chaos
 
 Fan modernization of the game Urban Chaos (1999, MuckyFoot Productions) — AI-assisted analysis and
-reimplementation with modern tech: updated C++ standard, modern graphics API, controller support, etc.
+reimplementation with modern tech.
+
+## Modernization status
+
+| Area | Original | Now |
+|------|----------|-----|
+| Build system | MSVC vcxproj | CMake + Ninja + Clang (clang-cl, still uses MSVC linker/runtime), vcpkg |
+| Audio | Miles Sound System | SDL3 + OpenAL (3D positional sound) |
+| Input | DirectInput (keyboard + joystick) | SDL3 (keyboard + gamepad) — Xbox/generic, PS1-style mapping, analog stick, hotplug |
+
+- Unused code removed (PSX, Dreamcast, Glide, editors, debug, experimental features) — code is preprocessor-free
+- Codebase restructured into hierarchical modules (`engine/`, `game/`, `ui/`, `outro/`), every entity traceable to the original via `// uc_orig:` comments
+- Several pre-release visual bugs fixed (z-buffer ordering, invisible objects, foliage flickering, startup hang)
+
+## Repository
 
 This repository contains two versions of the game:
 
+- **New game** — the modernized version under active development (`new_game/`).
 - **Original game** — the original 1999 source code by Mike Diskett, updated by community contributors
   to build and run on modern Windows (SDL3/OpenAL audio, VS2017+ support, vcpkg integration, rendering fixes).
   Kept as a read-only reference — used to verify correct behavior when modernizing.
   Upstream source: https://github.com/dizzy2003/MuckyFoot-UrbanChaos
-- **New game** — the modernized version under active development (`new_game/`).
-  Iterative refactor of the original: updated compiler, modern build system, eventually new renderer and cross-platform support — while keeping gameplay identical.
 
 Both versions require a legal copy of the game for resource files (textures, levels, sounds).
 
-## Repository structure
+### Structure
 
 ```
 original_game/                — original source code (read-only reference)
