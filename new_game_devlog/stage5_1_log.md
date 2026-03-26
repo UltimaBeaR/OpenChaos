@@ -415,3 +415,28 @@ DualSense q=4-6 (внутри). После фикса Xbox q=0 в покое.
 ### Изменённые файлы
 
 - `game/input_actions.cpp` — деадзона при паковке аналоговых бит (строки 3192-3198)
+
+## Фикс: gamepad не работал в outro (2026-03-26)
+
+**Модель:** Opus (1M контекст)
+
+### Проблема
+
+Контроллер не работал в outro — ни одна кнопка не реагировала, выйти можно было только ESC.
+
+### Причина
+
+`OS_process_messages()` в outro не вызывал `gamepad_poll()` и `OS_joy_poll()`.
+`gamepad_state` не обновлялась → `OS_joy_button_down` всегда 0.
+
+### Фикс
+
+1. `outro_os.cpp`: добавлены `gamepad_poll()` + `OS_joy_poll()` в `OS_process_messages()`,
+   добавлен `#include "engine/input/gamepad.h"`.
+2. `outro_main.cpp`: добавлен выход из outro по Cross/A (кнопка 0) — как на PS1.
+   ESC на клавиатуре по-прежнему работает. Другие кнопки не выходят.
+
+### Изменённые файлы
+
+- `outro/core/outro_os.cpp` — gamepad_poll + OS_joy_poll в OS_process_messages
+- `outro/outro_main.cpp` — Cross/A выход + include outro_os_globals.h

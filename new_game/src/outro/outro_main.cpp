@@ -7,6 +7,7 @@
 #include "outro/outro_wire.h"
 #include "outro/core/outro_key.h"
 #include "outro/core/outro_os.h"
+#include "outro/core/outro_os_globals.h"
 
 // uc_orig: MAIN_main (fallen/outro/outroMain.cpp)
 void MAIN_main()
@@ -57,7 +58,8 @@ void MAIN_main()
             return;
         }
 
-        if (KEY_on[KEY_ESCAPE]) {
+        // Cross/A (button 0) or ESC skips the outro (PS1: Cross only).
+        if (KEY_on[KEY_ESCAPE] || (OS_joy_button_down & (1 << 0))) {
             return;
         }
 

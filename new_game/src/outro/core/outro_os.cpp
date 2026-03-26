@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
@@ -792,6 +793,9 @@ void OS_mouse_set(SLONG x, SLONG y)
 SLONG OS_process_messages()
 {
     SHELL_ACTIVE;
+
+    gamepad_poll();
+    OS_joy_poll();
 
     if (Keys[KB_ESC]) {
         Keys[KB_ESC] = 0;
