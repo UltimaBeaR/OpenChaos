@@ -21,7 +21,7 @@ This repository contains two versions of the game:
 
 - **New game** — the modernized version under active development (`new_game/`).
 - **Original game** — the original 1999 source code by Mike Diskett, updated by community contributors
-  to build and run on modern Windows (SDL3/OpenAL audio, VS2017+ support, vcpkg integration, rendering fixes).
+  to build and run on modern Windows (SDL2/OpenAL audio, VS2017+ support, vcpkg integration, rendering fixes).
   Kept as a read-only reference — used to verify correct behavior when modernizing.
   Upstream source: https://github.com/dizzy2003/MuckyFoot-UrbanChaos
 
