@@ -24,13 +24,12 @@
 #define WIN32
 #endif
 
-// Windows/DirectX includes.
+// Windows includes.
 #define D3D_OVERLOADS
 #include <windows.h>
 #include <windowsx.h>
-#include <d3dtypes.h>
-#include <ddraw.h>
-#include <d3d.h>
+// D3D/DDraw headers removed from umbrella — include directly where needed.
+// (Stage 7: renderer abstraction, D3D headers should only be in graphics_api/ and graphics_engine_d3d.cpp)
 
 #include "engine/core/types.h"
 

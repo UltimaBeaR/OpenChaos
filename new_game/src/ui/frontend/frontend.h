@@ -5,6 +5,7 @@
 // Main frontend / menu system for Urban Chaos.
 // Handles the main menu, mission select, briefing, config screens.
 
+#include <ddraw.h>
 #include "engine/platform/uc_common.h"
 
 // ---- Structs ---------------------------------------------------------------

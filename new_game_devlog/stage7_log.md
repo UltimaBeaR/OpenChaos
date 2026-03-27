@@ -552,13 +552,15 @@ D3D6 SetTransform принимает non-const LPD3DMATRIX → const_cast в D3D
 - figure DeadAndBuried (2) — debug front surface draw
 - host device management (6) — toGDI, RestoreAll, IsDisplayChanged
 
-### Изоляция D3D хедеров — не завершена (TODO)
+### Изоляция D3D хедеров из uc_common.h ✅
 
-D3D хедеры (`<ddraw.h>`, `<d3d.h>`) всё ещё включаются через `uc_common.h` (145 файлов).
-Это значит D3D типы формально доступны везде, хотя новый код их не использует.
-Для полной изоляции нужно разбить uc_common.h — убрать из него D3D includes,
-каждый потребитель должен включать только то что ему нужно.
-Это отдельная большая задача, не блокер для OpenGL реализации.
+Убраны `<d3dtypes.h>`, `<ddraw.h>`, `<d3d.h>` из `uc_common.h` (umbrella хедер, 145 файлов).
+Ожидали массовые поломки — оказалось только 2 хедера нуждались в прямых D3D includes:
+- `figure_globals.h` — добавлено `<ddraw.h>` + `<d3d.h>` (D3DVERTEX, D3DMATRIX, D3DCOLOR)
+- `frontend.h` — добавлено `<ddraw.h>` (LPDIRECTDRAWSURFACE4)
+
+Все остальные файлы бэкенда уже имели свои D3D includes через graphics_api/ хедеры.
+Сборка: 308/308, 0 ошибок.
 
 Сборка: 308/308.
 
