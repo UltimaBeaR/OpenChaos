@@ -289,6 +289,117 @@ Interfaces (дополнительные):
 
 ---
 
+## Анализ API surface (что игровой код вызывает)
+
+### Текущая абстракция
+
+Центр — класс `Display` (`gd_display.h`), глобал `the_display`.
+Макросы в `display_macros.h` оборачивают основные вызовы.
+Но многие файлы лезут напрямую в D3D-указатели на `the_display`.
+
+### Что игровой код реально вызывает (вне graphics_api/)
+
+**Через макросы (легко заменить):**
+- `BEGIN_SCENE` / `END_SCENE` — 6 файлов
+- `DRAW_PRIMITIVE` / `DRAW_INDEXED_PRIMITIVE` — aeng, truetype
+- `REALLY_SET_RENDER_STATE` — aeng, poly, truetype
+- `REALLY_SET_TEXTURE` / `REALLY_SET_NO_TEXTURE` — aeng, truetype
+- `CLEAR_VIEWPORT` — aeng, qeng
+- `FLIP` — aeng, qeng
+- `SET_*_BACKGROUND` — aeng, qeng
+
+**Через the_display методы (средняя сложность):**
+- `RunCutscene()` — game.cpp, elev.cpp
+- `create/blit/destroy_background_surface()` — game.cpp
+- `SetGamma()`, `GetGamma()`, `IsGammaAvailable()` — game_tick, frontend
+- `screen_lock()` / `screen_unlock()` — aeng (14 мест!), font
+- `PlotPixel()`, `PlotFormattedPixel()`, `GetPixel()` — sky, font, game_tick
+- `blit_back_buffer()` — aeng
+- `SetUserColour()` — aeng
+- `toGDI()` / `fromGDI()` — host, elev
+- `RemoveAllLoadedTextures()` — texture.cpp
+- `GetDeviceInfo()->...()` — poly_render, figure, aeng, texture (capability queries)
+
+**Прямой доступ к D3D указателям (самое проблемное):**
+- `the_display.lp_D3D_Device->SetRenderState()` — fastprim, figure
+- `the_display.lp_D3D_Device->SetTransform()` — farfacet, poly
+- `the_display.lp_D3D_Device->DrawIndexedPrimitive()` — aeng
+- `the_display.lp_D3D_Device->SetTexture()` — fastprim
+- `the_display.lp_D3D_Device` передаётся в `DrawIndPrimMM()` — aeng, fastprim, figure
+- `the_display.lp_D3D_Viewport->SetViewport2()` — poly, attract, frontend, overlay
+- `the_display.lp_D3D_Viewport->Clear()` — frontend, flamengine
+- `the_display.lp_DD4->CreateSurface()` — frontend, truetype
+- `the_display.lp_DD4->CreatePalette()` — truetype
+- `the_display.lp_DD4->RestoreAllSurfaces()` — host
+- `the_display.lp_DD_BackSurface->Blt()` — frontend, flamengine
+- `the_display.lp_DD_BackSurface->GetSurfaceDesc()` — frontend
+- `the_display.lp_DD_FrontSurface->Lock/Unlock()` — figure (screen capture?)
+
+**Данные-члены (не методы):**
+- `the_display.ViewportRect` — attract, frontend, flamengine
+- `the_display.screen`, `screen_pitch`, `screen_width`, `screen_height` — font, wibble, sky
+- `the_display.DisplayRect` — wind_procs
+- `the_display.CurrMode->GetBPP()` — wibble
+- `the_display.CurrDevice->IsHardware()` — elev
+- `the_display.lp_DD_Background_use_instead` — frontend
+
+### `DrawIndPrimMM` — отдельная проблема
+
+Кастомная функция batched рендеринга с multi-matrix трансформацией.
+5 вызовов: aeng, fastprim, figure. Все передают `the_display.lp_D3D_Device`.
+Нужно обернуть в graphics_engine.
+
+### Порядок миграции (Шаг 2)
+
+Итеративно, от простого к сложному, каждый шаг компилируется:
+
+**2a) Создать каркас graphics_engine.h + graphics_engine_d3d.cpp**
+Пустые файлы, добавить в CMake, проверить компиляцию.
+
+**2b) Типы и enum'ы**
+Определить в graphics_engine.h: TextureHandle, BlendMode, DepthMode, CullMode, и т.д.
+Пока не менять игровой код — только определить типы.
+
+**2c) Макросы → функции graphics_engine**
+Заменить `display_macros.h` → вызовы через graphics_engine.
+BEGIN_SCENE/END_SCENE, CLEAR_VIEWPORT, FLIP, SET_*_BACKGROUND.
+Это затрагивает все файлы что используют макросы, но замена механическая.
+
+**2d) Render states**
+Заменить REALLY_SET_RENDER_STATE → функции graphics_engine с enum'ами.
+Сгруппировать по смыслу: set_blend_mode(), set_depth_mode(), set_texture_filter() и т.д.
+
+**2e) Draw calls**
+Заменить DRAW_PRIMITIVE/DRAW_INDEXED_PRIMITIVE → ge_draw_triangles() и т.п.
+Заменить DrawIndPrimMM → обёртка в graphics_engine.
+
+**2f) Текстуры**
+TextureHandle вместо LPDIRECT3DTEXTURE2 в сигнатурах.
+TEXTURE_get_handle() возвращает TextureHandle.
+REALLY_SET_TEXTURE → ge_bind_texture(TextureHandle).
+
+**2g) Viewport и трансформации**
+Обернуть SetViewport2, SetTransform, Clear.
+
+**2h) Surface operations**
+Обернуть CreateSurface, Lock/Unlock, Blt — frontend, truetype, flamengine.
+
+**2i) Device queries**
+Обернуть GetDeviceInfo()->XxxSupported() → функции/константы.
+
+**2j) Screen buffer access**
+Обернуть screen_lock/unlock, PlotPixel, screen/screen_pitch.
+
+**2k) Прямой D3D доступ**
+Убрать оставшийся прямой доступ к lp_D3D_Device, lp_DD4 и т.д.
+К этому моменту большинство уже обёрнуто предыдущими шагами.
+
+**2l) Финальная проверка**
+Убедиться что D3D хедеры не включаются нигде кроме graphics_engine_d3d.cpp
+и файлов внутри graphics_api/ (которые станут частью бэкенда).
+
+---
+
 ## План работы
 
 ### Шаг 1 — Отключить outro
