@@ -1,6 +1,7 @@
 #include "engine/effects/flamengine.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/graphics_api/gd_display.h"   // the_display
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/gd_display.h"   // the_display (still used for Blt, migrating incrementally)
 
 // These externs provide the texture globals flamengine needs without pulling in all of assets/texture.h.
 // When texture globals are split into a separate engine-layer header this can be replaced.
@@ -477,7 +478,7 @@ void Flamengine::Feedback()
 {
     RECT rcSource;
 
-    the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_TARGET);
+    ge_clear(true, false);
 
     POLY_frame_init(UC_FALSE, UC_FALSE);
     BlitOffset();

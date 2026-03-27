@@ -3,7 +3,8 @@
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
 #include "engine/platform/uc_common.h"   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
-#include "engine/graphics/graphics_api/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4, HRESULT
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4 (still used for surface ops, migrating incrementally)
 #include "ui/frontend/frontend.h"
 #include "ui/frontend/frontend_globals.h"
 
@@ -2349,21 +2350,12 @@ void FRONTEND_display()
     UBYTE whichmap[] = { 2, 0, 1, 3 };
     UBYTE arrow = 0;
 
-    D3DVIEWPORT2 vp;
-    vp.dwSize = sizeof(vp);
-    vp.dwX = the_display.ViewportRect.x1;
-    vp.dwY = the_display.ViewportRect.y1;
-    vp.dwWidth = the_display.ViewportRect.x2 - the_display.ViewportRect.x1;
-    vp.dwHeight = the_display.ViewportRect.y2 - the_display.ViewportRect.y1;
-    vp.dvClipX = (float)vp.dwX;
-    vp.dvClipY = (float)vp.dwY;
-    vp.dvClipWidth = (float)vp.dwWidth;
-    vp.dvClipHeight = (float)vp.dwHeight;
-    vp.dvMinZ = 0.0f;
-    vp.dvMaxZ = 1.0f;
-    the_display.lp_D3D_Viewport->SetViewport2(&vp);
-
-    the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER | D3DCLEAR_TARGET);
+    ge_set_viewport(
+        the_display.ViewportRect.x1,
+        the_display.ViewportRect.y1,
+        the_display.ViewportRect.x2 - the_display.ViewportRect.x1,
+        the_display.ViewportRect.y2 - the_display.ViewportRect.y1);
+    ge_clear(true, true);
 
     ShowBackImage();
     if ((fade_mode & 3) == 1)
@@ -3149,7 +3141,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
 
     FRONTEND_CacheMissionList(MISSION_SCRIPT);
 
-    the_display.lp_D3D_Viewport->Clear(1, &the_display.ViewportRect, D3DCLEAR_ZBUFFER);
+    ge_clear(false, true);
 
     ZeroMemory(menu_choice_scanner, 255);
     XLAT_str(X_CAMERA, menu_choice_scanner);

@@ -11,7 +11,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/graphics/text/font2d.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"
 
@@ -258,20 +258,7 @@ void OVERLAY_handle(void)
     POLY_flush_local_rot();
 
     // Reset viewport to full screen (required for letterbox mode so HUD draws edge-to-edge).
-    D3DVIEWPORT2 viewData;
-    memset(&viewData, 0, sizeof(D3DVIEWPORT2));
-    viewData.dwSize = sizeof(D3DVIEWPORT2);
-    viewData.dwWidth = RealDisplayWidth;
-    viewData.dwHeight = RealDisplayHeight;
-    viewData.dwX = 0;
-    viewData.dwY = 0;
-    viewData.dvClipX = -1.0f;
-    viewData.dvClipY = 1.0f;
-    viewData.dvClipWidth = 2.0f;
-    viewData.dvClipHeight = 2.0f;
-    viewData.dvMinZ = 0.0f;
-    viewData.dvMaxZ = 1.0f;
-    (the_display.lp_D3D_Viewport)->SetViewport2(&viewData);
+    ge_set_viewport(0, 0, RealDisplayWidth, RealDisplayHeight);
 
     PANEL_start();
 

@@ -510,6 +510,40 @@ D3D6 SetTransform принимает non-const LPD3DMATRIX → const_cast в D3D
 
 Сборка: 308/308.
 
+### Viewport миграция ✅
+
+Все `lp_D3D_Viewport` вызовы вне бэкенда заменены на ge_set_viewport / ge_clear:
+- `flamengine.cpp:480` — Viewport->Clear(TARGET) → ge_clear(true, false)
+- `overlay.cpp:261-274` — SetViewport2 (15 строк D3D) → ge_set_viewport (1 строка). Убран include gd_display.h.
+- `frontend.cpp:2352-2366` — SetViewport2 + Clear → ge_set_viewport + ge_clear
+- `frontend.cpp:3144` — Clear(ZBUFFER) → ge_clear(false, true)
+- `poly.cpp:320` — SetViewport2 → ge_set_viewport (g_viewData остаётся как глобал — используется в GenerateMMMatrix)
+
+Результат: lp_D3D_Viewport = 0 вхождений вне бэкенда.
+
+### Общий статус Шага 2
+
+Полностью мигрированы на ge_* (0 прямых D3D вызовов вне бэкенда):
+- ✅ lp_D3D_Viewport — viewport, clear
+- ✅ SetTransform — world, view, projection
+- ✅ SetRenderState (основные блоки)
+- ✅ SetTexture / DrawPrimitive / DrawIndexedPrimitive (основные)
+- ✅ Все display_macros.h макросы
+
+Внутренности D3D бэкенда (не абстрагируются — переписываются при OpenGL):
+- 5× DrawIndPrimMM
+- 8× PolyPage::Render/DrawSinglePoly
+- 2× FORCE_SET_* (render state cache debug path)
+
+Оставшийся DDraw surface access (нужна миграция):
+- flamengine: Blt (1)
+- figure: FrontSurface Lock/Unlock (2)
+- truetype: CreateSurface, CreatePalette (2)
+- host: RestoreAllSurfaces (1)
+- frontend: CreateSurface, GetSurfaceDesc, Blt, Background_use_instead (11)
+
+Сборка: 308/308.
+
 ---
 
 ## План работы
