@@ -7,7 +7,7 @@ SLONG SUPERFACET_max_lverts = 0;
 UBYTE* SUPERFACET_lvert_buffer = nullptr;
 
 // uc_orig: SUPERFACET_lvert (fallen/DDEngine/Source/superfacet.cpp)
-D3DLVERTEX* SUPERFACET_lvert = nullptr;
+GEVertexLit* SUPERFACET_lvert = nullptr;
 
 // uc_orig: SUPERFACET_lvert_upto (fallen/DDEngine/Source/superfacet.cpp)
 SLONG SUPERFACET_lvert_upto = 0;
@@ -49,10 +49,10 @@ SLONG SUPERFACET_queue_start = 0;
 SLONG SUPERFACET_queue_end = 0;
 
 // uc_orig: SUPERFACET_matrix_buffer (fallen/DDEngine/Source/superfacet.cpp)
-UBYTE SUPERFACET_matrix_buffer[sizeof(D3DMATRIX) + 32] = {};
+UBYTE SUPERFACET_matrix_buffer[sizeof(GEMatrix) + 32] = {};
 
 // uc_orig: SUPERFACET_matrix (fallen/DDEngine/Source/superfacet.cpp)
-D3DMATRIX* SUPERFACET_matrix = nullptr;
+GEMatrix* SUPERFACET_matrix = nullptr;
 
 // uc_orig: SUPERFACET_direction_matrix (fallen/DDEngine/Source/superfacet.cpp)
 float SUPERFACET_direction_matrix[4][9] = {};

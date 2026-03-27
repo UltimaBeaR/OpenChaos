@@ -1,9 +1,9 @@
 #include "engine/graphics/geometry/fastprim_globals.h"
 
 // uc_orig: FASTPRIM_lvert_buffer (fallen/DDEngine/Source/fastprim.cpp)
-D3DLVERTEX* FASTPRIM_lvert_buffer;
+GEVertexLit* FASTPRIM_lvert_buffer;
 // uc_orig: FASTPRIM_lvert (fallen/DDEngine/Source/fastprim.cpp)
-D3DLVERTEX* FASTPRIM_lvert;
+GEVertexLit* FASTPRIM_lvert;
 // uc_orig: FASTPRIM_lvert_max (fallen/DDEngine/Source/fastprim.cpp)
 SLONG FASTPRIM_lvert_max;
 // uc_orig: FASTPRIM_lvert_upto (fallen/DDEngine/Source/fastprim.cpp)
@@ -25,9 +25,9 @@ SLONG FASTPRIM_index_free_end;
 SLONG FASTPRIM_index_free_unused;
 
 // uc_orig: FASTPRIM_matrix_buffer (fallen/DDEngine/Source/fastprim.cpp)
-UBYTE FASTPRIM_matrix_buffer[sizeof(D3DMATRIX) + 32];
+UBYTE FASTPRIM_matrix_buffer[sizeof(GEMatrix) + 32];
 // uc_orig: FASTPRIM_matrix (fallen/DDEngine/Source/fastprim.cpp)
-D3DMATRIX* FASTPRIM_matrix;
+GEMatrix* FASTPRIM_matrix;
 
 // uc_orig: FASTPRIM_call (fallen/DDEngine/Source/fastprim.cpp)
 FASTPRIM_Call FASTPRIM_call[FASTPRIM_MAX_CALLS];

@@ -260,7 +260,7 @@ void SUPERFACET_fill_facet_points(
 
     POLY_Point* quad[4];
     LPDIRECT3DTEXTURE2 texture;
-    D3DLVERTEX* lv;
+    GEVertexLit* lv;
 
     SLONG row1 = FacetRows[base_row];
     SLONG row2 = FacetRows[base_row + 1];
@@ -677,14 +677,14 @@ void SUPERFACET_init()
     SUPERFACET_max_lverts = 8192;
     SUPERFACET_max_indices = SUPERFACET_max_lverts * 6 / 4;
 
-    SUPERFACET_lvert_buffer = (UBYTE*)MemAlloc(sizeof(D3DLVERTEX) * SUPERFACET_MAX_LVERTS + 32);
+    SUPERFACET_lvert_buffer = (UBYTE*)MemAlloc(sizeof(GEVertexLit) * SUPERFACET_MAX_LVERTS + 32);
     ASSERT(SUPERFACET_lvert_buffer != NULL);
     SUPERFACET_index = (UWORD*)MemAlloc(sizeof(UWORD) * SUPERFACET_MAX_INDICES);
     ASSERT(SUPERFACET_index != NULL);
     SUPERFACET_facet = (SUPERFACET_Facet*)MemAlloc(sizeof(SUPERFACET_Facet) * SUPERFACET_MAX_FACETS);
     ASSERT(SUPERFACET_facet != NULL);
 
-    memset(SUPERFACET_lvert_buffer, 0, sizeof(D3DLVERTEX) * SUPERFACET_MAX_LVERTS + 32);
+    memset(SUPERFACET_lvert_buffer, 0, sizeof(GEVertexLit) * SUPERFACET_MAX_LVERTS + 32);
     memset(SUPERFACET_index, 0, sizeof(UWORD) * SUPERFACET_MAX_INDICES);
     memset(SUPERFACET_call, 0, sizeof(SUPERFACET_call));
     memset(SUPERFACET_facet, 0, sizeof(SUPERFACET_Facet) * SUPERFACET_MAX_FACETS);
@@ -697,7 +697,7 @@ void SUPERFACET_init()
     SUPERFACET_free_range_end = SUPERFACET_MAX_LVERTS;
 
     // Align the lvert pointer to a 32-byte boundary for SIMD-friendly access.
-    SUPERFACET_lvert = (D3DLVERTEX*)((SLONG(SUPERFACET_lvert_buffer) + 31) & ~0x1f);
+    SUPERFACET_lvert = (GEVertexLit*)((SLONG(SUPERFACET_lvert_buffer) + 31) & ~0x1f);
 
     SUPERFACET_lvert_upto = 0;
     SUPERFACET_index_upto = 0;
@@ -705,7 +705,7 @@ void SUPERFACET_init()
     SUPERFACET_queue_start = 0;
     SUPERFACET_queue_end = 0;
 
-    SUPERFACET_matrix = (D3DMATRIX*)((SLONG(SUPERFACET_matrix_buffer) + 31) & ~0x1f);
+    SUPERFACET_matrix = (GEMatrix*)((SLONG(SUPERFACET_matrix_buffer) + 31) & ~0x1f);
 
     // Build the four cardinal direction matrices (0°, 90°, 180°, 270°).
     SLONG i;
@@ -730,7 +730,7 @@ void SUPERFACET_redo_lighting(SLONG facet)
     DFacet* df;
     SUPERFACET_Call* sc;
     SUPERFACET_Facet* sf;
-    D3DLVERTEX* lv;
+    GEVertexLit* lv;
 
     df = &dfacets[facet];
     sf = &SUPERFACET_facet[facet];
@@ -755,7 +755,7 @@ void SUPERFACET_redo_lighting(SLONG facet)
 
             ASSERT(WITHIN(lv->dwReserved >> 16, 0, 2048));
 
-            NIGHT_get_d3d_colour(col[lv->dwReserved >> 16], &lv->color, &lv->specular);
+            NIGHT_get_d3d_colour(col[lv->dwReserved >> 16], reinterpret_cast<ULONG*>(&lv->color), reinterpret_cast<ULONG*>(&lv->specular));
         }
     }
 }

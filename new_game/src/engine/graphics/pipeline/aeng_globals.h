@@ -5,7 +5,7 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "buildings/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
-#include "engine/graphics/graphics_engine/d3d/render_state.h" // D3DMATRIX, D3DLVERTEX
+#include "engine/graphics/graphics_engine/d3d/render_state.h" // GEMatrix, GEVertexLit
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/graphics/lighting/smap.h"                  // SMAP_Link
 #include "engine/compression/compression.h"
@@ -283,12 +283,12 @@ void AENG_get_rid_of_deleteme_squares(void);
 #define AENG_MAX_DIRT_INDICES (AENG_MAX_DIRT_LVERTS * 4 / 3)
 
 // uc_orig: AENG_dirt_lvert_buffer (fallen/DDEngine/Source/aeng.cpp)
-// 32-byte aligned D3DLVERTEX scratch buffer for batched dirt/debris rendering.
-extern D3DLVERTEX AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
+// 32-byte aligned GEVertexLit scratch buffer for batched dirt/debris rendering.
+extern GEVertexLit AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
 
 // uc_orig: AENG_dirt_lvert (fallen/DDEngine/Source/aeng.cpp)
 // Pointer into AENG_dirt_lvert_buffer aligned to 32 bytes.
-extern D3DLVERTEX* AENG_dirt_lvert;
+extern GEVertexLit* AENG_dirt_lvert;
 
 // uc_orig: AENG_dirt_lvert_upto (fallen/DDEngine/Source/aeng.cpp)
 // Number of vertices currently written into AENG_dirt_lvert.
@@ -302,12 +302,12 @@ extern UWORD AENG_dirt_index[AENG_MAX_DIRT_INDICES];
 extern SLONG AENG_dirt_index_upto;
 
 // uc_orig: AENG_dirt_matrix_buffer (fallen/DDEngine/Source/aeng.cpp)
-// Raw storage for a 32-byte aligned D3DMATRIX.
-extern UBYTE AENG_dirt_matrix_buffer[sizeof(D3DMATRIX) + 32];
+// Raw storage for a 32-byte aligned GEMatrix.
+extern UBYTE AENG_dirt_matrix_buffer[sizeof(GEMatrix) + 32];
 
 // uc_orig: AENG_dirt_matrix (fallen/DDEngine/Source/aeng.cpp)
 // Pointer into AENG_dirt_matrix_buffer, aligned to 32 bytes.
-extern D3DMATRIX* AENG_dirt_matrix;
+extern GEMatrix* AENG_dirt_matrix;
 
 // uc_orig: AENG_MAX_DIRT_UVLOOKUP (fallen/DDEngine/Source/aeng.cpp)
 // Number of precomputed UV entries for leaf/snowflake rotation table.
@@ -528,7 +528,7 @@ struct GroupInfo
 
 // uc_orig: m_vert_mem_block32 (fallen/DDEngine/Source/aeng.cpp)
 // Raw allocation block for kerb + floor strip vertices; sized for 32-byte alignment.
-extern UBYTE m_vert_mem_block32[sizeof(D3DLVERTEX) * KERB_VERTS + sizeof(D3DLVERTEX) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
+extern UBYTE m_vert_mem_block32[sizeof(GEVertexLit) * KERB_VERTS + sizeof(GEVertexLit) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
 
 // uc_orig: m_indicies (fallen/DDEngine/Source/aeng.cpp)
 // Index buffers for each of the IPRIM_COUNT floor strip groups.
@@ -572,11 +572,11 @@ void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx);
 
 // uc_orig: add_kerb (fallen/DDEngine/Source/aeng.cpp)
 // Emits four vertices for one kerb quad; returns UC_TRUE if the quad was added.
-SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, D3DLVERTEX* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip);
+SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEVertexLit* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip);
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
 // Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor);
+void draw_i_prim(LPDIRECT3DTEXTURE2 page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor);
 
 // uc_orig: general_steam (fallen/DDEngine/Source/aeng.cpp)
 // Accumulates (mode=1), flushes (mode=2), or resets (mode=0) steam source positions.

@@ -28,7 +28,7 @@ static UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y,
     float y = float(map_y << 6);
     float z = float(map_z << 8);
 
-    D3DLVERTEX* lv;
+    GEVertexLit* lv;
 
     for (i = 0; i < fs->lvertcount; i++) {
         ASSERT(WITHIN(fs->lvert + i, 0, FARFACET_lvert_upto - 1));
@@ -48,16 +48,16 @@ static UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y,
         old_offset = ((UBYTE*)FARFACET_lvert) - ((UBYTE*)FARFACET_lvert_buffer);
 
         FARFACET_lvert_max *= 2;
-        FARFACET_lvert_buffer = (D3DLVERTEX*)realloc(FARFACET_lvert_buffer, sizeof(D3DLVERTEX) * FARFACET_lvert_max + 31);
+        FARFACET_lvert_buffer = (GEVertexLit*)realloc(FARFACET_lvert_buffer, sizeof(GEVertexLit) * FARFACET_lvert_max + 31);
         ASSERT(FARFACET_lvert_buffer != NULL);
-        FARFACET_lvert = (D3DLVERTEX*)((SLONG(FARFACET_lvert_buffer) + 31) & ~0x1f);
+        FARFACET_lvert = (GEVertexLit*)((SLONG(FARFACET_lvert_buffer) + 31) & ~0x1f);
 
         ASSERT(FARFACET_lvert_upto < FARFACET_lvert_max);
 
         new_offset = ((UBYTE*)FARFACET_lvert) - ((UBYTE*)FARFACET_lvert_buffer);
 
         if (new_offset != old_offset) {
-            memmove(((UBYTE*)FARFACET_lvert_buffer) + new_offset, ((UBYTE*)FARFACET_lvert_buffer) + old_offset, sizeof(D3DLVERTEX) * FARFACET_lvert_upto);
+            memmove(((UBYTE*)FARFACET_lvert_buffer) + new_offset, ((UBYTE*)FARFACET_lvert_buffer) + old_offset, sizeof(GEVertexLit) * FARFACET_lvert_upto);
         }
     }
 
@@ -385,8 +385,8 @@ void FARFACET_init()
 {
     FARFACET_lvert_max = 1024;
     FARFACET_lvert_upto = 0;
-    FARFACET_lvert_buffer = (D3DLVERTEX*)malloc(sizeof(D3DLVERTEX) * FARFACET_lvert_max + 31);
-    FARFACET_lvert = (D3DLVERTEX*)((SLONG(FARFACET_lvert_buffer) + 31) & ~0x1f);
+    FARFACET_lvert_buffer = (GEVertexLit*)malloc(sizeof(GEVertexLit) * FARFACET_lvert_max + 31);
+    FARFACET_lvert = (GEVertexLit*)((SLONG(FARFACET_lvert_buffer) + 31) & ~0x1f);
 
     FARFACET_index_max = FARFACET_lvert_max * 5 / 4;
     FARFACET_index_upto = 0;
@@ -396,11 +396,11 @@ void FARFACET_init()
     FARFACET_outline_upto = 0;
 
     memset(FARFACET_square, 0, sizeof(FARFACET_square));
-    memset(FARFACET_lvert, 0, sizeof(D3DLVERTEX) * FARFACET_lvert_max);
+    memset(FARFACET_lvert, 0, sizeof(GEVertexLit) * FARFACET_lvert_max);
     memset(FARFACET_index, 0, sizeof(UWORD) * FARFACET_index_max);
     memset(FARFACET_outline, 0, sizeof(FARFACET_Outline) * FARFACET_MAX_OUTLINES);
 
-    FARFACET_matrix = (D3DMATRIX*)((SLONG(FARFACET_matrix_buffer) + 31) & ~0x1f);
+    FARFACET_matrix = (GEMatrix*)((SLONG(FARFACET_matrix_buffer) + 31) & ~0x1f);
 
     SLONG x;
     SLONG z;
@@ -534,7 +534,7 @@ void FARFACET_draw(
     // Slightly scale the projection matrix to push RHW values further back,
     // acting as a Z-bias to avoid Z-fighting with the normal scene polygons.
 #define MY_PROJ_MATRIX_SCALE 1.01f
-    D3DMATRIX matMyProj = g_matProjection;
+    GEMatrix matMyProj = g_matProjection;
     matMyProj._11 *= MY_PROJ_MATRIX_SCALE;
     matMyProj._12 *= MY_PROJ_MATRIX_SCALE;
     matMyProj._13 *= MY_PROJ_MATRIX_SCALE;

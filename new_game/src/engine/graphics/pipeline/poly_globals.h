@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // D3DMATRIX, D3DVIEWPORT2
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEMatrix, D3DVIEWPORT2
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -99,7 +99,7 @@ extern int iPolyNumPagesRender;
 
 // Direct3D matrices and viewport data set by POLY_camera_set each frame.
 // uc_orig: g_matProjection (fallen/DDEngine/Source/poly.cpp)
-extern D3DMATRIX g_matProjection;
+extern GEMatrix g_matProjection;
 // uc_orig: g_viewData (fallen/DDEngine/Source/poly.cpp)
 extern D3DVIEWPORT2 g_viewData;
 // uc_orig: g_dw3DStuffHeight (fallen/DDEngine/Source/poly.cpp)
@@ -110,7 +110,7 @@ extern DWORD g_dw3DStuffHeight;
 extern DWORD g_dw3DStuffY;
 // uc_orig: g_matWorld (fallen/DDEngine/Source/poly.cpp)
 // World matrix uploaded to D3D by POLY_set_local_rotation.
-extern D3DMATRIX g_matWorld;
+extern GEMatrix g_matWorld;
 
 // uc_orig: POLY_clip_left (fallen/DDEngine/Source/poly.cpp)
 // 2D clip rectangle used by POLY_clip_line_add.

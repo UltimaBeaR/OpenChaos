@@ -612,6 +612,35 @@ D3D код живёт не только в `graphics_engine/d3d/`, но и в:
 ge_* абстракция работает на границе: игровой код (things/, game/, combat/, ai/, missions/) →
 ge_* → D3D бэкенд. Вызовы ge_* в pipeline файлах — точки соприкосновения.
 
+### Замена D3D типов на GE типы ✅
+
+Добавлены union aliases в GEVertexTL, GEVertexLit, GEVertex (sx/dvSX/dvX/tu/dvTU и т.д.)
+и GEMatrix (_11.._44) для совместимости с legacy member access.
+
+Массовая замена sed'ом:
+- `D3DLVERTEX` → `GEVertexLit` (13 файлов, ~50 вхождений)
+- `D3DTLVERTEX` → `GEVertexTL` (bucket.h, polypage.cpp, polypoint.h)
+- `D3DVERTEX` → `GEVertex` (figure_globals.h/cpp)
+- `D3DMATRIX` → `GEMatrix` (farfacet, fastprim, figure, aeng, poly — ~20 вхождений)
+
+Пограничные casts на стыке GE ↔ D3D типов:
+- `GEMatrix*` → `LPD3DMATRIX` при заполнении `D3DMULTIMATRIX` (fastprim, figure×3, aeng)
+- `uint32_t*` → `ULONG*` при вызове `NIGHT_get_d3d_colour` (fastprim, superfacet)
+- `D3DTLVERTEX*` → `GEVertexTL*` при получении из vertex buffer pool (polypage)
+
+Добавлены `#include graphics_engine.h` в: farfacet_globals.h, superfacet_globals.h,
+superfacet.cpp, aeng_globals.h, polypage.cpp, figure_globals.h, fastprim_globals.h.
+Убраны D3D includes из bucket.h и polypoint.h.
+
+Оставшиеся D3D идентификаторы вне d3d/ (следующая итерация):
+- D3DTexture класс, LPDIRECT3DTEXTURE2, D3DTEXTURE_TYPE_* — текстурная система
+- D3DRENDERSTATE_*, D3DPT_*, D3DFVF_*, D3DDP_* — константы в farfacet, fastprim
+- D3DMULTIMATRIX — struct в fastprim, figure, aeng
+- D3DCOLOR, D3DVECTOR — в figure_globals.h
+- DDraw surface ops — flamengine, frontend
+
+Сборка: 308/308, 0 ошибок.
+
 Сборка: 308/308.
 
 ---

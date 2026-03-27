@@ -196,10 +196,10 @@ float AENG_project_fadeout_z;
 // ---------------------------------------------------------------------------
 
 // uc_orig: AENG_dirt_lvert_buffer (fallen/DDEngine/Source/aeng.cpp)
-D3DLVERTEX AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
+GEVertexLit AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
 
 // uc_orig: AENG_dirt_lvert (fallen/DDEngine/Source/aeng.cpp)
-D3DLVERTEX* AENG_dirt_lvert;
+GEVertexLit* AENG_dirt_lvert;
 
 // uc_orig: AENG_dirt_lvert_upto (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_dirt_lvert_upto;
@@ -211,10 +211,10 @@ UWORD AENG_dirt_index[AENG_MAX_DIRT_INDICES];
 SLONG AENG_dirt_index_upto;
 
 // uc_orig: AENG_dirt_matrix_buffer (fallen/DDEngine/Source/aeng.cpp)
-UBYTE AENG_dirt_matrix_buffer[sizeof(D3DMATRIX) + 32];
+UBYTE AENG_dirt_matrix_buffer[sizeof(GEMatrix) + 32];
 
 // uc_orig: AENG_dirt_matrix (fallen/DDEngine/Source/aeng.cpp)
-D3DMATRIX* AENG_dirt_matrix;
+GEMatrix* AENG_dirt_matrix;
 
 // uc_orig: AENG_dirt_uvlookup (fallen/DDEngine/Source/aeng.cpp)
 AENG_DirtUV AENG_dirt_uvlookup[AENG_MAX_DIRT_UVLOOKUP];
@@ -269,7 +269,7 @@ RRect rrect[2000];
 SLONG next_rrect = 1;
 
 // uc_orig: m_vert_mem_block32 (fallen/DDEngine/Source/aeng.cpp)
-UBYTE m_vert_mem_block32[sizeof(D3DLVERTEX) * KERB_VERTS + sizeof(D3DLVERTEX) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
+UBYTE m_vert_mem_block32[sizeof(GEVertexLit) * KERB_VERTS + sizeof(GEVertexLit) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
 
 // uc_orig: m_indicies (fallen/DDEngine/Source/aeng.cpp)
 UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1];

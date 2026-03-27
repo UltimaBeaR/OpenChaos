@@ -2,8 +2,7 @@
 #define ENGINE_GRAPHICS_PIPELINE_BUCKET_H
 
 #include <windows.h>
-#include <ddraw.h>
-#include <d3d.h>
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/types.h"
 
 // Bucket sort rendering system.
@@ -121,7 +120,7 @@ inline void reset_buckets(void)
 
 // Returns 1 if the D3D vertex has out-of-range sz or rhw values.
 // uc_orig: check_vertex (fallen/DDEngine/Headers/Bucket.h)
-inline SLONG check_vertex(D3DTLVERTEX* v)
+inline SLONG check_vertex(GEVertexTL* v)
 {
     if (v->sz < 0.0 || v->sz > 1.0 || v->rhw < 0.0 || v->rhw > 1.0)
         return (1);
@@ -130,7 +129,7 @@ inline SLONG check_vertex(D3DTLVERTEX* v)
 }
 
 // uc_orig: vertex_pool (fallen/DDEngine/Source/aeng.cpp)
-extern D3DTLVERTEX vertex_pool[];
+extern GEVertexTL vertex_pool[];
 
 // Insert a bucket header into the appropriate sort list at depth z.
 // uc_orig: add_bucket (fallen/DDEngine/Headers/Bucket.h)

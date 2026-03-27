@@ -8,9 +8,9 @@
 
 // D3D vertex/index buffer for all batched prim draws.
 // uc_orig: FASTPRIM_lvert_buffer (fallen/DDEngine/Source/fastprim.cpp)
-extern D3DLVERTEX* FASTPRIM_lvert_buffer;
+extern GEVertexLit* FASTPRIM_lvert_buffer;
 // uc_orig: FASTPRIM_lvert (fallen/DDEngine/Source/fastprim.cpp)
-extern D3DLVERTEX* FASTPRIM_lvert;
+extern GEVertexLit* FASTPRIM_lvert;
 // uc_orig: FASTPRIM_lvert_max (fallen/DDEngine/Source/fastprim.cpp)
 extern SLONG FASTPRIM_lvert_max;
 // uc_orig: FASTPRIM_lvert_upto (fallen/DDEngine/Source/fastprim.cpp)
@@ -33,9 +33,9 @@ extern SLONG FASTPRIM_index_free_unused;
 
 // 32-byte-aligned D3D matrix for DrawIndPrimMM calls.
 // uc_orig: FASTPRIM_matrix_buffer (fallen/DDEngine/Source/fastprim.cpp)
-extern UBYTE FASTPRIM_matrix_buffer[sizeof(D3DMATRIX) + 32];
+extern UBYTE FASTPRIM_matrix_buffer[sizeof(GEMatrix) + 32];
 // uc_orig: FASTPRIM_matrix (fallen/DDEngine/Source/fastprim.cpp)
-extern D3DMATRIX* FASTPRIM_matrix;
+extern GEMatrix* FASTPRIM_matrix;
 
 // Call descriptor: one per texture/type combination within a single cached prim.
 // uc_orig: FASTPRIM_Call (fallen/DDEngine/Source/fastprim.cpp)

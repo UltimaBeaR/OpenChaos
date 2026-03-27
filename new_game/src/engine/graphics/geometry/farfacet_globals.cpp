@@ -1,9 +1,9 @@
 #include "engine/graphics/geometry/farfacet_globals.h"
 
 // uc_orig: FARFACET_lvert_buffer (fallen/DDEngine/Source/farfacet.cpp)
-D3DLVERTEX* FARFACET_lvert_buffer;
+GEVertexLit* FARFACET_lvert_buffer;
 // uc_orig: FARFACET_lvert (fallen/DDEngine/Source/farfacet.cpp)
-D3DLVERTEX* FARFACET_lvert;
+GEVertexLit* FARFACET_lvert;
 // uc_orig: FARFACET_lvert_max (fallen/DDEngine/Source/farfacet.cpp)
 SLONG FARFACET_lvert_max;
 // uc_orig: FARFACET_lvert_upto (fallen/DDEngine/Source/farfacet.cpp)
@@ -25,9 +25,9 @@ RenderState FARFACET_renderstate;
 RenderState FARFACET_default_renderstate;
 
 // uc_orig: FARFACET_matrix_buffer (fallen/DDEngine/Source/farfacet.cpp)
-UBYTE FARFACET_matrix_buffer[sizeof(D3DMATRIX) + 32];
+UBYTE FARFACET_matrix_buffer[sizeof(GEMatrix) + 32];
 // uc_orig: FARFACET_matrix (fallen/DDEngine/Source/farfacet.cpp)
-D3DMATRIX* FARFACET_matrix;
+GEMatrix* FARFACET_matrix;
 
 // uc_orig: FARFACET_num_squares_drawn (fallen/DDEngine/Source/farfacet.cpp)
 SLONG FARFACET_num_squares_drawn;

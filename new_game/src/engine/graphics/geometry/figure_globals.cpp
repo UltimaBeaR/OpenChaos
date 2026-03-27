@@ -46,7 +46,7 @@ DWORD m_dwSizeOfQueue = 0;
 
 // --- TPO working state ---
 // uc_orig: TPO_pVert (fallen/DDEngine/Source/figure.cpp)
-D3DVERTEX* TPO_pVert = NULL;
+GEVertex* TPO_pVert = NULL;
 // uc_orig: TPO_pStripIndices (fallen/DDEngine/Source/figure.cpp)
 UWORD* TPO_pStripIndices = NULL;
 // uc_orig: TPO_pListIndices (fallen/DDEngine/Source/figure.cpp)
@@ -56,7 +56,7 @@ int* TPO_piVertexRemap = NULL;
 // uc_orig: TPO_piVertexLinks (fallen/DDEngine/Source/figure.cpp)
 int* TPO_piVertexLinks = NULL;
 // uc_orig: TPO_pCurVertex (fallen/DDEngine/Source/figure.cpp)
-D3DVERTEX* TPO_pCurVertex = NULL;
+GEVertex* TPO_pCurVertex = NULL;
 // uc_orig: TPO_pCurStripIndex (fallen/DDEngine/Source/figure.cpp)
 UWORD* TPO_pCurStripIndex = NULL;
 // uc_orig: TPO_pCurListIndex (fallen/DDEngine/Source/figure.cpp)
@@ -91,10 +91,10 @@ D3DCOLOR* MM_pcFadeTable = NULL;
 D3DCOLOR* MM_pcFadeTableTint = NULL;
 
 // uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
-D3DMATRIX* MM_pMatrix = NULL;
+GEMatrix* MM_pMatrix = NULL;
 
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
-D3DVERTEX* MM_Vertex = NULL;
+GEVertex* MM_Vertex = NULL;
 
 // uc_orig: MM_pNormal (fallen/DDEngine/Source/figure.cpp)
 float* MM_pNormal = NULL;
@@ -150,7 +150,7 @@ ULONG jacket_col = 0;
 ULONG leg_col = 0;
 
 // uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
-D3DMATRIX* MMBodyParts_pMatrix = NULL;
+GEMatrix* MMBodyParts_pMatrix = NULL;
 
 // uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
 float* MMBodyParts_pNormal = NULL;
@@ -208,10 +208,10 @@ float FIGURE_reflect_height = 0.0f;
 // Kept here so all global state is visible in _globals files per project rules.
 static char cMM_pcFadeTableStorage[4 + 128 * sizeof(D3DCOLOR)];
 static char cMM_pcFadeTableTintStorage[4 + 128 * sizeof(D3DCOLOR)];
-static char cMM_pMatrixStorage[32 + 1 * sizeof(D3DMATRIX)];
-static char cMM_VertexStorage[32 + 4 * sizeof(D3DVERTEX)];
+static char cMM_pMatrixStorage[32 + 1 * sizeof(GEMatrix)];
+static char cMM_VertexStorage[32 + 4 * sizeof(GEVertex)];
 static char cMM_pNormalStorage[8 + 4 * sizeof(float)];
-static char cMMBodyParts_pMatrixStorage[32 + MAX_NUM_BODY_PARTS_AT_ONCE * sizeof(D3DMATRIX)];
+static char cMMBodyParts_pMatrixStorage[32 + MAX_NUM_BODY_PARTS_AT_ONCE * sizeof(GEMatrix)];
 static char cMMBodyParts_pNormalStorage[8 + MAX_NUM_BODY_PARTS_AT_ONCE * 4 * sizeof(float)];
 
 // Initialises MM_* global pointers to aligned addresses within the above storage.
@@ -224,10 +224,10 @@ namespace {
         {
             MM_pcFadeTable      = (D3DCOLOR*)(((DWORD)cMM_pcFadeTableStorage      + 3)  & ~3u);
             MM_pcFadeTableTint  = (D3DCOLOR*)(((DWORD)cMM_pcFadeTableTintStorage  + 3)  & ~3u);
-            MM_pMatrix          = (D3DMATRIX*)(((DWORD)cMM_pMatrixStorage          + 31) & ~31u);
-            MM_Vertex           = (D3DVERTEX*)(((DWORD)cMM_VertexStorage           + 31) & ~31u);
+            MM_pMatrix          = (GEMatrix*)(((DWORD)cMM_pMatrixStorage          + 31) & ~31u);
+            MM_Vertex           = (GEVertex*)(((DWORD)cMM_VertexStorage           + 31) & ~31u);
             MM_pNormal          = (float*)(    ((DWORD)cMM_pNormalStorage           + 7)  & ~7u);
-            MMBodyParts_pMatrix = (D3DMATRIX*)(((DWORD)cMMBodyParts_pMatrixStorage  + 31) & ~31u);
+            MMBodyParts_pMatrix = (GEMatrix*)(((DWORD)cMMBodyParts_pMatrixStorage  + 31) & ~31u);
             MMBodyParts_pNormal = (float*)(    ((DWORD)cMMBodyParts_pNormalStorage   + 7)  & ~7u);
         }
     } g_MMLightingTableInit;

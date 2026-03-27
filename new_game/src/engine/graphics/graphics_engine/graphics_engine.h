@@ -67,27 +67,42 @@ enum class GEPrimitiveType {
 };
 
 // Pre-transformed, pre-lit vertex (screen space). Replaces D3DTLVERTEX.
+// Union aliases (dvSX, dcColor, etc.) provided for compatibility with legacy code.
 struct GEVertexTL {
-    float x, y, z, rhw;
-    uint32_t color;
-    uint32_t specular;
-    float u, v;
+    union { float x;  float sx;  float dvSX; };
+    union { float y;  float sy;  float dvSY; };
+    union { float z;  float sz;  float dvSZ; };
+    union { float rhw; float dvRHW; };
+    union { uint32_t color; uint32_t dcColor; };
+    union { uint32_t specular; uint32_t dcSpecular; };
+    union { float u;  float tu;  float dvTU; };
+    union { float v;  float tv;  float dvTV; };
 };
 
 // Lit vertex (world space, pre-lit). Replaces D3DLVERTEX.
+// Union aliases (dvX, dcColor, etc.) provided for compatibility with legacy code.
 struct GEVertexLit {
-    float x, y, z;
-    uint32_t _reserved; // padding to match D3DLVERTEX layout
-    uint32_t color;
-    uint32_t specular;
-    float u, v;
+    union { float x;  float dvX; };
+    union { float y;  float dvY; };
+    union { float z;  float dvZ; };
+    union { uint32_t _reserved; uint32_t dwReserved; }; // padding to match D3DLVERTEX layout
+    union { uint32_t color; uint32_t dcColor; };
+    union { uint32_t specular; uint32_t dcSpecular; };
+    union { float u;  float tu;  float dvTU; };
+    union { float v;  float tv;  float dvTV; };
 };
 
 // Unlit vertex (world space). Replaces D3DVERTEX.
+// Union aliases (dvX, dvNX, etc.) provided for compatibility with legacy code.
 struct GEVertex {
-    float x, y, z;
-    float nx, ny, nz;
-    float u, v;
+    union { float x;  float dvX; };
+    union { float y;  float dvY; };
+    union { float z;  float dvZ; };
+    union { float nx; float dvNX; };
+    union { float ny; float dvNY; };
+    union { float nz; float dvNZ; };
+    union { float u;  float dvTU; };
+    union { float v;  float dvTV; };
 };
 
 // ---------------------------------------------------------------------------
@@ -152,8 +167,17 @@ void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts
 // ---------------------------------------------------------------------------
 
 // 4x4 matrix in row-major order (same layout as D3DMATRIX).
+// Named member aliases (_11.._44) provided for compatibility with legacy code.
 struct GEMatrix {
-    float m[4][4];
+    union {
+        float m[4][4];
+        struct {
+            float _11, _12, _13, _14;
+            float _21, _22, _23, _24;
+            float _31, _32, _33, _34;
+            float _41, _42, _43, _44;
+        };
+    };
 };
 
 enum class GETransform {

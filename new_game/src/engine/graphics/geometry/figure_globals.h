@@ -3,6 +3,7 @@
 
 #include <ddraw.h>
 #include <d3d.h>
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "game/game.h"
 #include "buildings/prim_types.h"  // MAX_PRIM_OBJECTS, TomsPrimObject, Matrix33 (via fmatrix.h)
 #include "engine/animation/anim_types.h"  // BodyDef, GameKeyFrameElement, CMatrix33, etc.
@@ -83,7 +84,7 @@ extern DWORD m_dwSizeOfQueue;
 // and FIGURE_TPO_finish_3d_object across compilation chunks.
 
 // uc_orig: TPO_pVert (fallen/DDEngine/Source/figure.cpp)
-extern D3DVERTEX* TPO_pVert;
+extern GEVertex* TPO_pVert;
 // uc_orig: TPO_pStripIndices (fallen/DDEngine/Source/figure.cpp)
 extern UWORD* TPO_pStripIndices;
 // uc_orig: TPO_pListIndices (fallen/DDEngine/Source/figure.cpp)
@@ -93,7 +94,7 @@ extern int* TPO_piVertexRemap;
 // uc_orig: TPO_piVertexLinks (fallen/DDEngine/Source/figure.cpp)
 extern int* TPO_piVertexLinks;
 // uc_orig: TPO_pCurVertex (fallen/DDEngine/Source/figure.cpp)
-extern D3DVERTEX* TPO_pCurVertex;
+extern GEVertex* TPO_pCurVertex;
 // uc_orig: TPO_pCurStripIndex (fallen/DDEngine/Source/figure.cpp)
 extern UWORD* TPO_pCurStripIndex;
 // uc_orig: TPO_pCurListIndex (fallen/DDEngine/Source/figure.cpp)
@@ -138,12 +139,12 @@ extern D3DCOLOR* MM_pcFadeTable;
 extern D3DCOLOR* MM_pcFadeTableTint;
 
 // uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
-// One D3DMATRIX slot for the MultiMatrix draw extension.
-extern D3DMATRIX* MM_pMatrix;
+// One GEMatrix slot for the MultiMatrix draw extension.
+extern GEMatrix* MM_pMatrix;
 
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
-// Scratch D3DVERTEX array for MultiMatrix vertex submission.
-extern D3DVERTEX* MM_Vertex;
+// Scratch GEVertex array for MultiMatrix vertex submission.
+extern GEVertex* MM_Vertex;
 
 // uc_orig: MM_pNormal (fallen/DDEngine/Source/figure.cpp)
 // Light direction in object space (4 floats: padding + x + y + z).
@@ -251,9 +252,9 @@ extern ULONG leg_col;
 #define MAX_NUM_BODY_PARTS_AT_ONCE 20
 
 // uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
-// Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE D3DMATRIX objects.
+// Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE GEMatrix objects.
 // Initialised at startup by MMBodyPartsInit. Passed as lpd3dMatrices in D3DMULTIMATRIX.
-extern D3DMATRIX* MMBodyParts_pMatrix;
+extern GEMatrix* MMBodyParts_pMatrix;
 
 // uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
 // Pointer to aligned float storage for MAX_NUM_BODY_PARTS_AT_ONCE * 4 light direction floats.

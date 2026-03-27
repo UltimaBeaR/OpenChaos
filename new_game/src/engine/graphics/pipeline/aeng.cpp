@@ -1837,7 +1837,7 @@ void AENG_draw_dirt()
 
     float matrix[9];
     PolyPage* pp;
-    D3DLVERTEX* lv;
+    GEVertexLit* lv;
     ULONG rubbish_colour;
 
     ULONG leaf_colour_choice_rgb[4] = {
@@ -1891,8 +1891,8 @@ void AENG_draw_dirt()
     AENG_dirt_lvert_upto = 0;
     AENG_dirt_index_upto = 0;
 
-    AENG_dirt_lvert = (D3DLVERTEX*)((SLONG(AENG_dirt_lvert_buffer) + 31) & ~0x1f);
-    AENG_dirt_matrix = (D3DMATRIX*)((SLONG(AENG_dirt_matrix_buffer) + 31) & ~0x1f);
+    AENG_dirt_lvert = (GEVertexLit*)((SLONG(AENG_dirt_lvert_buffer) + 31) & ~0x1f);
+    AENG_dirt_matrix = (GEMatrix*)((SLONG(AENG_dirt_matrix_buffer) + 31) & ~0x1f);
 
     DIRT_Dirt* dd;
 
@@ -3071,9 +3071,9 @@ void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx)
 }
 
 // uc_orig: add_kerb (fallen/DDEngine/Source/aeng.cpp)
-// Emits four vertices for one kerb strip quad into the D3DLVERTEX buffer, with
+// Emits four vertices for one kerb strip quad into the GEVertexLit buffer, with
 // camera-distance Z-rejection. Returns UC_TRUE if the quad was added.
-SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, D3DLVERTEX* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip)
+SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEVertexLit* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip)
 {
     pv->x = x * 256.0F;
     pv->z = z * 256.0F;
@@ -3200,7 +3200,7 @@ SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, D3D
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
 // Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
+void draw_i_prim(LPDIRECT3DTEXTURE2 page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
 {
     HRESULT res;
 
@@ -3309,10 +3309,10 @@ void draw_quick_floor(SLONG warehouse)
 
     UWORD* p_indicies;
 
-    D3DMATRIX* m_view;
-    D3DLVERTEX *p_verts[IPRIM_COUNT], *pv, *kerb_verts;
+    GEMatrix* m_view;
+    GEVertexLit *p_verts[IPRIM_COUNT], *pv, *kerb_verts;
 
-    UBYTE some_data[sizeof(D3DMATRIX) + 32]; // 32-byte alignment staging buffer
+    UBYTE some_data[sizeof(GEMatrix) + 32]; // 32-byte alignment staging buffer
     UBYTE* ptr32;
 
     SLONG index_count[IPRIM_COUNT], vert_count[IPRIM_COUNT], age[IPRIM_COUNT], kerb_counti = 0, kerb_countv = 0;
@@ -3348,20 +3348,20 @@ void draw_quick_floor(SLONG warehouse)
     }
 
     ptr32 = (UBYTE*)(((ULONG)(some_data + 32)) & 0xffffffe0);
-    m_view = (D3DMATRIX*)ptr32;
+    m_view = (GEMatrix*)ptr32;
 
-    mm_draw_floor.lpd3dMatrices = m_view;
+    mm_draw_floor.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(m_view);
     mm_draw_floor.lpvLightDirs = NULL;
     mm_draw_floor.lpLightTable = NULL;
 
     ptr32 = (UBYTE*)(((ULONG)(m_vert_mem_block32 + 32)) & 0xffffffe0);
 
-    kerb_verts = (D3DLVERTEX*)ptr32;
-    ptr32 += sizeof(D3DLVERTEX) * KERB_VERTS;
+    kerb_verts = (GEVertexLit*)ptr32;
+    ptr32 += sizeof(GEVertexLit) * KERB_VERTS;
 
     for (c0 = 0; c0 < IPRIM_COUNT; c0++) {
-        p_verts[c0] = (D3DLVERTEX*)ptr32;
-        ptr32 += sizeof(D3DLVERTEX) * MAX_VERTS_FOR_STRIPS;
+        p_verts[c0] = (GEVertexLit*)ptr32;
+        ptr32 += sizeof(GEVertexLit) * MAX_VERTS_FOR_STRIPS;
         index_count[c0] = 0;
         vert_count[c0] = 0;
         age[c0] = 0x7fff;

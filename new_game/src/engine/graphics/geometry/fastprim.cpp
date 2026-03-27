@@ -31,8 +31,8 @@ void FASTPRIM_init()
 {
     FASTPRIM_lvert_max = 4096;
 
-    FASTPRIM_lvert_buffer = (D3DLVERTEX*)MemAlloc(sizeof(D3DLVERTEX) * FASTPRIM_lvert_max + 31);
-    FASTPRIM_lvert = (D3DLVERTEX*)((((SLONG)FASTPRIM_lvert_buffer) + 31) & ~0x1f);
+    FASTPRIM_lvert_buffer = (GEVertexLit*)MemAlloc(sizeof(GEVertexLit) * FASTPRIM_lvert_max + 31);
+    FASTPRIM_lvert = (GEVertexLit*)((((SLONG)FASTPRIM_lvert_buffer) + 31) & ~0x1f);
     FASTPRIM_lvert_upto = 0;
     FASTPRIM_lvert_free_end = FASTPRIM_lvert_max;
     FASTPRIM_lvert_free_unused = FASTPRIM_lvert_max;
@@ -48,13 +48,13 @@ void FASTPRIM_init()
     FASTPRIM_queue_start = 0;
     FASTPRIM_queue_end = 0;
 
-    memset(FASTPRIM_lvert, 0, sizeof(D3DLVERTEX) * FASTPRIM_lvert_max);
+    memset(FASTPRIM_lvert, 0, sizeof(GEVertexLit) * FASTPRIM_lvert_max);
     memset(FASTPRIM_index, 0, sizeof(UWORD) * FASTPRIM_index_max);
     memset(FASTPRIM_call, 0, sizeof(FASTPRIM_call));
     memset(FASTPRIM_prim, 0, sizeof(FASTPRIM_prim));
     memset(FASTPRIM_queue, 0, sizeof(FASTPRIM_queue));
 
-    FASTPRIM_matrix = (D3DMATRIX*)((SLONG(FASTPRIM_matrix_buffer) + 31) & ~0x1f);
+    FASTPRIM_matrix = (GEMatrix*)((SLONG(FASTPRIM_matrix_buffer) + 31) & ~0x1f);
 
     // Car wheels have rotating texture coordinates and cannot be cached.
     FASTPRIM_prim[PRIM_OBJ_CAR_WHEEL].flag = FASTPRIM_PRIM_FLAG_INVALID;
@@ -125,7 +125,7 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
 
         if (FASTPRIM_index_upto + 16 < FASTPRIM_index_free_end && FASTPRIM_lvert_upto + 16 < FASTPRIM_lvert_free_end) {
             if (copy_to_beginning) {
-                memcpy(FASTPRIM_lvert, FASTPRIM_lvert + fc->lvert, sizeof(D3DLVERTEX) * fc->lvertcount);
+                memcpy(FASTPRIM_lvert, FASTPRIM_lvert + fc->lvert, sizeof(GEVertexLit) * fc->lvertcount);
                 memcpy(FASTPRIM_index, FASTPRIM_index + fc->index, sizeof(UWORD) * fc->indexcount);
 
                 FASTPRIM_lvert_free_unused = fc->lvert;
@@ -192,7 +192,7 @@ UWORD FASTPRIM_add_point_to_call(
 {
     SLONG i;
 
-    D3DLVERTEX* lv;
+    GEVertexLit* lv;
 
     for (i = fc->lvertcount - 1; i >= 0; i--) {
         ASSERT(WITHIN(fc->lvert + i, 0, FASTPRIM_lvert_max - 1));
@@ -739,7 +739,7 @@ SLONG FASTPRIM_draw(
             extern float AENG_cam_pitch;
             extern float AENG_cam_roll;
 
-            D3DLVERTEX* lv;
+            GEVertexLit* lv;
 
             MATRIX_calc(cam_matrix, AENG_cam_yaw, AENG_cam_pitch, AENG_cam_roll);
             MATRIX_3x3mul(comb, cam_matrix, matrix);
@@ -777,7 +777,7 @@ SLONG FASTPRIM_draw(
 
             default_colour &= MESH_colour_and;
 
-            D3DLVERTEX* lv;
+            GEVertexLit* lv;
 
             for (j = 0; j < fc->lvertcount; j++) {
                 ASSERT(WITHIN(fc->lvert + j, 0, FASTPRIM_lvert_max - 1));
@@ -790,7 +790,7 @@ SLONG FASTPRIM_draw(
         } else if (fc->type == FASTPRIM_CALL_TYPE_NORMAL) {
             if (lpc) {
                 // Relight each vertex from the cached per-point light colours.
-                D3DLVERTEX* lv;
+                GEVertexLit* lv;
 
                 for (j = 0; j < fc->lvertcount; j++) {
                     ASSERT(WITHIN(fc->lvert + j, 0, FASTPRIM_lvert_max - 1));
@@ -799,8 +799,8 @@ SLONG FASTPRIM_draw(
 
                     NIGHT_get_d3d_colour(
                         lpc[lv->dwReserved >> 16],
-                        &lv->color,
-                        &lv->specular);
+                        reinterpret_cast<ULONG*>(&lv->color),
+                        reinterpret_cast<ULONG*>(&lv->specular));
                 }
             } else {
                 // Relight all vertices to the local ambient.
@@ -812,7 +812,7 @@ SLONG FASTPRIM_draw(
                     &default_colour,
                     &default_specular);
 
-                D3DLVERTEX* lv;
+                GEVertexLit* lv;
 
                 for (j = 0; j < fc->lvertcount; j++) {
                     ASSERT(WITHIN(fc->lvert + j, 0, FASTPRIM_lvert_max - 1));
@@ -848,7 +848,7 @@ SLONG FASTPRIM_draw(
             // DrawIndPrimMM path for opaque/colour-and prims (Tom's custom batch call).
             D3DMULTIMATRIX d3dmm = {
                 FASTPRIM_lvert + fc->lvert,
-                FASTPRIM_matrix,
+                reinterpret_cast<LPD3DMATRIX>(FASTPRIM_matrix),
                 NULL,
                 NULL
             };

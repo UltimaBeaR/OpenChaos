@@ -155,16 +155,16 @@ extern PolyPage POLY_Page[];
 // uc_orig: GenerateMMMatrixFromStandardD3DOnes (fallen/DDEngine/Headers/polypage.h)
 // Builds a multi-matrix transform from standard D3D camera matrices.
 // If mWorldMatrix is NULL, uses the current POLY_cam_* globals.
-extern void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* mOutput,
-    const D3DMATRIX* mProjectionMatrix,
-    const D3DMATRIX* mWorldMatrix,
+extern void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* mOutput,
+    const GEMatrix* mProjectionMatrix,
+    const GEMatrix* mWorldMatrix,
     const D3DVIEWPORT2* d3dvpt);
 
 // Camera matrix globals maintained by the poly system (defined in poly.cpp).
 // uc_orig: g_matProjection (fallen/DDEngine/Headers/polypage.h)
-extern D3DMATRIX g_matProjection;
+extern GEMatrix g_matProjection;
 // uc_orig: g_matWorld (fallen/DDEngine/Headers/polypage.h)
-extern D3DMATRIX g_matWorld;
+extern GEMatrix g_matWorld;
 // uc_orig: g_viewData (fallen/DDEngine/Headers/polypage.h)
 extern D3DVIEWPORT2 g_viewData;
 

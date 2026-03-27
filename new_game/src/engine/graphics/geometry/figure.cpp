@@ -1076,7 +1076,7 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     ASSERT(TPO_iNumVertices == 0);
     ASSERT(TPO_iNumPrims == 0);
 
-    TPO_pVert = (D3DVERTEX*)MemAlloc(MAX_VERTS * sizeof(D3DVERTEX));
+    TPO_pVert = (GEVertex*)MemAlloc(MAX_VERTS * sizeof(GEVertex));
     ASSERT(TPO_pVert != NULL);
     if (TPO_pVert == NULL) {
         DeadAndBuried(0xf800f800);
@@ -1249,7 +1249,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                     pMaterial->wNumVertices = 0;
                     pMaterial->wTexturePage = wTexturePage;
 
-                    D3DVERTEX* pFirstVertex = TPO_pCurVertex;
+                    GEVertex* pFirstVertex = TPO_pCurVertex;
 
                     WORD* pFirstListIndex = TPO_pCurListIndex;
                     WORD* pFirstStripIndex = TPO_pCurStripIndex;
@@ -1349,7 +1349,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                     for (int i = 0; i < iVerts; i++) {
                                         const float fNormScale = 1.0f / 256.0f;
 
-                                        D3DVERTEX d3dvert;
+                                        GEVertex d3dvert;
 
                                         int pt;
                                         if (bInnerTris) {
@@ -1595,7 +1595,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
     // The extra 4 WORDs at the end prevent a page fault from the MM driver reading past the end.
     DWORD dwTotalSize = 0;
     dwTotalSize += TPO_iNumListIndices * sizeof(UWORD);
-    dwTotalSize += 32 + TPO_iNumVertices * sizeof(D3DVERTEX);
+    dwTotalSize += 32 + TPO_iNumVertices * sizeof(GEVertex);
     dwTotalSize += TPO_iNumStripIndices * sizeof(UWORD);
     dwTotalSize += 4 * sizeof(WORD);
 
@@ -1611,8 +1611,8 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
 
     // Align vertices to 32-byte cache lines for the MM extension.
     pPrimObj->pD3DVertices = (void*)(((DWORD)pcBlock + 31) & ~31);
-    memcpy(pPrimObj->pD3DVertices, TPO_pVert, TPO_iNumVertices * sizeof(D3DVERTEX));
-    pcBlock = (char*)pPrimObj->pD3DVertices + TPO_iNumVertices * sizeof(D3DVERTEX);
+    memcpy(pPrimObj->pD3DVertices, TPO_pVert, TPO_iNumVertices * sizeof(GEVertex));
+    pcBlock = (char*)pPrimObj->pD3DVertices + TPO_iNumVertices * sizeof(GEVertex);
 
     pPrimObj->pwStripIndices = (UWORD*)pcBlock;
     memcpy(pPrimObj->pwStripIndices, TPO_pStripIndices, TPO_iNumStripIndices * sizeof(UWORD));
@@ -2016,11 +2016,11 @@ no_muzzle_calcs:
         extern float POLY_cam_off_y;
         extern float POLY_cam_off_z;
 
-        extern D3DMATRIX g_matProjection;
-        extern D3DMATRIX g_matWorld;
+        extern GEMatrix g_matProjection;
+        extern GEMatrix g_matWorld;
         extern D3DVIEWPORT2 g_viewData;
 
-        D3DMATRIX matTemp;
+        GEMatrix matTemp;
 
         {
             matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
@@ -2106,10 +2106,10 @@ no_muzzle_calcs:
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
     D3DMULTIMATRIX d3dmm;
-    d3dmm.lpd3dMatrices = MM_pMatrix;
+    d3dmm.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(MM_pMatrix);
     d3dmm.lpvLightDirs = MM_pNormal;
 
-    D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
+    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
         UWORD wPage = pMat->wTexturePage;
@@ -2126,7 +2126,7 @@ no_muzzle_calcs:
             }
         }
 
-        extern D3DMATRIX g_matWorld;
+        extern GEMatrix g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
@@ -2723,10 +2723,10 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
     D3DMULTIMATRIX d3dmm;
-    d3dmm.lpd3dMatrices = MMBodyParts_pMatrix;
+    d3dmm.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(MMBodyParts_pMatrix);
     d3dmm.lpvLightDirs = MMBodyParts_pNormal;
 
-    D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
+    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
 
@@ -2744,7 +2744,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
         }
 
-        extern D3DMATRIX g_matWorld;
+        extern GEMatrix g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         {
@@ -3871,11 +3871,11 @@ no_muzzle_calcs:
         extern float POLY_cam_off_y;
         extern float POLY_cam_off_z;
 
-        extern D3DMATRIX g_matProjection;
-        extern D3DMATRIX g_matWorld;
+        extern GEMatrix g_matProjection;
+        extern GEMatrix g_matWorld;
         extern D3DVIEWPORT2 g_viewData;
 
-        D3DMATRIX matTemp;
+        GEMatrix matTemp;
 
         matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
         matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
@@ -3905,7 +3905,7 @@ no_muzzle_calcs:
         DWORD dwY = g_dw3DStuffY;
 
         // Set up the bone transform matrix in screen-space projection form.
-        D3DMATRIX* pmat = &(MMBodyParts_pMatrix[iMatrixNum]);
+        GEMatrix* pmat = &(MMBodyParts_pMatrix[iMatrixNum]);
         pmat->_11 = 0.0f;
         pmat->_12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
         pmat->_13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
@@ -4242,11 +4242,11 @@ no_muzzle_calcs:
         extern float POLY_cam_off_y;
         extern float POLY_cam_off_z;
 
-        extern D3DMATRIX g_matProjection;
-        extern D3DMATRIX g_matWorld;
+        extern GEMatrix g_matProjection;
+        extern GEMatrix g_matWorld;
         extern D3DVIEWPORT2 g_viewData;
 
-        D3DMATRIX matTemp;
+        GEMatrix matTemp;
 
         matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
         matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
@@ -4330,10 +4330,10 @@ no_muzzle_calcs:
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
     D3DMULTIMATRIX d3dmm;
-    d3dmm.lpd3dMatrices = MM_pMatrix;
+    d3dmm.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(MM_pMatrix);
     d3dmm.lpvLightDirs = MM_pNormal;
 
-    D3DVERTEX* pVertex = (D3DVERTEX*)pPrimObj->pD3DVertices;
+    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
         UWORD wPage = pMat->wTexturePage;
@@ -4350,7 +4350,7 @@ no_muzzle_calcs:
             }
         }
 
-        extern D3DMATRIX g_matWorld;
+        extern GEMatrix g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));

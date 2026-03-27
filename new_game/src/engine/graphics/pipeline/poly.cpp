@@ -260,7 +260,7 @@ void POLY_camera_set(
         POLY_cam_over_view_dist);
 
     // View matrix is identity — all transforms are concatenated into the world matrix.
-    D3DMATRIX matTemp;
+    GEMatrix matTemp;
     matTemp._11 = 1.0f;
     matTemp._21 = 0.0f;
     matTemp._31 = 0.0f;

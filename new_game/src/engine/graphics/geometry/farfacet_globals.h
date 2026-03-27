@@ -3,7 +3,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // D3DLVERTEX, D3DMATRIX
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEVertexLit, GEMatrix
 #include "engine/core/types.h"
 #include "engine/graphics/graphics_engine/d3d/render_state.h"
 #include "map/pap.h"
@@ -25,9 +25,9 @@ typedef struct
 } FARFACET_Square;
 
 // uc_orig: FARFACET_lvert_buffer (fallen/DDEngine/Source/farfacet.cpp)
-extern D3DLVERTEX* FARFACET_lvert_buffer;
+extern GEVertexLit* FARFACET_lvert_buffer;
 // uc_orig: FARFACET_lvert (fallen/DDEngine/Source/farfacet.cpp)
-extern D3DLVERTEX* FARFACET_lvert;
+extern GEVertexLit* FARFACET_lvert;
 // uc_orig: FARFACET_lvert_max (fallen/DDEngine/Source/farfacet.cpp)
 extern SLONG FARFACET_lvert_max;
 // uc_orig: FARFACET_lvert_upto (fallen/DDEngine/Source/farfacet.cpp)
@@ -49,9 +49,9 @@ extern RenderState FARFACET_renderstate;
 extern RenderState FARFACET_default_renderstate;
 
 // uc_orig: FARFACET_matrix_buffer (fallen/DDEngine/Source/farfacet.cpp)
-extern UBYTE FARFACET_matrix_buffer[sizeof(D3DMATRIX) + 32];
+extern UBYTE FARFACET_matrix_buffer[sizeof(GEMatrix) + 32];
 // uc_orig: FARFACET_matrix (fallen/DDEngine/Source/farfacet.cpp)
-extern D3DMATRIX* FARFACET_matrix;
+extern GEMatrix* FARFACET_matrix;
 
 // uc_orig: FARFACET_num_squares_drawn (fallen/DDEngine/Source/farfacet.cpp)
 extern SLONG FARFACET_num_squares_drawn;

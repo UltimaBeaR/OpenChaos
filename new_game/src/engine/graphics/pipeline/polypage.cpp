@@ -65,7 +65,7 @@ PolyPage::PolyPage(ULONG logsize)
     m_VOffset = 0;
     pTheRealPolyPage = this;
 
-    ASSERT(sizeof(PolyPoint2D) == sizeof(D3DTLVERTEX));
+    ASSERT(sizeof(PolyPoint2D) == sizeof(GEVertexTL));
 }
 
 // uc_orig: ~PolyPage (fallen/DDEngine/Source/polypage.cpp)
@@ -226,7 +226,7 @@ void PolyPage::MassageVertices()
 
     if (RS.GetEffect()) {
         ULONG ii;
-        D3DTLVERTEX* vptr = m_VertexBuffer->GetPtr();
+        GEVertexTL* vptr = reinterpret_cast<GEVertexTL*>(m_VertexBuffer->GetPtr());
 
         switch (RS.GetEffect()) {
         case RS_AlphaPremult:
@@ -471,14 +471,14 @@ void PolyPage::MergeSortIteration(ULONG sort_len)
 // uc_orig: GenerateMMMatrixFromStandardD3DOnes (fallen/DDEngine/Source/polypage.cpp)
 // Builds a combined world-view-projection matrix usable by DrawIndPrimMM.
 // Accounts for the letterbox rendering mode via g_dw3DStuffHeight/g_dw3DStuffY.
-void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
-    const D3DMATRIX* mProjectionMatrix,
-    const D3DMATRIX* mWorldMatrix,
+void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
+    const GEMatrix* mProjectionMatrix,
+    const GEMatrix* mWorldMatrix,
     const D3DVIEWPORT2* d3dvpt)
 {
     ASSERT(((DWORD)(pmOutput) & 31) == 0);
 
-    D3DMATRIX mMyPrivateWorld;
+    GEMatrix mMyPrivateWorld;
     if (mWorldMatrix == NULL) {
         float POLY_cam_off_x = -POLY_cam_x;
         float POLY_cam_off_y = -POLY_cam_y;
@@ -509,7 +509,7 @@ void GenerateMMMatrixFromStandardD3DOnes(D3DMATRIX* pmOutput,
         mWorldMatrix = &mMyPrivateWorld;
     }
 
-    D3DMATRIX matTemp;
+    GEMatrix matTemp;
     {
         matTemp._11 = mWorldMatrix->_11 * mProjectionMatrix->_11 + mWorldMatrix->_12 * mProjectionMatrix->_21 + mWorldMatrix->_13 * mProjectionMatrix->_31 + mWorldMatrix->_14 * mProjectionMatrix->_41;
         matTemp._12 = mWorldMatrix->_11 * mProjectionMatrix->_12 + mWorldMatrix->_12 * mProjectionMatrix->_22 + mWorldMatrix->_13 * mProjectionMatrix->_32 + mWorldMatrix->_14 * mProjectionMatrix->_42;
@@ -574,8 +574,8 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
 
     ASSERT((dwFVFType == D3DFVF_LVERTEX) || (dwFVFType == D3DFVF_VERTEX));
 
-    D3DTLVERTEX pTLVert[3];
-    D3DLVERTEX* pLVert = (D3DLVERTEX*)d3dmm->lpvVertices;
+    GEVertexTL pTLVert[3];
+    GEVertexLit* pLVert = (GEVertexLit*)d3dmm->lpvVertices;
 
     WORD* pwCurIndex = pwIndices;
     while (UC_TRUE) {
@@ -600,11 +600,11 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
             for (int i = 0; i < 3; i++) {
                 WORD wVertIndex = wIndex[i];
                 ASSERT(wVertIndex < wNumVertices);
-                D3DLVERTEX* pLVertCur = pLVert + wVertIndex;
+                GEVertexLit* pLVertCur = pLVert + wVertIndex;
 
                 BYTE bMatIndex = ((unsigned char*)(pLVertCur))[12];
 
-                D3DMATRIX* pmCur = &(d3dmm->lpd3dMatrices[bMatIndex]);
+                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(d3dmm->lpd3dMatrices[bMatIndex]));
                 ASSERT(*((DWORD*)(&(pmCur->_41))) == 0xe0001000);
 
                 pTLVert[i].dvSX = pLVertCur->dvX * pmCur->_12 + pLVertCur->dvY * pmCur->_22 + pLVertCur->dvZ * pmCur->_32 + pmCur->_42;

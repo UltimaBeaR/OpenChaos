@@ -114,7 +114,7 @@ PolyPage POLY_Page[POLY_NUM_PAGES];
 
 // D3D matrices.
 // uc_orig: g_matProjection (fallen/DDEngine/Source/poly.cpp)
-D3DMATRIX g_matProjection;
+GEMatrix g_matProjection;
 // uc_orig: g_viewData (fallen/DDEngine/Source/poly.cpp)
 D3DVIEWPORT2 g_viewData;
 // uc_orig: g_dw3DStuffHeight (fallen/DDEngine/Source/poly.cpp)
@@ -122,7 +122,7 @@ DWORD g_dw3DStuffHeight;
 // uc_orig: g_dw3DStuffY (fallen/DDEngine/Source/poly.cpp)
 DWORD g_dw3DStuffY;
 // uc_orig: g_matWorld (fallen/DDEngine/Source/poly.cpp)
-D3DMATRIX g_matWorld;
+GEMatrix g_matWorld;
 
 // 2D clip box for POLY_clip_line_add.
 // uc_orig: POLY_clip_left (fallen/DDEngine/Source/poly.cpp)

@@ -3,7 +3,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // D3DLVERTEX, D3DMATRIX, LPDIRECT3DTEXTURE2
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEVertexLit, GEMatrix, LPDIRECT3DTEXTURE2
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/lighting/night.h"
@@ -52,7 +52,7 @@ extern SLONG SUPERFACET_max_lverts;
 // uc_orig: SUPERFACET_lvert_buffer (fallen/DDEngine/Source/superfacet.cpp)
 extern UBYTE* SUPERFACET_lvert_buffer;
 // uc_orig: SUPERFACET_lvert (fallen/DDEngine/Source/superfacet.cpp)
-extern D3DLVERTEX* SUPERFACET_lvert;
+extern GEVertexLit* SUPERFACET_lvert;
 // uc_orig: SUPERFACET_lvert_upto (fallen/DDEngine/Source/superfacet.cpp)
 extern SLONG SUPERFACET_lvert_upto;
 
@@ -86,9 +86,9 @@ extern SLONG SUPERFACET_queue_start;
 extern SLONG SUPERFACET_queue_end;
 
 // uc_orig: SUPERFACET_matrix_buffer (fallen/DDEngine/Source/superfacet.cpp)
-extern UBYTE SUPERFACET_matrix_buffer[sizeof(D3DMATRIX) + 32];
+extern UBYTE SUPERFACET_matrix_buffer[sizeof(GEMatrix) + 32];
 // uc_orig: SUPERFACET_matrix (fallen/DDEngine/Source/superfacet.cpp)
-extern D3DMATRIX* SUPERFACET_matrix;
+extern GEMatrix* SUPERFACET_matrix;
 
 // uc_orig: SUPERFACET_direction_matrix (fallen/DDEngine/Source/superfacet.cpp)
 extern float SUPERFACET_direction_matrix[4][9];
