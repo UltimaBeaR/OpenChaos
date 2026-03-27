@@ -449,6 +449,24 @@ REALLY_SET_TEXTURE → ge_bind_texture(TextureHandle).
 Проверка: вне graphics_api/ и graphics_engine/ эти макросы не используются (outro отключен).
 Сборка: 308/308, линковка ОК.
 
+### 2d) Замена REALLY_SET_RENDER_STATE → ge_set_* (частично) ✅
+
+Заменены блоки render state настройки в трёх файлах:
+
+- `truetype.cpp:551-558` → ge_set_texture_filter, ge_set_texture_blend, ge_set_depth_mode, ge_set_blend_mode
+  (8 D3D вызовов → 4 ge_ вызова, семантически сгруппированы)
+- `aeng.cpp:2895-2903` → ge_set_texture_blend, ge_set_depth_mode, ge_set_blend_mode
+  (7 D3D вызовов → 3-4 ge_ вызова)
+- `poly.cpp:1934-1937` → ge_set_blend_mode(Additive), ge_set_depth_bias(2)
+  (4 D3D вызова → 2 ge_ вызова)
+
+Добавлено в контракт: `ge_set_depth_bias(int32_t bias)` для D3DRENDERSTATE_ZBIAS.
+
+Оставлено на потом: poly.cpp debug render path (FORCE_SET_RENDER_STATE) — интеграция с render state cache (RenderState::s_State), нужен отдельный подход.
+
+Остаток REALLY_SET_RENDER_STATE вне бэкенда: 2 вхождения в poly.cpp (debug path).
+Сборка: 308/308, линковка ОК.
+
 ---
 
 ## План работы

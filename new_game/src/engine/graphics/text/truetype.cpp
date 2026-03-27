@@ -548,14 +548,10 @@ static void BlitText()
                 // Fixme! I need to be updated if this ever gets called - TomF.
                 ASSERT(UC_FALSE);
 
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                ge_set_texture_filter(GETextureFilter::Nearest, GETextureFilter::Nearest);
+                ge_set_texture_blend(GETextureBlend::ModulateAlpha);
+                ge_set_depth_mode(GEDepthMode::Off);
+                ge_set_blend_mode(GEBlendMode::Alpha);
             }
             if (ctex != cptr->texture) {
                 ctex = cptr->texture;

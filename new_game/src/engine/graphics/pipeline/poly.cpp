@@ -1931,10 +1931,8 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 pa->RS.SetChanged();
 
                 if (POLY_force_additive_alpha) {
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, 2);
+                    ge_set_blend_mode(GEBlendMode::Additive);
+                    ge_set_depth_bias(2);
                 }
                 /*
                                                 if(INDOORS_INDEX)

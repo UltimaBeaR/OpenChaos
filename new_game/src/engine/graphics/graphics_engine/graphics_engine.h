@@ -120,6 +120,7 @@ void ge_set_cull_mode(GECullMode mode);
 void ge_set_texture_filter(GETextureFilter mag, GETextureFilter min);
 void ge_set_texture_blend(GETextureBlend mode);
 void ge_set_texture_address(GETextureAddress mode);
+void ge_set_depth_bias(int32_t bias);
 void ge_set_fog_enabled(bool enabled);
 void ge_set_specular_enabled(bool enabled);
 void ge_set_perspective_correction(bool enabled);

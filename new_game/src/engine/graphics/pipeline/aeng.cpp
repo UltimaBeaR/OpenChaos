@@ -2892,15 +2892,12 @@ float AENG_draw_some_polys(bool large, bool blend)
 
     ge_begin_scene();
 
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+    ge_set_texture_blend(GETextureBlend::Modulate);
+    ge_set_depth_mode(GEDepthMode::Off);
     if (blend) {
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+        ge_set_blend_mode(GEBlendMode::Alpha);
     } else {
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
+        ge_set_blend_mode(GEBlendMode::Opaque);
     }
 
     if (large) {

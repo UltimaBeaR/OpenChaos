@@ -157,6 +157,11 @@ void ge_set_texture_address(GETextureAddress mode)
         mode == GETextureAddress::Wrap ? D3DTADDRESS_WRAP : D3DTADDRESS_CLAMP);
 }
 
+void ge_set_depth_bias(int32_t bias)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, bias);
+}
+
 void ge_set_fog_enabled(bool enabled)
 {
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, enabled ? TRUE : FALSE);
