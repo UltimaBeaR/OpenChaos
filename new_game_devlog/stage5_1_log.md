@@ -632,3 +632,63 @@ miniaudio вручную в нашем CMakeLists.txt. Vendored код не мо
 
 `gamepad_log.txt` — пишется в папку игры, только в Debug (`#ifdef _DEBUG`).
 Append-режим, логирует: init, ds_disconnected, ds_hotplug, sdl3_connected, sdl3_disconnected.
+
+---
+
+## B1 (input через DS-lib) — сделан в рамках B0
+
+Input через GamepadCore работает — проверено вручную с DualSense.
+`ds_bridge.cpp` читает `FInputContext` из DS-lib, маппит в `GamepadState` (те же индексы
+что и SDL3 path). Отдельного шага не потребовалось.
+
+## B4 (вибрация через DS-lib) — сделан в рамках B0
+
+`gamepad_rumble_tick()` при `s_is_dualsense` вызывает `ds_set_vibration()` + `ds_update_output()`.
+PS1-style decay (fast >>= 1, slow * 7 >> 3) работает. Проверено вручную.
+
+---
+
+## B2 — LED lightbar
+
+### Что сделано
+
+DualSense lightbar отображает состояние игры:
+- **Здоровье** — цвет меняется по уровню HP
+- **Сирена** — красно-синяя мигалка при включённой сирене в полицейской машине
+- **Меню/пауза** — синий дефолт
+
+### Логика цвета (здоровье)
+
+- 75-100%: зелёный
+- 50-75%: градиент зелёный → жёлтый
+- 25-50%: градиент жёлтый → оранжевый/красный
+- <25%: красный мигающий (~0.5 сек toggle)
+
+В машине — здоровье машины (макс 300), пешком — здоровье персонажа (макс 200, Roper 400).
+
+### Сирена
+
+При включённой сирене (`Vehicle->Siren`) — быстрое чередование красный/синий (~7.5 Гц).
+Приоритет над цветом здоровья.
+
+### LED state management
+
+- `gamepad_led_update(fraction, siren)` — вызывается каждый кадр из game loop
+- `gamepad_led_reset()` — сброс в синий дефолт
+- Синий дефолт при: init, hotplug, game_fini (смерть/рестарт/выход), пауза
+- При выходе из паузы → обратно цвет по HP
+
+### Баг: вибрация не останавливалась на DualSense
+
+DS-lib `SetVibration()` не имеет auto-timeout (в отличие от SDL3 `RumbleGamepad(duration_ms)`).
+Когда моторы затухали до 0, `gamepad_rumble_tick()` делал early return без отправки
+финального 0,0 → DualSense продолжал вибрировать.
+
+**Фикс:** отслеживание `s_was_active` — при переходе из active в inactive отправляется
+`ds_set_vibration(0, 0)`. Также `gamepad_rumble_stop()` вызывается в `game_fini()`.
+
+### Изменения
+
+- `gamepad.h` — `gamepad_led_update(float, bool)`, `gamepad_led_reset()`, `gamepad_rumble_stop()`
+- `gamepad.cpp` — LED логика (здоровье + сирена + reset), фикс decay (s_was_active), rumble_stop
+- `game.cpp` — LED update в game loop (с проверкой паузы), rumble_stop + led_reset в game_fini

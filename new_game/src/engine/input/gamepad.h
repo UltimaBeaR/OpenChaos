@@ -39,7 +39,19 @@ void gamepad_set_shock(int fast, int slow);
 // Call once per game tick from the main loop.
 void gamepad_rumble_tick();
 
+// Immediately stop all vibration. Call on death, level restart, menu transition.
+void gamepad_rumble_stop();
+
+// Reset DualSense LED to default (blue). Call on level end, menu transition.
+void gamepad_led_reset();
+
 InputDeviceType gamepad_get_device_type();
+
+// Update DualSense LED lightbar based on game state. No-op for Xbox/keyboard.
+// health_fraction: 0.0 (dead) to 1.0 (full health).
+// siren: true when driving a police car with siren active (red/blue flash).
+// Call once per game tick.
+void gamepad_led_update(float health_fraction, bool siren);
 
 // Mark a button to be consumed (zeroed) on every poll until released.
 // Use when exiting a menu to prevent the button from triggering a gameplay action.

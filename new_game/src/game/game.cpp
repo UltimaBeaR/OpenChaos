@@ -354,6 +354,8 @@ BOOL game_init(void)
 // uc_orig: game_fini (fallen/Source/Game.cpp)
 void game_fini(void)
 {
+    gamepad_rumble_stop();
+    gamepad_led_reset();
     stop_all_fx_and_music();
 
     ATTRACT_loadscreen_init();
@@ -809,6 +811,27 @@ round_again:;
 
             // Update rumble motor decay and send to controller every frame.
             gamepad_rumble_tick();
+
+            // Update DualSense LED lightbar based on player health / siren.
+            // In pause menu — show default blue instead of health.
+            if (GAMEMENU_is_paused()) {
+                gamepad_led_reset();
+            } else {
+                Thing* darci = NET_PERSON(0);
+                if (darci && darci->Genus.Person) {
+                    float fraction;
+                    bool siren_on = false;
+                    if (darci->Genus.Person->InCar) {
+                        Thing* car = TO_THING(darci->Genus.Person->InCar);
+                        fraction = float(car->Genus.Vehicle->Health) * (1.0f / 300.0f);
+                        siren_on = car->Genus.Vehicle->Siren != 0;
+                    } else {
+                        float max_hp = (darci->Genus.Person->PersonType == PERSON_ROPER) ? 400.0f : 200.0f;
+                        fraction = float(darci->Genus.Person->Health) / max_hp;
+                    }
+                    gamepad_led_update(fraction, siren_on);
+                }
+            }
 
             {
                 PUDDLE_process();

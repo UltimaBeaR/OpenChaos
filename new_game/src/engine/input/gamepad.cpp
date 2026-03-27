@@ -78,6 +78,7 @@ void gamepad_init()
         s_is_dualsense = true;
         active_input_device = INPUT_DEVICE_DUALSENSE;
         gamepad_state.connected = true;
+        gamepad_led_reset(); // start with default blue
     }
 
     debug_log_backend("init");
@@ -286,6 +287,7 @@ void gamepad_poll()
         s_is_dualsense = true;
         active_input_device = INPUT_DEVICE_DUALSENSE;
         gamepad_state.connected = true;
+        gamepad_led_reset(); // default blue until gameplay starts
         debug_log_backend("ds_hotplug");
     }
 
@@ -326,7 +328,21 @@ void gamepad_set_shock(int fast, int slow)
 
 void gamepad_rumble_tick()
 {
-    if (!s_motor_fast && !s_motor_slow) return;
+    static bool s_was_active = false;
+
+    if (!s_motor_fast && !s_motor_slow) {
+        // Motors at zero — send one final stop command to DualSense (no auto-timeout).
+        if (s_was_active) {
+            s_was_active = false;
+            if (s_is_dualsense && ds_is_connected()) {
+                ds_set_vibration(0, 0);
+                ds_update_output();
+            }
+        }
+        return;
+    }
+
+    s_was_active = true;
 
     bool has_gamepad = s_is_dualsense ? ds_is_connected() : (s_gamepad != nullptr);
     if (!has_gamepad || active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
@@ -336,12 +352,10 @@ void gamepad_rumble_tick()
     }
 
     if (s_is_dualsense) {
-        // DS-lib: direct 0-255 vibration.
         ds_set_vibration(static_cast<uint8_t>(s_motor_slow),
                          s_motor_fast ? 255 : 0);
         ds_update_output();
     } else {
-        // SDL3: 0-65535 vibration.
         uint16_t low = static_cast<uint16_t>(s_motor_slow * 257);
         uint16_t high = s_motor_fast ? 65535 : 0;
         sdl3_gamepad_rumble(s_gamepad, low, high, 100);
@@ -350,6 +364,77 @@ void gamepad_rumble_tick()
     // Decay motors.
     s_motor_fast >>= 1;
     s_motor_slow = (s_motor_slow * 7) >> 3;
+}
+
+void gamepad_rumble_stop()
+{
+    s_motor_fast = 0;
+    s_motor_slow = 0;
+
+    if (s_is_dualsense && ds_is_connected()) {
+        ds_set_vibration(0, 0);
+        ds_update_output();
+    } else if (s_gamepad) {
+        sdl3_gamepad_rumble(s_gamepad, 0, 0, 0);
+    }
+}
+
+void gamepad_led_reset()
+{
+    if (!s_is_dualsense || !ds_is_connected()) return;
+    ds_set_lightbar(0, 0, 255); // default blue
+    ds_update_output();
+}
+
+void gamepad_led_update(float health_fraction, bool siren)
+{
+    if (!s_is_dualsense || !ds_is_connected()) return;
+
+    uint8_t r, g, b;
+
+    if (siren) {
+        // Police siren: fast red/blue alternation
+        static int siren_counter = 0;
+        siren_counter++;
+        bool phase = (siren_counter / 4) & 1; // ~7.5 Hz at 30fps — fast strobe
+        if (phase) {
+            r = 255; g = 0; b = 0;
+        } else {
+            r = 0; g = 0; b = 255;
+        }
+    } else {
+        // Health-based color
+        if (health_fraction < 0.0f) health_fraction = 0.0f;
+        if (health_fraction > 1.0f) health_fraction = 1.0f;
+
+        if (health_fraction > 0.75f) {
+            // 100-75%: green
+            r = 0; g = 255; b = 0;
+        } else if (health_fraction > 0.5f) {
+            // 75-50%: green → yellow gradient
+            float t = (health_fraction - 0.5f) / 0.25f;
+            r = static_cast<uint8_t>(255 * (1.0f - t));
+            g = 255;
+            b = 0;
+        } else if (health_fraction > 0.25f) {
+            // 50-25%: yellow → orange/red gradient
+            float t = (health_fraction - 0.25f) / 0.25f;
+            r = 255;
+            g = static_cast<uint8_t>(200 * t);
+            b = 0;
+        } else {
+            // <25%: red, blinking
+            static int blink_counter = 0;
+            blink_counter++;
+            bool on = (blink_counter / 15) & 1;
+            r = on ? 255 : 40;
+            g = 0;
+            b = 0;
+        }
+    }
+
+    ds_set_lightbar(r, g, b);
+    ds_update_output();
 }
 
 InputDeviceType gamepad_get_device_type()
