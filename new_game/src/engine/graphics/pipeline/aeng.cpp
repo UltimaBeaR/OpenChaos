@@ -1940,14 +1940,11 @@ void AENG_draw_dirt()
                     POLY_Page[POLY_PAGE_LEAF].RS.SetChanged();
                 }
 
-                the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                    D3DPT_TRIANGLELIST,
-                    D3DFVF_LVERTEX,
-                    AENG_dirt_lvert,
+                ge_draw_indexed_primitive_lit(GEPrimitiveType::TriangleList,
+                    reinterpret_cast<const GEVertexLit*>(AENG_dirt_lvert),
                     AENG_dirt_lvert_upto,
                     AENG_dirt_index,
-                    AENG_dirt_index_upto,
-                    0);
+                    AENG_dirt_index_upto);
 
                 AENG_dirt_lvert_upto = 0;
                 AENG_dirt_index_upto = 0;
@@ -2314,14 +2311,11 @@ void AENG_draw_dirt()
             POLY_Page[POLY_PAGE_LEAF].RS.SetChanged();
         }
 
-        the_display.lp_D3D_Device->DrawIndexedPrimitive(
-            D3DPT_TRIANGLELIST,
-            D3DFVF_LVERTEX,
-            AENG_dirt_lvert,
+        ge_draw_indexed_primitive_lit(GEPrimitiveType::TriangleList,
+            reinterpret_cast<const GEVertexLit*>(AENG_dirt_lvert),
             AENG_dirt_lvert_upto,
             AENG_dirt_index,
-            AENG_dirt_index_upto,
-            0);
+            AENG_dirt_index_upto);
     }
 }
 

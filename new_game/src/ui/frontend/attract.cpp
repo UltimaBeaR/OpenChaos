@@ -2,7 +2,8 @@
 #include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "camera/cam.h"
-#include "engine/graphics/graphics_api/gd_display.h"   // the_display
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/gd_display.h"   // the_display (still used for ViewportRect, migrating incrementally)
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ui/hud/panel.h"
@@ -63,56 +64,27 @@ reinit_because_of_language_change:
 
     bReinitBecauseOfLanguageChange = UC_FALSE;
 
-    LPDIRECT3DDEVICE3 dev = the_display.lp_D3D_Device;
-    D3DVIEWPORT2 vp;
-    vp.dwSize = sizeof(vp);
-    vp.dwX = the_display.ViewportRect.x1;
-    vp.dwY = the_display.ViewportRect.y1;
-    vp.dwWidth = the_display.ViewportRect.x2 - the_display.ViewportRect.x1;
-    vp.dwHeight = the_display.ViewportRect.y2 - the_display.ViewportRect.y1;
-    vp.dvClipX = (float)vp.dwX;
-    vp.dvClipY = (float)vp.dwY;
-    vp.dvClipWidth = (float)vp.dwWidth;
-    vp.dvClipHeight = (float)vp.dwHeight;
-    vp.dvMinZ = 0.0f;
-    vp.dvMaxZ = 1.0f;
-    the_display.lp_D3D_Viewport->SetViewport2(&vp);
+    ge_set_viewport(
+        the_display.ViewportRect.x1,
+        the_display.ViewportRect.y1,
+        the_display.ViewportRect.x2 - the_display.ViewportRect.x1,
+        the_display.ViewportRect.y2 - the_display.ViewportRect.y1);
 
-    dev->SetRenderState(D3DRENDERSTATE_FILLMODE, D3DFILL_SOLID);
-    dev->SetRenderState(D3DRENDERSTATE_STIPPLEDALPHA, UC_FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
-    dev->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, UC_TRUE);
-    dev->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_SUBPIXEL, UC_TRUE);
-    dev->SetRenderState(D3DRENDERSTATE_ZENABLE, UC_TRUE);
-    dev->SetRenderState(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-    dev->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, UC_TRUE);
-    dev->SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-    dev->SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, UC_FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_ALPHAFUNC, D3DCMP_ALWAYS);
-    dev->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_NONE);
-    dev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-    dev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    dev->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-    dev->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_MODULATE);
-    dev->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-    dev->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-    dev->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
-    dev->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTFN_LINEAR);
-    dev->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTFG_LINEAR);
-    dev->SetTextureStageState(0, D3DTSS_MIPFILTER, D3DTFP_NONE);
-    dev->SetTextureStageState(0, D3DTSS_ADDRESS, D3DTADDRESS_WRAP);
+    // Initialize default render state for attract mode.
+    ge_set_perspective_correction(true);
+    ge_set_specular_enabled(false);
+    ge_set_depth_mode(GEDepthMode::ReadWrite);
+    ge_set_depth_func(GECompareFunc::LessEqual);
+    ge_set_cull_mode(GECullMode::None);
+    ge_set_fog_enabled(false);
+    ge_set_texture_filter(GETextureFilter::Linear, GETextureFilter::Linear);
+    ge_set_texture_address(GETextureAddress::Wrap);
+    ge_set_texture_blend(GETextureBlend::Modulate);
+    ge_set_blend_mode(GEBlendMode::Opaque);
+
     extern LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page);
     extern SLONG TEXTURE_page_water;
-    dev->SetTexture(0, TEXTURE_get_handle(TEXTURE_page_water));
-
-    dev->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);
-    dev->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-
-    dev->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-    dev->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-    dev->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ZERO);
+    ge_bind_texture(reinterpret_cast<GETextureHandle>(TEXTURE_get_handle(TEXTURE_page_water)));
 
     y = 500;
     while (SHELL_ACTIVE && (GAME_STATE & GS_ATTRACT_MODE)) {
