@@ -3200,7 +3200,7 @@ SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEV
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
 // Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
+void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, GEMultiMatrix* mm_draw_floor)
 {
     HRESULT res;
 
@@ -3319,7 +3319,7 @@ void draw_quick_floor(SLONG warehouse)
 
     SLONG bin_set;
 
-    D3DMULTIMATRIX mm_draw_floor;
+    GEMultiMatrix mm_draw_floor;
 
     static int init_stats = 1;
 
@@ -3350,7 +3350,7 @@ void draw_quick_floor(SLONG warehouse)
     ptr32 = (UBYTE*)(((ULONG)(some_data + 32)) & 0xffffffe0);
     m_view = (GEMatrix*)ptr32;
 
-    mm_draw_floor.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(m_view);
+    mm_draw_floor.lpd3dMatrices = m_view;
     mm_draw_floor.lpvLightDirs = NULL;
     mm_draw_floor.lpLightTable = NULL;
 

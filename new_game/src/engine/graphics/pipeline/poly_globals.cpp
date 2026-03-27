@@ -116,7 +116,7 @@ PolyPage POLY_Page[POLY_NUM_PAGES];
 // uc_orig: g_matProjection (fallen/DDEngine/Source/poly.cpp)
 GEMatrix g_matProjection;
 // uc_orig: g_viewData (fallen/DDEngine/Source/poly.cpp)
-D3DVIEWPORT2 g_viewData;
+GEViewport g_viewData;
 // uc_orig: g_dw3DStuffHeight (fallen/DDEngine/Source/poly.cpp)
 DWORD g_dw3DStuffHeight;
 // uc_orig: g_dw3DStuffY (fallen/DDEngine/Source/poly.cpp)

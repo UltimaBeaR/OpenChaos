@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEMatrix, D3DVIEWPORT2
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEMatrix, GEViewport
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -101,7 +101,7 @@ extern int iPolyNumPagesRender;
 // uc_orig: g_matProjection (fallen/DDEngine/Source/poly.cpp)
 extern GEMatrix g_matProjection;
 // uc_orig: g_viewData (fallen/DDEngine/Source/poly.cpp)
-extern D3DVIEWPORT2 g_viewData;
+extern GEViewport g_viewData;
 // uc_orig: g_dw3DStuffHeight (fallen/DDEngine/Source/poly.cpp)
 // Height of the 3D viewport in scaled pixels.
 extern DWORD g_dw3DStuffHeight;

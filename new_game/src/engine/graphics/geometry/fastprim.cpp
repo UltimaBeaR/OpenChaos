@@ -846,9 +846,9 @@ SLONG FASTPRIM_draw(
             ge_set_blend_mode(GEBlendMode::Opaque);
         } else {
             // DrawIndPrimMM path for opaque/colour-and prims (Tom's custom batch call).
-            D3DMULTIMATRIX d3dmm = {
+            GEMultiMatrix d3dmm = {
                 FASTPRIM_lvert + fc->lvert,
-                reinterpret_cast<LPD3DMATRIX>(FASTPRIM_matrix),
+                FASTPRIM_matrix,
                 NULL,
                 NULL
             };

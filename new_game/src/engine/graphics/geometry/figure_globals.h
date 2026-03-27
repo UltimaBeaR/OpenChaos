@@ -131,12 +131,12 @@ extern int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 // Used by BuildMMLightingTable (chunk 1) and FIGURE_draw_prim_tween_person_only (chunk 5).
 
 // uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
-// 128-entry D3DCOLOR fade table: 0-63=lit ramp, 64-127=flat ambient.
-extern D3DCOLOR* MM_pcFadeTable;
+// 128-entry ULONG fade table: 0-63=lit ramp, 64-127=flat ambient.
+extern ULONG* MM_pcFadeTable;
 
 // uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
 // Same as MM_pcFadeTable but with colour_and mask applied (for tinted textures).
-extern D3DCOLOR* MM_pcFadeTableTint;
+extern ULONG* MM_pcFadeTableTint;
 
 // uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
 // One GEMatrix slot for the MultiMatrix draw extension.
@@ -152,7 +152,7 @@ extern float* MM_pNormal;
 
 // uc_orig: MM_vLightDir (fallen/DDEngine/Source/figure.cpp)
 // Dominant light direction vector (unit), computed per character in BuildMMLightingTable.
-extern D3DVECTOR MM_vLightDir;
+extern GEVector MM_vLightDir;
 
 // uc_orig: MM_bLightTableAlreadySetUp (fallen/DDEngine/Source/figure.cpp)
 // Set to true once BuildMMLightingTable has been called for the current body part.
@@ -253,12 +253,12 @@ extern ULONG leg_col;
 
 // uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
 // Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE GEMatrix objects.
-// Initialised at startup by MMBodyPartsInit. Passed as lpd3dMatrices in D3DMULTIMATRIX.
+// Initialised at startup by MMBodyPartsInit. Passed as lpd3dMatrices in GEMultiMatrix.
 extern GEMatrix* MMBodyParts_pMatrix;
 
 // uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
 // Pointer to aligned float storage for MAX_NUM_BODY_PARTS_AT_ONCE * 4 light direction floats.
-// Initialised at startup by MMBodyPartsInit. Passed as lpvLightDirs in D3DMULTIMATRIX.
+// Initialised at startup by MMBodyPartsInit. Passed as lpvLightDirs in GEMultiMatrix.
 extern float* MMBodyParts_pNormal;
 
 // --- Misc character draw state ---

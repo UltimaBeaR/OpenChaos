@@ -474,7 +474,7 @@ void PolyPage::MergeSortIteration(ULONG sort_len)
 void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
     const GEMatrix* mProjectionMatrix,
     const GEMatrix* mWorldMatrix,
-    const D3DVIEWPORT2* d3dvpt)
+    const GEViewport* d3dvpt)
 {
     ASSERT(((DWORD)(pmOutput) & 31) == 0);
 
@@ -562,7 +562,7 @@ void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
 // Transforms vertices using per-vertex matrix indices, then submits as indexed triangles.
 HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     DWORD dwFVFType,
-    D3DMULTIMATRIX* d3dmm,
+    GEMultiMatrix* d3dmm,
     WORD wNumVertices,
     WORD* pwIndices,
     DWORD dwNumIndices)

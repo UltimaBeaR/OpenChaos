@@ -80,6 +80,11 @@ enum class GEPrimitiveType {
     TriangleFan,
 };
 
+// 3D vector. Replaces D3DVECTOR.
+struct GEVector {
+    float x, y, z;
+};
+
 // Pre-transformed, pre-lit vertex (screen space). Replaces D3DTLVERTEX.
 // Union aliases (dvSX, dcColor, etc.) provided for compatibility with legacy code.
 struct GEVertexTL {
@@ -208,6 +213,18 @@ void ge_set_transform(GETransform type, const GEMatrix* matrix);
 // ---------------------------------------------------------------------------
 // Viewport
 // ---------------------------------------------------------------------------
+
+// Viewport descriptor. Replaces D3DVIEWPORT2.
+// Named member aliases (dwX, dwWidth, etc.) for legacy compatibility.
+struct GEViewport {
+    union { int32_t x; uint32_t dwX; };
+    union { int32_t y; uint32_t dwY; };
+    union { int32_t width; uint32_t dwWidth; };
+    union { int32_t height; uint32_t dwHeight; };
+    float dvClipX, dvClipY, dvClipWidth, dvClipHeight;
+    float dvMinZ, dvMaxZ;
+    uint32_t dwSize; // legacy: sizeof(D3DVIEWPORT2), kept for compat
+};
 
 void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h);
 

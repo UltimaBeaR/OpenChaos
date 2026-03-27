@@ -300,8 +300,8 @@ void POLY_camera_set(
     ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&g_matProjection));
 
     // Viewport: maps clip-space [-1,1] to pixel coordinates.
-    memset(&g_viewData, 0, sizeof(D3DVIEWPORT2));
-    g_viewData.dwSize = sizeof(D3DVIEWPORT2);
+    memset(&g_viewData, 0, sizeof(GEViewport));
+    g_viewData.dwSize = sizeof(GEViewport);
     float fMyMulX = POLY_screen_mul_x * POLY_ZCLIP_PLANE;
     float fMyMulY = POLY_screen_mul_y * POLY_ZCLIP_PLANE;
     g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;

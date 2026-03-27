@@ -69,7 +69,7 @@ void DeadAndBuried(DWORD dwColour)
 //  state in _globals files per project rules.)
 
 // uc_orig: BuildMMLightingTable (fallen/DDEngine/Source/figure.cpp)
-// Pre-computes a 128-entry D3DCOLOR lookup table used by the D3D MultiMatrix extension.
+// Pre-computes a 128-entry ULONG lookup table used by the D3D MultiMatrix extension.
 // Index 0..63: ramp from ambient to full directional lighting.
 // Index 64..127: flat ambient colour (back-face / shadow side).
 // p: if non-null, the character is on fire (darkens with soot).
@@ -86,7 +86,7 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
 
     // Find the dominant light direction by summing all weighted light vectors.
     float fBright = NIGHT_amb_red * 0.35f + NIGHT_amb_green * 0.45f + NIGHT_amb_blue * 0.2f;
-    D3DVECTOR vTotal;
+    GEVector vTotal;
     vTotal.x = fBright * NIGHT_amb_norm_x;
     vTotal.y = fBright * NIGHT_amb_norm_y;
     vTotal.z = fBright * NIGHT_amb_norm_z;
@@ -2018,7 +2018,7 @@ no_muzzle_calcs:
 
         extern GEMatrix g_matProjection;
         extern GEMatrix g_matWorld;
-        extern D3DVIEWPORT2 g_viewData;
+        extern GEViewport g_viewData;
 
         GEMatrix matTemp;
 
@@ -2075,7 +2075,7 @@ no_muzzle_calcs:
         const float fNormScale = 251.0f;
 
         // Transform light direction into object space (inverse = transpose for orthonormal matrices).
-        D3DVECTOR vTemp;
+        GEVector vTemp;
         vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
         vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
         vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
@@ -2105,8 +2105,8 @@ no_muzzle_calcs:
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    D3DMULTIMATRIX d3dmm;
-    d3dmm.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(MM_pMatrix);
+    GEMultiMatrix d3dmm;
+    d3dmm.lpd3dMatrices = MM_pMatrix;
     d3dmm.lpvLightDirs = MM_pNormal;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
@@ -2722,8 +2722,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    D3DMULTIMATRIX d3dmm;
-    d3dmm.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(MMBodyParts_pMatrix);
+    GEMultiMatrix d3dmm;
+    d3dmm.lpd3dMatrices = MMBodyParts_pMatrix;
     d3dmm.lpvLightDirs = MMBodyParts_pNormal;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
@@ -3873,7 +3873,7 @@ no_muzzle_calcs:
 
         extern GEMatrix g_matProjection;
         extern GEMatrix g_matWorld;
-        extern D3DVIEWPORT2 g_viewData;
+        extern GEViewport g_viewData;
 
         GEMatrix matTemp;
 
@@ -3929,7 +3929,7 @@ no_muzzle_calcs:
         const float fNormScale = 251.0f;
 
         // Transform light direction by inverse (=transpose) object matrix to get object-space light.
-        D3DVECTOR vTemp;
+        GEVector vTemp;
         vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
         vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
         vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
@@ -4244,7 +4244,7 @@ no_muzzle_calcs:
 
         extern GEMatrix g_matProjection;
         extern GEMatrix g_matWorld;
-        extern D3DVIEWPORT2 g_viewData;
+        extern GEViewport g_viewData;
 
         GEMatrix matTemp;
 
@@ -4297,7 +4297,7 @@ no_muzzle_calcs:
         const float fNormScale = 251.0f;
 
         // Transform light direction by inverse (=transpose) object matrix.
-        D3DVECTOR vTemp;
+        GEVector vTemp;
         vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
         vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
         vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
@@ -4329,8 +4329,8 @@ no_muzzle_calcs:
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    D3DMULTIMATRIX d3dmm;
-    d3dmm.lpd3dMatrices = reinterpret_cast<LPD3DMATRIX>(MM_pMatrix);
+    GEMultiMatrix d3dmm;
+    d3dmm.lpd3dMatrices = MM_pMatrix;
     d3dmm.lpvLightDirs = MM_pNormal;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;

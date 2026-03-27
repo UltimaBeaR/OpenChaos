@@ -158,7 +158,7 @@ extern PolyPage POLY_Page[];
 extern void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* mOutput,
     const GEMatrix* mProjectionMatrix,
     const GEMatrix* mWorldMatrix,
-    const D3DVIEWPORT2* d3dvpt);
+    const GEViewport* d3dvpt);
 
 // Camera matrix globals maintained by the poly system (defined in poly.cpp).
 // uc_orig: g_matProjection (fallen/DDEngine/Headers/polypage.h)
@@ -166,15 +166,15 @@ extern GEMatrix g_matProjection;
 // uc_orig: g_matWorld (fallen/DDEngine/Headers/polypage.h)
 extern GEMatrix g_matWorld;
 // uc_orig: g_viewData (fallen/DDEngine/Headers/polypage.h)
-extern D3DVIEWPORT2 g_viewData;
+extern GEViewport g_viewData;
 
-// uc_orig: D3DMULTIMATRIX (fallen/DDEngine/Headers/polypage.h)
-// Multi-matrix vertex draw block (mirrors DC/DX header definition).
-struct D3DMULTIMATRIX {
-    LPVOID lpvVertices;       // Pointer to vertex data, must be 32-byte aligned
-    LPD3DMATRIX lpd3dMatrices; // Pointer to matrix array, must be 32-byte aligned
-    LPVOID lpvLightDirs;      // Pointer to light direction array (NULL if unlit), 8-byte aligned
-    LPD3DCOLOR lpLightTable;  // Pointer to fade table (NULL if unlit), 4-byte aligned
+// uc_orig: GEMultiMatrix (fallen/DDEngine/Headers/polypage.h)
+// Multi-matrix vertex draw block for batched character/object rendering.
+struct GEMultiMatrix {
+    void* lpvVertices;        // Pointer to vertex data, must be 32-byte aligned
+    GEMatrix* lpd3dMatrices;  // Pointer to matrix array, must be 32-byte aligned
+    void* lpvLightDirs;       // Pointer to light direction array (NULL if unlit), 8-byte aligned
+    ULONG* lpLightTable;      // Pointer to fade table (NULL if unlit), 4-byte aligned
 };
 
 // uc_orig: SET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
@@ -187,7 +187,7 @@ struct D3DMULTIMATRIX {
 // dwFVFType must be D3DFVF_VERTEX or D3DFVF_LVERTEX.
 extern HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
     DWORD dwFVFType,
-    D3DMULTIMATRIX* d3dmm,
+    GEMultiMatrix* d3dmm,
     WORD wNumVertices,
     WORD* pwIndices,
     DWORD dwNumIndices);

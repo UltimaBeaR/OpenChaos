@@ -563,8 +563,8 @@ void show_gamut_lo(SLONG x, SLONG z);
 // Debug stub for visualising hi-res gamut cells.
 void show_gamut_hi(SLONG x, SLONG z);
 
-// Forward declaration — full definition in polypage.h (Temporary).
-struct D3DMULTIMATRIX;
+// Forward declaration — full definition in polypage.h.
+struct GEMultiMatrix;
 
 // uc_orig: cache_a_row (fallen/DDEngine/Source/aeng.cpp)
 // Pre-fetches lighting and PAP data for a row of map tile corners.
@@ -576,7 +576,7 @@ SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEV
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
 // Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor);
+void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, GEMultiMatrix* mm_draw_floor);
 
 // uc_orig: general_steam (fallen/DDEngine/Source/aeng.cpp)
 // Accumulates (mode=1), flushes (mode=2), or resets (mode=0) steam source positions.

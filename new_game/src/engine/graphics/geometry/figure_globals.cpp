@@ -85,10 +85,10 @@ int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 // They are initialised at file startup before any code runs.
 
 // uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
-D3DCOLOR* MM_pcFadeTable = NULL;
+ULONG* MM_pcFadeTable = NULL;
 
 // uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
-D3DCOLOR* MM_pcFadeTableTint = NULL;
+ULONG* MM_pcFadeTableTint = NULL;
 
 // uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
 GEMatrix* MM_pMatrix = NULL;
@@ -100,7 +100,7 @@ GEVertex* MM_Vertex = NULL;
 float* MM_pNormal = NULL;
 
 // uc_orig: MM_vLightDir (fallen/DDEngine/Source/figure.cpp)
-D3DVECTOR MM_vLightDir;
+GEVector MM_vLightDir;
 
 // uc_orig: MM_bLightTableAlreadySetUp (fallen/DDEngine/Source/figure.cpp)
 bool MM_bLightTableAlreadySetUp = false;
@@ -206,8 +206,8 @@ float FIGURE_reflect_height = 0.0f;
 // Backing storage for the aligned MM_* pointers (not original entities — these replace
 // the ALIGNED_STATIC_ARRAY macro from figure.cpp which generated equivalent static storage).
 // Kept here so all global state is visible in _globals files per project rules.
-static char cMM_pcFadeTableStorage[4 + 128 * sizeof(D3DCOLOR)];
-static char cMM_pcFadeTableTintStorage[4 + 128 * sizeof(D3DCOLOR)];
+static char cMM_pcFadeTableStorage[4 + 128 * sizeof(ULONG)];
+static char cMM_pcFadeTableTintStorage[4 + 128 * sizeof(ULONG)];
 static char cMM_pMatrixStorage[32 + 1 * sizeof(GEMatrix)];
 static char cMM_VertexStorage[32 + 4 * sizeof(GEVertex)];
 static char cMM_pNormalStorage[8 + 4 * sizeof(float)];
@@ -222,8 +222,8 @@ namespace {
     struct MMLightingTableInit {
         MMLightingTableInit()
         {
-            MM_pcFadeTable      = (D3DCOLOR*)(((DWORD)cMM_pcFadeTableStorage      + 3)  & ~3u);
-            MM_pcFadeTableTint  = (D3DCOLOR*)(((DWORD)cMM_pcFadeTableTintStorage  + 3)  & ~3u);
+            MM_pcFadeTable      = (ULONG*)(((DWORD)cMM_pcFadeTableStorage      + 3)  & ~3u);
+            MM_pcFadeTableTint  = (ULONG*)(((DWORD)cMM_pcFadeTableTintStorage  + 3)  & ~3u);
             MM_pMatrix          = (GEMatrix*)(((DWORD)cMM_pMatrixStorage          + 31) & ~31u);
             MM_Vertex           = (GEVertex*)(((DWORD)cMM_VertexStorage           + 31) & ~31u);
             MM_pNormal          = (float*)(    ((DWORD)cMM_pNormalStorage           + 7)  & ~7u);
