@@ -1,9 +1,8 @@
 // Graphics engine — Direct3D 6 implementation.
-// This file is the ONLY place where D3D/DDraw headers should be included
-// (besides the internal graphics_api/ files that this implementation wraps).
+// All D3D/DDraw code lives in this d3d/ folder (adapter + internal D3D modules).
 
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/display_macros.h"
+#include "engine/graphics/graphics_engine/d3d/display_macros.h"
 
 // ---------------------------------------------------------------------------
 // Lifecycle

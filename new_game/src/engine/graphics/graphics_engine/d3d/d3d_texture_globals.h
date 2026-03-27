@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_D3D_TEXTURE_GLOBALS_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_D3D_TEXTURE_GLOBALS_H
 
-#include "engine/graphics/graphics_api/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 
 // Source D3DTexture being embedded into a page during the current load batch.
 // uc_orig: EmbedSource (fallen/DDLibrary/Source/D3DTexture.cpp)

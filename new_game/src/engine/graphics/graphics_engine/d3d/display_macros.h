@@ -5,7 +5,7 @@
 // All rendering calls funnel through GDisplay — these macros
 // existed in the original codebase to avoid repeating "the_display." everywhere.
 
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 
 // uc_orig: SET_BLACK_BACKGROUND (fallen/DDLibrary/Headers/DDlib.h)
 #define SET_BLACK_BACKGROUND the_display.SetBlackBackground()

@@ -5,7 +5,7 @@
 
 #include "engine/input/mouse.h"
 
-#include "engine/graphics/graphics_api/gd_display.h"   // hDDLibWindow
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // hDDLibWindow
 
 // uc_orig: MouseProc (fallen/DDLibrary/Source/GMouse.cpp)
 LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)

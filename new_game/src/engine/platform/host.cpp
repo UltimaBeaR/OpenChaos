@@ -1,7 +1,7 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
-#include "engine/graphics/graphics_api/gd_display.h"   // the_display, hDDLibWindow
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display, hDDLibWindow
 #include "engine/platform/wind_procs.h"    // DDLibShellProc
 #include "game/game_types.h"
 #include "engine/audio/sound.h"

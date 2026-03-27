@@ -1,11 +1,11 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 #define ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H
 
-#include "engine/graphics/graphics_api/dd_manager.h"   // D3DMATRIX, D3DVIEWPORT2
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // D3DMATRIX, D3DVIEWPORT2
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_api/render_state.h"
+#include "engine/graphics/graphics_engine/d3d/render_state.h"
 
 // Camera state set once per frame by POLY_camera_set().
 

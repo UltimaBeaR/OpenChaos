@@ -8,7 +8,7 @@
 // then gd_display.h #defines them as 640/480. Wrong order causes syntax errors.
 //            TO_THING, DisplayWidth/DisplayHeight, SPECIAL_info, PRIM_OBJ_ITEM_GUN, SPECIAL_NUM_TYPES
 #include "game/game_types.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/text/text.h"

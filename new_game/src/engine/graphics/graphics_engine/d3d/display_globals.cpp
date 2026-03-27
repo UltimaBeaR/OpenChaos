@@ -1,8 +1,8 @@
 // Definitions of globals declared in gd_display.h and display_globals.h.
 // All non-static globals from GDisplay.cpp live here.
 
-#include "engine/graphics/graphics_api/display_globals.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/display_globals.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 
 // uc_orig: RealDisplayWidth (fallen/DDLibrary/Source/GDisplay.cpp)
 SLONG RealDisplayWidth = 0;

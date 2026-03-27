@@ -1,8 +1,8 @@
 #include "engine/platform/uc_common.h"
 #include <tchar.h>
-#include "engine/graphics/graphics_api/dd_manager.h"
-#include "engine/graphics/graphics_api/dd_manager_globals.h"
-#include "engine/graphics/graphics_api/gd_display.h"  // DEFAULT_WIDTH/HEIGHT/DEPTH
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
+#include "engine/graphics/graphics_engine/d3d/dd_manager_globals.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"  // DEFAULT_WIDTH/HEIGHT/DEPTH
 #include "engine/io/env.h"                              // ENV_get_value_number, ENV_set_value_number
 #include "engine/core/memory.h"                                // MemAlloc, MemFree
 

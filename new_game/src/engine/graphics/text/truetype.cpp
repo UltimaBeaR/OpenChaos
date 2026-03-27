@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, the_display (still used, migrating incrementally)
+#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, the_display (still used, migrating incrementally)
 #include <mbctype.h>
 #include <mbstring.h>
 #include "engine/graphics/text/truetype.h"

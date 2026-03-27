@@ -2,7 +2,7 @@
 // Light bloom and lens flare rendering: BLOOM_flare_draw + BLOOM_draw.
 
 
-#include "engine/graphics/graphics_api/gd_display.h"   // DisplayWidth, DisplayHeight constants
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // DisplayWidth, DisplayHeight constants
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
 #include "camera/fc.h"

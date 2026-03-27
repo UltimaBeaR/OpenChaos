@@ -1,4 +1,4 @@
-#include "engine/graphics/graphics_api/d3d_texture_globals.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
 
 // uc_orig: EmbedSource (fallen/DDLibrary/Source/D3DTexture.cpp)
 D3DTexture* EmbedSource = nullptr;

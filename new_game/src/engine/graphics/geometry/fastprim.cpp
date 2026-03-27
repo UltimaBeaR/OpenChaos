@@ -9,7 +9,7 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
+#include "engine/graphics/graphics_engine/d3d/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
 #include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*

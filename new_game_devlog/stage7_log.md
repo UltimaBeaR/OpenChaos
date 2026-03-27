@@ -562,6 +562,30 @@ D3D6 SetTransform принимает non-const LPD3DMATRIX → const_cast в D3D
 Все остальные файлы бэкенда уже имели свои D3D includes через graphics_api/ хедеры.
 Сборка: 308/308, 0 ошибок.
 
+### Реструктуризация: graphics_api/ → graphics_engine/d3d/ ✅
+
+Перенесены все файлы из `engine/graphics/graphics_api/` в `engine/graphics/graphics_engine/d3d/`.
+`graphics_engine_d3d.cpp` тоже перемещён в `d3d/`.
+
+Итоговая структура:
+```
+engine/graphics/graphics_engine/
+├── graphics_engine.h           — контракт (игровой код включает только это)
+└── d3d/                        — D3D бэкенд целиком
+    ├── graphics_engine_d3d.cpp — адаптер ge_* → D3D
+    ├── display.cpp             — Display класс
+    ├── dd_manager.cpp          — DDraw device enumeration
+    ├── d3d_texture.cpp         — D3D texture management
+    ├── render_state.cpp        — render state caching
+    ├── vertex_buffer.cpp       — vertex buffer management
+    ├── work_screen.cpp         — offscreen rendering
+    └── *_globals.*             — глобалы
+```
+
+Обновлено: 60 файлов (include paths), CMakeLists.txt.
+Папка `graphics_api/` удалена.
+Сборка: 308/308, 0 ошибок.
+
 Сборка: 308/308.
 
 ---

@@ -4,15 +4,15 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display (still used, migrating incrementally)
+#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display (still used, migrating incrementally)
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/poly_render.h"
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_api/render_state.h"
-#include "engine/graphics/graphics_api/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/d3d/render_state.h"
+#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/core/matrix.h"

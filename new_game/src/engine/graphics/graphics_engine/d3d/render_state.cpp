@@ -1,6 +1,6 @@
-#include "engine/graphics/graphics_api/render_state.h"
+#include "engine/graphics/graphics_engine/d3d/render_state.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, the_display
+#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, the_display
 
 // uc_orig: RenderState::s_State (fallen/DDEngine/Source/renderstate.cpp)
 RenderState RenderState::s_State;

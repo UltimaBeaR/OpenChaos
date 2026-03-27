@@ -6,7 +6,7 @@
 #include <d3d.h>
 #include "engine/core/types.h"
 #include "engine/graphics/text/truetype.h"
-#include "engine/graphics/graphics_api/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 
 // Anti-alias factor: text is rendered at 2x resolution then downsampled.
 // uc_orig: AA_SIZE (fallen/DDEngine/Source/truetype.cpp)

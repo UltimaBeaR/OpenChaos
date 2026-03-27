@@ -12,7 +12,7 @@
 // INPUT_MASK_*, and ShiftFlag is already in keyboard_globals.h.
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
-#include "engine/graphics/graphics_api/gd_display.h"   // the_display.IsFullScreen()
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display.IsFullScreen()
 
 // Sound-to-wave ID mapping for widget events. Uses S_MENU_START/S_MENU_END from sound_id.h.
 // uc_orig: _WS_MOVE (fallen/Source/widget.cpp)

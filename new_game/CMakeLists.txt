@@ -88,8 +88,8 @@ set(SOURCES_NEW
     src/assets/formats/anim_loader_globals.cpp
     src/engine/graphics/lighting/ngamut.cpp
     src/engine/graphics/lighting/ngamut_globals.cpp
-    src/engine/graphics/graphics_api/work_screen.cpp
-    src/engine/graphics/graphics_api/work_screen_globals.cpp
+    src/engine/graphics/graphics_engine/d3d/work_screen.cpp
+    src/engine/graphics/graphics_engine/d3d/work_screen_globals.cpp
     src/engine/graphics/geometry/aa.cpp
     src/engine/graphics/geometry/aa_globals.cpp
     src/engine/console/message.cpp
@@ -98,19 +98,19 @@ set(SOURCES_NEW
     src/engine/core/timer_globals.cpp
     src/engine/audio/mfx.cpp
     src/engine/audio/mfx_globals.cpp
-    src/engine/graphics/graphics_api/d3d_texture.cpp
-    src/engine/graphics/graphics_api/d3d_texture_globals.cpp
+    src/engine/graphics/graphics_engine/d3d/d3d_texture.cpp
+    src/engine/graphics/graphics_engine/d3d/d3d_texture_globals.cpp
     src/engine/platform/wind_procs.cpp
     src/engine/platform/wind_procs_globals.cpp
     src/engine/platform/host.cpp
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
     src/engine/platform/host_globals.cpp
-    src/engine/graphics/graphics_api/render_state.cpp
+    src/engine/graphics/graphics_engine/d3d/render_state.cpp
     src/engine/graphics/pipeline/bucket.cpp
     src/engine/graphics/pipeline/bucket_globals.cpp
-    src/engine/graphics/graphics_api/vertex_buffer.cpp
-    src/engine/graphics/graphics_api/vertex_buffer_globals.cpp
+    src/engine/graphics/graphics_engine/d3d/vertex_buffer.cpp
+    src/engine/graphics/graphics_engine/d3d/vertex_buffer_globals.cpp
     src/engine/graphics/pipeline/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
     src/engine/graphics/text/font.cpp
@@ -171,11 +171,11 @@ set(SOURCES_NEW
     src/ui/hud/planmap_globals.cpp
     src/ui/hud/eng_map.cpp
     src/ui/hud/eng_map_globals.cpp
-    src/engine/graphics/graphics_api/dd_manager.cpp
-    src/engine/graphics/graphics_api/dd_manager_globals.cpp
-    src/engine/graphics/graphics_api/display.cpp
-    src/engine/graphics/graphics_api/display_globals.cpp
-    src/engine/graphics/graphics_engine/graphics_engine_d3d.cpp
+    src/engine/graphics/graphics_engine/d3d/dd_manager.cpp
+    src/engine/graphics/graphics_engine/d3d/dd_manager_globals.cpp
+    src/engine/graphics/graphics_engine/d3d/display.cpp
+    src/engine/graphics/graphics_engine/d3d/display_globals.cpp
+    src/engine/graphics/graphics_engine/d3d/graphics_engine_d3d.cpp
     src/engine/graphics/lighting/shadow.cpp
     src/engine/graphics/lighting/shadow_globals.cpp
     src/effects/weather/fog.cpp

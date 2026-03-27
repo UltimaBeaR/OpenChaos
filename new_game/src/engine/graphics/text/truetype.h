@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_TEXT_TRUETYPE_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_api/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 
 // If TRUETYPE is defined, TrueType fonts are used; otherwise the bitmap font system is used.
 // uc_orig: TRUETYPE (fallen/DDEngine/Headers/truetype.h)

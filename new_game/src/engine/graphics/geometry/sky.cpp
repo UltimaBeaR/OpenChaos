@@ -7,7 +7,7 @@
 #include "engine/graphics/geometry/sky_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/core/matrix.h"
 #include <math.h>
 

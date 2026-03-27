@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_DISPLAY_GLOBALS_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_DISPLAY_GLOBALS_H
 
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 
 // uc_orig: VideoRes (fallen/DDLibrary/Source/GDisplay.cpp)
 // Resolution index: 0=320x240, 1=512x384, 2=640x480, 3=800x600, 4=1024x768, -1=unknown.

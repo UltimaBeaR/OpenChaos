@@ -5,7 +5,7 @@
 #include "game/game_types.h"
 #include "engine/graphics/postprocess/wibble.h"
 #include "engine/graphics/postprocess/wibble_globals.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/core/math.h"
 
 // uc_orig: WIBBLE_simple (fallen/DDEngine/Source/wibble.cpp)

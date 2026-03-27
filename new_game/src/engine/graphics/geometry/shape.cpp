@@ -3,7 +3,7 @@
 #include "game/game_types.h"
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include <math.h>
 
 #include "engine/graphics/geometry/shape.h"

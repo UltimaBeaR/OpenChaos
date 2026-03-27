@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLYPOINT_H
 #define ENGINE_GRAPHICS_PIPELINE_POLYPOINT_H
 
-#include "engine/graphics/graphics_api/dd_manager.h"   // D3DTLVERTEX
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // D3DTLVERTEX
 
 // Copy U/V fields as raw int bits, because U/V may be uninitialized in many
 // callers and reading them into the FPU (for a float copy) could trap.

@@ -1,8 +1,8 @@
 #include "engine/platform/uc_common.h"                             // ASSERT, MFnew, MFdelete
-#include "engine/graphics/graphics_api/d3d_texture.h"
-#include "engine/graphics/graphics_api/d3d_texture_globals.h"
-#include "engine/graphics/graphics_api/dd_manager.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/console/message.h"     // for POLY_reset_render_states extern
 
 // VERIFY is a no-op wrapper used in place of checked HRESULT asserts in release builds.

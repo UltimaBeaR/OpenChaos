@@ -5,7 +5,7 @@
 #include "ui/menus/pause.h"
 
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/graphics_api/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 
 #include "engine/graphics/text/font2d.h"
 #include "ui/hud/panel.h"

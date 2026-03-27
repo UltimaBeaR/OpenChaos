@@ -31,7 +31,7 @@
 #include "map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE (still used, migrating incrementally)
+#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE (still used, migrating incrementally)
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
@@ -40,7 +40,7 @@
 
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
-#include "engine/graphics/graphics_api/gd_display.h"  // the_display
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"  // the_display
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
 #include "engine/graphics/lighting/smap_globals.h"

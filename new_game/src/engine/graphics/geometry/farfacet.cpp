@@ -7,14 +7,14 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "map/supermap.h"
 #include "map/level_pools.h"
 #include "engine/core/matrix.h"
 #include <math.h>
 #include "engine/graphics/geometry/farfacet.h"
 #include "engine/graphics/geometry/farfacet_globals.h"
-#include "engine/graphics/graphics_api/render_state.h"
+#include "engine/graphics/graphics_engine/d3d/render_state.h"
 #include "engine/input/keyboard.h"
 
 // uc_orig: FARFACET_find_vertex (fallen/DDEngine/Source/farfacet.cpp)

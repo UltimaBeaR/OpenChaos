@@ -4,7 +4,7 @@
 // Elevator/platform logic lives in world/environment/plat.cpp and actors/core/interact.cpp.
 
 #include "game/game.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 
 #include "assets/formats/elev.h"
 #include "assets/formats/elev_globals.h"

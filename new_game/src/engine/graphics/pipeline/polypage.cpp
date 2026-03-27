@@ -1,9 +1,9 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/polypage_globals.h"
-#include "engine/graphics/graphics_api/vertex_buffer_globals.h"
+#include "engine/graphics/graphics_engine/d3d/vertex_buffer_globals.h"
 #include "engine/core/matrix.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/d3d_texture.h"   // D3DTexture full definition for SetTexOffset
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"   // D3DTexture full definition for SetTexOffset
 
 #include <math.h>
 

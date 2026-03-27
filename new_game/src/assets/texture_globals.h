@@ -2,7 +2,7 @@
 #define ASSETS_TEXTURE_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_api/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 #include "engine/graphics/lighting/crinkle.h"
 
 // Internal constants also needed by external consumers.

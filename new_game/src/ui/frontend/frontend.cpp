@@ -4,7 +4,7 @@
 
 #include "engine/platform/uc_common.h"   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_api/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4 (still used for surface ops, migrating incrementally)
+#include "engine/graphics/graphics_engine/d3d/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4 (still used for surface ops, migrating incrementally)
 #include "ui/frontend/frontend.h"
 #include "ui/frontend/frontend_globals.h"
 
@@ -35,7 +35,7 @@
 #include "engine/input/joystick_globals.h"    // the_state (DIJOYSTATE)
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
-#include "engine/graphics/graphics_api/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
 #include "game/input_actions.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
 #include "game/input_actions_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
 #include "ui/frontend/startscr_globals.h"          // STARTSCR_mission
@@ -924,10 +924,10 @@ void FRONTEND_kibble_flurry()
 
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
-#include "engine/graphics/graphics_api/dd_manager.h"
-#include "engine/graphics/graphics_api/dd_manager_globals.h"
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
+#include "engine/graphics/graphics_engine/d3d/dd_manager_globals.h"
 #include "engine/platform/wind_procs.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
 

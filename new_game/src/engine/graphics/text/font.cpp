@@ -3,7 +3,7 @@
 
 // MFStdLib.h must come first to pull in <windows.h>/<ddraw.h>/<d3d.h> before DDManager.h.
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/gd_display.h"   // the_display (PlotPixel, screen_lock/unlock)
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display (PlotPixel, screen_lock/unlock)
 
 #include "engine/core/macros.h"
 #include <math.h>

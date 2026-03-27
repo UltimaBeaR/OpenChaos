@@ -1,4 +1,4 @@
-#include "engine/graphics/graphics_api/dd_manager.h"   // LPDIRECTDRAWSURFACE4
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // LPDIRECTDRAWSURFACE4
 #include "ui/frontend/frontend_globals.h"
 #include "assets/xlat_str.h"
 
