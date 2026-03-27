@@ -400,6 +400,40 @@ REALLY_SET_TEXTURE → ge_bind_texture(TextureHandle).
 
 ---
 
+## Правила работы на Этапе 7
+
+1. **После каждой итерации — запись в девлог.** Что сделано, какие файлы затронуты, что изменилось.
+2. **После каждой итерации — само-ревью.** Проверить: компиляция, diff корректен, нет сломанных include, нет случайных изменений логики.
+3. **Каждая итерация компилируется.** Не накапливать сломанное состояние.
+
+---
+
+## Прогресс Шага 2 — Выделение graphics_engine
+
+### 2a) Каркас ✅
+
+Создано:
+- `engine/graphics/graphics_engine/graphics_engine.h` — контракт
+- `engine/graphics/graphics_engine/graphics_engine_d3d.cpp` — D3D реализация
+- Добавлено в CMakeLists.txt
+- Сборка: 308/308, линковка ОК
+
+Что в контракте:
+- Типы: GEVertexTL, GEVertexLit, GEVertex (с static_assert на совпадение layout с D3D), GETextureHandle
+- Enum'ы: BlendMode, DepthMode, CullMode, TextureFilter, TextureBlend, TextureAddress, CompareFunc, PrimitiveType, Background
+- Frame: ge_begin_scene, ge_end_scene, ge_clear, ge_flip
+- Render state: ge_set_blend_mode, ge_set_depth_mode, ge_set_depth_func, ge_set_cull_mode, ge_set_texture_filter, ge_set_texture_blend, ge_set_texture_address, ge_set_fog_enabled, ge_set_specular_enabled, ge_set_perspective_correction
+- Draw: ge_draw_primitive (TL), ge_draw_indexed_primitive (TL), ge_draw_indexed_primitive_lit, ge_draw_indexed_primitive_unlit
+- Viewport: ge_set_viewport
+- Background: ge_set_background, ge_set_background_color
+- Texture: ge_bind_texture
+
+Находки:
+- D3DLVERTEX имеет dwReserved между z и color — GEVertexLit нужен _reserved padding
+- SET_BLUE_BACKGROUND — мёртвый макрос (метод SetBlueBackground не существует в Display), убран из enum'а
+
+---
+
 ## План работы
 
 ### Шаг 1 — Отключить outro

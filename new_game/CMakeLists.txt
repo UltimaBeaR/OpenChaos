@@ -175,6 +175,7 @@ set(SOURCES_NEW
     src/engine/graphics/graphics_api/dd_manager_globals.cpp
     src/engine/graphics/graphics_api/display.cpp
     src/engine/graphics/graphics_api/display_globals.cpp
+    src/engine/graphics/graphics_engine/graphics_engine_d3d.cpp
     src/engine/graphics/lighting/shadow.cpp
     src/engine/graphics/lighting/shadow_globals.cpp
     src/effects/weather/fog.cpp
