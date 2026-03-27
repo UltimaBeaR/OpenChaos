@@ -82,9 +82,9 @@ reinit_because_of_language_change:
     ge_set_texture_blend(GETextureBlend::Modulate);
     ge_set_blend_mode(GEBlendMode::Opaque);
 
-    extern LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page);
+    extern GETextureHandle TEXTURE_get_handle(SLONG page);
     extern SLONG TEXTURE_page_water;
-    ge_bind_texture(reinterpret_cast<GETextureHandle>(TEXTURE_get_handle(TEXTURE_page_water)));
+    ge_bind_texture(TEXTURE_get_handle(TEXTURE_page_water));
 
     y = 500;
     while (SHELL_ACTIVE && (GAME_STATE & GS_ATTRACT_MODE)) {

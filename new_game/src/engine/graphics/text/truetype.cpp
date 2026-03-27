@@ -205,7 +205,7 @@ void TT_Term()
 
     for (int ii = 0; ii < NUM_TT_PAGES; ii++) {
         Texture[ii].Destroy();
-        Texture[ii].Type = D3DTEXTURE_TYPE_UNUSED;
+        Texture[ii].Type = GE_TEXTURE_TYPE_UNUSED;
     }
 }
 

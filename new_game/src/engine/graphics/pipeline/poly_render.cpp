@@ -28,7 +28,7 @@ static bool RenderStates_OK = false;
 
 #define SET_TEXTURE(PAGE)                                                          \
     {                                                                              \
-        pa->RS.SetTexture(reinterpret_cast<GETextureHandle>(TEXTURE_get_handle(PAGE))); \
+        pa->RS.SetTexture(TEXTURE_get_handle(PAGE)); \
         pa->SetTexOffset(TEXTURE_get_D3DTexture(PAGE));                            \
     }
 #define SET_NO_TEXTURE pa->RS.SetTexture(GE_TEXTURE_NONE)

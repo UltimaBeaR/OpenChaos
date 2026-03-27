@@ -15,6 +15,11 @@
 using GETextureHandle = uint32_t;
 constexpr GETextureHandle GE_TEXTURE_NONE = 0;
 
+// Texture type constants.
+constexpr int32_t GE_TEXTURE_TYPE_UNUSED = 0;
+constexpr int32_t GE_TEXTURE_TYPE_TGA = 1;
+constexpr int32_t GE_TEXTURE_TYPE_USER = 2;
+
 enum class GEBlendMode {
     Opaque,         // no blending
     Alpha,          // src*srcA + dst*(1-srcA)

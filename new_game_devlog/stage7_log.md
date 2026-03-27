@@ -657,6 +657,30 @@ B) RenderState целиком в d3d/, game code ходит через ge_set_*
 Также остаются: D3DTexture класс (14 файлов), D3DMULTIMATRIX (11), LPDIRECT3DTEXTURE2 (16),
 D3DCOLOR/D3DVECTOR (figure), D3DVIEWPORT2 globals (10), DDraw surface ops (frontend, flame, truetype).
 
+### Замена D3DCOLOR, D3DVECTOR, D3DVIEWPORT2, D3DMULTIMATRIX, texture types ✅
+
+- `D3DCOLOR` → `ULONG` (figure_globals)
+- `D3DVECTOR` → `GEVector` (figure, figure_globals) — добавлен `GEVector{x,y,z}`
+- `D3DVIEWPORT2` → `GEViewport` (poly, polypage, figure) — добавлен `GEViewport` с legacy dwX/dwY aliases
+- `D3DMULTIMATRIX` → `GEMultiMatrix` (fastprim, figure, aeng, polypage) — заменён D3D pointer types на GE*
+- `D3DTEXTURE_TYPE_UNUSED` → `GE_TEXTURE_TYPE_UNUSED` (texture.cpp)
+- `TEXTURE_get_handle()` — возвращает `GETextureHandle` вместо `LPDIRECT3DTEXTURE2`
+- Убраны лишние `reinterpret_cast<GETextureHandle>` в caller'ах (poly_render, attract)
+
+Оставшиеся D3D идентификаторы вне d3d/ (~90 вхождений):
+- D3DTexture класс (14) — D3D texture management, переписывается при OpenGL
+- DDLibClass (12) + DDLibShellProc (3) — window management (host/wind_procs)
+- LPDIRECT3DTEXTURE2 (7) — в fastprim.h, polypage, text (returns from D3DTexture methods)
+- DDraw surface ops (~20) — truetype font surface, frontend backgrounds
+- D3D constants (~15) — D3DFVF_*, D3DPT_* in DrawIndPrimMM, farfacet
+- D3DObj/D3DPeopleObj (8) — figure draw cache objects
+- Device info types (5) — DDDriverInfo, DDModeInfo, D3DDeviceInfo queries
+
+Всё оставшееся — D3D бэкенд internals: texture class, surface creation, device enum,
+DrawIndPrimMM parameters. При OpenGL эти модули переписываются целиком.
+
+Сборка: 308/308.
+
 ### Замена RenderState на GERenderState ✅
 
 Создан новый API-агностичный `GERenderState` (`ge_render_state.h/cpp`):

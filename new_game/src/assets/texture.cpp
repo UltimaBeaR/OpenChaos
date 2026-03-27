@@ -82,9 +82,9 @@ void TEXTURE_choose_set(SLONG number)
         CRINKLE_init();
 
         for (i = 0; i < 64 * 4; i++) {
-            if (TEXTURE_texture[i].Type != D3DTEXTURE_TYPE_UNUSED) {
+            if (TEXTURE_texture[i].Type != GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_texture[i].Destroy();
-                TEXTURE_texture[i].Type = D3DTEXTURE_TYPE_UNUSED;
+                TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
             }
         }
 
@@ -245,7 +245,7 @@ static void TEXTURE_load_page(SLONG page)
     }
 
     if (POLY_page_is_masked_self_illuminating(page)) {
-        if (TEXTURE_texture[page + 1].Type == D3DTEXTURE_TYPE_UNUSED) {
+        if (TEXTURE_texture[page + 1].Type == GE_TEXTURE_TYPE_UNUSED) {
             TEXTURE_load_page(page + 1);
         }
     }
@@ -583,7 +583,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                 u + 3,
                 v + 3);
 
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_load_page(page);
                 LOADED_THIS_MANY_TEXTURES(1);
             }
@@ -606,7 +606,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
                 ASSERT(WITHIN(page, 0, TEXTURE_page_num_standard - 1));
 
-                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                     TEXTURE_load_page(page);
                     LOADED_THIS_MANY_TEXTURES(1);
                 }
@@ -642,7 +642,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             page <<= 2;
             page |= f3->TexturePage;
             page += FACE_PAGE_OFFSET;
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_load_page(page);
                 LOADED_THIS_MANY_TEXTURES(1);
             }
@@ -655,7 +655,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             page <<= 2;
             page |= f4->TexturePage;
             page += FACE_PAGE_OFFSET;
-            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_load_page(page);
                 LOADED_THIS_MANY_TEXTURES(1);
             }
@@ -687,7 +687,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                     if (dstyle > 0) {
                         for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
                             page = dx_textures_xy[dstyle][c1].Page;
-                            if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                                 TEXTURE_load_page(page);
                                 LOADED_THIS_MANY_TEXTURES(1);
                             }
@@ -701,7 +701,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                         for (pos = 0; pos < p_storey->Count; pos++) {
                             page = paint_mem[p_storey->Index + pos];
                             if (page)
-                                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                                if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                                     TEXTURE_load_page(page);
                                     LOADED_THIS_MANY_TEXTURES(1);
                                 }
@@ -710,7 +710,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                         if (dstyle > 0) {
                             for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
                                 page = dx_textures_xy[dstyle][c1].Page;
-                                if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                                if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                                     TEXTURE_load_page(page);
                                     LOADED_THIS_MANY_TEXTURES(1);
                                 }
@@ -724,7 +724,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                 if (dstyle > 0)
                     for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
                         page = dx_textures_xy[dstyle][c1].Page;
-                        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+                        if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
                             TEXTURE_load_page(page);
                             LOADED_THIS_MANY_TEXTURES(1);
                         }
@@ -761,7 +761,7 @@ void TEXTURE_load_needed_object(SLONG prim)
         page = f3->UV[0][0] & 0xc0;
         page <<= 2;
         page |= f3->TexturePage;
-        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+        if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
             TEXTURE_load_page(page);
         }
     }
@@ -771,7 +771,7 @@ void TEXTURE_load_needed_object(SLONG prim)
         page = f4->UV[0][0] & 0xc0;
         page <<= 2;
         page |= f4->TexturePage;
-        if (TEXTURE_texture[page].Type == D3DTEXTURE_TYPE_UNUSED) {
+        if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
             TEXTURE_load_page(page);
         }
     }
@@ -787,7 +787,7 @@ void TEXTURE_free()
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
         TEXTURE_texture[i].Destroy();
-        TEXTURE_texture[i].Type = D3DTEXTURE_TYPE_UNUSED;
+        TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
     }
 
     the_display.RemoveAllLoadedTextures();
@@ -811,7 +811,7 @@ void TEXTURE_free_unneeded(void)
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
         TEXTURE_texture[i].Destroy();
-        TEXTURE_texture[i].Type = D3DTEXTURE_TYPE_UNUSED;
+        TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
         TEXTURE_dontexist[i] = 0;
     }
 
@@ -822,13 +822,13 @@ void TEXTURE_free_unneeded(void)
 }
 
 // uc_orig: TEXTURE_get_handle (fallen/DDEngine/Source/texture.cpp)
-// Returns the Direct3D texture interface for the given page. Returns NULL for page -1.
-LPDIRECT3DTEXTURE2 TEXTURE_get_handle(SLONG page)
+// Returns the texture handle for the given page. Returns GE_TEXTURE_NONE for page -1.
+GETextureHandle TEXTURE_get_handle(SLONG page)
 {
     if (page == -1) {
-        return (NULL);
+        return GE_TEXTURE_NONE;
     }
-    return TEXTURE_texture[page].GetD3DTexture();
+    return reinterpret_cast<GETextureHandle>(TEXTURE_texture[page].GetD3DTexture());
 }
 
 // uc_orig: TEXTURE_get_D3DTexture (fallen/DDEngine/Source/texture.cpp)

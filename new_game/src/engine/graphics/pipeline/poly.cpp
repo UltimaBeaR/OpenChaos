@@ -2056,8 +2056,8 @@ void POLY_frame_draw_odd()
 // Sets both the GERenderState cache and the actual hardware state.
 // For textures, the cache uses GETextureHandle while the hardware uses LPDIRECT3DTEXTURE2.
 #define FORCE_SET_TEXTURE(s)                                              \
-    RenderState::s_State.SetTexture(reinterpret_cast<GETextureHandle>(s)); \
-    REALLY_SET_TEXTURE(s)
+    RenderState::s_State.SetTexture(s);                                    \
+    REALLY_SET_TEXTURE(reinterpret_cast<LPDIRECT3DTEXTURE2>(static_cast<uintptr_t>(s)))
 
     // Set hardware state directly (specular enable has no GERenderState equivalent).
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
