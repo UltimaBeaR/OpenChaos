@@ -516,7 +516,7 @@ struct FloorStore
 // Tracks which D3D texture page is bound in each of the IPRIM_COUNT strip groups.
 struct GroupInfo
 {
-    LPDIRECT3DTEXTURE2 page;
+    GETextureHandle page;
 };
 
 // uc_orig: KERB_TILES (fallen/DDEngine/Source/aeng.cpp)
@@ -576,7 +576,7 @@ SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEV
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
 // Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(LPDIRECT3DTEXTURE2 page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor);
+void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor);
 
 // uc_orig: general_steam (fallen/DDEngine/Source/aeng.cpp)
 // Accumulates (mode=1), flushes (mode=2), or resets (mode=0) steam source positions.

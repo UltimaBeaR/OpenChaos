@@ -88,7 +88,7 @@ void SUPERFACET_free_end_of_queue(void)
 // uc_orig: SUPERFACET_convert_texture (fallen/DDEngine/Source/superfacet.cpp)
 // Converts UV coordinates from normalised [0,1] to atlas-page space and
 // returns the D3D texture pointer for the given page number.
-LPDIRECT3DTEXTURE2 SUPERFACET_convert_texture(SLONG page, POLY_Point* quad[4])
+GETextureHandle SUPERFACET_convert_texture(SLONG page, POLY_Point* quad[4])
 {
     SLONG i;
 
@@ -259,7 +259,7 @@ void SUPERFACET_fill_facet_points(
     float vheight = float(block_height) * (1.0f / 256.0f);
 
     POLY_Point* quad[4];
-    LPDIRECT3DTEXTURE2 texture;
+    GETextureHandle texture;
     GEVertexLit* lv;
 
     SLONG row1 = FacetRows[base_row];
@@ -461,7 +461,7 @@ void SUPERFACET_create_calls(SLONG facet, SLONG direction)
     SLONG style_index;
     SLONG style_index_step;
 
-    LPDIRECT3DTEXTURE2 texture;
+    GETextureHandle texture;
     DFacet* df;
     SUPERFACET_Facet* sf;
     SUPERFACET_Call* sc;

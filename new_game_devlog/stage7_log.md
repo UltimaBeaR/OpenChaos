@@ -641,6 +641,50 @@ superfacet.cpp, aeng_globals.h, polypage.cpp, figure_globals.h, fastprim_globals
 
 Сборка: 308/308, 0 ошибок.
 
+### Анализ оставшихся D3D идентификаторов
+
+~700+ вхождений D3D констант вне d3d/ — подавляющее большинство через
+`RenderState::SetRenderState(D3DRENDERSTATE_*, D3DBLEND_*)` в poly_render.cpp.
+
+RenderState — кэширующий слой D3D render states. Game code (poly_render) настраивает
+per-page render states, PolyPage flush'ит их в D3D device.
+
+Чтобы убрать D3D отсюда нужен один из подходов:
+A) RenderState принимает GE enum'ы вместо D3D констант
+B) RenderState целиком в d3d/, game code ходит через ge_set_*
+Оба требуют переписывания poly_render.cpp.
+
+Также остаются: D3DTexture класс (14 файлов), D3DMULTIMATRIX (11), LPDIRECT3DTEXTURE2 (16),
+D3DCOLOR/D3DVECTOR (figure), D3DVIEWPORT2 globals (10), DDraw surface ops (frontend, flame, truetype).
+
+### Замена RenderState на GERenderState ✅
+
+Создан новый API-агностичный `GERenderState` (`ge_render_state.h/cpp`):
+- Хранит GE enum'ы (GEBlendFactor, GETextureBlend, GECullMode...) вместо D3D DWORD
+- Типизированные setters: SetBlendMode(), SetFogEnabled(), SetDepthWrite(), SetSrcBlend(), SetTextureBlend()...
+- Flush через ge_* (InitScene → ge_set_cull_mode/ge_set_fog_params/ge_set_blend_factors/..., SetChanged → дельта)
+- Legacy aliases: `using RenderState = GERenderState`, `#define RS_None GE_EFFECT_NONE` и т.д.
+
+Добавлено в контракт:
+- `GEBlendFactor` enum (Zero, One, SrcAlpha, InvSrcAlpha, SrcColor, InvSrcColor, DstColor...)
+- `ge_set_blend_factors(GEBlendFactor src, GEBlendFactor dst)` — раздельные src/dst blend
+- `ge_set_blend_enabled(bool)` — вкл/выкл blending отдельно от mode
+- `ge_set_fog_params(color, near, far)` — fog distance setup
+
+Старый d3d/render_state.h заменён форвардом на ge_render_state.h.
+Старый render_state.cpp удалён.
+
+Обновлены потребители:
+- `poly_render.cpp` — ~550 вызовов SetRenderState(D3D_X, D3D_Y) → typed setters
+- `farfacet.cpp` — SetRenderState → SetFogEnabled
+- `fastprim.cpp` — LPDIRECT3DTEXTURE2 → GETextureHandle casts
+- `superfacet.cpp/h` — LPDIRECT3DTEXTURE2 → GETextureHandle
+- `aeng.cpp/h` — LPDIRECT3DTEXTURE2 → GETextureHandle, SetRenderState → typed setters
+- `figure.cpp` — SetRenderState → SetCullMode, SetAlphaBlendEnabled, SetTextureBlend
+- `poly.cpp` — FORCE_SET_* debug path обновлён
+
+Сборка: 308/308.
+
 Сборка: 308/308.
 
 ---

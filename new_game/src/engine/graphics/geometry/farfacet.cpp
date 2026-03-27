@@ -412,8 +412,8 @@ void FARFACET_init()
 
     free(FARFACET_outline);
 
-    FARFACET_renderstate.SetRenderState(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
-    FARFACET_renderstate.SetTexture(NULL);
+    FARFACET_renderstate.SetFogEnabled(true);
+    FARFACET_renderstate.SetTexture(GE_TEXTURE_NONE);
 }
 
 // uc_orig: FARFACET_draw (fallen/DDEngine/Source/farfacet.cpp)

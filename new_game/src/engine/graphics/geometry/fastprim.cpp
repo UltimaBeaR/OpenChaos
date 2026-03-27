@@ -23,7 +23,7 @@
 LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)
 {
     PolyPage* pp = &POLY_Page[page];
-    return pp->RS.GetTexture();
+    return reinterpret_cast<LPDIRECT3DTEXTURE2>(pp->RS.GetTexture());
 }
 
 // uc_orig: FASTPRIM_init (fallen/DDEngine/Source/fastprim.cpp)

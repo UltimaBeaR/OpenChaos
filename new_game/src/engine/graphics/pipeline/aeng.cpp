@@ -3200,7 +3200,7 @@ SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEV
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
 // Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(LPDIRECT3DTEXTURE2 page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
+void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, D3DMULTIMATRIX* mm_draw_floor)
 {
     HRESULT res;
 
@@ -3208,7 +3208,7 @@ void draw_i_prim(LPDIRECT3DTEXTURE2 page, GEVertexLit* verts, UWORD* indicies, S
 
     indicies[*index_count] = 0x1234;
 
-    ge_bind_texture(reinterpret_cast<GETextureHandle>(page));
+    ge_bind_texture(page);
 
     res = DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_LVERTEX, mm_draw_floor, *vert_count, indicies, *index_count);
 
@@ -3303,7 +3303,7 @@ void draw_quick_floor(SLONG warehouse)
     struct GroupInfo group[IPRIM_COUNT];
 
     PolyPage* pp;
-    LPDIRECT3DTEXTURE2 tex_handle;
+    GETextureHandle tex_handle;
 
     UWORD kerb_indicies[KERB_INDICIES];
 
@@ -3371,7 +3371,7 @@ void draw_quick_floor(SLONG warehouse)
 
     RenderState default_renderstate;
 
-    default_renderstate.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
+    default_renderstate.SetCullMode(GECullMode::CCW);
     default_renderstate.SetChanged();
 
     GenerateMMMatrixFromStandardD3DOnes(m_view, &g_matProjection, NULL, &g_viewData);

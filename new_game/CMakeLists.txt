@@ -106,7 +106,7 @@ set(SOURCES_NEW
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
     src/engine/platform/host_globals.cpp
-    src/engine/graphics/graphics_engine/d3d/render_state.cpp
+    # render_state.cpp removed — replaced by ge_render_state.cpp
     src/engine/graphics/pipeline/bucket.cpp
     src/engine/graphics/pipeline/bucket_globals.cpp
     src/engine/graphics/graphics_engine/d3d/vertex_buffer.cpp
@@ -176,6 +176,7 @@ set(SOURCES_NEW
     src/engine/graphics/graphics_engine/d3d/display.cpp
     src/engine/graphics/graphics_engine/d3d/display_globals.cpp
     src/engine/graphics/graphics_engine/d3d/graphics_engine_d3d.cpp
+    src/engine/graphics/graphics_engine/ge_render_state.cpp
     src/engine/graphics/lighting/shadow.cpp
     src/engine/graphics/lighting/shadow_globals.cpp
     src/effects/weather/fog.cpp

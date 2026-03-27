@@ -3,7 +3,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEVertexLit, GEMatrix, LPDIRECT3DTEXTURE2
+#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEVertexLit, GEMatrix
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/lighting/night.h"
@@ -27,8 +27,8 @@ typedef struct
     UWORD indexcount;   // Number of indices used
     UWORD index2;       // For 2-pass textures (second index list start)
 
-    LPDIRECT3DTEXTURE2 texture;       // Primary texture
-    LPDIRECT3DTEXTURE2 texture_2pass; // Secondary texture for 2-pass pages
+    GETextureHandle texture;       // Primary texture
+    GETextureHandle texture_2pass; // Secondary texture for 2-pass pages
 
 } SUPERFACET_Call;
 

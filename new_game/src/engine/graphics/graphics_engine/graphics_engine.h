@@ -23,6 +23,20 @@ enum class GEBlendMode {
     InvModulate,    // src*(1-dst)
 };
 
+// Individual blend factors for custom src/dst combinations.
+enum class GEBlendFactor {
+    Zero,
+    One,
+    SrcAlpha,
+    InvSrcAlpha,
+    SrcColor,
+    InvSrcColor,
+    DstColor,
+    InvDstColor,
+    DstAlpha,
+    InvDstAlpha,
+};
+
 enum class GEDepthMode {
     Off,            // no depth test, no depth write
     ReadOnly,       // depth test on, depth write off
@@ -129,6 +143,8 @@ void ge_flip();
 // ---------------------------------------------------------------------------
 
 void ge_set_blend_mode(GEBlendMode mode);
+void ge_set_blend_factors(GEBlendFactor src, GEBlendFactor dst);
+void ge_set_blend_enabled(bool enabled);
 void ge_set_depth_mode(GEDepthMode mode);
 void ge_set_depth_func(GECompareFunc func);
 void ge_set_cull_mode(GECullMode mode);
@@ -137,6 +153,7 @@ void ge_set_texture_blend(GETextureBlend mode);
 void ge_set_texture_address(GETextureAddress mode);
 void ge_set_depth_bias(int32_t bias);
 void ge_set_fog_enabled(bool enabled);
+void ge_set_fog_params(uint32_t color, float near_dist, float far_dist);
 void ge_set_specular_enabled(bool enabled);
 void ge_set_perspective_correction(bool enabled);
 

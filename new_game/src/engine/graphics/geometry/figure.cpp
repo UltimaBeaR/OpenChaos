@@ -2139,9 +2139,9 @@ no_muzzle_calcs:
             }
             d3dmm.lpvVertices = pVertex;
 
-            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+            pa->RS.SetCullMode(GECullMode::CCW);
+            pa->RS.SetAlphaBlendEnabled(false);
+            pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
             pa->RS.SetChanged();
 
             {
@@ -2755,9 +2755,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
             d3dmm.lpvVertices = pVertex;
 
-            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+            pa->RS.SetCullMode(GECullMode::CCW);
+            pa->RS.SetAlphaBlendEnabled(false);
+            pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
             pa->RS.SetChanged();
 
             {
@@ -4364,9 +4364,9 @@ no_muzzle_calcs:
             }
             d3dmm.lpvVertices = pVertex;
 
-            pa->RS.SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CCW);
-            pa->RS.SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-            pa->RS.SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+            pa->RS.SetCullMode(GECullMode::CCW);
+            pa->RS.SetAlphaBlendEnabled(false);
+            pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
             pa->RS.SetChanged();
 
             {

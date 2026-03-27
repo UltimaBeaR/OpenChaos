@@ -26,13 +26,13 @@ static bool RenderStates_OK = false;
 #undef SET_NO_TEXTURE
 #undef SET_RENDER_STATE
 
-#define SET_TEXTURE(PAGE)                               \
-    {                                                   \
-        pa->RS.SetTexture(TEXTURE_get_handle(PAGE));    \
-        pa->SetTexOffset(TEXTURE_get_D3DTexture(PAGE)); \
+#define SET_TEXTURE(PAGE)                                                          \
+    {                                                                              \
+        pa->RS.SetTexture(reinterpret_cast<GETextureHandle>(TEXTURE_get_handle(PAGE))); \
+        pa->SetTexOffset(TEXTURE_get_D3DTexture(PAGE));                            \
     }
-#define SET_NO_TEXTURE pa->RS.SetTexture(NULL)
-#define SET_RENDER_STATE(I, V) pa->RS.SetRenderState(I, V)
+#define SET_NO_TEXTURE pa->RS.SetTexture(GE_TEXTURE_NONE)
+// SET_RENDER_STATE removed — GERenderState uses typed setters instead of generic SetRenderState(DWORD, DWORD).
 #define SET_EFFECT(FX) pa->RS.SetEffect(FX)
 
 // uc_orig: POLY_reset_render_states (fallen/DDEngine/Source/polyrenderstate.cpp)
@@ -119,9 +119,9 @@ void POLY_init_render_states()
     extern int AENG_detail_filter;
 
     if (!AENG_detail_filter) {
-        DefRenderState = RenderState(D3DFILTER_NEAREST, D3DFILTER_NEAREST);
+        DefRenderState = RenderState(GETextureFilter::Nearest, GETextureFilter::Nearest);
     } else {
-        DefRenderState = RenderState(D3DFILTER_LINEAR, D3DFILTER_LINEAR);
+        DefRenderState = RenderState(GETextureFilter::Linear, GETextureFilter::Linear);
     }
 
     // Set each page to the default render state.
@@ -137,446 +137,446 @@ void POLY_init_render_states()
 
         {
             // Default is on!
-            SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
+            pa->RS.SetFogEnabled(true);
 
             // set using the old interface
             switch (ii) {
             case POLY_PAGE_LADSHAD:
                 SET_TEXTURE((TEXTURE_page_ladshad));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetDepthWrite(false);
                 break;
 
             case POLY_PAGE_SIGN:
                 SET_TEXTURE((TEXTURE_page_sign));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
                 break;
 
             case POLY_PAGE_LASTPANEL_ALPHA:
                 SET_TEXTURE((TEXTURE_page_lastpanel));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
 
                 break;
 
             case POLY_PAGE_LASTPANEL_ADDALPHA:
                 SET_TEXTURE((TEXTURE_page_lastpanel));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetAlphaBlendEnabled(true);
                 SET_EFFECT(RS_AlphaPremult);
 
                 break;
 
             case POLY_PAGE_LASTPANEL_ADD:
                 SET_TEXTURE((TEXTURE_page_lastpanel));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
 
                 break;
 
             case POLY_PAGE_LASTPANEL_SUB:
                 SET_TEXTURE((TEXTURE_page_lastpanel));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
             case POLY_PAGE_LASTPANEL2_ADD:
                 SET_TEXTURE((TEXTURE_page_lastpanel2));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
 
                 break;
 
             case POLY_PAGE_LASTPANEL2_ADDALPHA:
                 SET_TEXTURE((TEXTURE_page_lastpanel2));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_EFFECT(RS_AlphaPremult);
 
                 break;
 
             case POLY_PAGE_LASTPANEL2_SUB:
                 SET_TEXTURE((TEXTURE_page_lastpanel2));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
             case POLY_PAGE_LASTPANEL2_ALPHA:
                 SET_TEXTURE((TEXTURE_page_lastpanel2));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
 
                 break;
 
             case POLY_PAGE_LITE_BOLT:
                 SET_TEXTURE((TEXTURE_page_litebolt));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 break;
 
             case POLY_PAGE_SHADOW_OVAL:
                 SET_TEXTURE((TEXTURE_page_shadowoval));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetFogEnabled(false);
 
                 break;
 
             case POLY_PAGE_SHADOW_SQUARE:
                 SET_TEXTURE((TEXTURE_page_shadowsquare));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_FADECAT:
                 SET_TEXTURE((TEXTURE_page_fadecat));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_FADE_MF:
                 SET_TEXTURE((TEXTURE_page_fade_MF));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_LADDER:
                 SET_TEXTURE((TEXTURE_page_ladder));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
 
                 break;
 
             case POLY_PAGE_FINALGLOW:
                 SET_TEXTURE((TEXTURE_page_finalglow));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetDepthWrite(false);
                 break;
 
             case POLY_PAGE_IC2_NORMAL:
                 SET_TEXTURE((TEXTURE_page_ic2));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
                 break;
 
             case POLY_PAGE_IC_NORMAL:
                 SET_TEXTURE((TEXTURE_page_ic));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
                 break;
 
             case POLY_PAGE_IC2_ALPHA:
             case POLY_PAGE_IC2_ALPHA_END:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
                 SET_TEXTURE((TEXTURE_page_ic2));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
                 break;
 
             case POLY_PAGE_IC_ALPHA:
             case POLY_PAGE_IC_ALPHA_END:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
                 SET_TEXTURE((TEXTURE_page_ic));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
                 break;
 
             case POLY_PAGE_IC2_ADDITIVE:
                 SET_TEXTURE((TEXTURE_page_ic2));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 break;
 
             case POLY_PAGE_IC_ADDITIVE:
                 SET_TEXTURE((TEXTURE_page_ic));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 break;
 
             case POLY_PAGE_PRESS1:
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 TEXTURE_set_colour_key(TEXTURE_page_press1);
-                SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetColorKeyEnabled(true);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_press1));
                 break;
 
             case POLY_PAGE_PRESS2:
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 TEXTURE_set_colour_key(TEXTURE_page_press2);
-                SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetColorKeyEnabled(true);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_press2));
                 break;
 
             case POLY_PAGE_TARGET:
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 TEXTURE_set_colour_key(TEXTURE_page_target);
-                SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetColorKeyEnabled(true);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_target));
                 break;
 
             case POLY_PAGE_DEVIL:
                 SET_TEXTURE((TEXTURE_page_devil));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Decal);
                 break;
 
             case POLY_PAGE_ANGEL:
                 SET_TEXTURE((TEXTURE_page_angel));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Decal);
                 break;
 
             case POLY_PAGE_LEAF:
                 SET_TEXTURE((TEXTURE_page_leaf));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaTestEnabled(true);
 
                 break;
 
             case POLY_PAGE_RUBBISH:
                 SET_TEXTURE((TEXTURE_page_rubbish));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaTestEnabled(true);
 
                 break;
 
             case POLY_PAGE_WINMAP:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_winmap));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetFogEnabled(true);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
 
                 break;
 
             case POLY_PAGE_ENVMAP:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_envmap));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetFogEnabled(true);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 break;
 
             case POLY_PAGE_SEWATER:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
                 SET_TEXTURE((TEXTURE_page_water));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 break;
 
             case POLY_PAGE_SKY:
                 SET_TEXTURE((TEXTURE_page_sky));
                 // Z-buffered since sky is no longer drawn first.
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetDepthEnabled(true);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_SHADOW:
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetAlphaBlendEnabled(true);
 
                 if (the_display.GetDeviceInfo()->DestInvSourceColourSupported()) {
                     // use a density greyscale shadowmap
-                    SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                    SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                    SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCCOLOR);
+                    pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                    pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                    pa->RS.SetDstBlend(GEBlendFactor::InvSrcColor);
                 } else {
                     // use a density alpha (+black) shadowmap
-                    SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                    SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                    SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                    pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                    pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                    pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 }
 
                 SET_TEXTURE((TEXTURE_page_shadow));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, 8);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthBias(8);
                 break;
 
             case POLY_PAGE_TEST_SHADOWMAP:
                 if (the_display.GetDeviceInfo()->DestInvSourceColourSupported()) {
-                    SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
+                    pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                     SET_TEXTURE(TEXTURE_page_shadow);
-                    SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                    pa->RS.SetFogEnabled(false);
                 }
                 break;
 
             case POLY_PAGE_PUDDLE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_puddle));
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetAlphaTestEnabled(true);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_MOON:
                 SET_TEXTURE((TEXTURE_page_moon));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetAlphaBlendEnabled(true);
                 break;
 
             case POLY_PAGE_MANONMOON:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
                 SET_TEXTURE((571));
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
                 break;
 
             case POLY_PAGE_CLOUDS:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_clouds));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_ALPHA:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetDepthWrite(false);
                 SET_NO_TEXTURE;
                 break;
 
             case POLY_PAGE_ALPHA_OVERLAY:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetDepthWrite(false);
                 SET_NO_TEXTURE;
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthEnabled(false);
                 break;
 
             case POLY_PAGE_ADDITIVE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_NO_TEXTURE;
                 break;
 
             case POLY_PAGE_ADDITIVEALPHA:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_NO_TEXTURE;
                 SET_EFFECT(RS_AlphaPremult);
                 break;
@@ -584,363 +584,363 @@ void POLY_init_render_states()
             case POLY_PAGE_MASKED:
                 SET_TEXTURE(-1);
                 TEXTURE_set_colour_key(0);
-                SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, UC_TRUE);
+                pa->RS.SetColorKeyEnabled(true);
                 break;
 
             case POLY_PAGE_FACE1:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
+                pa->RS.SetTextureMag(GETextureFilter::Nearest);
+                pa->RS.SetTextureMin(GETextureFilter::Nearest);
                 SET_TEXTURE((TEXTURE_page_face1));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
 
                 break;
 
             case POLY_PAGE_FACE2:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
+                pa->RS.SetTextureMag(GETextureFilter::Nearest);
+                pa->RS.SetTextureMin(GETextureFilter::Nearest);
                 SET_TEXTURE((TEXTURE_page_face2));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
 
                 break;
 
             case POLY_PAGE_FACE3:
                 SET_TEXTURE((TEXTURE_page_face3));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_FACE4:
                 SET_TEXTURE((TEXTURE_page_face4));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_FACE5:
                 SET_TEXTURE((TEXTURE_page_face5));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_FACE6:
                 SET_TEXTURE((TEXTURE_page_face6));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_COLOUR_ALPHA:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetFogEnabled(false);
                 SET_NO_TEXTURE;
 
                 break;
 
             case POLY_PAGE_COLOUR:
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 SET_NO_TEXTURE;
 
                 break;
 
             case POLY_PAGE_COLOUR_WITH_FOG:
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(true);
                 SET_NO_TEXTURE;
                 break;
 
             case POLY_PAGE_WATER:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_water));
                 break;
 
             case POLY_PAGE_DRIP:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_drip));
                 break;
 
             case POLY_PAGE_FOG:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_fog));
                 break;
 
             case POLY_PAGE_STEAM:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_steam));
                 break;
 
             case POLY_PAGE_BANG:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_bang));
                 break;
 
             case POLY_PAGE_TEXT:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_font));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_LOGO:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_logo));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_DROPLET:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_droplet));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetDepthWrite(false);
                 break;
 
             case POLY_PAGE_RAINDROP:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
                 SET_TEXTURE((TEXTURE_page_raindrop));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetDepthWrite(false);
                 break;
 
             case POLY_PAGE_SPARKLE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_sparkle));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetDepthWrite(false);
                 break;
 
             case POLY_PAGE_FLAMES:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_flames));
                 SET_EFFECT(RS_AlphaPremult);
                 break;
 
             case POLY_PAGE_FLAMES2:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_flame2));
                 SET_EFFECT(RS_AlphaPremult);
 
                 break;
 
             case POLY_PAGE_SMOKE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCCOLOR);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcColor);
                 SET_TEXTURE((TEXTURE_page_smoke));
                 break;
 
             case POLY_PAGE_MENUFLAME:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_menuflame));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 break;
 
             case POLY_PAGE_MENUTEXT:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, 0);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(true);
+                pa->RS.SetDepthBias(0);
+                pa->RS.SetAlphaBlendEnabled(false);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_flames));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 break;
 
             case POLY_PAGE_MENUPASS:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetDepthWrite(false);
                 SET_TEXTURE((TEXTURE_page_moon));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 TEXTURE_set_colour_key(TEXTURE_page_moon);
-                SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, UC_TRUE);
+                pa->RS.SetColorKeyEnabled(true);
                 break;
 
             case POLY_PAGE_BARBWIRE:
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_barbwire));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+                pa->RS.SetDepthWrite(false);
                 break;
 
             case POLY_PAGE_FOOTPRINT:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_footprint));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(true);
                 break;
 
             case POLY_PAGE_FONT2D:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_font2d));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_LINEAR);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_LINEAR);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureMag(GETextureFilter::Linear);
+                pa->RS.SetTextureMin(GETextureFilter::Linear);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
 
                 break;
 
             case POLY_PAGE_BIGBANG:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_bigbang));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 SET_EFFECT(RS_InvAlphaPremult);
 
                 break;
 
             case POLY_PAGE_FLAMES3:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_flames3));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 SET_EFFECT(RS_InvAlphaPremult);
                 break;
 
             case POLY_PAGE_DUSTWAVE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_dustwave));
                 SET_EFFECT(RS_InvAlphaPremult);
 
                 break;
 
             case POLY_PAGE_BLOODSPLAT:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_bloodsplat));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(true);
 
                 break;
 
             case POLY_PAGE_BLOOM1:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_bloom1));
                 SET_EFFECT(RS_AlphaPremult);
 
                 break;
 
             case POLY_PAGE_BLOOM2:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_bloom2));
                 SET_EFFECT(RS_AlphaPremult);
                 break;
 
             case POLY_PAGE_SNOWFLAKE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_snowflake));
 
                 break;
             case POLY_PAGE_HITSPANG:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_hitspang));
                 SET_EFFECT(RS_AlphaPremult);
                 break;
 
             case POLY_PAGE_LENSFLARE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_lensflare));
                 break;
 
             case POLY_PAGE_TYRETRACK:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_tyretrack_alpha));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
+                pa->RS.SetFogEnabled(true);
                 break;
 
             case POLY_PAGE_TYRESKID:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_tyretrack));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZBIAS, 4);
+                pa->RS.SetFogEnabled(true);
+                pa->RS.SetDepthBias(4);
                 SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
@@ -948,203 +948,203 @@ void POLY_init_render_states()
                 // All the alternatives in the original were commented out; only the final version
                 // that uses TEXTURE_page_lcdfont with additive blending remains.
                 SET_TEXTURE((TEXTURE_page_lcdfont));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
 
                 break;
 
             case POLY_PAGE_MENULOGO:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_menulogo));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_POLAROID:
                 SET_TEXTURE((TEXTURE_page_polaroid));
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetDepthEnabled(false);
+                pa->RS.SetFogEnabled(false);
+                pa->RS.SetTextureBlend(GETextureBlend::Decal);
 
                 break;
 
             case POLY_PAGE_SMOKER:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_smoker));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 SET_EFFECT(RS_AlphaPremult);
                 break;
 
             case POLY_PAGE_NEWFONT:
-                SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+                pa->RS.SetDepthEnabled(false);
                 SET_TEXTURE((TEXTURE_page_lcdfont));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetFogEnabled(false);
                 SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
             case POLY_PAGE_EXPLODE1:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureMag(GETextureFilter::Nearest);
+                pa->RS.SetTextureMin(GETextureFilter::Nearest);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_explode1));
 
                 break;
 
             case POLY_PAGE_EXPLODE2:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAG, D3DFILTER_NEAREST);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMIN, D3DFILTER_NEAREST);
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureMag(GETextureFilter::Nearest);
+                pa->RS.SetTextureMin(GETextureFilter::Nearest);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_explode2));
 
                 break;
 
             case POLY_PAGE_EXPLODE1_ADDITIVE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_explode1));
                 SET_EFFECT(RS_AlphaPremult);
 
                 break;
 
             case POLY_PAGE_EXPLODE2_ADDITIVE:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_explode2));
                 SET_EFFECT(RS_AlphaPremult);
 
                 break;
 
             case POLY_PAGE_SPLASH:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_splash));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 SET_EFFECT(RS_InvAlphaPremult);
                 break;
 
             case POLY_PAGE_METEOR:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_meteor));
                 SET_EFFECT(RS_AlphaPremult);
                 break;
 
             case POLY_PAGE_SUBTRACTIVEALPHA:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_NO_TEXTURE;
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
             case POLY_PAGE_SMOKECLOUD:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ZERO);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::Zero);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_smokecloud));
                 SET_EFFECT(RS_BlackWithAlpha);
                 break;
 
             case POLY_PAGE_SMOKECLOUD2:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_smokecloud));
 
                 break;
 
             case POLY_PAGE_BIG_BUTTONS:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::Decal);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_bigbutton));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_TINY_BUTTONS:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_tinybutt));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_BIG_LEAF:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                pa->RS.SetTextureBlend(GETextureBlend::Modulate);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 SET_TEXTURE((TEXTURE_page_bigleaf));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 break;
 
             case POLY_PAGE_BIG_RAIN:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_bigrain));
-                SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                pa->RS.SetFogEnabled(false);
                 SET_EFFECT(RS_AlphaPremult);
                 break;
 
             case POLY_PAGE_PCFLAMER:
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATEALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_INVSRCALPHA);
-                SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+                pa->RS.SetDepthWrite(false);
+                pa->RS.SetAlphaBlendEnabled(true);
+                pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
+                pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_pcflamer));
-                SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 SET_EFFECT(RS_InvAlphaPremult);
 
                 break;
@@ -1168,48 +1168,48 @@ void POLY_init_render_states()
                             if (use_chroma) {
                                 // use colour keying to make the windows work on the Rage Pro
                                 TEXTURE_set_colour_key(ii);
-                                SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, UC_TRUE);
+                                pa->RS.SetColorKeyEnabled(true);
                             } else {
-                                SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
+                                pa->RS.SetAlphaTestEnabled(true);
                             }
                         }
 
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_WRAP) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_WRAP);
+                            pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                         }
 
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_ADD_ALPHA) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                            pa->RS.SetDepthWrite(false);
+                            pa->RS.SetAlphaBlendEnabled(true);
+                            pa->RS.SetSrcBlend(GEBlendFactor::One);
+                            pa->RS.SetDstBlend(GEBlendFactor::One);
                         }
 
                         if ((POLY_page_flag[ii] & POLY_PAGE_FLAG_SELF_ILLUM) && !draw_3d) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
+                            pa->RS.SetTextureBlend(GETextureBlend::Decal);
                         }
 
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_NO_FOG) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+                            pa->RS.SetFogEnabled(false);
                         }
 
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
+                            pa->RS.SetAlphaTestEnabled(true);
 
-                            SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+                            pa->RS.SetAlphaBlendEnabled(true);
+                            pa->RS.SetSrcBlend(GEBlendFactor::One);
+                            pa->RS.SetDstBlend(GEBlendFactor::One);
                         }
 
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW_2ND) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESS);
+                            pa->RS.SetDepthFunc(GECompareFunc::Less);
                         }
 
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_ALPHA) {
-                            SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                            SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
+                            pa->RS.SetDepthWrite(false);
+                            pa->RS.SetAlphaBlendEnabled(true);
+                            pa->RS.SetSrcBlend(GEBlendFactor::SrcAlpha);
+                            pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                         }
                     }
 
@@ -1222,11 +1222,11 @@ void POLY_init_render_states()
                         case 20:
                         case 21:
                             // People texture page — use dest-colour src-colour blend for Adami lighting.
-                            SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_DESTCOLOR);
-                            SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_SRCCOLOR);
+                            pa->RS.SetSrcBlend(GEBlendFactor::DstColor);
+                            pa->RS.SetDstBlend(GEBlendFactor::SrcColor);
 
-                            SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-                            SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
+                            pa->RS.SetAlphaBlendEnabled(true);
+                            pa->RS.SetTextureBlend(GETextureBlend::Decal);
 
                             break;
                         }
@@ -1263,10 +1263,10 @@ void POLY_init_render_states()
 
         PageOrder[pos++] = ii;
         PageOrdered[ii] = true;
-        LPDIRECT3DTEXTURE2 tex = POLY_Page[ii].RS.GetTexture();
+        GETextureHandle tex = POLY_Page[ii].RS.GetTexture();
         PolyPage* pPolyPage = &(POLY_Page[ii]);
 
-        if (tex != NULL) {
+        if (tex != GE_TEXTURE_NONE) {
             for (ii++; ii < POLY_NUM_PAGES; ii++) {
                 if (POLY_Page[ii].RS.GetTexture() == tex) {
                     // If this page has the same texture AND same render states, make it a

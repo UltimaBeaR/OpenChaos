@@ -2053,24 +2053,34 @@ void POLY_frame_draw_odd()
 
     ge_begin_scene();
 
-// Sets the actual hardware RS, and also keeps the cache informed.
-#define FORCE_SET_RENDER_STATE(t, s)           \
-    RenderState::s_State.SetRenderState(t, s); \
-    REALLY_SET_RENDER_STATE(t, s)
-#define FORCE_SET_TEXTURE(s)            \
-    RenderState::s_State.SetTexture(s); \
+// Sets both the GERenderState cache and the actual hardware state.
+// For textures, the cache uses GETextureHandle while the hardware uses LPDIRECT3DTEXTURE2.
+#define FORCE_SET_TEXTURE(s)                                              \
+    RenderState::s_State.SetTexture(reinterpret_cast<GETextureHandle>(s)); \
     REALLY_SET_TEXTURE(s)
 
+    // Set hardware state directly (specular enable has no GERenderState equivalent).
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_CLAMP);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-    FORCE_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+
+    // Set both cache and hardware for all render states.
+    RenderState::s_State.SetDepthEnabled(false);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+    RenderState::s_State.SetDepthFunc(GECompareFunc::LessEqual);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
+    RenderState::s_State.SetDepthWrite(false);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
+    RenderState::s_State.SetCullMode(GECullMode::None);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
+    RenderState::s_State.SetTextureBlend(GETextureBlend::Modulate);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
+    RenderState::s_State.SetTextureAddress(GETextureAddress::Clamp);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_CLAMP);
+    RenderState::s_State.SetAlphaBlendEnabled(true);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+    RenderState::s_State.SetSrcBlend(GEBlendFactor::One);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
+    RenderState::s_State.SetDstBlend(GEBlendFactor::One);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
 
     for (i = 0; i < TEXTURE_page_num_standard; i++) {
         ASSERT(WITHIN(i, 0, POLY_NUM_PAGES - 1));
@@ -2087,14 +2097,16 @@ void POLY_frame_draw_odd()
     }
 
     if (POLY_Page[POLY_PAGE_SKY].NeedsRendering()) {
-        FORCE_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+        RenderState::s_State.SetFogEnabled(false);
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
         FORCE_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_sky));
 
         POLY_Page[POLY_PAGE_SKY].Render(the_display.lp_D3D_Device);
     }
 
     if (POLY_Page[POLY_PAGE_MOON].NeedsRendering()) {
-        FORCE_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+        RenderState::s_State.SetFogEnabled(false);
+        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
         FORCE_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_moon));
 
         POLY_Page[POLY_PAGE_MOON].Render(the_display.lp_D3D_Device);

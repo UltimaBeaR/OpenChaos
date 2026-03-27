@@ -81,6 +81,35 @@ void ge_set_blend_mode(GEBlendMode mode)
     }
 }
 
+static DWORD ge_blend_factor_to_d3d(GEBlendFactor f)
+{
+    switch (f) {
+    case GEBlendFactor::Zero:         return D3DBLEND_ZERO;
+    case GEBlendFactor::One:          return D3DBLEND_ONE;
+    case GEBlendFactor::SrcAlpha:     return D3DBLEND_SRCALPHA;
+    case GEBlendFactor::InvSrcAlpha:  return D3DBLEND_INVSRCALPHA;
+    case GEBlendFactor::SrcColor:     return D3DBLEND_SRCCOLOR;
+    case GEBlendFactor::InvSrcColor:  return D3DBLEND_INVSRCCOLOR;
+    case GEBlendFactor::DstColor:     return D3DBLEND_DESTCOLOR;
+    case GEBlendFactor::InvDstColor:  return D3DBLEND_INVDESTCOLOR;
+    case GEBlendFactor::DstAlpha:     return D3DBLEND_DESTALPHA;
+    case GEBlendFactor::InvDstAlpha:  return D3DBLEND_INVDESTALPHA;
+    default:                          return D3DBLEND_ONE;
+    }
+}
+
+void ge_set_blend_factors(GEBlendFactor src, GEBlendFactor dst)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, ge_blend_factor_to_d3d(src));
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, ge_blend_factor_to_d3d(dst));
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, TRUE);
+}
+
+void ge_set_blend_enabled(bool enabled)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, enabled ? TRUE : FALSE);
+}
+
 void ge_set_depth_mode(GEDepthMode mode)
 {
     switch (mode) {
@@ -164,6 +193,21 @@ void ge_set_depth_bias(int32_t bias)
 void ge_set_fog_enabled(bool enabled)
 {
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, enabled ? TRUE : FALSE);
+}
+
+static inline DWORD FloatAsDword(float f) { DWORD d; memcpy(&d, &f, sizeof(d)); return d; }
+
+void ge_set_fog_params(uint32_t color, float near_dist, float far_dist)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGCOLOR, color);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLEMODE, D3DFOG_LINEAR);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLESTART, FloatAsDword(near_dist));
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLEEND, FloatAsDword(far_dist));
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLEDENSITY, FloatAsDword(0.5f));
+
+    // Alpha test setup (used globally in the original).
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAREF, 0x07);
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAFUNC, D3DCMP_GREATER);
 }
 
 void ge_set_specular_enabled(bool enabled)
