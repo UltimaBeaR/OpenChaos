@@ -521,26 +521,44 @@ D3D6 SetTransform принимает non-const LPD3DMATRIX → const_cast в D3D
 
 Результат: lp_D3D_Viewport = 0 вхождений вне бэкенда.
 
-### Общий статус Шага 2
+### Анализ DDraw surface operations — часть бэкенда, не абстрагируем
 
-Полностью мигрированы на ge_* (0 прямых D3D вызовов вне бэкенда):
-- ✅ lp_D3D_Viewport — viewport, clear
-- ✅ SetTransform — world, view, projection
-- ✅ SetRenderState (основные блоки)
-- ✅ SetTexture / DrawPrimitive / DrawIndexedPrimitive (основные)
-- ✅ Все display_macros.h макросы
+Проанализированы все 17 оставшихся DDraw обращений:
 
-Внутренности D3D бэкенда (не абстрагируются — переписываются при OpenGL):
-- 5× DrawIndPrimMM
-- 8× PolyPage::Render/DrawSinglePoly
-- 2× FORCE_SET_* (render state cache debug path)
+- **figure.cpp `DeadAndBuried()`** — debug, рисует на FrontSurface. Часть D3D рендерера персонажей.
+- **host.cpp** — RestoreAllSurfaces, toGDI/fromGDI. Платформенный D3D код, при OpenGL не нужен.
+- **truetype.cpp** — CreateSurface (8-bit paletted для GDI font). При OpenGL — FreeType/stb прямо в текстуру.
+- **frontend.cpp** — CreateSurface, Blt, Background_use_instead. DDraw surface для фонов меню.
+- **flamengine.cpp** — Blt с BackSurface (feedback эффект).
 
-Оставшийся DDraw surface access (нужна миграция):
-- flamengine: Blt (1)
-- figure: FrontSurface Lock/Unlock (2)
-- truetype: CreateSurface, CreatePalette (2)
-- host: RestoreAllSurfaces (1)
-- frontend: CreateSurface, GetSurfaceDesc, Blt, Background_use_instead (11)
+**Решение:** не абстрагировать через ge_. Это D3D-центричные операции (surfaces, palettes, Blt, device-lost) — при OpenGL переписываются целиком.
+
+### Итог Шага 2 ✅
+
+**Мигрировано на ge_*:**
+- ✅ Frame: begin/end scene, clear, flip
+- ✅ Background: set_background, set_background_color
+- ✅ Render state: blend, depth, depth_func, depth_bias, cull, texture filter/blend/address, fog, specular, perspective
+- ✅ Textures: bind_texture
+- ✅ Draw: draw_primitive (TL), draw_indexed_primitive (TL/Lit/Unlit)
+- ✅ Transforms: set_transform (World/View/Projection)
+- ✅ Viewport: set_viewport
+
+**D3D бэкенд internals (переписываются при OpenGL, не абстрагируются):**
+- PolyPage::Render/DrawSinglePoly (8) — vertex buffer batching
+- DrawIndPrimMM (5) — multi-matrix batching
+- FORCE_SET_* debug path (2) — render state cache
+- DDraw surface ops (17) — surfaces, Blt, palettes, device-lost
+- figure DeadAndBuried (2) — debug front surface draw
+- host device management (6) — toGDI, RestoreAll, IsDisplayChanged
+
+### Изоляция D3D хедеров — не завершена (TODO)
+
+D3D хедеры (`<ddraw.h>`, `<d3d.h>`) всё ещё включаются через `uc_common.h` (145 файлов).
+Это значит D3D типы формально доступны везде, хотя новый код их не использует.
+Для полной изоляции нужно разбить uc_common.h — убрать из него D3D includes,
+каждый потребитель должен включать только то что ему нужно.
+Это отдельная большая задача, не блокер для OpenGL реализации.
 
 Сборка: 308/308.
 
