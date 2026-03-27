@@ -9,7 +9,7 @@ reimplementation with modern tech.
 |------|----------|-----|
 | Build system | MSVC vcxproj | CMake + Ninja + Clang (clang-cl, still uses MSVC linker/runtime), vcpkg |
 | Audio | Miles Sound System | SDL3 + OpenAL (3D positional sound) |
-| Input | DirectInput (keyboard + joystick) | SDL3 (keyboard + gamepad) — Xbox/generic, PS1-style mapping, analog stick, hotplug |
+| Input | DirectInput (keyboard + joystick) | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense, PS1-style mapping, analog stick, vibration, hotplug, analog triggers (gas/brake). DualSense extras: LED lightbar (health color, siren flash), adaptive triggers (weapon click, brake resistance) |
 
 - Unused code removed (PSX, Dreamcast, Glide, editors, debug, experimental features) — code is preprocessor-free
 - Codebase restructured into hierarchical modules (`engine/`, `game/`, `ui/`, `outro/`), every entity traceable to the original via `// uc_orig:` comments

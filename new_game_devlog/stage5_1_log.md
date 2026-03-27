@@ -692,3 +692,77 @@ DS-lib `SetVibration()` не имеет auto-timeout (в отличие от SDL
 - `gamepad.h` — `gamepad_led_update(float, bool)`, `gamepad_led_reset()`, `gamepad_rumble_stop()`
 - `gamepad.cpp` — LED логика (здоровье + сирена + reset), фикс decay (s_was_active), rumble_stop
 - `game.cpp` — LED update в game loop (с проверкой паузы), rumble_stop + led_reset в game_fini
+
+---
+
+## B3 — Adaptive triggers + L2/R2 repurpose
+
+### Что сделано
+
+**L2/R2 переназначены** — убрана камера (дублировала правый стик), добавлены альтернативные действия:
+- **В машине:** R2 = газ, L2 = тормоз (альтернатива Cross/Square, оригинальные кнопки сохранены)
+- **При стрельбе (first-person + gun out):** R2 = стрельба (альтернатива Square/X)
+- **Остальное:** L2/R2 свободные, без adaptive effect
+
+**Adaptive triggers (DualSense only):** эффект только в двух контекстах:
+- **Машина:** R2 = машинный эффект (газ, лёгкий), L2 = машинный эффект (тормоз, тяжелее)
+- **Стрельба:** R2 = weapon click (ощущение курка), L2 = свободный
+- Все остальные ситуации — триггеры полностью свободные (NONE)
+- При паузе, смерти, выходе из уровня — триггеры сбрасываются
+
+**State tracking:** `s_trigger_mode` отслеживает текущий режим, HID команды отправляются
+только при смене — без спама каждый кадр.
+
+### Клавиатурный маппинг камеры сохранён
+
+L2/R2 → CAM_LEFT/CAM_RIGHT убрано ТОЛЬКО для геймпада. Клавиатурный маппинг
+(`Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT/RIGHT]]`) не тронут.
+
+### Изменённые файлы
+
+- `gamepad.h` — `gamepad_triggers_update(bool, bool, bool)`, `gamepad_triggers_off()`
+- `gamepad.cpp` — adaptive trigger логика: 3 режима (NONE, AIM_GUN, CAR), state tracking
+- `game.cpp` — trigger update в game loop (рядом с LED/rumble), triggers_off в game_fini
+- `input_actions.cpp`:
+  - `get_hardware_input()` — убран L2/R2→CAM_LEFT/CAM_RIGHT для геймпада
+  - `get_hardware_input()` — R2→PUNCH, L2→KICK (только пешком, проверка FLAG_PERSON_DRIVING)
+  - `apply_button_input_car()` — R2/L2 как альтернатива газ/тормоз + VEH_FASTER
+- `vehicle.cpp` — аналоговый газ: accel масштабируется по trigger_right (0-255)
+
+### Итерации тюнинга (по результатам ручного тестирования)
+
+**Итерация 1:** R2 газ слишком медленный — не ставил VEH_FASTER (Cross ставил). Фикс: R2/L2
+всегда ставят VEH_FASTER. Адаптив газа слишком тяжёлый — machine effect, заменён на resistance.
+
+**Итерация 2:** Адаптив газа всё ещё тяжёлый (resistance 40). Фикс: R2 газ полностью свободный
+(ds_trigger_off), аналоговость через trigger_right. L2 тормоз: щелчок в конце (machine effect),
+заменён на чистое сопротивление (ds_trigger_resistance 200).
+
+**Итерация 3:**
+- L2 в машине активировал мигалку: L2→KICK инжектировался всегда, а INPUT_CAR_PAD_SIREN = KICK.
+  Фикс: инжекция L2→KICK и R2→PUNCH только пешком (проверка FLAG_PERSON_DRIVING).
+- R2 стрельба не работала в apply_button_input_first_person: переделано — R2→PUNCH инжектируется
+  в input word в get_hardware_input, работает везде (стрельба, удар, first-person).
+- 0 патронов — адаптив убирается (has_ammo check).
+- Цель с поднятыми руками / невинный коп — адаптив убирается (will_shoot check: ANIM_HANDS_UP,
+  ANIM_HANDS_UP_LOOP, PERSON_COP без FLAG2_PERSON_GUILTY).
+- Добавлен gamepad_triggers_off() в game_init() — сброс при старте миссии.
+
+**Аналоговые триггеры в машине:** GamepadState расширен полями trigger_left/trigger_right (0-255).
+Заполняется из DualSense (float*255) и SDL3 (>>7). В pedals():
+- R2 газ: `accel = accel * trigger_right / 255`. Мало нажал = медленно, полностью = полный газ.
+- L2 тормоз: `accel = accel * trigger_left / 255`. Мало нажал = лёгкое торможение, в пол = полный тормоз.
+- Полное нажатие (>240) = полный эффект без масштабирования.
+- Cross/Square (цифровые кнопки) = всегда полный газ/тормоз.
+
+**Механика DualSense:** adaptive trigger моторы механические — после отключения эффекта
+сохраняется небольшое остаточное сопротивление на 1-2 нажатия. Это hardware, не баг.
+
+### Проверка
+
+Release и Debug собираются. Проверено с DualSense:
+- Пистолет: weapon click на R2 ✅, пропадает при 0 патронов ✅
+- Машина: R2 газ свободный + аналоговый ✅, L2 тормоз тяжёлый ✅
+- Мигалка: L2 не активирует ✅
+- Гражданские с поднятыми руками: адаптив убирается ✅
+- Пешком без пушки: триггеры свободные ✅

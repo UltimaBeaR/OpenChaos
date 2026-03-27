@@ -76,7 +76,8 @@
 #include "ui/menus/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
-#include "engine/input/gamepad.h"    // gamepad_rumble_tick
+#include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
+#include "things/characters/anim_ids.h" // ANIM_HANDS_UP* for adaptive trigger check
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
 #include "assets/formats/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
@@ -268,6 +269,9 @@ BOOL game_init(void)
 {
     SLONG ret;
 
+    // Reset DualSense adaptive triggers at mission start (clears residual from previous mission).
+    gamepad_triggers_off();
+
     global_load();
 
     GAME_TURN = 0;
@@ -356,6 +360,7 @@ void game_fini(void)
 {
     gamepad_rumble_stop();
     gamepad_led_reset();
+    gamepad_triggers_off();
     stop_all_fx_and_music();
 
     ATTRACT_loadscreen_init();
@@ -830,6 +835,37 @@ round_again:;
                         fraction = float(darci->Genus.Person->Health) / max_hp;
                     }
                     gamepad_led_update(fraction, siren_on);
+                }
+            }
+
+            // Update DualSense adaptive triggers based on gameplay context.
+            if (GAMEMENU_is_paused()) {
+                gamepad_triggers_off();
+            } else {
+                Thing* darci_t = NET_PERSON(0);
+                if (darci_t && darci_t->Genus.Person) {
+                    bool in_car = darci_t->Genus.Person->InCar != 0;
+                    bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                    bool has_ammo = darci_t->Genus.Person->Ammo > 0;
+
+                    // Disable weapon trigger effect when target has surrendered (hands up)
+                    // or is an innocent cop — game will "talk" instead of shoot.
+                    bool will_shoot = has_gun && has_ammo;
+                    if (will_shoot && darci_t->Genus.Person->Target) {
+                        Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
+                        if (tgt->Class == CLASS_PERSON) {
+                            SLONG anim = tgt->Draw.Tweened->CurrentAnim;
+                            if (anim == ANIM_HANDS_UP || anim == ANIM_HANDS_UP_LOOP) {
+                                will_shoot = false;
+                            }
+                            if (tgt->Genus.Person->PersonType == PERSON_COP &&
+                                !(tgt->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
+                                will_shoot = false;
+                            }
+                        }
+                    }
+
+                    gamepad_triggers_update(in_car, will_shoot, has_ammo);
                 }
             }
 

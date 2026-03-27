@@ -153,6 +153,10 @@ static void poll_dualsense()
     if (ds.l2_digital) gamepad_state.rgbButtons[15] = 0x80;
     if (ds.r2_digital) gamepad_state.rgbButtons[16] = 0x80;
 
+    // Analog trigger values (0..255).
+    gamepad_state.trigger_left  = static_cast<uint8_t>(ds.trigger_left  * 255.0f);
+    gamepad_state.trigger_right = static_cast<uint8_t>(ds.trigger_right * 255.0f);
+
     gamepad_state.connected = true;
 }
 
@@ -220,6 +224,10 @@ static void poll_sdl3()
     // Triggers as digital buttons.
     if (sdl_state.trigger_left > 8000)  gamepad_state.rgbButtons[15] = 0x80;
     if (sdl_state.trigger_right > 8000) gamepad_state.rgbButtons[16] = 0x80;
+
+    // Analog trigger values: SDL3 range 0..32767 → 0..255.
+    gamepad_state.trigger_left  = static_cast<uint8_t>(sdl_state.trigger_left  >> 7);
+    gamepad_state.trigger_right = static_cast<uint8_t>(sdl_state.trigger_right >> 7);
 
     gamepad_state.connected = true;
 
@@ -435,6 +443,80 @@ void gamepad_led_update(float health_fraction, bool siren)
 
     ds_set_lightbar(r, g, b);
     ds_update_output();
+}
+
+// ---------------------------------------------------------------------------
+// Adaptive triggers (DualSense only)
+// ---------------------------------------------------------------------------
+
+// Track current mode to avoid spamming HID output every frame.
+enum TriggerMode {
+    TRIGGER_MODE_NONE,      // triggers free (no effect)
+    TRIGGER_MODE_AIM_GUN,   // weapon click on R2 (shooting)
+    TRIGGER_MODE_CAR,       // machine feel (R2=gas, L2=brake)
+};
+static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
+
+static void apply_trigger_mode(TriggerMode mode)
+{
+    if (!s_is_dualsense || !ds_is_connected()) return;
+
+    switch (mode) {
+    case TRIGGER_MODE_NONE:
+        ds_trigger_off(2); // both hands
+        break;
+
+    case TRIGGER_MODE_AIM_GUN:
+        // First-person with gun drawn:
+        // R2 = weapon trigger (click point then resistance) — feels like pulling a trigger.
+        // L2 = free (no effect).
+        ds_trigger_weapon(20, 180, 0, 0, 1);  // R2: start=20, amplitude=180
+        ds_trigger_off(0);                      // L2: free
+        break;
+
+    case TRIGGER_MODE_CAR:
+        // Vehicle pedals. R2 = gas: free (analog throttle, no resistance).
+        // L2 = brake: strong resistance (no click, just progressive force).
+        ds_trigger_off(1);                     // R2 gas: free
+        ds_trigger_resistance(20, 200, 0);     // L2 brake: strong resistance, no click
+        break;
+    }
+
+    ds_update_output();
+}
+
+void gamepad_triggers_update(bool in_car, bool has_gun, bool has_ammo)
+{
+    if (!s_is_dualsense || !ds_is_connected()) return;
+    if (active_input_device != INPUT_DEVICE_DUALSENSE) {
+        // Not actively using DualSense — clear triggers if they were on.
+        if (s_trigger_mode != TRIGGER_MODE_NONE) {
+            s_trigger_mode = TRIGGER_MODE_NONE;
+            apply_trigger_mode(TRIGGER_MODE_NONE);
+        }
+        return;
+    }
+
+    TriggerMode desired;
+    if (in_car) {
+        desired = TRIGGER_MODE_CAR;
+    } else if (has_gun && has_ammo) {
+        desired = TRIGGER_MODE_AIM_GUN;
+    } else {
+        desired = TRIGGER_MODE_NONE;
+    }
+
+    if (desired != s_trigger_mode) {
+        s_trigger_mode = desired;
+        apply_trigger_mode(desired);
+    }
+}
+
+void gamepad_triggers_off()
+{
+    if (s_trigger_mode == TRIGGER_MODE_NONE) return;
+    s_trigger_mode = TRIGGER_MODE_NONE;
+    apply_trigger_mode(TRIGGER_MODE_NONE);
 }
 
 InputDeviceType gamepad_get_device_type()

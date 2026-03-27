@@ -3137,11 +3137,15 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
         if (input & INPUT_CAR_KB_SIREN)
             veh->DControl |= VEH_SIREN;
     } else {
-        if (input & INPUT_CAR_PAD_ACCELERATE)
+        // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
+        bool r2 = the_state.rgbButtons[16] != 0;
+        bool l2 = the_state.rgbButtons[15] != 0;
+
+        if ((input & INPUT_CAR_PAD_ACCELERATE) || r2)
             veh->DControl |= VEH_ACCEL;
-        else if (input & INPUT_CAR_PAD_DECELERATE)
+        else if ((input & INPUT_CAR_PAD_DECELERATE) || l2)
             veh->DControl |= VEH_DECEL;
-        if (input & INPUT_CAR_PAD_GOFASTER)
+        if ((input & INPUT_CAR_PAD_GOFASTER) || r2 || l2)
             veh->DControl |= VEH_FASTER;
         if (input & INPUT_CAR_PAD_SIREN)
             veh->DControl |= VEH_SIREN;
@@ -3272,14 +3276,24 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]])) {
-                    input |= INPUT_MASK_CAM_LEFT;
-                    g_dwLastInputChangeTime = dwCurrentTime;
-                }
-
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]])) {
-                    input |= INPUT_MASK_CAM_RIGHT;
-                    g_dwLastInputChangeTime = dwCurrentTime;
+                // L2/R2 no longer map to camera rotation on gamepad — right stick handles camera.
+                // On foot: R2 = alternative PUNCH (shoot/melee), L2 = alternative KICK.
+                // In car: gas/brake handled in apply_button_input_car() via rgbButtons directly.
+                // Keyboard CAM_LEFT/CAM_RIGHT mapping is preserved below.
+                {
+                    Thing* p_darci = NET_PERSON(0);
+                    bool driving = p_darci && p_darci->Genus.Person &&
+                                   (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    if (!driving) {
+                        if (the_state.trigger_right > 128) {
+                            input |= INPUT_MASK_PUNCH;
+                            g_dwLastInputChangeTime = dwCurrentTime;
+                        }
+                        if (the_state.trigger_left > 128) {
+                            input |= INPUT_MASK_KICK;
+                            g_dwLastInputChangeTime = dwCurrentTime;
+                        }
+                    }
                 }
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_ACTION]])) {

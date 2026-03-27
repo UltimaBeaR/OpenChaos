@@ -14,6 +14,8 @@ struct GamepadState {
     int32_t rX;            // right stick X, 0..65535 (center 32768)
     int32_t rY;            // right stick Y, 0..65535 (center 32768)
     uint8_t rgbButtons[32]; // 0x80 = pressed, compatible with DIJOYSTATE
+    uint8_t trigger_left;  // L2 analog: 0 (released) .. 255 (fully pressed)
+    uint8_t trigger_right; // R2 analog: 0 (released) .. 255 (fully pressed)
     bool connected;
     bool dpad_active;      // true when D-Pad is providing axis values (digital, not analog)
 };
@@ -52,6 +54,17 @@ InputDeviceType gamepad_get_device_type();
 // siren: true when driving a police car with siren active (red/blue flash).
 // Call once per game tick.
 void gamepad_led_update(float health_fraction, bool siren);
+
+// Update DualSense adaptive trigger effects based on gameplay context.
+// No-op for Xbox/keyboard. Only sends HID commands when mode changes.
+// in_car: player is driving a vehicle (brake pedal feel on L2).
+// has_gun: player has a gun drawn (weapon trigger feel on R2).
+// has_ammo: current weapon has ammo (no trigger click when empty).
+// Call once per game tick.
+void gamepad_triggers_update(bool in_car, bool has_gun, bool has_ammo);
+
+// Disable all adaptive trigger effects. Call on pause, menu, death, level transition.
+void gamepad_triggers_off();
 
 // Mark a button to be consumed (zeroed) on every poll until released.
 // Use when exiting a menu to prevent the button from triggering a gameplay action.

@@ -2463,6 +2463,14 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
                     accel = 0;
             }
 
+            // Analog throttle: scale accel by R2 trigger position (gamepad only).
+            // Full press = full accel, partial press = proportional.
+            // Cross button always gives full accel (digital).
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE &&
+                gamepad_state.trigger_right > 0 && gamepad_state.trigger_right < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_right) / 255);
+            }
+
             if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
                 veh->Smokin = 1;
             }
@@ -2474,6 +2482,13 @@ static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& f
             friction -= 4;
             accel = -vinfo->SoftBrake;
             move_cancel = (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) ? INPUT_CAR_KB_DECELERATE : INPUT_CAR_PAD_DECELERATE;
+
+            // Analog brake: scale braking force by L2 trigger position (gamepad only).
+            // Square button always gives full brake (digital).
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE &&
+                gamepad_state.trigger_left > 0 && gamepad_state.trigger_left < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_left) / 255);
+            }
 
             if (!veh->Skid) {
                 if ((veh->DControl & VEH_FASTER) && (velocity > 1600))
