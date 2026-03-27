@@ -105,7 +105,12 @@ static void poll_dualsense()
         s_is_dualsense = false;
         gamepad_state.connected = (s_gamepad != nullptr);
         if (!gamepad_state.connected) {
+            // Reset axes to centre (32768) so downstream code doesn't see phantom input.
             memset(&gamepad_state, 0, sizeof(gamepad_state));
+            gamepad_state.lX = 32768;
+            gamepad_state.lY = 32768;
+            gamepad_state.rX = 32768;
+            gamepad_state.rY = 32768;
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
         }
         debug_log_backend("ds_disconnected");
@@ -187,7 +192,12 @@ static void poll_sdl3()
             sdl3_gamepad_close(s_gamepad);
             s_gamepad = nullptr;
             gamepad_state.connected = false;
+            // Reset axes to centre (32768) so downstream code doesn't see phantom input.
             memset(&gamepad_state, 0, sizeof(gamepad_state));
+            gamepad_state.lX = 32768;
+            gamepad_state.lY = 32768;
+            gamepad_state.rX = 32768;
+            gamepad_state.rY = 32768;
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
             debug_log_backend("sdl3_disconnected");
         }
