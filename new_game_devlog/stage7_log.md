@@ -584,7 +584,33 @@ engine/graphics/graphics_engine/
 
 Обновлено: 60 файлов (include paths), CMakeLists.txt.
 Папка `graphics_api/` удалена.
-Сборка: 308/308, 0 ошибок.
+
+### Попытка замены D3D типов → GE типы в geometry/pipeline
+
+Попробовал заменить `D3DLVERTEX` → `GEVertexLit` в файлах вне d3d/.
+**Не работает** — эти файлы используют D3D union alias members (`dvX`, `dvY`, `dvZ`, `dvTU`, `dvTV`,
+`dvSX`, `dvSY`, `dcColor`, `dcSpecular`, `dvRHW`). GEVertexLit имеет только `x`, `y`, `z`, `u`, `v`.
+
+Замена потребовала бы переименование ВСЕХ member access — по сути переписывание рендер-пайплайна.
+При OpenGL он и так будет переписан. Откачено.
+
+### Реальная граница D3D бэкенда
+
+D3D код живёт не только в `graphics_engine/d3d/`, но и в:
+- `engine/graphics/geometry/` — farfacet, fastprim, figure, superfacet, sprite, sky, shape
+- `engine/graphics/pipeline/` — aeng, poly, polypage, poly_render, qeng
+- `engine/graphics/text/` — truetype, font, text
+- `engine/graphics/postprocess/` — wibble, bloom
+- `engine/effects/` — flamengine
+- `ui/frontend/` — frontend, attract
+- `engine/platform/` — host, wind_procs
+- `assets/` — texture
+
+Эти файлы — **D3D рендер-пайплайн**, при OpenGL переписываются целиком.
+`graphics_engine/d3d/` содержит ядро D3D, geometry/pipeline/text — потребители ядра.
+
+ge_* абстракция работает на границе: игровой код (things/, game/, combat/, ai/, missions/) →
+ge_* → D3D бэкенд. Вызовы ge_* в pipeline файлах — точки соприкосновения.
 
 Сборка: 308/308.
 

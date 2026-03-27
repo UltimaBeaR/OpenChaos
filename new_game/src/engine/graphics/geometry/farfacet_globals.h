@@ -2,6 +2,7 @@
 #define ENGINE_GRAPHICS_GEOMETRY_FARFACET_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // D3DLVERTEX, D3DMATRIX
 #include "engine/core/types.h"
 #include "engine/graphics/graphics_engine/d3d/render_state.h"

@@ -3,6 +3,7 @@
 
 #include "engine/platform/uc_common.h"
 #include <d3d.h>
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/types.h"
 
 // D3D vertex/index buffer for all batched prim draws.

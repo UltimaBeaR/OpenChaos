@@ -1,4 +1,5 @@
 #include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/polypage_globals.h"
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer_globals.h"
 #include "engine/core/matrix.h"

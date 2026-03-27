@@ -1,4 +1,5 @@
 #include "engine/platform/uc_common.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 
 #include "game/game_types.h"
 #include "engine/graphics/pipeline/poly.h"
