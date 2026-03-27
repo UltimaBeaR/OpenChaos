@@ -681,6 +681,68 @@ DrawIndPrimMM parameters. При OpenGL эти модули переписыва
 
 Сборка: 308/308.
 
+---
+
+## Требования к архитектуре (от пользователя, обязательны)
+
+1. **Публичный контракт графического движка — API agnostic.** Ничего D3D/OpenGL-специфичного.
+2. **Весь D3D код — в d3d/ папке.** Ни один файл вне d3d/ не включает D3D хедеры напрямую или транзитивно.
+3. **Никакой игровой логики внутри реализации графического API.** Только код отрисовки.
+
+### Что нужно сделать для выполнения требований
+
+**Проблема:** `texture.h` включает `d3d_texture.h` → D3D типы утекают в 200+ файлов.
+`D3DTexture` класс (D3D-specific) используется в публичном API: `TEXTURE_texture[]`, `TEXTURE_get_D3DTexture()`.
+
+**Решение:**
+
+**A. Разрезать texture.h:**
+- Публичная часть (`texture.h`): только `GETextureHandle`, `TEXTURE_get_handle()`, `TEXTURE_load()` и т.д.
+  Без `D3DTexture*`, без `d3d_texture.h` include.
+- D3D internal: `TEXTURE_get_D3DTexture()` и `TEXTURE_texture[]` → доступны только из d3d/.
+
+**B. Убрать прямые D3D SDK includes из 5 файлов вне d3d/:**
+- `fastprim_globals.h` → `<d3d.h>` нужен для... проверить, может уже не нужен
+- `figure_globals.h` → `<ddraw.h>` `<d3d.h>` — нужны для D3DTexture-related types?
+- `font.cpp` → `<d3d.h>` — для D3DTexture font access?
+- `truetype_globals.h` → `<ddraw.h>` `<d3d.h>` — для DDraw surface types
+- `frontend.h` → `<ddraw.h>` — для LPDIRECTDRAWSURFACE4
+
+**C. Для каждого файла с прямым D3D SDK include — варианты:**
+1. Убрать D3D include если тип уже заменён на GE*
+2. Если файл реально D3D-зависим (truetype DDraw surface, frontend DDraw surface) — перенести в d3d/
+3. Если файл содержит смесь game logic + D3D — разрезать на две части
+
+**D. Файлы которые нужно разрезать или перенести:**
+- `truetype.cpp` — D3D font rendering → d3d/ (при OpenGL: FreeType/stb)
+- `frontend.cpp` — DDraw surface management для backgrounds → extract D3D part → d3d/
+- `flamengine.cpp` — DDraw Blt feedback → extract D3D part → d3d/
+- `fastprim.cpp` — DrawIndPrimMM + D3D texture access → extract D3D calls → ge_*
+- `figure.cpp` — DrawIndPrimMM → extract D3D calls → ge_*
+- `farfacet.cpp` — DrawIndexedPrimitive через PolyPage → verify D3D removed
+- `host.cpp` — RestoreAllSurfaces, toGDI → platform D3D code → d3d/
+- `polypage.cpp` — DrawIndexedPrimitiveVB, DrawIndPrimMM → d3d/
+
+**E. Добавить в ge_* контракт:**
+- `ge_draw_multi_matrix()` — обёртка DrawIndPrimMM
+- `ge_create_offscreen_texture()` / `ge_upload_pixels()` — обёртка DDraw surface ops
+- `ge_blit_to_backbuffer()` / `ge_blit_from_backbuffer()` — обёртка Blt
+- `ge_restore_surfaces()` — device-lost recovery (no-op в OpenGL)
+- `ge_lock_screen()` / `ge_unlock_screen()` — framebuffer pixel access
+- Font rendering abstraction (truetype → ge_create_font_texture?)
+
+### Порядок работы
+
+1. Разрезать texture.h (убрать D3DTexture из публичного API) — разблокирует 200 файлов
+2. Добавить ge_draw_multi_matrix() — разблокирует fastprim, figure, aeng
+3. Перенести polypage.cpp в d3d/ (DrawIndexedPrimitiveVB — чисто D3D)
+4. Перенести truetype D3D part в d3d/
+5. Вычистить frontend.cpp (DDraw Blt → ge_blit)
+6. Вычистить flamengine.cpp (DDraw Blt → ge_blit)
+7. Вычистить host.cpp (RestoreAll → ge_restore)
+8. Убрать оставшиеся D3D includes из fastprim_globals.h, figure_globals.h, font.cpp
+9. Финальная проверка: grep D3D вне d3d/ = 0 вхождений
+
 ### Замена RenderState на GERenderState ✅
 
 Создан новый API-агностичный `GERenderState` (`ge_render_state.h/cpp`):
