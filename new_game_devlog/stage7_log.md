@@ -432,6 +432,23 @@ REALLY_SET_TEXTURE → ge_bind_texture(TextureHandle).
 - D3DLVERTEX имеет dwReserved между z и color — GEVertexLit нужен _reserved padding
 - SET_BLUE_BACKGROUND — мёртвый макрос (метод SetBlueBackground не существует в Display), убран из enum'а
 
+### 2c) Замена макросов → ge_* вызовы ✅
+
+Заменены макросы BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, SET_*_BACKGROUND, SetUserColour
+на ge_begin_scene(), ge_end_scene(), ge_clear(), ge_flip(), ge_set_background(), ge_set_background_color().
+
+Затронутые файлы:
+- `aeng.cpp` — 13 замен (2× BEGIN_SCENE, 2× END_SCENE, 3× SET_BLACK_BACKGROUND, 2× CLEAR_VIEWPORT, 1× FLIP, 3× SetUserColour, 1× SetUserBackground → ge_set_background(User), 1× ClearViewport)
+- `poly.cpp` — 6 замен (3× BEGIN_SCENE, 3× END_SCENE)
+- `qeng.cpp` — 3 замены (FLIP, SET_BLACK_BACKGROUND, CLEAR_VIEWPORT). Полностью убран include display_macros.h — больше не нужен.
+- `truetype.cpp` — 2 замены (BEGIN_SCENE, END_SCENE)
+
+Все файлы получили `#include "engine/graphics/graphics_engine/graphics_engine.h"`.
+Макросы REALLY_SET_*, DRAW_*PRIMITIVE пока остаются — мигрируются на следующих подшагах.
+
+Проверка: вне graphics_api/ и graphics_engine/ эти макросы не используются (outro отключен).
+Сборка: 308/308, линковка ОК.
+
 ---
 
 ## План работы

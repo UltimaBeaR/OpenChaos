@@ -3,7 +3,8 @@
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display (still used, migrating incrementally)
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
@@ -696,7 +697,7 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     // set default render state
     DefRenderState.InitScene(fog_colour);
 
-    BEGIN_SCENE;
+    ge_begin_scene();
 }
 
 // uc_orig: POLY_valid_triangle (fallen/DDEngine/Headers/poly.h)
@@ -2009,7 +2010,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         }
     }
 
-    END_SCENE;
+    ge_end_scene();
 
     // Incrementally clear a few pages' VBs/IBs per frame to reclaim memory from inactive pages.
     for (i = 0; i < 3; i++) {
@@ -2052,7 +2053,7 @@ void POLY_frame_draw_odd()
 
     PolyPage* pa;
 
-    BEGIN_SCENE;
+    ge_begin_scene();
 
 // Sets the actual hardware RS, and also keeps the cache informed.
 #define FORCE_SET_RENDER_STATE(t, s)           \
@@ -2101,7 +2102,7 @@ void POLY_frame_draw_odd()
         POLY_Page[POLY_PAGE_MOON].Render(the_display.lp_D3D_Device);
     }
 
-    END_SCENE;
+    ge_end_scene();
 }
 
 // uc_orig: POLY_frame_draw_puddles (fallen/DDEngine/Source/poly.cpp)
@@ -2111,13 +2112,13 @@ void POLY_frame_draw_puddles()
     PolyPage* pp = &POLY_Page[POLY_PAGE_PUDDLE];
 
     if (pp->NeedsRendering()) {
-        BEGIN_SCENE;
+        ge_begin_scene();
 
         pp->RS.InitScene(0);
 
         pp->Render(the_display.lp_D3D_Device);
 
-        END_SCENE;
+        ge_end_scene();
     }
 }
 

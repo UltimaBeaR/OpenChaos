@@ -1,5 +1,6 @@
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, REALLY_SET_*, the_display
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, the_display (still used, migrating incrementally)
 #include <mbctype.h>
 #include <mbstring.h>
 #include "engine/graphics/text/truetype.h"
@@ -542,7 +543,7 @@ static void BlitText()
         if (cptr->owner) {
             // set render states
             if (!ctex) {
-                BEGIN_SCENE;
+                ge_begin_scene();
 
                 // Fixme! I need to be updated if this ever gets called - TomF.
                 ASSERT(UC_FALSE);
@@ -568,7 +569,7 @@ static void BlitText()
     }
 
     if (ctex) {
-        END_SCENE;
+        ge_end_scene();
     }
 }
 

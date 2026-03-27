@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_api/display_macros.h" // FLIP, SET_BLACK_BACKGROUND, CLEAR_VIEWPORT
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/qeng.h"
 #include "engine/graphics/pipeline/qeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -133,13 +133,13 @@ void QENG_render()
 // uc_orig: QENG_flip (fallen/DDEngine/Source/qeng.cpp)
 void QENG_flip()
 {
-    FLIP(NULL, DDFLIP_WAIT);
+    ge_flip();
 }
 
 // uc_orig: QENG_clear_screen (fallen/DDEngine/Source/qeng.cpp)
 void QENG_clear_screen()
 {
-    SET_BLACK_BACKGROUND;
-    CLEAR_VIEWPORT;
+    ge_set_background(GEBackground::Black);
+    ge_clear(true, true);
     TheVPool->ReclaimBuffers();
 }

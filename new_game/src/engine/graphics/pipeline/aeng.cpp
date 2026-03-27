@@ -30,7 +30,8 @@
 #include "map/pap.h"
 #include "map/pap_globals.h"
 #include "ai/mav.h"
-#include "engine/graphics/graphics_api/display_macros.h" // BEGIN_SCENE, END_SCENE, CLEAR_VIEWPORT, FLIP, REALLY_SET_*, SET_BLACK_BACKGROUND, DRAW_INDEXED_PRIMITIVE
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE (still used, migrating incrementally)
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
@@ -2889,7 +2890,7 @@ float AENG_draw_some_polys(bool large, bool blend)
 
     StartStopwatch();
 
-    BEGIN_SCENE;
+    ge_begin_scene();
 
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
@@ -2910,7 +2911,7 @@ float AENG_draw_some_polys(bool large, bool blend)
         ASSERT(!FAILED(res));
     }
 
-    END_SCENE;
+    ge_end_scene();
 
     the_display.screen_lock();
     the_display.screen_unlock();
@@ -3375,7 +3376,7 @@ void draw_quick_floor(SLONG warehouse)
         age[c0] = 0x7fff;
     }
 
-    BEGIN_SCENE;
+    ge_begin_scene();
 
     RenderState default_renderstate;
 
@@ -3836,7 +3837,7 @@ void draw_quick_floor(SLONG warehouse)
     POLY_set_local_rotation_none();
     general_steam(0, 0, 0, 2); // draw it
 
-    END_SCENE;
+    ge_end_scene();
 }
 
 
@@ -8110,8 +8111,8 @@ void AENG_fade_in(UBYTE amount)
 // Clears the entire back buffer to black and reclaims vertex pool buffers.
 void AENG_clear_screen()
 {
-    SET_BLACK_BACKGROUND;
-    CLEAR_VIEWPORT;
+    ge_set_background(GEBackground::Black);
+    ge_clear(true, true);
     TheVPool->ReclaimBuffers();
 }
 
@@ -8140,7 +8141,7 @@ void AENG_unlock()
 // DDFLIP_WAIT; dropping it causes corruption on that GPU.
 void AENG_flip()
 {
-    FLIP(NULL, DDFLIP_WAIT);
+    ge_flip();
 }
 
 // uc_orig: AENG_blit (fallen/DDEngine/Source/aeng.cpp)
@@ -8675,31 +8676,31 @@ void AENG_groundsquare_draw(
 void AENG_clear_viewport()
 {
     if (INDOORS_INDEX || (GAME_FLAGS & GF_SEWERS) || (GAME_FLAGS & GF_INDOORS)) {
-        SET_BLACK_BACKGROUND;
-        CLEAR_VIEWPORT;
+        ge_set_background(GEBackground::Black);
+        ge_clear(true, true);
     } else {
         if (draw_3d) {
             SLONG white = NIGHT_sky_colour.red + NIGHT_sky_colour.green + NIGHT_sky_colour.blue;
 
             white /= 3;
 
-            the_display.SetUserColour(
+            ge_set_background_color(
                 white,
                 white,
                 white);
         } else {
             if (fade_black) {
-                the_display.SetUserColour(0, 0, 0);
+                ge_set_background_color(0, 0, 0);
             } else {
-                the_display.SetUserColour(
+                ge_set_background_color(
                     NIGHT_sky_colour.red,
                     NIGHT_sky_colour.green,
                     NIGHT_sky_colour.blue);
             }
         }
 
-        the_display.SetUserBackground();
-        the_display.ClearViewport();
+        ge_set_background(GEBackground::User);
+        ge_clear(true, true);
     }
 
     BreakTime("Cleared Viewport");
