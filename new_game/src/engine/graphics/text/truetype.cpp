@@ -555,7 +555,7 @@ static void BlitText()
             }
             if (ctex != cptr->texture) {
                 ctex = cptr->texture;
-                REALLY_SET_TEXTURE(ctex->GetD3DTexture());
+                ge_bind_texture(reinterpret_cast<GETextureHandle>(ctex->GetD3DTexture()));
             }
 
             // blit area
@@ -608,7 +608,6 @@ static void TexBlit(int x1, int y1, int x2, int y2, int dx, int dy, ULONG rgb, U
 
     static WORD indices[6] = { 0, 3, 1, 1, 2, 3 };
 
-    // HRESULT	res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, vert->GetTLVert(), 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-    HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 4, indices, 6, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-    ASSERT(!FAILED(res));
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
+        reinterpret_cast<const GEVertexTL*>(vert), 4, indices, 6);
 }

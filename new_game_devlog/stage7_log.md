@@ -467,6 +467,21 @@ REALLY_SET_TEXTURE → ge_bind_texture(TextureHandle).
 Остаток REALLY_SET_RENDER_STATE вне бэкенда: 2 вхождения в poly.cpp (debug path).
 Сборка: 308/308, линковка ОК.
 
+### 2e-2f) Замена DRAW_INDEXED_PRIMITIVE и REALLY_SET_TEXTURE → ge_* ✅
+
+Заменены:
+
+- `truetype.cpp:612` — DRAW_INDEXED_PRIMITIVE → ge_draw_indexed_primitive (TL vertex, text quad)
+- `truetype.cpp:558` — REALLY_SET_TEXTURE → ge_bind_texture
+- `aeng.cpp:2904,2907` — DRAW_INDEXED_PRIMITIVE × 2 → ge_draw_indexed_primitive (water/effect)
+- `aeng.cpp:3217` — REALLY_SET_TEXTURE → ge_bind_texture
+
+TextureHandle пока = reinterpret_cast из LPDIRECT3DTEXTURE2 (временно, для D3D бэкенда).
+Proper texture handle mapping — при полной миграции текстурной системы.
+
+Остаток вне бэкенда: 1× FORCE_SET_TEXTURE в poly.cpp debug path (отложен).
+Сборка: 308/308, линковка ОК.
+
 ---
 
 ## План работы

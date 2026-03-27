@@ -2901,11 +2901,11 @@ float AENG_draw_some_polys(bool large, bool blend)
     }
 
     if (large) {
-        HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 300, ind, 300, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-        ASSERT(!FAILED(res));
+        ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
+            reinterpret_cast<const GEVertexTL*>(vert), 300, ind, 300);
     } else {
-        HRESULT res = DRAW_INDEXED_PRIMITIVE(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, (D3DTLVERTEX*)vert, 30000, ind, 30000, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTLIGHT);
-        ASSERT(!FAILED(res));
+        ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
+            reinterpret_cast<const GEVertexTL*>(vert), 30000, ind, 30000);
     }
 
     ge_end_scene();
@@ -3214,7 +3214,7 @@ void draw_i_prim(LPDIRECT3DTEXTURE2 page, D3DLVERTEX* verts, UWORD* indicies, SL
 
     indicies[*index_count] = 0x1234;
 
-    REALLY_SET_TEXTURE(page);
+    ge_bind_texture(reinterpret_cast<GETextureHandle>(page));
 
     res = DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_LVERTEX, mm_draw_floor, *vert_count, indicies, *index_count);
 
