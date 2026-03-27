@@ -148,6 +148,23 @@ void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts
                                      const uint16_t* indices, uint32_t index_count);
 
 // ---------------------------------------------------------------------------
+// Transforms
+// ---------------------------------------------------------------------------
+
+// 4x4 matrix in row-major order (same layout as D3DMATRIX).
+struct GEMatrix {
+    float m[4][4];
+};
+
+enum class GETransform {
+    World,
+    View,
+    Projection,
+};
+
+void ge_set_transform(GETransform type, const GEMatrix* matrix);
+
+// ---------------------------------------------------------------------------
 // Viewport
 // ---------------------------------------------------------------------------
 

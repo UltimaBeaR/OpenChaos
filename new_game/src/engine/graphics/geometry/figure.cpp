@@ -27,7 +27,8 @@
 #include "things/characters/person.h"
 #include "ai/pcom.h"
 #include "missions/eway.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
 #include "ui/hud/panel.h"
 #include "engine/graphics/graphics_api/render_state.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -2086,7 +2087,7 @@ no_muzzle_calcs:
     }
 
     // Disable specular — MM extension requires it off.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
+    ge_set_specular_enabled(false);
 
     // Lazy-compile the D3D representation of this prim if it hasn't been done yet.
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
@@ -2163,7 +2164,7 @@ no_muzzle_calcs:
         pMat++;
     }
 
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+    ge_set_specular_enabled(true);
 
     // uc_orig: Environment mapping for CLASS_VEHICLE exists in the original (figure.cpp:5130-5260)
     // but is dead code: CLASS_VEHICLE things use DT_VEHICLE → draw_car() → MESH_draw_poly(),
@@ -2709,7 +2710,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     ASSERT(MM_bLightTableAlreadySetUp);
 
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
+    ge_set_specular_enabled(false);
 
     FIGURE_touch_LRU_of_object(pPrimObj);
 
@@ -2776,7 +2777,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         pMat++;
     }
 
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+    ge_set_specular_enabled(true);
 
     ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
 
@@ -4308,7 +4309,7 @@ no_muzzle_calcs:
     }
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
+    ge_set_specular_enabled(false);
 
     // For now, just calculate as-and-when.
     TomsPrimObject* pPrimObj = &(D3DObj[prim]);
@@ -4394,7 +4395,7 @@ no_muzzle_calcs:
     }
 
     // The MM stuff doesn't like specular to be enabled.
-    (the_display.lp_D3D_Device)->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+    ge_set_specular_enabled(true);
 
     // No environment mapping.
     ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));

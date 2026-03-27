@@ -277,7 +277,7 @@ void POLY_camera_set(
     matTemp._24 = 0.0f;
     matTemp._34 = 0.0f;
     matTemp._44 = 1.0f;
-    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_VIEW, &matTemp);
+    ge_set_transform(GETransform::View, reinterpret_cast<const GEMatrix*>(&matTemp));
 
     // Projection matrix: identity-ish, with Z shifted by POLY_ZCLIP_PLANE.
     g_matProjection._11 = -1.0f;
@@ -297,7 +297,7 @@ void POLY_camera_set(
     g_matProjection._34 = 1.0f;
     g_matProjection._44 = 0.0f;
 
-    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
+    ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&g_matProjection));
 
     // Viewport: maps clip-space [-1,1] to pixel coordinates.
     memset(&g_viewData, 0, sizeof(D3DVIEWPORT2));
@@ -543,7 +543,7 @@ void POLY_set_local_rotation(
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
+    ge_set_transform(GETransform::World, reinterpret_cast<const GEMatrix*>(&g_matWorld));
 }
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Headers/poly.h)
@@ -576,7 +576,7 @@ void POLY_set_local_rotation_none(void)
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_WORLD, &g_matWorld);
+    ge_set_transform(GETransform::World, reinterpret_cast<const GEMatrix*>(&g_matWorld));
 }
 
 // uc_orig: POLY_transform_using_local_rotation_and_wibble (fallen/DDEngine/Headers/poly.h)

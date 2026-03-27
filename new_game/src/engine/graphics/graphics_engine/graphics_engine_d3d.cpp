@@ -230,6 +230,24 @@ void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts
 }
 
 // ---------------------------------------------------------------------------
+// Transforms
+// ---------------------------------------------------------------------------
+
+static_assert(sizeof(GEMatrix) == sizeof(D3DMATRIX), "GEMatrix must match D3DMATRIX layout");
+
+void ge_set_transform(GETransform type, const GEMatrix* matrix)
+{
+    D3DTRANSFORMSTATETYPE d3d_type;
+    switch (type) {
+    case GETransform::World:      d3d_type = D3DTRANSFORMSTATE_WORLD; break;
+    case GETransform::View:       d3d_type = D3DTRANSFORMSTATE_VIEW; break;
+    case GETransform::Projection: d3d_type = D3DTRANSFORMSTATE_PROJECTION; break;
+    default:                      d3d_type = D3DTRANSFORMSTATE_WORLD; break;
+    }
+    the_display.lp_D3D_Device->SetTransform(d3d_type, const_cast<D3DMATRIX*>(reinterpret_cast<const D3DMATRIX*>(matrix)));
+}
+
+// ---------------------------------------------------------------------------
 // Viewport
 // ---------------------------------------------------------------------------
 

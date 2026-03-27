@@ -8,7 +8,8 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/graphics_api/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_api/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
 #include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
@@ -828,28 +829,21 @@ SLONG FASTPRIM_draw(
             // Standard DrawIndexedPrimitive path (alpha-blended or environment-mapped).
 
             if (fc->type == FASTPRIM_CALL_TYPE_INDEXED) {
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_SRCALPHA);
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                ge_set_blend_mode(GEBlendMode::Alpha);
             } else {
                 // Additive blend for environment maps.
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+                ge_set_blend_mode(GEBlendMode::Additive);
             }
 
-            the_display.lp_D3D_Device->SetTexture(0, fc->texture);
+            ge_bind_texture(reinterpret_cast<GETextureHandle>(fc->texture));
 
-            the_display.lp_D3D_Device->DrawIndexedPrimitive(
-                D3DPT_TRIANGLELIST,
-                D3DFVF_LVERTEX,
-                FASTPRIM_lvert + fc->lvert,
+            ge_draw_indexed_primitive_lit(GEPrimitiveType::TriangleList,
+                reinterpret_cast<const GEVertexLit*>(FASTPRIM_lvert + fc->lvert),
                 fc->lvertcount,
                 FASTPRIM_index + fc->index,
-                fc->indexcount,
-                0);
+                fc->indexcount);
 
-            the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
+            ge_set_blend_mode(GEBlendMode::Opaque);
         } else {
             // DrawIndPrimMM path for opaque/colour-and prims (Tom's custom batch call).
             D3DMULTIMATRIX d3dmm = {
@@ -859,12 +853,13 @@ SLONG FASTPRIM_draw(
                 NULL
             };
 
-            the_display.lp_D3D_Device->SetTexture(0, fc->texture);
+            ge_bind_texture(reinterpret_cast<GETextureHandle>(fc->texture));
 
             if (fc->flag & FASTPRIM_CALL_FLAG_SELF_ILLUM) {
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_DECAL);
+                ge_set_texture_blend(GETextureBlend::Decal);
             }
 
+            // TODO(stage7): DrawIndPrimMM needs its own ge_ wrapper (multi-matrix batching)
             DrawIndPrimMM(
                 the_display.lp_D3D_Device,
                 D3DFVF_LVERTEX,
@@ -874,7 +869,7 @@ SLONG FASTPRIM_draw(
                 fc->indexcount);
 
             if (fc->flag & FASTPRIM_CALL_FLAG_SELF_ILLUM) {
-                the_display.lp_D3D_Device->SetRenderState(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
+                ge_set_texture_blend(GETextureBlend::Modulate);
             }
         }
     }

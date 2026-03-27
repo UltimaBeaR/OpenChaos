@@ -6,6 +6,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_api/gd_display.h"
 #include "map/supermap.h"
 #include "map/level_pools.h"
@@ -551,7 +552,7 @@ void FARFACET_draw(
     matMyProj._43 *= MY_PROJ_MATRIX_SCALE;
     matMyProj._44 *= MY_PROJ_MATRIX_SCALE;
 
-    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &matMyProj);
+    ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&matMyProj));
 
     SLONG square_x;
     SLONG square_z;
@@ -605,7 +606,7 @@ void FARFACET_draw(
 
     FARFACET_default_renderstate.SetChanged();
 
-    (the_display.lp_D3D_Device)->SetTransform(D3DTRANSFORMSTATE_PROJECTION, &g_matProjection);
+    ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&g_matProjection));
 }
 
 // uc_orig: FARFACET_fini (fallen/DDEngine/Source/farfacet.cpp)
