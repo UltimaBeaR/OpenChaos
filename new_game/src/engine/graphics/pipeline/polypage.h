@@ -6,9 +6,6 @@
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/poly.h"
 
-// Forward declaration — D3DTexture is in DDLibrary, not yet migrated.
-class D3DTexture;
-
 class PolyPage;
 
 // uc_orig: PolyPoly (fallen/DDEngine/Headers/polypage.h)
@@ -49,8 +46,7 @@ public:
     PolyPage* pTheRealPolyPage;
 
     // uc_orig: SetTexOffset (fallen/DDEngine/Headers/polypage.h)
-    void SetTexOffset(D3DTexture* src);
-    // SetTexOffset(UBYTE offset) had no implementation — dead declaration, not migrated.
+    void SetTexOffset(SLONG page);
 
     // uc_orig: AddFan (fallen/DDEngine/Headers/polypage.h)
     void AddFan(POLY_Point** pts, ULONG num_vertices);
@@ -182,15 +178,21 @@ struct GEMultiMatrix {
 // all other vertex data is set, as byte 12 is the LSB of the N.X mantissa.
 #define SET_MM_INDEX(v, i) (((unsigned char*)&v)[12] = (unsigned char)i)
 
+// Vertex type for DrawMultiMatrix: determines whether vertex colors are used or forced to white.
+enum class GEMMVertexType {
+    Lit,    // GEVertexLit — use vertex dcColor/dcSpecular (D3DFVF_LVERTEX equivalent)
+    Unlit,  // GEVertex — force white color (D3DFVF_VERTEX equivalent)
+};
+
 // uc_orig: DrawIndPrimMM (fallen/DDEngine/Headers/polypage.h)
 // Software emulation of the DC's DrawPrimitiveMM on PC.
-// dwFVFType must be D3DFVF_VERTEX or D3DFVF_LVERTEX.
-extern HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
-    DWORD dwFVFType,
-    GEMultiMatrix* d3dmm,
-    WORD wNumVertices,
-    WORD* pwIndices,
-    DWORD dwNumIndices);
+// CPU-side multi-matrix transform: reads per-vertex matrix index from byte 12,
+// transforms to screen space, then submits via ge_draw_indexed_primitive.
+void ge_draw_multi_matrix(GEMMVertexType vertex_type,
+    GEMultiMatrix* mm,
+    uint16_t num_vertices,
+    uint16_t* indices,
+    uint32_t num_indices);
 
 // uc_orig: GET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
 #define GET_MM_INDEX(v) (((unsigned char*)&v)[12])

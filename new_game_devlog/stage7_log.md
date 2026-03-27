@@ -775,6 +775,71 @@ DrawIndPrimMM parameters. При OpenGL эти модули переписыва
 
 ---
 
+### Убраны LPDIRECT3DTEXTURE2 и D3D SDK includes из fastprim, figure_globals ✅
+
+- `fastprim_globals.h`: `LPDIRECT3DTEXTURE2 texture` → `GETextureHandle texture` в struct FASTPRIM_Call.
+  Убран `#include <d3d.h>`.
+- `fastprim.cpp`: все 5 LPDIRECT3DTEXTURE2 → GETextureHandle. Убраны reinterpret_cast'ы при вызове
+  ge_bind_texture() и pp->RS.GetTexture().
+- `figure_globals.h`: убраны `#include <ddraw.h>` и `#include <d3d.h>` — в файле не осталось
+  D3D SDK типов (DWORD приходит из Windows, D3DObj/D3DPeopleObj — наши имена).
+
+Оставшиеся D3D SDK includes вне d3d/ (и вне outro/):
+- `truetype_globals.h` — `<ddraw.h>` + `<d3d.h>` (D3DTexture tt_Texture[] — DDraw font surfaces)
+- `frontend.h` — `<ddraw.h>` (LPDIRECTDRAWSURFACE4 в параметрах)
+
+Оба — D3D-зависимые файлы, переписываются при OpenGL.
+Сборка: 308/308.
+
+---
+
+### ge_draw_multi_matrix — замена DrawIndPrimMM ✅
+
+DrawIndPrimMM — CPU-side multi-matrix transform + D3D DrawIndexedPrimitive. Превращён в API-agnostic:
+
+**Новая сигнатура:**
+```cpp
+enum class GEMMVertexType { Lit, Unlit };
+void ge_draw_multi_matrix(GEMMVertexType, GEMultiMatrix*, uint16_t num_verts, uint16_t* indices, uint32_t num_indices);
+```
+
+**Изменения:**
+- polypage.h: убрана старая `DrawIndPrimMM(LPDIRECT3DDEVICE3, DWORD dwFVFType, ...)` сигнатура.
+  Добавлены `GEMMVertexType` enum и `ge_draw_multi_matrix()`.
+- polypage.cpp: реализация заменена — `lpDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, ...)`
+  → `ge_draw_indexed_primitive(TriangleList, ...)`. D3D типы (DWORD, WORD, HRESULT) → stdint.
+- fastprim.cpp: 1 call site — `DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_LVERTEX, ...)`
+  → `ge_draw_multi_matrix(Lit, ...)`. Убран `#include "gd_display.h"`.
+- figure.cpp: 3 call sites — `DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_VERTEX, ...)`
+  → `ge_draw_multi_matrix(Unlit, ...)`.
+- aeng.cpp: 1 call site — `DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_LVERTEX, ...)`
+  → `ge_draw_multi_matrix(Lit, ...)`.
+
+Результат: DrawIndPrimMM больше не принимает D3D-указатели. CPU-transform код API-agnostic.
+figure.cpp и aeng.cpp ещё используют `the_display` для других вещей (screen lock, device info).
+Сборка: 308/308.
+
+---
+
+### Разрезание texture.h — убрали D3DTexture из публичного API ✅
+
+**Проблема:** texture.h включал d3d_texture.h → D3DTexture утекал в ~28 файлов (и транзитивно дальше).
+`TEXTURE_get_D3DTexture()` торчал в публичном API.
+
+**Решение:**
+- Добавлена `TEXTURE_get_tex_offset(page, &uScale, &uOffset, &vScale, &vOffset)` — публичная функция,
+  скрывает D3DTexture::GetTexOffsetAndScale внутри texture.cpp
+- `PolyPage::SetTexOffset(D3DTexture*)` → `SetTexOffset(SLONG page)` — принимает page index
+- poly_render.cpp: `SET_TEXTURE(PAGE)` теперь вызывает `SetTexOffset(PAGE)` вместо `SetTexOffset(TEXTURE_get_D3DTexture(PAGE))`
+- Удалены из texture.h: `#include "d3d_texture.h"`, `TEXTURE_get_D3DTexture()` декларация
+- Удалены из polypage.h: forward declaration `class D3DTexture`
+- polypage.cpp: заменён `#include "d3d_texture.h"` → `#include "assets/texture.h"`
+
+Затронутые файлы: texture.h, texture.cpp, polypage.h, polypage.cpp, poly_render.cpp.
+Сборка: 308/308, 0 ошибок.
+
+---
+
 ## План работы
 
 ### Шаг 1 — Отключить outro

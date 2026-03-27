@@ -29,7 +29,7 @@ static bool RenderStates_OK = false;
 #define SET_TEXTURE(PAGE)                                                          \
     {                                                                              \
         pa->RS.SetTexture(TEXTURE_get_handle(PAGE)); \
-        pa->SetTexOffset(TEXTURE_get_D3DTexture(PAGE));                            \
+        pa->SetTexOffset(PAGE);                                                    \
     }
 #define SET_NO_TEXTURE pa->RS.SetTexture(GE_TEXTURE_NONE)
 // SET_RENDER_STATE removed — GERenderState uses typed setters instead of generic SetRenderState(DWORD, DWORD).

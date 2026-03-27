@@ -4,7 +4,7 @@
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer_globals.h"
 #include "engine/core/matrix.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"   // D3DTexture full definition for SetTexOffset
+#include "assets/texture.h"
 
 #include <math.h>
 
@@ -82,9 +82,9 @@ PolyPage::~PolyPage()
 }
 
 // uc_orig: SetTexOffset (fallen/DDEngine/Source/polypage.cpp)
-void PolyPage::SetTexOffset(D3DTexture* src)
+void PolyPage::SetTexOffset(SLONG page)
 {
-    src->GetTexOffsetAndScale(&m_UScale, &m_UOffset, &m_VScale, &m_VOffset);
+    TEXTURE_get_tex_offset(page, &m_UScale, &m_UOffset, &m_VScale, &m_VOffset);
 }
 
 // uc_orig: SetGreenScreen (fallen/DDEngine/Source/polypage.cpp)
@@ -560,52 +560,51 @@ void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
 // uc_orig: DrawIndPrimMM (fallen/DDEngine/Source/polypage.cpp)
 // Software emulation of the Dreamcast's DrawPrimitiveMM.
 // Transforms vertices using per-vertex matrix indices, then submits as indexed triangles.
-HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
-    DWORD dwFVFType,
-    GEMultiMatrix* d3dmm,
-    WORD wNumVertices,
-    WORD* pwIndices,
-    DWORD dwNumIndices)
+void ge_draw_multi_matrix(GEMMVertexType vertex_type,
+    GEMultiMatrix* mm,
+    uint16_t num_vertices,
+    uint16_t* indices,
+    uint32_t num_indices)
 {
-    ASSERT(((DWORD)(d3dmm->lpd3dMatrices) & 31) == 0);
-    ASSERT(((DWORD)(d3dmm->lpvVertices) & 31) == 0);
-    ASSERT(((DWORD)(d3dmm->lpLightTable) & 3) == 0);
-    ASSERT(((DWORD)(d3dmm->lpvLightDirs) & 7) == 0);
+    ASSERT(((uintptr_t)(mm->lpd3dMatrices) & 31) == 0);
+    ASSERT(((uintptr_t)(mm->lpvVertices) & 31) == 0);
+    ASSERT(((uintptr_t)(mm->lpLightTable) & 3) == 0);
+    ASSERT(((uintptr_t)(mm->lpvLightDirs) & 7) == 0);
 
-    ASSERT((dwFVFType == D3DFVF_LVERTEX) || (dwFVFType == D3DFVF_VERTEX));
+    bool unlit = (vertex_type == GEMMVertexType::Unlit);
 
     GEVertexTL pTLVert[3];
-    GEVertexLit* pLVert = (GEVertexLit*)d3dmm->lpvVertices;
+    GEVertexLit* pLVert = (GEVertexLit*)mm->lpvVertices;
 
-    WORD* pwCurIndex = pwIndices;
+    uint16_t* pwCurIndex = indices;
     while (UC_TRUE) {
-        WORD wIndex[3];
+        uint16_t wIndex[3];
         wIndex[1] = *pwCurIndex++;
         wIndex[2] = *pwCurIndex++;
-        ASSERT(dwNumIndices > 1);
-        dwNumIndices -= 2;
+        ASSERT(num_indices > 1);
+        num_indices -= 2;
         bool bEven = UC_TRUE;
         while (UC_TRUE) {
             bEven = !bEven;
             wIndex[0] = wIndex[1];
             wIndex[1] = wIndex[2];
             wIndex[2] = *pwCurIndex++;
-            ASSERT(dwNumIndices > 0);
-            dwNumIndices--;
+            ASSERT(num_indices > 0);
+            num_indices--;
 
             if (wIndex[2] == 0xffff) {
                 break;
             }
 
             for (int i = 0; i < 3; i++) {
-                WORD wVertIndex = wIndex[i];
-                ASSERT(wVertIndex < wNumVertices);
+                uint16_t wVertIndex = wIndex[i];
+                ASSERT(wVertIndex < num_vertices);
                 GEVertexLit* pLVertCur = pLVert + wVertIndex;
 
                 BYTE bMatIndex = ((unsigned char*)(pLVertCur))[12];
 
-                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(d3dmm->lpd3dMatrices[bMatIndex]));
-                ASSERT(*((DWORD*)(&(pmCur->_41))) == 0xe0001000);
+                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(mm->lpd3dMatrices[bMatIndex]));
+                ASSERT(*((uint32_t*)(&(pmCur->_41))) == 0xe0001000);
 
                 pTLVert[i].dvSX = pLVertCur->dvX * pmCur->_12 + pLVertCur->dvY * pmCur->_22 + pLVertCur->dvZ * pmCur->_32 + pmCur->_42;
                 pTLVert[i].dvSY = pLVertCur->dvX * pmCur->_13 + pLVertCur->dvY * pmCur->_23 + pLVertCur->dvZ * pmCur->_33 + pmCur->_43;
@@ -618,7 +617,7 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 pTLVert[i].dvTU = pLVert[wIndex[i]].dvTU;
                 pTLVert[i].dvTV = pLVert[wIndex[i]].dvTV;
 
-                if (dwFVFType == D3DFVF_VERTEX) {
+                if (unlit) {
                     pTLVert[i].dcColor = 0xffffffff;
                     pTLVert[i].dcSpecular = 0xffffffff;
                 } else {
@@ -627,7 +626,7 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 }
             }
 
-            WORD wMyIndices[3];
+            uint16_t wMyIndices[3];
             if (bEven) {
                 wMyIndices[0] = 0;
                 wMyIndices[1] = 2;
@@ -637,15 +636,10 @@ HRESULT DrawIndPrimMM(LPDIRECT3DDEVICE3 lpDevice,
                 wMyIndices[1] = 1;
                 wMyIndices[2] = 2;
             }
-            HRESULT hres = lpDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, D3DFVF_TLVERTEX, pTLVert, 3, wMyIndices, 3, 0);
-            if (FAILED(hres)) {
-                return (hres);
-            }
+            ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, pTLVert, 3, wMyIndices, 3);
         }
-        if (dwNumIndices == 0) {
+        if (num_indices == 0) {
             break;
         }
     }
-
-    return (DD_OK);
 }

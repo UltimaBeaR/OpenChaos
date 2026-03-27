@@ -3199,20 +3199,16 @@ SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEV
 }
 
 // uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
-// Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
+// Flushes one indexed primitive strip group to the GPU using ge_draw_multi_matrix.
 void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, GEMultiMatrix* mm_draw_floor)
 {
-    HRESULT res;
-
     mm_draw_floor->lpvVertices = verts;
 
     indicies[*index_count] = 0x1234;
 
     ge_bind_texture(page);
 
-    res = DrawIndPrimMM(the_display.lp_D3D_Device, D3DFVF_LVERTEX, mm_draw_floor, *vert_count, indicies, *index_count);
-
-    ASSERT(res == DD_OK);
+    ge_draw_multi_matrix(GEMMVertexType::Lit, mm_draw_floor, *vert_count, indicies, *index_count);
 
     *index_count = 0;
     *vert_count = 0;

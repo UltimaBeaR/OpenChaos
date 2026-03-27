@@ -2,7 +2,6 @@
 #define ENGINE_GRAPHICS_GEOMETRY_FASTPRIM_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
-#include <d3d.h>
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/types.h"
 
@@ -46,7 +45,7 @@ struct FASTPRIM_Call {
     UWORD lvertcount;
     UWORD index;
     UWORD indexcount;
-    LPDIRECT3DTEXTURE2 texture;
+    GETextureHandle texture;
 };
 
 // uc_orig: FASTPRIM_MAX_CALLS (fallen/DDEngine/Source/fastprim.cpp)

@@ -831,11 +831,10 @@ GETextureHandle TEXTURE_get_handle(SLONG page)
     return reinterpret_cast<GETextureHandle>(TEXTURE_texture[page].GetD3DTexture());
 }
 
-// uc_orig: TEXTURE_get_D3DTexture (fallen/DDEngine/Source/texture.cpp)
-// Returns a pointer to the D3DTexture object for the given page.
-D3DTexture* TEXTURE_get_D3DTexture(SLONG page)
+// Returns UV offset/scale for a texture page. Delegates to D3DTexture::GetTexOffsetAndScale.
+void TEXTURE_get_tex_offset(SLONG page, float* uScale, float* uOffset, float* vScale, float* vOffset)
 {
-    return &(TEXTURE_texture[page]);
+    TEXTURE_texture[page].GetTexOffsetAndScale(uScale, uOffset, vScale, vOffset);
 }
 
 // uc_orig: TEXTURE_get_minitexturebits_uvs (fallen/DDEngine/Source/texture.cpp)

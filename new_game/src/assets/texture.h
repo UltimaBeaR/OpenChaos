@@ -3,7 +3,6 @@
 
 #include "engine/core/types.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h" // D3DTexture class (D3D backend)
 #include "engine/graphics/lighting/crinkle.h"
 
 // Texture system manages all Direct3D texture pages. A "page" is an integer index
@@ -200,9 +199,9 @@ extern SLONG TEXTURE_num_textures;
 // Returns the texture handle for the given page.
 GETextureHandle TEXTURE_get_handle(SLONG page);
 
-// uc_orig: TEXTURE_get_D3DTexture (fallen/DDEngine/Headers/texture.h)
-// Returns the D3DTexture object for the given page (used for TexOffset on PolyPages).
-D3DTexture* TEXTURE_get_D3DTexture(SLONG page);
+// Returns UV offset/scale for a texture page (used by PolyPage for packed texture atlases).
+// Wraps D3DTexture::GetTexOffsetAndScale without exposing D3D types.
+void TEXTURE_get_tex_offset(SLONG page, float* uScale, float* uOffset, float* vScale, float* vOffset);
 
 // uc_orig: TEXTURE_crinkle (fallen/DDEngine/Headers/texture.h)
 // Per-page crinkle handle. NULL => no crinkle for that page.

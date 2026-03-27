@@ -2145,9 +2145,8 @@ no_muzzle_calcs:
             pa->RS.SetChanged();
 
             {
-                DrawIndPrimMM(
-                    (the_display.lp_D3D_Device),
-                    D3DFVF_VERTEX,
+                ge_draw_multi_matrix(
+                    GEMMVertexType::Unlit,
                     &d3dmm,
                     pMat->wNumVertices,
                     pwStripIndices,
@@ -2761,9 +2760,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             pa->RS.SetChanged();
 
             {
-                DrawIndPrimMM(
-                    (the_display.lp_D3D_Device),
-                    D3DFVF_VERTEX,
+                ge_draw_multi_matrix(
+                    GEMMVertexType::Unlit,
                     &d3dmm,
                     pMat->wNumVertices,
                     pwStripIndices,
@@ -4370,9 +4368,8 @@ no_muzzle_calcs:
             pa->RS.SetChanged();
 
             {
-                DrawIndPrimMM(
-                    (the_display.lp_D3D_Device),
-                    D3DFVF_VERTEX,
+                ge_draw_multi_matrix(
+                    GEMMVertexType::Unlit,
                     &d3dmm,
                     pMat->wNumVertices,
                     pwStripIndices,

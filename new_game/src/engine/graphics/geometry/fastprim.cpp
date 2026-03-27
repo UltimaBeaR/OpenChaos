@@ -9,7 +9,6 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
 #include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
@@ -20,10 +19,10 @@
 #include "engine/graphics/lighting/night_globals.h"
 
 // uc_orig: FASTPRIM_find_texture_from_page (fallen/DDEngine/Source/fastprim.cpp)
-LPDIRECT3DTEXTURE2 FASTPRIM_find_texture_from_page(SLONG page)
+GETextureHandle FASTPRIM_find_texture_from_page(SLONG page)
 {
     PolyPage* pp = &POLY_Page[page];
-    return reinterpret_cast<LPDIRECT3DTEXTURE2>(pp->RS.GetTexture());
+    return pp->RS.GetTexture();
 }
 
 // uc_orig: FASTPRIM_init (fallen/DDEngine/Source/fastprim.cpp)
@@ -143,7 +142,7 @@ void FASTPRIM_free_queue_for_call(FASTPRIM_Call* fc)
 // Ensures the call list contains a slot for the given texture/type pair.
 // No-op if a matching slot already exists.
 // uc_orig: FASTPRIM_create_call (fallen/DDEngine/Source/fastprim.cpp)
-void FASTPRIM_create_call(FASTPRIM_Prim* fp, LPDIRECT3DTEXTURE2 texture, UWORD type)
+void FASTPRIM_create_call(FASTPRIM_Prim* fp, GETextureHandle texture, UWORD type)
 {
     SLONG i;
 
@@ -273,7 +272,7 @@ SLONG FASTPRIM_draw(
     FASTPRIM_Call* fc;
     PolyPage* pp;
 
-    LPDIRECT3DTEXTURE2 texture;
+    GETextureHandle texture;
 
     ASSERT(WITHIN(prim, 0, FASTPRIM_MAX_PRIMS - 1));
 
@@ -561,7 +560,7 @@ SLONG FASTPRIM_draw(
         if (po->flag & PRIM_FLAG_ENVMAPPED) {
             // Build the environment-mapped call: one pass for faces marked FACE_FLAG_ENVMAP.
 
-            LPDIRECT3DTEXTURE2 envtexture = FASTPRIM_find_texture_from_page(POLY_PAGE_ENVMAP);
+            GETextureHandle envtexture = FASTPRIM_find_texture_from_page(POLY_PAGE_ENVMAP);
 
             FASTPRIM_create_call(fp, envtexture, FASTPRIM_CALL_TYPE_ENVMAP);
 
@@ -835,7 +834,7 @@ SLONG FASTPRIM_draw(
                 ge_set_blend_mode(GEBlendMode::Additive);
             }
 
-            ge_bind_texture(reinterpret_cast<GETextureHandle>(fc->texture));
+            ge_bind_texture(fc->texture);
 
             ge_draw_indexed_primitive_lit(GEPrimitiveType::TriangleList,
                 reinterpret_cast<const GEVertexLit*>(FASTPRIM_lvert + fc->lvert),
@@ -853,16 +852,14 @@ SLONG FASTPRIM_draw(
                 NULL
             };
 
-            ge_bind_texture(reinterpret_cast<GETextureHandle>(fc->texture));
+            ge_bind_texture(fc->texture);
 
             if (fc->flag & FASTPRIM_CALL_FLAG_SELF_ILLUM) {
                 ge_set_texture_blend(GETextureBlend::Decal);
             }
 
-            // TODO(stage7): DrawIndPrimMM needs its own ge_ wrapper (multi-matrix batching)
-            DrawIndPrimMM(
-                the_display.lp_D3D_Device,
-                D3DFVF_LVERTEX,
+            ge_draw_multi_matrix(
+                GEMMVertexType::Lit,
                 &d3dmm,
                 fc->lvertcount,
                 FASTPRIM_index + fc->index,
