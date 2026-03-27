@@ -928,13 +928,11 @@ round_again:;
                 stop_all_fx_and_music();
                 the_display.RunCutscene(3);
 
-                extern void OS_hack(void);
-
-                the_end = UC_TRUE;
-
-                OS_hack();
-
-                the_end = UC_FALSE;
+                // TODO(stage7): outro disabled during renderer replacement
+                // extern void OS_hack(void);
+                // the_end = UC_TRUE;
+                // OS_hack();
+                // the_end = UC_FALSE;
             } else
 
                 // Warn the player if they killed too many civilians (RedMarks > 1).

@@ -268,24 +268,25 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/shape_globals.cpp
     src/assets/texture.cpp
     src/assets/texture_globals.cpp
-    src/outro/core/outro_tga.cpp
-    src/outro/core/outro_matrix.cpp
-    src/outro/outro_back.cpp
-    src/outro/outro_back_globals.cpp
-    src/outro/core/outro_cam.cpp
-    src/outro/core/outro_cam_globals.cpp
-    src/outro/outro_credits.cpp
-    src/outro/outro_credits_globals.cpp
-    src/outro/core/outro_font.cpp
-    src/outro/core/outro_font_globals.cpp
-    src/outro/outro_wire.cpp
-    src/outro/outro_wire_globals.cpp
-    src/outro/outro_main.cpp
-    src/outro/core/outro_imp.cpp
-    src/outro/core/outro_mf.cpp
-    src/outro/core/outro_mf_globals.cpp
-    src/outro/core/outro_os.cpp
-    src/outro/core/outro_os_globals.cpp
+    # --- OUTRO DISABLED (Stage 7: renderer replacement, will re-enable later) ---
+    # src/outro/core/outro_tga.cpp
+    # src/outro/core/outro_matrix.cpp
+    # src/outro/outro_back.cpp
+    # src/outro/outro_back_globals.cpp
+    # src/outro/core/outro_cam.cpp
+    # src/outro/core/outro_cam_globals.cpp
+    # src/outro/outro_credits.cpp
+    # src/outro/outro_credits_globals.cpp
+    # src/outro/core/outro_font.cpp
+    # src/outro/core/outro_font_globals.cpp
+    # src/outro/outro_wire.cpp
+    # src/outro/outro_wire_globals.cpp
+    # src/outro/outro_main.cpp
+    # src/outro/core/outro_imp.cpp
+    # src/outro/core/outro_mf.cpp
+    # src/outro/core/outro_mf_globals.cpp
+    # src/outro/core/outro_os.cpp
+    # src/outro/core/outro_os_globals.cpp
     src/ui/frontend/attract.cpp
     src/ui/frontend/attract_globals.cpp
     src/things/items/barrel.cpp
