@@ -3447,9 +3447,8 @@ SBYTE FRONTEND_loop()
 
     if (res == FE_CREDITS) {
         {
-            // TODO(stage7): outro disabled during renderer replacement
-            // extern void OS_hack(void);
-            // OS_hack();
+            extern void OS_hack(void);
+            OS_hack();
             MUSIC_mode(MUSIC_MODE_FRONTEND);
             FRONTEND_kibble_init();
         }

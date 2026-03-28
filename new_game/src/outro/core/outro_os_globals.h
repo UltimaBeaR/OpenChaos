@@ -8,8 +8,6 @@
 #include "outro/core/outro_always.h"
 
 #include <windows.h>
-#include <ddraw.h>
-#include <d3d.h>
 
 // uc_orig: OS_this_instance (fallen/outro/os.cpp)
 extern HINSTANCE OS_this_instance;
@@ -143,56 +141,15 @@ extern SLONG OS_bitmap_shift_b;
 // uc_orig: OS_bitmap_shift_a (fallen/outro/os.cpp)
 extern SLONG OS_bitmap_shift_a;
 
-// Multi-texture pipeline selection — 0 or 1 depending on which D3D method validated.
-// uc_orig: OS_pipeline_method_mul (fallen/outro/os.cpp)
-extern SLONG OS_pipeline_method_mul;
-
 // sound global — the currently playing music track ID.
 // uc_orig: sound (fallen/outro/os.cpp)
 extern SLONG sound;
 
 // ========================================================
-// OS_Framework — DirectDraw4/D3D3 device pair wrapper.
-// Defined here (globals header) so the global OS_frame can be declared extern.
+// Buffer list head — type is opaque (defined in outro_os.cpp).
 // ========================================================
 
-// uc_orig: OS_Framework (fallen/outro/os.cpp)
-typedef class {
-public:
-    LPDIRECTDRAW4      direct_draw;
-    LPDIRECT3DDEVICE3  direct_3d;
-
-    LPDIRECTDRAW4     GetDirectDraw() { return direct_draw; }
-    LPDIRECT3DDEVICE3 GetD3DDevice()  { return direct_3d; }
-} OS_Framework;
-
-// uc_orig: OS_frame (fallen/outro/os.cpp)
-extern OS_Framework OS_frame;
-
-// ========================================================
-// OS_Tformat — per pixel-format info populated during texture format enumeration.
-// ========================================================
-
-// uc_orig: OS_Tformat (fallen/outro/os.cpp)
-typedef struct {
-    SLONG valid;
-    DDPIXELFORMAT ddpf;
-    SLONG mask_r, mask_g, mask_b, mask_a;
-    SLONG shift_r, shift_g, shift_b, shift_a;
-} OS_Tformat;
-
-// uc_orig: OS_tformat (fallen/outro/os.cpp)
-extern OS_Tformat OS_tformat[4];
-
-// ========================================================
-// Texture and buffer list heads — types are opaque (defined in outro_os.cpp).
-// ========================================================
-
-struct os_texture;
 struct os_buffer;
-
-// uc_orig: OS_texture_head (fallen/outro/os.cpp)
-extern struct os_texture* OS_texture_head;
 
 // uc_orig: OS_buffer_free (fallen/outro/os.cpp)
 extern struct os_buffer* OS_buffer_free;

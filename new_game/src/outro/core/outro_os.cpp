@@ -1,12 +1,11 @@
-// Outro OS platform layer (complete migration).
-// Covers: OS_Framework, joystick, texture management, render states,
-// Windows helpers, camera+transform, vertex buffers, render loop, and sound.
+// Outro OS platform layer.
+// Covers: joystick, texture wrappers, camera+transform, vertex buffers,
+// Windows helpers, render loop wrappers, and sound.
+// All D3D code has been moved to the outro graphics engine backend
+// (engine/graphics/graphics_engine/backend_directx6/outro/core.cpp).
 
 #include <windows.h>
 #include <windowsx.h>
-#include <ddraw.h>
-#include <d3d.h>
-#include <d3dtypes.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -18,43 +17,15 @@
 #include "outro/core/outro_matrix.h"
 #include "outro/core/outro_tga.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/backend_directx6/common/display_macros.h"
+#include "engine/graphics/graphics_engine/outro_graphics_engine.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"
 #include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
 
-// OS_calculate_mask_and_shift is defined in engine/graphics/resources/d3d_texture.cpp
-// and declared here for use in OS_texture_lock and OS_hack.
-#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
-
 // Entry point from outro system.
 extern void MAIN_main(void);
-
-// OS_Framework, OS_frame, OS_Tformat, OS_tformat, OS_texture_head are
-// defined/declared in outro_os_globals.h / outro_os_globals.cpp.
-
-// ========================================================
-// TEXTURE INTERNAL TYPES
-// ========================================================
-
-// Texture directory prefix.
-// uc_orig: OS_TEXTURE_DIR (fallen/outro/os.cpp)
-#define OS_TEXTURE_DIR "Textures\\"
-
-// Full definition of OS_Texture (opaque in the header).
-// uc_orig: os_texture (fallen/outro/os.cpp)
-typedef struct os_texture {
-    CBYTE                  name[_MAX_PATH];
-    UBYTE                  format;
-    UBYTE                  inverted;
-    UWORD                  size;
-    DDSURFACEDESC2         ddsd;
-    LPDIRECTDRAWSURFACE4   ddsurface;
-    LPDIRECT3DTEXTURE2     ddtx;
-    OS_Texture*            next;
-} OS_Texture;
 
 // ========================================================
 // JOYSTICK
@@ -92,652 +63,43 @@ void OS_joy_poll(void)
 }
 
 // ========================================================
-// TEXTURE UTILITIES
+// TEXTURE WRAPPERS (delegate to outro graphics engine)
 // ========================================================
 
-// Counts the number of set bits in a bitmask — used to identify alpha bit depth (1 or 4).
-// uc_orig: OS_bit_count (fallen/outro/os.cpp)
-SLONG OS_bit_count(ULONG mask)
-{
-    SLONG ans;
-    for (ans = 0; mask; mask &= mask - 1, ans += 1)
-        ;
-    return ans;
-}
-
-// DirectDraw texture format enumeration callback — selects the best pixel format for each
-// OS_TEXTURE_FORMAT_* slot based on the formats the hardware supports.
-// uc_orig: OS_texture_enumerate_pixel_formats (fallen/outro/os.cpp)
-HRESULT CALLBACK OS_texture_enumerate_pixel_formats(
-    LPDDPIXELFORMAT lpddpf,
-    LPVOID context)
-{
-    OS_Tformat* otf = (OS_Tformat*)malloc(sizeof(OS_Tformat));
-
-    if (otf == NULL) {
-        return D3DENUMRET_CANCEL;
-    }
-
-    if (lpddpf->dwFlags & DDPF_RGB) {
-        if (lpddpf->dwRGBBitCount == 16) {
-            if (lpddpf->dwFlags & DDPF_ALPHAPIXELS) {
-                SLONG alphabits = OS_bit_count(lpddpf->dwRGBAlphaBitMask);
-
-                if (alphabits == 1) {
-                    OS_tformat[OS_TEXTURE_FORMAT_1555].valid = UC_TRUE;
-                    OS_tformat[OS_TEXTURE_FORMAT_1555].ddpf  = *lpddpf;
-                } else if (alphabits == 4) {
-                    OS_tformat[OS_TEXTURE_FORMAT_4444].valid = UC_TRUE;
-                    OS_tformat[OS_TEXTURE_FORMAT_4444].ddpf  = *lpddpf;
-                }
-            } else {
-                OS_tformat[OS_TEXTURE_FORMAT_RGB].valid = UC_TRUE;
-                OS_tformat[OS_TEXTURE_FORMAT_RGB].ddpf  = *lpddpf;
-            }
-        }
-    }
-
-    free(otf);
-
-    return D3DENUMRET_OK;
-}
-
-// Computes the pixel mask (how many bits to discard) and shift (where to place the channel)
-// from a DirectDraw bitmask. Used to pack R, G, B, A into the target pixel format.
-// Note: OS_calculate_mask_and_shift is implemented in engine/graphics/resources/d3d_texture.cpp;
-// the prototype is included from there.
-
-// Creates a texture from a TGA file. Returns an existing texture if the same file+invert
-// combination was already loaded (deduplication by filename).
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
 OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
 {
-    SLONG format;
-
-    OS_Texture*       ot;
-    OS_Tformat*       best_otf;
-    OUTRO_TGA_Info    ti;
-    OUTRO_TGA_Pixel*  data;
-    CBYTE             fullpath[_MAX_PATH];
-
-    for (ot = OS_texture_head; ot; ot = ot->next) {
-        if (strcmp(fname, ot->name) == 0) {
-            if (ot->inverted == invert) {
-                return ot;
-            }
-        }
-    }
-
-    data = (OUTRO_TGA_Pixel*)malloc(256 * 256 * sizeof(OUTRO_TGA_Pixel));
-
-    if (data == NULL) {
-        return NULL;
-    }
-
-    sprintf(fullpath, OS_TEXTURE_DIR "%s", fname);
-
-    ti = OUTRO_TGA_load(fullpath, 256, 256, data);
-
-    if (!ti.valid) {
-        free(data);
-        return NULL;
-    }
-
-    if (ti.width != ti.height) {
-        free(data);
-        return NULL;
-    }
-
-    if (ti.flag & TGA_FLAG_CONTAINS_ALPHA) {
-        if (ti.flag & TGA_FLAG_ONE_BIT_ALPHA) {
-            format = OS_TEXTURE_FORMAT_1555;
-        } else {
-            format = OS_TEXTURE_FORMAT_4444;
-        }
-    } else if (ti.flag & TGA_FLAG_GRAYSCALE) {
-        if (OS_tformat[OS_TEXTURE_FORMAT_8].valid) {
-            format = OS_TEXTURE_FORMAT_8;
-        } else {
-            format = OS_TEXTURE_FORMAT_RGB;
-        }
-    } else {
-        format = OS_TEXTURE_FORMAT_RGB;
-    }
-
-    best_otf = &OS_tformat[format];
-
-    if (!best_otf->valid) {
-        free(data);
-        return NULL;
-    }
-
-    ot = (OS_Texture*)malloc(sizeof(OS_Texture));
-
-    if (ot == NULL) {
-        free(data);
-        return NULL;
-    }
-
-    strncpy(ot->name, fname, _MAX_PATH);
-    ot->format   = format;
-    ot->inverted = invert;
-
-    memset(&ot->ddsd, 0, sizeof(ot->ddsd));
-
-    ot->ddsd.dwSize             = sizeof(DDSURFACEDESC2);
-    ot->ddsd.dwWidth            = ti.width;
-    ot->ddsd.dwHeight           = ti.height;
-    ot->ddsd.dwMipMapCount      = 1;
-    ot->ddsd.dwFlags            = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_MIPMAPCOUNT | DDSD_PIXELFORMAT;
-    ot->ddsd.ddsCaps.dwCaps     = DDSCAPS_TEXTURE | DDSCAPS_MIPMAP | DDSCAPS_COMPLEX;
-    ot->ddsd.ddsCaps.dwCaps2    = DDSCAPS2_TEXTUREMANAGE | DDSCAPS2_HINTSTATIC;
-    ot->ddsd.ddpfPixelFormat    = best_otf->ddpf;
-
-    HRESULT res = OS_frame.GetDirectDraw()->CreateSurface(
-        &ot->ddsd,
-        &ot->ddsurface,
-        NULL);
-
-    ASSERT(res == DD_OK);
-
-    if (invert) {
-        SLONG i;
-        SLONG j;
-        OUTRO_TGA_Pixel* tp = data;
-
-        for (i = 0; i < ti.width; i++) {
-            for (j = 0; j < ti.height; j++) {
-                tp->alpha = 255 - tp->alpha;
-                tp->red   = 255 - tp->red;
-                tp->green = 255 - tp->green;
-                tp->blue  = 255 - tp->blue;
-                tp += 1;
-            }
-        }
-    }
-
-    DDSURFACEDESC2 ddsd;
-    memset(&ddsd, 0, sizeof(ddsd));
-    ddsd.dwSize = sizeof(ddsd);
-
-    VERIFY(ot->ddsurface->Lock(NULL, &ddsd, DDLOCK_WAIT, NULL) == DD_OK);
-
-    if (format != OS_TEXTURE_FORMAT_8) {
-        SLONG i;
-        SLONG j;
-        UWORD pixel_our;
-        OUTRO_TGA_Pixel pixel_tga;
-        UWORD* wscreen = (UWORD*)ddsd.lpSurface;
-
-        for (i = 0; i < ti.width; i++) {
-            for (j = 0; j < ti.height; j++) {
-                pixel_tga = data[i + j * ti.width];
-                pixel_our = 0;
-
-                pixel_our |= (pixel_tga.red   >> best_otf->mask_r) << best_otf->shift_r;
-                pixel_our |= (pixel_tga.green >> best_otf->mask_g) << best_otf->shift_g;
-                pixel_our |= (pixel_tga.blue  >> best_otf->mask_b) << best_otf->shift_b;
-
-                if (best_otf->ddpf.dwFlags & DDPF_ALPHAPIXELS) {
-                    pixel_our |= (pixel_tga.alpha >> best_otf->mask_a) << best_otf->shift_a;
-                }
-
-                wscreen[i + j * (ddsd.lPitch >> 1)] = pixel_our;
-            }
-        }
-    } else {
-        SLONG i;
-        SLONG j;
-        UBYTE* wscreen = (UBYTE*)ddsd.lpSurface;
-
-        for (i = 0; i < ti.width; i++) {
-            for (j = 0; j < ti.height; j++) {
-                wscreen[i + j * ddsd.lPitch] = data[i + j * ti.width].red;
-            }
-        }
-    }
-
-    ot->ddsurface->Unlock(NULL);
-
-    VERIFY(ot->ddsurface->QueryInterface(IID_IDirect3DTexture2, (void**)&ot->ddtx) == DD_OK);
-
-    ot->next         = OS_texture_head;
-    OS_texture_head  = ot;
-    ot->size         = ti.width;
-
-    free(data);
-
-    return ot;
+    return oge_texture_create_from_tga(fname, invert);
 }
 
-// Creates a blank (uninitialized) texture of a given size and format.
-// Used to create writable dynamic textures (e.g. for font glyphs).
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
 OS_Texture* OS_texture_create(SLONG size, SLONG format)
 {
-    OS_Texture* ot;
-    OS_Tformat* otf;
-
-    {
-        D3DDEVICEDESC dh;
-        D3DDEVICEDESC ds;
-
-        memset(&dh, 0, sizeof(dh));
-        memset(&ds, 0, sizeof(ds));
-        dh.dwSize = sizeof(dh);
-        ds.dwSize = sizeof(ds);
-
-        VERIFY(OS_frame.GetD3DDevice()->GetCaps(&dh, &ds) == D3D_OK);
-
-        if (dh.dwFlags == 0) {
-            dh = ds;
-        }
-
-        if (size > dh.dwMaxTextureWidth || size > dh.dwMaxTextureHeight) {
-            return NULL;
-        }
-    }
-
-    if (!OS_tformat[format].valid) {
-        switch (format) {
-        case OS_TEXTURE_FORMAT_8:
-            format = OS_TEXTURE_FORMAT_RGB;
-            break;
-        case OS_TEXTURE_FORMAT_1555:
-            format = OS_TEXTURE_FORMAT_4444;
-            break;
-        case OS_TEXTURE_FORMAT_4444:
-            format = OS_TEXTURE_FORMAT_1555;
-            break;
-        }
-
-        if (!OS_tformat[format].valid) {
-            return NULL;
-        }
-    }
-
-    otf = &OS_tformat[format];
-
-    ot = (OS_Texture*)malloc(sizeof(OS_Texture));
-
-    if (ot == NULL) {
-        return NULL;
-    }
-
-    sprintf(ot->name, "Generated");
-    ot->format = format;
-    ot->size   = size;
-
-    memset(&ot->ddsd, 0, sizeof(ot->ddsd));
-
-    ot->ddsd.dwSize          = sizeof(DDSURFACEDESC2);
-    ot->ddsd.dwWidth         = size;
-    ot->ddsd.dwHeight        = size;
-    ot->ddsd.dwMipMapCount   = 1;
-    ot->ddsd.dwFlags         = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_MIPMAPCOUNT | DDSD_PIXELFORMAT;
-    ot->ddsd.ddsCaps.dwCaps  = DDSCAPS_TEXTURE | DDSCAPS_MIPMAP | DDSCAPS_COMPLEX;
-    ot->ddsd.ddsCaps.dwCaps2 = DDSCAPS2_TEXTUREMANAGE | DDSCAPS2_HINTDYNAMIC;
-    ot->ddsd.ddpfPixelFormat = otf->ddpf;
-
-    if (OS_frame.GetDirectDraw()->CreateSurface(
-            &ot->ddsd,
-            &ot->ddsurface,
-            NULL)
-        != DD_OK) {
-        free(ot);
-        return NULL;
-    }
-
-    VERIFY(ot->ddsurface->QueryInterface(IID_IDirect3DTexture2, (void**)&ot->ddtx) == DD_OK);
-
-    ot->next        = OS_texture_head;
-    OS_texture_head = ot;
-
-    return ot;
+    return oge_texture_create_blank(size, format);
 }
 
-// Called after all textures are loaded to hint the driver to promote them to VRAM.
-// The body is commented out in the original — the function is a no-op stub.
 // uc_orig: OS_texture_finished_creating (fallen/outro/os.cpp)
 void OS_texture_finished_creating()
 {
-    // Stub — body commented out in original.
+    oge_texture_finished_creating();
 }
 
 // uc_orig: OS_texture_size (fallen/outro/os.cpp)
 SLONG OS_texture_size(OS_Texture* ot)
 {
-    return ot->size;
+    return oge_texture_size(ot);
 }
 
-// Locks the texture surface for CPU write access. Populates the OS_bitmap_* globals
-// with the surface pointer, pitch, dimensions, and channel masks.
 // uc_orig: OS_texture_lock (fallen/outro/os.cpp)
 void OS_texture_lock(OS_Texture* ot)
 {
-    OS_Tformat* otf;
-    HRESULT     res;
-    DDSURFACEDESC2 ddsd;
-
-    memset(&ddsd, 0, sizeof(ddsd));
-    ddsd.dwSize = sizeof(ddsd);
-
-    VERIFY((res = ot->ddsurface->Lock(
-                NULL,
-                &ddsd,
-                DDLOCK_WAIT | DDLOCK_WRITEONLY | DDLOCK_NOSYSLOCK,
-                NULL))
-        == DD_OK);
-
-    ASSERT(WITHIN(ot->format, 0, OS_TEXTURE_FORMAT_NUMBER - 1));
-
-    otf = &OS_tformat[ot->format];
-
-    if (ot->format == OS_TEXTURE_FORMAT_8) {
-        OS_bitmap_ubyte_screen = (UBYTE*)ddsd.lpSurface;
-        OS_bitmap_ubyte_pitch  = ddsd.lPitch;
-        OS_bitmap_uword_screen = NULL;
-        OS_bitmap_uword_pitch  = 0;
-    } else {
-        OS_bitmap_ubyte_screen = NULL;
-        OS_bitmap_ubyte_pitch  = 0;
-        OS_bitmap_uword_screen = (UWORD*)ddsd.lpSurface;
-        OS_bitmap_uword_pitch  = ddsd.lPitch >> 1;
-    }
-
-    OS_bitmap_format  = ot->format;
-    OS_bitmap_width   = ddsd.dwWidth;
-    OS_bitmap_height  = ddsd.dwHeight;
-    OS_bitmap_mask_r  = otf->mask_r;
-    OS_bitmap_mask_g  = otf->mask_g;
-    OS_bitmap_mask_b  = otf->mask_b;
-    OS_bitmap_mask_a  = otf->mask_a;
-    OS_bitmap_shift_r = otf->shift_r;
-    OS_bitmap_shift_g = otf->shift_g;
-    OS_bitmap_shift_b = otf->shift_b;
-    OS_bitmap_shift_a = otf->shift_a;
+    oge_texture_lock(ot);
 }
 
 // uc_orig: OS_texture_unlock (fallen/outro/os.cpp)
 void OS_texture_unlock(OS_Texture* ot)
 {
-    ot->ddsurface->Unlock(NULL);
-}
-
-// ========================================================
-// RENDER STATE
-// ========================================================
-
-// Sets all D3D render states to the default: Gouraud shaded, zbuffered, CCW cull,
-// no alpha blending, one texture stage.
-// uc_orig: OS_init_renderstates (fallen/outro/os.cpp)
-void OS_init_renderstates()
-{
-    LPDIRECT3DDEVICE3 d3d = OS_frame.GetD3DDevice();
-
-    d3d->SetRenderState(D3DRENDERSTATE_SHADEMODE,         D3DSHADE_GOURAUD);
-    d3d->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, UC_TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_SPECULARENABLE,     UC_TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_ZENABLE,            UC_TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_ZFUNC,              D3DCMP_LESSEQUAL);
-    d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE,       UC_TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_CULLMODE,           D3DCULL_CCW);
-    d3d->SetRenderState(D3DRENDERSTATE_FOGENABLE,          UC_FALSE);
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE,   UC_FALSE);
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE,    UC_FALSE);
-
-    if (KEY_on[KEY_A]) {
-        d3d->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_SORTINDEPENDENT);
-    } else {
-        d3d->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_NONE);
-    }
-
-    d3d->SetTextureStageState(0, D3DTSS_COLOROP,       D3DTOP_MODULATE);
-    d3d->SetTextureStageState(0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
-    d3d->SetTextureStageState(0, D3DTSS_COLORARG2,     D3DTA_DIFFUSE);
-    d3d->SetTextureStageState(0, D3DTSS_TEXCOORDINDEX, 0);
-
-    d3d->SetTextureStageState(1, D3DTSS_COLOROP,       D3DTOP_DISABLE);
-    d3d->SetTextureStageState(1, D3DTSS_COLORARG1,     D3DTA_TEXTURE);
-    d3d->SetTextureStageState(1, D3DTSS_COLORARG2,     D3DTA_CURRENT);
-    d3d->SetTextureStageState(1, D3DTSS_TEXCOORDINDEX, 1);
-
-    d3d->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE);
-
-    d3d->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTFG_LINEAR);
-    d3d->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTFG_LINEAR);
-    d3d->SetTextureStageState(0, D3DTSS_ADDRESS,   D3DTADDRESS_WRAP);
-
-    d3d->SetTextureStageState(1, D3DTSS_MINFILTER, D3DTFG_LINEAR);
-    d3d->SetTextureStageState(1, D3DTSS_MAGFILTER, D3DTFG_LINEAR);
-
-    d3d->SetTextureStageState(0, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-    d3d->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-    d3d->SetTextureStageState(2, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-}
-
-// Number of hardware multitexture methods tried before giving up.
-// uc_orig: OS_METHOD_NUMBER_MUL (fallen/outro/os.cpp)
-#define OS_METHOD_NUMBER_MUL 2
-
-// Probes which multitexture blending method the current D3D device supports.
-// Sets OS_pipeline_method_mul to 0 (3-stage), 1 (2-stage), or 2 (none).
-// uc_orig: OS_pipeline_calculate (fallen/outro/os.cpp)
-void OS_pipeline_calculate()
-{
-    ULONG num_passes;
-
-    LPDIRECT3DDEVICE3 d3d = OS_frame.GetD3DDevice();
-
-    OS_pipeline_method_mul = 0;
-
-    OS_Texture* ot1 = OS_texture_create(32, OS_TEXTURE_FORMAT_RGB);
-    OS_Texture* ot2 = OS_texture_create(32, OS_TEXTURE_FORMAT_RGB);
-
-    while (1) {
-        OS_init_renderstates();
-
-        d3d->SetTexture(0, ot1->ddtx);
-        d3d->SetTexture(1, ot2->ddtx);
-
-        switch (OS_pipeline_method_mul) {
-        case 1:
-            d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-            d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-            d3d->SetTextureStageState(1, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            break;
-
-        case 0:
-            d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_SELECTARG1);
-            d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            d3d->SetTextureStageState(1, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            d3d->SetTextureStageState(2, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-            d3d->SetTextureStageState(2, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-            d3d->SetTextureStageState(2, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            break;
-
-        default:
-            break;
-        }
-
-        if (OS_pipeline_method_mul == OS_METHOD_NUMBER_MUL) {
-            break;
-        }
-
-        if (d3d->ValidateDevice(&num_passes) == D3D_OK) {
-            if (num_passes != 0) {
-                OS_string("Validated %d with %d passes\n", OS_pipeline_method_mul, num_passes);
-                break;
-            }
-        }
-
-        OS_pipeline_method_mul += 1;
-    }
-
-    OS_string("Multitexture method %d\n", OS_pipeline_method_mul);
-}
-
-// Applies D3D render state overrides based on OS_DRAW_* flag combinations.
-// Called before DrawIndexedPrimitive when the draw mode is not OS_DRAW_NORMAL.
-// uc_orig: OS_change_renderstate_for_type (fallen/outro/os.cpp)
-void OS_change_renderstate_for_type(ULONG draw)
-{
-    LPDIRECT3DDEVICE3 d3d = OS_frame.GetD3DDevice();
-
-    if (draw & OS_DRAW_ADD) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-        d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND,  D3DBLEND_ONE);
-        d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-    }
-
-    if (draw & OS_DRAW_MULTIPLY) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-        d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND,  D3DBLEND_DESTCOLOR);
-        d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_SRCCOLOR);
-    }
-
-    if (draw & OS_DRAW_MULBYONE) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-        d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND,  D3DBLEND_DESTCOLOR);
-        d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ZERO);
-    }
-
-    if (draw & OS_DRAW_CLAMP) {
-        d3d->SetTextureStageState(0, D3DTSS_ADDRESS, D3DTADDRESS_CLAMP);
-    }
-
-    if (draw & OS_DRAW_DECAL) {
-        d3d->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_SELECTARG1);
-    }
-
-    if (draw & OS_DRAW_TRANSPARENT) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-        d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND,  D3DBLEND_ZERO);
-        d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
-    }
-
-    if (draw & OS_DRAW_DOUBLESIDED) {
-        d3d->SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
-    }
-
-    if (draw & OS_DRAW_NOZWRITE) {
-        d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
-    }
-
-    if (draw & OS_DRAW_ALPHAREF) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHAFUNC,       D3DCMP_NOTEQUAL);
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE, UC_TRUE);
-        d3d->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-        d3d->SetTextureStageState(0, D3DTSS_ALPHAOP,   D3DTOP_SELECTARG1);
-    }
-
-    if (draw & OS_DRAW_ZREVERSE) {
-        d3d->SetRenderState(D3DRENDERSTATE_ZFUNC, D3DCMP_GREATEREQUAL);
-    }
-
-    if (draw & OS_DRAW_ZALWAYS) {
-        d3d->SetRenderState(D3DRENDERSTATE_ZFUNC, D3DCMP_ALWAYS);
-    }
-
-    if (draw & OS_DRAW_CULLREVERSE) {
-        d3d->SetRenderState(D3DRENDERSTATE_CULLMODE, D3DCULL_CW);
-    }
-
-    if (draw & OS_DRAW_ALPHABLEND) {
-        d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
-        d3d->SetRenderState(D3DRENDERSTATE_SRCBLEND,  D3DBLEND_SRCALPHA);
-        d3d->SetRenderState(D3DRENDERSTATE_DESTBLEND, D3DBLEND_INVSRCALPHA);
-        d3d->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
-        d3d->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-        d3d->SetTextureStageState(0, D3DTSS_ALPHAOP,   D3DTOP_MODULATE);
-    }
-
-    if (draw & OS_DRAW_TEX_NONE) {
-        d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_SELECTARG1);
-        d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-    }
-
-    if (draw & OS_DRAW_TEX_MUL) {
-        switch (OS_pipeline_method_mul) {
-        case 1:
-            if (draw & OS_DRAW_DECAL) {
-                d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_SELECTARG1);
-                d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-                d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            } else {
-                d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-                d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-                d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-            }
-            d3d->SetTextureStageState(1, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            break;
-
-        case 0:
-            d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_SELECTARG1);
-            d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            d3d->SetTextureStageState(1, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-            d3d->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            if (draw & OS_DRAW_DECAL) {
-                // No diffuse multiply
-            } else {
-                d3d->SetTextureStageState(2, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-                d3d->SetTextureStageState(2, D3DTSS_COLORARG1, D3DTA_DIFFUSE);
-                d3d->SetTextureStageState(2, D3DTSS_COLORARG2, D3DTA_CURRENT);
-            }
-            break;
-
-        default:
-            break;
-        }
-    }
-
-    if (draw & OS_DRAW_NOFILTER) {
-        d3d->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTFG_POINT);
-        d3d->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTFG_POINT);
-        d3d->SetTextureStageState(1, D3DTSS_MINFILTER, D3DTFG_POINT);
-        d3d->SetTextureStageState(1, D3DTSS_MAGFILTER, D3DTFG_POINT);
-    }
-}
-
-// Restores the default render states for stages 0, 1, 2 after a custom draw call.
-// uc_orig: OS_undo_renderstate_type_changes (fallen/outro/os.cpp)
-void OS_undo_renderstate_type_changes(void)
-{
-    LPDIRECT3DDEVICE3 d3d = OS_frame.GetD3DDevice();
-
-    d3d->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_MODULATE);
-    d3d->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    d3d->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
-
-    d3d->SetTextureStageState(1, D3DTSS_COLOROP,   D3DTOP_DISABLE);
-    d3d->SetTextureStageState(1, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-    d3d->SetTextureStageState(1, D3DTSS_COLORARG2, D3DTA_CURRENT);
-
-    d3d->SetTextureStageState(2, D3DTSS_COLOROP, D3DTOP_DISABLE);
-
-    d3d->SetTextureStageState(0, D3DTSS_ADDRESS, D3DTADDRESS_WRAP);
-
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE, UC_FALSE);
-    d3d->SetRenderState(D3DRENDERSTATE_CULLMODE,         D3DCULL_CCW);
-    d3d->SetRenderState(D3DRENDERSTATE_ZWRITEENABLE,     UC_TRUE);
-    d3d->SetRenderState(D3DRENDERSTATE_ZFUNC,            D3DCMP_LESSEQUAL);
-    d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE,  UC_FALSE);
-
-    d3d->SetTextureStageState(0, D3DTSS_MINFILTER, D3DTFG_LINEAR);
-    d3d->SetTextureStageState(0, D3DTSS_MAGFILTER, D3DTFG_LINEAR);
-
-    d3d->SetTextureStageState(1, D3DTSS_MINFILTER, D3DTFG_LINEAR);
-    d3d->SetTextureStageState(1, D3DTSS_MAGFILTER, D3DTFG_LINEAR);
+    oge_texture_unlock(ot);
 }
 
 // ========================================================
@@ -850,10 +212,7 @@ void OS_camera_set(
         OS_cam_over_view_dist);
 }
 
-// OS_trans[] and OS_trans_upto defined in outro_os_globals.cpp.
-
 // Projects a world-space point into screen-space and stores it in an OS_Trans slot.
-// Sets OS_CLIP_* flags based on the result.
 // uc_orig: OS_transform (fallen/outro/os.cpp)
 void OS_transform(float world_x, float world_y, float world_z, OS_Trans* os)
 {
@@ -895,35 +254,28 @@ void OS_transform(float world_x, float world_y, float world_z, OS_Trans* os)
 }
 
 // ========================================================
-// RENDER LOOP
+// RENDER LOOP (wrappers)
 // ========================================================
 
 // uc_orig: OS_clear_screen (fallen/outro/os.cpp)
 void OS_clear_screen(UBYTE r, UBYTE g, UBYTE b, float z)
 {
-    CLEAR_VIEWPORT;
-
-    /*
-    ULONG colour = (r << 16) | (g << 8) | (b << 0);
-    HRESULT ret = OS_frame.GetViewport()->Clear2(...);
-    */
+    oge_clear_screen();
 }
 
 // uc_orig: OS_scene_begin (fallen/outro/os.cpp)
 void OS_scene_begin()
 {
-    OS_frame.GetD3DDevice()->BeginScene();
-    OS_init_renderstates();
+    oge_scene_begin();
 }
 
 // uc_orig: OS_scene_end (fallen/outro/os.cpp)
 void OS_scene_end()
 {
-    OS_frame.GetD3DDevice()->EndScene();
+    oge_scene_end();
 }
 
 // Draws a framerate indicator as a row of ticks at the top of the screen.
-// Uses function-local statics for fps tracking.
 // uc_orig: OS_fps (fallen/outro/os.cpp)
 void OS_fps()
 {
@@ -987,7 +339,7 @@ void OS_fps()
 // uc_orig: OS_show (fallen/outro/os.cpp)
 void OS_show()
 {
-    FLIP(NULL, DDFLIP_WAIT);
+    oge_show();
 }
 
 // ========================================================
@@ -995,6 +347,7 @@ void OS_show()
 // ========================================================
 
 // Pre-transformed + lit vertex format for DrawIndexedPrimitive.
+// Layout must match the backend's OGE_Flert exactly.
 // uc_orig: OS_Flert (fallen/outro/os.cpp)
 typedef struct {
     float sx, sy, sz;
@@ -1004,9 +357,6 @@ typedef struct {
     float tu1, tv1;
     float tu2, tv2;
 } OS_Flert;
-
-// uc_orig: OS_FLERT_FORMAT (fallen/outro/os.cpp)
-#define OS_FLERT_FORMAT (D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_SPECULAR | D3DFVF_TEX2)
 
 // Full definition of OS_Buffer (opaque in the header).
 // uc_orig: os_buffer (fallen/outro/os.cpp)
@@ -1019,8 +369,6 @@ typedef struct os_buffer {
     UWORD*      index;
     OS_Buffer*  next;
 } OS_Buffer;
-
-// OS_buffer_free defined in outro_os_globals.cpp.
 
 // uc_orig: OS_buffer_create (fallen/outro/os.cpp)
 OS_Buffer* OS_buffer_create(void)
@@ -1042,7 +390,6 @@ OS_Buffer* OS_buffer_create(void)
     return ob;
 }
 
-// Returns a buffer from the free list or creates a new one.
 // uc_orig: OS_buffer_get (fallen/outro/os.cpp)
 OS_Buffer* OS_buffer_get(void)
 {
@@ -1059,7 +406,6 @@ OS_Buffer* OS_buffer_get(void)
     return ans;
 }
 
-// Returns a buffer to the free list.
 // uc_orig: OS_buffer_give (fallen/outro/os.cpp)
 void OS_buffer_give(OS_Buffer* ob)
 {
@@ -1090,8 +436,6 @@ void OS_buffer_grow_indices(OS_Buffer* ob)
     ob->index = (UWORD*)realloc(ob->index, ob->max_indices * sizeof(UWORD));
 }
 
-// Adds a single vertex to the buffer, converting it from OS_Vert + OS_Trans format
-// to the pre-transformed OS_Flert format used by DrawIndexedPrimitive.
 // uc_orig: OS_buffer_add_vert (fallen/outro/os.cpp)
 void OS_buffer_add_vert(OS_Buffer* ob, OS_Vert* ov)
 {
@@ -1121,8 +465,6 @@ void OS_buffer_add_vert(OS_Buffer* ob, OS_Vert* ov)
     ov->index = ob->num_flerts++;
 }
 
-// Adds a triangle to the buffer. Performs trivial reject if all three vertices
-// are off the same side of the screen; skips near/far-clipped triangles.
 // uc_orig: OS_buffer_add_triangle (fallen/outro/os.cpp)
 void OS_buffer_add_triangle(OS_Buffer* ob, OS_Vert* ov1, OS_Vert* ov2, OS_Vert* ov3)
 {
@@ -1156,20 +498,13 @@ void OS_buffer_add_triangle(OS_Buffer* ob, OS_Vert* ov1, OS_Vert* ov2, OS_Vert* 
         ULONG clip_or = OS_trans[ov1->trans].clip | OS_trans[ov2->trans].clip | OS_trans[ov3->trans].clip;
 
         if (clip_or & OS_CLIP_TRANSFORMED) {
-            // Needs z-clipping — not implemented, skip.
             return;
         } else {
-            // Entirely outside both clip planes.
             return;
         }
     }
 }
 
-// Adds a 2D screen-space sprite as two triangles. The four corners are arranged:
-//   2-----0
-//   |     |
-//   3-----1
-// Coordinates are normalised (0..1) and scaled by screen dimensions.
 // uc_orig: OS_buffer_add_sprite (fallen/outro/os.cpp)
 void OS_buffer_add_sprite(
     OS_Buffer* ob,
@@ -1237,9 +572,6 @@ void OS_buffer_add_sprite(
     ob->num_flerts  += 4;
 }
 
-// Adds a rotated square sprite. The 'size' parameter is the radius as a fraction
-// of screen width; 'angle' is in radians. The Y axis is scaled by 1.33 to compensate
-// for the non-square pixel ratio of the screen.
 // uc_orig: OS_buffer_add_sprite_rot (fallen/outro/os.cpp)
 void OS_buffer_add_sprite_rot(
     OS_Buffer* ob,
@@ -1313,11 +645,6 @@ void OS_buffer_add_sprite_rot(
     ob->num_flerts  += 4;
 }
 
-// Adds a quad with four independently specified corners. Useful for perspective
-// warped or non-rectangular sprites (e.g. opening/closing doors in credits).
-//    0-------1
-//   /         \
-//  2-----------3
 // uc_orig: OS_buffer_add_sprite_arbitrary (fallen/outro/os.cpp)
 void OS_buffer_add_sprite_arbitrary(
     OS_Buffer* ob,
@@ -1381,8 +708,6 @@ void OS_buffer_add_sprite_arbitrary(
     ob->num_flerts  += 4;
 }
 
-// Adds a screen-space line with given 3D-projected endpoints (in real screen pixels)
-// as a quad of two triangles. The line width is a percentage of screen width.
 // uc_orig: OS_buffer_add_line_3d (fallen/outro/os.cpp)
 void OS_buffer_add_line_3d(
     OS_Buffer* ob,
@@ -1451,7 +776,6 @@ void OS_buffer_add_line_3d(
     ob->num_flerts  += 4;
 }
 
-// Adds a normalised-coordinate 2D line as a quad.
 // uc_orig: OS_buffer_add_line_2d (fallen/outro/os.cpp)
 void OS_buffer_add_line_2d(
     OS_Buffer* ob,
@@ -1526,12 +850,9 @@ void OS_buffer_add_line_2d(
 }
 
 // Submits the buffer for rendering then returns it to the free pool.
-// Applies texture bindings and render state overrides based on the draw flags.
 // uc_orig: OS_buffer_draw (fallen/outro/os.cpp)
 void OS_buffer_draw(OS_Buffer* ob, OS_Texture* ot1, OS_Texture* ot2, ULONG draw)
 {
-    LPDIRECT3DDEVICE3 d3d = OS_frame.GetD3DDevice();
-
     if (ob->num_flerts == 0) {
         OS_buffer_give(ob);
         return;
@@ -1540,35 +861,21 @@ void OS_buffer_draw(OS_Buffer* ob, OS_Texture* ot1, OS_Texture* ot2, ULONG draw)
     if (ot1 == NULL) {
         draw |= OS_DRAW_TEX_NONE;
     } else {
-        d3d->SetTexture(0, ot1->ddtx);
+        oge_bind_texture(0, ot1);
     }
 
     if (ot2) {
-        d3d->SetTexture(1, ot2->ddtx);
+        oge_bind_texture(1, ot2);
     }
 
     if (draw != OS_DRAW_NORMAL) {
-        OS_change_renderstate_for_type(draw);
+        oge_change_renderstate(draw);
     }
 
-    {
-        ULONG num_passes;
-        if (d3d->ValidateDevice(&num_passes) != D3D_OK) {
-            OS_string("Validation failed: draw = 0x%x\n", draw);
-        }
-    }
-
-    d3d->DrawIndexedPrimitive(
-        D3DPT_TRIANGLELIST,
-        OS_FLERT_FORMAT,
-        ob->flert,
-        ob->num_flerts,
-        ob->index,
-        ob->num_indices,
-        D3DDP_DONOTUPDATEEXTENTS);
+    oge_draw_indexed(ob->flert, ob->num_flerts, ob->index, ob->num_indices);
 
     if (draw != OS_DRAW_NORMAL) {
-        OS_undo_renderstate_type_changes();
+        oge_undo_renderstate_changes();
     }
 
     OS_buffer_give(ob);
@@ -1577,9 +884,6 @@ void OS_buffer_draw(OS_Buffer* ob, OS_Texture* ot1, OS_Texture* ot2, ULONG draw)
 // ========================================================
 // SOUND
 // ========================================================
-
-// MIDAS-based sound functions are fully commented out in the original.
-// The active implementation uses the main game's MFX/MUSIC system.
 
 // uc_orig: OS_sound_init (fallen/outro/os.cpp)
 void OS_sound_init()
@@ -1599,8 +903,7 @@ void OS_sound_volume(float vol)
     // Stub — MIDAS implementation was removed.
 }
 
-// Selects a random music track and initialises the D3D/DD pointers from the main
-// game's display object. Called once at outro startup.
+// Entry point from the main game. Initialises graphics, runs the outro loop, cleans up.
 // uc_orig: OS_hack (fallen/outro/os.cpp)
 void OS_hack(void)
 {
@@ -1617,45 +920,7 @@ void OS_hack(void)
 
     sound = S_CREDITS_LOOP;
 
-    OS_frame.direct_draw = the_display.lp_DD4;
-    OS_frame.direct_3d   = the_display.lp_D3D_Device;
-
-    // Enumerate texture pixel formats for this device.
-    {
-        int i;
-        OS_Tformat* otf;
-
-        OS_frame.GetD3DDevice()->EnumTextureFormats(OS_texture_enumerate_pixel_formats, NULL);
-
-        for (i = 0; i < OS_TEXTURE_FORMAT_NUMBER; i++) {
-            otf = &OS_tformat[i];
-
-            if (i == OS_TEXTURE_FORMAT_8) {
-                continue;
-            }
-
-            if (otf->valid) {
-                OS_calculate_mask_and_shift(otf->ddpf.dwRBitMask, &otf->mask_r, &otf->shift_r);
-                OS_calculate_mask_and_shift(otf->ddpf.dwGBitMask, &otf->mask_g, &otf->shift_g);
-                OS_calculate_mask_and_shift(otf->ddpf.dwBBitMask, &otf->mask_b, &otf->shift_b);
-
-                if (otf->ddpf.dwFlags & DDPF_ALPHAPIXELS) {
-                    OS_calculate_mask_and_shift(otf->ddpf.dwRGBAlphaBitMask, &otf->mask_a, &otf->shift_a);
-                }
-            }
-        }
-    }
-
-    // Get screen dimensions from the main game's display.
-    {
-        extern SLONG RealDisplayWidth;
-        extern SLONG RealDisplayHeight;
-
-        OS_screen_width  = float(RealDisplayWidth);
-        OS_screen_height = float(RealDisplayHeight);
-    }
-
-    OS_pipeline_calculate();
+    oge_init();
 
     OS_game_start_tick_count = GetTickCount();
 

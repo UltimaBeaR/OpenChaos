@@ -124,20 +124,8 @@ SLONG OS_bitmap_shift_b = 0;
 // uc_orig: OS_bitmap_shift_a (fallen/outro/os.cpp)
 SLONG OS_bitmap_shift_a = 0;
 
-// uc_orig: OS_pipeline_method_mul (fallen/outro/os.cpp)
-SLONG OS_pipeline_method_mul = 0;
-
 // uc_orig: sound (fallen/outro/os.cpp)
 SLONG sound = 0;
-
-// uc_orig: OS_frame (fallen/outro/os.cpp)
-OS_Framework OS_frame;
-
-// uc_orig: OS_tformat (fallen/outro/os.cpp)
-OS_Tformat OS_tformat[4] = {};
-
-// uc_orig: OS_texture_head (fallen/outro/os.cpp)
-struct os_texture* OS_texture_head = NULL;
 
 // uc_orig: OS_buffer_free (fallen/outro/os.cpp)
 struct os_buffer* OS_buffer_free = NULL;
