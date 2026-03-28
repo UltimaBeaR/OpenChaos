@@ -11,7 +11,7 @@
 #include "engine/graphics/pipeline/poly_render.h"
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_engine/d3d/render_state.h"
+#include "engine/graphics/graphics_engine/ge_render_state.h"
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/lighting/crinkle.h"

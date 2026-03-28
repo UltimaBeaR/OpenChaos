@@ -14,7 +14,7 @@
 #include <math.h>
 #include "engine/graphics/geometry/farfacet.h"
 #include "engine/graphics/geometry/farfacet_globals.h"
-#include "engine/graphics/graphics_engine/d3d/render_state.h"
+#include "engine/graphics/graphics_engine/ge_render_state.h"
 #include "engine/input/keyboard.h"
 
 // uc_orig: FARFACET_find_vertex (fallen/DDEngine/Source/farfacet.cpp)

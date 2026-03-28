@@ -12,6 +12,7 @@
 #include "map/pap.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/console/message.h"
 #include "engine/audio/sound.h"

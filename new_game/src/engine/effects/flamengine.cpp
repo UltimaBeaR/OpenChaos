@@ -1,14 +1,6 @@
 #include "engine/effects/flamengine.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h" // D3DTexture (LockUser/UnlockUser for flame texture)
-
-// These externs provide the texture globals flamengine needs without pulling in all of assets/texture.h.
-// When texture globals are split into a separate engine-layer header this can be replaced.
-
-// uc_orig: TEXTURE_texture (fallen/DDEngine/Source/flamengine.cpp)
-// Direct3D texture array; referenced for locking/unlocking the flame texture.
-extern D3DTexture TEXTURE_texture[];
 
 // uc_orig: TEXTURE_page_menuflame (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_menuflame;
@@ -41,33 +33,21 @@ extern SLONG TEXTURE_shadow_shift_alpha;
 // uc_orig: TEXTURE_flame_lock (fallen/DDEngine/Source/flamengine.cpp)
 static SLONG TEXTURE_flame_lock()
 {
-    HRESULT res;
-
-    res = TEXTURE_texture[TEXTURE_page_menuflame].LockUser(
-        &TEXTURE_shadow_bitmap,
-        &TEXTURE_shadow_pitch);
-
-    if (FAILED(res)) {
+    if (!ge_lock_texture_pixels(TEXTURE_page_menuflame, (uint16_t**)&TEXTURE_shadow_bitmap, (int32_t*)&TEXTURE_shadow_pitch)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
         return UC_FALSE;
-    } else {
-        TEXTURE_shadow_mask_red   = TEXTURE_texture[TEXTURE_page_menuflame].mask_red;
-        TEXTURE_shadow_mask_green = TEXTURE_texture[TEXTURE_page_menuflame].mask_green;
-        TEXTURE_shadow_mask_blue  = TEXTURE_texture[TEXTURE_page_menuflame].mask_blue;
-        TEXTURE_shadow_mask_alpha = TEXTURE_texture[TEXTURE_page_menuflame].mask_alpha;
-        TEXTURE_shadow_shift_red   = TEXTURE_texture[TEXTURE_page_menuflame].shift_red;
-        TEXTURE_shadow_shift_green = TEXTURE_texture[TEXTURE_page_menuflame].shift_green;
-        TEXTURE_shadow_shift_blue  = TEXTURE_texture[TEXTURE_page_menuflame].shift_blue;
-        TEXTURE_shadow_shift_alpha = TEXTURE_texture[TEXTURE_page_menuflame].shift_alpha;
-        return UC_TRUE;
     }
+    ge_get_texture_pixel_format(TEXTURE_page_menuflame,
+        (int32_t*)&TEXTURE_shadow_mask_red, (int32_t*)&TEXTURE_shadow_mask_green, (int32_t*)&TEXTURE_shadow_mask_blue, (int32_t*)&TEXTURE_shadow_mask_alpha,
+        (int32_t*)&TEXTURE_shadow_shift_red, (int32_t*)&TEXTURE_shadow_shift_green, (int32_t*)&TEXTURE_shadow_shift_blue, (int32_t*)&TEXTURE_shadow_shift_alpha);
+    return UC_TRUE;
 }
 
 // uc_orig: TEXTURE_flame_unlock (fallen/DDEngine/Source/flamengine.cpp)
 static void TEXTURE_flame_unlock()
 {
-    TEXTURE_texture[TEXTURE_page_menuflame].UnlockUser();
+    ge_unlock_texture_pixels(TEXTURE_page_menuflame);
 }
 
 // uc_orig: TEXTURE_flame_update (fallen/DDEngine/Source/flamengine.cpp)

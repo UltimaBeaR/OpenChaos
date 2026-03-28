@@ -5,7 +5,10 @@
 #include "engine/graphics/graphics_engine/d3d/display_macros.h"
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 #include "engine/graphics/graphics_engine/d3d/display_globals.h"
-#include "assets/texture_globals.h"
+#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
+#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/d3d/vertex_buffer_globals.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
 #include "assets/formats/level_loader.h" // DATA_DIR
@@ -506,6 +509,55 @@ void ge_get_gamma(int32_t* black, int32_t* white)
 bool ge_is_gamma_available()
 {
     return the_display.IsGammaAvailable();
+}
+
+// ---------------------------------------------------------------------------
+// Vertex buffer pool
+// ---------------------------------------------------------------------------
+
+void ge_reclaim_vertex_buffers()
+{
+    extern VertexBufferPool* TheVPool;
+    if (TheVPool) TheVPool->ReclaimBuffers();
+}
+
+void ge_dump_vpool_info(void* fd)
+{
+    extern VertexBufferPool* TheVPool;
+    if (TheVPool) TheVPool->DumpInfo((FILE*)fd);
+}
+
+// ---------------------------------------------------------------------------
+// Texture pixel access
+// ---------------------------------------------------------------------------
+
+bool ge_lock_texture_pixels(int32_t page, uint16_t** bitmap, int32_t* pitch)
+{
+    SLONG p;
+    HRESULT res = TEXTURE_texture[page].LockUser((UWORD**)bitmap, &p);
+    *pitch = p;
+    return SUCCEEDED(res);
+}
+
+void ge_unlock_texture_pixels(int32_t page)
+{
+    TEXTURE_texture[page].UnlockUser();
+}
+
+void ge_get_texture_pixel_format(int32_t page,
+    int32_t* mask_r, int32_t* mask_g, int32_t* mask_b, int32_t* mask_a,
+    int32_t* shift_r, int32_t* shift_g, int32_t* shift_b, int32_t* shift_a)
+{
+    D3DTexture& t = TEXTURE_texture[page];
+    *mask_r  = t.mask_red;   *mask_g  = t.mask_green;
+    *mask_b  = t.mask_blue;  *mask_a  = t.mask_alpha;
+    *shift_r = t.shift_red;  *shift_g = t.shift_green;
+    *shift_b = t.shift_blue; *shift_a = t.shift_alpha;
+}
+
+bool ge_is_texture_loaded(int32_t page)
+{
+    return TEXTURE_texture[page].Type != GE_TEXTURE_TYPE_UNUSED;
 }
 
 // ---------------------------------------------------------------------------

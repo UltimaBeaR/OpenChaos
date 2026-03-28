@@ -2,10 +2,9 @@
 #define ENGINE_GRAPHICS_GEOMETRY_FARFACET_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // GEVertexLit, GEMatrix
+#include "engine/graphics/graphics_engine/graphics_engine.h"   // GEVertexLit, GEMatrix
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/d3d/render_state.h"
+#include "engine/graphics/graphics_engine/ge_render_state.h"
 #include "map/pap.h"
 
 // uc_orig: FARFACET_RATIO (fallen/DDEngine/Source/farfacet.cpp)

@@ -27,7 +27,6 @@
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "assets/formats/tga.h"
 
@@ -234,7 +233,7 @@ void parse_console(CBYTE* str)
             {
                 FILE* fd = MF_Fopen("C:\\VertexBufferInfo.txt", "w");
                 if (fd) {
-                    TheVPool->DumpInfo(fd);
+                    ge_dump_vpool_info(fd);
                     MF_Fclose(fd);
                     CONSOLE_text("Info dumped at C:\\VertexBufferInfo.txt");
                 } else

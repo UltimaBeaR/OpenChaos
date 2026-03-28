@@ -30,7 +30,7 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
 #include "ui/hud/panel.h"
-#include "engine/graphics/graphics_engine/d3d/render_state.h"
+#include "engine/graphics/graphics_engine/ge_render_state.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/effects/psystem.h"
 

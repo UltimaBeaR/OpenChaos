@@ -2,7 +2,8 @@
 #define ASSETS_TEXTURE_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include <stdlib.h> // _MAX_PATH
 #include "engine/graphics/lighting/crinkle.h"
 
 // Internal constants also needed by external consumers.
@@ -19,8 +20,8 @@ typedef struct {
     UBYTE pos; // 0-8 or TEXTURE_DC_PACK_POS_WHOLE_PAGE (42)
 } TEXTURE_DC_Pack;
 
-// uc_orig: TEXTURE_texture (fallen/DDEngine/Source/texture.cpp)
-extern D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES];
+// TEXTURE_texture[] (D3DTexture array) is D3D-internal — declared in d3d/d3d_texture_globals.h.
+// Game code accesses textures via TEXTURE_get_handle(page) and ge_is_texture_loaded(page).
 
 // uc_orig: TEXTURE_crinkle (fallen/DDEngine/Source/texture.cpp)
 extern CRINKLE_Handle TEXTURE_crinkle[22 * 64];

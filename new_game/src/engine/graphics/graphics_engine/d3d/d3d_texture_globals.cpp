@@ -1,5 +1,8 @@
 #include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
 
+// uc_orig: TEXTURE_texture (fallen/DDEngine/Source/texture.cpp)
+D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES_D3D];
+
 // uc_orig: EmbedSource (fallen/DDLibrary/Source/D3DTexture.cpp)
 D3DTexture* EmbedSource = nullptr;
 

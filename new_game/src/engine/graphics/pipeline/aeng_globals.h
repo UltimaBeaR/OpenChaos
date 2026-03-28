@@ -5,7 +5,7 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "buildings/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
-#include "engine/graphics/graphics_engine/d3d/render_state.h" // GEMatrix, GEVertexLit
+#include "engine/graphics/graphics_engine/ge_render_state.h" // GEMatrix, GEVertexLit
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/graphics/lighting/smap.h"                  // SMAP_Link
 #include "engine/compression/compression.h"

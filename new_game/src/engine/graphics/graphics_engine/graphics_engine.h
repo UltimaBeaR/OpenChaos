@@ -366,6 +366,36 @@ GEScreenSurface ge_get_background_override();
 void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y, int32_t w, int32_t h);
 
 // ---------------------------------------------------------------------------
+// Vertex buffer pool
+// ---------------------------------------------------------------------------
+
+// Reclaim all vertex buffer allocations (end of frame).
+void ge_reclaim_vertex_buffers();
+
+// Dump vertex buffer pool info to a file descriptor (debug).
+void ge_dump_vpool_info(void* fd);
+
+// ---------------------------------------------------------------------------
+// Texture pixel access (D3DTexture abstraction)
+// ---------------------------------------------------------------------------
+
+// Lock a texture page for direct pixel write. Returns locked bitmap pointer and pitch.
+bool ge_lock_texture_pixels(int32_t page, uint16_t** bitmap, int32_t* pitch);
+void ge_unlock_texture_pixels(int32_t page);
+
+// Get the pixel format masks/shifts for a texture page (for manual pixel packing).
+void ge_get_texture_pixel_format(int32_t page,
+    int32_t* mask_r, int32_t* mask_g, int32_t* mask_b, int32_t* mask_a,
+    int32_t* shift_r, int32_t* shift_g, int32_t* shift_b, int32_t* shift_a);
+
+// Get the D3DTexture font data for a texture page (bitmap font rendering).
+struct GEFontData;
+GEFontData* ge_get_font_data(int32_t page);
+
+// Check if a texture page is loaded.
+bool ge_is_texture_loaded(int32_t page);
+
+// ---------------------------------------------------------------------------
 // Gamma
 // ---------------------------------------------------------------------------
 

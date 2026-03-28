@@ -3,7 +3,6 @@
 #include "engine/graphics/pipeline/qeng.h"
 #include "engine/graphics/pipeline/qeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "map/qmap_globals.h"
 
 // uc_orig: QENG_set_camera (fallen/DDEngine/Source/qeng.cpp)
@@ -141,5 +140,5 @@ void QENG_clear_screen()
 {
     ge_set_background(GEBackground::Black);
     ge_clear(true, true);
-    TheVPool->ReclaimBuffers();
+    ge_reclaim_vertex_buffers();
 }

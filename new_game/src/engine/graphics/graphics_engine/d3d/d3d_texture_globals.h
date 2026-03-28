@@ -3,6 +3,12 @@
 
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 
+// D3DTexture array — the core texture storage. Game code uses ge_* / TEXTURE_get_handle().
+// uc_orig: TEXTURE_texture (fallen/DDEngine/Source/texture.cpp)
+#define TEXTURE_NUM_STANDARD (22 * 64)
+#define TEXTURE_MAX_TEXTURES_D3D (TEXTURE_NUM_STANDARD + 160)
+extern D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES_D3D];
+
 // Source D3DTexture being embedded into a page during the current load batch.
 // uc_orig: EmbedSource (fallen/DDLibrary/Source/D3DTexture.cpp)
 extern D3DTexture* EmbedSource;
