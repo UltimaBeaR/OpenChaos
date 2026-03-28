@@ -58,12 +58,11 @@ engine/graphics/graphics_engine/
 
 ### Шаг 2.5 — Доработки бэкенда (до outro)
 
-**A. Убрать игровую логику из бэкенда:**
-- `texture.cpp` — КРИТИЧНО: game_types, buildings, map, audio, lighting. Нужно разрезать.
-- `display.cpp` — КРИТИЧНО: ui/hud/panel, game/input_actions, PreFlipTT.
-- `gd_display.h` — КРИТИЧНО: включает UI и input headers.
-- `polypage.cpp` — УМЕРЕННО: extern AENG_total_polys_drawn.
-- `display_globals.h` — МИНОРНО: PlayQuickMovie().
+**A. Убрать игровую логику из бэкенда ✅:**
+- `texture.cpp` — вернулся в assets/, 12 новых ge_* обёрток для D3DTexture
+- `display.cpp` — убраны panel/input/poly includes, заменены на callback-механизм
+- `polypage.cpp` — AENG_total_polys_drawn заменён на callback
+- Повторный аудит 28 файлов: 0 игровой логики в бэкенде
 
 **B. Проверка заменяемости на OpenGL:**
 Пройтись по каждому .cpp в бэкенде и оценить: можно ли реализовать на OpenGL,
