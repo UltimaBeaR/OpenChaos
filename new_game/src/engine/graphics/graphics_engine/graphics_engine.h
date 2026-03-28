@@ -275,6 +275,36 @@ bool ge_supports_dest_inv_src_color();
 bool ge_supports_modulate_alpha();
 bool ge_supports_adami_lighting();
 bool ge_is_hardware();
+bool ge_is_fullscreen();
+
+// ---------------------------------------------------------------------------
+// Gamma
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Background surface (loading screens)
+// ---------------------------------------------------------------------------
+
+void ge_create_background_surface(uint8_t* pixels);
+void ge_blit_background_surface();
+void ge_destroy_background_surface();
+
+// Loading screen management.
+void ge_init_back_image(const char* name);
+void ge_show_back_image(bool in_3d_frame = true);
+void ge_reset_back_image();
+
+// ---------------------------------------------------------------------------
+// Cutscene playback
+// ---------------------------------------------------------------------------
+
+void ge_run_cutscene(int32_t id);
+
+// ---------------------------------------------------------------------------
+// Driver info
+// ---------------------------------------------------------------------------
+
+bool ge_is_primary_driver();
 
 // ---------------------------------------------------------------------------
 // Gamma

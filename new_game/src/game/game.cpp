@@ -114,7 +114,7 @@
 
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 
-#include "engine/graphics/graphics_engine/d3d/gd_display.h" // the_display
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_set_draw_distance, AENG_screen_shot, AENG_draw_messages
 #include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
@@ -422,9 +422,9 @@ void GAME_map_draw(void)
 
     plan_view_shot(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 1 + (MouseY >> 4), 77, 78, 401, 328, (UBYTE*)screen_mem);
     overlay_beacons();
-    the_display.create_background_surface((UBYTE*)screen_mem);
-    the_display.blit_background_surface();
-    the_display.destroy_background_surface();
+    ge_create_background_surface((UBYTE*)screen_mem);
+    ge_blit_background_surface();
+    ge_destroy_background_surface();
 }
 
 // uc_orig: leave_map_form_proc (fallen/Source/Game.cpp)
@@ -534,7 +534,7 @@ inline void screen_flip(void)
     }
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.
-    if (the_display.GetDriverInfo()->IsPrimary()) {
+    if (ge_is_primary_driver()) {
         PreFlipTT();
         AENG_blit();
     } else {
@@ -922,11 +922,11 @@ round_again:;
             if (strstr(ELEV_fname_level, "park2.ucm")) {
                 // MIB introduction cutscene after park2 mission.
                 stop_all_fx_and_music();
-                the_display.RunCutscene(1);
+                ge_run_cutscene(1);
             } else if (strstr(ELEV_fname_level, "Finale1.ucm")) {
                 // Final credits cutscene.
                 stop_all_fx_and_music();
-                the_display.RunCutscene(3);
+                ge_run_cutscene(3);
 
                 // TODO(stage7): outro disabled during renderer replacement
                 // extern void OS_hack(void);
@@ -941,7 +941,7 @@ round_again:;
                     if (NET_PLAYER(0)->Genus.Player->RedMarks > 1) {
                         CBYTE* mess;
 
-                        InitBackImage("deadcivs.tga");
+                        ge_init_back_image("deadcivs.tga");
 
                         Keys[KB_ESC] = 0;
                         Keys[KB_SPACE] = 0;
@@ -949,7 +949,7 @@ round_again:;
                         Keys[KB_PENTER] = 0;
 
                         while (SHELL_ACTIVE) {
-                            ShowBackImage();
+                            ge_show_back_image();
                             POLY_frame_init(UC_FALSE, UC_FALSE);
 
                             switch (the_game.DarciDeadCivWarnings) {
@@ -990,7 +990,7 @@ round_again:;
                             }
                         }
 
-                        ResetBackImage();
+                        ge_reset_back_image();
 
                         Keys[KB_ESC] = 0;
                         Keys[KB_SPACE] = 0;

@@ -12,7 +12,7 @@
 // INPUT_MASK_*, and ShiftFlag is already in keyboard_globals.h.
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display.IsFullScreen()
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 
 // Sound-to-wave ID mapping for widget events. Uses S_MENU_START/S_MENU_END from sound_id.h.
 // uc_orig: _WS_MOVE (fallen/Source/widget.cpp)
@@ -1141,7 +1141,7 @@ SLONG FORM_Process(Form* form)
         SLONG res;
         GetCursorPos(&pt);
         extern volatile HWND hDDLibWindow;
-        if (!the_display.IsFullScreen())
+        if (!ge_is_fullscreen())
             ScreenToClient(hDDLibWindow, &pt);
         if ((pt.x != lastx) || (pt.y != lasty)) {
             lastx = pt.x;

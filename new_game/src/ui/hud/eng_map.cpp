@@ -4,11 +4,11 @@
 #include "engine/platform/uc_common.h"
 #include <math.h>
 
-// game.h must come before gd_display.h: game.h → MFStdLib.h declares extern SLONG DisplayWidth/Height,
-// then gd_display.h #defines them as 640/480. Wrong order causes syntax errors.
-//            TO_THING, DisplayWidth/DisplayHeight, SPECIAL_info, PRIM_OBJ_ITEM_GUN, SPECIAL_NUM_TYPES
 #include "game/game_types.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
+
+// Display resolution constants (gd_display.h defines these as macros).
+#define DisplayWidth  640
+#define DisplayHeight 480
 
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/text/text.h"

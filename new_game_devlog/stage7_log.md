@@ -775,6 +775,30 @@ DrawIndPrimMM parameters. При OpenGL эти модули переписыва
 
 ---
 
+### Массовая очистка gd_display.h — ещё 7 файлов ✅
+
+Добавлено в ge_* контракт:
+- `ge_is_fullscreen()` — windowed/fullscreen mode query
+- `ge_init_back_image()`, `ge_show_back_image()`, `ge_reset_back_image()` — loading screens
+- `ge_create/blit/destroy_background_surface()` — background surface ops
+- `ge_run_cutscene()` — FMV playback
+- `ge_is_primary_driver()` — DDraw driver query
+
+Очищены от gd_display.h:
+- `shape.cpp` — не использовал ничего, include убран
+- `sprite.cpp` — DisplayWidth/Height → local #define
+- `mouse.cpp` — hDDLibWindow → local extern
+- `widget.cpp` — IsFullScreen → ge_is_fullscreen
+- `attract.cpp` — ViewportRect → ge_set_viewport(0,0,w,h), InitBackImage/ShowBackImage/ResetBackImage → ge_*
+- `game.cpp` — backgrounds/cutscene/driver → ge_*
+- `eng_map.cpp` — DisplayWidth/Height → local #define
+
+gd_display.h вне d3d/: 15 → **8 файлов** (frontend, texture, elev, figure, farfacet, wind_procs, host, flamengine).
+Оставшиеся — DDraw surface ops, platform code, D3D рендер-пайплайн internals.
+Сборка: 308/308.
+
+---
+
 ### Screen access + device caps + gamma API ✅
 
 Добавлено в graphics_engine.h + D3D реализация:

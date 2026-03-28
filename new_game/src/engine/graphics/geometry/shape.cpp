@@ -1,9 +1,6 @@
-// game.h must come first: it pulls in MFStdLib which declares extern DisplayWidth/Height
-// as variables; gd_display.h would then redefine them as macros causing a syntax error.
 #include "game/game_types.h"
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include <math.h>
 
 #include "engine/graphics/geometry/shape.h"

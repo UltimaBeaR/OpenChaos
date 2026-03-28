@@ -5,7 +5,8 @@
 
 #include "engine/input/mouse.h"
 
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // hDDLibWindow
+// Platform window handle (defined in d3d/display_globals.cpp).
+extern volatile HWND hDDLibWindow;
 
 // uc_orig: MouseProc (fallen/DDLibrary/Source/GMouse.cpp)
 LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)

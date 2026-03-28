@@ -3,7 +3,6 @@
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "camera/cam.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display (still used for ViewportRect, migrating incrementally)
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "ui/hud/panel.h"
@@ -64,11 +63,7 @@ reinit_because_of_language_change:
 
     bReinitBecauseOfLanguageChange = UC_FALSE;
 
-    ge_set_viewport(
-        the_display.ViewportRect.x1,
-        the_display.ViewportRect.y1,
-        the_display.ViewportRect.x2 - the_display.ViewportRect.x1,
-        the_display.ViewportRect.y2 - the_display.ViewportRect.y1);
+    ge_set_viewport(0, 0, ge_get_screen_width(), ge_get_screen_height());
 
     // Initialize default render state for attract mode.
     ge_set_perspective_correction(true);
@@ -179,13 +174,13 @@ reinit_because_of_language_change:
 
     if (GAME_STATE & GS_PLAY_GAME) {
         if (go_into_game) {
-            ShowBackImage(UC_FALSE);
+            ge_show_back_image(UC_FALSE);
             AENG_flip();
         }
     }
 
     text_fudge = UC_FALSE;
-    ResetBackImage();
+    ge_reset_back_image();
 }
 
 
@@ -408,11 +403,11 @@ void ATTRACT_loadscreen_init(void)
 {
     PANEL_disable_screensaver(UC_TRUE);
 
-    InitBackImage("e3load.tga");
-    ShowBackImage(UC_FALSE);
+    ge_init_back_image("e3load.tga");
+    ge_show_back_image(UC_FALSE);
     AENG_flip();
-    InitBackImage("e3load.tga");
-    ShowBackImage(UC_FALSE);
+    ge_init_back_image("e3load.tga");
+    ge_show_back_image(UC_FALSE);
     AENG_flip();
 }
 
@@ -420,7 +415,7 @@ void ATTRACT_loadscreen_init(void)
 // uc_orig: ATTRACT_loadscreen_draw (fallen/Source/Attract.cpp)
 void ATTRACT_loadscreen_draw(SLONG completion)
 {
-    ShowBackImage(UC_FALSE);
+    ge_show_back_image(UC_FALSE);
     PANEL_draw_completion_bar(completion);
     AENG_flip();
 }

@@ -423,6 +423,63 @@ bool ge_is_hardware()
     return the_display.CurrDevice->IsHardware();
 }
 
+bool ge_is_fullscreen()
+{
+    return the_display.IsFullScreen();
+}
+
+// ---------------------------------------------------------------------------
+// Background surface
+// ---------------------------------------------------------------------------
+
+void ge_create_background_surface(uint8_t* pixels)
+{
+    the_display.create_background_surface(pixels);
+}
+
+void ge_blit_background_surface()
+{
+    the_display.blit_background_surface();
+}
+
+void ge_destroy_background_surface()
+{
+    the_display.destroy_background_surface();
+}
+
+void ge_init_back_image(const char* name)
+{
+    InitBackImage((CBYTE*)name);
+}
+
+void ge_show_back_image(bool in_3d_frame)
+{
+    ShowBackImage(in_3d_frame);
+}
+
+void ge_reset_back_image()
+{
+    ResetBackImage();
+}
+
+// ---------------------------------------------------------------------------
+// Cutscene
+// ---------------------------------------------------------------------------
+
+void ge_run_cutscene(int32_t id)
+{
+    the_display.RunCutscene(id);
+}
+
+// ---------------------------------------------------------------------------
+// Driver info
+// ---------------------------------------------------------------------------
+
+bool ge_is_primary_driver()
+{
+    return the_display.GetDriverInfo()->IsPrimary();
+}
+
 // ---------------------------------------------------------------------------
 // Gamma
 // ---------------------------------------------------------------------------
