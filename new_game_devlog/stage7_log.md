@@ -1065,6 +1065,16 @@ Callbacks регистрируются из game.cpp при старте.
 
 **Результат:** в бэкенде `backend_directx6/` нет ни одного include игровой логики.
 Только engine/graphics/, engine/platform/, engine/core/, engine/io/, assets/formats/tga.
+
+**Повторный полный аудит (28 файлов бэкенда + контракт):**
+- 0 игровых типов (Thing, Person, Vehicle, Mission)
+- 0 игровых подсистем (AI, physics, input, sound, combat, pathfinding)
+- 0 игровых includes (panel, frontend, input_actions, game_types, buildings, map)
+- Внешние зависимости бэкенда: только engine infrastructure + assets/texture + assets/formats/tga
+- Связь с игрой: 3 callback'а через контракт (pre-flip, mode change, polys drawn)
+- `POLY_reset_render_states()` — graphics pipeline, не game logic
+- `g_dw3DStuffHeight/Y` — viewport letterbox state
+
 Сборка: 308/308.
 
 ---
