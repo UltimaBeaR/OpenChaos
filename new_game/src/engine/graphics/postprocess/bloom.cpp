@@ -2,7 +2,7 @@
 // Light bloom and lens flare rendering: BLOOM_flare_draw + BLOOM_draw.
 
 
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // DisplayWidth, DisplayHeight constants
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
 #include "camera/fc.h"
@@ -45,8 +45,8 @@ void BLOOM_flare_draw(SLONG x, SLONG y, SLONG z, SLONG str)
     if ((pt1.X < 0) || (pt1.X > POLY_screen_width) || (pt1.Y < 0) || (pt1.Y > POLY_screen_height))
         return;
 
-    cx = DisplayWidth >> 1;
-    cy = DisplayHeight >> 1;
+    cx = ge_get_screen_width() >> 1;
+    cy = ge_get_screen_height() >> 1;
     dx = pt1.X - cx;
     dy = pt1.Y - cy;
 

@@ -1943,7 +1943,7 @@ void FRONTEND_do_drivers()
 void FRONTEND_gamma_update()
 {
     if (menu_state.selected == GammaIndex)
-        the_display.SetGamma(menu_data[GammaIndex].Data & 0xff, 256);
+        ge_set_gamma(menu_data[GammaIndex].Data & 0xff, 256);
 }
 
 // uc_orig: FRONTEND_do_gamma (fallen/Source/frontend.cpp)
@@ -1982,8 +1982,8 @@ void FRONTEND_do_gamma()
 
     menu_state.items += 2;
 
-    int a, b;
-    the_display.GetGamma(&a, &b);
+    int32_t a, b;
+    ge_get_gamma(&a, &b);
     menu_data[GammaIndex].Data = a;
 }
 
@@ -2102,7 +2102,7 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-        if (the_display.IsGammaAvailable())
+        if (ge_is_gamma_available())
             FRONTEND_do_gamma();
         FRONTEND_restore_video_data();
     } break;

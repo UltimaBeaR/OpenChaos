@@ -5,6 +5,7 @@
 
 #include "game/game.h"
 #include "engine/graphics/graphics_engine/d3d/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 
 #include "assets/formats/elev.h"
 #include "assets/formats/elev_globals.h"
@@ -1614,7 +1615,7 @@ void ELEV_load_level(CBYTE* fname_level)
         extern SLONG WAND_find_good_start_point_for_car(SLONG * posx, SLONG * posz, SLONG * yaw, SLONG anywhere);
 
         if (FAKE_CARS)
-            if (!the_display.CurrDevice->IsHardware()) {
+            if (!ge_is_hardware()) {
                 FAKE_CARS = (FAKE_CARS + 1) >> 1;
             }
 

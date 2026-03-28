@@ -775,6 +775,43 @@ DrawIndPrimMM parameters. При OpenGL эти модули переписыва
 
 ---
 
+### Screen access + device caps + gamma API ✅
+
+Добавлено в graphics_engine.h + D3D реализация:
+
+**Screen buffer:**
+- `ge_lock_screen()`, `ge_unlock_screen()` — lock/unlock back buffer
+- `ge_get_screen_buffer()`, `ge_get_screen_pitch()`, `ge_get_screen_width/height()`, `ge_get_screen_bpp()`
+- `ge_plot_pixel()`, `ge_plot_formatted_pixel()`, `ge_get_pixel()`, `ge_get_formatted_pixel()`
+- `ge_blit_back_buffer()`
+
+**Device capabilities:**
+- `ge_supports_dest_inv_src_color()`, `ge_supports_modulate_alpha()`, `ge_supports_adami_lighting()`
+- `ge_is_hardware()`
+
+**Gamma:**
+- `ge_set_gamma(black, white)`, `ge_get_gamma()`, `ge_is_gamma_available()`
+
+**Очищены от gd_display.h (7 файлов):**
+- `aeng.cpp` — 27 the_display вызовов → ge_* (screen lock/unlock, blit, device caps)
+- `font.cpp` — PlotPixel, screen_lock/unlock, screen dimensions → ge_*
+- `sky.cpp` — PlotPixel, PlotFormattedPixel, GetFormattedPixel → ge_*
+- `wibble.cpp` — screen buffer/pitch/bpp → ge_* (extern для RealDisplayWidth/Height)
+- `bloom.cpp` — DisplayWidth/Height → ge_get_screen_width/height
+- `game_tick.cpp` — SetGamma, GetPixel → ge_* (extern для hDDLibWindow, DisplayWidth/Height)
+- `poly_render.cpp` — GetDeviceInfo()->XxxSupported() → ge_supports_*
+
+**Частично очищены (ge_* вместо GetDeviceInfo, but gd_display.h kept):**
+- `figure.cpp` — AdamiLightingSupported → ge_supports_adami_lighting (2 места)
+- `texture.cpp` — DestInvSourceColourSupported → ge_supports_dest_inv_src_color
+- `elev.cpp` — IsHardware → ge_is_hardware
+- `frontend.cpp` — SetGamma/GetGamma/IsGammaAvailable → ge_*
+
+gd_display.h вне d3d/: было 20+ файлов → осталось 15.
+Сборка: 308/308.
+
+---
+
 ### Убраны LPDIRECT3DTEXTURE2 и D3D SDK includes из fastprim, figure_globals ✅
 
 - `fastprim_globals.h`: `LPDIRECT3DTEXTURE2 texture` → `GETextureHandle texture` в struct FASTPRIM_Call.

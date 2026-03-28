@@ -334,3 +334,113 @@ void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b)
 {
     the_display.SetUserColour(r, g, b);
 }
+
+// ---------------------------------------------------------------------------
+// Screen buffer access
+// ---------------------------------------------------------------------------
+
+void* ge_lock_screen()
+{
+    return the_display.screen_lock();
+}
+
+void ge_unlock_screen()
+{
+    the_display.screen_unlock();
+}
+
+uint8_t* ge_get_screen_buffer()
+{
+    return the_display.screen;
+}
+
+int32_t ge_get_screen_pitch()
+{
+    return the_display.screen_pitch;
+}
+
+int32_t ge_get_screen_width()
+{
+    return the_display.screen_width;
+}
+
+int32_t ge_get_screen_height()
+{
+    return the_display.screen_height;
+}
+
+int32_t ge_get_screen_bpp()
+{
+    return the_display.screen_bbp;
+}
+
+void ge_plot_pixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b)
+{
+    the_display.PlotPixel(x, y, r, g, b);
+}
+
+void ge_plot_formatted_pixel(int32_t x, int32_t y, uint32_t color)
+{
+    the_display.PlotFormattedPixel(x, y, color);
+}
+
+void ge_get_pixel(int32_t x, int32_t y, uint8_t* r, uint8_t* g, uint8_t* b)
+{
+    the_display.GetPixel(x, y, r, g, b);
+}
+
+uint32_t ge_get_formatted_pixel(uint8_t r, uint8_t g, uint8_t b)
+{
+    return the_display.GetFormattedPixel(r, g, b);
+}
+
+void ge_blit_back_buffer()
+{
+    the_display.blit_back_buffer();
+}
+
+// ---------------------------------------------------------------------------
+// Device capabilities
+// ---------------------------------------------------------------------------
+
+bool ge_supports_dest_inv_src_color()
+{
+    return the_display.GetDeviceInfo()->DestInvSourceColourSupported();
+}
+
+bool ge_supports_modulate_alpha()
+{
+    return the_display.GetDeviceInfo()->ModulateAlphaSupported();
+}
+
+bool ge_supports_adami_lighting()
+{
+    return the_display.GetDeviceInfo()->AdamiLightingSupported();
+}
+
+bool ge_is_hardware()
+{
+    return the_display.CurrDevice->IsHardware();
+}
+
+// ---------------------------------------------------------------------------
+// Gamma
+// ---------------------------------------------------------------------------
+
+void ge_set_gamma(int32_t black, int32_t white)
+{
+    the_display.SetGamma(black, white);
+}
+
+void ge_get_gamma(int32_t* black, int32_t* white)
+{
+    int b, w;
+    the_display.GetGamma(&b, &w);
+    *black = b;
+    *white = w;
+}
+
+bool ge_is_gamma_available()
+{
+    return the_display.IsGammaAvailable();
+}

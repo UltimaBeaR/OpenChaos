@@ -1,5 +1,3 @@
-// Must come before gd_display.h: game.h -> MFStdLib.h declares extern DisplayWidth/Height,
-// while gd_display.h redefines them as macros (#define 640/480). Wrong order causes syntax errors.
 #include "game/game_types.h"
 
 #include "engine/platform/uc_common.h"
@@ -7,8 +5,14 @@
 #include "engine/graphics/geometry/sky_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/matrix.h"
+
+// Display resolution constants and globals (defined in d3d/display_globals.cpp).
+#define DisplayWidth  640
+#define DisplayHeight 480
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
 #include <math.h>
 
 // uc_orig: SKY_STAR_T_DIM (fallen/DDEngine/Source/sky.cpp)
@@ -187,19 +191,19 @@ void SKY_draw_stars(
             if ((rand() & 0x7f) == (i & 0x7f)) {
                 // Make the star twinkle — skip drawing this frame.
             } else {
-                the_display.PlotPixel(
+                ge_plot_pixel(
                     px, py,
                     ss->colour,
                     ss->colour,
                     ss->colour);
 
                 if (ss->spread) {
-                    ULONG col = the_display.GetFormattedPixel(ss->spread, ss->spread, ss->spread);
+                    ULONG col = ge_get_formatted_pixel(ss->spread, ss->spread, ss->spread);
 
-                    the_display.PlotFormattedPixel(px - 1, py, col);
-                    the_display.PlotFormattedPixel(px + 1, py, col);
-                    the_display.PlotFormattedPixel(px, py - 1, col);
-                    the_display.PlotFormattedPixel(px, py + 1, col);
+                    ge_plot_formatted_pixel(px - 1, py, col);
+                    ge_plot_formatted_pixel(px + 1, py, col);
+                    ge_plot_formatted_pixel(px, py - 1, col);
+                    ge_plot_formatted_pixel(px, py + 1, col);
                 }
             }
         }

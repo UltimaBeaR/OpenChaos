@@ -241,4 +241,47 @@ enum class GEBackground { Black, White, User };
 void ge_set_background(GEBackground bg);
 void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b);
 
+// ---------------------------------------------------------------------------
+// Screen buffer access
+// ---------------------------------------------------------------------------
+
+// Lock the back buffer for direct pixel access. Returns pointer to pixel data, or NULL on failure.
+void* ge_lock_screen();
+void  ge_unlock_screen();
+
+// Screen buffer state — valid after lock, or always valid for dimensions.
+uint8_t* ge_get_screen_buffer();
+int32_t  ge_get_screen_pitch();
+int32_t  ge_get_screen_width();
+int32_t  ge_get_screen_height();
+int32_t  ge_get_screen_bpp();
+
+// Direct pixel access — only valid when screen is locked.
+void ge_plot_pixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b);
+void ge_plot_formatted_pixel(int32_t x, int32_t y, uint32_t color);
+void ge_get_pixel(int32_t x, int32_t y, uint8_t* r, uint8_t* g, uint8_t* b);
+
+// Pack r,g,b into the current framebuffer pixel format.
+uint32_t ge_get_formatted_pixel(uint8_t r, uint8_t g, uint8_t b);
+
+// Blit back buffer to front.
+void ge_blit_back_buffer();
+
+// ---------------------------------------------------------------------------
+// Device capabilities
+// ---------------------------------------------------------------------------
+
+bool ge_supports_dest_inv_src_color();
+bool ge_supports_modulate_alpha();
+bool ge_supports_adami_lighting();
+bool ge_is_hardware();
+
+// ---------------------------------------------------------------------------
+// Gamma
+// ---------------------------------------------------------------------------
+
+void ge_set_gamma(int32_t black, int32_t white);
+void ge_get_gamma(int32_t* black, int32_t* white);
+bool ge_is_gamma_available();
+
 #endif // ENGINE_GRAPHICS_GRAPHICS_ENGINE_H

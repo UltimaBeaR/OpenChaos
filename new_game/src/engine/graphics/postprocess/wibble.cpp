@@ -5,8 +5,15 @@
 #include "game/game_types.h"
 #include "engine/graphics/postprocess/wibble.h"
 #include "engine/graphics/postprocess/wibble_globals.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/math.h"
+
+// Display resolution globals (defined in d3d/display_globals.cpp).
+// DisplayWidth/DisplayHeight are compile-time constants (640/480).
+#define DisplayWidth  640
+#define DisplayHeight 480
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
 
 // uc_orig: WIBBLE_simple (fallen/DDEngine/Source/wibble.cpp)
 void WIBBLE_simple(
@@ -30,10 +37,10 @@ void WIBBLE_simple(
     y1 = y1 * RealDisplayHeight / DisplayHeight;
     y2 = y2 * RealDisplayHeight / DisplayHeight;
 
-    if (the_display.CurrMode->GetBPP() == 16) {
+    if (ge_get_screen_bpp() == 16) {
         UWORD* dest;
         UWORD* src;
-        UBYTE* base = &the_display.screen[x1 + x1 + y1 * the_display.screen_pitch];
+        UBYTE* base = &ge_get_screen_buffer()[x1 + x1 + y1 * ge_get_screen_pitch()];
 
         for (y = y1; y < y2; y++) {
             angle1 = y * wibble_y1;
@@ -77,13 +84,13 @@ void WIBBLE_simple(
                 }
             }
 
-            base += the_display.screen_pitch;
+            base += ge_get_screen_pitch();
         }
     } else {
         // cut-and-paste, but I don't care anymore
         ULONG* dest;
         ULONG* src;
-        UBYTE* base = &the_display.screen[x1 * 4 + y1 * the_display.screen_pitch];
+        UBYTE* base = &ge_get_screen_buffer()[x1 * 4 + y1 * ge_get_screen_pitch()];
 
         for (y = y1; y < y2; y++) {
             angle1 = y * wibble_y1;
@@ -127,7 +134,7 @@ void WIBBLE_simple(
                 }
             }
 
-            base += the_display.screen_pitch;
+            base += ge_get_screen_pitch();
         }
     }
 }

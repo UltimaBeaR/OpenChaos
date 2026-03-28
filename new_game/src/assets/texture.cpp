@@ -11,6 +11,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "map/pap.h"
 #include "engine/graphics/graphics_engine/d3d/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/console/message.h"
@@ -428,7 +429,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     TEXTURE_texture[TEXTURE_page_puddle].LoadTextureTGA(TEXTURE_EXTRA_DIR "puddle01.tga", TEXTURE_page_puddle);
     LOADED_THIS_MANY_TEXTURES(5);
     TEXTURE_texture[TEXTURE_page_drip].LoadTextureTGA(TEXTURE_EXTRA_DIR "drip.tga", TEXTURE_page_drip);
-    TEXTURE_texture[TEXTURE_page_shadow].CreateUserPage(TEXTURE_SHADOW_SIZE, the_display.GetDeviceInfo()->DestInvSourceColourSupported() ? UC_FALSE : UC_TRUE);
+    TEXTURE_texture[TEXTURE_page_shadow].CreateUserPage(TEXTURE_SHADOW_SIZE, ge_supports_dest_inv_src_color() ? UC_FALSE : UC_TRUE);
     TEXTURE_texture[TEXTURE_page_bang].LoadTextureTGA(TEXTURE_EXTRA_DIR "fireball.tga", TEXTURE_page_bang);
     TEXTURE_texture[TEXTURE_page_font].LoadTextureTGA(TEXTURE_EXTRA_DIR "font.tga", TEXTURE_page_font, UC_FALSE);
     TEXTURE_needed[TEXTURE_page_font] = 1;

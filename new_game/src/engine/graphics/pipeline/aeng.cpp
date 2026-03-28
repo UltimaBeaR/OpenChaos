@@ -40,7 +40,6 @@
 
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"  // the_display
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
 #include "engine/graphics/lighting/smap_globals.h"
@@ -294,8 +293,8 @@ UWORD* GetShadowPixelMapping()
     static UWORD mapping[256];
     static int mapping_state = -1;
 
-    if ((mapping_state == -1) || (mapping_state != (int)the_display.GetDeviceInfo()->DestInvSourceColourSupported())) {
-        mapping_state = the_display.GetDeviceInfo()->DestInvSourceColourSupported();
+    if ((mapping_state == -1) || (mapping_state != (int)ge_supports_dest_inv_src_color())) {
+        mapping_state = ge_supports_dest_inv_src_color();
 
         if (mapping_state) {
             for (int ii = 0; ii < 256; ii++) {
@@ -2904,8 +2903,8 @@ float AENG_draw_some_polys(bool large, bool blend)
 
     ge_end_scene();
 
-    the_display.screen_lock();
-    the_display.screen_unlock();
+    ge_lock_screen();
+    ge_unlock_screen();
 
     float time = StopStopwatch();
 
@@ -2931,9 +2930,7 @@ void AENG_guess_detail_levels()
 
     int generation;
 
-    D3DDeviceInfo* dev = the_display.GetDeviceInfo();
-
-    if (!dev->IsHardware()) {
+    if (!ge_is_hardware()) {
         generation = 0;
     } else {
         float tso = 10000 / AENG_draw_some_polys(false, false);
@@ -2944,7 +2941,7 @@ void AENG_guess_detail_levels()
             generation = 1;
         } else {
             generation = 2;
-            if (dev->ModulateAlphaSupported() && dev->DestInvSourceColourSupported()) {
+            if (ge_supports_modulate_alpha() && ge_supports_dest_inv_src_color()) {
                 generation = 3;
             }
         }
@@ -4135,7 +4132,7 @@ void AENG_draw_city()
         //
         // Draw the stars...
         //
-        if (the_display.screen_lock()) {
+        if (ge_lock_screen()) {
             BreakTime("Locked for stars");
 
             SKY_draw_stars(
@@ -4146,7 +4143,7 @@ void AENG_draw_city()
 
             BreakTime("Drawn stars");
 
-            the_display.screen_unlock();
+            ge_unlock_screen();
         }
     }
 
@@ -5009,7 +5006,7 @@ void AENG_draw_city()
                             iy2 = MIN(py2, bbox[i].y2);
 
                             if (ix1 < ix2 && iy1 < iy2) {
-                                if (the_display.screen_lock()) {
+                                if (ge_lock_screen()) {
                                     //
                                     // Wibble away!
                                     //
@@ -5024,7 +5021,7 @@ void AENG_draw_city()
                                         pi->puddle_s1,
                                         pi->puddle_s2);
 
-                                    the_display.screen_unlock();
+                                    ge_unlock_screen();
                                 }
                             }
                         }
@@ -7755,11 +7752,11 @@ void AENG_screen_shot(void)
                 record_video ^= 1;
             }
 
-            if (the_display.screen_lock()) {
+            if (ge_lock_screen()) {
                 extern void tga_dump(void);
                 tga_dump();
 
-                the_display.screen_unlock();
+                ge_unlock_screen();
             }
         }
 }
@@ -7809,11 +7806,11 @@ void AENG_draw_FPS()
         }
     }
     /*
-            if (the_display.screen_lock())
+            if (ge_lock_screen())
             {
                     FONT_draw(DisplayWidth >> 1, 10, "FPS: %d = %d us", fps, ups);
                     FONT_draw(DisplayWidth >> 1, 30, "Avg: %d = %d us", avfps, avups);
-                    the_display.screen_unlock();
+                    ge_unlock_screen();
             }
     */
 
@@ -7850,7 +7847,7 @@ void AENG_draw_messages()
     }
 
     // Draw stuff straight to the screen.
-    if (the_display.screen_lock()) {
+    if (ge_lock_screen()) {
         // Draw the fps.
         FONT_draw(DisplayWidth >> 1, 10, "FPS: %d", fps);
         /*
@@ -7863,7 +7860,7 @@ void AENG_draw_messages()
         // Draw the messages.
         // MSG_draw();
 
-        the_display.screen_unlock();
+        ge_unlock_screen();
     }
 }
 
@@ -8107,7 +8104,7 @@ void AENG_clear_screen()
 // Locks the display surface for direct pixel access; returns non-zero on success.
 SLONG AENG_lock()
 {
-    return SLONG(the_display.screen_lock());
+    return SLONG(ge_lock_screen());
 }
 
 // =============================================================================
@@ -8120,7 +8117,7 @@ SLONG AENG_lock()
 // Unlocks the display surface after direct pixel writes.
 void AENG_unlock()
 {
-    the_display.screen_unlock();
+    ge_unlock_screen();
 }
 
 // uc_orig: AENG_flip (fallen/DDEngine/Source/aeng.cpp)
@@ -8135,7 +8132,7 @@ void AENG_flip()
 // Blits the back buffer to the primary surface (non-flipping path).
 void AENG_blit()
 {
-    the_display.blit_back_buffer();
+    ge_blit_back_buffer();
 }
 
 // uc_orig: AENG_e_draw_3d_line (fallen/DDEngine/Source/aeng.cpp)

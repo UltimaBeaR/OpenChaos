@@ -3453,7 +3453,7 @@ void FIGURE_draw_prim_tween_reflection(
                 page |= p_f4->TexturePage;
                 page += FACE_PAGE_OFFSET;
 
-                if (the_display.GetDeviceInfo()->AdamiLightingSupported()) {
+                if (ge_supports_adami_lighting()) {
                     POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_TRUE);
                 }
                 POLY_add_quad(quad, page, UC_TRUE);
@@ -3519,7 +3519,7 @@ void FIGURE_draw_prim_tween_reflection(
                 page |= p_f3->TexturePage;
                 page += FACE_PAGE_OFFSET;
 
-                if (the_display.GetDeviceInfo()->AdamiLightingSupported()) {
+                if (ge_supports_adami_lighting()) {
                     POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_TRUE);
                 }
                 POLY_add_triangle(tri, page, UC_TRUE);

@@ -1,9 +1,8 @@
 #include "engine/graphics/text/font.h"
 #include "engine/graphics/text/font_globals.h"
 
-// MFStdLib.h must come first to pull in <windows.h>/<ddraw.h>/<d3d.h> before DDManager.h.
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display (PlotPixel, screen_lock/unlock)
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 
 #include "engine/core/macros.h"
 #include <math.h>
@@ -66,13 +65,13 @@ SLONG FONT_draw_coloured_char(
         }
     }
 
-    if (sy < -FONT_HEIGHT || sy >= the_display.screen_height || sx < -FONT_WIDTH || sx >= the_display.screen_width) {
+    if (sy < -FONT_HEIGHT || sy >= ge_get_screen_height() || sx < -FONT_WIDTH || sx >= ge_get_screen_width()) {
         // Off-screen — skip drawing but still return width.
     } else {
         for (y = 0; y < FONT_HEIGHT; y++) {
             for (b = 0x10, x = 0; x < 5; x++, b >>= 1) {
                 if (fc->bit[y] & b) {
-                    the_display.PlotPixel(sx + x, sy + y, red, green, blue);
+                    ge_plot_pixel(sx + x, sy + y, red, green, blue);
                 }
             }
         }
@@ -195,7 +194,7 @@ void FONT_buffer_draw()
         return;
     }
 
-    if (the_display.screen_lock()) {
+    if (ge_lock_screen()) {
         for (i = 0; i < FONT_message_upto; i++) {
             fm = &FONT_message[i];
             x = fm->x;
@@ -220,7 +219,7 @@ void FONT_buffer_draw()
             }
         }
 
-        the_display.screen_unlock();
+        ge_unlock_screen();
     }
 
     FONT_buffer_upto = &FONT_buffer[0];

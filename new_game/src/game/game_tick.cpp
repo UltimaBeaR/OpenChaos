@@ -28,8 +28,13 @@
 #include "buildings/ware_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "assets/formats/tga.h"
+
+// Platform globals (defined in d3d/display_globals.cpp) — needed for windowed mouse coords.
+extern volatile HWND hDDLibWindow;
+#define DisplayWidth  640
+#define DisplayHeight 480
 #include "engine/io/file.h"
 #include "map/level_pools.h"
 #include "map/supermap.h"
@@ -251,7 +256,7 @@ void parse_console(CBYTE* str)
             case 9: // gamma - set gamma level
                 if ((ptr[0] >= '0') && (ptr[0] <= '7')) {
                     int val = 12 * (ptr[0] - '0');
-                    the_display.SetGamma(val, 256);
+                    ge_set_gamma(val, 256);
                 } else {
                     CONSOLE_text("Gamma 0-7");
                 }
@@ -409,7 +414,7 @@ found_file:;
 
     for (y = 0; y < 480; y++) {
         for (x = 0; x < 640; x++) {
-            the_display.GetPixel(
+            ge_get_pixel(
                 x,
                 y,
                 &red,

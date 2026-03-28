@@ -8,7 +8,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/d3d/render_state.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "assets/texture.h"
 
 // DefRenderState is defined in poly.cpp (not yet migrated).
@@ -478,7 +478,7 @@ void POLY_init_render_states()
             case POLY_PAGE_SHADOW:
                 pa->RS.SetAlphaBlendEnabled(true);
 
-                if (the_display.GetDeviceInfo()->DestInvSourceColourSupported()) {
+                if (ge_supports_dest_inv_src_color()) {
                     // use a density greyscale shadowmap
                     pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                     pa->RS.SetSrcBlend(GEBlendFactor::Zero);
@@ -497,7 +497,7 @@ void POLY_init_render_states()
                 break;
 
             case POLY_PAGE_TEST_SHADOWMAP:
-                if (the_display.GetDeviceInfo()->DestInvSourceColourSupported()) {
+                if (ge_supports_dest_inv_src_color()) {
                     pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                     SET_TEXTURE(TEXTURE_page_shadow);
                     pa->RS.SetFogEnabled(false);
@@ -1159,7 +1159,7 @@ void POLY_init_render_states()
                             bool use_chroma = false;
 
                             if (POLY_page_flag[ii] & POLY_PAGE_FLAG_SELF_ILLUM) {
-                                if (the_display.GetDeviceInfo()->DestInvSourceColourSupported() && !the_display.GetDeviceInfo()->ModulateAlphaSupported()) {
+                                if (ge_supports_dest_inv_src_color() && !ge_supports_modulate_alpha()) {
                                     // it's a RagePro, so use chroma keying
                                     use_chroma = true;
                                 }
@@ -1213,7 +1213,7 @@ void POLY_init_render_states()
                         }
                     }
 
-                    if (the_display.GetDeviceInfo()->AdamiLightingSupported()) {
+                    if (ge_supports_adami_lighting()) {
                         switch (ii >> 6) {
                         case 9:
                         case 10:
