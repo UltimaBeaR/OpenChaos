@@ -33,6 +33,7 @@ new_game_planning/                  — планирование новой иг
   known_issues_and_bugs.md          — известные проблемы и баги (бессрочный список, не привязан к этапу)
   tech_and_architecture.md          — стек, архитектура, все принятые решения
   testing.md                        — стратегия тестирования, чеклисты, replay
+  stage7_renderer_rules.md          — ⚠️ 3 ОБЯЗАТЕЛЬНЫХ правила переноса графического API (Этап 7)
   porting_notes.md                  — заметки по портированию подсистем
   entity_mapping.json               — соответствия старых/новых имён (создаётся на Этапе 4, управляется через tools/entity_map.py)
 new_game/                           — код новой версии игры (итеративный рефакторинг оригинала)
@@ -63,6 +64,7 @@ CLAUDE.md                           — этот файл
 | Фазы разработки, текущий статус | `new_game_planning/phases.md` |
 | Этапы Фазы 3, текущий этап | `new_game_planning/stages.md` (индекс) |
 | **Работа на Этапе 4** | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` (триггерятся автоматически) |
+| **Работа на Этапе 7 (рендерер)** | ⚠️ `new_game_planning/stage7_renderer_rules.md` (3 ОБЯЗАТЕЛЬНЫХ правила!) + `new_game_planning/stage7.md` + конец `new_game_devlog/stage7_log.md` |
 | Пре-релизные баги (выполненные фиксы) | `new_game_planning/prerelease_fixes.md` |
 | Известные проблемы и баги (бессрочный список) | `new_game_planning/known_issues_and_bugs.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |

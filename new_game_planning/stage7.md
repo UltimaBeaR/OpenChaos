@@ -70,5 +70,7 @@ engine/graphics/graphics_engine/
 
 ---
 
+**Правила переноса (обязательно читать!):** → [stage7_renderer_rules.md](stage7_renderer_rules.md)
+
 **Критерий завершения:** игра и outro работают на OpenGL. Визуально идентично D3D версии.
 DirectX зависимости удалены.

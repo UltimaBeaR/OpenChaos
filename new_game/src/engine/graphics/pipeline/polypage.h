@@ -75,12 +75,12 @@ public:
     // uc_orig: NeedsRendering (fallen/DDEngine/Headers/polypage.h)
     bool NeedsRendering() { return m_PolyBufUsed > 0; }
     // uc_orig: Render (fallen/DDEngine/Headers/polypage.h)
-    void Render(void* device);
+    void Render();
 
     // uc_orig: AddToBuckets (fallen/DDEngine/Headers/polypage.h)
     void AddToBuckets(PolyPoly* buckets[], int count);
     // uc_orig: DrawSinglePoly (fallen/DDEngine/Headers/polypage.h)
-    void DrawSinglePoly(PolyPoly* poly, void* device);
+    void DrawSinglePoly(PolyPoly* poly);
 
     // uc_orig: Clear (fallen/DDEngine/Headers/polypage.h)
     void Clear();

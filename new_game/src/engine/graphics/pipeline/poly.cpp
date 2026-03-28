@@ -4,7 +4,6 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE, the_display (still used, migrating incrementally)
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
@@ -12,7 +11,6 @@
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/ge_render_state.h"
-#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/core/matrix.h"
@@ -1897,7 +1895,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
     if (pa->NeedsRendering()) {
         pa->RS.SetChanged();
-        pa->Render(the_display.lp_D3D_Device);
+        pa->Render();
     }
 
     if (PolyPage::AlphaSortEnabled()) {
@@ -1949,7 +1947,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                                                 }
                 */
 
-                pa->Render(the_display.lp_D3D_Device);
+                pa->Render();
             }
         }
 
@@ -1979,7 +1977,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
             while (p) {
                 p->page->RS.SetChanged();
-                p->page->DrawSinglePoly(p, the_display.lp_D3D_Device);
+                p->page->DrawSinglePoly(p);
                 p = p->next;
             }
         }
@@ -2004,7 +2002,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
             pa->RS.SetChanged();
 
-            pa->Render(the_display.lp_D3D_Device);
+            pa->Render();
         }
     }
 
@@ -2053,34 +2051,29 @@ void POLY_frame_draw_odd()
 
     ge_begin_scene();
 
-// Sets both the GERenderState cache and the actual hardware state.
-// For textures, the cache uses GETextureHandle while the hardware uses LPDIRECT3DTEXTURE2.
+// Force-set both cache and hardware for the debug odd-frame render path.
 #define FORCE_SET_TEXTURE(s)                                              \
     RenderState::s_State.SetTexture(s);                                    \
-    REALLY_SET_TEXTURE(reinterpret_cast<LPDIRECT3DTEXTURE2>(static_cast<uintptr_t>(s)))
+    ge_bind_texture(s)
 
-    // Set hardware state directly (specular enable has no GERenderState equivalent).
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SPECULARENABLE, UC_TRUE);
+    ge_set_specular_enabled(true);
 
-    // Set both cache and hardware for all render states.
     RenderState::s_State.SetDepthEnabled(false);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZENABLE, UC_FALSE);
+    ge_set_depth_mode(GEDepthMode::Off);
     RenderState::s_State.SetDepthFunc(GECompareFunc::LessEqual);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZFUNC, D3DCMP_LESSEQUAL);
+    ge_set_depth_func(GECompareFunc::LessEqual);
     RenderState::s_State.SetDepthWrite(false);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ZWRITEENABLE, UC_FALSE);
     RenderState::s_State.SetCullMode(GECullMode::None);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_CULLMODE, D3DCULL_NONE);
+    ge_set_cull_mode(GECullMode::None);
     RenderState::s_State.SetTextureBlend(GETextureBlend::Modulate);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND, D3DTBLEND_MODULATE);
+    ge_set_texture_blend(GETextureBlend::Modulate);
     RenderState::s_State.SetTextureAddress(GETextureAddress::Clamp);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREADDRESS, D3DTADDRESS_CLAMP);
+    ge_set_texture_address(GETextureAddress::Clamp);
     RenderState::s_State.SetAlphaBlendEnabled(true);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE, UC_TRUE);
+    ge_set_blend_enabled(true);
     RenderState::s_State.SetSrcBlend(GEBlendFactor::One);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND, D3DBLEND_ONE);
     RenderState::s_State.SetDstBlend(GEBlendFactor::One);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND, D3DBLEND_ONE);
+    ge_set_blend_factors(GEBlendFactor::One, GEBlendFactor::One);
 
     for (i = 0; i < TEXTURE_page_num_standard; i++) {
         ASSERT(WITHIN(i, 0, POLY_NUM_PAGES - 1));
@@ -2093,23 +2086,23 @@ void POLY_frame_draw_odd()
 
         FORCE_SET_TEXTURE(TEXTURE_get_handle(i));
 
-        pa->Render(the_display.lp_D3D_Device);
+        pa->Render();
     }
 
     if (POLY_Page[POLY_PAGE_SKY].NeedsRendering()) {
         RenderState::s_State.SetFogEnabled(false);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+        ge_set_fog_enabled(false);
         FORCE_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_sky));
 
-        POLY_Page[POLY_PAGE_SKY].Render(the_display.lp_D3D_Device);
+        POLY_Page[POLY_PAGE_SKY].Render();
     }
 
     if (POLY_Page[POLY_PAGE_MOON].NeedsRendering()) {
         RenderState::s_State.SetFogEnabled(false);
-        REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, UC_FALSE);
+        ge_set_fog_enabled(false);
         FORCE_SET_TEXTURE(TEXTURE_get_handle(TEXTURE_page_moon));
 
-        POLY_Page[POLY_PAGE_MOON].Render(the_display.lp_D3D_Device);
+        POLY_Page[POLY_PAGE_MOON].Render();
     }
 
     ge_end_scene();
@@ -2126,7 +2119,7 @@ void POLY_frame_draw_puddles()
 
         pp->RS.InitScene(0);
 
-        pp->Render(the_display.lp_D3D_Device);
+        pp->Render();
 
         ge_end_scene();
     }

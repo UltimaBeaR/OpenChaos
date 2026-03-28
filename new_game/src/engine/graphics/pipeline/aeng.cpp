@@ -31,7 +31,6 @@
 #include "map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, DRAW_INDEXED_PRIMITIVE (still used, migrating incrementally)
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"

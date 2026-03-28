@@ -2,6 +2,7 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/polypage_globals.h"
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer_globals.h"
+#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/core/matrix.h"
 #include "engine/platform/uc_common.h"
 #include "assets/texture.h"
@@ -258,9 +259,9 @@ void PolyPage::MassageVertices()
 
 // uc_orig: Render (fallen/DDEngine/Source/polypage.cpp)
 // Flush all buffered polygons to D3D using indexed primitive drawing.
-void PolyPage::Render(void* device)
+void PolyPage::Render()
 {
-    IDirect3DDevice3* dev = (IDirect3DDevice3*)device;
+    IDirect3DDevice3* dev = the_display.lp_D3D_Device;
     ULONG ii;
 
     if (!m_VertexBuffer)
@@ -300,9 +301,9 @@ void PolyPage::Render(void* device)
 
 // uc_orig: DrawSinglePoly (fallen/DDEngine/Source/polypage.cpp)
 // Render a single polygon from a bucket sort pass.
-void PolyPage::DrawSinglePoly(PolyPoly* poly, void* device)
+void PolyPage::DrawSinglePoly(PolyPoly* poly)
 {
-    IDirect3DDevice3* dev = (IDirect3DDevice3*)device;
+    IDirect3DDevice3* dev = the_display.lp_D3D_Device;
     UWORD* dst = IxBuffer;
 
     UWORD v1 = poly->first_vertex;

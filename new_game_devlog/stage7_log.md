@@ -825,6 +825,52 @@ frontend.cpp — единственный "чужой" файл с DDraw surface
 
 ---
 
+### Массовая очистка d3d/ includes ✅
+
+**render_state.h** (9 файлов → 0): заменены на `ge_render_state.h` (публичный хедер).
+**dd_manager.h** (3 файла → 0): farfacet_globals, superfacet_globals, poly_globals → `graphics_engine.h`.
+**gd_display.h** (figure, farfacet → 0): DeadAndBuried → ge_debug_paint_block, DrawIndexedPrimitive → ge_draw_indexed_primitive_lit.
+**polypage.h**: vertex_buffer.h → forward declarations. Render/DrawSinglePoly: убран IDirect3DDevice3* параметр.
+**aeng.cpp**: display_macros.h убран. TheVPool → ge_reclaim_vertex_buffers.
+**poly.cpp**: display_macros.h + vertex_buffer.h убраны. REALLY_SET_* → ge_set_*. Render(device) → Render().
+**qeng.cpp**: TheVPool → ge_reclaim_vertex_buffers.
+**game_tick.cpp**: TheVPool → ge_dump_vpool_info.
+**pause.cpp**: d3d_texture.h убран.
+**flamengine.cpp**: D3DTexture → ge_lock/unlock_texture_pixels + ge_get_texture_pixel_format.
+**texture_globals.h**: TEXTURE_texture[] перенесён в d3d/d3d_texture_globals.h/cpp.
+**figure.cpp**: D3DCOLORVALUE → GEColorValue.
+
+Сборка: 308/308. d3d/ includes вне d3d/: **15** (было 33).
+
+---
+
+## Оставшиеся d3d/ includes вне d3d/ (15 штук)
+
+| Файл | Include | Нужно |
+|------|---------|-------|
+| texture.cpp | d3d_texture.h/globals | Перенести .cpp в d3d/ (D3D texture loader) |
+| text.cpp | d3d_texture.h + vertex_buffer.h | Перенести .cpp в d3d/ (D3D text renderer) |
+| truetype.cpp | display_macros.h | Перенести .cpp в d3d/ (D3D TrueType) |
+| truetype.h | d3d_texture.h | Forward-decl D3DTexture или opaque handle |
+| truetype_globals.h | SDK + d3d_texture.h | Перенести в d3d/ (D3DTexture tt_Texture[]) |
+| polypage.cpp | vertex_buffer_globals + gd_display | Перенести .cpp в d3d/ (D3D renderer) |
+| wind_procs.h | dd_manager.h | Абстрагировать ChangeDDInfo |
+| frontend.cpp | dd_manager + gd_display | ge_enumerate_modes() или секция в d3d/ |
+
+### Стратегия
+
+**Batch 1 — перенос .cpp в d3d/:**
+texture.cpp, text.cpp, truetype.cpp, polypage.cpp — чистый D3D render код.
+Их публичные API (.h) остаются на месте.
+CMakeLists.txt обновляется.
+
+**Batch 2 — headers:**
+truetype.h, truetype_globals.h, wind_procs.h, frontend.cpp video section.
+
+### Правила переноса → `new_game_planning/stage7_renderer_rules.md`
+
+---
+
 ### Массовая очистка gd_display.h — ещё 7 файлов ✅
 
 Добавлено в ge_* контракт:
