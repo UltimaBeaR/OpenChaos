@@ -4,7 +4,7 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"   // GEVertexLit, GEMatrix
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/ge_render_state.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "map/pap.h"
 
 // uc_orig: FARFACET_RATIO (fallen/DDEngine/Source/farfacet.cpp)

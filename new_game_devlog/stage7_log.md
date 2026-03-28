@@ -1024,10 +1024,54 @@ figure.cpp и aeng.cpp ещё используют `the_display` для друг
 
 ---
 
+### polypage.h — убраны D3D типы из публичного header'а ✅
+
+- `IDirect3DVertexBuffer* m_VB` → `void* m_VB` (opaque, D3D backend кастит через `RAW_VB()`)
+- `VertexBuffer* m_VertexBuffer` → `void* m_VertexBuffer` (opaque, D3D backend кастит через `VB()`/`SET_VB()`)
+- Удалён forward-decl `struct IDirect3DVertexBuffer` и `class VertexBuffer` из polypage.h
+- В d3d/polypage.cpp добавлены cast-макросы `VB()`, `SET_VB()`, `RAW_VB()`
+
+Сборка: 308/308.
+
+---
+
+### ge_render_state.h → merged в graphics_engine.h ✅
+
+`GERenderState` (render state cache, delta-flush) перенесён в `graphics_engine.h` — один файл абстракции.
+`ge_render_state.h` удалён. `ge_render_state.cpp` → `graphics_engine.cpp`. 11 файлов обновлены.
+`d3d/render_state.h` оставлен как legacy redirect.
+
+Итого абстракция: `graphics_engine.h` + `graphics_engine.cpp`. Бэкенд: `backend_directx6/` (29 файлов).
+Сборка: 308/308.
+
+---
+
+### d3d/ → backend_directx6/ ✅
+
+Переименована папка бэкенда: `d3d/` → `backend_directx6/` (там и D3D6 и DirectDraw).
+25 файлов обновлены (include пути + CMakeLists.txt).
+Сборка: 308/308.
+
+---
+
 ### Шаг 2 основной игры — ЗАВЕРШЁН ✅
 
-D3D хедеры включаются ТОЛЬКО внутри d3d/ папки (+ outro, который отключен).
-Весь остальной код игры видит только `graphics_engine.h` с чистыми типами.
+**Полный аудит D3D изоляции (9 категорий):**
+
+| Категория | Вне backend/outro |
+|-----------|-------------------|
+| D3D SDK includes (`<d3d.h>`, `<ddraw.h>`) | 0 |
+| Внутренние backend includes | 0 |
+| D3D SDK interface типы (`IDirect3D*`, `IDirectDraw*`) | 0 |
+| D3D vertex типы (`D3DTLVERTEX`, `D3DLVERTEX`) | 0 (только комментарии) |
+| DDraw surface типы (`DDSURFACEDESC`, `LPDIRECTDRAWSURFACE4`) | 0 |
+| D3D state/blend enums (`D3DRENDERSTATE_*`) | 0 активного кода (мёртвый `/* */` в poly.cpp) |
+| Проектные D3D типы (`D3DTexture`, `VertexBuffer`) | 0 (только комментарии) |
+| D3D глобалы (`the_display.`, `TheVPool`, `REALLY_SET_`) | 0 |
+| DDraw функции (`DrawIndexedPrimitiveVB`, `Blt`) | 0 |
+
+Весь D3D/DirectDraw код — **исключительно** в `engine/graphics/graphics_engine/backend_directx6/`.
+Остальной код видит только `graphics_engine.h` с чистыми типами.
 Можно переходить к Шагу 3 (outro) или сразу к Шагу 4 (OpenGL).
 
 ---

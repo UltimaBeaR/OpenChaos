@@ -1,5 +1,5 @@
 // Game entry point (compiled as MF_main via #define main MF_main in MFStdLib.h).
-// WinMain (in engine/graphics/graphics_engine/d3d/host.cpp) calls MF_main(argc, argv).
+// WinMain (in engine/graphics/graphics_engine/backend_directx6/host.cpp) calls MF_main(argc, argv).
 // Startup sequence: set base path → load config → locate CD → read detail levels → run game.
 #include "engine/platform/uc_common.h"                                           // H_CREATE_LOG, FileSetBasePath
 #include "engine/platform/host.h"                 // SetupHost, ResetHost

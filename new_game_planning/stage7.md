@@ -13,9 +13,20 @@
 
 ```
 engine/graphics/graphics_engine/
-├── graphics_engine.h               — контракт (единственное что видит игровой код)
-├── graphics_engine_d3d.cpp         — реализация D3D6 (текущая)
-└── graphics_engine_opengl.cpp      — реализация OpenGL (новая)
+├── graphics_engine.h               — контракт + render state cache (единственное что видит игровой код)
+├── graphics_engine.cpp             — реализация API-agnostic частей (GERenderState)
+└── backend_directx6/                            — D3D6 бэкенд (29 файлов)
+    ├── graphics_engine_d3d.cpp     — реализация ge_* контракта
+    ├── display.cpp/gd_display.h    — DDraw display management
+    ├── d3d_texture.cpp/h           — D3D texture class
+    ├── dd_manager.cpp/h            — DDraw driver/device enumeration
+    ├── vertex_buffer.cpp/h         — D3D vertex buffer pool
+    ├── polypage.cpp                — PolyPage::Render/DrawSinglePoly (D3D draw calls)
+    ├── texture.cpp                 — texture loading (D3DTexture methods)
+    ├── text.cpp                    — bitmap text renderer (D3D VB + textures)
+    ├── truetype.cpp/globals        — TrueType text renderer (DDraw surfaces)
+    ├── work_screen.cpp/h           — offscreen DDraw work surface
+    └── *_globals.cpp/h             — global state for each module
 ```
 
 - CMake-флаг выбирает какой .cpp компилировать (compile-time switch)
@@ -35,13 +46,15 @@ engine/graphics/graphics_engine/
 
 ## План работы
 
-### Шаг 1 — Отключить outro
+### Шаг 1 — Отключить outro ✅
 Закомментировать outro в CMakeLists.txt. Сосредоточиться на основной игре.
 
-### Шаг 2 — Выделить graphics_engine (D3D) для основной игры
+### Шаг 2 — Выделить graphics_engine (D3D) для основной игры ✅
 Итеративно вытаскивать D3D вызовы из игрового кода в graphics_engine.
-Цель: D3D хедеры включаются ТОЛЬКО в graphics_engine_d3d.cpp.
-Проверка: игра работает как раньше.
+Цель: D3D хедеры включаются ТОЛЬКО в backend_directx6/ папке.
+**Результат:** полный аудит 9 категорий D3D кода — 0 утечек вне backend_directx6/.
+Весь игровой код видит только `graphics_engine.h` с чистыми типами.
+Подробно → [stage7_log.md](../new_game_devlog/stage7_log.md)
 
 ### Шаг 3 — Включить outro, выделить graphics_engine для него
 Раскомментировать outro, вытянуть его D3D вызовы в тот же контракт.

@@ -1,7 +1,7 @@
-// API-agnostic render state cache implementation.
-// Flushes state changes through ge_* functions — works with any backend.
+// Graphics engine — API-agnostic parts (render state cache, etc.).
+// Backend-specific code lives in d3d/ (or future opengl/).
 
-#include "engine/graphics/graphics_engine/ge_render_state.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/platform/uc_common.h"
 
 GERenderState GERenderState::s_State;

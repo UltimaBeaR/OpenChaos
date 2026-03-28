@@ -29,7 +29,7 @@
 #include "missions/eway.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "ui/hud/panel.h"
-#include "engine/graphics/graphics_engine/ge_render_state.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/effects/psystem.h"
 

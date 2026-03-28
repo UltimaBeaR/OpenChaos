@@ -1,4 +1,4 @@
-#include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture_globals.h"
 
 // uc_orig: TEXTURE_texture (fallen/DDEngine/Source/texture.cpp)
 D3DTexture TEXTURE_texture[TEXTURE_MAX_TEXTURES_D3D];

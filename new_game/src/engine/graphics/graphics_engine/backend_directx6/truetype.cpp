@@ -1,10 +1,10 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/display_macros.h" // REALLY_SET_*, the_display (still used, migrating incrementally)
+#include "engine/graphics/graphics_engine/backend_directx6/display_macros.h" // REALLY_SET_*, the_display (still used, migrating incrementally)
 #include <mbctype.h>
 #include <mbstring.h>
 #include "engine/graphics/text/truetype.h"
-#include "engine/graphics/graphics_engine/d3d/truetype_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/truetype_globals.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/io/env.h"
 

@@ -2,36 +2,36 @@
 
 ## 3 главных правила
 
-### 1. Весь D3D/DirectDraw код — ТОЛЬКО в папке d3d/
+### 1. Весь D3D/DirectDraw код — ТОЛЬКО в папке backend_directx6/
 
-Путь: `new_game/src/engine/graphics/graphics_engine/d3d/`
+Путь: `new_game/src/engine/graphics/graphics_engine/backend_directx6/`
 
 **Ни один файл вне этой папки не должен:**
 - Включать `<d3d.h>`, `<ddraw.h>`, `<d3dtypes.h>`
-- Включать любой хедер из `engine/graphics/graphics_engine/d3d/`
+- Включать любой хедер из `engine/graphics/graphics_engine/backend_directx6/`
 - Использовать D3D/DDraw типы: `LPDIRECT3D*`, `LPDIRECTDRAW*`, `D3D*`, `DD*`, `HRESULT` (D3D)
 - Обращаться к `the_display` или любым D3D глобалам напрямую
 - Содержать D3D константы: `D3DRENDERSTATE_*`, `D3DFVF_*`, `D3DPT_*`, `DDBLT_*` и т.д.
 
 **Исключение:** `outro/` — разбирается отдельно (outro отключен).
 
-Если файл вне d3d/ нуждается в функциональности D3D — он вызывает `ge_*` функцию из `graphics_engine.h`.
+Если файл вне backend_directx6/ нуждается в функциональности D3D — он вызывает `ge_*` функцию из `graphics_engine.h`.
 
-### 2. Никакой игровой логики в d3d/
+### 2. Никакой игровой логики в backend_directx6/
 
-Папка `d3d/` содержит **только**:
+Папка `backend_directx6/` содержит **только**:
 - Реализацию ge_* контракта для D3D6
 - D3D-специфичные классы (Display, D3DTexture, VertexBufferPool, DDDriverManager)
 - Код рендеринга который целиком D3D-специфичен (polypage Render/DrawSinglePoly)
 
-**НЕ должно быть в d3d/:**
+**НЕ должно быть в backend_directx6/:**
 - AI, физика, игровая логика, управление сущностями
 - Загрузка уровней, миссий, скриптов
 - UI/меню логика (кроме display mode enumeration)
 
 Если файл содержит СМЕСЬ game logic + D3D — его нужно РАЗРЕЗАТЬ:
 - Game logic остаётся на месте, вызывает ge_*
-- D3D реализация уходит в d3d/
+- D3D реализация уходит в backend_directx6/
 
 ### 3. Контракт ge_* должен быть реализуем на OpenGL
 
@@ -54,16 +54,16 @@
 ## Как проверять соблюдение правил
 
 ```bash
-# Правило 1: никаких d3d/ includes вне d3d/ и outro/
+# Правило 1: никаких backend_directx6/ includes вне backend_directx6/ и outro/
 grep -rn 'include.*graphics_engine/d3d\|include <d3d\|include <ddraw' \
   new_game/src/ --include='*.cpp' --include='*.h' \
-  | grep -v 'graphics_engine/d3d/' | grep -v 'outro/'
+  | grep -v 'graphics_engine/backend_directx6/' | grep -v 'outro/'
 # Результат должен быть пустым.
 
-# Правило 1 (дополнительно): никаких D3D типов вне d3d/
+# Правило 1 (дополнительно): никаких D3D типов вне backend_directx6/
 grep -rn 'the_display\.\|LPDIRECT3D\|LPDIRECTDRAW\|REALLY_SET_\|D3DRENDERSTATE_' \
   new_game/src/ --include='*.cpp' --include='*.h' \
-  | grep -v 'graphics_engine/d3d/' | grep -v 'outro/'
+  | grep -v 'graphics_engine/backend_directx6/' | grep -v 'outro/'
 # Результат должен быть пустым.
 ```
 

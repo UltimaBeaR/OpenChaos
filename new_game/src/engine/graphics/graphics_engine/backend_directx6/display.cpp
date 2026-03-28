@@ -12,17 +12,17 @@
 #include <amstream.h>  // IAMMultiMediaStream, CLSID_AMMultiMediaStream
 #include <ddstream.h>  // IDirectDrawMediaStream, IDirectDrawStreamSample
 
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
-#include "engine/graphics/graphics_engine/d3d/display_globals.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager_globals.h"
-#include "engine/graphics/graphics_engine/d3d/display_macros.h"   // dd_error, d3d_error macros
+#include "engine/graphics/graphics_engine/backend_directx6/gd_display.h"
+#include "engine/graphics/graphics_engine/backend_directx6/display_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"
+#include "engine/graphics/graphics_engine/backend_directx6/dd_manager_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/display_macros.h"   // dd_error, d3d_error macros
 #include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
 #include "assets/formats/tga.h"                // OpenTGAClump, CloseTGAClump
 #include "engine/core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
-#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 // panel.h uses Thing* — forward-declare Thing so panel.h can compile without the full Thing header.

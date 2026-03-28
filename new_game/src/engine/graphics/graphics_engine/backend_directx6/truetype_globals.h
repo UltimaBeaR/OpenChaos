@@ -6,7 +6,7 @@
 #include <d3d.h>
 #include "engine/core/types.h"
 #include "engine/graphics/text/truetype.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
 
 // uc_orig: CacheLine (fallen/DDEngine/Headers/truetype.h)
 // One row-slice of a texture page used to cache a rendered line of text.

@@ -5,8 +5,8 @@
 // as #define macros (640/480). MFStdLib declares them as extern SLONG — if the
 // macros come first, that extern declaration becomes "extern SLONG 640" and fails.
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"
+#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
 
 // uc_orig: SHELL_ACTIVE (fallen/DDLibrary/Headers/GDisplay.h)
 #define SHELL_ACTIVE   (LibShellActive())

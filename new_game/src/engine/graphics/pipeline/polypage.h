@@ -1,14 +1,10 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 #define ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 
-#include "engine/graphics/graphics_engine/ge_render_state.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/poly.h"
 
-// Forward declarations — D3D types used as opaque pointers in PolyPage.
-// Full definitions are in d3d/vertex_buffer.h (included only by polypage.cpp).
-class VertexBuffer;
-struct IDirect3DVertexBuffer;
 
 class PolyPage;
 
@@ -110,8 +106,10 @@ public:
     // uc_orig: m_VOffset (fallen/DDEngine/Headers/polypage.h)
     float m_VOffset;
 
+    // Opaque backend vertex buffer. D3D: VertexBuffer*, OpenGL: TBD.
     // uc_orig: m_VertexBuffer (fallen/DDEngine/Headers/polypage.h)
-    VertexBuffer* m_VertexBuffer;
+    void* m_VertexBuffer;
+    // Pointer into the locked vertex data (API-agnostic).
     // uc_orig: m_VertexPtr (fallen/DDEngine/Headers/polypage.h)
     PolyPoint2D* m_VertexPtr;
     // uc_orig: m_VBLogSize (fallen/DDEngine/Headers/polypage.h)
@@ -133,9 +131,10 @@ public:
     // uc_orig: m_PolySortBufSize (fallen/DDEngine/Headers/polypage.h)
     ULONG m_PolySortBufSize;
 
-    // Vertex buffer pointer used only during bucket-sort rendering.
+    // Opaque prepared VB handle for bucket-sort rendering.
+    // D3D: IDirect3DVertexBuffer*, OpenGL: TBD.
     // uc_orig: m_VB (fallen/DDEngine/Headers/polypage.h)
-    IDirect3DVertexBuffer* m_VB;
+    void* m_VB;
 
     // uc_orig: MergeSortIteration (fallen/DDEngine/Headers/polypage.h)
     void MergeSortIteration(ULONG sort_len);
