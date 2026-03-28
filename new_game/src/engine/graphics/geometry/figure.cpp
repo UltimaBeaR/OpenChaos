@@ -28,7 +28,6 @@
 #include "ai/pcom.h"
 #include "missions/eway.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h" // the_display (still used for DrawIndPrimMM, migrating incrementally)
 #include "ui/hud/panel.h"
 #include "engine/graphics/graphics_engine/ge_render_state.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -40,28 +39,10 @@
 #include "engine/graphics/lighting/night_globals.h"
 
 // uc_orig: DeadAndBuried (fallen/DDEngine/Source/figure.cpp)
-// Paints a solid 50x50 colour block on the front DirectDraw surface for crash diagnostics.
+// Paints a solid 50x50 colour block on the front surface for crash diagnostics.
 void DeadAndBuried(DWORD dwColour)
 {
-    DDSURFACEDESC2 mine;
-    HRESULT res;
-
-    InitStruct(mine);
-    mine.dwFlags = DDSD_PITCH;
-    res = the_display.lp_DD_FrontSurface->Lock(NULL, &mine, DDLOCK_WAIT, NULL);
-    if (FAILED(res))
-        return;
-
-    char* pdwDest = (char*)mine.lpSurface;
-    for (int i = 0; i < 50; i++) {
-        DWORD* pdwDest1 = (DWORD*)pdwDest;
-        pdwDest += mine.lPitch;
-        for (int j = 0; j < 50; j++) {
-            *pdwDest1++ = dwColour;
-        }
-    }
-
-    res = the_display.lp_DD_FrontSurface->Unlock(NULL);
+    ge_debug_paint_block(dwColour);
 }
 
 // MM_* pointer initialisation is done in figure_globals.cpp via a static constructor.
@@ -108,7 +89,7 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
     vTotal.z *= fLength;
 
     // Compute ambient and fully-lit colours using the normalised direction.
-    D3DCOLORVALUE cvAmb, cvLight;
+    GEColorValue cvAmb, cvLight;
     cvAmb.r = NIGHT_amb_red * AMBIENT_FACTOR;
     cvAmb.g = NIGHT_amb_green * AMBIENT_FACTOR;
     cvAmb.b = NIGHT_amb_blue * AMBIENT_FACTOR;
@@ -167,7 +148,7 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
     cvAmb.b *= 2.0f;
 
     const float fColourScale = (1.0f / (256.0f * 128.0f)) * 255.0f * NIGHT_LIGHT_MULTIPLIER;
-    D3DCOLORVALUE cvCur = cvAmb;
+    GEColorValue cvCur = cvAmb;
     cvLight.r -= cvAmb.r;
     cvLight.g -= cvAmb.g;
     cvLight.b -= cvAmb.b;

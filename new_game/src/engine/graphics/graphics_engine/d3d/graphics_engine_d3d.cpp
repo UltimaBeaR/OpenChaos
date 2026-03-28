@@ -560,6 +560,22 @@ bool ge_is_texture_loaded(int32_t page)
     return TEXTURE_texture[page].Type != GE_TEXTURE_TYPE_UNUSED;
 }
 
+void ge_debug_paint_block(uint32_t color)
+{
+    DDSURFACEDESC2 mine;
+    InitStruct(mine);
+    mine.dwFlags = DDSD_PITCH;
+    HRESULT res = the_display.lp_DD_FrontSurface->Lock(NULL, &mine, DDLOCK_WAIT, NULL);
+    if (FAILED(res)) return;
+    char* dest = (char*)mine.lpSurface;
+    for (int i = 0; i < 50; i++) {
+        DWORD* dest1 = (DWORD*)dest;
+        dest += mine.lPitch;
+        for (int j = 0; j < 50; j++) *dest1++ = color;
+    }
+    the_display.lp_DD_FrontSurface->Unlock(NULL);
+}
+
 // ---------------------------------------------------------------------------
 // Display mode management
 // ---------------------------------------------------------------------------

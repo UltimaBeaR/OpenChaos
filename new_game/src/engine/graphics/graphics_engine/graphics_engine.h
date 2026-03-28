@@ -221,6 +221,9 @@ void ge_set_transform(GETransform type, const GEMatrix* matrix);
 
 // Viewport descriptor. Replaces D3DVIEWPORT2.
 // Named member aliases (dwX, dwWidth, etc.) for legacy compatibility.
+// RGBA color value (float, 0-1 range). Replaces D3DCOLORVALUE.
+struct GEColorValue { float r, g, b, a; };
+
 struct GEViewport {
     union { int32_t x; uint32_t dwX; };
     union { int32_t y; uint32_t dwY; };
@@ -394,6 +397,9 @@ GEFontData* ge_get_font_data(int32_t page);
 
 // Check if a texture page is loaded.
 bool ge_is_texture_loaded(int32_t page);
+
+// Debug: paint a solid color block on the front surface (crash diagnostics).
+void ge_debug_paint_block(uint32_t color);
 
 // ---------------------------------------------------------------------------
 // Gamma

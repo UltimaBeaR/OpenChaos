@@ -8097,7 +8097,7 @@ void AENG_clear_screen()
 {
     ge_set_background(GEBackground::Black);
     ge_clear(true, true);
-    TheVPool->ReclaimBuffers();
+    ge_reclaim_vertex_buffers();
 }
 
 // uc_orig: AENG_lock (fallen/DDEngine/Source/aeng.cpp)
@@ -8748,7 +8748,7 @@ void AENG_draw(SLONG draw_3d)
     AENG_clear_viewport();
 
     // Reclaim vertex buffers.
-    TheVPool->ReclaimBuffers();
+    ge_reclaim_vertex_buffers();
 
     // Put in the dynamic lighting.
     NIGHT_dlight_squares_up();

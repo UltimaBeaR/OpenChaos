@@ -7,7 +7,6 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "map/supermap.h"
 #include "map/level_pools.h"
 #include "engine/core/matrix.h"
@@ -593,14 +592,12 @@ void FARFACET_draw(
 
                 FARFACET_num_squares_drawn += 1;
 
-                the_display.DrawIndexedPrimitive(
-                    D3DPT_TRIANGLELIST,
-                    D3DFVF_LVERTEX,
+                ge_draw_indexed_primitive_lit(
+                    GEPrimitiveType::TriangleList,
                     FARFACET_lvert + fs->lvert,
                     fs->lvertcount,
                     FARFACET_index + fs->index,
-                    fs->indexcount,
-                    D3DDP_DONOTUPDATEEXTENTS);
+                    fs->indexcount);
             }
         }
 

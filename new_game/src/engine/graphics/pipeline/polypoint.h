@@ -1,6 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLYPOINT_H
 #define ENGINE_GRAPHICS_PIPELINE_POLYPOINT_H
 
+#include "engine/core/types.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 
 // Copy U/V fields as raw int bits, because U/V may be uninitialized in many

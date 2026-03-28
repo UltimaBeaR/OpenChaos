@@ -258,8 +258,9 @@ void PolyPage::MassageVertices()
 
 // uc_orig: Render (fallen/DDEngine/Source/polypage.cpp)
 // Flush all buffered polygons to D3D using indexed primitive drawing.
-void PolyPage::Render(IDirect3DDevice3* dev)
+void PolyPage::Render(void* device)
 {
+    IDirect3DDevice3* dev = (IDirect3DDevice3*)device;
     ULONG ii;
 
     if (!m_VertexBuffer)
@@ -299,8 +300,9 @@ void PolyPage::Render(IDirect3DDevice3* dev)
 
 // uc_orig: DrawSinglePoly (fallen/DDEngine/Source/polypage.cpp)
 // Render a single polygon from a bucket sort pass.
-void PolyPage::DrawSinglePoly(PolyPoly* poly, IDirect3DDevice3* dev)
+void PolyPage::DrawSinglePoly(PolyPoly* poly, void* device)
 {
+    IDirect3DDevice3* dev = (IDirect3DDevice3*)device;
     UWORD* dst = IxBuffer;
 
     UWORD v1 = poly->first_vertex;

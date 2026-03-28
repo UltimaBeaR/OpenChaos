@@ -2,9 +2,13 @@
 #define ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 
 #include "engine/graphics/graphics_engine/ge_render_state.h"
-#include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/poly.h"
+
+// Forward declarations — D3D types used as opaque pointers in PolyPage.
+// Full definitions are in d3d/vertex_buffer.h (included only by polypage.cpp).
+class VertexBuffer;
+struct IDirect3DVertexBuffer;
 
 class PolyPage;
 
@@ -71,12 +75,12 @@ public:
     // uc_orig: NeedsRendering (fallen/DDEngine/Headers/polypage.h)
     bool NeedsRendering() { return m_PolyBufUsed > 0; }
     // uc_orig: Render (fallen/DDEngine/Headers/polypage.h)
-    void Render(IDirect3DDevice3* dev);
+    void Render(void* device);
 
     // uc_orig: AddToBuckets (fallen/DDEngine/Headers/polypage.h)
     void AddToBuckets(PolyPoly* buckets[], int count);
     // uc_orig: DrawSinglePoly (fallen/DDEngine/Headers/polypage.h)
-    void DrawSinglePoly(PolyPoly* poly, IDirect3DDevice3* dev);
+    void DrawSinglePoly(PolyPoly* poly, void* device);
 
     // uc_orig: Clear (fallen/DDEngine/Headers/polypage.h)
     void Clear();
