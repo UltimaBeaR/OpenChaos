@@ -125,6 +125,7 @@ int32_t ge_texture_get_size(int32_t) { return 0; }
 int32_t ge_texture_get_type(int32_t) { return 0; }
 void ge_texture_set_type(int32_t, int32_t) {}
 GETextureHandle ge_get_texture_handle(int32_t) { return 0; }
+Font* ge_get_font(int32_t, int32_t) { return nullptr; }
 
 void ge_set_pre_flip_callback(GEPreFlipCallback) {}
 void ge_set_mode_change_callback(GEModeChangeCallback) {}

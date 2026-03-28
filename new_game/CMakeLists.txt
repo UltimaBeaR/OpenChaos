@@ -70,7 +70,7 @@ if(GRAPHICS_BACKEND STREQUAL "d3d6")
         # --- game (ge_* implementation) ---
         src/engine/graphics/graphics_engine/backend_directx6/game/core.cpp
         src/engine/graphics/graphics_engine/backend_directx6/game/polypage.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/game/text.cpp
+        # text.cpp moved to engine/graphics/text/ (no D3D, pure game code)
         src/engine/graphics/graphics_engine/backend_directx6/game/truetype.cpp
         src/engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.cpp
         src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.cpp
@@ -222,6 +222,7 @@ set(SOURCES_NEW
     src/engine/graphics/text/font_globals.cpp
     src/engine/graphics/text/menufont.cpp
     src/engine/graphics/text/menufont_globals.cpp
+    src/engine/graphics/text/text.cpp
     src/engine/graphics/text/text_globals.cpp
     src/engine/graphics/text/font2d.cpp
     src/engine/graphics/text/font2d_globals.cpp

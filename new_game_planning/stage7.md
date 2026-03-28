@@ -194,22 +194,32 @@ sprite, wibble, gd_display.h). Outro не затронуто — там испо
 - Outro включено: CMakeLists + вызовы в game.cpp и frontend.cpp раскомментированы
 - Проверено: outro запускается из главного меню, визуально ок
 
-### Шаг 3.5 — Зачистка зависимостей бэкенда
+### Шаг 3.5 — Зачистка зависимостей бэкенда (В РАБОТЕ)
 
-Бэкенд (game/ и outro/) включает игровые хедеры — нарушение изоляции движка от игры.
-Нужно инвертировать: бэкенд зависит только от контракта и common/, игра передаёт данные через ge_*/oge_*.
+Цель: бэкенд не импортирует ничего из игрового кода. Зависит только от контрактов,
+common/, движковых утилит (uc_common, memory, file, env) и системных хедеров.
 
-**Лёгкое:**
-- Перенести OS_DRAW_* флаги и OS_bitmap_* в outro_graphics_engine.h
-- Убрать level_loader.h (DATA_DIR), message.h, env.h из бэкенда — вынести в параметры
+**Выполнено ✅:**
+- OS_DRAW_* флаги → перенесены в `outro_graphics_engine.h`
+- OS_bitmap_* и OS_screen_* → перенесены в `outro_graphics_engine.h`
+- `outro/core.cpp` — **ноль игровых imports** (убраны outro_os.h, outro_os_globals.h, outro_tga.h)
+- `oge_texture_create_from_tga` → `oge_texture_create(name, w, h, flags, pixels, invert)` — бэкенд принимает пиксели, TGA загрузка в outro_os.cpp
+- `level_loader.h` убран из `game/core.cpp` (DATA_DIR через extern)
+- `message.h` убран из `d3d_texture.cpp` (include был лишним)
+- `env.h` — оставлен, это engine I/O (не игровой код)
+- `text.cpp` — **вынесен из бэкенда** в `engine/graphics/text/`. Добавлен `ge_get_font()` в контракт.
+  Font/Char structs перенесены в `game_graphics_engine.h` (GEFont/GEFontChar).
+- Стаб-бэкенд (`backend_stub/`) — собирается без DirectX (327/327), доказывает изоляцию.
 
-**Среднее:**
-- Инвертировать загрузку текстур: игра загружает TGA → передаёт пиксели в бэкенд
-  (убирает tga.h, file_clump.h, file.h, texture.h из бэкенда)
-
-**Тяжёлое (отложено на Шаг 4 — переделывается при OpenGL):**
-- PolyPage: разрезать батчинг (pipeline/) и отрисовку (бэкенд)
-- text.cpp, truetype.cpp: разрезать разметку глифов и D3D рендеринг
+**Осталось:**
+- `polypage.cpp` — Render()/DrawSinglePoly() вызывают DrawIndexedPrimitiveVB через TheVPool.
+  Нужно: абстрагировать vertex buffer pool через ge_* обёртки, вынести в pipeline/.
+  Анализ готов (агент): ~10 функций, из них Render/DrawSinglePoly/PointAlloc/Clear/AddToBuckets
+  зависят от VB pool. Остальные — чисто CPU (sorting, vertex massage, matrix math).
+- `truetype.cpp` — DDraw surfaces для рендеринга глифов. Нужны ge_* для surface operations.
+  Анализ готов: TT_Init/TT_Term/CreateTextLine/CopyToCache — D3D. DrawTextTT/PreFlipTT/BlitText/TexBlit — mix.
+- `d3d_texture.h` — включает tga.h, file_clump.h. TGA loading (Reload_TGA, FastLoadFileSomewhere)
+  нужно вынести — бэкенд получает пиксели. Анализ готов (агент).
 
 ### Шаг 4 — OpenGL реализация
 Написать `backend_opengl/` (game + outro). Начать со стаба (`backend_stub/core.cpp`).

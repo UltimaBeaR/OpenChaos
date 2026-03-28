@@ -883,3 +883,8 @@ GETextureHandle ge_get_texture_handle(int32_t page)
 {
     return reinterpret_cast<GETextureHandle>(TEXTURE_texture[page].GetD3DTexture());
 }
+
+Font* ge_get_font(int32_t page, int32_t id)
+{
+    return TEXTURE_texture[page].GetFont(id);
+}

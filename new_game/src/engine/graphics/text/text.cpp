@@ -1,3 +1,6 @@
+// Bitmap text rendering — measures and draws text using font glyph metadata.
+// No D3D code — submits quads through the POLY pipeline.
+
 #include "engine/platform/uc_common.h"
 
 #include "engine/graphics/text/text.h"
@@ -6,20 +9,12 @@
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
 
-// once texture.cpp is split out.
-extern D3DTexture TEXTURE_texture[];
 extern SLONG TEXTURE_page_font;
 
 // Texture UV step: 1/256 for a 256-pixel texture.
 // uc_orig: TEXTURE_STEP (fallen/DDEngine/Source/Text.cpp)
 #define TEXTURE_STEP 0.00390625f
-
-// The font texture page is an alias into the shared TEXTURE_texture array.
-// uc_orig: font_page (fallen/DDEngine/Source/Text.cpp)
-#define font_page (TEXTURE_texture[TEXTURE_page_font])
 
 // Fade boundaries used when text_fudge is enabled: text alpha ramps at these Y coords.
 // uc_orig: TEXT_TOP (fallen/DDEngine/Source/Text.cpp)
@@ -34,7 +29,7 @@ SLONG text_width(CBYTE* message, SLONG font_id, SLONG* char_count)
     Char* the_char;
     Font* the_font;
 
-    the_font = font_page.GetFont(font_id);
+    the_font = ge_get_font(TEXTURE_page_font, font_id);
     if (!the_font)
         return 0;
 
@@ -64,7 +59,7 @@ SLONG text_height(CBYTE* message, SLONG font_id, SLONG* char_count)
     Char* the_char;
     Font* the_font;
 
-    the_font = font_page.GetFont(font_id);
+    the_font = ge_get_font(TEXTURE_page_font, font_id);
     if (!the_font)
         return 0;
 
@@ -93,7 +88,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
     Font* the_font;
     POLY_Point pp[4], *quad[4];
 
-    the_font = font_page.GetFont(font_id);
+    the_font = ge_get_font(TEXTURE_page_font, font_id);
     if (!the_font)
         return;
 

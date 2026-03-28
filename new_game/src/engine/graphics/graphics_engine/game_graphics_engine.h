@@ -413,6 +413,29 @@ void ge_get_gamma(int32_t* black, int32_t* white);
 bool ge_is_gamma_available();
 
 // ---------------------------------------------------------------------------
+// Font glyph metadata (extracted from font texture pages)
+// ---------------------------------------------------------------------------
+
+// Bounding rectangle of a single glyph within a font texture page.
+struct GEFontChar {
+    int32_t X, Y, Height, Width;
+};
+
+// A 96-character font extracted from a texture page, stored as a linked list of font sets.
+struct GEFont {
+    int32_t StartLine;
+    GEFontChar CharSet[96];
+    GEFont* NextFont;
+};
+
+// Legacy aliases — used throughout game code.
+using Char = GEFontChar;
+using Font = GEFont;
+
+// Get the font at position id (0 = first) from a texture page's font list.
+Font* ge_get_font(int32_t page, int32_t id);
+
+// ---------------------------------------------------------------------------
 // Texture loading lifecycle
 // ---------------------------------------------------------------------------
 

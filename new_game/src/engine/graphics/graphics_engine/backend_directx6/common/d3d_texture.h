@@ -28,22 +28,8 @@ void FreeAllD3DPages(void);
 // Formula: pixel_field = (component >> mask) << shift
 void OS_calculate_mask_and_shift(ULONG bitmask, SLONG* mask, SLONG* shift);
 
-// uc_orig: Char (fallen/DDLibrary/Headers/D3DTexture.h)
-// Bounding rectangle of a single glyph within a font texture page.
-struct Char {
-    SLONG X,
-        Y,
-        Height,
-        Width;
-};
-
-// uc_orig: Font (fallen/DDLibrary/Headers/D3DTexture.h)
-// A 96-character font extracted from a texture page, stored as a linked list of font sets.
-struct Font {
-    SLONG StartLine;
-    Char CharSet[96];
-    Font* NextFont;
-};
+// Font/Char structs now defined in game_graphics_engine.h (GEFont/GEFontChar with aliases).
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Texture flags stored in D3DTexture::TextureFlags.
 // uc_orig: D3D_TEXTURE_FONT (fallen/DDLibrary/Headers/D3DTexture.h)
