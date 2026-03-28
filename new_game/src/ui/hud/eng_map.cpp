@@ -6,10 +6,6 @@
 
 #include "game/game_types.h"
 
-// Display resolution constants (defined as macros, matching gd_display.h).
-#define DisplayWidth  640
-#define DisplayHeight 480
-
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/text/text.h"
 #include "assets/texture.h"

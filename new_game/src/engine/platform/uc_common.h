@@ -56,9 +56,10 @@ extern UBYTE WorkScreenDepth,
 extern SLONG WorkScreenHeight,
     WorkScreenPixelWidth,
     WorkScreenWidth;
-extern SLONG DisplayWidth,
-    DisplayHeight,
-    DisplayBPP;
+// Fixed virtual resolution — always 640x480 (actual window size is in RealDisplayWidth/Height).
+#define DisplayWidth  640
+#define DisplayHeight 480
+extern SLONG DisplayBPP;
 
 SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags);
 SLONG SetDisplay(ULONG width, ULONG height, ULONG depth);

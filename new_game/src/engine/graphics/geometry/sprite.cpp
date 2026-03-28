@@ -2,9 +2,6 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/core/math.h"
-// Display resolution constants (defined as macros, matching gd_display.h).
-#define DisplayWidth  640
-#define DisplayHeight 480
 
 // uc_orig: SPRITE_draw_tex_distorted (fallen/DDEngine/Source/sprite.cpp)
 void SPRITE_draw_tex_distorted(

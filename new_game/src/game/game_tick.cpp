@@ -32,8 +32,6 @@
 
 // Platform globals (defined in d3d/display_globals.cpp) — needed for windowed mouse coords.
 extern volatile HWND hDDLibWindow;
-#define DisplayWidth  640
-#define DisplayHeight 480
 #include "engine/io/file.h"
 #include "map/level_pools.h"
 #include "map/supermap.h"

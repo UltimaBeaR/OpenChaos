@@ -11,17 +11,9 @@ SLONG RealDisplayHeight = 0;
 // uc_orig: DisplayBPP (fallen/DDLibrary/Source/GDisplay.cpp)
 SLONG DisplayBPP = 0;
 
-// MFStdLib.h declares DisplayWidth/DisplayHeight as extern SLONG (Glide/MFStdLib legacy).
-// gd_display.h re-defines them as #define constants (640/480).
-// We need variable definitions to satisfy the linker for object files compiled
-// without gd_display.h in their include chain. Undefine the macros here so the
-// variable definitions are not mangled by the preprocessor.
-#undef DisplayWidth
-#undef DisplayHeight
+// DisplayWidth/DisplayHeight are now #define constants in uc_common.h (always 640/480).
 // uc_orig: DisplayWidth (fallen/Glide Library/Source/glidelib.cpp)
-SLONG DisplayWidth = 640;
 // uc_orig: DisplayHeight (fallen/Glide Library/Source/glidelib.cpp)
-SLONG DisplayHeight = 480;
 
 // uc_orig: the_display (fallen/DDLibrary/Source/GDisplay.cpp)
 Display the_display;

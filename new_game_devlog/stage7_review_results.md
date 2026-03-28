@@ -362,10 +362,7 @@ Hardware workarounds (ModulateAlpha/Decal fallback) correctly moved to `SetTextu
 ### Deferred (OpenGL backend phase)
 11. **B1-B6:** OpenGL portability items (TriangleFan, color key, perspective correction, 16-bit textures, Windows APIs, capability queries)
 
-### Not fixable (by design)
-- **D4:** `DisplayWidth`/`DisplayHeight` cannot be consolidated into `graphics_engine.h` because
-  `uc_common.h` has `extern SLONG DisplayWidth` declarations that conflict with `#define`.
-  The local `#define` pattern (after `uc_common.h` is included) is the correct approach.
+### All items resolved.
 
 ---
 
@@ -381,7 +378,7 @@ All items from "Must Fix", "Should Fix", and "Nice to Fix" (except D4) have been
 | D1 | Duplicate `#include "graphics_engine.h"` | **FIXED** -- removed from 5 files |
 | D2 | Redundant `reinterpret_cast` in poly.cpp | **FIXED** -- removed 4 no-op casts |
 | D3 | Dead `g_viewData.dwSize` assignment | **FIXED** -- removed |
-| D4 | DisplayWidth/DisplayHeight duplication | **NOT FIXABLE** -- extern/define conflict, kept as-is |
+| D4 | DisplayWidth/DisplayHeight duplication | **FIXED** -- extern removed from uc_common.h, single #define there now, 7 local copies removed |
 | E | Dead `ge_get_font_data()` declaration | **FIXED** -- removed from header |
 | F/G | D3D legacy aliases in game code | **FIXED** -- figure.cpp (dvTU->u, dvX->x, etc.), fastprim.cpp (dwReserved->_reserved). Backend aliases kept. |
 | H | `#define` constants | **FIXED** -- GE_SCREEN_SURFACE_NONE -> constexpr, RS_* -> inline constexpr, typedef -> using |

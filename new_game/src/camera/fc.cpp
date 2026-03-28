@@ -1,5 +1,4 @@
-// game.h must come first: MFStdLib.h declares extern DisplayWidth/DisplayHeight,
-// and gd_display.h redefines them as #define 640/480. Reversed order = syntax error.
+// Camera and player control logic.
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/physics/collide.h"     // LOS_FLAG_* constants

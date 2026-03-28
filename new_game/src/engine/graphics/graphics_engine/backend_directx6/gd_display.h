@@ -1,9 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_GD_DISPLAY_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_GD_DISPLAY_H
 
-// MFStdLib.h must be included before this header defines DisplayWidth/DisplayHeight
-// as #define macros (640/480). MFStdLib declares them as extern SLONG — if the
-// macros come first, that extern declaration becomes "extern SLONG 640" and fails.
+// uc_common.h defines DisplayWidth/DisplayHeight as macros (640/480).
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"
 #include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
@@ -316,11 +314,8 @@ public:
 };
 
 // uc_orig: DisplayWidth (fallen/DDLibrary/Headers/GDisplay.h)
-// Fixed display width — always 640 in this build.
-#define DisplayWidth  640
 // uc_orig: DisplayHeight (fallen/DDLibrary/Headers/GDisplay.h)
-// Fixed display height — always 480 in this build.
-#define DisplayHeight 480
+// DisplayWidth/DisplayHeight now defined in uc_common.h (always 640/480).
 
 // uc_orig: RealDisplayWidth (fallen/DDLibrary/Headers/GDisplay.h)
 extern SLONG RealDisplayWidth;

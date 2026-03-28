@@ -8,9 +8,7 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/matrix.h"
 
-// Display resolution constants and globals (defined in d3d/display_globals.cpp).
-#define DisplayWidth  640
-#define DisplayHeight 480
+// Display globals (defined in d3d/display_globals.cpp).
 extern SLONG RealDisplayWidth;
 extern SLONG RealDisplayHeight;
 #include <math.h>
