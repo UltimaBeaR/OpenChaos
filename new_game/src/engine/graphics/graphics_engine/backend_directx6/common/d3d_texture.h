@@ -4,8 +4,6 @@
 #include <windows.h>
 #include <ddraw.h>
 #include <d3d.h>
-#include "assets/formats/tga.h"
-#include "assets/formats/file_clump.h"
 #include "engine/io/file.h"
 
 // uc_orig: NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit (fallen/DDLibrary/Headers/D3DTexture.h)
@@ -133,9 +131,6 @@ public:
 
     // Release all DirectDraw/Direct3D resources. Does not free the D3DTexture object itself.
     HRESULT Destroy(void);
-
-    // Parse font glyph data out of a TGA that was loaded as a font texture.
-    HRESULT CreateFonts(TGA_Info* tga_info, TGA_Pixel* tga_data);
 
     // Return the Font at position id in the linked list (0 = first font).
     Font* GetFont(SLONG id);

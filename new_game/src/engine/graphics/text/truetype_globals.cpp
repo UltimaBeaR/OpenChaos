@@ -1,13 +1,10 @@
-#include "engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.h"
+#include "engine/graphics/text/truetype_globals.h"
 
 // uc_orig: FontHeight (fallen/DDEngine/Source/truetype.cpp)
 int tt_FontHeight = 0;
 
 // uc_orig: pShadowSurface (fallen/DDEngine/Source/truetype.cpp)
-IDirectDrawSurface4* tt_pShadowSurface = nullptr;
-
-// uc_orig: pShadowPalette (fallen/DDEngine/Source/truetype.cpp)
-IDirectDrawPalette* tt_pShadowPalette = nullptr;
+GETextSurface tt_pShadowSurface = GE_TEXT_SURFACE_NONE;
 
 // uc_orig: hFont (fallen/DDEngine/Source/truetype.cpp)
 HFONT tt_hFont = nullptr;
@@ -20,9 +17,6 @@ HFONT tt_hSmallFont = nullptr;
 
 // uc_orig: hOldFont (fallen/DDEngine/Source/truetype.cpp)
 HFONT tt_hOldFont = nullptr;
-
-// uc_orig: Texture (fallen/DDEngine/Source/truetype.cpp)
-D3DTexture tt_Texture[TT_NUM_PAGES];
 
 // uc_orig: Cache (fallen/DDEngine/Source/truetype.cpp)
 CacheLine tt_Cache[TT_MAX_CACHELINES];

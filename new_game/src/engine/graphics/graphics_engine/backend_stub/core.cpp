@@ -98,6 +98,12 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface, int32_t, int32_t, int32_t, i
 
 void ge_reclaim_vertex_buffers() {}
 void ge_dump_vpool_info(void*) {}
+void* ge_vb_alloc(uint32_t, void** out_ptr, uint32_t* out_logsize) { if (out_ptr) *out_ptr = nullptr; if (out_logsize) *out_logsize = 0; return nullptr; }
+void* ge_vb_expand(void*, void** out_ptr, uint32_t* out_logsize) { if (out_ptr) *out_ptr = nullptr; if (out_logsize) *out_logsize = 0; return nullptr; }
+void ge_vb_release(void*) {}
+void* ge_vb_get_ptr(void*) { return nullptr; }
+void* ge_vb_prepare(void*) { return nullptr; }
+void ge_draw_indexed_primitive_vb(void*, const uint16_t*, uint32_t) {}
 
 bool ge_lock_texture_pixels(int32_t, uint16_t**, int32_t*) { return false; }
 void ge_unlock_texture_pixels(int32_t) {}
@@ -129,7 +135,7 @@ Font* ge_get_font(int32_t, int32_t) { return nullptr; }
 
 void ge_set_pre_flip_callback(GEPreFlipCallback) {}
 void ge_set_mode_change_callback(GEModeChangeCallback) {}
-void ge_set_polys_drawn_callback(GEPolysDrawnCallback) {}
+// ge_set_polys_drawn_callback defined in pipeline/polypage.cpp (common code, not backend-specific)
 bool ge_is_ntsc() { return false; }
 void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 
@@ -196,13 +202,13 @@ void PolyPage::SetScaling(float, float) {}
 void PolyPage::SetGreenScreen(bool) {}
 
 // TrueType text stub
-void PreFlipTT() {}
+// PreFlipTT defined in text/truetype.cpp (common code)
 
 // Bitmap text stub
 void draw_centre_text_at(float, float, char*, SLONG, SLONG) {}
 
-void GenerateMMMatrixFromStandardD3DOnes(GEMatrix*, const GEMatrix*, const GEMatrix*, const GEViewport*) {}
-void ge_draw_multi_matrix(GEMMVertexType, GEMultiMatrix*, uint16_t, uint16_t*, uint32_t) {}
+// GenerateMMMatrixFromStandardD3DOnes defined in pipeline/polypage.cpp (common code)
+// ge_draw_multi_matrix defined in pipeline/polypage.cpp (common code, not backend-specific)
 
 // Display globals stubs
 SLONG RealDisplayWidth = 640;
@@ -236,6 +242,13 @@ void oge_init_renderstates() {}
 void oge_calculate_pipeline() {}
 void oge_change_renderstate(uint32_t) {}
 void oge_undo_renderstate_changes() {}
+GETextSurface ge_text_surface_create(int32_t, int32_t) { return GE_TEXT_SURFACE_NONE; }
+void ge_text_surface_destroy(GETextSurface) {}
+bool ge_text_surface_get_dc(GETextSurface, void**) { return false; }
+void ge_text_surface_release_dc(GETextSurface, void*) {}
+bool ge_text_surface_lock(GETextSurface, uint8_t**, int32_t*) { return false; }
+void ge_text_surface_unlock(GETextSurface) {}
+
 void oge_bind_texture(int32_t, OGETexture) {}
 void oge_draw_indexed(const void*, int32_t, const uint16_t*, int32_t) {}
 void oge_clear_screen() {}

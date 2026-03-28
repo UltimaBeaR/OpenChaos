@@ -3,6 +3,7 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
+#include "assets/formats/tga.h"                                    // TGA_load, TGA_Pixel, TGA_Info
 
 // VERIFY is a no-op wrapper used in place of checked HRESULT asserts in release builds.
 // uc_orig: VERIFY (fallen/DDLibrary/Source/D3DTexture.cpp)
@@ -13,9 +14,11 @@
 // Forward declaration of the render state reset hook in the polygon pipeline.
 extern void POLY_reset_render_states(void);
 
-// Forward declaration of file-private helper used by CreateFonts.
+// Forward declarations of file-private helpers.
 // uc_orig: scan_for_baseline (fallen/DDLibrary/Source/D3DTexture.cpp)
 static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_Info* info, SLONG* y_ptr);
+// uc_orig: D3DTexture::CreateFonts (fallen/DDLibrary/Source/D3DTexture.cpp)
+static HRESULT CreateFonts(Font** font_list, TGA_Info* tga_info, TGA_Pixel* tga_data);
 
 // uc_orig: GetMeAFastLoadBufferAtLeastThisBigPlease (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Returns pvFastLoadBuffer, growing it via VirtualAlloc if it is smaller than dwSize.
@@ -428,7 +431,7 @@ HRESULT D3DTexture::Reload_TGA(void)
 
     //	Guy.	Do all the font mapping stuff here.
     if (IsFont()) {
-        CreateFonts(&ti, tga);
+        CreateFonts(&FontList, &ti, tga);
 
         //	Change the outline colour to black.
         SLONG size = (ti.width * ti.height);
@@ -912,9 +915,9 @@ static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_In
 
 // uc_orig: D3DTexture::CreateFonts (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Parses glyph geometry from a font texture page using magenta (0xff,0x00,0xff) as the
-// separator colour. Builds a linked list of Font objects attached to FontList.
+// separator colour. Builds a linked list of Font objects attached to font_list.
 // Multiple font sets can be stacked vertically in the same TGA.
-HRESULT D3DTexture::CreateFonts(TGA_Info* tga_info, TGA_Pixel* tga_data)
+static HRESULT CreateFonts(Font** font_list, TGA_Info* tga_info, TGA_Pixel* tga_data)
 {
     SLONG current_char,
         char_x, char_y,
@@ -935,12 +938,12 @@ HRESULT D3DTexture::CreateFonts(TGA_Info* tga_info, TGA_Pixel* tga_data)
     map_font:
         //	Found a font baseline so map it.
         the_font = MFnew<Font>();
-        if (FontList) {
-            the_font->NextFont = FontList;
-            FontList = the_font;
+        if (*font_list) {
+            the_font->NextFont = *font_list;
+            *font_list = the_font;
         } else {
             the_font->NextFont = NULL;
-            FontList = the_font;
+            *font_list = the_font;
         }
 
         current_char = 0;

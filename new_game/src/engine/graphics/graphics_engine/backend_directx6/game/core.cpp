@@ -580,6 +580,51 @@ void ge_dump_vpool_info(void* fd)
     if (TheVPool) TheVPool->DumpInfo((FILE*)fd);
 }
 
+void* ge_vb_alloc(uint32_t logsize, void** out_ptr, uint32_t* out_logsize)
+{
+    extern VertexBufferPool* TheVPool;
+    VertexBuffer* vb = TheVPool->GetBuffer(logsize);
+    if (!vb) return NULL;
+    if (out_ptr) *out_ptr = vb->GetPtr();
+    if (out_logsize) *out_logsize = vb->GetLogSize();
+    return vb;
+}
+
+void* ge_vb_expand(void* vb, void** out_ptr, uint32_t* out_logsize)
+{
+    extern VertexBufferPool* TheVPool;
+    VertexBuffer* expanded = TheVPool->ExpandBuffer(static_cast<VertexBuffer*>(vb));
+    if (out_ptr) *out_ptr = expanded->GetPtr();
+    if (out_logsize) *out_logsize = expanded->GetLogSize();
+    return expanded;
+}
+
+void ge_vb_release(void* vb)
+{
+    extern VertexBufferPool* TheVPool;
+    if (vb && TheVPool) TheVPool->ReleaseBuffer(static_cast<VertexBuffer*>(vb));
+}
+
+void* ge_vb_get_ptr(void* vb)
+{
+    return static_cast<VertexBuffer*>(vb)->GetPtr();
+}
+
+void* ge_vb_prepare(void* vb)
+{
+    extern VertexBufferPool* TheVPool;
+    return TheVPool->PrepareBuffer(static_cast<VertexBuffer*>(vb));
+}
+
+void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count)
+{
+    the_display.lp_D3D_Device->DrawIndexedPrimitiveVB(
+        D3DPT_TRIANGLELIST,
+        static_cast<IDirect3DVertexBuffer*>(prepared_vb),
+        (WORD*)indices, index_count,
+        D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
+}
+
 // ---------------------------------------------------------------------------
 // Texture pixel access
 // ---------------------------------------------------------------------------
@@ -887,4 +932,106 @@ GETextureHandle ge_get_texture_handle(int32_t page)
 Font* ge_get_font(int32_t page, int32_t id)
 {
     return TEXTURE_texture[page].GetFont(id);
+}
+
+// ---------------------------------------------------------------------------
+// Text rendering shadow surface
+// ---------------------------------------------------------------------------
+
+GETextSurface ge_text_surface_create(int32_t width, int32_t height)
+{
+    DDSURFACEDESC2 desc;
+    memset(&desc, 0, sizeof(desc));
+    desc.dwSize = sizeof(desc);
+    desc.dwFlags = DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_CAPS;
+    desc.dwWidth = width;
+    desc.dwHeight = height;
+    desc.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
+    desc.ddpfPixelFormat.dwFlags = DDPF_RGB | DDPF_PALETTEINDEXED8;
+    desc.ddpfPixelFormat.dwRGBBitCount = 8;
+    desc.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_OWNDC | DDSCAPS_SYSTEMMEMORY;
+    desc.ddsCaps.dwCaps2 = 0;
+    desc.ddsCaps.dwCaps3 = 0;
+    desc.ddsCaps.dwCaps4 = 0;
+
+    IDirectDrawSurface4* surface = NULL;
+    HRESULT hres = the_display.lp_DD4->CreateSurface(&desc, &surface, NULL);
+    if (FAILED(hres)) return GE_TEXT_SURFACE_NONE;
+
+    // Create and attach greyscale palette.
+    PALETTEENTRY palette[256];
+    for (int ii = 0; ii < 256; ii++) {
+        palette[ii].peRed = ii;
+        palette[ii].peGreen = ii;
+        palette[ii].peBlue = ii;
+        palette[ii].peFlags = 0;
+    }
+
+    IDirectDrawPalette* pal = NULL;
+    hres = the_display.lp_DD4->CreatePalette(DDPCAPS_8BIT | DDPCAPS_INITIALIZE, palette, &pal, NULL);
+    if (FAILED(hres)) { surface->Release(); return GE_TEXT_SURFACE_NONE; }
+
+    hres = surface->SetPalette(pal);
+    if (FAILED(hres)) { pal->Release(); surface->Release(); return GE_TEXT_SURFACE_NONE; }
+
+    // Store palette pointer right after surface pointer using a small struct.
+    struct TextSurfaceData { IDirectDrawSurface4* surface; IDirectDrawPalette* palette; };
+    TextSurfaceData* data = new TextSurfaceData { surface, pal };
+    return reinterpret_cast<GETextSurface>(data);
+}
+
+void ge_text_surface_destroy(GETextSurface handle)
+{
+    if (!handle) return;
+    struct TextSurfaceData { IDirectDrawSurface4* surface; IDirectDrawPalette* palette; };
+    TextSurfaceData* data = reinterpret_cast<TextSurfaceData*>(handle);
+
+    // Release DC font first (caller handles via GetDC/ReleaseDC before destroying).
+    data->surface->SetPalette(NULL);
+    data->palette->Release();
+    data->surface->Release();
+    delete data;
+}
+
+bool ge_text_surface_get_dc(GETextSurface handle, void** out_dc)
+{
+    if (!handle) return false;
+    struct TextSurfaceData { IDirectDrawSurface4* surface; IDirectDrawPalette* palette; };
+    TextSurfaceData* data = reinterpret_cast<TextSurfaceData*>(handle);
+    HDC hdc;
+    HRESULT hres = data->surface->GetDC(&hdc);
+    if (FAILED(hres)) return false;
+    *out_dc = hdc;
+    return true;
+}
+
+void ge_text_surface_release_dc(GETextSurface handle, void* dc)
+{
+    if (!handle) return;
+    struct TextSurfaceData { IDirectDrawSurface4* surface; IDirectDrawPalette* palette; };
+    TextSurfaceData* data = reinterpret_cast<TextSurfaceData*>(handle);
+    data->surface->ReleaseDC((HDC)dc);
+}
+
+bool ge_text_surface_lock(GETextSurface handle, uint8_t** out_pixels, int32_t* out_pitch)
+{
+    if (!handle) return false;
+    struct TextSurfaceData { IDirectDrawSurface4* surface; IDirectDrawPalette* palette; };
+    TextSurfaceData* data = reinterpret_cast<TextSurfaceData*>(handle);
+    DDSURFACEDESC2 ddsdesc;
+    memset(&ddsdesc, 0, sizeof(ddsdesc));
+    ddsdesc.dwSize = sizeof(ddsdesc);
+    HRESULT hres = data->surface->Lock(NULL, &ddsdesc, DDLOCK_WAIT, NULL);
+    if (FAILED(hres)) return false;
+    *out_pixels = (uint8_t*)ddsdesc.lpSurface;
+    *out_pitch = ddsdesc.lPitch;
+    return true;
+}
+
+void ge_text_surface_unlock(GETextSurface handle)
+{
+    if (!handle) return;
+    struct TextSurfaceData { IDirectDrawSurface4* surface; IDirectDrawPalette* palette; };
+    TextSurfaceData* data = reinterpret_cast<TextSurfaceData*>(handle);
+    data->surface->Unlock(NULL);
 }

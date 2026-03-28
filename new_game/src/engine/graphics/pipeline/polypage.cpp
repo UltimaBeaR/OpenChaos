@@ -1,19 +1,11 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypage_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
 #include "engine/core/matrix.h"
 #include "engine/platform/uc_common.h"
 #include "assets/texture.h"
 
 #include <math.h>
-
-// Cast helpers: m_VertexBuffer and m_VB are void* in the header (API-agnostic),
-// but this D3D backend knows they are VertexBuffer* and IDirect3DVertexBuffer*.
-#define VB(pp) (static_cast<VertexBuffer*>((pp)->m_VertexBuffer))
-#define SET_VB(pp, v) ((pp)->m_VertexBuffer = (v))
-#define RAW_VB(pp) (static_cast<IDirect3DVertexBuffer*>((pp)->m_VB))
 
 // Callback for reporting drawn poly count to game code.
 static GEPolysDrawnCallback s_polys_drawn_callback = nullptr;
@@ -87,9 +79,7 @@ PolyPage::~PolyPage()
     delete[] m_PolySortBuffer;
 
     if (m_VertexBuffer != NULL) {
-        if (TheVPool != NULL) {
-            TheVPool->ReleaseBuffer(VB(this));
-        }
+        ge_vb_release(m_VertexBuffer);
     }
 }
 
@@ -118,19 +108,23 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
     if (!m_VertexBuffer) {
         ASSERT(!m_VBUsed);
 
-        SET_VB(this, TheVPool->GetBuffer(m_VBLogSize));
+        void* ptr = NULL;
+        uint32_t logsize = 0;
+        m_VertexBuffer = ge_vb_alloc(m_VBLogSize, &ptr, &logsize);
 
         if (!m_VertexBuffer)
             return NULL;
 
-        m_VertexPtr = (PolyPoint2D*)VB(this)->GetPtr();
-        m_VBLogSize = VB(this)->GetLogSize();
+        m_VertexPtr = (PolyPoint2D*)ptr;
+        m_VBLogSize = logsize;
     }
 
     if (m_VBUsed + num_points > GetVBSize()) {
-        SET_VB(this, TheVPool->ExpandBuffer(VB(this)));
-        m_VertexPtr = (PolyPoint2D*)VB(this)->GetPtr();
-        m_VBLogSize = VB(this)->GetLogSize();
+        void* ptr = NULL;
+        uint32_t logsize = 0;
+        m_VertexBuffer = ge_vb_expand(m_VertexBuffer, &ptr, &logsize);
+        m_VertexPtr = (PolyPoint2D*)ptr;
+        m_VBLogSize = logsize;
 
         if (m_VBUsed + num_points > GetVBSize()) {
             ASSERT(UC_FALSE);
@@ -238,7 +232,7 @@ void PolyPage::MassageVertices()
 
     if (RS.GetEffect()) {
         ULONG ii;
-        GEVertexTL* vptr = reinterpret_cast<GEVertexTL*>(VB(this)->GetPtr());
+        GEVertexTL* vptr = reinterpret_cast<GEVertexTL*>(ge_vb_get_ptr(m_VertexBuffer));
 
         switch (RS.GetEffect()) {
         case RS_AlphaPremult:
@@ -272,7 +266,6 @@ void PolyPage::MassageVertices()
 // Flush all buffered polygons to D3D using indexed primitive drawing.
 void PolyPage::Render()
 {
-    IDirect3DDevice3* dev = the_display.lp_D3D_Device;
     ULONG ii;
 
     if (!m_VertexBuffer)
@@ -280,7 +273,7 @@ void PolyPage::Render()
 
     MassageVertices();
 
-    IDirect3DVertexBuffer* vb = TheVPool->PrepareBuffer(VB(this));
+    void* prepared = ge_vb_prepare(m_VertexBuffer);
     m_VertexBuffer = NULL;
     m_VertexPtr = NULL;
 
@@ -302,7 +295,7 @@ void PolyPage::Render()
         src++;
     }
 
-    dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, vb, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
+    ge_draw_indexed_primitive_vb(prepared, IxBuffer, dst - IxBuffer);
 
     if (s_polys_drawn_callback) {
         s_polys_drawn_callback(m_PolyBufUsed);
@@ -316,7 +309,6 @@ void PolyPage::Render()
 // Render a single polygon from a bucket sort pass.
 void PolyPage::DrawSinglePoly(PolyPoly* poly)
 {
-    IDirect3DDevice3* dev = the_display.lp_D3D_Device;
     UWORD* dst = IxBuffer;
 
     UWORD v1 = poly->first_vertex;
@@ -327,7 +319,7 @@ void PolyPage::DrawSinglePoly(PolyPoly* poly)
         *dst++ = v1 + jj;
     }
 
-    dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, static_cast<IDirect3DVertexBuffer*>(m_VB), IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
+    ge_draw_indexed_primitive_vb(m_VB, IxBuffer, dst - IxBuffer);
 }
 
 // uc_orig: AddToBuckets (fallen/DDEngine/Source/polypage.cpp)
@@ -339,7 +331,7 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
 
     MassageVertices();
 
-    m_VB = TheVPool->PrepareBuffer(VB(this));
+    m_VB = ge_vb_prepare(m_VertexBuffer);
 
     for (DWORD ii = 0; ii < m_PolyBufUsed; ii++) {
         PolyPoly* poly = &m_PolyBuffer[ii];
@@ -367,7 +359,7 @@ void PolyPage::Clear()
     if (!m_VertexBuffer)
         return;
 
-    TheVPool->ReleaseBuffer(VB(this));
+    ge_vb_release(m_VertexBuffer);
     m_VertexBuffer = NULL;
     m_VertexPtr = NULL;
 

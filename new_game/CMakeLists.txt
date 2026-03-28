@@ -69,10 +69,7 @@ if(GRAPHICS_BACKEND STREQUAL "d3d6")
         src/engine/graphics/graphics_engine/backend_directx6/common/display_globals.cpp
         # --- game (ge_* implementation) ---
         src/engine/graphics/graphics_engine/backend_directx6/game/core.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/game/polypage.cpp
-        # text.cpp moved to engine/graphics/text/ (no D3D, pure game code)
-        src/engine/graphics/graphics_engine/backend_directx6/game/truetype.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.cpp
+        # text.cpp, truetype.cpp moved to engine/graphics/text/ (no D3D)
         src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.cpp
         src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.cpp
         src/engine/graphics/graphics_engine/backend_directx6/game/work_screen.cpp
@@ -181,6 +178,7 @@ set(SOURCES_NEW
     # === Engine: graphics — pipeline ===
     src/engine/graphics/pipeline/bucket.cpp
     src/engine/graphics/pipeline/bucket_globals.cpp
+    src/engine/graphics/pipeline/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
     src/engine/graphics/pipeline/qeng.cpp
     src/engine/graphics/pipeline/qeng_globals.cpp
@@ -226,6 +224,8 @@ set(SOURCES_NEW
     src/engine/graphics/text/text_globals.cpp
     src/engine/graphics/text/font2d.cpp
     src/engine/graphics/text/font2d_globals.cpp
+    src/engine/graphics/text/truetype.cpp
+    src/engine/graphics/text/truetype_globals.cpp
 
     # === Engine: graphics — lighting ===
     src/engine/graphics/lighting/ngamut.cpp

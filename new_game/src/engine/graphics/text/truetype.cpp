@@ -1,10 +1,9 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/graphics_engine/backend_directx6/common/display_macros.h" // REALLY_SET_*, the_display (still used, migrating incrementally)
 #include <mbctype.h>
 #include <mbstring.h>
 #include "engine/graphics/text/truetype.h"
-#include "engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.h"
+#include "engine/graphics/text/truetype_globals.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/io/env.h"
 
@@ -12,12 +11,10 @@
 // These map to the renamed globals in truetype_globals.h.
 #define FontHeight   tt_FontHeight
 #define pShadowSurface tt_pShadowSurface
-#define pShadowPalette tt_pShadowPalette
 #define hFont        tt_hFont
 #define hMidFont     tt_hMidFont
 #define hSmallFont   tt_hSmallFont
 #define hOldFont     tt_hOldFont
-#define Texture      tt_Texture
 #define Cache        tt_Cache
 #define NumCacheLines tt_NumCacheLines
 #define PixMapping   tt_PixMapping
@@ -65,41 +62,8 @@ void TT_Init()
     _setmbcp(_MB_CP_LOCALE); // set locale-specific codepage
 
     // create the memory surface for drawing
-    HRESULT hres;
-    DDSURFACEDESC2 desc;
-
-    memset(&desc, 0, sizeof(desc));
-    desc.dwSize = sizeof(desc);
-    desc.dwFlags = DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT | DDSD_CAPS;
-    desc.dwWidth = 640 * AA_SIZE;
-    desc.dwHeight = FontHeight * AA_SIZE;
-    desc.ddpfPixelFormat.dwSize = sizeof(DDPIXELFORMAT);
-    desc.ddpfPixelFormat.dwFlags = DDPF_RGB | DDPF_PALETTEINDEXED8;
-    desc.ddpfPixelFormat.dwRGBBitCount = 8;
-    desc.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_OWNDC | DDSCAPS_SYSTEMMEMORY;
-    desc.ddsCaps.dwCaps2 = 0;
-    desc.ddsCaps.dwCaps3 = 0;
-    desc.ddsCaps.dwCaps4 = 0;
-
-    hres = the_display.lp_DD4->CreateSurface(&desc, &pShadowSurface, NULL);
-
-    ASSERT(!FAILED(hres));
-
-    // create palette
-    PALETTEENTRY palette[256];
-
-    for (ii = 0; ii < 256; ii++) {
-        palette[ii].peRed = ii;
-        palette[ii].peGreen = ii;
-        palette[ii].peBlue = ii;
-        palette[ii].peFlags = NULL;
-    }
-
-    hres = the_display.lp_DD4->CreatePalette(DDPCAPS_8BIT | DDPCAPS_INITIALIZE, palette, &pShadowPalette, NULL);
-    ASSERT(!FAILED(hres));
-
-    hres = pShadowSurface->SetPalette(pShadowPalette);
-    ASSERT(!FAILED(hres));
+    pShadowSurface = ge_text_surface_create(640 * AA_SIZE, FontHeight * AA_SIZE);
+    ASSERT(pShadowSurface);
 
     //  create the font - hey, a function with fourteen parameters!
     hFont = CreateFont(FontHeight * AA_SIZE,
@@ -118,13 +82,15 @@ void TT_Init()
     NumCacheLines = 0;
 
     for (ii = 0; ii < NUM_TT_PAGES; ii++) {
+        int32_t page = TT_TEXTURE_PAGE_BASE + ii;
+
         // create a page
-        Texture[ii].CreateUserPage(256, UC_TRUE);
+        ge_texture_create_user_page(page, 256, true);
 
         // create cacheline mappings
         for (int jj = 0; jj + FontHeight <= 256; jj += FontHeight) {
             Cache[NumCacheLines].owner = NULL;
-            Cache[NumCacheLines].texture = &Texture[ii];
+            Cache[NumCacheLines].texture_page = page;
             Cache[NumCacheLines].y = jj;
 
             NumCacheLines++;
@@ -132,14 +98,8 @@ void TT_Init()
     }
 
     // set up pixmap
-    int rr = Texture[0].mask_red;
-    int lr = Texture[0].shift_red;
-    int rg = Texture[0].mask_green;
-    int lg = Texture[0].shift_green;
-    int rb = Texture[0].mask_blue;
-    int lb = Texture[0].shift_blue;
-    int ra = Texture[0].mask_alpha;
-    int la = Texture[0].shift_alpha;
+    int32_t rr, lr, rg, lg, rb, lb, ra, la;
+    ge_get_texture_pixel_format(TT_TEXTURE_PAGE_BASE, &rr, &rg, &rb, &ra, &lr, &lg, &lb, &la);
 
     for (ii = 0; ii < 256; ii++) {
         PixMapping[ii] = 0;
@@ -155,23 +115,22 @@ void TT_Init()
     }
 
     // initialize the DC (since it's owned, this is remembered)
-    HDC hDC;
+    void* hDC;
 
-    hres = pShadowSurface->GetDC(&hDC);
-    ASSERT(!FAILED(hres));
+    bool ok = ge_text_surface_get_dc(pShadowSurface, &hDC);
+    ASSERT(ok);
 
     // prepare the DC
-    SetBkColor(hDC, RGB(0, 0, 0));
-    SetBkMode(hDC, OPAQUE);
-    SetTextAlign(hDC, TA_LEFT | TA_TOP | TA_NOUPDATECP);
-    SetTextCharacterExtra(hDC, ENV_get_value_number("ExtraSpaceX", 0, "TrueType"));
-    SetTextColor(hDC, RGB(255, 255, 255));
+    SetBkColor((HDC)hDC, RGB(0, 0, 0));
+    SetBkMode((HDC)hDC, OPAQUE);
+    SetTextAlign((HDC)hDC, TA_LEFT | TA_TOP | TA_NOUPDATECP);
+    SetTextCharacterExtra((HDC)hDC, ENV_get_value_number("ExtraSpaceX", 0, "TrueType"));
+    SetTextColor((HDC)hDC, RGB(255, 255, 255));
 
-    HFONT hOldFont = (HFONT)SelectObject(hDC, hFont);
+    HFONT hOldFont = (HFONT)SelectObject((HDC)hDC, hFont);
     ASSERT(hOldFont);
 
-    hres = pShadowSurface->ReleaseDC(hDC);
-    ASSERT(!FAILED(hres));
+    ge_text_surface_release_dc(pShadowSurface, hDC);
 }
 
 // uc_orig: TT_Term (fallen/DDEngine/Source/truetype.cpp)
@@ -181,31 +140,23 @@ void TT_Term()
         return;
 
     // unprepare the DC
-    HDC hDC;
-    HRESULT hres;
+    void* hDC;
 
-    hres = pShadowSurface->GetDC(&hDC);
-    ASSERT(!FAILED(hres));
+    bool ok = ge_text_surface_get_dc(pShadowSurface, &hDC);
+    ASSERT(ok);
 
-    SelectObject(hDC, hOldFont);
+    SelectObject((HDC)hDC, hOldFont);
 
-    hres = pShadowSurface->ReleaseDC(hDC);
-    ASSERT(!FAILED(hres));
+    ge_text_surface_release_dc(pShadowSurface, hDC);
 
-    pShadowSurface->SetPalette(NULL);
-
-    pShadowPalette->Release();
-    pShadowPalette = NULL;
-
-    pShadowSurface->Release();
-    pShadowSurface = NULL;
+    ge_text_surface_destroy(pShadowSurface);
+    pShadowSurface = GE_TEXT_SURFACE_NONE;
 
     DeleteObject(hFont);
     hFont = NULL;
 
     for (int ii = 0; ii < NUM_TT_PAGES; ii++) {
-        Texture[ii].Destroy();
-        Texture[ii].Type = GE_TEXTURE_TYPE_UNUSED;
+        ge_texture_destroy(TT_TEXTURE_PAGE_BASE + ii);
     }
 }
 
@@ -330,11 +281,10 @@ static void MeasureTextCommand(TextCommand* tcmd)
     char* string = tcmd->data;
     int clen = tcmd->nchars;
 
-    HDC hDC;
-    HRESULT res;
+    void* hDC;
 
-    res = pShadowSurface->GetDC(&hDC);
-    ASSERT(!FAILED(res));
+    bool ok = ge_text_surface_get_dc(pShadowSurface, &hDC);
+    ASSERT(ok);
 
     tcmd->lines = 0;
     tcmd->fwidth = tcmd->rx - tcmd->x;
@@ -343,7 +293,7 @@ static void MeasureTextCommand(TextCommand* tcmd)
         SIZE size;
         int chars;
 
-        GetTextExtentExPoint(hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
+        GetTextExtentExPoint((HDC)hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
 
         if ((chars < clen) && (clen - chars < 3))
             chars = clen - 3;
@@ -356,8 +306,7 @@ static void MeasureTextCommand(TextCommand* tcmd)
         string = (char*)_mbsninc((unsigned char*)string, chars);
     }
 
-    res = pShadowSurface->ReleaseDC(hDC);
-    ASSERT(!FAILED(res));
+    ge_text_surface_release_dc(pShadowSurface, hDC);
 }
 
 // uc_orig: DoTextCommand (fallen/DDEngine/Source/truetype.cpp)
@@ -369,17 +318,16 @@ static void DoTextCommand(TextCommand* tcmd)
 
     while (clen) {
         // set up the DC so we can measure strings etc.
-        HDC hDC;
-        HRESULT res;
+        void* hDC;
 
-        res = pShadowSurface->GetDC(&hDC);
-        ASSERT(!FAILED(res));
+        bool ok = ge_text_surface_get_dc(pShadowSurface, &hDC);
+        ASSERT(ok);
 
         // measure string
         SIZE size;
         int chars;
 
-        GetTextExtentExPoint(hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
+        GetTextExtentExPoint((HDC)hDC, string, clen, tcmd->fwidth * AA_SIZE, &chars, NULL, &size);
 
         // fix up for 1 or 2 characters over
         if ((chars < clen) && (clen - chars < 3))
@@ -390,12 +338,11 @@ static void DoTextCommand(TextCommand* tcmd)
             return;
 
         // get width
-        GetTextExtentExPoint(hDC, string, chars, 0, NULL, NULL, &size);
+        GetTextExtentExPoint((HDC)hDC, string, chars, 0, NULL, NULL, &size);
         int width = size.cx / AA_SIZE;
 
         // release the DC
-        res = pShadowSurface->ReleaseDC(hDC);
-        ASSERT(!FAILED(res));
+        ge_text_surface_release_dc(pShadowSurface, hDC);
 
         // draw this line
         switch (tcmd->command) {
@@ -428,11 +375,10 @@ static void CreateTextLine(char* string, int nchars, int width, int x, int y, Te
     ASSERT(width <= 640);
 
     // set up the DC
-    HDC hDC;
-    HRESULT res;
+    void* hDC;
 
-    res = pShadowSurface->GetDC(&hDC);
-    ASSERT(!FAILED(res));
+    bool ok = ge_text_surface_get_dc(pShadowSurface, &hDC);
+    ASSERT(ok);
 
     // set up drawing rectangle
     RECT rect;
@@ -443,26 +389,21 @@ static void CreateTextLine(char* string, int nchars, int width, int x, int y, Te
     rect.bottom = FontHeight * AA_SIZE;
 
     // draw text
-    res = ExtTextOut(hDC, 0, 0, ETO_OPAQUE, &rect, string, nchars, NULL);
+    BOOL res = ExtTextOut((HDC)hDC, 0, 0, ETO_OPAQUE, &rect, string, nchars, NULL);
     ASSERT(res != 0);
 
-    res = pShadowSurface->ReleaseDC(hDC);
-    ASSERT(!FAILED(res));
+    ge_text_surface_release_dc(pShadowSurface, hDC);
 
     //
     // copy to cache
     //
 
     // lock the surface
-    DDSURFACEDESC2 ddsdesc;
+    uint8_t* sptr;
+    int32_t spitch;
 
-    InitStruct(ddsdesc);
-
-    res = pShadowSurface->Lock(NULL, &ddsdesc, DDLOCK_WAIT, NULL);
-    ASSERT(!FAILED(res));
-
-    UBYTE* sptr = (UBYTE*)ddsdesc.lpSurface;
-    int spitch = ddsdesc.lPitch;
+    ok = ge_text_surface_lock(pShadowSurface, &sptr, &spitch);
+    ASSERT(ok);
 
     // copy to cache
     int line;
@@ -486,8 +427,7 @@ static void CreateTextLine(char* string, int nchars, int width, int x, int y, Te
     }
 
     // unlock the surface
-    res = pShadowSurface->Unlock(NULL);
-    ASSERT(!FAILED(res));
+    ge_text_surface_unlock(pShadowSurface);
 }
 
 // uc_orig: NewCacheLine (fallen/DDEngine/Source/truetype.cpp)
@@ -506,12 +446,11 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
     if (width > 256)
         width = 256;
 
-    HRESULT res;
-    UWORD* dptr;
-    SLONG dpitch;
+    uint16_t* dptr;
+    int32_t dpitch;
 
-    res = cptr->texture->LockUser(&dptr, &dpitch);
-    if (FAILED(res))
+    bool ok = ge_lock_texture_pixels(cptr->texture_page, &dptr, &dpitch);
+    if (!ok)
         return;
 
     dpitch /= 2;
@@ -527,7 +466,7 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
         dptr += dpitch;
     }
 
-    cptr->texture->UnlockUser();
+    ge_unlock_texture_pixels(cptr->texture_page);
     cptr->width = width;
 }
 
@@ -535,14 +474,14 @@ static void CopyToCache(CacheLine* cptr, UBYTE* sptr, int spitch, int width)
 static void BlitText()
 {
     int ii;
-    D3DTexture* ctex = NULL;
+    int32_t current_page = -1;
     CacheLine* cptr = Cache;
 
     // go through in texture order
     for (ii = 0; ii < NumCacheLines; ii++) {
         if (cptr->owner) {
             // set render states
-            if (!ctex) {
+            if (current_page == -1) {
                 ge_begin_scene();
 
                 // Fixme! I need to be updated if this ever gets called - TomF.
@@ -553,9 +492,9 @@ static void BlitText()
                 ge_set_depth_mode(GEDepthMode::Off);
                 ge_set_blend_mode(GEBlendMode::Alpha);
             }
-            if (ctex != cptr->texture) {
-                ctex = cptr->texture;
-                ge_bind_texture(reinterpret_cast<GETextureHandle>(ctex->GetD3DTexture()));
+            if (current_page != cptr->texture_page) {
+                current_page = cptr->texture_page;
+                ge_bind_texture(ge_get_texture_handle(current_page));
             }
 
             // blit area
@@ -564,7 +503,7 @@ static void BlitText()
         cptr++;
     }
 
-    if (ctex) {
+    if (current_page != -1) {
         ge_end_scene();
     }
 }

@@ -1,24 +1,21 @@
-#ifndef ENGINE_GRAPHICS_GE_D3D_TRUETYPE_GLOBALS_H
-#define ENGINE_GRAPHICS_GE_D3D_TRUETYPE_GLOBALS_H
+#ifndef ENGINE_GRAPHICS_TEXT_TRUETYPE_GLOBALS_H
+#define ENGINE_GRAPHICS_TEXT_TRUETYPE_GLOBALS_H
 
 #include <windows.h>
-#include <ddraw.h>
-#include <d3d.h>
 #include "engine/core/types.h"
 #include "engine/graphics/text/truetype.h"
-#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // uc_orig: CacheLine (fallen/DDEngine/Headers/truetype.h)
 // One row-slice of a texture page used to cache a rendered line of text.
-// D3D-specific: references D3DTexture directly.
 struct CacheLine {
     TextCommand* owner; // owning TextCommand, NULL if free
     int sx, sy;         // screen position to blit to
     int width;          // width used in this slice
     int height;         // height of this slice
 
-    D3DTexture* texture; // which texture page this slice lives in
-    int y;               // Y offset within the texture page
+    int32_t texture_page; // texture page index for this slice
+    int y;                // Y offset within the texture page
 };
 
 // Anti-alias factor: text is rendered at 2x resolution then downsampled.
@@ -45,17 +42,18 @@ struct CacheLine {
 // uc_orig: MAX_TEXTCOMMANDS (fallen/DDEngine/Source/truetype.cpp)
 #define TT_MAX_TEXTCOMMANDS 32
 
-// Height of the font in pixels — set at init time from INI.
+// Reserved texture page indices for TT glyph cache (allocated from the global texture pool).
+// Must not overlap with game texture pages.
+// uc_orig: Texture (fallen/DDEngine/Source/truetype.cpp)
+#define TT_TEXTURE_PAGE_BASE 1560
+
+// Height of the font in pixels �� set at init time from INI.
 // uc_orig: FontHeight (fallen/DDEngine/Source/truetype.cpp)
 extern int tt_FontHeight;
 
-// Off-screen DirectDraw surface used as a GDI drawing target for text rendering.
+// Opaque text rendering shadow surface (8bpp palettized with GDI DC).
 // uc_orig: pShadowSurface (fallen/DDEngine/Source/truetype.cpp)
-extern IDirectDrawSurface4* tt_pShadowSurface;
-
-// Palette attached to the 8bpp shadow surface.
-// uc_orig: pShadowPalette (fallen/DDEngine/Source/truetype.cpp)
-extern IDirectDrawPalette* tt_pShadowPalette;
+extern GETextSurface tt_pShadowSurface;
 
 // GDI font handles: full size, 3/4 size, 1/2 size, and the previous font saved during init.
 // uc_orig: hFont (fallen/DDEngine/Source/truetype.cpp)
@@ -66,10 +64,6 @@ extern HFONT tt_hMidFont;
 extern HFONT tt_hSmallFont;
 // uc_orig: hOldFont (fallen/DDEngine/Source/truetype.cpp)
 extern HFONT tt_hOldFont;
-
-// Texture pages for the glyph cache.
-// uc_orig: Texture (fallen/DDEngine/Source/truetype.cpp)
-extern D3DTexture tt_Texture[TT_NUM_PAGES];
 
 // Cache line descriptors — one entry per font-height-sized row of texture.
 // uc_orig: Cache (fallen/DDEngine/Source/truetype.cpp)
@@ -87,4 +81,4 @@ extern UWORD tt_PixMapping[256];
 // uc_orig: Commands (fallen/DDEngine/Source/truetype.cpp)
 extern TextCommand tt_Commands[TT_MAX_TEXTCOMMANDS];
 
-#endif // ENGINE_GRAPHICS_GE_D3D_TRUETYPE_GLOBALS_H
+#endif // ENGINE_GRAPHICS_TEXT_TRUETYPE_GLOBALS_H

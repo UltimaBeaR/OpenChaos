@@ -384,6 +384,26 @@ void ge_reclaim_vertex_buffers();
 // Dump vertex buffer pool info to a file descriptor (debug).
 void ge_dump_vpool_info(void* fd);
 
+// Allocate a vertex buffer from the pool with 2^logsize capacity.
+// Returns opaque handle (NULL on failure). Writes locked vertex pointer and actual logsize.
+void* ge_vb_alloc(uint32_t logsize, void** out_ptr, uint32_t* out_logsize);
+
+// Expand a vertex buffer to the next size class. Returns new handle.
+// Updates locked vertex pointer and logsize.
+void* ge_vb_expand(void* vb, void** out_ptr, uint32_t* out_logsize);
+
+// Release a vertex buffer back to the pool.
+void ge_vb_release(void* vb);
+
+// Get the locked vertex write pointer for a vertex buffer.
+void* ge_vb_get_ptr(void* vb);
+
+// Prepare a vertex buffer for rendering (unlock). Returns opaque drawable handle.
+void* ge_vb_prepare(void* vb);
+
+// Draw indexed triangles from a prepared vertex buffer.
+void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count);
+
 // ---------------------------------------------------------------------------
 // Texture pixel access
 // ---------------------------------------------------------------------------
@@ -485,6 +505,32 @@ void ge_texture_set_type(int32_t page, int32_t type);
 
 // Get the opaque texture handle for a page (for binding).
 GETextureHandle ge_get_texture_handle(int32_t page);
+
+// ---------------------------------------------------------------------------
+// Text rendering shadow surface (8bpp palettized with GDI DC)
+// ---------------------------------------------------------------------------
+
+// Opaque handle for text rendering shadow surface.
+using GETextSurface = uintptr_t;
+constexpr GETextSurface GE_TEXT_SURFACE_NONE = 0;
+
+// Create an 8bpp palettized surface with greyscale palette for GDI text rendering.
+GETextSurface ge_text_surface_create(int32_t width, int32_t height);
+
+// Destroy a text surface.
+void ge_text_surface_destroy(GETextSurface surface);
+
+// Get a GDI device context for the surface (for text rendering). Returns false on failure.
+bool ge_text_surface_get_dc(GETextSurface surface, void** out_dc);
+
+// Release the GDI device context.
+void ge_text_surface_release_dc(GETextSurface surface, void* dc);
+
+// Lock the surface for pixel reading. Returns false on failure.
+bool ge_text_surface_lock(GETextSurface surface, uint8_t** out_pixels, int32_t* out_pitch);
+
+// Unlock the surface.
+void ge_text_surface_unlock(GETextSurface surface);
 
 // ---------------------------------------------------------------------------
 // Callbacks (game code hooks into backend lifecycle)

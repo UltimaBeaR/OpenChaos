@@ -1126,6 +1126,74 @@ display/truetype/work_screen — сложные (DDraw lifecycle, surface lockin
 
 ---
 
+### Шаг 3.5 — Зачистка зависимостей бэкенда (продолжение)
+
+**polypage.cpp → pipeline/ ✅**
+
+Добавлены ge_vb_* обёртки в контракт (`game_graphics_engine.h`):
+- `ge_vb_alloc(logsize, &ptr, &logsize)` → TheVPool->GetBuffer
+- `ge_vb_expand(vb, &ptr, &logsize)` → TheVPool->ExpandBuffer
+- `ge_vb_release(vb)` → TheVPool->ReleaseBuffer
+- `ge_vb_get_ptr(vb)` → VertexBuffer::GetPtr
+- `ge_vb_prepare(vb)` → TheVPool->PrepareBuffer
+- `ge_draw_indexed_primitive_vb(prepared, indices, count)` → DrawIndexedPrimitiveVB
+
+Все обращения к TheVPool, VB(), the_display.lp_D3D_Device заменены на ge_vb_*.
+Файл перенесён из `backend_directx6/game/` → `engine/graphics/pipeline/`.
+Реализация ge_vb_* — в `backend_directx6/game/core.cpp`.
+Сборка: 327/327.
+
+**d3d_texture.h — убраны tga.h и file_clump.h из хедера ✅**
+
+- `#include "assets/formats/tga.h"` перенесён из хедера в d3d_texture.cpp (private).
+- `#include "assets/formats/file_clump.h"` убран (не использовался в d3d_texture напрямую).
+- `CreateFonts` — из public метода D3DTexture стала file-static функцией
+  (принимает `Font** font_list` вместо обращения к `this->FontList`).
+  Вызывается только из `Reload_TGA` в том же файле.
+Сборка: 327/327.
+
+**truetype.cpp → text/ ✅**
+
+Добавлены ge_text_surface_* обёртки в контракт:
+- `ge_text_surface_create(width, height)` → DDraw CreateSurface + CreatePalette + SetPalette
+- `ge_text_surface_destroy(surface)` → SetPalette(NULL) + palette Release + surface Release
+- `ge_text_surface_get_dc(surface, &dc)` → surface GetDC
+- `ge_text_surface_release_dc(surface, dc)` → surface ReleaseDC
+- `ge_text_surface_lock(surface, &pixels, &pitch)` → surface Lock
+- `ge_text_surface_unlock(surface)` → surface Unlock
+
+Реализация: D3D бэкенд хранит `TextSurfaceData { IDirectDrawSurface4*, IDirectDrawPalette* }`
+за opaque GETextSurface handle. Palette создаётся автоматически (greyscale 0-255).
+
+D3DTexture кеш-страницы заменены на page indices:
+- `CacheLine::texture` (D3DTexture*) → `CacheLine::texture_page` (int32_t)
+- TT страницы выделяются из глобального пула (TT_TEXTURE_PAGE_BASE = 1560)
+- `Texture[ii].CreateUserPage()` → `ge_texture_create_user_page(page, ...)`
+- `Texture[0].mask_red` etc. → `ge_get_texture_pixel_format(page, ...)`
+- `cptr->texture->LockUser()` → `ge_lock_texture_pixels(page, ...)`
+- `ctex->GetD3DTexture()` → `ge_get_texture_handle(page)`
+
+Новый `truetype_globals.h` — чист от D3D: GETextSurface вместо IDirectDrawSurface4*,
+int32_t texture_page вместо D3DTexture*. Убраны IDirectDrawPalette*, D3DTexture array.
+
+Файлы перенесены: `backend_directx6/game/truetype.cpp` → `engine/graphics/text/truetype.cpp`,
+`backend_directx6/game/truetype_globals.h/.cpp` → `engine/graphics/text/truetype_globals.h/.cpp`.
+
+Stub backend обновлён — добавлены стабы, убраны дубликаты common-функций
+(ge_set_polys_drawn_callback, ge_draw_multi_matrix, GenerateMMMatrixFromStandardD3DOnes, PreFlipTT).
+
+**Аудит после зачистки:**
+- backend_directx6/ (24 файла): 0 imports из game/, pipeline/, text/, geometry/.
+  tga.h — только в .cpp файлах (d3d_texture.cpp, display.cpp), не в хедерах.
+- Игровой код (всё вне backend): 0 утечек DirectX (D3D типы, хедеры, глобалы).
+- backend_directx6/game/ теперь: core.cpp, vertex_buffer.cpp/h, work_screen.cpp/h — чисто D3D код.
+
+**Осталось:** вынести TGA loading из d3d_texture.cpp и display.cpp (бэкенд получает пиксели).
+
+Сборка: 327/327. Запуск: ок.
+
+---
+
 ## План работы
 
 ### Шаг 1 — Отключить outro
