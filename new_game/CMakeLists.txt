@@ -86,6 +86,7 @@ elseif(GRAPHICS_BACKEND STREQUAL "opengl")
         src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
         # --- common ---
         src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
+        src/engine/graphics/graphics_engine/backend_opengl/common/gl_shader.cpp
         # --- game (ge_* implementation) ---
         src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp
         # --- outro (oge_* implementation) ---
@@ -532,6 +533,7 @@ set_source_files_properties(
 )
 set_source_files_properties(
     src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
+    src/engine/graphics/graphics_engine/backend_opengl/common/gl_shader.cpp
     PROPERTIES COMPILE_OPTIONS "/Zp8"
 )
 

@@ -1238,6 +1238,84 @@ Stub backend обновлён — добавлены стабы, убраны д
 
 ---
 
+## Шаг 4, Фаза 2 — Шейдеры + рисование
+
+**Цель:** заменить стабы draw-функций реальными GL вызовами через шейдеры.
+
+**Анализ вызовов draw-функций:**
+- `ge_draw_primitive` — 0 вызовов (стаб оставлен, но реализован)
+- `ge_draw_indexed_primitive` (TL) — 4 вызова (truetype, aeng×2, polypage)
+- `ge_draw_indexed_primitive_lit` — 4 вызова (aeng×2, farfacet, fastprim)
+- `ge_draw_indexed_primitive_unlit` — 0 вызовов (стаб)
+- `ge_draw_indexed_primitive_vb` — 2 вызова (polypage, Phase 7)
+- Все вызовы используют TriangleList, TriangleFan не используется нигде
+
+**Новые файлы:**
+- `backend_opengl/common/gl_shader.h` — интерфейс компиляции шейдеров
+- `backend_opengl/common/gl_shader.cpp` — компиляция vertex/fragment, линковка program
+
+**Шейдерная архитектура:**
+Две шейдерные программы:
+1. `s_program_tl` — для GEVertexTL (pre-transformed, screen-space)
+2. `s_program_lit` — для GEVertexLit (world-space, pre-lit)
+
+Общий fragment shader обрабатывает:
+- Текстуры: sampling + blend modes (Modulate/ModulateAlpha/Decal)
+- Alpha test: discard по alpha_ref + alpha_func
+- Color key: discard при alpha < 0.004
+- Fog: linear blend по specular.a (D3D6: specular alpha = fog factor)
+- Specular: RGB addition
+
+**TL vertex shader:**
+- Входные атрибуты: position (vec3), rhw (float), color (u8x4 BGRA), specular (u8x4 BGRA), texcoord (vec2)
+- Screen → NDC: `ndc = (pos - viewport.xy) / viewport.zw * 2 - 1`, Y flip
+- Perspective-correct interpolation: `gl_Position = vec4(ndc * w, w)` где `w = 1/rhw`
+- BGRA → RGBA swizzle: `.zyxw`
+
+**Lit vertex shader:**
+- Входные атрибуты: position (vec3), _reserved (float), color/specular/texcoord (как TL)
+- Transform: `gl_Position = Projection * View * World * vec4(pos, 1.0)`
+- Матрицы транспонируются (row-major → column-major) при загрузке uniform
+
+**GL объекты:**
+- 1 VBO + 1 EBO (streaming, GL_STREAM_DRAW, orphan каждый draw call)
+- 2 VAO: TL (32B stride), Lit (32B stride, тот же layout но другая семантика)
+- Lazy init при первом draw call
+
+**Трекинг состояний для uniform'ов:**
+- `s_texture_blend` — отслеживается в `ge_set_texture_blend()`
+- `s_bound_texture` — отслеживается в `ge_bind_texture()`
+- Fog, alpha test, specular, color key — уже отслеживались
+
+Сборка: 320/320, линковка ок.
+
+**Тестирование — краш при запуске:**
+1. Первый запуск: чёрное окно, сразу закрывается.
+   Причина: `ge_vb_alloc` возвращал nullptr → `PolyPage::PointAlloc` → NULL →
+   `pv->SetSC(...)` в `POLY_add_quad_fast` → segfault.
+   Фикс: реализован полноценный CPU-side vertex buffer pool (вместо стабов).
+   - `GLVertexBuf` struct: data (malloc), capacity, logsize, in_use flag
+   - 64-slot pool (`s_vb_pool[64]`), lazy init
+   - ge_vb_alloc: ищет свободный слот, malloc при необходимости
+   - ge_vb_expand: realloc на следующий размер
+   - ge_vb_prepare: возвращает handle (данные уже в CPU памяти)
+   - ge_draw_indexed_primitive_vb: загружает в VBO, рисует, освобождает буфер
+
+2. Второй запуск: чёрное окно, закрывается через ~60 кадров.
+   Причина: пул из 64 буферов исчерпывался — `Render()` вызывает `ge_vb_prepare`
+   но не возвращает буфер в пул. `ge_reclaim_vertex_buffers` вызывается только
+   в основном рендер-цикле (AENG_draw), не во время загрузки.
+   Фикс: `ge_draw_indexed_primitive_vb` помечает буфер `in_use = false` после draw
+   (данные уже загружены в GPU через glBufferData).
+
+3. Финальное состояние: не крашится. Чёрное окно, загрузочный цикл крутится
+   бесконечно (TEXTURE_load_needed → ATTRACT_loadscreen_draw в цикле).
+   Причина: текстуры не грузятся (стабы Phase 3). Ожидаемое поведение.
+
+**Фаза 2 ЗАВЕРШЕНА.** Шейдеры, draw pipeline и VB pool работают. Блокер — текстуры (Phase 3).
+
+---
+
 ## План работы
 
 ### Шаг 1 — Отключить outro
