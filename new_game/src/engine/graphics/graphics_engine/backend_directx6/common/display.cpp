@@ -16,14 +16,12 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/display_macros.h"   // dd_error, d3d_error macros
 #include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
-#include "assets/formats/tga.h"                // OpenTGAClump, CloseTGAClump
 #include "engine/core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
 #include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-
-extern CBYTE DATA_DIR[];
+#include "engine/graphics/graphics_engine/backend_directx6/backend_internal.h"
 
 // uc_orig: calculate_mask_and_shift (fallen/DDLibrary/Source/GDisplay.cpp)
 static void calculate_mask_and_shift(ULONG bitmask, SLONG* mask, SLONG* shift);
@@ -69,7 +67,7 @@ void InitBackImage(CBYTE* name)
     SLONG height;
     CBYTE fname[200];
 
-    sprintf(fname, "%sdata\\%s", DATA_DIR, name);
+    sprintf(fname, "%sdata\\%s", ge_get_data_dir(), name);
 
     if (image_mem == 0) {
         image_mem = (UBYTE*)MemAlloc(640 * 480 * 3);
@@ -1392,9 +1390,7 @@ HRESULT Display::ReloadTextures(void)
 {
     D3DTexture* current_texture;
 
-    if (clumpfile[0]) {
-        OpenTGAClump(clumpfile, clumpsize, true);
-    }
+    if (s_texture_reload_prepare_callback) s_texture_reload_prepare_callback(true, clumpfile, clumpsize);
 
     current_texture = TextureList;
     while (current_texture) {
@@ -1403,9 +1399,7 @@ HRESULT Display::ReloadTextures(void)
         current_texture = next_texture;
     }
 
-    if (clumpfile[0]) {
-        CloseTGAClump();
-    }
+    if (s_texture_reload_prepare_callback) s_texture_reload_prepare_callback(false, NULL, 0);
 
     return DD_OK;
 }

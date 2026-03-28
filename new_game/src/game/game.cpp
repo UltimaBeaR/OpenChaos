@@ -51,7 +51,8 @@
 #include "navigation/wmove.h"
 #include "navigation/wmove_globals.h"
 #include "engine/console/console.h"  // CONSOLE_draw, CONSOLE_font
-#include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw
+#include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
+#include "assets/formats/tga.h"              // TGA_load, OpenTGAClump, CloseTGAClump
 #include "ui/hud/eng_map.h"  // MAP_process
 #include "ui/hud/eng_map_globals.h"
 #include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
@@ -178,6 +179,44 @@ static void game_polys_drawn(int32_t count)
     AENG_total_polys_drawn += count;
 }
 
+// Render states reset callback: called by backend after texture reload.
+static void game_render_states_reset()
+{
+    POLY_reset_render_states();
+}
+
+// TGA load callback: backend calls this to load texture pixels.
+// Game code handles TGA format; backend receives raw BGRA pixels.
+static bool game_tga_load(const char* name, uint32_t id, bool can_shrink,
+                           uint8_t** out_pixels, int32_t* out_width, int32_t* out_height,
+                           bool* out_contains_alpha)
+{
+    // Allocate max-size buffer (256x256 BGRA).
+    *out_pixels = (uint8_t*)MemAlloc(256 * 256 * 4);
+    if (!*out_pixels) return false;
+
+    TGA_Info ti = TGA_load(name, 256, 256, (TGA_Pixel*)*out_pixels, id, can_shrink ? UC_TRUE : UC_FALSE);
+    if (!ti.valid) {
+        MemFree(*out_pixels);
+        *out_pixels = NULL;
+        return false;
+    }
+    *out_width = ti.width;
+    *out_height = ti.height;
+    *out_contains_alpha = (ti.contains_alpha != 0);
+    return true;
+}
+
+// Texture reload prepare callback: opens/closes TGA clump archive for device-lost recovery.
+static void game_texture_reload_prepare(bool begin, const char* clump_file, size_t clump_size)
+{
+    if (begin) {
+        if (clump_file && clump_file[0]) OpenTGAClump(clump_file, clump_size, true);
+    } else {
+        CloseTGAClump();
+    }
+}
+
 // uc_orig: global_load (fallen/Source/Game.cpp)
 void global_load(void)
 {
@@ -204,6 +243,10 @@ void game_startup(void)
     ge_set_pre_flip_callback(game_pre_flip);
     ge_set_mode_change_callback(game_mode_changed);
     ge_set_polys_drawn_callback(game_polys_drawn);
+    ge_set_render_states_reset_callback(game_render_states_reset);
+    ge_set_tga_load_callback(game_tga_load);
+    ge_set_texture_reload_prepare_callback(game_texture_reload_prepare);
+    ge_set_data_dir(DATA_DIR);
 
     if (OpenDisplay(640, 480, 16, FLAGS_USE_3D | FLAGS_USE_WORKSCREEN) == 0) {
         GAME_STATE = GS_ATTRACT_MODE;

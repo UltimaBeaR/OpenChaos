@@ -3,7 +3,7 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
-#include "assets/formats/tga.h"                                    // TGA_load, TGA_Pixel, TGA_Info
+#include "engine/graphics/graphics_engine/backend_directx6/backend_internal.h"
 
 // VERIFY is a no-op wrapper used in place of checked HRESULT asserts in release builds.
 // uc_orig: VERIFY (fallen/DDLibrary/Source/D3DTexture.cpp)
@@ -11,14 +11,22 @@
 #define VERIFY(x) x
 #endif
 
-// Forward declaration of the render state reset hook in the polygon pipeline.
-extern void POLY_reset_render_states(void);
+// Backend-local pixel type matching BGRAPixel layout (BGRA, 4 bytes).
+struct BGRAPixel {
+    UBYTE blue, green, red, alpha;
+};
+
+// Backend-local texture info (replaces TexLoadInfo).
+struct TexLoadInfo {
+    SLONG width, height;
+    SLONG contains_alpha;
+};
 
 // Forward declarations of file-private helpers.
 // uc_orig: scan_for_baseline (fallen/DDLibrary/Source/D3DTexture.cpp)
-static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_Info* info, SLONG* y_ptr);
+static BOOL scan_for_baseline(BGRAPixel** line_ptr, BGRAPixel* underline, TexLoadInfo* info, SLONG* y_ptr);
 // uc_orig: D3DTexture::CreateFonts (fallen/DDLibrary/Source/D3DTexture.cpp)
-static HRESULT CreateFonts(Font** font_list, TGA_Info* tga_info, TGA_Pixel* tga_data);
+static HRESULT CreateFonts(Font** font_list, TexLoadInfo* info, BGRAPixel* data);
 
 // uc_orig: GetMeAFastLoadBufferAtLeastThisBigPlease (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Returns pvFastLoadBuffer, growing it via VirtualAlloc if it is smaller than dwSize.
@@ -78,7 +86,7 @@ inline void* FastLoadFileSomewhere(MFFileHandle handle, DWORD dwSize)
 void FreeAllD3DPages(void)
 {
     // And redo all the render states and sorting.
-    POLY_reset_render_states();
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
 }
 
 // uc_orig: D3DTexture::BeginLoading (fallen/DDLibrary/Source/D3DTexture.cpp)
@@ -91,7 +99,7 @@ void D3DTexture::BeginLoading()
     EmbedOffset = 0;
 
     // And redo all the render states and sorting.
-    POLY_reset_render_states();
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
 }
 
 // uc_orig: D3DPage::EnsureLoaded (fallen/DDLibrary/Source/D3DTexture.cpp)
@@ -324,42 +332,29 @@ HRESULT D3DTexture::Reload_TGA(void)
 
     DDSURFACEDESC2 dd_sd;
 
-    TGA_Info ti;
-    TGA_Pixel* tga;
-
-    // HRESULT result;
+    TexLoadInfo ti;
+    BGRAPixel* tga;
 
     //
-    // Allocate memory for the texture.
+    // Load the texture via callback (game code handles TGA format).
     //
+    ASSERT(s_tga_load_callback);
 
-    tga = (TGA_Pixel*)MemAlloc(256 * 256 * sizeof(TGA_Pixel));
+    uint8_t* raw_pixels = NULL;
+    int32_t load_w = 0, load_h = 0;
+    bool load_alpha = false;
 
-    if (tga == NULL) {
+    bool loaded = s_tga_load_callback(texture_name, ID, bCanShrink,
+                                       &raw_pixels, &load_w, &load_h, &load_alpha);
 
+    if (!loaded || !raw_pixels) {
         return DDERR_GENERIC;
     }
 
-    //
-    // Load the texture.
-    //
-    ti = TGA_load(
-        texture_name,
-        256,
-        256,
-        tga,
-        ID,
-        bCanShrink);
-
-    if (!ti.valid) {
-        //
-        // Invalid tga.
-        //
-
-        // ASSERT ( UC_FALSE );
-        MemFree(tga);
-        return DDERR_GENERIC;
-    }
+    tga = (BGRAPixel*)raw_pixels;
+    ti.width = load_w;
+    ti.height = load_h;
+    ti.contains_alpha = load_alpha ? 1 : 0;
 
     if (ti.width != ti.height) {
         MemFree(tga);
@@ -830,7 +825,7 @@ HRESULT D3DTexture::Reload(void)
     // this happens is tricky ...
     // so there's a cheeky little call here ...
     //
-    POLY_reset_render_states();
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
 
     if (IsFont()) {
         current_font = FontList;
@@ -897,7 +892,7 @@ HRESULT D3DTexture::Destroy(void)
 // uc_orig: scan_for_baseline (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Advances line_ptr and y_ptr through the TGA data until a row whose first pixel matches
 // underline is found. Returns UC_TRUE and positions line_ptr/y_ptr on the row after the baseline.
-static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_Info* info, SLONG* y_ptr)
+static BOOL scan_for_baseline(BGRAPixel** line_ptr, BGRAPixel* underline, TexLoadInfo* info, SLONG* y_ptr)
 {
     while (*y_ptr < info->height) {
         if (MATCH_TGA_PIXELS(*line_ptr, underline)) {
@@ -917,14 +912,14 @@ static BOOL scan_for_baseline(TGA_Pixel** line_ptr, TGA_Pixel* underline, TGA_In
 // Parses glyph geometry from a font texture page using magenta (0xff,0x00,0xff) as the
 // separator colour. Builds a linked list of Font objects attached to font_list.
 // Multiple font sets can be stacked vertically in the same TGA.
-static HRESULT CreateFonts(Font** font_list, TGA_Info* tga_info, TGA_Pixel* tga_data)
+static HRESULT CreateFonts(Font** font_list, TexLoadInfo* tga_info, BGRAPixel* tga_data)
 {
     SLONG current_char,
         char_x, char_y,
         char_height, char_width,
         tallest_char;
     Font* the_font;
-    TGA_Pixel underline,
+    BGRAPixel underline,
         *current_line,
         *current_pixel;
 

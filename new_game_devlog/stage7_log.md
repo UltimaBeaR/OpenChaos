@@ -1182,15 +1182,59 @@ int32_t texture_page вместо D3DTexture*. Убраны IDirectDrawPalette*,
 Stub backend обновлён — добавлены стабы, убраны дубликаты common-функций
 (ge_set_polys_drawn_callback, ge_draw_multi_matrix, GenerateMMMatrixFromStandardD3DOnes, PreFlipTT).
 
-**Аудит после зачистки:**
+**Аудит после зачистки (промежуточный):**
 - backend_directx6/ (24 файла): 0 imports из game/, pipeline/, text/, geometry/.
   tga.h — только в .cpp файлах (d3d_texture.cpp, display.cpp), не в хедерах.
 - Игровой код (всё вне backend): 0 утечек DirectX (D3D типы, хедеры, глобалы).
 - backend_directx6/game/ теперь: core.cpp, vertex_buffer.cpp/h, work_screen.cpp/h — чисто D3D код.
 
-**Осталось:** вынести TGA loading из d3d_texture.cpp и display.cpp (бэкенд получает пиксели).
-
 Сборка: 327/327. Запуск: ок.
+
+---
+
+### Полная изоляция бэкенда от не-engine кода ✅
+
+Последние 5 нарушений устранены:
+
+**1. TGA_load → callback `s_tga_load_callback` ✅**
+- d3d_texture.cpp: `#include "assets/formats/tga.h"` убран.
+- `TGA_Pixel`/`TGA_Info` заменены на backend-local `BGRAPixel`/`TexLoadInfo`.
+- `TGA_load()` вызов в `Reload_TGA()` заменён на `s_tga_load_callback()`.
+- Game code (game.cpp) регистрирует `game_tga_load` который вызывает `TGA_load`.
+
+**2. POLY_reset_render_states → callback `s_render_states_reset_callback` ✅**
+- d3d_texture.cpp: `extern void POLY_reset_render_states()` убран.
+- 3 вызова заменены на `if (s_render_states_reset_callback) s_render_states_reset_callback()`.
+- Game code регистрирует `game_render_states_reset` → `POLY_reset_render_states()`.
+
+**3. OpenTGAClump/CloseTGAClump → callback `s_texture_reload_prepare_callback` ✅**
+- display.cpp: `#include "assets/formats/tga.h"` убран.
+- `ReloadTextures()` вызывает callback с `(begin, clumpfile, clumpsize)`.
+- Game code регистрирует `game_texture_reload_prepare` → OpenTGAClump/CloseTGAClump.
+
+**4. extern DATA_DIR → ge_set_data_dir / ge_get_data_dir ✅**
+- display.cpp и core.cpp: `extern DATA_DIR[]` убран.
+- Backend хранит свою копию `s_data_dir[256]`, заполняемую через `ge_set_data_dir()`.
+- Game code вызывает `ge_set_data_dir(DATA_DIR)` при старте.
+
+**5. backend_internal.h — новый файл ✅**
+- Shared объявления между common/ и game/ (ge_get_data_dir, extern callbacks).
+- Не часть public контракта, только internal backend use.
+
+**Новые callbacks в контракте (game_graphics_engine.h):**
+- `ge_set_render_states_reset_callback(GERenderStatesResetCallback)`
+- `ge_set_tga_load_callback(GETGALoadCallback)` — `(name, id, can_shrink) → (pixels, w, h, alpha)`
+- `ge_set_texture_reload_prepare_callback(GETextureReloadPrepareCallback)` — `(begin, clump_file, clump_size)`
+- `ge_set_data_dir(const char* dir)`
+
+**Финальный аудит:**
+- `grep '^#include "(?!engine/)' backend_directx6/` → 0 результатов.
+- 0 extern на game/assets/pipeline код.
+- Бэкенд зависит ТОЛЬКО от: system headers, engine/*, backend-internal, контракты.
+
+Сборка: 327/327. Запуск: ок (текстуры, шрифты, загрузочные экраны — работают).
+
+**Шаг 3.5 ЗАВЕРШЁН.**
 
 ---
 

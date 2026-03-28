@@ -550,6 +550,28 @@ void ge_set_mode_change_callback(GEModeChangeCallback callback);
 using GEPolysDrawnCallback = void (*)(int32_t count);
 void ge_set_polys_drawn_callback(GEPolysDrawnCallback callback);
 
+// Render state reset callback: backend calls this after texture reload to reset pipeline state.
+using GERenderStatesResetCallback = void (*)();
+void ge_set_render_states_reset_callback(GERenderStatesResetCallback callback);
+
+// TGA load callback: backend calls this to load texture pixels from a TGA file.
+// Game code implements the actual TGA loading (format knowledge stays outside backend).
+// Callee allocates out_pixels (BGRA, 4 bytes/pixel); caller frees via MemFree.
+// Returns true on success.
+using GETGALoadCallback = bool (*)(const char* name, uint32_t id, bool can_shrink,
+                                    uint8_t** out_pixels, int32_t* out_width, int32_t* out_height,
+                                    bool* out_contains_alpha);
+void ge_set_tga_load_callback(GETGALoadCallback callback);
+
+// Texture reload prepare callback: called before/after batch texture reload (device-lost recovery).
+// Game code opens/closes the TGA clump archive.
+// begin=true: about to reload (clump_file/clump_size provided). begin=false: reload complete.
+using GETextureReloadPrepareCallback = void (*)(bool begin, const char* clump_file, size_t clump_size);
+void ge_set_texture_reload_prepare_callback(GETextureReloadPrepareCallback callback);
+
+// Set the game data root directory (backend uses for file path construction).
+void ge_set_data_dir(const char* dir);
+
 // Check if the display is NTSC mode (affects vertical position of some UI elements).
 bool ge_is_ntsc();
 

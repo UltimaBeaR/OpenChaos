@@ -12,8 +12,21 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
-// DATA_DIR: game data root path (defined in level_loader.cpp).
-extern char DATA_DIR[100];
+#include <string.h>
+
+// Backend-local data directory (set via ge_set_data_dir).
+static char s_data_dir[256] = "";
+
+// Callbacks registered by game code (extern — accessed from common/ via backend_internal.h).
+GERenderStatesResetCallback s_render_states_reset_callback = nullptr;
+GETGALoadCallback s_tga_load_callback = nullptr;
+GETextureReloadPrepareCallback s_texture_reload_prepare_callback = nullptr;
+
+void ge_set_render_states_reset_callback(GERenderStatesResetCallback callback) { s_render_states_reset_callback = callback; }
+void ge_set_tga_load_callback(GETGALoadCallback callback) { s_tga_load_callback = callback; }
+void ge_set_texture_reload_prepare_callback(GETextureReloadPrepareCallback callback) { s_texture_reload_prepare_callback = callback; }
+void ge_set_data_dir(const char* dir) { strncpy(s_data_dir, dir, sizeof(s_data_dir) - 1); s_data_dir[sizeof(s_data_dir) - 1] = '\0'; }
+const char* ge_get_data_dir() { return s_data_dir; }
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -773,7 +786,7 @@ GEScreenSurface ge_load_screen_surface(const char* filename)
 {
     // Delegate to the file-loading logic (reads raw 640x480 BGR, bottom-up).
     CBYTE fname[200];
-    sprintf(fname, "%sdata\\%s", DATA_DIR, filename);
+    sprintf(fname, "%sdata\\%s", s_data_dir, filename);
 
     UBYTE* image_data = (UBYTE*)MemAlloc(640 * 480 * 3);
     if (!image_data) return GE_SCREEN_SURFACE_NONE;

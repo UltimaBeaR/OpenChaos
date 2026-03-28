@@ -136,6 +136,10 @@ Font* ge_get_font(int32_t, int32_t) { return nullptr; }
 void ge_set_pre_flip_callback(GEPreFlipCallback) {}
 void ge_set_mode_change_callback(GEModeChangeCallback) {}
 // ge_set_polys_drawn_callback defined in pipeline/polypage.cpp (common code, not backend-specific)
+void ge_set_render_states_reset_callback(GERenderStatesResetCallback) {}
+void ge_set_tga_load_callback(GETGALoadCallback) {}
+void ge_set_texture_reload_prepare_callback(GETextureReloadPrepareCallback) {}
+void ge_set_data_dir(const char*) {}
 bool ge_is_ntsc() { return false; }
 void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 
