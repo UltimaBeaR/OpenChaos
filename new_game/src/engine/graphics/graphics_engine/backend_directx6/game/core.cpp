@@ -12,7 +12,8 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
-#include "assets/formats/level_loader.h" // DATA_DIR
+// DATA_DIR: game data root path (defined in level_loader.cpp).
+extern char DATA_DIR[100];
 
 // ---------------------------------------------------------------------------
 // Lifecycle

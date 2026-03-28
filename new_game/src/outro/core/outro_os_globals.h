@@ -57,11 +57,7 @@ extern ULONG OS_joy_button_down;
 extern ULONG OS_joy_button_up;
 
 
-// Screen dimensions — set from RealDisplayWidth/Height during OS_hack().
-// uc_orig: OS_screen_width (fallen/outro/os.cpp)
-extern float OS_screen_width;
-// uc_orig: OS_screen_height (fallen/outro/os.cpp)
-extern float OS_screen_height;
+// Screen dimensions — declared in outro_graphics_engine.h (OS_screen_width/height).
 
 // Tick counter base — set when the outro loop starts.
 // uc_orig: OS_game_start_tick_count (fallen/outro/os.cpp)
@@ -109,37 +105,8 @@ extern float OS_cam_screen_mul_x;
 // uc_orig: OS_cam_screen_mul_y (fallen/outro/os.cpp)
 extern float OS_cam_screen_mul_y;
 
-// Bitmap lock state — set by OS_texture_lock(), cleared by OS_texture_unlock().
-// uc_orig: OS_bitmap_format (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_format;
-// uc_orig: OS_bitmap_uword_screen (fallen/outro/os.cpp)
-extern UWORD* OS_bitmap_uword_screen;
-// uc_orig: OS_bitmap_uword_pitch (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_uword_pitch;
-// uc_orig: OS_bitmap_ubyte_screen (fallen/outro/os.cpp)
-extern UBYTE* OS_bitmap_ubyte_screen;
-// uc_orig: OS_bitmap_ubyte_pitch (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_ubyte_pitch;
-// uc_orig: OS_bitmap_width (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_width;
-// uc_orig: OS_bitmap_height (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_height;
-// uc_orig: OS_bitmap_mask_r (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_mask_r;
-// uc_orig: OS_bitmap_mask_g (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_mask_g;
-// uc_orig: OS_bitmap_mask_b (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_mask_b;
-// uc_orig: OS_bitmap_mask_a (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_mask_a;
-// uc_orig: OS_bitmap_shift_r (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_shift_r;
-// uc_orig: OS_bitmap_shift_g (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_shift_g;
-// uc_orig: OS_bitmap_shift_b (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_shift_b;
-// uc_orig: OS_bitmap_shift_a (fallen/outro/os.cpp)
-extern SLONG OS_bitmap_shift_a;
+// Bitmap lock state — declared in outro_graphics_engine.h (OS_bitmap_*).
+// Definitions remain in outro_os_globals.cpp.
 
 // sound global — the currently playing music track ID.
 // uc_orig: sound (fallen/outro/os.cpp)

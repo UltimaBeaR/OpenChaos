@@ -3,7 +3,6 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
-#include "engine/console/message.h"     // for POLY_reset_render_states extern
 
 // VERIFY is a no-op wrapper used in place of checked HRESULT asserts in release builds.
 // uc_orig: VERIFY (fallen/DDLibrary/Source/D3DTexture.cpp)

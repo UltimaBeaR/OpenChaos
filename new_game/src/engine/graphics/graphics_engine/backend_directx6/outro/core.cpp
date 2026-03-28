@@ -15,9 +15,11 @@
 #include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
 #include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
 #include "engine/platform/uc_common.h"
-#include "outro/core/outro_os_globals.h"
-#include "outro/core/outro_os.h"
-#include "outro/core/outro_tga.h"
+
+// VERIFY: in debug builds, assert on failure; in release, just execute.
+#ifndef VERIFY
+#define VERIFY(x) x
+#endif
 
 // ========================================================
 // INTERNAL TYPES (D3D-specific, not exposed in contract)
@@ -43,6 +45,7 @@ typedef struct {
 
 // Full definition of OS_Texture (opaque via OGETexture in the contract).
 // uc_orig: os_texture (fallen/outro/os.cpp)
+typedef struct os_texture OS_Texture;
 struct os_texture {
     CBYTE                  name[_MAX_PATH];
     UBYTE                  format;
@@ -215,51 +218,32 @@ void oge_shutdown()
 // ========================================================
 
 // uc_orig: OS_texture_create (from TGA) (fallen/outro/os.cpp)
-OGETexture oge_texture_create_from_tga(const char* fname, int32_t invert)
+// Now receives raw BGRA pixel data from the caller instead of loading TGA internally.
+OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
+                              uint32_t flags, const uint8_t* pixels, int32_t invert)
 {
     SLONG format;
 
-    OS_Texture*       ot;
-    OGE_Tformat*      best_otf;
-    OUTRO_TGA_Info    ti;
-    OUTRO_TGA_Pixel*  data;
-    CBYTE             fullpath[_MAX_PATH];
+    OS_Texture*  ot;
+    OGE_Tformat* best_otf;
 
+    // Dedup cache: return existing texture if same name+invert.
     for (ot = oge_texture_head; ot; ot = ot->next) {
-        if (strcmp(fname, ot->name) == 0) {
+        if (strcmp(name, ot->name) == 0) {
             if (ot->inverted == invert) {
                 return ot;
             }
         }
     }
 
-    data = (OUTRO_TGA_Pixel*)malloc(256 * 256 * sizeof(OUTRO_TGA_Pixel));
-
-    if (data == NULL) {
-        return NULL;
-    }
-
-    sprintf(fullpath, OGE_TEXTURE_DIR "%s", fname);
-
-    ti = OUTRO_TGA_load(fullpath, 256, 256, data);
-
-    if (!ti.valid) {
-        free(data);
-        return NULL;
-    }
-
-    if (ti.width != ti.height) {
-        free(data);
-        return NULL;
-    }
-
-    if (ti.flag & TGA_FLAG_CONTAINS_ALPHA) {
-        if (ti.flag & TGA_FLAG_ONE_BIT_ALPHA) {
+    // Select pixel format based on flags and hardware support.
+    if (flags & OGE_TEX_HAS_ALPHA) {
+        if (flags & OGE_TEX_ONE_BIT_ALPHA) {
             format = OGE_TEXTURE_FORMAT_1555;
         } else {
             format = OGE_TEXTURE_FORMAT_4444;
         }
-    } else if (ti.flag & TGA_FLAG_GRAYSCALE) {
+    } else if (flags & OGE_TEX_GRAYSCALE) {
         if (oge_tformat[OGE_TEXTURE_FORMAT_8].valid) {
             format = OGE_TEXTURE_FORMAT_8;
         } else {
@@ -272,26 +256,23 @@ OGETexture oge_texture_create_from_tga(const char* fname, int32_t invert)
     best_otf = &oge_tformat[format];
 
     if (!best_otf->valid) {
-        free(data);
         return NULL;
     }
 
     ot = (OS_Texture*)malloc(sizeof(OS_Texture));
-
     if (ot == NULL) {
-        free(data);
         return NULL;
     }
 
-    strncpy(ot->name, fname, _MAX_PATH);
+    strncpy(ot->name, name, _MAX_PATH);
     ot->format   = format;
     ot->inverted = invert;
 
     memset(&ot->ddsd, 0, sizeof(ot->ddsd));
 
     ot->ddsd.dwSize             = sizeof(DDSURFACEDESC2);
-    ot->ddsd.dwWidth            = ti.width;
-    ot->ddsd.dwHeight           = ti.height;
+    ot->ddsd.dwWidth            = width;
+    ot->ddsd.dwHeight           = height;
     ot->ddsd.dwMipMapCount      = 1;
     ot->ddsd.dwFlags            = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_MIPMAPCOUNT | DDSD_PIXELFORMAT;
     ot->ddsd.ddsCaps.dwCaps     = DDSCAPS_TEXTURE | DDSCAPS_MIPMAP | DDSCAPS_COMPLEX;
@@ -305,19 +286,19 @@ OGETexture oge_texture_create_from_tga(const char* fname, int32_t invert)
 
     ASSERT(res == DD_OK);
 
-    if (invert) {
-        SLONG i;
-        SLONG j;
-        OUTRO_TGA_Pixel* tp = data;
+    // Make a mutable copy of the pixel data for inversion.
+    SLONG pixel_count = width * height;
+    UBYTE* data = (UBYTE*)malloc(pixel_count * 4);
+    if (!data) { free(ot); return NULL; }
+    memcpy(data, pixels, pixel_count * 4);
 
-        for (i = 0; i < ti.width; i++) {
-            for (j = 0; j < ti.height; j++) {
-                tp->alpha = 255 - tp->alpha;
-                tp->red   = 255 - tp->red;
-                tp->green = 255 - tp->green;
-                tp->blue  = 255 - tp->blue;
-                tp += 1;
-            }
+    if (invert) {
+        UBYTE* p = data;
+        for (SLONG i = 0; i < pixel_count; i++, p += 4) {
+            p[0] = 255 - p[0]; // blue
+            p[1] = 255 - p[1]; // green
+            p[2] = 255 - p[2]; // red
+            p[3] = 255 - p[3]; // alpha
         }
     }
 
@@ -327,37 +308,32 @@ OGETexture oge_texture_create_from_tga(const char* fname, int32_t invert)
 
     VERIFY(ot->ddsurface->Lock(NULL, &ddsd, DDLOCK_WAIT, NULL) == DD_OK);
 
+    // Pixel layout in data[]: BGRA (blue, green, red, alpha), 4 bytes per pixel.
     if (format != OGE_TEXTURE_FORMAT_8) {
-        SLONG i;
-        SLONG j;
-        UWORD pixel_our;
-        OUTRO_TGA_Pixel pixel_tga;
         UWORD* wscreen = (UWORD*)ddsd.lpSurface;
 
-        for (i = 0; i < ti.width; i++) {
-            for (j = 0; j < ti.height; j++) {
-                pixel_tga = data[i + j * ti.width];
-                pixel_our = 0;
+        for (SLONG i = 0; i < width; i++) {
+            for (SLONG j = 0; j < height; j++) {
+                UBYTE* px = &data[(i + j * width) * 4];
+                UWORD pixel_our = 0;
 
-                pixel_our |= (pixel_tga.red   >> best_otf->mask_r) << best_otf->shift_r;
-                pixel_our |= (pixel_tga.green >> best_otf->mask_g) << best_otf->shift_g;
-                pixel_our |= (pixel_tga.blue  >> best_otf->mask_b) << best_otf->shift_b;
+                pixel_our |= (px[2] >> best_otf->mask_r) << best_otf->shift_r; // red
+                pixel_our |= (px[1] >> best_otf->mask_g) << best_otf->shift_g; // green
+                pixel_our |= (px[0] >> best_otf->mask_b) << best_otf->shift_b; // blue
 
                 if (best_otf->ddpf.dwFlags & DDPF_ALPHAPIXELS) {
-                    pixel_our |= (pixel_tga.alpha >> best_otf->mask_a) << best_otf->shift_a;
+                    pixel_our |= (px[3] >> best_otf->mask_a) << best_otf->shift_a; // alpha
                 }
 
                 wscreen[i + j * (ddsd.lPitch >> 1)] = pixel_our;
             }
         }
     } else {
-        SLONG i;
-        SLONG j;
         UBYTE* wscreen = (UBYTE*)ddsd.lpSurface;
 
-        for (i = 0; i < ti.width; i++) {
-            for (j = 0; j < ti.height; j++) {
-                wscreen[i + j * ddsd.lPitch] = data[i + j * ti.width].red;
+        for (SLONG i = 0; i < width; i++) {
+            for (SLONG j = 0; j < height; j++) {
+                wscreen[i + j * ddsd.lPitch] = data[(i + j * width) * 4 + 2]; // red channel
             }
         }
     }
@@ -368,7 +344,7 @@ OGETexture oge_texture_create_from_tga(const char* fname, int32_t invert)
 
     ot->next         = oge_texture_head;
     oge_texture_head = ot;
-    ot->size         = ti.width;
+    ot->size         = width;
 
     free(data);
 

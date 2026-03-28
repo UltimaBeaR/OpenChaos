@@ -9,6 +9,7 @@
 // self-contained version.
 
 #include "outro/core/outro_os_globals.h"
+#include "engine/graphics/graphics_engine/outro_graphics_engine.h"
 
 // ========================================================
 // WINDOWS AND MISCELLANEOUS
@@ -41,16 +42,12 @@ void OS_mouse_set(SLONG x, SLONG y);
 // uc_orig: os_texture (fallen/outro/os.cpp)
 typedef struct os_texture OS_Texture;
 
-// uc_orig: OS_TEXTURE_FORMAT_RGB (fallen/outro/os.h)
-#define OS_TEXTURE_FORMAT_RGB    0
-// uc_orig: OS_TEXTURE_FORMAT_1555 (fallen/outro/os.h)
-#define OS_TEXTURE_FORMAT_1555   1
-// uc_orig: OS_TEXTURE_FORMAT_4444 (fallen/outro/os.h)
-#define OS_TEXTURE_FORMAT_4444   2
-// uc_orig: OS_TEXTURE_FORMAT_8 (fallen/outro/os.h)
-#define OS_TEXTURE_FORMAT_8      3
-// uc_orig: OS_TEXTURE_FORMAT_NUMBER (fallen/outro/os.h)
-#define OS_TEXTURE_FORMAT_NUMBER 4
+// Texture format aliases — canonical values in outro_graphics_engine.h (OGE_TEXTURE_FORMAT_*).
+#define OS_TEXTURE_FORMAT_RGB    OGE_TEXTURE_FORMAT_RGB
+#define OS_TEXTURE_FORMAT_1555   OGE_TEXTURE_FORMAT_1555
+#define OS_TEXTURE_FORMAT_4444   OGE_TEXTURE_FORMAT_4444
+#define OS_TEXTURE_FORMAT_8      OGE_TEXTURE_FORMAT_8
+#define OS_TEXTURE_FORMAT_NUMBER OGE_TEXTURE_FORMAT_NUMBER
 
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
 OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert = UC_FALSE);
@@ -228,43 +225,7 @@ void OS_buffer_add_line_3d(
     ULONG colour = 0x00ffffff,
     ULONG specular = 0x00000000);
 
-// Draw mode flags for OS_buffer_draw.
-// uc_orig: OS_DRAW_NORMAL (fallen/outro/os.h)
-#define OS_DRAW_NORMAL      0
-// uc_orig: OS_DRAW_ADD (fallen/outro/os.h)
-#define OS_DRAW_ADD         (1 << 0)
-// uc_orig: OS_DRAW_MULTIPLY (fallen/outro/os.h)
-#define OS_DRAW_MULTIPLY    (1 << 1)
-// uc_orig: OS_DRAW_CLAMP (fallen/outro/os.h)
-#define OS_DRAW_CLAMP       (1 << 2)
-// uc_orig: OS_DRAW_DECAL (fallen/outro/os.h)
-#define OS_DRAW_DECAL       (1 << 3)
-// uc_orig: OS_DRAW_TRANSPARENT (fallen/outro/os.h)
-#define OS_DRAW_TRANSPARENT (1 << 4)
-// uc_orig: OS_DRAW_DOUBLESIDED (fallen/outro/os.h)
-#define OS_DRAW_DOUBLESIDED (1 << 5)
-// uc_orig: OS_DRAW_NOZWRITE (fallen/outro/os.h)
-#define OS_DRAW_NOZWRITE    (1 << 6)
-// uc_orig: OS_DRAW_ALPHAREF (fallen/outro/os.h)
-#define OS_DRAW_ALPHAREF    (1 << 7)
-// uc_orig: OS_DRAW_ZREVERSE (fallen/outro/os.h)
-#define OS_DRAW_ZREVERSE    (1 << 8)
-// uc_orig: OS_DRAW_ZALWAYS (fallen/outro/os.h)
-#define OS_DRAW_ZALWAYS     (1 << 9)
-// uc_orig: OS_DRAW_CULLREVERSE (fallen/outro/os.h)
-#define OS_DRAW_CULLREVERSE (1 << 10)
-// uc_orig: OS_DRAW_NODITHER (fallen/outro/os.h)
-#define OS_DRAW_NODITHER    (1 << 11)
-// uc_orig: OS_DRAW_ALPHABLEND (fallen/outro/os.h)
-#define OS_DRAW_ALPHABLEND  (1 << 12)
-// uc_orig: OS_DRAW_TEX_NONE (fallen/outro/os.h)
-#define OS_DRAW_TEX_NONE    (1 << 13)
-// uc_orig: OS_DRAW_TEX_MUL (fallen/outro/os.h)
-#define OS_DRAW_TEX_MUL     (1 << 14)
-// uc_orig: OS_DRAW_NOFILTER (fallen/outro/os.h)
-#define OS_DRAW_NOFILTER    (1 << 15)
-// uc_orig: OS_DRAW_MULBYONE (fallen/outro/os.h)
-#define OS_DRAW_MULBYONE    (1 << 16)
+// Draw mode flags — defined in outro_graphics_engine.h (OS_DRAW_*).
 
 // uc_orig: OS_buffer_draw (fallen/outro/os.cpp)
 void OS_buffer_draw(

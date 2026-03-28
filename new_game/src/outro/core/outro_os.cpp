@@ -66,10 +66,42 @@ void OS_joy_poll(void)
 // TEXTURE WRAPPERS (delegate to outro graphics engine)
 // ========================================================
 
+// Texture directory prefix.
+#define OS_TEXTURE_DIR "Textures\\"
+
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
 OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
 {
-    return oge_texture_create_from_tga(fname, invert);
+    OUTRO_TGA_Pixel* data;
+    OUTRO_TGA_Info   ti;
+    CBYTE            fullpath[_MAX_PATH];
+
+    data = (OUTRO_TGA_Pixel*)malloc(256 * 256 * sizeof(OUTRO_TGA_Pixel));
+    if (data == NULL) return NULL;
+
+    sprintf(fullpath, OS_TEXTURE_DIR "%s", fname);
+    ti = OUTRO_TGA_load(fullpath, 256, 256, data);
+
+    if (!ti.valid || ti.width != ti.height) {
+        free(data);
+        return NULL;
+    }
+
+    uint32_t flags = 0;
+    if (ti.flag & TGA_FLAG_CONTAINS_ALPHA) {
+        flags |= OGE_TEX_HAS_ALPHA;
+        if (ti.flag & TGA_FLAG_ONE_BIT_ALPHA) {
+            flags |= OGE_TEX_ONE_BIT_ALPHA;
+        }
+    }
+    if (ti.flag & TGA_FLAG_GRAYSCALE) {
+        flags |= OGE_TEX_GRAYSCALE;
+    }
+
+    OGETexture tex = oge_texture_create(fname, ti.width, ti.height,
+                                         flags, (const uint8_t*)data, invert);
+    free(data);
+    return tex;
 }
 
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)

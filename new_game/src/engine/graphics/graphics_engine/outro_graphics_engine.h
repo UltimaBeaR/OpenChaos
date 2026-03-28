@@ -27,6 +27,13 @@ constexpr int32_t OGE_TEXTURE_FORMAT_8    = 3;
 constexpr int32_t OGE_TEXTURE_FORMAT_NUMBER = 4;
 
 // ---------------------------------------------------------------------------
+// Screen dimensions (set by oge_init, read by game code)
+// ---------------------------------------------------------------------------
+
+extern float OS_screen_width;
+extern float OS_screen_height;
+
+// ---------------------------------------------------------------------------
 // Init / shutdown
 // ---------------------------------------------------------------------------
 
@@ -38,12 +45,22 @@ void oge_init();
 void oge_shutdown();
 
 // ---------------------------------------------------------------------------
+// Texture creation flags
+// ---------------------------------------------------------------------------
+
+constexpr uint32_t OGE_TEX_HAS_ALPHA     = (1 << 0);
+constexpr uint32_t OGE_TEX_ONE_BIT_ALPHA = (1 << 1);
+constexpr uint32_t OGE_TEX_GRAYSCALE     = (1 << 2);
+
+// ---------------------------------------------------------------------------
 // Textures
 // ---------------------------------------------------------------------------
 
-// Create a texture from a TGA file. Returns existing if already loaded.
-// invert: 1 = invert all channels (used for glow effects).
-OGETexture oge_texture_create_from_tga(const char* fname, int32_t invert);
+// Create a texture from raw BGRA pixel data. Returns existing if name+invert matches cache.
+// pixels: array of {blue, green, red, alpha} bytes, width*height entries (caller owns, copied).
+// flags: OGE_TEX_HAS_ALPHA, OGE_TEX_ONE_BIT_ALPHA, OGE_TEX_GRAYSCALE.
+OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
+                              uint32_t flags, const uint8_t* pixels, int32_t invert);
 
 // Create a blank texture of given size and format (for dynamic writing).
 OGETexture oge_texture_create_blank(int32_t size, int32_t format);
@@ -57,6 +74,44 @@ int32_t oge_texture_size(OGETexture tex);
 // Lock texture for CPU write. Populates the OS_bitmap_* globals.
 void oge_texture_lock(OGETexture tex);
 void oge_texture_unlock(OGETexture tex);
+
+// ---------------------------------------------------------------------------
+// Draw mode flags (passed to oge_change_renderstate)
+// ---------------------------------------------------------------------------
+
+// uc_orig: OS_DRAW_* (fallen/outro/os.h)
+#define OS_DRAW_NORMAL      0
+#define OS_DRAW_ADD         (1 << 0)
+#define OS_DRAW_MULTIPLY    (1 << 1)
+#define OS_DRAW_CLAMP       (1 << 2)
+#define OS_DRAW_DECAL       (1 << 3)
+#define OS_DRAW_TRANSPARENT (1 << 4)
+#define OS_DRAW_DOUBLESIDED (1 << 5)
+#define OS_DRAW_NOZWRITE    (1 << 6)
+#define OS_DRAW_ALPHAREF    (1 << 7)
+#define OS_DRAW_ZREVERSE    (1 << 8)
+#define OS_DRAW_ZALWAYS     (1 << 9)
+#define OS_DRAW_CULLREVERSE (1 << 10)
+#define OS_DRAW_NODITHER    (1 << 11)
+#define OS_DRAW_ALPHABLEND  (1 << 12)
+#define OS_DRAW_TEX_NONE    (1 << 13)
+#define OS_DRAW_TEX_MUL     (1 << 14)
+#define OS_DRAW_NOFILTER    (1 << 15)
+#define OS_DRAW_MULBYONE    (1 << 16)
+
+// ---------------------------------------------------------------------------
+// Bitmap globals (set by oge_texture_lock, read by game code for pixel writes)
+// ---------------------------------------------------------------------------
+
+extern int32_t OS_bitmap_format;
+extern uint16_t* OS_bitmap_uword_screen;
+extern int32_t OS_bitmap_uword_pitch;
+extern uint8_t* OS_bitmap_ubyte_screen;
+extern int32_t OS_bitmap_ubyte_pitch;
+extern int32_t OS_bitmap_width;
+extern int32_t OS_bitmap_height;
+extern int32_t OS_bitmap_mask_r, OS_bitmap_mask_g, OS_bitmap_mask_b, OS_bitmap_mask_a;
+extern int32_t OS_bitmap_shift_r, OS_bitmap_shift_g, OS_bitmap_shift_b, OS_bitmap_shift_a;
 
 // ---------------------------------------------------------------------------
 // Render states

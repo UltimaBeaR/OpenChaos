@@ -225,7 +225,7 @@ void ClearWorkScreen(UBYTE) {}
 
 void oge_init() {}
 void oge_shutdown() {}
-OGETexture oge_texture_create_from_tga(const char*, int32_t) { return nullptr; }
+OGETexture oge_texture_create(const char*, int32_t, int32_t, uint32_t, const uint8_t*, int32_t) { return nullptr; }
 OGETexture oge_texture_create_blank(int32_t, int32_t) { return nullptr; }
 void oge_texture_finished_creating() {}
 int32_t oge_texture_size(OGETexture) { return 0; }

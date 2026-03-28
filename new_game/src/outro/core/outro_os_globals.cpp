@@ -93,36 +93,25 @@ float OS_cam_screen_mul_x = 0.0F;
 // uc_orig: OS_cam_screen_mul_y (fallen/outro/os.cpp)
 float OS_cam_screen_mul_y = 0.0F;
 
-// uc_orig: OS_bitmap_format (fallen/outro/os.cpp)
-SLONG OS_bitmap_format = 0;
-// uc_orig: OS_bitmap_uword_screen (fallen/outro/os.cpp)
-UWORD* OS_bitmap_uword_screen = NULL;
-// uc_orig: OS_bitmap_uword_pitch (fallen/outro/os.cpp)
-SLONG OS_bitmap_uword_pitch = 0;
-// uc_orig: OS_bitmap_ubyte_screen (fallen/outro/os.cpp)
-UBYTE* OS_bitmap_ubyte_screen = NULL;
-// uc_orig: OS_bitmap_ubyte_pitch (fallen/outro/os.cpp)
-SLONG OS_bitmap_ubyte_pitch = 0;
-// uc_orig: OS_bitmap_width (fallen/outro/os.cpp)
-SLONG OS_bitmap_width = 0;
-// uc_orig: OS_bitmap_height (fallen/outro/os.cpp)
-SLONG OS_bitmap_height = 0;
-// uc_orig: OS_bitmap_mask_r (fallen/outro/os.cpp)
-SLONG OS_bitmap_mask_r = 0;
-// uc_orig: OS_bitmap_mask_g (fallen/outro/os.cpp)
-SLONG OS_bitmap_mask_g = 0;
-// uc_orig: OS_bitmap_mask_b (fallen/outro/os.cpp)
-SLONG OS_bitmap_mask_b = 0;
-// uc_orig: OS_bitmap_mask_a (fallen/outro/os.cpp)
-SLONG OS_bitmap_mask_a = 0;
-// uc_orig: OS_bitmap_shift_r (fallen/outro/os.cpp)
-SLONG OS_bitmap_shift_r = 0;
-// uc_orig: OS_bitmap_shift_g (fallen/outro/os.cpp)
-SLONG OS_bitmap_shift_g = 0;
-// uc_orig: OS_bitmap_shift_b (fallen/outro/os.cpp)
-SLONG OS_bitmap_shift_b = 0;
-// uc_orig: OS_bitmap_shift_a (fallen/outro/os.cpp)
-SLONG OS_bitmap_shift_a = 0;
+// Bitmap lock state — declared in outro_graphics_engine.h, defined here.
+// Using int32_t/uint16_t/uint8_t to match the contract types.
+#include "engine/graphics/graphics_engine/outro_graphics_engine.h"
+
+int32_t OS_bitmap_format = 0;
+uint16_t* OS_bitmap_uword_screen = NULL;
+int32_t OS_bitmap_uword_pitch = 0;
+uint8_t* OS_bitmap_ubyte_screen = NULL;
+int32_t OS_bitmap_ubyte_pitch = 0;
+int32_t OS_bitmap_width = 0;
+int32_t OS_bitmap_height = 0;
+int32_t OS_bitmap_mask_r = 0;
+int32_t OS_bitmap_mask_g = 0;
+int32_t OS_bitmap_mask_b = 0;
+int32_t OS_bitmap_mask_a = 0;
+int32_t OS_bitmap_shift_r = 0;
+int32_t OS_bitmap_shift_g = 0;
+int32_t OS_bitmap_shift_b = 0;
+int32_t OS_bitmap_shift_a = 0;
 
 // uc_orig: sound (fallen/outro/os.cpp)
 SLONG sound = 0;
