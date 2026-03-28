@@ -4,7 +4,7 @@
 #include <mbctype.h>
 #include <mbstring.h>
 #include "engine/graphics/text/truetype.h"
-#include "engine/graphics/text/truetype_globals.h"
+#include "engine/graphics/graphics_engine/d3d/truetype_globals.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/io/env.h"
 

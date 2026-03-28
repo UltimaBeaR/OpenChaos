@@ -1,5 +1,5 @@
-#ifndef ENGINE_GRAPHICS_TEXT_TRUETYPE_GLOBALS_H
-#define ENGINE_GRAPHICS_TEXT_TRUETYPE_GLOBALS_H
+#ifndef ENGINE_GRAPHICS_GE_D3D_TRUETYPE_GLOBALS_H
+#define ENGINE_GRAPHICS_GE_D3D_TRUETYPE_GLOBALS_H
 
 #include <windows.h>
 #include <ddraw.h>
@@ -7,6 +7,19 @@
 #include "engine/core/types.h"
 #include "engine/graphics/text/truetype.h"
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+
+// uc_orig: CacheLine (fallen/DDEngine/Headers/truetype.h)
+// One row-slice of a texture page used to cache a rendered line of text.
+// D3D-specific: references D3DTexture directly.
+struct CacheLine {
+    TextCommand* owner; // owning TextCommand, NULL if free
+    int sx, sy;         // screen position to blit to
+    int width;          // width used in this slice
+    int height;         // height of this slice
+
+    D3DTexture* texture; // which texture page this slice lives in
+    int y;               // Y offset within the texture page
+};
 
 // Anti-alias factor: text is rendered at 2x resolution then downsampled.
 // uc_orig: AA_SIZE (fallen/DDEngine/Source/truetype.cpp)
@@ -74,4 +87,4 @@ extern UWORD tt_PixMapping[256];
 // uc_orig: Commands (fallen/DDEngine/Source/truetype.cpp)
 extern TextCommand tt_Commands[TT_MAX_TEXTCOMMANDS];
 
-#endif // ENGINE_GRAPHICS_TEXT_TRUETYPE_GLOBALS_H
+#endif // ENGINE_GRAPHICS_GE_D3D_TRUETYPE_GLOBALS_H

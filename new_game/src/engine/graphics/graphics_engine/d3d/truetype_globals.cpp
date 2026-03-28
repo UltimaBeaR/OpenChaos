@@ -1,4 +1,4 @@
-#include "engine/graphics/text/truetype_globals.h"
+#include "engine/graphics/graphics_engine/d3d/truetype_globals.h"
 
 // uc_orig: FontHeight (fallen/DDEngine/Source/truetype.cpp)
 int tt_FontHeight = 0;

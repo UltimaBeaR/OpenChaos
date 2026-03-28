@@ -997,6 +997,41 @@ figure.cpp и aeng.cpp ещё используют `the_display` для друг
 
 ---
 
+### Batch 1+2: перенос .cpp в d3d/ + очистка headers ✅
+
+**Batch 1 — перенос .cpp файлов:**
+- `texture.cpp` → `d3d/texture.cpp` (1418 строк, D3D texture loader)
+- `text.cpp` → `d3d/text.cpp` (233 строки, D3D text renderer)
+- `truetype.cpp` → `d3d/truetype.cpp` (613 строк, D3D TrueType renderer)
+- `polypage.cpp` → `d3d/polypage.cpp` (648 строк, D3D polypage renderer)
+- `truetype_globals.h/.cpp` → `d3d/truetype_globals.h/.cpp` (D3D-specific globals: D3DTexture[], IDirectDrawSurface4*, etc.)
+
+**Batch 2 — очистка headers:**
+- `truetype.h`: убран `#include d3d_texture.h`, CacheLine (D3D-specific) перенесён в d3d/truetype_globals.h
+- `wind_procs.h`: убран `#include dd_manager.h`, удалён неиспользуемый `ChangeDDInfo` struct
+- `frontend.cpp`: убраны dd_manager.h, dd_manager_globals.h, gd_display.h
+
+**Новые ge_* функции:**
+- `ge_texture_loading_done()` — освобождение temp буферов после загрузки текстур (заменяет `NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit`)
+- `ge_is_ntsc()` — проверка NTSC режима (заменяет `eDisplayType == DT_NTSC`)
+- `ge_enumerate_drivers(callback, ctx)` — перечисление видеодрайверов через callback (заменяет прямой доступ к DDDriverInfo linked list)
+
+**Результат:**
+- d3d/ includes вне d3d/ (без outro): **0** (было 15)
+- D3D SDK includes вне d3d/ (без outro): **0** (было 2)
+- **Правило 1 полностью выполнено** для основной игры
+- Сборка: 308/308
+
+---
+
+### Шаг 2 основной игры — ЗАВЕРШЁН ✅
+
+D3D хедеры включаются ТОЛЬКО внутри d3d/ папки (+ outro, который отключен).
+Весь остальной код игры видит только `graphics_engine.h` с чистыми типами.
+Можно переходить к Шагу 3 (outro) или сразу к Шагу 4 (OpenGL).
+
+---
+
 ## План работы
 
 ### Шаг 1 — Отключить outro

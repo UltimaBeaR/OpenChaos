@@ -111,7 +111,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/bucket_globals.cpp
     src/engine/graphics/graphics_engine/d3d/vertex_buffer.cpp
     src/engine/graphics/graphics_engine/d3d/vertex_buffer_globals.cpp
-    src/engine/graphics/pipeline/polypage.cpp
+    src/engine/graphics/graphics_engine/d3d/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
     src/engine/graphics/text/font.cpp
     src/engine/graphics/text/font_globals.cpp
@@ -121,7 +121,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/qeng.cpp
     src/engine/graphics/pipeline/qeng_globals.cpp
     src/map/qmap_globals.cpp
-    src/engine/graphics/text/text.cpp
+    src/engine/graphics/graphics_engine/d3d/text.cpp
     src/engine/graphics/text/text_globals.cpp
     src/assets/xlat_str.cpp
     src/assets/xlat_str_globals.cpp
@@ -145,8 +145,8 @@ set(SOURCES_NEW
     src/engine/io/env_globals.cpp
     src/engine/graphics/postprocess/wibble.cpp
     src/engine/graphics/postprocess/wibble_globals.cpp
-    src/engine/graphics/text/truetype.cpp
-    src/engine/graphics/text/truetype_globals.cpp
+    src/engine/graphics/graphics_engine/d3d/truetype.cpp
+    src/engine/graphics/graphics_engine/d3d/truetype_globals.cpp
     src/effects/environment/fire.cpp
     src/effects/environment/fire_globals.cpp
     src/world_objects/dirt.cpp
@@ -268,7 +268,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/poly_globals.cpp
     src/engine/graphics/geometry/shape.cpp
     src/engine/graphics/geometry/shape_globals.cpp
-    src/assets/texture.cpp
+    src/engine/graphics/graphics_engine/d3d/texture.cpp
     src/assets/texture_globals.cpp
     # --- OUTRO DISABLED (Stage 7: renderer replacement, will re-enable later) ---
     # src/outro/core/outro_tga.cpp

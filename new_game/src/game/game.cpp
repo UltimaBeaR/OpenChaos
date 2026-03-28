@@ -388,7 +388,7 @@ void game_fini(void)
         verifier_file = NULL;
     }
 
-    NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
+    ge_texture_loading_done();
 }
 
 // uc_orig: game (fallen/Source/Game.cpp)

@@ -9,6 +9,7 @@
 #include "engine/graphics/graphics_engine/d3d/d3d_texture_globals.h"
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer.h"
 #include "engine/graphics/graphics_engine/d3d/vertex_buffer_globals.h"
+#include "engine/graphics/graphics_engine/d3d/dd_manager_globals.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
 #include "assets/formats/level_loader.h" // DATA_DIR
@@ -727,4 +728,32 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
     rc.right  = x + w;
     rc.bottom = y + h;
     the_display.lp_DD_BackSurface->Blt(&rc, reinterpret_cast<LPDIRECTDRAWSURFACE4>(surface), &rc, DDBLT_WAIT, 0);
+}
+
+// ---------------------------------------------------------------------------
+// Texture loading lifecycle
+// ---------------------------------------------------------------------------
+
+void ge_texture_loading_done()
+{
+    NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
+}
+
+bool ge_is_ntsc()
+{
+    return eDisplayType == DT_NTSC;
+}
+
+// ---------------------------------------------------------------------------
+// Display driver enumeration
+// ---------------------------------------------------------------------------
+
+void ge_enumerate_drivers(GEDriverEnumCallback callback, void* ctx)
+{
+    DDDriverInfo* current = the_manager.CurrDriver;
+    DDDriverInfo* driver = the_manager.DriverList;
+    while (driver) {
+        callback(driver->szName, driver->IsPrimary() != 0, driver == current, ctx);
+        driver = driver->Next;
+    }
 }

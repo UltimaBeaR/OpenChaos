@@ -2,7 +2,6 @@
 #define ENGINE_GRAPHICS_TEXT_TRUETYPE_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 
 // If TRUETYPE is defined, TrueType fonts are used; otherwise the bitmap font system is used.
 // uc_orig: TRUETYPE (fallen/DDEngine/Headers/truetype.h)
@@ -44,18 +43,6 @@ enum Validity {
     Free    = 0,  // slot is available
     Current,      // slot is in use this frame
     Pending,      // slot was used last frame, pending cleanup
-};
-
-// uc_orig: CacheLine (fallen/DDEngine/Headers/truetype.h)
-// One row-slice of a texture page used to cache a rendered line of text.
-struct CacheLine {
-    TextCommand* owner; // owning TextCommand, NULL if free
-    int sx, sy;         // screen position to blit to
-    int width;          // width used in this slice
-    int height;         // height of this slice
-
-    D3DTexture* texture; // which texture page this slice lives in
-    int y;               // Y offset within the texture page
 };
 
 // Initialise TrueType rendering — creates shadow surface, font, and texture cache.

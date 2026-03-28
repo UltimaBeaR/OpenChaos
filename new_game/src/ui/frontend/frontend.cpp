@@ -10,8 +10,6 @@
 #define DisplayHeight 480
 extern SLONG RealDisplayWidth;
 extern SLONG RealDisplayHeight;
-// enumDisplayType / eDisplayType / DDDriverManager types come from the second include block
-// (line ~840: dd_manager.h + gd_display.h) which is kept for the video settings menu.
 #include "ui/frontend/frontend.h"
 #include "ui/frontend/frontend_globals.h"
 
@@ -837,10 +835,7 @@ void FRONTEND_kibble_flurry()
 
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
-#include "engine/graphics/graphics_engine/d3d/dd_manager_globals.h"
 #include "engine/platform/wind_procs.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
 
@@ -1772,15 +1767,36 @@ void FRONTEND_store_video_data()
     AENG_set_detail_levels(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
 }
 
+// State passed through the driver enumeration callback.
+struct DriverEnumState {
+    CBYTE* str;
+    SLONG count;
+    SLONG selected;
+};
+
+static void driver_enum_callback(const char* name, bool is_primary, bool is_current, void* ctx)
+{
+    auto* state = static_cast<DriverEnumState*>(ctx);
+    TCHAR szBuff[80];
+    if (is_primary)
+        wsprintf(szBuff, TEXT("%s (Primary)"), name);
+    else
+        wsprintf(szBuff, TEXT("%s"), name);
+
+    strcpy(state->str, szBuff);
+    state->str += strlen(state->str) + 1;
+
+    if (is_current)
+        state->selected = state->count;
+
+    state->count++;
+}
+
 // uc_orig: FRONTEND_do_drivers (fallen/Source/frontend.cpp)
 // Populates the display driver/resolution/bit-depth menus by querying
-// the DirectDraw driver list and current display settings.
+// the display driver list and current display settings.
 void FRONTEND_do_drivers()
 {
-    SLONG count = 0, selected = 0;
-    DDDriverInfo *current_driver = 0,
-                 *driver_list;
-    TCHAR szBuff[80];
     CBYTE *str = menu_buffer, *str_tmp;
 
     switch (RealDisplayWidth) {
@@ -1803,7 +1819,7 @@ void FRONTEND_do_drivers()
         CurrentVidMode = 0;
         break;
     }
-    CurrentBitDepth = DisplayBPP;
+    CurrentBitDepth = ge_get_screen_bpp();
 
     strcpy(str, "640x480");
     str += strlen(str) + 1;
@@ -1827,27 +1843,10 @@ void FRONTEND_do_drivers()
     menu_data[3].Choices = str_tmp;
     str_tmp = str;
 
-    selected = 0;
+    DriverEnumState state = { str, 0, 0 };
+    ge_enumerate_drivers(driver_enum_callback, &state);
 
-    current_driver = the_manager.CurrDriver;
-
-    driver_list = the_manager.DriverList;
-    while (driver_list) {
-        if (driver_list->IsPrimary())
-            wsprintf(szBuff, TEXT("%s (Primary)"), driver_list->szName);
-        else
-            wsprintf(szBuff, TEXT("%s"), driver_list->szName);
-
-        strcpy(str, szBuff);
-        str += strlen(str) + 1;
-
-        if (current_driver == driver_list)
-            selected = count;
-
-        count++;
-        driver_list = driver_list->Next;
-    }
-    menu_data[2].Data = selected | (count << 8);
+    menu_data[2].Data = state.selected | (state.count << 8);
     menu_data[2].Choices = str_tmp;
 }
 
@@ -2138,7 +2137,7 @@ static void FRONTEND_draw_districts(void)
         CBYTE str2[200];
         sprintf(str2, "%s: %03d  %s: %03d  %s: %03d  %s: %03d\n", XLAT_str_ptr(X_CON_INCREASED), the_game.DarciConstitution, XLAT_str_ptr(X_STA_INCREASED), the_game.DarciStamina, XLAT_str_ptr(X_STR_INCREASED), the_game.DarciStrength, XLAT_str_ptr(X_REF_INCREASED), the_game.DarciSkill);
         int iYpos;
-        if (eDisplayType == DT_NTSC) {
+        if (ge_is_ntsc()) {
             // Move it further up so it's on screen for the yanks.
             iYpos = 434;
         } else {
@@ -2267,7 +2266,7 @@ void FRONTEND_display()
         0, 0, ge_get_screen_width(), ge_get_screen_height());
     ge_clear(true, true);
 
-    ShowBackImage();
+    ge_show_back_image();
     if ((fade_mode & 3) == 1)
         FRONTEND_show_xition();
     POLY_frame_init(UC_FALSE, UC_FALSE);

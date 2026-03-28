@@ -409,4 +409,26 @@ void ge_set_gamma(int32_t black, int32_t white);
 void ge_get_gamma(int32_t* black, int32_t* white);
 bool ge_is_gamma_available();
 
+// ---------------------------------------------------------------------------
+// Texture loading lifecycle
+// ---------------------------------------------------------------------------
+
+// Signal that bulk texture loading is done — backend may release temp buffers.
+void ge_texture_loading_done();
+
+// Check if the display is NTSC mode (affects vertical position of some UI elements).
+bool ge_is_ntsc();
+
+// ---------------------------------------------------------------------------
+// Display driver enumeration (video settings menu)
+// ---------------------------------------------------------------------------
+
+// Callback for ge_enumerate_drivers: called once per available driver.
+// name: driver display name, is_primary: whether it's the primary adapter,
+// is_current: whether it's the currently selected driver.
+using GEDriverEnumCallback = void (*)(const char* name, bool is_primary, bool is_current, void* ctx);
+
+// Enumerate available display drivers. Calls callback for each driver.
+void ge_enumerate_drivers(GEDriverEnumCallback callback, void* ctx);
+
 #endif // ENGINE_GRAPHICS_GRAPHICS_ENGINE_H

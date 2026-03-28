@@ -1,21 +1,7 @@
 #ifndef ENGINE_PLATFORM_WIND_PROCS_H
 #define ENGINE_PLATFORM_WIND_PROCS_H
 
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"
-
-// uc_orig: ChangeDDInfo (fallen/DDLibrary/Headers/WindProcs.h)
-// Holds the current and requested driver/device/mode for a display change operation.
-typedef struct
-{
-    DDDriverInfo *DriverCurrent,
-        *DriverNew;
-
-    D3DDeviceInfo *DeviceCurrent,
-        *DeviceNew;
-
-    DDModeInfo *ModeCurrent,
-        *ModeNew;
-} ChangeDDInfo;
+#include <windows.h>
 
 // uc_orig: DDLibShellProc (fallen/DDLibrary/Source/WindProcs.cpp)
 // Main window procedure: handles app activation, window resize/move, input, and quit messages.

@@ -17,7 +17,6 @@
 #include "engine/console/message.h"
 #include "engine/audio/sound.h"
 #include "buildings/ware.h"
-#include "engine/graphics/text/truetype.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/io/env.h"
 #include "assets/formats/tga.h"
