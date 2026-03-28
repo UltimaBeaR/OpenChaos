@@ -186,6 +186,10 @@ void GERenderState::InitScene(uint32_t fog_colour)
     ge_set_depth_func(DepthFunc);
 
     ge_set_fog_enabled(FogEnabled);
+    ge_set_color_key_enabled(ColorKeyEnabled);
+    ge_set_alpha_test_enabled(AlphaTestEnabled);
+    ge_set_alpha_ref(0x07);
+    ge_set_alpha_func(GECompareFunc::Greater);
     if (AlphaBlendEnabled) {
         ge_set_blend_factors(SrcBlend, DstBlend);
     } else {
@@ -223,7 +227,7 @@ void GERenderState::SetChanged()
         s_State.DepthWrite = DepthWrite;
     }
 
-    MAYBE_FLUSH(AlphaTestEnabled, {});
+    MAYBE_FLUSH(AlphaTestEnabled, ge_set_alpha_test_enabled(AlphaTestEnabled));
     if (s_State.SrcBlend != SrcBlend || s_State.DstBlend != DstBlend || s_State.AlphaBlendEnabled != AlphaBlendEnabled) {
         if (AlphaBlendEnabled) {
             ge_set_blend_factors(SrcBlend, DstBlend);
@@ -237,7 +241,7 @@ void GERenderState::SetChanged()
     MAYBE_FLUSH(DepthFunc, ge_set_depth_func(DepthFunc));
     MAYBE_FLUSH(Cull, ge_set_cull_mode(Cull));
     MAYBE_FLUSH(FogEnabled, ge_set_fog_enabled(FogEnabled));
-    MAYBE_FLUSH(ColorKeyEnabled, {});
+    MAYBE_FLUSH(ColorKeyEnabled, ge_set_color_key_enabled(ColorKeyEnabled));
 
     if (WrapOnce) {
         TexAddress = old_addr;

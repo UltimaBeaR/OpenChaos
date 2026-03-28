@@ -205,6 +205,36 @@ void ge_set_fog_enabled(bool enabled)
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE, enabled ? TRUE : FALSE);
 }
 
+void ge_set_color_key_enabled(bool enabled)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_COLORKEYENABLE, enabled ? TRUE : FALSE);
+}
+
+void ge_set_alpha_test_enabled(bool enabled)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHATESTENABLE, enabled ? TRUE : FALSE);
+}
+
+void ge_set_alpha_ref(uint32_t ref)
+{
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAREF, ref);
+}
+
+void ge_set_alpha_func(GECompareFunc func)
+{
+    DWORD d3d_func;
+    switch (func) {
+    case GECompareFunc::Always:       d3d_func = D3DCMP_ALWAYS; break;
+    case GECompareFunc::Less:         d3d_func = D3DCMP_LESS; break;
+    case GECompareFunc::LessEqual:    d3d_func = D3DCMP_LESSEQUAL; break;
+    case GECompareFunc::Greater:      d3d_func = D3DCMP_GREATER; break;
+    case GECompareFunc::GreaterEqual: d3d_func = D3DCMP_GREATEREQUAL; break;
+    case GECompareFunc::NotEqual:     d3d_func = D3DCMP_NOTEQUAL; break;
+    default:                          d3d_func = D3DCMP_ALWAYS; break;
+    }
+    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAFUNC, d3d_func);
+}
+
 static inline DWORD FloatAsDword(float f) { DWORD d; memcpy(&d, &f, sizeof(d)); return d; }
 
 void ge_set_fog_params(uint32_t color, float near_dist, float far_dist)

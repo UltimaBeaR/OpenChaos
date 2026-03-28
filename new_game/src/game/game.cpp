@@ -199,16 +199,18 @@ void game_startup(void)
     init_memory();
     FC_init();
 
+    // Register callbacks BEFORE OpenDisplay — SetDisplay() inside OpenDisplay()
+    // calls mode_change_callback, and Flip() calls pre_flip_callback.
+    ge_set_pre_flip_callback(game_pre_flip);
+    ge_set_mode_change_callback(game_mode_changed);
+    ge_set_polys_drawn_callback(game_polys_drawn);
+
     if (OpenDisplay(640, 480, 16, FLAGS_USE_3D | FLAGS_USE_WORKSCREEN) == 0) {
         GAME_STATE = GS_ATTRACT_MODE;
     } else {
         MessageBox(NULL, "Unable to open display", NULL, MB_OK | MB_ICONWARNING);
         exit(1);
     }
-
-    ge_set_pre_flip_callback(game_pre_flip);
-    ge_set_mode_change_callback(game_mode_changed);
-    ge_set_polys_drawn_callback(game_polys_drawn);
 
     AENG_init();
 
