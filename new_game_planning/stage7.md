@@ -56,6 +56,23 @@ engine/graphics/graphics_engine/
 Весь игровой код видит только `graphics_engine.h` с чистыми типами.
 Подробно → [stage7_log.md](../new_game_devlog/stage7_log.md)
 
+### Шаг 2.5 — Доработки бэкенда (до outro)
+
+**A. Убрать игровую логику из бэкенда:**
+- `texture.cpp` — КРИТИЧНО: game_types, buildings, map, audio, lighting. Нужно разрезать.
+- `display.cpp` — КРИТИЧНО: ui/hud/panel, game/input_actions, PreFlipTT.
+- `gd_display.h` — КРИТИЧНО: включает UI и input headers.
+- `polypage.cpp` — УМЕРЕННО: extern AENG_total_polys_drawn.
+- `display_globals.h` — МИНОРНО: PlayQuickMovie().
+
+**B. Проверка заменяемости на OpenGL:**
+Пройтись по каждому .cpp в бэкенде и оценить: можно ли реализовать на OpenGL,
+нужны ли изменения в ge_* контракте. (Ещё не сделано.)
+
+**C. Визуальные регрессии:**
+После переноса кода в backend_directx6/ появились визуальные проблемы при запуске.
+Найти и исправить ошибки, допущенные при переносе.
+
 ### Шаг 3 — Включить outro, выделить graphics_engine для него
 Раскомментировать outro, вытянуть его D3D вызовы в тот же контракт.
 Проверка: всё работает как раньше.

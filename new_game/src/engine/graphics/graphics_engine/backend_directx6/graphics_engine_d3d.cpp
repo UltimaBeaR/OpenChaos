@@ -757,3 +757,77 @@ void ge_enumerate_drivers(GEDriverEnumCallback callback, void* ctx)
         driver = driver->Next;
     }
 }
+
+// ---------------------------------------------------------------------------
+// Texture page management
+// ---------------------------------------------------------------------------
+
+void ge_texture_loading_begin()
+{
+    D3DTexture::BeginLoading();
+}
+
+void ge_texture_load_tga(int32_t page, const char* path, bool can_shrink)
+{
+    TEXTURE_texture[page].LoadTextureTGA(const_cast<CBYTE*>(path), page, can_shrink ? UC_TRUE : UC_FALSE);
+}
+
+void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill)
+{
+    TEXTURE_texture[page].CreateUserPage(size, alpha_fill ? UC_TRUE : UC_FALSE);
+}
+
+void ge_texture_destroy(int32_t page)
+{
+    TEXTURE_texture[page].Destroy();
+}
+
+void ge_texture_free_all()
+{
+    FreeAllD3DPages();
+}
+
+void ge_texture_change_tga(int32_t page, const char* path)
+{
+    TEXTURE_texture[page].ChangeTextureTGA(const_cast<CBYTE*>(path));
+}
+
+void ge_texture_font_on(int32_t page)
+{
+    TEXTURE_texture[page].FontOn();
+}
+
+void ge_texture_font2_on(int32_t page)
+{
+    TEXTURE_texture[page].Font2On();
+}
+
+void ge_texture_set_greyscale(int32_t page, bool greyscale)
+{
+    TEXTURE_texture[page].set_greyscale(greyscale);
+}
+
+void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* vScale, float* vOffset)
+{
+    TEXTURE_texture[page].GetTexOffsetAndScale(uScale, uOffset, vScale, vOffset);
+}
+
+int32_t ge_texture_get_size(int32_t page)
+{
+    return TEXTURE_texture[page].size;
+}
+
+int32_t ge_texture_get_type(int32_t page)
+{
+    return TEXTURE_texture[page].Type;
+}
+
+void ge_texture_set_type(int32_t page, int32_t type)
+{
+    TEXTURE_texture[page].Type = type;
+}
+
+GETextureHandle ge_get_texture_handle(int32_t page)
+{
+    return reinterpret_cast<GETextureHandle>(TEXTURE_texture[page].GetD3DTexture());
+}

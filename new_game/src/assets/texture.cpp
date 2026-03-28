@@ -11,8 +11,6 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "map/pap.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture_globals.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/console/message.h"
 #include "engine/audio/sound.h"
@@ -82,9 +80,9 @@ void TEXTURE_choose_set(SLONG number)
         CRINKLE_init();
 
         for (i = 0; i < 64 * 4; i++) {
-            if (TEXTURE_texture[i].Type != GE_TEXTURE_TYPE_UNUSED) {
-                TEXTURE_texture[i].Destroy();
-                TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
+            if (ge_texture_get_type(i) != GE_TEXTURE_TYPE_UNUSED) {
+                ge_texture_destroy(i);
+                ge_texture_set_type(i, GE_TEXTURE_TYPE_UNUSED);
             }
         }
 
@@ -202,17 +200,17 @@ static void TEXTURE_load_page(SLONG page)
         exists128 = MF_Fopen(name_res128, "rb");
         if (exists128) {
             MF_Fclose(exists128);
-            TEXTURE_texture[page].LoadTextureTGA(name_res128, page);
+            ge_texture_load_tga(page, name_res128);
         } else {
             exists64 = MF_Fopen(name_res64, "rb");
             if (exists64) {
                 MF_Fclose(exists64);
-                TEXTURE_texture[page].LoadTextureTGA(name_res64, page);
+                ge_texture_load_tga(page, name_res64);
             } else {
                 exists32 = MF_Fopen(name_res32, "rb");
                 if (exists32) {
                     MF_Fclose(exists32);
-                    TEXTURE_texture[page].LoadTextureTGA(name_res32, page);
+                    ge_texture_load_tga(page, name_res32);
                 } else {
                     TEXTURE_dontexist[page] = UC_TRUE;
                 }
@@ -220,9 +218,9 @@ static void TEXTURE_load_page(SLONG page)
         }
     } else {
         if (DoesTGAExist(name_res64, page)) {
-            TEXTURE_texture[page].LoadTextureTGA(name_res64, page);
+            ge_texture_load_tga(page, name_res64);
         } else if (DoesTGAExist(name_res32, page)) {
-            TEXTURE_texture[page].LoadTextureTGA(name_res32, page);
+            ge_texture_load_tga(page, name_res32);
         } else {
             TEXTURE_dontexist[page] = UC_TRUE;
         }
@@ -245,7 +243,7 @@ static void TEXTURE_load_page(SLONG page)
     }
 
     if (POLY_page_is_masked_self_illuminating(page)) {
-        if (TEXTURE_texture[page + 1].Type == GE_TEXTURE_TYPE_UNUSED) {
+        if (ge_texture_get_type(page + 1) == GE_TEXTURE_TYPE_UNUSED) {
             TEXTURE_load_page(page + 1);
         }
     }
@@ -325,7 +323,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     TEXTURE_free();
 
-    D3DTexture::BeginLoading();
+    ge_texture_loading_begin();
 
     TEXTURE_initialise_clumping(fname_level);
 
@@ -415,156 +413,156 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 #define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
 #define TEXTURE_PEOPLE3_DIR "server\\textures\\shared\\people3\\"
 
-    TEXTURE_texture[TEXTURE_page_font].FontOn();
+    ge_texture_font_on(TEXTURE_page_font);
     TEXTURE_needed[TEXTURE_page_font] = 1;
 
-    TEXTURE_texture[TEXTURE_page_lcdfont].Font2On();
+    ge_texture_font2_on(TEXTURE_page_lcdfont);
     TEXTURE_needed[TEXTURE_page_lcdfont] = 1;
 
-    TEXTURE_texture[TEXTURE_page_fog].LoadTextureTGA(TEXTURE_EXTRA_DIR "fog.tga", TEXTURE_page_fog);
-    TEXTURE_texture[TEXTURE_page_moon].LoadTextureTGA(TEXTURE_EXTRA_DIR "moon.tga", TEXTURE_page_moon);
-    TEXTURE_texture[TEXTURE_page_clouds].LoadTextureTGA(TEXTURE_EXTRA_DIR "clouds.tga", TEXTURE_page_clouds);
-    TEXTURE_texture[TEXTURE_page_water].LoadTextureTGA(TEXTURE_EXTRA_DIR "water.tga", TEXTURE_page_water);
-    TEXTURE_texture[TEXTURE_page_puddle].LoadTextureTGA(TEXTURE_EXTRA_DIR "puddle01.tga", TEXTURE_page_puddle);
+    ge_texture_load_tga(TEXTURE_page_fog, TEXTURE_EXTRA_DIR "fog.tga");
+    ge_texture_load_tga(TEXTURE_page_moon, TEXTURE_EXTRA_DIR "moon.tga");
+    ge_texture_load_tga(TEXTURE_page_clouds, TEXTURE_EXTRA_DIR "clouds.tga");
+    ge_texture_load_tga(TEXTURE_page_water, TEXTURE_EXTRA_DIR "water.tga");
+    ge_texture_load_tga(TEXTURE_page_puddle, TEXTURE_EXTRA_DIR "puddle01.tga");
     LOADED_THIS_MANY_TEXTURES(5);
-    TEXTURE_texture[TEXTURE_page_drip].LoadTextureTGA(TEXTURE_EXTRA_DIR "drip.tga", TEXTURE_page_drip);
-    TEXTURE_texture[TEXTURE_page_shadow].CreateUserPage(TEXTURE_SHADOW_SIZE, ge_supports_dest_inv_src_color() ? UC_FALSE : UC_TRUE);
-    TEXTURE_texture[TEXTURE_page_bang].LoadTextureTGA(TEXTURE_EXTRA_DIR "fireball.tga", TEXTURE_page_bang);
-    TEXTURE_texture[TEXTURE_page_font].LoadTextureTGA(TEXTURE_EXTRA_DIR "font.tga", TEXTURE_page_font, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_drip, TEXTURE_EXTRA_DIR "drip.tga");
+    ge_texture_create_user_page(TEXTURE_page_shadow, TEXTURE_SHADOW_SIZE, !ge_supports_dest_inv_src_color());
+    ge_texture_load_tga(TEXTURE_page_bang, TEXTURE_EXTRA_DIR "fireball.tga");
+    ge_texture_load_tga(TEXTURE_page_font, TEXTURE_EXTRA_DIR "font.tga", false);
     TEXTURE_needed[TEXTURE_page_font] = 1;
     LOADED_THIS_MANY_TEXTURES(5);
     {
         CBYTE str[100];
         sprintf(str, "%ssky.tga", TEXTURE_world_dir);
-        TEXTURE_texture[TEXTURE_page_sky].LoadTextureTGA(str, TEXTURE_page_sky, UC_FALSE);
+        ge_texture_load_tga(TEXTURE_page_sky, str, false);
     }
 
-    TEXTURE_texture[TEXTURE_page_flames].LoadTextureTGA(TEXTURE_EXTRA_DIR "flame1.tga", TEXTURE_page_flames);
-    TEXTURE_texture[TEXTURE_page_smoke].LoadTextureTGA(TEXTURE_EXTRA_DIR "smoke1.tga", TEXTURE_page_smoke);
-    TEXTURE_texture[TEXTURE_page_flame2].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode4.tga", TEXTURE_page_flame2);
-    TEXTURE_texture[TEXTURE_page_steam].LoadTextureTGA(TEXTURE_EXTRA_DIR "fog_na.tga", TEXTURE_page_steam);
-    TEXTURE_texture[TEXTURE_page_barbwire].LoadTextureTGA(TEXTURE_EXTRA_DIR "barbed.tga", TEXTURE_page_barbwire);
+    ge_texture_load_tga(TEXTURE_page_flames, TEXTURE_EXTRA_DIR "flame1.tga");
+    ge_texture_load_tga(TEXTURE_page_smoke, TEXTURE_EXTRA_DIR "smoke1.tga");
+    ge_texture_load_tga(TEXTURE_page_flame2, TEXTURE_EXTRA_DIR "explode4.tga");
+    ge_texture_load_tga(TEXTURE_page_steam, TEXTURE_EXTRA_DIR "fog_na.tga");
+    ge_texture_load_tga(TEXTURE_page_barbwire, TEXTURE_EXTRA_DIR "barbed.tga");
     LOADED_THIS_MANY_TEXTURES(6);
 
-    TEXTURE_texture[TEXTURE_page_font2d].LoadTextureTGA(TEXTURE_EXTRA_DIR "multifontPC.tga", TEXTURE_page_font2d, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_font2d, TEXTURE_EXTRA_DIR "multifontPC.tga", false);
     TEXTURE_needed[TEXTURE_page_font2d] = 1;
 
-    TEXTURE_texture[TEXTURE_page_lcdfont].LoadTextureTGA(TEXTURE_EXTRA_DIR "olyfont2.tga", TEXTURE_page_lcdfont, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_lcdfont, TEXTURE_EXTRA_DIR "olyfont2.tga", false);
     TEXTURE_needed[TEXTURE_page_lcdfont] = 1;
 
-    TEXTURE_texture[TEXTURE_page_lastpanel].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay.tga", TEXTURE_page_lastpanel, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_lastpanel, TEXTURE_EXTRA_DIR "PCdisplay.tga", false);
     TEXTURE_needed[TEXTURE_page_lastpanel] = 1;
 
     FONT2D_init(TEXTURE_page_font2d);
-    TEXTURE_texture[TEXTURE_page_face1].LoadTextureTGA(TEXTURE_EXTRA_DIR "face1.tga", TEXTURE_page_face1);
-    TEXTURE_texture[TEXTURE_page_face2].LoadTextureTGA(TEXTURE_EXTRA_DIR "face2.tga", TEXTURE_page_face2);
+    ge_texture_load_tga(TEXTURE_page_face1, TEXTURE_EXTRA_DIR "face1.tga");
+    ge_texture_load_tga(TEXTURE_page_face2, TEXTURE_EXTRA_DIR "face2.tga");
     LOADED_THIS_MANY_TEXTURES(5);
-    TEXTURE_texture[TEXTURE_page_bigbang].LoadTextureTGA(TEXTURE_EXTRA_DIR "exp_gunk.tga", TEXTURE_page_bigbang);
-    TEXTURE_texture[TEXTURE_page_dustwave].LoadTextureTGA(TEXTURE_EXTRA_DIR "shockwave.tga", TEXTURE_page_dustwave);
-    TEXTURE_texture[TEXTURE_page_flames3].LoadTextureTGA(TEXTURE_EXTRA_DIR "flame3.tga", TEXTURE_page_flames3);
-    TEXTURE_texture[TEXTURE_page_bloodsplat].LoadTextureTGA(TEXTURE_EXTRA_DIR "bludsplt.tga", TEXTURE_page_bloodsplat);
-    TEXTURE_texture[TEXTURE_page_bloom1].LoadTextureTGA(TEXTURE_EXTRA_DIR "bloom4.tga", TEXTURE_page_bloom1);
+    ge_texture_load_tga(TEXTURE_page_bigbang, TEXTURE_EXTRA_DIR "exp_gunk.tga");
+    ge_texture_load_tga(TEXTURE_page_dustwave, TEXTURE_EXTRA_DIR "shockwave.tga");
+    ge_texture_load_tga(TEXTURE_page_flames3, TEXTURE_EXTRA_DIR "flame3.tga");
+    ge_texture_load_tga(TEXTURE_page_bloodsplat, TEXTURE_EXTRA_DIR "bludsplt.tga");
+    ge_texture_load_tga(TEXTURE_page_bloom1, TEXTURE_EXTRA_DIR "bloom4.tga");
     LOADED_THIS_MANY_TEXTURES(5);
-    TEXTURE_texture[TEXTURE_page_bloom2].LoadTextureTGA(TEXTURE_EXTRA_DIR "bloom2.tga", TEXTURE_page_bloom2);
-    TEXTURE_texture[TEXTURE_page_hitspang].LoadTextureTGA(TEXTURE_EXTRA_DIR "hitspang.tga", TEXTURE_page_hitspang);
-    TEXTURE_texture[TEXTURE_page_lensflare].LoadTextureTGA(TEXTURE_EXTRA_DIR "lensflar.tga", TEXTURE_page_lensflare);
-    TEXTURE_texture[TEXTURE_page_envmap].LoadTextureTGA(TEXTURE_EXTRA_DIR "envmap.tga", TEXTURE_page_envmap);
-    TEXTURE_texture[TEXTURE_page_tyretrack].LoadTextureTGA(TEXTURE_EXTRA_DIR "tyremark.tga", TEXTURE_page_tyretrack);
+    ge_texture_load_tga(TEXTURE_page_bloom2, TEXTURE_EXTRA_DIR "bloom2.tga");
+    ge_texture_load_tga(TEXTURE_page_hitspang, TEXTURE_EXTRA_DIR "hitspang.tga");
+    ge_texture_load_tga(TEXTURE_page_lensflare, TEXTURE_EXTRA_DIR "lensflar.tga");
+    ge_texture_load_tga(TEXTURE_page_envmap, TEXTURE_EXTRA_DIR "envmap.tga");
+    ge_texture_load_tga(TEXTURE_page_tyretrack, TEXTURE_EXTRA_DIR "tyremark.tga");
     LOADED_THIS_MANY_TEXTURES(5);
-    TEXTURE_texture[TEXTURE_page_winmap].LoadTextureTGA(TEXTURE_EXTRA_DIR "winmap.tga", TEXTURE_page_winmap);
-    TEXTURE_texture[TEXTURE_page_leaf].LoadTextureTGA(TEXTURE_EXTRA_DIR "leaf.tga", TEXTURE_page_leaf);
-    TEXTURE_texture[TEXTURE_page_raindrop].LoadTextureTGA(TEXTURE_EXTRA_DIR "raindrop.tga", TEXTURE_page_raindrop);
-    TEXTURE_texture[TEXTURE_page_footprint].LoadTextureTGA(TEXTURE_EXTRA_DIR "footprint.tga", TEXTURE_page_footprint);
-    TEXTURE_texture[TEXTURE_page_smoker].LoadTextureTGA(TEXTURE_EXTRA_DIR "smoker2.tga", TEXTURE_page_smoker);
-    TEXTURE_texture[TEXTURE_page_target].LoadTextureTGA(TEXTURE_EXTRA_DIR "targ1.tga", TEXTURE_page_target);
-    TEXTURE_texture[TEXTURE_page_droplet].LoadTextureTGA(TEXTURE_EXTRA_DIR "droplet.tga", TEXTURE_page_droplet);
+    ge_texture_load_tga(TEXTURE_page_winmap, TEXTURE_EXTRA_DIR "winmap.tga");
+    ge_texture_load_tga(TEXTURE_page_leaf, TEXTURE_EXTRA_DIR "leaf.tga");
+    ge_texture_load_tga(TEXTURE_page_raindrop, TEXTURE_EXTRA_DIR "raindrop.tga");
+    ge_texture_load_tga(TEXTURE_page_footprint, TEXTURE_EXTRA_DIR "footprint.tga");
+    ge_texture_load_tga(TEXTURE_page_smoker, TEXTURE_EXTRA_DIR "smoker2.tga");
+    ge_texture_load_tga(TEXTURE_page_target, TEXTURE_EXTRA_DIR "targ1.tga");
+    ge_texture_load_tga(TEXTURE_page_droplet, TEXTURE_EXTRA_DIR "droplet.tga");
     LOADED_THIS_MANY_TEXTURES(7);
-    TEXTURE_texture[TEXTURE_page_explode1].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode1.tga", TEXTURE_page_explode1);
-    TEXTURE_texture[TEXTURE_page_explode2].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode2.tga", TEXTURE_page_explode2);
-    TEXTURE_texture[TEXTURE_page_smokecloud].LoadTextureTGA(TEXTURE_EXTRA_DIR "explode3.tga", TEXTURE_page_smokecloud);
-    TEXTURE_texture[TEXTURE_page_menulogo].LoadTextureTGA(TEXTURE_EXTRA_DIR "menulogo.tga", TEXTURE_page_menulogo);
+    ge_texture_load_tga(TEXTURE_page_explode1, TEXTURE_EXTRA_DIR "explode1.tga");
+    ge_texture_load_tga(TEXTURE_page_explode2, TEXTURE_EXTRA_DIR "explode2.tga");
+    ge_texture_load_tga(TEXTURE_page_smokecloud, TEXTURE_EXTRA_DIR "explode3.tga");
+    ge_texture_load_tga(TEXTURE_page_menulogo, TEXTURE_EXTRA_DIR "menulogo.tga");
     TEXTURE_needed[TEXTURE_page_menulogo] = 1;
     LOADED_THIS_MANY_TEXTURES(4);
-    TEXTURE_texture[TEXTURE_page_sparkle].LoadTextureTGA(TEXTURE_EXTRA_DIR "sparkle.tga", TEXTURE_page_sparkle);
-    TEXTURE_texture[TEXTURE_page_pcflamer].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCflamer.tga", TEXTURE_page_pcflamer);
-    TEXTURE_texture[TEXTURE_page_litebolt].LoadTextureTGA(TEXTURE_EXTRA_DIR "litebolt2.tga", TEXTURE_page_litebolt);
-    TEXTURE_texture[TEXTURE_page_splash].LoadTextureTGA(TEXTURE_EXTRA_DIR "splashALL.tga", TEXTURE_page_splash);
+    ge_texture_load_tga(TEXTURE_page_sparkle, TEXTURE_EXTRA_DIR "sparkle.tga");
+    ge_texture_load_tga(TEXTURE_page_pcflamer, TEXTURE_EXTRA_DIR "PCflamer.tga");
+    ge_texture_load_tga(TEXTURE_page_litebolt, TEXTURE_EXTRA_DIR "litebolt2.tga");
+    ge_texture_load_tga(TEXTURE_page_splash, TEXTURE_EXTRA_DIR "splashALL.tga");
     LOADED_THIS_MANY_TEXTURES(4);
 
     // Frontend/UI textures
-    TEXTURE_texture[TEXTURE_page_bigbutton].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigbutt.tga", TEXTURE_page_bigbutton, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_bigbutton, TEXTURE_EXTRA_DIR "bigbutt.tga", false);
     TEXTURE_needed[TEXTURE_page_bigbutton] = 1;
-    TEXTURE_texture[TEXTURE_page_bigleaf].LoadTextureTGA(TEXTURE_EXTRA_DIR "bigleaf.tga", TEXTURE_page_bigleaf);
+    ge_texture_load_tga(TEXTURE_page_bigleaf, TEXTURE_EXTRA_DIR "bigleaf.tga");
     TEXTURE_needed[TEXTURE_page_bigleaf] = 1;
-    TEXTURE_texture[TEXTURE_page_bigrain].LoadTextureTGA(TEXTURE_EXTRA_DIR "raindrop2.tga", TEXTURE_page_bigrain);
+    ge_texture_load_tga(TEXTURE_page_bigrain, TEXTURE_EXTRA_DIR "raindrop2.tga");
     TEXTURE_needed[TEXTURE_page_bigrain] = 1;
-    TEXTURE_texture[TEXTURE_page_tinybutt].LoadTextureTGA(TEXTURE_EXTRA_DIR "tinybutt.tga", TEXTURE_page_tinybutt, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_tinybutt, TEXTURE_EXTRA_DIR "tinybutt.tga", false);
     TEXTURE_needed[TEXTURE_page_tinybutt] = 1;
-    TEXTURE_texture[TEXTURE_page_snowflake].LoadTextureTGA(TEXTURE_EXTRA_DIR "snowflake.tga", TEXTURE_page_snowflake);
+    ge_texture_load_tga(TEXTURE_page_snowflake, TEXTURE_EXTRA_DIR "snowflake.tga");
     TEXTURE_needed[TEXTURE_page_snowflake] = 1;
 
-    TEXTURE_texture[TEXTURE_page_finalglow].LoadTextureTGA(TEXTURE_EXTRA_DIR "finalglow.tga", TEXTURE_page_finalglow);
+    ge_texture_load_tga(TEXTURE_page_finalglow, TEXTURE_EXTRA_DIR "finalglow.tga");
     TEXTURE_needed[TEXTURE_page_finalglow] = 1;
 
-    TEXTURE_texture[TEXTURE_page_fade_MF].LoadTextureTGA(TEXTURE_EXTRA_DIR "fade_MF.tga", TEXTURE_page_fade_MF, UC_FALSE);
+    ge_texture_load_tga(TEXTURE_page_fade_MF, TEXTURE_EXTRA_DIR "fade_MF.tga", false);
     TEXTURE_needed[TEXTURE_page_fade_MF] = 1;
 
     LOADED_THIS_MANY_TEXTURES(7);
 
     {
-        TEXTURE_texture[TEXTURE_page_fadecat].LoadTextureTGA(TEXTURE_EXTRA_DIR "fadecat.tga", TEXTURE_page_fadecat, UC_FALSE);
-        TEXTURE_texture[TEXTURE_page_tyretrack_alpha].LoadTextureTGA(TEXTURE_EXTRA_DIR "tyremark_alpha.tga", TEXTURE_page_tyretrack_alpha);
-        TEXTURE_texture[TEXTURE_page_ladder].LoadTextureTGA(TEXTURE_EXTRA_DIR "secret.tga", TEXTURE_page_ladder);
-        TEXTURE_texture[TEXTURE_page_shadowoval].LoadTextureTGA(TEXTURE_EXTRA_DIR "shadow.tga", TEXTURE_page_shadowoval);
-        TEXTURE_texture[TEXTURE_page_rubbish].LoadTextureTGA(TEXTURE_EXTRA_DIR "rubbish.tga", TEXTURE_page_rubbish);
+        ge_texture_load_tga(TEXTURE_page_fadecat, TEXTURE_EXTRA_DIR "fadecat.tga", false);
+        ge_texture_load_tga(TEXTURE_page_tyretrack_alpha, TEXTURE_EXTRA_DIR "tyremark_alpha.tga");
+        ge_texture_load_tga(TEXTURE_page_ladder, TEXTURE_EXTRA_DIR "secret.tga");
+        ge_texture_load_tga(TEXTURE_page_shadowoval, TEXTURE_EXTRA_DIR "shadow.tga");
+        ge_texture_load_tga(TEXTURE_page_rubbish, TEXTURE_EXTRA_DIR "rubbish.tga");
         LOADED_THIS_MANY_TEXTURES(5);
 
-        TEXTURE_texture[TEXTURE_page_lastpanel2].LoadTextureTGA(TEXTURE_EXTRA_DIR "PCdisplay01.tga", TEXTURE_page_lastpanel2, UC_FALSE);
-        TEXTURE_texture[TEXTURE_page_sign].LoadTextureTGA(TEXTURE_EXTRA_DIR "signs.tga", TEXTURE_page_sign);
-        TEXTURE_texture[TEXTURE_page_shadowsquare].LoadTextureTGA(TEXTURE_EXTRA_DIR "shadowsquare.tga", TEXTURE_page_shadowsquare);
-        TEXTURE_texture[TEXTURE_page_ladshad].LoadTextureTGA(TEXTURE_EXTRA_DIR "ladshad.tga", TEXTURE_page_ladshad);
-        TEXTURE_texture[TEXTURE_page_meteor].LoadTextureTGA(TEXTURE_EXTRA_DIR "meteorALL.tga", TEXTURE_page_meteor);
+        ge_texture_load_tga(TEXTURE_page_lastpanel2, TEXTURE_EXTRA_DIR "PCdisplay01.tga", false);
+        ge_texture_load_tga(TEXTURE_page_sign, TEXTURE_EXTRA_DIR "signs.tga");
+        ge_texture_load_tga(TEXTURE_page_shadowsquare, TEXTURE_EXTRA_DIR "shadowsquare.tga");
+        ge_texture_load_tga(TEXTURE_page_ladshad, TEXTURE_EXTRA_DIR "ladshad.tga");
+        ge_texture_load_tga(TEXTURE_page_meteor, TEXTURE_EXTRA_DIR "meteorALL.tga");
         LOADED_THIS_MANY_TEXTURES(5);
 
         // Male civilian body part textures (people3)
         TEXTURE_page_people3 = 21 * 64;
-        TEXTURE_texture[TEXTURE_page_people3 + 0].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "crotch1.tga", TEXTURE_page_people3 + 0);
-        TEXTURE_texture[TEXTURE_page_people3 + 1].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "crotch2.tga", TEXTURE_page_people3 + 1);
-        TEXTURE_texture[TEXTURE_page_people3 + 2].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "crotch3.tga", TEXTURE_page_people3 + 2);
-        TEXTURE_texture[TEXTURE_page_people3 + 3].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "front1.tga", TEXTURE_page_people3 + 3);
-        TEXTURE_texture[TEXTURE_page_people3 + 4].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "front2.tga", TEXTURE_page_people3 + 4);
+        ge_texture_load_tga(TEXTURE_page_people3 + 0, TEXTURE_PEOPLE3_DIR "crotch1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 1, TEXTURE_PEOPLE3_DIR "crotch2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 2, TEXTURE_PEOPLE3_DIR "crotch3.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 3, TEXTURE_PEOPLE3_DIR "front1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 4, TEXTURE_PEOPLE3_DIR "front2.tga");
         LOADED_THIS_MANY_TEXTURES(5);
-        TEXTURE_texture[TEXTURE_page_people3 + 5].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "front3.tga", TEXTURE_page_people3 + 5);
-        TEXTURE_texture[TEXTURE_page_people3 + 6].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "hatside1.tga", TEXTURE_page_people3 + 6);
-        TEXTURE_texture[TEXTURE_page_people3 + 7].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "hatside2.tga", TEXTURE_page_people3 + 7);
-        TEXTURE_texture[TEXTURE_page_people3 + 8].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "hatside3.tga", TEXTURE_page_people3 + 8);
-        TEXTURE_texture[TEXTURE_page_people3 + 9].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "hattop1.tga", TEXTURE_page_people3 + 9);
-        TEXTURE_texture[TEXTURE_page_people3 + 10].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "hattop2.tga", TEXTURE_page_people3 + 10);
+        ge_texture_load_tga(TEXTURE_page_people3 + 5, TEXTURE_PEOPLE3_DIR "front3.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 6, TEXTURE_PEOPLE3_DIR "hatside1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 7, TEXTURE_PEOPLE3_DIR "hatside2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 8, TEXTURE_PEOPLE3_DIR "hatside3.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 9, TEXTURE_PEOPLE3_DIR "hattop1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 10, TEXTURE_PEOPLE3_DIR "hattop2.tga");
         LOADED_THIS_MANY_TEXTURES(5);
-        TEXTURE_texture[TEXTURE_page_people3 + 11].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "hattop3.tga", TEXTURE_page_people3 + 11);
-        TEXTURE_texture[TEXTURE_page_people3 + 12].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "leg1.tga", TEXTURE_page_people3 + 12);
-        TEXTURE_texture[TEXTURE_page_people3 + 13].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "leg2.tga", TEXTURE_page_people3 + 13);
-        TEXTURE_texture[TEXTURE_page_people3 + 14].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "leg3.tga", TEXTURE_page_people3 + 14);
+        ge_texture_load_tga(TEXTURE_page_people3 + 11, TEXTURE_PEOPLE3_DIR "hattop3.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 12, TEXTURE_PEOPLE3_DIR "leg1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 13, TEXTURE_PEOPLE3_DIR "leg2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 14, TEXTURE_PEOPLE3_DIR "leg3.tga");
         LOADED_THIS_MANY_TEXTURES(4);
 
         // Female civilian body part textures (people3 female)
-        TEXTURE_texture[TEXTURE_page_people3 + 15].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMARSE1.tga", TEXTURE_page_people3 + 15);
-        TEXTURE_texture[TEXTURE_page_people3 + 16].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMARSE2.tga", TEXTURE_page_people3 + 16);
-        TEXTURE_texture[TEXTURE_page_people3 + 17].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMARSE3.tga", TEXTURE_page_people3 + 17);
-        TEXTURE_texture[TEXTURE_page_people3 + 18].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMCHEST1.tga", TEXTURE_page_people3 + 18);
-        TEXTURE_texture[TEXTURE_page_people3 + 19].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMCHEST2.tga", TEXTURE_page_people3 + 19);
-        TEXTURE_texture[TEXTURE_page_people3 + 20].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMCHEST3.tga", TEXTURE_page_people3 + 20);
+        ge_texture_load_tga(TEXTURE_page_people3 + 15, TEXTURE_PEOPLE3_DIR "FEMARSE1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 16, TEXTURE_PEOPLE3_DIR "FEMARSE2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 17, TEXTURE_PEOPLE3_DIR "FEMARSE3.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 18, TEXTURE_PEOPLE3_DIR "FEMCHEST1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 19, TEXTURE_PEOPLE3_DIR "FEMCHEST2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 20, TEXTURE_PEOPLE3_DIR "FEMCHEST3.tga");
         LOADED_THIS_MANY_TEXTURES(6);
-        TEXTURE_texture[TEXTURE_page_people3 + 21].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "SEAM1.tga", TEXTURE_page_people3 + 21);
-        TEXTURE_texture[TEXTURE_page_people3 + 22].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "SEAM2.tga", TEXTURE_page_people3 + 22);
-        TEXTURE_texture[TEXTURE_page_people3 + 23].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "SEAM3.tga", TEXTURE_page_people3 + 23);
-        TEXTURE_texture[TEXTURE_page_people3 + 24].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMSHOO1.tga", TEXTURE_page_people3 + 24);
-        TEXTURE_texture[TEXTURE_page_people3 + 25].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMSHOO2.tga", TEXTURE_page_people3 + 25);
-        TEXTURE_texture[TEXTURE_page_people3 + 26].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMSHOO3.tga", TEXTURE_page_people3 + 26);
+        ge_texture_load_tga(TEXTURE_page_people3 + 21, TEXTURE_PEOPLE3_DIR "SEAM1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 22, TEXTURE_PEOPLE3_DIR "SEAM2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 23, TEXTURE_PEOPLE3_DIR "SEAM3.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 24, TEXTURE_PEOPLE3_DIR "FEMSHOO1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 25, TEXTURE_PEOPLE3_DIR "FEMSHOO2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 26, TEXTURE_PEOPLE3_DIR "FEMSHOO3.tga");
         LOADED_THIS_MANY_TEXTURES(6);
-        TEXTURE_texture[TEXTURE_page_people3 + 27].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK1.tga", TEXTURE_page_people3 + 27);
-        TEXTURE_texture[TEXTURE_page_people3 + 28].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK2.tga", TEXTURE_page_people3 + 28);
-        TEXTURE_texture[TEXTURE_page_people3 + 29].LoadTextureTGA(TEXTURE_PEOPLE3_DIR "FEMBAK3.tga", TEXTURE_page_people3 + 29);
+        ge_texture_load_tga(TEXTURE_page_people3 + 27, TEXTURE_PEOPLE3_DIR "FEMBAK1.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 28, TEXTURE_PEOPLE3_DIR "FEMBAK2.tga");
+        ge_texture_load_tga(TEXTURE_page_people3 + 29, TEXTURE_PEOPLE3_DIR "FEMBAK3.tga");
         LOADED_THIS_MANY_TEXTURES(3);
     }
 
@@ -583,7 +581,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                 u + 3,
                 v + 3);
 
-            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+            if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_load_page(page);
                 LOADED_THIS_MANY_TEXTURES(1);
             }
@@ -606,7 +604,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
                 ASSERT(WITHIN(page, 0, TEXTURE_page_num_standard - 1));
 
-                if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+                if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                     TEXTURE_load_page(page);
                     LOADED_THIS_MANY_TEXTURES(1);
                 }
@@ -642,7 +640,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             page <<= 2;
             page |= f3->TexturePage;
             page += FACE_PAGE_OFFSET;
-            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+            if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_load_page(page);
                 LOADED_THIS_MANY_TEXTURES(1);
             }
@@ -655,7 +653,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
             page <<= 2;
             page |= f4->TexturePage;
             page += FACE_PAGE_OFFSET;
-            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+            if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                 TEXTURE_load_page(page);
                 LOADED_THIS_MANY_TEXTURES(1);
             }
@@ -687,7 +685,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                     if (dstyle > 0) {
                         for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
                             page = dx_textures_xy[dstyle][c1].Page;
-                            if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+                            if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                                 TEXTURE_load_page(page);
                                 LOADED_THIS_MANY_TEXTURES(1);
                             }
@@ -701,7 +699,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                         for (pos = 0; pos < p_storey->Count; pos++) {
                             page = paint_mem[p_storey->Index + pos];
                             if (page)
-                                if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+                                if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                                     TEXTURE_load_page(page);
                                     LOADED_THIS_MANY_TEXTURES(1);
                                 }
@@ -710,7 +708,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                         if (dstyle > 0) {
                             for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
                                 page = dx_textures_xy[dstyle][c1].Page;
-                                if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+                                if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                                     TEXTURE_load_page(page);
                                     LOADED_THIS_MANY_TEXTURES(1);
                                 }
@@ -724,7 +722,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
                 if (dstyle > 0)
                     for (c1 = 0; c1 < TEXTURE_PIECE_NUMBER; c1++) {
                         page = dx_textures_xy[dstyle][c1].Page;
-                        if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+                        if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
                             TEXTURE_load_page(page);
                             LOADED_THIS_MANY_TEXTURES(1);
                         }
@@ -738,7 +736,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     extern void AENG_guess_detail_levels();
     AENG_guess_detail_levels();
 
-    NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit();
+    ge_texture_loading_done();
 
     POLY_frame_init(UC_FALSE, UC_FALSE);
 }
@@ -761,7 +759,7 @@ void TEXTURE_load_needed_object(SLONG prim)
         page = f3->UV[0][0] & 0xc0;
         page <<= 2;
         page |= f3->TexturePage;
-        if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+        if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
             TEXTURE_load_page(page);
         }
     }
@@ -771,7 +769,7 @@ void TEXTURE_load_needed_object(SLONG prim)
         page = f4->UV[0][0] & 0xc0;
         page <<= 2;
         page |= f4->TexturePage;
-        if (TEXTURE_texture[page].Type == GE_TEXTURE_TYPE_UNUSED) {
+        if (ge_texture_get_type(page) == GE_TEXTURE_TYPE_UNUSED) {
             TEXTURE_load_page(page);
         }
     }
@@ -786,8 +784,8 @@ void TEXTURE_free()
     CRINKLE_init();
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
-        TEXTURE_texture[i].Destroy();
-        TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
+        ge_texture_destroy(i);
+        ge_texture_set_type(i, GE_TEXTURE_TYPE_UNUSED);
     }
 
     ge_remove_all_loaded_textures();
@@ -810,13 +808,12 @@ void TEXTURE_free_unneeded(void)
     CRINKLE_init();
 
     for (i = 0; i < TEXTURE_num_textures; i++) {
-        TEXTURE_texture[i].Destroy();
-        TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
+        ge_texture_destroy(i);
+        ge_texture_set_type(i, GE_TEXTURE_TYPE_UNUSED);
         TEXTURE_dontexist[i] = 0;
     }
 
-    extern void FreeAllD3DPages(void);
-    FreeAllD3DPages();
+    ge_texture_free_all();
 
     POLY_reset_render_states();
 }
@@ -828,13 +825,13 @@ GETextureHandle TEXTURE_get_handle(SLONG page)
     if (page == -1) {
         return GE_TEXTURE_NONE;
     }
-    return reinterpret_cast<GETextureHandle>(TEXTURE_texture[page].GetD3DTexture());
+    return ge_get_texture_handle(page);
 }
 
-// Returns UV offset/scale for a texture page. Delegates to D3DTexture::GetTexOffsetAndScale.
+// Returns UV offset/scale for a texture page. Delegates to backend.
 void TEXTURE_get_tex_offset(SLONG page, float* uScale, float* uOffset, float* vScale, float* vOffset)
 {
-    TEXTURE_texture[page].GetTexOffsetAndScale(uScale, uOffset, vScale, vOffset);
+    ge_get_texture_offset(page, uScale, uOffset, vScale, vOffset);
 }
 
 // uc_orig: TEXTURE_get_minitexturebits_uvs (fallen/DDEngine/Source/texture.cpp)
@@ -1115,33 +1112,26 @@ void TEXTURE_set_colour_key(SLONG page)
 // Sets TEXTURE_shadow_bitmap/pitch/mask/shift globals on success.
 SLONG TEXTURE_shadow_lock(void)
 {
-    HRESULT res;
-
-    res = TEXTURE_texture[TEXTURE_page_shadow].LockUser(
-        &TEXTURE_shadow_bitmap,
-        &TEXTURE_shadow_pitch);
-
-    if (FAILED(res)) {
+    int32_t pitch;
+    if (!ge_lock_texture_pixels(TEXTURE_page_shadow, &TEXTURE_shadow_bitmap, &pitch)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
         return UC_FALSE;
-    } else {
-        TEXTURE_shadow_mask_red = TEXTURE_texture[TEXTURE_page_shadow].mask_red;
-        TEXTURE_shadow_mask_green = TEXTURE_texture[TEXTURE_page_shadow].mask_green;
-        TEXTURE_shadow_mask_blue = TEXTURE_texture[TEXTURE_page_shadow].mask_blue;
-        TEXTURE_shadow_mask_alpha = TEXTURE_texture[TEXTURE_page_shadow].mask_alpha;
-        TEXTURE_shadow_shift_red = TEXTURE_texture[TEXTURE_page_shadow].shift_red;
-        TEXTURE_shadow_shift_green = TEXTURE_texture[TEXTURE_page_shadow].shift_green;
-        TEXTURE_shadow_shift_blue = TEXTURE_texture[TEXTURE_page_shadow].shift_blue;
-        TEXTURE_shadow_shift_alpha = TEXTURE_texture[TEXTURE_page_shadow].shift_alpha;
-        return UC_TRUE;
     }
+    TEXTURE_shadow_pitch = pitch;
+    int32_t mr, mg, mb, ma, sr, sg, sb, sa;
+    ge_get_texture_pixel_format(TEXTURE_page_shadow, &mr, &mg, &mb, &ma, &sr, &sg, &sb, &sa);
+    TEXTURE_shadow_mask_red = mr;   TEXTURE_shadow_mask_green = mg;
+    TEXTURE_shadow_mask_blue = mb;  TEXTURE_shadow_mask_alpha = ma;
+    TEXTURE_shadow_shift_red = sr;  TEXTURE_shadow_shift_green = sg;
+    TEXTURE_shadow_shift_blue = sb; TEXTURE_shadow_shift_alpha = sa;
+    return UC_TRUE;
 }
 
 // uc_orig: TEXTURE_shadow_unlock (fallen/DDEngine/Source/texture.cpp)
 void TEXTURE_shadow_unlock()
 {
-    TEXTURE_texture[TEXTURE_page_shadow].UnlockUser();
+    ge_unlock_texture_pixels(TEXTURE_page_shadow);
 }
 
 // uc_orig: TEXTURE_shadow_update (fallen/DDEngine/Source/texture.cpp)
@@ -1156,7 +1146,7 @@ void TEXTURE_set_greyscale(SLONG is_greyscale)
 {
     SLONG i;
     for (i = 0; i < TEXTURE_MAX_TEXTURES; i++) {
-        TEXTURE_texture[i].set_greyscale(is_greyscale);
+        ge_texture_set_greyscale(i, is_greyscale);
     }
 }
 
@@ -1164,33 +1154,26 @@ void TEXTURE_set_greyscale(SLONG is_greyscale)
 // Locks texture page 86 (the video/screensaver page) for CPU write.
 SLONG TEXTURE_86_lock()
 {
-    HRESULT res;
-
-    res = TEXTURE_texture[86].LockUser(
-        &TEXTURE_shadow_bitmap,
-        &TEXTURE_shadow_pitch);
-
-    if (FAILED(res)) {
+    int32_t pitch;
+    if (!ge_lock_texture_pixels(86, &TEXTURE_shadow_bitmap, &pitch)) {
         TEXTURE_shadow_bitmap = NULL;
         TEXTURE_shadow_pitch = 0;
         return UC_FALSE;
-    } else {
-        TEXTURE_shadow_mask_red = TEXTURE_texture[86].mask_red;
-        TEXTURE_shadow_mask_green = TEXTURE_texture[86].mask_green;
-        TEXTURE_shadow_mask_blue = TEXTURE_texture[86].mask_blue;
-        TEXTURE_shadow_mask_alpha = TEXTURE_texture[86].mask_alpha;
-        TEXTURE_shadow_shift_red = TEXTURE_texture[86].shift_red;
-        TEXTURE_shadow_shift_green = TEXTURE_texture[86].shift_green;
-        TEXTURE_shadow_shift_blue = TEXTURE_texture[86].shift_blue;
-        TEXTURE_shadow_shift_alpha = TEXTURE_texture[86].shift_alpha;
-        return UC_TRUE;
     }
+    TEXTURE_shadow_pitch = pitch;
+    int32_t mr, mg, mb, ma, sr, sg, sb, sa;
+    ge_get_texture_pixel_format(86, &mr, &mg, &mb, &ma, &sr, &sg, &sb, &sa);
+    TEXTURE_shadow_mask_red = mr;   TEXTURE_shadow_mask_green = mg;
+    TEXTURE_shadow_mask_blue = mb;  TEXTURE_shadow_mask_alpha = ma;
+    TEXTURE_shadow_shift_red = sr;  TEXTURE_shadow_shift_green = sg;
+    TEXTURE_shadow_shift_blue = sb; TEXTURE_shadow_shift_alpha = sa;
+    return UC_TRUE;
 }
 
 // uc_orig: TEXTURE_86_unlock (fallen/DDEngine/Source/texture.cpp)
 void TEXTURE_86_unlock()
 {
-    TEXTURE_texture[86].UnlockUser();
+    ge_unlock_texture_pixels(86);
 }
 
 // uc_orig: TEXTURE_86_update (fallen/DDEngine/Source/texture.cpp)
@@ -1210,7 +1193,7 @@ void TEXTURE_set_tga(SLONG page, CBYTE* fn)
     strcat(fn2, fn);
     file = FileOpen(fn2);
     if (file != FILE_OPEN_ERROR) {
-        TEXTURE_texture[page].ChangeTextureTGA(fn2);
+        ge_texture_change_tga(page, fn2);
         FileClose(file);
     }
 }
@@ -1255,32 +1238,36 @@ SLONG TEXTURE_looks_like(SLONG page)
 
     ASSERT(WITHIN(page, 0, 511));
 
-    D3DTexture* dt = &TEXTURE_texture[page];
+    int32_t tex_size = ge_texture_get_size(page);
+    int32_t m_r, m_g, m_b, m_a, s_r, s_g, s_b, s_a;
+    ge_get_texture_pixel_format(page, &m_r, &m_g, &m_b, &m_a, &s_r, &s_g, &s_b, &s_a);
 
     TEXTURE_liney = 0;
     TEXTURE_av_r = 0;
     TEXTURE_av_g = 0;
     TEXTURE_av_b = 0;
 
-    if (SUCCEEDED(dt->LockUser(&bitmap, &pitch))) {
+    int32_t pitch32;
+    if (ge_lock_texture_pixels(page, &bitmap, &pitch32)) {
+        pitch = pitch32;
         av_r = 0;
         av_g = 0;
         av_b = 0;
 
-        for (px = 0; px < TEXTURE_texture[page].size; px++)
-            for (py = 0; py < TEXTURE_texture[page].size; py++) {
+        for (px = 0; px < tex_size; px++)
+            for (py = 0; py < tex_size; py++) {
                 pixel = bitmap[px + py * pitch];
-                r = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-                g = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-                b = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
+                r = ((pixel >> s_r) & (0xff >> m_r)) << m_r;
+                g = ((pixel >> s_g) & (0xff >> m_g)) << m_g;
+                b = ((pixel >> s_b) & (0xff >> m_b)) << m_b;
                 av_r += r;
                 av_g += g;
                 av_b += b;
             }
 
-        av_r /= dt->size * dt->size;
-        av_g /= dt->size * dt->size;
-        av_b /= dt->size * dt->size;
+        av_r /= tex_size * tex_size;
+        av_g /= tex_size * tex_size;
+        av_b /= tex_size * tex_size;
 
         TEXTURE_av_r = av_r;
         TEXTURE_av_g = av_g;
@@ -1291,7 +1278,7 @@ SLONG TEXTURE_looks_like(SLONG page)
             rb >>= 1;
             rb += rb >> 1;
             if (av_g > rb) {
-                dt->UnlockUser();
+                ge_unlock_texture_pixels(page);
                 return TEXTURE_LOOK_GRASS;
             }
         }
@@ -1316,15 +1303,15 @@ SLONG TEXTURE_looks_like(SLONG page)
 
         dir = 0;
 
-        for (px = 0; px < dt->size; px++)
-            for (py = 0; py < dt->size; py++) {
-                px1 = px & (dt->size - 1);
-                py1 = py & (dt->size - 1);
+        for (px = 0; px < tex_size; px++)
+            for (py = 0; py < tex_size; py++) {
+                px1 = px & (tex_size - 1);
+                py1 = py & (tex_size - 1);
 
                 pixel = bitmap[px1 + py1 * pitch];
-                r1 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-                g1 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-                b1 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
+                r1 = ((pixel >> s_r) & (0xff >> m_r)) << m_r;
+                g1 = ((pixel >> s_g) & (0xff >> m_g)) << m_g;
+                b1 = ((pixel >> s_b) & (0xff >> m_b)) << m_b;
 
                 diff_left = 0;
                 diff_right = 0;
@@ -1336,29 +1323,29 @@ SLONG TEXTURE_looks_like(SLONG page)
 
                 for (j = 0; j < TEXTURE_SAMPLE_STRAIGHT2; j++) {
                     px2 = px1 - (dy * 4); py2 = py1 + (dx * 4);
-                    px2 &= dt->size - 1; py2 &= dt->size - 1;
+                    px2 &= tex_size - 1; py2 &= tex_size - 1;
                     pixel = bitmap[px2 + py2 * pitch];
-                    r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-                    g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-                    b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
+                    r2 = ((pixel >> s_r) & (0xff >> m_r)) << m_r;
+                    g2 = ((pixel >> s_g) & (0xff >> m_g)) << m_g;
+                    b2 = ((pixel >> s_b) & (0xff >> m_b)) << m_b;
                     pdiff_r = abs(r2 - r1); pdiff_g = abs(g2 - g1); pdiff_b = abs(b2 - b1);
                     diff_left += pdiff_r + pdiff_g + pdiff_b;
 
                     px2 = px1 + (dy * 4); py2 = py1 - (dx * 4);
-                    px2 &= dt->size - 1; py2 &= dt->size - 1;
+                    px2 &= tex_size - 1; py2 &= tex_size - 1;
                     pixel = bitmap[px2 + py2 * pitch];
-                    r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-                    g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-                    b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
+                    r2 = ((pixel >> s_r) & (0xff >> m_r)) << m_r;
+                    g2 = ((pixel >> s_g) & (0xff >> m_g)) << m_g;
+                    b2 = ((pixel >> s_b) & (0xff >> m_b)) << m_b;
                     pdiff_r = abs(r2 - r1); pdiff_g = abs(g2 - g1); pdiff_b = abs(b2 - b1);
                     diff_right += pdiff_r + pdiff_g + pdiff_b;
 
                     px2 = px1 + dx; py2 = py1 + dy;
-                    px2 &= dt->size - 1; py2 &= dt->size - 1;
+                    px2 &= tex_size - 1; py2 &= tex_size - 1;
                     pixel = bitmap[px2 + py2 * pitch];
-                    r2 = ((pixel >> dt->shift_red) & (0xff >> dt->mask_red)) << dt->mask_red;
-                    g2 = ((pixel >> dt->shift_green) & (0xff >> dt->mask_green)) << dt->mask_green;
-                    b2 = ((pixel >> dt->shift_blue) & (0xff >> dt->mask_blue)) << dt->mask_blue;
+                    r2 = ((pixel >> s_r) & (0xff >> m_r)) << m_r;
+                    g2 = ((pixel >> s_g) & (0xff >> m_g)) << m_g;
+                    b2 = ((pixel >> s_b) & (0xff >> m_b)) << m_b;
                     pdiff_r = abs(r2 - r1); pdiff_g = abs(g2 - g1); pdiff_b = abs(b2 - b1);
                     diff_along += pdiff_r + pdiff_g + pdiff_b;
 
@@ -1376,7 +1363,7 @@ SLONG TEXTURE_looks_like(SLONG page)
 
         TEXTURE_liney = lines;
 
-        dt->UnlockUser();
+        ge_unlock_texture_pixels(page);
 
         if (av_r > av_g && av_g > av_b) {
             if (av_r > (av_b + (av_b >> 1))) {

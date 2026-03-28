@@ -416,6 +416,50 @@ bool ge_is_gamma_available();
 // Signal that bulk texture loading is done — backend may release temp buffers.
 void ge_texture_loading_done();
 
+// Signal that bulk texture loading is about to begin — backend may allocate temp buffers.
+void ge_texture_loading_begin();
+
+// ---------------------------------------------------------------------------
+// Texture page management
+// ---------------------------------------------------------------------------
+
+// Load a TGA file into a texture page. can_shrink: allow detail reduction.
+void ge_texture_load_tga(int32_t page, const char* path, bool can_shrink = true);
+
+// Create a user-writable texture page of given size. If alpha_fill: fill with alpha.
+void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill);
+
+// Destroy a texture page and free its GPU resources.
+void ge_texture_destroy(int32_t page);
+
+// Free all texture pages and release internal GPU memory pools.
+void ge_texture_free_all();
+
+// Replace a texture page's contents from a new TGA file.
+void ge_texture_change_tga(int32_t page, const char* path);
+
+// Enable font-glyph mode on a texture page (for bitmap font rendering).
+void ge_texture_font_on(int32_t page);
+
+// Enable secondary font mode on a texture page (for LCD-style font).
+void ge_texture_font2_on(int32_t page);
+
+// Set greyscale mode on a texture page.
+void ge_texture_set_greyscale(int32_t page, bool greyscale);
+
+// Get UV offset/scale for a texture page (for sub-page addressing).
+void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* vScale, float* vOffset);
+
+// Get the pixel size of a texture page.
+int32_t ge_texture_get_size(int32_t page);
+
+// Get/set the texture type (GE_TEXTURE_TYPE_* constants).
+int32_t ge_texture_get_type(int32_t page);
+void ge_texture_set_type(int32_t page, int32_t type);
+
+// Get the opaque texture handle for a page (for binding).
+GETextureHandle ge_get_texture_handle(int32_t page);
+
 // Check if the display is NTSC mode (affects vertical position of some UI elements).
 bool ge_is_ntsc();
 

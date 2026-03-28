@@ -268,7 +268,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/poly_globals.cpp
     src/engine/graphics/geometry/shape.cpp
     src/engine/graphics/geometry/shape_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/texture.cpp
+    src/assets/texture.cpp
     src/assets/texture_globals.cpp
     # --- OUTRO DISABLED (Stage 7: renderer replacement, will re-enable later) ---
     # src/outro/core/outro_tga.cpp
