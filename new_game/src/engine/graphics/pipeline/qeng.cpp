@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/qeng.h"
 #include "engine/graphics/pipeline/qeng_globals.h"
 #include "engine/graphics/pipeline/poly.h"

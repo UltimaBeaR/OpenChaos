@@ -8,7 +8,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/core/matrix.h"
 #include "assets/texture.h"
 #include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*

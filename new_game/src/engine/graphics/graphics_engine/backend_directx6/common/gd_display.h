@@ -3,8 +3,8 @@
 
 // uc_common.h defines DisplayWidth/DisplayHeight as macros (640/480).
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
 
 // uc_orig: SHELL_ACTIVE (fallen/DDLibrary/Headers/GDisplay.h)
 #define SHELL_ACTIVE   (LibShellActive())

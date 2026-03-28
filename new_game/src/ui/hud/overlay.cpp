@@ -11,7 +11,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/graphics/text/font2d.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"
 

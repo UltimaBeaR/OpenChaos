@@ -30,7 +30,7 @@
 #include "map/pap.h"
 #include "map/pap_globals.h"
 #include "ai/mav.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"

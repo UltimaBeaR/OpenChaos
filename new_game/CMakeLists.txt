@@ -88,8 +88,8 @@ set(SOURCES_NEW
     src/assets/formats/anim_loader_globals.cpp
     src/engine/graphics/lighting/ngamut.cpp
     src/engine/graphics/lighting/ngamut_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/work_screen.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/work_screen_globals.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/work_screen.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/work_screen_globals.cpp
     src/engine/graphics/geometry/aa.cpp
     src/engine/graphics/geometry/aa_globals.cpp
     src/engine/console/message.cpp
@@ -98,8 +98,8 @@ set(SOURCES_NEW
     src/engine/core/timer_globals.cpp
     src/engine/audio/mfx.cpp
     src/engine/audio/mfx_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/d3d_texture.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/d3d_texture_globals.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.cpp
     src/engine/platform/wind_procs.cpp
     src/engine/platform/wind_procs_globals.cpp
     src/engine/platform/host.cpp
@@ -109,9 +109,9 @@ set(SOURCES_NEW
     # render_state.cpp removed — replaced by ge_render_state.cpp
     src/engine/graphics/pipeline/bucket.cpp
     src/engine/graphics/pipeline/bucket_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/vertex_buffer.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/vertex_buffer_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/polypage.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
     src/engine/graphics/text/font.cpp
     src/engine/graphics/text/font_globals.cpp
@@ -121,7 +121,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/qeng.cpp
     src/engine/graphics/pipeline/qeng_globals.cpp
     src/map/qmap_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/text.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/text.cpp
     src/engine/graphics/text/text_globals.cpp
     src/assets/xlat_str.cpp
     src/assets/xlat_str_globals.cpp
@@ -145,8 +145,8 @@ set(SOURCES_NEW
     src/engine/io/env_globals.cpp
     src/engine/graphics/postprocess/wibble.cpp
     src/engine/graphics/postprocess/wibble_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/truetype.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/truetype_globals.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/truetype.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.cpp
     src/effects/environment/fire.cpp
     src/effects/environment/fire_globals.cpp
     src/world_objects/dirt.cpp
@@ -171,12 +171,13 @@ set(SOURCES_NEW
     src/ui/hud/planmap_globals.cpp
     src/ui/hud/eng_map.cpp
     src/ui/hud/eng_map_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/dd_manager.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/dd_manager_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/display.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/display_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/graphics_engine_d3d.cpp
-    src/engine/graphics/graphics_engine/graphics_engine.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/common/display.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/common/display_globals.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/game/core.cpp
+    src/engine/graphics/graphics_engine/backend_directx6/outro/core.cpp
+    src/engine/graphics/graphics_engine/game_graphics_engine.cpp
     src/engine/graphics/lighting/shadow.cpp
     src/engine/graphics/lighting/shadow_globals.cpp
     src/effects/weather/fog.cpp
@@ -270,25 +271,25 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/shape_globals.cpp
     src/assets/texture.cpp
     src/assets/texture_globals.cpp
-    # --- OUTRO DISABLED (Stage 7: renderer replacement, will re-enable later) ---
-    # src/outro/core/outro_tga.cpp
-    # src/outro/core/outro_matrix.cpp
-    # src/outro/outro_back.cpp
-    # src/outro/outro_back_globals.cpp
-    # src/outro/core/outro_cam.cpp
-    # src/outro/core/outro_cam_globals.cpp
-    # src/outro/outro_credits.cpp
-    # src/outro/outro_credits_globals.cpp
-    # src/outro/core/outro_font.cpp
-    # src/outro/core/outro_font_globals.cpp
-    # src/outro/outro_wire.cpp
-    # src/outro/outro_wire_globals.cpp
-    # src/outro/outro_main.cpp
-    # src/outro/core/outro_imp.cpp
-    # src/outro/core/outro_mf.cpp
-    # src/outro/core/outro_mf_globals.cpp
-    # src/outro/core/outro_os.cpp
-    # src/outro/core/outro_os_globals.cpp
+    # --- OUTRO ---
+    src/outro/core/outro_tga.cpp
+    src/outro/core/outro_matrix.cpp
+    src/outro/outro_back.cpp
+    src/outro/outro_back_globals.cpp
+    src/outro/core/outro_cam.cpp
+    src/outro/core/outro_cam_globals.cpp
+    src/outro/outro_credits.cpp
+    src/outro/outro_credits_globals.cpp
+    src/outro/core/outro_font.cpp
+    src/outro/core/outro_font_globals.cpp
+    src/outro/outro_wire.cpp
+    src/outro/outro_wire_globals.cpp
+    src/outro/outro_main.cpp
+    src/outro/core/outro_imp.cpp
+    src/outro/core/outro_mf.cpp
+    src/outro/core/outro_mf_globals.cpp
+    src/outro/core/outro_os.cpp
+    src/outro/core/outro_os_globals.cpp
     src/ui/frontend/attract.cpp
     src/ui/frontend/attract_globals.cpp
     src/things/items/barrel.cpp

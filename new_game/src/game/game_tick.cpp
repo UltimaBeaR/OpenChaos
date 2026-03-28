@@ -27,7 +27,7 @@
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "assets/formats/tga.h"
 
 // Platform globals (defined in d3d/display_globals.cpp) — needed for windowed mouse coords.

@@ -27,7 +27,7 @@
 #include "things/characters/person.h"
 #include "ai/pcom.h"
 #include "missions/eway.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/effects/psystem.h"

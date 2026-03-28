@@ -2,7 +2,7 @@
 // Light bloom and lens flare rendering: BLOOM_flare_draw + BLOOM_draw.
 
 
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
 #include "camera/fc.h"

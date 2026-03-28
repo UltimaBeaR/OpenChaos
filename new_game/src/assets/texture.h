@@ -2,7 +2,7 @@
 #define ASSETS_TEXTURE_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/lighting/crinkle.h"
 
 // Texture system manages all Direct3D texture pages. A "page" is an integer index

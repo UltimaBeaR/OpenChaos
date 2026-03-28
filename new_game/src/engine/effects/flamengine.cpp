@@ -1,6 +1,6 @@
 #include "engine/effects/flamengine.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // uc_orig: TEXTURE_page_menuflame (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_menuflame;

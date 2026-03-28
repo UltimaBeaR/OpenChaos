@@ -12,7 +12,7 @@
 // INPUT_MASK_*, and ShiftFlag is already in keyboard_globals.h.
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Sound-to-wave ID mapping for widget events. Uses S_MENU_START/S_MENU_END from sound_id.h.
 // uc_orig: _WS_MOVE (fallen/Source/widget.cpp)

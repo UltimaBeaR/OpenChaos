@@ -18,7 +18,7 @@
 #include "outro/core/outro_matrix.h"
 #include "outro/core/outro_tga.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/backend_directx6/display_macros.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/display_macros.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"
 #include "engine/audio/mfx.h"
@@ -27,7 +27,7 @@
 
 // OS_calculate_mask_and_shift is defined in engine/graphics/resources/d3d_texture.cpp
 // and declared here for use in OS_texture_lock and OS_hack.
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
 
 // Entry point from outro system.
 extern void MAIN_main(void);

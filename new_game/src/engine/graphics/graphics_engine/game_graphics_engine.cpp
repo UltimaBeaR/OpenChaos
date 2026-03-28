@@ -1,7 +1,7 @@
 // Graphics engine — API-agnostic parts (render state cache, etc.).
 // Backend-specific code lives in d3d/ (or future opengl/).
 
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 GERenderState GERenderState::s_State;
 

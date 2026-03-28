@@ -1,5 +1,5 @@
-#ifndef ENGINE_GRAPHICS_GRAPHICS_ENGINE_H
-#define ENGINE_GRAPHICS_GRAPHICS_ENGINE_H
+#ifndef ENGINE_GRAPHICS_GAME_GRAPHICS_ENGINE_H
+#define ENGINE_GRAPHICS_GAME_GRAPHICS_ENGINE_H
 
 // Graphics engine abstraction layer.
 // Game code includes ONLY this header — never D3D/DDraw/OpenGL headers directly.
@@ -599,4 +599,4 @@ using RenderState = GERenderState;
 // Legacy alias — old code uses "SpecialEffect".
 using SpecialEffect = GERenderEffect;
 
-#endif // ENGINE_GRAPHICS_GRAPHICS_ENGINE_H
+#endif // ENGINE_GRAPHICS_GAME_GRAPHICS_ENGINE_H

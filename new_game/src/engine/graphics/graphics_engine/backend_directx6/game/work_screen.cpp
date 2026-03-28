@@ -1,7 +1,7 @@
 #include "work_screen.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/backend_directx6/gd_display.h"
-#include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"   // InitStruct macro
+#include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"   // InitStruct macro
 
 // uc_orig: ShowWorkScreen (fallen/DDLibrary/Source/GWorkScreen.cpp)
 void ShowWorkScreen(ULONG flags)

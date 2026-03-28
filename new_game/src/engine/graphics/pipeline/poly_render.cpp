@@ -7,7 +7,7 @@
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "assets/texture.h"
 
 // DefRenderState is defined in poly.cpp (not yet migrated).

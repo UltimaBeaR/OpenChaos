@@ -3,7 +3,7 @@
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"

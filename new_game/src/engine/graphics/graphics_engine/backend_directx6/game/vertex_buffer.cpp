@@ -1,7 +1,7 @@
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"   // InitStruct macro
+#include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"   // InitStruct macro
 
 #include <string.h>
 #include <stdio.h>

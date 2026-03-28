@@ -5,9 +5,9 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
 
 // once texture.cpp is split out.
 extern D3DTexture TEXTURE_texture[];

@@ -4,7 +4,7 @@
 // Elevator/platform logic lives in world/environment/plat.cpp and actors/core/interact.cpp.
 
 #include "game/game.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Platform window handle (defined in d3d/display_globals.cpp).
 extern volatile HWND hDDLibWindow;

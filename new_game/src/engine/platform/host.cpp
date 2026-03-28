@@ -1,7 +1,7 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Platform globals (defined in d3d/display_globals.cpp).
 extern volatile HWND hDDLibWindow;

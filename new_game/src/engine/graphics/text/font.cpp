@@ -2,7 +2,7 @@
 #include "engine/graphics/text/font_globals.h"
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 #include "engine/core/macros.h"
 #include <math.h>

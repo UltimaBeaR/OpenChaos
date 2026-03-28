@@ -5,7 +5,7 @@
 #include "engine/graphics/geometry/sky_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/core/matrix.h"
 
 // Display globals (defined in d3d/display_globals.cpp).

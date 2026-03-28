@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 #define ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H
 
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/poly.h"
 

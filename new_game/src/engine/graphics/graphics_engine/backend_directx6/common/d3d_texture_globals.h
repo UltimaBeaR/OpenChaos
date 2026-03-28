@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_GRAPHICS_API_D3D_TEXTURE_GLOBALS_H
 #define ENGINE_GRAPHICS_GRAPHICS_API_D3D_TEXTURE_GLOBALS_H
 
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
 
 // D3DTexture array — the core texture storage. Game code uses ge_* / TEXTURE_get_handle().
 // uc_orig: TEXTURE_texture (fallen/DDEngine/Source/texture.cpp)

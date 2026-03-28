@@ -2,7 +2,7 @@
 #include "game/game_types.h"
 #include "engine/graphics/postprocess/wibble.h"
 #include "engine/graphics/postprocess/wibble_globals.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/core/math.h"
 
 // Display globals (defined in d3d/display_globals.cpp).

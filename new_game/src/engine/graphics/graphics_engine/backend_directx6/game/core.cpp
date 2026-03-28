@@ -1,15 +1,15 @@
 // Graphics engine — Direct3D 6 implementation.
 // All D3D/DDraw code lives in this d3d/ folder (adapter + internal D3D modules).
 
-#include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/backend_directx6/display_macros.h"
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture.h"
-#include "engine/graphics/graphics_engine/backend_directx6/display_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/backend_directx6/d3d_texture_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/dd_manager_globals.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/display_macros.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/display_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
 #include "assets/formats/level_loader.h" // DATA_DIR

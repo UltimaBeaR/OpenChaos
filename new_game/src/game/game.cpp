@@ -114,7 +114,7 @@
 
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypage.h"  // PolyPage::SetScaling (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_set_draw_distance, AENG_screen_shot, AENG_draw_messages
 #include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
@@ -958,11 +958,10 @@ round_again:;
                 stop_all_fx_and_music();
                 ge_run_cutscene(3);
 
-                // TODO(stage7): outro disabled during renderer replacement
-                // extern void OS_hack(void);
-                // the_end = UC_TRUE;
-                // OS_hack();
-                // the_end = UC_FALSE;
+                extern void OS_hack(void);
+                the_end = UC_TRUE;
+                OS_hack();
+                the_end = UC_FALSE;
             } else
 
                 // Warn the player if they killed too many civilians (RedMarks > 1).

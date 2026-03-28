@@ -2,7 +2,7 @@
 #define ASSETS_TEXTURE_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include <stdlib.h> // _MAX_PATH
 #include "engine/graphics/lighting/crinkle.h"
 

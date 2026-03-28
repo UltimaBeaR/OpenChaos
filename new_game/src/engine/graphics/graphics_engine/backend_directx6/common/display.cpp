@@ -10,18 +10,18 @@
 #include <amstream.h>  // IAMMultiMediaStream, CLSID_AMMultiMediaStream
 #include <ddstream.h>  // IDirectDrawMediaStream, IDirectDrawStreamSample
 
-#include "engine/graphics/graphics_engine/backend_directx6/gd_display.h"
-#include "engine/graphics/graphics_engine/backend_directx6/display_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/dd_manager.h"
-#include "engine/graphics/graphics_engine/backend_directx6/dd_manager_globals.h"
-#include "engine/graphics/graphics_engine/backend_directx6/display_macros.h"   // dd_error, d3d_error macros
+#include "engine/graphics/graphics_engine/backend_directx6/common/gd_display.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/display_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.h"
+#include "engine/graphics/graphics_engine/backend_directx6/common/display_macros.h"   // dd_error, d3d_error macros
 #include "engine/io/env.h"             // ENV_get_value_number, ENV_set_value_number
 #include "assets/formats/tga.h"                // OpenTGAClump, CloseTGAClump
 #include "engine/core/memory.h"               // MemAlloc, MemFree
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
-#include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 extern CBYTE DATA_DIR[];
 

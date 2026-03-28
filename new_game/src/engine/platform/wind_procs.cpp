@@ -1,7 +1,7 @@
 #include "engine/platform/wind_procs.h"
 #include "engine/platform/wind_procs_globals.h"
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "game/game_types.h"
 
 extern void MFX_QUICK_stop(void);
