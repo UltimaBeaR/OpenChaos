@@ -23,21 +23,26 @@
 #include "engine/io/file.h"            // FileOpen, FileRead, FileSeek, FileClose
 
 #include "engine/graphics/graphics_engine/backend_directx6/vertex_buffer.h"
-#include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/pipeline/polypage.h"
-// panel.h uses Thing* — forward-declare Thing so panel.h can compile without the full Thing header.
-struct Thing;
-#include "ui/hud/panel.h"
-#include "ui/hud/panel_globals.h"
-#include "game/input_actions.h"
-#include "game/input_actions_globals.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 
 extern CBYTE DATA_DIR[];
 
 // uc_orig: calculate_mask_and_shift (fallen/DDLibrary/Source/GDisplay.cpp)
 static void calculate_mask_and_shift(ULONG bitmask, SLONG* mask, SLONG* shift);
-// Forward declarations of panel/poly functions accessed by Flip.
-extern void PreFlipTT();
+
+// Callbacks registered by game code.
+static GEPreFlipCallback s_pre_flip_callback = nullptr;
+static GEModeChangeCallback s_mode_change_callback = nullptr;
+
+void ge_set_pre_flip_callback(GEPreFlipCallback callback)
+{
+    s_pre_flip_callback = callback;
+}
+
+void ge_set_mode_change_callback(GEModeChangeCallback callback)
+{
+    s_mode_change_callback = callback;
+}
 
 
 // RGB 5-6-5 and 5-5-5 pixel format structs used by LoadBackImage.
@@ -185,7 +190,9 @@ SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
     if (FAILED(result))
         return -1;
 
-    PolyPage::SetScaling(float(width) / float(DisplayWidth), float(height) / float(DisplayHeight));
+    if (s_mode_change_callback) {
+        s_mode_change_callback(width, height);
+    }
 
     return 0;
 }
@@ -1663,12 +1670,9 @@ void CopyBackground(UBYTE* image_data, IDirectDrawSurface4* surface)
 // End-of-frame: runs pre-flip hooks, draws the screensaver, then flips (hardware) or blits (windowed).
 HRESULT Display::Flip(LPDIRECTDRAWSURFACE4 alt, SLONG flags)
 {
-    extern void PreFlipTT();
-    PreFlipTT();
-
-    PANEL_ResetDepthBodge();
-
-    PANEL_screensaver_draw();
+    if (s_pre_flip_callback) {
+        s_pre_flip_callback();
+    }
 
     if (IsFullScreen() && CurrDevice->IsHardware()) {
         return lp_DD_FrontSurface->Flip(alt, flags);

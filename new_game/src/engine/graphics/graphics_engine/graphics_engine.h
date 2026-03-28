@@ -460,6 +460,24 @@ void ge_texture_set_type(int32_t page, int32_t type);
 // Get the opaque texture handle for a page (for binding).
 GETextureHandle ge_get_texture_handle(int32_t page);
 
+// ---------------------------------------------------------------------------
+// Callbacks (game code hooks into backend lifecycle)
+// ---------------------------------------------------------------------------
+
+// Pre-flip callback: called by the backend just before the frame flip.
+// Game code registers this to run end-of-frame logic (TrueType flush, UI overlay, etc.).
+using GEPreFlipCallback = void (*)();
+void ge_set_pre_flip_callback(GEPreFlipCallback callback);
+
+// Mode change callback: called after display resolution changes.
+// Game code registers this to adjust scaling, viewport, etc.
+using GEModeChangeCallback = void (*)(int32_t width, int32_t height);
+void ge_set_mode_change_callback(GEModeChangeCallback callback);
+
+// Polys-drawn counter callback: backend calls this to report drawn poly count.
+using GEPolysDrawnCallback = void (*)(int32_t count);
+void ge_set_polys_drawn_callback(GEPolysDrawnCallback callback);
+
 // Check if the display is NTSC mode (affects vertical position of some UI elements).
 bool ge_is_ntsc();
 

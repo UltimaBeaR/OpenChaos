@@ -15,8 +15,13 @@
 #define SET_VB(pp, v) ((pp)->m_VertexBuffer = (v))
 #define RAW_VB(pp) (static_cast<IDirect3DVertexBuffer*>((pp)->m_VB))
 
-// AENG_total_polys_drawn is defined in aeng.cpp (not yet migrated).
-extern int AENG_total_polys_drawn;
+// Callback for reporting drawn poly count to game code.
+static GEPolysDrawnCallback s_polys_drawn_callback = nullptr;
+
+void ge_set_polys_drawn_callback(GEPolysDrawnCallback callback)
+{
+    s_polys_drawn_callback = callback;
+}
 
 // g_dw3DStuffHeight and g_dw3DStuffY are defined in poly.cpp (not yet migrated).
 // Used by GenerateMMMatrixFromStandardD3DOnes to support letterbox mode.
@@ -299,7 +304,9 @@ void PolyPage::Render()
 
     dev->DrawIndexedPrimitiveVB(D3DPT_TRIANGLELIST, vb, IxBuffer, dst - IxBuffer, D3DDP_DONOTUPDATEEXTENTS | D3DDP_DONOTCLIP | D3DDP_DONOTLIGHT);
 
-    AENG_total_polys_drawn += m_PolyBufUsed;
+    if (s_polys_drawn_callback) {
+        s_polys_drawn_callback(m_PolyBufUsed);
+    }
     m_PolyBufUsed = 0;
 
     m_VBUsed = 0;

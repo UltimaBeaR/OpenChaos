@@ -1046,6 +1046,29 @@ figure.cpp и aeng.cpp ещё используют `the_display` для друг
 
 ---
 
+### Очистка бэкенда от игровой логики ✅
+
+**texture.cpp** — вернулся в `assets/`. Все D3DTexture обращения заменены на ge_* (~12 новых функций).
+Файл больше не зависит от бэкенда. Можно реализовать текстурный менеджмент для любого API.
+
+Новые ge_* функции: `ge_texture_load_tga`, `ge_texture_destroy`, `ge_texture_free_all`,
+`ge_texture_create_user_page`, `ge_texture_font_on/font2_on`, `ge_texture_change_tga`,
+`ge_texture_set_greyscale`, `ge_texture_get_size`, `ge_texture_get/set_type`,
+`ge_get_texture_handle`, `ge_get_texture_offset`, `ge_texture_loading_begin`.
+
+**display.cpp** — убраны все игровые includes (panel.h, input_actions.h, poly.h, polypage.h).
+Прямые вызовы PreFlipTT, PANEL_ResetDepthBodge, PANEL_screensaver_draw, PolyPage::SetScaling
+заменены на callback-механизм: `ge_set_pre_flip_callback`, `ge_set_mode_change_callback`.
+Callbacks регистрируются из game.cpp при старте.
+
+**polypage.cpp** — `extern int AENG_total_polys_drawn` заменён на `ge_set_polys_drawn_callback`.
+
+**Результат:** в бэкенде `backend_directx6/` нет ни одного include игровой логики.
+Только engine/graphics/, engine/platform/, engine/core/, engine/io/, assets/formats/tga.
+Сборка: 308/308.
+
+---
+
 ### d3d/ → backend_directx6/ ✅
 
 Переименована папка бэкенда: `d3d/` → `backend_directx6/` (там и D3D6 и DirectDraw).

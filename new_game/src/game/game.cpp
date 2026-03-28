@@ -115,6 +115,7 @@
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 
 #include "engine/graphics/graphics_engine/graphics_engine.h"
+#include "engine/graphics/pipeline/polypage.h"  // PolyPage::SetScaling (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_set_draw_distance, AENG_screen_shot, AENG_draw_messages
 #include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
@@ -155,6 +156,28 @@ void stop_all_fx_and_music(void)
     MFX_stop(MFX_CHANNEL_ALL, MFX_WAVE_ALL);
 }
 
+// Pre-flip callback: called by the graphics backend just before frame flip.
+// Handles TrueType text flush, depth reset, and screensaver overlay.
+static void game_pre_flip()
+{
+    PreFlipTT();
+    PANEL_ResetDepthBodge();
+    PANEL_screensaver_draw();
+}
+
+// Mode change callback: adjusts polygon scaling when resolution changes.
+static void game_mode_changed(int32_t width, int32_t height)
+{
+    PolyPage::SetScaling(float(width) / 640.0f, float(height) / 480.0f);
+}
+
+// Polys-drawn callback: accumulates poly count for debug stats.
+static void game_polys_drawn(int32_t count)
+{
+    extern int AENG_total_polys_drawn;
+    AENG_total_polys_drawn += count;
+}
+
 // uc_orig: global_load (fallen/Source/Game.cpp)
 void global_load(void)
 {
@@ -182,6 +205,10 @@ void game_startup(void)
         MessageBox(NULL, "Unable to open display", NULL, MB_OK | MB_ICONWARNING);
         exit(1);
     }
+
+    ge_set_pre_flip_callback(game_pre_flip);
+    ge_set_mode_change_callback(game_mode_changed);
+    ge_set_polys_drawn_callback(game_polys_drawn);
 
     AENG_init();
 
