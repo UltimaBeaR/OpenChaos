@@ -21,8 +21,6 @@
 void ge_init()
 {
     // Display is already initialized by OpenDisplay() before ge_init() is called.
-    // NOTE: Do NOT set TSS (D3DTSS_COLOROP etc.) here — in D3D6, explicit TSS disables
-    // the legacy D3DRENDERSTATE_TEXTUREMAPBLEND that the entire POLY pipeline uses.
 }
 
 void ge_shutdown()

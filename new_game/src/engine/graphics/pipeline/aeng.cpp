@@ -5318,6 +5318,21 @@ void AENG_draw_city()
     //
 
     {
+        // C5 fix: on the first frame after loading, the back buffer contains residual
+        // loading screen pixels that AENG_clear_viewport's Viewport::Clear does not
+        // fully remove.  The exact porting error was not found (all D3D calls are 1:1
+        // identical — verified by full review + direct D3D call substitution), but the
+        // clear only takes effect after the main render scene's EndScene.
+        // Re-clear here (color only, preserve depth) before the additive sky/moon pass.
+        // Details: new_game_devlog/stage7_c5_investigation.md
+        {
+            static bool s_first_frame = true;
+            if (s_first_frame) {
+                s_first_frame = false;
+                ge_clear(true, false);
+            }
+        }
+
         POLY_frame_draw_odd();
         POLY_frame_draw_puddles();
 

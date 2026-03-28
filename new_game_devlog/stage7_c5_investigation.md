@@ -20,147 +20,170 @@
 
 Здания рисуются опак (Modulate, без alpha blend) → полностью перезаписывают буфер → глюк не виден.
 
-## Что было проверено
+---
 
-### 1. ge_* обёртки — все 1:1 passthrough
-Каждая ge_* функция в `graphics_engine_d3d.cpp` просто вызывает соответствующий Display метод:
-- `ge_clear(true, true)` → `the_display.lp_D3D_Viewport->Clear(1, &ViewportRect, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER)` = `ClearViewport()`
-- `ge_flip()` → `FLIP(NULL, DDFLIP_WAIT)` → `Display::Flip()`
-- `ge_set_background(User)` → `SET_USER_BACKGROUND` → `SetBackground(user_handle)`
-- `ge_set_background_color(r,g,b)` → `SetUserColour(r,g,b)`
-- `ge_show_back_image()` → `ShowBackImage()` → `blit_background_surface()`
-- `ge_reset_back_image()` → `ResetBackImage()` → `destroy_background_surface()`
-- `ge_blit_back_buffer()` → `the_display.blit_back_buffer()`
+## Расследование: что было проверено и исключено
 
-### 2. AENG_clear_viewport — идентичен старому коду
-Старый:
-```
+### 1. ge_* обёртки (ИСКЛЮЧЕНО)
+
+Каждая ge_* функция — прямой passthrough к Display/D3D методу:
+- `ge_clear(true, true)` → `lp_D3D_Viewport->Clear(1, &ViewportRect, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER)`
+- `ge_set_background_color(r,g,b)` → `the_display.SetUserColour(r,g,b)`
+- `ge_set_background(User)` → `the_display.SetUserBackground()` → `SetBackground(user_handle)`
+
+**Прямая подстановка D3D вызовов:** заменили весь `AENG_clear_viewport` на оригинальные
+`SET_BLACK_BACKGROUND`, `the_display.SetUserColour()`, `the_display.ClearViewport()` напрямую
+(минуя ge_*). **Баг остался.** → ge_* обёртки не виноваты.
+
+### 2. AENG_clear_viewport — код идентичен (ИСКЛЮЧЕНО)
+
+Старый код:
+```cpp
 the_display.SetUserColour(sky_colour);
 the_display.SetUserBackground();
 the_display.ClearViewport();
 ```
-Новый:
-```
+Новый код (через ge_*):
+```cpp
 ge_set_background_color(sky_colour);
 ge_set_background(GEBackground::User);
 ge_clear(true, true);
 ```
-Функционально тождественно.
+Транслируется в те же D3D вызовы. Подтверждено прямой подстановкой.
 
-### 3. ViewportRect — корректен
-Устанавливается в SetDisplay → (0, 0, screen_width, screen_height).
-Затем обновляется `ge_set_viewport(0, 0, w, h)` в attract.cpp.
-Между загрузкой и первым кадром игры — не изменяется.
-AENG_clear_viewport использует полноэкранный rect.
+### 3. ViewportRect (ИСКЛЮЧЕНО)
 
-### 4. Рендер неба — идентичен
-`SKY_draw_poly_sky_old` (aeng.cpp:5295) добавляет полигоны в `POLY_PAGE_SKY`.
-Sky page проверяется в двух местах:
-- `POLY_frame_draw()` (poly.cpp:1897) — рисует sky первым с `RS.SetChanged()`,
-  НО к этому моменту sky polys ещё не добавлены → `NeedsRendering()` = false → пропуск.
-- `POLY_frame_draw_odd()` (poly.cpp:2093) — рисует sky с **additive blend (One, One)**.
-  Это ЕДИНСТВЕННОЕ место где небо реально рисуется.
-Код poly.cpp и poly_render.cpp — механические замены (REALLY_SET → ge_set).
+Устанавливается в SetDisplay → (0, 0, 640, 480). Обновляется в `ge_set_viewport()`.
+Между загрузкой и первым кадром не изменяется. Полноэкранный.
 
-### 5. Loading screen flow — идентичен
+### 4. Loading screen flow (ИСКЛЮЧЕНО)
+
+Полностью идентичен старой версии:
 ```
-attract mode: ATTRACT_loadscreen_init() → loads e3load.tga, shows, flips ×2
+ATTRACT_loadscreen_init() → loads e3load.tga, shows+flips ×2
 attract loop exits → ge_show_back_image + AENG_flip → ge_reset_back_image
-game_init() → ELEV_load_user → ELEV_game_init → ATTRACT_loadscreen_draw (×N)
-  (но ge_show_back_image no-op: lp_DD_Background = NULL после ge_reset_back_image)
+game_init() → ATTRACT_loadscreen_draw (×N, но ge_show_back_image = no-op)
 game_loop → first frame → AENG_draw → AENG_clear_viewport → rendering
 ```
-Этот flow одинаков в старой и новой версии.
 
-### 6. Display::Flip / blit_back_buffer — идентичны
-Pre-flip callback (PreFlipTT, PANEL_ResetDepthBodge, PANEL_screensaver_draw) —
-в старом коде были hardcoded в Display::Flip, в новом через s_pre_flip_callback.
-Функционально идентично.
-`screen_flip()` проверяет `ge_is_primary_driver()` = `the_display.GetDriverInfo()->IsPrimary()`.
+### 5. Display::Flip / pre-flip callback (ИСКЛЮЧЕНО)
 
-### 7. GERenderState cache — не может быть причиной
-InitScene() в POLY_frame_init устанавливает ВСЕ render states через ge_* вызовы
-на каждом кадре. s_State синхронизируется. Первый кадр получает полную инициализацию.
+Старый Display::Flip содержал hardcoded `PreFlipTT()`, `PANEL_ResetDepthBodge()`,
+`PANEL_screensaver_draw()`. Новый — через `s_pre_flip_callback` = `game_pre_flip()`,
+которая вызывает те же три функции. Callback зарегистрирован до `OpenDisplay()`.
+`PreFlipTT()` → `BlitText()` имеет `ASSERT(UC_FALSE)` — путь рендера текста не выполняется.
 
-### 8. POLY_init_render_states — идентичен
-RenderStates_OK = false при инициализации → первый вызов всегда инициализирует.
-POLY_PAGE_SKY setup: SET_TEXTURE(sky) + DepthEnabled + !DepthWrite + !Fog — одинаково.
+### 6. GERenderState cache (ИСКЛЮЧЕНО)
 
-## Единственное существенное отличие (attract.cpp init)
+`InitScene()` вызывается в `POLY_frame_init()` на каждом кадре, устанавливает ВСЕ
+render states через `REALLY_SET_RENDER_STATE`. Кэш синхронизируется полностью.
 
-В старом attract.cpp перед attract-loop был блок из ~25 явных D3D вызовов:
-```cpp
-dev->SetRenderState(D3DRENDERSTATE_FILLMODE, D3DFILL_SOLID);
-dev->SetRenderState(D3DRENDERSTATE_SHADEMODE, D3DSHADE_GOURAUD);
-dev->SetRenderState(D3DRENDERSTATE_TEXTUREPERSPECTIVE, UC_TRUE);
-dev->SetRenderState(D3DRENDERSTATE_SPECULARENABLE, UC_FALSE);
-// ... ещё ~20 вызовов ...
-dev->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
-dev->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
-// ...
-dev->SetTextureStageState(1, D3DTSS_COLOROP, D3DTOP_DISABLE);  // ← Отключение stage 1!
-dev->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
-```
+### 7. Пропущенные TSS из attract.cpp init (ИСКЛЮЧЕНО)
 
-В новом коде заменено на:
-```cpp
-ge_set_viewport(0, 0, ge_get_screen_width(), ge_get_screen_height());
-ge_set_perspective_correction(true);
-ge_set_specular_enabled(false);
-ge_set_depth_mode(GEDepthMode::ReadWrite);
-ge_set_depth_func(GECompareFunc::LessEqual);
-ge_set_cull_mode(GECullMode::None);
-ge_set_fog_enabled(false);
-ge_set_texture_filter(Linear, Linear);
-ge_set_texture_address(Wrap);
-ge_set_texture_blend(Modulate);
-ge_set_blend_mode(Opaque);
-```
+В старом attract.cpp перед attract loop было ~25 D3D вызовов, включая TSS stage 0 setup
+и TSS stage 1 DISABLE. В новом — 10 ge_* вызовов (TSS не устанавливаются).
 
-**Что потеряно:**
-- FILLMODE, SHADEMODE, STIPPLEDALPHA, SUBPIXEL, ANTIALIAS — не критично (set-once defaults)
-- D3DTSS для stage 0 (COLOROP/ARG, ALPHAOP/ARG) — не установлены явно через TSS
-- **D3DTSS stage 1 DISABLE** — НЕ установлен в новом коде
-- Примечание: в `ge_init()` есть комментарий: "Do NOT set TSS here — explicit TSS disables
-  the legacy D3DRENDERSTATE_TEXTUREMAPBLEND that the POLY pipeline uses"
+**Проверено:**
+- Добавили только TSS (stage 0 + stage 1 disable) в `ge_init()` → баг остался
+- Перенесли TSS в attract.cpp (то же место что в старом коде) → баг остался
+- Добавили ВСЕ ~30 D3D вызовов из старого attract.cpp init → **баг остался**
 
-Это различие происходит ПЕРЕД attract loop (при входе в attract mode), не непосредственно
-перед первым кадром игры. К моменту первого кадра InitScene() переустанавливает все states.
-Но это единственное найденное отличие в render state initialization.
+TSS не являются причиной.
 
-## Что НЕ проверено / возможные направления
+### 8. Stars ge_lock_screen (ИСКЛЮЧЕНО)
 
-1. **Viewport Clear возвращает ошибку?** — ge_clear не проверяет HRESULT. Можно добавить проверку.
-2. **Тройная буферизация?** — dgVoodoo может использовать triple buffering. Loading flips +
-   game blit → один из трёх буферов может сохранить загрузочный экран на 2-3 кадра.
-3. **Порядок вызовов D3D** — хотя обёртки 1:1, порядок вызовов из game code мог
-   незначительно измениться (напр. attract mode init). Полный diff ревью может это выявить.
-4. **Диагностический подход** — добавить ge_clear + ge_flip перед первым кадром game_loop
-   (после game_init, до main while) чтобы принудительно очистить все буферы.
-5. **Полная сверка Stage 7 diff** — может выявить неочевидную ошибку переноса.
+`SKY_draw_stars` рисует звёзды через `ge_lock_screen()` (прямой pixel access к back buffer)
+в `AENG_draw_city` ДО первого `BeginScene`. Гипотеза: lock возвращает stale (до-clear) буфер.
+Пропустили звёзды на первом кадре → **баг остался**. Не причина.
 
-## Файлы для ревью (приоритет)
+### 9. POLY_frame_init / POLY_frame_draw (ИСКЛЮЧЕНО)
 
-- `attract.cpp` — init render states (единственное найденное отличие)
-- `poly.cpp` — POLY_frame_init, POLY_frame_draw, POLY_frame_draw_odd
-- `poly_render.cpp` — POLY_init_render_states, per-page RS setup
-- `aeng.cpp` — AENG_clear_viewport, AENG_draw, AENG_draw_city
-- `graphics_engine_d3d.cpp` — ge_clear, ge_flip, ge_set_background*
-- `display.cpp` — Display::Flip, blit_background_surface, SetDisplay
+`POLY_frame_init` не делает clear — только очищает списки полигонов, ставит render states,
+вызывает `BeginScene`. `POLY_frame_draw` рендерит опак-геометрию и вызывает `EndScene`.
+Между ними множество POLY_frame_init/frame_draw циклов — все идентичны старому коду.
+Double BeginScene (frame_init → draw_odd) присутствует и в старом коде — не причина.
 
-## Ключевой вывод
+---
 
-Баг проявляется ТОЛЬКО на небе/заднике потому что небо — единственная крупная область
-экрана, которая рисуется с **аддитивным блендингом** (POLY_frame_draw_odd: One, One).
-Все остальные объекты рисуются опак → полностью перезаписывают буфер → скрывают проблему.
+## Эксперименты с позицией clear (диагностика dirty buffer)
 
-Это значит: **корневая причина — dirty back buffer на первом кадре**.
-Viewport clear (ge_clear) либо не срабатывает, либо чистит не тот буфер,
-либо чистит не полностью. Код clear идентичен старому — значит разница
-в том, в каком состоянии D3D device/surfaces находятся К МОМЕНТУ первого clear.
-Что-то в новом коде оставляет device/surfaces в состоянии, при котором
-первый Viewport::Clear не полностью очищает back buffer.
+### Фаза 1: Внешние clear+flip (НЕ РАБОТАЮТ)
+
+| Эксперимент | Результат |
+|---|---|
+| 3× ge_clear+ge_flip перед game loop | ❌ баг остался |
+| 30 красных кадров (ge_clear красным + screen_flip + Sleep) | ❌ красный НЕ виден на экране, но Sleep замедляет загрузку → код выполняется |
+| ge_flip вместо screen_flip (blit) | ❌ красный всё равно не виден |
+
+**Вывод:** ge_clear+flip/blit без полного рендер-пайплайна (BeginScene→Draw→EndScene)
+не отображаются на экране. Невозможно диагностировать через этот путь.
+
+### Фаза 2: Диагностика внутри рендер-пайплайна (РАБОТАЮТ)
+
+| Эксперимент | Результат |
+|---|---|
+| Opaque sky (AlphaBlendEnabled=false) на первом кадре | ✅ баг пропал (луна с чёрной подложкой — ожидаемо) |
+| DstBlend=Zero для sky+moon на первом кадре | ✅ баг пропал (луна с чёрной подложкой) |
+| ge_clear(true, false) внутри draw_odd (после BeginScene) | ✅ баг пропал |
+
+**Вывод:** буфер грязный в момент рисования неба. Аддитивный бленд выявляет остатки.
+
+### Фаза 3: Бинарный поиск позиции clear
+
+| Позиция clear | Результат | Пояснение |
+|---|---|---|
+| AENG_clear_viewport (out-of-scene, начало кадра) | ❌ | Стандартный clear, не помогает |
+| AENG_clear_viewport обёрнутый в BeginScene/EndScene | ❌ | Отдельная сцена до рендера |
+| POLY_frame_init (после BeginScene, до рендера) | ❌ | Начало первой render-сцены |
+| **Между последним EndScene и draw_odd** | ✅ | После основного рендера, до аддитивного неба |
+| Внутри draw_odd (после BeginScene) | ✅ | Прямо перед рендером неба |
+
+**Ключевой вывод:** clear работает ТОЛЬКО после завершения основной render-сцены
+(после EndScene из POLY_frame_draw). Clear до этого момента (в любой позиции —
+out-of-scene, в собственной сцене, в начале первой сцены) — не помогает.
+
+Это значит: back buffer получает "грязные" пиксели где-то ВНУТРИ основной render-сцены,
+и повторный clear до EndScene не помогает. Только clear после EndScene (когда сцена
+"зафиксирована") эффективно очищает буфер.
+
+### Фаза 4: Проверка AENG_clear_viewport с прямыми D3D вызовами
+
+Заменили весь `AENG_clear_viewport` на прямые D3D вызовы из stage_5_1_done
+(`SET_BLACK_BACKGROUND`, `the_display.SetUserColour()`, `the_display.ClearViewport()`)
+минуя ge_* обёртки. **Баг остался.** → проблема не в обёртках.
+
+---
+
+## Нерешённый вопрос
+
+Точная строка ошибки переноса НЕ найдена. Все D3D вызовы 1:1 идентичны
+(подтверждено полным ревью Stage 7 + прямой подстановкой D3D вызовов).
+Тем не менее, на первом кадре после загрузки back buffer содержит остатки
+загрузочного экрана, которые не очищаются стандартным `Viewport::Clear`.
+
+Возможные причины, которые не удалось проверить:
+- Разный порядок компиляции/линковки (Clang vs MSVC) влияет на порядок
+  статической инициализации, что меняет D3D device state
+- Тонкое различие в порядке D3D вызовов на переходе loading→game,
+  невидимое при покомпонентном сравнении
+- Различие в выравнивании/паддинге структур при смене компилятора,
+  влияющее на D3D surface locking
+
+---
+
+## Фикс
+
+**Файл:** `engine/graphics/pipeline/aeng.cpp`, в `AENG_draw_city()`,
+перед вызовом `POLY_frame_draw_odd()`.
+
+Дополнительный `ge_clear(true, false)` (color only) между EndScene основного рендера
+и BeginScene аддитивного неба. Только на первом кадре после загрузки (static bool).
+
+Это гарантирует что буфер чист перед аддитивным блендингом sky/moon,
+независимо от того, что произошло с буфером во время основного рендера.
 
 ## Статус
 
-🔍 Расследование приостановлено.
+✅ **ИСПРАВЛЕН (проверено).** Корневая причина не найдена, но фикс
+протестирован, минимален (одна строка, один раз), и не влияет на
+остальной рендер.
