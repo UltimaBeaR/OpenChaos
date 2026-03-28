@@ -1079,6 +1079,21 @@ Callbacks регистрируются из game.cpp при старте.
 
 ---
 
+### Проверка заменяемости на OpenGL (Шаг 2.5B) ✅
+
+Аудит 9 .cpp файлов бэкенда. Вердикт: **контракт чист, бэкенд заменяем, блокеров нет.**
+
+Сложность по файлам: vertex_buffer/polypage/text — лёгкие (уже абстрагированы),
+graphics_engine_d3d/d3d_texture/dd_manager — средние (1:1 маппинг API),
+display/truetype/work_screen — сложные (DDraw lifecycle, surface locking).
+
+Контракт `graphics_engine.h` **не требует изменений** для OpenGL реализации.
+Потенциальные улучшения (GETextureBlend → шейдеры, vertex padding, fog/specular) —
+решено делать по месту при написании OpenGL бэкенда, а не заранее в вакууме.
+Для modern GL (3.3+) понадобится шейдерный слой (D3D6 = fixed-function pipeline).
+
+---
+
 ### d3d/ → backend_directx6/ ✅
 
 Переименована папка бэкенда: `d3d/` → `backend_directx6/` (там и D3D6 и DirectDraw).

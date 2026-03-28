@@ -64,9 +64,16 @@ engine/graphics/graphics_engine/
 - `polypage.cpp` — AENG_total_polys_drawn заменён на callback
 - Повторный аудит 28 файлов: 0 игровой логики в бэкенде
 
-**B. Проверка заменяемости на OpenGL:**
-Пройтись по каждому .cpp в бэкенде и оценить: можно ли реализовать на OpenGL,
-нужны ли изменения в ge_* контракте. (Ещё не сделано.)
+**B. Проверка заменяемости на OpenGL ✅:**
+Контракт `graphics_engine.h` не требует изменений — opaque handles, API-agnostic типы.
+Все 9 .cpp файлов бэкенда заменяемы. Блокеров нет.
+Сложные файлы: display.cpp (lifecycle), truetype.cpp (DDraw surfaces), work_screen.cpp (pixel access).
+Лёгкие файлы: vertex_buffer, polypage, text — уже абстрагированы.
+Для modern GL (3.3+) понадобится шейдерный слой (D3D6 = fixed-function).
+Рекомендуемый порядок: vertex_buffer → polypage → graphics_engine_opengl → display → textures → truetype.
+Контракт менять заранее не нужно — он реализуем на OpenGL как есть.
+Потенциальные улучшения (GETextureBlend → шейдеры, vertex padding, fog/specular) —
+сделать по месту при написании OpenGL бэкенда, когда будет ясно что реально нужно.
 
 **C. Визуальные регрессии:**
 После переноса кода в backend_directx6/ появились визуальные проблемы при запуске.
