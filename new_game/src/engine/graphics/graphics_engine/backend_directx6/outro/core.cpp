@@ -18,7 +18,6 @@
 #include "outro/core/outro_os_globals.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_tga.h"
-#include "outro/core/outro_key.h"
 
 // ========================================================
 // INTERNAL TYPES (D3D-specific, not exposed in contract)
@@ -544,11 +543,7 @@ void oge_init_renderstates()
     d3d->SetRenderState(D3DRENDERSTATE_ALPHABLENDENABLE,   UC_FALSE);
     d3d->SetRenderState(D3DRENDERSTATE_ALPHATESTENABLE,    UC_FALSE);
 
-    if (KEY_on[KEY_A]) {
-        d3d->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_SORTINDEPENDENT);
-    } else {
-        d3d->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_NONE);
-    }
+    d3d->SetRenderState(D3DRENDERSTATE_ANTIALIAS, D3DANTIALIAS_NONE);
 
     d3d->SetTextureStageState(0, D3DTSS_COLOROP,       D3DTOP_MODULATE);
     d3d->SetTextureStageState(0, D3DTSS_COLORARG1,     D3DTA_TEXTURE);

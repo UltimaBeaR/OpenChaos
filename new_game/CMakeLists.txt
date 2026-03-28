@@ -52,18 +52,85 @@ target_include_directories(GamepadCore PUBLIC "${GAMEPADCORE_MINIAUDIO}")
 target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
 
 # ---------------------------------------------------------------------------
-# Source files (mirrors Fallen.vcxproj ClCompile list)
+# Graphics backend selection
+# ---------------------------------------------------------------------------
+# Set to "d3d6" or "stub". The stub backend compiles without DirectX and proves
+# that no D3D code leaks outside backend_directx6/.
+set(GRAPHICS_BACKEND "d3d6" CACHE STRING "Graphics backend: d3d6, stub")
+
+if(GRAPHICS_BACKEND STREQUAL "d3d6")
+    set(BACKEND_SOURCES
+        # --- common (shared D3D infrastructure) ---
+        src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/common/display.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/common/display_globals.cpp
+        # --- game (ge_* implementation) ---
+        src/engine/graphics/graphics_engine/backend_directx6/game/core.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/polypage.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/text.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/truetype.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/work_screen.cpp
+        src/engine/graphics/graphics_engine/backend_directx6/game/work_screen_globals.cpp
+        # --- outro (oge_* implementation) ---
+        src/engine/graphics/graphics_engine/backend_directx6/outro/core.cpp
+        # --- API-agnostic render state cache ---
+        src/engine/graphics/graphics_engine/game_graphics_engine.cpp
+    )
+    set(BACKEND_LIBS ddraw dxguid)
+elseif(GRAPHICS_BACKEND STREQUAL "stub")
+    set(BACKEND_SOURCES
+        src/engine/graphics/graphics_engine/backend_stub/core.cpp
+    )
+    message(STATUS "Graphics backend: STUB (no DirectX, compile-only verification)")
+    set(BACKEND_LIBS "")
+else()
+    message(FATAL_ERROR "Unknown GRAPHICS_BACKEND: ${GRAPHICS_BACKEND}")
+endif()
+
+# ---------------------------------------------------------------------------
+# Source files
 # ---------------------------------------------------------------------------
 set(SOURCES_NEW
+    # === Entry point ===
     src/main.cpp
+
+    # === Engine: core ===
     src/engine/core/memory.cpp
     src/engine/core/memory_globals.cpp
     src/engine/core/math.cpp
     src/engine/core/math_globals.cpp
+    src/engine/core/matrix.cpp
+    src/engine/core/fmatrix.cpp
+    src/engine/core/quaternion.cpp
+    src/engine/core/quaternion_globals.cpp
+    src/engine/core/timer.cpp
+    src/engine/core/timer_globals.cpp
+    src/engine/core/heap.cpp
+    src/engine/core/heap_globals.cpp
+
+    # === Engine: platform ===
+    src/engine/platform/wind_procs.cpp
+    src/engine/platform/wind_procs_globals.cpp
+    src/engine/platform/host.cpp
+    src/engine/platform/host_globals.cpp
+    src/engine/platform/sdl3_bridge.cpp
+    src/engine/platform/ds_bridge.cpp
+
+    # === Engine: I/O ===
     src/engine/io/file.cpp
     src/engine/io/file_globals.cpp
     src/engine/io/async_file.cpp
     src/engine/io/async_file_globals.cpp
+    src/engine/io/env.cpp
+    src/engine/io/env_globals.cpp
+
+    # === Engine: input ===
     src/engine/input/keyboard.cpp
     src/engine/input/keyboard_globals.cpp
     src/engine/input/mouse.cpp
@@ -72,129 +139,63 @@ set(SOURCES_NEW
     src/engine/input/joystick_globals.cpp
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
-    src/engine/core/matrix.cpp
-    src/engine/core/fmatrix.cpp
-    src/engine/core/quaternion.cpp
-    src/engine/core/quaternion_globals.cpp
-    src/assets/formats/file_clump.cpp
-    src/assets/formats/tga.cpp
-    src/assets/formats/tga_globals.cpp
-    src/engine/compression/image_compression.cpp
-    src/engine/compression/compression.cpp
-    src/engine/compression/compression_globals.cpp
-    src/assets/formats/anim.cpp
-    src/assets/formats/anim_globals.cpp
-    src/assets/formats/anim_loader.cpp
-    src/assets/formats/anim_loader_globals.cpp
-    src/engine/graphics/lighting/ngamut.cpp
-    src/engine/graphics/lighting/ngamut_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/work_screen.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/work_screen_globals.cpp
-    src/engine/graphics/geometry/aa.cpp
-    src/engine/graphics/geometry/aa_globals.cpp
-    src/engine/console/message.cpp
-    src/engine/console/message_globals.cpp
-    src/engine/core/timer.cpp
-    src/engine/core/timer_globals.cpp
+
+    # === Engine: audio ===
     src/engine/audio/mfx.cpp
     src/engine/audio/mfx_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.cpp
-    src/engine/platform/wind_procs.cpp
-    src/engine/platform/wind_procs_globals.cpp
-    src/engine/platform/host.cpp
-    src/engine/platform/sdl3_bridge.cpp
-    src/engine/platform/ds_bridge.cpp
-    src/engine/platform/host_globals.cpp
-    # render_state.cpp removed — replaced by ge_render_state.cpp
-    src/engine/graphics/pipeline/bucket.cpp
-    src/engine/graphics/pipeline/bucket_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/polypage.cpp
-    src/engine/graphics/pipeline/polypage_globals.cpp
-    src/engine/graphics/text/font.cpp
-    src/engine/graphics/text/font_globals.cpp
-    src/engine/graphics/geometry/sprite.cpp
-    src/engine/graphics/text/menufont.cpp
-    src/engine/graphics/text/menufont_globals.cpp
-    src/engine/graphics/pipeline/qeng.cpp
-    src/engine/graphics/pipeline/qeng_globals.cpp
-    src/map/qmap_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/text.cpp
-    src/engine/graphics/text/text_globals.cpp
-    src/assets/xlat_str.cpp
-    src/assets/xlat_str_globals.cpp
-    src/assets/sound_id_globals.cpp
-    src/engine/graphics/text/font2d.cpp
-    src/engine/graphics/text/font2d_globals.cpp
-    src/engine/console/console.cpp
-    src/engine/console/console_globals.cpp
-    src/engine/core/heap.cpp
-    src/engine/core/heap_globals.cpp
-    src/assets/formats/anim_tmap.cpp
-    src/assets/formats/anim_tmap_globals.cpp
-    src/engine/animation/morph.cpp
-    src/engine/animation/morph_globals.cpp
-    src/buildings/outline.cpp
-    src/engine/graphics/lighting/crinkle.cpp
-    src/engine/effects/flamengine.cpp
-    src/engine/effects/psystem.cpp
-    src/engine/effects/psystem_globals.cpp
-    src/engine/io/env.cpp
-    src/engine/io/env_globals.cpp
-    src/engine/graphics/postprocess/wibble.cpp
-    src/engine/graphics/postprocess/wibble_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/truetype.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/truetype_globals.cpp
-    src/effects/environment/fire.cpp
-    src/effects/environment/fire_globals.cpp
-    src/world_objects/dirt.cpp
-    src/world_objects/dirt_globals.cpp
-    src/effects/weather/mist.cpp
-    src/effects/weather/mist_globals.cpp
-    src/effects/combat/glitter.cpp
-    src/effects/combat/glitter_globals.cpp
-    src/effects/combat/spark.cpp
-    src/effects/combat/spark_globals.cpp
-    src/effects/environment/ribbon.cpp
-    src/effects/environment/ribbon_globals.cpp
-    src/effects/weather/drip.cpp
-    src/effects/weather/drip_globals.cpp
-    src/engine/graphics/geometry/oval.cpp
-    src/engine/graphics/geometry/oval_globals.cpp
-    src/buildings/build.cpp
-    src/buildings/build_globals.cpp
-    src/buildings/building.cpp
-    src/buildings/building_globals.cpp
-    src/ui/hud/planmap.cpp
-    src/ui/hud/planmap_globals.cpp
-    src/ui/hud/eng_map.cpp
-    src/ui/hud/eng_map_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/common/display.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/common/display_globals.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/game/core.cpp
-    src/engine/graphics/graphics_engine/backend_directx6/outro/core.cpp
-    src/engine/graphics/graphics_engine/game_graphics_engine.cpp
-    src/engine/graphics/lighting/shadow.cpp
-    src/engine/graphics/lighting/shadow_globals.cpp
-    src/effects/weather/fog.cpp
-    src/effects/weather/fog_globals.cpp
-    src/things/core/drawtype.cpp
-    src/map/pap.cpp
-    src/map/pap_globals.cpp
-    src/navigation/walkable.cpp
-    src/navigation/walkable_globals.cpp
     src/engine/audio/music.cpp
     src/engine/audio/music_globals.cpp
     src/engine/audio/soundenv.cpp
     src/engine/audio/soundenv_globals.cpp
-    src/effects/environment/tracks.cpp
-    src/effects/environment/tracks_globals.cpp
-    src/map/map.cpp
-    src/map/map_globals.cpp
+    src/engine/audio/sound.cpp
+    src/engine/audio/sound_globals.cpp
+
+    # === Engine: console ===
+    src/engine/console/message.cpp
+    src/engine/console/message_globals.cpp
+    src/engine/console/console.cpp
+    src/engine/console/console_globals.cpp
+
+    # === Engine: compression ===
+    src/engine/compression/image_compression.cpp
+    src/engine/compression/compression.cpp
+    src/engine/compression/compression_globals.cpp
+
+    # === Engine: animation ===
+    src/engine/animation/morph.cpp
+    src/engine/animation/morph_globals.cpp
+
+    # === Engine: physics ===
+    src/engine/physics/sm.cpp
+    src/engine/physics/sm_globals.cpp
+    src/engine/physics/hm.cpp
+    src/engine/physics/hm_globals.cpp
+    src/engine/physics/collide.cpp
+    src/engine/physics/collide_globals.cpp
+
+    # === Engine: effects ===
+    src/engine/effects/flamengine.cpp
+    src/engine/effects/psystem.cpp
+    src/engine/effects/psystem_globals.cpp
+
+    # === Engine: graphics — pipeline ===
+    src/engine/graphics/pipeline/bucket.cpp
+    src/engine/graphics/pipeline/bucket_globals.cpp
+    src/engine/graphics/pipeline/polypage_globals.cpp
+    src/engine/graphics/pipeline/qeng.cpp
+    src/engine/graphics/pipeline/qeng_globals.cpp
+    src/engine/graphics/pipeline/poly_render.cpp
+    src/engine/graphics/pipeline/poly_render_globals.cpp
+    src/engine/graphics/pipeline/aeng.cpp
+    src/engine/graphics/pipeline/aeng_globals.cpp
+    src/engine/graphics/pipeline/poly.cpp
+    src/engine/graphics/pipeline/poly_globals.cpp
+    src/engine/graphics/pipeline/draw2d.cpp
+
+    # === Engine: graphics — geometry ===
+    src/engine/graphics/geometry/aa.cpp
+    src/engine/graphics/geometry/aa_globals.cpp
+    src/engine/graphics/geometry/sprite.cpp
     src/engine/graphics/geometry/cone.cpp
     src/engine/graphics/geometry/cone_globals.cpp
     src/engine/graphics/geometry/farfacet.cpp
@@ -205,15 +206,107 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/sky_globals.cpp
     src/engine/graphics/geometry/fastprim.cpp
     src/engine/graphics/geometry/fastprim_globals.cpp
-    src/engine/graphics/pipeline/poly_render.cpp
-    src/engine/graphics/pipeline/poly_render_globals.cpp
+    src/engine/graphics/geometry/oval.cpp
+    src/engine/graphics/geometry/oval_globals.cpp
+    src/engine/graphics/geometry/superfacet.cpp
+    src/engine/graphics/geometry/superfacet_globals.cpp
+    src/engine/graphics/geometry/figure.cpp
+    src/engine/graphics/geometry/figure_globals.cpp
+    src/engine/graphics/geometry/mesh.cpp
+    src/engine/graphics/geometry/mesh_globals.cpp
+    src/engine/graphics/geometry/shape.cpp
+    src/engine/graphics/geometry/shape_globals.cpp
+
+    # === Engine: graphics — text ===
+    src/engine/graphics/text/font.cpp
+    src/engine/graphics/text/font_globals.cpp
+    src/engine/graphics/text/menufont.cpp
+    src/engine/graphics/text/menufont_globals.cpp
+    src/engine/graphics/text/text_globals.cpp
+    src/engine/graphics/text/font2d.cpp
+    src/engine/graphics/text/font2d_globals.cpp
+
+    # === Engine: graphics — lighting ===
+    src/engine/graphics/lighting/ngamut.cpp
+    src/engine/graphics/lighting/ngamut_globals.cpp
+    src/engine/graphics/lighting/shadow.cpp
+    src/engine/graphics/lighting/shadow_globals.cpp
     src/engine/graphics/lighting/smap.cpp
     src/engine/graphics/lighting/smap_globals.cpp
     src/engine/graphics/lighting/night.cpp
     src/engine/graphics/lighting/night_globals.cpp
+    src/engine/graphics/lighting/crinkle.cpp
+
+    # === Engine: graphics — postprocess ===
+    src/engine/graphics/postprocess/wibble.cpp
+    src/engine/graphics/postprocess/wibble_globals.cpp
+    src/engine/graphics/postprocess/bloom.cpp
+    src/engine/graphics/postprocess/bloom_globals.cpp
+
+    # === Engine: graphics — backend (selected by GRAPHICS_BACKEND) ===
+    ${BACKEND_SOURCES}
+
+    # === Assets ===
+    src/assets/formats/file_clump.cpp
+    src/assets/formats/tga.cpp
+    src/assets/formats/tga_globals.cpp
+    src/assets/formats/anim.cpp
+    src/assets/formats/anim_globals.cpp
+    src/assets/formats/anim_loader.cpp
+    src/assets/formats/anim_loader_globals.cpp
+    src/assets/formats/anim_tmap.cpp
+    src/assets/formats/anim_tmap_globals.cpp
+    src/assets/formats/level_loader.cpp
+    src/assets/formats/level_loader_globals.cpp
+    src/assets/formats/elev.cpp
+    src/assets/formats/elev_globals.cpp
+    src/assets/texture.cpp
+    src/assets/texture_globals.cpp
+    src/assets/xlat_str.cpp
+    src/assets/xlat_str_globals.cpp
+    src/assets/sound_id_globals.cpp
+
+    # === Map ===
+    src/map/qmap.cpp
+    src/map/qmap_globals.cpp
+    src/map/map.cpp
+    src/map/map_globals.cpp
+    src/map/pap.cpp
+    src/map/pap_globals.cpp
+    src/map/road.cpp
+    src/map/road_globals.cpp
+    src/map/sewers.cpp
+    src/map/sewers_globals.cpp
+    src/map/supermap.cpp
+    src/map/supermap_globals.cpp
+    src/map/ob.cpp
+    src/map/ob_globals.cpp
+
+    # === Navigation ===
+    src/navigation/walkable.cpp
+    src/navigation/walkable_globals.cpp
     src/navigation/inside2.cpp
     src/navigation/inside2_globals.cpp
+    src/navigation/wand.cpp
+    src/navigation/wmove.cpp
+    src/navigation/wmove_globals.cpp
+
+    # === Buildings ===
+    src/buildings/outline.cpp
+    src/buildings/build.cpp
+    src/buildings/build_globals.cpp
     src/buildings/build2.cpp
+    src/buildings/building.cpp
+    src/buildings/building_globals.cpp
+    src/buildings/prim.cpp
+    src/buildings/prim_globals.cpp
+    src/buildings/stair.cpp
+    src/buildings/stair_globals.cpp
+    src/buildings/ware.cpp
+    src/buildings/ware_globals.cpp
+
+    # === Things: core ===
+    src/things/core/drawtype.cpp
     src/things/core/state.cpp
     src/things/core/switch.cpp
     src/things/core/switch_globals.cpp
@@ -225,6 +318,8 @@ set(SOURCES_NEW
     src/things/core/thing_globals.cpp
     src/things/core/interact.cpp
     src/things/core/interact_globals.cpp
+
+    # === Things: characters ===
     src/things/characters/cop.cpp
     src/things/characters/cop_globals.cpp
     src/things/characters/roper.cpp
@@ -237,147 +332,146 @@ set(SOURCES_NEW
     src/things/characters/darci_globals.cpp
     src/things/characters/person.cpp
     src/things/characters/person_globals.cpp
+
+    # === Things: animals ===
     src/things/animals/animal.cpp
     src/things/animals/animal_globals.cpp
     src/things/animals/bat.cpp
     src/things/animals/bat_globals.cpp
+
+    # === Things: vehicles ===
     src/things/vehicles/chopper.cpp
     src/things/vehicles/chopper_globals.cpp
     src/things/vehicles/vehicle.cpp
     src/things/vehicles/vehicle_globals.cpp
-    src/ui/frontend/startscr.cpp
-    src/ui/frontend/startscr_globals.cpp
+
+    # === Things: items ===
+    src/things/items/barrel.cpp
+    src/things/items/barrel_globals.cpp
     src/things/items/balloon.cpp
     src/things/items/balloon_globals.cpp
     src/things/items/grenade.cpp
     src/things/items/grenade_globals.cpp
     src/things/items/hook.cpp
     src/things/items/hook_globals.cpp
-    src/effects/combat/pow.cpp
-    src/effects/combat/pow_globals.cpp
-    src/engine/graphics/geometry/superfacet.cpp
-    src/engine/graphics/geometry/superfacet_globals.cpp
-    src/assets/formats/level_loader.cpp
-    src/assets/formats/level_loader_globals.cpp
-    src/engine/graphics/pipeline/aeng.cpp
-    src/engine/graphics/pipeline/aeng_globals.cpp
-    src/engine/graphics/geometry/figure.cpp
-    src/engine/graphics/geometry/figure_globals.cpp
-    src/engine/graphics/geometry/mesh.cpp
-    src/engine/graphics/geometry/mesh_globals.cpp
-    src/engine/graphics/pipeline/poly.cpp
-    src/engine/graphics/pipeline/poly_globals.cpp
-    src/engine/graphics/geometry/shape.cpp
-    src/engine/graphics/geometry/shape_globals.cpp
-    src/assets/texture.cpp
-    src/assets/texture_globals.cpp
-    # --- OUTRO ---
-    src/outro/core/outro_tga.cpp
-    src/outro/core/outro_matrix.cpp
-    src/outro/outro_back.cpp
-    src/outro/outro_back_globals.cpp
-    src/outro/core/outro_cam.cpp
-    src/outro/core/outro_cam_globals.cpp
-    src/outro/outro_credits.cpp
-    src/outro/outro_credits_globals.cpp
-    src/outro/core/outro_font.cpp
-    src/outro/core/outro_font_globals.cpp
-    src/outro/outro_wire.cpp
-    src/outro/outro_wire_globals.cpp
-    src/outro/outro_main.cpp
-    src/outro/core/outro_imp.cpp
-    src/outro/core/outro_mf.cpp
-    src/outro/core/outro_mf_globals.cpp
-    src/outro/core/outro_os.cpp
-    src/outro/core/outro_os_globals.cpp
-    src/ui/frontend/attract.cpp
-    src/ui/frontend/attract_globals.cpp
-    src/things/items/barrel.cpp
-    src/things/items/barrel_globals.cpp
-    src/combat/combat.cpp
-    src/combat/combat_globals.cpp
+    src/things/items/special.cpp
+    src/things/items/special_globals.cpp
+
+    # === World objects ===
+    src/world_objects/dirt.cpp
+    src/world_objects/dirt_globals.cpp
     src/world_objects/door.cpp
     src/world_objects/door_globals.cpp
+    src/world_objects/plat.cpp
+    src/world_objects/plat_globals.cpp
+    src/world_objects/puddle.cpp
+    src/world_objects/puddle_globals.cpp
+    src/world_objects/tripwire.cpp
+    src/world_objects/tripwire_globals.cpp
 
-    src/missions/eway.cpp
-    src/missions/eway_globals.cpp
-    src/camera/fc.cpp
-    src/camera/fc_globals.cpp
-    src/ui/frontend/frontend.cpp
-    src/ui/frontend/frontend_globals.cpp
-    src/game/game.cpp
-    src/game/game_globals.cpp
-    src/game/network_state_globals.cpp
-    src/ui/menus/gamemenu.cpp
-    src/ui/menus/gamemenu_globals.cpp
+    # === Effects: combat ===
+    src/effects/combat/glitter.cpp
+    src/effects/combat/glitter_globals.cpp
+    src/effects/combat/spark.cpp
+    src/effects/combat/spark_globals.cpp
+    src/effects/combat/pow.cpp
+    src/effects/combat/pow_globals.cpp
+    src/effects/combat/pyro.cpp
+    src/effects/combat/pyro_globals.cpp
+    src/effects/combat/glow.cpp
+
+    # === Effects: environment ===
+    src/effects/environment/fire.cpp
+    src/effects/environment/fire_globals.cpp
+    src/effects/environment/ribbon.cpp
+    src/effects/environment/ribbon_globals.cpp
+    src/effects/environment/tracks.cpp
+    src/effects/environment/tracks_globals.cpp
+
+    # === Effects: weather ===
+    src/effects/weather/mist.cpp
+    src/effects/weather/mist_globals.cpp
+    src/effects/weather/drip.cpp
+    src/effects/weather/drip_globals.cpp
+    src/effects/weather/fog.cpp
+    src/effects/weather/fog_globals.cpp
+
+    # === Combat ===
+    src/combat/combat.cpp
+    src/combat/combat_globals.cpp
     src/shooting/guns.cpp
-    src/game/startup.cpp
+    src/shooting/projectile.cpp
+
+    # === AI ===
     src/ai/mav.cpp
     src/ai/mav_globals.cpp
-    src/map/sewers.cpp
-    src/map/sewers_globals.cpp
-    src/buildings/prim.cpp
-    src/buildings/prim_globals.cpp
-    src/map/ob.cpp
-    src/map/ob_globals.cpp
+    src/ai/pcom.cpp
+    src/ai/pcom_globals.cpp
+
+    # === Missions ===
+    src/missions/eway.cpp
+    src/missions/eway_globals.cpp
+    src/missions/playcuts.cpp
+    src/missions/playcuts_globals.cpp
+    src/missions/memory.cpp
+    src/missions/memory_globals.cpp
+    src/missions/save.cpp
+    src/missions/save_globals.cpp
+
+    # === Camera ===
+    src/camera/fc.cpp
+    src/camera/fc_globals.cpp
+
+    # === UI ===
+    src/ui/frontend/startscr.cpp
+    src/ui/frontend/startscr_globals.cpp
+    src/ui/frontend/attract.cpp
+    src/ui/frontend/attract_globals.cpp
+    src/ui/frontend/frontend.cpp
+    src/ui/frontend/frontend_globals.cpp
+    src/ui/menus/gamemenu.cpp
+    src/ui/menus/gamemenu_globals.cpp
+    src/ui/menus/pause.cpp
+    src/ui/menus/widget.cpp
+    src/ui/menus/widget_globals.cpp
+    src/ui/hud/planmap.cpp
+    src/ui/hud/planmap_globals.cpp
+    src/ui/hud/eng_map.cpp
+    src/ui/hud/eng_map_globals.cpp
     src/ui/hud/overlay.cpp
     src/ui/hud/overlay_globals.cpp
     src/ui/hud/panel.cpp
     src/ui/hud/panel_globals.cpp
 
-    src/ui/menus/pause.cpp
-    src/ai/pcom.cpp
-    src/ai/pcom_globals.cpp
-    src/shooting/projectile.cpp
-    src/world_objects/plat.cpp
-    src/world_objects/plat_globals.cpp
-    src/missions/playcuts.cpp
-    src/missions/playcuts_globals.cpp
-    src/world_objects/puddle.cpp
-    src/world_objects/puddle_globals.cpp
-    src/effects/combat/pyro.cpp
-    src/effects/combat/pyro_globals.cpp
-    src/effects/combat/glow.cpp
-    src/engine/graphics/postprocess/bloom.cpp
-    src/engine/graphics/postprocess/bloom_globals.cpp
-    src/engine/graphics/pipeline/draw2d.cpp
-    src/map/qmap.cpp
-    src/map/road.cpp
-    src/map/road_globals.cpp
-    src/missions/memory.cpp
-    src/missions/memory_globals.cpp
-    src/missions/save.cpp
-    src/missions/save_globals.cpp
-    src/assets/formats/elev.cpp
-    src/assets/formats/elev_globals.cpp
-    src/engine/physics/sm.cpp
-    src/engine/physics/sm_globals.cpp
-    src/engine/physics/hm.cpp
-    src/engine/physics/hm_globals.cpp
-    src/engine/physics/collide.cpp
-    src/engine/physics/collide_globals.cpp
-    src/engine/audio/sound.cpp
-    src/engine/audio/sound_globals.cpp
-    src/things/items/special.cpp
-    src/things/items/special_globals.cpp
-    src/buildings/stair.cpp
-    src/buildings/stair_globals.cpp
-    src/map/supermap.cpp
-    src/map/supermap_globals.cpp
-    src/world_objects/tripwire.cpp
-    src/world_objects/tripwire_globals.cpp
+    # === Outro ===
+    src/outro/core/outro_tga.cpp
+    src/outro/core/outro_matrix.cpp
+    src/outro/core/outro_cam.cpp
+    src/outro/core/outro_cam_globals.cpp
+    src/outro/core/outro_font.cpp
+    src/outro/core/outro_font_globals.cpp
+    src/outro/core/outro_imp.cpp
+    src/outro/core/outro_mf.cpp
+    src/outro/core/outro_mf_globals.cpp
+    src/outro/core/outro_os.cpp
+    src/outro/core/outro_os_globals.cpp
+    src/outro/outro_back.cpp
+    src/outro/outro_back_globals.cpp
+    src/outro/outro_credits.cpp
+    src/outro/outro_credits_globals.cpp
+    src/outro/outro_wire.cpp
+    src/outro/outro_wire_globals.cpp
+    src/outro/outro_main.cpp
 
-    src/navigation/wand.cpp
-    src/buildings/ware.cpp
-    src/buildings/ware_globals.cpp
+    # === Game ===
+    src/game/game.cpp
+    src/game/game_globals.cpp
+    src/game/network_state_globals.cpp
+    src/game/startup.cpp
     src/game/game_tick.cpp
     src/game/game_tick_globals.cpp
     src/game/input_actions.cpp
     src/game/input_actions_globals.cpp
-    src/ui/menus/widget.cpp
-    src/ui/menus/widget_globals.cpp
-    src/navigation/wmove.cpp
-    src/navigation/wmove_globals.cpp
 )
 
 # ---------------------------------------------------------------------------
@@ -471,9 +565,8 @@ target_link_libraries(Fallen PRIVATE
     Version
     winmm
 
-    # DirectX
-    ddraw
-    dxguid
+    # Graphics backend libraries
+    ${BACKEND_LIBS}
 
     # DirectShow
     amstrmid

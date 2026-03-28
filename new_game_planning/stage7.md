@@ -13,25 +13,32 @@
 
 ```
 engine/graphics/graphics_engine/
-├── graphics_engine.h               — контракт + render state cache (единственное что видит игровой код)
-├── graphics_engine.cpp             — реализация API-agnostic частей (GERenderState)
-└── backend_directx6/                            — D3D6 бэкенд (29 файлов)
-    ├── graphics_engine_d3d.cpp     — реализация ge_* контракта
-    ├── display.cpp/gd_display.h    — DDraw display management
-    ├── d3d_texture.cpp/h           — D3D texture class
-    ├── dd_manager.cpp/h            — DDraw driver/device enumeration
-    ├── vertex_buffer.cpp/h         — D3D vertex buffer pool
-    ├── polypage.cpp                — PolyPage::Render/DrawSinglePoly (D3D draw calls)
-    ├── texture.cpp                 — texture loading (D3DTexture methods)
-    ├── text.cpp                    — bitmap text renderer (D3D VB + textures)
-    ├── truetype.cpp/globals        — TrueType text renderer (DDraw surfaces)
-    ├── work_screen.cpp/h           — offscreen DDraw work surface
-    └── *_globals.cpp/h             — global state for each module
+├── game_graphics_engine.h          — контракт основной игры (ge_* + GERenderState)
+├── game_graphics_engine.cpp        — API-agnostic части (GERenderState cache)
+├── outro_graphics_engine.h         — контракт outro (oge_*: текстуры, render states, draw)
+├── backend_directx6/               — D3D6 бэкенд
+│   ├── common/                     — общая D3D инфраструктура (13 файлов)
+│   │   ├── display.cpp/gd_display.h — DDraw display management
+│   │   ├── d3d_texture.cpp/h       — D3D texture class
+│   │   ├── dd_manager.cpp/h        — DDraw driver/device enumeration
+│   │   └── display_macros.h        — CLEAR_VIEWPORT, FLIP и т.д.
+│   ├── game/                       — реализация ge_* (15 файлов)
+│   │   ├── core.cpp                — основные ge_* функции
+│   │   ├── polypage.cpp            — PolyPage::Render/DrawSinglePoly
+│   │   ├── text.cpp                — bitmap text renderer
+│   │   ├── truetype.cpp            — TrueType text renderer
+│   │   ├── vertex_buffer.cpp/h     — D3D vertex buffer pool
+│   │   └── work_screen.cpp/h       — offscreen DDraw work surface
+│   └── outro/                      — реализация oge_*
+│       └── core.cpp                — текстуры, render states, draw для outro
+└── backend_stub/                   — стаб-бэкенд (no-op, для тестов и как база для OpenGL)
+    └── core.cpp
 ```
 
-- CMake-флаг выбирает какой .cpp компилировать (compile-time switch)
+- CMake-переменная `GRAPHICS_BACKEND` (d3d6 / stub) выбирает бэкенд (compile-time)
+- game/ и outro/ обращаются только к common/, не друг к другу
 - Никакого runtime dispatch, никаких виртуальных интерфейсов
-- Для сравнения: переключил флаг → пересобрал → сравнил
+- Стаб-бэкенд доказывает что D3D не торчит за пределами backend_directx6/ (327/327 без DirectX)
 
 ### Принципы контракта
 
@@ -187,9 +194,26 @@ sprite, wibble, gd_display.h). Outro не затронуто — там испо
 - Outro включено: CMakeLists + вызовы в game.cpp и frontend.cpp раскомментированы
 - Проверено: outro запускается из главного меню, визуально ок
 
-### Шаг 4 — OpenGL реализация для основной игры
-Отключить outro. Написать graphics_engine_opengl.cpp.
-Переключить CMake на OpenGL. Запустить, проверить, фиксить.
+### Шаг 3.5 — Зачистка зависимостей бэкенда
+
+Бэкенд (game/ и outro/) включает игровые хедеры — нарушение изоляции движка от игры.
+Нужно инвертировать: бэкенд зависит только от контракта и common/, игра передаёт данные через ge_*/oge_*.
+
+**Лёгкое:**
+- Перенести OS_DRAW_* флаги и OS_bitmap_* в outro_graphics_engine.h
+- Убрать level_loader.h (DATA_DIR), message.h, env.h из бэкенда — вынести в параметры
+
+**Среднее:**
+- Инвертировать загрузку текстур: игра загружает TGA → передаёт пиксели в бэкенд
+  (убирает tga.h, file_clump.h, file.h, texture.h из бэкенда)
+
+**Тяжёлое (отложено на Шаг 4 — переделывается при OpenGL):**
+- PolyPage: разрезать батчинг (pipeline/) и отрисовку (бэкенд)
+- text.cpp, truetype.cpp: разрезать разметку глифов и D3D рендеринг
+
+### Шаг 4 — OpenGL реализация
+Написать `backend_opengl/` (game + outro). Начать со стаба (`backend_stub/core.cpp`).
+Outro не нужно отключать — оно уже за oge_* абстракцией.
 
 **⚠️ Заметки из ревью Stage 7 — учесть при реализации:**
 - **TriangleFan:** `GEPrimitiveType::TriangleFan` нет в OpenGL 3.3 core profile. Сейчас 0 вызовов — удалить из enum, или конвертировать в triangle list в бэкенде.
@@ -198,11 +222,9 @@ sprite, wibble, gd_display.h). Outro не затронуто — там испо
 - **16-bit текстуры:** `ge_lock_texture_pixels` возвращает `uint16_t**`. OpenGL бэкенд скорее всего 32-bit (RGBA8). Нужно менять интерфейс или конвертировать.
 - **Windows API:** `ge_to_gdi()`/`ge_from_gdi()` — переименовать в `ge_release_display()`/`ge_reacquire_display()`. `ge_update_display_rect(void* hwnd)` — абстрагировать platform handle.
 - **Capability queries:** `ge_supports_dest_inv_src_color()`, `ge_supports_modulate_alpha()`, `ge_is_hardware()` — всегда true на современном железе. Захардкодить или убрать, упростив code paths.
+- **PolyPage/text/truetype:** переделать через ge_* — зависимости от игрового кода уйдут автоматически.
 
-### Шаг 5 — OpenGL реализация для outro
-Включить outro. Дописать OpenGL для outro-специфичных функций.
-
-### Шаг 6 — Финализация
+### Шаг 5 — Финализация
 Удалить D3D бэкенд. Убрать DirectX зависимости.
 
 ---
