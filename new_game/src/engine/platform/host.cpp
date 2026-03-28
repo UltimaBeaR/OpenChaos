@@ -1,7 +1,11 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display, hDDLibWindow
+#include "engine/graphics/graphics_engine/graphics_engine.h"
+
+// Platform globals (defined in d3d/display_globals.cpp).
+extern volatile HWND hDDLibWindow;
+extern HACCEL hDDLibAccel;
 #include "engine/platform/wind_procs.h"    // DDLibShellProc
 #include "game/game_types.h"
 #include "engine/audio/sound.h"
@@ -105,7 +109,7 @@ void ShellPaused(void)
 // logic is currently disabled — preserved as-is from the original.
 void ShellPauseOn(void)
 {
-    the_display.toGDI();
+    ge_to_gdi();
     return;
 }
 
@@ -143,7 +147,7 @@ BOOL LibShellActive(void)
             }
         }
 
-        if (app_inactive && the_display.lp_DD4 && the_display.IsFullScreen()) {
+        if (app_inactive && ge_is_fullscreen()) {
             Sleep(100);
         } else {
             break;
@@ -151,13 +155,10 @@ BOOL LibShellActive(void)
     }
 
     if (restore_surfaces) {
-        if (the_display.lp_DD4) {
-            the_display.lp_DD4->RestoreAllSurfaces();
+        ge_restore_all_surfaces();
 
-            extern void FRONTEND_restore_screenfull_surfaces(void);
-
-            FRONTEND_restore_screenfull_surfaces();
-        }
+        extern void FRONTEND_restore_screenfull_surfaces(void);
+        FRONTEND_restore_screenfull_surfaces();
 
         restore_surfaces = UC_FALSE;
     }
@@ -170,8 +171,8 @@ BOOL LibShellActive(void)
 // changed flag so subsequent calls return UC_FALSE until the next change.
 BOOL LibShellChanged(void)
 {
-    if (the_display.IsDisplayChanged()) {
-        the_display.DisplayChangedOff();
+    if (ge_is_display_changed()) {
+        ge_clear_display_changed();
         return UC_TRUE;
     }
     return UC_FALSE;
@@ -197,7 +198,7 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
     flag = MB_ABORTRETRYIGNORE | MB_ICONSTOP | MB_DEFBUTTON3;
 
     result = UC_FALSE;
-    the_display.toGDI();
+    ge_to_gdi();
     switch (MessageBox(hDDLibWindow, buff2, "Mucky Foot Message", flag)) {
     case IDABORT:
         exit(1);
@@ -210,7 +211,7 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
         break;
     }
 
-    the_display.fromGDI();
+    ge_from_gdi();
 
     return result;
 }

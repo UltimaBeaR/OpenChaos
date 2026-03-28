@@ -4,8 +4,10 @@
 // Elevator/platform logic lives in world/environment/plat.cpp and actors/core/interact.cpp.
 
 #include "game/game.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
+
+// Platform window handle (defined in d3d/display_globals.cpp).
+extern volatile HWND hDDLibWindow;
 
 #include "assets/formats/elev.h"
 #include "assets/formats/elev_globals.h"
@@ -2075,7 +2077,7 @@ SLONG ELEV_load_name(CBYTE* fname_level)
 
         } else {
             stop_all_fx_and_music();
-            the_display.RunCutscene(2);
+            ge_run_cutscene(2);
 
             // Reshow the "loading" screen.
             ATTRACT_loadscreen_init();
@@ -2235,7 +2237,7 @@ try_again:;
         return res;
     }
 
-    the_display.toGDI();
+    ge_to_gdi();
 
     SLONG ans = MessageBox(
         hDDLibWindow,

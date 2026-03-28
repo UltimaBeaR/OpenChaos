@@ -3,6 +3,8 @@
 
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/display_macros.h"
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "assets/texture_globals.h"
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -500,4 +502,70 @@ void ge_get_gamma(int32_t* black, int32_t* white)
 bool ge_is_gamma_available()
 {
     return the_display.IsGammaAvailable();
+}
+
+// ---------------------------------------------------------------------------
+// Display mode management
+// ---------------------------------------------------------------------------
+
+void ge_to_gdi()
+{
+    the_display.toGDI();
+}
+
+void ge_from_gdi()
+{
+    the_display.fromGDI();
+}
+
+void ge_restore_all_surfaces()
+{
+    if (the_display.lp_DD4) {
+        the_display.lp_DD4->RestoreAllSurfaces();
+    }
+}
+
+bool ge_is_display_changed()
+{
+    return the_display.IsDisplayChanged();
+}
+
+void ge_clear_display_changed()
+{
+    the_display.DisplayChangedOff();
+}
+
+void ge_update_display_rect(void* hwnd, bool fullscreen)
+{
+    HWND hWnd = (HWND)hwnd;
+    if (fullscreen) {
+        SetRect(&the_display.DisplayRect, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+    } else {
+        GetClientRect(hWnd, &the_display.DisplayRect);
+        ClientToScreen(hWnd, (LPPOINT)&the_display.DisplayRect);
+        ClientToScreen(hWnd, (LPPOINT)&the_display.DisplayRect + 1);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Texture management
+// ---------------------------------------------------------------------------
+
+void ge_remove_all_loaded_textures()
+{
+    the_display.RemoveAllLoadedTextures();
+}
+
+// ---------------------------------------------------------------------------
+// Surface blitting
+// ---------------------------------------------------------------------------
+
+void ge_blit_texture_to_backbuffer(int32_t texture_page, int32_t src_w, int32_t src_h)
+{
+    RECT rcSource;
+    rcSource.left   = 0;
+    rcSource.top    = 0;
+    rcSource.right  = src_w;
+    rcSource.bottom = src_h;
+    TEXTURE_texture[texture_page].GetSurface()->Blt(NULL, the_display.lp_DD_BackSurface, &rcSource, DDBLT_WAIT, NULL);
 }

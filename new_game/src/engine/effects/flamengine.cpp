@@ -1,7 +1,7 @@
 #include "engine/effects/flamengine.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"   // the_display (still used for Blt, migrating incrementally)
+#include "engine/graphics/graphics_engine/d3d/d3d_texture.h" // D3DTexture (LockUser/UnlockUser for flame texture)
 
 // These externs provide the texture globals flamengine needs without pulling in all of assets/texture.h.
 // When texture globals are split into a separate engine-layer header this can be replaced.
@@ -484,10 +484,5 @@ void Flamengine::Feedback()
     BlitOffset();
     POLY_frame_draw(UC_FALSE, UC_TRUE);
 
-    rcSource.top    = 0;
-    rcSource.left   = 0;
-    rcSource.bottom = 256;
-    rcSource.right  = 256;
-
-    TEXTURE_texture[TEXTURE_page_menuflame].GetSurface()->Blt(NULL, the_display.lp_DD_BackSurface, &rcSource, DDBLT_WAIT, NULL);
+    ge_blit_texture_to_backbuffer(TEXTURE_page_menuflame, 256, 256);
 }

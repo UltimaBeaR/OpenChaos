@@ -775,6 +775,30 @@ DrawIndPrimMM parameters. При OpenGL эти модули переписыва
 
 ---
 
+### Display mode + texture + blit abstraction — ещё 5 файлов ✅
+
+Добавлено в ge_* контракт:
+- Display mode: `ge_to_gdi()`, `ge_from_gdi()`, `ge_restore_all_surfaces()`,
+  `ge_is_display_changed()`, `ge_clear_display_changed()`, `ge_update_display_rect()`
+- Texture: `ge_remove_all_loaded_textures()`
+- Blit: `ge_blit_texture_to_backbuffer(page, w, h)`
+- Loading screens: `ge_init_back_image()`, `ge_show_back_image()`, `ge_reset_back_image()`
+- `ge_is_fullscreen()`, `ge_is_primary_driver()`, `ge_run_cutscene()`
+
+Очищены от gd_display.h:
+- `elev.cpp` — RunCutscene → ge_run_cutscene, toGDI → ge_to_gdi
+- `host.cpp` — 8 calls: toGDI/fromGDI, RestoreAllSurfaces, IsDisplayChanged/Off, IsFullScreen → ge_*
+- `wind_procs.cpp` — DisplayRect + IsFullScreen → ge_update_display_rect
+- `flamengine.cpp` — DDraw Blt → ge_blit_texture_to_backbuffer (D3DTexture deps stay via d3d_texture.h)
+- `texture.cpp` — RemoveAllLoadedTextures → ge_remove_all_loaded_textures
+
+gd_display.h вне d3d/: **3 файла** (frontend.cpp + figure.cpp + farfacet.cpp).
+figure.cpp и farfacet.cpp — D3D рендер-пайплайн, при OpenGL переписываются целиком.
+frontend.cpp — единственный "чужой" файл с DDraw surface ops.
+Сборка: 308/308.
+
+---
+
 ### Массовая очистка gd_display.h — ещё 7 файлов ✅
 
 Добавлено в ge_* контракт:

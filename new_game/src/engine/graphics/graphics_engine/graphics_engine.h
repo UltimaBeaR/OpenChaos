@@ -307,6 +307,37 @@ void ge_run_cutscene(int32_t id);
 bool ge_is_primary_driver();
 
 // ---------------------------------------------------------------------------
+// Display mode management
+// ---------------------------------------------------------------------------
+
+// Switch to GDI mode (for message boxes, etc.) and back.
+void ge_to_gdi();
+void ge_from_gdi();
+
+// Device-lost recovery: restore all surfaces after focus regain.
+void ge_restore_all_surfaces();
+
+// Display configuration changed detection.
+bool ge_is_display_changed();
+void ge_clear_display_changed();
+
+// Update the internal display rect from window position (called on WM_MOVE/WM_SIZE).
+void ge_update_display_rect(void* hwnd, bool fullscreen);
+
+// ---------------------------------------------------------------------------
+// Texture management
+// ---------------------------------------------------------------------------
+
+void ge_remove_all_loaded_textures();
+
+// ---------------------------------------------------------------------------
+// Surface blitting
+// ---------------------------------------------------------------------------
+
+// Blit a texture page's DDraw surface to the back buffer (flame feedback effect).
+void ge_blit_texture_to_backbuffer(int32_t texture_page, int32_t src_w, int32_t src_h);
+
+// ---------------------------------------------------------------------------
 // Gamma
 // ---------------------------------------------------------------------------
 

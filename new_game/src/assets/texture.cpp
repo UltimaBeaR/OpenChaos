@@ -10,7 +10,6 @@
 #include "map/supermap.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "map/pap.h"
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
 #include "engine/graphics/lighting/crinkle.h"
@@ -791,7 +790,7 @@ void TEXTURE_free()
         TEXTURE_texture[i].Type = GE_TEXTURE_TYPE_UNUSED;
     }
 
-    the_display.RemoveAllLoadedTextures();
+    ge_remove_all_loaded_textures();
 
     memset(TEXTURE_dontexist, 0, sizeof(TEXTURE_dontexist));
     memset(TEXTURE_needed, 0, sizeof(TEXTURE_needed));

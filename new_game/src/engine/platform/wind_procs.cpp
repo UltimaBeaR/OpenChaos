@@ -1,7 +1,7 @@
 #include "engine/platform/wind_procs.h"
 #include "engine/platform/wind_procs_globals.h"
-#include "engine/platform/uc_common.h"                            // must come before gd_display.h (which defines DisplayWidth macro)
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"     // the_display, hDDLibWindow
+#include "engine/platform/uc_common.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "game/game_types.h"
 
 extern void MFX_QUICK_stop(void);
@@ -32,14 +32,8 @@ LRESULT CALLBACK DDLibShellProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     case WM_SIZE:
     case WM_MOVE:
 
-        // Keep the_display.DisplayRect in sync with the actual window position.
-        if (the_display.IsFullScreen()) {
-            SetRect(&the_display.DisplayRect, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
-        } else {
-            GetClientRect(hWnd, &the_display.DisplayRect);
-            ClientToScreen(hWnd, (LPPOINT)&the_display.DisplayRect);
-            ClientToScreen(hWnd, (LPPOINT)&the_display.DisplayRect + 1);
-        }
+        // Keep the display rect in sync with the actual window position.
+        ge_update_display_rect(hWnd, ge_is_fullscreen());
         break;
     case WM_MOUSEMOVE:
     case WM_RBUTTONUP:
