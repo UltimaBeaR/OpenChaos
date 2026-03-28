@@ -56,7 +56,7 @@ target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
 # ---------------------------------------------------------------------------
 # Set to "d3d6" or "stub". The stub backend compiles without DirectX and proves
 # that no D3D code leaks outside backend_directx6/.
-set(GRAPHICS_BACKEND "d3d6" CACHE STRING "Graphics backend: d3d6, stub")
+set(GRAPHICS_BACKEND "opengl" CACHE STRING "Graphics backend: d3d6, opengl, stub")
 
 if(GRAPHICS_BACKEND STREQUAL "d3d6")
     set(BACKEND_SOURCES
@@ -80,6 +80,21 @@ if(GRAPHICS_BACKEND STREQUAL "d3d6")
         src/engine/graphics/graphics_engine/game_graphics_engine.cpp
     )
     set(BACKEND_LIBS ddraw dxguid)
+elseif(GRAPHICS_BACKEND STREQUAL "opengl")
+    set(BACKEND_SOURCES
+        # --- GLAD loader ---
+        src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
+        # --- common ---
+        src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
+        # --- game (ge_* implementation) ---
+        src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp
+        # --- outro (oge_* implementation) ---
+        src/engine/graphics/graphics_engine/backend_opengl/outro/core.cpp
+        # --- API-agnostic render state cache ---
+        src/engine/graphics/graphics_engine/game_graphics_engine.cpp
+    )
+    set(BACKEND_LIBS opengl32)
+    message(STATUS "Graphics backend: OpenGL 4.1 Core Profile")
 elseif(GRAPHICS_BACKEND STREQUAL "stub")
     set(BACKEND_SOURCES
         src/engine/graphics/graphics_engine/backend_stub/core.cpp
@@ -490,6 +505,8 @@ target_include_directories(Fallen PRIVATE
     src
     # Platform abstraction: resolves #include <MFStdLib.h> and StdFile/StdKeybd/StdMaths/StdMouse
     src/engine/platform
+    # GLAD GL loader headers (resolves #include <glad/gl.h>)
+    $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/common/glad/include>
 )
 
 # ---------------------------------------------------------------------------
@@ -504,6 +521,17 @@ target_include_directories(Fallen PRIVATE
 set_source_files_properties(
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
+    PROPERTIES COMPILE_OPTIONS "/Zp8"
+)
+
+# GLAD is a C file compiled as C++ — must not use /Zp1 (system headers expect default alignment).
+# OpenGL backend's gl_context.cpp includes system headers that need default alignment.
+set_source_files_properties(
+    src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
+    PROPERTIES COMPILE_OPTIONS "/Zp8" LANGUAGE CXX
+)
+set_source_files_properties(
+    src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
     PROPERTIES COMPILE_OPTIONS "/Zp8"
 )
 
@@ -528,7 +556,7 @@ target_compile_options(Fallen PRIVATE
 target_compile_definitions(Fallen PRIVATE
     WIN32
     _WINDOWS
-    VERSION_D3D
+    $<$<STREQUAL:${GRAPHICS_BACKEND},d3d6>:VERSION_D3D>
     WINDOWS_IGNORE_PACKING_MISMATCH   # suppresses Windows SDK static_assert for /Zp1
 
     $<$<CONFIG:Debug>:_DEBUG>
