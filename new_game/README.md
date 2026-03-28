@@ -33,7 +33,11 @@ src/
 │   ├── core/               — Types, math, memory, heap, timer
 │   ├── platform/           — uc_common.h (legacy umbrella), host, wind_procs
 │   ├── graphics/
-│   │   ├── graphics_api/   — D3D device: GDisplay, DDManager, vertex_buffer, render_state, d3d_texture
+│   │   ├── graphics_engine/ — Swappable graphics backend abstraction
+│   │   │   ├── game_graphics_engine.h  — ge_* contract (API-agnostic)
+│   │   │   ├── outro_graphics_engine.h — oge_* contract (outro)
+│   │   │   ├── backend_directx6/       — D3D6/DDraw implementation
+│   │   │   └── backend_stub/           — No-op stub (compile-only verification)
 │   │   ├── pipeline/       — Render pipeline: aeng, bucket, poly, polypage, draw2d, qeng
 │   │   ├── geometry/       — Mesh renderers: mesh, facet, superfacet, farfacet, fastprim, figure, cone, oval, shape, sprite, sky, aa
 │   │   ├── lighting/       — Gamut, night (per-vertex), shadow, smap, crinkle
@@ -42,7 +46,7 @@ src/
 │   ├── console/            — Debug console + on-screen messages
 │   ├── io/                 — File I/O: file, async_file, env (INI config)
 │   ├── audio/              — MFX (3D positional audio), music, sound, soundenv
-│   ├── input/              — Keyboard, mouse, joystick (DirectInput)
+│   ├── input/              — Keyboard, mouse, gamepad (SDL3)
 │   ├── animation/          — Morph (vertex keyframes), anim_types
 │   ├── effects/            — Particle system (psystem), flame engine (flamengine)
 │   ├── physics/            — Collision detection (collide), soft-body (hm, sm)
@@ -134,7 +138,7 @@ src/
 │   │   ├── level_loader.*  — Level resource loading (.tma style-tables)
 │   │   ├── elev.*          — Level loader: parse .ucm mission files
 │   │   └── mapthing.h      — Map thing structs for level file parsing
-│   ├── texture.*           — D3D texture page management
+│   ├── texture.*           — Texture page management (via ge_* abstraction)
 │   ├── sound_id.*          — Sound filename enum (Waves)
 │   └── xlat_str.*          — Localization string system
 │
