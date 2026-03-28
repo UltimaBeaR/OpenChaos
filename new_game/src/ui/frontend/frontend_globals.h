@@ -149,21 +149,21 @@ extern bool m_bGoIntoSaveScreen;
 // uc_orig: bCanChangeJoypadButtons (fallen/Source/frontend.cpp)
 extern BOOL bCanChangeJoypadButtons;
 
-// ---- DirectDraw background surfaces ----------------------------------------
+// ---- Background screen surfaces ----------------------------------------
 
 // uc_orig: screenfull_back (fallen/Source/frontend.cpp)
-extern LPDIRECTDRAWSURFACE4 screenfull_back;
+extern GEScreenSurface screenfull_back;
 // uc_orig: screenfull_map (fallen/Source/frontend.cpp)
-extern LPDIRECTDRAWSURFACE4 screenfull_map;
+extern GEScreenSurface screenfull_map;
 // uc_orig: screenfull_config (fallen/Source/frontend.cpp)
-extern LPDIRECTDRAWSURFACE4 screenfull_config;
+extern GEScreenSurface screenfull_config;
 // uc_orig: screenfull_brief (fallen/Source/frontend.cpp)
-extern LPDIRECTDRAWSURFACE4 screenfull_brief;
+extern GEScreenSurface screenfull_brief;
 // uc_orig: screenfull (fallen/Source/frontend.cpp)
-extern LPDIRECTDRAWSURFACE4 screenfull;
+extern GEScreenSurface screenfull;
 
 // uc_orig: lpFRONTEND_show_xition_LastBlit (fallen/Source/frontend.cpp)
-extern LPDIRECTDRAWSURFACE4 lpFRONTEND_show_xition_LastBlit;
+extern GEScreenSurface lpFRONTEND_show_xition_LastBlit;
 
 // ---- Savegame helpers -------------------------------------------------------
 

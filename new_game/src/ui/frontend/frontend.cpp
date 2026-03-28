@@ -2,9 +2,16 @@
 // kibble particle system, FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
-#include "engine/platform/uc_common.h"   // must come before display_macros.h (which defines DisplayWidth/Height as macros)
+#include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/graphics/graphics_engine/d3d/display_macros.h" // the_display, LPDIRECTDRAWSURFACE4 (still used for surface ops, migrating incrementally)
+
+// Display resolution constants and globals (defined in d3d/display_globals.cpp).
+#define DisplayWidth  640
+#define DisplayHeight 480
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
+// enumDisplayType / eDisplayType / DDDriverManager types come from the second include block
+// (line ~840: dd_manager.h + gd_display.h) which is kept for the video settings menu.
 #include "ui/frontend/frontend.h"
 #include "ui/frontend/frontend_globals.h"
 
@@ -35,7 +42,6 @@
 #include "engine/input/joystick_globals.h"    // the_state (DIJOYSTATE)
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
-#include "engine/graphics/graphics_engine/d3d/gd_display.h"  // eDisplayType, DT_NTSC, ShowBackImage
 #include "game/input_actions.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
 #include "game/input_actions_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
 #include "ui/frontend/startscr_globals.h"          // STARTSCR_mission
@@ -44,7 +50,6 @@
 #include "game/game_tick_globals.h"              // allow_debug_keys
 #include "game/game_globals.h"            // VIOLENCE
 
-extern void CopyBackground(UBYTE* image_data, IDirectDrawSurface4* surface);
 
 // uc_orig: RandStream (fallen/Source/frontend.cpp)
 // Pseudo-random stream — used for kibble particle variety and title wibble.
@@ -110,100 +115,25 @@ void FileCloseScript(void)
 
 // ---- Screenfull surface management ----------------------------------------
 
-// uc_orig: FRONTEND_scr_add (fallen/Source/frontend.cpp)
-// Creates a system-memory DirectDraw surface matching the back buffer and
-// copies image_data into it. Used to hold the menu background images.
-void FRONTEND_scr_add(LPDIRECTDRAWSURFACE4* screen, UBYTE* image_data)
-{
-    DDSURFACEDESC2 back;
-    DDSURFACEDESC2 mine;
-
-    InitStruct(back);
-
-    the_display.lp_DD_BackSurface->GetSurfaceDesc(&back);
-
-    InitStruct(mine);
-
-    mine.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
-    mine.dwWidth = back.dwWidth;
-    mine.dwHeight = back.dwHeight;
-    mine.ddpfPixelFormat = back.ddpfPixelFormat;
-    mine.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
-
-    HRESULT result = the_display.lp_DD4->CreateSurface(&mine, screen, NULL);
-
-    if (FAILED(result)) {
-        ASSERT(UC_FALSE);
-        *screen = NULL;
-        return;
-    }
-
-    CopyBackground(image_data, *screen);
-
-    return;
-}
-
-// uc_orig: FRONTEND_scr_img_load_into_screenfull (fallen/Source/frontend.cpp)
-// Loads a raw 640x480 BGR image file into a new DirectDraw surface.
-// Image is read bottom-up (standard BMP/TGA orientation).
-void FRONTEND_scr_img_load_into_screenfull(CBYTE* name, LPDIRECTDRAWSURFACE4* screen)
-{
-    MFFileHandle image_file;
-    SLONG height;
-    CBYTE fname[200];
-    UBYTE* image;
-    UBYTE* image_data;
-
-    *screen = NULL;
-
-    sprintf(fname, "%sdata\\%s", DATA_DIR, name);
-
-    image_data = (UBYTE*)MemAlloc(640 * 480 * 3);
-
-    if (image_data) {
-
-        image_file = FileOpen(fname);
-        if (image_file != nullptr) {
-            FileSeek(image_file, SEEK_MODE_BEGINNING, 18);
-            image = image_data + (640 * 479 * 3);
-            for (height = 480; height; height--, image -= (640 * 3)) {
-                FileRead(image_file, image, 640 * 3);
-            }
-            FileClose(image_file);
-        } else {
-        }
-
-        FRONTEND_scr_add(screen, image_data);
-
-        MemFree(image_data);
-    } else {
-    }
-}
+// FRONTEND_scr_add and FRONTEND_scr_img_load_into_screenfull moved to
+// ge_create_screen_surface / ge_load_screen_surface in the graphics engine.
 
 // uc_orig: FRONTEND_scr_unload_theme (fallen/Source/frontend.cpp)
 // Releases all four background DirectDraw surfaces.
 void FRONTEND_scr_unload_theme()
 {
-    the_display.lp_DD_Background_use_instead = NULL;
+    ge_set_background_override(GE_SCREEN_SURFACE_NONE);
 
-    if (screenfull_back) {
-        screenfull_back->Release();
-        screenfull_back = NULL;
-    }
-    if (screenfull_map) {
-        screenfull_map->Release();
-        screenfull_map = NULL;
-    }
-    if (screenfull_brief) {
-        screenfull_brief->Release();
-        screenfull_brief = NULL;
-    }
-    if (screenfull_config) {
-        screenfull_config->Release();
-        screenfull_config = NULL;
-    }
+    ge_destroy_screen_surface(screenfull_back);
+    screenfull_back = GE_SCREEN_SURFACE_NONE;
+    ge_destroy_screen_surface(screenfull_map);
+    screenfull_map = GE_SCREEN_SURFACE_NONE;
+    ge_destroy_screen_surface(screenfull_brief);
+    screenfull_brief = GE_SCREEN_SURFACE_NONE;
+    ge_destroy_screen_surface(screenfull_config);
+    screenfull_config = GE_SCREEN_SURFACE_NONE;
 
-    screenfull = NULL;
+    screenfull = GE_SCREEN_SURFACE_NONE;
 }
 
 // uc_orig: FRONTEND_scr_new_theme (fallen/Source/frontend.cpp)
@@ -219,42 +149,25 @@ void FRONTEND_scr_new_theme(
 
     stop_all_fx_and_music();
 
-    if (the_display.lp_DD_Background_use_instead == screenfull_back) {
-        last = 1;
-    }
-    if (the_display.lp_DD_Background_use_instead == screenfull_map) {
-        last = 2;
-    }
-    if (the_display.lp_DD_Background_use_instead == screenfull_brief) {
-        last = 3;
-    }
-    if (the_display.lp_DD_Background_use_instead == screenfull_config) {
-        last = 4;
-    }
+    GEScreenSurface active = ge_get_background_override();
+    if (active == screenfull_back)   last = 1;
+    if (active == screenfull_map)    last = 2;
+    if (active == screenfull_brief)  last = 3;
+    if (active == screenfull_config) last = 4;
 
     FRONTEND_scr_unload_theme();
 
-    FRONTEND_scr_img_load_into_screenfull(fname_back, &screenfull_back);
-    FRONTEND_scr_img_load_into_screenfull(fname_map, &screenfull_map);
-    FRONTEND_scr_img_load_into_screenfull(fname_brief, &screenfull_brief);
-    FRONTEND_scr_img_load_into_screenfull(fname_config, &screenfull_config);
+    screenfull_back   = ge_load_screen_surface(fname_back);
+    screenfull_map    = ge_load_screen_surface(fname_map);
+    screenfull_brief  = ge_load_screen_surface(fname_brief);
+    screenfull_config = ge_load_screen_surface(fname_config);
 
     switch (last) {
-    case 1:
-        the_display.lp_DD_Background_use_instead = screenfull_back;
-        break;
-    case 2:
-        the_display.lp_DD_Background_use_instead = screenfull_map;
-        break;
-    case 3:
-        the_display.lp_DD_Background_use_instead = screenfull_brief;
-        break;
-    case 4:
-        the_display.lp_DD_Background_use_instead = screenfull_config;
-        break;
-    default:
-        ASSERT(UC_FALSE);
-        break;
+    case 1: ge_set_background_override(screenfull_back);   break;
+    case 2: ge_set_background_override(screenfull_map);    break;
+    case 3: ge_set_background_override(screenfull_brief);  break;
+    case 4: ge_set_background_override(screenfull_config); break;
+    default: ASSERT(UC_FALSE); break;
     }
 
     MUSIC_mode(MUSIC_MODE_FRONTEND);
@@ -496,7 +409,7 @@ void FRONTEND_show_xition()
     }
 
     if (bDoBlit) {
-        the_display.lp_DD_BackSurface->Blt(&rc, screenfull, &rc, DDBLT_WAIT, 0);
+        ge_blit_surface_to_backbuffer(screenfull, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top);
     }
 }
 
@@ -509,7 +422,7 @@ void FRONTEND_stop_xition()
     switch (menu_state.mode) {
     case FE_QUIT:
     case FE_MAINMENU:
-        UseBackSurface(screenfull_back);
+        ge_set_background_override(screenfull_back);
         break;
     case FE_CONFIG:
     case FE_CONFIG_VIDEO:
@@ -518,16 +431,16 @@ void FRONTEND_stop_xition()
     case FE_CONFIG_INPUT_JP:
     case FE_LOADSCREEN:
     case FE_SAVESCREEN:
-        UseBackSurface(screenfull_config);
+        ge_set_background_override(screenfull_config);
         break;
     case FE_MAPSCREEN:
-        UseBackSurface(screenfull_map);
+        ge_set_background_override(screenfull_map);
         break;
     default:
         if (menu_state.mode >= 100) {
-            UseBackSurface(screenfull_brief);
+            ge_set_background_override(screenfull_brief);
         } else {
-            UseBackSurface(screenfull_config);
+            ge_set_background_override(screenfull_config);
         }
         break;
     }
@@ -1303,7 +1216,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
 
         switch (menu_state.mode) {
         case FE_MAINMENU:
-            UseBackSurface(screenfull_back);
+            ge_set_background_override(screenfull_back);
             break;
         case FE_CONFIG:
         case FE_CONFIG_VIDEO:
@@ -1313,13 +1226,13 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
         case FE_CONFIG_INPUT_JP:
         case FE_LOADSCREEN:
         case FE_SAVESCREEN:
-            UseBackSurface(screenfull_config);
+            ge_set_background_override(screenfull_config);
             break;
         case FE_MAPSCREEN:
-            UseBackSurface(screenfull_map);
+            ge_set_background_override(screenfull_map);
             break;
         default:
-            UseBackSurface(screenfull_brief);
+            ge_set_background_override(screenfull_brief);
         }
         FRONTEND_kibble_init();
     }
@@ -2073,7 +1986,7 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
     case FE_SAVESCREEN:
         AllowSave = 1;
         if (!menu_state.stackpos) {
-            UseBackSurface(screenfull_config);
+            ge_set_background_override(screenfull_config);
         }
         if (bDoTransition) {
             FRONTEND_init_xition();
@@ -2351,10 +2264,7 @@ void FRONTEND_display()
     UBYTE arrow = 0;
 
     ge_set_viewport(
-        the_display.ViewportRect.x1,
-        the_display.ViewportRect.y1,
-        the_display.ViewportRect.x2 - the_display.ViewportRect.x1,
-        the_display.ViewportRect.y2 - the_display.ViewportRect.y1);
+        0, 0, ge_get_screen_width(), ge_get_screen_height());
     ge_clear(true, true);
 
     ShowBackImage();
@@ -2738,7 +2648,7 @@ static UBYTE FRONTEND_input(void)
                 Keys[KB_4] = 0;
                 menu_theme = 3;
             }
-            UseBackSurface(screenfull_back);
+            ge_set_background_override(screenfull_back);
             FRONTEND_kibble_init();
         }
     }
@@ -3131,7 +3041,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
 
     menu_theme = 0;
 
-    UseBackSurface(screenfull_back);
+    ge_set_background_override(screenfull_back);
 
     ZeroMemory(kibble, sizeof(kibble));
     ZeroMemory(&menu_state, sizeof(menu_state));
@@ -3157,7 +3067,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
         menu_config_names[menu_theme]);
 
     if (!bFirstTime) {
-        UseBackSurface(screenfull_back);
+        ge_set_background_override(screenfull_back);
     }
 
     SLONG fx, amb, mus;

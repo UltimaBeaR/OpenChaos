@@ -775,6 +775,32 @@ DrawIndPrimMM parameters. При OpenGL эти модули переписыва
 
 ---
 
+### frontend.cpp — GEScreenSurface abstraction ✅
+
+Добавлено в ge_* контракт:
+- `GEScreenSurface` opaque handle type (uintptr_t, maps to LPDIRECTDRAWSURFACE4 in D3D backend)
+- `ge_create_screen_surface(pixels)`, `ge_load_screen_surface(filename)` — создание surface
+- `ge_destroy_screen_surface()`, `ge_restore_screen_surface()` — lifecycle
+- `ge_set_background_override()`, `ge_get_background_override()` — active background
+- `ge_blit_surface_to_backbuffer(surface, x, y, w, h)` — blit surface
+
+Изменения:
+- `frontend.h` — убран `#include <ddraw.h>`, убраны `FRONTEND_scr_add`/`FRONTEND_scr_img_load_into_screenfull` (→ ge_*)
+- `frontend_globals.h/cpp` — `LPDIRECTDRAWSURFACE4` → `GEScreenSurface` (6 глобалов)
+- `frontend.cpp` — все 16 the_display вызовов заменены:
+  - Surface creation/destruction → ge_create/load/destroy_screen_surface
+  - `lp_DD_Background_use_instead` → ge_set/get_background_override
+  - `UseBackSurface()` → ge_set_background_override (13 мест)
+  - `Blt()` → ge_blit_surface_to_backbuffer
+  - `ViewportRect` → ge_set_viewport(0, 0, w, h)
+
+Остаётся: второй include block (line ~840) с dd_manager.h + gd_display.h для видеонастроек
+(DDDriverManager/DDModeInfo/D3DDeviceInfo enumeration). Это D3D-specific UI — абстрагируется позже.
+
+Сборка: 308/308.
+
+---
+
 ### Display mode + texture + blit abstraction — ещё 5 файлов ✅
 
 Добавлено в ge_* контракт:

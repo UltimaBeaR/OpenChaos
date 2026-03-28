@@ -4,7 +4,11 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/graphics_engine/d3d/display_macros.h"
 #include "engine/graphics/graphics_engine/d3d/d3d_texture.h"
+#include "engine/graphics/graphics_engine/d3d/display_globals.h"
 #include "assets/texture_globals.h"
+#include "engine/io/file.h"
+#include "engine/core/memory.h"
+#include "assets/formats/level_loader.h" // DATA_DIR
 
 // ---------------------------------------------------------------------------
 // Lifecycle
@@ -568,4 +572,91 @@ void ge_blit_texture_to_backbuffer(int32_t texture_page, int32_t src_w, int32_t 
     rcSource.right  = src_w;
     rcSource.bottom = src_h;
     TEXTURE_texture[texture_page].GetSurface()->Blt(NULL, the_display.lp_DD_BackSurface, &rcSource, DDBLT_WAIT, NULL);
+}
+
+// ---------------------------------------------------------------------------
+// Screen surfaces (menu backgrounds)
+// ---------------------------------------------------------------------------
+
+GEScreenSurface ge_create_screen_surface(uint8_t* image_data)
+{
+    DDSURFACEDESC2 back;
+    DDSURFACEDESC2 mine;
+    LPDIRECTDRAWSURFACE4 surface = NULL;
+
+    InitStruct(back);
+    the_display.lp_DD_BackSurface->GetSurfaceDesc(&back);
+
+    InitStruct(mine);
+    mine.dwFlags = DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT;
+    mine.dwWidth = back.dwWidth;
+    mine.dwHeight = back.dwHeight;
+    mine.ddpfPixelFormat = back.ddpfPixelFormat;
+    mine.ddsCaps.dwCaps = DDSCAPS_OFFSCREENPLAIN | DDSCAPS_SYSTEMMEMORY;
+
+    HRESULT result = the_display.lp_DD4->CreateSurface(&mine, &surface, NULL);
+    if (FAILED(result)) {
+        return GE_SCREEN_SURFACE_NONE;
+    }
+
+    CopyBackground(image_data, surface);
+    return reinterpret_cast<GEScreenSurface>(surface);
+}
+
+GEScreenSurface ge_load_screen_surface(const char* filename)
+{
+    // Delegate to the file-loading logic (reads raw 640x480 BGR, bottom-up).
+    CBYTE fname[200];
+    sprintf(fname, "%sdata\\%s", DATA_DIR, filename);
+
+    UBYTE* image_data = (UBYTE*)MemAlloc(640 * 480 * 3);
+    if (!image_data) return GE_SCREEN_SURFACE_NONE;
+
+    MFFileHandle image_file = FileOpen(fname);
+    if (image_file != nullptr) {
+        FileSeek(image_file, SEEK_MODE_BEGINNING, 18);
+        UBYTE* image = image_data + (640 * 479 * 3);
+        for (SLONG height = 480; height; height--, image -= (640 * 3)) {
+            FileRead(image_file, image, 640 * 3);
+        }
+        FileClose(image_file);
+    }
+
+    GEScreenSurface surface = ge_create_screen_surface(image_data);
+    MemFree(image_data);
+    return surface;
+}
+
+void ge_destroy_screen_surface(GEScreenSurface surface)
+{
+    if (surface != GE_SCREEN_SURFACE_NONE) {
+        reinterpret_cast<LPDIRECTDRAWSURFACE4>(surface)->Release();
+    }
+}
+
+void ge_restore_screen_surface(GEScreenSurface surface)
+{
+    if (surface != GE_SCREEN_SURFACE_NONE) {
+        reinterpret_cast<LPDIRECTDRAWSURFACE4>(surface)->Restore();
+    }
+}
+
+void ge_set_background_override(GEScreenSurface surface)
+{
+    the_display.lp_DD_Background_use_instead = reinterpret_cast<LPDIRECTDRAWSURFACE4>(surface);
+}
+
+GEScreenSurface ge_get_background_override()
+{
+    return reinterpret_cast<GEScreenSurface>(the_display.lp_DD_Background_use_instead);
+}
+
+void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    RECT rc;
+    rc.left   = x;
+    rc.top    = y;
+    rc.right  = x + w;
+    rc.bottom = y + h;
+    the_display.lp_DD_BackSurface->Blt(&rc, reinterpret_cast<LPDIRECTDRAWSURFACE4>(surface), &rc, DDBLT_WAIT, 0);
 }

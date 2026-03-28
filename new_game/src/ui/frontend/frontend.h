@@ -5,8 +5,8 @@
 // Main frontend / menu system for Urban Chaos.
 // Handles the main menu, mission select, briefing, config screens.
 
-#include <ddraw.h>
 #include "engine/platform/uc_common.h"
+#include "engine/graphics/graphics_engine/graphics_engine.h"
 
 // ---- Structs ---------------------------------------------------------------
 
@@ -184,10 +184,7 @@ void FileCloseScript(void);
 // uc_orig: LoadStringScript (fallen/Source/frontend.cpp)
 CBYTE* LoadStringScript(CBYTE* txt);
 
-// uc_orig: FRONTEND_scr_add (fallen/Source/frontend.cpp)
-void FRONTEND_scr_add(LPDIRECTDRAWSURFACE4* screen, UBYTE* image_data);
-// uc_orig: FRONTEND_scr_img_load_into_screenfull (fallen/Source/frontend.cpp)
-void FRONTEND_scr_img_load_into_screenfull(CBYTE* name, LPDIRECTDRAWSURFACE4* screen);
+// Surface creation now handled by ge_create_screen_surface / ge_load_screen_surface.
 // uc_orig: FRONTEND_scr_unload_theme (fallen/Source/frontend.cpp)
 void FRONTEND_scr_unload_theme();
 // uc_orig: FRONTEND_scr_new_theme (fallen/Source/frontend.cpp)

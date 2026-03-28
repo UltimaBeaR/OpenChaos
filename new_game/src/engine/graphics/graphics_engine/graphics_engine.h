@@ -338,6 +338,34 @@ void ge_remove_all_loaded_textures();
 void ge_blit_texture_to_backbuffer(int32_t texture_page, int32_t src_w, int32_t src_h);
 
 // ---------------------------------------------------------------------------
+// Screen surfaces (menu backgrounds)
+// ---------------------------------------------------------------------------
+
+// Opaque handle for offscreen surfaces (DDraw surfaces in D3D backend).
+typedef uintptr_t GEScreenSurface;
+#define GE_SCREEN_SURFACE_NONE ((GEScreenSurface)0)
+
+// Create a screen-sized offscreen surface and copy image_data into it.
+// image_data: raw BGR pixel data matching back buffer format.
+GEScreenSurface ge_create_screen_surface(uint8_t* image_data);
+
+// Load a raw 640x480 BGR image from file into a new screen surface.
+GEScreenSurface ge_load_screen_surface(const char* filename);
+
+// Release a screen surface.
+void ge_destroy_screen_surface(GEScreenSurface surface);
+
+// Restore a screen surface after device-lost (reload from source).
+void ge_restore_screen_surface(GEScreenSurface surface);
+
+// Set the active background override surface (shown behind 3D scene).
+void ge_set_background_override(GEScreenSurface surface);
+GEScreenSurface ge_get_background_override();
+
+// Blit a screen surface to the back buffer (with optional subrect).
+void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y, int32_t w, int32_t h);
+
+// ---------------------------------------------------------------------------
 // Gamma
 // ---------------------------------------------------------------------------
 

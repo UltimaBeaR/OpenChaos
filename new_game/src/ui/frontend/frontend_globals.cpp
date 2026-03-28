@@ -1,4 +1,3 @@
-#include "engine/graphics/graphics_engine/d3d/dd_manager.h"   // LPDIRECTDRAWSURFACE4
 #include "ui/frontend/frontend_globals.h"
 #include "assets/xlat_str.h"
 
@@ -283,19 +282,19 @@ BOOL bCanChangeJoypadButtons = UC_FALSE;
 // ---- DirectDraw background surfaces ----------------------------------------
 
 // uc_orig: screenfull_back (fallen/Source/frontend.cpp)
-LPDIRECTDRAWSURFACE4 screenfull_back = NULL;
+GEScreenSurface screenfull_back = NULL;
 // uc_orig: screenfull_map (fallen/Source/frontend.cpp)
-LPDIRECTDRAWSURFACE4 screenfull_map = NULL;
+GEScreenSurface screenfull_map = NULL;
 // uc_orig: screenfull_config (fallen/Source/frontend.cpp)
-LPDIRECTDRAWSURFACE4 screenfull_config = NULL;
+GEScreenSurface screenfull_config = NULL;
 // uc_orig: screenfull_brief (fallen/Source/frontend.cpp)
-LPDIRECTDRAWSURFACE4 screenfull_brief = NULL;
+GEScreenSurface screenfull_brief = NULL;
 // uc_orig: screenfull (fallen/Source/frontend.cpp)
 // The current surface used for swipes/fades.
-LPDIRECTDRAWSURFACE4 screenfull = NULL;
+GEScreenSurface screenfull = NULL;
 
 // uc_orig: lpFRONTEND_show_xition_LastBlit (fallen/Source/frontend.cpp)
-LPDIRECTDRAWSURFACE4 lpFRONTEND_show_xition_LastBlit = NULL;
+GEScreenSurface lpFRONTEND_show_xition_LastBlit = NULL;
 
 // ---- Savegame helpers -------------------------------------------------------
 
