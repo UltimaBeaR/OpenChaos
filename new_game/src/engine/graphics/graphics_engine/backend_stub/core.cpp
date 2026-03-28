@@ -186,33 +186,10 @@ void GERenderState::SetChanged() {}
 
 // ========== Additional backend symbols needed by game code ==========
 
-#include "engine/graphics/pipeline/polypage.h"
 #include "engine/platform/uc_common.h"
 
-// PolyPage stubs
-bool PolyPage::s_AlphaSort = false;
-float PolyPage::s_XScale = 1.0f;
-float PolyPage::s_YScale = 1.0f;
-PolyPage::PolyPage(ULONG) {}
-PolyPage::~PolyPage() {}
-PolyPoly* PolyPage::PolyBufAlloc() { return nullptr; }
-PolyPoint2D* PolyPage::PointAlloc(ULONG) { return nullptr; }
-void PolyPage::AddToBuckets(PolyPoly** const, int) {}
-void PolyPage::Clear() {}
-void PolyPage::DrawSinglePoly(PolyPoly*) {}
-void PolyPage::Render() {}
-void PolyPage::SetTexOffset(SLONG) {}
-void PolyPage::SetScaling(float, float) {}
-void PolyPage::SetGreenScreen(bool) {}
-
-// TrueType text stub
-// PreFlipTT defined in text/truetype.cpp (common code)
-
-// Bitmap text stub
-void draw_centre_text_at(float, float, char*, SLONG, SLONG) {}
-
-// GenerateMMMatrixFromStandardD3DOnes defined in pipeline/polypage.cpp (common code)
-// ge_draw_multi_matrix defined in pipeline/polypage.cpp (common code, not backend-specific)
+// PolyPage, TrueType, ge_draw_multi_matrix, GenerateMMMatrixFromStandardD3DOnes,
+// draw_centre_text_at — all in common code now, not backend-specific.
 
 // Display globals stubs
 SLONG RealDisplayWidth = 640;
