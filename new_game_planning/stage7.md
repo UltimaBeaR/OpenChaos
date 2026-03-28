@@ -160,6 +160,22 @@ dgVoodoo (D3D6→D3D11 wrapper) не рендерил пиксели с непр
 - По итогу — полный отчёт: что найдено, что требует фикса, что вызывает вопросы
 - Если нужны изменения в абстракции — тоже записать, это допустимо
 
+### Шаг 2.6 — Убрать дублирование DisplayWidth/DisplayHeight
+
+В `uc_common.h` есть `extern SLONG DisplayWidth, DisplayHeight` — legacy из оригинала.
+В `display_globals.cpp` — определения этих переменных (всегда 640/480).
+В 6 файлах (sky.cpp, frontend.cpp, game_tick.cpp, eng_map.cpp, sprite.cpp, wibble.cpp) —
+локальные `#define DisplayWidth 640` / `#define DisplayHeight 480`, перекрывающие extern.
+В `gd_display.h` (бэкенд) — то же самое.
+
+Сейчас нельзя вынести `#define` в общий хедер: препроцессор заменяет имя в `extern SLONG DisplayWidth`
+→ `extern SLONG 640` → ошибка компиляции.
+
+**Фикс:** убрать `extern SLONG DisplayWidth, DisplayHeight` из `uc_common.h` и переменные
+из `display_globals.cpp` (они никогда не менялись, всегда 640/480). После этого `#define`
+можно будет вынести в `graphics_engine.h`. Проверить что никто не использует их как переменные
+(не берёт адрес, не присваивает).
+
 ### Шаг 3 — Включить outro, выделить graphics_engine для него
 Раскомментировать outro, вытянуть его D3D вызовы в тот же контракт.
 Проверка: всё работает как раньше.
@@ -167,6 +183,14 @@ dgVoodoo (D3D6→D3D11 wrapper) не рендерил пиксели с непр
 ### Шаг 4 — OpenGL реализация для основной игры
 Отключить outro. Написать graphics_engine_opengl.cpp.
 Переключить CMake на OpenGL. Запустить, проверить, фиксить.
+
+**⚠️ Заметки из ревью Stage 7 — учесть при реализации:**
+- **TriangleFan:** `GEPrimitiveType::TriangleFan` нет в OpenGL 3.3 core profile. Сейчас 0 вызовов — удалить из enum, или конвертировать в triangle list в бэкенде.
+- **Color key:** `ge_set_color_key_enabled` — DDraw-концепция, в OpenGL нет. Конвертировать color key → alpha при загрузке текстур, а рантайм toggle сделать no-op.
+- **Perspective correction:** `ge_set_perspective_correction` — на современных GPU всегда perspective-correct. Сделать no-op.
+- **16-bit текстуры:** `ge_lock_texture_pixels` возвращает `uint16_t**`. OpenGL бэкенд скорее всего 32-bit (RGBA8). Нужно менять интерфейс или конвертировать.
+- **Windows API:** `ge_to_gdi()`/`ge_from_gdi()` — переименовать в `ge_release_display()`/`ge_reacquire_display()`. `ge_update_display_rect(void* hwnd)` — абстрагировать platform handle.
+- **Capability queries:** `ge_supports_dest_inv_src_color()`, `ge_supports_modulate_alpha()`, `ge_is_hardware()` — всегда true на современном железе. Захардкодить или убрать, упростив code paths.
 
 ### Шаг 5 — OpenGL реализация для outro
 Включить outro. Дописать OpenGL для outro-специфичных функций.

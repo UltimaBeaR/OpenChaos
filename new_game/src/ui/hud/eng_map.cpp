@@ -6,7 +6,7 @@
 
 #include "game/game_types.h"
 
-// Display resolution constants (gd_display.h defines these as macros).
+// Display resolution constants (defined as macros, matching gd_display.h).
 #define DisplayWidth  640
 #define DisplayHeight 480
 

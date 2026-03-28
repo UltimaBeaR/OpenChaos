@@ -71,7 +71,7 @@ static UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y,
     lv->tv = 0.0F;
     lv->color = 0x00000000;
     lv->specular = 0x00000000;
-    lv->dwReserved = 0;
+    lv->_reserved = 0;
 
     return fs->lvertcount++;
 }

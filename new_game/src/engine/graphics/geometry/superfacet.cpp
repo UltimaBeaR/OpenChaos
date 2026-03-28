@@ -320,7 +320,7 @@ void SUPERFACET_fill_facet_points(
                 lv->tu = quad[j]->u;
                 lv->tv = quad[j]->v;
                 // Store the lighting index (into NIGHT_Colour[]) in the high 16 bits.
-                lv->dwReserved = quad[j]->user << 16;
+                lv->_reserved = quad[j]->user << 16;
             }
 
             // Append six indices for two triangles covering the quad.
@@ -753,9 +753,9 @@ void SUPERFACET_redo_lighting(SLONG facet)
         for (j = 0; j < sc->lvertcount; j++) {
             lv = &SUPERFACET_lvert[sc->lvert + j];
 
-            ASSERT(WITHIN(lv->dwReserved >> 16, 0, 2048));
+            ASSERT(WITHIN(lv->_reserved >> 16, 0, 2048));
 
-            NIGHT_get_d3d_colour(col[lv->dwReserved >> 16], reinterpret_cast<ULONG*>(&lv->color), reinterpret_cast<ULONG*>(&lv->specular));
+            NIGHT_get_d3d_colour(col[lv->_reserved >> 16], reinterpret_cast<ULONG*>(&lv->color), reinterpret_cast<ULONG*>(&lv->specular));
         }
     }
 }

@@ -1,6 +1,3 @@
-// Include Game.h first to avoid macro conflicts: Game.h -> MFStdLib.h declares
-// `extern SLONG DisplayWidth/DisplayHeight` which must precede gd_display.h's
-// `#define DisplayWidth 640` / `#define DisplayHeight 480`.
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/graphics/postprocess/wibble.h"
@@ -8,8 +5,7 @@
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/core/math.h"
 
-// Display resolution globals (defined in d3d/display_globals.cpp).
-// DisplayWidth/DisplayHeight are compile-time constants (640/480).
+// Display resolution constants and globals (defined in d3d/display_globals.cpp).
 #define DisplayWidth  640
 #define DisplayHeight 480
 extern SLONG RealDisplayWidth;

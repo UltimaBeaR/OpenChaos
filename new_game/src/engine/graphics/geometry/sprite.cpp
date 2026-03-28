@@ -2,7 +2,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/core/math.h"
-// Display resolution constants (gd_display.h defines these as macros).
+// Display resolution constants (defined as macros, matching gd_display.h).
 #define DisplayWidth  640
 #define DisplayHeight 480
 

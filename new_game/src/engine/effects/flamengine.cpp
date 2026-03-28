@@ -464,5 +464,5 @@ void Flamengine::Feedback()
     BlitOffset();
     POLY_frame_draw(UC_FALSE, UC_TRUE);
 
-    ge_blit_texture_to_backbuffer(TEXTURE_page_menuflame, 256, 256);
+    ge_capture_backbuffer_to_texture(TEXTURE_page_menuflame, 256, 256);
 }

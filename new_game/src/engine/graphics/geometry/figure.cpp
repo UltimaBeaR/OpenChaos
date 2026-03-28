@@ -29,7 +29,6 @@
 #include "missions/eway.h"
 #include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "ui/hud/panel.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/effects/psystem.h"
 
@@ -1335,34 +1334,34 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                         int pt;
                                         if (bInnerTris) {
                                             pt = p_f3->Points[i];
-                                            d3dvert.dvTU = float(p_f3->UV[i][0] & 0x3f) * (1.0F / 32.0F);
-                                            d3dvert.dvTV = float(p_f3->UV[i][1]) * (1.0F / 32.0F);
+                                            d3dvert.u = float(p_f3->UV[i][0] & 0x3f) * (1.0F / 32.0F);
+                                            d3dvert.v = float(p_f3->UV[i][1]) * (1.0F / 32.0F);
                                         } else {
                                             pt = p_f4->Points[i];
-                                            d3dvert.dvTU = float(p_f4->UV[i][0] & 0x3f) * (1.0F / 32.0F);
-                                            d3dvert.dvTV = float(p_f4->UV[i][1]) * (1.0F / 32.0F);
+                                            d3dvert.u = float(p_f4->UV[i][0] & 0x3f) * (1.0F / 32.0F);
+                                            d3dvert.v = float(p_f4->UV[i][1]) * (1.0F / 32.0F);
                                         }
                                         // Clamp UVs to [0,1] to avoid texture border bleeding.
-                                        if (d3dvert.dvTU < 0.0f) {
-                                            d3dvert.dvTU = 0.0f;
-                                        } else if (d3dvert.dvTU > 1.0f) {
-                                            d3dvert.dvTU = 1.0f;
+                                        if (d3dvert.u < 0.0f) {
+                                            d3dvert.u = 0.0f;
+                                        } else if (d3dvert.u > 1.0f) {
+                                            d3dvert.u = 1.0f;
                                         }
-                                        if (d3dvert.dvTV < 0.0f) {
-                                            d3dvert.dvTV = 0.0f;
-                                        } else if (d3dvert.dvTV > 1.0f) {
-                                            d3dvert.dvTV = 1.0f;
+                                        if (d3dvert.v < 0.0f) {
+                                            d3dvert.v = 0.0f;
+                                        } else if (d3dvert.v > 1.0f) {
+                                            d3dvert.v = 1.0f;
                                         }
 
-                                        d3dvert.dvTU = d3dvert.dvTU * pa->m_UScale + pa->m_UOffset;
-                                        d3dvert.dvTV = d3dvert.dvTV * pa->m_VScale + pa->m_VOffset;
+                                        d3dvert.u = d3dvert.u * pa->m_UScale + pa->m_UOffset;
+                                        d3dvert.v = d3dvert.v * pa->m_VScale + pa->m_VOffset;
 
-                                        d3dvert.dvX = AENG_dx_prim_points[pt].X;
-                                        d3dvert.dvY = AENG_dx_prim_points[pt].Y;
-                                        d3dvert.dvZ = AENG_dx_prim_points[pt].Z;
-                                        d3dvert.dvNX = prim_normal[pt].X * fNormScale;
-                                        d3dvert.dvNY = prim_normal[pt].Y * fNormScale;
-                                        d3dvert.dvNZ = prim_normal[pt].Z * fNormScale;
+                                        d3dvert.x = AENG_dx_prim_points[pt].X;
+                                        d3dvert.y = AENG_dx_prim_points[pt].Y;
+                                        d3dvert.z = AENG_dx_prim_points[pt].Z;
+                                        d3dvert.nx = prim_normal[pt].X * fNormScale;
+                                        d3dvert.ny = prim_normal[pt].Y * fNormScale;
+                                        d3dvert.nz = prim_normal[pt].Z * fNormScale;
                                         // MM index must be set last — it writes into byte 12 of the vertex.
                                         SET_MM_INDEX(d3dvert, TPO_ubPrimObjMMIndex[iInnerPrimNumber]);
 
@@ -1394,7 +1393,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                             }
 
                                             // Grow bounding sphere if this vertex is farther out.
-                                            float fDistSqu = (d3dvert.dvX * d3dvert.dvX) + (d3dvert.dvY * d3dvert.dvY) + (d3dvert.dvZ * d3dvert.dvZ);
+                                            float fDistSqu = (d3dvert.x * d3dvert.x) + (d3dvert.y * d3dvert.y) + (d3dvert.z * d3dvert.z);
                                             if ((*pfBoundingSphereRadius * *pfBoundingSphereRadius) < fDistSqu) {
                                                 *pfBoundingSphereRadius = sqrtf(fDistSqu);
                                             }
@@ -1402,15 +1401,15 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                             // Walk the UV-variant chain for this position+normal.
                                             int iLastIndex = iVertIndex;
                                             while (iVertIndex != -1) {
-                                                ASSERT(pFirstVertex[iVertIndex].dvX == d3dvert.dvX);
-                                                ASSERT(pFirstVertex[iVertIndex].dvY == d3dvert.dvY);
-                                                ASSERT(pFirstVertex[iVertIndex].dvZ == d3dvert.dvZ);
-                                                ASSERT(pFirstVertex[iVertIndex].dvNX == d3dvert.dvNX);
-                                                ASSERT(pFirstVertex[iVertIndex].dvNY == d3dvert.dvNY);
-                                                ASSERT(pFirstVertex[iVertIndex].dvNZ == d3dvert.dvNZ);
+                                                ASSERT(pFirstVertex[iVertIndex].x == d3dvert.x);
+                                                ASSERT(pFirstVertex[iVertIndex].y == d3dvert.y);
+                                                ASSERT(pFirstVertex[iVertIndex].z == d3dvert.z);
+                                                ASSERT(pFirstVertex[iVertIndex].nx == d3dvert.nx);
+                                                ASSERT(pFirstVertex[iVertIndex].ny == d3dvert.ny);
+                                                ASSERT(pFirstVertex[iVertIndex].nz == d3dvert.nz);
 // uc_orig: CLOSE_ENOUGH (fallen/DDEngine/Source/figure.cpp)
 #define CLOSE_ENOUGH(a, b) (fabsf((a) - (b)) < 0.00001f)
-                                                if (CLOSE_ENOUGH(pFirstVertex[iVertIndex].dvTU, d3dvert.dvTU) && CLOSE_ENOUGH(pFirstVertex[iVertIndex].dvTV, d3dvert.dvTV)) {
+                                                if (CLOSE_ENOUGH(pFirstVertex[iVertIndex].u, d3dvert.u) && CLOSE_ENOUGH(pFirstVertex[iVertIndex].v, d3dvert.v)) {
                                                     iIndices[i] = iVertIndex;
                                                     break;
                                                 } else {

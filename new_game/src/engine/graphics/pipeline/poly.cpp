@@ -10,7 +10,6 @@
 #include "engine/graphics/pipeline/poly_render.h"
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/graphics_engine/graphics_engine.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/core/matrix.h"
@@ -24,6 +23,9 @@
 // draw_3d is defined in aeng.cpp (not yet migrated).
 // uc_orig: draw_3d (fallen/DDEngine/Headers/poly.h)
 extern SLONG draw_3d;
+
+// uc_orig: CurDrawDistance (fallen/DDEngine/Source/aeng.cpp)
+extern SLONG CurDrawDistance;
 
 // fade_black is defined in controls.cpp.
 // uc_orig: fade_black (fallen/DDEngine/Source/poly.cpp)
@@ -275,7 +277,7 @@ void POLY_camera_set(
     matTemp._24 = 0.0f;
     matTemp._34 = 0.0f;
     matTemp._44 = 1.0f;
-    ge_set_transform(GETransform::View, reinterpret_cast<const GEMatrix*>(&matTemp));
+    ge_set_transform(GETransform::View, &matTemp);
 
     // Projection matrix: identity-ish, with Z shifted by POLY_ZCLIP_PLANE.
     g_matProjection._11 = -1.0f;
@@ -295,11 +297,10 @@ void POLY_camera_set(
     g_matProjection._34 = 1.0f;
     g_matProjection._44 = 0.0f;
 
-    ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&g_matProjection));
+    ge_set_transform(GETransform::Projection, &g_matProjection);
 
     // Viewport: maps clip-space [-1,1] to pixel coordinates.
     memset(&g_viewData, 0, sizeof(GEViewport));
-    g_viewData.dwSize = sizeof(GEViewport);
     float fMyMulX = POLY_screen_mul_x * POLY_ZCLIP_PLANE;
     float fMyMulY = POLY_screen_mul_y * POLY_ZCLIP_PLANE;
     g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
@@ -542,7 +543,7 @@ void POLY_set_local_rotation(
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    ge_set_transform(GETransform::World, reinterpret_cast<const GEMatrix*>(&g_matWorld));
+    ge_set_transform(GETransform::World, &g_matWorld);
 }
 
 // uc_orig: POLY_set_local_rotation_none (fallen/DDEngine/Headers/poly.h)
@@ -575,7 +576,7 @@ void POLY_set_local_rotation_none(void)
     g_matWorld._24 = 0.0f;
     g_matWorld._34 = 0.0f;
     g_matWorld._44 = 1.0f;
-    ge_set_transform(GETransform::World, reinterpret_cast<const GEMatrix*>(&g_matWorld));
+    ge_set_transform(GETransform::World, &g_matWorld);
 }
 
 // uc_orig: POLY_transform_using_local_rotation_and_wibble (fallen/DDEngine/Headers/poly.h)
@@ -694,7 +695,9 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     }
 
     // set default render state
-    DefRenderState.InitScene(fog_colour);
+    float fFogDist = CurDrawDistance * (60.0f / (22.f * 256.0f));
+    float fFogDistNear = fFogDist * 0.7f;
+    DefRenderState.InitScene(fog_colour, fFogDistNear, fFogDist);
 
     ge_begin_scene();
 }
@@ -2118,7 +2121,9 @@ void POLY_frame_draw_puddles()
     if (pp->NeedsRendering()) {
         ge_begin_scene();
 
-        pp->RS.InitScene(0);
+        float fFogDist = CurDrawDistance * (60.0f / (22.f * 256.0f));
+        float fFogDistNear = fFogDist * 0.7f;
+        pp->RS.InitScene(0, fFogDistNear, fFogDist);
 
         pp->Render();
 

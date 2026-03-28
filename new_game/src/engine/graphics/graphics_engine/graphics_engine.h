@@ -85,48 +85,45 @@ enum class GEPrimitiveType {
     TriangleFan,
 };
 
-// 3D vector. Replaces D3DVECTOR.
+// 3D vector.
 struct GEVector {
     float x, y, z;
 };
 
-// Pre-transformed, pre-lit vertex (screen space). Replaces D3DTLVERTEX.
-// Union aliases (dvSX, dcColor, etc.) provided for compatibility with legacy code.
+// Pre-transformed, pre-lit vertex (screen space).
 struct GEVertexTL {
-    union { float x;  float sx;  float dvSX; };
-    union { float y;  float sy;  float dvSY; };
-    union { float z;  float sz;  float dvSZ; };
-    union { float rhw; float dvRHW; };
-    union { uint32_t color; uint32_t dcColor; };
-    union { uint32_t specular; uint32_t dcSpecular; };
-    union { float u;  float tu;  float dvTU; };
-    union { float v;  float tv;  float dvTV; };
+    union { float x;  float sx; };
+    union { float y;  float sy; };
+    union { float z;  float sz; };
+    float rhw;
+    uint32_t color;
+    uint32_t specular;
+    union { float u;  float tu; };
+    union { float v;  float tv; };
 };
 
-// Lit vertex (world space, pre-lit). Replaces D3DLVERTEX.
-// Union aliases (dvX, dcColor, etc.) provided for compatibility with legacy code.
+// Lit vertex (world space, pre-lit).
 struct GEVertexLit {
-    union { float x;  float dvX; };
-    union { float y;  float dvY; };
-    union { float z;  float dvZ; };
-    union { uint32_t _reserved; uint32_t dwReserved; }; // padding to match D3DLVERTEX layout
-    union { uint32_t color; uint32_t dcColor; };
-    union { uint32_t specular; uint32_t dcSpecular; };
-    union { float u;  float tu;  float dvTU; };
-    union { float v;  float tv;  float dvTV; };
+    float x;
+    float y;
+    float z;
+    uint32_t _reserved; // padding to match D3DLVERTEX layout
+    uint32_t color;
+    uint32_t specular;
+    union { float u;  float tu; };
+    union { float v;  float tv; };
 };
 
-// Unlit vertex (world space). Replaces D3DVERTEX.
-// Union aliases (dvX, dvNX, etc.) provided for compatibility with legacy code.
+// Unlit vertex (world space, needs lighting).
 struct GEVertex {
-    union { float x;  float dvX; };
-    union { float y;  float dvY; };
-    union { float z;  float dvZ; };
-    union { float nx; float dvNX; };
-    union { float ny; float dvNY; };
-    union { float nz; float dvNZ; };
-    union { float u;  float dvTU; };
-    union { float v;  float dvTV; };
+    float x;
+    float y;
+    float z;
+    float nx;
+    float ny;
+    float nz;
+    union { float u;  float tu; };
+    union { float v;  float tv; };
 };
 
 // ---------------------------------------------------------------------------
@@ -197,7 +194,7 @@ void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts
 // Transforms
 // ---------------------------------------------------------------------------
 
-// 4x4 matrix in row-major order (same layout as D3DMATRIX).
+// 4x4 matrix in row-major order.
 // Named member aliases (_11.._44) provided for compatibility with legacy code.
 struct GEMatrix {
     union {
@@ -223,9 +220,9 @@ void ge_set_transform(GETransform type, const GEMatrix* matrix);
 // Viewport
 // ---------------------------------------------------------------------------
 
-// Viewport descriptor. Replaces D3DVIEWPORT2.
+// Viewport descriptor.
 // Named member aliases (dwX, dwWidth, etc.) for legacy compatibility.
-// RGBA color value (float, 0-1 range). Replaces D3DCOLORVALUE.
+// RGBA color value (float, 0-1 range).
 struct GEColorValue { float r, g, b, a; };
 
 struct GEViewport {
@@ -235,7 +232,7 @@ struct GEViewport {
     union { int32_t height; uint32_t dwHeight; };
     float dvClipX, dvClipY, dvClipWidth, dvClipHeight;
     float dvMinZ, dvMaxZ;
-    uint32_t dwSize; // legacy: sizeof(D3DVIEWPORT2), kept for compat
+    uint32_t dwSize; // legacy, kept for compat
 };
 
 // Set viewport with screen-space clip values (for 2D / TL vertex rendering).
@@ -346,16 +343,16 @@ void ge_remove_all_loaded_textures();
 // Surface blitting
 // ---------------------------------------------------------------------------
 
-// Blit a texture page's DDraw surface to the back buffer (flame feedback effect).
-void ge_blit_texture_to_backbuffer(int32_t texture_page, int32_t src_w, int32_t src_h);
+// Capture back buffer region into a texture page's surface (flame feedback effect).
+void ge_capture_backbuffer_to_texture(int32_t texture_page, int32_t src_w, int32_t src_h);
 
 // ---------------------------------------------------------------------------
 // Screen surfaces (menu backgrounds)
 // ---------------------------------------------------------------------------
 
-// Opaque handle for offscreen surfaces (DDraw surfaces in D3D backend).
-typedef uintptr_t GEScreenSurface;
-#define GE_SCREEN_SURFACE_NONE ((GEScreenSurface)0)
+// Opaque handle for offscreen surfaces.
+using GEScreenSurface = uintptr_t;
+constexpr GEScreenSurface GE_SCREEN_SURFACE_NONE = 0;
 
 // Create a screen-sized offscreen surface and copy image_data into it.
 // image_data: raw BGR pixel data matching back buffer format.
@@ -388,7 +385,7 @@ void ge_reclaim_vertex_buffers();
 void ge_dump_vpool_info(void* fd);
 
 // ---------------------------------------------------------------------------
-// Texture pixel access (D3DTexture abstraction)
+// Texture pixel access
 // ---------------------------------------------------------------------------
 
 // Lock a texture page for direct pixel write. Returns locked bitmap pointer and pitch.
@@ -400,9 +397,6 @@ void ge_get_texture_pixel_format(int32_t page,
     int32_t* mask_r, int32_t* mask_g, int32_t* mask_b, int32_t* mask_a,
     int32_t* shift_r, int32_t* shift_g, int32_t* shift_b, int32_t* shift_a);
 
-// Get the D3DTexture font data for a texture page (bitmap font rendering).
-struct GEFontData;
-GEFontData* ge_get_font_data(int32_t page);
 
 // Check if a texture page is loaded.
 bool ge_is_texture_loaded(int32_t page);
@@ -517,11 +511,11 @@ enum GERenderEffect {
 };
 
 // Legacy aliases for SpecialEffect names used throughout the codebase.
-#define RS_None           GE_EFFECT_NONE
-#define RS_AlphaPremult   GE_EFFECT_ALPHA_PREMULT
-#define RS_BlackWithAlpha GE_EFFECT_BLACK_WITH_ALPHA
-#define RS_InvAlphaPremult GE_EFFECT_INV_ALPHA_PREMULT
-#define RS_DecalMode      GE_EFFECT_DECAL_MODE
+inline constexpr GERenderEffect RS_None           = GE_EFFECT_NONE;
+inline constexpr GERenderEffect RS_AlphaPremult   = GE_EFFECT_ALPHA_PREMULT;
+inline constexpr GERenderEffect RS_BlackWithAlpha = GE_EFFECT_BLACK_WITH_ALPHA;
+inline constexpr GERenderEffect RS_InvAlphaPremult = GE_EFFECT_INV_ALPHA_PREMULT;
+inline constexpr GERenderEffect RS_DecalMode      = GE_EFFECT_DECAL_MODE;
 
 #pragma pack(push, 4)
 struct GERenderState {
@@ -562,7 +556,8 @@ struct GERenderState {
     bool IsSameRenderState(GERenderState* pRS);
 
     // Flush all states to ge_* (full).
-    void InitScene(uint32_t fog_colour);
+    // fog_near/fog_far: pre-computed fog distances (caller computes from CurDrawDistance).
+    void InitScene(uint32_t fog_colour, float fog_near, float fog_far);
     // Flush only changed states to ge_* (delta).
     void SetChanged();
 

@@ -2,7 +2,6 @@
 // Backend-specific code lives in d3d/ (or future opengl/).
 
 #include "engine/graphics/graphics_engine/graphics_engine.h"
-#include "engine/platform/uc_common.h"
 
 GERenderState GERenderState::s_State;
 
@@ -165,15 +164,12 @@ void GERenderState::ResetTempTransparent()
     }
 }
 
-void GERenderState::InitScene(uint32_t fog_colour)
+void GERenderState::InitScene(uint32_t fog_colour, float fog_near, float fog_far)
 {
     ge_set_cull_mode(Cull);
     ge_set_specular_enabled(true);
 
-    extern SLONG CurDrawDistance;
-    float fFogDist = CurDrawDistance * (60.0f / (22.f * 256.0f));
-    float fFogDistNear = fFogDist * 0.7f;
-    ge_set_fog_params(fog_colour, fFogDistNear, fFogDist);
+    ge_set_fog_params(fog_colour, fog_near, fog_far);
 
     ge_set_texture_blend(TexBlend);
     ge_bind_texture(Texture);

@@ -622,23 +622,23 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(mm->lpd3dMatrices[bMatIndex]));
                 ASSERT(*((uint32_t*)(&(pmCur->_41))) == 0xe0001000);
 
-                pTLVert[i].dvSX = pLVertCur->dvX * pmCur->_12 + pLVertCur->dvY * pmCur->_22 + pLVertCur->dvZ * pmCur->_32 + pmCur->_42;
-                pTLVert[i].dvSY = pLVertCur->dvX * pmCur->_13 + pLVertCur->dvY * pmCur->_23 + pLVertCur->dvZ * pmCur->_33 + pmCur->_43;
-                pTLVert[i].dvSZ = pLVertCur->dvX * pmCur->_14 + pLVertCur->dvY * pmCur->_24 + pLVertCur->dvZ * pmCur->_34 + pmCur->_44;
-                pTLVert[i].dvRHW = 1.0f / pTLVert[i].dvSZ;
-                pTLVert[i].dvSX *= pTLVert[i].dvRHW;
-                pTLVert[i].dvSY *= pTLVert[i].dvRHW;
-                pTLVert[i].dvSZ = 1.0f - POLY_ZCLIP_PLANE / pTLVert[i].dvSZ; // BUGFIX-OC-ZBUF-MISMATCH: match POLY path's inverse-z space
+                pTLVert[i].x = pLVertCur->x * pmCur->_12 + pLVertCur->y * pmCur->_22 + pLVertCur->z * pmCur->_32 + pmCur->_42;
+                pTLVert[i].y = pLVertCur->x * pmCur->_13 + pLVertCur->y * pmCur->_23 + pLVertCur->z * pmCur->_33 + pmCur->_43;
+                pTLVert[i].z = pLVertCur->x * pmCur->_14 + pLVertCur->y * pmCur->_24 + pLVertCur->z * pmCur->_34 + pmCur->_44;
+                pTLVert[i].rhw = 1.0f / pTLVert[i].z;
+                pTLVert[i].x *= pTLVert[i].rhw;
+                pTLVert[i].y *= pTLVert[i].rhw;
+                pTLVert[i].z = 1.0f - POLY_ZCLIP_PLANE / pTLVert[i].z; // BUGFIX-OC-ZBUF-MISMATCH: match POLY path's inverse-z space
 
-                pTLVert[i].dvTU = pLVert[wIndex[i]].dvTU;
-                pTLVert[i].dvTV = pLVert[wIndex[i]].dvTV;
+                pTLVert[i].u = pLVert[wIndex[i]].u;
+                pTLVert[i].v = pLVert[wIndex[i]].v;
 
                 if (unlit) {
-                    pTLVert[i].dcColor = 0xffffffff;
-                    pTLVert[i].dcSpecular = 0xffffffff;
+                    pTLVert[i].color = 0xffffffff;
+                    pTLVert[i].specular = 0xffffffff;
                 } else {
-                    pTLVert[i].dcColor = pLVert[wIndex[i]].dcColor;
-                    pTLVert[i].dcSpecular = pLVert[wIndex[i]].dcSpecular;
+                    pTLVert[i].color = pLVert[wIndex[i]].color;
+                    pTLVert[i].specular = pLVert[wIndex[i]].specular;
                 }
             }
 

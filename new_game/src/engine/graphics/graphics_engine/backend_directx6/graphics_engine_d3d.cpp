@@ -247,10 +247,6 @@ void ge_set_fog_params(uint32_t color, float near_dist, float far_dist)
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLESTART, FloatAsDword(near_dist));
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLEEND, FloatAsDword(far_dist));
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_FOGTABLEDENSITY, FloatAsDword(0.5f));
-
-    // Alpha test setup (used globally in the original).
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAREF, 0x07);
-    REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAFUNC, D3DCMP_GREATER);
 }
 
 void ge_set_specular_enabled(bool enabled)
@@ -690,7 +686,7 @@ void ge_remove_all_loaded_textures()
 // Surface blitting
 // ---------------------------------------------------------------------------
 
-void ge_blit_texture_to_backbuffer(int32_t texture_page, int32_t src_w, int32_t src_h)
+void ge_capture_backbuffer_to_texture(int32_t texture_page, int32_t src_w, int32_t src_h)
 {
     RECT rcSource;
     rcSource.left   = 0;

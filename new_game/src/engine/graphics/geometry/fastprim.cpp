@@ -429,17 +429,17 @@ SLONG FASTPRIM_draw(
                         index[k] = FASTPRIM_add_point_to_call(fc, px, py, pz, pu, pv, pcolour, pspecular);
 
                         if (type == FASTPRIM_CALL_TYPE_COLOURAND) {
-                            // Store the normal Y component in the top byte of dwReserved for
+                            // Store the normal Y component in the top byte of _reserved for
                             // per-call relighting.
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
-                            FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = prim_normal[f3->Points[k]].Y << 24;
+                            FASTPRIM_lvert[fc->lvert + index[k]]._reserved = prim_normal[f3->Points[k]].Y << 24;
                         } else {
-                            // Store the point index in the top UWORD of dwReserved for
+                            // Store the point index in the top UWORD of _reserved for
                             // per-vertex relighting (NORMAL and ENVMAP cases).
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
-                            FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = (f3->Points[k] - po->StartPoint) << 16;
+                            FASTPRIM_lvert[fc->lvert + index[k]]._reserved = (f3->Points[k] - po->StartPoint) << 16;
                         }
                     }
 
@@ -521,11 +521,11 @@ SLONG FASTPRIM_draw(
                         if (type == FASTPRIM_CALL_TYPE_COLOURAND) {
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
-                            FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = prim_normal[f4->Points[k]].Y << 24;
+                            FASTPRIM_lvert[fc->lvert + index[k]]._reserved = prim_normal[f4->Points[k]].Y << 24;
                         } else {
                             ASSERT(WITHIN(fc->lvert + index[k], 0, FASTPRIM_lvert_max - 1));
 
-                            FASTPRIM_lvert[fc->lvert + index[k]].dwReserved = (f4->Points[k] - po->StartPoint) << 16;
+                            FASTPRIM_lvert[fc->lvert + index[k]]._reserved = (f4->Points[k] - po->StartPoint) << 16;
                         }
                     }
 
@@ -602,7 +602,7 @@ SLONG FASTPRIM_draw(
                         // Store the absolute point index for normal lookup during env-map update.
                         ASSERT(WITHIN(fc->lvert + index[j], 0, FASTPRIM_lvert_max - 1));
 
-                        FASTPRIM_lvert[fc->lvert + index[j]].dwReserved = f3->Points[j] << 16;
+                        FASTPRIM_lvert[fc->lvert + index[j]]._reserved = f3->Points[j] << 16;
                     }
 
                     FASTPRIM_ensure_room_for_indices(fc);
@@ -641,7 +641,7 @@ SLONG FASTPRIM_draw(
 
                         ASSERT(WITHIN(fc->lvert + index[j], 0, FASTPRIM_lvert_max - 1));
 
-                        FASTPRIM_lvert[fc->lvert + index[j]].dwReserved = f4->Points[j] << 16;
+                        FASTPRIM_lvert[fc->lvert + index[j]]._reserved = f4->Points[j] << 16;
                     }
 
                     FASTPRIM_ensure_room_for_indices(fc);
@@ -748,11 +748,11 @@ SLONG FASTPRIM_draw(
 
                 lv = &FASTPRIM_lvert[fc->lvert + j];
 
-                ASSERT(WITHIN(lv->dwReserved >> 16, 0, (unsigned)(next_prim_point - 1)));
+                ASSERT(WITHIN(lv->_reserved >> 16, 0, (unsigned)(next_prim_point - 1)));
 
-                nx = prim_normal[lv->dwReserved >> 16].X * (2.0F / 256.0F);
-                ny = prim_normal[lv->dwReserved >> 16].Y * (2.0F / 256.0F);
-                nz = prim_normal[lv->dwReserved >> 16].Z * (2.0F / 256.0F);
+                nx = prim_normal[lv->_reserved >> 16].X * (2.0F / 256.0F);
+                ny = prim_normal[lv->_reserved >> 16].Y * (2.0F / 256.0F);
+                nz = prim_normal[lv->_reserved >> 16].Z * (2.0F / 256.0F);
 
                 MATRIX_MUL(
                     comb,
@@ -797,7 +797,7 @@ SLONG FASTPRIM_draw(
                     lv = &FASTPRIM_lvert[fc->lvert + j];
 
                     NIGHT_get_d3d_colour(
-                        lpc[lv->dwReserved >> 16],
+                        lpc[lv->_reserved >> 16],
                         reinterpret_cast<ULONG*>(&lv->color),
                         reinterpret_cast<ULONG*>(&lv->specular));
                 }

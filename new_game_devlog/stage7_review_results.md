@@ -362,8 +362,36 @@ Hardware workarounds (ModulateAlpha/Decal fallback) correctly moved to `SetTextu
 ### Deferred (OpenGL backend phase)
 11. **B1-B6:** OpenGL portability items (TriangleFan, color key, perspective correction, 16-bit textures, Windows APIs, capability queries)
 
+### Not fixable (by design)
+- **D4:** `DisplayWidth`/`DisplayHeight` cannot be consolidated into `graphics_engine.h` because
+  `uc_common.h` has `extern SLONG DisplayWidth` declarations that conflict with `#define`.
+  The local `#define` pattern (after `uc_common.h` is included) is the correct approach.
+
+---
+
+## Fixes Applied (2026-03-28)
+
+All items from "Must Fix", "Should Fix", and "Nice to Fix" (except D4) have been applied:
+
+| # | Item | Status |
+|---|------|--------|
+| A1 | `ge_set_fog_params()` alpha test side effect | **FIXED** -- removed 2 lines from d3d backend |
+| A2 | `extern CurDrawDistance` in graphics_engine.cpp | **FIXED** -- moved to caller, InitScene takes fog_near/fog_far params |
+| A3 | `ge_blit_texture_to_backbuffer` misleading name | **FIXED** -- renamed to `ge_capture_backbuffer_to_texture` |
+| D1 | Duplicate `#include "graphics_engine.h"` | **FIXED** -- removed from 5 files |
+| D2 | Redundant `reinterpret_cast` in poly.cpp | **FIXED** -- removed 4 no-op casts |
+| D3 | Dead `g_viewData.dwSize` assignment | **FIXED** -- removed |
+| D4 | DisplayWidth/DisplayHeight duplication | **NOT FIXABLE** -- extern/define conflict, kept as-is |
+| E | Dead `ge_get_font_data()` declaration | **FIXED** -- removed from header |
+| F/G | D3D legacy aliases in game code | **FIXED** -- figure.cpp (dvTU->u, dvX->x, etc.), fastprim.cpp (dwReserved->_reserved). Backend aliases kept. |
+| H | `#define` constants | **FIXED** -- GE_SCREEN_SURFACE_NONE -> constexpr, RS_* -> inline constexpr, typedef -> using |
+
+Also removed: unnecessary `#include "uc_common.h"` from `graphics_engine.cpp` (no longer needed
+after CurDrawDistance removal), outdated comment in `wibble.cpp`.
+
+Build verified: `make build-release` passes (308/308, Linking CXX executable).
+
 ---
 
 **Overall verdict: PASS.** The refactoring is a clean extraction of D3D code behind the ge_* API
-with zero runtime behavioral changes. Ready for the next step (OpenGL backend) after the
-minor fixes above.
+with zero runtime behavioral changes. All review findings have been addressed.
