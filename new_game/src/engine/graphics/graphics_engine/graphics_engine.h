@@ -238,7 +238,12 @@ struct GEViewport {
     uint32_t dwSize; // legacy: sizeof(D3DVIEWPORT2), kept for compat
 };
 
+// Set viewport with screen-space clip values (for 2D / TL vertex rendering).
 void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h);
+
+// Set viewport with explicit clip volume (for 3D projection rendering).
+void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
+                        float clip_x, float clip_y, float clip_w, float clip_h);
 
 // ---------------------------------------------------------------------------
 // Background

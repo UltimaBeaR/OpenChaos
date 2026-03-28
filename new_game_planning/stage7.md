@@ -88,24 +88,24 @@ Callbacks регистрировались после OpenDisplay → SetScaling
 - `ge_set_alpha_ref(0x07)` + `ge_set_alpha_func(Greater)` — не переносились из InitScene
 Все подтверждены diff'ом с stage_5_1_done.
 
-**C2 — Шрифты в меню при первом запуске ❌ НЕ ИСПРАВЛЕН:**
-Анализ: в attract.cpp при переносе потеряны ~43 строки прямых D3D вызовов
-(SetRenderState + SetTextureStageState), заменены на ~11 ge_* вызовов.
-Ключевая потеря — 10+ вызовов `dev->SetTextureStageState()`:
-- `D3DTSS_COLOROP = D3DTOP_MODULATE`, COLORARG1/2, ALPHAOP, ALPHAARG1/2 и др.
-- Эти TSS инициализировали texture pipeline перед первым рендером
-- Без них текстуры шрифтов не applied (TSS в неизвестном состоянии после создания девайса)
-- `ge_set_texture_blend(Modulate)` ставит legacy `D3DRENDERSTATE_TEXTUREMAPBLEND`,
-  а attract.cpp использовал TSS (immediate mode) — два разных механизма
-- Решение: нужно восстановить TSS initialization в бэкенде (Display::Create или ge_init),
-  чтобы texture pipeline был в known state до первого рендера
-- Файлы для сравнения:
-  - Старый: `git show stage_5_1_done:new_game/src/ui/frontend/attract.cpp` (строки 66-115)
-  - Текущий: `new_game/src/ui/frontend/attract.cpp` (строки 66-82)
+**C2 — Шрифты/листики/декорации в меню при первом запуске ✅ ИСПРАВЛЕН (проверено):**
+Корневая причина: `ge_set_viewport` использовал NDC clip values (-1, h/w, 2, 2*h/w),
+а старый код (attract.cpp, FRONTEND_display) ставил screen-space clip values (0, 0, 640, 480).
+dgVoodoo (D3D6→D3D11 wrapper) не рендерил пиксели с неправильными clip values.
+Полигоны добавлялись корректно (78 font polys, 12 leaf polys), DrawIndexedPrimitiveVB
+возвращал S_OK, но пиксели не появлялись на экране.
+Фикс: `ge_set_viewport` теперь использует screen-space clip values (как в stage_5_1_done).
+Подтверждено diff'ом с `stage_5_1_done:attract.cpp` и `stage_5_1_done:frontend.cpp`.
 
-**C4 — Листья на земле рисуются странно ❌ НЕ ПРОАНАЛИЗИРОВАН:**
-Проваливаются через пол вблизи, плоскость видна над горизонтом вдали.
-Возможно матрицы/проекция. Нужен анализ.
+**C4 — Листья на земле ✅ ИСПРАВЛЕН (проверено):**
+Корневая причина та же что и C2: `POLY_camera_set` в старом коде вызывал
+`SetViewport2` напрямую с NDC clip values (-1, 1, 2, 2), но после переноса
+стал вызывать `ge_set_viewport` который форсировал screen-space clip values.
+3D рендеринг получал неправильный clip volume → листья (и возможно другая
+геометрия) не проходили clipping.
+Фикс: добавлена `ge_set_viewport_3d` с явными clip параметрами.
+`POLY_camera_set` вызывает `ge_set_viewport_3d(-1, 1, 2, 2)` — как в stage_5_1_done.
+2D код (attract/frontend) продолжает использовать `ge_set_viewport` со screen-space clips.
 
 **C5 — Негатив (фото-негатив эффект) при загрузке уровня ❓ НУЖНА ПРОВЕРКА:**
 На пару кадров сразу после загрузки уровня появляется эффект негативного фото

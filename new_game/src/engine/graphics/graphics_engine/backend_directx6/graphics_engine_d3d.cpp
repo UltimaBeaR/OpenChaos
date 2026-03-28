@@ -21,7 +21,8 @@
 void ge_init()
 {
     // Display is already initialized by OpenDisplay() before ge_init() is called.
-    // Nothing extra needed for D3D path.
+    // NOTE: Do NOT set TSS (D3DTSS_COLOROP etc.) here — in D3D6, explicit TSS disables
+    // the legacy D3DRENDERSTATE_TEXTUREMAPBLEND that the entire POLY pipeline uses.
 }
 
 void ge_shutdown()
@@ -179,6 +180,8 @@ void ge_set_texture_filter(GETextureFilter mag, GETextureFilter min)
 
 void ge_set_texture_blend(GETextureBlend mode)
 {
+    // Uses legacy D3DRENDERSTATE_TEXTUREMAPBLEND — same as original code
+    // (RenderState::InitScene / RenderState::SetChanged).
     D3DTEXTUREBLEND d3d_blend;
     switch (mode) {
     case GETextureBlend::Modulate:      d3d_blend = D3DTBLEND_MODULATE; break;
@@ -342,15 +345,39 @@ void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
     vp.dwY = y;
     vp.dwWidth = w;
     vp.dwHeight = h;
-    vp.dvClipX = -1.0f;
-    vp.dvClipY = static_cast<float>(h) / static_cast<float>(w);
-    vp.dvClipWidth = 2.0f;
-    vp.dvClipHeight = 2.0f * static_cast<float>(h) / static_cast<float>(w);
+    // Use screen-space clip values (matches original D3D6 code).
+    vp.dvClipX = static_cast<float>(x);
+    vp.dvClipY = static_cast<float>(y);
+    vp.dvClipWidth = static_cast<float>(w);
+    vp.dvClipHeight = static_cast<float>(h);
     vp.dvMinZ = 0.0f;
     vp.dvMaxZ = 1.0f;
     the_display.lp_D3D_Viewport->SetViewport2(&vp);
 
     // Update ViewportRect for Clear() calls.
+    the_display.ViewportRect.x1 = x;
+    the_display.ViewportRect.y1 = y;
+    the_display.ViewportRect.x2 = x + w;
+    the_display.ViewportRect.y2 = y + h;
+}
+
+void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
+                        float clip_x, float clip_y, float clip_w, float clip_h)
+{
+    D3DVIEWPORT2 vp = {};
+    vp.dwSize = sizeof(D3DVIEWPORT2);
+    vp.dwX = x;
+    vp.dwY = y;
+    vp.dwWidth = w;
+    vp.dwHeight = h;
+    vp.dvClipX = clip_x;
+    vp.dvClipY = clip_y;
+    vp.dvClipWidth = clip_w;
+    vp.dvClipHeight = clip_h;
+    vp.dvMinZ = 0.0f;
+    vp.dvMaxZ = 1.0f;
+    the_display.lp_D3D_Viewport->SetViewport2(&vp);
+
     the_display.ViewportRect.x1 = x;
     the_display.ViewportRect.y1 = y;
     the_display.ViewportRect.x2 = x + w;

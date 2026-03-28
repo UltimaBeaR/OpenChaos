@@ -315,7 +315,8 @@ void POLY_camera_set(
     g_viewData.dvMinZ = 0.0f;
     g_viewData.dvMaxZ = 1.0f;
 
-    ge_set_viewport(g_viewData.dwX, g_viewData.dwY, g_viewData.dwWidth, g_viewData.dwHeight);
+    ge_set_viewport_3d(g_viewData.dwX, g_viewData.dwY, g_viewData.dwWidth, g_viewData.dwHeight,
+                       g_viewData.dvClipX, g_viewData.dvClipY, g_viewData.dvClipWidth, g_viewData.dvClipHeight);
 
     SUPERFACET_start_frame();
 }

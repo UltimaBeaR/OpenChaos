@@ -212,6 +212,7 @@ void game_startup(void)
         exit(1);
     }
 
+    ge_init();
     AENG_init();
 
     ATTRACT_loadscreen_init();
