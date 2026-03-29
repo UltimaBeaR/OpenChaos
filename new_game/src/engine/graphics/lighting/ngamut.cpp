@@ -13,7 +13,7 @@
 #endif
 
 // uc_orig: NGAMUT_add_square (fallen/DDEngine/Source/NGamut.cpp)
-static inline void NGAMUT_add_square(SLONG x, SLONG z)
+static void NGAMUT_add_square(SLONG x, SLONG z)
 {
     if (!WITHIN(z, 0, NGAMUT_SIZE - 2)) {
         return;

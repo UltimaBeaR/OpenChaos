@@ -59,7 +59,7 @@ extern BOOL allow_debug_keys;
 // Rate limiter for barrel hit sounds — reset per-frame externally (BARREL_init / convert_moving_to_stationary).
 // uc_orig: BARREL_hit_noise (fallen/Source/barrel.cpp)
 // Plays a hit sound for a barrel; rate-limited to 4 sounds per frame.
-static inline void BARREL_hit_noise(Thing* p_barrel)
+static void BARREL_hit_noise(Thing* p_barrel)
 {
     BARREL_fx_rate++;
 

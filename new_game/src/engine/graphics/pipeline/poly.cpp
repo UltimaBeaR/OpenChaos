@@ -325,7 +325,7 @@ void POLY_camera_set(
 // uc_orig: POLY_setclip (fallen/DDEngine/Headers/poly.h)
 // Sets clip flags on an already-projected POLY_Point.
 // Must NOT just set clip = TRANSFORMED — must preserve existing near/far bits.
-extern inline void POLY_setclip(POLY_Point* pt)
+extern void POLY_setclip(POLY_Point* pt)
 {
     pt->clip = POLY_CLIP_TRANSFORMED;
 
@@ -788,7 +788,7 @@ static bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp
 // uc_orig: TweenD3DColour (fallen/DDEngine/Source/poly.cpp)
 // Linearly interpolates two ARGB D3D colours at 8-bit fraction lambda8 (0=c1, 256=c2).
 // Processes R/B and A/G channel pairs together to reduce multiplications.
-static inline ULONG TweenD3DColour(ULONG c1, ULONG c2, ULONG lambda8)
+static ULONG TweenD3DColour(ULONG c1, ULONG c2, ULONG lambda8)
 {
     if (c1 == c2)
         return c1;

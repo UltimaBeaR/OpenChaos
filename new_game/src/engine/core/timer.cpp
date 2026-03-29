@@ -5,7 +5,7 @@
 
 // Returns the performance counter frequency (ticks per second, low 32 bits).
 // uc_orig: GetFineTimerFreq (fallen/DDEngine/Source/BreakTimer.cpp)
-static inline ULONG GetFineTimerFreq()
+static ULONG GetFineTimerFreq()
 {
     LARGE_INTEGER freq;
     QueryPerformanceFrequency(&freq);
@@ -14,7 +14,7 @@ static inline ULONG GetFineTimerFreq()
 
 // Returns the current performance counter value (low 32 bits).
 // uc_orig: GetFineTimerValue (fallen/DDEngine/Source/BreakTimer.cpp)
-static inline ULONG GetFineTimerValue()
+static ULONG GetFineTimerValue()
 {
     LARGE_INTEGER time;
     QueryPerformanceCounter(&time);

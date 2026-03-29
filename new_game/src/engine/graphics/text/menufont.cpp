@@ -19,14 +19,14 @@ void PANEL_draw_quad(
 
 // Returns true if the TGA pixel at ofs is red (marker used in font layout).
 // uc_orig: Red (fallen/DDEngine/Source/menufont.cpp)
-static inline BOOL Red(SLONG ofs, TGA_Pixel* data)
+static BOOL Red(SLONG ofs, TGA_Pixel* data)
 {
     return ((data[ofs].red > 200) && (!data[ofs].blue) && (!data[ofs].green));
 }
 
 // Returns true if ofs is the top-left corner marker (3 adjacent red pixels).
 // uc_orig: Mata (fallen/DDEngine/Source/menufont.cpp)
-static inline BOOL Mata(SLONG ofs, TGA_Pixel* data)
+static BOOL Mata(SLONG ofs, TGA_Pixel* data)
 {
     return (Red(ofs, data) && Red(ofs + 1, data) && (Red(ofs + 256, data)));
 }

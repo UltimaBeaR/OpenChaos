@@ -2946,7 +2946,7 @@ void EWAY_finish_conversation(void)
         TO_THING(EWAY_conv_person_a),
         TO_THING(EWAY_conv_person_b));
 
-    // No header for these; declared inline in original source.
+    // No header for these; declared in original source.
     extern THING_INDEX PANEL_wide_top_person;
     extern THING_INDEX PANEL_wide_bot_person;
 
@@ -3195,7 +3195,7 @@ void EWAY_set_active(EWAY_Way* ew)
 
     case EWAY_DO_CREATE_ITEM:
 
-        // Not in any header; declared inline in original source.
+        // Not in any header; declared in original source.
         extern void find_nice_place_near_person(
             Thing * p_person,
             SLONG * nice_x, // 8-bits per mapsquare
@@ -3473,7 +3473,7 @@ void EWAY_set_active(EWAY_Way* ew)
             NET_PERSON(0)->Genus.Person->Flags2 |= FLAG2_PERSON_INVULNERABLE;
 
             GAME_STATE = GS_LEVEL_WON;
-            // Not in any header; declared inline in original source.
+            // Not in any header; declared in original source.
             extern void set_stats(void);
             set_stats();
         }
@@ -3516,7 +3516,7 @@ void EWAY_set_active(EWAY_Way* ew)
 
             p_change->Genus.Person->pcom_bent = ew->ed.arg2;
             p_change->Genus.Person->pcom_zone = ew->ed.arg2 >> 8;
-            // Not in any header; declared inline in original source.
+            // Not in any header; declared in original source.
             extern void PCOM_set_person_ai_normal(Thing * p_person);
             PCOM_set_person_ai_normal(p_change);
         }
@@ -3587,7 +3587,7 @@ void EWAY_set_active(EWAY_Way* ew)
 
                     if (p_vehicle->Class == CLASS_VEHICLE) {
                         // Make the vehicle blow up.
-                        // Not in any header; declared inline in original source.
+                        // Not in any header; declared in original source.
                         extern void VEH_reduce_health(Thing * p_car, Thing * p_person, SLONG damage);
 
                         VEH_reduce_health(
@@ -3640,7 +3640,7 @@ void EWAY_set_active(EWAY_Way* ew)
                     Thing* p_barrel = TO_THING(ewk->ed.arg1);
 
                     if (p_barrel->Class == CLASS_BARREL) {
-                        // Not in any header; declared inline in original source.
+                        // Not in any header; declared in original source.
                         void BARREL_dissapear(Thing * p_barrel);
 
                         BARREL_dissapear(p_barrel);
@@ -3724,7 +3724,7 @@ void EWAY_set_active(EWAY_Way* ew)
                     Thing* p_person_a = TO_THING(person_a);
                     Thing* p_person_b = TO_THING(person_b);
 
-                    // Not in any header; declared inline in original source.
+                    // Not in any header; declared in original source.
                     extern void push_people_apart(Thing * p_person, Thing * p_avoid);
 
                     push_people_apart(

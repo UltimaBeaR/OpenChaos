@@ -6,7 +6,7 @@
 
 // Helper: constructs a GameCoord inline.
 // uc_orig: Coord (fallen/Source/ribbon.cpp)
-static inline GameCoord Coord(SLONG x, SLONG y, SLONG z)
+static GameCoord Coord(SLONG x, SLONG y, SLONG z)
 {
     GameCoord bob = { x, y, z };
     return bob;

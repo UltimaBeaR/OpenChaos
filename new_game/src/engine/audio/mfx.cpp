@@ -207,7 +207,7 @@ static void InitVoices()
 }
 
 // uc_orig: Hash (fallen/DDLibrary/Source/MFX.cpp)
-static inline int Hash(UWORD channel_id)
+static int Hash(UWORD channel_id)
 {
     return (channel_id * 37) & VOICE_MSK;
 }

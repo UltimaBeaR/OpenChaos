@@ -26,7 +26,7 @@
 #include "assets/formats/anim_globals.h"               // game_chunk
 #include "engine/graphics/pipeline/aeng.h"    // MSG_add
 
-// Forward declarations for functions not in any header (declared inline in originals).
+// Forward declarations for functions not in any header (declared in originals).
 extern SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
 // locked_anim_change declared in actors/characters/person.h

@@ -32,7 +32,7 @@ float PolyPage::s_YScale = 1.0;
 
 // uc_orig: AlphaPremult (fallen/DDEngine/Source/polypage.cpp)
 // Premultiply colour channels by alpha channel.
-static inline void AlphaPremult(UBYTE* color)
+static void AlphaPremult(UBYTE* color)
 {
     color[0] = UBYTE((ULONG(color[0]) * ULONG(color[3])) >> 8);
     color[1] = UBYTE((ULONG(color[1]) * ULONG(color[3])) >> 8);
@@ -41,7 +41,7 @@ static inline void AlphaPremult(UBYTE* color)
 
 // uc_orig: InvAlphaPremult (fallen/DDEngine/Source/polypage.cpp)
 // Premultiply colour channels by inverse alpha channel.
-static inline void InvAlphaPremult(UBYTE* color)
+static void InvAlphaPremult(UBYTE* color)
 {
     color[0] = UBYTE((ULONG(color[0]) * ULONG(255 - color[3])) >> 8);
     color[1] = UBYTE((ULONG(color[1]) * ULONG(255 - color[3])) >> 8);

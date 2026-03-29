@@ -963,7 +963,7 @@ void set_persons_personid(Thing* p_person)
 // Empty stub — optimized away by compiler. Originally used to display anim frame
 // numbers on screen in debug builds via a #define SHOW_ANIM_NUMS guard.
 // uc_orig: ShowAnimNumber (fallen/Source/Person.cpp)
-static inline void ShowAnimNumber(SLONG anim)
+static void ShowAnimNumber(SLONG anim)
 {
 }
 
@@ -3201,7 +3201,7 @@ void set_person_aim(Thing* p_person, SLONG locked)
 // Returns an effective distance scaled for accuracy based on the weapon type.
 // Negative distances are returned as-is (point-blank bonus).
 // uc_orig: weapon_accuracy_at_dist (fallen/Source/Person.cpp)
-static inline SLONG weapon_accuracy_at_dist(Thing* p_person, SLONG dist)
+static SLONG weapon_accuracy_at_dist(Thing* p_person, SLONG dist)
 {
     if (dist < 0)
         return (dist);
@@ -8541,7 +8541,7 @@ SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part)
 
     col = p_person->Genus.Person->OnFacet;
 
-    // calc_along_vect is a file-local function in collide.cpp; forward declared inline here.
+    // calc_along_vect is a file-local function in collide.cpp; forward declared here.
     SLONG calc_along_vect(SLONG ax, SLONG az, struct DFacet * p_vect);
 
     calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, sub_part, &x1, &y1, &z1);

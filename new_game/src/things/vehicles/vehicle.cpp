@@ -65,7 +65,7 @@ extern SLONG is_person_ko_and_lay_down(Thing* p_person);
 // uc_orig: siren (fallen/Source/Vehicle.cpp)
 static void siren(Vehicle* veh, UBYTE play);
 // uc_orig: GetCarPoints (fallen/Source/Vehicle.cpp)
-static inline void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step);
+static void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step);
 // uc_orig: init_arctans (fallen/Source/Vehicle.cpp)
 static void init_arctans(void);
 // uc_orig: process_car (fallen/Source/Vehicle.cpp)
@@ -1038,7 +1038,7 @@ static void init_arctans(void)
 // step: 0 = current position, TICK_RATIO = predicted next position (for collision lookahead).
 // Corners: [FL, FR, RR, RL] matching prim bounds (minx/maxx, minz/maxz).
 // uc_orig: GetCarPoints (fallen/Source/Vehicle.cpp)
-static inline void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step)
+static void GetCarPoints(Thing* p_car, SLONG* x, SLONG* y, SLONG* z, SLONG step)
 {
     Vehicle* veh;
     PrimInfo* pinfo;
@@ -2424,7 +2424,7 @@ void steering_wheel(Vehicle* veh, SLONG velocity, bool player)
 // Translates DControl bitmask to friction, acceleration, Dir, and Skid each tick.
 // Also manages siren toggle and wheelspin smoke.
 // uc_orig: pedals (fallen/Source/Vehicle.cpp)
-static inline void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction, UWORD& move_cancel, SWORD& accel, Thing* p_thing)
+static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction, UWORD& move_cancel, SWORD& accel, Thing* p_thing)
 {
 
     if (veh->DControl & VEH_ACCEL)
@@ -3028,14 +3028,14 @@ static void process_car(Thing* p_car)
 
 // Fast square root (uses FPU sqrt on PC — fastest available on Intel chips at the time).
 // uc_orig: fast_root (fallen/Source/Vehicle.cpp)
-static inline SLONG fast_root(SLONG num)
+static SLONG fast_root(SLONG num)
 {
     return (SLONG)sqrt((double)num);
 }
 
 // Normalizes a 3D integer vector to magnitude 256 (fixed-point unit vector).
 // uc_orig: normalise_val256 (fallen/Source/Vehicle.cpp)
-static inline void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
+static void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
 {
     SLONG len;
 
@@ -3056,7 +3056,7 @@ static inline void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
 // Builds a 3x3 rotation matrix from (across, nose, normal) vectors and extracts
 // tilt and roll angles via FMATRIX_find_angles.
 // uc_orig: calc_tilt_n_roll_with_matrix (fallen/Source/Vehicle.cpp)
-static inline void calc_tilt_n_roll_with_matrix(SLONG across_x, SLONG across_y, SLONG across_z, SLONG nose_x, SLONG nose_y, SLONG nose_z, SLONG nx, SLONG ny, SLONG nz, SLONG* angle, SLONG* tilt, SLONG* roll)
+static void calc_tilt_n_roll_with_matrix(SLONG across_x, SLONG across_y, SLONG across_z, SLONG nose_x, SLONG nose_y, SLONG nose_z, SLONG nx, SLONG ny, SLONG nz, SLONG* angle, SLONG* tilt, SLONG* roll)
 {
     SLONG matrix[9];
 

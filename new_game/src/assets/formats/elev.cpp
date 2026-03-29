@@ -97,7 +97,7 @@ extern volatile HWND hDDLibWindow;
 extern UBYTE vehicle_random[];
 
 // people_types[]: counters per person type, incremented as enemies are created from .ucm data.
-// Declared in Person.cpp (not in Person.h); accessed here with an inline extern.
+// Declared in Person.cpp (not in Person.h); accessed here with an extern.
 // uc_orig: people_types (fallen/Source/Person.cpp)
 extern SWORD people_types[50];
 

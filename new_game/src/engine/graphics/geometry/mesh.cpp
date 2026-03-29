@@ -22,7 +22,7 @@
 
 // uc_orig: frand (fallen/DDEngine/Source/mesh.cpp)
 // Returns a random float in [0.0, 1.0].
-static inline float frand(void)
+static float frand(void)
 {
     SLONG irand = rand();
     float ans = float(irand) * (1.0F / float(RAND_MAX));

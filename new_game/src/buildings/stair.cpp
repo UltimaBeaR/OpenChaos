@@ -13,7 +13,7 @@
 // Seeded from a UWORD before each STAIR_calculate() call for reproducible stair placement.
 
 // uc_orig: STAIR_srand (fallen/Source/Stair.cpp)
-static inline void STAIR_srand(ULONG seed)
+static void STAIR_srand(ULONG seed)
 {
     STAIR_rand_seed = seed;
 }
@@ -21,7 +21,7 @@ static inline void STAIR_srand(ULONG seed)
 
 // LCG step: seed = seed * 328573 + 123456789; returns upper bits.
 // uc_orig: STAIR_rand (fallen/Source/Stair.cpp)
-static inline UWORD STAIR_rand(void)
+static UWORD STAIR_rand(void)
 {
     UWORD ans;
 

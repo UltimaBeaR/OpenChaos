@@ -18,7 +18,7 @@
 
 // SMAP_vector_normalise: normalise a 3D float vector in-place.
 // uc_orig: SMAP_vector_normalise (fallen/DDEngine/Source/smap.cpp)
-static void inline SMAP_vector_normalise(float* x, float* y, float* z)
+static void SMAP_vector_normalise(float* x, float* y, float* z)
 {
     float len2 = *x * *x + *y * *y + *z * *z;
     float len = sqrt(len2);

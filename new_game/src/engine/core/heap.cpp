@@ -3,7 +3,7 @@
 #include "engine/core/macros.h"
 #include "engine/platform/uc_common.h"
 
-// Free list node — stored inline at the start of each free block.
+// Free list node — stored at the start of each free block.
 // uc_orig: HEAP_Free (fallen/Source/heap.cpp)
 typedef struct HEAP_Free {
     UBYTE* start;

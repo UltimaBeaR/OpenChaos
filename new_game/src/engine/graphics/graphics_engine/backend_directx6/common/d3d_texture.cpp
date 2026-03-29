@@ -31,7 +31,7 @@ static HRESULT CreateFonts(Font** font_list, TexLoadInfo* info, BGRAPixel* data)
 // uc_orig: GetMeAFastLoadBufferAtLeastThisBigPlease (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Returns pvFastLoadBuffer, growing it via VirtualAlloc if it is smaller than dwSize.
 // Grows by 25% extra plus 4 KB to avoid repeated reallocations.
-static inline void* GetMeAFastLoadBufferAtLeastThisBigPlease(DWORD dwSize)
+static void* GetMeAFastLoadBufferAtLeastThisBigPlease(DWORD dwSize)
 {
     if (dwSizeOfFastLoadBuffer < dwSize) {
         if (pvFastLoadBuffer != NULL) {

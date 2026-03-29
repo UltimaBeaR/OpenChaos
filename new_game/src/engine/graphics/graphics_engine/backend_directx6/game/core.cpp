@@ -250,7 +250,7 @@ void ge_set_alpha_func(GECompareFunc func)
     REALLY_SET_RENDER_STATE(D3DRENDERSTATE_ALPHAFUNC, d3d_func);
 }
 
-static inline DWORD FloatAsDword(float f) { DWORD d; memcpy(&d, &f, sizeof(d)); return d; }
+static DWORD FloatAsDword(float f) { DWORD d; memcpy(&d, &f, sizeof(d)); return d; }
 
 void ge_set_fog_params(uint32_t color, float near_dist, float far_dist)
 {

@@ -19,7 +19,7 @@
 #include "engine/physics/collide.h"   // LOS_FLAG_IGNORE_*
 #include "engine/input/gamepad.h"    // gamepad_set_shock
 
-// Functions not yet in any header: declared inline here as in the original.
+// Functions not yet in any header: declared here as in the original.
 // uc_orig: set_face_thing (fallen/Source/Person.cpp)
 extern SLONG set_face_thing(Thing* p_person, Thing* p_target);
 // uc_orig: e_draw_3d_line (fallen/DDEngine/Source/aeng.cpp)

@@ -6409,7 +6409,7 @@ void create_city(UBYTE mode)
                 place_building_at(c0, prim, build_x, y, build_z);
 
                 // save_asc: editor-only function defined in io.cpp (not yet migrated),
-                // kept as inline extern to preserve the call site pattern from the original.
+                // kept as extern to preserve the call site pattern from the original.
                 extern void save_asc(UWORD building, UWORD version);
             }
         }

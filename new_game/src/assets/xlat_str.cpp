@@ -8,7 +8,7 @@
 
 // Reset MBCS state between strings.
 // uc_orig: mbcs_reset (fallen/Source/xlat_str.cpp)
-static inline void mbcs_reset()
+static void mbcs_reset()
 {
     previous_byte = 0;
 }
@@ -16,7 +16,7 @@ static inline void mbcs_reset()
 // Advance one character (not byte) in an MBCS string.
 // On PC, always advances by one byte since MBCS is disabled.
 // uc_orig: mbcs_inc_char (fallen/Source/xlat_str.cpp)
-static inline CBYTE* mbcs_inc_char(CBYTE*& c)
+static CBYTE* mbcs_inc_char(CBYTE*& c)
 {
     c++;
     return c;
@@ -24,7 +24,7 @@ static inline CBYTE* mbcs_inc_char(CBYTE*& c)
 
 // Return the previous character pointer without modifying c.
 // uc_orig: mbcs_prev_char (fallen/Source/xlat_str.cpp)
-static inline CBYTE* mbcs_prev_char(CBYTE* c, CBYTE* base)
+static CBYTE* mbcs_prev_char(CBYTE* c, CBYTE* base)
 {
     return c - 1;
 }

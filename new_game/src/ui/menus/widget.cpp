@@ -73,13 +73,13 @@ void WIDGET_snd(SLONG snd)
 }
 
 // uc_orig: ShiftAlpha (fallen/Source/widget.cpp)
-static inline SLONG ShiftAlpha(ULONG rgba, SBYTE shift)
+static SLONG ShiftAlpha(ULONG rgba, SBYTE shift)
 {
     return (rgba & 0xffffff) | ((rgba >> shift) & 0xFF000000);
 }
 
 // uc_orig: AlterAlpha (fallen/Source/widget.cpp)
-static inline SLONG AlterAlpha(ULONG rgba, ULONG alpha)
+static SLONG AlterAlpha(ULONG rgba, ULONG alpha)
 {
     return (rgba & 0xffffff) | ((alpha & 0xff) << 24);
 }
@@ -1014,7 +1014,7 @@ void FORM_DelWidget(Widget* widget)
 }
 
 // uc_orig: FORM_KeyProc (fallen/Source/widget.cpp)
-static inline BOOL FORM_KeyProc(SLONG key)
+static BOOL FORM_KeyProc(SLONG key)
 {
     if (Keys[key]) {
         Keys[key] = 0;

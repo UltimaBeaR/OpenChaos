@@ -5,7 +5,7 @@
 // uc_orig: uncompress_matrix (fallen/Source/Hierarchy.cpp)
 // Decompresses a 10-bit-per-component CMatrix33 into a full Matrix33.
 // Each component is sign-extended from 10 bits, then shifted left 6 for fixed-point scale.
-static inline void uncompress_matrix(CMatrix33* cm, Matrix33* m)
+static void uncompress_matrix(CMatrix33* cm, Matrix33* m)
 {
     SLONG v;
 
