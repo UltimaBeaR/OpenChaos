@@ -1085,6 +1085,11 @@ static void gl_blit_fullscreen_texture(GLuint tex)
 
     uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
 
+    // Ensure opaque draw — disable blending that may be left over from game rendering.
+    ge_set_blend_enabled(false);
+    ge_set_alpha_test_enabled(false);
+    ge_set_depth_mode(GEDepthMode::Off);
+
     // Bind texture directly (bypass ge_bind_texture which uses the game texture pool).
     s_bound_texture = (GETextureHandle)(uintptr_t)tex;
     s_bound_texture_has_alpha = false;
@@ -1309,6 +1314,10 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
     verts[3].u = u1; verts[3].v = v1;
 
     uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
+
+    ge_set_blend_enabled(false);
+    ge_set_alpha_test_enabled(false);
+    ge_set_depth_mode(GEDepthMode::Off);
 
     s_bound_texture = (GETextureHandle)(uintptr_t)tex;
     s_bound_texture_has_alpha = false;

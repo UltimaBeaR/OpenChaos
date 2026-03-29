@@ -1394,7 +1394,25 @@ Stub backend обновлён — добавлены стабы, убраны д
 - Раньше Modulate и ModulateAlpha делали одинаково (`color = color * tex`) — неправильно для Modulate, где ALPHAOP = SELECTARG1(TEX) или SELECTARG2(DIFFUSE), а не MODULATE.
 - Подробности в [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).
 
+### Шаг 4, Фаза 6 (частично) — Framebuffer/Surfaces
+
+**Background surfaces (задники меню/загрузки):**
+- `ge_init_back_image` / `ge_show_back_image` / `ge_reset_back_image` — загрузка BMP 640×480×24 (TGA header 18 bytes, BGR bottom-up), конвертация BGR→RGBA, GL текстура, fullscreen quad через TL path.
+- `ge_load_screen_surface` / `ge_create_screen_surface` / `ge_destroy_screen_surface` — frontend тема: 4 фона (back, map, brief, config). Общий helper `gl_create_bgr_texture`.
+- `ge_blit_background_surface` — поддержка override (frontend переключает активный фон через `ge_set_background_override`).
+- `ge_blit_surface_to_backbuffer(surface, x, y, w, h)` — блит прямоугольника текстуры на экран. UV маппинг: screen coords / viewport size (D3D Blt работает в screen-resolution т.к. CopyBackground32 масштабирует 640×480 → размер back buffer при создании surface).
+- **Засвет при обратном слайде:** D3D `Blt` копирует пиксели напрямую (игнорирует render state). GL рисует через pipeline — нужен явный сброс blend/alpha test/depth перед отрисовкой фонов.
+
+**Lit vertex shader — удалён:**
+- Единственный пользователь — листья/dirt particles (`ge_draw_indexed_primitive_lit`).
+- Не работал: D3D matrices несовместимы с OpenGL clip space (Z [0,1] vs [-1,1]).
+- Заменён CPU-transform (World×Projection, perspective divide, viewport mapping) → TL path. Тот же подход что `ge_draw_multi_matrix` для всей остальной геометрии.
+- Файл `lit_vert.glsl` удалён, CMake embed убран, VAO/program/uniforms вычищены.
+
+**Рамка окна Windows:**
+- `gl_context.cpp`: `WS_POPUP` → `WS_OVERLAPPED | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX` (как D3D бэкенд в display.cpp для windowed mode).
+
 ### Открытые баги (записаны в known_issues_and_bugs.md)
 
-- **Шрифты меню + HUD иконки** — ghost RGB. Подробности → [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).
-- **Листья in-game (POLY_PAGE_LEAF)** — не отображаются. Modulate + AlphaTest. Вероятно текстура `leaf.tga` не содержит альфу (24-bit TGA → alpha=255 везде → alpha test всегда проходит → чёрный фон не вырезается). Нужно проверить содержимое текстуры из clump.
+- **Шрифты меню + HUD иконки** — ghost RGB (**ОТЛОЖЕН** до после кросс-платформы). Подробности → [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).
+- **Экран брифинга не убирается при загрузке миссии** — background override остаётся на брифинге.
