@@ -378,7 +378,7 @@ void parse_console(CBYTE* str)
 }
 
 // uc_orig: tga_dump (fallen/Source/Controls.cpp)
-// Captures the current frame to a TGA file. Searches for the first free shot000..9999.tga name.
+// Captures the current frame to a TGA file at actual screen resolution.
 void tga_dump(void)
 {
     SLONG i;
@@ -389,12 +389,15 @@ void tga_dump(void)
     UBYTE green;
     UBYTE blue;
 
-    CBYTE fname[32];
+    CBYTE fname[64];
 
     FILE* handle;
 
+    // Create output directory if needed.
+    CreateDirectoryA("debug_screenshots", NULL);
+
     for (i = 0; i < 10000; i++) {
-        sprintf(fname, "c:\\tmp\\shot%03d.tga", i);
+        sprintf(fname, "debug_screenshots\\shot%04d.tga", i);
 
         handle = MF_Fopen(fname, "rb");
 
@@ -409,27 +412,23 @@ void tga_dump(void)
 
 found_file:;
 
-    for (y = 0; y < 480; y++) {
-        for (x = 0; x < 640; x++) {
-            ge_get_pixel(
-                x,
-                y,
-                &red,
-                &green,
-                &blue);
+    SLONG w = ge_get_screen_width();
+    SLONG h = ge_get_screen_height();
 
-            tga[y][x].red = red;
-            tga[y][x].green = green;
-            tga[y][x].blue = blue;
+    TGA_Pixel* pixels = (TGA_Pixel*)malloc(w * h * sizeof(TGA_Pixel));
+    if (!pixels) return;
+
+    for (y = 0; y < h; y++) {
+        for (x = 0; x < w; x++) {
+            ge_get_pixel(x, y, &red, &green, &blue);
+            pixels[y * w + x].red = red;
+            pixels[y * w + x].green = green;
+            pixels[y * w + x].blue = blue;
         }
     }
 
-    TGA_save(
-        fname,
-        640,
-        480,
-        &tga[0][0],
-        UC_FALSE);
+    TGA_save(fname, w, h, pixels, UC_FALSE);
+    free(pixels);
 }
 
 // uc_orig: plan_view_shot (fallen/Source/Controls.cpp)
