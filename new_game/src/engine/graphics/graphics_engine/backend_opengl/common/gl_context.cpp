@@ -113,12 +113,19 @@ bool gl_context_create(int32_t width, int32_t height)
     s_width = width;
     s_height = height;
 
-    // Resize the window to match requested dimensions.
+    // Switch window style from WS_POPUP (set by host.cpp) to windowed with frame.
+    // Matches D3D backend behavior in display.cpp OpenDisplay() for windowed mode.
+    LONG style = GetWindowLong((HWND)hDDLibWindow, GWL_STYLE);
+    style &= ~WS_POPUP;
+    style |= WS_OVERLAPPED | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX;
+    SetWindowLong((HWND)hDDLibWindow, GWL_STYLE, style);
+
+    // Resize the window so the client area matches requested dimensions.
     RECT rc = { 0, 0, width, height };
-    AdjustWindowRect(&rc, WS_POPUP, FALSE);
+    AdjustWindowRectEx(&rc, style, FALSE, GetWindowLong((HWND)hDDLibWindow, GWL_EXSTYLE));
     SetWindowPos((HWND)hDDLibWindow, HWND_TOP, 0, 0,
                  rc.right - rc.left, rc.bottom - rc.top,
-                 SWP_NOMOVE | SWP_NOZORDER);
+                 SWP_NOMOVE | SWP_NOZORDER | SWP_FRAMECHANGED);
     ShowWindow((HWND)hDDLibWindow, SW_SHOW);
     UpdateWindow((HWND)hDDLibWindow);
 
