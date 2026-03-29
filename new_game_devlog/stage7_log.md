@@ -1422,7 +1422,8 @@ Stub backend обновлён — добавлены стабы, убраны д
 - `ge_blit_back_buffer` — `SwapBuffers` (эквивалент flip для windowed GL).
 - `ge_capture_backbuffer_to_texture` — `glCopyTexSubImage2D` из backbuffer в GL текстуру по page index (для flame feedback loop в меню).
 - **Баг V-flip:** первая версия unlock рисовала quad с перевёрнутыми V-координатами (V=1 сверху). Буфер после lock уже top-down, `glTexImage2D` ставит row 0 на V=0 — дополнительный flip не нужен. Из-за этого wibble рисовался в небе вместо луж, а звёзды (`SKY_draw_stars` → `ge_plot_pixel`) отображались в зеркальных позициях и "двигались" при повороте камеры. Фикс: V=0 сверху, V=1 снизу (как в `gl_blit_fullscreen_texture`).
-- **Проверено:** лужи (wibble) ✅, звёзды (ge_plot_pixel) ✅. **Не проверено:** ge_capture_backbuffer_to_texture (flame в меню), ge_blit_back_buffer, шрифт FONT_draw, скриншоты (get_pixel), ge_plot_formatted_pixel (glow звёзд).
+- **Баг stale render state:** `ge_unlock_screen()` менял GL state через `ge_set_*` (blend off, alpha test off, depth off) — GERenderState кеш в `game_graphics_engine.cpp` не знал об этих изменениях. После wibble `POLY_frame_draw` для лужевых квадов не переприменял blend/depth, т.к. кеш считал что состояние уже верное. Результат: drip-кружки от капель на средней дистанции рисовались с артефактами (видимые квады, инвертированные цвета). Фикс: `ge_unlock_screen()` теперь сохраняет/восстанавливает GL state и backend static vars напрямую, не трогая `ge_set_*` — кеш остаётся синхронизированным.
+- **Проверено:** лужи (wibble) ✅, звёзды (ge_plot_pixel) ✅, drip-кружки на средней дистанции ✅. **Не проверено:** ge_capture_backbuffer_to_texture (flame в меню), ge_blit_back_buffer, шрифт FONT_draw, скриншоты (get_pixel), ge_plot_formatted_pixel (glow звёзд).
 
 ### Открытые баги (записаны в known_issues_and_bugs.md)
 

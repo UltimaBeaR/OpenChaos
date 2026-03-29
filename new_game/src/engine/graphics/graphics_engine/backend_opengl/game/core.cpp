@@ -1094,11 +1094,28 @@ void ge_unlock_screen()
 
     uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
 
-    // Overwrite screen — no blending, no depth, no alpha test.
-    ge_set_blend_enabled(false);
-    ge_set_alpha_test_enabled(false);
-    ge_set_depth_mode(GEDepthMode::Off);
+    // Save backend state that the fullscreen blit will clobber.
+    // We modify GL state directly (not through ge_set_*) to avoid corrupting
+    // the GERenderState cache — it must stay in sync with what poly_render expects.
+    bool save_alpha_test     = s_alpha_test_enabled;
+    GETextureBlend save_blend = s_texture_blend;
+    GETextureHandle save_tex = s_bound_texture;
+    bool save_tex_alpha      = s_bound_texture_has_alpha;
+    bool save_color_key      = s_color_key_enabled;
+    bool save_specular       = s_specular_enabled;
 
+    GLboolean save_gl_blend  = glIsEnabled(GL_BLEND);
+    GLboolean save_gl_depth  = glIsEnabled(GL_DEPTH_TEST);
+    GLboolean save_gl_depth_mask;
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &save_gl_depth_mask);
+
+    // Set state for opaque fullscreen blit.
+    glDisable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    s_alpha_test_enabled = false;
+    s_color_key_enabled = false;
+    s_specular_enabled = false;
     s_bound_texture = (GETextureHandle)(uintptr_t)tex;
     s_bound_texture_has_alpha = false;
     s_texture_blend = GETextureBlend::Decal;
@@ -1107,7 +1124,18 @@ void ge_unlock_screen()
 
     // Clean up temp texture.
     glDeleteTextures(1, &tex);
-    s_bound_texture = GE_TEXTURE_NONE;
+
+    // Restore all state exactly as it was before.
+    s_alpha_test_enabled = save_alpha_test;
+    s_texture_blend      = save_blend;
+    s_bound_texture      = save_tex;
+    s_bound_texture_has_alpha = save_tex_alpha;
+    s_color_key_enabled  = save_color_key;
+    s_specular_enabled   = save_specular;
+
+    if (save_gl_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+    if (save_gl_depth) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+    glDepthMask(save_gl_depth_mask);
 }
 
 uint8_t* ge_get_screen_buffer() { return ensure_screen_buffer(); }
