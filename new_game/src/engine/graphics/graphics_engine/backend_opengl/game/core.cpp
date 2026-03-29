@@ -1065,8 +1065,9 @@ static void gl_blit_fullscreen_texture(GLuint tex)
 {
     if (!tex) return;
 
-    float w = (float)gl_context_get_width();
-    float h = (float)gl_context_get_height();
+    // Use current viewport size for screen coords (must match TL shader's u_viewport).
+    float w = (float)s_vp_w;
+    float h = (float)s_vp_h;
 
     GEVertexTL verts[4];
     verts[0].x = 0; verts[0].y = 0; verts[0].z = 0.5f; verts[0].rhw = 1.0f;
@@ -1270,7 +1271,51 @@ void ge_restore_screen_surface(GEScreenSurface) {}  // No device-lost in OpenGL.
 void ge_set_background_override(GEScreenSurface surface) { s_background_override = surface; }
 GEScreenSurface ge_get_background_override() { return s_background_override; }
 
-void ge_blit_surface_to_backbuffer(GEScreenSurface, int32_t, int32_t, int32_t, int32_t) {}
+void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    if (surface == GE_SCREEN_SURFACE_NONE || w <= 0 || h <= 0) return;
+
+
+    GLuint tex = (GLuint)(uintptr_t)surface;
+
+    // D3D creates the background surface at screen resolution (CopyBackground32
+    // scales 640x480 source → back buffer size). Blt uses same rect for src and dst
+    // because both are screen-sized. Our GL texture is 640x480 — we map screen coords
+    // to UV proportionally: screen (0..screen_w) → UV (0..1).
+    float scr_w = (float)s_vp_w;
+    float scr_h = (float)s_vp_h;
+    float u0 = (float)x / scr_w;
+    float v0 = (float)y / scr_h;
+    float u1 = (float)(x + w) / scr_w;
+    float v1 = (float)(y + h) / scr_h;
+
+    float sx = (float)x;
+    float sy = (float)y;
+    float sx1 = (float)(x + w);
+    float sy1 = (float)(y + h);
+
+    GEVertexTL verts[4];
+    verts[0].x = sx;  verts[0].y = sy;  verts[0].z = 0.5f; verts[0].rhw = 1.0f;
+    verts[0].color = 0xFFFFFFFF; verts[0].specular = 0xFF000000;
+    verts[0].u = u0; verts[0].v = v0;
+    verts[1].x = sx1; verts[1].y = sy;  verts[1].z = 0.5f; verts[1].rhw = 1.0f;
+    verts[1].color = 0xFFFFFFFF; verts[1].specular = 0xFF000000;
+    verts[1].u = u1; verts[1].v = v0;
+    verts[2].x = sx;  verts[2].y = sy1; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
+    verts[2].color = 0xFFFFFFFF; verts[2].specular = 0xFF000000;
+    verts[2].u = u0; verts[2].v = v1;
+    verts[3].x = sx1; verts[3].y = sy1; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
+    verts[3].color = 0xFFFFFFFF; verts[3].specular = 0xFF000000;
+    verts[3].u = u1; verts[3].v = v1;
+
+    uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
+
+    s_bound_texture = (GETextureHandle)(uintptr_t)tex;
+    s_bound_texture_has_alpha = false;
+    s_texture_blend = GETextureBlend::Decal;
+
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
+}
 
 // ---------------------------------------------------------------------------
 // Vertex buffer pool — CPU-side implementation for OpenGL
