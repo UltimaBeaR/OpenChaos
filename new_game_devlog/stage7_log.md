@@ -1426,6 +1426,25 @@ Stub backend обновлён — добавлены стабы, убраны д
 - **ge_capture_backbuffer_to_texture** — удалён (Flamengine мёртвый код, класс никогда не инстанцировался). Файлы flamengine.cpp/h удалены.
 - **Проверено:** лужи (wibble) ✅, звёзды (ge_plot_pixel) ✅, drip-кружки на средней дистанции ✅, скриншоты (ge_get_pixel) ✅. **Не проверено:** ge_blit_back_buffer, шрифт FONT_draw, ge_plot_formatted_pixel (glow звёзд).
 
+### Удаление мёртвого кода
+
+**TrueType (Фаза 8) — удалён полностью:**
+- `DrawTextTT()` нигде не вызывается — весь текст в игре идёт через FONT2D (bitmap шрифты).
+- `TT_Init()`/`TT_Term()` тоже нигде не вызываются.
+- `PreFlipTT()` вызывался из game.cpp, но делал no-op (shadow surface = NULL без TT_Init).
+- TrueType использовал Windows GDI — для кросс-платформы не годится в любом случае.
+- Удалено: `truetype.cpp`, `truetype.h`, `truetype_globals.cpp`, `truetype_globals.h`, `ge_text_surface_*` (6 функций из контракта и всех бэкендов), вызовы `PreFlipTT` из game.cpp.
+
+**Inline → static (все .cpp файлы):**
+- 20 `inline` функций в .cpp файлах заменены на `static` (24 файла).
+- Найден скрытый дубликат: `screen_flip` определена в game.cpp и playcuts.cpp — линкер выбирал не ту версию (UB). Исправлено через `static`.
+- Ещё один скрытый дубликат: `apply_cloud` в facet.cpp (inline) и aeng.cpp (обычная) — удалён из facet.cpp.
+- Записано в known_issues как системная проблема для проверки в будущем.
+
+**Скриншоты (tga_dump) — исправлены:**
+- Путь `c:\tmp\shot%03d.tga` → `debug_screenshots\shot%04d.tga` (создаёт папку автоматически).
+- Размер: динамический буфер вместо статического `tga[480][640]` — сохраняет в реальном разрешении окна.
+
 ### Открытые баги (записаны в known_issues_and_bugs.md)
 
 - **Шрифты меню + HUD иконки** — ghost RGB (**ОТЛОЖЕН** до после кросс-платформы). Подробности → [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).

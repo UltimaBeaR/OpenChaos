@@ -26,6 +26,5 @@
 | Glow звёзд | Ореол (4 пикселя) вокруг ярких звёзд | Ночной уровень, яркая звезда с spread | `ge_plot_formatted_pixel` |
 | Legacy шрифт FONT_draw | Попиксельный текст (FPS, сообщения) | Debug: `bangunsnotgames` → FPS; outro/credits | `ge_plot_pixel` (через `ge_lock_screen`) |
 | Outro рендеринг | Весь outro (Фаза 9 — стабы) | Пройти финальную миссию | `oge_*` функции |
-| TrueType шрифты | TrueType текст (Фаза 8 — стабы) | Кросс-платформа (GDI не будет) | `ge_text_surface_*` |
 
 Известные баги OpenGL → [known_issues_and_bugs.md](known_issues_and_bugs.md)

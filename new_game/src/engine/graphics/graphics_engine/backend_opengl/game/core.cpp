@@ -2021,17 +2021,6 @@ map_font:
 }
 
 // ---------------------------------------------------------------------------
-// Text surface — TODO Phase 8
-// ---------------------------------------------------------------------------
-
-GETextSurface ge_text_surface_create(int32_t, int32_t) { return GE_TEXT_SURFACE_NONE; }
-void ge_text_surface_destroy(GETextSurface) {}
-bool ge_text_surface_get_dc(GETextSurface, void**) { return false; }
-void ge_text_surface_release_dc(GETextSurface, void*) {}
-bool ge_text_surface_lock(GETextSurface, uint8_t**, int32_t*) { return false; }
-void ge_text_surface_unlock(GETextSurface) {}
-
-// ---------------------------------------------------------------------------
 // NTSC / Driver enumeration
 // ---------------------------------------------------------------------------
 

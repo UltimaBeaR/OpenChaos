@@ -508,32 +508,6 @@ void ge_texture_set_type(int32_t page, int32_t type);
 GETextureHandle ge_get_texture_handle(int32_t page);
 
 // ---------------------------------------------------------------------------
-// Text rendering shadow surface (8bpp palettized with GDI DC)
-// ---------------------------------------------------------------------------
-
-// Opaque handle for text rendering shadow surface.
-using GETextSurface = uintptr_t;
-constexpr GETextSurface GE_TEXT_SURFACE_NONE = 0;
-
-// Create an 8bpp palettized surface with greyscale palette for GDI text rendering.
-GETextSurface ge_text_surface_create(int32_t width, int32_t height);
-
-// Destroy a text surface.
-void ge_text_surface_destroy(GETextSurface surface);
-
-// Get a GDI device context for the surface (for text rendering). Returns false on failure.
-bool ge_text_surface_get_dc(GETextSurface surface, void** out_dc);
-
-// Release the GDI device context.
-void ge_text_surface_release_dc(GETextSurface surface, void* dc);
-
-// Lock the surface for pixel reading. Returns false on failure.
-bool ge_text_surface_lock(GETextSurface surface, uint8_t** out_pixels, int32_t* out_pitch);
-
-// Unlock the surface.
-void ge_text_surface_unlock(GETextSurface surface);
-
-// ---------------------------------------------------------------------------
 // Callbacks (game code hooks into backend lifecycle)
 // ---------------------------------------------------------------------------
 

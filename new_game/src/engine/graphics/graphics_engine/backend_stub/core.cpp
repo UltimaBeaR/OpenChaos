@@ -222,12 +222,6 @@ void oge_init_renderstates() {}
 void oge_calculate_pipeline() {}
 void oge_change_renderstate(uint32_t) {}
 void oge_undo_renderstate_changes() {}
-GETextSurface ge_text_surface_create(int32_t, int32_t) { return GE_TEXT_SURFACE_NONE; }
-void ge_text_surface_destroy(GETextSurface) {}
-bool ge_text_surface_get_dc(GETextSurface, void**) { return false; }
-void ge_text_surface_release_dc(GETextSurface, void*) {}
-bool ge_text_surface_lock(GETextSurface, uint8_t**, int32_t*) { return false; }
-void ge_text_surface_unlock(GETextSurface) {}
 
 void oge_bind_texture(int32_t, OGETexture) {}
 void oge_draw_indexed(const void*, int32_t, const uint16_t*, int32_t) {}

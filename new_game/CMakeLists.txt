@@ -263,8 +263,6 @@ set(SOURCES_NEW
     src/engine/graphics/text/text_globals.cpp
     src/engine/graphics/text/font2d.cpp
     src/engine/graphics/text/font2d_globals.cpp
-    src/engine/graphics/text/truetype.cpp
-    src/engine/graphics/text/truetype_globals.cpp
 
     # === Engine: graphics — lighting ===
     src/engine/graphics/lighting/ngamut.cpp

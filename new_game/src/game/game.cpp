@@ -57,7 +57,6 @@
 #include "ui/hud/eng_map_globals.h"
 #include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
 #include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
-#include "engine/graphics/text/truetype.h"  // PreFlipTT (if defined)
 #include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
 #include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
@@ -158,10 +157,9 @@ void stop_all_fx_and_music(void)
 }
 
 // Pre-flip callback: called by the graphics backend just before frame flip.
-// Handles TrueType text flush, depth reset, and screensaver overlay.
+// Handles depth reset and screensaver overlay.
 static void game_pre_flip()
 {
-    PreFlipTT();
     PANEL_ResetDepthBodge();
     PANEL_screensaver_draw();
 }
@@ -608,7 +606,6 @@ static void screen_flip(void)
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.
     if (ge_is_primary_driver()) {
-        PreFlipTT();
         AENG_blit();
     } else {
         AENG_flip();
