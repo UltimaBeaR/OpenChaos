@@ -1045,16 +1045,105 @@ bool ge_is_hardware()                 { return true; }
 bool ge_is_fullscreen()               { return s_fullscreen; }
 
 // ---------------------------------------------------------------------------
-// Background surface — TODO Phase 6
+// Background surface — fullscreen background image (loading screen, menus)
 // ---------------------------------------------------------------------------
 
-void ge_create_background_surface(uint8_t*) {}
-void ge_blit_background_surface() {}
-void ge_destroy_background_surface() {}
+static GLuint s_bg_texture = 0;
+static uint8_t* s_bg_pixels = nullptr;
+static GLuint gl_create_bgr_texture(uint8_t* bgr_pixels);  // forward decl
 
-void ge_init_back_image(const char*) {}
-void ge_show_back_image(bool) {}
-void ge_reset_back_image() {}
+void ge_create_background_surface(uint8_t* pixels)
+{
+    if (s_bg_texture) { glDeleteTextures(1, &s_bg_texture); s_bg_texture = 0; }
+    if (!pixels) return;
+    s_bg_pixels = pixels;
+    s_bg_texture = gl_create_bgr_texture(pixels);
+}
+
+// Helper: draw a fullscreen textured quad with the given GL texture ID.
+static void gl_blit_fullscreen_texture(GLuint tex)
+{
+    if (!tex) return;
+
+    float w = (float)gl_context_get_width();
+    float h = (float)gl_context_get_height();
+
+    GEVertexTL verts[4];
+    verts[0].x = 0; verts[0].y = 0; verts[0].z = 0.5f; verts[0].rhw = 1.0f;
+    verts[0].color = 0xFFFFFFFF; verts[0].specular = 0xFF000000;
+    verts[0].u = 0.0f; verts[0].v = 0.0f;
+    verts[1].x = w; verts[1].y = 0; verts[1].z = 0.5f; verts[1].rhw = 1.0f;
+    verts[1].color = 0xFFFFFFFF; verts[1].specular = 0xFF000000;
+    verts[1].u = 1.0f; verts[1].v = 0.0f;
+    verts[2].x = 0; verts[2].y = h; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
+    verts[2].color = 0xFFFFFFFF; verts[2].specular = 0xFF000000;
+    verts[2].u = 0.0f; verts[2].v = 1.0f;
+    verts[3].x = w; verts[3].y = h; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
+    verts[3].color = 0xFFFFFFFF; verts[3].specular = 0xFF000000;
+    verts[3].u = 1.0f; verts[3].v = 1.0f;
+
+    uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
+
+    // Bind texture directly (bypass ge_bind_texture which uses the game texture pool).
+    s_bound_texture = (GETextureHandle)(uintptr_t)tex;
+    s_bound_texture_has_alpha = false;
+    s_texture_blend = GETextureBlend::Decal;
+
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
+}
+
+void ge_blit_background_surface()
+{
+    // Override takes priority (frontend theme surfaces).
+    if (s_background_override != GE_SCREEN_SURFACE_NONE) {
+        gl_blit_fullscreen_texture((GLuint)(uintptr_t)s_background_override);
+    } else if (s_bg_texture) {
+        gl_blit_fullscreen_texture(s_bg_texture);
+    }
+}
+
+void ge_destroy_background_surface()
+{
+    if (s_bg_texture) { glDeleteTextures(1, &s_bg_texture); s_bg_texture = 0; }
+    s_bg_pixels = nullptr;
+}
+
+void ge_init_back_image(const char* name)
+{
+    char fname[256];
+    sprintf(fname, "%sdata\\%s", s_data_dir, name);
+
+    if (!s_bg_pixels) {
+        s_bg_pixels = (uint8_t*)MemAlloc(640 * 480 * 3);
+    }
+    if (!s_bg_pixels) return;
+
+    // Load 640x480x24 BMP: skip 18-byte header, read rows bottom-up (BMP convention).
+    MFFileHandle f = FileOpen((CBYTE*)fname);
+    if (f == FILE_OPEN_ERROR) return;
+    FileSeek(f, SEEK_MODE_BEGINNING, 18);
+    uint8_t* row = s_bg_pixels + (640 * 479 * 3);
+    for (int y = 480; y > 0; y--, row -= (640 * 3)) {
+        FileRead(f, row, 640 * 3);
+    }
+    FileClose(f);
+
+    ge_create_background_surface(s_bg_pixels);
+}
+
+void ge_show_back_image(bool)
+{
+    ge_blit_background_surface();
+}
+
+void ge_reset_back_image()
+{
+    ge_destroy_background_surface();
+    if (s_bg_pixels) {
+        MemFree(s_bg_pixels);
+        s_bg_pixels = nullptr;
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Cutscene
@@ -1109,15 +1198,78 @@ void ge_remove_all_loaded_textures()
 void ge_capture_backbuffer_to_texture(int32_t, int32_t, int32_t) {}
 
 // ---------------------------------------------------------------------------
-// Screen surfaces — TODO Phase 6
+// Screen surfaces — GL textures used as background images (frontend themes)
 // ---------------------------------------------------------------------------
 
-GEScreenSurface ge_create_screen_surface(uint8_t*) { return GE_SCREEN_SURFACE_NONE; }
-GEScreenSurface ge_load_screen_surface(const char*) { return GE_SCREEN_SURFACE_NONE; }
-void ge_destroy_screen_surface(GEScreenSurface) {}
-void ge_restore_screen_surface(GEScreenSurface) {}
+// Helper: create GL texture from 640x480 BGR24 pixel data.
+static GLuint gl_create_bgr_texture(uint8_t* bgr_pixels)
+{
+    if (!bgr_pixels) return 0;
+
+    uint8_t* rgba = (uint8_t*)MemAlloc(640 * 480 * 4);
+    if (!rgba) return 0;
+    for (int i = 0; i < 640 * 480; i++) {
+        rgba[i * 4 + 0] = bgr_pixels[i * 3 + 2]; // R
+        rgba[i * 4 + 1] = bgr_pixels[i * 3 + 1]; // G
+        rgba[i * 4 + 2] = bgr_pixels[i * 3 + 0]; // B
+        rgba[i * 4 + 3] = 255;                    // A
+    }
+
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 640, 480, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgba);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    MemFree(rgba);
+    return tex;
+}
+
+GEScreenSurface ge_create_screen_surface(uint8_t* pixels)
+{
+    GLuint tex = gl_create_bgr_texture(pixels);
+    if (!tex) return GE_SCREEN_SURFACE_NONE;
+    return (GEScreenSurface)(uintptr_t)tex;
+}
+
+GEScreenSurface ge_load_screen_surface(const char* filename)
+{
+    char fname[256];
+    sprintf(fname, "%sdata\\%s", s_data_dir, filename);
+
+    uint8_t* image_data = (uint8_t*)MemAlloc(640 * 480 * 3);
+    if (!image_data) return GE_SCREEN_SURFACE_NONE;
+
+    MFFileHandle image_file = FileOpen((CBYTE*)fname);
+    if (image_file != FILE_OPEN_ERROR) {
+        FileSeek(image_file, SEEK_MODE_BEGINNING, 18);
+        uint8_t* row = image_data + (640 * 479 * 3);
+        for (int h = 480; h > 0; h--, row -= (640 * 3)) {
+            FileRead(image_file, row, 640 * 3);
+        }
+        FileClose(image_file);
+    }
+
+    GEScreenSurface surface = ge_create_screen_surface(image_data);
+    MemFree(image_data);
+    return surface;
+}
+
+void ge_destroy_screen_surface(GEScreenSurface surface)
+{
+    if (surface != GE_SCREEN_SURFACE_NONE) {
+        GLuint tex = (GLuint)(uintptr_t)surface;
+        glDeleteTextures(1, &tex);
+    }
+}
+
+void ge_restore_screen_surface(GEScreenSurface) {}  // No device-lost in OpenGL.
+
 void ge_set_background_override(GEScreenSurface surface) { s_background_override = surface; }
 GEScreenSurface ge_get_background_override() { return s_background_override; }
+
 void ge_blit_surface_to_backbuffer(GEScreenSurface, int32_t, int32_t, int32_t, int32_t) {}
 
 // ---------------------------------------------------------------------------
