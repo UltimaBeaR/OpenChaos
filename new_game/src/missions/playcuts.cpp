@@ -85,21 +85,21 @@ extern SLONG person_normal_animate(Thing* p_person);
 
 // Inline screen flip: always flush the frame (no PSX-specific guard needed).
 // uc_orig: screen_flip (fallen/Source/playcuts.cpp)
-inline void screen_flip(void)
+static void screen_flip(void)
 {
     AENG_flip();
 }
 
 // Linear interpolation between two values.
 // uc_orig: LERPValue (fallen/Source/playcuts.cpp)
-inline SLONG LERPValue(SLONG a, SLONG b, SLONG m)
+static SLONG LERPValue(SLONG a, SLONG b, SLONG m)
 {
     return a + (((b - a) * m) >> LERP_SHIFT);
 }
 
 // Angle-aware LERP: wraps to take the shorter arc.
 // uc_orig: LERPAngle (fallen/Source/playcuts.cpp)
-inline int LERPAngle(SLONG a, SLONG b, SLONG m)
+static int LERPAngle(SLONG a, SLONG b, SLONG m)
 {
     if ((a - b) > 1024)
         b += 2048;

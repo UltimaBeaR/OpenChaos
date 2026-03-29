@@ -343,7 +343,7 @@ extern inline void POLY_setclip(POLY_Point* pt)
 // uc_orig: POLY_perspective (fallen/DDEngine/Headers/poly.h)
 // Perspective-projects a view-space POLY_Point: fills X, Y (screen pixels), Z (1/z), and clip flags.
 // wibble_key: non-zero applies sinusoidal horizontal shimmer (water effect).
-inline void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
+static void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
 {
     if (pt->z < POLY_Z_NEARPLANE) {
         pt->clip = POLY_CLIP_NEAR;
@@ -757,7 +757,7 @@ SLONG POLY_valid_line(POLY_Point* p1, POLY_Point* p2)
 // uc_orig: POLY_tri_backfacing (fallen/DDEngine/Source/poly.cpp)
 // Returns true if the triangle (in view space) is back-facing relative to the camera.
 // Computes cross product of two edges, dots with the eye vector at vertex 1.
-inline bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp3)
+static bool POLY_tri_backfacing(POLY_Point* pp1, POLY_Point* pp2, POLY_Point* pp3)
 {
     float x12, y12, z12;
     float x13, y13, z13;

@@ -35,7 +35,7 @@ void e_draw_3d_line_col_sorted(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2,
 // uc_orig: HM_index (fallen/Source/hm.cpp)
 // Converts 3D grid coordinates to a flat index into ho->index[].
 // Layout: row-major with x innermost — idx = x + y*x_res + z*(x_res*y_res).
-inline SLONG HM_index(HM_Object* ho, SLONG x, SLONG y, SLONG z)
+static SLONG HM_index(HM_Object* ho, SLONG x, SLONG y, SLONG z)
 {
     SLONG ans;
 

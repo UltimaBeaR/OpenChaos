@@ -403,7 +403,7 @@ void PolyPage::SortBackFirst()
 // uc_orig: DoMerge (fallen/DDEngine/Source/polypage.cpp)
 // Merge two sorted subarrays of src into dst.
 template <class T>
-inline static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
+static void DoMerge(const T* src, T* dst, ULONG len1, ULONG len2)
 {
     ULONG pos1 = 0;
     ULONG pos2 = len1;

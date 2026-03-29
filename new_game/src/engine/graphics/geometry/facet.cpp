@@ -74,7 +74,7 @@ extern SLONG AENG_drawing_a_warehouse;
 
 // uc_orig: grid_height_at (fallen/DDEngine/Source/facet.cpp)
 // Returns the world-space Y height at map tile (mx, mz).
-inline float grid_height_at(SLONG mx, SLONG mz)
+static float grid_height_at(SLONG mx, SLONG mz)
 {
     float dy;
     PAP_Hi* pap;
@@ -90,12 +90,7 @@ float grid_height_at_world(float x, float z)
     return (grid_height_at(((SLONG)x) >> 8, ((SLONG)z) >> 8));
 }
 
-// uc_orig: apply_cloud (fallen/DDEngine/Source/facet.cpp)
-// Cloud shadow darkening (PC only). Stub — cloud drawing was removed from this path.
-inline void apply_cloud(SLONG x, SLONG y, SLONG z, ULONG* col)
-{
-    return;
-}
+// apply_cloud — removed duplicate (defined in aeng.cpp, declared in poly.h).
 
 // uc_orig: facet_rand (fallen/DDEngine/Source/facet.cpp)
 ULONG facet_rand(void)

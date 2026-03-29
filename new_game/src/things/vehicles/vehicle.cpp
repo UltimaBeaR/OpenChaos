@@ -2860,7 +2860,7 @@ static void do_car_input(Thing* p_thing)
 // Damps velocity, updates compression, computes quadratic spring restoring force.
 // Returns new DY velocity for this wheel.
 // uc_orig: apply_thrust_to_suspension (fallen/Source/Vehicle.cpp)
-inline static SLONG apply_thrust_to_suspension(Suspension* p_sus, SLONG velocity, SLONG penetrate_dist)
+static SLONG apply_thrust_to_suspension(Suspension* p_sus, SLONG velocity, SLONG penetrate_dist)
 {
     SLONG acc;
     SLONG compression;
@@ -2891,7 +2891,7 @@ inline static SLONG apply_thrust_to_suspension(Suspension* p_sus, SLONG velocity
 // Allows the spring to extend toward MIN_COMPRESSION when the wheel is in air.
 // size: distance from wheel to ground (scaled to 3/4 to limit extension rate).
 // uc_orig: expand_suspension (fallen/Source/Vehicle.cpp)
-inline static void expand_suspension(Suspension* p_sus, SLONG size)
+static void expand_suspension(Suspension* p_sus, SLONG size)
 {
     ASSERT(size >= 0);
 

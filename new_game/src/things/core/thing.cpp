@@ -644,7 +644,7 @@ void process_things(SLONG frame_rate_independant)
 
 // Returns UC_TRUE if the thing class is primary (lives in the primary pool).
 // uc_orig: is_class_primary (fallen/Source/Thing.cpp)
-inline BOOL is_class_primary(SBYTE classification)
+static BOOL is_class_primary(SBYTE classification)
 {
     switch (classification) {
     case CLASS_NONE:

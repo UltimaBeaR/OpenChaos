@@ -13,7 +13,7 @@ SLONG calc_height_at(SLONG x, SLONG z);
 // uc_orig: FOG_get_dyaw (fallen/Source/fog.cpp)
 // Return the natural (equilibrium) angular velocity for fog patch f_index.
 // Based on the lower 4 bits of the index, giving a range of -7..+8 dyaw values.
-inline SLONG FOG_get_dyaw(SLONG f_index) { return (f_index & 15) - 7; }
+static SLONG FOG_get_dyaw(SLONG f_index) { return (f_index & 15) - 7; }
 
 // uc_orig: FOG_create (fallen/Source/fog.cpp)
 // Place a fog patch at a random position on the edge of the current focus circle.

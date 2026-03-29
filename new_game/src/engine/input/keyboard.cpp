@@ -46,7 +46,7 @@ void ResetKeyboard(void)
 #define KEYMASK_TSTATE (0x80000000)
 
 // uc_orig: SetFlagsFromKeyArray (fallen/DDLibrary/Source/GKeyboard.cpp)
-inline void SetFlagsFromKeyArray()
+static void SetFlagsFromKeyArray()
 {
     AltFlag = Keys[KB_LALT] || Keys[KB_RALT];
     ControlFlag = Keys[KB_LCONTROL];

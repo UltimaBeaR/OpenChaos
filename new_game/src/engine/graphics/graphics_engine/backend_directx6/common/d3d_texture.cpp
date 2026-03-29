@@ -60,7 +60,7 @@ void NotGoingToLoadTexturesForAWhileNowSoYouCanCleanUpABit(void)
 
 // uc_orig: FastLoadFileSomewhere (fallen/DDLibrary/Source/D3DTexture.cpp)
 // Reads dwSize bytes in two passes: one aligned DMA-friendly read, then a remainder PIO read.
-inline void* FastLoadFileSomewhere(MFFileHandle handle, DWORD dwSize)
+static void* FastLoadFileSomewhere(MFFileHandle handle, DWORD dwSize)
 {
     void* pvData = GetMeAFastLoadBufferAtLeastThisBigPlease(dwSize);
     ASSERT(pvData != NULL);

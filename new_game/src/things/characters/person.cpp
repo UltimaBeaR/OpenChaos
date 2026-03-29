@@ -5921,7 +5921,7 @@ void set_person_position_for_ladder(Thing* p_person, UWORD facet)
 // Plays a terrain-appropriate sound when jumping (e.g. sewer water splash).
 // Uses a static channel so the sound can be re-used without stacking.
 // uc_orig: play_jump_sound (fallen/Source/Person.cpp)
-inline void play_jump_sound(Thing* p_person)
+static void play_jump_sound(Thing* p_person)
 {
     SLONG jump_snd = 0;
     if (p_person->Flags & FLAGS_IN_SEWERS) {
