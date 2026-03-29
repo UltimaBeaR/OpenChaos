@@ -35,9 +35,13 @@ engine/graphics/graphics_engine/
 │   ├── common/                     — общая GL инфраструктура
 │   │   ├── glad/                   — GLAD2 GL loader (vendored, MIT)
 │   │   ├── gl_context.cpp/h        — WGL context на Win32 HWND
-│   │   # gl_texture, gl_shader, gl_screen — TODO (Фазы 2-6)
+│   │   └── gl_shader.cpp/h         — компиляция и линковка шейдеров
+│   ├── shaders/                    — GLSL шейдеры (встраиваются в C++ при сборке через CMake)
+│   │   ├── tl_vert.glsl            — TL vertex shader (screen-space, D3D coords → NDC)
+│   │   ├── lit_vert.glsl           — Lit vertex shader (world-space, MVP transform)
+│   │   └── common_frag.glsl        — общий fragment shader (texture blend, alpha, fog, specular)
 │   ├── game/                       — реализация ge_*
-│   │   └── core.cpp                — все ge_* функции (render state — GL, остальное — стабы)
+│   │   └── core.cpp                — все ge_* функции (Фазы 1-3 реализованы)
 │   └── outro/                      — реализация oge_*
 │       └── core.cpp                — стабы (Фаза 9)
 └── backend_stub/                   — стаб-бэкенд (no-op, для тестов)

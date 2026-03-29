@@ -81,6 +81,33 @@ if(GRAPHICS_BACKEND STREQUAL "d3d6")
     )
     set(BACKEND_LIBS ddraw dxguid)
 elseif(GRAPHICS_BACKEND STREQUAL "opengl")
+    # Embed GLSL shaders as C++ string constants at build time.
+    # Uses a CMake script invoked via add_custom_command so changes to .glsl
+    # files are picked up automatically on every build (not just cmake configure).
+    set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/shaders")
+    set(SHADER_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h")
+    set(SHADER_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_shaders.cmake")
+    file(WRITE "${SHADER_EMBED_SCRIPT}" "
+file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
+file(READ \"\${SHADER_DIR}/lit_vert.glsl\" LIT)
+file(READ \"\${SHADER_DIR}/common_frag.glsl\" FRAG)
+file(WRITE \"\${OUT}\"
+    \"// Auto-generated from .glsl files — do not edit.\\n\"
+    \"static const char* const SHADER_TL_VERT = R\\\"glsl(\\n\${TL})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_LIT_VERT = R\\\"glsl(\\n\${LIT})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_FRAG = R\\\"glsl(\\n\${FRAG})glsl\\\";\\n\"
+)
+")
+    add_custom_command(
+        OUTPUT "${SHADER_HEADER}"
+        COMMAND ${CMAKE_COMMAND} -DSHADER_DIR="${SHADER_DIR}" -DOUT="${SHADER_HEADER}" -P "${SHADER_EMBED_SCRIPT}"
+        DEPENDS
+            "${SHADER_DIR}/tl_vert.glsl"
+            "${SHADER_DIR}/lit_vert.glsl"
+            "${SHADER_DIR}/common_frag.glsl"
+        COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
+    )
+
     set(BACKEND_SOURCES
         # --- GLAD loader ---
         src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
@@ -496,6 +523,8 @@ set(SOURCES_NEW
 # ---------------------------------------------------------------------------
 add_executable(Fallen WIN32
     ${SOURCES_NEW}
+    # Generated shader header (triggers rebuild when .glsl files change).
+    $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h>
 )
 
 # ---------------------------------------------------------------------------
@@ -508,6 +537,8 @@ target_include_directories(Fallen PRIVATE
     src/engine/platform
     # GLAD GL loader headers (resolves #include <glad/gl.h>)
     $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/common/glad/include>
+    # Generated headers (embedded shaders)
+    $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated>
 )
 
 # ---------------------------------------------------------------------------
