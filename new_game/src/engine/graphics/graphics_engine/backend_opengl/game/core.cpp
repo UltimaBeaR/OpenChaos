@@ -77,8 +77,12 @@ static bool s_display_changed = false;
 // Background override.
 static GEScreenSurface s_background_override = GE_SCREEN_SURFACE_NONE;
 
-// Dummy screen buffer for Phase 6 stubs (prevents null deref in wibble.cpp etc.)
+// Screen buffer for framebuffer pixel access (wibble, stars, font, screenshots).
 static uint8_t* s_dummy_screen = nullptr;
+static bool     s_screen_locked = false;
+static int32_t  s_screen_w = 0;
+static int32_t  s_screen_h = 0;
+static int32_t  s_screen_pitch = 0;
 
 // ===========================================================================
 // Phase 3: Texture management
@@ -546,8 +550,10 @@ void ge_shutdown()
         }
     }
 
-    // Free dummy screen buffer.
+    // Free screen buffer.
     if (s_dummy_screen) { free(s_dummy_screen); s_dummy_screen = nullptr; }
+    s_screen_locked = false;
+    s_screen_w = s_screen_h = s_screen_pitch = 0;
 
     destroy_shaders();
     gl_context_destroy();
@@ -992,47 +998,166 @@ void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b)
 }
 
 // ---------------------------------------------------------------------------
-// Screen buffer access — dummy buffer to prevent crashes (Phase 6: real impl)
+// Screen buffer access — glReadPixels into CPU buffer, writeback via quad
 // ---------------------------------------------------------------------------
-// Game code (wibble.cpp, etc.) dereferences ge_get_screen_buffer() without
-// null checks. Provide a dummy buffer so writes don't crash. Effects won't
-// be visible until Phase 6 implements real framebuffer access.
+// ge_lock_screen() reads the current backbuffer into a CPU buffer (RGBA, 32bpp).
+// Game code (wibble.cpp, font.cpp, sky.cpp) modifies pixels in-place.
+// ge_unlock_screen() uploads the modified buffer back as a fullscreen quad.
+// ge_get_screen_buffer() returns the same buffer (wibble accesses it directly).
 
-static constexpr int32_t DUMMY_SCREEN_W = 640;
-static constexpr int32_t DUMMY_SCREEN_H = 480;
-static constexpr int32_t DUMMY_SCREEN_BPP = 4; // 32bpp
-static constexpr int32_t DUMMY_SCREEN_PITCH = DUMMY_SCREEN_W * DUMMY_SCREEN_BPP;
-
-static uint8_t* ensure_dummy_screen()
+static uint8_t* ensure_screen_buffer()
 {
-    if (!s_dummy_screen) {
-        s_dummy_screen = (uint8_t*)calloc(1, DUMMY_SCREEN_PITCH * DUMMY_SCREEN_H);
+    int32_t w = gl_context_get_width();
+    int32_t h = gl_context_get_height();
+    int32_t pitch = w * 4;
+
+    if (!s_dummy_screen || s_screen_w != w || s_screen_h != h) {
+        free(s_dummy_screen);
+        s_dummy_screen = (uint8_t*)calloc(1, pitch * h);
+        s_screen_w = w;
+        s_screen_h = h;
+        s_screen_pitch = pitch;
     }
     return s_dummy_screen;
 }
 
 void* ge_lock_screen()
 {
-    // Return NULL — framebuffer pixel access not implemented yet (Phase 6).
-    // Callers (wibble.cpp puddle effect) check return value and skip if NULL.
-    // ge_get_screen_buffer() still returns a dummy buffer for code that doesn't check.
-    return nullptr;
+    if (s_screen_locked) return s_dummy_screen;
+
+    uint8_t* buf = ensure_screen_buffer();
+    if (!buf) return nullptr;
+
+    int32_t w = s_screen_w;
+    int32_t h = s_screen_h;
+
+    // Read backbuffer pixels (OpenGL reads bottom-up, game expects top-down).
+    // Read into a temp row-flip buffer to avoid a second allocation.
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+
+    // Flip vertically in-place (swap top row with bottom row).
+    int32_t pitch = s_screen_pitch;
+    uint8_t* top = buf;
+    uint8_t* bot = buf + (h - 1) * pitch;
+    // Use 16-byte stack mini-buffer for row swap, process in chunks.
+    while (top < bot) {
+        for (int32_t x = 0; x < pitch; x += 16) {
+            int32_t chunk = (pitch - x < 16) ? (pitch - x) : 16;
+            uint8_t tmp[16];
+            memcpy(tmp, top + x, chunk);
+            memcpy(top + x, bot + x, chunk);
+            memcpy(bot + x, tmp, chunk);
+        }
+        top += pitch;
+        bot -= pitch;
+    }
+
+    s_screen_locked = true;
+    return buf;
 }
-void  ge_unlock_screen() {}
-uint8_t* ge_get_screen_buffer() { return ensure_dummy_screen(); }
-int32_t  ge_get_screen_pitch() { return DUMMY_SCREEN_PITCH; }
-int32_t  ge_get_screen_width() { return gl_context_get_width(); }
+
+void ge_unlock_screen()
+{
+    if (!s_screen_locked) return;
+    s_screen_locked = false;
+
+    // Upload modified pixels to a temporary GL texture and blit fullscreen.
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Game buffer is top-down RGBA, but GL expects bottom-up — flip Y in UV.
+    // Actually easier: upload flipped. We'll flip the texture coords instead.
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, s_screen_w, s_screen_h, 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, s_dummy_screen);
+
+    // Draw fullscreen quad. Buffer is top-down after Y-flip in lock.
+    // glTexImage2D treats row 0 as bottom texel, so V=0 maps to our top-of-screen data.
+    float w = (float)s_vp_w;
+    float h = (float)s_vp_h;
+
+    GEVertexTL verts[4];
+    verts[0].x = 0; verts[0].y = 0; verts[0].z = 0.5f; verts[0].rhw = 1.0f;
+    verts[0].color = 0xFFFFFFFF; verts[0].specular = 0xFF000000;
+    verts[0].u = 0.0f; verts[0].v = 0.0f;
+    verts[1].x = w; verts[1].y = 0; verts[1].z = 0.5f; verts[1].rhw = 1.0f;
+    verts[1].color = 0xFFFFFFFF; verts[1].specular = 0xFF000000;
+    verts[1].u = 1.0f; verts[1].v = 0.0f;
+    verts[2].x = 0; verts[2].y = h; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
+    verts[2].color = 0xFFFFFFFF; verts[2].specular = 0xFF000000;
+    verts[2].u = 0.0f; verts[2].v = 1.0f;
+    verts[3].x = w; verts[3].y = h; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
+    verts[3].color = 0xFFFFFFFF; verts[3].specular = 0xFF000000;
+    verts[3].u = 1.0f; verts[3].v = 1.0f;
+
+    uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
+
+    // Overwrite screen — no blending, no depth, no alpha test.
+    ge_set_blend_enabled(false);
+    ge_set_alpha_test_enabled(false);
+    ge_set_depth_mode(GEDepthMode::Off);
+
+    s_bound_texture = (GETextureHandle)(uintptr_t)tex;
+    s_bound_texture_has_alpha = false;
+    s_texture_blend = GETextureBlend::Decal;
+
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
+
+    // Clean up temp texture.
+    glDeleteTextures(1, &tex);
+    s_bound_texture = GE_TEXTURE_NONE;
+}
+
+uint8_t* ge_get_screen_buffer() { return ensure_screen_buffer(); }
+int32_t  ge_get_screen_pitch()  { return s_screen_pitch ? s_screen_pitch : gl_context_get_width() * 4; }
+int32_t  ge_get_screen_width()  { return gl_context_get_width(); }
 int32_t  ge_get_screen_height() { return gl_context_get_height(); }
-int32_t  ge_get_screen_bpp() { return 32; }
-void ge_plot_pixel(int32_t, int32_t, uint8_t, uint8_t, uint8_t) {}
-void ge_plot_formatted_pixel(int32_t, int32_t, uint32_t) {}
-void ge_get_pixel(int32_t, int32_t, uint8_t*, uint8_t*, uint8_t*) {}
+int32_t  ge_get_screen_bpp()    { return 32; }
+
+void ge_plot_pixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b)
+{
+    if (!s_screen_locked || !s_dummy_screen) return;
+    if (x < 0 || x >= s_screen_w || y < 0 || y >= s_screen_h) return;
+    uint8_t* p = s_dummy_screen + y * s_screen_pitch + x * 4;
+    p[0] = r; p[1] = g; p[2] = b; p[3] = 0xFF;
+}
+
+void ge_plot_formatted_pixel(int32_t x, int32_t y, uint32_t pixel)
+{
+    if (!s_screen_locked || !s_dummy_screen) return;
+    if (x < 0 || x >= s_screen_w || y < 0 || y >= s_screen_h) return;
+    // Pixel is packed as 0xAARRGGBB. Buffer is RGBA byte order.
+    uint8_t* p = s_dummy_screen + y * s_screen_pitch + x * 4;
+    p[0] = (pixel >> 16) & 0xFF; // R
+    p[1] = (pixel >>  8) & 0xFF; // G
+    p[2] = (pixel >>  0) & 0xFF; // B
+    p[3] = (pixel >> 24) & 0xFF; // A
+}
+
+void ge_get_pixel(int32_t x, int32_t y, uint8_t* r, uint8_t* g, uint8_t* b)
+{
+    if (!s_screen_locked || !s_dummy_screen) return;
+    if (x < 0 || x >= s_screen_w || y < 0 || y >= s_screen_h) {
+        *r = *g = *b = 0;
+        return;
+    }
+    uint8_t* p = s_dummy_screen + y * s_screen_pitch + x * 4;
+    *r = p[0]; *g = p[1]; *b = p[2];
+}
+
 uint32_t ge_get_formatted_pixel(uint8_t r, uint8_t g, uint8_t b)
 {
-    // Pack as 0xAARRGGBB (32-bit).
+    // Pack as 0xAARRGGBB (32-bit) — matches ge_plot_formatted_pixel layout.
     return 0xFF000000 | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 }
-void ge_blit_back_buffer() {}
+
+void ge_blit_back_buffer()
+{
+    // Blit back buffer to front (same as flip for windowed GL).
+    gl_context_swap();
+}
 
 // ---------------------------------------------------------------------------
 // Device capabilities
@@ -1201,7 +1326,23 @@ void ge_remove_all_loaded_textures()
 // Surface blitting — TODO Phase 6
 // ---------------------------------------------------------------------------
 
-void ge_capture_backbuffer_to_texture(int32_t, int32_t, int32_t) {}
+void ge_capture_backbuffer_to_texture(int32_t texture_page, int32_t src_w, int32_t src_h)
+{
+    if (texture_page < 0 || texture_page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[texture_page];
+    if (!tex.gl_id) return;
+
+    // Copy src_w x src_h rectangle from lower-left of backbuffer into the texture.
+    // glCopyTexSubImage2D reads from the current READ_FRAMEBUFFER (default = backbuffer).
+    // OpenGL origin is bottom-left, so y=0 is the bottom — matches D3D Blt from top-left
+    // because the scene was rendered into the same viewport.
+    int32_t gl_y = gl_context_get_height() - src_h;
+    if (gl_y < 0) gl_y = 0;
+
+    glBindTexture(GL_TEXTURE_2D, tex.gl_id);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, gl_y, src_w, src_h);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
 
 // ---------------------------------------------------------------------------
 // Screen surfaces — GL textures used as background images (frontend themes)
