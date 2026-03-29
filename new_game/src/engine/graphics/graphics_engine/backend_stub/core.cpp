@@ -87,8 +87,6 @@ void ge_update_display_rect(void*, bool) {}
 
 void ge_remove_all_loaded_textures() {}
 
-void ge_capture_backbuffer_to_texture(int32_t, int32_t, int32_t) {}
-
 GEScreenSurface ge_create_screen_surface(uint8_t*) { return 0; }
 GEScreenSurface ge_load_screen_surface(const char*) { return 0; }
 void ge_destroy_screen_surface(GEScreenSurface) {}

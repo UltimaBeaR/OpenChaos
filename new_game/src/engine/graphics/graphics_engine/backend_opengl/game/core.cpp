@@ -1351,26 +1351,8 @@ void ge_remove_all_loaded_textures()
 }
 
 // ---------------------------------------------------------------------------
-// Surface blitting — TODO Phase 6
+// Surface blitting
 // ---------------------------------------------------------------------------
-
-void ge_capture_backbuffer_to_texture(int32_t texture_page, int32_t src_w, int32_t src_h)
-{
-    if (texture_page < 0 || texture_page >= GL_TEX_MAX) return;
-    GLTexture& tex = s_textures[texture_page];
-    if (!tex.gl_id) return;
-
-    // Copy src_w x src_h rectangle from lower-left of backbuffer into the texture.
-    // glCopyTexSubImage2D reads from the current READ_FRAMEBUFFER (default = backbuffer).
-    // OpenGL origin is bottom-left, so y=0 is the bottom — matches D3D Blt from top-left
-    // because the scene was rendered into the same viewport.
-    int32_t gl_y = gl_context_get_height() - src_h;
-    if (gl_y < 0) gl_y = 0;
-
-    glBindTexture(GL_TEXTURE_2D, tex.gl_id);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, gl_y, src_w, src_h);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
 
 // ---------------------------------------------------------------------------
 // Screen surfaces — GL textures used as background images (frontend themes)

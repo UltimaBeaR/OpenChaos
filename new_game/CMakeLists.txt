@@ -211,7 +211,6 @@ set(SOURCES_NEW
     src/engine/physics/collide_globals.cpp
 
     # === Engine: effects ===
-    src/engine/effects/flamengine.cpp
     src/engine/effects/psystem.cpp
     src/engine/effects/psystem_globals.cpp
 

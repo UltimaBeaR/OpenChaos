@@ -346,8 +346,6 @@ void ge_remove_all_loaded_textures();
 // Surface blitting
 // ---------------------------------------------------------------------------
 
-// Capture back buffer region into a texture page's surface (flame feedback effect).
-void ge_capture_backbuffer_to_texture(int32_t texture_page, int32_t src_w, int32_t src_h);
 
 // ---------------------------------------------------------------------------
 // Screen surfaces (menu backgrounds)

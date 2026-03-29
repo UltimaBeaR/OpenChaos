@@ -747,20 +747,6 @@ void ge_remove_all_loaded_textures()
 }
 
 // ---------------------------------------------------------------------------
-// Surface blitting
-// ---------------------------------------------------------------------------
-
-void ge_capture_backbuffer_to_texture(int32_t texture_page, int32_t src_w, int32_t src_h)
-{
-    RECT rcSource;
-    rcSource.left   = 0;
-    rcSource.top    = 0;
-    rcSource.right  = src_w;
-    rcSource.bottom = src_h;
-    TEXTURE_texture[texture_page].GetSurface()->Blt(NULL, the_display.lp_DD_BackSurface, &rcSource, DDBLT_WAIT, NULL);
-}
-
-// ---------------------------------------------------------------------------
 // Screen surfaces (menu backgrounds)
 // ---------------------------------------------------------------------------
 
