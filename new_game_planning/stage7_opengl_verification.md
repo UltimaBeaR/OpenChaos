@@ -18,6 +18,7 @@
 | Туман | Туман на стенах и объектах | Любой уровень | fragment shader (z-based fog) |
 | Alpha/прозрачность | Перила, колёса, листья с альфой | Любой уровень | fragment shader (Modulate) |
 | Текстуры | Все текстуры загружаются и отображаются | Любой уровень | `ge_texture_load_tga` |
+| Outro (базовый) | Задник, геометрия, текст показываются. Есть мелкие недочёты — сравнить с D3D версией | Пройти финальную миссию / outro | `oge_*` (минимальная реализация) |
 
 ## Не проверено (отложено)
 
@@ -25,6 +26,6 @@
 |------|--------------|------------|---------|
 | Glow звёзд | Ореол (4 пикселя) вокруг ярких звёзд | Ночной уровень, яркая звезда с spread | `ge_plot_formatted_pixel` |
 | Legacy шрифт FONT_draw | Попиксельный текст (FPS, сообщения) | Debug: `bangunsnotgames` → FPS; outro/credits | `ge_plot_pixel` (через `ge_lock_screen`) |
-| Outro рендеринг | Весь outro (Фаза 9 — стабы) | Пройти финальную миссию | `oge_*` функции |
+| Outro dual-texture | Bump mapping эффект (OS_DRAW_TEX_MUL) | Outro — если есть bump-текстуры | `oge_draw_indexed` с двумя texcoord |
 
 Известные баги OpenGL → [known_issues_and_bugs.md](known_issues_and_bugs.md)
