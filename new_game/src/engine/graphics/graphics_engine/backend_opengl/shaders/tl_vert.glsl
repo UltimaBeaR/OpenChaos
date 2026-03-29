@@ -4,6 +4,11 @@
 // Converts D3D screen coordinates to OpenGL clip coordinates.
 // D3D color format: 0xAARRGGBB — bytes in memory (little-endian): B, G, R, A.
 // We read as GL_UNSIGNED_BYTE normalized, getting vec4(B, G, R, A), then swizzle.
+//
+// NOTE: This is the ONLY vertex shader used. All geometry — including world-space
+// lit vertices (leaves, particles via ge_draw_indexed_primitive_lit) — is transformed
+// on the CPU to screen-space TL format before drawing. There is no GPU-transform
+// lit vertex shader. See known_issues_and_bugs.md for tech debt on GPU-transform path.
 
 layout(location = 0) in vec3  a_position;  // screen x, y, z
 layout(location = 1) in float a_rhw;       // reciprocal homogeneous W

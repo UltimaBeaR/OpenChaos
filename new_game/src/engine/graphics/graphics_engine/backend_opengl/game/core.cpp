@@ -326,7 +326,7 @@ static bool gl_load_tga(GLTexture& tex)
 
 // ---------------------------------------------------------------------------
 // GLSL shader sources — embedded from .glsl files at build time by CMake.
-// Source files: backend_opengl/shaders/{tl_vert,lit_vert,common_frag}.glsl
+// Source files: backend_opengl/shaders/{tl_vert,common_frag}.glsl
 // ---------------------------------------------------------------------------
 
 #include "gl_shaders_embedded.h"
@@ -336,7 +336,8 @@ static bool gl_load_tga(GLTexture& tex)
 // ---------------------------------------------------------------------------
 
 static GLuint s_program_tl  = 0;  // TL vertex shader program
-static GLuint s_program_lit = 0;  // Lit vertex shader program
+// Lit vertex shader removed — all geometry uses CPU-transform → TL path.
+// See tl_vert.glsl header and known_issues_and_bugs.md for details.
 
 // Uniform locations for TL program.
 static GLint s_tl_u_viewport            = -1;
@@ -354,27 +355,9 @@ static GLint s_tl_u_specular_enabled    = -1;
 static GLint s_tl_u_color_key_enabled   = -1;
 static GLint s_tl_u_tex_has_alpha      = -1;
 
-// Uniform locations for Lit program.
-static GLint s_lit_u_world              = -1;
-static GLint s_lit_u_view               = -1;
-static GLint s_lit_u_projection         = -1;
-static GLint s_lit_u_has_texture        = -1;
-static GLint s_lit_u_texture            = -1;
-static GLint s_lit_u_texture_blend      = -1;
-static GLint s_lit_u_alpha_test_enabled = -1;
-static GLint s_lit_u_alpha_ref          = -1;
-static GLint s_lit_u_alpha_func         = -1;
-static GLint s_lit_u_fog_enabled        = -1;
-static GLint s_lit_u_fog_color          = -1;
-static GLint s_lit_u_fog_near           = -1;
-static GLint s_lit_u_fog_far            = -1;
-static GLint s_lit_u_specular_enabled   = -1;
-static GLint s_lit_u_color_key_enabled  = -1;
-static GLint s_lit_u_tex_has_alpha     = -1;
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
 static GLuint s_vao_tl  = 0;
-static GLuint s_vao_lit = 0;
 static GLuint s_vbo     = 0;  // streaming vertex buffer
 static GLuint s_ebo     = 0;  // streaming index buffer
 
@@ -442,37 +425,6 @@ static void setup_vao_tl(GLuint vao, GLuint vbo, GLuint ebo)
 // [16..19] u8x4 color (BGRA)    [20..23] u8x4 specular (BGRA)
 // [24..31] vec2 texcoord (u,v)
 // Same memory layout as GEVertexTL but different semantic for position slot.
-static void setup_vao_lit(GLuint vao, GLuint vbo, GLuint ebo)
-{
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-    const GLsizei stride = 32; // sizeof(GEVertexLit)
-
-    // location 0: position (3 floats, offset 0)
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-
-    // location 1: _reserved padding (1 float, offset 12) — not used in shader but declared
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, stride, (void*)12);
-
-    // location 2: color (4 unsigned bytes, normalized, offset 16)
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)16);
-
-    // location 3: specular (4 unsigned bytes, normalized, offset 20)
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)20);
-
-    // location 4: texcoord (2 floats, offset 24)
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, stride, (void*)24);
-
-    glBindVertexArray(0);
-}
-
 // Initialize shaders, VAOs, VBO, EBO. Called lazily on first draw.
 static bool init_shaders()
 {
@@ -485,12 +437,6 @@ static bool init_shaders()
         return false;
     }
 
-    s_program_lit = gl_shader_create_program(SHADER_LIT_VERT, SHADER_FRAG);
-    if (!s_program_lit) {
-        fprintf(stderr, "Failed to create Lit shader program\n");
-        return false;
-    }
-
     // Cache TL uniform locations.
     s_tl_u_viewport = glGetUniformLocation(s_program_tl, "u_viewport");
     cache_frag_uniforms(s_program_tl,
@@ -499,38 +445,23 @@ static bool init_shaders()
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha);
 
-    // Cache Lit uniform locations.
-    s_lit_u_world      = glGetUniformLocation(s_program_lit, "u_world");
-    s_lit_u_view       = glGetUniformLocation(s_program_lit, "u_view");
-    s_lit_u_projection = glGetUniformLocation(s_program_lit, "u_projection");
-    cache_frag_uniforms(s_program_lit,
-        &s_lit_u_has_texture, &s_lit_u_texture, &s_lit_u_texture_blend,
-        &s_lit_u_alpha_test_enabled, &s_lit_u_alpha_ref, &s_lit_u_alpha_func,
-        &s_lit_u_fog_enabled, &s_lit_u_fog_color, &s_lit_u_fog_near, &s_lit_u_fog_far,
-        &s_lit_u_specular_enabled, &s_lit_u_color_key_enabled, &s_lit_u_tex_has_alpha);
-
     // Create shared VBO and EBO (streaming, orphaned each draw).
     glGenBuffers(1, &s_vbo);
     glGenBuffers(1, &s_ebo);
 
-    // Create VAOs.
+    // Create VAO.
     glGenVertexArrays(1, &s_vao_tl);
-    glGenVertexArrays(1, &s_vao_lit);
-
     setup_vao_tl(s_vao_tl, s_vbo, s_ebo);
-    setup_vao_lit(s_vao_lit, s_vbo, s_ebo);
 
     s_shaders_ready = true;
-    fprintf(stderr, "OpenGL shaders initialized (TL + Lit programs)\n");
+    fprintf(stderr, "OpenGL shaders initialized (TL program)\n");
     return true;
 }
 
 static void destroy_shaders()
 {
     if (s_program_tl)  { glDeleteProgram(s_program_tl);  s_program_tl = 0; }
-    if (s_program_lit) { glDeleteProgram(s_program_lit); s_program_lit = 0; }
     if (s_vao_tl)  { glDeleteVertexArrays(1, &s_vao_tl);  s_vao_tl = 0; }
-    if (s_vao_lit) { glDeleteVertexArrays(1, &s_vao_lit); s_vao_lit = 0; }
     if (s_vbo) { glDeleteBuffers(1, &s_vbo); s_vbo = 0; }
     if (s_ebo) { glDeleteBuffers(1, &s_ebo); s_ebo = 0; }
     s_shaders_ready = false;
@@ -936,54 +867,66 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     glUseProgram(0);
 }
 
-// Transpose a row-major GEMatrix to column-major for OpenGL.
-static void transpose_matrix(const GEMatrix* src, float dst[16])
-{
-    for (int r = 0; r < 4; r++)
-        for (int c = 0; c < 4; c++)
-            dst[c * 4 + r] = src->m[r][c];
-}
 
 void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* verts, uint32_t vert_count,
                                    const uint16_t* indices, uint32_t index_count)
 {
     if (!index_count || !vert_count) return;
-    if (!init_shaders()) return;
 
-    glUseProgram(s_program_lit);
+    // TECH DEBT: CPU-transform. A GPU lit vertex shader would be faster but D3D
+    // matrices use different clip space conventions than OpenGL (Z [0,1] vs [-1,1],
+    // viewport Y). All other geometry already uses CPU-transform → TL path
+    // (ge_draw_multi_matrix), so this is consistent. Performance is fine for ~200
+    // leaf/dirt vertices per frame. See known_issues_and_bugs.md.
 
-    // Upload transform matrices (transposed: row-major → column-major).
-    float mat[16];
-    transpose_matrix(&s_world_matrix, mat);
-    glUniformMatrix4fv(s_lit_u_world, 1, GL_FALSE, mat);
+    // Compute combined WVP matrix (row-major, D3D convention: v' = v * WVP).
+    // View is identity in this engine, so WVP = World * Projection.
+    GEMatrix wvp;
+    for (int r = 0; r < 4; r++) {
+        for (int c = 0; c < 4; c++) {
+            wvp.m[r][c] = s_world_matrix.m[r][0] * s_projection_matrix.m[0][c]
+                        + s_world_matrix.m[r][1] * s_projection_matrix.m[1][c]
+                        + s_world_matrix.m[r][2] * s_projection_matrix.m[2][c]
+                        + s_world_matrix.m[r][3] * s_projection_matrix.m[3][c];
+        }
+    }
 
-    transpose_matrix(&s_view_matrix, mat);
-    glUniformMatrix4fv(s_lit_u_view, 1, GL_FALSE, mat);
+    float vp_x = (float)s_vp_x;
+    float vp_y = (float)s_vp_y;
+    float vp_w = (float)s_vp_w;
+    float vp_h = (float)s_vp_h;
 
-    transpose_matrix(&s_projection_matrix, mat);
-    glUniformMatrix4fv(s_lit_u_projection, 1, GL_FALSE, mat);
+    // Allocate TL vertices.
+    GEVertexTL* tl = (GEVertexTL*)_alloca(vert_count * sizeof(GEVertexTL));
 
-    // Upload fragment uniforms.
-    set_frag_uniforms(
-        s_lit_u_has_texture, s_lit_u_texture, s_lit_u_texture_blend,
-        s_lit_u_alpha_test_enabled, s_lit_u_alpha_ref, s_lit_u_alpha_func,
-        s_lit_u_fog_enabled, s_lit_u_fog_color, s_lit_u_fog_near, s_lit_u_fog_far,
-        s_lit_u_specular_enabled, s_lit_u_color_key_enabled, s_lit_u_tex_has_alpha);
+    for (uint32_t i = 0; i < vert_count; i++) {
+        float x = verts[i].x, y = verts[i].y, z = verts[i].z;
 
-    // Upload vertex and index data.
-    glBindVertexArray(s_vao_lit);
+        // v' = (x,y,z,1) * WVP  (D3D row-vector convention)
+        float cx = x * wvp.m[0][0] + y * wvp.m[1][0] + z * wvp.m[2][0] + wvp.m[3][0];
+        float cy = x * wvp.m[0][1] + y * wvp.m[1][1] + z * wvp.m[2][1] + wvp.m[3][1];
+        float cz = x * wvp.m[0][2] + y * wvp.m[1][2] + z * wvp.m[2][2] + wvp.m[3][2];
+        float cw = x * wvp.m[0][3] + y * wvp.m[1][3] + z * wvp.m[2][3] + wvp.m[3][3];
 
-    glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-    glBufferData(GL_ARRAY_BUFFER, vert_count * sizeof(GEVertexLit), verts, GL_STREAM_DRAW);
+        // Perspective divide → NDC.
+        float rhw = (cw != 0.0f) ? (1.0f / cw) : 1.0f;
+        float ndc_x = cx * rhw;  // [-1,1] in D3D clip space (but X is flipped by proj._11=-1)
+        float ndc_y = cy * rhw;
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
+        // NDC → screen coords (matching D3D viewport transform).
+        tl[i].x = (ndc_x + 1.0f) * 0.5f * vp_w + vp_x;  // but proj flips X, so ndc_x is already correct
+        tl[i].y = (1.0f - ndc_y) * 0.5f * vp_h + vp_y;
+        tl[i].z = cz * rhw;  // D3D Z [0,1]
+        tl[i].rhw = rhw;
 
-    GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
-    glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
+        tl[i].u = verts[i].u;
+        tl[i].v = verts[i].v;
+        tl[i].color = verts[i].color;
+        tl[i].specular = verts[i].specular;
+    }
 
-    glBindVertexArray(0);
-    glUseProgram(0);
+    // Draw as TL (screen-space) triangles.
+    ge_draw_indexed_primitive(type, tl, vert_count, indices, index_count);
 }
 
 void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts, uint32_t vert_count,

@@ -89,12 +89,10 @@ elseif(GRAPHICS_BACKEND STREQUAL "opengl")
     set(SHADER_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_shaders.cmake")
     file(WRITE "${SHADER_EMBED_SCRIPT}" "
 file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
-file(READ \"\${SHADER_DIR}/lit_vert.glsl\" LIT)
 file(READ \"\${SHADER_DIR}/common_frag.glsl\" FRAG)
 file(WRITE \"\${OUT}\"
     \"// Auto-generated from .glsl files — do not edit.\\n\"
     \"static const char* const SHADER_TL_VERT = R\\\"glsl(\\n\${TL})glsl\\\";\\n\\n\"
-    \"static const char* const SHADER_LIT_VERT = R\\\"glsl(\\n\${LIT})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_FRAG = R\\\"glsl(\\n\${FRAG})glsl\\\";\\n\"
 )
 ")
@@ -103,7 +101,6 @@ file(WRITE \"\${OUT}\"
         COMMAND ${CMAKE_COMMAND} -DSHADER_DIR="${SHADER_DIR}" -DOUT="${SHADER_HEADER}" -P "${SHADER_EMBED_SCRIPT}"
         DEPENDS
             "${SHADER_DIR}/tl_vert.glsl"
-            "${SHADER_DIR}/lit_vert.glsl"
             "${SHADER_DIR}/common_frag.glsl"
         COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
     )
