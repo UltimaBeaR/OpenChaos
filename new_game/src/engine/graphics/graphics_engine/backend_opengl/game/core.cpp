@@ -312,6 +312,24 @@ static bool gl_load_tga(GLTexture& tex)
         gl_bleed_edges(pixels, load_w, load_h);
     }
 
+    // Zero out RGB for fully transparent pixels in Font2 textures (olyfont2.tga).
+    // Must run AFTER edge bleeding.  Font2 has non-zero RGB in transparent background
+    // pixels from the original artwork.  POLY_PAGE_NEWFONT_INVERSE renders with
+    // additive blending (One/One) where alpha is irrelevant — ghost RGB adds visible
+    // light, creating bright rectangles behind menu glyphs.  D3D6 A4R4G4B4's lower
+    // precision makes this less visible; OpenGL RGBA8 preserves the full values.
+    // Not applied to other alpha textures: e.g. PCdisplay01.tga (HUD icons) uses
+    // alpha=0 + non-zero RGB intentionally for additive icon rendering (fist, etc.).
+    if (tex.flags & GL_TEX_FLAG_FONT2) {
+        for (int32_t i = 0; i < count; i++) {
+            if (pixels[i].alpha == 0) {
+                pixels[i].red = 0;
+                pixels[i].green = 0;
+                pixels[i].blue = 0;
+            }
+        }
+    }
+
     // Upload to GPU.
     gl_upload_texture(tex, pixels, load_w, load_h);
 
