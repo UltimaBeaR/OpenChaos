@@ -296,16 +296,16 @@ int HOST_run(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWin
 
     init_best_found();
 
-    // Create a named event so only one instance can run at a time.
-    // CreateEventA always succeeds; if the event already existed ERROR_ALREADY_EXISTS
-    // is set, meaning another instance is running — bail out.
+    // Single-instance guard: only one copy of the game can run at a time (Release only).
     // The event is automatically destroyed when the process exits.
+#ifdef NDEBUG
     CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
-    if (GetLastError() != ERROR_ALREADY_EXISTS) {
-        return MF_main(argc, argv);
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        return ERROR_ALREADY_EXISTS;
     }
+#endif
 
-    return ERROR_ALREADY_EXISTS;
+    return MF_main(argc, argv);
 }
 
 // uc_orig: TraceText (MFStdLib/Source/StdLib/StdFile.cpp)
