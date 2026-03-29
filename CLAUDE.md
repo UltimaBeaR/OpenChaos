@@ -92,7 +92,7 @@ CLAUDE.md                           — этот файл
   - Подробные правила, примеры, формат → скилл `.claude/skills/stage4-migrate/SKILL.md`
 - **⚠️ Обязательная самопроверка после любых изменений кода** → скиллы `.claude/skills/review/` (общий) + `.claude/skills/stage4-review/` (для Этапа 4). На Этапе 4 ревью запускается после завершения итерации и после любых доработок — всегда, не только перед коммитом.
 - Коммиты делает пользователь вручную — я никогда не коммичу сам
-- **Компиляция:** `make build-release` (или `make build-debug`) в корне проекта. `make r` = build + run Release, `make d` = build + run Debug.
+- **Компиляция:** `make build-release` (или `make build-debug`) в корне проекта. `make r` = build + run Release, `make d` = build + run Debug. **Пользователь всегда билдит сам** — запускать `make build-*` только если нужно проверить что код компилируется, не для "подготовки билда" пользователю.
   - **⚠️ Проверка результата сборки (clang + ninja, текущий билд):** НЕ использовать `| grep "error:"` — это пропускает ошибки линковки и другие проблемы. Вместо этого **всегда** проверять: (1) exit code команды (`echo $?` или `&& echo OK`), (2) последние строки вывода (`| tail -5`) — должна быть строка `Linking CXX executable`. Если `ninja: build stopped: subcommand failed` — сборка провалена даже если слово `error` не найдено. (Для оригинальной сборки MSVC формат ошибок другой.)
 - **Отладка крашей (crash handler):**
   - В `engine/platform/host.cpp` есть crash handler (`SetUnhandledExceptionFilter`) — пишет `crash_log.txt` с Exception, RVA, регистрами и стеком. Работает и в Debug и в Release.
