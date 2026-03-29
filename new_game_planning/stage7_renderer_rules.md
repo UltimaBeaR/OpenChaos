@@ -90,7 +90,7 @@ grep -rn 'the_display\.\|LPDIRECT3D\|LPDIRECTDRAW\|REALLY_SET_\|D3DRENDERSTATE_'
 ## Что читать при начале новой сессии
 
 1. `CLAUDE.md` — общие правила проекта
-2. `new_game_planning/stages.md` — текущий этап (7)
+2. `new_game_planning/stages.md` — текущий этап (8, кросс-платформа; этап 7 — основное сделано)
 3. `new_game_planning/stage7.md` — план этапа 7
 4. **Этот файл** (`stage7_renderer_rules.md`) — 3 правила переноса
 5. `new_game_devlog/stage7_log.md` (конец файла) — текущий прогресс и оставшиеся задачи
