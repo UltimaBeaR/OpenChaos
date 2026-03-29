@@ -90,6 +90,13 @@ CLAUDE.md                           — этот файл
 - Коммиты делает пользователь вручную — я никогда не коммичу сам
 - **Компиляция:** `make build-release` (или `make build-debug`) в корне проекта. `make r` = build + run Release, `make d` = build + run Debug.
   - **⚠️ Проверка результата сборки (clang + ninja, текущий билд):** НЕ использовать `| grep "error:"` — это пропускает ошибки линковки и другие проблемы. Вместо этого **всегда** проверять: (1) exit code команды (`echo $?` или `&& echo OK`), (2) последние строки вывода (`| tail -5`) — должна быть строка `Linking CXX executable`. Если `ninja: build stopped: subcommand failed` — сборка провалена даже если слово `error` не найдено. (Для оригинальной сборки MSVC формат ошибок другой.)
+- **Отладка крашей (crash handler):**
+  - В `engine/platform/host.cpp` есть crash handler (`SetUnhandledExceptionFilter`) — пишет `crash_log.txt` с Exception, RVA, регистрами и стеком. Работает и в Debug и в Release.
+  - Для символизации RVA нужен **Debug build** (имеет `-Z7` + `/DEBUG` → PDB)
+  - Команда: `llvm-symbolizer -e build/Debug/Fallen.exe --relative-address <RVA>`
+  - Флаг `--relative-address` обязателен! Без него не работает
+  - PDB создаётся в `build/Debug/Fallen.pdb`
+  - **Workflow:** воспроизвести краш в Debug (`make d`), взять RVA из `crash_log.txt`, символизировать. Если в Debug не воспроизводится — использовать RVA из Release + `llvm-objdump -d` для поиска функции по дизассемблеру.
 - Все важные решения и инфу записывать в документацию — контекст разговора теряется между сессиями
 - Перед любым анализом кода сначала проверить есть ли уже документация по этой части
 - Если задача требует сложного архитектурного reasoning или анализа запутанных взаимосвязей — попросить пользователя переключить на Opus

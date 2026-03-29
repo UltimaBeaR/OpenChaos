@@ -1,6 +1,7 @@
 // Graphics engine — OpenGL 4.1 core profile implementation.
 // Phase 1: lifecycle, clear, flip, render state, viewport.
 // Phase 2: shaders + drawing (ge_draw_indexed_primitive, ge_draw_indexed_primitive_lit).
+// Phase 3: texture loading, binding, font extraction, user pages.
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/graphics_engine/outro_graphics_engine.h"
@@ -56,6 +57,11 @@ static GETextureBlend s_texture_blend = GETextureBlend::Modulate;
 // Currently bound texture (0 = none).
 static GETextureHandle s_bound_texture = GE_TEXTURE_NONE;
 
+// Texture filter and address mode (applied at draw time when binding texture).
+static GETextureFilter s_tex_filter_mag = GETextureFilter::Linear;
+static GETextureFilter s_tex_filter_min = GETextureFilter::Linear;
+static GETextureAddress s_tex_address = GETextureAddress::Wrap;
+
 // Matrices (for shader uniforms).
 static GEMatrix s_world_matrix;
 static GEMatrix s_view_matrix;
@@ -69,6 +75,248 @@ static bool s_display_changed = false;
 
 // Background override.
 static GEScreenSurface s_background_override = GE_SCREEN_SURFACE_NONE;
+
+// Dummy screen buffer for Phase 6 stubs (prevents null deref in wibble.cpp etc.)
+static uint8_t* s_dummy_screen = nullptr;
+
+// ===========================================================================
+// Phase 3: Texture management
+// ===========================================================================
+
+// Max texture pages — matches D3D backend (22*64 standard + 160 user pages).
+static constexpr int32_t GL_TEX_NUM_STANDARD = 22 * 64;
+static constexpr int32_t GL_TEX_MAX = GL_TEX_NUM_STANDARD + 160;
+
+// Pixel type for TGA data (BGRA, 4 bytes). Matches D3D backend's BGRAPixel.
+struct GLBGRAPixel {
+    uint8_t blue, green, red, alpha;
+};
+
+// Texture load info passed to font extraction.
+struct GLTexLoadInfo {
+    int32_t width, height;
+    int32_t contains_alpha;
+};
+
+// Page type constants (subtexture packing layout).
+static constexpr int32_t GL_PAGE_NONE    = 0;
+static constexpr int32_t GL_PAGE_64_3X3  = 1;
+static constexpr int32_t GL_PAGE_64_4X4  = 2;
+static constexpr int32_t GL_PAGE_32_3X3  = 3;
+static constexpr int32_t GL_PAGE_32_4X4  = 4;
+
+// Font texture flags.
+static constexpr int32_t GL_TEX_FLAG_FONT  = (1 << 0);
+static constexpr int32_t GL_TEX_FLAG_FONT2 = (1 << 1);
+
+struct GLTexture {
+    GLuint   gl_id;           // OpenGL texture object (0 = none)
+    int32_t  type;            // GE_TEXTURE_TYPE_*
+    int32_t  size;            // Width (and height) in pixels (square, power of two)
+    int32_t  flags;           // GL_TEX_FLAG_FONT | GL_TEX_FLAG_FONT2
+    bool     contains_alpha;
+    bool     greyscale;
+    uint8_t  page_pos;        // Subtexture slot index within a page
+    uint8_t  page_type;       // GL_PAGE_*
+    Font*    font_list;       // Linked list of extracted fonts (null if not a font texture)
+    char     name[256];       // TGA filename
+    uint32_t file_id;         // Clump file ID
+    bool     can_shrink;
+
+    // User page pixel access (CPU staging buffer for truetype writes).
+    uint8_t* staging;         // BGRA staging buffer (size * size * 4 bytes)
+    int32_t  staging_pitch;   // Row pitch in bytes
+    bool     staging_dirty;   // True if staging was written to and needs upload
+};
+
+static GLTexture s_textures[GL_TEX_MAX];
+
+// Forward declarations for font extraction.
+static bool gl_scan_for_baseline(GLBGRAPixel** line_ptr, GLBGRAPixel* underline,
+                                  GLTexLoadInfo* info, int32_t* y_ptr);
+static bool gl_create_fonts(Font** font_list, GLTexLoadInfo* info, GLBGRAPixel* data);
+
+// Process font outline pixels: magenta (0xFF,0x00,0xFF) → black.
+static void gl_process_font_outlines(GLBGRAPixel* pixels, int32_t count)
+{
+    for (int32_t i = 0; i < count; i++) {
+        if (pixels[i].red == 0xFF && pixels[i].green == 0 && pixels[i].blue == 0xFF) {
+            pixels[i].red = 0;
+            pixels[i].green = 0;
+            pixels[i].blue = 0;
+        }
+    }
+}
+
+// Process Font2 red-border pixels: red-only → transparent black.
+static void gl_process_font2_red_borders(GLBGRAPixel* pixels, int32_t count)
+{
+    for (int32_t i = 0; i < count; i++) {
+        if (pixels[i].green == 0 && pixels[i].blue == 0 && pixels[i].red > 128) {
+            pixels[i].red = 0;
+            pixels[i].alpha = 0;
+        }
+    }
+}
+
+// Apply greyscale conversion: bright = (r+g+b) * 85 >> 8.
+static void gl_apply_greyscale(GLBGRAPixel* pixels, int32_t count)
+{
+    for (int32_t i = 0; i < count; i++) {
+        int32_t bright = ((int32_t)pixels[i].red + pixels[i].green + pixels[i].blue) * 85 >> 8;
+        pixels[i].red = (uint8_t)bright;
+        pixels[i].green = (uint8_t)bright;
+        pixels[i].blue = (uint8_t)bright;
+    }
+}
+
+// Edge color bleeding: for transparent pixels with alpha content, copy RGB from nearest
+// non-transparent neighbor to prevent filtering artifacts at alpha edges.
+static void gl_bleed_edges(GLBGRAPixel* pixels, int32_t w, int32_t h)
+{
+    for (int32_t j = 0; j < h; j++) {
+        for (int32_t i = 0; i < w; i++) {
+            GLBGRAPixel& p = pixels[i + j * w];
+            // Only process fully transparent pixels (RGB all zero).
+            if (p.red || p.green || p.blue) continue;
+            if (p.alpha) continue;
+
+            // Find nearest non-transparent neighbor.
+            int32_t i2 = i, j2 = j;
+            #define GL_HAS_COLOR(x, y) (pixels[(x) + (y) * w].red | pixels[(x) + (y) * w].green | pixels[(x) + (y) * w].blue)
+            if      (i - 1 >= 0 && GL_HAS_COLOR(i-1, j))                         { i2 = i-1; j2 = j; }
+            else if (i + 1 < w  && GL_HAS_COLOR(i+1, j))                         { i2 = i+1; j2 = j; }
+            else if (j - 1 >= 0 && GL_HAS_COLOR(i, j-1))                         { i2 = i;   j2 = j-1; }
+            else if (j + 1 < h  && GL_HAS_COLOR(i, j+1))                         { i2 = i;   j2 = j+1; }
+            else if (i - 1 >= 0 && j - 1 >= 0 && GL_HAS_COLOR(i-1, j-1))        { i2 = i-1; j2 = j-1; }
+            else if (i - 1 >= 0 && j + 1 < h  && GL_HAS_COLOR(i-1, j+1))        { i2 = i-1; j2 = j+1; }
+            else if (i + 1 < w  && j - 1 >= 0 && GL_HAS_COLOR(i+1, j-1))        { i2 = i+1; j2 = j-1; }
+            else if (i + 1 < w  && j + 1 < h  && GL_HAS_COLOR(i+1, j+1))        { i2 = i+1; j2 = j+1; }
+            else continue;
+            #undef GL_HAS_COLOR
+
+            p.red   = pixels[i2 + j2 * w].red;
+            p.green = pixels[i2 + j2 * w].green;
+            p.blue  = pixels[i2 + j2 * w].blue;
+            // Alpha stays 0 — only RGB is bled.
+        }
+    }
+}
+
+// Debug counter for texture uploads.
+static int32_t s_tex_upload_count = 0;
+
+// Upload BGRA pixel data to an OpenGL texture. Creates the GL texture if needed.
+static void gl_upload_texture(GLTexture& tex, GLBGRAPixel* pixels, int32_t w, int32_t h)
+{
+    if (!tex.gl_id) {
+        glGenTextures(1, &tex.gl_id);
+    }
+    glBindTexture(GL_TEXTURE_2D, tex.gl_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+                 w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+
+    s_tex_upload_count++;
+
+    // Default filtering: bilinear (matches D3D's default LINEAR/LINEAR).
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Default address: wrap.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+// Destroy a single texture page.
+static void gl_destroy_texture(GLTexture& tex)
+{
+    // Free font list.
+    Font* f = tex.font_list;
+    while (f) {
+        Font* next = f->NextFont;
+        MemFree(f);
+        f = next;
+    }
+
+    // Delete GL object.
+    if (tex.gl_id) {
+        glDeleteTextures(1, &tex.gl_id);
+    }
+
+    // Free staging buffer.
+    if (tex.staging) {
+        free(tex.staging);
+    }
+
+    // Reset to defaults.
+    memset(&tex, 0, sizeof(GLTexture));
+}
+
+// Load (or reload) a TGA texture into a page slot.
+// Matches D3DTexture::Reload() behavior: resets render states after each load
+// so POLY_init_render_states() will re-cache texture handles.
+static bool gl_load_tga(GLTexture& tex)
+{
+    // Reset render states — matches D3D's Reload() which calls this on every texture load.
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
+
+    if (!s_tga_load_callback) return false;
+
+    uint8_t* raw_pixels = nullptr;
+    int32_t load_w = 0, load_h = 0;
+    bool load_alpha = false;
+
+    bool loaded = s_tga_load_callback(tex.name, tex.file_id, tex.can_shrink,
+                                       &raw_pixels, &load_w, &load_h, &load_alpha);
+    if (!loaded || !raw_pixels) return false;
+
+    // Validate: must be square, power of two.
+    if (load_w != load_h || (load_w & (load_w - 1)) != 0) {
+        MemFree(raw_pixels);
+        return false;
+    }
+
+    GLBGRAPixel* pixels = (GLBGRAPixel*)raw_pixels;
+    int32_t count = load_w * load_h;
+
+    tex.size = load_w;
+    tex.contains_alpha = load_alpha;
+
+    // Free old font list before potential re-extraction.
+    if (tex.flags & GL_TEX_FLAG_FONT) {
+        Font* f = tex.font_list;
+        while (f) { Font* next = f->NextFont; MemFree(f); f = next; }
+        tex.font_list = nullptr;
+    }
+
+    // Font glyph extraction (before outline recoloring).
+    if (tex.flags & GL_TEX_FLAG_FONT) {
+        GLTexLoadInfo ti = { load_w, load_h, load_alpha ? 1 : 0 };
+        gl_create_fonts(&tex.font_list, &ti, pixels);
+        gl_process_font_outlines(pixels, count);
+    }
+
+    // Font2: red-border → transparent.
+    if (tex.flags & GL_TEX_FLAG_FONT2) {
+        gl_process_font2_red_borders(pixels, count);
+    }
+
+    // Greyscale conversion.
+    if (tex.greyscale) {
+        gl_apply_greyscale(pixels, count);
+    }
+
+    // Edge color bleeding for alpha textures.
+    if (load_alpha) {
+        gl_bleed_edges(pixels, load_w, load_h);
+    }
+
+    // Upload to GPU.
+    gl_upload_texture(tex, pixels, load_w, load_h);
+
+    MemFree(raw_pixels);
+    return true;
+}
 
 // ===========================================================================
 // Phase 2: Shader infrastructure
@@ -431,6 +679,18 @@ static void set_frag_uniforms(
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, s_bound_texture);
         glUniform1i(u_texture, 0);
+
+        // Apply current filter state.
+        GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        GLint gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
+
+        // Apply current address mode.
+        GLint gl_wrap = (s_tex_address == GETextureAddress::Clamp)
+                        ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
     }
 
     glUniform1i(u_texture_blend, static_cast<int>(s_texture_blend));
@@ -474,6 +734,16 @@ void ge_init()
 
 void ge_shutdown()
 {
+    // Destroy all textures.
+    for (int32_t i = 0; i < GL_TEX_MAX; i++) {
+        if (s_textures[i].type != GE_TEXTURE_TYPE_UNUSED) {
+            gl_destroy_texture(s_textures[i]);
+        }
+    }
+
+    // Free dummy screen buffer.
+    if (s_dummy_screen) { free(s_dummy_screen); s_dummy_screen = nullptr; }
+
     destroy_shaders();
     gl_context_destroy();
 }
@@ -627,10 +897,10 @@ void ge_set_cull_mode(GECullMode mode)
     }
 }
 
-void ge_set_texture_filter(GETextureFilter, GETextureFilter)
+void ge_set_texture_filter(GETextureFilter mag, GETextureFilter min)
 {
-    // Applied per-texture via glTexParameteri — stored for later use.
-    // TODO Phase 3: apply to currently bound texture.
+    s_tex_filter_mag = mag;
+    s_tex_filter_min = min;
 }
 
 void ge_set_texture_blend(GETextureBlend mode)
@@ -640,8 +910,7 @@ void ge_set_texture_blend(GETextureBlend mode)
 
 void ge_set_texture_address(GETextureAddress mode)
 {
-    // TODO Phase 3: apply to currently bound texture via glTexParameteri.
-    (void)mode;
+    s_tex_address = mode;
 }
 
 void ge_set_depth_bias(int32_t bias)
@@ -698,7 +967,7 @@ void ge_set_perspective_correction(bool)
 }
 
 // ---------------------------------------------------------------------------
-// Textures — TODO Phase 3
+// Textures
 // ---------------------------------------------------------------------------
 
 void ge_bind_texture(GETextureHandle tex)
@@ -888,20 +1157,46 @@ void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b)
 }
 
 // ---------------------------------------------------------------------------
-// Screen buffer access — TODO Phase 6
+// Screen buffer access — dummy buffer to prevent crashes (Phase 6: real impl)
 // ---------------------------------------------------------------------------
+// Game code (wibble.cpp, etc.) dereferences ge_get_screen_buffer() without
+// null checks. Provide a dummy buffer so writes don't crash. Effects won't
+// be visible until Phase 6 implements real framebuffer access.
 
-void* ge_lock_screen() { return nullptr; }
+static constexpr int32_t DUMMY_SCREEN_W = 640;
+static constexpr int32_t DUMMY_SCREEN_H = 480;
+static constexpr int32_t DUMMY_SCREEN_BPP = 4; // 32bpp
+static constexpr int32_t DUMMY_SCREEN_PITCH = DUMMY_SCREEN_W * DUMMY_SCREEN_BPP;
+
+static uint8_t* ensure_dummy_screen()
+{
+    if (!s_dummy_screen) {
+        s_dummy_screen = (uint8_t*)calloc(1, DUMMY_SCREEN_PITCH * DUMMY_SCREEN_H);
+    }
+    return s_dummy_screen;
+}
+
+void* ge_lock_screen()
+{
+    // Return NULL — framebuffer pixel access not implemented yet (Phase 6).
+    // Callers (wibble.cpp puddle effect) check return value and skip if NULL.
+    // ge_get_screen_buffer() still returns a dummy buffer for code that doesn't check.
+    return nullptr;
+}
 void  ge_unlock_screen() {}
-uint8_t* ge_get_screen_buffer() { return nullptr; }
-int32_t  ge_get_screen_pitch() { return 0; }
+uint8_t* ge_get_screen_buffer() { return ensure_dummy_screen(); }
+int32_t  ge_get_screen_pitch() { return DUMMY_SCREEN_PITCH; }
 int32_t  ge_get_screen_width() { return gl_context_get_width(); }
 int32_t  ge_get_screen_height() { return gl_context_get_height(); }
 int32_t  ge_get_screen_bpp() { return 32; }
 void ge_plot_pixel(int32_t, int32_t, uint8_t, uint8_t, uint8_t) {}
 void ge_plot_formatted_pixel(int32_t, int32_t, uint32_t) {}
 void ge_get_pixel(int32_t, int32_t, uint8_t*, uint8_t*, uint8_t*) {}
-uint32_t ge_get_formatted_pixel(uint8_t, uint8_t, uint8_t) { return 0; }
+uint32_t ge_get_formatted_pixel(uint8_t r, uint8_t g, uint8_t b)
+{
+    // Pack as 0xAARRGGBB (32-bit).
+    return 0xFF000000 | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
+}
 void ge_blit_back_buffer() {}
 
 // ---------------------------------------------------------------------------
@@ -963,10 +1258,14 @@ void ge_clear_display_changed() { s_display_changed = false; }
 void ge_update_display_rect(void*, bool) {}
 
 // ---------------------------------------------------------------------------
-// Texture management — TODO Phase 3
+// Texture management
 // ---------------------------------------------------------------------------
 
-void ge_remove_all_loaded_textures() {}
+void ge_remove_all_loaded_textures()
+{
+    // In D3D this removes textures from the display driver's tracking list.
+    // In OpenGL there's no equivalent driver tracking — no-op.
+}
 
 // ---------------------------------------------------------------------------
 // Surface blitting — TODO Phase 6
@@ -1000,7 +1299,7 @@ struct GLVertexBuf {
     bool     in_use;     // allocated and not yet released
 };
 
-static constexpr int GL_VB_POOL_MAX = 64;
+static constexpr int GL_VB_POOL_MAX = 512;
 static GLVertexBuf s_vb_pool[GL_VB_POOL_MAX];
 static bool s_vb_pool_init = false;
 
@@ -1022,9 +1321,16 @@ void ge_reclaim_vertex_buffers()
 
 void ge_dump_vpool_info(void*) {}
 
+// Minimum VB allocation: 2^10 = 1024 vertices = 32KB. Large enough that
+// ge_vb_expand is rarely needed, avoiding realloc pointer invalidation.
+static constexpr uint32_t GL_VB_MIN_LOGSIZE = 10;
+
 void* ge_vb_alloc(uint32_t logsize, void** out_ptr, uint32_t* out_logsize)
 {
     vb_pool_ensure_init();
+
+    // Clamp to minimum size to reduce expand frequency.
+    if (logsize < GL_VB_MIN_LOGSIZE) logsize = GL_VB_MIN_LOGSIZE;
 
     // Find a free slot (prefer one with matching or larger capacity).
     GLVertexBuf* best = nullptr;
@@ -1065,8 +1371,17 @@ void* ge_vb_expand(void* vb, void** out_ptr, uint32_t* out_logsize)
     uint32_t new_count = 1u << new_logsize;
     uint32_t needed = new_count * 32;
 
-    uint8_t* new_data = (uint8_t*)realloc(buf->data, needed);
+    // Use malloc + memcpy instead of realloc to avoid invalidating old pointer.
+    // Old data stays valid (for any code that cached the pointer) until the
+    // slot is reused in a later frame.
+    uint8_t* new_data = (uint8_t*)malloc(needed);
     if (!new_data) return vb; // keep old on failure
+
+    uint32_t old_size = buf->capacity;
+    if (buf->data && old_size > 0) {
+        memcpy(new_data, buf->data, old_size);
+        free(buf->data);
+    }
 
     buf->data = new_data;
     buf->capacity = needed;
@@ -1136,13 +1451,79 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
 }
 
 // ---------------------------------------------------------------------------
-// Texture pixel access — TODO Phase 3
+// Texture pixel access (for truetype cache writes)
 // ---------------------------------------------------------------------------
 
-bool ge_lock_texture_pixels(int32_t, uint16_t**, int32_t*) { return false; }
-void ge_unlock_texture_pixels(int32_t) {}
-void ge_get_texture_pixel_format(int32_t, int32_t*, int32_t*, int32_t*, int32_t*, int32_t*, int32_t*, int32_t*, int32_t*) {}
-bool ge_is_texture_loaded(int32_t) { return false; }
+bool ge_lock_texture_pixels(int32_t page, uint16_t** bitmap, int32_t* pitch)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return false;
+    GLTexture& tex = s_textures[page];
+    if (tex.type == GE_TEXTURE_TYPE_UNUSED || !tex.gl_id) return false;
+
+    // Allocate staging buffer if not present (BGRA, 4 bytes per pixel).
+    // The truetype code writes using 16-bit pixel format from ge_get_texture_pixel_format.
+    // We provide a 16-bit staging buffer with A1R5G5B5 format.
+    int32_t buf_size = tex.size * tex.size * 2; // 16bpp
+    if (!tex.staging) {
+        tex.staging = (uint8_t*)calloc(1, buf_size);
+        tex.staging_pitch = tex.size * 2;
+    }
+
+    *bitmap = (uint16_t*)tex.staging;
+    *pitch = tex.staging_pitch;
+    return true;
+}
+
+void ge_unlock_texture_pixels(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[page];
+    if (!tex.staging || !tex.gl_id) return;
+
+    // Convert 16-bit A1R5G5B5 staging buffer to BGRA8 and upload.
+    int32_t w = tex.size, h = tex.size;
+    uint8_t* rgba = (uint8_t*)malloc(w * h * 4);
+    uint16_t* src = (uint16_t*)tex.staging;
+
+    for (int32_t i = 0; i < w * h; i++) {
+        uint16_t px = src[i];
+        // A1R5G5B5: bit 15 = alpha, bits 14-10 = red, 9-5 = green, 4-0 = blue
+        uint8_t a = (px & 0x8000) ? 255 : 0;
+        uint8_t r = (uint8_t)(((px >> 10) & 0x1F) * 255 / 31);
+        uint8_t g = (uint8_t)(((px >> 5)  & 0x1F) * 255 / 31);
+        uint8_t b = (uint8_t)(((px >> 0)  & 0x1F) * 255 / 31);
+        rgba[i * 4 + 0] = b;  // BGRA
+        rgba[i * 4 + 1] = g;
+        rgba[i * 4 + 2] = r;
+        rgba[i * 4 + 3] = a;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, tex.gl_id);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_BGRA, GL_UNSIGNED_BYTE, rgba);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    free(rgba);
+}
+
+void ge_get_texture_pixel_format(int32_t page,
+    int32_t* mask_r, int32_t* mask_g, int32_t* mask_b, int32_t* mask_a,
+    int32_t* shift_r, int32_t* shift_g, int32_t* shift_b, int32_t* shift_a)
+{
+    // Provide A1R5G5B5 format masks/shifts (matches the 16-bit staging buffer).
+    // The truetype code packs pixels as: (component >> mask) << shift.
+    // A1R5G5B5: A=bit15, R=bits14-10, G=bits9-5, B=bits4-0.
+    (void)page;
+    *mask_r = 3; *shift_r = 10;  // 5 bits red   (8-5=3)
+    *mask_g = 3; *shift_g = 5;   // 5 bits green
+    *mask_b = 3; *shift_b = 0;   // 5 bits blue
+    *mask_a = 7; *shift_a = 15;  // 1 bit alpha  (8-1=7)
+}
+
+bool ge_is_texture_loaded(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return false;
+    return s_textures[page].type != GE_TEXTURE_TYPE_UNUSED;
+}
 
 void ge_debug_paint_block(uint32_t) {}
 
@@ -1157,25 +1538,295 @@ void ge_get_gamma(int32_t* black, int32_t* white) { *black = s_gamma_black; *whi
 bool ge_is_gamma_available() { return false; } // TODO: SDL gamma or shader post-process
 
 // ---------------------------------------------------------------------------
-// Texture loading lifecycle — TODO Phase 3
+// Texture loading lifecycle
 // ---------------------------------------------------------------------------
 
-void ge_texture_loading_done() {}
-void ge_texture_loading_begin() {}
-void ge_texture_load_tga(int32_t, const char*, bool) {}
-void ge_texture_create_user_page(int32_t, int32_t, bool) {}
-void ge_texture_destroy(int32_t) {}
-void ge_texture_free_all() {}
-void ge_texture_change_tga(int32_t, const char*) {}
-void ge_texture_font_on(int32_t) {}
-void ge_texture_font2_on(int32_t) {}
-void ge_texture_set_greyscale(int32_t, bool) {}
-void ge_get_texture_offset(int32_t, float*, float*, float*, float*) {}
-int32_t ge_texture_get_size(int32_t) { return 0; }
-int32_t ge_texture_get_type(int32_t) { return 0; }
-void ge_texture_set_type(int32_t, int32_t) {}
-GETextureHandle ge_get_texture_handle(int32_t) { return 0; }
-Font* ge_get_font(int32_t, int32_t) { return nullptr; }
+void ge_texture_loading_done()
+{
+    // D3D releases the fast-load scratch buffer here. No equivalent in OpenGL.
+}
+
+void ge_texture_loading_begin()
+{
+    // Clear any stale GL errors before loading.
+    while (glGetError() != GL_NO_ERROR) {}
+    // Reset render states (game needs to re-sort polygons after texture batch load).
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
+}
+
+void ge_texture_load_tga(int32_t page, const char* path, bool can_shrink)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[page];
+
+    // Already loaded — skip (matches D3D behavior).
+    if (tex.type != GE_TEXTURE_TYPE_UNUSED) return;
+
+    strncpy(tex.name, path, sizeof(tex.name) - 1);
+    tex.name[sizeof(tex.name) - 1] = '\0';
+    tex.file_id = (uint32_t)page;
+    tex.can_shrink = can_shrink;
+    tex.type = GE_TEXTURE_TYPE_TGA;
+
+    gl_load_tga(tex);
+}
+
+void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[page];
+
+    // Reset render states (matches D3D's CreateUserPage → Reload behavior).
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
+
+    tex.type = GE_TEXTURE_TYPE_USER;
+    tex.size = size;
+    tex.contains_alpha = alpha_fill;
+
+    // Create blank BGRA texture.
+    int32_t buf_size = size * size * 4;
+    uint8_t* blank = (uint8_t*)calloc(1, buf_size);
+    if (alpha_fill) {
+        // Fill with transparent black (already zeroed).
+    }
+
+    glGenTextures(1, &tex.gl_id);
+    glBindTexture(GL_TEXTURE_2D, tex.gl_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, size, 0,
+                 GL_BGRA, GL_UNSIGNED_BYTE, blank);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    free(blank);
+}
+
+void ge_texture_destroy(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    gl_destroy_texture(s_textures[page]);
+}
+
+void ge_texture_free_all()
+{
+    // Reset render states and sorting.
+    if (s_render_states_reset_callback) s_render_states_reset_callback();
+}
+
+void ge_texture_change_tga(int32_t page, const char* path)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[page];
+
+    if (tex.type == GE_TEXTURE_TYPE_UNUSED) return;
+
+    // Destroy old GL texture but keep metadata (flags, fonts get rebuilt).
+    if (tex.gl_id) { glDeleteTextures(1, &tex.gl_id); tex.gl_id = 0; }
+
+    strncpy(tex.name, path, sizeof(tex.name) - 1);
+    tex.name[sizeof(tex.name) - 1] = '\0';
+
+    gl_load_tga(tex);
+}
+
+void ge_texture_font_on(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    s_textures[page].flags |= GL_TEX_FLAG_FONT;
+}
+
+void ge_texture_font2_on(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    s_textures[page].flags |= GL_TEX_FLAG_FONT2;
+}
+
+void ge_texture_set_greyscale(int32_t page, bool greyscale)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[page];
+
+    if ((bool)tex.greyscale != greyscale) {
+        tex.greyscale = greyscale;
+        if (tex.type == GE_TEXTURE_TYPE_TGA) {
+            // Reload to apply greyscale.
+            if (tex.gl_id) { glDeleteTextures(1, &tex.gl_id); tex.gl_id = 0; }
+            gl_load_tga(tex);
+        }
+    }
+}
+
+void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* vScale, float* vOffset)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    GLTexture& tex = s_textures[page];
+
+    switch (tex.page_type) {
+    case GL_PAGE_NONE:
+        *uScale = 1.0f; *vScale = 1.0f;
+        *uOffset = 0.0f; *vOffset = 0.0f;
+        break;
+    case GL_PAGE_64_3X3:
+    case GL_PAGE_32_3X3:
+        *uScale = 0.25f; *vScale = 0.25f;
+        *uOffset = 0.375f * (float)(tex.page_pos % 3);
+        *vOffset = 0.375f * (float)(tex.page_pos / 3);
+        break;
+    case GL_PAGE_64_4X4:
+    case GL_PAGE_32_4X4:
+        *uScale = 0.25f; *vScale = 0.25f;
+        *uOffset = 0.25f * (float)(tex.page_pos & 0x3);
+        *vOffset = 0.25f * (float)(tex.page_pos >> 2);
+        break;
+    default:
+        *uScale = 1.0f; *vScale = 1.0f;
+        *uOffset = 0.0f; *vOffset = 0.0f;
+        break;
+    }
+}
+
+int32_t ge_texture_get_size(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return 0;
+    return s_textures[page].size;
+}
+
+int32_t ge_texture_get_type(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return 0;
+    return s_textures[page].type;
+}
+
+void ge_texture_set_type(int32_t page, int32_t type)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    s_textures[page].type = type;
+}
+
+GETextureHandle ge_get_texture_handle(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return GE_TEXTURE_NONE;
+    return (GETextureHandle)s_textures[page].gl_id;
+}
+
+Font* ge_get_font(int32_t page, int32_t id)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return nullptr;
+    Font* f = s_textures[page].font_list;
+    while (id && f) {
+        f = f->NextFont;
+        id--;
+    }
+    return f;
+}
+
+// ---------------------------------------------------------------------------
+// Font extraction from texture pixels
+// ---------------------------------------------------------------------------
+
+// Pixel match helper for font separator detection (magenta = 0xFF,0x00,0xFF).
+static bool gl_match_pixels(GLBGRAPixel* p1, GLBGRAPixel* p2)
+{
+    return p1->red == p2->red && p1->green == p2->green && p1->blue == p2->blue;
+}
+
+// Scan rows until a row starting with the underline color is found.
+static bool gl_scan_for_baseline(GLBGRAPixel** line_ptr, GLBGRAPixel* underline,
+                                  GLTexLoadInfo* info, int32_t* y_ptr)
+{
+    while (*y_ptr < info->height) {
+        if (gl_match_pixels(*line_ptr, underline)) {
+            *y_ptr += 1;
+            *line_ptr += info->width;
+            return true;
+        }
+        *y_ptr += 1;
+        *line_ptr += info->width;
+    }
+    return false;
+}
+
+// Parse glyph geometry from a font texture using magenta separators.
+// Builds a linked list of Font objects. Matches D3D CreateFonts exactly.
+static bool gl_create_fonts(Font** font_list, GLTexLoadInfo* info, GLBGRAPixel* data)
+{
+    GLBGRAPixel underline = { 0xFF, 0x00, 0xFF, 0xFF }; // blue=0xFF, green=0, red=0xFF
+    GLBGRAPixel* current_line = data;
+    int32_t char_y = 0;
+
+    if (!gl_scan_for_baseline(&current_line, &underline, info, &char_y))
+        return false;
+
+map_font:
+    {
+        Font* the_font = (Font*)MemAlloc(sizeof(Font));
+        memset(the_font, 0, sizeof(Font));
+        if (*font_list) {
+            the_font->NextFont = *font_list;
+        }
+        *font_list = the_font;
+
+        int32_t current_char = 0;
+        int32_t char_x = 0;
+        int32_t tallest_char = 1;
+
+        while (current_char < 93) {
+            // Scan across to find width.
+            int32_t char_width = 0;
+            GLBGRAPixel* current_pixel = current_line + char_x;
+            while (!gl_match_pixels(current_pixel, &underline)) {
+                current_pixel++;
+                char_width++;
+
+                if (char_x + char_width >= info->width) {
+                    char_y += tallest_char + 1;
+                    if (char_y >= info->height) return false;
+                    current_line = data + (char_y * info->width);
+
+                    if (!gl_scan_for_baseline(&current_line, &underline, info, &char_y))
+                        return false;
+
+                    char_x = 0;
+                    tallest_char = 1;
+                    char_width = 0;
+                    current_pixel = current_line;
+                }
+            }
+
+            // Scan down to find height.
+            int32_t char_height = 0;
+            current_pixel = current_line + char_x;
+            while (!gl_match_pixels(current_pixel, &underline)) {
+                current_pixel += info->width;
+                char_height++;
+                if (char_height >= info->height) return false;
+            }
+
+            the_font->CharSet[current_char].X = char_x;
+            the_font->CharSet[current_char].Y = char_y;
+            the_font->CharSet[current_char].Width = char_width;
+            the_font->CharSet[current_char].Height = char_height;
+
+            char_x += char_width + 1;
+            if (tallest_char < char_height)
+                tallest_char = char_height;
+
+            current_char++;
+        }
+
+        // Check for another font in the same file.
+        char_y += tallest_char + 1;
+        if (char_y >= info->height) return true;
+        current_line = data + (char_y * info->width);
+
+        if (gl_scan_for_baseline(&current_line, &underline, info, &char_y))
+            goto map_font;
+    }
+
+    return true;
+}
 
 // ---------------------------------------------------------------------------
 // Text surface — TODO Phase 8
@@ -1208,7 +1859,23 @@ SLONG RealDisplayWidth = 640;
 SLONG RealDisplayHeight = 480;
 SLONG DisplayBPP = 32;
 volatile HWND hDDLibWindow = NULL;
-UBYTE* image_mem = nullptr;
+
+// Work screen globals (D3D uses DDraw offscreen surface; we use a CPU buffer).
+static UBYTE s_work_screen_buf[640 * 480 * 4];
+UBYTE WorkScreenDepth = 32;
+UBYTE* WorkScreen = s_work_screen_buf;
+UBYTE* WorkWindow = s_work_screen_buf;
+SLONG WorkScreenHeight = 480;
+SLONG WorkScreenWidth = 640 * 4; // pitch in bytes (D3D convention)
+SLONG WorkScreenPixelWidth = 640;
+SLONG WorkWindowHeight = 480;
+SLONG WorkWindowWidth = 640;
+MFRect WorkWindowRect = { 0, 0, 640, 480, 640, 480 };
+UBYTE CurrentPalette[256 * 3] = {};
+
+// image_mem: used for loading screen background images (ge_init_back_image).
+static UBYTE s_image_mem_buf[640 * 480 * 3];
+UBYTE* image_mem = s_image_mem_buf;
 
 // ---------------------------------------------------------------------------
 // Display functions (called from game.cpp)
@@ -1269,7 +1936,7 @@ SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b)
 
 void SetLastClumpfile(char*, unsigned int) {}
 
-void* LockWorkScreen() { return nullptr; }
+void* LockWorkScreen() { return s_work_screen_buf; }
 void UnlockWorkScreen() {}
 void ShowWorkScreen(ULONG) {}
 void ClearWorkScreen(UBYTE) {}

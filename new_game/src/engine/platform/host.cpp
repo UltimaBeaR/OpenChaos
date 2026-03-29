@@ -1,5 +1,8 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
+#include <stdio.h>
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
@@ -239,8 +242,52 @@ void Time(MFTime* the_time)
 // Real entry point implementation. Stores WinMain parameters in globals, then uses a named
 // event to ensure only one instance of Urban Chaos can run at a time before calling
 // MF_main. Called from src/main.cpp.
+// Crash handler: writes crash_log.txt with exception info, RVA, and stack addresses.
+// Use llvm-symbolizer with --relative-address on a Debug build PDB to resolve RVAs.
+static LONG WINAPI crash_handler(EXCEPTION_POINTERS* ep)
+{
+    FILE* f = fopen("crash_log.txt", "w");
+    if (!f) return EXCEPTION_CONTINUE_SEARCH;
+
+    HMODULE hmod = GetModuleHandle(NULL);
+    uintptr_t base = (uintptr_t)hmod;
+
+    fprintf(f, "Exception 0x%08lX at address 0x%p\n",
+            ep->ExceptionRecord->ExceptionCode,
+            ep->ExceptionRecord->ExceptionAddress);
+    if (ep->ExceptionRecord->ExceptionCode == 0xC0000005) {
+        fprintf(f, "Access violation %s address 0x%p\n",
+                ep->ExceptionRecord->ExceptionInformation[0] ? "writing" : "reading",
+                (void*)(uintptr_t)ep->ExceptionRecord->ExceptionInformation[1]);
+    }
+    fprintf(f, "Module base: 0x%p\n", (void*)hmod);
+    fprintf(f, "Crash RVA: 0x%lx\n",
+            (unsigned long)((uintptr_t)ep->ExceptionRecord->ExceptionAddress - base));
+
+    CONTEXT* ctx = ep->ContextRecord;
+    fprintf(f, "ESP=0x%08lx EBP=0x%08lx ECX=0x%08lx\n", ctx->Esp, ctx->Ebp, ctx->Ecx);
+
+    fprintf(f, "\nStack return addresses (module RVAs):\n");
+    DWORD* sp = (DWORD*)ctx->Esp;
+    DWORD modEnd = (DWORD)(base + 0x400000);
+    for (int i = 0; i < 64 && sp; i++) {
+        __try {
+            DWORD val = sp[i];
+            if (val > (DWORD)base && val < modEnd) {
+                fprintf(f, "  ESP[%d] RVA=0x%lx\n", i, (unsigned long)(val - base));
+            }
+        } __except(1) { break; }
+    }
+
+    fflush(f);
+    fclose(f);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 int HOST_run(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWinMode)
 {
+    SetUnhandledExceptionFilter(crash_handler);
+
     // Store WinMain parameters for use by the rest of the engine.
     lpszGlobalArgs = lpszArgs;
     iGlobalWinMode = iWinMode;

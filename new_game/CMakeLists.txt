@@ -576,6 +576,8 @@ target_compile_definitions(Fallen PRIVATE
 
 # /SAFESEH:NO — original code uses exception handlers not registered in SafeSEH table.
 target_link_options(Fallen PRIVATE /SAFESEH:NO)
+# Debug: generate PDB for crash symbolization (llvm-symbolizer --relative-address).
+target_link_options(Fallen PRIVATE $<$<CONFIG:Debug>:/DEBUG>)
 
 # ---------------------------------------------------------------------------
 # Link libraries
