@@ -7,6 +7,7 @@
 in vec4 v_color;
 in vec4 v_specular;
 in vec2 v_texcoord;
+in float v_view_z;
 
 uniform int       u_has_texture;
 uniform sampler2D u_texture;
@@ -16,6 +17,8 @@ uniform float     u_alpha_ref;           // normalized 0-1
 uniform int       u_alpha_func;          // GECompareFunc as int
 uniform int       u_fog_enabled;
 uniform vec3      u_fog_color;
+uniform float     u_fog_near;
+uniform float     u_fog_far;
 uniform int       u_specular_enabled;
 uniform int       u_color_key_enabled;
 
@@ -29,8 +32,13 @@ void main()
         vec4 tex = texture(u_texture, v_texcoord);
 
         if (u_texture_blend == 0) {
-            // Modulate: vertex RGB * texture RGB, alpha from vertex.
-            color.rgb = color.rgb * tex.rgb;
+            // Modulate: vertex * texture (all channels).
+            // D3D6 D3DTBLEND_MODULATE selects texture alpha when the surface has an
+            // alpha channel, otherwise keeps diffuse alpha.  Multiplying both is
+            // equivalent: non-alpha textures have tex.a == 1.0, so vertex alpha is
+            // preserved; alpha textures get tex.a passed through (vertex alpha is
+            // typically 1.0).  This makes alpha test work for leaves, fences, etc.
+            color = color * tex;
         } else if (u_texture_blend == 1) {
             // ModulateAlpha: vertex * texture (all channels).
             color = color * tex;
@@ -40,8 +48,10 @@ void main()
         }
     }
 
-    // Color key: discard fully transparent pixels.
-    if (u_color_key_enabled != 0 && color.a < 0.004)
+    // Color key: discard black pixels.
+    // D3D6 equivalent: D3DRENDERSTATE_COLORKEYENABLE — hardware discards pixels
+    // matching the surface color key (default 0x0000 = black in 16-bit).
+    if (u_color_key_enabled != 0 && color.r < 0.004 && color.g < 0.004 && color.b < 0.004)
         discard;
 
     // Alpha test.
@@ -61,10 +71,23 @@ void main()
         color.rgb += v_specular.rgb;
     }
 
-    // Fog: linear blend using specular alpha as fog factor.
-    // D3D6 convention: specular.a = 1.0 → no fog, 0.0 → fully fogged.
+    // Fog: two independent sources, matching D3D6 behavior.
+    // 1) Vertex fog: POLY_fadeout_point() writes fog factor into specular.a (terrain only).
+    // 2) Table fog: D3D6 hardware linear fog by Z-distance (walls, objects, meshes).
+    // In D3D6, table fog doesn't affect TL terrain (screen Z=0-1, below fog start=42),
+    // so terrain only gets vertex fog.  Walls/objects have specular.a=1.0 (no vertex fog)
+    // and get table fog only.  We select: if vertex fog was applied, use it; otherwise
+    // use Z-based table fog.
     if (u_fog_enabled != 0) {
-        float fog_factor = v_specular.a;
+        float vert_fog = v_specular.a;
+        float fog_factor;
+        if (vert_fog < 0.99) {
+            // CPU fog was applied to this vertex (terrain) — use it exclusively.
+            fog_factor = vert_fog;
+        } else {
+            // No CPU fog — compute D3D6 linear table fog from eye-space Z.
+            fog_factor = clamp((u_fog_far - v_view_z) / (u_fog_far - u_fog_near), 0.0, 1.0);
+        }
         color.rgb = mix(u_fog_color, color.rgb, fog_factor);
     }
 

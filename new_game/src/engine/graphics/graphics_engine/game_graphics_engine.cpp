@@ -183,6 +183,7 @@ void GERenderState::InitScene(uint32_t fog_colour, float fog_near, float fog_far
 
     ge_set_fog_enabled(FogEnabled);
     ge_set_color_key_enabled(ColorKeyEnabled);
+    ge_set_depth_bias(DepthBias);
     ge_set_alpha_test_enabled(AlphaTestEnabled);
     ge_set_alpha_ref(0x07);
     ge_set_alpha_func(GECompareFunc::Greater);
@@ -238,6 +239,7 @@ void GERenderState::SetChanged()
     MAYBE_FLUSH(Cull, ge_set_cull_mode(Cull));
     MAYBE_FLUSH(FogEnabled, ge_set_fog_enabled(FogEnabled));
     MAYBE_FLUSH(ColorKeyEnabled, ge_set_color_key_enabled(ColorKeyEnabled));
+    MAYBE_FLUSH(DepthBias, ge_set_depth_bias(DepthBias));
 
     if (WrapOnce) {
         TexAddress = old_addr;

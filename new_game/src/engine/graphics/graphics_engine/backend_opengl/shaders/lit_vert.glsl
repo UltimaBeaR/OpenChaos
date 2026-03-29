@@ -16,6 +16,7 @@ uniform mat4 u_projection;
 out vec4 v_color;
 out vec4 v_specular;
 out vec2 v_texcoord;
+out float v_view_z;
 
 void main()
 {
@@ -26,4 +27,5 @@ void main()
     vec4 world_pos = u_world * vec4(a_position, 1.0);
     vec4 view_pos  = u_view * world_pos;
     gl_Position    = u_projection * view_pos;
+    v_view_z       = -view_pos.z;  // positive distance from camera
 }

@@ -268,6 +268,7 @@ void POLY_init_render_states()
                 pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 pa->RS.SetDepthWrite(false);
                 pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthBias(8);
 
                 break;
 
@@ -279,6 +280,7 @@ void POLY_init_render_states()
                 pa->RS.SetDstBlend(GEBlendFactor::InvSrcAlpha);
                 pa->RS.SetDepthWrite(false);
                 pa->RS.SetFogEnabled(false);
+                pa->RS.SetDepthBias(8);
                 break;
 
             case POLY_PAGE_FADECAT:

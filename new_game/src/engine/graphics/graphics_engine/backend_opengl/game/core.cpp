@@ -306,8 +306,9 @@ static bool gl_load_tga(GLTexture& tex)
         gl_apply_greyscale(pixels, count);
     }
 
-    // Edge color bleeding for alpha textures.
-    if (load_alpha) {
+    // Edge color bleeding for alpha textures and font2 (which creates transparent
+    // pixels via red-border processing even if the source TGA had no alpha channel).
+    if (load_alpha || (tex.flags & GL_TEX_FLAG_FONT2)) {
         gl_bleed_edges(pixels, load_w, load_h);
     }
 
@@ -346,6 +347,8 @@ static GLint s_tl_u_alpha_ref           = -1;
 static GLint s_tl_u_alpha_func          = -1;
 static GLint s_tl_u_fog_enabled         = -1;
 static GLint s_tl_u_fog_color           = -1;
+static GLint s_tl_u_fog_near            = -1;
+static GLint s_tl_u_fog_far             = -1;
 static GLint s_tl_u_specular_enabled    = -1;
 static GLint s_tl_u_color_key_enabled   = -1;
 
@@ -361,6 +364,8 @@ static GLint s_lit_u_alpha_ref          = -1;
 static GLint s_lit_u_alpha_func         = -1;
 static GLint s_lit_u_fog_enabled        = -1;
 static GLint s_lit_u_fog_color          = -1;
+static GLint s_lit_u_fog_near           = -1;
+static GLint s_lit_u_fog_far            = -1;
 static GLint s_lit_u_specular_enabled   = -1;
 static GLint s_lit_u_color_key_enabled  = -1;
 
@@ -376,7 +381,7 @@ static bool s_shaders_ready = false;
 static void cache_frag_uniforms(GLuint prog,
     GLint* u_has_texture, GLint* u_texture, GLint* u_texture_blend,
     GLint* u_alpha_test_enabled, GLint* u_alpha_ref, GLint* u_alpha_func,
-    GLint* u_fog_enabled, GLint* u_fog_color,
+    GLint* u_fog_enabled, GLint* u_fog_color, GLint* u_fog_near, GLint* u_fog_far,
     GLint* u_specular_enabled, GLint* u_color_key_enabled)
 {
     *u_has_texture        = glGetUniformLocation(prog, "u_has_texture");
@@ -387,6 +392,8 @@ static void cache_frag_uniforms(GLuint prog,
     *u_alpha_func         = glGetUniformLocation(prog, "u_alpha_func");
     *u_fog_enabled        = glGetUniformLocation(prog, "u_fog_enabled");
     *u_fog_color          = glGetUniformLocation(prog, "u_fog_color");
+    *u_fog_near           = glGetUniformLocation(prog, "u_fog_near");
+    *u_fog_far            = glGetUniformLocation(prog, "u_fog_far");
     *u_specular_enabled   = glGetUniformLocation(prog, "u_specular_enabled");
     *u_color_key_enabled  = glGetUniformLocation(prog, "u_color_key_enabled");
 }
@@ -485,7 +492,7 @@ static bool init_shaders()
     cache_frag_uniforms(s_program_tl,
         &s_tl_u_has_texture, &s_tl_u_texture, &s_tl_u_texture_blend,
         &s_tl_u_alpha_test_enabled, &s_tl_u_alpha_ref, &s_tl_u_alpha_func,
-        &s_tl_u_fog_enabled, &s_tl_u_fog_color,
+        &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled);
 
     // Cache Lit uniform locations.
@@ -495,7 +502,7 @@ static bool init_shaders()
     cache_frag_uniforms(s_program_lit,
         &s_lit_u_has_texture, &s_lit_u_texture, &s_lit_u_texture_blend,
         &s_lit_u_alpha_test_enabled, &s_lit_u_alpha_ref, &s_lit_u_alpha_func,
-        &s_lit_u_fog_enabled, &s_lit_u_fog_color,
+        &s_lit_u_fog_enabled, &s_lit_u_fog_color, &s_lit_u_fog_near, &s_lit_u_fog_far,
         &s_lit_u_specular_enabled, &s_lit_u_color_key_enabled);
 
     // Create shared VBO and EBO (streaming, orphaned each draw).
@@ -529,7 +536,7 @@ static void destroy_shaders()
 static void set_frag_uniforms(
     GLint u_has_texture, GLint u_texture, GLint u_texture_blend,
     GLint u_alpha_test_enabled, GLint u_alpha_ref, GLint u_alpha_func,
-    GLint u_fog_enabled, GLint u_fog_color,
+    GLint u_fog_enabled, GLint u_fog_color, GLint u_fog_near, GLint u_fog_far,
     GLint u_specular_enabled, GLint u_color_key_enabled)
 {
     bool has_tex = (s_bound_texture != GE_TEXTURE_NONE);
@@ -565,6 +572,8 @@ static void set_frag_uniforms(
         float fg = ((s_fog_color >> 8)  & 0xFF) / 255.0f;
         float fb = ((s_fog_color >> 0)  & 0xFF) / 255.0f;
         glUniform3f(u_fog_color, fr, fg, fb);
+        glUniform1f(u_fog_near, s_fog_near);
+        glUniform1f(u_fog_far, s_fog_far);
     }
 
     glUniform1i(u_specular_enabled, s_specular_enabled ? 1 : 0);
@@ -777,8 +786,11 @@ void ge_set_depth_bias(int32_t bias)
 {
     if (bias != 0) {
         glEnable(GL_POLYGON_OFFSET_FILL);
-        // D3D6 ZBIAS range is 0-16, map to reasonable GL polygon offset.
-        glPolygonOffset(0.0f, (float)-bias);
+        // D3D6 ZBIAS range is 0-16, directly offsets normalized Z.
+        // GL polygon offset: offset = factor * slope + units * min_resolvable.
+        // With 24-bit Z-buffer, min_resolvable is ~1/2^24 ≈ 6e-8, much finer
+        // than D3D6's 16-bit Z, so we need large unit values to match.
+        glPolygonOffset(-1.0f, (float)(-bias * 512));
     } else {
         glDisable(GL_POLYGON_OFFSET_FILL);
     }
@@ -854,7 +866,7 @@ void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t c
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
-        s_tl_u_fog_enabled, s_tl_u_fog_color,
+        s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled);
 
     // Upload vertex data.
@@ -885,7 +897,7 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
-        s_tl_u_fog_enabled, s_tl_u_fog_color,
+        s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled);
 
     // Upload vertex and index data.
@@ -935,7 +947,7 @@ void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* vert
     set_frag_uniforms(
         s_lit_u_has_texture, s_lit_u_texture, s_lit_u_texture_blend,
         s_lit_u_alpha_test_enabled, s_lit_u_alpha_ref, s_lit_u_alpha_func,
-        s_lit_u_fog_enabled, s_lit_u_fog_color,
+        s_lit_u_fog_enabled, s_lit_u_fog_color, s_lit_u_fog_near, s_lit_u_fog_far,
         s_lit_u_specular_enabled, s_lit_u_color_key_enabled);
 
     // Upload vertex and index data.
@@ -1290,7 +1302,7 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
-        s_tl_u_fog_enabled, s_tl_u_fog_color,
+        s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled);
 
     glBindVertexArray(s_vao_tl);

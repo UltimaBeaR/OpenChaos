@@ -17,6 +17,7 @@ uniform vec4 u_viewport;
 out vec4 v_color;
 out vec4 v_specular;
 out vec2 v_texcoord;
+out float v_view_z;
 
 void main()
 {
@@ -33,4 +34,5 @@ void main()
     // Preserve perspective-correct interpolation via W = 1/rhw.
     float w = 1.0 / a_rhw;
     gl_Position = vec4(ndc_x * w, ndc_y * w, ndc_z * w, w);
+    v_view_z = w;  // W ≈ view-space distance from camera
 }

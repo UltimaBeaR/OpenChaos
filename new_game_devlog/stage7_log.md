@@ -1344,3 +1344,51 @@ Stub backend обновлён — добавлены стабы, убраны д
 ### Шаг 6 — Финализация
 Убедиться что оба бэкенда работают. Удалить D3D бэкенд (или оставить для референса).
 Убрать DirectX зависимости из CMake/vcpkg.
+
+---
+
+## 2026-03-29 — Сравнительное тестирование OpenGL vs D3D, исправление багов
+
+Проведено параллельное сравнение OpenGL и D3D бэкэндов (два окна рядом). Найдено и исправлено несколько визуальных багов OpenGL бэкэнда.
+
+### Исправлено
+
+**1. Проверка на уникальность запуска (host.cpp)**
+- `CreateEventA("UrbanChaosExclusionZone")` блокировал запуск второго экземпляра в Debug.
+- Обёрнуто в `#ifdef NDEBUG` — в Debug можно запускать параллельно (нужно для тестирования двух бэкэндов).
+
+**2. Z-fighting теней**
+- **Причина 1:** `DepthBias` отсутствовал в `InitScene()` и `SetChanged()` — `ge_set_depth_bias()` никогда не вызывался из render state pipeline. Добавлен.
+- **Причина 2:** `POLY_PAGE_SHADOW_OVAL` и `POLY_PAGE_SHADOW_SQUARE` (тени машин и других объектов через OVAL) не имели `SetDepthBias(8)`, в отличие от `POLY_PAGE_SHADOW` (тени персонажей).
+- **Polygon offset:** `glPolygonOffset(0.0f, -bias)` → `glPolygonOffset(-1.0f, -bias * 512)` — slope factor + увеличенный constant offset для 24-bit Z-buffer.
+
+**3. Alpha test не работал для текстур с альфой (листья в меню, перила, колёса)**
+- `Modulate` blend mode в шейдере делал `color.rgb = vertex.rgb * tex.rgb`, оставляя альфу от вершины (255). Alpha test `255 > 7` всегда проходил.
+- D3D6 `D3DTBLEND_MODULATE` передаёт текстурную альфу когда поверхность имеет alpha channel.
+- Фикс: `Modulate` теперь умножает все 4 канала (`color = color * tex`). Для текстур без альфы (tex.a=1.0) — без изменений.
+
+**4. Color key проверял альфу вместо цвета**
+- Шейдер делал `if (color.a < 0.004) discard` — не работало для текстур без альфа-канала (alpha=255 везде).
+- D3D6 `COLORKEYENABLE` отбрасывает по цвету (color key = 0 = чёрный).
+- Фикс: `if (color.r < 0.004 && color.g < 0.004 && color.b < 0.004) discard`.
+
+**5. Туман не применялся к стенам и объектам**
+- Vertex fog (через `specular.a`) вычислялся CPU только для terrain (`POLY_fadeout_point()`). Для стен и мешей fog factor не записывался.
+- В D3D6 это компенсировалось аппаратным table fog (`D3DFOG_LINEAR`).
+- Фикс: добавлен Z-based linear fog в шейдере с fog_near/fog_far uniforms. Логика выбора: если vertex fog уже применён (specular.a < 0.99) — использовать его; иначе — Z-based fog. Это матчит D3D6 поведение (table fog не действует на TL vertices с screen Z=0-1).
+- Потребовалось: `v_view_z` output в обоих vertex шейдерах (TL: W=1/rhw; Lit: -view_pos.z), fog_near/fog_far uniforms.
+
+### Частично исправлено / не помогло
+
+**6. GL_RGBA4 для alpha-текстур (ОТКАТ)**
+- D3D6 хранит alpha-текстуры в A4R4G4B4 (4 бита на канал). Попробовали `GL_RGBA4` internal format — не решило проблему со шрифтами и снижает качество всех alpha-текстур. Откачено.
+
+**7. Edge bleeding для font2 текстур**
+- `gl_bleed_edges()` не вызывался после `gl_process_font2_red_borders()` (которая создаёт прозрачные пиксели). Добавлено условие `load_alpha || (tex.flags & GL_TEX_FLAG_FONT2)`.
+- Помогло с медальоном (кот в кружке — глитч справа-снизу исчез), но не со шрифтами.
+
+### Открытые баги (записаны в known_issues_and_bugs.md)
+
+- **Шрифты меню** — размазанный полупрозрачный фон вокруг букв. Текстура `olyfont2.tga` имеет 256-level alpha gradient; D3D6 A4R4G4B4 квантует его до 16 уровней. GL_RGBA4 не помог — требуется дальнейшее исследование.
+- **HUD иконки (fist и др.)** — тёмная кайма от билинейной фильтрации при additive blend. D3D6 16-бит текстуры квантуют near-black до 0.
+- **Листья in-game (POLY_PAGE_LEAF)** — не отображаются. Modulate + AlphaTest. Вероятно текстура `leaf.tga` не содержит альфу (24-bit TGA → alpha=255 везде → alpha test всегда проходит → чёрный фон не вырезается). Нужно проверить содержимое текстуры из clump.
