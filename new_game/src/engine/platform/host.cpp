@@ -249,6 +249,12 @@ static LONG WINAPI crash_handler(EXCEPTION_POINTERS* ep)
     FILE* f = fopen("crash_log.txt", "w");
     if (!f) return EXCEPTION_CONTINUE_SEARCH;
 
+    // Write date/time so we can tell which crash is which.
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    fprintf(f, "Crash at %04d-%02d-%02d %02d:%02d:%02d\n\n",
+            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
     HMODULE hmod = GetModuleHandle(NULL);
     uintptr_t base = (uintptr_t)hmod;
 
