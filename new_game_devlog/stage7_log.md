@@ -1445,6 +1445,17 @@ Stub backend обновлён — добавлены стабы, убраны д
 - Путь `c:\tmp\shot%03d.tga` → `debug_screenshots\shot%04d.tga` (создаёт папку автоматически).
 - Размер: динамический буфер вместо статического `tga[480][640]` — сохраняет в реальном разрешении окна.
 
+### Шаг 4, Фаза 9 — Outro backend
+
+**Минимальная реализация** (`backend_opengl/outro/core.cpp`):
+- Текстуры: BGRA → `glTexImage2D(GL_BGRA)`, linked list с дедупом по имени+invert, инверсия каналов.
+- Draw: конвертация 40-byte outro vertex → 32-byte GEVertexTL (первые 32 байта, texcoord2 выбрасывается), рисуем через game backend TL шейдер.
+- Render state: через `ge_set_*` (совместимо с game backend state cache).
+- Проверено: outro запускается, задник, геометрия и текст отображаются. Мелкие недочёты — сравнить с D3D.
+
+**Полная реализация (отложена):**
+Попытка сделать свой шейдер (vertex с 2 texcoord + fragment с dual-texture multiply) привела к визуальным глюкам. Откачено на минимальную. Суть: outro vertex = 40 байт (два набора texcoord), game backend vertex = 32 байта (один texcoord). Второй texcoord нужен для `OS_DRAW_TEX_MUL` — наложение двух текстур с умножением (bump mapping на 3D объектах в outro). Минимальная версия выбрасывает второй texcoord. Для полной версии нужен свой шейдер + VAO (40-byte stride, 6 атрибутов) — отдебажить когда будет время.
+
 ### Открытые баги (записаны в known_issues_and_bugs.md)
 
 - **Шрифты меню + HUD иконки** — ghost RGB (**ОТЛОЖЕН** до после кросс-платформы). Подробности → [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).

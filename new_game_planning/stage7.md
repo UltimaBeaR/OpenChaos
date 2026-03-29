@@ -392,6 +392,7 @@ No-op (правильно, не нужно реализовывать):
 - `ge_draw_indexed_primitive_unlit` — 0 вызовов в кодовой базе
 
 TODO (нужно реализовать, не блокирует геймплей):
+- Outro dual-texture (`OS_DRAW_TEX_MUL`) — свой шейдер с 2 texcoord для bump mapping на 3D объектах outro. Минимальная реализация работает без него.
 - `ge_update_display_rect` — resize окна в рантайме (сейчас фиксированный размер)
 - `ge_is_gamma_available` + gamma коррекция — настройки яркости в меню (сейчас возвращает false)
 - `ge_run_cutscene` — видеоролики через FFmpeg (отдельная задача)
