@@ -282,6 +282,13 @@ void ge_bind_texture(GETextureHandle tex)
     REALLY_SET_TEXTURE(reinterpret_cast<LPDIRECT3DTEXTURE2>(static_cast<uintptr_t>(tex)));
 }
 
+bool ge_bound_texture_contains_alpha()
+{
+    // D3D6: D3DTBLEND_MODULATE handles alpha selection in hardware via
+    // fixup_texture_alpha_op (sets ALPHAOP based on texture pixel format).
+    return false;
+}
+
 // ---------------------------------------------------------------------------
 // Drawing
 // ---------------------------------------------------------------------------

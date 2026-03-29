@@ -56,6 +56,7 @@ static GETextureBlend s_texture_blend = GETextureBlend::Modulate;
 
 // Currently bound texture (0 = none).
 static GETextureHandle s_bound_texture = GE_TEXTURE_NONE;
+static bool s_bound_texture_has_alpha = false;
 
 // Texture filter and address mode (applied at draw time when binding texture).
 static GETextureFilter s_tex_filter_mag = GETextureFilter::Linear;
@@ -312,24 +313,6 @@ static bool gl_load_tga(GLTexture& tex)
         gl_bleed_edges(pixels, load_w, load_h);
     }
 
-    // Zero out RGB for fully transparent pixels in Font2 textures (olyfont2.tga).
-    // Must run AFTER edge bleeding.  Font2 has non-zero RGB in transparent background
-    // pixels from the original artwork.  POLY_PAGE_NEWFONT_INVERSE renders with
-    // additive blending (One/One) where alpha is irrelevant — ghost RGB adds visible
-    // light, creating bright rectangles behind menu glyphs.  D3D6 A4R4G4B4's lower
-    // precision makes this less visible; OpenGL RGBA8 preserves the full values.
-    // Not applied to other alpha textures: e.g. PCdisplay01.tga (HUD icons) uses
-    // alpha=0 + non-zero RGB intentionally for additive icon rendering (fist, etc.).
-    if (tex.flags & GL_TEX_FLAG_FONT2) {
-        for (int32_t i = 0; i < count; i++) {
-            if (pixels[i].alpha == 0) {
-                pixels[i].red = 0;
-                pixels[i].green = 0;
-                pixels[i].blue = 0;
-            }
-        }
-    }
-
     // Upload to GPU.
     gl_upload_texture(tex, pixels, load_w, load_h);
 
@@ -369,6 +352,7 @@ static GLint s_tl_u_fog_near            = -1;
 static GLint s_tl_u_fog_far             = -1;
 static GLint s_tl_u_specular_enabled    = -1;
 static GLint s_tl_u_color_key_enabled   = -1;
+static GLint s_tl_u_tex_has_alpha      = -1;
 
 // Uniform locations for Lit program.
 static GLint s_lit_u_world              = -1;
@@ -386,6 +370,7 @@ static GLint s_lit_u_fog_near           = -1;
 static GLint s_lit_u_fog_far            = -1;
 static GLint s_lit_u_specular_enabled   = -1;
 static GLint s_lit_u_color_key_enabled  = -1;
+static GLint s_lit_u_tex_has_alpha     = -1;
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
 static GLuint s_vao_tl  = 0;
@@ -400,7 +385,7 @@ static void cache_frag_uniforms(GLuint prog,
     GLint* u_has_texture, GLint* u_texture, GLint* u_texture_blend,
     GLint* u_alpha_test_enabled, GLint* u_alpha_ref, GLint* u_alpha_func,
     GLint* u_fog_enabled, GLint* u_fog_color, GLint* u_fog_near, GLint* u_fog_far,
-    GLint* u_specular_enabled, GLint* u_color_key_enabled)
+    GLint* u_specular_enabled, GLint* u_color_key_enabled, GLint* u_tex_has_alpha)
 {
     *u_has_texture        = glGetUniformLocation(prog, "u_has_texture");
     *u_texture            = glGetUniformLocation(prog, "u_texture");
@@ -414,6 +399,7 @@ static void cache_frag_uniforms(GLuint prog,
     *u_fog_far            = glGetUniformLocation(prog, "u_fog_far");
     *u_specular_enabled   = glGetUniformLocation(prog, "u_specular_enabled");
     *u_color_key_enabled  = glGetUniformLocation(prog, "u_color_key_enabled");
+    *u_tex_has_alpha      = glGetUniformLocation(prog, "u_tex_has_alpha");
 }
 
 // Set up VAO for GEVertexTL layout: 32 bytes per vertex.
@@ -511,7 +497,7 @@ static bool init_shaders()
         &s_tl_u_has_texture, &s_tl_u_texture, &s_tl_u_texture_blend,
         &s_tl_u_alpha_test_enabled, &s_tl_u_alpha_ref, &s_tl_u_alpha_func,
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
-        &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled);
+        &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha);
 
     // Cache Lit uniform locations.
     s_lit_u_world      = glGetUniformLocation(s_program_lit, "u_world");
@@ -521,7 +507,7 @@ static bool init_shaders()
         &s_lit_u_has_texture, &s_lit_u_texture, &s_lit_u_texture_blend,
         &s_lit_u_alpha_test_enabled, &s_lit_u_alpha_ref, &s_lit_u_alpha_func,
         &s_lit_u_fog_enabled, &s_lit_u_fog_color, &s_lit_u_fog_near, &s_lit_u_fog_far,
-        &s_lit_u_specular_enabled, &s_lit_u_color_key_enabled);
+        &s_lit_u_specular_enabled, &s_lit_u_color_key_enabled, &s_lit_u_tex_has_alpha);
 
     // Create shared VBO and EBO (streaming, orphaned each draw).
     glGenBuffers(1, &s_vbo);
@@ -555,9 +541,10 @@ static void set_frag_uniforms(
     GLint u_has_texture, GLint u_texture, GLint u_texture_blend,
     GLint u_alpha_test_enabled, GLint u_alpha_ref, GLint u_alpha_func,
     GLint u_fog_enabled, GLint u_fog_color, GLint u_fog_near, GLint u_fog_far,
-    GLint u_specular_enabled, GLint u_color_key_enabled)
+    GLint u_specular_enabled, GLint u_color_key_enabled, GLint u_tex_has_alpha)
 {
     bool has_tex = (s_bound_texture != GE_TEXTURE_NONE);
+    glUniform1i(u_tex_has_alpha, s_bound_texture_has_alpha ? 1 : 0);
     glUniform1i(u_has_texture, has_tex ? 1 : 0);
 
     if (has_tex) {
@@ -863,6 +850,21 @@ void ge_set_perspective_correction(bool)
 void ge_bind_texture(GETextureHandle tex)
 {
     s_bound_texture = tex;
+    s_bound_texture_has_alpha = false;
+    if (tex != GE_TEXTURE_NONE) {
+        GLuint gl_id = (GLuint)(uintptr_t)tex;
+        for (int32_t i = 0; i < GL_TEX_MAX; i++) {
+            if (s_textures[i].gl_id == gl_id) {
+                s_bound_texture_has_alpha = s_textures[i].contains_alpha;
+                break;
+            }
+        }
+    }
+}
+
+bool ge_bound_texture_contains_alpha()
+{
+    return s_bound_texture_has_alpha;
 }
 
 // ---------------------------------------------------------------------------
@@ -885,7 +887,7 @@ void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t c
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled);
+        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
     // Upload vertex data.
     glBindVertexArray(s_vao_tl);
@@ -916,7 +918,7 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled);
+        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
     // Upload vertex and index data.
     glBindVertexArray(s_vao_tl);
@@ -966,7 +968,7 @@ void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* vert
         s_lit_u_has_texture, s_lit_u_texture, s_lit_u_texture_blend,
         s_lit_u_alpha_test_enabled, s_lit_u_alpha_ref, s_lit_u_alpha_func,
         s_lit_u_fog_enabled, s_lit_u_fog_color, s_lit_u_fog_near, s_lit_u_fog_far,
-        s_lit_u_specular_enabled, s_lit_u_color_key_enabled);
+        s_lit_u_specular_enabled, s_lit_u_color_key_enabled, s_lit_u_tex_has_alpha);
 
     // Upload vertex and index data.
     glBindVertexArray(s_vao_lit);
@@ -1321,7 +1323,7 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled);
+        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
     glBindVertexArray(s_vao_tl);
 

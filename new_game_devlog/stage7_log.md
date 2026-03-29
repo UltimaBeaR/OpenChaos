@@ -1387,16 +1387,14 @@ Stub backend обновлён — добавлены стабы, убраны д
 - `gl_bleed_edges()` не вызывался после `gl_process_font2_red_borders()` (которая создаёт прозрачные пиксели). Добавлено условие `load_alpha || (tex.flags & GL_TEX_FLAG_FONT2)`.
 - Помогло с медальоном (кот в кружке — глитч справа-снизу исчез), но не со шрифтами.
 
-### Исправлено
-
-**8. Ghost RGB в Font2 текстурах (шрифты меню)**
-- **Причина:** `olyfont2.tga` содержит ненулевой RGB (до 255) в пикселях с alpha=0 (59078 из 65536 фоновых пикселей в multifontPC.tga — ВСЕ с non-zero RGB; 11665 из 51279 в olyfont2.tga). При additive blending (POLY_PAGE_NEWFONT_INVERSE, One/One) ghost RGB складывается с фоном → яркие прямоугольники за буквами.
-- **Диагностика:** дебаг-вывод статистики alpha и RGB при загрузке текстур подтвердил проблему. Текстуры загружаются из clump как A4R4G4B4 → C4to8 расширение, но ghost RGB сохраняется.
-- **Фикс:** обнуление RGB для пикселей с alpha=0 в Font2 текстурах, после edge bleeding (`backend_opengl/game/core.cpp`). Edge bleeding копирует соседний RGB в прозрачные пиксели для корректной фильтрации — обнуление после bleeding убирает и оригинальный ghost RGB, и bled RGB.
-- **Ограничение:** применяется только к Font2 (GL_TEX_FLAG_FONT2) — другие текстуры (PCdisplay01.tga) используют alpha=0 + non-zero RGB намеренно для additive rendering иконок.
-- Баг оригинальных текстур. На PS1 его нет. В D3D6 (dgVoodoo) менее заметен из-за 4-bit precision.
+**8. Modulate/ModulateAlpha по документации D3D6**
+- Шейдер `common_frag.glsl` реализует D3DTBLEND_MODULATE и D3DTBLEND_MODULATEALPHA точно по D3D6 SDK.
+- Non-alpha текстуры (5:6:5 из clump) приходят с alpha=0 — эмулируем D3D6 поведение (alpha=1.0) в шейдере через `tex_alpha = (u_tex_has_alpha != 0) ? tex.a : 1.0`.
+- Добавлен uniform `u_tex_has_alpha`, определяется при `ge_bind_texture()`.
+- Раньше Modulate и ModulateAlpha делали одинаково (`color = color * tex`) — неправильно для Modulate, где ALPHAOP = SELECTARG1(TEX) или SELECTARG2(DIFFUSE), а не MODULATE.
+- Подробности в [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).
 
 ### Открытые баги (записаны в known_issues_and_bugs.md)
 
-- **HUD иконка (fist и др.)** — `PCdisplay01.tga` содержит ghost RGB в alpha=0 фоне (30532 пикселя, maxRGB=238/255/221). При additive blend виден ореол. Нельзя обнулить RGB по alpha — иконка кулака сама рисуется с alpha=0 (RGB = данные). На PS1 ореола нет, в D3D6 еле заметен.
+- **Шрифты меню + HUD иконки** — ghost RGB. Подробности → [`stage7_ghost_rgb_investigation.md`](stage7_ghost_rgb_investigation.md).
 - **Листья in-game (POLY_PAGE_LEAF)** — не отображаются. Modulate + AlphaTest. Вероятно текстура `leaf.tga` не содержит альфу (24-bit TGA → alpha=255 везде → alpha test всегда проходит → чёрный фон не вырезается). Нужно проверить содержимое текстуры из clump.

@@ -21,6 +21,7 @@ uniform float     u_fog_near;
 uniform float     u_fog_far;
 uniform int       u_specular_enabled;
 uniform int       u_color_key_enabled;
+uniform int       u_tex_has_alpha;
 
 out vec4 frag_color;
 
@@ -31,17 +32,24 @@ void main()
     if (u_has_texture != 0) {
         vec4 tex = texture(u_texture, v_texcoord);
 
+        // D3D6 hardware returns alpha=1.0 when sampling textures without an
+        // alpha channel.  Clump 5:6:5 textures arrive with alpha=0 in the data;
+        // this substitution replicates D3D6 sampling behavior in the shader.
+        float tex_alpha = (u_tex_has_alpha != 0) ? tex.a : 1.0;
+
         if (u_texture_blend == 0) {
-            // Modulate: vertex * texture (all channels).
-            // D3D6 D3DTBLEND_MODULATE selects texture alpha when the surface has an
-            // alpha channel, otherwise keeps diffuse alpha.  Multiplying both is
-            // equivalent: non-alpha textures have tex.a == 1.0, so vertex alpha is
-            // preserved; alpha textures get tex.a passed through (vertex alpha is
-            // typically 1.0).  This makes alpha test work for leaves, fences, etc.
-            color = color * tex;
+            // D3DTBLEND_MODULATE (from D3D6 SDK documentation):
+            //   COLOROP  = MODULATE:     color.rgb = diffuse.rgb * texture.rgb
+            //   ALPHAOP  = SELECTARG1:   color.a   = texture.a    (if texture has alpha)
+            //   ALPHAOP  = SELECTARG2:   color.a   = diffuse.a    (if texture has no alpha)
+            color.rgb = color.rgb * tex.rgb;
+            color.a = (u_tex_has_alpha != 0) ? tex_alpha : color.a;
         } else if (u_texture_blend == 1) {
-            // ModulateAlpha: vertex * texture (all channels).
-            color = color * tex;
+            // D3DTBLEND_MODULATEALPHA (from D3D6 SDK documentation):
+            //   COLOROP  = MODULATE:     color.rgb = diffuse.rgb * texture.rgb
+            //   ALPHAOP  = MODULATE:     color.a   = diffuse.a   * texture.a
+            color.rgb = color.rgb * tex.rgb;
+            color.a = color.a * tex_alpha;
         } else {
             // Decal: texture only, ignore vertex color.
             color = tex;

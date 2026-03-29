@@ -33,6 +33,7 @@ void ge_set_specular_enabled(bool) {}
 void ge_set_perspective_correction(bool) {}
 
 void ge_bind_texture(GETextureHandle) {}
+bool ge_bound_texture_contains_alpha() { return false; }
 
 void ge_draw_primitive(GEPrimitiveType, const GEVertexTL*, uint32_t) {}
 void ge_draw_indexed_primitive(GEPrimitiveType, const GEVertexTL*, uint32_t, const uint16_t*, uint32_t) {}

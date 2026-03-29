@@ -173,6 +173,9 @@ void ge_set_perspective_correction(bool enabled);
 // ---------------------------------------------------------------------------
 
 void ge_bind_texture(GETextureHandle tex);
+// Returns true if the currently bound texture has an alpha channel.
+// Used by the shader to select correct ALPHAOP for D3DTBLEND_MODULATE.
+bool ge_bound_texture_contains_alpha();
 
 // ---------------------------------------------------------------------------
 // Drawing
