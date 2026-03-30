@@ -8,24 +8,9 @@
 #include "outro/core/outro_always.h"
 
 #include <stdint.h>
-#include <windows.h>
-
-// uc_orig: OS_this_instance (fallen/outro/os.cpp)
-extern HINSTANCE OS_this_instance;
-// uc_orig: OS_last_instance (fallen/outro/os.cpp)
-extern HINSTANCE OS_last_instance;
-// uc_orig: OS_command_line (fallen/outro/os.cpp)
-extern LPSTR OS_command_line;
-// uc_orig: OS_start_show_state (fallen/outro/os.cpp)
-extern int OS_start_show_state;
 
 // uc_orig: OS_application_name (fallen/outro/os.cpp)
 extern CBYTE* OS_application_name;
-
-// uc_orig: OS_wcl (fallen/outro/os.cpp)
-extern WNDCLASSEX OS_wcl;
-// uc_orig: OS_window_handle (fallen/outro/os.cpp)
-extern HWND OS_window_handle;
 
 // uc_orig: OS_frame_is_fullscreen (fallen/outro/os.cpp)
 extern UBYTE OS_frame_is_fullscreen;

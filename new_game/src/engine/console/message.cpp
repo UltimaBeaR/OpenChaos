@@ -7,6 +7,7 @@
 #include "engine/graphics/text/font.h"
 #include <cstdio>
 #include <cstdarg>
+#include <cstring>
 
 // allow_debug_keys defined in Controls.cpp
 extern BOOL allow_debug_keys;

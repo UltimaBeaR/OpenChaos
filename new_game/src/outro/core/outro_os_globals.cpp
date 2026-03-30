@@ -2,22 +2,8 @@
 
 #include "outro/core/outro_os_globals.h"
 
-// uc_orig: OS_this_instance (fallen/outro/os.cpp)
-HINSTANCE OS_this_instance = NULL;
-// uc_orig: OS_last_instance (fallen/outro/os.cpp)
-HINSTANCE OS_last_instance = NULL;
-// uc_orig: OS_command_line (fallen/outro/os.cpp)
-LPSTR OS_command_line = NULL;
-// uc_orig: OS_start_show_state (fallen/outro/os.cpp)
-int OS_start_show_state = 0;
-
 // uc_orig: OS_application_name (fallen/outro/os.cpp)
 CBYTE* OS_application_name = "Urban Chaos credits";
-
-// uc_orig: OS_wcl (fallen/outro/os.cpp)
-WNDCLASSEX OS_wcl = {};
-// uc_orig: OS_window_handle (fallen/outro/os.cpp)
-HWND OS_window_handle = NULL;
 
 // uc_orig: OS_frame_is_fullscreen (fallen/outro/os.cpp)
 UBYTE OS_frame_is_fullscreen = 0;

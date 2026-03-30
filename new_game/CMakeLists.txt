@@ -151,12 +151,12 @@ set(SOURCES_NEW
     src/engine/core/heap_globals.cpp
 
     # === Engine: platform ===
-    src/engine/platform/wind_procs.cpp
     src/engine/platform/wind_procs_globals.cpp
     src/engine/platform/host.cpp
     src/engine/platform/host_globals.cpp
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
+    src/engine/platform/threading_bridge.cpp
 
     # === Engine: I/O ===
     src/engine/io/file.cpp
@@ -546,6 +546,7 @@ target_include_directories(Fallen PRIVATE
 set_source_files_properties(
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
+    src/engine/platform/threading_bridge.cpp
     PROPERTIES COMPILE_OPTIONS "/Zp8"
 )
 

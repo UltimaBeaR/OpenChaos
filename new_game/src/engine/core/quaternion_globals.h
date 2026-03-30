@@ -1,7 +1,6 @@
 #ifndef ENGINE_CORE_QUATERNION_GLOBALS_H
 #define ENGINE_CORE_QUATERNION_GLOBALS_H
 
-#include <windows.h>
 #include "engine/core/types.h"
 
 // uc_orig: acos_table (fallen/DDEngine/Source/Quaternion.cpp)

@@ -1,7 +1,6 @@
 #ifndef ENGINE_PLATFORM_WIND_PROCS_GLOBALS_H
 #define ENGINE_PLATFORM_WIND_PROCS_GLOBALS_H
 
-#include <windows.h>
 #include "engine/core/types.h"
 
 // uc_orig: app_inactive (fallen/DDLibrary/Source/WindProcs.cpp)

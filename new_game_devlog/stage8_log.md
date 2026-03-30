@@ -85,3 +85,82 @@
 ### Замечено
 
 - **CRT Debug Assertion:** `_CrtIsValidHeapPointer(block)` в `debug_heap.cpp:904` — давняя проблема, периодически в Debug build. Double free или невалидный указатель в legacy коде
+
+## 2026-03-30: Threading — Win32 → threading_bridge
+
+### Что сделано
+
+Полная миграция threading в async_file с Win32 API на C++ standard library через bridge-паттерн.
+
+**Новые файлы:**
+
+| Файл | Что делает |
+|------|-----------|
+| `threading_bridge.h` | C API: `ThreadMutex`, `ThreadCondVar`, `ThreadHandle` — opaque handles + функции create/destroy/lock/unlock/wait/notify/join/yield |
+| `threading_bridge.cpp` | Реализация через `std::mutex`, `std::condition_variable`, `std::thread`. Компилируется с `/Zp8` (как sdl3_bridge) |
+
+**Изменённые файлы:**
+
+| Файл | Что изменилось |
+|------|---------------|
+| `async_file.h` | `HANDLE hFile` → `FILE*`, `DWORD blen` → `uint32_t blen`, убран `#include <windows.h>` |
+| `async_file.cpp` | `CRITICAL_SECTION` → `thread_mutex_*`, `CreateEvent/SetEvent/WaitForSingleObject` → `thread_condvar_*`, `CreateThread` → `thread_create`, `Sleep(0)` → `thread_yield`, `ReadFile/CreateFile` → `fread/MF_Fopen` |
+| `async_file_globals.h/cpp` | `CRITICAL_SECTION csLock` → `ThreadMutex csLock`, `HANDLE hEvent` → `ThreadCondVar cvEvent`, `HANDLE hThread` → `ThreadHandle workerThread` |
+| `CMakeLists.txt` | Добавлен `threading_bridge.cpp` в sources + `/Zp8` |
+
+**Ключевые решения:**
+
+- **Bridge-паттерн** — та же причина что SDL3: `/Zp1` ломает alignment static_asserts в `<thread>`/`<mutex>`/`<condition_variable>` MSVC STL headers
+- **Predicate через callback** — `thread_condvar_wait` принимает function pointer (не lambda), чтобы API оставался чистым C
+- **TermAsyncFile упрощён** — вместо spin-wait + CloseHandle используется `thread_join` (блокирующий, RAII cleanup)
+
+## 2026-03-30: INI config — GetPrivateProfile* → свой парсер
+
+- `env.cpp` — полностью переписан: `GetPrivateProfileInt/String` → `ini_read_int/string` (простой парсер), `WritePrivateProfileString` → `ini_write_string` (перезапись файла)
+- `GetCurrentDirectory` → `_getcwd`/`getcwd` (кросс-платформенное через `#ifdef _WIN32`)
+- `stricmp` → `_stricmp`/`strcasecmp` через макрос `oc_stricmp`
+- `env_globals.h` — `_MAX_PATH` → `ENV_MAX_PATH` (260), убран `#include <windows.h>`
+- INI парсер: секции `[Section]`, ключи `key=value`, комментарии `;`/`#`, case-insensitive section/key matching
+
+## 2026-03-30: Input cleanup — убрана Win32 прослойка
+
+### Что сделано
+
+Убрана прослойка которая конвертировала SDL events в Win32 message format (WM_KEYDOWN, LPARAM encoding) и обратно.
+
+**Изменённые файлы:**
+
+| Файл | Что изменилось |
+|------|---------------|
+| `keyboard.cpp` | `LRESULT CALLBACK KeyboardProc(int, WPARAM, LPARAM)` → `keyboard_key_down/up(UBYTE scancode)`. Убраны KEYMASK_* defines, CallNextHookEx, `#include <windows.h>` |
+| `keyboard.h` | Добавлены `keyboard_key_down(UBYTE)`, `keyboard_key_up(UBYTE)` |
+| `keyboard_globals.h` | Убраны `#include <windows.h>` и `HHOOK KeyboardHook` |
+| `keyboard_globals.cpp` | Убран `KeyboardHook` |
+| `mouse.cpp` | `LRESULT CALLBACK MouseProc(int, WPARAM, LPARAM)` → `mouse_on_move(int, int)`, `mouse_on_button(int, bool, int, int)`. Убраны WM_*, LOWORD/HIWORD, `#include <windows.h>` |
+| `mouse.h` | Добавлены `mouse_on_move`, `mouse_on_button` |
+| `host.cpp` | Callback'и `on_key_down/up/mouse_move/button` упрощены — прямые вызовы вместо LPARAM encoding. Убраны extern KeyboardProc/MouseProc |
+| `message.cpp` | Добавлен `#include <cstring>` (strncpy больше не приходит транзитивно) |
+
+### Побочный эффект
+
+`wind_procs.cpp` перестал линковаться (ссылался на удалённые KeyboardProc/MouseProc). DDLibShellProc нигде не вызывается → файл убран из сборки.
+
+## 2026-03-30: Types + dead code cleanup
+
+### Types cleanup
+
+Убраны лишние `#include <windows.h>` из 8 файлов: `playcuts_globals.h`, `tga.h`, `joystick.h`, `text_globals.h`, `bucket.h`, `quaternion_globals.h`, `quaternion.cpp`, `panel.cpp`.
+
+Оставлены файлы реально использующие Win32 API: `host.cpp`, `host_globals.h`, `uc_common.h`, backend_directx6/*.
+
+### Dead code cleanup
+
+- **wind_procs.cpp** — убран из CMakeLists (DDLibShellProc мёртвый, SDL3 event loop заменил)
+- **wind_procs_globals.h** — убран `#include <windows.h>`
+- **host_globals.h/cpp** — удалены 11 мёртвых глобалов: `hGlobalPrevInst`, `iGlobalWinMode`, `ShellID`, `hDDLibAccel`, `hDDLibThread`, `lpszGlobalArgs`, `DDLibClass`, `PauseFlags`, `PauseCount`, `argc`, `argv`. Оставлены: `hGlobalThisInst` (DX6), `ShellActive`
+- **outro_os_globals.h/cpp** — удалены 6 мёртвых Win32 глобалов: `OS_this_instance`, `OS_last_instance`, `OS_command_line`, `OS_start_show_state`, `OS_wcl`, `OS_window_handle`. Убран `#include <windows.h>`
+- **host.cpp bug fix** — `MF_main(argc, argv)` передавал неинициализированные глобалы → исправлено на `MF_main((UWORD)argc_in, argv_in)`
+
+### Результат
+
+Warnings: 78 → 56. Object files: 318 → 317 (убран wind_procs.cpp).

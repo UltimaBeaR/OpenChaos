@@ -3,7 +3,6 @@
 
 #include "assets/formats/file_clump.h"
 #include "engine/core/types.h"
-#include <windows.h>
 
 // RGBA pixel layout matching the TGA file format (stored as BGRA on disk).
 // uc_orig: TGA_Pixel (fallen/DDLibrary/Headers/Tga.h)

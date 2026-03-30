@@ -1,76 +1,64 @@
-// Mouse input handling via Windows messages.
+// Mouse input handling.
 // Tracks button states, cursor position, and delta movement.
-
-#include <windows.h>
 
 #include "engine/input/mouse.h"
 #include "engine/platform/sdl3_bridge.h"
 
-// uc_orig: MouseProc (fallen/DDLibrary/Source/GMouse.cpp)
-LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)
+// Called from SDL3 event loop on mouse movement.
+// x, y are client-area coordinates.
+// uc_orig: derived from MouseProc/WM_MOUSEMOVE (fallen/DDLibrary/Source/GMouse.cpp)
+void mouse_on_move(int x, int y)
 {
-    switch (code) {
-    case WM_MOUSEMOVE:
-        MouseX = LOWORD(lParam);
-        MouseY = HIWORD(lParam);
+    MouseX = x;
+    MouseY = y;
 
-        MouseDX = MouseX - OldMouseX;
-        MouseDY = MouseY - OldMouseY;
-        MousePoint.X = MouseX;
-        MousePoint.Y = MouseY;
-        MouseMoved = 1;
+    MouseDX = MouseX - OldMouseX;
+    MouseDY = MouseY - OldMouseY;
+    MousePoint.X = MouseX;
+    MousePoint.Y = MouseY;
+    MouseMoved = 1;
 
-        OldMouseX = MouseX;
-        OldMouseY = MouseY;
+    OldMouseX = MouseX;
+    OldMouseY = MouseY;
+}
 
-        break;
-    case WM_RBUTTONUP:
-        RightButton = 0;
-        break;
-    case WM_RBUTTONDOWN:
-        RightButton = 1;
-        if (!RightMouse.ButtonState) {
-            RightMouse.ButtonState = 1;
-            RightMouse.MouseX = LOWORD(lParam);
-            RightMouse.MouseY = HIWORD(lParam);
-            RightMouse.MousePoint.X = LOWORD(lParam);
-            RightMouse.MousePoint.Y = HIWORD(lParam);
-        }
-        break;
-    case WM_RBUTTONDBLCLK:
-        break;
-    case WM_LBUTTONUP:
-        LeftButton = 0;
-        break;
-    case WM_LBUTTONDOWN:
-        LeftButton = 1;
-        if (!LeftMouse.ButtonState) {
+// Called from SDL3 event loop on mouse button press/release.
+// button: 0=left, 1=right, 2=middle.
+// uc_orig: derived from MouseProc (fallen/DDLibrary/Source/GMouse.cpp)
+void mouse_on_button(int button, bool down, int x, int y)
+{
+    switch (button) {
+    case 0: // Left
+        LeftButton = down ? 1 : 0;
+        if (down && !LeftMouse.ButtonState) {
             LeftMouse.ButtonState = 1;
-            LeftMouse.MouseX = LOWORD(lParam);
-            LeftMouse.MouseY = HIWORD(lParam);
-            LeftMouse.MousePoint.X = LOWORD(lParam);
-            LeftMouse.MousePoint.Y = HIWORD(lParam);
+            LeftMouse.MouseX = x;
+            LeftMouse.MouseY = y;
+            LeftMouse.MousePoint.X = x;
+            LeftMouse.MousePoint.Y = y;
         }
         break;
-    case WM_LBUTTONDBLCLK:
+    case 1: // Right
+        RightButton = down ? 1 : 0;
+        if (down && !RightMouse.ButtonState) {
+            RightMouse.ButtonState = 1;
+            RightMouse.MouseX = x;
+            RightMouse.MouseY = y;
+            RightMouse.MousePoint.X = x;
+            RightMouse.MousePoint.Y = y;
+        }
         break;
-    case WM_MBUTTONUP:
-        MiddleButton = 0;
-        break;
-    case WM_MBUTTONDOWN:
-        MiddleButton = 1;
-        if (!MiddleMouse.ButtonState) {
+    case 2: // Middle
+        MiddleButton = down ? 1 : 0;
+        if (down && !MiddleMouse.ButtonState) {
             MiddleMouse.ButtonState = 1;
-            MiddleMouse.MouseX = LOWORD(lParam);
-            MiddleMouse.MouseY = HIWORD(lParam);
-            MiddleMouse.MousePoint.X = LOWORD(lParam);
-            MiddleMouse.MousePoint.Y = HIWORD(lParam);
+            MiddleMouse.MouseX = x;
+            MiddleMouse.MouseY = y;
+            MiddleMouse.MousePoint.X = x;
+            MiddleMouse.MousePoint.Y = y;
         }
-        break;
-    case WM_MBUTTONDBLCLK:
         break;
     }
-    return UC_FALSE;
 }
 
 // uc_orig: RecenterMouse (fallen/DDLibrary/Source/GMouse.cpp)

@@ -1,7 +1,6 @@
 #ifndef ENGINE_GRAPHICS_PIPELINE_BUCKET_H
 #define ENGINE_GRAPHICS_PIPELINE_BUCKET_H
 
-#include <windows.h>
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/core/types.h"
 

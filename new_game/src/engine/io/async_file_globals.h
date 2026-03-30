@@ -2,6 +2,7 @@
 #define ENGINE_IO_ASYNC_FILE_GLOBALS_H
 
 #include "engine/io/async_file.h"
+#include "engine/platform/threading_bridge.h"
 
 // uc_orig: File (fallen/DDLibrary/Source/AsyncFile2.cpp)
 extern AsyncFile File[MAX_ASYNC_FILES];
@@ -18,11 +19,11 @@ extern int KillThread;
 extern void* CancelKey;
 
 // uc_orig: csLock (fallen/DDLibrary/Source/AsyncFile2.cpp)
-extern CRITICAL_SECTION csLock;
+extern ThreadMutex csLock;
 // uc_orig: hEvent (fallen/DDLibrary/Source/AsyncFile2.cpp)
-extern HANDLE hEvent;
+extern ThreadCondVar cvEvent;
 // uc_orig: hThread (fallen/DDLibrary/Source/AsyncFile2.cpp)
-extern HANDLE hThread;
+extern ThreadHandle workerThread;
 
 // uc_orig: BytesPerMillisecond (fallen/DDLibrary/Source/AsyncFile2.cpp)
 extern const int BytesPerMillisecond;

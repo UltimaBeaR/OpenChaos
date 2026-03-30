@@ -1,7 +1,6 @@
 #ifndef MISSIONS_PLAYCUTS_GLOBALS_H
 #define MISSIONS_PLAYCUTS_GLOBALS_H
 
-#include <windows.h>
 #include "missions/playcuts.h"
 
 // Current text string to display on screen during playback (NULL = none).

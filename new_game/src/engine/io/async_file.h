@@ -1,8 +1,9 @@
 #ifndef ENGINE_IO_ASYNC_FILE_H
 #define ENGINE_IO_ASYNC_FILE_H
 
-#include <windows.h>
 #include "engine/core/types.h"
+#include <cstdint>
+#include <cstdio>
 
 // Asynchronous file loading using a background worker thread.
 // Files are queued for loading, read in chunks by the worker, and completed
@@ -10,7 +11,7 @@
 
 // uc_orig: AsyncFile (fallen/DDLibrary/Headers/AsyncFile2.h)
 struct AsyncFile {
-    HANDLE hFile;
+    FILE* hFile;
     UBYTE* buffer;
     int blen;
     void* hKey;
@@ -26,7 +27,7 @@ void InitAsyncFile(void);
 // uc_orig: TermAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
 void TermAsyncFile(void);
 // uc_orig: LoadAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
-bool LoadAsyncFile(char* filename, void* buffer, DWORD blen, void* key);
+bool LoadAsyncFile(char* filename, void* buffer, uint32_t blen, void* key);
 // uc_orig: GetNextCompletedAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
 void* GetNextCompletedAsyncFile(void);
 // uc_orig: CancelAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)

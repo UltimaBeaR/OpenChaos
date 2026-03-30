@@ -15,11 +15,11 @@ int KillThread;
 void* CancelKey;
 
 // uc_orig: csLock (fallen/DDLibrary/Source/AsyncFile2.cpp)
-CRITICAL_SECTION csLock;
+ThreadMutex csLock;
 // uc_orig: hEvent (fallen/DDLibrary/Source/AsyncFile2.cpp)
-HANDLE hEvent;
+ThreadCondVar cvEvent;
 // uc_orig: hThread (fallen/DDLibrary/Source/AsyncFile2.cpp)
-HANDLE hThread;
+ThreadHandle workerThread;
 
 // uc_orig: BytesPerMillisecond (fallen/DDLibrary/Source/AsyncFile2.cpp)
 const int BytesPerMillisecond = 128 * 1024;

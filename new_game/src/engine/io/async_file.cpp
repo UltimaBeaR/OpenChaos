@@ -1,12 +1,12 @@
 // Asynchronous file loading implementation.
-// Worker thread reads files in chunks, using critical sections for synchronization.
+// Worker thread reads files in chunks, using mutex + condition_variable for synchronization.
 // Three doubly-linked lists (Free, Active, Complete) manage AsyncFile blocks.
 
-#include <windows.h>
-#include <process.h>
+#include <cstring>
 
 #include "engine/io/async_file.h"
 #include "engine/io/async_file_globals.h"
+#include "engine/io/file.h"
 
 // uc_orig: Unlink (fallen/DDLibrary/Source/AsyncFile2.cpp)
 static void Unlink(AsyncFile* file);
@@ -17,7 +17,15 @@ static void ActiveLink(AsyncFile* file);
 // uc_orig: CompleteLink (fallen/DDLibrary/Source/AsyncFile2.cpp)
 static void CompleteLink(AsyncFile* file);
 // uc_orig: ThreadRun (fallen/DDLibrary/Source/AsyncFile2.cpp)
-static DWORD WINAPI ThreadRun(LPVOID arg);
+static void ThreadRun(void* arg);
+
+// Predicate for condition variable: returns true when worker should wake up.
+static int ThreadShouldWake(void* /*arg*/)
+{
+    return KillThread == 1 ||
+           CancelKey != nullptr ||
+           ActiveList.next != &ActiveList;
+}
 
 // uc_orig: InitAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
 void InitAsyncFile(void)
@@ -35,50 +43,44 @@ void InitAsyncFile(void)
         FreeLink(&File[ii]);
     }
 
-    InitializeCriticalSection(&csLock);
-
-    hEvent = CreateEvent(NULL, UC_FALSE, UC_FALSE, NULL);
+    csLock = thread_mutex_create();
+    cvEvent = thread_condvar_create();
 
     KillThread = 0;
     CancelKey = 0;
 
-    DWORD tid;
-    hThread = CreateThread(NULL, 0, ThreadRun, NULL, 0, &tid);
+    workerThread = thread_create(ThreadRun, NULL);
 }
 
 // uc_orig: TermAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
 void TermAsyncFile(void)
 {
-    EnterCriticalSection(&csLock);
+    thread_mutex_lock(csLock);
     KillThread = 1;
-    LeaveCriticalSection(&csLock);
+    thread_mutex_unlock(csLock);
 
-    SetEvent(hEvent);
+    thread_condvar_notify(cvEvent);
+    thread_join(workerThread);
+    workerThread = NULL;
 
-    EnterCriticalSection(&csLock);
-    while (KillThread != 2) {
-        LeaveCriticalSection(&csLock);
-        Sleep(0);
-        EnterCriticalSection(&csLock);
-    }
-    LeaveCriticalSection(&csLock);
-
-    CloseHandle(hThread);
-    CloseHandle(hEvent);
+    thread_condvar_destroy(cvEvent);
+    cvEvent = NULL;
+    thread_mutex_destroy(csLock);
+    csLock = NULL;
 }
 
 // uc_orig: ThreadRun (fallen/DDLibrary/Source/AsyncFile2.cpp)
-DWORD WINAPI ThreadRun(LPVOID arg)
+void ThreadRun(void* /*arg*/)
 {
     for (;;) {
-        WaitForSingleObject(hEvent, INFINITE);
-
-        EnterCriticalSection(&csLock);
+        // Wait until there's work to do.
+        thread_mutex_lock(csLock);
+        thread_condvar_wait(cvEvent, csLock, ThreadShouldWake, NULL);
 
         if (KillThread == 1) {
             KillThread = 2;
-            LeaveCriticalSection(&csLock);
-            return 0;
+            thread_mutex_unlock(csLock);
+            return;
         }
 
         if (CancelKey) {
@@ -101,40 +103,36 @@ DWORD WINAPI ThreadRun(LPVOID arg)
             Unlink(file);
         }
 
-        LeaveCriticalSection(&csLock);
+        thread_mutex_unlock(csLock);
 
         if (file) {
-            DWORD amount;
-
             while (file->blen > BytesPerMillisecond) {
-                ReadFile(file->hFile, file->buffer, BytesPerMillisecond, &amount, NULL);
+                fread(file->buffer, 1, BytesPerMillisecond, file->hFile);
                 file->buffer += BytesPerMillisecond;
                 file->blen -= BytesPerMillisecond;
-                Sleep(0);
+                thread_yield();
             }
 
             if (file->blen) {
-                ReadFile(file->hFile, file->buffer, file->blen, &amount, NULL);
+                fread(file->buffer, 1, file->blen, file->hFile);
             }
 
-            EnterCriticalSection(&csLock);
+            thread_mutex_lock(csLock);
             CompleteLink(file);
-            LeaveCriticalSection(&csLock);
+            thread_mutex_unlock(csLock);
         }
     }
-
-    return 0;
 }
 
 // uc_orig: LoadAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
-bool LoadAsyncFile(char* filename, void* buffer, DWORD blen, void* key)
+bool LoadAsyncFile(char* filename, void* buffer, uint32_t blen, void* key)
 {
     if (FreeList.next == &FreeList)
         return false;
 
     AsyncFile* file = FreeList.next;
 
-    file->hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    file->hFile = MF_Fopen(filename, "rb");
     if (!file->hFile)
         return false;
 
@@ -144,11 +142,11 @@ bool LoadAsyncFile(char* filename, void* buffer, DWORD blen, void* key)
 
     Unlink(file);
 
-    EnterCriticalSection(&csLock);
+    thread_mutex_lock(csLock);
     ActiveLink(file);
-    LeaveCriticalSection(&csLock);
+    thread_mutex_unlock(csLock);
 
-    SetEvent(hEvent);
+    thread_condvar_notify(cvEvent);
 
     return true;
 }
@@ -156,17 +154,20 @@ bool LoadAsyncFile(char* filename, void* buffer, DWORD blen, void* key)
 // uc_orig: GetNextCompletedAsyncFile (fallen/DDLibrary/Source/AsyncFile2.cpp)
 void* GetNextCompletedAsyncFile(void)
 {
-    EnterCriticalSection(&csLock);
+    thread_mutex_lock(csLock);
     for (AsyncFile* file = CompleteList.next; file != &CompleteList; file = file->next) {
         Unlink(file);
-        LeaveCriticalSection(&csLock);
+        thread_mutex_unlock(csLock);
 
-        CloseHandle(file->hFile);
+        if (file->hFile) {
+            fclose(file->hFile);
+            file->hFile = NULL;
+        }
         FreeLink(file);
 
         return file->hKey;
     }
-    LeaveCriticalSection(&csLock);
+    thread_mutex_unlock(csLock);
 
     return NULL;
 }
@@ -177,19 +178,22 @@ void CancelAsyncFile(void* key)
     if (!key)
         return;
 
-    EnterCriticalSection(&csLock);
+    thread_mutex_lock(csLock);
     CancelKey = key;
-    LeaveCriticalSection(&csLock);
+    thread_mutex_unlock(csLock);
 
-    SetEvent(hEvent);
+    thread_condvar_notify(cvEvent);
 
-    EnterCriticalSection(&csLock);
-    while (CancelKey) {
-        LeaveCriticalSection(&csLock);
-        Sleep(0);
-        EnterCriticalSection(&csLock);
+    // Wait for worker to process the cancellation.
+    for (;;) {
+        thread_mutex_lock(csLock);
+        if (!CancelKey) {
+            thread_mutex_unlock(csLock);
+            break;
+        }
+        thread_mutex_unlock(csLock);
+        thread_yield();
     }
-    LeaveCriticalSection(&csLock);
 }
 
 // uc_orig: Unlink (fallen/DDLibrary/Source/AsyncFile2.cpp)

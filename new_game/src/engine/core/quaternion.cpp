@@ -3,7 +3,6 @@
 #include "engine/core/fmatrix.h"
 #include "engine/core/math.h"
 #include <math.h>
-#include <windows.h>
 
 // Forward declaration of integer SLERP path used by CQuaternion::BuildTween.
 // uc_orig: QUATERNION_BuildTweenInteger (fallen/DDEngine/Source/Quaternion.cpp)

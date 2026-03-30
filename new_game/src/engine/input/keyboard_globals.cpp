@@ -20,6 +20,3 @@ UBYTE Released[MAX_RELEASE];
 SWORD release_count = 0;
 // uc_orig: game_turn (fallen/DDLibrary/Source/GKeyboard.cpp)
 UBYTE game_turn = 0;
-
-// uc_orig: KeyboardHook (fallen/DDLibrary/Source/GKeyboard.cpp)
-HHOOK KeyboardHook;

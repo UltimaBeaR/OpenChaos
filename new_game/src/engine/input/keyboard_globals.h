@@ -2,7 +2,6 @@
 #define ENGINE_INPUT_KEYBOARD_GLOBALS_H
 
 #include "engine/core/types.h"
-#include <windows.h>
 
 // Public keyboard state.
 
@@ -17,7 +16,7 @@ extern volatile UBYTE Keys[256];
 // uc_orig: LastKey (MFStdLib/Headers/StdKeybd.h)
 extern volatile UBYTE LastKey;
 
-// Internal keyboard state (used by keyboard.cpp, exposed for GHost.cpp access).
+// Internal keyboard state (used by keyboard.cpp, exposed for host.cpp access).
 
 // uc_orig: key_turn (fallen/DDLibrary/Source/GKeyboard.cpp)
 extern UBYTE key_turn[256];
@@ -29,7 +28,5 @@ extern UBYTE Released[MAX_RELEASE];
 extern SWORD release_count;
 // uc_orig: game_turn (fallen/DDLibrary/Source/GKeyboard.cpp)
 extern UBYTE game_turn;
-// uc_orig: KeyboardHook (fallen/DDLibrary/Source/GKeyboard.cpp)
-extern HHOOK KeyboardHook;
 
 #endif // ENGINE_INPUT_KEYBOARD_GLOBALS_H

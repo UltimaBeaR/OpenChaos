@@ -1,7 +1,6 @@
 #ifndef ENGINE_GRAPHICS_TEXT_TEXT_GLOBALS_H
 #define ENGINE_GRAPHICS_TEXT_TEXT_GLOBALS_H
 
-#include <windows.h>
 #include "engine/core/types.h"
 
 // uc_orig: text_fudge (fallen/DDEngine/Source/Text.cpp)

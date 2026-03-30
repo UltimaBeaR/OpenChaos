@@ -61,7 +61,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdarg.h>
-#include <windows.h>
 
 // estate: set when the player is in the manor level (affects face display).
 extern unsigned char estate;

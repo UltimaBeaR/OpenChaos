@@ -20,11 +20,6 @@ extern volatile HWND hDDLibWindow;
 #include "engine/audio/mfx.h"
 #include "engine/platform/uc_common.h"
 
-// Forward declarations for keyboard subsystem (not yet migrated to new/).
-BOOL SetupKeyboard(void);
-void ResetKeyboard(void);
-extern void ClearLatchedKeys();
-
 // Forward declaration for best-found device initialisation.
 void init_best_found(void);
 
@@ -34,51 +29,22 @@ void init_best_found(void);
 
 static void on_key_down(uint8_t scancode)
 {
-    // Simulate the lParam that KeyboardProc expects:
-    // bits 16-23 = scan code, bit 24 = extended flag, bit 31 = 0 (key down).
-    uint8_t base = scancode;
-    LPARAM lParam;
-    if (scancode >= 0x80) {
-        base = scancode - 0x80;
-        lParam = ((LPARAM)base << 16) | (1 << 24); // extended key
-    } else {
-        lParam = ((LPARAM)base << 16);
-    }
-    extern LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
-    KeyboardProc(WM_KEYDOWN, 0, lParam);
+    keyboard_key_down(scancode);
 }
 
 static void on_key_up(uint8_t scancode)
 {
-    uint8_t base = scancode;
-    LPARAM lParam;
-    if (scancode >= 0x80) {
-        base = scancode - 0x80;
-        lParam = ((LPARAM)base << 16) | (1 << 24) | (1u << 31); // extended + transition
-    } else {
-        lParam = ((LPARAM)base << 16) | (1u << 31); // transition bit = key up
-    }
-    extern LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
-    KeyboardProc(WM_KEYUP, 0, lParam);
+    keyboard_key_up(scancode);
 }
 
 static void on_mouse_move(int x, int y)
 {
-    extern LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam);
-    MouseProc(WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
+    mouse_on_move(x, y);
 }
 
 static void on_mouse_button(int button, bool down, int x, int y)
 {
-    extern LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam);
-    int msg;
-    switch (button) {
-    case 0: msg = down ? WM_LBUTTONDOWN : WM_LBUTTONUP; break;
-    case 1: msg = down ? WM_RBUTTONDOWN : WM_RBUTTONUP; break;
-    case 2: msg = down ? WM_MBUTTONDOWN : WM_MBUTTONUP; break;
-    default: return;
-    }
-    MouseProc(msg, 0, MAKELPARAM(x, y));
+    mouse_on_button(button, down, x, y);
 }
 
 static void on_focus_gained()
@@ -142,7 +108,6 @@ BOOL SetupHost(ULONG flags)
     // Initialise the sound manager; failure is non-fatal.
     MFX_init();
 
-    hDDLibAccel = NULL;
     ShellActive = UC_TRUE;
 
     the_game.DarciStrength = 0;
@@ -325,7 +290,7 @@ int HOST_run(int argc_in, char* argv_in[])
     }
 #endif
 
-    return MF_main(argc, argv);
+    return MF_main((UWORD)argc_in, argv_in);
 }
 
 // uc_orig: TraceText (MFStdLib/Source/StdLib/StdFile.cpp)

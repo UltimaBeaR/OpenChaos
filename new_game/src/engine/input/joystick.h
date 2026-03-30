@@ -1,7 +1,6 @@
 #ifndef ENGINE_INPUT_JOYSTICK_H
 #define ENGINE_INPUT_JOYSTICK_H
 
-#include <windows.h>
 #include "engine/core/types.h"
 #include "engine/input/joystick_globals.h"
 
