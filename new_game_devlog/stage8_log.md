@@ -164,3 +164,13 @@
 ### Результат
 
 Warnings: 78 → 56. Object files: 318 → 317 (убран wind_procs.cpp).
+
+## 2026-03-31: Удалён мёртвый async_file + threading_bridge
+
+При ревью обнаружено: `LoadAsyncFile`/`InitAsyncFile`/`TermAsyncFile`/`GetNextCompletedAsyncFile`/`CancelAsyncFile` нигде не вызываются за пределами async_file.cpp. Это часть DDLibrary MuckyFoot — заготовка для асинхронной загрузки файлов, не использованная в PC билде.
+
+Удалены:
+- `async_file.cpp`, `async_file.h`, `async_file_globals.cpp`, `async_file_globals.h`
+- `threading_bridge.cpp`, `threading_bridge.h` (единственный потребитель был async_file)
+
+Object files: 317 → 314.

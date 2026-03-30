@@ -48,13 +48,9 @@
 
 ## 7. Threading ✅
 
-- ~~`CreateThread` → `std::thread` (через threading_bridge)~~
-- ~~`CRITICAL_SECTION` → `std::mutex` (через threading_bridge)~~
-- ~~`CreateEvent/SetEvent/WaitForSingleObject` → `std::condition_variable` (через threading_bridge)~~
-- ~~`Sleep(0)` → `std::this_thread::yield()`~~
-- ~~`HANDLE hFile` в AsyncFile → `FILE*`~~
-- ~~`ReadFile`/`CreateFile` → `fread`/`MF_Fopen`~~
-- **threading_bridge.h/cpp** — C API обёртка над std::thread/mutex/cv, компилируется с `/Zp8` (как sdl3_bridge)
+- async_file (единственный threading в кодовой базе) — **удалён целиком** как мёртвый код
+  - `LoadAsyncFile`/`InitAsyncFile`/`TermAsyncFile` нигде не вызывались
+  - Удалены: `async_file.cpp/h`, `async_file_globals.cpp/h`, `threading_bridge.cpp/h`
 - **Сделано**
 
 ## 8. INI config ✅

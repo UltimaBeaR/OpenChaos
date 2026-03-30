@@ -156,13 +156,10 @@ set(SOURCES_NEW
     src/engine/platform/host_globals.cpp
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
-    src/engine/platform/threading_bridge.cpp
 
     # === Engine: I/O ===
     src/engine/io/file.cpp
     src/engine/io/file_globals.cpp
-    src/engine/io/async_file.cpp
-    src/engine/io/async_file_globals.cpp
     src/engine/io/env.cpp
     src/engine/io/env_globals.cpp
 
@@ -546,7 +543,6 @@ target_include_directories(Fallen PRIVATE
 set_source_files_properties(
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
-    src/engine/platform/threading_bridge.cpp
     PROPERTIES COMPILE_OPTIONS "/Zp8"
 )
 
