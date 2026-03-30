@@ -10,16 +10,15 @@ For prerequisites and first-time setup see [SETUP.md](SETUP.md). For development
 
 ## Quick start
 
-First-time setup: see [SETUP.md](SETUP.md).
-
+1. Copy your Urban Chaos game files (everything except `.exe`/`.dll`) into `original_game_resources/` at the repo root
+2. Run:
 ```bash
-# from repository root:
-make build-release   # full rebuild, Release
-make run-release     # launch
-
-make build-debug     # full rebuild, Debug
-make run-debug       # launch
+make configure-opengl   # configure (once, or after CMakeLists.txt changes)
+make copy-resources     # copy game assets into build folders (once)
+make r                  # build + run Release
 ```
+
+Prerequisites and detailed instructions: [SETUP.md](SETUP.md).
 
 ---
 
@@ -27,16 +26,17 @@ make run-debug       # launch
 
 ```
 src/
-├── main.cpp                — Win32 entry point (WinMain → HOST_run)
+├── main.cpp                — Entry point (main → HOST_run)
 │
 ├── engine/                 — Game engine (UC-agnostic, reusable)
 │   ├── core/               — Types, math, memory, heap, timer
-│   ├── platform/           — uc_common.h (legacy umbrella), host, wind_procs
+│   ├── platform/           — uc_common.h (platform umbrella), host, SDL3 bridge
 │   ├── graphics/
 │   │   ├── graphics_engine/ — Swappable graphics backend abstraction
 │   │   │   ├── game_graphics_engine.h  — ge_* contract (API-agnostic)
 │   │   │   ├── outro_graphics_engine.h — oge_* contract (outro)
-│   │   │   ├── backend_directx6/       — D3D6/DDraw implementation
+│   │   │   ├── backend_opengl/         — OpenGL 4.1 Core Profile (cross-platform)
+│   │   │   ├── backend_directx6/       — D3D6/DDraw (Windows-only legacy)
 │   │   │   └── backend_stub/           — No-op stub (compile-only verification)
 │   │   ├── pipeline/       — Render pipeline: aeng, bucket, poly, polypage, draw2d, qeng
 │   │   ├── geometry/       — Mesh renderers: mesh, facet, superfacet, farfacet, fastprim, figure, cone, oval, shape, sprite, sky, aa
@@ -44,7 +44,7 @@ src/
 │   │   ├── postprocess/    — Bloom (lens flare), wibble (screen distortion)
 │   │   └── text/           — Font, font2d, menufont, truetype, text renderer
 │   ├── console/            — Debug console + on-screen messages
-│   ├── io/                 — File I/O: file, async_file, env (INI config)
+│   ├── io/                 — File I/O: file, env (INI config)
 │   ├── audio/              — MFX (3D positional audio), music, sound, soundenv
 │   ├── input/              — Keyboard, mouse, gamepad (SDL3)
 │   ├── animation/          — Morph (vertex keyframes), anim_types

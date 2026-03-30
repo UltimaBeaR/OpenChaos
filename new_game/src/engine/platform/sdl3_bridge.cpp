@@ -89,6 +89,17 @@ void sdl3_window_get_drawable_size(int* w, int* h)
     }
 }
 
+void* sdl3_window_get_native_handle()
+{
+    if (!s_window) return nullptr;
+    SDL_PropertiesID props = SDL_GetWindowProperties(s_window);
+#ifdef _WIN32
+    return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+#else
+    return nullptr;
+#endif
+}
+
 void sdl3_warp_mouse_global(int x, int y)
 {
     SDL_WarpMouseGlobal((float)x, (float)y);

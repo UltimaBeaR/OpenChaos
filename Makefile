@@ -6,12 +6,14 @@ POWERSHELL := /c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 CMAKE      := "/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
-        run-release run-debug configure reconfigure \
+        run-release run-debug \
+        configure-opengl configure-d3d6 \
         copy-resources-debug copy-resources-release copy-resources \
         r d
 
 # ---------------------------------------------------------------------------
 # Configure (run once on first clone, re-run after CMakeLists.txt changes).
+# Choose a backend: opengl or d3d6 (legacy DirectX 6).
 #
 # What it does:
 #   1. Runs vcvarsall.bat x86 to set up the VS build environment
@@ -22,31 +24,29 @@ CMAKE      := "/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE
 #      automatically via vcpkg manifest mode (vcpkg.json).
 # ---------------------------------------------------------------------------
 
-configure:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/configure.ps1
+configure-opengl:
+	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/configure.ps1 -Backend opengl
 
-reconfigure: configure
+configure-d3d6:
+	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/configure.ps1 -Backend d3d6
 
 # ---------------------------------------------------------------------------
-# Build (configure runs automatically on first build if build.ninja missing)
+# Build (requires configure-opengl or configure-d3d6 to be run first)
 # build-debug/release: full rebuild; build-increment-*: incremental
 # ---------------------------------------------------------------------------
 
-$(BUILD_DIR)/build.ninja:
-	$(MAKE) configure
-
 build: build-debug build-release
 
-build-debug: $(BUILD_DIR)/build.ninja
+build-debug:
 	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Debug -Clean
 
-build-release: $(BUILD_DIR)/build.ninja
+build-release:
 	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Release -Clean
 
-build-increment-debug: $(BUILD_DIR)/build.ninja
+build-increment-debug:
 	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Debug
 
-build-increment-release: $(BUILD_DIR)/build.ninja
+build-increment-release:
 	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Release
 
 # ---------------------------------------------------------------------------

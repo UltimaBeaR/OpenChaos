@@ -7,8 +7,11 @@
 # Sets up the VS x86 developer environment (for Windows SDK headers/libs),
 # then invokes cmake with Ninja generator and clang-x86-windows toolchain.
 
-# No Config parameter needed: Ninja Multi-Config handles both Debug and Release
-# from a single configure run.
+param(
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("opengl", "d3d6")]
+    [string]$Backend  # Graphics backend: opengl or d3d6
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -45,13 +48,15 @@ foreach ($line in $envLines) {
     }
 }
 
+Write-Host "Graphics backend: $Backend"
 Write-Host "Configuring CMake (Ninja Multi-Config) -> $BuildDir"
 & $CMake -S $ProjectRoot `
       -B $BuildDir `
       -G "Ninja Multi-Config" `
       "-DCMAKE_TOOLCHAIN_FILE=$VcpkgCmake" `
       "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$OurToolchain" `
-      "-DVCPKG_INSTALLED_DIR=$ProjectRoot\vcpkg_installed"
+      "-DVCPKG_INSTALLED_DIR=$ProjectRoot\vcpkg_installed" `
+      "-DGRAPHICS_BACKEND=$Backend"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "cmake configuration failed (exit $LASTEXITCODE)"

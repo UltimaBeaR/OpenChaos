@@ -35,6 +35,9 @@ void sdl3_window_set_size(int w, int h);
 // Get actual drawable size in pixels (may differ from window size on HiDPI).
 void sdl3_window_get_drawable_size(int* w, int* h);
 
+// Get native window handle (HWND on Windows). Returns nullptr if no window.
+void* sdl3_window_get_native_handle();
+
 // Warp mouse cursor to screen coordinates.
 void sdl3_warp_mouse_global(int x, int y);
 

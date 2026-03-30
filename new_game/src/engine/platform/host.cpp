@@ -55,12 +55,12 @@ static void on_focus_lost()
 
 static void on_window_moved()
 {
-    ge_update_display_rect(nullptr, ge_is_fullscreen());
+    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
 }
 
 static void on_window_resized()
 {
-    ge_update_display_rect(nullptr, ge_is_fullscreen());
+    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
 }
 
 static void on_close()
@@ -83,6 +83,9 @@ BOOL SetupHost(ULONG flags)
     if (!sdl3_window_create("Urban Chaos", 640, 480)) {
         return UC_FALSE;
     }
+
+    // Set initial display rect from window position.
+    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
 
     // Register SDL3 event callbacks.
     SDL3_Callbacks cb = {};

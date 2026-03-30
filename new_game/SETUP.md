@@ -56,14 +56,17 @@ together with the rest of the resources (see Step 3).
 
 ### Step 2 — Configure
 
+Choose a graphics backend and configure:
+
 ```bash
 # from repository root
-make configure
+make configure-opengl   # OpenGL 4.1 — cross-platform (recommended)
+make configure-d3d6     # DirectX 6 — Windows-only legacy backend
 ```
 
 This sets up the VS x86 build environment (`vcvarsall.bat x86`) and runs CMake.
 **vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
-— no separate vcpkg command needed. Re-run if `CMakeLists.txt` changes.
+— no separate vcpkg command needed. Re-run when switching backends or after `CMakeLists.txt` changes.
 
 ### Step 3 — Prepare build output (copy resources into build folders)
 
@@ -94,8 +97,8 @@ make run-debug
 
 | Command | Description |
 |---------|-------------|
-| `make configure` | CMake configure — run once, or after `CMakeLists.txt` changes |
-| `make reconfigure` | Alias for `make configure` |
+| `make configure-opengl` | CMake configure with OpenGL backend — run once, or after `CMakeLists.txt` changes |
+| `make configure-d3d6` | CMake configure with DirectX 6 backend (Windows-only) |
 | `make build` | Full rebuild — Debug and Release |
 | `make build-debug` | Full rebuild — Debug |
 | `make build-release` | Full rebuild — Release |

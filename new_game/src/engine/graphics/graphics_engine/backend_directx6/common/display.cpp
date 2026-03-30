@@ -3,9 +3,11 @@
 // mode changes, and pixel-level framebuffer access.
 
 #include <windows.h>
+#include <windowsx.h>
 #include <string.h>
 #include <stdio.h>
 #include "engine/platform/uc_common.h"                  // ASSERT, InitStruct, DisplayWidth/Height
+#include "engine/platform/sdl3_bridge.h"                // sdl3_window_get_native_handle, sdl3_window_set_size
 #include <mmstream.h>  // IMultiMediaStream, IMediaStream
 #include <amstream.h>  // IAMMultiMediaStream, CLSID_AMMultiMediaStream
 #include <ddstream.h>  // IDirectDrawMediaStream, IDirectDrawStreamSample
@@ -122,6 +124,9 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     }
 
     static HINSTANCE hGlobalThisInst = GetModuleHandle(NULL);
+
+    // Get native window handle from SDL3 (needed for DirectDraw cooperative level).
+    hDDLibWindow = (HWND)sdl3_window_get_native_handle();
 
     VideoRes = ENV_get_value_number("video_res", -1, "Render");
 
@@ -601,6 +606,8 @@ HRESULT Display::InitFullscreenMode(void)
             DisplayRect.right - DisplayRect.left,
             DisplayRect.bottom - DisplayRect.top,
             SWP_NOMOVE | SWP_NOZORDER | SWP_SHOWWINDOW);
+        // Sync SDL3 with the actual window size set by Win32.
+        sdl3_window_set_size(RealDisplayWidth, RealDisplayHeight);
 
         GetClientRect(hDDLibWindow, &the_display.DisplayRect);
         ClientToScreen(hDDLibWindow, (LPPOINT)&the_display.DisplayRect);
