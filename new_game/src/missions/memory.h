@@ -102,7 +102,7 @@ void load_whole_game(CBYTE* gamename);
 // uc_orig: uncache (fallen/Source/memory.cpp)
 void uncache(void);
 
-// Quick save to "data\\quicksave.dat" using stdio (fast, PC-only).
+// Quick save to "data/quicksave.dat" using stdio (fast, PC-only).
 // uc_orig: MEMORY_quick_init (fallen/Headers/memory.h)
 void MEMORY_quick_init(void);
 

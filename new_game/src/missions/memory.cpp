@@ -1330,7 +1330,7 @@ void load_whole_game(CBYTE* gamename)
 }
 
 // uc_orig: MEMORY_QUICK_FNAME (fallen/Source/memory.cpp)
-#define MEMORY_QUICK_FNAME "data\\quicksave.dat"
+#define MEMORY_QUICK_FNAME "data/quicksave.dat"
 // uc_orig: MEMORY_QUICK_CHECK (fallen/Source/memory.cpp)
 #define MEMORY_QUICK_CHECK 314159265
 

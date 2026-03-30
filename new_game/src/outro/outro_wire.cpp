@@ -153,15 +153,15 @@ void WIRE_init()
 
     if (!done) {
         /*
-        WIRE_mesh[0] = IMP_load("Meshes\\coinlogo.sex", 0.80F);
-        WIRE_mesh[1] = IMP_load("Meshes\\tallpot.sex",  0.25F);
-        WIRE_mesh[2] = IMP_load("Meshes\\capsule.sex",  0.25F);
+        WIRE_mesh[0] = IMP_load("Meshes/coinlogo.sex", 0.80F);
+        WIRE_mesh[1] = IMP_load("Meshes/tallpot.sex",  0.25F);
+        WIRE_mesh[2] = IMP_load("Meshes/capsule.sex",  0.25F);
         */
 
-        WIRE_mesh[0] = IMP_binary_load("Meshes\\heart.imp");
-        WIRE_mesh[1] = IMP_binary_load("Meshes\\coinlogo.imp");
-        WIRE_mesh[2] = IMP_binary_load("Meshes\\tallpot.imp");
-        WIRE_mesh[3] = IMP_binary_load("Meshes\\capsule.imp");
+        WIRE_mesh[0] = IMP_binary_load("Meshes/heart.imp");
+        WIRE_mesh[1] = IMP_binary_load("Meshes/coinlogo.imp");
+        WIRE_mesh[2] = IMP_binary_load("Meshes/tallpot.imp");
+        WIRE_mesh[3] = IMP_binary_load("Meshes/capsule.imp");
 
         for (i = 0; i < WIRE_NUM_MESHES; i++) {
             MF_load_textures(&WIRE_mesh[i]);

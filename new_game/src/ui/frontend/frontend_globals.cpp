@@ -265,7 +265,7 @@ CBYTE the_script_file[MAX_PATH];
 UBYTE IsEnglish = 0;
 
 // uc_orig: pcSpeechLanguageDir (fallen/Source/frontend.cpp)
-char* pcSpeechLanguageDir = "talk2\\";
+char* pcSpeechLanguageDir = "talk2/";
 
 // uc_orig: dwAutoPlayFMVTimeout (fallen/Source/frontend.cpp)
 DWORD dwAutoPlayFMVTimeout = 0;

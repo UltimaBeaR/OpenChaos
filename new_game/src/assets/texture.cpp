@@ -65,12 +65,12 @@ void TEXTURE_choose_set(SLONG number)
         sprintf(textures, "gary16");
     }
 
-    sprintf(TEXTURE_inside_dir, "server\\%s\\world%d\\insides\\", textures, number);
-    sprintf(TEXTURE_prims_dir, "server\\%s\\shared\\prims\\", textures);
-    sprintf(TEXTURE_people_dir, "server\\%s\\shared\\people\\", textures);
-    sprintf(TEXTURE_people_dir2, "server\\%s\\shared\\people2\\", textures);
-    sprintf(TEXTURE_world_dir, "server\\%s\\world%d\\", textures, number);
-    sprintf(TEXTURE_shared_dir, "server\\%s\\shared\\", textures, number);
+    sprintf(TEXTURE_inside_dir, "server/%s/world%d/insides/", textures, number);
+    sprintf(TEXTURE_prims_dir, "server/%s/shared/prims/", textures);
+    sprintf(TEXTURE_people_dir, "server/%s/shared/people/", textures);
+    sprintf(TEXTURE_people_dir2, "server/%s/shared/people2/", textures);
+    sprintf(TEXTURE_world_dir, "server/%s/world%d/", textures, number);
+    sprintf(TEXTURE_shared_dir, "server/%s/shared/", textures, number);
     strcpy(TEXTURE_WORLD_DIR, TEXTURE_world_dir);
     sprintf(TEXTURE_fx_inifile, "%ssoundfx.ini", TEXTURE_world_dir);
     sprintf(TEXTURE_shared_fx_inifile, "%ssoundfx.ini", TEXTURE_shared_dir);
@@ -99,7 +99,7 @@ void TEXTURE_choose_set(SLONG number)
             POLY_init_texture_flags();
             POLY_load_texture_flags(world_texture_flags);
             POLY_load_texture_flags(shared_texture_flags);
-            POLY_load_texture_flags("server\\textures\\shared\\prims\\textype.txt", 11 * 64);
+            POLY_load_texture_flags("server/textures/shared/prims/textype.txt", 11 * 64);
         }
 
         extern void load_texture_styles(UBYTE editor, UBYTE world);
@@ -267,11 +267,11 @@ void TEXTURE_initialise_clumping(CBYTE* fname_level)
 
         do {
             leafname = fname_level;
-            while (*fname_level && (*fname_level != '\\'))
+            while (*fname_level && (*fname_level != '\\') && (*fname_level != '/'))
                 fname_level++;
-        } while (*fname_level++ == '\\');
+        } while ((*fname_level == '\\' || *fname_level == '/') && (fname_level++, 1));
 
-        sprintf(filename, ".\\clumps\\");
+        sprintf(filename, "./clumps/");
         char* fptr = filename + strlen(filename);
         while (*leafname != '.')
             *fptr++ = *leafname++;
@@ -410,8 +410,8 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     TEXTURE_num_textures = TEXTURE_NUM_STANDARD + 90 + 20;
 
-#define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
-#define TEXTURE_PEOPLE3_DIR "server\\textures\\shared\\people3\\"
+#define TEXTURE_EXTRA_DIR "server/textures/extras/"
+#define TEXTURE_PEOPLE3_DIR "server/textures/shared/people3/"
 
     ge_texture_font_on(TEXTURE_page_font);
     TEXTURE_needed[TEXTURE_page_font] = 1;

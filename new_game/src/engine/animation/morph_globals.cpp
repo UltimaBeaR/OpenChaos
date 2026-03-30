@@ -2,8 +2,8 @@
 
 // uc_orig: MORPH_filename (fallen/Source/morph.cpp)
 const char* MORPH_filename[MORPH_NUMBER] = {
-    "morph\\bird01.asc",
-    "morph\\bird03.asc"
+    "morph/bird01.asc",
+    "morph/bird03.asc"
 };
 
 // uc_orig: MORPH_point (fallen/Source/morph.cpp)

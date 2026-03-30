@@ -275,7 +275,7 @@ void apply_cloud(SLONG x, SLONG y, SLONG z, ULONG* col)
 static void init_clouds(void)
 {
     MFFileHandle handle;
-    handle = FileOpen("data\\cloud.raw");
+    handle = FileOpen("data/cloud.raw");
     if (handle != FILE_OPEN_ERROR) {
         FileRead(handle, cloud_data, 1024);
         FileClose(handle);
@@ -323,7 +323,7 @@ void AENG_movie_init()
 
     FILE* handle;
 
-    handle = MF_Fopen("movie\\bond.mmv", "rb");
+    handle = MF_Fopen("movie/bond.mmv", "rb");
 
     if (!handle) {
         goto file_error;
@@ -370,7 +370,7 @@ void AENG_init(void)
 {
     MESH_init();
     init_clouds();
-    SKY_init("stars\\poo");
+    SKY_init("stars/poo");
     POLY_init();
     AENG_movie_init();
     TEXTURE_choose_set(1);

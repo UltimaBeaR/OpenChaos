@@ -67,7 +67,7 @@ void OS_joy_poll(void)
 // ========================================================
 
 // Texture directory prefix.
-#define OS_TEXTURE_DIR "Textures\\"
+#define OS_TEXTURE_DIR "Textures/"
 
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
 OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)

@@ -1270,7 +1270,7 @@ void ge_destroy_background_surface()
 void ge_init_back_image(const char* name)
 {
     char fname[256];
-    sprintf(fname, "%sdata\\%s", s_data_dir, name);
+    sprintf(fname, "%sdata/%s", s_data_dir, name);
 
     if (!s_bg_pixels) {
         s_bg_pixels = (uint8_t*)MemAlloc(640 * 480 * 3);
@@ -1394,7 +1394,7 @@ GEScreenSurface ge_create_screen_surface(uint8_t* pixels)
 GEScreenSurface ge_load_screen_surface(const char* filename)
 {
     char fname[256];
-    sprintf(fname, "%sdata\\%s", s_data_dir, filename);
+    sprintf(fname, "%sdata/%s", s_data_dir, filename);
 
     uint8_t* image_data = (uint8_t*)MemAlloc(640 * 480 * 3);
     if (!image_data) return GE_SCREEN_SURFACE_NONE;

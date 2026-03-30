@@ -547,7 +547,7 @@ void init_flames()
 {
     MFFileHandle handle = FILE_OPEN_ERROR;
 
-    handle = FileOpen("data\\flames1.pal");
+    handle = FileOpen("data/flames1.pal");
 
     if (handle != FILE_OPEN_ERROR) {
         FileRead(handle, (UBYTE*)&fire_pal, 768);

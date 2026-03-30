@@ -101,7 +101,7 @@ void FONT2D_init(SLONG font_id)
     TGA_Info ti;
 
 // uc_orig: TEXTURE_EXTRA_DIR (fallen/DDEngine/Source/font2d.cpp)
-#define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
+#define TEXTURE_EXTRA_DIR "server/textures/extras/"
 
     CBYTE fname[256];
     font2d_data = MemAlloc(sizeof(TGA_Pixel) * 256 * 256);

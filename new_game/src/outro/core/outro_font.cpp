@@ -115,7 +115,7 @@ void FONT_init()
     OUTRO_TGA_Info ti;
 
     ti = OUTRO_TGA_load(
-        "Textures\\font.tga",
+        "Textures/font.tga",
         256,
         256,
         &FONT_data[0][0]);

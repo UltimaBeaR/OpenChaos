@@ -75,7 +75,7 @@ void get_level_word(CBYTE* str)
 {
     SLONG c0 = 0, c1 = 0;
 
-    while (ELEV_fname_level[c0] != '\\' && c0 < 101) {
+    while (ELEV_fname_level[c0] != '\\' && ELEV_fname_level[c0] != '/' && c0 < 101) {
         c0++;
     }
     ASSERT(c0 < 99);
@@ -94,7 +94,7 @@ SLONG playing_combat_tutorial(void)
 
     SLONG c0 = 0;
 
-    while (ELEV_fname_level[c0] != '\\' && c0 < 101) {
+    while (ELEV_fname_level[c0] != '\\' && ELEV_fname_level[c0] != '/' && c0 < 101) {
         c0++;
     }
     if (c0 > 99)
@@ -119,7 +119,7 @@ SLONG playing_level(const CBYTE* name)
 {
     SLONG c0 = 0;
 
-    while (ELEV_fname_level[c0] != '\\' && c0 < 101) {
+    while (ELEV_fname_level[c0] != '\\' && ELEV_fname_level[c0] != '/' && c0 < 101) {
         c0++;
     }
     if (c0 > 99)
@@ -141,7 +141,7 @@ SLONG playing_real_mission(void)
 
     SLONG c0 = 0, c1 = 0;
 
-    while (ELEV_fname_level[c0] != '\\' && c0 < 101) {
+    while (ELEV_fname_level[c0] != '\\' && ELEV_fname_level[c0] != '/' && c0 < 101) {
         c0++;
     }
     if (c0 > 99)
@@ -168,7 +168,7 @@ void EWAY_talk(ULONG waypoint)
     CBYTE level[100];
 
     get_level_word(level);
-    sprintf(str, ".\\talk2\\%s.ucm%d.wav", level, waypoint);
+    sprintf(str, "./talk2/%s.ucm%d.wav", level, waypoint);
 
     if (MUSIC_is_playing()) {
         MFX_QUICK_stop();
@@ -205,7 +205,7 @@ void EWAY_talk_conv(ULONG waypoint, SLONG conversation)
 
     talk_thing = NULL;
     get_level_word(level);
-    sprintf(str, ".\\talk2\\%s.ucm%d%c.wav", level, waypoint, 65 + conversation);
+    sprintf(str, "./talk2/%s.ucm%d%c.wav", level, waypoint, 65 + conversation);
 
     if (MUSIC_is_playing()) {
         MFX_QUICK_stop();
@@ -1206,20 +1206,20 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
     XLAT_str(X_THIS_LANGUAGE_IS, name_buffer);
 
     if (!stricmp(name_buffer, "Italian")) {
-        fname = "text\\citsez_ita.txt";
+        fname = "text/citsez_ita.txt";
     }
     if (!stricmp(name_buffer, "French")) {
-        fname = "text\\citsez_french.txt";
+        fname = "text/citsez_french.txt";
     }
     if (!stricmp(name_buffer, "Deutsch")) {
-        fname = "text\\citsez_german.txt";
+        fname = "text/citsez_german.txt";
     }
     if (!stricmp(name_buffer, "Spanish")) {
-        fname = "text\\citsez_spa.txt";
+        fname = "text/citsez_spa.txt";
     }
 
     if (fname == NULL) {
-        fname = "text\\citsez.txt";
+        fname = "text/citsez.txt";
     }
 
     if (!EWAY_load_message_file(
@@ -1227,18 +1227,18 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
             &EWAY_fake_wander_text_normal_index,
             &EWAY_fake_wander_text_normal_number)) {
         EWAY_load_message_file(
-            "text\\citsez.txt",
+            "text/citsez.txt",
             &EWAY_fake_wander_text_normal_index,
             &EWAY_fake_wander_text_normal_number);
     }
 
     EWAY_load_message_file(
-        "text\\guilty.txt",
+        "text/guilty.txt",
         &EWAY_fake_wander_text_guilty_index,
         &EWAY_fake_wander_text_guilty_number);
 
     EWAY_load_message_file(
-        "text\\annoyed.txt",
+        "text/annoyed.txt",
         &EWAY_fake_wander_text_annoyed_index,
         &EWAY_fake_wander_text_annoyed_number);
 

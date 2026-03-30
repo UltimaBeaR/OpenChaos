@@ -1010,7 +1010,7 @@ bool FRONTEND_save_savegame(CBYTE* mission_name, UBYTE slot)
 
     CreateDirectory("saves", NULL);
 
-    sprintf(fn, "saves\\slot%d.wag", slot);
+    sprintf(fn, "saves/slot%d.wag", slot);
     file = FileCreate(fn, 1);
     FRONTEND_SaveString(file, mission_name);
     FileWrite(file, &complete_point, 1);
@@ -1042,7 +1042,7 @@ bool FRONTEND_load_savegame(UBYTE slot)
     MFFileHandle file;
     UBYTE version = 0;
 
-    sprintf(fn, "saves\\slot%d.wag", slot);
+    sprintf(fn, "saves/slot%d.wag", slot);
     file = FileOpen(fn);
     FRONTEND_LoadString(file, fn);
     FileRead(file, &complete_point, 1);
@@ -1089,7 +1089,7 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
         md->Choices = (CBYTE*)0;
 
         MFFileHandle file;
-        sprintf(dir, "saves\\slot%d.wag", c0);
+        sprintf(dir, "saves/slot%d.wag", c0);
         file = FileOpen(dir);
         GetFileTime(file, NULL, NULL, &time);
         if (file != FILE_OPEN_ERROR) {
@@ -1457,8 +1457,8 @@ void FRONTEND_MissionBrief(CBYTE* script, UBYTE i)
 
     if ((mdata->ObjID) && (mdata->ObjID < 34) && (0 != strcmp(brief_wav[mdata->ObjID], "none"))) {
         CBYTE path[_MAX_PATH];
-        strcpy(path, ".\\");
-        strcat(path, "talk2\\");
+        strcpy(path, "./");
+        strcat(path, "talk2/");
         strcat(path, brief_wav[mdata->ObjID]);
         MFX_QUICK_play(path);
     }
@@ -2993,10 +2993,10 @@ void FRONTEND_init(bool bGoToTitleScreen)
     // Set up the current language.
     switch (0) {
     case 0:
-        pcSpeechLanguageDir = "talk2\\";
+        pcSpeechLanguageDir = "talk2/";
         break;
     case 1:
-        pcSpeechLanguageDir = "talk2_french\\";
+        pcSpeechLanguageDir = "talk2_french/";
         break;
     default:
         ASSERT(UC_FALSE);
@@ -3009,7 +3009,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
     CBYTE *str, *lang = ENV_get_value_string("language");
 
     if (!lang)
-        lang = "text\\lang_english.txt";
+        lang = "text/lang_english.txt";
     XLAT_load(lang);
     XLAT_init();
 
@@ -3020,7 +3020,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
     str += strlen(str) + 1;
     strcpy(str, XLAT_str(X_YES));
 
-    strcpy(MISSION_SCRIPT, "data\\");
+    strcpy(MISSION_SCRIPT, "data/");
     lang = XLAT_str(X_THIS_LANGUAGE_IS);
     if (strcmp(lang, "English") == 0)
         strcat(MISSION_SCRIPT, "urban");
@@ -3230,13 +3230,13 @@ static void FRONTEND_diddle_stats(void)
 static void FRONTEND_diddle_music(void)
 {
     MUSIC_bodge_code = 0;
-    if (strstr(STARTSCR_mission, "levels\\fight") || strstr(STARTSCR_mission, "levels\\FTutor"))
+    if (strstr(STARTSCR_mission, "levels/fight") || strstr(STARTSCR_mission, "levels/FTutor"))
         MUSIC_bodge_code = 1;
-    else if (strstr(STARTSCR_mission, "levels\\Assault"))
+    else if (strstr(STARTSCR_mission, "levels/Assault"))
         MUSIC_bodge_code = 2;
-    else if (strstr(STARTSCR_mission, "levels\\testdrive"))
+    else if (strstr(STARTSCR_mission, "levels/testdrive"))
         MUSIC_bodge_code = 3;
-    else if (strstr(STARTSCR_mission, "levels\\Finale1"))
+    else if (strstr(STARTSCR_mission, "levels/Finale1"))
         MUSIC_bodge_code = 4;
 }
 
@@ -3392,7 +3392,7 @@ SBYTE FRONTEND_loop()
         SLONG index_into_the_whattoload_array;
 
         previous_mission_launch = mission_launch;
-        strcpy(STARTSCR_mission, "levels\\");
+        strcpy(STARTSCR_mission, "levels/");
         strcat(STARTSCR_mission, FRONTEND_MissionFilename(MISSION_SCRIPT, menu_state.mode - 100));
 
         index_into_the_whattoload_array = -1;

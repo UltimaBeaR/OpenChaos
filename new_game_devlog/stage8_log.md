@@ -42,6 +42,15 @@
 - `memory.h` — убран `#include <windef.h>`, `BOOL` добавлен в `types.h` с guard `#ifndef _WINDEF_`
 - `MemReAlloc` — нигде не вызывается в кодовой базе, оставлен для API совместимости
 
+## 2026-03-30: File I/O — Win32 HANDLE → FILE*
+
+- `file.h` — `MFFileHandle` теперь `FILE*` вместо `HANDLE`. Sentinel'ы ошибок (`FILE_OPEN_ERROR` и т.д.) = `NULL`
+- `file.cpp` — `CreateFile` → `fopen`, `ReadFile` → `fread`, `WriteFile` → `fwrite`, `GetFileSize` → `ftell`, `SetFilePointer` → `fseek`, `CloseHandle` → `fclose`, `DeleteFile` → `remove`, `GetFileAttributes` → `fopen`+`fclose` проверка
+- `FileSetBasePath` — теперь принимает и `/` и `\\` как разделитель
+- Бэкслэши в путях → `/` по всей кодовой базе (~28 файлов): `server\\`, `data\\`, `levels\\`, `talk2\\`, `Meshes\\` и т.д.
+- Абсолютные пути убраны: `C:\\Windows\\Desktop\\...` → относительные, `c:\\fallen.ini` → `fallen.ini`
+- Места с `strrchr(fname, '\\')` и `*ch == '\\'` дополнены проверкой `/`
+
 ### Замечено
 
 - **CRT Debug Assertion:** `_CrtIsValidHeapPointer(block)` в `debug_heap.cpp:904` — давняя проблема, периодически в Debug build. Double free или невалидный указатель в legacy коде

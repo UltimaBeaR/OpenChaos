@@ -315,13 +315,13 @@ void make_all_clumps(void)
 
     TEXTURE_create_clump = 1;
 
-    TEXTURE_load_needed("levels\\frontend.ucm", 0, 256, 40);
+    TEXTURE_load_needed("levels/frontend.ucm", 0, 256, 40);
 
     Levels* lptr = levels;
 
     while (lptr[c0].level) {
         CBYTE name[100];
-        sprintf(name, "levels\\%s.ucm", lptr[c0].name);
+        sprintf(name, "levels/%s.ucm", lptr[c0].name);
         make_texture_clumps(name);
         if (MAV_opt_upto > highest) {
             highest = MAV_opt_upto;

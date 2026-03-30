@@ -38,7 +38,7 @@ void MENUFONT_Page(SLONG page)
 }
 
 // uc_orig: TEXTURE_EXTRA_DIR (fallen/DDEngine/Source/menufont.cpp)
-#define TEXTURE_EXTRA_DIR "server\\textures\\extras\\"
+#define TEXTURE_EXTRA_DIR "server/textures/extras/"
 
 // uc_orig: MENUFONT_Load (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)

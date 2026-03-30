@@ -30,9 +30,9 @@
 SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG type);
 
 // uc_orig: EXTRAS_DIR (fallen/Source/io.cpp)
-CBYTE EXTRAS_DIR[100] = "data\\textures";
+CBYTE EXTRAS_DIR[100] = "data/textures";
 // uc_orig: PRIM_DIR (fallen/Source/io.cpp)
-CBYTE PRIM_DIR[100] = "server\\prims";
+CBYTE PRIM_DIR[100] = "server/prims";
 // uc_orig: DATA_DIR (fallen/Source/io.cpp)
 CBYTE DATA_DIR[100] = "";
 // uc_orig: LEVELS_DIR (fallen/Source/io.cpp)
@@ -410,12 +410,12 @@ SLONG load_prim_object(SLONG prim)
         return UC_TRUE;
     }
 
-    sprintf(fname, "%s\\nprim%03d.prm", PRIM_DIR, prim);
+    sprintf(fname, "%s/nprim%03d.prm", PRIM_DIR, prim);
 
     handle = FileOpen(fname);
     if (handle == FILE_OPEN_ERROR) {
 
-        sprintf(fname, "%s\\prim%03d.prm", PRIM_DIR, prim);
+        sprintf(fname, "%s/prim%03d.prm", PRIM_DIR, prim);
 
         handle = FileOpen(fname);
         if (handle == FILE_OPEN_ERROR) {

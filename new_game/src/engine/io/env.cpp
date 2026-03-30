@@ -8,14 +8,15 @@
 void ENV_load(CBYTE* fname)
 {
     GetCurrentDirectory(_MAX_PATH, env_inifile);
-    if (env_inifile[strlen(env_inifile) - 1] != '\\')
-        strcat(env_inifile, "\\");
+    if (env_inifile[strlen(env_inifile) - 1] != '\\' && env_inifile[strlen(env_inifile) - 1] != '/')
+        strcat(env_inifile, "/");
     strcat(env_inifile, fname);
 
     SLONG local = GetPrivateProfileInt("MuckyFoot", "local", 0, env_inifile);
 
     if (local) {
-        strcpy(env_inifile, "c:\\fallen.ini");
+        // uc-abs-path: was "c:\fallen.ini"
+        strcpy(env_inifile, "fallen.ini");
     }
 }
 

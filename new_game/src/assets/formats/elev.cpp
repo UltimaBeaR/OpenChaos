@@ -1564,7 +1564,7 @@ void ELEV_load_level(CBYTE* fname_level)
         // Override MUSIC_WORLD from an optional side-car text file (levels\mworlds.txt).
         // Format: one line per level — "levelname: N" where N is the world index.
         {
-            FILE* handle = MF_Fopen("levels\\mworlds.txt", "rb");
+            FILE* handle = MF_Fopen("levels/mworlds.txt", "rb");
 
             if (handle) {
                 CBYTE line[256];
@@ -1575,7 +1575,7 @@ void ELEV_load_level(CBYTE* fname_level)
                 CBYTE* ch;
                 CBYTE* blah;
 
-                for (ch = fname_level; *ch && *ch != '\\'; ch++)
+                for (ch = fname_level; *ch && *ch != '\\' && *ch != '/'; ch++)
                     ;
 
                 ch += 1;
@@ -1818,7 +1818,7 @@ SLONG ELEV_game_init(
     //	TRACKS_Reset();
     TRACKS_InitOnce();
     RIBBON_init();
-    load_palette("data\\tex01.pal");
+    load_palette("data/tex01.pal");
 
     extern CBYTE PANEL_wide_text[256];
     extern THING_INDEX PANEL_wide_top_person;
@@ -2030,7 +2030,7 @@ void ELEV_create_similar_name(
             break;
         }
 
-        if (*ch == '\\') {
+        if (*ch == '\\' || *ch == '/') {
             ch++;
 
             break;
@@ -2196,8 +2196,8 @@ try_again:;
             FileRead(playback_file, temp, c);
 
             strcpy(ELEV_fname_level, curr_directory);
-            if (ELEV_fname_level[strlen(ELEV_fname_level) - 1] != '\\')
-                strcat(ELEV_fname_level, "\\");
+            if (ELEV_fname_level[strlen(ELEV_fname_level) - 1] != '\\' && ELEV_fname_level[strlen(ELEV_fname_level) - 1] != '/')
+                strcat(ELEV_fname_level, "/");
             strcat(ELEV_fname_level, temp);
             return ELEV_load_name(ELEV_fname_level);
 
@@ -2377,7 +2377,7 @@ try_again:;
         ofn.nMaxFile = _MAX_PATH;
         ofn.lpstrFileTitle = NULL;
         ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = "data\\lighting";
+        ofn.lpstrInitialDir = "data/lighting";
         ofn.lpstrTitle = "Load a lighting file";
         ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
         ofn.nFileOffset = 0;
@@ -2411,7 +2411,7 @@ try_again:;
         ofn.nMaxFile = _MAX_PATH;
         ofn.lpstrFileTitle = NULL;
         ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = "\\text";
+        ofn.lpstrInitialDir = "text";
         ofn.lpstrTitle = "Load a Citizen-sez text file";
         ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
         ofn.nFileOffset = 0;

@@ -276,9 +276,9 @@ void game_startup(void)
         make_all_clumps();
     }
 
-    TEXTURE_load_needed("levels\\frontend.ucm", 160, 256, 65);
+    TEXTURE_load_needed("levels/frontend.ucm", 160, 256, 65);
 
-    CONSOLE_font("data\\font3d\\all\\", 0.2F);
+    CONSOLE_font("data/font3d/all/", 0.2F);
 }
 
 // uc_orig: game_shutdown (fallen/Source/Game.cpp)
@@ -983,7 +983,7 @@ round_again:;
             }
         }
 
-        BreakEnd("C:\\Windows\\Desktop\\BreakTimes.txt");
+        BreakEnd("BreakTimes.txt"); // uc-abs-path: was "C:\Windows\Desktop\BreakTimes.txt"
 
         game_fini();
 

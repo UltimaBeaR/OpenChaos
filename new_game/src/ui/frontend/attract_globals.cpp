@@ -13,9 +13,9 @@ CBYTE demo_text[] = "Urban Chaos utilises a ground breaking graphics engine whic
 
 // uc_orig: playbacks (fallen/Source/Attract.cpp)
 CBYTE* playbacks[] = {
-    "Data\\Game.pkt",
-    "Data\\Game2.pkt",
-    "Data\\Game3.pkt"
+    "Data/Game.pkt",
+    "Data/Game2.pkt",
+    "Data/Game3.pkt"
 };
 
 // uc_orig: current_playback (fallen/Source/Attract.cpp)

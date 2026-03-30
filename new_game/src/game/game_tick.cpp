@@ -229,13 +229,14 @@ void parse_console(CBYTE* str)
 
             case 7: // vtx - dump vertex buffer information
             {
-                FILE* fd = MF_Fopen("C:\\VertexBufferInfo.txt", "w");
+                // uc-abs-path: was "C:\VertexBufferInfo.txt"
+                FILE* fd = MF_Fopen("VertexBufferInfo.txt", "w");
                 if (fd) {
                     ge_dump_vpool_info(fd);
                     MF_Fclose(fd);
-                    CONSOLE_text("Info dumped at C:\\VertexBufferInfo.txt");
+                    CONSOLE_text("Info dumped at VertexBufferInfo.txt");
                 } else
-                    CONSOLE_text("Can't open C:\\VertexBufferInfo.txt");
+                    CONSOLE_text("Can't open VertexBufferInfo.txt");
             } break;
 
             case 8: // alpha - set alpha sort type
@@ -397,7 +398,7 @@ void tga_dump(void)
     CreateDirectoryA("debug_screenshots", NULL);
 
     for (i = 0; i < 10000; i++) {
-        sprintf(fname, "debug_screenshots\\shot%04d.tga", i);
+        sprintf(fname, "debug_screenshots/shot%04d.tga", i);
 
         handle = MF_Fopen(fname, "rb");
 
@@ -748,7 +749,7 @@ void plan_view_shot()
                 ;
 
             while (ch > mapname) {
-                if (*ch == '\\') {
+                if (*ch == '\\' || *ch == '/') {
                     ch += 1;
 
                     break;
@@ -763,7 +764,8 @@ void plan_view_shot()
             mapname = "shot.tga";
         }
 
-        sprintf(fname, "c:\\shot\\%s", mapname);
+        // uc-abs-path: was "c:\shot\%s"
+        sprintf(fname, "shot/%s", mapname);
 
         for (ch = fname; *ch; ch++)
             ;

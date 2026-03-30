@@ -27,39 +27,28 @@
 
 ---
 
-## 4. Memory (маленький)
+## 4. Memory ✅
 
-**Файлы:** `engine/core/memory.cpp`, `engine/core/memory_globals.h`
+- ~~Win32 Heap API → `calloc`/`realloc`/`free`~~
+- ~~`MFHeap` глобал и `memory_globals.cpp`/`.h` удалены~~
+- ~~`BOOL` добавлен в `types.h` (с guard `#ifndef _WINDEF_`)~~
+- **Сделано**
 
-Win32 Heap API → стандартные функции:
-- `HeapCreate()` → убрать (не нужен отдельный heap)
-- `HeapAlloc(HEAP_ZERO_MEMORY)` → `calloc` / `malloc`
-- `HeapReAlloc()` → `realloc`
-- `HeapFree()` → `free`
-- `HANDLE MFHeap` → убрать глобал
+## 5. File I/O ✅
 
-## 5. File I/O (средний)
+- ~~`MFFileHandle` (Win32 `HANDLE`) → `FILE*`~~
+- ~~Win32 `CreateFile/ReadFile/WriteFile/GetFileSize/SetFilePointer/CloseHandle/DeleteFile/GetFileAttributes` → `fopen/fread/fwrite/ftell/fseek/fclose/remove`~~
+- ~~Пути: `\\` → `/` по всей кодовой базе (~28 файлов), абсолютные пути (`C:\\...`) → относительные~~
+- **Сделано**
 
-**Файлы:** `engine/io/file.cpp`, `engine/io/file.h`
+## 6. Timer (маленький, но с зависимостями)
 
-`MFFileHandle` (Win32 `HANDLE`) → стандартные `FILE*` или POSIX:
-- `CreateFile()` → `fopen`
-- `ReadFile()` → `fread`
-- `WriteFile()` → `fwrite`
-- `SetFilePointer()` → `fseek`
-- `GetFileSize()` → `fseek` + `ftell`
-- `CloseHandle()` → `fclose`
-- `DeleteFile()` → `remove`
-- `GetFileAttributes()` → `stat` или `fopen` проверка
-- Пути: `\\` разделители → `/` (SDL path functions или простая замена)
-
-## 6. Timer (маленький)
-
-**Файлы:** `engine/core/timer.cpp`, `engine/platform/host.cpp`, `engine/console/console.cpp`
+**Файлы:** `engine/core/timer.cpp`, `engine/platform/host.cpp`, `engine/console/console.cpp` + все места с GetTickCount
 
 - `QueryPerformanceCounter` / `QueryPerformanceFrequency` → `SDL_GetPerformanceCounter` / `SDL_GetPerformanceFrequency`
-- `GetTickCount()` → `SDL_GetTicks`
+- `GetTickCount()` → `SDL_GetTicks` (возвращает `uint64_t` в SDL3)
 - `GetLocalTime()` / `SYSTEMTIME` → `time()` + `localtime()` или SDL
+- **⚠️ Одновременно перевести все тик-переменные на 64 бит.** На этапе 4 был фикс `OC-TICK-OVERFLOW` (devlog: `stage4_bug_tick_overflow.md`) — SLONG → DWORD, но это полумера: DWORD (32-bit unsigned) переполняется через ~49 дней. `SDL_GetTicks` возвращает `uint64_t` → переполнение через ~585 млн лет. Все переменные помечены комментарием `BUGFIX-OC-TICK-OVERFLOW` — найти через `grep -r "BUGFIX-OC-TICK-OVERFLOW" new_game/src`. Менять DWORD → uint64_t вместе с заменой GetTickCount → SDL_GetTicks. `MFTime::Ticks` тоже → uint64_t
 
 ## 7. Threading (средний)
 

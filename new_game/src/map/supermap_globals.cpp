@@ -60,7 +60,7 @@ struct Levels levels[] = {
     { "police4",     "disturb1.map",     13, 0 },
     { "bball2",      "bball2.map",       14, 0 },
     { "wstores1",    "gpost3.map",       15, (1 << PERSON_HOSTAGE) | (1 << PERSON_TRAMP) | (1 << PERSON_MIB1) },
-    { "\\e3",        "snocrime.map",     16, (1 << PERSON_TRAMP) | (1 << PERSON_MIB1) },
+    { "/e3",         "snocrime.map",     16, (1 << PERSON_TRAMP) | (1 << PERSON_MIB1) },
     { "westcrime1",  "disturb1.map",     17, 0 },
     { "carbomb1",    "gang1.map",        18, 0 },
     { "botanicc",    "botanicc.map",     19, 0 },

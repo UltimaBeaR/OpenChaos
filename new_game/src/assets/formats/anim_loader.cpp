@@ -238,7 +238,7 @@ void load_key_frame_chunks(KeyFrameChunk* the_chunk, CBYTE* vue_name, float scal
     z_centre = 0;
 
     the_chunk->KeyFrameCount = 0;
-    strcpy(the_chunk->VUEName, "Data\\");
+    strcpy(the_chunk->VUEName, "Data/");
     strcat(the_chunk->VUEName, vue_name);
     strcpy(the_chunk->ASCName, the_chunk->VUEName);
     strcpy(the_chunk->ANMName, the_chunk->VUEName);
@@ -621,7 +621,7 @@ SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG typ
 
     CBYTE fname[100];
 
-    sprintf(fname, "%sdata\\%s", DATA_DIR, name);
+    sprintf(fname, "%sdata/%s", DATA_DIR, name);
 
     free_game_chunk(p_chunk);
 
@@ -844,7 +844,7 @@ SLONG append_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG s
 
     CBYTE fname[100];
 
-    sprintf(fname, "%sdata\\%s", DATA_DIR, name);
+    sprintf(fname, "%sdata/%s", DATA_DIR, name);
 
     change_extension(fname, "all", ext_name);
     handle = FileOpen(ext_name);

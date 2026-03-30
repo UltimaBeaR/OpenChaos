@@ -98,10 +98,12 @@ UBYTE the_end = 0;
 UWORD env_frame_rate = 30;
 
 // uc_orig: playback_name (fallen/Source/Game.cpp)
-CBYTE* playback_name = "C:\\Windows\\Desktop\\UrbanChaosRecordedGame.pkt";
+// uc-abs-path: was "C:\Windows\Desktop\UrbanChaosRecordedGame.pkt"
+CBYTE* playback_name = "UrbanChaosRecordedGame.pkt";
 
 // uc_orig: verifier_name (fallen/Source/Game.cpp)
-CBYTE* verifier_name = "C:\\Windows\\Desktop\\UrbanChaosRecordedGame.tst";
+// uc-abs-path: was "C:\Windows\Desktop\UrbanChaosRecordedGame.tst"
+CBYTE* verifier_name = "UrbanChaosRecordedGame.tst";
 
 // player_pos is defined in actors/core/player_globals.cpp (from Player.cpp).
 

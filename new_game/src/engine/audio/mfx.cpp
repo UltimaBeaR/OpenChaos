@@ -88,7 +88,7 @@ void MFX_init()
         NumSamples++;
 
         if (sptr->fname) {
-            int gain = GetPrivateProfileInt("PowerLevels", sptr->fname, 0, "data\\sfx\\powerlvl.ini");
+            int gain = GetPrivateProfileInt("PowerLevels", sptr->fname, 0, "data/sfx/powerlvl.ini");
             if (gain) {
                 gain *= 4;
                 SetPower(sptr - Samples, float(gain));
@@ -140,13 +140,15 @@ static char* GetFullName(char* fname)
     static CBYTE pathname[MAX_PATH];
 
     if (strchr(fname, '-')) {
-        CHAR* ptr = strrchr(fname, '\\') + 1;
-        sprintf(buf, "talk2\\misc\\%s", ptr);
-        strcpy(pathname, ".\\");
+        CHAR* ptr = strrchr(fname, '\\');
+        if (!ptr) ptr = strrchr(fname, '/');
+        ptr = ptr + 1;
+        sprintf(buf, "talk2/misc/%s", ptr);
+        strcpy(pathname, "./");
         strcat(pathname, buf);
         return pathname;
     } else {
-        sprintf(buf, "data\\sfx\\1622\\%s", fname);
+        sprintf(buf, "data/sfx/1622/%s", fname);
         if (!strnicmp(fname, "music", 5)) {
             if (!MUSIC_WORLD) {
                 MUSIC_WORLD = 1;
@@ -156,7 +158,7 @@ static char* GetFullName(char* fname)
         }
     }
 
-    strcpy(pathname, ".\\");
+    strcpy(pathname, "./");
     strcat(pathname, buf);
 
     return pathname;
