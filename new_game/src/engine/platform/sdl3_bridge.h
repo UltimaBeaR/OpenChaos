@@ -1,11 +1,9 @@
 #pragma once
 
-// SDL3 bridge — the ONLY file in the project that includes SDL3 headers.
-//
-// The project compiles with /Zp1 (1-byte struct packing) for binary resource
-// format compatibility.  SDL3 headers contain static_asserts that fail under
-// /Zp1, so sdl3_bridge.cpp is compiled with /Zp8.  All other code accesses
-// SDL3 functionality exclusively through functions declared here.
+// SDL3 bridge — thin abstraction layer over SDL3.
+// Isolates SDL3 headers from game code so that SDL3 details don't leak
+// into the rest of the codebase.  Game code accesses SDL3 functionality
+// exclusively through functions declared here.
 
 #include <cstdint>
 
@@ -115,7 +113,7 @@ void sdl3_free_wav(uint8_t* buffer);
 // Gamepad
 // ---------------------------------------------------------------------------
 
-// Opaque handle to an SDL3 gamepad (hides SDL_Gamepad* from /Zp1 code).
+// Opaque handle to an SDL3 gamepad (hides SDL_Gamepad* from game code).
 using SDL3_GamepadHandle = void*;
 
 enum SDL3_GamepadEventType {

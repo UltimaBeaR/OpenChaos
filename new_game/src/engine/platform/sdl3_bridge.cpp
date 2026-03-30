@@ -1,6 +1,4 @@
-// SDL3 bridge — the ONLY translation unit that includes SDL3 headers.
-// Compiled with /Zp8 (see CMakeLists.txt set_source_files_properties).
-// All SDL3 interactions in the project go through functions declared in sdl3_bridge.h.
+// SDL3 bridge implementation — see sdl3_bridge.h for API.
 
 #include "engine/platform/sdl3_bridge.h"
 #include <SDL3/SDL.h>

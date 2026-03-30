@@ -1,5 +1,4 @@
-// DualSense bridge — the ONLY translation unit that includes GamepadCore + SDL3 HID headers.
-// Compiled with /Zp8 (see CMakeLists.txt set_source_files_properties).
+// DualSense bridge implementation — see ds_bridge.h for API.
 //
 // Platform HID layer uses SDL3's cross-platform hidapi (SDL_hid_*),
 // adapted from Gamepad-Core-Tests linux_device_info (works on all platforms).

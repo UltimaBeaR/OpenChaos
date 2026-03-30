@@ -1,10 +1,9 @@
 #pragma once
 
-// DualSense bridge — wraps the Dualsense-Multiplatform (GamepadCore) library.
-//
-// Like sdl3_bridge, this file is compiled with /Zp8 because both SDL3 and
-// GamepadCore headers require standard struct alignment.  Game code accesses
-// DualSense functionality exclusively through functions declared here.
+// DualSense bridge — thin abstraction layer over the Dualsense-Multiplatform
+// (GamepadCore) library.  Isolates GamepadCore headers from game code.
+// Game code accesses DualSense functionality exclusively through functions
+// declared here.
 
 #include <cstdint>
 
