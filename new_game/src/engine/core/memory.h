@@ -3,9 +3,6 @@
 
 #include "engine/core/types.h"
 
-// BOOL comes from Windows headers (windef.h). Temporary dependency until Étape 8.
-#include <windef.h>
-
 // Custom heap allocator. All allocations are 4-byte aligned and zero-initialized.
 
 // uc_orig: SetupMemory (MFStdLib/Source/StdLib/StdMem.cpp)

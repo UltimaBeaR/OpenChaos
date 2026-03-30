@@ -139,7 +139,6 @@ set(SOURCES_NEW
 
     # === Engine: core ===
     src/engine/core/memory.cpp
-    src/engine/core/memory_globals.cpp
     src/engine/core/math.cpp
     src/engine/core/math_globals.cpp
     src/engine/core/matrix.cpp

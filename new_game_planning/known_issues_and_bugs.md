@@ -64,6 +64,14 @@
 
 ---
 
+## CRT Debug Assertions
+
+| Проблема | Описание | Статус |
+|----------|----------|--------|
+| CRT heap corruption (debug build) | Debug Assertion Failed в `debug_heap.cpp:904-908`: `_CrtIsValidHeapPointer(block)` и `is_block_type_valid(header->_block_use)`. Появляется периодически во время геймплея. Давняя проблема — double free или невалидный указатель в legacy коде. При нажатии "Пропустить" приводит к крашу: `PolyPage::PointAlloc` (polypage.cpp:113) → `ge_vb_alloc` (core.cpp:1548) падает на мусорном указателе (corrupted heap data). | Исследовать |
+
+---
+
 ## Крэши
 
 | Проблема | Описание | Статус |

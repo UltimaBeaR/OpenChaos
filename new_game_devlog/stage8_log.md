@@ -34,6 +34,14 @@
 - wind_procs.cpp: DDLibShellProc мёртвый код (никто не вызывает), убрать при cleanup
 - host_globals: часть глобалов (DDLibClass, hDDLibAccel и др.) больше не нужна
 
+## 2026-03-30: Memory — HeapAlloc → calloc/free
+
+- `memory.cpp` — `HeapAlloc(HEAP_ZERO_MEMORY)` → `calloc`, `HeapFree` → `free`, `HeapReAlloc` → `realloc`
+- `SetupMemory`/`ResetMemory` — теперь no-op (отдельный Win32 heap не нужен)
+- `MFHeap` глобал и `memory_globals.cpp`/`.h` — удалены (никто не использовал напрямую)
+- `memory.h` — убран `#include <windef.h>`, `BOOL` добавлен в `types.h` с guard `#ifndef _WINDEF_`
+- `MemReAlloc` — нигде не вызывается в кодовой базе, оставлен для API совместимости
+
 ### Замечено
 
-- Периодически появляются assertion failure диалоги. Наш `ASSERT` макрос — no-op (`{}`). Стандартный `assert()` нигде не вызывается. Источник не определён — возможно сторонние библиотеки (SDL3, OpenAL, CRT). Нужен скриншот при следующем появлении для идентификации
+- **CRT Debug Assertion:** `_CrtIsValidHeapPointer(block)` в `debug_heap.cpp:904` — давняя проблема, периодически в Debug build. Double free или невалидный указатель в legacy коде

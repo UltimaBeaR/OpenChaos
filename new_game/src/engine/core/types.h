@@ -50,10 +50,12 @@ typedef struct
         Height;
 } MFRect;
 
-// Windows DWORD type used in platform-specific code (GetTickCount, etc.).
-// Equivalent to unsigned long on 32-bit Windows.
+// Windows types used throughout the codebase.
+// Defined here so headers can use them without including <windows.h>.
+// Guarded by _WINDEF_ to avoid redefinition when windows.h is also included.
 #ifndef _WINDEF_
 typedef unsigned long DWORD;
+typedef int BOOL;
 #endif
 
 // Index type for Things and other pool objects.
