@@ -592,21 +592,8 @@ target_link_libraries(Fallen PRIVATE
     # Vendored
     GamepadCore
 
-    # Windows system
-    odbc32
-    odbccp32
-    comctl32
-    imm32
-    Version
-    winmm
-
     # Graphics backend libraries
     ${BACKEND_LIBS}
-
-    # DirectShow
-    amstrmid
-    quartz
-    strmbase
 )
 
 # ---------------------------------------------------------------------------

@@ -1905,7 +1905,7 @@ void FRONTEND_do_gamma()
 // the new mode. mode >= 100 is shorthand for MISSIONBRIEFING for mission (mode-100).
 void FRONTEND_mode(SBYTE mode, bool bDoTransition)
 {
-    dwAutoPlayFMVTimeout = timeGetTime() + AUTOPLAY_FMV_DELAY;
+    dwAutoPlayFMVTimeout = sdl3_get_ticks() + AUTOPLAY_FMV_DELAY;
 
     fade_mode = 1;
     ZeroMemory(menu_data, sizeof(menu_data));
@@ -2976,7 +2976,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
 {
     static bool bFirstTime = UC_TRUE;
 
-    dwAutoPlayFMVTimeout = timeGetTime() + AUTOPLAY_FMV_DELAY;
+    dwAutoPlayFMVTimeout = sdl3_get_ticks() + AUTOPLAY_FMV_DELAY;
 
     // Stop the music while loading stuff.
     stop_all_fx_and_music();
