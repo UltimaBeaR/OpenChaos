@@ -89,23 +89,33 @@ void sdl3_window_get_drawable_size(int* w, int* h)
     }
 }
 
-void* sdl3_window_get_native_handle()
-{
-    if (!s_window) return nullptr;
-    SDL_PropertiesID props = SDL_GetWindowProperties(s_window);
-#ifdef _WIN32
-    return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-#elif defined(__linux__)
-    // X11 window (SDL stores as pointer-sized value)
-    return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_X11_WINDOW_POINTER, nullptr);
-#else
-    return nullptr;
-#endif
-}
-
 void sdl3_warp_mouse_global(int x, int y)
 {
     SDL_WarpMouseGlobal((float)x, (float)y);
+}
+
+void sdl3_get_global_mouse_pos(int* x, int* y)
+{
+    float fx, fy;
+    SDL_GetGlobalMouseState(&fx, &fy);
+    if (x) *x = (int)fx;
+    if (y) *y = (int)fy;
+}
+
+void sdl3_show_cursor()
+{
+    SDL_ShowCursor();
+}
+
+void sdl3_hide_cursor()
+{
+    SDL_HideCursor();
+}
+
+void sdl3_set_mouse_grab(bool grab)
+{
+    if (s_window)
+        SDL_SetWindowMouseGrab(s_window, grab);
 }
 
 // ===========================================================================
@@ -527,4 +537,36 @@ uint16_t sdl3_gamepad_product_id(SDL3_GamepadHandle handle)
     SDL_Gamepad* gp = static_cast<SDL_Gamepad*>(handle);
     if (!gp) return 0;
     return SDL_GetGamepadProduct(gp);
+}
+
+// ===========================================================================
+// Keyboard
+// ===========================================================================
+
+// Reverse map: game KB_* scancode → SDL_Scancode.
+static SDL_Scancode game_to_sdl_scancode(int kb)
+{
+    // Brute-force reverse lookup: iterate SDL scancodes and find the one
+    // that maps to the given game scancode.
+    for (int sc = 0; sc < SDL_SCANCODE_COUNT; sc++) {
+        if (sdl_to_game_scancode((SDL_Scancode)sc) == (uint8_t)kb)
+            return (SDL_Scancode)sc;
+    }
+    return SDL_SCANCODE_UNKNOWN;
+}
+
+char* sdl3_get_key_name(int game_scancode, char* out, int out_size)
+{
+    SDL_Scancode sc = game_to_sdl_scancode(game_scancode);
+    if (sc != SDL_SCANCODE_UNKNOWN) {
+        const char* name = SDL_GetKeyName(SDL_GetKeyFromScancode(sc, SDL_KMOD_NONE, false));
+        if (name && name[0]) {
+            strncpy(out, name, out_size - 1);
+            out[out_size - 1] = '\0';
+            return out;
+        }
+    }
+    strncpy(out, "???", out_size - 1);
+    out[out_size - 1] = '\0';
+    return out;
 }

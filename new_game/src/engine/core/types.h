@@ -50,12 +50,58 @@ typedef struct
         Height;
 } MFRect;
 
-// Windows types used throughout the codebase.
-// Defined here so headers can use them without including <windows.h>.
-// Guarded by _WINDEF_ to avoid redefinition when windows.h is also included.
+// Platform-compatible integer types used throughout the codebase.
+// Guarded by _WINDEF_ to avoid redefinition when windows.h is included (DX6 backend).
 #ifndef _WINDEF_
 typedef unsigned long DWORD;
 typedef int BOOL;
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+#endif
+
+#ifndef _WINNT_
+typedef char CHAR;
+typedef wchar_t WCHAR;
+typedef CHAR* LPSTR;
+typedef const CHAR* LPCSTR;
+#endif
+
+#ifndef MAX_PATH
+#define MAX_PATH 260
+#endif
+
+#ifndef _MAX_PATH
+#define _MAX_PATH MAX_PATH
+#endif
+
+#ifndef TEXT
+#define TEXT(x) x
+#endif
+
+#ifndef LOWORD
+#define LOWORD(l) ((WORD)((DWORD)(l) & 0xffff))
+#endif
+#ifndef HIWORD
+#define HIWORD(l) ((WORD)(((DWORD)(l) >> 16) & 0xffff))
+#endif
+
+typedef CHAR TCHAR;
+
+// Cross-platform compat for POSIX functions that MSVC renames with underscores.
+#ifdef _MSC_VER
+#include <direct.h>
+#include <io.h>
+#define oc_getcwd    _getcwd
+#define oc_stricmp   _stricmp
+#define oc_strnicmp  _strnicmp
+#define oc_mkdir(p)  _mkdir(p)
+#else
+#include <unistd.h>
+#include <strings.h>
+#define oc_getcwd    getcwd
+#define oc_stricmp   strcasecmp
+#define oc_strnicmp  strncasecmp
+#define oc_mkdir(p)  mkdir(p, 0755)
 #endif
 
 // Index type for Things and other pool objects.

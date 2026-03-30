@@ -121,7 +121,7 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
         return -1;
     }
 
-    extern HINSTANCE hGlobalThisInst;
+    static HINSTANCE hGlobalThisInst = GetModuleHandle(NULL);
 
     VideoRes = ENV_get_value_number("video_res", -1, "Render");
 

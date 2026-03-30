@@ -193,7 +193,6 @@ void GERenderState::SetChanged() {}
 // Display globals stubs
 SLONG RealDisplayWidth = 640;
 SLONG RealDisplayHeight = 480;
-volatile HWND hDDLibWindow = NULL;
 UBYTE* image_mem = nullptr;
 
 // Texture utility stubs

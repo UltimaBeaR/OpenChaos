@@ -556,8 +556,6 @@ target_compile_options(Fallen PRIVATE
 # Preprocessor definitions
 # ---------------------------------------------------------------------------
 target_compile_definitions(Fallen PRIVATE
-    WIN32
-    _WINDOWS
     $<$<STREQUAL:${GRAPHICS_BACKEND},d3d6>:VERSION_D3D>
 
     $<$<CONFIG:Debug>:_DEBUG>

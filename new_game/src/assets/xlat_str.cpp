@@ -89,7 +89,7 @@ CBYTE* XLAT_str(SLONG string_id, CBYTE* xlat_dest)
         return "missing language file. get t:\\lang-english.txt and stick it in your fallen\\text directory";
     }
 
-    ZeroMemory(xlat_buffer, _MAX_PATH + 100);
+    memset(xlat_buffer, 0, _MAX_PATH + 100);
 
     while (ptr = mbcs_strchr(xlated, 1)) {
         ofs = ptr - xlated;
@@ -187,8 +187,8 @@ void XLAT_load(CBYTE* fn)
     UWORD emergency_bail_out_for_martins_machine = 2000;
 
     xlat_upto = xlat_set;
-    ZeroMemory(xlat_ptr, sizeof(xlat_ptr));
-    ZeroMemory(xlat_set, sizeof(xlat_set));
+    memset(xlat_ptr, 0, sizeof(xlat_ptr));
+    memset(xlat_set, 0, sizeof(xlat_set));
 
     if (!FileExists(fn)) {
         ASSERT(UC_FALSE);

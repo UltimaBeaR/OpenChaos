@@ -61,7 +61,7 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
 
     pt = (UBYTE*)fontlist;
 
-    ZeroMemory(FontInfo, sizeof(FontInfo));
+    memset(FontInfo, 0, sizeof(FontInfo));
 
     for (y = 0; y < 255; y++)
         for (x = 0; x < 255; x++)

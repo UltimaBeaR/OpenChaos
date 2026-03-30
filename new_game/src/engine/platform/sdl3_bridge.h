@@ -35,12 +35,26 @@ void sdl3_window_set_size(int w, int h);
 // Get actual drawable size in pixels (may differ from window size on HiDPI).
 void sdl3_window_get_drawable_size(int* w, int* h);
 
-// Get native window handle (HWND on Windows, X11 Window on Linux, etc.).
-// Returns nullptr if no window exists.
-void* sdl3_window_get_native_handle();
-
 // Warp mouse cursor to screen coordinates.
 void sdl3_warp_mouse_global(int x, int y);
+
+// Get global mouse cursor position (screen coordinates).
+void sdl3_get_global_mouse_pos(int* x, int* y);
+
+// Show / hide the system cursor.
+void sdl3_show_cursor();
+void sdl3_hide_cursor();
+
+// Grab / release mouse input (confine to window).
+void sdl3_set_mouse_grab(bool grab);
+
+// ---------------------------------------------------------------------------
+// Keyboard
+// ---------------------------------------------------------------------------
+
+// Get a human-readable name for a game scancode (KB_* value).
+// Writes into out (up to out_size chars). Returns out.
+char* sdl3_get_key_name(int game_scancode, char* out, int out_size);
 
 // ---------------------------------------------------------------------------
 // GL context

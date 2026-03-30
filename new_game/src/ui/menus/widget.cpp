@@ -13,6 +13,7 @@
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/platform/sdl3_bridge.h"
 
 // Sound-to-wave ID mapping for widget events. Uses S_MENU_START/S_MENU_END from sound_id.h.
 // uc_orig: _WS_MOVE (fallen/Source/widget.cpp)
@@ -1137,15 +1138,18 @@ SLONG FORM_Process(Form* form)
                 form->proc(form, 0, WFN_CHAR);
         }
     } else {
-        POINT pt;
         SLONG res;
-        GetCursorPos(&pt);
-        extern volatile HWND hDDLibWindow;
-        if (!ge_is_fullscreen())
-            ScreenToClient(hDDLibWindow, &pt);
-        if ((pt.x != lastx) || (pt.y != lasty)) {
-            lastx = pt.x;
-            lasty = pt.y;
+        int ptx, pty;
+        sdl3_get_global_mouse_pos(&ptx, &pty);
+        if (!ge_is_fullscreen()) {
+            int wx, wy;
+            sdl3_window_get_position(&wx, &wy);
+            ptx -= wx;
+            pty -= wy;
+        }
+        if ((ptx != lastx) || (pty != lasty)) {
+            lastx = ptx;
+            lasty = pty;
             Widget* scan = FORM_GetWidgetFromPoint(form, TO_WIDGETPNT(lastx, lasty));
             if (scan && (scan != form->focus)) {
                 if (form->focus && form->focus->methods->Char)
@@ -1153,8 +1157,8 @@ SLONG FORM_Process(Form* form)
                 FORM_Focus(form, scan, 0);
             }
         }
-        res = GetAsyncKeyState(VK_LBUTTON);
-        if ((res & (1 << 15)) && (res & 1)) {
+        extern volatile UBYTE LeftButton;
+        if (LeftButton) {
             Widget* scan = FORM_GetWidgetFromPoint(form, TO_WIDGETPNT(lastx, lasty));
             if (scan && scan->methods->Push)
                 scan->methods->Push(scan);

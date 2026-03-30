@@ -2039,7 +2039,6 @@ void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 SLONG RealDisplayWidth = 640;
 SLONG RealDisplayHeight = 480;
 SLONG DisplayBPP = 32;
-volatile HWND hDDLibWindow = NULL;
 
 // Work screen globals (D3D uses DDraw offscreen surface; we use a CPU buffer).
 static UBYTE s_work_screen_buf[640 * 480 * 4];

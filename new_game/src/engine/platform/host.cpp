@@ -8,12 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
-
-// Platform globals (still needed by some legacy code).
-extern volatile HWND hDDLibWindow;
+#include <signal.h>
 
 #include "game/game_types.h"
 #include "engine/audio/sound.h"
@@ -60,12 +55,12 @@ static void on_focus_lost()
 
 static void on_window_moved()
 {
-    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
+    ge_update_display_rect(nullptr, ge_is_fullscreen());
 }
 
 static void on_window_resized()
 {
-    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
+    ge_update_display_rect(nullptr, ge_is_fullscreen());
 }
 
 static void on_close()
@@ -88,9 +83,6 @@ BOOL SetupHost(ULONG flags)
     if (!sdl3_window_create("Urban Chaos", 640, 480)) {
         return UC_FALSE;
     }
-
-    // Set hDDLibWindow for legacy code that still needs the native handle.
-    hDDLibWindow = (HWND)sdl3_window_get_native_handle();
 
     // Register SDL3 event callbacks.
     SDL3_Callbacks cb = {};
@@ -189,22 +181,6 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
     }
 
     fprintf(stderr, "=== Mucky Foot Message ===\n%s\nIn: %s line %u\n", pMessage, pFile, dwLine);
-
-#ifdef _WIN32
-    // On Windows, still show a message box for developer convenience.
-    char buff[1024];
-    snprintf(buff, sizeof(buff), "%s\n\nIn   : %s\nline : %u\n\nAbort=Kill, Retry=Debug, Ignore=Continue",
-             pMessage, pFile, dwLine);
-    ge_to_gdi();
-    switch (MessageBoxA((HWND)sdl3_window_get_native_handle(), buff, "Mucky Foot Message",
-                        MB_ABORTRETRYIGNORE | MB_ICONSTOP | MB_DEFBUTTON3)) {
-    case IDABORT:  exit(1); break;
-    case IDRETRY:  DebugBreak(); break;
-    default: break;
-    }
-    ge_from_gdi();
-#endif
-
     return UC_FALSE;
 }
 
@@ -224,71 +200,34 @@ void Time(MFTime* the_time)
     the_time->Ticks = sdl3_get_ticks();
 }
 
-// uc_orig: WinMain (fallen/DDLibrary/Source/GHost.cpp)
-// Crash handler: writes crash_log.txt with exception info, RVA, and stack addresses.
-#ifdef _WIN32
-static LONG WINAPI crash_handler(EXCEPTION_POINTERS* ep)
+// Crash handler: writes crash_log.txt with signal info.
+static void crash_signal_handler(int sig)
 {
     FILE* f = fopen("crash_log.txt", "w");
-    if (!f) return EXCEPTION_CONTINUE_SEARCH;
+    if (!f) { signal(sig, SIG_DFL); raise(sig); return; }
 
-    SYSTEMTIME st;
-    GetLocalTime(&st);
+    time_t raw = time(nullptr);
+    struct tm* lt = localtime(&raw);
     fprintf(f, "Crash at %04d-%02d-%02d %02d:%02d:%02d\n\n",
-            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
-
-    HMODULE hmod = GetModuleHandle(NULL);
-    uintptr_t base = (uintptr_t)hmod;
-
-    fprintf(f, "Exception 0x%08lX at address 0x%p\n",
-            ep->ExceptionRecord->ExceptionCode,
-            ep->ExceptionRecord->ExceptionAddress);
-    if (ep->ExceptionRecord->ExceptionCode == 0xC0000005) {
-        fprintf(f, "Access violation %s address 0x%p\n",
-                ep->ExceptionRecord->ExceptionInformation[0] ? "writing" : "reading",
-                (void*)(uintptr_t)ep->ExceptionRecord->ExceptionInformation[1]);
-    }
-    fprintf(f, "Module base: 0x%p\n", (void*)hmod);
-    fprintf(f, "Crash RVA: 0x%lx\n",
-            (unsigned long)((uintptr_t)ep->ExceptionRecord->ExceptionAddress - base));
-
-    CONTEXT* ctx = ep->ContextRecord;
-    fprintf(f, "ESP=0x%08lx EBP=0x%08lx ECX=0x%08lx\n", ctx->Esp, ctx->Ebp, ctx->Ecx);
-
-    fprintf(f, "\nStack return addresses (module RVAs):\n");
-    DWORD* sp = (DWORD*)ctx->Esp;
-    DWORD modEnd = (DWORD)(base + 0x400000);
-    for (int i = 0; i < 64 && sp; i++) {
-        __try {
-            DWORD val = sp[i];
-            if (val > (DWORD)base && val < modEnd) {
-                fprintf(f, "  ESP[%d] RVA=0x%lx\n", i, (unsigned long)(val - base));
-            }
-        } __except(1) { break; }
-    }
-
+            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+            lt->tm_hour, lt->tm_min, lt->tm_sec);
+    fprintf(f, "Signal: %d (%s)\n", sig,
+            sig == SIGSEGV ? "SIGSEGV" : sig == SIGABRT ? "SIGABRT" :
+            sig == SIGFPE  ? "SIGFPE"  : "unknown");
     fflush(f);
     fclose(f);
-    return EXCEPTION_CONTINUE_SEARCH;
+
+    signal(sig, SIG_DFL);
+    raise(sig);
 }
-#endif
 
 int HOST_run(int argc_in, char* argv_in[])
 {
-#ifdef _WIN32
-    SetUnhandledExceptionFilter(crash_handler);
-    hGlobalThisInst = GetModuleHandle(NULL);
-#endif
+    signal(SIGSEGV, crash_signal_handler);
+    signal(SIGABRT, crash_signal_handler);
+    signal(SIGFPE,  crash_signal_handler);
 
     init_best_found();
-
-    // Single-instance guard (Release only).
-#if defined(NDEBUG) && defined(_WIN32)
-    CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
-    if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        return 1;
-    }
-#endif
 
     return MF_main((UWORD)argc_in, argv_in);
 }
@@ -303,9 +242,5 @@ void TraceText(char* fmt, ...)
     vsprintf(message, fmt, ap);
     va_end(ap);
 
-#ifdef _WIN32
-    OutputDebugStringA(message);
-#else
     fprintf(stderr, "%s", message);
-#endif
 }

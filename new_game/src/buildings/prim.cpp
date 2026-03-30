@@ -4,7 +4,7 @@
 // This file handles: pool management, lighting, collision, normals,
 // slide edges, animated prims, and misc utilities.
 
-// MFStdLib first: pulls in windows.h with correct defines (WIN32, _WIN32) before any other headers.
+// Platform header first: types and core includes before any other headers.
 #include "engine/platform/uc_common.h"
 
 #include "buildings/prim.h"

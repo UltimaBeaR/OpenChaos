@@ -145,7 +145,7 @@ void OS_string(CBYTE* fmt, ...)
     va_start(ap, fmt);
     vsprintf(message, fmt, ap);
     va_end(ap);
-    OutputDebugString(message);
+    fprintf(stderr, "%s", message);
 }
 
 // uc_orig: OS_ticks (fallen/outro/os.cpp)
@@ -167,16 +167,16 @@ void OS_ticks_reset()
 // uc_orig: OS_mouse_get (fallen/outro/os.cpp)
 void OS_mouse_get(SLONG* x, SLONG* y)
 {
-    POINT point;
-    GetCursorPos(&point);
-    *x = point.x;
-    *y = point.y;
+    int mx, my;
+    sdl3_get_global_mouse_pos(&mx, &my);
+    *x = mx;
+    *y = my;
 }
 
 // uc_orig: OS_mouse_set (fallen/outro/os.cpp)
 void OS_mouse_set(SLONG x, SLONG y)
 {
-    SetCursorPos(x, y);
+    sdl3_warp_mouse_global(x, y);
 }
 
 // Processes Windows messages and maps keyboard/joystick input.

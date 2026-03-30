@@ -149,9 +149,9 @@ static void TEXTURE_load_page(SLONG page)
         sprintf(shortname_res64, "tex%03dhi.tga", page);
         sprintf(shortname_res128, "tex%03dto.tga", page);
 
-        fxref = GetPrivateProfileInt("Textures", shortname_res64, -1, TEXTURE_fx_inifile);
+        fxref = INI_get_int(TEXTURE_fx_inifile, "Textures", shortname_res64, -1);
         if (fxref == -1) {
-            fxref = GetPrivateProfileInt("Textures", shortname_res32, -1, TEXTURE_fx_inifile);
+            fxref = INI_get_int(TEXTURE_fx_inifile, "Textures", shortname_res32, -1);
         }
 
         if (SOUND_FXMapping != NULL) {
@@ -166,9 +166,9 @@ static void TEXTURE_load_page(SLONG page)
         sprintf(shortname_res64, "tex%03dhi.tga", page);
         sprintf(shortname_res128, "tex%03dto.tga", page);
 
-        fxref = GetPrivateProfileInt("Textures", shortname_res64, -1, TEXTURE_shared_fx_inifile);
+        fxref = INI_get_int(TEXTURE_shared_fx_inifile, "Textures", shortname_res64, -1);
         if (fxref == -1) {
-            fxref = GetPrivateProfileInt("Textures", shortname_res32, -1, TEXTURE_shared_fx_inifile);
+            fxref = INI_get_int(TEXTURE_shared_fx_inifile, "Textures", shortname_res32, -1);
         }
 
         if (SOUND_FXMapping != NULL) {

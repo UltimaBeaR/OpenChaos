@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "game/game_types.h"
 #include "map/supermap.h"
 #include "map/supermap_globals.h"

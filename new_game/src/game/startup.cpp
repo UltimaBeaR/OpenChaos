@@ -10,7 +10,7 @@
 // uc_orig: main (fallen/Source/Main.cpp)
 // Application startup. Called via MF_main() (the MFStdLib macro renames main to MF_main
 // so that Win32 WinMain can invoke it). Initialises the engine and runs the game loop.
-SLONG main(UWORD argc, TCHAR* argv[])
+SLONG main(UWORD argc, char* argv[])
 {
     FileSetBasePath("");
 

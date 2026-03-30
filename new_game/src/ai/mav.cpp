@@ -1,5 +1,4 @@
-// MFStdLib first: brings in windows.h and base types; supermap.h also includes it but
-// must see correct WIN32 defines before any other windows headers.
+// Platform header first: base types before any other headers.
 #include "engine/platform/uc_common.h"
 #include "engine/core/math.h"             // SIN, COS lookup tables
 #include "engine/core/fixed_math.h"       // MUL64

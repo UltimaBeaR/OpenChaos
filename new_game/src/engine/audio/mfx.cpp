@@ -73,7 +73,7 @@ void MFX_init()
             FILE* fd = MF_Fopen(GetFullName(names[0]), "rb");
             if (fd) {
                 sptr->fname = names[0];
-                if (((!strnicmp(names[0], "music", 5)) || (!strnicmp(names[0], "generalmusic", 12))) && (!strstr(names[0], "Club1")) && (!strstr(names[0], "Acid"))) {
+                if (((!oc_strnicmp(names[0], "music", 5)) || (!oc_strnicmp(names[0], "generalmusic", 12))) && (!strstr(names[0], "Club1")) && (!strstr(names[0], "Acid"))) {
                     sptr->is3D = false;
                     sptr->type = SMP_Music;
                 }
@@ -88,7 +88,7 @@ void MFX_init()
         NumSamples++;
 
         if (sptr->fname) {
-            int gain = GetPrivateProfileInt("PowerLevels", sptr->fname, 0, "data/sfx/powerlvl.ini");
+            int gain = INI_get_int("data/sfx/powerlvl.ini", "PowerLevels", sptr->fname, 0);
             if (gain) {
                 gain *= 4;
                 SetPower(sptr - Samples, float(gain));
@@ -149,7 +149,7 @@ static char* GetFullName(char* fname)
         return pathname;
     } else {
         sprintf(buf, "data/sfx/1622/%s", fname);
-        if (!strnicmp(fname, "music", 5)) {
+        if (!oc_strnicmp(fname, "music", 5)) {
             if (!MUSIC_WORLD) {
                 MUSIC_WORLD = 1;
             }

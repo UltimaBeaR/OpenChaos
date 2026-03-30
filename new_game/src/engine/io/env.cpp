@@ -7,16 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef _WIN32
-#include <direct.h> // _getcwd
-#define oc_getcwd _getcwd
-#define oc_stricmp _stricmp
-#else
-#include <unistd.h> // getcwd
-#define oc_getcwd getcwd
-#define oc_stricmp strcasecmp
-#endif
-
 #include "engine/io/env.h"
 #include "engine/io/env_globals.h"
 
@@ -245,4 +235,52 @@ void ENV_set_value_number(CBYTE* name, SLONG value, CBYTE* section)
 {
     sprintf(env_strbuf, "%d", value);
     ini_write_string(env_inifile, section, name, env_strbuf);
+}
+
+// --- Public INI access (cross-platform replacement for Win32 GetPrivateProfile*) ---
+
+int INI_get_int(const char* filepath, const char* section, const char* key, int def)
+{
+    return ini_read_int(filepath, section, key, def);
+}
+
+bool INI_get_string(const char* filepath, const char* section, const char* key, char* out, int out_size)
+{
+    return ini_read_string(filepath, section, key, out, out_size);
+}
+
+// Reads all key=value pairs from a section into a double-null-terminated buffer.
+// Each entry is "key=value\0", terminated by an extra "\0".
+bool INI_get_section(const char* filepath, const char* section, char* out, int out_size)
+{
+    FILE* f = fopen(filepath, "r");
+    if (!f) { out[0] = '\0'; out[1] = '\0'; return false; }
+
+    bool in_section = false;
+    char line[512];
+    int pos = 0;
+
+    while (fgets(line, sizeof(line), f)) {
+        char* trimmed = ini_trim(line);
+        if (!*trimmed || *trimmed == ';' || *trimmed == '#') continue;
+
+        if (*trimmed == '[') {
+            if (in_section) break;
+            char* end = strchr(trimmed, ']');
+            if (end) { *end = '\0'; in_section = (oc_stricmp(trimmed + 1, section) == 0); }
+            continue;
+        }
+
+        if (!in_section) continue;
+
+        int len = (int)strlen(trimmed);
+        if (pos + len + 2 > out_size) break;
+        memcpy(out + pos, trimmed, len);
+        pos += len;
+        out[pos++] = '\0';
+    }
+
+    out[pos] = '\0';
+    fclose(f);
+    return in_section;
 }

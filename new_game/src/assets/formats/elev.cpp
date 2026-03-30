@@ -6,9 +6,6 @@
 #include "game/game.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
-// Platform window handle (defined in d3d/display_globals.cpp).
-extern volatile HWND hDDLibWindow;
-
 #include "assets/formats/elev.h"
 #include "assets/formats/elev_globals.h"
 
@@ -1469,7 +1466,7 @@ void ELEV_load_level(CBYTE* fname_level)
             for (i = 0; i < mess_count; i++) {
                 SLONG l;
 
-                ZeroMemory(junk, sizeof(junk));
+                memset(junk, 0, sizeof(junk));
 
                 if (version > 4)
                     FileRead(handle, &l, 4);
@@ -1491,7 +1488,7 @@ void ELEV_load_level(CBYTE* fname_level)
 
                 switch (what) {
                 case 1: // message
-                    ZeroMemory(junk, sizeof(junk));
+                    memset(junk, 0, sizeof(junk));
                     FileRead(handle, &l, 4);
                     if (FileRead(handle, junk, l) == FILE_READ_ERROR)
                         goto file_error;
@@ -2148,8 +2145,6 @@ SLONG ELEV_load_user(SLONG mission)
     CBYTE* fname_level;
     CBYTE curr_directory[_MAX_PATH];
 
-    OPENFILENAME ofn;
-
     MFX_QUICK_stop();
     MUSIC_mode(0);
     MUSIC_mode_process();
@@ -2182,7 +2177,7 @@ try_again:;
             }
     */
 
-    GetCurrentDirectory(_MAX_PATH, curr_directory);
+    oc_getcwd(curr_directory, _MAX_PATH);
 
     if (GAME_STATE & GS_PLAYBACK) {
         UWORD c;
@@ -2221,7 +2216,7 @@ try_again:;
             // store string
             strcpy(fname, ELEV_fname_level);
             cname = fname;
-            if (strnicmp(fname, curr_directory, strlen(curr_directory)) == 0) {
+            if (oc_strnicmp(fname, curr_directory, strlen(curr_directory)) == 0) {
                 cname += strlen(curr_directory);
                 if (*cname = '\\')
                     cname++;
@@ -2237,212 +2232,8 @@ try_again:;
         return res;
     }
 
-    ge_to_gdi();
-
-    SLONG ans = MessageBox(
-        hDDLibWindow,
-        "Do you want to load a level file?",
-        "Load a (map + lighting + citsez) file or a single level file",
-        MB_YESNOCANCEL | MB_APPLMODAL | MB_ICONQUESTION);
-
-    switch (ans) {
-    case IDYES:
-
-        ELEV_fname_level[0] = 0;
-
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = hDDLibWindow;
-        ofn.hInstance = NULL;
-        ofn.lpstrFilter = "Level files\0*.ucm\0Wad files\0*.wad\0\0";
-        ofn.lpstrCustomFilter = NULL;
-        ofn.nMaxCustFilter = 0;
-        ofn.nFilterIndex = 0;
-        ofn.lpstrFile = ELEV_fname_level;
-        ofn.nMaxFile = _MAX_PATH;
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = "Levels";
-        ofn.lpstrTitle = "Load a level";
-        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
-        ofn.nFileOffset = 0;
-        ofn.nFileExtension = 0;
-        ofn.lpstrDefExt = "ucm";
-        ofn.lCustData = NULL;
-        ofn.lpfnHook = NULL;
-        ofn.lpTemplateName = NULL;
-
-        if (!GetOpenFileName(&ofn)) {
-            return UC_FALSE;
-        }
-
-        SetCurrentDirectory(curr_directory);
-
-        if (GAME_STATE & GS_RECORD) {
-            UWORD c = 1;
-            CBYTE fname[_MAX_PATH], *cname;
-
-            // marker to indicate level name is included
-            FileWrite(playback_file, &c, 2);
-            // store string
-            strcpy(fname, ELEV_fname_level);
-            cname = fname;
-            if (strnicmp(fname, curr_directory, strlen(curr_directory)) == 0) {
-                cname += strlen(curr_directory);
-                if (*cname = '\\')
-                    cname++;
-            }
-            c = strlen(cname) + 1; // +1 is to include terminating zero
-            FileWrite(playback_file, &c, 2);
-            FileWrite(playback_file, cname, c);
-        }
-
-        /*
-
-        {
-                SLONG	c0;
-                strcpy(tab_map_name,ELEV_fname_level);
-                for(c0=0;c0<strlen(tab_map_name);c0++)
-                {
-                        if(tab_map_name[c0]=='.')
-                        {
-                                tab_map_name[c0+1]='t';
-                                tab_map_name[c0+2]='g';
-                                tab_map_name[c0+3]='a';
-
-                                break;
-                        }
-                }
-        }
-
-        */
-
-        if (ELEV_fname_level[strlen(ELEV_fname_level) - 3] == 'w') {
-            extern void load_whole_game(CBYTE * gamename);
-
-            load_whole_game(ELEV_fname_level);
-            return (4);
-        } else {
-            if (ELEV_load_name(ELEV_fname_level))
-                return (5);
-            else
-                return (0);
-        }
-
-    case IDNO:
-
-        ELEV_fname_map[0] = 0;
-
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = hDDLibWindow;
-        ofn.hInstance = NULL;
-        ofn.lpstrFilter = "Game map files\0*.iam\0\0";
-        ofn.lpstrCustomFilter = NULL;
-        ofn.nMaxCustFilter = 0;
-        ofn.nFilterIndex = 0;
-        ofn.lpstrFile = ELEV_fname_map;
-        ofn.nMaxFile = _MAX_PATH;
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = "data";
-        ofn.lpstrTitle = "Load a game map";
-        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
-        ofn.nFileOffset = 0;
-        ofn.nFileExtension = 0;
-        ofn.lpstrDefExt = "iam";
-        ofn.lCustData = NULL;
-        ofn.lpfnHook = NULL;
-        ofn.lpTemplateName = NULL;
-
-        if (!GetOpenFileName(&ofn)) {
-            goto try_again;
-        } else {
-            fname_map = ELEV_fname_map;
-        }
-
-        ELEV_create_similar_name(
-            ELEV_fname_lighting,
-            ELEV_fname_map,
-            "lgt");
-
-        SetCurrentDirectory(curr_directory);
-
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = hDDLibWindow;
-        ofn.hInstance = NULL;
-        ofn.lpstrFilter = "Lighting files\0*.lgt\0\0";
-        ofn.lpstrCustomFilter = NULL;
-        ofn.nMaxCustFilter = 0;
-        ofn.nFilterIndex = 0;
-        ofn.lpstrFile = ELEV_fname_lighting;
-        ofn.nMaxFile = _MAX_PATH;
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = "data/lighting";
-        ofn.lpstrTitle = "Load a lighting file";
-        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
-        ofn.nFileOffset = 0;
-        ofn.nFileExtension = 0;
-        ofn.lpstrDefExt = "lgt";
-        ofn.lCustData = NULL;
-        ofn.lpfnHook = NULL;
-        ofn.lpTemplateName = NULL;
-
-        if (!GetOpenFileName(&ofn)) {
-            fname_lighting = NULL;
-        } else {
-            fname_lighting = ELEV_fname_lighting;
-        }
-
-        ELEV_create_similar_name(
-            ELEV_fname_citsez,
-            ELEV_fname_map,
-            "txt");
-
-        SetCurrentDirectory(curr_directory);
-
-        ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = hDDLibWindow;
-        ofn.hInstance = NULL;
-        ofn.lpstrFilter = "Text files\0*.txt\0\0";
-        ofn.lpstrCustomFilter = NULL;
-        ofn.nMaxCustFilter = 0;
-        ofn.nFilterIndex = 0;
-        ofn.lpstrFile = ELEV_fname_citsez;
-        ofn.nMaxFile = _MAX_PATH;
-        ofn.lpstrFileTitle = NULL;
-        ofn.nMaxFileTitle = 0;
-        ofn.lpstrInitialDir = "text";
-        ofn.lpstrTitle = "Load a Citizen-sez text file";
-        ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_HIDEREADONLY;
-        ofn.nFileOffset = 0;
-        ofn.nFileExtension = 0;
-        ofn.lpstrDefExt = "txt";
-        ofn.lCustData = NULL;
-        ofn.lpfnHook = NULL;
-        ofn.lpTemplateName = NULL;
-
-        if (!GetOpenFileName(&ofn)) {
-            fname_citsez = NULL;
-        } else {
-            fname_citsez = ELEV_fname_citsez;
-        }
-
-        fname_level = NULL;
-
-        SetCurrentDirectory(curr_directory);
-
-        return ELEV_game_init(
-            fname_map,
-            fname_lighting,
-            fname_citsez,
-            fname_level);
-
-    case IDCANCEL:
-        return UC_FALSE;
-
-    default:
-        return UC_FALSE;
-    }
+    // Editor file dialogs removed — game always loads by mission name.
+    return UC_FALSE;
 }
 
 // Reloads the current level from the stored filename. Called when restarting a mission.

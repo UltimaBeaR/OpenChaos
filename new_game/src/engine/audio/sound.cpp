@@ -2,6 +2,7 @@
 
 #include "engine/audio/sound.h"
 #include "engine/platform/uc_common.h"
+#include "engine/io/env.h"
 #include "map/pap.h"
 #include "map/sewers.h"
 #include "camera/fc.h"
@@ -543,7 +544,7 @@ void StopScreamFallSound(Thing* p_thing)
 }
 
 // Parses an INI [Groups] section to build the SOUND_FXGroups table of [start, end] sample ranges.
-// Uses Windows GetPrivateProfileSection to read the INI file.
+// Reads the [Groups] section from the INI file.
 // uc_orig: SOUND_InitFXGroups (fallen/Source/Sound.cpp)
 void SOUND_InitFXGroups(CBYTE* fn)
 {
@@ -551,7 +552,7 @@ void SOUND_InitFXGroups(CBYTE* fn)
     CBYTE *pt, *split;
     CBYTE name[128], value[128];
     CBYTE index = 0;
-    GetPrivateProfileSection("Groups", buff, 32767, fn);
+    INI_get_section(fn, "Groups", buff, 32767);
     pt = buff;
     while (*pt) {
         split = strrchr(pt, '=');

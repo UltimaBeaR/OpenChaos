@@ -250,7 +250,7 @@ void game_startup(void)
     if (OpenDisplay(640, 480, 16, FLAGS_USE_3D | FLAGS_USE_WORKSCREEN) == 0) {
         GAME_STATE = GS_ATTRACT_MODE;
     } else {
-        MessageBox(NULL, "Unable to open display", NULL, MB_OK | MB_ICONWARNING);
+        fprintf(stderr, "Unable to open display\n");
         exit(1);
     }
 

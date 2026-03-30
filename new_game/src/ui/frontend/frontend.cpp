@@ -2,6 +2,7 @@
 // kibble particle system, FRONTEND_kibble_process, FRONTEND_fetch_title_from_id,
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
+#include <sys/stat.h>
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
@@ -379,7 +380,7 @@ void FRONTEND_init_xition(void)
 // Mission briefing screens use an iris (rect from center); others use a horizontal wipe.
 void FRONTEND_show_xition()
 {
-    RECT rc;
+    struct { SLONG left, top, right, bottom; } rc;
 
     bool bDoBlit = UC_FALSE;
 
@@ -644,24 +645,15 @@ void FRONTEND_DrawMulti(MenuData* md, ULONG rgb)
 
 // uc_orig: FRONTEND_DrawKey (fallen/Source/frontend.cpp)
 // Draws the name of the keyboard key assigned to a menu action.
-// Uses Windows GetKeyNameText() to convert the scancode to a readable string.
+// Draws the name of the keyboard key assigned to a menu action.
 void FRONTEND_DrawKey(MenuData* md)
 {
-    SLONG x, y, dy, c0, rgb;
+    SLONG x, y, dy, rgb;
     CBYTE str[25];
     rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_key && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
     dy = md->Y + menu_state.base - menu_state.scroll;
 
-    c0 = md->Data;
-    if (c0 & 0x80) {
-        c0 = md->Data & ~0x80;
-        c0 <<= 16;
-        c0 |= 1 << 24;
-    } else {
-        c0 <<= 16;
-    }
-
-    GetKeyNameText(c0, str, 25);
+    sdl3_get_key_name(md->Data, str, 25);
 
     if (IsEnglish) {
         MENUFONT_Dimensions(str, x, y, -1, BIG_FONT_SCALE);
@@ -783,7 +775,7 @@ void FRONTEND_kibble_init()
     densities[2] = 40;
     densities[3] = 10;
 
-    ZeroMemory(kibble, sizeof(kibble));
+    memset(kibble, 0, sizeof(kibble));
 
     for (c0 = 0, k = kibble; c0 < densities[menu_theme]; c0++, k++)
         FRONTEND_kibble_init_one(k, menu_theme + 1);
@@ -834,7 +826,6 @@ void FRONTEND_kibble_flurry()
 
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
-#include "engine/platform/wind_procs.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/io/env.h"
 
@@ -1008,7 +999,7 @@ bool FRONTEND_save_savegame(CBYTE* mission_name, UBYTE slot)
     MFFileHandle file;
     UBYTE version = 3;
 
-    CreateDirectory("saves", NULL);
+    oc_mkdir("saves");
 
     sprintf(fn, "saves/slot%d.wag", slot);
     file = FileCreate(fn, 1);
@@ -1081,7 +1072,7 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
     MenuData* md = menu_data;
     CBYTE* str = menu_buffer;
     SLONG x, y, y2 = 0;
-    FILETIME time, high_time = { 0, 0 };
+    time_t high_time = 0;
 
     for (c0 = 1; c0 < 11; c0++) {
         md->Type = OT_BUTTON;
@@ -1091,7 +1082,9 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
         MFFileHandle file;
         sprintf(dir, "saves/slot%d.wag", c0);
         file = FileOpen(dir);
-        GetFileTime(file, NULL, NULL, &time);
+        // Get file modification time for selecting most recent save.
+        struct stat st;
+        time_t ftime = (stat(dir, &st) == 0) ? st.st_mtime : 0;
         if (file != FILE_OPEN_ERROR) {
             FRONTEND_LoadString(file, ttl);
             FileClose(file);
@@ -1109,8 +1102,8 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
         md->X = 320 - (x >> 1);
         md->Y = y2;
         y2 += 50;
-        if (CompareFileTime(&time, &high_time) > 0) {
-            high_time = time;
+        if (ftime > high_time) {
+            high_time = ftime;
             menu_state.selected = menu_state.items;
         }
         md++;
@@ -1233,7 +1226,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
     text = (CBYTE*)MemAlloc(4096);
     memset(text, 0, 4096);
 
-    ZeroMemory(district_valid, sizeof(district_valid));
+    memset(district_valid, 0, sizeof(district_valid));
     mission_hierarchy[1] = 3;
 
     // First pass: locate special mission IDs needed for unlock logic.
@@ -1543,7 +1536,7 @@ void FRONTEND_districts(CBYTE* script)
     memset(text, 0, 4096);
 
     district_count = 0;
-    ZeroMemory(crap_remap, sizeof(crap_remap));
+    memset(crap_remap, 0, sizeof(crap_remap));
 
     FileOpenScript();
     while (1) {
@@ -1775,11 +1768,11 @@ struct DriverEnumState {
 static void driver_enum_callback(const char* name, bool is_primary, bool is_current, void* ctx)
 {
     auto* state = static_cast<DriverEnumState*>(ctx);
-    TCHAR szBuff[80];
+    char szBuff[80];
     if (is_primary)
-        wsprintf(szBuff, TEXT("%s (Primary)"), name);
+        sprintf(szBuff, "%s (Primary)", name);
     else
-        wsprintf(szBuff, TEXT("%s"), name);
+        sprintf(szBuff, "%s", name);
 
     strcpy(state->str, szBuff);
     state->str += strlen(state->str) + 1;
@@ -1908,7 +1901,7 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
     dwAutoPlayFMVTimeout = sdl3_get_ticks() + AUTOPLAY_FMV_DELAY;
 
     fade_mode = 1;
-    ZeroMemory(menu_data, sizeof(menu_data));
+    memset(menu_data, 0, sizeof(menu_data));
     menu_state.items = 0;
     if (mode == -2) {
         if (menu_state.stackpos > 0) {
@@ -3040,17 +3033,17 @@ void FRONTEND_init(bool bGoToTitleScreen)
 
     ge_set_background_override(screenfull_back);
 
-    ZeroMemory(kibble, sizeof(kibble));
-    ZeroMemory(&menu_state, sizeof(menu_state));
+    memset(kibble, 0, sizeof(kibble));
+    memset(&menu_state, 0, sizeof(menu_state));
     if (!complete_point)
-        ZeroMemory(mission_hierarchy, 60);
+        memset(mission_hierarchy, 0, 60);
     menu_state.mode = -1;
 
     FRONTEND_CacheMissionList(MISSION_SCRIPT);
 
     ge_clear(false, true);
 
-    ZeroMemory(menu_choice_scanner, 255);
+    memset(menu_choice_scanner, 0, 255);
     XLAT_str(X_CAMERA, menu_choice_scanner);
     lang = menu_choice_scanner + strlen(menu_choice_scanner) + 1;
     XLAT_str(X_CHARACTER, lang);
@@ -3107,7 +3100,7 @@ void FRONTEND_level_lost()
     mission_launch = previous_mission_launch;
     // Start up the kibble again.
     FRONTEND_kibble_init();
-    ZeroMemory(&menu_state, sizeof(menu_state));
+    memset(&menu_state, 0, sizeof(menu_state));
     menu_state.mode = -1;
     FRONTEND_mode(FE_MAINMENU);
 }
@@ -3169,7 +3162,7 @@ void FRONTEND_level_won()
 
     // Start up the kibble again.
     FRONTEND_kibble_init();
-    ZeroMemory(&menu_state, sizeof(menu_state));
+    memset(&menu_state, 0, sizeof(menu_state));
     menu_state.mode = -1;
     if (complete_point < mission_launch)
         complete_point = mission_launch;

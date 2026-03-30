@@ -1,7 +1,7 @@
 // platform.h
 // uc_orig: MFStdLib.h (MFStdLib/Headers/MFStdLib.h)
 // Guy Simmons, 18th December 1997.
-// Main platform abstraction header: Windows/DirectX includes, core types, host API.
+// Main platform abstraction header: core types, host API.
 
 #ifndef ENGINE_PLATFORM_UC_COMMON_H
 #define ENGINE_PLATFORM_UC_COMMON_H
@@ -13,24 +13,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
-
-// Library defines.
-#define _MF_WINDOWS
-
-#ifndef _WIN32
-#define _WIN32
-#endif
-
-#ifndef WIN32
-#define WIN32
-#endif
-
-// Windows includes.
-#define D3D_OVERLOADS
-#include <windows.h>
-#include <windowsx.h>
-// D3D/DDraw headers removed from umbrella — include directly where needed.
-// (Stage 7: renderer abstraction, D3D headers should only be in graphics_api/ and graphics_engine_d3d.cpp)
 
 #include "engine/core/types.h"
 
@@ -90,7 +72,7 @@ struct MFTime {
     uint64_t Ticks; // Milliseconds since SDL init (was GetTickCount)
 };
 
-SLONG main(UWORD argc, TCHAR** argv);
+SLONG main(UWORD argc, char** argv);
 BOOL SetupHost(ULONG flags);
 void ResetHost(void);
 void TraceText(char* error, ...);

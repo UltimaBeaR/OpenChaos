@@ -115,7 +115,49 @@
 - **Верификация:** компиляция Release+Debug OK, загрузка уровня в игре OK
 - **Бонус:** bridge-паттерн (`sdl3_bridge`, `/Zp8` исключения) больше не нужен — SDL3 хедеры можно включать напрямую
 
-## 13. Сборочная система
+## 13. Убрать Windows-зависимости из игрового кода ✅
+
+### Удалено
+- **`#include <windows.h>` из `uc_common.h`** — главный umbrella хедер больше не тянет Windows
+- **`WIN32`, `_WINDOWS`** define'ы из CMakeLists.txt — не нужны (компилятор ставит `_WIN32` сам)
+- **9 мёртвых Windows-библиотек** из линковки: odbc32, odbccp32, comctl32, imm32, Version, winmm, amstrmid, quartz, strmbase
+- **wind_procs.h/cpp** — мёртвый код (Win32 WndProc), удалён
+- **Editor file dialogs** в elev.cpp — весь OPENFILENAME/GetOpenFileName блок удалён
+- **`hDDLibWindow`** — убран из OpenGL/stub бэкендов и host.cpp (остался только в DX6)
+- **`sdl3_window_get_native_handle()`** — удалена из бриджа (не нужна без DX6)
+- **`hGlobalThisInst`** — перенесён в DX6 бэкенд (display.cpp)
+- **Single-instance guard** (CreateEventA) — удалён
+
+### Заменено на кросс-платформенное
+- `ZeroMemory(p, s)` → `memset(p, 0, s)` (~15 мест)
+- `timeGetTime()` → `sdl3_get_ticks()` (2 места)
+- `GetKeyNameText()` → `sdl3_get_key_name()` (новая функция в бридже)
+- `MessageBox()` → `fprintf(stderr, ...)` (game.cpp)
+- `ShowCursor/SetCapture/ReleaseCapture` → `sdl3_show_cursor()`/`sdl3_hide_cursor()`/`sdl3_set_mouse_grab()` (новые функции в бридже)
+- `GetCursorPos/SetCursorPos/ScreenToClient` → `sdl3_get_global_mouse_pos()`/`sdl3_warp_mouse_global()`/`sdl3_window_get_position()` (widget.cpp, outro_os.cpp)
+- `GetAsyncKeyState(VK_LBUTTON)` → `LeftButton` глобал (widget.cpp)
+- `GetClientRect` → `sdl3_window_get_size()` (game_tick.cpp)
+- `OutputDebugString` → `fprintf(stderr, ...)` (host.cpp, outro_os.cpp)
+- `CreateDirectory` → `oc_mkdir()` (game_tick.cpp, frontend.cpp)
+- `GetCurrentDirectory` → `oc_getcwd()` (elev.cpp)
+- `GetPrivateProfileInt/Section` → `INI_get_int()`/`INI_get_section()` (texture.cpp, mfx.cpp, sound.cpp)
+- `FILETIME/GetFileTime/CompareFileTime` → `stat()/st_mtime` (frontend.cpp)
+- `TCHAR` → `char`, `wsprintf` → `sprintf`, `TEXT()` → удалён
+- `LOWORD/HIWORD` → определены в types.h
+- Crash handler: Win32 SEH → кросс-платформенный `signal(SIGSEGV/SIGABRT/SIGFPE)`
+- `strnicmp` → `oc_strnicmp` (кросс-платформенный макрос)
+
+### Кросс-платформенные compat-макросы (types.h)
+- `oc_getcwd`, `oc_stricmp`, `oc_strnicmp`, `oc_mkdir` — POSIX имена, на MSVC маппятся в `_getcwd` и т.д.
+- `BYTE`, `WORD`, `CHAR`, `DWORD`, `BOOL`, `TCHAR`, `LOWORD`, `HIWORD`, `MAX_PATH`, `TEXT` — определены в types.h с guard'ами `_WINDEF_`/`_WINNT_`
+
+### Результат
+- **Ноль `_WIN32` в игровом коде** — только в GLAD (сторонняя) и DX6 бэкенде
+- **`windows.h`** включается только в DX6 бэкенде (4 файла)
+- **Бридж** (`sdl3_bridge.h/cpp`) — полностью кросс-платформенный, без `_WIN32`
+- **Верификация:** Release+Debug OK, игра загружается и работает
+
+## 14. Сборочная система
 
 - `clang-cl` → standalone `clang++` (убрать зависимость от VS)
 - ~~CMake флаги: убрать `/Zp1`~~ (сделано в п.12)
@@ -123,7 +165,6 @@
 - CMake флаги: `/clang:-O2` → `-O2`, убрать `/SAFESEH`, `/ENTRY:mainCRTStartup`
 - Убрать `vcvarsall.bat x86` из configure.ps1
 - Заменить VS-bundled cmake на системный
-- Линковка: убрать Windows-only libs (odbc32, odbccp32, comctl32, winmm и т.д.) — обернуть в `if(WIN32)`
 - Добавить Linux/macOS toolchain файлы или условия в CMakeLists.txt
 
 ---
@@ -144,4 +185,5 @@
 | 10 | Types cleanup | ✅ |
 | 11 | Мёртвый код | ✅ |
 | 12 | Убрать `/Zp1` → локальный `#pragma pack` | ✅ |
-| 13 | Сборочная система | ⏳ |
+| 13 | Убрать Windows-зависимости из игрового кода | ✅ |
+| 14 | Сборочная система | ⏳ |

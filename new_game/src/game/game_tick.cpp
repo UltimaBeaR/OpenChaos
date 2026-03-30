@@ -30,8 +30,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "assets/formats/tga.h"
 
-// Platform globals (defined in d3d/display_globals.cpp) — needed for windowed mouse coords.
-extern volatile HWND hDDLibWindow;
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
 #include "map/level_pools.h"
 #include "map/supermap.h"
@@ -395,7 +394,7 @@ void tga_dump(void)
     FILE* handle;
 
     // Create output directory if needed.
-    CreateDirectoryA("debug_screenshots", NULL);
+    oc_mkdir("debug_screenshots");
 
     for (i = 0; i < 10000; i++) {
         sprintf(fname, "debug_screenshots/shot%04d.tga", i);
@@ -3283,14 +3282,13 @@ extern	SLONG	FC_cam_height;
                                 if(mouse_input)
                                 {
 
-                                        SetCapture(hDDLibWindow);
-
-                                        ShowCursor(NULL);
+                                        sdl3_set_mouse_grab(true);
+                                        sdl3_hide_cursor();
                                 }
                                 else
                                 {
-                                        ReleaseCapture();
-                                        ShowCursor(1);
+                                        sdl3_set_mouse_grab(false);
+                                        sdl3_show_cursor();
                                 }
                                         //SetCursor(LoadCursor(NULL,IDC_ARROW));
 
@@ -3432,12 +3430,11 @@ extern	SLONG	FC_cam_height;
             // Teleport Darci to where the mouse is.
             //
 
-            RECT client;
+            int cw, ch;
+            sdl3_window_get_size(&cw, &ch);
 
-            GetClientRect(hDDLibWindow, &client);
-
-            float hitx = float(MouseX) * float(DisplayWidth) / float(client.right - client.left);
-            float hity = float(MouseY) * float(DisplayHeight) / float(client.bottom - client.top);
+            float hitx = float(MouseX) * float(DisplayWidth) / float(cw);
+            float hity = float(MouseY) * float(DisplayHeight) / float(ch);
 
             AENG_raytraced_position(
                 SLONG(hitx + 0.5f),

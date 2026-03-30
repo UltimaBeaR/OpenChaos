@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include "missions/eway.h"
 
 #include "game/game.h"
