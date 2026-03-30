@@ -1,13 +1,12 @@
-// OpenGL 4.1 context management via WGL on the existing Win32 HWND.
-// Cross-platform (SDL3) window creation will be done in Stage 8.
+// OpenGL 4.1 context management via SDL3.
 
 #ifndef ENGINE_GRAPHICS_BACKEND_OPENGL_GL_CONTEXT_H
 #define ENGINE_GRAPHICS_BACKEND_OPENGL_GL_CONTEXT_H
 
 #include <cstdint>
 
-// Create an OpenGL 4.1 core profile context on the game window.
-// Must be called after SetupHost() creates hDDLibWindow.
+// Create an OpenGL 4.1 core profile context on the SDL3 window.
+// Must be called after SetupHost() creates the SDL3 window.
 bool gl_context_create(int32_t width, int32_t height);
 
 // Destroy the GL context.

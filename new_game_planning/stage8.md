@@ -11,15 +11,17 @@
 
 ## Код — уход от Windows API
 
-### 1. Оконная система + GL контекст (крупное)
-- Win32 `CreateWindowEx`, `WndProc`, message loop (`host.cpp`) → SDL3 window + event loop
-- WGL контекст (`gl_context.cpp`) → `SDL_GL_CreateContext` (кросс-платформенный GL из коробки)
-- SDL3 уже в проекте (геймпады, этап 5.1), но окно пока Win32
+### 1. Оконная система + GL контекст (крупное) ✅
+- ~~Win32 `CreateWindowEx`, `WndProc`, message loop (`host.cpp`) → SDL3 window + event loop~~
+- ~~WGL контекст (`gl_context.cpp`) → `SDL_GL_CreateContext`~~
+- **Сделано:** окно, GL контекст, event loop — через SDL3 bridge. Детали → `stage8_log.md`
+- **Остаток:** `hDDLibWindow` ещё используется в 3 местах (game_tick, widget, elev) через native handle — cleanup
 
 ### 2. Input (среднее)
-- Клавиатура: Win32 `GetAsyncKeyState` / DirectInput → SDL3 keyboard events
+- Клавиатура: ✅ SDL3 events → маппинг на KB_* scancodes (через bridge)
+- Мышь: ✅ SDL3 events → MouseProc (через bridge)
 - Геймпад: уже на SDL3 ✅
-- `DIManager.cpp` (DirectInput) → полностью заменить на SDL3
+- **Остаток:** keyboard.cpp / mouse.cpp ещё используют Win32 типы (WM_*, LPARAM) внутри — cleanup для полной кросс-платформенности
 
 ### 3. File I/O (механическое)
 - `MFFileHandle` (Win32 `HANDLE`) → стандартные `fopen`/`fread` или SDL_IO
@@ -42,3 +44,5 @@
 Файловый слой — механическая работа. По объёму — несколько сессий, не месяцы.
 
 **Критерий:** компилируется и работает на Linux и macOS без Visual Studio.
+
+**Девлог:** [`stage8_log.md`](../new_game_devlog/stage8_log.md)

@@ -4,9 +4,7 @@
 #include <windows.h>
 
 #include "engine/input/mouse.h"
-
-// Platform window handle (defined in d3d/display_globals.cpp).
-extern volatile HWND hDDLibWindow;
+#include "engine/platform/sdl3_bridge.h"
 
 // uc_orig: MouseProc (fallen/DDLibrary/Source/GMouse.cpp)
 LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)
@@ -78,17 +76,13 @@ LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam)
 // uc_orig: RecenterMouse (fallen/DDLibrary/Source/GMouse.cpp)
 void RecenterMouse(void)
 {
-    RECT client_rect;
-    POINT p;
+    int cx, cy;
+    sdl3_window_get_center(&cx, &cy);
+    sdl3_warp_mouse_global(cx, cy);
 
-    GetWindowRect(hDDLibWindow, &client_rect);
-
-    SetCursorPos((client_rect.left + client_rect.right) >> 1, (client_rect.top + client_rect.bottom) >> 1);
-    p.x = (client_rect.left + client_rect.right) >> 1;
-    p.y = (client_rect.top + client_rect.bottom) >> 1;
-
-    ScreenToClient(hDDLibWindow, &p);
-
-    OldMouseX = p.x;
-    OldMouseY = p.y;
+    // Convert screen center to client coordinates for delta tracking.
+    int ww, wh;
+    sdl3_window_get_size(&ww, &wh);
+    OldMouseX = ww / 2;
+    OldMouseY = wh / 2;
 }

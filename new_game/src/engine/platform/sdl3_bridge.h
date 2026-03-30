@@ -10,6 +10,81 @@
 #include <cstdint>
 
 // ---------------------------------------------------------------------------
+// Window
+// ---------------------------------------------------------------------------
+
+// Create an SDL3 window with OpenGL support.
+bool sdl3_window_create(const char* title, int width, int height);
+
+// Destroy the SDL3 window.
+void sdl3_window_destroy();
+
+// Show the window (after GL context is ready).
+void sdl3_window_show();
+
+// Get client area size.
+void sdl3_window_get_size(int* w, int* h);
+
+// Get window position (screen coordinates of top-left corner).
+void sdl3_window_get_position(int* x, int* y);
+
+// Get window center in screen coordinates.
+void sdl3_window_get_center(int* x, int* y);
+
+// Resize the window client area.
+void sdl3_window_set_size(int w, int h);
+
+// Get actual drawable size in pixels (may differ from window size on HiDPI).
+void sdl3_window_get_drawable_size(int* w, int* h);
+
+// Get native window handle (HWND on Windows, X11 Window on Linux, etc.).
+// Returns nullptr if no window exists.
+void* sdl3_window_get_native_handle();
+
+// Warp mouse cursor to screen coordinates.
+void sdl3_warp_mouse_global(int x, int y);
+
+// ---------------------------------------------------------------------------
+// GL context
+// ---------------------------------------------------------------------------
+
+// Create an OpenGL core profile context on the SDL3 window.
+bool sdl3_gl_create_context(int major, int minor);
+
+// Destroy the GL context.
+void sdl3_gl_destroy_context();
+
+// Swap buffers (present frame).
+void sdl3_gl_swap();
+
+// Get a GL function pointer (for GLAD loader).
+void* sdl3_gl_get_proc_address(const char* name);
+
+// ---------------------------------------------------------------------------
+// Event loop
+// ---------------------------------------------------------------------------
+
+// Callbacks for dispatching SDL events to game subsystems.
+struct SDL3_Callbacks {
+    void (*on_key_down)(uint8_t scancode);       // scancode = game KB_* code
+    void (*on_key_up)(uint8_t scancode);
+    void (*on_mouse_move)(int x, int y);
+    void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=right, 2=middle
+    void (*on_focus_gained)();
+    void (*on_focus_lost)();
+    void (*on_window_moved)();
+    void (*on_window_resized)();
+    void (*on_close)();
+};
+
+// Register event callbacks. Must be called before sdl3_poll_events().
+void sdl3_set_callbacks(const SDL3_Callbacks* cb);
+
+// Poll and dispatch all pending SDL events.
+// Returns false when SDL_QUIT is received (app should exit).
+bool sdl3_poll_events();
+
+// ---------------------------------------------------------------------------
 // Audio
 // ---------------------------------------------------------------------------
 

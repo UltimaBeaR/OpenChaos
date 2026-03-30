@@ -601,6 +601,9 @@ target_compile_definitions(Fallen PRIVATE
 
 # /SAFESEH:NO — original code uses exception handlers not registered in SafeSEH table.
 target_link_options(Fallen PRIVATE /SAFESEH:NO)
+# /ENTRY:mainCRTStartup — use regular main() instead of WinMain while keeping
+# /SUBSYSTEM:WINDOWS (no console window). Allows cross-platform main() entry point.
+target_link_options(Fallen PRIVATE /ENTRY:mainCRTStartup)
 # Debug: generate PDB for crash symbolization (llvm-symbolizer --relative-address).
 target_link_options(Fallen PRIVATE $<$<CONFIG:Debug>:/DEBUG>)
 

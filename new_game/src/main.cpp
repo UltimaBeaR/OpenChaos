@@ -1,14 +1,17 @@
-#include <windows.h>
 #include "engine/platform/host.h"
 
-// Win32 application entry point.
+// uc_common.h defines: #define main(ac, av) MF_main(ac, av)
+// This macro rewrites startup.cpp's main() into MF_main() for the legacy call chain.
+// We need a real main() here, so undo the macro.
+#undef main
+
+// Application entry point.
 //
 // Full startup call chain:
 //
-//   main.cpp: WinMain()
+//   main.cpp: main()
 //     → engine/platform/host.cpp: HOST_run()
-//         Stores WinMain params in globals, creates a named event to prevent
-//         multiple instances ("UrbanChaosExclusionZone"), then calls MF_main().
+//         Sets up crash handler, single-instance guard, then calls MF_main().
 //
 //       → game/startup.cpp: MF_main()
 //           MF_main is NOT declared anywhere explicitly — it exists because
@@ -26,7 +29,7 @@
 //   dependency (engine → game). Should be fixed via callback registration: game
 //   registers its entry point with engine during setup, engine calls it when ready.
 //
-int WINAPI WinMain(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWinMode)
+int main(int argc, char* argv[])
 {
-    return HOST_run(hThisInst, hPrevInst, lpszArgs, iWinMode);
+    return HOST_run(argc, argv);
 }

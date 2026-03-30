@@ -1,23 +1,24 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
-#include <stdio.h>
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/input/keyboard.h"
+#include "engine/input/mouse.h"
 
-// Platform globals (defined in d3d/display_globals.cpp).
+#include <stdio.h>
+#include <string.h>
+#include <windows.h>
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+
+// Platform globals (still needed by some legacy code).
 extern volatile HWND hDDLibWindow;
-extern HACCEL hDDLibAccel;
-#include "engine/platform/wind_procs.h"    // DDLibShellProc
+
 #include "game/game_types.h"
 #include "engine/audio/sound.h"
-#include "engine/audio/mfx.h"                  // MFX_init, MFX_term (already migrated)
-#include "engine/platform/uc_common.h"                           // MFTime, SetupMemory, ResetMemory, MF_main
-
-#define PAUSE_TIMEOUT 500
-#define PAUSE         (1 << 0)
-#define PAUSE_ACK     (1 << 1)
+#include "engine/audio/mfx.h"
+#include "engine/platform/uc_common.h"
 
 // Forward declarations for keyboard subsystem (not yet migrated to new/).
 BOOL SetupKeyboard(void);
@@ -27,9 +28,87 @@ extern void ClearLatchedKeys();
 // Forward declaration for best-found device initialisation.
 void init_best_found(void);
 
+// ---------------------------------------------------------------------------
+// SDL3 event callbacks
+// ---------------------------------------------------------------------------
+
+static void on_key_down(uint8_t scancode)
+{
+    // Simulate the lParam that KeyboardProc expects:
+    // bits 16-23 = scan code, bit 24 = extended flag, bit 31 = 0 (key down).
+    uint8_t base = scancode;
+    LPARAM lParam;
+    if (scancode >= 0x80) {
+        base = scancode - 0x80;
+        lParam = ((LPARAM)base << 16) | (1 << 24); // extended key
+    } else {
+        lParam = ((LPARAM)base << 16);
+    }
+    extern LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
+    KeyboardProc(WM_KEYDOWN, 0, lParam);
+}
+
+static void on_key_up(uint8_t scancode)
+{
+    uint8_t base = scancode;
+    LPARAM lParam;
+    if (scancode >= 0x80) {
+        base = scancode - 0x80;
+        lParam = ((LPARAM)base << 16) | (1 << 24) | (1u << 31); // extended + transition
+    } else {
+        lParam = ((LPARAM)base << 16) | (1u << 31); // transition bit = key up
+    }
+    extern LRESULT CALLBACK KeyboardProc(int code, WPARAM wParam, LPARAM lParam);
+    KeyboardProc(WM_KEYUP, 0, lParam);
+}
+
+static void on_mouse_move(int x, int y)
+{
+    extern LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam);
+    MouseProc(WM_MOUSEMOVE, 0, MAKELPARAM(x, y));
+}
+
+static void on_mouse_button(int button, bool down, int x, int y)
+{
+    extern LRESULT CALLBACK MouseProc(int code, WPARAM wParam, LPARAM lParam);
+    int msg;
+    switch (button) {
+    case 0: msg = down ? WM_LBUTTONDOWN : WM_LBUTTONUP; break;
+    case 1: msg = down ? WM_RBUTTONDOWN : WM_RBUTTONUP; break;
+    case 2: msg = down ? WM_MBUTTONDOWN : WM_MBUTTONUP; break;
+    default: return;
+    }
+    MouseProc(msg, 0, MAKELPARAM(x, y));
+}
+
+static void on_focus_gained()
+{
+    app_inactive = UC_FALSE;
+    restore_surfaces = UC_TRUE;
+}
+
+static void on_focus_lost()
+{
+    app_inactive = UC_TRUE;
+}
+
+static void on_window_moved()
+{
+    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
+}
+
+static void on_window_resized()
+{
+    ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
+}
+
+static void on_close()
+{
+    GAME_STATE = 0;
+}
+
 // uc_orig: SetupHost (fallen/DDLibrary/Source/GHost.cpp)
-// Registers the window class, creates the main window, and initialises memory,
-// keyboard and sound. Returns UC_TRUE if the window was created successfully.
+// Initialises memory, keyboard, sound, and creates the SDL3 window.
 BOOL SetupHost(ULONG flags)
 {
     ShellActive = UC_FALSE;
@@ -39,43 +118,32 @@ BOOL SetupHost(ULONG flags)
     if (!SetupKeyboard())
         return UC_FALSE;
 
-    // Register the window class and create the shell window.
-    DDLibClass.hInstance = hGlobalThisInst;
-    DDLibClass.lpszClassName = TEXT("Urban Chaos");
-    DDLibClass.lpfnWndProc = DDLibShellProc;
-    DDLibClass.style = 0;
-    DDLibClass.hIcon = NULL; // icon removed (DDlib.rc deleted)
-    DDLibClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    DDLibClass.lpszMenuName = NULL;
-    DDLibClass.cbClsExtra = 0;
-    DDLibClass.cbWndExtra = 0;
-    DDLibClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-
-    RegisterClass(&DDLibClass);
-
-    hDDLibWindow = CreateWindowEx(
-        0,
-        "Urban Chaos",
-        "Urban Chaos",
-        WS_POPUP,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        HWND_DESKTOP,
-        NULL,
-        hGlobalThisInst,
-        NULL);
-
-    if (hDDLibWindow) {
-        // Initialise the sound manager; failure is non-fatal.
-        MFX_init();
-
-        // Keyboard accelerators removed (DDlib.rc deleted).
-        hDDLibAccel = NULL;
-
-        ShellActive = UC_TRUE;
+    // Create the SDL3 window (hidden until GL context is ready).
+    if (!sdl3_window_create("Urban Chaos", 640, 480)) {
+        return UC_FALSE;
     }
+
+    // Set hDDLibWindow for legacy code that still needs the native handle.
+    hDDLibWindow = (HWND)sdl3_window_get_native_handle();
+
+    // Register SDL3 event callbacks.
+    SDL3_Callbacks cb = {};
+    cb.on_key_down       = on_key_down;
+    cb.on_key_up         = on_key_up;
+    cb.on_mouse_move     = on_mouse_move;
+    cb.on_mouse_button   = on_mouse_button;
+    cb.on_focus_gained   = on_focus_gained;
+    cb.on_focus_lost     = on_focus_lost;
+    cb.on_window_moved   = on_window_moved;
+    cb.on_window_resized = on_window_resized;
+    cb.on_close          = on_close;
+    sdl3_set_callbacks(&cb);
+
+    // Initialise the sound manager; failure is non-fatal.
+    MFX_init();
+
+    hDDLibAccel = NULL;
+    ShellActive = UC_TRUE;
 
     the_game.DarciStrength = 0;
     the_game.DarciStamina = 0;
@@ -86,30 +154,23 @@ BOOL SetupHost(ULONG flags)
 }
 
 // uc_orig: ResetHost (fallen/DDLibrary/Source/GHost.cpp)
-// Shuts down sound, keyboard, and memory, then unregisters the window class.
+// Shuts down sound, keyboard, memory, and destroys the SDL3 window.
 void ResetHost(void)
 {
     MFX_term();
-
     ResetKeyboard();
     ResetMemory();
 
-    UnregisterClass(TEXT("Urban Chaos"), GetModuleHandle(NULL));
+    sdl3_window_destroy();
 }
 
 // uc_orig: ShellPaused (fallen/DDLibrary/Source/GHost.cpp)
-// Game-thread side of the pause handshake: acknowledges a pending pause request and
-// spins until the pause is lifted. The early return means the pause logic is currently
-// disabled — preserved as-is from the original.
 void ShellPaused(void)
 {
     return;
 }
 
 // uc_orig: ShellPauseOn (fallen/DDLibrary/Source/GHost.cpp)
-// Requests a pause of the game thread and waits for acknowledgement, then switches
-// the display to GDI mode. The early return after toGDI means the synchronisation
-// logic is currently disabled — preserved as-is from the original.
 void ShellPauseOn(void)
 {
     ge_to_gdi();
@@ -117,44 +178,20 @@ void ShellPauseOn(void)
 }
 
 // uc_orig: ShellPauseOff (fallen/DDLibrary/Source/GHost.cpp)
-// Resumes the game thread after a ShellPauseOn call. The early return means the
-// synchronisation logic is currently disabled — preserved as-is from the original.
 void ShellPauseOff(void)
 {
     return;
 }
 
 // uc_orig: LibShellActive (fallen/DDLibrary/Source/GHost.cpp)
-// Pumps the Windows message queue, processing all pending messages. While the app is
-// inactive and in fullscreen, sleeps 100 ms per iteration to yield CPU. Restores all
-// DirectDraw surfaces (including frontend fullscreen surfaces) when restore_surfaces is
-// set after the window regains focus. Returns UC_TRUE while the shell window is alive.
+// Polls the SDL3 event queue, dispatching input/window events via callbacks.
+// Returns UC_TRUE while the app is alive.
 BOOL LibShellActive(void)
 {
-    SLONG result;
-    MSG msg;
-
-    // Release any keys that were held when focus was lost.
     ClearLatchedKeys();
 
-    while (1) {
-        while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-            result = (SLONG)GetMessage(&msg, NULL, 0, 0);
-            if (result) {
-                if (!TranslateAccelerator(hDDLibWindow, hDDLibAccel, &msg)) {
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
-                }
-            } else {
-                ShellActive = UC_FALSE;
-            }
-        }
-
-        if (app_inactive && ge_is_fullscreen()) {
-            Sleep(100);
-        } else {
-            break;
-        }
+    if (!sdl3_poll_events()) {
+        ShellActive = UC_FALSE;
     }
 
     if (restore_surfaces) {
@@ -170,8 +207,6 @@ BOOL LibShellActive(void)
 }
 
 // uc_orig: LibShellChanged (fallen/DDLibrary/Source/GHost.cpp)
-// Returns UC_TRUE if the display configuration changed since the last call and clears the
-// changed flag so subsequent calls return UC_FALSE until the next change.
 BOOL LibShellChanged(void)
 {
     if (ge_is_display_changed()) {
@@ -182,50 +217,37 @@ BOOL LibShellChanged(void)
 }
 
 // uc_orig: LibShellMessage (fallen/DDLibrary/Source/GHost.cpp)
-// Pops an Abort/Retry/Ignore message box with the supplied message, source file, and
-// line number. Abort calls exit(1), Retry triggers __debugbreak, Ignore continues.
 BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
 {
-    BOOL result;
-    CBYTE buff1[512],
-        buff2[512];
-    ULONG flag;
-
     if (pMessage == NULL) {
         pMessage = "Looks like a coder has caught a bug.";
     }
 
-    wsprintf(buff1, "Uh oh, something bad's happened!");
-    wsprintf(buff2, "%s\n\n%s\n\nIn   : %s\nline : %u", buff1, pMessage, pFile, dwLine);
-    strcat(buff2, "\n\nAbort=Kill Application, Retry=Debug, Ignore=Continue");
-    flag = MB_ABORTRETRYIGNORE | MB_ICONSTOP | MB_DEFBUTTON3;
+    fprintf(stderr, "=== Mucky Foot Message ===\n%s\nIn: %s line %u\n", pMessage, pFile, dwLine);
 
-    result = UC_FALSE;
+#ifdef _WIN32
+    // On Windows, still show a message box for developer convenience.
+    char buff[1024];
+    snprintf(buff, sizeof(buff), "%s\n\nIn   : %s\nline : %u\n\nAbort=Kill, Retry=Debug, Ignore=Continue",
+             pMessage, pFile, dwLine);
     ge_to_gdi();
-    switch (MessageBox(hDDLibWindow, buff2, "Mucky Foot Message", flag)) {
-    case IDABORT:
-        exit(1);
-        break;
-    case IDCANCEL:
-    case IDIGNORE:
-        break;
-    case IDRETRY:
-        DebugBreak();
-        break;
+    switch (MessageBoxA((HWND)sdl3_window_get_native_handle(), buff, "Mucky Foot Message",
+                        MB_ABORTRETRYIGNORE | MB_ICONSTOP | MB_DEFBUTTON3)) {
+    case IDABORT:  exit(1); break;
+    case IDRETRY:  DebugBreak(); break;
+    default: break;
     }
-
     ge_from_gdi();
+#endif
 
-    return result;
+    return UC_FALSE;
 }
 
 // uc_orig: Time (fallen/DDLibrary/Source/GHost.cpp)
-// Fills the MFTime structure with the current local time. Note: Ticks wraps after
-// ~49 days (GetTickCount overflow).
 void Time(MFTime* the_time)
 {
+#ifdef _WIN32
     SYSTEMTIME new_time;
-
     GetLocalTime(&new_time);
     the_time->Hours = new_time.wHour;
     the_time->Minutes = new_time.wMinute;
@@ -235,21 +257,21 @@ void Time(MFTime* the_time)
     the_time->Day = new_time.wDay;
     the_time->Month = new_time.wMonth;
     the_time->Year = new_time.wYear;
-    the_time->Ticks = GetTickCount(); // Identified as an overflow issue that occurs every 49 days
+    the_time->Ticks = GetTickCount();
+#else
+    // TODO: cross-platform time implementation (Stage 8 follow-up)
+    memset(the_time, 0, sizeof(*the_time));
+#endif
 }
 
 // uc_orig: WinMain (fallen/DDLibrary/Source/GHost.cpp)
-// Real entry point implementation. Stores WinMain parameters in globals, then uses a named
-// event to ensure only one instance of Urban Chaos can run at a time before calling
-// MF_main. Called from src/main.cpp.
 // Crash handler: writes crash_log.txt with exception info, RVA, and stack addresses.
-// Use llvm-symbolizer with --relative-address on a Debug build PDB to resolve RVAs.
+#ifdef _WIN32
 static LONG WINAPI crash_handler(EXCEPTION_POINTERS* ep)
 {
     FILE* f = fopen("crash_log.txt", "w");
     if (!f) return EXCEPTION_CONTINUE_SEARCH;
 
-    // Write date/time so we can tell which crash is which.
     SYSTEMTIME st;
     GetLocalTime(&st);
     fprintf(f, "Crash at %04d-%02d-%02d %02d:%02d:%02d\n\n",
@@ -289,25 +311,22 @@ static LONG WINAPI crash_handler(EXCEPTION_POINTERS* ep)
     fclose(f);
     return EXCEPTION_CONTINUE_SEARCH;
 }
+#endif
 
-int HOST_run(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWinMode)
+int HOST_run(int argc_in, char* argv_in[])
 {
+#ifdef _WIN32
     SetUnhandledExceptionFilter(crash_handler);
-
-    // Store WinMain parameters for use by the rest of the engine.
-    lpszGlobalArgs = lpszArgs;
-    iGlobalWinMode = iWinMode;
-    hGlobalThisInst = hThisInst;
-    hGlobalPrevInst = hPrevInst;
+    hGlobalThisInst = GetModuleHandle(NULL);
+#endif
 
     init_best_found();
 
-    // Single-instance guard: only one copy of the game can run at a time (Release only).
-    // The event is automatically destroyed when the process exits.
-#ifdef NDEBUG
+    // Single-instance guard (Release only).
+#if defined(NDEBUG) && defined(_WIN32)
     CreateEventA(NULL, UC_FALSE, UC_FALSE, "UrbanChaosExclusionZone");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        return ERROR_ALREADY_EXISTS;
+        return 1;
     }
 #endif
 
@@ -315,8 +334,6 @@ int HOST_run(HINSTANCE hThisInst, HINSTANCE hPrevInst, LPTSTR lpszArgs, int iWin
 }
 
 // uc_orig: TraceText (MFStdLib/Source/StdLib/StdFile.cpp)
-// Formats a message string and sends it to the debugger via OutputDebugString.
-// Used via the TRACE macro throughout the codebase for debug logging.
 void TraceText(char* fmt, ...)
 {
     char message[512];
@@ -326,5 +343,9 @@ void TraceText(char* fmt, ...)
     vsprintf(message, fmt, ap);
     va_end(ap);
 
-    OutputDebugString(message);
+#ifdef _WIN32
+    OutputDebugStringA(message);
+#else
+    fprintf(stderr, "%s", message);
+#endif
 }
