@@ -43,6 +43,9 @@ struct Thing;
 
 // ---- Structures ----
 
+// Binary-file format structures: 1-byte packed for level file compatibility.
+#pragma pack(push, 1)
+
 // One floor of a building interior: bounding rect in map coords, room grid, stair list.
 // uc_orig: InsideStorey (fallen/Headers/inside2.h)
 struct InsideStorey {
@@ -70,6 +73,11 @@ struct Staircase {
     SWORD DownInside;   // InsideStorey index for going downstairs (0 = none)
     SWORD UpInside;     // InsideStorey index for going upstairs (0 = none)
 };
+
+#pragma pack(pop)
+
+static_assert(sizeof(InsideStorey) == 22, "InsideStorey: binary file layout");
+static_assert(sizeof(Staircase) == 10, "Staircase: binary file layout");
 
 // ---- Functions ----
 

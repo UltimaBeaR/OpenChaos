@@ -42,6 +42,9 @@
 // uc_orig: SAVE_GAME_EWAY (fallen/Source/save.cpp)
 #define SAVE_GAME_EWAY 101
 
+// Binary-file format structures: 1-byte packed for save file compatibility.
+#pragma pack(push, 1)
+
 // Compact person record for dead, arrested, and wandering states.
 // uc_orig: SAVE_Person (fallen/Source/save.cpp)
 typedef struct
@@ -105,6 +108,14 @@ typedef struct
     UWORD Vehicle;
     UWORD DrawMesh;
 } SAVE_Vehicle_extra;
+
+#pragma pack(pop)
+
+static_assert(sizeof(SAVE_Person) == 18, "SAVE_Person: binary file layout");
+static_assert(sizeof(SAVE_Person_extra) == 6, "SAVE_Person_extra: binary file layout");
+static_assert(sizeof(SAVE_Special_extra) == 8, "SAVE_Special_extra: binary file layout");
+static_assert(sizeof(SAVE_just_vehicle) == 14, "SAVE_just_vehicle: binary file layout");
+static_assert(sizeof(SAVE_Vehicle_extra) == 8, "SAVE_Vehicle_extra: binary file layout");
 
 // Forward declarations of helpers not yet defined at point of first use.
 // uc_orig: LOAD_person_dead (fallen/Source/save.cpp)

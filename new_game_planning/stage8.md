@@ -93,75 +93,34 @@
   Убран `#include <windows.h>`
 - **HOST_run bug fix** — `MF_main(argc, argv)` использовал неинициализированные глобалы вместо параметров → исправлено на `MF_main((UWORD)argc_in, argv_in)`
 
-## 12. Убрать глобальный `/Zp1` — локальный `#pragma pack` для бинарных структур
+## 12. Убрать глобальный `/Zp1` — локальный `#pragma pack` для бинарных структур ✅
 
-**Проблема:** весь проект компилируется с `/Zp1` (1-byte struct packing). Это ломает внешние библиотеки (SDL3, MSVC STL `<thread>`/`<mutex>`/`<condition_variable>`) и вынуждает использовать bridge-паттерн: отдельные .cpp с `/Zp8`, opaque handles, C API обёртки. Мусорная архитектура ради одного флага.
-
-**Зачем `/Zp1` нужен:** ~23 структуры читаются из бинарных файлов (уровни, меши, анимации, сейвы) через `FileRead(handle, &struct, sizeof(struct))`. Без packed layout компилятор вставит padding → sizeof изменится → бинарные форматы перестанут читаться.
-
-**Решение:** `#pragma pack(push, 1)` / `#pragma pack(pop)` на каждую структуру, которая зависит от packed layout. Убрать `/Zp1` из CMake. Остальной код компилируется с default alignment.
-
-**Бонус:** исчезнет причина существования bridge-паттерна:
-- `sdl3_bridge.h/cpp` — SDL3 хедеры можно будет включать напрямую
-- `threading_bridge.h/cpp` — `<thread>`/`<mutex>`/`<condition_variable>` можно использовать напрямую
-- Все `/Zp8` исключения в CMakeLists.txt — не нужны
-
-### Структуры требующие `#pragma pack(push, 1)`
-
-**Геометрия (prim_types.h):**
-- `PrimPoint` (6 bytes) — вершины
-- `PrimFace3` (28 bytes) — треугольные грани
-- `PrimFace4` (32+ bytes) — четырёхугольные грани
-- `RoofFace4` (12 bytes) — крыши
-
-**Карта (supermap.h):**
-- `DStorey` (8 bytes)
-- `DFacet` (24 bytes) — фасеты
-- `DBuilding` (24 bytes) — здания
-- `DWalkable` (24 bytes) — walkable поверхности
-- `InsideStorey`, `Staircase`
-
-**Анимации (anim_types.h):**
-- `GameKeyFrameElement` (20 bytes) — кости
-- `GameKeyFrame` (20-28 bytes) — кадры анимации
-- `GameFightCol` (16 bytes) — зоны удара
-- `BodyDef` (20 bytes) — определения тел
-
-**Текстуры и ресурсы:**
-- `TXTY` (4 bytes, building_types.h) — UV координаты текстур
-- `AnimTmap` (166 bytes, anim_tmap.h) — анимированные текстуры
-
-**Объекты на карте:**
-- `MapThingPSX` (80+ bytes, mapthing.h)
-- `LoadGameThing` (40 bytes, level_loader.h)
-
-**Физика:**
-- `HM_Header` (8 bytes, hm.h)
-- `HM_Primgrid` (~96 bytes, hm.h)
-
-**Сейвы (save.cpp):**
-- `SAVE_Person` (18 bytes)
-- `SAVE_Person_extra` (6 bytes)
-- `SAVE_Special_extra` (8 bytes)
-- `SAVE_Vehicle_extra`
-
-**Освещение:**
-- `NIGHT_Square`
-
-### Верификация
-
-После каждого `#pragma pack(pop)` — `static_assert(sizeof(StructName) == expected_size)`. 100% надёжная проверка — компилятор скажет если sizeof не совпадает. Плюс runtime проверка: загрузка любого уровня покажет если что-то пропущено.
-
-### Уже используют `#pragma pack` локально (не зависят от `/Zp1`)
-
-- `game_graphics_engine.h` — `#pragma pack(push, 4)` для `GERenderState`
-- `polypage.h` — `#pragma pack(push, 4)` для `PolyPage`
+- ~~Глобальный `/Zp1` из CMake — убран~~
+- ~~Все `/Zp8` исключения (sdl3_bridge, ds_bridge, GLAD, gl_context, gl_shader) — убраны~~
+- ~~`WINDOWS_IGNORE_PACKING_MISMATCH` — убран~~
+- **25 структур** обёрнуты `#pragma pack(push, 1)` / `#pragma pack(pop)` + `static_assert`:
+  - **prim_types.h:** PrimPoint(6), RoofFace4(10), PrimFace3(28), PrimFace4(34), PrimFace4PSX(24), PrimFace3PSX(20), PrimObject(16)
+  - **supermap.h:** DStorey(6), DFacet(26), DBuilding(24), DWalkable(22)
+  - **anim_types.h:** PrimMultiAnim(50), BodyDef(20), GameKeyFrameElementCompOld(12), GameKeyFrameElementComp(8), GameKeyFrameElementBig(20), GameKeyFrameElement(20), GameFightCol, GameKeyFrame
+  - **building_types.h:** TXTY(4)
+  - **anim_tmap.h:** AnimTmap(166)
+  - **mapthing.h:** MapThingPSX
+  - **level_loader.h:** LoadGameThing(44)
+  - **hm.h:** HM_Header(8), HM_Primgrid(112)
+  - **save.cpp:** SAVE_Person(18), SAVE_Person_extra(6), SAVE_Special_extra(8), SAVE_just_vehicle(14), SAVE_Vehicle_extra(8)
+  - **inside2.h:** InsideStorey(22), Staircase(10)
+  - **night.h:** NIGHT_Square
+- Структуры с указателями (GameFightCol, GameKeyFrame, MapThingPSX, NIGHT_Square) — без static_assert (размер зависит от sizeof(void*))
+- `game_graphics_engine.h` (`#pragma pack(push, 4)` для GERenderState) и `polypage.h` (`#pragma pack(push, 4)` для PolyPage) — уже были, не затронуты
+- **Верификация:** компиляция Release+Debug OK, загрузка уровня в игре OK
+- **Бонус:** bridge-паттерн (`sdl3_bridge`, `/Zp8` исключения) больше не нужен — SDL3 хедеры можно включать напрямую
 
 ## 13. Сборочная система
 
 - `clang-cl` → standalone `clang++` (убрать зависимость от VS)
-- CMake флаги: убрать `/Zp1` (после п.12), `/clang:-O2` → `-O2`, убрать `/SAFESEH`, `/ENTRY:mainCRTStartup`
-- Убрать `/Zp8` исключения из CMakeLists.txt (после п.12 — не нужны)
+- ~~CMake флаги: убрать `/Zp1`~~ (сделано в п.12)
+- ~~Убрать `/Zp8` исключения из CMakeLists.txt~~ (сделано в п.12)
+- CMake флаги: `/clang:-O2` → `-O2`, убрать `/SAFESEH`, `/ENTRY:mainCRTStartup`
 - Убрать `vcvarsall.bat x86` из configure.ps1
 - Заменить VS-bundled cmake на системный
 - Линковка: убрать Windows-only libs (odbc32, odbccp32, comctl32, winmm и т.д.) — обернуть в `if(WIN32)`
@@ -184,5 +143,5 @@
 | 9 | Input cleanup | ✅ |
 | 10 | Types cleanup | ✅ |
 | 11 | Мёртвый код | ✅ |
-| 12 | Убрать `/Zp1` → локальный `#pragma pack` | ⏳ |
+| 12 | Убрать `/Zp1` → локальный `#pragma pack` | ✅ |
 | 13 | Сборочная система | ⏳ |

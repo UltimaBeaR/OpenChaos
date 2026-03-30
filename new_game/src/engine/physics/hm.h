@@ -14,6 +14,7 @@
 
 // uc_orig: HM_Header (fallen/Headers/hm.h)
 // Binary file header for the .hm primgrid data file.
+#pragma pack(push, 1)
 typedef struct
 {
     SLONG version;
@@ -42,6 +43,10 @@ typedef struct
     float z_dgrav;
 
 } HM_Primgrid;
+#pragma pack(pop)
+
+static_assert(sizeof(HM_Header) == 8, "HM_Header: binary file layout");
+static_assert(sizeof(HM_Primgrid) == 112, "HM_Primgrid: binary file layout");
 
 // Internal simulation types exposed here so hm_globals.h can define the pool.
 

@@ -26,6 +26,7 @@
 // uc_orig: MapThingPSX (fallen/Editor/Headers/Thing.h)
 // PSX map thing entry as stored in level files. Describes a placed object:
 // position, type, animation state, and editor metadata.
+#pragma pack(push, 1)
 struct MapThingPSX {
     SLONG X;
     SLONG Y;
@@ -56,5 +57,6 @@ struct MapThingPSX {
     KeyFrame* CurrentFrame;
     KeyFrame* NextFrame;
 };
+#pragma pack(pop)
 
 #endif // ASSETS_FORMATS_MAPTHING_H

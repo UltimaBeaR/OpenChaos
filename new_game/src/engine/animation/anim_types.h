@@ -80,6 +80,7 @@ struct AnimItem {
 
 // Per-object frame data for multi-part animation (stores matrix + offset delta).
 // uc_orig: PrimMultiAnim (fallen/Editor/Headers/Anim.h)
+#pragma pack(push, 1)
 struct PrimMultiAnim {
     struct Matrix33 Mat;
     SLONG DX;
@@ -87,6 +88,11 @@ struct PrimMultiAnim {
     SLONG DZ;
     UWORD Next;
 };
+#pragma pack(pop)
+static_assert(sizeof(PrimMultiAnim) == 50, "PrimMultiAnim: binary file layout");
+
+// Binary-file format structures: 1-byte packed for .all animation file compatibility.
+#pragma pack(push, 1)
 
 // Body composition definition: which body part index fills each of the 20 slots.
 // Slots 1–14 are used for a standard person.
@@ -182,6 +188,14 @@ struct GameKeyFrame {
     GameKeyFrame *PrevFrame, *NextFrame;
     GameFightCol* Fight;
 };
+
+#pragma pack(pop)
+
+static_assert(sizeof(BodyDef) == 20, "BodyDef: binary file layout");
+static_assert(sizeof(GameKeyFrameElementCompOld) == 12, "GameKeyFrameElementCompOld: binary file layout");
+static_assert(sizeof(GameKeyFrameElementComp) == 8, "GameKeyFrameElementComp: binary file layout");
+static_assert(sizeof(GameKeyFrameElementBig) == 20, "GameKeyFrameElementBig: binary file layout");
+static_assert(sizeof(GameKeyFrameElement) == 20, "GameKeyFrameElement: binary file layout");
 
 // ---- Fight collision (editor/pre-bake format) ----
 

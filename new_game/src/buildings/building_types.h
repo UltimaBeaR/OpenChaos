@@ -390,9 +390,12 @@ struct TempStorey {
 
 // Packed texture page/UV/flip descriptor (integer UV).
 // uc_orig: TXTY (fallen/Headers/building.h)
+#pragma pack(push, 1)
 struct TXTY {
     UBYTE Page, Tx, Ty, Flip;
 };
+#pragma pack(pop)
+static_assert(sizeof(TXTY) == 4, "TXTY: binary file layout");
 
 // Packed texture page/flip descriptor (16-bit UV).
 // uc_orig: DXTXTY (fallen/Headers/building.h)

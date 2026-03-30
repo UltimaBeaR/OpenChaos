@@ -12,6 +12,9 @@
 
 // ---- Structures ----
 
+// Binary-file format structures: 1-byte packed for .pam level file compatibility.
+#pragma pack(push, 1)
+
 // uc_orig: DStorey (fallen/Headers/supermap.h)
 struct DStorey {
     UWORD Style;    // Replacement style index
@@ -71,6 +74,13 @@ struct DWalkable {
     UWORD Next;
     UWORD Building;
 };
+
+#pragma pack(pop)
+
+static_assert(sizeof(DStorey) == 6, "DStorey: binary file layout");
+static_assert(sizeof(DFacet) == 26, "DFacet: binary file layout");
+static_assert(sizeof(DBuilding) == 24, "DBuilding: binary file layout");
+static_assert(sizeof(DWalkable) == 22, "DWalkable: binary file layout");
 
 // uc_orig: DInsideRect (fallen/Headers/supermap.h)
 struct DInsideRect {

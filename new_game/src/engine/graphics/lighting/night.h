@@ -111,6 +111,7 @@ typedef struct
 // uc_orig: NIGHT_Square (fallen/Headers/Night.h)
 // Cached vertex colours for one lo-res terrain map square.
 // colour points to PAP_BLOCKS*PAP_BLOCKS entries for terrain, then per-prim point colours.
+#pragma pack(push, 1)
 typedef struct
 {
     UBYTE next;
@@ -121,6 +122,7 @@ typedef struct
     ULONG sizeof_colour;
 
 } NIGHT_Square;
+#pragma pack(pop)
 
 // uc_orig: NIGHT_MAX_SQUARES (fallen/Headers/Night.h)
 #define NIGHT_MAX_SQUARES 256

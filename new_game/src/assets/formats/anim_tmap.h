@@ -15,6 +15,7 @@
 // Describes one animated texture: up to 16 UV frames with per-frame delay and page.
 // Flags != 0 means the slot is active.
 // uc_orig: AnimTmap (fallen/Headers/animtmap.h)
+#pragma pack(push, 1)
 struct AnimTmap {
     UBYTE UV[MAX_TMAP_FRAMES][4][2]; // UV coordinates for each corner of each frame
     SBYTE Delay[MAX_TMAP_FRAMES];    // tick delay before advancing to next frame
@@ -23,6 +24,8 @@ struct AnimTmap {
     UWORD Timer;                      // ticks elapsed on current frame
     UWORD Flags;                      // non-zero = slot in use
 };
+#pragma pack(pop)
+static_assert(sizeof(AnimTmap) == 166, "AnimTmap: binary file layout");
 
 // The global pool of animated texture entries.
 // uc_orig: anim_tmaps (fallen/Headers/animtmap.h)

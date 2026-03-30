@@ -526,6 +526,9 @@ struct OldPrimPoint {
     SLONG X, Y, Z;
 };
 
+// Binary-file format structures: 1-byte packed for .prm / .iam / level file compatibility.
+#pragma pack(push, 1)
+
 // 16-bit integer vertex (runtime precision).
 // uc_orig: PrimPoint (fallen/Headers/building.h)
 struct PrimPoint {
@@ -626,6 +629,16 @@ struct PrimObject {
     UBYTE shadowtype;
     UBYTE flag;
 };
+
+#pragma pack(pop)
+
+static_assert(sizeof(PrimPoint) == 6, "PrimPoint: binary file layout");
+static_assert(sizeof(RoofFace4) == 10, "RoofFace4: binary file layout");
+static_assert(sizeof(PrimFace3) == 28, "PrimFace3: binary file layout");
+static_assert(sizeof(PrimFace4) == 34, "PrimFace4: binary file layout");
+static_assert(sizeof(PrimFace4PSX) == 24, "PrimFace4PSX: binary file layout");
+static_assert(sizeof(PrimFace3PSX) == 20, "PrimFace3PSX: binary file layout");
+static_assert(sizeof(PrimObject) == 16, "PrimObject: binary file layout");
 
 // Per-material descriptor for D3D-era high/low quality mesh.
 // uc_orig: PrimObjectMaterial (fallen/Headers/building.h)

@@ -7,6 +7,7 @@
 // In-map record for an animated prim placement loaded from the .iam file.
 // Used by load_game_map() when reading MAP_THING_TYPE_ANIM_PRIM entries.
 // uc_orig: LoadGameThing (fallen/Headers/io.h)
+#pragma pack(push, 1)
 struct LoadGameThing {
     UWORD Type;
     UWORD SubStype;
@@ -20,6 +21,8 @@ struct LoadGameThing {
     UWORD AngleZ;
     ULONG Dummy[4];
 };
+#pragma pack(pop)
+static_assert(sizeof(LoadGameThing) == 44, "LoadGameThing: binary file layout");
 
 // Directory path buffers for game resource lookups.
 // Set at startup based on whether a server mount is available.

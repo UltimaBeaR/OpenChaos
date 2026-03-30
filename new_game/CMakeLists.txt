@@ -535,34 +535,13 @@ target_include_directories(Fallen PRIVATE
 # Compiler flags
 # ---------------------------------------------------------------------------
 
-# Files that include SDL3 headers need default struct alignment (/Zp8) because
-# SDL3 has static_asserts on struct layout that fail under /Zp1.
-# SDL3 is isolated in thin wrappers — game code never includes SDL3 headers directly.
-# Files that include SDL3 or GamepadCore headers need default struct alignment (/Zp8)
-# because those libraries have static_asserts/layouts that fail under /Zp1.
-set_source_files_properties(
-    src/engine/platform/sdl3_bridge.cpp
-    src/engine/platform/ds_bridge.cpp
-    PROPERTIES COMPILE_OPTIONS "/Zp8"
-)
-
-# GLAD is a C file compiled as C++ — must not use /Zp1 (system headers expect default alignment).
-# OpenGL backend's gl_context.cpp includes system headers that need default alignment.
+# GLAD is a C file compiled as C++.
 set_source_files_properties(
     src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
-    PROPERTIES COMPILE_OPTIONS "/Zp8" LANGUAGE CXX
-)
-set_source_files_properties(
-    src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
-    src/engine/graphics/graphics_engine/backend_opengl/common/gl_shader.cpp
-    PROPERTIES COMPILE_OPTIONS "/Zp8"
+    PROPERTIES LANGUAGE CXX
 )
 
 target_compile_options(Fallen PRIVATE
-    # 1-byte struct alignment — required for binary resource format compatibility
-    # (.gob, .ilf, .spd, .ucm etc. are read by casting raw bytes to structs).
-    /Zp1
-
     # Release: optimizations matching original vcxproj ClangCL settings.
     # -fno-inline-functions: without this, Clang -O2 breaks body part rendering
     #   (FIGURE_draw_prim_tween_person_only_just_set_matrix inlining issue, TODO Этап 7+).
@@ -580,7 +559,6 @@ target_compile_definitions(Fallen PRIVATE
     WIN32
     _WINDOWS
     $<$<STREQUAL:${GRAPHICS_BACKEND},d3d6>:VERSION_D3D>
-    WINDOWS_IGNORE_PACKING_MISMATCH   # suppresses Windows SDK static_assert for /Zp1
 
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<CONFIG:Debug>:DEBUG>
