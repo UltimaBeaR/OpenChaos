@@ -68,9 +68,10 @@ ULONG m_PreviousInput = 0;
 // uc_orig: m_CurrentGoneDownInput (fallen/Source/interfac.cpp)
 ULONG m_CurrentGoneDownInput = 0;
 
-// Timestamp (GetTickCount ms) of the last input state change; used to detect idle/controller removal.
+// Timestamp (sdl3_get_ticks ms) of the last input state change; used to detect idle/controller removal.
 // uc_orig: g_dwLastInputChangeTime (fallen/Source/interfac.cpp)
-DWORD g_dwLastInputChangeTime = 0;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+uint64_t g_dwLastInputChangeTime = 0;
 
 // Non-zero while the player is in first-person aim mode; read by the renderer (aeng.cpp).
 // uc_orig: FirstPersonMode (fallen/Source/interfac.cpp)

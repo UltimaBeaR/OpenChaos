@@ -1,7 +1,8 @@
 #ifndef ENGINE_CONSOLE_CONSOLE_GLOBALS_H
 #define ENGINE_CONSOLE_CONSOLE_GLOBALS_H
 
-#include <windows.h>
+#include <stdint.h>
+#include <stdlib.h>  // _MAX_PATH
 #include "engine/console/console.h"
 
 // Maximum number of simultaneously active positioned messages.
@@ -45,10 +46,10 @@ extern CBYTE console_status_text[_MAX_PATH];
 
 // Frame timestamps for per-frame elapsed time calculation.
 // uc_orig: last_tick (fallen/DDEngine/Source/console.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-extern DWORD console_last_tick;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t console_last_tick;
 // uc_orig: this_tick (fallen/DDEngine/Source/console.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-extern DWORD console_this_tick;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t console_this_tick;
 
 #endif // ENGINE_CONSOLE_CONSOLE_GLOBALS_H

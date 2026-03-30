@@ -3,6 +3,7 @@
 
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
 #include "things/core/thing.h"
 #include "things/core/thing_globals.h"
@@ -3674,8 +3675,8 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
     ULONG input;
     ULONG processed = 0;
-    // BUGFIX-OC-TICK-OVERFLOW: original used SLONG which can go negative after ~25 days uptime.
-    DWORD tick = GetTickCount();
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    uint64_t tick = sdl3_get_ticks();
 
     Thing* p_person;
     p_person = p_player->Genus.Player->PlayerPerson;
@@ -3755,8 +3756,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
     }
 
     // Double-click detection: DoubleClick[i] counts consecutive presses of button i within 200ms.
-    // GetTickCount() gives Windows wall-clock milliseconds.
-    // Port: replace GetTickCount() with SDL_GetTicks() or std::chrono.
     for (i = 0; i < 16; i++) {
         if (pl->Pressed & (1 << i)) {
             if (pl->LastReleased[i] >= tick - 200) {

@@ -2,6 +2,7 @@
 #define THINGS_CORE_PLAYER_H
 
 #include "engine/core/types.h"
+#include <stdint.h>
 #include "engine/core/vector.h"
 #include "things/core/state.h"
 
@@ -40,8 +41,8 @@ typedef struct
     ULONG Pressed;
     ULONG Released;
     ULONG DoneSomething;
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD (stores GetTickCount())
-    DWORD LastReleased[16];
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t (stores sdl3_get_ticks())
+    uint64_t LastReleased[16];
     UBYTE DoubleClick[16];
 
     UBYTE Strength;

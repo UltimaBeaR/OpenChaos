@@ -3,8 +3,8 @@
 
 // Global variables for the player input system (interfac.cpp).
 
+#include <stdint.h>
 #include "engine/core/types.h"
-#include <windows.h>  // DWORD for g_dwLastInputChangeTime
 
 // uc_orig: player_relative (fallen/Source/interfac.cpp)
 extern UBYTE player_relative;
@@ -59,9 +59,10 @@ extern ULONG m_PreviousInput;
 // uc_orig: m_CurrentGoneDownInput (fallen/Source/interfac.cpp)
 extern ULONG m_CurrentGoneDownInput;
 
-// Timestamp (GetTickCount ms) of the last input state change; used to detect idle/controller removal.
+// Timestamp (sdl3_get_ticks ms) of the last input state change; used to detect idle/controller removal.
 // uc_orig: g_dwLastInputChangeTime (fallen/Source/interfac.cpp)
-extern DWORD g_dwLastInputChangeTime;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t g_dwLastInputChangeTime;
 
 // Non-zero while the player is in first-person aim mode; read by the renderer (aeng.cpp).
 // uc_orig: FirstPersonMode (fallen/Source/interfac.cpp)

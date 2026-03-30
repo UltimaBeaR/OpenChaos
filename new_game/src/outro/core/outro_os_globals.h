@@ -7,6 +7,7 @@
 
 #include "outro/core/outro_always.h"
 
+#include <stdint.h>
 #include <windows.h>
 
 // uc_orig: OS_this_instance (fallen/outro/os.cpp)
@@ -61,7 +62,7 @@ extern ULONG OS_joy_button_up;
 
 // Tick counter base — set when the outro loop starts.
 // uc_orig: OS_game_start_tick_count (fallen/outro/os.cpp)
-extern DWORD OS_game_start_tick_count;
+extern uint64_t OS_game_start_tick_count;
 
 // Camera globals — set by OS_camera_set().
 // uc_orig: OS_cam_x (fallen/outro/os.cpp)

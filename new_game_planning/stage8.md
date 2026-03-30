@@ -41,14 +41,15 @@
 - ~~Пути: `\\` → `/` по всей кодовой базе (~28 файлов), абсолютные пути (`C:\\...`) → относительные~~
 - **Сделано**
 
-## 6. Timer (маленький, но с зависимостями)
+## 6. Timer ✅
 
-**Файлы:** `engine/core/timer.cpp`, `engine/platform/host.cpp`, `engine/console/console.cpp` + все места с GetTickCount
-
-- `QueryPerformanceCounter` / `QueryPerformanceFrequency` → `SDL_GetPerformanceCounter` / `SDL_GetPerformanceFrequency`
-- `GetTickCount()` → `SDL_GetTicks` (возвращает `uint64_t` в SDL3)
-- `GetLocalTime()` / `SYSTEMTIME` → `time()` + `localtime()` или SDL
-- **⚠️ Одновременно перевести все тик-переменные на 64 бит.** На этапе 4 был фикс `OC-TICK-OVERFLOW` (devlog: `stage4_bug_tick_overflow.md`) — SLONG → DWORD, но это полумера: DWORD (32-bit unsigned) переполняется через ~49 дней. `SDL_GetTicks` возвращает `uint64_t` → переполнение через ~585 млн лет. Все переменные помечены комментарием `BUGFIX-OC-TICK-OVERFLOW` — найти через `grep -r "BUGFIX-OC-TICK-OVERFLOW" new_game/src`. Менять DWORD → uint64_t вместе с заменой GetTickCount → SDL_GetTicks. `MFTime::Ticks` тоже → uint64_t
+- ~~`QueryPerformanceCounter` / `QueryPerformanceFrequency` → SDL3 bridge (`sdl3_get_performance_counter/frequency`)~~
+- ~~`GetTickCount()` → `sdl3_get_ticks()` (38 файлов, ~40 вызовов)~~
+- ~~`GetLocalTime()` / `SYSTEMTIME` → `time()` + `localtime()` (кросс-платформенное)~~
+- ~~Все тик-переменные `DWORD` → `uint64_t` (~25 файлов, все помеченные `BUGFIX-OC-TICK-OVERFLOW`)~~
+- ~~`MFTime::Ticks` → `uint64_t`~~
+- ~~Убраны `#include <windows.h>` из console.cpp, console_globals.cpp/.h, input_actions_globals.h, outro_os.cpp~~
+- **Сделано**
 
 ## 7. Threading (средний)
 

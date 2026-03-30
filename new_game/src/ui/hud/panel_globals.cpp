@@ -121,7 +121,7 @@ PANEL_Toss PANEL_toss[PANEL_MAX_TOSSES];
 // uc_orig: PANEL_toss_last (fallen/DDEngine/Source/panel.cpp)
 int PANEL_toss_last = 0;
 // uc_orig: PANEL_toss_tick (fallen/DDEngine/Source/panel.cpp)
-unsigned int PANEL_toss_tick = 0;
+uint64_t PANEL_toss_tick = 0;
 
 // uc_orig: PANEL_text (fallen/DDEngine/Source/panel.cpp)
 PANEL_Text PANEL_text[PANEL_MAX_TEXTS];
@@ -130,7 +130,7 @@ int PANEL_text_head = 0;
 // uc_orig: PANEL_text_tail (fallen/DDEngine/Source/panel.cpp)
 int PANEL_text_tail = 0;
 // uc_orig: PANEL_text_tick (fallen/DDEngine/Source/panel.cpp)
-unsigned int PANEL_text_tick = 0;
+uint64_t PANEL_text_tick = 0;
 
 // uc_orig: PANEL_help_message (fallen/DDEngine/Source/panel.cpp)
 char PANEL_help_message[256] = {};
@@ -163,7 +163,7 @@ unsigned long PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS] = {
 };
 
 // uc_orig: PANEL_fadeout_time (fallen/DDEngine/Source/panel.cpp)
-long PANEL_fadeout_time = 0;
+int64_t PANEL_fadeout_time = 0;
 
 // uc_orig: angle_mul (fallen/DDEngine/Source/panel.cpp)
 float angle_mul = 0.004F;
@@ -175,12 +175,12 @@ long PANEL_sign_which = 0;
 // uc_orig: PANEL_sign_flip (fallen/DDEngine/Source/panel.cpp)
 long PANEL_sign_flip = 0;
 // uc_orig: PANEL_sign_time (fallen/DDEngine/Source/panel.cpp)
-unsigned long PANEL_sign_time = 0;
+uint64_t PANEL_sign_time = 0;
 
 // uc_orig: PANEL_info_message (fallen/DDEngine/Source/panel.cpp)
 char PANEL_info_message[512] = {};
 // uc_orig: PANEL_info_time (fallen/DDEngine/Source/panel.cpp)
-unsigned long PANEL_info_time = 0;
+uint64_t PANEL_info_time = 0;
 
 // Texture atlas coordinates for each PANEL_LSPRITE_* icon.
 // All coordinates are in 256x256 atlas space, converted to 0..1 UVs.

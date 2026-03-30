@@ -1,6 +1,7 @@
 #ifndef MISSIONS_MEMORY_GLOBALS_H
 #define MISSIONS_MEMORY_GLOBALS_H
 
+#include <stdint.h>
 #include "engine/core/types.h"
 // All level geometry pools (prim_points, prim_faces4, dfacets, etc.) live here:
 #include "map/level_pools.h"
@@ -17,7 +18,7 @@ typedef struct {
     UWORD pad;
     SLONG wx;
     SLONG wz;
-    ULONG ticks;
+    uint64_t ticks; // sdl3_get_ticks() timestamp (was ULONG/GetTickCount)
 } MAP_Beacon;
 
 // uc_orig: MAP_MAX_BEACONS (fallen/Headers/memory.h)

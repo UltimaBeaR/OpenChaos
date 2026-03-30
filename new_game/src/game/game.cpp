@@ -4,6 +4,7 @@
 
 #include "game/game.h"
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"  // playback_file, verifier_file
 #include "game/game_tick.h"                // process_controls
@@ -536,13 +537,13 @@ void process_bullet_points(void)
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
 void lock_frame_rate(SLONG fps)
 {
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    static DWORD tick1 = 0;
-    DWORD tick2;
-    DWORD timet;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t tick1 = 0;
+    uint64_t tick2;
+    uint64_t timet;
 
     while (1) {
-        tick2 = GetTickCount();
+        tick2 = sdl3_get_ticks();
         timet = tick2 - tick1;
 
         if (timet > (1000 / fps)) {
@@ -760,7 +761,7 @@ round_again:;
 
     if (game_init()) {
 
-        already_warned_about_leaving_map = GetTickCount();
+        already_warned_about_leaving_map = sdl3_get_ticks();
         draw_map_screen = UC_FALSE;
         form_leave_map = NULL;
         form_left_map = 0;

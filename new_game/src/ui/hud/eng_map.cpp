@@ -1,5 +1,6 @@
 #include "ui/hud/eng_map.h"
 #include "ui/hud/eng_map_globals.h"
+#include "engine/platform/sdl3_bridge.h"
 
 #include "engine/platform/uc_common.h"
 #include <math.h>
@@ -708,11 +709,11 @@ static void MAP_process_pulses()
     SLONG i;
     MAP_Pulse* mp;
 
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    static DWORD now = 0;
-    static DWORD last = 0;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t now = 0;
+    static uint64_t last = 0;
 
-    now = GetTickCount();
+    now = sdl3_get_ticks();
 
     if (last < now - (1000 / 10)) {
         last = now - (1000 / 10);
@@ -751,7 +752,7 @@ static void MAP_draw_arrow(float angle, ULONG colour)
     float dx = sin(angle);
     float dy = cos(angle);
 
-    float dist = 0.33F + (float)sin(float(GetTickCount()) * 0.005F) * 0.02F;
+    float dist = 0.33F + (float)sin(float(sdl3_get_ticks()) * 0.005F) * 0.02F;
 
     x = MAP_screen_x + dx * dist;
     y = MAP_screen_y + dy * dist * 1.33F;
@@ -917,7 +918,7 @@ UBYTE MAP_beacon_create(SLONG x, SLONG z, SLONG index, UWORD track_thing)
             mb->index       = index;
             mb->wx          = x >> 0;
             mb->wz          = z >> 0;
-            mb->ticks       = GetTickCount();
+            mb->ticks       = sdl3_get_ticks();
 
             return i;
         }
@@ -933,11 +934,11 @@ static void MAP_process_beacons()
     SLONG i;
     MAP_Beacon* mb;
 
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    static DWORD now  = 0;
-    static DWORD last = 0;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t now  = 0;
+    static uint64_t last = 0;
 
-    now = GetTickCount();
+    now = sdl3_get_ticks();
 
     if (last < now - (1000 / 10)) {
         last = now - (1000 / 10);
@@ -1110,7 +1111,7 @@ static void MAP_draw_weapons(Thing* p_person)
     float x;
     float y;
 
-    float yaw = GetTickCount() * 0.004F;
+    float yaw = sdl3_get_ticks() * 0.004F;
 
     SLONG index;
 
@@ -1299,7 +1300,7 @@ void MAP_draw()
                     switch (p_thing->Genus.Person->PersonType) {
                     case PERSON_DARCI:
                     case PERSON_ROPER:
-                        scale  = float(GetTickCount());
+                        scale  = float(sdl3_get_ticks());
                         scale *= 0.02F;
                         scale  = sin(scale);
                         scale *= 0.2F;
@@ -1309,8 +1310,8 @@ void MAP_draw()
                         break;
 
                     case PERSON_COP:
-                        red  = ((GetTickCount() >> 3)) & 0x1ff;
-                        blue = ((GetTickCount() >> 3) + 0xff) & 0x1ff;
+                        red  = ((sdl3_get_ticks() >> 3)) & 0x1ff;
+                        blue = ((sdl3_get_ticks() >> 3) + 0xff) & 0x1ff;
                         if (red  > 0xff) red  = 0x1ff - red;
                         if (blue > 0xff) blue = 0x1ff - blue;
                         colour  = 0xff000000;

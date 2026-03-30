@@ -59,8 +59,8 @@ extern UBYTE screen_mem[640 * 3][480];
 
 // Tick used to debounce the "leaving map" edge warning.
 // uc_orig: already_warned_about_leaving_map (fallen/Source/Game.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-extern DWORD already_warned_about_leaving_map;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t already_warned_about_leaving_map;
 
 // When UC_TRUE, the overhead map is shown instead of the 3D view.
 // uc_orig: draw_map_screen (fallen/Source/Game.cpp)

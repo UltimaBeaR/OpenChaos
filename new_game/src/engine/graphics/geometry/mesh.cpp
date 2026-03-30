@@ -1,5 +1,6 @@
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/geometry/mesh_globals.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
@@ -129,7 +130,7 @@ static NIGHT_Colour* MESH_draw_guts(
         float angle;
         float stretch;
 
-        angle = float(GetTickCount()) * 0.001F;
+        angle = float(sdl3_get_ticks()) * 0.001F;
         angle += float(at_x) * 0.67f;
         angle += float(at_z) * 0.44f;
 

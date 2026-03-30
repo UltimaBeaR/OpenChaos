@@ -3,6 +3,7 @@
 
 // Global state for the HUD panel system.
 
+#include <stdint.h>
 #include "engine/graphics/pipeline/poly.h"
 
 // uc_orig: PANEL_scanner_poo (fallen/DDEngine/Source/panel.cpp)
@@ -162,7 +163,7 @@ extern PANEL_Toss PANEL_toss[PANEL_MAX_TOSSES];
 // uc_orig: PANEL_toss_last (fallen/DDEngine/Source/panel.cpp)
 extern int PANEL_toss_last;
 // uc_orig: PANEL_toss_tick (fallen/DDEngine/Source/panel.cpp)
-extern unsigned int PANEL_toss_tick;
+extern uint64_t PANEL_toss_tick;
 
 // Floating text message (NPC speech / radio chatter) circular queue.
 #define PANEL_TEXT_MAX_LENGTH 300
@@ -183,7 +184,7 @@ extern int PANEL_text_head;
 // uc_orig: PANEL_text_tail (fallen/DDEngine/Source/panel.cpp)
 extern int PANEL_text_tail;
 // uc_orig: PANEL_text_tick (fallen/DDEngine/Source/panel.cpp)
-extern unsigned int PANEL_text_tick;
+extern uint64_t PANEL_text_tick;
 
 // Face size constants for PANEL_new_face().
 // uc_orig: PANEL_FACE_LARGE (fallen/DDEngine/Source/panel.cpp)
@@ -215,7 +216,7 @@ extern unsigned long PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS];
 
 // Fade-out effect state: timestamp when PANEL_fadeout_start() was called (0 = inactive).
 // uc_orig: PANEL_fadeout_time (fallen/DDEngine/Source/panel.cpp)
-extern long PANEL_fadeout_time;
+extern int64_t PANEL_fadeout_time;
 
 // Zoom/spin multipliers for the fade-out effect texture transform.
 // uc_orig: angle_mul (fallen/DDEngine/Source/panel.cpp)
@@ -229,13 +230,13 @@ extern long PANEL_sign_which;
 // uc_orig: PANEL_sign_flip (fallen/DDEngine/Source/panel.cpp)
 extern long PANEL_sign_flip;
 // uc_orig: PANEL_sign_time (fallen/DDEngine/Source/panel.cpp)
-extern unsigned long PANEL_sign_time;
+extern uint64_t PANEL_sign_time;
 
 // Info message (bottom of panel, 2-second display).
 // uc_orig: PANEL_info_message (fallen/DDEngine/Source/panel.cpp)
 extern char PANEL_info_message[512];
 // uc_orig: PANEL_info_time (fallen/DDEngine/Source/panel.cpp)
-extern unsigned long PANEL_info_time;
+extern uint64_t PANEL_info_time;
 
 // Screensaver state (bouncing logo overlay when the game is idle).
 // uc_orig: bScreensaverEnabled (fallen/DDEngine/Source/panel.cpp)

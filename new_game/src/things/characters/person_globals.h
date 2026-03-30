@@ -3,6 +3,7 @@
 
 // Global variable declarations for the person subsystem.
 
+#include <stdint.h>
 #include "engine/core/types.h"
 #include "things/core/state.h"  // GenusFunctions, StateFunction
 
@@ -42,11 +43,11 @@ extern SLONG stat_arrested_innocent;
 // uc_orig: stat_count_bonus (fallen/Source/Person.cpp)
 extern SLONG stat_count_bonus;
 // uc_orig: stat_start_time (fallen/Source/Person.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-extern DWORD stat_start_time;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t stat_start_time;
 // uc_orig: stat_game_time (fallen/Source/Person.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-extern DWORD stat_game_time;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t stat_game_time;
 
 // Tracks which map tiles the player has visited (for fog-of-war / minimap).
 // 16 bytes wide * 128 entries = 16*128 bit array.

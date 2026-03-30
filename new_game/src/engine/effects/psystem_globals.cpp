@@ -13,8 +13,8 @@ SLONG next_used;
 SLONG particle_count;
 
 // uc_orig: prev_tick (fallen/Source/psystem.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-DWORD prev_tick;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+uint64_t prev_tick;
 
 // uc_orig: first_pass (fallen/Source/psystem.cpp)
 BOOL first_pass;

@@ -85,6 +85,19 @@ void sdl3_set_callbacks(const SDL3_Callbacks* cb);
 bool sdl3_poll_events();
 
 // ---------------------------------------------------------------------------
+// Timer
+// ---------------------------------------------------------------------------
+
+// Returns milliseconds since SDL init (wraps SDL_GetTicks).
+uint64_t sdl3_get_ticks();
+
+// Returns high-resolution performance counter value (wraps SDL_GetPerformanceCounter).
+uint64_t sdl3_get_performance_counter();
+
+// Returns performance counter frequency in Hz (wraps SDL_GetPerformanceFrequency).
+uint64_t sdl3_get_performance_frequency();
+
+// ---------------------------------------------------------------------------
 // Audio
 // ---------------------------------------------------------------------------
 

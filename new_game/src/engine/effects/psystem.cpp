@@ -3,6 +3,7 @@
 // particles[0] is a permanent sentinel so that the used-list always has a non-null head.
 
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "things/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
 #include "game/game_types.h"
 #include "ai/mav.h"
@@ -52,7 +53,7 @@ void PARTICLE_Reset()
     // particles[0] is sacrificed as sentinel; real allocations start at index 1
     next_free = 1;
     next_used = 0;
-    prev_tick = GetTickCount();
+    prev_tick = sdl3_get_ticks();
     first_pass = 1;
 }
 
@@ -72,11 +73,11 @@ void PARTICLE_Run()
     // local_ratio: fixed-point elapsed-time ratio. 1<<TICK_SHIFT = one normal tick elapsed.
     // ULONG avoids a negative ratio on very fast frames (signed overflow in original).
     ULONG local_ratio, local_shift;
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    DWORD cur_tick;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    uint64_t cur_tick;
     SLONG tick_diff;
 
-    cur_tick = GetTickCount();
+    cur_tick = sdl3_get_ticks();
     tick_diff = (SLONG)(cur_tick - prev_tick);
 
     if (first_pass) {

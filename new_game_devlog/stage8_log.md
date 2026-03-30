@@ -29,10 +29,41 @@
 
 - Input: keyboard.cpp / mouse.cpp всё ещё используют Win32 типы (WM_*, LPARAM)
 - hDDLibWindow: 4 места за пределами окна/GL (game_tick, widget, elev, mouse — mouse уже мигрирован)
-- Time(): пока через GetLocalTime/GetTickCount
-- host.cpp: windows.h включен безусловно
+- host.cpp: windows.h включен безусловно (нужен для crash handler)
 - wind_procs.cpp: DDLibShellProc мёртвый код (никто не вызывает), убрать при cleanup
 - host_globals: часть глобалов (DDLibClass, hDDLibAccel и др.) больше не нужна
+
+## 2026-03-30: Timer — QPC/GetTickCount → SDL3
+
+### Что сделано
+
+Полная миграция таймеров с Win32 API на кросс-платформенные вызовы. Одновременно завершён переход тик-переменных на 64-бит (начатый на Этапе 4 как BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t).
+
+**Изменённые файлы (38 шт):**
+
+| Категория | Что изменилось |
+|-----------|---------------|
+| `sdl3_bridge.h/cpp` | +3 bridge-функции: `sdl3_get_ticks()`, `sdl3_get_performance_counter()`, `sdl3_get_performance_frequency()` |
+| `timer.cpp/h` | `QueryPerformanceCounter`/`Frequency` → `sdl3_get_performance_counter/frequency`. Убраны `GetFineTimerFreq/Value` helper'ы. Убран `#include <windows.h>` |
+| `timer_globals.h/cpp` | `ULONG stopwatch_start` → `uint64_t` |
+| `uc_common.h` | `MFTime::Ticks` → `uint64_t`. Добавлен `#include <stdint.h>` |
+| `host.cpp` | `Time()`: `GetLocalTime()`/`SYSTEMTIME` → `time()`/`localtime()`, `GetTickCount()` → `sdl3_get_ticks()`. Убран `#ifdef _WIN32` |
+| 13 .cpp файлов | `GetTickCount()` → `sdl3_get_ticks()` (~40 вызовов): game.cpp, input_actions.cpp, console.cpp, psystem.cpp, thing.cpp, person.cpp, panel.cpp, eng_map.cpp, frontend.cpp, gamemenu.cpp, pause.cpp, mesh.cpp, outro_os.cpp |
+| ~25 файлов (.h/.cpp) | Все `BUGFIX-OC-TICK-OVERFLOW` переменные: `DWORD` → `uint64_t` (глобалы, static locals, struct fields) |
+| Cleanup | Убраны `#include <windows.h>` из console.cpp, console_globals.h/.cpp, input_actions_globals.h, outro_os.cpp |
+
+**Ключевые решения:**
+
+- **Bridge-паттерн:** SDL3 вызовы через bridge (как и всё остальное) — из-за /Zp1 ограничения
+- **MSeconds = 0:** `localtime()` не даёт миллисекунды. `MFTime::MSeconds` нигде не читается в кодовой базе — потери нет
+- **Safe truncation оставлена:** `tick_diff = (SLONG)(cur_tick - prev_tick)` в нескольких местах — дельты фреймов (миллисекунды), не переполняются. `OS_ticks()` возвращает SLONG — outro длится минуты
+- **`(unsigned)` → `(uint64_t)`:** исправлен баг усечения в panel.cpp (fadeout_time cast)
+- **MAP_Beacon.ticks** → `uint64_t`: структура аллоцируется через save_table runtime pool, sizeof корректно
+
+### Замечания
+
+- `MFTime::MSeconds` всегда 0 — если когда-нибудь понадобятся миллисекунды в wall-clock time, нужно использовать platform-specific API или `std::chrono`
+- Комментарии `// claude-ai:` в BUGFIX-OC-TICK-OVERFLOW строках убраны — в `new/` все комментарии и так написаны Claude
 
 ## 2026-03-30: Memory — HeapAlloc → calloc/free
 

@@ -154,6 +154,25 @@ void* sdl3_gl_get_proc_address(const char* name)
 }
 
 // ===========================================================================
+// Timer
+// ===========================================================================
+
+uint64_t sdl3_get_ticks()
+{
+    return SDL_GetTicks();
+}
+
+uint64_t sdl3_get_performance_counter()
+{
+    return SDL_GetPerformanceCounter();
+}
+
+uint64_t sdl3_get_performance_frequency()
+{
+    return SDL_GetPerformanceFrequency();
+}
+
+// ===========================================================================
 // Event loop — scancode mapping
 // ===========================================================================
 

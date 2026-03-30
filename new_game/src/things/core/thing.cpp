@@ -1,4 +1,5 @@
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "things/core/thing.h"
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"
@@ -355,8 +356,8 @@ void wait_ticks(SLONG wait)
 {
     struct MFTime the_time;
 
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    DWORD tick_reqd;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    uint64_t tick_reqd;
     Time(&the_time);
     tick_reqd = the_time.Ticks + wait;
     while (the_time.Ticks < tick_reqd) {
@@ -494,14 +495,14 @@ void check_thing_data()
 // uc_orig: process_things_tick (fallen/Source/Thing.cpp)
 void process_things_tick(SLONG frame_rate_independant)
 {
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    static DWORD prev_tick = 0;
-    DWORD cur_tick;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t prev_tick = 0;
+    uint64_t cur_tick;
 
     SLONG tick_diff;
     static BOOL first_pass = UC_TRUE;
 
-    cur_tick = GetTickCount();
+    cur_tick = sdl3_get_ticks();
     tick_diff = cur_tick - prev_tick;
     prev_tick = cur_tick;
 

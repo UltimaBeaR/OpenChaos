@@ -3,6 +3,7 @@
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Display globals (defined in d3d/display_globals.cpp).
@@ -457,7 +458,7 @@ void FRONTEND_draw_button(SLONG x, SLONG y, UBYTE which, UBYTE flash)
     if (flash) {
         grow = 8;
 
-        if (GetTickCount() & 0x200) {
+        if (sdl3_get_ticks() & 0x200) {
             which = 7;
         }
     } else {
@@ -648,7 +649,7 @@ void FRONTEND_DrawKey(MenuData* md)
 {
     SLONG x, y, dy, c0, rgb;
     CBYTE str[25];
-    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_key && ((menu_data + menu_state.selected == md) && ((GetTickCount() & 0x7ff) < 0x3ff))));
+    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_key && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
     dy = md->Y + menu_state.base - menu_state.scroll;
 
     c0 = md->Data;
@@ -676,7 +677,7 @@ void FRONTEND_DrawPad(MenuData* md)
 {
     SLONG x, y, dy, rgb;
     CBYTE str[20];
-    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_pad && ((menu_data + menu_state.selected == md) && ((GetTickCount() & 0x7ff) < 0x3ff))));
+    rgb = FRONTEND_fix_rgb(fade_rgb, (grabbing_pad && ((menu_data + menu_state.selected == md) && ((sdl3_get_ticks() & 0x7ff) < 0x3ff))));
     dy = md->Y + menu_state.base - menu_state.scroll;
     if (md->Data < 31)
         sprintf(str, "%s %d", XLAT_str(X_BUTTON), md->Data);
@@ -848,14 +849,13 @@ void FRONTEND_kibble_process()
     SLONG c0;
     Kibble* k;
 
-    // BUGFIX-OC-TICK-OVERFLOW: use DWORD (unsigned) to prevent signed underflow
-    // when now wraps around ~49 days of uptime.
-    static DWORD last = 0;
-    static DWORD now = 0;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t last = 0;
+    static uint64_t now = 0;
 
     ASSERT(kibble != NULL);
 
-    now = GetTickCount();
+    now = sdl3_get_ticks();
 
     if (last < now - 250) {
         last = now - 250;
@@ -3247,13 +3247,13 @@ SBYTE FRONTEND_loop()
 {
     SBYTE res;
 
-    // BUGFIX-OC-TICK-OVERFLOW: was SLONG, overflows after ~25 days uptime.
-    static DWORD last = 0;
-    static DWORD now = 0;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t last = 0;
+    static uint64_t now = 0;
 
     SLONG millisecs;
 
-    now = GetTickCount();
+    now = sdl3_get_ticks();
 
     if (last < now - 250) {
         last = now - 250;

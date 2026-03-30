@@ -2,6 +2,7 @@
 // Menu type constants are private — only DO_* return codes leave this file.
 
 #include "game/game_types.h"
+#include "engine/platform/sdl3_bridge.h"
 
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -94,11 +95,11 @@ SLONG GAMEMENU_process()
 
     SLONG millisecs;
 
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    static DWORD tick_last = 0;
-    static DWORD tick_now = 0;
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+    static uint64_t tick_last = 0;
+    static uint64_t tick_now = 0;
 
-    tick_now = GetTickCount();
+    tick_now = sdl3_get_ticks();
 
     millisecs = tick_now - tick_last;
     tick_last = tick_now;
@@ -150,7 +151,7 @@ SLONG GAMEMENU_process()
         static UBYTE gm_last_triangle = 0;
         static UBYTE gm_last_cross = 0;
         static SLONG gm_last_dir = 0;
-        static DWORD gm_dir_next_fire = 0;
+        static uint64_t gm_dir_next_fire = 0;
 
         ReadInputDevice();
 
@@ -183,7 +184,7 @@ SLONG GAMEMENU_process()
                 dir = 2; // down
 
             {
-                DWORD now = GetTickCount();
+                uint64_t now = sdl3_get_ticks();
                 if (dir) {
                     if (dir != gm_last_dir) {
                         if (dir == 1) Keys[KB_UP] = 1;
@@ -252,10 +253,10 @@ SLONG GAMEMENU_process()
         if (GAMEMENU_background > 200) {
             // Keyboard repeat delay (time-based, same values as controller).
             {
-                static DWORD kb_next_fire = 0;
+                static uint64_t kb_next_fire = 0;
                 static UBYTE kb_last_dir = 0;
                 UBYTE kb_dir = (Keys[KB_UP] ? 1 : 0) | (Keys[KB_DOWN] ? 2 : 0);
-                DWORD now = GetTickCount();
+                uint64_t now = sdl3_get_ticks();
 
                 if (kb_dir) {
                     if (kb_dir != kb_last_dir) {

@@ -1,7 +1,7 @@
 #ifndef ENGINE_CORE_TIMER_H
 #define ENGINE_CORE_TIMER_H
 
-// High-resolution stopwatch using Windows QueryPerformanceCounter.
+// High-resolution stopwatch using SDL_GetPerformanceCounter.
 // StartStopwatch() captures the start time; StopStopwatch() returns elapsed seconds.
 
 // No-op profiling markers (BreakTimer system disabled in Release build).

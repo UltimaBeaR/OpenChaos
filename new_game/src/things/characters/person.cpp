@@ -4,6 +4,7 @@
 // (lines ~1-1757 of original Person.cpp)
 
 #include "game/game_types.h"    // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
+#include "engine/platform/sdl3_bridge.h"
 #include "things/characters/cop.h"
 #include "things/characters/cop_globals.h"
 #include "things/characters/darci.h"
@@ -146,7 +147,7 @@ extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 // uc_orig: set_stats (fallen/Source/Person.cpp)
 void set_stats(void)
 {
-    stat_game_time = GetTickCount() - stat_start_time;
+    stat_game_time = sdl3_get_ticks() - stat_start_time;
 }
 
 // uc_orig: init_stats (fallen/Source/Person.cpp)
@@ -157,7 +158,7 @@ void init_stats(void)
     stat_arrested_thug = 0;
     stat_arrested_innocent = 0;
     stat_count_bonus = 0;
-    stat_start_time = GetTickCount();
+    stat_start_time = sdl3_get_ticks();
 }
 
 // Marks the map tile at (x, z) as visited by the player (fog-of-war / minimap).

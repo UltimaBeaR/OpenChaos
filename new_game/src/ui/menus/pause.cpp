@@ -1,4 +1,5 @@
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "game/game_types.h"
 #include "assets/xlat_str.h"
 #include "engine/input/keyboard.h"
@@ -42,7 +43,7 @@ SLONG PAUSE_handler()
 {
     SLONG i, text_colour, input, temp;
     static SLONG lastinput = 0;
-    static DWORD dir_next_fire = 0;
+    static uint64_t dir_next_fire = 0;
     SLONG ans = UC_FALSE;
 
     input = 0;
@@ -81,7 +82,7 @@ SLONG PAUSE_handler()
 
         // Directions: time-based auto-repeat (same values as gamemenu).
         {
-            DWORD now = GetTickCount();
+            uint64_t now = sdl3_get_ticks();
             if (dir_input) {
                 if (dir_input != last_dir) {
                     dir_next_fire = now + 400;
@@ -112,10 +113,10 @@ SLONG PAUSE_handler()
 
     // Keyboard repeat delay (time-based, same values as controller).
     {
-        static DWORD kb_next_fire = 0;
+        static uint64_t kb_next_fire = 0;
         static UBYTE kb_last_dir = 0;
         UBYTE kb_dir = (Keys[KB_UP] ? 1 : 0) | (Keys[KB_DOWN] ? 2 : 0);
-        DWORD now = GetTickCount();
+        uint64_t now = sdl3_get_ticks();
 
         if (kb_dir) {
             if (kb_dir != kb_last_dir) {

@@ -1,10 +1,10 @@
-#include <windows.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include "engine/console/console.h"
 #include "engine/console/console_globals.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/font.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -36,7 +36,7 @@ void CONSOLE_font(CBYTE* fontpath, float scale)
 void CONSOLE_draw(void)
 {
     console_last_tick = console_this_tick;
-    console_this_tick = GetTickCount();
+    console_this_tick = sdl3_get_ticks();
 
     // Clamp wildly large deltas (e.g. when waking from sleep).
     if (console_this_tick - console_last_tick > 4000) {
@@ -107,7 +107,7 @@ void CONSOLE_clear(void)
 {
     memset(console_Data, 0, sizeof(console_Data));
     if (!console_this_tick) {
-        console_this_tick = GetTickCount();
+        console_this_tick = sdl3_get_ticks();
     }
 }
 

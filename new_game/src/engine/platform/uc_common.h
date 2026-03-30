@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdint.h>
 
 // Library defines.
 #define _MF_WINDOWS
@@ -85,8 +86,8 @@ struct MFTime {
         Day,
         Month, //	1 - 12;		January		=	1
         Year;
-    // claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-    DWORD Ticks; // Number of ticks(milliseconds) since windows started.
+    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t (SDL_GetTicks returns uint64_t)
+    uint64_t Ticks; // Milliseconds since SDL init (was GetTickCount)
 };
 
 SLONG main(UWORD argc, TCHAR** argv);

@@ -1,7 +1,8 @@
 #ifndef ENGINE_EFFECTS_PSYSTEM_GLOBALS_H
 #define ENGINE_EFFECTS_PSYSTEM_GLOBALS_H
 
-#include <windows.h>  // BOOL — temporary dependency until Stage 8
+#include <stdint.h>
+#include "engine/core/types.h"  // BOOL, SLONG
 #include "engine/effects/psystem.h"
 
 // The full particle pool — statically allocated.
@@ -22,10 +23,10 @@ extern SLONG next_used;
 // uc_orig: particle_count (fallen/Source/psystem.cpp)
 extern SLONG particle_count;
 
-// Timestamp (GetTickCount) of the last PARTICLE_Run call — used to compute dt.
+// Timestamp (sdl3_get_ticks ms) of the last PARTICLE_Run call — used to compute dt.
 // uc_orig: prev_tick (fallen/Source/psystem.cpp)
-// claude-ai: BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD
-extern DWORD prev_tick;
+// BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
+extern uint64_t prev_tick;
 
 // True on the very first PARTICLE_Run call — forces dt = one normal tick to avoid a huge initial delta.
 // uc_orig: first_pass (fallen/Source/psystem.cpp)

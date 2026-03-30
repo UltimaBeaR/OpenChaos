@@ -51,7 +51,7 @@ float OS_screen_width = 0.0F;
 float OS_screen_height = 0.0F;
 
 // uc_orig: OS_game_start_tick_count (fallen/outro/os.cpp)
-DWORD OS_game_start_tick_count = 0;
+uint64_t OS_game_start_tick_count = 0;
 
 // uc_orig: OS_cam_x (fallen/outro/os.cpp)
 float OS_cam_x = 0.0F;

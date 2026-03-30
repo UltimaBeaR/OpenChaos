@@ -246,22 +246,17 @@ BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
 // uc_orig: Time (fallen/DDLibrary/Source/GHost.cpp)
 void Time(MFTime* the_time)
 {
-#ifdef _WIN32
-    SYSTEMTIME new_time;
-    GetLocalTime(&new_time);
-    the_time->Hours = new_time.wHour;
-    the_time->Minutes = new_time.wMinute;
-    the_time->Seconds = new_time.wSecond;
-    the_time->MSeconds = new_time.wMilliseconds;
-    the_time->DayOfWeek = new_time.wDayOfWeek;
-    the_time->Day = new_time.wDay;
-    the_time->Month = new_time.wMonth;
-    the_time->Year = new_time.wYear;
-    the_time->Ticks = GetTickCount();
-#else
-    // TODO: cross-platform time implementation (Stage 8 follow-up)
-    memset(the_time, 0, sizeof(*the_time));
-#endif
+    time_t raw = time(nullptr);
+    struct tm* lt = localtime(&raw);
+    the_time->Hours = lt->tm_hour;
+    the_time->Minutes = lt->tm_min;
+    the_time->Seconds = lt->tm_sec;
+    the_time->MSeconds = 0; // localtime doesn't provide milliseconds
+    the_time->DayOfWeek = lt->tm_wday; // 0=Sunday, same as SYSTEMTIME
+    the_time->Day = lt->tm_mday;
+    the_time->Month = lt->tm_mon + 1; // tm_mon is 0-based, MFTime is 1-based
+    the_time->Year = lt->tm_year + 1900;
+    the_time->Ticks = sdl3_get_ticks();
 }
 
 // uc_orig: WinMain (fallen/DDLibrary/Source/GHost.cpp)

@@ -6,6 +6,7 @@
 
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
@@ -487,7 +488,7 @@ void PANEL_new_toss(long type, float sx, float sy)
 // uc_orig: PANEL_do_tosses (fallen/DDEngine/Source/panel.cpp)
 void PANEL_do_tosses(void)
 {
-    unsigned int now = GetTickCount();
+    uint64_t now = sdl3_get_ticks();
 
     // Process at 20 Hz, but never more than 4 frames behind.
     if (PANEL_toss_tick < now - (1000 / 20) * 4) {
@@ -897,7 +898,7 @@ void PANEL_new_text_process(void)
 {
     SLONG i;
     PANEL_Text* pt;
-    ULONG now = GetTickCount();
+    uint64_t now = sdl3_get_ticks();
 
     if (PANEL_text_tick < now - (1000 / 10) * 4) {
         PANEL_text_tick = (now - (1000 / 10) * 4);
@@ -1118,7 +1119,7 @@ void PANEL_fadeout_init(void)
 void PANEL_fadeout_start(void)
 {
     if (!PANEL_fadeout_time) {
-        PANEL_fadeout_time = GetTickCount();
+        PANEL_fadeout_time = sdl3_get_ticks();
     }
 }
 
@@ -1130,7 +1131,7 @@ void PANEL_fadeout_draw(void)
     if (PANEL_fadeout_time) {
         POLY_frame_init(UC_FALSE, UC_FALSE);
 
-        float angle = float(GetTickCount() - PANEL_fadeout_time) * angle_mul;
+        float angle = float(sdl3_get_ticks() - PANEL_fadeout_time) * angle_mul;
         float zoom = angle * zoom_mul;
 
         float xdu = -(float)cos(angle) * zoom * 1.33F;
@@ -1192,10 +1193,10 @@ void PANEL_fadeout_draw(void)
 
         POLY_add_quad(quad, POLY_PAGE_FADECAT, UC_FALSE, UC_TRUE);
 
-        if (GetTickCount() > (unsigned)PANEL_fadeout_time + 768) {
+        if (sdl3_get_ticks() > (uint64_t)PANEL_fadeout_time + 768) {
             SLONG bright;
 
-            bright = GetTickCount() - (PANEL_fadeout_time + 768);
+            bright = sdl3_get_ticks() - (PANEL_fadeout_time + 768);
 
             SATURATE(bright, 0, 255);
 
@@ -1221,7 +1222,7 @@ void PANEL_fadeout_draw(void)
 SLONG PANEL_fadeout_finished(void)
 {
     if (PANEL_fadeout_time) {
-        if (GetTickCount() > (unsigned)PANEL_fadeout_time + 1024) {
+        if (sdl3_get_ticks() > (uint64_t)PANEL_fadeout_time + 1024) {
             return UC_TRUE;
         }
     }
@@ -1386,7 +1387,7 @@ void PANEL_last_bubble(float x1, float y1, float x2, float y2)
 // uc_orig: PANEL_flash_sign (fallen/DDEngine/Source/panel.cpp)
 void PANEL_flash_sign(SLONG sign, SLONG flip)
 {
-    PANEL_sign_time = GetTickCount();
+    PANEL_sign_time = sdl3_get_ticks();
     PANEL_sign_flip = flip;
     PANEL_sign_which = sign;
 }
@@ -1401,7 +1402,7 @@ void PANEL_new_info_message(CBYTE* fmt, ...)
     vsprintf(PANEL_info_message, fmt, ap);
     va_end(ap);
 
-    PANEL_info_time = GetTickCount();
+    PANEL_info_time = sdl3_get_ticks();
 }
 
 // Draws a dark transparent overlay at the right edge of the screen, x pixels wide.
@@ -2038,7 +2039,7 @@ void PANEL_last(void)
 
                     float size = (mb->pad && !is_dot) ? 9.0F : 6.0F;
 
-                    SLONG alive = GetTickCount() - mb->ticks;
+                    int64_t alive = sdl3_get_ticks() - mb->ticks;
 
                     if (alive < 4096) {
                         alive &= 0x100;
@@ -2061,14 +2062,14 @@ void PANEL_last(void)
             mb->pad = UC_FALSE;
         }
 
-        if (PANEL_info_time > GetTickCount() - 2000) {
+        if (PANEL_info_time > sdl3_get_ticks() - 2000) {
             SLONG x_right;
 
             SLONG colour_main;
             SLONG colour_shad;
 
-            DWORD now = GetTickCount();
-            DWORD onfor = now - PANEL_info_time;
+            uint64_t now = sdl3_get_ticks();
+            uint64_t onfor = now - PANEL_info_time;
 
             if (onfor < 255) {
                 colour_main = onfor;
@@ -2313,7 +2314,7 @@ void PANEL_last(void)
     }
 
     // Draw road sign flashes.
-    DWORD dtime = GetTickCount() - PANEL_sign_time;
+    uint64_t dtime = sdl3_get_ticks() - PANEL_sign_time;
 
     if (dtime < 3000) {
         dtime %= 600;

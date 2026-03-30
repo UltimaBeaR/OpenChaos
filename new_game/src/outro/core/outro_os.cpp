@@ -4,12 +4,11 @@
 // All D3D code has been moved to the outro graphics engine backend
 // (engine/graphics/graphics_engine/backend_directx6/outro/core.cpp).
 
-#include <windows.h>
-#include <windowsx.h>
 #include <stdarg.h>
 #include <string.h>
 
 #include "engine/input/gamepad.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/input/gamepad_globals.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
@@ -152,13 +151,13 @@ void OS_string(CBYTE* fmt, ...)
 // uc_orig: OS_ticks (fallen/outro/os.cpp)
 SLONG OS_ticks(void)
 {
-    return GetTickCount() - OS_game_start_tick_count;
+    return sdl3_get_ticks() - OS_game_start_tick_count;
 }
 
 // uc_orig: OS_ticks_reset (fallen/outro/os.cpp)
 void OS_ticks_reset()
 {
-    OS_game_start_tick_count = GetTickCount();
+    OS_game_start_tick_count = sdl3_get_ticks();
 }
 
 // ========================================================
@@ -954,7 +953,7 @@ void OS_hack(void)
 
     oge_init();
 
-    OS_game_start_tick_count = GetTickCount();
+    OS_game_start_tick_count = sdl3_get_ticks();
 
     KEY_on[KEY_ESCAPE] = 0;
 
