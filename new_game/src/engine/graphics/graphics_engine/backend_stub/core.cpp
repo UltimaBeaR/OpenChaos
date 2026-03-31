@@ -196,7 +196,7 @@ SLONG RealDisplayHeight = 480;
 UBYTE* image_mem = nullptr;
 
 // Texture utility stubs
-void SetLastClumpfile(char*, unsigned int) {}
+void SetLastClumpfile(char*, size_t) {}
 
 SLONG OpenDisplay(ULONG, ULONG, ULONG, ULONG) { return 0; }
 SLONG SetDisplay(ULONG, ULONG, ULONG) { return 0; }

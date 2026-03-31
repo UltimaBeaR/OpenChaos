@@ -21,8 +21,14 @@ FileClump::FileClump(const char* clumpfn, ULONG max_id, bool readonly)
             fread(&MaxID, sizeof(ULONG), 1, ClumpFD);
             Offsets = new size_t[MaxID];
             Lengths = new size_t[MaxID];
-            fread(Offsets, sizeof(size_t), MaxID, ClumpFD);
-            fread(Lengths, sizeof(size_t), MaxID, ClumpFD);
+            // Clump files store offsets/lengths as 32-bit values (written by original 32-bit game).
+            // Read as uint32_t and expand to size_t for 64-bit compatibility.
+            uint32_t* tmp = new uint32_t[MaxID];
+            fread(tmp, sizeof(uint32_t), MaxID, ClumpFD);
+            for (ULONG i = 0; i < MaxID; i++) Offsets[i] = tmp[i];
+            fread(tmp, sizeof(uint32_t), MaxID, ClumpFD);
+            for (ULONG i = 0; i < MaxID; i++) Lengths[i] = tmp[i];
+            delete[] tmp;
         } else {
             MaxID = 0;
         }
@@ -34,9 +40,12 @@ FileClump::FileClump(const char* clumpfn, ULONG max_id, bool readonly)
             for (ULONG ii = 0; ii < MaxID; ii++) {
                 Offsets[ii] = Lengths[ii] = 0;
             }
-            fwrite(Offsets, sizeof(size_t), MaxID, ClumpFD);
-            fwrite(Lengths, sizeof(size_t), MaxID, ClumpFD);
-            NextOffset = sizeof(ULONG) + 2 * MaxID * sizeof(size_t);
+            // Write as uint32_t for compatibility with 32-bit clump format.
+            uint32_t* tmp = new uint32_t[MaxID]();
+            fwrite(tmp, sizeof(uint32_t), MaxID, ClumpFD);
+            fwrite(tmp, sizeof(uint32_t), MaxID, ClumpFD);
+            delete[] tmp;
+            NextOffset = sizeof(ULONG) + 2 * MaxID * sizeof(uint32_t);
         } else {
             MaxID = 0;
         }
@@ -50,11 +59,13 @@ FileClump::~FileClump()
         if (!ReadOnly) {
             fseek(ClumpFD, 0, SEEK_SET);
             fwrite(&MaxID, sizeof(ULONG), 1, ClumpFD);
-            fwrite(Offsets, sizeof(size_t), MaxID, ClumpFD);
-            fwrite(Lengths, sizeof(size_t), MaxID, ClumpFD);
-
-            for (ULONG ii = 0; ii < MaxID; ii++) {
-            }
+            // Write as uint32_t for 32-bit clump format compatibility.
+            uint32_t* tmp = new uint32_t[MaxID];
+            for (ULONG ii = 0; ii < MaxID; ii++) tmp[ii] = (uint32_t)Offsets[ii];
+            fwrite(tmp, sizeof(uint32_t), MaxID, ClumpFD);
+            for (ULONG ii = 0; ii < MaxID; ii++) tmp[ii] = (uint32_t)Lengths[ii];
+            fwrite(tmp, sizeof(uint32_t), MaxID, ClumpFD);
+            delete[] tmp;
         }
         MF_Fclose(ClumpFD);
     }

@@ -3,7 +3,7 @@ SRC_DIR    := new_game
 BUILD_DIR  := new_game/build
 RESOURCES  := original_game_resources
 CMAKE      := cmake
-TOOLCHAIN  := $(abspath $(SRC_DIR)/cmake/clang-x86-windows.cmake)
+TOOLCHAIN  := $(abspath $(SRC_DIR)/cmake/clang-x64-windows.cmake)
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
         run-release run-debug \

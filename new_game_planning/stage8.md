@@ -260,29 +260,54 @@
 - `game_tick.cpp:2197` — `sizeof(names) >> 2` → `sizeof(names)/sizeof(names[0])`
   (`>> 2` = деление на 4, предполагало sizeof(pointer)==4; на x64 pointer=8 → неверный count)
 
-#### Шаг 6. Тулчейн x64 ⏳
+#### Шаг 6. Тулчейн x64 ✅
 - **Новый toolchain** `cmake/clang-x64-windows.cmake`:
-  - `--target=i686-pc-windows-msvc` → `--target=x86_64-pc-windows-msvc`
-  - `VCPKG_TARGET_TRIPLET "x86-windows"` → `"x64-windows"`
-  - `CMAKE_SYSTEM_PROCESSOR x86` → `x86_64`
-- **Makefile:** `TOOLCHAIN` → новый файл
+  - `--target=x86_64-pc-windows-msvc`, `VCPKG_TARGET_TRIPLET "x64-windows"`, `CMAKE_SYSTEM_PROCESSOR x86_64`
+  - Старый `clang-x86-windows.cmake` сохранён (может пригодиться для DX6 бэкенда)
+- **Makefile:** `TOOLCHAIN` → `clang-x64-windows.cmake`
 - **CMakeLists.txt:**
-  - Убрать `LINKER:/SAFESEH:NO` (x86-only, не нужен на x64)
-  - Убрать `LINKER:/ENTRY:mainCRTStartup` (проверить — может быть не нужен на x64)
-- **vcpkg:** пакеты переустановятся автоматически при смене triplet
+  - `/SAFESEH:NO` — обёрнут в `if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")` (x86-only)
+  - `/ENTRY:mainCRTStartup` — оставлен (нужен и на x64 для SUBSYSTEM:WINDOWS + main())
+- **vcpkg:** x64-windows пакеты установились автоматически
+- **Linker fix:** `SetLastClumpfile(char*, unsigned int)` → `size_t` в OpenGL и stub бэкендах
+  (на x86 `size_t`=`unsigned int`=4, на x64 `size_t`=8 → mismatch с объявлением в texture.cpp)
+- **Результат:** Release и Debug — оба компилируются и линкуются на x64
 - **macOS (будущее):** добавить toolchain для `arm64-osx` (Apple Silicon) — отдельный шаг
 
-#### Шаг 7. Верификация ⏳
-- Сборка x64: Release + Debug, обе должны скомпилироваться и слинковаться без ошибок
-- `static_assert(sizeof(...))` на packed structs — должны пройти (если нет — найдена пропущенная структура)
-- Запуск: главное меню → загрузка уровня → геймплей 5 минут
-- Проверить отдельно:
-  - Анимации персонажей (GameKeyFrame/GameFightCol — шаг 4)
-  - Освещение ночных уровней (NIGHT_Square/NIGHT_Dfcache — шаг 4)
-  - Quick save / quick load (Thing, NIGHT_* — шаг 4)
-  - Катсцены (CPChannel — шаг 4)
-  - Outro (IMP_Mesh/IMP_Mat — шаг 4)
-  - Загрузка объектов карты (MapThingPSX — шаг 4)
+#### Шаг 7. Верификация 🔧 В РАБОТЕ
+
+**Сборка:** ✅ Release + Debug компилируются и линкуются на x64.
+
+**Runtime фиксы (обнаружены при верификации):**
+- **file_clump.cpp** — `size_t` в fread/fwrite: clump-файлы (.txc/.gob) хранят offsets/lengths как 32-бит,
+  а `size_t` на x64 = 8 байт → fread читал вдвое больше данных → мусорные индексы → abort.
+  Фикс: читаем как `uint32_t[]`, расширяем в `size_t[]`. Аналогично для write.
+- **playcuts.cpp** — `FileRead(handle, channel, sizeof(CPChannel))`: CPChannel содержит указатель,
+  sizeof на x64 = 16 вместо 12 → чтение лишних 4 байт из файла → десинхронизация потока → SIGSEGV.
+  Фикс: читаем через фиксированную 12-байтную on-disk структуру, копируем поля.
+- **SetLastClumpfile** — `unsigned int` vs `size_t` mismatch между объявлением (texture.cpp) и
+  определением (OpenGL/stub backends). На x86 оба = 4 байта, на x64 size_t = 8 → linker error.
+  Фикс: `unsigned int` → `size_t` в обоих бэкендах.
+
+**Текущий статус:**
+- ✅ Запуск → главное меню работает
+- ❌ Загрузка уровня → SIGSEGV (crash_log.txt: Signal 11)
+- ⏳ Нужно: добавить debug logging в game_loop/level_load, найти место краша
+  - Краш после game_startup, при переходе из attract mode в загрузку уровня
+  - Вероятные причины: ещё одна структура с указателем читается из .ucm файла с sizeof,
+    или pointer arithmetic issue в коде загрузки уровня
+
+**Полный аудит файлового I/O завершён — все sizeof(struct) с указателями в fread/fwrite найдены:**
+- Ассеты (фиксированный формат): file_clump ✅, anim_loader ✅, playcuts ✅, mapthing ✅
+- Save/load (самосогласованное): memory.cpp, save.cpp, outro_imp.cpp, thing.cpp — не требуют фикса
+  (write и read используют одинаковый sizeof; старые 32-бит сейвы несовместимы — ожидаемо)
+
+**Чеклист после починки краша:**
+- Загрузка уровня без краша
+- Геймплей 5 минут
+- Анимации персонажей
+- Катсцены
+- Quick save / quick load
 
 ---
 

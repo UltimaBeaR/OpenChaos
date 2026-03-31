@@ -222,3 +222,54 @@ Object files: 317 → 314.
 - `_CRT_SECURE_NO_WARNINGS`: только на Windows
 - OpenGL library: `opengl32` (Win) / `OpenGL::GL` (macOS) / `GL` (Linux)
 - CMake 4.2 CMP0175 warnings: убраны — `CONFIGURATIONS` в POST_BUILD заменён на `$<$<CONFIG:...>:>` generator expressions
+
+## 2026-03-31: 14d — Переход на 64-бит (IN PROGRESS)
+
+### Шаг 1. Inline asm → C ✅
+- `fixed_math.h`: `MUL64`/`DIV64` — x86 `__asm` (MSVC-синтаксис) → `int64_t` арифметика
+- MSVC не поддерживает `__asm` в x64 — блокер компиляции. Других `__asm` в проекте нет.
+
+### Шаг 2. `long` → фиксированные типы ✅
+- `long` — единственный примитивный C-тип с разным размером на 64-бит: Win LLP64 = 4, Linux/Mac LP64 = 8
+- Компиляторной опции для фиксации нет — размер определяется ABI платформы
+- types.h: `unsigned long` → `uint32_t` для ULONG, SLONG, DWORD. outro_always.h: аналогично.
+- ~45 голых `long` в panel.h/cpp, panel_globals.h/cpp, figure.cpp, polypage.cpp → `SLONG`/`ULONG`
+- Добавлен `#include "engine/core/types.h"` в panel.h (ранее получал типы транзитивно)
+
+### Шаг 3. Pointer → int касты → `uintptr_t` ✅
+- anim_loader.cpp (~15 мест): pointer relocation `(ULONG)ptr` → `(uintptr_t)ptr`
+- memory.cpp (~30 мест): convert_drawtype/keyframe/fightcol/animlist/thing ptr↔index
+- person.cpp: ASSERT каст
+- aeng.cpp: pointer alignment `& 0xffffffe0` → `& ~(uintptr_t)0x1f`
+- pyro.cpp: address-as-seed double cast
+- widget.h: `SLONG data[5]` → `intptr_t data[5]` (хранит и числа и указатели)
+- widget.cpp: 7 мест pointer→data[] кастов
+
+### Шаг 4. Packed structs с указателями в файловом I/O ✅
+- Только ассеты нуждаются в фиксе (save/load самосогласован — sizeof одинаков для write/read)
+- `GameKeyFrame_Disk` / `GameFightCol_Disk` (anim_types.h) — on-disk структуры с `uint32_t` вместо указателей
+- anim_loader.cpp: bulk read в `_Disk` temp буфер, поэлементное копирование в runtime struct
+- AnimList: fread `uint32_t[]` → expand в `GameKeyFrame*[]`
+- MapThingPSX: указатели `CurrentFrame`/`NextFrame` → `uint32_t` (никогда не используются после чтения)
+- static_assert'ы: `GameKeyFrame_Disk==20`, `GameFightCol_Disk==16`, `MapThingPSX==82`
+
+### Шаг 5. sizeof-зависимости ✅
+- game_tick.cpp: `sizeof(names) >> 2` → `sizeof(names)/sizeof(names[0])`
+
+### Шаг 6. Тулчейн x64 ✅
+- Новый `cmake/clang-x64-windows.cmake`: `x86_64-pc-windows-msvc`, triplet `x64-windows`
+- Makefile: TOOLCHAIN → новый файл
+- CMakeLists.txt: `/SAFESEH:NO` обёрнут в `if(x86)`
+- `SetLastClumpfile(char*, unsigned int)` → `size_t` — linker mismatch на x64
+
+### Шаг 7. Верификация 🔧
+**Runtime фиксы при верификации:**
+- **file_clump.cpp**: `size_t` в fread/fwrite → `uint32_t` (clump файлы = 32-бит формат)
+- **playcuts.cpp**: `sizeof(CPChannel)` в FileRead → фиксированная on-disk структура 12 байт
+
+**Текущий статус:**
+- x64 билд компилируется (Release + Debug)
+- Запуск → главное меню ✅
+- Загрузка уровня → SIGSEGV ❌ — нужно отладить
+- Краш после game_startup, при переходе из attract mode
+- Следующий шаг: debug logging в game loop / level load, найти конкретное место краша

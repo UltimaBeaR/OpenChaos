@@ -594,8 +594,11 @@ endif()
 # ---------------------------------------------------------------------------
 
 if(WIN32)
-    # /SAFESEH:NO — x86 builds: some object files lack SafeSEH metadata.
-    target_link_options(Fallen PRIVATE "LINKER:/SAFESEH:NO")
+    # /SAFESEH:NO — x86 only: some object files lack SafeSEH metadata.
+    # Not needed (and rejected by linker) on x64.
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+        target_link_options(Fallen PRIVATE "LINKER:/SAFESEH:NO")
+    endif()
     # /ENTRY:mainCRTStartup — use main() instead of WinMain while keeping
     # /SUBSYSTEM:WINDOWS (no console window). Cross-platform main() entry point.
     target_link_options(Fallen PRIVATE "LINKER:/ENTRY:mainCRTStartup")

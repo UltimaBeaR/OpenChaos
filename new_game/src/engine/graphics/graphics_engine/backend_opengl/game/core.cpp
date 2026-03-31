@@ -2114,7 +2114,7 @@ SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b)
     return 0;
 }
 
-void SetLastClumpfile(char*, unsigned int) {}
+void SetLastClumpfile(char*, size_t) {}
 
 void* LockWorkScreen() { return s_work_screen_buf; }
 void UnlockWorkScreen() {}
