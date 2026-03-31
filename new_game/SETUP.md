@@ -2,32 +2,51 @@
 
 ## Prerequisites
 
-### Visual Studio 2026 Community
+### Build tools
 
-Download from [visualstudio.microsoft.com](https://visualstudio.microsoft.com/).
+Install the following (all available via `winget`):
 
-During installation, select the **Desktop development with C++** workload —
-this includes MSVC, Windows SDK, vcpkg, and other essentials automatically.
-
-Additionally, in "Individual components", make sure these are checked:
-
-- **C++ Clang Compiler for Windows** (provides `clang-cl`)
-- **C++ Clang-cl tools for Windows** (x86/x64)
-- **C++ CMake tools for Windows** (provides `cmake.exe` used by the build scripts)
-
-**Clang version:** 20 or newer is required (C++20 support). Check your version:
 ```bash
-clang --version
+winget install Kitware.CMake        # CMake build system
+winget install Ninja-build.Ninja    # Ninja build tool
+winget install LLVM.LLVM            # Clang/Clang++ compiler (version 20+)
 ```
-Visual Studio 2022 17.14+ / Visual Studio 2026 ship with Clang 20+.
-Earlier VS versions may bundle Clang 18 — in that case, install LLVM 20+ separately
-from [github.com/llvm/llvm-project/releases](https://github.com/llvm/llvm-project/releases)
-and ensure it's on PATH before the VS-bundled version.
+
+After installing, **restart your terminal** so the new PATH entries take effect.
+
+Verify:
+```bash
+cmake --version    # 3.25+
+ninja --version    # any
+clang++ --version  # 20+
+```
+
+### Windows SDK + MSVC runtime
+
+`clang++` needs Windows SDK headers/libs and the MSVC C++ runtime to compile and link.
+It auto-detects the installation — no manual environment setup (`vcvarsall.bat`) required.
+
+**Option A — VS Build Tools (lightweight, ~3 GB):**
+```bash
+winget install Microsoft.VisualStudio.2022.BuildTools
+```
+Then open **Visual Studio Installer**, click **Modify** on Build Tools, and select
+the **Desktop development with C++** workload.
+
+**Option B — Full Visual Studio** (if you already have it):
+Download [Visual Studio 2022/2026 Community](https://visualstudio.microsoft.com/) and select
+the **Desktop development with C++** workload during installation.
+
+### vcpkg
+
+vcpkg is used for dependency management (SDL3, OpenAL, fmt).
+Included with VS Build Tools / Visual Studio (C++ workload) — no extra setup needed.
+The build scripts auto-detect the installation via `vswhere`.
 
 ### GNU make
 
 Included with [Git for Windows](https://gitforwindows.org/) (available in Git Bash).
-Or install via Chocolatey: `choco install make`
+Or install via: `winget install GnuWin32.Make`
 
 ### Urban Chaos (legal copy)
 
@@ -64,7 +83,7 @@ make configure-opengl   # OpenGL 4.1 — cross-platform (recommended)
 make configure-d3d6     # DirectX 6 — Windows-only legacy backend
 ```
 
-This sets up the VS x86 build environment (`vcvarsall.bat x86`) and runs CMake.
+This runs CMake with Ninja Multi-Config generator.
 **vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
 — no separate vcpkg command needed. Re-run when switching backends or after `CMakeLists.txt` changes.
 
@@ -128,4 +147,3 @@ new_game/
 ```
 
 `build/` and `vcpkg_installed/` are gitignored and not committed.
-

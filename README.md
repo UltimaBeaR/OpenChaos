@@ -7,7 +7,7 @@ reimplementation with modern tech.
 
 | Area | Original | Now |
 |------|----------|-----|
-| Build system | MSVC vcxproj | CMake + Ninja + Clang, vcpkg |
+| Build system | MSVC vcxproj | CMake + Ninja + Clang++ (standalone, no clang-cl), vcpkg |
 | Graphics | Direct3D 6 (hardcoded) | Swappable backend abstraction (ge_* API); OpenGL 4.1 Core Profile (active, cross-platform) + D3D6 legacy backend |
 | Audio | Miles Sound System | SDL3 + OpenAL Soft (3D positional sound) |
 | Input | DirectInput (keyboard + joystick) | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense, PS1-style mapping, analog stick, vibration, hotplug, analog triggers (gas/brake). DualSense extras: LED lightbar (health color, siren flash), adaptive triggers (weapon click, brake resistance) |

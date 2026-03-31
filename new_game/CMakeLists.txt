@@ -118,7 +118,15 @@ file(WRITE \"\${OUT}\"
         # --- API-agnostic render state cache ---
         src/engine/graphics/graphics_engine/game_graphics_engine.cpp
     )
-    set(BACKEND_LIBS opengl32)
+    # OpenGL library: platform-specific name
+    if(WIN32)
+        set(BACKEND_LIBS opengl32)
+    elseif(APPLE)
+        find_package(OpenGL REQUIRED)
+        set(BACKEND_LIBS OpenGL::GL)
+    else()
+        set(BACKEND_LIBS GL)
+    endif()
     message(STATUS "Graphics backend: OpenGL 4.1 Core Profile")
 elseif(GRAPHICS_BACKEND STREQUAL "stub")
     set(BACKEND_SOURCES
@@ -542,14 +550,14 @@ set_source_files_properties(
 )
 
 target_compile_options(Fallen PRIVATE
-    # Release: optimizations matching original vcxproj ClangCL settings.
+    # Release: optimizations matching original vcxproj settings.
     # -fno-inline-functions: without this, Clang -O2 breaks body part rendering
     #   (FIGURE_draw_prim_tween_person_only_just_set_matrix inlining issue, TODO Этап 7+).
     # -fno-strict-aliasing: code uses pointer type punning (*(float*)&intVal),
     #   strict aliasing optimizations would produce incorrect results.
-    $<$<CONFIG:Release>:/clang:-O2>
-    $<$<CONFIG:Release>:/clang:-fno-inline-functions>
-    $<$<CONFIG:Release>:/clang:-fno-strict-aliasing>
+    $<$<CONFIG:Release>:-O2>
+    $<$<CONFIG:Release>:-fno-inline-functions>
+    $<$<CONFIG:Release>:-fno-strict-aliasing>
 )
 
 # ---------------------------------------------------------------------------
@@ -571,13 +579,15 @@ target_compile_definitions(Fallen PRIVATE
 # Linker flags
 # ---------------------------------------------------------------------------
 
-# /SAFESEH:NO — original code uses exception handlers not registered in SafeSEH table.
-target_link_options(Fallen PRIVATE /SAFESEH:NO)
-# /ENTRY:mainCRTStartup — use regular main() instead of WinMain while keeping
-# /SUBSYSTEM:WINDOWS (no console window). Allows cross-platform main() entry point.
-target_link_options(Fallen PRIVATE /ENTRY:mainCRTStartup)
-# Debug: generate PDB for crash symbolization (llvm-symbolizer --relative-address).
-target_link_options(Fallen PRIVATE $<$<CONFIG:Debug>:/DEBUG>)
+if(WIN32)
+    # /SAFESEH:NO — x86 builds: some object files lack SafeSEH metadata.
+    target_link_options(Fallen PRIVATE "LINKER:/SAFESEH:NO")
+    # /ENTRY:mainCRTStartup — use main() instead of WinMain while keeping
+    # /SUBSYSTEM:WINDOWS (no console window). Cross-platform main() entry point.
+    target_link_options(Fallen PRIVATE "LINKER:/ENTRY:mainCRTStartup")
+    # Debug: generate PDB for crash symbolization (llvm-symbolizer --relative-address).
+    target_link_options(Fallen PRIVATE $<$<CONFIG:Debug>:LINKER:/DEBUG>)
+endif()
 
 # ---------------------------------------------------------------------------
 # Link libraries

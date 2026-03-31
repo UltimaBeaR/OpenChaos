@@ -174,3 +174,28 @@ Warnings: 78 → 56. Object files: 318 → 317 (убран wind_procs.cpp).
 - `threading_bridge.cpp`, `threading_bridge.h` (единственный потребитель был async_file)
 
 Object files: 317 → 314.
+
+## 2026-03-31: 14a — Компилятор clang-cl → clang++
+
+### Что сделано
+
+Переход с `clang-cl` (MSVC frontend) на `clang++` (GNU-style frontend). Убрана зависимость от vcvarsall.bat — clang++ автоматически находит MSVC.
+
+**Изменённые файлы:**
+
+| Файл | Что изменилось |
+|------|---------------|
+| `cmake/clang-x86-windows.cmake` | `clang-cl` → `clang++`/`clang` |
+| `CMakeLists.txt` | Compile flags: `/clang:-O2` → `-O2` и т.д. Linker flags: обёрнуты в `if(WIN32)` + `LINKER:` prefix. OpenGL lib: платформо-зависимый (`opengl32`/`OpenGL::GL`/`GL`) |
+| `scripts/configure.ps1` | Убран vcvarsall.bat. cmake/ninja: ищутся в PATH (без VS fallback). Добавлен `-DCMAKE_MAKE_PROGRAM` для ninja |
+| `scripts/build.ps1` | cmake из PATH (без VS fallback) |
+| `Makefile` | `CMAKE` = `cmake` (системный) |
+| `SETUP.md` | Новые prerequisites: `winget install` cmake, ninja, LLVM. VS Build Tools как лёгкая альтернатива полной VS |
+| `README.md` | Build system: уточнено "Clang++ (standalone, no clang-cl)" |
+
+**Ключевые решения:**
+
+- **MSVC ABI сохранён:** target остаётся `i686-pc-windows-msvc`, vcpkg triplet `x86-windows` — совместимость с существующими пакетами
+- **VS Build Tools вместо полной VS:** для Windows SDK + MSVC runtime достаточно Build Tools (~3 GB вместо ~10+ GB)
+- **Линкер flags через `LINKER:` prefix:** CMake корректно транслирует MSVC-style flags (`/SAFESEH:NO`, `/ENTRY:mainCRTStartup`, `/DEBUG`) через clang++ driver в lld-link
+- **Без VS fallback:** cmake, ninja, clang++ — все из PATH, никаких хардкоженных VS путей

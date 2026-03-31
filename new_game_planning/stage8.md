@@ -161,13 +161,33 @@
 
 ## 14. Сборочная система
 
+### 14a. Компилятор: clang-cl → clang++ ✅
 - `clang-cl` → standalone `clang++` (убрать зависимость от VS)
 - ~~CMake флаги: убрать `/Zp1`~~ (сделано в п.12)
 - ~~Убрать `/Zp8` исключения из CMakeLists.txt~~ (сделано в п.12)
 - CMake флаги: `/clang:-O2` → `-O2`, убрать `/SAFESEH`, `/ENTRY:mainCRTStartup`
-- Убрать `vcvarsall.bat x86` из configure.ps1
-- Заменить VS-bundled cmake на системный
-- Добавить Linux/macOS toolchain файлы или условия в CMakeLists.txt
+- Toolchain: `clang-cl` → `clang++`, `--target=i686-pc-windows-msvc` (пока 32-бит)
+- Убрать `vcvarsall.bat x86` из configure.ps1 (clang++ автоматически находит MSVC)
+
+### 14b. Скрипты → кросс-платформенные ⏳
+- Убрать PowerShell скрипты (`configure.ps1`, `build.ps1`, `copy_resources.ps1`)
+- Вся логика сборки — в Makefile (bash)
+- `CMAKE` → системный `cmake` (не VS-бандленный)
+- `copy-resources` → `cp -r` / `rsync` вместо robocopy
+
+### 14c. CMake: кросс-платформенные условия ⏳
+- Платформо-зависимые флаги компилятора/линковщика (`WIN32`, `APPLE`, `UNIX`)
+- Платформо-зависимые библиотеки (opengl32 → find_package(OpenGL))
+- `add_executable(Fallen WIN32 ...)` → условно
+- vcpkg DLL копирование — только на Windows
+- macOS/Linux: отладочная информация (`-g` вместо `/DEBUG`)
+
+### 14d. Переход на 64-бит ⏳
+- Windows: `x86-windows` → `x64-windows`, `i686` → `x86_64`
+- macOS: `arm64` (Apple Silicon)
+- Проверить все бинарные структуры на sizeof-зависимости от pointer size
+- Проверить типы (`SLONG`, `ULONG`, `UWORD`) на 64-бит корректность
+- Обновить vcpkg triplet
 
 ---
 
@@ -188,4 +208,7 @@
 | 11 | Мёртвый код | ✅ |
 | 12 | Убрать `/Zp1` → локальный `#pragma pack` | ✅ |
 | 13 | Убрать Windows-зависимости из игрового кода | ✅ |
-| 14 | Сборочная система | ⏳ |
+| 14a | Компилятор: clang-cl → clang++ | ✅ |
+| 14b | Скрипты → кросс-платформенные | ⏳ |
+| 14c | CMake: кросс-платформенные условия | ⏳ |
+| 14d | Переход на 64-бит | ⏳ |

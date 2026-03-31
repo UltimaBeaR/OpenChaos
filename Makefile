@@ -3,7 +3,7 @@ SRC_DIR    := new_game
 BUILD_DIR  := new_game/build
 RESOURCES  := original_game_resources
 POWERSHELL := /c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
-CMAKE      := "/c/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"
+CMAKE      := cmake
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
         run-release run-debug \

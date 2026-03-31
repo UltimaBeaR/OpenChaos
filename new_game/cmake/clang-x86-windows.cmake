@@ -1,11 +1,13 @@
-# Toolchain: clang-cl targeting 32-bit Windows (i686-pc-windows-msvc).
+# Toolchain: clang++ targeting 32-bit Windows (i686-pc-windows-msvc).
+# Uses standalone clang++ (GNU-style frontend) instead of clang-cl (MSVC frontend).
+# clang++ auto-detects MSVC installation — no vcvarsall.bat needed.
 # Used via VCPKG_CHAINLOAD_TOOLCHAIN_FILE so vcpkg remains the primary toolchain.
 
 set(CMAKE_SYSTEM_NAME    Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86)
 
-set(CMAKE_C_COMPILER   "clang-cl")
-set(CMAKE_CXX_COMPILER "clang-cl")
+set(CMAKE_C_COMPILER   "clang")
+set(CMAKE_CXX_COMPILER "clang++")
 
 # Target 32-bit x86 with MSVC-compatible ABI.
 # This must be in FLAGS_INIT (evaluated before first try_compile) rather than
