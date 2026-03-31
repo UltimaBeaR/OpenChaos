@@ -77,6 +77,17 @@ if (idx < 0) p[c0].Fight = NULL;
 ```
 **Где встречалось:** memory.cpp (convert_keyframe_to_pointer, convert_animlist_to_pointer, convert_fightcol_to_pointer). Самый коварный баг — крашит не при загрузке, а при первом обращении к fight collision.
 
+## Кастомные аллокаторы — sizeof(FreeNode)
+
+```cpp
+// БАГ: гранулярность аллокации меньше sizeof free-list узла на x64
+#define HEAP_QUANTISE 16  // sizeof(HEAP_Free)==16 на x86, 32 на x64
+// При остатке 16 байт: записывается 32-байтный узел → overflow → heap corruption
+// ФИКС:
+#define HEAP_QUANTISE (sizeof(HEAP_Free) < 16 ? 16 : sizeof(HEAP_Free))
+```
+**Где встречалось:** heap.cpp (HEAP_QUANTISE). Краш проявлялся как порча `NIGHT_Square.colour` → `0xFFFFFFFFFFFFFFFF` → SIGSEGV в `HEAP_give`. Самый коварный тип бага — corruption далеко от точки overflow, воспроизводится нестабильно.
+
 ## Поиск оставшихся багов
 
 Паттерны для grep по всему `new_game/src/` (исключая `backend_directx6/`):

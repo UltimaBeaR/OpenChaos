@@ -13,8 +13,10 @@ typedef struct HEAP_Free {
 } HEAP_Free;
 
 // Minimum allocation granularity — all sizes rounded up to this.
+// Must be >= sizeof(HEAP_Free), because leftover space stores a free-list node.
+// On x86 sizeof(HEAP_Free)==16, on x64 it's 32 due to pointer growth.
 // uc_orig: HEAP_QUANTISE (fallen/Source/heap.cpp)
-#define HEAP_QUANTISE 16
+#define HEAP_QUANTISE (sizeof(HEAP_Free) < 16 ? 16 : sizeof(HEAP_Free))
 
 // Validates the free list — checks that all blocks are internally consistent.
 // uc_orig: HEAP_check (fallen/Source/heap.cpp)

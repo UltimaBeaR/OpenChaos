@@ -292,9 +292,20 @@ Object files: 317 → 314.
   SetUnhandledExceptionFilter → crash_log.txt с Exception, RVA, регистрами, стек с символами.
   На не-Windows: signal() fallback в host.cpp.
 
+**Runtime фиксы (heap corruption):**
+- **heap.cpp** — `HEAP_QUANTISE` (16) < `sizeof(HEAP_Free)` (32 на x64).
+  Leftover 16 байт → записывается 32-байтный HEAP_Free → overflow → corruption соседних аллокаций.
+  Краш проявлялся как `NIGHT_Square.colour = 0xFFFFFFFFFFFFFFFF` → SIGSEGV в `HEAP_give`.
+  Фикс: `#define HEAP_QUANTISE (sizeof(HEAP_Free) < 16 ? 16 : sizeof(HEAP_Free))`
+- **figure.cpp:1601** — `(DWORD)pcBlock < (DWORD)pPrimObj->pwListIndices` → `(uintptr_t)` (pointer
+  truncation в ASSERT, не влияет на flow но ложное срабатывание на x64)
+
+**Makefile:** `make d` / `make r` теперь пишут stderr в файл `stderr.log` рядом с exe (rm -f перед стартом).
+
 **Текущий статус:**
 - x64 билд компилируется (Release + Debug)
 - Запуск → главное меню ✅
-- Загрузка уровня ✅, синематик начинает играть ✅
-- Зависание через несколько секунд (freeze, не crash) ❌ — нужно исследовать
-- Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)
+- Загрузка уровня ✅, синематик ✅, геймплей ✅
+- ⏳ Визуальный баг: некоторые стены и ящики не рисуются вблизи (появился после x64, rendering
+  pipeline аудирован — чисто, подозрение на corrupted данные или memory issue)
+- ⏳ Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)

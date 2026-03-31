@@ -94,10 +94,10 @@ copy-resources: copy-resources-debug copy-resources-release
 # ---------------------------------------------------------------------------
 
 run-debug:
-	cd $(BUILD_DIR)/Debug && ./Fallen.exe
+	cd $(BUILD_DIR)/Debug && rm -f stderr.log && ./Fallen.exe 2>stderr.log
 
 run-release:
-	cd $(BUILD_DIR)/Release && ./Fallen.exe
+	cd $(BUILD_DIR)/Release && rm -f stderr.log && ./Fallen.exe 2>stderr.log
 
 # ---------------------------------------------------------------------------
 # Build + Run shortcuts

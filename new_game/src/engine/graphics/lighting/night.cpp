@@ -1354,6 +1354,7 @@ void NIGHT_cache_create_inside(UBYTE lo_map_x, UBYTE lo_map_z, SLONG floor_y)
     nq->sizeof_colour = memory;
 
     ASSERT(nq->colour);
+    if (nq->colour == NULL) return;
 
     NIGHT_light_mapsquare(lo_map_x, lo_map_z, nq->colour, floor_y, 1);
 

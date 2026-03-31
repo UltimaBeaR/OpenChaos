@@ -1598,7 +1598,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
     memcpy(pPrimObj->pwStripIndices, TPO_pStripIndices, TPO_iNumStripIndices * sizeof(UWORD));
     pcBlock += TPO_iNumStripIndices * sizeof(UWORD);
 
-    ASSERT((DWORD)pcBlock < (DWORD)pPrimObj->pwListIndices + dwTotalSize);
+    ASSERT((uintptr_t)pcBlock < (uintptr_t)pPrimObj->pwListIndices + dwTotalSize);
 
     MemFree(TPO_piVertexLinks);
     MemFree(TPO_piVertexRemap);
