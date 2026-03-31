@@ -296,11 +296,18 @@
   `SLONG(var)` вместо `(SLONG)var`).
 - **memory.cpp:406** — `(SLONG)(EWAY_mess[c0] - EWAY_mess_buffer)` → `(intptr_t)` (pointer diff в 32 бит)
 
-**⚠️ TODO: Полный sweep pointer truncation по всему проекту.**
-Каждый раз находим новые варианты при крашах. Нужно систематически прогрепать ВСЕ возможные паттерны 
-каста указателя в 32-бит тип: `(SLONG)ptr`, `(ULONG)ptr`, `SLONG(ptr)`, `ULONG(ptr)`, 
-`(int)ptr`, `(unsigned)ptr`, `(uint32_t)ptr`, `(int32_t)ptr` — и проверить каждое найденное место.
-Файловый I/O аудит завершён, но runtime pointer truncation — ещё нет.
+**Полный sweep pointer truncation ✅** — систематический grep всех паттернов каста указателя в 32-бит:
+`(SLONG)ptr`, `(ULONG)ptr`, `SLONG(ptr)`, `ULONG(ptr)`, `(int)ptr`, `(unsigned)ptr`,
+`(uint32_t)ptr`, `(int32_t)ptr`. Найдено и исправлено 11 мест в 6 файлах:
+- **widget.h/cpp** — `WIDGET_Data` callback: `SLONG data1/data2` → `intptr_t` (typedef + 3 реализации
+  `INPUT_Data`/`LISTS_Data`/`TEXTS_Data` + 4 call-site каста `(SLONG)ptr` → `(intptr_t)`)
+- **widget.cpp:329** — `(SLONG)MemAlloc(sz)` → `(intptr_t)` (указатель обрезался до 32 бит)
+- **playcuts.cpp** — `pos.X` хранил `(SLONG)ptr` (текст катсцен). Редизайн: хранит offset+1 от
+  `PLAYCUTS_text_data` (0 = sentinel "нет текста"). При чтении: `PLAYCUTS_text_data + (pos.X - 1)`.
+  Убрана ptr↔offset конверсия в memory.cpp save/load (pos.X уже offset, не указатель).
+- **memory.cpp:898-903** — `(SLONG)NET_PERSON/NET_PLAYER/EWAY_mess` → `(intptr_t)` (index-in-pointer)
+- **pyro.cpp:885,1468** — `(SLONG)pyro` → `(SLONG)(uintptr_t)` (PRNG seed, double cast)
+- **vehicle.cpp:815-816** — `SLONG(p_car)` → `(SLONG)(uintptr_t)` (siren animation offset, double cast)
 
 **Текущий статус:**
 - ✅ Запуск → главное меню работает

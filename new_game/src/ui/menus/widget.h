@@ -46,7 +46,7 @@ typedef BOOL (*WIDGET_Clik)(Widget* widget, SLONG x, SLONG y);
 // uc_orig: WIDGET_Char (fallen/Headers/widget.h)
 typedef BOOL (*WIDGET_Char)(Widget* widget, CBYTE key);
 // uc_orig: WIDGET_Data (fallen/Headers/widget.h)
-typedef SLONG (*WIDGET_Data)(Widget* widget, SLONG code, SLONG data1, SLONG data2);
+typedef intptr_t (*WIDGET_Data)(Widget* widget, SLONG code, intptr_t data1, intptr_t data2);
 // uc_orig: FORM_Proc (fallen/Headers/widget.h)
 typedef BOOL (*FORM_Proc)(Form* form, Widget* widget, SLONG message);
 
@@ -205,7 +205,7 @@ void INPUT_Draw(Widget* widget);
 // uc_orig: INPUT_Char (fallen/Source/widget.cpp)
 BOOL INPUT_Char(Widget* widget, CBYTE key);
 // uc_orig: INPUT_Data (fallen/Source/widget.cpp)
-SLONG INPUT_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2);
+intptr_t INPUT_Data(Widget* widget, SLONG code, intptr_t data1, intptr_t data2);
 // uc_orig: LISTS_Free (fallen/Source/widget.cpp)
 void LISTS_Free(Widget* widget);
 // uc_orig: LISTS_Draw (fallen/Source/widget.cpp)
@@ -213,7 +213,7 @@ void LISTS_Draw(Widget* widget);
 // uc_orig: LISTS_Char (fallen/Source/widget.cpp)
 BOOL LISTS_Char(Widget* widget, CBYTE key);
 // uc_orig: LISTS_Data (fallen/Source/widget.cpp)
-SLONG LISTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2);
+intptr_t LISTS_Data(Widget* widget, SLONG code, intptr_t data1, intptr_t data2);
 // uc_orig: LISTS_Push (fallen/Source/widget.cpp)
 void LISTS_Push(Widget* widget);
 // uc_orig: TEXTS_Init (fallen/Source/widget.cpp)
@@ -225,7 +225,7 @@ void TEXTS_Draw(Widget* widget);
 // uc_orig: TEXTS_Char (fallen/Source/widget.cpp)
 BOOL TEXTS_Char(Widget* widget, CBYTE key);
 // uc_orig: TEXTS_Data (fallen/Source/widget.cpp)
-SLONG TEXTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2);
+intptr_t TEXTS_Data(Widget* widget, SLONG code, intptr_t data1, intptr_t data2);
 // uc_orig: GLYPH_Draw (fallen/Source/widget.cpp)
 void GLYPH_Draw(Widget* widget);
 // uc_orig: SHADE_Draw (fallen/Source/widget.cpp)

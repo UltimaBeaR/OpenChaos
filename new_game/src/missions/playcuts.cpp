@@ -119,7 +119,8 @@ static void PLAYCUTS_Read_Packet(MFFileHandle handle, CPPacket* packet)
             SLONG l;
             FileRead(handle, &l, sizeof(l));
             FileRead(handle, PLAYCUTS_text_ptr, l);
-            packet->pos.X = (SLONG)PLAYCUTS_text_ptr;
+            // Store as offset+1 so that 0 remains the "no text" sentinel
+            packet->pos.X = (SLONG)(PLAYCUTS_text_ptr - PLAYCUTS_text_data) + 1;
             PLAYCUTS_text_ptr += l;
             *PLAYCUTS_text_ptr = 0;
             PLAYCUTS_text_ptr++;
@@ -453,7 +454,7 @@ static void PLAYCUTS_Update(CPChannel* chan, Thing* thing, SLONG read_head, SLON
 
     case PT_TEXT:
         if (pkt->pos.X)
-            text_disp = (CBYTE*)pkt->pos.X;
+            text_disp = PLAYCUTS_text_data + (pkt->pos.X - 1);
         else
             text_disp = 0;
         break;

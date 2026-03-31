@@ -326,7 +326,7 @@ BOOL INPUT_Char(Widget* widget, CBYTE key)
             SLONG sz = strlen(widget->caption) + 1;
             if (sz < 256)
                 sz = 256;
-            widget->data[0] = (SLONG)MemAlloc(sz);
+            widget->data[0] = (intptr_t)MemAlloc(sz);
             strcpy((CBYTE*)widget->data[0], widget->caption);
             widget->data[2] = strlen(widget->caption);
         } else {
@@ -416,7 +416,7 @@ BOOL INPUT_Char(Widget* widget, CBYTE key)
 }
 
 // uc_orig: INPUT_Data (fallen/Source/widget.cpp)
-SLONG INPUT_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
+intptr_t INPUT_Data(Widget* widget, SLONG code, intptr_t data1, intptr_t data2)
 {
     switch (code) {
     case WIM_SETSTRING:
@@ -549,7 +549,7 @@ void TEXTS_Draw(Widget* widget)
 }
 
 // uc_orig: TEXTS_Data (fallen/Source/widget.cpp)
-SLONG TEXTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
+intptr_t TEXTS_Data(Widget* widget, SLONG code, intptr_t data1, intptr_t data2)
 {
     ListEntry *item, *item2;
 
@@ -587,7 +587,7 @@ SLONG TEXTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
             while (str) {
                 chrs = MENUFONT_CharFit(str, (widget->ox - widget->x) - 6, 128);
                 if (chrs == strlen(str)) {
-                    TEXTS_Data(widget, WTM_ADDSTRING, 0, (SLONG)str);
+                    TEXTS_Data(widget, WTM_ADDSTRING, 0, (intptr_t)str);
                     break;
                 }
                 temp = chrs;
@@ -598,10 +598,10 @@ SLONG TEXTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
                 if (!chrs) {
                     strncpy(tmp, str, temp);
                     str += temp;
-                    TEXTS_Data(widget, WTM_ADDSTRING, 0, (SLONG)tmp);
+                    TEXTS_Data(widget, WTM_ADDSTRING, 0, (intptr_t)tmp);
                 } else {
                     strncpy(tmp, str, chrs);
-                    TEXTS_Data(widget, WTM_ADDSTRING, 0, (SLONG)tmp);
+                    TEXTS_Data(widget, WTM_ADDSTRING, 0, (intptr_t)tmp);
                     str += chrs + 1;
                 }
             }
@@ -742,7 +742,7 @@ void LISTS_Draw(Widget* widget)
 }
 
 // uc_orig: LISTS_Data (fallen/Source/widget.cpp)
-SLONG LISTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
+intptr_t LISTS_Data(Widget* widget, SLONG code, intptr_t data1, intptr_t data2)
 {
     ListEntry *item, *item2;
 

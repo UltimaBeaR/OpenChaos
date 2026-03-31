@@ -267,9 +267,19 @@ Object files: 317 → 314.
 - **file_clump.cpp**: `size_t` в fread/fwrite → `uint32_t` (clump файлы = 32-бит формат)
 - **playcuts.cpp**: `sizeof(CPChannel)` в FileRead → фиксированная on-disk структура 12 байт
 
+**Полный sweep pointer truncation ✅** (11 мест в 6 файлах):
+- **widget.h/cpp** — `WIDGET_Data` callback typedef + 3 реализации: `SLONG data1/data2` → `intptr_t`.
+  `(SLONG)MemAlloc()` → `(intptr_t)`. 3 call-site каста `(SLONG)str/tmp` → `(intptr_t)`.
+- **playcuts.cpp** — `pos.X` хранил `(SLONG)PLAYCUTS_text_ptr` (абсолютный указатель → обрезка).
+  Редизайн: хранит offset+1 от `PLAYCUTS_text_data` (0 = "нет текста" sentinel).
+  Убрана ptr↔offset конверсия в memory.cpp save/load (pos.X уже offset).
+- **memory.cpp** — `(SLONG)NET_PERSON/NET_PLAYER` → `(intptr_t)`, `(SLONG)EWAY_mess` → `(intptr_t)`.
+- **pyro.cpp** — 2 места: `(SLONG)pyro` → `(SLONG)(uintptr_t)` (PRNG seed, double cast).
+- **vehicle.cpp** — 2 места: `SLONG(p_car)` → `(SLONG)(uintptr_t)` (siren animation offset).
+
 **Текущий статус:**
 - x64 билд компилируется (Release + Debug)
 - Запуск → главное меню ✅
-- Загрузка уровня → SIGSEGV ❌ — нужно отладить
-- Краш после game_startup, при переходе из attract mode
-- Следующий шаг: debug logging в game loop / level load, найти конкретное место краша
+- Загрузка уровня → проходит (ELEV/FARFACET/FASTPRIM init — ок)
+- Первый кадр → SIGSEGV ❌ — нужно debug logging, сузить место краша
+- Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)

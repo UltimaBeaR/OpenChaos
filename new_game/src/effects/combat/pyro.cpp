@@ -882,7 +882,7 @@ void PYRO_fn_normal(Thing* thing)
                 y = (PAP_calc_map_height_at(x >> 8, z >> 8) << 8) + 257;
 
                 for (b = 0; b < 5; b++) {
-                    dr = ((SLONG)pyro) + b;
+                    dr = ((SLONG)(uintptr_t)pyro) + b;
                     dr *= 31415965;
                     dr += 123456789;
                     dr >>= 8;
@@ -1465,7 +1465,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
 
             // Throttle
             iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave(iNumFlames);
-            draw_flames(fx >> 8, fy / 256, fz >> 8, iNumFlames, (SLONG)p_pyro);
+            draw_flames(fx >> 8, fy / 256, fz >> 8, iNumFlames, (SLONG)(uintptr_t)p_pyro);
 
             if (AENG_detail_skyline)
                 if (!(Random() & 7))

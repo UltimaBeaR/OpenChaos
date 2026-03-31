@@ -418,10 +418,8 @@ void convert_pointers_to_index(void)
     for (c0 = 0; c0 < PLAYCUTS_track_ctr; c0++) {
         PLAYCUTS_tracks[c0].packets = (CPPacket*)(PLAYCUTS_tracks[c0].packets - PLAYCUTS_packets);
     }
-    for (c0 = 0; c0 < PLAYCUTS_packet_ctr; c0++) {
-        if (PLAYCUTS_packets[c0].type == 5)
-            PLAYCUTS_packets[c0].pos.X -= (uintptr_t)PLAYCUTS_text_data;
-    }
+    // PLAYCUTS text packets: pos.X already stores offset into PLAYCUTS_text_data (not a pointer),
+    // so no conversion needed for save/load.
 }
 
 // uc_orig: STORE_DATA (fallen/Source/memory.cpp)
@@ -895,12 +893,12 @@ void convert_index_to_pointers(void)
     }
 
     for (c0 = 0; c0 < MAX_PLAYERS; c0++) {
-        NET_PERSON(c0) = TO_THING((SLONG)NET_PERSON(c0));
-        NET_PLAYER(c0) = TO_THING((SLONG)NET_PLAYER(c0));
+        NET_PERSON(c0) = TO_THING((intptr_t)NET_PERSON(c0));
+        NET_PLAYER(c0) = TO_THING((intptr_t)NET_PLAYER(c0));
     }
 
     for (c0 = 0; c0 < EWAY_mess_upto; c0++) {
-        EWAY_mess[c0] = (CBYTE*)&EWAY_mess_buffer[(SLONG)EWAY_mess[c0]];
+        EWAY_mess[c0] = (CBYTE*)&EWAY_mess_buffer[(intptr_t)EWAY_mess[c0]];
     }
 
     for (c0 = 0; c0 < MAX_PYROS; c0++) {
@@ -916,10 +914,8 @@ void convert_index_to_pointers(void)
     for (c0 = 0; c0 < PLAYCUTS_track_ctr; c0++) {
         PLAYCUTS_tracks[c0].packets = PLAYCUTS_packets + (intptr_t)PLAYCUTS_tracks[c0].packets;
     }
-    for (c0 = 0; c0 < PLAYCUTS_packet_ctr; c0++) {
-        if (PLAYCUTS_packets[c0].type == 5)
-            PLAYCUTS_packets[c0].pos.X += (uintptr_t)PLAYCUTS_text_data;
-    }
+    // PLAYCUTS text packets: pos.X already stores offset into PLAYCUTS_text_data (not a pointer),
+    // so no conversion needed for save/load.
 }
 
 // Reset dynamic lighting caches so they are recalculated on next use.

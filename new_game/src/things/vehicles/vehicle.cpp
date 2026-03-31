@@ -812,8 +812,8 @@ void draw_car(Thing* p_car)
         if (info->FLZ && (vp->Siren == 1)) {
             SLONG rx, rz;
 
-            rx = SIN((SLONG(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
-            rz = COS((SLONG(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
+            rx = SIN(((SLONG)(uintptr_t)(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
+            rz = COS(((SLONG)(uintptr_t)(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
 
             vector[2] = info->FLX + (rx >> 6);
             vector[1] = info->FLY;
