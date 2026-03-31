@@ -183,11 +183,106 @@
 - macOS/Linux: отладочная информация (`-g` вместо `/DEBUG`)
 
 ### 14d. Переход на 64-бит ⏳
-- Windows: `x86-windows` → `x64-windows`, `i686` → `x86_64`
-- macOS: `arm64` (Apple Silicon)
-- Проверить все бинарные структуры на sizeof-зависимости от pointer size
-- Проверить типы (`SLONG`, `ULONG`, `UWORD`) на 64-бит корректность
-- Обновить vcpkg triplet
+
+Все правки кода (шаги 1-5) безопасны на текущей 32-бит сборке — ничего не ломают.
+Переключение на x64 (шаг 6) — только после завершения всех правок.
+
+#### Шаг 1. Inline asm → C ✅
+- `fixed_math.h`: `MUL64`/`DIV64` — x86 `__asm` заменён на `int64_t` арифметику
+- MSVC не поддерживает `__asm` в x64 режиме — блокер компиляции
+- Других `__asm` в проекте нет
+
+#### Шаг 2. `long` → фиксированные типы ⏳
+- **Проблема:** `long` — единственный примитивный C-тип с разным размером на 64-бит платформах:
+  Windows LLP64 = 4 байта, Linux/macOS LP64 = 8 байт.
+  Все остальные типы (`char`, `short`, `int`) одинаковы на всех платформах.
+- **Компиляторной опции для фиксации размера `long` нет** — размер определяется ABI платформы,
+  менять его нельзя без нарушения совместимости с системными библиотеками (WinAPI, libc, SDL, OpenAL)
+- **typedef'ы (3 строки, подтягивают весь код автоматически):**
+  - types.h: `typedef unsigned long ULONG` → `typedef uint32_t ULONG`
+  - types.h: `typedef signed long SLONG` → `typedef int32_t SLONG`
+  - types.h: `typedef unsigned long DWORD` → `typedef uint32_t DWORD`
+  - outro_always.h: аналогичные дубликаты ULONG/SLONG
+- **Голые `long` в коде** (~45 мест, механическая замена):
+  - panel.h/cpp, panel_globals.h/cpp — параметры функций, переменные → `int32_t` или `SLONG`/`ULONG`
+  - figure.cpp (3 места), polypage.cpp (1 место) — `unsigned long EVal` → `uint32_t`
+  - file.cpp:76,78 — `long pos = ftell()` — оставить как есть (возврат `ftell` = `long` по стандарту C)
+
+#### Шаг 3. Pointer → int касты → `uintptr_t` ⏳
+- **Проблема:** `(ULONG)ptr` на 64-бит обрезает старшие 4 байта адреса → молчаливая порча данных,
+  краш может произойти не сразу, а позже в другом месте — самый трудноотлаживаемый тип бага
+- **anim_loader.cpp** (~10 мест, строки 517-577):
+  - Pointer relocation arithmetic для старого формата анимаций (save_type ≤ 4):
+    `(ULONG)&p_chunk->AnimKeyFrames[0]`, `(ULONG)p_ele`, `(ULONG)p_fight` и т.д.
+  - Паттерн: вычисление дельты `a_off = new_base - old_base` для пересчёта старых адресов
+  - Все касты → `uintptr_t`, арифметика дельт — через `ptrdiff_t` или `uintptr_t`
+- **memory.cpp** (~4 места):
+  - Строка 693: `(ULONG)p_thing->Draw.Mesh` — каст указателя на DrawMesh к индексу
+  - Строка 705: `(ULONG)p_thing->Draw.Tweened` — аналогично
+  - Строка 709: `(SLONG)drawtype->TheChunk` — каст указателя к индексу
+  - Паттерн: convert_to_index/convert_to_pointer при save/load — указатель → offset от начала пула
+  - Касты → `uintptr_t`, или лучше: переписать на `(ptr - pool_base)` без каста в целое
+- **person.cpp** (1 место, строка 977):
+  - `(ULONG)global_anim_array[...]` в ASSERT — проверка что указатель не NULL
+  - Каст → `uintptr_t`, или заменить на `!= nullptr`
+
+#### Шаг 4. Структуры с указателями в файловом I/O ⏳
+
+**Суть проблемы:** структуры читаются из файлов через `fread(&s, sizeof(s), ...)`.
+На x64 указатели вырастают с 4 до 8 байт → `sizeof(struct)` меняется →
+`fread` читает неправильное количество байт → все поля после указателя смещаются.
+
+**Ключевая находка:** во ВСЕХ случаях значения указателей из файла **не используются как реальные адреса** —
+они либо перезаписываются сразу после чтения, либо содержат индексы/офсеты которые конвертируются в указатели.
+Проблема не в "порче данных", а чисто в sizeof mismatch при чтении.
+
+**Подход к решению:** заменить указатели в on-disk представлении на `uint32_t` (индекс/заглушка),
+сохраняя in-memory указатели для рантайма. Варианты:
+- (A) Отдельная on-disk структура (e.g. `GameKeyFrame_Disk`) без указателей, конвертация после чтения
+- (B) Заменить pointer-поля на `uint32_t` + отдельные runtime-указатели рядом (вне packed struct)
+- (C) Читать поля побайтово (больше кода, менее чисто)
+
+**Затронутые структуры (9 штук):**
+
+| Структура | Файл | Ptr-полей | I/O | Что происходит с указателями после чтения |
+|-----------|-------|-----------|-----|------------------------------------------|
+| `GameKeyFrame` | anim_types.h:183 | 4 (`FirstElement`, `PrevFrame`, `NextFrame`, `Fight`) | anim_loader.cpp:481 bulk FileRead | Конвертируются из индексов в указатели (`convert_keyframe_to_pointer`) |
+| `GameFightCol` | anim_types.h:162 | 1 (`Next`) | anim_loader.cpp:498 bulk FileRead | Конвертируется из индекса (`convert_fightcol_to_pointer`) |
+| `MapThingPSX` | mapthing.h:30 | 2 (`CurrentFrame`, `NextFrame`) | level_loader.cpp:301 FileRead в локальную переменную | **Игнорируются** — только скалярные поля (X,Y,Z) используются после чтения |
+| `NIGHT_Square` | night.h:114 | 1 (`colour`) | memory.cpp:1462/1623 bulk fwrite/fread | Пересоздаётся в `NIGHT_cache_recalc()` сразу после загрузки |
+| `NIGHT_Dfcache` | night.h:131 | 1 (`colour`) | memory.cpp:1469/1630 bulk fwrite/fread | Пересоздаётся в `NIGHT_dfcache_recalc()` сразу после загрузки |
+| `CPChannel` | playcuts.h:38 | 1 (`packets`) | playcuts.cpp:137 FileRead | Немедленно перезаписывается (строка 138): `channel->packets = PLAYCUTS_packets + ctr` |
+| `IMP_Mesh` | outro_imp.h:171 | 10 (8 массивов + `old_vert`, `old_svert`) | outro_imp.cpp:858/912 fwrite/fread | 8 массивов malloc'ятся заново; `old_vert`/`old_svert` — stale (не критично) |
+| `IMP_Mat` | outro_imp.h:36 | 4 (`ot_tex`, `ot_bpos`, `ot_bneg`, `ob`) | outro_imp.cpp:860/928 fwrite/fread | Stale после загрузки, текстуры перебиндиваются вызывающим кодом |
+| `Thing` | thing.h:86 | 3 (`StateFn`, `Draw.*`, `Genus.*`) | memory.cpp:1372/1533 bulk fwrite/fread | Полная конвертация ptr↔index через `convert_thing_to_index/pointer` |
+
+#### Шаг 5. Прочие sizeof-зависимости ⏳
+- `game_tick.cpp:2197` — `sizeof(names) >> 2` предполагает sizeof(pointer)==4
+  → заменить на `sizeof(names)/sizeof(names[0])`
+
+#### Шаг 6. Тулчейн x64 ⏳
+- **Новый toolchain** `cmake/clang-x64-windows.cmake`:
+  - `--target=i686-pc-windows-msvc` → `--target=x86_64-pc-windows-msvc`
+  - `VCPKG_TARGET_TRIPLET "x86-windows"` → `"x64-windows"`
+  - `CMAKE_SYSTEM_PROCESSOR x86` → `x86_64`
+- **Makefile:** `TOOLCHAIN` → новый файл
+- **CMakeLists.txt:**
+  - Убрать `LINKER:/SAFESEH:NO` (x86-only, не нужен на x64)
+  - Убрать `LINKER:/ENTRY:mainCRTStartup` (проверить — может быть не нужен на x64)
+- **vcpkg:** пакеты переустановятся автоматически при смене triplet
+- **macOS (будущее):** добавить toolchain для `arm64-osx` (Apple Silicon) — отдельный шаг
+
+#### Шаг 7. Верификация ⏳
+- Сборка x64: Release + Debug, обе должны скомпилироваться и слинковаться без ошибок
+- `static_assert(sizeof(...))` на packed structs — должны пройти (если нет — найдена пропущенная структура)
+- Запуск: главное меню → загрузка уровня → геймплей 5 минут
+- Проверить отдельно:
+  - Анимации персонажей (GameKeyFrame/GameFightCol — шаг 4)
+  - Освещение ночных уровней (NIGHT_Square/NIGHT_Dfcache — шаг 4)
+  - Quick save / quick load (Thing, NIGHT_* — шаг 4)
+  - Катсцены (CPChannel — шаг 4)
+  - Outro (IMP_Mesh/IMP_Mat — шаг 4)
+  - Загрузка объектов карты (MapThingPSX — шаг 4)
 
 ---
 
