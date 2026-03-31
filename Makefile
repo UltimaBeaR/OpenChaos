@@ -2,8 +2,8 @@ SHELL      := bash
 SRC_DIR    := new_game
 BUILD_DIR  := new_game/build
 RESOURCES  := original_game_resources
-POWERSHELL := /c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 CMAKE      := cmake
+TOOLCHAIN  := $(abspath $(SRC_DIR)/cmake/clang-x86-windows.cmake)
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
         run-release run-debug \
@@ -12,23 +12,49 @@ CMAKE      := cmake
         r d
 
 # ---------------------------------------------------------------------------
+# Auto-detect vcpkg.cmake
+#   1. VCPKG_ROOT env var
+#   2. Windows: vswhere (finds VS / Build Tools installation)
+# ---------------------------------------------------------------------------
+
+VSWHERE := /c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe
+
+VCPKG_CMAKE := $(shell \
+  if [ -n "$$VCPKG_ROOT" ] && [ -f "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then \
+    echo "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"; \
+  elif [ -f "$(VSWHERE)" ]; then \
+    VS_PATH=$$("$(VSWHERE)" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>/dev/null); \
+    if [ -n "$$VS_PATH" ] && [ -f "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
+      echo "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
+    fi; \
+  fi)
+
+# ---------------------------------------------------------------------------
 # Configure (run once on first clone, re-run after CMakeLists.txt changes).
 # Choose a backend: opengl or d3d6 (legacy DirectX 6).
 #
-# What it does:
-#   1. Runs vcvarsall.bat x86 to set up the VS build environment
-#      (makes Windows SDK headers/libs visible to clang-cl).
-#   2. Runs CMake with Ninja Multi-Config generator — one configure covers
-#      both Debug and Release builds.
-#   3. Installs vcpkg packages (SDL3, OpenAL, fmt) into new_game/vcpkg_installed/
-#      automatically via vcpkg manifest mode (vcpkg.json).
+# Runs CMake with Ninja Multi-Config generator — one configure covers
+# both Debug and Release builds. vcpkg packages (SDL3, OpenAL, fmt) are
+# installed automatically via manifest mode (vcpkg.json).
 # ---------------------------------------------------------------------------
 
+define run_configure
+	@if [ -z "$(VCPKG_CMAKE)" ]; then \
+	  echo "ERROR: vcpkg.cmake not found. Install VS Build Tools with C++ workload, or set VCPKG_ROOT." >&2; \
+	  exit 1; \
+	fi
+	$(CMAKE) -S $(SRC_DIR) -B $(BUILD_DIR) -G "Ninja Multi-Config" \
+	  "-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_CMAKE)" \
+	  "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(TOOLCHAIN)" \
+	  "-DVCPKG_INSTALLED_DIR=$(abspath $(SRC_DIR)/vcpkg_installed)" \
+	  "-DGRAPHICS_BACKEND=$(1)"
+endef
+
 configure-opengl:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/configure.ps1 -Backend opengl
+	$(call run_configure,opengl)
 
 configure-d3d6:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/configure.ps1 -Backend d3d6
+	$(call run_configure,d3d6)
 
 # ---------------------------------------------------------------------------
 # Build (requires configure-opengl or configure-d3d6 to be run first)
@@ -38,16 +64,16 @@ configure-d3d6:
 build: build-debug build-release
 
 build-debug:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Debug -Clean
+	$(CMAKE) --build $(BUILD_DIR) --config Debug --clean-first
 
 build-release:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Release -Clean
+	$(CMAKE) --build $(BUILD_DIR) --config Release --clean-first
 
 build-increment-debug:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Debug
+	$(CMAKE) --build $(BUILD_DIR) --config Debug
 
 build-increment-release:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/build.ps1 -Config Release
+	$(CMAKE) --build $(BUILD_DIR) --config Release
 
 # ---------------------------------------------------------------------------
 # Copy game resources (original_game_resources/ → build output dirs)
@@ -56,22 +82,22 @@ build-increment-release:
 # ---------------------------------------------------------------------------
 
 copy-resources-debug:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/copy_resources.ps1 -Config Debug
+	$(CMAKE) -E copy_directory $(RESOURCES) $(BUILD_DIR)/Debug
 
 copy-resources-release:
-	$(POWERSHELL) -ExecutionPolicy Bypass -File $(SRC_DIR)/scripts/copy_resources.ps1 -Config Release
+	$(CMAKE) -E copy_directory $(RESOURCES) $(BUILD_DIR)/Release
 
 copy-resources: copy-resources-debug copy-resources-release
 
 # ---------------------------------------------------------------------------
-# Run
+# Run (launches game from its build output directory)
 # ---------------------------------------------------------------------------
 
 run-debug:
-	$(POWERSHELL) -Command "Start-Process -FilePath '$(BUILD_DIR)/Debug/Fallen.exe' -WorkingDirectory (Resolve-Path '$(BUILD_DIR)/Debug')"
+	cd $(BUILD_DIR)/Debug && ./Fallen.exe
 
 run-release:
-	$(POWERSHELL) -Command "Start-Process -FilePath '$(BUILD_DIR)/Release/Fallen.exe' -WorkingDirectory (Resolve-Path '$(BUILD_DIR)/Release')"
+	cd $(BUILD_DIR)/Release && ./Fallen.exe
 
 # ---------------------------------------------------------------------------
 # Build + Run shortcuts

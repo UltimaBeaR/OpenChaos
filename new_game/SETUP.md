@@ -45,8 +45,11 @@ The build scripts auto-detect the installation via `vswhere`.
 
 ### GNU make
 
-Included with [Git for Windows](https://gitforwindows.org/) (available in Git Bash).
-Or install via: `winget install GnuWin32.Make`
+```bash
+winget install GnuWin32.Make
+```
+
+Also included with [Git for Windows](https://gitforwindows.org/) (available in Git Bash).
 
 ### Urban Chaos (legal copy)
 
@@ -83,7 +86,8 @@ make configure-opengl   # OpenGL 4.1 — cross-platform (recommended)
 make configure-d3d6     # DirectX 6 — Windows-only legacy backend
 ```
 
-This runs CMake with Ninja Multi-Config generator.
+This runs CMake with Ninja Multi-Config generator. vcpkg is auto-detected
+(via `vswhere` on Windows, `VCPKG_ROOT` env var otherwise).
 **vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
 — no separate vcpkg command needed. Re-run when switching backends or after `CMakeLists.txt` changes.
 

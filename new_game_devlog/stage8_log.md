@@ -199,3 +199,16 @@ Object files: 317 → 314.
 - **VS Build Tools вместо полной VS:** для Windows SDK + MSVC runtime достаточно Build Tools (~3 GB вместо ~10+ GB)
 - **Линкер flags через `LINKER:` prefix:** CMake корректно транслирует MSVC-style flags (`/SAFESEH:NO`, `/ENTRY:mainCRTStartup`, `/DEBUG`) через clang++ driver в lld-link
 - **Без VS fallback:** cmake, ninja, clang++ — все из PATH, никаких хардкоженных VS путей
+
+## 2026-03-31: 14b — Скрипты → кросс-платформенные
+
+### Что сделано
+
+Убраны PowerShell скрипты. Вся логика сборки — в Makefile (bash).
+
+- **Удалены:** `scripts/configure.ps1`, `scripts/build.ps1`, `scripts/copy_resources.ps1`, каталог `scripts/`
+- **Makefile:** все вызовы `$(POWERSHELL) -File ...` → прямые `cmake` / `cmake -E` команды
+- **vcpkg auto-detect:** через `vswhere` (Windows) или `VCPKG_ROOT` (macOS/Linux) — в Makefile, не в скрипте
+- **copy-resources:** robocopy → `cmake -E copy_directory` (кросс-платформенное)
+- **run:** PowerShell `Start-Process` → `cd dir && ./Fallen.exe`
+- **SETUP.md:** обновлены prerequisites (`winget install` для cmake, ninja, LLVM, make)
