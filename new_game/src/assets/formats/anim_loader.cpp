@@ -477,9 +477,22 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
 
-    // Load the keyframe linked lists
+    // Load the keyframe linked lists — read fixed-size disk format, then expand to runtime struct.
     FileRead(handle, (UBYTE*)&addr1, sizeof(addr1));
-    FileRead(handle, (UBYTE*)&p_chunk->AnimKeyFrames[0], sizeof(struct GameKeyFrame) * p_chunk->MaxKeyFrames);
+    {
+        GameKeyFrame_Disk* disk_kf = (GameKeyFrame_Disk*)MemAlloc(sizeof(GameKeyFrame_Disk) * p_chunk->MaxKeyFrames);
+        FileRead(handle, (UBYTE*)disk_kf, sizeof(GameKeyFrame_Disk) * p_chunk->MaxKeyFrames);
+        for (SLONG i = 0; i < p_chunk->MaxKeyFrames; i++) {
+            p_chunk->AnimKeyFrames[i].XYZIndex     = disk_kf[i].XYZIndex;
+            p_chunk->AnimKeyFrames[i].TweenStep    = disk_kf[i].TweenStep;
+            p_chunk->AnimKeyFrames[i].Flags         = disk_kf[i].Flags;
+            p_chunk->AnimKeyFrames[i].FirstElement  = (GameKeyFrameElement*)(uintptr_t)disk_kf[i].FirstElement;
+            p_chunk->AnimKeyFrames[i].PrevFrame     = (GameKeyFrame*)(uintptr_t)disk_kf[i].PrevFrame;
+            p_chunk->AnimKeyFrames[i].NextFrame     = (GameKeyFrame*)(uintptr_t)disk_kf[i].NextFrame;
+            p_chunk->AnimKeyFrames[i].Fight         = (GameFightCol*)(uintptr_t)disk_kf[i].Fight;
+        }
+        MemFree(disk_kf);
+    }
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
 
@@ -489,14 +502,39 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
 
-    // Load the anim list
-    FileRead(handle, (UBYTE*)&p_chunk->AnimList[0], sizeof(struct GameKeyFrame*) * p_chunk->MaxAnimFrames);
+    // Load the anim list — file stores 32-bit pointer values, expand to pointer-sized entries.
+    {
+        uint32_t* disk_list = (uint32_t*)MemAlloc(sizeof(uint32_t) * p_chunk->MaxAnimFrames);
+        FileRead(handle, (UBYTE*)disk_list, sizeof(uint32_t) * p_chunk->MaxAnimFrames);
+        for (SLONG i = 0; i < p_chunk->MaxAnimFrames; i++) {
+            p_chunk->AnimList[i] = (GameKeyFrame*)(uintptr_t)disk_list[i];
+        }
+        MemFree(disk_list);
+    }
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
 
     FileRead(handle, (UBYTE*)&addr3, sizeof(addr3));
 
-    FileRead(handle, (UBYTE*)&p_chunk->FightCols[0], sizeof(struct GameFightCol) * p_chunk->MaxFightCols);
+    // Load fight cols — read fixed-size disk format, then expand.
+    {
+        GameFightCol_Disk* disk_fc = (GameFightCol_Disk*)MemAlloc(sizeof(GameFightCol_Disk) * p_chunk->MaxFightCols);
+        FileRead(handle, (UBYTE*)disk_fc, sizeof(GameFightCol_Disk) * p_chunk->MaxFightCols);
+        for (SLONG i = 0; i < p_chunk->MaxFightCols; i++) {
+            p_chunk->FightCols[i].Dist1        = disk_fc[i].Dist1;
+            p_chunk->FightCols[i].Dist2        = disk_fc[i].Dist2;
+            p_chunk->FightCols[i].Angle        = disk_fc[i].Angle;
+            p_chunk->FightCols[i].Priority     = disk_fc[i].Priority;
+            p_chunk->FightCols[i].Damage       = disk_fc[i].Damage;
+            p_chunk->FightCols[i].Tween        = disk_fc[i].Tween;
+            p_chunk->FightCols[i].AngleHitFrom = disk_fc[i].AngleHitFrom;
+            p_chunk->FightCols[i].Height       = disk_fc[i].Height;
+            p_chunk->FightCols[i].Width        = disk_fc[i].Width;
+            p_chunk->FightCols[i].Dummy        = disk_fc[i].Dummy;
+            p_chunk->FightCols[i].Next         = (GameFightCol*)(uintptr_t)disk_fc[i].Next;
+        }
+        MemFree(disk_fc);
+    }
     FileRead(handle, &check, 2);
     ASSERT(check == 666);
 

@@ -2194,7 +2194,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             CBYTE* names[] = { "flicker", "ribbon", "explosion", "sparklies", "bonfire", "immolate", "testrib", "firewall", "new sploje", "new dome", "whoomph" };
             Keys[KB_P7] = 0;
             which_pyro++;
-            if (which_pyro == (sizeof(names) >> 2))
+            if (which_pyro == (sizeof(names) / sizeof(names[0])))
                 which_pyro = 0;
             CONSOLE_text(names[which_pyro], 1500);
         }

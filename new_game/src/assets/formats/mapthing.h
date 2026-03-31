@@ -54,9 +54,10 @@ struct MapThingPSX {
         EditorData;
     ULONG DummyArea[3];
     SLONG TweenStage;
-    KeyFrame* CurrentFrame;
-    KeyFrame* NextFrame;
+    uint32_t CurrentFrame;  // on-disk: old pointer value, never used after read
+    uint32_t NextFrame;     // on-disk: old pointer value, never used after read
 };
 #pragma pack(pop)
+static_assert(sizeof(MapThingPSX) == 82, "MapThingPSX: binary file layout");
 
 #endif // ASSETS_FORMATS_MAPTHING_H

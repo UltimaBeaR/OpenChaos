@@ -176,6 +176,22 @@ struct GameFightCol {
     struct GameFightCol* Next;
 };
 
+// On-disk layout of GameFightCol (fixed 16 bytes, pointers as uint32_t).
+// Used when reading .iam animation files which store 32-bit pointer values.
+struct GameFightCol_Disk {
+    UWORD Dist1;
+    UWORD Dist2;
+    UBYTE Angle;
+    UBYTE Priority;
+    UBYTE Damage;
+    UBYTE Tween;
+    UBYTE AngleHitFrom;
+    UBYTE Height;
+    UBYTE Width;
+    UBYTE Dummy;
+    uint32_t Next;
+};
+
 // ---- Game keyframe ----
 
 // A single animation keyframe: tween step, element array pointer, fight collision data.
@@ -189,6 +205,17 @@ struct GameKeyFrame {
     GameFightCol* Fight;
 };
 
+// On-disk layout of GameKeyFrame (fixed 20 bytes, pointers as uint32_t).
+struct GameKeyFrame_Disk {
+    UBYTE XYZIndex;
+    UBYTE TweenStep;
+    SWORD Flags;
+    uint32_t FirstElement;
+    uint32_t PrevFrame;
+    uint32_t NextFrame;
+    uint32_t Fight;
+};
+
 #pragma pack(pop)
 
 static_assert(sizeof(BodyDef) == 20, "BodyDef: binary file layout");
@@ -196,6 +223,8 @@ static_assert(sizeof(GameKeyFrameElementCompOld) == 12, "GameKeyFrameElementComp
 static_assert(sizeof(GameKeyFrameElementComp) == 8, "GameKeyFrameElementComp: binary file layout");
 static_assert(sizeof(GameKeyFrameElementBig) == 20, "GameKeyFrameElementBig: binary file layout");
 static_assert(sizeof(GameKeyFrameElement) == 20, "GameKeyFrameElement: binary file layout");
+static_assert(sizeof(GameFightCol_Disk) == 16, "GameFightCol_Disk: binary file layout");
+static_assert(sizeof(GameKeyFrame_Disk) == 20, "GameKeyFrame_Disk: binary file layout");
 
 // ---- Fight collision (editor/pre-bake format) ----
 

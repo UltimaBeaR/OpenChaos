@@ -221,7 +221,7 @@
   - **widget.h**: `SLONG data[5]` → `intptr_t data[5]` (массив хранит и числа, и указатели)
   - **widget.cpp** (7 мест): все `(SLONG)item->next/prev/item2` → `(intptr_t)`
 
-#### Шаг 4. Структуры с указателями в файловом I/O ⏳
+#### Шаг 4. Структуры с указателями в файловом I/O ✅
 
 **Суть проблемы:** структуры читаются из файлов через `fread(&s, sizeof(s), ...)`.
 На x64 указатели вырастают с 4 до 8 байт → `sizeof(struct)` меняется →
@@ -231,29 +231,34 @@
 они либо перезаписываются сразу после чтения, либо содержат индексы/офсеты которые конвертируются в указатели.
 Проблема не в "порче данных", а чисто в sizeof mismatch при чтении.
 
-**Подход к решению:** заменить указатели в on-disk представлении на `uint32_t` (индекс/заглушка),
-сохраняя in-memory указатели для рантайма. Варианты:
-- (A) Отдельная on-disk структура (e.g. `GameKeyFrame_Disk`) без указателей, конвертация после чтения
-- (B) Заменить pointer-поля на `uint32_t` + отдельные runtime-указатели рядом (вне packed struct)
-- (C) Читать поля побайтово (больше кода, менее чисто)
+**Два типа файлов с разным подходом:**
+- **Игровые ассеты** (.iam, .ucm) — формат фиксирован оригинальной 32-бит игрой → НУЖНО фиксить
+- **Save файлы** — пишутся и читаются нашим кодом → sizeof изменится синхронно для write/read,
+  старые 32-бит сейвы станут несовместимы (ожидаемо и приемлемо)
 
-**Затронутые структуры (9 штук):**
+**Что сделано для ассетов (3 структуры):**
+- **`MapThingPSX`** (mapthing.h): указатели `CurrentFrame`/`NextFrame` заменены на `uint32_t`
+  (pointer-значения из файла никогда не используются — читаются только скалярные поля X,Y,Z).
+  Добавлен `static_assert(sizeof == 82)`.
+- **`GameKeyFrame`** (anim_types.h): добавлена `GameKeyFrame_Disk` структура (20 байт, указатели = `uint32_t`).
+  В anim_loader.cpp: bulk FileRead читает `GameKeyFrame_Disk[]` во временный буфер,
+  затем поэлементно копирует в runtime `GameKeyFrame[]` с кастом `(uintptr_t)`.
+  Добавлен `static_assert(sizeof(GameKeyFrame_Disk) == 20)`.
+- **`GameFightCol`** (anim_types.h): добавлена `GameFightCol_Disk` структура (16 байт, `Next` = `uint32_t`).
+  В anim_loader.cpp: аналогичный bulk read + expand.
+  Добавлен `static_assert(sizeof(GameFightCol_Disk) == 16)`.
+- **AnimList** (массив `GameKeyFrame*`): файл хранит 32-бит значения → читается как `uint32_t[]`,
+  expand в `GameKeyFrame*[]` с кастом.
 
-| Структура | Файл | Ptr-полей | I/O | Что происходит с указателями после чтения |
-|-----------|-------|-----------|-----|------------------------------------------|
-| `GameKeyFrame` | anim_types.h:183 | 4 (`FirstElement`, `PrevFrame`, `NextFrame`, `Fight`) | anim_loader.cpp:481 bulk FileRead | Конвертируются из индексов в указатели (`convert_keyframe_to_pointer`) |
-| `GameFightCol` | anim_types.h:162 | 1 (`Next`) | anim_loader.cpp:498 bulk FileRead | Конвертируется из индекса (`convert_fightcol_to_pointer`) |
-| `MapThingPSX` | mapthing.h:30 | 2 (`CurrentFrame`, `NextFrame`) | level_loader.cpp:301 FileRead в локальную переменную | **Игнорируются** — только скалярные поля (X,Y,Z) используются после чтения |
-| `NIGHT_Square` | night.h:114 | 1 (`colour`) | memory.cpp:1462/1623 bulk fwrite/fread | Пересоздаётся в `NIGHT_cache_recalc()` сразу после загрузки |
-| `NIGHT_Dfcache` | night.h:131 | 1 (`colour`) | memory.cpp:1469/1630 bulk fwrite/fread | Пересоздаётся в `NIGHT_dfcache_recalc()` сразу после загрузки |
-| `CPChannel` | playcuts.h:38 | 1 (`packets`) | playcuts.cpp:137 FileRead | Немедленно перезаписывается (строка 138): `channel->packets = PLAYCUTS_packets + ctr` |
-| `IMP_Mesh` | outro_imp.h:171 | 10 (8 массивов + `old_vert`, `old_svert`) | outro_imp.cpp:858/912 fwrite/fread | 8 массивов malloc'ятся заново; `old_vert`/`old_svert` — stale (не критично) |
-| `IMP_Mat` | outro_imp.h:36 | 4 (`ot_tex`, `ot_bpos`, `ot_bneg`, `ob`) | outro_imp.cpp:860/928 fwrite/fread | Stale после загрузки, текстуры перебиндиваются вызывающим кодом |
-| `Thing` | thing.h:86 | 3 (`StateFn`, `Draw.*`, `Genus.*`) | memory.cpp:1372/1533 bulk fwrite/fread | Полная конвертация ptr↔index через `convert_thing_to_index/pointer` |
+**Save файлы (6 структур) — изменения не требуются:**
+- `NIGHT_Square`, `NIGHT_Dfcache` — sizeof изменится, но write/read парны
+- `CPChannel` — sizeof изменится, но write/read парны
+- `IMP_Mesh`, `IMP_Mat` — sizeof изменится, но write/read парны
+- `Thing` — sizeof изменится, но convert_to_index/pointer работает с `intptr_t`
 
-#### Шаг 5. Прочие sizeof-зависимости ⏳
-- `game_tick.cpp:2197` — `sizeof(names) >> 2` предполагает sizeof(pointer)==4
-  → заменить на `sizeof(names)/sizeof(names[0])`
+#### Шаг 5. Прочие sizeof-зависимости ✅
+- `game_tick.cpp:2197` — `sizeof(names) >> 2` → `sizeof(names)/sizeof(names[0])`
+  (`>> 2` = деление на 4, предполагало sizeof(pointer)==4; на x64 pointer=8 → неверный count)
 
 #### Шаг 6. Тулчейн x64 ⏳
 - **Новый toolchain** `cmake/clang-x64-windows.cmake`:
