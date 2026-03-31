@@ -31,7 +31,7 @@ void FASTPRIM_init()
     FASTPRIM_lvert_max = 4096;
 
     FASTPRIM_lvert_buffer = (GEVertexLit*)MemAlloc(sizeof(GEVertexLit) * FASTPRIM_lvert_max + 31);
-    FASTPRIM_lvert = (GEVertexLit*)((((SLONG)FASTPRIM_lvert_buffer) + 31) & ~0x1f);
+    FASTPRIM_lvert = (GEVertexLit*)((((uintptr_t)FASTPRIM_lvert_buffer) + 31) & ~(uintptr_t)0x1f);
     FASTPRIM_lvert_upto = 0;
     FASTPRIM_lvert_free_end = FASTPRIM_lvert_max;
     FASTPRIM_lvert_free_unused = FASTPRIM_lvert_max;
@@ -53,7 +53,7 @@ void FASTPRIM_init()
     memset(FASTPRIM_prim, 0, sizeof(FASTPRIM_prim));
     memset(FASTPRIM_queue, 0, sizeof(FASTPRIM_queue));
 
-    FASTPRIM_matrix = (GEMatrix*)((SLONG(FASTPRIM_matrix_buffer) + 31) & ~0x1f);
+    FASTPRIM_matrix = (GEMatrix*)(((uintptr_t)(FASTPRIM_matrix_buffer) + 31) & ~(uintptr_t)0x1f);
 
     // Car wheels have rotating texture coordinates and cannot be cached.
     FASTPRIM_prim[PRIM_OBJ_CAR_WHEEL].flag = FASTPRIM_PRIM_FLAG_INVALID;

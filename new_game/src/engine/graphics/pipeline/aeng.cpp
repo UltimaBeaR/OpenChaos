@@ -1889,8 +1889,8 @@ void AENG_draw_dirt()
     AENG_dirt_lvert_upto = 0;
     AENG_dirt_index_upto = 0;
 
-    AENG_dirt_lvert = (GEVertexLit*)((SLONG(AENG_dirt_lvert_buffer) + 31) & ~0x1f);
-    AENG_dirt_matrix = (GEMatrix*)((SLONG(AENG_dirt_matrix_buffer) + 31) & ~0x1f);
+    AENG_dirt_lvert = (GEVertexLit*)(((uintptr_t)(AENG_dirt_lvert_buffer) + 31) & ~(uintptr_t)0x1f);
+    AENG_dirt_matrix = (GEMatrix*)(((uintptr_t)(AENG_dirt_matrix_buffer) + 31) & ~(uintptr_t)0x1f);
 
     DIRT_Dirt* dd;
 

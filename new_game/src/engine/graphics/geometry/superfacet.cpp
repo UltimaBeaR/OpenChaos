@@ -697,7 +697,7 @@ void SUPERFACET_init()
     SUPERFACET_free_range_end = SUPERFACET_MAX_LVERTS;
 
     // Align the lvert pointer to a 32-byte boundary for SIMD-friendly access.
-    SUPERFACET_lvert = (GEVertexLit*)((SLONG(SUPERFACET_lvert_buffer) + 31) & ~0x1f);
+    SUPERFACET_lvert = (GEVertexLit*)(((uintptr_t)(SUPERFACET_lvert_buffer) + 31) & ~(uintptr_t)0x1f);
 
     SUPERFACET_lvert_upto = 0;
     SUPERFACET_index_upto = 0;
@@ -705,7 +705,7 @@ void SUPERFACET_init()
     SUPERFACET_queue_start = 0;
     SUPERFACET_queue_end = 0;
 
-    SUPERFACET_matrix = (GEMatrix*)((SLONG(SUPERFACET_matrix_buffer) + 31) & ~0x1f);
+    SUPERFACET_matrix = (GEMatrix*)(((uintptr_t)(SUPERFACET_matrix_buffer) + 31) & ~(uintptr_t)0x1f);
 
     // Build the four cardinal direction matrices (0°, 90°, 180°, 270°).
     SLONG i;

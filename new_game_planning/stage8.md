@@ -289,13 +289,25 @@
   определением (OpenGL/stub backends). На x86 оба = 4 байта, на x64 size_t = 8 → linker error.
   Фикс: `unsigned int` → `size_t` в обоих бэкендах.
 
+**Runtime фиксы (обнаружены при верификации, продолжение):**
+- **farfacet.cpp, fastprim.cpp, superfacet.cpp, aeng.cpp** (8 мест) — pointer alignment через
+  `SLONG(ptr_buffer) + 31) & ~0x1f` → `uintptr_t`. `SLONG` = 32-бит, обрезает адрес на x64 → SIGSEGV.
+  Аналогичный фикс что в aeng.cpp шаг 3, но эти места были пропущены (другой синтаксис каста — 
+  `SLONG(var)` вместо `(SLONG)var`).
+- **memory.cpp:406** — `(SLONG)(EWAY_mess[c0] - EWAY_mess_buffer)` → `(intptr_t)` (pointer diff в 32 бит)
+
+**⚠️ TODO: Полный sweep pointer truncation по всему проекту.**
+Каждый раз находим новые варианты при крашах. Нужно систематически прогрепать ВСЕ возможные паттерны 
+каста указателя в 32-бит тип: `(SLONG)ptr`, `(ULONG)ptr`, `SLONG(ptr)`, `ULONG(ptr)`, 
+`(int)ptr`, `(unsigned)ptr`, `(uint32_t)ptr`, `(int32_t)ptr` — и проверить каждое найденное место.
+Файловый I/O аудит завершён, но runtime pointer truncation — ещё нет.
+
 **Текущий статус:**
 - ✅ Запуск → главное меню работает
-- ❌ Загрузка уровня → SIGSEGV (crash_log.txt: Signal 11)
-- ⏳ Нужно: добавить debug logging в game_loop/level_load, найти место краша
-  - Краш после game_startup, при переходе из attract mode в загрузку уровня
-  - Вероятные причины: ещё одна структура с указателем читается из .ucm файла с sizeof,
-    или pointer arithmetic issue в коде загрузки уровня
+- ✅ Загрузка уровня → проходит (ELEV_game_init, FARFACET_init, FASTPRIM_init — ок)
+- ❌ Первый кадр → SIGSEGV в process_things или между process_game и draw_screen
+- ⏳ Нужно: debug logging в game loop, сузить место краша
+- ⏳ Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)
 
 **Полный аудит файлового I/O завершён — все sizeof(struct) с указателями в fread/fwrite найдены:**
 - Ассеты (фиксированный формат): file_clump ✅, anim_loader ✅, playcuts ✅, mapthing ✅

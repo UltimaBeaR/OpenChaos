@@ -49,7 +49,7 @@ static UWORD FARFACET_find_vertex(FARFACET_Square* fs, UBYTE map_x, SBYTE map_y,
         FARFACET_lvert_max *= 2;
         FARFACET_lvert_buffer = (GEVertexLit*)realloc(FARFACET_lvert_buffer, sizeof(GEVertexLit) * FARFACET_lvert_max + 31);
         ASSERT(FARFACET_lvert_buffer != NULL);
-        FARFACET_lvert = (GEVertexLit*)((SLONG(FARFACET_lvert_buffer) + 31) & ~0x1f);
+        FARFACET_lvert = (GEVertexLit*)(((uintptr_t)(FARFACET_lvert_buffer) + 31) & ~(uintptr_t)0x1f);
 
         ASSERT(FARFACET_lvert_upto < FARFACET_lvert_max);
 
@@ -385,7 +385,7 @@ void FARFACET_init()
     FARFACET_lvert_max = 1024;
     FARFACET_lvert_upto = 0;
     FARFACET_lvert_buffer = (GEVertexLit*)malloc(sizeof(GEVertexLit) * FARFACET_lvert_max + 31);
-    FARFACET_lvert = (GEVertexLit*)((SLONG(FARFACET_lvert_buffer) + 31) & ~0x1f);
+    FARFACET_lvert = (GEVertexLit*)(((uintptr_t)(FARFACET_lvert_buffer) + 31) & ~(uintptr_t)0x1f);
 
     FARFACET_index_max = FARFACET_lvert_max * 5 / 4;
     FARFACET_index_upto = 0;
@@ -399,7 +399,7 @@ void FARFACET_init()
     memset(FARFACET_index, 0, sizeof(UWORD) * FARFACET_index_max);
     memset(FARFACET_outline, 0, sizeof(FARFACET_Outline) * FARFACET_MAX_OUTLINES);
 
-    FARFACET_matrix = (GEMatrix*)((SLONG(FARFACET_matrix_buffer) + 31) & ~0x1f);
+    FARFACET_matrix = (GEMatrix*)(((uintptr_t)(FARFACET_matrix_buffer) + 31) & ~(uintptr_t)0x1f);
 
     SLONG x;
     SLONG z;

@@ -403,7 +403,7 @@ void convert_pointers_to_index(void)
         NET_PLAYER(c0) = (Thing*)THING_NUMBER(NET_PLAYER(c0));
     }
     for (c0 = 0; c0 < EWAY_mess_upto; c0++) {
-        EWAY_mess[c0] = (CBYTE*)((SLONG)(EWAY_mess[c0] - EWAY_mess_buffer));
+        EWAY_mess[c0] = (CBYTE*)((intptr_t)(EWAY_mess[c0] - EWAY_mess_buffer));
     }
     for (c0 = 0; c0 < PYRO_COUNT; c0++) {
         if (TO_PYRO(c0)->thing)
