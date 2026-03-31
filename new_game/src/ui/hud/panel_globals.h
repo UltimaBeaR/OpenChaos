@@ -196,7 +196,7 @@ extern uint64_t PANEL_text_tick;
 // uc_orig: PANEL_help_message (fallen/DDEngine/Source/panel.cpp)
 extern char PANEL_help_message[256];
 // uc_orig: PANEL_help_timer (fallen/DDEngine/Source/panel.cpp)
-extern long PANEL_help_timer;
+extern SLONG PANEL_help_timer;
 
 // Widescreen cut-scene: current top/bottom speaker thing indices and text.
 // uc_orig: PANEL_wide_top_person (fallen/DDEngine/Source/panel.cpp)
@@ -204,7 +204,7 @@ extern unsigned short PANEL_wide_top_person;
 // uc_orig: PANEL_wide_bot_person (fallen/DDEngine/Source/panel.cpp)
 extern unsigned short PANEL_wide_bot_person;
 // uc_orig: PANEL_wide_top_is_talking (fallen/DDEngine/Source/panel.cpp)
-extern long PANEL_wide_top_is_talking;
+extern SLONG PANEL_wide_top_is_talking;
 // uc_orig: PANEL_wide_text (fallen/DDEngine/Source/panel.cpp)
 extern char PANEL_wide_text[256];
 
@@ -212,7 +212,7 @@ extern char PANEL_wide_text[256];
 // uc_orig: PANEL_MAX_BEACON_COLOURS (fallen/DDEngine/Source/panel.cpp)
 #define PANEL_MAX_BEACON_COLOURS 12
 // uc_orig: PANEL_beacon_colour (fallen/DDEngine/Source/panel.cpp)
-extern unsigned long PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS];
+extern ULONG PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS];
 
 // Fade-out effect state: timestamp when PANEL_fadeout_start() was called (0 = inactive).
 // uc_orig: PANEL_fadeout_time (fallen/DDEngine/Source/panel.cpp)
@@ -226,9 +226,9 @@ extern float zoom_mul;
 
 // Road sign flash state.
 // uc_orig: PANEL_sign_which (fallen/DDEngine/Source/panel.cpp)
-extern long PANEL_sign_which;
+extern SLONG PANEL_sign_which;
 // uc_orig: PANEL_sign_flip (fallen/DDEngine/Source/panel.cpp)
-extern long PANEL_sign_flip;
+extern SLONG PANEL_sign_flip;
 // uc_orig: PANEL_sign_time (fallen/DDEngine/Source/panel.cpp)
 extern uint64_t PANEL_sign_time;
 
@@ -256,6 +256,6 @@ extern int iScreensaverAngle;
 // uc_orig: iScreensaverAngleInc (fallen/DDEngine/Source/panel.cpp)
 extern int iScreensaverAngleInc;
 // uc_orig: dwPseudorandomSeed (fallen/DDEngine/Source/panel.cpp)
-extern unsigned long dwPseudorandomSeed;
+extern ULONG dwPseudorandomSeed;
 
 #endif // UI_HUD_PANEL_GLOBALS_H

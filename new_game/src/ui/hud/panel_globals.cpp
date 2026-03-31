@@ -135,19 +135,19 @@ uint64_t PANEL_text_tick = 0;
 // uc_orig: PANEL_help_message (fallen/DDEngine/Source/panel.cpp)
 char PANEL_help_message[256] = {};
 // uc_orig: PANEL_help_timer (fallen/DDEngine/Source/panel.cpp)
-long PANEL_help_timer = 0;
+SLONG PANEL_help_timer = 0;
 
 // uc_orig: PANEL_wide_top_person (fallen/DDEngine/Source/panel.cpp)
 unsigned short PANEL_wide_top_person = 0;
 // uc_orig: PANEL_wide_bot_person (fallen/DDEngine/Source/panel.cpp)
 unsigned short PANEL_wide_bot_person = 0;
 // uc_orig: PANEL_wide_top_is_talking (fallen/DDEngine/Source/panel.cpp)
-long PANEL_wide_top_is_talking = 0;
+SLONG PANEL_wide_top_is_talking = 0;
 // uc_orig: PANEL_wide_text (fallen/DDEngine/Source/panel.cpp)
 char PANEL_wide_text[256] = {};
 
 // uc_orig: PANEL_beacon_colour (fallen/DDEngine/Source/panel.cpp)
-unsigned long PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS] = {
+ULONG PANEL_beacon_colour[PANEL_MAX_BEACON_COLOURS] = {
     0xffff00,
     0xccff00,
     0x4488ff,
@@ -171,9 +171,9 @@ float angle_mul = 0.004F;
 float zoom_mul = 0.500F;
 
 // uc_orig: PANEL_sign_which (fallen/DDEngine/Source/panel.cpp)
-long PANEL_sign_which = 0;
+SLONG PANEL_sign_which = 0;
 // uc_orig: PANEL_sign_flip (fallen/DDEngine/Source/panel.cpp)
-long PANEL_sign_flip = 0;
+SLONG PANEL_sign_flip = 0;
 // uc_orig: PANEL_sign_time (fallen/DDEngine/Source/panel.cpp)
 uint64_t PANEL_sign_time = 0;
 
@@ -223,4 +223,4 @@ int iScreensaverAngle = 0;
 // uc_orig: iScreensaverAngleInc (fallen/DDEngine/Source/panel.cpp)
 int iScreensaverAngleInc = 0x2ff;
 // uc_orig: dwPseudorandomSeed (fallen/DDEngine/Source/panel.cpp)
-unsigned long dwPseudorandomSeed = 0;
+ULONG dwPseudorandomSeed = 0;

@@ -94,8 +94,8 @@ void PANEL_draw_quad(
     float top,
     float right,
     float bottom,
-    long page,
-    unsigned long colour,
+    SLONG page,
+    ULONG colour,
     float u1,
     float v1,
     float u2,
@@ -154,7 +154,7 @@ void PANEL_draw_quad(
 // Draws one of the face thumbnails (used by the old-style panel).
 // face: 1..6 selecting which face icon.
 // uc_orig: PANEL_draw_face (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_face(long x, long y, long face, long size)
+void PANEL_draw_face(SLONG x, SLONG y, SLONG face, SLONG size)
 {
     float left = (float)x;
     float top = (float)y;
@@ -168,7 +168,7 @@ void PANEL_draw_face(long x, long y, long face, long size)
 
 // Draws a two-segment health bar at (x, y): black background + red fill.
 // uc_orig: PANEL_draw_health_bar (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_health_bar(long x, long y, long percentage)
+void PANEL_draw_health_bar(SLONG x, SLONG y, SLONG percentage)
 {
     AENG_draw_rect(x, y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT, 0x000000, 2, POLY_PAGE_COLOUR);
 
@@ -191,7 +191,7 @@ void PANEL_draw_health_bar(long x, long y, long percentage)
 // Queues a countdown timer display for PANEL_draw_buffered() to render.
 // time is in hundredths of a second.
 // uc_orig: PANEL_draw_timer (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_timer(long time, long x, long y)
+void PANEL_draw_timer(SLONG time, SLONG x, SLONG y)
 {
     if (WITHIN(PANEL_store_upto, 0, PANEL_MAX_STORES - 1)) {
         PANEL_store[PANEL_store_upto].time = float(time) * (1.0F / 100.0F);
@@ -238,7 +238,7 @@ void PANEL_draw_buffered()
 // Draws an in-world health bar floating above position (mx, my, mz).
 // The bar moves towards the camera so it sorts in front of the character.
 // uc_orig: PANEL_draw_local_health (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_local_health(long mx, long my, long mz, long percentage, long radius)
+void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLONG radius)
 {
     POLY_Point p1;
 
@@ -262,7 +262,7 @@ void PANEL_draw_local_health(long mx, long my, long mz, long percentage, long ra
     p1.colour = 0xc0000000 | 0x0f;
     p1.specular = 0xff000000;
 
-    extern void POLY_add_rect(POLY_Point* p1, long width, long height, long page, unsigned char sort_to_front);
+    extern void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, unsigned char sort_to_front);
 
     if (p1.IsValid()) {
         POLY_add_rect(&p1, 54, 4, POLY_PAGE_COLOUR, 0);
@@ -283,15 +283,15 @@ void PANEL_draw_local_health(long mx, long my, long mz, long percentage, long ra
 // accuracy 0=perfect (tight), 255=wildly inaccurate (open).
 // scale: 256=normal size.
 // uc_orig: PANEL_draw_gun_sight (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_gun_sight(long mx, long my, long mz, long accuracy, long scale)
+void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG scale)
 {
-    long angle, cangle;
-    long c0;
-    long dx1, dy1, dx2, dy2;
+    SLONG angle, cangle;
+    SLONG c0;
+    SLONG dx1, dy1, dx2, dy2;
     POLY_Point p1, p2, pstart;
-    long r_in, r_out;
-    unsigned long col;
-    long sat_acc;
+    SLONG r_in, r_out;
+    ULONG col;
+    SLONG sat_acc;
 
 #define RADIUS_OUT 164
 #define RADIUS_IN 84
@@ -384,11 +384,11 @@ void PANEL_draw_gun_sight(long mx, long my, long mz, long accuracy, long scale)
 // Pass width/height = -1.0F to use the icon's natural size.
 // uc_orig: PANEL_funky_quad (fallen/DDEngine/Source/panel.cpp)
 void PANEL_funky_quad(
-    long which,
-    long x,
-    long y,
-    long panel_page,
-    unsigned long colour,
+    SLONG which,
+    SLONG x,
+    SLONG y,
+    SLONG panel_page,
+    ULONG colour,
     float width,
     float height)
 {
@@ -398,7 +398,7 @@ void PANEL_funky_quad(
     ASSERT(WITHIN(panel_page, 0, PANEL_PAGE_NUMBER - 1));
 
     PANEL_Ic* pi = &PANEL_ic[which];
-    long page = PANEL_page[pi->page][panel_page];
+    SLONG page = PANEL_page[pi->page][panel_page];
 
     if (which == PANEL_IC_SHOTGUN) {
         // The shotgun is on its side — rotate 90° to display vertically.
@@ -464,7 +464,7 @@ void PANEL_funky_quad(
 
 // Creates a new ammo-toss particle that flies off-screen.
 // uc_orig: PANEL_new_toss (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_toss(long type, float sx, float sy)
+void PANEL_new_toss(SLONG type, float sx, float sy)
 {
     ASSERT(WITHIN(type, 0, PANEL_AMMO_NUMBER - 1));
 
@@ -563,7 +563,7 @@ void PANEL_do_tosses(void)
             pp[3].u = PANEL_ic[pa->page_one].u2;
             pp[3].v = PANEL_ic[pa->page_one].v2;
 
-            long page = PANEL_page[PANEL_ic[pa->page_one].page][PANEL_PAGE_ALPHA_END];
+            SLONG page = PANEL_page[PANEL_ic[pa->page_one].page][PANEL_PAGE_ALPHA_END];
             POLY_add_quad(quad, page, UC_FALSE, UC_TRUE);
         }
     }
@@ -572,9 +572,9 @@ void PANEL_do_tosses(void)
 // Determines the face icon index for a given Thing (person type + mesh ID).
 // Returns PANEL_FACE_RADIO for NULL or non-person Things.
 // uc_orig: PANEL_new_face (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_face(struct Thing* who, float x, float y, long size)
+void PANEL_new_face(struct Thing* who, float x, float y, SLONG size)
 {
-    long face;
+    SLONG face;
 
 #define PANEL_FACE_RADIO 0
 #define PANEL_FACE_DARCI 1

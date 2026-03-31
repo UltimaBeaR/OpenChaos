@@ -1,6 +1,8 @@
 #ifndef ENGINE_CORE_TYPES_H
 #define ENGINE_CORE_TYPES_H
 
+#include <cstdint>
+
 // Fundamental integer types used throughout the codebase.
 
 // uc_orig: UBYTE (MFStdLib/Headers/MFStdLib.h)
@@ -19,10 +21,12 @@ typedef unsigned short UWORD;
 typedef signed short SWORD;
 
 // uc_orig: ULONG (MFStdLib/Headers/MFStdLib.h)
-typedef unsigned long ULONG;
+// Was `unsigned long` — changed to uint32_t for 64-bit portability
+// (long is 4 bytes on Windows LLP64 but 8 bytes on Linux/macOS LP64).
+typedef uint32_t ULONG;
 
 // uc_orig: SLONG (MFStdLib/Headers/MFStdLib.h)
-typedef signed long SLONG;
+typedef int32_t SLONG;
 
 // uc_orig: TRUE (MFStdLib/Headers/MFStdLib.h)
 #define UC_TRUE 1
@@ -53,7 +57,7 @@ typedef struct
 // Platform-compatible integer types used throughout the codebase.
 // Guarded by _WINDEF_ to avoid redefinition when windows.h is included (DX6 backend).
 #ifndef _WINDEF_
-typedef unsigned long DWORD;
+typedef uint32_t DWORD;
 typedef int BOOL;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;

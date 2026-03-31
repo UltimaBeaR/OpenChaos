@@ -1,6 +1,8 @@
 #ifndef UI_HUD_PANEL_H
 #define UI_HUD_PANEL_H
 
+#include "engine/core/types.h"
+
 // Public interface for the HUD panel system — health bars, gun sights,
 // timers, inventory overlay, text messages, and full-screen effects.
 // The panel renders directly into the poly submission buffer (POLY_add_*).
@@ -15,22 +17,22 @@ void PANEL_start(void);
 void PANEL_finish(void);
 
 // uc_orig: PANEL_draw_gun_sight (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_gun_sight(long mx, long my, long mz, long accuracy, long scale);
+void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG scale);
 
 // uc_orig: PANEL_draw_timer (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_timer(long time_in_hundredths, long x, long y);
+void PANEL_draw_timer(SLONG time_in_hundredths, SLONG x, SLONG y);
 
 // uc_orig: PANEL_draw_buffered (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_buffered(void);
 
 // uc_orig: PANEL_draw_health_bar (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_health_bar(long x, long y, long percentage);
+void PANEL_draw_health_bar(SLONG x, SLONG y, SLONG percentage);
 
 // uc_orig: PANEL_new_text_init (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_text_init(void);
 
 // uc_orig: PANEL_new_text (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_text(struct Thing* who, long delay, char* fmt, ...);
+void PANEL_new_text(struct Thing* who, SLONG delay, char* fmt, ...);
 
 // uc_orig: PANEL_new_help_message (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_help_message(char* fmt, ...);
@@ -47,10 +49,10 @@ void PANEL_new_info_message(char* fmt, ...);
 #define PANEL_SIGN_FLIP_TOP_AND_BOTTOM (1 << 1)
 
 // uc_orig: PANEL_flash_sign (fallen/DDEngine/Source/panel.cpp)
-void PANEL_flash_sign(long which, long flip);
+void PANEL_flash_sign(SLONG which, SLONG flip);
 
 // uc_orig: PANEL_darken_screen (fallen/DDEngine/Source/panel.cpp)
-void PANEL_darken_screen(long x);
+void PANEL_darken_screen(SLONG x);
 
 // uc_orig: PANEL_fadeout_init (fallen/DDEngine/Source/panel.cpp)
 void PANEL_fadeout_init(void);
@@ -62,13 +64,13 @@ void PANEL_fadeout_start(void);
 void PANEL_fadeout_draw(void);
 
 // uc_orig: PANEL_fadeout_finished (fallen/DDEngine/Source/panel.cpp)
-long PANEL_fadeout_finished(void);
+SLONG PANEL_fadeout_finished(void);
 
 // uc_orig: PANEL_last (fallen/DDEngine/Source/panel.cpp)
 void PANEL_last(void);
 
 // uc_orig: PANEL_draw_completion_bar (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_completion_bar(long completion);
+void PANEL_draw_completion_bar(SLONG completion);
 
 // uc_orig: PANEL_GetNextDepthBodge (fallen/DDEngine/Source/panel.cpp)
 float PANEL_GetNextDepthBodge(void);
@@ -91,8 +93,8 @@ void PANEL_draw_quad(
     float top,
     float right,
     float bottom,
-    long page,
-    unsigned long colour = 0xffffffff,
+    SLONG page,
+    ULONG colour = 0xffffffff,
     float u1 = 0.0F,
     float v1 = 0.0F,
     float u2 = 1.0F,
@@ -102,23 +104,23 @@ void PANEL_draw_quad(
 void PANEL_inventory(struct Thing* darci, struct Thing* player);
 
 // uc_orig: PANEL_draw_face (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_face(long x, long y, long face, long size);
+void PANEL_draw_face(SLONG x, SLONG y, SLONG face, SLONG size);
 
 // uc_orig: PANEL_draw_local_health (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_local_health(long mx, long my, long mz, long percentage, long radius = 60);
+void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLONG radius = 60);
 
 // uc_orig: PANEL_funky_quad (fallen/DDEngine/Source/panel.cpp)
-void PANEL_funky_quad(long which, long x, long y, long panel_page, unsigned long colour,
+void PANEL_funky_quad(SLONG which, SLONG x, SLONG y, SLONG panel_page, ULONG colour,
     float width = -1.0F, float height = -1.0F);
 
 // uc_orig: PANEL_new_toss (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_toss(long type, float sx, float sy);
+void PANEL_new_toss(SLONG type, float sx, float sy);
 
 // uc_orig: PANEL_do_tosses (fallen/DDEngine/Source/panel.cpp)
 void PANEL_do_tosses(void);
 
 // uc_orig: PANEL_new_face (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_face(struct Thing* who, float x, float y, long size);
+void PANEL_new_face(struct Thing* who, float x, float y, SLONG size);
 
 // ============================================================
 // Chunk 2 helpers: used by PANEL_last() (chunk 3, still in old/).
@@ -172,7 +174,7 @@ void PANEL_new_widescreen(void);
 // uc_orig: PANEL_Lsprite (fallen/DDEngine/Source/panel.cpp)
 typedef struct
 {
-    long page;
+    SLONG page;
     float u1;
     float v1;
     float u2;
@@ -183,11 +185,11 @@ typedef struct
 extern PANEL_Lsprite PANEL_lsprite[PANEL_LSPRITE_NUMBER];
 
 // uc_orig: PANEL_last_arrow (fallen/DDEngine/Source/panel.cpp)
-void PANEL_last_arrow(float x, float y, float angle, float size, unsigned long colour, unsigned char is_dot);
+void PANEL_last_arrow(float x, float y, float angle, float size, ULONG colour, unsigned char is_dot);
 
 // uc_orig: PANEL_last_bubble (fallen/DDEngine/Source/panel.cpp)
 void PANEL_last_bubble(float x1, float y1, float x2, float y2);
 
 // uc_orig: BodgePageIntoAdd (fallen/DDEngine/Source/panel.cpp)
-long BodgePageIntoAdd(long oldpage);
+SLONG BodgePageIntoAdd(SLONG oldpage);
 #endif // UI_HUD_PANEL_H

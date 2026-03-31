@@ -2045,7 +2045,7 @@ no_muzzle_calcs:
         MM_pMatrix[0]._33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
         MM_pMatrix[0]._34 = matTemp._34;
         // Validation magic number required by the MM driver.
-        unsigned long EVal = 0xe0001000;
+        ULONG EVal = 0xe0001000;
         MM_pMatrix[0]._41 = *(float*)&EVal;
         MM_pMatrix[0]._42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
         MM_pMatrix[0]._43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
@@ -3897,7 +3897,7 @@ no_muzzle_calcs:
         pmat->_33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
         pmat->_34 = matTemp._34;
         // Validation magic number.
-        unsigned long EVal = 0xe0001000;
+        ULONG EVal = 0xe0001000;
         pmat->_41 = *(float*)&EVal;
         pmat->_42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
         pmat->_43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
@@ -4265,7 +4265,7 @@ no_muzzle_calcs:
         MM_pMatrix[0]._33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
         MM_pMatrix[0]._34 = matTemp._34;
         // Validation magic number.
-        unsigned long EVal = 0xe0001000;
+        ULONG EVal = 0xe0001000;
         MM_pMatrix[0]._41 = *(float*)&EVal;
         MM_pMatrix[0]._42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
         MM_pMatrix[0]._43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);

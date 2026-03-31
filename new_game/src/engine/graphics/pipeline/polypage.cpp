@@ -558,7 +558,7 @@ void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
     pmOutput->_33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
     pmOutput->_34 = matTemp._34;
     // Validation magic number used by DrawIndPrimMM to check matrix alignment.
-    unsigned long EVal = 0xe0001000;
+    ULONG EVal = 0xe0001000;
     pmOutput->_41 = *(float*)&EVal;
     pmOutput->_42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
     pmOutput->_43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);

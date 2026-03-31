@@ -7,10 +7,12 @@
 
 #pragma warning(disable : 4200) // no warning for flexible array members
 
+#include <cstdint>
+
 // uc_orig: SLONG (fallen/outro/always.h)
-typedef signed long SLONG;
+typedef int32_t SLONG;
 // uc_orig: ULONG (fallen/outro/always.h)
-typedef unsigned long ULONG;
+typedef uint32_t ULONG;
 // uc_orig: SWORD (fallen/outro/always.h)
 typedef signed short int SWORD;
 // uc_orig: UWORD (fallen/outro/always.h)
