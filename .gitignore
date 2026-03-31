@@ -1,3 +1,6 @@
+# Claude Code screenshot (temporary, overwritten each time)
+_CLAUDE_SCREEN.png
+
 # Game resources — not committed (copyright belongs to the publisher, not covered by MIT license)
 original_game_resources/*
 # Keep .gitkeep so the directory exists after clone (all other contents are gitignored above)

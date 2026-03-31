@@ -17,6 +17,8 @@ description: >
 - **Crash investigation**: when crash_log.txt is insufficient and you need more context.
 - **Development**: user is on a level/screen and wants to discuss a feature — attach to see context.
 
+**⚠️ NEVER attach without explicit, unambiguous user permission.** Always ask and wait for confirmation.
+
 ## Prerequisites
 
 cdb.exe (Windows SDK Debugging Tools) must be installed. Check:
