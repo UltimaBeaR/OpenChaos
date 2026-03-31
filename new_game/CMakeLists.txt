@@ -169,6 +169,7 @@ set(SOURCES_NEW
     src/engine/platform/wind_procs_globals.cpp
     src/engine/platform/host.cpp
     src/engine/platform/host_globals.cpp
+    src/engine/platform/crash_handler_win.cpp
     src/engine/platform/sdl3_bridge.cpp
     src/engine/platform/ds_bridge.cpp
 

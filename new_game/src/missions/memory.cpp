@@ -467,26 +467,23 @@ void convert_keyframe_to_pointer(GameKeyFrame* p, GameKeyFrameElement* p_ele, Ga
     ASSERT((((uintptr_t)p_ele) & 3) == 0);
     ASSERT((((uintptr_t)p_fight) & 3) == 0);
 
+    // Pointer fields contain 32-bit index values loaded via _Disk structs.
+    // Must sign-extend via int32_t: -1 sentinel = 0xFFFFFFFF which zero-extends
+    // to 0x00000000FFFFFFFF on x64, appearing positive to (intptr_t).
     for (c0 = 0; c0 < count; c0++) {
-        if (((intptr_t)p[c0].FirstElement) < 0)
-            p[c0].FirstElement = NULL;
-        else
-            p[c0].FirstElement = &p_ele[(intptr_t)p[c0].FirstElement];
+        int32_t idx;
 
-        if (((intptr_t)p[c0].PrevFrame) < 0)
-            p[c0].PrevFrame = NULL;
-        else
-            p[c0].PrevFrame = &p[(intptr_t)p[c0].PrevFrame];
+        idx = (int32_t)(uintptr_t)p[c0].FirstElement;
+        p[c0].FirstElement = (idx < 0) ? NULL : &p_ele[idx];
 
-        if (((intptr_t)p[c0].NextFrame) < 0)
-            p[c0].NextFrame = NULL;
-        else
-            p[c0].NextFrame = &p[(intptr_t)p[c0].NextFrame];
+        idx = (int32_t)(uintptr_t)p[c0].PrevFrame;
+        p[c0].PrevFrame = (idx < 0) ? NULL : &p[idx];
 
-        if (((intptr_t)p[c0].Fight) < 0)
-            p[c0].Fight = NULL;
-        else
-            p[c0].Fight = &p_fight[(intptr_t)p[c0].Fight];
+        idx = (int32_t)(uintptr_t)p[c0].NextFrame;
+        p[c0].NextFrame = (idx < 0) ? NULL : &p[idx];
+
+        idx = (int32_t)(uintptr_t)p[c0].Fight;
+        p[c0].Fight = (idx < 0) ? NULL : &p_fight[idx];
     }
 }
 
@@ -495,7 +492,8 @@ void convert_animlist_to_pointer(GameKeyFrame** p, GameKeyFrame* p_anim, SLONG c
 {
     SLONG c0;
     for (c0 = 0; c0 < count; c0++) {
-        p[c0] = &p_anim[(intptr_t)p[c0]];
+        int32_t idx = (int32_t)(uintptr_t)p[c0];
+        p[c0] = &p_anim[idx];
     }
 }
 
@@ -504,10 +502,8 @@ void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG c
 {
     SLONG c0;
     for (c0 = 0; c0 < count; c0++) {
-        if (((intptr_t)p[c0].Next) < 0)
-            p[c0].Next = 0;
-        else
-            p[c0].Next = &p_fight[(intptr_t)p[c0].Next];
+        int32_t idx = (int32_t)(uintptr_t)p[c0].Next;
+        p[c0].Next = (idx < 0) ? 0 : &p_fight[idx];
     }
 }
 

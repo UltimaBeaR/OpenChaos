@@ -1590,7 +1590,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
     pcBlock += TPO_iNumListIndices * sizeof(UWORD);
 
     // Align vertices to 32-byte cache lines for the MM extension.
-    pPrimObj->pD3DVertices = (void*)(((DWORD)pcBlock + 31) & ~31);
+    pPrimObj->pD3DVertices = (void*)(((uintptr_t)pcBlock + 31) & ~(uintptr_t)31);
     memcpy(pPrimObj->pD3DVertices, TPO_pVert, TPO_iNumVertices * sizeof(GEVertex));
     pcBlock = (char*)pPrimObj->pD3DVertices + TPO_iNumVertices * sizeof(GEVertex);
 

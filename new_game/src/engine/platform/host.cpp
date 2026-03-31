@@ -203,7 +203,11 @@ void Time(MFTime* the_time)
     the_time->Ticks = sdl3_get_ticks();
 }
 
-// Crash handler: writes crash_log.txt with signal info.
+// Crash handler: platform-specific, writes crash_log.txt with crash details.
+#ifdef _WIN32
+// Defined in crash_handler_win.cpp (separate TU to isolate windows.h).
+extern "C" void install_crash_handler(void);
+#else
 static void crash_signal_handler(int sig)
 {
     FILE* f = fopen("crash_log.txt", "w");
@@ -223,12 +227,17 @@ static void crash_signal_handler(int sig)
     signal(sig, SIG_DFL);
     raise(sig);
 }
+#endif
 
 int HOST_run(int argc_in, char* argv_in[])
 {
+#ifdef _WIN32
+    install_crash_handler();
+#else
     signal(SIGSEGV, crash_signal_handler);
     signal(SIGABRT, crash_signal_handler);
     signal(SIGFPE,  crash_signal_handler);
+#endif
 
     init_best_found();
 

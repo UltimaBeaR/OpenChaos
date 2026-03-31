@@ -277,9 +277,24 @@ Object files: 317 → 314.
 - **pyro.cpp** — 2 места: `(SLONG)pyro` → `(SLONG)(uintptr_t)` (PRNG seed, double cast).
 - **vehicle.cpp** — 2 места: `SLONG(p_car)` → `(SLONG)(uintptr_t)` (siren animation offset).
 
+**Runtime фиксы (sentinel, sizeof, alignment):**
+- **memory.cpp `convert_*_to_pointer`**: sentinel -1 (0xFFFFFFFF) zero-extended до 0x00000000FFFFFFFF →
+  `(intptr_t) < 0` не срабатывала → индексация по 4 млрд → SIGSEGV в `check_combat_hit_with_person`.
+  Фикс: `int32_t idx = (int32_t)(uintptr_t)ptr; if (idx < 0) NULL; else &array[idx];`
+- **anim_loader.cpp `load_append_game_chunk`**: FileRead sizeof runtime вместо disk:
+  GameKeyFrame 36 vs 20, pointer 8 vs 4, GameFightCol 20 vs 16. Фикс: _Disk temp буфер.
+- **anim_loader.cpp old-format relocation**: byte-offset relocation сломана при изменённом sizeof.
+  Переписана на index-based: `(old_ptr - old_base) / sizeof(_Disk)` → `&new_array[index]`.
+- **figure_globals.cpp** (7 мест) + **figure.cpp** (1 место): `(DWORD)ptr & ~mask` → `(uintptr_t)`.
+
+**Crash handler восстановлен:**
+- `crash_handler_win.cpp` — отдельный TU (windows.h конфликтует с types.h).
+  SetUnhandledExceptionFilter → crash_log.txt с Exception, RVA, регистрами, стек с символами.
+  На не-Windows: signal() fallback в host.cpp.
+
 **Текущий статус:**
 - x64 билд компилируется (Release + Debug)
 - Запуск → главное меню ✅
-- Загрузка уровня → проходит (ELEV/FARFACET/FASTPRIM init — ок)
-- Первый кадр → SIGSEGV ❌ — нужно debug logging, сузить место краша
+- Загрузка уровня ✅, синематик начинает играть ✅
+- Зависание через несколько секунд (freeze, не crash) ❌ — нужно исследовать
 - Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)

@@ -309,15 +309,34 @@
 - **pyro.cpp:885,1468** — `(SLONG)pyro` → `(SLONG)(uintptr_t)` (PRNG seed, double cast)
 - **vehicle.cpp:815-816** — `SLONG(p_car)` → `(SLONG)(uintptr_t)` (siren animation offset, double cast)
 
+**Runtime фиксы (sentinel и sizeof в аним-системе):**
+- **memory.cpp `convert_*_to_pointer`** — sentinel -1 (0xFFFFFFFF) не ловился на x64: `(intptr_t)` 
+  zero-extended значения — `0x00000000FFFFFFFF` = положительное → проверка `< 0` не срабатывала →
+  индексация по 4 млрд → SIGSEGV. Фикс: `(int32_t)(uintptr_t)` для sign-extend перед проверкой.
+  Затронуты: `convert_keyframe_to_pointer`, `convert_animlist_to_pointer`, `convert_fightcol_to_pointer`.
+- **anim_loader.cpp `load_append_game_chunk`** — все FileRead'ы использовали runtime sizeof вместо 
+  on-disk sizeof: GameKeyFrame (36 vs 20), GameKeyFrame* (8 vs 4), GameFightCol (20 vs 16).
+  Фикс: аналогично `load_game_chunk` — `_Disk` temp буфер + поэлементное копирование.
+- **anim_loader.cpp old-format relocation** — byte-offset relocation `a += (new_base - old_base)` 
+  сломана когда sizeof элемента изменился. Переписана на index-based: 
+  `(old_ptr - old_base) / sizeof(_Disk)` → `&new_array[index]`.
+- **figure_globals.cpp** (7 мест) — pointer alignment `(DWORD)ptr & ~mask` → `(uintptr_t)`.
+- **figure.cpp:1593** — `(DWORD)pcBlock + 31) & ~31` → `(uintptr_t)`.
+
+**Crash handler:**
+- Восстановлен полноценный Windows crash handler: `crash_handler_win.cpp` (отдельный TU из-за 
+  конфликта windows.h с types.h). Пишет Exception, RVA, адрес, регистры, стек с именами функций.
+  На других платформах — fallback через `signal()`.
+
 **Текущий статус:**
 - ✅ Запуск → главное меню работает
-- ✅ Загрузка уровня → проходит (ELEV_game_init, FARFACET_init, FASTPRIM_init — ок)
-- ❌ Первый кадр → SIGSEGV в process_things или между process_game и draw_screen
-- ⏳ Нужно: debug logging в game loop, сузить место краша
+- ✅ Загрузка уровня → проходит
+- ✅ Синематик начинает проигрываться
+- ❌ Зависание через несколько секунд (программа не отвечает) — нужно исследовать
 - ⏳ Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)
 
 **Полный аудит файлового I/O завершён — все sizeof(struct) с указателями в fread/fwrite найдены:**
-- Ассеты (фиксированный формат): file_clump ✅, anim_loader ✅, playcuts ✅, mapthing ✅
+- Ассеты (фиксированный формат): file_clump ✅, anim_loader ✅ (обе функции), playcuts ✅, mapthing ✅
 - Save/load (самосогласованное): memory.cpp, save.cpp, outro_imp.cpp, thing.cpp — не требуют фикса
   (write и read используют одинаковый sizeof; старые 32-бит сейвы несовместимы — ожидаемо)
 

@@ -95,12 +95,21 @@ CLAUDE.md                           — этот файл
 - **Компиляция:** `make build-release` (или `make build-debug`) в корне проекта. `make r` = build + run Release, `make d` = build + run Debug. **Пользователь всегда билдит сам** — запускать `make build-*` только если нужно проверить что код компилируется, не для "подготовки билда" пользователю.
   - **⚠️ Проверка результата сборки (clang + ninja, текущий билд):** НЕ использовать `| grep "error:"` — это пропускает ошибки линковки и другие проблемы. Вместо этого **всегда** проверять: (1) exit code команды (`echo $?` или `&& echo OK`), (2) последние строки вывода (`| tail -5`) — должна быть строка `Linking CXX executable`. Если `ninja: build stopped: subcommand failed` — сборка провалена даже если слово `error` не найдено. (Для оригинальной сборки MSVC формат ошибок другой.)
 - **Отладка крашей (crash handler):**
-  - В `engine/platform/host.cpp` есть crash handler (`SetUnhandledExceptionFilter`) — пишет `crash_log.txt` с Exception, RVA, регистрами и стеком. Работает и в Debug и в Release.
-  - Для символизации RVA нужен **Debug build** (имеет `-Z7` + `/DEBUG` → PDB)
-  - Команда: `llvm-symbolizer -e build/Debug/Fallen.exe --relative-address <RVA>`
-  - Флаг `--relative-address` обязателен! Без него не работает
-  - PDB создаётся в `build/Debug/Fallen.pdb`
-  - **Workflow:** воспроизвести краш в Debug (`make d`), взять RVA из `crash_log.txt`, символизировать. Если в Debug не воспроизводится — использовать RVA из Release + `llvm-objdump -d` для поиска функции по дизассемблеру.
+  - **Windows:** `engine/platform/crash_handler_win.cpp` — `SetUnhandledExceptionFilter`, пишет `crash_log.txt` с Exception, RVA, регистрами, стеком с именами функций. Отдельный TU потому что `windows.h` конфликтует с `types.h` (ULONG/DWORD redefinition). Работает и в Debug и в Release.
+  - **Другие платформы:** fallback через `signal(SIGSEGV/SIGABRT/SIGFPE)` в `host.cpp` — только тип сигнала, без RVA.
+  - Crash log пишется в **рабочую директорию** (рядом с exe): `build/Debug/crash_log.txt` или `build/Release/crash_log.txt`
+  - **Символизация RVA → строка кода:**
+    - Нужен **Debug build** (имеет PDB: `build/Debug/Fallen.pdb`)
+    - Команда: `llvm-symbolizer -e build/Debug/Fallen.exe --relative-address <RVA>`
+    - Флаг `--relative-address` обязателен! Без него не работает
+  - **Workflow:** воспроизвести краш в Debug (`make d`), прочитать `crash_log.txt` (RVA + стек с именами функций), символизировать RVA верхнего фрейма → точная строка в исходнике. Если в Debug не воспроизводится — RVA из Release + `llvm-objdump -d`.
+- **⚠️ Типичные 64-бит баги (паттерны для поиска):**
+  - **Pointer alignment:** `(DWORD)ptr & ~mask` или `(SLONG)ptr & ~mask` — обрезает адрес до 32 бит → SIGSEGV. Фикс: `(uintptr_t)ptr & ~(uintptr_t)mask`
+  - **Pointer в 32-бит поле:** `(SLONG)ptr` для хранения в SLONG/DWORD поле → обрезка. Фикс: хранить offset или использовать `intptr_t` поле
+  - **Sentinel -1 в pointer:** файл хранит `0xFFFFFFFF` как "null", загружается через `(uintptr_t)` → zero-extends до `0x00000000FFFFFFFF` → проверка `(intptr_t)x < 0` НЕ срабатывает (положительное!). Фикс: `(int32_t)(uintptr_t)x < 0`
+  - **sizeof struct с указателями:** `fread(&struct, sizeof(struct))` — sizeof меняется на x64. Фикс: on-disk `_Disk` структура с `uint32_t` вместо указателей
+  - **Pointer relocation:** `old_ptr + (new_base - old_base)` — работает только если sizeof элемента не изменился. Если sizeof изменился → index-based: `(old_ptr - old_base) / old_sizeof` → `&new_array[index]`
+  - **PRNG seed из pointer:** `(SLONG)ptr` для seed — не крашит но UB. Фикс: double cast `(SLONG)(uintptr_t)ptr`
 - Все важные решения и инфу записывать в документацию — контекст разговора теряется между сессиями
 - Перед любым анализом кода сначала проверить есть ли уже документация по этой части
 - Если задача требует сложного архитектурного reasoning или анализа запутанных взаимосвязей — попросить пользователя переключить на Opus

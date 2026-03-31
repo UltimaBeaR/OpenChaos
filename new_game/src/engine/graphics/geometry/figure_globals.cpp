@@ -222,13 +222,13 @@ namespace {
     struct MMLightingTableInit {
         MMLightingTableInit()
         {
-            MM_pcFadeTable      = (ULONG*)(((DWORD)cMM_pcFadeTableStorage      + 3)  & ~3u);
-            MM_pcFadeTableTint  = (ULONG*)(((DWORD)cMM_pcFadeTableTintStorage  + 3)  & ~3u);
-            MM_pMatrix          = (GEMatrix*)(((DWORD)cMM_pMatrixStorage          + 31) & ~31u);
-            MM_Vertex           = (GEVertex*)(((DWORD)cMM_VertexStorage           + 31) & ~31u);
-            MM_pNormal          = (float*)(    ((DWORD)cMM_pNormalStorage           + 7)  & ~7u);
-            MMBodyParts_pMatrix = (GEMatrix*)(((DWORD)cMMBodyParts_pMatrixStorage  + 31) & ~31u);
-            MMBodyParts_pNormal = (float*)(    ((DWORD)cMMBodyParts_pNormalStorage   + 7)  & ~7u);
+            MM_pcFadeTable      = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage      + 3)  & ~(uintptr_t)3);
+            MM_pcFadeTableTint  = (ULONG*)(((uintptr_t)cMM_pcFadeTableTintStorage  + 3)  & ~(uintptr_t)3);
+            MM_pMatrix          = (GEMatrix*)(((uintptr_t)cMM_pMatrixStorage          + 31) & ~(uintptr_t)31);
+            MM_Vertex           = (GEVertex*)(((uintptr_t)cMM_VertexStorage           + 31) & ~(uintptr_t)31);
+            MM_pNormal          = (float*)(    ((uintptr_t)cMM_pNormalStorage           + 7)  & ~(uintptr_t)7);
+            MMBodyParts_pMatrix = (GEMatrix*)(((uintptr_t)cMMBodyParts_pMatrixStorage  + 31) & ~(uintptr_t)31);
+            MMBodyParts_pNormal = (float*)(    ((uintptr_t)cMMBodyParts_pNormalStorage   + 7)  & ~(uintptr_t)7);
         }
     } g_MMLightingTableInit;
 }
