@@ -21,7 +21,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "20.0")
+# Require Clang 20+ (C++20 support). Apple Clang uses different versioning — skip check.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
+   AND NOT CMAKE_CXX_SIMULATE_ID STREQUAL "AppleClang"
+   AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "20.0")
     message(FATAL_ERROR "Clang 20+ is required. Found: ${CMAKE_CXX_COMPILER_VERSION}")
 endif()
 
@@ -59,6 +63,9 @@ target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
 set(GRAPHICS_BACKEND "opengl" CACHE STRING "Graphics backend: d3d6, opengl, stub")
 
 if(GRAPHICS_BACKEND STREQUAL "d3d6")
+    if(NOT WIN32)
+        message(FATAL_ERROR "D3D6 backend is only available on Windows.")
+    endif()
     set(BACKEND_SOURCES
         # --- common (shared D3D infrastructure) ---
         src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.cpp
@@ -519,11 +526,15 @@ set(SOURCES_NEW
 # ---------------------------------------------------------------------------
 # Target
 # ---------------------------------------------------------------------------
-add_executable(Fallen WIN32
+add_executable(Fallen
     ${SOURCES_NEW}
     # Generated shader header (triggers rebuild when .glsl files change).
     $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h>
 )
+# WIN32 = SUBSYSTEM:WINDOWS (no console window). Only meaningful on Windows.
+if(WIN32)
+    set_target_properties(Fallen PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 # ---------------------------------------------------------------------------
 # Include directories
@@ -572,8 +583,11 @@ target_compile_definitions(Fallen PRIVATE
     $<$<CONFIG:Release>:NDEBUG>
     $<$<CONFIG:Release>:_RELEASE>
     $<$<CONFIG:Release>:FINAL>
-    $<$<CONFIG:Release>:_CRT_SECURE_NO_WARNINGS>
 )
+# MSVC CRT warnings — Windows only
+if(WIN32)
+    target_compile_definitions(Fallen PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
 
 # ---------------------------------------------------------------------------
 # Linker flags
@@ -608,33 +622,34 @@ target_link_libraries(Fallen PRIVATE
 # Post-build: copy game data to output directory
 # ---------------------------------------------------------------------------
 
-# Copy vcpkg DLLs to output directory.
+# Windows: copy vcpkg DLLs to output directory.
 # (VCPKG_APPLOCAL_DEPS is OFF because its applocal.ps1 requires powershell.exe on PATH.)
-# vcpkg_installed/ lives at new_game/vcpkg_installed/ (next to vcpkg.json, outside build/).
-# Debug and Release DLL names differ: fmtd.dll for Debug, fmt.dll for Release.
-# OpenAL32.dll has the same name in both configs.
-set(VCPKG_BIN       "${CMAKE_SOURCE_DIR}/vcpkg_installed/x86-windows/bin")
-set(VCPKG_DEBUG_BIN "${CMAKE_SOURCE_DIR}/vcpkg_installed/x86-windows/debug/bin")
+# On macOS/Linux shared libs are found via rpath — no copying needed.
+if(WIN32)
+    set(VCPKG_TRIPLET_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
 
-foreach(_dll SDL3.dll OpenAL32.dll fmt.dll)
-    add_custom_command(TARGET Fallen POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${VCPKG_BIN}/${_dll}"
-            "$<TARGET_FILE_DIR:Fallen>/${_dll}"
-        COMMENT "Copying ${_dll}"
-        CONFIGURATIONS Release
-    )
-endforeach()
+    # Release DLLs
+    foreach(_dll SDL3.dll OpenAL32.dll fmt.dll)
+        add_custom_command(TARGET Fallen POST_BUILD
+            COMMAND "$<$<CONFIG:Release>:${CMAKE_COMMAND}>" $<$<CONFIG:Release>:-E>
+                $<$<CONFIG:Release>:copy_if_different>
+                "$<$<CONFIG:Release>:${VCPKG_TRIPLET_DIR}/bin/${_dll}>"
+                "$<$<CONFIG:Release>:$<TARGET_FILE_DIR:Fallen>/${_dll}>"
+            COMMAND_EXPAND_LISTS
+        )
+    endforeach()
 
-foreach(_dll SDL3.dll OpenAL32.dll fmtd.dll)
-    add_custom_command(TARGET Fallen POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${VCPKG_DEBUG_BIN}/${_dll}"
-            "$<TARGET_FILE_DIR:Fallen>/${_dll}"
-        COMMENT "Copying ${_dll}"
-        CONFIGURATIONS Debug
-    )
-endforeach()
+    # Debug DLLs (some have 'd' suffix)
+    foreach(_dll SDL3.dll OpenAL32.dll fmtd.dll)
+        add_custom_command(TARGET Fallen POST_BUILD
+            COMMAND "$<$<CONFIG:Debug>:${CMAKE_COMMAND}>" $<$<CONFIG:Debug>:-E>
+                $<$<CONFIG:Debug>:copy_if_different>
+                "$<$<CONFIG:Debug>:${VCPKG_TRIPLET_DIR}/debug/bin/${_dll}>"
+                "$<$<CONFIG:Debug>:$<TARGET_FILE_DIR:Fallen>/${_dll}>"
+            COMMAND_EXPAND_LISTS
+        )
+    endforeach()
+endif()
 
 # text/ and config.ini are part of the original game resources.
 # They are copied via: make copy-resources (uses original_game_resources/)

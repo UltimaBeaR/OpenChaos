@@ -212,3 +212,13 @@ Object files: 317 → 314.
 - **copy-resources:** robocopy → `cmake -E copy_directory` (кросс-платформенное)
 - **run:** PowerShell `Start-Process` → `cd dir && ./Fallen.exe`
 - **SETUP.md:** обновлены prerequisites (`winget install` для cmake, ninja, LLVM, make)
+
+## 2026-03-31: 14c — CMake кросс-платформенные условия
+
+- `add_executable(Fallen WIN32 ...)` → `add_executable(Fallen ...)` + `set_target_properties(WIN32_EXECUTABLE TRUE)` в `if(WIN32)`
+- Clang version check: пропуск для AppleClang (своя нумерация)
+- D3D6 backend: `FATAL_ERROR` если выбран не на Windows
+- DLL копирование: обёрнуто в `if(WIN32)`, triplet path через `${VCPKG_TARGET_TRIPLET}` (не хардкод)
+- `_CRT_SECURE_NO_WARNINGS`: только на Windows
+- OpenGL library: `opengl32` (Win) / `OpenGL::GL` (macOS) / `GL` (Linux)
+- CMake 4.2 CMP0175 warnings: убраны — `CONFIGURATIONS` в POST_BUILD заменён на `$<$<CONFIG:...>:>` generator expressions
