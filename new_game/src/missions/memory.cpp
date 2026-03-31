@@ -199,7 +199,7 @@ void convert_drawtype_to_index(Thing* p_thing, SLONG meshtype)
     switch (meshtype) {
     case DT_MESH:
         if (p_thing->Draw.Mesh) {
-            ULONG drawtype;
+            uintptr_t drawtype;
             drawtype = (p_thing->Draw.Mesh - DRAW_MESHES);
             p_thing->Draw.Mesh = (DrawMesh*)drawtype;
         }
@@ -216,22 +216,22 @@ void convert_drawtype_to_index(Thing* p_thing, SLONG meshtype)
             case CLASS_PERSON:
             case CLASS_VEHICLE:
             case CLASS_ANIMAL:
-                chunk = (ULONG)(p_thing->Draw.Tweened->TheChunk - &game_chunk[0]);
+                chunk = (SLONG)(p_thing->Draw.Tweened->TheChunk - &game_chunk[0]);
                 ASSERT(chunk >= 0);
                 chunk |= 1 << 16;
-                p_thing->Draw.Tweened->TheChunk = (GameKeyFrameChunk*)chunk;
+                p_thing->Draw.Tweened->TheChunk = (GameKeyFrameChunk*)(intptr_t)chunk;
                 break;
             case CLASS_BAT:
             case CLASS_ANIM_PRIM:
-                chunk = (ULONG)(p_thing->Draw.Tweened->TheChunk - &anim_chunk[0]);
+                chunk = (SLONG)(p_thing->Draw.Tweened->TheChunk - &anim_chunk[0]);
                 ASSERT(chunk >= 0);
                 chunk |= 2 << 16;
-                p_thing->Draw.Tweened->TheChunk = (GameKeyFrameChunk*)chunk;
+                p_thing->Draw.Tweened->TheChunk = (GameKeyFrameChunk*)(intptr_t)chunk;
                 break;
             }
 
-            drawtype = (p_thing->Draw.Tweened - DRAW_TWEENS);
-            p_thing->Draw.Tweened = (DrawTween*)drawtype;
+            drawtype = (ULONG)(p_thing->Draw.Tweened - DRAW_TWEENS);
+            p_thing->Draw.Tweened = (DrawTween*)(uintptr_t)drawtype;
         }
         break;
     }
@@ -420,7 +420,7 @@ void convert_pointers_to_index(void)
     }
     for (c0 = 0; c0 < PLAYCUTS_packet_ctr; c0++) {
         if (PLAYCUTS_packets[c0].type == 5)
-            PLAYCUTS_packets[c0].pos.X -= (ULONG)PLAYCUTS_text_data;
+            PLAYCUTS_packets[c0].pos.X -= (uintptr_t)PLAYCUTS_text_data;
     }
 }
 
@@ -465,30 +465,30 @@ void convert_keyframe_to_pointer(GameKeyFrame* p, GameKeyFrameElement* p_ele, Ga
 {
     SLONG c0;
 
-    ASSERT((((ULONG)p) & 3) == 0);
-    ASSERT((((ULONG)p_ele) & 3) == 0);
-    ASSERT((((ULONG)p_fight) & 3) == 0);
+    ASSERT((((uintptr_t)p) & 3) == 0);
+    ASSERT((((uintptr_t)p_ele) & 3) == 0);
+    ASSERT((((uintptr_t)p_fight) & 3) == 0);
 
     for (c0 = 0; c0 < count; c0++) {
-        if (((SLONG)p[c0].FirstElement) < 0)
+        if (((intptr_t)p[c0].FirstElement) < 0)
             p[c0].FirstElement = NULL;
         else
-            p[c0].FirstElement = &p_ele[(SLONG)p[c0].FirstElement];
+            p[c0].FirstElement = &p_ele[(intptr_t)p[c0].FirstElement];
 
-        if (((SLONG)p[c0].PrevFrame) < 0)
+        if (((intptr_t)p[c0].PrevFrame) < 0)
             p[c0].PrevFrame = NULL;
         else
-            p[c0].PrevFrame = &p[(SLONG)p[c0].PrevFrame];
+            p[c0].PrevFrame = &p[(intptr_t)p[c0].PrevFrame];
 
-        if (((SLONG)p[c0].NextFrame) < 0)
+        if (((intptr_t)p[c0].NextFrame) < 0)
             p[c0].NextFrame = NULL;
         else
-            p[c0].NextFrame = &p[(SLONG)p[c0].NextFrame];
+            p[c0].NextFrame = &p[(intptr_t)p[c0].NextFrame];
 
-        if (((SLONG)p[c0].Fight) < 0)
+        if (((intptr_t)p[c0].Fight) < 0)
             p[c0].Fight = NULL;
         else
-            p[c0].Fight = &p_fight[(SLONG)p[c0].Fight];
+            p[c0].Fight = &p_fight[(intptr_t)p[c0].Fight];
     }
 }
 
@@ -497,7 +497,7 @@ void convert_animlist_to_pointer(GameKeyFrame** p, GameKeyFrame* p_anim, SLONG c
 {
     SLONG c0;
     for (c0 = 0; c0 < count; c0++) {
-        p[c0] = &p_anim[(SLONG)p[c0]];
+        p[c0] = &p_anim[(intptr_t)p[c0]];
     }
 }
 
@@ -506,10 +506,10 @@ void convert_fightcol_to_pointer(GameFightCol* p, GameFightCol* p_fight, SLONG c
 {
     SLONG c0;
     for (c0 = 0; c0 < count; c0++) {
-        if (((SLONG)p[c0].Next) < 0)
+        if (((intptr_t)p[c0].Next) < 0)
             p[c0].Next = 0;
         else
-            p[c0].Next = &p_fight[(SLONG)p[c0].Next];
+            p[c0].Next = &p_fight[(intptr_t)p[c0].Next];
     }
 }
 
@@ -690,7 +690,7 @@ void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
     case DT_MESH:
         {
             DrawMesh* drawtype;
-            drawtype = TO_DRAW_MESH((ULONG)p_thing->Draw.Mesh);
+            drawtype = TO_DRAW_MESH((uintptr_t)p_thing->Draw.Mesh);
             p_thing->Draw.Mesh = drawtype;
             drawtype->Cache = 0;
         }
@@ -702,11 +702,11 @@ void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
             DrawTween* drawtype;
             SLONG chunk;
 
-            drawtype = TO_DRAW_TWEEN((ULONG)p_thing->Draw.Tweened);
-            ASSERT((ULONG)(p_thing->Draw.Tweened) < RMAX_DRAW_TWEENS);
+            drawtype = TO_DRAW_TWEEN((uintptr_t)p_thing->Draw.Tweened);
+            ASSERT((uintptr_t)(p_thing->Draw.Tweened) < RMAX_DRAW_TWEENS);
             p_thing->Draw.Tweened = drawtype;
 
-            chunk = (SLONG)drawtype->TheChunk;
+            chunk = (intptr_t)drawtype->TheChunk;
             switch (chunk >> 16) {
             case 1:
                 drawtype->TheChunk = &game_chunk[chunk & 0xffff];
@@ -799,71 +799,71 @@ void convert_thing_to_pointer(Thing* p_thing)
     case CLASS_NONE:
         break;
     case CLASS_PLAYER:
-        p_thing->Genus.Player = (Player*)TO_PLAYER((SLONG)p_thing->Genus.Player);
-        p_thing->Genus.Player->PlayerPerson = (Thing*)TO_THING((SLONG)p_thing->Genus.Player->PlayerPerson);
+        p_thing->Genus.Player = (Player*)TO_PLAYER((intptr_t)p_thing->Genus.Player);
+        p_thing->Genus.Player->PlayerPerson = (Thing*)TO_THING((intptr_t)p_thing->Genus.Player->PlayerPerson);
         p_thing->StateFn = process_hardware_level_input_for_player;
 
         break;
     case CLASS_CAMERA:
         break;
     case CLASS_PROJECTILE:
-        p_thing->Genus.Projectile = (Projectile*)TO_PROJECTILE((SLONG)p_thing->Genus.Projectile);
+        p_thing->Genus.Projectile = (Projectile*)TO_PROJECTILE((intptr_t)p_thing->Genus.Projectile);
         break;
     case CLASS_BUILDING:
         break;
     case CLASS_PERSON:
-        p_thing->Genus.Person = (Person*)TO_PERSON((SLONG)p_thing->Genus.Person);
+        p_thing->Genus.Person = (Person*)TO_PERSON((intptr_t)p_thing->Genus.Person);
         set_generic_person_state_function(p_thing, p_thing->State);
         break;
     case CLASS_ANIMAL:
-        p_thing->Genus.Animal = (Animal*)TO_ANIMAL((SLONG)p_thing->Genus.Animal);
+        p_thing->Genus.Animal = (Animal*)TO_ANIMAL((intptr_t)p_thing->Genus.Animal);
 
         set_state_function(p_thing, p_thing->State);
 
         break;
     case CLASS_FURNITURE:
-        p_thing->Genus.Furniture = (Furniture*)TO_FURNITURE((SLONG)p_thing->Genus.Furniture);
+        p_thing->Genus.Furniture = (Furniture*)TO_FURNITURE((intptr_t)p_thing->Genus.Furniture);
         break;
     case CLASS_SWITCH:
-        p_thing->Genus.Switch = (Switch*)TO_SWITCH((SLONG)p_thing->Genus.Switch);
+        p_thing->Genus.Switch = (Switch*)TO_SWITCH((intptr_t)p_thing->Genus.Switch);
         break;
     case CLASS_VEHICLE:
-        p_thing->Genus.Vehicle = (Vehicle*)TO_VEHICLE((SLONG)p_thing->Genus.Vehicle);
+        p_thing->Genus.Vehicle = (Vehicle*)TO_VEHICLE((intptr_t)p_thing->Genus.Vehicle);
         set_state_function(p_thing, p_thing->State);
         break;
     case CLASS_SPECIAL:
-        p_thing->Genus.Special = (Special*)TO_SPECIAL((SLONG)p_thing->Genus.Special);
+        p_thing->Genus.Special = (Special*)TO_SPECIAL((intptr_t)p_thing->Genus.Special);
         void special_normal(Thing * s_thing);
         p_thing->StateFn = special_normal;
 
         break;
     case CLASS_CHOPPER:
         void CHOPPER_fn_normal(Thing*);
-        p_thing->Genus.Chopper = (Chopper*)TO_CHOPPER((SLONG)p_thing->Genus.Chopper);
+        p_thing->Genus.Chopper = (Chopper*)TO_CHOPPER((intptr_t)p_thing->Genus.Chopper);
         p_thing->StateFn = CHOPPER_fn_normal;
 
         break;
     case CLASS_PYRO:
-        p_thing->Genus.Pyro = (Pyro*)TO_PYRO((SLONG)p_thing->Genus.Pyro);
+        p_thing->Genus.Pyro = (Pyro*)TO_PYRO((intptr_t)p_thing->Genus.Pyro);
         set_state_function(p_thing, p_thing->State);
         break;
     case CLASS_TRACK:
-        p_thing->Genus.Track = (Track*)TO_TRACK((SLONG)p_thing->Genus.Track);
+        p_thing->Genus.Track = (Track*)TO_TRACK((intptr_t)p_thing->Genus.Track);
         break;
     case CLASS_PLAT:
-        p_thing->Genus.Plat = (Plat*)TO_PLAT((SLONG)p_thing->Genus.Plat);
+        p_thing->Genus.Plat = (Plat*)TO_PLAT((intptr_t)p_thing->Genus.Plat);
         p_thing->StateFn = PLAT_process;
         break;
     case CLASS_BARREL:
         void BARREL_process_normal(Thing * p_barrel);
-        p_thing->Genus.Barrel = (Barrel*)TO_BARREL((SLONG)p_thing->Genus.Barrel);
+        p_thing->Genus.Barrel = (Barrel*)TO_BARREL((intptr_t)p_thing->Genus.Barrel);
         p_thing->StateFn = BARREL_process_normal;
 
         break;
 
     case CLASS_BAT:
         p_thing->StateFn = BAT_normal;
-        p_thing->Genus.Bat = (Bat*)TO_BAT((SLONG)p_thing->Genus.Bat);
+        p_thing->Genus.Bat = (Bat*)TO_BAT((intptr_t)p_thing->Genus.Bat);
         break;
 
     default:
@@ -905,20 +905,20 @@ void convert_index_to_pointers(void)
 
     for (c0 = 0; c0 < MAX_PYROS; c0++) {
         if (TO_PYRO(c0)->thing)
-            TO_PYRO(c0)->thing = TO_THING((ULONG)TO_PYRO(c0)->thing);
+            TO_PYRO(c0)->thing = TO_THING((uintptr_t)TO_PYRO(c0)->thing);
 
         if (TO_PYRO(c0)->victim)
-            TO_PYRO(c0)->victim = TO_THING((ULONG)TO_PYRO(c0)->victim);
+            TO_PYRO(c0)->victim = TO_THING((uintptr_t)TO_PYRO(c0)->victim);
     }
     for (c0 = 0; c0 < PLAYCUTS_cutscene_ctr; c0++) {
-        PLAYCUTS_cutscenes[c0].channels = PLAYCUTS_tracks + (SLONG)PLAYCUTS_cutscenes[c0].channels;
+        PLAYCUTS_cutscenes[c0].channels = PLAYCUTS_tracks + (intptr_t)PLAYCUTS_cutscenes[c0].channels;
     }
     for (c0 = 0; c0 < PLAYCUTS_track_ctr; c0++) {
-        PLAYCUTS_tracks[c0].packets = PLAYCUTS_packets + (SLONG)PLAYCUTS_tracks[c0].packets;
+        PLAYCUTS_tracks[c0].packets = PLAYCUTS_packets + (intptr_t)PLAYCUTS_tracks[c0].packets;
     }
     for (c0 = 0; c0 < PLAYCUTS_packet_ctr; c0++) {
         if (PLAYCUTS_packets[c0].type == 5)
-            PLAYCUTS_packets[c0].pos.X += (ULONG)PLAYCUTS_text_data;
+            PLAYCUTS_packets[c0].pos.X += (uintptr_t)PLAYCUTS_text_data;
     }
 }
 

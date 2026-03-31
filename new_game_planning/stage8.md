@@ -192,7 +192,7 @@
 - MSVC не поддерживает `__asm` в x64 режиме — блокер компиляции
 - Других `__asm` в проекте нет
 
-#### Шаг 2. `long` → фиксированные типы ⏳
+#### Шаг 2. `long` → фиксированные типы ✅
 - **Проблема:** `long` — единственный примитивный C-тип с разным размером на 64-бит платформах:
   Windows LLP64 = 4 байта, Linux/macOS LP64 = 8 байт.
   Все остальные типы (`char`, `short`, `int`) одинаковы на всех платформах.
@@ -208,23 +208,18 @@
   - figure.cpp (3 места), polypage.cpp (1 место) — `unsigned long EVal` → `uint32_t`
   - file.cpp:76,78 — `long pos = ftell()` — оставить как есть (возврат `ftell` = `long` по стандарту C)
 
-#### Шаг 3. Pointer → int касты → `uintptr_t` ⏳
+#### Шаг 3. Pointer → int касты → `uintptr_t` ✅
 - **Проблема:** `(ULONG)ptr` на 64-бит обрезает старшие 4 байта адреса → молчаливая порча данных,
   краш может произойти не сразу, а позже в другом месте — самый трудноотлаживаемый тип бага
-- **anim_loader.cpp** (~10 мест, строки 517-577):
-  - Pointer relocation arithmetic для старого формата анимаций (save_type ≤ 4):
-    `(ULONG)&p_chunk->AnimKeyFrames[0]`, `(ULONG)p_ele`, `(ULONG)p_fight` и т.д.
-  - Паттерн: вычисление дельты `a_off = new_base - old_base` для пересчёта старых адресов
-  - Все касты → `uintptr_t`, арифметика дельт — через `ptrdiff_t` или `uintptr_t`
-- **memory.cpp** (~4 места):
-  - Строка 693: `(ULONG)p_thing->Draw.Mesh` — каст указателя на DrawMesh к индексу
-  - Строка 705: `(ULONG)p_thing->Draw.Tweened` — аналогично
-  - Строка 709: `(SLONG)drawtype->TheChunk` — каст указателя к индексу
-  - Паттерн: convert_to_index/convert_to_pointer при save/load — указатель → offset от начала пула
-  - Касты → `uintptr_t`, или лучше: переписать на `(ptr - pool_base)` без каста в целое
-- **person.cpp** (1 место, строка 977):
-  - `(ULONG)global_anim_array[...]` в ASSERT — проверка что указатель не NULL
-  - Каст → `uintptr_t`, или заменить на `!= nullptr`
+- **Сделано — все `(ULONG)ptr` и `(SLONG)ptr` касты заменены на `uintptr_t`/`intptr_t`:**
+  - **anim_loader.cpp** (~15 мест): pointer relocation для старого формата анимаций, переменные `a_off`/`ae_off`/`af_off` → `uintptr_t`
+  - **memory.cpp** (~30 мест): convert_drawtype_to_index/pointer, convert_keyframe/fightcol/animlist_to_pointer,
+    convert_thing_to_pointer (все Genus.* касты для ~15 классов), PLAYCUTS pointer→offset, PYRO thing/victim
+  - **person.cpp** (1 место): ASSERT каст → `uintptr_t`
+  - **aeng.cpp** (2 места): pointer alignment `& 0xffffffe0` → `& ~(uintptr_t)0x1f`
+  - **pyro.cpp** (1 место): address-as-PRNG-seed → двойной каст `(ULONG)(uintptr_t)`
+  - **widget.h**: `SLONG data[5]` → `intptr_t data[5]` (массив хранит и числа, и указатели)
+  - **widget.cpp** (7 мест): все `(SLONG)item->next/prev/item2` → `(intptr_t)`
 
 #### Шаг 4. Структуры с указателями в файловом I/O ⏳
 

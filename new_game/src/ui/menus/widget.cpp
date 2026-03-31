@@ -461,7 +461,7 @@ void TEXTS_Free(Widget* widget)
     ListEntry* item;
     while (widget->data[0]) {
         item = (ListEntry*)widget->data[0];
-        widget->data[0] = (SLONG)item->next;
+        widget->data[0] = (intptr_t)item->next;
         MemFree(item);
     }
     WIDGET_Free(widget);
@@ -565,7 +565,7 @@ SLONG TEXTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
             while (item->next)
                 item = item->next;
         if (!item) {
-            widget->data[0] = (SLONG)item2;
+            widget->data[0] = (intptr_t)item2;
         } else {
             item->next = item2;
             item2->prev = item;
@@ -660,7 +660,7 @@ void LISTS_Free(Widget* widget)
     ListEntry* item;
     while (widget->data[0]) {
         item = (ListEntry*)widget->data[0];
-        widget->data[0] = (SLONG)item->next;
+        widget->data[0] = (intptr_t)item->next;
         MemFree(item);
     }
     WIDGET_Free(widget);
@@ -758,7 +758,7 @@ SLONG LISTS_Data(Widget* widget, SLONG code, SLONG data1, SLONG data2)
             while (item->next)
                 item = item->next;
         if (!item) {
-            widget->data[0] = widget->data[2] = (SLONG)item2;
+            widget->data[0] = widget->data[2] = (intptr_t)item2;
         } else {
             item->next = item2;
             item2->prev = item;
@@ -812,7 +812,7 @@ BOOL LISTS_Char(Widget* widget, CBYTE key)
     switch (key) {
     case 11:
         if (item->prev) {
-            widget->data[2] = (SLONG)item->prev;
+            widget->data[2] = (intptr_t)item->prev;
             widget->data[4]--;
             WIDGET_snd(WS_BLIP);
         } else
@@ -820,7 +820,7 @@ BOOL LISTS_Char(Widget* widget, CBYTE key)
         break;
     case 10:
         if (item->next) {
-            widget->data[2] = (SLONG)item->next;
+            widget->data[2] = (intptr_t)item->next;
             widget->data[4]++;
             WIDGET_snd(WS_BLIP);
         } else
@@ -836,7 +836,7 @@ BOOL LISTS_Char(Widget* widget, CBYTE key)
             item = item->next;
             widget->data[4]++;
         }
-        widget->data[2] = (SLONG)item;
+        widget->data[2] = (intptr_t)item;
         WIDGET_snd(WS_BLIP);
         break;
     default:

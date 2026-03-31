@@ -974,7 +974,7 @@ static void ShowAnimNumber(SLONG anim)
 void queue_anim(Thing* p_person, SLONG anim)
 {
     ASSERT(anim != 1);
-    ASSERT(((ULONG)global_anim_array[p_person->Genus.Person->AnimType][anim]) > 1000);
+    ASSERT(((uintptr_t)global_anim_array[p_person->Genus.Person->AnimType][anim]) > 1000);
     p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
     if (p_person->Genus.Person->Flags & FLAG_PERSON_LOCK_ANIM_CHANGE) {
         locked_anim_change(p_person, 0, anim, 0);

@@ -436,8 +436,9 @@ file_error:;
 SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_chunk)
 {
     SLONG save_type = 0, c0;
-    ULONG addr1, addr2, a_off, ae_off;
-    ULONG af_off, addr3;
+    ULONG addr1, addr2;  // original 32-bit addresses read from file
+    ULONG addr3;
+    uintptr_t a_off, ae_off, af_off;  // relocation deltas (pointer-sized)
     UWORD check;
 
     struct GameKeyFrameElementBig* temp_mem;
@@ -514,28 +515,28 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
     } else {
         // Older format: stored pointers are original runtime addresses.
         // Relocate them by computing the offset from old base to new allocation.
-        a_off = ((ULONG)&p_chunk->AnimKeyFrames[0]) - addr1;
-        ae_off = ((ULONG)&p_chunk->TheElements[0]) - addr2;
-        af_off = ((ULONG)&p_chunk->FightCols[0]) - addr3;
+        a_off = ((uintptr_t)&p_chunk->AnimKeyFrames[0]) - addr1;
+        ae_off = ((uintptr_t)&p_chunk->TheElements[0]) - addr2;
+        af_off = ((uintptr_t)&p_chunk->FightCols[0]) - addr3;
         for (c0 = 0; c0 < p_chunk->MaxKeyFrames; c0++) {
-            ULONG a;
+            uintptr_t a;
 
-            a = (ULONG)p_chunk->AnimKeyFrames[c0].NextFrame;
+            a = (uintptr_t)p_chunk->AnimKeyFrames[c0].NextFrame;
             a += a_off;
             if (p_chunk->AnimKeyFrames[c0].NextFrame)
                 p_chunk->AnimKeyFrames[c0].NextFrame = (struct GameKeyFrame*)a;
 
-            a = (ULONG)p_chunk->AnimKeyFrames[c0].PrevFrame;
+            a = (uintptr_t)p_chunk->AnimKeyFrames[c0].PrevFrame;
             a += a_off;
             if (p_chunk->AnimKeyFrames[c0].PrevFrame)
                 p_chunk->AnimKeyFrames[c0].PrevFrame = (struct GameKeyFrame*)a;
 
-            a = (ULONG)p_chunk->AnimKeyFrames[c0].FirstElement;
+            a = (uintptr_t)p_chunk->AnimKeyFrames[c0].FirstElement;
             a += ae_off;
             p_chunk->AnimKeyFrames[c0].FirstElement = (struct GameKeyFrameElement*)a;
 
-            a = (ULONG)p_chunk->AnimKeyFrames[c0].Fight;
-            if (a != 0 && a < (ULONG)addr3) {
+            a = (uintptr_t)p_chunk->AnimKeyFrames[c0].Fight;
+            if (a != 0 && a < (uintptr_t)addr3) {
                 a = 0;
                 p_chunk->AnimKeyFrames[c0].Fight = 0;
             }
@@ -543,10 +544,10 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
 
             if (p_chunk->AnimKeyFrames[c0].Fight) {
                 struct GameFightCol* p_fight;
-                ULONG offset;
+                uintptr_t offset;
 
-                offset = (ULONG)p_chunk->AnimKeyFrames[c0].Fight;
-                offset -= (ULONG)addr3;
+                offset = (uintptr_t)p_chunk->AnimKeyFrames[c0].Fight;
+                offset -= (uintptr_t)addr3;
                 offset /= sizeof(struct GameFightCol);
 
                 p_chunk->AnimKeyFrames[c0].Fight = (struct GameFightCol*)a;
@@ -555,13 +556,13 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
                 p_fight->Next = 0;
 
                 while (p_fight->Next) {
-                    offset = (ULONG)p_fight->Next;
-                    offset -= (ULONG)addr3;
+                    offset = (uintptr_t)p_fight->Next;
+                    offset -= (uintptr_t)addr3;
                     offset /= sizeof(struct GameFightCol);
-                    if (offset > p_chunk->MaxFightCols) {
+                    if (offset > (uintptr_t)p_chunk->MaxFightCols) {
                         p_fight->Next = 0;
                     } else {
-                        a = (ULONG)p_fight->Next;
+                        a = (uintptr_t)p_fight->Next;
                         a += af_off;
                         p_fight->Next = 0;
                         p_fight = p_fight->Next;
@@ -570,11 +571,11 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
             }
         }
 
-        a_off = ((ULONG)&p_chunk->AnimKeyFrames[0]) - addr1;
+        a_off = ((uintptr_t)&p_chunk->AnimKeyFrames[0]) - addr1;
         for (c0 = 0; c0 < p_chunk->MaxAnimFrames; c0++) {
-            ULONG a;
+            uintptr_t a;
 
-            a = (ULONG)p_chunk->AnimList[c0];
+            a = (uintptr_t)p_chunk->AnimList[c0];
             a += a_off;
             p_chunk->AnimList[c0] = (struct GameKeyFrame*)a;
         }

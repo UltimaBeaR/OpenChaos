@@ -2266,7 +2266,7 @@ static void PYRO_draw_newdome(Pyro* pyro)
 
     // Save and restore random seed to get consistent per-pyro spark placement.
     store_seed = GetSeed();
-    SetSeed((ULONG)pyro);
+    SetSeed((ULONG)(uintptr_t)pyro);  // address as seed — truncation is fine for PRNG
 
     tri[0] = &pp[0];
     tri[1] = &pp[1];

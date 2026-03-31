@@ -3339,14 +3339,14 @@ void draw_quick_floor(SLONG warehouse)
         init_stats = 0;
     }
 
-    ptr32 = (UBYTE*)(((ULONG)(some_data + 32)) & 0xffffffe0);
+    ptr32 = (UBYTE*)(((uintptr_t)(some_data + 32)) & ~(uintptr_t)0x1f);
     m_view = (GEMatrix*)ptr32;
 
     mm_draw_floor.lpd3dMatrices = m_view;
     mm_draw_floor.lpvLightDirs = NULL;
     mm_draw_floor.lpLightTable = NULL;
 
-    ptr32 = (UBYTE*)(((ULONG)(m_vert_mem_block32 + 32)) & 0xffffffe0);
+    ptr32 = (UBYTE*)(((uintptr_t)(m_vert_mem_block32 + 32)) & ~(uintptr_t)0x1f);
 
     kerb_verts = (GEVertexLit*)ptr32;
     ptr32 += sizeof(GEVertexLit) * KERB_VERTS;

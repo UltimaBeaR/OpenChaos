@@ -72,7 +72,7 @@ public:
     SLONG x, y, ox, oy;   // parent-relative bounding box
     SLONG tag;             // opaque value for parent dialog proc
     SLONG state;           // WIDGET_STATE_* flags
-    SLONG data[5];         // widget-type-specific state
+    intptr_t data[5];      // widget-type-specific state (stores both ints and pointers)
     CBYTE* caption;        // text label
     Form* form;            // owning form
     Methods* methods;      // virtual method table
