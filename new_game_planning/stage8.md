@@ -398,4 +398,122 @@
 | 14b | Скрипты → кросс-платформенные | ✅ |
 | 14c | CMake: кросс-платформенные условия | ✅ |
 | 14d | Переход на 64-бит | ⏳ |
+| **16** | **Кросс-платформенная сборка (macOS + Linux)** | ⏳ |
 | 15 | ASan прогон: играть под ASan, фиксить memory bugs один за одним | ⏳ |
+
+---
+
+## 16. Кросс-платформенная сборка (macOS + Linux)
+
+**Цель:** `make configure-*` для всех поддерживаемых платформ. Сборка нативная на каждой ОС (не кросс-компиляция, кроме macOS x64→arm64 которое Apple поддерживает нативно).
+
+**Где собирается:**
+- Windows → на Windows (текущая среда)
+- macOS → на маке M1 (покрывает и arm64 и x64 через universal/cross)
+- Linux → на WSL2 (Ubuntu) или отдельной Linux-машине
+
+### Таргеты Makefile
+
+```
+make configure-windows-x64-opengl     # Windows 64-bit, OpenGL
+make configure-macos-arm64-opengl     # macOS Apple Silicon (M1+)
+make configure-macos-x64-opengl       # macOS Intel
+make configure-macos-universal-opengl # macOS Universal Binary (arm64 + x64)
+make configure-linux-x64-opengl       # Linux x86_64
+make configure-asan                   # Windows x64 + ASan (текущий)
+```
+
+Старый `configure-opengl` → алиас на `configure-windows-x64-opengl`.
+
+**D3D6 бэкенд** — остаётся в кодовой базе, но не поддерживается на уровне релизов.
+Старый `configure-d3d6` оставлен для локального использования (x86 only).
+Проблемы D3D6 на x64 → `known_issues_and_bugs.md`.
+
+### 16a. Case-insensitive file I/O (Linux блокер) ⏳
+
+**Проблема:** Linux filesystem case-sensitive. Ресурсы на диске — mixed case (`deadcivs.TGA`, `death breath.WAV`),
+код обращается с другим регистром (`deadcivs.tga`). На Windows/macOS работает, на Linux — file not found.
+
+**Хорошая новость:** весь файловый I/O идёт через один файл — `engine/io/file.cpp`:
+- `FileOpen(filename)` — основной open для ассетов
+- `MF_Fopen(filename, mode)` — обёртка для аудио, конфигов
+- `FileExists(filename)` — проверка существования
+- `MakeFullPathName()` — внутренний хелпер, строит полный путь
+
+**Решение:** case-insensitive обёртка в `file.cpp`:
+1. Попытка открыть файл с точным именем (fast path — работает на Windows/macOS и при совпадении регистра)
+2. При неудаче (только Linux) — сканирование директории, поиск файла без учёта регистра
+3. Опционально: кеш результатов (directory listing → map lowercase→actual name), чтобы не сканировать каждый раз
+
+**Масштаб:** ~1 файл, ~30-50 строк. Покрывает 100% файловых операций (все идут через эти функции).
+
+**Известные mismatches (подтверждённые):**
+- `deadcivs.tga` в коде → `deadcivs.TGA` на диске
+- 46 файлов `.WAV` в `sound_id_globals.cpp` (uppercase) — зависит от реального регистра на диске в `original_game_resources/`
+- Полный аудит: проверить все файлы в `original_game_resources/` против строковых литералов в коде
+
+### 16b. Тулчейн-файлы CMake ⏳
+
+Создать в `new_game/cmake/`:
+
+| Файл | Описание |
+|------|----------|
+| `clang-x64-windows.cmake` | ✅ Уже есть |
+| `clang-x86-windows.cmake` | ✅ Уже есть (DX6 legacy) |
+| `clang-arm64-macos.cmake` | `CMAKE_SYSTEM_NAME=Darwin`, `CMAKE_OSX_ARCHITECTURES=arm64`, triplet `arm64-osx` |
+| `clang-x64-macos.cmake` | `CMAKE_OSX_ARCHITECTURES=x86_64`, triplet `x64-osx` |
+| `clang-universal-macos.cmake` | `CMAKE_OSX_ARCHITECTURES="arm64;x86_64"`, triplet `universal-osx` |
+| `clang-x64-linux.cmake` | `CMAKE_SYSTEM_NAME=Linux`, triplet `x64-linux` |
+
+**Нюанс macOS:** на маке clang — системный (Apple Clang), не надо указывать `--target`. CMake сам определяет. Тулчейн минимальный — только архитектура и vcpkg триплет.
+
+**Нюанс Linux:** clang на Linux — `apt install clang`. Можно также поддержать gcc (по умолчанию в Ubuntu).
+
+### 16c. CMakeLists.txt — платформо-зависимые правки ⏳
+
+Что уже есть:
+- `if(WIN32)` / `elseif(APPLE)` / `else()` для OpenGL линковки ✅
+- `WIN32_EXECUTABLE` только на Windows ✅
+- `_CRT_SECURE_NO_WARNINGS` только на Windows ✅
+- `/SAFESEH`, `/ENTRY:mainCRTStartup` только на Windows ✅
+
+Что добавить:
+- **macOS:** `CMAKE_OSX_DEPLOYMENT_TARGET` (минимальная версия macOS, 10.15+ для OpenGL 4.1)
+- **macOS:** `-framework Cocoa -framework IOKit` если SDL3 не тянет автоматически (проверить)
+- **macOS:** install rpath вместо DLL копирования
+- **Linux:** линковка `-lX11 -lpthread -ldl` (или через find_package)
+- **Linux:** executable name без `.exe`
+- **Общее:** условие для DLL копирования (только Windows)
+- **Общее:** условие для линкер-флагов Windows (`/ENTRY`, `/DEBUG` и т.д.)
+
+### 16d. Makefile — мультиплатформенный ⏳
+
+**Проблема:** текущий Makefile жёстко привязан к Windows:
+- `TOOLCHAIN` → `clang-x64-windows.cmake`
+- vcpkg discovery через `vswhere.exe`
+- `./Fallen.exe` в run-таргетах
+
+**Решение:** параметризовать через переменные:
+- Каждый `configure-*` таргет задаёт `TOOLCHAIN` и `GRAPHICS_BACKEND`
+- vcpkg discovery: `VCPKG_ROOT` (кросс-платформенный), fallback на `vswhere` только на Windows
+- Run-таргеты: `./Fallen` (без `.exe` на macOS/Linux) — определять по `uname`
+- ASan DLL копирование — только на Windows
+
+### 16e. Код: прочие macOS/Linux compatibility fixes ⏳
+
+По результатам анализа, код уже почти готов. Возможные правки:
+- **sdl3_bridge.cpp** — `sdl3_window_get_native_handle()`: на не-Windows возвращает nullptr. Убедиться что nullptr безопасен (используется только DX6 бэкендом). Добавить macOS/Linux нативные хендлы если нужно.
+- **crash_handler_win.cpp** — уже `#ifdef _WIN32`, POSIX fallback в host.cpp есть. Возможно добавить macOS-специфику (backtrace_symbols).
+- **Пути:** `/` vs `\` — проверить что все пути используют `/` (SDL3 и POSIX принимают)
+
+### 16f. Верификация ⏳
+
+| Платформа | Как проверять |
+|-----------|---------------|
+| Windows x64 OpenGL | Текущая среда, `make configure-windows-x64-opengl && make d` |
+| Windows x64 D3D6 | Текущая среда, `make configure-windows-x64-d3d6 && make d` |
+| macOS arm64 | На маке M1, `make configure-macos-arm64-opengl && make d` |
+| macOS x64 | На маке M1 (кросс), `make configure-macos-x64-opengl && make build-debug` |
+| Linux x64 | WSL2 Ubuntu, `make configure-linux-x64-opengl && make d` |
+
+Минимальный критерий: компилируется + линкуется + запускается до главного меню.
