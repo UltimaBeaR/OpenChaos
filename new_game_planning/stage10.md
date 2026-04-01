@@ -22,6 +22,11 @@
 
 - **Убрать пунктирные линии прицела врага** — серые пунктиры показывающие что враг целится огнестрельным оружием. Есть в PC релизе, отсутствуют в PS1 версии. Выглядят топорно, планируется удалить.
 
+## Оптимизации рендерера
+
+- **Draw call batching** — сейчас каждый PolyPage slot делает отдельный draw call со своим VBO/EBO/VAO (per-slot, как D3D6 оригинал). Батчинг нескольких draw calls в один большой VBO с одним `glDrawElements` уменьшит количество draw calls с сотен до единиц за кадр. Требует: общий VBO с sub-allocation, offset-based indexing.
+- **GPU-transform (lit vertex shader)** — `ge_draw_indexed_primitive_lit` и `ge_draw_multi_matrix` делают CPU-transform (World×Projection). Для частиц (огонь, листья, dirt) с множеством мелких draw calls GPU-transform был бы эффективнее. Техдолг из этапа 7: `lit_vert.glsl` не работает из-за D3D/GL clip space конвенций.
+
 ## Референсы
 
 - `PieroZ/MuckyFoot-UrbanChaos` коммит `0f2e69d` — WIP по bat/bane боссу + взрывы (bangs). Глянуть при доработке боссов/эффектов.
