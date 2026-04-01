@@ -11,16 +11,27 @@
 #include <stdint.h>
 #include <time.h>
 
+// Shared flag from host.cpp — prevents multiple handlers from overwriting crash_log.txt.
+extern volatile bool g_exit_log_written;
+
+static void write_crash_timestamp(FILE* f, const char* label)
+{
+    time_t raw = time(nullptr);
+    struct tm* lt = localtime(&raw);
+    fprintf(f, "%s at %04d-%02d-%02d %02d:%02d:%02d\n\n",
+            label,
+            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+            lt->tm_hour, lt->tm_min, lt->tm_sec);
+}
+
 static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
 {
+    g_exit_log_written = true;
+
     FILE* f = fopen("crash_log.txt", "w");
     if (!f) return EXCEPTION_CONTINUE_SEARCH;
 
-    time_t raw = time(nullptr);
-    struct tm* lt = localtime(&raw);
-    fprintf(f, "Crash at %04d-%02d-%02d %02d:%02d:%02d\n\n",
-            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-            lt->tm_hour, lt->tm_min, lt->tm_sec);
+    write_crash_timestamp(f, "Crash (exception)");
 
     DWORD code = ep->ExceptionRecord->ExceptionCode;
     fprintf(f, "Exception: 0x%08lX (%s)\n",
@@ -94,9 +105,34 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+// Console event handler: catches Ctrl+C, console window close, logoff, shutdown.
+static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
+{
+    if (g_exit_log_written) return FALSE;
+    g_exit_log_written = true;
+
+    const char* desc =
+        ctrl_type == CTRL_C_EVENT        ? "Ctrl+C" :
+        ctrl_type == CTRL_BREAK_EVENT    ? "Ctrl+Break" :
+        ctrl_type == CTRL_CLOSE_EVENT    ? "Console window closed" :
+        ctrl_type == CTRL_LOGOFF_EVENT   ? "User logoff" :
+        ctrl_type == CTRL_SHUTDOWN_EVENT ? "System shutdown" : "Unknown console event";
+
+    FILE* f = fopen("crash_log.txt", "w");
+    if (f) {
+        write_crash_timestamp(f, "Terminated (console event)");
+        fprintf(f, "Type: %s (code %lu)\n", desc, (unsigned long)ctrl_type);
+        fflush(f);
+        fclose(f);
+    }
+
+    return FALSE; // Let default handler terminate the process
+}
+
 extern "C" void install_crash_handler(void)
 {
     SetUnhandledExceptionFilter(crash_exception_handler);
+    SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
 }
 
 #endif // _WIN32

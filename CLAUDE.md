@@ -97,7 +97,15 @@ CLAUDE.md                           — этот файл
   - **⚠️ Проверка результата сборки (clang + ninja, текущий билд):** НЕ использовать `| grep "error:"` — это пропускает ошибки линковки и другие проблемы. Вместо этого **всегда** проверять: (1) exit code команды (`echo $?` или `&& echo OK`), (2) последние строки вывода (`| tail -5`) — должна быть строка `Linking CXX executable`. Если `ninja: build stopped: subcommand failed` — сборка провалена даже если слово `error` не найдено. (Для оригинальной сборки MSVC формат ошибок другой.)
 - **Отладка:** скиллы `debugger` (attach к процессу, стеки, переменные), `debug-log` (временное логирование в файл), `screenshot` (скриншот окна игры), `debugger-install` (установка cdb.exe)
   - **Выбирать инструмент по ситуации** — цель: минимум действий от пользователя. Краш → crash_log.txt. Freeze → debugger attach. Нужно видеть что на экране → screenshot. Нужны значения переменных по тикам → debug-log. Комбинировать по необходимости.
-  - **Crash handler:** `engine/platform/crash_handler_win.cpp` (Windows, `SetUnhandledExceptionFilter`) / `signal()` fallback (другие платформы). Пишет `crash_log.txt` рядом с exe.
+  - **Exit/crash logging:** `crash_log.txt` пишется рядом с exe при **любом** завершении программы:
+    - Нормальный выход (return/exit) → `atexit` handler в `host.cpp` → "Clean exit"
+    - abort() → `SIGABRT` handler в `host.cpp` → "Crash (abort)"
+    - Access violation, div-by-zero → exception filter в `crash_handler_win.cpp` → "Crash (exception)" + регистры + стектрейс
+    - Ctrl+C, закрытие консоли → `SetConsoleCtrlHandler` в `crash_handler_win.cpp` → "Terminated (console event)"
+    - SIGSEGV/SIGFPE (Linux/Mac) → signal handler в `host.cpp` → "Crash (signal)"
+    - Единственное что НЕ ловится: `TerminateProcess()` / `kill -9` (ОС убивает мгновенно)
+    - `stderr.log` (перенаправляется Makefile'ом) начинается с таймстампа `=== Session started: ... ===`
+    - Флаг `g_exit_log_written` предотвращает перезапись между хендлерами
   - **Символизация:** `llvm-symbolizer -e build/Debug/Fallen.exe --relative-address <RVA>` (флаг `--relative-address` обязателен!)
 - **Типичные 64-бит баги и паттерны фиксов** → `new_game_devlog/x64_porting_notes.md`
 - **Скиллы — живые документы:** если в процессе работы обнаружена новая полезная информация, приём или ноу-хау которые стоит записать в скилл (новый или существующий) — предложить пользователю обновить скилл.

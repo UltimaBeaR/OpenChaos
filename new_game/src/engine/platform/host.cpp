@@ -203,21 +203,79 @@ void Time(MFTime* the_time)
     the_time->Ticks = sdl3_get_ticks();
 }
 
-// Crash handler: platform-specific, writes crash_log.txt with crash details.
+// ---------------------------------------------------------------------------
+// Exit / crash logging — writes crash_log.txt on ANY termination.
+//
+// Coverage:
+//   - atexit handler    → normal return from main(), exit() calls
+//   - SIGABRT handler   → abort() (not caught by Windows exception filter)
+//   - Exception filter  → access violation, div-by-zero, etc. (Windows, crash_handler_win.cpp)
+//   - Console handler   → Ctrl+C, console window close (Windows, crash_handler_win.cpp)
+//   - Signal handlers   → SIGSEGV, SIGFPE, SIGABRT (non-Windows)
+//
+// A flag prevents multiple handlers from overwriting each other.
+// ---------------------------------------------------------------------------
+
+// Shared flag: set by whichever handler fires first.
+// crash_handler_win.cpp also references this via extern.
+volatile bool g_exit_log_written = false;
+
+static void write_exit_timestamp(FILE* f, const char* label)
+{
+    time_t raw = time(nullptr);
+    struct tm* lt = localtime(&raw);
+    fprintf(f, "%s at %04d-%02d-%02d %02d:%02d:%02d\n\n",
+            label,
+            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+            lt->tm_hour, lt->tm_min, lt->tm_sec);
+}
+
+// atexit handler: catches normal exit() and return from main().
+static void exit_log_handler(void)
+{
+    if (g_exit_log_written) return;
+    g_exit_log_written = true;
+
+    FILE* f = fopen("crash_log.txt", "w");
+    if (!f) return;
+
+    write_exit_timestamp(f, "Clean exit");
+    fprintf(f, "Type: Normal exit (returned from main or exit() called)\n");
+    fflush(f);
+    fclose(f);
+}
+
+// SIGABRT handler: catches abort() which bypasses both atexit and exception filters.
+static void abort_signal_handler(int sig)
+{
+    if (g_exit_log_written) { signal(sig, SIG_DFL); raise(sig); return; }
+    g_exit_log_written = true;
+
+    FILE* f = fopen("crash_log.txt", "w");
+    if (f) {
+        write_exit_timestamp(f, "Crash (abort)");
+        fprintf(f, "Type: abort() called (SIGABRT)\n");
+        fflush(f);
+        fclose(f);
+    }
+
+    signal(sig, SIG_DFL);
+    raise(sig);
+}
+
 #ifdef _WIN32
 // Defined in crash_handler_win.cpp (separate TU to isolate windows.h).
 extern "C" void install_crash_handler(void);
 #else
 static void crash_signal_handler(int sig)
 {
+    if (g_exit_log_written) { signal(sig, SIG_DFL); raise(sig); return; }
+    g_exit_log_written = true;
+
     FILE* f = fopen("crash_log.txt", "w");
     if (!f) { signal(sig, SIG_DFL); raise(sig); return; }
 
-    time_t raw = time(nullptr);
-    struct tm* lt = localtime(&raw);
-    fprintf(f, "Crash at %04d-%02d-%02d %02d:%02d:%02d\n\n",
-            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-            lt->tm_hour, lt->tm_min, lt->tm_sec);
+    write_exit_timestamp(f, "Crash (signal)");
     fprintf(f, "Signal: %d (%s)\n", sig,
             sig == SIGSEGV ? "SIGSEGV" : sig == SIGABRT ? "SIGABRT" :
             sig == SIGFPE  ? "SIGFPE"  : "unknown");
@@ -231,11 +289,23 @@ static void crash_signal_handler(int sig)
 
 int HOST_run(int argc_in, char* argv_in[])
 {
+    // Timestamp at the very start of stderr (redirected to stderr.log by Makefile)
+    {
+        time_t raw = time(nullptr);
+        struct tm* lt = localtime(&raw);
+        fprintf(stderr, "=== Session started: %04d-%02d-%02d %02d:%02d:%02d ===\n",
+                lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+                lt->tm_hour, lt->tm_min, lt->tm_sec);
+    }
+
+    // Register exit/crash handlers for all termination paths.
+    atexit(exit_log_handler);
+    signal(SIGABRT, abort_signal_handler);
+
 #ifdef _WIN32
     install_crash_handler();
 #else
     signal(SIGSEGV, crash_signal_handler);
-    signal(SIGABRT, crash_signal_handler);
     signal(SIGFPE,  crash_signal_handler);
 #endif
 
