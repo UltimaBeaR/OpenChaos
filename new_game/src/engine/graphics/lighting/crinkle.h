@@ -26,9 +26,7 @@ CRINKLE_Handle CRINKLE_load(CBYTE* sex_filename);
 // Reads a pre-built binary crinkle from a FileClump archive.
 CRINKLE_Handle CRINKLE_read_bin(FileClump* tclump, int id);
 
-// uc_orig: CRINKLE_write_bin (fallen/DDEngine/Headers/crinkle.h)
-// Writes a crinkle to a FileClump archive (used by level tools).
-void CRINKLE_write_bin(FileClump* tclump, CRINKLE_Handle hnd, int id);
+// CRINKLE_write_bin removed — level build tool function, not used at runtime.
 
 // uc_orig: CRINKLE_light (fallen/DDEngine/Headers/crinkle.h)
 // Sets the view-space light direction for crinkle shading.

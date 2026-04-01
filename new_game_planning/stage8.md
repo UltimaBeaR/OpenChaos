@@ -336,6 +336,16 @@
 - Для чтения отладочного вывода после запуска — `Read` на этот файл
 - Для целевого debug-логирования в коде — скилл `debug-log` (пишет в `debug_TOPIC.txt` рядом с exe)
 
+**AddressSanitizer (ASAN)** — встроенный в clang инструмент поиска memory-багов:
+- Ловит buffer overflow, use-after-free, stack corruption, heap corruption
+- Включение: добавить в CMakeLists.txt `$<$<CONFIG:Debug>:-fsanitize=address>` в compile + link options
+- Замедляет ~2x, но автоматически печатает стек вызовов при ошибке в stderr
+- **Нюанс:** prebuilt библиотеки (GamepadCore.lib и т.п.) могут конфликтовать с ASAN-аннотациями
+  (string/vector). Фикс: `-D_DISABLE_STRING_ANNOTATION=1 -D_DISABLE_VECTOR_ANNOTATION=1`
+- **⚠️ Windows Debug CRT (ucrtbased.dll) несовместим с ASAN** — CRT делает internal free которые
+  ASAN считает bad-free, крашит до main(). Если нужен ASAN — собирать Release с ASAN, не Debug.
+- Полезен для поиска скрытых memory corruption багов которые проявляются по-разному на x86/x64
+
 **Текущий статус:**
 - ✅ Запуск → главное меню работает
 - ✅ Загрузка уровня → проходит
@@ -344,14 +354,17 @@
   → overflow при записи free-list узла в слишком маленький остаток → порча `NIGHT_Square.colour`.
   Фикс: `HEAP_QUANTISE` = `max(sizeof(HEAP_Free), 16)`.
 - ✅ Синематик проходит, геймплей работает
-- ⏳ Визуальный баг: некоторые куски стен и ящики рисуются не полностью (появился после перехода на x64)
-  - **Аудит rendering pipeline НЕ выявил 64-бит багов:** facet.cpp, polypage.cpp, figure.cpp, fastprim.cpp,
-    aeng.cpp — все касты, sizeof, culling — чисто. Проблема не в рендеринге, а скорее в corrupted данных
-    или memory issue (аналогично HEAP_QUANTISE багу). Расследуется через debug-log.
+- ✅ Визуальный баг: пропадающие стены/окна/двери/ящики при приближении — **CRINKLE_read_bin sizeof bug**.
+  `CRINKLE_Crinkle` содержит указатели (`point`, `face`), sizeof = 16 на x86, 24 на x64.
+  `memcpy(cc, bptr, sizeof(*cc))` + `bptr += sizeof(*cc)` в CRINKLE_read_bin читала 24 байта из
+  16-байтной записи → сдвиг на 8 байт → мусорные данные crinkle mesh → при приближении (z < 0.3)
+  CRINKLE_do рисовала сломанный mesh вместо обычного POLY_add_quad.
+  Фикс: читать num_points/num_faces по фиксированным offset'ам, bptr += 16 (on-disk size).
+  Тот же паттерн что GameKeyFrame/GameFightCol/CPChannel — пропущен т.к. struct static внутри .cpp.
 - ⏳ Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)
 
 **Полный аудит файлового I/O завершён — все sizeof(struct) с указателями в fread/fwrite найдены:**
-- Ассеты (фиксированный формат): file_clump ✅, anim_loader ✅ (обе функции), playcuts ✅, mapthing ✅
+- Ассеты (фиксированный формат): file_clump ✅, anim_loader ✅ (обе функции), playcuts ✅, mapthing ✅, crinkle ✅
 - Save/load (самосогласованное): memory.cpp, save.cpp, outro_imp.cpp, thing.cpp — не требуют фикса
   (write и read используют одинаковый sizeof; старые 32-бит сейвы несовместимы — ожидаемо)
 

@@ -2079,9 +2079,7 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         cprod = vec1x * vec2z - vec1z * vec2x;
 
         if (cprod >= 0) {
-            //
             // We've got rid of a whole facet :o)
-            //
             return;
         }
     }
@@ -2140,17 +2138,12 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         }
 
         if (clip_and & POLY_CLIP_OFFSCREEN) {
-            //
             // Reject the whole facet.
-            //
-
             return;
         }
 
         if (!(clip_or & POLY_CLIP_TRANSFORMED)) {
-            //
-            // Reject the whole facet if all points are too far or all points are too near
-            //
+            // Reject if all points are too far or too near.
             if (clip_and & (POLY_CLIP_NEAR | POLY_CLIP_FAR)) {
                 return;
             }

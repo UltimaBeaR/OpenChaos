@@ -230,9 +230,6 @@ static void TEXTURE_load_page(SLONG page)
     if (page < 64 * 8) {
         if (IndividualTextures || TEXTURE_create_clump) {
             TEXTURE_crinkle[page] = CRINKLE_load(name_sex);
-            if (TEXTURE_create_clump && TEXTURE_crinkle[page]) {
-                CRINKLE_write_bin(GetTGAClump(), TEXTURE_crinkle[page], TEXTURE_MAX_TEXTURES + page);
-            }
         } else {
             if (!DoesTGAExist("", TEXTURE_MAX_TEXTURES + page)) {
                 TEXTURE_crinkle[page] = NULL;

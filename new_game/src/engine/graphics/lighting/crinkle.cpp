@@ -108,8 +108,15 @@ CRINKLE_Handle CRINKLE_read_bin(FileClump* tclump, int id)
     CRINKLE_Crinkle* cc = &CRINKLE_crinkle[CRINKLE_crinkle_upto];
     CRINKLE_crinkle_upto++;
 
-    memcpy(cc, bptr, sizeof(*cc));
-    bptr += sizeof(*cc);
+    // On-disk layout: two SLONGs + two 32-bit pointers = 16 bytes (fixed, x86 format).
+    // sizeof(CRINKLE_Crinkle) is 24 on x64 due to 8-byte pointers.
+    // Read only the two integer fields; pointers are overwritten below.
+    {
+        static const size_t CRINKLE_CRINKLE_DISK_SIZE = 16;
+        cc->num_points = *(SLONG*)(bptr + 0);
+        cc->num_faces  = *(SLONG*)(bptr + 4);
+        bptr += CRINKLE_CRINKLE_DISK_SIZE;
+    }
 
     CRINKLE_Point* cp = &CRINKLE_point[CRINKLE_point_upto];
     CRINKLE_Face* cf = &CRINKLE_face[CRINKLE_face_upto];
@@ -133,41 +140,6 @@ CRINKLE_Handle CRINKLE_read_bin(FileClump* tclump, int id)
     }
 
     return ans;
-}
-
-// uc_orig: CRINKLE_write_bin (fallen/DDEngine/Source/Crinkle.cpp)
-// Writes a crinkle to a FileClump archive (used by the level build tools).
-void CRINKLE_write_bin(FileClump* tclump, CRINKLE_Handle hnd, int id)
-{
-    CRINKLE_Crinkle* cc = &CRINKLE_crinkle[hnd];
-
-    int size = sizeof(CRINKLE_Crinkle) + cc->num_points * sizeof(CRINKLE_Point) + cc->num_faces * sizeof(CRINKLE_Face);
-
-    UBYTE* buffer = new UBYTE[size];
-    ASSERT(buffer);
-    UBYTE* bptr = buffer;
-
-    memcpy(bptr, cc, sizeof(*cc));
-    bptr += sizeof(*cc);
-
-    CRINKLE_Point* cp = cc->point;
-    CRINKLE_Face* cf = cc->face;
-
-    for (int ii = 0; ii < cc->num_points; ii++) {
-        memcpy(bptr, cp, sizeof(*cp));
-        cp++;
-        bptr += sizeof(*cp);
-    }
-
-    for (int ii = 0; ii < cc->num_faces; ii++) {
-        memcpy(bptr, cf, sizeof(*cf));
-        cf++;
-        bptr += sizeof(*cf);
-    }
-
-    ASSERT(bptr - buffer == size);
-
-    tclump->Write(buffer, size, id);
 }
 
 // Lighting state -------------------------------------------------------
