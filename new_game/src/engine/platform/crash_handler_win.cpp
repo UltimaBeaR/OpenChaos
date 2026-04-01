@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <time.h>
+#include <stdlib.h>
+#include <crtdbg.h>
 
 // Shared flag from host.cpp — prevents multiple handlers from overwriting crash_log.txt.
 extern volatile bool g_exit_log_written;
@@ -177,6 +179,37 @@ static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
     if (expr) fprintf(stderr, "CRT invalid param: %ls (%ls:%u)\n", expr, file ? file : L"?", line);
 }
 
+// CRT debug report hook: intercepts assert/error messages from CRT (debug builds).
+// Writes the message to crash_log.txt and stderr, then lets abort() proceed.
+static int crt_report_hook(int report_type, char* message, int* return_value)
+{
+    (void)return_value;
+    const char* type_str =
+        report_type == _CRT_WARN   ? "CRT_WARN" :
+        report_type == _CRT_ERROR  ? "CRT_ERROR" :
+        report_type == _CRT_ASSERT ? "CRT_ASSERT" : "CRT_UNKNOWN";
+
+    // Write to crash_log.txt
+    extern volatile bool g_exit_log_written;
+    if (!g_exit_log_written) {
+        g_exit_log_written = true;
+        FILE* f = fopen("crash_log.txt", "w");
+        if (f) {
+            write_crash_timestamp(f, "Crash (CRT assert)");
+            fprintf(f, "Type: %s\n", type_str);
+            if (message) fprintf(f, "Message: %s\n", message);
+            fflush(f);
+            fclose(f);
+        }
+    }
+
+    if (message) fprintf(stderr, "%s: %s\n", type_str, message);
+
+    // Return TRUE to skip the CRT debug dialog — go straight to abort().
+    if (return_value) *return_value = 0;
+    return TRUE;
+}
+
 extern "C" void install_crash_handler(void)
 {
     SetUnhandledExceptionFilter(crash_exception_handler);
@@ -187,6 +220,9 @@ extern "C" void install_crash_handler(void)
 
     // Catch CRT invalid parameter errors (triggered by assert-like checks in CRT).
     _set_invalid_parameter_handler(crt_invalid_param_handler);
+
+    // Intercept CRT debug reports (assert dialogs) — write to crash_log.txt instead.
+    _CrtSetReportHook(crt_report_hook);
 }
 
 #endif // _WIN32

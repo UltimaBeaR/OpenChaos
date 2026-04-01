@@ -132,6 +132,8 @@ PolyPoint2D* PolyPage::PointAlloc(ULONG num_points)
         }
     }
 
+    ASSERT(m_VBUsed + num_points <= GetVBSize());
+
     PolyPoint2D* ptr = m_VertexPtr + m_VBUsed;
     m_VBUsed += num_points;
 

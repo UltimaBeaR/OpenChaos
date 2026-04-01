@@ -449,9 +449,17 @@ static bool init_shaders()
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha);
 
-    // Create shared VBO and EBO (streaming, orphaned each draw).
+    // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
+    // (glBufferData with different sizes) which can trigger NVIDIA driver bugs.
     glGenBuffers(1, &s_vbo);
     glGenBuffers(1, &s_ebo);
+    // Pre-allocate: 8192 verts * 32 bytes = 256KB VBO, 32K indices * 2 = 64KB EBO.
+    glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 8192 * 32, nullptr, GL_STREAM_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 32768 * sizeof(uint16_t), nullptr, GL_STREAM_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     // Create VAO.
     glGenVertexArrays(1, &s_vao_tl);
@@ -844,6 +852,14 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     if (!index_count || !vert_count) return;
     if (!init_shaders()) return;
 
+    // Validate index bounds.
+    for (uint32_t i = 0; i < index_count; i++) {
+        if (indices[i] >= vert_count) {
+            fprintf(stderr, "DIP OVERRUN: idx[%u]=%u >= vert_count=%u\n", i, indices[i], vert_count);
+            return;
+        }
+    }
+
     glUseProgram(s_program_tl);
 
     // Upload viewport uniform.
@@ -866,16 +882,8 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
-    while (glGetError() != GL_NO_ERROR) {}
-
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
-
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
-        fprintf(stderr, "GL ERROR after DrawElements: 0x%04X, idx_count=%u vert_count=%u tex=%u\n",
-                err, index_count, vert_count, (unsigned)s_bound_texture);
-    }
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -1493,11 +1501,17 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
 // via pointer, then calls prepare + draw. We upload to VBO at draw time.
 
 struct GLVertexBuf {
+    uint32_t magic;      // canary: 0xVBUF1234
     uint8_t* data;       // CPU vertex data (GEVertexTL layout, 32 bytes per vertex)
     uint32_t capacity;   // in bytes
     uint32_t logsize;    // log2 of vertex count
     bool     in_use;     // allocated and not yet released
+    GLuint   vbo;        // Per-slot VBO (avoids hammering one shared VBO with glBufferData)
+    GLuint   ebo;        // Per-slot EBO
+    GLuint   vao;        // Per-slot VAO (bound to per-slot VBO/EBO)
+    uint32_t vbo_size;   // Current VBO allocation size (bytes) — avoid needless realloc
 };
+static constexpr uint32_t GLVB_MAGIC = 0xAB123456;
 
 static constexpr int GL_VB_POOL_MAX = 512;
 static GLVertexBuf s_vb_pool[GL_VB_POOL_MAX];
@@ -1545,15 +1559,26 @@ void* ge_vb_alloc(uint32_t logsize, void** out_ptr, uint32_t* out_logsize)
 
     if (!best) return nullptr;
 
+    best->magic = GLVB_MAGIC;
     best->in_use = true;
     best->logsize = logsize;
+
+    // Create per-slot VBO/EBO/VAO on first use.
+    if (!best->vbo) {
+        glGenBuffers(1, &best->vbo);
+        glGenBuffers(1, &best->ebo);
+        glGenVertexArrays(1, &best->vao);
+        setup_vao_tl(best->vao, best->vbo, best->ebo);
+        best->vbo_size = 0;
+    }
 
     uint32_t vertex_count = 1u << logsize;
     uint32_t needed = vertex_count * 32; // sizeof(GEVertexTL) = 32
 
     if (!best->data || best->capacity < needed) {
-        free(best->data);
-        best->data = (uint8_t*)malloc(needed);
+        // Don't free old data — it may still be referenced by DrawSinglePoly
+        // (via m_VB cached during AddToBuckets, before reclaim releases the slot).
+        best->data = (uint8_t*)calloc(1, needed);
         best->capacity = needed;
     }
 
@@ -1574,13 +1599,13 @@ void* ge_vb_expand(void* vb, void** out_ptr, uint32_t* out_logsize)
     // Use malloc + memcpy instead of realloc to avoid invalidating old pointer.
     // Old data stays valid (for any code that cached the pointer) until the
     // slot is reused in a later frame.
-    uint8_t* new_data = (uint8_t*)malloc(needed);
+    uint8_t* new_data = (uint8_t*)calloc(1, needed);
     if (!new_data) return vb; // keep old on failure
 
+    // Don't free old data — it may still be cached by DrawSinglePoly.
     uint32_t old_size = buf->capacity;
     if (buf->data && old_size > 0) {
         memcpy(new_data, buf->data, old_size);
-        free(buf->data);
     }
 
     buf->data = new_data;
@@ -1619,44 +1644,16 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     if (!init_shaders()) return;
 
     GLVertexBuf* buf = (GLVertexBuf*)prepared_vb;
+    ASSERT(buf->magic == GLVB_MAGIC);
+    ASSERT(buf->data);
 
-    // Find the actual max vertex referenced by indices — only upload that many.
-    // The buffer is allocated as power-of-2 but may be partially filled;
-    // uploading the full allocation sends uninitialized memory to the GPU driver.
+    // Only upload vertices actually referenced by indices.
     uint16_t max_idx = 0;
     for (uint32_t i = 0; i < index_count; i++) {
         if (indices[i] > max_idx) max_idx = indices[i];
     }
     uint32_t vert_count = (uint32_t)max_idx + 1;
 
-    // Validate: skip draw if any referenced vertex contains uninitialized data.
-    // 0xCDCDCDCD = MSVC debug heap fill. Catches stale/corrupt vertex buffers
-    // before they crash the GPU driver.
-    {
-        const uint32_t* raw = (const uint32_t*)buf->data;
-        uint32_t floats_per_vert = 32 / 4; // GEVertexTL = 32 bytes = 8 uint32s
-        for (uint32_t i = 0; i < index_count; i++) {
-            uint32_t vi = indices[i];
-            const uint32_t* v = raw + vi * floats_per_vert;
-            // Check x, y, z, rhw (first 4 floats) for 0xCDCDCDCD or NaN
-            for (int f = 0; f < 4; f++) {
-                if (v[f] == 0xCDCDCDCD) {
-                    fprintf(stderr, "VB SKIP: uninitialized vertex %u (field %d = 0xCDCDCDCD), idx_count=%u vert_count=%u logsize=%u\n",
-                            vi, f, index_count, vert_count, buf->logsize);
-                    return; // skip this draw call entirely
-                }
-                float fv;
-                memcpy(&fv, &v[f], 4);
-                if (fv != fv) { // NaN check
-                    fprintf(stderr, "VB SKIP: NaN in vertex %u field %d, idx_count=%u vert_count=%u\n",
-                            vi, f, index_count, vert_count);
-                    return;
-                }
-            }
-        }
-    }
-
-    // VB data is GEVertexTL layout (screen-space, pre-transformed).
     glUseProgram(s_program_tl);
 
     glUniform4f(s_tl_u_viewport,
@@ -1668,24 +1665,27 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
-    glBindVertexArray(s_vao_tl);
+    // Per-slot VBO/EBO/VAO: each GLVertexBuf has its own GL objects, like D3D6
+    // where each VertexBuffer is a separate IDirect3DVertexBuffer. Avoids hammering
+    // one shared VBO with hundreds of glBufferData calls per frame.
+    uint32_t upload_size = vert_count * 32;
 
-    glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-    glBufferData(GL_ARRAY_BUFFER, vert_count * 32, buf->data, GL_STREAM_DRAW);
+    glBindVertexArray(buf->vao);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, buf->vbo);
+    if (buf->vbo_size < upload_size) {
+        // Grow VBO to power-of-2 capacity (stable size reduces driver reallocs).
+        uint32_t alloc_size = (1u << buf->logsize) * 32;
+        if (alloc_size < upload_size) alloc_size = upload_size;
+        glBufferData(GL_ARRAY_BUFFER, alloc_size, nullptr, GL_STREAM_DRAW);
+        buf->vbo_size = alloc_size;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, 0, upload_size, buf->data);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
-    // Flush any prior GL errors so we only catch errors from this draw.
-    while (glGetError() != GL_NO_ERROR) {}
-
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
-
-    GLenum err = glGetError();
-    if (err != GL_NO_ERROR) {
-        fprintf(stderr, "GL ERROR after DrawElements(vb): 0x%04X, idx_count=%u vert_count=%u tex=%u\n",
-                err, index_count, vert_count, (unsigned)s_bound_texture);
-    }
 
     glBindVertexArray(0);
     glUseProgram(0);
