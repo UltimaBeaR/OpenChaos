@@ -866,8 +866,16 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
+    while (glGetError() != GL_NO_ERROR) {}
+
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
+
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        fprintf(stderr, "GL ERROR after DrawElements: 0x%04X, idx_count=%u vert_count=%u tex=%u\n",
+                err, index_count, vert_count, (unsigned)s_bound_texture);
+    }
 
     glBindVertexArray(0);
     glUseProgram(0);
@@ -1611,7 +1619,42 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     if (!init_shaders()) return;
 
     GLVertexBuf* buf = (GLVertexBuf*)prepared_vb;
-    uint32_t vert_count = 1u << buf->logsize;
+
+    // Find the actual max vertex referenced by indices — only upload that many.
+    // The buffer is allocated as power-of-2 but may be partially filled;
+    // uploading the full allocation sends uninitialized memory to the GPU driver.
+    uint16_t max_idx = 0;
+    for (uint32_t i = 0; i < index_count; i++) {
+        if (indices[i] > max_idx) max_idx = indices[i];
+    }
+    uint32_t vert_count = (uint32_t)max_idx + 1;
+
+    // Validate: skip draw if any referenced vertex contains uninitialized data.
+    // 0xCDCDCDCD = MSVC debug heap fill. Catches stale/corrupt vertex buffers
+    // before they crash the GPU driver.
+    {
+        const uint32_t* raw = (const uint32_t*)buf->data;
+        uint32_t floats_per_vert = 32 / 4; // GEVertexTL = 32 bytes = 8 uint32s
+        for (uint32_t i = 0; i < index_count; i++) {
+            uint32_t vi = indices[i];
+            const uint32_t* v = raw + vi * floats_per_vert;
+            // Check x, y, z, rhw (first 4 floats) for 0xCDCDCDCD or NaN
+            for (int f = 0; f < 4; f++) {
+                if (v[f] == 0xCDCDCDCD) {
+                    fprintf(stderr, "VB SKIP: uninitialized vertex %u (field %d = 0xCDCDCDCD), idx_count=%u vert_count=%u logsize=%u\n",
+                            vi, f, index_count, vert_count, buf->logsize);
+                    return; // skip this draw call entirely
+                }
+                float fv;
+                memcpy(&fv, &v[f], 4);
+                if (fv != fv) { // NaN check
+                    fprintf(stderr, "VB SKIP: NaN in vertex %u field %d, idx_count=%u vert_count=%u\n",
+                            vi, f, index_count, vert_count);
+                    return;
+                }
+            }
+        }
+    }
 
     // VB data is GEVertexTL layout (screen-space, pre-transformed).
     glUseProgram(s_program_tl);
@@ -1633,7 +1676,16 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
+    // Flush any prior GL errors so we only catch errors from this draw.
+    while (glGetError() != GL_NO_ERROR) {}
+
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
+
+    GLenum err = glGetError();
+    if (err != GL_NO_ERROR) {
+        fprintf(stderr, "GL ERROR after DrawElements(vb): 0x%04X, idx_count=%u vert_count=%u tex=%u\n",
+                err, index_count, vert_count, (unsigned)s_bound_texture);
+    }
 
     glBindVertexArray(0);
     glUseProgram(0);
