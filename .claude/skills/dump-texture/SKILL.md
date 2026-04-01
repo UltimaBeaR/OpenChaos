@@ -2,17 +2,22 @@
 name: dump-texture
 description: >
   Dump and visualize game resource images (textures from clump/TGA).
-  Use when need to see what a texture actually looks like — debug rendering bugs,
-  check alpha channels, inspect atlas layouts, compare with D3D6 version.
+  Use when you need to see what a texture actually looks like — debug rendering
+  bugs, check alpha channels, inspect atlas layouts, compare OpenGL vs D3D6
+  output, verify texture loading. Trigger when: investigating visual glitches
+  (wrong colors, missing alpha, ghost pixels), the user says "покажи текстуру",
+  "что за текстура", "dump texture", or when you need to inspect pixel data
+  to understand a rendering issue. Also useful when comparing how a texture
+  appears in-game vs what's stored in the clump file.
 ---
 
 # Dump Texture — debug visualization of GPU textures
 
 ## How to dump a texture
 
-### 1. Add temporary dump code in `backend_opengl/game/core.cpp`
+### 1. Add temporary dump code
 
-Insert BEFORE the `gl_upload_texture(tex, pixels, ...)` call in `gl_load_tga()`:
+Insert in `backend_opengl/game/core.cpp` BEFORE the `gl_upload_texture(tex, pixels, ...)` call in `gl_load_tga()`:
 
 ```cpp
 // DEBUG: dump texture as raw BGRA file.
@@ -23,15 +28,13 @@ if (tex.file_id == PAGE_NUMBER && load_w == EXPECTED_SIZE) {
 }
 ```
 
-Replace `PAGE_NUMBER` with the texture page ID (find via `TEXTURE_page_*` constants — value is `TEXTURE_NUM_STANDARD + offset`, where TEXTURE_NUM_STANDARD = 1408).
+Replace `PAGE_NUMBER` with the texture page ID. The page ID = `TEXTURE_NUM_STANDARD (1408) + offset`, where offset comes from texture.cpp constants.
 
-### 2. Build debug, run, close game
+### 2. Build, run, close game
 
 ```bash
 make build-debug
-build/Debug/Fallen.exe 2> gl_tex_debug.txt
 ```
-
 The .raw file appears next to the executable.
 
 ### 3. Convert to PNG with Python
@@ -49,15 +52,15 @@ for mode, name, sel in [('RGB','rgb',lambda p:(p[0],p[1],p[2])), ('L','alpha',la
 
 Use `Read` tool on the PNG files — Claude can see images directly.
 
-- **tex_rgb.png** — RGB without alpha mask. Shows "ghost" pixels that are invisible with alpha blend but visible with additive blend.
+- **tex_rgb.png** — RGB without alpha. Shows "ghost" pixels invisible with alpha blend but visible with additive blend.
 - **tex_alpha.png** — Alpha channel only. White = opaque, black = transparent.
 - **tex_rgba.png** — Full RGBA composite.
 
 ### 5. Clean up
 
-Remove the debug dump code after investigation. Don't commit it.
+Remove debug dump code after investigation. Don't commit it.
 
-## Quick debug stats (without full dump)
+## Quick alpha stats (without full dump)
 
 Add to `gl_load_tga()` after pixel data is loaded:
 
@@ -83,9 +86,7 @@ Add to `gl_load_tga()` after pixel data is loaded:
 }
 ```
 
-Redirect stderr: `build/Debug/Fallen.exe 2> tex_debug.txt`
-
-## Useful texture page IDs
+## Known texture page IDs
 
 | Texture | Page | File |
 |---------|------|------|
@@ -93,6 +94,6 @@ Redirect stderr: `build/Debug/Fallen.exe 2> tex_debug.txt`
 | TEXTURE_page_lcdfont | 1458 | olyfont2.tga |
 | TEXTURE_page_lastpanel | 1473 | PCdisplay.tga |
 | TEXTURE_page_lastpanel2 | 1477 | PCdisplay01.tga |
-| TEXTURE_page_ic | 1454 | (from clump, no standalone file) |
+| TEXTURE_page_ic | 1454 | (from clump) |
 
 Formula: `TEXTURE_NUM_STANDARD (1408) + offset` (offset from texture.cpp).

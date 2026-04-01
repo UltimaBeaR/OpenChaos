@@ -4,58 +4,64 @@ description: >
   Attach to the running game process with cdb (Windows debugger) to inspect
   stack traces, variables, and game state. Use for crash investigation,
   freeze debugging, and understanding what the game is currently doing.
+  Use this skill whenever the game is frozen/hung and crash handler didn't fire,
+  when you need to read a global variable's current value, or when crash_log.txt
+  isn't enough and you need live process inspection. Also consider this skill
+  when the user describes behavior that suggests the game is stuck in a loop
+  or waiting on something.
   TRIGGER: user says "attach", "where am I", "what's happening", "it froze",
-  "hang", "зависло", "подключись", "посмотри что происходит".
+  "hang", "зависло", "подключись", "посмотри что происходит", "повисло",
+  "не отвечает", "game stuck".
 ---
 
 # Debugger — live attach to the running game
 
+## Quick reference
+
+```bash
+CDB="/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/cdb.exe"
+PID=$(tasklist | grep -i fallen | awk '{print $2}')
+"$CDB" -p $PID -y "C:\\WORK\\OpenChaos\\new_game\\build\\Debug" -c "~0kb;qd" 2>&1 | grep "Fallen!" | head -15
+```
+
+Always use `qd` (detach) not `q` (kills the process).
+
 ## When to use
 
-- **Freeze/hang**: game stops responding, crash handler does NOT fire. Attach and read the stack.
-- **Understanding game state**: user asks "where am I?", "what screen is this?", what variable has what value.
-- **Crash investigation**: when crash_log.txt is insufficient and you need more context.
-- **Development**: user is on a level/screen and wants to discuss a feature — attach to see context.
+- **Freeze/hang**: game stops responding, crash handler does NOT fire — attach and read the stack
+- **Understanding game state**: what screen is this, what variable has what value
+- **Crash investigation**: when crash_log.txt is insufficient and you need more context
+- **Development**: user is on a level/screen and wants to discuss a feature — attach to see context
 
-**⚠️ NEVER attach without explicit, unambiguous user permission.** Always ask and wait for confirmation.
+**Never attach without the user's explicit permission.** Always ask first and wait for confirmation.
 
 ## Prerequisites
 
-cdb.exe (Windows SDK Debugging Tools) must be installed. Check:
-```
+cdb.exe must be installed. Check:
+```bash
 ls "/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/cdb.exe"
 ```
-If not found, run the `debugger-install` skill.
+If not found, use the `debugger-install` skill.
 
-## Core commands
-
-### CDB path
-```bash
-CDB="/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/cdb.exe"
-```
+## Commands
 
 ### Find the game process
 ```bash
 tasklist | grep -i fallen
 ```
-Note the PID (first number after the name).
 
-### Attach and get stack of main thread
+### Stack of main thread
 ```bash
 "$CDB" -p <PID> -y "C:\\WORK\\OpenChaos\\new_game\\build\\Debug" -c "~0kb;qd" 2>&1 | grep "Fallen!" | head -15
 ```
-- `-p <PID>` — attach to process
-- `-y "..."` — symbol path (PDB location, Debug build required for symbols)
-- `-c "commands"` — execute and exit
-- `~0kb` — stack of thread 0 (main thread), `~*kb` — all threads
-- `qd` — detach and quit (game continues running!)
+- `~0kb` = main thread stack, `~*kb` = all threads
+- `-y` = symbol path (PDB location, Debug build needed for symbols)
 
 ### Read a global variable
 ```bash
 "$CDB" -p <PID> -y "..." -c "dd Fallen!variable_name L1;qd" 2>&1 | grep "^00007"
 ```
-- `dd` — display DWORDs, `da` — display ASCII string, `db` — display bytes
-- `L1` — show 1 element
+`dd` = DWORDs, `da` = ASCII string, `db` = bytes, `L1` = 1 element
 
 ### Dump a struct
 ```bash
@@ -68,50 +74,46 @@ Note the PID (first number after the name).
 ```
 
 ### Symbolize RVA to source line
-After getting an RVA from crash_log.txt or cdb:
 ```bash
 llvm-symbolizer -e c:/WORK/OpenChaos/new_game/build/Debug/Fallen.exe --relative-address <RVA>
 ```
-`--relative-address` is mandatory!
+`--relative-address` is mandatory.
 
 ## Interpreting the stack
 
-The stack tells you WHERE the game is. Key function names:
+The stack tells you WHERE the game is:
 
 | Stack contains | Meaning |
 |----------------|---------|
 | `game_attract_mode` + `AENG_flip` (no FRONTEND) | Main menu, attract mode |
 | `game_attract_mode` + `FRONTEND_loop` + `OS_hack` | Outro screen (3D character) |
-| `game_attract_mode` + `FRONTEND_loop` (no OS_hack) | Frontend submenu (Start, Options, etc.) |
-| `game_loop` + `process_things` | In-game, processing game logic |
+| `game_attract_mode` + `FRONTEND_loop` (no OS_hack) | Frontend submenu |
+| `game_loop` + `process_things` | In-game, processing logic |
 | `game_loop` + `draw_screen` + `AENG_draw` | In-game, rendering |
 | `PLAYCUTS_Play` | Cutscene playing |
 
-**Always check the stack FIRST, then variables.** Stack doesn't lie.
-Variables can be stale from a previous screen.
+Check the stack FIRST, then variables. Stack doesn't lie — variables can be stale.
 
 ## Useful game state variables
 
-| Variable | Type | What it tells you |
-|----------|------|-------------------|
-| `menu_state` (struct) | `.title`, `.selected`, `.mode`, `.stackpos` | Current menu screen and selection |
-| `mission_selected` | SWORD | Selected mission index in mission_cache[] |
-| `mission_cache[N]` | struct | `.name` = mission name for index N |
-| `district_selected` | SWORD | Selected district on map |
-| `GAME_TURN` | ULONG | Current game tick (increases each frame in gameplay) |
+| Variable | What it tells you |
+|----------|-------------------|
+| `menu_state` (struct) | Current menu screen and selection |
+| `mission_selected` | Selected mission index |
+| `district_selected` | Selected district on map |
+| `GAME_TURN` | Current game tick |
 
-## Filtering cdb output
+## Filtering cdb noise
 
-cdb prints a lot of noise (NatVis, module loads, copyright). Filter with:
+cdb prints a lot of noise. Filter with:
 ```bash
-2>&1 | grep "Fallen!\|+0x0"    # for symbols and struct fields
-2>&1 | grep "^00007"            # for raw memory dumps
+2>&1 | grep "Fallen!\|+0x0"    # symbols and struct fields
+2>&1 | grep "^00007"            # raw memory dumps
 ```
 
-## Important notes
+## Important
 
-- **Always use `qd` (quit detach)** — not `q` (quit kill)! `q` terminates the game.
-- **Debug build required** for symbol names. Release build shows only RVAs.
-- **Attach is non-destructive** — game pauses briefly during attach, then resumes after `qd`.
-- **Game must be running** — check with `tasklist | grep -i fallen` first.
+- **`qd` = detach** (game continues). **`q` = kill** (terminates the game). Always use `qd`.
+- **Debug build required** for symbol names. Release shows only RVAs.
+- **Attach is non-destructive** — game pauses briefly, then resumes after `qd`.
 - If game crashes during attach, it was already in a bad state.

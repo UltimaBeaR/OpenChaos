@@ -2,23 +2,22 @@
 name: screenshot
 description: >
   Take a screenshot of the game window (Fallen.exe). Use when the user asks
-  to see the game screen, or when you need to see what's rendered.
-  NEVER take screenshots proactively — only when user explicitly asks or confirms.
-  TRIGGER: user says "скрин", "screenshot", "покажи что на экране", "сделай скрин",
-  "что сейчас видно".
+  to see the game screen, or when you need to see what's currently rendered.
+  Never take screenshots proactively — only when the user explicitly asks or
+  confirms. Trigger when: user says "скрин", "screenshot", "покажи что на экране",
+  "сделай скрин", "что сейчас видно", "скринь", "сфоткай", "покажи экран",
+  or when you suggest taking a screenshot and the user agrees.
 ---
 
 # Screenshot — capture the game window
 
 ## When to use
-- If user **explicitly** says "сделай скрин", "screenshot", "скринь" — just do it, don't ask
-- If you **think** a screenshot would help but user didn't explicitly ask — ask first: "Сделать скриншот?"
-- **NEVER take screenshots proactively without permission**
 
-## How to capture
+- User **explicitly** says "сделай скрин", "screenshot", "скринь" — just do it
+- You **think** a screenshot would help but user didn't ask — ask first: "Сделать скриншот?"
+- **Never take screenshots without permission**
 
-Run this PowerShell command (note: class name must be unique per session —
-if PowerShell complains about duplicate type, change `ScrCap` to `ScrCap2` etc.):
+## Capture command
 
 ```bash
 powershell -c "
@@ -57,17 +56,18 @@ Write-Host 'OK'
 " 2>&1
 ```
 
+**If PowerShell complains about duplicate type `ScrCap`** — change `ScrCap` to `ScrCap2`, `ScrCap3`, etc. (types persist per PowerShell session).
+
 ## After capturing
 
 1. Read the screenshot: `Read` tool on `c:\WORK\OpenChaos\_CLAUDE_SCREEN.png`
 2. Show the user a clickable link: `[screenshot](_CLAUDE_SCREEN.png)`
 3. Describe what you see
-4. File is overwritten each time (no history), gitignored
+4. File is overwritten each time, gitignored
 
-## Key details
+## Technical details
 
-- `SetProcessDPIAware()` — required, otherwise window coordinates are wrong on scaled displays
-- `DwmGetWindowAttribute(hwnd, 9=DWMWA_EXTENDED_FRAME_BOUNDS)` — gives real window bounds without shadow
-- `IsIconic` + `ShowWindow(hwnd, 9=SW_RESTORE)` — restores if minimized
-- `SetForegroundWindow` + sleep — brings window to front before capture
-- `CopyFromScreen` — captures the screen area (works with OpenGL unlike PrintWindow)
+- `SetProcessDPIAware()` — required for correct coordinates on scaled displays
+- `DwmGetWindowAttribute(hwnd, 9)` — real window bounds without shadow
+- `IsIconic` + `ShowWindow(9)` — restores if minimized
+- `CopyFromScreen` — works with OpenGL (unlike PrintWindow)
