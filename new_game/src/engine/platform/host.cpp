@@ -287,6 +287,25 @@ static void crash_signal_handler(int sig)
 }
 #endif
 
+// ASSERT() failure handler: writes details to crash_log.txt and stderr, then aborts.
+void uc_assert_fail(const char* expr, const char* file, int line)
+{
+    g_exit_log_written = true;
+
+    FILE* f = fopen("crash_log.txt", "w");
+    if (f) {
+        write_exit_timestamp(f, "Crash (ASSERT)");
+        fprintf(f, "Assertion failed: %s\n", expr);
+        fprintf(f, "File: %s\n", file);
+        fprintf(f, "Line: %d\n", line);
+        fflush(f);
+        fclose(f);
+    }
+
+    fprintf(stderr, "ASSERT failed: %s (%s:%d)\n", expr, file, line);
+    abort();
+}
+
 int HOST_run(int argc_in, char* argv_in[])
 {
     // Timestamp at the very start of stderr (redirected to stderr.log by Makefile)

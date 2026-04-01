@@ -159,12 +159,11 @@ typedef char CBYTE;
 #define UC_TRUE 1
 #endif
 
-// The outro uses its own no-op ASSERT (original used __assume for the optimizer).
-// uc_orig: ASSERT (fallen/outro/always.h)
-#define ASSERT(x)    \
-    {                \
-        __assume(x); \
-    }
+// Outro uses the same project-wide ASSERT (logs to crash_log.txt and aborts).
+// uc_orig: ASSERT (fallen/outro/always.h) — was __assume(x), now a real check.
+void uc_assert_fail(const char* expr, const char* file, int line);
+#define ASSERT(x) \
+    do { if (!(x)) uc_assert_fail(#x, __FILE__, __LINE__); } while(0)
 // uc_orig: VERIFY (fallen/outro/always.h)
 #define VERIFY(x) x
 

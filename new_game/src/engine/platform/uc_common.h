@@ -80,10 +80,12 @@ BOOL LibShellActive(void);
 BOOL LibShellChanged(void);
 BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 
+// Assert: logs condition, file, line to crash_log.txt and stderr, then aborts.
+// Writes crash_log.txt directly (before abort's SIGABRT handler) so details are preserved.
 #ifndef ASSERT
+void uc_assert_fail(const char* expr, const char* file, int line);
 #define ASSERT(e) \
-    {             \
-    }
+    do { if (!(e)) uc_assert_fail(#e, __FILE__, __LINE__); } while(0)
 #endif
 
 #include "engine/core/macros.h"
