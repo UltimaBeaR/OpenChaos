@@ -98,6 +98,7 @@ CLAUDE.md                           — этот файл
 - **Отладка:** скиллы `debugger` (attach к процессу, стеки, переменные), `debug-log` (временное логирование в файл), `screenshot` (скриншот окна игры), `debugger-install` (установка cdb.exe)
   - **Выбирать инструмент по ситуации** — цель: минимум действий от пользователя. Краш → crash_log.txt. Freeze → debugger attach. Нужно видеть что на экране → screenshot. Нужны значения переменных по тикам → debug-log. Комбинировать по необходимости.
   - **Exit/crash logging:** `crash_log.txt` пишется рядом с exe при **любом** завершении программы:
+    - ASSERT() fail → `uc_assert_fail()` в `host.cpp` → "Crash (ASSERT)" + условие + файл + строка, затем abort()
     - Нормальный выход (return/exit) → `atexit` handler в `host.cpp` → "Clean exit"
     - abort() → `SIGABRT` handler в `host.cpp` → "Crash (abort)"
     - Access violation, div-by-zero → exception filter в `crash_handler_win.cpp` → "Crash (exception)" + регистры + стектрейс
@@ -106,6 +107,7 @@ CLAUDE.md                           — этот файл
     - Единственное что НЕ ловится: `TerminateProcess()` / `kill -9` (ОС убивает мгновенно)
     - `stderr.log` (перенаправляется Makefile'ом) начинается с таймстампа `=== Session started: ... ===`
     - Флаг `g_exit_log_written` предотвращает перезапись между хендлерами
+  - **ASSERT()** — рабочий макрос (не пустышка). Определён в `uc_common.h` и `outro_always.h`, реализация `uc_assert_fail()` в `host.cpp`. При срабатывании: пишет crash_log.txt (условие, файл, строка) + stderr, затем abort(). При появлении окна ассерта — жать Abort, детали будут в crash_log.txt автоматически.
   - **Символизация:** `llvm-symbolizer -e build/Debug/Fallen.exe --relative-address <RVA>` (флаг `--relative-address` обязателен!)
 - **Типичные 64-бит баги и паттерны фиксов** → `new_game_devlog/x64_porting_notes.md`
 - **Скиллы — живые документы:** если в процессе работы обнаружена новая полезная информация, приём или ноу-хау которые стоит записать в скилл (новый или существующий) — предложить пользователю обновить скилл.
