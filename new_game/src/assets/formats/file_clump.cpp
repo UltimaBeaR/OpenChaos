@@ -92,7 +92,9 @@ UBYTE* FileClump::Read(ULONG id)
     if (!Offsets[id])
         return NULL;
 
-    UBYTE* buffer = new UBYTE[Lengths[id]];
+    // +2 padding: ReadSquished bit-stream decoder may read 1 UWORD past the
+    // compressed data on the final iteration (benign overread in original code).
+    UBYTE* buffer = new UBYTE[Lengths[id] + 2]();
 
     if (buffer) {
         fseek(ClumpFD, Offsets[id], SEEK_SET);

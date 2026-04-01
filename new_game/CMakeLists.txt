@@ -43,6 +43,12 @@ find_package(SDL3   CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
 
 # ---------------------------------------------------------------------------
+# Optional: AddressSanitizer for memory error detection (heap overflows, etc.)
+# Usage: cmake -DENABLE_ASAN=ON ... (or `make configure-asan`)
+# ---------------------------------------------------------------------------
+option(ENABLE_ASAN "Enable AddressSanitizer (heap overflow detection)" OFF)
+
+# ---------------------------------------------------------------------------
 # GamepadCore (Dualsense-Multiplatform) — vendored static library
 # ---------------------------------------------------------------------------
 # GamepadCore: include Source/ directly (skip the top-level CMakeLists.txt which has
@@ -54,6 +60,12 @@ set(GAMEPADCORE_MINIAUDIO "${CMAKE_CURRENT_SOURCE_DIR}/libs/dualsense-multiplatf
 target_sources(GamepadCore PRIVATE "${GAMEPADCORE_MINIAUDIO}/miniaudio_impl.cpp")
 target_include_directories(GamepadCore PUBLIC "${GAMEPADCORE_MINIAUDIO}")
 target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
+
+# ASan: apply to GamepadCore too (avoids annotate_string linker mismatch)
+if(ENABLE_ASAN)
+    target_compile_options(GamepadCore PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(GamepadCore PRIVATE -fsanitize=address)
+endif()
 
 # ---------------------------------------------------------------------------
 # Graphics backend selection
@@ -570,6 +582,9 @@ target_compile_options(Fallen PRIVATE
     $<$<CONFIG:Release>:-O2>
     $<$<CONFIG:Release>:-fno-inline-functions>
     $<$<CONFIG:Release>:-fno-strict-aliasing>
+    # AddressSanitizer: detects heap overflows, use-after-free, etc.
+    $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address>
+    $<$<BOOL:${ENABLE_ASAN}>:-fno-omit-frame-pointer>
 )
 
 # ---------------------------------------------------------------------------
@@ -605,6 +620,11 @@ if(WIN32)
     target_link_options(Fallen PRIVATE "LINKER:/ENTRY:mainCRTStartup")
     # Debug: generate PDB for crash symbolization (llvm-symbolizer --relative-address).
     target_link_options(Fallen PRIVATE $<$<CONFIG:Debug>:LINKER:/DEBUG>)
+endif()
+
+# ASan linker flags (must be outside the WIN32 block for cross-platform support)
+if(ENABLE_ASAN)
+    target_link_options(Fallen PRIVATE -fsanitize=address)
 endif()
 
 # ---------------------------------------------------------------------------

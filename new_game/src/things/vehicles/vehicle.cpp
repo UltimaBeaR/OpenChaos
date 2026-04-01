@@ -1026,7 +1026,7 @@ static void init_arctans(void)
         arctan_table[WHEELTIME + ii] = +Arctan(ii, -WHEELRATIO) & 2047;
     }
 
-    for (ii = 0; ii <= 2 * WHEELTIME + 1; ii++) {
+    for (ii = 0; ii < 2 * WHEELTIME + 1; ii++) {
         if (arctan_table[ii] > 1024)
             arctan_table[ii] -= 2048;
     }

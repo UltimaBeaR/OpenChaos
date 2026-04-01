@@ -51,16 +51,27 @@ OpenGL бэкенд использовал один `s_vbo` для всех draw
 `malloc` в `ge_vb_alloc` не инициализировал буфер. В debug — `0xCDCDCDCD`, при отправке в GPU — краш.
 **Фикс:** `calloc` вместо `malloc`.
 
-### 8. Корневая причина — heap corruption в legacy коде
+### 8. Корневая причина — ~~heap corruption в legacy коде~~ **НАЙДЕНА: ge_vb_expand overflow**
 
-После всех фиксов выше краш **сохраняется**. Финальное исследование показало:
-- CRT обнаруживает **write past end of 65536-byte heap block**
-- Canary (16 байт 0xFE) после наших VB буферов **не повреждён** → corruption в другом буфере
-- Наши данные полностью валидны: page touch проходит, индексы в пределах, вершины zero-init
-- `glBufferData` крашится при внутренней аллокации/копировании, потому что heap повреждён
-- На D3D6 не проявляется т.к. D3D использует собственный allocator для VB, не CRT heap
+**ASan нашёл root cause (2026-04-02):**
+- `ge_vb_alloc` переиспользует VB слот от предыдущей крупной аллокации
+- Устанавливает маленький `logsize` (запрошенный), но `capacity` остаётся большой (от прошлого использования)
+- `ge_vb_expand` вычисляет `needed = (1 << (logsize+1)) * 32` — маленький буфер
+- `calloc(needed)` аллоцирует 65536 байт
+- `memcpy(new_data, buf->data, buf->capacity)` копирует 131072 байт — **вдвое больше!**
+- Overflow портит CRT heap metadata → краши в произвольных местах
 
-**Вывод:** heap overflow в legacy game коде (не в GL backend, не в VB pool) портит CRT heap metadata. Нужен Address Sanitizer или аналог для поиска конкретного overflow.
+**Фикс:** в `ge_vb_expand` — если `buf->capacity >= needed`, буфер уже достаточно большой, просто обновить `logsize` без реаллокации.
+
+### 9. Попутные баги найденные ASan
+
+ASan останавливается на первой ошибке, поэтому по пути к целевому крашу пришлось исправить 5 других багов:
+
+1. **ReadSquished overread** (tga.cpp) — чтение 2 байт за концом буфера при распаковке текстур. Фикс: +2 padding в FileClump::Read.
+2. **strcpy overlap** (xlat_str.cpp) — `strcpy(scan+1, test)` с перекрывающимися буферами. Фикс: `memmove`.
+3. **arctan_table off-by-one** (vehicle.cpp) — `<=` вместо `<` в цикле инициализации. Фикс: `ii < 2 * WHEELTIME + 1`.
+4. **SIN table overflow** (figure.cpp, draw_flames) — индекс до 10000 при размере таблицы 2560. Фикс: маска `& 2047`.
+5. **CMatrix33 tmat use-after-scope** (figure.cpp) — указатель на локальную переменную внутри цикла, используемый после выхода из scope. Фикс: массив `tmat[MAX_RECURSION]` на уровне функции.
 
 ## Что проверяли и исключили
 
@@ -68,7 +79,7 @@ OpenGL бэкенд использовал один `s_vbo` для всех draw
 |----------|-----------|
 | Uninit vertex data (0xCDCDCDCD, NaN) | Нет — calloc, проверки чисты |
 | Индексы за пределами буфера | Нет — max_idx < alloc_verts |
-| VB buffer overrun (canary) | Нет — canary цел |
+| VB buffer overrun (canary) | Нет — canary цел (corruption была в ge_vb_expand, не в VB data) |
 | Невалидный VB handle (magic) | Нет — magic совпадает |
 | Невалидный buf->data (page touch) | Нет — все страницы читаемы |
 | Невалидная текстура (glIsTexture) | Нет — текстуры валидны |
@@ -76,6 +87,7 @@ OpenGL бэкенд использовал один `s_vbo` для всех draw
 | VB data freed (use-after-free в expand) | Да, пофикшено, но краш остался |
 | Shared VBO orphaning | Пофикшено (per-slot), краш остался |
 | PointAlloc overrun | Нет — ASSERT(m_VBUsed + num_points <= GetVBSize()) не сработал |
+| **ge_vb_expand logsize/capacity mismatch** | **ДА — ROOT CAUSE. ASan поймал.** |
 
 ## Архитектурные изменения (оставлены)
 
@@ -86,9 +98,5 @@ OpenGL бэкенд использовал один `s_vbo` для всех draw
 5. **Exit/crash logging** — crash_log.txt при любом завершении
 6. **ASSERT** — рабочий макрос вместо no-op
 7. **CRT report hook** — перехват CRT assert текста
-
-## Следующие шаги
-
-- Address Sanitizer (`-fsanitize=address` в clang) для поиска heap overflow
-- Или `gflags.exe /p /enable Fallen.exe /full` (Page Heap) — ловит overruns через guard pages
-- Искать 65536-byte аллокации в game коде которые могут переполняться
+8. **ge_vb_expand capacity check** — skip realloc if buffer already large enough
+9. **ASan support** — `make configure-asan` для поиска memory bugs (скилл `.claude/skills/asan/`)

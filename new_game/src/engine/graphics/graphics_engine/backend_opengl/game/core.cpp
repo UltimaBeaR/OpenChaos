@@ -1596,6 +1596,15 @@ void* ge_vb_expand(void* vb, void** out_ptr, uint32_t* out_logsize)
     uint32_t new_count = 1u << new_logsize;
     uint32_t needed = new_count * 32;
 
+    // If the buffer is already large enough (reused slot from a previous larger
+    // allocation), just bump logsize — no reallocation needed.
+    if (buf->data && buf->capacity >= needed) {
+        buf->logsize = new_logsize;
+        if (out_ptr) *out_ptr = buf->data;
+        if (out_logsize) *out_logsize = new_logsize;
+        return buf;
+    }
+
     // Use malloc + memcpy instead of realloc to avoid invalidating old pointer.
     // Old data stays valid (for any code that cached the pointer) until the
     // slot is reused in a later frame.

@@ -635,7 +635,7 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
             case 0:
             case 3:
                 trans = abs(dy - y) * 20;
-                trans = SIN(trans);
+                trans = SIN(trans & 2047);
                 trans |= 0x00FFFFFF;
                 scale = 100;
                 dy = y;
@@ -2469,6 +2469,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     SLONG dx, dy, dz;
     UWORD f1, f2;
     struct Matrix33* rot_mat;
+    CMatrix33 tmat[MAX_RECURSION]; // one per recursion level (pointer stored in pDHPR1Inc)
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -2658,9 +2659,8 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             ASSERT(iPartNumber >= 0);
             ASSERT(iPartNumber <= 14);
             pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-            CMatrix33 tmat;
-            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat);
-            pDHPR1Inc->parent_base_mat = &tmat;
+            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat[recurse_level]);
+            pDHPR1Inc->parent_base_mat = &tmat[recurse_level];
             pDHPR1Inc->parent_base_pos = &(pDHPR1->pos);
             pDHPR1Inc->parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
             pDHPR1Inc->parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
@@ -2771,6 +2771,7 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     SLONG dx, dy, dz;
     UWORD f1, f2;
     struct Matrix33* rot_mat;
+    CMatrix33 tmat[MAX_RECURSION]; // one per recursion level (pointer stored in pDHPR1Inc)
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -2884,9 +2885,8 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
             ASSERT(iPartNumber >= 0);
             ASSERT(iPartNumber <= 14);
             pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-            CMatrix33 tmat;
-            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat);
-            pDHPR1Inc->parent_base_mat = &tmat;
+            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat[recurse_level]);
+            pDHPR1Inc->parent_base_mat = &tmat[recurse_level];
             pDHPR1Inc->parent_base_pos = &(pDHPR1->pos);
             pDHPR1Inc->parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
             pDHPR1Inc->parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;

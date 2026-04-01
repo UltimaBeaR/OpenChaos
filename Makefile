@@ -47,7 +47,8 @@ define run_configure
 	  "-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_CMAKE)" \
 	  "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(TOOLCHAIN)" \
 	  "-DVCPKG_INSTALLED_DIR=$(abspath $(SRC_DIR)/vcpkg_installed)" \
-	  "-DGRAPHICS_BACKEND=$(1)"
+	  "-DGRAPHICS_BACKEND=$(1)" \
+	  $(CMAKE_EXTRA_ARGS)
 endef
 
 configure-opengl:
@@ -55,6 +56,18 @@ configure-opengl:
 
 configure-d3d6:
 	$(call run_configure,d3d6)
+
+# ASan: configure with AddressSanitizer enabled, copy runtime DLL
+configure-asan:
+	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure-opengl
+	@ASAN_DLL=$$(clang -print-file-name=clang_rt.asan_dynamic-x86_64.dll); \
+	  if [ -f "$$ASAN_DLL" ]; then \
+	    cp "$$ASAN_DLL" $(BUILD_DIR)/Debug/ 2>/dev/null; \
+	    cp "$$ASAN_DLL" $(BUILD_DIR)/Release/ 2>/dev/null; \
+	    echo "ASan DLL copied to build dirs"; \
+	  else \
+	    echo "WARNING: ASan DLL not found at $$ASAN_DLL"; \
+	  fi
 
 # ---------------------------------------------------------------------------
 # Build (requires configure-opengl or configure-d3d6 to be run first)

@@ -155,7 +155,7 @@ static void XLAT_compress_tokens(CBYTE* txt)
             *scan = 1;
             scan++;
             *scan = atoi(buff);
-            strcpy(scan + 1, test);
+            memmove(scan + 1, test, strlen(test) + 1);
             txt = scan + 1;
         } else {
             *scan = 1;
