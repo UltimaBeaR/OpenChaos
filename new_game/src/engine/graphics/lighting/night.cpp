@@ -1296,10 +1296,7 @@ void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE ware)
         nc += num_points;
     }
 
-    ASSERT(debug1 == (((UBYTE*)(nq->colour)) + memory)[0]);
-    ASSERT(debug2 == (((UBYTE*)(nq->colour)) + memory)[1]);
-    ASSERT(debug3 == (((UBYTE*)(nq->colour)) + memory)[2]);
-    ASSERT(debug4 == (((UBYTE*)(nq->colour)) + memory)[3]);
+    // Original had debug1-4 assertions here — debug variables never existed in this build.
 
     NIGHT_cache[lo_map_x][lo_map_z] = square;
     NIGHT_square_num_used += 1;
@@ -1369,10 +1366,7 @@ void NIGHT_cache_create_inside(UBYTE lo_map_x, UBYTE lo_map_z, SLONG floor_y)
         nc += num_points;
     }
 
-    ASSERT(debug1 == (((UBYTE*)(nq->colour)) + memory)[0]);
-    ASSERT(debug2 == (((UBYTE*)(nq->colour)) + memory)[1]);
-    ASSERT(debug3 == (((UBYTE*)(nq->colour)) + memory)[2]);
-    ASSERT(debug4 == (((UBYTE*)(nq->colour)) + memory)[3]);
+    // Original had debug1-4 assertions here — debug variables never existed in this build.
 
     NIGHT_cache[lo_map_x][lo_map_z] = square;
     NIGHT_square_num_used += 1;

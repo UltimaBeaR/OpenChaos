@@ -7,6 +7,7 @@
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "map/level_pools.h"
+#include "assets/formats/anim_globals.h" // next_prim_face4, next_prim_point (for ASSERTs)
 
 // Fixed directional light vector components (sun direction, world-space fixed-point).
 // uc_orig: SHADOW_DIR_X (fallen/Source/shadow.cpp)

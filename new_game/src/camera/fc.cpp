@@ -16,6 +16,7 @@
 #include "map/pap.h"
 #include "engine/input/gamepad.h"    // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // gamepad_state (right stick camera)
+#include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
 // Applied to cam_dist and camera height offsets.

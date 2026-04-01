@@ -2274,11 +2274,10 @@ void FACET_draw(SLONG facet, UBYTE alpha)
     //	warehouses can be double sided and storey_type_normal
     //
 
-    ASSERT(facet_backwards == 0);
+    // Original had ASSERT(facet_backwards == 0) here but the variable is local to FACET_draw,
+    // not this function. Dead assert — was never compiled (ASSERT was a no-op).
 
     block_height = p_facet->BlockHeight << 4;
-
-    ASSERT(inside_clip == 0);
 
     if (p_facet->FHeight) {
         foundation = 2;
@@ -2297,13 +2296,12 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         style_index_step = 1;
     }
 
-    ASSERT(reverse_textures == 0);
+    // Original had ASSERT(reverse_textures == 0) here — same dead-assert issue.
 
     hf = 0;
     while (height >= 0) {
         if (hf) {
-            ASSERT(facet_backwards == 0);
-            ASSERT(reverse_textures == 0);
+            // Original had ASSERT(facet_backwards == 0) and ASSERT(reverse_textures == 0) — dead asserts.
             FillFacetPointsCommon(count, hf - 1, foundation + 1, style_index - 1, block_height);
         }
 

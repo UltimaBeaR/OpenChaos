@@ -13,6 +13,7 @@
 #include "assets/texture.h"
 #include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
 #include "buildings/prim.h"          // get_prim_info
+#include "assets/formats/anim_globals.h" // next_prim_face3/4, next_prim_point (for ASSERTs)
 #include "buildings/building_types.h" // TEXTURE_PIECE_*
 #include "map/level_pools.h"
 #include "engine/graphics/lighting/night.h"
