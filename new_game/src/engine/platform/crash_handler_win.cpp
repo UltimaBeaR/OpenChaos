@@ -156,10 +156,37 @@ static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
     return FALSE; // Let default handler terminate the process
 }
 
+// CRT invalid parameter handler: catches CRT assertion failures (e.g. from libraries).
+// Writes details to crash_log.txt before abort.
+static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
+                                       const wchar_t* file, unsigned int line, uintptr_t)
+{
+    extern volatile bool g_exit_log_written;
+    if (g_exit_log_written) return;
+    g_exit_log_written = true;
+
+    FILE* f = fopen("crash_log.txt", "w");
+    if (f) {
+        write_crash_timestamp(f, "Crash (CRT invalid parameter)");
+        if (expr) fprintf(f, "Expression: %ls\n", expr);
+        if (func) fprintf(f, "Function: %ls\n", func);
+        if (file) fprintf(f, "File: %ls line %u\n", file, line);
+        fflush(f);
+        fclose(f);
+    }
+    if (expr) fprintf(stderr, "CRT invalid param: %ls (%ls:%u)\n", expr, file ? file : L"?", line);
+}
+
 extern "C" void install_crash_handler(void)
 {
     SetUnhandledExceptionFilter(crash_exception_handler);
     SetConsoleCtrlHandler(console_ctrl_handler, TRUE);
+
+    // Suppress CRT abort dialog so abort() goes straight to our SIGABRT handler.
+    _set_abort_behavior(0, _WRITE_ABORT_MSG);
+
+    // Catch CRT invalid parameter errors (triggered by assert-like checks in CRT).
+    _set_invalid_parameter_handler(crt_invalid_param_handler);
 }
 
 #endif // _WIN32
