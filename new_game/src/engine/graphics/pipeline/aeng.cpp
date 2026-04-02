@@ -34,7 +34,6 @@
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
-#include "engine/platform/sdl3_bridge.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -3894,21 +3893,6 @@ void AENG_draw_city()
     void draw_all_boxes(void);
     draw_all_boxes();
 
-    uint64_t _prof_freq = sdl3_get_performance_frequency();
-    uint64_t _prof_start = sdl3_get_performance_counter();
-    uint64_t _prof_prev = _prof_start;
-    static uint32_t _prof_cnt = 0;
-    bool _prof_log = (++_prof_cnt % 60 == 0);
-
-    #define PROF_MARK(name) do { \
-        if (_prof_log) { \
-            uint64_t _now = sdl3_get_performance_counter(); \
-            fprintf(stderr, "  [city] %-20s %5.1fms\n", name, \
-                (double)(_now - _prof_prev) * 1000.0 / (double)_prof_freq); \
-            _prof_prev = _now; \
-        } \
-    } while(0)
-
     extern SLONG tick_tock_unclipped;
     sea_offset += (tick_tock_unclipped);
 
@@ -3962,7 +3946,6 @@ void AENG_draw_city()
         }
     }
 
-    PROF_MARK("visibility");
     BreakTime("Worked out things in view");
 
     //
@@ -4138,7 +4121,6 @@ void AENG_draw_city()
                 }
             }
         }
-    PROF_MARK("rotate_points");
     BreakTime("Rotated points");
 
     //
@@ -4638,7 +4620,6 @@ void AENG_draw_city()
         }
     }
 
-    PROF_MARK("shadows");
     BreakTime("Done shadows");
 
     // No reflections on DC.
@@ -4837,7 +4818,6 @@ void AENG_draw_city()
 
     */
 
-    PROF_MARK("reflections");
     BreakTime("Drawn reflections");
 
     {
@@ -4853,7 +4833,6 @@ void AENG_draw_city()
 
         POLY_frame_draw(UC_FALSE, UC_FALSE);
         POLY_frame_init(UC_TRUE, UC_TRUE);
-        PROF_MARK("poly_flush_1");
         BreakTime("Done first poly flush");
     }
 
@@ -5359,7 +5338,6 @@ void AENG_draw_city()
 
         POLY_frame_init(UC_TRUE, UC_TRUE);
     }
-    PROF_MARK("poly_flush_2");
     BreakTime("Done second polygon flush");
 
     //
@@ -5825,7 +5803,6 @@ void AENG_draw_city()
                 }
             }
     }
-    PROF_MARK("floors");
     BreakTime("Drawn floors");
 
     //	POLY_frame_draw(UC_FALSE,UC_FALSE);
@@ -5929,7 +5906,6 @@ void AENG_draw_city()
             }
         }
 
-        PROF_MARK("prims");
         BreakTime("Drawn prims");
         //		POLY_frame_draw(UC_FALSE,UC_FALSE);
         //		POLY_frame_init(UC_TRUE,UC_TRUE);
@@ -6054,7 +6030,6 @@ void AENG_draw_city()
         }
 
         BreakFacets(dfacets_drawn_this_gameturn);
-        PROF_MARK("facets");
         BreakTime("Drawn facets");
         //		POLY_frame_draw(UC_FALSE,UC_FALSE);
         //		POLY_frame_init(UC_TRUE,UC_TRUE);
@@ -6352,7 +6327,6 @@ void AENG_draw_city()
         }
     }
 
-    PROF_MARK("things");
     BreakTime("Drawn things");
 
     //	POLY_frame_draw(UC_FALSE,UC_FALSE);
@@ -6829,11 +6803,9 @@ void AENG_draw_city()
 
     */
 
-    PROF_MARK("effects");
     BreakTime("Drawn other crap");
 
     POLY_frame_draw(UC_TRUE, UC_TRUE);
-    PROF_MARK("poly_flush_main");
 
     BreakTime("Done final polygon flush");
 
@@ -6850,13 +6822,9 @@ void AENG_draw_city()
     // BEFORE dirt. Without this flush, those polygons are never rendered. The Dreamcast port
     // has a flush after dirt (original aeng.cpp:13844), confirming this was fixed in later builds.
     POLY_frame_draw(UC_TRUE, UC_TRUE);
-    PROF_MARK("dirt+flush");
-
     // Cope with some wacky internals.
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
-
-    #undef PROF_MARK
 
     // Tell the pyros we've done a frame.
     Pyros_EndOfFrameMarker();
@@ -8908,40 +8876,25 @@ void AENG_draw(SLONG draw_3d)
 
         AENG_cur_fc_cam = 0;
 
-        {
-            uint64_t _p0 = sdl3_get_performance_counter();
+        if (warehouse) {
+            AENG_drawing_a_warehouse = UC_TRUE;
 
-            if (warehouse) {
-                AENG_drawing_a_warehouse = UC_TRUE;
+            AENG_ensure_appropriate_caching(UC_TRUE);
+            AENG_draw_warehouse();
+        } else {
+            AENG_ensure_appropriate_caching(UC_FALSE);
+            AENG_draw_city();
+
+            if (AENG_transparent_warehouses) {
+                SUPERMAP_counter_increase(0);
 
                 AENG_ensure_appropriate_caching(UC_TRUE);
                 AENG_draw_warehouse();
-            } else {
-                AENG_ensure_appropriate_caching(UC_FALSE);
-                AENG_draw_city();
-
-                if (AENG_transparent_warehouses) {
-                    SUPERMAP_counter_increase(0);
-
-                    AENG_ensure_appropriate_caching(UC_TRUE);
-                    AENG_draw_warehouse();
-                }
-            }
-
-            uint64_t _p1 = sdl3_get_performance_counter();
-
-            AENG_get_rid_of_deleteme_squares();
-            AENG_get_rid_of_unused_dfcache_lighting(UC_FALSE);
-
-            uint64_t _p2 = sdl3_get_performance_counter();
-            uint64_t _freq = sdl3_get_performance_frequency();
-            static uint32_t _pc = 0;
-            if (++_pc % 60 == 0) {
-                fprintf(stderr, "[aeng] city=%.1fms cleanup=%.1fms\n",
-                    (double)(_p1 - _p0) * 1000.0 / (double)_freq,
-                    (double)(_p2 - _p1) * 1000.0 / (double)_freq);
             }
         }
+
+        AENG_get_rid_of_deleteme_squares();
+        AENG_get_rid_of_unused_dfcache_lighting(UC_FALSE);
 
         // Restore the camera to its pre-cutscene values.
         fc->x = old_cam_x;

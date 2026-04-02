@@ -785,9 +785,7 @@ round_again:;
         extern void envmap_specials(void);
         envmap_specials();
 
-        static uint64_t s_frame_start = 0;
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
-            uint64_t frame_start = sdl3_get_performance_counter();
 
             if (!exit_game_loop) {
                 exit_game_loop = GAMEMENU_process();
@@ -949,9 +947,7 @@ round_again:;
 
             BreakTime("Done thing processing");
 
-            uint64_t draw_t0 = sdl3_get_performance_counter();
             draw_screen();
-            uint64_t draw_t1 = sdl3_get_performance_counter();
 
             OVERLAY_handle();
 
@@ -966,23 +962,8 @@ round_again:;
 
             BreakTime("About to flip");
 
-            {
-                uint64_t t0 = sdl3_get_performance_counter();
-                screen_flip();
-                uint64_t t1 = sdl3_get_performance_counter();
-                lock_frame_rate(env_frame_rate);
-                uint64_t t2 = sdl3_get_performance_counter();
-                uint64_t freq = sdl3_get_performance_frequency();
-                static uint32_t s_ft_count = 0;
-                if (++s_ft_count % 60 == 0) {
-                    double draw_ms = (double)(draw_t1 - draw_t0) * 1000.0 / (double)freq;
-                    double flip_ms = (double)(t1 - t0) * 1000.0 / (double)freq;
-                    double lock_ms = (double)(t2 - t1) * 1000.0 / (double)freq;
-                    double frame_ms = (double)(t2 - frame_start) * 1000.0 / (double)freq;
-                    fprintf(stderr, "[frame] draw=%.1fms flip=%.1fms lock=%.1fms frame=%.1fms\n",
-                            draw_ms, flip_ms, lock_ms, frame_ms);
-                }
-            }
+            screen_flip();
+            lock_frame_rate(env_frame_rate);
 
             BreakTime("Done flip");
 

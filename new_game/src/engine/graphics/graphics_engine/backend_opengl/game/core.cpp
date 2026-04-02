@@ -9,7 +9,6 @@
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
 #include "engine/platform/uc_common.h"
-#include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
@@ -22,10 +21,6 @@
 // ---------------------------------------------------------------------------
 
 static char s_data_dir[256] = "";
-
-// Draw call stats (per frame).
-static uint32_t s_draw_calls  = 0;
-static uint32_t s_draw_tris   = 0;
 
 // GL state cache — avoid redundant GL calls on macOS GL→Metal translation layer.
 static GLuint   s_cached_program = 0;          // currently bound program
@@ -654,13 +649,6 @@ void ge_flip()
 
     if (s_pre_flip_callback) s_pre_flip_callback();
 
-    static uint32_t s_frame_count = 0;
-    if (++s_frame_count % 60 == 0) {
-        fprintf(stderr, "[GL stats] draws=%u tris=%u\n", s_draw_calls, s_draw_tris);
-    }
-    s_draw_calls = 0;
-    s_draw_tris  = 0;
-
     gl_context_swap();
 }
 
@@ -904,8 +892,7 @@ void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t c
 
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawArrays(gl_mode, 0, count);
-    s_draw_calls++;
-    s_draw_tris += count / 3;
+
 }
 
 void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t vert_count,
@@ -944,8 +931,7 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
 
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
-    s_draw_calls++;
-    s_draw_tris += index_count / 3;
+
 }
 
 
@@ -1747,8 +1733,7 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
-    s_draw_calls++;
-    s_draw_tris += index_count / 3;
+
 
     // No unbind — next draw will rebind its own VAO.
 
