@@ -1105,7 +1105,7 @@ int IWouldLikeSomePyroSpritesHowManyCanIHave(int iIWantThisMany)
 }
 
 // uc_orig: IHaveToHaveSomePyroSprites (fallen/DDEngine/Source/drawxtra.cpp)
-static void IHaveToHaveSomePyroSprites(int iINeedThisMany)
+void IHaveToHaveSomePyroSprites(int iINeedThisMany)
 {
     // Stub — PC build no-op.
 }

@@ -16,9 +16,9 @@
 // uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname);
 // uc_orig: SetLinearScale (fallen/DDLibrary/Source/MFX.cpp)
-void SetLinearScale(SLONG wave, float linscale);
+static void SetLinearScale(SLONG wave, float linscale);
 // uc_orig: SetPower (fallen/DDLibrary/Source/MFX.cpp)
-void SetPower(SLONG wave, float dB);
+static void SetPower(SLONG wave, float dB);
 // uc_orig: InitVoices (fallen/DDLibrary/Source/MFX.cpp)
 static void InitVoices();
 // uc_orig: LoadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
@@ -69,7 +69,7 @@ void MFX_init()
         sptr->linscale = 1.0;
         sptr->loading = false;
 
-        if (stricmp("null.wav", names[0])) {
+        if (oc_stricmp("null.wav", names[0])) {
             FILE* fd = MF_Fopen(GetFullName(names[0]), "rb");
             if (fd) {
                 sptr->fname = names[0];

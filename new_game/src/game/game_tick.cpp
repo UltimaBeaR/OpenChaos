@@ -176,7 +176,7 @@ void parse_console(CBYTE* str)
     ptr++;
 
     for (i = 0; cmd_list[i]; i++) {
-        if (!stricmp(cmd, cmd_list[i])) {
+        if (!oc_stricmp(cmd, cmd_list[i])) {
             switch (i) {
             case 0: // cam -- nothing yet
 
@@ -220,7 +220,7 @@ void parse_console(CBYTE* str)
             case 6: // wpt? -- find nearest wpt
                 way = eway_find_near(NET_PERSON(0)->WorldPos);
                 if (way) {
-                    itoa(way->id, cmd, 10);
+                    sprintf(cmd, "%d", way->id);
                     CONSOLE_text(cmd);
                 } else
                     CONSOLE_text("wpt not found");

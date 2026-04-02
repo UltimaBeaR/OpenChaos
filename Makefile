@@ -3,29 +3,58 @@ SRC_DIR    := new_game
 BUILD_DIR  := new_game/build
 RESOURCES  := original_game_resources
 CMAKE      := cmake
-TOOLCHAIN  := $(abspath $(SRC_DIR)/cmake/clang-x64-windows.cmake)
+
+# ---------------------------------------------------------------------------
+# Platform detection
+# ---------------------------------------------------------------------------
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+
+ifeq ($(UNAME_S),Darwin)
+    ifeq ($(UNAME_M),arm64)
+        TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-arm64-macos.cmake)
+    else
+        TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-x64-macos.cmake)
+    endif
+    EXE_NAME := Fallen
+else ifeq ($(UNAME_S),Linux)
+    TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-x64-linux.cmake)
+    EXE_NAME := Fallen
+else
+    # Windows (MSYS2/Git Bash)
+    TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-x64-windows.cmake)
+    EXE_NAME := Fallen.exe
+endif
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
         run-release run-debug \
         configure-opengl configure-d3d6 \
+        configure-windows-x64-opengl configure-macos-arm64-opengl \
         copy-resources-debug copy-resources-release copy-resources \
         r d
 
 # ---------------------------------------------------------------------------
 # Auto-detect vcpkg.cmake
-#   1. VCPKG_ROOT env var
+#   1. VCPKG_ROOT env var (cross-platform)
 #   2. Windows: vswhere (finds VS / Build Tools installation)
+#   3. Homebrew vcpkg (macOS)
 # ---------------------------------------------------------------------------
-
-VSWHERE := /c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe
 
 VCPKG_CMAKE := $(shell \
   if [ -n "$$VCPKG_ROOT" ] && [ -f "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then \
     echo "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"; \
-  elif [ -f "$(VSWHERE)" ]; then \
-    VS_PATH=$$("$(VSWHERE)" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>/dev/null); \
-    if [ -n "$$VS_PATH" ] && [ -f "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
-      echo "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
+  elif [ "$(UNAME_S)" = "Darwin" ]; then \
+    BREW_PREFIX=$$(brew --prefix 2>/dev/null); \
+    if [ -n "$$BREW_PREFIX" ] && [ -f "$$BREW_PREFIX/share/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
+      echo "$$BREW_PREFIX/share/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
+    fi; \
+  else \
+    VSWHERE="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"; \
+    if [ -f "$$VSWHERE" ]; then \
+      VS_PATH=$$("$$VSWHERE" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>/dev/null); \
+      if [ -n "$$VS_PATH" ] && [ -f "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
+        echo "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
+      fi; \
     fi; \
   fi)
 
@@ -40,7 +69,13 @@ VCPKG_CMAKE := $(shell \
 
 define run_configure
 	@if [ -z "$(VCPKG_CMAKE)" ]; then \
-	  echo "ERROR: vcpkg.cmake not found. Install VS Build Tools with C++ workload, or set VCPKG_ROOT." >&2; \
+	  echo "ERROR: vcpkg.cmake not found." >&2; \
+	  echo "  Set VCPKG_ROOT env var, or:" >&2; \
+	  if [ "$(UNAME_S)" = "Darwin" ]; then \
+	    echo "  brew install vcpkg" >&2; \
+	  else \
+	    echo "  Install VS Build Tools with C++ workload" >&2; \
+	  fi; \
 	  exit 1; \
 	fi
 	$(CMAKE) -S $(SRC_DIR) -B $(BUILD_DIR) -G "Ninja Multi-Config" \
@@ -57,9 +92,16 @@ configure-opengl:
 configure-d3d6:
 	$(call run_configure,d3d6)
 
-# ASan: configure with AddressSanitizer enabled, copy runtime DLL
+# Named platform targets (aliases for clarity)
+configure-windows-x64-opengl: configure-opengl
+configure-macos-arm64-opengl: configure-opengl
+
+# ASan: configure with AddressSanitizer enabled
 configure-asan:
 	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure-opengl
+ifeq ($(UNAME_S),Darwin)
+	@echo "ASan: on macOS the runtime is linked automatically by clang."
+else
 	@ASAN_DLL=$$(clang -print-file-name=clang_rt.asan_dynamic-x86_64.dll); \
 	  if [ -f "$$ASAN_DLL" ]; then \
 	    cp "$$ASAN_DLL" $(BUILD_DIR)/Debug/ 2>/dev/null; \
@@ -68,6 +110,7 @@ configure-asan:
 	  else \
 	    echo "WARNING: ASan DLL not found at $$ASAN_DLL"; \
 	  fi
+endif
 
 # ---------------------------------------------------------------------------
 # Build (requires configure-opengl or configure-d3d6 to be run first)
@@ -107,10 +150,10 @@ copy-resources: copy-resources-debug copy-resources-release
 # ---------------------------------------------------------------------------
 
 run-debug:
-	cd $(BUILD_DIR)/Debug && rm -f stderr.log && ./Fallen.exe 2>stderr.log
+	cd $(BUILD_DIR)/Debug && rm -f stderr.log && ./$(EXE_NAME) 2>stderr.log
 
 run-release:
-	cd $(BUILD_DIR)/Release && rm -f stderr.log && ./Fallen.exe 2>stderr.log
+	cd $(BUILD_DIR)/Release && rm -f stderr.log && ./$(EXE_NAME) 2>stderr.log
 
 # ---------------------------------------------------------------------------
 # Build + Run shortcuts

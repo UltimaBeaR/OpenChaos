@@ -1385,13 +1385,13 @@ void MAP_draw()
     FONT2D_DrawString("Stamina:",      10, 30, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
     FONT2D_DrawString("Skill:",        10, 50, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
     FONT2D_DrawString("Constitution:", 10, 70, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Strength,     str, 10);
+    sprintf(str, "%d", NET_PLAYER(0)->Genus.Player->Strength);
     FONT2D_DrawString(str, 100, 10, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Stamina,      str, 10);
+    sprintf(str, "%d", NET_PLAYER(0)->Genus.Player->Stamina);
     FONT2D_DrawString(str, 100, 30, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Skill,        str, 10);
+    sprintf(str, "%d", NET_PLAYER(0)->Genus.Player->Skill);
     FONT2D_DrawString(str, 100, 50, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
-    itoa(NET_PLAYER(0)->Genus.Player->Constitution, str, 10);
+    sprintf(str, "%d", NET_PLAYER(0)->Genus.Player->Constitution);
     FONT2D_DrawString(str, 100, 70, 0xffffff, 192, POLY_PAGE_FONT2D, 0);
 
     MAP_pulse_draw_all();

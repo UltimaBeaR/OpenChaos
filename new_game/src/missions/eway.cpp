@@ -1206,16 +1206,16 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
 
     XLAT_str(X_THIS_LANGUAGE_IS, name_buffer);
 
-    if (!stricmp(name_buffer, "Italian")) {
+    if (!oc_stricmp(name_buffer, "Italian")) {
         fname = "text/citsez_ita.txt";
     }
-    if (!stricmp(name_buffer, "French")) {
+    if (!oc_stricmp(name_buffer, "French")) {
         fname = "text/citsez_french.txt";
     }
-    if (!stricmp(name_buffer, "Deutsch")) {
+    if (!oc_stricmp(name_buffer, "Deutsch")) {
         fname = "text/citsez_german.txt";
     }
-    if (!stricmp(name_buffer, "Spanish")) {
+    if (!oc_stricmp(name_buffer, "Spanish")) {
         fname = "text/citsez_spa.txt";
     }
 
@@ -1263,7 +1263,7 @@ CBYTE* EWAY_get_fake_wander_message(SLONG type)
     static SBYTE this_is_english = -1;
 
     if (this_is_english < 0) {
-        this_is_english = !stricmp(XLAT_str(X_THIS_LANGUAGE_IS), "English");
+        this_is_english = !oc_stricmp(XLAT_str(X_THIS_LANGUAGE_IS), "English");
     }
 
     if (!this_is_english)

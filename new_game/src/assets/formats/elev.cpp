@@ -1588,10 +1588,10 @@ void ELEV_load_level(CBYTE* fname_level)
                 *blah++ = 'd';
                 *blah++ = '\000';
 
-                _strlwr(levname);
+                oc_strlwr(levname);
 
                 while (fgets(line, 256, handle)) {
-                    _strlwr(line);
+                    oc_strlwr(line);
 
                     match = sscanf(line, levname, &mworld);
 

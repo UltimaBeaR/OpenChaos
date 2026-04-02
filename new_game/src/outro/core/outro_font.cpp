@@ -176,7 +176,7 @@ static SLONG FONT_get_index(CBYTE chr)
     } else {
         letter = FONT_PUNCT_PLING;
 
-        for (CBYTE* ch = FONT_punct; *ch && *ch != chr; ch++, letter++)
+        for (CBYTE* ch = OUTRO_FONT_punct; *ch && *ch != chr; ch++, letter++)
             ;
     }
 

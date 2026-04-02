@@ -595,7 +595,7 @@ void do_leave_map_form(void)
 }
 
 // uc_orig: screen_flip (fallen/Source/Game.cpp)
-static void screen_flip(void)
+void screen_flip(void)
 {
     extern void AENG_screen_shot(void);
     AENG_screen_shot();
@@ -709,7 +709,7 @@ SLONG should_i_process_game(void)
 }
 
 // uc_orig: draw_screen (fallen/Source/Game.cpp)
-static void draw_screen(void)
+void draw_screen(void)
 {
     if (draw_map_screen) {
         // MAP_draw() was here — removed in original

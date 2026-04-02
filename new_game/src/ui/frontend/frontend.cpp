@@ -1247,7 +1247,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
         } else {
             FRONTEND_ParseMissionData(text, ver, mdata);
 
-            _strlwr(mdata->fn);
+            oc_strlwr(mdata->fn);
 
             if (strstr(mdata->fn, "ftutor1.ucm"))
                 fightID = mdata->ObjID;
@@ -1363,7 +1363,7 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
                 SLONG order = 0;
 
                 while (1) {
-                    if (stricmp(mdata->fn, suggest_order[order]) == 0) {
+                    if (oc_stricmp(mdata->fn, suggest_order[order]) == 0) {
                         if (order < best_score) {
                             best_score = order;
 
@@ -3006,7 +3006,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
     XLAT_load(lang);
     XLAT_init();
 
-    IsEnglish = !stricmp(XLAT_str(X_THIS_LANGUAGE_IS), "English");
+    IsEnglish = !oc_stricmp(XLAT_str(X_THIS_LANGUAGE_IS), "English");
 
     str = menu_choice_yesno;
     strcpy(str, XLAT_str(X_NO));

@@ -3,8 +3,8 @@
 // uc_orig: FONT_letter (fallen/outro/outroFont.cpp)
 FONT_Letter FONT_letter[FONT_NUM_LETTERS];
 
-// uc_orig: FONT_punct (fallen/outro/outroFont.cpp)
-CBYTE FONT_punct[] = {
+// uc_orig: FONT_punct (fallen/outro/outroFont.cpp) — renamed to OUTRO_FONT_punct to avoid duplicate symbol with engine FONT_punct
+CBYTE OUTRO_FONT_punct[] = {
     "!\""
     "\xa3"
     "$%^&*(){}[]<>\\/:;'@#~?-=+.,"

@@ -2,7 +2,9 @@
 
 ## Prerequisites
 
-### Build tools
+### Windows
+
+#### Build tools
 
 Install the following (all available via `winget`):
 
@@ -21,7 +23,7 @@ ninja --version    # any
 clang++ --version  # 20+
 ```
 
-### Windows SDK + MSVC runtime
+#### Windows SDK + MSVC runtime
 
 `clang++` needs Windows SDK headers/libs and the MSVC C++ runtime to compile and link.
 It auto-detects the installation — no manual environment setup (`vcvarsall.bat`) required.
@@ -37,13 +39,13 @@ the **Desktop development with C++** workload.
 Download [Visual Studio 2022/2026 Community](https://visualstudio.microsoft.com/) and select
 the **Desktop development with C++** workload during installation.
 
-### vcpkg
+#### vcpkg
 
 vcpkg is used for dependency management (SDL3, OpenAL, fmt).
 Included with VS Build Tools / Visual Studio (C++ workload) — no extra setup needed.
 The build scripts auto-detect the installation via `vswhere`.
 
-### GNU make
+#### GNU make
 
 ```bash
 winget install GnuWin32.Make
@@ -51,7 +53,45 @@ winget install GnuWin32.Make
 
 Also included with [Git for Windows](https://gitforwindows.org/) (available in Git Bash).
 
-### Urban Chaos (legal copy)
+### macOS (Apple Silicon M1+)
+
+#### Xcode Command Line Tools
+
+Provides Apple Clang (C/C++ compiler), linker, and system headers.
+
+```bash
+xcode-select --install
+```
+
+If you already have Xcode installed, this step is not needed.
+
+#### Homebrew packages
+
+```bash
+brew install cmake ninja pkg-config
+```
+
+Verify:
+```bash
+cmake --version    # 3.25+
+ninja --version    # any
+clang++ --version  # Apple clang 15+
+```
+
+#### vcpkg
+
+Clone the vcpkg repository into Homebrew's share directory:
+
+```bash
+git clone https://github.com/microsoft/vcpkg.git "$(brew --prefix)/share/vcpkg"
+```
+
+That's it — the Makefile auto-detects this location via `brew --prefix`.
+vcpkg packages (SDL3, OpenAL, fmt) are installed automatically during `make configure-opengl`.
+
+### Common
+
+#### Urban Chaos (legal copy)
 
 Steam version recommended: [store.steampowered.com/app/243060/Urban_Chaos/](https://store.steampowered.com/app/243060/Urban_Chaos/)
 
@@ -64,7 +104,7 @@ Steam version recommended: [store.steampowered.com/app/243060/Urban_Chaos/](http
 Copy everything from your Urban Chaos installation folder **except `.exe` and `.dll` files**
 into `original_game_resources/` in the repository root.
 
-Steam default path:
+Steam default path (Windows):
 ```
 C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
 ```
@@ -87,7 +127,7 @@ make configure-d3d6     # DirectX 6 — Windows-only legacy backend
 ```
 
 This runs CMake with Ninja Multi-Config generator. vcpkg is auto-detected
-(via `vswhere` on Windows, `VCPKG_ROOT` env var otherwise).
+(via `vswhere` on Windows, `VCPKG_ROOT` env var on macOS/Linux).
 **vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
 — no separate vcpkg command needed. Re-run when switching backends or after `CMakeLists.txt` changes.
 
@@ -143,11 +183,11 @@ make run-debug
 new_game/
   build/
     Debug/
-      Fallen.exe, *.dll, text/, config.ini   ← runtime output
+      Fallen (Fallen.exe on Windows), text/, config.ini   ← runtime output
     Release/
-      Fallen.exe, *.dll, text/, config.ini   ← runtime output
-    CMakeFiles/                               ← intermediate .obj files (per-config, separated)
-  vcpkg_installed/                           ← vcpkg packages (gitignored, like node_modules)
+      Fallen (Fallen.exe on Windows), text/, config.ini   ← runtime output
+    CMakeFiles/                                            ← intermediate .obj files
+  vcpkg_installed/                                         ← vcpkg packages (gitignored)
 ```
 
 `build/` and `vcpkg_installed/` are gitignored and not committed.

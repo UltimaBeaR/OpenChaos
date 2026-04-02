@@ -48,7 +48,7 @@ void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist)
     UWORD x, y, ox, oy, ofs;
     CBYTE tmp[_MAX_PATH];
 
-    if (!stricmp(fn, FontName))
+    if (!oc_stricmp(fn, FontName))
         return;
     strcpy(FontName, fn);
     FontPage = page;

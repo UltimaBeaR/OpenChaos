@@ -6152,7 +6152,7 @@ void AENG_draw_city()
                                     }
                                 }
 
-                                p_thing->Draw.Tweened->Drawn = (UBYTE)SUPERMAP_counter;
+                                p_thing->Draw.Tweened->Drawn = SUPERMAP_counter[AENG_cur_fc_cam];
 
                                 if (ControlFlag && allow_debug_keys) {
                                     AENG_world_text(
@@ -8118,7 +8118,7 @@ void AENG_clear_screen()
 // Locks the display surface for direct pixel access; returns non-zero on success.
 SLONG AENG_lock()
 {
-    return SLONG(ge_lock_screen());
+    return ge_lock_screen() != nullptr;
 }
 
 // =============================================================================

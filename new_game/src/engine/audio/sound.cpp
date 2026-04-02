@@ -220,7 +220,7 @@ void process_weather(void)
     static bool only_once = false;
     if (NET_PERSON(0)->State == STATE_DEAD) {
         if (!only_once)
-            MFX_play_thing(THING_INDEX(NET_PERSON(0)), S_HEART_FAIL, 0, NET_PERSON(0));
+            MFX_play_thing(THING_NUMBER(NET_PERSON(0)), S_HEART_FAIL, 0, NET_PERSON(0));
         only_once = true;
     } else {
         only_once = false;

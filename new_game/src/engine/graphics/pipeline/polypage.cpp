@@ -486,7 +486,7 @@ void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
     const GEMatrix* mWorldMatrix,
     const GEViewport* d3dvpt)
 {
-    ASSERT(((DWORD)(pmOutput) & 31) == 0);
+    ASSERT(((uintptr_t)(pmOutput) & 31) == 0);
 
     GEMatrix mMyPrivateWorld;
     if (mWorldMatrix == NULL) {

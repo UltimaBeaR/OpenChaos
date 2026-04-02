@@ -398,7 +398,7 @@
 | 14b | Скрипты → кросс-платформенные | ✅ |
 | 14c | CMake: кросс-платформенные условия | ✅ |
 | 14d | Переход на 64-бит | ⏳ |
-| **16** | **Кросс-платформенная сборка (macOS + Linux)** | ⏳ |
+| **16** | **Кросс-платформенная сборка (macOS + Linux)** | 🟡 macOS arm64 работает, Linux ⏳ |
 | 15 | ASan прогон: играть под ASan, фиксить memory bugs один за одним | ⏳ |
 
 ---
@@ -452,68 +452,91 @@ make configure-asan                   # Windows x64 + ASan (текущий)
 - 46 файлов `.WAV` в `sound_id_globals.cpp` (uppercase) — зависит от реального регистра на диске в `original_game_resources/`
 - Полный аудит: проверить все файлы в `original_game_resources/` против строковых литералов в коде
 
-### 16b. Тулчейн-файлы CMake ⏳
+### 16b. Тулчейн-файлы CMake 🟡
 
-Создать в `new_game/cmake/`:
+`new_game/cmake/`:
 
-| Файл | Описание |
-|------|----------|
-| `clang-x64-windows.cmake` | ✅ Уже есть |
-| `clang-x86-windows.cmake` | ✅ Уже есть (DX6 legacy) |
-| `clang-arm64-macos.cmake` | `CMAKE_SYSTEM_NAME=Darwin`, `CMAKE_OSX_ARCHITECTURES=arm64`, triplet `arm64-osx` |
-| `clang-x64-macos.cmake` | `CMAKE_OSX_ARCHITECTURES=x86_64`, triplet `x64-osx` |
-| `clang-universal-macos.cmake` | `CMAKE_OSX_ARCHITECTURES="arm64;x86_64"`, triplet `universal-osx` |
-| `clang-x64-linux.cmake` | `CMAKE_SYSTEM_NAME=Linux`, triplet `x64-linux` |
+| Файл | Описание | Статус |
+|------|----------|--------|
+| `clang-x64-windows.cmake` | Windows x64 | ✅ |
+| `clang-x86-windows.cmake` | Windows x86 (DX6 legacy) | ✅ |
+| `clang-arm64-macos.cmake` | macOS Apple Silicon (M1+) | ✅ Создан, deployment target 15.0 (Sequoia) |
+| `clang-x64-macos.cmake` | macOS Intel | ⏳ |
+| `clang-universal-macos.cmake` | macOS Universal Binary | ⏳ |
+| `clang-x64-linux.cmake` | Linux x86_64 | ⏳ |
 
 **Нюанс macOS:** на маке clang — системный (Apple Clang), не надо указывать `--target`. CMake сам определяет. Тулчейн минимальный — только архитектура и vcpkg триплет.
 
-**Нюанс Linux:** clang на Linux — `apt install clang`. Можно также поддержать gcc (по умолчанию в Ubuntu).
+### 16c. CMakeLists.txt — платформо-зависимые правки ✅ (для macOS)
 
-### 16c. CMakeLists.txt — платформо-зависимые правки ⏳
-
-Что уже есть:
+Что уже работает:
 - `if(WIN32)` / `elseif(APPLE)` / `else()` для OpenGL линковки ✅
 - `WIN32_EXECUTABLE` только на Windows ✅
 - `_CRT_SECURE_NO_WARNINGS` только на Windows ✅
 - `/SAFESEH`, `/ENTRY:mainCRTStartup` только на Windows ✅
+- DLL копирование — только на Windows ✅
+- macOS: `CMAKE_OSX_DEPLOYMENT_TARGET` в тулчейне ✅
+- macOS: frameworks (Cocoa, IOKit) — SDL3 тянет автоматически через vcpkg ✅
 
-Что добавить:
-- **macOS:** `CMAKE_OSX_DEPLOYMENT_TARGET` (минимальная версия macOS, 10.15+ для OpenGL 4.1)
-- **macOS:** `-framework Cocoa -framework IOKit` если SDL3 не тянет автоматически (проверить)
-- **macOS:** install rpath вместо DLL копирования
+Что осталось для Linux:
 - **Linux:** линковка `-lX11 -lpthread -ldl` (или через find_package)
-- **Linux:** executable name без `.exe`
-- **Общее:** условие для DLL копирования (только Windows)
-- **Общее:** условие для линкер-флагов Windows (`/ENTRY`, `/DEBUG` и т.д.)
 
-### 16d. Makefile — мультиплатформенный ⏳
+### 16d. Makefile — мультиплатформенный ✅
 
-**Проблема:** текущий Makefile жёстко привязан к Windows:
-- `TOOLCHAIN` → `clang-x64-windows.cmake`
-- vcpkg discovery через `vswhere.exe`
-- `./Fallen.exe` в run-таргетах
-
-**Решение:** параметризовать через переменные:
-- Каждый `configure-*` таргет задаёт `TOOLCHAIN` и `GRAPHICS_BACKEND`
-- vcpkg discovery: `VCPKG_ROOT` (кросс-платформенный), fallback на `vswhere` только на Windows
-- Run-таргеты: `./Fallen` (без `.exe` на macOS/Linux) — определять по `uname`
+**Сделано:** Makefile определяет платформу через `uname -s` / `uname -m`:
+- Автовыбор тулчейна: Windows → `clang-x64-windows.cmake`, macOS arm64 → `clang-arm64-macos.cmake`
+- vcpkg discovery: `VCPKG_ROOT` env var → fallback `brew --prefix`/share/vcpkg (macOS) → fallback `vswhere.exe` (Windows)
+- Имя бинарника: `Fallen.exe` на Windows, `Fallen` на macOS/Linux
 - ASan DLL копирование — только на Windows
+- Named targets: `configure-macos-arm64-opengl`, `configure-windows-x64-opengl` — алиасы на `configure-opengl`
 
-### 16e. Код: прочие macOS/Linux compatibility fixes ⏳
+### 16e. Код: macOS compatibility fixes ✅
 
-По результатам анализа, код уже почти готов. Возможные правки:
-- **sdl3_bridge.cpp** — `sdl3_window_get_native_handle()`: на не-Windows возвращает nullptr. Убедиться что nullptr безопасен (используется только DX6 бэкендом). Добавить macOS/Linux нативные хендлы если нужно.
-- **crash_handler_win.cpp** — уже `#ifdef _WIN32`, POSIX fallback в host.cpp есть. Возможно добавить macOS-специфику (backtrace_symbols).
-- **Пути:** `/` vs `\` — проверить что все пути используют `/` (SDL3 и POSIX принимают)
+**Исправлено при первой сборке на macOS M1 Pro (Apple Clang 17):**
 
-### 16f. Верификация ⏳
+Apple Clang строже чем clang++ на Windows — нашлись ошибки которые Windows-сборка пропускала:
 
-| Платформа | Как проверять |
-|-----------|---------------|
-| Windows x64 OpenGL | Текущая среда, `make configure-windows-x64-opengl && make d` |
-| Windows x64 D3D6 | Текущая среда, `make configure-windows-x64-d3d6 && make d` |
-| macOS arm64 | На маке M1, `make configure-macos-arm64-opengl && make d` |
-| macOS x64 | На маке M1 (кросс), `make configure-macos-x64-opengl && make build-debug` |
-| Linux x64 | WSL2 Ubuntu, `make configure-linux-x64-opengl && make d` |
+- **MSVC-only функции** → кросс-платформенные:
+  - `stricmp` → `oc_stricmp` (mfx.cpp, eway.cpp, frontend.cpp, menufont.cpp, game_tick.cpp)
+  - `_strlwr` → `oc_strlwr` (elev.cpp, frontend.cpp) + новый `oc_strlwr` в types.h (inline tolower loop на POSIX)
+  - `itoa` → `sprintf` (eng_map.cpp, panel.cpp, game_tick.cpp)
+  - `_alloca` → `alloca` (backend_opengl/core.cpp)
+- **`static` linkage mismatches** (forward declaration без `static`, определение с `static` — Apple Clang даёт error, MSVC/clang-cl на Windows — нет):
+  - mfx.cpp: `SetLinearScale`, `SetPower`
+  - collide.cpp: `slide_around_box_lowstack` (убран `static` из определения, т.к. объявлен в .h)
+  - poly.cpp: `POLY_perspective` (аналогично)
+  - interact.cpp: `calc_angle`, `angle_diff` (объявлены в game_types.h)
+  - vehicle.cpp: `normalise_val256`
+  - pyro.cpp: `IHaveToHaveSomePyroSprites`
+  - game.cpp: `screen_flip`, `draw_screen`
+- **Pointer truncation** (error на arm64, silent на x64 Windows):
+  - polypage.cpp: `(DWORD)(pmOutput) & 31` → `(uintptr_t)`
+  - aeng.cpp: `SLONG(ge_lock_screen())` → `ge_lock_screen() != nullptr`
+  - sound.cpp: `THING_INDEX(NET_PERSON(0))` → `THING_NUMBER(NET_PERSON(0))` (**баг** — каст указателя в 16 бит)
+- **Баг в оригинальном коде** (найден благодаря Apple Clang):
+  - aeng.cpp: `(UBYTE)SUPERMAP_counter` → `SUPERMAP_counter[AENG_cur_fc_cam]` (пропущен индекс массива, кастился pointer)
+- **Duplicate symbol** (Apple linker строже):
+  - `FONT_punct` — два разных глобала с одним именем (outro vs font). Outro-версия переименована в `OUTRO_FONT_punct`
+- **Missing includes** (на Windows транзитивно подтягивались через windows.h):
+  - game_graphics_engine.h: `<cstddef>` для `size_t`
+  - startscr_globals.cpp: `types.h` для `_MAX_PATH`
+  - types.h POSIX ветка: `<sys/stat.h>` для `mkdir`
+- **Обратные слеши в путях**:
+  - `MakeFullPathName` в file.cpp: нормализует `\` → `/` (config.ini содержит Windows-пути типа `text\lang_english.txt`)
+  - `FileSetBasePath`: trailing separator `\` → `/`
 
-Минимальный критерий: компилируется + линкуется + запускается до главного меню.
+### 16f. Верификация 🟡
+
+| Платформа | Статус |
+|-----------|--------|
+| Windows x64 OpenGL | ✅ Основная среда разработки |
+| Windows x64 D3D6 | ✅ (x86 only, отложен на x64) |
+| macOS arm64 (M1 Pro) | ✅ Компилируется, линкуется, запускается, меню и геймплей работают |
+| macOS x64 (Intel) | ⏳ Тулчейн не создан |
+| Linux x64 | ⏳ Тулчейн не создан, case-insensitive I/O не сделан |
+
+Минимальный критерий пройден для macOS arm64: компилируется + линкуется + запускается до главного меню + геймплей.
+
+**Известные проблемы macOS** → `known_issues_and_bugs.md` (секция "macOS-специфичные проблемы"):
+- Низкий FPS (ощущение software rendering)
+- DualSense: задержка ввода ~1 сек (клавиатура — без лага)

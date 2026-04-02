@@ -3035,7 +3035,7 @@ static SLONG fast_root(SLONG num)
 
 // Normalizes a 3D integer vector to magnitude 256 (fixed-point unit vector).
 // uc_orig: normalise_val256 (fallen/Source/Vehicle.cpp)
-static void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
+void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz)
 {
     SLONG len;
 

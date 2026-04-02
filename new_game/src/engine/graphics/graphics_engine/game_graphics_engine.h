@@ -5,6 +5,7 @@
 // Game code includes ONLY this header — never D3D/DDraw/OpenGL headers directly.
 // Implementation lives in graphics_engine_d3d.cpp (or graphics_engine_opengl.cpp).
 
+#include <cstddef>
 #include <cstdint>
 
 // ---------------------------------------------------------------------------

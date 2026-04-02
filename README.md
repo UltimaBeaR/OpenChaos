@@ -8,14 +8,16 @@ reimplementation with modern tech.
 | Area | Original | Now |
 |------|----------|-----|
 | Build system | MSVC vcxproj | CMake + Ninja + Clang++ (standalone, no clang-cl), vcpkg |
+| Architecture | 32-bit x86 only | 64-bit native (x64 on Windows, arm64 on macOS) |
 | Graphics | Direct3D 6 (hardcoded) | Swappable backend abstraction (ge_* API); OpenGL 4.1 Core Profile (active, cross-platform) + D3D6 legacy backend |
 | Audio | Miles Sound System | SDL3 + OpenAL Soft (3D positional sound) |
 | Input | DirectInput (keyboard + joystick) | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense, PS1-style mapping, analog stick, vibration, hotplug, analog triggers (gas/brake). DualSense extras: LED lightbar (health color, siren flash), adaptive triggers (weapon click, brake resistance) |
-| Platform | Windows-only (Win32 API throughout) | Windows (cross-platform in progress — game code uses SDL3, Win32 API isolated to D3D6 backend) |
+| Platform | Windows-only (Win32 API throughout) | **Windows + macOS** (OpenGL backend). Game code is cross-platform (SDL3 + POSIX), Win32 API isolated to D3D6 legacy backend only |
 
 - Unused code removed (PSX, Dreamcast, Glide, editors, debug, experimental features) — code is preprocessor-free
 - Codebase restructured into hierarchical modules (`engine/`, `game/`, `ui/`, `outro/`), every entity traceable to the original via `// uc_orig:` comments
 - Several pre-release visual bugs fixed (z-buffer ordering, invisible objects, foliage flickering, startup hang)
+- Ported to 64-bit: all pointer truncation, struct sizeof mismatches, and file I/O fixed for x64/arm64
 
 ## Repository
 

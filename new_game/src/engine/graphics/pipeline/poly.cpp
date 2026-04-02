@@ -343,7 +343,7 @@ extern void POLY_setclip(POLY_Point* pt)
 // uc_orig: POLY_perspective (fallen/DDEngine/Headers/poly.h)
 // Perspective-projects a view-space POLY_Point: fills X, Y (screen pixels), Z (1/z), and clip flags.
 // wibble_key: non-zero applies sinusoidal horizontal shimmer (water effect).
-static void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
+void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
 {
     if (pt->z < POLY_Z_NEARPLANE) {
         pt->clip = POLY_CLIP_NEAR;

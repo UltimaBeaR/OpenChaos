@@ -21,9 +21,9 @@ struct FONT_Letter
 // uc_orig: FONT_letter (fallen/outro/outroFont.cpp)
 extern FONT_Letter FONT_letter[FONT_NUM_LETTERS];
 
-// uc_orig: FONT_punct (fallen/outro/outroFont.cpp)
+// uc_orig: FONT_punct (fallen/outro/outroFont.cpp) — renamed to OUTRO_FONT_punct to avoid duplicate symbol with engine FONT_punct
 // Lookup table mapping punctuation ASCII chars to font letter indices.
-extern CBYTE FONT_punct[];
+extern CBYTE OUTRO_FONT_punct[];
 
 // uc_orig: FONT_ot (fallen/outro/outroFont.cpp)
 // The font texture used for rendering glyphs.

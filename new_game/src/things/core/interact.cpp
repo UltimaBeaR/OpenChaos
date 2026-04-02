@@ -41,7 +41,7 @@ extern SLONG WARE_calc_height_at(SLONG ware, SLONG x, SLONG z);
 
 // Returns angle (0..2047) from a displacement vector (dx, dz).
 // uc_orig: calc_angle (fallen/Source/interact.cpp)
-static SLONG calc_angle(SLONG dx, SLONG dz)
+SLONG calc_angle(SLONG dx, SLONG dz)
 {
     SLONG angle = 0;
     angle = Arctan(-dx, dz) + 1024;
@@ -51,7 +51,7 @@ static SLONG calc_angle(SLONG dx, SLONG dz)
 
 // Returns signed angular difference between two angles, clamped to [-1024, +1024].
 // uc_orig: angle_diff (fallen/Source/interact.cpp)
-static SLONG angle_diff(SLONG angle1, SLONG angle2)
+SLONG angle_diff(SLONG angle1, SLONG angle2)
 {
     SLONG diff;
     diff = angle1 - angle2;

@@ -5045,7 +5045,7 @@ SLONG slide_around_box(
 // uc_orig: slide_around_box_lowstack (fallen/Source/collide.cpp)
 // Simplified version of slide_around_box without the NOGO retry loop.
 // Does not check NOGO, no globals. Used where stack depth is a concern.
-static SLONG slide_around_box_lowstack(
+SLONG slide_around_box_lowstack(
     SLONG box_mid_x,
     SLONG box_mid_z,
     SLONG box_min_x,

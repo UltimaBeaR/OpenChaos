@@ -1692,7 +1692,7 @@ void PANEL_last(void)
                     else
                         colour = colours[secsleft];
 
-                    itoa(secsleft, text, 10);
+                    sprintf(text, "%d", secsleft);
 
                     FONT2D_DrawString(
                         text,
@@ -1701,7 +1701,7 @@ void PANEL_last(void)
                         colour,
                         256);
                 }
-                itoa(p_special->Genus.Special->ammo, text, 10);
+                sprintf(text, "%d", p_special->Genus.Special->ammo);
                 break;
 
             case SPECIAL_KNIFE:

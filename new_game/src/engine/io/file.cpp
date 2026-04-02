@@ -5,11 +5,15 @@
 #include <cstdio>
 
 // Prepend cBasePath to filename. Returns pointer to static buffer.
+// Normalizes backslashes to forward slashes for cross-platform compatibility.
 // uc_orig: MakeFullPathName (MFStdLib/Source/StdLib/StdFile.cpp)
 static CBYTE* MakeFullPathName(const CBYTE* cFilename)
 {
     strcpy(cTempFilename, cBasePath);
     strcat(cTempFilename, cFilename);
+    for (CBYTE* p = cTempFilename; *p; ++p) {
+        if (*p == '\\') *p = '/';
+    }
     return (cTempFilename);
 }
 
@@ -154,7 +158,7 @@ void FileSetBasePath(CBYTE* path_name)
         while (*++pch != '\0') { }
         pch--;
         if (*pch != '\\' && *pch != '/') {
-            *pch++ = '\\';
+            *pch++ = '/';
             *pch = '\0';
         }
     }
