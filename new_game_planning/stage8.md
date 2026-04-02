@@ -538,5 +538,5 @@ Apple Clang строже чем clang++ на Windows — нашлись ошиб
 Минимальный критерий пройден для macOS arm64: компилируется + линкуется + запускается до главного меню + геймплей.
 
 **Известные проблемы macOS** → `known_issues_and_bugs.md` (секция "macOS-специфичные проблемы"):
-- Низкий FPS (ощущение software rendering)
+- ~~Низкий FPS (ощущение software rendering)~~ — **ИСПРАВЛЕНО** (batched alpha sort: 350+ draw calls → ~10-20, frame time 80ms → 5ms)
 - ~~DualSense: задержка ввода ~1 сек~~ — **ИСПРАВЛЕНО** (HID FIFO queue drain + output dirty-check)
