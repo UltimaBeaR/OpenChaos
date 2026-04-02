@@ -314,6 +314,26 @@ void ge_reset_back_image();
 void ge_run_cutscene(int32_t id);
 
 // ---------------------------------------------------------------------------
+// Video rendering (used by engine/video/video_player.cpp)
+// ---------------------------------------------------------------------------
+
+// Opaque handle to a video frame texture.
+typedef uintptr_t GEVideoTexture;
+
+// Create a texture for video frame upload. Returns 0 on failure.
+GEVideoTexture ge_video_texture_create(int width, int height);
+
+// Upload RGB24 pixel data to the video texture.
+void ge_video_texture_upload(GEVideoTexture tex, int width, int height,
+                             const uint8_t* rgb_data, int row_stride);
+
+// Draw the video texture as a fullscreen letterboxed quad and swap.
+void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h);
+
+// Destroy the video texture.
+void ge_video_texture_destroy(GEVideoTexture tex);
+
+// ---------------------------------------------------------------------------
 // Driver info
 // ---------------------------------------------------------------------------
 

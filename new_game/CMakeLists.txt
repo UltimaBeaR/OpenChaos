@@ -41,6 +41,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release")
 # ---------------------------------------------------------------------------
 find_package(SDL3   CONFIG REQUIRED)
 find_package(OpenAL CONFIG REQUIRED)
+find_package(FFMPEG REQUIRED)
 
 # ---------------------------------------------------------------------------
 # Optional: AddressSanitizer for memory error detection (heap overflows, etc.)
@@ -109,10 +110,14 @@ elseif(GRAPHICS_BACKEND STREQUAL "opengl")
     file(WRITE "${SHADER_EMBED_SCRIPT}" "
 file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
 file(READ \"\${SHADER_DIR}/common_frag.glsl\" FRAG)
+file(READ \"\${SHADER_DIR}/video_vert.glsl\" VID_VERT)
+file(READ \"\${SHADER_DIR}/video_frag.glsl\" VID_FRAG)
 file(WRITE \"\${OUT}\"
     \"// Auto-generated from .glsl files — do not edit.\\n\"
     \"static const char* const SHADER_TL_VERT = R\\\"glsl(\\n\${TL})glsl\\\";\\n\\n\"
-    \"static const char* const SHADER_FRAG = R\\\"glsl(\\n\${FRAG})glsl\\\";\\n\"
+    \"static const char* const SHADER_FRAG = R\\\"glsl(\\n\${FRAG})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_VIDEO_VERT = R\\\"glsl(\\n\${VID_VERT})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_VIDEO_FRAG = R\\\"glsl(\\n\${VID_FRAG})glsl\\\";\\n\"
 )
 ")
     add_custom_command(
@@ -121,6 +126,8 @@ file(WRITE \"\${OUT}\"
         DEPENDS
             "${SHADER_DIR}/tl_vert.glsl"
             "${SHADER_DIR}/common_frag.glsl"
+            "${SHADER_DIR}/video_vert.glsl"
+            "${SHADER_DIR}/video_frag.glsl"
         COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
     )
 
@@ -200,6 +207,9 @@ set(SOURCES_NEW
     src/engine/input/joystick_globals.cpp
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
+
+    # === Engine: video ===
+    src/engine/video/video_player.cpp
 
     # === Engine: audio ===
     src/engine/audio/mfx.cpp
@@ -561,6 +571,8 @@ target_include_directories(Fallen PRIVATE
     $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/common/glad/include>
     # Generated headers (embedded shaders)
     $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated>
+    # FFmpeg (video playback)
+    ${FFMPEG_INCLUDE_DIRS}
 )
 
 # ---------------------------------------------------------------------------
@@ -634,6 +646,7 @@ target_link_libraries(Fallen PRIVATE
     # vcpkg packages
     SDL3::SDL3
     OpenAL::OpenAL
+    ${FFMPEG_LIBRARIES}
 
     # Vendored
     GamepadCore
@@ -653,7 +666,7 @@ if(WIN32)
     set(VCPKG_TRIPLET_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
 
     # Release DLLs
-    foreach(_dll SDL3.dll OpenAL32.dll fmt.dll)
+    foreach(_dll SDL3.dll OpenAL32.dll fmt.dll avcodec-62.dll avformat-62.dll avutil-60.dll swresample-6.dll swscale-9.dll)
         add_custom_command(TARGET Fallen POST_BUILD
             COMMAND "$<$<CONFIG:Release>:${CMAKE_COMMAND}>" $<$<CONFIG:Release>:-E>
                 $<$<CONFIG:Release>:copy_if_different>
@@ -664,7 +677,7 @@ if(WIN32)
     endforeach()
 
     # Debug DLLs (some have 'd' suffix)
-    foreach(_dll SDL3.dll OpenAL32.dll fmtd.dll)
+    foreach(_dll SDL3.dll OpenAL32.dll fmtd.dll avcodec-62.dll avformat-62.dll avutil-60.dll swresample-6.dll swscale-9.dll)
         add_custom_command(TARGET Fallen POST_BUILD
             COMMAND "$<$<CONFIG:Debug>:${CMAKE_COMMAND}>" $<$<CONFIG:Debug>:-E>
                 $<$<CONFIG:Debug>:copy_if_different>

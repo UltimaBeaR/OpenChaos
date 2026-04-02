@@ -76,6 +76,11 @@ void ge_reset_back_image() {}
 
 void ge_run_cutscene(int32_t) {}
 
+GEVideoTexture ge_video_texture_create(int, int) { return 0; }
+void ge_video_texture_upload(GEVideoTexture, int, int, const uint8_t*, int) {}
+void ge_video_draw_and_swap(GEVideoTexture, int, int) {}
+void ge_video_texture_destroy(GEVideoTexture) {}
+
 bool ge_is_primary_driver() { return true; }
 
 void ge_to_gdi() {}

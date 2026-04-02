@@ -270,6 +270,13 @@ void game_startup(void)
 
     GetInputDevice(JOYSTICK, 0, UC_TRUE);
 
+    // Play intro FMV (Eidos, Mucky Foot, intro) — skippable, respects play_movie config.
+    // Must be after GetInputDevice so DualSense is initialized for skip.
+    {
+        extern void video_play_intro(void);
+        video_play_intro();
+    }
+
     MORPH_load();
 
     if (ENV_get_value_number("clumps", 0, "Secret")) {
@@ -992,11 +999,11 @@ round_again:;
             if (strstr(ELEV_fname_level, "park2.ucm")) {
                 // MIB introduction cutscene after park2 mission.
                 stop_all_fx_and_music();
-                ge_run_cutscene(1);
+                { extern void video_play_cutscene(int); video_play_cutscene(1); }
             } else if (strstr(ELEV_fname_level, "Finale1.ucm")) {
                 // Final credits cutscene.
                 stop_all_fx_and_music();
-                ge_run_cutscene(3);
+                { extern void video_play_cutscene(int); video_play_cutscene(3); }
 
                 extern void OS_hack(void);
                 the_end = UC_TRUE;

@@ -1373,6 +1373,126 @@ void ge_reset_back_image()
 void ge_run_cutscene(int32_t) {}
 
 // ---------------------------------------------------------------------------
+// Video rendering
+// ---------------------------------------------------------------------------
+
+// Shader sources for video fullscreen quad (embedded from .glsl files).
+// SHADER_VIDEO_VERT and SHADER_VIDEO_FRAG are defined in gl_shaders_embedded.h.
+
+static GLuint s_vid_program = 0;
+static GLuint s_vid_vao = 0;
+static GLuint s_vid_vbo = 0;
+
+static void vid_ensure_resources()
+{
+    if (s_vid_program) return;
+
+    // Compile shader
+    auto compile = [](GLenum type, const char* src) -> GLuint {
+        GLuint s = glCreateShader(type);
+        glShaderSource(s, 1, &src, nullptr);
+        glCompileShader(s);
+        GLint ok = 0;
+        glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
+        if (!ok) { glDeleteShader(s); return 0; }
+        return s;
+    };
+    GLuint vs = compile(GL_VERTEX_SHADER, SHADER_VIDEO_VERT);
+    GLuint fs = compile(GL_FRAGMENT_SHADER, SHADER_VIDEO_FRAG);
+    if (!vs || !fs) return;
+
+    s_vid_program = glCreateProgram();
+    glAttachShader(s_vid_program, vs);
+    glAttachShader(s_vid_program, fs);
+    glLinkProgram(s_vid_program);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    // VAO/VBO
+    glGenVertexArrays(1, &s_vid_vao);
+    glGenBuffers(1, &s_vid_vbo);
+    glBindVertexArray(s_vid_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, s_vid_vbo);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glBindVertexArray(0);
+}
+
+GEVideoTexture ge_video_texture_create(int width, int height)
+{
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, width, height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    return (GEVideoTexture)tex;
+}
+
+void ge_video_texture_upload(GEVideoTexture tex, int width, int height,
+                             const uint8_t* rgb_data, int row_stride)
+{
+    glBindTexture(GL_TEXTURE_2D, (GLuint)tex);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, row_stride / 3);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height,
+                    GL_RGB, GL_UNSIGNED_BYTE, rgb_data);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+}
+
+void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
+{
+    vid_ensure_resources();
+    if (!s_vid_program) return;
+
+    // Compute letterboxed quad
+    int win_w, win_h;
+    extern void sdl3_window_get_size(int*, int*);
+    sdl3_window_get_size(&win_w, &win_h);
+
+    float va = (float)video_w / (float)video_h;
+    float wa = (float)win_w  / (float)win_h;
+    float sx = (va > wa) ? 1.0f : va / wa;
+    float sy = (va > wa) ? wa / va : 1.0f;
+
+    float verts[] = {
+        -sx, -sy, 0.0f, 1.0f,
+         sx, -sy, 1.0f, 1.0f,
+        -sx,  sy, 0.0f, 0.0f,
+         sx,  sy, 1.0f, 0.0f,
+    };
+    glBindBuffer(GL_ARRAY_BUFFER, s_vid_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STREAM_DRAW);
+
+    // Render
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+
+    glUseProgram(s_vid_program);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, (GLuint)tex);
+    glUniform1i(glGetUniformLocation(s_vid_program, "uTexture"), 0);
+
+    glBindVertexArray(s_vid_vao);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    gl_context_swap();
+}
+
+void ge_video_texture_destroy(GEVideoTexture tex)
+{
+    GLuint t = (GLuint)tex;
+    if (t) glDeleteTextures(1, &t);
+}
+
+// ---------------------------------------------------------------------------
 // Driver info
 // ---------------------------------------------------------------------------
 

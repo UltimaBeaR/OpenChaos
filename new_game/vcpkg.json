@@ -3,7 +3,12 @@
   "version-string": "1.0.0",
   "dependencies": [
     "sdl3",
-    "openal-soft"
+    "openal-soft",
+    {
+      "name": "ffmpeg",
+      "default-features": false,
+      "features": ["avcodec", "avformat", "swscale", "swresample"]
+    }
   ],
   "builtin-baseline": "7d1d86a0786d928fd81c9897ba089422716a0755"
 }

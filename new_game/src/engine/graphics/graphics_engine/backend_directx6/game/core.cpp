@@ -553,6 +553,11 @@ void ge_run_cutscene(int32_t id)
     the_display.RunCutscene(id);
 }
 
+GEVideoTexture ge_video_texture_create(int, int) { return 0; }
+void ge_video_texture_upload(GEVideoTexture, int, int, const uint8_t*, int) {}
+void ge_video_draw_and_swap(GEVideoTexture, int, int) {}
+void ge_video_texture_destroy(GEVideoTexture) {}
+
 // ---------------------------------------------------------------------------
 // Driver info
 // ---------------------------------------------------------------------------

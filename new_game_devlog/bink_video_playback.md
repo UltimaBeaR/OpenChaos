@@ -1,7 +1,8 @@
 # Видеоролики (Bink Video Playback)
 
 **Задача:** восстановить воспроизведение .bik видеороликов, вырезанное при модернизации.
-**Трекер:** `known_issues_and_bugs.md` → "Видеоролики не воспроизводятся"
+**Статус:** ✅ ГОТОВО
+**Трекер:** `known_issues_and_bugs.md` → "Видеоролики не воспроизводятся" (исправлено)
 
 ---
 
@@ -117,4 +118,35 @@ void video_play(const char* filename, bool allow_skip);
 
 ## Лог работы
 
-(записи добавляются по мере выполнения)
+### 2026-04-03: Реализация завершена
+
+**Что сделано:**
+- FFmpeg добавлен как зависимость через vcpkg (avcodec, avformat, swscale, swresample)
+- Новый модуль: `engine/video/video_player.cpp` + `.h`
+- Видео: FFmpeg decode → sws_scale (RGB24) → GL текстура → fullscreen quad (собственный шейдер)
+- Аудио: FFmpeg decode → swr_convert (S16) → OpenAL streaming (4 буферных слота, аккумулятор без потерь)
+- A/V sync: wall clock master, видео ждёт по pts
+- Letterboxing: автоматический aspect ratio с чёрными полосами
+- Скип: клавиатура (Esc/Enter/Space), мышь, SDL gamepad, DualSense (edge-triggered)
+- DualSense: snapshot состояния при старте ролика, скип только на новое нажатие (не hold)
+- Интеграция: game.cpp/elev.cpp вызывают `video_play_cutscene()` напрямую, `video_play_intro()` при старте
+- Рендер через ge_video_* API (backend-agnostic): создание текстуры, upload, fullscreen quad + swap
+- Интро вызывается после `GetInputDevice()` чтобы DualSense был инициализирован
+
+**Проблемы решённые в процессе:**
+- Рассинхрон A/V: начальная реализация использовала audio master clock через AL_SAMPLE_OFFSET — 
+  ненадёжно (сбрасывается при underrun). Переключено на wall clock.
+- Аудио артефакты (щелчки): streaming дропал данные при полных буферах. 
+  Решено через accumulation buffer — данные никогда не теряются.
+- DualSense не скипал: ds_init() вызывался после video_play_intro(). Перенесён вызов.
+- DualSense скипал все 3 ролика: кнопка оставалась нажатой. Добавлен edge detection.
+- Зависание (deadlock): sync loop ждал audio clock, который не двигался после underrun.
+  Устранено переходом на wall clock.
+
+**Файлы:**
+- `new_game/src/engine/video/video_player.h` — API (3 функции)
+- `new_game/src/engine/video/video_player.cpp` — реализация (~550 строк)
+- `new_game/CMakeLists.txt` — FFmpeg find_package, линковка, DLL копирование
+- `new_game/vcpkg.json` — зависимость ffmpeg
+- `new_game/src/engine/graphics/.../backend_opengl/game/core.cpp` — ge_run_cutscene stub → video_play_cutscene
+- `new_game/src/game/game.cpp` — video_play_intro() при старте

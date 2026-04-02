@@ -2074,7 +2074,7 @@ SLONG ELEV_load_name(CBYTE* fname_level)
 
         } else {
             stop_all_fx_and_music();
-            ge_run_cutscene(2);
+            { extern void video_play_cutscene(int); video_play_cutscene(2); }
 
             // Reshow the "loading" screen.
             ATTRACT_loadscreen_init();
