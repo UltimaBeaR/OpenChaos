@@ -332,7 +332,7 @@ Object files: 317 → 314.
 - `polypage.cpp`: `s_AlphaSort = false` (было `true`)
 - `polypage.h`: `EnableAlphaSort()` = no-op для `!VERSION_D3D` (frontend.cpp включал обратно каждый кадр)
 - **Результат:** frame time с **80ms → 4ms** (ускорение 20x). Игра упирается в `lock_frame_rate(30)`.
-- **Tradeoff:** прозрачные полигоны не сортируются по глубине. Возможны визуальные артефакты на лужах/отражениях. Правильный фикс — батчить sorted polys (собрать в один VBO в отсортированном порядке, один draw call на текстурную страницу).
+- **Tradeoff:** ~~прозрачные полигоны не сортируются по глубине~~ → исправлено batched alpha sort (см. ниже).
 
 **2. Оптимизация GL draw calls (кеширование state):**
 - Убраны бессмысленные `glBindVertexArray(0)` / `glUseProgram(0)` после каждого draw call
@@ -357,8 +357,23 @@ Object files: 317 → 314.
 | `poly.cpp` | `#include "engine/platform/sdl3_bridge.h"`, переменные `_pfd_t0/_pfd_renders/_pfd_single`, инкременты `_pfd_renders++`/`_pfd_single++`, блок `{ uint64_t _pfd_t1 ... }` с `[poly_flush]` fprintf |
 | `game.cpp` | `static uint64_t s_frame_start`, `uint64_t frame_start`, `uint64_t draw_t0/draw_t1`, весь блок `{ uint64_t t0 ... }` с `[frame]` fprintf. Восстановить оригинальный порядок: `screen_flip(); BreakTime("Done flip"); BreakFrame(); lock_frame_rate(env_frame_rate);` |
 
+**4. Batched alpha sort (замена DrawSinglePoly):**
+
+Проблема: alpha sort включён → отражения в лужах сломаны (белые вместо разноцветных).
+Alpha sort выключен → 20x ускорение, но без сортировки прозрачности.
+
+Решение — batched alpha sort: сохраняем логику depth-сортировки по бакетам, но вместо отдельного GL draw call на каждый полигон (`DrawSinglePoly`) — накапливаем индексы в `IxBuffer` пока идут полигоны от одной PolyPage, и flush'им одним `ge_draw_indexed_primitive_vb` при смене page.
+
+**Изменённые файлы:**
+
+| Файл | Что изменилось |
+|------|---------------|
+| `poly.cpp` | Bucket iteration loop: вместо `DrawSinglePoly(p)` на каждый полигон — accumulate indices + flush при page change. Добавлен `#include "engine/graphics/pipeline/polypage_globals.h"` для доступа к `IxBuffer` |
+| `polypage.h` | Новый метод `DrawBatchedPolys(const UWORD* indices, uint32_t index_count)` |
+| `polypage.cpp` | Реализация `DrawBatchedPolys` — передаёт готовый index buffer в `ge_draw_indexed_primitive_vb(m_VB, ...)`. `s_AlphaSort` вернулся в `true`. `EnableAlphaSort()` вернулась к оригинальному поведению (убран `#ifdef VERSION_D3D` no-op) |
+
+**Результат:** alpha sort работает (отражения корректны), ~10-20 batched draw calls вместо 350+ per-polygon. Производительность сравнима с выключенным alpha sort (~5ms frame time).
+
 ### TODO
 
-- [ ] Batched alpha sort — собирать sorted polys в один VBO/IBO по текстурной странице, один draw call вместо 350 DrawSinglePoly
-- [ ] Проверить визуальные артефакты на лужах/отражениях без alpha sort
-- [ ] После допиливания — убрать отладочную инструментацию (таблица выше)
+- [ ] Убрать отладочную инструментацию (таблица выше) — можно убрать сейчас или оставить на время дальнейшей отладки рендерера

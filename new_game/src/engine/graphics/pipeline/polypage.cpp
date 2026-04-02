@@ -22,9 +22,7 @@ extern DWORD g_dw3DStuffY;
 
 // PolyPage static member definitions.
 // uc_orig: s_AlphaSort (fallen/DDEngine/Source/polypage.cpp)
-// Disabled for OpenGL backend — DrawSinglePoly per-polygon draw calls
-// are extremely expensive on macOS GL→Metal (~0.2ms each, 350+ per frame = 70ms+).
-bool PolyPage::s_AlphaSort = false;
+bool PolyPage::s_AlphaSort = true;
 // uc_orig: s_ColourMask (fallen/DDEngine/Source/polypage.cpp)
 ULONG PolyPage::s_ColourMask = 0xFFFFFFFF;
 // uc_orig: s_XScale (fallen/DDEngine/Source/polypage.cpp)
@@ -324,6 +322,12 @@ void PolyPage::DrawSinglePoly(PolyPoly* poly)
     }
 
     ge_draw_indexed_primitive_vb(m_VB, IxBuffer, dst - IxBuffer);
+}
+
+// Draw pre-sorted polygons in one batched call using this page's prepared VB.
+void PolyPage::DrawBatchedPolys(const UWORD* indices, uint32_t index_count)
+{
+    ge_draw_indexed_primitive_vb(m_VB, indices, index_count);
 }
 
 // uc_orig: AddToBuckets (fallen/DDEngine/Source/polypage.cpp)

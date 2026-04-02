@@ -11,6 +11,7 @@
 #include "engine/graphics/pipeline/poly_render.h"
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/polypage_globals.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/lighting/crinkle.h"
 #include "engine/core/matrix.h"
@@ -1983,14 +1984,46 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             pa->AddToBuckets(buckets, 2048);
         }
 
-        for (i = 0; i < 2048; i++) {
-            PolyPoly* p = buckets[i];
+        // Batched alpha sort: accumulate indices per page run, flush on page change.
+        // Instead of 350+ DrawSinglePoly calls (one GL draw each), this produces
+        // ~10-20 batched draws grouped by consecutive same-page runs.
+        {
+            PolyPage* cur_page = NULL;
+            UWORD* dst = IxBuffer;
 
-            while (p) {
-                p->page->RS.SetChanged();
-                p->page->DrawSinglePoly(p);
+            for (i = 0; i < 2048; i++) {
+                PolyPoly* p = buckets[i];
+
+                while (p) {
+                    if (p->page != cur_page) {
+                        // Flush accumulated indices for previous page.
+                        if (cur_page && dst != IxBuffer) {
+                            cur_page->RS.SetChanged();
+                            cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
+                            _pfd_single++;
+                            dst = IxBuffer;
+                        }
+                        cur_page = p->page;
+                    }
+
+                    // Accumulate triangle fan as indexed triangles.
+                    UWORD v1 = p->first_vertex;
+                    for (ULONG jj = 2; jj < p->num_vertices; jj++) {
+                        ASSERT(dst - IxBuffer + 3 < 65536);
+                        *dst++ = v1;
+                        *dst++ = v1 + jj - 1;
+                        *dst++ = v1 + jj;
+                    }
+
+                    p = p->next;
+                }
+            }
+
+            // Flush final batch.
+            if (cur_page && dst != IxBuffer) {
+                cur_page->RS.SetChanged();
+                cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
                 _pfd_single++;
-                p = p->next;
             }
         }
 
