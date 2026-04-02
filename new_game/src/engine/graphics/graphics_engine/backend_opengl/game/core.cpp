@@ -918,8 +918,9 @@ void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* vert
     float vp_w = (float)s_vp_w;
     float vp_h = (float)s_vp_h;
 
-    // Allocate TL vertices.
-    GEVertexTL* tl = (GEVertexTL*)alloca(vert_count * sizeof(GEVertexTL));
+    // Transform into static TL buffer (single-threaded rendering, safe to reuse).
+    static GEVertexTL tl[8192];
+    ASSERT(vert_count <= 8192);
 
     for (uint32_t i = 0; i < vert_count; i++) {
         float x = verts[i].x, y = verts[i].y, z = verts[i].z;
