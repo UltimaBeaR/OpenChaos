@@ -41,15 +41,23 @@ static void read(FDeviceContext* ctx)
     if (!ctx || !ctx->Handle) return;
     auto* dev = static_cast<SDL_hid_device*>(ctx->Handle);
 
+    // Drain the HID report queue and keep only the most recent report.
+    // The controller sends reports at ~133Hz (Bluetooth) but the game reads at ~30fps.
+    // On macOS IOKit, SDL_hid_read returns the OLDEST queued report (FIFO).
+    // Without draining, the queue grows by ~100 reports/sec and we always read
+    // stale data from ~1 second ago. On Windows the HID backend behaves differently
+    // (likely returns the latest report), so this isn't an issue there.
     if (ctx->ConnectionType == EDSDeviceConnection::Bluetooth &&
         ctx->DeviceType == EDSDeviceType::DualShock4)
     {
-        SDL_hid_read(dev, ctx->BufferDS4, 547);
+        while (SDL_hid_read(dev, ctx->BufferDS4, 547) > 0) {}
         return;
     }
 
     const size_t len = (ctx->ConnectionType == EDSDeviceConnection::Bluetooth) ? 78 : 64;
-    int result = SDL_hid_read(dev, ctx->Buffer, len);
+    int result;
+    while ((result = SDL_hid_read(dev, ctx->Buffer, len)) > 0) {}
+
     if (result < 0) {
         // Disconnected
         SDL_hid_close(dev);
@@ -255,11 +263,19 @@ void ds_shutdown()
 void ds_poll_registry(float delta_time)
 {
     if (!s_registry) return;
-    s_registry->PlugAndPlay(delta_time);
 
-    // Check if we have a device now
+    // Only run device detection when no device is connected.
+    // PlugAndPlay calls SDL_hid_enumerate + SDL_hid_open_path every DetectionInterval (1s).
+    // On macOS, re-opening an already-open Bluetooth HID device via IOKit interferes with
+    // the active read channel, causing ~1 second input lag spikes. The library also leaks
+    // the re-opened handle (CreateLibrary skips known devices but CreateHandle already opened it).
+    // Disconnection is detected by SDL_hid_read returning -1 in the read callback.
     if (!s_has_device) {
-        // Try device ID 0 (first allocated)
+        s_registry->PlugAndPlay(delta_time);
+    }
+
+    // Update connection state.
+    if (!s_has_device) {
         auto* gp = s_registry->GetLibrary(s_active_device_id);
         if (gp && gp->IsConnected()) {
             s_has_device = true;

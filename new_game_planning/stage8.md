@@ -539,4 +539,4 @@ Apple Clang строже чем clang++ на Windows — нашлись ошиб
 
 **Известные проблемы macOS** → `known_issues_and_bugs.md` (секция "macOS-специфичные проблемы"):
 - Низкий FPS (ощущение software rendering)
-- DualSense: задержка ввода ~1 сек (клавиатура — без лага)
+- ~~DualSense: задержка ввода ~1 сек~~ — **ИСПРАВЛЕНО** (HID FIFO queue drain + output dirty-check)

@@ -102,7 +102,7 @@
 | Проблема | Описание | Статус |
 |----------|----------|--------|
 | Очень низкий FPS (ощущение как software rendering) | На M1 Pro игра тормозит — не соответствует сложности рендера. Возможные причины: (1) OpenGL на macOS идёт через Metal translator (Apple's GL→Metal), может быть overhead; (2) vsync/frame pacing; (3) какой-то fallback path в рендере (software lock_screen?); (4) debug-only проблема (проверить Release). Игра не прожорливая — такого быть не должно. | Исследовать |
-| DualSense: огромная задержка ввода (~1 секунда) | Геймпад подключается, все функции DualSense работают (через Dualsense-Multiplatform), но задержка от нажатия до реакции ~1 сек. На Windows такой задержки нет. Клавиатура на том же маке — без такого лага, значит **не связано с FPS**. Проблема именно в пути DualSense→игра. Возможные причины: (1) polling rate Dualsense-Multiplatform на macOS (HID API vs Windows); (2) HID transport latency (USB vs Bluetooth — проверить оба); (3) буферизация в библиотеке (внутренний sleep/polling interval); (4) macOS-специфичный HID backend в библиотеке (IOKit vs hidapi). | Исследовать |
+| ~~DualSense: огромная задержка ввода (~1 секунда)~~ | **ИСПРАВЛЕНО.** Причина: macOS IOKit HID бэкенд (через SDL3 hidapi) возвращает репорты из FIFO-очереди (самый старый первым). DualSense по BT шлёт ~133 репортов/сек, игра читает ~30/сек → очередь росла на ~100/сек → через секунду мы читали данные секундной давности. На Windows HID бэкенд ведёт себя иначе. Фикс: drain всей очереди за кадр, использовать последний репорт (ds_bridge.cpp `read()`). Также: dirty-check для LED/vibration output (gamepad.cpp), skip PlugAndPlay re-enumeration при подключённом устройстве (ds_bridge.cpp). | ✅ Исправлено |
 
 ---
 

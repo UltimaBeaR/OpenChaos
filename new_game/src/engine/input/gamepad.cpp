@@ -28,6 +28,10 @@ static int s_motor_slow = 0; // large motor: 0-255 (decays * 7 >> 3)
 // Frame time tracking for ds_bridge (needs delta_time in seconds).
 static float s_last_poll_delta = 1.0f / 30.0f; // assume 30fps initially
 
+// Last-sent LED color — dirty tracking to avoid unnecessary HID writes.
+// On macOS Bluetooth, each HID write can block 7-30ms, starving input reads.
+static uint8_t s_led_r = 0, s_led_g = 0, s_led_b = 0;
+
 // Temporary: append backend changes to file for verification (Debug only).
 static void debug_log_backend([[maybe_unused]] const char* event)
 {
@@ -370,9 +374,16 @@ void gamepad_rumble_tick()
     }
 
     if (s_is_dualsense) {
-        ds_set_vibration(static_cast<uint8_t>(s_motor_slow),
-                         s_motor_fast ? 255 : 0);
-        ds_update_output();
+        uint8_t vib_left = static_cast<uint8_t>(s_motor_slow);
+        uint8_t vib_right = s_motor_fast ? 255 : 0;
+        // Only send HID write when vibration values actually changed.
+        static uint8_t s_last_vib_l = 0, s_last_vib_r = 0;
+        if (vib_left != s_last_vib_l || vib_right != s_last_vib_r) {
+            s_last_vib_l = vib_left;
+            s_last_vib_r = vib_right;
+            ds_set_vibration(vib_left, vib_right);
+            ds_update_output();
+        }
     } else {
         uint16_t low = static_cast<uint16_t>(s_motor_slow * 257);
         uint16_t high = s_motor_fast ? 65535 : 0;
@@ -400,6 +411,7 @@ void gamepad_rumble_stop()
 void gamepad_led_reset()
 {
     if (!s_is_dualsense || !ds_is_connected()) return;
+    s_led_r = 0; s_led_g = 0; s_led_b = 255;
     ds_set_lightbar(0, 0, 255); // default blue
     ds_update_output();
 }
@@ -450,6 +462,11 @@ void gamepad_led_update(float health_fraction, bool siren)
             b = 0;
         }
     }
+
+    // Only send HID write when color actually changed — on macOS Bluetooth,
+    // each write (~78 bytes) can block 7-30ms, flooding the pipe and delaying input reads.
+    if (r == s_led_r && g == s_led_g && b == s_led_b) return;
+    s_led_r = r; s_led_g = g; s_led_b = b;
 
     ds_set_lightbar(r, g, b);
     ds_update_output();
