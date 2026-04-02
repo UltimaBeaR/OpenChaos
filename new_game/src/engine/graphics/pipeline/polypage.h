@@ -62,7 +62,14 @@ public:
     void SortBackFirst();
 
     // uc_orig: EnableAlphaSort (fallen/DDEngine/Headers/polypage.h)
+    // OpenGL backend: per-polygon DrawSinglePoly is prohibitively expensive
+    // on macOS GL→Metal (~0.2ms each × 350/frame = 70ms+). Disabled until
+    // a batched alpha-sort implementation is added.
+#ifdef VERSION_D3D
     static void EnableAlphaSort() { s_AlphaSort = true; }
+#else
+    static void EnableAlphaSort() { }
+#endif
     // uc_orig: DisableAlphaSort (fallen/DDEngine/Headers/polypage.h)
     static void DisableAlphaSort() { s_AlphaSort = false; }
     // uc_orig: AlphaSortEnabled (fallen/DDEngine/Headers/polypage.h)

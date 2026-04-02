@@ -22,7 +22,9 @@ extern DWORD g_dw3DStuffY;
 
 // PolyPage static member definitions.
 // uc_orig: s_AlphaSort (fallen/DDEngine/Source/polypage.cpp)
-bool PolyPage::s_AlphaSort = true;
+// Disabled for OpenGL backend — DrawSinglePoly per-polygon draw calls
+// are extremely expensive on macOS GL→Metal (~0.2ms each, 350+ per frame = 70ms+).
+bool PolyPage::s_AlphaSort = false;
 // uc_orig: s_ColourMask (fallen/DDEngine/Source/polypage.cpp)
 ULONG PolyPage::s_ColourMask = 0xFFFFFFFF;
 // uc_orig: s_XScale (fallen/DDEngine/Source/polypage.cpp)

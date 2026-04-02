@@ -75,6 +75,9 @@ void sdl3_gl_swap();
 // Get a GL function pointer (for GLAD loader).
 void* sdl3_gl_get_proc_address(const char* name);
 
+// Query the current swap interval. Returns true on success.
+bool sdl3_gl_get_swap_interval(int* interval);
+
 // ---------------------------------------------------------------------------
 // Event loop
 // ---------------------------------------------------------------------------

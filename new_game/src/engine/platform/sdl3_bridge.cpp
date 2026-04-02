@@ -172,6 +172,11 @@ void* sdl3_gl_get_proc_address(const char* name)
     return (void*)SDL_GL_GetProcAddress(name);
 }
 
+bool sdl3_gl_get_swap_interval(int* interval)
+{
+    return SDL_GL_GetSwapInterval(interval);
+}
+
 // ===========================================================================
 // Timer
 // ===========================================================================

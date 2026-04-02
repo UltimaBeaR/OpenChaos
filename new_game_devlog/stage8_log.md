@@ -309,3 +309,56 @@ Object files: 317 → 314.
 - ⏳ Визуальный баг: некоторые стены и ящики не рисуются вблизи (появился после x64, rendering
   pipeline аудирован — чисто, подозрение на corrupted данные или memory issue)
 - ⏳ Outro: 3D модель справа не видна (возможно IMP_Mesh pointer issue)
+
+---
+
+## 2026-04-02: macOS M1 — расследование тормозов OpenGL рендера
+
+### Проблема
+
+На macOS M1 Pro рендеринг тормозил до ~12 fps при том что GPU рисовал мизерный объём (7 draw calls, ~500 треугольников). На Windows с тем же кодом проблем нет.
+
+### Расследование
+
+1. **Проверили аппаратный режим GL** — `Apple M1 Pro`, `4.1 Metal - 89.4`. Всё ок, GPU hardware, GL транслируется через Metal.
+2. **Замерили draw calls** — 3-8 за кадр. Ничтожно мало, не bottleneck.
+3. **Замерили секции `AENG_draw_city()`** — CPU-код (visibility, transform, terrain) = ~0ms. Всё время уходило в `POLY_frame_draw()`.
+4. **Нашли root cause:** `PolyPage::AlphaSortEnabled() == true` → alpha sort path в `POLY_frame_draw` рисует **каждый прозрачный полигон отдельным `DrawSinglePoly`** — 350+ вызовов `ge_draw_indexed_primitive_vb()` за один flush. На macOS GL→Metal translation каждый GL draw call стоит ~0.2ms (bind program, upload uniforms, bind VAO, buffer upload, draw, unbind). 350 × 0.2ms = **70-85ms** на один `POLY_frame_draw`.
+5. **Почему не тормозит на Windows:** D3D6 DrawPrimitive — почти нулевой overhead, драйвер кладёт команду в command buffer мгновенно. На Windows GL тоже быстрее — нативные драйвера оптимизированы для мелких draw calls. Apple GL→Metal translation делает каждый вызов на порядок дороже.
+
+### Фиксы
+
+**1. Отключён alpha sort для OpenGL бэкенда:**
+- `polypage.cpp`: `s_AlphaSort = false` (было `true`)
+- `polypage.h`: `EnableAlphaSort()` = no-op для `!VERSION_D3D` (frontend.cpp включал обратно каждый кадр)
+- **Результат:** frame time с **80ms → 4ms** (ускорение 20x). Игра упирается в `lock_frame_rate(30)`.
+- **Tradeoff:** прозрачные полигоны не сортируются по глубине. Возможны визуальные артефакты на лужах/отражениях. Правильный фикс — батчить sorted polys (собрать в один VBO в отсортированном порядке, один draw call на текстурную страницу).
+
+**2. Оптимизация GL draw calls (кеширование state):**
+- Убраны бессмысленные `glBindVertexArray(0)` / `glUseProgram(0)` после каждого draw call
+- Кеширование bound program — `glUseProgram` вызывается только при смене
+- Uniform snapshot — `set_frag_uniforms()` пропускает re-upload если state не изменился
+- Viewport uniform перенесён в `set_frag_uniforms()` (был отдельным вызовом)
+- `ge_draw_indexed_primitive_vb()`: убран scan всех индексов для max_idx, используется `buf->logsize`
+- GL state reset в `ge_flip()` на границе кадра
+
+**3. Расширенная GL диагностика:**
+- `gl_context.cpp`: логирует GL_VENDOR, GL_RENDERER, GL_VERSION, swap interval при старте
+- `sdl3_bridge.h/cpp`: добавлена `sdl3_gl_get_swap_interval()`
+
+### Временная отладочная инструментация (УБРАТЬ после завершения отладки)
+
+Добавлена профилирующая инструментация для диагностики. Убрать когда допилим batched alpha sort:
+
+| Файл | Что убрать |
+|------|-----------|
+| `core.cpp` | `s_draw_calls`, `s_draw_tris` (глобалы), `[GL stats]` логирование в `ge_flip()` (static `s_frame_count`, fprintf каждые 60 кадров) |
+| `aeng.cpp` | `#include "engine/platform/sdl3_bridge.h"`, `PROF_MARK` макро-определение и `#undef`, все вызовы `PROF_MARK(...)`, переменные `_prof_freq/_prof_start/_prof_prev/_prof_cnt/_prof_log`. Блок `{ uint64_t _p0 ... }` вокруг draw_city/cleanup в `AENG_draw` с `[aeng]` fprintf |
+| `poly.cpp` | `#include "engine/platform/sdl3_bridge.h"`, переменные `_pfd_t0/_pfd_renders/_pfd_single`, инкременты `_pfd_renders++`/`_pfd_single++`, блок `{ uint64_t _pfd_t1 ... }` с `[poly_flush]` fprintf |
+| `game.cpp` | `static uint64_t s_frame_start`, `uint64_t frame_start`, `uint64_t draw_t0/draw_t1`, весь блок `{ uint64_t t0 ... }` с `[frame]` fprintf. Восстановить оригинальный порядок: `screen_flip(); BreakTime("Done flip"); BreakFrame(); lock_frame_rate(env_frame_rate);` |
+
+### TODO
+
+- [ ] Batched alpha sort — собирать sorted polys в один VBO/IBO по текстурной странице, один draw call вместо 350 DrawSinglePoly
+- [ ] Проверить визуальные артефакты на лужах/отражениях без alpha sort
+- [ ] После допиливания — убрать отладочную инструментацию (таблица выше)

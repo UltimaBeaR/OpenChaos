@@ -3,6 +3,7 @@
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include <math.h>
 #include "engine/graphics/pipeline/poly.h"
@@ -1894,12 +1895,17 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
     static int iPageNumberToClear = 0;
 
+    uint64_t _pfd_t0 = sdl3_get_performance_counter();
+    uint32_t _pfd_renders = 0;
+    uint32_t _pfd_single = 0;
+
     // Draw sky page first (always rendered at the back).
     pa = &POLY_Page[POLY_PAGE_SKY];
 
     if (pa->NeedsRendering()) {
         pa->RS.SetChanged();
         pa->Render();
+        _pfd_renders++;
     }
 
     if (PolyPage::AlphaSortEnabled()) {
@@ -1931,6 +1937,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
             if (!pa->RS.NeedsSorting() || (k == POLY_PAGE_PUDDLE)) {
                 pa->RS.SetChanged();
+                _pfd_renders++;
 
                 if (POLY_force_additive_alpha) {
                     ge_set_blend_mode(GEBlendMode::Additive);
@@ -1982,6 +1989,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             while (p) {
                 p->page->RS.SetChanged();
                 p->page->DrawSinglePoly(p);
+                _pfd_single++;
                 p = p->next;
             }
         }
@@ -2007,10 +2015,21 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             pa->RS.SetChanged();
 
             pa->Render();
+            _pfd_renders++;
         }
     }
 
     ge_end_scene();
+
+    {
+        uint64_t _pfd_t1 = sdl3_get_performance_counter();
+        double _pfd_ms = (double)(_pfd_t1 - _pfd_t0) * 1000.0 / (double)sdl3_get_performance_frequency();
+        static uint32_t _pfd_cnt = 0;
+        if (_pfd_ms > 5.0 || (++_pfd_cnt % 120 == 0)) {
+            fprintf(stderr, "[poly_flush] %.1fms renders=%u singles=%u alpha=%d\n",
+                _pfd_ms, _pfd_renders, _pfd_single, PolyPage::AlphaSortEnabled() ? 1 : 0);
+        }
+    }
 
     // Incrementally clear a few pages' VBs/IBs per frame to reclaim memory from inactive pages.
     for (i = 0; i < 3; i++) {

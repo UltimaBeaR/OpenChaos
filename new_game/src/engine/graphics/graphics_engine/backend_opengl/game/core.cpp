@@ -9,6 +9,7 @@
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
 #include "engine/platform/uc_common.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
@@ -21,6 +22,33 @@
 // ---------------------------------------------------------------------------
 
 static char s_data_dir[256] = "";
+
+// Draw call stats (per frame).
+static uint32_t s_draw_calls  = 0;
+static uint32_t s_draw_tris   = 0;
+
+// GL state cache — avoid redundant GL calls on macOS GL→Metal translation layer.
+static GLuint   s_cached_program = 0;          // currently bound program
+
+// Uniform snapshot — last uploaded values, skip re-upload if unchanged.
+struct UniformSnapshot {
+    GETextureHandle texture;
+    bool            texture_has_alpha;
+    GETextureBlend  texture_blend;
+    GETextureFilter tex_mag, tex_min;
+    GETextureAddress tex_address;
+    bool            alpha_test_enabled;
+    uint32_t        alpha_ref;
+    GECompareFunc   alpha_func;
+    bool            fog_enabled;
+    uint32_t        fog_color;
+    float           fog_near, fog_far;
+    bool            specular_enabled;
+    bool            color_key_enabled;
+    int32_t         vp_x, vp_y, vp_w, vp_h;
+};
+static UniformSnapshot s_last_uniforms = {};
+static bool s_uniforms_ever_uploaded = false;
 
 // Callbacks registered by game code.
 static GEPreFlipCallback              s_pre_flip_callback = nullptr;
@@ -480,12 +508,33 @@ static void destroy_shaders()
 }
 
 // Upload current fragment shader uniforms to the active program.
+// Uses snapshot comparison to skip re-upload when nothing changed.
 static void set_frag_uniforms(
     GLint u_has_texture, GLint u_texture, GLint u_texture_blend,
     GLint u_alpha_test_enabled, GLint u_alpha_ref, GLint u_alpha_func,
     GLint u_fog_enabled, GLint u_fog_color, GLint u_fog_near, GLint u_fog_far,
     GLint u_specular_enabled, GLint u_color_key_enabled, GLint u_tex_has_alpha)
 {
+    // Check if anything changed since last upload.
+    UniformSnapshot cur = {
+        s_bound_texture, s_bound_texture_has_alpha, s_texture_blend,
+        s_tex_filter_mag, s_tex_filter_min, s_tex_address,
+        s_alpha_test_enabled, s_alpha_ref, s_alpha_func,
+        s_fog_enabled, s_fog_color, s_fog_near, s_fog_far,
+        s_specular_enabled, s_color_key_enabled,
+        s_vp_x, s_vp_y, s_vp_w, s_vp_h
+    };
+
+    if (s_uniforms_ever_uploaded && memcmp(&cur, &s_last_uniforms, sizeof(cur)) == 0)
+        return;
+
+    s_last_uniforms = cur;
+    s_uniforms_ever_uploaded = true;
+
+    // Viewport uniform.
+    glUniform4f(s_tl_u_viewport,
+        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
+
     bool has_tex = (s_bound_texture != GE_TEXTURE_NONE);
     glUniform1i(u_tex_has_alpha, s_bound_texture_has_alpha ? 1 : 0);
     glUniform1i(u_has_texture, has_tex ? 1 : 0);
@@ -595,7 +644,23 @@ void ge_clear(bool color, bool depth)
 
 void ge_flip()
 {
+    // Reset GL state cache at frame boundary.
+    if (s_cached_program) {
+        glUseProgram(0);
+        s_cached_program = 0;
+    }
+    glBindVertexArray(0);
+    s_uniforms_ever_uploaded = false;
+
     if (s_pre_flip_callback) s_pre_flip_callback();
+
+    static uint32_t s_frame_count = 0;
+    if (++s_frame_count % 60 == 0) {
+        fprintf(stderr, "[GL stats] draws=%u tris=%u\n", s_draw_calls, s_draw_tris);
+    }
+    s_draw_calls = 0;
+    s_draw_tris  = 0;
+
     gl_context_swap();
 }
 
@@ -821,29 +886,26 @@ void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t c
     if (!count) return;
     if (!init_shaders()) return;
 
-    glUseProgram(s_program_tl);
+    if (s_cached_program != s_program_tl) {
+        glUseProgram(s_program_tl);
+        s_cached_program = s_program_tl;
+        s_uniforms_ever_uploaded = false;
+    }
 
-    // Upload viewport uniform.
-    glUniform4f(s_tl_u_viewport,
-        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
-
-    // Upload fragment uniforms.
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
-    // Upload vertex data.
     glBindVertexArray(s_vao_tl);
     glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
     glBufferData(GL_ARRAY_BUFFER, count * sizeof(GEVertexTL), verts, GL_STREAM_DRAW);
 
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawArrays(gl_mode, 0, count);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
+    s_draw_calls++;
+    s_draw_tris += count / 3;
 }
 
 void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t vert_count,
@@ -860,20 +922,18 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
         }
     }
 
-    glUseProgram(s_program_tl);
+    if (s_cached_program != s_program_tl) {
+        glUseProgram(s_program_tl);
+        s_cached_program = s_program_tl;
+        s_uniforms_ever_uploaded = false;
+    }
 
-    // Upload viewport uniform.
-    glUniform4f(s_tl_u_viewport,
-        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
-
-    // Upload fragment uniforms.
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
-    // Upload vertex and index data.
     glBindVertexArray(s_vao_tl);
 
     glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
@@ -884,9 +944,8 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
 
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
+    s_draw_calls++;
+    s_draw_tris += index_count / 3;
 }
 
 
@@ -1657,38 +1716,30 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     ASSERT(buf->magic == GLVB_MAGIC);
     ASSERT(buf->data);
 
-    // Only upload vertices actually referenced by indices.
-    uint16_t max_idx = 0;
-    for (uint32_t i = 0; i < index_count; i++) {
-        if (indices[i] > max_idx) max_idx = indices[i];
+    // Bind program once — skip if already bound.
+    if (s_cached_program != s_program_tl) {
+        glUseProgram(s_program_tl);
+        s_cached_program = s_program_tl;
+        s_uniforms_ever_uploaded = false; // force re-upload after program switch
     }
-    uint32_t vert_count = (uint32_t)max_idx + 1;
 
-    glUseProgram(s_program_tl);
-
-    glUniform4f(s_tl_u_viewport,
-        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
-
+    // Upload uniforms only if state changed.
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
         s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
 
-    // Per-slot VBO/EBO/VAO: each GLVertexBuf has its own GL objects, like D3D6
-    // where each VertexBuffer is a separate IDirect3DVertexBuffer. Avoids hammering
-    // one shared VBO with hundreds of glBufferData calls per frame.
+    // Use buffer's allocated capacity — avoids scanning all indices for max.
+    uint32_t vert_count = 1u << buf->logsize;
     uint32_t upload_size = vert_count * 32;
 
     glBindVertexArray(buf->vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, buf->vbo);
     if (buf->vbo_size < upload_size) {
-        // Grow VBO to power-of-2 capacity (stable size reduces driver reallocs).
-        uint32_t alloc_size = (1u << buf->logsize) * 32;
-        if (alloc_size < upload_size) alloc_size = upload_size;
-        glBufferData(GL_ARRAY_BUFFER, alloc_size, nullptr, GL_STREAM_DRAW);
-        buf->vbo_size = alloc_size;
+        glBufferData(GL_ARRAY_BUFFER, upload_size, nullptr, GL_STREAM_DRAW);
+        buf->vbo_size = upload_size;
     }
     glBufferSubData(GL_ARRAY_BUFFER, 0, upload_size, buf->data);
 
@@ -1696,9 +1747,10 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
+    s_draw_calls++;
+    s_draw_tris += index_count / 3;
 
-    glBindVertexArray(0);
-    glUseProgram(0);
+    // No unbind — next draw will rebind its own VAO.
 
     // Data uploaded to GPU — release the CPU buffer back to the pool.
     buf->in_use = false;

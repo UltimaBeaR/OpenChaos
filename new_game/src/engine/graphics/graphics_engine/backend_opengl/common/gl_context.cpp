@@ -37,8 +37,15 @@ bool gl_context_create(int32_t width, int32_t height)
         return false;
     }
 
-    fprintf(stderr, "OpenGL: %s\n", (const char*)glGetString(GL_VERSION));
-    fprintf(stderr, "OpenGL: %s\n", (const char*)glGetString(GL_RENDERER));
+    fprintf(stderr, "OpenGL vendor:   %s\n", (const char*)glGetString(GL_VENDOR));
+    fprintf(stderr, "OpenGL renderer: %s\n", (const char*)glGetString(GL_RENDERER));
+    fprintf(stderr, "OpenGL version:  %s\n", (const char*)glGetString(GL_VERSION));
+
+    int swap_interval = 0;
+    if (sdl3_gl_get_swap_interval(&swap_interval))
+        fprintf(stderr, "OpenGL swap interval: %d\n", swap_interval);
+    else
+        fprintf(stderr, "OpenGL swap interval: unknown\n");
 
     // Show the window now that GL is ready.
     sdl3_window_show();
