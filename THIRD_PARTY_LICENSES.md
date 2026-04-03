@@ -58,7 +58,7 @@ through the project's open source code and build instructions.
 - **Website:** https://fmt.dev/
 - **Source:** https://github.com/fmtlib/fmt
 - **License:** MIT (with binary embedding exception)
-- **Installed via:** vcpkg
+- **Installed via:** vcpkg (transitive dependency of OpenAL Soft)
 
 ```
 Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors

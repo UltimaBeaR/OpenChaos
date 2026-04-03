@@ -379,6 +379,7 @@ void init_joypad_config(void)
     // SDL3 button indices: 0=South(A/Cross), 1=East(B/Circle), 2=West(X/Square),
     // 3=North(Y/Triangle), 4=Back, 6=Start, 7=L3, 8=R3, 9=LB/L1, 10=RB/R1,
     // 15=LT/L2(digital), 16=RT/R2(digital).
+    // Defaults come from the hardcoded config in env.cpp (see env_default_config).
     joypad_button_use[JOYPAD_BUTTON_JUMP]       = ENV_get_value_number("joypad_jump",       0, "Joypad");  // A / Cross
     joypad_button_use[JOYPAD_BUTTON_ACTION]     = ENV_get_value_number("joypad_action",     1, "Joypad");  // B / Circle
     joypad_button_use[JOYPAD_BUTTON_PUNCH]      = ENV_get_value_number("joypad_punch",      2, "Joypad");  // X / Square

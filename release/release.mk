@@ -51,6 +51,10 @@ endif
 	for extra in "$(RELEASE_ASSETS)"/*.command; do \
 	  [ -f "$$extra" ] && cp "$$extra" "$$STAGING/"; \
 	done; \
-	cd "$(DIST_DIR)" && zip -r "$$ARCHIVE.zip" "$$ARCHIVE" && rm -rf "$$ARCHIVE"; \
+	if [ "$(PLATFORM)" = "windows-x64" ]; then \
+	  powershell -NoProfile -Command "Compress-Archive -Path '$(DIST_DIR)/$$ARCHIVE' -DestinationPath '$(DIST_DIR)/$$ARCHIVE.zip' -Force" && rm -rf "$(DIST_DIR)/$$ARCHIVE"; \
+	else \
+	  cd "$(DIST_DIR)" && zip -r "$$ARCHIVE.zip" "$$ARCHIVE" && rm -rf "$$ARCHIVE"; \
+	fi; \
 	echo ""; \
 	echo "Done: $(DIST_DIR)/$$ARCHIVE.zip"
