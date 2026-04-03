@@ -45,13 +45,21 @@ vcpkg is used for dependency management (SDL3, OpenAL, fmt).
 Included with VS Build Tools / Visual Studio (C++ workload) — no extra setup needed.
 The build scripts auto-detect the installation via `vswhere`.
 
+#### Git for Windows
+
+Required — the Makefile uses `bash` and Unix utilities (`sed`, `zip`, etc.) which come bundled with Git for Windows.
+
+Download: [gitforwindows.org](https://gitforwindows.org/)
+
+During installation, select **"Use Git and optional Unix tools from the Command Prompt"** — this adds `bash`, `sed`, `zip` and other tools to PATH, making them available from `cmd`.
+
 #### GNU make
 
 ```bash
 winget install GnuWin32.Make
 ```
 
-Also included with [Git for Windows](https://gitforwindows.org/) (available in Git Bash).
+Also included with Git for Windows (available in Git Bash).
 
 ### macOS (Apple Silicon M1+)
 
@@ -162,6 +170,7 @@ make run-debug
 |---------|-------------|
 | `make configure-opengl` | CMake configure with OpenGL backend — run once, or after `CMakeLists.txt` changes |
 | `make configure-d3d6` | CMake configure with DirectX 6 backend (Windows-only) |
+| `make configure-asan` | CMake configure with AddressSanitizer enabled |
 | `make build` | Full rebuild — Debug and Release |
 | `make build-debug` | Full rebuild — Debug |
 | `make build-release` | Full rebuild — Release |
@@ -174,6 +183,7 @@ make run-debug
 | `make run-release` | Launch Release build |
 | `make r` | Build Release + launch (stops if build fails) |
 | `make d` | Build Debug + launch (stops if build fails) |
+| `make release-package VERSION=X.Y.Z` | Package Release build into a zip for distribution |
 
 ---
 
@@ -183,9 +193,9 @@ make run-debug
 new_game/
   build/
     Debug/
-      Fallen (Fallen.exe on Windows), text/, config.ini   ← runtime output
+      OpenChaos (OpenChaos.exe on Windows), text/, config.ini   ← runtime output
     Release/
-      Fallen (Fallen.exe on Windows), text/, config.ini   ← runtime output
+      OpenChaos (OpenChaos.exe on Windows), text/, config.ini   ← runtime output
     CMakeFiles/                                            ← intermediate .obj files
   vcpkg_installed/                                         ← vcpkg packages (gitignored)
 ```

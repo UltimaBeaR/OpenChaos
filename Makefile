@@ -5,160 +5,90 @@ RESOURCES  := original_game_resources
 CMAKE      := cmake
 
 # ---------------------------------------------------------------------------
-# Platform detection
+# Included modules
 # ---------------------------------------------------------------------------
-UNAME_S := $(shell uname -s)
-UNAME_M := $(shell uname -m)
 
-ifeq ($(UNAME_S),Darwin)
-    ifeq ($(UNAME_M),arm64)
-        TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-arm64-macos.cmake)
-    else
-        TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-x64-macos.cmake)
-    endif
-    EXE_NAME := Fallen
-else ifeq ($(UNAME_S),Linux)
-    TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-x64-linux.cmake)
-    EXE_NAME := Fallen
-else
-    # Windows (MSYS2/Git Bash)
-    TOOLCHAIN := $(abspath $(SRC_DIR)/cmake/clang-x64-windows.cmake)
-    EXE_NAME := Fallen.exe
-endif
+include make/platform.mk
+
+# configure-opengl, configure-d3d6, configure-asan
+include make/configure.mk
+
+# release-package VERSION=X.Y.Z
+include release/release.mk
+
+# ---------------------------------------------------------------------------
 
 .PHONY: build build-release build-debug build-increment-release build-increment-debug \
         run-release run-debug \
-        configure-opengl configure-d3d6 \
-        configure-windows-x64-opengl configure-macos-arm64-opengl \
+        configure-opengl configure-d3d6 configure-asan \
         copy-resources-debug copy-resources-release copy-resources \
-        r d
+        release-package r d
 
-# ---------------------------------------------------------------------------
-# Auto-detect vcpkg.cmake
-#   1. VCPKG_ROOT env var (cross-platform)
-#   2. Windows: vswhere (finds VS / Build Tools installation)
-#   3. Homebrew vcpkg (macOS)
-# ---------------------------------------------------------------------------
-
-VCPKG_CMAKE := $(shell \
-  if [ -n "$$VCPKG_ROOT" ] && [ -f "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then \
-    echo "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"; \
-  elif [ "$(UNAME_S)" = "Darwin" ]; then \
-    BREW_PREFIX=$$(brew --prefix 2>/dev/null); \
-    if [ -n "$$BREW_PREFIX" ] && [ -f "$$BREW_PREFIX/share/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
-      echo "$$BREW_PREFIX/share/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
-    fi; \
-  else \
-    VSWHERE="/c/Program Files (x86)/Microsoft Visual Studio/Installer/vswhere.exe"; \
-    if [ -f "$$VSWHERE" ]; then \
-      VS_PATH=$$("$$VSWHERE" -latest -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2>/dev/null); \
-      if [ -n "$$VS_PATH" ] && [ -f "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
-        echo "$$VS_PATH/VC/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
-      fi; \
-    fi; \
-  fi)
-
-# ---------------------------------------------------------------------------
-# Configure (run once on first clone, re-run after CMakeLists.txt changes).
-# Choose a backend: opengl or d3d6 (legacy DirectX 6).
-#
-# Runs CMake with Ninja Multi-Config generator — one configure covers
-# both Debug and Release builds. vcpkg packages (SDL3, OpenAL, fmt) are
-# installed automatically via manifest mode (vcpkg.json).
-# ---------------------------------------------------------------------------
-
-define run_configure
-	@if [ -z "$(VCPKG_CMAKE)" ]; then \
-	  echo "ERROR: vcpkg.cmake not found." >&2; \
-	  echo "  Set VCPKG_ROOT env var, or:" >&2; \
-	  if [ "$(UNAME_S)" = "Darwin" ]; then \
-	    echo "  brew install vcpkg" >&2; \
-	  else \
-	    echo "  Install VS Build Tools with C++ workload" >&2; \
-	  fi; \
-	  exit 1; \
-	fi
-	$(CMAKE) -S $(SRC_DIR) -B $(BUILD_DIR) -G "Ninja Multi-Config" \
-	  "-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_CMAKE)" \
-	  "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(TOOLCHAIN)" \
-	  "-DVCPKG_INSTALLED_DIR=$(abspath $(SRC_DIR)/vcpkg_installed)" \
-	  "-DGRAPHICS_BACKEND=$(1)" \
-	  $(CMAKE_EXTRA_ARGS)
-endef
-
-configure-opengl:
-	$(call run_configure,opengl)
-
-configure-d3d6:
-	$(call run_configure,d3d6)
-
-# Named platform targets (aliases for clarity)
-configure-windows-x64-opengl: configure-opengl
-configure-macos-arm64-opengl: configure-opengl
-
-# ASan: configure with AddressSanitizer enabled
-configure-asan:
-	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure-opengl
-ifeq ($(UNAME_S),Darwin)
-	@echo "ASan: on macOS the runtime is linked automatically by clang."
-else
-	@ASAN_DLL=$$(clang -print-file-name=clang_rt.asan_dynamic-x86_64.dll); \
-	  if [ -f "$$ASAN_DLL" ]; then \
-	    cp "$$ASAN_DLL" $(BUILD_DIR)/Debug/ 2>/dev/null; \
-	    cp "$$ASAN_DLL" $(BUILD_DIR)/Release/ 2>/dev/null; \
-	    echo "ASan DLL copied to build dirs"; \
-	  else \
-	    echo "WARNING: ASan DLL not found at $$ASAN_DLL"; \
-	  fi
-endif
-
-# ---------------------------------------------------------------------------
-# Build (requires configure-opengl or configure-d3d6 to be run first)
-# build-debug/release: full rebuild; build-increment-*: incremental
-# ---------------------------------------------------------------------------
-
+# Usage: make build
+# Full rebuild of both Debug and Release.
 build: build-debug build-release
 
+# Usage: make build-debug
+# Full rebuild, Debug config. Requires: make configure-opengl (run once).
 build-debug:
+	@if [ ! -d "$(BUILD_DIR)" ]; then \
+	  echo "ERROR: Build directory not found. Run 'make configure-opengl' first." >&2; \
+	  exit 1; \
+	fi
 	$(CMAKE) --build $(BUILD_DIR) --config Debug --clean-first
 
+# Usage: make build-release
+# Full rebuild, Release config. Requires: make configure-opengl (run once).
 build-release:
+	@if [ ! -d "$(BUILD_DIR)" ]; then \
+	  echo "ERROR: Build directory not found. Run 'make configure-opengl' first." >&2; \
+	  exit 1; \
+	fi
 	$(CMAKE) --build $(BUILD_DIR) --config Release --clean-first
 
+# Usage: make build-increment-debug
+# Incremental build, Debug config. Requires: make configure-opengl (run once).
 build-increment-debug:
+	@if [ ! -d "$(BUILD_DIR)" ]; then \
+	  echo "ERROR: Build directory not found. Run 'make configure-opengl' first." >&2; \
+	  exit 1; \
+	fi
 	$(CMAKE) --build $(BUILD_DIR) --config Debug
 
+# Usage: make build-increment-release
+# Incremental build, Release config. Requires: make configure-opengl (run once).
 build-increment-release:
+	@if [ ! -d "$(BUILD_DIR)" ]; then \
+	  echo "ERROR: Build directory not found. Run 'make configure-opengl' first." >&2; \
+	  exit 1; \
+	fi
 	$(CMAKE) --build $(BUILD_DIR) --config Release
 
-# ---------------------------------------------------------------------------
-# Copy game resources (original_game_resources/ → build output dirs)
-# Run once after fresh clone or when resources change.
-# NOTE: original_game_resources/ is not committed (copyright).
-# ---------------------------------------------------------------------------
+# Usage: make copy-resources
+# Copy original_game_resources/ into both build output dirs.
+# Run once after clone or when resources change.
+copy-resources: copy-resources-debug copy-resources-release
 
+# Usage: make copy-resources-debug
 copy-resources-debug:
 	$(CMAKE) -E copy_directory $(RESOURCES) $(BUILD_DIR)/Debug
 
+# Usage: make copy-resources-release
 copy-resources-release:
 	$(CMAKE) -E copy_directory $(RESOURCES) $(BUILD_DIR)/Release
 
-copy-resources: copy-resources-debug copy-resources-release
-
-# ---------------------------------------------------------------------------
-# Run (launches game from its build output directory)
-# ---------------------------------------------------------------------------
-
+# Usage: make run-debug
 run-debug:
 	cd $(BUILD_DIR)/Debug && rm -f stderr.log && ./$(EXE_NAME) 2>stderr.log
 
+# Usage: make run-release
 run-release:
 	cd $(BUILD_DIR)/Release && rm -f stderr.log && ./$(EXE_NAME) 2>stderr.log
 
-# ---------------------------------------------------------------------------
-# Build + Run shortcuts
-# ---------------------------------------------------------------------------
-
+# Usage: make r
+# Build Release + run.
 r: build-release run-release
 
+# Usage: make d
+# Build Debug + run.
 d: build-debug run-debug

@@ -51,7 +51,7 @@ ASan stops at the **first** error. Fix it, rebuild, re-run, repeat until you rea
 
 Under the hood:
 - `CMakeLists.txt` adds `-fsanitize=address -fno-omit-frame-pointer` to compile and link flags
-- ASan is applied to **both** `Fallen` and `GamepadCore` targets — without this, linker fails with `/failifmismatch: annotate_string` error (the vendored DualSense library must also be instrumented)
+- ASan is applied to **both** `OpenChaos` and `GamepadCore` targets — without this, linker fails with `/failifmismatch: annotate_string` error (the vendored DualSense library must also be instrumented)
 - `clang_rt.asan_dynamic-x86_64.dll` is copied next to the exe
 
 ### Why Release, not Debug
@@ -72,8 +72,8 @@ ASan writes to stderr, which the Makefile redirects to `stderr.log`. On error, A
 ```
 ==PID==ERROR: AddressSanitizer: <error-type> on address 0x... at pc 0x...
 <READ|WRITE> of size N at 0x... thread T0
-    #0 0x... in FunctionName (Fallen.exe+0x...)    <- crash site
-    #1 0x... in CallerFunction (Fallen.exe+0x...)  <- call chain
+    #0 0x... in FunctionName (OpenChaos.exe+0x...)    <- crash site
+    #1 0x... in CallerFunction (OpenChaos.exe+0x...)  <- call chain
     ...
 
 0x... is located N bytes after M-byte region [0x..., 0x...)

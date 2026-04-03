@@ -3,21 +3,26 @@
 Fan modernization of the game Urban Chaos (1999, MuckyFoot Productions) — AI-assisted analysis and
 reimplementation with modern tech.
 
+## How to play
+
+1. Go to [Releases](https://github.com/UltimaBeaR/OpenChaos/releases) and download the archive for your platform
+2. Extract the archive and follow the instructions in `OpenChaos-readme.txt` inside
+
 ## Modernization status
 
-| Area | Original | Now |
-|------|----------|-----|
-| Build system | MSVC vcxproj | CMake + Ninja + Clang++ (standalone, no clang-cl), vcpkg |
-| Architecture | 32-bit x86 only | 64-bit native (x64 on Windows, arm64 on macOS) |
-| Graphics | Direct3D 6 (hardcoded) | Swappable backend abstraction (ge_* API); OpenGL 4.1 Core Profile (active, cross-platform) + D3D6 legacy backend |
-| Audio | Miles Sound System | SDL3 + OpenAL Soft (3D positional sound) |
-| Input | DirectInput (keyboard + joystick) | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense, PS1-style mapping, analog stick, vibration, hotplug, analog triggers (gas/brake). DualSense extras: LED lightbar (health color, siren flash), adaptive triggers (weapon click, brake resistance) |
-| Platform | Windows-only (Win32 API throughout) | **Windows + macOS** (OpenGL backend). Game code is cross-platform (SDL3 + POSIX), Win32 API isolated to D3D6 legacy backend only |
+| Area         | Original                            | Now                                                                                                |
+| ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Build system | MSVC vcxproj                        | CMake + Ninja + Clang++ (standalone, no clang-cl), vcpkg                                           |
+| Architecture | 32-bit x86 only                     | 64-bit native (x64 on Windows, arm64 on macOS)                                                     |
+| Graphics     | Direct3D 6 (hardcoded)              | OpenGL 4.1 Core Profile (cross-platform)                                                           |
+| Audio        | Miles Sound System                  | SDL3 + OpenAL Soft (3D positional sound)                                                           |
+| Input        | DirectInput (keyboard + joystick)   | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense with extras (adaptive triggers, LED lightbar) |
+| Platform     | Windows-only (Win32 API throughout) | Windows + macOS                                                                                    |
 
 - Unused code removed (PSX, Dreamcast, Glide, editors, debug, experimental features) — code is preprocessor-free
 - Codebase restructured into hierarchical modules (`engine/`, `game/`, `ui/`, `outro/`), every entity traceable to the original via `// uc_orig:` comments
 - Several pre-release visual bugs fixed (z-buffer ordering, invisible objects, foliage flickering, startup hang)
-- Ported to 64-bit: all pointer truncation, struct sizeof mismatches, and file I/O fixed for x64/arm64
+- Ported to 64-bit and macOS
 
 ## Repository
 
@@ -40,7 +45,9 @@ original_game_knowledge_base/ — detailed documentation on the original game
 new_game/                     — modernized game (work in progress)
 new_game_planning/            — planning and architecture docs (phases, stages, tech decisions)
 new_game_devlog/              — development log and technical notes
-tools/                        — development utilities (coan, etc.)
+release/                      — release packaging (scripts, per-platform assets)
+make/                         — Makefile modules (platform detection, configure)
+tools/                        — development utilities
 legal/                        — rights history, attribution, legal details
 ```
 
@@ -74,12 +81,12 @@ See [`legal/`](legal/) for full rights history and details.
 
 This project is based on the following fork chain:
 
-| Fork | Contribution |
-|------|-------------|
-| **Mike Diskett** ([dizzy2003/MuckyFoot-UrbanChaos](https://github.com/dizzy2003/MuckyFoot-UrbanChaos)) | Original Urban Chaos source code, MIT release (2017) |
-| **Kai Stüdemann** ([kstuedem/MuckyFoot-UrbanChaos](https://github.com/kstuedem/MuckyFoot-UrbanChaos)) | VS2017 support, SDL2/OpenAL audio, removed legacy D3D/DirectSound/DirectPlay, rendering fixes, inline assembly removal |
-| **Jordan Davidson** ([jordandavidson/MuckyFoot-UrbanChaos](https://github.com/jordandavidson/MuckyFoot-UrbanChaos)) | vcpkg integration, VS2019 support |
-| **PieroZ** ([PieroZ/MuckyFoot-UrbanChaos](https://github.com/PieroZ/MuckyFoot-UrbanChaos)) | Rendering fixes, editor work, mods, utilities. OpenChaos is technically forked from this repo; work used as reference for fixes and improvements |
+| Fork                                                                                                                | Contribution                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Mike Diskett** ([dizzy2003/MuckyFoot-UrbanChaos](https://github.com/dizzy2003/MuckyFoot-UrbanChaos))              | Original Urban Chaos source code, MIT release (2017)                                                                                             |
+| **Kai Stüdemann** ([kstuedem/MuckyFoot-UrbanChaos](https://github.com/kstuedem/MuckyFoot-UrbanChaos))               | VS2017 support, SDL2/OpenAL audio, removed legacy D3D/DirectSound/DirectPlay, rendering fixes, inline assembly removal                           |
+| **Jordan Davidson** ([jordandavidson/MuckyFoot-UrbanChaos](https://github.com/jordandavidson/MuckyFoot-UrbanChaos)) | vcpkg integration, VS2019 support                                                                                                                |
+| **PieroZ** ([PieroZ/MuckyFoot-UrbanChaos](https://github.com/PieroZ/MuckyFoot-UrbanChaos))                          | Rendering fixes, editor work, mods, utilities. OpenChaos is technically forked from this repo; work used as reference for fixes and improvements |
 
 ## Language
 

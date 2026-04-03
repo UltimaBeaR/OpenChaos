@@ -1,7 +1,7 @@
 ---
 name: screenshot
 description: >
-  Take a screenshot of the game window (Fallen.exe). Use when the user asks
+  Take a screenshot of the game window (OpenChaos.exe). Use when the user asks
   to see the game screen, or when you need to see what's currently rendered.
   Never take screenshots proactively — only when the user explicitly asks or
   confirms. Trigger when: user says "скрин", "screenshot", "покажи что на экране",
@@ -36,8 +36,8 @@ public class ScrCap {
 }
 '@
 [ScrCap]::SetProcessDPIAware() | Out-Null
-\$proc = Get-Process Fallen -ErrorAction SilentlyContinue
-if (-not \$proc) { Write-Host 'Fallen not running'; exit 1 }
+\$proc = Get-Process OpenChaos -ErrorAction SilentlyContinue
+if (-not \$proc) { Write-Host 'OpenChaos not running'; exit 1 }
 \$hwnd = \$proc.MainWindowHandle
 if ([ScrCap]::IsIconic(\$hwnd)) { [ScrCap]::ShowWindow(\$hwnd, 9) | Out-Null }
 [ScrCap]::SetForegroundWindow(\$hwnd) | Out-Null

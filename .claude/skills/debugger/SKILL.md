@@ -20,8 +20,8 @@ description: >
 
 ```bash
 CDB="/c/Program Files (x86)/Windows Kits/10/Debuggers/x64/cdb.exe"
-PID=$(tasklist | grep -i fallen | awk '{print $2}')
-"$CDB" -p $PID -y "C:\\WORK\\OpenChaos\\new_game\\build\\Debug" -c "~0kb;qd" 2>&1 | grep "Fallen!" | head -15
+PID=$(tasklist | grep -i openchaos | awk '{print $2}')
+"$CDB" -p $PID -y "C:\\WORK\\OpenChaos\\new_game\\build\\Debug" -c "~0kb;qd" 2>&1 | grep "OpenChaos!" | head -15
 ```
 
 Always use `qd` (detach) not `q` (kills the process).
@@ -47,35 +47,35 @@ If not found, use the `debugger-install` skill.
 
 ### Find the game process
 ```bash
-tasklist | grep -i fallen
+tasklist | grep -i openchaos
 ```
 
 ### Stack of main thread
 ```bash
-"$CDB" -p <PID> -y "C:\\WORK\\OpenChaos\\new_game\\build\\Debug" -c "~0kb;qd" 2>&1 | grep "Fallen!" | head -15
+"$CDB" -p <PID> -y "C:\\WORK\\OpenChaos\\new_game\\build\\Debug" -c "~0kb;qd" 2>&1 | grep "OpenChaos!" | head -15
 ```
 - `~0kb` = main thread stack, `~*kb` = all threads
 - `-y` = symbol path (PDB location, Debug build needed for symbols)
 
 ### Read a global variable
 ```bash
-"$CDB" -p <PID> -y "..." -c "dd Fallen!variable_name L1;qd" 2>&1 | grep "^00007"
+"$CDB" -p <PID> -y "..." -c "dd OpenChaos!variable_name L1;qd" 2>&1 | grep "^00007"
 ```
 `dd` = DWORDs, `da` = ASCII string, `db` = bytes, `L1` = 1 element
 
 ### Dump a struct
 ```bash
-"$CDB" -p <PID> -y "..." -c "dt Fallen!struct_variable;qd" 2>&1 | grep "+0x"
+"$CDB" -p <PID> -y "..." -c "dt OpenChaos!struct_variable;qd" 2>&1 | grep "+0x"
 ```
 
 ### Find variables by pattern
 ```bash
-"$CDB" -p <PID> -y "..." -c "x Fallen!*pattern*;qd" 2>&1 | grep "Fallen!"
+"$CDB" -p <PID> -y "..." -c "x OpenChaos!*pattern*;qd" 2>&1 | grep "OpenChaos!"
 ```
 
 ### Symbolize RVA to source line
 ```bash
-llvm-symbolizer -e c:/WORK/OpenChaos/new_game/build/Debug/Fallen.exe --relative-address <RVA>
+llvm-symbolizer -e c:/WORK/OpenChaos/new_game/build/Debug/OpenChaos.exe --relative-address <RVA>
 ```
 `--relative-address` is mandatory.
 
@@ -107,7 +107,7 @@ Check the stack FIRST, then variables. Stack doesn't lie — variables can be st
 
 cdb prints a lot of noise. Filter with:
 ```bash
-2>&1 | grep "Fallen!\|+0x0"    # symbols and struct fields
+2>&1 | grep "OpenChaos!\|+0x0"    # symbols and struct fields
 2>&1 | grep "^00007"            # raw memory dumps
 ```
 

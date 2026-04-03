@@ -178,7 +178,7 @@
 ### 14c. CMake: кросс-платформенные условия ✅
 - Платформо-зависимые флаги компилятора/линковщика (`WIN32`, `APPLE`, `UNIX`)
 - Платформо-зависимые библиотеки (opengl32 → find_package(OpenGL))
-- `add_executable(Fallen WIN32 ...)` → условно
+- `add_executable(OpenChaos WIN32 ...)` → условно
 - vcpkg DLL копирование — только на Windows
 - macOS/Linux: отладочная информация (`-g` вместо `/DEBUG`)
 
@@ -486,9 +486,8 @@ make configure-asan                   # Windows x64 + ASan (текущий)
 **Сделано:** Makefile определяет платформу через `uname -s` / `uname -m`:
 - Автовыбор тулчейна: Windows → `clang-x64-windows.cmake`, macOS arm64 → `clang-arm64-macos.cmake`
 - vcpkg discovery: `VCPKG_ROOT` env var → fallback `brew --prefix`/share/vcpkg (macOS) → fallback `vswhere.exe` (Windows)
-- Имя бинарника: `Fallen.exe` на Windows, `Fallen` на macOS/Linux
+- Имя бинарника: `OpenChaos.exe` на Windows, `OpenChaos` на macOS/Linux
 - ASan DLL копирование — только на Windows
-- Named targets: `configure-macos-arm64-opengl`, `configure-windows-x64-opengl` — алиасы на `configure-opengl`
 
 ### 16e. Код: macOS compatibility fixes ✅
 

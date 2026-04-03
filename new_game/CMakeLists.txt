@@ -12,7 +12,7 @@ endif()
 set(VCPKG_APPLOCAL_DEPS OFF)
 set(X_VCPKG_APPLOCAL_DEPS_INSTALL OFF)
 
-project(Fallen LANGUAGES CXX)
+project(OpenChaos LANGUAGES CXX)
 
 # ---------------------------------------------------------------------------
 # C++20 standard — required for Dualsense-Multiplatform and future modules (Stage 9)
@@ -549,20 +549,20 @@ set(SOURCES_NEW
 # ---------------------------------------------------------------------------
 # Target
 # ---------------------------------------------------------------------------
-add_executable(Fallen
+add_executable(OpenChaos
     ${SOURCES_NEW}
     # Generated shader header (triggers rebuild when .glsl files change).
     $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h>
 )
 # WIN32 = SUBSYSTEM:WINDOWS (no console window). Only meaningful on Windows.
 if(WIN32)
-    set_target_properties(Fallen PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(OpenChaos PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
 # ---------------------------------------------------------------------------
 # Include directories
 # ---------------------------------------------------------------------------
-target_include_directories(Fallen PRIVATE
+target_include_directories(OpenChaos PRIVATE
     # Main source root: resolves #include "core/types.h", "engine/...", etc.
     src
     # Platform abstraction: resolves #include <MFStdLib.h> and StdFile/StdKeybd/StdMaths/StdMouse
@@ -585,7 +585,7 @@ set_source_files_properties(
     PROPERTIES LANGUAGE CXX
 )
 
-target_compile_options(Fallen PRIVATE
+target_compile_options(OpenChaos PRIVATE
     # Release: optimizations matching original vcxproj settings.
     # -fno-inline-functions: without this, Clang -O2 breaks body part rendering
     #   (FIGURE_draw_prim_tween_person_only_just_set_matrix inlining issue, TODO Этап 7+).
@@ -602,7 +602,7 @@ target_compile_options(Fallen PRIVATE
 # ---------------------------------------------------------------------------
 # Preprocessor definitions
 # ---------------------------------------------------------------------------
-target_compile_definitions(Fallen PRIVATE
+target_compile_definitions(OpenChaos PRIVATE
     $<$<STREQUAL:${GRAPHICS_BACKEND},d3d6>:VERSION_D3D>
 
     $<$<CONFIG:Debug>:_DEBUG>
@@ -614,7 +614,7 @@ target_compile_definitions(Fallen PRIVATE
 )
 # MSVC CRT warnings — Windows only
 if(WIN32)
-    target_compile_definitions(Fallen PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_definitions(OpenChaos PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
 # ---------------------------------------------------------------------------
@@ -625,24 +625,24 @@ if(WIN32)
     # /SAFESEH:NO — x86 only: some object files lack SafeSEH metadata.
     # Not needed (and rejected by linker) on x64.
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
-        target_link_options(Fallen PRIVATE "LINKER:/SAFESEH:NO")
+        target_link_options(OpenChaos PRIVATE "LINKER:/SAFESEH:NO")
     endif()
     # /ENTRY:mainCRTStartup — use main() instead of WinMain while keeping
     # /SUBSYSTEM:WINDOWS (no console window). Cross-platform main() entry point.
-    target_link_options(Fallen PRIVATE "LINKER:/ENTRY:mainCRTStartup")
+    target_link_options(OpenChaos PRIVATE "LINKER:/ENTRY:mainCRTStartup")
     # Debug: generate PDB for crash symbolization (llvm-symbolizer --relative-address).
-    target_link_options(Fallen PRIVATE $<$<CONFIG:Debug>:LINKER:/DEBUG>)
+    target_link_options(OpenChaos PRIVATE $<$<CONFIG:Debug>:LINKER:/DEBUG>)
 endif()
 
 # ASan linker flags (must be outside the WIN32 block for cross-platform support)
 if(ENABLE_ASAN)
-    target_link_options(Fallen PRIVATE -fsanitize=address)
+    target_link_options(OpenChaos PRIVATE -fsanitize=address)
 endif()
 
 # ---------------------------------------------------------------------------
 # Link libraries
 # ---------------------------------------------------------------------------
-target_link_libraries(Fallen PRIVATE
+target_link_libraries(OpenChaos PRIVATE
     # vcpkg packages
     SDL3::SDL3
     OpenAL::OpenAL
@@ -667,22 +667,22 @@ if(WIN32)
 
     # Release DLLs
     foreach(_dll SDL3.dll OpenAL32.dll fmt.dll avcodec-62.dll avformat-62.dll avutil-60.dll swresample-6.dll swscale-9.dll)
-        add_custom_command(TARGET Fallen POST_BUILD
+        add_custom_command(TARGET OpenChaos POST_BUILD
             COMMAND "$<$<CONFIG:Release>:${CMAKE_COMMAND}>" $<$<CONFIG:Release>:-E>
                 $<$<CONFIG:Release>:copy_if_different>
                 "$<$<CONFIG:Release>:${VCPKG_TRIPLET_DIR}/bin/${_dll}>"
-                "$<$<CONFIG:Release>:$<TARGET_FILE_DIR:Fallen>/${_dll}>"
+                "$<$<CONFIG:Release>:$<TARGET_FILE_DIR:OpenChaos>/${_dll}>"
             COMMAND_EXPAND_LISTS
         )
     endforeach()
 
     # Debug DLLs (some have 'd' suffix)
     foreach(_dll SDL3.dll OpenAL32.dll fmtd.dll avcodec-62.dll avformat-62.dll avutil-60.dll swresample-6.dll swscale-9.dll)
-        add_custom_command(TARGET Fallen POST_BUILD
+        add_custom_command(TARGET OpenChaos POST_BUILD
             COMMAND "$<$<CONFIG:Debug>:${CMAKE_COMMAND}>" $<$<CONFIG:Debug>:-E>
                 $<$<CONFIG:Debug>:copy_if_different>
                 "$<$<CONFIG:Debug>:${VCPKG_TRIPLET_DIR}/debug/bin/${_dll}>"
-                "$<$<CONFIG:Debug>:$<TARGET_FILE_DIR:Fallen>/${_dll}>"
+                "$<$<CONFIG:Debug>:$<TARGET_FILE_DIR:OpenChaos>/${_dll}>"
             COMMAND_EXPAND_LISTS
         )
     endforeach()

@@ -6,4 +6,7 @@ original_game_resources/*
 # Keep .gitkeep so the directory exists after clone (all other contents are gitignored above)
 !original_game_resources/.gitkeep
 
+# Release packaging output
+release/dist/
+
 .DS_Store

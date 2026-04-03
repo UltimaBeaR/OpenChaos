@@ -37,7 +37,7 @@ freely, subject to the following restrictions:
 - **Website:** https://openal-soft.org/
 - **Source:** https://github.com/kcat/openal-soft
 - **License:** LGPL-2.0
-- **Installed via:** vcpkg (dynamic linking)
+- **Installed via:** vcpkg (dynamic linking on Windows, static on macOS)
 
 ```
 Copyright (C) 1999-2014 by authors.
@@ -48,7 +48,8 @@ Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
 Full source code:  https://github.com/kcat/openal-soft
 ```
 
-OpenAL Soft is dynamically linked — no modifications to the library source are made.
+No modifications to the library source are made. LGPL compliance is provided
+through the project's open source code and build instructions.
 
 ---
 
@@ -116,6 +117,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+---
+
+## FFmpeg
+
+- **Website:** https://ffmpeg.org/
+- **Source:** https://github.com/FFmpeg/FFmpeg
+- **License:** LGPL-2.0
+- **Installed via:** vcpkg (dynamic linking on Windows, static on macOS)
+- **Components used:** libavcodec, libavformat, libavutil, libswresample, libswscale
+
+```
+Copyright (C) 2000-2025 FFmpeg developers.
+
+FFmpeg is licensed under the GNU Lesser General Public License, Version 2.0.
+Full license text: https://www.gnu.org/licenses/old-licenses/lgpl-2.0.html
+Full source code:  https://github.com/FFmpeg/FFmpeg
+```
+
+No modifications to the library source are made. LGPL compliance is provided
+through the project's open source code and build instructions.
 
 ---
 
