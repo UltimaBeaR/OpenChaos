@@ -1,0 +1,251 @@
+---
+name: text-rendering
+description: >
+  In-game text rendering reference — all functions for displaying text on screen.
+  TRIGGER when: about to write code that prints/displays/shows text on the game screen,
+  investigating how existing text rendering works, adding debug output, status display,
+  HUD text, or any on-screen text.
+  Also trigger when encountering or about to use ANY of these functions: CONSOLE_text,
+  CONSOLE_text_at, MSG_add, FONT2D_DrawString, draw_text_at, FONT_draw,
+  FONT_draw_coloured_text, FONT_buffer_add, PANEL_new_text, AENG_world_text,
+  CONSOLE_status, PANEL_new_info_message, MENUFONT_Draw.
+  This skill prevents wasted time from using wrong or inappropriate text methods.
+---
+
+# Text Rendering — Complete Reference
+
+All functions for displaying text on screen. Covers game-tick-safe methods (for debug
+and gameplay), render-pass-only internals, and menu rendering.
+
+## Quick decision guide
+
+| Need | Function | Works from game tick? |
+|------|----------|----------------------|
+| Text at screen position with timeout | `CONSOLE_text_at` | ✅ yes |
+| Persistent status text | `CONSOLE_status` | ✅ yes |
+| Per-frame scrolling log (many lines) | `MSG_add` | ✅ yes (debug overlay) |
+| Radio message with sound | `PANEL_new_text` | ✅ yes |
+| Short sliding notification | `PANEL_new_info_message` | ✅ yes |
+| One-off HUD message | `CONSOLE_text` | ✅ yes |
+| Pixel text in render path | `FONT_draw` / `FONT_draw_coloured_text` | ❌ render path only |
+| Deferred pixel text (queued) | `FONT_buffer_add` | ✅ yes (flushed in render) |
+| 3D world-space label | `AENG_world_text` | ❌ render pass only |
+| Menu text | `MENUFONT_Draw` | N/A (menu pipeline) |
+
+## Rules
+
+- **Never guess** which text function to use — always consult this reference first.
+- **Only use game-tick-safe methods** for debug output unless you are writing render-pass code.
+- **Always tell the user what they need to do to see the output.** If the method requires
+  activation steps (e.g. MSG_add needs F9 → bangunsnotgames → Ctrl), explain this every time.
+  Never assume the user knows — always remind them.
+
+## Where text works and doesn't
+
+| Context | Game-tick-safe funcs | Render-pass funcs | Pixel funcs (FONT_draw) |
+|---------|---------------------|-------------------|------------------------|
+| In-game | ✅ | ✅ | ✅ |
+| Pause menu (overlay) | ✅ | ✅ | ✅ |
+| Main menu (attract) | ❌ | ❌ | ✅ (need manual insert in attract.cpp) |
+
+**Main menu** has its own render loop (`game_attract_mode` in `attract.cpp`). It does NOT call
+`CONSOLE_draw()`, `FONT_buffer_draw()`, or the game loop in `game.cpp`. Only `MENUFONT_Draw`
+and `FONT_draw` (with manual `ge_lock_screen` before `AENG_flip`) work there.
+
+**Pause menu** is an overlay on top of the game render — same render pipeline as in-game.
+All in-game text methods work in pause menu.
+
+---
+
+## Game-tick-safe functions
+
+These can be called from anywhere in game logic (game tick, AI, physics, input handlers).
+They queue text for later rendering in the appropriate render phase.
+
+### CONSOLE_text_at(x, y, delay, fmt, ...)
+- **Header:** `engine/console/console.h`
+- **Conditions:** none — works unconditionally
+- **Behavior:** white text at specific screen pixel coordinates (x, y).
+- **Timing:** auto-expires after `delay` ms (e.g. 3000 = 3 sec).
+- **Capacity:** up to `CONSOLE_MAX_MESSES` (16) simultaneous positioned messages.
+- **Same position:** if a message already exists at the same (x, y) — text is replaced,
+  timer is reset. Different (x, y) — separate slot.
+- **Internals:** queues into `CONSOLE_mess[]`, rendered by `CONSOLE_draw()` via `FONT2D_DrawString`
+  during the render phase (inside `POLY_frame_init/draw`).
+- **Best for:** positioned debug text, variable display at fixed screen location.
+
+### CONSOLE_status(text)
+- **Header:** `engine/console/console.h`
+- **Conditions:** none — works unconditionally
+- **Behavior:** persistent green text in top-left corner (10, 10).
+- **Timing:** does **NOT auto-expire**. Stays on screen indefinitely until explicitly cleared.
+  This is by design — internally it's just `strcpy` into a static buffer, no timer.
+- **To clear:** call `CONSOLE_status((CBYTE*)"")`.
+- **Only one message:** each call overwrites the previous. No queue.
+- **Best for:** persistent status indicator ("mode X enabled", "recording ON").
+
+### MSG_add(fmt, ...)
+- **Header:** `engine/console/message.h`
+- **Conditions:** requires `allow_debug_keys` (F9 → type `bangunsnotgames` → Enter)
+  **AND** `ControlFlag` (Ctrl key toggle). Both must be active.
+- **Behavior:** scrolling debug log on the LEFT side of the screen. Many messages visible at once.
+- **Timing:** messages scroll off as new ones arrive. No fixed timer per message.
+- **Key advantage:** the ONLY method that shows many messages simultaneously as a running log.
+  All other methods show one message at a time or have limited slots.
+- **Best for:** per-frame debug tracing, state logging, continuous variable monitoring.
+- **⚠️ Always remind the user:** "To see MSG_add output: F9 → bangunsnotgames → Enter → Ctrl."
+
+### CONSOLE_text(text, delay)
+- **Header:** `engine/console/console.h`
+- **Conditions:** none — works unconditionally
+- **Behavior:** routes through `PANEL_new_text` internally — same radio message system.
+- **Timing:** `delay` ms on screen (default 4000 ms). Long delay between messages.
+- **Drawback:** unsuitable for per-frame output — one message at a time with long pauses.
+- **Best for:** cheat activation messages, one-off game event notifications.
+
+### PANEL_new_text(who, delay, fmt, ...)
+- **Header:** `ui/hud/panel.h`
+- **Conditions:** none — works unconditionally
+- **Behavior:** radio message with walkie-talkie icon and sound effect. Bottom of screen.
+- **Timing:** stays on screen for `delay` ms (e.g. 3000 = 3 sec), then disappears.
+- **Duplicate handling (same text, same `who`):** resets timer, no new slot, sound does NOT repeat.
+- **Different text:** adds to queue. Multiple messages display as a **stack** (up to 3 visible
+  simultaneously). Each has its own timer. Sound plays immediately on each call (does not
+  wait for previous message to expire).
+- **`who` parameter:** `NULL` for generic messages. Pass a `Thing*` to associate with a character.
+- **Best for:** in-game radio messages, story event text, NPC dialogue.
+
+### PANEL_new_info_message(fmt, ...)
+- **Header:** `ui/hud/panel.h`
+- **Conditions:** none — works unconditionally
+- **Behavior:** sliding message in bottom-left corner.
+- **Timing:** auto-expires after ~2 sec. Each call triggers a new slide-in immediately.
+- **Best for:** short gameplay info, pickup notifications, item collected.
+
+### FONT_buffer_add(x, y, r, g, b, shadow, fmt, ...)
+- **Header:** `engine/graphics/text/font.h`
+- **Conditions:** none — can be called from game tick.
+- **Behavior:** queues text into a message buffer. NOT rendered immediately — rendered later
+  by `FONT_buffer_draw()` which is called unconditionally in `game.cpp` before screen flip.
+- **Rendering:** pixel-based (5×7 bitmap font), via `ge_lock_screen` → `FONT_draw_coloured_char`.
+- **Coordinates:** screen pixel (x, y). Pass directly.
+- **Color:** standard RGB order: `r, g, b`.
+- **Shadow:** if `shadow != 0`, draws a darker copy at (+1, +1) behind the text.
+- **Capacity:** `FONT_MAX_MESSAGES` messages per frame, shared text buffer `FONT_BUFFER_SIZE`.
+  Buffer is cleared after each `FONT_buffer_draw()` call.
+- **Best for:** deferred pixel text from game tick. Simpler than CONSOLE_text_at if you
+  don't need timers — just call every frame.
+
+---
+
+## Render-pass-only functions
+
+These add geometry to the poly pipeline or draw pixels directly to the backbuffer.
+**Cannot be called from game tick** — either corrupts shadows or text gets overwritten.
+Used internally by the game-tick-safe wrappers above.
+
+### FONT2D_DrawString(chr, x, y, rgb, scale, page, fade)
+- **Header:** `engine/graphics/text/font2d.h`
+- **What it is:** adds font polygon quads to a poly page (`POLY_PAGE_FONT2D`).
+  This is the internal workhorse — `CONSOLE_status`, `CONSOLE_text_at`, HUD elements
+  all use it under the hood.
+- **From game tick — DO NOT USE:**
+  - Without `POLY_frame_init/draw` wrapper → **corrupts character shadows** (VB slot reuse,
+    same root cause as `shadow_corruption_investigation.md`).
+  - With `POLY_frame_init/draw` wrapper → shadows OK but **text invisible** (overwritten
+    by main render pass).
+- **Where it works:** inside render-pass code wrapped in `POLY_frame_init/POLY_frame_draw`
+  (`CONSOLE_draw`, overlay draw, HUD draw, etc.).
+- **For debug from game tick → use `CONSOLE_text_at` instead.**
+
+### FONT_draw(x, y, fmt, ...)
+- **Header:** `engine/graphics/text/font.h`
+- **What it is:** pixel-based bitmap font (5×7). Yellow text with red shadow at (+1, +1).
+  Uses `ge_lock_screen` / `ge_plot_pixel` / `ge_unlock_screen` — draws pixels directly
+  to the CPU backbuffer copy.
+- **Must be called between `ge_lock_screen()` and `ge_unlock_screen()`.**
+- **Works in:** game.cpp render path (before flip), CONSOLE_draw, and **main menu**
+  (if manually inserted in `attract.cpp` before `AENG_flip()`).
+- **Does NOT work from game tick** — text is overwritten by subsequent rendering.
+- **Variant:** `FONT_draw_coloured_text(x, y, r, g, b, fmt, ...)` — same but custom RGB color,
+  no shadow.
+- **No shadow corruption risk** — does not use poly pages.
+
+### AENG_world_text(x, y, z, red, blue, green, shadow, fmt, ...)
+- **Header:** `engine/graphics/pipeline/aeng.h`
+- **What it is:** projects 3D world coordinates to screen via `POLY_transform`, then calls
+  `FONT_buffer_add` with the resulting screen position.
+- **⚠️ Color parameter order is RBG, NOT RGB!** Parameters are `red, blue, green`.
+  Internally it passes them to `FONT_buffer_add` as `red, green, blue` (swaps blue/green).
+  Example: to get magenta (R=255,G=0,B=255) pass `0xff, 0xff, 0x00` (red=ff, blue=ff, green=00).
+- **Where it works:** must be called from render pass (inside `AENG_draw_city` or
+  `AENG_draw_warehouse` person-drawing loops). Used for debug labels above characters
+  (`aeng.cpp`, outdoor ~line 6168, indoor ~line 7660).
+- **Two render loops:** outdoor (`AENG_draw_city`) and indoor (`AENG_draw_warehouse`).
+  If you add a call in one but not the other, it will only show on matching levels.
+- **Position:** `(x, y, z)` are world coordinates. `y` is height (up). Person's feet are at
+  `WorldPos.Y >> 8`. For text above head use approximately `+ 0x40` to `+ 0x50`.
+  Due to perspective projection, text drifts away from the visual model at large distances —
+  this is normal and inherent to the function.
+- **Silent drop:** if the projected point is behind the camera or outside the view frustum,
+  `pp.IsValid()` returns false and text is silently dropped. No error.
+- **Unique capability:** the only method that places text at a 3D world position.
+
+### draw_text_at(x, y, message, font_id) — main POLY frame only
+- **Header:** `engine/graphics/text/text.h`
+- **What it is:** 2D text using bitmap font atlas texture (`TEXTURE_page_font`). Adds quads
+  to `POLY_PAGE_TEXT` with additive blend (Src=One, Dst=One). White additive text from font.tga.
+- **Where it works:** ONLY inside the main POLY frame created by `AENG_draw()`. Confirmed
+  working when called before `POLY_frame_draw(UC_TRUE, UC_TRUE)` in `AENG_draw`.
+- **Does NOT work from:** game tick, `CONSOLE_draw`, any separate `POLY_frame_init/draw`,
+  or main menu (attract mode does not call `AENG_draw`).
+- **Requires setup:** `text_fudge` (extern BOOL) and `text_colour` (extern ULONG) must be set.
+  `text_fudge = UC_FALSE; text_colour = 0x00ffffff;` for plain white text.
+- **Variant:** `draw_centre_text_at(x, y, message, font_id, flag)` — centers horizontally.
+  Used by `process_bullet_points` for mission intro text.
+- **Not suitable for debug output** — requires code inside AENG_draw. Use `CONSOLE_text_at`.
+
+---
+
+## Menu text rendering
+
+### MENUFONT_Draw
+- **Header:** `engine/graphics/text/menufont.h`
+- **What it is:** the menu's own text rendering system. Used by `FRONTEND_loop()` and
+  widget system (`widget.cpp`) for all menu text.
+- **Only works in menu render pipeline** — not available during game rendering.
+- **Not for debug use** — it's the menu UI system.
+
+### Debug text in menu
+For debug output in the main menu, use `FONT_draw` with manual `ge_lock_screen/unlock`
+inserted in `attract.cpp` before `AENG_flip()`. This is the only confirmed working
+approach for menu debug text. Example:
+```cpp
+void* scr = ge_lock_screen();
+if (scr) {
+    FONT_draw(10, 10, "debug text here");
+    ge_unlock_screen();
+}
+```
+
+---
+
+## How to enable debug overlay
+
+1. F9 → type `bangunsnotgames` → Enter (enables `allow_debug_keys`)
+2. Ctrl — toggle display (switches `debug_overlay_locked_on`)
+3. Shift+F12 — toggle `cheat` variable (0↔2), shows FPS/coordinates via overlay.cpp
+
+## Shadow corruption warning
+
+Any function that adds geometry to poly pages (FONT2D_DrawString, draw_text_at) — if called
+from game tick (before `POLY_frame_init` in the render pass) — will corrupt character shadows.
+Root cause: VB slot reuse between frames. Wrapping in `POLY_frame_init/draw` prevents the
+corruption but text gets overwritten by the main render. Details: `shadow_corruption_investigation.md`.
+
+Game-tick-safe functions (CONSOLE_text_at, CONSOLE_status, MSG_add, PANEL_*, FONT_buffer_add)
+do NOT cause shadow corruption — they queue text for rendering in the correct phase.
+
+## Details and investigation history
+
+Full investigation log: `new_game_devlog/debug_text_rendering_test.md`

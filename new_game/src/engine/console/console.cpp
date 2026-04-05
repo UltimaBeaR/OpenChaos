@@ -75,6 +75,20 @@ void CONSOLE_draw(void)
         }
     }
 
+    // Draw positioned messages from CONSOLE_text_at.
+    // uc_orig: was commented out in original (used font->DrawString / 3D font);
+    // re-enabled here with FONT2D_DrawString.
+    for (SLONG i = 0; i < CONSOLE_MAX_MESSES; i++) {
+        CONSOLE_Mess* cm = &CONSOLE_mess[i];
+        if (cm->delay) {
+            FONT2D_DrawString(cm->mess, cm->x, cm->y, 0xffffff, 256, POLY_PAGE_FONT2D);
+            cm->delay -= console_this_tick - console_last_tick;
+            if (cm->delay < 0) {
+                cm->delay = 0;
+            }
+        }
+    }
+
     POLY_frame_draw(UC_FALSE, UC_TRUE);
 
     if (!console_Data[0].Age) {

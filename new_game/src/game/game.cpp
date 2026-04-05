@@ -57,6 +57,7 @@
 #include "ui/hud/eng_map.h"  // MAP_process
 #include "ui/hud/eng_map_globals.h"
 #include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
+#include "engine/graphics/text/font.h"
 #include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
 #include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
@@ -621,8 +622,8 @@ void screen_flip(void)
         }
         if (ControlFlag && allow_debug_keys) {
             AENG_draw_messages();
-            FONT_buffer_draw();
         }
+        FONT_buffer_draw();
     }
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.
