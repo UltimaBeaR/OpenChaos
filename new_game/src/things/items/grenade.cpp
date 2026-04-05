@@ -10,6 +10,8 @@
 #include "engine/graphics/geometry/mesh.h"
 #include "things/core/statedef.h"
 #include "engine/graphics/pipeline/aeng.h"   // AENG_world_line_nondebug
+#include "engine/input/keyboard_globals.h"   // ControlFlag
+#include "game/game_tick_globals.h"          // allow_debug_keys
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/effects/psystem.h"           // PFLAG_* particle flags
 #include "things/items/grenade.h"
@@ -310,7 +312,7 @@ void show_grenade_path(Thing* p_person)
                     y1 = gp->y >> 8;
                     z1 = gp->z >> 8;
 
-                    if (((count & 7) == 0) || ((count & 7) == 1)) {
+                    if (ControlFlag && allow_debug_keys && (((count & 7) == 0) || ((count & 7) == 1))) {
                         AENG_world_line_nondebug(
                             x, y, z,
                             3,
