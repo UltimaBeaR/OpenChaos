@@ -100,8 +100,7 @@
 
 | Проблема | Описание | Статус |
 |----------|----------|--------|
-| D3D6 не собирается на x64 с clang++ | Три категории ошибок: (1) `ULONG` — `types.h` определяет `typedef uint32_t ULONG`, `minwindef.h` — `typedef unsigned long ULONG`, нет guard'а `#ifndef _WINDEF_` для ULONG; (2) `DWORD` — guard `#ifndef _WINDEF_` есть, но в некоторых TU `types.h` включается до `windows.h` → guard не срабатывает; (3) `_BitScanForward`, `__readgsbyte` и др. — конфликт builtins `clang++` (GNU frontend) с объявлениями в `winnt.h`. `clang-cl` (MSVC frontend) умеет обходить эти конфликты, `clang++` — нет. **Варианты фикса:** (a) компилировать DX6 файлы через `clang-cl` (отдельный target с другим компилятором), (b) вернуть DX6 на x86 тулчейн (`clang-x86-windows.cmake`), (c) добавить guard'ы и workaround'ы для `clang++` + Windows SDK. | Отложен |
-| D3D6 не тестировался на x64 | Помимо проблем компиляции, DX6 API на x64 не проверялся — могут быть runtime проблемы (DirectDraw/Direct3D COM интерфейсы, pointer-size вопросы в DX6 structures). DX6 бэкенд остаётся legacy для x86, на x64 основной бэкенд — OpenGL. | Отложен |
+| D3D6 невозможен на x64 | **Исследовано (2026-04-05).** Проблемы компиляции решаемы (typedef guard'ы в types.h, порядок include `<windows.h>` до types.h в D3D6 .cpp файлах). Но **runtime невозможен:** Windows x64 эмулирует DirectDraw (2D), но **НЕ эмулирует Direct3D legacy interfaces** (IDirect3D, IDirect3D2, IDirect3D3). `QueryInterface(IID_IDirect3D3)` возвращает `E_NOINTERFACE`. Также `DirectDrawEnumerate` не вызывает callback (0 драйверов), хотя `DirectDrawCreate(NULL)` работает. Единственный путь — переписать на D3D9, что не оправдано: D3D6 нужен только как референс для сравнения с OpenGL, а для этого можно запускать оригинальную релизную версию игры. | ❌ Закрыто (wontfix) |
 
 ---
 
