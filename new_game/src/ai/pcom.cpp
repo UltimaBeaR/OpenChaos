@@ -5,6 +5,7 @@
 
 #include "ai/pcom.h"
 #include "ai/pcom_globals.h"
+#include "ui/hud/overlay.h"   // OVERLAY_queue_view_line
 #include "ai/mav.h"
 #include "combat/combat.h"
 #include "combat/combat_globals.h"
@@ -5837,7 +5838,9 @@ void PCOM_process_navtokill(Thing* p_person)
                     track_gun_sight(p_target, shoot_time - p_person->Genus.Person->pcom_ai_counter);
 
                 if (p_target->Genus.Person->PlayerID) {
-                    draw_view_line(p_person, p_target);
+                    // Defer to render pass — geometry added during game tick gets
+                    // cleared by POLY_frame_init before AENG_draw. See overlay.cpp.
+                    OVERLAY_queue_view_line(p_person, p_target);
                 }
 
                 if (p_person->Genus.Person->pcom_move_state == PCOM_MOVE_STATE_ANIMATION && p_person->Genus.Person->pcom_move_substate == PCOM_MOVE_SUBSTATE_SHOOT) {

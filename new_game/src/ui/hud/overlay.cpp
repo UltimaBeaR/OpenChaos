@@ -15,6 +15,41 @@
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"
 
+// uc_orig: draw_view_line (fallen/Source/pcom.cpp)
+extern void draw_view_line(Thing* p_person, Thing* p_target);
+
+// Deferred view line rendering: draw_view_line is called during game tick (pcom),
+// but POLY_frame_init in AENG_draw clears all poly pages before rendering.
+// We store shooter/target pairs during tick and draw them during overlay pass.
+#define MAX_DEFERRED_VIEW_LINES 8
+static struct {
+    Thing* shooter;
+    Thing* target;
+} s_deferred_view_lines[MAX_DEFERRED_VIEW_LINES];
+static int s_deferred_view_line_count = 0;
+
+void OVERLAY_queue_view_line(Thing* shooter, Thing* target)
+{
+    if (s_deferred_view_line_count < MAX_DEFERRED_VIEW_LINES) {
+        s_deferred_view_lines[s_deferred_view_line_count].shooter = shooter;
+        s_deferred_view_lines[s_deferred_view_line_count].target = target;
+        s_deferred_view_line_count++;
+    }
+}
+
+static void OVERLAY_draw_deferred_view_lines()
+{
+    extern BOOL allow_debug_keys;
+    extern volatile UBYTE ControlFlag;
+
+    if (allow_debug_keys && ControlFlag) {
+        for (int i = 0; i < s_deferred_view_line_count; i++) {
+            draw_view_line(s_deferred_view_lines[i].shooter, s_deferred_view_lines[i].target);
+        }
+    }
+    s_deferred_view_line_count = 0;
+}
+
 // Forward declarations for functions not yet migrated to new/.
 // uc_orig: PANEL_draw_face (fallen/DDEngine/Source/panel.cpp)
 extern void PANEL_draw_face(SLONG x, SLONG y, SLONG face, SLONG size);
@@ -266,6 +301,7 @@ void OVERLAY_handle(void)
         if (panel) {
             PANEL_draw_buffered();
             OVERLAY_draw_gun_sights();
+            OVERLAY_draw_deferred_view_lines();
             OVERLAY_draw_enemy_health();
         }
     }

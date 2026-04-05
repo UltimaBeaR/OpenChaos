@@ -983,6 +983,12 @@ round_again:;
             BreakTime("About to flip");
 
             screen_flip();
+
+            // End render pass — geometry added after this point (next game tick)
+            // will be dropped by AENG_world_line to prevent VB pool corruption.
+            extern void AENG_set_render_pass(bool active);
+            AENG_set_render_pass(false);
+
             lock_frame_rate(env_frame_rate);
 
             BreakTime("Done flip");

@@ -403,11 +403,21 @@ void AENG_create_dx_prim_points()
 
 // uc_orig: AENG_world_line (fallen/DDEngine/Source/aeng.cpp)
 // Draws a world-space line segment between two 3D points with per-endpoint width and colour.
+// Flag: true when inside AENG_draw (after POLY_frame_init). Geometry added
+// outside the render pass gets cleared by POLY_frame_init and causes VB pool
+// corruption (shadow artifacts). Gate AENG_world_line on this flag.
+static bool s_in_render_pass = false;
+void AENG_set_render_pass(bool active) { s_in_render_pass = active; }
+
 void AENG_world_line(
     SLONG x1, SLONG y1, SLONG z1, SLONG width1, ULONG colour1,
     SLONG x2, SLONG y2, SLONG z2, SLONG width2, ULONG colour2,
     SLONG sort_to_front)
 {
+    // Drop geometry added outside render pass — it would be cleared by
+    // POLY_frame_init and the freed VB slot causes shadow corruption.
+    if (!s_in_render_pass) return;
+
     POLY_Point p1;
     POLY_Point p2;
 
@@ -8932,6 +8942,10 @@ void AENG_draw(SLONG draw_3d)
     //  Do it here so that AENG_world_line works during the game.
     //
     POLY_frame_init(UC_FALSE, UC_FALSE);
+
+    // Render pass is now active — geometry added via AENG_world_line will not
+    // be cleared by POLY_frame_init and can safely render this frame.
+    AENG_set_render_pass(true);
     // #endif
 }
 

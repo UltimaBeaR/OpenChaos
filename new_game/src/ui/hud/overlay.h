@@ -31,4 +31,8 @@ extern void add_damage_value_thing(Thing* p_thing, SLONG value);
 // uc_orig: should_i_add_message (fallen/Source/overlay.cpp)
 extern SLONG should_i_add_message(SLONG type);
 
+// Queue a view line (shooter→target) for deferred rendering during overlay pass.
+// Called from pcom during game tick; drawn after POLY_frame_init in render pass.
+extern void OVERLAY_queue_view_line(Thing* shooter, Thing* target);
+
 #endif // UI_HUD_OVERLAY_H
