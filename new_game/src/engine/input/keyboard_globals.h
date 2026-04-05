@@ -9,6 +9,8 @@
 extern volatile UBYTE AltFlag;
 // uc_orig: ControlFlag (MFStdLib/Headers/StdKeybd.h)
 extern volatile UBYTE ControlFlag;
+// When true, ControlFlag is forced to 1 every frame (debug overlay toggle).
+extern bool debug_overlay_locked_on;
 // uc_orig: ShiftFlag (MFStdLib/Headers/StdKeybd.h)
 extern volatile UBYTE ShiftFlag;
 // uc_orig: Keys (MFStdLib/Headers/StdKeybd.h)

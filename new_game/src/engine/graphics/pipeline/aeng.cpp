@@ -3,6 +3,7 @@
 // All Direct3D rendering will be replaced in Stage 7; for now this is a 1:1 port.
 
 #include "engine/graphics/pipeline/aeng_globals.h"
+#include "engine/console/message.h"  // MSG_draw
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -7871,7 +7872,7 @@ void AENG_draw_messages()
                         */
 
         // Draw the messages.
-        // MSG_draw();
+        MSG_draw();
 
         ge_unlock_screen();
     }

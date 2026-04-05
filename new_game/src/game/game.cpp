@@ -607,9 +607,22 @@ void screen_flip(void)
     extern void AENG_screen_shot(void);
     AENG_screen_shot();
 
-    if (ControlFlag && allow_debug_keys) {
-        AENG_draw_messages();
-        FONT_buffer_draw();
+    // Toggle debug overlay: Ctrl press toggles debug_overlay_locked_on,
+    // which forces ControlFlag=1 every frame so all debug draws activate.
+    {
+        static bool ctrl_was_pressed = false;
+        if (Keys[KB_LCONTROL] && allow_debug_keys) {
+            if (!ctrl_was_pressed) {
+                ctrl_was_pressed = true;
+                debug_overlay_locked_on = !debug_overlay_locked_on;
+            }
+        } else if (!Keys[KB_LCONTROL]) {
+            ctrl_was_pressed = false;
+        }
+        if (ControlFlag && allow_debug_keys) {
+            AENG_draw_messages();
+            FONT_buffer_draw();
+        }
     }
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.

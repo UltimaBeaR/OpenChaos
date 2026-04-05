@@ -9,7 +9,7 @@
 static void SetFlagsFromKeyArray()
 {
     AltFlag = Keys[KB_LALT] || Keys[KB_RALT];
-    ControlFlag = Keys[KB_LCONTROL];
+    ControlFlag = Keys[KB_LCONTROL] || debug_overlay_locked_on;
     ShiftFlag = Keys[KB_LSHIFT] || Keys[KB_RSHIFT];
 }
 

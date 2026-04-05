@@ -38,6 +38,7 @@
 #include "combat/combat.h"
 #include "engine/input/joystick.h"             // ReadInputDevice
 #include "engine/input/joystick_globals.h"  // the_state (GamepadState)
+#include "game/game_tick_globals.h"         // allow_debug_keys, dkeys_have_been_used
 #include "engine/input/gamepad_globals.h"   // active_input_device
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
@@ -3302,6 +3303,67 @@ ULONG get_hardware_input(UWORD type)
                     MSG_add(" action pressed \n");
                     input |= INPUT_MASK_ACTION;
                     g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                // Gamepad cheats: Select + L1 + L2 + D-pad direction.
+                // Ported from Dreamcast cheats (fallen/Source/interfac.cpp).
+                // Works on DualSense (Share+L1+L2) and Xbox (Back+LB+LT).
+                {
+                    static bool bCheatLastFrame = false;
+                    bool cheat_combo = BUTTON_IS_PRESSED(the_state.rgbButtons[4])   // Select/Back
+                                    && BUTTON_IS_PRESSED(the_state.rgbButtons[9])   // L1/LB
+                                    && BUTTON_IS_PRESSED(the_state.rgbButtons[15]);  // L2/LT (digital)
+
+                    if (cheat_combo) {
+                        if (BUTTON_IS_PRESSED(the_state.rgbButtons[11])) {
+                            // D-pad Up: toggle immortality (invulnerability flag on player).
+                            if (!bCheatLastFrame) {
+                                bCheatLastFrame = true;
+                                NET_PERSON(0)->Genus.Person->Flags2 ^= FLAG2_PERSON_INVULNERABLE;
+                                if (NET_PERSON(0)->Genus.Person->Flags2 & FLAG2_PERSON_INVULNERABLE)
+                                    CONSOLE_text((CBYTE*)"I am immortal, I have inside me blood of kings.");
+                                else
+                                    CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
+                            }
+                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[12])) {
+                            // D-pad Down: full health.
+                            if (!bCheatLastFrame) {
+                                bCheatLastFrame = true;
+                                NET_PERSON(0)->Genus.Person->Health = 1000;
+                                CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
+                            }
+                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[13])) {
+                            // D-pad Left: spawn weapons around player (AK47, shotgun, pistol, 3 grenades).
+                            if (!bCheatLastFrame) {
+                                bCheatLastFrame = true;
+                                #define CHEAT_RING_SIZE 128
+                                alloc_special(SPECIAL_AK47,    SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE,  NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE,  NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_GUN,     SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE,  NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE - 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE - 32, 0);
+                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE,      NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE + 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE + 32, 0);
+                                #undef CHEAT_RING_SIZE
+                                CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
+                            }
+                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[14])) {
+                            // D-pad Right: max ammo for all weapon types.
+                            if (!bCheatLastFrame) {
+                                bCheatLastFrame = true;
+                                NET_PERSON(0)->Genus.Person->ammo_packs_pistol = 240;
+                                NET_PERSON(0)->Genus.Person->ammo_packs_shotgun = 240;
+                                NET_PERSON(0)->Genus.Person->ammo_packs_ak47 = 240;
+                                CONSOLE_text((CBYTE*)"Well, to tell you the truth, in all this excitement, I've kinda lost track myself.");
+                            }
+                        } else {
+                            bCheatLastFrame = false;
+                        }
+
+                        // Suppress normal button input while cheat combo is active.
+                        input &= ~INPUT_MASK_ALL_BUTTONS;
+                    } else {
+                        bCheatLastFrame = false;
+                    }
                 }
             }
 

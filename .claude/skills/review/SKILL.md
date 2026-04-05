@@ -60,6 +60,21 @@ This is especially dangerous in mass operations. Never delete lines in bulk with
 - Every file that should NOT have been changed — was not changed
 - No stray debug prints or temporary code left behind
 
+### Gameplay changes → GAMEPLAY_CHANGES.md
+
+If changes affect gameplay, controls, cheats, mechanics, or anything the player
+would notice while playing — update `GAMEPLAY_CHANGES.md` in the project root.
+
+**What to write:** description from the player's perspective. What changed, how
+it works now, what buttons to press, what the player will see on screen.
+
+**What NOT to write:** implementation details, function names, flags, variable
+names, file paths, technical reasoning. The player doesn't care how it's coded.
+Graphics/rendering changes also don't go there — only gameplay, controls, cheats, mechanics.
+Don't detail how existing features work (e.g. button layouts, stick behavior) —
+only record what was CHANGED, ADDED or REMOVED compared to the original.
+Detailed feature descriptions belong in separate documentation, not here.
+
 ## Step 4: Report
 
 After confirming all checks pass:
