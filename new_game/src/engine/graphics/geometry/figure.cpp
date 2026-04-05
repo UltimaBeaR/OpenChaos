@@ -9,6 +9,7 @@
 #include "game/game.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/core/fmatrix.h"
 #include "things/core/interact.h"
@@ -2125,6 +2126,9 @@ no_muzzle_calcs:
             pa->RS.SetChanged();
 
             {
+                // Set view-space Z for CPU fog in ge_draw_multi_matrix.
+                g_mm_fog_view_z = g_matWorld._43;
+
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,
                     &d3dmm,
@@ -2740,6 +2744,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             pa->RS.SetChanged();
 
             {
+                // Set view-space Z for CPU fog in ge_draw_multi_matrix.
+                g_mm_fog_view_z = g_matWorld._43;
+
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,
                     &d3dmm,
@@ -4348,6 +4355,9 @@ no_muzzle_calcs:
             pa->RS.SetChanged();
 
             {
+                // Set view-space Z for CPU fog in ge_draw_multi_matrix.
+                g_mm_fog_view_z = g_matWorld._43;
+
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,
                     &d3dmm,

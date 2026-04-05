@@ -612,6 +612,18 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 break;
             }
 
+            // CPU fog for characters: ge_draw_multi_matrix receives pre-projected
+            // vertices (World*Projection baked into bone matrices), so clip-space Z
+            // can't be used for table fog. Compute vertex fog from the character's
+            // view-space Z (same scale as POLY_Point::z) using POLY_fadeout_point formula.
+            uint32_t fog_specular;
+            {
+                SLONG multi = 255 - (SLONG)((g_mm_fog_view_z - POLY_FADEOUT_START) * (256.0F / (POLY_FADEOUT_END - POLY_FADEOUT_START)));
+                if (multi > 255) multi = 255;
+                if (multi < 0)   multi = 0;
+                fog_specular = (uint32_t)multi << 24;
+            }
+
             for (int i = 0; i < 3; i++) {
                 uint16_t wVertIndex = wIndex[i];
                 ASSERT(wVertIndex < num_vertices);
@@ -635,10 +647,10 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 
                 if (unlit) {
                     pTLVert[i].color = 0xffffffff;
-                    pTLVert[i].specular = 0xffffffff;
+                    pTLVert[i].specular = fog_specular;
                 } else {
                     pTLVert[i].color = pLVert[wIndex[i]].color;
-                    pTLVert[i].specular = pLVert[wIndex[i]].specular;
+                    pTLVert[i].specular = fog_specular | (pLVert[wIndex[i]].specular & 0x00FFFFFF);
                 }
             }
 

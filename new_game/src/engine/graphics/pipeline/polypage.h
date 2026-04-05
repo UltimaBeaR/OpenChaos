@@ -204,4 +204,9 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 // uc_orig: GET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
 #define GET_MM_INDEX(v) (((unsigned char*)&v)[12])
 
+// View-space Z of the current character, set by figure.cpp before each
+// ge_draw_multi_matrix call. Used for CPU fog (0=near, 1=far), same scale
+// as POLY_Point::z in POLY_fadeout_point.
+extern float g_mm_fog_view_z;
+
 #endif // ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H

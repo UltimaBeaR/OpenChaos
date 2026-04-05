@@ -12,6 +12,7 @@
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "engine/core/memory.h"
+#include "engine/graphics/pipeline/polypage.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,6 +63,8 @@ static int32_t s_vp_x = 0, s_vp_y = 0, s_vp_w = 640, s_vp_h = 480;
 static bool     s_fog_enabled = false;
 static uint32_t s_fog_color = 0;
 static float    s_fog_near = 0.0f, s_fog_far = 1.0f;
+
+float g_mm_fog_view_z = 0.0f;
 
 // Alpha test state.
 static bool     s_alpha_test_enabled = false;
