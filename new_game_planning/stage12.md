@@ -13,7 +13,7 @@
 | ASan прогоны — систематический поиск memory corruption | ⏳ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | ASan уже нашёл 5+ багов на Urban Shakedown |
 | Рандомные крэши (reflection null+8, uninit heap, смена миссии) | ⏳ | [known_issues](known_issues_and_bugs.md) (Крэши) | Вероятно несколько разных багов, ASan должен помочь |
 | Тормоза при вступительной катсцене миссии | ⏳ | [known_issues](known_issues_and_bugs.md) (Крэши) | Плавающий баг, не привязан к конкретной миссии |
-| Дублированные inline функции → сделать `static` | ⏳ | [known_issues](known_issues_and_bugs.md) (Визуальные) | Источник скрытых багов (screen_flip UB) |
+| ~~Дублированные inline функции → сделать `static`~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Уже исправлено при миграции — 0 inline в .cpp файлах |
 
 ## Outro (OpenGL бэкенд)
 
