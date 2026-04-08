@@ -19,7 +19,7 @@
 
 | Пункт | Статус | Референс | Комментарии |
 |-------|--------|----------|-------------|
-| 3D модель не отображается (регрессия x64) | ⏳ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | Причина найдена: `fread` struct с указателями, sizeof мисматч x86/x64. Фикс: ручное чтение полей с on-disk размерами |
+| ~~3D модель не отображается (регрессия x64)~~ | ✅ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | Ручное чтение IMP_Mesh/IMP_Mat с on-disk размерами (136/104 байт), указатели пропускаются |
 | `oge_texture_create` — BGRA → GL текстура | ⏳ | [stage7.md](stage7.md) (Outro backend) | Linked list дедуп-кеш, поддержка invert |
 | `oge_texture_create_blank` — пустая текстура | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
 | `oge_texture_size` — вернуть размер | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
