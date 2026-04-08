@@ -41,6 +41,8 @@
 | Bump mapping fade-in дистанция слишком короткая | ⏳ | [known_issues](known_issues_and_bugs.md) | Crinkle появляется слишком резко при приближении |
 | ~~Лужи пропадают на краю камеры~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Полный проход 128 z-строк вместо gamut, ~1-2 нс/кадр |
 | Экран брифинга не убирается при загрузке миссии | ⏳ | [known_issues](known_issues_and_bugs.md) | OpenGL-специфичный |
+| Газетки не отображаются | ⏳ | [known_issues](known_issues_and_bugs.md) | Видны в релизе, не видны у нас |
+| Сломанные UV у некоторых листьев | ⏳ | [known_issues](known_issues_and_bugs.md) | Часть листьев с битыми UV, в релизе все ок |
 | Листья/трупы поверх огня/взрывов | ⏳ | [known_issues](known_issues_and_bugs.md) | Сверить с оригиналом |
 | Z-buffer лежаков у бассейна | ⏳ | [known_issues](known_issues_and_bugs.md) | Estate of Emergency, листья сквозь лежаки + неправильный порядок между двумя лежаками |
 | Тонкая настройка тумана | ⏳ | [known_issues](known_issues_and_bugs.md) | Незначительная разница с D3D |
