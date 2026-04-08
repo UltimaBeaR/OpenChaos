@@ -1964,32 +1964,14 @@ void AENG_draw_dirt()
             }
 
             if ((i & 0xf) == 0 && !estate && world_type != WORLD_TYPE_SNOW) {
-                // This is some rubbish (litter: paper, money, etc.)
+                // Rubbish (litter: paper, money, etc.) — drawn via POLY_add_quad
+                // with its own texture page, NOT batched with leaves.
 
                 fpitch = float(dd->pitch) * (PI / 1024.0F);
                 froll = float(dd->roll) * (PI / 1024.0F);
+                float fyaw = float(i);
 
-                // Rotation matrix (yaw = 0 optimisation from MATRIX_calc):
-                float cy, cp, cr;
-                float sy, sp, sr;
-
-                sy = 0.0F;
-                cy = 1.0F;
-
-                sp = sin(fpitch);
-                sr = sin(froll);
-
-                cp = cos(fpitch);
-                cr = cos(froll);
-
-                // Note: matrix[3..5] intentionally left undefined.
-
-                matrix[0] = cy * cr + sy * sp * sr;
-                matrix[6] = sy * cp;
-                matrix[1] = -cp * sr;
-                matrix[7] = sp;
-                matrix[2] = -sy * cr + cy * sp * sr;
-                matrix[8] = cy * cp;
+                MATRIX_calc(matrix, fyaw, fpitch, froll);
 
                 matrix[0] *= 24.0F;
                 matrix[1] *= 24.0F;
@@ -1999,27 +1981,27 @@ void AENG_draw_dirt()
                 matrix[7] *= 24.0F;
                 matrix[8] *= 24.0F;
 
-                float base_x = float(dd->x);
-                float base_y = float(dd->y + LEAF_UP);
-                float base_z = float(dd->z);
+                POLY_Point temp[4];
+                POLY_Point* quad[4];
 
-                lv[0].x = base_x + matrix[6] + matrix[0];
-                lv[0].y = base_y + matrix[7] + matrix[1];
-                lv[0].z = base_z + matrix[8] + matrix[2];
+                temp[0].X = float(dd->x) + matrix[6] + matrix[0];
+                temp[0].Y = float(dd->y + LEAF_UP) + matrix[7] + matrix[1];
+                temp[0].Z = float(dd->z) + matrix[8] + matrix[2];
 
-                lv[1].x = base_x + matrix[6] - matrix[0];
-                lv[1].y = base_y + matrix[7] - matrix[1];
-                lv[1].z = base_z + matrix[8] - matrix[2];
+                temp[1].X = float(dd->x) + matrix[6] - matrix[0];
+                temp[1].Y = float(dd->y + LEAF_UP) + matrix[7] - matrix[1];
+                temp[1].Z = float(dd->z) + matrix[8] - matrix[2];
 
-                lv[2].x = base_x - matrix[6] + matrix[0];
-                lv[2].y = base_y - matrix[7] + matrix[1];
-                lv[2].z = base_z - matrix[8] + matrix[2];
+                temp[2].X = float(dd->x) - matrix[6] + matrix[0];
+                temp[2].Y = float(dd->y + LEAF_UP) - matrix[7] + matrix[1];
+                temp[2].Z = float(dd->z) - matrix[8] + matrix[2];
 
-                lv[3].x = base_x - matrix[6] - matrix[0];
-                lv[3].y = base_y - matrix[7] - matrix[1];
-                lv[3].z = base_z - matrix[8] - matrix[2];
+                temp[3].X = float(dd->x) - matrix[6] - matrix[0];
+                temp[3].Y = float(dd->y + LEAF_UP) - matrix[7] - matrix[1];
+                temp[3].Z = float(dd->z) - matrix[8] - matrix[2];
 
                 rubbish_colour = NIGHT_amb_colour;
+                ULONG colour_and = 0xffffffff;
 
                 if (i & 32) {
                     ubase = 0.0F;
@@ -2030,63 +2012,42 @@ void AENG_draw_dirt()
                 }
 
                 if (i == 64) {
-                    // Only one bit of money!
                     ubase = 0.0F;
                     vbase = 0.5F;
                 } else {
                     if (!(i & 32)) {
                         if (i & 64) {
-                            rubbish_colour &= 0xffffff00;
+                            colour_and = 0xffffff00;
                         }
                     }
                 }
 
-                lv[0].tu = ubase;
-                lv[0].tv = vbase;
-                lv[0].color = rubbish_colour;
-                lv[0].specular = 0xff000000;
+                SLONG j;
+                SLONG all_valid = UC_TRUE;
+                for (j = 0; j < 4; j++) {
+                    POLY_transform(temp[j].X, temp[j].Y, temp[j].Z, &temp[j]);
 
-                lv[1].tu = ubase + 0.5F;
-                lv[1].tv = vbase;
-                lv[1].color = rubbish_colour;
-                lv[1].specular = 0xff000000;
+                    if (!temp[j].MaybeValid()) {
+                        all_valid = UC_FALSE;
+                        break;
+                    }
 
-                lv[2].tu = ubase;
-                lv[2].tv = vbase + 0.5F;
-                lv[2].color = rubbish_colour;
-                lv[2].specular = 0xff000000;
+                    temp[j].u = ubase;
+                    temp[j].v = vbase;
+                    if (j & 1) { temp[j].u += 0.5F; }
+                    if (j & 2) { temp[j].v += 0.5F; }
 
-                lv[3].tu = ubase + 0.5F;
-                lv[3].tv = vbase + 0.5F;
-                lv[3].color = rubbish_colour;
-                lv[3].specular = 0xff000000;
+                    temp[j].colour = (rubbish_colour & colour_and) | 0xff000000;
+                    temp[j].specular = 0xff000000;
 
-                pp = &POLY_Page[POLY_PAGE_RUBBISH];
+                    quad[j] = &temp[j];
+                }
 
-                lv[0].tu = lv[0].tu * pp->m_UScale + pp->m_UOffset;
-                lv[0].tv = lv[0].tv * pp->m_VScale + pp->m_VOffset;
-
-                lv[1].tu = lv[1].tu * pp->m_UScale + pp->m_UOffset;
-                lv[1].tv = lv[1].tv * pp->m_VScale + pp->m_VOffset;
-
-                lv[2].tu = lv[2].tu * pp->m_UScale + pp->m_UOffset;
-                lv[2].tv = lv[2].tv * pp->m_VScale + pp->m_VOffset;
-
-                lv[3].tu = lv[3].tu * pp->m_UScale + pp->m_UOffset;
-                lv[3].tv = lv[3].tv * pp->m_VScale + pp->m_VOffset;
-
-                ASSERT(AENG_dirt_index_upto + 6 <= AENG_MAX_DIRT_INDICES);
-
-                AENG_dirt_index[AENG_dirt_index_upto + 0] = AENG_dirt_lvert_upto + 0;
-                AENG_dirt_index[AENG_dirt_index_upto + 1] = AENG_dirt_lvert_upto + 1;
-                AENG_dirt_index[AENG_dirt_index_upto + 2] = AENG_dirt_lvert_upto + 2;
-
-                AENG_dirt_index[AENG_dirt_index_upto + 3] = AENG_dirt_lvert_upto + 3;
-                AENG_dirt_index[AENG_dirt_index_upto + 4] = AENG_dirt_lvert_upto + 2;
-                AENG_dirt_index[AENG_dirt_index_upto + 5] = AENG_dirt_lvert_upto + 1;
-
-                AENG_dirt_index_upto += 6;
-                AENG_dirt_lvert_upto += 4;
+                if (all_valid) {
+                    POLY_add_quad(quad, POLY_PAGE_RUBBISH, UC_FALSE);
+                } else {
+                    DIRT_mark_as_offscreen(i);
+                }
             } else {
                 // Leaf or snowflake
 
