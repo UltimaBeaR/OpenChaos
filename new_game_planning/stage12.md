@@ -19,7 +19,7 @@
 
 | Пункт | Статус | Референс | Комментарии |
 |-------|--------|----------|-------------|
-| 3D модель не отображается (регрессия x64) | ⏳ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | Работала на OpenGL 32-бит, сломалось после x64 |
+| 3D модель не отображается (регрессия x64) | ⏳ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | Причина найдена: `fread` struct с указателями, sizeof мисматч x86/x64. Фикс: ручное чтение полей с on-disk размерами |
 | `oge_texture_create` — BGRA → GL текстура | ⏳ | [stage7.md](stage7.md) (Outro backend) | Linked list дедуп-кеш, поддержка invert |
 | `oge_texture_create_blank` — пустая текстура | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
 | `oge_texture_size` — вернуть размер | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
@@ -38,9 +38,11 @@
 | ~~Чёрные дырки на ближнем клиппинге~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Отсутствовал `PolyBufAlloc` в near-clip path + фиксы figure.cpp |
 | Здания pop-in за туманом | ⏳ | [known_issues](known_issues_and_bugs.md) | Возможно настраивается через config |
 | Резкое переключение bump mapping на стенах | ⏳ | [known_issues](known_issues_and_bugs.md) | Релизный баг, виден на лонгплеях |
+| Bump mapping fade-in дистанция слишком короткая | ⏳ | [known_issues](known_issues_and_bugs.md) | Crinkle появляется слишком резко при приближении |
 | ~~Лужи пропадают на краю камеры~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Полный проход 128 z-строк вместо gamut, ~1-2 нс/кадр |
 | Экран брифинга не убирается при загрузке миссии | ⏳ | [known_issues](known_issues_and_bugs.md) | OpenGL-специфичный |
 | Листья/трупы поверх огня/взрывов | ⏳ | [known_issues](known_issues_and_bugs.md) | Сверить с оригиналом |
+| Z-buffer лежаков у бассейна | ⏳ | [known_issues](known_issues_and_bugs.md) | Estate of Emergency, листья сквозь лежаки + неправильный порядок между двумя лежаками |
 | Тонкая настройка тумана | ⏳ | [known_issues](known_issues_and_bugs.md) | Незначительная разница с D3D |
 | Меню Sound Options — бегунки громкости не видны | ⏳ | [known_issues](known_issues_and_bugs.md) | Сверить с оригиналом |
 | Glow звёзд — ореол вокруг ярких звёзд | ⏳ | [stage7_opengl_verification.md](stage7_opengl_verification.md) | `ge_plot_formatted_pixel` |
