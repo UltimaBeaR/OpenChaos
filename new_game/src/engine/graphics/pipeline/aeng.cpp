@@ -4873,8 +4873,11 @@ void AENG_draw_city()
         quad[2] = &pp[2];
         quad[3] = &pp[3];
 
-        for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
-            PUDDLE_get_start(z, NGAMUT_gamut[z].xmin, NGAMUT_gamut[z].xmax);
+        // Iterate all map cells instead of gamut range — puddles are flat quads
+        // visible at grazing angles well beyond the wall/floor gamut. Empty cells
+        // are nearly free (just a linked-list head check), and puddles are sparse.
+        for (z = 0; z < NGAMUT_SIZE; z++) {
+            PUDDLE_get_start(z, 0, NGAMUT_SIZE - 1);
 
             while (pi = PUDDLE_get_next()) {
                 px1 = float(pi->x1);

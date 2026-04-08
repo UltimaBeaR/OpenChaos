@@ -38,6 +38,7 @@
 | ~~Чёрные дырки на ближнем клиппинге~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Отсутствовал `PolyBufAlloc` в near-clip path + фиксы figure.cpp |
 | Здания pop-in за туманом | ⏳ | [known_issues](known_issues_and_bugs.md) | Возможно настраивается через config |
 | Резкое переключение bump mapping на стенах | ⏳ | [known_issues](known_issues_and_bugs.md) | Релизный баг, виден на лонгплеях |
+| ~~Лужи пропадают на краю камеры~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Полный проход 128 z-строк вместо gamut, ~1-2 нс/кадр |
 | Экран брифинга не убирается при загрузке миссии | ⏳ | [known_issues](known_issues_and_bugs.md) | OpenGL-специфичный |
 | Листья/трупы поверх огня/взрывов | ⏳ | [known_issues](known_issues_and_bugs.md) | Сверить с оригиналом |
 | Тонкая настройка тумана | ⏳ | [known_issues](known_issues_and_bugs.md) | Незначительная разница с D3D |
