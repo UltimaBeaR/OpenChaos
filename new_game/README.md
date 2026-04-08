@@ -13,7 +13,7 @@ For prerequisites and first-time setup see [SETUP.md](SETUP.md). For development
 1. Copy your Urban Chaos game files (everything except `.exe`/`.dll`) into `original_game_resources/` at the repo root
 2. Run:
 ```bash
-make configure-opengl   # configure (once, or after CMakeLists.txt changes)
+make configure   # configure (once, or after CMakeLists.txt changes)
 make copy-resources     # copy game assets into build folders (once)
 make r                  # build + run Release
 ```
@@ -32,12 +32,10 @@ src/
 │   ├── core/               — Types, math, memory, heap, timer
 │   ├── platform/           — uc_common.h (platform umbrella), host, SDL3 bridge
 │   ├── graphics/
-│   │   ├── graphics_engine/ — Swappable graphics backend abstraction
+│   │   ├── graphics_engine/ — Graphics backend
 │   │   │   ├── game_graphics_engine.h  — ge_* contract (API-agnostic)
 │   │   │   ├── outro_graphics_engine.h — oge_* contract (outro)
-│   │   │   ├── backend_opengl/         — OpenGL 4.1 Core Profile (cross-platform)
-│   │   │   ├── backend_directx6/       — D3D6/DDraw (Windows-only legacy)
-│   │   │   └── backend_stub/           — No-op stub (compile-only verification)
+│   │   │   └── backend_opengl/         — OpenGL 4.1 Core Profile (cross-platform)
 │   │   ├── pipeline/       — Render pipeline: aeng, bucket, poly, polypage, draw2d, qeng
 │   │   ├── geometry/       — Mesh renderers: mesh, facet, superfacet, farfacet, fastprim, figure, cone, oval, shape, sprite, sky, aa
 │   │   ├── lighting/       — Gamut, night (per-vertex), shadow, smap, crinkle

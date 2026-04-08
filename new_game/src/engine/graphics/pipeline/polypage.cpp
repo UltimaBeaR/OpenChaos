@@ -16,7 +16,7 @@ void ge_set_polys_drawn_callback(GEPolysDrawnCallback callback)
 }
 
 // g_dw3DStuffHeight and g_dw3DStuffY are defined in poly.cpp (not yet migrated).
-// Used by GenerateMMMatrixFromStandardD3DOnes to support letterbox mode.
+// Used by GenerateMMMatrix to support letterbox mode.
 extern DWORD g_dw3DStuffHeight;
 extern DWORD g_dw3DStuffY;
 
@@ -484,13 +484,13 @@ void PolyPage::MergeSortIteration(ULONG sort_len)
     }
 }
 
-// uc_orig: GenerateMMMatrixFromStandardD3DOnes (fallen/DDEngine/Source/polypage.cpp)
+// uc_orig: GenerateMMMatrix (fallen/DDEngine/Source/polypage.cpp)
 // Builds a combined world-view-projection matrix usable by DrawIndPrimMM.
 // Accounts for the letterbox rendering mode via g_dw3DStuffHeight/g_dw3DStuffY.
-void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
+void GenerateMMMatrix(GEMatrix* pmOutput,
     const GEMatrix* mProjectionMatrix,
     const GEMatrix* mWorldMatrix,
-    const GEViewport* d3dvpt)
+    const GEViewport* viewport)
 {
     ASSERT(((uintptr_t)(pmOutput) & 31) == 0);
 
@@ -549,9 +549,9 @@ void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* pmOutput,
     }
 
     // Version that handles the letterbox mode height/Y offset hack.
-    DWORD dwWidth = d3dvpt->dwWidth >> 1;
+    DWORD dwWidth = viewport->dwWidth >> 1;
     DWORD dwHeight = g_dw3DStuffHeight >> 1;
-    DWORD dwX = d3dvpt->dwX;
+    DWORD dwX = viewport->dwX;
     DWORD dwY = g_dw3DStuffY;
     pmOutput->_11 = 0.0f;
     pmOutput->_12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
@@ -582,7 +582,7 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
     uint16_t* indices,
     uint32_t num_indices)
 {
-    ASSERT(((uintptr_t)(mm->lpd3dMatrices) & 31) == 0);
+    ASSERT(((uintptr_t)(mm->matrices) & 31) == 0);
     ASSERT(((uintptr_t)(mm->lpvVertices) & 31) == 0);
     ASSERT(((uintptr_t)(mm->lpLightTable) & 3) == 0);
     ASSERT(((uintptr_t)(mm->lpvLightDirs) & 7) == 0);
@@ -631,7 +631,7 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 
                 BYTE bMatIndex = ((unsigned char*)(pLVertCur))[12];
 
-                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(mm->lpd3dMatrices[bMatIndex]));
+                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(mm->matrices[bMatIndex]));
                 ASSERT(*((uint32_t*)(&(pmCur->_41))) == 0xe0001000);
 
                 pTLVert[i].x = pLVertCur->x * pmCur->_12 + pLVertCur->y * pmCur->_22 + pLVertCur->z * pmCur->_32 + pmCur->_42;

@@ -486,7 +486,7 @@ void build_fence_poles(float sx, float sy, float sz, float fdx, float fdz, SLONG
             POLY_transform(gx + x[c0], gy + y[c0] + dy, gz + z[c0], pp);
 
             if (pp->MaybeValid()) {
-                NIGHT_get_d3d_colour(
+                NIGHT_get_colour(
                     col,
                     &pp->colour,
                     &pp->specular);
@@ -499,7 +499,7 @@ void build_fence_poles(float sx, float sy, float sz, float fdx, float fdz, SLONG
             POLY_transform(gx + x[c0], gy + y[c0] + dy + 200.0f, gz + z[c0], pp);
 
             if (pp->MaybeValid()) {
-                NIGHT_get_d3d_colour(
+                NIGHT_get_colour(
                     col,
                     &pp->colour,
                     &pp->specular);
@@ -510,7 +510,7 @@ void build_fence_poles(float sx, float sy, float sz, float fdx, float fdz, SLONG
 
         POLY_transform(gx + x[2] + nx * 5.0f, gy + y[2] + dy + 250.0f, gz + z[2] + nz * 5.0f, pp);
         if (pp->MaybeValid()) {
-            NIGHT_get_d3d_colour(
+            NIGHT_get_colour(
                 col,
                 &pp->colour,
                 &pp->specular);
@@ -615,7 +615,7 @@ void cable_draw(struct DFacet* p_facet)
         POLY_transform(cx, cy - sagy, cz, pp);
         pp->u = u;
         pp->v = 0.0;
-        NIGHT_get_d3d_colour(
+        NIGHT_get_colour(
             NIGHT_get_light_at(cx, cy - sagy, cz),
             &pp->colour,
             &pp->specular);
@@ -996,9 +996,9 @@ void MakeFacetPoints(float sx, float sy, float sz, float dx, float dz, float blo
 
             if (pp->MaybeValid()) {
                 if (INDOORS_INDEX) {
-                    NIGHT_get_d3d_colour_dim(*col, &pp->colour, &pp->specular);
+                    NIGHT_get_colour_dim(*col, &pp->colour, &pp->specular);
                 } else {
-                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    NIGHT_get_colour(*col, &pp->colour, &pp->specular);
                 }
             }
 
@@ -1163,9 +1163,9 @@ void MakeFacetPointsCommon(float sx, float sy, float sz, float dx, float dz, flo
 
             if (pp->MaybeValid()) {
                 if (INDOORS_INDEX) {
-                    NIGHT_get_d3d_colour_dim(*col, &pp->colour, &pp->specular);
+                    NIGHT_get_colour_dim(*col, &pp->colour, &pp->specular);
                 } else {
-                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    NIGHT_get_colour(*col, &pp->colour, &pp->specular);
                 }
             }
 
@@ -1706,7 +1706,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
                 POLY_transform(x, y, z, pp);
 
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    NIGHT_get_colour(*col, &pp->colour, &pp->specular);
                     pp->colour |= fade_alpha;
                 }
 
@@ -1868,7 +1868,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
                     POLY_transform_c_saturate_z(x, y + dy, z, pp);
 
                     if (pp->MaybeValid()) {
-                        NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                        NIGHT_get_colour(*col, &pp->colour, &pp->specular);
                     }
 
                     pp->colour |= fade_alpha;
@@ -1950,7 +1950,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
                     pp);
 
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+                    NIGHT_get_colour(*col, &pp->colour, &pp->specular);
                     pp->colour |= fade_alpha;
                 }
 
@@ -2392,7 +2392,7 @@ void FACET_draw_walkable(SLONG build)
                 POLY_transform(px, py, pz, pp);
 
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         NIGHT_ROOF_WALKABLE_POINT(i, 0),
                         &pp->colour,
                         &pp->specular);
@@ -2407,7 +2407,7 @@ void FACET_draw_walkable(SLONG build)
                 POLY_transform(px, py, pz, pp);
 
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         NIGHT_ROOF_WALKABLE_POINT(i, 1),
                         &pp->colour,
                         &pp->specular);
@@ -2422,7 +2422,7 @@ void FACET_draw_walkable(SLONG build)
                 POLY_transform(px, py, pz, pp);
 
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         NIGHT_ROOF_WALKABLE_POINT(i, 3),
                         &pp->colour,
                         &pp->specular);
@@ -2437,7 +2437,7 @@ void FACET_draw_walkable(SLONG build)
                 POLY_transform(px, py, pz, pp);
 
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         NIGHT_ROOF_WALKABLE_POINT(i, 2),
                         &pp->colour,
                         &pp->specular);
@@ -2769,7 +2769,7 @@ void FACET_draw_walkable_old(SLONG build)
 
                 if (pp->MaybeValid()) {
 
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         NIGHT_WALKABLE_POINT(i),
                         &pp->colour,
                         &pp->specular);
@@ -3295,7 +3295,7 @@ void DRAW_ladder(struct DFacet* p_facet)
         p_facet->Y[0] + p_facet->Y[1] >> 1,
         ((z1 + z2) >> 1) - (dz << 3));
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         col,
         &colour,
         &specular);

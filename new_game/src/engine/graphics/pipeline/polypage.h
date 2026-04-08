@@ -155,13 +155,13 @@ public:
 // Defined in poly.cpp (not yet migrated), declared here for external use.
 extern PolyPage POLY_Page[];
 
-// uc_orig: GenerateMMMatrixFromStandardD3DOnes (fallen/DDEngine/Headers/polypage.h)
+// uc_orig: GenerateMMMatrix (fallen/DDEngine/Headers/polypage.h)
 // Builds a multi-matrix transform from standard D3D camera matrices.
 // If mWorldMatrix is NULL, uses the current POLY_cam_* globals.
-extern void GenerateMMMatrixFromStandardD3DOnes(GEMatrix* mOutput,
+extern void GenerateMMMatrix(GEMatrix* mOutput,
     const GEMatrix* mProjectionMatrix,
     const GEMatrix* mWorldMatrix,
-    const GEViewport* d3dvpt);
+    const GEViewport* viewport);
 
 // Camera matrix globals maintained by the poly system (defined in poly.cpp).
 // uc_orig: g_matProjection (fallen/DDEngine/Headers/polypage.h)
@@ -175,7 +175,7 @@ extern GEViewport g_viewData;
 // Multi-matrix vertex draw block for batched character/object rendering.
 struct GEMultiMatrix {
     void* lpvVertices;        // Pointer to vertex data, must be 32-byte aligned
-    GEMatrix* lpd3dMatrices;  // Pointer to matrix array, must be 32-byte aligned
+    GEMatrix* matrices;  // Pointer to matrix array, must be 32-byte aligned
     void* lpvLightDirs;       // Pointer to light direction array (NULL if unlit), 8-byte aligned
     ULONG* lpLightTable;      // Pointer to fade table (NULL if unlit), 4-byte aligned
 };

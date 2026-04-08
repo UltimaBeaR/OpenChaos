@@ -1,5 +1,5 @@
-// Fast prim renderer: caches D3D vertex and index buffers per-prim to avoid rebuilding geometry
-// each frame. Uses DrawIndPrimMM for opaque/tinted prims, DrawIndexedPrimitive for alpha and
+// Fast prim renderer: caches vertex and index buffers per-prim to avoid rebuilding geometry
+// each frame. Uses multi-matrix draw for opaque/tinted prims, indexed draw for alpha and
 // environment-mapped ones.
 
 #include "engine/platform/uc_common.h"
@@ -411,13 +411,13 @@ SLONG FASTPRIM_draw(
                         pv = pv * pp->m_VScale + pp->m_VOffset;
 
                         if (lpc) {
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 lpc[f3->Points[k] - po->StartPoint],
                                 &pcolour,
                                 &pspecular);
                         } else {
-                            pcolour = NIGHT_amb_d3d_colour;
-                            pspecular = NIGHT_amb_d3d_specular;
+                            pcolour = NIGHT_amb_colour;
+                            pspecular = NIGHT_amb_specular;
                         }
 
                         if (POLY_page_flag[page] & POLY_PAGE_FLAG_SELF_ILLUM) {
@@ -503,13 +503,13 @@ SLONG FASTPRIM_draw(
                         pv = pv * pp->m_VScale + pp->m_VOffset;
 
                         if (lpc) {
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 lpc[f4->Points[k] - po->StartPoint],
                                 &pcolour,
                                 &pspecular);
                         } else {
-                            pcolour = NIGHT_amb_d3d_colour;
-                            pspecular = NIGHT_amb_d3d_specular;
+                            pcolour = NIGHT_amb_colour;
+                            pspecular = NIGHT_amb_specular;
                         }
 
                         if (POLY_page_flag[page] & POLY_PAGE_FLAG_SELF_ILLUM) {
@@ -715,7 +715,7 @@ SLONG FASTPRIM_draw(
         x, y, z,
         matrix);
 
-    GenerateMMMatrixFromStandardD3DOnes(
+    GenerateMMMatrix(
         FASTPRIM_matrix,
         &g_matProjection,
         &g_matWorld,
@@ -768,7 +768,7 @@ SLONG FASTPRIM_draw(
             ULONG default_colour;
             ULONG default_specular;
 
-            NIGHT_get_d3d_colour(
+            NIGHT_get_colour(
                 NIGHT_get_light_at(x, y, z),
                 &default_colour,
                 &default_specular);
@@ -797,7 +797,7 @@ SLONG FASTPRIM_draw(
 
                     lv = &FASTPRIM_lvert[fc->lvert + j];
 
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         lpc[lv->_reserved >> 16],
                         reinterpret_cast<ULONG*>(&lv->color),
                         reinterpret_cast<ULONG*>(&lv->specular));
@@ -807,7 +807,7 @@ SLONG FASTPRIM_draw(
                 ULONG default_colour;
                 ULONG default_specular;
 
-                NIGHT_get_d3d_colour(
+                NIGHT_get_colour(
                     NIGHT_get_light_at(x, y, z),
                     &default_colour,
                     &default_specular);
@@ -846,7 +846,7 @@ SLONG FASTPRIM_draw(
             ge_set_blend_mode(GEBlendMode::Opaque);
         } else {
             // DrawIndPrimMM path for opaque/colour-and prims (Tom's custom batch call).
-            GEMultiMatrix d3dmm = {
+            GEMultiMatrix mm = {
                 FASTPRIM_lvert + fc->lvert,
                 FASTPRIM_matrix,
                 NULL,
@@ -861,7 +861,7 @@ SLONG FASTPRIM_draw(
 
             ge_draw_multi_matrix(
                 GEMMVertexType::Lit,
-                &d3dmm,
+                &mm,
                 fc->lvertcount,
                 FASTPRIM_index + fc->index,
                 fc->indexcount);

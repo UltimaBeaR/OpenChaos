@@ -160,7 +160,7 @@ void SUPERFACET_make_facet_points(
             // Index into the NIGHT_Colour[] array for this vertex (used by SUPERFACET_redo_lighting).
             pp->user = col - SUPERFACET_colour_base;
 
-            NIGHT_get_d3d_colour(*col, &pp->colour, &pp->specular);
+            NIGHT_get_colour(*col, &pp->colour, &pp->specular);
 
             x += dx;
             z += dz;
@@ -755,7 +755,7 @@ void SUPERFACET_redo_lighting(SLONG facet)
 
             ASSERT(WITHIN(lv->_reserved >> 16, 0, 2048));
 
-            NIGHT_get_d3d_colour(col[lv->_reserved >> 16], reinterpret_cast<ULONG*>(&lv->color), reinterpret_cast<ULONG*>(&lv->specular));
+            NIGHT_get_colour(col[lv->_reserved >> 16], reinterpret_cast<ULONG*>(&lv->color), reinterpret_cast<ULONG*>(&lv->specular));
         }
     }
 }

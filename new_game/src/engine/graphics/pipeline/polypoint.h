@@ -22,16 +22,16 @@ public:
     void SetUV(float& u, float& v);
     // uc_orig: SetUV2 (fallen/DDEngine/Headers/polypoint.h)
     void SetUV2(float u, float v);
-    // uc_orig: MakeD3DColour (fallen/DDEngine/Headers/polypoint.h)
-    static ULONG MakeD3DColour(UBYTE r, UBYTE g, UBYTE b, UBYTE a);
-    // uc_orig: ModulateD3DColours (fallen/DDEngine/Headers/polypoint.h)
-    static ULONG ModulateD3DColours(ULONG c1, ULONG c2);
+    // uc_orig: MakeColour (fallen/DDEngine/Headers/polypoint.h)
+    static ULONG MakeColour(UBYTE r, UBYTE g, UBYTE b, UBYTE a);
+    // uc_orig: ModulateColours (fallen/DDEngine/Headers/polypoint.h)
+    static ULONG ModulateColours(ULONG c1, ULONG c2);
     // uc_orig: SetColour (fallen/DDEngine/Headers/polypoint.h)
-    void SetColour(ULONG d3d_col);
+    void SetColour(ULONG col);
     // uc_orig: SetColour (fallen/DDEngine/Headers/polypoint.h)
     void SetColour(UBYTE r, UBYTE g, UBYTE b, UBYTE a = 0xFF);
     // uc_orig: SetSpecular (fallen/DDEngine/Headers/polypoint.h)
-    void SetSpecular(ULONG d3d_col);
+    void SetSpecular(ULONG col);
     // uc_orig: SetSpecular (fallen/DDEngine/Headers/polypoint.h)
     void SetSpecular(UBYTE r, UBYTE g, UBYTE b, UBYTE a = 0xFF);
 };
@@ -59,39 +59,39 @@ inline void PolyPoint2D::SetUV2(float u, float v)
     INT_COPY_FLOAT(tv, v);
 }
 
-// uc_orig: MakeD3DColour (fallen/DDEngine/Headers/polypoint.h)
-inline ULONG PolyPoint2D::MakeD3DColour(UBYTE r, UBYTE g, UBYTE b, UBYTE a)
+// uc_orig: MakeColour (fallen/DDEngine/Headers/polypoint.h)
+inline ULONG PolyPoint2D::MakeColour(UBYTE r, UBYTE g, UBYTE b, UBYTE a)
 {
     return (ULONG(a) << 24) | (ULONG(r) << 16) | (ULONG(g) << 8) | ULONG(b);
 }
 
 // uc_orig: SetColour (fallen/DDEngine/Headers/polypoint.h)
-inline void PolyPoint2D::SetColour(ULONG d3d_col)
+inline void PolyPoint2D::SetColour(ULONG col)
 {
-    color = d3d_col;
+    color = col;
 }
 
 // uc_orig: SetColour (fallen/DDEngine/Headers/polypoint.h)
 inline void PolyPoint2D::SetColour(UBYTE r, UBYTE g, UBYTE b, UBYTE a)
 {
-    SetColour(MakeD3DColour(r, g, b, a));
+    SetColour(MakeColour(r, g, b, a));
 }
 
 // uc_orig: SetSpecular (fallen/DDEngine/Headers/polypoint.h)
-inline void PolyPoint2D::SetSpecular(ULONG d3d_col)
+inline void PolyPoint2D::SetSpecular(ULONG col)
 {
-    specular = d3d_col;
+    specular = col;
 }
 
 // uc_orig: SetSpecular (fallen/DDEngine/Headers/polypoint.h)
 inline void PolyPoint2D::SetSpecular(UBYTE r, UBYTE g, UBYTE b, UBYTE a)
 {
-    SetSpecular(MakeD3DColour(r, g, b, a));
+    SetSpecular(MakeColour(r, g, b, a));
 }
 
 // Modulate two D3D colours. Does not round correctly, does not modulate alpha.
-// uc_orig: ModulateD3DColours (fallen/DDEngine/Headers/polypoint.h)
-inline ULONG PolyPoint2D::ModulateD3DColours(ULONG c1, ULONG c2)
+// uc_orig: ModulateColours (fallen/DDEngine/Headers/polypoint.h)
+inline ULONG PolyPoint2D::ModulateColours(ULONG c1, ULONG c2)
 {
     ULONG res;
 

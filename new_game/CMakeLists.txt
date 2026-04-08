@@ -69,45 +69,16 @@ if(ENABLE_ASAN)
 endif()
 
 # ---------------------------------------------------------------------------
-# Graphics backend selection
+# Graphics backend: OpenGL 4.1 Core Profile (only backend)
 # ---------------------------------------------------------------------------
-# Set to "d3d6" or "stub". The stub backend compiles without DirectX and proves
-# that no D3D code leaks outside backend_directx6/.
-set(GRAPHICS_BACKEND "opengl" CACHE STRING "Graphics backend: d3d6, opengl, stub")
 
-if(GRAPHICS_BACKEND STREQUAL "d3d6")
-    if(NOT WIN32)
-        message(FATAL_ERROR "D3D6 backend is only available on Windows.")
-    endif()
-    set(BACKEND_SOURCES
-        # --- common (shared D3D infrastructure) ---
-        src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/common/d3d_texture_globals.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/common/dd_manager_globals.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/common/display.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/common/display_globals.cpp
-        # --- game (ge_* implementation) ---
-        src/engine/graphics/graphics_engine/backend_directx6/game/core.cpp
-        # text.cpp, truetype.cpp moved to engine/graphics/text/ (no D3D)
-        src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/game/vertex_buffer_globals.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/game/work_screen.cpp
-        src/engine/graphics/graphics_engine/backend_directx6/game/work_screen_globals.cpp
-        # --- outro (oge_* implementation) ---
-        src/engine/graphics/graphics_engine/backend_directx6/outro/core.cpp
-        # --- API-agnostic render state cache ---
-        src/engine/graphics/graphics_engine/game_graphics_engine.cpp
-    )
-    set(BACKEND_LIBS ddraw dxguid)
-elseif(GRAPHICS_BACKEND STREQUAL "opengl")
-    # Embed GLSL shaders as C++ string constants at build time.
-    # Uses a CMake script invoked via add_custom_command so changes to .glsl
-    # files are picked up automatically on every build (not just cmake configure).
-    set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/shaders")
-    set(SHADER_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h")
-    set(SHADER_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_shaders.cmake")
-    file(WRITE "${SHADER_EMBED_SCRIPT}" "
+# Embed GLSL shaders as C++ string constants at build time.
+# Uses a CMake script invoked via add_custom_command so changes to .glsl
+# files are picked up automatically on every build (not just cmake configure).
+set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/shaders")
+set(SHADER_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h")
+set(SHADER_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_shaders.cmake")
+file(WRITE "${SHADER_EMBED_SCRIPT}" "
 file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
 file(READ \"\${SHADER_DIR}/common_frag.glsl\" FRAG)
 file(READ \"\${SHADER_DIR}/video_vert.glsl\" VID_VERT)
@@ -120,49 +91,40 @@ file(WRITE \"\${OUT}\"
     \"static const char* const SHADER_VIDEO_FRAG = R\\\"glsl(\\n\${VID_FRAG})glsl\\\";\\n\"
 )
 ")
-    add_custom_command(
-        OUTPUT "${SHADER_HEADER}"
-        COMMAND ${CMAKE_COMMAND} -DSHADER_DIR="${SHADER_DIR}" -DOUT="${SHADER_HEADER}" -P "${SHADER_EMBED_SCRIPT}"
-        DEPENDS
-            "${SHADER_DIR}/tl_vert.glsl"
-            "${SHADER_DIR}/common_frag.glsl"
-            "${SHADER_DIR}/video_vert.glsl"
-            "${SHADER_DIR}/video_frag.glsl"
-        COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
-    )
+add_custom_command(
+    OUTPUT "${SHADER_HEADER}"
+    COMMAND ${CMAKE_COMMAND} -DSHADER_DIR="${SHADER_DIR}" -DOUT="${SHADER_HEADER}" -P "${SHADER_EMBED_SCRIPT}"
+    DEPENDS
+        "${SHADER_DIR}/tl_vert.glsl"
+        "${SHADER_DIR}/common_frag.glsl"
+        "${SHADER_DIR}/video_vert.glsl"
+        "${SHADER_DIR}/video_frag.glsl"
+    COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
+)
 
-    set(BACKEND_SOURCES
-        # --- GLAD loader ---
-        src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
-        # --- common ---
-        src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
-        src/engine/graphics/graphics_engine/backend_opengl/common/gl_shader.cpp
-        # --- game (ge_* implementation) ---
-        src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp
-        # --- outro (oge_* implementation) ---
-        src/engine/graphics/graphics_engine/backend_opengl/outro/core.cpp
-        # --- API-agnostic render state cache ---
-        src/engine/graphics/graphics_engine/game_graphics_engine.cpp
-    )
-    # OpenGL library: platform-specific name
-    if(WIN32)
-        set(BACKEND_LIBS opengl32)
-    elseif(APPLE)
-        find_package(OpenGL REQUIRED)
-        set(BACKEND_LIBS OpenGL::GL)
-    else()
-        set(BACKEND_LIBS GL)
-    endif()
-    message(STATUS "Graphics backend: OpenGL 4.1 Core Profile")
-elseif(GRAPHICS_BACKEND STREQUAL "stub")
-    set(BACKEND_SOURCES
-        src/engine/graphics/graphics_engine/backend_stub/core.cpp
-    )
-    message(STATUS "Graphics backend: STUB (no DirectX, compile-only verification)")
-    set(BACKEND_LIBS "")
+set(BACKEND_SOURCES
+    # --- GLAD loader ---
+    src/engine/graphics/graphics_engine/backend_opengl/common/glad/src/gl.c
+    # --- common ---
+    src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp
+    src/engine/graphics/graphics_engine/backend_opengl/common/gl_shader.cpp
+    # --- game (ge_* implementation) ---
+    src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp
+    # --- outro (oge_* implementation) ---
+    src/engine/graphics/graphics_engine/backend_opengl/outro/core.cpp
+    # --- API-agnostic render state cache ---
+    src/engine/graphics/graphics_engine/game_graphics_engine.cpp
+)
+# OpenGL library: platform-specific name
+if(WIN32)
+    set(BACKEND_LIBS opengl32)
+elseif(APPLE)
+    find_package(OpenGL REQUIRED)
+    set(BACKEND_LIBS OpenGL::GL)
 else()
-    message(FATAL_ERROR "Unknown GRAPHICS_BACKEND: ${GRAPHICS_BACKEND}")
+    set(BACKEND_LIBS GL)
 endif()
+message(STATUS "Graphics backend: OpenGL 4.1 Core Profile")
 
 # ---------------------------------------------------------------------------
 # Source files
@@ -552,7 +514,7 @@ set(SOURCES_NEW
 add_executable(OpenChaos
     ${SOURCES_NEW}
     # Generated shader header (triggers rebuild when .glsl files change).
-    $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h>
+    ${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h
 )
 # WIN32 = SUBSYSTEM:WINDOWS (no console window). Only meaningful on Windows.
 if(WIN32)
@@ -568,9 +530,9 @@ target_include_directories(OpenChaos PRIVATE
     # Platform abstraction: resolves #include <MFStdLib.h> and StdFile/StdKeybd/StdMaths/StdMouse
     src/engine/platform
     # GLAD GL loader headers (resolves #include <glad/gl.h>)
-    $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/common/glad/include>
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/graphics/graphics_engine/backend_opengl/common/glad/include
     # Generated headers (embedded shaders)
-    $<$<STREQUAL:${GRAPHICS_BACKEND},opengl>:${CMAKE_CURRENT_BINARY_DIR}/generated>
+    ${CMAKE_CURRENT_BINARY_DIR}/generated
     # FFmpeg (video playback)
     ${FFMPEG_INCLUDE_DIRS}
 )
@@ -603,8 +565,6 @@ target_compile_options(OpenChaos PRIVATE
 # Preprocessor definitions
 # ---------------------------------------------------------------------------
 target_compile_definitions(OpenChaos PRIVATE
-    $<$<STREQUAL:${GRAPHICS_BACKEND},d3d6>:VERSION_D3D>
-
     $<$<CONFIG:Debug>:_DEBUG>
     $<$<CONFIG:Debug>:DEBUG>
 
@@ -622,11 +582,6 @@ endif()
 # ---------------------------------------------------------------------------
 
 if(WIN32)
-    # /SAFESEH:NO — x86 only: some object files lack SafeSEH metadata.
-    # Not needed (and rejected by linker) on x64.
-    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
-        target_link_options(OpenChaos PRIVATE "LINKER:/SAFESEH:NO")
-    endif()
     # /ENTRY:mainCRTStartup — use main() instead of WinMain while keeping
     # /SUBSYSTEM:WINDOWS (no console window). Cross-platform main() entry point.
     target_link_options(OpenChaos PRIVATE "LINKER:/ENTRY:mainCRTStartup")

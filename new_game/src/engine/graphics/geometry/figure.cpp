@@ -1,6 +1,5 @@
-// D3D-specific character rendering system from DDEngine.
-// This entire file will be replaced in Stage 7 (new renderer).
-// Preserved 1:1 here for Stage 4 completeness.
+// Character rendering system — multi-matrix body part drawing.
+// Ported from original DDEngine, now uses ge_* abstraction (OpenGL backend).
 
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/figure_globals.h"
@@ -1330,41 +1329,41 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                     for (int i = 0; i < iVerts; i++) {
                                         const float fNormScale = 1.0f / 256.0f;
 
-                                        GEVertex d3dvert;
+                                        GEVertex vert;
 
                                         int pt;
                                         if (bInnerTris) {
                                             pt = p_f3->Points[i];
-                                            d3dvert.u = float(p_f3->UV[i][0] & 0x3f) * (1.0F / 32.0F);
-                                            d3dvert.v = float(p_f3->UV[i][1]) * (1.0F / 32.0F);
+                                            vert.u = float(p_f3->UV[i][0] & 0x3f) * (1.0F / 32.0F);
+                                            vert.v = float(p_f3->UV[i][1]) * (1.0F / 32.0F);
                                         } else {
                                             pt = p_f4->Points[i];
-                                            d3dvert.u = float(p_f4->UV[i][0] & 0x3f) * (1.0F / 32.0F);
-                                            d3dvert.v = float(p_f4->UV[i][1]) * (1.0F / 32.0F);
+                                            vert.u = float(p_f4->UV[i][0] & 0x3f) * (1.0F / 32.0F);
+                                            vert.v = float(p_f4->UV[i][1]) * (1.0F / 32.0F);
                                         }
                                         // Clamp UVs to [0,1] to avoid texture border bleeding.
-                                        if (d3dvert.u < 0.0f) {
-                                            d3dvert.u = 0.0f;
-                                        } else if (d3dvert.u > 1.0f) {
-                                            d3dvert.u = 1.0f;
+                                        if (vert.u < 0.0f) {
+                                            vert.u = 0.0f;
+                                        } else if (vert.u > 1.0f) {
+                                            vert.u = 1.0f;
                                         }
-                                        if (d3dvert.v < 0.0f) {
-                                            d3dvert.v = 0.0f;
-                                        } else if (d3dvert.v > 1.0f) {
-                                            d3dvert.v = 1.0f;
+                                        if (vert.v < 0.0f) {
+                                            vert.v = 0.0f;
+                                        } else if (vert.v > 1.0f) {
+                                            vert.v = 1.0f;
                                         }
 
-                                        d3dvert.u = d3dvert.u * pa->m_UScale + pa->m_UOffset;
-                                        d3dvert.v = d3dvert.v * pa->m_VScale + pa->m_VOffset;
+                                        vert.u = vert.u * pa->m_UScale + pa->m_UOffset;
+                                        vert.v = vert.v * pa->m_VScale + pa->m_VOffset;
 
-                                        d3dvert.x = AENG_dx_prim_points[pt].X;
-                                        d3dvert.y = AENG_dx_prim_points[pt].Y;
-                                        d3dvert.z = AENG_dx_prim_points[pt].Z;
-                                        d3dvert.nx = prim_normal[pt].X * fNormScale;
-                                        d3dvert.ny = prim_normal[pt].Y * fNormScale;
-                                        d3dvert.nz = prim_normal[pt].Z * fNormScale;
+                                        vert.x = AENG_dx_prim_points[pt].X;
+                                        vert.y = AENG_dx_prim_points[pt].Y;
+                                        vert.z = AENG_dx_prim_points[pt].Z;
+                                        vert.nx = prim_normal[pt].X * fNormScale;
+                                        vert.ny = prim_normal[pt].Y * fNormScale;
+                                        vert.nz = prim_normal[pt].Z * fNormScale;
                                         // MM index must be set last — it writes into byte 12 of the vertex.
-                                        SET_MM_INDEX(d3dvert, TPO_ubPrimObjMMIndex[iInnerPrimNumber]);
+                                        SET_MM_INDEX(vert, TPO_ubPrimObjMMIndex[iInnerPrimNumber]);
 
                                         ASSERT(pt >= pInnerObj->StartPoint);
                                         ASSERT(pt < pInnerObj->EndPoint);
@@ -1383,7 +1382,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
 
                                             iIndices[i] = pMaterial->wNumVertices;
 
-                                            *TPO_pCurVertex = d3dvert;
+                                            *TPO_pCurVertex = vert;
                                             TPO_pCurVertex++;
                                             pMaterial->wNumVertices++;
                                             TPO_iNumVertices++;
@@ -1394,7 +1393,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                             }
 
                                             // Grow bounding sphere if this vertex is farther out.
-                                            float fDistSqu = (d3dvert.x * d3dvert.x) + (d3dvert.y * d3dvert.y) + (d3dvert.z * d3dvert.z);
+                                            float fDistSqu = (vert.x * vert.x) + (vert.y * vert.y) + (vert.z * vert.z);
                                             if ((*pfBoundingSphereRadius * *pfBoundingSphereRadius) < fDistSqu) {
                                                 *pfBoundingSphereRadius = sqrtf(fDistSqu);
                                             }
@@ -1402,15 +1401,15 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
                                             // Walk the UV-variant chain for this position+normal.
                                             int iLastIndex = iVertIndex;
                                             while (iVertIndex != -1) {
-                                                ASSERT(pFirstVertex[iVertIndex].x == d3dvert.x);
-                                                ASSERT(pFirstVertex[iVertIndex].y == d3dvert.y);
-                                                ASSERT(pFirstVertex[iVertIndex].z == d3dvert.z);
-                                                ASSERT(pFirstVertex[iVertIndex].nx == d3dvert.nx);
-                                                ASSERT(pFirstVertex[iVertIndex].ny == d3dvert.ny);
-                                                ASSERT(pFirstVertex[iVertIndex].nz == d3dvert.nz);
+                                                ASSERT(pFirstVertex[iVertIndex].x == vert.x);
+                                                ASSERT(pFirstVertex[iVertIndex].y == vert.y);
+                                                ASSERT(pFirstVertex[iVertIndex].z == vert.z);
+                                                ASSERT(pFirstVertex[iVertIndex].nx == vert.nx);
+                                                ASSERT(pFirstVertex[iVertIndex].ny == vert.ny);
+                                                ASSERT(pFirstVertex[iVertIndex].nz == vert.nz);
 // uc_orig: CLOSE_ENOUGH (fallen/DDEngine/Source/figure.cpp)
 #define CLOSE_ENOUGH(a, b) (fabsf((a) - (b)) < 0.00001f)
-                                                if (CLOSE_ENOUGH(pFirstVertex[iVertIndex].u, d3dvert.u) && CLOSE_ENOUGH(pFirstVertex[iVertIndex].v, d3dvert.v)) {
+                                                if (CLOSE_ENOUGH(pFirstVertex[iVertIndex].u, vert.u) && CLOSE_ENOUGH(pFirstVertex[iVertIndex].v, vert.v)) {
                                                     iIndices[i] = iVertIndex;
                                                     break;
                                                 } else {
@@ -1425,7 +1424,7 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex)
 
                                                 iIndices[i] = pMaterial->wNumVertices;
 
-                                                *TPO_pCurVertex = d3dvert;
+                                                *TPO_pCurVertex = vert;
                                                 TPO_pCurVertex++;
                                                 pMaterial->wNumVertices++;
                                                 TPO_iNumVertices++;
@@ -2086,9 +2085,9 @@ no_muzzle_calcs:
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    GEMultiMatrix d3dmm;
-    d3dmm.lpd3dMatrices = MM_pMatrix;
-    d3dmm.lpvLightDirs = MM_pNormal;
+    GEMultiMatrix mm;
+    mm.matrices = MM_pMatrix;
+    mm.lpvLightDirs = MM_pNormal;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
@@ -2114,11 +2113,11 @@ no_muzzle_calcs:
         if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
             // Opaque: use fast MultiMatrix path. z guard in ge_draw_multi_matrix handles near vertices.
             if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-                d3dmm.lpLightTable = MM_pcFadeTableTint;
+                mm.lpLightTable = MM_pcFadeTableTint;
             } else {
-                d3dmm.lpLightTable = MM_pcFadeTable;
+                mm.lpLightTable = MM_pcFadeTable;
             }
-            d3dmm.lpvVertices = pVertex;
+            mm.lpvVertices = pVertex;
 
             pa->RS.SetCullMode(GECullMode::CCW);
             pa->RS.SetAlphaBlendEnabled(false);
@@ -2131,7 +2130,7 @@ no_muzzle_calcs:
 
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,
-                    &d3dmm,
+                    &mm,
                     pMat->wNumVertices,
                     pwStripIndices,
                     pMat->wNumStripIndices);
@@ -2705,9 +2704,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    GEMultiMatrix d3dmm;
-    d3dmm.lpd3dMatrices = MMBodyParts_pMatrix;
-    d3dmm.lpvLightDirs = MMBodyParts_pNormal;
+    GEMultiMatrix mm;
+    mm.matrices = MMBodyParts_pMatrix;
+    mm.lpvLightDirs = MMBodyParts_pNormal;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
@@ -2732,11 +2731,11 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         PolyPage* pa = &(POLY_Page[wRealPage]);
         {
             if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-                d3dmm.lpLightTable = MM_pcFadeTableTint;
+                mm.lpLightTable = MM_pcFadeTableTint;
             } else {
-                d3dmm.lpLightTable = MM_pcFadeTable;
+                mm.lpLightTable = MM_pcFadeTable;
             }
-            d3dmm.lpvVertices = pVertex;
+            mm.lpvVertices = pVertex;
 
             pa->RS.SetCullMode(GECullMode::CCW);
             pa->RS.SetAlphaBlendEnabled(false);
@@ -2749,7 +2748,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,
-                    &d3dmm,
+                    &mm,
                     pMat->wNumVertices,
                     pwStripIndices,
                     pMat->wNumStripIndices);
@@ -3633,7 +3632,7 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
         }
     }
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         col,
         &colour,
         &specular);
@@ -4312,9 +4311,9 @@ no_muzzle_calcs:
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    GEMultiMatrix d3dmm;
-    d3dmm.lpd3dMatrices = MM_pMatrix;
-    d3dmm.lpvLightDirs = MM_pNormal;
+    GEMultiMatrix mm;
+    mm.matrices = MM_pMatrix;
+    mm.lpvLightDirs = MM_pNormal;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
@@ -4344,11 +4343,11 @@ no_muzzle_calcs:
         // z guard in ge_draw_multi_matrix prevents div/0 for near vertices, GPU clips the rest.
 
         if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-            d3dmm.lpLightTable = MM_pcFadeTableTint;
+            mm.lpLightTable = MM_pcFadeTableTint;
         } else {
-            d3dmm.lpLightTable = MM_pcFadeTable;
+            mm.lpLightTable = MM_pcFadeTable;
         }
-        d3dmm.lpvVertices = pVertex;
+        mm.lpvVertices = pVertex;
 
         pa->RS.SetCullMode(GECullMode::CCW);
         pa->RS.SetAlphaBlendEnabled(false);
@@ -4361,7 +4360,7 @@ no_muzzle_calcs:
 
             ge_draw_multi_matrix(
                 GEMMVertexType::Unlit,
-                &d3dmm,
+                &mm,
                 pMat->wNumVertices,
                 pwStripIndices,
                 pMat->wNumStripIndices);

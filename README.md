@@ -12,9 +12,9 @@ reimplementation with modern tech.
 
 | Area         | Original                            | Now                                                                                                |
 | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Build system | MSVC vcxproj                        | CMake + Ninja + Clang++ (standalone, no clang-cl), vcpkg                                           |
-| Architecture | 32-bit x86 only                     | 64-bit native (x64 on Windows, arm64 on macOS)                                                     |
-| Graphics     | Direct3D 6 (hardcoded)              | OpenGL 4.1 Core Profile (cross-platform)                                                           |
+| Build system | MSVC vcxproj                        | CMake + Ninja + Clang++, vcpkg                                                                     |
+| Architecture | 32-bit x86 only                     | 64-bit (x64 on Windows, arm64 on macOS)                                                            |
+| Graphics     | Direct3D 6                          | OpenGL 4.1 Core Profile                                                                            |
 | Audio        | Miles Sound System                  | SDL3 + OpenAL Soft (3D positional sound)                                                           |
 | Input        | DirectInput (keyboard + joystick)   | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense with extras (adaptive triggers, LED lightbar) |
 | Platform     | Windows-only (Win32 API throughout) | Windows + macOS                                                                                    |

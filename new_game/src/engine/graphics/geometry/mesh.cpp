@@ -119,7 +119,7 @@ static NIGHT_Colour* MESH_draw_guts(
     ASSERT(WITHIN(crumple, -1, MESH_NUM_CRUMPLES - 1));
 
     if (lpc == NULL) {
-        NIGHT_get_d3d_colour(
+        NIGHT_get_colour(
             NIGHT_get_light_at(at_x, at_y, at_z),
             &default_colour,
             &default_specular);
@@ -214,7 +214,7 @@ static NIGHT_Colour* MESH_draw_guts(
 
             if (lpc) {
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         *lpc,
                         &pp->colour,
                         &pp->specular);
@@ -252,7 +252,7 @@ static NIGHT_Colour* MESH_draw_guts(
 
             if (lpc) {
                 if (pp->MaybeValid()) {
-                    NIGHT_get_d3d_colour(
+                    NIGHT_get_colour(
                         *lpc,
                         &pp->colour,
                         &pp->specular);
@@ -377,9 +377,9 @@ static NIGHT_Colour* MESH_draw_guts(
                     qc1 = tri[1]->colour;
                     qc2 = tri[2]->colour;
 
-                    tri[0]->colour = PolyPoint2D::ModulateD3DColours(qc0, MESH_colour_and);
-                    tri[1]->colour = PolyPoint2D::ModulateD3DColours(qc1, MESH_colour_and);
-                    tri[2]->colour = PolyPoint2D::ModulateD3DColours(qc2, MESH_colour_and);
+                    tri[0]->colour = PolyPoint2D::ModulateColours(qc0, MESH_colour_and);
+                    tri[1]->colour = PolyPoint2D::ModulateColours(qc1, MESH_colour_and);
+                    tri[2]->colour = PolyPoint2D::ModulateColours(qc2, MESH_colour_and);
                 }
 
                 page = p_f3->UV[0][0] & 0xc0;
@@ -696,7 +696,7 @@ void MESH_draw_morph(
 
         if (lpc) {
             if (pp->MaybeValid()) {
-                NIGHT_get_d3d_colour(
+                NIGHT_get_colour(
                     *lpc,
                     &pp->colour,
                     &pp->specular);
@@ -704,8 +704,8 @@ void MESH_draw_morph(
 
             lpc += 1;
         } else {
-            pp->colour = NIGHT_amb_d3d_colour;
-            pp->specular = NIGHT_amb_d3d_specular;
+            pp->colour = NIGHT_amb_colour;
+            pp->specular = NIGHT_amb_specular;
 
             pp->colour &= ~POLY_colour_restrict;
             pp->specular &= ~POLY_colour_restrict;
@@ -1325,7 +1325,7 @@ void MESH_draw_reflection(
 
         if (lpc) {
             if (pp->MaybeValid()) {
-                NIGHT_get_d3d_colour(
+                NIGHT_get_colour(
                     *lpc,
                     &pp->colour,
                     &pp->specular);
@@ -1333,8 +1333,8 @@ void MESH_draw_reflection(
 
             lpc += 1;
         } else {
-            pp->colour = NIGHT_amb_d3d_colour;
-            pp->specular = NIGHT_amb_d3d_specular;
+            pp->colour = NIGHT_amb_colour;
+            pp->specular = NIGHT_amb_specular;
         }
 
         if (pp->MaybeValid()) {

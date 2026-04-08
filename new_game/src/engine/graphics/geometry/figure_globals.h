@@ -251,7 +251,7 @@ extern ULONG leg_col;
 
 // uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
 // Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE GEMatrix objects.
-// Initialised at startup by MMBodyPartsInit. Passed as lpd3dMatrices in GEMultiMatrix.
+// Initialised at startup by MMBodyPartsInit. Passed as matrices in GEMultiMatrix.
 extern GEMatrix* MMBodyParts_pMatrix;
 
 // uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)

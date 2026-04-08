@@ -35,7 +35,7 @@
 | Пункт | Статус | Референс | Комментарии |
 |-------|--------|----------|-------------|
 | Ghost RGB на шрифтах/HUD иконках | ⏳ | [known_issues](known_issues_and_bugs.md), [ghost_rgb_investigation](../new_game_devlog/stage7_ghost_rgb_investigation.md) | OpenGL, additive blend, в D3D6 не видно |
-| Чёрные дырки на ближнем клиппинге | ⏳ | [known_issues](known_issues_and_bugs.md) | Давний баг движка, 7 гипотез опровергнуто |
+| ~~Чёрные дырки на ближнем клиппинге~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Отсутствовал `PolyBufAlloc` в near-clip path + фиксы figure.cpp |
 | Здания pop-in за туманом | ⏳ | [known_issues](known_issues_and_bugs.md) | Возможно настраивается через config |
 | Резкое переключение bump mapping на стенах | ⏳ | [known_issues](known_issues_and_bugs.md) | Релизный баг, виден на лонгплеях |
 | Экран брифинга не убирается при загрузке миссии | ⏳ | [known_issues](known_issues_and_bugs.md) | OpenGL-специфичный |
@@ -70,7 +70,7 @@
 
 | Пункт | Статус | Референс | Комментарии |
 |-------|--------|----------|-------------|
-| Удалить D3D6 бэкенд | ⏳ | [known_issues](known_issues_and_bugs.md) (Сборка D3D6) | Runtime невозможен на x64. Код мёртвый — удалить целиком |
+| ~~Удалить D3D6 бэкенд~~ | ✅ | [known_issues](known_issues_and_bugs.md) (Сборка D3D6) | Удалён целиком: backend_directx6/, backend_stub/, CMake/Make targets, документация обновлена |
 
 ## Инфраструктура
 

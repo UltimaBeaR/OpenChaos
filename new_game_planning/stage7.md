@@ -5,7 +5,7 @@
 **Подход:** итеративно вытянуть все D3D вызовы из игрового кода в модуль `graphics_engine`,
 затем написать OpenGL реализацию того же контракта. Подробно → [stage7_log.md](../new_game_devlog/stage7_log.md)
 
-**Выбранный графический API:** OpenGL 4.1 core profile (максимум поддерживаемый на macOS).
+**Графический API:** OpenGL 4.1 core profile (единственный бэкенд; D3D6 удалён 2026-04-08).
 
 ---
 
@@ -16,22 +16,7 @@ engine/graphics/graphics_engine/
 ├── game_graphics_engine.h          — контракт основной игры (ge_* + GERenderState)
 ├── game_graphics_engine.cpp        — API-agnostic части (GERenderState cache)
 ├── outro_graphics_engine.h         — контракт outro (oge_*: текстуры, render states, draw)
-├── backend_directx6/               — D3D6 бэкенд
-│   ├── common/                     — общая D3D инфраструктура (13 файлов)
-│   │   ├── display.cpp/gd_display.h — DDraw display management
-│   │   ├── d3d_texture.cpp/h       — D3D texture class
-│   │   ├── dd_manager.cpp/h        — DDraw driver/device enumeration
-│   │   └── display_macros.h        — CLEAR_VIEWPORT, FLIP и т.д.
-│   ├── game/                       — реализация ge_* (9 файлов)
-│   │   ├── core.cpp                — основные ge_* функции + ge_vb_* + ge_text_surface_*
-│   │   ├── vertex_buffer.cpp/h     — D3D vertex buffer pool
-│   │   └── work_screen.cpp/h       — offscreen DDraw work surface
-│   │   # text.cpp → engine/graphics/text/ (bitmap text, no D3D)
-│   │   # truetype.cpp → engine/graphics/text/ (TrueType, no D3D)
-│   │   # polypage.cpp → engine/graphics/pipeline/ (poly batching, no D3D)
-│   └── outro/                      — реализация oge_*
-│       └── core.cpp                — текстуры, render states, draw для outro
-├── backend_opengl/                 — OpenGL 4.1 core profile бэкенд
+├── backend_opengl/                 — OpenGL 4.1 core profile бэкенд (единственный)
 │   ├── common/                     — общая GL инфраструктура
 │   │   ├── glad/                   — GLAD2 GL loader (vendored, MIT)
 │   │   ├── gl_context.cpp/h        — WGL context на Win32 HWND
@@ -44,14 +29,11 @@ engine/graphics/graphics_engine/
 │   │   └── core.cpp                — все ge_* функции (Фазы 1-3 реализованы)
 │   └── outro/                      — реализация oge_*
 │       └── core.cpp                — стабы (Фаза 9)
-└── backend_stub/                   — стаб-бэкенд (no-op, для тестов)
-    └── core.cpp
 ```
 
-- CMake-переменная `GRAPHICS_BACKEND` (opengl / d3d6 / stub) выбирает бэкенд (compile-time, дефолт: opengl)
+- OpenGL — единственный бэкенд (D3D6 и stub удалены 2026-04-08)
 - game/ и outro/ обращаются только к common/, не друг к другу
 - Никакого runtime dispatch, никаких виртуальных интерфейсов
-- Стаб-бэкенд доказывает что D3D не торчит за пределами backend_directx6/ (327/327 без DirectX)
 
 ### Принципы контракта
 

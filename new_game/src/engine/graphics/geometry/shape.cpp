@@ -524,12 +524,12 @@ void SHAPE_sphere(
         return;
     }
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         NIGHT_ambient_at_point(0, +256, 0),
         &pp_top.colour,
         &pp_top.specular);
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         NIGHT_ambient_at_point(0, -256, 0),
         &pp_bot.colour,
         &pp_bot.specular);
@@ -567,7 +567,7 @@ void SHAPE_sphere(
                 return;
             }
 
-            NIGHT_get_d3d_colour(
+            NIGHT_get_colour(
                 NIGHT_ambient_at_point(
                     SLONG(vector[0] * 256.0F),
                     SLONG(vector[1] * 256.0F),
@@ -1656,12 +1656,12 @@ void SHAPE_alpha_sphere(
         return;
     }
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         NIGHT_ambient_at_point(0, +256, 0),
         &pp_top.colour,
         &pp_top.specular);
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         NIGHT_ambient_at_point(0, -256, 0),
         &pp_bot.colour,
         &pp_bot.specular);
@@ -1702,7 +1702,7 @@ void SHAPE_alpha_sphere(
                 return;
             }
 
-            NIGHT_get_d3d_colour(
+            NIGHT_get_colour(
                 NIGHT_ambient_at_point(
                     SLONG(vector[0] * 256.0F),
                     SLONG(vector[1] * 256.0F),

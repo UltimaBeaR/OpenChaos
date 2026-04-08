@@ -1,7 +1,5 @@
 #include "assets/texture_globals.h"
 
-// TEXTURE_texture[] (D3DTexture array) definition moved to d3d/d3d_texture_globals.cpp.
-
 // uc_orig: TEXTURE_crinkle (fallen/DDEngine/Source/texture.cpp)
 CRINKLE_Handle TEXTURE_crinkle[22 * 64];
 

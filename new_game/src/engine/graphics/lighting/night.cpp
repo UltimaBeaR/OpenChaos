@@ -68,7 +68,7 @@ void NIGHT_ambient(UBYTE red, UBYTE green, UBYTE blue, SLONG norm_x, SLONG norm_
     amb_colour.green = NIGHT_amb_green;
     amb_colour.blue = NIGHT_amb_blue;
 
-    NIGHT_get_d3d_colour(amb_colour, &NIGHT_amb_d3d_colour, &NIGHT_amb_d3d_specular);
+    NIGHT_get_colour(amb_colour, &NIGHT_amb_colour, &NIGHT_amb_specular);
 }
 
 // uc_orig: NIGHT_ambient_at_point (fallen/Source/night.cpp)
@@ -2471,8 +2471,8 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
         goto file_error;
 
     ULONG flag;
-    ULONG amb_d3d_colour;
-    ULONG amb_d3d_specular;
+    ULONG amb_colour;
+    ULONG amb_specular;
     SLONG amb_red;
     SLONG amb_green;
     SLONG amb_blue;
@@ -2485,9 +2485,9 @@ SLONG NIGHT_load_ed_file(CBYTE* name)
 
     if (FileRead(handle, &flag, sizeof(ULONG)) < 0)
         goto file_error;
-    if (FileRead(handle, &amb_d3d_colour, sizeof(ULONG)) < 0)
+    if (FileRead(handle, &amb_colour, sizeof(ULONG)) < 0)
         goto file_error;
-    if (FileRead(handle, &amb_d3d_specular, sizeof(ULONG)) < 0)
+    if (FileRead(handle, &amb_specular, sizeof(ULONG)) < 0)
         goto file_error;
     if (FileRead(handle, &amb_red, sizeof(ULONG)) < 0)
         goto file_error;

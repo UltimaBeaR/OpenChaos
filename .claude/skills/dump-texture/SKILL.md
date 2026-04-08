@@ -3,8 +3,7 @@ name: dump-texture
 description: >
   Dump and visualize game resource images (textures from clump/TGA).
   Use when you need to see what a texture actually looks like — debug rendering
-  bugs, check alpha channels, inspect atlas layouts, compare OpenGL vs D3D6
-  output, verify texture loading. Trigger when: investigating visual glitches
+  bugs, check alpha channels, inspect atlas layouts, verify texture loading. Trigger when: investigating visual glitches
   (wrong colors, missing alpha, ghost pixels), the user says "покажи текстуру",
   "что за текстура", "dump texture", or when you need to inspect pixel data
   to understand a rendering issue. Also useful when comparing how a texture

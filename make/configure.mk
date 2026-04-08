@@ -35,25 +35,19 @@ define run_configure
 	  "-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_CMAKE)" \
 	  "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(TOOLCHAIN)" \
 	  "-DVCPKG_INSTALLED_DIR=$(abspath $(SRC_DIR)/vcpkg_installed)" \
-	  "-DGRAPHICS_BACKEND=$(1)" \
 	  $(CMAKE_EXTRA_ARGS)
 endef
 
-# Usage: make configure-opengl
+# Usage: make configure
 # Run once on first clone, re-run after CMakeLists.txt changes.
 # CMake + Ninja Multi-Config, vcpkg packages installed automatically.
-configure-opengl:
-	$(call run_configure,opengl)
-
-# Usage: make configure-d3d6
-# DirectX 6 legacy backend (Windows-only).
-configure-d3d6:
-	$(call run_configure,d3d6)
+configure:
+	$(call run_configure)
 
 # Usage: make configure-asan
 # Enable AddressSanitizer for memory error detection.
 configure-asan:
-	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure-opengl
+	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure
 ifeq ($(UNAME_S),Darwin)
 	@echo "ASan: on macOS the runtime is linked automatically by clang."
 else

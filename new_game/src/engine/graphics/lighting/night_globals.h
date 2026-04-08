@@ -52,10 +52,10 @@ extern SBYTE NIGHT_lampost_blue;
 // uc_orig: NIGHT_sky_colour (fallen/Source/night.cpp)
 extern NIGHT_Colour NIGHT_sky_colour;
 
-// uc_orig: NIGHT_amb_d3d_colour (fallen/Source/night.cpp)
-extern ULONG NIGHT_amb_d3d_colour;
-// uc_orig: NIGHT_amb_d3d_specular (fallen/Source/night.cpp)
-extern ULONG NIGHT_amb_d3d_specular;
+// uc_orig: NIGHT_amb_colour (fallen/Source/night.cpp)
+extern ULONG NIGHT_amb_colour;
+// uc_orig: NIGHT_amb_specular (fallen/Source/night.cpp)
+extern ULONG NIGHT_amb_specular;
 // uc_orig: NIGHT_amb_red (fallen/Source/night.cpp)
 extern SLONG NIGHT_amb_red;
 // uc_orig: NIGHT_amb_green (fallen/Source/night.cpp)

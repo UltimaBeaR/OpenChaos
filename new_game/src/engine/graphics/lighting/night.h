@@ -149,10 +149,10 @@ typedef struct
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
 extern SLONG NIGHT_specular_enable;
 
-// uc_orig: NIGHT_get_d3d_colour (fallen/Headers/Night.h)
-// Convert NIGHT_Colour (6-bit per channel) to D3D ARGB (0xAARRGGBB).
+// uc_orig: NIGHT_get_colour (fallen/Headers/Night.h)
+// Convert NIGHT_Colour (6-bit per channel) to packed ARGB (0xAARRGGBB).
 // Values over 255 overflow into pseudo-specular if NIGHT_specular_enable is set.
-inline void NIGHT_get_d3d_colour(NIGHT_Colour col, ULONG* colour, ULONG* specular)
+inline void NIGHT_get_colour(NIGHT_Colour col, ULONG* colour, ULONG* specular)
 {
     SLONG red = col.red;
     SLONG green = col.green;
@@ -216,9 +216,9 @@ inline void NIGHT_get_d3d_colour(NIGHT_Colour col, ULONG* colour, ULONG* specula
 #define POLY_FADEOUT_END   (0.95F)
 #endif
 
-// uc_orig: NIGHT_get_d3d_colour_and_fade (fallen/Headers/Night.h)
-// Like NIGHT_get_d3d_colour but fades out at depth range [POLY_FADEOUT_START, POLY_FADEOUT_END].
-inline void NIGHT_get_d3d_colour_and_fade(NIGHT_Colour col, ULONG* colour, ULONG* specular, float z)
+// uc_orig: NIGHT_get_colour_and_fade (fallen/Headers/Night.h)
+// Like NIGHT_get_colour but fades out at depth range [POLY_FADEOUT_START, POLY_FADEOUT_END].
+inline void NIGHT_get_colour_and_fade(NIGHT_Colour col, ULONG* colour, ULONG* specular, float z)
 {
     SLONG red = col.red;
     SLONG green = col.green;
@@ -254,9 +254,9 @@ inline void NIGHT_get_d3d_colour_and_fade(NIGHT_Colour col, ULONG* colour, ULONG
     *colour |= 0xff000000;
 }
 
-// uc_orig: NIGHT_get_d3d_colour_dim (fallen/Headers/Night.h)
-// Like NIGHT_get_d3d_colour but halves the brightness (dim variant).
-inline void NIGHT_get_d3d_colour_dim(NIGHT_Colour col, ULONG* colour, ULONG* specular)
+// uc_orig: NIGHT_get_colour_dim (fallen/Headers/Night.h)
+// Like NIGHT_get_colour but halves the brightness (dim variant).
+inline void NIGHT_get_colour_dim(NIGHT_Colour col, ULONG* colour, ULONG* specular)
 {
     SLONG red = col.red;
     SLONG green = col.green;

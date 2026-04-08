@@ -1542,7 +1542,7 @@ void AENG_draw_rain()
         NIGHT_Square* nq = &NIGHT_square[square];
         ULONG col, spec;
 
-        NIGHT_get_d3d_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
+        NIGHT_get_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
 
         colour = col;
 
@@ -1889,7 +1889,7 @@ void AENG_draw_dirt()
     }
 
     for (i = 0; i < 4; i++) {
-        leaf_colour_choice_rgb[i] = AENG_colour_mult(leaf_colour_choice_rgb[i], NIGHT_amb_d3d_colour);
+        leaf_colour_choice_rgb[i] = AENG_colour_mult(leaf_colour_choice_rgb[i], NIGHT_amb_colour);
     }
 
     ULONG leaf_colour;
@@ -2019,7 +2019,7 @@ void AENG_draw_dirt()
                 lv[3].y = base_y - matrix[7] - matrix[1];
                 lv[3].z = base_z - matrix[8] - matrix[2];
 
-                rubbish_colour = NIGHT_amb_d3d_colour;
+                rubbish_colour = NIGHT_amb_colour;
 
                 if (i & 32) {
                     ubase = 0.0F;
@@ -3043,7 +3043,7 @@ void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx)
                         dist=1.0f;
         }
 
-        NIGHT_get_d3d_colour_and_fade(
+        NIGHT_get_colour_and_fade(
                 nq->colour[dx + dz * PAP_BLOCKS],
            &p2->Colour,
            &spec,dist);
@@ -3353,7 +3353,7 @@ void draw_quick_floor(SLONG warehouse)
     ptr32 = (UBYTE*)(((uintptr_t)(some_data + 32)) & ~(uintptr_t)0x1f);
     m_view = (GEMatrix*)ptr32;
 
-    mm_draw_floor.lpd3dMatrices = m_view;
+    mm_draw_floor.matrices = m_view;
     mm_draw_floor.lpvLightDirs = NULL;
     mm_draw_floor.lpLightTable = NULL;
 
@@ -3377,7 +3377,7 @@ void draw_quick_floor(SLONG warehouse)
     default_renderstate.SetCullMode(GECullMode::CCW);
     default_renderstate.SetChanged();
 
-    GenerateMMMatrixFromStandardD3DOnes(m_view, &g_matProjection, NULL, &g_viewData);
+    GenerateMMMatrix(m_view, &g_matProjection, NULL, &g_viewData);
 
     z = NGAMUT_zmin;
 
@@ -4022,7 +4022,7 @@ void AENG_draw_city()
 
                         if (INDOORS_INDEX) {
                             /*
-                                                                            NIGHT_get_d3d_colour_dim(
+                                                                            NIGHT_get_colour_dim(
                                                                                     nq->colour[dx + dz * PAP_BLOCKS],
                                                                                &pp->colour,
                                                                                &pp->specular);
@@ -4046,7 +4046,7 @@ void AENG_draw_city()
 
                             nq = &NIGHT_square[square];
 
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 nq->colour[dx + dz * PAP_BLOCKS],
                                 &pp->colour,
                                 &pp->specular);
@@ -4094,7 +4094,7 @@ void AENG_draw_city()
 
                             if (INDOORS_INDEX) {
                                 /*
-                                                                                        NIGHT_get_d3d_colour_dim(
+                                                                                        NIGHT_get_colour_dim(
                                                                                                 nq->colour[dx + dz * PAP_BLOCKS],
                                                                                            &ppl->colour,
                                                                                            &ppl->specular);
@@ -4119,7 +4119,7 @@ void AENG_draw_city()
 
                                 nq = &NIGHT_square[square];
 
-                                NIGHT_get_d3d_colour(
+                                NIGHT_get_colour(
                                     nq->colour[dx + dz * PAP_BLOCKS],
                                     &ppl->colour,
                                     &ppl->specular);
@@ -5437,7 +5437,7 @@ void AENG_draw_city()
                                 //						pp->colour=0x808080;
 
                                 if (pp->MaybeValid()) {
-                                    NIGHT_get_d3d_colour(NIGHT_ROOF_WALKABLE_POINT(light_lookup, c0), &pp->colour, &pp->specular);
+                                    NIGHT_get_colour(NIGHT_ROOF_WALKABLE_POINT(light_lookup, c0), &pp->colour, &pp->specular);
 
                                     apply_cloud((x + (c0_bodge & 1)) << 8, y, (z + ((c0_bodge & 2) >> 1)) << 8, &pp->colour);
 
@@ -7090,7 +7090,7 @@ void AENG_draw_warehouse()
 
                 nq = &NIGHT_square[square];
 
-                NIGHT_get_d3d_colour(
+                NIGHT_get_colour(
                     nq->colour[dx + dz * PAP_BLOCKS],
                     &pp->colour,
                     &pp->specular);
@@ -8736,10 +8736,10 @@ void AENG_draw(SLONG draw_3d)
             amb_colour.green = NIGHT_amb_green;
             amb_colour.blue  = NIGHT_amb_blue;
 
-            NIGHT_get_d3d_colour(
+            NIGHT_get_colour(
                     amb_colour,
-               &NIGHT_amb_d3d_colour,
-               &NIGHT_amb_d3d_specular);
+               &NIGHT_amb_colour,
+               &NIGHT_amb_specular);
 
             NIGHT_cache_recalc();
             NIGHT_dfcache_recalc();
@@ -8994,7 +8994,7 @@ void AENG_draw_box_around_recessed_door(DFacet* df, SLONG inside_out)
 
     SLONG col_page;
 
-    NIGHT_get_d3d_colour(
+    NIGHT_get_colour(
         NIGHT_sky_colour,
         &sky_colour,
         &sky_specular);
@@ -9339,7 +9339,7 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
                                 return;
                             nq = &NIGHT_square[square];
 
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 nq->colour[(x & 3) + (z & 3) * PAP_BLOCKS],
                                 &pp->colour,
                                 &pp->specular);
@@ -9367,7 +9367,7 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
                                     return;
                                 nq = &NIGHT_square[square];
                             }
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 nq->colour[((x + 1) & 3) + (z & 3) * PAP_BLOCKS],
                                 &(pp[1].colour),
                                 &(pp[1].specular));
@@ -9398,7 +9398,7 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
                                 nq = &NIGHT_square[square];
                             }
 
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 nq->colour[(x & 3) + ((z + 1) & 3) * PAP_BLOCKS],
                                 &(pp[2].colour),
                                 &(pp[2].specular));
@@ -9428,7 +9428,7 @@ void AENG_draw_inside_floor(UWORD inside_index, UWORD inside_room, UBYTE fade)
                                 nq = &NIGHT_square[square];
                             }
 
-                            NIGHT_get_d3d_colour(
+                            NIGHT_get_colour(
                                 nq->colour[((x + 1) & 3) + ((z + 1) & 3) * PAP_BLOCKS],
                                 &(pp[3].colour),
                                 &(pp[3].specular));

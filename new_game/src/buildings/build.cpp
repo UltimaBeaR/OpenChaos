@@ -50,7 +50,7 @@ void BUILD_draw(Thing* p_thing)
     ULONG colour;
     ULONG specular;
 
-    LIGHT_get_d3d_colour(
+    LIGHT_get_colour(
         LIGHT_amb_colour,
         &colour,
         &specular);
@@ -81,7 +81,7 @@ void BUILD_draw(Thing* p_thing)
                 pp);
 
             if (pp->MaybeValid()) {
-                LIGHT_get_d3d_colour(
+                LIGHT_get_colour(
                     LIGHT_building_point[i],
                     &pp->colour,
                     &pp->specular);
@@ -142,7 +142,7 @@ void BUILD_draw(Thing* p_thing)
                         pcol.green -= 16;
                         pcol.blue -= 16;
 
-                        LIGHT_get_d3d_colour(
+                        LIGHT_get_colour(
                             pcol,
                             &ps[j].colour,
                             &ps[j].specular);

@@ -22,7 +22,7 @@ make configure-asan          # enable ASan (one-time)
 make build-release           # build (prefer Release over Debug)
 make run-release             # run — ASan output goes to stderr.log
 # ... reproduce the bug, read stderr.log ...
-make configure-opengl        # disable ASan when done
+make configure        # disable ASan when done
 make build-release           # rebuild clean
 ```
 
@@ -116,7 +116,7 @@ ASan aborts on the first error it finds. When hunting a specific bug (like "cras
 2. Fix the reported bug (even if it's not the one you're looking for)
 3. Rebuild, re-run
 4. Repeat until you reach the target crash
-5. When done, disable ASan (`make configure-opengl`) and verify the fix works in normal builds
+5. When done, disable ASan (`make configure`) and verify the fix works in normal builds
 
 ## Performance
 

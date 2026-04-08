@@ -127,10 +127,10 @@ void LIGHT_building_use_normals(THING_INDEX t_index);
 
 // uc_orig: LIGHT_point_colour (fallen/Headers/light.h)
 extern LIGHT_Colour LIGHT_point_colour[LIGHT_MAX_POINTS];
-// uc_orig: LIGHT_get_d3d_colour (fallen/Headers/light.h)
-// Converts LIGHT_Colour to Direct3D packed colour + specular highlight.
+// uc_orig: LIGHT_get_colour (fallen/Headers/light.h)
+// Converts LIGHT_Colour to packed ARGB colour + specular highlight.
 // Overflow above 255 is halved into the specular channel (white wash effect).
-inline void LIGHT_get_d3d_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
+inline void LIGHT_get_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
 {
     SLONG red   = col.red;
     SLONG green = col.green;

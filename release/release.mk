@@ -23,7 +23,7 @@ WIN_DLLS := SDL3.dll OpenAL32.dll fmt.dll \
 
 # Usage: make release-package VERSION=0.1.0
 # Output: release/dist/OpenChaos-v<VERSION>-<platform>.zip
-# Requires: make configure-opengl && make build-release (run beforehand)
+# Requires: make configure && make build-release (run beforehand)
 release-package:
 ifndef VERSION
 	$(error Usage: make release-package VERSION=0.1.0)

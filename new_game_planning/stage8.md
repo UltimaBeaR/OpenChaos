@@ -152,12 +152,10 @@
 - `BYTE`, `WORD`, `CHAR`, `DWORD`, `BOOL`, `TCHAR`, `LOWORD`, `HIWORD`, `MAX_PATH`, `TEXT` — определены в types.h с guard'ами `_WINDEF_`/`_WINNT_`
 
 ### Результат
-- **Ноль `_WIN32` в игровом коде** — только в GLAD (сторонняя) и DX6 бэкенде
-- **`windows.h`** включается только в DX6 бэкенде (4 файла)
-- **Бридж** (`sdl3_bridge.h/cpp`) — `sdl3_window_get_native_handle()` единственная функция с `_WIN32` (нужна DX6)
-- **DX6 бэкенд:** `hDDLibWindow` заполняется в `OpenDisplay`, `sdl3_window_set_size` после `SetWindowPos` для синхронизации SDL
-- **Makefile:** `configure`/`reconfigure` → `configure-opengl`/`configure-d3d6` (явный выбор бэкенда)
-- **Верификация:** OpenGL и DX6 бэкенды — оба компилируются и работают
+- **Ноль `_WIN32` в игровом коде** — только в GLAD (сторонняя)
+- **`windows.h`** включается только в platform-коде
+- **Бридж** (`sdl3_bridge.h/cpp`) — `sdl3_window_get_native_handle()` единственная функция с `_WIN32`
+- **Makefile:** `configure` (единственный бэкенд, D3D6 удалён 2026-04-08)
 
 ## 14. Сборочная система
 
@@ -423,11 +421,9 @@ make configure-linux-x64-opengl       # Linux x86_64
 make configure-asan                   # Windows x64 + ASan (текущий)
 ```
 
-Старый `configure-opengl` → алиас на `configure-windows-x64-opengl`.
+Старый `configure` → алиас на `configure-windows-x64-opengl`.
 
-**D3D6 бэкенд** — остаётся в кодовой базе, но не поддерживается на уровне релизов.
-Старый `configure-d3d6` оставлен для локального использования (x86 only).
-Проблемы D3D6 на x64 → `known_issues_and_bugs.md`.
+**D3D6 бэкенд** — удалён из кодовой базы (2026-04-08). OpenGL 4.1 — единственный бэкенд.
 
 ### 16a. Case-insensitive file I/O (Linux блокер) ⏳
 
@@ -529,7 +525,6 @@ Apple Clang строже чем clang++ на Windows — нашлись ошиб
 | Платформа | Статус |
 |-----------|--------|
 | Windows x64 OpenGL | ✅ Основная среда разработки |
-| Windows x64 D3D6 | ✅ (x86 only, отложен на x64) |
 | macOS arm64 (M1 Pro) | ✅ Компилируется, линкуется, запускается, меню и геймплей работают |
 | macOS x64 (Intel) | ⏳ Тулчейн не создан |
 | Linux x64 | ⏳ Тулчейн не создан, case-insensitive I/O не сделан |

@@ -95,7 +95,7 @@ git clone https://github.com/microsoft/vcpkg.git "$(brew --prefix)/share/vcpkg"
 ```
 
 That's it — the Makefile auto-detects this location via `brew --prefix`.
-vcpkg packages (SDL3, OpenAL, fmt) are installed automatically during `make configure-opengl`.
+vcpkg packages (SDL3, OpenAL, fmt) are installed automatically during `make configure`.
 
 ### Common
 
@@ -126,18 +126,15 @@ together with the rest of the resources (see Step 3).
 
 ### Step 2 — Configure
 
-Choose a graphics backend and configure:
-
 ```bash
 # from repository root
-make configure-opengl   # OpenGL 4.1 — cross-platform (recommended)
-make configure-d3d6     # DirectX 6 — Windows-only legacy backend
+make configure
 ```
 
 This runs CMake with Ninja Multi-Config generator. vcpkg is auto-detected
 (via `vswhere` on Windows, `VCPKG_ROOT` env var on macOS/Linux).
 **vcpkg packages (SDL3, OpenAL, fmt) are installed automatically** into `new_game/vcpkg_installed/`
-— no separate vcpkg command needed. Re-run when switching backends or after `CMakeLists.txt` changes.
+— no separate vcpkg command needed. Re-run after `CMakeLists.txt` changes.
 
 ### Step 3 — Prepare build output (copy resources into build folders)
 
@@ -168,8 +165,7 @@ make run-debug
 
 | Command | Description |
 |---------|-------------|
-| `make configure-opengl` | CMake configure with OpenGL backend — run once, or after `CMakeLists.txt` changes |
-| `make configure-d3d6` | CMake configure with DirectX 6 backend (Windows-only) |
+| `make configure` | CMake configure — run once, or after `CMakeLists.txt` changes |
 | `make configure-asan` | CMake configure with AddressSanitizer enabled |
 | `make build` | Full rebuild — Debug and Release |
 | `make build-debug` | Full rebuild — Debug |

@@ -1231,8 +1231,8 @@ void load_whole_game(CBYTE* gamename)
     GET_DATA(EWAY_cam_speed);
     GET_DATA(EWAY_cam_freeze);
     GET_DATA(EWAY_cam_cant_interrupt);
-    GET_DATA(NIGHT_amb_d3d_colour);
-    GET_DATA(NIGHT_amb_d3d_specular);
+    GET_DATA(NIGHT_amb_colour);
+    GET_DATA(NIGHT_amb_specular);
     GET_DATA(NIGHT_amb_red);
     GET_DATA(NIGHT_amb_green);
     GET_DATA(NIGHT_amb_blue);
@@ -1420,8 +1420,8 @@ void MEMORY_quick_save()
     QSTORE_DATA(EWAY_cam_freeze);
     QSTORE_DATA(EWAY_cam_cant_interrupt);
 
-    QSTORE_DATA(NIGHT_amb_d3d_colour);
-    QSTORE_DATA(NIGHT_amb_d3d_specular);
+    QSTORE_DATA(NIGHT_amb_colour);
+    QSTORE_DATA(NIGHT_amb_specular);
     QSTORE_DATA(NIGHT_amb_red);
     QSTORE_DATA(NIGHT_amb_green);
     QSTORE_DATA(NIGHT_amb_blue);
@@ -1581,8 +1581,8 @@ SLONG MEMORY_quick_load()
     QREAD_DATA(EWAY_cam_speed);
     QREAD_DATA(EWAY_cam_freeze);
     QREAD_DATA(EWAY_cam_cant_interrupt);
-    QREAD_DATA(NIGHT_amb_d3d_colour);
-    QREAD_DATA(NIGHT_amb_d3d_specular);
+    QREAD_DATA(NIGHT_amb_colour);
+    QREAD_DATA(NIGHT_amb_specular);
     QREAD_DATA(NIGHT_amb_red);
     QREAD_DATA(NIGHT_amb_green);
     QREAD_DATA(NIGHT_amb_blue);
