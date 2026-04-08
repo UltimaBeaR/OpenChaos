@@ -99,8 +99,7 @@
 | Wibble воды | ⏳ | [known_issues](known_issues_and_bugs.md) | Закомментирован, уточнить наличие в финале |
 | Лестницы | ⏳ | [known_issues](known_issues_and_bugs.md) | `mount_ladder` закомментирован |
 | Воскрешение гражданских | ⏳ | [known_issues](known_issues_and_bugs.md) | Телепорт на HomeX/HomeZ не применяется |
-| MAV INSIDE2 | ⏳ | [known_issues](known_issues_and_bugs.md) | `ASSERT(0)`, NPC не ходят внутри зданий |
-| MAV stair/exit | ⏳ | [known_issues](known_issues_and_bugs.md) | `> 16` вместо `>> 16` |
+| MAV INSIDE2 (включая stair/exit) | ⏳ | [known_issues](known_issues_and_bugs.md) | Вся INSIDE2 навигация — заглушка. stair/exit удалены при миграции. Реализовывать с нуля |
 | ~~Баг освещения~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Визуально незаметно, но математически корректно |
 
 ## Функционал (новый / из PS1)
