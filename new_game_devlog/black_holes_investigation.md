@@ -4,63 +4,63 @@
 
 **Оригинальный баг движка** — присутствовал в D3D6, воспроизводится и в OpenGL.
 
----
-
-## Что точно установлено
-
-### 1. Проблема зависит от `POLY_ZCLIP_PLANE` (CPU near-clip plane)
-
-- Увеличение `POLY_ZCLIP_PLANE` с 1/64 до 1/16 → дырок **значительно больше**
-- Уменьшение до 1/512 → дырок меньше
-- Зависимость прямая и однозначная
-
-### 2. Проблема в CPU-коде, не в GPU/OpenGL
-
-Разделили `POLY_ZCLIP_PLANE` на две независимых константы:
-- `POLY_CPU_ZCLIP_PLANE` = 1/16 (CPU near-clip threshold)
-- `POLY_ZCLIP_PLANE` = 1/64 (GPU depth remap, projection matrix, viewport)
-
-При увеличении **только CPU** порога дырок стало больше → **проблема в CPU-side коде** движка, не в OpenGL рендеринге.
-
-### 3. Одно из мест которое **точно влияет**: `POLY_perspective()`
-
-**Файл:** `new_game/src/engine/graphics/pipeline/poly.cpp`, функция `POLY_perspective()`:
-```cpp
-if (pt->z < POLY_Z_NEARPLANE) {
-    pt->clip = POLY_CLIP_NEAR;
-} else if (pt->z > 1.0F) {
-    pt->clip = POLY_CLIP_FAR;
-} else {
-    pt->Z = POLY_ZCLIP_PLANE / pt->z;
-    pt->X = POLY_screen_mid_x - POLY_screen_mul_x * pt->x * pt->Z;
-    pt->Y = POLY_screen_mid_y - POLY_screen_mul_y * pt->y * pt->Z;
-    POLY_setclip(pt);
-}
-```
-
-Замена `POLY_Z_NEARPLANE` на `POLY_ZCLIP_PLANE` (1/64) в этом конкретном месте **уменьшила** дырки. Подтверждено тестированием.
-
-Эта функция вызывается из `POLY_transform()` — основной путь трансформации для mesh objects, terrain points, эффектов.
-
-### 4. Влияет **не только** `POLY_perspective()`
-
-При изменении только `POLY_perspective()` дырки уменьшились, но **не исчезли полностью**. Есть минимум ещё одно место. Кандидаты (не проверены):
-- `POLY_transform_from_view_space()` (poly.cpp) — аналогичная проверка
-- `POLY_point_in_view()` (poly.cpp) — `if (vz < POLY_Z_NEARPLANE)`
-- `POLY_sphere_visible()` (poly.cpp) — `if (view_z + radius <= POLY_Z_NEARPLANE)`
-- `NewTweenVertex3D()` (poly.cpp) — `np->z = POLY_Z_NEARPLANE` (clamp to near plane)
-- `POLY_add_nearclipped_triangle()` (poly.cpp) — `s_DistBuffer = z - POLY_Z_NEARPLANE`
-- `figure.cpp` — bounding sphere checks against `POLY_ZCLIP_PLANE`
-
-### 5. `POLY_transform_c_saturate_z()` — **НЕ влияет**
-
-Замена порога в этой функции не изменила количество дырок. Эта функция используется для стен (FACET_draw) — значит стены дырятся не из-за `c_saturate_z`.
+**Статус: ИСПРАВЛЕНО.**
 
 ---
 
-## Что точно **НЕ является** причиной
+## Как работает near-clip path
 
-Все перечисленные системы были полностью отключены (через debug toggle) — дырки остались:
+1. `POLY_perspective()` помечает вершину как `POLY_CLIP_NEAR` если `z < POLY_ZCLIP_PLANE`
+2. `POLY_add_quad_fast()` видит что у квада есть вершины с NEAR → сплитит квад на 2 треугольника → каждый отправляет в `POLY_add_nearclipped_triangle()`
+3. `POLY_add_nearclipped_triangle()` клипает треугольник по near plane через Sutherland-Hodgman → fan-triangulate → submit в PolyPage
+
+---
+
+## Причина найдена: отсутствовал PolyBufAlloc
+
+**Файл:** `new_game/src/engine/graphics/pipeline/poly.cpp`, функция `POLY_add_nearclipped_triangle()`
+
+### Суть бага
+
+В fan-triangulation после Sutherland-Hodgman вершины записывались в PolyPage через `PointAlloc()`, но **полигоны не регистрировались** — `PolyBufAlloc()` не вызывался. GPU никогда не рисовал эти вершины.
+
+Для сравнения, `POLY_add_triangle_fast()` и `POLY_add_quad_fast()` правильно вызывают `PolyBufAlloc()` и устанавливают `first_vertex` / `num_vertices`. В near-clip path этого не было.
+
+### Фикс
+
+Переписана fan-triangulation: для каждого треугольника fan'а вызывается `PolyBufAlloc()`, устанавливается `first_vertex` и `num_vertices = 3`. Полигоны теперь регистрируются и рисуются GPU.
+
+### Дополнительно: персонажи (figure.cpp)
+
+Персонажи рисуются через MultiMatrix path (`ge_draw_multi_matrix`), минуя POLY pipeline. Три проблемы:
+
+1. **Distance check с пустым else** (строки 2114, 4344): когда часть тела ближе near plane — fast path пропускал, а fallback не был реализован (оригинальный `FIXME` от разработчиков). **Фикс:** distance check убран, MultiMatrix рисует всегда.
+
+2. **Bounding sphere cull per body part** (строка 3804): отбрасывал целые конечности. **Фикс:** убран, frustum cull в `POLY_sphere_visible` достаточен.
+
+3. **Деление на ноль в MultiMatrix** (polypage.cpp): `1.0f / z` при z близком к нулю давало мусор. **Фикс:** z guard `if (z < 0.001f) z = 0.001f`.
+
+---
+
+## Ход расследования
+
+### Что точно установлено
+
+1. **Проблема зависит от `POLY_ZCLIP_PLANE`** — увеличение порога → больше вершин NEAR → больше потерь. Зависимость прямая.
+
+2. **Проблема в CPU-коде, не в GPU/OpenGL** — подтверждено разделением на две константы (CPU и GPU) и независимым тестированием.
+
+3. **`POLY_CLIP_NEAR` в 3 функциях проекции — вход в near-clip path** — при отключении `POLY_CLIP_NEAR` во всех 3 функциях все дырки полностью пропадают (побочный эффект: артефакты от вершин за камерой).
+
+4. **Sutherland-Hodgman работает корректно** — логирование показало что `POLY_clip_against_nearplane` возвращает 3-4 вершины (не 0) для всех входящих треугольников. Алгоритм не теряет полигоны.
+
+5. **Offscreen reject после near-clip отбрасывал ВСЁ** — логирование показало `offscreen=1` для 100% near-clip треугольников. Вершины у near plane имеют экстремальные screen coords → все помечаются BOTTOM → `clip_and & POLY_CLIP_OFFSCREEN` отбрасывает. Но это следствие, не причина — вершины записывались в буфер но не регистрировались.
+
+6. **Проверка `pt->z < POLY_ZCLIP_PLANE` работает правильно** — проверено визуально пользователем: зелёная покраска вершин точно совпадает с границей near plane в wireframe-режиме.
+
+### Что точно НЕ является причиной
+
+Все перечисленные системы были полностью отключены — дырки остались:
 
 1. **Gamut** (NGAMUT) — расширен до всей карты 128×128
 2. **FACET_FLAG_INVISIBLE** — рисуются невидимые facets
@@ -84,6 +84,14 @@ if (pt->z < POLY_Z_NEARPLANE) {
 20. **GL_DEPTH_CLAMP** — включён, не помогло
 21. **Guardband clamp** screen coordinates (CPU и shader) — не помогло
 
+### Эксперименты
+
+**ALWAYS_DISCARD** (return в начале `POLY_add_nearclipped_triangle`): картинка идентична обычному поведению → near-clip path и так ничего не пропускал (из-за отсутствия PolyBufAlloc).
+
+**NEVER_DISCARD** (пропуск Sutherland-Hodgman): артефакты — NEAR-вершины не спроецированы (нет X,Y), проскакивают с мусором.
+
+**Покраска вершин** по `z < POLY_ZCLIP_PLANE`: работает корректно, точно совпадает с debug plane. Проверено пользователем в wireframe.
+
 ---
 
 ## Характеристики бага
@@ -91,36 +99,4 @@ if (pt->z < POLY_Z_NEARPLANE) {
 - Затрагивает **все типы геометрии**: пол, стены, mesh-объекты (машины, ящики), персонажи
 - Отсекаются **целые полигоны**, не по depth-buffer
 - Дырки всегда на **периферии зрения** (сбоку/сзади камеры), не перед ней
-- При NOCULL (все CPU-reject отключены) дырки **остаются** → полигоны не генерируются или дропаются до PolyPage
-- NOCULL влияет на персонажей (мент виден полностью) через figure.cpp bounding sphere, но **не** на стены/пол
-
----
-
-## Ключевой вывод: вся система near-clip влияет как единое целое
-
-Попытка разделить `POLY_Z_NEARPLANE` на CPU и GPU константы показала:
-- **Все 7 мест** в poly.cpp, использующих `POLY_Z_NEARPLANE`, **взаимосвязаны** — это единая система near-clipping
-- Нельзя менять порог в одном месте не меняя в остальных — рассогласование ломает проекцию (перекошенные полигоны)
-- Каждое место по отдельности **влияет** на дырки (подтверждено итеративным тестированием)
-- Все 7 мест: `POLY_perspective`, `POLY_transform_c_saturate_z`, `POLY_transform_from_view_space`, `POLY_point_in_view`, `POLY_sphere_visible`, `NewTweenVertex3D`, `POLY_add_nearclipped_triangle`
-
-## Рабочая гипотеза
-
-Near-clipping система как целое **теряет полигоны**. Возможные механизмы:
-
-1. **Split quad → 2 triangles перед near-clip**: один треугольник может получить все 3 вершины NEAR → `POLY_clip_against_nearplane` возвращает 0 → треугольник дропается → дырка, хотя квад в целом виден.
-
-2. **Offscreen reject после near-clip** (`clip_and & POLY_CLIP_OFFSCREEN`): вершины на near plane имеют огромные screen X/Y → все LEFT/RIGHT → дроп. (Попытка отключить не помогла — но возможно нужен более чистый тест.)
-
-3. **Неизвестный механизм** в near-clip пути, пока не идентифицирован.
-
-Увеличение near plane → больше вершин NEAR → больше квадов в near-clip → больше потерь.
-
----
-
-## TODO
-
-- [ ] Найти конкретный механизм потери полигонов в near-clip path
-- [ ] Попробовать full-polygon near-clip для квадов вместо split-then-clip (чистый тест без рассогласования констант)
-- [ ] Исследовать offscreen reject после near-clip с логированием конкретных дропнутых полигонов
-- [ ] Проверить `draw_quick_floor` path (DrawIndPrimMM) — использует другую near-clip систему (dprod < 8.0)
+- Увеличение near plane → больше вершин NEAR → больше потерь

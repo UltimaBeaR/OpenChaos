@@ -2111,8 +2111,8 @@ no_muzzle_calcs:
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
-        if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255) && (((g_matWorld._43 * 32768.0f) - (pPrimObj->fBoundingSphereRadius * character_scalef)) > (POLY_ZCLIP_PLANE * 32768.0f))) {
-            // Opaque, not near-clipped: use fast MultiMatrix path.
+        if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
+            // Opaque: use fast MultiMatrix path. z guard in ge_draw_multi_matrix handles near vertices.
             if (wPage & TEXTURE_PAGE_FLAG_TINT) {
                 d3dmm.lpLightTable = MM_pcFadeTableTint;
             } else {
@@ -3799,11 +3799,9 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
 
     ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
 
-    // Near-Z bounding sphere cull per body part: if the part's closest point is behind
-    // POLY_ZCLIP_PLANE, skip matrix setup and return UC_FALSE.
-    if ((((g_matWorld._43 * 32768.0f) - ((m_fObjectBoundingSphereRadius[prim]) * character_scalef)) < (POLY_ZCLIP_PLANE * 32768.0f))) {
-        return UC_FALSE;
-    }
+    // Near-Z bounding sphere cull per body part removed — frustum cull in
+    // POLY_sphere_visible handles visibility, z guard in ge_draw_multi_matrix
+    // prevents artifacts for near vertices.
 
     p_obj = &prim_objects[prim];
 
@@ -4340,38 +4338,33 @@ no_muzzle_calcs:
         PolyPage* pa = &(POLY_Page[wRealPage]);
         ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
         ASSERT(!pa->RS.NeedsSorting() && (FIGURE_alpha == 255));
-        if ((((g_matWorld._43 * 32768.0f) - (pPrimObj->fBoundingSphereRadius * character_scalef)) > (POLY_ZCLIP_PLANE * 32768.0f))) {
-            // Non-alpha path.
-            if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-                d3dmm.lpLightTable = MM_pcFadeTableTint;
-            } else {
-                d3dmm.lpLightTable = MM_pcFadeTable;
-            }
-            d3dmm.lpvVertices = pVertex;
 
-            pa->RS.SetCullMode(GECullMode::CCW);
-            pa->RS.SetAlphaBlendEnabled(false);
-            pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
-            pa->RS.SetChanged();
+        // Originally had a distance check here that skipped near-plane geometry (with an empty
+        // else branch — the fallback was never implemented). Now always renders via MultiMatrix;
+        // z guard in ge_draw_multi_matrix prevents div/0 for near vertices, GPU clips the rest.
 
-            {
-                // Set view-space Z for CPU fog in ge_draw_multi_matrix.
-                g_mm_fog_view_z = g_matWorld._43;
-
-                ge_draw_multi_matrix(
-                    GEMMVertexType::Unlit,
-                    &d3dmm,
-                    pMat->wNumVertices,
-                    pwStripIndices,
-                    pMat->wNumStripIndices);
-            }
-
+        if (wPage & TEXTURE_PAGE_FLAG_TINT) {
+            d3dmm.lpLightTable = MM_pcFadeTableTint;
         } else {
-            // Alpha/clipped path - do with standard non-MM calls.
-            // FIXME. Needs to be done.
-            // Actually, the fast-accept works very well, and it's only when the camera somehow gets
-            // REALLY close that this happens. A pop-reject seems a bit better than a clip.
-            // Certainly there is no visually "right" thing to do. Leave it until someone complains. ATF.
+            d3dmm.lpLightTable = MM_pcFadeTable;
+        }
+        d3dmm.lpvVertices = pVertex;
+
+        pa->RS.SetCullMode(GECullMode::CCW);
+        pa->RS.SetAlphaBlendEnabled(false);
+        pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+        pa->RS.SetChanged();
+
+        {
+            // Set view-space Z for CPU fog in ge_draw_multi_matrix.
+            g_mm_fog_view_z = g_matWorld._43;
+
+            ge_draw_multi_matrix(
+                GEMMVertexType::Unlit,
+                &d3dmm,
+                pMat->wNumVertices,
+                pwStripIndices,
+                pMat->wNumStripIndices);
         }
 
         // Next material

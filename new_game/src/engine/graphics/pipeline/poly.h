@@ -33,8 +33,11 @@ static inline int ftol(float f)
 }
 
 // uc_orig: POLY_ZCLIP_PLANE (fallen/DDEngine/Headers/poly.h)
-// Points closer than 1/64th of the draw range are not drawn (near-plane clip).
+// Near clip plane distance. Used in projection, depth remap, viewport, effects, characters.
+// WARNING: do not change this value — many hardcoded constants throughout the codebase
+// (e.g. bounding sphere radii, 32768 scale factors in figure.cpp) were calibrated for 1/64.
 #define POLY_ZCLIP_PLANE (1.0F / 64.0F)
+
 
 // uc_orig: POLY_init (fallen/DDEngine/Headers/poly.h)
 // One-time init for the polygon renderer. Call once at program startup.

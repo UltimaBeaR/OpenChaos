@@ -40,10 +40,6 @@ extern UWORD fade_black;
 // uc_orig: COMBO_TRUE (fallen/DDEngine/Source/poly.cpp)
 #define COMBO_TRUE 1
 
-// Near-clip plane distance used throughout all clipping functions.
-// uc_orig: POLY_Z_NEARPLANE (fallen/DDEngine/Source/poly.cpp)
-#define POLY_Z_NEARPLANE POLY_ZCLIP_PLANE
-
 // Current clip-plane bitmask (STD or STD|TOP/BOTTOM for splitscreen).
 // uc_orig: s_ClipMask (fallen/DDEngine/Source/poly.cpp)
 static UBYTE s_ClipMask;
@@ -346,7 +342,7 @@ extern void POLY_setclip(POLY_Point* pt)
 // wibble_key: non-zero applies sinusoidal horizontal shimmer (water effect).
 void POLY_perspective(POLY_Point* pt, UBYTE wibble_key)
 {
-    if (pt->z < POLY_Z_NEARPLANE) {
+    if (pt->z < POLY_ZCLIP_PLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else if (pt->z > 1.0F) {
         pt->clip = POLY_CLIP_FAR;
@@ -398,7 +394,7 @@ void POLY_transform_c_saturate_z(
         pt->y,
         pt->z);
 
-    if (pt->z < POLY_Z_NEARPLANE) {
+    if (pt->z < POLY_ZCLIP_PLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else {
         pt->Z = POLY_ZCLIP_PLANE / pt->z;
@@ -424,7 +420,7 @@ void POLY_transform_c_saturate_z(
 // Projects a point that is already in camera/view space (x,y,z already set by caller).
 void POLY_transform_from_view_space(POLY_Point* pt)
 {
-    if (pt->z < POLY_Z_NEARPLANE) {
+    if (pt->z < POLY_ZCLIP_PLANE) {
         pt->clip = POLY_CLIP_NEAR;
     } else {
         pt->Z = POLY_ZCLIP_PLANE / pt->z;
@@ -490,7 +486,7 @@ SLONG POLY_get_screen_pos(
         vy,
         vz);
 
-    if (vz < POLY_Z_NEARPLANE) {
+    if (vz < POLY_ZCLIP_PLANE) {
         return UC_FALSE;
     } else {
         float Z = POLY_ZCLIP_PLANE / vz;
@@ -629,7 +625,7 @@ SLONG POLY_sphere_visible(
         view_y,
         view_z);
 
-    if (view_z + radius <= POLY_Z_NEARPLANE) {
+    if (view_z + radius <= POLY_ZCLIP_PLANE) {
         // Behind the view pyramid.
         return UC_FALSE;
     }
@@ -696,8 +692,12 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     }
 
     // set default render state
-    float fFogDist = CurDrawDistance * (60.0f / (22.f * 256.0f));
-    float fFogDistNear = fFogDist * 0.7f;
+    // GPU table fog operates in v_view_z space (= view_z / POLY_ZCLIP_PLANE).
+    // Convert POLY_FADEOUT thresholds from view-space to v_view_z space,
+    // scaled by draw distance ratio.
+    float draw_dist_ratio = CurDrawDistance / (22.f * 256.0f);
+    float fFogDist     = (POLY_FADEOUT_END   / POLY_ZCLIP_PLANE) * draw_dist_ratio;
+    float fFogDistNear = (POLY_FADEOUT_START / POLY_ZCLIP_PLANE) * draw_dist_ratio;
     DefRenderState.InitScene(fog_colour, fFogDistNear, fFogDist);
 
     ge_begin_scene();
@@ -830,7 +830,7 @@ static POLY_Point s_PointBuffer[32];
 static ULONG s_PointBufferOffset;
 
 // uc_orig: NewTweenVertex3D (fallen/DDEngine/Source/poly.cpp)
-// Creates a new vertex interpolated between p1 and p2 at the near clip plane (z = POLY_Z_NEARPLANE).
+// Creates a new vertex interpolated between p1 and p2 at the near clip plane (z = POLY_ZCLIP_PLANE).
 // Used during near-plane Sutherland-Hodgman clipping.
 POLY_Point* NewTweenVertex3D(POLY_Point* p1, POLY_Point* p2, float lambda)
 {
@@ -844,7 +844,7 @@ POLY_Point* NewTweenVertex3D(POLY_Point* p1, POLY_Point* p2, float lambda)
 
     np->x = p1->x + lambda * (p2->x - p1->x);
     np->y = p1->y + lambda * (p2->y - p1->y);
-    np->z = POLY_Z_NEARPLANE; // clamp to near plane
+    np->z = POLY_ZCLIP_PLANE; // clamp to near plane
 
     np->u = p1->u + lambda * (p2->u - p1->u);
     np->v = p1->v + lambda * (p2->v - p1->v);
@@ -1081,9 +1081,9 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         SLONG laura;
         SLONG poly_points;
 
-        s_DistBuffer[0] = rptr[0]->z - POLY_Z_NEARPLANE;
-        s_DistBuffer[1] = rptr[1]->z - POLY_Z_NEARPLANE;
-        s_DistBuffer[2] = rptr[2]->z - POLY_Z_NEARPLANE;
+        s_DistBuffer[0] = rptr[0]->z - POLY_ZCLIP_PLANE;
+        s_DistBuffer[1] = rptr[1]->z - POLY_ZCLIP_PLANE;
+        s_DistBuffer[2] = rptr[2]->z - POLY_ZCLIP_PLANE;
 
         poly_points = POLY_clip_against_nearplane(rptr, s_DistBuffer, 3, wptr);
 
@@ -1114,51 +1114,41 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         PolyPage* pp = &POLY_Page[page];
         PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
-        // Fan-triangulate the clipped polygon: allocate 3 + (poly_points-3)*3 verts.
-        PolyPoint2D* pv = ppDrawn->PointAlloc(3 + (poly_points - 3) * 3);
+        // Fan-triangulate the clipped polygon.
+        // Number of triangles in a fan = poly_points - 2. Each triangle = 3 verts.
+        SLONG num_fan_tris = poly_points - 2;
+        PolyPoint2D* pv = ppDrawn->PointAlloc(num_fan_tris * 3);
 
         POLY_Point* ppt;
-        PolyPoint2D* pv_first = pv;
 
-        ppt = rptr[0];
+        for (SLONG fan_i = 0; fan_i < num_fan_tris; fan_i++) {
+            PolyPoly* ppoly = ppDrawn->PolyBufAlloc();
+            if (!ppoly) break;
+            ppoly->first_vertex = (pv + fan_i * 3) - ppDrawn->m_VertexPtr;
+            ppoly->num_vertices = 3;
 
-        pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-        pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-        pv->SetColour(ppt->colour);
-        pv->SetSpecular(ppt->specular);
+            PolyPoint2D* tri_pv = pv + fan_i * 3;
 
-        pv++;
+            // Fan vertex 0 (hub)
+            ppt = rptr[0];
+            tri_pv[0].SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+            tri_pv[0].SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
+            tri_pv[0].SetColour(ppt->colour);
+            tri_pv[0].SetSpecular(ppt->specular);
 
-        laura = 2;
+            // Fan vertex 1
+            ppt = rptr[fan_i + 1];
+            tri_pv[1].SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+            tri_pv[1].SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
+            tri_pv[1].SetColour(ppt->colour);
+            tri_pv[1].SetSpecular(ppt->specular);
 
-        while (1) {
-            ppt = rptr[laura - 1];
-
-            pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-            pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-            pv->SetColour(ppt->colour);
-            pv->SetSpecular(ppt->specular);
-
-            pv++;
-
-            ppt = rptr[laura];
-
-            pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
-            pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
-            pv->SetColour(ppt->colour);
-            pv->SetSpecular(ppt->specular);
-
-            laura++;
-
-            if (laura >= poly_points) {
-                break;
-            }
-
-            pv++;
-
-            *pv = *pv_first;
-
-            pv++;
+            // Fan vertex 2
+            ppt = rptr[fan_i + 2];
+            tri_pv[2].SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+            tri_pv[2].SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
+            tri_pv[2].SetColour(ppt->colour);
+            tri_pv[2].SetSpecular(ppt->specular);
         }
 
         if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
@@ -2153,8 +2143,9 @@ void POLY_frame_draw_puddles()
     if (pp->NeedsRendering()) {
         ge_begin_scene();
 
-        float fFogDist = CurDrawDistance * (60.0f / (22.f * 256.0f));
-        float fFogDistNear = fFogDist * 0.7f;
+        float draw_dist_ratio = CurDrawDistance / (22.f * 256.0f);
+        float fFogDist     = (POLY_FADEOUT_END   / POLY_ZCLIP_PLANE) * draw_dist_ratio;
+        float fFogDistNear = (POLY_FADEOUT_START / POLY_ZCLIP_PLANE) * draw_dist_ratio;
         pp->RS.InitScene(0, fFogDistNear, fFogDist);
 
         pp->Render();

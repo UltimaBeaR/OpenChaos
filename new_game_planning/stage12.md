@@ -66,6 +66,12 @@
 | Steam Input API | ⏳ | [stage11.md](stage11.md) (Steam Input) | Исследовать доступность для non-Steam games |
 | macOS: тулчейны CMake | ⏳ | [stage8.md](stage8.md) | `clang-x64-macos.cmake`, `clang-universal-macos.cmake` |
 
+## Техдолг
+
+| Пункт | Статус | Референс | Комментарии |
+|-------|--------|----------|-------------|
+| Удалить D3D6 бэкенд | ⏳ | [known_issues](known_issues_and_bugs.md) (Сборка D3D6) | Runtime невозможен на x64. Код мёртвый — удалить целиком |
+
 ## Инфраструктура
 
 | Пункт | Статус | Референс | Комментарии |

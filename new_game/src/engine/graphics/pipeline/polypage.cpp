@@ -637,6 +637,7 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 pTLVert[i].x = pLVertCur->x * pmCur->_12 + pLVertCur->y * pmCur->_22 + pLVertCur->z * pmCur->_32 + pmCur->_42;
                 pTLVert[i].y = pLVertCur->x * pmCur->_13 + pLVertCur->y * pmCur->_23 + pLVertCur->z * pmCur->_33 + pmCur->_43;
                 pTLVert[i].z = pLVertCur->x * pmCur->_14 + pLVertCur->y * pmCur->_24 + pLVertCur->z * pmCur->_34 + pmCur->_44;
+                if (pTLVert[i].z < 0.001f) pTLVert[i].z = 0.001f; // div/0 guard for near-plane vertices
                 pTLVert[i].rhw = 1.0f / pTLVert[i].z;
                 pTLVert[i].x *= pTLVert[i].rhw;
                 pTLVert[i].y *= pTLVert[i].rhw;
