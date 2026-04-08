@@ -868,6 +868,11 @@ bool ge_bound_texture_contains_alpha()
     return s_bound_texture_has_alpha;
 }
 
+void ge_set_bound_texture_has_alpha(bool has_alpha)
+{
+    s_bound_texture_has_alpha = has_alpha;
+}
+
 // ---------------------------------------------------------------------------
 // Drawing
 // ---------------------------------------------------------------------------

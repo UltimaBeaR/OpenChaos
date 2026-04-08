@@ -18,6 +18,7 @@ struct os_texture {
     char        name[260];
     uint8_t     format;
     uint8_t     inverted;
+    uint8_t     has_alpha;
     uint16_t    size;
     os_texture* next;
 };
@@ -68,6 +69,7 @@ OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
 
     strncpy(ot->name, name, sizeof(ot->name) - 1);
     ot->inverted = (uint8_t)invert;
+    ot->has_alpha = (flags & OGE_TEX_HAS_ALPHA) ? 1 : 0;
     ot->size = (uint16_t)width;
 
     // Make a mutable copy for inversion.
@@ -141,14 +143,19 @@ void oge_calculate_pipeline() {}
 
 void oge_change_renderstate(uint32_t flags)
 {
-    // Blend mode.
+    // Blend mode. D3D6 required explicit ALPHABLENDENABLE; in GL we must call
+    // ge_set_blend_enabled(true) — setting factors alone does not enable blending.
     if (flags & OS_DRAW_ADD) {
+        ge_set_blend_enabled(true);
         ge_set_blend_factors(GEBlendFactor::One, GEBlendFactor::One);
     } else if (flags & OS_DRAW_ALPHABLEND) {
+        ge_set_blend_enabled(true);
         ge_set_blend_factors(GEBlendFactor::SrcAlpha, GEBlendFactor::InvSrcAlpha);
     } else if (flags & OS_DRAW_TRANSPARENT) {
+        ge_set_blend_enabled(true);
         ge_set_blend_factors(GEBlendFactor::Zero, GEBlendFactor::One);
     } else if (flags & OS_DRAW_MULBYONE) {
+        ge_set_blend_enabled(true);
         ge_set_blend_factors(GEBlendFactor::DstColor, GEBlendFactor::Zero);
     } else {
         ge_set_blend_enabled(false);
@@ -175,10 +182,14 @@ void oge_change_renderstate(uint32_t flags)
     }
 
     // Texture blend mode.
+    // D3D6 ALPHABLEND set ALPHAOP=MODULATE (tex.a × vtx.a) — use ModulateAlpha.
+    // Default Modulate uses ALPHAOP=SELECTARG1 (tex.a only).
     if (flags & OS_DRAW_DECAL) {
         ge_set_texture_blend(GETextureBlend::Decal);
+    } else if (flags & OS_DRAW_ALPHABLEND) {
+        ge_set_texture_blend(GETextureBlend::ModulateAlpha);
     } else if (flags & OS_DRAW_TEX_NONE) {
-        ge_set_texture_blend(GETextureBlend::Modulate); // vertex color only, no texture bound
+        ge_set_texture_blend(GETextureBlend::Modulate);
     } else {
         ge_set_texture_blend(GETextureBlend::Modulate);
     }
@@ -206,6 +217,9 @@ void oge_bind_texture(int32_t stage, OGETexture tex)
     // Only bind stage 0 to game engine (stage 1 = dual-texture, not yet supported).
     if (stage == 0 && tex && tex->gl_id) {
         ge_bind_texture((GETextureHandle)(uintptr_t)tex->gl_id);
+        // Outro textures are not in the game texture pool, so ge_bind_texture
+        // can't find their alpha flag. Override it from our own metadata.
+        ge_set_bound_texture_has_alpha(tex->has_alpha != 0);
     }
 }
 

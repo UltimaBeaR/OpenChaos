@@ -177,6 +177,9 @@ void ge_bind_texture(GETextureHandle tex);
 // Returns true if the currently bound texture has an alpha channel.
 // Used by the shader to select correct ALPHAOP for D3DTBLEND_MODULATE.
 bool ge_bound_texture_contains_alpha();
+// Override the alpha flag for the currently bound texture.
+// Used by outro which creates GL textures outside the game texture pool.
+void ge_set_bound_texture_has_alpha(bool has_alpha);
 
 // ---------------------------------------------------------------------------
 // Drawing
