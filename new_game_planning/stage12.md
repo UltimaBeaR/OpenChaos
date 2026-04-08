@@ -96,7 +96,7 @@
 | Воскрешение гражданских | ⏳ | [known_issues](known_issues_and_bugs.md) | Телепорт на HomeX/HomeZ не применяется |
 | MAV INSIDE2 | ⏳ | [known_issues](known_issues_and_bugs.md) | `ASSERT(0)`, NPC не ходят внутри зданий |
 | MAV stair/exit | ⏳ | [known_issues](known_issues_and_bugs.md) | `> 16` вместо `>> 16` |
-| Баг освещения | ⏳ | [known_issues](known_issues_and_bugs.md) | `dz×nx` вместо `dz×nz` в night.cpp |
+| ~~Баг освещения~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Визуально незаметно, но математически корректно |
 
 ## Функционал (новый / из PS1)
 

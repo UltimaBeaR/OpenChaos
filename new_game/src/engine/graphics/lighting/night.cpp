@@ -243,7 +243,7 @@ void NIGHT_slight_delete_all(void)
 // uc_orig: NIGHT_light_mapsquare (fallen/Source/night.cpp)
 // Compute vertex lighting for all 4x4 hi-map points in one lo-res map square.
 // Writes NIGHT_MAX_BRIGHT-range colours into colour[0..15].
-// NOTE: Original has a bug on line ~746: dz*nx instead of dz*nz in dot product (preserved 1:1).
+// NOTE: Original had a bug on line ~746: dz*nx instead of dz*nz in dot product — fixed.
 void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour, SLONG floor_y, SLONG inside)
 {
     SLONG i;
@@ -407,8 +407,7 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
                                     ny = precalc[x][z].ny;
                                     nz = precalc[x][z].nz;
 
-                                    // BUG (original): last term is dz*nx instead of dz*nz (preserved 1:1).
-                                    dprod = dx * nx + dy * ny + dz * nx;
+                                    dprod = dx * nx + dy * ny + dz * nz;
 
                                     if (dprod <= 0) {
                                         // Facing away from light.
@@ -486,7 +485,7 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
                     ny = precalc[x][z].ny;
                     nz = precalc[x][z].nz;
 
-                    dprod = dx * nx + dy * ny + dz * nx;
+                    dprod = dx * nx + dy * ny + dz * nz;
 
                     if (dprod <= 0) {
                         // Facing away from light.
