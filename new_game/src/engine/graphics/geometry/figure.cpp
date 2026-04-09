@@ -533,7 +533,7 @@ void draw_steam(SLONG x, SLONG y, SLONG z, SLONG lod)
                 float(dz),
                 float(((dy - y) >> 2) + 150),
                 trans,
-                0,
+                0xff000000, // specular.a = 1.0: no CPU fog applied, use table fog
                 POLY_PAGE_STEAM,
                 u, v, 0.5, 0.5,
                 SPRITE_SORT_NORMAL);

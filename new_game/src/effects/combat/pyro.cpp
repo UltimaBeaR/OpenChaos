@@ -1288,7 +1288,7 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
                 float(dz),
                 float(scale),
                 trans,
-                0,
+                0xff000000, // specular.a = 1.0: no CPU fog applied, use table fog
                 page,
                 u, v, w, h,
                 SPRITE_SORT_NORMAL);

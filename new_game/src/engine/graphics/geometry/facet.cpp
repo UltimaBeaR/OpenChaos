@@ -945,7 +945,7 @@ void FACET_barbedwire_top(struct DFacet* p_facet)
             cz,
             50,
             0xffffff,
-            0,
+            0xff000000, // specular.a = 1.0: no CPU fog applied, use table fog
             POLY_PAGE_BARBWIRE,
             0.0, 0.0, 1.0, 1.0,
             SPRITE_SORT_NORMAL);

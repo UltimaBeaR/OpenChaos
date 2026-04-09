@@ -674,7 +674,6 @@ void POLY_init_render_states()
             case POLY_PAGE_STEAM:
                 pa->RS.SetDepthWrite(false);
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
-                pa->RS.SetFogEnabled(false);
                 pa->RS.SetAlphaBlendEnabled(true);
                 pa->RS.SetSrcBlend(GEBlendFactor::One);
                 pa->RS.SetDstBlend(GEBlendFactor::One);
