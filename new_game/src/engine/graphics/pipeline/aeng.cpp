@@ -6114,9 +6114,9 @@ void AENG_draw_city()
                                     } else {
                                         SLONG dx, dy, dz, dist;
 
-                                        dx = fabs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
-                                        dy = fabs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
-                                        dz = fabs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
+                                        dx = abs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
+                                        dy = abs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
+                                        dz = abs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
 
                                         dist = QDIST3(dx, dy, dz);
 
@@ -7609,9 +7609,9 @@ void AENG_draw_warehouse()
                         } else {
                             SLONG dx, dy, dz, dist;
 
-                            dx = fabs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
-                            dy = fabs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
-                            dz = fabs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
+                            dx = abs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
+                            dy = abs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
+                            dz = abs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
 
                             dist = QDIST3(dx, dy, dz);
 
