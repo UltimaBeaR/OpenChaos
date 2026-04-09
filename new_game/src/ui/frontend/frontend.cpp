@@ -502,7 +502,7 @@ void FRONTEND_draw_button(SLONG x, SLONG y, UBYTE which, UBYTE flash)
     }
 
     pp[0].colour = (which < 4) ? 0xffFFFFFF : (fade_rgb << 1) | 0xffffff;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000;
     pp[0].Z = 0.5;
     pp[1] = pp[2] = pp[3] = pp[0];
 
@@ -545,7 +545,7 @@ void FRONTEND_kibble_draw()
         if (k->type > 0) {
 
             pp[0].colour = (k->rgb) | 0xff000000;
-            pp[0].specular = 0;
+            pp[0].specular = 0xff000000;
             pp[1] = pp[2] = pp[3] = pp[0];
 
             FMATRIX_calc(matrix, k->r, k->t, k->p);

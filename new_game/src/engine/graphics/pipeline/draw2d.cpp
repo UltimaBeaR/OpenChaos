@@ -15,7 +15,7 @@ void DRAW2D_Box(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, UBYTE flag, UBY
     float fdepth = (float)depth;
 
     pp[0].colour = rgb;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000; // alpha=1.0: no CPU fog, use table fog
     pp[0].Z = fdepth / 256.0f;
 
     pp[1] = pp[2] = pp[3] = pp[0];
@@ -40,7 +40,7 @@ void DRAW2D_Box_Page(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, SLONG page
     float fdepth = (float)depth;
 
     pp[0].colour = rgb;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000; // alpha=1.0: no CPU fog, use table fog
     pp[0].Z = fdepth / 256.0f;
 
     pp[1] = pp[2] = pp[3] = pp[0];
@@ -65,7 +65,7 @@ void DRAW2D_Tri(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG tx, SLONG ty, SLONG 
     SLONG page = flag ? POLY_PAGE_SUBTRACTIVEALPHA : POLY_PAGE_ADDITIVEALPHA;
 
     pp[0].colour = rgb;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000; // alpha=1.0: no CPU fog, use table fog
     pp[0].Z = 0.5f;
 
     pp[1] = pp[2] = pp[0];
@@ -87,7 +87,7 @@ void DRAW2D_Sprite(SLONG x, SLONG y, SLONG ox, SLONG oy, float u, float v, float
     POLY_Point* quad[4] = { &pp[0], &pp[1], &pp[2], &pp[3] };
 
     pp[0].colour = rgb;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000; // alpha=1.0: no CPU fog, use table fog
     pp[0].Z = 0.5f;
 
     pp[1] = pp[2] = pp[3] = pp[0];

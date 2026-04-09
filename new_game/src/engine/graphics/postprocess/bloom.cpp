@@ -112,7 +112,7 @@ void BLOOM_flare_draw(SLONG x, SLONG y, SLONG z, SLONG str)
             pt3.Y = fy + sz;
             pt4.X = fx + sz;
             pt4.Y = fy + sz;
-            pt1.specular = pt2.specular = pt3.specular = pt4.specular = 0;
+            pt1.specular = pt2.specular = pt3.specular = pt4.specular = 0xff000000;
 
             SLONG r, g, b;
 

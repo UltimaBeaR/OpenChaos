@@ -1682,7 +1682,7 @@ void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour)
         pt[ii].u = 0;
         pt[ii].v = 0;
         pt[ii].colour = colour;
-        pt[ii].specular = 0;
+        pt[ii].specular = 0xff000000;
     }
 
     pt[0].X = sx1 - dy;

@@ -154,7 +154,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                     pp[0].u = the_char->X * TEXTURE_STEP;
                     pp[0].v = the_char->Y * TEXTURE_STEP;
                     pp[0].colour = t_colour;
-                    pp[0].specular = 0;
+                    pp[0].specular = 0xff000000;
 
                     pp[1].X = offset_x + the_char->Width + 1;
                     pp[1].Y = offset_y;
@@ -162,7 +162,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                     pp[1].u = (the_char->X + the_char->Width + 1) * TEXTURE_STEP;
                     pp[1].v = the_char->Y * TEXTURE_STEP;
                     pp[1].colour = t_colour;
-                    pp[1].specular = 0;
+                    pp[1].specular = 0xff000000;
 
                     pp[2].X = offset_x;
                     pp[2].Y = offset_y + the_char->Height + 1;
@@ -170,7 +170,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                     pp[2].u = the_char->X * TEXTURE_STEP;
                     pp[2].v = (the_char->Y + the_char->Height + 1) * TEXTURE_STEP;
                     pp[2].colour = b_colour;
-                    pp[2].specular = 0;
+                    pp[2].specular = 0xff000000;
 
                     pp[3].X = offset_x + the_char->Width + 1;
                     pp[3].Y = offset_y + the_char->Height + 1;
@@ -178,7 +178,7 @@ void draw_text_at(float x, float y, CBYTE* message, SLONG font_id)
                     pp[3].u = (the_char->X + the_char->Width + 1) * TEXTURE_STEP;
                     pp[3].v = (the_char->Y + the_char->Height + 1) * TEXTURE_STEP;
                     pp[3].colour = b_colour;
-                    pp[3].specular = 0;
+                    pp[3].specular = 0xff000000;
 
                     POLY_add_quad(quad, POLY_PAGE_TEXT, UC_FALSE, UC_TRUE);
 

@@ -47,7 +47,7 @@
 | Z-buffer лежаков у бассейна | ⏳ | [known_issues](known_issues_and_bugs.md) | Estate of Emergency, листья сквозь лежаки + неправильный порядок между двумя лежаками |
 | Тонкая настройка тумана | ⏳ | [known_issues](known_issues_and_bugs.md) | Незначительная разница с D3D |
 | ~~Fog шейдер — specular.a=0 ломает additive спрайты~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Фикс: specular=0xFF000000 во всех SPRITE_draw_tex с нулевым specular |
-| Меню Sound Options — бегунки громкости не видны | ⏳ | [known_issues](known_issues_and_bugs.md) | Сверить с оригиналом |
+| ~~Меню Sound Options — бегунки громкости не видны~~ | ✅ | [known_issues](known_issues_and_bugs.md) | specular=0 в DRAW2D → fog убивал цвет. Фикс: specular=0xFF000000 |
 | Glow звёзд — ореол вокруг ярких звёзд | ⏳ | [stage7_opengl_verification.md](stage7_opengl_verification.md) | `ge_plot_formatted_pixel` |
 | Legacy шрифт `FONT_draw` — попиксельный текст | ⏳ | [stage7_opengl_verification.md](stage7_opengl_verification.md) | Через `ge_lock_screen` |
 | `ge_restore_screen_surface` — device-lost recovery | ⏳ | [stage7.md](stage7.md) (TODO) | |

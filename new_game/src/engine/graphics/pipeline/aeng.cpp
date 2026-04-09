@@ -2523,7 +2523,7 @@ void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, 
     pp[0].u = 0.0F;
     pp[0].v = 0.0F;
     pp[0].colour = col;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000;
 
     pp[1].X = right;
     pp[1].Y = top;
@@ -2532,7 +2532,7 @@ void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, 
     pp[1].u = 0.0F;
     pp[1].v = 0.0F;
     pp[1].colour = col;
-    pp[1].specular = 0;
+    pp[1].specular = 0xff000000;
 
     pp[2].X = left;
     pp[2].Y = bottom;
@@ -2541,7 +2541,7 @@ void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, 
     pp[2].u = 0.0F;
     pp[2].v = 0.0F;
     pp[2].colour = col;
-    pp[2].specular = 0;
+    pp[2].specular = 0xff000000;
 
     pp[3].X = right;
     pp[3].Y = bottom;
@@ -2550,7 +2550,7 @@ void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, 
     pp[3].u = 0.0F;
     pp[3].v = 0.0F;
     pp[3].colour = col;
-    pp[3].specular = 0;
+    pp[3].specular = 0xff000000;
 
     quad[0] = &pp[0];
     quad[1] = &pp[1];
@@ -2624,7 +2624,7 @@ void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG
     pp[0].u = 0.0F;
     pp[0].v = 0.0F;
     pp[0].colour = col0;
-    pp[0].specular = 0;
+    pp[0].specular = 0xff000000;
 
     pp[1].X = (float)x1;
     pp[1].Y = (float)y1;
@@ -2633,7 +2633,7 @@ void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG
     pp[1].u = 0.0F;
     pp[1].v = 0.0F;
     pp[1].colour = col1;
-    pp[1].specular = 0;
+    pp[1].specular = 0xff000000;
 
     pp[2].X = (float)x2;
     pp[2].Y = (float)y2;
@@ -2642,7 +2642,7 @@ void AENG_draw_col_tri(SLONG x0, SLONG y0, SLONG col0, SLONG x1, SLONG y1, SLONG
     pp[2].u = 0.0F;
     pp[2].v = 0.0F;
     pp[2].colour = col2;
-    pp[2].specular = 0;
+    pp[2].specular = 0xff000000;
 
     tri[0] = &pp[0];
     tri[1] = &pp[1];
