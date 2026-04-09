@@ -201,10 +201,21 @@ static void gl_apply_greyscale(GLBGRAPixel* pixels, int32_t count)
     }
 }
 
-// Edge color bleeding: for transparent pixels with alpha content, copy RGB from nearest
-// non-transparent neighbor to prevent filtering artifacts at alpha edges.
+// Edge color bleeding: for fully transparent pixels (alpha=0, RGB=0), copy RGB from the
+// nearest non-black neighbor to prevent bilinear filtering artifacts at alpha edges.
+//
+// Uses a read-only copy of the original pixel data for neighbor lookups to prevent
+// chain propagation.  In D3D6, edge bleeding reads from tga[] (source) and writes to
+// the D3D surface (destination) — two separate buffers, no chain reaction.  Our original
+// implementation read and wrote the same array, causing a chain reaction where bled pixels
+// became valid neighbors for subsequent pixels, filling the entire black background with
+// ghost RGB.  This was the root cause of the ghost RGB issue on HUD icons.
 static void gl_bleed_edges(GLBGRAPixel* pixels, int32_t w, int32_t h)
 {
+    int32_t count = w * h;
+    GLBGRAPixel* source = (GLBGRAPixel*)MemAlloc(count * sizeof(GLBGRAPixel));
+    memcpy(source, pixels, count * sizeof(GLBGRAPixel));
+
     for (int32_t j = 0; j < h; j++) {
         for (int32_t i = 0; i < w; i++) {
             GLBGRAPixel& p = pixels[i + j * w];
@@ -212,9 +223,9 @@ static void gl_bleed_edges(GLBGRAPixel* pixels, int32_t w, int32_t h)
             if (p.red || p.green || p.blue) continue;
             if (p.alpha) continue;
 
-            // Find nearest non-transparent neighbor.
+            // Find nearest non-black neighbor in the ORIGINAL (unmodified) data.
             int32_t i2 = i, j2 = j;
-            #define GL_HAS_COLOR(x, y) (pixels[(x) + (y) * w].red | pixels[(x) + (y) * w].green | pixels[(x) + (y) * w].blue)
+            #define GL_HAS_COLOR(x, y) (source[(x) + (y) * w].red | source[(x) + (y) * w].green | source[(x) + (y) * w].blue)
             if      (i - 1 >= 0 && GL_HAS_COLOR(i-1, j))                         { i2 = i-1; j2 = j; }
             else if (i + 1 < w  && GL_HAS_COLOR(i+1, j))                         { i2 = i+1; j2 = j; }
             else if (j - 1 >= 0 && GL_HAS_COLOR(i, j-1))                         { i2 = i;   j2 = j-1; }
@@ -226,12 +237,15 @@ static void gl_bleed_edges(GLBGRAPixel* pixels, int32_t w, int32_t h)
             else continue;
             #undef GL_HAS_COLOR
 
-            p.red   = pixels[i2 + j2 * w].red;
-            p.green = pixels[i2 + j2 * w].green;
-            p.blue  = pixels[i2 + j2 * w].blue;
+            // Copy RGB from original data, not from potentially bled neighbors.
+            p.red   = source[i2 + j2 * w].red;
+            p.green = source[i2 + j2 * w].green;
+            p.blue  = source[i2 + j2 * w].blue;
             // Alpha stays 0 — only RGB is bled.
         }
     }
+
+    MemFree(source);
 }
 
 // Debug counter for texture uploads.
