@@ -32,8 +32,13 @@ void main()
     v_texcoord = a_texcoord;
 
     // Screen space → NDC relative to viewport.
-    float ndc_x = (a_position.x - u_viewport.x) / u_viewport.z * 2.0 - 1.0;
-    float ndc_y = 1.0 - (a_position.y - u_viewport.y) / u_viewport.w * 2.0;
+    // D3D6 pixel center convention: integer coords (0,1,2...) are pixel centers.
+    // OpenGL pixel center convention: half-integer coords (0.5,1.5,...) are centers.
+    // Apply -0.5 offset to match D3D6 texel alignment (fixes UV bleeding at
+    // sprite/glyph boundaries in texture atlases — visible as lines above menu
+    // text and artifacts near HUD weapon icons).
+    float ndc_x = (a_position.x - 0.5 - u_viewport.x) / u_viewport.z * 2.0 - 1.0;
+    float ndc_y = 1.0 - (a_position.y - 0.5 - u_viewport.y) / u_viewport.w * 2.0;
     float ndc_z = a_position.z * 2.0 - 1.0;
 
     // Preserve perspective-correct interpolation via W = 1/rhw.
