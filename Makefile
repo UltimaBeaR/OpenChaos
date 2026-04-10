@@ -54,6 +54,12 @@ RESOURCES  := original_game_resources
 CMAKE      := cmake
 
 include make/platform.mk
+
+# On Linux: add ~/.local/bin to PATH so clang++ wrapper is found by cmake.
+ifeq ($(UNAME_S),Linux)
+    export PATH := $(HOME)/.local/bin:$(PATH)
+endif
+
 include make/configure.mk
 include release/release.mk
 

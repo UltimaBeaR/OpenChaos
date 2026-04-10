@@ -5,15 +5,9 @@
 
 // General-purpose utility macros.
 
-// uc_orig: min (MFStdLib/Headers/MFStdLib.h)
-#ifndef min
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
-
-// uc_orig: max (MFStdLib/Headers/MFStdLib.h)
-#ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
+// uc_orig: min/max (MFStdLib/Headers/MFStdLib.h)
+// Not defined as macros — use std::min/std::max instead.
+// Macros conflict with libstdc++ (stl_algobase.h) on Linux.
 
 // uc_orig: INFINITY (MFStdLib/Headers/MFStdLib.h)
 #define UC_INFINITY 0x7fffffff

@@ -1,10 +1,15 @@
 # Auto-detect vcpkg.cmake:
 #   1. VCPKG_ROOT env var (cross-platform)
-#   2. Windows: vswhere (finds VS / Build Tools installation)
-#   3. Homebrew vcpkg (macOS)
+#   2. Linux: ~/vcpkg (default bootstrap location)
+#   3. macOS: Homebrew vcpkg
+#   4. Windows: vswhere (finds VS / Build Tools installation)
 VCPKG_CMAKE := $(shell \
   if [ -n "$$VCPKG_ROOT" ] && [ -f "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" ]; then \
     echo "$$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"; \
+  elif [ "$(UNAME_S)" = "Linux" ]; then \
+    if [ -f "$$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
+      echo "$$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake"; \
+    fi; \
   elif [ "$(UNAME_S)" = "Darwin" ]; then \
     BREW_PREFIX=$$(brew --prefix 2>/dev/null); \
     if [ -n "$$BREW_PREFIX" ] && [ -f "$$BREW_PREFIX/share/vcpkg/scripts/buildsystems/vcpkg.cmake" ]; then \
@@ -26,6 +31,8 @@ define run_configure
 	  echo "  Set VCPKG_ROOT env var, or:" >&2; \
 	  if [ "$(UNAME_S)" = "Darwin" ]; then \
 	    echo "  brew install vcpkg" >&2; \
+	  elif [ "$(UNAME_S)" = "Linux" ]; then \
+	    echo "  git clone https://github.com/microsoft/vcpkg ~/vcpkg && ~/vcpkg/bootstrap-vcpkg.sh -disableMetrics" >&2; \
 	  else \
 	    echo "  Install VS Build Tools with C++ workload" >&2; \
 	  fi; \
@@ -35,6 +42,7 @@ define run_configure
 	  "-DCMAKE_TOOLCHAIN_FILE=$(VCPKG_CMAKE)" \
 	  "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(TOOLCHAIN)" \
 	  "-DVCPKG_INSTALLED_DIR=$(abspath $(SRC_DIR)/vcpkg_installed)" \
+	  "-DCMAKE_MAKE_PROGRAM=$(shell which ninja)" \
 	  $(CMAKE_EXTRA_ARGS)
 endef
 
@@ -45,12 +53,14 @@ configure:
 	$(call run_configure)
 
 # Usage: make configure-asan
-# Enable AddressSanitizer for memory error detection.
+# Enable AddressSanitizer for memory error detection. Windows only.
 configure-asan:
-	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure
-ifeq ($(UNAME_S),Darwin)
-	@echo "ASan: on macOS the runtime is linked automatically by clang."
+ifeq ($(UNAME_S),Linux)
+	@echo "ERROR: configure-asan is only supported on Windows." >&2; exit 1
+else ifeq ($(UNAME_S),Darwin)
+	@echo "ERROR: configure-asan is only supported on Windows." >&2; exit 1
 else
+	CMAKE_EXTRA_ARGS="-DENABLE_ASAN=ON" $(MAKE) configure
 	@ASAN_DLL=$$(clang -print-file-name=clang_rt.asan_dynamic-x86_64.dll); \
 	  if [ -f "$$ASAN_DLL" ]; then \
 	    cp "$$ASAN_DLL" $(BUILD_DIR)/Debug/ 2>/dev/null; \

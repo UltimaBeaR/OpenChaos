@@ -65,9 +65,9 @@
 
 | Пункт | Статус | Референс | Комментарии |
 |-------|--------|----------|-------------|
-| Linux: сборка, тестирование, пакет | ⏳ | [stage11.md](stage11.md) (Linux) | |
-| Linux: case-insensitive file I/O | ⏳ | [stage8.md](stage8.md) | Блокер для Linux |
-| Linux: тулчейн CMake | ⏳ | [stage8.md](stage8.md) | `clang-x64-linux.cmake` |
+| Linux: сборка, тестирование, пакет | 🟡 | [stage11.md](stage11.md) (Linux), [stage12_linux_log.md](../new_game_devlog/stage12_linux_log.md) | Билд работает (Steam Deck), игра запускается. Краш при запуске миссии (SIGSEGV) + чёрный фон меню |
+| Linux: case-insensitive file I/O | ⏳ | [stage8.md](stage8.md) | Блокер для Linux — вероятная причина краша и чёрного фона |
+| Linux: тулчейн CMake | ✅ | [stage8.md](stage8.md) | `clang-x64-linux.cmake` создан, Clang 20 через Flatpak SDK extension |
 | Steam Deck: проверка | ⏳ | [stage11.md](stage11.md) (Steam Deck) | Возможно отдельный конфиг-профиль |
 | Steam Input API | ⏳ | [stage11.md](stage11.md) (Steam Input) | Исследовать доступность для non-Steam games |
 | macOS: тулчейны CMake | ⏳ | [stage8.md](stage8.md) | `clang-x64-macos.cmake`, `clang-universal-macos.cmake` |

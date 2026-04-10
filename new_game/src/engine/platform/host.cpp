@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#ifndef _WIN32
+#include <execinfo.h>
+#endif
 
 #include "game/game_types.h"
 #include "engine/audio/sound.h"
@@ -279,6 +282,14 @@ static void crash_signal_handler(int sig)
     fprintf(f, "Signal: %d (%s)\n", sig,
             sig == SIGSEGV ? "SIGSEGV" : sig == SIGABRT ? "SIGABRT" :
             sig == SIGFPE  ? "SIGFPE"  : "unknown");
+
+    void* frames[32];
+    int n = backtrace(frames, 32);
+    char** syms = backtrace_symbols(frames, n);
+    fprintf(f, "\nStack trace:\n");
+    for (int i = 0; i < n; i++)
+        fprintf(f, "  [%2d] %s\n", i, syms ? syms[i] : "?");
+
     fflush(f);
     fclose(f);
 

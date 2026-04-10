@@ -713,9 +713,9 @@ void MFX_get_volumes(SLONG* fx, SLONG* amb, SLONG* mus)
 // uc_orig: MFX_set_volumes (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_set_volumes(SLONG fx, SLONG amb, SLONG mus)
 {
-    fx = min(max(fx, 0), 127);
-    amb = min(max(amb, 0), 127);
-    mus = min(max(mus, 0), 127);
+    fx = std::min(std::max(fx, (SLONG)0), (SLONG)127);
+    amb = std::min(std::max(amb, (SLONG)0), (SLONG)127);
+    mus = std::min(std::max(mus, (SLONG)0), (SLONG)127);
 
     Volumes[SMP_Effect] = float(fx) / 127.0f;
     Volumes[SMP_Ambient] = float(amb) / 127.0f;
