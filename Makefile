@@ -71,3 +71,10 @@ run-debug:
 
 run-release:
 	$(POWERSHELL) -Command "Start-Process -FilePath '$(BUILD_DIR)/Release/Fallen.exe' -WorkingDirectory (Resolve-Path '$(BUILD_DIR)/Release')"
+
+# ---------------------------------------------------------------------------
+# Shortcuts: build + run
+# ---------------------------------------------------------------------------
+
+d: build-debug run-debug
+r: build-release run-release
