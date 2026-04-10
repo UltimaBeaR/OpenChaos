@@ -25,7 +25,7 @@
 ## Оптимизации рендерера
 
 - **Draw call batching** — сейчас каждый PolyPage slot делает отдельный draw call со своим VBO/EBO/VAO (per-slot, как D3D6 оригинал). Батчинг нескольких draw calls в один большой VBO с одним `glDrawElements` уменьшит количество draw calls с сотен до единиц за кадр. Требует: общий VBO с sub-allocation, offset-based indexing.
-- **GPU-transform (lit vertex shader)** — `ge_draw_indexed_primitive_lit` и `ge_draw_multi_matrix` делают CPU-transform (World×Projection). Для частиц (огонь, листья, dirt) с множеством мелких draw calls GPU-transform был бы эффективнее. Техдолг из этапа 7: `lit_vert.glsl` не работает из-за D3D/GL clip space конвенций.
+- **GPU-transform для 3D геометрии** — перевести всю трёхмерную отрисовку (мир, объекты, персонажи, эффекты) на аппаратные трансформации вершин через шейдеры вместо CPU-transform. Сейчас `ge_draw_indexed_primitive_lit` и `ge_draw_multi_matrix` делают CPU-transform (World×Projection), а результат рисуется как TL (pre-transformed) вершины. Это исторический подход из D3D6 эпохи. Переход на GPU-transform даст прирост производительности и упростит pipeline. **Применять только к реальному 3D** — UI/HUD оставить на CPU-transform (TL path). Техдолг из этапа 7: `lit_vert.glsl` не работает из-за D3D/GL clip space конвенций. Сложная доработка — потребуется переработка матриц, viewport transform, depth mapping. Опционально, после релиза 1.0.
 
 ## Кастомные карты/миссии (AI-assisted level design)
 
