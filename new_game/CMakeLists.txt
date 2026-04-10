@@ -56,7 +56,7 @@ target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
 # ---------------------------------------------------------------------------
 # Set to "d3d6" or "stub". The stub backend compiles without DirectX and proves
 # that no D3D code leaks outside backend_directx6/.
-set(GRAPHICS_BACKEND "opengl" CACHE STRING "Graphics backend: d3d6, opengl, stub")
+set(GRAPHICS_BACKEND "d3d6" CACHE STRING "Graphics backend: d3d6, opengl, stub")
 
 if(GRAPHICS_BACKEND STREQUAL "d3d6")
     set(BACKEND_SOURCES
