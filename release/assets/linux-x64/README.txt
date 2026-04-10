@@ -7,8 +7,7 @@ https://github.com/UltimaBeaR/OpenChaos
 How to run
 ----------
 
-Urban Chaos is not officially available on Linux. You need to obtain the
-game files from a Windows installation.
+Linux:
 
 1. Purchase Urban Chaos on Steam (Windows)
 2. On your Windows machine, locate the game folder:
@@ -16,15 +15,20 @@ game files from a Windows installation.
 3. Copy the entire game folder to your Linux machine (use a clean, unmodified
    copy without third-party mods or DLL wrappers - they may conflict with OpenChaos)
 4. Copy the contents of this archive into the game folder
-5. Double-click OpenChaos.sh in the game folder to launch the game.
+5. Run OpenChaos.sh
 
-   From terminal: cd "/path/to/Urban Chaos" && ./OpenChaos.sh
+Steam Deck:
 
-Steam Deck
-----------
-
-Works out of the box in Desktop Mode. Copy the archive contents into
-the game folder and run OpenChaos.sh or add it as a non-Steam game.
+1. Purchase Urban Chaos on Steam (Windows)
+2. On your Windows machine, locate the game folder:
+   C:\Program Files (x86)\Steam\steamapps\common\Urban Chaos\
+3. Copy the entire game folder to your Steam Deck (use a clean, unmodified
+   copy without third-party mods or DLL wrappers - they may conflict with OpenChaos)
+4. Copy the contents of this archive into the game folder
+5. In Desktop Mode, open Steam → Library → "Add a Game" → "Add a Non-Steam Game"
+6. Click "Browse" and select OpenChaos.sh in the game folder
+7. Switch to Game Mode — OpenChaos will appear in your Library
+8. Launch from there
 
 Controls
 --------
