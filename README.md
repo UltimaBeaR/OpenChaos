@@ -91,4 +91,4 @@ This project is based on the following fork chain:
 ## Language
 
 This README and public-facing documentation are in English.
-In-depth project documentation (planning, knowledge base, dev notes) is written in Russian.
+In-depth project documentation (planning, knowledge base, dev notes) is written in Russian — this is the developer's native language, chosen for convenience during solo development. If the project gains active community contributors, all internal documentation can be translated to English — this would be easy to do.
