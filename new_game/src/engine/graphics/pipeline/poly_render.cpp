@@ -421,7 +421,7 @@ void POLY_init_render_states()
             case POLY_PAGE_LEAF:
                 SET_TEXTURE((TEXTURE_page_leaf));
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
-                pa->RS.SetDepthWrite(false);
+                pa->RS.SetDepthWrite(true);
                 pa->RS.SetAlphaTestEnabled(true);
 
                 break;
@@ -429,7 +429,7 @@ void POLY_init_render_states()
             case POLY_PAGE_RUBBISH:
                 SET_TEXTURE((TEXTURE_page_rubbish));
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
-                pa->RS.SetDepthWrite(false);
+                pa->RS.SetDepthWrite(true);
                 pa->RS.SetAlphaTestEnabled(true);
 
                 break;

@@ -275,61 +275,6 @@ void AENG_get_rid_of_deleteme_squares(void);
 // Globals for chunk 2: shadow projection, dirt/debris, pow (explosion sprites)
 // ---------------------------------------------------------------------------
 
-// uc_orig: AENG_MAX_DIRT_LVERTS (fallen/DDEngine/Source/aeng.cpp)
-#define AENG_MAX_DIRT_LVERTS (64 * 3)
-
-// uc_orig: AENG_MAX_DIRT_INDICES (fallen/DDEngine/Source/aeng.cpp)
-#define AENG_MAX_DIRT_INDICES (AENG_MAX_DIRT_LVERTS * 4 / 3)
-
-// uc_orig: AENG_dirt_lvert_buffer (fallen/DDEngine/Source/aeng.cpp)
-// 32-byte aligned GEVertexLit scratch buffer for batched dirt/debris rendering.
-extern GEVertexLit AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
-
-// uc_orig: AENG_dirt_lvert (fallen/DDEngine/Source/aeng.cpp)
-// Pointer into AENG_dirt_lvert_buffer aligned to 32 bytes.
-extern GEVertexLit* AENG_dirt_lvert;
-
-// uc_orig: AENG_dirt_lvert_upto (fallen/DDEngine/Source/aeng.cpp)
-// Number of vertices currently written into AENG_dirt_lvert.
-extern SLONG AENG_dirt_lvert_upto;
-
-// uc_orig: AENG_dirt_index (fallen/DDEngine/Source/aeng.cpp)
-// Index buffer for indexed triangle rendering of dirt quads/triangles.
-extern UWORD AENG_dirt_index[AENG_MAX_DIRT_INDICES];
-
-// uc_orig: AENG_dirt_index_upto (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_dirt_index_upto;
-
-// uc_orig: AENG_dirt_matrix_buffer (fallen/DDEngine/Source/aeng.cpp)
-// Raw storage for a 32-byte aligned GEMatrix.
-extern UBYTE AENG_dirt_matrix_buffer[sizeof(GEMatrix) + 32];
-
-// uc_orig: AENG_dirt_matrix (fallen/DDEngine/Source/aeng.cpp)
-// Pointer into AENG_dirt_matrix_buffer, aligned to 32 bytes.
-extern GEMatrix* AENG_dirt_matrix;
-
-// uc_orig: AENG_MAX_DIRT_UVLOOKUP (fallen/DDEngine/Source/aeng.cpp)
-// Number of precomputed UV entries for leaf/snowflake rotation table.
-#define AENG_MAX_DIRT_UVLOOKUP 16
-
-// uc_orig: AENG_dirt_uvlookup (fallen/DDEngine/Source/aeng.cpp)
-// Precomputed UV coordinates for 16 rotation angles around the leaf/snowflake texture.
-// Anonymous struct in original — named AENG_DirtUV here for linkage.
-struct AENG_DirtUV
-{
-    float u;
-    float v;
-};
-extern AENG_DirtUV AENG_dirt_uvlookup[AENG_MAX_DIRT_UVLOOKUP];
-
-// uc_orig: AENG_dirt_uvlookup_valid (fallen/DDEngine/Source/aeng.cpp)
-// Non-zero when AENG_dirt_uvlookup is populated for the current world_type.
-extern SLONG AENG_dirt_uvlookup_valid;
-
-// uc_orig: AENG_dirt_uvlookup_world_type (fallen/DDEngine/Source/aeng.cpp)
-// world_type value for which the current UV lookup table was computed.
-extern SWORD AENG_dirt_uvlookup_world_type;
-
 // uc_orig: aeng_pow (fallen/DDEngine/Source/aeng.cpp)
 // Projected screen-space entry for one explosion sprite, sorted into a depth bucket.
 typedef struct aeng_pow

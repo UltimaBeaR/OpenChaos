@@ -642,6 +642,7 @@ struct GERenderState {
     int32_t ZLift() { return DepthBias; }
     void WrapJustOnce() { WrapOnce = true; }
     bool IsAlphaBlendEnabled() { return AlphaBlendEnabled; }
+    bool IsAdditiveBlend() { return AlphaBlendEnabled && DstBlend == GEBlendFactor::One; }
 
     bool IsSameRenderState(GERenderState* pRS);
 

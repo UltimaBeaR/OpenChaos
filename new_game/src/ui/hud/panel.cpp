@@ -4,6 +4,7 @@
 //
 // Chunk 1: core drawing utilities + icon tables + beat/toss/face/text init
 
+#include "version.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 #include "engine/platform/sdl3_bridge.h"
@@ -2420,33 +2421,11 @@ void PANEL_last(void)
 
         if (timestamp_colour) {
             if (!version_number[0]) {
-                CBYTE ts[256];
-                float vn;
-
-                sprintf(ts, __DATE__);
-
-                CBYTE* month[12] = {
-                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-                };
-
-                SLONG i;
-
-                vn = 0.0F;
-
-                for (i = 0; i < 12; i++) {
-                    if (toupper(ts[0]) == toupper(month[i][0]) && toupper(ts[1]) == toupper(month[i][1]) && toupper(ts[2]) == toupper(month[i][2])) {
-                        vn = i - 8.0F;
-                    }
-                }
-
-                SLONG day = atoi(ts + 4);
-                vn += day * 0.03F;
-
-                SLONG year = atoi(ts + 7);
-                vn += (year - 1999) * 12;
-
-                sprintf(version_number, "Version number %.2f : Compiled %s", vn, __DATE__);
+#ifdef NDEBUG
+                sprintf(version_number, "OpenChaos v%s (%s)", OPENCHAOS_VERSION, __DATE__);
+#else
+                sprintf(version_number, "OpenChaos v%s DEBUG (%s)", OPENCHAOS_VERSION, __DATE__);
+#endif
             }
 
             timestamp_colour -= 0x10101010;

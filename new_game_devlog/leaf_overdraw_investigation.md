@@ -120,8 +120,79 @@ Alpha ref: 0x07 в обоих. Alpha func: Greater в обоих.
 - В **PieroZ D3D6 сборке** — дым и взрывы корректно поверх листьев/крон/fences → PieroZ пофиксил. Примечание: билборды света (bloom) у PieroZ не отображаются вообще, но дым/взрывы работают правильно
 - В **нашем коде** (любой коммит, любой бэкенд) проблема есть → баг в пре-релизных исходниках, не внесён нами
 
-## Дальнейшие действия
+## Анализ фикса PieroZ (2026-04-10)
 
-1. **Посмотреть коммиты PieroZ** (`github.com/PieroZ/MuckyFoot-UrbanChaos`) — найти фикс этой проблемы. PieroZ работал с теми же исходниками и пофиксил.
-2. Портировать фикс PieroZ в наш код.
-3. Если фикс PieroZ не найдётся — сравнить рендеринг пре-релиза с финальной PC-версией (лонгплеи) для понимания что изменилось.
+Проверены коммиты PieroZ между `74749db` (база, совпадает с нашим `original_game/`) и тегом `v0.2.0`.
+
+### Ключевые коммиты
+
+1. **`656ecb3` — "Fix for the disappearing dirt (eg. leaves)"** — основной фикс для листьев/debris
+2. **`3b6d0f1` — "Fixed characters z-order graphical issue"** — фикс для персонажей/трупов
+3. **`ee7525d` — "aeng render refactor, fixing z-order graphical issue with characters"** — подготовительный рефакторинг
+
+### Что именно PieroZ сделал
+
+**Суть фикса: перевод объектов с immediate draw на deferred PolyPage pipeline.**
+
+#### 1. Листья на земле (ground debris) — из immediate в deferred
+
+В `656ecb3` PieroZ раскомментировал блок `#if 0` → `#if 1` для `DIRT_INFO_TYPE_LEAF` в `AENG_draw_dirt()`. Теперь ground leaves рисуются через `POLY_add_triangle(tri, LEAF_PAGE, FALSE)` — попадают в deferred PolyPage буфер и участвуют в alpha sort вместе с bloom/огнём/дымом. Ранее этот путь был закомментирован в пре-релизных исходниках (`#if 0`).
+
+Также использованы локальные `POLY_Point pzi2_pp[3]` + `POLY_Point* tri[3]` вместо глобальных `pp[]`/`quad[]`.
+
+#### 2. Canopy (листва деревьев) — immediate draw отключён
+
+В том же `656ecb3` `DrawIndexedPrimitive` для canopy **закомментирован** (aeng.cpp, финальный блок "Draw left-over leaves"). Canopy перестал рисоваться через immediate path. Место помечено `// INSERT SNIPPET HERE` — возможно PieroZ планировал доделать, но в v0.2.0 canopy фактически не рисуется через immediate draw.
+
+#### 3. Порядок вызовов изменён
+
+У PieroZ в v0.2.0:
+```
+AENG_draw_dirt()        // строка 11517 — dirt ДО flush
+POLY_frame_draw()       // строка 11526 — flush ПОСЛЕ dirt
+```
+
+У нас:
+```
+POLY_frame_draw()       // строка 6783 — flush ДО dirt
+AENG_draw_dirt()        // строка 6793 — dirt ПОСЛЕ flush
+POLY_frame_draw()       // строка 6799 — второй flush для mesh polys
+```
+
+Благодаря порядку dirt→flush все deferred полигоны от dirt (листья через `POLY_add_triangle`) попадают в общий flush вместе с bloom/огнём и сортируются корректно.
+
+#### 4. Персонажи/трупы — deferred вместо immediate
+
+В `3b6d0f1` PieroZ:
+- Заменил все `#if USE_TOMS_ENGINE_PLEASE_BOB` → `#if 0` в `figure.cpp` — отключил immediate render path для фигур
+- Установил `DRAW_WHOLE_PERSON_AT_ONCE 0` — отключил батчевый immediate draw
+- Включил (`#if 0` → `#if 1`) вызовы `FIGURE_draw_prim_tween()` которые используют deferred path
+
+### Вывод
+
+Общий паттерн фикса: **все объекты, которые рисовались через immediate draw (минуя alpha sort), переведены на deferred PolyPage pipeline**, где они участвуют в alpha sort наравне с additive эффектами. Плюс порядок вызовов изменён на dirt→flush.
+
+## Применённый фикс (2026-04-10)
+
+На основе анализа PieroZ + собственные доработки. Три изменения:
+
+### 1. Листья/снег — из immediate draw в deferred PolyPage (aeng.cpp)
+
+DIRT_TYPE_LEAF/SNOW переведены с `ge_draw_indexed_primitive_lit` (immediate batch) на `POLY_transform` + `POLY_add_triangle` (deferred PolyPage pipeline). Batch-инфраструктура удалена (`AENG_dirt_lvert_*`, `AENG_dirt_index_*`, UV lookup table). `AENG_draw_dirt()` перемещён ДО `POLY_frame_draw()` — все deferred полигоны от dirt в одном flush.
+
+### 2. DepthWrite=true для POLY_PAGE_LEAF и POLY_PAGE_RUBBISH (poly_render.cpp)
+
+Было: DepthWrite=false → NeedsSorting()=true → sorted pass вместе с bloom → back-to-front: лист ближе камеры рисуется ПОСЛЕ bloom → перезаписывает.
+Стало: DepthWrite=true → NeedsSorting()=false → opaque pass (рисуется первым). Bloom в sorted pass рисуется поверх. Текстуры бинарный cutout (alpha=0 или 255) — DepthWrite=true корректен.
+
+### 3. Sorted pass разделён на non-additive → additive фазы (poly.cpp)
+
+Решает проблему кроны деревьев (prim mesh, face pages с POLY_PAGE_FLAG_ALPHA → DepthWrite=false → sorted pass). Крона alpha-blended, bloom additive — оба в sorted pass, но в разных фазах:
+1. Фаза 1: non-additive (крона, ограждения) — рисуются первыми, НЕ пишут depth
+2. Фаза 2: additive (bloom, fire, smoke) — depth test проходит через крону → glow виден сквозь листву
+
+Метод `IsAdditiveBlend()` добавлен в `GERenderState` (game_graphics_engine.h).
+
+### Результат
+
+Визуально проверено — ground leaves, газетки, крона деревьев теперь корректно рисуются под additive эффектами. Требуется дальнейшее тестирование на разных миссиях и с трупами/ограждениями.

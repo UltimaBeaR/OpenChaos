@@ -195,36 +195,6 @@ float AENG_project_fadeout_z;
 // Chunk 2 globals: dirt/debris, pow (explosion sprites)
 // ---------------------------------------------------------------------------
 
-// uc_orig: AENG_dirt_lvert_buffer (fallen/DDEngine/Source/aeng.cpp)
-GEVertexLit AENG_dirt_lvert_buffer[AENG_MAX_DIRT_LVERTS + 1];
-
-// uc_orig: AENG_dirt_lvert (fallen/DDEngine/Source/aeng.cpp)
-GEVertexLit* AENG_dirt_lvert;
-
-// uc_orig: AENG_dirt_lvert_upto (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_dirt_lvert_upto;
-
-// uc_orig: AENG_dirt_index (fallen/DDEngine/Source/aeng.cpp)
-UWORD AENG_dirt_index[AENG_MAX_DIRT_INDICES];
-
-// uc_orig: AENG_dirt_index_upto (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_dirt_index_upto;
-
-// uc_orig: AENG_dirt_matrix_buffer (fallen/DDEngine/Source/aeng.cpp)
-UBYTE AENG_dirt_matrix_buffer[sizeof(GEMatrix) + 32];
-
-// uc_orig: AENG_dirt_matrix (fallen/DDEngine/Source/aeng.cpp)
-GEMatrix* AENG_dirt_matrix;
-
-// uc_orig: AENG_dirt_uvlookup (fallen/DDEngine/Source/aeng.cpp)
-AENG_DirtUV AENG_dirt_uvlookup[AENG_MAX_DIRT_UVLOOKUP];
-
-// uc_orig: AENG_dirt_uvlookup_valid (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_dirt_uvlookup_valid;
-
-// uc_orig: AENG_dirt_uvlookup_world_type (fallen/DDEngine/Source/aeng.cpp)
-SWORD AENG_dirt_uvlookup_world_type;
-
 // uc_orig: AENG_pow (fallen/DDEngine/Source/aeng.cpp)
 AENG_Pow AENG_pow[AENG_MAX_POWS];
 

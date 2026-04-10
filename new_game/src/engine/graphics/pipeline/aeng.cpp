@@ -1845,8 +1845,6 @@ void AENG_draw_dirt()
     float vbase;
 
     float matrix[9];
-    PolyPage* pp;
-    GEVertexLit* lv;
     ULONG rubbish_colour;
 
     ULONG leaf_colour_choice_rgb[4] = {
@@ -1856,38 +1854,6 @@ void AENG_draw_dirt()
         0x332f07
     };
 
-    if (AENG_dirt_uvlookup_valid && AENG_dirt_uvlookup_world_type == world_type) {
-        // Valid lookup table.
-    } else {
-        // Calculate the uvlookup table.
-
-        for (i = 0; i < AENG_MAX_DIRT_UVLOOKUP; i++) {
-            float angle = float(i) * (2.0F * PI / AENG_MAX_DIRT_UVLOOKUP);
-
-            float cangle;
-            float sangle;
-
-            sangle = sinf(angle);
-            cangle = cosf(angle);
-
-            if (world_type == WORLD_TYPE_SNOW) {
-                pp = &POLY_Page[POLY_PAGE_SNOWFLAKE];
-                AENG_dirt_uvlookup[i].u = SNOW_CENTRE_U + sangle * SNOW_RADIUS;
-                AENG_dirt_uvlookup[i].v = SNOW_CENTRE_V + cangle * SNOW_RADIUS;
-            } else {
-                pp = &POLY_Page[POLY_PAGE_LEAF];
-                AENG_dirt_uvlookup[i].u = LEAF_CENTRE_U + sangle * LEAF_RADIUS;
-                AENG_dirt_uvlookup[i].v = LEAF_CENTRE_V + cangle * LEAF_RADIUS;
-            }
-
-            AENG_dirt_uvlookup[i].u = AENG_dirt_uvlookup[i].u * pp->m_UScale + pp->m_UOffset;
-            AENG_dirt_uvlookup[i].v = AENG_dirt_uvlookup[i].v * pp->m_VScale + pp->m_VOffset;
-        }
-
-        AENG_dirt_uvlookup_valid = UC_TRUE;
-        AENG_dirt_uvlookup_world_type = world_type;
-    }
-
     for (i = 0; i < 4; i++) {
         leaf_colour_choice_rgb[i] = AENG_colour_mult(leaf_colour_choice_rgb[i], NIGHT_amb_colour);
     }
@@ -1896,12 +1862,6 @@ void AENG_draw_dirt()
 
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();
-
-    AENG_dirt_lvert_upto = 0;
-    AENG_dirt_index_upto = 0;
-
-    AENG_dirt_lvert = (GEVertexLit*)(((uintptr_t)(AENG_dirt_lvert_buffer) + 31) & ~(uintptr_t)0x1f);
-    AENG_dirt_matrix = (GEMatrix*)(((uintptr_t)(AENG_dirt_matrix_buffer) + 31) & ~(uintptr_t)0x1f);
 
     DIRT_Dirt* dd;
 
@@ -1939,30 +1899,6 @@ void AENG_draw_dirt()
         case DIRT_TYPE_SNOW:
 
         {
-            if (AENG_dirt_lvert_upto + 4 > AENG_MAX_DIRT_LVERTS) {
-                // Flush current batch.
-                POLY_set_local_rotation_none();
-
-                if (world_type == WORLD_TYPE_SNOW) {
-                    POLY_Page[POLY_PAGE_SNOWFLAKE].RS.SetChanged();
-                } else {
-                    POLY_Page[POLY_PAGE_LEAF].RS.SetChanged();
-                }
-
-                ge_draw_indexed_primitive_lit(GEPrimitiveType::TriangleList,
-                    reinterpret_cast<const GEVertexLit*>(AENG_dirt_lvert),
-                    AENG_dirt_lvert_upto,
-                    AENG_dirt_index,
-                    AENG_dirt_index_upto);
-
-                AENG_dirt_lvert_upto = 0;
-                AENG_dirt_index_upto = 0;
-
-                lv = AENG_dirt_lvert;
-            } else {
-                lv = &AENG_dirt_lvert[AENG_dirt_lvert_upto];
-            }
-
             if ((i & 0xf) == 0 && !estate && world_type != WORLD_TYPE_SNOW) {
                 // Rubbish (litter: paper, money, etc.) — drawn via POLY_add_quad
                 // with its own texture page, NOT batched with leaves.
@@ -2049,41 +1985,38 @@ void AENG_draw_dirt()
                     DIRT_mark_as_offscreen(i);
                 }
             } else {
-                // Leaf or snowflake
+                // Leaf or snowflake — deferred path via POLY_add_triangle
+                // for correct alpha sort with additive effects (bloom, fire, smoke).
+
+                POLY_Point leaf_pp[3];
+                POLY_Point* tri[3];
+                tri[0] = &leaf_pp[0];
+                tri[1] = &leaf_pp[1];
+                tri[2] = &leaf_pp[2];
 
                 float leaf_size = LEAF_SIZE;
+                float wx[3], wy[3], wz[3];
 
                 if ((dd->pitch | dd->roll) == 0) {
                     // Common case — no rotation.
-                    lv[0].x = float(dd->x);
-                    lv[0].y = float(dd->y + LEAF_UP);
-                    lv[0].z = float(dd->z + leaf_size);
+                    wx[0] = float(dd->x);
+                    wy[0] = float(dd->y + LEAF_UP);
+                    wz[0] = float(dd->z + leaf_size);
 
-                    lv[1].x = float(dd->x + leaf_size);
-                    lv[1].y = float(dd->y + LEAF_UP);
-                    lv[1].z = float(dd->z - leaf_size);
+                    wx[1] = float(dd->x + leaf_size);
+                    wy[1] = float(dd->y + LEAF_UP);
+                    wz[1] = float(dd->z - leaf_size);
 
-                    lv[2].x = float(dd->x - leaf_size);
-                    lv[2].y = float(dd->y + LEAF_UP);
-                    lv[2].z = float(dd->z - leaf_size);
+                    wx[2] = float(dd->x - leaf_size);
+                    wy[2] = float(dd->y + LEAF_UP);
+                    wz[2] = float(dd->z - leaf_size);
                 } else {
                     fpitch = float(dd->pitch) * (PI / 1024.0F);
                     froll = float(dd->roll) * (PI / 1024.0F);
 
-                    // Rotation matrix (yaw = 0 optimisation from MATRIX_calc):
-                    float cy, cp, cr;
-                    float sy, sp, sr;
-
-                    sy = 0.0F;
-                    cy = 1.0F;
-
-                    sp = sin(fpitch);
-                    sr = sin(froll);
-
-                    cp = cos(fpitch);
-                    cr = cos(froll);
-
-                    // Note: matrix[3..5] intentionally left undefined.
+                    float cy = 1.0F, sy = 0.0F;
+                    float sp = sinf(fpitch), cp = cosf(fpitch);
+                    float sr = sinf(froll), cr = cosf(froll);
 
                     matrix[0] = cy * cr + sy * sp * sr;
                     matrix[6] = sy * cp;
@@ -2095,71 +2028,61 @@ void AENG_draw_dirt()
                     matrix[0] *= leaf_size;
                     matrix[1] *= leaf_size;
                     matrix[2] *= leaf_size;
-
                     matrix[6] *= leaf_size;
                     matrix[7] *= leaf_size;
                     matrix[8] *= leaf_size;
 
-                    lv[0].x = float(dd->x);
-                    lv[0].y = float(dd->y + LEAF_UP);
-                    lv[0].z = float(dd->z);
+                    wx[0] = float(dd->x) + matrix[6];
+                    wy[0] = float(dd->y + LEAF_UP) + matrix[7];
+                    wz[0] = float(dd->z) + matrix[8];
 
-                    lv[1].x = lv[0].x - matrix[6] + matrix[0];
-                    lv[1].y = lv[0].y - matrix[7] + matrix[1];
-                    lv[1].z = lv[0].z - matrix[8] + matrix[2];
+                    wx[1] = float(dd->x) - matrix[6] + matrix[0];
+                    wy[1] = float(dd->y + LEAF_UP) - matrix[7] + matrix[1];
+                    wz[1] = float(dd->z) - matrix[8] + matrix[2];
 
-                    lv[2].x = lv[0].x - matrix[6] - matrix[0];
-                    lv[2].y = lv[0].y - matrix[7] - matrix[1];
-                    lv[2].z = lv[0].z - matrix[8] - matrix[2];
-
-                    lv[0].x += matrix[6];
-                    lv[0].y += matrix[7];
-                    lv[0].z += matrix[8];
+                    wx[2] = float(dd->x) - matrix[6] - matrix[0];
+                    wy[2] = float(dd->y + LEAF_UP) - matrix[7] - matrix[1];
+                    wz[2] = float(dd->z) - matrix[8] - matrix[2];
                 }
 
-                if (world_type == WORLD_TYPE_SNOW) {
-                    DWORD dwColour = ((i & 0x0f) << 2) + 0xc0;
-                    dwColour *= 0x010101;
-                    dwColour |= 0xff000000;
+                SLONG leaf_page = (world_type == WORLD_TYPE_SNOW) ? POLY_PAGE_SNOWFLAKE : POLY_PAGE_LEAF;
 
-                    lv[0].color = dwColour;
-                    lv[0].specular = 0xff000000;
+                SLONG all_valid = UC_TRUE;
+                float angle = float(i);
+                for (SLONG j = 0; j < 3; j++) {
+                    POLY_transform(wx[j], wy[j], wz[j], &leaf_pp[j]);
 
-                    lv[1].color = dwColour;
-                    lv[1].specular = 0xff000000;
+                    if (!leaf_pp[j].MaybeValid()) {
+                        all_valid = UC_FALSE;
+                        break;
+                    }
 
-                    lv[2].color = dwColour;
-                    lv[2].specular = 0xff000000;
+                    if (world_type == WORLD_TYPE_SNOW) {
+                        leaf_pp[j].u = SNOW_CENTRE_U + SNOW_RADIUS * sinf(angle);
+                        leaf_pp[j].v = SNOW_CENTRE_V + SNOW_RADIUS * cosf(angle);
+                    } else {
+                        leaf_pp[j].u = LEAF_U(angle);
+                        leaf_pp[j].v = LEAF_V(angle);
+                    }
+                    angle += 2.0F * PI / 3.0F;
+
+                    if (world_type == WORLD_TYPE_SNOW) {
+                        DWORD dwColour = ((i & 0x0f) << 2) + 0xc0;
+                        dwColour *= 0x010101;
+                        dwColour |= 0xff000000;
+                        leaf_pp[j].colour = dwColour;
+                    } else {
+                        leaf_colour = leaf_colour_choice_rgb[i & 0x3];
+                        leaf_pp[j].colour = (leaf_colour * (j + 3)) | 0xff000000;
+                    }
+                    leaf_pp[j].specular = 0xff000000;
+                }
+
+                if (all_valid) {
+                    POLY_add_triangle(tri, leaf_page, UC_FALSE);
                 } else {
-                    leaf_colour = leaf_colour_choice_rgb[i & 0x3];
-
-                    lv[0].color = (leaf_colour * 3) | 0xff000000;
-                    lv[0].specular = 0xff000000;
-
-                    lv[1].color = (leaf_colour * 4) | 0xff000000;
-                    lv[1].specular = 0xff000000;
-
-                    lv[2].color = (leaf_colour * 5) | 0xff000000;
-                    lv[2].specular = 0xff000000;
+                    DIRT_mark_as_offscreen(i);
                 }
-
-                lv[0].tu = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 0 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].u;
-                lv[0].tv = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 0 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].v;
-
-                lv[1].tu = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 1 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].u;
-                lv[1].tv = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 1 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].v;
-
-                lv[2].tu = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 2 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].u;
-                lv[2].tv = AENG_dirt_uvlookup[(i + (AENG_MAX_DIRT_UVLOOKUP * 2 / 3)) & (AENG_MAX_DIRT_UVLOOKUP - 1)].v;
-
-                ASSERT(AENG_dirt_index_upto + 3 <= AENG_MAX_DIRT_INDICES);
-
-                AENG_dirt_index[AENG_dirt_index_upto + 0] = AENG_dirt_lvert_upto + 0;
-                AENG_dirt_index[AENG_dirt_index_upto + 1] = AENG_dirt_lvert_upto + 1;
-                AENG_dirt_index[AENG_dirt_index_upto + 2] = AENG_dirt_lvert_upto + 2;
-
-                AENG_dirt_index_upto += 3;
-                AENG_dirt_lvert_upto += 3;
             }
         }
 
@@ -2271,22 +2194,6 @@ void AENG_draw_dirt()
     do_next_dirt:;
     }
 
-    // Draw remaining leaves/snowflakes.
-    if (AENG_dirt_lvert_upto) {
-        POLY_set_local_rotation_none();
-
-        if (world_type == WORLD_TYPE_SNOW) {
-            POLY_Page[POLY_PAGE_SNOWFLAKE].RS.SetChanged();
-        } else {
-            POLY_Page[POLY_PAGE_LEAF].RS.SetChanged();
-        }
-
-        ge_draw_indexed_primitive_lit(GEPrimitiveType::TriangleList,
-            reinterpret_cast<const GEVertexLit*>(AENG_dirt_lvert),
-            AENG_dirt_lvert_upto,
-            AENG_dirt_index,
-            AENG_dirt_index_upto);
-    }
 }
 
 // uc_orig: AENG_draw_pows (fallen/DDEngine/Source/aeng.cpp)
@@ -6780,23 +6687,21 @@ void AENG_draw_city()
 
     BreakTime("Drawn other crap");
 
-    POLY_frame_draw(UC_TRUE, UC_TRUE);
-
-    BreakTime("Done final polygon flush");
-
     //
     // The dirt.
+    // Drawn BEFORE the final flush so that deferred polys from dirt (leaves, droplets,
+    // mesh objects like cans/brass) participate in alpha sort together with additive
+    // effects (bloom, fire, smoke). Fixes pre-release overdraw bug where leaves/debris
+    // rendered over additive effects.
     //
 
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
-    // Pre-release bug: AENG_draw_dirt() adds polygons via MESH_draw_poly() (cans, brass,
-    // etc.) into the deferred PolyPage buffer, but the final POLY_frame_draw() above runs
-    // BEFORE dirt. Without this flush, those polygons are never rendered. The Dreamcast port
-    // has a flush after dirt (original aeng.cpp:13844), confirming this was fixed in later builds.
     POLY_frame_draw(UC_TRUE, UC_TRUE);
+
+    BreakTime("Done final polygon flush");
     // Cope with some wacky internals.
     POLY_set_local_rotation_none();
     POLY_flush_local_rot();

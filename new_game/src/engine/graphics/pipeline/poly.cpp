@@ -1946,7 +1946,13 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             }
         }
 
-        // Alpha-sort phase: bucket polys by depth and render front-to-back.
+        // Alpha-sort phase: bucket polys by depth and render back-to-front.
+        // Split into two sub-phases:
+        //   1. Non-additive sorted pages (alpha-blended geometry: canopy, fences, etc.)
+        //   2. Additive sorted pages (bloom, fire, smoke, explosions)
+        // This ensures additive effects render OVER alpha-blended objects. Since
+        // alpha-blended objects don't write depth, the additive depth test passes
+        // through them, creating correct glow-through-foliage behavior.
         PolyPoly* buckets[2048];
 
         for (i = 0; i < 2048; i++)
@@ -1967,10 +1973,9 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             pa->AddToBuckets(buckets, 2048);
         }
 
-        // Batched alpha sort: accumulate indices per page run, flush on page change.
-        // Instead of 350+ DrawSinglePoly calls (one GL draw each), this produces
-        // ~10-20 batched draws grouped by consecutive same-page runs.
-        {
+        // Sub-phase 1: non-additive sorted polys (alpha-blended geometry).
+        // Sub-phase 2: additive sorted polys (bloom, fire, smoke).
+        for (SLONG phase = 0; phase < 2; phase++) {
             PolyPage* cur_page = NULL;
             UWORD* dst = IxBuffer;
 
@@ -1978,30 +1983,32 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 PolyPoly* p = buckets[i];
 
                 while (p) {
-                    if (p->page != cur_page) {
-                        // Flush accumulated indices for previous page.
-                        if (cur_page && dst != IxBuffer) {
-                            cur_page->RS.SetChanged();
-                            cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
-                            dst = IxBuffer;
-                        }
-                        cur_page = p->page;
-                    }
+                    bool is_additive = p->page->RS.IsAdditiveBlend();
+                    bool draw_this = (phase == 0) ? !is_additive : is_additive;
 
-                    // Accumulate triangle fan as indexed triangles.
-                    UWORD v1 = p->first_vertex;
-                    for (ULONG jj = 2; jj < p->num_vertices; jj++) {
-                        ASSERT(dst - IxBuffer + 3 < 65536);
-                        *dst++ = v1;
-                        *dst++ = v1 + jj - 1;
-                        *dst++ = v1 + jj;
+                    if (draw_this) {
+                        if (p->page != cur_page) {
+                            if (cur_page && dst != IxBuffer) {
+                                cur_page->RS.SetChanged();
+                                cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
+                                dst = IxBuffer;
+                            }
+                            cur_page = p->page;
+                        }
+
+                        UWORD v1 = p->first_vertex;
+                        for (ULONG jj = 2; jj < p->num_vertices; jj++) {
+                            ASSERT(dst - IxBuffer + 3 < 65536);
+                            *dst++ = v1;
+                            *dst++ = v1 + jj - 1;
+                            *dst++ = v1 + jj;
+                        }
                     }
 
                     p = p->next;
                 }
             }
 
-            // Flush final batch.
             if (cur_page && dst != IxBuffer) {
                 cur_page->RS.SetChanged();
                 cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
