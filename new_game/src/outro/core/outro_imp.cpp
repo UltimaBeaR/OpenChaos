@@ -1,4 +1,5 @@
 #include "outro/core/outro_imp.h"
+#include "engine/io/file.h"
 
 // Returns UC_TRUE if the angle between two normals is small enough to be considered
 // the same for smoothing group purposes (dot product > 0.999).
@@ -192,7 +193,7 @@ IMP_Mesh IMP_load(CBYTE* fname, float scale)
         goto file_error;
     }
 
-    handle = fopen(fname, "rb");
+    handle = fopen_ci(fname, "rb");
 
     if (!handle) {
         goto file_error;
@@ -909,7 +910,7 @@ static int IMP_write_mat_array(FILE* handle, IMP_Mat* mats, SLONG count)
 // uc_orig: IMP_binary_save (fallen/outro/imp.cpp)
 SLONG IMP_binary_save(CBYTE* fname, IMP_Mesh* im)
 {
-    FILE* handle = fopen(fname, "wb");
+    FILE* handle = fopen_ci(fname, "wb");
 
     if (!handle) {
         return UC_FALSE;
@@ -1023,7 +1024,7 @@ IMP_Mesh IMP_binary_load(CBYTE* fname)
 
     memset(&ans, 0, sizeof(ans));
 
-    FILE* handle = fopen(fname, "rb");
+    FILE* handle = fopen_ci(fname, "rb");
 
     if (!handle) {
         return ans;

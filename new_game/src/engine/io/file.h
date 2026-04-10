@@ -79,4 +79,8 @@ FILE* MF_Fopen(const char* file_name, const char* mode);
 // uc_orig: MF_Fclose (MFStdLib/Source/StdLib/StdFile.cpp)
 int MF_Fclose(FILE* stream);
 
+// Case-insensitive fopen: on Linux/macOS resolves each path component
+// case-insensitively. On Windows just calls fopen (FS is CI already).
+FILE* fopen_ci(const char* path, const char* mode);
+
 #endif // ENGINE_IO_FILE_H

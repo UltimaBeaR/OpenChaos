@@ -4,6 +4,101 @@
 #include <cstring>
 #include <cstdio>
 
+#ifndef _WIN32
+#include <dirent.h>
+#include <strings.h>
+
+// Resolve a full path case-insensitively on Linux/macOS.
+// Walks each path component, scanning the directory for a case-insensitive match.
+// Returns true and writes the resolved path to `resolved` (must be >= 512 bytes).
+static bool resolve_path_ci(const char* path, char* resolved, size_t resolved_size)
+{
+    // Preserve leading absolute path prefix.
+    size_t pos = 0;
+    const char* rest = path;
+    if (path[0] == '/') {
+        resolved[0] = '/';
+        pos = 1;
+        rest = path + 1;
+    }
+
+    while (*rest) {
+        // Extract next path component.
+        const char* slash = strchr(rest, '/');
+        size_t comp_len = slash ? (size_t)(slash - rest) : strlen(rest);
+
+        char component[256];
+        if (comp_len >= sizeof(component)) return false;
+        memcpy(component, rest, comp_len);
+        component[comp_len] = '\0';
+
+        // Build current directory prefix for opendir.
+        char dir_so_far[512];
+        if (pos == 0) {
+            strcpy(dir_so_far, ".");
+        } else {
+            memcpy(dir_so_far, resolved, pos);
+            // Remove trailing slash for opendir.
+            if (pos > 1 && dir_so_far[pos - 1] == '/')
+                dir_so_far[pos - 1] = '\0';
+            else
+                dir_so_far[pos] = '\0';
+        }
+
+        // Try exact match first (fast path).
+        char candidate[512];
+        snprintf(candidate, sizeof(candidate), "%s/%s", dir_so_far, component);
+        // For intermediate dirs we could stat(), but just try opendir scan on mismatch.
+
+        DIR* d = opendir(dir_so_far);
+        if (!d) return false;
+
+        bool found = false;
+        struct dirent* entry;
+        while ((entry = readdir(d)) != NULL) {
+            if (strcasecmp(entry->d_name, component) == 0) {
+                size_t name_len = strlen(entry->d_name);
+                if (pos + name_len + 1 >= resolved_size) { closedir(d); return false; }
+                memcpy(resolved + pos, entry->d_name, name_len);
+                pos += name_len;
+                found = true;
+                break;
+            }
+        }
+        closedir(d);
+        if (!found) return false;
+
+        // Add slash separator if more components follow.
+        if (slash) {
+            resolved[pos++] = '/';
+            rest = slash + 1;
+        } else {
+            break;
+        }
+    }
+
+    resolved[pos] = '\0';
+    return true;
+}
+
+// Case-insensitive fopen fallback for Linux/macOS.
+// If exact path fails, resolve case-insensitively and retry.
+FILE* fopen_ci(const char* path, const char* mode)
+{
+    FILE* f = fopen(path, mode);
+    if (f) return f;
+
+    char resolved[512];
+    if (resolve_path_ci(path, resolved, sizeof(resolved))) {
+        return fopen(resolved, mode);
+    }
+    return NULL;
+}
+#else
+// On Windows the filesystem is case-insensitive, plain fopen is fine.
+FILE* fopen_ci(const char* path, const char* mode) { return fopen(path, mode); }
+#endif
+
 // Prepend cBasePath to filename. Returns pointer to static buffer.
 // Normalizes backslashes to forward slashes for cross-platform compatibility.
 // uc_orig: MakeFullPathName (MFStdLib/Source/StdLib/StdFile.cpp)
@@ -22,7 +117,7 @@ BOOL FileExists(CBYTE* file_name)
 {
     file_name = MakeFullPathName(file_name);
 
-    FILE* f = fopen(file_name, "rb");
+    FILE* f = fopen_ci(file_name, "rb");
     if (f) {
         fclose(f);
         return UC_TRUE;
@@ -35,7 +130,7 @@ MFFileHandle FileOpen(CBYTE* file_name)
 {
     file_name = MakeFullPathName(file_name);
 
-    FILE* f = fopen(file_name, "rb");
+    FILE* f = fopen_ci(file_name, "rb");
     if (!f) return FILE_OPEN_ERROR;
     return f;
 }
@@ -53,14 +148,14 @@ MFFileHandle FileCreate(CBYTE* file_name, BOOL overwrite)
 
     if (!overwrite) {
         // CREATE_NEW semantics: fail if file already exists.
-        FILE* test = fopen(file_name, "rb");
+        FILE* test = fopen_ci(file_name, "rb");
         if (test) {
             fclose(test);
             return FILE_CREATION_ERROR;
         }
     }
 
-    FILE* f = fopen(file_name, "w+b");
+    FILE* f = fopen_ci(file_name, "w+b");
     if (!f) return FILE_CREATION_ERROR;
     return f;
 }
@@ -69,7 +164,16 @@ MFFileHandle FileCreate(CBYTE* file_name, BOOL overwrite)
 void FileDelete(CBYTE* file_name)
 {
     file_name = MakeFullPathName(file_name);
+#ifndef _WIN32
+    char resolved[512];
+    if (resolve_path_ci(file_name, resolved, sizeof(resolved))) {
+        remove(resolved);
+    } else {
+        remove(file_name);
+    }
+#else
     remove(file_name);
+#endif
 }
 
 // uc_orig: FileSize (MFStdLib/Source/StdLib/StdFile.cpp)
@@ -171,7 +275,7 @@ FILE* MF_Fopen(const char* file_name, const char* mode)
         return NULL;
     }
     file_name = MakeFullPathName(file_name);
-    return fopen(file_name, mode);
+    return fopen_ci(file_name, mode);
 }
 
 // uc_orig: MF_Fclose (MFStdLib/Source/StdLib/StdFile.cpp)

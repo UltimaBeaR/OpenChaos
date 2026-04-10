@@ -22,7 +22,7 @@ When the user asks to create or prepare a release, walk them through these steps
 
 1. **Commit and tag.** Make sure all changes are committed and the release tag `v<X.Y.Z>` is created.
 
-2. **Build on each platform.** On every supported platform (currently Windows x64 and macOS ARM64):
+2. **Build on each platform.** On every supported platform (currently Windows x64, macOS ARM64, Linux x64):
    ```
    make configure
    make build-release
@@ -89,12 +89,12 @@ This is an early alpha. The game launches and is partially playable, but expect:
 
 1. Download the zip for your platform
 2. Extract into your Urban Chaos game folder (where the `data` folder is)
-3. Run `OpenChaos.exe` (Windows) or `OpenChaos.command` (macOS)
+3. Run `OpenChaos.exe` (Windows), `OpenChaos.command` (macOS), or `OpenChaos.sh` (Linux)
 
 ### Requirements
 
 * Original Urban Chaos game files (Steam or GOG version)
-* Windows 10+ (x64) or macOS 12+ (Apple Silicon)
+* Windows 10+ (x64), macOS 12+ (Apple Silicon), or Linux x86_64 (Steam Deck compatible)
 ```
 
 ### Formatting rules

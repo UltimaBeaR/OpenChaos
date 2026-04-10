@@ -13,16 +13,16 @@ reimplementation with modern tech.
 | Area         | Original                            | Now                                                                                                |
 | ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
 | Build system | MSVC vcxproj                        | CMake + Ninja + Clang++, vcpkg                                                                     |
-| Architecture | 32-bit x86 only                     | 64-bit (x64 on Windows, arm64 on macOS)                                                            |
+| Architecture | 32-bit x86 only                     | 64-bit (x64 on Windows/Linux, arm64 on macOS)                                                      |
 | Graphics     | Direct3D 6                          | OpenGL 4.1 Core Profile                                                                            |
 | Audio        | Miles Sound System                  | SDL3 + OpenAL Soft (3D positional sound)                                                           |
 | Input        | DirectInput (keyboard + joystick)   | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense with extras (adaptive triggers, LED lightbar) |
-| Platform     | Windows-only (Win32 API throughout) | Windows + macOS                                                                                    |
+| Platform     | Windows-only (Win32 API throughout) | Windows + macOS + Linux (Steam Deck)                                                               |
 
 - Unused code removed (PSX, Dreamcast, Glide, editors, debug, experimental features) — code is preprocessor-free
 - Codebase restructured into hierarchical modules (`engine/`, `game/`, `ui/`, `outro/`), every entity traceable to the original via `// uc_orig:` comments
 - Several pre-release visual bugs fixed (z-buffer ordering, invisible objects, foliage flickering, startup hang)
-- Ported to 64-bit and macOS
+- Ported to 64-bit, macOS, and Linux (including Steam Deck)
 
 ## Repository
 

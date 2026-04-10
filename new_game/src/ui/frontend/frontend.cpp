@@ -1082,10 +1082,11 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
         MFFileHandle file;
         sprintf(dir, "saves/slot%d.wag", c0);
         file = FileOpen(dir);
-        // Get file modification time for selecting most recent save.
+        // Get file modification time from the opened handle (avoids path issues).
         struct stat st;
-        time_t ftime = (stat(dir, &st) == 0) ? st.st_mtime : 0;
+        time_t ftime = 0;
         if (file != FILE_OPEN_ERROR) {
+            if (fstat(fileno(file), &st) == 0) ftime = st.st_mtime;
             FRONTEND_LoadString(file, ttl);
             FileClose(file);
         } else {

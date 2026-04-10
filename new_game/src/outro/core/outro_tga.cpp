@@ -1,4 +1,5 @@
 #include "outro/core/outro_tga.h"
+#include "engine/io/file.h"
 
 // uc_orig: OUTRO_TGA_FileLoad_Error (fallen/outro/OutroTga.cpp)
 OUTRO_TGA_Info OUTRO_TGA_FileLoad_Error(OUTRO_TGA_Info& ans, FILE*& handle, const CBYTE*& file)
@@ -35,7 +36,7 @@ OUTRO_TGA_Info OUTRO_TGA_load(
 
     OUTRO_TGA_Info ans {};
 
-    handle = fopen(file, "rb");
+    handle = fopen_ci(file, "rb");
 
     if (handle == NULL) {
         ans.valid = UC_FALSE;

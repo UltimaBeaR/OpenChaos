@@ -3,6 +3,7 @@
 
 #include "engine/audio/mfx_globals.h"
 #include "engine/core/math.h"
+#include <algorithm>
 #include <cmath>
 #include <AL/al.h>
 #include <AL/alext.h>

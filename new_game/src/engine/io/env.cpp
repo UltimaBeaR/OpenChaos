@@ -9,6 +9,7 @@
 
 #include "engine/io/env.h"
 #include "engine/io/env_globals.h"
+#include "engine/io/file.h"
 
 // --- Simple INI parser (internal) ---
 
@@ -26,7 +27,7 @@ static char* ini_trim(char* s)
 static bool ini_read_string(const char* filepath, const char* section, const char* key,
                             char* out, int out_size)
 {
-    FILE* f = fopen(filepath, "r");
+    FILE* f = fopen_ci(filepath, "r");
     if (!f) {
         out[0] = '\0';
         return false;
@@ -152,7 +153,7 @@ static void ini_write_string(const char* filepath, const char* section, const ch
                              const char* value)
 {
     // Read entire file into memory.
-    FILE* f = fopen(filepath, "r");
+    FILE* f = fopen_ci(filepath, "r");
 
     // Generous buffer — INI files are small.
     static char filebuf[32768];
@@ -242,7 +243,7 @@ static void ini_write_string(const char* filepath, const char* section, const ch
         }
     }
 
-    f = fopen(filepath, "w");
+    f = fopen_ci(filepath, "w");
     if (f) {
         fwrite(outbuf, 1, outlen, f);
         fclose(f);
@@ -413,7 +414,7 @@ bool INI_get_string(const char* filepath, const char* section, const char* key, 
 // Each entry is "key=value\0", terminated by an extra "\0".
 bool INI_get_section(const char* filepath, const char* section, char* out, int out_size)
 {
-    FILE* f = fopen(filepath, "r");
+    FILE* f = fopen_ci(filepath, "r");
     if (!f) { out[0] = '\0'; out[1] = '\0'; return false; }
 
     bool in_section = false;

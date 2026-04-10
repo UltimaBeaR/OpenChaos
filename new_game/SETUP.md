@@ -97,6 +97,102 @@ git clone https://github.com/microsoft/vcpkg.git "$(brew --prefix)/share/vcpkg"
 That's it — the Makefile auto-detects this location via `brew --prefix`.
 vcpkg packages (SDL3, OpenAL, fmt) are installed automatically during `make configure`.
 
+### Linux (Steam Deck / SteamOS)
+
+Tested on Steam Deck (SteamOS 3.x). Other distros may work but are not tested.
+
+#### Build tools
+
+SteamOS has a read-only root filesystem — system packages installed via `pacman` get wiped on OS updates.
+The tested approach uses Flatpak SDK extensions and user-local installs.
+
+**CMake, Ninja, Make** — should already be available if you have VS Code Flatpak with
+`org.freedesktop.Sdk` (which includes `cmake`, `ninja`, `make`). Verify with the
+commands at the end of this section.
+
+**Clang 20:**
+
+1. Install the Flatpak SDK extension:
+   ```bash
+   flatpak install flathub org.freedesktop.Sdk.Extension.llvm20//25.08
+   ```
+
+2. The extension files live inside Flatpak's OSTree store and are only directly accessible
+   from within a Flatpak sandbox (e.g. VS Code terminal). To make them available system-wide,
+   copy the binaries and libs to `~/.local/bin/`:
+
+   From a **VS Code terminal** (inside Flatpak sandbox), the extension is at `/usr/lib/sdk/llvm20/`.
+   Copy the needed files:
+   ```bash
+   mkdir -p ~/.local/bin/llvm20/lib
+
+   # Binaries
+   cp /usr/lib/sdk/llvm20/bin/clang    ~/.local/bin/llvm20/
+   cp /usr/lib/sdk/llvm20/bin/clang++  ~/.local/bin/llvm20/
+   cp /usr/lib/sdk/llvm20/bin/clang-20 ~/.local/bin/llvm20/
+   cp /usr/lib/sdk/llvm20/bin/lld      ~/.local/bin/llvm20/
+
+   # Shared libraries (required at runtime)
+   cp /usr/lib/sdk/llvm20/lib/libclang-cpp.so.20.1 ~/.local/bin/llvm20/lib/
+   cp /usr/lib/sdk/llvm20/lib/libLLVM-20.so        ~/.local/bin/llvm20/lib/
+   cp /usr/lib/sdk/llvm20/lib/libLLVM.so.20.1      ~/.local/bin/llvm20/lib/
+
+   # Clang resource directory (headers, builtins)
+   cp -r /usr/lib/sdk/llvm20/lib/clang ~/.local/bin/llvm20/lib/
+
+   # Symlink so clang finds its resource dir
+   mkdir -p ~/.local/bin/lib/clang
+   ln -sf ~/.local/bin/llvm20/lib/clang/20 ~/.local/bin/lib/clang/20
+   ```
+
+3. Create wrapper scripts that set `LD_LIBRARY_PATH`:
+   ```bash
+   cat > ~/.local/bin/clang << 'EOF'
+   #!/bin/sh
+   export LD_LIBRARY_PATH="/home/deck/.local/bin/llvm20/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+   exec /home/deck/.local/bin/llvm20/clang "$@"
+   EOF
+
+   cat > ~/.local/bin/clang++ << 'EOF'
+   #!/bin/sh
+   export LD_LIBRARY_PATH="/home/deck/.local/bin/llvm20/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+   exec /home/deck/.local/bin/llvm20/clang++ "$@"
+   EOF
+
+   chmod +x ~/.local/bin/clang ~/.local/bin/clang++
+   ```
+
+   Note: replace `/home/deck` with your actual home directory if different.
+
+`~/.local/bin` is added to `PATH` automatically by the Makefile (Linux only).
+
+Verify:
+```bash
+cmake --version    # 3.25+
+ninja --version    # any
+clang++ --version  # 20+
+```
+
+#### vcpkg
+
+Clone vcpkg into your home directory and bootstrap it:
+
+```bash
+git clone --depth=1 https://github.com/microsoft/vcpkg ~/vcpkg
+~/vcpkg/bootstrap-vcpkg.sh -disableMetrics
+```
+
+The Makefile auto-detects `~/vcpkg`. Alternatively, set `VCPKG_ROOT` env var
+to point to your vcpkg installation.
+
+vcpkg packages (SDL3, OpenAL, FFmpeg) are installed automatically during `make configure`.
+On the first run this takes ~15-20 minutes (vcpkg builds everything from source for Linux).
+
+If `make configure` fails because vcpkg can't find the baseline commit, fetch it:
+```bash
+cd ~/vcpkg && git fetch --depth=1 origin <commit-hash-from-error-message>
+```
+
 ### Common
 
 #### Urban Chaos (legal copy)

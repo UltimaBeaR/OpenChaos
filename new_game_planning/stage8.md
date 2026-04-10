@@ -396,7 +396,7 @@
 | 14b | Скрипты → кросс-платформенные | ✅ |
 | 14c | CMake: кросс-платформенные условия | ✅ |
 | 14d | Переход на 64-бит | ⏳ |
-| **16** | **Кросс-платформенная сборка (macOS + Linux)** | 🟡 macOS arm64 работает, Linux ⏳ |
+| **16** | **Кросс-платформенная сборка (macOS + Linux)** | 🟡 macOS arm64 работает, Linux x64 🟡 базовый runtime работает |
 | 15 | ASan прогон: играть под ASan, фиксить memory bugs один за одним | ⏳ |
 
 ---
@@ -425,28 +425,25 @@ make configure-asan                   # Windows x64 + ASan (текущий)
 
 **D3D6 бэкенд** — удалён из кодовой базы (2026-04-08). OpenGL 4.1 — единственный бэкенд.
 
-### 16a. Case-insensitive file I/O (Linux блокер) ⏳
+### 16a. Case-insensitive file I/O (Linux блокер) ✅
 
-**Проблема:** Linux filesystem case-sensitive. Ресурсы на диске — mixed case (`deadcivs.TGA`, `death breath.WAV`),
-код обращается с другим регистром (`deadcivs.tga`). На Windows/macOS работает, на Linux — file not found.
+**Проблема:** Linux filesystem case-sensitive. Ресурсы на диске — mixed case (`TITLE LEAVES1.TGA`, `deadcivs.TGA`),
+код обращается с другим регистром (`title leaves1.tga`). На Windows/macOS работает, на Linux — file not found.
 
-**Хорошая новость:** весь файловый I/O идёт через один файл — `engine/io/file.cpp`:
-- `FileOpen(filename)` — основной open для ассетов
-- `MF_Fopen(filename, mode)` — обёртка для аудио, конфигов
-- `FileExists(filename)` — проверка существования
-- `MakeFullPathName()` — внутренний хелпер, строит полный путь
-
-**Решение:** case-insensitive обёртка в `file.cpp`:
+**Решение:** функция `fopen_ci()` в `engine/io/file.cpp` + `engine/io/file.h`:
 1. Попытка открыть файл с точным именем (fast path — работает на Windows/macOS и при совпадении регистра)
-2. При неудаче (только Linux) — сканирование директории, поиск файла без учёта регистра
-3. Опционально: кеш результатов (directory listing → map lowercase→actual name), чтобы не сканировать каждый раз
+2. При неудаче (только Linux/macOS) — `resolve_path_ci()` рекурсивно резолвит **каждый** компонент пути case-insensitively через `opendir`/`readdir`/`strcasecmp`
+3. На Windows — прямой `fopen` (FS уже case-insensitive)
 
-**Масштаб:** ~1 файл, ~30-50 строк. Покрывает 100% файловых операций (все идут через эти функции).
+**Покрытие:**
+- Файловый движок: `FileOpen`, `FileExists`, `FileCreate`, `FileDelete`, `MF_Fopen` — все используют `fopen_ci`
+- Outro: `outro_imp.cpp` (загрузка 3D моделей), `outro_tga.cpp` (загрузка текстур) — прямые `fopen` заменены на `fopen_ci`
+- TGA запись: `tga.cpp` — заменён на `fopen_ci`
+- Config: `env.cpp` — заменён на `fopen_ci`
+- `stat()` в frontend.cpp — заменён на `fstat(fileno(file))` по уже открытому handle
+- Служебные файлы (`crash_log.txt`, `gamepad_log.txt`) — фиксированные имена, создаются программой, CI не нужен
 
-**Известные mismatches (подтверждённые):**
-- `deadcivs.tga` в коде → `deadcivs.TGA` на диске
-- 46 файлов `.WAV` в `sound_id_globals.cpp` (uppercase) — зависит от реального регистра на диске в `original_game_resources/`
-- Полный аудит: проверить все файлы в `original_game_resources/` против строковых литералов в коде
+**Верификация:** Linux x64 (Steam Deck) — меню, загрузка миссий, геймплей, outro работают.
 
 ### 16b. Тулчейн-файлы CMake 🟡
 
@@ -527,7 +524,7 @@ Apple Clang строже чем clang++ на Windows — нашлись ошиб
 | Windows x64 OpenGL | ✅ Основная среда разработки |
 | macOS arm64 (M1 Pro) | ✅ Компилируется, линкуется, запускается, меню и геймплей работают |
 | macOS x64 (Intel) | ⏳ Тулчейн не создан |
-| Linux x64 | ⏳ Тулчейн не создан, case-insensitive I/O не сделан |
+| Linux x64 (Steam Deck) | 🟡 Собирается, запускается, меню + геймплей + outro работают. Case-insensitive I/O ✅. Тулчейн: системный clang (без cmake toolchain файла). Тестировать дальше. |
 
 Минимальный критерий пройден для macOS arm64: компилируется + линкуется + запускается до главного меню + геймплей.
 

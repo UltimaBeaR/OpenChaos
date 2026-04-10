@@ -48,7 +48,7 @@ endif
 	  done; \
 	fi; \
 	sed 's/{{VERSION}}/$(VERSION)/g' "$(RELEASE_ASSETS)/README.txt" > "$$STAGING/OpenChaos-readme.txt"; \
-	for extra in "$(RELEASE_ASSETS)"/*.command; do \
+	for extra in "$(RELEASE_ASSETS)"/*.command "$(RELEASE_ASSETS)"/*.sh; do \
 	  [ -f "$$extra" ] && cp "$$extra" "$$STAGING/"; \
 	done; \
 	if [ "$(PLATFORM)" = "windows-x64" ]; then \

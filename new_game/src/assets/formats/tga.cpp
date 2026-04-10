@@ -673,7 +673,7 @@ void TGA_save(
 
     FILE* handle;
 
-    handle = fopen(file, "wb");
+    handle = fopen_ci(file, "wb");
 
     if (handle == NULL) {
         return;

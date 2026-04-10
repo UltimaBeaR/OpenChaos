@@ -53,17 +53,34 @@ Flatpak имеет `features=devel` и `filesystems=host` — расширени
 - `make build-debug` — OK (`[316/316] Linking CXX executable Debug/OpenChaos`)
 - Игра запускается: OpenGL 4.6 Core (Mesa 25.3.5, radeonsi/vangogh), OpenAL OK
 
-### Известные проблемы (после первого запуска)
+### Известные проблемы (после первого запуска) — РЕШЕНЫ
 
-1. **Чёрный фон в главном меню** — предположительно case-sensitive file I/O
-   (файлы ресурсов в смешанном регистре, Linux не игнорирует регистр)
-2. **Краш при запуске миссии** — SIGSEGV, причина неизвестна
-   - backtrace теперь будет в crash_log.txt при следующем краше
-   - Возможная причина: та же case-sensitivity (файл не найден → null ptr)
+1. ~~**Чёрный фон в главном меню**~~ — case-sensitive file I/O. Файлы ресурсов `TITLE LEAVES1.TGA` (uppercase), код ищет `title leaves1.tga` (lowercase). **Исправлено:** `fopen_ci()`.
+2. ~~**Краш при запуске миссии**~~ — та же причина: файлы ресурсов не находились. **Исправлено:** `fopen_ci()`.
 
-### Следующие шаги
+## Сессия 2026-04-11 — Case-insensitive file I/O + документация
 
-- Воспроизвести краш и получить backtrace
-- Реализовать case-insensitive file I/O для Linux (блокер из stage8)
-  - Варианты: `openat` + `readdir` поиск, или создать symlink-дерево с lowercase именами
-- Обновить документацию разработчика по настройке среды на Steam Deck
+### Case-insensitive file I/O
+
+Реализована функция `fopen_ci()` в `engine/io/file.cpp` (объявлена в `file.h`):
+- На Linux/macOS: если обычный `fopen` не нашёл файл, `resolve_path_ci()` рекурсивно резолвит **каждый** компонент пути через `opendir`/`readdir`/`strcasecmp`
+- На Windows: прямой `fopen` (FS case-insensitive)
+
+Все `fopen` вызовы в проекте заменены на `fopen_ci`:
+- Файловый движок: `FileOpen`, `FileExists`, `FileCreate`, `FileDelete`, `MF_Fopen`
+- Outro: `outro_imp.cpp`, `outro_tga.cpp`
+- TGA запись: `tga.cpp`
+- Config: `env.cpp`
+- `stat()` в `frontend.cpp` → `fstat(fileno(file))` по открытому handle
+
+Результат: меню, загрузка миссий, геймплей, outro — всё работает на Steam Deck.
+
+### Документация
+
+- `new_game/SETUP.md` — добавлена секция Linux (clang, vcpkg, системные библиотеки, Steam Deck)
+- `README.md` — Linux добавлен в таблицу платформ
+- `release/assets/linux-x64/` — README.txt + OpenChaos.sh лаунчер
+- `release/release.mk` — копирование `.sh` скриптов для Linux
+- `known_issues_and_bugs.md` — секция Linux-специфичные проблемы
+- `stage8.md` — пункт 16a ✅, таблица верификации обновлена
+- `stages.md` — Linux добавлен в статус этапа 8

@@ -126,6 +126,14 @@
 
 ---
 
+## Linux-специфичные проблемы
+
+| Проблема | Описание | Статус |
+|----------|----------|--------|
+| ~~Case-insensitive file I/O~~ | ~~Linux FS case-sensitive, ресурсы на диске mixed case (`TITLE LEAVES1.TGA`), код ищет lowercase (`title leaves1.tga`). Меню без фона, миссии не грузились, outro крашился.~~ **Исправлено:** `fopen_ci()` в `file.cpp` — рекурсивный CI-резолвинг каждого компонента пути через `opendir`/`readdir`/`strcasecmp`. Все `fopen` в проекте заменены на `fopen_ci` (файловый движок, outro, tga, env). `stat()` → `fstat()` по открытому handle. | ✅ Исправлено |
+
+---
+
 ## Отложенный функционал (DualSense, из этапа 5.1)
 
 | Фича | Описание | Приоритет |
