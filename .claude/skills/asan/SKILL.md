@@ -176,3 +176,17 @@ Real bugs in legacy code that ASan caught. These document patterns to watch for 
 - **Fix**: skip copy when `fname_level == ELEV_fname_level`.
 - **Original bug**: same in `original_game/fallen/Source/elev.cpp`. Worked on MSVC x86 where strcpy tolerates overlapping identical pointers.
 - **Pattern**: any function that copies its argument into a global — check if callers ever pass that same global as the argument.
+
+### 9. MUSIC_play_the_mode lookup_table overflow (music.cpp) — 2026-04-11
+- **Bug**: `lookup_table[14][3]` (modes 1-14), but `MUSIC_mode_process` sets `music_current_mode = 14 + amb` for warehouse ambience → `lookup_table[14+]` reads past end.
+- **Repro**: enter a building/club with warehouse ambience (e.g. club on Gatecrasher mission).
+- **Fix**: early return in `MUSIC_play_the_mode` when `mode > 14`.
+- **Original bug**: same in `original_game/fallen/Source/music.cpp:160,295`. Table has 14 entries, mode can exceed 14.
+- **Pattern**: static lookup tables indexed by mode/type — always verify the index is within bounds, especially when callers can set the index to dynamic values.
+
+### 10. PCOM_set_person_ai_kill_person ASSERT(0) for civilians (pcom.cpp) — 2026-04-11
+- **Bug**: `ASSERT(0)` when `p_person->PersonType == PERSON_CIV`. Civilians can be sent into combat AI (e.g. inside clubs). Original ASSERT was empty in release builds.
+- **Repro**: enter the club on Gatecrasher mission, bандит стреляет внутри клуба рядом с гражданскими → civilian попадает в combat AI.
+- **Fix**: replaced `ASSERT(0)` with `return` — civilians skip combat logic.
+- **Original bug**: same in original code. ASSERT was no-op in release, civilian just fell through into combat code (harmless).
+- **Pattern**: ASSERT(0) in original code often guards "shouldn't happen" cases that DO happen in gameplay. Consider replacing with early return or skip instead of keeping fatal ASSERT.

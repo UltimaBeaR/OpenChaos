@@ -2656,7 +2656,9 @@ void PCOM_set_person_ai_arrest(Thing* p_person, Thing* p_target)
 void PCOM_set_person_ai_kill_person(Thing* p_person, Thing* p_target, SLONG alert_gang)
 {
     if (p_person->Genus.Person->PersonType == PERSON_CIV) {
-        ASSERT(0);
+        // Civilians can end up here when nearby combat triggers AI (e.g. clubs).
+        // Original ASSERT(0) was empty in release builds — just fell through.
+        return;
     }
     if (p_target->Genus.Person->PersonType == PERSON_DARCI) {
         if (p_person->Genus.Person->PersonType == PERSON_COP)

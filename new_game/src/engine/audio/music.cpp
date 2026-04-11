@@ -23,6 +23,19 @@ static void MUSIC_play_the_mode(UBYTE mode)
     if (!mode)
         return;
 
+    // Modes 1-14 are normal music modes with tracks in lookup_table below.
+    // Mode > 14 means warehouse ambience override (set by MUSIC_mode_process as
+    // 14 + amb). This was likely an unfinished attempt to play indoor music here —
+    // MuckyFoot never extended lookup_table beyond 14 entries, and instead implemented
+    // indoor sound through sound.cpp (MFX_play_ambient with S_TUNE_CLUB_START etc.).
+    // The mode > 14 value is still useful: it makes music_current_mode != music_request_mode
+    // which triggers fade-out of outdoor music, preventing it from clashing with the
+    // indoor sound. Without this, both outdoor and indoor music would play simultaneously.
+    // Original code had no bounds check here — on x86 it read past the table into
+    // adjacent memory (harmless by luck). ASan catches this as global-buffer-overflow.
+    if (mode > 14)
+        return;
+
     // Lookup table: [mode-1][0] = one-shot intro track, [1] = track range start, [2] = track range end.
     static SLONG lookup_table[14][3] = {
         { S_TUNE_DRIVING_START, S_TUNE_DRIVING, S_TUNE_DRIVING2 },
@@ -118,7 +131,14 @@ void MUSIC_mode_process()
         }
     }
 
-    // If the player is in a warehouse with custom ambience, override current mode.
+    // Override music mode when player is inside a warehouse with ambience.
+    // Sets mode > 14 which suppresses normal music (MUSIC_play_the_mode returns
+    // early for mode > 14). The actual indoor sound (club music etc.) is played
+    // separately by sound.cpp via MFX_play_ambient.
+    // This was likely an unfinished attempt to play indoor music through the music
+    // system (lookup_table was never extended beyond 14 entries). MuckyFoot later
+    // implemented indoor sound through sound.cpp but left this code in place.
+    // It still serves a purpose: mode > 14 forces fade-out of outdoor music.
     if (NETPERSON != NULL) {
         if (NET_PERSON(0) != NULL) {
             if (NET_PERSON(0)->Genus.Person->Ware) {
