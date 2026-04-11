@@ -2092,7 +2092,11 @@ SLONG ELEV_load_name(CBYTE* fname_level)
         return UC_FALSE;
     }
 
-    strcpy(ELEV_fname_level, fname_level); // I hope this is OK
+    // ASan fix: callers (e.g. game_init on mission restart) pass ELEV_fname_level itself
+    // as fname_level — strcpy of buffer into itself is undefined behavior.
+    if (fname_level != ELEV_fname_level) {
+        strcpy(ELEV_fname_level, fname_level);
+    }
 
     char junk[1000];
 

@@ -114,9 +114,14 @@ ASan aborts on the first error it finds. When hunting a specific bug (like "cras
 
 1. Build with ASan, run, read stderr.log
 2. Fix the reported bug (even if it's not the one you're looking for)
-3. Rebuild, re-run
-4. Repeat until you reach the target crash
-5. When done, disable ASan (`make configure`) and verify the fix works in normal builds
+3. **Document the fix** (mandatory, every time):
+   - Add a comment at the fix site in code explaining what was wrong and why (e.g. `// ASan fix: missing null terminator, original bug`)
+   - Update `known_issues_and_bugs.md` — add the bug to the "Рандомные краши" entry or create a new entry
+   - Add the bug to the "Bugs found with ASan" section at the bottom of this skill file
+4. **Ask user to verify** — tell the user the simplest way to reproduce the situation that triggered the bug (e.g. "step on a mine", "restart a failed mission"). The user rebuilds and checks that ASan no longer aborts on the same action. Keep it short — one sentence with exact steps.
+5. Rebuild, re-run
+5. Repeat until you reach the target crash
+6. When done, disable ASan (`make configure`) and verify the fix works in normal builds
 
 ## Performance
 
@@ -157,3 +162,17 @@ Real bugs in legacy code that ASan caught. These document patterns to watch for 
 - **Bug**: `CMatrix33 tmat` declared inside `if` block, pointer stored in `pDHPR1Inc->parent_base_mat`. Used in next loop iteration after scope ends.
 - **Fix**: array `CMatrix33 tmat[MAX_RECURSION]` at function scope, indexed by `recurse_level`.
 - **Pattern**: pointer to local variable survives the scope. Watch for any `&local_var` stored into a struct that outlives the block.
+
+### 7. action_dying missing null terminator (input_actions.cpp) — 2026-04-11
+- **Bug**: `action_dying[]` had only one entry `{ ACTION_BLOCK_FLAG, 0, INPUT_MASK_ACTION }` without a `{ 0, 0, 0 }` terminator. `find_best_action_from_tree()` iterates `while (action_options->Action)` — reads 1 byte past array into global redzone.
+- **Repro**: step on a mine (player enters dying state) → `find_best_action_from_tree(ACTION_DYING, ...)` → overread.
+- **Fix**: added `{ 0, 0, 0 }` terminator to `action_dying[]`.
+- **Original bug**: same in `original_game/fallen/Source/interfac.cpp:558` — no terminator. Worked on x86 by luck (padding/next global contained zeros).
+- **Pattern**: all `ActionInfo[]` arrays must be null-terminated. If adding new action arrays, always end with `{ 0, 0, 0 }`.
+
+### 8. ELEV_load_name strcpy self-overlap (elev.cpp) — 2026-04-11
+- **Bug**: `strcpy(ELEV_fname_level, fname_level)` where `fname_level == ELEV_fname_level` — strcpy of buffer into itself. Original comment: `// I hope this is OK` (it wasn't).
+- **Repro**: fail a mission → restart mission → `game_init()` calls `ELEV_load_name(ELEV_fname_level)` → strcpy self-overlap.
+- **Fix**: skip copy when `fname_level == ELEV_fname_level`.
+- **Original bug**: same in `original_game/fallen/Source/elev.cpp`. Worked on MSVC x86 where strcpy tolerates overlapping identical pointers.
+- **Pattern**: any function that copies its argument into a global — check if callers ever pass that same global as the argument.

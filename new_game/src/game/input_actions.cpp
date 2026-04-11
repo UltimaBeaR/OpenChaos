@@ -210,8 +210,11 @@ struct ActionInfo action_fight[] = {
 };
 
 // uc_orig: action_dying (fallen/Source/interfac.cpp)
+// ASan fix: original was missing {0,0,0} terminator — find_best_action_from_tree() reads
+// past array end. Original bug in MuckyFoot code, worked on x86 by luck (padding zeros).
 struct ActionInfo action_dying[] = {
-    { ACTION_BLOCK_FLAG, 0, INPUT_MASK_ACTION }
+    { ACTION_BLOCK_FLAG, 0, INPUT_MASK_ACTION },
+    { 0, 0, 0 }
 };
 
 // uc_orig: action_grapple (fallen/Source/interfac.cpp)
