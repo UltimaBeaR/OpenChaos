@@ -53,6 +53,8 @@
 | `ge_restore_screen_surface` — device-lost recovery | ⏳ | [stage7.md](stage7.md) (TODO) | |
 | `ge_update_display_rect` — resize окна | ⏳ | [stage7.md](stage7.md) (TODO) | |
 | `ge_is_gamma_available` + gamma коррекция | ⏳ | [stage7.md](stage7.md) (TODO) | Настройки яркости в меню |
+| ~~Артефакт у иконки оружия~~ | ✅ | [known_issues](known_issues_and_bugs.md) | D3D6 pixel center offset (-0.5) в tl_vert.glsl |
+| ~~Линии над буквами в меню~~ | ✅ | [known_issues](known_issues_and_bugs.md) | D3D6 pixel center offset (-0.5) в tl_vert.glsl |
 | Lit vertex shader (`lit_vert.glsl`) — техдолг | ⏳ | [known_issues](known_issues_and_bugs.md) | D3D/GL clip space несовместимость |
 
 ## Управление
