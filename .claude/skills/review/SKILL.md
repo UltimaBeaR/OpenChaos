@@ -50,6 +50,10 @@ This is especially dangerous in mass operations. Never delete lines in bulk with
 - No broken control flow from removed lines
 - String/path literals correct
 
+### Documentation consistency
+- If you changed behavior during the session (e.g. added then reverted something, changed approach) — re-read ALL documentation updates made in the same session and verify they describe the **final** state, not an intermediate one
+- Common mistake: doc says "ASSERT replaced with skip" but code still has ASSERT because it was restored later. The doc was written for an intermediate state and never updated after the final change
+
 ### Compilation
 - If code was changed: `make build-release` must pass
 - If only docs/config changed: compilation check not needed

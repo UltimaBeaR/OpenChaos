@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include "feature_flags.h"
 #include "missions/eway.h"
 
 #include "game/game.h"
@@ -435,10 +436,17 @@ UWORD EWAY_create_animal(
     SLONG world_y,
     SLONG world_z)
 {
-    UWORD p_index;
+    UWORD p_index = 0;
 
     switch (subtype) {
     case EWAY_SUBTYPE_ANIMAL_BAT:
+        if (g_feature_flags.cut_bats) {
+            p_index = BAT_create(
+                BAT_TYPE_BAT,
+                world_x,
+                world_z,
+                yaw << 3);
+        }
         break;
 
     case EWAY_SUBTYPE_ANIMAL_GARGOYLE:
@@ -467,6 +475,7 @@ UWORD EWAY_create_animal(
 
     default:
         ASSERT(0);
+        p_index = 0;
         break;
     }
 

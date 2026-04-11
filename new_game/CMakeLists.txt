@@ -132,6 +132,7 @@ message(STATUS "Graphics backend: OpenGL 4.1 Core Profile")
 set(SOURCES_NEW
     # === Entry point ===
     src/main.cpp
+    src/feature_flags.cpp
 
     # === Engine: core ===
     src/engine/core/memory.cpp
