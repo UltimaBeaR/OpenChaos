@@ -1158,45 +1158,48 @@ SLONG EWAY_load_message_file(CBYTE* fname, UWORD* index, UWORD* number)
 {
     FILE* handle = MF_Fopen(fname, "rb");
 
-    if (handle) {
-        CBYTE line[512];
-        CBYTE message[512];
-        CBYTE* ch;
-        CBYTE* start;
-
-        SLONG match;
-        SLONG upto;
-
-        *index = EWAY_mess_upto;
-        *number = 0;
-
-        while (fgets(line, 512, handle)) {
-            match = sscanf(line, "%d. %s", &upto, &message);
-
-            if (match == 2) {
-                for (ch = line; *ch != '.'; ch++)
-                    ;
-                while (isspace(*++ch))
-                    ;
-                start = ch;
-
-                while (*ch)
-                    ch++;
-                for (; isspace(*--ch); *ch = '\000')
-                    ;
-
-                if (EWAY_set_message(*index + *number, start)) {
-                    *number += 1;
-                }
-            }
-        }
-
-        MF_Fclose(handle);
-
-        return UC_TRUE;
+    // Log missing text files — e.g. guilty.txt doesn't exist in game resources,
+    // gang mission stubs may reference non-existent files. Helps diagnose loading issues.
+    if (!handle) {
+        fprintf(stderr, "WARNING: EWAY_load_message_file: cannot open '%s'\n", fname);
+        return UC_FALSE;
     }
 
-    return UC_FALSE;
+    CBYTE line[512];
+    CBYTE message[512];
+    CBYTE* ch;
+    CBYTE* start;
+
+    SLONG match;
+    SLONG upto;
+
+    *index = EWAY_mess_upto;
+    *number = 0;
+
+    while (fgets(line, 512, handle)) {
+        match = sscanf(line, "%d. %s", &upto, &message);
+
+        if (match == 2) {
+            for (ch = line; *ch != '.'; ch++)
+                ;
+            while (isspace(*++ch))
+                ;
+            start = ch;
+
+            while (*ch)
+                ch++;
+            for (; isspace(*--ch); *ch = '\000')
+                ;
+
+            if (EWAY_set_message(*index + *number, start)) {
+                *number += 1;
+            }
+        }
+    }
+
+    MF_Fclose(handle);
+
+    return UC_TRUE;
 }
 
 // Loads ambient NPC dialogue pools from text files. Handles localisation.
@@ -1256,8 +1259,9 @@ void EWAY_load_fake_wander_text(CBYTE* fname)
     ASSERT(EWAY_fake_wander_text_guilty_index + EWAY_fake_wander_text_guilty_number <= EWAY_mess_upto);
     ASSERT(EWAY_fake_wander_text_normal_index + EWAY_fake_wander_text_normal_number <= EWAY_mess_upto);
 
-    // This assert fires if citsez.txt is missing.
-    ASSERT(EWAY_fake_wander_text_normal_number > 0);
+    // normal_number == 0 is expected on gang missions (e.g. Rat Catch) where
+    // the wander text file is a stub with no dialogue lines. Original ASSERT
+    // was empty in release — game continued without NPC ambient dialogue.
     return;
 }
 
