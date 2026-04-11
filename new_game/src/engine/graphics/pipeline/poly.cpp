@@ -1986,40 +1986,13 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         }
 
         {
-            PolyPage* cur_page = NULL;
-            UWORD* dst = IxBuffer;
-
             for (int si = 0; si < sort_count; si++) {
                 PolyPoly* p = sort_array[si];
-
-                if (p->page != cur_page) {
-                    if (cur_page && dst != IxBuffer) {
-                        cur_page->RS.SetChanged();
-                        // Debug: force additive → alpha blend for depth shade visibility
-                        if (cur_page->RS.IsAdditiveBlend()) {
-                            ge_set_blend_mode(GEBlendMode::Alpha);
-                        }
-                        cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
-                        dst = IxBuffer;
-                    }
-                    cur_page = p->page;
-                }
-
-                UWORD v1 = p->first_vertex;
-                for (ULONG jj = 2; jj < p->num_vertices; jj++) {
-                    ASSERT(dst - IxBuffer + 3 < 65536);
-                    *dst++ = v1;
-                    *dst++ = v1 + jj - 1;
-                    *dst++ = v1 + jj;
-                }
-            }
-
-            if (cur_page && dst != IxBuffer) {
-                cur_page->RS.SetChanged();
-                if (cur_page->RS.IsAdditiveBlend()) {
+                p->page->RS.SetChanged();
+                if (p->page->RS.IsAdditiveBlend()) {
                     ge_set_blend_mode(GEBlendMode::Alpha);
                 }
-                cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
+                p->page->DrawSinglePoly(p);
             }
         }
 
