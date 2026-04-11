@@ -43,7 +43,7 @@
 | ~~Лужи пропадают на краю камеры~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Полный проход 128 z-строк вместо gamut, ~1-2 нс/кадр |
 | Экран брифинга не убирается при загрузке миссии | ⏳ | [known_issues](known_issues_and_bugs.md) | OpenGL-специфичный |
 | ~~Газетки + сломанные UV листьев~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Один баг: rubbish рисовался в leaf batch. Фикс: POLY_add_quad как в оригинале |
-| Листья/трупы поверх огня/взрывов | ⏳ | [known_issues](known_issues_and_bugs.md) | Сверить с оригиналом |
+| ~~Листья/трупы поверх огня/взрывов~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Рефакторинг aeng.cpp: удалён aeng_globals, исправлен порядок отрисовки |
 | Z-buffer лежаков у бассейна | ⏳ | [known_issues](known_issues_and_bugs.md) | Estate of Emergency, листья сквозь лежаки + неправильный порядок между двумя лежаками |
 | Тонкая настройка тумана | ⏳ | [known_issues](known_issues_and_bugs.md) | Незначительная разница с D3D |
 | ~~Fog шейдер — specular.a=0 ломает additive спрайты~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Фикс: specular=0xFF000000 во всех SPRITE_draw_tex с нулевым specular |
@@ -65,10 +65,10 @@
 
 | Пункт | Статус | Референс | Комментарии |
 |-------|--------|----------|-------------|
-| Linux: сборка, тестирование, пакет | 🟡 | [stage11.md](stage11.md) (Linux), [stage12_linux_log.md](../new_game_devlog/stage12_linux_log.md) | Билд работает (Steam Deck), игра запускается. Краш при запуске миссии (SIGSEGV) + чёрный фон меню |
-| Linux: case-insensitive file I/O | ⏳ | [stage8.md](stage8.md) | Блокер для Linux — вероятная причина краша и чёрного фона |
+| Linux: сборка, тестирование, пакет | ✅ | [stage11.md](stage11.md) (Linux), [stage12_linux_log.md](../new_game_devlog/stage12_linux_log.md) | Полностью играбельно на Steam Deck (desktop mode), контроллер работает (native + DualSense) |
+| ~~Linux: case-insensitive file I/O~~ | ✅ | [stage8.md](stage8.md) | Реализовано в file.cpp, краш и чёрный фон исправлены |
 | Linux: тулчейн CMake | ✅ | [stage8.md](stage8.md) | `clang-x64-linux.cmake` создан, Clang 20 через Flatpak SDK extension |
-| Steam Deck: проверка | ⏳ | [stage11.md](stage11.md) (Steam Deck) | Возможно отдельный конфиг-профиль |
+| Steam Deck: проверка | ✅ | [stage11.md](stage11.md) (Steam Deck) | Проверено — играбельно в desktop mode, аспект отличается но не критично |
 | Steam Input API | ⏳ | [stage11.md](stage11.md) (Steam Input) | Исследовать доступность для non-Steam games |
 | macOS: тулчейны CMake | ⏳ | [stage8.md](stage8.md) | `clang-x64-macos.cmake`, `clang-universal-macos.cmake` |
 
