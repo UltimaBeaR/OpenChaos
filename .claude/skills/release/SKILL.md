@@ -60,6 +60,7 @@ Run `git log vPREVIOUS..vCURRENT --oneline` to get all commits between the previ
 - If a commit message is unclear or too vague, look at the actual diff (`git show <hash>`) to understand what was changed
 - Also check documentation diffs in commits — docs often describe what was done in more detail than the commit message itself
 - Skip docs-only commits ("docs update", "small docs update", etc.)
+- **Write only what matters to the user.** Release notes are for players/users, not developers. Skip technical implementation details (case-insensitive path resolution, fstat fixes, build scripts, etc.) — describe the user-visible result instead (e.g. "Added Linux support" instead of listing every technical change that made it work). One meaningful bullet point is better than five technical ones.
 - Group remaining commits into categories based on content (see template below)
 - Each change gets a clickable commit hash link
 
@@ -113,10 +114,12 @@ These rules are derived from v0.1.0 and v0.2.0 release notes and must be followe
 
 ---
 
-## Part 3: Handling user corrections
+## ⚠️ Part 3: Handling user corrections — DO NOT SKIP
 
-If the user asks to change something in the release notes during the current session:
+**Every time** the user corrects or changes something in the release notes:
 
 1. Make the requested change
-2. **Then ask:** "This change affects the release notes format. Should I update the release skill to reflect this for future releases?"
+2. **IMMEDIATELY ask:** "Обновить скилл release, чтобы в будущем это учитывалось?"
 3. If yes — update this SKILL.md accordingly
+
+**This step is mandatory.** Do not forget to ask. User corrections = potential skill improvements.
