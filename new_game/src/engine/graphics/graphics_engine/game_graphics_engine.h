@@ -449,6 +449,14 @@ bool ge_is_texture_loaded(int32_t page);
 // Debug: paint a solid color block on the front surface (crash diagnostics).
 void ge_debug_paint_block(uint32_t color);
 
+// Debug: tint all subsequently drawn fragments by this color.
+// (1,1,1,1) = no tint (default). Call with (1,1,1,1) to reset.
+void ge_set_debug_tint(float r, float g, float b, float a);
+
+// Debug: darken fragments by eye-space distance. 0 = off, 1 = on.
+// Near objects = normal color, far objects = black.
+void ge_set_debug_depth_shade(int enabled);
+
 // ---------------------------------------------------------------------------
 // Gamma
 // ---------------------------------------------------------------------------

@@ -398,6 +398,8 @@ static GLint s_tl_u_fog_far             = -1;
 static GLint s_tl_u_specular_enabled    = -1;
 static GLint s_tl_u_color_key_enabled   = -1;
 static GLint s_tl_u_tex_has_alpha      = -1;
+static GLint s_tl_u_debug_tint        = -1;
+static GLint s_tl_u_debug_depth_shade = -1;
 
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
@@ -406,6 +408,8 @@ static GLuint s_vbo     = 0;  // streaming vertex buffer
 static GLuint s_ebo     = 0;  // streaming index buffer
 
 static bool s_shaders_ready = false;
+static float s_debug_tint[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+static int s_debug_depth_shade = 0;
 
 // Cache uniform locations for a program's fragment shader uniforms.
 static void cache_frag_uniforms(GLuint prog,
@@ -488,6 +492,8 @@ static bool init_shaders()
         &s_tl_u_alpha_test_enabled, &s_tl_u_alpha_ref, &s_tl_u_alpha_func,
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha);
+    s_tl_u_debug_tint = glGetUniformLocation(s_program_tl, "u_debug_tint");
+    s_tl_u_debug_depth_shade = glGetUniformLocation(s_program_tl, "u_debug_depth_shade");
 
     // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
     // (glBufferData with different sizes) which can trigger NVIDIA driver bugs.
@@ -587,6 +593,12 @@ static void set_frag_uniforms(
 
     glUniform1i(u_specular_enabled, s_specular_enabled ? 1 : 0);
     glUniform1i(u_color_key_enabled, s_color_key_enabled ? 1 : 0);
+
+    // Debug uniforms — not part of snapshot cache, always upload.
+    if (s_tl_u_debug_tint >= 0)
+        glUniform4f(s_tl_u_debug_tint, s_debug_tint[0], s_debug_tint[1], s_debug_tint[2], s_debug_tint[3]);
+    if (s_tl_u_debug_depth_shade >= 0)
+        glUniform1i(s_tl_u_debug_depth_shade, s_debug_depth_shade);
 }
 
 // ---------------------------------------------------------------------------
@@ -1959,6 +1971,21 @@ bool ge_is_texture_loaded(int32_t page)
 }
 
 void ge_debug_paint_block(uint32_t) {}
+
+void ge_set_debug_tint(float r, float g, float b, float a)
+{
+    s_debug_tint[0] = r;
+    s_debug_tint[1] = g;
+    s_debug_tint[2] = b;
+    s_debug_tint[3] = a;
+    s_uniforms_ever_uploaded = false;
+}
+
+void ge_set_debug_depth_shade(int enabled)
+{
+    s_debug_depth_shade = enabled;
+    s_uniforms_ever_uploaded = false;
+}
 
 // ---------------------------------------------------------------------------
 // Gamma

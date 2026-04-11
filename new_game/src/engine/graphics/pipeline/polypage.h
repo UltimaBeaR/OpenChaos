@@ -75,6 +75,7 @@ public:
 
     // uc_orig: AddToBuckets (fallen/DDEngine/Headers/polypage.h)
     void AddToBuckets(PolyPoly* buckets[], int count);
+    void CollectForSort(PolyPoly** sort_array, int& count, int max_count);
     // uc_orig: DrawSinglePoly (fallen/DDEngine/Headers/polypage.h)
     void DrawSinglePoly(PolyPoly* poly);
 

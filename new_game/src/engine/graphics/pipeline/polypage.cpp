@@ -184,6 +184,7 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 
     float zmax = pts[0]->Z;
 
+
     if (RS.ZLift()) {
         float zbias = float(RS.ZLift()) / 65536.0F;
         for (ii = 0; ii < num_vertices; ii++) {
@@ -213,6 +214,16 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
         }
 
         pp->sort_z = zmax;
+    }
+
+    if (pp->sort_z < 0.0f) {
+        static int s_af_log = 0;
+        if (s_af_log++ < 5) {
+            int page_idx = (int)(ppDrawn - &POLY_Page[0]);
+            fprintf(stderr, "BUG_ADDFAN: page=%d sort_z=%.8f Z[0]=%.8f nverts=%d\n",
+                page_idx, pp->sort_z, pts[0]->Z, num_vertices);
+            fflush(stderr);
+        }
     }
 }
 
@@ -331,7 +342,6 @@ void PolyPage::DrawBatchedPolys(const UWORD* indices, uint32_t index_count)
 }
 
 // uc_orig: AddToBuckets (fallen/DDEngine/Source/polypage.cpp)
-// Distribute this page's polygons into Z-depth buckets for later bucket-sorted rendering.
 void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
 {
     if (!m_VertexBuffer || !m_PolyBufUsed)
@@ -353,6 +363,30 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
         poly->page = this;
         poly->next = buckets[bucket];
         buckets[bucket] = poly;
+    }
+
+    m_VertexBuffer = NULL;
+    m_VertexPtr = NULL;
+    m_VBUsed = 0;
+    m_PolyBufUsed = 0;
+}
+
+void PolyPage::CollectForSort(PolyPoly** sort_array, int& count, int max_count)
+{
+    if (!m_VertexBuffer || !m_PolyBufUsed)
+        return;
+
+    MassageVertices();
+
+    m_VB = ge_vb_prepare(m_VertexBuffer);
+
+    for (DWORD ii = 0; ii < m_PolyBufUsed; ii++) {
+        if (count >= max_count)
+            break;
+
+        PolyPoly* poly = &m_PolyBuffer[ii];
+        poly->page = this;
+        sort_array[count++] = poly;
     }
 
     m_VertexBuffer = NULL;

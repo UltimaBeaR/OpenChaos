@@ -22,6 +22,8 @@ uniform float     u_fog_far;
 uniform int       u_specular_enabled;
 uniform int       u_color_key_enabled;
 uniform int       u_tex_has_alpha;
+uniform vec4      u_debug_tint;          // (1,1,1,1) = no tint; set to color to highlight
+uniform int       u_debug_depth_shade;   // 1 = darken by distance (near=normal, far=black)
 
 out vec4 frag_color;
 
@@ -80,24 +82,25 @@ void main()
     }
 
     // Fog: two independent sources, matching D3D6 behavior.
-    // 1) Vertex fog: POLY_fadeout_point() writes fog factor into specular.a (terrain only).
-    // 2) Table fog: D3D6 hardware linear fog by Z-distance (walls, objects, meshes).
-    // In D3D6, table fog doesn't affect TL terrain (screen Z=0-1, below fog start=42),
-    // so terrain only gets vertex fog.  Walls/objects have specular.a=1.0 (no vertex fog)
-    // and get table fog only.  We select: if vertex fog was applied, use it; otherwise
-    // use Z-based table fog.
-    if (u_fog_enabled != 0) {
+    // Disabled when debug depth shade is active.
+    if (u_fog_enabled != 0 && u_debug_depth_shade == 0) {
         float vert_fog = v_specular.a;
         float fog_factor;
         if (vert_fog < 0.99) {
-            // CPU fog was applied to this vertex (terrain) — use it exclusively.
             fog_factor = vert_fog;
         } else {
-            // No CPU fog — compute D3D6 linear table fog from eye-space Z.
             fog_factor = clamp((u_fog_far - v_view_z) / (u_fog_far - u_fog_near), 0.0, 1.0);
         }
         color.rgb = mix(u_fog_color, color.rgb, fog_factor);
     }
 
+    color *= u_debug_tint;
+
     frag_color = color;
+
+    // Debug depth shade — AFTER everything else (including alpha test / color key discard).
+    if (u_debug_depth_shade != 0) {
+        float t = clamp(v_view_z / 150.0, 0.0, 1.0);
+        frag_color.rgb = vec3(t, 0.0, t);
+    }
 }

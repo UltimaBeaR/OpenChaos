@@ -5,6 +5,7 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include <math.h>
+#include <algorithm>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/poly_render.h"
@@ -1946,17 +1947,10 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             }
         }
 
-        // Alpha-sort phase: bucket polys by depth and render back-to-front.
-        // Split into two sub-phases:
-        //   1. Non-additive sorted pages (alpha-blended geometry: canopy, fences, etc.)
-        //   2. Additive sorted pages (bloom, fire, smoke, explosions)
-        // This ensures additive effects render OVER alpha-blended objects. Since
-        // alpha-blended objects don't write depth, the additive depth test passes
-        // through them, creating correct glow-through-foliage behavior.
-        PolyPoly* buckets[2048];
-
-        for (i = 0; i < 2048; i++)
-            buckets[i] = NULL;
+        // Collect all sorted polys into flat array, sort by depth, render back-to-front.
+        static constexpr int SORT_ARRAY_MAX = 16384;
+        static PolyPoly* sort_array[SORT_ARRAY_MAX];
+        int sort_count = 0;
 
         for (i = 0; i < POLY_NUM_PAGES; i++) {
             pa = &POLY_Page[i];
@@ -1970,50 +1964,67 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             if (i == POLY_PAGE_PUDDLE)
                 continue;
 
-            pa->AddToBuckets(buckets, 2048);
+            pa->CollectForSort(sort_array, sort_count, SORT_ARRAY_MAX);
         }
 
-        // Sub-phase 1: non-additive sorted polys (alpha-blended geometry).
-        // Sub-phase 2: additive sorted polys (bloom, fire, smoke).
-        for (SLONG phase = 0; phase < 2; phase++) {
+        // Sort ascending by sort_z (small Z = far, large Z = near) = back-to-front.
+        std::sort(sort_array, sort_array + sort_count,
+            [](const PolyPoly* a, const PolyPoly* b) { return a->sort_z < b->sort_z; });
+
+        // Debug: depth shade + log draw order vs sort_z.
+        ge_set_debug_depth_shade(1);
+
+        static int s_log_count = 0;
+        bool do_log = (sort_count > 0 && s_log_count++ < 3);
+        if (do_log) {
+            fprintf(stderr, "=== SORTED PASS: %d polys ===\n", sort_count);
+            for (int d = 0; d < sort_count; d++) {
+                int page_idx = (int)(sort_array[d]->page - &POLY_Page[0]);
+                fprintf(stderr, "  [%d] sort_z=%.8f page=%d\n", d, sort_array[d]->sort_z, page_idx);
+            }
+            fflush(stderr);
+        }
+
+        {
             PolyPage* cur_page = NULL;
             UWORD* dst = IxBuffer;
 
-            for (i = 0; i < 2048; i++) {
-                PolyPoly* p = buckets[i];
+            for (int si = 0; si < sort_count; si++) {
+                PolyPoly* p = sort_array[si];
 
-                while (p) {
-                    bool is_additive = p->page->RS.IsAdditiveBlend();
-                    bool draw_this = (phase == 0) ? !is_additive : is_additive;
-
-                    if (draw_this) {
-                        if (p->page != cur_page) {
-                            if (cur_page && dst != IxBuffer) {
-                                cur_page->RS.SetChanged();
-                                cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
-                                dst = IxBuffer;
-                            }
-                            cur_page = p->page;
+                if (p->page != cur_page) {
+                    if (cur_page && dst != IxBuffer) {
+                        cur_page->RS.SetChanged();
+                        // Debug: force additive → alpha blend for depth shade visibility
+                        if (cur_page->RS.IsAdditiveBlend()) {
+                            ge_set_blend_mode(GEBlendMode::Alpha);
                         }
-
-                        UWORD v1 = p->first_vertex;
-                        for (ULONG jj = 2; jj < p->num_vertices; jj++) {
-                            ASSERT(dst - IxBuffer + 3 < 65536);
-                            *dst++ = v1;
-                            *dst++ = v1 + jj - 1;
-                            *dst++ = v1 + jj;
-                        }
+                        cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
+                        dst = IxBuffer;
                     }
+                    cur_page = p->page;
+                }
 
-                    p = p->next;
+                UWORD v1 = p->first_vertex;
+                for (ULONG jj = 2; jj < p->num_vertices; jj++) {
+                    ASSERT(dst - IxBuffer + 3 < 65536);
+                    *dst++ = v1;
+                    *dst++ = v1 + jj - 1;
+                    *dst++ = v1 + jj;
                 }
             }
 
             if (cur_page && dst != IxBuffer) {
                 cur_page->RS.SetChanged();
+                if (cur_page->RS.IsAdditiveBlend()) {
+                    ge_set_blend_mode(GEBlendMode::Alpha);
+                }
                 cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
             }
         }
+
+        ge_set_debug_depth_shade(0);
+
 
         for (i = 0; i < POLY_NUM_PAGES; i++) {
             pa = &POLY_Page[i];
