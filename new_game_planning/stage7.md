@@ -1,5 +1,7 @@
 # Этап 7 — Новый рендерер
 
+**Статус: ✅ ЗАВЕРШЁН.** Оставшиеся TODO перенесены в [known_issues](known_issues_and_bugs.md).
+
 **Цель:** заменить DirectDraw/D3D6 рендерер на OpenGL через минимальную абстракцию.
 
 **Подход:** итеративно вытянуть все D3D вызовы из игрового кода в модуль `graphics_engine`,
@@ -373,11 +375,9 @@ No-op (правильно, не нужно реализовывать):
 - `ge_remove_all_loaded_textures` — нет driver tracking
 - `ge_draw_indexed_primitive_unlit` — 0 вызовов в кодовой базе
 
-TODO (нужно реализовать, не блокирует геймплей):
-- Outro dual-texture (`OS_DRAW_TEX_MUL`) — свой шейдер с 2 texcoord для bump mapping на 3D объектах outro. Минимальная реализация работает без него.
-- `ge_update_display_rect` — resize окна в рантайме (сейчас фиксированный размер)
-- `ge_is_gamma_available` + gamma коррекция — настройки яркости в меню (сейчас возвращает false)
-- `ge_run_cutscene` — видеоролики через FFmpeg (отдельная задача)
+Оставшиеся TODO перенесены в [known_issues_and_bugs.md](known_issues_and_bugs.md):
+- Outro bump mapping, resize окна, gamma коррекция
+- `ge_run_cutscene` — ✅ реализовано через FFmpeg
 
 Не нужно реализовывать:
 - `ge_dump_vpool_info` / `ge_debug_paint_block` — debug утилиты

@@ -12,4 +12,4 @@ Wide cinematic banner, aspect ratio 3.2:1 (very wide, not tall). Dark moody autu
 
 **Текст:** найти картинку с оригинальным лого Urban Chaos (обложка PS1),
 взять стиль шрифта и рамки оттуда, сделать надпись "OPEN CHAOS" поверх фона.
-Под рамкой мелко: "Fan Modernization of Urban Chaos".
+Под рамкой мелко: "Urban Chaos Modernization".

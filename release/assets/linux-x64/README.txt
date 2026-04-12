@@ -1,7 +1,7 @@
 OpenChaos v{{VERSION}}
 =========
 
-Fan modernization of Urban Chaos (1999, MuckyFoot Productions).
+Unofficial modernization of Urban Chaos (1999, MuckyFoot Productions).
 https://github.com/UltimaBeaR/OpenChaos
 
 How to run

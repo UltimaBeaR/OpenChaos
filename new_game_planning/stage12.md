@@ -1,135 +1,71 @@
-# Этап 12 — Доработки к релизу 1.0
+# Этап 12 — Релиз 1.0
 
-**Цель:** итеративные доработки и выпуск промежуточных релизов (0.2, 0.3, ...) вплоть до стабильной версии 1.0. После 1.0 — расширение функционала поверх оригинального релиза (новый контент, расширение карты и т.д.).
+**Цель:** максимально точная копия релизной PC-версии, без багов, с удобным управлением, работающая на современных устройствах.
 
-**Критерий завершения:** все миссии проходимы без крэшей, визуал соответствует оригиналу, релиз 1.0.
+**Критерий:** все пункты ниже выполнены и провалидированы.
 
 ---
 
-## Стабильность
+## 1. Стабильность
+- Все миссии проходимы без крашей
+- ASan-прогон чистый (0 ошибок)
+- Все ASSERT'ы молчат
+- Нет фризов и тормозов
+- Нет багов, кроме тех что присутствуют в релизной PC-версии (их фикс до 1.0 — опционален)
 
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| ASan прогоны — систематический поиск memory corruption | ⏳ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | ASan уже нашёл 5+ багов на Urban Shakedown |
-| Рандомные крэши (reflection null+8, uninit heap, смена миссии) | ⏳ | [known_issues](known_issues_and_bugs.md) (Крэши) | Вероятно несколько разных багов, ASan должен помочь |
-| Тормоза при вступительной катсцене миссии | ⏳ | [known_issues](known_issues_and_bugs.md) (Крэши) | Плавающий баг, не привязан к конкретной миссии |
-| ~~Дублированные inline функции → сделать `static`~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Уже исправлено при миграции — 0 inline в .cpp файлах |
+## 2. Визуал
+- Соответствие релизной PC-версии — всё что работает в релизе, работает у нас
+- Допустимы мелкие улучшения (но НЕ допустимо когда в релизе работает, а у нас нет)
+- Outro полностью работает (включая bump mapping — требует side-by-side проверки DX vs GL)
 
-## Outro (OpenGL бэкенд)
+## 3. Геймплей
+- Допустимы мелкие доработки воспринимаемые как багфиксы (не ломающие оригинальный геймплей)
 
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| ~~3D модель не отображается (регрессия x64)~~ | ✅ | [stage8.md](stage8.md), [known_issues](known_issues_and_bugs.md) | Ручное чтение IMP_Mesh/IMP_Mat с on-disk размерами (136/104 байт), указатели пропускаются |
-| ~~Титры с чёрным фоном букв~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Outro текстуры вне game pool → alpha не передавался шейдеру + wrong texture blend mode |
-| `oge_texture_create` — BGRA → GL текстура | ⏳ | [stage7.md](stage7.md) (Outro backend) | Linked list дедуп-кеш, поддержка invert |
-| `oge_texture_create_blank` — пустая текстура | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
-| `oge_texture_size` — вернуть размер | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
-| Vertex shader (`outro_vert.glsl`) — два texcoord | ⏳ | [stage7.md](stage7.md) (Outro backend) | Для bump mapping |
-| Fragment shader (`outro_frag.glsl`) — dual-texture multiply | ⏳ | [stage7.md](stage7.md) (Outro backend) | `OS_DRAW_TEX_MUL`, additive, alpha blend, decal |
-| VAO для 40-byte vertex | ⏳ | [stage7.md](stage7.md) (Outro backend) | position, rhw, color, specular, texcoord0, texcoord1 |
-| `oge_bind_texture` — привязка к stage 0/1 | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
-| `oge_draw_indexed` — upload + draw | ⏳ | [stage7.md](stage7.md) (Outro backend) | |
-| `oge_change_renderstate` / `oge_undo_renderstate_changes` | ⏳ | [stage7.md](stage7.md) (Outro backend) | OS_DRAW_* → GL state |
+## 4. Управление
+- Полная поддержка геймпада: все действия игры доступны со стика/кнопок, без необходимости клавиатуры (не считая отладочных инструментов: F9 → bangunsnotgames, консоль и т.п. — они только на клавиатуре, это не читы а инструменты разработки)
+- Клавиатура: оригинальные кейбиндинги НЕ меняем в 1.0, только убираем debug-only кнопки
+- Геймпад: своя раскладка (не 1:1 с оригинальным джойстиком или PS1, а доработанная под современные геймпады). Без дублирования кнопок где это не нужно (исключение: D-pad и стик — оба движение, но D-pad работает иначе и нужен в геймплее)
+- Читы доступны одинаково на клавиатуре и геймпаде (сейчас есть расхождения — нужно выровнять)
+- DualSense: LED-панель, вибрация, adaptive triggers — полностью отлажены, без глюков
+- Xbox геймпад: полная поддержка, протестирована
+- Финальная валидация: управление на DualSense и Xbox геймпадах покрывает ВСЕ возможности игры с клавиатуры
+- Изменения биндов допустимы и нужны; изменения базовой схемы (раздельные кнопки действий и т.д.) — после 1.0
+- UI-напоминалки кнопок, внутриигровая справка — опционально до 1.0
 
-## Визуал
+## 5. Отладочные возможности
+- Убраны все debug-функции из обычного режима игры
+- Доступ к отладке: через чит-код (F9 → bangunsnotgames) ИЛИ только в debug-билде
+- Читы поддерживаются отдельно как фича
 
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| ~~Ghost RGB на шрифтах/HUD иконках~~ | ✅ | [known_issues](known_issues_and_bugs.md), [ghost_rgb_investigation](../new_game_devlog/stage7_ghost_rgb_investigation.md) | Баг в `gl_bleed_edges()`: цепная реакция edge bleeding. Фикс: read-only копия для neighbor lookup |
-| ~~Чёрные дырки на ближнем клиппинге~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Отсутствовал `PolyBufAlloc` в near-clip path + фиксы figure.cpp |
-| Здания pop-in за туманом | ⏳ | [known_issues](known_issues_and_bugs.md) | Возможно настраивается через config |
-| Резкое переключение bump mapping на стенах | ⏳ | [known_issues](known_issues_and_bugs.md) | Релизный баг, виден на лонгплеях |
-| Bump mapping fade-in дистанция слишком короткая | ⏳ | [known_issues](known_issues_and_bugs.md) | Crinkle появляется слишком резко при приближении |
-| ~~Лужи пропадают на краю камеры~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Полный проход 128 z-строк вместо gamut, ~1-2 нс/кадр |
-| Экран брифинга не убирается при загрузке миссии | ⏳ | [known_issues](known_issues_and_bugs.md) | OpenGL-специфичный |
-| ~~Газетки + сломанные UV листьев~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Один баг: rubbish рисовался в leaf batch. Фикс: POLY_add_quad как в оригинале |
-| ~~Листья/трупы поверх огня/взрывов~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Рефакторинг aeng.cpp: удалён aeng_globals, исправлен порядок отрисовки |
-| Z-buffer лежаков у бассейна | ⏳ | [known_issues](known_issues_and_bugs.md) | Estate of Emergency, листья сквозь лежаки + неправильный порядок между двумя лежаками |
-| Тонкая настройка тумана | ⏳ | [known_issues](known_issues_and_bugs.md) | Незначительная разница с D3D |
-| ~~Fog шейдер — specular.a=0 ломает additive спрайты~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Фикс: specular=0xFF000000 во всех SPRITE_draw_tex с нулевым specular |
-| ~~Меню Sound Options — бегунки громкости не видны~~ | ✅ | [known_issues](known_issues_and_bugs.md) | specular=0 в DRAW2D → fog убивал цвет. Фикс: specular=0xFF000000 |
-| Glow звёзд — ореол вокруг ярких звёзд | ⏳ | [stage7_opengl_verification.md](stage7_opengl_verification.md) | `ge_plot_formatted_pixel` |
-| Legacy шрифт `FONT_draw` — попиксельный текст | ⏳ | [stage7_opengl_verification.md](stage7_opengl_verification.md) | Через `ge_lock_screen` |
-| `ge_restore_screen_surface` — device-lost recovery | ⏳ | [stage7.md](stage7.md) (TODO) | |
-| `ge_update_display_rect` — resize окна | ⏳ | [stage7.md](stage7.md) (TODO) | |
-| `ge_is_gamma_available` + gamma коррекция | ⏳ | [stage7.md](stage7.md) (TODO) | Настройки яркости в меню |
-| ~~Артефакт у иконки оружия~~ | ✅ | [known_issues](known_issues_and_bugs.md) | D3D6 pixel center offset (-0.5) в tl_vert.glsl |
-| ~~Линии над буквами в меню~~ | ✅ | [known_issues](known_issues_and_bugs.md) | D3D6 pixel center offset (-0.5) в tl_vert.glsl |
-| Lit vertex shader (`lit_vert.glsl`) — техдолг | ⏳ | [known_issues](known_issues_and_bugs.md) | D3D/GL clip space несовместимость |
+## 6. Экран и разрешение
+- Поддержка произвольных разрешений (1080p, 1440p, 4K)
+- Fullscreen по умолчанию, разрешение = нативное разрешение монитора
+- Оконный режим с переключением через конфиг (разрешение окна по умолчанию 640×480, меняется через конфиг)
+- Aspect ratio рендер-буфера = 1:1 с монитором (всегда)
+- Сглаживание (anti-aliasing)
 
-## Управление
+## 7. Конфиг
+- Собственный файл настроек (openchaos.cfg или аналог)
+- Максимально удобные дефолты, редактируемый вручную
+- Содержит: разрешение, fullscreen/windowed, звук, управление и всё что меняется через опции игры (в оригинале настройки вроде сохранялись в ini — нужно проверить)
+- Существующее меню опций (графика, звук, яркость) работает через новый конфиг — изменения сохраняются и применяются при перезапуске
+- Feature flags остаются хардкодом, в конфиг НЕ выносятся
 
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| Stick drift в меню | ⏳ | [known_issues](known_issues_and_bugs.md) (Крэши) | Нет deadzone для стиков в меню |
+## 8. UI
+- Убрать неактуальные пункты меню (в частности настройки джойстика в опциях — убираем, настройки геймпада через UI сделаем ПОСЛЕ 1.0)
+- Лаунчер НЕ нужен для 1.0
 
-## Платформы
+## 9. Мультиплатформа
+- Windows x64: полная поддержка, провалидирована
+- macOS arm64 (M1+): полная поддержка, провалидирована
+- Steam Deck: полная поддержка, нативное разрешение по умолчанию, fullscreen, провалидирована
 
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| Linux: сборка, тестирование, пакет | ✅ | [stage11.md](stage11.md) (Linux), [stage12_linux_log.md](../new_game_devlog/stage12_linux_log.md) | Полностью играбельно на Steam Deck (desktop mode), контроллер работает (native + DualSense) |
-| ~~Linux: case-insensitive file I/O~~ | ✅ | [stage8.md](stage8.md) | Реализовано в file.cpp, краш и чёрный фон исправлены |
-| Linux: тулчейн CMake | ✅ | [stage8.md](stage8.md) | `clang-x64-linux.cmake` создан, Clang 20 через Flatpak SDK extension |
-| Steam Deck: проверка | ✅ | [stage11.md](stage11.md) (Steam Deck) | Проверено — играбельно в desktop mode, аспект отличается но не критично |
-| Steam Input API | ⏳ | [stage11.md](stage11.md) (Steam Input) | Исследовать доступность для non-Steam games |
-| macOS: тулчейны CMake | ⏳ | [stage8.md](stage8.md) | `clang-x64-macos.cmake`, `clang-universal-macos.cmake` |
-
-## Отладочные инструменты
-
-| Пункт | Статус | Комментарии |
-|-------|--------|-------------|
-| Чит-загрузка миссии по номеру | ⏳ | Debug-режим: комбинация клавиш → ввод номера миссии → загрузка. Для отладки — чтобы не проходить игру заново ради доступа к поздним миссиям. **Примечание:** вроде все миссии доступны через обычную карту миссий (после ASan-фиксов), но не 100% уверены |
-
-## Техдолг
-
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| ~~Удалить D3D6 бэкенд~~ | ✅ | [known_issues](known_issues_and_bugs.md) (Сборка D3D6) | Удалён целиком: backend_directx6/, backend_stub/, CMake/Make targets, документация обновлена |
-
-## Инфраструктура
-
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| Собственный файл настроек | ⏳ | [stage11.md](stage11.md) (Планы) | openchaos.cfg / JSON |
-| Лаунчер | ⏳ | [stage11.md](stage11.md) (Планы) | Выбор папки ресурсов через file dialog |
-| CI/CD | ⏳ | [stage11.md](stage11.md) (Планы) | GitHub Actions, автосборка при пуше тега |
-| macOS: .app bundle + .dmg | ⏳ | [stage11.md](stage11.md) (Планы) | Запуск без Terminal |
-| Windows: установщик | ⏳ | [stage11.md](stage11.md) (Планы) | Опционально, portable zip остаётся |
-| Проверить лицензии | ⏳ | [stage11.md](stage11.md) (Лицензии) | LICENSE в корне, vendored libs |
-| Тестирование на чистой машине | ⏳ | [stage11.md](stage11.md) (Тестирование) | Без dev-зависимостей |
-| Changelog / release notes | ⏳ | [stage11.md](stage11.md) (Документация) | |
-| Windows: иконка для exe | ⏳ | | Встроить .ico в исполняемый файл через .rc ресурс |
-| macOS: .command обёртка с иконкой | ⏳ | | Пользователь запускает .command (не бинарник напрямую), на .command повесить иконку |
-
-## Функционал (пре-релизные баги оригинала)
-
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| Crinkle (bump mapping стен) | ⏳ | [known_issues](known_issues_and_bugs.md) | `return NULL` отключён, работает в финале |
-| Wibble воды | ⏳ | [known_issues](known_issues_and_bugs.md) | Закомментирован, уточнить наличие в финале |
-| Лестницы | ⏳ | [known_issues](known_issues_and_bugs.md) | `mount_ladder` закомментирован |
-| Воскрешение гражданских | ⏳ | [known_issues](known_issues_and_bugs.md) | Телепорт на HomeX/HomeZ не применяется |
-| MAV INSIDE2 (включая stair/exit) | ⏳ | [known_issues](known_issues_and_bugs.md) | Вся INSIDE2 навигация — заглушка. stair/exit удалены при миграции. Реализовывать с нуля |
-| ~~Баг освещения~~ | ✅ | [known_issues](known_issues_and_bugs.md) | Визуально незаметно, но математически корректно |
-
-## Функционал (новый / из PS1)
-
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| Подсказки кнопок геймпада в меню | ⏳ | [known_issues](known_issues_and_bugs.md) (Желаемый) | Фича из PS1: ✕ выбрать, △ назад |
-
-## DualSense доработки (не всё обязательно для 1.0, но возможно стоит сделать)
-
-| Пункт | Статус | Референс | Комментарии |
-|-------|--------|----------|-------------|
-| Weapon-specific feedback: дробаш | ⏳ | [stage5_1.md](stage5_1.md) (Weapon-specific) | Adaptive triggers + сильная короткая вибрация |
-| Weapon-specific feedback: автомат | ⏳ | [stage5_1.md](stage5_1.md) (Weapon-specific) | Trigger vibration при зажатом R2, серия импульсов |
-| Audio-to-haptic | ⏳ | [stage5_1.md](stage5_1.md) (B7), [known_issues](known_issues_and_bugs.md) | Конвертация звуков (стрельба, взрывы, двигатель) в haptic через miniaudio |
-| Вибрация в видеовставках | ⏳ | [known_issues](known_issues_and_bugs.md) (Отложенный) | MDEC_vibra[], frame-synchronized |
-| Вибрация в меню | ⏳ | [known_issues](known_issues_and_bugs.md) (Отложенный) | Тест-вибрация при включении опции |
-| Тачпад | ⏳ | [stage5_1.md](stage5_1.md) (B5), [known_issues](known_issues_and_bugs.md) | Нет дизайн-решения, низкий приоритет |
-| Гироскоп | ⏳ | [stage5_1.md](stage5_1.md) (B6), [known_issues](known_issues_and_bugs.md) | Gyro aiming, требует калибровку |
+## 10. Финальное тестирование
+- Тестирование на чистой машине (без dev-зависимостей)
+- Полный прогон всех миссий на каждой платформе
+- Проверка геймпадов (DualSense, Xbox) на каждой платформе
 
 ---
 
 Бессрочный список всех багов: [known_issues_and_bugs.md](known_issues_and_bugs.md)
+Доработки после 1.0: [stage13.md](stage13.md)

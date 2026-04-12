@@ -80,7 +80,6 @@ build-release:
 	fi
 	$(CMAKE) --build $(BUILD_DIR) --config Release --clean-first
 
-
 copy-resources: copy-resources-debug copy-resources-release
 
 copy-resources-debug:

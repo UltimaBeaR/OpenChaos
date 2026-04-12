@@ -1,28 +1,55 @@
-# OpenChaos — Fan Modernization of Urban Chaos
+# OpenChaos — Urban Chaos Modernization
 
-Fan modernization of the game Urban Chaos (1999, MuckyFoot Productions) — AI-assisted analysis and
-reimplementation with modern tech.
+Unofficial modernization of Urban Chaos (1999, MuckyFoot Productions) — built with AI on top of the
+[original source code](https://github.com/dizzy2003/MuckyFoot-UrbanChaos).
 
 ## How to play
 
 1. Go to [Releases](https://github.com/UltimaBeaR/OpenChaos/releases) and download the archive for your platform
 2. Extract the archive and follow the instructions in `OpenChaos-readme.txt` inside
 
-## Modernization status
+## Current status
 
-| Area         | Original                            | Now                                                                                                |
-| ------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Build system | MSVC vcxproj                        | CMake + Ninja + Clang++, vcpkg                                                                     |
-| Architecture | 32-bit x86 only                     | 64-bit (x64 on Windows/Linux, arm64 on macOS)                                                      |
-| Graphics     | Direct3D 6                          | OpenGL 4.1 Core Profile                                                                            |
-| Audio        | Miles Sound System                  | SDL3 + OpenAL Soft (3D positional sound)                                                           |
-| Input        | DirectInput (keyboard + joystick)   | SDL3 (keyboard + gamepad) — Xbox/generic + DualSense with extras (adaptive triggers, LED lightbar) |
-| Platform     | Windows-only (Win32 API throughout) | Windows + macOS + Linux (Steam Deck)                                                               |
+Work in progress — alpha builds available. The game is playable through all missions on Windows, macOS (Apple Silicon) and Linux (Steam Deck). Preparing for release 1.0.
 
-- Unused code removed (PSX, Dreamcast, Glide, editors, debug, experimental features) — code is preprocessor-free
-- Codebase restructured into hierarchical modules (`engine/`, `game/`, `ui/`, `outro/`), every entity traceable to the original via `// uc_orig:` comments
-- Several pre-release visual bugs fixed (z-buffer ordering, invisible objects, foliage flickering, startup hang)
-- Ported to 64-bit, macOS, and Linux (including Steam Deck)
+- Runs on modern systems: Windows, macOS (Apple Silicon), Linux (Steam Deck)
+- Gamepad support: Xbox controllers (including Steam Deck) and DualSense (adaptive triggers, vibration, LED lightbar — functional but not yet polished)
+- Not yet stable — crashes and bugs are expected
+
+<details>
+<summary>Technical details (for developers)</summary>
+
+- Graphics: OpenGL 4.1 Core Profile (replacing original Direct3D 6)
+- Ported from 32-bit to 64-bit (x64 on Windows/Linux, arm64 on macOS)
+- Build system: CMake + Ninja + Clang++, vcpkg (replacing original MSVC project files)
+- Codebase restructured into modules (`engine/`, `game/`, `ui/`, `outro/`, etc.) — original architecture preserved, every moved entity traceable via `// uc_orig:` comments
+- Various bug fixes (original pre-release and new)
+- Removed unused platform code (PSX, Dreamcast, Glide), cut features, and the level editor; almost no preprocessor conditionals left
+
+</details>
+
+## Roadmap
+
+### Release 1.0 — the original game, polished
+
+- Stability: all missions completable without crashes
+- Visuals matching the original retail PC release
+- Full gamepad support (Xbox, DualSense with adaptive triggers and vibration)
+- Resolution support (1080p–4K), fullscreen/windowed mode, proper aspect ratio on all devices
+- New config file format (replacing the original INI) for graphics, audio, controls
+- Fully tested and polished on all supported platforms
+
+### Post-1.0 — improvements
+
+These are rough ideas, not commitments. Plans may change, and not everything listed here will necessarily be implemented.
+
+- Gameplay tweaks and quality-of-life changes
+- Visual enhancements (better lighting, effects, post-processing)
+- Control scheme improvements (mouse aiming, remappable controls)
+- In-mission quicksaves
+- Architecture refactoring and test infrastructure
+- Custom maps/missions (AI-assisted level design)
+- Third-party mod support
 
 ## Repository
 
@@ -61,7 +88,7 @@ they are copyrighted by the publisher and not covered by the MIT license of this
 
 ## Development
 
-Development is structured into phases and stages. See [`new_game_planning/phases.md`](new_game_planning/phases.md) for the current status and roadmap.
+Development is structured into phases and stages. See [`new_game_planning/phases.md`](new_game_planning/phases.md) for the current status.
 
 ## Legal
 

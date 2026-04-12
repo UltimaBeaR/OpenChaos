@@ -71,7 +71,7 @@ This template is approximate — section contents may change depending on the cu
 ```markdown
 ## OpenChaos vX.Y.Z — Short description
 
-Fan modernization of Urban Chaos (1999). Requires original game files (Steam/GOG).
+Unofficial modernization of Urban Chaos (1999). Requires original game files (Steam/GOG).
 
 ### What's new
 
@@ -104,7 +104,7 @@ These rules are derived from v0.1.0 and v0.2.0 release notes and must be followe
 
 - **Title in release notes body:** `## OpenChaos vX.Y.Z — Short description`
 - **GitHub Release title field:** `vX.Y.Z — Short description` (without `OpenChaos` prefix, e.g. `v0.1.0 — First Alpha`, `v0.2.1 — Linux / Steam Deck support`)
-- **Subtitle:** `Fan modernization of Urban Chaos (1999). Requires original game files (Steam/GOG).` — always present, unchanged
+- **Subtitle:** `Unofficial modernization of Urban Chaos (1999). Requires original game files (Steam/GOG).` — always present, unchanged
 - **Commit hashes:** 8-char short hashes, always clickable links: `[`hash`](https://github.com/UltimaBeaR/OpenChaos/commit/hash)`
 - **Multiple commits for one fix:** list all: `([`hash1`](...), [`hash2`](...))`
 - **Categories** under "What's new" are **bold** with colon: `**Gameplay:**`, `**Rendering bug fixes:**`, `**Internal:**` etc. Choose categories based on actual content. **Internal** always goes last.

@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenChaos (Fan Modernization of Urban Chaos)
+# CLAUDE.md — OpenChaos (Urban Chaos Modernization)
 
 ## Что это за проект
 
@@ -63,8 +63,8 @@ CLAUDE.md                           — этот файл
 | Глубокий вопрос про одну конкретную подсистему | `subsystems/X.md` или `resource_formats/X.md` напрямую |
 | Фазы разработки, текущий статус | `new_game_planning/phases.md` |
 | Этапы Фазы 3, текущий этап | `new_game_planning/stages.md` (индекс) |
-| **Работа на Этапе 4** | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` (триггерятся автоматически) |
-| **Работа на Этапе 7 (рендерер)** | ⚠️ `new_game_planning/stage7_renderer_rules.md` (3 ОБЯЗАТЕЛЬНЫХ правила!) + `new_game_planning/stage7.md` + конец `new_game_devlog/stage7_log.md` |
+| ~~Работа на Этапе 4~~ (ЗАВЕРШЁН) | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` |
+| ~~Работа на Этапе 7 (рендерер)~~ (ЗАВЕРШЁН) | `new_game_planning/stage7_renderer_rules.md` + `new_game_planning/stage7.md` |
 | Пре-релизные баги (выполненные фиксы) | `new_game_planning/prerelease_fixes.md` |
 | Известные проблемы и баги (бессрочный список) | `new_game_planning/known_issues_and_bugs.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
