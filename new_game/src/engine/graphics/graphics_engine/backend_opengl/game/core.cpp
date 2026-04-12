@@ -1162,17 +1162,22 @@ void ge_unlock_screen()
     float w = (float)s_vp_w;
     float h = (float)s_vp_h;
 
+    // Offset by +0.5 to compensate the -0.5 D3D6 pixel center adjustment in
+    // tl_vert.glsl — without this the quad lands at -0.5..w-0.5, leaving a
+    // 1-pixel undrawn strip on the right and bottom edges.
+    const float ox = 0.5f, oy = 0.5f;
+
     GEVertexTL verts[4];
-    verts[0].x = 0; verts[0].y = 0; verts[0].z = 0.5f; verts[0].rhw = 1.0f;
+    verts[0].x = ox;     verts[0].y = oy;     verts[0].z = 0.5f; verts[0].rhw = 1.0f;
     verts[0].color = 0xFFFFFFFF; verts[0].specular = 0xFF000000;
     verts[0].u = 0.0f; verts[0].v = 0.0f;
-    verts[1].x = w; verts[1].y = 0; verts[1].z = 0.5f; verts[1].rhw = 1.0f;
+    verts[1].x = w + ox; verts[1].y = oy;     verts[1].z = 0.5f; verts[1].rhw = 1.0f;
     verts[1].color = 0xFFFFFFFF; verts[1].specular = 0xFF000000;
     verts[1].u = 1.0f; verts[1].v = 0.0f;
-    verts[2].x = 0; verts[2].y = h; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
+    verts[2].x = ox;     verts[2].y = h + oy; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
     verts[2].color = 0xFFFFFFFF; verts[2].specular = 0xFF000000;
     verts[2].u = 0.0f; verts[2].v = 1.0f;
-    verts[3].x = w; verts[3].y = h; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
+    verts[3].x = w + ox; verts[3].y = h + oy; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
     verts[3].color = 0xFFFFFFFF; verts[3].specular = 0xFF000000;
     verts[3].u = 1.0f; verts[3].v = 1.0f;
 
@@ -1306,17 +1311,22 @@ static void gl_blit_fullscreen_texture(GLuint tex)
     float w = (float)s_vp_w;
     float h = (float)s_vp_h;
 
+    // Offset by +0.5 to compensate the -0.5 D3D6 pixel center adjustment in
+    // tl_vert.glsl — without this the quad lands at -0.5..w-0.5, leaving a
+    // 1-pixel undrawn strip on the right and bottom edges.
+    const float ox = 0.5f, oy = 0.5f;
+
     GEVertexTL verts[4];
-    verts[0].x = 0; verts[0].y = 0; verts[0].z = 0.5f; verts[0].rhw = 1.0f;
+    verts[0].x = ox;     verts[0].y = oy;     verts[0].z = 0.5f; verts[0].rhw = 1.0f;
     verts[0].color = 0xFFFFFFFF; verts[0].specular = 0xFF000000;
     verts[0].u = 0.0f; verts[0].v = 0.0f;
-    verts[1].x = w; verts[1].y = 0; verts[1].z = 0.5f; verts[1].rhw = 1.0f;
+    verts[1].x = w + ox; verts[1].y = oy;     verts[1].z = 0.5f; verts[1].rhw = 1.0f;
     verts[1].color = 0xFFFFFFFF; verts[1].specular = 0xFF000000;
     verts[1].u = 1.0f; verts[1].v = 0.0f;
-    verts[2].x = 0; verts[2].y = h; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
+    verts[2].x = ox;     verts[2].y = h + oy; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
     verts[2].color = 0xFFFFFFFF; verts[2].specular = 0xFF000000;
     verts[2].u = 0.0f; verts[2].v = 1.0f;
-    verts[3].x = w; verts[3].y = h; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
+    verts[3].x = w + ox; verts[3].y = h + oy; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
     verts[3].color = 0xFFFFFFFF; verts[3].specular = 0xFF000000;
     verts[3].u = 1.0f; verts[3].v = 1.0f;
 
@@ -1649,10 +1659,12 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
     float u1 = (float)(x + w) / scr_w;
     float v1 = (float)(y + h) / scr_h;
 
-    float sx = (float)x;
-    float sy = (float)y;
-    float sx1 = (float)(x + w);
-    float sy1 = (float)(y + h);
+    // Offset by +0.5 to compensate the -0.5 D3D6 pixel center adjustment in
+    // tl_vert.glsl (see gl_blit_fullscreen_texture comment).
+    float sx  = (float)x       + 0.5f;
+    float sy  = (float)y       + 0.5f;
+    float sx1 = (float)(x + w) + 0.5f;
+    float sy1 = (float)(y + h) + 0.5f;
 
     GEVertexTL verts[4];
     verts[0].x = sx;  verts[0].y = sy;  verts[0].z = 0.5f; verts[0].rhw = 1.0f;
