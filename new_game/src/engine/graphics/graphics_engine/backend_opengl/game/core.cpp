@@ -83,6 +83,7 @@ static GETextureBlend s_texture_blend = GETextureBlend::Modulate;
 // Currently bound texture (0 = none).
 static GETextureHandle s_bound_texture = GE_TEXTURE_NONE;
 static bool s_bound_texture_has_alpha = false;
+static bool s_bound_texture_has_mipmaps = false;
 
 // Texture filter and address mode (applied at draw time when binding texture).
 static GETextureFilter s_tex_filter_mag = GETextureFilter::Linear;
@@ -158,6 +159,8 @@ struct GLTexture {
     uint8_t* staging;         // BGRA staging buffer (size * size * 4 bytes)
     int32_t  staging_pitch;   // Row pitch in bytes
     bool     staging_dirty;   // True if staging was written to and needs upload
+    bool     has_mipmaps;     // True if glGenerateMipmap was called
+    bool     no_mipmaps;      // True = skip mipmap generation (set before upload)
 };
 
 static GLTexture s_textures[GL_TEX_MAX];
@@ -263,9 +266,24 @@ static void gl_upload_texture(GLTexture& tex, GLBGRAPixel* pixels, int32_t w, in
 
     s_tex_upload_count++;
 
-    // Default filtering: bilinear (matches D3D's default LINEAR/LINEAR).
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Generate mipmaps to eliminate texture shimmer on distant surfaces.
+    // Caller can set tex.no_mipmaps = true to skip (e.g. dirt system textures
+    // where mipmap averaging bleeds dark outlines into the color).
+    if (tex.no_mipmaps) {
+        // Dirt textures (leaves, rubbish, snowflakes): no mipmaps.
+        // Black outlines bleed into mip levels and darken sprites.
+        tex.has_mipmaps = false;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        glGenerateMipmap(GL_TEXTURE_2D);
+        tex.has_mipmaps = true;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -1.7f);
+        // GL_TEXTURE_MAX_ANISOTROPY_EXT (0x84FF)
+        glTexParameterf(GL_TEXTURE_2D, 0x84FF, 16.0f);
+    }
     // Default address: wrap.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -556,9 +574,16 @@ static void set_frag_uniforms(
         glBindTexture(GL_TEXTURE_2D, s_bound_texture);
         glUniform1i(u_texture, 0);
 
-        // Apply current filter state.
+        // Apply current filter state. Use mipmap variants only for textures
+        // that have mipmaps — others (screen surfaces, shadows) would be
+        // incomplete and render black with mipmap filters.
         GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
-        GLint gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        GLint gl_min;
+        if (s_bound_texture_has_mipmaps) {
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+        } else {
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        }
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
 
@@ -866,11 +891,13 @@ void ge_bind_texture(GETextureHandle tex)
 {
     s_bound_texture = tex;
     s_bound_texture_has_alpha = false;
+    s_bound_texture_has_mipmaps = false;
     if (tex != GE_TEXTURE_NONE) {
         GLuint gl_id = (GLuint)(uintptr_t)tex;
         for (int32_t i = 0; i < GL_TEX_MAX; i++) {
             if (s_textures[i].gl_id == gl_id) {
                 s_bound_texture_has_alpha = s_textures[i].contains_alpha;
+                s_bound_texture_has_mipmaps = s_textures[i].has_mipmaps;
                 break;
             }
         }
@@ -1207,6 +1234,7 @@ void ge_unlock_screen()
     s_specular_enabled = false;
     s_bound_texture = (GETextureHandle)(uintptr_t)tex;
     s_bound_texture_has_alpha = false;
+    s_bound_texture_has_mipmaps = false;
     s_texture_blend = GETextureBlend::Decal;
 
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
@@ -1340,6 +1368,7 @@ static void gl_blit_fullscreen_texture(GLuint tex)
     // Bind texture directly (bypass ge_bind_texture which uses the game texture pool).
     s_bound_texture = (GETextureHandle)(uintptr_t)tex;
     s_bound_texture_has_alpha = false;
+    s_bound_texture_has_mipmaps = false;
     s_texture_blend = GETextureBlend::Decal;
 
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
@@ -1688,6 +1717,7 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
 
     s_bound_texture = (GETextureHandle)(uintptr_t)tex;
     s_bound_texture_has_alpha = false;
+    s_bound_texture_has_mipmaps = false;
     s_texture_blend = GETextureBlend::Decal;
 
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
@@ -2014,6 +2044,12 @@ void ge_texture_load_tga(int32_t page, const char* path, bool can_shrink)
     tex.type = GE_TEXTURE_TYPE_TGA;
 
     gl_load_tga(tex);
+}
+
+void ge_texture_set_no_mipmaps(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX) return;
+    s_textures[page].no_mipmaps = true;
 }
 
 void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill)

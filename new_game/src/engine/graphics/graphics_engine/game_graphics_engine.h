@@ -497,6 +497,9 @@ void ge_texture_loading_begin();
 // Load a TGA file into a texture page. can_shrink: allow detail reduction.
 void ge_texture_load_tga(int32_t page, const char* path, bool can_shrink = true);
 
+// Mark a texture page to skip mipmap generation (call before texture is uploaded).
+void ge_texture_set_no_mipmaps(int32_t page);
+
 // Create a user-writable texture page of given size. If alpha_fill: fill with alpha.
 void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill);
 

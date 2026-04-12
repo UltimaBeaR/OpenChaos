@@ -22,6 +22,11 @@ bool sdl3_window_create(const char* title, int width, int height)
         return false;
     }
 
+    // MSAA attributes must be set before window creation — SDL3 selects the
+    // pixel format (including multisample) at SDL_CreateWindow time.
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+
     s_window = SDL_CreateWindow(title, width, height,
                                 SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
     if (!s_window) {

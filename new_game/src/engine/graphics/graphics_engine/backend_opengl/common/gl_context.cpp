@@ -37,6 +37,18 @@ bool gl_context_create(int32_t width, int32_t height)
         return false;
     }
 
+    glEnable(GL_MULTISAMPLE);
+
+    // Check if we actually got a multisample framebuffer.
+    GLint msaa_samples = 0, msaa_buffers = 0;
+    glGetIntegerv(GL_SAMPLES, &msaa_samples);
+    glGetIntegerv(GL_SAMPLE_BUFFERS, &msaa_buffers);
+    fprintf(stderr, "OpenGL MSAA: %d samples, %d buffers\n", msaa_samples, msaa_buffers);
+
+    GLint max_samples = 0;
+    glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
+    fprintf(stderr, "OpenGL max samples supported: %d\n", max_samples);
+
     fprintf(stderr, "OpenGL vendor:   %s\n", (const char*)glGetString(GL_VENDOR));
     fprintf(stderr, "OpenGL renderer: %s\n", (const char*)glGetString(GL_RENDERER));
     fprintf(stderr, "OpenGL version:  %s\n", (const char*)glGetString(GL_VERSION));

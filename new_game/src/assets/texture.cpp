@@ -467,6 +467,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     ge_texture_load_tga(TEXTURE_page_tyretrack, TEXTURE_EXTRA_DIR "tyremark.tga");
     LOADED_THIS_MANY_TEXTURES(5);
     ge_texture_load_tga(TEXTURE_page_winmap, TEXTURE_EXTRA_DIR "winmap.tga");
+    ge_texture_set_no_mipmaps(TEXTURE_page_leaf);
     ge_texture_load_tga(TEXTURE_page_leaf, TEXTURE_EXTRA_DIR "leaf.tga");
     ge_texture_load_tga(TEXTURE_page_raindrop, TEXTURE_EXTRA_DIR "raindrop.tga");
     ge_texture_load_tga(TEXTURE_page_footprint, TEXTURE_EXTRA_DIR "footprint.tga");
@@ -489,12 +490,14 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     // Frontend/UI textures
     ge_texture_load_tga(TEXTURE_page_bigbutton, TEXTURE_EXTRA_DIR "bigbutt.tga", false);
     TEXTURE_needed[TEXTURE_page_bigbutton] = 1;
+    ge_texture_set_no_mipmaps(TEXTURE_page_bigleaf);
     ge_texture_load_tga(TEXTURE_page_bigleaf, TEXTURE_EXTRA_DIR "bigleaf.tga");
     TEXTURE_needed[TEXTURE_page_bigleaf] = 1;
     ge_texture_load_tga(TEXTURE_page_bigrain, TEXTURE_EXTRA_DIR "raindrop2.tga");
     TEXTURE_needed[TEXTURE_page_bigrain] = 1;
     ge_texture_load_tga(TEXTURE_page_tinybutt, TEXTURE_EXTRA_DIR "tinybutt.tga", false);
     TEXTURE_needed[TEXTURE_page_tinybutt] = 1;
+    ge_texture_set_no_mipmaps(TEXTURE_page_snowflake);
     ge_texture_load_tga(TEXTURE_page_snowflake, TEXTURE_EXTRA_DIR "snowflake.tga");
     TEXTURE_needed[TEXTURE_page_snowflake] = 1;
 
@@ -511,6 +514,7 @@ void TEXTURE_load_needed(CBYTE* fname_level,
         ge_texture_load_tga(TEXTURE_page_tyretrack_alpha, TEXTURE_EXTRA_DIR "tyremark_alpha.tga");
         ge_texture_load_tga(TEXTURE_page_ladder, TEXTURE_EXTRA_DIR "secret.tga");
         ge_texture_load_tga(TEXTURE_page_shadowoval, TEXTURE_EXTRA_DIR "shadow.tga");
+        ge_texture_set_no_mipmaps(TEXTURE_page_rubbish);
         ge_texture_load_tga(TEXTURE_page_rubbish, TEXTURE_EXTRA_DIR "rubbish.tga");
         LOADED_THIS_MANY_TEXTURES(5);
 
