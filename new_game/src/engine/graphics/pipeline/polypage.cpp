@@ -182,7 +182,7 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
     pp->first_vertex = pv - ppDrawn->m_VertexPtr;
     pp->num_vertices = num_vertices;
 
-    float zmax = pts[0]->Z;
+    float zsum = 0.0f;
 
     if (RS.ZLift()) {
         float zbias = float(RS.ZLift()) / 65536.0F;
@@ -193,14 +193,11 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
             pv[ii].SetColour(pts[ii]->colour & s_ColourMask);
             pv[ii].SetSpecular(pts[ii]->specular);
 
-            if (pts[ii]->Z > zmax)
-                zmax = pts[ii]->Z;
+            zsum += pts[ii]->Z;
         }
 
-        pp->sort_z = zmax + zbias;
+        pp->sort_z = zsum / num_vertices + zbias;
     } else {
-        float zmax = pts[0]->Z;
-
         for (ii = 0; ii < num_vertices; ii++) {
             pv[ii].SetSC(pts[ii]->X * s_XScale, pts[ii]->Y * s_YScale, 1.0F - pts[ii]->Z);
             pv[ii].SetUV2(pts[ii]->u * m_UScale + m_UOffset,
@@ -208,11 +205,10 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
             pv[ii].SetColour(pts[ii]->colour & s_ColourMask);
             pv[ii].SetSpecular(pts[ii]->specular);
 
-            if (pts[ii]->Z > zmax)
-                zmax = pts[ii]->Z;
+            zsum += pts[ii]->Z;
         }
 
-        pp->sort_z = zmax;
+        pp->sort_z = zsum / num_vertices;
     }
 }
 
@@ -331,8 +327,8 @@ void PolyPage::DrawBatchedPolys(const UWORD* indices, uint32_t index_count)
 }
 
 // uc_orig: AddToBuckets (fallen/DDEngine/Source/polypage.cpp)
-// Distribute this page's polygons into Z-depth buckets for later bucket-sorted rendering.
-void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
+// Original 2048-bucket sort replaced by CollectForSort + std::stable_sort.
+void PolyPage::CollectForSort(PolyPoly** sort_array, int& count, int max_count)
 {
     if (!m_VertexBuffer || !m_PolyBufUsed)
         return;
@@ -342,17 +338,13 @@ void PolyPage::AddToBuckets(PolyPoly* buckets[], int count)
     m_VB = ge_vb_prepare(m_VertexBuffer);
 
     for (DWORD ii = 0; ii < m_PolyBufUsed; ii++) {
+        if (count >= max_count)
+            break;
+
         PolyPoly* poly = &m_PolyBuffer[ii];
 
-        int bucket = int(poly->sort_z * count);
-        if (bucket < 0)
-            bucket = 0;
-        if (bucket >= count)
-            bucket = count - 1;
-
         poly->page = this;
-        poly->next = buckets[bucket];
-        buckets[bucket] = poly;
+        sort_array[count++] = poly;
     }
 
     m_VertexBuffer = NULL;

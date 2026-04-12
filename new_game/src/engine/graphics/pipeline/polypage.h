@@ -74,7 +74,9 @@ public:
     void Render();
 
     // uc_orig: AddToBuckets (fallen/DDEngine/Headers/polypage.h)
-    void AddToBuckets(PolyPoly* buckets[], int count);
+    // Original 2048-bucket sort replaced by CollectForSort + std::stable_sort
+    // for precise per-polygon depth ordering.
+    void CollectForSort(PolyPoly** sort_array, int& count, int max_count);
     // uc_orig: DrawSinglePoly (fallen/DDEngine/Headers/polypage.h)
     void DrawSinglePoly(PolyPoly* poly);
 
