@@ -29,13 +29,11 @@
 - API: `EnableTouch()`, читать `TouchPosition`/`TouchRelative`/`TouchFingerCount`
 - Варианты: камера, карта, быстрый доступ к инвентарю
 - Требует дизайн-решения
-- См. [known_issues](known_issues_and_bugs.md) — "B5 — Тачпад".
 
 ## Гироскоп (B6)
 - API: `EnableMotionSensor()`, читать `Gyroscope`/`Accelerometer`
 - Применение: точное прицеливание в first-person mode
 - Требует калибровку и UI
-- См. [known_issues](known_issues_and_bugs.md) — "B6 — Гироскоп".
 
 ## Audio-to-haptic (B7)
 - API: `AudioHapticUpdate()` через miniaudio (уже включён в библиотеку)
@@ -43,14 +41,12 @@
 - Приоритетные эффекты: стрельба (отдача), взрывы, удары, двигатель машины (ощущение оборотов), шаги по разным поверхностям
 - Требует: поправить CMake path для miniaudio, интегрировать с MFX звуковой системой
 - Самая сложная фича
-- См. [known_issues](known_issues_and_bugs.md) — "B7 — Audio-to-haptic".
+- **Перенесено в 1.0.** См. [known_issues](known_issues_and_bugs.md).
 
 ## Вибрация в видеовставках
 - `MDEC_vibra[]` — frame-synchronized vibration для intro/endgame
 - Требует интеграцию с видеоплеером
-- См. [known_issues](known_issues_and_bugs.md) — "Вибрация в видеовставках".
 
 ## Вибрация в меню
 - Тест-вибрация при включении опции в настройках
 - Опция пока не в UI
-- См. [known_issues](known_issues_and_bugs.md) — "Вибрация в меню".
