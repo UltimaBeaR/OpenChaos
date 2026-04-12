@@ -583,6 +583,11 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 
     GEVertexTL pTLVert[3];
     GEVertexLit* pLVert = (GEVertexLit*)mm->lpvVertices;
+    // For unlit (character) path the buffer actually contains GEVertex with packed
+    // normals; x/y/z/u/v offsets match GEVertexLit so position/UV reads are shared.
+    GEVertex* pVert = (GEVertex*)mm->lpvVertices;
+    const float* pLightDirs = (const float*)mm->lpvLightDirs;
+    const uint32_t* pLightTable = (const uint32_t*)mm->lpLightTable;
 
     uint16_t* pwCurIndex = indices;
     while (UC_TRUE) {
@@ -639,7 +644,35 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 pTLVert[i].v = pLVert[wIndex[i]].v;
 
                 if (unlit) {
-                    pTLVert[i].color = 0xffffffff;
+                    // Per-vertex character lighting: dot(normal, bone-local light dir) →
+                    // index into the 128-entry fade table (MM_pcFadeTable) built by
+                    // BuildMMLightingTable. Normals are unit vectors, light dirs are unit
+                    // scaled by fNormScale = 251 (figure.cpp), so we divide dot by 251 to
+                    // get a clean cosine in [-1, 1]. Uses half-Lambert wrap
+                    // (wrap = cos × 0.5 + 0.5) so back-facing vertices still get partial
+                    // lighting from the ramp instead of dropping into flat-ambient idx 64;
+                    // this avoids the hard shadow cutoff that made characters read as too
+                    // dark against the environment geometry. Full background, data-scale
+                    // derivation and contrast-tuning notes:
+                    // new_game_planning/stage12_character_lighting_investigation.md
+                    GEVertex* pVertCur = pVert + wVertIndex;
+                    float nx = pVertCur->nx;
+                    float ny = pVertCur->ny;
+                    float nz = pVertCur->nz;
+
+                    float lx = pLightDirs[bMatIndex * 4 + 1];
+                    float ly = pLightDirs[bMatIndex * 4 + 2];
+                    float lz = pLightDirs[bMatIndex * 4 + 3];
+
+                    float dot_raw = nx * lx + ny * ly + nz * lz;
+                    float cos_nl = dot_raw * (1.0f / 251.0f);       // undo fNormScale
+
+                    float wrap = cos_nl * 0.5f + 0.5f;              // half-Lambert [0,1]
+                    int idx = (int)(wrap * 64.0f);
+                    if (idx < 0)  idx = 0;
+                    if (idx > 63) idx = 63;
+
+                    pTLVert[i].color = pLightTable[idx];
                     pTLVert[i].specular = fog_specular;
                 } else {
                     pTLVert[i].color = pLVert[wIndex[i]].color;
