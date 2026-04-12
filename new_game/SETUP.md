@@ -263,11 +263,8 @@ make run-debug
 |---------|-------------|
 | `make configure` | CMake configure — run once, or after `CMakeLists.txt` changes |
 | `make configure-asan` | CMake configure with AddressSanitizer enabled |
-| `make build` | Full rebuild — Debug and Release |
 | `make build-debug` | Full rebuild — Debug |
 | `make build-release` | Full rebuild — Release |
-| `make build-increment-debug` | Incremental build — Debug |
-| `make build-increment-release` | Incremental build — Release |
 | `make copy-resources` | Copy game resources into Debug and Release output folders |
 | `make copy-resources-debug` | Copy resources into Debug only |
 | `make copy-resources-release` | Copy resources into Release only |

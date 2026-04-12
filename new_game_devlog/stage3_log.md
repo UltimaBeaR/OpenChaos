@@ -185,8 +185,6 @@ new_game/
 make configure               # первый раз или после изменений в CMakeLists.txt
 make build-debug             # полный ребилд Debug
 make build-release           # полный ребилд Release
-make build-increment-debug   # инкрементальная сборка Debug
-make build-increment-release # инкрементальная сборка Release
 make copy-resources          # скопировать ресурсы в Debug и Release
 make copy-resources-debug    # только в Debug
 make copy-resources-release  # только в Release
@@ -259,11 +257,6 @@ vcpkg кладёт debug DLL в отдельную папку с другими 
 - `vcpkg_installed/x86-windows/debug/bin/` — `SDL2d.dll`, `OpenAL32.dll`, `fmtd.dll` (Debug)
 
 **Фикс:** в `CMakeLists.txt` разделены post-build команды копирования по конфигурациям через `CONFIGURATIONS Release` / `CONFIGURATIONS Debug`. OpenAL32.dll имеет одинаковое имя в обоих конфигах, но берётся из разных папок.
-
-### `make build` — сборка обоих конфигов
-
-Добавлена цель `make build` = `build-debug` + `build-release` последовательно.
-Параллельно не работает: оба процесса используют один `new_game/build/`, Ninja ставит `.ninja_lock`.
 
 ---
 

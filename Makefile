@@ -6,20 +6,11 @@
 # Detects heap overflows, use-after-free, stack-use-after-scope, etc.
 .PHONY: configure-asan
 
-# Full rebuild of both Debug and Release.
-.PHONY: build
-
 # Full rebuild, Debug config. Requires: make configure (run once).
 .PHONY: build-debug
 
 # Full rebuild, Release config. Requires: make configure (run once).
 .PHONY: build-release
-
-# Incremental build, Debug config. Only recompiles changed files.
-.PHONY: build-increment-debug
-
-# Incremental build, Release config. Only recompiles changed files.
-.PHONY: build-increment-release
 
 # Copy original_game_resources/ into both Debug and Release output dirs.
 # Run once after clone or when game resources change.
@@ -63,9 +54,19 @@ endif
 include make/configure.mk
 include release/release.mk
 
-build: build-debug build-release
+# Check if ASan is enabled in CMake cache
+ASAN_ENABLED := $(shell grep -q 'ENABLE_ASAN:BOOL=ON' $(BUILD_DIR)/CMakeCache.txt 2>/dev/null && echo 1)
+
+define require_no_asan
+	@if [ "$(ASAN_ENABLED)" = "1" ]; then \
+	  echo "ERROR: '$1' is not available in ASan configuration. Use release targets (build-release, r)." >&2; \
+	  echo "  To switch back to normal: make configure" >&2; \
+	  exit 1; \
+	fi
+endef
 
 build-debug:
+	$(call require_no_asan,build-debug)
 	@if [ ! -d "$(BUILD_DIR)" ]; then \
 	  echo "ERROR: Build directory not found. Run 'make configure' first." >&2; \
 	  exit 1; \
@@ -79,19 +80,6 @@ build-release:
 	fi
 	$(CMAKE) --build $(BUILD_DIR) --config Release --clean-first
 
-build-increment-debug:
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-	  echo "ERROR: Build directory not found. Run 'make configure' first." >&2; \
-	  exit 1; \
-	fi
-	$(CMAKE) --build $(BUILD_DIR) --config Debug
-
-build-increment-release:
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-	  echo "ERROR: Build directory not found. Run 'make configure' first." >&2; \
-	  exit 1; \
-	fi
-	$(CMAKE) --build $(BUILD_DIR) --config Release
 
 copy-resources: copy-resources-debug copy-resources-release
 
