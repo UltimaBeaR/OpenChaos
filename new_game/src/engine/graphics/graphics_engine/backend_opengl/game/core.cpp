@@ -42,6 +42,7 @@ struct UniformSnapshot {
     bool            specular_enabled;
     bool            color_key_enabled;
     int32_t         vp_x, vp_y, vp_w, vp_h;
+    int             farfacet_mode;
 };
 static UniformSnapshot s_last_uniforms = {};
 static bool s_uniforms_ever_uploaded = false;
@@ -63,6 +64,11 @@ static int32_t s_vp_x = 0, s_vp_y = 0, s_vp_w = 640, s_vp_h = 480;
 static bool     s_fog_enabled = false;
 static uint32_t s_fog_color = 0;
 static float    s_fog_near = 0.0f, s_fog_far = 1.0f;
+
+// Far-facet silhouette mode: 0 = off, 1 = production (fog-colour
+// silhouettes, alpha fade tied to fog density), 2 = debug split
+// (opaque pixels painted purple, semi-transparent pixels green).
+static int      s_farfacet_mode = 0;
 
 float g_mm_fog_view_z = 0.0f;
 
@@ -416,6 +422,7 @@ static GLint s_tl_u_fog_far             = -1;
 static GLint s_tl_u_specular_enabled    = -1;
 static GLint s_tl_u_color_key_enabled   = -1;
 static GLint s_tl_u_tex_has_alpha      = -1;
+static GLint s_tl_u_farfacet_mode      = -1;
 
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
@@ -430,7 +437,8 @@ static void cache_frag_uniforms(GLuint prog,
     GLint* u_has_texture, GLint* u_texture, GLint* u_texture_blend,
     GLint* u_alpha_test_enabled, GLint* u_alpha_ref, GLint* u_alpha_func,
     GLint* u_fog_enabled, GLint* u_fog_color, GLint* u_fog_near, GLint* u_fog_far,
-    GLint* u_specular_enabled, GLint* u_color_key_enabled, GLint* u_tex_has_alpha)
+    GLint* u_specular_enabled, GLint* u_color_key_enabled, GLint* u_tex_has_alpha,
+    GLint* u_farfacet_mode)
 {
     *u_has_texture        = glGetUniformLocation(prog, "u_has_texture");
     *u_texture            = glGetUniformLocation(prog, "u_texture");
@@ -445,6 +453,7 @@ static void cache_frag_uniforms(GLuint prog,
     *u_specular_enabled   = glGetUniformLocation(prog, "u_specular_enabled");
     *u_color_key_enabled  = glGetUniformLocation(prog, "u_color_key_enabled");
     *u_tex_has_alpha      = glGetUniformLocation(prog, "u_tex_has_alpha");
+    *u_farfacet_mode      = glGetUniformLocation(prog, "u_farfacet_mode");
 }
 
 // Set up VAO for GEVertexTL layout: 32 bytes per vertex.
@@ -505,7 +514,8 @@ static bool init_shaders()
         &s_tl_u_has_texture, &s_tl_u_texture, &s_tl_u_texture_blend,
         &s_tl_u_alpha_test_enabled, &s_tl_u_alpha_ref, &s_tl_u_alpha_func,
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
-        &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha);
+        &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha,
+        &s_tl_u_farfacet_mode);
 
     // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
     // (glBufferData with different sizes) which can trigger NVIDIA driver bugs.
@@ -543,7 +553,8 @@ static void set_frag_uniforms(
     GLint u_has_texture, GLint u_texture, GLint u_texture_blend,
     GLint u_alpha_test_enabled, GLint u_alpha_ref, GLint u_alpha_func,
     GLint u_fog_enabled, GLint u_fog_color, GLint u_fog_near, GLint u_fog_far,
-    GLint u_specular_enabled, GLint u_color_key_enabled, GLint u_tex_has_alpha)
+    GLint u_specular_enabled, GLint u_color_key_enabled, GLint u_tex_has_alpha,
+    GLint u_farfacet_mode)
 {
     // Check if anything changed since last upload.
     UniformSnapshot cur = {
@@ -552,7 +563,8 @@ static void set_frag_uniforms(
         s_alpha_test_enabled, s_alpha_ref, s_alpha_func,
         s_fog_enabled, s_fog_color, s_fog_near, s_fog_far,
         s_specular_enabled, s_color_key_enabled,
-        s_vp_x, s_vp_y, s_vp_w, s_vp_h
+        s_vp_x, s_vp_y, s_vp_w, s_vp_h,
+        s_farfacet_mode
     };
 
     if (s_uniforms_ever_uploaded && memcmp(&cur, &s_last_uniforms, sizeof(cur)) == 0)
@@ -612,6 +624,7 @@ static void set_frag_uniforms(
 
     glUniform1i(u_specular_enabled, s_specular_enabled ? 1 : 0);
     glUniform1i(u_color_key_enabled, s_color_key_enabled ? 1 : 0);
+    glUniform1i(u_farfacet_mode, s_farfacet_mode);
 }
 
 // ---------------------------------------------------------------------------
@@ -873,6 +886,11 @@ void ge_set_fog_params(uint32_t color, float near_dist, float far_dist)
     s_fog_far = far_dist;
 }
 
+void ge_set_farfacet_mode(int mode)
+{
+    s_farfacet_mode = mode;
+}
+
 void ge_set_specular_enabled(bool enabled)
 {
     s_specular_enabled = enabled;
@@ -933,7 +951,8 @@ void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t c
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
+        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha,
+        s_tl_u_farfacet_mode);
 
     glBindVertexArray(s_vao_tl);
     glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
@@ -968,7 +987,8 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
+        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha,
+        s_tl_u_farfacet_mode);
 
     glBindVertexArray(s_vao_tl);
 
@@ -1898,7 +1918,8 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
         s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
         s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha);
+        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha,
+        s_tl_u_farfacet_mode);
 
     // Use buffer's allocated capacity — avoids scanning all indices for max.
     uint32_t vert_count = 1u << buf->logsize;

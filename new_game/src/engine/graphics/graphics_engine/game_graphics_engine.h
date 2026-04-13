@@ -166,6 +166,11 @@ void ge_set_alpha_test_enabled(bool enabled);
 void ge_set_alpha_ref(uint32_t ref);
 void ge_set_alpha_func(GECompareFunc func);
 void ge_set_fog_params(uint32_t color, float near_dist, float far_dist);
+// Far-facet silhouette pass mode: 0 = off, 1 = production (fog-colour
+// silhouettes with fog-density alpha fade), 2 = debug split (purple for
+// fully opaque pixels, green for semi-transparent ones). Set around the
+// FARFACET_draw call.
+void ge_set_farfacet_mode(int mode);
 void ge_set_specular_enabled(bool enabled);
 void ge_set_perspective_correction(bool enabled);
 

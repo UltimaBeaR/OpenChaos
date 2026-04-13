@@ -413,6 +413,16 @@ void FARFACET_init()
 
     FARFACET_renderstate.SetFogEnabled(true);
     FARFACET_renderstate.SetTexture(GE_TEXTURE_NONE);
+    // Far-facets are painted "flat on top of the skybox" before any 3D
+    // scene geometry. No depth interaction: no read, no write. Alpha
+    // blending composes them against the already-drawn skybox so moon /
+    // cloud pixels that happen to occupy the same screen region survive
+    // under the semi-transparent parts of the silhouette.
+    FARFACET_renderstate.SetDepthEnabled(false);
+    FARFACET_renderstate.SetDepthWrite(false);
+    FARFACET_renderstate.SetSrcBlend(GEBlendFactor::SrcAlpha);
+    FARFACET_renderstate.SetDstBlend(GEBlendFactor::InvSrcAlpha);
+    FARFACET_renderstate.SetAlphaBlendEnabled(true);
 }
 
 // uc_orig: FARFACET_draw (fallen/DDEngine/Source/farfacet.cpp)
@@ -426,9 +436,14 @@ void FARFACET_draw(
     float draw_dist,
     float lens)
 {
-    if (!Keys[KB_R]) {
-        return;
-    }
+    // Original pre-release PC code had `if (!Keys[KB_R]) return;` here,
+    // inside `#ifndef TARGET_DC`, which disabled far-facet silhouettes on PC
+    // unless the R key was held. Dreamcast (`TARGET_DC`) always ran the full
+    // path. The final retail PC release flipped this — far facets were
+    // enabled on PC. Removing the gate matches retail behaviour and fixes
+    // the far-edge building pop-in by rendering distant buildings as black
+    // silhouettes beyond the fog distance.
+    // See new_game_devlog/stage12_farfacets.md.
 
     float width;
     float height;
@@ -528,30 +543,30 @@ void FARFACET_draw(
     SATURATE(square_max_x, 0, FARFACET_SIZE - 1);
     SATURATE(square_max_z, 0, FARFACET_SIZE - 1);
 
+    // Upload the camera view transform to g_matWorld. `ge_draw_indexed_primitive_lit`
+    // transforms world-space LVERT positions through g_matWorld * g_matProjection,
+    // so without this call far-facet vertices would use whatever stale world
+    // matrix the last draw left behind — producing camera-pitch-dependent
+    // bobbing and misplaced silhouettes. The pre-release D3D6 version relied
+    // on fixed-function state being set earlier; our GL path needs an explicit
+    // refresh.
+    POLY_set_local_rotation_none();
+
+    // Flip the fragment shader into far-facet mode. Mode 1 = production
+    // (silhouettes painted in u_fog_color), mode 2 = debug split (opaque
+    // pixels purple, semi-transparent green). The debug mode follows the
+    // g_farfacet_debug toggle (F10 after bangunsnotgames).
+    {
+        extern BOOL g_farfacet_debug;
+        ge_set_farfacet_mode(g_farfacet_debug ? 2 : 1);
+    }
+
     FARFACET_renderstate.SetChanged();
 
-    // Slightly scale the projection matrix to push RHW values further back,
-    // acting as a Z-bias to avoid Z-fighting with the normal scene polygons.
-#define MY_PROJ_MATRIX_SCALE 1.01f
-    GEMatrix matMyProj = g_matProjection;
-    matMyProj._11 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._12 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._13 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._14 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._21 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._22 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._23 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._24 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._31 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._32 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._33 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._34 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._41 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._42 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._43 *= MY_PROJ_MATRIX_SCALE;
-    matMyProj._44 *= MY_PROJ_MATRIX_SCALE;
-
-    ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&matMyProj));
+    // Force blend state on explicitly — RS.SetChanged skips the call if
+    // its tracked copy of the GL state already matches, which can leave
+    // blending in whatever state the previous draw left behind.
+    ge_set_blend_factors(GEBlendFactor::SrcAlpha, GEBlendFactor::InvSrcAlpha);
 
     SLONG square_x;
     SLONG square_z;
@@ -584,9 +599,18 @@ void FARFACET_draw(
 
                 dprod = dx * matrix[6] + dy * matrix[7] + dz * matrix[8];
 
-                // Only draw squares beyond the fog/draw distance.
+                // Far-facets draw only at and beyond the normal draw
+                // distance. Each square is 4*4 lo-res tiles wide (~16 tiles
+                // = ~4096 world units), so a centre-only distance check
+                // flickers the whole square on and off as its centre
+                // crosses the boundary. Include a conservative square
+                // radius in the comparison so any square whose far edge
+                // reaches beyond the draw distance is kept — eliminates
+                // the "whole square pops" flicker near the fog edge.
+                // 4096/2 * sqrt(2) ≈ 2897.
                 extern SLONG CurDrawDistance;
-                if (dprod * 2.5f < (float)CurDrawDistance) {
+                const float SQUARE_RADIUS = 2897.0F;
+                if (dprod + SQUARE_RADIUS < (float)CurDrawDistance) {
                     continue;
                 }
 
@@ -603,7 +627,7 @@ void FARFACET_draw(
 
     FARFACET_default_renderstate.SetChanged();
 
-    ge_set_transform(GETransform::Projection, reinterpret_cast<const GEMatrix*>(&g_matProjection));
+    ge_set_farfacet_mode(0);
 }
 
 // uc_orig: FARFACET_fini (fallen/DDEngine/Source/farfacet.cpp)

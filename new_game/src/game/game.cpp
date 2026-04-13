@@ -136,6 +136,7 @@
 extern void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG w, SLONG h, UBYTE* buf);
 
 extern BOOL allow_debug_keys;
+extern BOOL g_farfacet_debug;
 extern BOOL text_fudge;
 extern ULONG text_colour;
 extern void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG flag);
@@ -671,6 +672,25 @@ SLONG special_keys(void)
             Keys[KB_QUOTE] = 0;
             single_step ^= 1;
         }
+
+    // F10: toggle far-facet debug mode (skip level geometry + shader
+    // debug-split colours on far-facets). Only active after bangunsnotgames
+    // cheat. See stage12_farfacets.md.
+    {
+        static bool f10_was_pressed = false;
+        if (Keys[KB_F10] && allow_debug_keys) {
+            if (!f10_was_pressed) {
+                f10_was_pressed = true;
+                g_farfacet_debug ^= 1;
+                if (g_farfacet_debug)
+                    CONSOLE_text("farfacet debug on", 3000);
+                else
+                    CONSOLE_text("farfacet debug off", 3000);
+            }
+        } else if (!Keys[KB_F10]) {
+            f10_was_pressed = false;
+        }
+    }
 
     if (single_step) {
         if (Keys[KB_COMMA]) {

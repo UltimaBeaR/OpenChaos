@@ -45,6 +45,13 @@ extern CBYTE* cmd_list[];
 // Global flag: debug keyboard shortcuts are active.
 extern BOOL allow_debug_keys;
 
+// OpenChaos far-facet debug mode (F10 toggle after bangunsnotgames cheat).
+// When set, AENG_draw_city skips the normal level geometry pass and
+// FARFACET_draw switches the fragment shader into its debug-split mode
+// (purple = fully opaque silhouette, green = semi-transparent fade zone),
+// so the far-facet silhouette layer can be inspected in isolation.
+extern BOOL g_farfacet_debug;
+
 // uc_orig: dkeys_have_been_used (fallen/Source/Controls.cpp)
 // Set to UC_TRUE once debug keys are toggled via the console.
 extern BOOL dkeys_have_been_used;

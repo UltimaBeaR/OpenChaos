@@ -5239,6 +5239,14 @@ void AENG_draw_city()
 
         AENG_LENS);
 
+    // F10 debug mode (after bangunsnotgames): skip the rest of the level
+    // geometry pass so the far-facet silhouette layer can be inspected
+    // in isolation. See game.cpp for the toggle and stage12 devlog.
+    {
+        extern BOOL g_farfacet_debug;
+        if (g_farfacet_debug) return;
+    }
+
     // #if defined(NDEBUG) || defined(TARGET_DC)
     //	if (AENG_detail_skyline)
     //		AENG_draw_far_facets();

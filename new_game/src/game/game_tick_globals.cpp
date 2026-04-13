@@ -75,6 +75,13 @@ CBYTE* cmd_list[] = { "cam", "echo", "tels", "telr", "telw", "break", "wpt", "vt
 // uc_orig: allow_debug_keys (fallen/Source/Controls.cpp)
 BOOL allow_debug_keys = 0;
 
+// OpenChaos debug toggle (F10 after bangunsnotgames cheat): suppresses the
+// normal level geometry draw and switches FARFACET_draw into the shader's
+// debug-split mode (purple where opaque, green where semi-transparent), so
+// the far-facet silhouette layer can be inspected in isolation. Used for
+// tuning the FARFACET system — see stage12_farfacets.md.
+BOOL g_farfacet_debug = 0;
+
 // uc_orig: dkeys_have_been_used (fallen/Source/Controls.cpp)
 BOOL dkeys_have_been_used;
 

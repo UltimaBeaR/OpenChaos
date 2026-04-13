@@ -22,6 +22,13 @@ uniform float     u_fog_far;
 uniform int       u_specular_enabled;
 uniform int       u_color_key_enabled;
 uniform int       u_tex_has_alpha;
+// Far-facet silhouette pass flag:
+//   0 = off (normal draw)
+//   1 = production: RGB forced to u_fog_color, alpha tied to fog density
+//   2 = debug: same alpha, but RGB split so fully-opaque pixels are
+//       purple and any semi-transparent pixel is green — lets you see
+//       exactly where the silhouette is solid vs faded.
+uniform int       u_farfacet_mode;
 
 out vec4 frag_color;
 
@@ -97,6 +104,29 @@ void main()
             fog_factor = clamp((u_fog_far - v_view_z) / (u_fog_far - u_fog_near), 0.0, 1.0);
         }
         color.rgb = mix(u_fog_color, color.rgb, fog_factor);
+
+        // Far-facet silhouette pass. Far-facets are painted "flat on top
+        // of the skybox" — no depth read/write. Alpha mirrors fog density:
+        // where walls are still un-fogged → transparent (real geometry
+        // dominates), where walls are fully fogged → opaque silhouette.
+        // Lit v_view_z is ~64x smaller than TL-path, scale to compare.
+        if (u_farfacet_mode != 0) {
+            float vz_tl = v_view_z * 64.0;
+            float ff = clamp((u_fog_far - vz_tl) / (u_fog_far - u_fog_near), 0.0, 1.0);
+            color.a = 1.0 - ff;
+            if (u_farfacet_mode == 2) {
+                // Debug split: solid purple where fully opaque, green in
+                // any semi-transparent region. Makes the fade zone and
+                // the silhouette body obviously distinct on screen.
+                if (color.a >= 0.99) {
+                    color.rgb = vec3(0.63, 0.13, 0.94);
+                } else {
+                    color.rgb = vec3(0.0, 1.0, 0.0);
+                }
+            } else {
+                color.rgb = u_fog_color;
+            }
+        }
     }
 
     frag_color = color;
