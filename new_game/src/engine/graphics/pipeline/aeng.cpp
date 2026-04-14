@@ -4031,7 +4031,21 @@ void AENG_draw_city()
     // Shadows.
     //
 
+    // Max number of simultaneous detailed character shadows. Can't be bumped
+    // on its own — the shadow bitmap is TEXTURE_SHADOW_SIZE (64) and each
+    // shadow occupies a 32x32 quadrant, so only 4 slots fit. To raise this:
+    // grow TEXTURE_SHADOW_SIZE (and the shadow texture in the renderer),
+    // fix the offset_x/offset_y mapping (currently hardcoded 2x2 via i&1 / i&2),
+    // update the ASSERTs on TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE, then bump
+    // this value. Both shadow code paths use the same layout.
 #define AENG_NUM_SHADOWS 4
+
+    // Max distance (|dx|+|dz|, raw world units) from the camera at which a
+    // character gets a detailed shadow. Original: 0x60000. Bumped for 1.0 so
+    // characters stop popping into detailed shadows right in front of the cam.
+    // Both shadow paths (detail_shadows and shadows_on) use this.
+    // uc_orig: was inline 0x60000 in fallen/DDEngine/Source/aeng.cpp
+#define AENG_SHADOW_MAX_DIST 0xC0000
 
     struct
     {
@@ -4043,6 +4057,15 @@ void AENG_draw_city()
 
     if (AENG_detail_shadows) {
         Thing* darci = FC_cam[AENG_cur_fc_cam].focus;
+
+        // Reference point for shadow LOD selection: position of the actual
+        // render camera, not Darci. In gameplay the camera follows Darci so
+        // this is essentially the same, but in cutscenes (EWAY scripted cams
+        // or PLAYCUTS cine packets) the camera is far from Darci — using her
+        // position drops NPCs shown in close-up to blob shadows. FC_cam[].x/z
+        // are in raw world units (same scale as Thing::WorldPos).
+        SLONG ref_x = FC_cam[AENG_cur_fc_cam].x;
+        SLONG ref_z = FC_cam[AENG_cur_fc_cam].z;
 
         //
         // How many people do we generate shadows for?
@@ -4060,15 +4083,16 @@ void AENG_draw_city()
 
                     if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
                         //
-                        // Distance from darci.
+                        // Distance from the reference point (camera position —
+                        // see above).
                         //
 
-                        dx = p_thing->WorldPos.X - darci->WorldPos.X;
-                        dz = p_thing->WorldPos.Z - darci->WorldPos.Z;
+                        dx = p_thing->WorldPos.X - ref_x;
+                        dz = p_thing->WorldPos.Z - ref_z;
 
                         dist = abs(dx) + abs(dz);
 
-                        if (dist < 0x60000) {
+                        if (dist < AENG_SHADOW_MAX_DIST) {
                             if (shadow_person_upto < AENG_NUM_SHADOWS) {
                                 //
                                 // Put this person in the shadow array.
@@ -6983,9 +7007,25 @@ void AENG_draw_warehouse()
     if (AENG_shadows_on) {
         Thing* darci = NET_PERSON(0);
 
+        // Reference point for shadow LOD selection. Original used Darci's
+        // position — fine in gameplay (camera follows her) but wrong in
+        // cutscenes (EWAY or PLAYCUTS) where the cine camera can be far
+        // from Darci, dropping NPCs shown in close-up to blob shadows.
+        // Use the actual render camera position, which covers every case:
+        // gameplay (follow-cam next to Darci), EWAY cutscenes (EWAY_grab_camera
+        // already wrote fc->x/z), PLAYCUTS (AENG_set_camera wrote FC_cam[0]).
+        // FC_cam[].x/z are in raw world units (same scale as Thing::WorldPos).
+        SLONG ref_x = FC_cam[AENG_cur_fc_cam].x;
+        SLONG ref_z = FC_cam[AENG_cur_fc_cam].z;
+
         // How many people do we generate shadows for?
+        // See AENG_draw_city for the full comment on why this can't be bumped
+        // on its own.
         // uc_orig: AENG_NUM_SHADOWS (fallen/DDEngine/Source/aeng.cpp)
 #define AENG_NUM_SHADOWS 4
+
+        // See AENG_draw_city for rationale; redefined here for self-containment.
+#define AENG_SHADOW_MAX_DIST 0xC0000
 
         struct
         {
@@ -7005,13 +7045,14 @@ void AENG_draw_warehouse()
                     p_thing = TO_THING(t_index);
 
                     if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
-                        // Distance from darci.
-                        dx = p_thing->WorldPos.X - darci->WorldPos.X;
-                        dz = p_thing->WorldPos.Z - darci->WorldPos.Z;
+                        // Distance from the reference point (Darci in gameplay,
+                        // cine camera in cutscenes — see above).
+                        dx = p_thing->WorldPos.X - ref_x;
+                        dz = p_thing->WorldPos.Z - ref_z;
 
                         dist = abs(dx) + abs(dz);
 
-                        if (dist < 0x60000) {
+                        if (dist < AENG_SHADOW_MAX_DIST) {
                             if (shadow_person_upto < AENG_NUM_SHADOWS) {
                                 // Put this person in the shadow array.
                                 shadow_person[shadow_person_upto].p_person = p_thing;
