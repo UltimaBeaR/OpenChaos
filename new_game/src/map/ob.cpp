@@ -685,6 +685,7 @@ void OB_remove(OB_Info* oi)
         if (f4->FaceFlags & FACE_FLAG_PRIM) {
             if (f4->ThingIndex == -oi->index) {
                 remove_walkable_from_map(i);
+                return;
             }
         }
     }

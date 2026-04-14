@@ -427,6 +427,7 @@ Stage 7: D3D6 вырезан, только OpenGL через GE контракт
 24. **PSystem menu-pause early-out (PRT-14), ribbon menu early-out (PRT-38)** — verify intent.
 25. **`pcom SOUND_FIGHT` bent test (PRT-30)** — unclear if regression.
 26. **Load_needed_anim_prims per-level gating (MIS-04)** — inverted memory optimization.
+27. **PHY-01 `height_above_anything` Ware branch (collide.cpp)** — оказался НЕ bugfix, а behavior change. Pre-release: `if (1 || Ware)` — мёртвая else-ветка, всегда `FIND_FACE_NEAR_BELOW`. Release: убрали `1||`, non-Ware персонажи теперь получают `FIND_ANYFACE` (более общий поиск). Наш код: при портировании выкинули мёртвую ветку, семантически = pre-release. Что делать: (1) понять что такое флаг `Ware` — grep где выставляется; (2) проверить в retail: есть ли разница в приземлении/падении для не-Ware персонажей; (3) не факт что правка вообще дошла до retail Steam (`new/` post-release dev branch). **Отложено 2026-04-14** до явного retail-feel check.
 
 ---
 

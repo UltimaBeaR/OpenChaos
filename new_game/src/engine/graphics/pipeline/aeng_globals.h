@@ -374,11 +374,11 @@ extern UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
 
 // uc_orig: AENG_upper (fallen/DDEngine/Source/aeng.cpp)
 // Per-vertex lighting/UV data for the upper (hi-res) ground tile grid.
-extern POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
+extern POLY_Point AENG_upper[MAP_WIDTH][MAP_HEIGHT];
 
 // uc_orig: AENG_lower (fallen/DDEngine/Source/aeng.cpp)
 // Per-vertex lighting/UV data for the lower ground tile grid.
-extern POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK * 2];
+extern POLY_Point AENG_lower[MAP_WIDTH][MAP_HEIGHT];
 
 // uc_orig: AENG_SKY_TYPE_NIGHT (fallen/DDEngine/Source/aeng.cpp)
 #define AENG_SKY_TYPE_NIGHT 0

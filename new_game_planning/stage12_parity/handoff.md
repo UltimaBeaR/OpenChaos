@@ -116,4 +116,68 @@
 
 ## Лог выполнения
 
-(пусто — заполнит новая сессия по мере выполнения)
+### 2026-04-14 — сессия (Opus 4.6)
+
+**Audits (11 пунктов через 3 параллельных Explore агента):**
+
+| # | ID | Status | Action |
+|---|---|---|---|
+| 1 | PRT-07/08 psystem state | DONE | skip (уже есть fix + uint64 prev_tick) |
+| 2 | PRT-01 FIRE_Flame struct | DONE | skip (struct полная, FIRE_add_flame инициализирует) |
+| 3 | ADD-03/04/05 farfacet/superfacet/fastprim | DONE | skip (все активны, вызываются из game.cpp/poly.cpp) |
+| 4 | ADD-07 BUILD_draw | DONE | skip (build.cpp:11 реализован) |
+| 5 | ADD-17/AI-01 CameraMan | MISSING | out of port scope — оставлено |
+| 6 | ENG-05 flag_v_faces | DONE | skip |
+| 7 | ENG-03 save_table counts | DONE | baseline зафиксирован (VEH=85, PEOPLE=256, SPECIAL=128, BAT=32, DTWEEN/DMESH=128, PLAT=32, WMOVE=64) |
+| 8 | AI-01 Thing struct members | PARTIAL | out of port scope — оставлено |
+| 9 | PHY-01 height_above_anything | DIFFERENT | нет ни `1\|\|` ни `p_person->Ware` — требует ручного расследования |
+| 10 | GFX-01 apply_cloud | DONE | skip (no-op stub, как и ожидалось — matches retail) |
+| 11 | GFX-38 CurDrawDistance | DONE | skip (8.8 fixed-point, `22 << 8`) |
+
+**Auto-port batch (применённые фиксы):**
+
+- **ENG-18** — `OB_remove`: добавлен `return` после `remove_walkable_from_map`
+- **GFX-07** — `POLY_shadow[]`: `POLY_SHADOW_SIZE` → `POLY_BUFFER_SIZE` (оба 8192 — no-op, косметика)
+- **ANM-15** — `MESH_draw_guts`: удалён `ASSERT(0)` на untextured face
+- **GFX-19+37** — `AENG_upper/lower`: resize до `[MAP_WIDTH][MAP_HEIGHT]` + удалены все 31 `& 63` маски (lock-step)
+- **ANM-03** — `FIGURE_draw` (figure.cpp:2949): добавлен null-check `ae1`/`ae2` с error MSG
+- **AI-04** — `BAT_balrog_slide_along`: удалён весь `PAP_FLAG_HIDDEN` collision block
+- **VEH-10** — `WMOVE_remove(UBYTE which_class)`: новая функция добавлена в wmove.cpp + declaration в wmove.h
+- **VEH-11** — `WMOVE_relative_pos`: fixed-point rework — shifts `<<13/12` → `<<12/11`, Y-sum разделён на два shift-4, now_x/y/z шифт `>>5` → `>>4`, убраны `0x10000` teleport clamps
+- **AUD-07** — `sound_list[]`: WIND2↔WIND5 reorder (f_WIND1/2/3/4/5/6/7 по порядку)
+- **PRT-50** — `PCOM_add_gang_member`: shuffle loop `upto - 1` → `upto - 2` (off-by-one)
+- **PRT-23** — pcom.cpp: убраны защитные `ASSERT(0)` DARCI/CIV/COP в 5 функциях (`PCOM_alert_my_gang_to_a_fight`, `PCOM_set_person_ai_arrest`, `PCOM_set_person_ai_kill_person`, `PCOM_set_person_ai_navtokill_shoot`, `PCOM_set_person_ai_navtokill`) + первый CIV-assert в `PCOM_add_gang_member` (через PRT-50 edit)
+
+**Пропущены (после проверки):**
+
+- **PHY-01** — разобрано в сессии: оказался **behavior change, не bugfix**. Pre-release `if(1||Ware)` имел мёртвую else-ветку; release убрал `1||` — теперь non-Ware персонажи используют `FIND_ANYFACE` вместо `FIND_FACE_NEAR_BELOW`. Наш код выкинул мёртвую ветку при портировании (семантически = pre-release). **Отложено** — добавлено в plan.md "Открытые вопросы" #27, ждёт retail feel-check (понять что такое флаг `Ware` и есть ли визуальная разница в приземлении).
+- **PHY-02** — handoff описывал fix `(mx, mz) → (mx, z)`, но сверка с pre-release и release показала что release ввёл регрессию: pre-release имел корректное `MAVHEIGHT(mx, mz)`, release превратил в буговое `MAVHEIGHT(mx, z)`. Наша база уже корректна — не портируем. Отмечено как INVERT-KEEP.
+- **PRT-04** — audit показал что `*prev = fl->next;` уже есть в fire.cpp:177 (DONE).
+- **PRT-10/11** — psystem audit (#1) показал что state/iterator fix уже применён. Skip.
+- **VEH-04** — наш код уже имеет guard `&& p_thing->Genus.Vehicle->Driver` перед siren-related кодом (vehicle.cpp:2558), matches release. Skip.
+- **AI-08** — (1) дубликата SPECIAL_TREASURE в `person_get_item()` нет. (2) `dm->ObjectId` последовательность 71/94/81/39 в `SPECIAL_create` уже matches release (и pre-release). N/A.
+
+**Затронутые файлы (для сборки):**
+
+- `new_game/src/map/ob.cpp`
+- `new_game/src/engine/graphics/pipeline/poly.h`
+- `new_game/src/engine/graphics/pipeline/poly_globals.cpp`
+- `new_game/src/engine/graphics/geometry/mesh.cpp`
+- `new_game/src/engine/graphics/pipeline/aeng_globals.h`
+- `new_game/src/engine/graphics/pipeline/aeng_globals.cpp`
+- `new_game/src/engine/graphics/pipeline/aeng.cpp`
+- `new_game/src/engine/graphics/geometry/figure.cpp`
+- `new_game/src/things/animals/bat.cpp`
+- `new_game/src/navigation/wmove.h`
+- `new_game/src/navigation/wmove.cpp`
+- `new_game/src/assets/sound_id_globals.cpp`
+- `new_game/src/ai/pcom.cpp`
+- `new_game/src/buildings/ware.cpp` — smoke-test фикс, не из handoff списка: 3 ASSERT(WARE_in_floorplan) → graceful fallback на "stay in place". Крэшилось при прыжке в клубе Gatecrasher. Подробности в devlog.
+
+**Smoke-test (2026-04-14, release+ASan):** прошёл. Прыжки в клубе, стрельба, level transitions — без регрессий.
+
+**Не затронуто/отложено:** всё остальное из plan.md (VERIFY retail checks, Person.cpp guards, determinism, UI, balance, inverted pass и т.д.) — ждёт явного решения пользователя.
+
+**Бонусом (не из workstream):** обновлены [known_issues_and_bugs.md](../known_issues_and_bugs.md) — 2 бага перемаркированы после retail-проверки пользователем как оригинальные релизные (не наши регрессии): "NPC на танцполе клуба не находят выход" и "Телепорт при прыжке в конце лестницы".
+
+**Следующий шаг:** пользователь собирает и прогоняет. При успехе — коммит. При ошибках компиляции / регрессиях — смотреть в первую очередь aeng.cpp (GFX-19+37 самый крупный) и wmove.cpp (VEH-11 formula rewrite).

@@ -429,7 +429,20 @@ MAV_Action WARE_mav_inside(Thing* p_person, UBYTE dest_x, UBYTE dest_z, UBYTE ca
 
     ww = &WARE_ware[p_person->Genus.Person->Ware];
 
-    ASSERT(WARE_in_floorplan(p_person->Genus.Person->Ware, dest_x, dest_z));
+    // The pre-release assert here (WARE_in_floorplan on dest) fires when the
+    // target has briefly drifted outside the ware floorplan — e.g. the player
+    // jumping at the edge of the club stairs in Gatecrasher. Retail compiles
+    // asserts to no-op so the bug is silent there; we have asserts live, so
+    // bail out gracefully: stand still this tick, pathfinding will re-run next
+    // tick once the target is back inside the ware.
+    if (!WARE_in_floorplan(p_person->Genus.Person->Ware, dest_x, dest_z)) {
+        MAV_Action stay;
+        stay.action = MAV_ACTION_GOTO;
+        stay.dir = 0;
+        stay.dest_x = (UBYTE)(p_person->WorldPos.X >> 16);
+        stay.dest_z = (UBYTE)(p_person->WorldPos.Z >> 16);
+        return stay;
+    }
 
     // Temporarily swap MAV to use this warehouse's private nav grid.
     old_mav = MAV_nav;
@@ -442,7 +455,18 @@ MAV_Action WARE_mav_inside(Thing* p_person, UBYTE dest_x, UBYTE dest_z, UBYTE ca
     start_x = (p_person->WorldPos.X >> 16);
     start_z = (p_person->WorldPos.Z >> 16);
 
-    ASSERT(WARE_in_floorplan(p_person->Genus.Person->Ware, start_x, start_z));
+    if (!WARE_in_floorplan(p_person->Genus.Person->Ware, start_x, start_z)) {
+        // Person themselves drifted outside the floorplan — restore MAV
+        // globals and stand still. Same rationale as the dest check above.
+        MAV_nav = old_mav;
+        MAV_nav_pitch = old_mav_pitch;
+        MAV_Action stay;
+        stay.action = MAV_ACTION_GOTO;
+        stay.dir = 0;
+        stay.dest_x = start_x;
+        stay.dest_z = start_z;
+        return stay;
+    }
 
     start_x -= ww->minx;
     start_z -= ww->minz;
@@ -524,7 +548,17 @@ MAV_Action WARE_mav_exit(Thing* p_person, UBYTE caps)
         start_x = (p_person->WorldPos.X >> 16);
         start_z = (p_person->WorldPos.Z >> 16);
 
-        ASSERT(WARE_in_floorplan(p_person->Genus.Person->Ware, start_x, start_z));
+        if (!WARE_in_floorplan(p_person->Genus.Person->Ware, start_x, start_z)) {
+            // Person outside the floorplan — stand still, retry next tick.
+            // Restore MAV globals and return a stay-in-place action.
+            MAV_nav = old_mav;
+            MAV_nav_pitch = old_mav_pitch;
+            ans.action = MAV_ACTION_GOTO;
+            ans.dir = 0;
+            ans.dest_x = start_x;
+            ans.dest_z = start_z;
+            return ans;
+        }
 
         start_x -= ww->minx;
         start_z -= ww->minz;

@@ -338,8 +338,6 @@ static NIGHT_Colour* MESH_draw_guts(
                     }
                 }
             } else {
-                ASSERT(0);
-
                 POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
             }
         }

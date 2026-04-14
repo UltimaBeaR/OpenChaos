@@ -24,8 +24,8 @@
 
 | ID | Tag | File | Dec | Size | Notes |
 |---|---|---|---|---|---|
-| PHY-01 | `height_above_anything` debug `if (1 \|\| ...)` | collide.cpp | PORT P0 | T | форсит `FIND_FACE_NEAR_BELOW` для всех |
-| PHY-02 | `calc_map_height_at` mz→z typo | collide.cpp | PORT P0 | T | one-char fix для MAV/HIDDEN тайлов |
+| PHY-01 | `height_above_anything` Ware branch | collide.cpp | DEFERRED 2026-04-14 | T | **НЕ bugfix, behavior change.** Pre-release: `if(1\|\|Ware)` — else мёртв, всегда NEAR_BELOW. Release: убрали `1\|\|`, non-Ware → FIND_ANYFACE. Наш код выкинул мёртвую ветку (= pre-release семантически). Отложено до retail feel-check. См. plan.md Открытые вопросы #27 |
+| PHY-02 | `calc_map_height_at` mz→z typo | collide.cpp | INVERT-KEEP | T | 2026-04-14: наша база корректна `(mx, mz)`, release ввёл регрессию `(mx, z)` — не портируем |
 | PHY-03 | `create_shockwave` `just_people` removal | collide.cpp | PORT P2 | T | API simplification, чище |
 | PHY-04 | `insert/remove_collision_vect` runtime pool | collide.cpp | SKIP | M | для destructible props, нет сейчас |
 | PHY-05 | `SUB_STATE_WALKING_BACKWARDS` edge-slide guard uncomment | collide.cpp | PORT P1 | T | backwards-ходящие NPC перестанут snap-slide |
@@ -55,7 +55,7 @@
 | ENG-15 | OB_compress malloc swap | ob.cpp | PORT P2 | T | cleanup |
 | ENG-16 | envmap transparent-face suppression removal | ob.cpp | OPEN | M | cause unclear, verify |
 | ENG-17 | ob_allowed_to_be_walkable PSX gate | ob.cpp | SKIP | T | PSX only |
-| ENG-18 | **`OB_remove` missing return uncomment** | ob.cpp | PORT P0 | T | критический баг итерации |
+| ENG-18 | **`OB_remove` missing return uncomment** | ob.cpp | DONE 2026-04-14 | T | критический баг итерации |
 
 ## io_stdlib (IO)
 
@@ -78,7 +78,7 @@
 | AUD-04 | Snow wolf S_AMB_WOLF1→3 | Sound.cpp | PORT P1 | T | likely broken WOLF1 |
 | AUD-05 | SOUND_FXMapping static array | Sound.h | AUDIT | T | какое у нас сейчас |
 | AUD-06 | MUSIC per-Ware override removal | music.cpp | OPEN | T | inverted, надо проверить в retail |
-| AUD-07 | Wind index ordering fix (WIND2↔WIND5) | sound_id.cpp | PORT P1 | T | индексный баг |
+| AUD-07 | Wind index ordering fix (WIND2↔WIND5) | sound_id.cpp | DONE 2026-04-14 | T | индексный баг |
 | AUD-08 | FrontLoop.wav removal | sound_id.cpp | AUDIT | T | если у нас есть — удалить |
 
 ## map_world (MAP)
@@ -162,7 +162,7 @@
 | GFX-04 | Moon easter egg (MANONMOON) | sky.cpp | PORT P2 | T | content |
 | GFX-05 | POLY_add_poly unified pipeline | poly.cpp | SELF | L | свой GE |
 | GFX-06 | POLY_transform saturate_z split | poly.cpp | SELF | T | свой GE |
-| GFX-07 | POLY_shadow buffer enlarge | poly.h | PORT P0 | T | potential overflow fix |
+| GFX-07 | POLY_shadow buffer enlarge | poly.h | DONE 2026-04-14 | T | оба размера уже 8192 — no-op, применено для консистентности с release |
 | GFX-08 | Pyro throttle removal | drawxtra.cpp | PORT P1 | M | убрать frame-budget throttle |
 | GFX-09 | sw_hack / SOFTWARE flag | aeng/poly/facet etc | SKIP | L | software path |
 | GFX-10 | renderstate fix_directx Permedia2 | renderstate.cpp | SKIP | M | D3D6 specific |
@@ -179,7 +179,7 @@
 | ID | Tag | File | Dec | Size | Notes |
 |---|---|---|---|---|---|
 | GFX-18 | aeng.cpp reordered correction | aeng.cpp | — | — | infonly |
-| GFX-19 | **AENG_upper/lower & 63 mask drop** | aeng.cpp | PORT P0 | T | с GFX-37 lock-step |
+| GFX-19 | **AENG_upper/lower & 63 mask drop** | aeng.cpp | DONE 2026-04-14 | T | с GFX-37 lock-step, 31 masks removed |
 | GFX-20 | Car color palette swap (debug→muted) | aeng.cpp | OPEN | T | verify retail |
 | GFX-21 | Figure LOD distance removal | aeng.cpp | PORT P1 | T | pop-in fix |
 | GFX-22 | Mesh fade arg 0xff→0 | aeng/shape | OPEN | T | cause unclear |
@@ -202,7 +202,7 @@
 
 | ID | Tag | File | Dec | Size | Notes |
 |---|---|---|---|---|---|
-| GFX-37 | **AENG_upper/lower full size resize** | aeng.cpp | PORT P0 | T | prereq for GFX-19 |
+| GFX-37 | **AENG_upper/lower full size resize** | aeng.cpp | DONE 2026-04-14 | T | resize to [MAP_WIDTH][MAP_HEIGHT] |
 | GFX-38 | CurDrawDistance fixed-point drop + ENV | aeng.cpp | AUDIT | M | какое у нас представление |
 | GFX-39 | AENG_cam_matrix removal | aeng.cpp | AUDIT | T | есть ли consumers |
 | GFX-40 | AENG_init texture hook + POLY_frame_init | aeng.cpp | PORT P2 | T | init order |
@@ -236,7 +236,7 @@
 |---|---|---|---|---|---|
 | ANM-01 | TomsPrimObject MultiMatrix rip | figure.cpp | SKIP | L | D3D6 opt |
 | ANM-02 | FIGURE_draw calc_global_cloud re-enable | figure.cpp | PORT P0 | T | fog на людях |
-| ANM-03 | FIGURE_draw null ae1/ae2 guard | figure.cpp | PORT P1 | T | crash guard |
+| ANM-03 | FIGURE_draw null ae1/ae2 guard | figure.cpp | DONE 2026-04-14 | T | crash guard |
 | ANM-04 | Grenade fade flag 0xff→0 | figure.cpp | PORT P1 | T | fog на гранате |
 | ANM-05 | FIGURE_draw_prim_tween_warped cloud | figure.cpp | PORT P0 | T | fog на warped prims |
 | ANM-06 | 912-line TPO helpers drop | figure.cpp | SKIP | L | consequence ANM-01 |
@@ -248,7 +248,7 @@
 | ANM-12 | MESH_draw_guts crumple path fog | mesh.cpp | PORT P0 | T | crumple fog |
 | ANM-13 | **MESH_draw_guts FACE_FLAG_ANIMATE** | mesh.cpp | PORT P0 | M | scrolling textures dead |
 | ANM-14 | MESH_draw_guts ModulateD3DColours | mesh.cpp | PORT P1 | T | tinting |
-| ANM-15 | MESH_draw_guts untextured ASSERT removal | mesh.cpp | PORT P1 | T | crash fix |
+| ANM-15 | MESH_draw_guts untextured ASSERT removal | mesh.cpp | DONE 2026-04-14 | T | crash fix |
 | ANM-16 | Anim.cpp PSX build split | Anim.cpp | SKIP | L | PSX split |
 | ANM-17 | Anim.cpp ROPER2 strangle/headbutt gate | Anim.cpp | SKIP | T | PSX |
 | ANM-18 | Anim.cpp carry animations gate | Anim.cpp | SKIP | T | PSX |
@@ -269,14 +269,14 @@
 | PRT-01 | **FIRE_Flame struct fill** | fire.cpp | PORT P0 | M | огонь не анимируется |
 | PRT-02 | FIRE_Fire struct expand (size/shrink/x/y/z) | fire.cpp | PORT P0 | T | pairs PRT-01 |
 | PRT-03 | FIRE_add_flame randomization | fire.cpp | PORT P0 | T | pairs PRT-01 |
-| PRT-04 | **FIRE_process free-list fix** | fire.cpp | PORT P0 | T | crash fix |
+| PRT-04 | **FIRE_process free-list fix** | fire.cpp | DONE (already applied) | T | 2026-04-14 audit: наш код уже имеет `*prev = fl->next;` |
 | PRT-05 | DIRT encapsulation (struct TU-local) | dirt.h/cpp | PORT P2 | T | cleanup |
 | PRT-06 | DIRT_MARK macro removal | dirt.h | PORT P2 | T | cleanup |
 | PRT-07 | **psystem first_pass/prev_tick decl + tick_diff** | psystem.cpp | PORT P0 | T | не должен даже собираться у pre |
 | PRT-08 | **psystem local_ratio computation** | psystem.cpp | PORT P0 | T | critical |
 | PRT-09 | psystem PFLAG_HURTPEOPLE throttle | psystem.cpp | PORT P0 | T | balance |
-| PRT-10 | **psystem iterator advance free path** | psystem.cpp | PORT P0 | T | crash fix |
-| PRT-11 | **psystem iterator advance normal path** | psystem.cpp | PORT P0 | T | crash fix |
+| PRT-10 | **psystem iterator advance free path** | psystem.cpp | DONE (already applied) | T | 2026-04-14 audit: psystem state fix уже применён |
+| PRT-11 | **psystem iterator advance normal path** | psystem.cpp | DONE (already applied) | T | 2026-04-14 audit: psystem state fix уже применён |
 | PRT-12 | psystem PFLAG_RESIZE2 init | psystem.cpp | PORT P1 | T | never set |
 | PRT-13 | psystem FADE type SLONG | psystem.cpp | PORT P1 | T | underflow |
 | PRT-14 | psystem menu-pause early-out removal | psystem.cpp | OPEN | T | verify |
@@ -288,7 +288,7 @@
 | PRT-20 | pow.cpp safeguards removal | pow.cpp | PORT P1 | M | use release default |
 | PRT-21 | pcom.cpp arrest queue removal | pcom.cpp | OPEN | M | API simplification |
 | PRT-22 | pcom.cpp noise queue removal | pcom.cpp | OPEN | M | API simplification |
-| PRT-23 | pcom.cpp AI ASSERT tripwires removal | pcom.cpp | PORT P1 | T | cop/darci targeting |
+| PRT-23 | pcom.cpp AI ASSERT tripwires removal | pcom.cpp | DONE 2026-04-14 | T | убраны DARCI/CIV/COP asserts в 5 функциях + alert_my_gang |
 | PRT-24 | pcom cop search radius 0x800→0x700 | pcom.cpp | PORT P1 | T | verify retail |
 | PRT-25 | pcom bodyguard search 0x800→0x500 | pcom.cpp | PORT P1 | T | verify retail |
 | PRT-26 | pcom PTIME→GAME_TURN revert | pcom.cpp | OPEN | M | determinism cluster |
@@ -315,7 +315,7 @@
 | PRT-47 | ware MF_Fopen→fopen | ware.cpp | PORT P2 | T | API |
 | PRT-48 | ware AENG_world_line debug | ware.cpp | SKIP | T | debug |
 | PRT-49 | ware door frame `#if 0` | ware.cpp | SKIP | M | dead |
-| PRT-50 | pcom add_gang_member off-by-one | pcom.cpp | PORT P1 | T | bug fix |
+| PRT-50 | pcom add_gang_member off-by-one | pcom.cpp | DONE 2026-04-14 | T | bug fix (upto-1 → upto-2) |
 | PRT-51 | pcom bodyguard shoot_time 4× removal | pcom.cpp | PORT P1 | T | balance |
 | PRT-52 | pcom combo_display removal | pcom.cpp | SKIP | T | test HUD |
 | PRT-53 | pcom timer_bored cast drop | pcom.cpp | SKIP | T | cosmetic |
@@ -392,11 +392,11 @@
 | AI-01 | Thing Timer1 + BuildingList union + CameraMan | Thing.h | AUDIT | T | должно быть у нас |
 | AI-02 | **Follower fall damage immunity removal** | Darci.cpp | PORT P0 | T | empty branch |
 | AI-03 | projectile_move NO_FLOOR + plunge stagger | Darci.cpp | PORT P1 | T | Roper floating fix |
-| AI-04 | **Balrog PAP_FLAG_HIDDEN collision** | bat.cpp | PORT P0 | T | stuck on buildings |
+| AI-04 | **Balrog PAP_FLAG_HIDDEN collision** | bat.cpp | DONE 2026-04-14 | T | весь блок удалён |
 | AI-05 | process_things noise+arrest+PTIME removal | Thing.cpp | OPEN | M | связан с API simplification |
 | AI-06 | THING_find_sphere hit_player removal | Thing.cpp | SKIP | T | feature cut |
 | AI-07 | process_things NextLink move | Thing.cpp | INVERT-KEEP | T | pre safer |
-| AI-08 | **SPECIAL_TREASURE dedup + 71↔81 swap** | Special.cpp | PORT P0 | M | double apply + wrong IDs |
+| AI-08 | **SPECIAL_TREASURE dedup + 71↔81 swap** | Special.cpp | N/A 2026-04-14 | M | дубликата нет; ObjectId 71/94/81/39 уже matches release |
 | AI-09 | Special drop pointer cleanup removal | Special.cpp | OPEN | T | UAF risk |
 | AI-10 | Shotgun/AK47 scatter tick stagger | Special.cpp | PORT P1 | T | |
 | AI-11 | SPECIAL text floats | Special.cpp | PORT P1 | T | UI |
@@ -413,14 +413,14 @@
 | VEH-01 | Shadow/headlights SOFTWARE gate | Vehicle.cpp | SKIP | T | software |
 | VEH-02 | **Car drawmesh crumple 0xff→0** | Vehicle.cpp | PORT P0 | T | crumple visible |
 | VEH-03 | Analog steering revert to inc | Vehicle.cpp | PORT P1 | M | verify feel |
-| VEH-04 | **Siren no-driver guard removal** | Vehicle.cpp | PORT P0 | T | crash fix |
+| VEH-04 | **Siren no-driver guard removal** | Vehicle.cpp | DONE (already applied) | T | 2026-04-14: наш код уже имеет `&& Driver` guard (matches release) |
 | VEH-05 | Pedals signature cleanup | Vehicle.cpp | PORT P2 | T | cleanup |
 | VEH-06 | Anim-prim collision `#ifdef` | Vehicle.cpp | SKIP | M | WIP feature |
 | VEH-07 | Engine noise WaveParams partial | Vehicle.cpp | SKIP | M | dead/partial |
 | VEH-08 | **Chopper MFX_QUEUED drop** | chopper.cpp | PORT P0 | T | clean loop |
 | VEH-09 | Chopper landing double math | chopper.cpp | SKIP | T | accident |
-| VEH-10 | **WMOVE_remove(class) bulk** | wmove.cpp | PORT P0 | M | stale-face fix |
-| VEH-11 | **WMOVE_relative_pos overflow fix** | wmove.cpp | PORT P0 | L | physics overflow |
+| VEH-10 | **WMOVE_remove(class) bulk** | wmove.cpp | DONE 2026-04-14 | M | новая функция добавлена |
+| VEH-11 | **WMOVE_relative_pos overflow fix** | wmove.cpp | DONE 2026-04-14 | L | shifts, split Y, removed clamps |
 | VEH-12 | CAM_get_psx export | cam.h | SKIP | T | PSX |
 
 ## ui_frontend (UI) — heavily inverted

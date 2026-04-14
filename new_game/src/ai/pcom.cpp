@@ -260,9 +260,6 @@ void PCOM_add_gang_member(THING_INDEX person, UBYTE group)
     // if(TO_THING(person)->Genus.Person->PersonType==PERSON_COP)
     //     ASSERT(0);
 
-    if (TO_THING(person)->Genus.Person->PersonType == PERSON_CIV)
-        ASSERT(0);
-
     pg = &PCOM_gang[group];
 
     if (pg->index + pg->number == PCOM_gang_person_upto) {
@@ -272,7 +269,9 @@ void PCOM_add_gang_member(THING_INDEX person, UBYTE group)
         PCOM_gang_person_upto += 1;
     } else {
         // Shift all entries after this gang's slot to make room.
-        for (i = PCOM_gang_person_upto - 1; i >= pg->index + pg->number; i--) {
+        // Start at upto-2 (not upto-1): upto-1 is the free slot we're shifting INTO,
+        // so reading it would copy uninitialised data.
+        for (i = PCOM_gang_person_upto - 2; i >= pg->index + pg->number; i--) {
             PCOM_gang_person[i + 1] = PCOM_gang_person[i];
         }
 
@@ -1255,15 +1254,6 @@ void PCOM_alert_my_gang_to_a_fight(Thing* p_person, Thing* p_target)
 
                 if (!(p_gang->Genus.Person->Flags & FLAG_PERSON_HELPLESS))
                     if (p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOWING || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_SEARCHING || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_TAUNT || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_INVESTIGATING) {
-
-                        if (p_target->Genus.Person->PersonType == PERSON_DARCI) {
-                            if (p_gang->Genus.Person->PersonType == PERSON_CIV) {
-                                ASSERT(0);
-                            }
-                            if (p_gang->Genus.Person->PersonType == PERSON_COP) {
-                                ASSERT(0);
-                            }
-                        }
 
                         PCOM_set_person_ai_kill_person(p_gang, p_target, UC_FALSE);
                     }
@@ -2631,9 +2621,6 @@ void PCOM_set_person_ai_knocked_out(Thing* p_person)
 // uc_orig: PCOM_set_person_ai_arrest (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_arrest(Thing* p_person, Thing* p_target)
 {
-    if (p_target->Genus.Person->PersonType == PERSON_DARCI)
-        ASSERT(0);
-
     if (p_person->Genus.Person->Target) {
         remove_from_gang_attack(p_person, TO_THING(p_person->Genus.Person->Target));
     }
@@ -2655,16 +2642,6 @@ void PCOM_set_person_ai_arrest(Thing* p_person, Thing* p_target)
 // uc_orig: PCOM_set_person_ai_kill_person (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_kill_person(Thing* p_person, Thing* p_target, SLONG alert_gang)
 {
-    if (p_person->Genus.Person->PersonType == PERSON_CIV) {
-        // Civilians can end up here when nearby combat triggers AI (e.g. clubs).
-        // Original ASSERT(0) was empty in release builds — just fell through.
-        return;
-    }
-    if (p_target->Genus.Person->PersonType == PERSON_DARCI) {
-        if (p_person->Genus.Person->PersonType == PERSON_COP)
-            ASSERT(0);
-    }
-
     if ((p_person->Genus.Person->Flags & FLAG_PERSON_HELPLESS))
         return;
 
@@ -2910,13 +2887,6 @@ void PCOM_set_person_ai_aimless(Thing* p_person)
 // uc_orig: PCOM_set_person_ai_navtokill_shoot (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_navtokill_shoot(Thing* p_person, Thing* p_target)
 {
-    if (p_target->Genus.Person->PersonType == PERSON_DARCI) {
-        if (p_person->Genus.Person->PersonType == PERSON_COP)
-            ASSERT(0);
-    }
-    if (p_person->Genus.Person->PersonType == PERSON_CIV) {
-        ASSERT(0);
-    }
     PCOM_set_person_move_still(p_person);
 
     p_person->Genus.Person->pcom_ai_state = PCOM_AI_STATE_NAVTOKILL;
@@ -2947,13 +2917,6 @@ SLONG PCOM_target_sprinting_towards_me(Thing* p_person, Thing* p_target)
 // uc_orig: PCOM_set_person_ai_navtokill (fallen/Source/pcom.cpp)
 void PCOM_set_person_ai_navtokill(Thing* p_person, Thing* p_target)
 {
-    if (p_target->Genus.Person->PersonType == PERSON_DARCI) {
-        if (p_person->Genus.Person->PersonType == PERSON_COP)
-            ASSERT(0);
-    }
-    if (p_person->Genus.Person->PersonType == PERSON_CIV) {
-        //		ASSERT(0);
-    }
     if ((p_person->Genus.Person->Flags & FLAG_PERSON_HELPLESS))
         return;
 

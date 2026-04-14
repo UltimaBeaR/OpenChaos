@@ -2949,6 +2949,11 @@ void FIGURE_draw(Thing* p_thing)
     ae1 = dt->CurrentFrame->FirstElement;
     ae2 = dt->NextFrame->FirstElement;
 
+    if (!ae1 || !ae2) {
+        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR FIGURE_draw has no animation elements");
+        return;
+    }
+
     colour = 0;
     specular = 0;
 
