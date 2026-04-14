@@ -6,6 +6,9 @@ original_game_resources/*
 # Keep .gitkeep so the directory exists after clone (all other contents are gitignored above)
 !original_game_resources/.gitkeep
 
+# Temporary, for AI to analyze, can't publish it yet
+original_game_compare/*
+
 # Release packaging output
 release/dist/
 
