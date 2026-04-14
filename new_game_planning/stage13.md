@@ -69,6 +69,14 @@
 - **Draw call batching** — сейчас каждый PolyPage slot делает отдельный draw call со своим VBO/EBO/VAO (per-slot, как D3D6 оригинал). Батчинг нескольких draw calls в один большой VBO с одним `glDrawElements` уменьшит количество draw calls с сотен до единиц за кадр. Требует: общий VBO с sub-allocation, offset-based indexing.
 - **GPU-transform для 3D геометрии** — перевести всю трёхмерную отрисовку (мир, объекты, персонажи, эффекты) на аппаратные трансформации вершин через шейдеры вместо CPU-transform. Сейчас `ge_draw_indexed_primitive_lit` и `ge_draw_multi_matrix` делают CPU-transform (World×Projection), а результат рисуется как TL (pre-transformed) вершины. Это исторический подход из D3D6 эпохи. Переход на GPU-transform даст прирост производительности и упростит pipeline. **Применять только к реальному 3D** — UI/HUD оставить на CPU-transform (TL path). Техдолг из этапа 7: `lit_vert.glsl` не работает из-за D3D/GL clip space конвенций. Сложная доработка — потребуется переработка матриц, viewport transform, depth mapping.
 
+## Увеличение дистанции отрисовки и тумана
+
+Отодвинуть границу тумана дальше от игрока — современное железо легко потянет, текущие значения — наследие 1999 года. Когда это будет сделано, нужно подтянуть связанные дистанции, иначе артефакты вылезут на новой увеличенной дальности:
+
+- **Дистанция детальных теней** — константа `AENG_SHADOW_MAX_DIST` в [new_game/src/engine/graphics/pipeline/aeng.cpp](../new_game/src/engine/graphics/pipeline/aeng.cpp). Определена прямо перед циклами выбора теней (grep `AENG_SHADOW_MAX_DIST`). Сейчас `0xC0000` (удвоено относительно оригинального `0x60000`). После расширения тумана — поднять соответственно. Замечание: количество одновременных детальных теней ограничено `AENG_NUM_SHADOWS = 4` (ограничение по shadow texture 64×64 = 2×2 слота) — см. коммент там же.
+- **Bump mapping (crinkle) fade range** — константы `CRINKLE_FADE_NEAR` / `CRINKLE_FADE_FAR` в [new_game/src/engine/graphics/geometry/facet.cpp](../new_game/src/engine/graphics/geometry/facet.cpp) (вверху файла, grep `CRINKLE_FADE_NEAR`). Сейчас `[0.3, 0.8]` по post-transform Z. Используются через inline-хелпер `crinkle_extrude_for_z()` в трёх местах: `FillFacetPoints`, `FillFacetPointsCommon`, `FACET_project_crinkled_shadow`. После расширения тумана — подвинуть FAR ближе к 1.0 (или выше, если Z может превышать 1.0 для видимых полигонов — проверить).
+- **Прочие дистанции, которые могут понадобиться:** `AENG_DRAW_DIST`, `AENG_DRAW_PEOPLE_DIST`, дистанции farfacet'ов — проверить при расширении тумана.
+
 ## Отладка и читы
 
 - **Чит-загрузка миссии по номеру** — чит или debug-режим: комбинация клавиш → ввод номера миссии → загрузка. Для отладки — чтобы не проходить игру заново ради доступа к поздним миссиям. Примечание: вроде все миссии доступны через обычную карту миссий (после ASan-фиксов), но не 100% уверены.

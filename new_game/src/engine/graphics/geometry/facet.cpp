@@ -46,6 +46,38 @@
 // uc_orig: AENG_detail_crinkles (fallen/DDEngine/Source/aeng.cpp)
 extern int AENG_detail_crinkles;
 
+// Crinkle (bump mapping) fade window in post-transform Z space.
+// Lower Z = closer to camera. Extrude = 1.0 for z < NEAR (full bump),
+// linearly fades to 0 at FAR, no bump beyond FAR. Original hardcoded values
+// produced a very narrow fade window of [0.4, 0.5] (the 0.3/0.6 outer checks
+// were redundant given the formula). Widened for 1.0 so bumps don't visibly
+// pop in while walking toward buildings. Used by all crinkle call sites.
+// uc_orig: constants were inline literals in fallen/DDEngine/Source/facet.cpp
+#define CRINKLE_FADE_NEAR 0.3F
+#define CRINKLE_FADE_FAR  0.8F
+
+// Returns bump-mapping extrude factor for a post-transform Z:
+//   > 0   — caller should call CRINKLE_do/CRINKLE_project with this value
+//   <= 0  — too far, caller should fall through to a non-crinkled quad
+//
+// Curve: quadratic ease-out — stays near 1.0 close to the camera (NEAR) and
+// drops sharply as it approaches FAR. Rationale: when walking, parallax of
+// distant geometry is smaller than close geometry, so a sudden bump change
+// far away is less perceptible than up close. Keeping bumps strong near NEAR
+// and collapsing them quickly near FAR minimises visible popping.
+// Cost vs linear: +1 mul +1 sub per facet — negligible on modern CPUs.
+// uc_orig: inlined linear fade in each crinkle call site in fallen/DDEngine/Source/facet.cpp
+static inline float crinkle_extrude_for_z(float z)
+{
+    if (z >= CRINKLE_FADE_FAR)
+        return 0.0F;
+    if (z <= CRINKLE_FADE_NEAR)
+        return 1.0F;
+    float t = (CRINKLE_FADE_FAR - z) * (1.0F / (CRINKLE_FADE_FAR - CRINKLE_FADE_NEAR));
+    float inv = 1.0F - t;
+    return 1.0F - inv * inv;
+}
+
 // AENG_transparent_warehouses is defined in aeng.cpp (not yet migrated).
 // uc_orig: AENG_transparent_warehouses (fallen/DDEngine/Source/aeng.cpp)
 extern UBYTE AENG_transparent_warehouses;
@@ -1075,39 +1107,15 @@ void FillFacetPoints(SLONG count, ULONG base_row, SLONG foundation, SLONG facet_
             if (AENG_detail_crinkles) {
                 if (page < 64 * 8) {
                     if (TEXTURE_crinkle[page]) {
-                        if (quad[0]->z > 0.6F) {
-                            // Too far away to crinkle.
-                        } else if (quad[0]->z < 0.3F) {
+                        float extrude = crinkle_extrude_for_z(quad[0]->z);
+                        if (extrude > 0.0F) {
                             CRINKLE_do(
                                 TEXTURE_crinkle[page],
                                 page,
-                                1.0F,
+                                extrude,
                                 quad,
                                 flip);
                             goto added_crinkle;
-                        } else {
-                            float extrude;
-                            float av_z;
-
-                            av_z = quad[0]->z;
-
-                            extrude = av_z - 0.5F;
-                            extrude *= 1.0F / (0.4F - 0.5F);
-
-                            if (extrude > 0.0F) {
-                                if (extrude > 1.0F) {
-                                    extrude = 1.0F;
-                                }
-
-                                CRINKLE_do(
-                                    TEXTURE_crinkle[page],
-                                    page,
-                                    extrude,
-                                    quad,
-                                    flip);
-
-                                goto added_crinkle;
-                            }
                         }
                     }
                 }
@@ -1221,39 +1229,15 @@ void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation, SLONG 
             if (AENG_detail_crinkles) {
                 if (page < 64 * 8) {
                     if (TEXTURE_crinkle[page]) {
-                        if (quad[0]->z > 0.6F) {
-                            // Too far away to crinkle.
-                        } else if (quad[0]->z < 0.3F) {
+                        float extrude = crinkle_extrude_for_z(quad[0]->z);
+                        if (extrude > 0.0F) {
                             CRINKLE_do(
                                 TEXTURE_crinkle[page],
                                 page,
-                                1.0F,
+                                extrude,
                                 quad,
                                 flip);
                             goto added_crinkle_common;
-                        } else {
-                            float extrude;
-                            float av_z;
-
-                            av_z = quad[0]->z;
-
-                            extrude = av_z - 0.5F;
-                            extrude *= 1.0F / (0.4F - 0.5F);
-
-                            if (extrude > 0.0F) {
-                                if (extrude > 1.0F) {
-                                    extrude = 1.0F;
-                                }
-
-                                CRINKLE_do(
-                                    TEXTURE_crinkle[page],
-                                    page,
-                                    extrude,
-                                    quad,
-                                    flip);
-
-                                goto added_crinkle_common;
-                            }
                         }
                     }
                 }
@@ -3527,40 +3511,14 @@ void FACET_project_crinkled_shadow(SLONG facet)
                                     poly[0].Z,
                                     &pp);
 
-                                if (pp.z > 0.6F) {
-                                    // Too far away to be crinkled.
-                                } else if (pp.z < 0.3F) {
-                                    // Maximum crinkle.
+                                float extrude = crinkle_extrude_for_z(pp.z);
+                                if (extrude > 0.0F) {
                                     CRINKLE_project(
                                         TEXTURE_crinkle[page],
-                                        1.0F,
+                                        extrude,
                                         poly,
                                         rflip);
-
                                     goto added_crinkle;
-                                } else {
-                                    float extrude;
-                                    float av_z;
-
-                                    // Intermediate crinkle extrusion.
-                                    av_z = pp.z;
-
-                                    extrude = av_z - 0.5F;
-                                    extrude *= 1.0F / (0.4F - 0.5F);
-
-                                    if (extrude > 0.0F) {
-                                        if (extrude > 1.0F) {
-                                            extrude = 1.0F;
-                                        }
-
-                                        CRINKLE_project(
-                                            TEXTURE_crinkle[page],
-                                            extrude,
-                                            poly,
-                                            rflip);
-
-                                        goto added_crinkle;
-                                    }
                                 }
                             }
                         }
