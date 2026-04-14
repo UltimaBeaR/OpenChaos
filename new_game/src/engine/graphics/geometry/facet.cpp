@@ -78,6 +78,50 @@ static inline float crinkle_extrude_for_z(float z)
     return 1.0F - inv * inv;
 }
 
+// Soft backface-cull margin for walls that can carry crinkle (bump) geometry.
+// Normally a facet is hard-culled the moment the camera crosses to its back
+// side (cprod >= 0). But crinkle bumps extrude OUT of the wall surface, so
+// at angles just past grazing the bump tips can still be visible even though
+// the flat wall is now "back-facing". Hard cull there produces a visible pop.
+//
+// Metric: fixed angle between the wall normal and the view vector *from the
+// wall centre* (not from v0). Using the centre makes the angle independent
+// of where v0 sits along the edge — both ends of the wall give the same
+// answer, so behaviour is symmetric across all wall orientations.
+//
+// Math: let `view_c = vec2 - vec1/2` (= cam - wall_centre). Then
+//   cos(normal, view_c) = -cprod / (|vec1| × |view_c|)
+// We want to keep drawing while the angle past grazing is ≤ GRACE_ANGLE, i.e.
+//   cprod² / (|vec1|² × |view_c|²) ≤ sin²(GRACE_ANGLE).
+//
+// (Earlier attempts used |vec2|² — the vector from v0 to camera — which
+//  effectively measured the angle between edge and camera-from-v0 and was
+//  dependent on where along the wall v0 sat. For long walls viewed near
+//  their midpoint the formula was always satisfied → bumps never culled on
+//  certain orientations.)
+//
+// Applied only when AENG_detail_crinkles is on — keeps strict cull when bumps
+// are disabled. Current grace: ~15° past grazing (sin² ≈ 0.067).
+// uc_orig: hard `if (cprod >= 0) return;` in fallen/DDEngine/Source/facet.cpp
+#define FACET_BACKFACE_CULL_GRACE_SIN_SQ 0.067F  // sin²(~15°)
+
+// Like crinkle_extrude_for_z but takes all 4 quad vertices and uses the MIN Z
+// (= the closest vertex to the camera). Fixes a release bug where rotating the
+// camera around a corner caused crinkle to pop off the entire wall: at oblique
+// view angles vertex 0 can be at the far end of the wall while the other corner
+// is still close, so keying off a single vertex made crinkle snap off/on as the
+// wall tilted. Using min Z means the whole wall keeps bump as long as any part
+// is within range — transitions become smooth and symmetric.
+// uc_orig: original checked only the first vertex (fallen/DDEngine/Source/facet.cpp)
+static inline float crinkle_extrude_for_quad(POLY_Point* const quad[4])
+{
+    float z = quad[0]->z;
+    if (quad[1]->z < z) z = quad[1]->z;
+    if (quad[2]->z < z) z = quad[2]->z;
+    if (quad[3]->z < z) z = quad[3]->z;
+    return crinkle_extrude_for_z(z);
+}
+
 // AENG_transparent_warehouses is defined in aeng.cpp (not yet migrated).
 // uc_orig: AENG_transparent_warehouses (fallen/DDEngine/Source/aeng.cpp)
 extern UBYTE AENG_transparent_warehouses;
@@ -1107,7 +1151,7 @@ void FillFacetPoints(SLONG count, ULONG base_row, SLONG foundation, SLONG facet_
             if (AENG_detail_crinkles) {
                 if (page < 64 * 8) {
                     if (TEXTURE_crinkle[page]) {
-                        float extrude = crinkle_extrude_for_z(quad[0]->z);
+                        float extrude = crinkle_extrude_for_quad(quad);
                         if (extrude > 0.0F) {
                             CRINKLE_do(
                                 TEXTURE_crinkle[page],
@@ -1229,7 +1273,7 @@ void FillFacetPointsCommon(SLONG count, ULONG base_row, SLONG foundation, SLONG 
             if (AENG_detail_crinkles) {
                 if (page < 64 * 8) {
                     if (TEXTURE_crinkle[page]) {
-                        float extrude = crinkle_extrude_for_z(quad[0]->z);
+                        float extrude = crinkle_extrude_for_quad(quad);
                         if (extrude > 0.0F) {
                             CRINKLE_do(
                                 TEXTURE_crinkle[page],
@@ -1457,9 +1501,27 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
             if ((p_facet->FacetFlags & FACET_FLAG_2SIDED) || p_facet->FacetType == STOREY_TYPE_OINSIDE) {
                 facet_backwards = 1;
             } else {
-                if (p_facet->FacetFlags & FACET_FLAG_BARB_TOP)
-                    FACET_barbedwire_top(p_facet);
-                return;
+                // Soft margin: keep slightly back-facing walls alive so their
+                // crinkle bumps (which protrude past the surface) don't pop
+                // off the moment the camera crosses grazing angle. Angle is
+                // measured from the wall centre — see comment on
+                // FACET_BACKFACE_CULL_GRACE_SIN_SQ.
+                bool within_margin = false;
+                if (AENG_detail_crinkles) {
+                    float view_cx = vec2x - 0.5F * vec1x;
+                    float view_cz = vec2z - 0.5F * vec1z;
+                    float vec1_sq = vec1x * vec1x + vec1z * vec1z;
+                    float view_sq = view_cx * view_cx + view_cz * view_cz;
+                    if (cprod * cprod <= FACET_BACKFACE_CULL_GRACE_SIN_SQ * vec1_sq * view_sq) {
+                        within_margin = true;
+                    }
+                }
+                if (!within_margin) {
+                    if (p_facet->FacetFlags & FACET_FLAG_BARB_TOP)
+                        FACET_barbedwire_top(p_facet);
+                    return;
+                }
+                // Else: within the grace margin, keep drawing.
             }
         } else {
             if (p_facet->FacetType == STOREY_TYPE_OINSIDE) {
@@ -2063,8 +2125,24 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         cprod = vec1x * vec2z - vec1z * vec2x;
 
         if (cprod >= 0) {
-            // We've got rid of a whole facet :o)
-            return;
+            // Soft margin: keep slightly back-facing walls alive so their
+            // crinkle bumps (which protrude past the surface) don't pop off
+            // the moment the camera crosses grazing angle. Angle is measured
+            // from the wall centre (not from v0) so all walls behave the
+            // same regardless of vertex ordering — see comment on
+            // FACET_BACKFACE_CULL_GRACE_SIN_SQ.
+            if (!AENG_detail_crinkles) {
+                return;
+            }
+            float view_cx = vec2x - 0.5F * vec1x;
+            float view_cz = vec2z - 0.5F * vec1z;
+            float vec1_sq = vec1x * vec1x + vec1z * vec1z;
+            float view_sq = view_cx * view_cx + view_cz * view_cz;
+            if (cprod * cprod > FACET_BACKFACE_CULL_GRACE_SIN_SQ * vec1_sq * view_sq) {
+                // Past the grace angle — cull.
+                return;
+            }
+            // Else: within the grace angle, keep drawing.
         }
     }
 
@@ -3503,15 +3581,20 @@ void FACET_project_crinkled_shadow(SLONG facet)
                     if (AENG_detail_crinkles) {
                         if (page < 64 * 8) {
                             if (TEXTURE_crinkle[page]) {
-                                POLY_Point pp;
+                                // Transform all 4 vertices and take min Z
+                                // (closest corner) — see comment on
+                                // crinkle_extrude_for_quad for why.
+                                POLY_Point pp[4];
+                                POLY_transform(poly[0].X, poly[0].Y, poly[0].Z, &pp[0]);
+                                POLY_transform(poly[1].X, poly[1].Y, poly[1].Z, &pp[1]);
+                                POLY_transform(poly[2].X, poly[2].Y, poly[2].Z, &pp[2]);
+                                POLY_transform(poly[3].X, poly[3].Y, poly[3].Z, &pp[3]);
+                                float min_z = pp[0].z;
+                                if (pp[1].z < min_z) min_z = pp[1].z;
+                                if (pp[2].z < min_z) min_z = pp[2].z;
+                                if (pp[3].z < min_z) min_z = pp[3].z;
 
-                                POLY_transform(
-                                    poly[0].X,
-                                    poly[0].Y,
-                                    poly[0].Z,
-                                    &pp);
-
-                                float extrude = crinkle_extrude_for_z(pp.z);
+                                float extrude = crinkle_extrude_for_z(min_z);
                                 if (extrude > 0.0F) {
                                     CRINKLE_project(
                                         TEXTURE_crinkle[page],
