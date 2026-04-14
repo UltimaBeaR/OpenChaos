@@ -403,6 +403,11 @@ void ATTRACT_loadscreen_init(void)
 {
     PANEL_disable_screensaver(UC_TRUE);
 
+    // Clear any frontend background override (e.g. briefing screen) so the
+    // loading screen is actually visible. Regression from the OpenGL migration:
+    // the override system didn't exist in the D3D backend.
+    ge_set_background_override(GE_SCREEN_SURFACE_NONE);
+
     ge_init_back_image("e3load.tga");
     ge_show_back_image(UC_FALSE);
     AENG_flip();
