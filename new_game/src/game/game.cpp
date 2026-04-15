@@ -959,13 +959,18 @@ round_again:;
                 if (darci_t && darci_t->Genus.Person) {
                     bool in_car = darci_t->Genus.Person->InCar != 0;
                     bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
-                    // Cooldown gate: Timer1 counts down between shots. While
-                    // it's non-zero the weapon is still reloading/recovering
-                    // and can't fire yet — disable the trigger click so the
-                    // player doesn't feel a click that produces no shot.
-                    // Note: ammo is intentionally NOT checked — an empty
-                    // pistol should still click (dry fire feel).
-                    bool on_cooldown = darci_t->Genus.Person->Timer1 > 0;
+                    // Timer1 cooldown is NOT gated here. Keeping mode=AIM_GUN
+                    // alive across the brief (~150ms) cooldown avoids a HID
+                    // latency race: if we forced mode=NONE during cooldown,
+                    // then when Timer1 expired we'd have to send mode=AIM_GUN
+                    // again and the BT round-trip would miss the very next
+                    // press the player makes if they're firing just above
+                    // the cooldown rate. The fire detector itself refuses
+                    // to shoot while Timer1 is non-zero (via rising-edge
+                    // rearm + weapon_feel_evaluate_fire) so no shot slips
+                    // through. Hardware clicks during cooldown are harmless
+                    // and expected.
+                    bool on_cooldown = false;
 
                     // States where the player physically can't fire. In these
                     // states pulling R2 doesn't produce a shot, so there

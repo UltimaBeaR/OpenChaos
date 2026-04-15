@@ -556,14 +556,11 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // click entirely — treat as "weapon has no trigger effect".
     const bool weapon_has_click = profile->trigger_amplitude != 0;
 
-    // AIM_GUN is gated on the fire detector's armed state. When the game
-    // can't actually fire a shot right now (rising-edge not rearmed since
-    // the last shot, cooldown active, etc.) the trigger effect is forced
-    // off. This prevents the hardware from firing a click on a press
-    // that the game will ignore — previously the hardware click fired
-    // whenever the player crossed StartZone regardless of the game's
-    // fire gate, producing "click without shot" during cooldown and
-    // after partial releases.
+    // AIM_GUN follows the fire detector's armed state. When the game
+    // can't fire a shot right now (consumed rearm, rising-edge not ready)
+    // mode=NONE, which also stops the hardware from trying to engage the
+    // resistance motors — avoiding futile engagement attempts when the
+    // player is tapping faster than the physical motors can respond.
     const bool armed = weapon_feel_is_r2_armed(current_weapon);
 
     TriggerMode desired;

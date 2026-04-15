@@ -168,7 +168,12 @@ bool s_l2_armed = true;
 // fire until the player does another proper release. At the same time,
 // armed is forced false for is_r2_armed queries so mode=NONE engages
 // and the hardware stops emitting clicks. Both subsystems stay in sync.
-constexpr auto RELEASE_SETTLE = std::chrono::milliseconds(100);
+// Needs to cover: HID RTT (~30ms BT) + physical motor engagement time to
+// actually build resistance + click. Observed: 100ms was too short —
+// player could still tap fast enough that the motors couldn't physically
+// react in time, leading to shots with no felt click. 200ms gives the
+// motors full time to engage.
+constexpr auto RELEASE_SETTLE = std::chrono::milliseconds(200);
 std::chrono::steady_clock::time_point s_release_time =
     std::chrono::steady_clock::now() - std::chrono::seconds(10);
 bool s_armed_consumed = false;
