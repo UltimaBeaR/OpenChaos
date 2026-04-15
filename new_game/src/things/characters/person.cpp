@@ -82,7 +82,7 @@
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"
 #include "engine/input/gamepad.h"    // gamepad_set_shock
-#include "engine/input/gamepad_haptic.h" // gamepad_haptic_weapon_fire
+#include "engine/input/weapon_feel.h" // weapon_feel_on_shot_fired
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -3525,9 +3525,9 @@ void actually_fire_gun(Thing* p_person)
     if (p_person->Genus.Person->PlayerID) {
         if (p_person->Genus.Person->SpecialUse) {
             Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
-            gamepad_haptic_weapon_fire(p_special->Genus.Special->SpecialType);
+            weapon_feel_on_shot_fired(p_special->Genus.Special->SpecialType);
         } else {
-            gamepad_haptic_weapon_fire(SPECIAL_GUN);
+            weapon_feel_on_shot_fired(SPECIAL_GUN);
         }
     }
 

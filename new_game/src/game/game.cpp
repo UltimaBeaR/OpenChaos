@@ -7,6 +7,7 @@
 #include "engine/platform/sdl3_bridge.h"
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"  // playback_file, verifier_file
+#include "things/items/special.h"       // SPECIAL_* constants for weapon_feel
 #include "game/game_tick.h"                // process_controls
 #include "buildings/prim.h"    // clear_prims
 
@@ -998,7 +999,15 @@ round_again:;
                         }
                     }
 
-                    gamepad_triggers_update(in_car, weapon_ready);
+                    // Current weapon drives the WeaponFeelProfile (click feel
+                    // + fire thresholds). SpecialUse == null means bare-hand
+                    // pistol — SPECIAL_NONE in the profile registry.
+                    int32_t current_weapon = SPECIAL_NONE;
+                    if (darci_t->Genus.Person->SpecialUse) {
+                        Thing* p_special = TO_THING(darci_t->Genus.Person->SpecialUse);
+                        if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
+                    }
+                    gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
             }
 

@@ -62,8 +62,12 @@ void gamepad_led_update(float health_fraction, bool siren);
 //               currently in a non-firing state — on cooldown, aiming at a
 //               surrendered target, etc). Dry-fire (no ammo) should still
 //               click, so caller should NOT gate on ammo here.
+// current_weapon: SPECIAL_* constant for the weapon currently held by the
+//                 player; selects the WeaponFeelProfile that tunes the click.
+//                 Pass SPECIAL_NONE if unarmed — the default profile will
+//                 opt out of the click entirely.
 // Call once per game tick.
-void gamepad_triggers_update(bool in_car, bool weapon_ready);
+void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon);
 
 // Immediately disarm the weapon trigger click on a fire event. Called
 // whenever the game registers a real shot so the HID mode switch to NONE

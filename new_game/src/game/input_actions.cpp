@@ -40,6 +40,7 @@
 #include "engine/input/joystick_globals.h"  // the_state (GamepadState)
 #include "game/game_tick_globals.h"         // allow_debug_keys, dkeys_have_been_used
 #include "engine/input/gamepad_globals.h"   // active_input_device
+#include "engine/input/weapon_feel.h"       // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
@@ -3295,50 +3296,27 @@ ULONG get_hardware_input(UWORD type)
                     bool driving = p_darci && p_darci->Genus.Person &&
                                    (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
-                        // Analog triggers fire at FIRE_THRESHOLD (~78% pull) —
-                        // matches where the DualSense Weapon25 adaptive-trigger
-                        // click fires, so shot & click are synchronized.
-                        //
-                        // Single-shot weapons (pistol, shotgun, melee) use
-                        // RISING EDGE detection: the player must release past
-                        // RESET_THRESHOLD before another shot fires.
-                        //
-                        // RESET_THRESHOLD must match AIM_GUN_ENTRY_MAX_R2 in
-                        // gamepad.cpp exactly. Both thresholds gate the same
-                        // event — "player released enough for the next shot
-                        // + click". If they differ, the band between them
-                        // produces "fire without click" or "click without
-                        // fire" bugs.
-                        //
-                        // Auto-fire weapons (AK47) use HELD-DOWN detection so
-                        // holding R2 produces continuous fire.
-                        static bool s_r2_armed = true;
-                        static bool s_l2_armed = true;
-                        constexpr int FIRE_THRESHOLD  = 200;
-                        constexpr int RESET_THRESHOLD = 80;
-
-                        bool auto_fire_weapon = false;
+                        // Fire detection (rising-edge vs held-down + thresholds)
+                        // is fully encapsulated in the weapon_feel module. The
+                        // active WeaponFeelProfile drives both the R2/L2 firing
+                        // thresholds and whether auto-fire is allowed, and it's
+                        // the same profile the adaptive-trigger state machine
+                        // consults — so shot and click can't desync.
+                        int32_t current_weapon = SPECIAL_NONE;
                         if (p_darci && p_darci->Genus.Person && p_darci->Genus.Person->SpecialUse) {
                             Thing* p_special = TO_THING(p_darci->Genus.Person->SpecialUse);
-                            if (p_special && p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
-                                auto_fire_weapon = true;
-                            }
+                            if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
                         }
 
-                        if (the_state.trigger_right <= RESET_THRESHOLD) s_r2_armed = true;
-                        if (the_state.trigger_right > FIRE_THRESHOLD) {
-                            if (auto_fire_weapon || s_r2_armed) {
-                                input |= INPUT_MASK_PUNCH;
-                                g_dwLastInputChangeTime = dwCurrentTime;
-                                s_r2_armed = false;
-                            }
+                        WeaponFireDecision fd = weapon_feel_evaluate_fire(
+                            current_weapon, the_state.trigger_right, the_state.trigger_left);
+                        if (fd.shoot) {
+                            input |= INPUT_MASK_PUNCH;
+                            g_dwLastInputChangeTime = dwCurrentTime;
                         }
-
-                        if (the_state.trigger_left <= RESET_THRESHOLD) s_l2_armed = true;
-                        if (s_l2_armed && the_state.trigger_left > FIRE_THRESHOLD) {
+                        if (fd.kick) {
                             input |= INPUT_MASK_KICK;
                             g_dwLastInputChangeTime = dwCurrentTime;
-                            s_l2_armed = false;
                         }
                     }
                 }

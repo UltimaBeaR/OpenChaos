@@ -4,7 +4,7 @@
 
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
-#include "engine/input/gamepad_haptic.h"
+#include "engine/input/weapon_feel.h"
 #include "engine/input/keyboard_globals.h" // Keys[] for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
@@ -86,14 +86,14 @@ void gamepad_init()
         gamepad_led_reset(); // start with default blue
     }
 
-    gamepad_haptic_init();
+    weapon_feel_init();
 
     debug_log_backend("init");
 }
 
 void gamepad_shutdown()
 {
-    gamepad_haptic_shutdown();
+    weapon_feel_shutdown();
     if (s_gamepad) {
         sdl3_gamepad_close(s_gamepad);
         s_gamepad = nullptr;
@@ -359,7 +359,7 @@ void gamepad_rumble_tick()
     // Envelope-based weapon haptic (DualSense-only). Runs independently of
     // the PS1-style shock motors and is max-merged into the slow motor.
     bool haptic_active = false;
-    uint8_t haptic_slow = gamepad_haptic_tick(&haptic_active);
+    uint8_t haptic_slow = weapon_feel_tick_haptic(&haptic_active);
 
     if (!s_motor_fast && !s_motor_slow && !haptic_active) {
         // Motors at zero — send one final stop command to DualSense (no auto-timeout).
@@ -411,7 +411,7 @@ void gamepad_rumble_stop()
 {
     s_motor_fast = 0;
     s_motor_slow = 0;
-    gamepad_haptic_stop();
+    weapon_feel_stop_haptic();
 
     if (s_is_dualsense && ds_is_connected()) {
         ds_set_vibration(0, 0);
@@ -497,10 +497,16 @@ enum TriggerMode {
 };
 static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 
+// Weapon25 params for the most recently activated AIM_GUN profile. Looked
+// up from the weapon_feel profile at apply time so per-weapon tuning flows
+// through without touching this state machine.
+static uint8_t s_aim_gun_start_zone = 7;
+static uint8_t s_aim_gun_amplitude  = 2;
 // Trigger position below which it's safe to (re-)activate AIM_GUN mode
-// without the player feeling a phantom click. Weapon25 with StartZone=7
-// clicks around R2 position ~120; we stay below that with margin.
-static constexpr uint8_t AIM_GUN_ENTRY_MAX_R2 = 80;
+// without the player feeling a phantom click. Mirrors the current weapon's
+// profile reset_threshold so "fire without click" / "click without fire"
+// bugs can't happen across the transition band.
+static uint8_t s_aim_gun_entry_max_r2 = 80;
 
 static void apply_trigger_mode(TriggerMode mode)
 {
@@ -517,10 +523,8 @@ static void apply_trigger_mode(TriggerMode mode)
         // L2 = free (no effect).
         // Weapon25 StartZone and Amplitude are 4-bit fields (0..15); values
         // outside that range overflow inside GamepadCore's Weapon25 encoder.
-        // StartZone 7 = click point around ~47% pull, matching the game's
-        // shoot threshold in input_actions.cpp; Amplitude 2 = light click
-        // resistance so holding fire isn't tiring.
-        ds_trigger_weapon(7, 2, 0, 0, 1);  // R2: start_zone=7, amplitude=2 (0..15)
+        // Both values come from the active weapon's WeaponFeelProfile.
+        ds_trigger_weapon(s_aim_gun_start_zone, s_aim_gun_amplitude, 0, 0, 1);
         ds_trigger_off(0);                      // L2: free
         break;
 
@@ -535,7 +539,7 @@ static void apply_trigger_mode(TriggerMode mode)
     ds_update_output();
 }
 
-void gamepad_triggers_update(bool in_car, bool weapon_ready)
+void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon)
 {
     if (!s_is_dualsense || !ds_is_connected()) return;
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
@@ -547,16 +551,27 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready)
         return;
     }
 
+    // Refresh AIM_GUN params from the current weapon's profile every frame.
+    // Cheap lookup, lets a weapon swap mid-game update the click feel on the
+    // very next transition without any extra plumbing.
+    const WeaponFeelProfile* profile = weapon_feel_get_profile(current_weapon);
+    s_aim_gun_start_zone  = profile->trigger_start_zone;
+    s_aim_gun_amplitude   = profile->trigger_amplitude;
+    s_aim_gun_entry_max_r2 = profile->reset_threshold;
+    // Profiles with zero amplitude (or start_zone) opt out of the adaptive
+    // click entirely — treat as "weapon has no trigger effect".
+    const bool weapon_has_click = profile->trigger_amplitude != 0;
+
     TriggerMode desired;
     if (in_car) {
         desired = TRIGGER_MODE_CAR;
-    } else if (weapon_ready) {
+    } else if (weapon_ready && weapon_has_click) {
         // AIM_GUN can only be (re-)entered when the player's R2 is in the
         // safe zone below the click point. If we switch to AIM_GUN while R2
         // is already past the click, the Weapon25 motor fires a phantom
         // click with no corresponding shot. Once armed, we keep AIM_GUN
         // active regardless of R2 position until weapon_ready goes false.
-        const bool can_enter = gamepad_state.trigger_right <= AIM_GUN_ENTRY_MAX_R2;
+        const bool can_enter = gamepad_state.trigger_right <= s_aim_gun_entry_max_r2;
         if (s_trigger_mode == TRIGGER_MODE_AIM_GUN || can_enter) {
             desired = TRIGGER_MODE_AIM_GUN;
         } else {
