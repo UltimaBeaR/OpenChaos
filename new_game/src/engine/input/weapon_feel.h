@@ -47,9 +47,11 @@ struct WeaponFeelProfile {
     //                 Should match where the Weapon25 click point lands so
     //                 shot & click are synchronized.
     // reset_threshold: R2/L2 value below which rising-edge detector rearms.
-    //                 MUST equal the entry-gate threshold used by the trigger
-    //                 state machine in gamepad.cpp — this module enforces the
-    //                 invariant by exposing both via the same profile.
+    //                 Also drives the adaptive-trigger state machine: while
+    //                 the fire detector is disarmed (trigger not released
+    //                 deep enough since the last shot), the trigger effect
+    //                 is forced to NONE (free feel), so half-taps can't
+    //                 produce shots without physical feedback.
     // auto_fire: true = held-down fire (machine guns); false = rising-edge
     //            (pistol, shotgun — must release past reset_threshold between
     //            shots).
@@ -113,3 +115,13 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 // the weapon, or in any context where triggers aren't being read as fire
 // input. Prevents a stray "fire" the instant control is handed back.
 void weapon_feel_fire_reset();
+
+// True if the fire detector currently considers R2 armed for a shot. For
+// rising-edge weapons, this means R2 has dipped below reset_threshold since
+// the last shot (a deep release — half-taps do not arm). For auto-fire
+// weapons this is always true. The adaptive-trigger state machine in
+// gamepad.cpp consults this so the physical trigger effect matches the
+// fire logic: disarmed → free trigger (no resistance, no click), armed →
+// AIM_GUN (resistance + click ready). Single source of truth for both
+// subsystems, no possibility of desync.
+bool weapon_feel_is_r2_armed(int32_t current_weapon);

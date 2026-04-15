@@ -159,6 +159,29 @@ bool s_tick_initialized = false;
 bool s_r2_armed = true;
 bool s_l2_armed = true;
 
+// Settle window starting at the moment the trigger is released (R2 crosses
+// downward past reset_threshold). The hardware Weapon25 effect needs
+// physical time to reset its internal click state + for our mode=AIM_GUN
+// HID command to propagate over Bluetooth. If the player re-presses past
+// fire_threshold before this window expires, it's treated as a "wasted"
+// cycle: no shot fires AND the rearm is consumed, so no more shots can
+// fire until the player does another proper release. At the same time,
+// armed is forced false for is_r2_armed queries so mode=NONE engages
+// and the hardware stops emitting clicks. Both subsystems stay in sync.
+constexpr auto RELEASE_SETTLE = std::chrono::milliseconds(100);
+std::chrono::steady_clock::time_point s_release_time =
+    std::chrono::steady_clock::now() - std::chrono::seconds(10);
+bool s_armed_consumed = false;
+int  s_prev_r2 = 0;
+int  s_prev_l2 = 0;
+
+bool is_release_settled(const WeaponFeelProfile* p)
+{
+    if (p->auto_fire) return true;
+    const auto now = std::chrono::steady_clock::now();
+    return (now - s_release_time) >= RELEASE_SETTLE;
+}
+
 } // namespace
 
 // ===========================================================================
@@ -337,19 +360,61 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 
     WeaponFireDecision out = { false, false };
 
-    if (r2 <= p->reset_threshold) s_r2_armed = true;
-    if (r2 > p->fire_threshold) {
-        if (p->auto_fire || s_r2_armed) {
+    const auto now = std::chrono::steady_clock::now();
+
+    // Detect downward crossing of reset_threshold (trigger just entered
+    // the release zone). This is the moment hardware click rearm begins.
+    // Start the settle timer and reset the "consumed" flag so this
+    // release cycle gets a fresh chance to fire.
+    const bool now_released = r2 <= p->reset_threshold;
+    const bool was_released = s_prev_r2 <= p->reset_threshold;
+    if (now_released && !was_released) {
+        s_release_time = now;
+        s_armed_consumed = false;
+    }
+    if (now_released) s_r2_armed = true;
+    s_prev_r2 = r2;
+
+    if (r2 > p->fire_threshold && !s_armed_consumed) {
+        if (p->auto_fire) {
             out.shoot = true;
-            s_r2_armed = false;
+        } else if (s_r2_armed) {
+            if (is_release_settled(p)) {
+                out.shoot = true;
+                s_r2_armed = false;
+            } else {
+                // Too fast: the player re-pressed past fire_threshold
+                // before the hardware had time to reset. Consume the
+                // rearm without firing — this cycle is discarded, and
+                // is_r2_armed will report false (mode→NONE) so the
+                // hardware stops emitting click too.
+                s_armed_consumed = true;
+                s_r2_armed = false;
+            }
         }
     }
 
-    // L2 kick is always rising-edge — no weapon is "auto-kick".
-    if (l2 <= p->reset_threshold) s_l2_armed = true;
-    if (s_l2_armed && l2 > p->fire_threshold) {
-        out.kick = true;
-        s_l2_armed = false;
+    // L2 kick — same logic as R2 with independent state. Never auto-fires.
+    static std::chrono::steady_clock::time_point s_l2_release_time =
+        std::chrono::steady_clock::now() - std::chrono::seconds(10);
+    static bool s_l2_consumed = false;
+    const bool l2_now_released = l2 <= p->reset_threshold;
+    const bool l2_was_released = s_prev_l2 <= p->reset_threshold;
+    if (l2_now_released && !l2_was_released) {
+        s_l2_release_time = now;
+        s_l2_consumed = false;
+    }
+    if (l2_now_released) s_l2_armed = true;
+    s_prev_l2 = l2;
+
+    if (l2 > p->fire_threshold && !s_l2_consumed && s_l2_armed) {
+        if ((now - s_l2_release_time) >= RELEASE_SETTLE) {
+            out.kick = true;
+            s_l2_armed = false;
+        } else {
+            s_l2_consumed = true;
+            s_l2_armed = false;
+        }
     }
 
     return out;
@@ -359,4 +424,18 @@ void weapon_feel_fire_reset()
 {
     s_r2_armed = true;
     s_l2_armed = true;
+    s_armed_consumed = false;
+    s_prev_r2 = 0;
+    s_prev_l2 = 0;
+}
+
+bool weapon_feel_is_r2_armed(int32_t current_weapon)
+{
+    const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
+    if (p->auto_fire) return true;
+    // Rising-edge weapons: armed only if the rearm flag is set AND the
+    // rearm hasn't been consumed by a too-fast tap. If the cycle is
+    // consumed, mode=NONE engages so the hardware stops emitting clicks
+    // until the player performs another proper release.
+    return s_r2_armed && !s_armed_consumed;
 }

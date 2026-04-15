@@ -556,27 +556,20 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // click entirely — treat as "weapon has no trigger effect".
     const bool weapon_has_click = profile->trigger_amplitude != 0;
 
-    // AIM_GUN is enabled whenever the weapon is ready to fire — there is no
-    // R2-position gate. Previously we gated re-entry on "R2 has dipped into
-    // the safe zone below click point" to avoid a phantom click when the
-    // effect activated while the trigger was already past threshold; in
-    // practice that gate caused a worse bug:
-    //
-    //   HOLD → cooldown expires → keep holding → release fast → press fast
-    //
-    // The brief release dip was caught by the per-frame poll, the game-side
-    // shot logic armed and fired on the re-press, but the HID command to
-    // re-enable AIM_GUN needed one BT round-trip (~7-30ms) to reach the
-    // controller — by which time the physical trigger was already past
-    // StartZone again. The hardware only fires the click on a rising
-    // crossing AFTER the effect is active, so the player felt a shot
-    // without a click. Keeping AIM_GUN continuously enabled while the
-    // weapon is ready eliminates the HID latency race entirely — the
-    // effect is already live when the user releases and re-presses.
+    // AIM_GUN is gated on the fire detector's armed state. When the game
+    // can't actually fire a shot right now (rising-edge not rearmed since
+    // the last shot, cooldown active, etc.) the trigger effect is forced
+    // off. This prevents the hardware from firing a click on a press
+    // that the game will ignore — previously the hardware click fired
+    // whenever the player crossed StartZone regardless of the game's
+    // fire gate, producing "click without shot" during cooldown and
+    // after partial releases.
+    const bool armed = weapon_feel_is_r2_armed(current_weapon);
+
     TriggerMode desired;
     if (in_car) {
         desired = TRIGGER_MODE_CAR;
-    } else if (weapon_ready && weapon_has_click) {
+    } else if (weapon_ready && weapon_has_click && armed) {
         desired = TRIGGER_MODE_AIM_GUN;
     } else {
         desired = TRIGGER_MODE_NONE;
