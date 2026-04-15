@@ -9,6 +9,7 @@
 - Тестовый инструмент — [`new_game/src/engine/input/weapon_feel_test.cpp`](../new_game/src/engine/input/weapon_feel_test.cpp) (живёт в ветке `dualsence_test`, не в main)
 - Полный аудит реализации эффектов в либе vs. Nielk1 спека — [`dualsense_lib_pr_notes.md`](dualsense_lib_pr_notes.md) раздел 6.6
 - Reverse-engineered packing всех эффектов — [Nielk1 gist (HTML)](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) / [raw](https://gist.githubusercontent.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db/raw)
+- Независимое подтверждение спеки — [DualSenseX/DSX UDP API example](https://github.com/Paliverse/DualSenseX) (коммерческий популярный продукт, ranges параметров в DSX идентичны Nielk1 спеке)
 
 ## Hardware Weapon25 эффект
 
