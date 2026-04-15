@@ -141,7 +141,17 @@ bool weapon_feel_test_is_active()
 
 void weapon_feel_test_tick()
 {
-    if (Keys[KB_BACKSLASH]) {
+    // Toggle via keyboard `\` (PC) or L3 — left stick click (gamepad).
+    // L3 was chosen because it is set in gamepad_state.rgbButtons[7] by
+    // the DualSense input path but not read by any input_actions logic,
+    // so it is free to repurpose. Edge-detected so holding L3 doesn't
+    // flip the test on/off every frame.
+    static bool s_prev_l3 = false;
+    const bool l3_now = (gamepad_state.rgbButtons[7] & 0x80) != 0;
+    const bool l3_pressed_this_frame = l3_now && !s_prev_l3;
+    s_prev_l3 = l3_now;
+
+    if (Keys[KB_BACKSLASH] || l3_pressed_this_frame) {
         Keys[KB_BACKSLASH] = 0;
         if (s_test_on) leave_test();
         else           enter_test();
