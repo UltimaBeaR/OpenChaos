@@ -17,12 +17,17 @@
 
 ### 1. duaLib — ⭐ главный источник истины для trigger effects
 
-- **Репо**: https://github.com/Nielk1/duaLib
+- **Репо**: https://github.com/WujekFoliarz/duaLib
 - **Куда положить**: `libs/duaLib/`
 - **Проверка**: `libs/duaLib/src/source/triggerFactory.cpp`
 - **Доп. действия**: нет
 - **Зачем**: файл `triggerFactory.cpp` — авторитетная C++ реализация
-  всех trigger effect packing'ов от автора спеки (Nielk1, MIT).
+  всех trigger effect packing'ов. Репа принадлежит WujekFoliarz
+  (это open-source версия `libScePad`), но сам код
+  `triggerFactory.cpp` написан **John "Nielk1" Klein** (это тот же
+  автор что написал gist на который мы ссылались). Copyright notice
+  в шапке файла: `Copyright (c) 2021-2022 John "Nielk1" Klein`,
+  лицензия **MIT** — позволяет копировать с сохранением notice.
   Будем частично копировать в нашу либу.
 
 ### 2. DualSense-Windows (DS5W) — ⭐ input parsing reference
@@ -104,8 +109,8 @@
 - **Куда положить**: `libs/nielk1_trigger_gist.txt` (отдельный файл,
   не папка)
 - **Проверка**: файл существует и содержит слова `Weapon` и `startAndStopZones`
-- **Доп. действия**: просто сохрани содержимое URL как plain text
-  (правый клик → "Save As" в браузере, или `curl -L ... > ...`)
+- **Доп. действия**: открой URL в браузере → Save Page As → сохрани
+  как plain text в указанный файл
 - **Зачем**: резервная копия на случай если GitHub rate-limit'ит
   или WebFetch агента возвращает 403. Содержит исходные formulas
   для packing'ов (уже продублированы в `dualsense_lib_pr_notes.md`
@@ -119,6 +124,27 @@
 - **Доп. действия**: нет, просто сохрани содержимое URL как plain text
 - **Зачем**: низкоуровневый HID descriptor DualSense как справочник.
   Не критично, но может пригодиться при отладке новой либы.
+
+### 9. Game Controller Collective Wiki — Sony DualSense page (offline HTML)
+
+- **URL**: https://controllers.fandom.com/wiki/Sony_DualSense
+- **Куда положить**: `libs/gcc_wiki_sony_dualsense.html` (один HTML файл)
+  либо `libs/gcc_wiki_sony_dualsense/` (папка если браузер сохраняет
+  HTML вместе с assets — оба варианта ок)
+- **Проверка**: файл (или файл `index.html` внутри папки) существует
+  и при открытии в браузере показывает страницу с секциями "Input
+  Reports", "Output Reports", "Feature Reports", "Data Structures"
+- **Доп. действия**: открой URL в браузере → правый клик на странице
+  → "Save Page As..." → выбери формат **"Webpage, Complete"** или
+  **"Webpage, HTML Only"**. Сохрани в `libs/` с указанным именем
+  выше.
+- **Зачем**: офлайн копия community wiki с C++11 определениями
+  структур (`TriggerLeftStatus`/`TriggerRightStatus`, `Direction`,
+  `PowerState` и т.п.), описанием всех input/output/feature reports.
+  Дублирует то что есть в `duaLib` и `DS5W` на C++ уровне, но
+  формально — четвёртый независимый источник для cross-reference.
+  Содержательно избыточен с уже скачанными либами, качается "для
+  надёжности".
 
 ---
 
@@ -138,7 +164,9 @@ dualsense_libs_reference/libs/
 libs/
 ├── DualSenseX-Paliverse/                <- пункт 6 (+ распаковать внутренний zip)
 ├── nielk1_trigger_gist.txt              <- пункт 7 (файл)
-└── dogtopus_hid_descriptor.txt          <- пункт 8 (файл)
+├── dogtopus_hid_descriptor.txt          <- пункт 8 (файл)
+└── gcc_wiki_sony_dualsense.html         <- пункт 9 (сохранённая HTML страница)
+   (или папка gcc_wiki_sony_dualsense/ с assets — оба варианта ок)
 ```
 
 ---
