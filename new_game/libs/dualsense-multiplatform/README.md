@@ -5,6 +5,40 @@ haptic feedback, LED control, touchpad, gyroscope, and audio-to-haptic conversio
 
 Used by OpenChaos for native DualSense support (Stage 5.1, Iteration B).
 
+## ⚠️ Local patches
+
+This vendored copy is **NOT pristine** — it carries a local patch that is
+not yet upstreamed. To find every patch site in the source, grep for the
+marker `OPENCHAOS-PATCH`:
+
+```
+git grep "OPENCHAOS-PATCH" Dualsense-Multiplatform/Source
+```
+
+Each patch is wrapped in a `=== OPENCHAOS-PATCH BEGIN ... END ===` comment
+block so the boundaries are unambiguous.
+
+**Active patches (2026-04-15):**
+
+- **Trigger feedback status reading** — adds 4 fields to `FInputContext`
+  (`LeftTriggerFeedbackState`, `RightTriggerFeedbackState`,
+  `bLeftTriggerEffectActive`, `bRightTriggerEffectActive`) and reads
+  bytes 41/42 from the input report inside `DualSenseRaw`. Lets us
+  detect physical adaptive-trigger click events directly from hardware
+  signal instead of guessing by analog trigger position.
+
+  Full rationale, reverse-engineering sources, empirical measurements,
+  PR preparation checklist, and cross-platform validation TODOs are in
+  [`new_game_devlog/dualsense_lib_pr_notes.md`](../../../new_game_devlog/dualsense_lib_pr_notes.md).
+
+  Patch sites:
+  - `Source/Public/GCore/Types/Structs/Context/InputContext.h` — new struct fields
+  - `Source/Public/GImplementations/Utils/GamepadInput.h` — read code in `DualSenseRaw`
+
+When updating the vendored copy to a newer upstream commit, **either**
+re-apply this patch on top, **or** check whether it has been merged
+upstream and remove the marker blocks accordingly.
+
 ## Structure
 
 ```

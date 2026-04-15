@@ -81,6 +81,17 @@ struct DS_InputState {
     // Misc
     bool mute;
     bool touchpad_click;
+
+    // Adaptive trigger feedback status (reported by the controller for
+    // the currently active effect). State value: 0 = before effect zone,
+    // 1 = inside effect zone, 2 = past effect zone. *_effect_active is
+    // true when the controller signals that the effect is engaged.
+    // Only meaningful for effect modes Off (0x05), Feedback (0x21),
+    // Weapon (0x25), Vibration/MachineGun (0x26).
+    uint8_t left_trigger_feedback_state;
+    uint8_t right_trigger_feedback_state;
+    bool    left_trigger_effect_active;
+    bool    right_trigger_effect_active;
 };
 
 bool ds_get_input(DS_InputState* out);

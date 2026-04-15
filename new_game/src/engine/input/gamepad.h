@@ -84,3 +84,20 @@ void gamepad_triggers_off();
 // Mark a button to be consumed (zeroed) on every poll until released.
 // Use when exiting a menu to prevent the button from triggering a gameplay action.
 void gamepad_consume_until_released(uint8_t button_index);
+
+// Adaptive trigger feedback status — reported by the controller for the
+// currently active effect. State value: 0 = before effect zone, 1 = inside,
+// 2 = past. Effect active = controller signals the effect is engaged.
+// Only meaningful for effect modes Off (0x05), Feedback (0x21),
+// Weapon (0x25), Vibration/MachineGun (0x26). DualSense only — values
+// stay 0/false on other devices.
+uint8_t gamepad_get_right_trigger_feedback_state();
+uint8_t gamepad_get_left_trigger_feedback_state();
+bool    gamepad_get_right_trigger_effect_active();
+bool    gamepad_get_left_trigger_effect_active();
+
+// TEST HOOK — weapon_feel_test hardware motor delay measurement.
+// mode: 0 = force NONE, 1 = force AIM_GUN. Bypasses the normal
+// gamepad_triggers_update state machine. Temporary, to be removed along
+// with weapon_feel_test.{h,cpp}.
+void gamepad_test_set_trigger_mode(int mode);

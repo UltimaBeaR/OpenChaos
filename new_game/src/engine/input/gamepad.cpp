@@ -5,6 +5,7 @@
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/weapon_feel.h"
+#include "engine/input/weapon_feel_test.h"
 #include "engine/input/keyboard_globals.h" // Keys[] for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
@@ -103,6 +104,16 @@ void gamepad_shutdown()
 }
 
 // ---------------------------------------------------------------------------
+// Adaptive trigger feedback cache — filled per-poll from DS_InputState,
+// exposed via the gamepad_get_*_trigger_feedback_* accessors below.
+// ---------------------------------------------------------------------------
+
+static uint8_t s_left_trigger_feedback_state  = 0;
+static uint8_t s_right_trigger_feedback_state = 0;
+static bool    s_left_trigger_effect_active   = false;
+static bool    s_right_trigger_effect_active  = false;
+
+// ---------------------------------------------------------------------------
 // DualSense input path — translate DS_InputState to GamepadState
 // ---------------------------------------------------------------------------
 
@@ -169,6 +180,12 @@ static void poll_dualsense()
     // Analog trigger values (0..255).
     gamepad_state.trigger_left  = static_cast<uint8_t>(ds.trigger_left  * 255.0f);
     gamepad_state.trigger_right = static_cast<uint8_t>(ds.trigger_right * 255.0f);
+
+    // Cache adaptive trigger feedback state for the test/diagnostic getters.
+    s_left_trigger_feedback_state   = ds.left_trigger_feedback_state;
+    s_right_trigger_feedback_state  = ds.right_trigger_feedback_state;
+    s_left_trigger_effect_active    = ds.left_trigger_effect_active;
+    s_right_trigger_effect_active   = ds.right_trigger_effect_active;
 
     gamepad_state.connected = true;
 }
@@ -486,6 +503,15 @@ void gamepad_led_update(float health_fraction, bool siren)
 }
 
 // ---------------------------------------------------------------------------
+// Adaptive trigger accessors (cache defined near gamepad_poll_dualsense_path)
+// ---------------------------------------------------------------------------
+
+uint8_t gamepad_get_right_trigger_feedback_state() { return s_right_trigger_feedback_state; }
+uint8_t gamepad_get_left_trigger_feedback_state()  { return s_left_trigger_feedback_state; }
+bool    gamepad_get_right_trigger_effect_active()  { return s_right_trigger_effect_active; }
+bool    gamepad_get_left_trigger_effect_active()   { return s_left_trigger_effect_active; }
+
+// ---------------------------------------------------------------------------
 // Adaptive triggers (DualSense only)
 // ---------------------------------------------------------------------------
 
@@ -534,8 +560,21 @@ static void apply_trigger_mode(TriggerMode mode)
     ds_update_output();
 }
 
+void gamepad_test_set_trigger_mode(int mode)
+{
+    if (!s_is_dualsense || !ds_is_connected()) return;
+    // Force-apply regardless of current cached mode, and update the cache
+    // so the next non-test gamepad_triggers_update sees the truth.
+    const TriggerMode tm = (mode == 0) ? TRIGGER_MODE_NONE : TRIGGER_MODE_AIM_GUN;
+    s_trigger_mode = tm;
+    apply_trigger_mode(tm);
+}
+
 void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon)
 {
+    // The hardware motor delay test owns the trigger mode while it runs.
+    if (weapon_feel_test_is_active()) return;
+
     if (!s_is_dualsense || !ds_is_connected()) return;
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
         // Not actively using DualSense — clear triggers if they were on.

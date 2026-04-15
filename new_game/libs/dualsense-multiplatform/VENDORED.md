@@ -17,4 +17,19 @@
 
 - The library's top-level `CMakeLists.txt` has a bug: uses `CMAKE_SOURCE_DIR` for miniaudio
   path, which breaks under `add_subdirectory`. We work around this by including `Source/`
-  directly and adding miniaudio manually in our CMakeLists.txt. No vendored code is modified.
+  directly and adding miniaudio manually in our CMakeLists.txt. No vendored code is modified
+  for this workaround.
+
+## ⚠️ Local patches (NOT pristine)
+
+As of 2026-04-15 this vendored copy carries a local patch on top of the
+upstream commit listed above. Patch sites are wrapped in
+`=== OPENCHAOS-PATCH BEGIN ... END ===` comment blocks — grep for
+`OPENCHAOS-PATCH` to find every modification.
+
+See [`README.md`](README.md) and the project devlog
+[`new_game_devlog/dualsense_lib_pr_notes.md`](../../../new_game_devlog/dualsense_lib_pr_notes.md)
+for the full list of active patches, rationale, and upstream PR plan.
+
+When pulling a newer upstream version, either re-apply the patch on top
+or verify it has been merged upstream and remove the marker blocks.

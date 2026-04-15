@@ -354,6 +354,11 @@ bool ds_get_input(DS_InputState* out)
     out->mute          = input->bMute;
     out->touchpad_click = input->bTouch;
 
+    out->left_trigger_feedback_state  = input->LeftTriggerFeedbackState;
+    out->right_trigger_feedback_state = input->RightTriggerFeedbackState;
+    out->left_trigger_effect_active   = input->bLeftTriggerEffectActive;
+    out->right_trigger_effect_active  = input->bRightTriggerEffectActive;
+
     return true;
 }
 

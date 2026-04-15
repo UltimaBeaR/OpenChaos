@@ -80,6 +80,7 @@
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
 #include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
+#include "engine/input/weapon_feel_test.h" // weapon_feel_test_tick (hardware motor delay test)
 #include "things/characters/anim_ids.h" // ANIM_HANDS_UP* for adaptive trigger check
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
@@ -1022,6 +1023,7 @@ round_again:;
                         Thing* p_special = TO_THING(darci_t->Genus.Person->SpecialUse);
                         if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
                     }
+                    weapon_feel_test_tick();
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
             }

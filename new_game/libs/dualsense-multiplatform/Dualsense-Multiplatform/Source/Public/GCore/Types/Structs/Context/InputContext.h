@@ -103,6 +103,23 @@ struct FInputContext
 	bool bRightAnalogUp;
 	bool bRightAnalogRight;
 
+	// === OPENCHAOS-PATCH BEGIN: trigger feedback status fields ===
+	// Local patch by OpenChaos project. Adds adaptive trigger feedback
+	// status fields. To be upstreamed as a PR — see project devlog
+	// `new_game_devlog/dualsense_lib_pr_notes.md` for full rationale,
+	// reverse-engineering sources, empirical measurements, and PR plan.
+	//
+	// Reported by the controller for active effects of type Off (0x05),
+	// Feedback (0x21), Weapon (0x25), and Vibration/MachineGun (0x26).
+	// State nybble (bits 0-3): observed values 4..9, internal motor
+	// state machine — semantics not fully documented. Active flag
+	// (bit 4): true while trigger is inside the active effect zone.
+	std::uint8_t LeftTriggerFeedbackState  = 0;
+	std::uint8_t RightTriggerFeedbackState = 0;
+	bool         bLeftTriggerEffectActive  = false;
+	bool         bRightTriggerEffectActive = false;
+	// === OPENCHAOS-PATCH END ===
+
 	// Special Buttons
 	bool bLeftTriggerThreshold;
 	bool bRightTriggerThreshold;

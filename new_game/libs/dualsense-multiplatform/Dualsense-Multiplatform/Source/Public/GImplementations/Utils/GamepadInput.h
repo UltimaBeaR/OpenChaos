@@ -148,6 +148,30 @@ namespace FGamepadInput
 		Input->bLeftStick = PushLeftStick;
 		Input->bRightStick = PushRightStick;
 
+		// === OPENCHAOS-PATCH BEGIN: read trigger feedback status bytes ===
+		// Local patch by OpenChaos project. Reads adaptive trigger
+		// feedback status from offsets 41/42 of the normalized input
+		// buffer. To be upstreamed as a PR — see project devlog
+		// `new_game_devlog/dualsense_lib_pr_notes.md` for full
+		// rationale, reverse-engineering sources, empirical
+		// measurements, and PR plan.
+		//
+		// Layout per nondebug/dualsense RE: after the library strips
+		// the Report ID + BT header padding upstream
+		// (FDualSenseLibrary::UpdateInput), R2 feedback byte lives at
+		// offset 41 and L2 at offset 42 for both USB and Bluetooth.
+		//   bit 4    = effect-active flag (1 = trigger inside active
+		//              effect zone, motor engaged)
+		//   bits 0-3 = state nybble (internal motor state machine,
+		//              empirically 4..9)
+		const unsigned char R2Fb = HIDInput[41];
+		const unsigned char L2Fb = HIDInput[42];
+		Input->RightTriggerFeedbackState = R2Fb & 0x0F;
+		Input->LeftTriggerFeedbackState  = L2Fb & 0x0F;
+		Input->bRightTriggerEffectActive = (R2Fb & 0x10) != 0;
+		Input->bLeftTriggerEffectActive  = (L2Fb & 0x10) != 0;
+		// === OPENCHAOS-PATCH END ===
+
 		Input->bMute = Mic;
 		Input->bFn1 = bFn1;
 		Input->bFn2 = bFn2;
