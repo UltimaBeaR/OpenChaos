@@ -76,6 +76,8 @@ R2/L2) **не читаются вообще**.
 ### 2.1 Источники
 
 - **Основной**: [`nondebug/dualsense`](https://github.com/nondebug/dualsense) — GitHub repo с полным реверс-инжинирингом DualSense HID protocol. В коде `dualsense-explorer.html` есть таблица оффсетов input report, включая `r2feedback` / `l2feedback`.
+- **Independent working implementation**: [`Ohjurot/DualSense-Windows`](https://github.com/Ohjurot/DualSense-Windows) — 400⭐ open-source C++ library (DS5W). В файле `VS19_Solution/DualSenseWindows/src/DualSenseWindows/DS5_Input.cpp:79-80` читает `leftTriggerFeedback = hidInBuffer[0x2A]` и `rightTriggerFeedback = hidInBuffer[0x29]` — **ровно те же offsets что мы патчим**. В хедере
+  `DS5State.h` поля помечены как `/// EXPERIMAENTAL: Feedback of the ... adaptive trigger (only when trigger effect is active)` — автор DS5W тоже отметил эти байты как expermental, совпадает с нашим наблюдением про jitter state nybble и ограниченную семантику.
 - **Дополнительно**: [Game Controller Collective Wiki — DualSense Data Structures](https://controllers.fandom.com/wiki/Sony_DualSense/Data_Structures) — community-документация, упоминает `TriggerLeftStatus` / `TriggerRightStatus` поля.
 - **Изначальный pointer**: [Nielk1 trigger effect factories gist](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) — упоминает status nybble в контексте Weapon (0x25) эффекта (но описание там устаревшее, см. п. 3.2).
 
@@ -576,6 +578,8 @@ byte[3] = strength (<= 10)
 ### 7.1 Reverse engineering источники
 
 - [`nondebug/dualsense`](https://github.com/nondebug/dualsense) — основная карта HID layout DualSense input report. Здесь взяты offsets 41/42.
+- [`Ohjurot/DualSense-Windows`](https://github.com/Ohjurot/DualSense-Windows) — 400⭐ open-source C++ library (DS5W). Независимое рабочее подтверждение feedback offsets 0x29/0x2A — читает именно эти байты в `DS5_Input.cpp`. Их output packing проще нашей цели, реализует только Continuous/Section/EffectEx.
+- [`Paliverse/DualSenseX`](https://github.com/Paliverse/DualSenseX) — 1.5k⭐ популярный коммерческий продукт (продолжение DSX в Steam). Сам закрытый, но публичный UDP API example подтверждает parameter ranges для Weapon (`SemiAutomaticGun`), Bow, Galloping и других эффектов. Независимое подтверждение Nielk1 спеки.
 - [Game Controller Collective Wiki — DualSense Data Structures](https://controllers.fandom.com/wiki/Sony_DualSense/Data_Structures) — community wiki с описанием полей `TriggerRightStatus`/`TriggerLeftStatus`.
 - [Nielk1 trigger effect factories gist (HTML)](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) — описание trigger effect modes всех основных эффектов с их byte layouts. Главный источник для packing-патча Weapon25.
 - [Nielk1 gist — raw text](https://gist.githubusercontent.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db/raw) — raw версия того же файла, полезна когда WebFetch к HTML возвращает 403.
