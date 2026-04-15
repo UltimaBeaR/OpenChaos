@@ -556,23 +556,41 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // click entirely — treat as "weapon has no trigger effect".
     const bool weapon_has_click = profile->trigger_amplitude != 0;
 
-    // AIM_GUN follows the fire detector's armed state. When the game
-    // can't fire a shot right now (consumed rearm, rising-edge not ready)
-    // mode=NONE, which also stops the hardware from trying to engage the
-    // resistance motors — avoiding futile engagement attempts when the
-    // player is tapping faster than the physical motors can respond.
-    const bool armed = weapon_feel_is_r2_armed(current_weapon);
-
+    // AIM_GUN stays continuously enabled whenever the weapon is ready.
+    //
+    // Rationale: any mode transition NONE→AIM_GUN costs one Bluetooth HID
+    // round-trip (~7-30ms typical) before the hardware Weapon25 effect
+    // is actually active. If the player presses the trigger during that
+    // propagation window, the physical click-point crossing happens
+    // before the effect comes online and no click fires. Keeping the
+    // effect on continuously eliminates this race — the hardware
+    // handles its own click rearm based on real-time trigger position,
+    // with no PC-side state transition in the critical path.
+    //
+    // Trade-off: the hardware may emit a click during the game's Timer1
+    // cooldown window (player presses during cooldown → hardware clicks
+    // because mode=AIM_GUN → game refuses the shot because of Timer1 →
+    // result: "click without shot"). This is known and accepted as
+    // per requirement R4 in
+    // new_game_devlog/weapon_haptic_and_adaptive_trigger.md.
+    //
+    // Any future attempt to gate mode on fire-side state (armed, consumed,
+    // custom cooldown) must NOT reduce the fire rate below the game's
+    // natural Timer1 cadence — see requirement R1 in the same file.
     TriggerMode desired;
     if (in_car) {
         desired = TRIGGER_MODE_CAR;
-    } else if (weapon_ready && weapon_has_click && armed) {
+    } else if (weapon_ready && weapon_has_click) {
         desired = TRIGGER_MODE_AIM_GUN;
     } else {
         desired = TRIGGER_MODE_NONE;
     }
 
     if (desired != s_trigger_mode) {
+        weapon_feel_debug_log("MODE_CHG %d -> %d (in_car=%d weapon_ready=%d has_click=%d r2=%d)",
+            (int)s_trigger_mode, (int)desired,
+            in_car ? 1 : 0, weapon_ready ? 1 : 0,
+            weapon_has_click ? 1 : 0, (int)gamepad_state.trigger_right);
         s_trigger_mode = desired;
         apply_trigger_mode(desired);
     }
@@ -587,11 +605,20 @@ void gamepad_triggers_off()
 
 void gamepad_triggers_lockout(int /*duration_ms*/)
 {
-    // Immediately switch to NONE on a fire event so the HID mode change
-    // propagates out on the same frame the game registered the shot. The
-    // actual lockout duration is driven by the game's Timer1 cooldown via
-    // gamepad_triggers_update(weapon_ready) — once Timer1 reaches 0, the
-    // next triggers_update re-enables AIM_GUN unconditionally.
+    weapon_feel_debug_log("triggers_lockout called (cur_mode=%d)", (int)s_trigger_mode);
+    // Called from weapon_feel_on_shot_fired on every real shot of a
+    // single-shot weapon. Historically forced mode=NONE to suppress
+    // stale clicks during the post-fire cooldown window.
+    //
+    // ⚠️ With the current unconditional-mode design in gamepad_triggers_update,
+    // this call is effectively a blink: we switch to NONE here, and the
+    // next gamepad_triggers_update tick flips mode right back to AIM_GUN
+    // because nothing gates it anymore. The net effect is a single wasted
+    // HID write per shot. Kept for now because removing it subtly changes
+    // the envelope retrigger timing and we're avoiding unrelated changes
+    // during the adaptive-trigger investigation. See devlog section
+    // "Текущее стабильное состояние кода" → point 5 for the plan to
+    // revisit this.
     if (s_trigger_mode != TRIGGER_MODE_NONE) {
         s_trigger_mode = TRIGGER_MODE_NONE;
         apply_trigger_mode(TRIGGER_MODE_NONE);

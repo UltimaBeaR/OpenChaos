@@ -44,17 +44,16 @@ struct WeaponFeelProfile {
 
     // --- Analog fire detection ---------------------------------------------
     // fire_threshold: R2/L2 value above which the shot fires (0..255).
-    //                 Should match where the Weapon25 click point lands so
-    //                 shot & click are synchronized.
-    // reset_threshold: R2/L2 value below which rising-edge detector rearms.
-    //                 Also drives the adaptive-trigger state machine: while
-    //                 the fire detector is disarmed (trigger not released
-    //                 deep enough since the last shot), the trigger effect
-    //                 is forced to NONE (free feel), so half-taps can't
-    //                 produce shots without physical feedback.
-    // auto_fire: true = held-down fire (machine guns); false = rising-edge
-    //            (pistol, shotgun — must release past reset_threshold between
-    //            shots).
+    //                 Should match the Weapon25 click point so shot & click
+    //                 are synchronized on the rising edge of the trigger
+    //                 press.
+    // reset_threshold: R2/L2 value at or below which the rising-edge
+    //                 detector rearms. The player must release to this
+    //                 point between shots (half-taps do not arm).
+    // auto_fire: true = held-down fire (machine guns, e.g. AK47); false =
+    //            rising-edge (pistol, shotgun — each shot requires the
+    //            trigger to drop to reset_threshold and then rise past
+    //            fire_threshold again).
     uint8_t  fire_threshold;
     uint8_t  reset_threshold;
     bool     auto_fire;
@@ -82,11 +81,13 @@ const WeaponFeelProfile* weapon_feel_get_profile(int32_t special_type);
 // Haptic envelope playback
 // ---------------------------------------------------------------------------
 
-// Call from actually_fire_gun() on every player shot. Starts envelope
-// playback for the weapon's profile and, for single-shot weapons, also
-// kicks the adaptive-trigger lockout so no stale click leaks through
-// between the game setting Timer1 and gamepad_triggers_update running.
-// Non-DualSense devices: no-op.
+// Call from actually_fire_gun() on every REAL player shot (i.e. a shot
+// the game actually committed — not a blocked-by-Timer1 attempt).
+// Restarts envelope playback for the weapon's profile. For single-shot
+// weapons also calls gamepad_triggers_lockout() to briefly blink the
+// mode to NONE on the fire frame (legacy, see gamepad.cpp comment on
+// gamepad_triggers_lockout for current status). Non-DualSense devices:
+// no-op.
 void weapon_feel_on_shot_fired(int32_t special_type);
 
 // Per-frame tick. Advances any active envelope and returns the current
@@ -116,12 +117,18 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 // input. Prevents a stray "fire" the instant control is handed back.
 void weapon_feel_fire_reset();
 
-// True if the fire detector currently considers R2 armed for a shot. For
-// rising-edge weapons, this means R2 has dipped below reset_threshold since
-// the last shot (a deep release — half-taps do not arm). For auto-fire
-// weapons this is always true. The adaptive-trigger state machine in
-// gamepad.cpp consults this so the physical trigger effect matches the
-// fire logic: disarmed → free trigger (no resistance, no click), armed →
-// AIM_GUN (resistance + click ready). Single source of truth for both
-// subsystems, no possibility of desync.
+// True if the fire detector currently considers R2 armed for a shot.
+// For rising-edge weapons this means R2 has dipped to ≤ reset_threshold
+// since the last shot. For auto-fire weapons this is always true.
+//
+// NOTE: kept in the public API for future experiments but the current
+// gamepad.cpp adaptive-trigger state machine does NOT consult it —
+// mode=AIM_GUN is enabled unconditionally while the weapon is ready.
+// See the devlog section "Подходы которые пробовали" → "Armed gate"
+// for why the armed-gate approach was abandoned (HID latency race).
 bool weapon_feel_is_r2_armed(int32_t current_weapon);
+
+// DEBUG: append a printf-style line to weapon_feel_debug.log. Timestamped
+// with ms since first call. File is opened on first call and flushed on
+// every write so the last line is never lost on crash/abort/exit.
+void weapon_feel_debug_log(const char* fmt, ...);

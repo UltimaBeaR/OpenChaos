@@ -1,3 +1,135 @@
+// ===========================================================================
+// weapon_feel — module manual (read me first)
+// ===========================================================================
+//
+// Purpose: encapsulate everything that shapes how firing a weapon FEELS on
+// a gamepad. Three interlocking subsystems:
+//
+//   1. Haptic envelope — per-weapon amplitude envelope computed once from
+//      the weapon's WAV, played on the DualSense slow-rumble motor on each
+//      shot. Gives per-weapon "texture" instead of a buzz.
+//
+//   2. Adaptive trigger (DualSense Weapon25 click) — physical click on R2
+//      at a per-weapon zone/amplitude. The mode state machine lives in
+//      gamepad.cpp; this module just provides the parameters via the
+//      WeaponFeelProfile and exposes weapon_feel_is_r2_armed() for any
+//      future armed-gate approach.
+//
+//   3. Analog fire detection — converts R2/L2 to discrete "shoot" and
+//      "kick" events on rising edges past fire_threshold, with rearm via
+//      release below reset_threshold. Fully replaces the old constexpr
+//      fire threshold block that used to live in input_actions.cpp.
+//
+// All three subsystems share a single WeaponFeelProfile registry keyed by
+// SPECIAL_* constant. Adding a custom weapon after 1.0 = one registration
+// call in weapon_feel_init(), no edits anywhere else.
+//
+// ===========================================================================
+// Call sites and per-tick flow
+// ===========================================================================
+//
+// Per game tick, in order (verify this matches game.cpp if refactoring):
+//
+//   1. gamepad_poll()                  — reads analog trigger into
+//                                        gamepad_state.trigger_{left,right}
+//   2. get_hardware_input()            — input_actions.cpp calls
+//                                        weapon_feel_evaluate_fire(r2, l2)
+//                                        to turn analog values into
+//                                        discrete PUNCH/KICK input bits
+//   3. game simulation                 — processes PUNCH → actually_fire_gun
+//                                        → weapon_feel_on_shot_fired()
+//                                        (only on REAL fires, gated by
+//                                        Timer1 inside actually_fire_gun)
+//   4. gamepad_rumble_tick()           — calls weapon_feel_tick_haptic()
+//                                        and max-merges the envelope into
+//                                        the slow rumble motor
+//   5. gamepad_triggers_update()       — reads weapon ready state and
+//                                        applies AIM_GUN / NONE mode via
+//                                        the Weapon25 params from the
+//                                        current weapon's profile
+//
+// Init/shutdown are tied to gamepad_init / gamepad_shutdown.
+//
+// ===========================================================================
+// Current fire-detection design (as of 2026-04-15)
+// ===========================================================================
+//
+// THE SIMPLEST POSSIBLE version that satisfies the user's core
+// requirements (R1 — natural fire rate, R2 — keyboard-like tap behaviour):
+//
+//   * Pure rising-edge fire detection: R2 ≤ reset_threshold arms,
+//     R2 > fire_threshold fires. No wall-clock cooldown, no settle timer,
+//     no consume flag. The game's Timer1 (inside actually_fire_gun) is
+//     the single source of rate limiting.
+//
+//   * Adaptive-trigger mode is kept continuously enabled by gamepad.cpp
+//     while the weapon is ready. Mode never flips during gameplay, so
+//     there is no Bluetooth HID-round-trip race at every shot.
+//
+// This design has two known residual issues, documented in detail in
+// the devlog file. Summary:
+//
+//   I1. At VERY rapid tapping (faster than the hardware Weapon25 click
+//       rate limit, whose exact value we don't know) some clicks can be
+//       physically dropped — the motor can't engage in time. The game
+//       still fires. Appears as rare "shot without click" at fast tap.
+//       Does NOT happen at normal aimed-firing pace.
+//
+//   I2. If the player presses R2 during the game's Timer1 cooldown
+//       window, the hardware fires a click (mode is AIM_GUN) but the
+//       game refuses the shot. Appears as "click without shot" during
+//       cooldown. The user explicitly said this is tolerable
+//       ("в целом тут тоже ок").
+//
+// EVERY more elaborate approach we tried broke R1 or R2 or made the
+// bugs worse. Read the devlog section "Подходы которые пробовали" for
+// the full list (armed gate, release-settle, post-fire cooldown,
+// split mode/fire lockout, MIN_PRESS_DURATION). Do NOT re-invent any
+// of these without reading why they failed first.
+//
+// ===========================================================================
+// Debug logging
+// ===========================================================================
+//
+// Everything interesting is logged via weapon_feel_debug_log() into
+// weapon_feel_debug.log in the exe directory. File is truncated on
+// each run (open with "w"), timestamps are ms since first log call,
+// each line is flushed — so the last line is never lost on crash or
+// abort. Logged events:
+//
+//   DIP r2=X              — R2 crossed downward past reset_threshold
+//                           (rising-edge arms, release cycle starts)
+//   RISE-past-reset r2=X  — R2 crossed upward past reset_threshold
+//                           (press phase starts)
+//   FIRE r2=X             — fire event emitted to input pipeline
+//   FIRE-NOARM r2=X       — R2 past fire_threshold but not armed (no
+//                           deep release since last shot)
+//   L2-DIP / KICK         — same for L2 kick channel
+//   tick r2=...           — per-tick state snapshot, ONLY when R2 value
+//                           actually changes (so the log doesn't get
+//                           spammed when the player sits idle)
+//   ON_SHOT_FIRED         — callback from game side: actually_fire_gun
+//                           accepted the shot (Timer1 was 0)
+//
+// The debug log is currently left in production code deliberately — the
+// user has not given permission to remove it yet. When they do, remove
+// every weapon_feel_debug_log call and the g_weapon_feel_log machinery.
+//
+// ===========================================================================
+// Hard-and-fast requirements — verify before any change
+// ===========================================================================
+//
+// Full checklist lives in the devlog file (R1-R5 gameplay, P1-P5 process).
+// The two most important:
+//
+//   R1 — natural fire rate: NEVER slow fire rate below game Timer1.
+//   R2 — keyboard-like taps: presses during cooldown silently ignored,
+//        MUST NOT break subsequent presses via sticky state.
+//
+// If a proposed change violates either of these, stop and discuss.
+//
+// ===========================================================================
+
 #include "engine/input/weapon_feel.h"
 #include "engine/input/gamepad.h"
 #include "engine/platform/sdl3_bridge.h"
@@ -8,10 +140,41 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 #include <unordered_map>
 #include <vector>
+
+// ===========================================================================
+// Debug logger
+// ===========================================================================
+
+static FILE* g_weapon_feel_log = nullptr;
+static std::chrono::steady_clock::time_point g_weapon_feel_log_start;
+
+void weapon_feel_debug_log(const char* fmt, ...)
+{
+    if (!g_weapon_feel_log) {
+        g_weapon_feel_log = std::fopen("weapon_feel_debug.log", "w");
+        g_weapon_feel_log_start = std::chrono::steady_clock::now();
+        if (g_weapon_feel_log) {
+            std::fprintf(g_weapon_feel_log, "=== weapon_feel debug log ===\n");
+            std::fflush(g_weapon_feel_log);
+        }
+    }
+    if (!g_weapon_feel_log) return;
+    const auto now = std::chrono::steady_clock::now();
+    const auto ms  = std::chrono::duration_cast<std::chrono::milliseconds>(
+                         now - g_weapon_feel_log_start).count();
+    std::fprintf(g_weapon_feel_log, "[%6lldms] ", (long long)ms);
+    va_list args;
+    va_start(args, fmt);
+    std::vfprintf(g_weapon_feel_log, fmt, args);
+    va_end(args);
+    std::fputc('\n', g_weapon_feel_log);
+    std::fflush(g_weapon_feel_log);
+}
 
 // sound_list is defined in assets/sound_id_globals.cpp at global scope.
 // Must be declared outside the anonymous namespace below, otherwise the
@@ -155,59 +318,29 @@ bool s_tick_initialized = false;
 // ===========================================================================
 // Fire detection state
 // ===========================================================================
+// (see module manual at top of file for design rationale and constraints)
 
+// Rising-edge rearm flags — the only state that actually gates fire.
+// Set to true when R2/L2 drops to ≤ reset_threshold. Set to false when
+// a fire event is emitted. Initial value is true so the first shot
+// after gamepad init works without requiring a dummy release first.
 bool s_r2_armed = true;
 bool s_l2_armed = true;
 
-// Settle window starting at the moment the trigger is released (R2 crosses
-// downward past reset_threshold). The hardware Weapon25 effect needs
-// physical time to reset its internal click state + for our mode=AIM_GUN
-// HID command to propagate over Bluetooth. If the player re-presses past
-// fire_threshold before this window expires, it's treated as a "wasted"
-// cycle: no shot fires AND the rearm is consumed, so no more shots can
-// fire until the player does another proper release. At the same time,
-// armed is forced false for is_r2_armed queries so mode=NONE engages
-// and the hardware stops emitting clicks. Both subsystems stay in sync.
-// Needs to cover: HID RTT (~30ms BT) + physical motor engagement time to
-// actually build resistance + click. Observed: 100ms was too short —
-// player could still tap fast enough that the motors couldn't physically
-// react in time, leading to shots with no felt click. 200ms gives the
-// motors full time to engage.
-constexpr auto RELEASE_SETTLE = std::chrono::milliseconds(200);
-
-// Post-fire cooldown. The game's Timer1 blocks the actual shot for a
-// weapon-specific duration after each fire; during that window our
-// evaluate_fire would otherwise report shoot=true (game refuses), but
-// mode=AIM_GUN stays active until the next tick and the hardware gets
-// to fire a physical click on the press that produced the ignored shot.
-// Treating any fire_threshold crossing during this window as a consumed
-// rearm (same semantics as a too-fast release-press tap) forces
-// mode=NONE early so the hardware stops trying to click. 300ms covers
-// the pistol's Timer1 with margin; longer than needed is harmless
-// because weapons can't physically fire faster anyway.
-constexpr auto POST_FIRE_COOLDOWN = std::chrono::milliseconds(300);
+// Pure debug log / crossing detection state — none of this gates fire.
+// s_prev_r2 / s_prev_l2 hold the previous tick's analog values so we
+// can detect downward and upward crossings of reset_threshold (for
+// DIP / RISE-past-reset log events).
+// s_release_time / s_last_fire_time / s_had_fire are used only to
+// compute the "since_rel" and "since_fire" fields in the debug log
+// so a human reading the log can see timing between events at a glance.
+std::chrono::steady_clock::time_point s_release_time =
+    std::chrono::steady_clock::now() - std::chrono::seconds(10);
 std::chrono::steady_clock::time_point s_last_fire_time =
     std::chrono::steady_clock::now() - std::chrono::seconds(10);
 bool s_had_fire = false;
-
-bool is_in_post_fire_cooldown(const WeaponFeelProfile* p)
-{
-    if (p->auto_fire || !s_had_fire) return false;
-    const auto now = std::chrono::steady_clock::now();
-    return (now - s_last_fire_time) < POST_FIRE_COOLDOWN;
-}
-std::chrono::steady_clock::time_point s_release_time =
-    std::chrono::steady_clock::now() - std::chrono::seconds(10);
-bool s_armed_consumed = false;
 int  s_prev_r2 = 0;
 int  s_prev_l2 = 0;
-
-bool is_release_settled(const WeaponFeelProfile* p)
-{
-    if (p->auto_fire) return true;
-    const auto now = std::chrono::steady_clock::now();
-    return (now - s_release_time) >= RELEASE_SETTLE;
-}
 
 } // namespace
 
@@ -305,6 +438,7 @@ const WeaponFeelProfile* weapon_feel_get_profile(int32_t special_type)
 
 void weapon_feel_on_shot_fired(int32_t special_type)
 {
+    weapon_feel_debug_log("ON_SHOT_FIRED special=%d", (int)special_type);
     if (gamepad_get_device_type() != INPUT_DEVICE_DUALSENSE) return;
 
     auto it = s_profiles.find(special_type);
@@ -381,6 +515,16 @@ void weapon_feel_stop_haptic()
 // Fire detection
 // ===========================================================================
 
+// Simplest stable version: plain rising-edge fire detection with no
+// artificial wall-clock timers or consume logic. Rate limiting is
+// entirely the responsibility of the game's Timer1 inside
+// actually_fire_gun. The adaptive-trigger mode is left continuously
+// enabled by gamepad.cpp (no armed gate) so the hardware handles its
+// own click state without any HID flipping.
+//
+// See comments at the top of the "Fire detection state" block for
+// the known issues at this level (rapid-tap click drop, click during
+// cooldown) and why we settled on this version.
 WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2)
 {
     const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
@@ -389,69 +533,67 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 
     const auto now = std::chrono::steady_clock::now();
 
-    // Detect downward crossing of reset_threshold (trigger just entered
-    // the release zone). This is the moment hardware click rearm begins.
-    // Start the settle timer and reset the "consumed" flag so this
-    // release cycle gets a fresh chance to fire.
+    // ---- R2 fire channel ----
+
+    // Per-tick state snapshot for debug — only when R2 changes.
+    if (r2 != s_prev_r2) {
+        const auto since_release = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - s_release_time).count();
+        const auto since_fire = s_had_fire
+            ? std::chrono::duration_cast<std::chrono::milliseconds>(now - s_last_fire_time).count()
+            : -1LL;
+        weapon_feel_debug_log("tick r2=%d prev=%d armed=%d since_rel=%lldms since_fire=%lldms",
+            r2, s_prev_r2, s_r2_armed ? 1 : 0, since_release, since_fire);
+    }
+
+    // Detect downward crossing of reset_threshold — this is when
+    // rising-edge rearms. Reset s_release_time for log timestamps.
     const bool now_released = r2 <= p->reset_threshold;
     const bool was_released = s_prev_r2 <= p->reset_threshold;
     if (now_released && !was_released) {
         s_release_time = now;
-        s_armed_consumed = false;
+        weapon_feel_debug_log("DIP r2=%d prev=%d", r2, s_prev_r2);
+    }
+    if (!now_released && was_released) {
+        weapon_feel_debug_log("RISE-past-reset r2=%d prev=%d armed=%d",
+            r2, s_prev_r2, s_r2_armed ? 1 : 0);
     }
     if (now_released) s_r2_armed = true;
     s_prev_r2 = r2;
 
-    const bool in_cooldown = is_in_post_fire_cooldown(p);
-
-    if (r2 > p->fire_threshold && !s_armed_consumed) {
-        if (p->auto_fire) {
+    // Fire: plain rising-edge. Either auto-fire (ignores rearm) or
+    // rising-edge (requires s_r2_armed). No artificial cooldown — game
+    // Timer1 enforces the rate.
+    if (r2 > p->fire_threshold) {
+        if (p->auto_fire || s_r2_armed) {
             out.shoot = true;
-        } else if (s_r2_armed) {
-            if (in_cooldown) {
-                // Game-side Timer1 will refuse this shot anyway — treat
-                // the cycle as consumed so mode→NONE and the hardware
-                // doesn't fire an orphan click.
-                s_armed_consumed = true;
-                s_r2_armed = false;
-            } else if (is_release_settled(p)) {
-                out.shoot = true;
-                s_r2_armed = false;
-                s_last_fire_time = now;
-                s_had_fire = true;
-            } else {
-                // Too fast: the player re-pressed past fire_threshold
-                // before the hardware had time to reset. Consume the
-                // rearm without firing — this cycle is discarded, and
-                // is_r2_armed will report false (mode→NONE) so the
-                // hardware stops emitting click too.
-                s_armed_consumed = true;
-                s_r2_armed = false;
+            s_r2_armed = false;
+            s_last_fire_time = now;
+            s_had_fire = true;
+            weapon_feel_debug_log("FIRE r2=%d", r2);
+        } else {
+            static int s_last_noarm_r2 = -1;
+            if (s_last_noarm_r2 != r2) {
+                weapon_feel_debug_log("FIRE-NOARM r2=%d (no deep release since last shot)", r2);
+                s_last_noarm_r2 = r2;
             }
         }
     }
 
-    // L2 kick — same logic as R2 with independent state. Never auto-fires.
-    static std::chrono::steady_clock::time_point s_l2_release_time =
-        std::chrono::steady_clock::now() - std::chrono::seconds(10);
-    static bool s_l2_consumed = false;
-    const bool l2_now_released = l2 <= p->reset_threshold;
+    // ---- L2 kick channel — same plain rising-edge, never auto-fires ----
+
+    const bool l2_released = l2 <= p->reset_threshold;
     const bool l2_was_released = s_prev_l2 <= p->reset_threshold;
-    if (l2_now_released && !l2_was_released) {
-        s_l2_release_time = now;
-        s_l2_consumed = false;
+    if (l2_released && !l2_was_released) {
+        weapon_feel_debug_log("L2-DIP l2=%d", l2);
     }
-    if (l2_now_released) s_l2_armed = true;
+    if (l2_released) s_l2_armed = true;
     s_prev_l2 = l2;
 
-    if (l2 > p->fire_threshold && !s_l2_consumed && s_l2_armed) {
-        if ((now - s_l2_release_time) >= RELEASE_SETTLE) {
-            out.kick = true;
-            s_l2_armed = false;
-        } else {
-            s_l2_consumed = true;
-            s_l2_armed = false;
-        }
+    if (l2 > p->fire_threshold && s_l2_armed) {
+        out.kick = true;
+        s_l2_armed = false;
+        weapon_feel_debug_log("KICK l2=%d", l2);
     }
 
     return out;
@@ -461,20 +603,20 @@ void weapon_feel_fire_reset()
 {
     s_r2_armed = true;
     s_l2_armed = true;
-    s_armed_consumed = false;
     s_had_fire = false;
     s_prev_r2 = 0;
     s_prev_l2 = 0;
 }
 
+// NOTE: kept in the public API for future use but currently NOT consulted
+// by gamepad.cpp — the mode state machine in gamepad_triggers_update
+// unconditionally enables AIM_GUN when the weapon is ready, regardless
+// of the rising-edge rearm state. This avoids the HID-race class of
+// bugs at the cost of occasional "click during cooldown" (acceptable
+// per requirement R4 in the devlog). Any future armed-gate approach
+// should re-consult this function.
 bool weapon_feel_is_r2_armed(int32_t current_weapon)
 {
     const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
-    if (p->auto_fire) return true;
-    // Rising-edge weapons: armed only if the rearm flag is set AND the
-    // rearm hasn't been consumed AND we're not in a post-fire cooldown.
-    // During cooldown mode=NONE engages so the hardware stops emitting
-    // clicks that the game would ignore.
-    if (s_armed_consumed || !s_r2_armed) return false;
-    return !is_in_post_fire_cooldown(p);
+    return p->auto_fire || s_r2_armed;
 }

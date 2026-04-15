@@ -959,17 +959,27 @@ round_again:;
                 if (darci_t && darci_t->Genus.Person) {
                     bool in_car = darci_t->Genus.Person->InCar != 0;
                     bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
-                    // Timer1 cooldown is NOT gated here. Keeping mode=AIM_GUN
-                    // alive across the brief (~150ms) cooldown avoids a HID
-                    // latency race: if we forced mode=NONE during cooldown,
-                    // then when Timer1 expired we'd have to send mode=AIM_GUN
-                    // again and the BT round-trip would miss the very next
-                    // press the player makes if they're firing just above
-                    // the cooldown rate. The fire detector itself refuses
-                    // to shoot while Timer1 is non-zero (via rising-edge
-                    // rearm + weapon_feel_evaluate_fire) so no shot slips
-                    // through. Hardware clicks during cooldown are harmless
-                    // and expected.
+                    // Timer1 cooldown is deliberately NOT gated here.
+                    // Keeping mode=AIM_GUN alive across the brief cooldown
+                    // window avoids a Bluetooth HID latency race: if we
+                    // forced mode=NONE during cooldown, then when Timer1
+                    // expired we'd have to send mode=AIM_GUN again and the
+                    // round-trip (~7-30ms) could miss the very next press
+                    // the player makes if they're firing just above the
+                    // cooldown rate.
+                    //
+                    // The game-side Timer1 check inside actually_fire_gun
+                    // (person.cpp) still refuses the actual shot during
+                    // cooldown, so no extra shot slips through — it's
+                    // only the adaptive-trigger MODE that we leave on.
+                    // Hardware clicks during cooldown ARE still possible
+                    // (click-without-shot); acceptable per requirement R4
+                    // in new_game_devlog/weapon_haptic_and_adaptive_trigger.md.
+                    //
+                    // `on_cooldown` is kept as a local for readability even
+                    // though it's always false — leaving it visible so the
+                    // next person reading this code sees the deliberate
+                    // decision rather than an absence.
                     bool on_cooldown = false;
 
                     // States where the player physically can't fire. In these
