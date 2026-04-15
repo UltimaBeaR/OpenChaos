@@ -502,11 +502,6 @@ static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 // through without touching this state machine.
 static uint8_t s_aim_gun_start_zone = 7;
 static uint8_t s_aim_gun_amplitude  = 2;
-// Trigger position below which it's safe to (re-)activate AIM_GUN mode
-// without the player feeling a phantom click. Mirrors the current weapon's
-// profile reset_threshold so "fire without click" / "click without fire"
-// bugs can't happen across the transition band.
-static uint8_t s_aim_gun_entry_max_r2 = 80;
 
 static void apply_trigger_mode(TriggerMode mode)
 {
@@ -555,28 +550,34 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // Cheap lookup, lets a weapon swap mid-game update the click feel on the
     // very next transition without any extra plumbing.
     const WeaponFeelProfile* profile = weapon_feel_get_profile(current_weapon);
-    s_aim_gun_start_zone  = profile->trigger_start_zone;
-    s_aim_gun_amplitude   = profile->trigger_amplitude;
-    s_aim_gun_entry_max_r2 = profile->reset_threshold;
+    s_aim_gun_start_zone = profile->trigger_start_zone;
+    s_aim_gun_amplitude  = profile->trigger_amplitude;
     // Profiles with zero amplitude (or start_zone) opt out of the adaptive
     // click entirely — treat as "weapon has no trigger effect".
     const bool weapon_has_click = profile->trigger_amplitude != 0;
 
+    // AIM_GUN is enabled whenever the weapon is ready to fire — there is no
+    // R2-position gate. Previously we gated re-entry on "R2 has dipped into
+    // the safe zone below click point" to avoid a phantom click when the
+    // effect activated while the trigger was already past threshold; in
+    // practice that gate caused a worse bug:
+    //
+    //   HOLD → cooldown expires → keep holding → release fast → press fast
+    //
+    // The brief release dip was caught by the per-frame poll, the game-side
+    // shot logic armed and fired on the re-press, but the HID command to
+    // re-enable AIM_GUN needed one BT round-trip (~7-30ms) to reach the
+    // controller — by which time the physical trigger was already past
+    // StartZone again. The hardware only fires the click on a rising
+    // crossing AFTER the effect is active, so the player felt a shot
+    // without a click. Keeping AIM_GUN continuously enabled while the
+    // weapon is ready eliminates the HID latency race entirely — the
+    // effect is already live when the user releases and re-presses.
     TriggerMode desired;
     if (in_car) {
         desired = TRIGGER_MODE_CAR;
     } else if (weapon_ready && weapon_has_click) {
-        // AIM_GUN can only be (re-)entered when the player's R2 is in the
-        // safe zone below the click point. If we switch to AIM_GUN while R2
-        // is already past the click, the Weapon25 motor fires a phantom
-        // click with no corresponding shot. Once armed, we keep AIM_GUN
-        // active regardless of R2 position until weapon_ready goes false.
-        const bool can_enter = gamepad_state.trigger_right <= s_aim_gun_entry_max_r2;
-        if (s_trigger_mode == TRIGGER_MODE_AIM_GUN || can_enter) {
-            desired = TRIGGER_MODE_AIM_GUN;
-        } else {
-            desired = TRIGGER_MODE_NONE;
-        }
+        desired = TRIGGER_MODE_AIM_GUN;
     } else {
         desired = TRIGGER_MODE_NONE;
     }
@@ -596,11 +597,11 @@ void gamepad_triggers_off()
 
 void gamepad_triggers_lockout(int /*duration_ms*/)
 {
-    // Immediately switch to NONE so the next frame's haptic state can't
-    // leak a click while the HID mode change propagates. The actual
-    // duration of the lockout is controlled by the game's Timer1 via
-    // gamepad_triggers_update(weapon_ready) + the R2-position gate for
-    // re-entering AIM_GUN mode.
+    // Immediately switch to NONE on a fire event so the HID mode change
+    // propagates out on the same frame the game registered the shot. The
+    // actual lockout duration is driven by the game's Timer1 cooldown via
+    // gamepad_triggers_update(weapon_ready) — once Timer1 reaches 0, the
+    // next triggers_update re-enables AIM_GUN unconditionally.
     if (s_trigger_mode != TRIGGER_MODE_NONE) {
         s_trigger_mode = TRIGGER_MODE_NONE;
         apply_trigger_mode(TRIGGER_MODE_NONE);
