@@ -28,7 +28,7 @@ upstream commit listed above. Patch sites are wrapped in
 `OPENCHAOS-PATCH` to find every modification.
 
 See [`README.md`](README.md) and the project devlog
-[`new_game_devlog/dualsense_lib_pr_notes.md`](../../../new_game_devlog/dualsense_lib_pr_notes.md)
+[`dualsense_libs_reference/dualsense_lib_pr_notes.md`](../../../dualsense_libs_reference/dualsense_lib_pr_notes.md)
 for the full list of active patches, rationale, and upstream PR plan.
 
 When pulling a newer upstream version, either re-apply the patch on top

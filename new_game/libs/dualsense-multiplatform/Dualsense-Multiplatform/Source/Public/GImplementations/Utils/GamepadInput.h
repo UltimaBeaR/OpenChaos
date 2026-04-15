@@ -152,7 +152,7 @@ namespace FGamepadInput
 		// Local patch by OpenChaos project. Reads adaptive trigger
 		// feedback status from offsets 41/42 of the normalized input
 		// buffer. To be upstreamed as a PR — see project devlog
-		// `new_game_devlog/dualsense_lib_pr_notes.md` for full
+		// `dualsense_libs_reference/dualsense_lib_pr_notes.md` for full
 		// rationale, reverse-engineering sources, empirical
 		// measurements, and PR plan.
 		//

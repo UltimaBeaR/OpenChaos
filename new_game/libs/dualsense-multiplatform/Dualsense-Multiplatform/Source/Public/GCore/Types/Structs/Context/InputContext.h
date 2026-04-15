@@ -106,7 +106,7 @@ struct FInputContext
 	// === OPENCHAOS-PATCH BEGIN: trigger feedback status fields ===
 	// Local patch by OpenChaos project. Adds adaptive trigger feedback
 	// status fields. To be upstreamed as a PR — see project devlog
-	// `new_game_devlog/dualsense_lib_pr_notes.md` for full rationale,
+	// `dualsense_libs_reference/dualsense_lib_pr_notes.md` for full rationale,
 	// reverse-engineering sources, empirical measurements, and PR plan.
 	//
 	// Reported by the controller for active effects of type Off (0x05),

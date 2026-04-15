@@ -164,7 +164,7 @@ namespace FDualSenseTriggerComposer
 	//   Behavior  -> strength      (0..8, mapped to strength-1 per spec)
 	//   Trigger   -> unused        (kept for ABI compat)
 	//
-	// See devlog `new_game_devlog/dualsense_lib_pr_notes.md` for rationale
+	// See devlog `dualsense_libs_reference/dualsense_lib_pr_notes.md` for rationale
 	// and the PR plan to upstream this fix.
 	inline void Weapon25(FDeviceContext* Context, std::uint8_t StartZone,
 	                     std::uint8_t Amplitude, std::uint8_t Behavior,

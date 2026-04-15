@@ -50,13 +50,13 @@ Most other trigger effect functions in `GamepadTrigger.h` are also
 broken in a similar way (Bow22, MachineGun26, Machine27 use incorrect
 packing; Galloping23 has the bitmap right but broken feet encoding).
 See the full audit in
-[`new_game_devlog/dualsense_lib_pr_notes.md`](../../../new_game_devlog/dualsense_lib_pr_notes.md)
+[`dualsense_libs_reference/dualsense_lib_pr_notes.md`](../../../dualsense_libs_reference/dualsense_lib_pr_notes.md)
 section 6.6. OpenChaos does not currently use those effects in
 production so they are left untouched.
 
 Full rationale, reverse-engineering sources, empirical measurements,
 PR preparation checklists, and cross-platform validation status are
-all in [`dualsense_lib_pr_notes.md`](../../../new_game_devlog/dualsense_lib_pr_notes.md).
+all in [`dualsense_lib_pr_notes.md`](../../../dualsense_libs_reference/dualsense_lib_pr_notes.md).
 
 When updating the vendored copy to a newer upstream commit, **either**
 re-apply this patch on top, **or** check whether it has been merged
