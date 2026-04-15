@@ -36,11 +36,15 @@ struct WeaponFeelProfile {
     float    haptic_max_seconds;
 
     // --- Adaptive trigger (DualSense Weapon25) -----------------------------
-    // Both fields are 4-bit (0..15); values outside that overflow inside
-    // GamepadCore's Weapon25 encoder. Zero trigger_amplitude disables the
-    // adaptive-trigger click for this weapon (trigger stays free).
+    // Per the reverse-engineered Sony Weapon (0x25) effect spec (Nielk1
+    // gist) with the fixed lib packing patch in GamepadTrigger.h:
+    //   trigger_start_zone: startPosition — zone where click zone begins (2..7)
+    //   trigger_end_zone:   endPosition   — zone where click zone ends (start+1..8)
+    //   trigger_strength:   0..8, hardware receives strength-1
+    // Zero trigger_strength disables the adaptive-trigger click entirely.
     uint8_t  trigger_start_zone;
-    uint8_t  trigger_amplitude;
+    uint8_t  trigger_end_zone;
+    uint8_t  trigger_strength;
 
     // --- Analog fire detection ---------------------------------------------
     // fire_threshold: R2/L2 value above which the shot fires (0..255).

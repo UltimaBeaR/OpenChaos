@@ -141,28 +141,62 @@ namespace FDualSenseTriggerComposer
 		}
 	}
 
+	// === OPENCHAOS-PATCH BEGIN: Weapon25 packing rewrite ===
+	// Local patch by OpenChaos project. Original Weapon25 packed bytes as
+	// `(StartZone << 4) | Amplitude` + Behavior + Trigger, which does NOT
+	// match the reverse-engineered Sony Weapon (0x25) effect layout. The
+	// real layout (per Nielk1 gist
+	// https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) is:
+	//
+	//   byte[0] = 0x25
+	//   byte[1] = low  8 bits of startAndStopZones
+	//   byte[2] = high 8 bits of startAndStopZones
+	//   byte[3] = strength - 1
+	//
+	// where `startAndStopZones` is a 16-bit bitmap with bits set at the
+	// `startPosition` and `endPosition` indices (zone indices 2..7 /
+	// start+1..8 per the Limited_Weapon constraints; values outside still
+	// encode but may not produce meaningful effects).
+	//
+	// The old signature parameters are reinterpreted as:
+	//   StartZone -> startPosition (zone where the click zone begins)
+	//   Amplitude -> endPosition   (zone where the click zone ends)
+	//   Behavior  -> strength      (0..8, mapped to strength-1 per spec)
+	//   Trigger   -> unused        (kept for ABI compat)
+	//
+	// See devlog `new_game_devlog/dualsense_lib_pr_notes.md` for rationale
+	// and the PR plan to upstream this fix.
 	inline void Weapon25(FDeviceContext* Context, std::uint8_t StartZone,
 	                     std::uint8_t Amplitude, std::uint8_t Behavior,
-	                     std::uint8_t Trigger, const EDSGamepadHand& Hand)
+	                     std::uint8_t /*Trigger*/, const EDSGamepadHand& Hand)
 	{
+		const std::uint8_t startPosition = StartZone;
+		const std::uint8_t endPosition   = Amplitude;
+		const std::uint8_t strength      = Behavior;
+
+		const std::uint16_t startAndStopZones =
+		    static_cast<std::uint16_t>((1u << startPosition) | (1u << endPosition));
+		const std::uint8_t lo  = static_cast<std::uint8_t>(startAndStopZones & 0xff);
+		const std::uint8_t hi  = static_cast<std::uint8_t>((startAndStopZones >> 8) & 0xff);
+		const std::uint8_t str = static_cast<std::uint8_t>(strength > 0 ? (strength - 1) : 0);
+
 		if (Hand == EDSGamepadHand::Left || Hand == EDSGamepadHand::AnyHand)
 		{
 			Context->Output.LeftTrigger.Mode = 0x25;
-			Context->Output.LeftTrigger.Strengths.Compose[0] =
-			    StartZone << 4 | (Amplitude & 0x0F);
-			Context->Output.LeftTrigger.Strengths.Compose[1] = Behavior;
-			Context->Output.LeftTrigger.Strengths.Compose[2] = Trigger & 0x0F;
+			Context->Output.LeftTrigger.Strengths.Compose[0] = lo;
+			Context->Output.LeftTrigger.Strengths.Compose[1] = hi;
+			Context->Output.LeftTrigger.Strengths.Compose[2] = str;
 		}
 
 		if (Hand == EDSGamepadHand::Right || Hand == EDSGamepadHand::AnyHand)
 		{
 			Context->Output.RightTrigger.Mode = 0x25;
-			Context->Output.RightTrigger.Strengths.Compose[0] =
-			    StartZone << 4 | (Amplitude & 0x0F);
-			Context->Output.RightTrigger.Strengths.Compose[1] = Behavior;
-			Context->Output.RightTrigger.Strengths.Compose[2] = Trigger & 0x0F;
+			Context->Output.RightTrigger.Strengths.Compose[0] = lo;
+			Context->Output.RightTrigger.Strengths.Compose[1] = hi;
+			Context->Output.RightTrigger.Strengths.Compose[2] = str;
 		}
 	}
+	// === OPENCHAOS-PATCH END ===
 
 	inline void MachineGun26(FDeviceContext* Context, std::uint8_t StartZone,
 	                         std::uint8_t Behavior, std::uint8_t Amplitude,

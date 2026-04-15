@@ -525,9 +525,12 @@ static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 
 // Weapon25 params for the most recently activated AIM_GUN profile. Looked
 // up from the weapon_feel profile at apply time so per-weapon tuning flows
-// through without touching this state machine.
-static uint8_t s_aim_gun_start_zone = 7;
-static uint8_t s_aim_gun_amplitude  = 2;
+// through without touching this state machine. Semantics per the patched
+// Weapon25 packing (see OPENCHAOS-PATCH in GamepadTrigger.h):
+//   start_zone = startPosition, end_zone = endPosition, strength = 0..8.
+static uint8_t s_aim_gun_start_zone = 4;
+static uint8_t s_aim_gun_end_zone   = 6;
+static uint8_t s_aim_gun_strength   = 5;
 
 static void apply_trigger_mode(TriggerMode mode)
 {
@@ -539,14 +542,12 @@ static void apply_trigger_mode(TriggerMode mode)
         break;
 
     case TRIGGER_MODE_AIM_GUN:
-        // First-person with gun drawn:
-        // R2 = weapon trigger (click point then resistance) — feels like pulling a trigger.
-        // L2 = free (no effect).
-        // Weapon25 StartZone and Amplitude are 4-bit fields (0..15); values
-        // outside that range overflow inside GamepadCore's Weapon25 encoder.
-        // Both values come from the active weapon's WeaponFeelProfile.
-        ds_trigger_weapon(s_aim_gun_start_zone, s_aim_gun_amplitude, 0, 0, 1);
-        ds_trigger_off(0);                      // L2: free
+        weapon_feel_debug_log("apply AIM_GUN: ds_trigger_weapon(start=%u, end=%u, str=%u)",
+            (unsigned)s_aim_gun_start_zone,
+            (unsigned)s_aim_gun_end_zone,
+            (unsigned)s_aim_gun_strength);
+        ds_trigger_weapon(s_aim_gun_start_zone, s_aim_gun_end_zone, s_aim_gun_strength, 0, 1);
+        ds_trigger_off(0);
         break;
 
     case TRIGGER_MODE_CAR:
@@ -590,10 +591,10 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // very next transition without any extra plumbing.
     const WeaponFeelProfile* profile = weapon_feel_get_profile(current_weapon);
     s_aim_gun_start_zone = profile->trigger_start_zone;
-    s_aim_gun_amplitude  = profile->trigger_amplitude;
-    // Profiles with zero amplitude (or start_zone) opt out of the adaptive
-    // click entirely — treat as "weapon has no trigger effect".
-    const bool weapon_has_click = profile->trigger_amplitude != 0;
+    s_aim_gun_end_zone   = profile->trigger_end_zone;
+    s_aim_gun_strength   = profile->trigger_strength;
+    // Profiles with zero strength opt out of the adaptive click entirely.
+    const bool weapon_has_click = profile->trigger_strength != 0;
 
     // AIM_GUN stays continuously enabled whenever the weapon is ready.
     //
