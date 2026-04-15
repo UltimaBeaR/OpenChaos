@@ -82,6 +82,7 @@
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"
 #include "engine/input/gamepad.h"    // gamepad_set_shock
+#include "engine/input/gamepad_haptic.h" // gamepad_haptic_weapon_fire
 
 // External helpers declared in their own files (not yet migrated or in old headers).
 extern BOOL allow_debug_keys;
@@ -3517,6 +3518,18 @@ void actually_fire_gun(Thing* p_person)
     SLONG rico_id;
 
     GameCoord shotPosition = p_person->WorldPos;
+
+    // DualSense haptic: envelope-based rumble from the weapon WAV (player only,
+    // per-weapon profiles). Non-DualSense / unmapped weapons are silent no-ops.
+    // Pistol has no SpecialUse — dispatch via SPECIAL_GUN explicitly.
+    if (p_person->Genus.Person->PlayerID) {
+        if (p_person->Genus.Person->SpecialUse) {
+            Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+            gamepad_haptic_weapon_fire(p_special->Genus.Special->SpecialType);
+        } else {
+            gamepad_haptic_weapon_fire(SPECIAL_GUN);
+        }
+    }
 
     PCOM_oscillate_tympanum(
         PCOM_SOUND_GUNSHOT,

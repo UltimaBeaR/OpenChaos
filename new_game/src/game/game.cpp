@@ -958,26 +958,47 @@ round_again:;
                 if (darci_t && darci_t->Genus.Person) {
                     bool in_car = darci_t->Genus.Person->InCar != 0;
                     bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
-                    bool has_ammo = darci_t->Genus.Person->Ammo > 0;
+                    // Cooldown gate: Timer1 counts down between shots. While
+                    // it's non-zero the weapon is still reloading/recovering
+                    // and can't fire yet — disable the trigger click so the
+                    // player doesn't feel a click that produces no shot.
+                    // Note: ammo is intentionally NOT checked — an empty
+                    // pistol should still click (dry fire feel).
+                    bool on_cooldown = darci_t->Genus.Person->Timer1 > 0;
+
+                    // States where the player physically can't fire. In these
+                    // states pulling R2 doesn't produce a shot, so there
+                    // shouldn't be a click either.
+                    SLONG st = darci_t->State;
+                    bool non_firing_state =
+                        st == STATE_JUMPING || st == STATE_FALLING ||
+                        st == STATE_DYING   || st == STATE_DEAD    ||
+                        st == STATE_DOWN    || st == STATE_HIT     ||
+                        st == STATE_HIT_RECOIL ||
+                        st == STATE_CLIMBING || st == STATE_CLIMB_LADDER ||
+                        st == STATE_DANGLING || st == STATE_GRAPPLING ||
+                        st == STATE_USE_SCENERY || st == STATE_CHANGE_LOCATION ||
+                        st == STATE_STAND_UP || st == STATE_FIGHTING ||
+                        st == STATE_FIGHT;
 
                     // Disable weapon trigger effect when target has surrendered (hands up)
                     // or is an innocent cop — game will "talk" instead of shoot.
-                    bool will_shoot = has_gun && has_ammo;
-                    if (will_shoot && darci_t->Genus.Person->Target) {
+                    bool weapon_ready = has_gun && !on_cooldown && !non_firing_state;
+                    if (weapon_ready && darci_t->Genus.Person->Target) {
                         Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
                         if (tgt->Class == CLASS_PERSON) {
                             SLONG anim = tgt->Draw.Tweened->CurrentAnim;
                             if (anim == ANIM_HANDS_UP || anim == ANIM_HANDS_UP_LOOP) {
-                                will_shoot = false;
+                                weapon_ready = false;
                             }
                             if (tgt->Genus.Person->PersonType == PERSON_COP &&
                                 !(tgt->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
-                                will_shoot = false;
+                                weapon_ready = false;
                             }
                         }
                     }
 
-                    gamepad_triggers_update(in_car, will_shoot, has_ammo);
+                    gamepad_triggers_update(in_car, weapon_ready);
                 }
             }
 

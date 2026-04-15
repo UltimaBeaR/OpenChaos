@@ -3257,22 +3257,26 @@ ULONG get_hardware_input(UWORD type)
                 }
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
-                    input |= INPUT_MASK_KICK;
-                    input |= INPUT_MASK_CANCEL; // Triangle/Y = back/cancel in menus (PS1 behavior)
+                    // Triangle/Y stays as menu CANCEL (PS1 behavior); KICK is
+                    // on L2 only — see the analog-trigger block below.
+                    input |= INPUT_MASK_CANCEL;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_PUNCH]])) {
-                    input |= INPUT_MASK_PUNCH;
-                    g_dwLastInputChangeTime = dwCurrentTime;
-                }
+                // Square/X previously mapped to PUNCH/shoot; removed so that
+                // punch & shoot live only on R2. Keep the button unbound in
+                // gameplay — nothing to do here.
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_START]])) {
                     input |= INPUT_MASK_START;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_SELECT]])) {
+                // Weapon cycle / inventory rotation moved from Share/Back
+                // (JOYPAD_BUTTON_SELECT) to R3 (right stick click). Index 8
+                // in rgbButtons matches SDL3_BTN_RIGHT_STICK and the DualSense
+                // R3 mapping.
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[8])) {
                     input |= INPUT_MASK_SELECT;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3291,13 +3295,50 @@ ULONG get_hardware_input(UWORD type)
                     bool driving = p_darci && p_darci->Genus.Person &&
                                    (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
-                        if (the_state.trigger_right > 128) {
-                            input |= INPUT_MASK_PUNCH;
-                            g_dwLastInputChangeTime = dwCurrentTime;
+                        // Analog triggers fire at FIRE_THRESHOLD (~78% pull) —
+                        // matches where the DualSense Weapon25 adaptive-trigger
+                        // click fires, so shot & click are synchronized.
+                        //
+                        // Single-shot weapons (pistol, shotgun, melee) use
+                        // RISING EDGE detection: the player must release past
+                        // RESET_THRESHOLD before another shot fires.
+                        //
+                        // RESET_THRESHOLD must match AIM_GUN_ENTRY_MAX_R2 in
+                        // gamepad.cpp exactly. Both thresholds gate the same
+                        // event — "player released enough for the next shot
+                        // + click". If they differ, the band between them
+                        // produces "fire without click" or "click without
+                        // fire" bugs.
+                        //
+                        // Auto-fire weapons (AK47) use HELD-DOWN detection so
+                        // holding R2 produces continuous fire.
+                        static bool s_r2_armed = true;
+                        static bool s_l2_armed = true;
+                        constexpr int FIRE_THRESHOLD  = 200;
+                        constexpr int RESET_THRESHOLD = 80;
+
+                        bool auto_fire_weapon = false;
+                        if (p_darci && p_darci->Genus.Person && p_darci->Genus.Person->SpecialUse) {
+                            Thing* p_special = TO_THING(p_darci->Genus.Person->SpecialUse);
+                            if (p_special && p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
+                                auto_fire_weapon = true;
+                            }
                         }
-                        if (the_state.trigger_left > 128) {
+
+                        if (the_state.trigger_right <= RESET_THRESHOLD) s_r2_armed = true;
+                        if (the_state.trigger_right > FIRE_THRESHOLD) {
+                            if (auto_fire_weapon || s_r2_armed) {
+                                input |= INPUT_MASK_PUNCH;
+                                g_dwLastInputChangeTime = dwCurrentTime;
+                                s_r2_armed = false;
+                            }
+                        }
+
+                        if (the_state.trigger_left <= RESET_THRESHOLD) s_l2_armed = true;
+                        if (s_l2_armed && the_state.trigger_left > FIRE_THRESHOLD) {
                             input |= INPUT_MASK_KICK;
                             g_dwLastInputChangeTime = dwCurrentTime;
+                            s_l2_armed = false;
                         }
                     }
                 }

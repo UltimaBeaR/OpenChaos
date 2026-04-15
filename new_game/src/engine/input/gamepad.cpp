@@ -4,6 +4,7 @@
 
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
+#include "engine/input/gamepad_haptic.h"
 #include "engine/input/keyboard_globals.h" // Keys[] for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
@@ -85,11 +86,14 @@ void gamepad_init()
         gamepad_led_reset(); // start with default blue
     }
 
+    gamepad_haptic_init();
+
     debug_log_backend("init");
 }
 
 void gamepad_shutdown()
 {
+    gamepad_haptic_shutdown();
     if (s_gamepad) {
         sdl3_gamepad_close(s_gamepad);
         s_gamepad = nullptr;
@@ -352,7 +356,12 @@ void gamepad_rumble_tick()
 {
     static bool s_was_active = false;
 
-    if (!s_motor_fast && !s_motor_slow) {
+    // Envelope-based weapon haptic (DualSense-only). Runs independently of
+    // the PS1-style shock motors and is max-merged into the slow motor.
+    bool haptic_active = false;
+    uint8_t haptic_slow = gamepad_haptic_tick(&haptic_active);
+
+    if (!s_motor_fast && !s_motor_slow && !haptic_active) {
         // Motors at zero — send one final stop command to DualSense (no auto-timeout).
         if (s_was_active) {
             s_was_active = false;
@@ -373,8 +382,11 @@ void gamepad_rumble_tick()
         return;
     }
 
+    int out_slow = s_motor_slow;
+    if (haptic_slow > out_slow) out_slow = haptic_slow;
+
     if (s_is_dualsense) {
-        uint8_t vib_left = static_cast<uint8_t>(s_motor_slow);
+        uint8_t vib_left = static_cast<uint8_t>(out_slow);
         uint8_t vib_right = s_motor_fast ? 255 : 0;
         // Only send HID write when vibration values actually changed.
         static uint8_t s_last_vib_l = 0, s_last_vib_r = 0;
@@ -385,7 +397,7 @@ void gamepad_rumble_tick()
             ds_update_output();
         }
     } else {
-        uint16_t low = static_cast<uint16_t>(s_motor_slow * 257);
+        uint16_t low = static_cast<uint16_t>(out_slow * 257);
         uint16_t high = s_motor_fast ? 65535 : 0;
         sdl3_gamepad_rumble(s_gamepad, low, high, 100);
     }
@@ -399,6 +411,7 @@ void gamepad_rumble_stop()
 {
     s_motor_fast = 0;
     s_motor_slow = 0;
+    gamepad_haptic_stop();
 
     if (s_is_dualsense && ds_is_connected()) {
         ds_set_vibration(0, 0);
@@ -484,6 +497,11 @@ enum TriggerMode {
 };
 static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 
+// Trigger position below which it's safe to (re-)activate AIM_GUN mode
+// without the player feeling a phantom click. Weapon25 with StartZone=7
+// clicks around R2 position ~120; we stay below that with margin.
+static constexpr uint8_t AIM_GUN_ENTRY_MAX_R2 = 80;
+
 static void apply_trigger_mode(TriggerMode mode)
 {
     if (!s_is_dualsense || !ds_is_connected()) return;
@@ -497,7 +515,12 @@ static void apply_trigger_mode(TriggerMode mode)
         // First-person with gun drawn:
         // R2 = weapon trigger (click point then resistance) — feels like pulling a trigger.
         // L2 = free (no effect).
-        ds_trigger_weapon(20, 180, 0, 0, 1);  // R2: start=20, amplitude=180
+        // Weapon25 StartZone and Amplitude are 4-bit fields (0..15); values
+        // outside that range overflow inside GamepadCore's Weapon25 encoder.
+        // StartZone 7 = click point around ~47% pull, matching the game's
+        // shoot threshold in input_actions.cpp; Amplitude 2 = light click
+        // resistance so holding fire isn't tiring.
+        ds_trigger_weapon(7, 2, 0, 0, 1);  // R2: start_zone=7, amplitude=2 (0..15)
         ds_trigger_off(0);                      // L2: free
         break;
 
@@ -512,7 +535,7 @@ static void apply_trigger_mode(TriggerMode mode)
     ds_update_output();
 }
 
-void gamepad_triggers_update(bool in_car, bool has_gun, bool has_ammo)
+void gamepad_triggers_update(bool in_car, bool weapon_ready)
 {
     if (!s_is_dualsense || !ds_is_connected()) return;
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
@@ -527,8 +550,18 @@ void gamepad_triggers_update(bool in_car, bool has_gun, bool has_ammo)
     TriggerMode desired;
     if (in_car) {
         desired = TRIGGER_MODE_CAR;
-    } else if (has_gun && has_ammo) {
-        desired = TRIGGER_MODE_AIM_GUN;
+    } else if (weapon_ready) {
+        // AIM_GUN can only be (re-)entered when the player's R2 is in the
+        // safe zone below the click point. If we switch to AIM_GUN while R2
+        // is already past the click, the Weapon25 motor fires a phantom
+        // click with no corresponding shot. Once armed, we keep AIM_GUN
+        // active regardless of R2 position until weapon_ready goes false.
+        const bool can_enter = gamepad_state.trigger_right <= AIM_GUN_ENTRY_MAX_R2;
+        if (s_trigger_mode == TRIGGER_MODE_AIM_GUN || can_enter) {
+            desired = TRIGGER_MODE_AIM_GUN;
+        } else {
+            desired = TRIGGER_MODE_NONE;
+        }
     } else {
         desired = TRIGGER_MODE_NONE;
     }
@@ -544,6 +577,19 @@ void gamepad_triggers_off()
     if (s_trigger_mode == TRIGGER_MODE_NONE) return;
     s_trigger_mode = TRIGGER_MODE_NONE;
     apply_trigger_mode(TRIGGER_MODE_NONE);
+}
+
+void gamepad_triggers_lockout(int /*duration_ms*/)
+{
+    // Immediately switch to NONE so the next frame's haptic state can't
+    // leak a click while the HID mode change propagates. The actual
+    // duration of the lockout is controlled by the game's Timer1 via
+    // gamepad_triggers_update(weapon_ready) + the R2-position gate for
+    // re-entering AIM_GUN mode.
+    if (s_trigger_mode != TRIGGER_MODE_NONE) {
+        s_trigger_mode = TRIGGER_MODE_NONE;
+        apply_trigger_mode(TRIGGER_MODE_NONE);
+    }
 }
 
 InputDeviceType gamepad_get_device_type()

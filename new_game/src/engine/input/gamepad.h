@@ -58,10 +58,21 @@ void gamepad_led_update(float health_fraction, bool siren);
 // Update DualSense adaptive trigger effects based on gameplay context.
 // No-op for Xbox/keyboard. Only sends HID commands when mode changes.
 // in_car: player is driving a vehicle (brake pedal feel on L2).
-// has_gun: player has a gun drawn (weapon trigger feel on R2).
-// has_ammo: current weapon has ammo (no trigger click when empty).
+// weapon_ready: weapon trigger click should be active (gun drawn and not
+//               currently in a non-firing state — on cooldown, aiming at a
+//               surrendered target, etc). Dry-fire (no ammo) should still
+//               click, so caller should NOT gate on ammo here.
 // Call once per game tick.
-void gamepad_triggers_update(bool in_car, bool has_gun, bool has_ammo);
+void gamepad_triggers_update(bool in_car, bool weapon_ready);
+
+// Immediately disarm the weapon trigger click on a fire event. Called
+// whenever the game registers a real shot so the HID mode switch to NONE
+// goes out on the same frame, preventing a stale Weapon25 click from
+// firing during the game-side cooldown that follows. The duration of the
+// lockout is NOT time-based — it's driven by the game's Timer1 via
+// gamepad_triggers_update(weapon_ready) and the R2-position gate inside
+// gamepad_triggers_update. The parameter is reserved for future use.
+void gamepad_triggers_lockout(int reserved);
 
 // Disable all adaptive trigger effects. Call on pause, menu, death, level transition.
 void gamepad_triggers_off();

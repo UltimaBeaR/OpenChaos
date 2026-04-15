@@ -42,6 +42,7 @@
 - Требует: поправить CMake path для miniaudio, интегрировать с MFX звуковой системой
 - Самая сложная фича
 - **Перенесено в 1.0.** См. [known_issues](known_issues_and_bugs.md).
+- **⚠️ 2026-04-15:** расследование показало что оба пути (`int16_t` через miniaudio и `uint8_t` через HID-чанки) в текущей GamepadCore нерабочие — формат и device matching не готовы. Оценка реального объёма: 2+ недели, реалистично — post-1.0. Для 1.0 идём упрощённым путём (envelope реального звука → рамбл-моторы). Подробности: [`new_game_devlog/dualsense_audio_haptic_investigation.md`](../new_game_devlog/dualsense_audio_haptic_investigation.md).
 
 ## Вибрация в видеовставках
 - `MDEC_vibra[]` — frame-synchronized vibration для intro/endgame

@@ -170,6 +170,7 @@ set(SOURCES_NEW
     src/engine/input/joystick_globals.cpp
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
+    src/engine/input/gamepad_haptic.cpp
 
     # === Engine: video ===
     src/engine/video/video_player.cpp
