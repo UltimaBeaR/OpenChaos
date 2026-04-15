@@ -174,6 +174,28 @@ bool s_l2_armed = true;
 // react in time, leading to shots with no felt click. 200ms gives the
 // motors full time to engage.
 constexpr auto RELEASE_SETTLE = std::chrono::milliseconds(200);
+
+// Post-fire cooldown. The game's Timer1 blocks the actual shot for a
+// weapon-specific duration after each fire; during that window our
+// evaluate_fire would otherwise report shoot=true (game refuses), but
+// mode=AIM_GUN stays active until the next tick and the hardware gets
+// to fire a physical click on the press that produced the ignored shot.
+// Treating any fire_threshold crossing during this window as a consumed
+// rearm (same semantics as a too-fast release-press tap) forces
+// mode=NONE early so the hardware stops trying to click. 300ms covers
+// the pistol's Timer1 with margin; longer than needed is harmless
+// because weapons can't physically fire faster anyway.
+constexpr auto POST_FIRE_COOLDOWN = std::chrono::milliseconds(300);
+std::chrono::steady_clock::time_point s_last_fire_time =
+    std::chrono::steady_clock::now() - std::chrono::seconds(10);
+bool s_had_fire = false;
+
+bool is_in_post_fire_cooldown(const WeaponFeelProfile* p)
+{
+    if (p->auto_fire || !s_had_fire) return false;
+    const auto now = std::chrono::steady_clock::now();
+    return (now - s_last_fire_time) < POST_FIRE_COOLDOWN;
+}
 std::chrono::steady_clock::time_point s_release_time =
     std::chrono::steady_clock::now() - std::chrono::seconds(10);
 bool s_armed_consumed = false;
@@ -380,13 +402,23 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     if (now_released) s_r2_armed = true;
     s_prev_r2 = r2;
 
+    const bool in_cooldown = is_in_post_fire_cooldown(p);
+
     if (r2 > p->fire_threshold && !s_armed_consumed) {
         if (p->auto_fire) {
             out.shoot = true;
         } else if (s_r2_armed) {
-            if (is_release_settled(p)) {
+            if (in_cooldown) {
+                // Game-side Timer1 will refuse this shot anyway — treat
+                // the cycle as consumed so mode→NONE and the hardware
+                // doesn't fire an orphan click.
+                s_armed_consumed = true;
+                s_r2_armed = false;
+            } else if (is_release_settled(p)) {
                 out.shoot = true;
                 s_r2_armed = false;
+                s_last_fire_time = now;
+                s_had_fire = true;
             } else {
                 // Too fast: the player re-pressed past fire_threshold
                 // before the hardware had time to reset. Consume the
@@ -430,6 +462,7 @@ void weapon_feel_fire_reset()
     s_r2_armed = true;
     s_l2_armed = true;
     s_armed_consumed = false;
+    s_had_fire = false;
     s_prev_r2 = 0;
     s_prev_l2 = 0;
 }
@@ -439,8 +472,9 @@ bool weapon_feel_is_r2_armed(int32_t current_weapon)
     const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
     if (p->auto_fire) return true;
     // Rising-edge weapons: armed only if the rearm flag is set AND the
-    // rearm hasn't been consumed by a too-fast tap. If the cycle is
-    // consumed, mode=NONE engages so the hardware stops emitting clicks
-    // until the player performs another proper release.
-    return s_r2_armed && !s_armed_consumed;
+    // rearm hasn't been consumed AND we're not in a post-fire cooldown.
+    // During cooldown mode=NONE engages so the hardware stops emitting
+    // clicks that the game would ignore.
+    if (s_armed_consumed || !s_r2_armed) return false;
+    return !is_in_post_fire_cooldown(p);
 }
