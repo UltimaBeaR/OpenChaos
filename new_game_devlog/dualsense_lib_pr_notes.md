@@ -1,19 +1,34 @@
-# PR prep — Trigger feedback status reading for `Dualsense-Multiplatform`
+# PR prep — Dualsense-Multiplatform fixes
 
 Этот файл содержит **всю информацию необходимую чтобы подготовить
-pull request** в апстрим библиотеки
+pull request(s)** в апстрим библиотеки
 [`rafaelvaloto/Dualsense-Multiplatform`](https://github.com/rafaelvaloto/Dualsense-Multiplatform).
 
-Цель PR: добавить чтение **adaptive trigger feedback status** байт из
-DualSense input report и экспонировать их через `FInputContext`.
-Сейчас либа эти байты вообще игнорирует, хотя контроллер их
-постоянно отправляет. Эти байты позволяют **точно** определять с
-PC-стороны когда курок физически щёлкнул в активном trigger-эффекте,
-без эмпирической калибровки по позиции триггера.
+В этой сессии выявлены и локально запатчены **две независимые проблемы**:
+
+**PR #1 — Чтение trigger feedback status**. Либа игнорирует один байт на
+курок в каждом input report, который контроллер постоянно шлёт. Этот
+байт содержит флаг "trigger в зоне активного эффекта" (bit 4) и
+внутреннее состояние моторчика в low nybble. Флаг позволяет **точно**
+определять с PC-стороны факт физического щелчка в Weapon-эффекте без
+эмпирической калибровки по позиции триггера. См. разделы 2-5.
+
+**PR #2 — Исправление packing в `Weapon25()`**. Текущая реализация
+функции пакует параметры в HID байты по неправильной схеме
+(`(StartZone << 4) | Amplitude`), не соответствующей реальному layout
+Sony Weapon (0x25) эффекта. В результате **наши попытки настроить
+StartZone/Amplitude не влияли** на физическое поведение курка — hardware
+получал всегда что-то близкое к default-ному клику независимо от
+параметров. Экспериментально подтверждено A/B сравнением. См. раздел 6.
+
+Оба патча живут в одной ветке OpenChaos и обёрнуты маркерами
+`=== OPENCHAOS-PATCH BEGIN/END ===` — grep'ается одной командой.
+Рекомендуется отправить как **два отдельных PR** чтобы автор либы мог
+ревьюить по частям.
 
 Документ написан так чтобы агент с чистым контекстом (или человек) мог
-взять его и сразу подготовить PR без необходимости разбираться в нашей
-кодовой базе или поднимать предысторию.
+взять его и сразу подготовить оба PR без необходимости разбираться в
+нашей кодовой базе или поднимать предысторию.
 
 ---
 
@@ -286,32 +301,257 @@ transports = 6 комбинаций. Патч готов к PR в апстрим
 
 ---
 
-## 6. Связанные ссылки и материалы
+## 6. PR #2 — Weapon25 packing rewrite
 
-### 6.1 Reverse engineering источники
+Независимая от feedback чтения проблема, обнаружена в той же сессии.
+
+### 6.1 Симптом
+
+Попытки настроить параметры Weapon25 эффекта через текущий API
+`SetWeapon25(StartZone, Amplitude, Behavior, Trigger, Hand)` **не
+изменяют физическое поведение курка** в ожидаемом направлении.
+Крутим `StartZone` от 2 до 7, крутим `Amplitude` от 1 до 15 — клик
+всегда ощущается примерно в одном и том же месте с похожей силой.
+
+### 6.2 Причина
+
+Текущая реализация `Weapon25()` в
+`Source/Public/GImplementations/Utils/GamepadTrigger.h` пакует
+параметры так:
+```cpp
+Compose[0] = (StartZone << 4) | (Amplitude & 0x0F);
+Compose[1] = Behavior;
+Compose[2] = Trigger & 0x0F;
+```
+
+Реальный формат Weapon (0x25) эффекта (reverse-engineered, источник:
+[Nielk1 gist](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db))
+совсем другой:
+```
+byte[1] = low  8 bits of startAndStopZones
+byte[2] = high 8 bits of startAndStopZones
+byte[3] = strength - 1
+
+where startAndStopZones = (1 << startPosition) | (1 << endPosition)
+```
+
+То есть контроллер ожидает **bitmap** из 16 бит с двумя выставленными
+битами (на позициях `startPosition` и `endPosition`), распределённый
+между двумя байтами, плюс `strength-1` отдельным байтом. Текущая
+либа шлёт паразитный bitmap сформированный из конкатенации 4-битных
+полей `StartZone` и `Amplitude`. Hardware видимо игнорирует такой
+вход либо интерпретирует как "дефолт" — поэтому параметры и не
+влияют на ощущение.
+
+Ограничения из reverse-engineered спеки:
+- `startPosition` должен быть 2..7
+- `endPosition` должен быть 3..8 и строго больше `startPosition`
+- `strength` должен быть 0..8
+
+### 6.3 Эмпирическое подтверждение (A/B тест)
+
+**Тестовые параметры**: `StartZone=2, Amplitude=8, Behavior=8, Trigger=0`
+через игровой API.
+
+**С патчем** (правильная упаковка):
+- Wire bytes: `0x25` / `0x04` / `0x01` / `0x07`
+- startAndStopZones = `(1<<2) | (1<<8)` = `0x104`
+- Физическое ощущение: **сильное сопротивление почти по всему ходу
+  курка**, щелчок в самом конце, зона 2..8 явно широкая, сила
+  высокая.
+
+**Без патча** (оригинальная упаковка):
+- Wire bytes: `0x25` / `0x28` / `0x08` / `0x00`
+- Физическое ощущение: **лёгкий клик где-то глубоко**, сопротивление
+  слабое, по ощущению идентично тому что было при любых других
+  комбинациях параметров.
+
+Разница явная и воспроизводимая. Патч **функционально необходим** —
+без него управление параметрами Weapon25 сломано.
+
+Дополнительно: после применения патча `feedback state nybble` (см.
+PR #1) начинает выдавать **более осмысленные значения**, меняющиеся
+пропорционально позиции курка внутри зоны эффекта — индикатор что
+hardware теперь действительно корректно обрабатывает наш bitmap.
+
+### 6.4 Предлагаемый патч
+
+Заменить тело функции `Weapon25()` в
+`Source/Public/GImplementations/Utils/GamepadTrigger.h`:
+
+```cpp
+inline void Weapon25(FDeviceContext* Context, std::uint8_t StartZone,
+                     std::uint8_t Amplitude, std::uint8_t Behavior,
+                     std::uint8_t /*Trigger*/, const EDSGamepadHand& Hand)
+{
+    // Per Nielk1 reverse-engineering of Sony's Weapon (0x25) effect:
+    //   byte[1..2] = 16-bit bitmap with bits set at startPosition and
+    //                endPosition (low byte, high byte respectively)
+    //   byte[3]    = strength - 1
+    //
+    // Parameters reinterpreted from legacy signature:
+    //   StartZone -> startPosition (2..7)
+    //   Amplitude -> endPosition   (start+1..8)
+    //   Behavior  -> strength      (0..8, maps to strength-1)
+    //   Trigger   -> unused (kept for ABI compat)
+    const std::uint8_t startPosition = StartZone;
+    const std::uint8_t endPosition   = Amplitude;
+    const std::uint8_t strength      = Behavior;
+
+    const std::uint16_t startAndStopZones =
+        static_cast<std::uint16_t>((1u << startPosition) | (1u << endPosition));
+    const std::uint8_t lo  = static_cast<std::uint8_t>(startAndStopZones & 0xff);
+    const std::uint8_t hi  = static_cast<std::uint8_t>((startAndStopZones >> 8) & 0xff);
+    const std::uint8_t str = static_cast<std::uint8_t>(strength > 0 ? (strength - 1) : 0);
+
+    if (Hand == EDSGamepadHand::Left || Hand == EDSGamepadHand::AnyHand)
+    {
+        Context->Output.LeftTrigger.Mode = 0x25;
+        Context->Output.LeftTrigger.Strengths.Compose[0] = lo;
+        Context->Output.LeftTrigger.Strengths.Compose[1] = hi;
+        Context->Output.LeftTrigger.Strengths.Compose[2] = str;
+    }
+    if (Hand == EDSGamepadHand::Right || Hand == EDSGamepadHand::AnyHand)
+    {
+        Context->Output.RightTrigger.Mode = 0x25;
+        Context->Output.RightTrigger.Strengths.Compose[0] = lo;
+        Context->Output.RightTrigger.Strengths.Compose[1] = hi;
+        Context->Output.RightTrigger.Strengths.Compose[2] = str;
+    }
+}
+```
+
+### 6.5 Breaking change caveat
+
+Это **API-semantic breaking change**. Существующие пользователи либы
+которые вызывали `SetWeapon25(StartZone, Amplitude, ...)` с
+"произвольными" значениями получат другой feel, хоть функциональное
+поведение у них всё равно было сломано.
+
+Варианты подачи автору либы:
+1. **Чистый fix** — заменить implementation, задокументировать
+   parameter names как устаревшие, объяснить правильную семантику
+   в doc comment. Пользователи которые настраивали параметры
+   получат улучшение (раньше не работало, теперь работает).
+2. **Новая функция** `SetWeapon25Correct()` с правильными именами
+   параметров (`startPosition`, `endPosition`, `strength`) и
+   оставить старую как deprecated. Менее breaking, больше мусора в
+   API.
+
+Рекомендую вариант (1) — текущая функция фактически broken,
+breakage её поведения это net-win.
+
+### 6.6 Общий аудит ВСЕХ эффектов в либе — Weapon25 не единственный сломанный
+
+После обнаружения проблемы с Weapon25 я прошёлся по всей функции
+`FDualSenseTriggerComposer` в `Source/Public/GImplementations/Utils/GamepadTrigger.h`
+и сверил packing каждого эффекта с reverse-engineered спекой из
+[Nielk1 gist](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db).
+**Большинство нетривиальных эффектов сломаны**. Детальный аудит:
+
+#### Эффекты которые реально работают (корректный packing)
+
+| Функция | Mode | Статус | Примечание |
+|---------|------|--------|------------|
+| `Off` | 0x00 | ✅ ок | Просто сбрасывает режим. Nielk1 рекомендует 0x05 как "проспецифицированный Off", но 0x00 тоже работает — dual поведение. |
+| `Resistance` | 0x01 | ✅ ок | Соответствует `Simple_Feedback` в гисте — raw `position, strength` в byte[1/2]. Packing совпадает. |
+| `GameCube` | 0x02 | ✅ ок | `Simple_Weapon` в гисте — raw bytes. Либа хардкодит `{0x90, 0x0a, 0xff}` как готовый preset. Packing правильный, просто bespoke значения. |
+
+#### Сломанные эффекты (incorrect packing)
+
+| Функция | Mode | Статус | Проблема |
+|---------|------|--------|----------|
+| `Bow22` | 0x22 | ❌ **broken** | По спеке byte[1-2] это 16-битный `startAndStopZones` bitmap, byte[3-4] это `forcePair` с двумя 3-битными полями (strength, snapForce). Либа пишет: `byte[1]=StartZone` (raw, не bitmap), `byte[2]=0x01` (хардкод), `byte[3]=SnapBack` (raw). Нет endPosition вообще, нет bitmap, нет форс-пары. |
+| `Galloping23` | 0x23 | ⚠️ **частично** | Bitmap для зон **корректный** — `(1<<StartPosition) \| (1<<EndPosition)` в byte[1-2]. ОДНАКО: (a) кодировка feet в byte[3] использует 4-битные nibbles вместо 3-битных полей по спеке; (b) есть очевидный integer-division bug: `(FirstFoot / 8) * 15` → для FirstFoot=0..7 даёт 0, потом clamp в [1,15] → всегда 1. То есть foot параметры фактически не работают. |
+| `Weapon25` | 0x25 | ❌ **broken** | Уже описан выше, фикс — [PR #2](#6-pr-2--weapon25-packing-rewrite). |
+| `MachineGun26` | 0x26 | ❌ **broken** | По спеке это `Vibration` с activeZones bitmap UInt16 в byte[1-2] и amplitudeZones UInt32 (3 бита/зону) в byte[3-6], плюс frequency в byte[9]. Либа пишет magic-числа вообще не соответствующие спеке: `0xf8` хардкодом в byte[1] на правом курке, `Amplitude==1 ? 0x8F : 0x8a` в byte[4], `Amplitude==2 ? 0x3F : 0x1F` в byte[5]. Frequency в byte[9] — единственное что совпадает. Никакой bitmap не строится, эффект фактически не управляем. |
+| `Machine27` | 0x27 | ❌ **broken** | По спеке byte[1-2] это `startAndStopZones` bitmap, byte[3] — `strengthPair` (3-бит поля), byte[4] — frequency, byte[5] — period. Либа пишет `byte[1]=StartZone` raw, `byte[2]=0x02/0x01` behavior flag, `byte[3]=(Force<<4)\|Amplitude` (неправильная nibble упаковка). Нет endPosition параметра вообще. Плюс есть несоответствие между left и right: left's `byte[1]=0x01/0x02`, right's `byte[1]=0x00/0x02` — явная опечатка автора. |
+| `CustomTrigger` | 0xFF | ✅ ок | Просто `memcpy` байтов напрямую в buffer. Ответственность за правильную упаковку на вызывающем. Не "сломан" как таковой. |
+
+#### Эффекты по спеке, которых в либе вообще НЕТ
+
+Полностью отсутствуют реализации для этих эффектов из гиста:
+
+| Эффект | Mode | Описание |
+|--------|------|----------|
+| `Simple_Vibration` | 0x06 | Raw `frequency, amplitude, position` |
+| `Limited_Feedback` | 0x11 | Raw `position, strength` с `strength<=10` |
+| `Limited_Weapon` | 0x12 | Raw `startPosition (>=0x10), endPosition, strength` |
+| `Feedback` (правильный) | 0x21 | `activeZones` bitmap UInt16 + `forceZones` UInt32 (3 бита/зону). Это **настоящий** linear resistance эффект. Либа не знает про 0x21 вообще. |
+| `Vibration` (правильный) | 0x26 | Существует только сломанный `MachineGun26`. Правильного bitmap-based Vibration нет. |
+| `MultiplePositionFeedback` | 0x21 | 10-element strength array, per-zone control. |
+| `MultiplePositionVibration` | 0x26 | 10-element amplitude array, per-zone. |
+| `SlopeFeedback` | 0x21 | Линейная интерполяция strength между start и end зонами. |
+
+#### Итого
+
+Из ~8 триггер-эффектов в либе только 3 работают корректно (`Off`,
+`Resistance/0x01`, `GameCube/0x02`) — причём они все по сути raw-byte
+эффекты где packing тривиальный. **Все сложные эффекты с bitmap
+упаковкой сломаны полностью или частично**. Это означает что:
+
+1. **Любой тонкий эффект из либы не работает как задумано** (Bow,
+   Galloping, Weapon, MachineGun, Machine advanced).
+2. **Библиотека фактически предлагает только** два простых эффекта
+   (linear resistance + GameCube preset), остальные — функции-обманки.
+3. **Patch в Weapon25 — это образец**. Для других эффектов нужны
+   аналогичные фиксы против той же Nielk1 спеки.
+4. **Масштаб PR #2 можно расширить** до "fix all broken trigger
+   effects packings" если есть желание полноценно вкладываться в
+   апстрим. Либо оставить Weapon25 fix отдельным PR и описать
+   остальное как известные проблемы.
+
+### 6.7 Попутно — Limited_Weapon (0x12) и другие не реализованы
+
+При исследовании Nielk1 gist обнаружен отдельный эффект
+`Limited_Weapon` с mode code `0x12` (не 0x25!). Использует **raw
+direct packing** без bitmap:
+```
+byte[1] = startPosition (>= 0x10)
+byte[2] = endPosition
+byte[3] = strength (<= 10)
+```
+
+Более строгие range checks: `startPosition >= 16 (0x10)`,
+`endPosition` between `startPosition` и `startPosition+100`.
+
+В нашей либе `Limited_Weapon` **вообще не реализован** — нет ни
+функции `SetLimited_Weapon12()`, ни mode handling в
+`GamepadOutput.cpp::SetTriggerEffects` для 0x12. Это одна из восьми
+недостающих реализаций (см. таблицу в п. 6.6). Пока в OpenChaos
+не нужна, но потенциал PR #3 или расширения PR #2.
+
+---
+
+## 7. Связанные ссылки и материалы
+
+### 7.1 Reverse engineering источники
 
 - [`nondebug/dualsense`](https://github.com/nondebug/dualsense) — основная карта HID layout DualSense input report. Здесь взяты offsets 41/42.
 - [Game Controller Collective Wiki — DualSense Data Structures](https://controllers.fandom.com/wiki/Sony_DualSense/Data_Structures) — community wiki с описанием полей `TriggerRightStatus`/`TriggerLeftStatus`.
-- [Nielk1 trigger effect factories gist](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) — описание trigger effect modes и (устаревшее) описание status nybble как 0/1/2.
+- [Nielk1 trigger effect factories gist (HTML)](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) — описание trigger effect modes всех основных эффектов с их byte layouts. Главный источник для packing-патча Weapon25.
+- [Nielk1 gist — raw text](https://gist.githubusercontent.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db/raw) — raw версия того же файла, полезна когда WebFetch к HTML возвращает 403.
 - [SensePost DualSense Reverse Engineering blog](https://sensepost.com/blog/2020/dualsense-reverse-engineering/) — оригинальная RE статья.
 - [`dogtopus/894da226d73afb3bdd195df41b3a26aa`](https://gist.github.com/dogtopus/894da226d73afb3bdd195df41b3a26aa) — DualSense HID descriptor.
 
-### 6.2 Внутренние документы OpenChaos
+### 7.2 Внутренние документы OpenChaos
 
 - [`dualsense_protocol_reference.md`](dualsense_protocol_reference.md) — общая справка по DualSense protocol для проекта.
 - [`dualsense_adaptive_trigger_facts.md`](dualsense_adaptive_trigger_facts.md) — наши собственные эмпирические факты про hardware (rate limit, click point, и т.п.), включая полную таблицу feedback nybble значений.
 - [`weapon_haptic_and_adaptive_trigger.md`](weapon_haptic_and_adaptive_trigger.md) — история отладки adaptive trigger в OpenChaos, объясняет зачем вообще понадобилось feedback status (boundary detection issue).
 - [`new_game/src/engine/input/weapon_feel_test.cpp`](../new_game/src/engine/input/weapon_feel_test.cpp) — наш тестовый инструмент для проверки patched behavior. Используется для cross-platform валидации.
 
-### 6.3 Контекст в либе
+### 7.3 Контекст в либе
 
-- [`Source/Public/GCore/Types/Structs/Context/InputContext.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GCore/Types/Structs/Context/InputContext.h) — где добавляем поля.
-- [`Source/Public/GImplementations/Utils/GamepadInput.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadInput.h) — где добавляем чтение байт.
+- [`Source/Public/GCore/Types/Structs/Context/InputContext.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GCore/Types/Structs/Context/InputContext.h) — где добавляем поля для PR #1.
+- [`Source/Public/GImplementations/Utils/GamepadInput.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadInput.h) — где добавляем чтение байт для PR #1.
+- [`Source/Public/GImplementations/Utils/GamepadTrigger.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadTrigger.h) — где живут packing функции всех эффектов (PR #2).
 - [`Source/Private/GImplementations/Libraries/DualSense/DualSenseLibrary.cpp`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Private/GImplementations/Libraries/DualSense/DualSenseLibrary.cpp) — `FDualSenseLibrary::UpdateInput`, показывает USB vs BT padding handling.
+- [`Source/Private/GImplementations/Utils/GamepadOutput.cpp`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Private/GImplementations/Utils/GamepadOutput.cpp) — `SetTriggerEffects`, показывает куда Compose попадают в wire-байты.
 
 ---
 
-## 7. Чеклист для подготовки PR
+## 8. Чеклист для подготовки PR
 
 - [ ] Завершить cross-platform валидацию (п. 5)
 - [ ] Зафоркать [`rafaelvaloto/Dualsense-Multiplatform`](https://github.com/rafaelvaloto/Dualsense-Multiplatform) на чистый репо (НЕ из вендоренной копии в OpenChaos)
@@ -324,7 +564,7 @@ transports = 6 комбинаций. Патч готов к PR в апстрим
 
 ---
 
-## 8. Что ждёт после merge PR
+## 9. Что ждёт после merge PR
 
 Когда PR замержат и наша вендоренная копия обновится до новой версии
 либы — можно будет:
