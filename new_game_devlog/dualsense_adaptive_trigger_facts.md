@@ -123,15 +123,14 @@
 - Реальное соответствие наших параметров `Amplitude`/`Behavior`/`Trigger`
   спеке `endPosition`/`strength`. Можно проверить варьируя их по
   одному в test-моде и наблюдая что меняется на ощупь.
-- **Cross-platform / cross-transport валидация feedback байт layout**.
-  Текущий замер сделан только на одной конфигурации:
-  - DualSense (стандартный, не Edge)
-  - Bluetooth transport
-  - Windows 11 Pro
-  - Один конкретный контроллер
-  Нужно проверить что offsets `41/42` и layout `bit 4 = act, bits 0-3
-  = state` работают так же на:
-  - **USB transport** (мы вообще не тестировали по USB)
-  - **macOS** хост
-  - **Steam Deck** (Linux хост, обычно через USB-C)
-  Список устройств для валидации перед PR в апстрим.
+- **Cross-platform / cross-transport валидация feedback байт layout —
+  ЗАВЕРШЕНА** (2026-04-15). Все 6 комбинаций (3 OS × 2 transports)
+  показали идентичное поведение:
+  - ✅ DualSense BT + Windows 11 Pro
+  - ✅ DualSense USB + Windows 11 Pro
+  - ✅ DualSense BT + macOS
+  - ✅ DualSense USB + macOS
+  - ✅ DualSense BT + Steam Deck (Linux)
+  - ✅ DualSense USB + Steam Deck (Linux)
+  Оффсеты `41/42` и layout `bit 4 = act, bits 0-3 = state` —
+  универсальные. Патч готов к PR в апстрим.

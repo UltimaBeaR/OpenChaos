@@ -258,12 +258,16 @@ Input->bLeftTriggerEffectActive  = (L2Fb & 0x10) != 0;
 
 | Конфигурация | Статус |
 |--------------|--------|
-| DualSense BT + Windows | ✅ проверено (act работает корректно, nybble значения 4-9) |
-| DualSense **USB** + Windows | ❌ **не проверено** |
-| DualSense BT + **macOS** | ❌ **не проверено** |
-| DualSense USB + macOS | ❌ **не проверено** |
-| DualSense USB + **Steam Deck** (Linux) | ❌ **не проверено** |
-| DualSense BT + Steam Deck | ❌ **не проверено** |
+| DualSense BT + Windows 11 | ✅ проверено 2026-04-15 (act работает корректно, nybble значения 4-9) |
+| DualSense USB + Windows 11 | ✅ проверено 2026-04-15 — идентично BT |
+| DualSense BT + macOS | ✅ проверено 2026-04-15 — идентично Windows |
+| DualSense USB + macOS | ✅ проверено 2026-04-15 — идентично |
+| DualSense BT + Steam Deck (Linux) | ✅ проверено 2026-04-15 — идентично |
+| DualSense USB + Steam Deck (Linux) | ✅ проверено 2026-04-15 — идентично |
+
+**Вывод**: оффсеты `41/42` и layout `bit 4 = act, bits 0-3 = state`
+работают **одинаково на всех проверенных конфигурациях** — 3 OS × 2
+transports = 6 комбинаций. Патч готов к PR в апстрим.
 
 Для каждой непроверенной конфигурации использовать тестовый инструмент
 [`weapon_feel_test.cpp`](../new_game/src/engine/input/weapon_feel_test.cpp)
