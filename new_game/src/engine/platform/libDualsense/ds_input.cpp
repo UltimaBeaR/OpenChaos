@@ -104,6 +104,29 @@ void parse_input_report(const std::uint8_t* r, InputState* out)
 
     // Headphone connected (byte 0x35 bit 0)
     out->headphone_connected = (r[0x35] & 0x01) != 0;
+
+    // Touchpad fingers. Each finger is 4 bytes starting at 0x20 / 0x24.
+    // Byte 0: bit 7 = contact (0 = finger DOWN, 1 = lifted), bits 0..6 = touch ID.
+    // Bytes 1..3 pack X (12 bits, low) and Y (12 bits, high).
+    {
+        const std::uint8_t t1_id_byte = r[0x20];
+        const std::uint8_t t1_b1      = r[0x21];
+        const std::uint8_t t1_b2      = r[0x22];
+        const std::uint8_t t1_b3      = r[0x23];
+        out->touchpad_finger_1_down = (t1_id_byte & 0x80) == 0;
+        out->touchpad_finger_1_id   = (std::uint8_t)(t1_id_byte & 0x7F);
+        out->touchpad_finger_1_x    = (std::uint16_t)(t1_b1 | ((t1_b2 & 0x0F) << 8));
+        out->touchpad_finger_1_y    = (std::uint16_t)((t1_b2 >> 4) | (t1_b3 << 4));
+
+        const std::uint8_t t2_id_byte = r[0x24];
+        const std::uint8_t t2_b1      = r[0x25];
+        const std::uint8_t t2_b2      = r[0x26];
+        const std::uint8_t t2_b3      = r[0x27];
+        out->touchpad_finger_2_down = (t2_id_byte & 0x80) == 0;
+        out->touchpad_finger_2_id   = (std::uint8_t)(t2_id_byte & 0x7F);
+        out->touchpad_finger_2_x    = (std::uint16_t)(t2_b1 | ((t2_b2 & 0x0F) << 8));
+        out->touchpad_finger_2_y    = (std::uint16_t)((t2_b2 >> 4) | (t2_b3 << 4));
+    }
 }
 
 } // namespace oc::dualsense

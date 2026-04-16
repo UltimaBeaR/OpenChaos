@@ -91,6 +91,16 @@ struct DS_InputState {
     uint8_t right_trigger_feedback_state;
     bool    left_trigger_effect_active;
     bool    right_trigger_effect_active;
+
+    // Touchpad fingers. Coordinates are raw touchpad pixels (hardware
+    // is 1920×1080). When a finger isn't touching, `*_down` is false and
+    // X/Y hold the last position the finger had while down.
+    uint16_t touchpad_finger_1_x;
+    uint16_t touchpad_finger_1_y;
+    bool     touchpad_finger_1_down;
+    uint16_t touchpad_finger_2_x;
+    uint16_t touchpad_finger_2_y;
+    bool     touchpad_finger_2_down;
 };
 
 bool ds_get_input(DS_InputState* out);

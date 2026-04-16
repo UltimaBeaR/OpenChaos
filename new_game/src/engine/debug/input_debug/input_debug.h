@@ -77,14 +77,49 @@ uint8_t input_debug_read_ds_feedback(bool right_trigger);
 bool    input_debug_read_ds_effect_active(bool right_trigger);
 
 // ---------------------------------------------------------------------------
+// Navigation edge-detect (shared across all interactive widgets)
+// ---------------------------------------------------------------------------
+//
+// The panel runs a single edge detect for the arrow / Enter keys once per
+// frame. Widgets never edge-detect themselves — they read `input_debug_nav`
+// and act on its fields when their row is focused. Page code drives its
+// cursor from the same struct.
+struct InputDebugNav {
+    bool up;
+    bool down;
+    bool left;
+    bool right;
+    bool enter;
+};
+
+const InputDebugNav& input_debug_nav();
+
+// ---------------------------------------------------------------------------
 // Rumble test widget (shared between gamepad + DualSense pages)
 // ---------------------------------------------------------------------------
 //
-// Renders a rumble test at (x, y): shows current low/high motor values,
-// handles Z/X (low -/+), C/V (high -/+), R (fire 200ms pulse). The pulse
-// goes through gamepad_rumble which routes to the active backend — so the
-// same widget exercises DS and Xbox motors identically.
-void input_debug_render_rumble_test(SLONG x, SLONG y);
+// Occupies 3 menu rows: low motor, high motor, fire pulse. When the
+// supplied `local_cursor` is in [0..2] the widget treats that row as
+// focused and acts on the current input_debug_nav edges (left/right on
+// numeric rows, Enter on the action row). Returns the row count (3) so
+// the caller can advance its own page-level cursor offset.
+int input_debug_render_rumble_test(SLONG x, SLONG y, int local_cursor);
+
+// ---------------------------------------------------------------------------
+// DualSense-only read-through wrappers
+// ---------------------------------------------------------------------------
+
+// Touchpad finger positions. Returns (0, 0, false) for each finger when
+// DualSense is not the active input source. Coordinates are raw hardware
+// pixels (X 0..1919, Y 0..1079). `down` is the contact flag.
+void input_debug_read_ds_touchpad(int* f1_x, int* f1_y, bool* f1_down,
+                                  int* f2_x, int* f2_y, bool* f2_down);
+
+// Reset DualSense page widget state — called on panel open/close so the
+// lightbar / player LED tests start from a clean slate and don't leave
+// the controller in a user-set state after exit. Implemented in
+// input_debug_dualsense.cpp.
+void input_debug_dualsense_reset_state();
 
 // ---------------------------------------------------------------------------
 // Widget helpers (shared between pages)

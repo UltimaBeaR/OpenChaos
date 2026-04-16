@@ -10,6 +10,7 @@
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
+#include "engine/platform/ds_bridge.h"
 #include "ui/hud/panel.h"
 
 #include <chrono>
@@ -71,9 +72,37 @@ GamepadState make_idle_state()
 }
 const GamepadState s_idle_state = make_idle_state();
 
-// Rumble test state. Shared across gamepad + DualSense pages — same
-// physical motor either way, just different backend selected by
-// gamepad_rumble internally.
+// Navigation edge detection. `s_nav` holds the bools exposed via
+// input_debug_nav(); `s_prev_*` tracks the key state from the previous
+// frame so we emit a single edge on each press rather than one per frame
+// while held.
+InputDebugNav s_nav = {};
+bool s_prev_up = false, s_prev_down = false;
+bool s_prev_left = false, s_prev_right = false;
+bool s_prev_enter = false;
+
+void refresh_nav()
+{
+    const bool up    = Keys[KB_UP]    != 0;
+    const bool down  = Keys[KB_DOWN]  != 0;
+    const bool left  = Keys[KB_LEFT]  != 0;
+    const bool right = Keys[KB_RIGHT] != 0;
+    const bool ent   = Keys[KB_ENTER] != 0;
+
+    s_nav.up    = up    && !s_prev_up;
+    s_nav.down  = down  && !s_prev_down;
+    s_nav.left  = left  && !s_prev_left;
+    s_nav.right = right && !s_prev_right;
+    s_nav.enter = ent   && !s_prev_enter;
+
+    s_prev_up = up; s_prev_down = down;
+    s_prev_left = left; s_prev_right = right;
+    s_prev_enter = ent;
+}
+
+// Rumble test state. Motor amplitudes are shared across gamepad +
+// DualSense pages — same physical hardware either way, just a different
+// backend selected by gamepad_rumble internally.
 enum RumbleRow {
     RUMBLE_ROW_LOW = 0,
     RUMBLE_ROW_HIGH,
@@ -83,7 +112,6 @@ enum RumbleRow {
 
 int  s_rumble_low  = 128;
 int  s_rumble_high = 128;
-int  s_rumble_cursor = RUMBLE_ROW_LOW;
 bool s_rumble_firing = false;
 std::chrono::steady_clock::time_point s_rumble_start;
 
@@ -91,54 +119,8 @@ constexpr int RUMBLE_STEP = 16;
 
 int clamp_motor(int v) { return v < 0 ? 0 : (v > 255 ? 255 : v); }
 
-// Shared edge-detect for navigation keys. Used by rumble and any future
-// arrow-driven widget; the nav keys are consumed by whichever widget has
-// focus on the current page.
-bool s_prev_up = false, s_prev_down = false;
-bool s_prev_left = false, s_prev_right = false;
-bool s_prev_enter = false;
-
-void rumble_tick()
+void rumble_auto_stop_tick()
 {
-    const bool up    = Keys[KB_UP]    != 0;
-    const bool down  = Keys[KB_DOWN]  != 0;
-    const bool left  = Keys[KB_LEFT]  != 0;
-    const bool right = Keys[KB_RIGHT] != 0;
-    const bool ent   = Keys[KB_ENTER] != 0;
-
-    // Cursor navigation — edge-detect so one press = one step.
-    if (up && !s_prev_up) {
-        s_rumble_cursor = (s_rumble_cursor - 1 + RUMBLE_ROW_COUNT) % RUMBLE_ROW_COUNT;
-    }
-    if (down && !s_prev_down) {
-        s_rumble_cursor = (s_rumble_cursor + 1) % RUMBLE_ROW_COUNT;
-    }
-
-    // Value adjust — only on rows that have a numeric value.
-    if (left && !s_prev_left) {
-        if (s_rumble_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  - RUMBLE_STEP);
-        if (s_rumble_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high - RUMBLE_STEP);
-    }
-    if (right && !s_prev_right) {
-        if (s_rumble_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  + RUMBLE_STEP);
-        if (s_rumble_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high + RUMBLE_STEP);
-    }
-
-    // Enter activates the focused action row.
-    if (ent && !s_prev_enter) {
-        if (s_rumble_cursor == RUMBLE_ROW_FIRE) {
-            const uint16_t lo = (uint16_t)((s_rumble_low  << 8) | s_rumble_low);
-            const uint16_t hi = (uint16_t)((s_rumble_high << 8) | s_rumble_high);
-            gamepad_rumble(lo, hi, 200);
-            s_rumble_firing = true;
-            s_rumble_start = std::chrono::steady_clock::now();
-        }
-    }
-
-    s_prev_up = up; s_prev_down = down;
-    s_prev_left = left; s_prev_right = right;
-    s_prev_enter = ent;
-
     // DualSense vibration is continuous (duration_ms ignored by the DS
     // path), so we stop it manually after the 200 ms window elapses.
     if (s_rumble_firing) {
@@ -170,10 +152,13 @@ static void isolate_controller_from_game()
     // Panel is modal and fully isolated — wipe anything the game was
     // driving on the controller so test widgets start from a known
     // state. Game's gamepad_*_update calls are gated off while the
-    // panel is active; on close they re-apply next frame automatically.
+    // panel is active; on close they re-apply next frame automatically
+    // (except player LEDs, which the game doesn't drive — the panel's
+    // own cleanup in input_debug_dualsense_reset_state handles those).
     gamepad_rumble_stop();
     gamepad_led_reset();
     gamepad_triggers_off();
+    input_debug_dualsense_reset_state();
 }
 
 void input_debug_open()
@@ -188,6 +173,9 @@ void input_debug_close()
     if (!s_active) return;
     s_active = false;
     rumble_stop();
+    // Reset DS widget state so player LEDs / lightbar don't linger
+    // until the next panel session, and the next session starts clean.
+    input_debug_dualsense_reset_state();
 }
 
 void input_debug_toggle()
@@ -213,10 +201,16 @@ void input_debug_tick()
     // gamepad_poll internally captures the pre-scrub snapshot for us.
     gamepad_poll();
 
+    // Refresh navigation edges once per frame; widgets consume them
+    // through input_debug_nav().
+    refresh_nav();
+
     // ESC closes the panel. Consume so pause menu doesn't see it.
+    // Route through input_debug_close so all cleanup (rumble_stop +
+    // DS widget reset) runs — matches F11 close path.
     if (Keys[KB_ESC]) {
         Keys[KB_ESC] = 0;
-        s_active = false;
+        input_debug_close();
         return;
     }
 
@@ -225,12 +219,19 @@ void input_debug_tick()
     if (Keys[KB_2]) { Keys[KB_2] = 0; s_page = INPUT_DEBUG_PAGE_GAMEPAD; }
     if (Keys[KB_3]) { Keys[KB_3] = 0; s_page = INPUT_DEBUG_PAGE_DUALSENSE; }
 
-    // Rumble test input only ticks on pages that actually show the widget.
+    // Keep the rumble pulse alive for its 200 ms window and then stop it.
+    // Only meaningful on pages that actually use the rumble widget; on
+    // the keyboard page there's no way to have started one.
     if (s_page == INPUT_DEBUG_PAGE_GAMEPAD || s_page == INPUT_DEBUG_PAGE_DUALSENSE) {
-        rumble_tick();
+        rumble_auto_stop_tick();
     } else if (s_rumble_firing) {
         rumble_stop();
     }
+}
+
+const InputDebugNav& input_debug_nav()
+{
+    return s_nav;
 }
 
 // ---------------------------------------------------------------------------
@@ -446,14 +447,50 @@ bool input_debug_read_ds_effect_active(bool right_trigger)
                          : gamepad_get_left_trigger_effect_active();
 }
 
-void input_debug_render_rumble_test(SLONG x, SLONG y)
+void input_debug_read_ds_touchpad(int* f1_x, int* f1_y, bool* f1_down,
+                                  int* f2_x, int* f2_y, bool* f2_down)
+{
+    if (active_input_device != INPUT_DEVICE_DUALSENSE) {
+        *f1_x = 0; *f1_y = 0; *f1_down = false;
+        *f2_x = 0; *f2_y = 0; *f2_down = false;
+        return;
+    }
+    DS_InputState s;
+    if (!ds_get_input(&s)) {
+        *f1_x = 0; *f1_y = 0; *f1_down = false;
+        *f2_x = 0; *f2_y = 0; *f2_down = false;
+        return;
+    }
+    *f1_x = s.touchpad_finger_1_x; *f1_y = s.touchpad_finger_1_y; *f1_down = s.touchpad_finger_1_down;
+    *f2_x = s.touchpad_finger_2_x; *f2_y = s.touchpad_finger_2_y; *f2_down = s.touchpad_finger_2_down;
+}
+
+int input_debug_render_rumble_test(SLONG x, SLONG y, int local_cursor)
 {
     input_debug_text(x, y, 220, 200, 120, 1, "Rumble test");
 
-    // Three rows with a cursor indicator. Keys (arrows / left-right /
-    // Enter) live in the panel footer — no need to repeat them here.
+    // Handle input on the focused row.
+    if (local_cursor >= 0 && local_cursor < RUMBLE_ROW_COUNT) {
+        const InputDebugNav& n = input_debug_nav();
+        if (n.left) {
+            if (local_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  - RUMBLE_STEP);
+            if (local_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high - RUMBLE_STEP);
+        }
+        if (n.right) {
+            if (local_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  + RUMBLE_STEP);
+            if (local_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high + RUMBLE_STEP);
+        }
+        if (n.enter && local_cursor == RUMBLE_ROW_FIRE) {
+            const uint16_t lo = (uint16_t)((s_rumble_low  << 8) | s_rumble_low);
+            const uint16_t hi = (uint16_t)((s_rumble_high << 8) | s_rumble_high);
+            gamepad_rumble(lo, hi, 200);
+            s_rumble_firing = true;
+            s_rumble_start = std::chrono::steady_clock::now();
+        }
+    }
+
     for (int row = 0; row < RUMBLE_ROW_COUNT; row++) {
-        const bool selected = (s_rumble_cursor == row);
+        const bool selected = (row == local_cursor);
         const UBYTE r = selected ? 255 : 150;
         const UBYTE g = selected ? 255 : 150;
         const UBYTE b = selected ? 120 : 150;
@@ -476,4 +513,6 @@ void input_debug_render_rumble_test(SLONG x, SLONG y)
                 break;
         }
     }
+
+    return RUMBLE_ROW_COUNT;
 }

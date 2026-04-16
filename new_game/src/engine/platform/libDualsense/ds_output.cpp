@@ -8,9 +8,13 @@
 
 namespace oc::dualsense {
 
-// Feature-control flag defaults:
-//   0x57 = 0b01010111 — enables rumble + trigger + lightbar control
-//   0xFF                — full vibration-mode bitmask
+// Feature-control flag defaults used on every steady-state output packet.
+// rafaelvaloto uses these same values and they work — BUT on Bluetooth
+// the controller also requires a one-shot init packet with both flags
+// at 0xFF sent right after connect; without it, LED and player-LED
+// writes are silently ignored even though rumble/trigger still work.
+// The init packet is sent inline in ds_bridge.cpp::ds_poll_registry
+// right after device_open_first succeeds.
 static constexpr std::uint8_t FEATURE_MODE_DEFAULT    = 0x57;
 static constexpr std::uint8_t VIBRATION_MODE_DEFAULT  = 0xFF;
 

@@ -99,8 +99,32 @@ void ds_poll_registry(float delta_time)
     s_reconnect_acc = 0.0f;
 
     if (device_open_first(&s_device)) {
-        // New device — force an output flush so LED/trigger state
-        // is applied on the first frame after connect.
+        // Over Bluetooth, the controller silently ignores LED and
+        // player-LED fields in normal output packets unless we send
+        // a one-shot init packet with *both* feature flags at 0xFF
+        // right after connect. Rumble and trigger slots work without
+        // this, which is why we didn't notice until the lightbar test
+        // in the debug panel. USB needs no init.
+        if (s_device.connection == Connection::Bluetooth) {
+            std::uint8_t buf[96] = {};
+            buf[0] = 0x31;  // BT output Report ID
+            buf[1] = 0x02;  // sub-ID (tag)
+            // Padding = 2, so payload = buf + 2.
+            buf[2 + 0]  = 0xFF;  // flag1 — all audio/rumble enables
+            buf[2 + 1]  = 0xFF;  // flag2 — all LED enables (this is the key)
+            // buf[2 + 38] (= buf[40]) stays 0 for the init seq counter;
+            // subsequent build_output_report toggles to 1 on first regular packet.
+            // lightbar/player LED bytes stay 0 → controller initialises to off.
+            const std::uint32_t crc = crc32_compute(buf, 74);
+            buf[0x4A] = (std::uint8_t)((crc >> 0)  & 0xFF);
+            buf[0x4B] = (std::uint8_t)((crc >> 8)  & 0xFF);
+            buf[0x4C] = (std::uint8_t)((crc >> 16) & 0xFF);
+            buf[0x4D] = (std::uint8_t)((crc >> 24) & 0xFF);
+            device_write(&s_device, buf, s_device.output_report_size);
+        }
+        // Force a normal output packet on the next frame so LED/trigger
+        // state applies. On BT the ~33 ms between this init and the next
+        // packet gives the controller time to process the init.
         s_output_dirty = true;
     }
 }
@@ -194,6 +218,13 @@ bool ds_get_input(DS_InputState* out)
     out->right_trigger_feedback_state = s_input.right_trigger_feedback & 0x0F;
     out->left_trigger_effect_active   = s_input.left_trigger_effect_active;
     out->right_trigger_effect_active  = s_input.right_trigger_effect_active;
+
+    out->touchpad_finger_1_x    = s_input.touchpad_finger_1_x;
+    out->touchpad_finger_1_y    = s_input.touchpad_finger_1_y;
+    out->touchpad_finger_1_down = s_input.touchpad_finger_1_down;
+    out->touchpad_finger_2_x    = s_input.touchpad_finger_2_x;
+    out->touchpad_finger_2_y    = s_input.touchpad_finger_2_y;
+    out->touchpad_finger_2_down = s_input.touchpad_finger_2_down;
 
     return true;
 }

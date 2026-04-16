@@ -97,6 +97,15 @@ void input_debug_render_gamepad_page()
         "lX=%d  lY=%d  rX=%d  rY=%d  LT=%u  RT=%u",
         s.lX, s.lY, s.rX, s.rY, s.trigger_left, s.trigger_right);
 
+    // Page-local cursor. Only the rumble widget is interactive on this
+    // page, so the cursor only ever lives inside its 3 rows.
+    static int s_cursor = 0;
+
+    const InputDebugNav& n = input_debug_nav();
+    const int total_rows = 3;  // rumble has 3 rows
+    if (n.up)   s_cursor = (s_cursor - 1 + total_rows) % total_rows;
+    if (n.down) s_cursor = (s_cursor + 1) % total_rows;
+
     // Shared rumble test (routes through gamepad_rumble → SDL for Xbox).
-    input_debug_render_rumble_test(20, 260);
+    input_debug_render_rumble_test(20, 260, s_cursor);
 }

@@ -73,6 +73,19 @@ struct InputState {
 
     // Headphone plugged-in flag
     bool headphone_connected;
+
+    // Touchpad fingers. Hardware reports up to 2 simultaneous contacts.
+    // Coordinates are raw touchpad pixels (X: 0..1919, Y: 0..1079). When
+    // finger is not touching, `*_down` is false and X/Y hold the last
+    // position the finger had while down (per HID report convention).
+    std::uint16_t touchpad_finger_1_x;
+    std::uint16_t touchpad_finger_1_y;
+    bool          touchpad_finger_1_down;
+    std::uint8_t  touchpad_finger_1_id;
+    std::uint16_t touchpad_finger_2_x;
+    std::uint16_t touchpad_finger_2_y;
+    bool          touchpad_finger_2_down;
+    std::uint8_t  touchpad_finger_2_id;
 };
 
 // Parse a normalized 64-byte DualSense input report into `out`.
