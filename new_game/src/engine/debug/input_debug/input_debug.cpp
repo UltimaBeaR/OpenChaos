@@ -49,6 +49,17 @@ const char* active_device_name()
     }
 }
 
+// Idle gamepad state returned to pages whose device isn't currently active.
+// Sticks at 32768 (centre) so stick widgets draw the dot at centre rather
+// than in a corner; everything else zero (buttons released, triggers idle).
+GamepadState make_idle_state()
+{
+    GamepadState s{};
+    s.lX = s.lY = s.rX = s.rY = 32768;
+    return s;
+}
+const GamepadState s_idle_state = make_idle_state();
+
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -215,4 +226,20 @@ void input_debug_draw_checkbox(SLONG x, SLONG y, const char* label, bool on)
     } else {
         FONT_buffer_add(x, y, 130, 130, 130, 1, (CBYTE*)"[ ] %s", label);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Read-through wrappers
+// ---------------------------------------------------------------------------
+
+const GamepadState& input_debug_read_gamepad_for(InputDeviceType page_device)
+{
+    if (active_input_device != page_device) return s_idle_state;
+    return gamepad_state_raw();
+}
+
+bool input_debug_key_held(unsigned char scancode)
+{
+    if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE) return false;
+    return Keys[scancode] != 0;
 }

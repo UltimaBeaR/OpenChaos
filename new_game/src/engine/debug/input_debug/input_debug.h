@@ -10,6 +10,7 @@
 
 #include <cstdint>
 
+#include "engine/input/gamepad.h"      // GamepadState, InputDeviceType
 #include "engine/platform/uc_common.h"
 
 // ---------------------------------------------------------------------------
@@ -46,6 +47,25 @@ enum InputDebugPage {
 void input_debug_render_keyboard_page();
 void input_debug_render_gamepad_page();
 void input_debug_render_dualsense_page();
+
+// ---------------------------------------------------------------------------
+// Read-through wrappers for page code
+// ---------------------------------------------------------------------------
+//
+// Pages call these instead of touching gamepad_state_raw() / Keys[] directly.
+// When the page's device doesn't match the currently-active input source,
+// the wrappers return a quiet "idle" value (sticks centred, zero buttons,
+// zero triggers, key held = false). This lets page layout render in full
+// while still hiding live input from inactive devices.
+
+// Returns the raw gamepad snapshot when page_device == active input source,
+// otherwise a static idle state (sticks at centre, everything else zero).
+const GamepadState& input_debug_read_gamepad_for(InputDeviceType page_device);
+
+// Returns Keys[scancode] when keyboard is the active input source,
+// otherwise false. Use this from the keyboard page instead of Keys[] to
+// silence inactive presses without losing layout.
+bool input_debug_key_held(unsigned char scancode);
 
 // ---------------------------------------------------------------------------
 // Widget helpers (shared between pages)

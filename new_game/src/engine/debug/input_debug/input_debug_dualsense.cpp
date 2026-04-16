@@ -44,11 +44,19 @@ bool btn(const GamepadState& s, int i)
 
 void input_debug_render_dualsense_page()
 {
-    const GamepadState& s = gamepad_state_raw();
+    // Layout renders unconditionally; live widgets gate inside the
+    // read-through wrapper so a brief switch to keyboard doesn't wipe
+    // the page.
+    const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_DUALSENSE);
+    const bool is_active = active_input_device == INPUT_DEVICE_DUALSENSE;
 
     FONT_buffer_add(20, CONTENT_Y, 255, 255, 255, 1,
-        (CBYTE*)"DualSense%s",
-        s.connected ? "" : "  (disconnected)");
+        (CBYTE*)"DualSense");
+    if (is_active) {
+        FONT_buffer_add(140, CONTENT_Y, 0, 255, 0, 1, (CBYTE*)"[ACTIVE]");
+    } else {
+        FONT_buffer_add(140, CONTENT_Y, 200, 140, 140, 1, (CBYTE*)"[inactive — press a button on DualSense]");
+    }
 
     // Sticks.
     input_debug_draw_stick(LEFT_STICK_X,  STICK_Y + STICK_SIZE / 2, STICK_SIZE,

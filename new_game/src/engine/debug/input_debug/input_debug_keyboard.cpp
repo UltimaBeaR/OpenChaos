@@ -25,18 +25,17 @@ constexpr int   MAX_ROWS  = 20;
 
 void input_debug_render_keyboard_page()
 {
-    // Only the currently-active input source renders live state — prevents
-    // confusion when presses on an inactive device show up on its page.
-    if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE) {
-        FONT_buffer_add(COL_X, CONTENT_Y, 200, 140, 140, 1,
-            (CBYTE*)"Keyboard not active.");
-        FONT_buffer_add(COL_X, CONTENT_Y + LINE_H, 150, 150, 150, 1,
-            (CBYTE*)"Press any key to activate — live state will appear here.");
-        return;
-    }
-
+    // Header with active/inactive hint. Live key list below gates on
+    // input_debug_key_held which returns false when keyboard is not the
+    // currently-active input source.
+    const bool is_active = active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE;
     FONT_buffer_add(COL_X, CONTENT_Y, 255, 255, 255, 1,
         (CBYTE*)"Keyboard — currently-held keys (scancode)");
+    if (is_active) {
+        FONT_buffer_add(COL_X + 380, CONTENT_Y, 0, 255, 0, 1, (CBYTE*)"[ACTIVE]");
+    } else {
+        FONT_buffer_add(COL_X + 380, CONTENT_Y, 200, 140, 140, 1, (CBYTE*)"[inactive]");
+    }
 
     FONT_buffer_add(COL_X, CONTENT_Y + LINE_H, 140, 140, 140, 1,
         (CBYTE*)"A richer keymap view (names, remaps) comes in a later iteration.");
@@ -45,7 +44,7 @@ void input_debug_render_keyboard_page()
     int row = 0;
     int count = 0;
     for (int sc = 0; sc < 256; sc++) {
-        if (!Keys[sc]) continue;
+        if (!input_debug_key_held((UBYTE)sc)) continue;
         const SLONG x = COL_X + col * COL_W;
         const SLONG y = CONTENT_Y + LINE_H * (3 + row);
         char buf[16];

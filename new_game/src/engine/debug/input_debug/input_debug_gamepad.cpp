@@ -42,21 +42,21 @@ bool btn(const GamepadState& s, int i)
 
 void input_debug_render_gamepad_page()
 {
-    // Only the currently-active input source renders live state — prevents
-    // confusion when DualSense presses show up on this page and vice versa.
-    if (active_input_device != INPUT_DEVICE_XBOX) {
-        FONT_buffer_add(20, CONTENT_Y, 200, 140, 140, 1,
-            (CBYTE*)"Xbox / generic gamepad not active.");
-        FONT_buffer_add(20, CONTENT_Y + 12, 150, 150, 150, 1,
-            (CBYTE*)"Press a button on your Xbox controller — live state will appear here.");
-        return;
-    }
-
-    const GamepadState& s = gamepad_state_raw();
+    // Page layout renders unconditionally. Widgets read through
+    // input_debug_read_gamepad_for, which returns an idle state (sticks
+    // centred, zero buttons/triggers) unless Xbox is the active input —
+    // so the layout persists and the page doesn't flicker when input
+    // briefly switches (e.g. pressing a keyboard key to navigate).
+    const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_XBOX);
+    const bool is_active = active_input_device == INPUT_DEVICE_XBOX;
 
     FONT_buffer_add(20, CONTENT_Y, 255, 255, 255, 1,
-        (CBYTE*)"Gamepad (Xbox / generic)%s",
-        s.connected ? "" : "  (disconnected)");
+        (CBYTE*)"Gamepad (Xbox / generic)");
+    if (is_active) {
+        FONT_buffer_add(250, CONTENT_Y, 0, 255, 0, 1, (CBYTE*)"[ACTIVE]");
+    } else {
+        FONT_buffer_add(250, CONTENT_Y, 200, 140, 140, 1, (CBYTE*)"[inactive — press a button on Xbox]");
+    }
 
     // Sticks.
     input_debug_draw_stick(LEFT_STICK_X,  STICK_Y + STICK_SIZE / 2, STICK_SIZE,
