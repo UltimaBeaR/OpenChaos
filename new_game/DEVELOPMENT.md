@@ -28,8 +28,8 @@ Config is in `.clang-format` (project root of `new_game/`).
 
 ---
 
-## Vendored libraries
+## DualSense support
 
-### Dualsense-Multiplatform
-
-Located in `libs/dualsense-multiplatform/`. This library is vendored (not managed by vcpkg) and must be updated manually when needed. See [libs/dualsense-multiplatform/README.md](libs/dualsense-multiplatform/README.md) for update instructions.
+DualSense controller support is provided by **libDualsense** — an
+OpenChaos-owned minimal library in `src/engine/platform/libDualsense/`.
+See `libDualsense/README.md` and `libDualsense/API.md` for documentation.

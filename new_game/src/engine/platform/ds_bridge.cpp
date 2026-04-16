@@ -1,444 +1,294 @@
-// DualSense bridge implementation — see ds_bridge.h for API.
-//
-// Platform HID layer uses SDL3's cross-platform hidapi (SDL_hid_*),
-// adapted from Gamepad-Core-Tests linux_device_info (works on all platforms).
+// DualSense bridge — implementation on top of libDualsense.
+// See ds_bridge.h for the public API.
 
 #include "engine/platform/ds_bridge.h"
 
-#include <SDL3/SDL_hidapi.h>
-#include <SDL3/SDL_hints.h>
+#include "engine/platform/libDualsense/ds_crc.h"
+#include "engine/platform/libDualsense/ds_device.h"
+#include "engine/platform/libDualsense/ds_input.h"
+#include "engine/platform/libDualsense/ds_output.h"
+#include "engine/platform/libDualsense/ds_trigger.h"
 
-#include <GCore/Interfaces/IPlatformHardwareInfo.h>
-#include <GCore/Templates/TBasicDeviceRegistry.h>
-#include <GCore/Templates/TGenericHardwareInfo.h>
-#include <GCore/Types/ECoreGamepad.h>
-#include <GCore/Types/Structs/Context/DeviceContext.h>
-#include <GImplementations/Utils/GamepadSensors.h>
-#include <GImplementations/Libraries/DualSense/DualSenseLibrary.h>
-#include <GCore/Interfaces/Segregations/IGamepadTrigger.h>
-
+#include <algorithm>
 #include <cstring>
-#include <unordered_set>
 
-// ---------------------------------------------------------------------------
-// Sony vendor/product IDs
-// ---------------------------------------------------------------------------
-
-static constexpr uint16_t SONY_VENDOR_ID       = 0x054C;
-static constexpr uint16_t DUALSHOCK4_PID_V1    = 0x05C4;
-static constexpr uint16_t DUALSHOCK4_PID_V2    = 0x09CC;
-static constexpr uint16_t DUALSENSE_PID        = 0x0CE6;
-static constexpr uint16_t DUALSENSE_EDGE_PID   = 0x0DF2;
-
-// ===========================================================================
-// HID platform layer via SDL3 hidapi (cross-platform)
-// ===========================================================================
-
-namespace uc_hid {
-
-static void read(FDeviceContext* ctx)
-{
-    if (!ctx || !ctx->Handle) return;
-    auto* dev = static_cast<SDL_hid_device*>(ctx->Handle);
-
-    // Drain the HID report queue and keep only the most recent report.
-    // The controller sends reports at ~133Hz (Bluetooth) but the game reads at ~30fps.
-    // On macOS IOKit, SDL_hid_read returns the OLDEST queued report (FIFO).
-    // Without draining, the queue grows by ~100 reports/sec and we always read
-    // stale data from ~1 second ago. On Windows the HID backend behaves differently
-    // (likely returns the latest report), so this isn't an issue there.
-    if (ctx->ConnectionType == EDSDeviceConnection::Bluetooth &&
-        ctx->DeviceType == EDSDeviceType::DualShock4)
-    {
-        while (SDL_hid_read(dev, ctx->BufferDS4, 547) > 0) {}
-        return;
-    }
-
-    const size_t len = (ctx->ConnectionType == EDSDeviceConnection::Bluetooth) ? 78 : 64;
-    int result;
-    while ((result = SDL_hid_read(dev, ctx->Buffer, len)) > 0) {}
-
-    if (result < 0) {
-        // Disconnected
-        SDL_hid_close(dev);
-        ctx->Handle = INVALID_PLATFORM_HANDLE;
-        ctx->IsConnected = false;
-    }
-}
-
-static void write(FDeviceContext* ctx)
-{
-    if (!ctx || !ctx->Handle) return;
-    auto* dev = static_cast<SDL_hid_device*>(ctx->Handle);
-
-    const size_t base_len = (ctx->DeviceType == EDSDeviceType::DualShock4) ? 32 : 74;
-    const size_t len = (ctx->ConnectionType == EDSDeviceConnection::Bluetooth) ? 78 : base_len;
-
-    int result = SDL_hid_write(dev, ctx->GetRawOutputBuffer(), len);
-    if (result < 0) {
-        SDL_hid_close(dev);
-        ctx->Handle = INVALID_PLATFORM_HANDLE;
-        ctx->IsConnected = false;
-    }
-}
-
-static void detect(std::vector<FDeviceContext>& devices)
-{
-    devices.clear();
-
-    static const std::unordered_set<uint16_t> supported = {
-        DUALSHOCK4_PID_V1, DUALSHOCK4_PID_V2,
-        DUALSENSE_PID, DUALSENSE_EDGE_PID
-    };
-
-    SDL_hid_device_info* devs = SDL_hid_enumerate(SONY_VENDOR_ID, 0);
-    if (!devs) return;
-
-    for (auto* cur = devs; cur; cur = cur->next) {
-        if (!supported.contains(cur->product_id)) continue;
-
-        FDeviceContext dc;
-        dc.Path = std::string(cur->path);
-        dc.IsConnected = true;
-        dc.Handle = nullptr;
-
-        switch (cur->product_id) {
-            case DUALSHOCK4_PID_V1:
-            case DUALSHOCK4_PID_V2:
-                dc.DeviceType = EDSDeviceType::DualShock4;
-                break;
-            case DUALSENSE_EDGE_PID:
-                dc.DeviceType = EDSDeviceType::DualSenseEdge;
-                break;
-            default:
-                dc.DeviceType = EDSDeviceType::DualSense;
-                break;
-        }
-
-        // interface_number == -1 typically means Bluetooth
-        dc.ConnectionType = (cur->interface_number == -1)
-            ? EDSDeviceConnection::Bluetooth
-            : EDSDeviceConnection::Usb;
-
-        devices.push_back(dc);
-    }
-    SDL_hid_free_enumeration(devs);
-}
-
-static bool create_handle(FDeviceContext* ctx)
-{
-    if (!ctx) return false;
-
-    auto* dev = SDL_hid_open_path(ctx->Path.c_str());
-    if (!dev) return false;
-
-    SDL_hid_set_nonblocking(dev, 1);
-    ctx->Handle = static_cast<FPlatformDeviceHandle>(dev);
-
-    // Read calibration data (feature report 0x05)
-    unsigned char feat[41] = {};
-    feat[0] = 0x05;
-    if (SDL_hid_get_feature_report(dev, feat, 41)) {
-        FGamepadCalibration cal;
-        FGamepadSensors::DualSenseCalibrationSensors(feat, cal);
-        ctx->Calibration = cal;
-    }
-
-    return true;
-}
-
-static void invalidate_handle(FDeviceContext* ctx)
-{
-    if (!ctx) return;
-    if (ctx->Handle) {
-        SDL_hid_close(static_cast<SDL_hid_device*>(ctx->Handle));
-    }
-    ctx->Handle = INVALID_PLATFORM_HANDLE;
-    ctx->IsConnected = false;
-    ctx->Path.clear();
-    std::memset(ctx->Buffer, 0, sizeof(ctx->Buffer));
-    std::memset(ctx->BufferDS4, 0, sizeof(ctx->BufferDS4));
-    std::memset(ctx->BufferAudio, 0, sizeof(ctx->BufferAudio));
-    std::memset(ctx->GetRawOutputBuffer(), 0, 78);
-}
-
-static void process_audio_haptic(FDeviceContext* ctx)
-{
-    if (!ctx || !ctx->Handle) return;
-    auto* dev = static_cast<SDL_hid_device*>(ctx->Handle);
-
-    if (ctx->ConnectionType == EDSDeviceConnection::Bluetooth) {
-        int written = SDL_hid_write(dev, ctx->BufferAudio, 147);
-        if (written < 0) {
-            SDL_hid_write(dev, ctx->BufferAudio, 78);
-        }
-    }
-}
-
-static void initialize_audio_device(FDeviceContext* /*ctx*/)
-{
-    // No-op for now (audio-to-haptic is step B7, deferred)
-}
-
-// Policy struct for TGenericHardwareInfo
-struct sdl_hid_policy {
-    void Read(FDeviceContext* ctx)               { uc_hid::read(ctx); }
-    void Write(FDeviceContext* ctx)              { uc_hid::write(ctx); }
-    void Detect(std::vector<FDeviceContext>& d)  { uc_hid::detect(d); }
-    bool CreateHandle(FDeviceContext* ctx)        { return uc_hid::create_handle(ctx); }
-    void InvalidateHandle(FDeviceContext* ctx)    { uc_hid::invalidate_handle(ctx); }
-    void ProcessAudioHaptic(FDeviceContext* ctx)  { uc_hid::process_audio_haptic(ctx); }
-    void InitializeAudioDevice(FDeviceContext* ctx) { uc_hid::initialize_audio_device(ctx); }
-};
-
-using sdl_hardware = GamepadCore::TGenericHardwareInfo<sdl_hid_policy>;
-
-} // namespace uc_hid
-
-// ===========================================================================
-// Device registry policy for our engine
-// ===========================================================================
-
-struct UCRegistryPolicy {
-    using EngineIdType = uint32_t;
-    struct Hasher {
-        size_t operator()(uint32_t id) const { return std::hash<uint32_t>{}(id); }
-    };
-
-    static uint32_t AllocEngineDevice() {
-        static uint32_t next_id = 0;
-        return next_id++;
-    }
-    static void DisconnectDevice(uint32_t /*id*/) {}
-    static void DispatchNewGamepad(uint32_t /*id*/) {}
-};
+using namespace oc::dualsense;
 
 // ===========================================================================
 // Module state
 // ===========================================================================
 
-static GamepadCore::TBasicDeviceRegistry<UCRegistryPolicy>* s_registry = nullptr;
-static uint32_t s_active_device_id = 0;
-static bool s_has_device = false;
-static bool s_hid_initialized = false;
+// Device re-enumeration cadence when disconnected, seconds.
+static constexpr float RECONNECT_INTERVAL_SEC = 1.0f;
+
+static Device      s_device;
+static InputState  s_input  = {};
+static OutputState s_output = {};
+static bool            s_output_dirty  = true;
+static float           s_reconnect_acc = 0.0f;
+
+// Raw HID input buffer. Large enough for BT (78 bytes) with slack.
+static std::uint8_t s_input_raw[96] = {};
 
 // ===========================================================================
-// Public API
+// Helpers
+// ===========================================================================
+
+// Convert an unsigned 8-bit stick axis (center 128) into a signed
+// [-1, +1] float. Y axis is flipped so that up is positive, matching
+// the convention used by the rest of the game.
+static float stick_axis(std::uint8_t raw, bool flip)
+{
+    // Raw 0..255 with neutral at 128. Raw=0 gives -128/127 ≈ -1.008
+    // which overflows downstream DI scaling (gamepad.cpp multiplies
+    // by 32767 then adds 32768, producing a negative out-of-range
+    // value). Clamp to keep the converted value inside [-1, +1].
+    float f = (static_cast<float>(raw) - 128.0f) / 127.0f;
+    f = std::clamp(f, -1.0f, 1.0f);
+    return flip ? -f : f;
+}
+
+static float trigger_axis(std::uint8_t raw)
+{
+    return static_cast<float>(raw) / 255.0f;
+}
+
+// Map game "hand" parameter (0=left, 1=right, 2=both) to trigger
+// slot pointers. Returns nullptr for the slots that should not be
+// touched. Both slots point at OutputState.trigger_{left,right}.
+static void pick_slots(std::uint8_t hand,
+                       std::uint8_t** out_left,
+                       std::uint8_t** out_right)
+{
+    *out_left  = (hand == 0 || hand == 2) ? s_output.trigger_left  : nullptr;
+    *out_right = (hand == 1 || hand == 2) ? s_output.trigger_right : nullptr;
+}
+
+// ===========================================================================
+// Lifecycle
 // ===========================================================================
 
 void ds_init()
 {
-    // Tell SDL3 to NOT grab DualSense via its gamepad subsystem —
-    // we handle it ourselves via HID.
-    SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_PS5, "0");
-
-    // Initialize SDL HID subsystem
-    if (SDL_hid_init() != 0) return;
-    s_hid_initialized = true;
-
-    // Register our SDL-based HID platform layer with GamepadCore
-    IPlatformHardwareInfo::SetInstance(std::make_unique<uc_hid::sdl_hardware>());
-
-    // Create device registry
-    s_registry = new GamepadCore::TBasicDeviceRegistry<UCRegistryPolicy>();
+    hid_init();
+    s_device        = Device{};
+    s_input         = InputState{};
+    s_output        = OutputState{};
+    // Initialize trigger slots to Off (mode 0x05) rather than leaving
+    // them all-zero (mode 0x00 is undefined / "reset" in some refs).
+    trigger_off(s_output.trigger_left);
+    trigger_off(s_output.trigger_right);
+    s_output_dirty  = true;
+    s_reconnect_acc = RECONNECT_INTERVAL_SEC;  // try immediately on first poll
 }
 
 void ds_shutdown()
 {
-    if (s_has_device && s_registry) {
-        auto* gamepad = s_registry->GetLibrary(s_active_device_id);
-        if (gamepad) gamepad->ShutdownLibrary();
+    if (s_device.connected) {
+        device_close(&s_device);
     }
-
-    delete s_registry;
-    s_registry = nullptr;
-    s_has_device = false;
-
-    if (s_hid_initialized) {
-        SDL_hid_exit();
-        s_hid_initialized = false;
-    }
+    hid_shutdown();
 }
 
 void ds_poll_registry(float delta_time)
 {
-    if (!s_registry) return;
+    if (s_device.connected) return;
 
-    // Only run device detection when no device is connected.
-    // PlugAndPlay calls SDL_hid_enumerate + SDL_hid_open_path every DetectionInterval (1s).
-    // On macOS, re-opening an already-open Bluetooth HID device via IOKit interferes with
-    // the active read channel, causing ~1 second input lag spikes. The library also leaks
-    // the re-opened handle (CreateLibrary skips known devices but CreateHandle already opened it).
-    // Disconnection is detected by SDL_hid_read returning -1 in the read callback.
-    if (!s_has_device) {
-        s_registry->PlugAndPlay(delta_time);
-    }
+    s_reconnect_acc += delta_time;
+    if (s_reconnect_acc < RECONNECT_INTERVAL_SEC) return;
+    s_reconnect_acc = 0.0f;
 
-    // Update connection state.
-    if (!s_has_device) {
-        auto* gp = s_registry->GetLibrary(s_active_device_id);
-        if (gp && gp->IsConnected()) {
-            s_has_device = true;
-        }
-    } else {
-        auto* gp = s_registry->GetLibrary(s_active_device_id);
-        if (!gp || !gp->IsConnected()) {
-            s_has_device = false;
-        }
+    if (device_open_first(&s_device)) {
+        // New device — force an output flush so LED/trigger state
+        // is applied on the first frame after connect.
+        s_output_dirty = true;
     }
 }
 
-bool ds_update_input(float delta_time)
+bool ds_update_input(float /*delta_time*/)
 {
-    if (!s_has_device || !s_registry) return false;
-    auto* gp = s_registry->GetLibrary(s_active_device_id);
-    if (!gp) { s_has_device = false; return false; }
+    if (!s_device.connected) return false;
 
-    gp->UpdateInput(delta_time);
+    const int n = device_read_latest(&s_device, s_input_raw, sizeof(s_input_raw));
+    if (n < 0) {
+        // Disconnected — device_read_latest already closed the handle.
+        return false;
+    }
+    if (n == 0) {
+        // No new report this frame, keep prior parsed state.
+        return true;
+    }
+
+    // Parse from the payload that follows the transport-specific header.
+    parse_input_report(s_input_raw + s_device.input_report_strip, &s_input);
     return true;
 }
 
 void ds_update_output()
 {
-    if (!s_has_device || !s_registry) return;
-    auto* gp = s_registry->GetLibrary(s_active_device_id);
-    if (gp) gp->UpdateOutput();
+    if (!s_device.connected) return;
+    if (!s_output_dirty) return;
+
+    std::uint8_t buf[96] = {};
+    const bool bt = (s_device.connection == Connection::Bluetooth);
+    build_output_report(s_output, buf, bt);
+
+    const int written = device_write(&s_device, buf, s_device.output_report_size);
+    if (written < 0) {
+        // Disconnected — device_write already closed the handle.
+        return;
+    }
+
+    s_output_dirty = false;
 }
 
 bool ds_is_connected()
 {
-    return s_has_device;
+    return s_device.connected;
 }
+
+// ===========================================================================
+// Input readout
+// ===========================================================================
 
 bool ds_get_input(DS_InputState* out)
 {
-    if (!s_has_device || !s_registry || !out) return false;
+    if (!out) return false;
+    if (!s_device.connected) return false;
 
-    auto* gp = s_registry->GetLibrary(s_active_device_id);
-    if (!gp) return false;
+    out->left_stick_x  = stick_axis(s_input.left_stick_x,  /*flip=*/false);
+    out->left_stick_y  = stick_axis(s_input.left_stick_y,  /*flip=*/true);
+    out->right_stick_x = stick_axis(s_input.right_stick_x, /*flip=*/false);
+    out->right_stick_y = stick_axis(s_input.right_stick_y, /*flip=*/true);
+    out->trigger_left  = trigger_axis(s_input.left_trigger);
+    out->trigger_right = trigger_axis(s_input.right_trigger);
 
-    auto* ctx = gp->GetMutableDeviceContext();
-    if (!ctx) return false;
+    out->cross    = s_input.cross;
+    out->circle   = s_input.circle;
+    out->square   = s_input.square;
+    out->triangle = s_input.triangle;
 
-    FInputContext* input = ctx->GetInputState();
+    out->l1         = s_input.l1;
+    out->r1         = s_input.r1;
+    out->l2_digital = s_input.l2;
+    out->r2_digital = s_input.r2;
 
-    out->left_stick_x  = input->LeftAnalog.X;
-    out->left_stick_y  = input->LeftAnalog.Y;
-    out->right_stick_x = input->RightAnalog.X;
-    out->right_stick_y = input->RightAnalog.Y;
-    out->trigger_left  = input->LeftTriggerAnalog;
-    out->trigger_right = input->RightTriggerAnalog;
+    out->dpad_up    = s_input.dpad_up;
+    out->dpad_down  = s_input.dpad_down;
+    out->dpad_left  = s_input.dpad_left;
+    out->dpad_right = s_input.dpad_right;
 
-    out->cross    = input->bCross;
-    out->circle   = input->bCircle;
-    out->square   = input->bSquare;
-    out->triangle = input->bTriangle;
+    out->start     = s_input.start;
+    out->share     = s_input.share;
+    out->ps_button = s_input.ps_button;
 
-    out->l1 = input->bLeftShoulder;
-    out->r1 = input->bRightShoulder;
-    out->l2_digital = input->bLeftTriggerThreshold;
-    out->r2_digital = input->bRightTriggerThreshold;
+    out->l3 = s_input.l3;
+    out->r3 = s_input.r3;
 
-    out->dpad_up    = input->bDpadUp;
-    out->dpad_down  = input->bDpadDown;
-    out->dpad_left  = input->bDpadLeft;
-    out->dpad_right = input->bDpadRight;
+    out->mute           = s_input.mute;
+    out->touchpad_click = s_input.touchpad_click;
 
-    out->start     = input->bStart;
-    out->share     = input->bShare;
-    out->ps_button = input->bPSButton;
-
-    out->l3 = input->bLeftStick;
-    out->r3 = input->bRightStick;
-
-    out->mute          = input->bMute;
-    out->touchpad_click = input->bTouch;
-
-    out->left_trigger_feedback_state  = input->LeftTriggerFeedbackState;
-    out->right_trigger_feedback_state = input->RightTriggerFeedbackState;
-    out->left_trigger_effect_active   = input->bLeftTriggerEffectActive;
-    out->right_trigger_effect_active  = input->bRightTriggerEffectActive;
+    // Feedback state is the low nibble of the raw byte; bit 4 is the
+    // effect-active flag carried separately in bLeftTriggerEffectActive.
+    out->left_trigger_feedback_state  = s_input.left_trigger_feedback  & 0x0F;
+    out->right_trigger_feedback_state = s_input.right_trigger_feedback & 0x0F;
+    out->left_trigger_effect_active   = s_input.left_trigger_effect_active;
+    out->right_trigger_effect_active  = s_input.right_trigger_effect_active;
 
     return true;
 }
 
-// ---------------------------------------------------------------------------
-// Output functions
-// ---------------------------------------------------------------------------
-
-static ISonyGamepad* ds_get_gamepad()
-{
-    if (!s_has_device || !s_registry) return nullptr;
-    return s_registry->GetLibrary(s_active_device_id);
-}
+// ===========================================================================
+// Output setters — LED, vibration
+// ===========================================================================
 
 void ds_set_lightbar(uint8_t r, uint8_t g, uint8_t b)
 {
-    auto* gp = ds_get_gamepad();
-    if (gp) gp->SetLightbar({r, g, b, 1});
+    if (s_output.lightbar_r == r && s_output.lightbar_g == g && s_output.lightbar_b == b)
+        return;
+    s_output.lightbar_r = r;
+    s_output.lightbar_g = g;
+    s_output.lightbar_b = b;
+    s_output_dirty = true;
 }
 
 void ds_set_player_led(uint8_t led_mask)
 {
-    auto* gp = ds_get_gamepad();
-    if (gp) gp->SetPlayerLed(static_cast<EDSPlayer>(led_mask), 255);
+    if (s_output.player_led_mask == led_mask) return;
+    s_output.player_led_mask       = led_mask;
+    s_output.player_led_brightness = 0;  // 0 = brightest on DualSense
+    s_output_dirty = true;
 }
 
 void ds_set_vibration(uint8_t left, uint8_t right)
 {
-    auto* gp = ds_get_gamepad();
-    if (gp) gp->SetVibration(left, right);
+    if (s_output.rumble_left == left && s_output.rumble_right == right) return;
+    s_output.rumble_left  = left;
+    s_output.rumble_right = right;
+    s_output_dirty = true;
 }
 
-static EDSGamepadHand to_hand(uint8_t hand)
-{
-    switch (hand) {
-        case 0: return EDSGamepadHand::Left;
-        case 1: return EDSGamepadHand::Right;
-        default: return EDSGamepadHand::AnyHand;
-    }
-}
-
-static IGamepadTrigger* ds_get_triggers()
-{
-    auto* gp = ds_get_gamepad();
-    return gp ? gp->GetIGamepadTrigger() : nullptr;
-}
+// ===========================================================================
+// Output setters — adaptive trigger effects
+// ===========================================================================
 
 void ds_trigger_off(uint8_t hand)
 {
-    auto* t = ds_get_triggers();
-    if (t) t->StopTrigger(to_hand(hand));
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_off(l); s_output_dirty = true; }
+    if (r) { trigger_off(r); s_output_dirty = true; }
 }
 
+// Game API: (start_zone=position, strength_raw, hand). Parameters
+// are raw bytes (e.g. 20/200), DualSense mode 0x01 (Simple_Feedback).
 void ds_trigger_resistance(uint8_t start_zone, uint8_t strength, uint8_t hand)
 {
-    auto* t = ds_get_triggers();
-    if (t) t->SetResistance(start_zone, strength, to_hand(hand));
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_simple_feedback(l, start_zone, strength); s_output_dirty = true; }
+    if (r) { trigger_simple_feedback(r, start_zone, strength); s_output_dirty = true; }
 }
 
-void ds_trigger_weapon(uint8_t start_zone, uint8_t amplitude, uint8_t behavior, uint8_t trigger, uint8_t hand)
+// Game API: (start_zone, end_zone, strength, unused, hand).
+// 4th parameter is unused (kept for ABI compat with ds_bridge.h).
+void ds_trigger_weapon(uint8_t start_zone, uint8_t end_zone, uint8_t strength,
+                       uint8_t /*unused*/, uint8_t hand)
 {
-    auto* t = ds_get_triggers();
-    if (t) t->SetWeapon25(start_zone, amplitude, behavior, trigger, to_hand(hand));
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_weapon(l, start_zone, end_zone, strength); s_output_dirty = true; }
+    if (r) { trigger_weapon(r, start_zone, end_zone, strength); s_output_dirty = true; }
 }
 
+// Game API: (start_zone, snap_back, hand). duaLib Bow takes four
+// parameters (start, end, strength, snap); pick sensible defaults
+// that match what the legacy call likely intended (full-range bow
+// with max strength = snap).
 void ds_trigger_bow(uint8_t start_zone, uint8_t snap_back, uint8_t hand)
 {
-    auto* t = ds_get_triggers();
-    if (t) t->SetBow22(start_zone, snap_back, to_hand(hand));
-}
-
-void ds_trigger_machine(uint8_t start_zone, uint8_t behavior_flag, uint8_t force,
-                        uint8_t amplitude, uint8_t period, uint8_t frequency, uint8_t hand)
-{
-    auto* t = ds_get_triggers();
-    if (t) t->SetMachine27(start_zone, behavior_flag, force, amplitude, period, frequency, to_hand(hand));
+    const std::uint8_t end = 8;
+    const std::uint8_t strength = snap_back;
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_bow(l, start_zone, end, strength, snap_back); s_output_dirty = true; }
+    if (r) { trigger_bow(r, start_zone, end, strength, snap_back); s_output_dirty = true; }
 }
 
 void ds_debug_get_trigger_slots(uint8_t left[10], uint8_t right[10])
 {
-    // Not supported on the legacy vendored backend — just return zeros.
-    std::memset(left,  0, 10);
-    std::memset(right, 0, 10);
+    std::memcpy(left,  s_output.trigger_left,  10);
+    std::memcpy(right, s_output.trigger_right, 10);
+}
+
+// Game API: (start, behavior_flag, force, amplitude, period,
+// frequency, hand). Maps to trigger_machine with uniform amplitudes.
+void ds_trigger_machine(uint8_t start_zone, uint8_t /*behavior_flag*/, uint8_t /*force*/,
+                        uint8_t amplitude, uint8_t period, uint8_t frequency, uint8_t hand)
+{
+    const std::uint8_t end = 9;
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_machine(l, start_zone, end, amplitude, amplitude, frequency, period); s_output_dirty = true; }
+    if (r) { trigger_machine(r, start_zone, end, amplitude, amplitude, frequency, period); s_output_dirty = true; }
 }

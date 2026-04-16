@@ -97,6 +97,3 @@ license attribution is legally required — they are listed here for credit:
 - **nondebug/dualsense** — `dualsense-explorer.html`, protocol RE
   <https://github.com/nondebug/dualsense>
 - **gcc-wiki Sony DualSense HID reference** — community protocol notes
-- **rafaelvaloto/Dualsense-Multiplatform** — structural reference for HID
-  report normalization (USB vs BT) during initial development
-  <https://github.com/rafaelvaloto/Dualsense-Multiplatform>

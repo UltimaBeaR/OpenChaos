@@ -73,7 +73,7 @@ see `THIRD_PARTY_LICENSES.md`.
 
 ## Background
 
-Replaced vendored rafaelvaloto/Dualsense-Multiplatform (~10K lines)
-which had broken adaptive trigger packings and missing trigger
-feedback status reading. This library is ~800 lines, purpose-built,
-and empirically verified on Windows USB/BT.
+Replaced a ~10K-line third-party library which had broken
+adaptive trigger packings and missing trigger feedback status reading.
+This library is ~800 lines, purpose-built, and empirically verified
+on Windows USB/BT.

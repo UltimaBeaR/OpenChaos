@@ -44,8 +44,8 @@ dualsense_libs_reference/           — всё по DualSense протоколу
   own_dualsense_lib_plan.md         — план переписывания на свою DualSense либу
   dualsense_protocol_reference.md   — справка по DualSense протоколу
   dualsense_adaptive_trigger_facts.md — эмпирические факты про железо
-  dualsense_lib_pr_notes.md         — PR notes для rafaelvaloto/Dualsense-Multiplatform
-  libs/                             — [GITIGNORED] клоны референсных либ (duaLib, DS5W, nondebug, rafaelvaloto pristine+patched)
+  dualsense_lib_pr_notes.md         — АРХИВ: PR notes для бывшей vendored либы (больше не актуально)
+  libs/                             — [GITIGNORED] клоны референсных либ (duaLib, DS5W, nondebug)
 release/                            — упаковка релизов (скрипты, ассеты по платформам, dist/)
 make/                               — модули Makefile (platform.mk, configure.mk)
 tools/                              — вспомогательные инструменты

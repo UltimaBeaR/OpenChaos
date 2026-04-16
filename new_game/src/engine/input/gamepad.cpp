@@ -1,5 +1,5 @@
 // Gamepad abstraction — SDL3 backend (via sdl3_bridge) for Xbox/generic controllers,
-// Dualsense-Multiplatform (via ds_bridge) for DualSense/DualShock4.
+// libDualsense (via ds_bridge) for DualSense.
 // Translates axes to DirectInput range (0..65535) so downstream code works unchanged.
 
 #include "engine/input/gamepad.h"
@@ -42,7 +42,7 @@ static void debug_log_backend([[maybe_unused]] const char* event)
 #ifdef _DEBUG
     if (FILE* f = fopen("gamepad_log.txt", "a")) {
         const char* backend = "none";
-        if (s_is_dualsense) backend = "DualSense (GamepadCore/ds_bridge)";
+        if (s_is_dualsense) backend = "DualSense (libDualsense/ds_bridge)";
         else if (s_gamepad) backend = "Xbox/generic (SDL3)";
         fprintf(f, "[%s] %s\n", event, backend);
         fclose(f);

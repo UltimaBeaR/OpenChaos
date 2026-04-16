@@ -1,9 +1,8 @@
 #pragma once
 
-// DualSense bridge — thin abstraction layer over the Dualsense-Multiplatform
-// (GamepadCore) library.  Isolates GamepadCore headers from game code.
-// Game code accesses DualSense functionality exclusively through functions
-// declared here.
+// DualSense bridge — thin abstraction layer over libDualsense.
+// Isolates HID-level headers from game code. Game code accesses
+// DualSense functionality exclusively through functions declared here.
 
 #include <cstdint>
 
@@ -11,7 +10,7 @@
 // Lifecycle
 // ---------------------------------------------------------------------------
 
-// Initialize SDL HID subsystem + GamepadCore registry.
+// Initialize SDL HID subsystem + DualSense device layer.
 // Call once at startup (after SDL_Init).
 void ds_init();
 

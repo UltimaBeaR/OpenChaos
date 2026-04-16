@@ -20,9 +20,10 @@ static constexpr std::size_t INPUT_REPORT_USB_BYTES = 64;
 static constexpr std::size_t INPUT_REPORT_BT_BYTES  = 78;
 
 // DualSense output report sizes over the wire. USB report is 48
-// bytes by struct definition but rafaelvaloto (empirically verified)
-// sends 74 bytes — the controller may interpret short reports
-// differently (e.g. trigger motor power defaults). Match 74 for USB.
+// bytes by struct definition, but empirically the controller may
+// interpret short reports differently (e.g. trigger motor power
+// defaults). Sending 74 bytes (same payload length as BT minus
+// the CRC) avoids this.
 static constexpr std::size_t OUTPUT_REPORT_USB_BYTES = 74;
 static constexpr std::size_t OUTPUT_REPORT_BT_BYTES  = 78;
 

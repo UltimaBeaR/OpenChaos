@@ -32,7 +32,7 @@ struct Device {
     std::uint8_t input_report_strip  = 1;
 
     // Output report total size (including Report ID / BT framing).
-    // USB sends 74 bytes (matching rafaelvaloto reference), BT 78.
+    // USB = 74 bytes, BT = 78 bytes.
     std::size_t  output_report_size  = 74;  // DualSense USB default
 };
 

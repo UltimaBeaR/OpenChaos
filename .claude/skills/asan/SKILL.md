@@ -51,7 +51,7 @@ ASan stops at the **first** error. Fix it, rebuild, re-run, repeat until you rea
 
 Under the hood:
 - `CMakeLists.txt` adds `-fsanitize=address -fno-omit-frame-pointer` to compile and link flags
-- ASan is applied to **both** `OpenChaos` and `GamepadCore` targets — without this, linker fails with `/failifmismatch: annotate_string` error (the vendored DualSense library must also be instrumented)
+- ASan is applied to the `OpenChaos` target
 - `clang_rt.asan_dynamic-x86_64.dll` is copied next to the exe
 
 ### Why Release, not Debug

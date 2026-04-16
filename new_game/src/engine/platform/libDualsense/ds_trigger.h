@@ -39,8 +39,7 @@ bool trigger_off(std::uint8_t out[10]);
 bool trigger_feedback(std::uint8_t out[10], std::uint8_t position, std::uint8_t strength);
 
 // "Simple" (raw) continuous resistance, mode 0x01. Parameters are
-// raw bytes (0..255), not zone indices. Matches what legacy tooling
-// and the old vendored rafaelvaloto library expose as SetResistance.
+// raw bytes (0..255), not zone indices.
 bool trigger_simple_feedback(std::uint8_t out[10],
                              std::uint8_t position_raw,
                              std::uint8_t strength_raw);

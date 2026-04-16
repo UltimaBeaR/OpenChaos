@@ -1,7 +1,4 @@
 // DualSense output report builder.
-// Byte layout cross-checked against rafaelvaloto/Dualsense-Multiplatform
-// GamepadOutput.cpp::OutputDualSense, which is empirically verified to
-// work for lightbar and rumble on all platforms.
 
 #include "engine/platform/libDualsense/ds_output.h"
 
@@ -11,8 +8,7 @@
 
 namespace oc::dualsense {
 
-// Feature-control flag defaults. These are the values rafaelvaloto
-// initializes on device open and that work in practice:
+// Feature-control flag defaults:
 //   0x57 = 0b01010111 — enables rumble + trigger + lightbar control
 //   0xFF                — full vibration-mode bitmask
 static constexpr std::uint8_t FEATURE_MODE_DEFAULT    = 0x57;
@@ -35,10 +31,9 @@ void build_output_report(const OutputState& state,
         padding  = 2;
 
         // Alternating sequence counter at absolute offset 40 (= BT
-        // payload[38], `AllowLightBrightnessChange` bit). rafaelvaloto
-        // implements this via `buf[40] ^= 0x01` on a persistent
-        // output buffer. Since we memset the local buffer every
-        // frame, maintain our own toggling state here.
+        // payload[38], `AllowLightBrightnessChange` bit). We memset
+        // the buffer every frame, so a static is needed to track the
+        // toggle state across calls.
         static std::uint8_t s_bt_seq = 0;
         s_bt_seq ^= 0x01;
         buf[40] = s_bt_seq;
@@ -46,7 +41,7 @@ void build_output_report(const OutputState& state,
         buf[0]  = 0x02;    // USB output Report ID
         padding = 1;
 
-        // Per rafaelvaloto: fixed 0x07 at absolute offset 40 for USB
+        // Fixed 0x07 at absolute offset 40 for USB
         // (= USB payload[39], `HapticLowPassFilter` bit + UNKBIT).
         buf[40] = 0x07;
     }
@@ -76,12 +71,10 @@ void build_output_report(const OutputState& state,
     // --- BT CRC32 ---
     if (bluetooth) {
         // CRC is computed over bytes [0..73] and stored at [74..77].
-        // The DualSense BT transport prepends a virtual 0xA2 byte to
-        // the buffer before CRC — but looking at rafaelvaloto's
-        // GamepadOutput.cpp, the working implementation computes CRC
-        // directly over the first 74 bytes of the buffer (which
-        // already starts with 0x31). Preserved to match the
-        // empirically-verified reference.
+        // Note: the DualSense BT spec describes prepending a virtual
+        // 0xA2 byte before CRC computation, but in practice computing
+        // CRC directly over the first 74 bytes of the buffer (which
+        // starts with 0x31) works correctly.
         const std::uint32_t crc = crc32_compute(buf, 74);
         buf[0x4A] = static_cast<std::uint8_t>((crc >> 0)  & 0xFF);
         buf[0x4B] = static_cast<std::uint8_t>((crc >> 8)  & 0xFF);

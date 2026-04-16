@@ -1,7 +1,7 @@
 #pragma once
 
 // Gamepad abstraction layer.
-// Supports three input modes: keyboard/mouse, Xbox/generic (SDL3), DualSense (Dualsense-Multiplatform).
+// Supports three input modes: keyboard/mouse, Xbox/generic (SDL3), DualSense (libDualsense).
 // Active mode switches automatically based on last input device.
 
 #include <cstdint>
@@ -23,7 +23,7 @@ struct GamepadState {
 enum InputDeviceType {
     INPUT_DEVICE_KEYBOARD_MOUSE,
     INPUT_DEVICE_XBOX,       // Xbox / generic gamepad (via SDL3)
-    INPUT_DEVICE_DUALSENSE,  // DualSense (via Dualsense-Multiplatform)
+    INPUT_DEVICE_DUALSENSE,  // DualSense (via libDualsense)
 };
 
 void gamepad_init();
