@@ -110,3 +110,8 @@ void ds_trigger_resistance(uint8_t start_zone, uint8_t strength, uint8_t hand);
 void ds_trigger_weapon(uint8_t start_zone, uint8_t amplitude, uint8_t behavior, uint8_t trigger, uint8_t hand);
 void ds_trigger_bow(uint8_t start_zone, uint8_t snap_back, uint8_t hand);
 void ds_trigger_machine(uint8_t start_zone, uint8_t behavior_flag, uint8_t force, uint8_t amplitude, uint8_t period, uint8_t frequency, uint8_t hand);
+
+// Debug: copy the current 10-byte trigger effect slot bytes
+// (as they will be sent in the next output report). Used by the
+// F2 gamepad debug overlay to verify what the game is packing.
+void ds_debug_get_trigger_slots(uint8_t left[10], uint8_t right[10]);

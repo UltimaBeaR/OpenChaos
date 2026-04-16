@@ -50,22 +50,43 @@ find_package(FFMPEG REQUIRED)
 option(ENABLE_ASAN "Enable AddressSanitizer (heap overflow detection)" OFF)
 
 # ---------------------------------------------------------------------------
-# GamepadCore (Dualsense-Multiplatform) — vendored static library
+# DualSense backend: own libDualsense (default) or vendored GamepadCore
 # ---------------------------------------------------------------------------
-# GamepadCore: include Source/ directly (skip the top-level CMakeLists.txt which has
-# a CMAKE_SOURCE_DIR bug that breaks miniaudio detection under add_subdirectory).
-add_subdirectory(libs/dualsense-multiplatform/Dualsense-Multiplatform/Source EXCLUDE_FROM_ALL)
+# OC_DUALSENSE_OWN_LIB=ON  -> src/engine/platform/libDualsense (default)
+# OC_DUALSENSE_OWN_LIB=OFF -> legacy vendored rafaelvaloto/Dualsense-Multiplatform
+option(OC_DUALSENSE_OWN_LIB "Use OpenChaos-owned libDualsense instead of vendored GamepadCore" ON)
 
-# Add miniaudio audio module to GamepadCore (audio-to-haptic, step B7).
-set(GAMEPADCORE_MINIAUDIO "${CMAKE_CURRENT_SOURCE_DIR}/libs/dualsense-multiplatform/Dualsense-Multiplatform/Libs/miniaudio")
-target_sources(GamepadCore PRIVATE "${GAMEPADCORE_MINIAUDIO}/miniaudio_impl.cpp")
-target_include_directories(GamepadCore PUBLIC "${GAMEPADCORE_MINIAUDIO}")
-target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
+if(NOT OC_DUALSENSE_OWN_LIB)
+    # GamepadCore: include Source/ directly (skip the top-level CMakeLists.txt which has
+    # a CMAKE_SOURCE_DIR bug that breaks miniaudio detection under add_subdirectory).
+    add_subdirectory(libs/dualsense-multiplatform/Dualsense-Multiplatform/Source EXCLUDE_FROM_ALL)
 
-# ASan: apply to GamepadCore too (avoids annotate_string linker mismatch)
-if(ENABLE_ASAN)
-    target_compile_options(GamepadCore PRIVATE -fsanitize=address -fno-omit-frame-pointer)
-    target_link_options(GamepadCore PRIVATE -fsanitize=address)
+    # Add miniaudio audio module to GamepadCore (audio-to-haptic, step B7).
+    set(GAMEPADCORE_MINIAUDIO "${CMAKE_CURRENT_SOURCE_DIR}/libs/dualsense-multiplatform/Dualsense-Multiplatform/Libs/miniaudio")
+    target_sources(GamepadCore PRIVATE "${GAMEPADCORE_MINIAUDIO}/miniaudio_impl.cpp")
+    target_include_directories(GamepadCore PUBLIC "${GAMEPADCORE_MINIAUDIO}")
+    target_compile_definitions(GamepadCore PUBLIC GAMEPAD_CORE_HAS_AUDIO=1)
+
+    # ASan: apply to GamepadCore too (avoids annotate_string linker mismatch)
+    if(ENABLE_ASAN)
+        target_compile_options(GamepadCore PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+        target_link_options(GamepadCore PRIVATE -fsanitize=address)
+    endif()
+endif()
+
+if(OC_DUALSENSE_OWN_LIB)
+    set(DS_BRIDGE_SOURCES
+        src/engine/platform/ds_bridge_own.cpp
+        src/engine/platform/libDualsense/ds_crc.cpp
+        src/engine/platform/libDualsense/ds_device.cpp
+        src/engine/platform/libDualsense/ds_input.cpp
+        src/engine/platform/libDualsense/ds_output.cpp
+        src/engine/platform/libDualsense/ds_trigger.cpp
+    )
+else()
+    set(DS_BRIDGE_SOURCES
+        src/engine/platform/ds_bridge.cpp
+    )
 endif()
 
 # ---------------------------------------------------------------------------
@@ -153,7 +174,7 @@ set(SOURCES_NEW
     src/engine/platform/host_globals.cpp
     src/engine/platform/crash_handler_win.cpp
     src/engine/platform/sdl3_bridge.cpp
-    src/engine/platform/ds_bridge.cpp
+    ${DS_BRIDGE_SOURCES}
 
     # === Engine: I/O ===
     src/engine/io/file.cpp
@@ -606,12 +627,13 @@ target_link_libraries(OpenChaos PRIVATE
     OpenAL::OpenAL
     ${FFMPEG_LIBRARIES}
 
-    # Vendored
-    GamepadCore
-
     # Graphics backend libraries
     ${BACKEND_LIBS}
 )
+
+if(NOT OC_DUALSENSE_OWN_LIB)
+    target_link_libraries(OpenChaos PRIVATE GamepadCore)
+endif()
 
 # ---------------------------------------------------------------------------
 # Post-build: copy game data to output directory

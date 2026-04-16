@@ -44,6 +44,17 @@ bool trigger_feedback(std::uint8_t out[10], std::uint8_t position, std::uint8_t 
     return true;
 }
 
+bool trigger_simple_feedback(std::uint8_t out[10],
+                             std::uint8_t position_raw,
+                             std::uint8_t strength_raw)
+{
+    zero_slot(out);
+    out[0] = static_cast<std::uint8_t>(TriggerEffect::Simple_Feedback);
+    out[1] = position_raw;
+    out[2] = strength_raw;
+    return true;
+}
+
 bool trigger_weapon(std::uint8_t out[10],
                     std::uint8_t start, std::uint8_t end, std::uint8_t strength)
 {

@@ -1024,6 +1024,7 @@ round_again:;
                         if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
                     }
                     weapon_feel_test_tick();
+                    gamepad_debug_draw();
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
             }

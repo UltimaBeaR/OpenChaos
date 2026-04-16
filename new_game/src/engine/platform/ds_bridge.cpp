@@ -435,3 +435,10 @@ void ds_trigger_machine(uint8_t start_zone, uint8_t behavior_flag, uint8_t force
     auto* t = ds_get_triggers();
     if (t) t->SetMachine27(start_zone, behavior_flag, force, amplitude, period, frequency, to_hand(hand));
 }
+
+void ds_debug_get_trigger_slots(uint8_t left[10], uint8_t right[10])
+{
+    // Not supported on the legacy vendored backend — just return zeros.
+    std::memset(left,  0, 10);
+    std::memset(right, 0, 10);
+}

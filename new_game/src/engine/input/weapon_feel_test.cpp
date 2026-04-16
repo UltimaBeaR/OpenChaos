@@ -22,6 +22,7 @@
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
+#include "engine/platform/ds_bridge.h"
 #include "engine/console/console.h"
 #include "engine/graphics/text/font.h"
 
@@ -119,15 +120,22 @@ void enter_test()
     s_gap_count = 0;
     s_click_sample_count = 0;
     weapon_feel_debug_log("=== TEST ON (observation mode) ===");
-    // Force mode to AIM_GUN unconditionally while test is active. Normal
-    // gamepad_triggers_update is bypassed via weapon_feel_test_is_active.
-    gamepad_test_set_trigger_mode(1 /* AIM_GUN */);
+    // Bypass the weapon profile and send hardcoded extreme Weapon25
+    // directly: start=2, end=8, strength=8. This keeps the test
+    // independent from gameplay trigger tuning.
+    ds_trigger_weapon(2, 8, 8, 0, 1);  // R2 = extreme weapon click
+    ds_trigger_off(0);                  // L2 = free
+    ds_update_output();
     refresh_status();
 }
 
 void leave_test()
 {
     s_test_on = false;
+    // Force-clear the trigger so the next gamepad_triggers_update
+    // re-applies the real weapon profile instead of keeping the
+    // test's extreme values in the slot.
+    gamepad_test_set_trigger_mode(0 /* NONE */);
     weapon_feel_debug_log("=== TEST OFF ===");
     CONSOLE_status((CBYTE*)"");
 }

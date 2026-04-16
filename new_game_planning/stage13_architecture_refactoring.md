@@ -92,6 +92,10 @@ if (action == MENU_CONFIRM) { ... }
 - `ui/menus/widget.cpp` — `FORM_Process()` (~20 строк)
 - `engine/input/gamepad.cpp` — `gamepad_consume_until_released()` (костыль, заменить на встроенный механизм)
 
+### Перевести все за��оловки на `#pragma once`
+
+Часть заголовков (особенно старые из `src/`) используют классические include guards (`#ifndef`/`#define`/`#endif`). Новый код (libDualsense, etc.) уже на `#pragma once`. Унифицировать весь проект на `#pragma once` — поддерживается Clang, GCC, MSVC.
+
 ### C++20 modules
 
 Конвертация .h/.cpp → C++20 modules. Планировалась как часть Этапа 4, но перенесена сюда —

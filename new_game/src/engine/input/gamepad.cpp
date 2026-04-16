@@ -6,12 +6,14 @@
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/weapon_feel.h"
 #include "engine/input/weapon_feel_test.h"
+#include "engine/input/keyboard.h" // KB_F2
 #include "engine/input/keyboard_globals.h" // Keys[] for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
+#include "engine/graphics/text/font.h"
 #include "game/input_actions_globals.h"
+#include <cstdio>
 #include <cstring>
-#include <cstdio> // temporary debug log
 
 // Sony vendor/product IDs for DualSense detection (SDL3 path).
 static constexpr uint16_t SONY_VENDOR_ID       = 0x054C;
@@ -176,6 +178,10 @@ static void poll_dualsense()
     // Triggers as digital buttons (indices 15/16).
     if (ds.l2_digital) gamepad_state.rgbButtons[15] = 0x80;
     if (ds.r2_digital) gamepad_state.rgbButtons[16] = 0x80;
+
+    // DualSense extras.
+    if (ds.touchpad_click) gamepad_state.rgbButtons[17] = 0x80;
+    if (ds.mute)           gamepad_state.rgbButtons[18] = 0x80;
 
     // Analog trigger values (0..255).
     gamepad_state.trigger_left  = static_cast<uint8_t>(ds.trigger_left  * 255.0f);
@@ -510,6 +516,111 @@ uint8_t gamepad_get_right_trigger_feedback_state() { return s_right_trigger_feed
 uint8_t gamepad_get_left_trigger_feedback_state()  { return s_left_trigger_feedback_state; }
 bool    gamepad_get_right_trigger_effect_active()  { return s_right_trigger_effect_active; }
 bool    gamepad_get_left_trigger_effect_active()   { return s_left_trigger_effect_active; }
+
+// ---------------------------------------------------------------------------
+// Debug overlay (toggle F2)
+// ---------------------------------------------------------------------------
+
+void gamepad_debug_draw()
+{
+    static bool s_on = false;
+    static bool s_prev_f2 = false;
+    const bool f2_now = Keys[KB_F2] != 0;
+    if (f2_now && !s_prev_f2) {
+        s_on = !s_on;
+        Keys[KB_F2] = 0;
+    }
+    s_prev_f2 = f2_now;
+    if (!s_on) return;
+
+    constexpr int col1_x = 10;
+    constexpr int col2_x = 180;
+    constexpr int line_h = 10;
+    int y = 20;
+
+    char buf[96];
+
+    // Header.
+    FONT_buffer_add(col1_x, y, 255, 255, 0, 1,
+        (CBYTE*)"gamepad debug (F2 off)  connected=%d",
+        gamepad_state.connected ? 1 : 0);
+    y += line_h * 2;
+
+    // Sticks — raw DI values.
+    std::snprintf(buf, sizeof(buf), "lX=%5d lY=%5d",
+        (int)gamepad_state.lX, (int)gamepad_state.lY);
+    FONT_buffer_add(col1_x, y, 255, 255, 255, 1, (CBYTE*)"%s", buf);
+    std::snprintf(buf, sizeof(buf), "rX=%5d rY=%5d",
+        (int)gamepad_state.rX, (int)gamepad_state.rY);
+    FONT_buffer_add(col2_x, y, 255, 255, 255, 1, (CBYTE*)"%s", buf);
+    y += line_h;
+
+    // Triggers analog.
+    std::snprintf(buf, sizeof(buf), "L2=%3u R2=%3u",
+        (unsigned)gamepad_state.trigger_left,
+        (unsigned)gamepad_state.trigger_right);
+    FONT_buffer_add(col1_x, y, 255, 255, 255, 1, (CBYTE*)"%s", buf);
+    y += line_h;
+
+    // Dpad flag.
+    FONT_buffer_add(col1_x, y, 200, 200, 200, 1,
+        (CBYTE*)"dpad_active=%d", gamepad_state.dpad_active ? 1 : 0);
+    y += line_h * 2;
+
+    // Button table. Index → label list mirrors the SDL3 / DS path
+    // mapping in gamepad_poll_dualsense_path().
+    static const char* const k_btn_name[19] = {
+        "0 cross",     "1 circle",    "2 square",    "3 triangle",
+        "4 share",     "5 ps",        "6 options",   "7 L3",
+        "8 R3",        "9 L1",       "10 R1",       "11 dpad-up",
+        "12 dpad-dn", "13 dpad-lt", "14 dpad-rt", "15 L2digi",
+        "16 R2digi", "17 touch",   "18 mute",
+    };
+    constexpr int rows_per_col = 10;
+    for (int i = 0; i < 19; ++i) {
+        const bool pressed = (gamepad_state.rgbButtons[i] & 0x80) != 0;
+        const int  col_x   = (i < rows_per_col) ? col1_x : col2_x;
+        const int  row     = (i < rows_per_col) ? i : (i - rows_per_col);
+        const int  py      = y + row * line_h;
+        if (pressed) {
+            FONT_buffer_add(col_x, py, 0, 255, 0, 1,
+                (CBYTE*)">%s", k_btn_name[i]);
+        } else {
+            FONT_buffer_add(col_x, py, 120, 120, 120, 1,
+                (CBYTE*)" %s", k_btn_name[i]);
+        }
+    }
+    y += line_h * (rows_per_col + 1);
+
+    // Adaptive trigger feedback state (DualSense only).
+    const uint8_t l_fb  = gamepad_get_left_trigger_feedback_state();
+    const uint8_t r_fb  = gamepad_get_right_trigger_feedback_state();
+    const bool    l_act = gamepad_get_left_trigger_effect_active();
+    const bool    r_act = gamepad_get_right_trigger_effect_active();
+    std::snprintf(buf, sizeof(buf),
+        "trigger fb  L:%u act=%d   R:%u act=%d",
+        (unsigned)l_fb, l_act ? 1 : 0, (unsigned)r_fb, r_act ? 1 : 0);
+    FONT_buffer_add(col1_x, y, 0, 255, 255, 1, (CBYTE*)"%s", buf);
+    y += line_h;
+
+    // Current trigger effect slot bytes (what the next HID output
+    // report will contain for L2/R2 adaptive trigger). Helpful for
+    // sanity-checking that the game is packing the effect as
+    // expected.
+    uint8_t slot_l[10] = {}, slot_r[10] = {};
+    ds_debug_get_trigger_slots(slot_l, slot_r);
+    std::snprintf(buf, sizeof(buf),
+        "L slot: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+        slot_l[0], slot_l[1], slot_l[2], slot_l[3], slot_l[4],
+        slot_l[5], slot_l[6], slot_l[7], slot_l[8], slot_l[9]);
+    FONT_buffer_add(col1_x, y, 255, 200, 0, 1, (CBYTE*)"%s", buf);
+    y += line_h;
+    std::snprintf(buf, sizeof(buf),
+        "R slot: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+        slot_r[0], slot_r[1], slot_r[2], slot_r[3], slot_r[4],
+        slot_r[5], slot_r[6], slot_r[7], slot_r[8], slot_r[9]);
+    FONT_buffer_add(col1_x, y, 255, 200, 0, 1, (CBYTE*)"%s", buf);
+}
 
 // ---------------------------------------------------------------------------
 // Adaptive triggers (DualSense only)

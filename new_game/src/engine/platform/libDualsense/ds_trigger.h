@@ -38,6 +38,13 @@ bool trigger_off(std::uint8_t out[10]);
 // strength == 0 → falls back to Off.
 bool trigger_feedback(std::uint8_t out[10], std::uint8_t position, std::uint8_t strength);
 
+// "Simple" (raw) continuous resistance, mode 0x01. Parameters are
+// raw bytes (0..255), not zone indices. Matches what legacy tooling
+// and the old vendored rafaelvaloto library expose as SetResistance.
+bool trigger_simple_feedback(std::uint8_t out[10],
+                             std::uint8_t position_raw,
+                             std::uint8_t strength_raw);
+
 // Single click between `start` (2..7) and `end` (start+1..8), strength 0..8.
 bool trigger_weapon(std::uint8_t out[10],
                     std::uint8_t start, std::uint8_t end, std::uint8_t strength);
