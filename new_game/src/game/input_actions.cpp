@@ -3,6 +3,7 @@
 
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "engine/debug/input_debug/input_debug.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
 #include "things/core/thing.h"
@@ -3186,6 +3187,11 @@ ULONG get_last_input(UWORD type)
 // Pass INPUT_TYPE_KEY | INPUT_TYPE_JOY for full input; add INPUT_TYPE_GONEDOWN for edge-only.
 ULONG get_hardware_input(UWORD type)
 {
+    // Modal input debug panel consumes all input — return no-input so
+    // do_packets (called from process_things) doesn't drive the player
+    // character while the panel is open.
+    if (input_debug_is_active()) return 0;
+
     ULONG input = 0;
 
     static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
@@ -3756,6 +3762,11 @@ SLONG can_darci_change_weapon(Thing* p_person)
 // (driving / fight / normal).
 void process_hardware_level_input_for_player(Thing* p_player)
 {
+    // Modal input debug panel — bail out entirely so neither the packet
+    // path nor the direct Keys[]/rgbButtons[] reads inside this dispatcher
+    // (e.g. apply_button_input_first_person) can drive the player.
+    if (input_debug_is_active()) return;
+
     SLONG i;
 
     ULONG input;

@@ -250,6 +250,15 @@ void ds_trigger_resistance(uint8_t start_zone, uint8_t strength, uint8_t hand)
     if (r) { trigger_simple_feedback(r, start_zone, strength); s_output_dirty = true; }
 }
 
+// Zone-based Feedback (mode 0x21). position 0..9, strength 0..8.
+void ds_trigger_feedback(uint8_t position, uint8_t strength, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_feedback(l, position, strength); s_output_dirty = true; }
+    if (r) { trigger_feedback(r, position, strength); s_output_dirty = true; }
+}
+
 // Game API: (start_zone, end_zone, strength, unused, hand).
 // 4th parameter is unused (kept for ABI compat with ds_bridge.h).
 void ds_trigger_weapon(uint8_t start_zone, uint8_t end_zone, uint8_t strength,
@@ -259,6 +268,15 @@ void ds_trigger_weapon(uint8_t start_zone, uint8_t end_zone, uint8_t strength,
     pick_slots(hand, &l, &r);
     if (l) { trigger_weapon(l, start_zone, end_zone, strength); s_output_dirty = true; }
     if (r) { trigger_weapon(r, start_zone, end_zone, strength); s_output_dirty = true; }
+}
+
+// Vibration (mode 0x26). position 0..9, amplitude 0..8, frequency in Hz.
+void ds_trigger_vibration(uint8_t position, uint8_t amplitude, uint8_t frequency, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_vibration(l, position, amplitude, frequency); s_output_dirty = true; }
+    if (r) { trigger_vibration(r, position, amplitude, frequency); s_output_dirty = true; }
 }
 
 // Game API: (start_zone, snap_back, hand). duaLib Bow takes four

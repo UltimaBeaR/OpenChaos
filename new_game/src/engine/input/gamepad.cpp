@@ -5,7 +5,7 @@
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/weapon_feel.h"
-#include "engine/input/weapon_feel_test.h"
+#include "engine/debug/input_debug/input_debug.h"
 #include "engine/input/keyboard.h" // KB_F2
 #include "engine/input/keyboard_globals.h" // Keys[] for active device detection
 #include "engine/platform/sdl3_bridge.h"
@@ -352,6 +352,21 @@ void gamepad_poll()
             }
         }
     }
+
+    // Modal input debug panel — scrub visible gamepad state so direct
+    // readers (pause menu Start/Triangle/Cross, camera right stick, etc.)
+    // see no input. Keeps connected flag. Later iterations where the
+    // panel needs to display live gamepad state will read a separate
+    // raw snapshot before this scrub runs.
+    if (input_debug_is_active()) {
+        std::memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
+        gamepad_state.lX = 32768;
+        gamepad_state.lY = 32768;
+        gamepad_state.rX = 32768;
+        gamepad_state.rY = 32768;
+        gamepad_state.trigger_left = 0;
+        gamepad_state.trigger_right = 0;
+    }
 }
 
 void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)
@@ -672,21 +687,8 @@ static void apply_trigger_mode(TriggerMode mode)
     ds_update_output();
 }
 
-void gamepad_test_set_trigger_mode(int mode)
-{
-    if (!s_is_dualsense || !ds_is_connected()) return;
-    // Force-apply regardless of current cached mode, and update the cache
-    // so the next non-test gamepad_triggers_update sees the truth.
-    const TriggerMode tm = (mode == 0) ? TRIGGER_MODE_NONE : TRIGGER_MODE_AIM_GUN;
-    s_trigger_mode = tm;
-    apply_trigger_mode(tm);
-}
-
 void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon)
 {
-    // The hardware motor delay test owns the trigger mode while it runs.
-    if (weapon_feel_test_is_active()) return;
-
     if (!s_is_dualsense || !ds_is_connected()) return;
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
         // Not actively using DualSense — clear triggers if they were on.

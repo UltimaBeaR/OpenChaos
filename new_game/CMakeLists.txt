@@ -164,7 +164,9 @@ set(SOURCES_NEW
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
     src/engine/input/weapon_feel.cpp
-    src/engine/input/weapon_feel_test.cpp
+
+    # === Engine: debug ===
+    src/engine/debug/input_debug/input_debug.cpp
 
     # === Engine: video ===
     src/engine/video/video_player.cpp

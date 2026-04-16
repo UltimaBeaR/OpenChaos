@@ -2,14 +2,28 @@
 name: text-rendering
 description: >
   In-game text rendering reference — all functions for displaying text on screen.
-  TRIGGER when: about to write code that prints/displays/shows text on the game screen,
-  investigating how existing text rendering works, adding debug output, status display,
-  HUD text, or any on-screen text.
-  Also trigger when encountering or about to use ANY of these functions: CONSOLE_text,
-  CONSOLE_text_at, MSG_add, FONT2D_DrawString, draw_text_at, FONT_draw,
-  FONT_draw_coloured_text, FONT_buffer_add, PANEL_new_text, AENG_world_text,
-  CONSOLE_status, PANEL_new_info_message, MENUFONT_Draw.
-  This skill prevents wasted time from using wrong or inappropriate text methods.
+  TRIGGER when about to write or modify ANY code that puts text on screen, even
+  incidentally: primary task is drawing text, OR task is something else (new
+  debug panel, overlay, menu, HUD widget, status line, tooltip, message popup)
+  and it happens to need a text label. Trigger even for one-off debug prints,
+  placeholder labels, or "just one line of text" inside a larger non-text task.
+  Also trigger when investigating or explaining how existing text rendering
+  works, when choosing between text functions, or when shadow-corruption /
+  text-invisible bugs come up and text rendering is suspected.
+  Also trigger when encountering, copying, or about to write ANY of these
+  functions: CONSOLE_text, CONSOLE_text_at, MSG_add, FONT2D_DrawString,
+  draw_text_at, FONT_draw, FONT_draw_coloured_text, FONT_buffer_add,
+  PANEL_new_text, AENG_world_text, CONSOLE_status, PANEL_new_info_message,
+  MENUFONT_Draw.
+  Also trigger on keywords (English or Russian): "show text", "display text",
+  "print on screen", "on-screen message", "debug print", "HUD label", "status
+  line", "tooltip", "popup text", "screen text", "print to game", "вывести на
+  экран", "показать текст", "нарисовать текст", "написать на экране",
+  "отладочный вывод", "показать значение", "экранная печать".
+  DO NOT use for non-text 2D primitives (rects, bars, sprites) — use the
+  `hud-rendering` skill instead.
+  This skill prevents wasted time from using wrong or inappropriate text
+  methods and from shadow-corruption bugs.
 ---
 
 # Text Rendering — Complete Reference

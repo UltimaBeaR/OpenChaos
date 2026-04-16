@@ -80,7 +80,7 @@
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
 #include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
-#include "engine/input/weapon_feel_test.h" // weapon_feel_test_tick (hardware motor delay test)
+#include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "things/characters/anim_ids.h" // ANIM_HANDS_UP* for adaptive trigger check
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
@@ -694,6 +694,32 @@ SLONG special_keys(void)
         }
     }
 
+    // F11: toggle modal input debug panel. Not gated by allow_debug_keys
+    // during iteration — makes testing less fiddly. Will move behind the
+    // cheat once the panel stabilises.
+    //
+    // NOTE: F11 is also read in process_controls (game_tick.cpp, cloud
+    // toggle). We clear Keys[KB_F11] after our edge detect so the cloud
+    // toggle doesn't fire alongside panel toggle.
+    {
+        static bool f11_was_pressed = false;
+        if (Keys[KB_F11]) {
+            if (!f11_was_pressed) {
+                f11_was_pressed = true;
+                input_debug_toggle();
+            }
+            Keys[KB_F11] = 0;
+        } else {
+            f11_was_pressed = false;
+        }
+    }
+
+    // Drive the panel's own input (ESC exit, future page controls) before
+    // the rest of the game sees any keys. Runs unconditionally so that
+    // when the panel is active it owns all the subsequent input for the
+    // frame (via key consumption + process_controls gate below).
+    input_debug_tick();
+
     if (single_step) {
         if (Keys[KB_COMMA]) {
             Keys[KB_COMMA] = 0;
@@ -830,7 +856,7 @@ round_again:;
 
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
 
-            if (!exit_game_loop) {
+            if (!exit_game_loop && !input_debug_is_active()) {
                 exit_game_loop = GAMEMENU_process();
             }
 
@@ -896,7 +922,8 @@ round_again:;
             if (special_keys())
                 return (1);
 
-            if (!(GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) && !EWAY_tutorial_string) {
+            if (!(GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) && !EWAY_tutorial_string
+                && !input_debug_is_active()) {
                 process_controls();
             }
             void check_pows(void);
@@ -1023,7 +1050,6 @@ round_again:;
                         Thing* p_special = TO_THING(darci_t->Genus.Person->SpecialUse);
                         if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
                     }
-                    weapon_feel_test_tick();
                     gamepad_debug_draw();
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
@@ -1039,6 +1065,14 @@ round_again:;
             draw_screen();
 
             OVERLAY_handle();
+
+            // Modal input debug overlay (F11). Same point as other HUD
+            // overlays — AENG_draw_rect primitives queued here get
+            // flushed with the rest of the HUD 2D batch. Queuing after
+            // GAMEMENU_draw is too late because GAMEMENU_draw calls
+            // POLY_frame_init internally, which clears anything queued
+            // after it. See new_game_devlog/shadow_corruption_investigation.md.
+            input_debug_render();
 
             SLONG i_want_to_exit = UC_FALSE;
 

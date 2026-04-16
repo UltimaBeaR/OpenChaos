@@ -106,7 +106,9 @@ void ds_set_vibration(uint8_t left, uint8_t right);
 // Adaptive trigger modes (hand: 0=left, 1=right, 2=both)
 void ds_trigger_off(uint8_t hand);
 void ds_trigger_resistance(uint8_t start_zone, uint8_t strength, uint8_t hand);
+void ds_trigger_feedback(uint8_t position, uint8_t strength, uint8_t hand);
 void ds_trigger_weapon(uint8_t start_zone, uint8_t amplitude, uint8_t behavior, uint8_t trigger, uint8_t hand);
+void ds_trigger_vibration(uint8_t position, uint8_t amplitude, uint8_t frequency, uint8_t hand);
 void ds_trigger_bow(uint8_t start_zone, uint8_t snap_back, uint8_t hand);
 void ds_trigger_machine(uint8_t start_zone, uint8_t behavior_flag, uint8_t force, uint8_t amplitude, uint8_t period, uint8_t frequency, uint8_t hand);
 

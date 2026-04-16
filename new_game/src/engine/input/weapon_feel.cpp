@@ -131,7 +131,6 @@
 // ===========================================================================
 
 #include "engine/input/weapon_feel.h"
-#include "engine/input/weapon_feel_test.h"
 #include "engine/input/gamepad.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "assets/sound_id.h"
@@ -533,10 +532,6 @@ void weapon_feel_stop_haptic()
 WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2)
 {
     WeaponFireDecision out = { false, false };
-
-    // Hardware motor delay test suppresses live firing so the character
-    // does not actually shoot while the test cycles through delay values.
-    if (weapon_feel_test_is_active()) return out;
 
     const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
 
