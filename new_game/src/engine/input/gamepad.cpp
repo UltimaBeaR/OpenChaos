@@ -36,6 +36,10 @@ static float s_last_poll_delta = 1.0f / 30.0f; // assume 30fps initially
 // On macOS Bluetooth, each HID write can block 7-30ms, starving input reads.
 static uint8_t s_led_r = 0, s_led_g = 0, s_led_b = 0;
 
+// Snapshot of gamepad_state taken before the input-debug scrub. Exposed
+// via gamepad_state_raw() so the debug panel can display live input.
+static GamepadState s_gamepad_state_raw = {};
+
 // Temporary: append backend changes to file for verification (Debug only).
 static void debug_log_backend([[maybe_unused]] const char* event)
 {
@@ -353,11 +357,15 @@ void gamepad_poll()
         }
     }
 
+    // Raw snapshot kept up to date for the input debug panel. Captured
+    // before the scrub below so the panel can display live input even
+    // while the gate zeroes gamepad_state for everyone else. Always
+    // updated (not gated by panel active) — cost is one struct copy.
+    s_gamepad_state_raw = gamepad_state;
+
     // Modal input debug panel — scrub visible gamepad state so direct
     // readers (pause menu Start/Triangle/Cross, camera right stick, etc.)
-    // see no input. Keeps connected flag. Later iterations where the
-    // panel needs to display live gamepad state will read a separate
-    // raw snapshot before this scrub runs.
+    // see no input. Keeps connected flag.
     if (input_debug_is_active()) {
         std::memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
         gamepad_state.lX = 32768;
@@ -367,6 +375,11 @@ void gamepad_poll()
         gamepad_state.trigger_left = 0;
         gamepad_state.trigger_right = 0;
     }
+}
+
+const GamepadState& gamepad_state_raw()
+{
+    return s_gamepad_state_raw;
 }
 
 void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)

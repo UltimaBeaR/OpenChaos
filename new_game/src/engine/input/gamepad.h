@@ -29,6 +29,13 @@ enum InputDeviceType {
 void gamepad_init();
 void gamepad_shutdown();
 void gamepad_poll();
+
+// Raw gamepad state — same fields as gamepad_state, but NOT scrubbed when
+// the input debug panel is open. Captured inside gamepad_poll after the
+// device read, before the scrub. Use this (not gamepad_state) when the
+// panel needs to display live input for diagnostics. Game code should
+// continue to read gamepad_state, which respects the panel's input gate.
+const GamepadState& gamepad_state_raw();
 void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms);
 
 // PS1-style vibration: fast motor (0=off, 1=on) + slow motor (0-255 intensity).
