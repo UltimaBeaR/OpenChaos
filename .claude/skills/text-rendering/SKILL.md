@@ -142,7 +142,13 @@ They queue text for later rendering in the appropriate render phase.
 - **Behavior:** queues text into a message buffer. NOT rendered immediately — rendered later
   by `FONT_buffer_draw()` which is called unconditionally in `game.cpp` before screen flip.
 - **Rendering:** pixel-based (5×7 bitmap font), via `ge_lock_screen` → `FONT_draw_coloured_char`.
-- **Coordinates:** screen pixel (x, y). Pass directly.
+- **Coordinates:** ⚠️ **LITERAL window pixels** — *not* the logical 640×480 coord system
+  used by the 2D HUD (`AENG_draw_rect`, `POLY_add_quad`, health bars, etc.). This bites
+  whenever text is mixed with HUD rects: the rects scale up with the window while text
+  stays glued to literal pixel positions. At 1024×768 the rect covering "logical x=218..420"
+  lands around actual pixel 349..672, while text at `x=224` stays at literal pixel 224 — so
+  the label you *thought* would sit inside that rect ends up far to its left. See the "Mixing
+  text and HUD rects" section below for the scaling recipe.
 - **Color:** standard RGB order: `r, g, b`.
 - **Shadow:** if `shadow != 0`, draws a darker copy at (+1, +1) behind the text.
 - **Capacity:** `FONT_MAX_MESSAGES` messages per frame, shared text buffer `FONT_BUFFER_SIZE`.
@@ -249,6 +255,64 @@ if (scr) {
 1. F9 → type `bangunsnotgames` → Enter (enables `allow_debug_keys`)
 2. Ctrl — toggle display (switches `debug_overlay_locked_on`)
 3. Shift+F12 — toggle `cheat` variable (0↔2), shows FPS/coordinates via overlay.cpp
+
+## ⚠️ Mixing text and HUD rects — coordinate-space mismatch
+
+**Read this whenever you place text near or inside a rectangle drawn by
+`AENG_draw_rect`, `POLY_add_quad`, health bars, or any other 2D HUD primitive.**
+
+The two families use different coordinate systems:
+
+| Family | Coord space | Notes |
+|--------|-------------|-------|
+| `AENG_draw_rect`, `POLY_add_*`, HUD primitives | **Logical 640×480** | Pipeline scales to actual window via the 2D projection matrix. `POLY_screen_width`/`height` are hardcoded to `DisplayWidth`/`Height` = 640/480. |
+| `FONT_buffer_add`, `FONT_draw`, `FONT_draw_coloured_text` | **Literal window pixels** | Writes directly to CPU backbuffer via `ge_plot_pixel`. No scaling. Coords are interpreted as actual pixels of the current window. |
+| `FONT2D_DrawString`, `draw_text_at` | **Logical 640×480** | Goes through `POLY_add_quad` → same page system as HUD rects. Scales with window. |
+| `CONSOLE_text_at` | Logical (via `FONT2D_DrawString`) | Scales correctly. |
+
+### Symptom
+
+On a window larger than 640×480, text placed at the same coords as a rect
+ends up shifted left/up — often clustered against the top-left corner while
+rects are spread across the full width.
+
+### Fix
+
+When mixing `FONT_buffer_add` / `FONT_draw` text with logical-coord rects,
+scale the text coordinates to pixels manually:
+
+```cpp
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
+
+SLONG tx(SLONG logical) { return (logical * RealDisplayWidth)  / 640; }
+SLONG ty(SLONG logical) { return (logical * RealDisplayHeight) / 480; }
+
+// Logical 640×480 coords for both rect and text.
+AENG_draw_rect(tab_x, tab_y, tab_w, tab_h, 0x000000, 2, POLY_PAGE_COLOUR);
+FONT_buffer_add(tx(tab_x + 6), ty(tab_y + 4), 255, 255, 255, 1, (CBYTE*)"%s", label);
+```
+
+Or wrap with a helper that takes logical coords and forwards to
+`FONT_buffer_add` after scaling. The input debug panel at
+[new_game/src/engine/debug/input_debug/input_debug.cpp](../../../new_game/src/engine/debug/input_debug/input_debug.cpp)
+uses `input_debug_text` for exactly this reason.
+
+### Easier alternative
+
+If your text is part of the HUD/overlay layer anyway, use
+`FONT2D_DrawString` (or `CONSOLE_text_at`) instead of `FONT_buffer_add`.
+Those live in the same logical 640×480 coord space as rects — no scaling
+needed.
+
+### When literal-pixel coords are OK
+
+Some callers intentionally stick text in the literal top-left of the
+window regardless of window size (debug FPS, F2 gamepad overlay). Small
+pixel offsets like (10, 20) sit in the top-left corner on any window
+size, which is exactly what you want for a "corner debug readout". Don't
+scale in those cases — just be aware the text won't align with any
+scaled HUD geometry.
 
 ## Shadow corruption warning
 

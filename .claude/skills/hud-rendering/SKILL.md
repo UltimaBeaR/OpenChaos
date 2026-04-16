@@ -123,18 +123,29 @@ For `POLY_add_quad` / `POLY_add_line`, z comes from the `POLY_Point.Z` field
 you set on the vertices (typical HUD quad: `Z = 0.99999f` to push it near the
 far plane and let the page's render state handle layering).
 
-## Screen dimensions
+## Screen dimensions and coordinate space
 
-For full-screen or screen-relative rects, use the globals from
-`engine/graphics/pipeline/poly.h`:
+Rects here use **logical 640×480** coordinates which the pipeline scales
+to the actual window. The handy globals are from `engine/graphics/pipeline/poly.h`:
 
 ```cpp
-extern float POLY_screen_width;   // current framebuffer width
-extern float POLY_screen_height;  // current framebuffer height
+extern float POLY_screen_width;   // logical width  (== DisplayWidth  == 640)
+extern float POLY_screen_height;  // logical height (== DisplayHeight == 480)
 ```
 
-Both are `float`, updated every frame based on the current window size.
-Cast to `SLONG` when passing to `AENG_draw_rect`.
+They are aliases for the `DisplayWidth` / `DisplayHeight` constants (640/480)
+from `engine/platform/uc_common.h`. Cast to `SLONG` when passing to
+`AENG_draw_rect`.
+
+⚠️ **If you add text labels to your widgets**, the text path (`FONT_buffer_add`,
+`FONT_draw`) uses **literal window pixels**, not logical coords. On a window
+larger than 640×480 your labels will not line up with the rects. Either:
+
+- Use `FONT2D_DrawString` / `CONSOLE_text_at` — same logical space as rects.
+- Or scale manually: `x_px = x_logical * RealDisplayWidth / 640`.
+
+Full details and a ready-made helper pattern in the `text-rendering` skill
+under "Mixing text and HUD rects".
 
 ## Function reference
 

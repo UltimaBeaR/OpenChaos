@@ -67,6 +67,25 @@ const GamepadState& input_debug_read_gamepad_for(InputDeviceType page_device);
 // silence inactive presses without losing layout.
 bool input_debug_key_held(unsigned char scancode);
 
+// DualSense trigger feedback readings. Returns 0 / false when DualSense
+// is not the active input source, so indicators go dark on inactive DS.
+// right_trigger: true = R2, false = L2.
+// Feedback state: low nibble of the HID feedback byte (0..15).
+uint8_t input_debug_read_ds_feedback(bool right_trigger);
+// Effect-active bit (bit 4 of the feedback byte): the trigger is currently
+// engaged with its adaptive-trigger resistance.
+bool    input_debug_read_ds_effect_active(bool right_trigger);
+
+// ---------------------------------------------------------------------------
+// Rumble test widget (shared between gamepad + DualSense pages)
+// ---------------------------------------------------------------------------
+//
+// Renders a rumble test at (x, y): shows current low/high motor values,
+// handles Z/X (low -/+), C/V (high -/+), R (fire 200ms pulse). The pulse
+// goes through gamepad_rumble which routes to the active backend — so the
+// same widget exercises DS and Xbox motors identically.
+void input_debug_render_rumble_test(SLONG x, SLONG y);
+
 // ---------------------------------------------------------------------------
 // Widget helpers (shared between pages)
 // ---------------------------------------------------------------------------
@@ -99,3 +118,14 @@ void input_debug_draw_button(SLONG x, SLONG y,
 // Useful for DualSense feedback act bits and similar single-bit states.
 void input_debug_draw_checkbox(SLONG x, SLONG y,
                                const char* label, bool on);
+
+// Text rendering that matches the rects drawn by AENG_draw_rect. The
+// underlying FONT_buffer_add writes to the backbuffer at literal window
+// pixels, while AENG_draw_rect uses logical 640x480 that the pipeline
+// scales up. This wrapper takes logical coords and scales them to pixel
+// space so text lines up with the rects. ALWAYS use this (not raw
+// FONT_buffer_add) inside the panel.
+void input_debug_text(SLONG x_logical, SLONG y_logical,
+                      unsigned char r, unsigned char g, unsigned char b,
+                      unsigned char shadow,
+                      const char* fmt, ...);

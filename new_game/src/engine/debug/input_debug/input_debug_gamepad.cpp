@@ -46,17 +46,10 @@ void input_debug_render_gamepad_page()
     // input_debug_read_gamepad_for, which returns an idle state (sticks
     // centred, zero buttons/triggers) unless Xbox is the active input —
     // so the layout persists and the page doesn't flicker when input
-    // briefly switches (e.g. pressing a keyboard key to navigate).
+    // briefly switches. Active/inactive indication is on the tab up top.
     const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_XBOX);
-    const bool is_active = active_input_device == INPUT_DEVICE_XBOX;
 
-    FONT_buffer_add(20, CONTENT_Y, 255, 255, 255, 1,
-        (CBYTE*)"Gamepad (Xbox / generic)");
-    if (is_active) {
-        FONT_buffer_add(250, CONTENT_Y, 0, 255, 0, 1, (CBYTE*)"[ACTIVE]");
-    } else {
-        FONT_buffer_add(250, CONTENT_Y, 200, 140, 140, 1, (CBYTE*)"[inactive — press a button on Xbox]");
-    }
+    input_debug_text(20, CONTENT_Y, 255, 255, 255, 1, "Gamepad (Xbox / generic)");
 
     // Sticks.
     input_debug_draw_stick(LEFT_STICK_X,  STICK_Y + STICK_SIZE / 2, STICK_SIZE,
@@ -100,9 +93,10 @@ void input_debug_render_gamepad_page()
     input_debug_draw_button(BX + BW * 3, BY + BH * 6, "R", btn(s, 14));
 
     // Raw numeric read-out — helps verify the visualization.
-    char buf[128];
-    std::snprintf(buf, sizeof(buf),
+    input_debug_text(20, 230, 150, 150, 180, 1,
         "lX=%d  lY=%d  rX=%d  rY=%d  LT=%u  RT=%u",
         s.lX, s.lY, s.rX, s.rY, s.trigger_left, s.trigger_right);
-    FONT_buffer_add(20, 230, 150, 150, 180, 1, (CBYTE*)"%s", buf);
+
+    // Shared rumble test (routes through gamepad_rumble → SDL for Xbox).
+    input_debug_render_rumble_test(20, 260);
 }

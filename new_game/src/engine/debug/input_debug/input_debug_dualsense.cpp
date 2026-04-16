@@ -46,17 +46,10 @@ void input_debug_render_dualsense_page()
 {
     // Layout renders unconditionally; live widgets gate inside the
     // read-through wrapper so a brief switch to keyboard doesn't wipe
-    // the page.
+    // the page. Active/inactive indication is on the tab up top.
     const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_DUALSENSE);
-    const bool is_active = active_input_device == INPUT_DEVICE_DUALSENSE;
 
-    FONT_buffer_add(20, CONTENT_Y, 255, 255, 255, 1,
-        (CBYTE*)"DualSense");
-    if (is_active) {
-        FONT_buffer_add(140, CONTENT_Y, 0, 255, 0, 1, (CBYTE*)"[ACTIVE]");
-    } else {
-        FONT_buffer_add(140, CONTENT_Y, 200, 140, 140, 1, (CBYTE*)"[inactive — press a button on DualSense]");
-    }
+    input_debug_text(20, CONTENT_Y, 255, 255, 255, 1, "DualSense");
 
     // Sticks.
     input_debug_draw_stick(LEFT_STICK_X,  STICK_Y + STICK_SIZE / 2, STICK_SIZE,
@@ -69,6 +62,22 @@ void input_debug_render_dualsense_page()
                                  s.trigger_left,  255, "L2");
     input_debug_draw_trigger_bar(RIGHT_TRIG_X, TRIG_Y, TRIG_W, TRIG_H,
                                  s.trigger_right, 255, "R2");
+
+    // DualSense feedback indicators — act bit + raw feedback-state nibble —
+    // sit next to each trigger bar. Both come from the controller's HID
+    // input report (bytes 0x29 / 0x2A). Numbers are quiet when DS isn't
+    // the active device (wrappers return 0/false).
+    const bool  l2_act = input_debug_read_ds_effect_active(false);
+    const bool  r2_act = input_debug_read_ds_effect_active(true);
+    const uint8_t l2_fb = input_debug_read_ds_feedback(false);
+    const uint8_t r2_fb = input_debug_read_ds_feedback(true);
+
+    input_debug_draw_checkbox(LEFT_TRIG_X  + TRIG_W + 6, TRIG_Y,      "act", l2_act);
+    input_debug_text(         LEFT_TRIG_X  + TRIG_W + 6, TRIG_Y + 12, 180, 180, 200, 1,
+                              "fb=%u", (unsigned)l2_fb);
+    input_debug_draw_checkbox(RIGHT_TRIG_X + TRIG_W + 6, TRIG_Y,      "act", r2_act);
+    input_debug_text(         RIGHT_TRIG_X + TRIG_W + 6, TRIG_Y + 12, 180, 180, 200, 1,
+                              "fb=%u", (unsigned)r2_fb);
 
     // Buttons.
     constexpr SLONG BX = 290;
@@ -104,24 +113,20 @@ void input_debug_render_dualsense_page()
     input_debug_draw_button(BX + BW * 0, BY + BH * 8, "Touchpad click", btn(s, 17));
 
     // Raw numeric read-out.
-    char buf[128];
-    std::snprintf(buf, sizeof(buf),
+    input_debug_text(20, 230, 150, 150, 180, 1,
         "lX=%d  lY=%d  rX=%d  rY=%d  L2=%u  R2=%u",
         s.lX, s.lY, s.rX, s.rY, s.trigger_left, s.trigger_right);
-    FONT_buffer_add(20, 230, 150, 150, 180, 1, (CBYTE*)"%s", buf);
 
-    // TODO placeholders for DualSense-specific widgets.
-    constexpr SLONG TODO_Y = 260;
-    FONT_buffer_add(20, TODO_Y,          220, 180, 100, 1,
-        (CBYTE*)"TODO (next iterations):");
-    FONT_buffer_add(30, TODO_Y + 12,     180, 180, 180, 1,
-        (CBYTE*)"- Touchpad XY finger positions (needs parsing in libDualsense)");
-    FONT_buffer_add(30, TODO_Y + 24,     180, 180, 180, 1,
-        (CBYTE*)"- Trigger feedback status + act bit indicator (L2 and R2)");
-    FONT_buffer_add(30, TODO_Y + 36,     180, 180, 180, 1,
-        (CBYTE*)"- Adaptive-trigger effect cycle with tunable parameters");
-    FONT_buffer_add(30, TODO_Y + 48,     180, 180, 180, 1,
-        (CBYTE*)"- Rumble test (both motors, tunable amplitudes)");
-    FONT_buffer_add(30, TODO_Y + 60,     180, 180, 180, 1,
-        (CBYTE*)"- Lightbar RGB test + player LED bar test");
+    // Shared rumble test (routes through gamepad_rumble → DS vibration).
+    input_debug_render_rumble_test(20, 260);
+
+    // TODO placeholders for remaining DualSense-specific widgets.
+    constexpr SLONG TODO_Y = 310;
+    input_debug_text(20, TODO_Y,      220, 180, 100, 1, "TODO (next iterations):");
+    input_debug_text(30, TODO_Y + 12, 180, 180, 180, 1,
+        "- Touchpad XY finger positions (needs parsing in libDualsense)");
+    input_debug_text(30, TODO_Y + 24, 180, 180, 180, 1,
+        "- Adaptive-trigger effect cycle with tunable parameters");
+    input_debug_text(30, TODO_Y + 36, 180, 180, 180, 1,
+        "- Lightbar RGB test + player LED bar test");
 }

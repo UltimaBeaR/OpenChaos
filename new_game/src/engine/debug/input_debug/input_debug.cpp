@@ -12,8 +12,13 @@
 #include "engine/input/gamepad_globals.h"
 #include "ui/hud/panel.h"
 
+#include <chrono>
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
+
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
 
 // ---------------------------------------------------------------------------
 // State
@@ -39,13 +44,19 @@ const char* page_name(InputDebugPage p)
     }
 }
 
-const char* active_device_name()
+// Scale logical (640x480) coordinates to literal window pixel coordinates
+// so text lines up with AENG_draw_rect primitives. See the big comment on
+// input_debug_text in the header for the full explanation.
+SLONG to_px_x(SLONG logical) { return (logical * RealDisplayWidth)  / 640; }
+SLONG to_px_y(SLONG logical) { return (logical * RealDisplayHeight) / 480; }
+
+InputDeviceType page_to_device(InputDebugPage p)
 {
-    switch (active_input_device) {
-        case INPUT_DEVICE_KEYBOARD_MOUSE: return "Keyboard/Mouse";
-        case INPUT_DEVICE_XBOX:           return "Xbox/Generic";
-        case INPUT_DEVICE_DUALSENSE:      return "DualSense";
-        default:                          return "?";
+    switch (p) {
+        case INPUT_DEBUG_PAGE_KEYBOARD:  return INPUT_DEVICE_KEYBOARD_MOUSE;
+        case INPUT_DEBUG_PAGE_GAMEPAD:   return INPUT_DEVICE_XBOX;
+        case INPUT_DEBUG_PAGE_DUALSENSE: return INPUT_DEVICE_DUALSENSE;
+        default:                         return INPUT_DEVICE_KEYBOARD_MOUSE;
     }
 }
 
@@ -60,15 +71,131 @@ GamepadState make_idle_state()
 }
 const GamepadState s_idle_state = make_idle_state();
 
+// Rumble test state. Shared across gamepad + DualSense pages — same
+// physical motor either way, just different backend selected by
+// gamepad_rumble internally.
+enum RumbleRow {
+    RUMBLE_ROW_LOW = 0,
+    RUMBLE_ROW_HIGH,
+    RUMBLE_ROW_FIRE,
+    RUMBLE_ROW_COUNT,
+};
+
+int  s_rumble_low  = 128;
+int  s_rumble_high = 128;
+int  s_rumble_cursor = RUMBLE_ROW_LOW;
+bool s_rumble_firing = false;
+std::chrono::steady_clock::time_point s_rumble_start;
+
+constexpr int RUMBLE_STEP = 16;
+
+int clamp_motor(int v) { return v < 0 ? 0 : (v > 255 ? 255 : v); }
+
+// Shared edge-detect for navigation keys. Used by rumble and any future
+// arrow-driven widget; the nav keys are consumed by whichever widget has
+// focus on the current page.
+bool s_prev_up = false, s_prev_down = false;
+bool s_prev_left = false, s_prev_right = false;
+bool s_prev_enter = false;
+
+void rumble_tick()
+{
+    const bool up    = Keys[KB_UP]    != 0;
+    const bool down  = Keys[KB_DOWN]  != 0;
+    const bool left  = Keys[KB_LEFT]  != 0;
+    const bool right = Keys[KB_RIGHT] != 0;
+    const bool ent   = Keys[KB_ENTER] != 0;
+
+    // Cursor navigation — edge-detect so one press = one step.
+    if (up && !s_prev_up) {
+        s_rumble_cursor = (s_rumble_cursor - 1 + RUMBLE_ROW_COUNT) % RUMBLE_ROW_COUNT;
+    }
+    if (down && !s_prev_down) {
+        s_rumble_cursor = (s_rumble_cursor + 1) % RUMBLE_ROW_COUNT;
+    }
+
+    // Value adjust — only on rows that have a numeric value.
+    if (left && !s_prev_left) {
+        if (s_rumble_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  - RUMBLE_STEP);
+        if (s_rumble_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high - RUMBLE_STEP);
+    }
+    if (right && !s_prev_right) {
+        if (s_rumble_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  + RUMBLE_STEP);
+        if (s_rumble_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high + RUMBLE_STEP);
+    }
+
+    // Enter activates the focused action row.
+    if (ent && !s_prev_enter) {
+        if (s_rumble_cursor == RUMBLE_ROW_FIRE) {
+            const uint16_t lo = (uint16_t)((s_rumble_low  << 8) | s_rumble_low);
+            const uint16_t hi = (uint16_t)((s_rumble_high << 8) | s_rumble_high);
+            gamepad_rumble(lo, hi, 200);
+            s_rumble_firing = true;
+            s_rumble_start = std::chrono::steady_clock::now();
+        }
+    }
+
+    s_prev_up = up; s_prev_down = down;
+    s_prev_left = left; s_prev_right = right;
+    s_prev_enter = ent;
+
+    // DualSense vibration is continuous (duration_ms ignored by the DS
+    // path), so we stop it manually after the 200 ms window elapses.
+    if (s_rumble_firing) {
+        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - s_rumble_start).count();
+        if (elapsed >= 200) {
+            gamepad_rumble(0, 0, 0);
+            s_rumble_firing = false;
+        }
+    }
+}
+
+void rumble_stop()
+{
+    if (s_rumble_firing) {
+        gamepad_rumble(0, 0, 0);
+        s_rumble_firing = false;
+    }
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
 // Lifecycle
 // ---------------------------------------------------------------------------
 
-void input_debug_open()  { s_active = true; }
-void input_debug_close() { s_active = false; }
-void input_debug_toggle(){ s_active = !s_active; }
+static void isolate_controller_from_game()
+{
+    // Panel is modal and fully isolated — wipe anything the game was
+    // driving on the controller so test widgets start from a known
+    // state. Game's gamepad_*_update calls are gated off while the
+    // panel is active; on close they re-apply next frame automatically.
+    gamepad_rumble_stop();
+    gamepad_led_reset();
+    gamepad_triggers_off();
+}
+
+void input_debug_open()
+{
+    if (s_active) return;
+    s_active = true;
+    isolate_controller_from_game();
+}
+
+void input_debug_close()
+{
+    if (!s_active) return;
+    s_active = false;
+    rumble_stop();
+}
+
+void input_debug_toggle()
+{
+    if (s_active) input_debug_close();
+    else          input_debug_open();
+}
+
 bool input_debug_is_active() { return s_active; }
 
 // ---------------------------------------------------------------------------
@@ -97,6 +224,13 @@ void input_debug_tick()
     if (Keys[KB_1]) { Keys[KB_1] = 0; s_page = INPUT_DEBUG_PAGE_KEYBOARD; }
     if (Keys[KB_2]) { Keys[KB_2] = 0; s_page = INPUT_DEBUG_PAGE_GAMEPAD; }
     if (Keys[KB_3]) { Keys[KB_3] = 0; s_page = INPUT_DEBUG_PAGE_DUALSENSE; }
+
+    // Rumble test input only ticks on pages that actually show the widget.
+    if (s_page == INPUT_DEBUG_PAGE_GAMEPAD || s_page == INPUT_DEBUG_PAGE_DUALSENSE) {
+        rumble_tick();
+    } else if (s_rumble_firing) {
+        rumble_stop();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -118,24 +252,66 @@ static void draw_backdrop()
     AENG_draw_rect(0, 0, w, h, 0xCC000000, LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
 }
 
-static void draw_header()
+// Three tabs across the top — one per page. Each tab shows the name,
+// its hotkey, AND two independent highlights:
+//   - "open"   — this is the currently-visible page (white box outline)
+//   - "active" — the game currently treats this device as the active
+//                input source (name text turns green)
+// The two highlights stack: a tab can be both open AND active (bright
+// green name inside a white box).
+static void draw_one_tab(int idx, const char* name, const char* hotkey_hint,
+                         SLONG tab_x, SLONG tab_y, SLONG tab_w, SLONG tab_h)
 {
-    // Title / active device / page picker on the first two lines, then a
-    // thin separator line across the screen.
-    char buf[128];
+    const InputDebugPage this_page = (InputDebugPage)idx;
+    const bool is_open   = (s_page == this_page);
+    const bool is_active = (active_input_device == page_to_device(this_page));
 
-    std::snprintf(buf, sizeof(buf),
-        "INPUT DEBUG PANEL     ACTIVE: %s", active_device_name());
-    FONT_buffer_add(10, 6, 255, 255, 255, 1, (CBYTE*)"%s", buf);
+    // White box outline around the open tab (4 thin rects).
+    if (is_open) {
+        AENG_draw_rect(tab_x, tab_y,              tab_w, 1, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x, tab_y + tab_h - 1,  tab_w, 1, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x, tab_y,              1, tab_h, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x + tab_w - 1, tab_y,  1, tab_h, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+    }
 
-    std::snprintf(buf, sizeof(buf),
-        "PAGE: %s     [1] Keyboard   [2] Gamepad   [3] DualSense     F11 / ESC exit",
-        page_name(s_page));
-    FONT_buffer_add(10, 20, 200, 200, 200, 1, (CBYTE*)"%s", buf);
+    // Name colour: green when active, grey otherwise; bright when open.
+    UBYTE nr, ng, nb;
+    if (is_active) { nr = is_open ? 120 : 80;  ng = is_open ? 255 : 180; nb = is_open ? 120 : 80; }
+    else           { nr = ng = nb = is_open ? 255 : 140; }
 
-    // Separator under the header (1px tall, full width).
-    const SLONG w = (SLONG)POLY_screen_width;
-    AENG_draw_rect(0, 34, w, 1, 0x808080, LAYER_ACCENT, POLY_PAGE_COLOUR);
+    input_debug_text(tab_x + 6, tab_y + 4,  nr, ng, nb, 1, "%s", name);
+    input_debug_text(tab_x + 6, tab_y + 16, 180, 180, 80, 1, "%s", hotkey_hint);
+}
+
+static void draw_tabs()
+{
+    const SLONG sw = (SLONG)POLY_screen_width;
+    const SLONG gap = 8;
+    const SLONG tab_h = 28;
+    const SLONG tab_w = (sw - 4 * gap) / 3;
+    const SLONG tab_y = 4;
+
+    draw_one_tab(INPUT_DEBUG_PAGE_KEYBOARD,
+                 "Keyboard", "press 1",
+                 gap + 0 * (tab_w + gap), tab_y, tab_w, tab_h);
+    draw_one_tab(INPUT_DEBUG_PAGE_GAMEPAD,
+                 "Xbox controller", "press 2",
+                 gap + 1 * (tab_w + gap), tab_y, tab_w, tab_h);
+    draw_one_tab(INPUT_DEBUG_PAGE_DUALSENSE,
+                 "DualSense controller", "press 3",
+                 gap + 2 * (tab_w + gap), tab_y, tab_w, tab_h);
+
+    // Separator under the tab row.
+    AENG_draw_rect(0, tab_y + tab_h + 4, sw, 1, 0x606060, LAYER_ACCENT, POLY_PAGE_COLOUR);
+}
+
+static void draw_footer()
+{
+    // Bottom hint line — controls summary. Kept as a single row so it
+    // doesn't eat vertical real estate from the page content.
+    const SLONG sh = (SLONG)POLY_screen_height;
+    input_debug_text(10, sh - 14, 160, 160, 160, 1,
+        "arrows navigate  |  left/right adjust  |  Enter activate  |  1/2/3 switch page  |  F11 / ESC exit");
 }
 
 void input_debug_render()
@@ -145,7 +321,8 @@ void input_debug_render()
     PANEL_start();
 
     draw_backdrop();
-    draw_header();
+    draw_tabs();
+    draw_footer();
 
     switch (s_page) {
         case INPUT_DEBUG_PAGE_KEYBOARD:  input_debug_render_keyboard_page();  break;
@@ -185,7 +362,7 @@ void input_debug_draw_stick(SLONG cx, SLONG cy, SLONG size,
                    0xFF3030, LAYER_ACCENT, POLY_PAGE_COLOUR);
 
     // Label above the box.
-    FONT_buffer_add(x0, y0 - 12, 200, 200, 200, 1, (CBYTE*)"%s", label);
+    input_debug_text(x0, y0 - 12, 200, 200, 200, 1, "%s", label);
 }
 
 void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
@@ -205,27 +382,38 @@ void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
     }
 
     // Numeric readout below bar.
-    char buf[32];
-    std::snprintf(buf, sizeof(buf), "%s=%d", label, value);
-    FONT_buffer_add(x - 4, y + h + 3, 200, 200, 200, 1, (CBYTE*)"%s", buf);
+    input_debug_text(x - 4, y + h + 3, 200, 200, 200, 1, "%s=%d", label, value);
 }
 
 void input_debug_draw_button(SLONG x, SLONG y, const char* label, bool pressed)
 {
     if (pressed) {
-        FONT_buffer_add(x, y, 0, 255, 0, 1, (CBYTE*)"[%s]", label);
+        input_debug_text(x, y, 0, 255, 0, 1, "[%s]", label);
     } else {
-        FONT_buffer_add(x, y, 110, 110, 110, 1, (CBYTE*)" %s ", label);
+        input_debug_text(x, y, 110, 110, 110, 1, " %s ", label);
     }
 }
 
 void input_debug_draw_checkbox(SLONG x, SLONG y, const char* label, bool on)
 {
     if (on) {
-        FONT_buffer_add(x, y, 0, 255, 0, 1, (CBYTE*)"[x] %s", label);
+        input_debug_text(x, y, 0, 255, 0, 1, "[x] %s", label);
     } else {
-        FONT_buffer_add(x, y, 130, 130, 130, 1, (CBYTE*)"[ ] %s", label);
+        input_debug_text(x, y, 130, 130, 130, 1, "[ ] %s", label);
     }
+}
+
+void input_debug_text(SLONG x_logical, SLONG y_logical,
+                      unsigned char r, unsigned char g, unsigned char b,
+                      unsigned char shadow, const char* fmt, ...)
+{
+    char buf[256];
+    va_list ap;
+    va_start(ap, fmt);
+    std::vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    FONT_buffer_add(to_px_x(x_logical), to_px_y(y_logical),
+                    r, g, b, shadow, (CBYTE*)"%s", buf);
 }
 
 // ---------------------------------------------------------------------------
@@ -242,4 +430,50 @@ bool input_debug_key_held(unsigned char scancode)
 {
     if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE) return false;
     return Keys[scancode] != 0;
+}
+
+uint8_t input_debug_read_ds_feedback(bool right_trigger)
+{
+    if (active_input_device != INPUT_DEVICE_DUALSENSE) return 0;
+    return right_trigger ? gamepad_get_right_trigger_feedback_state()
+                         : gamepad_get_left_trigger_feedback_state();
+}
+
+bool input_debug_read_ds_effect_active(bool right_trigger)
+{
+    if (active_input_device != INPUT_DEVICE_DUALSENSE) return false;
+    return right_trigger ? gamepad_get_right_trigger_effect_active()
+                         : gamepad_get_left_trigger_effect_active();
+}
+
+void input_debug_render_rumble_test(SLONG x, SLONG y)
+{
+    input_debug_text(x, y, 220, 200, 120, 1, "Rumble test");
+
+    // Three rows with a cursor indicator. Keys (arrows / left-right /
+    // Enter) live in the panel footer — no need to repeat them here.
+    for (int row = 0; row < RUMBLE_ROW_COUNT; row++) {
+        const bool selected = (s_rumble_cursor == row);
+        const UBYTE r = selected ? 255 : 150;
+        const UBYTE g = selected ? 255 : 150;
+        const UBYTE b = selected ? 120 : 150;
+        const char* prefix = selected ? "> " : "  ";
+        const SLONG row_y = y + 14 + row * 12;
+
+        switch (row) {
+            case RUMBLE_ROW_LOW:
+                input_debug_text(x + 4, row_y, r, g, b, 1,
+                    "%slow motor        %3d", prefix, s_rumble_low);
+                break;
+            case RUMBLE_ROW_HIGH:
+                input_debug_text(x + 4, row_y, r, g, b, 1,
+                    "%shigh motor       %3d", prefix, s_rumble_high);
+                break;
+            case RUMBLE_ROW_FIRE:
+                input_debug_text(x + 4, row_y, r, g, b, 1,
+                    "%sfire 200ms pulse%s",
+                    prefix, s_rumble_firing ? "    [FIRING]" : "");
+                break;
+        }
+    }
 }

@@ -62,7 +62,11 @@ void MSG_draw(void)
     pos = current_message - SCREEN_SIZE + draw_message_offset;
     if (pos < 0)
         pos += MSG_MAX_MESSAGES;
-    if (pos > MSG_MAX_MESSAGES)
+    // BUGFIX: original had `pos > MSG_MAX_MESSAGES` which left pos == 1000
+    // untouched and made the loop below read MSG_message[1000], one past
+    // the 1000-element array. Caught by ASan. Same off-by-one in the
+    // wrap at the bottom of this function.
+    if (pos >= MSG_MAX_MESSAGES)
         pos -= MSG_MAX_MESSAGES;
 
     if (ShiftFlag)
@@ -87,7 +91,7 @@ void MSG_draw(void)
         }
 
         pos++;
-        if (pos > MSG_MAX_MESSAGES)
+        if (pos >= MSG_MAX_MESSAGES)
             pos = 0;
     }
 }

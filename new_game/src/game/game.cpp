@@ -955,6 +955,12 @@ round_again:;
             } else {
             }
 
+            // Gamepad output (rumble, LED, adaptive triggers) is fully
+            // suspended while the input debug panel is open. The panel
+            // owns the controller outputs and clears them on open — see
+            // input_debug_open.
+            if (!input_debug_is_active()) {
+
             // Update rumble motor decay and send to controller every frame.
             gamepad_rumble_tick();
 
@@ -1054,6 +1060,8 @@ round_again:;
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
             }
+
+            } // end of "!input_debug_is_active()" block — gamepad outputs
 
             {
                 PUDDLE_process();
