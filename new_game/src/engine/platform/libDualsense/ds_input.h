@@ -1,0 +1,83 @@
+#pragma once
+
+// DualSense HID input report parser.
+//
+// Parses the normalized 64-byte input report into a POD struct. The
+// input pointer must already have the Report ID byte stripped:
+//   - USB: pass report starting at byte after the 0x01 Report ID
+//   - BT:  pass report starting at byte after the 0x31 Report ID +
+//          1 byte of BT framing (net +2 strip)
+//
+// After stripping, the byte offsets are identical for USB and BT
+// which is what this parser assumes.
+
+#include <cstdint>
+
+namespace oc::dualsense {
+
+// Parsed DualSense input state. All values are in raw device units
+// (sticks centered at 128, triggers 0..255). Translation to game
+// units (-1..+1 sticks, 0..1 triggers) is done by ds_bridge.
+struct InputState {
+    // Analog
+    std::uint8_t left_stick_x;   // 0..255, center 128
+    std::uint8_t left_stick_y;   // 0..255, center 128, Y+ down
+    std::uint8_t right_stick_x;
+    std::uint8_t right_stick_y;
+    std::uint8_t left_trigger;   // 0..255
+    std::uint8_t right_trigger;  // 0..255
+
+    // Face buttons
+    bool cross;
+    bool circle;
+    bool square;
+    bool triangle;
+
+    // Shoulders
+    bool l1;
+    bool r1;
+    bool l2;      // digital threshold from device
+    bool r2;
+
+    // D-Pad (decoded from hat byte)
+    bool dpad_up;
+    bool dpad_down;
+    bool dpad_left;
+    bool dpad_right;
+
+    // Menu / system
+    bool start;       // Options
+    bool share;       // Create
+    bool ps_button;
+    bool touchpad_click;
+    bool mute;
+
+    // Sticks click
+    bool l3;
+    bool r3;
+
+    // Adaptive trigger feedback status (per-trigger state byte).
+    //   bit 4        = effect-active flag (motor currently engaged)
+    //   bits 0..3    = internal motor state nybble
+    // Meaningful for effect modes Feedback(0x21), Weapon(0x25),
+    // Vibration(0x26). Off(0x05) reports zero.
+    std::uint8_t left_trigger_feedback;   // raw byte from offset 0x2A
+    std::uint8_t right_trigger_feedback;  // raw byte from offset 0x29
+    bool         left_trigger_effect_active;
+    bool         right_trigger_effect_active;
+
+    // Battery
+    std::uint8_t battery_level_percent;  // 0..100
+    bool         battery_charging;
+    bool         battery_full;
+
+    // Headphone plugged-in flag
+    bool headphone_connected;
+};
+
+// Parse a normalized 64-byte DualSense input report into `out`.
+// `report` must point at a buffer of at least 55 bytes of parsed
+// data (Report ID / BT framing already stripped by the caller).
+void parse_input_report(const std::uint8_t* report, InputState* out);
+
+} // namespace oc::dualsense
