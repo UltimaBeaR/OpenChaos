@@ -373,7 +373,7 @@ override'а когда панель активна, иначе точка сти
 - **Iteration 4** — touchpad XY парсинг, touchpad viz, lightbar test,
   player LED test. Попутно нашли и пофиксили что libDualsense не шлёт
   BT init packet → LED не применялся на Bluetooth (детали в
-  [`dualsense_libs_reference/own_dualsense_lib_plan.md`](../dualsense_libs_reference/own_dualsense_lib_plan.md))
+  [`dualsense_libs_reference/own_dualsense_lib_plan.md`](dualsense_libs_reference/own_dualsense_lib_plan.md))
 - **Iteration 5** (2026-04-17) — z-order фикс (точки/заливки теперь
   рисуются). Корень бага: конвенция `layer` в `AENG_draw_rect` инверсна
   тому, что документировал skill `hud-rendering`. Цепочка преобразований

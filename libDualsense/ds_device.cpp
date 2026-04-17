@@ -1,7 +1,7 @@
 // DualSense HID device implementation over SDL3 hidapi.
 // Ported from the uc_hid namespace in engine/platform/ds_bridge.cpp.
 
-#include "engine/platform/libDualsense/ds_device.h"
+#include <libDualsense/ds_device.h>
 
 #include <SDL3/SDL_hidapi.h>
 #include <SDL3/SDL_hints.h>

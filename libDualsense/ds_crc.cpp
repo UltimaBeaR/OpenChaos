@@ -1,7 +1,7 @@
 // CRC32 for DualSense Bluetooth output reports.
 // Table adapted from third-party sources — see THIRD_PARTY_LICENSES.md.
 
-#include "engine/platform/libDualsense/ds_crc.h"
+#include <libDualsense/ds_crc.h>
 
 namespace oc::dualsense {
 

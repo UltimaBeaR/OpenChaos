@@ -31,5 +31,8 @@ Config is in `.clang-format` (project root of `new_game/`).
 ## DualSense support
 
 DualSense controller support is provided by **libDualsense** — an
-OpenChaos-owned minimal library in `src/engine/platform/libDualsense/`.
-See `libDualsense/README.md` and `libDualsense/API.md` for documentation.
+OpenChaos-owned standalone library at the repo root (`../libDualsense/`
+relative to `new_game/`). It has its own `CMakeLists.txt` and is pulled
+in via `add_subdirectory` from `new_game/CMakeLists.txt`, then linked
+as a dependency of `OpenChaos`. See `libDualsense/README.md` and
+`libDualsense/API.md` for the lib's own documentation.

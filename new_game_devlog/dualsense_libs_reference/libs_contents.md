@@ -1,12 +1,12 @@
 # `libs/` contents — что положить и откуда взять
 
-Папка `dualsense_libs_reference/libs/` под **gitignore** — локальная,
+Папка `new_game_devlog/dualsense_libs_reference/libs/` под **gitignore** — локальная,
 не коммитится в репо. Чтобы воссоздать её с нуля, скачай все репо из
 списка ниже и положи каждое в указанную подпапку.
 
 **Формат каждого пункта**:
 - **Репо**: ссылка на GitHub
-- **Куда положить**: путь относительно `dualsense_libs_reference/libs/`
+- **Куда положить**: путь относительно `new_game_devlog/dualsense_libs_reference/libs/`
 - **Проверка**: файл который должен существовать после распаковки —
   если есть, значит всё правильно распаковалось
 - **Доп. действия**: если нужно что-то ещё сделать после распаковки
@@ -70,11 +70,11 @@
   должен содержать строку `=== OPENCHAOS-PATCH BEGIN: Weapon25 packing rewrite ===`
 - **Доп. действия**: скопируй папку целиком:
   - **Windows**: через Explorer — выдели `new_game/libs/dualsense-multiplatform/`,
-    скопируй (Ctrl+C), вставь в `dualsense_libs_reference/libs/`, переименуй
+    скопируй (Ctrl+C), вставь в `new_game_devlog/dualsense_libs_reference/libs/`, переименуй
     вставленную папку в `rafaelvaloto-patched`.
   - **Или из командной строки (любая OS)**:
     ```
-    cp -r new_game/libs/dualsense-multiplatform dualsense_libs_reference/libs/rafaelvaloto-patched
+    cp -r new_game/libs/dualsense-multiplatform new_game_devlog/dualsense_libs_reference/libs/rafaelvaloto-patched
     ```
 - **Зачем**: удобно делать `diff -ru libs/rafaelvaloto-pristine libs/rafaelvaloto-patched/Dualsense-Multiplatform`
   чтобы видеть все наши локальные патчи одним выводом, без прыжков
@@ -151,7 +151,7 @@
 ## Итоговая структура после установки всех обязательных
 
 ```
-dualsense_libs_reference/libs/
+new_game_devlog/dualsense_libs_reference/libs/
 ├── duaLib/                              <- пункт 1
 ├── DualSense-Windows/                   <- пункт 2
 ├── nondebug-dualsense/                  <- пункт 3

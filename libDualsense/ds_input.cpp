@@ -1,6 +1,6 @@
 // DualSense HID input report parser.
 
-#include "engine/platform/libDualsense/ds_input.h"
+#include <libDualsense/ds_input.h>
 
 namespace oc::dualsense {
 

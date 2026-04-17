@@ -5,8 +5,8 @@
 `code`, `reverse-engineered`, `community`).
 
 Ссылки на детали:
-- Реализация и история отладки — [`weapon_haptic_and_adaptive_trigger.md`](../new_game_devlog/weapon_haptic_and_adaptive_trigger.md)
-- Тестовый инструмент — [`new_game/src/engine/input/weapon_feel_test.cpp`](../new_game/src/engine/input/weapon_feel_test.cpp) (живёт в ветке `dualsence_test`, не в main)
+- Реализация и история отладки — [`weapon_haptic_and_adaptive_trigger.md`](../weapon_haptic_and_adaptive_trigger.md)
+- Тестовый инструмент — [`new_game/src/engine/input/weapon_feel_test.cpp`](../../new_game/src/engine/input/weapon_feel_test.cpp) (живёт в ветке `dualsence_test`, не в main)
 - Полный аудит реализации эффектов в либе vs. Nielk1 спека — [`dualsense_lib_pr_notes.md`](dualsense_lib_pr_notes.md) раздел 6.6
 - Reverse-engineered packing всех эффектов — [Nielk1 gist (HTML)](https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db) / [raw](https://gist.githubusercontent.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db/raw)
 - Независимые подтверждения спеки:

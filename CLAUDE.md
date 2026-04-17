@@ -37,15 +37,16 @@ new_game_planning/                  — планирование новой иг
   porting_notes.md                  — заметки по портированию подсистем
   entity_mapping.json               — соответствия старых/новых имён (создаётся на Этапе 4, управляется через tools/entity_map.py)
 new_game/                           — код новой версии игры (итеративный рефакторинг оригинала)
+libDualsense/                       — OpenChaos-owned standalone DualSense lib. Собственный минимальный модуль (SDL3 hidapi). Подключается к new_game через add_subdirectory из new_game/CMakeLists.txt. Потребители: `#include <libDualsense/ds_*.h>`. Доки либы: `libDualsense/README.md`, `libDualsense/API.md`.
 new_game_devlog/                    — рабочая документация по процессу разработки (находки, решения, технические детали)
-dualsense_libs_reference/           — всё по DualSense протоколу/либам в одном месте (справочник, план своей либы, PR notes)
-  README.md                         — навигация по папке
-  libs_contents.md                  — инструкции по скачиванию референсных либ в libs/
-  own_dualsense_lib_plan.md         — план переписывания на свою DualSense либу
-  dualsense_protocol_reference.md   — справка по DualSense протоколу
-  dualsense_adaptive_trigger_facts.md — эмпирические факты про железо
-  dualsense_lib_pr_notes.md         — АРХИВ: PR notes для бывшей vendored либы (больше не актуально)
-  libs/                             — [GITIGNORED] клоны референсных либ (duaLib, DS5W, nondebug)
+  dualsense_libs_reference/         — всё по DualSense протоколу/либам в одном месте (справочник, план своей либы, PR notes)
+    README.md                       — навигация по папке
+    libs_contents.md                — инструкции по скачиванию референсных либ в libs/
+    own_dualsense_lib_plan.md       — план переписывания на свою DualSense либу
+    dualsense_protocol_reference.md — справка по DualSense протоколу
+    dualsense_adaptive_trigger_facts.md — эмпирические факты про железо
+    dualsense_lib_pr_notes.md       — АРХИВ: PR notes для бывшей vendored либы (больше не актуально)
+    libs/                           — [GITIGNORED] клоны референсных либ (duaLib, DS5W, nondebug)
 release/                            — упаковка релизов (скрипты, ассеты по платформам, dist/)
 make/                               — модули Makefile (platform.mk, configure.mk)
 tools/                              — вспомогательные инструменты
@@ -77,8 +78,8 @@ CLAUDE.md                           — этот файл
 | Известные проблемы и баги (бессрочный список) | `new_game_planning/known_issues_and_bugs.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
-| DualSense (протокол, либы, trigger effects, packing'и) | `dualsense_libs_reference/README.md` (навигация) — не читай `new_game_devlog/` для DualSense тем, вся документация переехала в `dualsense_libs_reference/` |
-| Писать свою DualSense либу | `dualsense_libs_reference/own_dualsense_lib_plan.md` — self-contained план со всеми ссылками |
+| DualSense (протокол, либы, trigger effects, packing'и) | `new_game_devlog/dualsense_libs_reference/README.md` (навигация) — вся DualSense-специфичная документация собрана в этой подпапке |
+| Писать свою DualSense либу | `new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md` — self-contained план со всеми ссылками |
 | Отладочные клавиши в игре (`bangunsnotgames` режим, F1 legend) | `new_game_devlog/debug_keys.md` — список клавиш, как включить режим, куда добавлять новые debug-клавиши |
 
 **НЕ читать** subsystem файлы по умолчанию — DENSE_SUMMARY покрывает большинство вопросов.
@@ -167,7 +168,7 @@ CLAUDE.md                           — этот файл
   - Этапы Фазы 3 → `new_game_planning/stages.md` (индекс) + `new_game_planning/stage*.md`
   - Пре-релизные баги (фиксы) → `new_game_planning/prerelease_fixes.md`
   - Известные проблемы и баги → `new_game_planning/known_issues_and_bugs.md`
-  - Всё про DualSense (протокол, либы, trigger effects, packing'и, PR notes) → `dualsense_libs_reference/` (**НЕ** в `new_game_devlog/`). Игровая weapon система которая использует DualSense — `new_game_devlog/weapon_haptic_and_adaptive_trigger.md`.
+  - Всё про DualSense (протокол, либы, trigger effects, packing'и, PR notes) → `new_game_devlog/dualsense_libs_reference/`. Игровая weapon система которая использует DualSense — `new_game_devlog/weapon_haptic_and_adaptive_trigger.md`.
   - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
     - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON
   - Правила работы → этот файл (CLAUDE.md)

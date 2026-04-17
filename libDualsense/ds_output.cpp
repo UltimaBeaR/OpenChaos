@@ -1,8 +1,8 @@
 // DualSense output report builder.
 
-#include "engine/platform/libDualsense/ds_output.h"
+#include <libDualsense/ds_output.h>
 
-#include "engine/platform/libDualsense/ds_crc.h"
+#include <libDualsense/ds_crc.h>
 
 #include <cstring>
 

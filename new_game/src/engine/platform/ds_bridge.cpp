@@ -3,11 +3,11 @@
 
 #include "engine/platform/ds_bridge.h"
 
-#include "engine/platform/libDualsense/ds_crc.h"
-#include "engine/platform/libDualsense/ds_device.h"
-#include "engine/platform/libDualsense/ds_input.h"
-#include "engine/platform/libDualsense/ds_output.h"
-#include "engine/platform/libDualsense/ds_trigger.h"
+#include <libDualsense/ds_crc.h>
+#include <libDualsense/ds_device.h>
+#include <libDualsense/ds_input.h>
+#include <libDualsense/ds_output.h>
+#include <libDualsense/ds_trigger.h>
 
 #include <algorithm>
 #include <cstring>

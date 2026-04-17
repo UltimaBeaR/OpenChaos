@@ -286,7 +286,7 @@ Input->bLeftTriggerEffectActive  = (L2Fb & 0x10) != 0;
 transports = 6 комбинаций. Патч готов к PR в апстрим.
 
 Для каждой непроверенной конфигурации использовать тестовый инструмент
-[`weapon_feel_test.cpp`](../new_game/src/engine/input/weapon_feel_test.cpp)
+[`weapon_feel_test.cpp`](../../new_game/src/engine/input/weapon_feel_test.cpp)
 в OpenChaos: запустить игру, взять пистолет в руки, нажать `\` для
 входа в режим теста, наблюдать значения `fb=N act=0/1` в правом
 верхнем углу экрана и подтвердить что:
@@ -664,16 +664,16 @@ byte[3] = strength (<= 10)
 
 - [`dualsense_protocol_reference.md`](dualsense_protocol_reference.md) — общая справка по DualSense protocol для проекта.
 - [`dualsense_adaptive_trigger_facts.md`](dualsense_adaptive_trigger_facts.md) — наши собственные эмпирические факты про hardware (rate limit, click point, и т.п.), включая полную таблицу feedback nybble значений.
-- [`weapon_haptic_and_adaptive_trigger.md`](../new_game_devlog/weapon_haptic_and_adaptive_trigger.md) — история отладки adaptive trigger в OpenChaos, объясняет зачем вообще понадобилось feedback status (boundary detection issue).
-- [`new_game/src/engine/input/weapon_feel_test.cpp`](../new_game/src/engine/input/weapon_feel_test.cpp) — наш тестовый инструмент для проверки patched behavior. Используется для cross-platform валидации.
+- [`weapon_haptic_and_adaptive_trigger.md`](../weapon_haptic_and_adaptive_trigger.md) — история отладки adaptive trigger в OpenChaos, объясняет зачем вообще понадобилось feedback status (boundary detection issue).
+- [`new_game/src/engine/input/weapon_feel_test.cpp`](../../new_game/src/engine/input/weapon_feel_test.cpp) — наш тестовый инструмент для проверки patched behavior. Используется для cross-platform валидации.
 
 ### 7.3 Контекст в либе
 
-- [`Source/Public/GCore/Types/Structs/Context/InputContext.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GCore/Types/Structs/Context/InputContext.h) — где добавляем поля для PR #1.
-- [`Source/Public/GImplementations/Utils/GamepadInput.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadInput.h) — где добавляем чтение байт для PR #1.
-- [`Source/Public/GImplementations/Utils/GamepadTrigger.h`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadTrigger.h) — где живут packing функции всех эффектов (PR #2).
-- [`Source/Private/GImplementations/Libraries/DualSense/DualSenseLibrary.cpp`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Private/GImplementations/Libraries/DualSense/DualSenseLibrary.cpp) — `FDualSenseLibrary::UpdateInput`, показывает USB vs BT padding handling.
-- [`Source/Private/GImplementations/Utils/GamepadOutput.cpp`](../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Private/GImplementations/Utils/GamepadOutput.cpp) — `SetTriggerEffects`, показывает куда Compose попадают в wire-байты.
+- [`Source/Public/GCore/Types/Structs/Context/InputContext.h`](../../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GCore/Types/Structs/Context/InputContext.h) — где добавляем поля для PR #1.
+- [`Source/Public/GImplementations/Utils/GamepadInput.h`](../../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadInput.h) — где добавляем чтение байт для PR #1.
+- [`Source/Public/GImplementations/Utils/GamepadTrigger.h`](../../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Public/GImplementations/Utils/GamepadTrigger.h) — где живут packing функции всех эффектов (PR #2).
+- [`Source/Private/GImplementations/Libraries/DualSense/DualSenseLibrary.cpp`](../../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Private/GImplementations/Libraries/DualSense/DualSenseLibrary.cpp) — `FDualSenseLibrary::UpdateInput`, показывает USB vs BT padding handling.
+- [`Source/Private/GImplementations/Utils/GamepadOutput.cpp`](../../new_game/libs/dualsense-multiplatform/Dualsense-Multiplatform/Source/Private/GImplementations/Utils/GamepadOutput.cpp) — `SetTriggerEffects`, показывает куда Compose попадают в wire-байты.
 
 ---
 

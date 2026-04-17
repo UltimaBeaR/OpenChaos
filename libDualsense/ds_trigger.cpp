@@ -1,7 +1,7 @@
 // DualSense adaptive trigger effect factories.
 // Byte packings adapted from third-party sources — see THIRD_PARTY_LICENSES.md.
 
-#include "engine/platform/libDualsense/ds_trigger.h"
+#include <libDualsense/ds_trigger.h>
 
 #include <cstring>
 

@@ -70,6 +70,7 @@ original_game/                — original source code (read-only reference)
 original_game_resources/      — game resource files (not committed, see Setup below)
 original_game_knowledge_base/ — detailed documentation on the original game
 new_game/                     — modernized game (work in progress)
+libDualsense/                 — OpenChaos-owned standalone DualSense support library (used by new_game)
 new_game_planning/            — planning and architecture docs (phases, stages, tech decisions)
 new_game_devlog/              — development log and technical notes
 release/                      — release packaging (scripts, per-platform assets)

@@ -50,16 +50,17 @@ find_package(FFMPEG REQUIRED)
 option(ENABLE_ASAN "Enable AddressSanitizer (heap overflow detection)" OFF)
 
 # ---------------------------------------------------------------------------
-# DualSense backend: libDualsense (OpenChaos-owned)
+# DualSense backend
 # ---------------------------------------------------------------------------
+# libDualsense itself lives at repo root as an independent static library
+# (see ../libDualsense/CMakeLists.txt). Here we only list the bridge that
+# adapts it for OpenChaos game code. The lib target is added via
+# add_subdirectory further below and linked into OpenChaos as a dependency.
 set(DS_BRIDGE_SOURCES
     src/engine/platform/ds_bridge.cpp
-    src/engine/platform/libDualsense/ds_crc.cpp
-    src/engine/platform/libDualsense/ds_device.cpp
-    src/engine/platform/libDualsense/ds_input.cpp
-    src/engine/platform/libDualsense/ds_output.cpp
-    src/engine/platform/libDualsense/ds_trigger.cpp
 )
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/../libDualsense libDualsense_build)
 
 # ---------------------------------------------------------------------------
 # Graphics backend: OpenGL 4.1 Core Profile (only backend)
@@ -607,6 +608,9 @@ target_link_libraries(OpenChaos PRIVATE
 
     # Graphics backend libraries
     ${BACKEND_LIBS}
+
+    # Project-owned standalone libraries (see ../libDualsense/)
+    libDualsense
 )
 
 

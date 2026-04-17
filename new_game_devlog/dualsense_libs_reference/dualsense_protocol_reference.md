@@ -7,8 +7,8 @@ reverse-engineering**, проверенные кросс-источниками.
 
 См. также:
 - [`dualsense_adaptive_trigger_facts.md`](dualsense_adaptive_trigger_facts.md) — наши собственные эмпирические замеры
-- [`weapon_haptic_and_adaptive_trigger.md`](../new_game_devlog/weapon_haptic_and_adaptive_trigger.md) — история отладки adaptive trigger в проекте
-- Наша обёртка: [`new_game/src/engine/platform/ds_bridge.cpp`](../new_game/src/engine/platform/ds_bridge.cpp)
+- [`weapon_haptic_and_adaptive_trigger.md`](../weapon_haptic_and_adaptive_trigger.md) — история отладки adaptive trigger в проекте
+- Наша обёртка: [`new_game/src/engine/platform/ds_bridge.cpp`](../../new_game/src/engine/platform/ds_bridge.cpp)
 - Используемая либа: `new_game/libs/dualsense-multiplatform/`
 
 ## 1. Подключение и transport

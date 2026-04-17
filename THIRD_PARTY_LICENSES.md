@@ -116,5 +116,6 @@ through the project's open source code and build instructions.
 ## libDualsense
 
 DualSense controller support uses an OpenChaos-owned library
-(`src/engine/platform/libDualsense/`). Third-party attributions for
-code adapted into libDualsense are in `libDualsense/THIRD_PARTY_LICENSES.md`.
+(`libDualsense/` at repo root, sibling to `new_game/`). Third-party
+attributions for code adapted into libDualsense are in
+`libDualsense/THIRD_PARTY_LICENSES.md`.
