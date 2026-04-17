@@ -33,9 +33,10 @@
 //   1. gamepad_poll()                  — reads analog trigger into
 //                                        gamepad_state.trigger_{left,right}
 //   2. get_hardware_input()            — input_actions.cpp calls
-//                                        weapon_feel_evaluate_fire(r2, l2)
-//                                        to turn analog values into
-//                                        discrete PUNCH/KICK input bits
+//                                        weapon_feel_evaluate_fire(weapon,
+//                                        r2, l2, weapon_drawn) to turn
+//                                        analog values into discrete
+//                                        PUNCH/KICK input bits
 //   3. game simulation                 — processes PUNCH → actually_fire_gun
 //                                        → weapon_feel_on_shot_fired()
 //                                        (only on REAL fires, gated by
@@ -58,10 +59,12 @@
 //
 //   * ACT-BIT path — used when the device is a DualSense AND the
 //     weapon's profile has an adaptive click (trigger_strength > 0)
-//     AND it's single-shot. The DualSense trigger motor reports an
-//     "effect active" bit (act) in the input report: act=1 while the
-//     trigger is inside the Weapon25 resistance zone, act=0 otherwise.
-//     The 1→0 edge fires once per physical click. We consult
+//     AND it's single-shot AND the weapon is currently drawn (the
+//     caller passes FLAG_PERSON_GUN_OUT as `weapon_drawn`). The
+//     DualSense trigger motor reports an "effect active" bit (act) in
+//     the input report: act=1 while the trigger is inside the
+//     Weapon25 resistance zone, act=0 otherwise. The 1→0 edge fires
+//     once per physical click. We consult
 //     gamepad_get_right_trigger_effect_active() for act and fire on
 //     the edge with r2 > reset_threshold (high r2 disambiguates a
 //     click from a release inside the zone). The hardware naturally
@@ -69,10 +72,11 @@
 //     no wall-clock timers. Game Timer1 still rate-limits.
 //
 //   * THRESHOLD fallback — used for auto-fire weapons (AK47), click-less
-//     profiles (shotgun today), and all non-DualSense devices (Xbox,
-//     keyboard-as-gamepad). Plain rising-edge: r2 ≤ reset_threshold
-//     arms, r2 > fire_threshold fires. Auto-fire ignores the armed
-//     gate. Same code that used to run for everyone.
+//     profiles (shotgun today), bare-hand melee (no gun out), and all
+//     non-DualSense devices (Xbox, keyboard-as-gamepad). Plain
+//     rising-edge: r2 ≤ reset_threshold arms, r2 > fire_threshold
+//     fires. Auto-fire ignores the armed gate. Same code that used to
+//     run for everyone.
 //
 // Why two paths: on DualSense the act bit is the direct hardware
 // signal "the trigger just clicked", so fire and click are perfectly
@@ -85,24 +89,37 @@
 // AND that gamepad.cpp is actually sending Weapon25 (which it is,
 // via the AIM_GUN trigger mode).
 //
-// Adaptive-trigger mode is kept continuously enabled by gamepad.cpp
-// while the weapon is ready. Mode never flips mid-gameplay, so there
-// is no Bluetooth HID-round-trip race.
+// Cooldown gating: gamepad.cpp forces mode=NONE during a post-fire
+// window so the hardware doesn't click on presses the game will refuse.
+// Two mechanisms work together:
 //
-// Known residual issues:
+//   * Running-shot Timer1 gate (in game.cpp): when the player is in
+//     STATE_MOVEING with Timer1 > 15 (one tick's worth of decrement),
+//     on_cooldown=true → weapon_ready=false → mode=NONE. The "> 15"
+//     pre-releases the gate one tick early so the NONE→AIM_GUN HID
+//     packet has time to propagate (~30 ms RTT) before Timer1
+//     actually reaches 0 and the game accepts the next shot.
+//   * Immediate mode=NONE on the fire frame (weapon_feel_on_shot_fired
+//     calls gamepad_triggers_lockout(0)): sends the NONE HID packet
+//     right away so a rapid re-press within the HID RTT window
+//     doesn't land on a still-active motor. Without this the first
+//     ~30 ms after a shot could still produce a phantom click.
 //
-//   * Fast single-tick presses (whole zone crossed in one 33 ms tick)
-//     may miss the act=1 sample → no act edge → no fire. This overlaps
-//     with the hardware Weapon25 rate limit (~270 ms) — hardware also
-//     drops clicks in this regime, so a threshold-path fire would fire
-//     without a physical click, violating R3 ("no shot without click").
-//     Act-path failing silently is the correct behaviour per R3/R2.
+// The act-bit path fires strictly on the hardware act-edge — no
+// threshold fallback. A threshold fallback was tried to cover rapid
+// taps the motor can't keep up with, but it re-introduced shots
+// without clicks in the HID-latency window around mode transitions.
+// The accepted trade-off: if a fast tap bypasses the motor's ability
+// to click, neither click nor shot happens. Every shot is synchronised
+// with a tactile click — the user's explicit requirement.
 //
-//   * Press during Timer1 cooldown still produces "click without shot":
-//     hardware emits click whenever the zone is crossed, act edge
-//     fires, weapon_feel calls shoot, but Timer1 refuses in
-//     actually_fire_gun. Acceptable per R4 — quiet refusal matches
-//     keyboard behaviour.
+// Why not read Person::Timer1 for standing-shot too: Timer1 only
+// decrements in fn_person_moveing (STATE_MOVEING). Outside that state
+// it freezes and can't be used as a fire-rate signal. The game itself
+// doesn't rate-limit standing shots via Timer1 either — set_person_shoot
+// fires on every accepted press without a Timer1 check. So there's
+// nothing for the adaptive trigger to sync to on standing, and mode=AIM_GUN
+// stays active continuously: each press → click → shot.
 //
 // History of dead-ends we already walked (armed gate, release-settle,
 // post-fire cooldown, split mode/fire lockout, MIN_PRESS_DURATION)
@@ -245,6 +262,7 @@ const WeaponFeelProfile k_default_profile = {
     /*fire_threshold*/    200,
     /*reset_threshold*/   80,
     /*auto_fire*/         false,
+    /*fire_cooldown_ms*/  0,
 };
 
 // ---------------------------------------------------------------------------
@@ -362,6 +380,15 @@ bool s_l2_armed = true;
 // event (click at the top of the zone, or release from inside the zone).
 bool s_prev_act_r2 = false;
 
+// Wall-clock end of the post-fire cooldown window. game.cpp consults
+// weapon_feel_is_in_fire_cooldown() to force mode=NONE during this
+// window so the hardware doesn't emit clicks while the game is still
+// in its per-weapon fire-rate gate. Set by weapon_feel_on_shot_fired
+// based on the active profile's fire_cooldown_ms. Initialised deep
+// in the past so the check returns false until the first real shot.
+std::chrono::steady_clock::time_point s_fire_cooldown_end =
+    std::chrono::steady_clock::now() - std::chrono::seconds(10);
+
 // Pure debug log / crossing detection state — none of this gates fire.
 // s_prev_r2 / s_prev_l2 hold the previous tick's analog values so we
 // can detect downward and upward crossings of reset_threshold (for
@@ -403,8 +430,19 @@ void weapon_feel_init()
         /*fire_threshold*/    200,
         /*reset_threshold*/   80,
         /*auto_fire*/         true,
+        /*fire_cooldown_ms*/  0,   // no adaptive click → mode stays NONE anyway
     };
     // Pistol — single-shot light pop. Rising-edge fire.
+    //
+    // fire_cooldown_ms=0: no wall-clock gate from weapon_feel's side.
+    // The running-shot cooldown gate is applied directly from game.cpp
+    // using the game's own Timer1 (STATE_MOVEING + Timer1>15) — see
+    // the module manual at the top of this file for why.
+    //
+    // 2026-04-18 status: this system is still not satisfying the user.
+    // See the "HANDOFF" section at the top of
+    // new_game_devlog/weapon_haptic_and_adaptive_trigger.md for the
+    // up-to-date attempts log and what to investigate next.
     WeaponFeelProfile pistol = {
         /*haptic_wave_id*/    S_PISTOL_SHOT,
         /*haptic_gain*/       0.05f,
@@ -416,6 +454,7 @@ void weapon_feel_init()
         /*fire_threshold*/    200,
         /*reset_threshold*/   80,
         /*auto_fire*/         false,
+        /*fire_cooldown_ms*/  0,
     };
     // Shotgun — heavy slam with longer decay.
     WeaponFeelProfile shotgun = {
@@ -429,6 +468,7 @@ void weapon_feel_init()
         /*fire_threshold*/    200,
         /*reset_threshold*/   80,
         /*auto_fire*/         false,
+        /*fire_cooldown_ms*/  0,   // no adaptive click → mode stays NONE anyway
     };
 
     s_initialized = true;
@@ -444,6 +484,7 @@ void weapon_feel_init()
     s_r2_armed = true;
     s_l2_armed = true;
     s_prev_act_r2 = false;
+    s_fire_cooldown_end = std::chrono::steady_clock::now() - std::chrono::seconds(10);
 }
 
 void weapon_feel_shutdown()
@@ -478,16 +519,30 @@ const WeaponFeelProfile* weapon_feel_get_profile(int32_t special_type)
 void weapon_feel_on_shot_fired(int32_t special_type)
 {
     weapon_feel_debug_log("ON_SHOT_FIRED special=%d", (int)special_type);
+
+    // Cooldown is tracked regardless of device type — it's a simple wall-clock
+    // window that gamepad.cpp consults via weapon_feel_is_in_fire_cooldown().
+    // Non-DualSense devices just don't have adaptive triggers to gate, so the
+    // cooldown is harmless (and the envelope playback below is gated on
+    // DualSense explicitly).
+    const WeaponFeelProfile* p = weapon_feel_get_profile(special_type);
+    if (p->fire_cooldown_ms > 0) {
+        s_fire_cooldown_end = std::chrono::steady_clock::now() +
+            std::chrono::milliseconds(p->fire_cooldown_ms);
+    }
+
     if (gamepad_get_device_type() != INPUT_DEVICE_DUALSENSE) return;
 
     auto it = s_profiles.find(special_type);
     if (it == s_profiles.end()) return;
     const ProfileEntry& entry = it->second;
 
-    // Single-shot weapons immediately disarm the Weapon25 click on the fire
-    // frame so there's no chance of a stale click sneaking through between
-    // the game setting Timer1 and gamepad_triggers_update running. Auto-fire
-    // weapons keep the click live for the next shot in the burst.
+    // Force mode=NONE immediately on the fire frame for single-shot
+    // weapons — the subsequent gamepad_triggers_update at the end of
+    // this tick would do the same thing, but doing it here shaves
+    // one tick (~67 ms) + HID RTT off the window during which a rapid
+    // re-press could still catch an active motor and produce a
+    // click-without-shot.
     if (!entry.profile.auto_fire) {
         gamepad_triggers_lockout(0);
     }
@@ -556,32 +611,26 @@ void weapon_feel_stop_haptic()
 
 // Two fire-detection paths in one function:
 //
-//   Act-bit path (DualSense + weapon has adaptive click + single-shot):
-//     Fire on the act-bit 1→0 transition reported by the controller.
-//     This is a direct hardware signal: the trigger motor flips act=0
-//     the instant the physical click snaps through. r2 > reset_threshold
-//     disambiguates click (r2 high) from release-without-click (r2 low,
-//     same edge). No position guessing, no rising-edge gate — the
-//     hardware naturally emits at most one click per physical press
-//     cycle, so Timer1 in actually_fire_gun is the only rate limiter.
+//   Act-bit path (DualSense + weapon has adaptive click + single-shot
+//   + weapon_drawn):
+//     Fires strictly on the act-bit 1→0 transition — the direct hardware
+//     signal that the Weapon25 motor clicked. No threshold fallback.
+//     If the hardware doesn't click (motor rate-limited, mode=NONE
+//     during cooldown gate, or trigger yanked through the zone faster
+//     than act-bit sampling catches) — no shot either. The strict
+//     click ⇔ shot pairing is exactly what the user asked for.
 //
-//   Threshold fallback (auto-fire, click-less profile, or non-DualSense):
+//   Threshold path (auto-fire, click-less profile, non-DualSense, or
+//   weapon_drawn=false — i.e. bare-hand melee):
 //     Classic rising-edge: R2 ≤ reset_threshold arms, R2 > fire_threshold
 //     fires. Auto-fire ignores the rearm flag and fires while held.
 //
-// Known residual behaviour documented in the devlog file (search for
-// "Расследование adaptive trigger синхронизации"):
-//
-//   * Fast single-tick presses through the whole effect zone may miss
-//     the act=1 phase at 30 Hz polling → click not fired via act path.
-//     This coincides with the hardware click rate limit (~270 ms) —
-//     hardware also drops clicks in this regime, so the shot wouldn't
-//     have produced a physical click anyway.
-//   * Press during game's Timer1 cooldown still produces "click without
-//     shot": hardware clicks whenever the zone is crossed, act edge is
-//     seen, we call fire, but Timer1 refuses inside actually_fire_gun.
-//     Acceptable per requirement R4 — silent refusal matches keyboard.
-WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2)
+// During the running-shot cooldown (game.cpp forces mode=NONE while
+// `STATE_MOVEING && Timer1 > 15`), the hardware effect is off so
+// presses produce neither click nor shot — keyboard-like silent
+// refusal. Gate lifts one tick early so the NONE→AIM_GUN HID packet
+// has time to propagate before the game starts accepting shots again.
+WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn)
 {
     WeaponFireDecision out = { false, false };
 
@@ -620,19 +669,37 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     if (now_released) s_r2_armed = true;
     s_prev_r2 = r2;
 
-    // Pick fire-detection path. The act-bit path requires both a DualSense
-    // and an active Weapon25 effect on that weapon — otherwise the act
-    // bit is meaningless (stays 0 for effect-less weapons, and non-DualSense
-    // devices never report it).
+    // Pick fire-detection path. The act-bit path requires all of:
+    //   * DualSense device (act bit is a DualSense-specific signal).
+    //   * Profile declares a Weapon25 click (trigger_strength > 0).
+    //   * Not auto-fire (auto-fire holds instead of edge-triggering).
+    //   * Weapon is currently drawn — because gamepad.cpp only turns the
+    //     Weapon25 effect on when the player has a gun out. With no gun
+    //     drawn (bare-hand punch via R2) hardware emits no click, so
+    //     the act bit never flips and the act-bit path would block fire
+    //     forever. Threshold fallback handles bare-hand punch correctly.
+    // Note: SPECIAL_NONE is registered with the pistol profile, so we
+    // CANNOT distinguish bare-hand from pistol by current_weapon alone —
+    // the caller passes weapon_drawn (FLAG_PERSON_GUN_OUT) for this.
     const bool device_is_ds     = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
     const bool weapon_has_click = p->trigger_strength != 0;
-    const bool use_act_path     = device_is_ds && weapon_has_click && !p->auto_fire;
+    const bool use_act_path     = device_is_ds && weapon_has_click && !p->auto_fire && weapon_drawn;
 
     if (use_act_path) {
-        // act 1→0 edge = hardware just finished either a click or a release.
-        // r2 high disambiguates: high means the trigger snapped past the
-        // click point; low means the player let off from inside the zone
-        // without clicking.
+        // Fire ONLY on the act-bit 1→0 edge reported by hardware — a
+        // direct signal that the Weapon25 motor physically clicked. No
+        // threshold fallback: we tried one earlier to cover rapid taps
+        // that skip act sampling, but it introduced shots-without-clicks
+        // after the mode=NONE→AIM_GUN HID re-enable window (hardware
+        // not yet active, threshold would fire anyway with no haptic).
+        // Without the fallback, a press that the hardware doesn't click
+        // produces no shot either — consistent "click ⇔ shot" pairing,
+        // which is what the user wants even at the cost of occasionally
+        // dropping a fast tap.
+        //
+        // r2 > reset_threshold disambiguates the edge — high means the
+        // trigger snapped past the click point (shot), low means the
+        // player let off from inside the zone without clicking (release).
         if (s_prev_act_r2 && !act_now) {
             if (r2 > p->reset_threshold) {
                 out.shoot = true;
@@ -695,6 +762,7 @@ void weapon_feel_fire_reset()
     s_prev_r2 = 0;
     s_prev_l2 = 0;
     s_prev_act_r2 = false;
+    s_fire_cooldown_end = std::chrono::steady_clock::now() - std::chrono::seconds(10);
 }
 
 // NOTE: kept in the public API for future use but currently NOT consulted
@@ -708,4 +776,9 @@ bool weapon_feel_is_r2_armed(int32_t current_weapon)
 {
     const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
     return p->auto_fire || s_r2_armed;
+}
+
+bool weapon_feel_is_in_fire_cooldown()
+{
+    return std::chrono::steady_clock::now() < s_fire_cooldown_end;
 }

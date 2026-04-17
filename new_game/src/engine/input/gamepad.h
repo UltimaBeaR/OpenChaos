@@ -76,17 +76,19 @@ void gamepad_led_update(float health_fraction, bool siren);
 // Call once per game tick.
 void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon);
 
-// Immediately disarm the weapon trigger click on a fire event. Called
-// whenever the game registers a real shot so the HID mode switch to NONE
-// goes out on the same frame, preventing a stale Weapon25 click from
-// firing during the game-side cooldown that follows. The duration of the
-// lockout is NOT time-based — it's driven by the game's Timer1 via
-// gamepad_triggers_update(weapon_ready) and the R2-position gate inside
-// gamepad_triggers_update. The parameter is reserved for future use.
-void gamepad_triggers_lockout(int reserved);
 
 // Disable all adaptive trigger effects. Call on pause, menu, death, level transition.
 void gamepad_triggers_off();
+
+// Force mode=NONE immediately on the current frame — sends a NONE HID
+// packet right away so the hardware disengages the Weapon25 effect
+// within one HID round-trip. Used by weapon_feel_on_shot_fired on the
+// fire frame so a rapid re-press within the HID latency window
+// (~30 ms) doesn't land on a still-active motor and produce a
+// click-without-shot. The cooldown window itself is enforced by
+// gamepad_triggers_update in subsequent ticks via the on_cooldown
+// signal from game.cpp. Parameter is unused (kept for ABI compat).
+void gamepad_triggers_lockout(int reserved);
 
 // Mark a button to be consumed (zeroed) on every poll until released.
 // Use when exiting a menu to prevent the button from triggering a gameplay action.
@@ -102,4 +104,14 @@ uint8_t gamepad_get_right_trigger_feedback_state();
 uint8_t gamepad_get_left_trigger_feedback_state();
 bool    gamepad_get_right_trigger_effect_active();
 bool    gamepad_get_left_trigger_effect_active();
+
+// True iff the DualSense adaptive trigger Weapon25 click is currently
+// active on the hardware (i.e. the trigger state machine is in AIM_GUN
+// mode, not NONE/CAR). Reflects the most recent state set by
+// gamepad_triggers_update. Returns false for non-DualSense devices
+// and whenever the weapon isn't ready (no gun, non-firing state,
+// post-fire cooldown, etc.). Callers use this to decide whether the
+// act-bit fire-detection signal is meaningful this tick — when mode
+// is NONE the hardware can't emit clicks.
+bool    gamepad_is_adaptive_click_active();
 

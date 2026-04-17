@@ -61,6 +61,23 @@ struct WeaponFeelProfile {
     uint8_t  fire_threshold;
     uint8_t  reset_threshold;
     bool     auto_fire;
+
+    // Post-fire cooldown in milliseconds during which the adaptive-trigger
+    // effect stays disabled (mode=NONE) so the hardware can't emit clicks
+    // while the game is still in its per-weapon cooldown window. Matches
+    // the natural fire rate of the weapon: for the pistol this is the
+    // running-shot Timer1 duration (~583 ms). Set to 0 for weapons that
+    // don't have an adaptive click (AK47, shotgun today) — the gate is
+    // still consulted but mode stays NONE regardless.
+    //
+    // Tracked locally in weapon_feel via wall-clock rather than reading
+    // Person::Timer1 because Timer1 is per-person state reused for
+    // several purposes and only decrements in specific states (notably
+    // STATE_MOVEING) — after a running shot followed by standing still,
+    // Timer1 would freeze at its cooldown value forever. Standing-still
+    // fire (set_person_shoot) doesn't set Timer1 at all. Local
+    // wall-clock is the only signal that works across all firing paths.
+    uint32_t fire_cooldown_ms;
 };
 
 // ---------------------------------------------------------------------------
@@ -87,11 +104,8 @@ const WeaponFeelProfile* weapon_feel_get_profile(int32_t special_type);
 
 // Call from actually_fire_gun() on every REAL player shot (i.e. a shot
 // the game actually committed — not a blocked-by-Timer1 attempt).
-// Restarts envelope playback for the weapon's profile. For single-shot
-// weapons also calls gamepad_triggers_lockout() to briefly blink the
-// mode to NONE on the fire frame (legacy, see gamepad.cpp comment on
-// gamepad_triggers_lockout for current status). Non-DualSense devices:
-// no-op.
+// Restarts envelope playback for the weapon's profile. Non-DualSense
+// devices and unregistered weapons: no-op.
 void weapon_feel_on_shot_fired(int32_t special_type);
 
 // Per-frame tick. Advances any active envelope and returns the current
@@ -113,21 +127,35 @@ struct WeaponFireDecision {
 
 // Run one tick of fire detection for the given analog trigger positions.
 // current_weapon picks the profile (auto_fire vs rising-edge, thresholds).
+// weapon_drawn: true iff the player's gun/weapon is currently out
+// (FLAG_PERSON_GUN_OUT). When false, the adaptive trigger click is not
+// active on hardware regardless of profile, and fire detection falls
+// back to the threshold path (so R2 still triggers bare-hand melee).
 // L2 (kick) always uses the current profile's thresholds but never auto-fires.
 //
-// R2 fire detection picks a path per tick based on device + profile:
-//   * DualSense + trigger_strength>0 + !auto_fire → act-bit path
-//     (fires on the hardware click signal, reads effect-active from
-//      gamepad_get_right_trigger_effect_active()).
+// R2 fire detection picks a path per tick based on device + profile +
+// weapon state:
+//   * DualSense + trigger_strength>0 + !auto_fire + weapon_drawn →
+//     act-bit path (fires on the hardware click signal, reads
+//     effect-active from gamepad_get_right_trigger_effect_active()).
 //   * Otherwise → threshold path (r2 rising past fire_threshold with
-//     armed gate, auto-fire bypasses the gate).
+//     armed gate, auto-fire bypasses the gate). Covers bare-hand melee,
+//     auto-fire weapons, click-less weapons, and non-DualSense devices.
 // See the design section at the top of weapon_feel.cpp for details.
-WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2);
+WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn);
 
 // Reset rising-edge armed state. Call when the player enters a car, drops
 // the weapon, or in any context where triggers aren't being read as fire
 // input. Prevents a stray "fire" the instant control is handed back.
 void weapon_feel_fire_reset();
+
+// True if a real shot fired within the weapon's fire_cooldown_ms window.
+// Consulted by gamepad.cpp (via game.cpp) to force mode=NONE during the
+// cooldown so the DualSense adaptive trigger doesn't emit phantom clicks
+// while the game is still in its per-weapon fire-rate gate. Always
+// false after the cooldown expires or if no shot has ever fired. Safe
+// to call without a DualSense connected — it's just a timer check.
+bool weapon_feel_is_in_fire_cooldown();
 
 // True if the threshold-path fire detector considers R2 armed for a shot.
 // For rising-edge weapons this means R2 has dipped to ≤ reset_threshold

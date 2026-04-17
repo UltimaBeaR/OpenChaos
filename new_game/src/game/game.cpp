@@ -8,6 +8,7 @@
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"  // playback_file, verifier_file
 #include "things/items/special.h"       // SPECIAL_* constants for weapon_feel
+#include "engine/input/weapon_feel.h"   // weapon_feel_is_in_fire_cooldown
 #include "game/game_tick.h"                // process_controls
 #include "buildings/prim.h"    // clear_prims
 
@@ -1002,28 +1003,36 @@ round_again:;
                 if (darci_t && darci_t->Genus.Person) {
                     bool in_car = darci_t->Genus.Person->InCar != 0;
                     bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
-                    // Timer1 cooldown is deliberately NOT gated here.
-                    // Keeping mode=AIM_GUN alive across the brief cooldown
-                    // window avoids a Bluetooth HID latency race: if we
-                    // forced mode=NONE during cooldown, then when Timer1
-                    // expired we'd have to send mode=AIM_GUN again and the
-                    // round-trip (~7-30ms) could miss the very next press
-                    // the player makes if they're firing just above the
-                    // cooldown rate.
+                    // Post-fire cooldown gate: force mode=NONE while the
+                    // game would refuse the next shot, so the DualSense
+                    // Weapon25 motor doesn't click on presses the game
+                    // won't accept. Only running-shot uses a game-side
+                    // Timer1 gate — standing-shot goes through
+                    // set_person_shoot which has no Timer1 check and
+                    // accepts presses at animation rate.
                     //
-                    // The game-side Timer1 check inside actually_fire_gun
-                    // (person.cpp) still refuses the actual shot during
-                    // cooldown, so no extra shot slips through — it's
-                    // only the adaptive-trigger MODE that we leave on.
-                    // Hardware clicks during cooldown ARE still possible
-                    // (click-without-shot); acceptable per requirement R4
-                    // in new_game_devlog/weapon_haptic_and_adaptive_trigger.md.
+                    // Timer1 > 15 (not > 0) gives us ~1 game tick of
+                    // "pre-release" — we lift the gate one tick early
+                    // so the mode=NONE→AIM_GUN HID packet has time to
+                    // reach the controller (~30 ms round-trip) before
+                    // the game actually starts accepting shots again.
+                    // Without this pre-release, the first press right
+                    // after Timer1 hits zero would land on hardware
+                    // that's still transitioning out of NONE, and the
+                    // motor wouldn't click — a shot-without-click.
                     //
-                    // `on_cooldown` is kept as a local for readability even
-                    // though it's always false — leaving it visible so the
-                    // next person reading this code sees the deliberate
-                    // decision rather than an absence.
-                    bool on_cooldown = false;
+                    // STATE_MOVEING guard: Timer1 only decrements inside
+                    // fn_person_moveing. If the player stops moving
+                    // while Timer1 is still counting, Timer1 freezes
+                    // at its stale value — we'd gate forever. Outside
+                    // STATE_MOVEING the game itself ignores Timer1 for
+                    // fire rate, so the gate is both unnecessary and
+                    // harmful. Hence the conjunction.
+                    const bool in_running_cooldown =
+                        (darci_t->State == STATE_MOVEING &&
+                         darci_t->Genus.Person->Timer1 > 15);
+                    bool on_cooldown =
+                        in_running_cooldown || weapon_feel_is_in_fire_cooldown();
 
                     // States where the player physically can't fire. In these
                     // states pulling R2 doesn't produce a shot, so there

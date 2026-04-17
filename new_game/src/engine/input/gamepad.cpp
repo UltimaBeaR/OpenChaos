@@ -599,6 +599,7 @@ uint8_t gamepad_get_right_trigger_feedback_state() { return s_right_trigger_feed
 uint8_t gamepad_get_left_trigger_feedback_state()  { return s_left_trigger_feedback_state; }
 bool    gamepad_get_right_trigger_effect_active()  { return s_right_trigger_effect_active; }
 bool    gamepad_get_left_trigger_effect_active()   { return s_left_trigger_effect_active; }
+// gamepad_is_adaptive_click_active defined below, next to s_trigger_mode.
 
 // ---------------------------------------------------------------------------
 // Adaptive triggers (DualSense only)
@@ -611,6 +612,11 @@ enum TriggerMode {
     TRIGGER_MODE_CAR,       // machine feel (R2=gas, L2=brake)
 };
 static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
+
+bool    gamepad_is_adaptive_click_active()
+{
+    return s_is_dualsense && s_trigger_mode == TRIGGER_MODE_AIM_GUN;
+}
 
 // Weapon25 params for the most recently activated AIM_GUN profile. Looked
 // up from the weapon_feel profile at apply time so per-weapon tuning flows
@@ -719,26 +725,12 @@ void gamepad_triggers_off()
     apply_trigger_mode(TRIGGER_MODE_NONE);
 }
 
-void gamepad_triggers_lockout(int /*duration_ms*/)
+void gamepad_triggers_lockout(int /*reserved*/)
 {
     weapon_feel_debug_log("triggers_lockout called (cur_mode=%d)", (int)s_trigger_mode);
-    // Called from weapon_feel_on_shot_fired on every real shot of a
-    // single-shot weapon. Historically forced mode=NONE to suppress
-    // stale clicks during the post-fire cooldown window.
-    //
-    // ⚠️ With the current unconditional-mode design in gamepad_triggers_update,
-    // this call is effectively a blink: we switch to NONE here, and the
-    // next gamepad_triggers_update tick flips mode right back to AIM_GUN
-    // because nothing gates it anymore. The net effect is a single wasted
-    // HID write per shot. Kept for now because removing it subtly changes
-    // the envelope retrigger timing and we're avoiding unrelated changes
-    // during the adaptive-trigger investigation. See devlog section
-    // "Текущее стабильное состояние кода" → point 5 for the plan to
-    // revisit this.
-    if (s_trigger_mode != TRIGGER_MODE_NONE) {
-        s_trigger_mode = TRIGGER_MODE_NONE;
-        apply_trigger_mode(TRIGGER_MODE_NONE);
-    }
+    if (s_trigger_mode == TRIGGER_MODE_NONE) return;
+    s_trigger_mode = TRIGGER_MODE_NONE;
+    apply_trigger_mode(TRIGGER_MODE_NONE);
 }
 
 InputDeviceType gamepad_get_device_type()

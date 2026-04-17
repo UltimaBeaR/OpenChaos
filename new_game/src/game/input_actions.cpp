@@ -3321,13 +3321,25 @@ ULONG get_hardware_input(UWORD type)
                         // the same profile the adaptive-trigger state machine
                         // consults — so shot and click can't desync.
                         int32_t current_weapon = SPECIAL_NONE;
-                        if (p_darci && p_darci->Genus.Person && p_darci->Genus.Person->SpecialUse) {
-                            Thing* p_special = TO_THING(p_darci->Genus.Person->SpecialUse);
-                            if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
+                        bool weapon_drawn = false;
+                        if (p_darci && p_darci->Genus.Person) {
+                            weapon_drawn = (p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                            if (p_darci->Genus.Person->SpecialUse) {
+                                Thing* p_special = TO_THING(p_darci->Genus.Person->SpecialUse);
+                                if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
+                            }
                         }
 
+                        // weapon_drawn disambiguates bare-hand punch (no gun)
+                        // from pistol (SpecialUse==null + FLAG_PERSON_GUN_OUT):
+                        // both hit SPECIAL_NONE in the profile registry, so
+                        // the profile alone can't tell them apart. Without
+                        // this flag the act-bit fire path waits for a
+                        // hardware click that never comes (mode=NONE when
+                        // gun isn't drawn), and R2 punch stops working.
                         WeaponFireDecision fd = weapon_feel_evaluate_fire(
-                            current_weapon, the_state.trigger_right, the_state.trigger_left);
+                            current_weapon, the_state.trigger_right,
+                            the_state.trigger_left, weapon_drawn);
                         if (fd.shoot) {
                             input |= INPUT_MASK_PUNCH;
                             g_dwLastInputChangeTime = dwCurrentTime;
