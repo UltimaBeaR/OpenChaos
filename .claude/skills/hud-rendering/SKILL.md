@@ -107,17 +107,35 @@ under the `POLY_PAGE_COLOUR_ALPHA` case.
 
 ## Layer parameter (z-order)
 
-`AENG_draw_rect` and `AENG_draw_rectr` take a `layer` int. Higher = closer to
-camera (in front). The internal formula is `z = 1.0 - layer * 0.0001f` — so
-`layer=10` beats `layer=2`.
+`AENG_draw_rect` and `AENG_draw_rectr` take a `layer` int. **Lower layer =
+closer to camera (in front).** This is counter-intuitive — the name
+suggests "higher layer is on top" but the pipeline does the opposite.
 
-| Use case | Typical layer |
-|----------|---------------|
-| Regular HUD element (health bar, icon) | 1–3 |
-| On top of HUD (debug overlay, crosshair) | 5–8 |
-| Full-screen modal backdrop | 10 |
+Why: `AENG_draw_rect` stores `POLY_Point.Z = 1.0 - layer*0.0001`, then
+`PolyPoint2D::SetSC` flips it back to `sz = 1.0 - Z = layer*0.0001`,
+which goes into the shader as depth. Under standard GL_LESS depth test,
+smaller `sz` wins — so `layer=1` sits in front of `layer=2`.
+
+Canonical reference: `PANEL_draw_health_bar` in `ui/hud/panel.cpp:172`
+draws the black background with `layer=2` and the red fill with
+`layer=1`. The fill renders on top.
+
+| Use case | Typical layer | Position |
+|----------|---------------|----------|
+| Foreground accents (dots, fills over backing rects) | 1 | closest |
+| Regular HUD element (health bar fill, icon) | 1–3 | close |
+| Widget backgrounds (bar backing, box outlines) | 2–4 | behind accents |
+| Full-screen modal backdrop | 10+ | farthest, behind HUD |
+
+**Common trap:** drawing a backing rect at layer N and an accent dot at
+layer N+1. The dot's depth value is `larger` than the background's, so
+the depth test rejects it and nothing appears. You need layer N for
+the background and layer N-1 for the accent.
 
 Within the same layer value, draw order determines z — later = on top.
+Depth write is on for `POLY_PAGE_COLOUR`, so once a pixel is written
+with a given depth, later pixels at the same screen position with a
+larger depth (higher layer) are rejected.
 
 For `POLY_add_quad` / `POLY_add_line`, z comes from the `POLY_Point.Z` field
 you set on the vertices (typical HUD quad: `Z = 0.99999f` to push it near the
@@ -156,7 +174,7 @@ under "Mixing text and HUD rects".
   `PANEL_finish`, or inside code that already wraps you).
 - **`col`:** `0xRRGGBB` for `POLY_PAGE_COLOUR`, `0xAARRGGBB` for
   `POLY_PAGE_COLOUR_ALPHA`.
-- **`layer`:** int, higher = in front.
+- **`layer`:** int, **lower = in front** (see "Layer parameter" section above).
 - **`page`:** usually `POLY_PAGE_COLOUR` or `POLY_PAGE_COLOUR_ALPHA`.
 
 ### AENG_draw_rectr(x, y, w, h, col, layer, page)
@@ -229,8 +247,10 @@ under "Mixing text and HUD rects".
   Using `POLY_PAGE_COLOUR` with an ARGB color gives you fully opaque (alpha
   bits are ignored).
 
-- **Layer matters when things overlap.** Full-screen backdrops should use a
-  high layer (e.g. 10) so they sit above regular HUD. Regular HUD uses 1–3.
+- **Layer matters when things overlap — lower = in front.** Full-screen
+  backdrops use a high layer (e.g. 10+) so they sit *behind* regular HUD.
+  Regular HUD uses 1–3. Accents that must sit on top of a backing rect
+  need a *lower* layer than the backing rect, not higher.
 
 - **Use game-shared constants for screen dims.** `POLY_screen_width/height`
   are floats and update with the window. Don't hardcode 640×480 unless

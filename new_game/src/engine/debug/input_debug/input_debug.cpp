@@ -30,10 +30,13 @@ namespace {
 bool s_active = false;
 InputDebugPage s_page = INPUT_DEBUG_PAGE_KEYBOARD;
 
-// Higher layer = in front. Backdrop sits below content; widgets on top.
-constexpr SLONG LAYER_BACKDROP = 10;
-constexpr SLONG LAYER_CONTENT  = 11;
-constexpr SLONG LAYER_ACCENT   = 12;
+// Shorthand aliases for the layer constants declared in the header. Lower
+// layer = closer to camera in this pipeline, so accent sits on top of
+// content which sits on top of the backdrop. See the header comment on
+// INPUT_DEBUG_LAYER_* for the full rationale.
+constexpr SLONG LAYER_BACKDROP = INPUT_DEBUG_LAYER_BACKDROP;
+constexpr SLONG LAYER_CONTENT  = INPUT_DEBUG_LAYER_CONTENT;
+constexpr SLONG LAYER_ACCENT   = INPUT_DEBUG_LAYER_ACCENT;
 
 const char* page_name(InputDebugPage p)
 {
@@ -159,6 +162,7 @@ static void isolate_controller_from_game()
     gamepad_led_reset();
     gamepad_triggers_off();
     input_debug_dualsense_reset_state();
+    input_debug_gamepad_reset_sub();
 }
 
 void input_debug_open()
@@ -176,6 +180,7 @@ void input_debug_close()
     // Reset DS widget state so player LEDs / lightbar don't linger
     // until the next panel session, and the next session starts clean.
     input_debug_dualsense_reset_state();
+    input_debug_gamepad_reset_sub();
 }
 
 void input_debug_toggle()
@@ -219,6 +224,19 @@ void input_debug_tick()
     if (Keys[KB_2]) { Keys[KB_2] = 0; s_page = INPUT_DEBUG_PAGE_GAMEPAD; }
     if (Keys[KB_3]) { Keys[KB_3] = 0; s_page = INPUT_DEBUG_PAGE_DUALSENSE; }
 
+    // TAB cycles the current page through its sub-views (controller
+    // viz → tests / triggers → back). Only pages that define sub-views
+    // react — keyboard page has none.
+    if (Keys[KB_TAB]) {
+        if (s_page == INPUT_DEBUG_PAGE_DUALSENSE) {
+            Keys[KB_TAB] = 0;
+            input_debug_dualsense_toggle_sub();
+        } else if (s_page == INPUT_DEBUG_PAGE_GAMEPAD) {
+            Keys[KB_TAB] = 0;
+            input_debug_gamepad_toggle_sub();
+        }
+    }
+
     // Keep the rumble pulse alive for its 200 ms window and then stop it.
     // Only meaningful on pages that actually use the rumble widget; on
     // the keyboard page there's no way to have started one.
@@ -250,7 +268,7 @@ static void draw_backdrop()
     // enables src-alpha blending; alpha in the high byte of the colour.
     const SLONG w = (SLONG)POLY_screen_width;
     const SLONG h = (SLONG)POLY_screen_height;
-    AENG_draw_rect(0, 0, w, h, 0xCC000000, LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
+    AENG_draw_rect(0, 0, w, h, 0xE6000000, LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
 }
 
 // Three tabs across the top — one per page. Each tab shows the name,
@@ -312,7 +330,7 @@ static void draw_footer()
     // doesn't eat vertical real estate from the page content.
     const SLONG sh = (SLONG)POLY_screen_height;
     input_debug_text(10, sh - 14, 160, 160, 160, 1,
-        "arrows navigate  |  left/right adjust  |  Enter activate  |  1/2/3 switch page  |  F11 / ESC exit");
+        "arrows navigate  |  left/right adjust  |  Enter activate  |  1/2/3 page  |  TAB DS sub-page  |  F11 / ESC exit");
 }
 
 void input_debug_render()
@@ -362,8 +380,11 @@ void input_debug_draw_stick(SLONG cx, SLONG cy, SLONG size,
     AENG_draw_rect(cx + dx - 2, cy + dy - 2, 4, 4,
                    0xFF3030, LAYER_ACCENT, POLY_PAGE_COLOUR);
 
-    // Label above the box.
-    input_debug_text(x0, y0 - 12, 200, 200, 200, 1, "%s", label);
+    // Label centred above the box so the title visually lines up with
+    // the stick centre (makes it easy to eyeball whether a d-pad /
+    // face-button cluster below is aligned with the stick or not).
+    const SLONG label_w_px = 6 * (SLONG)std::strlen(label);
+    input_debug_text(cx - label_w_px / 2, y0 - 12, 200, 200, 200, 1, "%s", label);
 }
 
 void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
@@ -388,10 +409,14 @@ void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
 
 void input_debug_draw_button(SLONG x, SLONG y, const char* label, bool pressed)
 {
+    // Plain label — pressed / unpressed differ by colour only. Earlier
+    // revisions wrapped the label in "[%s]" / " %s " but the bitmap
+    // font renders the brackets as garbled placeholder glyphs, and the
+    // framing was more noise than help anyway.
     if (pressed) {
-        input_debug_text(x, y, 0, 255, 0, 1, "[%s]", label);
+        input_debug_text(x, y, 0, 255, 0, 1, "%s", label);
     } else {
-        input_debug_text(x, y, 110, 110, 110, 1, " %s ", label);
+        input_debug_text(x, y, 110, 110, 110, 1, "%s", label);
     }
 }
 

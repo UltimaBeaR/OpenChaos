@@ -121,6 +121,16 @@ void input_debug_read_ds_touchpad(int* f1_x, int* f1_y, bool* f1_down,
 // input_debug_dualsense.cpp.
 void input_debug_dualsense_reset_state();
 
+// Cycle the DualSense page sub-view: view → tests → triggers → view.
+// Called from input_debug_tick when the user presses TAB while the DS
+// tab is open.
+void input_debug_dualsense_toggle_sub();
+
+// Cycle the Xbox page sub-view: view → tests → view. Called the same
+// way as the DualSense toggle but only on the Xbox tab.
+void input_debug_gamepad_toggle_sub();
+void input_debug_gamepad_reset_sub();
+
 // ---------------------------------------------------------------------------
 // Widget helpers (shared between pages)
 // ---------------------------------------------------------------------------
@@ -129,6 +139,38 @@ void input_debug_dualsense_reset_state();
 // they do NOT wrap in their own PANEL_start/PANEL_finish. Colours are
 // 0xRRGGBB on POLY_PAGE_COLOUR. Text goes through FONT_buffer_add which
 // is independent of the POLY batch.
+
+// Layer ordering for AENG_draw_rect. Pipeline convention: lower layer =
+// closer to camera (opposite of what the hud-rendering skill documents
+// — see PANEL_draw_health_bar which uses layer=2 for bg and layer=1 for
+// the fill that sits on top). POLY_PAGE_COLOUR has depth write on, so a
+// dot drawn with a *higher* layer than its backing rect gets rejected by
+// the depth test and disappears. Keep accent < content < backdrop.
+constexpr SLONG INPUT_DEBUG_LAYER_ACCENT   = 10;  // dots, fills — on top
+constexpr SLONG INPUT_DEBUG_LAYER_CONTENT  = 11;  // widget backgrounds
+constexpr SLONG INPUT_DEBUG_LAYER_BACKDROP = 12;  // full-screen dimmer
+
+// ---------------------------------------------------------------------------
+// Shared widget positions
+// ---------------------------------------------------------------------------
+//
+// Sticks and triggers live at the same screen coordinates on every page
+// so switching between Keyboard / Xbox / DualSense doesn't visually
+// shuffle those anchors. Page-specific decoration (button labels, act/fb
+// indicators, touchpad viz, etc.) varies freely around these positions.
+constexpr SLONG INPUT_DEBUG_CONTENT_Y     = 48;
+constexpr SLONG INPUT_DEBUG_STICK_SIZE    = 96;
+constexpr SLONG INPUT_DEBUG_STICK_Y       = 110;
+constexpr SLONG INPUT_DEBUG_LEFT_STICK_X  = 100;
+constexpr SLONG INPUT_DEBUG_RIGHT_STICK_X = 540;
+constexpr SLONG INPUT_DEBUG_TRIG_W        = 22;
+constexpr SLONG INPUT_DEBUG_TRIG_H        = 96;
+constexpr SLONG INPUT_DEBUG_TRIG_Y        = 60;
+constexpr SLONG INPUT_DEBUG_LEFT_TRIG_X   = 220;
+constexpr SLONG INPUT_DEBUG_RIGHT_TRIG_X  = 418;
+// Gap from the bottom of a stick box to the first line of the numeric
+// readout ("X=.. Y=..") that both pages render under the stick.
+constexpr SLONG INPUT_DEBUG_STICK_READOUT_GAP = 8;
 
 // Analog-stick box with a red dot at the current deflection.
 // cx, cy = centre of the box. size = width/height. nx, ny = normalized

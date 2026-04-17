@@ -153,12 +153,19 @@ static void poll_dualsense()
     gamepad_state.rX = static_cast<int32_t>(ds.right_stick_x * 32767.0f) + 32768;
     gamepad_state.rY = static_cast<int32_t>(-ds.right_stick_y * 32767.0f) + 32768;
 
-    // D-Pad overrides axes.
+    // D-Pad overrides axes — skipped while the input debug panel is
+    // active so its raw-stick readout doesn't move whenever the user
+    // presses the d-pad. The panel already shows D / U / L / R as
+    // separate button indicators. Game input is gated elsewhere so the
+    // override isn't needed for in-game behaviour while the panel is
+    // open anyway.
     gamepad_state.dpad_active = ds.dpad_up || ds.dpad_down || ds.dpad_left || ds.dpad_right;
-    if (ds.dpad_left)  gamepad_state.lX = 0;
-    if (ds.dpad_right) gamepad_state.lX = 65535;
-    if (ds.dpad_up)    gamepad_state.lY = 0;
-    if (ds.dpad_down)  gamepad_state.lY = 65535;
+    if (!input_debug_is_active()) {
+        if (ds.dpad_left)  gamepad_state.lX = 0;
+        if (ds.dpad_right) gamepad_state.lX = 65535;
+        if (ds.dpad_up)    gamepad_state.lY = 0;
+        if (ds.dpad_down)  gamepad_state.lY = 65535;
+    }
 
     // Map to rgbButtons[] — same indices as SDL3 path for compatibility with
     // joypad_button_use[] mapping in input_actions.cpp.
@@ -249,14 +256,17 @@ static void poll_sdl3()
     gamepad_state.rX = static_cast<int32_t>(sdl_state.axis_right_x) + 32768;
     gamepad_state.rY = static_cast<int32_t>(sdl_state.axis_right_y) + 32768;
 
-    // D-Pad overrides axes.
+    // D-Pad overrides axes — see the matching comment on the DS path
+    // above. Skipped while the debug panel is active.
     uint32_t btns = sdl_state.buttons;
     uint32_t dpad = btns & (SDL3_BTN_DPAD_LEFT | SDL3_BTN_DPAD_RIGHT | SDL3_BTN_DPAD_UP | SDL3_BTN_DPAD_DOWN);
     gamepad_state.dpad_active = (dpad != 0);
-    if (btns & SDL3_BTN_DPAD_LEFT)  gamepad_state.lX = 0;
-    if (btns & SDL3_BTN_DPAD_RIGHT) gamepad_state.lX = 65535;
-    if (btns & SDL3_BTN_DPAD_UP)    gamepad_state.lY = 0;
-    if (btns & SDL3_BTN_DPAD_DOWN)  gamepad_state.lY = 65535;
+    if (!input_debug_is_active()) {
+        if (btns & SDL3_BTN_DPAD_LEFT)  gamepad_state.lX = 0;
+        if (btns & SDL3_BTN_DPAD_RIGHT) gamepad_state.lX = 65535;
+        if (btns & SDL3_BTN_DPAD_UP)    gamepad_state.lY = 0;
+        if (btns & SDL3_BTN_DPAD_DOWN)  gamepad_state.lY = 65535;
+    }
 
     // Map SDL3 buttons to rgbButtons[].
     memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
