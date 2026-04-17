@@ -104,9 +104,13 @@ struct Thing;
 // uc_orig: INPUT_CAR_SIREN (fallen/Headers/interfac.h, PC variant)
 #define INPUT_CAR_KB_SIREN (INPUT_MASK_JUMP)
 //
-// Gamepad (PSX): Cross/A=accel, Square/X=brake, Triangle/Y=siren
-// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h, PSX variant)
-#define INPUT_CAR_PAD_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE | INPUT_MASK_JUMP)
+// Gamepad: R2=accel, L2=brake, Triangle=siren. Cross/Square no longer
+// bound to accel/brake — gas and brake live on the analog triggers
+// only (see apply_button_input_car R2/L2 branch).
+// uc_orig: INPUT_CAR_ACCELERATE (fallen/Headers/interfac.h, PSX variant) —
+// original PSX mapping had Cross as accelerate (INPUT_MASK_JUMP) but we
+// deliberately dropped that to free Cross for other uses.
+#define INPUT_CAR_PAD_ACCELERATE (INPUT_MASK_FORWARDS | INPUT_MASK_MOVE)
 // uc_orig: INPUT_CAR_DECELERATE (fallen/Headers/interfac.h, PSX variant)
 #define INPUT_CAR_PAD_DECELERATE (INPUT_MASK_BACKWARDS | INPUT_MASK_PUNCH)
 // uc_orig: INPUT_CAR_GOFASTER (fallen/Headers/interfac.h, PSX variant)

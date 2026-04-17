@@ -3264,9 +3264,21 @@ ULONG get_hardware_input(UWORD type)
                 }
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
-                    // Triangle/Y stays as menu CANCEL (PS1 behavior); KICK is
-                    // on L2 only — see the analog-trigger block below.
+                    // Triangle/Y stays as menu CANCEL (PS1 behavior); on foot
+                    // KICK lives on L2 only — see the analog-trigger block below.
+                    // When driving, L2/R2 serve as gas/brake (handled in
+                    // apply_button_input_car), so the analog trigger kick path
+                    // never fires. The in-car siren/light toggle is bound to
+                    // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
+                    // the triangle button must also emit INPUT_MASK_KICK, or
+                    // nothing will toggle the siren.
                     input |= INPUT_MASK_CANCEL;
+                    {
+                        Thing* p_darci = NET_PERSON(0);
+                        const bool driving = p_darci && p_darci->Genus.Person &&
+                                             (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                        if (driving) input |= INPUT_MASK_KICK;
+                    }
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
