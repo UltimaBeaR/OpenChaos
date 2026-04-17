@@ -122,6 +122,28 @@ void ds_trigger_vibration(uint8_t position, uint8_t amplitude, uint8_t frequency
 void ds_trigger_bow(uint8_t start_zone, uint8_t snap_back, uint8_t hand);
 void ds_trigger_machine(uint8_t start_zone, uint8_t behavior_flag, uint8_t force, uint8_t amplitude, uint8_t period, uint8_t frequency, uint8_t hand);
 
+// Full-parameter variants used by the input debug panel trigger tester.
+// The simplified *_trigger_bow / *_trigger_machine above collapse
+// parameters for game code; these expose every tunable byte.
+void ds_trigger_bow_full(uint8_t start, uint8_t end,
+                         uint8_t strength, uint8_t snap, uint8_t hand);
+void ds_trigger_machine_full(uint8_t start, uint8_t end,
+                             uint8_t amplitude_a, uint8_t amplitude_b,
+                             uint8_t frequency, uint8_t period, uint8_t hand);
+
+// Additional effects — not used by game code today, exposed for the
+// input debug panel trigger tester. hand: 0=left, 1=right, 2=both.
+void ds_trigger_galloping(uint8_t start, uint8_t end,
+                          uint8_t first_foot, uint8_t second_foot,
+                          uint8_t frequency, uint8_t hand);
+void ds_trigger_simple_weapon(uint8_t start_raw, uint8_t end_raw,
+                              uint8_t strength_raw, uint8_t hand);
+void ds_trigger_simple_vibration(uint8_t position, uint8_t amplitude,
+                                 uint8_t frequency, uint8_t hand);
+void ds_trigger_limited_feedback(uint8_t position, uint8_t strength, uint8_t hand);
+void ds_trigger_limited_weapon(uint8_t start_raw, uint8_t end_raw,
+                               uint8_t strength, uint8_t hand);
+
 // Debug: copy the current 10-byte trigger effect slot bytes
 // (as they will be sent in the next output report). Used by the
 // F2 gamepad debug overlay to verify what the game is packing.

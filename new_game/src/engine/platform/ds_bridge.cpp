@@ -341,3 +341,71 @@ void ds_trigger_machine(uint8_t start_zone, uint8_t /*behavior_flag*/, uint8_t /
     if (l) { trigger_machine(l, start_zone, end, amplitude, amplitude, frequency, period); s_output_dirty = true; }
     if (r) { trigger_machine(r, start_zone, end, amplitude, amplitude, frequency, period); s_output_dirty = true; }
 }
+
+// ===========================================================================
+// Full-parameter / additional effects (used by the input debug panel)
+// ===========================================================================
+
+void ds_trigger_bow_full(uint8_t start, uint8_t end,
+                         uint8_t strength, uint8_t snap, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_bow(l, start, end, strength, snap); s_output_dirty = true; }
+    if (r) { trigger_bow(r, start, end, strength, snap); s_output_dirty = true; }
+}
+
+void ds_trigger_machine_full(uint8_t start, uint8_t end,
+                             uint8_t amplitude_a, uint8_t amplitude_b,
+                             uint8_t frequency, uint8_t period, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_machine(l, start, end, amplitude_a, amplitude_b, frequency, period); s_output_dirty = true; }
+    if (r) { trigger_machine(r, start, end, amplitude_a, amplitude_b, frequency, period); s_output_dirty = true; }
+}
+
+void ds_trigger_galloping(uint8_t start, uint8_t end,
+                          uint8_t first_foot, uint8_t second_foot,
+                          uint8_t frequency, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_galloping(l, start, end, first_foot, second_foot, frequency); s_output_dirty = true; }
+    if (r) { trigger_galloping(r, start, end, first_foot, second_foot, frequency); s_output_dirty = true; }
+}
+
+void ds_trigger_simple_weapon(uint8_t start_raw, uint8_t end_raw,
+                              uint8_t strength_raw, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_simple_weapon(l, start_raw, end_raw, strength_raw); s_output_dirty = true; }
+    if (r) { trigger_simple_weapon(r, start_raw, end_raw, strength_raw); s_output_dirty = true; }
+}
+
+void ds_trigger_simple_vibration(uint8_t position, uint8_t amplitude,
+                                 uint8_t frequency, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_simple_vibration(l, position, amplitude, frequency); s_output_dirty = true; }
+    if (r) { trigger_simple_vibration(r, position, amplitude, frequency); s_output_dirty = true; }
+}
+
+void ds_trigger_limited_feedback(uint8_t position, uint8_t strength, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_limited_feedback(l, position, strength); s_output_dirty = true; }
+    if (r) { trigger_limited_feedback(r, position, strength); s_output_dirty = true; }
+}
+
+void ds_trigger_limited_weapon(uint8_t start_raw, uint8_t end_raw,
+                               uint8_t strength, uint8_t hand)
+{
+    std::uint8_t *l, *r;
+    pick_slots(hand, &l, &r);
+    if (l) { trigger_limited_weapon(l, start_raw, end_raw, strength); s_output_dirty = true; }
+    if (r) { trigger_limited_weapon(r, start_raw, end_raw, strength); s_output_dirty = true; }
+}

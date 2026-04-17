@@ -153,13 +153,41 @@ rumble.
   поэтому 3 пары соответствуют `PlayerLed::{Outer,Inner,Center}`
   константам в libDualsense
 
-#### TRIGGERS (TAB) — PLACEHOLDER
-Сейчас просто TODO-список того что там будет. Планируется:
-- Селектор эффекта: Off / Weapon / Feedback / Bow / Vibration / Machine / SimpleFeedback
-- Tunable параметры (start position / end / strength)
-- Live apply через `ds_trigger_*` функции bridge'а
-- Live act / fb readout из feedback status байтов (перенесены сюда из VIEW)
-- Раздельный выбор эффекта для L2 / R2
+#### TRIGGERS (TAB)
+Полнофункциональный тестер adaptive trigger эффектов.
+
+**Интерактивные строки (↑↓ курсор, ←→ значения, Enter toggle):**
+- `[x] L2 trigger` — независимый тоглер включения левого триггера
+- `[x] R2 trigger` — аналогично правого. Оба включённых = bridge hand=2
+  (both). Выключенный триггер получает Off, чтобы не оставалось
+  остаточного сопротивления
+- `Effect: < Name >` — цикл по 12 эффектам (←/→): Off / Simple_Feedback /
+  Simple_Weapon / Simple_Vibration / Feedback / Limited_Feedback /
+  Weapon / Limited_Weapon / Vibration / Bow / Galloping / Machine
+- Параметрические строки специфичные для текущего эффекта (1..6 строк),
+  каждый эффект хранит свои значения независимо — переключился на
+  другой эффект и обратно, параметры сохранились
+
+**Read-only индикаторы (низ страницы, колонками для L2 и R2):**
+- `position` — аналоговое значение триггера 0..255
+- `fb state` — low nibble feedback байта (0..9)
+- `act` — чекбокс effect-active бита (bit 4 feedback байта)
+- `slot` — dump 10 байт текущего trigger effect slot'а (hex) в двух
+  строках по 5 байт — видно что именно мы запаковали и послали
+
+**Live apply** через bridge: при входе на sub-page пушится текущее
+состояние, дальше только на frames с реальным изменением любого поля
+(детект через dirty-флаг в param/toggle/effect row handlers). При
+выходе из TRIGGERS (TAB) — `ds_trigger_off(2) + ds_update_output` чтобы
+триггеры не гудели на VIEW / TESTS страницах.
+
+**Бридж расширен** под тестер: добавлены `ds_trigger_galloping`,
+`ds_trigger_simple_weapon`, `ds_trigger_simple_vibration`,
+`ds_trigger_limited_feedback`, `ds_trigger_limited_weapon` +
+`ds_trigger_bow_full` / `ds_trigger_machine_full` (существующие
+упрощённые `ds_trigger_bow` / `ds_trigger_machine` оставлены для
+игрового кода). libDualsense получил 5 новых factory функций, packing
+портирован 1:1 из duaLib (MIT, `THIRD_PARTY_LICENSES.md` уже покрывает).
 
 ## Координатное пространство
 
@@ -265,9 +293,6 @@ detection проходит только через `ds_poll_registry` раз в 
 
 ### Дизайн на будущее
 
-- **Adaptive trigger effect tester (DualSense)** — основной TODO,
-  забронировано место в TRIGGERS sub-page. Детали см. в разделе
-  "Страницы → DualSense → TRIGGERS".
 - **Keyboard страница — картинка клавиатуры** с подсветкой нажатых
   клавиш, вместо голого списка скан-кодов.
 - **Убрать d-pad → stick эмуляцию вообще** (а не только скипать при
@@ -306,6 +331,23 @@ detection проходит только через `ds_poll_registry` раз в 
   `INPUT_DEBUG_STICK_*` / `_TRIG_*` вынесены в заголовок.
 - **Iteration 7** (2026-04-17) — DS разбита на две sub-page (View + Tests)
   через TAB, тесты получили полноэкранный режим.
+- **Iteration 10** (2026-04-17) — все чекбоксы панели (L2/R2 enable
+  тоглы в TRIGGERS, player LED pairs в TESTS, act индикатор) перешли
+  с `[x]/[ ]` на `(x)/( )`. Причина та же что у брекетов кнопок в
+  Iteration 8 — битмап-шрифт не имеет глифов для `[` `]` и выдаёт
+  мусорные плейсхолдеры. Круглые скобки рендерятся чисто. Изменение
+  в `input_debug_draw_checkbox` (общий виджет), `trig_toggle_row`
+  и `render_player_led`.
+- **Iteration 9** (2026-04-17) — TRIGGERS sub-page реализован. Из
+  placeholder'а превращён в полноценный тестер 12 adaptive trigger
+  эффектов с полной настройкой параметров, независимыми тогглерами
+  L2/R2 и read-only индикаторами (position / fb / act / slot dump).
+  Попутно: libDualsense расширена 5 новыми factory функциями
+  (Galloping, Simple_Weapon, Simple_Vibration, Limited_Feedback,
+  Limited_Weapon) из duaLib, bridge получил соответствующие врапперы
+  + `ds_trigger_bow_full` / `ds_trigger_machine_full` (старые
+  упрощённые версии оставлены для игрового кода). При выходе из
+  sub-page (TAB) триггеры автоматически глохнут.
 - **Iteration 8** (2026-04-17) — финальный рефакторинг layout'а под
   физический контроллер:
   - Убраны декорации `[ ]` / `   ` в `input_debug_draw_button` — только

@@ -422,10 +422,14 @@ void input_debug_draw_button(SLONG x, SLONG y, const char* label, bool pressed)
 
 void input_debug_draw_checkbox(SLONG x, SLONG y, const char* label, bool on)
 {
+    // Parentheses instead of square brackets — the bitmap font renders
+    // '[' and ']' as garbled placeholder glyphs (same reason the button
+    // widget dropped its framing in Iteration 8). '(' and ')' render
+    // cleanly.
     if (on) {
-        input_debug_text(x, y, 0, 255, 0, 1, "[x] %s", label);
+        input_debug_text(x, y, 0, 255, 0, 1, "(x) %s", label);
     } else {
-        input_debug_text(x, y, 130, 130, 130, 1, "[ ] %s", label);
+        input_debug_text(x, y, 130, 130, 130, 1, "( ) %s", label);
     }
 }
 
