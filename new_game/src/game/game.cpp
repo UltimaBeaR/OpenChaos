@@ -81,6 +81,7 @@
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
 #include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
+#include "engine/debug/debug_help/debug_help.h"   // F1 debug hotkey legend
 #include "things/characters/anim_ids.h" // ANIM_HANDS_UP* for adaptive trigger check
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
@@ -666,12 +667,16 @@ SLONG special_keys(void)
         playback_game_keys();
     }
 
-    if (ControlFlag && Keys[KB_Q]) {
+    if (allow_debug_keys && ControlFlag && Keys[KB_Q]) {
         return 1;
     }
+    // F8 toggles single-step mode. Originally bound to the quote key
+    // (') — rebound because punctuation keys are opaque in the help
+    // legend ("what does ' even mean?"). F8 is the usual debugger
+    // "pause/continue" key, which matches intent.
     if (allow_debug_keys)
-        if (Keys[KB_QUOTE]) {
-            Keys[KB_QUOTE] = 0;
+        if (Keys[KB_F8]) {
+            Keys[KB_F8] = 0;
             single_step ^= 1;
         }
 
@@ -694,14 +699,10 @@ SLONG special_keys(void)
         }
     }
 
-    // F11: toggle modal input debug panel. Not gated by allow_debug_keys
-    // during iteration — makes testing less fiddly. Will move behind the
-    // cheat once the panel stabilises.
-    //
-    // NOTE: F11 is also read in process_controls (game_tick.cpp, cloud
-    // toggle). We clear Keys[KB_F11] after our edge detect so the cloud
-    // toggle doesn't fire alongside panel toggle.
-    {
+    // F11: toggle modal input debug panel. Gated behind bangunsnotgames
+    // so only developers hit it — regular players never see the panel
+    // even by accident.
+    if (allow_debug_keys) {
         static bool f11_was_pressed = false;
         if (Keys[KB_F11]) {
             if (!f11_was_pressed) {
@@ -720,9 +721,17 @@ SLONG special_keys(void)
     // frame (via key consumption + process_controls gate below).
     input_debug_tick();
 
-    if (single_step) {
-        if (Keys[KB_COMMA]) {
-            Keys[KB_COMMA] = 0;
+    // F1 debug-hotkey legend — tick the 5-second visibility timer and
+    // catch F1 edge presses. Tick unconditionally so the timer decays
+    // even if the user toggles bangunsnotgames off while the overlay
+    // is up; the F1 edge-detect itself is gated internally.
+    debug_help_tick();
+
+    // Step once while in single-step mode. Was comma (`,`) — rebound to
+    // Insert for the same legend-readability reason as the F8 toggle.
+    if (allow_debug_keys && single_step) {
+        if (Keys[KB_INS]) {
+            Keys[KB_INS] = 0;
 
             process_things(0);
         }
@@ -1056,7 +1065,6 @@ round_again:;
                         Thing* p_special = TO_THING(darci_t->Genus.Person->SpecialUse);
                         if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
                     }
-                    gamepad_debug_draw();
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
             }
@@ -1081,6 +1089,11 @@ round_again:;
             // POLY_frame_init internally, which clears anything queued
             // after it. See new_game_devlog/shadow_corruption_investigation.md.
             input_debug_render();
+
+            // Debug-hotkey legend (F1 / auto-show on bangunsnotgames).
+            // Pixel-coord text so it draws into the same FONT_buffer
+            // stream as the rest of the HUD overlays.
+            debug_help_render();
 
             SLONG i_want_to_exit = UC_FALSE;
 

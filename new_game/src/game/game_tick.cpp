@@ -12,6 +12,7 @@
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"
 #include "engine/console/console.h"
+#include "engine/debug/debug_help/debug_help.h"   // F1 debug hotkey legend
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "map/pap.h"
@@ -261,9 +262,13 @@ void parse_console(CBYTE* str)
 
             case 10: // dkeys -- debug keys en/disable
                 allow_debug_keys ^= 1;
-                if (allow_debug_keys)
+                if (allow_debug_keys) {
                     CONSOLE_text("debug mode on");
-                else
+                    // Pop up the hotkey legend for 5 seconds so the user
+                    // immediately sees what debug mode unlocks (F1 to
+                    // redisplay).
+                    debug_help_notify_bangunsnotgames_on();
+                } else
                     CONSOLE_text("debug mode off");
 
                 dkeys_have_been_used = UC_TRUE;
@@ -1599,6 +1604,11 @@ void process_controls(void)
         }
     }
 
+    if (!allow_debug_keys)
+        return;
+
+    // Shift+F12: toggle cheat mode (prints FPS in the top-left corner).
+    // Gated along with the rest of the debug keys.
     if (Keys[KB_F12] && ShiftFlag) {
         Keys[KB_F12] = 0;
 
@@ -1610,9 +1620,6 @@ void process_controls(void)
             cheat = 2;
         }
     }
-
-    if (!allow_debug_keys)
-        return;
 
     if (mouse_input) {
         //
@@ -1633,8 +1640,12 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_F11]) {
-        Keys[KB_F11] = 0;
+    // Cloud toggle was on F11 historically but clashed with the input
+    // debug panel (F11 → panel opens, covers the screen, making it
+    // impossible to actually see whether clouds disappeared). Moved to
+    // F4 — previously unbound.
+    if (Keys[KB_F4]) {
+        Keys[KB_F4] = 0;
         if (aeng_draw_cloud_flag) {
             aeng_draw_cloud_flag = 0;
             CONSOLE_text("clouds off");

@@ -3831,7 +3831,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (Keys[KB_L] && ControlFlag) {
+    if (Keys[KB_L] && ControlFlag && allow_debug_keys) {
         outside ^= 1;
     }
 

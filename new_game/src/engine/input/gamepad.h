@@ -103,7 +103,3 @@ uint8_t gamepad_get_left_trigger_feedback_state();
 bool    gamepad_get_right_trigger_effect_active();
 bool    gamepad_get_left_trigger_effect_active();
 
-// Debug overlay: draws current gamepad state (sticks, triggers,
-// every button, trigger feedback) on screen. Toggled with F2.
-// Call every frame; no-op when toggled off.
-void gamepad_debug_draw();

@@ -146,5 +146,6 @@ void ds_trigger_limited_weapon(uint8_t start_raw, uint8_t end_raw,
 
 // Debug: copy the current 10-byte trigger effect slot bytes
 // (as they will be sent in the next output report). Used by the
-// F2 gamepad debug overlay to verify what the game is packing.
+// input debug panel's trigger tester to verify what the game
+// is packing.
 void ds_debug_get_trigger_slots(uint8_t left[10], uint8_t right[10]);

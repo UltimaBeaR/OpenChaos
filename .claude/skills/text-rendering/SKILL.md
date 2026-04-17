@@ -308,7 +308,7 @@ needed.
 ### When literal-pixel coords are OK
 
 Some callers intentionally stick text in the literal top-left of the
-window regardless of window size (debug FPS, F2 gamepad overlay). Small
+window regardless of window size (debug FPS, F1 debug-help legend). Small
 pixel offsets like (10, 20) sit in the top-left corner on any window
 size, which is exactly what you want for a "corner debug readout". Don't
 scale in those cases — just be aware the text won't align with any

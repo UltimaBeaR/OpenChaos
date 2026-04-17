@@ -2410,12 +2410,15 @@ void PANEL_last(void)
         FONT2D_DrawString("PSX mode", 5, 15, 0xff2288);
     }
 
-    // Show version number overlay when V key is held.
+    // Show version number overlay when V key is held. Gated by
+    // allow_debug_keys — the version string is a dev/diagnostic aid,
+    // regular players should never see it overlay the HUD.
     {
+        extern BOOL allow_debug_keys;
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (Keys[KB_V]) {
+        if (Keys[KB_V] && allow_debug_keys) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

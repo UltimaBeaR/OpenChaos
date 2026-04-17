@@ -1,33 +1,23 @@
 # libDualsense
 
-Minimal DualSense controller library for the **OpenChaos** project.
-Handles USB and Bluetooth on Windows, macOS, and Linux via SDL3 hidapi.
+Minimal, self-contained DualSense controller library. Handles USB and
+Bluetooth on Windows, macOS, and Linux via SDL3 hidapi. Has no
+dependencies beyond SDL3 and knows nothing about any particular
+consumer — just DualSense HID reports.
 
 ## Architecture
 
 ```
-Game code
-  │
-  ▼
-ds_bridge.h  ← public API (game never includes libDualsense headers)
-  │
-  ▼
-ds_bridge_own.cpp  ← translates game types ↔ libDualsense types
-  │
-  ├─ ds_device   — HID transport (SDL3 hidapi)
-  ├─ ds_input    — input report parser
-  ├─ ds_output   — output report builder
-  ├─ ds_trigger  — adaptive trigger effect factories
-  └─ ds_crc      — CRC32 for Bluetooth output
+ds_device   — HID transport (SDL3 hidapi): open, read, write
+ds_input    — input report parser → InputState struct
+ds_output   — output report builder from OutputState struct
+ds_trigger  — adaptive trigger effect byte packing (all modes)
+ds_crc      — CRC32 for Bluetooth output reports
 ```
 
-Game code calls `ds_init()`, `ds_poll_registry()`, `ds_update_input()`,
-`ds_get_input()`, `ds_set_lightbar()`, `ds_trigger_weapon()`, etc. —
-all declared in `ds_bridge.h`. The bridge file translates between the
-game's `DS_InputState` struct and libDualsense's internal types.
-
-libDualsense itself has no knowledge of the game — it only knows about
-DualSense HID reports.
+Public entry points live in `ds_device.h`, `ds_input.h`, `ds_output.h`,
+`ds_trigger.h`. All types live in `namespace oc::dualsense`. See
+[`API.md`](API.md) for a usage guide.
 
 ## Files
 
@@ -38,7 +28,7 @@ DualSense HID reports.
 | `ds_output.h/cpp`  | Builds HID output report from `OutputState` struct      |
 | `ds_trigger.h/cpp` | Adaptive trigger effect byte packing (all modes)        |
 | `ds_crc.h/cpp`     | CRC32 for Bluetooth output reports                      |
-| `LICENSE`          | MIT license (OpenChaos)                                  |
+| `LICENSE`          | MIT license                                              |
 | `THIRD_PARTY_LICENSES.md` | Upstream MIT notices (DS5W CRC, duaLib triggers) |
 | `README.md`        | This file                                                |
 | `API.md`           | Detailed usage guide with code examples                  |
@@ -48,20 +38,20 @@ DualSense HID reports.
 **Input:** sticks, analog triggers, all buttons (face, shoulders,
 d-pad, L3/R3, share, options, PS, touchpad click, mute), battery
 level, headphone connected flag, adaptive trigger feedback status
-(state nybble + effect-active bit per trigger).
+(state nybble + effect-active bit per trigger), touchpad fingers.
 
 **Output:** lightbar RGB, player LEDs, rumble (two-motor DS4-style),
-adaptive trigger effects (Off, Feedback, Simple_Feedback, Weapon,
-Vibration, Bow, Machine).
+adaptive trigger effects — Off, Feedback, Simple_Feedback, Weapon,
+Simple_Weapon, Vibration, Simple_Vibration, Bow, Galloping, Machine,
+Limited_Feedback, Limited_Weapon (12 total).
 
 **Transport:** USB and Bluetooth, auto-detected at device open.
 
-## Not supported (by design)
+## Not supported
 
 - DualShock 4
 - DualSense Edge paddles / Fn keys
-- Gyro / accelerometer
-- Touchpad coordinates (only click)
+- Gyro / accelerometer (candidate for future addition — low priority)
 - Audio haptics (PCM → voice-coil)
 - Sensor calibration
 - Microphone LED control
@@ -70,10 +60,3 @@ Vibration, Bow, Machine).
 
 MIT — see `LICENSE`. Some code adapted from third-party MIT projects;
 see `THIRD_PARTY_LICENSES.md`.
-
-## Background
-
-Replaced a ~10K-line third-party library which had broken
-adaptive trigger packings and missing trigger feedback status reading.
-This library is ~800 lines, purpose-built, and empirically verified
-on Windows USB/BT.

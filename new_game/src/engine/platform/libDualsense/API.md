@@ -1,9 +1,9 @@
 # libDualsense API Guide
 
-All types live in `namespace oc::dualsense`. Game code does NOT
-include libDualsense headers directly — it uses `ds_bridge.h` which
-wraps the library. This guide documents the library's own API for
-anyone maintaining or extending the bridge.
+All types live in `namespace oc::dualsense`. This guide documents the
+library's public API. The library is deliberately standalone — it
+knows nothing about any particular consumer, game, or application;
+it only knows DualSense HID reports.
 
 ---
 
@@ -48,8 +48,8 @@ int n = device_read_latest(&dev, buf, sizeof(buf));
 
 **Queue draining:** `device_read_latest` reads ALL queued HID reports
 and keeps only the most recent one. On macOS BT, SDL returns FIFO
-order — without draining the game would read stale data from ~1 second
-ago. This is critical.
+order — without draining the caller would read stale data from ~1
+second ago. This is critical.
 
 ### Write (output)
 
@@ -82,7 +82,8 @@ parse_input_report(buf + dev.input_report_strip, &input);
 ### InputState fields
 
 **Sticks** — raw unsigned 0..255, center 128. Y+ is down (device
-convention). The bridge converts to float [-1,+1] with Y flipped.
+convention). Callers that want a signed float typically do
+`(raw - 128) / 127`, optionally flipping Y.
 
 | Field            | Type      | Range      |
 |------------------|-----------|------------|
@@ -121,8 +122,8 @@ convention). The bridge converts to float [-1,+1] with Y flipped.
 | `right_trigger_effect_active` | `bool`    | bit 4 of feedback byte           |
 
 The low nibble (bits 0..3) is the motor state machine value (3..9
-typical range during a Weapon effect). The bridge masks it with
-`& 0x0F` before exposing to game code.
+typical range during a Weapon effect). Callers that only need the
+state value should mask with `& 0x0F`.
 
 **Battery / misc:**
 
@@ -208,8 +209,7 @@ trigger_simple_feedback(out, position_raw, strength_raw);
 // position_raw: 0..255 — where resistance starts
 // strength_raw: 0..255 — how strong
 ```
-Raw byte mode, no zone math. Used for vehicle brake (`position=20,
-strength=200`). Simple continuous resistance.
+Raw byte mode, no zone math. Simple continuous resistance.
 
 #### Feedback (mode 0x21)
 ```cpp
@@ -230,11 +230,11 @@ trigger_weapon(out, start, end, strength);
 ```
 Single mechanical click between two positions. The DualSense trigger
 motor resists at `start`, clicks through at a force determined by
-`strength`, and is free again after `end`. Used for gun fire.
+`strength`, and is free again after `end`.
 
 The trigger feedback status reports `effect_active = true` while the
-trigger is inside the click zone, which can be used for hardware-based
-fire detection.
+trigger is inside the click zone, useful for hardware-based detection
+of trigger state transitions.
 
 #### Vibration (mode 0x26)
 ```cpp
@@ -243,8 +243,7 @@ trigger_vibration(out, position, amplitude, frequency);
 // amplitude: 0..8 — vibration strength (0 = off)
 // frequency: 1..255 Hz
 ```
-Sustained periodic vibration from `position` onwards. Intended for
-automatic weapons (e.g. AK47 continuous trigger buzz).
+Sustained periodic vibration from `position` onwards.
 
 #### Bow (mode 0x22)
 ```cpp
@@ -266,24 +265,24 @@ trigger_machine(out, start, end, amplitude_a, amplitude_b, frequency, period);
 // frequency:   1..255 Hz
 // period:      pattern period
 ```
-Two-beat alternating pattern, like a machine gun with recoil.
+Two-beat alternating rhythmic pattern.
 
 ### Effect mode codes (enum TriggerEffect)
 
-| Name             | Code | Used in game |
-|------------------|------|--------------|
-| Off              | 0x05 | Yes          |
-| Simple_Feedback  | 0x01 | Yes (brake)  |
-| Feedback         | 0x21 | Not yet      |
-| Weapon           | 0x25 | Yes (pistol) |
-| Bow              | 0x22 | Not yet      |
-| Vibration        | 0x26 | Not yet      |
-| Machine          | 0x27 | Not yet      |
-| Galloping        | 0x23 | Not yet      |
-| Simple_Weapon    | 0x02 | No           |
-| Simple_Vibration | 0x06 | No           |
-| Limited_Feedback | 0x11 | No           |
-| Limited_Weapon   | 0x12 | No           |
+| Name             | Code |
+|------------------|------|
+| Off              | 0x05 |
+| Simple_Feedback  | 0x01 |
+| Feedback         | 0x21 |
+| Weapon           | 0x25 |
+| Bow              | 0x22 |
+| Vibration        | 0x26 |
+| Machine          | 0x27 |
+| Galloping        | 0x23 |
+| Simple_Weapon    | 0x02 |
+| Simple_Vibration | 0x06 |
+| Limited_Feedback | 0x11 |
+| Limited_Weapon   | 0x12 |
 
 ---
 
@@ -294,52 +293,48 @@ uint32_t crc = crc32_compute(buffer, length);
 ```
 
 Standard CRC32 with DualSense-specific seed (`0xeada2d49`). Used
-by `build_output_report` for Bluetooth — game code doesn't call
-this directly.
+internally by `build_output_report` for Bluetooth; callers normally
+don't invoke this directly.
 
 ---
 
-## 6. Typical game-loop integration
+## 6. Typical integration
 
 ```cpp
 // Startup
 hid_init();
+Device dev;
+device_open_first(&dev);
+
+InputState  input  = {};
+OutputState output = {};
 
 // Per-frame
-ds_poll_registry(dt);       // try to find device if disconnected
-ds_update_input(dt);        // read latest HID report
-
-DS_InputState input;
-if (ds_get_input(&input)) {
-    // use input.left_stick_x, input.cross, etc.
+uint8_t in_buf[96];
+int n = device_read_latest(&dev, in_buf, sizeof(in_buf));
+if (n > 0) {
+    parse_input_report(in_buf, n,
+                       dev.connection == Connection::Bluetooth,
+                       input);
 }
+// use input.left_stick_x, input.cross, input.left_trigger_feedback, ...
 
 // Set outputs as needed
-ds_set_lightbar(r, g, b);
-ds_set_vibration(left, right);
-ds_trigger_weapon(4, 6, 5, 0, 1);   // R2 weapon click
+output.lightbar_r = 0; output.lightbar_g = 128; output.lightbar_b = 255;
+output.rumble_left = 100; output.rumble_right = 100;
+trigger_weapon(output.trigger_right, 4, 6, 5);
 
-ds_update_output();          // flush to device (only if dirty)
+uint8_t out_buf[96] = {};
+build_output_report(output, out_buf,
+                    dev.connection == Connection::Bluetooth);
+device_write(&dev, out_buf, dev.output_report_size);
 
 // Shutdown
-ds_shutdown();
+device_close(&dev);
+hid_shutdown();
 ```
 
-Note: the functions above (`ds_*`) are from `ds_bridge.h`, not
-libDualsense directly. They wrap the library and handle unit
-conversion (raw bytes ↔ game floats), dirty tracking, and reconnect
-logic.
-
----
-
-## 7. Debug overlay
-
-Press **F2** in-game to toggle the gamepad debug overlay. Shows:
-- Stick values (DI range 0..65535)
-- Analog trigger values (0..255)
-- All button states (green = pressed)
-- Trigger feedback status (state nybble + effect-active bit)
-- Raw 10-byte trigger effect slot dump (L and R)
-
-Useful for verifying that the correct effect bytes are being sent
-and that input parsing is working.
+Reconnect logic, dirty tracking, unit conversion to application types
+(floats, etc.) are deliberately left to the caller — the library stays
+minimal and has no opinion on frame cadence or how the caller wants
+to marshal data into its own types.
