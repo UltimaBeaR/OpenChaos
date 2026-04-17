@@ -114,6 +114,14 @@ struct WeaponFireDecision {
 // Run one tick of fire detection for the given analog trigger positions.
 // current_weapon picks the profile (auto_fire vs rising-edge, thresholds).
 // L2 (kick) always uses the current profile's thresholds but never auto-fires.
+//
+// R2 fire detection picks a path per tick based on device + profile:
+//   * DualSense + trigger_strength>0 + !auto_fire → act-bit path
+//     (fires on the hardware click signal, reads effect-active from
+//      gamepad_get_right_trigger_effect_active()).
+//   * Otherwise → threshold path (r2 rising past fire_threshold with
+//     armed gate, auto-fire bypasses the gate).
+// See the design section at the top of weapon_feel.cpp for details.
 WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2);
 
 // Reset rising-edge armed state. Call when the player enters a car, drops
@@ -121,15 +129,16 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 // input. Prevents a stray "fire" the instant control is handed back.
 void weapon_feel_fire_reset();
 
-// True if the fire detector currently considers R2 armed for a shot.
+// True if the threshold-path fire detector considers R2 armed for a shot.
 // For rising-edge weapons this means R2 has dipped to ≤ reset_threshold
-// since the last shot. For auto-fire weapons this is always true.
+// since the last shot; auto-fire weapons are always true.
 //
-// NOTE: kept in the public API for future experiments but the current
-// gamepad.cpp adaptive-trigger state machine does NOT consult it —
-// mode=AIM_GUN is enabled unconditionally while the weapon is ready.
-// See the devlog section "Подходы которые пробовали" → "Armed gate"
-// for why the armed-gate approach was abandoned (HID latency race).
+// NOTE: the DualSense act-bit path does NOT consult this flag — the
+// hardware itself enforces one click per physical press. gamepad.cpp
+// also doesn't gate mode on it; mode=AIM_GUN stays continuously enabled
+// while the weapon is ready. Kept in the public API for any future
+// experiments / debug overlays that want to introspect the threshold
+// state.
 bool weapon_feel_is_r2_armed(int32_t current_weapon);
 
 // DEBUG: append a printf-style line to weapon_feel_debug.log. Timestamped

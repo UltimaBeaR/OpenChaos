@@ -51,41 +51,63 @@
 // Init/shutdown are tied to gamepad_init / gamepad_shutdown.
 //
 // ===========================================================================
-// Current fire-detection design (as of 2026-04-15)
+// Current fire-detection design (as of 2026-04-17)
 // ===========================================================================
 //
-// THE SIMPLEST POSSIBLE version that satisfies the user's core
-// requirements (R1 — natural fire rate, R2 — keyboard-like tap behaviour):
+// Two paths share one evaluator, picked at runtime per weapon+device:
 //
-//   * Pure rising-edge fire detection: R2 ≤ reset_threshold arms,
-//     R2 > fire_threshold fires. No wall-clock cooldown, no settle timer,
-//     no consume flag. The game's Timer1 (inside actually_fire_gun) is
-//     the single source of rate limiting.
+//   * ACT-BIT path — used when the device is a DualSense AND the
+//     weapon's profile has an adaptive click (trigger_strength > 0)
+//     AND it's single-shot. The DualSense trigger motor reports an
+//     "effect active" bit (act) in the input report: act=1 while the
+//     trigger is inside the Weapon25 resistance zone, act=0 otherwise.
+//     The 1→0 edge fires once per physical click. We consult
+//     gamepad_get_right_trigger_effect_active() for act and fire on
+//     the edge with r2 > reset_threshold (high r2 disambiguates a
+//     click from a release inside the zone). The hardware naturally
+//     enforces one click per press cycle — no PC-side armed gate,
+//     no wall-clock timers. Game Timer1 still rate-limits.
 //
-//   * Adaptive-trigger mode is kept continuously enabled by gamepad.cpp
-//     while the weapon is ready. Mode never flips during gameplay, so
-//     there is no Bluetooth HID-round-trip race at every shot.
+//   * THRESHOLD fallback — used for auto-fire weapons (AK47), click-less
+//     profiles (shotgun today), and all non-DualSense devices (Xbox,
+//     keyboard-as-gamepad). Plain rising-edge: r2 ≤ reset_threshold
+//     arms, r2 > fire_threshold fires. Auto-fire ignores the armed
+//     gate. Same code that used to run for everyone.
 //
-// This design has two known residual issues, documented in detail in
-// the devlog file. Summary:
+// Why two paths: on DualSense the act bit is the direct hardware
+// signal "the trigger just clicked", so fire and click are perfectly
+// synchronised by construction. Threshold-based detection on r2
+// position was always an empirical guess at where the click point sat
+// — it desynchronises whenever the player's finger moves faster or
+// slower than the motor does. Since the full act report is only
+// produced for full-name Weapon25/Feedback/Vibration/etc. effects
+// (not Simple/Limited variants), the path requires trigger_strength>0
+// AND that gamepad.cpp is actually sending Weapon25 (which it is,
+// via the AIM_GUN trigger mode).
 //
-//   I1. At VERY rapid tapping (faster than the hardware Weapon25 click
-//       rate limit, whose exact value we don't know) some clicks can be
-//       physically dropped — the motor can't engage in time. The game
-//       still fires. Appears as rare "shot without click" at fast tap.
-//       Does NOT happen at normal aimed-firing pace.
+// Adaptive-trigger mode is kept continuously enabled by gamepad.cpp
+// while the weapon is ready. Mode never flips mid-gameplay, so there
+// is no Bluetooth HID-round-trip race.
 //
-//   I2. If the player presses R2 during the game's Timer1 cooldown
-//       window, the hardware fires a click (mode is AIM_GUN) but the
-//       game refuses the shot. Appears as "click without shot" during
-//       cooldown. The user explicitly said this is tolerable
-//       ("в целом тут тоже ок").
+// Known residual issues:
 //
-// EVERY more elaborate approach we tried broke R1 or R2 or made the
-// bugs worse. Read the devlog section "Подходы которые пробовали" for
-// the full list (armed gate, release-settle, post-fire cooldown,
-// split mode/fire lockout, MIN_PRESS_DURATION). Do NOT re-invent any
-// of these without reading why they failed first.
+//   * Fast single-tick presses (whole zone crossed in one 33 ms tick)
+//     may miss the act=1 sample → no act edge → no fire. This overlaps
+//     with the hardware Weapon25 rate limit (~270 ms) — hardware also
+//     drops clicks in this regime, so a threshold-path fire would fire
+//     without a physical click, violating R3 ("no shot without click").
+//     Act-path failing silently is the correct behaviour per R3/R2.
+//
+//   * Press during Timer1 cooldown still produces "click without shot":
+//     hardware emits click whenever the zone is crossed, act edge
+//     fires, weapon_feel calls shoot, but Timer1 refuses in
+//     actually_fire_gun. Acceptable per R4 — quiet refusal matches
+//     keyboard behaviour.
+//
+// History of dead-ends we already walked (armed gate, release-settle,
+// post-fire cooldown, split mode/fire lockout, MIN_PRESS_DURATION)
+// is in the devlog section "Подходы которые пробовали". Do not reinvent
+// those without re-reading why each broke R1/R2/R3.
 //
 // ===========================================================================
 // Debug logging
@@ -101,11 +123,15 @@
 //                           (rising-edge arms, release cycle starts)
 //   RISE-past-reset r2=X  — R2 crossed upward past reset_threshold
 //                           (press phase starts)
-//   FIRE r2=X             — fire event emitted to input pipeline
-//   FIRE-NOARM r2=X       — R2 past fire_threshold but not armed (no
-//                           deep release since last shot)
-//   L2-DIP / KICK         — same for L2 kick channel
-//   tick r2=...           — per-tick state snapshot, ONLY when R2 value
+//   FIRE-CLICK r2=X       — act-bit path: hardware click detected
+//                           (act 1→0 with r2>reset), fire emitted
+//   act 1->0 release r2=X — act-bit path: edge seen but r2 low, treated
+//                           as release-without-click (no fire)
+//   FIRE r2=X             — threshold path: auto-fire / non-DS fire
+//   FIRE-NOARM r2=X       — threshold path: R2 past fire_threshold but
+//                           not armed (no deep release since last shot)
+//   L2-DIP / KICK         — same for L2 kick channel (threshold only)
+//   tick r2=... act=...   — per-tick state snapshot, ONLY when R2 value
 //                           actually changes (so the log doesn't get
 //                           spammed when the player sits idle)
 //   ON_SHOT_FIRED         — callback from game side: actually_fire_gun
@@ -321,12 +347,20 @@ bool s_tick_initialized = false;
 // ===========================================================================
 // (see module manual at top of file for design rationale and constraints)
 
-// Rising-edge rearm flags — the only state that actually gates fire.
+// Rising-edge rearm flags — gate fire in the threshold-based fallback
+// path (auto-fire weapons, click-less weapons, non-DualSense devices).
 // Set to true when R2/L2 drops to ≤ reset_threshold. Set to false when
 // a fire event is emitted. Initial value is true so the first shot
 // after gamepad init works without requiring a dummy release first.
+// The DualSense act-bit path doesn't consult s_r2_armed — the hardware
+// naturally enforces one click per physical press cycle.
 bool s_r2_armed = true;
 bool s_l2_armed = true;
+
+// Previous-tick DualSense trigger effect-active bit for R2. Used by the
+// act-bit path to detect the 1→0 edge that marks a physical trigger
+// event (click at the top of the zone, or release from inside the zone).
+bool s_prev_act_r2 = false;
 
 // Pure debug log / crossing detection state — none of this gates fire.
 // s_prev_r2 / s_prev_l2 hold the previous tick's analog values so we
@@ -409,6 +443,7 @@ void weapon_feel_init()
     s_tick_initialized = false;
     s_r2_armed = true;
     s_l2_armed = true;
+    s_prev_act_r2 = false;
 }
 
 void weapon_feel_shutdown()
@@ -519,16 +554,33 @@ void weapon_feel_stop_haptic()
 // Fire detection
 // ===========================================================================
 
-// Simplest stable version: plain rising-edge fire detection with no
-// artificial wall-clock timers or consume logic. Rate limiting is
-// entirely the responsibility of the game's Timer1 inside
-// actually_fire_gun. The adaptive-trigger mode is left continuously
-// enabled by gamepad.cpp (no armed gate) so the hardware handles its
-// own click state without any HID flipping.
+// Two fire-detection paths in one function:
 //
-// See comments at the top of the "Fire detection state" block for
-// the known issues at this level (rapid-tap click drop, click during
-// cooldown) and why we settled on this version.
+//   Act-bit path (DualSense + weapon has adaptive click + single-shot):
+//     Fire on the act-bit 1→0 transition reported by the controller.
+//     This is a direct hardware signal: the trigger motor flips act=0
+//     the instant the physical click snaps through. r2 > reset_threshold
+//     disambiguates click (r2 high) from release-without-click (r2 low,
+//     same edge). No position guessing, no rising-edge gate — the
+//     hardware naturally emits at most one click per physical press
+//     cycle, so Timer1 in actually_fire_gun is the only rate limiter.
+//
+//   Threshold fallback (auto-fire, click-less profile, or non-DualSense):
+//     Classic rising-edge: R2 ≤ reset_threshold arms, R2 > fire_threshold
+//     fires. Auto-fire ignores the rearm flag and fires while held.
+//
+// Known residual behaviour documented in the devlog file (search for
+// "Расследование adaptive trigger синхронизации"):
+//
+//   * Fast single-tick presses through the whole effect zone may miss
+//     the act=1 phase at 30 Hz polling → click not fired via act path.
+//     This coincides with the hardware click rate limit (~270 ms) —
+//     hardware also drops clicks in this regime, so the shot wouldn't
+//     have produced a physical click anyway.
+//   * Press during game's Timer1 cooldown still produces "click without
+//     shot": hardware clicks whenever the zone is crossed, act edge is
+//     seen, we call fire, but Timer1 refuses inside actually_fire_gun.
+//     Acceptable per requirement R4 — silent refusal matches keyboard.
 WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2)
 {
     WeaponFireDecision out = { false, false };
@@ -539,19 +591,22 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 
     // ---- R2 fire channel ----
 
-    // Per-tick state snapshot for debug — only when R2 changes.
+    // Per-tick state snapshot for debug — only when R2 changes. Includes
+    // act bit so the log tells the whole story of a press cycle.
+    const bool act_now = gamepad_get_right_trigger_effect_active();
     if (r2 != s_prev_r2) {
         const auto since_release = std::chrono::duration_cast<std::chrono::milliseconds>(
             now - s_release_time).count();
         const auto since_fire = s_had_fire
             ? std::chrono::duration_cast<std::chrono::milliseconds>(now - s_last_fire_time).count()
             : -1LL;
-        weapon_feel_debug_log("tick r2=%d prev=%d armed=%d since_rel=%lldms since_fire=%lldms",
-            r2, s_prev_r2, s_r2_armed ? 1 : 0, since_release, since_fire);
+        weapon_feel_debug_log("tick r2=%d prev=%d armed=%d act=%d since_rel=%lldms since_fire=%lldms",
+            r2, s_prev_r2, s_r2_armed ? 1 : 0, act_now ? 1 : 0, since_release, since_fire);
     }
 
     // Detect downward crossing of reset_threshold — this is when
-    // rising-edge rearms. Reset s_release_time for log timestamps.
+    // rising-edge rearms (threshold path only). Reset s_release_time
+    // for log timestamps.
     const bool now_released = r2 <= p->reset_threshold;
     const bool was_released = s_prev_r2 <= p->reset_threshold;
     if (now_released && !was_released) {
@@ -565,24 +620,53 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     if (now_released) s_r2_armed = true;
     s_prev_r2 = r2;
 
-    // Fire: plain rising-edge. Either auto-fire (ignores rearm) or
-    // rising-edge (requires s_r2_armed). No artificial cooldown — game
-    // Timer1 enforces the rate.
-    if (r2 > p->fire_threshold) {
-        if (p->auto_fire || s_r2_armed) {
-            out.shoot = true;
-            s_r2_armed = false;
-            s_last_fire_time = now;
-            s_had_fire = true;
-            weapon_feel_debug_log("FIRE r2=%d", r2);
-        } else {
-            static int s_last_noarm_r2 = -1;
-            if (s_last_noarm_r2 != r2) {
-                weapon_feel_debug_log("FIRE-NOARM r2=%d (no deep release since last shot)", r2);
-                s_last_noarm_r2 = r2;
+    // Pick fire-detection path. The act-bit path requires both a DualSense
+    // and an active Weapon25 effect on that weapon — otherwise the act
+    // bit is meaningless (stays 0 for effect-less weapons, and non-DualSense
+    // devices never report it).
+    const bool device_is_ds     = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
+    const bool weapon_has_click = p->trigger_strength != 0;
+    const bool use_act_path     = device_is_ds && weapon_has_click && !p->auto_fire;
+
+    if (use_act_path) {
+        // act 1→0 edge = hardware just finished either a click or a release.
+        // r2 high disambiguates: high means the trigger snapped past the
+        // click point; low means the player let off from inside the zone
+        // without clicking.
+        if (s_prev_act_r2 && !act_now) {
+            if (r2 > p->reset_threshold) {
+                out.shoot = true;
+                s_r2_armed = false;
+                s_last_fire_time = now;
+                s_had_fire = true;
+                weapon_feel_debug_log("FIRE-CLICK r2=%d (act 1->0 with r2>reset)", r2);
+            } else {
+                weapon_feel_debug_log("act 1->0 release r2=%d (no fire, trigger let off in zone)", r2);
+            }
+        }
+    } else {
+        // Threshold fallback — auto-fire, click-less weapons, or non-DS.
+        // Plain rising-edge: r2 crosses fire_threshold while armed (or
+        // auto-fire ignores the armed gate). Rate limiting is game's
+        // Timer1.
+        if (r2 > p->fire_threshold) {
+            if (p->auto_fire || s_r2_armed) {
+                out.shoot = true;
+                s_r2_armed = false;
+                s_last_fire_time = now;
+                s_had_fire = true;
+                weapon_feel_debug_log("FIRE r2=%d (threshold path)", r2);
+            } else {
+                static int s_last_noarm_r2 = -1;
+                if (s_last_noarm_r2 != r2) {
+                    weapon_feel_debug_log("FIRE-NOARM r2=%d (no deep release since last shot)", r2);
+                    s_last_noarm_r2 = r2;
+                }
             }
         }
     }
+
+    s_prev_act_r2 = act_now;
 
     // ---- L2 kick channel — same plain rising-edge, never auto-fires ----
 
@@ -610,6 +694,7 @@ void weapon_feel_fire_reset()
     s_had_fire = false;
     s_prev_r2 = 0;
     s_prev_l2 = 0;
+    s_prev_act_r2 = false;
 }
 
 // NOTE: kept in the public API for future use but currently NOT consulted
