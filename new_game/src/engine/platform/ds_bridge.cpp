@@ -21,11 +21,23 @@ using namespace oc::dualsense;
 // Device re-enumeration cadence when disconnected, seconds.
 static constexpr float RECONNECT_INTERVAL_SEC = 1.0f;
 
+// Bluetooth silence timeout — if no input reports arrive for this long,
+// treat the device as disconnected and close the handle. Needed because
+// BT has no cable-yanked signal: SDL_hid_read keeps returning 0 forever
+// when the controller is switched off / out of range / BT unpaired on the
+// controller side. Without this timeout ds_is_connected() stays true and
+// the game never hands off to a fallback controller (e.g. Xbox).
+// DualSense streams reports at ~250 Hz even at idle, so a couple of
+// seconds of silence is definitive. USB uses the hid_read -1 path and
+// doesn't need this.
+static constexpr float BT_SILENT_TIMEOUT_SEC = 2.0f;
+
 static Device      s_device;
 static InputState  s_input  = {};
 static OutputState s_output = {};
-static bool            s_output_dirty  = true;
-static float           s_reconnect_acc = 0.0f;
+static bool            s_output_dirty   = true;
+static float           s_reconnect_acc  = 0.0f;
+static float           s_bt_silent_acc  = 0.0f;
 
 // Raw HID input buffer. Large enough for BT (78 bytes) with slack.
 static std::uint8_t s_input_raw[96] = {};
@@ -99,6 +111,7 @@ void ds_poll_registry(float delta_time)
     s_reconnect_acc = 0.0f;
 
     if (device_open_first(&s_device)) {
+        s_bt_silent_acc = 0.0f;
         // Over Bluetooth, the controller silently ignores LED and
         // player-LED fields in normal output packets unless we send
         // a one-shot init packet with *both* feature flags at 0xFF
@@ -129,20 +142,34 @@ void ds_poll_registry(float delta_time)
     }
 }
 
-bool ds_update_input(float /*delta_time*/)
+bool ds_update_input(float delta_time)
 {
     if (!s_device.connected) return false;
 
     const int n = device_read_latest(&s_device, s_input_raw, sizeof(s_input_raw));
     if (n < 0) {
         // Disconnected — device_read_latest already closed the handle.
+        s_bt_silent_acc = 0.0f;
         return false;
     }
     if (n == 0) {
-        // No new report this frame, keep prior parsed state.
+        // No new report this frame. On USB the controller streams reports
+        // continuously and a read-error would surface any disconnect via
+        // the n < 0 branch above. On Bluetooth there is no such signal —
+        // hid_read returns 0 forever once the controller goes away — so
+        // we watch for prolonged silence and force-close the handle.
+        if (s_device.connection == Connection::Bluetooth) {
+            s_bt_silent_acc += delta_time;
+            if (s_bt_silent_acc >= BT_SILENT_TIMEOUT_SEC) {
+                device_close(&s_device);
+                s_bt_silent_acc = 0.0f;
+                return false;
+            }
+        }
         return true;
     }
 
+    s_bt_silent_acc = 0.0f;
     // Parse from the payload that follows the transport-specific header.
     parse_input_report(s_input_raw + s_device.input_report_strip, &s_input);
     return true;

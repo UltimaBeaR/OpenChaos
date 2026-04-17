@@ -120,7 +120,12 @@ static bool    s_right_trigger_effect_active  = false;
 // DualSense input path — translate DS_InputState to GamepadState
 // ---------------------------------------------------------------------------
 
-static void poll_dualsense()
+// Returns true when the poll successfully read fresh DS state into
+// gamepad_state (rgbButtons, axes, triggers). False when the device is
+// absent or disconnected mid-poll — callers must NOT scan gamepad_state
+// as DS activity in the false case, it may contain stale data from a
+// previous Xbox poll.
+static bool poll_dualsense()
 {
     if (!ds_is_connected()) {
         // DualSense disconnected
@@ -136,13 +141,13 @@ static void poll_dualsense()
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
         }
         debug_log_backend("ds_disconnected");
-        return;
+        return false;
     }
 
     ds_update_input(s_last_poll_delta);
 
     DS_InputState ds;
-    if (!ds_get_input(&ds)) return;
+    if (!ds_get_input(&ds)) return false;
 
     // Translate float sticks (-1..+1) to DI range (0..65535, center 32768).
     gamepad_state.lX = static_cast<int32_t>(ds.left_stick_x  * 32767.0f) + 32768;
@@ -202,6 +207,7 @@ static void poll_dualsense()
     s_right_trigger_effect_active   = ds.right_trigger_effect_active;
 
     gamepad_state.connected = true;
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -210,39 +216,71 @@ static void poll_dualsense()
 
 static void poll_sdl3()
 {
-    // Process connect/disconnect events.
+    // Always drain + actually process SDL3 events — ADDED / REMOVED
+    // must be observed even when DualSense is primary, otherwise the
+    // handle s_gamepad desyncs from the hardware. Previously we had a
+    // "drain and ignore" fast path for the DS-primary case, and that
+    // silently lost Xbox hotplug events (e.g. user swaps controllers
+    // while the input debug panel is open — Xbox ADDED is discarded,
+    // and no new event fires until the user unplugs + replugs again).
+    //
+    // The primary-device override (active_input_device = XBOX) is
+    // suppressed while DS is primary so connecting an Xbox pad doesn't
+    // steal focus from an active DualSense.
     SDL3_GamepadEvent event;
     while (sdl3_gamepad_poll_event(&event)) {
         if (event.type == SDL3_GAMEPAD_EVENT_ADDED && !s_gamepad) {
-            s_gamepad = sdl3_gamepad_open();
+            // Open the specific device the event referred to — not
+            // joysticks[0]. If a DualSense and an Xbox pad are both
+            // present and SDL emits ADDED for Xbox, sdl3_gamepad_open()
+            // might pick the DS by order and we'd close it as "not
+            // Xbox", leaving Xbox never opened until the user replugs.
+            s_gamepad = sdl3_gamepad_open_id(event.instance_id);
             if (s_gamepad) {
                 if (is_dualsense_sdl(s_gamepad)) {
                     // DualSense snuck through SDL3 — release, let ds_bridge handle it.
                     sdl3_gamepad_close(s_gamepad);
                     s_gamepad = nullptr;
                 } else {
-                    s_is_dualsense = false;
-                    active_input_device = INPUT_DEVICE_XBOX;
-                    gamepad_state.connected = true;
+                    if (!s_is_dualsense) {
+                        active_input_device = INPUT_DEVICE_XBOX;
+                        gamepad_state.connected = true;
+                    }
                     debug_log_backend("sdl3_connected");
                 }
             }
         } else if (event.type == SDL3_GAMEPAD_EVENT_REMOVED && s_gamepad) {
-            sdl3_gamepad_close(s_gamepad);
-            s_gamepad = nullptr;
-            gamepad_state.connected = false;
-            // Reset axes to centre (32768) so downstream code doesn't see phantom input.
-            memset(&gamepad_state, 0, sizeof(gamepad_state));
-            gamepad_state.lX = 32768;
-            gamepad_state.lY = 32768;
-            gamepad_state.rX = 32768;
-            gamepad_state.rY = 32768;
-            active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
-            debug_log_backend("sdl3_disconnected");
+            // SDL broadcasts REMOVED for every gamepad the subsystem
+            // tracked — including a DualSense handled by ds_bridge
+            // (SDL still queues ADDED/REMOVED even when we ask hidapi
+            // backend not to claim it). Only tear down s_gamepad if
+            // the removal is for the device currently bound to it;
+            // otherwise Xbox would die whenever the user unplugs a DS.
+            if (event.instance_id == sdl3_gamepad_instance_id(s_gamepad)) {
+                sdl3_gamepad_close(s_gamepad);
+                s_gamepad = nullptr;
+                if (!s_is_dualsense) {
+                    gamepad_state.connected = false;
+                    // Reset axes to centre so downstream code doesn't see phantom input.
+                    memset(&gamepad_state, 0, sizeof(gamepad_state));
+                    gamepad_state.lX = 32768;
+                    gamepad_state.lY = 32768;
+                    gamepad_state.rX = 32768;
+                    gamepad_state.rY = 32768;
+                    active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
+                }
+                debug_log_backend("sdl3_disconnected");
+            }
         }
     }
 
     if (!s_gamepad) return;
+
+    // Skip input read while DS is primary — otherwise poll_dualsense's
+    // freshly-written gamepad_state would get stomped by a stale Xbox
+    // read. The s_gamepad handle stays open so it can take over
+    // immediately if the DualSense disconnects.
+    if (s_is_dualsense) return;
 
     SDL3_GamepadState sdl_state;
     if (!sdl3_gamepad_get_state(s_gamepad, &sdl_state)) return;
@@ -312,10 +350,18 @@ void gamepad_poll()
 
     // DualSense path (DS-lib via ds_bridge).
     if (s_is_dualsense || ds_is_connected()) {
-        poll_dualsense();
-        if (s_is_dualsense) {
-            // Track DualSense activity for device switching.
-            for (int i = 0; i < 17; i++) {
+        // Activity scan gate tracks actual poll success — s_is_dualsense
+        // alone would skip the very first hotplug frame (fresh DS state
+        // is already in gamepad_state but the flag isn't latched yet),
+        // and ds_is_connected alone would scan on frames where
+        // poll_dualsense early-returned without memsetting rgbButtons,
+        // giving phantom activity from stale Xbox data.
+        const bool ds_polled = poll_dualsense();
+        if (ds_polled) {
+            // Buttons 0..18 — 17 is touchpad_click and 18 is mute, both
+            // previously missed by a 0..16 loop (promoted only fire/face/
+            // dpad/shoulders/sticks/triggers).
+            for (int i = 0; i < 19; i++) {
                 if (gamepad_state.rgbButtons[i]) {
                     active_input_device = INPUT_DEVICE_DUALSENSE;
                     break;
@@ -327,20 +373,22 @@ void gamepad_poll()
                 gamepad_state.rY < 16384 || gamepad_state.rY > 49152) {
                 active_input_device = INPUT_DEVICE_DUALSENSE;
             }
+            // Touchpad fingers are DS-only state not mirrored into
+            // rgbButtons — read directly from DS_InputState.
+            DS_InputState ds_probe;
+            if (ds_get_input(&ds_probe) &&
+                (ds_probe.touchpad_finger_1_down || ds_probe.touchpad_finger_2_down)) {
+                active_input_device = INPUT_DEVICE_DUALSENSE;
+            }
         }
     }
 
-    // Also poll SDL3 for Xbox/generic (and for detecting new non-DualSense controllers).
-    if (!s_is_dualsense) {
-        poll_sdl3();
-    } else {
-        // Still pump SDL3 events even when DualSense active, to detect Xbox hotplug.
-        SDL3_GamepadEvent event;
-        while (sdl3_gamepad_poll_event(&event)) {
-            // Ignore — DualSense is primary. Xbox hotplug will be picked up
-            // when DualSense disconnects and we fall back to poll_sdl3().
-        }
-    }
+    // Always poll SDL3 — even when DualSense is primary, ADDED / REMOVED
+    // events must be observed so the Xbox handle stays in sync with
+    // physical state. poll_sdl3 internally suppresses the primary-device
+    // override while s_is_dualsense is true, and skips reading input
+    // (only events) to avoid stomping the DS-filled gamepad_state.
+    poll_sdl3();
 
     // Check if DualSense appeared while we were on Xbox or no controller.
     if (!s_is_dualsense && ds_is_connected()) {

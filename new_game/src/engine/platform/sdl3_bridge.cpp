@@ -410,13 +410,19 @@ bool sdl3_poll_events()
             break;
 
         // Queue gamepad connect/disconnect for sdl3_gamepad_poll_event().
+        // SDL fires these for *every* gamepad (including ones we don't
+        // open via SDL, like DualSense handled by ds_bridge), so the
+        // joystick instance ID is preserved here for the consumer to
+        // disambiguate.
         case SDL_EVENT_GAMEPAD_ADDED:
             if (s_gp_queue_count < GP_EVENT_QUEUE_SIZE)
-                s_gp_queue[s_gp_queue_count++] = { SDL3_GAMEPAD_EVENT_ADDED };
+                s_gp_queue[s_gp_queue_count++] =
+                    { SDL3_GAMEPAD_EVENT_ADDED, (uint32_t)e.gdevice.which };
             break;
         case SDL_EVENT_GAMEPAD_REMOVED:
             if (s_gp_queue_count < GP_EVENT_QUEUE_SIZE)
-                s_gp_queue[s_gp_queue_count++] = { SDL3_GAMEPAD_EVENT_REMOVED };
+                s_gp_queue[s_gp_queue_count++] =
+                    { SDL3_GAMEPAD_EVENT_REMOVED, (uint32_t)e.gdevice.which };
             break;
 
         default:
@@ -496,6 +502,19 @@ SDL3_GamepadHandle sdl3_gamepad_open()
 
     SDL_Gamepad* gp = SDL_OpenGamepad(joysticks[0]);
     SDL_free(joysticks);
+    return static_cast<SDL3_GamepadHandle>(gp);
+}
+
+uint32_t sdl3_gamepad_instance_id(SDL3_GamepadHandle handle)
+{
+    if (!handle) return 0;
+    SDL_JoystickID id = SDL_GetGamepadID(static_cast<SDL_Gamepad*>(handle));
+    return (uint32_t)id;
+}
+
+SDL3_GamepadHandle sdl3_gamepad_open_id(uint32_t instance_id)
+{
+    SDL_Gamepad* gp = SDL_OpenGamepad((SDL_JoystickID)instance_id);
     return static_cast<SDL3_GamepadHandle>(gp);
 }
 

@@ -250,41 +250,60 @@ new_game/src/engine/debug/input_debug/
 
 ### Баги
 
-**Не все DualSense-кнопки переключают `active_input_device` на DualSense.**
+**✅ FIXED (2026-04-17, Iteration 11) — Не все DualSense-кнопки переключают `active_input_device` на DualSense.**
 Репро: активное устройство клавиатура (последним был ввод с клавы),
 жму кнопки на DS — на вкладке DualSense должны "зажигаться" лейблы, но
 некоторые кнопки не перещёлкивают active в DUALSENSE и потому не видны
-как нажатые. Подтверждено как минимум:
-- **Touchpad click** (физическое нажатие на сенсорную панель) — не переключает
-- **Mute** — не переключает
-- **Пальцы по тачпаду** (скольжение без клика) — не переключает
-  (возможно и не должно — но стоит обсудить)
-- Вероятно другие кнопки вне индексов 0..16 тоже
+как нажатые. Было подтверждено как минимум:
+- **Touchpad click** (физическое нажатие на сенсорную панель)
+- **Mute**
+- **Пальцы по тачпаду** (скольжение без клика)
 
 Корень: `gamepad_poll` в [gamepad.cpp](../new_game/src/engine/input/gamepad.cpp)
-сканирует активность DS так: `for (int i = 0; i < 17; i++) if (gamepad_state.rgbButtons[i]) ...`.
+сканировал активность DS так: `for (int i = 0; i < 17; i++) if (gamepad_state.rgbButtons[i]) ...`.
 Но `rgbButtons[17] = touchpad_click` и `rgbButtons[18] = mute` — оба вне
 цикла. Плюс finger-on-touchpad вообще не в `rgbButtons`, он в
-`s_input.touchpad_finger_1_down` (только в DS InputState).
+`s_input.touchpad_finger_*_down` (только в DS InputState).
 
-Фикс: расширить цикл до 19 (`< 19`) для touchpad click + mute. Для
-finger-on-touchpad отдельно: добавить проверку
-`ds_get_input().touchpad_finger_1_down || ..._2_down` как триггер активности.
+Фикс: цикл расширен до 19 (`< 19`) — touchpad click + mute. Для
+finger-on-touchpad добавлена отдельная проверка `ds_get_input()` →
+`touchpad_finger_1_down || touchpad_finger_2_down`.
 
-**DualSense не детектится в панели после hotplug.**
-Сценарий: Xbox был активен → Xbox отключён / DualSense подключён по
-Bluetooth → открываю F11 панель → переключаюсь на DS таб → жму кнопки
-на DS → на странице ничего не светится. Закрываю F11 — в геймплее DS
-работает (перс бегает). Открываю F11 снова → на DS странице по-прежнему
-ничего не реагирует, пока не нажму стрелку на клавиатуре, потом DS
-начинает отображаться нормально.
+**✅ FIXED (2026-04-17, Iterations 12-14) — хотсвап между контроллерами.**
+Симптомы (подтверждены юзером по мере расследования):
+1. Пока F11-панель открыта и DualSense был primary, подключение Xbox-пада
+   не переключало active → приходилось закрывать панель и физически
+   переподключать Xbox несколько раз (fixed in **Iter 12**).
+2. После отключения DualSense клавиатура (стрелка) не промотировала
+   вкладку Keyboard зелёным, хотя ESC закрывал панель нормально
+   (fixed in **Iter 12**).
+3. USB disconnect DS работал (Xbox подхватывался), а BT отключение DS
+   (выключение контроллера) — нет (fixed in **Iter 13**).
+4. USB Xbox + USB DS оба воткнуты, DS primary. Отключение DS не
+   передавало управление Xbox — персонаж не бегал пока Xbox физически
+   не переподключить (fixed in **Iter 14**).
 
-Гипотеза: `s_is_dualsense` флаг не успевает переключиться внутри
-`gamepad_poll` пока панель активна. Возможно потому что hotplug
-detection проходит только через `ds_poll_registry` раз в секунду, и
-момент первой активации DS пропускается. Или `active_input_device`
-остаётся = KEYBOARD после пресса `3` для смены таба, и визуальный
-прокси `input_debug_read_gamepad_for(DS)` возвращает idle state.
+Полный корень — наложение **четырёх** багов:
+- Iter 12: `gamepad_poll` имел fast-path "drain-and-discard" для
+  SDL3-ивентов пока DS primary → Xbox ADDED / REMOVED терялись навсегда.
+- Iter 13: на BT `SDL_hid_read` молча возвращает 0 при выключении
+  контроллера (нет сигнала "кабель выдернут" как на USB), handle
+  оставался открытым, `ds_is_connected()` — `true` навсегда.
+- Iter 14: `SDL3_GamepadEvent` не содержал `instance_id`, и хендлер
+  `REMOVED` закрывал `s_gamepad` на **любом** ивенте — в том числе
+  когда SDL слал REMOVED для DS (SDL отслеживает DS как гамепад даже
+  когда hidapi-backend попросили не клеймить). Таже проблема с ADDED:
+  `sdl3_gamepad_open()` брал `joysticks[0]` вслепую вместо
+  запрошенного устройства.
+
+Фиксы (детали в секции "История реализации" ниже, Iter 12-14):
+`poll_sdl3()` теперь вызывается всегда с подавлением primary-override
+пока DS primary; BT silence timeout 2s в `ds_update_input`;
+`SDL3_GamepadEvent.instance_id` + `sdl3_gamepad_open_id()` /
+`sdl3_gamepad_instance_id()` для дисамбигуации.
+
+Протестировано юзером во всех комбинациях USB/BT для обоих
+контроллеров — хотсвап работает корректно.
 
 **Асимметрия stick dot (не баг, а hw drift).**
 Пользователь замечал что при максимальном отклонении стика вправо-вверх
@@ -367,6 +386,64 @@ detection проходит только через `ds_poll_registry` раз в 
   - **Xbox TESTS** sub-page (TAB) для rumble (без lightbar/LEDs).
   - `D-pad → stick` эмуляция в `gamepad.cpp` пропускается когда
     панель активна — иначе жмёшь d-pad и стик "прыгает".
+- **Iteration 11** (2026-04-17) — фиксы двух багов активити-детекта DS в
+  `gamepad_poll`:
+  - Цикл скана `rgbButtons` расширен с `< 17` до `< 19` — теперь ловит
+    touchpad click (индекс 17) и mute (индекс 18). Плюс добавлена
+    проверка `touchpad_finger_1_down || _2_down` через `ds_get_input()`
+    для случая скольжения пальцем по тачпаду без клика.
+  - `poll_dualsense()` стал возвращать `bool` (успех поллинга), и
+    гейт activity-скана теперь `if (ds_polled)` вместо
+    `if (s_is_dualsense)`. Это ловит хотплаг-кадр, когда `poll_dualsense`
+    уже заполнил `gamepad_state` свежими DS-данными, но
+    `s_is_dualsense` ещё `false` до hotplug-бранча ниже. И одновременно
+    не сканирует stale Xbox-данные в `rgbButtons` на кадрах где
+    `poll_dualsense` рано вышел по disconnect-mid-poll.
+- **Iteration 12** (2026-04-17) — фикс потери SDL3 hotplug-ивентов
+  пока DualSense primary. Раньше был fast-path в `gamepad_poll`:
+  ```cpp
+  } else {
+      while (sdl3_gamepad_poll_event(&event)) {}  // drain and discard
+  }
+  ```
+  который **съедал** Xbox ADDED / REMOVED ивенты — `s_gamepad`
+  рассинхронизировался с физическим state'ом. Юзер репортил:
+  (1) не мог переключиться на Xbox внутри панели; (2) после
+  отключения DS клавиатура не промотировалась. Теперь `poll_sdl3()`
+  вызывается всегда, но внутри подавлены записи в
+  `active_input_device`/`gamepad_state` пока `s_is_dualsense = true`
+  — ивенты обрабатываются, но primary-device не перехватывается.
+- **Iteration 13** (2026-04-17) — BT-disconnect detection. После
+  Iteration 12 юзер заметил: USB disconnect отрабатывает (при
+  отдёргивании кабеля Xbox подхватывается), а **BT отключение DS**
+  (выключение контроллера / уход из радиуса) — нет. Корень в
+  `device_read_latest`: на USB `SDL_hid_read` возвращает -1 при
+  отдёргивании → handle закрывается → `s_device.connected=false`.
+  На BT сигнала "кабель выдернут" нет, `hid_read` молча возвращает 0
+  вечно, handle остаётся открытым, `ds_is_connected()` — `true`
+  навсегда. Игра думает что DS на месте, фолбэк на Xbox не
+  срабатывает. Фикс в `ds_bridge.cpp::ds_update_input`: на BT
+  аккумулируется время молчания (нет новых report'ов), при
+  превышении `BT_SILENT_TIMEOUT_SEC = 2.0` handle принудительно
+  закрывается. DualSense стримит ~250 Hz даже в idle, так что 2
+  секунды молчания — определённо disconnect.
+- **Iteration 14** (2026-04-17) — SDL gamepad event disambiguation.
+  Юзер репортил: USB Xbox + USB DS оба подключены, DS primary.
+  Отключение DS не передаёт управление Xbox — персонаж не бегает,
+  пока Xbox физически не переподключить. Корень: **SDL3 шлёт
+  GAMEPAD_REMOVED для всех гамепадов** которые отслеживает —
+  включая DualSense, который у нас обслуживается ds_bridge (не
+  SDL). Наш `SDL3_GamepadEvent` не содержал ID устройства, и
+  хендлер `REMOVED` тупо закрывал `s_gamepad` на любом ивенте.
+  Когда юзер отключал DS, SDL слал REMOVED для DS → мы закрывали
+  Xbox handle. Таже проблема с ADDED: `sdl3_gamepad_open()` брал
+  `joysticks[0]` без привязки к ивенту — мог открыть DS когда
+  пришёл ADDED для Xbox. Фикс: `SDL3_GamepadEvent` получил поле
+  `instance_id`, добавлен `sdl3_gamepad_instance_id()` и
+  `sdl3_gamepad_open_id()`. Хендлер REMOVED теперь закрывает
+  `s_gamepad` только если `event.instance_id` совпадает с ID
+  текущего хендла; ADDED открывает именно то устройство что
+  пришло в ивенте.
 
 ## Зачем это написано
 

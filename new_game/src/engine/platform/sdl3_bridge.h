@@ -144,7 +144,20 @@ enum SDL3_GamepadEventType {
 
 struct SDL3_GamepadEvent {
     SDL3_GamepadEventType type;
+    // SDL joystick instance ID of the device the event refers to.
+    // Lets callers verify that a REMOVED event actually matches the
+    // gamepad they have open — SDL3 broadcasts REMOVED for *every*
+    // removed gamepad, including ones we never opened (e.g. a
+    // DualSense handled by our own ds_bridge, not SDL's gamepad
+    // subsystem). Blindly closing the current handle on any REMOVED
+    // would break when the removed device isn't ours.
+    uint32_t instance_id;
 };
+
+// Returns the SDL joystick instance ID of an open handle. Needed so
+// the ADDED/REMOVED event's instance_id can be cross-checked against
+// the device the caller is currently using.
+uint32_t sdl3_gamepad_instance_id(SDL3_GamepadHandle handle);
 
 struct SDL3_GamepadState {
     int16_t axis_left_x;   // -32768..+32767
@@ -183,6 +196,14 @@ bool sdl3_gamepad_poll_event(SDL3_GamepadEvent* event);
 
 // Opens the first available gamepad. Returns handle or nullptr.
 SDL3_GamepadHandle sdl3_gamepad_open();
+
+// Opens the specific gamepad identified by its SDL joystick instance
+// ID (as reported by an ADDED event). Returns nullptr if the device
+// is gone or not a gamepad. Prefer this over sdl3_gamepad_open() when
+// responding to a hotplug event, so we don't accidentally pick a
+// different device than the one that just appeared.
+SDL3_GamepadHandle sdl3_gamepad_open_id(uint32_t instance_id);
+
 void sdl3_gamepad_close(SDL3_GamepadHandle handle);
 
 // Reads current state. Returns false if not connected.
