@@ -112,27 +112,27 @@ void ds_poll_registry(float delta_time)
 
     if (device_open_first(&s_device)) {
         s_bt_silent_acc = 0.0f;
-        // Over Bluetooth, the controller silently ignores LED and
-        // player-LED fields in normal output packets unless we send
-        // a one-shot init packet with *both* feature flags at 0xFF
-        // right after connect. Rumble and trigger slots work without
-        // this, which is why we didn't notice until the lightbar test
-        // in the debug panel. USB needs no init.
+        // Over Bluetooth, force a one-shot init packet with every validFlag
+        // bit set so the controller unlocks LED / lightbar / player-LED
+        // subsystems. Rumble and trigger slots work without this but LED
+        // fields are silently ignored until the init arrives. USB needs no init.
         if (s_device.connection == Connection::Bluetooth) {
             std::uint8_t buf[96] = {};
-            buf[0] = 0x31;  // BT output Report ID
-            buf[1] = 0x02;  // sub-ID (tag)
-            // Padding = 2, so payload = buf + 2.
-            buf[2 + 0]  = 0xFF;  // flag1 — all audio/rumble enables
-            buf[2 + 1]  = 0xFF;  // flag2 — all LED enables (this is the key)
-            // buf[2 + 38] (= buf[40]) stays 0 for the init seq counter;
-            // subsequent build_output_report toggles to 1 on first regular packet.
-            // lightbar/player LED bytes stay 0 → controller initialises to off.
+            buf[0] = 0x31;   // BT Report ID
+            buf[1] = 0x00;   // seq << 4, starts at 0
+            buf[2] = 0x10;   // magic
+            // 47-byte payload at buf[3..49] — mostly zero, flags all-on.
+            buf[3 + 0]  = 0xFF;  // validFlag0 — all enables
+            buf[3 + 1]  = 0xFF;  // validFlag1 — all enables (keeps bit 3
+                                 //   set: "release LEDs to default" — safe
+                                 //   for init, subsequent packets clear it)
+            buf[3 + 38] = 0xFF;  // validFlag2 — all enables
+            // buf[50..73] reserved, zero. CRC at buf[74..77].
             const std::uint32_t crc = crc32_compute(buf, 74);
-            buf[0x4A] = (std::uint8_t)((crc >> 0)  & 0xFF);
-            buf[0x4B] = (std::uint8_t)((crc >> 8)  & 0xFF);
-            buf[0x4C] = (std::uint8_t)((crc >> 16) & 0xFF);
-            buf[0x4D] = (std::uint8_t)((crc >> 24) & 0xFF);
+            buf[74] = (std::uint8_t)((crc >> 0)  & 0xFF);
+            buf[75] = (std::uint8_t)((crc >> 8)  & 0xFF);
+            buf[76] = (std::uint8_t)((crc >> 16) & 0xFF);
+            buf[77] = (std::uint8_t)((crc >> 24) & 0xFF);
             device_write(&s_device, buf, s_device.output_report_size);
         }
         // Force a normal output packet on the next frame so LED/trigger

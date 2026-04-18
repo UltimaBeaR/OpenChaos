@@ -127,6 +127,30 @@ void parse_input_report(const std::uint8_t* r, InputState* out)
         out->touchpad_finger_2_x    = (std::uint16_t)(t2_b1 | ((t2_b2 & 0x0F) << 8));
         out->touchpad_finger_2_y    = (std::uint16_t)((t2_b2 >> 4) | (t2_b3 << 4));
     }
+
+    // Motion sensors. All multi-byte values are little-endian.
+    //   Gyro XYZ (pitch/yaw/roll): int16 at 0x0F / 0x11 / 0x13
+    //   Accel  XYZ:                int16 at 0x15 / 0x17 / 0x19
+    //   Motion timestamp:          uint32 at 0x1B (device microseconds, wraps)
+    //   Motion temperature:        int8 at 0x1F
+    // Offsets from daidr/dualsense-tester (router/DualSense/_utils/offset.util.ts).
+    auto read_i16_le = [](const std::uint8_t* p) -> std::int16_t {
+        return static_cast<std::int16_t>(
+            static_cast<std::uint16_t>(p[0]) |
+            (static_cast<std::uint16_t>(p[1]) << 8));
+    };
+    out->gyro_pitch  = read_i16_le(&r[0x0F]);
+    out->gyro_yaw    = read_i16_le(&r[0x11]);
+    out->gyro_roll   = read_i16_le(&r[0x13]);
+    out->accel_x     = read_i16_le(&r[0x15]);
+    out->accel_y     = read_i16_le(&r[0x17]);
+    out->accel_z     = read_i16_le(&r[0x19]);
+    out->motion_timestamp =
+        static_cast<std::uint32_t>(r[0x1B]) |
+        (static_cast<std::uint32_t>(r[0x1C]) << 8) |
+        (static_cast<std::uint32_t>(r[0x1D]) << 16) |
+        (static_cast<std::uint32_t>(r[0x1E]) << 24);
+    out->motion_temperature = static_cast<std::int8_t>(r[0x1F]);
 }
 
 } // namespace oc::dualsense

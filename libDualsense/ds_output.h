@@ -3,9 +3,9 @@
 // DualSense output report builder.
 //
 // Encapsulates all output state (lightbar, rumble, player LED,
-// adaptive trigger effect slots) and builds the wire-format HID
-// output report for either USB or Bluetooth transport. For BT the
-// trailing CRC32 is appended using ds_crc.
+// adaptive trigger effect slots, mute LED, haptic volume) and builds
+// the wire-format HID output report for either USB or Bluetooth
+// transport. For BT the trailing CRC32 is appended using ds_crc.
 
 #include <cstddef>
 #include <cstdint>
@@ -21,6 +21,16 @@ namespace PlayerLed {
     constexpr std::uint8_t Outer   = 0x01 | 0x10;
     constexpr std::uint8_t All     = 0x1F;
 }
+
+// Mic mute LED state.
+//   Off    — LED dark, mic capturing audio.
+//   On     — LED steady, mic muted by controller.
+//   Blink  — LED blinking, used by "all muted" (system-wide mute).
+enum class MuteLed : std::uint8_t {
+    Off   = 0,
+    On    = 1,
+    Blink = 2,
+};
 
 // Full output state. Each field is set by the game via setters in
 // ds_bridge; the whole struct is then serialized into a HID packet
@@ -38,6 +48,17 @@ struct OutputState {
     // Player LED
     std::uint8_t player_led_mask       = 0;
     std::uint8_t player_led_brightness = 0;
+
+    // Mic mute LED state (below the PS button).
+    MuteLed mute_led = MuteLed::Off;
+
+    // Overall haptic (rumble) volume, 0..7. 0 = quietest, 7 = loudest.
+    // Applied by the controller on top of per-motor rumble_left/right.
+    std::uint8_t haptic_volume = 0;
+
+    // Lightbar setup/override byte. Bit 1 ("fade-in at connect") is a
+    // common use; 0 = no override (default).
+    std::uint8_t lightbar_setup = 0;
 
     // Adaptive trigger effect slots — 10 bytes each.
     // Filled via ds_trigger functions (trigger_weapon, trigger_off,

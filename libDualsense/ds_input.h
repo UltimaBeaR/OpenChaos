@@ -86,6 +86,19 @@ struct InputState {
     std::uint16_t touchpad_finger_2_y;
     bool          touchpad_finger_2_down;
     std::uint8_t  touchpad_finger_2_id;
+
+    // Motion sensors. All values are raw int16/uint32/int8 device units —
+    // apply Sony calibration data (feature report 0x05) to convert to
+    // physical units (deg/s for gyro, g for accel). Without calibration
+    // values are suitable for relative motion / gesture detection only.
+    std::int16_t  gyro_pitch;
+    std::int16_t  gyro_yaw;
+    std::int16_t  gyro_roll;
+    std::int16_t  accel_x;
+    std::int16_t  accel_y;
+    std::int16_t  accel_z;
+    std::uint32_t motion_timestamp;    // device microseconds, wraps
+    std::int8_t   motion_temperature;  // internal sensor temp, device units
 };
 
 // Parse a normalized 64-byte DualSense input report into `out`.

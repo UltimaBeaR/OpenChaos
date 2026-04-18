@@ -1,4 +1,48 @@
 // DualSense output report builder.
+//
+// Wire-format layout matches the DualSense HID protocol as implemented by
+// daidr/dualsense-tester (Web HID reference, works on all OS + transport).
+//
+// The 47-byte common output payload is identical on USB and Bluetooth —
+// only the framing around it differs.
+//
+//   USB wire (48 bytes total):
+//     buf[0]       Report ID 0x02
+//     buf[1..47]   47-byte common payload
+//
+//   Bluetooth wire (78 bytes total):
+//     buf[0]       Report ID 0x31
+//     buf[1]       (seq << 4), seq is a rotating 0..255 counter
+//     buf[2]       magic 0x10
+//     buf[3..49]   47-byte common payload
+//     buf[50..73]  24 reserved bytes (zero)
+//     buf[74..77]  CRC32 over buf[0..73] (prefix byte 0xA2 baked into CRC seed)
+//
+// Common 47-byte payload layout (p[] indexing):
+//     p[0]  validFlag0          bit mask, see below
+//     p[1]  validFlag1          bit mask, see below
+//     p[2]  rumble_right        high-frequency motor
+//     p[3]  rumble_left         low-frequency motor
+//     p[4]  headphoneVolume     (not yet wired up)
+//     p[5]  speakerVolume       (not yet wired up)
+//     p[6]  micVolume           (not yet wired up)
+//     p[7]  audioControl        (not yet wired up)
+//     p[8]  muteLedControl      MuteLed enum value
+//     p[9]  powerSaveMuteControl (not yet wired up)
+//     p[10] adaptiveTriggerRightMode
+//     p[11..20] adaptiveTriggerRightParam0..9  (our trigger_right[10] covers
+//                               Mode+Param0..8; Param9 stays zero)
+//     p[21] adaptiveTriggerLeftMode
+//     p[22..31] adaptiveTriggerLeftParam0..9   (same as above)
+//     p[32..35] Reserved0..3
+//     p[36] hapticVolume
+//     p[37] audioControl2       (not yet wired up)
+//     p[38] validFlag2          bit mask, see below
+//     p[39..40] Reserved7..8
+//     p[41] lightbarSetup
+//     p[42] ledBrightness       player LED brightness
+//     p[43] playerIndicator     player LED mask
+//     p[44..46] ledCRed/Green/Blue  lightbar colour
 
 #include <libDualsense/ds_output.h>
 
@@ -8,15 +52,34 @@
 
 namespace oc::dualsense {
 
-// Feature-control flag defaults used on every steady-state output packet.
-// rafaelvaloto uses these same values and they work — BUT on Bluetooth
-// the controller also requires a one-shot init packet with both flags
-// at 0xFF sent right after connect; without it, LED and player-LED
-// writes are silently ignored even though rumble/trigger still work.
-// The init packet is sent inline in ds_bridge.cpp::ds_poll_registry
-// right after device_open_first succeeds.
-static constexpr std::uint8_t FEATURE_MODE_DEFAULT    = 0x57;
-static constexpr std::uint8_t VIBRATION_MODE_DEFAULT  = 0xFF;
+// Per-bit control flags that tell the controller which payload fields
+// this packet is actually updating. Identical names and positions as
+// daidr/dualsense-tester (OutputPanel.vue setValidFlagN() calls).
+namespace ValidFlag0 {
+    constexpr std::uint8_t RumbleRight     = 0x01;  // bit 0
+    constexpr std::uint8_t RumbleLeft      = 0x02;  // bit 1
+    constexpr std::uint8_t TriggerRight    = 0x04;  // bit 2
+    constexpr std::uint8_t TriggerLeft     = 0x08;  // bit 3
+    constexpr std::uint8_t HeadphoneVolume = 0x10;  // bit 4
+    constexpr std::uint8_t SpeakerVolume   = 0x20;  // bit 5
+    constexpr std::uint8_t MicVolume       = 0x40;  // bit 6
+    constexpr std::uint8_t AudioControl    = 0x80;  // bit 7
+}
+
+namespace ValidFlag1 {
+    constexpr std::uint8_t MicMute            = 0x01;  // bit 0
+    constexpr std::uint8_t PowerSaveMute      = 0x02;  // bit 1
+    constexpr std::uint8_t LightbarRGB        = 0x04;  // bit 2
+    constexpr std::uint8_t ReleaseLedsDefault = 0x08;  // bit 3 — MUST stay 0 when setting LED/lightbar
+    constexpr std::uint8_t PlayerLedMask      = 0x10;  // bit 4
+    constexpr std::uint8_t OverallEffectsRate = 0x40;  // bit 6
+}
+
+namespace ValidFlag2 {
+    constexpr std::uint8_t PlayerLedBrightness = 0x01;  // bit 0
+    constexpr std::uint8_t LightbarSetup       = 0x02;  // bit 1
+    constexpr std::uint8_t ImprovedRumble      = 0x04;  // bit 2
+}
 
 void build_output_report(const OutputState& state,
                          std::uint8_t* buf,
@@ -24,67 +87,82 @@ void build_output_report(const OutputState& state,
 {
     if (!buf) return;
 
-    // Wire-report size and payload offset. USB: Report ID + 47-byte payload.
-    // BT: Report ID + 1-byte sub-ID + 47-byte payload + reserved + 4-byte CRC.
     const std::size_t wire_len = bluetooth ? 78u : 48u;
     std::memset(buf, 0, wire_len);
 
-    std::size_t padding;
+    std::size_t payload_offset;
     if (bluetooth) {
-        buf[0]   = 0x31;   // BT output Report ID
-        buf[1]   = 0x02;   // sub-ID
-        padding  = 2;
+        buf[0] = 0x31;
 
-        // Alternating sequence counter at absolute offset 40 (= BT
-        // payload[38], `AllowLightBrightnessChange` bit). We memset
-        // the buffer every frame, so a static is needed to track the
-        // toggle state across calls.
+        // Rotating sequence counter in high nibble of byte 1 (low nibble
+        // reserved = 0). Required by DualSense BT output protocol; the
+        // controller deduplicates packets by this value.
         static std::uint8_t s_bt_seq = 0;
-        s_bt_seq ^= 0x01;
-        buf[40] = s_bt_seq;
-    } else {
-        buf[0]  = 0x02;    // USB output Report ID
-        padding = 1;
+        buf[1] = static_cast<std::uint8_t>(s_bt_seq << 4);
+        s_bt_seq = static_cast<std::uint8_t>((s_bt_seq + 1) & 0xFF);
 
-        // Fixed 0x07 at absolute offset 40 for USB
-        // (= USB payload[39], `HapticLowPassFilter` bit + UNKBIT).
-        buf[40] = 0x07;
+        buf[2] = 0x10;  // magic
+        payload_offset = 3;
+    } else {
+        buf[0] = 0x02;
+        payload_offset = 1;
     }
 
-    // `payload` is the DualSense output payload (common layout after
-    // transport-specific header is stripped).
-    std::uint8_t* payload = buf + padding;
+    std::uint8_t* p = buf + payload_offset;
 
-    // --- Feature control flags + rumble ---
-    payload[0] = VIBRATION_MODE_DEFAULT;  // enable vibration subsystem
-    payload[1] = FEATURE_MODE_DEFAULT;    // enable lightbar/trigger/LED
-    payload[2] = state.rumble_right;
-    payload[3] = state.rumble_left;
+    // Activate the subset of validFlag bits for fields we actually write.
+    // Bit 3 of validFlag1 ("ReleaseLedsDefault") must remain zero so the
+    // controller keeps our custom LED/lightbar state.
+    const std::uint8_t validFlag0 =
+          ValidFlag0::RumbleRight
+        | ValidFlag0::RumbleLeft
+        | ValidFlag0::TriggerRight
+        | ValidFlag0::TriggerLeft;
 
-    // --- Adaptive trigger effect slots ---
-    // Right trigger = offset 10..19, Left = 21..30.
-    std::memcpy(&payload[10], state.trigger_right, 10);
-    std::memcpy(&payload[21], state.trigger_left,  10);
+    const std::uint8_t validFlag1 =
+          ValidFlag1::MicMute
+        | ValidFlag1::LightbarRGB
+        | ValidFlag1::PlayerLedMask;
 
-    // --- Player LED + lightbar ---
-    payload[42] = state.player_led_brightness;
-    payload[43] = state.player_led_mask;
-    payload[44] = state.lightbar_r;
-    payload[45] = state.lightbar_g;
-    payload[46] = state.lightbar_b;
+    const std::uint8_t validFlag2 =
+          ValidFlag2::PlayerLedBrightness
+        | ValidFlag2::LightbarSetup;
 
-    // --- BT CRC32 ---
+    p[0]  = validFlag0;
+    p[1]  = validFlag1;
+    p[2]  = state.rumble_right;
+    p[3]  = state.rumble_left;
+    // p[4..7] audio/volume — zero, not wired up
+    p[8]  = static_cast<std::uint8_t>(state.mute_led);
+    // p[9] powerSaveMuteControl — zero
+
+    // Adaptive trigger effect slots. Right slot = 11 bytes at p[10..20]
+    // (Mode + Param0..9), left = 11 bytes at p[21..31]. Our 10-byte
+    // trigger descriptors cover Mode + Param0..8; the 11th byte (Param9)
+    // stays zero from the memset.
+    std::memcpy(&p[10], state.trigger_right, 10);
+    std::memcpy(&p[21], state.trigger_left,  10);
+
+    // p[32..35] Reserved0..3 — zero
+    p[36] = state.haptic_volume;
+    // p[37] audioControl2 — zero
+    p[38] = validFlag2;
+    // p[39..40] Reserved7..8 — zero
+    p[41] = state.lightbar_setup;
+    p[42] = state.player_led_brightness;
+    p[43] = state.player_led_mask;
+    p[44] = state.lightbar_r;
+    p[45] = state.lightbar_g;
+    p[46] = state.lightbar_b;
+
+    // BT CRC32 over buf[0..73]. Virtual 0xA2 prefix is baked into the
+    // CRC seed/table in ds_crc.cpp (see DS5W for the table derivation).
     if (bluetooth) {
-        // CRC is computed over bytes [0..73] and stored at [74..77].
-        // Note: the DualSense BT spec describes prepending a virtual
-        // 0xA2 byte before CRC computation, but in practice computing
-        // CRC directly over the first 74 bytes of the buffer (which
-        // starts with 0x31) works correctly.
         const std::uint32_t crc = crc32_compute(buf, 74);
-        buf[0x4A] = static_cast<std::uint8_t>((crc >> 0)  & 0xFF);
-        buf[0x4B] = static_cast<std::uint8_t>((crc >> 8)  & 0xFF);
-        buf[0x4C] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
-        buf[0x4D] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
+        buf[74] = static_cast<std::uint8_t>((crc >> 0)  & 0xFF);
+        buf[75] = static_cast<std::uint8_t>((crc >> 8)  & 0xFF);
+        buf[76] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
+        buf[77] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
     }
 }
 

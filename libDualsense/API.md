@@ -134,6 +134,34 @@ state value should mask with `& 0x0F`.
 | `battery_full`          | `bool`    | Fully charged         |
 | `headphone_connected`   | `bool`    | 3.5mm jack plugged in |
 
+**Touchpad fingers** — up to 2 simultaneous contacts. X/Y are raw
+touchpad pixels (X: 0..1919, Y: 0..1079). `*_down` is false when the
+finger is lifted; X/Y then hold the last position the finger had
+while down.
+
+| Field                       | Type       | Description          |
+|-----------------------------|------------|----------------------|
+| `touchpad_finger_1_x/_y`    | `uint16_t` | Raw touchpad pixels  |
+| `touchpad_finger_1_down`    | `bool`     | Finger in contact    |
+| `touchpad_finger_1_id`      | `uint8_t`  | Per-touch ID (0..127)|
+| `touchpad_finger_2_x/_y`    | `uint16_t` | Same for 2nd finger  |
+| `touchpad_finger_2_down`    | `bool`     |                      |
+| `touchpad_finger_2_id`      | `uint8_t`  |                      |
+
+**Motion sensors** — raw device units, no calibration applied. Apply
+Sony calibration data (feature report 0x05, not yet read by this
+library) to convert gyro to deg/s and accel to g. Without calibration,
+data is still usable for relative motion and gestures.
+
+| Field                | Type       | Description                          |
+|----------------------|------------|--------------------------------------|
+| `gyro_pitch`         | `int16_t`  | Gyro X axis                          |
+| `gyro_yaw`           | `int16_t`  | Gyro Y axis                          |
+| `gyro_roll`          | `int16_t`  | Gyro Z axis                          |
+| `accel_x/_y/_z`      | `int16_t`  | Accelerometer 3 axes                 |
+| `motion_timestamp`   | `uint32_t` | Device microseconds, wraps around    |
+| `motion_temperature` | `int8_t`   | Internal sensor temperature (raw)    |
+
 ---
 
 ## 3. Output report (`ds_output.h`)
@@ -144,11 +172,14 @@ Set fields, then call `build_output_report` to serialize.
 
 | Field                   | Type         | Description                         |
 |-------------------------|--------------|-------------------------------------|
-| `lightbar_r/g/b`       | `uint8_t`    | Lightbar color, 0..255 per channel  |
+| `lightbar_r/g/b`        | `uint8_t`    | Lightbar color, 0..255 per channel  |
 | `rumble_left`           | `uint8_t`    | Low-frequency motor, 0..255         |
 | `rumble_right`          | `uint8_t`    | High-frequency motor, 0..255        |
 | `player_led_mask`       | `uint8_t`    | 5-bit mask (see `PlayerLed::`)      |
 | `player_led_brightness` | `uint8_t`    | 0 = brightest                       |
+| `mute_led`              | `MuteLed`    | Mic mute LED: `Off` / `On` / `Blink` |
+| `haptic_volume`         | `uint8_t`    | Overall rumble volume, 0..7         |
+| `lightbar_setup`        | `uint8_t`    | Lightbar setup/override byte, 0 = default |
 | `trigger_right[10]`     | `uint8_t[]`  | R2 effect slot (filled by triggers) |
 | `trigger_left[10]`      | `uint8_t[]`  | L2 effect slot (filled by triggers) |
 

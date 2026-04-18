@@ -38,12 +38,16 @@ Public entry points live in `ds_device.h`, `ds_input.h`, `ds_output.h`,
 **Input:** sticks, analog triggers, all buttons (face, shoulders,
 d-pad, L3/R3, share, options, PS, touchpad click, mute), battery
 level, headphone connected flag, adaptive trigger feedback status
-(state nybble + effect-active bit per trigger), touchpad fingers.
+(state nybble + effect-active bit per trigger), touchpad fingers,
+motion sensors (gyroscope pitch/yaw/roll, accelerometer X/Y/Z,
+motion timestamp, motion temperature — all in raw device units).
 
-**Output:** lightbar RGB, player LEDs, rumble (two-motor DS4-style),
-adaptive trigger effects — Off, Feedback, Simple_Feedback, Weapon,
-Simple_Weapon, Vibration, Simple_Vibration, Bow, Galloping, Machine,
-Limited_Feedback, Limited_Weapon (12 total).
+**Output:** lightbar RGB, player LEDs (mask + brightness), rumble
+(two-motor DS4-style), mic mute LED (off / on / blink), overall haptic
+volume (0..7), lightbar setup byte, adaptive trigger effects — Off,
+Feedback, Simple_Feedback, Weapon, Simple_Weapon, Vibration,
+Simple_Vibration, Bow, Galloping, Machine, Limited_Feedback,
+Limited_Weapon (12 total).
 
 **Transport:** USB and Bluetooth, auto-detected at device open.
 
@@ -51,10 +55,10 @@ Limited_Feedback, Limited_Weapon (12 total).
 
 - DualShock 4
 - DualSense Edge paddles / Fn keys
-- Gyro / accelerometer (candidate for future addition — low priority)
 - Audio haptics (PCM → voice-coil)
-- Sensor calibration
-- Microphone LED control
+- Sensor calibration (motion data is raw; no official calibration applied)
+- Speaker / headphone / microphone audio volumes
+- Power-save mic mute control
 
 ## Licensing
 
