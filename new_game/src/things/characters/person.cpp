@@ -3522,15 +3522,19 @@ void actually_fire_gun(Thing* p_person)
     // DualSense haptic: envelope-based rumble from the weapon WAV (player only,
     // per-weapon profiles). Non-DualSense / unmapped weapons are silent no-ops.
     // Pistol has no SpecialUse — dispatch via SPECIAL_GUN explicitly.
+    //
+    // remaining_timer1 captures the pre-release debt: when the player fires
+    // inside the pre-release window (Timer1 > 0 but fire was allowed), the
+    // remainder is carried to the next shot's cooldown so average fire
+    // rate stays pinned to the anim duration.
     if (p_person->Genus.Person->PlayerID) {
-        weapon_feel_debug_log("ACTUALLY_FIRE_GUN state=%d timer1_before=%d",
-                              (int)p_person->State,
-                              (int)p_person->Genus.Person->Timer1);
+        const SLONG remaining_timer1 = p_person->Genus.Person->Timer1;
         if (p_person->Genus.Person->SpecialUse) {
             Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
-            weapon_feel_on_shot_fired(p_special->Genus.Special->SpecialType);
+            weapon_feel_on_shot_fired(p_special->Genus.Special->SpecialType,
+                                      (int32_t)remaining_timer1);
         } else {
-            weapon_feel_on_shot_fired(SPECIAL_GUN);
+            weapon_feel_on_shot_fired(SPECIAL_GUN, (int32_t)remaining_timer1);
         }
     }
 
@@ -3793,6 +3797,12 @@ void set_person_running_shoot(Thing* p_person)
 {
     SLONG ammo, sound, anim, time;
 
+    // Strict fire gate: Timer1 must be zero. Symmetric with the standing
+    // shot's SUB_STATE_SHOOT_GUN exit so running feels identical to
+    // standing. Motor mode=AIM_GUN still flips on pre_release ticks
+    // before Timer1 reaches zero (see game.cpp on_cooldown) so the
+    // DualSense motor has time to warm up before the first accepted
+    // press, giving click⇔shot sync.
     if (p_person->Genus.Person->Timer1) {
         // Still cooling down from last shot.
         return;
@@ -3812,12 +3822,19 @@ void set_person_running_shoot(Thing* p_person)
     MFX_play_thing(THING_NUMBER(p_person), sound, MFX_REPLACE, p_person);
     actually_fire_gun(p_person);
 
-    p_person->Genus.Person->Timer1 = time;
-
+    // Player: derive cooldown from the shoot animation's actual tick count
+    // (unified with standing fire), plus any pre-release debt captured by
+    // weapon_feel_on_shot_fired inside actually_fire_gun. NPCs keep the
+    // original hardcoded value to preserve their burst / aim timing.
+    SLONG timer1_value = time;
     if (p_person->Genus.Person->PlayerID) {
-        weapon_feel_debug_log("RUNNING_SHOOT Timer1 set to %d (state=%d)",
-                              (int)time, (int)p_person->State);
+        int32_t special = p_person->Genus.Person->SpecialUse
+            ? TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType
+            : SPECIAL_GUN;
+        int32_t calc = weapon_feel_consume_shot_cooldown_timer1(special);
+        if (calc > 0) timer1_value = calc;
     }
+    p_person->Genus.Person->Timer1 = timer1_value;
 }
 
 // Returns the best weapon type (with ammo) from the person's inventory.
@@ -3918,7 +3935,17 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         return;
     }
 
-    p_person->Genus.Person->Timer1 = 0;
+    // For the player: keep Timer1 alive through the fire path so
+    // actually_fire_gun → weapon_feel_on_shot_fired can capture any
+    // pre-release remainder as debt. The concluding player branch at
+    // the end of the function rewrites Timer1 to the anim-derived
+    // cooldown (+debt) once the shot actually commits.
+    // NPCs keep the original behavior: zero Timer1 at entry so the
+    // AK47/MIB burst-counter path (SUB_STATE_SHOOT_GUN) sees a clean
+    // starting value.
+    if (!p_person->Genus.Person->PlayerID) {
+        p_person->Genus.Person->Timer1 = 0;
+    }
 
     if (p_person->Genus.Person->PlayerID) {
         // Player-specific pre-shot checks.
@@ -4042,6 +4069,23 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
 
         actually_fire_gun(p_person);
+
+        // Player: set Timer1 to the anim-derived cooldown so standing and
+        // running fire share one cooldown mechanism. fn_person_gun's
+        // SUB_STATE_SHOOT_GUN handler decrements Timer1 each tick for the
+        // player and exits when it reaches zero. NPCs continue to use
+        // the animation state machine as their rate-limit (Timer1 stays 0
+        // for them, matching original behavior — SUB_STATE_SHOOT_GUN
+        // reuses Timer1 as a burst counter for AK47/MIB bursts).
+        if (p_person->Genus.Person->PlayerID) {
+            int32_t special = p_person->Genus.Person->SpecialUse
+                ? TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType
+                : SPECIAL_GUN;
+            int32_t calc = weapon_feel_consume_shot_cooldown_timer1(special);
+            if (calc > 0) {
+                p_person->Genus.Person->Timer1 = calc;
+            }
+        }
     }
 }
 
@@ -11630,6 +11674,34 @@ void fn_person_gun(Thing* p_person)
                     PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
                     150, 28, 1, 8, 1);
             }
+        }
+
+        // Player: drive the exit by Timer1 (set from anim-derived cooldown
+        // in set_person_shoot) instead of anim end. This unifies the
+        // running and standing cooldowns behind a single counter and
+        // makes pre-release + debt compensation applicable to both.
+        // NPCs keep the anim-end exit path (their Timer1 doubles as an
+        // AK47/MIB burst counter — see below).
+        //
+        // Fallback: if Timer1 is 0 (anim duration calc wasn't available at
+        // set_person_shoot time), fall through to the NPC anim-end path
+        // so the player can still exit the state.
+        if (p_person->Genus.Person->PlayerID &&
+            p_person->Genus.Person->Timer1 > 0)
+        {
+            // Decrement matches fn_person_moveing's running-shot countdown
+            // so running and standing Timer1 tick at identical rates.
+            SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
+            if (p_person->Genus.Person->Timer1 <= ticks) {
+                p_person->Genus.Person->Timer1 = 0;
+            } else {
+                p_person->Genus.Person->Timer1 -= ticks;
+            }
+            if (p_person->Genus.Person->Timer1 == 0) {
+                p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+                set_person_aim(p_person);
+            }
+            break;
         }
 
         if (end == 1) {

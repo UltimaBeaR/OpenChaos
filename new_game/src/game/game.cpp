@@ -8,7 +8,7 @@
 #include "game/game_types.h"
 #include "things/core/thing_globals.h"  // playback_file, verifier_file
 #include "things/items/special.h"       // SPECIAL_* constants for weapon_feel
-#include "engine/input/weapon_feel.h"   // weapon_feel_is_in_fire_cooldown
+#include "engine/input/weapon_feel.h"   // weapon_feel_pre_release_timer1
 #include "game/game_tick.h"                // process_controls
 #include "buildings/prim.h"    // clear_prims
 
@@ -1004,26 +1004,32 @@ round_again:;
                     bool in_car = darci_t->Genus.Person->InCar != 0;
                     bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
                     // Cooldown signals taken directly from game state —
-                    // no wall-clock timers or per-weapon magic numbers:
-                    //   * Running: Timer1 counts down in fn_person_moveing
-                    //     while in STATE_MOVEING (running-shot rate limit).
-                    //     STATE_MOVEING guard prevents a stuck Timer1 from
-                    //     gating forever if the player stops mid-cooldown.
-                    //   * Standing: SUB_STATE_SHOOT_GUN is active while the
-                    //     standing-shoot animation plays (set by
-                    //     set_person_shoot, cleared when anim ends).
-                    // Both conditions drive on_cooldown, which forces
-                    // mode=NONE — no hardware clicks during cooldown.
-                    // A gamepad click that lands in the cooldown is
-                    // detected by weapon_feel via r2 position regardless
-                    // of mode, and buffered as a pending shot that flushes
-                    // as soon as the cooldown clears.
+                    // no wall-clock timers or per-weapon magic numbers.
+                    // Timer1 is the unified post-shot cooldown counter
+                    // for BOTH running and standing fire: set to the
+                    // shoot animation's derived tick count, decremented
+                    // in STATE_MOVEING SUB_STATE_RUNNING and in
+                    // STATE_GUN SUB_STATE_SHOOT_GUN (player only).
+                    // State is still checked so a frozen Timer1 left
+                    // over from a running shot the player interrupted
+                    // by stopping doesn't wrongly gate an unrelated
+                    // future state.
+                    //
+                    // Pre-release: motor mode=AIM_GUN turns on while
+                    // Timer1 is in the last couple of ticks of the
+                    // cooldown, so the HID packet has time to
+                    // propagate before the player's next press reaches
+                    // the click point. weapon_feel captures any remaining
+                    // Timer1 at fire as debt so average rate stays
+                    // pinned to the anim duration.
+                    const SLONG pre_release = weapon_feel_pre_release_timer1();
                     const bool in_running_cooldown =
                         (darci_t->State == STATE_MOVEING &&
-                         darci_t->Genus.Person->Timer1 > 0);
+                         darci_t->Genus.Person->Timer1 > pre_release);
                     const bool in_standing_cooldown =
                         (darci_t->State == STATE_GUN &&
-                         darci_t->SubState == SUB_STATE_SHOOT_GUN);
+                         darci_t->SubState == SUB_STATE_SHOOT_GUN &&
+                         darci_t->Genus.Person->Timer1 > pre_release);
                     bool on_cooldown = in_running_cooldown || in_standing_cooldown;
 
                     // States where the player physically can't fire. In these
@@ -1043,8 +1049,15 @@ round_again:;
 
                     // Disable weapon trigger effect when target has surrendered (hands up)
                     // or is an innocent cop — game will "talk" instead of shoot.
+                    // Only applies when the player is standing still: set_person_shoot
+                    // handles the surrender case (makes the target lie down / shows
+                    // "can't shoot cop") so no real shot fires — no click either.
+                    // On the run, set_person_running_shoot ignores target status and
+                    // always fires, so the click must still happen; we skip the
+                    // surrender gate in that state.
                     bool weapon_ready = has_gun && !on_cooldown && !non_firing_state;
-                    if (weapon_ready && darci_t->Genus.Person->Target) {
+                    const bool is_running = (darci_t->State == STATE_MOVEING);
+                    if (weapon_ready && !is_running && darci_t->Genus.Person->Target) {
                         Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
                         if (tgt->Class == CLASS_PERSON) {
                             SLONG anim = tgt->Draw.Tweened->CurrentAnim;
@@ -1066,61 +1079,7 @@ round_again:;
                         Thing* p_special = TO_THING(darci_t->Genus.Person->SpecialUse);
                         if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
                     }
-                    // Pass fire-readiness state to weapon_feel so the
-                    // pending-shot buffer knows when to queue a click
-                    // (cooldown active) vs fire immediately, and when
-                    // to cancel a queued click (player lost firing
-                    // capability mid-cooldown due to jump, cutscene,
-                    // or holster).
-                    const bool fire_ready_now =
-                        has_gun && !non_firing_state;
-                    weapon_feel_set_game_state(on_cooldown, fire_ready_now);
-
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
-
-                    // Per-tick state snapshot for firing diagnostics. Logged
-                    // only when something changed to avoid flooding.
-                    {
-                        static SLONG s_prev_state = -2;
-                        static SLONG s_prev_timer1 = -2;
-                        static int   s_prev_cooldown = -1;
-                        static int   s_prev_ready = -1;
-                        static int   s_prev_dev = -1;
-                        const SLONG cur_state = darci_t->State;
-                        const SLONG cur_timer1 = darci_t->Genus.Person->Timer1;
-                        const int cur_dev = (int)gamepad_get_device_type();
-                        if (cur_state != s_prev_state || cur_timer1 != s_prev_timer1 ||
-                            (int)on_cooldown != s_prev_cooldown ||
-                            (int)weapon_ready != s_prev_ready ||
-                            cur_dev != s_prev_dev) {
-                            weapon_feel_debug_log(
-                                "TIK state=%d timer1=%d run_cd=%d stand_cd=%d cd=%d ready=%d dev=%d",
-                                (int)cur_state, (int)cur_timer1,
-                                in_running_cooldown ? 1 : 0,
-                                in_standing_cooldown ? 1 : 0,
-                                on_cooldown ? 1 : 0,
-                                weapon_ready ? 1 : 0, cur_dev);
-                            s_prev_state    = cur_state;
-                            s_prev_timer1   = cur_timer1;
-                            s_prev_cooldown = (int)on_cooldown;
-                            s_prev_ready    = (int)weapon_ready;
-                            s_prev_dev      = cur_dev;
-                        }
-                    }
-
-                    // On-screen fire-rate diagnostic: last N intervals between
-                    // real shots, tagged with input device (kb/ds/xb). Lets
-                    // the player compare keyboard vs gamepad tap rate live.
-                    // CONSOLE_text_at with the same (x,y) just replaces the
-                    // previous line and resets the timer, so a generous delay
-                    // keeps the readout visible between shots.
-                    char fire_gap_line[256];
-                    weapon_feel_format_shot_history(fire_gap_line, sizeof(fire_gap_line));
-                    CONSOLE_text_at(10, 30, 1000, (CBYTE*)"%s", fire_gap_line);
-
-                    char fire_avg_line[128];
-                    weapon_feel_format_shot_averages(fire_avg_line, sizeof(fire_avg_line));
-                    CONSOLE_text_at(10, 45, 1000, (CBYTE*)"%s", fire_avg_line);
                 }
             }
 

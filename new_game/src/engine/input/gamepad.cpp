@@ -637,10 +637,6 @@ static void apply_trigger_mode(TriggerMode mode)
         break;
 
     case TRIGGER_MODE_AIM_GUN:
-        weapon_feel_debug_log("apply AIM_GUN: ds_trigger_weapon(start=%u, end=%u, str=%u)",
-            (unsigned)s_aim_gun_start_zone,
-            (unsigned)s_aim_gun_end_zone,
-            (unsigned)s_aim_gun_strength);
         ds_trigger_weapon(s_aim_gun_start_zone, s_aim_gun_end_zone, s_aim_gun_strength, 0, 1);
         ds_trigger_off(0);
         break;
@@ -709,10 +705,6 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     }
 
     if (desired != s_trigger_mode) {
-        weapon_feel_debug_log("MODE_CHG %d -> %d (in_car=%d weapon_ready=%d has_click=%d r2=%d)",
-            (int)s_trigger_mode, (int)desired,
-            in_car ? 1 : 0, weapon_ready ? 1 : 0,
-            weapon_has_click ? 1 : 0, (int)gamepad_state.trigger_right);
         s_trigger_mode = desired;
         apply_trigger_mode(desired);
     }
@@ -727,7 +719,6 @@ void gamepad_triggers_off()
 
 void gamepad_triggers_lockout(int /*reserved*/)
 {
-    weapon_feel_debug_log("triggers_lockout called (cur_mode=%d)", (int)s_trigger_mode);
     if (s_trigger_mode == TRIGGER_MODE_NONE) return;
     s_trigger_mode = TRIGGER_MODE_NONE;
     apply_trigger_mode(TRIGGER_MODE_NONE);

@@ -62,23 +62,6 @@ struct WeaponFeelProfile {
     uint8_t  fire_threshold;
     uint8_t  reset_threshold;
     bool     auto_fire;
-
-    // Post-fire cooldown in milliseconds during which the adaptive-trigger
-    // effect stays disabled (mode=NONE) so the hardware can't emit clicks
-    // while the game is still in its per-weapon cooldown window. Matches
-    // the natural fire rate of the weapon: for the pistol this is the
-    // running-shot Timer1 duration (~583 ms). Set to 0 for weapons that
-    // don't have an adaptive click (AK47, shotgun today) — the gate is
-    // still consulted but mode stays NONE regardless.
-    //
-    // Tracked locally in weapon_feel via wall-clock rather than reading
-    // Person::Timer1 because Timer1 is per-person state reused for
-    // several purposes and only decrements in specific states (notably
-    // STATE_MOVEING) — after a running shot followed by standing still,
-    // Timer1 would freeze at its cooldown value forever. Standing-still
-    // fire (set_person_shoot) doesn't set Timer1 at all. Local
-    // wall-clock is the only signal that works across all firing paths.
-    uint32_t fire_cooldown_ms;
 };
 
 // ---------------------------------------------------------------------------
@@ -107,7 +90,40 @@ const WeaponFeelProfile* weapon_feel_get_profile(int32_t special_type);
 // the game actually committed — not a blocked-by-Timer1 attempt).
 // Restarts envelope playback for the weapon's profile. Non-DualSense
 // devices and unregistered weapons: no-op.
-void weapon_feel_on_shot_fired(int32_t special_type);
+//
+// remaining_timer1: Person->Timer1 value AT THE MOMENT OF FIRE, before
+//   set_person_*_shoot resets it. Used for pre-release debt
+//   compensation: if the player fired while Timer1 was still counting
+//   (inside the pre-release window), that remainder is added on top of
+//   the base cooldown for the next shot, so average rate stays pinned
+//   to the animation duration. Pass 0 for non-player shots — debt is
+//   captured only for the player.
+void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1);
+
+// Returns the cooldown value (in Timer1 units) that Person->Timer1 should
+// be set to at the start of a shot, for the given weapon. Derived from
+// the shoot animation's actual tick count at the current TICK_RATIO —
+// no hardcoded per-weapon magic numbers. Includes any carried-over
+// pre-release debt from the previous shot (and clears it).
+//
+// Returns 0 if the weapon has no registered shoot animation (e.g.
+// unknown weapon type). Caller should fall back to the original
+// hardcoded value in that case.
+int32_t weapon_feel_consume_shot_cooldown_timer1(int32_t special_type);
+
+// Pre-release threshold in Timer1 units. Both the fire gate and the
+// DualSense mode gate open when Person->Timer1 drops to this value,
+// rather than waiting for exact zero. Motor mode=AIM_GUN turns on at
+// this point and the HID propagation window (~30 ms) overlaps with
+// the tail of the cooldown — by Timer1=0 the motor is physically
+// ready to click. If the player taps inside this window, the shot
+// fires with the remainder captured as debt for the next shot, so
+// average fire rate stays pinned to the animation duration.
+//
+// Computed from the current TICK_RATIO so it automatically tracks
+// frame-rate changes. Typical value at 15 fps (TICK_RATIO=256): 32
+// (= 2 ticks × decrement 16).
+int32_t weapon_feel_pre_release_timer1();
 
 // Per-frame tick. Advances any active envelope and returns the current
 // motor value (0..255) to be max-merged into the slow rumble motor.
@@ -137,8 +153,9 @@ struct WeaponFireDecision {
 // R2 fire detection picks a path per tick based on device + profile +
 // weapon state:
 //   * DualSense + trigger_strength>0 + !auto_fire + weapon_drawn →
-//     act-bit path (fires on the hardware click signal, reads
-//     effect-active from gamepad_get_right_trigger_effect_active()).
+//     adaptive-click path (fires on analog crossing the upper edge of
+//     the weapon's Weapon25 zone, which aligns with where the motor
+//     physically clicks).
 //   * Otherwise → threshold path (r2 rising past fire_threshold with
 //     armed gate, auto-fire bypasses the gate). Covers bare-hand melee,
 //     auto-fire weapons, click-less weapons, and non-DualSense devices.
@@ -149,62 +166,3 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 // the weapon, or in any context where triggers aren't being read as fire
 // input. Prevents a stray "fire" the instant control is handed back.
 void weapon_feel_fire_reset();
-
-// True if a real shot fired within the weapon's fire_cooldown_ms window.
-// Consulted by gamepad.cpp (via game.cpp) to force mode=NONE during the
-// cooldown so the DualSense adaptive trigger doesn't emit phantom clicks
-// while the game is still in its per-weapon fire-rate gate. Always
-// false after the cooldown expires or if no shot has ever fired. Safe
-// to call without a DualSense connected — it's just a timer check.
-bool weapon_feel_is_in_fire_cooldown();
-
-// Called once per game tick from game.cpp with the current game-side
-// fire-readiness state.
-//
-//   in_cooldown: true when the game is not yet ready to accept a new
-//     shot — either the running-shot Timer1 is still counting, or the
-//     standing-shoot animation is still playing. A gamepad click in
-//     this window is detected (so we don't silently drop it) but buffered
-//     as a pending shot and emitted as PUNCH the moment the flag clears.
-//     Mode=AIM_GUN is kept off during cooldown (by game.cpp's
-//     weapon_ready gate) so the hardware doesn't produce tactile
-//     feedback for these queued presses.
-//
-//   weapon_ready: true when the player is in a state where firing is
-//     otherwise legal (gun drawn, not in cutscene, not jumping, etc.).
-//     Any pending shot is cancelled as soon as this goes false — so a
-//     click queued during cooldown won't auto-fire after a jump or
-//     cutscene.
-void weapon_feel_set_game_state(bool in_cooldown, bool weapon_ready);
-
-// True if the threshold-path fire detector considers R2 armed for a shot.
-// For rising-edge weapons this means R2 has dipped to ≤ reset_threshold
-// since the last shot; auto-fire weapons are always true.
-//
-// NOTE: the DualSense act-bit path does NOT consult this flag — the
-// hardware itself enforces one click per physical press. gamepad.cpp
-// also doesn't gate mode on it; mode=AIM_GUN stays continuously enabled
-// while the weapon is ready. Kept in the public API for any future
-// experiments / debug overlays that want to introspect the threshold
-// state.
-bool weapon_feel_is_r2_armed(int32_t current_weapon);
-
-// DEBUG: append a printf-style line to weapon_feel_debug.log. Timestamped
-// with ms since first call. File is opened on first call and flushed on
-// every write so the last line is never lost on crash/abort/exit.
-void weapon_feel_debug_log(const char* fmt, ...);
-
-// DEBUG: format a compact string with the last N shot intervals and their
-// input source, for on-screen comparison of keyboard vs gamepad fire rate.
-// Example output: "gaps ms: [kb]283 [kb]275 [ds]650 [ds]680".
-// Source is sampled at the moment of the shot from the active input device.
-// Records older than the buffer capacity are overwritten. Safe to call
-// every frame — pure formatter, no state mutation.
-void weapon_feel_format_shot_history(char* out, size_t out_size);
-
-// DEBUG: format average gap between the last 5 shots, split per device.
-// Example output: "avg kb: 280ms (n=4) | avg ds: 620ms (n=5)".
-// n is the number of intervals actually averaged (min 1, max 5). Devices
-// with fewer than 2 shots in the history buffer show "-". Safe to call
-// every frame — pure formatter, no state mutation.
-void weapon_feel_format_shot_averages(char* out, size_t out_size);
