@@ -48,6 +48,7 @@
 #include <libDualsense/ds_output.h>
 
 #include <libDualsense/ds_crc.h>
+#include <libDualsense/ds_device.h>
 
 #include <cstring>
 
@@ -184,6 +185,17 @@ void build_output_report(const OutputState& state,
         buf[76] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
         buf[77] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
     }
+}
+
+int device_send_output(Device* dev, const OutputState& state)
+{
+    if (!dev || !dev->connected) return -1;
+
+    // Wire buffer large enough for BT (78) with slack for future growth.
+    std::uint8_t buf[96] = {};
+    const bool bt = (dev->connection == Connection::Bluetooth);
+    build_output_report(state, buf, bt);
+    return device_write(dev, buf, dev->output_report_size);
 }
 
 } // namespace oc::dualsense

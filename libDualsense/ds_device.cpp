@@ -3,6 +3,8 @@
 
 #include <libDualsense/ds_device.h>
 
+#include <libDualsense/ds_crc.h>
+
 #include <SDL3/SDL_hidapi.h>
 #include <SDL3/SDL_hints.h>
 
@@ -180,6 +182,46 @@ int device_send_feature_report(Device* dev,
         return -1;
     }
     return result;
+}
+
+bool device_send_init_packet(Device* dev)
+{
+    if (!dev || !dev->connected) return false;
+    if (dev->connection != Connection::Bluetooth) {
+        // USB does not need the handshake.
+        return true;
+    }
+
+    // BT init packet layout:
+    //   buf[0]       0x31   Report ID
+    //   buf[1]       0x00   initial seq (high nibble = seq, starts at 0)
+    //   buf[2]       0x10   magic
+    //   buf[3..49]   47-byte payload with all validFlag bits set
+    //                  (validFlag0 at p[0], validFlag1 at p[1],
+    //                   validFlag2 at p[38] — see ds_output.cpp for
+    //                   the payload layout).
+    //                  Payload bytes other than validFlag triplet stay
+    //                  zero — this is a "no-op state, but please hand
+    //                  over control" signal, not a real output packet.
+    //   buf[50..73]  reserved zero
+    //   buf[74..77]  CRC32 (prefix 0xA2 baked into crc32_compute's seed)
+    std::uint8_t buf[OUTPUT_REPORT_BT_BYTES] = {};
+    buf[0] = 0x31;
+    buf[1] = 0x00;
+    buf[2] = 0x10;
+    buf[3 + 0]  = 0xFF;   // validFlag0 — all enables
+    buf[3 + 1]  = 0xFF;   // validFlag1 — all enables (bit 3
+                          //   "ReleaseLedsDefault" is safe to set on
+                          //   init; subsequent packets clear it).
+    buf[3 + 38] = 0xFF;   // validFlag2 — all enables
+
+    const std::uint32_t crc = crc32_compute(buf, 74);
+    buf[74] = static_cast<std::uint8_t>((crc >>  0) & 0xFF);
+    buf[75] = static_cast<std::uint8_t>((crc >>  8) & 0xFF);
+    buf[76] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
+    buf[77] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
+
+    return device_write(dev, buf, sizeof(buf)) > 0;
 }
 
 } // namespace oc::dualsense

@@ -3,7 +3,6 @@
 
 #include "engine/platform/ds_bridge.h"
 
-#include <libDualsense/ds_crc.h>
 #include <libDualsense/ds_device.h>
 #include <libDualsense/ds_input.h>
 #include <libDualsense/ds_output.h>
@@ -38,9 +37,6 @@ static OutputState s_output = {};
 static bool            s_output_dirty   = true;
 static float           s_reconnect_acc  = 0.0f;
 static float           s_bt_silent_acc  = 0.0f;
-
-// Raw HID input buffer. Large enough for BT (78 bytes) with slack.
-static std::uint8_t s_input_raw[96] = {};
 
 // ===========================================================================
 // Helpers
@@ -112,29 +108,9 @@ void ds_poll_registry(float delta_time)
 
     if (device_open_first(&s_device)) {
         s_bt_silent_acc = 0.0f;
-        // Over Bluetooth, force a one-shot init packet with every validFlag
-        // bit set so the controller unlocks LED / lightbar / player-LED
-        // subsystems. Rumble and trigger slots work without this but LED
-        // fields are silently ignored until the init arrives. USB needs no init.
-        if (s_device.connection == Connection::Bluetooth) {
-            std::uint8_t buf[96] = {};
-            buf[0] = 0x31;   // BT Report ID
-            buf[1] = 0x00;   // seq << 4, starts at 0
-            buf[2] = 0x10;   // magic
-            // 47-byte payload at buf[3..49] — mostly zero, flags all-on.
-            buf[3 + 0]  = 0xFF;  // validFlag0 — all enables
-            buf[3 + 1]  = 0xFF;  // validFlag1 — all enables (keeps bit 3
-                                 //   set: "release LEDs to default" — safe
-                                 //   for init, subsequent packets clear it)
-            buf[3 + 38] = 0xFF;  // validFlag2 — all enables
-            // buf[50..73] reserved, zero. CRC at buf[74..77].
-            const std::uint32_t crc = crc32_compute(buf, 74);
-            buf[74] = (std::uint8_t)((crc >> 0)  & 0xFF);
-            buf[75] = (std::uint8_t)((crc >> 8)  & 0xFF);
-            buf[76] = (std::uint8_t)((crc >> 16) & 0xFF);
-            buf[77] = (std::uint8_t)((crc >> 24) & 0xFF);
-            device_write(&s_device, buf, s_device.output_report_size);
-        }
+        // BT handshake: tells the controller to hand over LED /
+        // lightbar / player-LED subsystems to us. No-op on USB.
+        device_send_init_packet(&s_device);
         // Force a normal output packet on the next frame so LED/trigger
         // state applies. On BT the ~33 ms between this init and the next
         // packet gives the controller time to process the init.
@@ -146,9 +122,9 @@ bool ds_update_input(float delta_time)
 {
     if (!s_device.connected) return false;
 
-    const int n = device_read_latest(&s_device, s_input_raw, sizeof(s_input_raw));
+    const int n = device_read_input(&s_device, &s_input);
     if (n < 0) {
-        // Disconnected — device_read_latest already closed the handle.
+        // Disconnected — device_read_input already closed the handle.
         s_bt_silent_acc = 0.0f;
         return false;
     }
@@ -170,8 +146,6 @@ bool ds_update_input(float delta_time)
     }
 
     s_bt_silent_acc = 0.0f;
-    // Parse from the payload that follows the transport-specific header.
-    parse_input_report(s_input_raw + s_device.input_report_strip, &s_input);
     return true;
 }
 
@@ -180,13 +154,9 @@ void ds_update_output()
     if (!s_device.connected) return;
     if (!s_output_dirty) return;
 
-    std::uint8_t buf[96] = {};
-    const bool bt = (s_device.connection == Connection::Bluetooth);
-    build_output_report(s_output, buf, bt);
-
-    const int written = device_write(&s_device, buf, s_device.output_report_size);
+    const int written = device_send_output(&s_device, s_output);
     if (written < 0) {
-        // Disconnected — device_write already closed the handle.
+        // Disconnected — device_send_output already closed the handle.
         return;
     }
 

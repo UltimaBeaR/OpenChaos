@@ -94,4 +94,20 @@ int device_send_feature_report(Device* dev,
                                const std::uint8_t* buf,
                                std::size_t len);
 
+// ---- Bluetooth init handshake --------------------------------------
+//
+// On Bluetooth, the DualSense firmware keeps LED / lightbar / player-LED
+// subsystems in a "managed by controller" state until the host sends an
+// output packet with every validFlag bit set, signalling "I'm going to
+// drive all these fields from now on". Rumble and adaptive triggers
+// work without this handshake, but LED fields are silently ignored
+// until it arrives.
+//
+// On USB this handshake is not required — the function returns true
+// immediately without sending anything.
+//
+// Typical usage: call once right after `device_open_first` returns
+// true. Returns false on disconnect / write failure.
+bool device_send_init_packet(Device* dev);
+
 } // namespace oc::dualsense

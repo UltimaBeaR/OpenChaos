@@ -2,6 +2,8 @@
 
 #include <libDualsense/ds_input.h>
 
+#include <libDualsense/ds_device.h>
+
 namespace oc::dualsense {
 
 // --- Button byte bit positions (after Report ID / header strip) ---
@@ -151,6 +153,20 @@ void parse_input_report(const std::uint8_t* r, InputState* out)
         (static_cast<std::uint32_t>(r[0x1D]) << 16) |
         (static_cast<std::uint32_t>(r[0x1E]) << 24);
     out->motion_temperature = static_cast<std::int8_t>(r[0x1F]);
+}
+
+int device_read_input(Device* dev, InputState* out)
+{
+    if (!dev || !out) return -1;
+
+    // Buffer sized for the larger BT report (78 bytes) plus slack.
+    std::uint8_t raw[96];
+    const int n = device_read_latest(dev, raw, sizeof(raw));
+    if (n < 0) return -1;   // disconnect
+    if (n == 0) return 0;   // no new report this frame
+
+    parse_input_report(raw + dev->input_report_strip, out);
+    return n;
 }
 
 } // namespace oc::dualsense

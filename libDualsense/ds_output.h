@@ -88,4 +88,13 @@ void build_output_report(const OutputState& state,
                          std::uint8_t* buf,
                          bool bluetooth);
 
+struct Device;  // fwd decl from ds_device.h
+
+// High-level output write: builds the wire-format packet for the
+// current transport and sends it. Recommended entry point for typical
+// consumers — hides the buffer sizing and transport selection of the
+// low-level API. Returns bytes written, or -1 on error / disconnect
+// (in which case `dev` is auto-closed).
+int device_send_output(Device* dev, const OutputState& state);
+
 } // namespace oc::dualsense

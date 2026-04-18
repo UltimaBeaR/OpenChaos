@@ -5,6 +5,15 @@ library's public API. The library is deliberately standalone — it
 knows nothing about any particular consumer, game, or application;
 it only knows DualSense HID reports.
 
+The API is layered:
+- **High-level** functions (`device_send_init_packet`,
+  `device_read_input`, `device_send_output`) are the recommended
+  entry points for typical consumers — they hide wire sizes,
+  transport selection, CRC, and framing offsets.
+- **Low-level** primitives (`device_read_latest`, `device_write`,
+  `parse_input_report`, `build_output_report`, CRC32) are still
+  available for power users who need to intercept the wire format.
+
 ---
 
 ## 1. Device lifecycle (`ds_device.h`)
@@ -26,6 +35,8 @@ Device dev;
 if (device_open_first(&dev)) {
     // dev.connected == true
     // dev.connection == Connection::Usb or Connection::Bluetooth
+
+    device_send_init_packet(&dev);  // BT handshake; no-op on USB
 }
 
 device_close(&dev);
@@ -36,26 +47,57 @@ picks the first DualSense (PID 0x0CE6) or DualSense Edge (PID 0x0DF2),
 opens it in non-blocking mode. Auto-detects USB vs BT based on
 `interface_number`.
 
-### Read (input)
+### BT init handshake
 
 ```cpp
-uint8_t buf[96];
-int n = device_read_latest(&dev, buf, sizeof(buf));
-// n > 0: got a report of n bytes in buf
-// n == 0: no new report this frame (ok, keep previous state)
-// n < 0: error / disconnect (dev is auto-closed)
+bool ok = device_send_init_packet(&dev);
 ```
 
-**Queue draining:** `device_read_latest` reads ALL queued HID reports
-and keeps only the most recent one. On macOS BT, SDL returns FIFO
-order — without draining the caller would read stale data from ~1
-second ago. This is critical.
+On Bluetooth, LED / lightbar / player-LED subsystems are silently
+ignored until the host sends a specific "hand over control" packet.
+Call `device_send_init_packet` once after `device_open_first` returns
+true. **No-op on USB** (just returns `true`), so it is safe to call
+unconditionally.
 
-### Write (output)
+### High-level read (input)
 
 ```cpp
-int written = device_write(&dev, buf, dev.output_report_size);
-// written < 0: error / disconnect (dev is auto-closed)
+InputState input = {};
+int n = device_read_input(&dev, &input);
+//   n > 0: new report parsed, `input` is fresh
+//   n == 0: no new report this frame, `input` unchanged
+//   n < 0: disconnect, `dev` was auto-closed
+```
+
+**Queue draining:** the underlying read keeps only the most recent
+report from the HID queue. On macOS BT, SDL returns FIFO order —
+without draining the caller would read stale data from ~1 second
+ago. This is handled automatically.
+
+### High-level write (output)
+
+```cpp
+OutputState out = {};
+out.rumble_left = 100;
+out.lightbar_r  = 255;
+
+int written = device_send_output(&dev, out);
+//   written > 0: sent
+//   written < 0: disconnect, `dev` was auto-closed
+```
+
+### Low-level I/O (power-user)
+
+```cpp
+// Raw read — caller handles stripping and parsing.
+uint8_t buf[96];
+int n = device_read_latest(&dev, buf, sizeof(buf));
+if (n > 0) parse_input_report(buf + dev.input_report_strip, &input);
+
+// Raw write — caller builds the wire buffer.
+uint8_t out_buf[96] = {};
+build_output_report(out, out_buf, dev.connection == Connection::Bluetooth);
+device_write(&dev, out_buf, dev.output_report_size);
 ```
 
 ### Device struct fields
@@ -467,18 +509,17 @@ don't invoke these directly — higher-level modules handle CRC.
 // Startup
 hid_init();
 Device dev;
-device_open_first(&dev);
+if (device_open_first(&dev)) {
+    device_send_init_packet(&dev);  // BT handshake; no-op on USB
+}
 
 InputState  input  = {};
 OutputState output = {};
 
 // Per-frame
-uint8_t in_buf[96];
-int n = device_read_latest(&dev, in_buf, sizeof(in_buf));
-if (n > 0) {
-    parse_input_report(in_buf, n,
-                       dev.connection == Connection::Bluetooth,
-                       input);
+int n = device_read_input(&dev, &input);
+if (n < 0) {
+    // disconnected — handle reconnect outside the library
 }
 // use input.left_stick_x, input.cross, input.left_trigger_feedback, ...
 
@@ -487,10 +528,7 @@ output.lightbar_r = 0; output.lightbar_g = 128; output.lightbar_b = 255;
 output.rumble_left = 100; output.rumble_right = 100;
 trigger_weapon(output.trigger_right, 4, 6, 5);
 
-uint8_t out_buf[96] = {};
-build_output_report(output, out_buf,
-                    dev.connection == Connection::Bluetooth);
-device_write(&dev, out_buf, dev.output_report_size);
+device_send_output(&dev, output);
 
 // Shutdown
 device_close(&dev);
