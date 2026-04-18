@@ -620,9 +620,8 @@ bool    gamepad_is_adaptive_click_active()
 
 // Weapon25 params for the most recently activated AIM_GUN profile. Looked
 // up from the weapon_feel profile at apply time so per-weapon tuning flows
-// through without touching this state machine. Semantics per the patched
-// Weapon25 packing (see OPENCHAOS-PATCH in GamepadTrigger.h):
-//   start_zone = startPosition, end_zone = endPosition, strength = 0..8.
+// through without touching this state machine. Semantics per
+// libDualsense trigger_weapon: start 2..7, end (start+1)..8, strength 0..8.
 static uint8_t s_aim_gun_start_zone = 4;
 static uint8_t s_aim_gun_end_zone   = 6;
 static uint8_t s_aim_gun_strength   = 5;

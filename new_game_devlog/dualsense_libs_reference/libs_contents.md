@@ -125,29 +125,22 @@
 - **Зачем**: низкоуровневый HID descriptor DualSense как справочник.
   Не критично, но может пригодиться при отладке новой либы.
 
-### 10. daidr/dualsense-tester — онлайн Web-HID тестер DualSense (TODO: что качать)
+### 10. daidr/dualsense-tester — Web-HID reference implementation
 
-- **Сайт**: https://ds.daidr.me/
 - **Репо**: https://github.com/daidr/dualsense-tester
-- **Куда положить**: `libs/dualsense-tester/` (полностью репо?)
-  или выборочно — **TODO: определиться**
-- **Проверка**: TODO
-- **Доп. действия**: TODO
-- **Зачем**: сайт работает как reference implementation DualSense
-  через Web HID API в браузере. На нём вибрация и adaptive triggers
-  **работают на non-Windows USB**, в то время как наша либа — нет
-  (см. known_issues "non-Windows + DualSense USB: вибрация почти не
-  работает"). Нужно сравнить какие output report'ы шлёт ds.daidr.me
-  vs. мы (размер, report ID, padding, feature flags), чтобы найти
-  причину различия. Вероятные места интереса в репо:
-  - Output report builder (куда пишутся rumble bytes, trigger slots).
-  - Report ID логика (0x02 vs 0x01 vs что-то ещё на USB).
-  - Transport detection (USB vs BT).
-  - CRC32 для BT.
-  **Шаг 1:** склонировать репо, просмотреть структуру, определить
-  нужные файлы (TypeScript / Vue / JS?), обновить этот пункт списком
-  конкретных файлов. **Шаг 2:** сравнить с нашим
-  `libDualsense/src/ds_output.cpp` и `build_output_report`.
+- **Куда положить**: `libs/dualsense-tester/`
+- **Проверка**: `libs/dualsense-tester/src/utils/dualsense/ds.util.ts`
+- **Доп. действия**: нет. Стек Vue + TypeScript, но собирать ничего не
+  надо — нас интересуют только `.ts` файлы как текст.
+- **Зачем**: ds.daidr.me — полнофункциональный Web HID тестер DualSense,
+  **работает на всех OS+USB**, включая non-Windows где наша либа не тянет
+  вибру (см. known_issues). Плюс у них реализованы фичи которых у нас
+  пока нет (гироскоп, mute LED и т.д.). Используется как референс для
+  (а) диагностики non-Win USB rumble бага, (б) расширения libDualsense
+  до паритета по фичам. Лицензия MIT (Copyright 2023 Xuezhou Dai) —
+  совместима, уже прописана в `libDualsense/THIRD_PARTY_LICENSES.md`.
+  Ядро DualSense-кода у них: `src/utils/dualsense/{crc32,ds.type,ds.util}.ts`
+  (~32 KB), транспорт `src/utils/hid.util.ts`, состояние `src/store/dualsense.ts`.
 
 ### 9. Game Controller Collective Wiki — Sony DualSense page (offline HTML)
 
@@ -191,7 +184,7 @@ libs/
 ├── dogtopus_hid_descriptor.txt          <- пункт 8 (файл)
 ├── gcc_wiki_sony_dualsense.html         <- пункт 9 (сохранённая HTML страница)
 │   (или папка gcc_wiki_sony_dualsense/ с assets — оба варианта ок)
-└── dualsense-tester/                    <- пункт 10 (TODO: что качать)
+└── dualsense-tester/                    <- пункт 10
 ```
 
 ---

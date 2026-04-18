@@ -1,14 +1,15 @@
 # Third-party licenses
 
-This library contains code and lookup tables adapted from the following
-open-source projects. All are MIT-licensed and their original copyright
-notices are reproduced below in full, as required by the MIT license.
+libDualsense was developed using the open-source projects listed below as
+reference implementations for the DualSense HID protocol. Any of them may
+have been consulted at any point, and individual fragments (lookup tables,
+packing formulas, byte layouts) may have been adapted from them into this
+library. Their original copyright notices are reproduced here in full, as
+required by their respective licenses.
 
 ---
 
-## DualSense-Windows (DS5W) — CRC32 table
-
-**Files affected:** `ds_crc.cpp` (CRC32 lookup table and seed constant)
+## DualSense-Windows (DS5W)
 
 **Upstream:** <https://github.com/Ohjurot/DualSense-Windows>
 
@@ -38,19 +39,16 @@ SOFTWARE.
 
 ---
 
-## duaLib — trigger effect factories
-
-**Files affected:** `ds_trigger.cpp` (byte-level packing logic for all
-adaptive trigger effect modes: Off, Feedback, Weapon, Vibration, Bow, Machine)
+## duaLib
 
 **Upstream:** <https://github.com/WujekFoliarz/duaLib>
-(file `src/source/triggerFactory.cpp`)
 
-The `triggerFactory.cpp` file inside the duaLib repository carries its own
-file-level copyright notice authored by John "Nielk1" Klein, who is also the
-author of the widely-referenced DualSense trigger effect gist at
+The file `src/source/triggerFactory.cpp` inside the duaLib repository carries
+its own file-level copyright notice authored by John "Nielk1" Klein, who is
+also the author of the widely-referenced DualSense trigger effect gist at
 <https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db>. That
-file-level copyright takes precedence for the packing logic specifically.
+file-level copyright takes precedence for the trigger packing logic
+specifically.
 
 ```
 MIT License
@@ -76,24 +74,131 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-Repository-level copyright for duaLib as a whole (for completeness):
+The same copyright notice applies to the standalone Nielk1 DualSense
+trigger-effects gist at
+<https://gist.github.com/Nielk1/6d54cc2c00d2201ccb8c2720ad7538db>, which
+contains the identical MIT notice at the top of the file.
+
+Repository-level copyright for duaLib as a whole:
 
 ```
 MIT License
 
 Copyright (c) 2025 WujekFoliarz
 
-[Full MIT terms — identical to the notices above.]
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 ---
 
-## Reverse-engineering references (no code copied)
+## daidr/dualsense-tester
 
-The following projects were consulted as reverse-engineering references for
-HID report offsets and bit layouts. No code is copied from them, so no
-license attribution is legally required — they are listed here for credit:
+**Upstream:** <https://github.com/daidr/dualsense-tester>
 
-- **nondebug/dualsense** — `dualsense-explorer.html`, protocol RE
-  <https://github.com/nondebug/dualsense>
-- **gcc-wiki Sony DualSense HID reference** — community protocol notes
+```
+MIT License
+
+Copyright (c) 2023 Xuezhou Dai
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## rafaelvaloto/Dualsense-Multiplatform
+
+**Upstream:** <https://github.com/rafaelvaloto/Dualsense-Multiplatform>
+
+```
+MIT License
+
+Copyright (c) 2025 Rafael Valoto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## Paliverse/DualSenseX
+
+**Upstream:** <https://github.com/Paliverse/DualSenseX>
+
+No LICENSE file present in the upstream repository at the time of consultation.
+Only the C# UDP example project is public; the main DSX application is closed-
+source. Listed here for credit and traceability.
+
+---
+
+## nondebug/dualsense
+
+**Upstream:** <https://github.com/nondebug/dualsense>
+
+No LICENSE file present in the upstream repository at the time of consultation.
+Listed here for credit and traceability.
+
+---
+
+## dogtopus DualSense HID descriptor gist
+
+**Upstream:** <https://gist.github.com/dogtopus/894da226d73afb3bdd195df41b3a26aa>
+
+No license notice declared on the gist at the time of consultation. Content
+is an HID report descriptor (data, not code). Listed here for credit and
+traceability.
+
+---
+
+## Game Controller Collective Wiki — Sony DualSense
+
+**Upstream:** <https://controllers.fandom.com/wiki/Sony_DualSense>
+
+Community-maintained wiki hosted on Fandom. Content is documentation, not
+code; no executable code is adapted from this source. Listed here for credit.

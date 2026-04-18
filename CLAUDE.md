@@ -79,7 +79,6 @@ CLAUDE.md                           — этот файл
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
 | DualSense (протокол, либы, trigger effects, packing'и) | `new_game_devlog/dualsense_libs_reference/README.md` (навигация) — вся DualSense-специфичная документация собрана в этой подпапке |
-| Писать свою DualSense либу | `new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md` — self-contained план со всеми ссылками |
 | Отладочные клавиши в игре (`bangunsnotgames` режим, F1 legend) | `new_game_devlog/debug_keys.md` — список клавиш, как включить режим, куда добавлять новые debug-клавиши |
 
 **НЕ читать** subsystem файлы по умолчанию — DENSE_SUMMARY покрывает большинство вопросов.
