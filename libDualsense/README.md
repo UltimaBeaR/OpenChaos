@@ -64,3 +64,11 @@ Limited_Weapon (12 total).
 
 MIT — see `LICENSE`. Some code adapted from third-party MIT projects;
 see `THIRD_PARTY_LICENSES.md`.
+
+## Trademark notice
+
+"DualSense" and "PlayStation" are trademarks of Sony Interactive
+Entertainment LLC. This library is an independent open-source project
+created via reverse engineering of the publicly-documented HID
+protocol. It is not affiliated with, endorsed by, or sponsored by Sony
+Interactive Entertainment or any of its subsidiaries.
