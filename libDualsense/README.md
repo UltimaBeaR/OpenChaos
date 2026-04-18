@@ -44,10 +44,10 @@ motion timestamp, motion temperature — all in raw device units).
 
 **Output:** lightbar RGB, player LEDs (mask + brightness), rumble
 (two-motor DS4-style), mic mute LED (off / on / blink), overall haptic
-volume (0..7), lightbar setup byte, adaptive trigger effects — Off,
-Feedback, Simple_Feedback, Weapon, Simple_Weapon, Vibration,
-Simple_Vibration, Bow, Galloping, Machine, Limited_Feedback,
-Limited_Weapon (12 total).
+volume (0..7), lightbar setup byte, built-in speaker volume, 3.5 mm
+headphone jack volume, adaptive trigger effects — Off, Feedback,
+Simple_Feedback, Weapon, Simple_Weapon, Vibration, Simple_Vibration,
+Bow, Galloping, Machine, Limited_Feedback, Limited_Weapon (12 total).
 
 **Transport:** USB and Bluetooth, auto-detected at device open.
 
@@ -57,8 +57,11 @@ Limited_Weapon (12 total).
 - DualSense Edge paddles / Fn keys
 - Audio haptics (PCM → voice-coil)
 - Sensor calibration (motion data is raw; no official calibration applied)
-- Speaker / headphone / microphone audio volumes
+- Microphone audio volume (field exists in HID layout but not wired
+  up in daidr-tester reference either — no empirical verification
+  available; deferred until feature reports give confirmation)
 - Power-save mic mute control
+- Audio control 2 byte (purpose not documented by any public reference)
 
 ## Licensing
 

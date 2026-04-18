@@ -180,8 +180,26 @@ Set fields, then call `build_output_report` to serialize.
 | `mute_led`              | `MuteLed`    | Mic mute LED: `Off` / `On` / `Blink` |
 | `haptic_volume`         | `uint8_t`    | Overall rumble volume, 0..7         |
 | `lightbar_setup`        | `uint8_t`    | Lightbar setup/override byte, 0 = default |
+| `audio_volumes_enabled` | `bool`       | Opt-in flag for audio volume fields (default `false`) |
+| `speaker_volume`        | `uint8_t`    | Built-in speaker, 0..255 (only applied if audio_volumes_enabled) |
+| `headphone_volume`      | `uint8_t`    | 3.5 mm jack, 0..255 (only applied if audio_volumes_enabled) |
 | `trigger_right[10]`     | `uint8_t[]`  | R2 effect slot (filled by triggers) |
 | `trigger_left[10]`      | `uint8_t[]`  | L2 effect slot (filled by triggers) |
+
+### Audio volumes — opt-in semantics
+
+The `audio_volumes_enabled` flag exists to distinguish "the game is
+managing audio" from "don't touch audio". With the flag at its default
+`false`, the library does **not** write the speaker/headphone volume
+fields and does not set the corresponding validFlag bits — the
+controller's internal audio state is left alone.
+
+Set `audio_volumes_enabled = true` and assign the volumes to actively
+control the DualSense audio output. Both values (speaker and headphone)
+are sent every frame while the flag is true; the controller routes to
+whichever physical output is active (jack detect). Toggling the flag
+back to `false` does **not** restore the previous audio state — the
+controller simply keeps whatever volume was last written.
 
 ### Player LED masks
 

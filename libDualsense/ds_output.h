@@ -3,9 +3,10 @@
 // DualSense output report builder.
 //
 // Encapsulates all output state (lightbar, rumble, player LED,
-// adaptive trigger effect slots, mute LED, haptic volume) and builds
-// the wire-format HID output report for either USB or Bluetooth
-// transport. For BT the trailing CRC32 is appended using ds_crc.
+// adaptive trigger effect slots, mute LED, haptic volume, speaker /
+// headphone audio volumes) and builds the wire-format HID output
+// report for either USB or Bluetooth transport. For BT the trailing
+// CRC32 is appended using ds_crc.
 
 #include <cstddef>
 #include <cstdint>
@@ -59,6 +60,16 @@ struct OutputState {
     // Lightbar setup/override byte. Bit 1 ("fade-in at connect") is a
     // common use; 0 = no override (default).
     std::uint8_t lightbar_setup = 0;
+
+    // Audio output volumes (controller built-in speaker and 3.5mm
+    // headphone jack). Only applied when `audio_volumes_enabled` is
+    // true — otherwise the library does not touch the controller's
+    // internal audio state, which means it stays at whatever the host
+    // OS / previous app set it to. Set both values and the flag to
+    // manage audio from the game.
+    bool         audio_volumes_enabled = false;
+    std::uint8_t speaker_volume        = 0;   // 0..255 (built-in speaker)
+    std::uint8_t headphone_volume      = 0;   // 0..255 (3.5 mm jack)
 
     // Adaptive trigger effect slots — 10 bytes each.
     // Filled via ds_trigger functions (trigger_weapon, trigger_off,

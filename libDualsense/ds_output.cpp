@@ -23,10 +23,11 @@
 //     p[1]  validFlag1          bit mask, see below
 //     p[2]  rumble_right        high-frequency motor
 //     p[3]  rumble_left         low-frequency motor
-//     p[4]  headphoneVolume     (not yet wired up)
-//     p[5]  speakerVolume       (not yet wired up)
+//     p[4]  headphoneVolume     state.headphone_volume
+//     p[5]  speakerVolume       state.speaker_volume
 //     p[6]  micVolume           (not yet wired up)
-//     p[7]  audioControl        (not yet wired up)
+//     p[7]  audioControl        upper nibble = route (0 = headphone,
+//                                3 = speaker); lower nibble = flags
 //     p[8]  muteLedControl      MuteLed enum value
 //     p[9]  powerSaveMuteControl (not yet wired up)
 //     p[10] adaptiveTriggerRightMode
@@ -113,11 +114,17 @@ void build_output_report(const OutputState& state,
     // Activate the subset of validFlag bits for fields we actually write.
     // Bit 3 of validFlag1 ("ReleaseLedsDefault") must remain zero so the
     // controller keeps our custom LED/lightbar state.
-    const std::uint8_t validFlag0 =
+    std::uint8_t validFlag0 =
           ValidFlag0::RumbleRight
         | ValidFlag0::RumbleLeft
         | ValidFlag0::TriggerRight
         | ValidFlag0::TriggerLeft;
+
+    if (state.audio_volumes_enabled) {
+        validFlag0 |= ValidFlag0::HeadphoneVolume
+                    | ValidFlag0::SpeakerVolume
+                    | ValidFlag0::AudioControl;
+    }
 
     const std::uint8_t validFlag1 =
           ValidFlag1::MicMute
@@ -132,7 +139,20 @@ void build_output_report(const OutputState& state,
     p[1]  = validFlag1;
     p[2]  = state.rumble_right;
     p[3]  = state.rumble_left;
-    // p[4..7] audio/volume — zero, not wired up
+    if (state.audio_volumes_enabled) {
+        p[4] = state.headphone_volume;
+        p[5] = state.speaker_volume;
+        // p[6] micVolume — still zero, not wired up (not exposed by daidr UI either)
+        // p[7] audioControl: upper nibble 0 = headphone-jack route,
+        // 3 = speaker route. Hardcoded to 0 so the controller drives the
+        // headphone jack when present and falls back to the built-in
+        // speaker otherwise (daidr UI alternates between 0 and 0x30
+        // depending on which slider was last touched — we don't model
+        // that here; both volumes are sent every frame).
+        p[7] = 0x00;
+    }
+    // If audio_volumes_enabled is false, p[4..7] stay zero and the
+    // validFlag0 bits for audio fields are not set — controller ignores.
     p[8]  = static_cast<std::uint8_t>(state.mute_led);
     // p[9] powerSaveMuteControl — zero
 
