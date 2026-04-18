@@ -111,7 +111,36 @@ bool ds_get_input(DS_InputState* out);
 
 void ds_set_lightbar(uint8_t r, uint8_t g, uint8_t b);
 void ds_set_player_led(uint8_t led_mask);
+void ds_set_player_led_brightness(uint8_t brightness);   // 0 = brightest, 2 = dimmest
 void ds_set_vibration(uint8_t left, uint8_t right);
+
+// Mic-mute LED: 0 = Off, 1 = On (steady), 2 = Blink. Values outside
+// that range are clamped to Off.
+void ds_set_mute_led(uint8_t mode);
+
+// Overall haptic (rumble) volume, 0..7 (clamped). Applied by the
+// controller on top of per-motor amplitudes.
+void ds_set_haptic_volume(uint8_t volume);
+
+// Lightbar setup/override byte — raw DualSense wire value. 0 = default.
+// Sent on the wire but no documented meaning has been verified on real
+// hardware (daidr's own UI does not expose it either). Kept as a
+// passthrough for API completeness; game code has no current reason
+// to use it.
+void ds_set_lightbar_setup(uint8_t setup);
+
+// Audio volume control — opt-in so the game does not fight the host OS
+// for audio state. While `enabled` is false, the lib leaves the
+// controller's speaker/jack volume untouched. Set enabled + both
+// volumes to drive audio from the panel / game.
+void ds_set_audio_volumes_enabled(bool enabled);
+void ds_set_speaker_volume(uint8_t volume);
+void ds_set_headphone_volume(uint8_t volume);
+
+// Audio physical routing: 0 = 3.5 mm headphone jack, 1 = built-in
+// speaker. Only meaningful when audio_volumes_enabled=true. Values
+// outside 0..1 are treated as 0.
+void ds_set_audio_route(uint8_t route);
 
 // Adaptive trigger modes (hand: 0=left, 1=right, 2=both)
 void ds_trigger_off(uint8_t hand);

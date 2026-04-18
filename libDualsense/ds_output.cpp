@@ -116,12 +116,31 @@ void build_output_report(const OutputState& state,
     // Bit 3 of validFlag1 ("ReleaseLedsDefault") must remain zero so the
     // controller keeps our custom LED/lightbar state.
     std::uint8_t validFlag0 =
-          ValidFlag0::RumbleRight
-        | ValidFlag0::RumbleLeft
-        | ValidFlag0::TriggerRight
+          ValidFlag0::TriggerRight
         | ValidFlag0::TriggerLeft;
 
+    // Rumble flags: only advertise them when there's actual rumble to
+    // apply. daidr clears bits 0/1 every time it writes audio volumes
+    // (OutputPanel.vue::speakerVolume/headphoneVolume setters call
+    // `clearValidFlag0(0); clearValidFlag0(1)`) — empirically this is
+    // required on Bluetooth, otherwise setting audioControl routing
+    // while the rumble bits are active leaks audio to the speaker even
+    // when headphone routing is selected. USB tolerates the conflict,
+    // BT does not. We keep rumble bits active whenever amplitudes are
+    // non-zero so the rumble-test widget still works alongside audio.
+    if (state.rumble_left != 0 || state.rumble_right != 0) {
+        validFlag0 |= ValidFlag0::RumbleRight | ValidFlag0::RumbleLeft;
+    }
+
     if (state.audio_volumes_enabled) {
+        // Advertise BOTH volume bits + AudioControl. Earlier revisions
+        // set only the "active route" bit (mimicking daidr's per-drag
+        // transactional behaviour), but that stops the controller from
+        // applying the inactive output's volume — so the consumer's
+        // explicit 0 to silence the leaking output never lands and the
+        // previous level keeps playing. In a streaming-style driver
+        // (where we re-send every tick) both bits must stay active so
+        // every volume write takes effect.
         validFlag0 |= ValidFlag0::HeadphoneVolume
                     | ValidFlag0::SpeakerVolume
                     | ValidFlag0::AudioControl;
@@ -143,14 +162,15 @@ void build_output_report(const OutputState& state,
     if (state.audio_volumes_enabled) {
         p[4] = state.headphone_volume;
         p[5] = state.speaker_volume;
-        // p[6] micVolume — still zero, not wired up (not exposed by daidr UI either)
-        // p[7] audioControl: upper nibble 0 = headphone-jack route,
-        // 3 = speaker route. Hardcoded to 0 so the controller drives the
-        // headphone jack when present and falls back to the built-in
-        // speaker otherwise (daidr UI alternates between 0 and 0x30
-        // depending on which slider was last touched — we don't model
-        // that here; both volumes are sent every frame).
-        p[7] = 0x00;
+        // p[6] micVolume — still zero, not wired up (daidr UI doesn't
+        // expose it either).
+        // p[7] audioControl: high nibble selects route, low nibble is
+        // flags. daidr writes the nibble per-drag (0x00 for headphone
+        // slider, 0x30 for speaker slider); we expose it as the
+        // explicit `audio_route` enum.
+        p[7] = (state.audio_route == OutputState::AudioRoute::Speaker)
+             ? 0x30
+             : 0x00;
     }
     // If audio_volumes_enabled is false, p[4..7] stay zero and the
     // validFlag0 bits for audio fields are not set — controller ignores.

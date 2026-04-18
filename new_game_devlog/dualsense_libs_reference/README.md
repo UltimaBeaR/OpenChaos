@@ -23,6 +23,10 @@ DualSense для проекта. Если что-то связано с DualSens
 это **self-contained план** с архитектурой, пошаговыми фазами,
 ссылками на все референсы и критериями готовности.
 
+### 🧭 Если думаешь «добавлять ли X в libDualsense или в потребителя»
+→ [`lib_scope.md`](lib_scope.md) — правило разграничения (либа =
+функциональное API, тестер/диагностика = в потребителе) с примерами.
+
 ### 📖 Если нужна справка по DualSense протоколу
 → [`dualsense_protocol_reference.md`](dualsense_protocol_reference.md) —
 общая справка по USB/BT transport, input/output report layout,
@@ -51,6 +55,7 @@ dualsense_libs_reference/
 ├── README.md                            -- этот файл (навигация)
 ├── libs_contents.md                     -- инструкция по скачиванию libs/
 ├── own_dualsense_lib_plan.md            -- план переписывания на свою либу
+├── lib_scope.md                         -- что лежит в либе vs. в потребителе
 ├── dualsense_protocol_reference.md      -- справка по DualSense протоколу
 ├── dualsense_adaptive_trigger_facts.md  -- эмпирические факты про железо
 ├── dualsense_lib_pr_notes.md            -- PR notes для апстрима

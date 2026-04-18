@@ -61,12 +61,24 @@ struct OutputState {
     // common use; 0 = no override (default).
     std::uint8_t lightbar_setup = 0;
 
-    // Audio output volumes (controller built-in speaker and 3.5mm
-    // headphone jack). Only applied when `audio_volumes_enabled` is
-    // true — otherwise the library does not touch the controller's
-    // internal audio state, which means it stays at whatever the host
-    // OS / previous app set it to. Set both values and the flag to
-    // manage audio from the game.
+    // Audio routing: which physical output the controller drives.
+    // daidr alternates between these two values in the audioControl
+    // nibble of the output report (OutputPanel.vue::speakerVolume and
+    // headphoneVolume setters):
+    //   Headphone → audioControl high nibble = 0x0 (3.5 mm jack)
+    //   Speaker   → audioControl high nibble = 0x3 (built-in speaker)
+    // Only applied when `audio_volumes_enabled` is true.
+    enum class AudioRoute : std::uint8_t {
+        Headphone = 0,
+        Speaker   = 1,
+    };
+    AudioRoute   audio_route           = AudioRoute::Headphone;
+
+    // Audio output volumes. Only applied when `audio_volumes_enabled`
+    // is true — otherwise the library does not touch the controller's
+    // internal audio state, which stays at whatever the host OS /
+    // previous app set it to. Set flag + route + volume to manage
+    // audio from the game.
     bool         audio_volumes_enabled = false;
     std::uint8_t speaker_volume        = 0;   // 0..255 (built-in speaker)
     std::uint8_t headphone_volume      = 0;   // 0..255 (3.5 mm jack)

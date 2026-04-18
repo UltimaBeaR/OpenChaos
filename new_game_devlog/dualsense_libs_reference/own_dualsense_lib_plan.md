@@ -521,3 +521,423 @@ player LED, вибрация, adaptive triggers в будущем) и чтени
 - Время на написание: **1-2 рабочих дня** + тестирование
 - Cross-platform валидация: **~1-2 часа** с учётом переключения
   между устройствами (уже делали)
+
+---
+
+## 12. Future work — convenience layer (TODO)
+
+**Задача:** ввести **чёткое двухуровневое разделение API** в
+libDualsense:
+
+- **Raw API (internal / low-level)** — работает в сырых HID-units
+  (байты, raw int16, зоны, битовые маски). Это то что сейчас
+  реализовано. Остаётся как «escape hatch» для случаев когда нужен
+  точный контроль над протоколом.
+- **Convenience API (public / high-level)** — работает в
+  «человеческих» единицах (проценты 0..100% или float 0..1,
+  нормализованные float, физические величины °/s и g, enum'ы
+  вместо магических байтов). По умолчанию потребитель библиотеки
+  использует именно этот слой.
+
+### 12.1 Текущая inconsistency (что где уже есть)
+
+Сейчас в репозитории **пёстрая картина** — часть полей уже в
+«удобных» единицах, часть всё ещё raw, часть в промежуточных
+zone-units. Это и создаёт ощущение «по-разному»:
+
+**Output — почти всё raw:**
+| Поле                          | Тип         | Диапазон                          | Статус |
+|-------------------------------|-------------|-----------------------------------|--------|
+| `rumble_left` / `rumble_right`| `uint8_t`   | 0..255                            | raw    |
+| `lightbar_r/g/b`              | `uint8_t`   | 0..255                            | raw    |
+| `player_led_mask`             | `uint8_t`   | bitmask                           | raw    |
+| `player_led_brightness`       | `uint8_t`   | 0..2 (**0=brightest, перевёрнуто**)| raw + counterintuitive |
+| `haptic_volume`               | `uint8_t`   | 0..7                              | raw    |
+| `lightbar_setup`              | `uint8_t`   | raw byte                          | raw    |
+| `speaker_volume`              | `uint8_t`   | 0..255                            | raw    |
+| `headphone_volume`            | `uint8_t`   | 0..255                            | raw    |
+| `mute_led`                    | `MuteLed`   | enum Off/On/Blink                 | ✅ convenience |
+| `audio_route`                 | `AudioRoute`| enum Headphone/Speaker            | ✅ convenience |
+| Adaptive trigger effects      | uint8 params| **zones 0..9** + Hz               | semi (думаем зонами, но не в %) |
+
+**Input — смешанный:**
+| Поле                      | В `InputState` (lib-facing) | В `DS_InputState` (game-facing) |
+|---------------------------|----------------------------|----------------------------------|
+| Stick axes                | `uint8_t` 0..255 centre 128 | ✅ `float` -1..+1                |
+| Triggers                  | `uint8_t` 0..255            | ✅ `float` 0..1                  |
+| Battery level             | ✅ `uint8_t` 0..100 (%)     | ✅ `uint8_t` 0..100 (%)          |
+| Gyro (pitch/yaw/roll)     | ⚠️ raw `int16`               | ⚠️ raw `int16`                    |
+| Accel (X/Y/Z)             | ⚠️ raw `int16`               | ⚠️ raw `int16`                    |
+| Motion timestamp          | `uint32` мкс (natural unit) | (не проброшено)                  |
+| Motion temperature        | raw `int8`                  | (не проброшено)                  |
+| Trigger feedback byte     | raw byte                    | ✅ state-nibble + act-bit          |
+| Touchpad finger x/y       | `uint16` hardware pixels    | `uint16` hardware pixels         |
+
+**Что это значит:** при работе с либой потребитель каждый раз
+**угадывает** «это поле в байтах или в %?», «это zone-unit или
+percent?», «надо ли самому калибровать gyro?». Нет последовательного
+правила. Задача 12 — ввести это правило через явное разделение слоёв.
+
+### 12.2 Что должно быть в convenience API
+
+- **Проценты 0..100% / float 0..1** для: rumble, audio volumes,
+  haptic volume, trigger strength/amplitude, lightbar brightness.
+- **Normalized float -1..+1** для sticks; **float 0..1** для trigger
+  pull.
+- **Physical units** для IMU: `°/s` (gyro) и `g` (accel) —
+  автоматическое применение кешированной calibration (сейчас
+  `calibrate_*` helpers есть, но их надо звать вручную — перенести
+  в автоматический flow).
+- **Нормальная шкала LED brightness**: 0 = off, 1 = brightest
+  (инвертируется относительно raw 0=brightest/2=dim).
+- **Enum'ы вместо битовых масок** для player LED (вместо сырой
+  5-битной маски — набор типа `PlayerLedPattern::Off/Centre/Inner/Outer/All`
+  + raw-slot для экзотики).
+- **Trigger effects в процентах**: вместо zone 0..9 — float 0..1
+  как позиция вдоль хода курка, strength/amplitude тоже 0..1.
+
+### 12.3 Где разместить
+
+- Держать в том же `libDualsense/` namespace `oc::dualsense` (не
+  отдельная lib).
+- Отдельный заголовок `ds_easy.h` (+ `.cpp`), либо пара
+  `ds_easy_output.h` / `ds_easy_input.h`. Реализация **поверх**
+  существующих `ds_output.h` / `ds_input.h` — никаких дублей
+  wire-кода.
+- Пример формы:
+  ```cpp
+  // ds_easy.h
+  namespace oc::dualsense {
+
+  struct EasyOutput {
+      // 0..1 floats
+      float rumble_left      = 0.0f;
+      float rumble_right     = 0.0f;
+      float speaker_volume   = 0.0f;
+      float headphone_volume = 0.0f;
+      float haptic_volume    = 0.0f;
+      float led_brightness   = 1.0f;      // 0 = off, 1 = brightest
+
+      // Enums
+      MuteLed          mute_led    = MuteLed::Off;
+      AudioRoute       audio_route = AudioRoute::Headphone;
+      PlayerLedPattern player_leds = PlayerLedPattern::Off;
+
+      // Lightbar — 0..1 floats
+      float lightbar_r = 0.0f;
+      float lightbar_g = 0.0f;
+      float lightbar_b = 0.0f;
+
+      EasyTrigger trigger_left;   // 0..1 params
+      EasyTrigger trigger_right;
+  };
+
+  void apply_output(Device* dev, const EasyOutput& e);
+
+  struct EasyInput {
+      float left_stick_x, left_stick_y;    // -1..+1
+      float right_stick_x, right_stick_y;
+      float left_trigger,  right_trigger;  // 0..1
+
+      float gyro_pitch_dps, gyro_yaw_dps, gyro_roll_dps;   // calibrated
+      float accel_x_g, accel_y_g, accel_z_g;               // calibrated
+
+      // buttons, battery %, headphone/mic flags pass through unchanged
+  };
+
+  bool read_input(Device* dev, EasyInput* out);
+  }
+  ```
+
+### 12.4 Scope границы (НЕ идёт в convenience API)
+
+Остаются **в потребителе** (игра / in-game тестер), не в либе:
+- Диагностика (test tone, probe helpers) — per [`lib_scope.md`](lib_scope.md).
+- Политики: когда брать audio ownership, как распределять rumble
+  по событиям игры, какие trigger-эффекты проигрывать при стрельбе,
+  cadence / smoothing / decay поверх моментальных значений.
+
+### 12.5 Переделка in-game тестера (часть этой же задачи)
+
+Когда convenience-слой появится — **пройтись по тестеру** в
+[`new_game/src/engine/debug/input_debug/input_debug_dualsense.cpp`](../../new_game/src/engine/debug/input_debug/input_debug_dualsense.cpp)
+и перевести всю UI-часть на friendly-форматы. Сейчас тестер во
+многих местах показывает именно сырые байты / HID units — это было
+сделано для диагностики на этапе ловли wire-багов, но теперь оно
+мешает обычному использованию панели.
+
+Конкретно надо:
+- **OUTPUT sub-page** — все слайдеры перевести на проценты 0..100%
+  (сейчас отображение в байтах 0..255 где применимо, 0..7 для haptic,
+  0..2 для brightness). Шаг step'а подстраивать тоже в % (например
+  5% / клик).
+- **TRIGGERS sub-page** — параметры effects (start/end/strength/
+  amplitude/frequency) в процентах вместо zone-units 0..9. Frequency
+  оставить в Hz (это natural unit, уже понятно).
+- **Trigger feedback read-only** — оставить state-nibble + act-bit
+  как human-readable (уже так) + убрать сырой `slot XX XX ...`
+  hex-dump (он для wire-отладки; если ещё нужен — только за кнопкой
+  «show raw» / press key). Убрать «motor state %u (low nibble)» из
+  основного отображения — заменить на подпись state'а словами
+  («resting / engaged / released», что бы controller не reporting).
+- **INPUT sub-page** — touchpad finger X/Y уже в hardware pixels,
+  можно оставить; IMU бары уже в °/s + g когда calibration
+  загружена, без калибровки fallback на raw — это теперь станет
+  основным путём (easy API вернёт 0 если cal недоступна, UI
+  отобразит «--»). Убрать в индикаторе trigger feedback отображение
+  сырого byte 0x%02X — вместо этого текстовая интерпретация.
+- **TELEMETRY sub-page** — hex-dump'ы Shift-JIS сериалов / barcodes
+  / BT MAC / voltage заменять на декодированные ASCII строки там
+  где daidr это делает (serial, battery barcode, VCM barcodes —
+  это ASCII; assemble parts info — тоже ASCII; MAC format
+  XX:XX:... уже есть; battery voltage конвертировать в mV по
+  формуле если reverse-engineer её).
+- **Debug-режим «показать raw»** опционально — глобальный toggle
+  (например Shift+TAB) который переключает представление в
+  «developer view» где всё в байтах как сейчас. Для 99% случаев
+  тестирования он не нужен.
+
+Общее правило: **без лишних байтов там где они не необходимы**.
+Пользователь тестера не должен видеть HID-wire детали чтобы понять
+«работает ли оно и что сейчас происходит».
+
+### 12.6 Приоритет
+
+**Низкий.** Raw API функционален и достаточен для OpenChaos. Convenience
+layer — чисто UX. Делать **после**:
+1. Полной стабилизации raw API на всех платформах (Win/Mac/Linux ×
+   USB/BT).
+2. Закрытия оставшихся известных багов (см. review doc §2.4.x).
+
+Только потом имеет смысл строить easy layer поверх — иначе easy
+будет легализовывать баги raw API.
+
+---
+
+## 13. Future work — audio output и audio haptics (TODO)
+
+На DualSense есть **три независимых способа** сделать так чтобы
+пользователь что-то услышал / ощутил:
+
+1. **WAVEOUT_CTRL** — 1 kHz синусоида из прошивки. **Уже реализовано**
+   в тестере через `test_command` (см. [`lib_scope.md`](lib_scope.md):
+   diagnostic-only, не в либе). Заводской тест-генератор, больше ни
+   для чего не годится.
+2. **USB Audio Class (обычный PCM в спикер / 3.5 мм jack)** —
+   отдельная от HID аудио-дорожка, см. §13.1 ниже. **Не планируется
+   реализовывать**, остаётся документацией.
+3. **HID audio haptics (PCM через output report 0x32 в вибромоторы)** —
+   Sony-специфично, см. §13.2 ниже. **Отложено до post-1.0.**
+
+### 13.1 PCM audio output — обычный звук в спикер / наушники контроллера
+
+**Что это:** DualSense на USB exposes себя в ОС как standard **USB
+Audio Class 1.0** output device. В системном списке звуковых устройств
+он виден как «Wireless Controller». Любое приложение / игра открывает
+его через **обычный audio API** (SDL_Audio, miniaudio, WASAPI,
+CoreAudio, ALSA) — точно так же как любую другую звуковую карту —
+и шлёт туда stereo PCM 48 kHz. Контроллер играет это на встроенном
+спикере (моно downmix) или на 3.5 мм jack (стерео).
+
+**К libDualsense этот путь отношения не имеет** — это полностью
+системный аудио-тракт, параллельный нашей HID-части. Игра решает
+этот вопрос через свой audio subsystem, не через нас.
+
+**Транспорт:**
+- USB: ✅ работает (USB Audio Class endpoint).
+- Bluetooth: ❌ **не работает никак**. BT HID profile DualSense
+  **не несёт A2DP** (профиль stereo-audio). В списке audio devices
+  BT-контроллер попросту отсутствует. Sony сделали так намеренно —
+  A2DP добавил бы сотни мс latency и испортил бы синхронизацию
+  звука с игрой / haptics.
+
+**Статус в OpenChaos:** **не планируется реализовывать.** Игра сейчас
+выводит звук через обычный SDL_Audio default device (колонки ПК).
+Принудительно переключать на controller output = лишить игрока
+выбора устройства + не работает на BT → суммарно минусы.
+
+**Причина упоминания здесь** — чтобы в будущем не возникало путаницы
+«а может сделаем чтобы в наушники контроллера играло?»: на USB
+технически достижимо одной строчкой `SDL_OpenAudioDevice` с именем
+controller'а, но архитектурно не нужно и не даёт ничего полезного.
+
+### 13.2 Audio haptics — PCM через HID 0x32 в вибромоторы
+
+**Что это:** DualSense поддерживает передачу PCM-звука через HID
+output report **0x32** 64-байтными chunk'ами. Контроллер **не
+воспроизводит** этот звук через динамик — вместо этого его DSP
+превращает сигнал в **вибрацию**: амплитуда/форма волны модулируют
+моторы rumble + возможно adaptive trigger'ы. Это то что Astro's
+Playroom использует для «физичных» эффектов: звук шагов по снегу ты
+не только слышишь, но и **чувствуешь** ладонями — вибрация повторяет
+огибающую этого звука.
+
+**Формат:** Sony-undocumented. HID output report 0x32, частично
+reverse-engineered сообществом. Требует специфический DSP кодек /
+sample-rate (предположительно 3 kHz PCM или подобное), формат 64-байт
+chunk'ов неясен без дополнительного расковыривания (см. старый
+investigation doc [`../dualsense_audio_haptic_investigation.md`](../dualsense_audio_haptic_investigation.md)).
+
+**Транспорт:**
+- USB: ✅ работает.
+- Bluetooth: ✅ работает (идёт через HID, не требует отдельного
+  аудио-профиля — в этом главное преимущество перед §13.1).
+
+**Задачи для реализации:**
+- Reverse-engineer точный wire-format chunk'ов 0x32 (сэмплирование,
+  chunk header'ы, flow control).
+- Определить какой sample rate и битность controller принимает.
+- Реализовать resampler (игровой audio обычно 44.1/48 kHz stereo,
+  haptics вероятно 3 kHz mono).
+- Реализовать streaming API в libDualsense: `start_haptic_stream()`,
+  `push_haptic_samples(buffer, len)`, `stop_haptic_stream()`.
+- Интеграция со звуковым движком игры — сигнал для haptics берётся
+  либо из специального LFE-канала, либо из основной stereo-дорожки
+  через фильтр (low-pass / envelope extraction).
+
+**Статус в OpenChaos:** **отложено до post-1.0.** daidr это **не
+делает** (никакого audio haptic pipeline'а у них нет, несмотря на
+«tester» в имени), так что в рамках «паритет с daidr» эта задача
+вообще не стоит. Но для OpenChaos как игровой фичи — интересно, и
+это единственный способ доставить пользовательский аудиоконтент на
+BT-контроллер. Делать после 1.0.
+
+**Где разместить в либе:**
+- Отдельный модуль `ds_haptic_stream.h/.cpp` в `libDualsense/`.
+- Streaming API (не request/response) — thread-safe (поток игрового
+  аудио-миксера пишет PCM, внутренний поток либы отсылает chunks в
+  HID с нужным темпом).
+- Полностью независим от `OutputState` / output report 0x02/0x31 —
+  это отдельный HID-канал, параллельный обычному output.
+
+### 13.3 Сравнительная таблица (какой путь для чего)
+
+| Задача                                | §13.1 USB Audio | §13.2 Audio haptics (0x32) | §12.x test tone (WAVEOUT_CTRL) |
+|---------------------------------------|-----------------|------------------------------|----------------------------------|
+| «Играть музыку в наушники контроллера»| ✅ USB only     | ❌ (это вибрация, не звук)   | ❌ (только 1 kHz синус)          |
+| «Тактильный эффект от выстрела»       | ❌              | ✅                           | ❌                               |
+| «Проверить что спикер живой»          | возможно, но оверкил | ❌                      | ✅ (для этого и нужен)            |
+| Работает по BT                        | ❌              | ✅                           | ✅                               |
+
+### 13.4 Приоритет
+
+**§13.1 — не делаем.** Документация для будущих читателей кода
+«да, физически возможно на USB, но нам не нужно».
+
+**§13.2 — делаем, но post-1.0.** Не блокирует релиз. Требует
+отдельного R&D-захода (reverse-engineering wire-format'а, ~2-14 дней
+по старой оценке из [`dualsense_audio_haptic_investigation.md`](../dualsense_audio_haptic_investigation.md)).
+
+---
+
+## 14. Known hardware / firmware limitations (починить вряд ли получится)
+
+Здесь — поведения контроллера, которые выглядят как баги, но
+**воспроизводятся и у daidr** на том же железе (проверено 2026-04-19).
+Значит это характеристики DS5 firmware / audio ASIC, не косяки нашей
+либы. Записано чтобы потомки не тратили время на «починку» того что
+не чинится с host-стороны.
+
+### 14.1 Audio cross-leak между выходами
+
+**Симптом:** при запуске `WAVEOUT_CTRL` с routing на headphone
+(`audioControl = 0x00`, prepare-payload `[4]=4, [6]=6`) тон физически
+слышен **и в наушниках, и в встроенном спикере одновременно**.
+Аналогично при routing на speaker (0x30) тон частично leak'ит в jack
+если наушники подключены. Наблюдается на BT особенно явно; на USB
+тихо, но есть.
+
+**Причина (гипотеза):** внутренний audio chain DS5 не полностью
+разделяет выходы при генерации тестового тона — генератор
+подключается к обоим amp'ам, а `audioControl` nibble управляет
+только relative gain'ом, не physical switch'ом.
+
+**Обход (используется у нас и у daidr):** UI-слой при включении
+тона **принудительно выставляет volume неактивного выхода в 0**.
+Это заглушает leak amplitude'но. В `input_debug_dualsense.cpp`
+функция `audio_apply_state()` делает это автоматически (single-slider
+UI model: активный выход получает `s_volume`, неактивный — 0).
+
+**Почему не фиксить:** с host-стороны невозможно — `audioControl`
+nibble единственный routing control и он уже установлен корректно.
+Проблема на уровне контроллерного DSP. Sony FW update мог бы
+починить, но мы не Sony.
+
+### 14.2 Speaker gain boost при подключении наушников в speaker mode
+
+**Симптом:** при активном `audio_route = Speaker`
+(`audioControl = 0x30`) и включённом test tone speaker играет на
+одном уровне. Подключаем наушники в jack → **speaker становится
+заметно громче**, хотя host отправляет те же самые байты в output
+report (headphone_volume = 0, speaker_volume не меняется).
+
+**Причина (гипотеза):** когда `audioControl = 0x30` явно запрашивает
+speaker output, firmware не выключает speaker при plug-detect
+(нормальное consumer-устройство — выключило бы). Более того, видимо
+активируется какой-то gain compensation / dual-rail power mode —
+возможно контроллер отдаёт speaker'у больше тока когда часть audio
+chain'а заодно висит на jack amp'е.
+
+**Обход:** нет. Пользователю надо либо смириться, либо не
+подключать наушники когда сознательно выбрал speaker output.
+
+**Почему не фиксить:** те же самые output-байты, та же самая команда
+— разница только в physical state jack'а, который контроллер
+обрабатывает на своём уровне. Нет HID-пути чтобы сказать контроллеру
+«не бойся jack'а, держи speaker на том же gain'е».
+
+### 14.3 Test tone не глохнет при выходе из приложения
+
+**Симптом:** пользователь включил `WAVEOUT_CTRL` test tone через
+отладочную панель, потом закрыл игру (штатно, через Ctrl+Q / закрытие
+окна). LED-индикация / lightbar / rumble / triggers корректно
+обнуляются на выходе (последний output report отрабатывает), **но
+тон продолжает звучать из контроллера** после того как процесс игры
+уже завершился. Ручно гасится только переподключением контроллера
+(unplug USB / отключить BT).
+
+**Что пробовали:**
+- `test_command(WAVEOUT_CTRL, {0,1,0})` с polling 0x81 — ответ
+  приходит timeout'ом, но сам 0x80 уходит. Эффекта нет.
+- Две попытки disable подряд с паузой 80 мс между — не помогает.
+- Отправка quiet output до / после disable, с/без
+  `audio_volumes_enabled` — не помогает.
+- Удлинение `SDL_Delay` до 200+ мс перед `device_close` — не помогает.
+
+**Причина (гипотеза):** audio generator DS5 — отдельный firmware
+subsystem от HID-output пути. Когда process завершается и HID handle
+закрывается, controller возвращает audio управление ОС, которая
+восстанавливает default volumes — и тон, запущенный через
+`WAVEOUT_CTRL`, **продолжает играть в hardware** пока его явно не
+остановить. Наш disable-0x80 уходит, но firmware не обрабатывает
+его в этот момент (возможно привязано к 0x81 polling cadence
+которого после закрытия handle не будет; возможно просто race с
+process teardown).
+
+**Обход:** нет удобного. Current `ds_shutdown` делает best-effort
+попытку (двойной disable с паузой, quiet output, 50 мс pre-close
+delay) — иногда срабатывает, чаще нет. Оставлено как best-effort,
+не гарантия.
+
+**Общий вывод про WAVEOUT_CTRL test tone:**
+
+Весь этот путь (`WAVEOUT_CTRL` + `BUILTIN_MIC_CALIB_DATA_VERIFY`) —
+**заводской диагностический механизм Sony**, не production-grade
+feature. Он flaky сразу в нескольких местах:
+- Требует 0x81 polling чтобы запущенная команда реально обработалась
+  (§12.x поведение: fire-only отправка вообще игнорируется
+  firmware'ом; см. обсуждение в in-game тестере).
+- Cross-leak между выходами (§14.1).
+- Speaker gain boost при jack plug (§14.2).
+- Не выключается на shutdown (§14.3 выше).
+
+Это не наша проблема, это качество заводского диагностического
+API. Использовать его только для того для чего он предназначен —
+«проверить что audio hardware в принципе дышит», и то с оговорками.
+
+### 14.4 Общее правило для ds-quirks
+
+Если поведение **воспроизводится в daidr** на том же железе — это
+hardware/firmware limit, не наш bug. Записываем сюда и идём дальше.
+Тратить время на «попробовать ещё один флаг» бессмысленно — daidr
+уже перебрал все разумные варианты за нас.

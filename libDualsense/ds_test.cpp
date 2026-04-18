@@ -29,22 +29,33 @@
 
 namespace oc::dualsense {
 
-// Wire sizes. On USB the 0x80 feature report is 64 bytes; on BT the
-// report descriptor reserves room for the 4-byte CRC, giving 68 bytes
-// total. 0x81 read response follows the same size on each transport.
+// Feature reports 0x80 (write request) and 0x81 (read response) are
+// both descriptor-defined fixed-size records on the DualSense. Chrome
+// WebHID (which daidr uses) pulls the size from `device.collections[0]
+// .featureReports[0].items[0].reportCount`; our code hard-codes it to
+// the value observed there. Both transports use the same size — BT
+// sendFeatureReport() borrows the last 4 bytes of the same payload
+// for the CRC32 instead of appending.
 //
-// Values match daidr (via HID descriptor) and are consistent with
-// DS5W / nondebug RE notes.
-static constexpr std::size_t FEATURE_80_SIZE_USB = 64;
-static constexpr std::size_t FEATURE_80_SIZE_BT  = 68;
-static constexpr std::size_t FEATURE_81_SIZE_USB = 64;
-static constexpr std::size_t FEATURE_81_SIZE_BT  = 68;
+// If this value ever drifts (new firmware, descriptor change), short
+// reads will fail silently and getters will return n/a — that's the
+// symptom to look for when telemetry goes dark after an upstream
+// firmware update.
+static constexpr std::size_t FEATURE_80_WIRE_SIZE = 64;  // reportId + 63 data bytes
+static constexpr std::size_t FEATURE_81_WIRE_SIZE = 64;
 
 // Polling parameters for 0x81. Controller usually responds in 1-2 ms
-// per chunk; polling every 2 ms with 100 retries gives ~200 ms total
-// which comfortably covers any reasonable response including chunked.
-static constexpr std::uint32_t POLL_SLEEP_MS  = 2;
-static constexpr int           POLL_MAX_TRIES = 100;
+// per chunk. A total budget of ~50 ms per call comfortably covers a
+// healthy response while bounding the damage when the controller
+// never answers (e.g. because the deviceId/actionId is unsupported on
+// the current firmware, or the request was rejected silently).
+//
+// On Windows + USB some SDL_hid_get_feature_report paths block on the
+// HID driver for noticeably longer than the sleep between polls, so
+// the limit is deliberately tight — better to fail a lookup fast and
+// surface "n/a" than stall the panel tick for seconds per command.
+static constexpr std::uint32_t POLL_SLEEP_MS  = 5;
+static constexpr int           POLL_MAX_TRIES = 10;
 
 // Response format:
 //   buf[0] = 0x81
@@ -64,7 +75,26 @@ enum TestStatusCode : std::uint8_t {
 };
 
 // Internal: send a 0x80 request with given deviceId/actionId and
-// optional param bytes. Handles transport-specific sizing and CRC.
+// optional param bytes.
+//
+// Wire format — matches daidr/ds.util.ts::sendFeatureReport:
+//   const idealLength = featureReportMeta.items[0].reportCount;   // = 63 for 0x80
+//   const newData = new Uint8Array(idealLength);                   // zero-init
+//   newData.set([deviceId, actionId, ...params]);                  // at offset 0
+//   if (bluetooth) fillFeatureReportChecksum(reportId, newData);   // last 4 bytes
+//   device.sendFeatureReport(reportId, newData);                   // prepends reportId
+//
+// So the wire packet is always FEATURE_80_WIRE_SIZE bytes total
+// (reportId + 63 zero-padded data bytes). On BT the last 4 bytes of
+// the 63-byte data region are overwritten with a CRC32 computed over
+// the non-CRC prefix (+ 0x53 salt + reportId).
+//
+// History: earlier revisions of this function zero-padded out to a
+// wrong size (64/68 asymmetric, or variable = exact data.length).
+// Both produced wire packets the controller silently rejected on BT
+// (test_command getters stayed n/a) and blocked HidD_SetFeature on
+// USB. Sticking to the descriptor-defined 64-byte fixed form fixes
+// both.
 static bool send_test_request(Device* dev,
                               std::uint8_t device_id,
                               std::uint8_t action_id,
@@ -72,18 +102,15 @@ static bool send_test_request(Device* dev,
                               std::size_t params_len)
 {
     const bool bt = (dev->connection == Connection::Bluetooth);
-    const std::size_t wire_size = bt ? FEATURE_80_SIZE_BT : FEATURE_80_SIZE_USB;
 
-    // Feature report 0x80 layout:
-    //   buf[0]     = reportId 0x80
-    //   buf[1]     = deviceId
-    //   buf[2]     = actionId
-    //   buf[3..]   = params (zero-padded to wire_size; last 4 bytes
-    //                reserved for CRC on BT)
-    std::uint8_t buf[96] = {};
-    if (wire_size > sizeof(buf)) return false;
-    if (params_len > wire_size - (bt ? 7u : 3u)) return false;
+    // Guard: our data region is 63 bytes, minus 4 reserved for CRC on
+    // BT — i.e. the largest params_len we can accept is 59 on BT,
+    // 61 on USB (after [deviceId, actionId]).
+    const std::size_t MAX_PARAMS = bt ? (FEATURE_80_WIRE_SIZE - 1u - 2u - 4u)
+                                       : (FEATURE_80_WIRE_SIZE - 1u - 2u);
+    if (params_len > MAX_PARAMS) return false;
 
+    std::uint8_t buf[FEATURE_80_WIRE_SIZE] = {};  // zero-padded
     buf[0] = 0x80;
     buf[1] = device_id;
     buf[2] = action_id;
@@ -92,18 +119,19 @@ static bool send_test_request(Device* dev,
     }
 
     if (bt) {
-        // CRC32 over [0x53, 0x80, buf[1..wire_size-4]]. Data passed
-        // to crc32_compute_feature_report is the buffer *contents*
-        // after reportId (the helper adds the 0x53+reportId prefix).
+        // CRC32 over [0x53, 0x80, buf[1..FEATURE_80_WIRE_SIZE-4]].
+        // crc32_compute_feature_report adds the 0x53 + reportId
+        // prefix itself; we pass the bytes that follow the reportId,
+        // excluding the 4 bytes reserved for the CRC itself.
         const std::uint32_t crc = crc32_compute_feature_report(
-            0x80, &buf[1], wire_size - 1u - 4u);
-        buf[wire_size - 4] = static_cast<std::uint8_t>((crc >>  0) & 0xFF);
-        buf[wire_size - 3] = static_cast<std::uint8_t>((crc >>  8) & 0xFF);
-        buf[wire_size - 2] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
-        buf[wire_size - 1] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
+            0x80, &buf[1], FEATURE_80_WIRE_SIZE - 1u - 4u);
+        buf[FEATURE_80_WIRE_SIZE - 4] = static_cast<std::uint8_t>((crc >>  0) & 0xFF);
+        buf[FEATURE_80_WIRE_SIZE - 3] = static_cast<std::uint8_t>((crc >>  8) & 0xFF);
+        buf[FEATURE_80_WIRE_SIZE - 2] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
+        buf[FEATURE_80_WIRE_SIZE - 1] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
     }
 
-    return device_send_feature_report(dev, buf, wire_size) > 0;
+    return device_send_feature_report(dev, buf, FEATURE_80_WIRE_SIZE) > 0;
 }
 
 // Internal: poll 0x81 until a response matching (device_id, action_id)
@@ -115,9 +143,7 @@ static std::uint8_t poll_test_response(Device* dev,
                                         std::size_t out_capacity,
                                         std::size_t* out_n)
 {
-    const bool bt = (dev->connection == Connection::Bluetooth);
-    const std::size_t wire_size = bt ? FEATURE_81_SIZE_BT : FEATURE_81_SIZE_USB;
-    if (out_capacity < wire_size) return TS_TIMEOUT;
+    if (out_capacity < FEATURE_81_WIRE_SIZE) return TS_TIMEOUT;
 
     for (int tries = 0; tries < POLL_MAX_TRIES; ++tries) {
         const int n = device_get_feature_report(dev, 0x81, out_buf, out_capacity);
@@ -152,7 +178,7 @@ TestResult test_command(Device* dev,
         return TestResult::SendFailed;
     }
 
-    std::uint8_t rx[96];
+    std::uint8_t rx[FEATURE_81_WIRE_SIZE] = {};
     std::size_t  rx_n = 0;
     std::size_t  written = 0;
 
@@ -187,6 +213,18 @@ TestResult test_command(Device* dev,
 
     *out_len = written;
     return TestResult::Ok;
+}
+
+bool test_command_set(Device* dev,
+                      TestDevice device_id,
+                      std::uint8_t action_id,
+                      const std::uint8_t* params, std::size_t params_len)
+{
+    if (!dev || !dev->handle) return false;
+    return send_test_request(dev,
+                             static_cast<std::uint8_t>(device_id),
+                             action_id,
+                             params, params_len);
 }
 
 // ---- Convenience getters -------------------------------------------

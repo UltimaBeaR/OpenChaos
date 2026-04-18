@@ -8,6 +8,7 @@
 #include <SDL3/SDL_hidapi.h>
 #include <SDL3/SDL_hints.h>
 
+#include <cstdio>
 #include <cstring>
 
 namespace oc::dualsense {
@@ -55,20 +56,108 @@ bool device_open_first(Device* out)
     SDL_hid_device_info* devs = SDL_hid_enumerate(SONY_VENDOR_ID, 0);
     if (!devs) return false;
 
+    // DualSense on USB exposes several HID interfaces (gamepad, audio
+    // control, touchpad, vendor-defined). Feature reports 0x20 / 0x22 /
+    // 0x05 and the 0x80/0x81 test-command state machine are only
+    // available on the **gamepad** interface (Generic Desktop / Game
+    // Pad, usage_page=0x0001, usage=0x0005). Opening a different HID
+    // interface still lets input/output reports flow but every feature
+    // report comes back short / -1 / gibberish.
+    //
+    // We try three strategies in order:
+    //   1. usage_page=0x0001 + usage=0x0005 — the canonical descriptor
+    //      filter. Works when SDL hidapi populates these fields
+    //      (Linux + hidraw always; Windows when the HID parser ran).
+    //   2. Open each VID/PID candidate and probe with feature report
+    //      0x20. If we get a plausible reply (>= 20 bytes starting
+    //      with 0x20), it's the gamepad interface.
+    //   3. First VID/PID candidate — same behaviour as before this
+    //      filter. Last-resort fallback so we don't regress to "no
+    //      device found" on unusual platforms.
+
+    constexpr std::uint16_t GENERIC_DESKTOP_PAGE = 0x0001;
+    constexpr std::uint16_t GAME_PAD_USAGE       = 0x0005;
+
+    // Diagnostic: log what we're seeing so the user can paste stderr.log
+    // if detection picks the wrong interface. Under normal conditions
+    // (correct interface picked on first try) this is a handful of lines.
+    {
+        int idx = 0;
+        for (auto* cur = devs; cur; cur = cur->next) {
+            if (cur->product_id != DUALSENSE_PID &&
+                cur->product_id != DUALSENSE_EDGE_PID) continue;
+            std::fprintf(stderr,
+                "[libDualsense] HID candidate #%d: path=%s iface=%d usage_page=0x%04X usage=0x%04X\n",
+                idx++,
+                cur->path ? cur->path : "<null>",
+                cur->interface_number,
+                (unsigned)cur->usage_page,
+                (unsigned)cur->usage);
+        }
+    }
+
+    // Strategy 1 — filter by HID usage.
     SDL_hid_device_info* match = nullptr;
     for (auto* cur = devs; cur; cur = cur->next) {
-        if (cur->product_id == DUALSENSE_PID || cur->product_id == DUALSENSE_EDGE_PID) {
+        if (cur->product_id != DUALSENSE_PID &&
+            cur->product_id != DUALSENSE_EDGE_PID) continue;
+        if (cur->usage_page == GENERIC_DESKTOP_PAGE &&
+            cur->usage      == GAME_PAD_USAGE) {
             match = cur;
             break;
         }
     }
-    if (!match) {
-        SDL_hid_free_enumeration(devs);
-        return false;
+
+    SDL_hid_device* dev = nullptr;
+    if (match) {
+        std::fprintf(stderr,
+            "[libDualsense] opening by usage filter: %s\n",
+            match->path ? match->path : "<null>");
+        dev = SDL_hid_open_path(match->path);
     }
 
-    SDL_hid_device* dev = SDL_hid_open_path(match->path);
+    // Strategy 2 — probe each candidate by reading feature report 0x20.
+    // The gamepad interface returns a populated firmware-info report;
+    // other interfaces return -1 or a short nonsensical reply.
     if (!dev) {
+        for (auto* cur = devs; cur; cur = cur->next) {
+            if (cur->product_id != DUALSENSE_PID &&
+                cur->product_id != DUALSENSE_EDGE_PID) continue;
+            SDL_hid_device* candidate = SDL_hid_open_path(cur->path);
+            if (!candidate) continue;
+            std::uint8_t probe[96] = {};
+            probe[0] = 0x20;
+            const int n = SDL_hid_get_feature_report(candidate, probe, sizeof(probe));
+            if (n >= 20 && probe[0] == 0x20) {
+                std::fprintf(stderr,
+                    "[libDualsense] opening by 0x20 probe: %s (n=%d)\n",
+                    cur->path ? cur->path : "<null>", n);
+                dev   = candidate;
+                match = cur;
+                break;
+            }
+            SDL_hid_close(candidate);
+        }
+    }
+
+    // Strategy 3 — first VID/PID match, whatever it is.
+    if (!dev) {
+        for (auto* cur = devs; cur; cur = cur->next) {
+            if (cur->product_id == DUALSENSE_PID ||
+                cur->product_id == DUALSENSE_EDGE_PID) {
+                match = cur;
+                break;
+            }
+        }
+        if (match) {
+            std::fprintf(stderr,
+                "[libDualsense] opening by VID/PID fallback: %s\n",
+                match->path ? match->path : "<null>");
+            dev = SDL_hid_open_path(match->path);
+        }
+    }
+
+    if (!dev || !match) {
         SDL_hid_free_enumeration(devs);
         return false;
     }

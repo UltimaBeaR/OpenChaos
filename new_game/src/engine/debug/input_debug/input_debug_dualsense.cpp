@@ -14,9 +14,19 @@
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/platform/ds_bridge.h"
+#include "engine/platform/ds_bridge_debug.h"
+
+#include <libDualsense/ds_calibration.h>
+#include <libDualsense/ds_feature.h>
+#include <libDualsense/ds_test.h>
+
+#include <SDL3/SDL_timer.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdio>
+#include <mutex>
+#include <thread>
 
 namespace {
 
@@ -35,14 +45,10 @@ namespace {
 // Y positions are set by render_ds_tests.
 constexpr SLONG MENU_X = 20;
 
-constexpr int RUMBLE_ROWS     = 3;
-constexpr int LIGHTBAR_ROWS   = 3;
-// DualSense player LED byte has 5 bits but hardware pairs them
-// symmetrically (bits 0 & 4 mirror — outer pair; bits 1 & 3 mirror —
-// inner pair; bit 2 is the lone center LED). So we expose 3 logical
-// rows, one per pair, matching the PlayerLed::{Outer,Inner,Center}
-// constants in libDualsense.
-constexpr int PLAYER_LED_ROWS = 3;
+constexpr int RUMBLE_ROWS   = 3;
+constexpr int LIGHTBAR_ROWS = 3;
+// PLAYER_LED_ROWS is defined next to render_player_led further down
+// (depends on PLAYER_LED_MASK_ROWS + brightness row below it).
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -151,34 +157,50 @@ int render_lightbar(SLONG x, SLONG y, int local_cursor)
 }
 
 // ---------------------------------------------------------------------------
-// Player LED widget (5 toggle rows)
+// Player LED widget — 3 mask-pair toggles + 1 brightness row.
 // ---------------------------------------------------------------------------
 
-// Three logical rows — outer pair, inner pair, center single. Each row's
-// bitmask comes straight from PlayerLed:: constants in libDualsense.
-constexpr uint8_t PLAYER_LED_BITS[PLAYER_LED_ROWS] = {
+// Three logical rows for the 5-LED bar — outer pair, inner pair, centre
+// single. Hardware mirrors bits symmetrically (0↔4, 1↔3) so we expose
+// pairs rather than 5 raw toggles. Bitmask values match PlayerLed::
+// constants in libDualsense.
+constexpr int PLAYER_LED_MASK_ROWS = 3;
+// One extra row under the mask toggles for global brightness (0..2,
+// 0 = brightest). Kept inside this widget because brightness scales
+// exactly the same LEDs that the mask toggles on/off — putting it
+// elsewhere disconnects it visually from the thing it controls.
+constexpr int PLAYER_LED_ROWS = PLAYER_LED_MASK_ROWS + 1;
+constexpr int PLAYER_LED_BRIGHTNESS_ROW = PLAYER_LED_MASK_ROWS;  // last row
+
+constexpr uint8_t PLAYER_LED_BITS[PLAYER_LED_MASK_ROWS] = {
     0x01 | 0x10,  // Outer pair  (bits 0 and 4)
     0x02 | 0x08,  // Inner pair  (bits 1 and 3)
-    0x04,         // Center      (bit 2)
+    0x04,         // Centre      (bit 2)
 };
-static const char* PLAYER_LED_NAMES[PLAYER_LED_ROWS] = {
+static const char* PLAYER_LED_NAMES[PLAYER_LED_MASK_ROWS] = {
     "Outer pair (LED 1 & 5)",
     "Inner pair (LED 2 & 4)",
-    "Center (LED 3)",
+    "Centre (LED 3)",
 };
 
 uint8_t s_player_led_mask      = 0;
 int     s_player_led_last_mask = -1;
+int     s_led_brightness       = 0;        // 0 = brightest, 2 = dimmest
+int     s_led_brightness_last  = -1;
 
 int render_player_led(SLONG x, SLONG y, int local_cursor)
 {
     input_debug_text(x, y, 220, 200, 120, 1, "Player LEDs (live)");
 
-    if (local_cursor >= 0 && local_cursor < PLAYER_LED_ROWS) {
+    if (local_cursor >= 0 && local_cursor < PLAYER_LED_MASK_ROWS) {
         const InputDebugNav& n = input_debug_nav();
         if (n.enter) {
             s_player_led_mask ^= PLAYER_LED_BITS[local_cursor];
         }
+    } else if (local_cursor == PLAYER_LED_BRIGHTNESS_ROW) {
+        const InputDebugNav& n = input_debug_nav();
+        if (n.left  && s_led_brightness > 0) s_led_brightness -= 1;
+        if (n.right && s_led_brightness < 2) s_led_brightness += 1;
     }
 
     if ((int)s_player_led_mask != s_player_led_last_mask) {
@@ -186,8 +208,13 @@ int render_player_led(SLONG x, SLONG y, int local_cursor)
         ds_update_output();
         s_player_led_last_mask = s_player_led_mask;
     }
+    if (s_led_brightness != s_led_brightness_last) {
+        ds_set_player_led_brightness((uint8_t)s_led_brightness);
+        ds_update_output();
+        s_led_brightness_last = s_led_brightness;
+    }
 
-    for (int row = 0; row < PLAYER_LED_ROWS; row++) {
+    for (int row = 0; row < PLAYER_LED_MASK_ROWS; row++) {
         const bool selected = (row == local_cursor);
         // Pair is considered "on" when any of its bits is set — since
         // the firmware mirrors, toggling the pair flips all its bits
@@ -207,20 +234,319 @@ int render_player_led(SLONG x, SLONG y, int local_cursor)
         }
     }
 
+    // Brightness row, appended under the mask toggles.
+    {
+        const bool sel = (local_cursor == PLAYER_LED_BRIGHTNESS_ROW);
+        const UBYTE r = sel ? 255 : 150;
+        const UBYTE g = sel ? 255 : 150;
+        const UBYTE b = sel ? 120 : 150;
+        const char* prefix = sel ? "> " : "  ";
+        input_debug_text(x + 4, y + 14 + PLAYER_LED_BRIGHTNESS_ROW * 12,
+                         r, g, b, 1,
+                         "%sbrightness       %d (0 = bright, 2 = dim)",
+                         prefix, s_led_brightness);
+    }
+
     return PLAYER_LED_ROWS;
+}
+
+// ---------------------------------------------------------------------------
+// Mute LED widget — single cycle row (Off / On / Blink).
+// ---------------------------------------------------------------------------
+//
+// Player LED brightness lives in the Player LEDs widget (the thing it
+// modulates). Lightbar-setup byte was removed (daidr's own UI hides
+// it; no observable effect on real hardware). Overall haptic volume
+// (0..7 rumble gain) was also removed — the in-game tester doesn't
+// have a real use for it, and shipping a knob that's only indirectly
+// audible was confusing. The library setters (ds_set_haptic_volume,
+// ds_set_lightbar_setup) stay in the bridge for API completeness.
+
+constexpr int MISC_ROWS = 1;
+
+int s_mute_led            = 0;          // 0 = Off, 1 = On, 2 = Blink
+int s_mute_led_last       = -1;
+
+const char* mute_led_name(int v)
+{
+    switch (v) {
+        case 1:  return "On";
+        case 2:  return "Blink";
+        default: return "Off";
+    }
+}
+
+int render_misc_outputs(SLONG x, SLONG y, int local_cursor)
+{
+    input_debug_text(x, y, 220, 200, 120, 1, "Mute LED (live)");
+
+    if (local_cursor == 0) {
+        const InputDebugNav& n = input_debug_nav();
+        // Enter cycles Off → On → Blink → Off; left/right mirror for
+        // nav symmetry.
+        if (n.enter) s_mute_led = (s_mute_led + 1) % 3;
+        if (n.right) s_mute_led = (s_mute_led + 1) % 3;
+        if (n.left)  s_mute_led = (s_mute_led + 2) % 3;
+    }
+
+    if (s_mute_led != s_mute_led_last) {
+        ds_set_mute_led((uint8_t)s_mute_led);
+        s_mute_led_last = s_mute_led;
+        ds_update_output();
+    }
+
+    const bool sel = (local_cursor == 0);
+    const UBYTE r = sel ? 255 : 150;
+    const UBYTE g = sel ? 255 : 150;
+    const UBYTE b = sel ? 120 : 150;
+    const char* p = sel ? "> " : "  ";
+    input_debug_text(x + 4, y + 14, r, g, b, 1,
+                     "%smic mute LED  %s", p, mute_led_name(s_mute_led));
+
+    return MISC_ROWS;
+}
+
+// ---------------------------------------------------------------------------
+// Controller audio widget: speaker/jack volume sliders + 1 kHz test
+// tone. The panel keeps `audio_volumes_enabled=true` for the whole
+// duration it is open so the volumes actually apply to the controller
+// — no user-visible toggle for this, it'd only be a distraction in a
+// tester UI.
+// ---------------------------------------------------------------------------
+//
+// The test tone is a tester-only diagnostic: libDualsense deliberately
+// does NOT ship a `play_test_tone()` helper (see
+// `new_game_devlog/dualsense_libs_reference/lib_scope.md`). Instead we
+// compose it here from the public `test_command()` primitive.
+//
+// Wire recipe per daidr's controlWaveOut() reference:
+//   1. BUILTIN_MIC_CALIB_DATA_VERIFY (AUDIO, action 4) with a 20-byte
+//      routing payload — tells the controller which physical output
+//      the synthesized tone should come out of (speaker or jack).
+//      Skipped when disabling.
+//   2. WAVEOUT_CTRL (AUDIO, action 2) with 3 bytes {enable, 1, 0} —
+//      actually starts or stops the tone generator.
+
+constexpr int AUDIO_ROWS = 2;  // volume + test tone
+constexpr int AUDIO_VOLUME_STEP = 8;
+// Start the slider at something audible so the first cycle of the
+// test tone plays at a reasonable volume without the user having to
+// hunt for it.
+constexpr int AUDIO_DEFAULT_VOL = 128;
+
+// Test-tone source enum mirrors the UI cycle order.
+enum AudioTestTone {
+    AUDIO_TONE_OFF       = 0,
+    AUDIO_TONE_SPEAKER   = 1,
+    AUDIO_TONE_HEADPHONE = 2,
+    AUDIO_TONE_COUNT,
+};
+
+// Single user-controlled volume slider. We never overwrite this — it
+// reflects exactly what the user last set. Which physical output
+// (speaker / jack) the value actually lands on is decided at tone
+// start time: the active output gets s_volume, the inactive one gets
+// 0 (hardware-leak workaround — the tone would physically leak into
+// the non-selected output otherwise). When no tone is playing both
+// hardware volumes are 0, but the UI slider still shows the user's
+// preferred value so switching the tone back on restores the level.
+int  s_volume         = AUDIO_DEFAULT_VOL;
+int  s_volume_last    = -1;
+int  s_test_tone      = AUDIO_TONE_OFF;
+int  s_test_tone_last = -1;
+
+// Audio test-tone sender — runs on a **detached background thread**.
+//
+// Rationale: each 0x80 feature-report write goes through
+// SDL_hid_send_feature_report, which on some Windows + USB paths
+// blocks for seconds inside HidD_SetFeature. Doing that on the main
+// thread freezes the panel every time the user cycles the test-tone
+// row. Fire-and-forget off the UI thread keeps cycling responsive.
+static void send_audio_test_tone(int source)
+{
+    std::thread([source]() {
+        using namespace oc::dualsense;
+        Device* dev = ds_debug_get_device();
+        if (!dev || !dev->connected) return;
+
+        constexpr uint8_t ACTION_ROUTE_PREPARE = 4;  // BUILTIN_MIC_CALIB_DATA_VERIFY
+        constexpr uint8_t ACTION_WAVEOUT_CTRL  = 2;
+
+        // Use `test_command` (fire + poll 0x81) rather than
+        // `test_command_set` (fire-only) for audio: empirically, a
+        // 0x80 write on this firmware isn't acted on until the host
+        // reads back a 0x81 — the set-only variant queues the command
+        // but leaves it pending until the next test-command cycle
+        // (which is why the tone used to start only after switching
+        // to the Telemetry page, where its background loader started
+        // hitting 0x81). Polling after each send drains that queue
+        // synchronously so the tone starts / stops immediately.
+        //
+        // `test_command` returns PollFailed for these audio actions
+        // because the controller doesn't emit a matching 0x81 response
+        // — that's fine, the side-effect (tone on/off) still happens.
+        std::uint8_t rx[72] = {};
+        std::size_t  rx_n   = 0;
+
+        // Routing payload — 20 bytes, sparse. Non-zero bytes taken from
+        // daidr ds.util.ts::controlWaveOut. Only sent when turning on.
+        if (source == AUDIO_TONE_SPEAKER || source == AUDIO_TONE_HEADPHONE) {
+            std::uint8_t route[20] = {};
+            if (source == AUDIO_TONE_SPEAKER) {
+                route[2] = 8;
+            } else {
+                route[4] = 4;
+                route[6] = 6;
+            }
+            test_command(dev, TestDevice::Audio, ACTION_ROUTE_PREPARE,
+                         route, sizeof(route),
+                         rx, sizeof(rx), &rx_n);
+        }
+
+        const std::uint8_t enable  = (source != AUDIO_TONE_OFF) ? 1 : 0;
+        const std::uint8_t ctrl[3] = { enable, 1, 0 };
+        rx_n = 0;
+        test_command(dev, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
+                     ctrl, sizeof(ctrl),
+                     rx, sizeof(rx), &rx_n);
+    }).detach();
+}
+
+// Force the test tone off and resync cache. Called from panel
+// reset_state so we never leave the controller beeping.
+static void audio_test_tone_force_off()
+{
+    if (s_test_tone != AUDIO_TONE_OFF) {
+        send_audio_test_tone(AUDIO_TONE_OFF);
+    }
+    s_test_tone      = AUDIO_TONE_OFF;
+    s_test_tone_last = -1;
+}
+
+static const char* test_tone_name(int v)
+{
+    switch (v) {
+        case AUDIO_TONE_SPEAKER:   return "on via speaker";
+        case AUDIO_TONE_HEADPHONE: return "on via 3.5mm jack";
+        default:                   return "off";
+    }
+}
+
+// Push the current (s_test_tone, s_volume) pair to the controller.
+// Active output gets s_volume, inactive gets 0 (hardware-leak
+// workaround — the tone would otherwise bleed into the non-selected
+// output). Called on every change to either state.
+static void audio_apply_state()
+{
+    switch (s_test_tone) {
+    case AUDIO_TONE_SPEAKER:
+        ds_set_audio_route(1);
+        ds_set_speaker_volume((uint8_t)s_volume);
+        ds_set_headphone_volume(0);
+        break;
+    case AUDIO_TONE_HEADPHONE:
+        ds_set_audio_route(0);
+        ds_set_headphone_volume((uint8_t)s_volume);
+        ds_set_speaker_volume(0);
+        break;
+    case AUDIO_TONE_OFF:
+    default:
+        // Silence both hardware outputs. Leave s_volume alone so the
+        // UI slider keeps showing the user's choice.
+        ds_set_speaker_volume(0);
+        ds_set_headphone_volume(0);
+        break;
+    }
+}
+
+int render_audio_outputs(SLONG x, SLONG y, int local_cursor)
+{
+    input_debug_text(x, y, 220, 200, 120, 1,
+                     "Controller audio (speaker + 3.5mm jack)");
+
+    // Keep the lib in "take over audio" mode while the OUTPUT page is
+    // rendering. Idempotent (bridge setter no-ops on unchanged value),
+    // flipped back off by reset_state when the panel closes.
+    ds_set_audio_volumes_enabled(true);
+
+    if (local_cursor >= 0 && local_cursor < AUDIO_ROWS) {
+        const InputDebugNav& n = input_debug_nav();
+        switch (local_cursor) {
+        case 0:
+            if (n.left)  s_volume = clamp_u8(s_volume - AUDIO_VOLUME_STEP);
+            if (n.right) s_volume = clamp_u8(s_volume + AUDIO_VOLUME_STEP);
+            break;
+        case 1:
+            // Enter cycles off → speaker → jack → off. left/right mirror.
+            if (n.enter) s_test_tone = (s_test_tone + 1) % AUDIO_TONE_COUNT;
+            if (n.right) s_test_tone = (s_test_tone + 1) % AUDIO_TONE_COUNT;
+            if (n.left)  s_test_tone = (s_test_tone + AUDIO_TONE_COUNT - 1) % AUDIO_TONE_COUNT;
+            break;
+        }
+    }
+
+    // Volume slider is read live: any movement during an active tone
+    // immediately updates the active output's hardware volume, the
+    // inactive output stays at 0.
+    const bool volume_changed    = (s_volume    != s_volume_last);
+    const bool test_tone_changed = (s_test_tone != s_test_tone_last);
+
+    if (volume_changed || test_tone_changed) {
+        audio_apply_state();
+        ds_update_output();
+        s_volume_last    = s_volume;
+    }
+    if (test_tone_changed) {
+        // send_audio_test_tone runs on a background thread; by the
+        // time it gets to the prepare/WAVEOUT_CTRL pair, the output
+        // report with the updated audio_route nibble has already been
+        // pushed above via ds_update_output().
+        send_audio_test_tone(s_test_tone);
+        s_test_tone_last = s_test_tone;
+    }
+
+    {
+        const bool sel = (local_cursor == 0);
+        const UBYTE r = sel ? 255 : 150;
+        const UBYTE g = sel ? 255 : 150;
+        const UBYTE b = sel ? 120 : 150;
+        const char* prefix = sel ? "> " : "  ";
+        input_debug_text(x + 4, y + 14, r, g, b, 1,
+                         "%svolume            %3d", prefix, s_volume);
+    }
+    {
+        const bool sel    = (local_cursor == 1);
+        const bool active = (s_test_tone != AUDIO_TONE_OFF);
+        const UBYTE r = sel ? (active ? 120 : 255) : (active ? 80  : 150);
+        const UBYTE g = sel ? 255                  : (active ? 255 : 150);
+        const UBYTE b = sel ? (active ? 120 : 120) : (active ? 80  : 150);
+        const char* prefix = sel ? "> " : "  ";
+        input_debug_text(x + 4, y + 26, r, g, b, 1,
+                         "%stest tone 1kHz    %s",
+                         prefix, test_tone_name(s_test_tone));
+    }
+
+    return AUDIO_ROWS;
 }
 
 } // namespace
 
 // Sub-pages of the DualSense tab, cycled through by TAB:
-//   VIEW     — physical controller layout viz
-//   TESTS    — rumble / lightbar / player LED test widgets
-//   TRIGGERS — adaptive trigger effect tester (placeholder for now)
+//   VIEW      — physical controller layout viz
+//   INPUT     — raw readouts (sticks/triggers raw, buttons, battery,
+//               headphone, fb byte, touchpad IDs, IMU raw + calibrated)
+//   OUTPUT    — rumble / lightbar / player LED / mute LED / haptic
+//               volume / lightbar setup / audio volumes test widgets
+//   TRIGGERS  — adaptive trigger effect tester (all 12 modes)
+//   TELEMETRY — firmware, PCBA, serial, barcodes, MCU/MAC, voltage,
+//               system flags (read once on sub-page entry)
 // Resets to VIEW on panel open so each session starts with the layout.
 enum DualSenseSub {
     DS_SUB_VIEW = 0,
-    DS_SUB_TESTS,
+    DS_SUB_INPUT,
+    DS_SUB_OUTPUT,
     DS_SUB_TRIGGERS,
+    DS_SUB_TELEMETRY,
     DS_SUB_COUNT,
 };
 namespace {
@@ -231,6 +557,77 @@ DualSenseSub s_sub = DS_SUB_VIEW;
 // in its own block near render_ds_triggers.
 bool s_trig_dirty       = false;
 bool s_trig_first_frame = true;
+
+// INPUT sub-page calibration cache — fetched once per panel session via
+// get_sensor_calibration(). Required to convert raw IMU samples into
+// physical deg/s / g. Invalidated by reset_state().
+oc::dualsense::SensorCalibration s_imu_cal   = {};
+bool                             s_imu_cal_loaded = false;
+
+// TELEMETRY sub-page cache — all feature-report / test-command results
+// fetched once per panel session. Each field has its own "ok" flag so
+// partial failures still display what succeeded.
+//
+// Loading runs on a **detached background thread** because on Windows
+// + USB some SDL_hid_get_feature_report paths block for multiple
+// seconds per call, and doing 16 of them on the main thread freezes
+// the panel (and, after ~5 seconds of no message-pump activity,
+// Windows tags the whole window "Not Responding"). Per-frame pacing
+// alone wasn't enough because the blocking happens inside one SDL
+// call, not across calls. See `tel_thread_body` below.
+//
+// Reader / writer sync: a single `s_tel_mutex` protects `s_tel`.
+// A generation counter (`s_tel_gen`) lets `reset_state` invalidate an
+// in-flight load so a late-finishing thread doesn't overwrite a
+// freshly-reset cache.
+constexpr int TELEMETRY_LOAD_STEP_COUNT = 16;
+
+struct TelemetryCache {
+    bool loaded = false;
+    int  load_step = 0;  // progress 0..TELEMETRY_LOAD_STEP_COUNT (driven by thread)
+
+    oc::dualsense::FirmwareInfo fw = {};
+    std::uint32_t               bt_patch    = 0;
+    bool                        bt_patch_ok = false;
+    oc::dualsense::SensorCalibration cal = {};
+
+    std::uint64_t mcu_id    = 0;
+    bool          mcu_ok    = false;
+
+    std::uint8_t  bt_mac[6] = {};
+    bool          bt_mac_ok = false;
+
+    std::uint64_t pcba_id   = 0;
+    bool          pcba_ok   = false;
+
+    std::uint8_t  pcba_full[24] = {};
+    std::size_t   pcba_full_len = 0;
+
+    std::uint8_t  serial[32] = {};
+    std::size_t   serial_len = 0;
+
+    std::uint8_t  assemble[32] = {};
+    std::size_t   assemble_len = 0;
+
+    std::uint8_t  batt_barcode[32] = {};
+    std::size_t   batt_barcode_len = 0;
+
+    std::uint8_t  vcm_left[32] = {};
+    std::size_t   vcm_left_len = 0;
+
+    std::uint8_t  vcm_right[32] = {};
+    std::size_t   vcm_right_len = 0;
+
+    oc::dualsense::BatteryVoltageRaw batt_v = {};
+
+    std::uint8_t pos_tracking    = 0;  bool pos_tracking_ok    = false;
+    std::uint8_t always_on       = 0;  bool always_on_ok       = false;
+    std::uint8_t auto_switchoff  = 0;  bool auto_switchoff_ok  = false;
+};
+TelemetryCache    s_tel = {};
+std::mutex        s_tel_mutex;
+std::atomic<bool> s_tel_load_active{false};
+std::atomic<int>  s_tel_gen{0};
 }
 
 void input_debug_dualsense_toggle_sub()
@@ -239,7 +636,7 @@ void input_debug_dualsense_toggle_sub()
     s_sub = (DualSenseSub)(((int)s_sub + 1) % (int)DS_SUB_COUNT);
 
     // Leaving the trigger tester — silence both triggers so the user
-    // doesn't feel residual resistance on the VIEW / TESTS pages.
+    // doesn't feel residual resistance on other sub-pages.
     if (prev == DS_SUB_TRIGGERS && s_sub != DS_SUB_TRIGGERS) {
         ds_trigger_off(2);
         ds_update_output();
@@ -273,6 +670,39 @@ void input_debug_dualsense_reset_state()
     // enters the TRIGGERS sub-page. Also clear any pending edit flag.
     s_trig_first_frame = true;
     s_trig_dirty       = false;
+
+    // Telemetry / calibration caches: invalidate so the next open
+    // re-reads them. The controller may have been swapped between
+    // sessions; stale cache would mislead the tester.
+    s_imu_cal_loaded = false;
+    {
+        // Bump the generation so any in-flight telemetry thread's
+        // final publish is discarded, and wipe the cache under the
+        // same mutex so the wipe is atomic w.r.t. any concurrent
+        // advance() call from the thread.
+        s_tel_gen.fetch_add(1);
+        std::lock_guard<std::mutex> lk(s_tel_mutex);
+        s_tel = {};
+    }
+
+    // Extra output fields driven by the OUTPUT sub-page: return both
+    // the UI state and the controller state to defaults so reopening
+    // the panel doesn't inherit a previously-set value that the cached
+    // "last applied" check would then skip sending.
+    s_led_brightness = 0;                  s_led_brightness_last = -1;
+    s_mute_led       = 0;                  s_mute_led_last       = -1;
+    s_volume         = AUDIO_DEFAULT_VOL;  s_volume_last         = -1;
+
+    // Force the diagnostic 1 kHz tone off (and resync its cache) so
+    // the controller doesn't keep beeping between panel sessions.
+    audio_test_tone_force_off();
+
+    ds_set_mute_led(0);
+    ds_set_audio_volumes_enabled(false);
+    ds_set_speaker_volume(0);
+    ds_set_headphone_volume(0);
+    ds_set_audio_route(0);
+    ds_set_player_led_brightness(0);
 
     // Send the clean state now so there's no lingering user-set LED
     // visible between panel close and the next game-tick refresh.
@@ -737,29 +1167,32 @@ void trig_apply_all()
     ds_update_output();
 }
 
-// Column-style read-only block for one trigger. Renders position /
-// feedback state / act / raw 10-byte slot dump.
+// Column-style read-only block for one trigger. Renders analog
+// position (0..255 pull), the motor state nibble the controller
+// reports (0..15; semantics vary per effect), the "effect engaged"
+// flag, and the raw 10-byte slot the library is currently packing.
 void trig_draw_indicators(SLONG x, SLONG y, bool right, int analog_value,
                           const std::uint8_t slot[10])
 {
     const char* side = right ? "R2" : "L2";
-    input_debug_text(x, y, 220, 200, 120, 1, "%s readout", side);
+    input_debug_text(x, y, 220, 200, 120, 1, "%s readout (live from controller)", side);
 
     input_debug_text(x + 4, y + 14, 200, 200, 200, 1,
-                     "position %3d", analog_value);
+                     "analog pull   %3d / 255", analog_value);
 
     const uint8_t fb = input_debug_read_ds_feedback(right);
     input_debug_text(x + 4, y + 26, 200, 200, 200, 1,
-                     "fb state %3u", (unsigned)fb);
+                     "motor state   %2u  (low nibble)", (unsigned)fb);
 
     const bool act = input_debug_read_ds_effect_active(right);
-    input_debug_draw_checkbox(x + 4, y + 38, "act", act);
+    input_debug_draw_checkbox(x + 4, y + 38, "effect engaged (act bit)", act);
 
-    input_debug_text(x + 4, y + 50, 160, 160, 160, 1,
-                     "slot %02X %02X %02X %02X %02X",
-                     slot[0], slot[1], slot[2], slot[3], slot[4]);
-    input_debug_text(x + 4, y + 62, 160, 160, 160, 1,
-                     "     %02X %02X %02X %02X %02X",
+    input_debug_text(x + 4, y + 52, 160, 160, 160, 1,
+                     "outgoing slot bytes (mode + params 0..8):");
+    input_debug_text(x + 4, y + 64, 160, 160, 160, 1,
+                     "  %02X  %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+                     slot[0],
+                     slot[1], slot[2], slot[3], slot[4],
                      slot[5], slot[6], slot[7], slot[8], slot[9]);
 }
 
@@ -813,18 +1246,712 @@ static void render_ds_triggers()
 }
 
 // ===========================================================================
-// Sub-page: rumble / lightbar / player LED tests
+// Sub-page: raw input readouts (sticks/triggers raw bytes, full button
+// set, battery, headphone, fb bytes, touchpad finger IDs, IMU raw +
+// calibrated)
 // ===========================================================================
+//
+// Passive — shows everything libDualsense parses from the input
+// report, in raw device units where possible. The lib writes all these
+// fields every tick (via ds_update_input → device_read_input); we pull
+// the raw snapshot through ds_debug_get_raw_input() from ds_bridge.
+//
+// On the first frame after sub-page entry, load IMU factory
+// calibration (feature report 0x05) once so the Motion column can
+// show physical units next to raw ticks. The cache is invalidated in
+// input_debug_dualsense_reset_state so a controller swap between
+// panel sessions picks up the new cal.
 
-static void render_ds_tests()
+static void ensure_imu_calibration_loaded()
+{
+    if (s_imu_cal_loaded) return;
+
+    oc::dualsense::Device* dev = ds_debug_get_device();
+    if (!dev || !dev->connected) return;
+
+    if (oc::dualsense::get_sensor_calibration(dev, &s_imu_cal)) {
+        s_imu_cal_loaded = s_imu_cal.valid;
+    }
+}
+
+// Horizontal signed bar: dim background, coloured fill extending from
+// the centre proportional to val/range. Used for gyro (deg/s) and
+// accel (g) visualisation on the INPUT sub-page.
+//   val in [-range, +range] draws a proportional fill;
+//   |val| > range clamps to the end and draws in "overflow" red.
+// x, y = top-left of the bar; w, h = dimensions.
+static void draw_centered_bar(SLONG x, SLONG y, SLONG w, SLONG h,
+                              float val, float range)
+{
+    // Background.
+    AENG_draw_rect(x, y, w, h, 0x202020,
+                   INPUT_DEBUG_LAYER_CONTENT, POLY_PAGE_COLOUR);
+    // Centre tick (1px vertical line).
+    const SLONG cx = x + w / 2;
+    AENG_draw_rect(cx, y, 1, h, 0x606060,
+                   INPUT_DEBUG_LAYER_CONTENT, POLY_PAGE_COLOUR);
+
+    if (range <= 0.0f) return;
+    float norm = val / range;
+    bool overflow = false;
+    if (norm > 1.0f)  { norm = 1.0f;  overflow = true; }
+    if (norm < -1.0f) { norm = -1.0f; overflow = true; }
+
+    const SLONG half     = w / 2;
+    const SLONG fill_w   = (SLONG)((norm < 0.0f ? -norm : norm) * (float)half);
+    if (fill_w <= 0) return;
+
+    const unsigned int colour = overflow ? 0xFF4040 : 0x50C0FF;
+    const SLONG x0 = (norm >= 0.0f) ? cx : (cx - fill_w);
+    AENG_draw_rect(x0, y + 1, fill_w, h - 2, colour,
+                   INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
+}
+
+static const char* charge_status_text(bool charging, bool full, uint8_t raw_high_nibble)
+{
+    // battery_charging and battery_full are mutually exclusive already;
+    // the raw nibble lets us also surface the error codes (10/11/15)
+    // that daidr's InputInfo.vue exposes verbatim.
+    if (full)     return "charging_complete";
+    if (charging) return "charging";
+    switch (raw_high_nibble) {
+        case 0:  return "discharging";
+        case 10: return "abnormal_voltage";
+        case 11: return "abnormal_temperature";
+        case 15: return "charging_error";
+        default: return "unknown";
+    }
+}
+
+static void render_ds_input()
 {
     input_debug_text(20, 48, 255, 255, 255, 1,
-                     "DualSense tests  (TAB to cycle sub-pages)");
+                     "DualSense input  (extras not on the Layout view; TAB to cycle)");
 
-    // Single cursor walks through all interactive rows: rumble (3) +
-    // lightbar (3) + player-LED pairs (3).
+    const oc::dualsense::InputState* in = ds_debug_get_raw_input();
+    const bool connected = ds_is_connected();
+
+    if (!connected) {
+        input_debug_text(20, 80, 200, 80, 80, 1,
+                         "DualSense not connected — raw readout unavailable");
+        return;
+    }
+
+    // Load IMU calibration once on entry. Safe to call every frame;
+    // no-op after the first successful load.
+    ensure_imu_calibration_loaded();
+
+    // Unlike the Layout view on the VIEW sub-page which shows sticks /
+    // buttons / d-pad / triggers / touchpad finger positions visually,
+    // this sub-page surfaces the values the library parses that do NOT
+    // have a home on the controller layout: power/audio status, raw
+    // trigger-feedback bytes (beyond the single "active" dot), touch
+    // finger IDs, and motion sensors.
+
+    // Pull the raw nibble from the status0 byte. We don't expose it
+    // through InputState (the lib cooks it into bool charging / full),
+    // so reconstruct for the "error codes" text. status0 is at HID
+    // offset 52 after framing strip, but we derive charging/full from
+    // bool fields — `raw_high_nibble` is only needed for the error
+    // branches in charge_status_text. Best-effort: infer 0 = discharge,
+    // anything else is error if the bools are both false.
+    std::uint8_t charge_hi = 0;
+    if (in->battery_charging) charge_hi = 1;
+    else if (in->battery_full) charge_hi = 2;
+
+    // ---- Column A: power / audio / trigger feedback / finger IDs ----
+    constexpr SLONG COL_A_X = 15;
+    SLONG y = 72;
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Power / audio");
+    y += 14;
+    input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                     "battery     %3u%%",
+                     (unsigned)in->battery_level_percent);
+    y += 12;
+    input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                     "status      %s",
+                     charge_status_text(in->battery_charging, in->battery_full, charge_hi));
+    y += 12;
+    input_debug_draw_checkbox(COL_A_X + 4, y, "headphone jack",
+                              in->headphone_connected);
+    y += 12;
+    input_debug_draw_checkbox(COL_A_X + 4, y, "microphone (on jack)",
+                              in->mic_connected);
+    y += 18;
+
+    // (Adaptive-trigger feedback lives on the Triggers sub-page where
+    // the user can actually see which effect is currently running —
+    // duplicating it here was noise.)
+
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Touch IDs");
+    y += 14;
+    input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                     "f1 id 0x%02X  %s",
+                     (unsigned)in->touchpad_finger_1_id,
+                     in->touchpad_finger_1_down ? "contact" : "lifted");
+    y += 12;
+    input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                     "f2 id 0x%02X  %s",
+                     (unsigned)in->touchpad_finger_2_id,
+                     in->touchpad_finger_2_down ? "contact" : "lifted");
+
+    // ---- Column B: motion (gyro + accel with centered bars, raw,
+    //                         calibrated, timestamp, temperature) -----
+    constexpr SLONG COL_B_X      = 240;
+    constexpr SLONG BAR_LABEL_W  = 38;   // px for "pitch" / "yaw  " / "roll " / "X" etc
+    constexpr SLONG BAR_W        = 180;
+    constexpr SLONG BAR_H        = 8;
+    constexpr float GYRO_RANGE_DPS = 500.0f;   // visual scale; overflow is red
+    constexpr float ACCEL_RANGE_G  = 2.0f;
+
+    y = 72;
+    input_debug_text(COL_B_X, y, 220, 200, 120, 1,
+                     "Gyro  (bar scale \u00b1500 deg/s; red = out of range)");
+    y += 14;
+
+    auto draw_gyro_row = [&](const char* label, std::int16_t raw, float dps) {
+        input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1, "%s", label);
+        draw_centered_bar(COL_B_X + BAR_LABEL_W, y, BAR_W, BAR_H,
+                          dps, GYRO_RANGE_DPS);
+        if (s_imu_cal_loaded) {
+            input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
+                             200, 200, 200, 1,
+                             "%+7.1f\u00b0/s  raw %+6d", dps, (int)raw);
+        } else {
+            input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
+                             200, 200, 200, 1,
+                             "raw %+6d  (no cal)", (int)raw);
+        }
+        y += 12;
+    };
+
+    if (s_imu_cal_loaded) {
+        const float pdps = oc::dualsense::calibrate_gyro_pitch_deg_per_sec(in->gyro_pitch, s_imu_cal);
+        const float ydps = oc::dualsense::calibrate_gyro_yaw_deg_per_sec  (in->gyro_yaw,   s_imu_cal);
+        const float rdps = oc::dualsense::calibrate_gyro_roll_deg_per_sec (in->gyro_roll,  s_imu_cal);
+        draw_gyro_row("pitch", in->gyro_pitch, pdps);
+        draw_gyro_row("yaw",   in->gyro_yaw,   ydps);
+        draw_gyro_row("roll",  in->gyro_roll,  rdps);
+    } else {
+        // No calibration — scale raw int16 by a heuristic so the bar
+        // still shows motion. Full-scale ≈ 32767; use that as the
+        // visual range.
+        draw_gyro_row("pitch", in->gyro_pitch, (float)in->gyro_pitch * (GYRO_RANGE_DPS / 32767.0f));
+        draw_gyro_row("yaw",   in->gyro_yaw,   (float)in->gyro_yaw   * (GYRO_RANGE_DPS / 32767.0f));
+        draw_gyro_row("roll",  in->gyro_roll,  (float)in->gyro_roll  * (GYRO_RANGE_DPS / 32767.0f));
+    }
+    y += 8;
+
+    input_debug_text(COL_B_X, y, 220, 200, 120, 1,
+                     "Accel (bar scale \u00b12 g; red = out of range)");
+    y += 14;
+
+    auto draw_accel_row = [&](const char* label, std::int16_t raw, float g) {
+        input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1, "%s", label);
+        draw_centered_bar(COL_B_X + BAR_LABEL_W, y, BAR_W, BAR_H,
+                          g, ACCEL_RANGE_G);
+        if (s_imu_cal_loaded) {
+            input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
+                             200, 200, 200, 1,
+                             "%+5.2f g  raw %+6d", g, (int)raw);
+        } else {
+            input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
+                             200, 200, 200, 1,
+                             "raw %+6d  (no cal)", (int)raw);
+        }
+        y += 12;
+    };
+
+    if (s_imu_cal_loaded) {
+        const float axg = oc::dualsense::calibrate_accel_x_g(in->accel_x, s_imu_cal);
+        const float ayg = oc::dualsense::calibrate_accel_y_g(in->accel_y, s_imu_cal);
+        const float azg = oc::dualsense::calibrate_accel_z_g(in->accel_z, s_imu_cal);
+        draw_accel_row("X", in->accel_x, axg);
+        draw_accel_row("Y", in->accel_y, ayg);
+        draw_accel_row("Z", in->accel_z, azg);
+    } else {
+        draw_accel_row("X", in->accel_x, (float)in->accel_x * (ACCEL_RANGE_G / 32767.0f));
+        draw_accel_row("Y", in->accel_y, (float)in->accel_y * (ACCEL_RANGE_G / 32767.0f));
+        draw_accel_row("Z", in->accel_z, (float)in->accel_z * (ACCEL_RANGE_G / 32767.0f));
+    }
+    y += 8;
+
+    input_debug_text(COL_B_X, y, 220, 200, 120, 1, "Misc IMU");
+    y += 14;
+    input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
+                     "timestamp %10u us", (unsigned)in->motion_timestamp);
+    y += 12;
+    input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
+                     "temperature %4d (raw)", (int)in->motion_temperature);
+
+    if (!s_imu_cal_loaded) {
+        y += 16;
+        input_debug_text(COL_B_X, y, 160, 160, 160, 1,
+                         "(calibration unavailable \u2014 bars use raw-\u00b132767 fallback)");
+    }
+}
+
+// ===========================================================================
+// Sub-page: telemetry / feature reports (read once on entry, cached)
+// ===========================================================================
+//
+// Pulls every read-only factory / identification / firmware report
+// that libDualsense exposes and displays them. The load is a one-shot
+// per panel session (or per TAB into this sub-page after a reset) —
+// each feature report / test command is a synchronous HID round-trip,
+// typically 5-20 ms; ~15 reports × 20 ms = a visible hitch on first
+// entry, which is acceptable for a debug panel.
+
+// Format a 32-bit firmware version as "major.minor.patch" the way
+// daidr's formatThreePartVersion does: high-byte, next-byte,
+// low-16-bit patch as decimals. Example: 0x0110002A → "1.16.42".
+static void format_three_part_version(char* buf, std::size_t buf_size,
+                                      std::uint32_t v)
+{
+    std::snprintf(buf, buf_size, "%u.%u.%u",
+        (unsigned)((v >> 24) & 0xFFu),
+        (unsigned)((v >> 16) & 0xFFu),
+        (unsigned)( v        & 0xFFFFu));
+}
+
+// 16-bit "update" version: two hex halves separated by a dot.
+// Example: 0x0630 → "6.30".
+static void format_update_version(char* buf, std::size_t buf_size,
+                                  std::uint16_t v)
+{
+    std::snprintf(buf, buf_size, "%X.%02X",
+        (unsigned)((v >> 8) & 0xFFu),
+        (unsigned)( v       & 0xFFu));
+}
+
+// DSP version: two 4-digit hex halves separated by an underscore.
+// Example: 0x00031010 → "0003_1010".
+static void format_dsp_version(char* buf, std::size_t buf_size,
+                               std::uint32_t v)
+{
+    std::snprintf(buf, buf_size, "%04X_%04X",
+        (unsigned)((v >> 16) & 0xFFFFu),
+        (unsigned)( v        & 0xFFFFu));
+}
+
+// Map the DualSense serial-number "colour code" (characters 5..6 of
+// the serial, Shift-JIS decoded — identical to ASCII for these
+// printable characters) to the factory colour variant name. Mirrors
+// daidr's DualSenseColorMap in ds.type.ts.
+static const char* ds_color_variant_from_serial(const std::uint8_t* serial,
+                                                 std::size_t len)
+{
+    if (len < 6) return nullptr;
+    const std::uint16_t key =
+        (static_cast<std::uint16_t>(serial[4]) << 8) |
+         static_cast<std::uint16_t>(serial[5]);
+    switch (key) {
+        case (std::uint16_t('0') << 8) | '0': return "White";
+        case (std::uint16_t('0') << 8) | '1': return "Midnight Black";
+        case (std::uint16_t('0') << 8) | '2': return "Cosmic Red";
+        case (std::uint16_t('0') << 8) | '3': return "Nova Pink";
+        case (std::uint16_t('0') << 8) | '4': return "Galactic Purple";
+        case (std::uint16_t('0') << 8) | '5': return "Starlight Blue";
+        case (std::uint16_t('0') << 8) | '6': return "Grey Camouflage";
+        case (std::uint16_t('0') << 8) | '7': return "Volcanic Red";
+        case (std::uint16_t('0') << 8) | '8': return "Sterling Silver";
+        case (std::uint16_t('0') << 8) | '9': return "Cobalt Blue";
+        case (std::uint16_t('1') << 8) | '0': return "Chroma Teal";
+        case (std::uint16_t('1') << 8) | '1': return "Chroma Indigo";
+        case (std::uint16_t('1') << 8) | '2': return "Chroma Pearl";
+        case (std::uint16_t('3') << 8) | '0': return "30th Anniversary";
+        case (std::uint16_t('Z') << 8) | '1': return "God of War Ragnarok";
+        case (std::uint16_t('Z') << 8) | '2': return "Spider-Man 2";
+        case (std::uint16_t('Z') << 8) | '3': return "Astro Bot";
+        case (std::uint16_t('Z') << 8) | '4': return "Fortnite";
+        case (std::uint16_t('Z') << 8) | '6': return "The Last of Us";
+        case (std::uint16_t('Z') << 8) | 'B': return "Icon Blue LE";
+        case (std::uint16_t('Z') << 8) | 'E': return "Genshin Impact";
+        default: return nullptr;
+    }
+}
+
+// Second character of the serial encodes the PCB generation (BDM-010
+// through BDM-050). iFixit docs reference:
+// https://www.ifixit.com/Wiki/How_to_Identify_PS5_DualSense_Controller_Version
+static const char* ds_board_version_from_serial(const std::uint8_t* serial,
+                                                 std::size_t len)
+{
+    if (len < 2) return nullptr;
+    switch (serial[1]) {
+        case '1': return "BDM-010";
+        case '2': return "BDM-020";
+        case '3': return "BDM-030";
+        case '4': return "BDM-040";
+        case '5': return "BDM-050";
+        default:  return nullptr;
+    }
+}
+
+// Hex-dump helper: formats `len` bytes as 2-char hex pairs into `buf`
+// (which must be at least `len*3 + 1` bytes). Separates with spaces.
+static void hex_dump_line(char* buf, std::size_t buf_size,
+                          const std::uint8_t* bytes, std::size_t len)
+{
+    std::size_t off = 0;
+    for (std::size_t i = 0; i < len && off + 3 < buf_size; ++i) {
+        int n = std::snprintf(buf + off, buf_size - off, "%02X ", (unsigned)bytes[i]);
+        if (n <= 0) break;
+        off += (std::size_t)n;
+    }
+    if (off < buf_size) buf[off] = 0;
+    else if (buf_size > 0) buf[buf_size - 1] = 0;
+}
+
+// Background telemetry loader. Fills a LOCAL TelemetryCache, then
+// publishes it into s_tel under s_tel_mutex, guarded by a generation
+// counter so `reset_state` can invalidate a late-finishing load.
+static void tel_thread_body(int my_gen)
+{
+    using namespace oc::dualsense;
+    Device* dev = ds_debug_get_device();
+
+    TelemetryCache local = {};
+    local.load_step = 0;
+
+    if (dev && dev->connected) {
+        auto advance = [&](int step) {
+            // Publish interim progress for the UI. Cheap, under the mutex.
+            if (s_tel_gen.load() != my_gen) return;
+            std::lock_guard<std::mutex> lk(s_tel_mutex);
+            s_tel.load_step = step;
+        };
+
+        get_firmware_info(dev, &local.fw);                                       advance(1);
+        if (s_tel_gen.load() == my_gen) {
+            local.bt_patch_ok = get_bt_patch_version(dev, &local.bt_patch);      advance(2);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            get_sensor_calibration(dev, &local.cal);                             advance(3);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.mcu_ok = get_mcu_unique_id(dev, &local.mcu_id);                advance(4);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.bt_mac_ok = get_bd_mac_address(dev, local.bt_mac);             advance(5);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.pcba_ok = get_pcba_id(dev, &local.pcba_id);                    advance(6);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.pcba_full_len = get_pcba_id_full(dev, local.pcba_full);        advance(7);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.serial_len = get_serial_number(dev, local.serial);             advance(8);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.assemble_len = get_assemble_parts_info(dev, local.assemble);   advance(9);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.batt_barcode_len = get_battery_barcode(dev, local.batt_barcode); advance(10);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.vcm_left_len = get_vcm_left_barcode(dev, local.vcm_left);      advance(11);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.vcm_right_len = get_vcm_right_barcode(dev, local.vcm_right);   advance(12);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            get_battery_voltage(dev, &local.batt_v);                             advance(13);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.pos_tracking_ok = get_position_tracking_state(dev, &local.pos_tracking); advance(14);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.always_on_ok = get_always_on_startup_state(dev, &local.always_on);       advance(15);
+        }
+        if (s_tel_gen.load() == my_gen) {
+            local.auto_switchoff_ok = get_auto_switchoff_flag(dev, &local.auto_switchoff); advance(16);
+        }
+    }
+
+    local.loaded    = true;
+    local.load_step = TELEMETRY_LOAD_STEP_COUNT;
+
+    // Publish if our generation is still current. Otherwise discard —
+    // the panel was reset (or the controller swapped) while we worked.
+    if (s_tel_gen.load() == my_gen) {
+        std::lock_guard<std::mutex> lk(s_tel_mutex);
+        if (s_tel_gen.load() == my_gen) {
+            s_tel = local;
+        }
+    }
+
+    s_tel_load_active.store(false);
+}
+
+// Kick off a telemetry load if one isn't already running and we
+// haven't yet cached a result for the current generation.
+static void start_telemetry_load_if_needed()
+{
+    if (s_tel.loaded) return;
+    if (s_tel_load_active.exchange(true)) return;  // already running
+
+    const int my_gen = s_tel_gen.load();
+    std::thread t(tel_thread_body, my_gen);
+    t.detach();
+}
+
+static void render_ds_telemetry()
+{
+    input_debug_text(20, 48, 255, 255, 255, 1,
+                     "DualSense telemetry  (TAB to cycle sub-pages)");
+
+    if (!ds_is_connected()) {
+        input_debug_text(20, 80, 200, 80, 80, 1,
+                         "DualSense not connected — telemetry unavailable");
+        return;
+    }
+
+    // Telemetry loading runs on a detached background thread so
+    // blocking HID calls can't freeze the panel.
+    start_telemetry_load_if_needed();
+
+    // Hold the mutex for the whole render — the thread writes s_tel
+    // under the same mutex and each write is brief (single field
+    // assignment), so contention is negligible but race-free.
+    std::lock_guard<std::mutex> lk(s_tel_mutex);
+
+    if (!s_tel.loaded) {
+        input_debug_text(20, 66, 200, 200, 120, 1,
+                         "Loading factory data (%d / %d)...  (running in background)",
+                         s_tel.load_step, TELEMETRY_LOAD_STEP_COUNT);
+    }
+
+    // ---- Column A: firmware + calibration summary + IDs + PCBA ----
+    constexpr SLONG COL_A_X = 15;
+    SLONG y = 72;
+
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Firmware (report 0x20)");
+    y += 14;
+    if (s_tel.fw.valid) {
+        char main_fw[24], sbl_fw[24], mcu_dsp[24], dsp_fw[24], upd_ver[16];
+        format_three_part_version(main_fw,  sizeof(main_fw),  s_tel.fw.mainFwVersion);
+        format_three_part_version(sbl_fw,   sizeof(sbl_fw),   s_tel.fw.sblFwVersion);
+        format_three_part_version(mcu_dsp,  sizeof(mcu_dsp),  s_tel.fw.spiderDspFwVersion);
+        format_dsp_version       (dsp_fw,   sizeof(dsp_fw),   s_tel.fw.dspFwVersion);
+        format_update_version    (upd_ver,  sizeof(upd_ver),  s_tel.fw.updateVersion);
+
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "built            %s  %s", s_tel.fw.buildDate, s_tel.fw.buildTime);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "fwType  0x%04X   swSeries 0x%04X",
+                         (unsigned)s_tel.fw.fwType, (unsigned)s_tel.fw.swSeries);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "hwInfo           0x%08X  (board %u)",
+                         (unsigned)s_tel.fw.hwInfo, (unsigned)(s_tel.fw.hwInfo & 0xFFFFu));
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "main FW          %s     update %s",
+                         main_fw, upd_ver);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "SBL FW           %s     DSP FW %s",
+                         sbl_fw, dsp_fw);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "MCU DSP FW       %s", mcu_dsp);
+        y += 12;
+        char dev_info[80];
+        hex_dump_line(dev_info, sizeof(dev_info), s_tel.fw.deviceInfo, 12);
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
+                         "deviceInfo  %s", dev_info);
+        y += 14;
+    } else {
+        input_debug_text(COL_A_X + 4, y, 200, 80, 80, 1, "(report failed)");
+        y += 14;
+    }
+
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "BT patch (report 0x22)");
+    y += 14;
+    if (s_tel.bt_patch_ok) {
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "patch   0x%08X", (unsigned)s_tel.bt_patch);
+    } else {
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
+                         "(not available on this firmware)");
+    }
+    y += 16;
+
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Sensor calibration (report 0x05)");
+    y += 14;
+    if (s_tel.cal.valid) {
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "gyro bias    p=%5d  y=%5d  r=%5d",
+                         (int)s_tel.cal.gyro_pitch_bias,
+                         (int)s_tel.cal.gyro_yaw_bias,
+                         (int)s_tel.cal.gyro_roll_bias);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "gyro speed   +=%5d  -=%5d",
+                         (int)s_tel.cal.gyro_speed_plus,
+                         (int)s_tel.cal.gyro_speed_minus);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "accel X     +=%5d  -=%5d",
+                         (int)s_tel.cal.accel_x_plus, (int)s_tel.cal.accel_x_minus);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "accel Y     +=%5d  -=%5d",
+                         (int)s_tel.cal.accel_y_plus, (int)s_tel.cal.accel_y_minus);
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "accel Z     +=%5d  -=%5d",
+                         (int)s_tel.cal.accel_z_plus, (int)s_tel.cal.accel_z_minus);
+        y += 14;
+    } else {
+        input_debug_text(COL_A_X + 4, y, 200, 80, 80, 1, "(report failed)");
+        y += 14;
+    }
+
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Identifiers");
+    y += 14;
+    if (s_tel.mcu_ok) {
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "MCU unique  0x%016llX",
+                         (unsigned long long)s_tel.mcu_id);
+    } else {
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "MCU unique  n/a");
+    }
+    y += 12;
+    if (s_tel.bt_mac_ok) {
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "BT MAC      %02X:%02X:%02X:%02X:%02X:%02X",
+                         (unsigned)s_tel.bt_mac[0], (unsigned)s_tel.bt_mac[1],
+                         (unsigned)s_tel.bt_mac[2], (unsigned)s_tel.bt_mac[3],
+                         (unsigned)s_tel.bt_mac[4], (unsigned)s_tel.bt_mac[5]);
+    } else {
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "BT MAC      n/a");
+    }
+    y += 12;
+    if (s_tel.pcba_ok) {
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "PCBA (48b)  0x%012llX",
+                         (unsigned long long)(s_tel.pcba_id & 0xFFFFFFFFFFFFull));
+    } else {
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "PCBA (48b)  n/a");
+    }
+    y += 12;
+    if (s_tel.pcba_full_len > 0) {
+        char hex[80];
+        hex_dump_line(hex, sizeof(hex), s_tel.pcba_full, 12);
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "PCBA full   %s", hex);
+        y += 12;
+        hex_dump_line(hex, sizeof(hex), s_tel.pcba_full + 12, 12);
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "            %s", hex);
+    } else {
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "PCBA full   n/a");
+    }
+    y += 16;
+
+    // Colour variant + board generation are both derived from the
+    // serial number (daidr does the same — the serial encodes the
+    // factory colour code in chars 5..6 and the PCB generation in
+    // char 2). Only show if we were able to read the serial.
+    input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Model");
+    y += 14;
+    if (s_tel.serial_len > 0) {
+        const char* colour = ds_color_variant_from_serial(s_tel.serial, s_tel.serial_len);
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "colour variant  %s", colour ? colour : "(unknown code)");
+        y += 12;
+        const char* board = ds_board_version_from_serial(s_tel.serial, s_tel.serial_len);
+        input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
+                         "board version   %s", board ? board : "(unknown)");
+    } else {
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
+                         "colour variant  n/a  (serial not readable)");
+        y += 12;
+        input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
+                         "board version   n/a");
+    }
+
+    // ---- Column B: serial / barcodes / voltage / flags ----
+    constexpr SLONG COL_B_X = 330;
+    y = 72;
+
+    auto render_barcode = [&](const char* label,
+                              const std::uint8_t* data, std::size_t len) {
+        input_debug_text(COL_B_X, y, 220, 200, 120, 1, "%s", label);
+        y += 14;
+        if (len == 0) {
+            input_debug_text(COL_B_X + 4, y, 180, 180, 180, 1, "(n/a)");
+            y += 14;
+            return;
+        }
+        // 32 bytes → 2 rows of 16 bytes each hex.
+        char hex[64];
+        const std::size_t row1 = len > 16 ? 16 : len;
+        hex_dump_line(hex, sizeof(hex), data, row1);
+        input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1, "%s", hex);
+        y += 12;
+        if (len > 16) {
+            hex_dump_line(hex, sizeof(hex), data + 16, len - 16);
+            input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1, "%s", hex);
+            y += 12;
+        }
+        y += 2;
+    };
+
+    render_barcode("Serial number (Shift-JIS raw)",   s_tel.serial,       s_tel.serial_len);
+    render_barcode("Assemble parts info",             s_tel.assemble,     s_tel.assemble_len);
+    render_barcode("Battery barcode",                 s_tel.batt_barcode, s_tel.batt_barcode_len);
+    render_barcode("VCM left barcode (adaptive L)",   s_tel.vcm_left,     s_tel.vcm_left_len);
+    render_barcode("VCM right barcode (adaptive R)",  s_tel.vcm_right,    s_tel.vcm_right_len);
+
+    input_debug_text(COL_B_X, y, 220, 200, 120, 1, "Battery voltage (raw)");
+    y += 14;
+    if (s_tel.batt_v.valid && s_tel.batt_v.len > 0) {
+        char hex[32];
+        hex_dump_line(hex, sizeof(hex), s_tel.batt_v.data, s_tel.batt_v.len);
+        input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
+                         "%u byte(s)  %s", (unsigned)s_tel.batt_v.len, hex);
+    } else {
+        input_debug_text(COL_B_X + 4, y, 180, 180, 180, 1, "(n/a)");
+    }
+    y += 16;
+
+    input_debug_text(COL_B_X, y, 220, 200, 120, 1, "System flags");
+    y += 14;
+    input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
+                     "position tracking  %s",
+                     s_tel.pos_tracking_ok ? (s_tel.pos_tracking ? "ENABLED" : "disabled") : "n/a");
+    y += 12;
+    input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
+                     "always-on startup  %s",
+                     s_tel.always_on_ok ? (s_tel.always_on ? "on" : "off") : "n/a");
+    y += 12;
+    input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
+                     "auto switchoff     %s",
+                     s_tel.auto_switchoff_ok ? (s_tel.auto_switchoff ? "on" : "off") : "n/a");
+}
+
+// ===========================================================================
+// Sub-page: all output controls (rumble / lightbar / player LED /
+// mute LED / haptic volume / lightbar setup / audio volumes)
+// ===========================================================================
+//
+// One vertical column, one shared cursor that walks through every
+// interactive row in order. Each widget is a self-contained function
+// that returns its row count so the cursor math stays local.
+
+static void render_ds_output()
+{
+    input_debug_text(20, 48, 255, 255, 255, 1,
+                     "DualSense output  (TAB to cycle sub-pages)");
+
     static int s_cursor = 0;
-    const int total_rows = RUMBLE_ROWS + LIGHTBAR_ROWS + PLAYER_LED_ROWS;
+    const int total_rows =
+        RUMBLE_ROWS + LIGHTBAR_ROWS + PLAYER_LED_ROWS + MISC_ROWS + AUDIO_ROWS;
 
     const InputDebugNav& n = input_debug_nav();
     if (n.up)   s_cursor = (s_cursor - 1 + total_rows) % total_rows;
@@ -832,22 +1959,26 @@ static void render_ds_tests()
 
     int base = 0;
     base += input_debug_render_rumble_test(MENU_X, 80,  s_cursor - base);
-    base += render_lightbar               (MENU_X, 160, s_cursor - base);
-    base += render_player_led             (MENU_X, 240, s_cursor - base);
+    base += render_lightbar               (MENU_X, 142, s_cursor - base);
+    base += render_player_led             (MENU_X, 204, s_cursor - base);
+    base += render_misc_outputs           (MENU_X, 278, s_cursor - base);
+    base += render_audio_outputs          (MENU_X, 316, s_cursor - base);
 }
 
 void input_debug_render_dualsense_page()
 {
     // Sub-page dispatch. Main layout renders unconditionally; live
     // widgets gate inside the read-through wrapper so a brief switch to
-    // keyboard doesn't wipe the page. TAB toggles between view and tests
-    // (handled in input_debug_tick).
+    // keyboard doesn't wipe the page. TAB cycles through VIEW / INPUT /
+    // OUTPUT / TRIGGERS / TELEMETRY (handled in input_debug_tick).
     const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_DUALSENSE);
 
     switch (s_sub) {
-        case DS_SUB_VIEW:     render_ds_view(s);     break;
-        case DS_SUB_TESTS:    render_ds_tests();     break;
-        case DS_SUB_TRIGGERS: render_ds_triggers();  break;
+        case DS_SUB_VIEW:      render_ds_view(s);      break;
+        case DS_SUB_INPUT:     render_ds_input();      break;
+        case DS_SUB_OUTPUT:    render_ds_output();     break;
+        case DS_SUB_TRIGGERS:  render_ds_triggers();   break;
+        case DS_SUB_TELEMETRY: render_ds_telemetry();  break;
         default: break;
     }
 }

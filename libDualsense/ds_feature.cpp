@@ -28,34 +28,16 @@ bool get_firmware_info(Device* dev, FirmwareInfo* out)
     if (!dev || !out) return false;
     *out = FirmwareInfo{};
 
-    // Feature report 0x20 is 64 bytes total. Buffer sized generously.
-    std::uint8_t buf[96];
-    const int n = device_get_feature_report(dev, 0x20, buf, sizeof(buf));
-
-    // Layout (daidr FactoryInfo.vue::getFirmwareInfo):
-    //   buf[0]           reportId 0x20
-    //   buf[1..11]       buildDate   (11 bytes UTF-8)
-    //   buf[12..19]      buildTime   (8 bytes UTF-8)
-    //   buf[20..21]      fwType      (u16 LE)
-    //   buf[22..23]      swSeries    (u16 LE)
-    //   buf[24..27]      hwInfo      (u32 LE)
-    //   buf[28..31]      mainFwVersion (u32 LE)
-    //   buf[32..43]      deviceInfo  (12 bytes)
-    //   buf[44..45]      updateVersion (u16 LE)
-    //   buf[46]          updateImageInfo (u8)
-    //   buf[48..51]      sblFwVersion (u32 LE)
-    //   buf[52..55]      dspFwVersion (u32 LE)
-    //   buf[56..59]      spiderDspFwVersion (u32 LE)
-    //
-    // Required minimum: 60 bytes to cover spiderDspFwVersion.
-    const int REQUIRED = 60;
-    if (n < REQUIRED) return false;
+    // Feature report 0x20: descriptor-defined 64 bytes (reportId + 63
+    // data bytes). Layout and field offsets are taken directly from
+    // daidr's FactoryInfo.vue::getFirmwareInfo.
+    std::uint8_t buf[64] = {};
+    if (device_get_feature_report(dev, 0x20, buf, sizeof(buf)) <= 0) return false;
 
     std::memcpy(out->buildDate, &buf[1], 11);
     out->buildDate[11] = '\0';
     std::memcpy(out->buildTime, &buf[12], 8);
     out->buildTime[8] = '\0';
-
     out->fwType             = rd_u16(&buf[20]);
     out->swSeries           = rd_u16(&buf[22]);
     out->hwInfo             = rd_u32(&buf[24]);
@@ -75,34 +57,10 @@ bool get_sensor_calibration(Device* dev, SensorCalibration* out)
     if (!dev || !out) return false;
     *out = SensorCalibration{};
 
-    // Feature report 0x05 is 41 bytes total (36 payload bytes of int16
-    // fields after the reportId, + padding for BT CRC which SDL hides).
-    std::uint8_t buf[64];
-    const int n = device_get_feature_report(dev, 0x05, buf, sizeof(buf));
-
-    // Layout (DualSense 6-axis calibration, matches DS5W/nondebug RE):
-    //   buf[0]           reportId 0x05
-    //   buf[1..2]        gyro_pitch_bias (int16 LE)
-    //   buf[3..4]        gyro_yaw_bias
-    //   buf[5..6]        gyro_roll_bias
-    //   buf[7..8]        gyro_pitch_plus
-    //   buf[9..10]       gyro_pitch_minus
-    //   buf[11..12]      gyro_yaw_plus
-    //   buf[13..14]      gyro_yaw_minus
-    //   buf[15..16]      gyro_roll_plus
-    //   buf[17..18]      gyro_roll_minus
-    //   buf[19..20]      gyro_speed_plus
-    //   buf[21..22]      gyro_speed_minus
-    //   buf[23..24]      accel_x_plus
-    //   buf[25..26]      accel_x_minus
-    //   buf[27..28]      accel_y_plus
-    //   buf[29..30]      accel_y_minus
-    //   buf[31..32]      accel_z_plus
-    //   buf[33..34]      accel_z_minus
-    //
-    // Required minimum: 35 bytes.
-    const int REQUIRED = 35;
-    if (n < REQUIRED) return false;
+    // Feature report 0x05: descriptor-defined 64 bytes (reportId + 63
+    // data). 6-axis IMU calibration at offsets 1..34 (int16 LE pairs).
+    std::uint8_t buf[64] = {};
+    if (device_get_feature_report(dev, 0x05, buf, sizeof(buf)) <= 0) return false;
 
     out->gyro_pitch_bias  = rd_i16(&buf[1]);
     out->gyro_yaw_bias    = rd_i16(&buf[3]);
@@ -130,11 +88,10 @@ bool get_bt_patch_version(Device* dev, std::uint32_t* out)
     if (!dev || !out) return false;
     *out = 0;
 
-    // Feature report 0x22 contains a build number at offset 31..34.
-    std::uint8_t buf[64];
-    const int n = device_get_feature_report(dev, 0x22, buf, sizeof(buf));
-    if (n < 35) return false;
-    if (buf[0] != 0x22) return false;
+    // Feature report 0x22: descriptor-defined 64 bytes (reportId + 63
+    // data). Build number lives at offset 31..34.
+    std::uint8_t buf[64] = {};
+    if (device_get_feature_report(dev, 0x22, buf, sizeof(buf)) <= 0) return false;
 
     *out = rd_u32(&buf[31]);
     return true;

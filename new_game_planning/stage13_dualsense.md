@@ -36,13 +36,21 @@
 - Требует калибровку и UI
 
 ## Audio-to-haptic (B7)
-- API: `AudioHapticUpdate()` через miniaudio (уже включён в библиотеку)
-- Конвертация игровых звуков в тактильную обратную связь
-- Приоритетные эффекты: стрельба (отдача), взрывы, удары, двигатель машины (ощущение оборотов), шаги по разным поверхностям
-- Требует: поправить CMake path для miniaudio, интегрировать с MFX звуковой системой
-- Самая сложная фича
-- **Перенесено в 1.0.** См. [known_issues](known_issues_and_bugs.md).
-- **⚠️ 2026-04-15:** расследование показало что оба пути (`int16_t` через miniaudio и `uint8_t` через HID-чанки) в текущей GamepadCore нерабочие — формат и device matching не готовы. Оценка реального объёма: 2+ недели, реалистично — post-1.0. Для 1.0 идём упрощённым путём (envelope реального звука → рамбл-моторы). Подробности: [`new_game_devlog/dualsense_audio_haptic_investigation.md`](../new_game_devlog/dualsense_audio_haptic_investigation.md).
+
+Геймплейная идея: конвертация игровых звуков в тактильную обратную
+связь на контроллере.
+
+- Приоритетные эффекты: стрельба (отдача), взрывы, удары, двигатель
+  машины (ощущение оборотов), шаги по разным поверхностям.
+- Для 1.0 идём **упрощённым путём** — envelope реального WAV'а
+  модулирует обычные rumble-моторы (низкочастотный + высокочастотный).
+  Не требует нового пути в libDualsense.
+- **Полноценный audio-haptic** (PCM через HID 0x32 прямо в DSP
+  контроллера — как Astro's Playroom делает) — отдельная задача,
+  упирается в нереализованный transport в libDualsense. Когда он
+  появится, игровую сторону (какие звуки пускать, как их
+  нормализовывать) пилим здесь. См. план либы:
+  [`own_dualsense_lib_plan.md §13.2`](../new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md).
 
 ## Вибрация в видеовставках
 - `MDEC_vibra[]` — frame-synchronized vibration для intro/endgame
@@ -51,3 +59,34 @@
 ## Вибрация в меню
 - Тест-вибрация при включении опции в настройках
 - Опция пока не в UI
+
+## libDualsense follow-up (post-1.0 доработки либы)
+
+Весь список отложенных задач по самой libDualsense собран в плане
+библиотеки:
+[`new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md`](../new_game_devlog/dualsense_libs_reference/own_dualsense_lib_plan.md).
+
+Кратко что там:
+- **§12 Convenience layer** — ввести чёткое разделение на raw API
+  (internal, байты/HID units — текущее состояние) и convenience API
+  (public, проценты / normalized float / physical units / enum-ы).
+  Сейчас в либе **пёстрая картина**: часть полей уже convenience
+  (sticks/triggers/battery в `DS_InputState`, enum-ы для
+  MuteLed/AudioRoute), часть всё ещё raw (rumble 0..255, LED brightness
+  0..2 с перевёрнутой шкалой, IMU int16 без применённой калибровки,
+  audio volumes 0..255). Таблица inconsistency — в §12.1 плана.
+  Заодно переделка in-game тестера на friendly-форматы (сейчас
+  показывает сырые байты для диагностики wire-багов — это было
+  оправдано на этапе разработки, но мешает нормальному использованию).
+  См. §12.5 плана.
+- **§13.1 USB Audio Class PCM output** (обычный звук в спикер/jack
+  контроллера) — **не делаем, только документация**. Работает на USB
+  «сам собой» как обычная звуковая карта ОС, но нам не нужно.
+- **§13.2 Audio haptics через HID 0x32** — PCM-вибрация (как Astro's
+  Playroom: звук шагов по снегу «чувствуется» ладонями). Единственный
+  способ доставить пользовательский аудиоконтент на **BT-контроллер**
+  (USB Audio Class по BT недоступен). Требует reverse-engineer
+  Sony-undocumented wire format'а. Это то же самое что «Audio-to-haptic
+  (B7)» выше в этом же документе — там высокоуровневое описание фичи
+  со стороны игры, а в §13.2 плана либы — как именно реализовать
+  API внутри библиотеки. Связаны.

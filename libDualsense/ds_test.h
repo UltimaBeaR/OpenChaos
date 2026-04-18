@@ -93,6 +93,21 @@ TestResult test_command(Device* dev,
                         std::uint8_t* out_data, std::size_t out_capacity,
                         std::size_t* out_len);
 
+// Fire-and-forget variant: sends the 0x80 request (with optional
+// params + BT CRC) but does NOT poll the 0x81 response. Intended for
+// action IDs that don't return a data payload — typically "set" /
+// "control" / "trigger" actions (e.g. the audio test-tone
+// WAVEOUT_CTRL / routing pair). Returns `true` if the 0x80 feature
+// report write itself succeeded.
+//
+// Rationale: mirroring daidr's `setTestCommandWithParams` — for write
+// actions the controller does not always emit a matching 0x81
+// response, and waiting for one just burns the polling timeout.
+bool test_command_set(Device* dev,
+                      TestDevice device_id,
+                      std::uint8_t action_id,
+                      const std::uint8_t* params, std::size_t params_len);
+
 // ---- Convenience getters (read-only) -------------------------------
 
 // MCU unique ID — 64-bit factory identifier (0 on error / not available).

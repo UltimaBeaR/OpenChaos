@@ -66,13 +66,20 @@ struct InputState {
     bool         left_trigger_effect_active;
     bool         right_trigger_effect_active;
 
-    // Battery
+    // Battery. Level is reported by the controller as a 4-bit nibble
+    // which maps to 10% bins per daidr `BatteryLevel` enum:
+    //   0..9  → 0-9%, 10-19%, ..., 90-99%  (lower bound of the bin)
+    //   10    → 100% exactly
+    //   11    → UNKNOWN (battery_level_percent keeps its previous
+    //                    value, no flicker)
+    // Values > 11 are private firmware codes; treated same as UNKNOWN.
     std::uint8_t battery_level_percent;  // 0..100
-    bool         battery_charging;
-    bool         battery_full;
+    bool         battery_charging;       // charging_status == 1
+    bool         battery_full;           // charging_status == 2 (charging_complete)
 
-    // Headphone plugged-in flag
-    bool headphone_connected;
+    // Audio peripheral presence (byte 53, status1).
+    bool headphone_connected;  // 3.5 mm TRRS jack detected
+    bool mic_connected;        // external microphone on the jack
 
     // Touchpad fingers. Hardware reports up to 2 simultaneous contacts.
     // Coordinates are raw touchpad pixels (X: 0..1919, Y: 0..1079). When
@@ -105,6 +112,22 @@ struct InputState {
 // `report` must point at a buffer of at least 55 bytes of parsed
 // data (Report ID / BT framing already stripped by the caller).
 void parse_input_report(const std::uint8_t* report, InputState* out);
+
+// ---- Normalization helpers -----------------------------------------
+//
+// Convert raw HID bytes into conventional game units. Kept in the
+// library so every consumer (bridge, tester, future ports) uses one
+// formula — raw/centre/range constants only live in one place.
+
+// Stick axis (0..255, centre 128) → signed float in [-1, +1] with
+// centre at 0. Raw 0 produces -128/127 ≈ -1.008 which the caller
+// might reject; this helper clamps to [-1, +1] so callers don't have
+// to. No Y-axis inversion — that's a game convention, left to the
+// caller (e.g. `ds_bridge` flips Y for game-space "up is positive").
+float normalize_stick_axis(std::uint8_t raw);
+
+// Analog trigger (0..255) → float in [0, 1].
+float normalize_trigger(std::uint8_t raw);
 
 struct Device;  // fwd decl from ds_device.h
 

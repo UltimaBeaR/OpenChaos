@@ -97,15 +97,52 @@ void parse_input_report(const std::uint8_t* r, InputState* out)
     out->right_trigger_effect_active  = (r2_fb & 0x10) != 0;
     out->left_trigger_effect_active   = (l2_fb & 0x10) != 0;
 
-    // Battery (byte 0x34 low nibble = level 0..8; byte 0x35 bit 3 =
-    // charging; byte 0x36 bit 5 = fully charged)
-    const std::uint8_t batt_lvl = r[0x34] & 0x0F;
-    out->battery_level_percent = static_cast<std::uint8_t>((batt_lvl * 100u) / 8u);
-    out->battery_charging      = (r[0x35] & 0x08) != 0;
-    out->battery_full          = (r[0x36] & 0x20) != 0;
+    // Battery / charging (byte 52 = status0).
+    //
+    // Layout per daidr reference (InputInfo.vue, BatteryLevel / ChargeStatus enums):
+    //   low nibble   = battery level 0..10 (10% bins) or 11 = UNKNOWN
+    //   high nibble  = charge status:
+    //                  0  = discharging
+    //                  1  = charging
+    //                  2  = charging_complete
+    //                  10 = abnormal voltage
+    //                  11 = abnormal temperature
+    //                  15 = charging_error
+    //
+    // Earlier revisions of this parser read charging/full from bit 3 of
+    // byte 53 and bit 5 of byte 54, which is an older DS4-era layout
+    // not used by the DualSense firmware. The high-nibble scheme above
+    // is authoritative per daidr (cross-verified against hid-playstation).
+    const std::uint8_t status0       = r[0x34];
+    const std::uint8_t batt_lvl_raw  = status0 & 0x0F;
+    const std::uint8_t charge_status = (status0 >> 4) & 0x0F;
 
-    // Headphone connected (byte 0x35 bit 0)
-    out->headphone_connected = (r[0x35] & 0x01) != 0;
+    out->battery_charging = (charge_status == 1);
+    out->battery_full     = (charge_status == 2);
+
+    // When charging_complete is reported, treat the level as 100% even
+    // if the low-nibble lags briefly behind. Mirrors daidr UI logic.
+    const std::uint8_t effective_lvl =
+        (charge_status == 2) ? 10u :
+        (batt_lvl_raw <= 10u) ? batt_lvl_raw : 10u /* UNKNOWN cap */;
+    if (batt_lvl_raw <= 11u || charge_status == 2) {
+        // UNKNOWN (11) preserves the previous percent to avoid flicker;
+        // all other paths reassign. Guard against writing a stale cap
+        // when the raw value is UNKNOWN but charge_status isn't saying
+        // "complete".
+        if (batt_lvl_raw <= 10u || charge_status == 2) {
+            out->battery_level_percent = static_cast<std::uint8_t>(effective_lvl * 10u);
+        }
+        // else: batt_lvl_raw == 11 (UNKNOWN) and not charging_complete
+        //       → leave battery_level_percent untouched.
+    }
+
+    // Audio peripheral presence (byte 53 = status1).
+    //   bit 0 = headphone jack detected
+    //   bit 1 = microphone-on-jack detected
+    const std::uint8_t status1 = r[0x35];
+    out->headphone_connected = (status1 & 0x01) != 0;
+    out->mic_connected       = (status1 & 0x02) != 0;
 
     // Touchpad fingers. Each finger is 4 bytes starting at 0x20 / 0x24.
     // Byte 0: bit 7 = contact (0 = finger DOWN, 1 = lifted), bits 0..6 = touch ID.
@@ -153,6 +190,22 @@ void parse_input_report(const std::uint8_t* r, InputState* out)
         (static_cast<std::uint32_t>(r[0x1D]) << 16) |
         (static_cast<std::uint32_t>(r[0x1E]) << 24);
     out->motion_temperature = static_cast<std::int8_t>(r[0x1F]);
+}
+
+float normalize_stick_axis(std::uint8_t raw)
+{
+    // Raw 0..255 with neutral at 128. Raw = 0 gives -128/127 ≈ -1.008;
+    // clamp so the converted value stays inside [-1, +1] for callers
+    // that feed it into fixed-point scaling downstream.
+    const float f = (static_cast<float>(raw) - 128.0f) / 127.0f;
+    if (f < -1.0f) return -1.0f;
+    if (f >  1.0f) return  1.0f;
+    return f;
+}
+
+float normalize_trigger(std::uint8_t raw)
+{
+    return static_cast<float>(raw) / 255.0f;
 }
 
 int device_read_input(Device* dev, InputState* out)
