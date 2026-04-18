@@ -146,4 +146,40 @@ int device_write(Device* dev, const std::uint8_t* buf, std::size_t len)
     return result;
 }
 
+int device_get_feature_report(Device* dev,
+                              std::uint8_t report_id,
+                              std::uint8_t* buf,
+                              std::size_t buf_capacity)
+{
+    if (!dev || !dev->handle || !buf || buf_capacity < 2) return -1;
+    auto* sd = static_cast<SDL_hid_device*>(dev->handle);
+
+    buf[0] = report_id;
+    const int result = SDL_hid_get_feature_report(sd, buf, buf_capacity);
+    if (result < 0) {
+        // Feature report failures are often "report not supported by
+        // this device/firmware" and should NOT close the device — the
+        // main input/output streams are independent. Return -1 and
+        // leave the device open.
+        return -1;
+    }
+    return result;
+}
+
+int device_send_feature_report(Device* dev,
+                               const std::uint8_t* buf,
+                               std::size_t len)
+{
+    if (!dev || !dev->handle || !buf || len < 2) return -1;
+    auto* sd = static_cast<SDL_hid_device*>(dev->handle);
+
+    const int result = SDL_hid_send_feature_report(sd, buf, len);
+    if (result < 0) {
+        // See device_get_feature_report — failure is not fatal to the
+        // input/output streams.
+        return -1;
+    }
+    return result;
+}
+
 } // namespace oc::dualsense

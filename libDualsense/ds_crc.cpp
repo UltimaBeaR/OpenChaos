@@ -52,4 +52,43 @@ std::uint32_t crc32_compute(const std::uint8_t* buffer, std::size_t len)
     return result;
 }
 
+// Standard CRC32 table for the IEEE 802.3 polynomial 0xEDB88320. Used
+// by `crc32_compute_feature_report` which can't reuse the seeded table
+// above because the feature report prefix is [0x53, reportId] — a
+// different two-byte preamble that would bake differently than 0xA2.
+static std::uint32_t s_standard_crc32_table[256];
+static bool s_standard_table_ready = false;
+
+static void build_standard_crc32_table()
+{
+    for (std::uint32_t i = 0; i < 256; ++i) {
+        std::uint32_t c = i;
+        for (int k = 0; k < 8; ++k) {
+            c = (c & 1) ? (0xEDB88320u ^ (c >> 1)) : (c >> 1);
+        }
+        s_standard_crc32_table[i] = c;
+    }
+    s_standard_table_ready = true;
+}
+
+std::uint32_t crc32_compute_feature_report(std::uint8_t report_id,
+                                           const std::uint8_t* data,
+                                           std::size_t len)
+{
+    if (!s_standard_table_ready) build_standard_crc32_table();
+
+    std::uint32_t crc = 0xFFFFFFFFu;
+
+    const std::uint8_t prefix[2] = { 0x53, report_id };
+    for (std::size_t i = 0; i < 2; ++i) {
+        const std::uint8_t idx = static_cast<std::uint8_t>(crc ^ prefix[i]);
+        crc = s_standard_crc32_table[idx] ^ (crc >> 8);
+    }
+    for (std::size_t i = 0; i < len; ++i) {
+        const std::uint8_t idx = static_cast<std::uint8_t>(crc ^ data[i]);
+        crc = s_standard_crc32_table[idx] ^ (crc >> 8);
+    }
+    return crc ^ 0xFFFFFFFFu;
+}
+
 } // namespace oc::dualsense

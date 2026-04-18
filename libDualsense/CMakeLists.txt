@@ -8,10 +8,13 @@ project(libDualsense CXX)
 # and the `libDualsense/` prefix disambiguates from any other lib.
 
 add_library(libDualsense STATIC
+    ds_calibration.cpp
     ds_crc.cpp
     ds_device.cpp
+    ds_feature.cpp
     ds_input.cpp
     ds_output.cpp
+    ds_test.cpp
     ds_trigger.cpp
 )
 

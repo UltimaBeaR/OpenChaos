@@ -1,0 +1,151 @@
+#pragma once
+
+// DualSense test commands — feature report 0x80 / 0x81 handshake.
+//
+// The DualSense exposes a large table of "test device" / "test action"
+// pairs through feature reports. Host writes a 0x80 report with
+// [deviceId, actionId, params...], then polls 0x81 reports until a
+// matching response arrives. Responses may be chunked (56 bytes per
+// chunk) and the host concatenates them.
+//
+// This library exposes **read-only** getters for factory data. Write
+// and erase operations (WRITE_EFUSE, WRITE_FACTORY_DATA,
+// WRITE_CALIBRATION, BOOTLOADER_*, etc.) are intentionally NOT
+// exposed — see review doc §2.4 "Deferred dangerous operations" for
+// the list and the hardware-risk reasoning.
+
+#include <cstddef>
+#include <cstdint>
+
+namespace oc::dualsense {
+
+struct Device;  // fwd decl
+
+// ---- Test device/action IDs ----------------------------------------
+//
+// Mirrors the DualSense test command table (daidr/ds.type.ts). Only the
+// IDs referenced by the getters below are included here — the full
+// table has 200+ entries, most of which are factory-only and deferred.
+
+enum class TestDevice : std::uint8_t {
+    System    = 1,
+    Power     = 2,
+    Memory    = 3,
+    Audio     = 6,
+    Bluetooth = 9,
+    Motion    = 10,
+    Led       = 13,
+};
+
+namespace TestAction {
+    // SYSTEM actions
+    constexpr std::uint8_t ReadPcbaId           = 4;
+    constexpr std::uint8_t ReadHwVersion        = 6;
+    constexpr std::uint8_t ReadFactoryData      = 8;
+    constexpr std::uint8_t GetMcuUniqueId       = 9;
+    constexpr std::uint8_t ReadPcbaIdFull       = 17;
+    constexpr std::uint8_t ReadSerialNumber     = 19;
+    constexpr std::uint8_t ReadAssemblePartsInfo = 21;
+    constexpr std::uint8_t ReadBatteryBarcode   = 24;
+    constexpr std::uint8_t ReadVcmLeftBarcode   = 26;
+    constexpr std::uint8_t ReadVcmRightBarcode  = 28;
+    constexpr std::uint8_t GetAutoSwitchoffFlag = 32;
+    constexpr std::uint8_t GetAlwaysOnStartupState = 23;
+
+    // POWER actions
+    constexpr std::uint8_t BatteryVoltage = 6;
+
+    // BLUETOOTH actions
+    constexpr std::uint8_t ReadBdAddr = 2;
+    constexpr std::uint8_t GetBtEnable = 6;
+
+    // MOTION actions
+    constexpr std::uint8_t GetPositionTrackingState = 22;
+
+    // LED actions
+    constexpr std::uint8_t GetLedBrightnessAll = 15;
+}
+
+// ---- Generic test command ------------------------------------------
+
+enum class TestResult : std::uint8_t {
+    Ok = 0,        // data[0..data_len) is valid
+    SendFailed,    // could not send the 0x80 report
+    PollFailed,    // controller did not respond after max tries
+    ControllerRejected, // controller returned FAIL status
+};
+
+// Execute a test command and collect the response.
+//
+// `params` / `params_len` — optional parameter bytes to append after
+// deviceId/actionId in the 0x80 write. Pass null/0 if none.
+//
+// `out_data` is filled with the response body (bytes after the
+// [0x81, deviceId, actionId, status] header). `out_capacity` bounds
+// the write. `*out_len` receives the number of bytes written. On
+// success, data is complete (all chunks concatenated).
+//
+// Not thread-safe — serialise calls externally if the device is shared.
+TestResult test_command(Device* dev,
+                        TestDevice device_id,
+                        std::uint8_t action_id,
+                        const std::uint8_t* params, std::size_t params_len,
+                        std::uint8_t* out_data, std::size_t out_capacity,
+                        std::size_t* out_len);
+
+// ---- Convenience getters (read-only) -------------------------------
+
+// MCU unique ID — 64-bit factory identifier (0 on error / not available).
+bool get_mcu_unique_id(Device* dev, std::uint64_t* out);
+
+// Bluetooth MAC address — 48-bit value in low 6 bytes of the result
+// (big-endian byte order, i.e. out[0] = high byte). Returns true on
+// success.
+bool get_bd_mac_address(Device* dev, std::uint8_t out[6]);
+
+// PCBA ID — 48-bit factory board identifier (legacy 6-byte form).
+// Returns true on success.
+bool get_pcba_id(Device* dev, std::uint64_t* out);
+
+// PCBA ID (full, 24 bytes) — newer 24-byte encoded barcode string.
+// Returns number of bytes written (always 24 on success, 0 on error).
+std::size_t get_pcba_id_full(Device* dev, std::uint8_t out[24]);
+
+// Serial number — 32 bytes, Shift-JIS encoded ASCII-like string.
+// Returns bytes written (always 32 on success, 0 on error).
+std::size_t get_serial_number(Device* dev, std::uint8_t out[32]);
+
+// Assemble parts info — 32 bytes, opaque factory data.
+std::size_t get_assemble_parts_info(Device* dev, std::uint8_t out[32]);
+
+// Battery barcode — 32 bytes, Shift-JIS encoded.
+std::size_t get_battery_barcode(Device* dev, std::uint8_t out[32]);
+
+// VCM (Voice Coil Motor, i.e. the adaptive trigger motor) barcodes —
+// left and right, 32 bytes each.
+std::size_t get_vcm_left_barcode(Device* dev, std::uint8_t out[32]);
+std::size_t get_vcm_right_barcode(Device* dev, std::uint8_t out[32]);
+
+// Precise battery voltage. Returns raw value (exact units TBD, daidr
+// labels this `BATTERY_VOLTAGE` but doesn't document the scaling;
+// typically maps to millivolts or to ADC counts). Returns true on
+// success; `*out_raw` receives the raw report bytes concatenated as
+// little-endian integer of `*out_raw_byte_count` bytes.
+struct BatteryVoltageRaw {
+    std::uint8_t  data[8];
+    std::uint8_t  len;
+    bool          valid;
+};
+bool get_battery_voltage(Device* dev, BatteryVoltageRaw* out);
+
+// Position tracking feature state (0 = disabled, 1 = enabled, other
+// values defined by Sony firmware and not documented).
+bool get_position_tracking_state(Device* dev, std::uint8_t* out);
+
+// Always-on-startup flag state.
+bool get_always_on_startup_state(Device* dev, std::uint8_t* out);
+
+// Auto-switchoff flag state (0 = off-disabled, 1 = off-enabled).
+bool get_auto_switchoff_flag(Device* dev, std::uint8_t* out);
+
+} // namespace oc::dualsense

@@ -62,4 +62,36 @@ int device_read_latest(Device* dev, std::uint8_t* buf, std::size_t buf_capacity)
 // error / disconnect (in which case `dev` is closed).
 int device_write(Device* dev, const std::uint8_t* buf, std::size_t len);
 
+// ---- Feature reports -------------------------------------------------
+//
+// Feature reports are a separate HID channel (distinct from input /
+// output reports) used by DualSense for telemetry, factory data,
+// calibration, and test commands. They are request/response — the host
+// writes a feature report, or the host reads one by its reportId.
+//
+// Wire format note: on Bluetooth, outbound feature reports must carry a
+// CRC32 in the last 4 bytes (prefix byte 0x53, see ds_crc.h). This
+// library does NOT append CRC automatically — higher-level helpers in
+// `ds_feature.h` / `ds_test.h` handle it.
+
+// Read a feature report identified by `report_id` into `buf`. The first
+// byte of `buf` is written with `report_id` before the underlying call;
+// actual data starts at `buf[1]`. Returns total bytes read (including
+// the reportId byte), or -1 on error / disconnect.
+//
+// `buf_capacity` must be large enough for the report (feature reports
+// can be up to ~64 bytes for standard reports, up to ~548 for some
+// test commands). Callers typically pass a 256-byte stack buffer.
+int device_get_feature_report(Device* dev,
+                              std::uint8_t report_id,
+                              std::uint8_t* buf,
+                              std::size_t buf_capacity);
+
+// Send a feature report. `buf[0]` must equal the reportId. `len` is
+// the total size including the reportId byte. Returns bytes written,
+// or -1 on error. Caller is responsible for any CRC (see ds_crc.h).
+int device_send_feature_report(Device* dev,
+                               const std::uint8_t* buf,
+                               std::size_t len);
+
 } // namespace oc::dualsense

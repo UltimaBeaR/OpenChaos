@@ -335,19 +335,133 @@ Two-beat alternating rhythmic pattern.
 
 ---
 
-## 5. CRC32 (`ds_crc.h`)
+## 5. Feature reports (`ds_feature.h`)
+
+Feature reports are a separate HID channel used for telemetry, factory
+data, and sensor calibration. All operations in libDualsense are
+**read-only**.
+
+### Firmware info (report 0x20)
 
 ```cpp
-uint32_t crc = crc32_compute(buffer, length);
+FirmwareInfo fw;
+if (get_firmware_info(&dev, &fw)) {
+    printf("Built: %s %s\n", fw.buildDate, fw.buildTime);
+    printf("HW: 0x%08X, main FW: 0x%08X\n", fw.hwInfo, fw.mainFwVersion);
+    // Board generation is in fw.hwInfo lower 16 bits:
+    // >= 777 → newer traceability scheme, full PCBA ID supported.
+}
 ```
 
-Standard CRC32 with DualSense-specific seed (`0xeada2d49`). Used
-internally by `build_output_report` for Bluetooth; callers normally
-don't invoke this directly.
+Fields: `buildDate`, `buildTime`, `fwType`, `swSeries`, `hwInfo`,
+`mainFwVersion`, `deviceInfo[12]`, `updateVersion`, `updateImageInfo`,
+`sblFwVersion`, `dspFwVersion`, `spiderDspFwVersion`.
+
+### Sensor calibration (report 0x05)
+
+```cpp
+SensorCalibration calib;
+if (get_sensor_calibration(&dev, &calib)) {
+    // Apply via ds_calibration.h:
+    float ax_g = calibrate_accel_x_g(input.accel_x, calib);
+    float gyro_yaw_dps = calibrate_gyro_yaw_deg_per_sec(input.gyro_yaw, calib);
+}
+```
+
+### BT patch version (report 0x22)
+
+```cpp
+uint32_t patch;
+if (get_bt_patch_version(&dev, &patch)) { /* ... */ }
+```
 
 ---
 
-## 6. Typical integration
+## 6. Test commands (`ds_test.h`)
+
+The DualSense exposes a large table of **test device / action** pairs
+through feature reports 0x80 (request) and 0x81 (response). libDualsense
+implements the full handshake state machine and exposes **read-only**
+getters:
+
+| Getter                        | Returns                               |
+|-------------------------------|---------------------------------------|
+| `get_mcu_unique_id`           | 64-bit MCU unique identifier          |
+| `get_bd_mac_address`          | 6-byte Bluetooth MAC                  |
+| `get_pcba_id`                 | Legacy 48-bit PCBA ID                 |
+| `get_pcba_id_full`            | Modern 24-byte PCBA barcode string    |
+| `get_serial_number`           | 32-byte Shift-JIS serial              |
+| `get_assemble_parts_info`     | 32-byte factory assembly data         |
+| `get_battery_barcode`         | 32-byte Shift-JIS battery barcode     |
+| `get_vcm_left_barcode`        | 32-byte adaptive-trigger motor barcode |
+| `get_vcm_right_barcode`       | 32-byte adaptive-trigger motor barcode |
+| `get_battery_voltage`         | Raw precise battery voltage bytes     |
+| `get_position_tracking_state` | 0 = disabled, 1 = enabled             |
+| `get_always_on_startup_state` | Always-on-startup flag                |
+| `get_auto_switchoff_flag`     | Auto-switchoff flag                   |
+
+For advanced usage, the generic primitive:
+
+```cpp
+TestResult test_command(Device*, TestDevice, action_id,
+                         params, params_len,
+                         out_buf, out_capacity, out_len);
+```
+
+handles the full chunked-response state machine.
+
+### Write / erase operations are intentionally NOT exposed
+
+Factory writes (calibration, eFuse, traceability, bootloader, BT MAC,
+NVS) **can permanently damage** or brick the controller. See review
+doc §2.4 "Deferred dangerous operations" for the full deferred list
+and the hardware-risk reasoning. These will be revisited only with
+dedicated hardware-risk investigation and explicit opt-in.
+
+---
+
+## 7. IMU calibration (`ds_calibration.h`)
+
+Convert raw gyro/accel samples from `InputState` into physical units
+using per-device calibration from feature report 0x05.
+
+```cpp
+SensorCalibration calib;
+get_sensor_calibration(&dev, &calib);
+
+// In your frame loop:
+float ax_g = calibrate_accel_x_g(input.accel_x, calib);
+float ay_g = calibrate_accel_y_g(input.accel_y, calib);
+float az_g = calibrate_accel_z_g(input.accel_z, calib);
+
+float pitch_dps = calibrate_gyro_pitch_deg_per_sec(input.gyro_pitch, calib);
+float yaw_dps   = calibrate_gyro_yaw_deg_per_sec  (input.gyro_yaw,   calib);
+float roll_dps  = calibrate_gyro_roll_deg_per_sec (input.gyro_roll,  calib);
+```
+
+Accel → g is mathematically exact (Sony specifies `+plus`/`+minus`
+points as ±1 g in raw units). Gyro → deg/s uses the
+community-verified formula from the Linux hid-playstation driver —
+matches DS5W / nondebug / DS4Windows.
+
+---
+
+## 8. CRC32 (`ds_crc.h`)
+
+```cpp
+uint32_t crc = crc32_compute(buffer, length);                    // output reports
+uint32_t crc = crc32_compute_feature_report(reportId, data, len); // feature reports
+```
+
+DualSense BT reports use CRC32 with a prefix byte (0xA2 for output,
+0x53 for feature) + reportId + data. Output variant uses a seeded
+lookup table for efficiency; feature-report variant uses standard
+CRC32 (init 0xFFFFFFFF, poly 0xEDB88320, final XOR). Callers normally
+don't invoke these directly — higher-level modules handle CRC.
+
+---
+
+## 9. Typical integration
 
 ```cpp
 // Startup
