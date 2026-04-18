@@ -32,8 +32,8 @@ struct Device {
     std::uint8_t input_report_strip  = 1;
 
     // Output report total size (including Report ID / BT framing).
-    // USB = 74 bytes, BT = 78 bytes.
-    std::size_t  output_report_size  = 74;  // DualSense USB default
+    // USB = 48 bytes, BT = 78 bytes.
+    std::size_t  output_report_size  = 48;  // DualSense USB default
 };
 
 // Initialize SDL hidapi subsystem. Safe to call multiple times.

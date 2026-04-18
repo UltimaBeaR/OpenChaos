@@ -67,7 +67,7 @@ int written = device_write(&dev, buf, dev.output_report_size);
 | `connection`         | `Connection` | `Usb` or `Bluetooth`                       |
 | `connected`          | `bool`     | true while open                              |
 | `input_report_strip` | `uint8_t`  | bytes to skip before parsing (USB=1, BT=2)  |
-| `output_report_size` | `size_t`   | wire size for writes (USB=74, BT=78)         |
+| `output_report_size` | `size_t`   | wire size for writes (USB=48, BT=78)         |
 
 ---
 
