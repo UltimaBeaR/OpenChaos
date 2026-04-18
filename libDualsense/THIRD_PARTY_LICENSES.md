@@ -202,3 +202,22 @@ traceability.
 
 Community-maintained wiki hosted on Fandom. Content is documentation, not
 code; no executable code is adapted from this source. Listed here for credit.
+
+---
+
+## Linux kernel `hid-playstation` driver
+
+**Upstream:** <https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/hid/hid-playstation.c>
+
+Referenced **only for cross-verification** of the DualSense IMU
+calibration formula (raw int16 gyro/accel samples → deg/s / g). The
+formula itself is a well-known mathematical relation (not subject to
+copyright) that multiple independent DualSense reverse-engineering
+projects arrived at, and our `ds_calibration.cpp` implementation is
+written from scratch. Listed here for credit / traceability only; no
+source code is adapted from the kernel driver.
+
+(Linux kernel source files are GPL-2 licensed. If a future contributor
+ever does adapt actual source code from `hid-playstation.c`, the
+GPL-2 implications for the library licensing would need to be
+re-evaluated.)

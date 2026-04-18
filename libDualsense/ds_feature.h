@@ -19,7 +19,7 @@
 
 namespace oc::dualsense {
 
-struct Device;  // fwd decl
+struct Device;  // fwd decl from ds_device.h
 
 // ---- Firmware info (feature report 0x20) ----------------------------
 //

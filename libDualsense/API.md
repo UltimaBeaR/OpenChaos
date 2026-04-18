@@ -190,10 +190,11 @@ while down.
 | `touchpad_finger_2_down`    | `bool`     |                      |
 | `touchpad_finger_2_id`      | `uint8_t`  |                      |
 
-**Motion sensors** — raw device units, no calibration applied. Apply
-Sony calibration data (feature report 0x05, not yet read by this
-library) to convert gyro to deg/s and accel to g. Without calibration,
-data is still usable for relative motion and gestures.
+**Motion sensors** — raw device units, no calibration applied in
+`InputState`. To convert gyro to deg/s and accel to g, read factory
+calibration via `get_sensor_calibration` (see section 5) and apply it
+with the helpers in `ds_calibration.h` (see section 7). Without
+calibration, raw data is still usable for relative motion and gestures.
 
 | Field                | Type       | Description                          |
 |----------------------|------------|--------------------------------------|

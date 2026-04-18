@@ -41,14 +41,16 @@ float calibrate_accel_z_g(std::int16_t raw, const SensorCalibration& c);
 
 // Convert raw gyro sample to deg/s.
 //
-// Formula (matches the Linux hid-playstation kernel driver):
+// Formula:
 //   speed_2x = gyro_speed_plus + gyro_speed_minus
 //   range    = axis_plus - axis_minus
 //   deg/s    = (raw - bias) * speed_2x / range
 //
 // The calibration constants vary per device and per firmware revision;
 // the formula above is community-verified across DS4/DS5 reverse
-// engineering efforts (DS5W, nondebug, hid-playstation, DS4Windows).
+// engineering efforts — cross-referenced with DS5W, nondebug,
+// DS4Windows, and the Linux hid-playstation driver, all of which
+// arrived at the same math independently. No source code adapted.
 //
 // Returns 0.0f when the axis range is zero (uncalibrated device).
 float calibrate_gyro_pitch_deg_per_sec(std::int16_t raw, const SensorCalibration& c);
