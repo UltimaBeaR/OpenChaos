@@ -388,6 +388,12 @@ static void send_audio_test_tone(int source)
         std::uint8_t rx[72] = {};
         std::size_t  rx_n   = 0;
 
+        // Each HID round-trip wrapped in the bridge device lock so a
+        // main-thread disconnect can't free the SDL_hid_device* while
+        // we're inside SDL_hid_send/get_feature_report. Lock released
+        // between the route-prepare and waveout-control calls so the
+        // main thread can squeeze in an input/output frame.
+
         // Routing payload — 20 bytes, sparse. Non-zero bytes taken from
         // daidr ds.util.ts::controlWaveOut. Only sent when turning on.
         if (source == AUDIO_TONE_SPEAKER || source == AUDIO_TONE_HEADPHONE) {
@@ -398,6 +404,8 @@ static void send_audio_test_tone(int source)
                 route[4] = 4;
                 route[6] = 6;
             }
+            DSDebugDeviceLock lk;
+            if (!dev->connected) return;
             test_command(dev, TestDevice::Audio, ACTION_ROUTE_PREPARE,
                          route, sizeof(route),
                          rx, sizeof(rx), &rx_n);
@@ -406,9 +414,13 @@ static void send_audio_test_tone(int source)
         const std::uint8_t enable  = (source != AUDIO_TONE_OFF) ? 1 : 0;
         const std::uint8_t ctrl[3] = { enable, 1, 0 };
         rx_n = 0;
-        test_command(dev, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
-                     ctrl, sizeof(ctrl),
-                     rx, sizeof(rx), &rx_n);
+        {
+            DSDebugDeviceLock lk;
+            if (!dev->connected) return;
+            test_command(dev, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
+                         ctrl, sizeof(ctrl),
+                         rx, sizeof(rx), &rx_n);
+        }
     }).detach();
 }
 
@@ -1269,6 +1281,11 @@ static void ensure_imu_calibration_loaded()
     oc::dualsense::Device* dev = ds_debug_get_device();
     if (!dev || !dev->connected) return;
 
+    // Runs on main thread, but the background telemetry / audio-tone
+    // threads may be inside their own HID calls on the same device.
+    // Take the bridge device lock to serialise.
+    DSDebugDeviceLock lk;
+    if (!dev->connected) return;
     if (oc::dualsense::get_sensor_calibration(dev, &s_imu_cal)) {
         s_imu_cal_loaded = s_imu_cal.valid;
     }
@@ -1606,6 +1623,14 @@ static void hex_dump_line(char* buf, std::size_t buf_size,
 // Background telemetry loader. Fills a LOCAL TelemetryCache, then
 // publishes it into s_tel under s_tel_mutex, guarded by a generation
 // counter so `reset_state` can invalidate a late-finishing load.
+//
+// Each HID call is wrapped in a `DSDebugDeviceLock` scope so a main-thread
+// disconnect / hotplug close can't free the SDL_hid_device* while we're
+// inside SDL_hid_get_feature_report. Lock is released between calls so
+// main-thread ds_update_input / ds_update_output can run between our
+// steps (otherwise a full BT load would freeze the panel for ~300 ms).
+// If the device is closed mid-load the `dev->connected` check inside the
+// lock scope short-circuits each remaining step.
 static void tel_thread_body(int my_gen)
 {
     using namespace oc::dualsense;
@@ -1614,61 +1639,38 @@ static void tel_thread_body(int my_gen)
     TelemetryCache local = {};
     local.load_step = 0;
 
-    if (dev && dev->connected) {
-        auto advance = [&](int step) {
-            // Publish interim progress for the UI. Cheap, under the mutex.
-            if (s_tel_gen.load() != my_gen) return;
-            std::lock_guard<std::mutex> lk(s_tel_mutex);
-            s_tel.load_step = step;
-        };
+    // Per-step helper: take the device lock, verify still connected,
+    // run the HID call, release. Returns false once device is gone.
+    auto step = [&](auto&& fn) -> bool {
+        if (s_tel_gen.load() != my_gen) return false;
+        DSDebugDeviceLock lk;
+        if (!dev || !dev->connected) return false;
+        fn();
+        return true;
+    };
 
-        get_firmware_info(dev, &local.fw);                                       advance(1);
-        if (s_tel_gen.load() == my_gen) {
-            local.bt_patch_ok = get_bt_patch_version(dev, &local.bt_patch);      advance(2);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            get_sensor_calibration(dev, &local.cal);                             advance(3);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.mcu_ok = get_mcu_unique_id(dev, &local.mcu_id);                advance(4);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.bt_mac_ok = get_bd_mac_address(dev, local.bt_mac);             advance(5);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.pcba_ok = get_pcba_id(dev, &local.pcba_id);                    advance(6);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.pcba_full_len = get_pcba_id_full(dev, local.pcba_full);        advance(7);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.serial_len = get_serial_number(dev, local.serial);             advance(8);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.assemble_len = get_assemble_parts_info(dev, local.assemble);   advance(9);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.batt_barcode_len = get_battery_barcode(dev, local.batt_barcode); advance(10);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.vcm_left_len = get_vcm_left_barcode(dev, local.vcm_left);      advance(11);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.vcm_right_len = get_vcm_right_barcode(dev, local.vcm_right);   advance(12);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            get_battery_voltage(dev, &local.batt_v);                             advance(13);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.pos_tracking_ok = get_position_tracking_state(dev, &local.pos_tracking); advance(14);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.always_on_ok = get_always_on_startup_state(dev, &local.always_on);       advance(15);
-        }
-        if (s_tel_gen.load() == my_gen) {
-            local.auto_switchoff_ok = get_auto_switchoff_flag(dev, &local.auto_switchoff); advance(16);
-        }
-    }
+    auto advance = [&](int n) {
+        if (s_tel_gen.load() != my_gen) return;
+        std::lock_guard<std::mutex> lk(s_tel_mutex);
+        s_tel.load_step = n;
+    };
+
+    step([&] { get_firmware_info(dev, &local.fw); });                                              advance(1);
+    step([&] { local.bt_patch_ok = get_bt_patch_version(dev, &local.bt_patch); });                 advance(2);
+    step([&] { get_sensor_calibration(dev, &local.cal); });                                        advance(3);
+    step([&] { local.mcu_ok = get_mcu_unique_id(dev, &local.mcu_id); });                           advance(4);
+    step([&] { local.bt_mac_ok = get_bd_mac_address(dev, local.bt_mac); });                        advance(5);
+    step([&] { local.pcba_ok = get_pcba_id(dev, &local.pcba_id); });                               advance(6);
+    step([&] { local.pcba_full_len = get_pcba_id_full(dev, local.pcba_full); });                   advance(7);
+    step([&] { local.serial_len = get_serial_number(dev, local.serial); });                        advance(8);
+    step([&] { local.assemble_len = get_assemble_parts_info(dev, local.assemble); });              advance(9);
+    step([&] { local.batt_barcode_len = get_battery_barcode(dev, local.batt_barcode); });          advance(10);
+    step([&] { local.vcm_left_len = get_vcm_left_barcode(dev, local.vcm_left); });                 advance(11);
+    step([&] { local.vcm_right_len = get_vcm_right_barcode(dev, local.vcm_right); });              advance(12);
+    step([&] { get_battery_voltage(dev, &local.batt_v); });                                        advance(13);
+    step([&] { local.pos_tracking_ok = get_position_tracking_state(dev, &local.pos_tracking); }); advance(14);
+    step([&] { local.always_on_ok = get_always_on_startup_state(dev, &local.always_on); });        advance(15);
+    step([&] { local.auto_switchoff_ok = get_auto_switchoff_flag(dev, &local.auto_switchoff); });  advance(16);
 
     local.loaded    = true;
     local.load_step = TELEMETRY_LOAD_STEP_COUNT;

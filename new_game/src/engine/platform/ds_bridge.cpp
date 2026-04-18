@@ -13,6 +13,7 @@
 #include <SDL3/SDL_timer.h>
 
 #include <cstring>
+#include <mutex>
 
 using namespace oc::dualsense;
 
@@ -40,6 +41,23 @@ static OutputState s_output = {};
 static bool            s_output_dirty   = true;
 static float           s_reconnect_acc  = 0.0f;
 static float           s_bt_silent_acc  = 0.0f;
+
+// Serialises access to `s_device.handle` (the SDL_hid_device* stored in
+// the Device struct). Any caller about to feed `&s_device` into a
+// libDualsense API that talks HID must hold this mutex for the whole
+// call — otherwise a disconnect / hotplug close on one thread can free
+// the handle while another thread is inside SDL_hid_get/send.
+//
+// Main-thread bridge functions (ds_poll_registry / ds_update_input /
+// ds_update_output / ds_shutdown) take the mutex directly. Debug code
+// on background threads uses the `DSDebugDeviceLock` RAII helper in
+// ds_bridge_debug.h.
+//
+// Held times are short (one HID call each, ~1 ms USB / ~20 ms BT). If a
+// background telemetry load holds it during a ~20 ms BT feature read,
+// the main thread's next per-frame tick waits that long before running
+// its own read/write — single-frame stall, acceptable for a debug panel.
+static std::mutex s_device_mutex;
 
 // ===========================================================================
 // Helpers
@@ -86,6 +104,7 @@ void ds_init()
 
 void ds_shutdown()
 {
+    std::lock_guard<std::mutex> lk(s_device_mutex);
     if (s_device.connected) {
         // Full reset so the controller doesn't keep rumbling, buzzing
         // the triggers, blasting a 1 kHz tone, or holding the player
@@ -137,6 +156,7 @@ void ds_shutdown()
 
 void ds_poll_registry(float delta_time)
 {
+    std::lock_guard<std::mutex> lk(s_device_mutex);
     if (s_device.connected) return;
 
     s_reconnect_acc += delta_time;
@@ -157,6 +177,7 @@ void ds_poll_registry(float delta_time)
 
 bool ds_update_input(float delta_time)
 {
+    std::lock_guard<std::mutex> lk(s_device_mutex);
     if (!s_device.connected) return false;
 
     const int n = device_read_input(&s_device, &s_input);
@@ -188,6 +209,7 @@ bool ds_update_input(float delta_time)
 
 void ds_update_output()
 {
+    std::lock_guard<std::mutex> lk(s_device_mutex);
     if (!s_device.connected) return;
     if (!s_output_dirty) return;
 
@@ -443,6 +465,9 @@ const oc::dualsense::InputState* ds_debug_get_raw_input()
 {
     return &s_input;
 }
+
+DSDebugDeviceLock::DSDebugDeviceLock()  { s_device_mutex.lock();   }
+DSDebugDeviceLock::~DSDebugDeviceLock() { s_device_mutex.unlock(); }
 
 // Game API: (start, behavior_flag, force, amplitude, period,
 // frequency, hand). Maps to trigger_machine with uniform amplitudes.

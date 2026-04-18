@@ -28,3 +28,24 @@ oc::dualsense::Device* ds_debug_get_device();
 // are in raw device units (sticks 0..255, triggers 0..255, motion
 // int16, timestamp uint32). Never null.
 const oc::dualsense::InputState* ds_debug_get_raw_input();
+
+// RAII lock on the bridge's device handle mutex. Hold this while making
+// any libDualsense HID call through the pointer returned by
+// `ds_debug_get_device` — otherwise a disconnect / hotplug close on
+// another thread can free the SDL_hid_device* handle mid-call.
+//
+// Main-thread bridge functions (ds_update_input / ds_update_output /
+// ds_shutdown / ds_poll_registry) acquire this lock automatically; debug
+// code running on a background thread (telemetry loader, audio-tone
+// sender, etc.) must take it explicitly for each HID call. Holding it
+// across multiple HID calls in a row is allowed but serialises the main
+// thread behind them — prefer locking per call so main-thread input /
+// output doesn't miss a frame during long telemetry loads.
+//
+// Construct on the stack; mutex releases on destruction.
+struct DSDebugDeviceLock {
+    DSDebugDeviceLock();
+    ~DSDebugDeviceLock();
+    DSDebugDeviceLock(const DSDebugDeviceLock&)            = delete;
+    DSDebugDeviceLock& operator=(const DSDebugDeviceLock&) = delete;
+};

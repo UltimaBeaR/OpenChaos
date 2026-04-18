@@ -558,6 +558,7 @@ zone-units. Это и создаёт ощущение «по-разному»:
 | `headphone_volume`            | `uint8_t`   | 0..255                            | raw    |
 | `mute_led`                    | `MuteLed`   | enum Off/On/Blink                 | ✅ convenience |
 | `audio_route`                 | `AudioRoute`| enum Headphone/Speaker            | ✅ convenience |
+| `audio_volumes_enabled`       | `bool`      | opt-in flag                       | ✅ convenience (policy, not raw) |
 | Adaptive trigger effects      | uint8 params| **zones 0..9** + Hz               | semi (думаем зонами, но не в %) |
 
 **Input — смешанный:**
@@ -577,6 +578,34 @@ zone-units. Это и создаёт ощущение «по-разному»:
 **угадывает** «это поле в байтах или в %?», «это zone-unit или
 percent?», «надо ли самому калибровать gyro?». Нет последовательного
 правила. Задача 12 — ввести это правило через явное разделение слоёв.
+
+**Дополнительно — «скрытые» удобства в `InputState` (lib-facing), не
+попавшие в таблицы выше:** эти поля уже декодируются из сырых битов
+внутри `parse_input_report`, потребитель получает булевые / отдельные
+флаги вместо сырых масок. При раскатке easy-фасада эти декоды
+формально «уже convenience», но сам фасад должен их переиспользовать
+без дублирования:
+
+- `battery_charging` / `battery_full` — bool, вычисляются из
+  `status0` high-nibble (0=discharge, 1=charge, 2=full, 10/11/15=error).
+  Потребители: bridge (пробрасывает в `DS_InputState`), тестер (INPUT
+  sub-page текст).
+- `headphone_connected` / `mic_connected` — bool, биты 0/1 `status1`.
+  Потребители: тестер (INPUT чекбоксы), bridge не пробрасывает.
+- `left/right_trigger_effect_active` — bool, бит 4 fb-байта.
+  Рядом лежит «сырой» `*_trigger_feedback` (весь байт). Потребители:
+  bridge (обе формы в `DS_InputState`), weapon_feel (читает act-bit),
+  тестер.
+- `touchpad_finger_*_down` — bool, **инвертирован** от wire-бита 7
+  (daidr convention: бит 7 = finger LIFTED). Потребители: bridge,
+  тестер (VIEW точки).
+- `battery_level_percent` — uint8 0..100, из 4-битного nibble 0..10 ×
+  10 + cap по charging_complete. Потребители: тестер (INPUT текст).
+
+**`normalize_stick_axis` / `normalize_trigger` helpers в `ds_input.h`**
+(float -1..+1 / 0..1 с clamp) — тоже формально convenience, но живут
+как функции а не как поле InputState. При build'e easy-фасада
+использовать их напрямую.
 
 ### 12.2 Что должно быть в convenience API
 

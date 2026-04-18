@@ -175,6 +175,7 @@ state value should mask with `& 0x0F`.
 | `battery_charging`      | `bool`    | AC/USB power          |
 | `battery_full`          | `bool`    | Fully charged         |
 | `headphone_connected`   | `bool`    | 3.5mm jack plugged in |
+| `mic_connected`         | `bool`    | External mic on jack  |
 
 **Touchpad fingers** — up to 2 simultaneous contacts. X/Y are raw
 touchpad pixels (X: 0..1919, Y: 0..1079). `*_down` is false when the
@@ -223,7 +224,8 @@ Set fields, then call `build_output_report` to serialize.
 | `mute_led`              | `MuteLed`    | Mic mute LED: `Off` / `On` / `Blink` |
 | `haptic_volume`         | `uint8_t`    | Overall rumble volume, 0..7         |
 | `lightbar_setup`        | `uint8_t`    | Lightbar setup/override byte, 0 = default |
-| `audio_volumes_enabled` | `bool`       | Opt-in flag for audio volume fields (default `false`) |
+| `audio_volumes_enabled` | `bool`       | Opt-in flag for audio volume + route fields (default `false`) |
+| `audio_route`           | `AudioRoute` | Physical output: `Headphone` (jack) or `Speaker` (built-in) |
 | `speaker_volume`        | `uint8_t`    | Built-in speaker, 0..255 (only applied if audio_volumes_enabled) |
 | `headphone_volume`      | `uint8_t`    | 3.5 mm jack, 0..255 (only applied if audio_volumes_enabled) |
 | `trigger_right[10]`     | `uint8_t[]`  | R2 effect slot (filled by triggers) |
@@ -237,12 +239,14 @@ managing audio" from "don't touch audio". With the flag at its default
 fields and does not set the corresponding validFlag bits — the
 controller's internal audio state is left alone.
 
-Set `audio_volumes_enabled = true` and assign the volumes to actively
-control the DualSense audio output. Both values (speaker and headphone)
-are sent every frame while the flag is true; the controller routes to
-whichever physical output is active (jack detect). Toggling the flag
-back to `false` does **not** restore the previous audio state — the
-controller simply keeps whatever volume was last written.
+Set `audio_volumes_enabled = true` and assign the volumes + `audio_route`
+to actively control the DualSense audio output. Both volume values
+(speaker and headphone) are sent every frame while the flag is true;
+`audio_route` picks which physical output the controller routes to
+(headphone jack vs built-in speaker — the high nibble of the HID
+`audioControl` byte, 0x00 vs 0x30). Toggling the flag back to `false`
+does **not** restore the previous audio state — the controller simply
+keeps whatever volume was last written.
 
 ### Player LED masks
 
@@ -359,6 +363,56 @@ trigger_machine(out, start, end, amplitude_a, amplitude_b, frequency, period);
 ```
 Two-beat alternating rhythmic pattern.
 
+#### Galloping (mode 0x23)
+```cpp
+trigger_galloping(out, start, end, first_foot, second_foot, frequency);
+// start:       0..7 — zone where pattern begins
+// end:         start+1..8 — zone where pattern ends
+// first_foot:  0..6 — first beat position within the gallop cycle
+// second_foot: first_foot+1..7 — second beat position
+// frequency:   1..255 Hz (0 → Off)
+```
+Galloping hoofbeat-style two-beat pattern with configurable intra-cycle
+timing.
+
+#### Simple_Weapon (mode 0x02)
+```cpp
+trigger_simple_weapon(out, start_raw, end_raw, strength_raw);
+// start_raw / end_raw / strength_raw: 0..255 raw bytes (no zone math)
+```
+Raw-byte single-click variant. Does not report trigger-feedback status
+(the state nybble + act-bit are reported only by full-name effects —
+see `new_game_devlog/dualsense_libs_reference/dualsense_adaptive_trigger_facts.md`).
+
+#### Simple_Vibration (mode 0x06)
+```cpp
+trigger_simple_vibration(out, position, amplitude, frequency);
+// position / amplitude / frequency: 0..255 raw bytes
+// amplitude == 0 or frequency == 0 → Off
+```
+Raw-byte sustained vibration. Same "no feedback status" caveat as
+Simple_Weapon.
+
+#### Limited_Feedback (mode 0x11)
+```cpp
+trigger_limited_feedback(out, position, strength);
+// position: 0..255 raw byte
+// strength: 0..10 (0 → Off; values > 10 are rejected)
+```
+Raw-byte continuous resistance with a stricter strength range than
+Simple_Feedback. Same "no feedback status" caveat as other simple/limited
+variants.
+
+#### Limited_Weapon (mode 0x12)
+```cpp
+trigger_limited_weapon(out, start_raw, end_raw, strength);
+// start_raw:  >= 0x10 (must not start before the trigger dead-zone)
+// end_raw:    >= start_raw; (end_raw - start_raw) <= 100
+// strength:   0..10 (0 → Off)
+```
+Raw-byte click variant with narrower allowed click-zone width (<=100).
+Same "no feedback status" caveat.
+
 ### Effect mode codes (enum TriggerEffect)
 
 | Name             | Code |
@@ -443,15 +497,28 @@ getters:
 | `get_always_on_startup_state` | Always-on-startup flag                |
 | `get_auto_switchoff_flag`     | Auto-switchoff flag                   |
 
-For advanced usage, the generic primitive:
+For advanced usage, the generic primitives:
 
 ```cpp
+// Write the 0x80 request and poll 0x81 for a (possibly chunked) response.
 TestResult test_command(Device*, TestDevice, action_id,
                          params, params_len,
                          out_buf, out_capacity, out_len);
+
+// Fire-and-forget — write the 0x80 request, don't wait for a response.
+// Intended for "set" / "control" / "trigger" actions that don't produce
+// a data payload. Empirically some action paths (notably the audio
+// WAVEOUT_CTRL tone) are ignored by firmware until the host reads back
+// a 0x81 at least once, so for those the polling `test_command` above
+// is the practical choice.
+bool test_command_set(Device*, TestDevice, action_id,
+                      params, params_len);
 ```
 
-handles the full chunked-response state machine.
+`test_command` handles the full chunked-response state machine
+(concatenates 56-byte COMPLETE_2 chunks until a COMPLETE arrives);
+`test_command_set` is pure-write, returning true iff the 0x80 feature
+report write itself succeeded.
 
 ### Write / erase operations are intentionally NOT exposed
 
