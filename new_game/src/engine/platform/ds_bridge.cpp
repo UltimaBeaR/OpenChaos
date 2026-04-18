@@ -7,10 +7,7 @@
 #include <libDualsense/ds_device.h>
 #include <libDualsense/ds_input.h>
 #include <libDualsense/ds_output.h>
-#include <libDualsense/ds_test.h>
 #include <libDualsense/ds_trigger.h>
-
-#include <SDL3/SDL_timer.h>
 
 #include <cstring>
 #include <mutex>
@@ -24,23 +21,15 @@ using namespace oc::dualsense;
 // Device re-enumeration cadence when disconnected, seconds.
 static constexpr float RECONNECT_INTERVAL_SEC = 1.0f;
 
-// Bluetooth silence timeout — if no input reports arrive for this long,
-// treat the device as disconnected and close the handle. Needed because
-// BT has no cable-yanked signal: SDL_hid_read keeps returning 0 forever
-// when the controller is switched off / out of range / BT unpaired on the
-// controller side. Without this timeout ds_is_connected() stays true and
-// the game never hands off to a fallback controller (e.g. Xbox).
-// DualSense streams reports at ~250 Hz even at idle, so a couple of
-// seconds of silence is definitive. USB uses the hid_read -1 path and
-// doesn't need this.
-static constexpr float BT_SILENT_TIMEOUT_SEC = 2.0f;
+// Bluetooth silence disconnect detection is owned by libDualsense —
+// see BT_SILENCE_DISCONNECT_MS in ds_device.h. ds_update_input just
+// translates the lib's -1 into a "disconnected" return.
 
 static Device      s_device;
 static InputState  s_input  = {};
 static OutputState s_output = {};
 static bool            s_output_dirty   = true;
 static float           s_reconnect_acc  = 0.0f;
-static float           s_bt_silent_acc  = 0.0f;
 
 // Serialises access to `s_device.handle` (the SDL_hid_device* stored in
 // the Device struct). Any caller about to feed `&s_device` into a
@@ -105,52 +94,10 @@ void ds_init()
 void ds_shutdown()
 {
     std::lock_guard<std::mutex> lk(s_device_mutex);
-    if (s_device.connected) {
-        // Full reset so the controller doesn't keep rumbling, buzzing
-        // the triggers, blasting a 1 kHz tone, or holding the player
-        // LEDs / lightbar / mute LED lit after the game exits.
-        //
-        // Step 1: stop the audio test tone FIRST, before we touch any
-        // audio-managed output state. Earlier revisions did the quiet
-        // output first with `audio_volumes_enabled = true` — which kept
-        // the controller in host-managed audio mode and the tone disable
-        // silently didn't stick; speaker went mute (volumes were 0)
-        // only until the library closed the HID handle, at which point
-        // the OS reclaimed default volume and the still-running tone
-        // became audible again.
-        //
-        // We send the WAVEOUT_CTRL disable twice with a gap between:
-        // the first send may sit in a queue that only drains on the
-        // next 0x81 poll, the second one runs after the first poll
-        // cycle has already primed the state machine. Belt-and-braces.
-        constexpr std::uint8_t ACTION_WAVEOUT_CTRL = 2;
-        const std::uint8_t ctrl[3] = { 0, 1, 0 };
-        for (int i = 0; i < 2; ++i) {
-            std::uint8_t rx[64] = {};
-            std::size_t  rx_n   = 0;
-            test_command(&s_device, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
-                         ctrl, sizeof(ctrl),
-                         rx, sizeof(rx), &rx_n);
-            SDL_Delay(80);
-        }
-
-        // Step 2: send one final output report with every field at its
-        // default (zero) value so rumble / triggers / lightbar / LEDs
-        // / mute LED quit instantly. `audio_volumes_enabled = false`
-        // means the lib won't touch audio-related validFlag bits here
-        // — we explicitly do NOT want to re-engage host-managed audio
-        // mode at shutdown, we just relinquished it above.
-        OutputState quiet = {};
-        trigger_off(quiet.trigger_left);
-        trigger_off(quiet.trigger_right);
-        device_send_output(&s_device, quiet);
-
-        // Give the controller a final moment to latch the cleared
-        // state before we yank the HID handle.
-        SDL_Delay(50);
-
-        device_close(&s_device);
-    }
+    // device_shutdown is a no-op on an already-closed device, handles
+    // all controller-side cleanup (audio tone / rumble / triggers /
+    // LEDs / lightbar) internally, then closes the handle.
+    device_shutdown(&s_device);
     hid_shutdown();
 }
 
@@ -164,7 +111,6 @@ void ds_poll_registry(float delta_time)
     s_reconnect_acc = 0.0f;
 
     if (device_open_first(&s_device)) {
-        s_bt_silent_acc = 0.0f;
         // BT handshake: tells the controller to hand over LED /
         // lightbar / player-LED subsystems to us. No-op on USB.
         device_send_init_packet(&s_device);
@@ -175,36 +121,15 @@ void ds_poll_registry(float delta_time)
     }
 }
 
-bool ds_update_input(float delta_time)
+bool ds_update_input()
 {
     std::lock_guard<std::mutex> lk(s_device_mutex);
     if (!s_device.connected) return false;
 
-    const int n = device_read_input(&s_device, &s_input);
-    if (n < 0) {
-        // Disconnected — device_read_input already closed the handle.
-        s_bt_silent_acc = 0.0f;
-        return false;
-    }
-    if (n == 0) {
-        // No new report this frame. On USB the controller streams reports
-        // continuously and a read-error would surface any disconnect via
-        // the n < 0 branch above. On Bluetooth there is no such signal —
-        // hid_read returns 0 forever once the controller goes away — so
-        // we watch for prolonged silence and force-close the handle.
-        if (s_device.connection == Connection::Bluetooth) {
-            s_bt_silent_acc += delta_time;
-            if (s_bt_silent_acc >= BT_SILENT_TIMEOUT_SEC) {
-                device_close(&s_device);
-                s_bt_silent_acc = 0.0f;
-                return false;
-            }
-        }
-        return true;
-    }
-
-    s_bt_silent_acc = 0.0f;
-    return true;
+    // device_read_input returns -1 on any disconnect: USB cable yank,
+    // BT silence threshold, or anything else. The library also auto-
+    // closes the handle in that case; we just forward the boolean.
+    return device_read_input(&s_device, &s_input) >= 0;
 }
 
 void ds_update_output()

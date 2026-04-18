@@ -144,7 +144,7 @@ static bool poll_dualsense()
         return false;
     }
 
-    ds_update_input(s_last_poll_delta);
+    ds_update_input();
 
     DS_InputState ds;
     if (!ds_get_input(&ds)) return false;

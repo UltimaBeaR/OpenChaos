@@ -394,16 +394,16 @@ static void send_audio_test_tone(int source)
         // between the route-prepare and waveout-control calls so the
         // main thread can squeeze in an input/output frame.
 
-        // Routing payload — 20 bytes, sparse. Non-zero bytes taken from
-        // daidr ds.util.ts::controlWaveOut. Only sent when turning on.
+        // Routing payload is built by the library — byte layout /
+        // magic offsets live in `ds_test.cpp::build_waveout_route_payload`,
+        // consumers just pick an enum. Only sent when turning on.
         if (source == AUDIO_TONE_SPEAKER || source == AUDIO_TONE_HEADPHONE) {
-            std::uint8_t route[20] = {};
-            if (source == AUDIO_TONE_SPEAKER) {
-                route[2] = 8;
-            } else {
-                route[4] = 4;
-                route[6] = 6;
-            }
+            std::uint8_t route[20];
+            build_waveout_route_payload(
+                source == AUDIO_TONE_SPEAKER
+                    ? WaveOutRoute::Speaker
+                    : WaveOutRoute::Headphone,
+                route);
             DSDebugDeviceLock lk;
             if (!dev->connected) return;
             test_command(dev, TestDevice::Audio, ACTION_ROUTE_PREPARE,

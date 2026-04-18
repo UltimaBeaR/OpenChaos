@@ -1,18 +1,25 @@
 # libDualsense API Guide
 
 All types live in `namespace oc::dualsense`. This guide documents the
-library's public API. The library is deliberately standalone — it
-knows nothing about any particular consumer, game, or application;
-it only knows DualSense HID reports.
+library's public API — function signatures, struct fields, parameter
+ranges, return values.
+
+**Related docs in this folder:**
+- [`README.md`](README.md) — conventions, ranges, counter-intuitive
+  values, hardware quirks. Read first if you're new to the library.
+- [`EXAMPLES.md`](EXAMPLES.md) — a short runnable example for each
+  API area. Read alongside this reference.
 
 The API is layered:
 - **High-level** functions (`device_send_init_packet`,
-  `device_read_input`, `device_send_output`) are the recommended
-  entry points for typical consumers — they hide wire sizes,
-  transport selection, CRC, and framing offsets.
+  `device_read_input`, `device_send_output`, `device_shutdown`) are
+  the recommended entry points for typical consumers — they hide wire
+  sizes, transport selection, CRC, framing offsets, BT silence
+  detection, and shutdown cleanup.
 - **Low-level** primitives (`device_read_latest`, `device_write`,
-  `parse_input_report`, `build_output_report`, CRC32) are still
-  available for power users who need to intercept the wire format.
+  `parse_input_report`, `build_output_report`, `device_close`,
+  CRC32) are still available for power users who need to intercept
+  the wire format.
 
 ---
 
@@ -39,13 +46,27 @@ if (device_open_first(&dev)) {
     device_send_init_packet(&dev);  // BT handshake; no-op on USB
 }
 
-device_close(&dev);
+// Graceful cleanup — stops any audio test tone, zeros rumble / LEDs /
+// lightbar / triggers / mute LED, then closes the handle.
+device_shutdown(&dev);
+
+// Or, low-level close without controller-side cleanup — leaves
+// whatever state was active. Use only when there's no time/need for
+// graceful cleanup (e.g. disconnect already happened).
+// device_close(&dev);
 ```
 
 `device_open_first` enumerates all Sony USB HID devices (VID 0x054C),
 picks the first DualSense (PID 0x0CE6) or DualSense Edge (PID 0x0DF2),
 opens it in non-blocking mode. Auto-detects USB vs BT based on
 `interface_number`.
+
+`device_shutdown` vs `device_close`: prefer `device_shutdown` — it knows
+what controller-side state the library may have left running (audio
+test tone from §6 factory APIs, player LEDs, lightbar, trigger motors,
+rumble) and does the cleanup in the right order. `device_close` is the
+low-level "just release the HID handle" primitive; everything you wrote
+to the controller stays active until it's power-cycled / re-paired.
 
 ### BT init handshake
 
@@ -520,6 +541,32 @@ bool test_command_set(Device*, TestDevice, action_id,
 `test_command_set` is pure-write, returning true iff the 0x80 feature
 report write itself succeeded.
 
+### Audio test-tone routing payload
+
+The built-in 1 kHz test tone generator (`test_command(Audio,
+WAVEOUT_CTRL, ...)`) needs a 20-byte routing blob written immediately
+before the "start" command to pick the physical output. Byte layout is
+opaque firmware magic; `build_waveout_route_payload` builds it so
+consumers don't embed the offsets themselves:
+
+```cpp
+std::uint8_t route[20];
+build_waveout_route_payload(WaveOutRoute::Speaker, route);   // or Headphone
+test_command(dev, TestDevice::Audio, /*action=*/4,
+             route, 20, rx, sizeof(rx), &rx_n);
+
+const std::uint8_t start_tone[3] = { /*enable=*/1, 1, 0 };
+test_command(dev, TestDevice::Audio, /*action=*/2,
+             start_tone, 3, rx, sizeof(rx), &rx_n);
+
+// ... stop later with enable=0, no routing blob needed ...
+```
+
+The tone is Sony's factory diagnostic — cross-leaks between outputs,
+speaker gain jumps when a jack is plugged in, doesn't reliably stop
+when the HID handle closes. Fine for "is audio hardware alive"
+diagnostics, not a production audio path.
+
 ### Write / erase operations are intentionally NOT exposed
 
 Factory writes (calibration, eFuse, traceability, bootloader, BT MAC,
@@ -599,7 +646,7 @@ trigger_weapon(output.trigger_right, 4, 6, 5);
 device_send_output(&dev, output);
 
 // Shutdown
-device_close(&dev);
+device_shutdown(&dev);  // graceful: stops tone / zeros outputs / closes handle
 hid_shutdown();
 ```
 

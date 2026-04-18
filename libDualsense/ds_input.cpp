@@ -4,6 +4,8 @@
 
 #include <libDualsense/ds_device.h>
 
+#include <SDL3/SDL_timer.h>
+
 namespace oc::dualsense {
 
 // --- Button byte bit positions (after Report ID / header strip) ---
@@ -215,10 +217,31 @@ int device_read_input(Device* dev, InputState* out)
     // Buffer sized for the larger BT report (78 bytes) plus slack.
     std::uint8_t raw[96];
     const int n = device_read_latest(dev, raw, sizeof(raw));
-    if (n < 0) return -1;   // disconnect
-    if (n == 0) return 0;   // no new report this frame
+    if (n < 0) {
+        // USB read error / cable yank — handle already closed by
+        // device_read_latest. Reset silence clock.
+        dev->last_input_ms = 0;
+        return -1;
+    }
+    if (n == 0) {
+        // No new report this frame. On USB a disconnect surfaces as
+        // the n < 0 branch above. On Bluetooth hid_read returns 0
+        // forever once the controller goes away (there's no cable
+        // signal), so we watch for prolonged silence instead.
+        if (dev->connection == Connection::Bluetooth
+            && dev->last_input_ms != 0)
+        {
+            const std::uint64_t now = SDL_GetTicks();
+            if (now - dev->last_input_ms >= BT_SILENCE_DISCONNECT_MS) {
+                device_close(dev);
+                return -1;
+            }
+        }
+        return 0;
+    }
 
     parse_input_report(raw + dev->input_report_strip, out);
+    dev->last_input_ms = SDL_GetTicks();
     return n;
 }
 

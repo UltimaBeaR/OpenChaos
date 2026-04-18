@@ -227,6 +227,42 @@ bool test_command_set(Device* dev,
                              params, params_len);
 }
 
+// Build the 20-byte `BUILTIN_MIC_CALIB_DATA_VERIFY` (action 4) payload
+// that routes the subsequent WAVEOUT_CTRL start to a physical output.
+// Byte positions / values are firmware-level magic from daidr's
+// `ds.util.ts::controlWaveOut`; encapsulating here keeps them out of
+// consumer code.
+void build_waveout_route_payload(WaveOutRoute route, std::uint8_t out[20])
+{
+    if (!out) return;
+    std::memset(out, 0, 20);
+
+    // Sparse non-zero slots in the 20-byte routing blob. Each hardware
+    // output gets its own byte pattern:
+    //   Speaker   → out[2] = 8
+    //   Headphone → out[4] = 4, out[6] = 6
+    // Why these specific offsets / values: not publicly documented —
+    // empirically observed as what the factory test tool writes. The
+    // controller rejects the subsequent WAVEOUT_CTRL start with silent
+    // no-op if the routing blob isn't recognisable.
+    constexpr std::uint8_t SPEAKER_BYTE_OFFSET   = 2;
+    constexpr std::uint8_t SPEAKER_BYTE_VALUE    = 8;
+    constexpr std::uint8_t HEADPHONE_BYTE_OFFSET_A = 4;
+    constexpr std::uint8_t HEADPHONE_BYTE_VALUE_A  = 4;
+    constexpr std::uint8_t HEADPHONE_BYTE_OFFSET_B = 6;
+    constexpr std::uint8_t HEADPHONE_BYTE_VALUE_B  = 6;
+
+    switch (route) {
+    case WaveOutRoute::Speaker:
+        out[SPEAKER_BYTE_OFFSET] = SPEAKER_BYTE_VALUE;
+        break;
+    case WaveOutRoute::Headphone:
+        out[HEADPHONE_BYTE_OFFSET_A] = HEADPHONE_BYTE_VALUE_A;
+        out[HEADPHONE_BYTE_OFFSET_B] = HEADPHONE_BYTE_VALUE_B;
+        break;
+    }
+}
+
 // ---- Convenience getters -------------------------------------------
 
 bool get_mcu_unique_id(Device* dev, std::uint64_t* out)

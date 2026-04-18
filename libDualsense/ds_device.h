@@ -34,7 +34,23 @@ struct Device {
     // Output report total size (including Report ID / BT framing).
     // USB = 48 bytes, BT = 78 bytes.
     std::size_t  output_report_size  = 48;  // DualSense USB default
+
+    // Wall-clock timestamp (SDL_GetTicks) of the most recent successful
+    // input report parse. Used by `device_read_input` to detect
+    // Bluetooth silence (hid_read returns 0 forever once the controller
+    // drops off BT — there's no cable-yanked signal like on USB). Reset
+    // to 0 after a disconnect; set to current ticks on every non-empty
+    // report.
+    std::uint64_t last_input_ms = 0;
 };
+
+// Bluetooth silence threshold: how long `device_read_input` waits
+// without receiving a report before it declares the controller gone,
+// closes the handle, and returns -1. DualSense streams ~250 reports/s
+// at idle over BT, so a couple of seconds of silence is definitive
+// disconnect — tuned conservatively to avoid false positives during
+// brief BT-stack hiccups.
+constexpr std::uint32_t BT_SILENCE_DISCONNECT_MS = 2000;
 
 // Initialize SDL hidapi subsystem. Safe to call multiple times.
 // Returns false if SDL_hid_init() fails.
@@ -48,8 +64,35 @@ void hid_shutdown();
 // Returns true iff a device was successfully opened.
 bool device_open_first(Device* out);
 
-// Close and invalidate the device.
+// Close and invalidate the device. Low-level: does NOT reset
+// controller-side state — whatever rumble / LEDs / lightbar / audio
+// test tone were active will persist until the controller is power-
+// cycled / re-paired. Prefer `device_shutdown` for graceful shutdown.
 void device_close(Device* dev);
+
+// Graceful shutdown: best-effort reset of all persistent controller
+// state that would otherwise outlive the HID handle close, then close
+// the handle. Safe to call on an already-closed device (no-op).
+//
+// Does in order:
+//   1. Disable the audio test-tone generator (WAVEOUT_CTRL). Controller's
+//      audio subsystem can keep a tone playing after HID handle close
+//      and `device_close` alone will NOT stop it (§14.3 hardware quirk).
+//      The disable is sent twice with a short gap — the first write may
+//      sit in a firmware queue that only drains on the next 0x81 poll,
+//      the retry kicks after polling has primed the state machine.
+//   2. Send a final output report with every field at its default (zero)
+//      value — rumble / triggers / lightbar / player LED / mute LED
+//      quit instantly.
+//   3. Short latch delay so the controller commits the cleared state
+//      before the HID handle goes away.
+//   4. Close the handle via `device_close`.
+//
+// This is best-effort per the hardware quirks in §14 — the audio tone
+// disable in particular is known to sometimes not stick before process
+// exit. Callers don't need to know the protocol-level details of what
+// is being cleaned up; the library knows.
+void device_shutdown(Device* dev);
 
 // Read the latest input report into `buf`. Drains the queue of stale
 // reports (SDL hid_read returns FIFO order on macOS, so without

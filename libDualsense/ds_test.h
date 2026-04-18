@@ -108,6 +108,47 @@ bool test_command_set(Device* dev,
                       std::uint8_t action_id,
                       const std::uint8_t* params, std::size_t params_len);
 
+// ---- Audio test-tone routing payload -------------------------------
+//
+// The DualSense built-in 1 kHz test tone generator (started by
+// `test_command(Audio, WAVEOUT_CTRL, {enable, 1, 0})`) needs a
+// **physical routing decision** sent immediately before each "start":
+// should the tone come out of the built-in speaker or the 3.5 mm
+// headphone jack?
+//
+// The routing is a 20-byte payload with sparse non-zero bytes at
+// specific offsets, sent via `test_command(Audio,
+// BUILTIN_MIC_CALIB_DATA_VERIFY = 4, payload, 20, ...)`. The exact
+// byte layout is opaque firmware-level magic (values taken from
+// daidr's `ds.util.ts::controlWaveOut`). This helper builds the
+// payload so callers don't embed the magic offsets in their own code.
+//
+// Typical wire recipe for playing a test tone, composed from public
+// primitives:
+//
+//     std::uint8_t route[20];
+//     build_waveout_route_payload(WaveOutRoute::Speaker, route);
+//     test_command(dev, TestDevice::Audio, /*action=*/4,
+//                  route, 20, rx, sizeof(rx), &rx_n);   // routing
+//     const std::uint8_t ctrl[3] = { /*enable=*/1, 1, 0 };
+//     test_command(dev, TestDevice::Audio, /*action=*/2,
+//                  ctrl, 3, rx, sizeof(rx), &rx_n);     // start tone
+//
+// Stopping the tone needs only the ctrl write with enable=0.
+//
+// Disclaimer: the tone generator is Sony's factory diagnostic; see §14
+// in `own_dualsense_lib_plan.md` for known hardware quirks (cross-leak,
+// doesn't stop on HID close, etc.).
+enum class WaveOutRoute : std::uint8_t {
+    Speaker   = 0,  // built-in speaker (controller grille)
+    Headphone = 1,  // 3.5 mm TRRS jack
+};
+
+// Fill `out[20]` with the routing payload for the given route. Caller
+// is responsible for the surrounding `test_command(Audio, 4, ...)`
+// call — this helper only builds the payload bytes.
+void build_waveout_route_payload(WaveOutRoute route, std::uint8_t out[20]);
+
 // ---- Convenience getters (read-only) -------------------------------
 
 // MCU unique ID — 64-bit factory identifier (0 on error / not available).

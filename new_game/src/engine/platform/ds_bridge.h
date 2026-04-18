@@ -25,8 +25,10 @@ void ds_shutdown();
 // delta_time is seconds since last call.
 void ds_poll_registry(float delta_time);
 
-// Read input from connected DualSense. Returns false if no device.
-bool ds_update_input(float delta_time);
+// Read input from connected DualSense. Returns false on no device /
+// disconnect (including BT silence timeout — libDualsense handles
+// that internally).
+bool ds_update_input();
 
 // Send pending output (LED, triggers, rumble) to device.
 void ds_update_output();

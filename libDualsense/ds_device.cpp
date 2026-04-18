@@ -4,9 +4,13 @@
 #include <libDualsense/ds_device.h>
 
 #include <libDualsense/ds_crc.h>
+#include <libDualsense/ds_output.h>
+#include <libDualsense/ds_test.h>
+#include <libDualsense/ds_trigger.h>
 
 #include <SDL3/SDL_hidapi.h>
 #include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_timer.h>
 
 #include <cstdio>
 #include <cstring>
@@ -164,9 +168,13 @@ bool device_open_first(Device* out)
 
     SDL_hid_set_nonblocking(dev, 1);
 
-    out->handle     = static_cast<void*>(dev);
-    out->path       = match->path;
-    out->connected  = true;
+    out->handle        = static_cast<void*>(dev);
+    out->path          = match->path;
+    out->connected     = true;
+    // Seed the BT silence clock with "now" so the first poll doesn't
+    // immediately trip the disconnect threshold before any real reports
+    // have had a chance to arrive.
+    out->last_input_ms = SDL_GetTicks();
     // interface_number == -1 typically means Bluetooth on all SDL backends.
     out->connection = (match->interface_number == -1)
         ? Connection::Bluetooth
@@ -271,6 +279,61 @@ int device_send_feature_report(Device* dev,
         return -1;
     }
     return result;
+}
+
+// --- Graceful shutdown ----------------------------------------------
+//
+// Magic numbers are deliberately named here — `device_shutdown`'s
+// whole point is that consumers shouldn't need to know any of this.
+//
+// ACTION_WAVEOUT_CTRL = 2: test-command action ID for "start / stop the
+//   built-in 1 kHz wave generator". Value taken from daidr's
+//   `ds.type.ts::DualSenseTestActionId::WAVEOUT_CTRL`.
+// WAVEOUT_CTRL_DISABLE payload: [enable=0, 1, 0] — first byte is the
+//   on/off switch, remaining two bytes are opaque frame markers that
+//   daidr always sends as 1 and 0 respectively (see `controlWaveOut`).
+// SHUTDOWN_TONE_DISABLE_RETRIES / SHUTDOWN_TONE_DISABLE_GAP_MS: empirical
+//   — the first disable write often sits in the firmware's test-command
+//   queue until a 0x81 poll primes it. One retry with an 80 ms gap
+//   covers "waited for queue to drain, now the write actually lands".
+// SHUTDOWN_FINAL_LATCH_MS: small delay after the zeroed output report
+//   so the controller has time to apply the reset before we drop the
+//   HID handle.
+static constexpr std::uint8_t  ACTION_WAVEOUT_CTRL              = 2;
+static constexpr int           SHUTDOWN_TONE_DISABLE_RETRIES    = 2;
+static constexpr std::uint32_t SHUTDOWN_TONE_DISABLE_GAP_MS     = 80;
+static constexpr std::uint32_t SHUTDOWN_FINAL_LATCH_MS          = 50;
+
+void device_shutdown(Device* dev)
+{
+    if (!dev) return;
+    if (!dev->connected) return;
+
+    // Step 1: best-effort audio tone disable. See §14.3 — this may or
+    // may not stick before the handle closes; we try our best.
+    const std::uint8_t disable_ctrl[3] = { 0, 1, 0 };
+    for (int i = 0; i < SHUTDOWN_TONE_DISABLE_RETRIES; ++i) {
+        std::uint8_t rx[64] = {};
+        std::size_t  rx_n   = 0;
+        test_command(dev, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
+                     disable_ctrl, sizeof(disable_ctrl),
+                     rx, sizeof(rx), &rx_n);
+        SDL_Delay(SHUTDOWN_TONE_DISABLE_GAP_MS);
+    }
+
+    // Step 2: zeroed output — rumble / triggers / lightbar / player LED /
+    // mute LED all go dark. `audio_volumes_enabled = false` means we
+    // don't re-engage host-managed audio mode on our way out.
+    OutputState quiet = {};
+    trigger_off(quiet.trigger_left);
+    trigger_off(quiet.trigger_right);
+    device_send_output(dev, quiet);
+
+    // Step 3: latch gap so the zeroed state lands before handle close.
+    SDL_Delay(SHUTDOWN_FINAL_LATCH_MS);
+
+    // Step 4: actually close the handle.
+    device_close(dev);
 }
 
 bool device_send_init_packet(Device* dev)

@@ -265,7 +265,7 @@ bool video_play(const char* filename, bool allow_skip)
     // any button already held is ignored until released and pressed again.
     DS_InputState ds_prev = {};
     ds_poll_registry(0.0f);
-    ds_update_input(0.0f);
+    ds_update_input();
     if (ds_is_connected()) {
         ds_get_input(&ds_prev);
     }
@@ -288,7 +288,7 @@ bool video_play(const char* filename, bool allow_skip)
             }
             // DualSense: edge-triggered skip (new press only, not hold)
             ds_poll_registry(0.033f);
-            ds_update_input(0.033f);
+            ds_update_input();
             if (allow_skip && ds_is_connected()) {
                 DS_InputState ds = {};
                 ds_get_input(&ds);

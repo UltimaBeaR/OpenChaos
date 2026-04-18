@@ -133,16 +133,24 @@ struct Device;  // fwd decl from ds_device.h
 
 // High-level input read: drains the HID queue keeping only the most
 // recent report, strips the transport-specific framing bytes, and
-// parses the payload into `out`. Recommended entry point for typical
-// consumers — hides the buffer sizing, framing offsets, and queue
-// drain logic of the low-level API.
+// parses the payload into `out`. Also detects Bluetooth silence
+// disconnect (controller went out of range / turned off) — on BT
+// hid_read returns 0 forever after the controller drops off, with no
+// cable-yanked signal like USB. Internal wall-clock timer compares
+// time-since-last-report against `BT_SILENCE_DISCONNECT_MS` and
+// closes the handle when exceeded.
+//
+// Recommended entry point for typical consumers — hides the buffer
+// sizing, framing offsets, queue drain logic, and transport-specific
+// disconnect detection of the low-level API.
 //
 // Returns:
 //    > 0   a new report was parsed; `out` is now fresh
 //    0     no new report this frame; `out` is unchanged (use previous
-//          state)
-//    < 0   device disconnected; `dev` was auto-closed and `out` is
-//          unchanged
+//          state). Connection still healthy.
+//    < 0   device disconnected — either USB read error, or BT silence
+//          threshold exceeded. `dev` was auto-closed; `out` is
+//          unchanged.
 int device_read_input(Device* dev, InputState* out);
 
 } // namespace oc::dualsense
