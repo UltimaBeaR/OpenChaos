@@ -19,6 +19,7 @@
 // to a default profile (no haptic, no adaptive trigger click, generic fire
 // thresholds).
 
+#include <cstddef>
 #include <cstdint>
 
 struct WeaponFeelProfile {
@@ -157,6 +158,25 @@ void weapon_feel_fire_reset();
 // to call without a DualSense connected — it's just a timer check.
 bool weapon_feel_is_in_fire_cooldown();
 
+// Called once per game tick from game.cpp with the current game-side
+// fire-readiness state.
+//
+//   in_cooldown: true when the game is not yet ready to accept a new
+//     shot — either the running-shot Timer1 is still counting, or the
+//     standing-shoot animation is still playing. A gamepad click in
+//     this window is detected (so we don't silently drop it) but buffered
+//     as a pending shot and emitted as PUNCH the moment the flag clears.
+//     Mode=AIM_GUN is kept off during cooldown (by game.cpp's
+//     weapon_ready gate) so the hardware doesn't produce tactile
+//     feedback for these queued presses.
+//
+//   weapon_ready: true when the player is in a state where firing is
+//     otherwise legal (gun drawn, not in cutscene, not jumping, etc.).
+//     Any pending shot is cancelled as soon as this goes false — so a
+//     click queued during cooldown won't auto-fire after a jump or
+//     cutscene.
+void weapon_feel_set_game_state(bool in_cooldown, bool weapon_ready);
+
 // True if the threshold-path fire detector considers R2 armed for a shot.
 // For rising-edge weapons this means R2 has dipped to ≤ reset_threshold
 // since the last shot; auto-fire weapons are always true.
@@ -173,3 +193,18 @@ bool weapon_feel_is_r2_armed(int32_t current_weapon);
 // with ms since first call. File is opened on first call and flushed on
 // every write so the last line is never lost on crash/abort/exit.
 void weapon_feel_debug_log(const char* fmt, ...);
+
+// DEBUG: format a compact string with the last N shot intervals and their
+// input source, for on-screen comparison of keyboard vs gamepad fire rate.
+// Example output: "gaps ms: [kb]283 [kb]275 [ds]650 [ds]680".
+// Source is sampled at the moment of the shot from the active input device.
+// Records older than the buffer capacity are overwritten. Safe to call
+// every frame — pure formatter, no state mutation.
+void weapon_feel_format_shot_history(char* out, size_t out_size);
+
+// DEBUG: format average gap between the last 5 shots, split per device.
+// Example output: "avg kb: 280ms (n=4) | avg ds: 620ms (n=5)".
+// n is the number of intervals actually averaged (min 1, max 5). Devices
+// with fewer than 2 shots in the history buffer show "-". Safe to call
+// every frame — pure formatter, no state mutation.
+void weapon_feel_format_shot_averages(char* out, size_t out_size);

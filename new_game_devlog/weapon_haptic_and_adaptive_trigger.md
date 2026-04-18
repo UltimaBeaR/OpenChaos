@@ -6,6 +6,151 @@ adaptive trigger на DualSense. Смежный документ про поче
 
 ---
 
+## 🚨 HANDOFF 2 — session continuation (2026-04-18 late)
+
+**Предыдущий AI перезапущен из-за захламлённого контекста. Эта секция —
+актуальный снапшот состояния на момент перезапуска.**
+
+### Текущая архитектура (на момент перезапуска)
+
+**Единый pending-based подход для running и standing:**
+
+1. **game.cpp cooldown gates** (game-state-derived, без магических чисел):
+   ```cpp
+   in_running_cooldown = (State == STATE_MOVEING && Timer1 > 0);
+   in_standing_cooldown = (State == STATE_GUN && SubState == SUB_STATE_SHOOT_GUN);
+   on_cooldown = in_running || in_standing;
+   ```
+   `on_cooldown` → `weapon_ready=false` → `mode=NONE`. Мотор молчит в
+   cooldown — это было твёрдое требование юзера.
+
+2. **weapon_feel API** (минимум):
+   ```cpp
+   void weapon_feel_set_game_state(bool in_cooldown, bool weapon_ready);
+   ```
+   Вызывается из game.cpp каждый тик.
+
+3. **Click detection** в `weapon_feel_evaluate_fire` (act-path):
+   - По r2-position: `prev_r2 < zone_upper_r2 && r2 >= zone_upper_r2`.
+   - `zone_upper_r2 = end_zone * R2_UNITS_PER_ZONE` (R2_UNITS_PER_ZONE = 28).
+   - Работает **независимо от mode** — click фиксируется даже при mode=NONE.
+   - Если `in_cooldown` → `s_pending_shot = true`.
+   - Если нет → `out.shoot = true` (immediate).
+
+4. **Pending flush**:
+   - `!in_cooldown && weapon_ready` → emit PUNCH, clear pending.
+   - `!weapon_ready` (jump/cutscene/holster) → cancel pending.
+
+5. **Lockout на fire frame** возвращён (`gamepad_triggers_lockout(0)` в
+   `weapon_feel_on_shot_fired`).
+
+6. **Compensation убрана полностью**. `weapon_feel_consume_timer1_compensation`
+   больше нет. Running теперь работает через pending как и standing —
+   нет per-shot Timer1 manipulation.
+
+### Магические числа / чистота кода
+
+- `R2_UNITS_PER_ZONE = 28`, `WEAPON25_ZONE_COUNT = 9`, `DEFAULT_FIRE_THRESHOLD_R2 = 200`,
+  `DEFAULT_RESET_THRESHOLD_R2 = 80` — константы в `weapon_feel.cpp` namespace.
+- **Запрет магических чисел записан в CLAUDE.md** (требование #0 для
+  любого кода, не только weapon feel).
+
+### Актуальная проблема (причина перезапуска)
+
+Юзер пожаловался: **"два раза быстро кликаю и 2-й без клика но он стреляет"**.
+
+Трассировка:
+- Fire #1 → `lockout(0)` → `mode=NONE`. `Timer1=140`.
+- Игрок тапает второй раз, Timer1 всё ещё > 0 (cooldown). `mode=NONE`
+  (gated). Hardware мотор **не щёлкает** (mode=NONE) — это то что юзер
+  требовал.
+- Наш r2-based detector ловит пересечение `zone_upper`. `s_in_cooldown=true`
+  → `s_pending_shot=true`. Tactile не даётся (motor off).
+- Timer1 → 0. Pending flush → PUNCH → shot. Motor активируется с задержкой
+  HID, к моменту fire motor не готов → tactile отсутствует.
+
+**Итого**: pending-flushed shot **всегда** без tactile feedback (потому
+что motor был выключен всю cooldown). Юзер жалуется что это некрасиво.
+
+### Что предложил юзер (ЗАПИСАТЬ И ОБДУМАТЬ)
+
+> **"Нельзя просто взять то же значение кулдауна что при беге и так же
+> запускать таймер?"**
+
+Идея: для стоя использовать **тот же Timer1-like механизм** что и для
+running. После standing fire запустить counter (Timer1 или свой),
+декрементировать его и использовать как gate. Это даст unified cooldown
+mechanism с одним set of logic.
+
+Это возможно проще чем два разных signal'а (Timer1 vs SubState).
+
+Однако `set_person_shoot` (standing) сейчас устанавливает `Timer1 = 0`
+и не использует его. Animation sama rate-limiter. То есть game не имеет
+Timer1 counter для standing.
+
+**Варианты:**
+- A. Завести свой wall-clock counter в weapon_feel при каждом fire
+  (аналог Timer1 но на нашей стороне). Значение = параметр профиля
+  (per-weapon). Это возвращает wall-clock magic number в профиль —
+  то от чего юзер отказывался.
+- B. Использовать `time` из `shoot_get_ammo_sound_anim_time` (для pistol
+  = 140 и для running и для standing). Не привязано к реальной длине
+  анимации (374мс empirically, а Timer1=140 даёт 583мс), но это
+  game-defined константа, не magic.
+- C. Использовать running Timer1 даже для standing — модифицировать
+  `set_person_shoot` чтобы устанавливал Timer1=time как running. Тогда
+  единый signal. Но `set_person_shoot` — uc_orig функция, менять нужно
+  аккуратно.
+
+Вариант **C** кажется наиболее чистым — unified Timer1 signal, minimal
+game-side changes.
+
+### План для следующей сессии
+
+1. Прочитать эту секцию + handoff выше.
+2. Обсудить с юзером вариант C: установить `Timer1 = time` в `set_person_shoot`
+   (для player'а only, чтобы не сломать AI).
+3. Затем game.cpp gate упростится: `on_cooldown = (Timer1 > 0)` — одна
+   проверка для обоих случаев.
+4. `SUB_STATE_SHOOT_GUN` check можно будет убрать.
+5. Pending механизм остаётся как есть.
+6. Remaining bug "pending flush без tactile" — обсудить с юзером,
+   принимать trade-off или искать решение.
+
+### Что **не** предпринимать
+
+- ❌ Wall-clock cooldowns в профиле (fire_cooldown_ms=300/400 и т.п.).
+  Юзер явно отказался.
+- ⚠️ Retry с удержанием PUNCH bit несколько тиков. Изначально юзер
+  отверг из-за риска зависания. **Переосмыслено 2026-04-18:** можно
+  попробовать, но не бесконечно — держать флаг **ограниченное число
+  тиков** (например 1-5), если за это окно выстрел не применился —
+  снимать. Это страхует от hang. Идея покрывает случай "click прилетел
+  за тик-два до конца cooldown" — без retry этот клик теряется.
+  Параллельно юзер готов принять 5% случаев "тактильность без выстрела"
+  (мотор может оставаться включённым в cooldown). Не делаем пока не
+  обсудим.
+- ❌ Pre-release через магические числа. Только через game-derived
+  signals.
+- ❌ mode=AIM_GUN всегда во время cooldown. Юзер сказал «опять клики во
+  время кулдауна» — строгое НЕТ.
+
+### Состояние файлов в коде
+
+- `new_game/src/game/game.cpp`: on_cooldown = running || standing, оба
+  derived from game state.
+- `new_game/src/engine/input/weapon_feel.h`: один API `weapon_feel_set_game_state`.
+- `new_game/src/engine/input/weapon_feel.cpp`: pending-based evaluate_fire
+  act-path. Lockout возвращён.
+- `new_game/src/things/characters/person.cpp`: compensation logic убрана,
+  `set_person_running_shoot` вернулся к оригинальному Timer1=time.
+- `CLAUDE.md`: добавлено правило #0 про именованные константы.
+
+Build проходит. Проблема сейчас — юзерский опыт (tactile missing на
+pending-flushed shots), не билд-блокер.
+
+---
+
 ## 🚨 HANDOFF — adaptive trigger click sync не готов (2026-04-18)
 
 **Статус: НЕ РАБОТАЕТ корректно. Пользователь будет микроконтролить
@@ -14,6 +159,15 @@ adaptive trigger на DualSense. Смежный документ про поче
 
 ### Что пользователь хочет (твёрдо, не переспрашивать)
 
+0. **Система должна быть устойчива к изменениям параметров.** На этапе
+   стабилизации (после того как базовая логика заработает) нужно убрать
+   хардкоды: магические числа завязанные на конкретные Timer1 values,
+   декремент Timer1 (сейчас 16/тик), конкретные виды оружия. Система
+   должна автоматически подстраиваться под разные Timer1 (пистолет=140,
+   AK47=64, shotgun=400) и под любые tick rates / декременты без ручной
+   подгонки. Известные хардкоды на 2026-04-18: `Timer1 > 31` в
+   [game.cpp](../new_game/src/game/game.cpp) (pre-release 2 тика,
+   завязан на декремент 16).
 1. **Click ⇔ shot строго синхронизированы.** Каждый реальный выстрел
    должен сопровождаться физическим щелчком на триггере. Каждый
    физический щелчок должен соответствовать реальному выстрелу. Никаких

@@ -3514,8 +3514,13 @@ ULONG get_hardware_input(UWORD type)
         if (Keys[keybrd_button_use[JOYPAD_BUTTON_JUMP]])
             input |= INPUT_MASK_JUMP;
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]]) {
-            input |= INPUT_MASK_PUNCH;
+        {
+            static bool s_kb_punch_prev = false;
+            const bool kb_punch_now = Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]] != 0;
+            if (kb_punch_now && !s_kb_punch_prev) weapon_feel_debug_log("KB_PUNCH_DOWN");
+            if (!kb_punch_now && s_kb_punch_prev) weapon_feel_debug_log("KB_PUNCH_UP");
+            s_kb_punch_prev = kb_punch_now;
+            if (kb_punch_now) input |= INPUT_MASK_PUNCH;
         }
         if (Keys[keybrd_button_use[JOYPAD_BUTTON_KICK]]) {
             MSG_add(" HARDWARE KICK");

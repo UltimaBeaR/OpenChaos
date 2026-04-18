@@ -3523,6 +3523,9 @@ void actually_fire_gun(Thing* p_person)
     // per-weapon profiles). Non-DualSense / unmapped weapons are silent no-ops.
     // Pistol has no SpecialUse — dispatch via SPECIAL_GUN explicitly.
     if (p_person->Genus.Person->PlayerID) {
+        weapon_feel_debug_log("ACTUALLY_FIRE_GUN state=%d timer1_before=%d",
+                              (int)p_person->State,
+                              (int)p_person->Genus.Person->Timer1);
         if (p_person->Genus.Person->SpecialUse) {
             Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
             weapon_feel_on_shot_fired(p_special->Genus.Special->SpecialType);
@@ -3810,6 +3813,11 @@ void set_person_running_shoot(Thing* p_person)
     actually_fire_gun(p_person);
 
     p_person->Genus.Person->Timer1 = time;
+
+    if (p_person->Genus.Person->PlayerID) {
+        weapon_feel_debug_log("RUNNING_SHOOT Timer1 set to %d (state=%d)",
+                              (int)time, (int)p_person->State);
+    }
 }
 
 // Returns the best weapon type (with ammo) from the person's inventory.
