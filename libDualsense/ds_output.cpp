@@ -24,8 +24,9 @@ void build_output_report(const OutputState& state,
 {
     if (!buf) return;
 
-    // Wire-report size and payload offset.
-    const std::size_t wire_len = bluetooth ? 78u : 74u;
+    // Wire-report size and payload offset. USB: Report ID + 47-byte payload.
+    // BT: Report ID + 1-byte sub-ID + 47-byte payload + reserved + 4-byte CRC.
+    const std::size_t wire_len = bluetooth ? 78u : 48u;
     std::memset(buf, 0, wire_len);
 
     std::size_t padding;

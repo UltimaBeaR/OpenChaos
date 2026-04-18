@@ -19,12 +19,10 @@ static constexpr std::uint16_t DUALSENSE_EDGE_PID = 0x0DF2;
 static constexpr std::size_t INPUT_REPORT_USB_BYTES = 64;
 static constexpr std::size_t INPUT_REPORT_BT_BYTES  = 78;
 
-// DualSense output report sizes over the wire. USB report is 48
-// bytes by struct definition, but empirically the controller may
-// interpret short reports differently (e.g. trigger motor power
-// defaults). Sending 74 bytes (same payload length as BT minus
-// the CRC) avoids this.
-static constexpr std::size_t OUTPUT_REPORT_USB_BYTES = 74;
+// DualSense output report sizes over the wire. USB = 48 bytes
+// (Report ID 0x02 + 47-byte payload per Sony spec). BT = 78 bytes
+// (Report ID 0x31 + 1-byte sub-ID + 47-byte payload + 25 reserved + 4-byte CRC32).
+static constexpr std::size_t OUTPUT_REPORT_USB_BYTES = 48;
 static constexpr std::size_t OUTPUT_REPORT_BT_BYTES  = 78;
 
 static bool s_hid_initialized = false;
