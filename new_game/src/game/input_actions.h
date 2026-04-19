@@ -207,6 +207,15 @@ extern SLONG continue_action(Thing* p_person);
 extern SLONG continue_moveing(Thing* p_person);
 // uc_orig: continue_firing (fallen/Headers/interfac.h)
 extern SLONG continue_firing(Thing* p_person);
+// AK47 reload gate: see input_actions.cpp s_ak47_reload_gate for details.
+// mark: called from person.cpp fire paths on HAD_TO_CHANGE_CLIP.
+// clear: called from person.cpp after a real shot, and from
+//        weapon_feel_evaluate_fire on physical R2 release.
+// set: game.cpp queries to extend mag_empty through the reload-press
+//      window so the Weapon25 click effect stays active until release.
+extern void input_actions_mark_ak47_reload_gate();
+extern void input_actions_clear_ak47_reload_gate();
+extern bool input_actions_ak47_reload_gate_set();
 // uc_orig: person_get_in_car (fallen/Headers/interfac.h)
 extern SLONG person_get_in_car(Thing* p_person);
 // uc_orig: person_get_in_specific_car (fallen/Headers/interfac.h)

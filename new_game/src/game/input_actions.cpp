@@ -3348,9 +3348,27 @@ ULONG get_hardware_input(UWORD type)
                         // this flag the act-bit fire path waits for a
                         // hardware click that never comes (mode=NONE when
                         // gun isn't drawn), and R2 punch stops working.
+                        // mag_empty: drives reload-press-mode in evaluate_fire —
+                        // AK47 with empty clip behaves like a single-shot
+                        // pistol so the reload PUNCH synchronises with the
+                        // Weapon25 click point (reload_click_end_zone).
+                        // Includes the reload gate to keep the mode stable
+                        // across the reload press (gate stays set until the
+                        // next fire or R2 release).
+                        bool mag_empty = false;
+                        if (p_darci && p_darci->Genus.Person) {
+                            if (p_darci->Genus.Person->SpecialUse) {
+                                Thing* p_su3 = TO_THING(p_darci->Genus.Person->SpecialUse);
+                                if (p_su3 && p_su3->Genus.Special->ammo == 0) mag_empty = true;
+                            } else if ((p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+                                       && p_darci->Genus.Person->Ammo == 0) {
+                                mag_empty = true;
+                            }
+                            if (input_actions_ak47_reload_gate_set()) mag_empty = true;
+                        }
                         WeaponFireDecision fd = weapon_feel_evaluate_fire(
                             current_weapon, the_state.trigger_right,
-                            the_state.trigger_left, weapon_drawn);
+                            the_state.trigger_left, weapon_drawn, mag_empty);
                         if (fd.shoot) {
                             input |= INPUT_MASK_PUNCH;
                             g_dwLastInputChangeTime = dwCurrentTime;
@@ -4127,6 +4145,25 @@ SLONG continue_dir(Thing* p_person, SLONG dir)
     return (0);
 }
 
+// Reload gate: set when AK47 magazine auto-swaps on an empty-clip press
+// (HAD_TO_CHANGE_CLIP). While set, the player's auto-fire re-entry paths
+// (SUB_STATE_AIM_GUN, SUB_STATE_SHOOT_GUN re-fire, fn_person_moveing)
+// will not fire the next shot even if PUNCH is still held — enforces
+// "release R2 and press again" between reload and the next shot.
+// Cleared when (a) a real shot actually fires — via clear from the
+// person.cpp fire paths after actually_fire_gun, or (b) the player
+// physically releases R2 (r2 <= reset_threshold) — via clear from
+// weapon_feel_evaluate_fire. We do NOT clear on PUNCH bit low: the
+// act-bit reload-press path in weapon_feel only raises PUNCH on the
+// rising-edge tick, so a low-PUNCH check the very next tick while the
+// trigger is still held would wrongly clear the gate and let auto-
+// fire kick in.
+static bool s_ak47_reload_gate = false;
+
+void input_actions_mark_ak47_reload_gate()  { s_ak47_reload_gate = true;  }
+void input_actions_clear_ak47_reload_gate() { s_ak47_reload_gate = false; }
+bool input_actions_ak47_reload_gate_set()   { return s_ak47_reload_gate;  }
+
 // uc_orig: continue_firing (fallen/Source/interfac.cpp)
 // Returns true if the player/NPC should keep firing (PUNCH held, AK47 has ammo, target alive).
 SLONG continue_firing(Thing* p_person)
@@ -4149,8 +4186,16 @@ SLONG continue_firing(Thing* p_person)
         input = PACKET_DATA(p_player->Genus.Player->PlayerID);
 
         if (input & INPUT_MASK_PUNCH) {
+            if (s_ak47_reload_gate) return UC_FALSE;
             return UC_TRUE;
         } else {
+            // PUNCH bit low — just report "not firing". We do NOT clear
+            // the reload gate here: in the act-bit reload-press path the
+            // PUNCH bit is edge-triggered (only set on the rising-edge
+            // tick), so a low PUNCH the very next tick while the trigger
+            // is still physically held would wrongly clear the gate and
+            // let auto-fire kick in. Gate is cleared from evaluate_fire
+            // on physical R2 release (r2 <= reset_threshold) instead.
             return UC_FALSE;
         }
     } else {

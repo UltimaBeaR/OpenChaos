@@ -73,8 +73,11 @@ void gamepad_led_update(float health_fraction, bool siren);
 //                 player; selects the WeaponFeelProfile that tunes the click.
 //                 Pass SPECIAL_NONE if unarmed — the default profile will
 //                 opt out of the click entirely.
+// mag_empty: true when the current weapon's magazine is empty (auto-fire
+//            weapons — enables Weapon25 reload-click override when the
+//            profile has reload_click_strength > 0). See weapon_feel.h.
 // Call once per game tick.
-void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon);
+void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon, bool mag_empty);
 
 
 // Disable all adaptive trigger effects. Call on pause, menu, death, level transition.

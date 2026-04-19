@@ -134,6 +134,8 @@ extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
 extern SLONG mount_ladder(Thing* p_thing, SLONG facet); // collide.cpp
 // player_running_aim_gun: defined in this file (chunk 10 below)
 extern SLONG continue_firing(Thing* p_person); // interfac.cpp
+extern void input_actions_mark_ak47_reload_gate();  // input_actions.cpp
+extern void input_actions_clear_ak47_reload_gate(); // input_actions.cpp
 // set_person_do_a_simple_anim: now defined in this file (chunk 12 below)
 // chunk 10 additional externs (Person.cpp not yet migrated)
 // get_pitch_to_thing_quick: now defined in this file (chunk 11 below)
@@ -3815,12 +3817,22 @@ void set_person_running_shoot(Thing* p_person)
     }
 
     if (!ammo || ammo == HAD_TO_CHANGE_CLIP) {
+        // Magazine auto-swap: mark reload gate (require release before next shot).
+        if (p_person->Genus.Person->PlayerID && ammo == HAD_TO_CHANGE_CLIP) {
+            input_actions_mark_ak47_reload_gate();
+        }
         MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
         return;
     }
 
     MFX_play_thing(THING_NUMBER(p_person), sound, MFX_REPLACE, p_person);
     actually_fire_gun(p_person);
+    // A real shot actually fired — clear reload gate (covers the case where
+    // the gate was stuck from a prior standing-state reload the player
+    // didn't release R2 through).
+    if (p_person->Genus.Person->PlayerID) {
+        input_actions_clear_ak47_reload_gate();
+    }
 
     // Player: derive cooldown from the shoot animation's actual tick count
     // (unified with standing fire), plus any pre-release debt captured by
@@ -3993,6 +4005,12 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
     }
 
     if (!ammo || ammo == HAD_TO_CHANGE_CLIP) {
+        // Magazine auto-swap: mark the AK47 reload gate so the next shot
+        // requires the player to release and re-press R2 (mirrors running-
+        // fire path's implicit gate via fn_person_moveing's Timer1 check).
+        if (p_person->Genus.Person->PlayerID && ammo == HAD_TO_CHANGE_CLIP) {
+            input_actions_mark_ak47_reload_gate();
+        }
         MFX_play_thing(THING_NUMBER(p_person), S_PISTOL_DRY, MFX_REPLACE, p_person);
 
         if (p_person->Genus.Person->PlayerID && ammo != HAD_TO_CHANGE_CLIP) {
@@ -4077,6 +4095,12 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
 
         actually_fire_gun(p_person);
+        // Real shot fired — clear AK47 reload gate so subsequent auto-fire
+        // in SUB_STATE_AIM_GUN / SUB_STATE_SHOOT_GUN re-fire path resumes
+        // normally. Safe no-op if the gate was already clear.
+        if (p_person->Genus.Person->PlayerID) {
+            input_actions_clear_ak47_reload_gate();
+        }
 
         // Player: set Timer1 to the anim-derived cooldown so standing and
         // running fire share one cooldown mechanism. fn_person_gun's

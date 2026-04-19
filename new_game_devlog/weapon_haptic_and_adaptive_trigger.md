@@ -6,6 +6,138 @@ adaptive trigger на DualSense. Смежный документ про поче
 
 ---
 
+## 🔧 2026-04-19 — AK47 reload click + release-gate между перезарядкой и следующим выстрелом
+
+Финальная полировка AK47: закрыты три связанных бага про перезарядку.
+Все три — одним пакетом, т.к. логически неразделимы.
+
+### Баг 1 — Machine эффект оставался активным когда магазин пустел
+
+Раньше `weapon_ready` для auto-fire оружий был `has_gun && !non_firing_state`
+без учёта того что Timer1 > 0 (идёт реальная стрельба). Игрок держал R2,
+магазин кончался, игра прекращала выстрелы, но Machine-пульс на триггере
+продолжал дрожать. Фикс — новая функция
+`weapon_feel_trigger_effect_should_run(weapon, in_shot_cycle, mag_empty)`:
+политика по типу оружия живёт внутри weapon_feel. Auto-fire: эффект ON
+только если идёт shot cycle (Timer1 > 0 от реального выстрела) ИЛИ
+магазин пуст с сконфигурированным reload click-ом. Single-shot: ON
+только когда НЕ в shot cycle (как раньше). game.cpp передаёт готовые
+примитивы (`on_cooldown` как in_shot_cycle, `ammo==0` как mag_empty),
+weapon_feel не знает про Thing*/State.
+
+### Баг 2 — перезарядка не требовала отпускания R2 (авто-стрельба из нового магазина)
+
+Стоя (SUB_STATE_AIM_GUN handler) и на бегу (fn_person_moveing) имели
+асимметричную логику. Бегом: `if (Timer1)` гейт → после HAD_TO_CHANGE_CLIP
+(Timer1=0) ничего не делает → игроку нужно реально отпустить и нажать.
+Стоя: AIM_GUN handler каждый тик звал `continue_firing`, без Timer1
+гейта → после HAD_TO_CHANGE_CLIP в том же тике видел ammo=30 + PUNCH
+зажат → `set_person_shoot` → выстрел. Итог: стоя первое нажатие
+перезаряжало И стреляло одновременно. Лог показал: `set_person_shoot
+HAD_TO_CHANGE_CLIP → ammo=30 → тут же второй set_person_shoot ammo=29`
+в одном и том же тике T771.
+
+Фикс — единый reload gate в `input_actions.cpp`:
+
+```cpp
+static bool s_ak47_reload_gate = false;
+void input_actions_mark_ak47_reload_gate()  { s_ak47_reload_gate = true;  }
+void input_actions_clear_ak47_reload_gate() { s_ak47_reload_gate = false; }
+bool input_actions_ak47_reload_gate_set()   { return s_ak47_reload_gate;  }
+```
+
+Флаг выставляется в `set_person_shoot` / `set_person_running_shoot` на
+`HAD_TO_CHANGE_CLIP`. Проверяется в `continue_firing` — если флаг стоит
+и PUNCH зажат, возвращает UC_FALSE (блокирует auto-re-fire через
+SUB_STATE_AIM_GUN и SUB_STATE_SHOOT_GUN). Очищается в двух местах:
+(a) в person.cpp после `actually_fire_gun` (реальный выстрел прошёл);
+(b) в `weapon_feel_evaluate_fire` когда `r2 ≤ reset_threshold` (игрок
+физически отпустил курок).
+
+**Критично:** очистка НЕ по падению PUNCH bit в `continue_firing`. В
+reload-press режиме (act-bit path) PUNCH ставится ТОЛЬКО на тике
+rising-edge. На следующий тик при зажатом триггере PUNCH=0 → очистка
+по PUNCH сняла бы гейт сразу после reload-нажатия, и auto-fire
+запускался бы следом. Нужна очистка по физическому состоянию курка,
+не по edge-триггерному биту.
+
+### Баг 3 — не было hardware щелчка на триггере при перезарядке
+
+Хотели чтобы reload-нажатие ощущалось как Weapon25 клик (как у
+пистолета), без вибрации. Проблема: для AK47 эффект всегда был Machine,
+а Weapon25 в профиль не было. Добавлены поля `reload_click_start_zone`,
+`reload_click_end_zone`, `reload_click_strength` в `WeaponFeelProfile`.
+Для AK47 — те же параметры что у пистолета (start=4, end=6, strength=5).
+Для пистолета/шотгана — 0 (пистолет уже имеет главный Weapon25
+эффект).
+
+Новый параметр `mag_empty` пошёл сквозь всю цепочку:
+- `game.cpp` считает: `mag_empty = (ammo==0) OR reload_gate_set`.
+  Расширение через gate критично: иначе на тике HAD_TO_CHANGE_CLIP
+  ammo уже 30, mag_empty=0, эффект снимается ДО того как hardware
+  отработал клик.
+- `weapon_feel_trigger_effect_should_run` возвращает TRUE для
+  auto-fire при mag_empty даже если in_shot_cycle=FALSE.
+- `gamepad_triggers_update(..., mag_empty)` при `mag_empty && reload_click_strength!=0`
+  переопределяет effect на Weapon25 с reload-click параметрами вместо
+  Machine.
+
+### Синхронизация клика с моментом перезарядки (PUNCH в правильном r2)
+
+После включения Weapon25 эффекта клик всё равно приходил не в тот
+момент что перезарядка. Причина: для AK47 `fire_threshold = зона 4
+(r2=112)`, а клик hardware фаерится на зоне 6 (r2=168). Курок идёт
+вверх, при r2=112 игра ловит PUNCH → HAD_TO_CHANGE_CLIP → ammo=30 →
+эффект снимается до того как курок доходит до r2=168.
+
+Решение: для auto-fire в `mag_empty`-состоянии переключаемся на
+act-bit путь детекции (как у пистолета). Новый параметр `mag_empty`
+добавлен в `weapon_feel_evaluate_fire`. Когда оно true + auto_fire +
+reload_click_strength>0, эффективные параметры меняются на
+single-shot Weapon25: `eff_effect=Weapon`, `eff_auto=false`,
+`eff_end_zone=reload_click_end_zone`. `use_act_path` становится true,
+PUNCH фаерится на `reload_click_end_zone * R2_UNITS_PER_ZONE = 168`
+— синхронно с hardware кликом.
+
+### Сводка кода
+
+**Новые API:**
+- `weapon_feel_trigger_effect_should_run(weapon, in_shot_cycle, mag_empty)` — решает включён ли эффект.
+- `WeaponFeelProfile::reload_click_{start_zone,end_zone,strength}` — параметры клика на перезарядке.
+- `gamepad_triggers_update(..., mag_empty)` — параметр для overrride на Weapon25.
+- `weapon_feel_evaluate_fire(..., mag_empty)` — параметр для reload-press mode.
+- `input_actions_mark_ak47_reload_gate / clear / set` — трио для гейта.
+
+**Файлы:** `new_game/src/engine/input/weapon_feel.{h,cpp}`,
+`new_game/src/engine/input/gamepad.{h,cpp}`, `new_game/src/game/game.cpp`,
+`new_game/src/game/input_actions.{h,cpp}`,
+`new_game/src/things/characters/person.cpp`.
+
+### Поведение после всех фиксов
+
+1. Игрок держит R2 с AK47, стреляет. Machine-пульс идёт. ammo↓.
+2. Последний выстрел, ammo=0. Timer1 set, Machine держится пока
+   cooldown идёт.
+3. Timer1=0, нового выстрела нет (ammo=0). in_shot_cycle=false, но
+   mag_empty=true → эффект переключается на Weapon25 клик
+   (параметры как у пистолета).
+4. Игрок отпускает R2 (r2→0) — клик не фаерится (Weapon25 клик только
+   на crossing up).
+5. Игрок зажимает R2. Курок пересекает зону 6 (r2=168) — hardware
+   фаерит клик. На том же r2=168 fire detection ловит PUNCH (act-bit
+   path) → set_person_shoot → HAD_TO_CHANGE_CLIP → ammo=30, reload gate
+   установлен. DRY звук играет.
+6. gamepad_triggers_update: reload_gate_set → mag_empty остаётся true
+   → Weapon25 держится активным пока игрок не отпустит R2.
+7. Игрок отпустил R2 (r2 ниже reset_threshold=80) → evaluate_fire
+   сбрасывает reload gate → mag_empty=false → эффект снимается.
+8. Игрок зажимает R2. mag_empty=false → обычный threshold path с
+   auto_fire=true → PUNCH фаерится в зоне 4 → set_person_shoot → ammo>0
+   → actually_fire_gun → реальный выстрел. Machine эффект включается.
+9. Дальше обычная auto-fire стрельба.
+
+---
+
 ## 🔧 2026-04-19 — AK47 Machine effect, Xbox rumble, унификация rate стоя/бегом
 
 Три связанные правки поверх финального состояния пистолета ниже.

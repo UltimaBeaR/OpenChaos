@@ -679,7 +679,7 @@ static void apply_trigger_mode(TriggerMode mode)
     ds_update_output();
 }
 
-void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon)
+void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon, bool mag_empty)
 {
     if (!s_is_dualsense || !ds_is_connected()) return;
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
@@ -703,12 +703,25 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     s_aim_gun_amp_b      = profile->machine_amp_b;
     s_aim_gun_frequency  = profile->machine_frequency;
     s_aim_gun_period     = profile->machine_period;
+    // Reload click override: when the weapon's magazine is empty and
+    // the profile has a reload click configured, swap the effect to a
+    // Weapon25 click with reload params. The player's next R2 press
+    // then feels like a pistol-style click on the reload moment —
+    // same physical snap regardless of whether the weapon is single-
+    // shot or auto-fire. Main Machine effect resumes after the reload
+    // refills the clip and a real shot fires (mag_empty becomes false).
+    if (mag_empty && profile->reload_click_strength != 0) {
+        s_aim_gun_effect     = TriggerEffectType::Weapon;
+        s_aim_gun_start_zone = profile->reload_click_start_zone;
+        s_aim_gun_end_zone   = profile->reload_click_end_zone;
+        s_aim_gun_strength   = profile->reload_click_strength;
+    }
     // Profiles with None opt out of any adaptive trigger effect. Weapon
     // with zero strength and Machine with both amps zero also count as
     // "no effect" — the params would produce a silent trigger anyway.
     const bool weapon_has_effect =
-        (profile->trigger_effect == TriggerEffectType::Weapon  && profile->trigger_strength != 0) ||
-        (profile->trigger_effect == TriggerEffectType::Machine && (profile->machine_amp_a != 0 || profile->machine_amp_b != 0));
+        (s_aim_gun_effect == TriggerEffectType::Weapon  && s_aim_gun_strength != 0) ||
+        (s_aim_gun_effect == TriggerEffectType::Machine && (s_aim_gun_amp_a != 0 || s_aim_gun_amp_b != 0));
 
     // AIM_GUN stays continuously enabled whenever the weapon is ready.
     //

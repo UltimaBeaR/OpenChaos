@@ -1074,18 +1074,53 @@ round_again:;
                     // On the run, set_person_running_shoot ignores target status and
                     // always fires, so the click must still happen; we skip the
                     // surrender gate in that state.
-                    // Auto-fire weapons (AK47) use a continuous trigger
-                    // effect (Machine pulse) that is "on" the whole time
-                    // the weapon is drawn. Gating it by on_cooldown would
-                    // flicker NONE↔AIM_GUN at AK47 fire rate (Timer1 > 0
-                    // for most of each shot's interval), which the user
-                    // reported as "glitchy when running". Single-shot
-                    // weapons (pistol) still gate so the click doesn't
-                    // fire during cooldown.
-                    const WeaponFeelProfile* active_profile = weapon_feel_get_profile(current_weapon);
-                    const bool cooldown_gates_effect = !active_profile->auto_fire;
-                    bool weapon_ready = has_gun && !non_firing_state &&
-                        (!cooldown_gates_effect || !on_cooldown);
+                    // mag_empty: weapon's current clip is 0 (and the weapon
+                    // is one that has a clip to be empty). Used by the
+                    // adaptive trigger to switch from Machine to a
+                    // pistol-style Weapon25 click so the reload press
+                    // feels mechanical. Pistol also tracks ammo but its
+                    // own effect is already a click, so mag_empty
+                    // doesn't change anything for it (profile has
+                    // reload_click_strength=0).
+                    //
+                    // Extended mag_empty: also TRUE while the reload gate
+                    // is set. Without this extension, the hardware click
+                    // window is too short: the game detects PUNCH at the
+                    // Machine-start zone (r2=112) and immediately refills
+                    // the clip + sends mode=NONE, but the Weapon25 click
+                    // fires at the reload-click end zone (r2=168) —
+                    // trigger hasn't reached that point yet. Keeping the
+                    // Weapon25 effect active through the reload-gate
+                    // window (from reload press until next fire or R2
+                    // release) gives the hardware enough time to complete
+                    // the click.
+                    bool mag_empty = false;
+                    if (darci_t->Genus.Person->SpecialUse) {
+                        Thing* p_su2 = TO_THING(darci_t->Genus.Person->SpecialUse);
+                        if (p_su2 && p_su2->Genus.Special->ammo == 0) {
+                            mag_empty = true;
+                        }
+                    } else if (has_pistol_out && darci_t->Genus.Person->Ammo == 0) {
+                        mag_empty = true;
+                    }
+                    if (input_actions_ak47_reload_gate_set()) {
+                        mag_empty = true;
+                    }
+
+                    // Per-weapon trigger effect policy lives in weapon_feel.
+                    // Auto-fire (AK47 Machine): ON while in_shot_cycle —
+                    // represents recoil from real shots, so the pulse
+                    // dies when shooting stops. Additionally ON when
+                    // mag_empty AND the profile has a reload click
+                    // configured (gamepad swaps to Weapon25 with reload
+                    // params). Single-shot (pistol Weapon25): OFF while
+                    // in_shot_cycle (same gate as before — click can't
+                    // fire during cooldown), ON otherwise.
+                    // in_shot_cycle is the existing on_cooldown signal
+                    // (Timer1 > pre_release AND matching state).
+                    const bool trigger_effect_active =
+                        weapon_feel_trigger_effect_should_run(current_weapon, on_cooldown, mag_empty);
+                    bool weapon_ready = has_gun && !non_firing_state && trigger_effect_active;
                     const bool is_running = (darci_t->State == STATE_MOVEING);
                     if (weapon_ready && !is_running && darci_t->Genus.Person->Target) {
                         Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
@@ -1102,7 +1137,7 @@ round_again:;
                     }
 
                     // current_weapon computed up top alongside has_heavy_out.
-                    gamepad_triggers_update(in_car, weapon_ready, current_weapon);
+                    gamepad_triggers_update(in_car, weapon_ready, current_weapon, mag_empty);
                 }
             }
 

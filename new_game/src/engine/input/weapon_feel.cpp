@@ -61,25 +61,36 @@
 // Two paths share one evaluator, picked at runtime per weapon+device:
 //
 //   * ADAPTIVE-CLICK path — used when the device is a DualSense AND the
-//     weapon's profile uses TriggerEffectType::Weapon with non-zero
-//     strength AND it's single-shot AND the weapon is currently drawn
-//     (caller passes FLAG_PERSON_GUN_OUT as `weapon_drawn`). Fires
-//     when the analog trigger crosses the upper edge of the weapon's
-//     Weapon25 zone going up (end_zone × R2_UNITS_PER_ZONE). This
-//     puts the PC-side fire event at the same physical trigger
+//     effective effect is Weapon25 (single-shot or auto-fire in reload-
+//     press mode — see below) with non-zero strength AND the weapon is
+//     currently drawn (caller passes FLAG_PERSON_GUN_OUT as
+//     `weapon_drawn`). Fires when the analog trigger crosses the upper
+//     edge of the Weapon25 zone going up (end_zone × R2_UNITS_PER_ZONE).
+//     This puts the PC-side fire event at the same physical trigger
 //     position where the DualSense motor physically clicks — tactile
 //     feedback and game shot land on the same instant. No rising-edge
 //     armed gate on this path; hardware naturally enforces one click
 //     per press cycle. Game Timer1 still rate-limits.
 //
-//   * THRESHOLD fallback — used for auto-fire weapons (AK47 with
-//     Machine effect), effect-less profiles (shotgun today), bare-hand
-//     melee (no gun out), and all non-DualSense devices (Xbox,
-//     keyboard-as-gamepad). Plain rising-edge: r2 ≤ reset_threshold
-//     arms, r2 > fire_threshold fires. Auto-fire ignores the armed
-//     gate. For weapons with a Machine effect, fire_threshold is
-//     derived from trigger_start_zone so the game begins firing at
-//     the same position where the trigger pulse becomes audible.
+//   * THRESHOLD fallback — used for auto-fire weapons during normal
+//     firing (AK47 with Machine effect, mag not empty), effect-less
+//     profiles (shotgun today), bare-hand melee (no gun out), and all
+//     non-DualSense devices (Xbox, keyboard-as-gamepad). Plain rising-
+//     edge: r2 ≤ reset_threshold arms, r2 > fire_threshold fires. Auto-
+//     fire ignores the armed gate. For weapons with a Machine effect,
+//     fire_threshold is derived from trigger_start_zone so the game
+//     begins firing at the same position where the trigger pulse
+//     becomes audible.
+//
+//   * RELOAD-PRESS mode — special case for auto-fire weapons with a
+//     reload click configured (AK47). While the magazine is empty,
+//     evaluate_fire behaves as if the weapon were a single-shot pistol:
+//     Weapon25 effect, act-bit path, click zone from reload_click_*
+//     params. Synchronises the reload HAD_TO_CHANGE_CLIP moment with
+//     the hardware click (both fire at reload_click_end_zone). Reverts
+//     to Machine / threshold path the moment the clip is refilled AND
+//     the reload gate is cleared (see s_ak47_reload_gate in
+//     input_actions.cpp).
 //
 // Why two paths: on DualSense the zone-upper crossing aligns with
 // where the motor physically snaps (by construction — both come from
@@ -232,6 +243,9 @@ const WeaponFeelProfile k_default_profile = {
     /*machine_amp_b*/     0,
     /*machine_frequency*/ 0,
     /*machine_period*/    0,
+    /*reload_click_start_zone*/0,
+    /*reload_click_end_zone*/  0,
+    /*reload_click_strength*/  0,
     /*aim_interlude_anim*/0,
     /*fire_threshold*/    200,
     /*reset_threshold*/   80,
@@ -519,6 +533,12 @@ void weapon_feel_init()
         /*machine_amp_b*/     AK47_MACHINE_AMP_B,
         /*machine_frequency*/ AK47_MACHINE_FREQ,
         /*machine_period*/    AK47_MACHINE_PERIOD,
+        // Reload click: when mag is empty, trigger feels like the pistol
+        // (single Weapon25 click) so the reload press has a physical snap.
+        // Params match the pistol profile — same zone + strength.
+        /*reload_click_start_zone*/4,
+        /*reload_click_end_zone*/  6,
+        /*reload_click_strength*/  5,
         // Between-shot pose anim matches what set_person_aim would have
         // assigned on the original AIM_GUN transition (SpecialUse != NULL
         // → ANIM_SHOTGUN_AIM). Unified SHOOT_GUN handler swaps to this
@@ -548,6 +568,9 @@ void weapon_feel_init()
         /*machine_amp_b*/     0,
         /*machine_frequency*/ 0,
         /*machine_period*/    0,
+        /*reload_click_start_zone*/0, // pistol's main effect already IS a click
+        /*reload_click_end_zone*/  0,
+        /*reload_click_strength*/  0,
         /*aim_interlude_anim*/0, // single-shot — no interlude needed
         /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
         /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
@@ -568,6 +591,9 @@ void weapon_feel_init()
         /*machine_amp_b*/     0,
         /*machine_frequency*/ 0,
         /*machine_period*/    0,
+        /*reload_click_start_zone*/0,
+        /*reload_click_end_zone*/  0,
+        /*reload_click_strength*/  0,
         /*aim_interlude_anim*/0, // single-shot — no interlude needed
         /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
         /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
@@ -701,6 +727,29 @@ int32_t weapon_feel_consume_shot_cooldown_timer1(int32_t special_type)
     return total;
 }
 
+bool weapon_feel_trigger_effect_should_run(int32_t current_weapon, bool in_shot_cycle, bool mag_empty)
+{
+    const WeaponFeelProfile* p = weapon_feel_get_profile(current_weapon);
+    // Auto-fire: Machine pulse = recoil from real shots. ON while a
+    // shot cycle is ticking; as soon as the game stops issuing shots
+    // (mag empty, no PUNCH, interrupted state) in_shot_cycle falls to
+    // false and the effect dies with it. Additionally: when the clip
+    // is empty AND a reload click is configured, the effect stays ON
+    // (but gamepad.cpp dispatches it as Weapon25 with reload params
+    // instead of Machine) so the player feels a click on the reload
+    // press.
+    //
+    // Single-shot: Weapon25 click = pre-fire resistance. OFF during
+    // cooldown (can't re-click yet), ON otherwise. Opposite polarity
+    // from auto-fire by design.
+    if (p->auto_fire) {
+        if (in_shot_cycle) return true;
+        if (mag_empty && p->reload_click_strength != 0) return true;
+        return false;
+    }
+    return !in_shot_cycle;
+}
+
 int32_t weapon_feel_pre_release_timer1()
 {
     // Two ticks' worth of Timer1 decrement. One tick covers the HID
@@ -793,7 +842,7 @@ void weapon_feel_stop_haptic()
 // presses produce neither click nor shot — keyboard-like silent
 // refusal. Gate lifts one tick early so the NONE→AIM_GUN HID packet
 // has time to propagate before the game starts accepting shots again.
-WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn)
+WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn, bool mag_empty)
 {
     WeaponFireDecision out = { false, false };
 
@@ -807,9 +856,35 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     // below reset_threshold counts as a "release" and rearms the
     // rising-edge detector so the next press fires.
     const bool now_released = r2 <= p->reset_threshold;
-    if (now_released) s_r2_armed = true;
+    if (now_released) {
+        s_r2_armed = true;
+        // Physical trigger release also clears the AK47 reload gate
+        // (set on HAD_TO_CHANGE_CLIP in person.cpp). Done here rather
+        // than in continue_firing because the act-bit reload-press
+        // path only sets PUNCH on the rising-edge tick, so a PUNCH-low
+        // check clears prematurely while the trigger is still held.
+        extern void input_actions_clear_ak47_reload_gate();
+        input_actions_clear_ak47_reload_gate();
+    }
     const int prev_r2_snapshot = s_prev_r2;
     s_prev_r2 = r2;
+
+    // Reload-press mode: auto-fire weapons with a configured reload
+    // click (AK47) behave like a single-shot pistol for the fire-
+    // detection path while the magazine is empty. This synchronises
+    // the game-side "reload fire" event with the hardware Weapon25
+    // click point — both fire at reload_click_end_zone instead of
+    // the Machine effect's start zone. Without this, PUNCH triggers
+    // at the Machine start (r2=112), the game immediately processes
+    // HAD_TO_CHANGE_CLIP and stops the effect, the trigger never
+    // reaches the Weapon25 end (r2=168), and the reload happens
+    // before the click is felt.
+    const bool reload_press_mode = mag_empty && p->auto_fire && p->reload_click_strength != 0;
+
+    const TriggerEffectType eff_effect   = reload_press_mode ? TriggerEffectType::Weapon : p->trigger_effect;
+    const uint8_t           eff_end_zone = reload_press_mode ? p->reload_click_end_zone  : p->trigger_end_zone;
+    const uint8_t           eff_strength = reload_press_mode ? p->reload_click_strength  : p->trigger_strength;
+    const bool              eff_auto     = reload_press_mode ? false                     : p->auto_fire;
 
     // Pick fire-detection path. The act-bit path requires all of:
     //   * DualSense device (act bit is a DualSense-specific signal).
@@ -824,9 +899,8 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     // CANNOT distinguish bare-hand from pistol by current_weapon
     // alone — the caller passes weapon_drawn (FLAG_PERSON_GUN_OUT).
     const bool device_is_ds     = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
-    const bool weapon_has_click = (p->trigger_effect == TriggerEffectType::Weapon
-                                   && p->trigger_strength != 0);
-    const bool use_act_path     = device_is_ds && weapon_has_click && !p->auto_fire && weapon_drawn;
+    const bool weapon_has_click = (eff_effect == TriggerEffectType::Weapon && eff_strength != 0);
+    const bool use_act_path     = device_is_ds && weapon_has_click && !eff_auto && weapon_drawn;
 
     if (use_act_path) {
         // R2-position click detection: press is registered when the
@@ -837,7 +911,7 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
         // zone_upper_r2 is derived from the profile so retuning the
         // Weapon25 zone or adding a new weapon doesn't need
         // hand-calibrated thresholds.
-        const int zone_upper_r2 = (int)p->trigger_end_zone * R2_UNITS_PER_ZONE;
+        const int zone_upper_r2 = (int)eff_end_zone * R2_UNITS_PER_ZONE;
         const bool rose_past_upper =
             (prev_r2_snapshot < zone_upper_r2) && (r2 >= zone_upper_r2);
         if (rose_past_upper) {
@@ -850,7 +924,7 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
         // armed (or auto-fire ignores the armed gate). Rate limiting
         // is game's Timer1.
         if (r2 > p->fire_threshold) {
-            if (p->auto_fire || s_r2_armed) {
+            if (eff_auto || s_r2_armed) {
                 out.shoot = true;
                 s_r2_armed = false;
             }

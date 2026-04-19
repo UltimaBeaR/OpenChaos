@@ -83,6 +83,19 @@ struct WeaponFeelProfile {
     uint8_t  machine_frequency;    // Machine only, pulse rate
     uint8_t  machine_period;       // Machine only, pattern period
 
+    // --- Reload click (auto-fire weapons) ---------------------------------
+    // When the weapon's magazine is empty, the adaptive trigger briefly
+    // runs a Weapon25 click so the player's reload press feels like a
+    // gun-mechanism click (same feel as the pistol). Active only while
+    // the mag is empty; the main trigger_effect resumes after reload.
+    // Zero strength disables the reload click.
+    //   reload_click_start_zone: click zone begin (2..7)
+    //   reload_click_end_zone:   click zone end   (start+1..8)
+    //   reload_click_strength:   0..8 (hardware receives strength-1)
+    uint8_t  reload_click_start_zone;
+    uint8_t  reload_click_end_zone;
+    uint8_t  reload_click_strength;
+
     // --- Between-shot anim interlude (for auto-fire weapons) --------------
     // aim_interlude_anim: secondary animation ID played during the latter
     //     part of each shot cycle, after the main shoot animation has
@@ -164,6 +177,33 @@ void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1);
 // hardcoded value in that case.
 int32_t weapon_feel_consume_shot_cooldown_timer1(int32_t special_type);
 
+// Decide whether the weapon's trigger effect should be active right now.
+// Caller (game.cpp) supplies two primitives so weapon_feel doesn't need
+// to know about Thing* / state enums:
+//   * in_shot_cycle — Timer1 is counting down from a real shot AND the
+//                     person is in a firing state (shot just fired,
+//                     mid-cooldown).
+//   * mag_empty    — current clip is 0 (or reload gate is set, meaning
+//                    we're in the reload-press window before the next
+//                    real shot). See game.cpp's mag_empty computation.
+//
+// Per-weapon policy:
+//   * auto-fire weapons (AK47, Machine effect): effect represents
+//     recoil from real shots, so ON while in_shot_cycle. Additionally
+//     ON during mag_empty IF a reload click is configured — gamepad.cpp
+//     swaps the effect to a Weapon25 click with reload params during
+//     that window so the reload press has a pistol-style click.
+//
+//   * single-shot weapons (pistol, Weapon25 click): effect is a
+//     pre-fire click the player squeezes into. OFF during shot cycle
+//     so the hardware can't re-click during cooldown, ON otherwise.
+//     mag_empty is ignored (pistol's main effect already is a click).
+//
+// Caller still wraps this with its own "weapon drawn / non-firing
+// state / target surrendered" gates — those are game-level policies
+// this module has no opinion on.
+bool weapon_feel_trigger_effect_should_run(int32_t current_weapon, bool in_shot_cycle, bool mag_empty);
+
 // Pre-release threshold in Timer1 units. Both the fire gate and the
 // DualSense mode gate open when Person->Timer1 drops to this value,
 // rather than waiting for exact zero. Motor mode=AIM_GUN turns on at
@@ -213,7 +253,7 @@ struct WeaponFireDecision {
 //     armed gate, auto-fire bypasses the gate). Covers bare-hand melee,
 //     auto-fire weapons, click-less weapons, and non-DualSense devices.
 // See the design section at the top of weapon_feel.cpp for details.
-WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn);
+WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn, bool mag_empty);
 
 // Reset rising-edge armed state. Call when the player enters a car, drops
 // the weapon, or in any context where triggers aren't being read as fire
