@@ -22,6 +22,16 @@
 #include <cstddef>
 #include <cstdint>
 
+// DualSense adaptive-trigger effect for this weapon. Single-shot guns
+// (pistol) get a Weapon25 click at a narrow zone; auto-fire weapons
+// (AK47) get a Machine (0x27) two-beat pulse spanning the whole press
+// range so feedback stays present when the trigger is held fully down.
+enum class TriggerEffectType : uint8_t {
+    None = 0,  // no adaptive trigger effect (trigger free)
+    Weapon,    // single click between start/end zones
+    Machine,   // continuous two-amplitude pulse between start/end zones
+};
+
 struct WeaponFeelProfile {
     // --- Haptic envelope (slow rumble motor) -------------------------------
     // haptic_wave_id: index into sound_list[] (see assets/sound_id.h). Zero
@@ -31,21 +41,64 @@ struct WeaponFeelProfile {
     // haptic_max_seconds: envelope truncation. MUST be shorter than the
     //                 weapon's auto-fire cooldown or consecutive shots
     //                 overlap into continuous buzz.
+    // The envelope is device-agnostic: on DualSense it plays on the slow
+    // (left) voice-coil motor; on Xbox / generic SDL gamepads it plays
+    // on the low-frequency rumble motor via sdl3_gamepad_rumble.
+    // haptic_xbox_boost: multiplier applied to envelope output when the
+    //                 active device is NOT a DualSense. Xbox / generic
+    //                 rumble motors are less responsive to small
+    //                 amplitudes, so a weapon tuned quiet on DS (low
+    //                 ceiling) often feels missing on Xbox. Peak is
+    //                 clamped to 255 after the multiply. 1.0 = no
+    //                 change.
     uint32_t haptic_wave_id;
     float    haptic_gain;
     uint8_t  haptic_ceiling;
     float    haptic_max_seconds;
+    float    haptic_xbox_boost;
 
-    // --- Adaptive trigger (DualSense Weapon25) -----------------------------
-    // Per the reverse-engineered Sony Weapon (0x25) effect spec (Nielk1
-    // gist) with the fixed lib packing patch in GamepadTrigger.h:
-    //   trigger_start_zone: startPosition — zone where click zone begins (2..7)
-    //   trigger_end_zone:   endPosition   — zone where click zone ends (start+1..8)
-    //   trigger_strength:   0..8, hardware receives strength-1
-    // Zero trigger_strength disables the adaptive-trigger click entirely.
+    // --- Adaptive trigger (DualSense) --------------------------------------
+    // trigger_effect selects which DualSense effect runs on R2 while the
+    // weapon is ready:
+    //   None    — trigger stays free.
+    //   Weapon  — Weapon25 click. Uses start_zone, end_zone, strength.
+    //             Per Nielk1 gist with the lib packing patch:
+    //               start_zone:  click zone begin (2..7)
+    //               end_zone:    click zone end   (start+1..8)
+    //               strength:    0..8 (hardware receives strength-1)
+    //             Zero strength disables the effect.
+    //   Machine — Machine (0x27) two-beat pulse. Uses start_zone, end_zone,
+    //             machine_amp_a, machine_amp_b, machine_frequency,
+    //             machine_period. Effect is "on" whenever R2 is inside
+    //             [start_zone, end_zone]; both amplitudes at zero
+    //             disables the effect. Setting end_zone=8 makes the
+    //             effect cover the whole press range so the pulse
+    //             doesn't cut out when the player bottoms the trigger.
+    TriggerEffectType trigger_effect;
     uint8_t  trigger_start_zone;
     uint8_t  trigger_end_zone;
-    uint8_t  trigger_strength;
+    uint8_t  trigger_strength;     // Weapon only
+    uint8_t  machine_amp_a;        // Machine only, 0..7
+    uint8_t  machine_amp_b;        // Machine only, 0..7
+    uint8_t  machine_frequency;    // Machine only, pulse rate
+    uint8_t  machine_period;       // Machine only, pattern period
+
+    // --- Between-shot anim interlude (for auto-fire weapons) --------------
+    // aim_interlude_anim: secondary animation ID played during the latter
+    //     part of each shot cycle, after the main shoot animation has
+    //     finished playing but before Timer1 reaches zero and the next
+    //     shot fires. Mirrors the original MuckyFoot AIM_GUN-anim visual
+    //     when the state machine used to ping-pong between SUB_STATE_SHOOT_GUN
+    //     and SUB_STATE_AIM_GUN: persona alternates shoot-pose ↔ aim-pose
+    //     each cycle ("колбасится" effect). Set to 0 to keep the primary
+    //     shoot anim running (pistol / shotgun — single-shot weapons never
+    //     hit the interlude because Timer1 expires via a new PUNCH before
+    //     the anim switch would matter). The ID is a raw anim_id from
+    //     things/characters/anim_ids.h; the unified SHOOT_GUN handler
+    //     calls set_anim on it when person_normal_animate_speed signals
+    //     end==1, which then plays naturally on subsequent ticks until
+    //     Timer1=0 triggers the next shot.
+    int32_t  aim_interlude_anim;
 
     // --- Analog fire detection ---------------------------------------------
     // fire_threshold: R2/L2 value above which the shot fires (0..255).

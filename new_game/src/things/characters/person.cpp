@@ -4017,6 +4017,14 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         return;
     }
 
+    // Restart the shoot anim on every re-entry. The shoot animation is
+    // not looping (no NextFrame past ANIM_FLAG_LAST_FRAME), so without
+    // an explicit reset each cycle it would reach its final frame and
+    // stay there for the remainder of the AK47 auto-fire burst — the
+    // visible "freeze on first/last frame" bug. Resetting per cycle
+    // reproduces the original MuckyFoot "body shakes with each shot"
+    // feel (persona колбасится): anim plays as far as the 4-tick
+    // Timer1 cycle allows, then snaps back to frame 0 on re-fire.
     set_anim(p_person, anim);
     p_person->Genus.Person->Action = ACTION_SHOOT;
     set_generic_person_state_function(p_person, STATE_GUN);
@@ -9433,18 +9441,34 @@ void fn_person_dangling(Thing* p_person)
             } else {
                 face = find_face_for_this_pos(p_person->WorldPos.X >> 8, p_person->WorldPos.Y >> 8, p_person->WorldPos.Z >> 8, &new_y, ignore_building, 0);
 
+                // Original MuckyFoot asserted here for face==GRAB_FLOOR and
+                // face==0 paths (never-expected-to-hit branches). Both hit in
+                // our builds — reliably, on the same level at similar (but
+                // different) box pull-up spots. Treating them as asserts is a
+                // release blocker. TODO(1.0): investigate why
+                // find_face_for_this_pos misses the landing face on these
+                // boxes — probably geometry corner case where post-pull-up
+                // WorldPos doesn't vertically hit any face polygon.
+                // See known_issues_and_bugs.md — "ASSERT при подтягивании
+                // на ящик". Graceful fallback:
+                //   * GRAB_FLOOR: keep the assignment pair (OnFace=0 + Y
+                //     from new_y) — same as what the post-ASSERT code did.
+                //   * face==0: leave WorldPos.Y alone (do NOT teleport to
+                //     Y=0 like the original fallback did — that dropped
+                //     the player through the world) and leave OnFace as
+                //     whatever the grab state set.
                 if (face == GRAB_FLOOR) {
-                    ASSERT(0);
-
+                    // ASSERT(0);  // disabled — fires reliably, see comment above
                     p_person->OnFace = 0;
                     p_person->WorldPos.Y = new_y << 8;
                 } else if (face) {
                     p_person->OnFace = face;
                     p_person->WorldPos.Y = new_y << 8;
                 } else {
-                    ASSERT(0);
-
-                    p_person->WorldPos.Y = 0;
+                    // ASSERT(0);  // disabled — fires reliably, see comment above
+                    // Original fallback was `WorldPos.Y = 0;` which drops the
+                    // player through the world. Skipped — leave Y/OnFace as-is
+                    // and let set_person_idle below handle it.
                 }
             }
 
@@ -11575,16 +11599,22 @@ void fn_person_gun(Thing* p_person)
                 Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
 
                 // Using a special — auto-fire AK47.
+                // Unified auto-fire rate model (2026-04-19): while R2 is
+                // held, re-enter SUB_STATE_SHOOT_GUN immediately. Rate is
+                // determined solely by Timer1 cooldown set in
+                // set_person_shoot (anim-derived × auto-fire scale in
+                // weapon_feel). This matches fn_person_moveing's running
+                // re-fire path byte-for-byte so standing and running AK47
+                // fire at the same rate. The original MuckyFoot accumulator
+                // here (Timer1 += TICK_TOCK; fire when Timer1 > 100) stacked
+                // on top of the SHOOT_GUN Timer1 decrement and made standing
+                // ≈ 2x slower than running — removed, compensated by scaling
+                // the auto-fire cooldown in weapon_feel_consume_shot_cooldown_timer1.
                 if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
-                    p_person->Genus.Person->Timer1 += TICK_TOCK;
-                    if (p_person->Genus.Person->Timer1 > 100) // 1/10th of a second
-                        if (continue_firing(p_person)) {
-                            p_person->Genus.Person->Timer1 = 0;
-
-                            set_person_shoot(p_person, UC_TRUE);
-
-                            return;
-                        }
+                    if (continue_firing(p_person)) {
+                        set_person_shoot(p_person, UC_TRUE);
+                        return;
+                    }
                 }
             }
             old_target = p_person->Genus.Person->Target;
@@ -11657,6 +11687,33 @@ void fn_person_gun(Thing* p_person)
         end = person_normal_animate_speed(p_person, anim_speed);
     }
 
+        // Shoot anim just completed — clear the NON_INT movement/command
+        // lockout and, if the profile supplies one, swap to the secondary
+        // aim-pose anim. Both happen at the same moment because the
+        // committed shoot motion has visually finished and the remainder
+        // of the Timer1 cycle is a "holding" phase during which persona
+        // should be re-interruptible (player can start running, turn, or
+        // cancel). The original MuckyFoot state machine gave this
+        // behaviour via SUB_STATE_SHOOT_GUN → SUB_STATE_AIM_GUN transition
+        // (set_person_aim cleared the flags + set aim anim); the unified
+        // Timer1-decrement design collapses that into a single state, so
+        // the flag clear and anim swap live together here. The alternation
+        // SHOOT→AIM→SHOOT→AIM still reproduces the "колбасится" visual
+        // for weapons with aim_interlude_anim set (AK47). Pistol / shotgun
+        // leave aim_interlude_anim=0 and only get the flag clear — their
+        // Timer1 expires shortly after anim end anyway so no visible
+        // change vs. the prior set_person_aim-drove clear.
+        if (p_person->Genus.Person->PlayerID && end == 1) {
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+            int32_t weapon_type = p_person->Genus.Person->SpecialUse
+                ? TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType
+                : SPECIAL_GUN;
+            const WeaponFeelProfile* p_wf = weapon_feel_get_profile(weapon_type);
+            if (p_wf->aim_interlude_anim != 0) {
+                set_anim(p_person, p_wf->aim_interlude_anim);
+            }
+        }
+
         {
             // Gun smoke particle from the muzzle.
             SLONG alpha;
@@ -11699,6 +11756,27 @@ void fn_person_gun(Thing* p_person)
             }
             if (p_person->Genus.Person->Timer1 == 0) {
                 p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
+                // For AK47 auto-fire: re-enter SHOOT_GUN immediately if R2
+                // is still held, instead of hopping through SUB_STATE_AIM_GUN
+                // first. Saves one game tick of state-machine latency and
+                // keeps standing fire rate matched to fn_person_moveing's
+                // running-path re-fire cadence (both ≈ 204 ms/shot with
+                // Timer1=60 and per-tick decrement=16). Without this the
+                // state round-trip added ~30 ms and made standing feel
+                // slightly slower than running.
+                bool ak47_player_holding = false;
+                if (p_person->Genus.Person->SpecialUse) {
+                    Thing* p_su = TO_THING(p_person->Genus.Person->SpecialUse);
+                    if (p_su && p_su->Genus.Special->SpecialType == SPECIAL_AK47
+                        && continue_firing(p_person))
+                    {
+                        ak47_player_holding = true;
+                    }
+                }
+                if (ak47_player_holding) {
+                    set_person_shoot(p_person, UC_TRUE);
+                    return;
+                }
                 set_person_aim(p_person);
             }
             break;

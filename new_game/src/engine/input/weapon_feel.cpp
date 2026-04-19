@@ -9,10 +9,14 @@
 //      the weapon's WAV, played on the DualSense slow-rumble motor on each
 //      shot. Gives per-weapon "texture" instead of a buzz.
 //
-//   2. Adaptive trigger (DualSense Weapon25 click) — physical click on R2
-//      at a per-weapon zone/amplitude. The mode state machine lives in
-//      gamepad.cpp; this module just provides the parameters via the
-//      WeaponFeelProfile.
+//   2. Adaptive trigger (DualSense) — physical effect on R2 selected per
+//      weapon via WeaponFeelProfile::trigger_effect:
+//        * Weapon  — Weapon25 single click at a narrow zone (pistol).
+//        * Machine — two-beat continuous pulse spanning a wider zone
+//                    (AK47; rattle stays present while R2 is held).
+//        * None    — trigger free (shotgun).
+//      The mode state machine lives in gamepad.cpp; this module only
+//      provides the parameters.
 //
 //   3. Analog fire detection — converts R2/L2 to discrete "shoot" and
 //      "kick" events on rising edges past fire_threshold, with rearm via
@@ -57,23 +61,25 @@
 // Two paths share one evaluator, picked at runtime per weapon+device:
 //
 //   * ADAPTIVE-CLICK path — used when the device is a DualSense AND the
-//     weapon's profile has an adaptive click (trigger_strength > 0)
-//     AND it's single-shot AND the weapon is currently drawn (caller
-//     passes FLAG_PERSON_GUN_OUT as `weapon_drawn`). Fires when the
-//     analog trigger crosses the upper edge of the weapon's Weapon25
-//     zone going up (end_zone × R2_UNITS_PER_ZONE). This puts the PC-
-//     side fire event at the same physical trigger position where the
-//     DualSense motor physically clicks — tactile feedback and game
-//     shot land on the same instant. No rising-edge armed gate on
-//     this path; hardware naturally enforces one click per press
-//     cycle. Game Timer1 still rate-limits.
+//     weapon's profile uses TriggerEffectType::Weapon with non-zero
+//     strength AND it's single-shot AND the weapon is currently drawn
+//     (caller passes FLAG_PERSON_GUN_OUT as `weapon_drawn`). Fires
+//     when the analog trigger crosses the upper edge of the weapon's
+//     Weapon25 zone going up (end_zone × R2_UNITS_PER_ZONE). This
+//     puts the PC-side fire event at the same physical trigger
+//     position where the DualSense motor physically clicks — tactile
+//     feedback and game shot land on the same instant. No rising-edge
+//     armed gate on this path; hardware naturally enforces one click
+//     per press cycle. Game Timer1 still rate-limits.
 //
-//   * THRESHOLD fallback — used for auto-fire weapons (AK47), click-
-//     less profiles (shotgun today), bare-hand melee (no gun out),
-//     and all non-DualSense devices (Xbox, keyboard-as-gamepad).
-//     Plain rising-edge: r2 ≤ reset_threshold arms, r2 > fire_threshold
-//     fires. Auto-fire ignores the armed gate. This is the original
-//     detection used for everyone before the DualSense split.
+//   * THRESHOLD fallback — used for auto-fire weapons (AK47 with
+//     Machine effect), effect-less profiles (shotgun today), bare-hand
+//     melee (no gun out), and all non-DualSense devices (Xbox,
+//     keyboard-as-gamepad). Plain rising-edge: r2 ≤ reset_threshold
+//     arms, r2 > fire_threshold fires. Auto-fire ignores the armed
+//     gate. For weapons with a Machine effect, fire_threshold is
+//     derived from trigger_start_zone so the game begins firing at
+//     the same position where the trigger pulse becomes audible.
 //
 // Why two paths: on DualSense the zone-upper crossing aligns with
 // where the motor physically snaps (by construction — both come from
@@ -211,15 +217,22 @@ std::unordered_map<int32_t, ProfileEntry> s_profiles;
 bool s_initialized = false;
 
 // Default fallback for weapons with no registered profile. Pistol-like
-// rising-edge fire with no haptic and no adaptive trigger click.
+// rising-edge fire with no haptic and no adaptive trigger effect.
 const WeaponFeelProfile k_default_profile = {
     /*haptic_wave_id*/    0,
     /*haptic_gain*/       0.0f,
     /*haptic_ceiling*/    0,
     /*haptic_max_seconds*/0.0f,
+    /*haptic_xbox_boost*/ 1.0f,
+    /*trigger_effect*/    TriggerEffectType::None,
     /*trigger_start_zone*/0,
     /*trigger_end_zone*/  0,
-    /*trigger_strength*/  0,   // 0 = no adaptive click
+    /*trigger_strength*/  0,
+    /*machine_amp_a*/     0,
+    /*machine_amp_b*/     0,
+    /*machine_frequency*/ 0,
+    /*machine_period*/    0,
+    /*aim_interlude_anim*/0,
     /*fire_threshold*/    200,
     /*reset_threshold*/   80,
     /*auto_fire*/         false,
@@ -429,6 +442,11 @@ bool   s_playing = false;
 float  s_play_time = 0.0f;
 size_t s_prev_index = 0;
 const HapticEnvelope* s_active_env = nullptr;
+// Non-DS multiplier for the currently playing envelope. Latched when
+// the envelope starts so a weapon swap mid-playback doesn't remix
+// scaling factors on the same waveform. Applied only on non-DualSense
+// devices; DualSense path reads s_active_env peaks unchanged.
+float  s_active_xbox_boost = 1.0f;
 
 std::chrono::steady_clock::time_point s_last_tick;
 bool s_tick_initialized = false;
@@ -465,42 +483,92 @@ void weapon_feel_init()
     // Weapon25 params are currently identical across weapons but live in the
     // profile so per-weapon tuning is a one-line change.
 
-    // AK47 — auto-fire, short per-shot kick. haptic_max_seconds < cooldown
-    // between auto-fire shots, otherwise envelopes merge into buzz.
+    // AK47 — auto-fire. Adaptive trigger runs Machine (0x27) pulse spanning
+    // zones [PISTOL_CLICK_START..8] so the player feels "machine gun" rattle
+    // the moment R2 enters the firing zone and it stays present even when
+    // R2 is pressed to the stop. fire_threshold is derived from the same
+    // start zone so the game starts firing on the same physical position
+    // where the trigger effect kicks in. Machine frequency/period/amps are
+    // initial guesses — user will tune by feel. haptic_max_seconds <
+    // cooldown between auto-fire shots so envelopes don't merge into buzz.
+    constexpr uint8_t PISTOL_CLICK_START = 4;
+    // end=9 makes the pulse zone reach the trigger's full press stop.
+    // With end=8 a fully bottomed-out R2 (zone 9) sits past the effect
+    // and the pulse goes silent — the user felt this as "выключается
+    // при вжимании в пол".
+    constexpr uint8_t AK47_MACHINE_END   = 9;
+    // Machine params mirror the input-debug Machine tester defaults —
+    // empirically confirmed to produce a clearly felt rattle on real
+    // hardware. Weaker values (ampA=5, ampB=2, period=4) were tried
+    // first and felt absent on the controller.
+    constexpr uint8_t AK47_MACHINE_AMP_A = 7;    // 0..7, pulse amplitude high beat
+    constexpr uint8_t AK47_MACHINE_AMP_B = 3;    // 0..7, low beat
+    constexpr uint8_t AK47_MACHINE_FREQ  = 8;    // pulse frequency (Hz-ish)
+    constexpr uint8_t AK47_MACHINE_PERIOD = 80;  // pattern period; higher = slower pulse rate
     WeaponFeelProfile ak47 = {
         /*haptic_wave_id*/    S_AK47_BURST,
         /*haptic_gain*/       0.4f,
         /*haptic_ceiling*/    90,
         /*haptic_max_seconds*/0.04f,
-        /*trigger_start_zone*/0,
-        /*trigger_end_zone*/  0,
-        /*trigger_strength*/  0,
-        /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
+        /*haptic_xbox_boost*/ 1.0f,
+        /*trigger_effect*/    TriggerEffectType::Machine,
+        /*trigger_start_zone*/PISTOL_CLICK_START,
+        /*trigger_end_zone*/  AK47_MACHINE_END,
+        /*trigger_strength*/  0,                  // unused for Machine
+        /*machine_amp_a*/     AK47_MACHINE_AMP_A,
+        /*machine_amp_b*/     AK47_MACHINE_AMP_B,
+        /*machine_frequency*/ AK47_MACHINE_FREQ,
+        /*machine_period*/    AK47_MACHINE_PERIOD,
+        // Between-shot pose anim matches what set_person_aim would have
+        // assigned on the original AIM_GUN transition (SpecialUse != NULL
+        // → ANIM_SHOTGUN_AIM). Unified SHOOT_GUN handler swaps to this
+        // after the shoot anim ends so persona still "колбасится"
+        // visually (SHOOT pose → aim pose → SHOOT pose per cycle) even
+        // though the state machine no longer bounces through AIM_GUN.
+        /*aim_interlude_anim*/ANIM_SHOTGUN_AIM,
+        /*fire_threshold*/    (uint8_t)(PISTOL_CLICK_START * R2_UNITS_PER_ZONE),
         /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
         /*auto_fire*/         true,
     };
-    // Pistol — single-shot light pop. Rising-edge fire.
+    // Pistol — single-shot light pop. Rising-edge fire on Weapon25 click.
+    // Xbox boost compensates for the rumble motor's low-amplitude
+    // insensitivity — the DS-calibrated ceiling=18 is barely perceptible
+    // on Xbox without it.
     WeaponFeelProfile pistol = {
         /*haptic_wave_id*/    S_PISTOL_SHOT,
         /*haptic_gain*/       0.05f,
         /*haptic_ceiling*/    18,
         /*haptic_max_seconds*/0.035f,
-        /*trigger_start_zone*/4,
+        /*haptic_xbox_boost*/ 4.0f,
+        /*trigger_effect*/    TriggerEffectType::Weapon,
+        /*trigger_start_zone*/PISTOL_CLICK_START,
         /*trigger_end_zone*/  6,
         /*trigger_strength*/  5,
+        /*machine_amp_a*/     0,
+        /*machine_amp_b*/     0,
+        /*machine_frequency*/ 0,
+        /*machine_period*/    0,
+        /*aim_interlude_anim*/0, // single-shot — no interlude needed
         /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
         /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
         /*auto_fire*/         false,
     };
-    // Shotgun — heavy slam with longer decay.
+    // Shotgun — heavy slam with longer decay. No adaptive effect.
     WeaponFeelProfile shotgun = {
         /*haptic_wave_id*/    S_SHOTGUN_SHOT,
         /*haptic_gain*/       0.55f,
         /*haptic_ceiling*/    140,
         /*haptic_max_seconds*/0.09f,
+        /*haptic_xbox_boost*/ 1.0f,
+        /*trigger_effect*/    TriggerEffectType::None,
         /*trigger_start_zone*/0,
         /*trigger_end_zone*/  0,
         /*trigger_strength*/  0,
+        /*machine_amp_a*/     0,
+        /*machine_amp_b*/     0,
+        /*machine_frequency*/ 0,
+        /*machine_period*/    0,
+        /*aim_interlude_anim*/0, // single-shot — no interlude needed
         /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
         /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
         /*auto_fire*/         false,
@@ -569,8 +637,6 @@ void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1)
         s_cooldown_debt = 0;
     }
 
-    if (gamepad_get_device_type() != INPUT_DEVICE_DUALSENSE) return;
-
     auto it = s_profiles.find(special_type);
     if (it == s_profiles.end()) return;
     const ProfileEntry& entry = it->second;
@@ -579,15 +645,21 @@ void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1)
     // motor doesn't emit a phantom click in the HID RTT window before
     // the next gamepad_triggers_update applies the post-fire cooldown
     // gate. Auto-fire weapons keep the motor armed across bursts.
+    // gamepad_triggers_lockout is a no-op on non-DualSense devices.
     if (!entry.profile.auto_fire) {
         gamepad_triggers_lockout(0);
     }
 
+    // Envelope plays on every device: DualSense slow motor, Xbox / SDL
+    // gamepads via the low-frequency rumble channel. gamepad_rumble_tick
+    // max-merges the envelope value into whichever output path the
+    // active device uses.
     if (!entry.envelope.loaded) return;
 
     // Restart envelope on each shot — matches sound retrigger behaviour for
     // auto-fire bursts.
     s_active_env = &entry.envelope;
+    s_active_xbox_boost = entry.profile.haptic_xbox_boost;
     s_play_time = 0.0f;
     s_prev_index = 0;
     s_playing = true;
@@ -606,7 +678,24 @@ int32_t weapon_feel_consume_shot_cooldown_timer1(int32_t special_type)
         s_cooldown_debt = 0;
         return 0;
     }
-    SLONG base = ticks_to_timer1(ticks);
+
+    // Auto-fire weapons (AK47) need a longer between-shot cooldown than
+    // the shoot-anim tick count alone produces. Original MuckyFoot
+    // achieved this by stacking a separate TICK_TOCK accumulator in
+    // SUB_STATE_AIM_GUN on top of the SHOOT_GUN Timer1 decrement — two
+    // phases per shot cycle. We removed that accumulator (player only)
+    // to unify standing and running rate; to keep the user-preferred
+    // slower cadence (matches the original standing feel), the anim-
+    // derived Timer1 is scaled up here for auto-fire weapons. Empirical
+    // factor: 2 (observed standing cycle ≈ 2× running cycle in the
+    // original two-phase design). Non-auto-fire weapons (pistol)
+    // unaffected — they already worked symmetrically via pure anim-
+    // derived Timer1 since set_person_shoot was unified 2026-04-18.
+    constexpr SLONG AUTO_FIRE_COOLDOWN_SCALE = 2;
+    const WeaponFeelProfile* p = weapon_feel_get_profile(special_type);
+    const SLONG scale = p->auto_fire ? AUTO_FIRE_COOLDOWN_SCALE : 1;
+
+    SLONG base = ticks_to_timer1(ticks) * scale;
     SLONG total = base + s_cooldown_debt;
     s_cooldown_debt = 0;
     return total;
@@ -658,6 +747,16 @@ uint8_t weapon_feel_tick_haptic(bool* out_active)
         if (s_active_env->samples[i] > peak) peak = s_active_env->samples[i];
     }
     s_prev_index = curr_index + 1;
+
+    // Non-DualSense devices get the profile's Xbox boost applied — rumble
+    // motors on Xbox / generic gamepads are less responsive at low
+    // amplitudes so weapons tuned quiet for DS feel absent without it.
+    // DS path keeps the envelope peak untouched.
+    if (gamepad_get_device_type() != INPUT_DEVICE_DUALSENSE && s_active_xbox_boost != 1.0f) {
+        float boosted = (float)peak * s_active_xbox_boost;
+        if (boosted > 255.0f) boosted = 255.0f;
+        peak = (uint8_t)boosted;
+    }
 
     if (out_active) *out_active = true;
     return peak;
@@ -725,7 +824,8 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     // CANNOT distinguish bare-hand from pistol by current_weapon
     // alone — the caller passes weapon_drawn (FLAG_PERSON_GUN_OUT).
     const bool device_is_ds     = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
-    const bool weapon_has_click = p->trigger_strength != 0;
+    const bool weapon_has_click = (p->trigger_effect == TriggerEffectType::Weapon
+                                   && p->trigger_strength != 0);
     const bool use_act_path     = device_is_ds && weapon_has_click && !p->auto_fire && weapon_drawn;
 
     if (use_act_path) {

@@ -3323,11 +3323,22 @@ ULONG get_hardware_input(UWORD type)
                         int32_t current_weapon = SPECIAL_NONE;
                         bool weapon_drawn = false;
                         if (p_darci && p_darci->Genus.Person) {
-                            weapon_drawn = (p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                            const bool has_pistol_out =
+                                (p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                            bool has_heavy_out = false;
                             if (p_darci->Genus.Person->SpecialUse) {
                                 Thing* p_special = TO_THING(p_darci->Genus.Person->SpecialUse);
-                                if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
+                                if (p_special) {
+                                    current_weapon = p_special->Genus.Special->SpecialType;
+                                    has_heavy_out = (current_weapon == SPECIAL_AK47 ||
+                                                     current_weapon == SPECIAL_SHOTGUN);
+                                }
                             }
+                            // Pistol sits in FLAG_PERSON_GUN_OUT with no Thing*;
+                            // AK47 / shotgun sit in SpecialUse with the flag
+                            // cleared (see set_person_draw_item). Either counts
+                            // as "weapon drawn" for fire detection.
+                            weapon_drawn = has_pistol_out || has_heavy_out;
                         }
 
                         // weapon_drawn disambiguates bare-hand punch (no gun)

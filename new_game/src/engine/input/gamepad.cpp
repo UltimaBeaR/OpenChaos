@@ -618,13 +618,27 @@ bool    gamepad_is_adaptive_click_active()
     return s_is_dualsense && s_trigger_mode == TRIGGER_MODE_AIM_GUN;
 }
 
-// Weapon25 params for the most recently activated AIM_GUN profile. Looked
-// up from the weapon_feel profile at apply time so per-weapon tuning flows
-// through without touching this state machine. Semantics per
-// libDualsense trigger_weapon: start 2..7, end (start+1)..8, strength 0..8.
+// Per-weapon adaptive trigger params for the currently active AIM_GUN
+// profile. Looked up from the weapon_feel profile at apply time so
+// per-weapon tuning flows through without touching this state machine.
+//
+// s_aim_gun_effect picks the effect mode sent to the hardware:
+//   Weapon  — single click. Uses start/end/strength only.
+//   Machine — continuous two-beat pulse. Uses start/end + amp_a/amp_b/
+//             frequency/period. Chosen for auto-fire weapons so the
+//             trigger rattles while held, across the full press range.
+//   None    — equivalent to TRIGGER_MODE_NONE (no effect).
+//
+// libDualsense semantics: trigger_weapon start 2..7, end (start+1)..8,
+// strength 0..8; trigger_machine_full amplitudes 0..7.
+static TriggerEffectType s_aim_gun_effect    = TriggerEffectType::Weapon;
 static uint8_t s_aim_gun_start_zone = 4;
 static uint8_t s_aim_gun_end_zone   = 6;
 static uint8_t s_aim_gun_strength   = 5;
+static uint8_t s_aim_gun_amp_a      = 0;
+static uint8_t s_aim_gun_amp_b      = 0;
+static uint8_t s_aim_gun_frequency  = 0;
+static uint8_t s_aim_gun_period     = 0;
 
 static void apply_trigger_mode(TriggerMode mode)
 {
@@ -636,7 +650,21 @@ static void apply_trigger_mode(TriggerMode mode)
         break;
 
     case TRIGGER_MODE_AIM_GUN:
-        ds_trigger_weapon(s_aim_gun_start_zone, s_aim_gun_end_zone, s_aim_gun_strength, 0, 1);
+        // Dispatch on the weapon's configured effect. L2 always free in
+        // aim mode — only the shooting trigger gets a resistive effect.
+        switch (s_aim_gun_effect) {
+        case TriggerEffectType::Weapon:
+            ds_trigger_weapon(s_aim_gun_start_zone, s_aim_gun_end_zone, s_aim_gun_strength, 0, 1);
+            break;
+        case TriggerEffectType::Machine:
+            ds_trigger_machine_full(s_aim_gun_start_zone, s_aim_gun_end_zone,
+                                    s_aim_gun_amp_a, s_aim_gun_amp_b,
+                                    s_aim_gun_frequency, s_aim_gun_period, 1);
+            break;
+        case TriggerEffectType::None:
+            ds_trigger_off(1);
+            break;
+        }
         ds_trigger_off(0);
         break;
 
@@ -664,14 +692,23 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     }
 
     // Refresh AIM_GUN params from the current weapon's profile every frame.
-    // Cheap lookup, lets a weapon swap mid-game update the click feel on the
+    // Cheap lookup, lets a weapon swap mid-game update the feel on the
     // very next transition without any extra plumbing.
     const WeaponFeelProfile* profile = weapon_feel_get_profile(current_weapon);
+    s_aim_gun_effect     = profile->trigger_effect;
     s_aim_gun_start_zone = profile->trigger_start_zone;
     s_aim_gun_end_zone   = profile->trigger_end_zone;
     s_aim_gun_strength   = profile->trigger_strength;
-    // Profiles with zero strength opt out of the adaptive click entirely.
-    const bool weapon_has_click = profile->trigger_strength != 0;
+    s_aim_gun_amp_a      = profile->machine_amp_a;
+    s_aim_gun_amp_b      = profile->machine_amp_b;
+    s_aim_gun_frequency  = profile->machine_frequency;
+    s_aim_gun_period     = profile->machine_period;
+    // Profiles with None opt out of any adaptive trigger effect. Weapon
+    // with zero strength and Machine with both amps zero also count as
+    // "no effect" — the params would produce a silent trigger anyway.
+    const bool weapon_has_effect =
+        (profile->trigger_effect == TriggerEffectType::Weapon  && profile->trigger_strength != 0) ||
+        (profile->trigger_effect == TriggerEffectType::Machine && (profile->machine_amp_a != 0 || profile->machine_amp_b != 0));
 
     // AIM_GUN stays continuously enabled whenever the weapon is ready.
     //
@@ -697,15 +734,40 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     TriggerMode desired;
     if (in_car) {
         desired = TRIGGER_MODE_CAR;
-    } else if (weapon_ready && weapon_has_click) {
+    } else if (weapon_ready && weapon_has_effect) {
         desired = TRIGGER_MODE_AIM_GUN;
     } else {
         desired = TRIGGER_MODE_NONE;
     }
 
-    if (desired != s_trigger_mode) {
+    // Re-apply on mode transitions, and also while already in AIM_GUN if
+    // the effect or any parameter changed (e.g. player swapped weapons
+    // from pistol Weapon25 to AK47 Machine without dropping through
+    // NONE first).
+    static TriggerEffectType s_last_effect     = TriggerEffectType::None;
+    static uint8_t s_last_start = 0, s_last_end = 0, s_last_strength = 0;
+    static uint8_t s_last_amp_a = 0, s_last_amp_b = 0, s_last_freq = 0, s_last_period = 0;
+    const bool params_changed =
+        s_last_effect     != s_aim_gun_effect     ||
+        s_last_start      != s_aim_gun_start_zone ||
+        s_last_end        != s_aim_gun_end_zone   ||
+        s_last_strength   != s_aim_gun_strength   ||
+        s_last_amp_a      != s_aim_gun_amp_a      ||
+        s_last_amp_b      != s_aim_gun_amp_b      ||
+        s_last_freq       != s_aim_gun_frequency  ||
+        s_last_period     != s_aim_gun_period;
+
+    if (desired != s_trigger_mode || (desired == TRIGGER_MODE_AIM_GUN && params_changed)) {
         s_trigger_mode = desired;
         apply_trigger_mode(desired);
+        s_last_effect   = s_aim_gun_effect;
+        s_last_start    = s_aim_gun_start_zone;
+        s_last_end      = s_aim_gun_end_zone;
+        s_last_strength = s_aim_gun_strength;
+        s_last_amp_a    = s_aim_gun_amp_a;
+        s_last_amp_b    = s_aim_gun_amp_b;
+        s_last_freq     = s_aim_gun_frequency;
+        s_last_period   = s_aim_gun_period;
     }
 }
 

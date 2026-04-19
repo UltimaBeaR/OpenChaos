@@ -6,6 +6,78 @@ adaptive trigger на DualSense. Смежный документ про поче
 
 ---
 
+## 🔧 2026-04-19 — AK47 Machine effect, Xbox rumble, унификация rate стоя/бегом
+
+Три связанные правки поверх финального состояния пистолета ниже.
+
+**1. AK47 adaptive trigger — Machine effect (0x27).** Раньше AK47 имел
+`trigger_strength=0` и триггер оставался свободным. Теперь для AK47
+`trigger_effect = Machine` с зонами `[PISTOL_CLICK_START=4, 9]` — пульс
+начинается в той же точке что Weapon25 клик пистолета и тянется **до
+последней зоны** (включая полное вдавливание триггера). Amp_a=7, amp_b=3,
+frequency=8, period=80 — взято из input-debug Machine тестера (известно
+что на этих значениях эффект уверенно ощущается на железе). Более
+слабые значения (ampA=5, ampB=2, period=4) были не ощутимы.
+`fire_threshold` выведен из `trigger_start_zone * R2_UNITS_PER_ZONE`
+(= 112), так что game начинает стрелять в ту же точку где включается
+эффект. Fire detection — штатный threshold path (auto_fire=true,
+стреляет пока R2 выше порога).
+
+**Побочный фикс в `game.cpp`:** `FLAG_PERSON_GUN_OUT` это **pistol-only**
+флаг — для AK47/shotgun он очищается в `set_person_draw_item`, оружие
+хранится только в `Person->SpecialUse`. Изначально `has_gun` в
+`gamepad_triggers_update`-call-site читал только флаг → для AK47
+`weapon_ready=false` → mode=NONE → триггер молчал. Фикс: `has_gun =
+has_pistol_out || (SpecialUse in {AK47, SHOTGUN})`. Аналогично в
+`input_actions.cpp` для `weapon_drawn` параметра `evaluate_fire`.
+
+**2. Xbox (и любой SDL-gamepad) rumble при стрельбе.** Раньше envelope
+запускался только на DualSense из-за early-return в
+`weapon_feel_on_shot_fired` на `device != DUALSENSE`. Убрал гейт —
+envelope теперь гоняется device-agnostic, а `gamepad_rumble_tick` уже
+max-merges `haptic_slow` в low-freq моторе через `sdl3_gamepad_rumble`.
+Никакого отдельного Xbox-пайплайна не понадобилось. Добавлено
+per-профильное поле `haptic_xbox_boost` (умножитель, применяется только
+на non-DS устройствах) — для пистолета 4.0x (DS-калиброванный ceiling=18
+на Xbox почти не ощущается без boost'а), AK47/shotgun оставлены на 1.0
+(их амплитуды достаточны). DS путь envelope не меняется.
+
+**3. Унификация fire-rate AK47 стоя и бегом.** До 2026-04-19 AK47 стрелял
+на бегу в ~2× быстрее чем стоя (101мс vs 204мс). Причина: оригинальный
+MuckyFoot дизайн использовал Timer1 в двух ролях одновременно — в
+`SUB_STATE_SHOOT_GUN` как cooldown-декремент и в `SUB_STATE_AIM_GUN` как
+accumulator (`Timer1 += TICK_TOCK`, fire при `> 100`). Стоя цикл проходил
+обе фазы (декремент 2 тика + accumulator 2 тика = 4 тика), бег — только
+декремент (2 тика). Баг в симметрии, rate разный.
+
+**Финальный дизайн (после обсуждения с юзером):**
+
+- **Одна унифицированная точка** установки cooldown — `weapon_feel_consume_shot_cooldown_timer1`. Для auto-fire weapons (AK47) значение масштабируется × `AUTO_FIRE_COOLDOWN_SCALE = 2` — компенсирует убранный из state machine AIM_GUN accumulator. Результат: Timer1 = 60 (anim-derived 30 × 2), декремент ~10/тик, цикл = 6 тиков ≈ 204мс. Пистолет не auto-fire, scale=1, его цикл не трогаем.
+- **Одна унифицированная точка** декремента Timer1 и ре-файра — in-place в SHOOT_GUN (player path) и в `fn_person_moveing` (running). Оба делают одно и то же: декрементируют Timer1 одинаковым шагом, при достижении 0 — либо `set_person_running_shoot` (running), либо `set_person_shoot` direct call (standing AK47 с зажатым R2), либо `set_person_aim` (отпустили R2). Итоговый rate одинаков на обоих путях: ~204мс.
+- **AIM_GUN AK47 accumulator удалён** для игрока. В AIM_GUN для AK47 при зажатом R2 — сразу `set_person_shoot`, никаких накоплений.
+- **Анимационный «колбасится»-эффект сохранён через profile-driven feature.** Оригинальный визуальный эффект возникал из чередования анимаций SHOOT ↔ AIM при пинг-понге state machine (`set_person_aim` при выходе из SHOOT_GUN ставил `ANIM_SHOTGUN_AIM`). Поскольку унифицированный декремент держит persona в SHOOT_GUN весь цикл, анимация зависала на последнем кадре SHOOT. Фикс: добавлено поле `WeaponFeelProfile::aim_interlude_anim` (0 = выключено). В SHOOT_GUN handler при `end==1` (завершение анимации выстрела) handler сам свапает анимацию на `aim_interlude_anim` если профиль её указал. Для AK47 стоит `ANIM_SHOTGUN_AIM` — та же что ставил оригинальный `set_person_aim`. Плюс в том же месте снимаются `FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C` (persona становится управляемой между выстрелами — можно начать бежать, повернуться, отменить).
+- Код: никаких per-weapon бранчей типа «if AK47 do X». Weapon специфика вся в профиле: `auto_fire` флаг → scale в weapon_feel; `aim_interlude_anim` → swap в handler. Механизм один, работает для любого оружия которое захочет такое поведение.
+
+**Профиль расширен (итог).** `WeaponFeelProfile` теперь содержит:
+- `TriggerEffectType trigger_effect` (None / Weapon / Machine) + Machine-поля (`machine_amp_a/b`, `machine_frequency`, `machine_period`).
+- `float haptic_xbox_boost` — множитель envelope'а на non-DS устройствах.
+- `int32_t aim_interlude_anim` — вторичная анимация для пост-выстрельной «aim pose» фазы.
+- (существующие) `haptic_*`, `trigger_start_zone/end_zone/strength`, `fire_threshold/reset_threshold`, `auto_fire`.
+
+Пистолет использует Weapon effect (unchanged), AK47 — Machine + interlude, shotgun — None.
+`gamepad.cpp apply_trigger_mode` dispatch'ит по `trigger_effect` в
+AIM_GUN режиме; params_changed-гейт перевыставляет эффект при смене
+оружия без прохода через NONE.
+
+**Известные open-issues на AK47 feel (для следующих сессий):** эффект
+не пропадает при 0 патронов; нет Weapon25-щелчка при смене магазина;
+асимметричный баг перехода стоя→бегом с зажатым R2 (только в одну
+сторону, обратный переход ок). Детали — в
+[`known_issues_and_bugs.md`](../new_game_planning/known_issues_and_bugs.md)
+секция «Управление».
+
+---
+
 ## ✅ ФИНАЛЬНОЕ СОСТОЯНИЕ (2026-04-18 evening) — единый таймер из анимации
 
 Эта секция описывает **рабочее финальное состояние**. Всё что ниже

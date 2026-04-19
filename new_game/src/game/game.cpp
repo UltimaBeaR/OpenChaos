@@ -1002,7 +1002,26 @@ round_again:;
                 Thing* darci_t = NET_PERSON(0);
                 if (darci_t && darci_t->Genus.Person) {
                     bool in_car = darci_t->Genus.Person->InCar != 0;
-                    bool has_gun = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                    // Player has a firearm in hand. Two storage paths in the
+                    // original game: pistol uses FLAG_PERSON_GUN_OUT (no
+                    // Thing* — pistol is implicit), heavy weapons (AK47,
+                    // shotgun) live in SpecialUse with FLAG_PERSON_GUN_OUT
+                    // cleared (see set_person_draw_item in person.cpp).
+                    // Treat either as "gun out" for adaptive-trigger purposes.
+                    bool has_pistol_out = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                    bool has_heavy_out = false;
+                    // Also compute current_weapon here so we can look up the
+                    // WeaponFeelProfile early and branch on auto-fire below.
+                    int32_t current_weapon = SPECIAL_NONE;
+                    if (darci_t->Genus.Person->SpecialUse) {
+                        Thing* p_su = TO_THING(darci_t->Genus.Person->SpecialUse);
+                        if (p_su) {
+                            current_weapon = p_su->Genus.Special->SpecialType;
+                            has_heavy_out = (current_weapon == SPECIAL_AK47 ||
+                                             current_weapon == SPECIAL_SHOTGUN);
+                        }
+                    }
+                    bool has_gun = has_pistol_out || has_heavy_out;
                     // Cooldown signals taken directly from game state —
                     // no wall-clock timers or per-weapon magic numbers.
                     // Timer1 is the unified post-shot cooldown counter
@@ -1055,7 +1074,18 @@ round_again:;
                     // On the run, set_person_running_shoot ignores target status and
                     // always fires, so the click must still happen; we skip the
                     // surrender gate in that state.
-                    bool weapon_ready = has_gun && !on_cooldown && !non_firing_state;
+                    // Auto-fire weapons (AK47) use a continuous trigger
+                    // effect (Machine pulse) that is "on" the whole time
+                    // the weapon is drawn. Gating it by on_cooldown would
+                    // flicker NONE↔AIM_GUN at AK47 fire rate (Timer1 > 0
+                    // for most of each shot's interval), which the user
+                    // reported as "glitchy when running". Single-shot
+                    // weapons (pistol) still gate so the click doesn't
+                    // fire during cooldown.
+                    const WeaponFeelProfile* active_profile = weapon_feel_get_profile(current_weapon);
+                    const bool cooldown_gates_effect = !active_profile->auto_fire;
+                    bool weapon_ready = has_gun && !non_firing_state &&
+                        (!cooldown_gates_effect || !on_cooldown);
                     const bool is_running = (darci_t->State == STATE_MOVEING);
                     if (weapon_ready && !is_running && darci_t->Genus.Person->Target) {
                         Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
@@ -1071,14 +1101,7 @@ round_again:;
                         }
                     }
 
-                    // Current weapon drives the WeaponFeelProfile (click feel
-                    // + fire thresholds). SpecialUse == null means bare-hand
-                    // pistol — SPECIAL_NONE in the profile registry.
-                    int32_t current_weapon = SPECIAL_NONE;
-                    if (darci_t->Genus.Person->SpecialUse) {
-                        Thing* p_special = TO_THING(darci_t->Genus.Person->SpecialUse);
-                        if (p_special) current_weapon = p_special->Genus.Special->SpecialType;
-                    }
+                    // current_weapon computed up top alongside has_heavy_out.
                     gamepad_triggers_update(in_car, weapon_ready, current_weapon);
                 }
             }
