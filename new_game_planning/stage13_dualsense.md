@@ -7,21 +7,18 @@
 
 ---
 
-## Синхронизация adaptive trigger с выстрелом
-Щелчок триггера не совпадает с моментом выстрела — выстрел происходит раньше. Нужно синхронизировать. См. [known_issues](known_issues_and_bugs.md) — "DualSense adaptive trigger: щелчок не совпадает с выстрелом".
+## ~~Синхронизация adaptive trigger с выстрелом~~ ✅ Готово
+Реализовано через act-bit детект. См. [`known_issues_and_bugs_resolved.md`](known_issues_and_bugs_resolved.md) — "DualSense adaptive trigger: щелчок не совпадает с выстрелом".
 
-## Weapon-specific feedback (дробаш, автомат)
-Сейчас adaptive triggers + вибрация реализованы только для пистолета. Для дробаша и автомата — ничего.
+## ~~Weapon-specific feedback (дробовик, автомат)~~ ✅ Готово (2026-04-19)
 
-**Дробаш (shotgun):**
-- Adaptive trigger R2: тяжёлый клик (rigid resistance → резкий провал при выстреле)
-- Вибрация: один сильный короткий удар (оба мотора на максимум, быстрое затухание)
-- Ощущение: мощный одиночный выстрел с сильной отдачей
+Реализовано для всех трёх основных оружий. Фактическая конфигурация — в [`weapon_feel.cpp`](../new_game/src/engine/input/weapon_feel.cpp):
 
-**Автомат (assault rifle):**
-- Adaptive trigger R2: вибрация курка при стрельбе (`TriggerEffectType::Vibration` с frequency + amplitude)
-- Вибрация: серия коротких импульсов синхронно с очередью
-- Возможно audio-to-haptic для натурального ощущения
+- **Пистолет:** Weapon25 клик зоны 4-6, strength 5. Envelope на slow-моторе DualSense.
+- **Автомат (AK47):** Machine (0x27) двуамплитудный пульс (start=4, end=9, ampA=7, ampB=3, freq=8, period=80) — непрерывный rattle на всём диапазоне. Envelope на slow-моторе DualSense + **на Xbox per-motor routing 75/100** (оба мотора, low чуть слабее для более "layered" ощущения).
+- **Дробовик (shotgun):** Weapon25 клик (зоны 3-6, strength 7 — тяжелее пистолетного) как baseline + **post-shot Vibration burst** — после выстрела на триггер включается `ds_trigger_vibration` (position=0, freq=60Hz) с линейно затухающей амплитудой 8→0 за 0.25с. Эмулирует отдачу в курке. Инфраструктура: `TriggerEffectType::Vibration` + поля `post_shot_vibration_*` в профиле + `weapon_feel_tick_trigger_vibration()` API + override в `gamepad_triggers_update`.
+
+Подробности реализации — в архиве решённых багов.
 
 **Референс:** современные шутеры на PS5 (Returnal, Ratchet & Clank, COD MW2) — у каждого оружия свой профиль триггера и haptics.
 

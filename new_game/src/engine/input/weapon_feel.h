@@ -27,9 +27,12 @@
 // (AK47) get a Machine (0x27) two-beat pulse spanning the whole press
 // range so feedback stays present when the trigger is held fully down.
 enum class TriggerEffectType : uint8_t {
-    None = 0,  // no adaptive trigger effect (trigger free)
-    Weapon,    // single click between start/end zones
-    Machine,   // continuous two-amplitude pulse between start/end zones
+    None = 0,   // no adaptive trigger effect (trigger free)
+    Weapon,     // single click between start/end zones
+    Machine,    // continuous two-amplitude pulse between start/end zones
+    Vibration,  // sustained periodic vibration from `position` onwards
+                // (used as a runtime override for the post-shot recoil
+                // burst — not typically set as a baseline profile effect).
 };
 
 struct WeaponFeelProfile {
@@ -56,6 +59,18 @@ struct WeaponFeelProfile {
     uint8_t  haptic_ceiling;
     float    haptic_max_seconds;
     float    haptic_xbox_boost;
+
+    // Xbox / generic SDL rumble — per-motor routing of the envelope peak.
+    // The envelope peak (0..255, boosted by xbox_boost) is scaled by
+    // these percentages (0..100) when writing to the two rumble motors.
+    // Defaults (100/0) send the envelope only to the low-frequency motor
+    // — matches single-motor behaviour. Setting high_percent > 0 fans
+    // the envelope out to the high motor too (fine-grained buzz),
+    // useful for weapons where a single heavy thump feels flat (e.g.
+    // AK47 held-fire). DualSense path uses its own slow-motor envelope
+    // routing and is unaffected.
+    uint8_t  xbox_rumble_low_percent;   // 0..100
+    uint8_t  xbox_rumble_high_percent;  // 0..100
 
     // --- Adaptive trigger (DualSense) --------------------------------------
     // trigger_effect selects which DualSense effect runs on R2 while the
@@ -95,6 +110,23 @@ struct WeaponFeelProfile {
     uint8_t  reload_click_start_zone;
     uint8_t  reload_click_end_zone;
     uint8_t  reload_click_strength;
+
+    // --- Post-shot trigger vibration burst (e.g. shotgun recoil feel) -----
+    // Right after a shot fires, override the main trigger_effect with a
+    // sustained Vibration whose amplitude decays linearly from amp_start
+    // to amp_end over `seconds`, then restores the main effect. Emulates
+    // trigger-side recoil. All zero/off disables the burst.
+    //   post_shot_vibration_seconds:    duration (0 = disabled)
+    //   post_shot_vibration_position:   vibration zone start (0..9; 0 =
+    //                                   felt across the full trigger range)
+    //   post_shot_vibration_frequency:  vibration rate in Hz (1..255)
+    //   post_shot_vibration_amp_start:  amplitude at t=0 (0..8)
+    //   post_shot_vibration_amp_end:    amplitude at t=seconds (0..8; usually 0)
+    float    post_shot_vibration_seconds;
+    uint8_t  post_shot_vibration_position;
+    uint8_t  post_shot_vibration_frequency;
+    uint8_t  post_shot_vibration_amp_start;
+    uint8_t  post_shot_vibration_amp_end;
 
     // --- Between-shot anim interlude (for auto-fire weapons) --------------
     // aim_interlude_anim: secondary animation ID played during the latter
@@ -223,8 +255,27 @@ int32_t weapon_feel_pre_release_timer1();
 // *out_active = true while an envelope is playing.
 uint8_t weapon_feel_tick_haptic(bool* out_active);
 
+// Xbox / generic rumble per-motor envelope scaling for the currently
+// playing envelope. Values are 0..100 (percent of envelope peak). Read
+// after weapon_feel_tick_haptic to route the peak to the two motors.
+// Returns defaults (low=100, high=0) when no envelope is playing.
+void weapon_feel_get_active_xbox_rumble_scales(uint8_t* out_low_percent,
+                                               uint8_t* out_high_percent);
+
 // Stop envelope playback (death, level reset, menu).
 void weapon_feel_stop_haptic();
+
+// Per-frame query for the post-shot trigger vibration burst (see
+// post_shot_vibration_* in WeaponFeelProfile). Returns true while a burst
+// is active for the profile that fired; fills out_position, out_amplitude
+// (0..8, linearly interpolated over the burst lifetime), out_frequency.
+// Returns false otherwise. The returned amplitude changes every frame
+// during the burst — callers should re-apply the Vibration trigger state
+// whenever amplitude changes.
+bool weapon_feel_tick_trigger_vibration(
+    uint8_t* out_position,
+    uint8_t* out_amplitude,
+    uint8_t* out_frequency);
 
 // ---------------------------------------------------------------------------
 // Fire detection (analog R2/L2 → discrete shoot/kick events)

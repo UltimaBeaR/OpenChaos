@@ -112,6 +112,16 @@ extern SLONG calc_angle(SLONG dx, SLONG dz);
 extern SLONG slide_ladder;
 extern SLONG yomp_speed;
 extern SLONG sprint_speed;
+
+// Per-player visual anim-linger timer for walking-fire jog-pose hold. Kept
+// as a file-local array (indexed by PlayerID - 1) rather than a Person
+// struct field so we don't break save-file binary compat (save.cpp writes
+// full sizeof(Person) blobs). NPCs don't need it — they don't swap anim
+// on shot. Decremented by the same per-tick amount as Timer1 so it's
+// FPS-invariant. See set_person_running_shoot / fn_person_moveing walking.
+// Sized for the game's MAX_PLAYERS (=2 at time of writing, see player.h);
+// literal to avoid adding an include just for this constant.
+static UWORD s_player_anim_linger_timer[2] = {0};
 // find_face_for_this_pos declared via fallen/Headers/walkable.h above
 extern void add_thing_to_map(Thing* p_thing);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
@@ -2993,8 +3003,23 @@ void move_locked_tween(Thing* p_person, DrawTween* dt, SLONG t1, SLONG t2)
     }
 }
 
-// Animates person forward at the given speed (256=normal). Advances tween and keyframes,
+// Animates person forward at the given speed. Advances tween and keyframes,
 // applies locked-limb movement, handles fight-frame violence and barrel knockover.
+//
+// `speed` is a Q8 multiplier applied to the anim's native tween step:
+//   ANIM_SPEED_NORMAL (256) = ×1.0 (play at anim-data cadence — no change)
+//   128                     = ×0.5 (half speed)
+//   512                     = ×2.0 (double speed)
+// Multiplies CurrentFrame->TweenStep before the tween advance, so higher
+// `speed` → anim completes in fewer game ticks.
+//
+// History: in MuckyFoot's original (both pre-release and release sources)
+// the active tween_step formula ignored `speed` — it was a dead parameter.
+// Retail shipped with it dormant. Fixed here; pre-existing callers that
+// passed non-normal values (SHOOT_GUN=400, GRAPPLING_RELEASE=512) were
+// switched to ANIM_SPEED_NORMAL to preserve shipped behaviour, see their
+// backup comments. New callers (walking-fire jog cadence) pass real values.
+//
 // Returns 0=still running, 1=anim ended, 2=queued anim loaded.
 // uc_orig: person_normal_animate_speed (fallen/Source/Person.cpp)
 SLONG person_normal_animate_speed(Thing* p_person, SLONG speed)
@@ -3012,7 +3037,9 @@ SLONG person_normal_animate_speed(Thing* p_person, SLONG speed)
     }
 
     {
-        SLONG tween_step = draw_info->CurrentFrame->TweenStep << 1;
+        // Q8 multiply then ×TICK_RATIO below — see function header for
+        // `speed` semantics and history.
+        SLONG tween_step = ((draw_info->CurrentFrame->TweenStep << 1) * speed) >> 8;
 
         tween1 = draw_info->AnimTween;
         tween_step = (tween_step * TICK_RATIO) >> TICK_SHIFT;
@@ -3091,7 +3118,7 @@ SLONG person_normal_animate_speed(Thing* p_person, SLONG speed)
 // uc_orig: person_normal_animate (fallen/Source/Person.cpp)
 SLONG person_normal_animate(Thing* p_person)
 {
-    return (person_normal_animate_speed(p_person, 256));
+    return (person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL));
 }
 
 // Animates person backward (retreats keyframes). Handles locked-limb repositioning.
@@ -3435,7 +3462,10 @@ SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim,
         case SPECIAL_SHOTGUN:
             *anim = ANIM_SHOTGUN_FIRE;
             *time = 400;
-            DIRT_new_sparks(p_person->Genus.Person->GunMuzzle.X >> 8, p_person->Genus.Person->GunMuzzle.Y >> 8, p_person->Genus.Person->GunMuzzle.Z >> 8, 2 | 32);
+            // DIRT_new_sparks (muzzle flash/smoke effect) moved to the
+            // ammo-consumption block below — previously fired here
+            // unconditionally, which leaked a fake flash on dry trigger
+            // pulls with empty mag.
             break;
 
         case SPECIAL_GRENADE:
@@ -3452,6 +3482,17 @@ SLONG shoot_get_ammo_sound_anim_time(Thing* p_person, SLONG* sound, SLONG* anim,
         if (p_special->Genus.Special->ammo) {
             p_special->Genus.Special->ammo -= 1;
             ammo = UC_TRUE;
+            // Shotgun muzzle sparks (the "fire + smoke burst" at the
+            // barrel). Moved here from the switch-case above so it only
+            // fires when a real round is actually consumed, not on dry
+            // pulls when the magazine is empty.
+            if (p_special->Genus.Special->SpecialType == SPECIAL_SHOTGUN) {
+                DIRT_new_sparks(
+                    p_person->Genus.Person->GunMuzzle.X >> 8,
+                    p_person->Genus.Person->GunMuzzle.Y >> 8,
+                    p_person->Genus.Person->GunMuzzle.Z >> 8,
+                    2 | 32);
+            }
         } else {
             // Try to reload from carried ammo packs.
             switch (p_special->Genus.Special->SpecialType) {
@@ -3827,6 +3868,45 @@ void set_person_running_shoot(Thing* p_person)
 
     MFX_play_thing(THING_NUMBER(p_person), sound, MFX_REPLACE, p_person);
     actually_fire_gun(p_person);
+    // Muzzle flash: set per shot, consumed by figure.cpp when it draws the
+    // flash polyon. set_person_shoot (standing fire path) sets this too —
+    // without it here the running/walking fire path had no visible flash
+    // on any weapon. Release bug carried over from the original.
+    p_person->Draw.Tweened->Flags |= DT_FLAG_GUNFLASH;
+    // Muzzle smoke: standing fire emits smoke particles across multiple
+    // shoot-anim ticks in SUB_STATE_SHOOT_GUN (frame-index-driven alpha
+    // fade). The running/walking path doesn't enter that state, so without
+    // this the smoke puff was missing. Emit a single particle with the
+    // same parameters as standing's first tick (alpha=0x6f, max of the
+    // fade sequence) so a shot produces one well-visible puff.
+    //
+    // KNOWN LIMIT (pistol walking): smoke appears slightly behind the
+    // pistol's rendered position. Cause: GunMuzzle is computed during
+    // figure.cpp render from the weapon-prim-vertex-0 transform, and
+    // that render happens at the END of the previous frame using the
+    // anim pose that was current then. When walking+fire swaps the anim
+    // to ANIM_PISTOL_JOG this tick, the NEW pose (arms extended forward)
+    // has its muzzle much further forward than the old pose (ANIM_WALK,
+    // arms at waist) — so the emitted smoke position is still keyed to
+    // the old waist-level muzzle. AK47 is unaffected because ANIM_AK_JOG
+    // is also the anim used on running fire, so last frame's muzzle
+    // already matches the current pose. Proper fix requires deferring
+    // the particle emit until after the next render's GunMuzzle update
+    // (or recomputing muzzle from current anim pose at emit time, which
+    // duplicates figure.cpp's matrix math). Left as-is — user-reported
+    // "not that annoying."
+    {
+        constexpr ULONG SMOKE_ALPHA_FIRST_TICK = 0x6f;
+        PARTICLE_Add(
+            p_person->Genus.Person->GunMuzzle.X,
+            p_person->Genus.Person->GunMuzzle.Y,
+            p_person->Genus.Person->GunMuzzle.Z,
+            (Random() & 0xff) - 0x7f, 0xff, (Random() & 0xff) - 0x7f,
+            POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2),
+            (SMOKE_ALPHA_FIRST_TICK << 24) | 0x00FFFFFF,
+            PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
+            150, 28, 1, 8, 1);
+    }
     // A real shot actually fired — clear reload gate (covers the case where
     // the gate was stuck from a prior standing-state reload the player
     // didn't release R2 through).
@@ -3847,6 +3927,39 @@ void set_person_running_shoot(Thing* p_person)
         if (calc > 0) timer1_value = calc;
     }
     p_person->Genus.Person->Timer1 = timer1_value;
+
+    // Visual anim linger (walking fire path): after a shot commits, keep
+    // the jog-pose anim active for a short grace period so the swap back
+    // to the plain walk anim isn't jarring. Stored separately from Timer1
+    // so it doesn't rate-limit fire (Timer1 still gates cooldown). Value
+    // is in Timer1 units (same per-tick decrement), so the grace stays
+    // FPS-invariant.
+    //
+    // Pistol gets more grace (anim-swap is the most visible there:
+    // ANIM_WALK → ANIM_PISTOL_JOG is a big pose change), AK47 gets less
+    // (its walking fire feels snappy naturally), shotgun none (its shoot
+    // anim carries enough visual time on its own).
+    if (p_person->Genus.Person->PlayerID) {
+        constexpr SLONG ANIM_LINGER_PISTOL = 360; // ≈0.9s
+        constexpr SLONG ANIM_LINGER_AK47   = 360; // ≈0.9s (same as pistol — user pref)
+        SLONG linger = 0;
+        if (!p_person->Genus.Person->SpecialUse
+            && (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT))
+        {
+            linger = ANIM_LINGER_PISTOL;
+        } else if (p_person->Genus.Person->SpecialUse) {
+            Thing* p_sp = TO_THING(p_person->Genus.Person->SpecialUse);
+            if (p_sp->Genus.Special->SpecialType == SPECIAL_AK47) {
+                linger = ANIM_LINGER_AK47;
+            }
+        }
+        const SLONG idx = p_person->Genus.Person->PlayerID - 1;
+        if (linger > 0 && idx >= 0 && idx < 2) {
+            if (s_player_anim_linger_timer[idx] < linger) {
+                s_player_anim_linger_timer[idx] = linger;
+            }
+        }
+    }
 }
 
 // Returns the best weapon type (with ammo) from the person's inventory.
@@ -3942,7 +4055,17 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
         PCOM_call_cop_to_arrest_me(p_person, 1);
     }
 
-    if (p_person->SubState == SUB_STATE_RUNNING) {
+    // Running/walking all route through the running-shoot path: it fires
+    // the projectile + sound without touching State/SubState or anim, so
+    // the movement cycle keeps playing while the shot commits. Without
+    // this the walking dispatch would fall through to the standing path
+    // below — that flips State=STATE_GUN / SubState=SUB_STATE_SHOOT_GUN
+    // and plays ANIM_AK_FIRE (standing-fire), yanking the player out of
+    // their walk cycle mid-shot.
+    if (p_person->SubState == SUB_STATE_RUNNING
+        || p_person->SubState == SUB_STATE_WALKING
+        || p_person->SubState == SUB_STATE_WALKING_BACKWARDS)
+    {
         set_person_running_shoot(p_person);
         return;
     }
@@ -3971,10 +4094,23 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
                         PANEL_new_text(p_person, 8000, XLAT_str(X_GET_DOWN));
                         set_person_dead(p_target, p_person, PERSON_DEATH_TYPE_GET_DOWN, 0, 0);
                         p_person->Genus.Person->Target = NULL;
+                        // Consume the R2 press — for AK47 auto-fire the
+                        // held trigger would otherwise keep ticking and
+                        // find_target_new may latch onto a nearby
+                        // vehicle/object next frame, firing real shots.
+                        // Pistol/shotgun don't need this because they
+                        // are rising-edge only. Gate clears on physical
+                        // R2 release (reused the reload-gate mechanism —
+                        // same "release + repress to continue" semantic).
+                        input_actions_mark_ak47_reload_gate();
                         return;
                     }
                     if (p_target->Genus.Person->PersonType == PERSON_COP && !(p_target->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
                         PANEL_new_text(p_person, 8000, XLAT_str(X_CANT_SHOOT_COP));
+                        // Same rationale as HANDS_UP above — consume the
+                        // press so held R2 doesn't roll into a shot at
+                        // the next valid target.
+                        input_actions_mark_ak47_reload_gate();
                         return;
                     }
                 }
@@ -4066,16 +4202,19 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
                         if (p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP || p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP_LOOP) {
                             PANEL_new_text(p_person, 8000, XLAT_str(X_GET_DOWN));
                             set_person_dead(p_target, p_person, PERSON_DEATH_TYPE_GET_DOWN, 0, 0);
+                            input_actions_mark_ak47_reload_gate();
                             return;
                         }
 
                         if (p_target->Draw.Tweened->CurrentAnim == ANIM_HANDS_UP_LIE) {
                             // Can't shoot civs while they're getting down.
+                            input_actions_mark_ak47_reload_gate();
                             return;
                         }
 
                         if (p_target->Genus.Person->PersonType == PERSON_COP && !(p_target->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
                             PANEL_new_text(p_person, 8000, XLAT_str(X_CANT_SHOOT_COP));
+                            input_actions_mark_ak47_reload_gate();
                             return;
                         }
                     }
@@ -9867,24 +10006,35 @@ void fn_person_moveing(Thing* p_person)
         if (!(p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING))
             if (p_person->Genus.Person->PlayerID)
             {
+                // Countdown since the person last fired his gun.
                 if (p_person->Genus.Person->Timer1) {
                     SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
 
-                    // Countdown since the person last fired his gun.
                     if (p_person->Genus.Person->Timer1 <= ticks) {
                         p_person->Genus.Person->Timer1 = 0;
-
-                        if (p_person->Genus.Person->SpecialUse) {
-                            Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
-
-                            if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
-                                if (continue_firing(p_person)) {
-                                    set_person_running_shoot(p_person);
-                                }
-                            }
-                        }
                     } else {
                         p_person->Genus.Person->Timer1 -= ticks;
+                    }
+                }
+
+                // AK47 auto-fire re-entry: symmetric with SUB_STATE_AIM_GUN
+                // (fn_person_gun) — fire whenever Timer1 has expired and R2
+                // is still held, regardless of whether Timer1 just decremented
+                // to 0 this tick or was already 0 on state entry. The original
+                // layout tied refire to the Timer1-decrement branch only,
+                // which dropped the fire stream on a standing→running
+                // transition because set_person_running zeros Timer1 first
+                // thing — the running tick would then see Timer1==0 and skip
+                // the whole block. continue_firing() still enforces R2
+                // held + ammo + reload gate.
+                if (p_person->Genus.Person->Timer1 == 0
+                    && p_person->Genus.Person->SpecialUse)
+                {
+                    Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+                    if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
+                        if (continue_firing(p_person)) {
+                            set_person_running_shoot(p_person);
+                        }
                     }
                 }
 
@@ -9893,7 +10043,19 @@ void fn_person_moveing(Thing* p_person)
                     player_running_aim_gun(p_person);
                 }
             }
-        end = person_normal_animate(p_person);
+        // Subtle anim speed-up while sprinting — just enough to visibly
+        // distinguish sprint cadence from normal run without going into
+        // the "frantic stomping" territory of the pure physics ratio
+        // (sprint_speed/yomp_speed = 1.75× would match ground-speed
+        // exactly but reads as epileptic on screen). 6/5 ≈ 1.2× is a
+        // purely visual tune — adjust numerator/denominator to taste.
+        {
+            SLONG run_anim_speed = ANIM_SPEED_NORMAL;
+            if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT) {
+                run_anim_speed = (ANIM_SPEED_NORMAL * 6) / 5;
+            }
+            end = person_normal_animate_speed(p_person, run_anim_speed);
+        }
 
         p_person->DY = 0;
 
@@ -10093,6 +10255,100 @@ void fn_person_moveing(Thing* p_person)
         person_normal_animate(p_person);
         break;
     case SUB_STATE_WALKING:
+    {
+        // Walking fire — symmetric with SUB_STATE_RUNNING.
+        // set_person_shoot dispatches walking to set_person_running_shoot
+        // (same as running), so the first shot commits without changing
+        // State/SubState; subsequent shots (AK47 only — pistol/shotgun are
+        // click-to-shoot) are driven from here by the same Timer1 gate.
+        //
+        // firing_active is true while any weapon is on Timer1 cooldown
+        // (== shot just fired, still cooling). Used below to swap the
+        // walk anim to ANIM_AK_JOG at reduced speed — matches how
+        // SUB_STATE_RUNNING renders fire (legs-jog + gun forward).
+        // Without the swap, firing while walking has sound/flash/smoke
+        // but the character's arms stay in the plain-walk pose — looks
+        // like a shot with no firing animation at all. We borrow the
+        // running-jog anim for all weapons because that's what
+        // set_anim_running uses for any gun-out walker (see its
+        // person_has_gun_out → ANIM_AK_JOG branch).
+        bool firing_active = false;
+
+        if (!(p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING))
+            if (p_person->Genus.Person->PlayerID)
+            {
+                SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
+                if (p_person->Genus.Person->Timer1) {
+                    if (p_person->Genus.Person->Timer1 <= ticks) {
+                        p_person->Genus.Person->Timer1 = 0;
+                    } else {
+                        p_person->Genus.Person->Timer1 -= ticks;
+                    }
+                }
+                // Per-player anim-linger countdown — parallel to Timer1
+                // but visual-only (doesn't gate shots). Value is set in
+                // set_person_running_shoot at each fire.
+                const SLONG player_idx = p_person->Genus.Person->PlayerID - 1;
+                if (player_idx >= 0 && player_idx < 2
+                    && s_player_anim_linger_timer[player_idx])
+                {
+                    if (s_player_anim_linger_timer[player_idx] <= ticks) {
+                        s_player_anim_linger_timer[player_idx] = 0;
+                    } else {
+                        s_player_anim_linger_timer[player_idx] -= ticks;
+                    }
+                }
+
+                // AK47 auto-refire: only for AK47 (held-trigger semantics).
+                // Pistol / shotgun are click-to-shoot — single shot per R2
+                // rising edge, handled by set_person_shoot elsewhere.
+                if (p_person->Genus.Person->SpecialUse) {
+                    Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
+                    if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
+                        if (p_person->Genus.Person->Timer1 == 0 && continue_firing(p_person)) {
+                            set_person_running_shoot(p_person);
+                        }
+                    }
+                }
+
+                // firing_active gate for the anim swap. Triggers while
+                // either (a) Timer1 is still in cooldown, or (b) the
+                // visual anim-linger is still running after a shot. The
+                // linger keeps jog pose up after Timer1 expires so the
+                // jog → walk swap isn't jarringly abrupt.
+                const bool linger_active = (player_idx >= 0 && player_idx < 2
+                    && s_player_anim_linger_timer[player_idx] > 0);
+                if ((p_person->Genus.Person->Timer1 > 0 || linger_active)
+                    && person_has_gun_out(p_person))
+                {
+                    firing_active = true;
+                }
+
+                if (person_has_gun_out(p_person)) {
+                    // Walking along with a gun — aim at nearby targets.
+                    player_running_aim_gun(p_person);
+                }
+            }
+
+        // Anim swap: weapon-appropriate jog anim while firing (pistol →
+        // ANIM_PISTOL_JOG, AK47/shotgun → ANIM_AK_JOG, bat → ANIM_YOMP_BAT),
+        // restore walk anim when firing stops. get_yomp_anim already does
+        // the weapon-type dispatch and is the same helper that running uses
+        // post-YOMP_START (see fn_person_moveing SUB_STATE_RUNNING anim-end
+        // branch) — keeps walking visual consistent with running.
+        // CurrentAnim check prevents a frame-0 reset every tick while the
+        // state is stable — only swaps on transition.
+        const SLONG jog_anim = get_yomp_anim(p_person);
+        if (firing_active) {
+            if (p_person->Draw.Tweened->CurrentAnim != jog_anim) {
+                set_anim(p_person, jog_anim);
+            }
+        } else {
+            if (p_person->Draw.Tweened->CurrentAnim == jog_anim) {
+                // Was firing last tick, now stopped — restore walk anim.
+                set_anim_walking(p_person);
+            }
+        }
 
         if (p_person->Genus.Person->PersonType == PERSON_CIV) {
             if (!(p_person->Draw.Tweened->MeshID & 1))
@@ -10115,7 +10371,18 @@ void fn_person_moveing(Thing* p_person)
                     return;
             }
 
-        person_normal_animate(p_person);
+        // Slow the jog cadence toward walking tempo while firing. 160/256
+        // ≈ 62% of normal jog speed — rough starting value; the true
+        // walk-step frequency ratio is hard to derive analytically (anim
+        // cycles don't linearly map to translation velocity), so this is
+        // tuned visually. Adjust if legs look out of sync with movement.
+        if (firing_active) {
+            // 5/8 ≈ 62% of normal — first-pass visual tune; see comment above.
+            const SLONG WALK_AK_JOG_ANIM_SPEED = ANIM_SPEED_NORMAL * 5 / 8;
+            person_normal_animate_speed(p_person, WALK_AK_JOG_ANIM_SPEED);
+        } else {
+            person_normal_animate(p_person);
+        }
         if (p_person->Draw.Tweened->FrameIndex == 1 || p_person->Draw.Tweened->FrameIndex == 5) {
             if (p_person->Flags & FLAGS_PLAYED_FOOTSTEP) {
                 // Don't play twice!
@@ -10140,6 +10407,7 @@ void fn_person_moveing(Thing* p_person)
         }
 
         break;
+    }
     case SUB_STATE_WALKING_BACKWARDS:
         change_velocity_to(p_person, -16);
         person_normal_move(p_person);
@@ -11619,6 +11887,48 @@ void fn_person_gun(Thing* p_person)
             SLONG twist;
             SLONG old_target;
 
+            // Refresh Target BEFORE the AK47 continue_firing check so
+            // set_person_shoot's HANDS_UP / cop-shoot-protection gates
+            // see the current target. Without this the AK47 auto-fire
+            // path fired with a stale Target (from prior state), so
+            // aiming AK47 at a civilian shot them instead of making them
+            // lie down. Pistol/shotgun worked because they fire from
+            // input rising-edge (not from this tick) with Target already
+            // refreshed by the previous AIM_GUN tick.
+            old_target = p_person->Genus.Person->Target;
+            p_person->Genus.Person->Target = find_target_new(p_person);
+
+            // Notify the target it's being aimed at BEFORE the AK47
+            // auto-fire gate. PCOM_cop_aiming_at_you can trigger HANDS_UP
+            // on civilians (via PCOM_set_person_ai_hands_up) but only
+            // when they're "doing nothing important" — once a civilian
+            // has started fleeing, it's too late. Without this call
+            // lifted above the AK47 fire gate, civilians never got
+            // notified from the auto-fire path at all.
+            if (p_person->Genus.Person->Target
+                && old_target != p_person->Genus.Person->Target
+                && p_person->Genus.Person->PersonType == PERSON_DARCI)
+            {
+                Thing* p_target = TO_THING(p_person->Genus.Person->Target);
+                if (p_target->Class == CLASS_PERSON) {
+                    if (might_i_be_a_villain(p_target)) {
+                        PCOM_cop_aiming_at_you(p_target, p_person);
+
+                        if ((p_target->State != STATE_DEAD) && (p_target->State != STATE_DYING)) {
+                            SLONG sample;
+                            switch (Random() & 3) {
+                            case 0: sample = S_DARCI_FREEZE_START; break;
+                            case 1: sample = S_DARCI_FREEZE_END;   break;
+                            case 2:
+                            case 3: sample = S_DARCI_STOP_POLICE;  break;
+                            }
+                            if (IsEnglish)
+                                MFX_play_thing(THING_NUMBER(p_person), sample, 0, p_person);
+                        }
+                    }
+                }
+            }
+
             if (p_person->Genus.Person->SpecialUse) {
                 Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
 
@@ -11641,46 +11951,18 @@ void fn_person_gun(Thing* p_person)
                     }
                 }
             }
-            old_target = p_person->Genus.Person->Target;
 
-            if (p_person->Genus.Person->Target = find_target_new(p_person)) {
+            if (p_person->Genus.Person->Target) {
                 Thing* p_target = TO_THING(p_person->Genus.Person->Target);
                 if (p_target->SubState == SUB_STATE_DYING_KNOCK_DOWN_WAIT) {
                     if (p_target->Genus.Person->pcom_ai == PCOM_AI_CIV)
                         p_target->Genus.Person->Timer1 = 0;
                 }
 
-                if (old_target != p_person->Genus.Person->Target) {
-                    if (p_person->Genus.Person->PersonType == PERSON_DARCI) {
-                        Thing* p_target;
-                        p_target = TO_THING(p_person->Genus.Person->Target);
-
-                        // You can target bats/barrels/cars as well.
-                        if (p_target->Class == CLASS_PERSON) {
-                            if (might_i_be_a_villain(p_target)) {
-                                PCOM_cop_aiming_at_you(p_target, p_person);
-
-                                if ((p_target->State != STATE_DEAD) && (p_target->State != STATE_DYING)) {
-                                    SLONG sample;
-                                    switch (Random() & 3) {
-                                    case 0:
-                                        sample = S_DARCI_FREEZE_START;
-                                        break;
-                                    case 1:
-                                        sample = S_DARCI_FREEZE_END;
-                                        break;
-                                    case 2:
-                                    case 3:
-                                        sample = S_DARCI_STOP_POLICE;
-                                        break;
-                                    }
-                                    if (IsEnglish)
-                                        MFX_play_thing(THING_NUMBER(p_person), sample, 0, p_person);
-                                }
-                            }
-                        }
-                    }
-                }
+                // Note: target-change notification (PCOM_cop_aiming_at_you
+                // + FREEZE voice sample) was moved above the AK47 fire
+                // gate so civilians get the HANDS_UP trigger even when
+                // AK47 auto-fire short-circuits this block.
 
                 twist = get_dangle(p_person, p_target);
 
@@ -11701,14 +11983,19 @@ void fn_person_gun(Thing* p_person)
     case SUB_STATE_SHOOT_GUN:
 
     {
-        UWORD anim_speed = 256;
-
-        // Use faster animation when not using a special weapon.
-        if (p_person->Genus.Person->SpecialUse == NULL) {
-            anim_speed = 400;
-        }
-
-        end = person_normal_animate_speed(p_person, anim_speed);
+        // Previously: anim_speed=400 was passed here when no special
+        // weapon (i.e. pistol/bat) per MuckyFoot's comment "Use faster
+        // animation when not using a special weapon." The `speed`
+        // parameter was dormant in the original (see person_normal_animate_speed),
+        // so the 400 silently did nothing and pistol/bat shoot anim played
+        // at normal speed — that's the behaviour retail shipped with.
+        // Now that `speed` actually works, passing 400 here would speed up
+        // pistol shoot anim in 1.56x AND desync Timer1 cooldown (which is
+        // calculated by weapon_feel.calc_anim_ticks assuming normal speed).
+        // Keeping 256 preserves release behaviour. Revisit if we decide to
+        // honour MuckyFoot's original intent — requires threading a `speed`
+        // parameter through calc_anim_ticks too.
+        end = person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
     }
 
         // Shoot anim just completed — clear the NON_INT movement/command
@@ -12121,7 +12408,7 @@ void fn_person_fighting(Thing* p_person)
         // last_frame tracks the animation frame so damage is applied once per new frame.
         static UBYTE last_frame = 0;
 
-        end = person_normal_animate_speed(p_person, 256);
+        end = person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
 
         if (last_frame != p_person->Draw.Tweened->FrameIndex) {
             last_frame = p_person->Draw.Tweened->FrameIndex;
@@ -12173,7 +12460,7 @@ void fn_person_fighting(Thing* p_person)
     case SUB_STATE_HEADBUTTV:
     case SUB_STATE_STRANGLEV:
 
-        end = person_normal_animate_speed(p_person, 256);
+        end = person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
 
         if (end) {
             if (p_person->Genus.Person->Health <= 0) {
@@ -12196,7 +12483,7 @@ void fn_person_fighting(Thing* p_person)
         break;
 
     case SUB_STATE_GRAPPLE:
-        end = person_normal_animate_speed(p_person, 256);
+        end = person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
         if ((p_person->Draw.Tweened->FrameIndex == 8) && (p_person->Draw.Tweened->CurrentAnim == ANIM_NECK_SNAP))
             MFX_play_thing(THING_NUMBER(p_person), S_NECK_BREAK, 0, p_person);
 
@@ -12217,7 +12504,7 @@ void fn_person_fighting(Thing* p_person)
         if ((p_person->Draw.Tweened->CurrentAnim == ANIM_PISTOL_WHIP_TAKE)
             && (MagicFrameCheck(p_person, 4)))
             MFX_play_thing(THING_NUMBER(p_person), S_JUDO_CHOP, 0, p_person);
-        end = person_normal_animate_speed(p_person, 256);
+        end = person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
         if (end == 1) {
             switch (p_person->Draw.Tweened->CurrentAnim) {
             case ANIM_GRAB_ARMV:
@@ -13083,7 +13370,7 @@ void fn_person_grapple(Thing* p_person)
 
     case SUB_STATE_GRAPPLING_WINDUP:
 
-        person_normal_animate_speed(p_person, 256);
+        person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
 
         break;
 
@@ -13094,7 +13381,13 @@ void fn_person_grapple(Thing* p_person)
             p_person->Genus.Person->Flags &= ~FLAG_PERSON_GRAPPLING;
         }
 
-        end = person_normal_animate_speed(p_person, 512);
+        // Previously: speed=512 (2x). The `speed` param was dormant in
+        // the original, so the 2x silently did nothing and grapple-
+        // release anim played at normal speed — that's what retail
+        // shipped with. Now that `speed` works, passing 512 would
+        // suddenly make grapple-release twice as fast. Keeping 256 to
+        // preserve release behaviour.
+        end = person_normal_animate_speed(p_person, ANIM_SPEED_NORMAL);
 
         if (end) {
             set_person_idle(p_person);

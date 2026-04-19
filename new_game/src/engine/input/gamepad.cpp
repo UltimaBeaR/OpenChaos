@@ -503,8 +503,18 @@ void gamepad_rumble_tick()
             ds_update_output();
         }
     } else {
-        uint16_t low = static_cast<uint16_t>(out_slow * 257);
-        uint16_t high = s_motor_fast ? 65535 : 0;
+        // Per-motor envelope scaling from the active weapon profile
+        // (see weapon_feel.h xbox_rumble_*_percent). Default
+        // low=100 / high=0 = "envelope to low motor only" = original
+        // behaviour. AK47 uses high-percent>0 to fan the envelope out
+        // to both motors (low slightly weaker than high for a more
+        // layered held-fire buzz). PS1-style fast-motor shock (damage
+        // hits) still takes full-binary precedence on the high motor.
+        uint8_t low_pct = 100, high_pct = 0;
+        weapon_feel_get_active_xbox_rumble_scales(&low_pct, &high_pct);
+        const uint16_t low  = static_cast<uint16_t>((out_slow * low_pct  / 100) * 257);
+        uint16_t high = static_cast<uint16_t>((out_slow * high_pct / 100) * 257);
+        if (s_motor_fast) high = 65535;
         sdl3_gamepad_rumble(s_gamepad, low, high, 100);
     }
 
@@ -661,6 +671,13 @@ static void apply_trigger_mode(TriggerMode mode)
                                     s_aim_gun_amp_a, s_aim_gun_amp_b,
                                     s_aim_gun_frequency, s_aim_gun_period, 1);
             break;
+        case TriggerEffectType::Vibration:
+            // Vibration override: used for the post-shot recoil burst.
+            // `start_zone` carries the vibration position (0..9),
+            // `strength` carries the amplitude (0..8), `amp_a` carries
+            // the frequency (1..255 Hz). Other fields unused.
+            ds_trigger_vibration(s_aim_gun_start_zone, s_aim_gun_strength, s_aim_gun_amp_a, 1);
+            break;
         case TriggerEffectType::None:
             ds_trigger_off(1);
             break;
@@ -716,12 +733,34 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
         s_aim_gun_end_zone   = profile->reload_click_end_zone;
         s_aim_gun_strength   = profile->reload_click_strength;
     }
+
+    // Post-shot trigger-vibration burst override: while the profile's
+    // configured burst is playing after a shot, override whatever effect
+    // was selected above with a Vibration whose amplitude decays linearly
+    // over the burst's lifetime. Piggybacks the existing AIM_GUN fields
+    // (re-interpreting start_zone=position, strength=amplitude,
+    // amp_a=frequency) so the params_changed check below still detects
+    // per-frame amplitude changes and re-applies. Does not fire when
+    // mag_empty (reload click above takes precedence).
+    uint8_t tv_position = 0, tv_amp = 0, tv_freq = 0;
+    if (!mag_empty && weapon_feel_tick_trigger_vibration(&tv_position, &tv_amp, &tv_freq)) {
+        s_aim_gun_effect     = TriggerEffectType::Vibration;
+        s_aim_gun_start_zone = tv_position;
+        s_aim_gun_strength   = tv_amp;
+        s_aim_gun_amp_a      = tv_freq;
+        s_aim_gun_end_zone   = 0;
+        s_aim_gun_amp_b      = 0;
+        s_aim_gun_frequency  = 0;
+        s_aim_gun_period     = 0;
+    }
     // Profiles with None opt out of any adaptive trigger effect. Weapon
     // with zero strength and Machine with both amps zero also count as
     // "no effect" — the params would produce a silent trigger anyway.
+    // Vibration with zero amplitude also counts as no effect.
     const bool weapon_has_effect =
-        (s_aim_gun_effect == TriggerEffectType::Weapon  && s_aim_gun_strength != 0) ||
-        (s_aim_gun_effect == TriggerEffectType::Machine && (s_aim_gun_amp_a != 0 || s_aim_gun_amp_b != 0));
+        (s_aim_gun_effect == TriggerEffectType::Weapon    && s_aim_gun_strength != 0) ||
+        (s_aim_gun_effect == TriggerEffectType::Machine   && (s_aim_gun_amp_a != 0 || s_aim_gun_amp_b != 0)) ||
+        (s_aim_gun_effect == TriggerEffectType::Vibration && s_aim_gun_strength != 0);
 
     // AIM_GUN stays continuously enabled whenever the weapon is ready.
     //

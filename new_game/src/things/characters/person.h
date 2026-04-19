@@ -239,7 +239,17 @@ SLONG retreat_keyframe(DrawTween* draw_info);
 // uc_orig: move_locked_tween (fallen/Source/Person.cpp)
 void move_locked_tween(Thing* p_person, DrawTween* dt, SLONG t1, SLONG t2);
 
-// Animates person forward at given speed. Handles fight frames (apply_violence), barrel hits.
+// Q8 multiplier for person_normal_animate_speed's `speed` parameter.
+// 256 = ×1.0 (no change), 128 = ×0.5 (half speed), 512 = ×2.0 (double speed).
+// Pass ANIM_SPEED_NORMAL when the original code used to pass a non-normal
+// value that was silently ignored by MuckyFoot's dead-param implementation,
+// and you want to preserve release behaviour (retail shipped with `speed`
+// dormant — fixing the param while keeping backups on ANIM_SPEED_NORMAL
+// means no shipped callsite changes behaviour).
+constexpr SLONG ANIM_SPEED_NORMAL = 256;
+
+// Animates person forward at given speed (Q8 multiplier, see ANIM_SPEED_NORMAL).
+// Handles fight frames (apply_violence), barrel hits.
 // uc_orig: person_normal_animate_speed (fallen/Source/Person.cpp)
 SLONG person_normal_animate_speed(Thing* p_person, SLONG speed);
 
