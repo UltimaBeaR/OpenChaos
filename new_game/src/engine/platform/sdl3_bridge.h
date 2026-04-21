@@ -115,6 +115,11 @@ uint64_t sdl3_get_performance_counter();
 // Returns performance counter frequency in Hz (wraps SDL_GetPerformanceFrequency).
 uint64_t sdl3_get_performance_frequency();
 
+// Puts the calling thread to sleep for (at least) `ms` milliseconds.
+// Yields the CPU to the OS — use for frame pacing, never a busy-wait.
+// Precision is typically 1-2 ms on modern Windows/Linux/macOS.
+void sdl3_delay_ms(uint32_t ms);
+
 // ---------------------------------------------------------------------------
 // Audio
 // ---------------------------------------------------------------------------

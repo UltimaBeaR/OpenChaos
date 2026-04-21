@@ -18,7 +18,7 @@
 | ~~10~~ | ~~Доработки функционала~~ | → Этап 13 | [stage10.md](stage10.md) (заглушка) |
 | 11 | Подготовка к первому альфа-релизу (v0.1.0) | ✅ ЗАВЕРШЁН | [stage11.md](stage11.md) |
 | **12** | **Релиз 1.0** | 🔧 **В РАБОТЕ** | [stage12.md](stage12.md) |
-| 13 | Доработки функционала | ⏸️ ПОСЛЕ 1.0 | [stage13.md](stage13.md) + [тесты](stage13_testing_infrastructure.md) + [архитектура](stage13_architecture_refactoring.md) + [геймпад](stage13_gamepad.md) + [DualSense](stage13_dualsense.md) + [контент](stage13_custom_content.md) + [идеи](stage13_future_ideas.md) |
+| 13 | Доработки функционала | ⏸️ ПОСЛЕ 1.0 | [stage13.md](stage13.md) + [тесты](stage13_testing_infrastructure.md) + [архитектура](stage13_architecture_refactoring.md) + [dead-code](stage13_dead_code_cleanup.md) + [геймпад](stage13_gamepad.md) + [DualSense](stage13_dualsense.md) + [контент](stage13_custom_content.md) + [идеи](stage13_future_ideas.md) |
 
 ---
 

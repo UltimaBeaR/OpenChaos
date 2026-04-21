@@ -548,22 +548,60 @@ void process_bullet_points(void)
 }
 
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
+//
+// Original code was a pure busy-wait `while (1) { tick = ...; if (...) break; }`
+// that spun one CPU core at 100% until the frame budget elapsed. Fine on Win9x
+// (no power management, no DWM, fullscreen DDraw) but wasteful on modern
+// targets — Steam Deck, laptops, integrated GPUs — where it cooks the CPU and
+// drains battery for no reason.
+//
+// Modern approach:
+//   1. Use the performance counter (sub-µs precision) instead of ms ticks.
+//      Integer-ms ticks for fps=30 give target = 1000/30 = 33 (truncated from
+//      33.333), which makes the game run at 30.3 FPS instead of 30.0. PC
+//      counter tracks the exact period in counter units — zero drift.
+//   2. Sleep for (remaining − SPIN), then busy-wait the last SPIN. SDL_Delay
+//      yields the core to the OS; the tail spin absorbs sleep jitter so
+//      frame pacing stays tight.
+//
+// If a frame ran long (elapsed >= target) we return immediately — no sleep,
+// no spin — same as the original behavior for that path.
 void lock_frame_rate(SLONG fps)
 {
+    // Frame-to-frame tick (in performance-counter units).
     // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
     static uint64_t tick1 = 0;
-    uint64_t tick2;
-    uint64_t timet;
 
-    while (1) {
-        tick2 = sdl3_get_ticks();
-        timet = tick2 - tick1;
+    const uint64_t pc_freq   = sdl3_get_performance_frequency();     // counter ticks per second
+    const uint64_t target_pc = pc_freq / (uint32_t)fps;               // ticks per frame, exact
 
-        if (timet > (1000 / fps)) {
-            break;
+    // Sleep precision is typically 1-2 ms on modern OS (SDL3 uses Windows
+    // high-resolution waitable timers / clock_nanosleep). 2 ms of tail spin
+    // covers scheduler jitter without giving up the CPU savings.
+    const uint64_t SPIN_PC = pc_freq / 500;   // 2 ms in counter units (1/500 of a second)
+
+    for (;;) {
+        uint64_t now     = sdl3_get_performance_counter();
+        uint64_t elapsed = now - tick1;
+
+        if (elapsed >= target_pc) {
+            tick1 = now;
+            return;
         }
+
+        uint64_t remain = target_pc - elapsed;
+        if (remain > SPIN_PC) {
+            // Convert remaining (minus the tail-spin reserve) to ms. Round
+            // DOWN so sleep never overshoots past the SPIN_PC safety margin.
+            uint64_t sleep_pc = remain - SPIN_PC;
+            uint32_t sleep_ms = uint32_t(sleep_pc * 1000 / pc_freq);
+            if (sleep_ms > 0) {
+                sdl3_delay_ms(sleep_ms);
+            }
+        }
+        // else: within SPIN_PC of the deadline — fall through and loop.
+        // The tight loop back to the top IS the tail-spin; no explicit sleep.
     }
-    tick1 = tick2;
 }
 
 // uc_orig: do_leave_map_form (fallen/Source/Game.cpp)

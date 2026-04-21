@@ -201,6 +201,11 @@ uint64_t sdl3_get_performance_frequency()
     return SDL_GetPerformanceFrequency();
 }
 
+void sdl3_delay_ms(uint32_t ms)
+{
+    SDL_Delay(ms);
+}
+
 // ===========================================================================
 // Event loop — scancode mapping
 // ===========================================================================

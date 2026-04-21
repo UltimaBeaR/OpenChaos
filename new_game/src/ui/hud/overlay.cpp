@@ -337,7 +337,25 @@ void OVERLAY_handle(void)
         extern SLONG EWAY_cam_jumped;
         extern SLONG look_pitch;
 
-        sprintf(str, "(%d,%d,%d) fps %d", darci->WorldPos.X >> 16, darci->WorldPos.Y >> 16, darci->WorldPos.Z >> 16, ((1000) / tick_tock_unclipped) + 1);
+        // tick_tock_unclipped is the raw per-frame delta in integer
+        // milliseconds from sdl3_get_ticks. At 30 FPS it toggles between 33
+        // and 34 ms (the true period is 33.333), so 1000/33 = 30 and
+        // 1000/34 = 29 alternate. The legacy "+1" was a crude round-up
+        // that just shifted the display to 30/31 instead. Replace with a
+        // float reading and an EMA smoother — the mean of 33/34 weighted
+        // by time spent in each converges to 30.00 on a steady pace.
+        static float fps_ema = 0.0f;
+        float fps_instant = 1000.0f / float(tick_tock_unclipped);
+        if (fps_ema == 0.0f) {
+            fps_ema = fps_instant;  // seed on first frame
+        } else {
+            // α = 0.05 → ~20-frame time constant (~0.67 s at 30 FPS). Small
+            // enough to hide per-frame ms quantization, large enough to
+            // track genuine FPS drops quickly.
+            fps_ema = 0.95f * fps_ema + 0.05f * fps_instant;
+        }
+
+        sprintf(str, "(%d,%d,%d) fps %.2f", darci->WorldPos.X >> 16, darci->WorldPos.Y >> 16, darci->WorldPos.Z >> 16, fps_ema);
 
         FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
     }
