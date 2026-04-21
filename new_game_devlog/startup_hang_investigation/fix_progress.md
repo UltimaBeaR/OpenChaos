@@ -9,8 +9,8 @@
 | # | Этап | Статус |
 |---|------|--------|
 | 1 | `FONT_buffer_draw` → textured glyph atlas | ✅ сделан |
-| 2 | `SKY_draw_stars` → small textured quads | ⏳ следующий |
-| 3 | `WIBBLE_simple` → GPU post-process (copy+shader) | ⏳ |
+| 2 | `SKY_draw_stars` → batched 1-pixel quads | ✅ сделан |
+| 3 | `WIBBLE_simple` → GPU post-process (copy+shader) | ⏳ следующий |
 | 4 | Cleanup: удалить `ge_lock_screen` / `ge_unlock_screen` / dead API; `AENG_screen_shot` на одноразовый `glReadPixels` без writeback | ⏳ |
 
 ## Архитектурное правило
@@ -101,12 +101,55 @@ F9 → `bangunsnotgames` → Enter → легенда debug-клавиш в уг
 Также F11 (input debug panel) — тот же `FONT_buffer_add` путь. Визуально
 должно быть 1-в-1 с предыдущим билдом (нет мыла после `+0.5` фикса).
 
+## Stage 2 — детали сделанного
+
+Суть: `SKY_draw_stars` сохранил весь CPU-код (POLY_transform, clip, twinkle,
+spread-логика) — менялся только выход: `ge_plot_pixel` / `ge_plot_formatted_pixel`
+заменены на batched эмит 1×1 quad'ов без текстуры. Один (или несколько, если
+звёзд > 16383 pixels) `ge_draw_indexed_primitive` в конце функции. Callsite
+в `aeng.cpp` больше не оборачивает SKY_draw_stars в `ge_lock_screen`.
+
+### Изменённые файлы
+
+- [sky.cpp](../../new_game/src/engine/graphics/geometry/sky.cpp) — новый
+  namespace-local batcher (`star_emit_pixel`, `star_flush_batch`) с
+  `std::vector<GEVertexTL>` + `std::vector<uint16_t>` буферами. Capacity
+  ретейнится между кадрами (vector::clear на POD — O(1)), первый ночной
+  кадр прогревает ~несколько килобайт, дальше ноль аллокаций per-frame.
+- [aeng.cpp](../../new_game/src/engine/graphics/pipeline/aeng.cpp) — снял
+  `ge_lock_screen` / `ge_unlock_screen` wrapper вокруг callsite
+  `SKY_draw_stars` (в `AENG_draw_city`). Сохранил `BreakTime("Drawn stars")`
+  перф-маркер, убрал `BreakTime("Locked for stars")` — нет лока больше.
+
+### Гочи / моменты
+
+**16-bit indices.** `ge_draw_indexed_primitive` принимает `uint16_t*`, макс
+65535. Худший случай (4096 звёзд × 5 пикселей × 4 верта = 81920) не
+помещается. Flush-порог 16383 quads = 65532 верта (последний безопасный), за
+ним принудительный flush. В типичном кадре видимых+не-мерцающих ~несколько
+сотен пикселей — один flush в конце функции. Порог срабатывает разве что
+если в будущем кто-то поднимет `SKY_MAX_STARS`.
+
+**Color упаковка.** `0xFF000000 | (c<<16) | (c<<8) | c` — D3D6 0xAARRGGBB.
+Байты в памяти little-endian (B, G, R, A), шейдер нормализует и свизлует
+`.zyxw` в (R, G, B, A). Для c=0xCC → (0.8, 0.8, 0.8, 1.0) — серый. 1:1
+с `ge_plot_pixel(c, c, c)`.
+
+**Пустой кадр.** Если ни одна звезда не попала в экран (twinkle + clip) —
+early return без `ge_push_render_state`, ни одной GL-операции. Бесплатно на
+кадрах-без-звёзд.
+
+### Проверка
+
+Любая ночная миссия с `AENG_detail_stars` (дефолтно включено на medium+).
+Смотреть в небо — яркие звёзды с spread рисуются крестом (центр + 4 соседа),
+тусклые точкой. Мерцание работает — звёзды пропадают на случайный кадр. Цвет
+и позиции должны быть идентичны предыдущему билду.
+
 ## Что осталось в gameplay на старом паттерне
 
-После Stage 1 `ge_lock_screen` / `ge_unlock_screen` всё ещё вызывается из
-двух per-frame gameplay callsites:
-- `SKY_draw_stars` — [aeng.cpp:4013](../../new_game/src/engine/graphics/pipeline/aeng.cpp#L4013)
-  (ночные миссии, hang триггер).
+После Stage 2 `ge_lock_screen` / `ge_unlock_screen` всё ещё вызывается из
+одного per-frame gameplay callsite:
 - `WIBBLE` — [aeng.cpp:4914](../../new_game/src/engine/graphics/pipeline/aeng.cpp#L4914)
   (кадры где есть лужи с отражениями, hang триггер).
 

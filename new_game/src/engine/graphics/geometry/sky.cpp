@@ -12,6 +12,7 @@
 extern SLONG RealDisplayWidth;
 extern SLONG RealDisplayHeight;
 #include <math.h>
+#include <vector>
 
 // uc_orig: SKY_STAR_T_DIM (fallen/DDEngine/Source/sky.cpp)
 #define SKY_STAR_T_DIM 1
@@ -148,6 +149,77 @@ void SKY_init(CBYTE* star_file)
     }
 }
 
+// --- Batched 1-pixel-quad emitter for SKY_draw_stars ------------------------
+//
+// Legacy plot-path wrote each star pixel (center + up to 4 spread neighbors)
+// directly into the locked backbuffer via ge_plot_pixel. That relies on the
+// CPU-readback pattern that triggers the WDDM throttle — see
+// new_game_devlog/startup_hang_investigation. We now emit each pixel as a
+// 1×1 textureless quad and batch them into one (or a few) draw calls.
+//
+// 4096 MAX_STARS × 5 pixels × 4 verts = 81920 verts, which overflows the
+// uint16_t indices in ge_draw_indexed_primitive. We flush when a further
+// pixel would cross the 16-bit limit. In practice visible+un-twinkled count
+// is a few hundred pixels per frame — one flush at the end is the norm.
+namespace {
+// One 1px quad = 4 verts. Flush when adding four more verts would cross the
+// uint16_t index limit of 65535. 16383 quads = 65532 verts — the last safe
+// boundary. Buffers grow via std::vector, capacity is retained across frames,
+// so the first night scene warms them up and subsequent frames reuse the
+// allocation without per-frame malloc/free.
+constexpr uint32_t STAR_FLUSH_QUAD_THRESHOLD = 16383;
+
+// Render-thread singletons. clear() on vector<POD> is O(1) and keeps capacity.
+std::vector<GEVertexTL> s_star_verts;
+std::vector<uint16_t>   s_star_inds;
+
+inline void star_flush_batch()
+{
+    if (s_star_inds.empty()) return;
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
+        s_star_verts.data(), uint32_t(s_star_verts.size()),
+        s_star_inds.data(),  uint32_t(s_star_inds.size()));
+    s_star_verts.clear();
+    s_star_inds.clear();
+}
+
+inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c)
+{
+    if (s_star_verts.size() / 4 >= STAR_FLUSH_QUAD_THRESHOLD) {
+        star_flush_batch();
+    }
+
+    // D3D6 color format (0xAARRGGBB, little-endian bytes B,G,R,A) — matches
+    // the ge_plot_pixel(c, c, c) output exactly.
+    const uint32_t color = 0xFF000000u | (uint32_t(c) << 16) | (uint32_t(c) << 8) | uint32_t(c);
+
+    // +0.5 offset compensates tl_vert.glsl's -0.5 D3D6 pixel-center mapping;
+    // lands quad edges on pixel boundaries so each 1×1 quad covers exactly
+    // one screen pixel (same trick as font_atlas.cpp / ge_unlock_screen).
+    const float x0 = float(px)     + 0.5f;
+    const float y0 = float(py)     + 0.5f;
+    const float x1 = float(px + 1) + 0.5f;
+    const float y1 = float(py + 1) + 0.5f;
+
+    const uint16_t base = uint16_t(s_star_verts.size());
+
+    GEVertexTL v;
+    v.z = 0.0f; v.rhw = 1.0f;
+    v.color = color; v.specular = 0xFF000000; v.u = 0.0f; v.v = 0.0f;
+    v.x = x0; v.y = y0; s_star_verts.push_back(v);
+    v.x = x1; v.y = y0; s_star_verts.push_back(v);
+    v.x = x0; v.y = y1; s_star_verts.push_back(v);
+    v.x = x1; v.y = y1; s_star_verts.push_back(v);
+
+    s_star_inds.push_back(base + 0);
+    s_star_inds.push_back(base + 1);
+    s_star_inds.push_back(base + 2);
+    s_star_inds.push_back(base + 2);
+    s_star_inds.push_back(base + 1);
+    s_star_inds.push_back(base + 3);
+}
+} // namespace
+
 // uc_orig: SKY_draw_stars (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_stars(
     float mid_x,
@@ -164,6 +236,9 @@ void SKY_draw_stars(
 
     float xmul = float(RealDisplayWidth) / float(DisplayWidth);
     float ymul = float(RealDisplayHeight) / float(DisplayHeight);
+
+    s_star_verts.clear();
+    s_star_inds.clear();
 
     for (i = 0; i < SKY_star_upto; i++) {
         ss = &SKY_star[i];
@@ -189,23 +264,38 @@ void SKY_draw_stars(
             if ((rand() & 0x7f) == (i & 0x7f)) {
                 // Make the star twinkle — skip drawing this frame.
             } else {
-                ge_plot_pixel(
-                    px, py,
-                    ss->colour,
-                    ss->colour,
-                    ss->colour);
+                star_emit_pixel(px, py, ss->colour);
 
                 if (ss->spread) {
-                    ULONG col = ge_get_formatted_pixel(ss->spread, ss->spread, ss->spread);
-
-                    ge_plot_formatted_pixel(px - 1, py, col);
-                    ge_plot_formatted_pixel(px + 1, py, col);
-                    ge_plot_formatted_pixel(px, py - 1, col);
-                    ge_plot_formatted_pixel(px, py + 1, col);
+                    star_emit_pixel(px - 1, py, ss->spread);
+                    star_emit_pixel(px + 1, py, ss->spread);
+                    star_emit_pixel(px, py - 1, ss->spread);
+                    star_emit_pixel(px, py + 1, ss->spread);
                 }
             }
         }
     }
+
+    // Nothing accumulated → no draw, no state touch. Common case for clipped
+    // or daytime camera angles (caller already gates daytime away).
+    if (s_star_inds.empty()) return;
+
+    // 2D overlay config: no depth, no blend, no texture — pure vertex color.
+    // push/pop keeps these mutations out of the GERenderState cache that the
+    // main renderer uses.
+    ge_push_render_state();
+
+    ge_set_depth_mode(GEDepthMode::Off);
+    ge_set_blend_enabled(false);
+    ge_set_color_key_enabled(false);
+    ge_set_alpha_test_enabled(false);
+    ge_set_specular_enabled(false);
+    ge_set_fog_enabled(false);
+    ge_bind_texture(GE_TEXTURE_NONE);
+
+    star_flush_batch();
+
+    ge_pop_render_state();
 }
 
 // uc_orig: SKY_draw_poly_clouds (fallen/DDEngine/Source/sky.cpp)

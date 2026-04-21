@@ -4008,21 +4008,16 @@ void AENG_draw_city()
 
     if (AENG_detail_stars && !(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
         //
-        // Draw the stars...
+        // Draw the stars. SKY_draw_stars now batches the per-star pixels into
+        // 1×1 quads through the TL pipeline — no backbuffer lock/unlock.
         //
-        if (ge_lock_screen()) {
-            BreakTime("Locked for stars");
+        SKY_draw_stars(
+            AENG_cam_x,
+            AENG_cam_y,
+            AENG_cam_z,
+            AENG_DRAW_DIST * 256.0F);
 
-            SKY_draw_stars(
-                AENG_cam_x,
-                AENG_cam_y,
-                AENG_cam_z,
-                AENG_DRAW_DIST * 256.0F);
-
-            BreakTime("Drawn stars");
-
-            ge_unlock_screen();
-        }
+        BreakTime("Drawn stars");
     }
 
     BreakTime("Done stars");
