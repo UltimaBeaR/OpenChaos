@@ -255,6 +255,7 @@ set(SOURCES_NEW
 
     # === Engine: graphics — text ===
     src/engine/graphics/text/font.cpp
+    src/engine/graphics/text/font_atlas.cpp
     src/engine/graphics/text/font_globals.cpp
     src/engine/graphics/text/menufont.cpp
     src/engine/graphics/text/menufont_globals.cpp

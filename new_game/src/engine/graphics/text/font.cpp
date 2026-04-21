@@ -1,4 +1,5 @@
 #include "engine/graphics/text/font.h"
+#include "engine/graphics/text/font_atlas.h"
 #include "engine/graphics/text/font_globals.h"
 
 #include "engine/platform/uc_common.h"
@@ -19,10 +20,6 @@ SLONG FONT_draw_coloured_char(
     UBYTE blue,
     CBYTE ch)
 {
-    SLONG b;
-    SLONG x;
-    SLONG y;
-
     FONT_Char* fc;
 
     if (ch == ' ') {
@@ -68,13 +65,9 @@ SLONG FONT_draw_coloured_char(
     if (sy < -FONT_HEIGHT || sy >= ge_get_screen_height() || sx < -FONT_WIDTH || sx >= ge_get_screen_width()) {
         // Off-screen — skip drawing but still return width.
     } else {
-        for (y = 0; y < FONT_HEIGHT; y++) {
-            for (b = 0x10, x = 0; x < 5; x++, b >>= 1) {
-                if (fc->bit[y] & b) {
-                    ge_plot_pixel(sx + x, sy + y, red, green, blue);
-                }
-            }
-        }
+        FONT_atlas_begin_batch();
+        FONT_atlas_draw_glyph(sx, sy, red, green, blue, ch);
+        FONT_atlas_end_batch();
     }
 
     return fc->width;
@@ -98,6 +91,7 @@ SLONG FONT_draw_coloured_text(
     CBYTE* ch;
     SLONG xstart = x;
 
+    FONT_atlas_begin_batch();
     for (ch = message; *ch; ch++) {
         if (*ch == '\t') {
             x += FONT_TAB;
@@ -106,6 +100,7 @@ SLONG FONT_draw_coloured_text(
             x += FONT_draw_coloured_char(x, y, red, green, blue, *ch) + 1;
         }
     }
+    FONT_atlas_end_batch();
 
     return x - xstart;
 }
@@ -122,6 +117,7 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...)
     CBYTE* ch;
     SLONG xstart = x;
 
+    FONT_atlas_begin_batch();
     for (ch = message; *ch; ch++) {
         if (*ch == '\t') {
             x += FONT_TAB;
@@ -132,6 +128,7 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...)
             x += FONT_draw_coloured_char(x + 0, y + 0, 255, 255, 0, *ch) + 1;
         }
     }
+    FONT_atlas_end_batch();
 
     return x - xstart;
 }
@@ -194,33 +191,35 @@ void FONT_buffer_draw()
         return;
     }
 
-    if (ge_lock_screen()) {
-        for (i = 0; i < FONT_message_upto; i++) {
-            fm = &FONT_message[i];
-            x = fm->x;
-            y = fm->y;
+    // FONT_draw_coloured_char now emits textured quads through the regular TL
+    // pipeline — no lock/unlock of the backbuffer. The per-frame readback
+    // pattern the legacy path relied on is exactly what triggers the WDDM
+    // throttle investigated in new_game_devlog/startup_hang_investigation.
+    FONT_atlas_begin_batch();
+    for (i = 0; i < FONT_message_upto; i++) {
+        fm = &FONT_message[i];
+        x = fm->x;
+        y = fm->y;
 
-            for (ch = fm->m; *ch; ch++) {
-                if (*ch == '\t') {
-                    x += FONT_TAB;
-                    x &= ~(FONT_TAB - 1);
-                } else if (*ch == '\n') {
-                    x = fm->x;
-                    y += 10;
+        for (ch = fm->m; *ch; ch++) {
+            if (*ch == '\t') {
+                x += FONT_TAB;
+                x &= ~(FONT_TAB - 1);
+            } else if (*ch == '\n') {
+                x = fm->x;
+                y += 10;
+            } else {
+                if (fm->s) {
+                    // Shadowed: draw darker copy at +1,+1 first.
+                    FONT_draw_coloured_char(x + 1, y + 1, fm->r >> 1, fm->g >> 1, fm->b >> 1, *ch);
+                    x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch) + 1;
                 } else {
-                    if (fm->s) {
-                        // Shadowed: draw darker copy at +1,+1 first.
-                        FONT_draw_coloured_char(x + 1, y + 1, fm->r >> 1, fm->g >> 1, fm->b >> 1, *ch);
-                        x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch) + 1;
-                    } else {
-                        x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch) + 1;
-                    }
+                    x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch) + 1;
                 }
             }
         }
-
-        ge_unlock_screen();
     }
+    FONT_atlas_end_batch();
 
     FONT_buffer_upto = &FONT_buffer[0];
     FONT_message_upto = 0;
@@ -267,6 +266,7 @@ void FONT_draw_speech_bubble_text(
     x = xstart;
     y = ystart;
 
+    FONT_atlas_begin_batch();
     for (ch = message; *ch; ch++) {
         cw = FONT_draw_coloured_char(x, y, red, green, blue, *ch) + 1;
         w += cw;
@@ -277,4 +277,5 @@ void FONT_draw_speech_bubble_text(
             y += 10;
         }
     }
+    FONT_atlas_end_batch();
 }

@@ -1281,6 +1281,130 @@ int32_t  ge_get_screen_width()  { return gl_context_get_width(); }
 int32_t  ge_get_screen_height() { return gl_context_get_height(); }
 int32_t  ge_get_screen_bpp()    { return 32; }
 
+// ---------------------------------------------------------------------------
+// Render state scratch save/restore
+// ---------------------------------------------------------------------------
+
+namespace {
+struct RenderStateSnapshot {
+    bool             alpha_test_enabled;
+    uint32_t         alpha_ref;
+    GECompareFunc    alpha_func;
+    bool             specular_enabled;
+    bool             color_key_enabled;
+    bool             fog_enabled;
+    GETextureBlend   texture_blend;
+    GETextureHandle  bound_texture;
+    bool             bound_texture_has_alpha;
+    bool             bound_texture_has_mipmaps;
+    GLboolean        gl_blend_enabled;
+    GLboolean        gl_depth_test;
+    GLboolean        gl_depth_mask;
+};
+// Only the outermost push actually snapshots. Nested push/pop pairs increment
+// the depth counter so control flow like speech_bubble_text (measure pass +
+// draw pass, both push) doesn't clobber the saved state.
+static RenderStateSnapshot s_state_snapshot{};
+static int32_t             s_state_depth = 0;
+}
+
+void ge_push_render_state()
+{
+    if (s_state_depth++ > 0) return;
+
+    s_state_snapshot.alpha_test_enabled        = s_alpha_test_enabled;
+    s_state_snapshot.alpha_ref                 = s_alpha_ref;
+    s_state_snapshot.alpha_func                = s_alpha_func;
+    s_state_snapshot.specular_enabled          = s_specular_enabled;
+    s_state_snapshot.color_key_enabled         = s_color_key_enabled;
+    s_state_snapshot.fog_enabled               = s_fog_enabled;
+    s_state_snapshot.texture_blend             = s_texture_blend;
+    s_state_snapshot.bound_texture             = s_bound_texture;
+    s_state_snapshot.bound_texture_has_alpha   = s_bound_texture_has_alpha;
+    s_state_snapshot.bound_texture_has_mipmaps = s_bound_texture_has_mipmaps;
+    s_state_snapshot.gl_blend_enabled          = glIsEnabled(GL_BLEND);
+    s_state_snapshot.gl_depth_test             = glIsEnabled(GL_DEPTH_TEST);
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &s_state_snapshot.gl_depth_mask);
+}
+
+void ge_pop_render_state()
+{
+    ASSERT(s_state_depth > 0);
+    if (--s_state_depth > 0) return;
+
+    s_alpha_test_enabled        = s_state_snapshot.alpha_test_enabled;
+    s_alpha_ref                 = s_state_snapshot.alpha_ref;
+    s_alpha_func                = s_state_snapshot.alpha_func;
+    s_specular_enabled          = s_state_snapshot.specular_enabled;
+    s_color_key_enabled         = s_state_snapshot.color_key_enabled;
+    s_fog_enabled               = s_state_snapshot.fog_enabled;
+    s_texture_blend             = s_state_snapshot.texture_blend;
+    s_bound_texture             = s_state_snapshot.bound_texture;
+    s_bound_texture_has_alpha   = s_state_snapshot.bound_texture_has_alpha;
+    s_bound_texture_has_mipmaps = s_state_snapshot.bound_texture_has_mipmaps;
+
+    if (s_state_snapshot.gl_blend_enabled) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+    if (s_state_snapshot.gl_depth_test)    glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+    glDepthMask(s_state_snapshot.gl_depth_mask);
+}
+
+// ---------------------------------------------------------------------------
+// User textures — ad-hoc, outside the page system
+// ---------------------------------------------------------------------------
+
+GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8_t* pixels)
+{
+    if (w <= 0 || h <= 0 || !pixels) return GE_TEXTURE_NONE;
+
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    if (!tex) return GE_TEXTURE_NONE;
+
+    // Save any texture currently bound on TEXTURE_2D so we don't disturb the
+    // binding the caller (or the state cache) expects.
+    GLint prev_tex = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &prev_tex);
+
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    // Byte-per-pixel source; defeat the default 4-byte row alignment.
+    GLint prev_unpack = 4;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &prev_unpack);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    // Sample as (R,R,R,R): a 1-bit glyph mask modulates vertex color cleanly
+    // through the existing Modulate path, with color-key discard on zeros.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_R, GL_RED);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_G, GL_RED);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_A, GL_RED);
+
+    // Pixel-perfect mapping for bitmap fonts — nearest + clamp.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, prev_unpack);
+    glBindTexture(GL_TEXTURE_2D, (GLuint)prev_tex);
+
+    return (GETextureHandle)(uintptr_t)tex;
+}
+
+void ge_destroy_user_texture(GETextureHandle handle)
+{
+    if (handle == GE_TEXTURE_NONE) return;
+    GLuint tex = (GLuint)(uintptr_t)handle;
+    if (s_bound_texture == handle) {
+        s_bound_texture = GE_TEXTURE_NONE;
+        s_bound_texture_has_alpha = false;
+        s_bound_texture_has_mipmaps = false;
+    }
+    glDeleteTextures(1, &tex);
+}
+
 void ge_plot_pixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b)
 {
     if (!s_screen_locked || !s_dummy_screen) return;

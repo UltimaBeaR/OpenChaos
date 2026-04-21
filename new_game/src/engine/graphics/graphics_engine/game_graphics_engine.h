@@ -540,6 +540,37 @@ void ge_texture_set_type(int32_t page, int32_t type);
 GETextureHandle ge_get_texture_handle(int32_t page);
 
 // ---------------------------------------------------------------------------
+// Render state scratch save/restore
+// ---------------------------------------------------------------------------
+// Wraps ad-hoc draws that reconfigure render state (2D overlays, post-process
+// passes, custom blits) from outside the GERenderState cache. The cache
+// compares old vs new on every SetChanged() and skips flushes on equality, so
+// any in-place mutation left behind leaks into later game draws.
+//
+// Captures the subset of state these scratch draws are expected to touch:
+// depth mode, blend enable, color-key, alpha test, specular, fog, texture
+// blend, bound texture + its alpha flag. Paired push/pop. Nesting is allowed
+// — only the outermost pair snapshots/restores.
+void ge_push_render_state();
+void ge_pop_render_state();
+
+// ---------------------------------------------------------------------------
+// User textures (ad-hoc, outside the page system)
+// ---------------------------------------------------------------------------
+// Lightweight path for small engine-generated textures (bitmap font atlases,
+// lookup tables, post-process scratch). Bypasses the page/TGA/mipmap system.
+// Caller owns the handle and must release it via ge_destroy_user_texture.
+
+// Create a 2D texture from a single-channel byte array (one byte = one texel).
+// In the shader the texture samples as (R, R, R, R) via texture swizzle, so a
+// "white-on-black" mask modulates vertex color directly — suitable for 1-bit
+// bitmap fonts. Nearest filtering, clamp-to-edge addressing.
+GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8_t* pixels);
+
+// Release a texture allocated via ge_create_user_texture_*.
+void ge_destroy_user_texture(GETextureHandle handle);
+
+// ---------------------------------------------------------------------------
 // Callbacks (game code hooks into backend lifecycle)
 // ---------------------------------------------------------------------------
 

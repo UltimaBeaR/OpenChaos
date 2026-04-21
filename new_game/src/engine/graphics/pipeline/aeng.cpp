@@ -7788,22 +7788,11 @@ void AENG_draw_messages()
         last_game_turn = GAME_TURN;
     }
 
-    // Draw stuff straight to the screen.
-    if (ge_lock_screen()) {
-        // Draw the fps.
-        FONT_draw(DisplayWidth >> 1, 10, "FPS: %d", fps);
-        /*
-
-                        FONT_draw(DisplayWidth >> 1, 20, "Facets: %d", dfacets_drawn_this_gameturn);
-        extern	SLONG	damp;
-                        FONT_draw(20,30, "DAMP: %d", damp);
-                        */
-
-        // Draw the messages.
-        MSG_draw();
-
-        ge_unlock_screen();
-    }
+    // Text now emits textured quads through the TL pipeline — no backbuffer
+    // lock/unlock. Wrapping the draws in ge_lock_screen/ge_unlock_screen would
+    // unconditionally overwrite them with the pre-draw framebuffer contents.
+    FONT_draw(DisplayWidth >> 1, 10, "FPS: %d", fps);
+    MSG_draw();
 }
 
 // uc_orig: AENG_fade_out (fallen/DDEngine/Source/aeng.cpp)
