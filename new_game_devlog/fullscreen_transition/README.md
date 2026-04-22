@@ -10,17 +10,29 @@ Already done:
 - 3D projection is aspect-aware (Hor+ FOV, widescreen = wider horizontal field).
 - Uniform vertical scaling for the rendered world.
 - Config knobs in [`new_game/src/config.h`](../../new_game/src/config.h):
-  `OC_FULLSCREEN`, `OC_WINDOWED_WIDTH/HEIGHT`, `OC_VSYNC`.
+  `OC_FULLSCREEN`, `OC_WINDOWED_WIDTH/HEIGHT`, `OC_VSYNC`,
+  `OC_RENDER_SCALE`, `OC_AA_ENABLE`.
 - Water wibble post-process repositioned correctly on non-4:3 resolutions.
 - OS cursor hidden in fullscreen.
+- **Native physical pixels across platforms** — `OC_WINDOWED_WIDTH/
+  HEIGHT` always mean physical pixels (Retina / HiDPI-aware via
+  two-pass `SDL_GetWindowPixelDensity` resize).
+- **Render scale + scene FBO + composition pass** — the game renders
+  into an offscreen FBO sized `physical × OC_RENDER_SCALE`; a
+  composition pass (simplified FXAA + bilinear upscale) presents it
+  to the window. MSAA removed. See "Resolved" in
+  [`issues.md`](issues.md) for file-by-file details and the invariants
+  future work needs to preserve.
 
 Remaining work — see [`issues.md`](issues.md):
-- **Render scale + native physical pixels (in progress).** Window in real
-  pixels everywhere (fixes macOS Retina clipping); game renders into a
-  scaled FBO composited up to the window. UI not split from 3D for now.
 - HUD / UI is pillarboxed and too small on widescreen **(blocker)** —
   pending design discussion on aspect ratio + UI coord system before
   rework.
+- Split UI rendering from the scaled scene FBO (part of the UI rework).
+- Rename `RealDisplayWidth/Height` (it now means scene-FBO size, not
+  physical display — misleading).
+- Replace the stand-in simplified FXAA with canonical FXAA 3.11 or
+  SMAA 1x.
 - `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).

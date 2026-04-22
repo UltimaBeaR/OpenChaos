@@ -17,135 +17,30 @@ with the user:
 
 ---
 
-## 🔵 Render scale + native physical pixels (in progress)
+## 🟣 Render scale follow-ups
 
-### Goal
+Render scale + scene FBO + composition pass are implemented (see
+"Resolved" at the bottom for the full summary). What's still open:
 
-Two changes, bundled:
-
-1. **Window / swapchain always in native physical pixels** on every
-   platform. On macOS Retina this means adding
-   `SDL_WINDOW_HIGH_PIXEL_DENSITY` so the backing store matches the
-   panel instead of being a low-density upscale. On Windows / Linux the
-   flag is a no-op (backing store is already 1:1), but the config value
-   is uniformly interpreted as physical pixels everywhere.
-2. **Render scale** — a user-facing `OC_RENDER_SCALE` knob (float,
-   probably 0.25..1.0, default 1.0). The game (3D + UI, not split yet)
-   renders into an offscreen FBO of `physical × scale` dimensions. A
-   final composition pass upscales that FBO to the native window with
-   linear filtering.
-
-Intent: on a 4K monitor or a Retina Mac the user can drop scale to 0.5
-or 0.75 to trade sharpness for framerate without changing the window
-size. Scale = 1.0 is pixel-perfect native.
-
-### Current problem this fixes (macOS)
-
-`SDL_CreateWindow(width, height, ...)` takes logical points, not
-physical pixels. On a Retina Mac with desktop scale 2× the logical
-screen is ~1512×982, so a requested 1920×1080 window is larger than the
-screen and clips. Adding `HIGH_PIXEL_DENSITY` changes what
-`SDL_GetWindowSizeInPixels` returns (real physical pixels) but still
-leaves the request in logical points — so we also need to convert the
-config value to logical before passing to `SDL_CreateWindow`.
-
-### Decisions already made
-
-- **UI not split from 3D for now.** HUD textures are low-res originals,
-  no point rendering UI separately at native resolution yet. Whole frame
-  (scene + UI) goes through the scaled FBO, everything shares the same
-  upscale + FXAA. Accepted consequence: text is slightly blurred at
-  scale = 1.0 (FXAA), heavily blurred at scale < 1 (upscale + FXAA).
-  Revisit during UI rework — see "Future work within this task" below.
-- **`OC_AA_ENABLE` is a graphics setting, not an escape hatch.** Do not
-  treat it as a workaround for UI/text blur problems. If text legibility
-  becomes an issue, the proper fix is splitting UI from the scaled FBO,
-  not making users toggle AA off.
-- **Debug overlay stays inside the scaled FBO (for now).** The simpler
-  all-in-one-FBO plan wins. If small debug text becomes unreadable in
-  practice, revisit by moving just the debug overlay after the
-  composition pass (cheap, one-file change). Don't do it preemptively.
-- **MSAA replaced by shader-based AA (FXAA).** Remove MSAA from SDL GL
-  attributes and `glEnable(GL_MULTISAMPLE)`. Scene FBO is always
-  single-sample — simpler pipeline, wibble continues to work
-  unchanged, alpha-test edges (leaves / fences) now get antialiased
-  which MSAA never covered. FXAA 3.11 (canonical NVIDIA shader) merged
-  into the composition pass.
-- **FXAA toggle: `OC_AA_ENABLE`.** On/off config knob, default on.
-  Standard graphics-setting — even without the blur concern, users
-  should be able to disable any post-process AA.
-- **Config knob: single float `OC_RENDER_SCALE`.** Range 0.25 .. 1.0,
-  default 1.0. Compile-time in `config.h` for the first iteration;
-  promote to runtime graphics menu later. No auto-detection for now.
-- **Depth attachment = texture, not RBO.** Full-screen post-process
-  effects that sample depth (SSAO, depth-based fog, soft particles,
-  screen-space shadows, decals, etc.) are on the near-term roadmap.
-  Going with a depth texture up front means post-process work later
-  doesn't need to revisit FBO setup.
-- **No new public globals for physical window size.** `RealDisplayWidth/
-  Height` stay as the game-visible (post-scale) render target size. The
-  physical window pixel size is known only to the composition module
-  (static local) and to input mapping (mouse picking), which fetches it
-  via an existing SDL query (`sdl3_window_get_drawable_size` after
-  `HIGH_PIXEL_DENSITY` is enabled). Game code never sees it.
-- **Dynamic resolution change (`SetDisplay()`) out of scope.** The TODO
-  in [`core.cpp:2372`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp#L2372)
-  stays as a TODO. We only handle initial resolution at game start.
-- **Game code sees only the scaled (virtual) resolution.** All
-  `RealDisplayWidth/Height` etc. continue to be the render target size.
-  Window's physical-pixel size lives in separate globals used only by
-  the composition pass and input mapping.
-
-### Approach
-
-1. Add `SDL_WINDOW_HIGH_PIXEL_DENSITY` in
-   [`sdl3_bridge.cpp`](../../new_game/src/engine/platform/sdl3_bridge.cpp).
-   Convert `OC_WINDOWED_WIDTH/HEIGHT` from physical pixels → logical
-   points using display pixel density before `SDL_CreateWindow`. For
-   fullscreen, desktop mode already gives correct logical size.
-2. Remove MSAA attributes (`SDL_GL_MULTISAMPLEBUFFERS`,
-   `SDL_GL_MULTISAMPLESAMPLES`) from `sdl3_bridge.cpp` and
-   `glEnable(GL_MULTISAMPLE)` from
-   [`gl_context.cpp:44`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp#L44).
-3. Add separate "window physical pixel size" globals, populated from
-   `SDL_GetWindowSizeInPixels` after window creation.
-4. Add `OC_RENDER_SCALE` and `OC_AA_ENABLE` to
-   [`config.h`](../../new_game/src/config.h).
-5. Allocate single-sample scene FBO at `physical × scale` on mode
-   change; reallocate on resolution / scale change. Color = texture
-   (sampled by composition pass), depth = texture (sampleable — enables
-   future depth-based post-process without revisiting FBO setup). All
-   scene rendering hooks into `ge_begin_scene()` (bind FBO) /
-   `ge_end_scene()` (unbind).
-   `RealDisplayWidth/Height` point to this FBO size, not the window.
-6. Composition pass before `ge_flip()`: fullscreen quad reads scene
-   texture, applies FXAA (if `OC_AA_ENABLE`), writes to default FB at
-   window physical size with bilinear upscale.
-7. Input mapping (mouse) already uses `window_width` for physical →
-   virtual; make sure `window_width` in that code refers to the
-   physical-pixel window size, not the render FBO.
-
-### Future work within this task
-
-- **Split UI from main render.** Once render scale + FXAA are working
-  end-to-end, split the pipeline so that HUD / menu / overlay / text /
-  console draw **after** the composition pass, directly into the default
+- **Split UI from main render.** HUD / menu / overlay / text / console
+  currently draw **into** the scaled scene FBO, so at scale < 1 they
+  share the upscale blur and at any scale FXAA softens text. Fix: draw
+  the UI **after** the composition pass, directly into the default
   framebuffer at native resolution. Scene still goes scene-FBO → FXAA +
-  upscale → default FB; then UI draws on top, untouched by FXAA and
-  upscale. UI coordinate system and draw APIs stay as they are — only
-  the order of execution changes. This makes text pixel-perfect even at
-  scale < 1. Requires identifying every "UI draw" call site
-  unambiguously (HUD panel, overlay, frontend, menu, on-screen messages,
-  console, debug overlay). Depends on the aspect-ratio / UI-coord-system
-  discussion above.
-- **Rename `RealDisplayWidth/Height` → something accurate.** After this
-  task, the global formerly known as "real display" actually holds the
-  **scaled render target** size, not the physical display. The name
-  becomes actively misleading (game code reading "RealDisplay*" is
-  looking at the FBO, not the screen). Do a repo-wide rename to
-  something like `RenderTargetWidth/Height` or `SceneWidth/Height` once
-  render-scale lands. Scope: rename + update all call sites + touch up
-  `concepts.md` / `audit.md`. Not a behavior change, just nomenclature.
+  upscale → default FB; UI then draws on top, untouched. UI coord
+  system and draw APIs stay as they are — only execution order changes.
+  Requires enumerating every "UI draw" call site unambiguously (HUD
+  panel, overlay, frontend, menu, on-screen messages, console, debug
+  overlay). Depends on the aspect-ratio / UI-coord-system design
+  discussion at the top of this file.
+- **Rename `RealDisplayWidth/Height` → something accurate.** After the
+  render-scale change, this global holds the **scaled render target**
+  size, not the physical display. The name is now actively misleading
+  (game code reading "RealDisplay*" is looking at the scene FBO, not
+  the screen). Repo-wide rename to e.g. `RenderTargetWidth/Height` or
+  `SceneWidth/Height`. Scope: rename + update all call sites + touch
+  up `concepts.md` / `audit.md`. Not a behavior change, just
+  nomenclature.
 - **Replace the simplified FXAA with a proper shader AA.** The current
   `composite_frag.glsl` has a cut-down FXAA that drops the canonical
   3.11 edge-span search — result is effectively a cheap blur on
@@ -161,30 +56,6 @@ config value to logical before passing to `SDL_CreateWindow`.
      KB, SearchTex ~1 KB) into the binary. Noticeably better than FXAA
      especially on text and thin details. Scene-FBO infra already
      exists, only the composition module needs the extra-pass runner.
-
-### Open sub-questions
-
-- Mouse cursor mapping: `SDL_GetGlobalMouseState` returns logical
-  points. Need to decide which space HUD picking runs in — scaled FBO
-  or native window. Currently mouse → `DisplayWidth (640)` via
-  `window_width`. Pick one convention before changing anything.
-- Does the current post-process pipeline already have a "whole scene
-  FBO" we can reuse, or does rendering go directly into the default
-  framebuffer and only specific effects use FBOs? Answer drives how
-  invasive the plumbing is.
-
-### Files to audit before starting
-
-- [`sdl3_bridge.cpp`](../../new_game/src/engine/platform/sdl3_bridge.cpp)
-  — window creation, drawable size.
-- [`core.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp)
-  — `OpenDisplay`, `RealDisplay*` init.
-- [`gl_context.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp)
-  — context/viewport setup.
-- Post-process FBO code: `wibble_effect.cpp`, `bloom*`, anywhere an FBO
-  is currently managed.
-- [`game_tick.cpp:3446`](../../new_game/src/game/game_tick.cpp#L3446)
-  — mouse picking, to confirm it's using the right "window_width".
 
 ---
 
@@ -488,3 +359,81 @@ pillarbox issue and get fixed together with Option A.
   `POLY_screen_width = DisplayHeight × RealW/RealH`, and uniform
   `PolyPage::SetScaling(RealH/480, RealH/480)` in
   [`game.cpp`](../../new_game/src/game/game.cpp).
+- ~~**Render scale + native physical pixels across platforms.**~~ Scene
+  now renders into an offscreen FBO sized `physical_window × scale`,
+  and a composition pass upscales it to the window at frame end. Lets
+  the user trade sharpness for GPU cost on 4K / Retina / Steam Deck
+  without changing the window size. On every platform, the config
+  size (`OC_WINDOWED_WIDTH/HEIGHT`) and the FBO size are both in
+  **physical pixels**, so a request for 1920×1080 actually means
+  1920×1080 pixels even on a Retina Mac.
+
+  **Files:**
+  - Config: [`config.h`](../../new_game/src/config.h) —
+    `OC_RENDER_SCALE` (0.25..1.0, default 1.0),
+    `OC_RENDER_SCALE_MIN` (floor guard),
+    `OC_AA_ENABLE` (default true, graphics-quality toggle).
+  - [`sdl3_bridge.cpp`](../../new_game/src/engine/platform/sdl3_bridge.cpp)
+    — adds `SDL_WINDOW_HIGH_PIXEL_DENSITY` and does the HiDPI window
+    resize (see ⚠️ below).
+  - [`gl_context.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp)
+    — `glEnable(GL_MULTISAMPLE)` + MSAA attribute queries **removed**;
+    default framebuffer is single-sample now.
+  - New module:
+    [`backend_opengl/postprocess/composition.{h,cpp}`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/postprocess/composition.cpp)
+    — owns scene FBO (color texture RGBA8 + depth texture
+    DEPTH_COMPONENT24), shader program, fullscreen-quad VAO, and
+    `composition_blit()` (runs FXAA + upscale).
+  - New shader:
+    [`shaders/composite_frag.glsl`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/shaders/composite_frag.glsl)
+    — simplified FXAA (one offset sample, no edge-span search — see
+    "🟣 Render scale follow-ups" for the upgrade plan) + bilinear
+    upscale via `GL_LINEAR` sampling.
+  - [`core.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp)
+    — `OpenDisplay` allocates FBO at `physical × scale` and sets
+    `RealDisplayWidth/Height` to that; `ge_begin_scene` /
+    `ge_end_scene` / `ge_flip` / `ge_blit_back_buffer` /
+    `ge_video_draw_and_swap` / `CloseDisplay` wired to composition.
+  - CMakeLists: new shader added to `embed_shaders.cmake`, new
+    `composition.cpp` added to `BACKEND_SOURCES`.
+
+  **Invariant — don't break it:** the scene FBO is kept bound as the
+  active draw framebuffer **for the entire lifetime of the GL
+  context**, not just inside `ge_begin_scene`/`ge_end_scene`. It's
+  bound once in `OpenDisplay` and re-bound after every present
+  (`ge_flip`, `ge_blit_back_buffer`, `ge_video_draw_and_swap`). This
+  is because several game paths call `ge_clear()` **before** the
+  frame's `ge_begin_scene` (e.g. `AENG_clear_viewport` fires before
+  `POLY_begin`). If the scene FBO isn't already bound at that point,
+  the clear hits the window's default FB and the scene FBO keeps
+  last frame's contents — symptom was heavy smear / ghosting in menus.
+  Do not "simplify" this to symmetrical begin_scene-bind /
+  end_scene-unbind — same bug comes back.
+
+  **⚠️ HiDPI window sizing — two-pass resize needed.** On Retina macOS
+  `SDL_CreateWindow` takes logical points (not pixels) even with
+  `HIGH_PIXEL_DENSITY`, so a 640-point window becomes 1280 physical
+  px — double what the config asked for. The naïve fix,
+  `SDL_GetDisplayContentScale`, does **not** help: that function
+  returns the OS accessibility text-scale (usually 1.0 even on
+  Retina), not the Retina pixel ratio. The working approach in
+  `sdl3_window_create` is two-pass:
+  1. `SDL_CreateWindow` with the config's width/height (treated by
+     SDL as logical points);
+  2. query `SDL_GetWindowPixelDensity(window)` on the created
+     window — the real Retina ratio;
+  3. if density > 1, `SDL_SetWindowSize(window,
+     config / density, ...)` and re-center.
+  Don't revert this to single-pass `SDL_GetDisplayContentScale`-based
+  conversion — it looks "cleaner" but silently doubles the window on
+  Retina.
+
+  **Mouse mapping unchanged.** `game_tick.cpp:3446` uses logical
+  points from `sdl3_window_get_size` and maps to virtual 640×480
+  via `DisplayWidth` ratio — independent of render scale and pixel
+  density (it's a ratio-based mapping). Didn't need to touch.
+
+  **Out of scope:** dynamic resolution change (`SetDisplay` still
+  TODO), UI separation from scene FBO (still in scaled FBO, see
+  "🟣 Render scale follow-ups"), high-quality AA (current FXAA is a
+  stand-in).
