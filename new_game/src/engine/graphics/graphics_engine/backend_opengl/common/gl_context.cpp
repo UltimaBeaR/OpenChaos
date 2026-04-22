@@ -15,7 +15,7 @@ static GLADapiproc gl_get_proc(const char* name)
     return (GLADapiproc)sdl3_gl_get_proc_address(name);
 }
 
-bool gl_context_create(int32_t width, int32_t height)
+bool gl_context_create(int32_t width, int32_t height, bool vsync_enabled)
 {
     s_width = width;
     s_height = height;
@@ -28,6 +28,11 @@ bool gl_context_create(int32_t width, int32_t height)
         fprintf(stderr, "OpenGL: SDL3 GL context creation failed\n");
         return false;
     }
+
+    // Apply VSync strategy immediately, before any frames are drawn — avoids
+    // even a single frame running on whatever SDL/driver leaves as default
+    // (which on Windows+NVIDIA could be hard driver VSync = the hang path).
+    sdl3_gl_configure_vsync(vsync_enabled);
 
     // Load GL function pointers via GLAD.
     int version = gladLoadGL((GLADloadfunc)gl_get_proc);

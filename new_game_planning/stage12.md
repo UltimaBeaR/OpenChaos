@@ -53,6 +53,11 @@
 - Aspect ratio рендер-буфера = 1:1 с монитором (всегда)
 - Сглаживание (anti-aliasing): MSAA 4x + mipmaps с LOD bias
 - **⚠️ При реализации выбора разрешения:** обязательно проверить что mipmap LOD bias (-1.7) не даёт мыла/мерцания на всех разрешениях (640x480, 1080p, 1440p, 4K). Если едет — вычислять bias от разрешения.
+- **⚠️ При реализации переключения fullscreen/windowed на Windows:** VSync strategy зависит от режима окна из-за WDDM throttle workaround (см. [new_game_devlog/startup_hang_investigation/fix_progress.md](../new_game_devlog/startup_hang_investigation/fix_progress.md)). В `sdl3_gl_create_context` и при переключении режима окна надо выбирать:
+  - **Windowed:** `SDL_GL_SetSwapInterval(0)` + `DwmFlush()` перед swap.
+  - **Fullscreen:** `SDL_GL_SetSwapInterval(1)` + без `DwmFlush` (он в fullscreen no-op).
+  - На macOS/Linux всегда `SDL_GL_SetSwapInterval(1)` — там бага нет.
+  - Fullscreen делать через `SDL_WINDOW_FULLSCREEN` (SDL3 default = borderless-desktop — DWM работает для alt-tab и других окон, но для нашего окна NVIDIA идёт напрямую в scan-out минуя WDDM throttle path). Exclusive fullscreen через `SDL_SetWindowFullscreenMode` с конкретным mode — не нужен, borderless перекрывает все use cases.
 
 ## 7. Конфиг
 - Собственный файл настроек (openchaos.cfg или аналог)

@@ -7,7 +7,9 @@
 
 // Create an OpenGL 4.1 core profile context on the SDL3 window.
 // Must be called after SetupHost() creates the SDL3 window.
-bool gl_context_create(int32_t width, int32_t height);
+// vsync_enabled is passed straight to sdl3_gl_configure_vsync() — see that
+// API for how it interacts with window mode and OS to pick a strategy.
+bool gl_context_create(int32_t width, int32_t height, bool vsync_enabled);
 
 // Destroy the GL context.
 void gl_context_destroy();

@@ -78,6 +78,18 @@ void* sdl3_gl_get_proc_address(const char* name);
 // Query the current swap interval. Returns true on success.
 bool sdl3_gl_get_swap_interval(int* interval);
 
+// Apply a VSync strategy based on user preference and current window mode.
+// Chooses between three paths internally:
+//   vsync=off         → SetSwapInterval(0), no DwmFlush.           (max FPS, tearing)
+//   vsync=on, fullscreen → SetSwapInterval(1), no DwmFlush.        (driver VSync)
+//   vsync=on, windowed   → SetSwapInterval(0) + DwmFlush() on swap (on Windows only;
+//                          avoids the WDDM-throttle hang triggered by hard driver
+//                          VSync on affected NVIDIA hardware in DWM-composited
+//                          windows). On non-Windows falls back to driver VSync.
+// Call after the window exists and the GL context is current. Safe to call again
+// later if the window mode changes (e.g. windowed ↔ fullscreen toggle).
+void sdl3_gl_configure_vsync(bool vsync_enabled);
+
 // ---------------------------------------------------------------------------
 // Event loop
 // ---------------------------------------------------------------------------

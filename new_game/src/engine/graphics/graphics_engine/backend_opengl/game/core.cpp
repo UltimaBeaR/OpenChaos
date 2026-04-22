@@ -2358,7 +2358,13 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     RealDisplayHeight = height;
     DisplayBPP = depth;
 
-    if (!gl_context_create(width, height)) {
+    // TODO: promote to a proper user setting (future graphics options
+    // config). For now a hard-coded constant — VSync on by default, which
+    // on Windows+windowed routes through DwmFlush to dodge the WDDM-throttle
+    // hang (see sdl3_gl_configure_vsync docs + startup_hang_investigation).
+    constexpr bool VSYNC_ENABLED = true;
+
+    if (!gl_context_create(width, height, VSYNC_ENABLED)) {
         return -1;
     }
 

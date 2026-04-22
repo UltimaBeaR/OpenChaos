@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <dwmapi.h>
+#endif
+
 // ===========================================================================
 // Window
 // ===========================================================================
@@ -12,6 +16,11 @@
 static SDL_Window*   s_window   = nullptr;
 static SDL_GLContext  s_gl_ctx   = nullptr;
 static SDL3_Callbacks s_callbacks = {};
+
+// Whether sdl3_gl_swap() should call DwmFlush() before SDL_GL_SwapWindow.
+// Set by sdl3_gl_configure_vsync(); see that function + sdl3_bridge.h for
+// the strategy matrix.
+static bool s_use_dwm_flush = false;
 
 bool sdl3_window_create(const char* title, int width, int height)
 {
@@ -155,7 +164,10 @@ bool sdl3_gl_create_context(int major, int minor)
         return false;
     }
 
-    SDL_GL_SetSwapInterval(1);
+    // VSync / pacing strategy is set by the caller via sdl3_gl_configure_vsync()
+    // — we don't touch SetSwapInterval here. SDL leaves swap interval at its
+    // default until configure is called; the caller must invoke it before the
+    // first swap so driver VSync never runs in an unintended mode.
     return true;
 }
 
@@ -169,7 +181,51 @@ void sdl3_gl_destroy_context()
 
 void sdl3_gl_swap()
 {
+#ifdef _WIN32
+    // Only when the active strategy needs it — see sdl3_gl_configure_vsync().
+    // In that mode driver VSync is off and DwmFlush is our pacing mechanism;
+    // in all other modes (VSync off, fullscreen VSync, non-Windows) the
+    // driver-side path handles pacing and we skip this.
+    if (s_use_dwm_flush) DwmFlush();
+#endif
     if (s_window) SDL_GL_SwapWindow(s_window);
+}
+
+void sdl3_gl_configure_vsync(bool vsync_enabled)
+{
+    const bool fullscreen =
+        s_window && (SDL_GetWindowFlags(s_window) & SDL_WINDOW_FULLSCREEN) != 0;
+
+    // Three paths:
+    //   1. vsync_enabled=false → driver VSync off, no DwmFlush. Max FPS, tearing.
+    //   2. vsync_enabled=true, windowed on Windows → driver VSync off +
+    //      DwmFlush on swap. Avoids the WDDM-throttle hang that hard driver
+    //      VSync triggers on affected NVIDIA hardware when DWM is composing
+    //      our window.
+    //   3. vsync_enabled=true, fullscreen OR non-Windows → regular driver
+    //      VSync (SetSwapInterval(1)). In fullscreen NVIDIA goes straight
+    //      to scan-out and skips the WDDM path that throttles. On macOS
+    //      and Linux the WDDM bug doesn't exist, and DwmFlush is Windows-
+    //      only anyway.
+    if (!vsync_enabled) {
+        SDL_GL_SetSwapInterval(0);
+        s_use_dwm_flush = false;
+        return;
+    }
+
+#ifdef _WIN32
+    if (fullscreen) {
+        SDL_GL_SetSwapInterval(1);
+        s_use_dwm_flush = false;
+    } else {
+        SDL_GL_SetSwapInterval(0);
+        s_use_dwm_flush = true;
+    }
+#else
+    (void)fullscreen; // not consulted on this platform
+    SDL_GL_SetSwapInterval(1);
+    s_use_dwm_flush = false;
+#endif
 }
 
 void* sdl3_gl_get_proc_address(const char* name)

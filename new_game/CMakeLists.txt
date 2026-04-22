@@ -119,7 +119,9 @@ set(BACKEND_SOURCES
 )
 # OpenGL library: platform-specific name
 if(WIN32)
-    set(BACKEND_LIBS opengl32)
+    # dwmapi — used by DwmFlush() as a VSync replacement to avoid the
+    # NVIDIA/WDDM hang on hard SDL VSync (see startup_hang_investigation).
+    set(BACKEND_LIBS opengl32 dwmapi)
 elseif(APPLE)
     find_package(OpenGL REQUIRED)
     set(BACKEND_LIBS OpenGL::GL)

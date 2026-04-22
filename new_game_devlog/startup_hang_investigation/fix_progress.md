@@ -12,65 +12,153 @@
 | 2 | `SKY_draw_stars` → batched 1-pixel quads | ✅ сделан |
 | 3 | `WIBBLE_simple` → GPU post-process (copy+shader) | ✅ сделан |
 | 4 | Cleanup: удалить `ge_lock_screen` / `ge_unlock_screen` / dead API; `AENG_screen_shot` на одноразовый `glReadPixels` без writeback | ✅ сделан |
-| 5 | **Найти остаточный триггер** (см. ниже — hang всё ещё воспроизводится) | ⏳ |
+| 5 | Остаточный hang на VSync — обход через DwmFlush (Windows) | ✅ сделан |
 
-## ⚠️ Hang НЕ закрыт после Stages 1-4 (2026-04-22)
+## Stage 5 — остаточный VSync-hang, решено DwmFlush (2026-04-22)
 
-После прохождения всех четырёх этапов и полной зачистки lock/writeback-путей
-пользователь подтвердил: **hang всё ещё воспроизводится** с теми же
-симптомами (system-wide freeze ~1 FPS, десктоп не отвечает). Репро:
+### Контекст: Stages 1-4 закрыли gameplay-триггер, но hang остался
 
-- **Момент срабатывания:** финальный этап загрузки миссии, прогресс-бар в
-  районе **~80%**. Воспроизводится многократным перезапуском игры +
-  запуском миссии (не на каждом старте, но достаточно надёжно).
-- **Характер симптомов идентичен исходному:** lag всей ОС, audio играет
-  нормально, клавиатура/мышь почти не реагируют.
+После удаления всех per-frame readback'ов и writeback-quad'ов (Stages 1-4)
+hang всё ещё воспроизводился на affected hardware — с теми же симптомами
+(system-wide freeze, ~1 FPS, десктоп не отвечает), но в других точках
+пайпа:
+- Иногда на финальном этапе загрузки миссии (~80% прогресс-бара).
+- Систематически в gameplay при отключённом `lock_frame_rate` (как
+  исторически было до Stages 1-3).
 
-### Что это значит
+Серия diagnostic-прогонов показала что **конкретный GL call не
+виноват** — нет оставшихся `glFlush`/`glFinish`/`glReadPixels`, grep по
+коду чистый. Зато чётко наблюдается: **при `SDL_GL_SetSwapInterval(0)`
+hang не воспроизводится ни в одном сценарии.** Root cause — именно
+блокирующий **driver-level механизм VSync** (hard `SetSwapInterval(1)`),
+который изнутри драйвера блокирует `SwapBuffers` до GPU vblank
+signal'а. В сочетании с нашим пайпом рендеринга этот путь триггерит
+WDDM throttle scheduler — и отдельного "виновного" GL-call при этом
+нет, просто сам механизм блокировки в драйвере нестабилен на affected
+железе.
 
-Оригинальный root cause (per-frame readback+writeback в gameplay) был
-верный — те три тригера действительно дёргали WDDM throttle. Но это был
-**не единственный** источник паттерна. Что-то ещё на финальном этапе
-pipeline загрузки уровня создаёт тот же sync-read/stall паттерн, о
-котором мы ещё не знаем.
+Серия попыток снять hang при `SetSwapInterval(1)` (SDL_Delay(0)/SDL_Delay(1)
+перед swap, glFinish после swap, SDL_HINT_VIDEO_ALLOW_SCREENSAVER,
+adaptive VSync через `SetSwapInterval(-1)` с fallback'ом) не дала
+эффекта — все оставались hang'ающими.
 
-### Возможные кандидаты (не проверены)
+### Решение через DwmFlush (2026-04-22)
 
-- Пакетный аплоад текстур уровня — `TEXTURE_load_needed` лит пачкой
-  большой объём через `glTexImage2D`. На affected hardware при попадании
-  в sync-point с VSync'нутым SwapBuffers теоретически может триггерить
-  тот же throttle.
-- `glFlush` / `glFinish` где-то в пайпе загрузки (мало где мы их зовём,
-  но стоит проверить `ge_texture_loading_done`, промежуточные `ge_flip`'ы
-  loader'а).
-- Какой-то оставшийся `glReadPixels` при создании mipmaps / conversion
-  текстур — надо сгрепать.
-- Запись в `s_dummy_screen` (даже если путь был мёртв, какой-то fallback
-  code-path мог читать нули) — Stage 4 это удалил, но проверим что ничего
-  не обращается к freed-памяти.
+**Итоговый фикс (production):**
 
-### Следующий шаг (Stage 5)
+VSync на Windows реализован не через driver-механизм
+(`SetSwapInterval(1)`), а через DWM compositor (`DwmFlush()`).
+Функционально для игрока то же самое — 60 fps, без tearing — но блок
+происходит в другом API, которое на affected железе не триггерит
+WDDM-throttle hang. Две одинаковые по функции схемы, разные по коду:
 
-Профилировать/отлаживать что именно происходит в районе 80% загрузки на
-affected hardware:
+```cpp
+// sdl3_bridge.cpp (при init GL context)
+#ifdef _WIN32
+    SDL_GL_SetSwapInterval(0);   // driver VSync OFF
+#else
+    SDL_GL_SetSwapInterval(1);   // regular VSync — no WDDM throttle elsewhere
+#endif
 
-1. Инструментировать pipeline загрузки миссии (`TEXTURE_load_needed`,
-   `TEXTURE_load_page`, и прочие точки где могут делаться GL-sync calls).
-   Логировать время между ключевыми шагами — найти большой gap = там
-   и триггер.
-2. Сгрепать кодовую базу ещё раз на **любые GL sync-point'ы**:
-   `glReadPixels`, `glFlush`, `glFinish`, `glGetTexImage`, sync objects,
-   fences. Всё что блокирует CPU на GPU должно быть либо удалено, либо
-   перенесено вне per-frame path.
-3. Если ничего подозрительного не найдётся — рассмотреть:
-   - Отключить VSync на время загрузки (swap interval = 0 → swap interval = 1 по завершении).
-   - Выдавать CPU quantum через `Sleep(0)` / `sched_yield` в прогресс-лупе
-     loader'а, чтобы ОС успевала обрабатывать desktop compositor.
+// sdl3_bridge.cpp (sdl3_gl_swap())
+#ifdef _WIN32
+    DwmFlush();                  // block on DWM compositor vblank
+#endif
+    SDL_GL_SwapWindow(s_window); // returns immediately (driver VSync off)
+```
 
-**Это блокер 1.0.** Запись в [known_issues_and_bugs.md](../../new_game_planning/known_issues_and_bugs.md)
-«Тормоза при загрузке миссии» обновлена.
+Плюс: `dwmapi` добавлен в `BACKEND_LIBS` под `if(WIN32)` в
+[CMakeLists.txt](../../new_game/CMakeLists.txt).
 
+### Почему SetSwapInterval=0 (на Windows)
 
+`SetSwapInterval(0)` **не значит «VSync отключён»** — это значит
+«отключён driver-механизм VSync». Сама VSync-синхронизация на Windows
+остаётся, просто её теперь делает `DwmFlush()` через DWM вместо
+драйвера. Если оставить оба (SetSwapInterval=1 **и** DwmFlush) —
+получим двойную блокировку (сначала ждём compositor vblank, потом
+driver ждёт GPU vblank), fps падает в 2 раза, и driver-механизм всё
+равно триггерит throttle hang. Поэтому driver-VSync выключаем — DWM
+остаётся единственным sync-point'ом.
+
+### Почему compositor VSync работает, а driver VSync — нет
+
+- **Driver VSync (`SetSwapInterval(1)`)** блокирует CPU-thread внутри
+  GPU driver'а на ожидании GPU vblank signal'а. На affected железе
+  (NVIDIA + современный WDDM) такой блокирующий swap при определённых
+  условиях загрузки триггерит WDDM-level throttle scheduler: всему
+  процессу резко снижают GPU quantum priority, в результате DWM
+  compositor лагает ~1 present в 10 секунд, и лагает весь desktop,
+  не только наше окно.
+- **Compositor VSync (`DwmFlush()`)** блокирует CPU-thread на уровне
+  compositor API, минуя driver-level sync. Compositor всегда жив (если
+  он встаёт — у тебя весь Windows завис), WDDM throttle scheduler
+  не триггерится, pacing получается стабильным 60 Гц (или refresh
+  rate монитора).
+
+### Почему не на не-Windows
+
+- `DwmFlush` — часть Windows Desktop Window Manager API (Vista+). На
+  macOS, Linux, других ОС такого API нет (свой compositor — Core Animation
+  на Mac, X server/Wayland на Linux, etc.).
+- WDDM-throttle баг **специфичен для Windows NVIDIA-стека**. На других
+  платформах driver VSync (`SetSwapInterval(1)`) работает корректно и
+  даёт такой же pacing.
+
+### Fullscreen: WDDM throttle windowed-only (проверено 2026-04-22)
+
+Быстрый smoke-test на affected hardware: `SDL_WINDOW_FULLSCREEN` при
+создании окна (SDL3 default = borderless-desktop fullscreen) + hard
+driver VSync (`SetSwapInterval(1)`) + `DwmFlush` отключён + `lock_frame_rate`
+отключён. **Hang не воспроизводится.**
+
+Значит WDDM throttle bug — **windowed-only**: в fullscreen NVIDIA идёт
+напрямую в scan-out минуя DWM compositor, WDDM scheduler отрабатывает
+корректно, hard VSync безопасен.
+
+**Следствия для production:**
+- **Windowed:** `SetSwapInterval(0)` + `DwmFlush()` (наш текущий путь).
+- **Fullscreen:** `SetSwapInterval(1)` + без `DwmFlush` (тот был бы
+  no-op в любом случае).
+
+Когда [stage12.md](../../new_game_planning/stage12.md) добавит
+переключаемый fullscreen — в `sdl3_gl_create_context()` проверять
+`SDL_GetWindowFlags(s_window) & SDL_WINDOW_FULLSCREEN` и выбирать
+стратегию. Сейчас игра всегда windowed, production setup — текущий.
+
+### ⚠️ Методологическая поправка к исходному investigation
+
+**Важное предположение пользователя (которое нужно проверить и учесть):**
+исходные эксперименты «отключение трёх эффектов с `glReadPixels` убирает hang»
+могли проводиться в окружении где **DwmFlush был включён всё время** как
+отдельный флаг/локальный билд-параметр. То есть:
+
+- Наблюдение «эффекты off + readpixels off → нет hang» могло быть вкладом
+  **DwmFlush**, а не только отключения эффектов.
+- Наблюдение «эффекты включены с readpixels → hang» — возможно
+  **readpixels настолько перегружал driver queue что даже DwmFlush не
+  помогал** (или тестировалось с DwmFlush выключенным в этой серии).
+
+Если гипотеза верна — это **объясняет текущую ситуацию**: мы убрали все
+`glReadPixels` из gameplay (Stages 1-4), но без DwmFlush hang всё равно
+возвращается при VSync=1. Значит root cause был не «только readpixels», а
+**readpixels *плюс* отсутствие DwmFlush-совместимого pacing'а**. После Stage 4
+нагрузки уровня readpixels уже достаточно, чтобы без DwmFlush'а hard VSync
+оказывался в throttle-зоне. Добавление DwmFlush и там это закрывает.
+
+**Следствия для production fix:**
+- `DwmFlush()` перед swap на Windows — кандидат на постоянное включение (с
+  fallback на обычный VSync на не-Windows платформах, и на hard VSync если
+  `DwmFlush` по какой-то причине недоступен).
+- Нужно проверить что `DwmFlush` не ломает поведение на других машинах
+  (не affected hardware). В худшем случае — можно ставить через `.env`
+  флаг `dwm_flush_swap=1` с дефолтом `1` на Windows.
+- Переоценить исходные FINDINGS: запись «DwmFlush per frame — throttle
+  смещается на pre-swap GL calls, блокировка остаётся» ([FINDINGS.md:82](FINDINGS.md#L82))
+  — справедлива для **минимального repro со standalone readpixels**.
+  После Stages 1-3 pre-swap GL calls стали другими (нет readpixels),
+  и DwmFlush в полном игровом пайпе работает по-другому. Нельзя было
+  экстраполировать результат standalone-repro на целую игру.
 
 ## Архитектурное правило
 
