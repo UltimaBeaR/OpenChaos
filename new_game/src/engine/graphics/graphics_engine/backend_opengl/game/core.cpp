@@ -9,6 +9,7 @@
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/wibble_effect.h"
+#include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
@@ -663,12 +664,17 @@ void ge_shutdown()
 
 void ge_begin_scene()
 {
-    // OpenGL doesn't have explicit begin/end scene — no-op.
+    // Redirect the frame into the scene FBO. All subsequent game draw calls
+    // (3D, HUD, overlays, pre-flip callback) land there. The composition
+    // pass in ge_flip() upscales it to the default framebuffer.
+    composition_bind_scene();
 }
 
 void ge_end_scene()
 {
-    // No-op.
+    // Scene FBO stays bound — pre-flip callback (game_pre_flip) still needs
+    // to draw into it (screensaver / depth bodge reset). Unbind happens in
+    // ge_flip() right before the composition blit.
 }
 
 void ge_clear(bool color, bool depth)
@@ -693,9 +699,24 @@ void ge_flip()
     glBindVertexArray(0);
     s_uniforms_ever_uploaded = false;
 
+    // Last chance for game code to draw into the scene FBO (screensaver,
+    // depth bodge reset).
     if (s_pre_flip_callback) s_pre_flip_callback();
 
+    // Scene is complete — run composition into the default framebuffer at
+    // full window size. This does the upscale from scene-FBO → window and
+    // applies FXAA when OC_AA_ENABLE is on.
+    int win_w = 0, win_h = 0;
+    sdl3_window_get_drawable_size(&win_w, &win_h);
+    composition_bind_default();
+    composition_blit(win_w, win_h);
+
     gl_context_swap();
+
+    // Re-bind the scene FBO for the next frame — see OpenDisplay for why
+    // the scene FBO is kept bound between frames (some clears fire before
+    // the next ge_begin_scene).
+    composition_bind_scene();
 }
 
 // ---------------------------------------------------------------------------
@@ -1288,8 +1309,17 @@ void ge_destroy_user_texture(GETextureHandle handle)
 
 void ge_blit_back_buffer()
 {
-    // Blit back buffer to front (same as flip for windowed GL).
+    // Legacy D3D "non-flipping present" path. In GL both flip and blit
+    // reduce to the same thing — run composition into the default FB,
+    // then swap. Main game loop (game.cpp:681) uses this, not ge_flip.
+    int win_w = 0, win_h = 0;
+    sdl3_window_get_drawable_size(&win_w, &win_h);
+    composition_bind_default();
+    composition_blit(win_w, win_h);
     gl_context_swap();
+
+    // Re-bind scene FBO for the next frame — see OpenDisplay for rationale.
+    composition_bind_scene();
 }
 
 // ---------------------------------------------------------------------------
@@ -1498,10 +1528,16 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     vid_ensure_resources();
     if (!s_vid_program) return;
 
-    // Compute letterboxed quad
+    // Video is a standalone present path — bypasses the scene FBO and draws
+    // straight to the window. Force the default framebuffer in case a
+    // ge_begin_scene() call left the scene FBO bound.
+    composition_bind_default();
+
+    // Viewport must match the window — ge_set_viewport last set it to the
+    // scene FBO size.
     int win_w, win_h;
-    extern void sdl3_window_get_size(int*, int*);
-    sdl3_window_get_size(&win_w, &win_h);
+    sdl3_window_get_drawable_size(&win_w, &win_h);
+    glViewport(0, 0, win_w, win_h);
 
     float va = (float)video_w / (float)video_h;
     float wa = (float)win_w  / (float)win_h;
@@ -1533,6 +1569,10 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     glBindVertexArray(0);
 
     gl_context_swap();
+
+    // Re-bind scene FBO for the next frame — keeps the "scene FBO is
+    // always the active draw target between presents" invariant.
+    composition_bind_scene();
 }
 
 void ge_video_texture_destroy(GEVideoTexture tex)
@@ -2349,21 +2389,69 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     // disappear once the call site is updated.
     (void)width; (void)height; (void)depth; (void)flags;
 
-    int draw_w = 0, draw_h = 0;
-    sdl3_window_get_drawable_size(&draw_w, &draw_h);
+    int phys_w = 0, phys_h = 0;
+    sdl3_window_get_drawable_size(&phys_w, &phys_h);
+    int logical_w = 0, logical_h = 0;
+    sdl3_window_get_size(&logical_w, &logical_h);
 
-    RealDisplayWidth  = draw_w;
-    RealDisplayHeight = draw_h;
+    // Apply the internal-render-scale knob. The game-visible render target
+    // (scene FBO) is (physical × scale); the composition pass at frame end
+    // upscales it to the physical window size. Game code never sees the
+    // physical size directly — RealDisplayWidth/Height here point to the
+    // scaled render target.
+    float scale = OC_RENDER_SCALE;
+    if (scale < OC_RENDER_SCALE_MIN) scale = OC_RENDER_SCALE_MIN;
+    if (scale > 1.0f)                scale = 1.0f;
+
+    int fbo_w = (int)((float)phys_w * scale + 0.5f);
+    int fbo_h = (int)((float)phys_h * scale + 0.5f);
+    if (fbo_w < 1) fbo_w = 1;
+    if (fbo_h < 1) fbo_h = 1;
+
+    RealDisplayWidth  = fbo_w;
+    RealDisplayHeight = fbo_h;
     DisplayBPP        = 32;  // OpenGL is always 32bpp.
+
+    // Print the resolved dimensions so it's obvious what the game is
+    // actually rendering at vs. what the window presents. Useful when
+    // HiDPI / render-scale math starts behaving unexpectedly.
+    fprintf(stderr,
+            "Display init:\n"
+            "  config request:     %dx%d physical px (fullscreen=%d)\n"
+            "  window (logical):   %dx%d points\n"
+            "  window (physical):  %dx%d pixels  [HiDPI ratio %.2fx]\n"
+            "  render scale:       %.2f\n"
+            "  scene FBO (game):   %dx%d pixels\n",
+            OC_WINDOWED_WIDTH, OC_WINDOWED_HEIGHT, OC_FULLSCREEN ? 1 : 0,
+            logical_w, logical_h,
+            phys_w, phys_h,
+            (logical_w > 0) ? (float)phys_w / (float)logical_w : 0.0f,
+            (double)scale,
+            fbo_w, fbo_h);
 
     s_fullscreen = OC_FULLSCREEN;
 
-    if (!gl_context_create(draw_w, draw_h, OC_VSYNC)) {
+    // gl_context_get_width/height must return the render-target size
+    // (wibble effect and ge_set_viewport's y-flip both rely on it).
+    if (!gl_context_create(fbo_w, fbo_h, OC_VSYNC)) {
         return -1;
     }
 
+    if (!composition_init(fbo_w, fbo_h)) {
+        fprintf(stderr, "OpenDisplay: composition_init failed\n");
+        return -1;
+    }
+
+    // Keep the scene FBO bound as the default draw target. Some game paths
+    // call ge_clear() before the frame's ge_begin_scene() (e.g.
+    // AENG_clear_viewport fires before POLY_begin) — we need those clears to
+    // hit the scene FBO, not the window. After every present (flip / blit /
+    // video) we re-bind the scene FBO too, so this invariant holds across
+    // the whole lifetime of the GL context.
+    composition_bind_scene();
+
     if (s_mode_change_callback) {
-        s_mode_change_callback(draw_w, draw_h);
+        s_mode_change_callback(fbo_w, fbo_h);
     }
 
     return 0; // success (D3D backend returns HRESULT, 0 = S_OK)
@@ -2380,6 +2468,7 @@ SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
 
 SLONG CloseDisplay()
 {
+    composition_shutdown();
     gl_context_destroy();
     return 1;
 }

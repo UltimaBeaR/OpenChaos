@@ -31,18 +31,33 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
         return false;
     }
 
-    // MSAA attributes must be set before window creation — SDL3 selects the
-    // pixel format (including multisample) at SDL_CreateWindow time.
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    // No MSAA on the default framebuffer — antialiasing is done in the
+    // composition pass via FXAA (see postprocess/composition.cpp). Scene
+    // rendering targets a single-sample scene FBO; the default framebuffer
+    // is only touched by the fullscreen composition quad that upscales it.
+    //
+    // SDL_WINDOW_HIGH_PIXEL_DENSITY: on HiDPI displays (macOS Retina,
+    // Windows per-monitor scaling) make the GL backing store / drawable size
+    // match physical pixels instead of logical points. The config width/
+    // height below are treated as physical pixels too — we convert them to
+    // logical points before SDL_CreateWindow.
+    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
-    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+    // Remember the caller's physical-pixel request before we mutate width/
+    // height for fullscreen. Used after window creation to resize if the
+    // HiDPI ratio turned out to be > 1 (see below).
+    const int requested_phys_w = width;
+    const int requested_phys_h = height;
+
     if (fullscreen) {
         // Explicitly use the primary display's desktop resolution as the
         // window size — otherwise SDL3 takes the passed (width, height) as
         // the requested exclusive fullscreen mode and the drawable stays
         // stuck at that size, leaving a rendered region in the bottom-left
         // of the physical panel on monitors with a different native mode.
+        // SDL_GetDesktopDisplayMode returns logical-point dimensions, which
+        // is what SDL_CreateWindow expects; HIGH_PIXEL_DENSITY then makes
+        // the actual drawable match the physical panel.
         SDL_DisplayID display = SDL_GetPrimaryDisplay();
         const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(display);
         if (mode) {
@@ -58,7 +73,28 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
         return false;
     }
 
-    if (fullscreen) {
+    if (!fullscreen) {
+        // Config supplies window size in physical pixels (consistent across
+        // platforms). SDL_CreateWindow takes logical points — on a Retina
+        // Mac that means a 640-point window becomes 1280 physical pixels,
+        // twice what we asked for. Fix it with a two-pass resize: query
+        // the actual pixel density of the window we just created, and if
+        // it's > 1 (HiDPI), shrink the logical size so the physical size
+        // matches the config.
+        // SDL_GetDisplayContentScale does *not* help here: that function
+        // returns the user's accessibility text-scale preference (usually
+        // 1.0 even on Retina), not the Retina pixel ratio.
+        const float density = SDL_GetWindowPixelDensity(s_window);
+        if (density > 1.0f) {
+            const int new_logical_w = (int)((float)requested_phys_w / density + 0.5f);
+            const int new_logical_h = (int)((float)requested_phys_h / density + 0.5f);
+            SDL_SetWindowSize(s_window, new_logical_w, new_logical_h);
+            // Re-center after resize so the window isn't off-screen.
+            SDL_SetWindowPosition(s_window,
+                                  SDL_WINDOWPOS_CENTERED,
+                                  SDL_WINDOWPOS_CENTERED);
+        }
+    } else {
         // Belt-and-suspenders: force borderless-desktop fullscreen (passing
         // NULL as the mode). Prevents SDL from staying in an exclusive mode
         // if it auto-picked one that matched the desktop size by coincidence.
