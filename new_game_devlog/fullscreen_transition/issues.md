@@ -146,6 +146,21 @@ config value to logical before passing to `SDL_CreateWindow`.
   something like `RenderTargetWidth/Height` or `SceneWidth/Height` once
   render-scale lands. Scope: rename + update all call sites + touch up
   `concepts.md` / `audit.md`. Not a behavior change, just nomenclature.
+- **Replace the simplified FXAA with a proper shader AA.** The current
+  `composite_frag.glsl` has a cut-down FXAA that drops the canonical
+  3.11 edge-span search — result is effectively a cheap blur on
+  contrast-detected pixels, not real antialiasing. Two upgrade paths,
+  pick later:
+  1. **Canonical FXAA 3.11** (~2-3 h). Public `Fxaa3_11.h` from NVIDIA,
+     one file, no lookup tables, drop-in replacement for our composite
+     fragment shader. Still a blur-based filter — better than ours but
+     FXAA always softens text.
+  2. **SMAA 1x** (~3-4 h). From github.com/iryoku/smaa. Three passes
+     (edge detection → blending weights → neighborhood blending), two
+     extra FBOs, embeds two precomputed lookup textures (AreaTex ~180
+     KB, SearchTex ~1 KB) into the binary. Noticeably better than FXAA
+     especially on text and thin details. Scene-FBO infra already
+     exists, only the composition module needs the extra-pass runner.
 
 ### Open sub-questions
 
