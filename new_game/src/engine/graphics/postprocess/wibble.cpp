@@ -24,8 +24,13 @@ void WIBBLE_simple(
     UBYTE wibble_s1,
     UBYTE wibble_s2)
 {
-    x1 = x1 * RealDisplayWidth  / DisplayWidth;
-    x2 = x2 * RealDisplayWidth  / DisplayWidth;
+    // Uniform scale by vertical on both axes — matches the s_YScale used to
+    // render the world (see PolyPage::SetScaling in game_mode_changed).
+    // Scaling X by RealDisplayWidth/DisplayWidth works only when the monitor
+    // aspect is 4:3; on widescreen the horizontal ratio diverges from the
+    // vertical one and the wibble bbox drifts off the rendered puddle.
+    x1 = x1 * RealDisplayHeight / DisplayHeight;
+    x2 = x2 * RealDisplayHeight / DisplayHeight;
     y1 = y1 * RealDisplayHeight / DisplayHeight;
     y2 = y2 * RealDisplayHeight / DisplayHeight;
 
