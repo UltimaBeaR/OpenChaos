@@ -211,14 +211,8 @@ void MSG_add(CBYTE* message, ...);
 // uc_orig: AENG_clear_screen (fallen/DDEngine/Headers/aeng.h)
 void AENG_clear_screen(void);
 
-// uc_orig: AENG_lock (fallen/DDEngine/Headers/aeng.h)
-SLONG AENG_lock(void);
-
 // uc_orig: FONT_draw (fallen/DDEngine/Headers/aeng.h)
 SLONG FONT_draw(SLONG x, SLONG y, CBYTE* text, ...);
-
-// uc_orig: AENG_unlock (fallen/DDEngine/Headers/aeng.h)
-void AENG_unlock(void);
 
 // uc_orig: AENG_fini (fallen/DDEngine/Headers/aeng.h)
 void AENG_fini(void);

@@ -3,11 +3,10 @@
 
 #include "engine/core/types.h"
 
-// Horizontally distorts a rectangular region of the locked back buffer in-place,
-// creating a wavy "wibble" effect. Operates on raw framebuffer memory.
-//
-// ALL THESE FUNCTIONS MUST ONLY BE CALLED WHEN THE SCREEN IS LOCKED.
-// Make sure the bounding boxes are all well on screen.
+// Horizontal per-row shift of a rectangular backbuffer region, creating the
+// wavy "wibble" look used for puddle reflections. Coordinates are in game-
+// virtual (DisplayWidth × DisplayHeight) pixels; scaling to real framebuffer
+// pixels and the actual GPU draw happen in the backend (ge_apply_wibble).
 //
 // uc_orig: WIBBLE_simple (fallen/DDEngine/Headers/wibble.h)
 void WIBBLE_simple(

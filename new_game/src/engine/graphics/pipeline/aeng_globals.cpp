@@ -74,9 +74,6 @@ int AENG_detail_perspective = 1;
 // uc_orig: AENG_detail_crinkles (fallen/DDEngine/Source/aeng.cpp)
 int AENG_detail_crinkles = 1;
 
-// uc_orig: AENG_estimate_detail_levels (fallen/DDEngine/Source/aeng.cpp)
-int AENG_estimate_detail_levels = 1;
-
 // uc_orig: AENG_cur_fc_cam (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_cur_fc_cam;
 

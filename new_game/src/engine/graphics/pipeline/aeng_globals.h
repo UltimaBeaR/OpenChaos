@@ -108,10 +108,6 @@ extern int AENG_detail_perspective;
 // uc_orig: AENG_detail_crinkles (fallen/DDEngine/Source/aeng.cpp)
 extern int AENG_detail_crinkles;
 
-// uc_orig: AENG_estimate_detail_levels (fallen/DDEngine/Source/aeng.cpp)
-// When non-zero, detail levels are auto-adjusted based on frame performance.
-extern int AENG_estimate_detail_levels;
-
 // uc_orig: AENG_cur_fc_cam (fallen/DDEngine/Source/aeng.cpp)
 // Index of the currently active FC_cam (0 = player 1, 1 = player 2 in splitscreen).
 extern SLONG AENG_cur_fc_cam;
@@ -547,14 +543,6 @@ void AENG_draw_people_messages(void);
 // uc_orig: AENG_set_bike_wheel_rotation (fallen/DDEngine/Source/aeng.cpp)
 // Updates the UV coordinates on bike wheel prim faces to animate wheel spin.
 void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim);
-
-// uc_orig: AENG_draw_some_polys (fallen/DDEngine/Source/aeng.cpp)
-// Renders N test triangles using DrawIndexedPrimitive; returns elapsed time.
-float AENG_draw_some_polys(bool large, bool blend);
-
-// uc_orig: AENG_guess_detail_levels (fallen/DDEngine/Source/aeng.cpp)
-// Auto-selects detail settings based on GPU speed; only runs once if estimate flag is set.
-void AENG_guess_detail_levels(void);
 
 // uc_orig: index_lookup (fallen/DDEngine/Source/aeng.cpp)
 // Maps quad corner index 0-3 to face winding order for roof tile rendering inside AENG_draw_city.

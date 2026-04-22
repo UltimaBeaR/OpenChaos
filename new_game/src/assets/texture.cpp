@@ -734,9 +734,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
 
     CloseTGAClump();
 
-    extern void AENG_guess_detail_levels();
-    AENG_guess_detail_levels();
-
     ge_texture_loading_done();
 
     POLY_frame_init(UC_FALSE, UC_FALSE);

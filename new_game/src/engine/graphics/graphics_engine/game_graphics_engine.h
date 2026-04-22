@@ -263,27 +263,22 @@ void ge_set_background(GEBackground bg);
 void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b);
 
 // ---------------------------------------------------------------------------
-// Screen buffer access
+// Screen dimensions
 // ---------------------------------------------------------------------------
 
-// Lock the back buffer for direct pixel access. Returns pointer to pixel data, or NULL on failure.
-void* ge_lock_screen();
-void  ge_unlock_screen();
-
-// Screen buffer state — valid after lock, or always valid for dimensions.
-uint8_t* ge_get_screen_buffer();
-int32_t  ge_get_screen_pitch();
 int32_t  ge_get_screen_width();
 int32_t  ge_get_screen_height();
 int32_t  ge_get_screen_bpp();
 
-// Direct pixel access — only valid when screen is locked.
-void ge_plot_pixel(int32_t x, int32_t y, uint8_t r, uint8_t g, uint8_t b);
-void ge_plot_formatted_pixel(int32_t x, int32_t y, uint32_t color);
-void ge_get_pixel(int32_t x, int32_t y, uint8_t* r, uint8_t* g, uint8_t* b);
-
-// Pack r,g,b into the current framebuffer pixel format.
-uint32_t ge_get_formatted_pixel(uint8_t r, uint8_t g, uint8_t b);
+// ---------------------------------------------------------------------------
+// One-shot framebuffer read (screenshots only)
+// ---------------------------------------------------------------------------
+// Reads the current backbuffer into `out` (RGBA, 4 bytes per pixel, top-down
+// rows). Strictly read-only — no writeback, no CPU-side buffer retained, no
+// per-frame sync pattern. Intended only for user-triggered screenshot paths.
+// Caller owns `out`, must allocate `w * h * 4` bytes, must pass the current
+// screen dimensions.
+void ge_read_framebuffer_rgba(uint8_t* out, int32_t w, int32_t h);
 
 // Blit back buffer to front.
 void ge_blit_back_buffer();
@@ -569,6 +564,33 @@ GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8
 
 // Release a texture allocated via ge_create_user_texture_*.
 void ge_destroy_user_texture(GETextureHandle handle);
+
+// ---------------------------------------------------------------------------
+// Post-process effects
+// ---------------------------------------------------------------------------
+// GPU version of the original WIBBLE_simple water-reflection distortion.
+// Copies the puddle bbox from the default framebuffer into a scratch texture
+// and redraws it with a per-row horizontal shift driven by sin+cos phases.
+// Replaces the former glReadPixels + CPU per-row memcpy + writeback path,
+// which triggered the WDDM throttle hang on affected hardware (see
+// new_game_devlog/startup_hang_investigation/).
+
+struct GEWibbleParams {
+    uint8_t wibble_y1;   // per-row angle multiplier 1 (UBYTE, 0..255)
+    uint8_t wibble_y2;   // per-row angle multiplier 2
+    uint8_t wibble_g1;   // GAME_TURN phase multiplier 1
+    uint8_t wibble_g2;   // GAME_TURN phase multiplier 2
+    uint8_t wibble_s1;   // amplitude 1
+    uint8_t wibble_s2;   // amplitude 2
+    int32_t game_turn;   // current GAME_TURN — phase animates with it
+};
+
+// Apply the wibble effect to the rectangle (x1,y1)-(x2,y2) in game screen
+// coordinates (top-down, RealDisplay pixels). No-op on empty/degenerate
+// rects. Must be called with the default framebuffer currently bound for
+// both read and draw.
+void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
+                     const GEWibbleParams& params);
 
 // ---------------------------------------------------------------------------
 // Callbacks (game code hooks into backend lifecycle)

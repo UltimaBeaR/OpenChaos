@@ -77,12 +77,16 @@ file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
 file(READ \"\${SHADER_DIR}/common_frag.glsl\" FRAG)
 file(READ \"\${SHADER_DIR}/video_vert.glsl\" VID_VERT)
 file(READ \"\${SHADER_DIR}/video_frag.glsl\" VID_FRAG)
+file(READ \"\${SHADER_DIR}/fullscreen_quad_vert.glsl\" FSQ_VERT)
+file(READ \"\${SHADER_DIR}/wibble_frag.glsl\" WIBBLE_FRAG)
 file(WRITE \"\${OUT}\"
     \"// Auto-generated from .glsl files — do not edit.\\n\"
     \"static const char* const SHADER_TL_VERT = R\\\"glsl(\\n\${TL})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_FRAG = R\\\"glsl(\\n\${FRAG})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_VIDEO_VERT = R\\\"glsl(\\n\${VID_VERT})glsl\\\";\\n\\n\"
-    \"static const char* const SHADER_VIDEO_FRAG = R\\\"glsl(\\n\${VID_FRAG})glsl\\\";\\n\"
+    \"static const char* const SHADER_VIDEO_FRAG = R\\\"glsl(\\n\${VID_FRAG})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_FULLSCREEN_QUAD_VERT = R\\\"glsl(\\n\${FSQ_VERT})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_WIBBLE_FRAG = R\\\"glsl(\\n\${WIBBLE_FRAG})glsl\\\";\\n\"
 )
 ")
 add_custom_command(
@@ -93,6 +97,8 @@ add_custom_command(
         "${SHADER_DIR}/common_frag.glsl"
         "${SHADER_DIR}/video_vert.glsl"
         "${SHADER_DIR}/video_frag.glsl"
+        "${SHADER_DIR}/fullscreen_quad_vert.glsl"
+        "${SHADER_DIR}/wibble_frag.glsl"
     COMMENT "Embedding GLSL shaders into gl_shaders_embedded.h"
 )
 
@@ -104,6 +110,8 @@ set(BACKEND_SOURCES
     src/engine/graphics/graphics_engine/backend_opengl/common/gl_shader.cpp
     # --- game (ge_* implementation) ---
     src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp
+    # --- post-process (GPU effect passes) ---
+    src/engine/graphics/graphics_engine/backend_opengl/postprocess/wibble_effect.cpp
     # --- outro (oge_* implementation) ---
     src/engine/graphics/graphics_engine/backend_opengl/outro/core.cpp
     # --- API-agnostic render state cache ---

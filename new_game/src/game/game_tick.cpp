@@ -387,12 +387,6 @@ void parse_console(CBYTE* str)
 void tga_dump(void)
 {
     SLONG i;
-    SLONG x;
-    SLONG y;
-
-    UBYTE red;
-    UBYTE green;
-    UBYTE blue;
 
     CBYTE fname[64];
 
@@ -420,17 +414,22 @@ found_file:;
     SLONG w = ge_get_screen_width();
     SLONG h = ge_get_screen_height();
 
-    TGA_Pixel* pixels = (TGA_Pixel*)malloc(w * h * sizeof(TGA_Pixel));
-    if (!pixels) return;
+    // One-shot read: glReadPixels into a scratch RGBA buffer, then strip the
+    // alpha channel into the TGA_Pixel packing. No lock/unlock writeback path
+    // — that was the WDDM throttle trigger (see startup_hang_investigation).
+    uint8_t* rgba = (uint8_t*)malloc((size_t)w * (size_t)h * 4);
+    if (!rgba) return;
+    ge_read_framebuffer_rgba(rgba, w, h);
 
-    for (y = 0; y < h; y++) {
-        for (x = 0; x < w; x++) {
-            ge_get_pixel(x, y, &red, &green, &blue);
-            pixels[y * w + x].red = red;
-            pixels[y * w + x].green = green;
-            pixels[y * w + x].blue = blue;
-        }
+    TGA_Pixel* pixels = (TGA_Pixel*)malloc(w * h * sizeof(TGA_Pixel));
+    if (!pixels) { free(rgba); return; }
+
+    for (SLONG p = 0, n = w * h; p < n; ++p) {
+        pixels[p].red   = rgba[p * 4 + 0];
+        pixels[p].green = rgba[p * 4 + 1];
+        pixels[p].blue  = rgba[p * 4 + 2];
     }
+    free(rgba);
 
     TGA_save(fname, w, h, pixels, UC_FALSE);
     free(pixels);

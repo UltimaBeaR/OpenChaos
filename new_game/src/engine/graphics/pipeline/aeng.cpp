@@ -2690,156 +2690,14 @@ void AENG_set_detail_levels(int stars,
     AENG_read_detail_levels();
 }
 
-// uc_orig: AENG_draw_some_polys (fallen/DDEngine/Source/aeng.cpp)
-// Benchmark helper: draws N triangles and returns elapsed time in seconds.
-float AENG_draw_some_polys(bool large, bool blend)
-{
-    PolyPoint2D *vert, *vp;
-    WORD *ind, *ip;
-
-    vert = new PolyPoint2D[large ? 300 : 30000];
-    vp = vert;
-
-    ind = new WORD[large ? 300 : 30000];
-    ip = ind;
-
-    float u = 0;
-    float v = 0;
-
-    if (large) {
-        for (int ii = 0; ii < 100; ii++) {
-            vp->SetSC(0, 0);
-            vp->SetColour(0x80FFFFFF);
-            vp->SetSpecular(0);
-            vp->SetUV(u, v);
-            vp++;
-
-            vp->SetSC(640, 0);
-            vp->SetColour(0x80FFFFFF);
-            vp->SetSpecular(0);
-            vp->SetUV(u, v);
-            vp++;
-
-            vp->SetSC(0, 480);
-            vp->SetColour(0x80FFFFFF);
-            vp->SetSpecular(0);
-            vp->SetUV(u, v);
-            vp++;
-
-            *ip++ = ii * 3;
-            *ip++ = ii * 3 + 1;
-            *ip++ = ii * 3 + 2;
-        }
-    } else {
-        for (int ii = 0; ii < 10000; ii++) {
-            int x = ii % 20;
-            int y = (ii / 20) % 15;
-
-            vp->SetSC(x * 32, y * 32);
-            vp->SetColour(0x80FFFFFF);
-            vp->SetSpecular(0);
-            vp->SetUV(u, v);
-            vp++;
-
-            vp->SetSC(x * 32 + 32, y * 32);
-            vp->SetColour(0x80FFFFFF);
-            vp->SetSpecular(0);
-            vp->SetUV(u, v);
-            vp++;
-
-            vp->SetSC(x * 32, y * 32 + 32);
-            vp->SetColour(0x80FFFFFF);
-            vp->SetSpecular(0);
-            vp->SetUV(u, v);
-            vp++;
-
-            *ip++ = ii * 3;
-            *ip++ = ii * 3 + 1;
-            *ip++ = ii * 3 + 2;
-        }
-    }
-
-    StartStopwatch();
-
-    ge_begin_scene();
-
-    ge_set_texture_blend(GETextureBlend::Modulate);
-    ge_set_depth_mode(GEDepthMode::Off);
-    if (blend) {
-        ge_set_blend_mode(GEBlendMode::Alpha);
-    } else {
-        ge_set_blend_mode(GEBlendMode::Opaque);
-    }
-
-    if (large) {
-        ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
-            reinterpret_cast<const GEVertexTL*>(vert), 300, ind, 300);
-    } else {
-        ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
-            reinterpret_cast<const GEVertexTL*>(vert), 30000, ind, 30000);
-    }
-
-    ge_end_scene();
-
-    ge_lock_screen();
-    ge_unlock_screen();
-
-    float time = StopStopwatch();
-
-    delete[] vert;
-    delete[] ind;
-
-    return time;
-}
-
-// uc_orig: GENVAR (fallen/DDEngine/Source/aeng.cpp)
-// Returns 1 if the GPU generation is >= G, 0 otherwise. Used in AENG_guess_detail_levels.
-#define GENVAR(G) ((generation >= G) ? 1 : 0)
-
-// uc_orig: AENG_guess_detail_levels (fallen/DDEngine/Source/aeng.cpp)
-// Benchmarks the GPU and sets detail levels based on measured fill rate.
-void AENG_guess_detail_levels()
-{
-    if (!AENG_estimate_detail_levels)
-        return;
-
-    ENV_set_value_number("estimate_detail_levels", 0, "Render");
-    AENG_estimate_detail_levels = 0;
-
-    int generation;
-
-    if (!ge_is_hardware()) {
-        generation = 0;
-    } else {
-        float tso = 10000 / AENG_draw_some_polys(false, false);
-
-        if (tso < 10000) {
-            generation = 0;
-        } else if (tso < 40000) {
-            generation = 1;
-        } else {
-            generation = 2;
-            if (ge_supports_modulate_alpha() && ge_supports_dest_inv_src_color()) {
-                generation = 3;
-            }
-        }
-    }
-
-    int stars = GENVAR(0);
-    int shadows = GENVAR(2);
-    int moon_reflection = GENVAR(2);
-    int people_reflection = GENVAR(3);
-    int puddles = GENVAR(2);
-    int dirt = GENVAR(1);
-    int mist = GENVAR(2);
-    int rain = GENVAR(0);
-    int skyline = GENVAR(2);
-    int filter = GENVAR(1);
-    int perspective = GENVAR(1);
-    int crinkles = GENVAR(3);
-
-    AENG_set_detail_levels(stars, shadows, moon_reflection, people_reflection, puddles, dirt, mist, rain, skyline, filter, perspective, crinkles);
-}
+// AENG_draw_some_polys / AENG_guess_detail_levels — removed. These were a
+// 1999-era GPU generation benchmark (draw 10k untextured tris → tris/sec
+// thresholds pick Voodoo1..GeForce 2 equivalents → seed default detail
+// levels). On any post-2001 hardware the benchmark always lands in the top
+// tier and unconditionally enables all details, which is exactly what
+// env.cpp's default .env block already provides. The benchmark also ran a
+// pointless ge_lock_screen()/ge_unlock_screen() pair that triggered the
+// very startup-hang pattern we're eliminating.
 
 // uc_orig: AENG_get_detail_levels (fallen/DDEngine/Source/aeng.cpp)
 // Reads current detail level settings into output parameters.
@@ -4906,23 +4764,20 @@ void AENG_draw_city()
                             iy2 = MIN(py2, bbox[i].y2);
 
                             if (ix1 < ix2 && iy1 < iy2) {
-                                if (ge_lock_screen()) {
-                                    //
-                                    // Wibble away!
-                                    //
+                                //
+                                // Wibble away! Runs as a GPU post-process
+                                // (copy-texture + fragment shader) — no lock.
+                                //
 
-                                    WIBBLE_simple(
-                                        ix1, iy1,
-                                        ix2, iy2,
-                                        pi->puddle_y1,
-                                        pi->puddle_y2,
-                                        pi->puddle_g1,
-                                        pi->puddle_g2,
-                                        pi->puddle_s1,
-                                        pi->puddle_s2);
-
-                                    ge_unlock_screen();
-                                }
+                                WIBBLE_simple(
+                                    ix1, iy1,
+                                    ix2, iy2,
+                                    pi->puddle_y1,
+                                    pi->puddle_y2,
+                                    pi->puddle_g1,
+                                    pi->puddle_g2,
+                                    pi->puddle_s1,
+                                    pi->puddle_s2);
                             }
                         }
                     }
@@ -7689,12 +7544,8 @@ void AENG_screen_shot(void)
                 record_video ^= 1;
             }
 
-            if (ge_lock_screen()) {
-                extern void tga_dump(void);
-                tga_dump();
-
-                ge_unlock_screen();
-            }
+            extern void tga_dump(void);
+            tga_dump();
         }
 }
 
@@ -7742,14 +7593,6 @@ void AENG_draw_FPS()
             last_game_turn = GAME_TURN;
         }
     }
-    /*
-            if (ge_lock_screen())
-            {
-                    FONT_draw(DisplayWidth >> 1, 10, "FPS: %d = %d us", fps, ups);
-                    FONT_draw(DisplayWidth >> 1, 30, "Avg: %d = %d us", avfps, avups);
-                    ge_unlock_screen();
-            }
-    */
 
     if (allow_debug_keys) {
         CBYTE str[100];
@@ -8026,25 +7869,16 @@ void AENG_clear_screen()
     ge_reclaim_vertex_buffers();
 }
 
-// uc_orig: AENG_lock (fallen/DDEngine/Source/aeng.cpp)
-// Locks the display surface for direct pixel access; returns non-zero on success.
-SLONG AENG_lock()
-{
-    return ge_lock_screen() != nullptr;
-}
+// AENG_lock / AENG_unlock — removed. These were thin wrappers around
+// ge_lock_screen / ge_unlock_screen with no in-tree callers left. The direct
+// pixel access pattern they fronted is gone along with the screen-buffer
+// path in the GL backend (see Stage 1-3 of the startup-hang fix).
 
 // =============================================================================
-// Chunk 5b: unlock/flip/blit, editor 3D debug lines, raycast, light/waypoint/
+// Chunk 5b: flip/blit, editor 3D debug lines, raycast, light/waypoint/
 //           trigger draw, viewport clear, top-level AENG_draw, detail level I/O,
 //           recessed door box, dfcache pruning, indoor floor renderer.
 // =============================================================================
-
-// uc_orig: AENG_unlock (fallen/DDEngine/Source/aeng.cpp)
-// Unlocks the display surface after direct pixel writes.
-void AENG_unlock()
-{
-    ge_unlock_screen();
-}
 
 // uc_orig: AENG_flip (fallen/DDEngine/Source/aeng.cpp)
 // Flips the back buffer to the primary surface. Comment notes PerMedia2 requires
@@ -8855,8 +8689,6 @@ void AENG_draw(SLONG draw_3d)
 // Reads per-feature detail level settings from the environment (ini/registry).
 void AENG_read_detail_levels()
 {
-    AENG_estimate_detail_levels = ENV_get_value_number("estimate_detail_levels", 1, "Render");
-
     AENG_detail_stars = ENV_get_value_number("detail_stars", 1, "Render");
     AENG_detail_shadows = ENV_get_value_number("detail_shadows", 1, "Render");
     AENG_detail_moon_reflection = ENV_get_value_number("detail_moon_reflection", 1, "Render");

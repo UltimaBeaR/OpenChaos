@@ -275,7 +275,6 @@ static const char* const env_default_config =
     "enable_clumps=1\n"
 
     "[Render]\n"
-    "estimate_detail_levels=0\n"
     "detail_stars=1\n"
     "detail_shadows=1\n"
     "detail_moon_reflection=1\n"
