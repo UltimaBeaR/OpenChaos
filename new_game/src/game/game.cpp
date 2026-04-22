@@ -174,7 +174,14 @@ static void game_pre_flip()
 // Mode change callback: adjusts polygon scaling when resolution changes.
 static void game_mode_changed(int32_t width, int32_t height)
 {
-    PolyPage::SetScaling(float(width) / 640.0f, float(height) / 480.0f);
+    // Uniform scale (by vertical) — preserves aspect ratio. The extra
+    // horizontal space on widescreen is filled by the wider virtual render
+    // width set up in POLY_begin ("Hor+" FOV extension, not geometry
+    // stretching). HUD drawn through this path ends up pillarboxed — a
+    // dedicated HUD layout pass will address that separately.
+    (void)width;
+    const float uniform_scale = float(height) / float(DisplayHeight);
+    PolyPage::SetScaling(uniform_scale, uniform_scale);
 }
 
 // Polys-drawn callback: accumulates poly count for debug stats.

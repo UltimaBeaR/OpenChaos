@@ -2356,9 +2356,9 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     RealDisplayHeight = draw_h;
     DisplayBPP        = 32;  // OpenGL is always 32bpp.
 
-    s_fullscreen = (OC_FULLSCREEN != 0);
+    s_fullscreen = OC_FULLSCREEN;
 
-    if (!gl_context_create(draw_w, draw_h, OC_VSYNC != 0)) {
+    if (!gl_context_create(draw_w, draw_h, OC_VSYNC)) {
         return -1;
     }
 

@@ -38,6 +38,17 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
 
     Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
     if (fullscreen) {
+        // Explicitly use the primary display's desktop resolution as the
+        // window size — otherwise SDL3 takes the passed (width, height) as
+        // the requested exclusive fullscreen mode and the drawable stays
+        // stuck at that size, leaving a rendered region in the bottom-left
+        // of the physical panel on monitors with a different native mode.
+        SDL_DisplayID display = SDL_GetPrimaryDisplay();
+        const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(display);
+        if (mode) {
+            width  = mode->w;
+            height = mode->h;
+        }
         flags |= SDL_WINDOW_FULLSCREEN;
     }
 
@@ -45,6 +56,17 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
     if (!s_window) {
         fprintf(stderr, "SDL3: SDL_CreateWindow failed: %s\n", SDL_GetError());
         return false;
+    }
+
+    if (fullscreen) {
+        // Belt-and-suspenders: force borderless-desktop fullscreen (passing
+        // NULL as the mode). Prevents SDL from staying in an exclusive mode
+        // if it auto-picked one that matched the desktop size by coincidence.
+        SDL_SetWindowFullscreenMode(s_window, nullptr);
+
+        // Hide the OS cursor — in fullscreen there's no reason for it to be
+        // visible over the game. Menus that need a pointer draw their own.
+        SDL_HideCursor();
     }
 
     return true;

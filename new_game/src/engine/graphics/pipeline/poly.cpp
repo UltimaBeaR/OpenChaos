@@ -4,6 +4,12 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+
+// uc_orig: RealDisplayWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
+// Actual window/fullscreen size in pixels (set by OpenDisplay). Used here
+// to derive the aspect ratio for the software 3D projection.
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
 #include <math.h>
 #include <algorithm>
 #include "engine/graphics/pipeline/poly.h"
@@ -139,9 +145,14 @@ void POLY_camera_set(
 {
     POLY_splitscreen = splitscreen;
 
-    POLY_screen_width = float(DisplayWidth);
-    POLY_screen_clip_left = 0.0;
-    POLY_screen_clip_right = POLY_screen_width - 00.0;
+    // Virtual render width tracks the monitor's aspect ratio so that on a
+    // widescreen display we get a wider horizontal FOV instead of stretched
+    // geometry. Vertical FOV is kept at its designed-for-640x480 value —
+    // i.e. "Hor+" scaling. At 4:3 (640/480) this reduces to DisplayWidth.
+    const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+    POLY_screen_width = float(DisplayHeight) * real_aspect;
+    POLY_screen_clip_left = 0.0F;
+    POLY_screen_clip_right = POLY_screen_width;
     POLY_screen_mid_x = POLY_screen_width * 0.5F;
     POLY_screen_mul_x = POLY_screen_width * 0.5F / POLY_ZCLIP_PLANE;
 

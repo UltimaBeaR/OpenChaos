@@ -50,11 +50,20 @@ static void on_focus_gained()
 {
     app_inactive = UC_FALSE;
     restore_surfaces = UC_TRUE;
+
+    // Re-hide the cursor when returning from alt-tab etc. SDL is supposed
+    // to persist the hidden state across focus changes, but being explicit
+    // here avoids driver/platform quirks.
+    if (ge_is_fullscreen()) sdl3_hide_cursor();
 }
 
 static void on_focus_lost()
 {
     app_inactive = UC_TRUE;
+
+    // Show the cursor while focus is elsewhere so the user can interact
+    // with whatever they alt-tabbed into, even if our window overlaps it.
+    if (ge_is_fullscreen()) sdl3_show_cursor();
 }
 
 static void on_window_moved()
@@ -86,7 +95,7 @@ BOOL SetupHost(ULONG flags)
     // Create the SDL3 window (hidden until GL context is ready).
     if (!sdl3_window_create("Urban Chaos",
                             OC_WINDOWED_WIDTH, OC_WINDOWED_HEIGHT,
-                            OC_FULLSCREEN != 0)) {
+                            OC_FULLSCREEN)) {
         return UC_FALSE;
     }
 
