@@ -22,7 +22,7 @@ static SDL3_Callbacks s_callbacks = {};
 // the strategy matrix.
 static bool s_use_dwm_flush = false;
 
-bool sdl3_window_create(const char* title, int width, int height)
+bool sdl3_window_create(const char* title, int width, int height, bool fullscreen)
 {
     if (s_window) return false;
 
@@ -36,8 +36,12 @@ bool sdl3_window_create(const char* title, int width, int height)
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
-    s_window = SDL_CreateWindow(title, width, height,
-                                SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN;
+    if (fullscreen) {
+        flags |= SDL_WINDOW_FULLSCREEN;
+    }
+
+    s_window = SDL_CreateWindow(title, width, height, flags);
     if (!s_window) {
         fprintf(stderr, "SDL3: SDL_CreateWindow failed: %s\n", SDL_GetError());
         return false;

@@ -1,6 +1,7 @@
 #include "engine/platform/host.h"
 #include "engine/platform/host_globals.h"
 #include "engine/platform/sdl3_bridge.h"
+#include "config.h"
 #include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/input/keyboard.h"
@@ -83,7 +84,9 @@ BOOL SetupHost(ULONG flags)
         return UC_FALSE;
 
     // Create the SDL3 window (hidden until GL context is ready).
-    if (!sdl3_window_create("Urban Chaos", 640, 480)) {
+    if (!sdl3_window_create("Urban Chaos",
+                            OC_WINDOWED_WIDTH, OC_WINDOWED_HEIGHT,
+                            OC_FULLSCREEN != 0)) {
         return UC_FALSE;
     }
 

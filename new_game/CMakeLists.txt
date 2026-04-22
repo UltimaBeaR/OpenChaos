@@ -14,6 +14,10 @@ set(X_VCPKG_APPLOCAL_DEPS_INSTALL OFF)
 
 project(OpenChaos LANGUAGES CXX)
 
+# Emit compile_commands.json for clangd / other tooling. Ninja Multi-Config
+# writes it to ${CMAKE_BINARY_DIR}/compile_commands.json (i.e. new_game/build/).
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # ---------------------------------------------------------------------------
 # C++20 standard — required for libDualsense and future modules (Stage 9)
 # ---------------------------------------------------------------------------

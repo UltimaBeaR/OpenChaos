@@ -20,10 +20,9 @@ bool gl_context_create(int32_t width, int32_t height, bool vsync_enabled)
     s_width = width;
     s_height = height;
 
-    // Resize the SDL3 window to match the requested client area.
-    sdl3_window_set_size(width, height);
-
-    // SDL3 window must already exist (created by SetupHost).
+    // SDL3 window must already exist (created by SetupHost at the right
+    // size/mode via config.h). We don't resize it here — caller is expected
+    // to pass dimensions that match the existing window's drawable size.
     if (!sdl3_gl_create_context(4, 1)) {
         fprintf(stderr, "OpenGL: SDL3 GL context creation failed\n");
         return false;

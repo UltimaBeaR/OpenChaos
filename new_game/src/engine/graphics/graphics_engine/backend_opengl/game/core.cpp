@@ -10,8 +10,9 @@
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/wibble_effect.h"
 #include "engine/platform/uc_common.h"
-#include "engine/io/env.h"
+#include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
+#include "config.h"
 #include "engine/core/memory.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include <string.h>
@@ -2340,36 +2341,29 @@ UBYTE* image_mem = s_image_mem_buf;
 
 SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
 {
-    // Read video resolution from .env (same logic as D3D backend).
-    SLONG VideoRes = ENV_get_value_number((CBYTE*)"video_res", -1, (CBYTE*)"Render");
-    if (VideoRes < 0) VideoRes = 2; // default 640x480
-    if (VideoRes > 4) VideoRes = 4;
+    // Window was already created with the requested mode/size by SetupHost
+    // (driven by config.h). Query the actual drawable size — in fullscreen
+    // that's the monitor's native resolution, in windowed it's OC_WINDOWED_*,
+    // in either case it also accounts for HiDPI. Incoming args are ignored
+    // during the transition away from the dead INI-based path; they will
+    // disappear once the call site is updated.
+    (void)width; (void)height; (void)depth; (void)flags;
 
-    depth = 32; // OpenGL always 32bpp
-    switch (VideoRes) {
-    case 0: width = 320;  height = 240; break;
-    case 1: width = 512;  height = 384; break;
-    case 2: width = 640;  height = 480; break;
-    case 3: width = 800;  height = 600; break;
-    case 4: width = 1024; height = 768; break;
-    }
+    int draw_w = 0, draw_h = 0;
+    sdl3_window_get_drawable_size(&draw_w, &draw_h);
 
-    RealDisplayWidth = width;
-    RealDisplayHeight = height;
-    DisplayBPP = depth;
+    RealDisplayWidth  = draw_w;
+    RealDisplayHeight = draw_h;
+    DisplayBPP        = 32;  // OpenGL is always 32bpp.
 
-    // TODO: promote to a proper user setting (future graphics options
-    // config). For now a hard-coded constant — VSync on by default, which
-    // on Windows+windowed routes through DwmFlush to dodge the WDDM-throttle
-    // hang (see sdl3_gl_configure_vsync docs + startup_hang_investigation).
-    constexpr bool VSYNC_ENABLED = true;
+    s_fullscreen = (OC_FULLSCREEN != 0);
 
-    if (!gl_context_create(width, height, VSYNC_ENABLED)) {
+    if (!gl_context_create(draw_w, draw_h, OC_VSYNC != 0)) {
         return -1;
     }
 
     if (s_mode_change_callback) {
-        s_mode_change_callback(width, height);
+        s_mode_change_callback(draw_w, draw_h);
     }
 
     return 0; // success (D3D backend returns HRESULT, 0 = S_OK)

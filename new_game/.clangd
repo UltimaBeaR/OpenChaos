@@ -1,0 +1,4 @@
+# clangd configuration. CompilationDatabase path is relative to this file.
+# Ninja Multi-Config writes compile_commands.json to new_game/build/.
+CompileFlags:
+  CompilationDatabase: build

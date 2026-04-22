@@ -2,6 +2,9 @@
 # CMake build directory (contains Debug/ and Release/ subdirs with compiled output)
 /build/
 
+# clangd index cache (generated when code is opened in an editor with clangd)
+.cache/
+
 # vcpkg installed packages (like node_modules — dependency installation, not source)
 /vcpkg_installed/
 
