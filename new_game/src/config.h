@@ -7,7 +7,7 @@
 
 // true  = start fullscreen at the monitor's native resolution.
 // false = start windowed at OC_WINDOWED_WIDTH × OC_WINDOWED_HEIGHT.
-#define OC_FULLSCREEN true
+#define OC_FULLSCREEN false
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
 #define OC_WINDOWED_WIDTH  int(1280)
@@ -35,4 +35,4 @@
 // the whole frame (including alpha-test edges that MSAA never covered);
 // OFF gives pixel-perfect output. Do NOT toggle this as a workaround for
 // unrelated rendering issues.
-#define OC_AA_ENABLE false
+#define OC_AA_ENABLE true

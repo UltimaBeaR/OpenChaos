@@ -52,6 +52,10 @@ Remaining work — see [`issues.md`](issues.md):
   `new_game/src/` where resolution or aspect ratio influences behavior.
   Verdict: works / broken / to-verify. Use as reference when touching
   render/UI/input code.
+- **[`ui_coords_plan.md`](ui_coords_plan.md)** — execution plan for the
+  HUD / UI coordinate-system rework (framed coords + anchored HUD, fixes
+  the pillarbox issue). Read this before doing any UI scaling work; it's
+  the agreed design + stage-by-stage to-do.
 
 ## Workflow
 
