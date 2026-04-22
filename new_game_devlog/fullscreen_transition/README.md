@@ -15,7 +15,12 @@ Already done:
 - OS cursor hidden in fullscreen.
 
 Remaining work — see [`issues.md`](issues.md):
-- HUD / UI is pillarboxed and too small on widescreen **(blocker)**.
+- **Render scale + native physical pixels (in progress).** Window in real
+  pixels everywhere (fixes macOS Retina clipping); game renders into a
+  scaled FBO composited up to the window. UI not split from 3D for now.
+- HUD / UI is pillarboxed and too small on widescreen **(blocker)** —
+  pending design discussion on aspect ratio + UI coord system before
+  rework.
 - `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).

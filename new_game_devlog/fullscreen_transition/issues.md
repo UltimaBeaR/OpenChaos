@@ -4,6 +4,108 @@ Read [`concepts.md`](concepts.md) first for terminology.
 
 ---
 
+## 📝 Pending design discussions
+
+Before touching HUD/UI scaling work (the pillarbox issue below), discuss
+with the user:
+
+- **Aspect ratio handling + UI coordinate system.** User has concrete
+  proposals on how the game should treat aspect ratio and what the UI
+  coordinate system should look like. Do not start HUD rework before this
+  conversation happens — the chosen model drives everything from anchor
+  semantics to which coords MSG/PANEL/frontend APIs accept.
+
+---
+
+## 🔵 Render scale + native physical pixels (in progress)
+
+### Goal
+
+Two changes, bundled:
+
+1. **Window / swapchain always in native physical pixels** on every
+   platform. On macOS Retina this means adding
+   `SDL_WINDOW_HIGH_PIXEL_DENSITY` so the backing store matches the
+   panel instead of being a low-density upscale. On Windows / Linux the
+   flag is a no-op (backing store is already 1:1), but the config value
+   is uniformly interpreted as physical pixels everywhere.
+2. **Render scale** — a user-facing `OC_RENDER_SCALE` knob (float,
+   probably 0.25..1.0, default 1.0). The game (3D + UI, not split yet)
+   renders into an offscreen FBO of `physical × scale` dimensions. A
+   final composition pass upscales that FBO to the native window with
+   linear filtering.
+
+Intent: on a 4K monitor or a Retina Mac the user can drop scale to 0.5
+or 0.75 to trade sharpness for framerate without changing the window
+size. Scale = 1.0 is pixel-perfect native.
+
+### Current problem this fixes (macOS)
+
+`SDL_CreateWindow(width, height, ...)` takes logical points, not
+physical pixels. On a Retina Mac with desktop scale 2× the logical
+screen is ~1512×982, so a requested 1920×1080 window is larger than the
+screen and clips. Adding `HIGH_PIXEL_DENSITY` changes what
+`SDL_GetWindowSizeInPixels` returns (real physical pixels) but still
+leaves the request in logical points — so we also need to convert the
+config value to logical before passing to `SDL_CreateWindow`.
+
+### Decisions already made
+
+- **UI not split from 3D for now.** HUD textures are low-res originals,
+  no point rendering UI separately at native resolution yet. Whole frame
+  goes through the scaled FBO. Revisit when UI rework happens.
+- **Config knob: single float `OC_RENDER_SCALE`.** No auto-detection for
+  now, manual only.
+- **Game code sees only the scaled (virtual) resolution.** All
+  `RealDisplayWidth/Height` etc. continue to be the render target size.
+  Window's physical-pixel size lives in separate globals used only by
+  the present pass and input mapping.
+
+### Approach
+
+1. Add `SDL_WINDOW_HIGH_PIXEL_DENSITY` in
+   [`sdl3_bridge.cpp`](../../new_game/src/engine/platform/sdl3_bridge.cpp).
+   Convert `OC_WINDOWED_WIDTH/HEIGHT` from physical pixels → logical
+   points using display pixel density before `SDL_CreateWindow`. For
+   fullscreen, desktop mode already gives correct logical size.
+2. Add separate "window physical pixel size" globals, populated from
+   `SDL_GetWindowSizeInPixels` after window creation.
+3. Add `OC_RENDER_SCALE` to [`config.h`](../../new_game/src/config.h).
+4. Allocate scene FBO at `physical × scale` on mode change; reallocate
+   on resolution / scale change. `RealDisplayWidth/Height` point to this
+   size, not the window size.
+5. At frame end, blit FBO to backbuffer via a fullscreen quad with
+   linear filter (may reuse existing post-process pipeline infra).
+6. Input mapping (mouse) already uses `window_width` for physical →
+   virtual; make sure `window_width` in that code refers to the
+   physical-pixel window size, not the render FBO.
+
+### Open sub-questions
+
+- Mouse cursor mapping: `SDL_GetGlobalMouseState` returns logical
+  points. Need to decide which space HUD picking runs in — scaled FBO
+  or native window. Currently mouse → `DisplayWidth (640)` via
+  `window_width`. Pick one convention before changing anything.
+- Does the current post-process pipeline already have a "whole scene
+  FBO" we can reuse, or does rendering go directly into the default
+  framebuffer and only specific effects use FBOs? Answer drives how
+  invasive the plumbing is.
+
+### Files to audit before starting
+
+- [`sdl3_bridge.cpp`](../../new_game/src/engine/platform/sdl3_bridge.cpp)
+  — window creation, drawable size.
+- [`core.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp)
+  — `OpenDisplay`, `RealDisplay*` init.
+- [`gl_context.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/common/gl_context.cpp)
+  — context/viewport setup.
+- Post-process FBO code: `wibble_effect.cpp`, `bloom*`, anywhere an FBO
+  is currently managed.
+- [`game_tick.cpp:3446`](../../new_game/src/game/game_tick.cpp#L3446)
+  — mouse picking, to confirm it's using the right "window_width".
+
+---
+
 ## 🔴 HUD / UI layout — pillarboxed and small (blocker)
 
 ### Symptoms

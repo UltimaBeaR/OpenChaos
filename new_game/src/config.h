@@ -10,8 +10,8 @@
 #define OC_FULLSCREEN false
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
-#define OC_WINDOWED_WIDTH  int(600)
-#define OC_WINDOWED_HEIGHT int(800)
+#define OC_WINDOWED_WIDTH  int(1280)
+#define OC_WINDOWED_HEIGHT int(720)
 
 // Enable VSync. Concrete strategy (driver VSync vs DwmFlush) depends on
 // window mode and is selected inside sdl3_gl_configure_vsync().
