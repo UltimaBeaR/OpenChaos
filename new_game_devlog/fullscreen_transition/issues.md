@@ -328,12 +328,51 @@ player looks directly at it; yawing the camera slightly off-axis makes
 it reappear. On 4:3 the moon is always drawn. Depends on camera yaw
 alignment with the moon direction, not distance / time.
 
-### (b) Moon size pops with viewing angle at any aspect (FOV > 1 repro)
+### (b) Moon size varies with viewing angle — baseline retail wobble only, residual
 
-Observed at normal aspect ratio with `OC_FOV_MULTIPLIER = 1.5`. Moon
-size jumps noticeably — not a smooth perspective change — when the
-camera yaw/pitch sweeps past certain angles. Looks like a discrete
-scale step rather than a gradual fade.
+The moon billboard grows slightly when the camera tilts up, even in
+the original retail build (confirmed). So this oscillation is
+original-game behaviour — the moon isn't drawn at a fixed angular
+size but via some angle-dependent projection / billboard path.
+
+Earlier we amplified this on narrow aspects (the sprite stayed at
+its 4:3-pinned size while auto-zoom shrank the scene → moon looked
+relatively huge). That amplification is resolved by the
+`POLY_sprite_scale / (OC_FOV_MULTIPLIER × auto_zoom)` compensation
+(see "🟢 Sprite / rain / line widths" resolved section above).
+
+What remains is the subtle retail wobble. Out of scope unless we
+actively want to change original-game feel.
+
+### (d) Moon pops out early when yawing past it to the left (wide aspects only)
+
+On wider-than-4:3 windows, as the camera yaws from facing the moon
+towards the player's left, the moon disappears noticeably before it
+reaches the left screen edge — it's culled while still angularly
+on-screen. Yawing the **other** direction (right) does not do this:
+the moon slides off-screen normally. **Asymmetric** in left vs
+right. On the default 4:3 window the bug does not reproduce at all.
+
+The left/right asymmetry is the key diagnostic clue — it rules out
+uniform FOV / frustum checks and points at a signed-angle or
+signed-offset test with an aspect-dependent threshold. Candidates
+in the sky / moon draw path:
+- A test like `if (dot < -THRESHOLD)` culling when the moon vector
+  is too far off one side of the camera, where `THRESHOLD` was
+  calibrated against the 4:3 half-FOV.
+- A 2D screen-space bounds check after projection that uses a
+  fixed `640/2 = 320` left-clip boundary but doesn't account for
+  `POLY_screen_mid_x` changing with the clamped aspect /
+  pillarbox offset we added.
+- A signed `mid.X < 0` or `mid.X < POLY_screen_clip_left` where
+  one of those operands has stale or wrong sign.
+
+Repro recipe: wide window (e.g. 1600×600 or anything >= ~16:9),
+find the moon, yaw slowly left — note the angle at which the moon
+pops out. Yaw slowly right through the same angular distance —
+moon visible throughout its on-screen portion. Matches (a) in
+"moon disappears" symptom but is triggered by a different code
+path — (a) is camera-aligned, (d) is one-sided yaw offset.
 
 ### (c) Moon reflection visible through the ground
 
@@ -460,185 +499,137 @@ Option 1 — cap at 16:9. See "Status — resolved" above.
 
 ---
 
-## 🔴 Tall-aspect zoom / character too large — Hor+ failure on portrait
+## 🟢 Tall-aspect zoom / character too large — resolved via auto-zoom + letterbox floor
 
-### Symptom
+### Status — resolved
 
-On screens with `height > width` (e.g. a 700×1500 portrait window),
-the player character appears zoomed in — occupies ~half the screen
-width. Behind/ahead of the player you see very little world (as if
-the camera was pushed towards them). A landscape 4:3 view at
-equivalent total pixel count shows the character at normal size with
-much more world visible around. Direction of the bug matches the
-screenshot: left panel = tall window, right panel = 4:3 (default).
+Tall windows (aspect < 4:3) now get an automatic camera zoom-out so
+the character's pixel size stays matched to its 4:3-width-equivalent,
+with the extra vertical screen space filled by extra sky / ground
+instead of pixel-stretching the character. Below `OC_FOV_MIN_ASPECT`
+(default 4:3; user-configurable lower if they want the "no bars,
+zoom aggressively" range to extend further) the scene is letterboxed
+into that floor aspect with black bars top/bottom. Symmetric to the
+`OC_FOV_CAP_ASPECT` pillarbox on the ultrawide end.
 
-### Root cause
+### Behaviour by zone
 
-Same Hor+ formula, but running in the *wrong* direction:
+| Zone                    | Horizontal FOV           | Character pixel size | Bars |
+|-------------------------|--------------------------|----------------------|------|
+| `aspect > CAP`          | Capped at CAP            | Scales with RealH    | Left/right pillars |
+| `aspect ∈ [4/3, CAP]`   | `atan(aspect)` (Hor+)    | Scales with RealH    | None |
+| `aspect ∈ [MIN, 4/3]`   | 4:3 constant (atan(4/3)) | **Scales with RealW**| None — extra vertical fills with world |
+| `aspect < MIN`          | 4:3 constant             | **Scales with RealW**| Top/bottom letter |
 
-`POLY_screen_width = DisplayHeight × RealW/RealH`.
+The character pixel size is continuous through the MIN boundary:
+inside the letterbox region we apply the same `base/MIN` zoom-out
+that the auto-zoom had at MIN, so the transition isn't a jump.
 
-When `RealH > RealW` (portrait), this collapses
-`POLY_screen_width < DisplayWidth` → horizontal half-FOV =
-`atan(W/H)` shrinks → narrow horizontal FOV.
+### Implementation
 
-- 4:3 (640×480): half-FOV = atan(4/3) = 53.1°
-- portrait 1:2 (e.g. 540×1080): half-FOV = atan(0.5) = 26.6°
-- portrait 1:4 (e.g. 480×1920): half-FOV = atan(0.25) = 14.0°
+Primary files:
+- [`config.h`](../../new_game/src/config.h) — added
+  `OC_FOV_MIN_ASPECT` (default 4:3).
+- [`aeng.cpp`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)
+  — both `AENG_lens = …` assignments in `AENG_draw` (splitscreen
+  and single-cam paths) now divide by `OC_FOV_MULTIPLIER × auto_zoom`.
+  `auto_zoom = base / clamp(real_aspect, MIN, base)` when
+  `real_aspect < base`, else 1. Applying it on `AENG_lens` (rather
+  than inside `POLY_camera_set`) ensures **both** the rendering
+  pipeline and the `AENG_calc_gamut` / `POLY_sphere_visible`
+  frustum-culling path see the same widened FOV — applying it only
+  in one place produced black cut-outs because gamut culled
+  geometry that the widened render path still wanted to draw.
+- [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  `POLY_camera_set` — effective aspect clamps to `[MIN, CAP]`;
+  uniform "fit scale" overrides `PolyPage::s_XScale/s_YScale` per
+  frame so the clamped virtual render rect fits inside the real
+  framebuffer (shrinks to the limiting axis, never overshoots);
+  `dwX`/`dwY` centre the viewport for both pillar and letter cases;
+  `PolyPage::s_XOffset` / `s_YOffset` shift POLY-path vertices into
+  the same pixel-space coordinate system as the MM-path characters
+  (without this shift, bars-active frames had environment drawn off
+  to the left while characters rendered centred — "characters and
+  environment had different cameras").
+- [`aeng.cpp`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)
+  `AENG_clear_viewport` — paints the pillar + letter bars black
+  after the standard clear. Uses the same `render_x / render_y /
+  render_w / render_h` formula as `POLY_camera_set` so bars abut
+  the 3D viewport with no 1-pixel gaps on odd remainders.
+- Sprite / billboard / line / sphere size tracking in
+  [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — `POLY_sprite_scale` (formerly `POLY_SPRITE_SCALE_BASELINE`
+  constexpr) is now a file-scope float recomputed per frame in
+  `POLY_camera_set` as `(DisplayWidth / 2 / ZCLIP) / (OC_FOV_MULTIPLIER
+  × auto_zoom)`. Without this compensation the aspect-auto-zoom and
+  user FOV widening made sprites / rain / flares look oversized
+  relative to the shrunk scene.
 
-Meanwhile vertical FOV stays locked at 90°. The view becomes
-"telescope through a vertical slit": narrow horizontally, tall
-vertically. Combined with `s_YScale = RealH / 480` — which on a tall
-screen *is* the large dimension — every world unit maps to
-`RealH/(2×ZCLIP)` real pixels. On a tall screen that's a large
-number, hence the character pixels up to huge size.
+### Gotcha: POLY_cam_lens ≈ 2.25 at baseline
 
-### Fix approach — Vert+ (vertical FOV expansion on portrait)
-
-Add a symmetric branch so portrait screens extend vertical FOV
-instead of narrowing horizontal:
-
-```cpp
-const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
-const float base_aspect = float(DisplayWidth) / float(DisplayHeight);  // 4/3
-
-if (real_aspect >= base_aspect) {
-    // Landscape / square+: Hor+ (current behavior).
-    POLY_screen_width  = float(DisplayHeight) * real_aspect;
-    POLY_screen_height = float(DisplayHeight);
-} else {
-    // Portrait: Vert+ — keep horizontal span at 4:3, extend vertical.
-    POLY_screen_width  = float(DisplayWidth);
-    POLY_screen_height = float(DisplayWidth) / real_aspect;
-}
-```
-
-And change [`game.cpp`](../../new_game/src/game/game.cpp) so scaling
-uses `RealH / POLY_screen_height` (not the hardcoded `RealH / 480`)
-— on landscape this is identical, on portrait it correctly shrinks.
-
-### What this fixes and what it doesn't
-
-- **Fixes**: character at normal size relative to vertical FOV on
-  portrait. More world visible vertically (extra sky/ground) instead
-  of horizontal zoom-in.
-- **Doesn't fix**: the horizontal FOV at very extreme portrait
-  (e.g. 9:21) is still narrow by choice — can't widen both axes
-  simultaneously without non-uniform pixels. Vertical FOV at
-  extreme portrait goes past 120°+ which itself starts to show
-  (vertical) fish-eye. Same fundamental rectilinear-projection
-  limitation as the horizontal fish-eye case.
-
-### Does not break 4:3
-
-At `real_aspect = 4/3` exactly, the `>=` branch runs and produces
-`POLY_screen_width = 640, POLY_screen_height = 480`, identical to
-the current code. `RealH / POLY_screen_height = RealH / 480`, same
-scale. **640×480 default completely unchanged.**
+Important when reviewing sprite-scale fixes: the game's default
+camera lens (`fc->lens = 0x24000 / 65536 = 2.25`) is **not** a
+neutral `1.0`. An early attempt to compensate sprite sizes via
+`× POLY_cam_lens` silently inflated every sprite 2.25× at the 4:3
+default. The correct approach is to divide by *only* the
+adjustments we added on top of the game's own lens
+(`OC_FOV_MULTIPLIER × auto_zoom`), leaving the game's baseline and
+any cutscene lens changes untouched — the original-game formula
+`POLY_screen_mul_x × world/z` is lens-independent, and cutscene
+zooms were never expected to change light-sprite sizes.
 
 ---
 
-## 🔴 Sprite / rain / line width scales with aspect ratio
+## 🟢 Sprite / rain / line widths — resolved
 
-### Symptom (confirmed)
+### Status — resolved
 
-On wide aspects (RealW/RealH > 4:3): light-source glow sprites
-(lamps, police bar lights, flares) and rain droplets are rendered
-**wider** than they should be, scaling with `real_aspect / base_aspect`.
-On narrow aspects (portrait): the inverse — droplets and light
-spots appear narrower/smaller. Behaves identically on width AND
-height components of the sprite — doesn't stretch non-uniformly,
-just scales larger/smaller.
+World-sized billboards (light-source glows / flares, moon billboard,
+rain drops, bullet-line widths, sphere-to-circle radii, HUD
+accuracy rings) are no longer aspect-dependent and also correctly
+shrink with any auto-zoom / user FOV-multiplier we apply on top of
+the game's lens. They match characters in proportion regardless of
+window aspect.
 
-### Root cause
+### Pass history (for future-you — trio of bugs, three fixes)
 
-[`POLY_world_length_to_screen`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L1398)
-uses `POLY_screen_mul_x`:
+1. **Aspect-scaling (original report)** — sprites grew on wide
+   aspects and shrunk on narrow ones because
+   `POLY_world_length_to_screen` + `POLY_add_line*` +
+   `POLY_get_sphere_circle` all multiplied by `POLY_screen_mul_x`,
+   which our Hor+ makes aspect-dependent. **Fix:** introduced
+   `POLY_sprite_scale` pinned at the 4:3 design-time value
+   `DisplayWidth × 0.5 / POLY_ZCLIP_PLANE`. Same 4:3 output, but
+   no longer varies with aspect.
+2. **Auto-zoom regression** — after the tall-aspect auto-zoom
+   landed, sprites stayed at their 4:3-pinned size while the scene
+   got zoomed out, so they read as oversized relative to the
+   shrunk character. **Fix:** divide `POLY_sprite_scale` by
+   `auto_zoom` so sprites track the scene shrinkage.
+3. **FOV-multiplier regression** — same symptom when the user
+   bumped `OC_FOV_MULTIPLIER` above 1: scene shrinks, sprites don't.
+   **Fix:** also divide by `OC_FOV_MULTIPLIER`. Cutscene lens
+   changes (encoded in `fc->lens`) are deliberately **not**
+   compensated — the original game never changed sprite size on
+   cinematic zoom, and we preserve that.
 
-```cpp
-float POLY_world_length_to_screen(float world_length)
-{
-    float view_length = world_length * POLY_cam_over_view_dist;
-    float screen_length = view_length * POLY_screen_mul_x;   // ← BUG
-    return screen_length;
-}
-```
+### Call sites touched
 
-`POLY_screen_mul_x = POLY_screen_width/2/ZCLIP`, and after our Hor+
-fix `POLY_screen_width` scales with aspect. So this "world length →
-virtual screen pixels" helper returns aspect-dependent pixel counts
-— wider aspect → bigger result → larger sprites / rain.
+- `POLY_world_length_to_screen` — [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp),
+  covers [`sprite.cpp`](../../new_game/src/engine/graphics/geometry/sprite.cpp)
+  (all `SPRITE_draw*` incl. bloom light glows + moon), `SHAPE_droplet` / trail
+  variants in [`shape.cpp`](../../new_game/src/engine/graphics/geometry/shape.cpp),
+  [`pyro.cpp`](../../new_game/src/effects/combat/pyro.cpp) fire sprites,
+  and [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp) weapon-accuracy rings.
+- `POLY_add_line` / `POLY_add_line_tex_uv` width calc in
+  [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — 3D billboard lines (bullet trails, muzzle lines, spark trails).
+- `POLY_get_sphere_circle` radius calc in
+  [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — dev light-editor hit-test.
 
-At 4:3 the function returned `640/2/ZCLIP = 320/ZCLIP`; that was
-the original game's design-time constant. It's meant to be an
-*aspect-independent* scalar because it's used symmetrically for both
-X and Y sprite extents, and for line widths that rotate freely.
-
-### Every call site affected (confirmed list)
-
-The helper is used by every billboard / sprite size computation in
-the world render path:
-
-- **Sprites** —
-  [`sprite.cpp:32, 126, 222, 320`](../../new_game/src/engine/graphics/geometry/sprite.cpp):
-  `SPRITE_draw`, `SPRITE_draw_tex`, `SPRITE_draw_tex_distorted`,
-  `SPRITE_draw_rotated`. Covers light-source glows (via
-  `SPRITE_draw_rotated` in `BLOOM_draw`), pyro blobs, any world-
-  space billboard sprite.
-- **Shape primitives** —
-  [`shape.cpp:697, 701, 867, 1222`](../../new_game/src/engine/graphics/geometry/shape.cpp):
-  `SHAPE_droplet` (rain/drips), `SHAPE_smoke_trail`, other world-
-  aligned quads.
-- **Pyro** —
-  [`pyro.cpp:1155`](../../new_game/src/effects/combat/pyro.cpp): fire
-  sprites.
-- **HUD weapon crosshair (3D ring)** —
-  [`panel.cpp:302-303, 347-348`](../../new_game/src/ui/hud/panel.cpp):
-  the accuracy reticule drawn around the player's weapon target.
-  The rings widen/shrink with aspect along with everything else.
-
-Plus two other uses of `POLY_screen_mul_x` as a generic "world width →
-screen pixels" scalar with the same bug:
-
-- **Line widths** —
-  [`poly.cpp:1502-1503`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L1502)
-  (`POLY_add_line_tex_uv`) and
-  [`poly.cpp:1601-1602`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L1601)
-  (`POLY_add_line`). These compute the half-width of 3D billboard
-  lines — used for bullet trails, laser beams, muzzle lines, shot
-  traces, spark trails, some HUD indicators. All of these get
-  fatter on widescreen, thinner on portrait.
-- **Sphere-to-screen-circle** —
-  [`poly.cpp:2205`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L2205)
-  (`POLY_get_sphere_circle`). Used in the debug/dev light editor for
-  hit-testing mouse clicks on light sources; impacts mouse-over
-  radius matching, not gameplay visuals, but still wrong.
-
-### Fix
-
-Replace the aspect-dependent `POLY_screen_mul_x` with the 4:3
-design-time constant in these three spots:
-
-```cpp
-// baseline multiplier: always the 4:3 design-time horizontal mul_x,
-// so sprite / line / droplet sizes don't scale with screen aspect
-constexpr float POLY_screen_mul_x_baseline =
-    float(DisplayWidth) * 0.5f / POLY_ZCLIP_PLANE;
-```
-
-Use this constant (instead of `POLY_screen_mul_x`) in:
-- `POLY_world_length_to_screen` at `poly.cpp:1401`
-- `POLY_add_line` / `POLY_add_line_tex_uv` width calc
-  (`poly.cpp:1502-1503, 1601-1602`)
-- `POLY_get_sphere_circle` radius calc (`poly.cpp:2205`)
-
-The perspective-projection uses of `POLY_screen_mul_x` (lines 364,
-414, 440, 506) must stay aspect-aware — do not touch those.
-
-### Does not break 4:3
-
-At 4:3, `POLY_screen_mul_x = 320/ZCLIP = POLY_screen_mul_x_baseline`.
-Identical value, no behavior change on the default build.
+The perspective-projection uses of `POLY_screen_mul_x` (lines in
+`POLY_perspective`) must stay aspect-aware — those weren't touched.
 
 ---
 

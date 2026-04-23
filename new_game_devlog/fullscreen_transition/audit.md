@@ -17,22 +17,55 @@ Verdicts:
 
 ## 3D rendering pipeline
 
-- ✅ [`poly.cpp:150-240`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L150)
-  — `POLY_begin`. Sets `POLY_screen_width = DisplayHeight × RealW/RealH`
-  (Hor+). Splitscreen halves adjust `POLY_screen_height`.
+- ✅ [`poly.cpp` `POLY_camera_set`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — per-frame camera setup. Clamps `effective_aspect` to
+  `[OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]` → pillar/letter when
+  outside. Overrides `PolyPage::s_XScale`/`s_YScale` with a
+  uniform fit scale. Sets `s_XOffset`/`s_YOffset` = pillar/letter
+  offsets (POLY-path and MM-path coord consistency). Recomputes
+  `POLY_sprite_scale` = `(DisplayWidth/2/ZCLIP) /
+  (OC_FOV_MULTIPLIER × auto_zoom)` for world-size billboards.
+  See [`concepts.md`](concepts.md) "Vertex pipeline flow".
+- ✅ [`aeng.cpp` `AENG_draw`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)
+  — `AENG_lens = fc->lens × … / (OC_FOV_MULTIPLIER × auto_zoom)`.
+  Must be applied here, not inside `POLY_camera_set`: both render
+  and frustum culling read from this value.
+- ✅ [`aeng.cpp` `AENG_calc_gamut`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)
+  — draw-distance FOV correction: `width *= POLY_screen_width /
+  POLY_screen_height; width /= lens`. Receives widened lens
+  automatically via `AENG_LENS`.
+- ✅ [`aeng.cpp` `AENG_clear_viewport`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)
+  — paints black pillar/letter bars via `ge_fill_rect` after the
+  standard sky/black clear. Bar geometry mirrors
+  `POLY_camera_set`'s `render_x/y/w/h` formula — keep them in sync.
 - ✅ [`poly_globals.cpp:33-36`](../../new_game/src/engine/graphics/pipeline/poly_globals.cpp#L33)
-  — declarations.
-- ✅ [`aeng.cpp:571, 670`](../../new_game/src/engine/graphics/pipeline/aeng.cpp#L571)
-  — draw-distance FOV correction: `width *= POLY_screen_width / POLY_screen_height`.
-- ✅ [`farfacet.cpp:472-473`](../../new_game/src/engine/graphics/geometry/farfacet.cpp#L472)
-  — far-facet aspect FOV: same pattern.
-- ✅ [`sprite.cpp:34, 128, 224, 322`](../../new_game/src/engine/graphics/geometry/sprite.cpp#L34)
-  — sprite on-screen culling against `POLY_screen_*`.
-- ✅ [`bloom.cpp:45, 48-49`](../../new_game/src/engine/graphics/postprocess/bloom.cpp#L45)
-  — flare/bloom culling and center computed from `ge_get_screen_*`
-  (RealDisplay).
-- ✅ [`pyro.cpp:1157`](../../new_game/src/effects/combat/pyro.cpp#L1157)
-  — pyro effect culling against `POLY_screen_*`.
+  — `POLY_screen_width/height/mul_x/mul_y/mid_x/mid_y/cam_aspect/cam_lens`
+  declarations.
+- ✅ [`farfacet.cpp` `FARFACET_draw`](../../new_game/src/engine/graphics/geometry/farfacet.cpp)
+  — far-facet cone (`width *= POLY_screen_width / POLY_screen_height;
+  width /= lens`): same pattern as `AENG_calc_gamut`.
+- ✅ [`sprite.cpp` `SPRITE_draw*` family](../../new_game/src/engine/graphics/geometry/sprite.cpp)
+  — sprite size via `POLY_world_length_to_screen` (reads
+  `POLY_sprite_scale`). On-screen culling against `POLY_screen_*`.
+- ✅ [`shape.cpp` `SHAPE_droplet` / `SHAPE_smoke_trail` etc.](../../new_game/src/engine/graphics/geometry/shape.cpp)
+  — rain drops, smoke, trails — all via `POLY_world_length_to_screen`.
+- ✅ [`bloom.cpp` `BLOOM_draw` / `BLOOM_flare_draw`](../../new_game/src/engine/graphics/postprocess/bloom.cpp)
+  — flare/bloom culling against `POLY_screen_*`; glow via
+  `SPRITE_draw_rotated` → `POLY_sprite_scale` → correctly
+  aspect-independent.
+- ✅ [`pyro.cpp` fire sprites](../../new_game/src/effects/combat/pyro.cpp)
+  — pyro size via `POLY_world_length_to_screen`.
+- ✅ [`panel.cpp` 3D accuracy rings](../../new_game/src/ui/hud/panel.cpp)
+  — weapon crosshair rings via `POLY_world_length_to_screen`.
+- ✅ [`poly.cpp` `POLY_add_line` / `POLY_add_line_tex_uv`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — 3D billboard line widths via `POLY_sprite_scale`.
+- ✅ [`poly.cpp` `POLY_get_sphere_circle`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — sphere-to-screen radius via `POLY_sprite_scale`.
+- ✅ [`poly_render.cpp` / `figure.cpp` MM-path](../../new_game/src/engine/graphics/geometry/figure.cpp)
+  — characters. Bakes `g_viewData.dwX + dwWidth/2` and
+  `g_dw3DStuffY + g_dw3DStuffHeight/2` into per-bone matrices;
+  relies on POLY-path using `s_XOffset = g_viewData.dwX`,
+  `s_YOffset = base_y` to emit vertices in the same pixel space.
 
 ## Per-object bounding boxes in virtual space
 
@@ -68,21 +101,19 @@ Verdicts:
 
 ## HUD / UI
 
+- ✅ [`ui/frontend/frontend.cpp`](../../new_game/src/ui/frontend/frontend.cpp)
+  — attract/title/briefing/transitions migrated to `ui_coords` framed
+  region (Stage 3a). The `if (RealDisplayWidth == 640)` fallback was
+  dropped.
+- ✅ [`ui/menus/widget.cpp`](../../new_game/src/ui/menus/widget.cpp)
+  — main menu, options, save/load, pause. Framed via `push_ui_mode`.
 - 🔴 [`ui/hud/panel.cpp`](../../new_game/src/ui/hud/panel.cpp)
-  — lines 998, 1004, 1011, 1013, 1054, 1063, 1069, 1079, 1090. All HUD
-  panels draw in virtual 640×480 coords with hardcoded positions.
-  Pillarboxed on widescreen.
+  — in-game HUD: health bar, radar, weapon indicator, ammo, body-part
+  damage, wristwatch. Hardcoded positions in virtual 640×480 space.
+  Currently pillarboxed in the 4:3 framed centre. Needs per-element
+  anchors (Stage 3c) — see [`issues.md`](issues.md).
 - 🔴 [`ui/hud/overlay.cpp`](../../new_game/src/ui/hud/overlay.cpp)
-  — overlays (damage, book, kick, frames). `:296` resets GL viewport to
-  RealDisplay dims (correct), but draws are in virtual coords
-  (pillarboxed).
-- 🟡 [`ui/frontend/frontend.cpp`](../../new_game/src/ui/frontend/frontend.cpp)
-  — attract/title/briefing. Has `if (RealDisplayWidth == 640)` branch at
-  `:397-402`, switch on `RealDisplayWidth` at `:1794`. Works on non-640
-  widths but the literal checks mark legacy assumptions.
-- 🔴 [`ui/menus/widget.cpp`](../../new_game/src/ui/menus/widget.cpp)
-  — menus. Mouse hit-testing via global cursor pos minus window pos.
-  No explicit screen-size literals, but shares HUD draw pipeline.
+  — damage / book / kick overlays + panel frames. Same Stage 3c scope.
 - 🟡 [`ui/hud/eng_map.cpp:1197-1198`](../../new_game/src/ui/hud/eng_map.cpp#L1197)
   — map screen-size init. Uses `DisplayWidth / DisplayHeight` virtual —
   needs a playthrough to confirm.
@@ -113,26 +144,37 @@ Verdicts:
 
 ## Outro / cutscenes
 
-- 🟡 [`outro_os_globals.cpp:34-37, 48-80`](../../new_game/src/outro/core/outro_os_globals.cpp#L34)
-  — `OS_screen_width/height` init from `ge_get_screen_width/height()`
-  (RealDisplay). Correct. `OS_cam_aspect` etc. not yet audited for
-  aspect handling — see [`issues.md`](issues.md).
+- ✅ [`outro_os_globals.cpp`](../../new_game/src/outro/core/outro_os_globals.cpp)
+  — outro has its own `OS_cam_matrix` / `OS_cam_lens` / separate
+  `MATRIX_skew`; not affected by `OC_FOV_MULTIPLIER` / `auto_zoom`
+  by design (non-interactive cinematic with fixed composition).
+  Outro framing into the 4:3 region is handled upstream via
+  `ui_coords` (see [`ui_coords_plan.md`](ui_coords_plan.md)).
 
 ## Splitscreen
 
-- ✅ [`poly.cpp:159-226`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L159)
-  — three cases (none / top / bottom). Aspect math is correct for any
-  aspect. Not actively used in the game right now.
+- ✅ [`poly.cpp` splitscreen cases](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  — three cases (none / top / bottom). Aspect math correct on any
+  aspect. Both halves use the same `AENG_lens` (with multiplier +
+  auto_zoom applied), so pillar/letter bars and auto-zoom FOV apply
+  uniformly across both halves.
 
 ---
 
 ## Summary
 
-- **Core 3D pipeline**: fully aspect-aware. No known issues.
-- **Post-process**: one open amplitude-scaling item (wibble).
-- **HUD / UI**: systematically broken (shared pipeline issue); single
-  fix pass unblocks it.
-- **Legacy buffers** (`WorkScreen*`): need an audit, then either
-  documentation or rewrite.
-- **Outro / menus / frontend transitions**: not yet tested at widescreen
-  — verification pending.
+- **Core 3D pipeline**: fully aspect-aware across the full clamp
+  range (`[MIN..CAP]`). Pillar/letter bars applied outside the
+  range with auto-zoom compensation inside the `[MIN..base]` zone.
+  Culling (`AENG_calc_gamut`, `POLY_sphere_visible`, farfacet, rain
+  cone) syncs with render via `AENG_lens` as the single source.
+- **Sprite / line / sphere sizes**: aspect-independent via
+  `POLY_sprite_scale`; compensated for `OC_FOV_MULTIPLIER × auto_zoom`;
+  unaffected by cutscene lens.
+- **Menus / frontend / outro / videos**: framed via `ui_coords`
+  pipeline.
+- **In-game HUD**: still pillarboxed in the 4:3 centre. Needs
+  per-element anchors (Stage 3c).
+- **Open items**: wibble amplitude, `WorkScreen*` audit, FXAA
+  replacement / UI-after-composition split, `RealDisplay*` rename,
+  moon bug cluster. See [`issues.md`](issues.md).

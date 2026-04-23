@@ -4,6 +4,8 @@
 Исправленные и закрытые баги → [`known_issues_and_bugs_resolved.md`](known_issues_and_bugs_resolved.md)
 Пофикшенные баги пре-релиза → [`prerelease_fixes.md`](prerelease_fixes.md)
 
+**Баги связанные с аспектом / разрешением / fullscreen** (FOV cap/floor, pillarbox/letterbox, auto-zoom, pre-existing багов луны на широком аспекте и т.п.) отслеживаются отдельно в [`../new_game_devlog/fullscreen_transition/issues.md`](../new_game_devlog/fullscreen_transition/issues.md) — там же concepts / audit / plan. Сюда дублируются только баги которые не специфичны для нестандартного окна (проявляются и на 640×480).
+
 **TODO:** собрать все известные баги релизной PC-версии (форумы, вики, видео) и добавить сюда для фикса.
 
 ---

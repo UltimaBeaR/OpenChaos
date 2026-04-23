@@ -47,6 +47,9 @@
 - Читы поддерживаются отдельно как фича
 
 ## 6. Экран и разрешение
+
+**Рабочая документация по поддержке произвольных аспектов/fullscreen:** → [`../new_game_devlog/fullscreen_transition/`](../new_game_devlog/fullscreen_transition/). Содержит [`README.md`](../new_game_devlog/fullscreen_transition/README.md) (status at a glance), [`concepts.md`](../new_game_devlog/fullscreen_transition/concepts.md) (терминология + pipeline), [`issues.md`](../new_game_devlog/fullscreen_transition/issues.md) (что открыто / что resolved со всеми деталями: FOV cap + pillarbox, FOV floor + letterbox + auto-zoom, sprite scale compensation, кластер багов луны на широком аспекте), [`audit.md`](../new_game_devlog/fullscreen_transition/audit.md) (inventory точек кода где разрешение/аспект влияют).
+
 - Поддержка произвольных разрешений (1080p, 1440p, 4K)
 - Fullscreen по умолчанию, разрешение = нативное разрешение монитора
 - Оконный режим с переключением через конфиг (разрешение окна по умолчанию 640×480, меняется через конфиг)

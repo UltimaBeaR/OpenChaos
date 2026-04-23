@@ -18,15 +18,37 @@ Already done:
   `OC_FOV_CAP_ASPECT` (default 16:9), remaining framebuffer columns
   painted black. Avoids rectilinear fish-eye at 21:9+. Controlled
   from [`config.h`](../../new_game/src/config.h).
+- **Tall-aspect auto zoom-out + letterbox floor** — windows narrower
+  than 4:3 no longer pixel-blow-up the character. In
+  `[OC_FOV_MIN_ASPECT, 4:3]` (default MIN = 4:3) the camera zooms
+  out so horizontal FOV stays 4:3-equivalent and the extra
+  vertical space fills with sky / ground. Below MIN the scene is
+  letterboxed into the MIN aspect with top/bottom bars — symmetric
+  mirror of the pillarbox cap. Auto-zoom is applied at the
+  `AENG_lens` source so both render and frustum culling see the
+  same widened FOV (no black holes on the periphery).
 - **Runtime FOV multiplier (`OC_FOV_MULTIPLIER`)** — divides the
   camera lens by the user's multiplier. Default 1.0 = no change;
   higher = wider, lower = narrower. Standard FPS-style slider; does
   not alter the projection type (fish-eye returns if cranked high).
-- **Sprite / rain / line widths now aspect-independent** — all
-  `POLY_world_length_to_screen` / `POLY_screen_mul_x`-as-sprite-scalar
-  uses pinned at the 4:3 baseline (`POLY_SPRITE_SCALE_BASELINE`).
-  Light-glow sprites, rain droplets, bullet trails, crosshair
-  rings, sphere-to-circle radii no longer scale with aspect.
+- **Environment vs characters coord-space consistency on pillarbox** —
+  `PolyPage::s_XOffset` / `s_YOffset` shift POLY-path vertex output
+  by `dwX`/`dwY` so it matches the MM-path (figure.cpp characters)
+  which bakes those offsets into its bone matrices. Without this
+  fix, pillar/letterbox active frames rendered environment offset
+  left while characters stayed centred ("different cameras").
+- **Sprite / rain / line widths now aspect-independent _and_
+  track auto-zoom / FOV multiplier** — world-sized billboards
+  (light-source glows, moon, rain drops, bullet trails, crosshair
+  rings, sphere circles) go through `POLY_sprite_scale`, a file-
+  scope float recomputed per frame in `POLY_camera_set` as
+  `(DisplayWidth/2/ZCLIP) / (OC_FOV_MULTIPLIER × auto_zoom)`.
+  Pinned at the 4:3 design-time baseline (no aspect dependency)
+  and compensated for the two zoom adjustments we add on top of
+  the game's own lens (so sprites shrink in proportion with the
+  shrinking scene). Does NOT include the game's own
+  `POLY_cam_lens` — cutscene zooms never changed sprite sizes in
+  the original and shouldn't now.
 - **Native physical pixels across platforms** — `OC_WINDOWED_WIDTH/
   HEIGHT` always mean physical pixels (Retina / HiDPI-aware via
   two-pass `SDL_GetWindowPixelDensity` resize).
@@ -68,14 +90,14 @@ Remaining work — see [`issues.md`](issues.md):
 - `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).
-- **Tall-aspect zoom (portrait windows)** — Hor+ formula narrows
-  horizontal FOV on `RealH > RealW`, making the character huge and
-  crushing the visible world around it. Needs a Vert+ branch.
-- Moon rendering bug cluster: disappears on ultra-wide when facing
-  head-on (1920×480 repro); size pops with view angle at any aspect
-  when `OC_FOV_MULTIPLIER > 1`; "reflection" through ground visible
-  (missing depth occlusion). Probably all share the sky/moon draw
-  path — see [`issues.md`](issues.md) "Moon rendering" section.
+- Moon rendering bug cluster: (a) disappears on ultra-wide when
+  facing head-on (1920×480 repro); (b) residual size-wobble on
+  camera pitch — confirmed original-retail behaviour, out of scope
+  unless we want to change original feel; (c) "reflection" through
+  ground visible (missing depth occlusion); (d) pops out early on
+  yaw-**left** past the moon on wide aspects — asymmetric (right
+  yaw is fine); 4:3 is fine. See [`issues.md`](issues.md) "Moon
+  rendering" section.
 
 ## Files in this folder
 

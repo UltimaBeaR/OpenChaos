@@ -57,14 +57,20 @@ static UBYTE s_ClipMask;
 
 // Aspect-independent horizontal multiplier for "world length → virtual screen
 // pixels" helpers (sprite sizes, billboard-line widths, sphere radii).
-// Pinned at the 4:3 design-time value of POLY_screen_mul_x. The live
-// POLY_screen_mul_x scales with aspect ratio via Hor+ (POLY_screen_width
-// widens on widescreen), which is correct for perspective projection but
-// wrong for symmetric sprite/line widths — using it there makes sprites,
-// rain drops and billboard line widths grow on widescreen and shrink on
-// portrait. Equal to POLY_screen_mul_x at 4:3, so the default build is
-// unchanged.
-static constexpr float POLY_SPRITE_SCALE_BASELINE =
+// Pinned at the 4:3 design-time value of POLY_screen_mul_x, multiplied
+// by the current camera lens. Rationale:
+//   * base value (DisplayWidth / 2 / ZCLIP) comes from POLY_screen_mul_x
+//     at 4:3 — the live mul_x scales with aspect via Hor+, which is
+//     correct for perspective projection but wrong for symmetric
+//     sprite/line widths (makes them grow on widescreen, shrink on
+//     portrait).
+//   * `× POLY_cam_lens` tracks the zoom adjustments that MATRIX_skew
+//     bakes into the world matrix (OC_FOV_MULTIPLIER + auto-zoom on
+//     narrow aspects). Without it, when auto-zoom shrinks the world
+//     (character smaller), sprites would stay their old size and
+//     visually blow out of proportion relative to the character.
+// Recomputed per frame in POLY_camera_set.
+static float POLY_sprite_scale =
     float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE;
 
 // uc_orig: POLY_SWAP (fallen/DDEngine/Source/poly.cpp)
@@ -271,6 +277,32 @@ void POLY_camera_set(
     // lens value; scaling only here would leave gamut / sphere culls on
     // the un-widened FOV and trim off the newly-visible edges.
     POLY_cam_lens = lens;
+
+    // Compensate sprite / billboard scale for the camera adjustments we
+    // add on top of the game's own lens. When the world is zoomed out
+    // (character pixel-smaller), world-sized sprites — light flares,
+    // moon billboard, rain drops, bullet-line widths, sphere circles —
+    // must shrink proportionally, otherwise they visually overpower the
+    // zoomed-out scene.
+    //
+    // Compensate ONLY for OC_FOV_MULTIPLIER + auto_zoom (our additions).
+    // Do NOT include the game's own POLY_cam_lens: its baseline is ~2.25
+    // (from fc->lens = 0x24000), and the original sprite-size formula
+    // (POLY_screen_mul_x × world/z) is lens-independent — cutscene lens
+    // changes in the original never changed sprite sizes, only world
+    // projection. Mirrors the divisor applied to AENG_lens in aeng.cpp.
+    {
+        const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+        const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
+        const float min_aspect  = float(OC_FOV_MIN_ASPECT);
+        float auto_zoom = 1.0F;
+        if (real_aspect < base_aspect) {
+            const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
+            auto_zoom = base_aspect / zoom_aspect;
+        }
+        const float our_zoom = float(OC_FOV_MULTIPLIER) * auto_zoom;
+        POLY_sprite_scale = float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE / our_zoom;
+    }
     POLY_cam_view_dist = view_dist;
     POLY_cam_over_view_dist = 1.0F / view_dist;
     POLY_cam_aspect = POLY_screen_height / POLY_screen_width;
@@ -1478,7 +1510,7 @@ void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG
 float POLY_world_length_to_screen(float world_length)
 {
     float view_length = world_length * POLY_cam_over_view_dist;
-    float screen_length = view_length * POLY_SPRITE_SCALE_BASELINE;
+    float screen_length = view_length * POLY_sprite_scale;
 
     return screen_length;
 }
@@ -1579,8 +1611,8 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     vw1 = width1 * POLY_cam_over_view_dist;
     vw2 = width2 * POLY_cam_over_view_dist;
 
-    sw1 = POLY_SPRITE_SCALE_BASELINE * vw1 * p1->Z;
-    sw2 = POLY_SPRITE_SCALE_BASELINE * vw2 * p2->Z;
+    sw1 = POLY_sprite_scale * vw1 * p1->Z;
+    sw2 = POLY_sprite_scale * vw2 * p2->Z;
 
     dx1 = -dy * sw1;
     dy1 = +dx * sw1;
@@ -1678,8 +1710,8 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     vw1 = width1 * POLY_cam_over_view_dist;
     vw2 = width2 * POLY_cam_over_view_dist;
 
-    sw1 = POLY_SPRITE_SCALE_BASELINE * vw1 * p1->Z;
-    sw2 = POLY_SPRITE_SCALE_BASELINE * vw2 * p2->Z;
+    sw1 = POLY_sprite_scale * vw1 * p1->Z;
+    sw2 = POLY_sprite_scale * vw2 * p2->Z;
 
     dx1 = -dy * sw1;
     dy1 = +dx * sw1;
@@ -2282,7 +2314,7 @@ SLONG POLY_get_sphere_circle(
 
     if (pp.IsValid()) {
         vw = world_radius * POLY_cam_over_view_dist;
-        width = vw * pp.Z * POLY_SPRITE_SCALE_BASELINE;
+        width = vw * pp.Z * POLY_sprite_scale;
 
         *screen_x = SLONG(pp.X);
         *screen_y = SLONG(pp.Y);

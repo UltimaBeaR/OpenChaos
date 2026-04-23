@@ -8582,7 +8582,26 @@ void AENG_draw(SLONG draw_3d)
             // from rendering → geometry that is visible after the widening
             // gets pre-culled by the un-widened gamut cone, producing
             // black cut-outs in the periphery.
-            AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F)) / float(OC_FOV_MULTIPLIER);
+            //
+            // Auto zoom-out (aspect < 4:3): widens FOV by base/aspect so
+            // horizontal extent stays at 4:3-equivalent and the character
+            // doesn't pixel-scale up with extra vertical window height.
+            // The extra height fills with more sky / ground instead. Zoom
+            // is clamped at base/MIN so the letterbox branch in
+            // POLY_camera_set can take over continuously (character size
+            // stays 4:3-width-equivalent across the MIN boundary).
+            {
+                const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+                const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
+                const float min_aspect  = float(OC_FOV_MIN_ASPECT);
+                float auto_zoom = 1.0F;
+                if (real_aspect < base_aspect) {
+                    const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
+                    auto_zoom = base_aspect / zoom_aspect;
+                }
+                AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F))
+                    / (float(OC_FOV_MULTIPLIER) * auto_zoom);
+            }
 
             AENG_set_camera_radians(
                 fc->x >> 8,
@@ -8666,8 +8685,20 @@ void AENG_draw(SLONG draw_3d)
         }
 
         // See the note above the splitscreen branch for why the multiplier
-        // is applied to AENG_lens itself rather than inside POLY_camera_set.
-        AENG_lens = fc->lens * (1.0F / float(65536.0F)) / float(OC_FOV_MULTIPLIER);
+        // AND auto-zoom are applied to AENG_lens itself rather than inside
+        // POLY_camera_set.
+        {
+            const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+            const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
+            const float min_aspect  = float(OC_FOV_MIN_ASPECT);
+            float auto_zoom = 1.0F;
+            if (real_aspect < base_aspect) {
+                const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
+                auto_zoom = base_aspect / zoom_aspect;
+            }
+            AENG_lens = fc->lens * (1.0F / float(65536.0F))
+                / (float(OC_FOV_MULTIPLIER) * auto_zoom);
+        }
 
         AENG_set_camera_radians(
             fc->x >> 8,
