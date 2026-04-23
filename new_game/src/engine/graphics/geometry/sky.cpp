@@ -434,9 +434,6 @@ void SKY_draw_poly_moon(
 
     SVector_F temp;
 
-    float screen_width = float(DisplayWidth);
-    float screen_height = float(DisplayHeight);
-
     POLY_Point mid;
     POLY_Point pp[4];
     POLY_Point* quad[4];
@@ -453,9 +450,14 @@ void SKY_draw_poly_moon(
 #define SKY_MOON_PITCH (PI / 8.0F)
 // uc_orig: SKY_MOON_DIST (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_DIST (max_dist - 128.0F)
-// Moon appears large on screen.
+// Moon sprite radius in screen pixels. Pinned to the 4:3 design-time
+// width (DisplayWidth = 640) so it doesn't track POLY_screen_width on
+// widescreen (would make it grow horizontally). Divided by POLY_our_zoom
+// so it shrinks in proportion with OC_FOV_MULTIPLIER / auto-zoom —
+// without this, widening the scene lens left the moon at its old size
+// and it visually overpowered the zoomed-out world.
 // uc_orig: SKY_MOON_RADIUS (fallen/DDEngine/Source/sky.cpp)
-#define SKY_MOON_RADIUS (screen_width * 0.15F)
+#define SKY_MOON_RADIUS (float(DisplayWidth) * 0.15F / POLY_our_zoom)
 // uc_orig: SKY_MOON_UV_IN (fallen/DDEngine/Source/sky.cpp)
 #define SKY_MOON_UV_IN (0.02F)
 
@@ -488,7 +490,11 @@ void SKY_draw_poly_moon(
         &mid);
 
     if (mid.IsValid()) {
-        if (!(mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > screen_width || mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > screen_height)) {
+        // Bounds are in POLY_transform output space, which is
+        // [0, POLY_screen_width] × [0, POLY_screen_height] — aspect-dependent
+        // after Hor+. Comparing against DisplayWidth (640) culled early on
+        // the right edge on wide aspects (asymmetric yaw-left pop-out).
+        if (!(mid.X + SKY_MOON_RADIUS < 0 || mid.X - SKY_MOON_RADIUS > POLY_screen_width || mid.Y + SKY_MOON_RADIUS < 0 || mid.Y - SKY_MOON_RADIUS > POLY_screen_height)) {
             mid.Z = SKY_VERY_FAR_AWAY;
             mid.colour = 0xffaaaa88;
             mid.specular = 0x00000000;
@@ -532,9 +538,6 @@ SLONG SKY_draw_moon_reflection(
     float vector[3];
 
     SVector_F temp;
-
-    float screen_width = float(DisplayWidth);
-    float screen_height = float(DisplayHeight);
 
     POLY_Point mid;
     POLY_Point pp[4];
@@ -582,7 +585,8 @@ SLONG SKY_draw_moon_reflection(
     if (!mid.IsValid()) {
         return UC_FALSE;
     } else {
-        if (mid.X + SKY_MOON_RADIUS < 8 || mid.X - SKY_MOON_RADIUS > screen_width + 8 || mid.Y + SKY_MOON_RADIUS < 8 || mid.Y - SKY_MOON_RADIUS > screen_height + 8) {
+        // Bounds in POLY_transform output space (see SKY_draw_poly_moon).
+        if (mid.X + SKY_MOON_RADIUS < 8 || mid.X - SKY_MOON_RADIUS > POLY_screen_width + 8 || mid.Y + SKY_MOON_RADIUS < 8 || mid.Y - SKY_MOON_RADIUS > POLY_screen_height + 8) {
             return UC_FALSE;
         } else {
             mid.Z = SKY_VERY_FAR_AWAY;

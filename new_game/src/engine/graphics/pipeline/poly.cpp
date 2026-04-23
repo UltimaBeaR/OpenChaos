@@ -73,6 +73,13 @@ static UBYTE s_ClipMask;
 static float POLY_sprite_scale =
     float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE;
 
+// Combined OC_FOV_MULTIPLIER × auto_zoom, recomputed per frame in
+// POLY_camera_set. Exported for screen-space billboards that don't go
+// through POLY_sprite_scale and need to compensate manually (e.g. the
+// moon quad in sky.cpp, whose size is computed in screen pixels directly
+// rather than from a world-space width).
+float POLY_our_zoom = 1.0F;
+
 // uc_orig: POLY_SWAP (fallen/DDEngine/Source/poly.cpp)
 // Swaps two POLY_Point pointers.
 #define POLY_SWAP(pp1, pp2)   \
@@ -300,8 +307,8 @@ void POLY_camera_set(
             const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
             auto_zoom = base_aspect / zoom_aspect;
         }
-        const float our_zoom = float(OC_FOV_MULTIPLIER) * auto_zoom;
-        POLY_sprite_scale = float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE / our_zoom;
+        POLY_our_zoom = float(OC_FOV_MULTIPLIER) * auto_zoom;
+        POLY_sprite_scale = float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE / POLY_our_zoom;
     }
     POLY_cam_view_dist = view_dist;
     POLY_cam_over_view_dist = 1.0F / view_dist;

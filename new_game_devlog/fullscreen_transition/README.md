@@ -82,6 +82,12 @@ Remaining work — see [`issues.md`](issues.md):
   per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM` etc.).
   Same `PolyPage::push_ui_mode` infra, just call sites left to wrap.
   This is Stage 3c in the plan.
+- **NIGHT lighting pool overflow at wide/tall FOV (post-1.0).**
+  `UBYTE`-indexed 256-slot pool overflows when the view gamut exceeds
+  255 lo-res map squares (triggered by wide `OC_FOV_MULTIPLIER` or
+  narrow/portrait aspects). Fix is a UWORD refactor with preserved
+  save-file compatibility. **Workaround for 1.0: no user-facing FOV
+  slider** — `OC_FOV_MULTIPLIER` stays a compile-time constant.
 - Split UI rendering from the scaled scene FBO (part of the UI rework).
 - Rename `RealDisplayWidth/Height` (it now means scene-FBO size, not
   physical display — misleading).

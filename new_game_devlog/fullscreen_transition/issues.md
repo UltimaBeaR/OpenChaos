@@ -231,6 +231,100 @@ offsets on widescreen.
 
 ---
 
+## 🔴 NIGHT lighting pool overflow at wide/tall FOV — post-1.0
+
+### Symptom
+
+`ASSERT failed: WITHIN(NIGHT_square_free, 1, NIGHT_MAX_SQUARES - 1)` in
+[`night.cpp:1247`](../../new_game/src/engine/graphics/lighting/night.cpp#L1247)
+(outdoor) or [`:1330`](../../new_game/src/engine/graphics/lighting/night.cpp#L1330)
+(inside). Game aborts.
+
+**Repro recipe (confirmed 2026-04-24):**
+1. `OC_WINDOWED_WIDTH = 480`, `OC_WINDOWED_HEIGHT = 1920` in
+   [`config.h`](../../new_game/src/config.h) (tall portrait window).
+2. `OC_FOV_MULTIPLIER = 2.0` (heavily widened FOV).
+3. First mission ("cop car circles" — the driving-school-style intro).
+4. Look at the moon (sky billboard in the distance), then pitch the
+   camera down to the floor. Crash fires during the pitch.
+
+### Root cause
+
+`NIGHT_square_free` is a **`UBYTE`**
+([`night_globals.h:29`](../../new_game/src/engine/graphics/lighting/night_globals.h#L29))
+indexing a 256-slot pool
+([`night.h:128`](../../new_game/src/engine/graphics/lighting/night.h#L128)).
+Slot 0 is a sentinel, so 255 squares are actually usable. A normal 4:3
+view gamut is ~16×16 = 256 lo-res squares — already at the ceiling.
+
+Widening the lens (FOV multiplier > 1, and/or auto-zoom on narrow
+aspects) makes `AENG_calc_gamut` yield more squares, so
+`AENG_do_cached_lighting_old` calls `NIGHT_cache_create` more times
+per frame than the pool has slots. Eventually `NIGHT_square_free`
+walks off to 0 (sentinel) and the next `NIGHT_cache_create` asserts.
+
+### Why a graceful fallback in `NIGHT_cache_create` isn't enough
+
+`NIGHT_cache[x][z]` consumers elsewhere — e.g.
+[`aeng.cpp:7286`](../../new_game/src/engine/graphics/pipeline/aeng.cpp#L7286),
+[`night.cpp:963`](../../new_game/src/engine/graphics/lighting/night.cpp#L963)
+— ASSERT that the slot is non-NULL and then dereference
+`NIGHT_square[idx].colour`. If we just skip cache creation on pool
+exhaustion, the next frame asserts in one of those consumers instead
+(and in Release without ASSERT, dereferences `NIGHT_square[0].colour`
+which is NULL → segfault).
+
+Fixing it properly means lifting the architectural 255-cap, not
+silently no-oping.
+
+### Fix plan (deferred to post-1.0)
+
+Refactor the pool index type from `UBYTE` to `UWORD` and raise
+`NIGHT_MAX_SQUARES` to ~1024 (comfortable margin for any realistic
+FOV × aspect combination).
+
+**Touch list:**
+- [`night.h`](../../new_game/src/engine/graphics/lighting/night.h):
+  `NIGHT_Square::next` UBYTE → UWORD; `NIGHT_MAX_SQUARES 256` → `1024`;
+  `NIGHT_cache_destroy(UBYTE)` → `UWORD`.
+- [`night_globals.{h,cpp}`](../../new_game/src/engine/graphics/lighting/night_globals.h):
+  `NIGHT_square_free` UBYTE → UWORD; `NIGHT_cache[][]` UBYTE → UWORD.
+- All call sites passing / receiving these indices — audit for
+  `(UBYTE)` casts.
+
+**Save-format constraint — must preserve binary compatibility with
+original MuckyFoot quicksave layout.** The project invariant: our
+code must read any original save file; the reverse direction
+(original game reading our saves) is not required. That means we
+can't bump `NIGHT_MAX_SQUARES` in the on-disk format or change
+`sizeof(NIGHT_Square)` on disk. Approach:
+
+- Keep the runtime pool at `UWORD` / 1024 slots.
+- Save/load in
+  [`memory.cpp:1454`](../../new_game/src/missions/memory.cpp#L1454) and
+  [`:1615`](../../new_game/src/missions/memory.cpp#L1615) stays **byte-identical**
+  to the legacy 256-UBYTE layout — via a conversion buffer that
+  narrows UWORD → UBYTE (values ≥ 256 serialise as 0 = NULL). The
+  legacy save only carries `flag / lo_map_x / lo_map_z` as useful
+  payload anyway; `next` links and `colour*` are junk because
+  `NIGHT_cache_recalc()` rebuilds everything on load. Slots with
+  runtime index ≥ 256 that get serialised as NULL will simply be
+  re-created next frame by `AENG_do_cached_lighting_old`, same way
+  they were originally populated. No visible regression.
+
+### Workaround for 1.0
+
+**Do not expose `OC_FOV_MULTIPLIER` as a user-facing runtime setting.**
+It stays in [`config.h`](../../new_game/src/config.h) as a compile-time
+constant (default `1.0`) and remains available internally (cutscenes,
+mechanics), but **no FOV slider ships in the options menu** until the
+UWORD refactor lands. Narrow aspects below `OC_FOV_MIN_ASPECT` also
+widen the effective gamut via the auto-zoom floor; in practice only
+users with rotated / portrait monitors would ever hit the ceiling
+without a FOV multiplier, so left as-is for 1.0.
+
+---
+
 ## 🟡 Wibble amplitude doesn't scale with resolution
 
 ### Symptom

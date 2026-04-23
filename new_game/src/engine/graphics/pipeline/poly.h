@@ -106,6 +106,14 @@ extern float POLY_screen_width;
 // uc_orig: POLY_screen_height (fallen/DDEngine/Headers/poly.h)
 extern float POLY_screen_height;
 
+// Combined zoom factor (OC_FOV_MULTIPLIER × aspect auto-zoom) applied on
+// top of the game's own camera lens. Recomputed each POLY_camera_set.
+// Used by screen-space billboards whose size is computed in pixels
+// directly (rather than from a world-space width scaled by
+// POLY_sprite_scale) — they divide their pixel radius by POLY_our_zoom so
+// they shrink in proportion with the widened scene.
+extern float POLY_our_zoom;
+
 // uc_orig: POLY_CLIP_LEFT (fallen/DDEngine/Headers/poly.h)
 #define POLY_CLIP_LEFT        (1 << 0)
 // uc_orig: POLY_CLIP_RIGHT (fallen/DDEngine/Headers/poly.h)
