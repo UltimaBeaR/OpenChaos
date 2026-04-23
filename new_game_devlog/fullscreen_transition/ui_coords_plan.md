@@ -189,6 +189,23 @@ are 640×480) and the function is called from both UI scopes
 `MainScreen`). Always-framed means every caller works without needing
 to know about the UI scope.
 
+**Invariant — don't break it:** `ge_blit_background_surface` snapshots
+`s_vp_*`, calls `ge_set_viewport(0, 0, gl_context_get_width(),
+gl_context_get_height())` for the duration of the blit, then restores.
+The TL vertex shader maps pixel coords to NDC through `u_viewport`
+which tracks the most-recent `ge_set_viewport`. Game init paths
+commonly leave `s_vp_*` at the virtual 640×480 viewport before the
+first background blit happens — without the snapshot/restore the
+framed quad gets squashed into a 640×480 patch in the corner of the
+real FBO (the symptom we hit pre-fix). Don't drop the snapshot.
+
+`ge_blit_background_surface` also calls `ui_coords::recompute(
+gl_context_get_width(), gl_context_get_height())` on every invocation
+and bails out early if the GL context dimensions are still 0. This is
+a defensive lazy-init — covers the very early init window where the
+mode-change callback hasn't fired yet, plus any future window resize
+that doesn't propagate through the callback.
+
 `ge_blit_surface_to_backbuffer` (the only consumer is
 `FRONTEND_show_xition`) now interprets its input `(x, y, w, h)` as
 **framed-area pixel coordinates**: source UVs are mapped through the

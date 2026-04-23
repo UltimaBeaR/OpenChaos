@@ -1434,6 +1434,24 @@ void ge_blit_background_surface()
         : s_bg_texture;
     if (!tex) return;
 
+    // Defensive: keep ui_coords in sync with the actual render target
+    // size on every blit. Covers the case where the mode-change callback
+    // hasn't run yet, or the window / FBO resized without a callback.
+    ui_coords::recompute(gl_context_get_width(), gl_context_get_height());
+
+    // If the GL context isn't fully sized yet, skip the blit entirely.
+    if (ui_coords::g_real_w_px <= 0.0f || ui_coords::g_real_h_px <= 0.0f) return;
+
+    // The TL vertex shader maps pixel coords -> NDC through u_viewport,
+    // which tracks the most-recent ge_set_viewport call. Game init code
+    // commonly leaves it at 640x480 (the virtual game viewport) before
+    // we get here, which would shrink the quad to a 640x480 patch in
+    // the corner. Snapshot, expand to the full render target for the
+    // blit, then restore so the next draw still maps as the caller
+    // expected.
+    int32_t saved_vx = s_vp_x, saved_vy = s_vp_y, saved_vw = s_vp_w, saved_vh = s_vp_h;
+    ge_set_viewport(0, 0, gl_context_get_width(), gl_context_get_height());
+
     // Background images are 640x480 BMPs — always render into the 4:3
     // framed region with black bars around (independent of any active
     // UI scope, since this is also called from non-UI loaders like
@@ -1451,6 +1469,8 @@ void ge_blit_background_surface()
                           ui_coords::g_real_h_px * 0.5f - ui_coords::g_frame_h_px * 0.5f,
                           ui_coords::g_frame_w_px,
                           ui_coords::g_frame_h_px);
+
+    ge_set_viewport(saved_vx, saved_vy, saved_vw, saved_vh);
 }
 
 void ge_destroy_background_surface()
@@ -2517,6 +2537,14 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     // video) we re-bind the scene FBO too, so this invariant holds across
     // the whole lifetime of the GL context.
     composition_bind_scene();
+
+    // Wipe the freshly-allocated scene FBO so the first present can't briefly
+    // flicker uninitialized GPU memory in the bars around the framed UI
+    // (e.g. before the intro video starts, ATTRACT_loadscreen_init blits a
+    // 4:3 background and AENG_flip presents — without this clear, the area
+    // outside the framed region carried garbage on the first frame).
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (s_mode_change_callback) {
         s_mode_change_callback(fbo_w, fbo_h);

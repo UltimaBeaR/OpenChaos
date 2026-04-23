@@ -4,11 +4,15 @@
 
 namespace ui_coords {
 
-float g_frame_scale = 1.0f;
-float g_frame_w_px  = float(DisplayWidth);
-float g_frame_h_px  = float(DisplayHeight);
-float g_real_w_px   = float(DisplayWidth);
-float g_real_h_px   = float(DisplayHeight);
+// Initialised to 0 so callers can detect "not yet initialised" and skip
+// drawing rather than render at a stale 640x480 default (which would
+// briefly appear as a small image in the top-left corner of a wide
+// screen before the mode-change callback runs).
+float g_frame_scale = 0.0f;
+float g_frame_w_px  = 0.0f;
+float g_frame_h_px  = 0.0f;
+float g_real_w_px   = 0.0f;
+float g_real_h_px   = 0.0f;
 
 void recompute(int real_w, int real_h)
 {
