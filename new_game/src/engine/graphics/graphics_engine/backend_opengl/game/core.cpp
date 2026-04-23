@@ -1152,6 +1152,33 @@ void ge_disable_scissor()
     glScissor(s_vp_x, screen_h - s_vp_y - s_vp_h, s_vp_w, s_vp_h);
 }
 
+void ge_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h,
+                  uint8_t r, uint8_t g, uint8_t b)
+{
+    if (w <= 0 || h <= 0) return;
+
+    // Snapshot scissor + clear-colour so the caller's state is untouched.
+    GLboolean was_enabled = GL_FALSE;
+    glGetBooleanv(GL_SCISSOR_TEST, &was_enabled);
+    GLint prev_scissor[4] = {};
+    glGetIntegerv(GL_SCISSOR_BOX, prev_scissor);
+    GLfloat prev_clear[4] = {};
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, prev_clear);
+
+    int32_t screen_h = gl_context_get_height();
+    glEnable(GL_SCISSOR_TEST);
+    glScissor(x, screen_h - y - h, w, h);
+    glClearColor(float(r) * (1.0F / 255.0F),
+                 float(g) * (1.0F / 255.0F),
+                 float(b) * (1.0F / 255.0F),
+                 1.0F);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glClearColor(prev_clear[0], prev_clear[1], prev_clear[2], prev_clear[3]);
+    glScissor(prev_scissor[0], prev_scissor[1], prev_scissor[2], prev_scissor[3]);
+    if (!was_enabled) glDisable(GL_SCISSOR_TEST);
+}
+
 // ---------------------------------------------------------------------------
 // Background
 // ---------------------------------------------------------------------------

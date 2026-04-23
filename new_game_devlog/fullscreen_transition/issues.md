@@ -313,43 +313,99 @@ remove it again without asking.
 
 ---
 
-## 🟡 Moon disappears on ultra-wide when camera faces it head-on
+## 🟡 Moon rendering — multiple bugs cluster here
 
-### Symptom
+Several distinct issues, likely sharing a code path (sky / moon billboard
+drawing). Worth investigating together once anyone touches it.
 
-On ultra-wide aspects (reproduced at 1920×480, DAR 4:1) the moon in
-the car mission disappears when the player is looking directly at it.
-Turning the camera slightly off-axis makes it reappear. On 4:3 the
-moon is always drawn. Seems to depend on camera yaw alignment with
-the moon direction, not distance / time.
+### (a) Moon disappears on ultra-wide when camera faces it head-on
+
+Reproduced at 1920×480 (4:1). Moon in the car mission vanishes when the
+player looks directly at it; yawing the camera slightly off-axis makes
+it reappear. On 4:3 the moon is always drawn. Depends on camera yaw
+alignment with the moon direction, not distance / time.
+
+### (b) Moon size pops with viewing angle at any aspect (FOV > 1 repro)
+
+Observed at normal aspect ratio with `OC_FOV_MULTIPLIER = 1.5`. Moon
+size jumps noticeably — not a smooth perspective change — when the
+camera yaw/pitch sweeps past certain angles. Looks like a discrete
+scale step rather than a gradual fade.
+
+### (c) Moon reflection visible through the ground
+
+Observed at normal aspect. The moon's "reflection" (mirrored sprite
+below the horizon, likely for water reflection effect) is drawn
+without proper depth occlusion — visible through terrain / building
+floors instead of being hidden by them.
 
 ### Likely cause (to investigate)
 
-Probably frustum or horizontal-angle culling in the sky/moon draw
-path using an aspect-dependent threshold that goes wrong when the
-horizontal FOV becomes large (~150° at 1920×480). Candidates:
-- sky / moon billboard visibility check that compares camera
-  direction against a fixed cone;
-- a `POLY_screen_width` / `POLY_screen_mid_x` bounds check where an
-  off-screen early-out triggers incorrectly;
-- moon placed at a Z near the far plane where
-  perspective / clip flags misbehave.
+Probably all in the sky / moon billboard draw path using
+aspect-dependent or angle-dependent thresholds that go wrong when
+the horizontal FOV is large (~150° at 1920×480) or when FOV
+multiplier > 1. Candidates:
 
-Not touched yet — recorded for later. Reproduce at 1920×480 in the
-car mission, aim camera at moon, slowly yaw to find disappear /
-reappear boundary, then check the relevant sky / moon draw code for
-an aspect-dependent check.
+- sky / moon billboard visibility check comparing camera direction
+  against a fixed cone (explains (a));
+- a `POLY_screen_width` / `POLY_screen_mid_x` bounds check where an
+  off-screen early-out triggers incorrectly (also (a));
+- LOD / distance-based scale quantisation picking a wrong bucket at
+  the widened FOV (explains (b));
+- reflection pass writing colour without depth test or with wrong
+  depth mask (explains (c)) — classic "reflection quad goes through
+  geometry" bug.
+
+Not touched yet. When investigating, check the moon / sky drawing
+code path (look for `moon`, `sun`, sky billboards in
+[`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp) and
+[`aeng.cpp`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)).
+Reproduce each scenario:
+- (a): 1920×480 car mission, aim camera at moon, slowly yaw.
+- (b): default aspect, `OC_FOV_MULTIPLIER = 1.5`, pan camera around.
+- (c): default aspect + FOV, find moon reflection area (likely
+  visible over a puddle or wet-ground mission).
 
 ---
 
-## 🟡 Fish-eye at wide aspect ratios — inherent to rectilinear projection
+## 🟢 Fish-eye at wide aspect ratios — resolved via FOV cap + pillarbox
 
-### Symptom
+### Status — resolved
 
-At wide-than-tall aspect ratios the 3D world shows fish-eye / stretch
-distortion at the screen edges. Mild at 16:9, noticeable at 21:9,
-strong at 32:9, extreme at 4:1 (e.g. 1920×480). Geometry near the
-left/right edges warps outward.
+The horizontal FOV is now capped at `OC_FOV_CAP_ASPECT` (default 16:9).
+Real aspects wider than the cap render the scene at the cap aspect,
+centred horizontally, with black pillarbox bars filling the remaining
+real-framebuffer columns. The cap is bypassed at 4:3 / 16:10 / 16:9
+(no behaviour change). A companion `OC_FOV_MULTIPLIER` config knob
+(default 1.0, no change) lets the user widen/narrow the rectilinear
+FOV via the `POLY_cam_lens` path. Both settings live in
+[`config.h`](../../new_game/src/config.h) and are intended to move
+into a runtime settings menu later.
+
+Files touched:
+- [`config.h`](../../new_game/src/config.h) — two new defines with
+  documented semantics.
+- [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  `POLY_camera_set` — clamps `effective_aspect` to the cap,
+  centres `g_viewData.dwX`, divides the incoming `lens` by the
+  FOV multiplier.
+- [`aeng.cpp`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)
+  `AENG_clear_viewport` — paints the pillar regions black after the
+  standard clear, using the exact same `render_x / render_w`
+  geometry as `POLY_camera_set` so the bars abut the 3D viewport
+  with no gaps.
+- [`game_graphics_engine.h`](../../new_game/src/engine/graphics/graphics_engine/game_graphics_engine.h)
+  + backend [`core.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp)
+  — new `ge_fill_rect` helper (scissored `glClear`) used for the
+  pillar paint; snapshots scissor + clear-colour so caller state
+  is unchanged.
+
+The fish-eye itself is an inherent property of any rectilinear
+perspective projection at wide horizontal FOVs, not a bug — see
+below for the math. The cap avoids it by refusing to widen the
+horizontal FOV past `OC_FOV_CAP_ASPECT`.
+
+### Original issue — background for future reference
 
 ### Root cause (confirmed)
 
@@ -395,18 +451,9 @@ the vertical FOV.
    rework. Keeps the screen filled at extreme widths without
    fish-eye. Post-1.0 scope.
 
-### Recommended approach
+### Chosen approach
 
-**Option 1**, cap at some value between 16:9 and 21:9. Preserves the
-default 4:3 and 16:9 experience exactly. Ultra-wide displays
-(≥ 21:9) get sane-looking 16:9-equivalent content centered with
-pillar bars.
-
-Implementation is in one place: the `POLY_screen_width =
-DisplayHeight × real_aspect` line in
-[`poly.cpp:153`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L153),
-plus adding pillarbox bars around the viewport. Already have the
-viewport infra (`g_viewData.dwX / dwWidth` in `POLY_begin`).
+Option 1 — cap at 16:9. See "Status — resolved" above.
 
 ---
 

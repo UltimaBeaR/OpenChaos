@@ -35,8 +35,14 @@
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
+#include "config.h"  // OC_FOV_CAP_ASPECT
 #include <math.h>
 #include <stdio.h>
+
+// Real-framebuffer dimensions — defined in the graphics backend, used here
+// to compute the pillarbox regions when the horizontal FOV is capped.
+extern SLONG RealDisplayWidth;
+extern SLONG RealDisplayHeight;
 
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
@@ -8447,6 +8453,28 @@ void AENG_clear_viewport()
         ge_clear(true, true);
     }
 
+    // Paint black pillarbox bars when the 3D horizontal FOV is capped
+    // (real aspect > OC_FOV_CAP_ASPECT). POLY_begin centres the 3D
+    // viewport at the cap-aspect width; the remaining framebuffer
+    // columns are left holding the clear colour otherwise — would show
+    // sky-colour side bars on outdoor scenes. Compute render_x / render_w
+    // with the exact same truncation as POLY_begin's viewport so the bars
+    // abut the 3D viewport with no 1-pixel gap on odd-width remainders.
+    {
+        const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+        if (real_aspect > float(OC_FOV_CAP_ASPECT)) {
+            const SLONG render_w = SLONG(float(OC_FOV_CAP_ASPECT) * float(RealDisplayHeight));
+            const SLONG render_x = (RealDisplayWidth - render_w) / 2;
+            const SLONG right_x  = render_x + render_w;
+            if (render_x > 0) {
+                ge_fill_rect(0, 0, render_x, RealDisplayHeight, 0, 0, 0);
+            }
+            if (right_x < RealDisplayWidth) {
+                ge_fill_rect(right_x, 0, RealDisplayWidth - right_x, RealDisplayHeight, 0, 0, 0);
+            }
+        }
+    }
+
     BreakTime("Cleared Viewport");
 }
 
@@ -8527,7 +8555,15 @@ void AENG_draw(SLONG draw_3d)
         for (i = 0; i < FC_MAX_CAMS; i++) {
             fc = &FC_cam[i];
 
-            AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F));
+            // OC_FOV_MULTIPLIER pre-scales the live camera lens so every
+            // downstream consumer (POLY_camera_set → MATRIX_skew, the
+            // gamut / map-square visibility cone in AENG_calc_gamut, 3D
+            // rain positioning, etc.) sees the same widened FOV. Applying
+            // it later (e.g. only inside POLY_camera_set) desyncs culling
+            // from rendering → geometry that is visible after the widening
+            // gets pre-culled by the un-widened gamut cone, producing
+            // black cut-outs in the periphery.
+            AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F)) / float(OC_FOV_MULTIPLIER);
 
             AENG_set_camera_radians(
                 fc->x >> 8,
@@ -8610,7 +8646,9 @@ void AENG_draw(SLONG draw_3d)
             }
         }
 
-        AENG_lens = fc->lens * (1.0F / float(65536.0F));
+        // See the note above the splitscreen branch for why the multiplier
+        // is applied to AENG_lens itself rather than inside POLY_camera_set.
+        AENG_lens = fc->lens * (1.0F / float(65536.0F)) / float(OC_FOV_MULTIPLIER);
 
         AENG_set_camera_radians(
             fc->x >> 8,

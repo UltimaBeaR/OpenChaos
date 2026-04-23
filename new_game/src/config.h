@@ -10,8 +10,8 @@
 #define OC_FULLSCREEN false
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
-#define OC_WINDOWED_WIDTH  int(1920)
-#define OC_WINDOWED_HEIGHT int(480)
+#define OC_WINDOWED_WIDTH  int(480)
+#define OC_WINDOWED_HEIGHT int(1920)
 
 // Enable VSync. Concrete strategy (driver VSync vs DwmFlush) depends on
 // window mode and is selected inside sdl3_gl_configure_vsync().
@@ -36,3 +36,22 @@
 // OFF gives pixel-perfect output. Do NOT toggle this as a workaround for
 // unrelated rendering issues.
 #define OC_AA_ENABLE true
+
+// Horizontal/vertical FOV multiplier applied to the camera lens parameter.
+// 1.0 = original game FOV (unchanged). Higher = wider FOV, world appears
+// smaller (more visible horizontally and vertically, zoom-out effect).
+// Lower = narrower FOV, zoom-in. Applied symmetrically — this is a
+// standard FPS-style "FOV slider" over the existing rectilinear
+// projection, not a projection-type switch; does not eliminate fish-eye
+// at large values. Sensible range ~0.75..1.30. Intended to move into a
+// runtime settings menu later.
+#define OC_FOV_MULTIPLIER 1.0F
+
+// Maximum horizontal aspect ratio the 3D scene is rendered at. Screens
+// wider than this get pillarboxed (black bars on left/right) with the
+// scene centred at the cap aspect. Protects against rectilinear fish-eye
+// at ultra-wide FOVs, which is a property of the projection itself, not
+// a bug. Default 16:9 — preserves 4:3 / 16:10 / 16:9 behaviour exactly
+// (cap never triggers up to 16:9); 21:9 and wider users get pillarboxed
+// 16:9 content instead of stretched fish-eye edges.
+#define OC_FOV_CAP_ASPECT (18.0F / 9.0F)

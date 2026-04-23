@@ -4,6 +4,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "config.h"
 
 // uc_orig: RealDisplayWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
 // Actual window/fullscreen size in pixels (set by OpenDisplay). Used here
@@ -161,8 +162,17 @@ void POLY_camera_set(
     // widescreen display we get a wider horizontal FOV instead of stretched
     // geometry. Vertical FOV is kept at its designed-for-640x480 value —
     // i.e. "Hor+" scaling. At 4:3 (640/480) this reduces to DisplayWidth.
+    //
+    // Beyond OC_FOV_CAP_ASPECT the effective aspect is clamped so the 3D
+    // scene renders into a capped-width centred viewport; the remaining
+    // real-framebuffer columns are blacked out as pillarbox bars by
+    // AENG_clear_viewport. This avoids rectilinear fish-eye at ultra-wide
+    // FOVs (e.g. 21:9 / 32:9). At 16:9 and narrower the cap never triggers.
     const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
-    POLY_screen_width = float(DisplayHeight) * real_aspect;
+    const float effective_aspect = (real_aspect > float(OC_FOV_CAP_ASPECT))
+        ? float(OC_FOV_CAP_ASPECT)
+        : real_aspect;
+    POLY_screen_width = float(DisplayHeight) * effective_aspect;
     POLY_screen_clip_left = 0.0F;
     POLY_screen_clip_right = POLY_screen_width;
     POLY_screen_mid_x = POLY_screen_width * 0.5F;
@@ -246,6 +256,12 @@ void POLY_camera_set(
     POLY_cam_y = y;
     POLY_cam_z = z;
 
+    // Note: OC_FOV_MULTIPLIER is applied upstream — AENG pre-scales
+    // AENG_lens before calling POLY_camera_set. Applying it here too
+    // would double-scale the effective lens. Must be at the AENG layer
+    // because frustum culling in AENG_calc_gamut also consumes the same
+    // lens value; scaling only here would leave gamut / sphere culls on
+    // the un-widened FOV and trim off the newly-visible edges.
     POLY_cam_lens = lens;
     POLY_cam_view_dist = view_dist;
     POLY_cam_over_view_dist = 1.0F / view_dist;
@@ -328,8 +344,27 @@ void POLY_camera_set(
     g_dw3DStuffY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
     g_viewData.dwWidth = fMyMulX * PolyPage::s_XScale * 2;
     g_viewData.dwHeight = fMyMulY * PolyPage::s_YScale * 2;
-    g_viewData.dwX = (POLY_screen_mid_x - fMyMulX) * PolyPage::s_XScale;
+    // Centre the 3D viewport horizontally so a capped-aspect render has
+    // symmetric pillarbox bars on both sides. When no cap is active
+    // (dwWidth == RealDisplayWidth) this reduces to 0 — identical to the
+    // pre-cap behaviour.
+    g_viewData.dwX = (float(RealDisplayWidth) - g_viewData.dwWidth) * 0.5F;
     g_viewData.dwY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
+
+    // Shift POLY-path vertex output by the viewport's X offset. POLY emits
+    // pt->X in [0..POLY_screen_width], which — after PolyPage::AddFan
+    // scales by s_XScale — lands in [0..dwWidth] real pixels. The MM path
+    // (figure.cpp characters) already bakes (dwX + dwWidth/2) into its
+    // per-bone matrix, producing pixels in [dwX..dwX+dwWidth]. The shared
+    // tl_vert.glsl shader maps `(a_position.x - u_viewport.x) / dwWidth`
+    // to NDC — so it needs both paths to use the same origin. Before the
+    // pillarbox cap, dwX was always 0 and the mismatch didn't show. Adding
+    // dwX as the PolyPage offset shifts the environment path into the
+    // same coord space as characters. s_YOffset stays untouched — POLY's
+    // Y path already folds splitscreen / letterbox offsets into
+    // POLY_screen_mid_y directly, so its output is already in
+    // [dwY..dwY+dwHeight].
+    PolyPage::s_XOffset = g_viewData.dwX;
     g_viewData.dvClipX = -1.0f;
     g_viewData.dvClipY = 1.0;
     g_viewData.dvClipWidth = 2.0f;

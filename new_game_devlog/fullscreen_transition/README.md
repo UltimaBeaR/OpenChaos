@@ -14,6 +14,19 @@ Already done:
   `OC_RENDER_SCALE`, `OC_AA_ENABLE`.
 - Water wibble post-process repositioned correctly on non-4:3 resolutions.
 - OS cursor hidden in fullscreen.
+- **FOV cap + pillarbox for ultra-wide aspects** — scene clamped at
+  `OC_FOV_CAP_ASPECT` (default 16:9), remaining framebuffer columns
+  painted black. Avoids rectilinear fish-eye at 21:9+. Controlled
+  from [`config.h`](../../new_game/src/config.h).
+- **Runtime FOV multiplier (`OC_FOV_MULTIPLIER`)** — divides the
+  camera lens by the user's multiplier. Default 1.0 = no change;
+  higher = wider, lower = narrower. Standard FPS-style slider; does
+  not alter the projection type (fish-eye returns if cranked high).
+- **Sprite / rain / line widths now aspect-independent** — all
+  `POLY_world_length_to_screen` / `POLY_screen_mul_x`-as-sprite-scalar
+  uses pinned at the 4:3 baseline (`POLY_SPRITE_SCALE_BASELINE`).
+  Light-glow sprites, rain droplets, bullet trails, crosshair
+  rings, sphere-to-circle radii no longer scale with aspect.
 - **Native physical pixels across platforms** — `OC_WINDOWED_WIDTH/
   HEIGHT` always mean physical pixels (Retina / HiDPI-aware via
   two-pass `SDL_GetWindowPixelDensity` resize).
@@ -58,15 +71,11 @@ Remaining work — see [`issues.md`](issues.md):
 - **Tall-aspect zoom (portrait windows)** — Hor+ formula narrows
   horizontal FOV on `RealH > RealW`, making the character huge and
   crushing the visible world around it. Needs a Vert+ branch.
-- **Sprite / rain / line widths scale with aspect** — wider screen
-  makes light glows, rain drops, bullet trails, crosshair rings wider;
-  narrower screen makes them thinner. All go through
-  `POLY_world_length_to_screen` (plus a few direct `POLY_screen_mul_x`
-  users) which is aspect-dependent instead of fixed at the 4:3
-  design-time value.
-- Fish-eye / edge stretch in 3D world at wide aspect ratios. Inherent
-  to rectilinear projection; mild at 16:9, strong at 21:9+. Fix: cap
-  horizontal FOV at some aspect and pillarbox beyond.
+- Moon rendering bug cluster: disappears on ultra-wide when facing
+  head-on (1920×480 repro); size pops with view angle at any aspect
+  when `OC_FOV_MULTIPLIER > 1`; "reflection" through ground visible
+  (missing depth occlusion). Probably all share the sky/moon draw
+  path — see [`issues.md`](issues.md) "Moon rendering" section.
 
 ## Files in this folder
 

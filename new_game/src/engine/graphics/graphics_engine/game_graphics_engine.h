@@ -261,6 +261,13 @@ void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
 void ge_set_scissor(int32_t x, int32_t y, int32_t w, int32_t h);
 void ge_disable_scissor();
 
+// Fill a rectangle (in top-left framebuffer-pixel coordinates) with a solid
+// colour. Uses scissored glClear internally. Used for pillarbox bars on
+// ultra-wide aspect ratios. Coordinates are in current-framebuffer pixels
+// (gl_context_get_width/height space).
+void ge_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h,
+                  uint8_t r, uint8_t g, uint8_t b);
+
 // ---------------------------------------------------------------------------
 // Background
 // ---------------------------------------------------------------------------
