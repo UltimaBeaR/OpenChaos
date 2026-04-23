@@ -302,6 +302,24 @@ without a FOV multiplier, so left as-is for 1.0.
 
 ---
 
+## 🟢 Star size resolution-independent — resolved
+
+Stars in `SKY_draw_stars` now scale with resolution instead of being
+hard-pinned to 1 real framebuffer pixel. Size = `SLONG(PolyPage::s_YScale)`
+clamped to ≥1, so:
+- 4:3 640×480: 1 px (unchanged, original behaviour)
+- 1080p: ≈2 px
+- 4K: ≈4 px
+
+Spread ("plus-shape") offsets also multiply by the same factor so the
+shape stays proportional. Change is in
+[`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp):
+`star_emit_pixel` takes a `size` parameter (default 1) and emits a
+size×size quad; `SKY_draw_stars` passes the per-frame computed scale
+factor to every emit.
+
+---
+
 ## 🟡 Wibble amplitude doesn't scale with resolution
 
 ### Symptom
@@ -678,6 +696,60 @@ pillarbox issue and get fixed together with Option A.
 
 ## Resolved
 
+- ~~**UI text truncated on narrow / portrait aspects (e.g. "GAME PAUSED"
+  rendered as "GAME P" on 480×1920).**~~ Fixed in
+  [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  `POLY_camera_set`: `POLY_screen_clip_right` now uses
+  `max(POLY_screen_width, DisplayWidth)` instead of just
+  `POLY_screen_width`.
+  **Root cause:** `OC_FOV_MIN_ASPECT = 2/3` clamps `effective_aspect` on
+  sub-4:3 windows → `POLY_screen_width = 480 × 2/3 = 320` → clip_right
+  320. UI draws live in virtual 640 (DisplayWidth); right-half quads had
+  all 4 corners above 320 → `POLY_add_quad_fast` treated them as
+  fully-offscreen and skipped the draw entirely. **Invariant** to preserve
+  in future: `POLY_screen_clip_right` must cover **both** the 3D scene
+  (`POLY_screen_width`) and the UI virtual canvas (`DisplayWidth = 640`).
+  Same principle would apply to `clip_bottom` if cutscene letterbox ever
+  shrinks `POLY_screen_height` below `DisplayHeight`, but not triggered
+  yet. Diagnosed via runtime logging of per-quad clip flags through
+  `POLY_add_quad_fast`.
+- ~~**Pause/won/lost menu darken overlay only covered the 4:3 framed
+  region on widescreen / portrait — pillarbox and letterbox bars
+  remained lit.**~~ Fixed in
+  [`gamemenu.cpp`](../../new_game/src/ui/menus/gamemenu.cpp)
+  `GAMEMENU_draw`: wrapped the `PANEL_darken_screen` call in
+  `PolyPage::push_fullscreen_ui_mode()` so virtual 640×480 maps across
+  the entire real framebuffer. Menu text stays in framed mode
+  (`UIModeScope(CENTER_CENTER)`). Darken-sweep animation rate remains
+  the original ~640 ms regardless of aspect.
+- ~~**Stars misaligned on non-4:3 aspects — "flying like flies" around
+  the sky instead of attached to it.**~~ Fixed in
+  [`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp)
+  `SKY_draw_stars`: the real-pixel mapping used
+  `RealDisplayWidth/DisplayWidth` as the X multiplier, which was correct
+  only when `POLY_transform` output lived in `[0, 640]` (pre-Hor+).
+  After Hor+ the output lives in `[0, POLY_screen_width]` which is
+  aspect-dependent — the old multiplier projected stars onto real
+  coords well outside the 3D viewport. Replaced with the same affine
+  `PolyPage::s_XScale/s_YScale + s_XOffset/s_YOffset` that
+  `PolyPage::AddFan` uses, so stars land in the same pixel space as the
+  rest of the scene.
+- ~~**Stars hardcoded to 1 real framebuffer pixel — invisible on 1080p+
+  displays.**~~ Fixed in
+  [`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp):
+  `star_emit_pixel` takes a `size` parameter (default 1) and emits a
+  size×size quad; `SKY_draw_stars` passes `SLONG(PolyPage::s_YScale)`
+  (≥1) so stars scale with resolution. 4:3 640×480 → 1 px (unchanged
+  original behaviour), 1080p ≈ 2 px, 4K ≈ 4 px. Spread ("plus-shape")
+  offset also multiplied so the shape stays proportional.
+- ~~**`s_work_screen_buf` 640×480 legacy buffer unused in OpenGL backend.**~~
+  Audited — zero live consumers. Removed the 1.2 MB buffer, its
+  associated globals (`WorkScreen*`, `WorkWindow*`, `WorkWindowRect`,
+  `CurrentPalette[]`, `WorkScreenDepth`), four stub functions
+  (`LockWorkScreen`, `UnlockWorkScreen`, `ShowWorkScreen`,
+  `ClearWorkScreen`), and the `FLAGS_USE_WORKSCREEN` macro with its one
+  call-site in `OpenDisplay`. See "`s_work_screen_buf` 640×480 legacy
+  buffer — resolved by deletion" section above.
 - ~~**Cutscene video #3 (PCINTRO_withsound.bik) cropped on widescreen.**~~
   All three videos now aspect-fit into the 4:3 framed region of the
   screen instead of the full window. Result: video #1 and #2 (640×480)

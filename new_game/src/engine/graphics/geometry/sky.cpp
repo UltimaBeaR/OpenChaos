@@ -184,7 +184,7 @@ inline void star_flush_batch()
     s_star_inds.clear();
 }
 
-inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c)
+inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c, SLONG size = 1)
 {
     if (s_star_verts.size() / 4 >= STAR_FLUSH_QUAD_THRESHOLD) {
         star_flush_batch();
@@ -195,12 +195,15 @@ inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c)
     const uint32_t color = 0xFF000000u | (uint32_t(c) << 16) | (uint32_t(c) << 8) | uint32_t(c);
 
     // +0.5 offset compensates tl_vert.glsl's -0.5 D3D6 pixel-center mapping;
-    // lands quad edges on pixel boundaries so each 1×1 quad covers exactly
-    // one screen pixel (same trick as font_atlas.cpp / ge_unlock_screen).
-    const float x0 = float(px)     + 0.5f;
-    const float y0 = float(py)     + 0.5f;
-    const float x1 = float(px + 1) + 0.5f;
-    const float y1 = float(py + 1) + 0.5f;
+    // lands quad edges on pixel boundaries so each size×size quad covers an
+    // exact integer box on the framebuffer (same trick as font_atlas.cpp /
+    // ge_unlock_screen). `size` scales with resolution — on 4:3 640×480 = 1
+    // (original behaviour), on 1080p ≈ 2, on 4K ≈ 4 — so stars keep the
+    // same apparent on-screen size rather than shrinking into subpixels.
+    const float x0 = float(px)        + 0.5f;
+    const float y0 = float(py)        + 0.5f;
+    const float x1 = float(px + size) + 0.5f;
+    const float y1 = float(py + size) + 0.5f;
 
     const uint16_t base = uint16_t(s_star_verts.size());
 
@@ -248,6 +251,12 @@ void SKY_draw_stars(
     const float xoff = PolyPage::s_XOffset;
     const float yoff = PolyPage::s_YOffset;
 
+    // Per-star pixel size, so the apparent on-screen size of a star
+    // stays constant across resolutions. At 4:3 640×480 this is 1 px
+    // (original). On 1080p ≈ 2 px, on 4K ≈ 4 px.
+    SLONG star_size = SLONG(ymul);
+    if (star_size < 1) star_size = 1;
+
     s_star_verts.clear();
     s_star_inds.clear();
 
@@ -275,13 +284,15 @@ void SKY_draw_stars(
             if ((rand() & 0x7f) == (i & 0x7f)) {
                 // Make the star twinkle — skip drawing this frame.
             } else {
-                star_emit_pixel(px, py, ss->colour);
+                star_emit_pixel(px, py, ss->colour, star_size);
 
                 if (ss->spread) {
-                    star_emit_pixel(px - 1, py, ss->spread);
-                    star_emit_pixel(px + 1, py, ss->spread);
-                    star_emit_pixel(px, py - 1, ss->spread);
-                    star_emit_pixel(px, py + 1, ss->spread);
+                    // Spread pixels offset by one star-size so the plus-shape
+                    // stays proportional at higher resolutions.
+                    star_emit_pixel(px - star_size, py, ss->spread, star_size);
+                    star_emit_pixel(px + star_size, py, ss->spread, star_size);
+                    star_emit_pixel(px, py - star_size, ss->spread, star_size);
+                    star_emit_pixel(px, py + star_size, ss->spread, star_size);
                 }
             }
         }

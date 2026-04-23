@@ -83,6 +83,27 @@ Already done:
   `POLY_our_zoom` so widened FOV multiplier / auto-zoom doesn't blow
   up its size relative to world objects. See "Moon rendering —
   resolved" in [`issues.md`](issues.md).
+- **Menu darken overlay full-screen** — pause/won/lost dim layer now
+  covers the entire real framebuffer (pillarbox + letterbox bars
+  included), not just the 4:3 framed region. Menu text stays framed.
+  Animation rate preserved at original ~640 ms.
+- **Stars rendering** — two fixes:
+  real-pixel mapping uses `PolyPage::s_XScale/s_XOffset` (was
+  `RealDisplayWidth/DisplayWidth`, broken post-Hor+ — stars "flew like
+  flies"); star-pixel size scales with resolution
+  (`max(1, s_YScale)` — 1 px at 4:3 640×480, ≈2 at 1080p, ≈4 at 4K)
+  so they stay visible on high-DPI displays.
+- **UI text clipping on narrow / portrait windows** —
+  `POLY_screen_clip_right = max(POLY_screen_width, DisplayWidth)`
+  so UI draws (virtual 640-wide) aren't rejected as offscreen when
+  `OC_FOV_MIN_ASPECT` clamps the 3D scene below 4:3 (e.g. 320-wide
+  scene on 480×1920 window). Symptom was "GAME PAUSED" rendered as
+  "GAME P". See "UI text truncated" in [`issues.md`](issues.md) for
+  the clip-flag diagnostic approach.
+- **`s_work_screen_buf` 640×480 legacy buffer deleted** — audit
+  confirmed no consumers in `new_game/src`. Removed the 1.2 MB buffer,
+  all `WorkScreen*` / `WorkWindow*` / `CurrentPalette` globals, four
+  stub functions, and the `FLAGS_USE_WORKSCREEN` macro.
 
 Remaining work — see [`issues.md`](issues.md):
 - **In-game HUD** still pillarboxed in the framed centre — needs

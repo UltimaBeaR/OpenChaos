@@ -374,28 +374,6 @@ static float MENUFONT_fadein_char(float x, float y, UBYTE ch, UBYTE fade)
 {
     CharData* cd = &FontInfo[ch];
 
-    // === DEBUG: log every call with bounds-check result ===
-    {
-        const char* branch = "DRAW_FULL";
-        if (x < 0 || x + cd->width >= 640.0F || y < 0 || y + cd->height >= 480.0F) {
-            branch = "SKIP_OOB";
-        } else if (x + cd->width < MENUFONT_fadein_x - MENUFONT_FADEIN_LEFT) {
-            branch = "DRAW_FULL";
-        } else if (x > MENUFONT_fadein_x + MENUFONT_FADEIN_RIGHT) {
-            branch = "SKIP_RIGHT_OF_FADEIN";
-        } else {
-            branch = "DRAW_DISTORTED";
-        }
-        fprintf(stderr,
-                "MENUFONT_fadein_char: ch='%c'(0x%02x) x=%.1f y=%.1f w=%.1f h=%.1f"
-                " fadein_x=%.1f branch=%s\n",
-                (ch >= 32 && ch < 127) ? (char)ch : '?',
-                (unsigned)ch,
-                (double)x, (double)y, (double)cd->width, (double)cd->height,
-                (double)MENUFONT_fadein_x, branch);
-    }
-    // === END DEBUG ===
-
     if (x < 0 || x + cd->width >= 640.0F || y < 0 || y + cd->height >= 480.0F) {
         return cd->width;
     }

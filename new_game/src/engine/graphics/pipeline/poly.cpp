@@ -195,7 +195,17 @@ void POLY_camera_set(
                                                     real_aspect;
     POLY_screen_width = float(DisplayHeight) * effective_aspect;
     POLY_screen_clip_left = 0.0F;
-    POLY_screen_clip_right = POLY_screen_width;
+    // Clip bound must cover both 3D scene space (POLY_screen_width — may be
+    // smaller than 640 on narrow/portrait windows because OC_FOV_MIN_ASPECT
+    // can clamp below 4:3) *and* UI virtual space (DisplayWidth = 640).
+    // Otherwise UI draws that address the right half of the virtual 640-wide
+    // canvas get clipped out as POLY_CLIP_RIGHT when POLY_screen_width < 640
+    // (observed symptom: "GAME PAUSED" rendered as "GAME P" on a 480×1920
+    // window because clip_right was 320). Extra overdraw on the 3D side is
+    // bounded by the scissor/viewport that always matches POLY_screen_width.
+    POLY_screen_clip_right = POLY_screen_width > float(DisplayWidth)
+                                 ? POLY_screen_width
+                                 : float(DisplayWidth);
     POLY_screen_mid_x = POLY_screen_width * 0.5F;
     POLY_screen_mul_x = POLY_screen_width * 0.5F / POLY_ZCLIP_PLANE;
 
