@@ -2488,19 +2488,6 @@ SLONG RealDisplayWidth = 640;
 SLONG RealDisplayHeight = 480;
 SLONG DisplayBPP = 32;
 
-// Work screen globals (D3D uses DDraw offscreen surface; we use a CPU buffer).
-static UBYTE s_work_screen_buf[640 * 480 * 4];
-UBYTE WorkScreenDepth = 32;
-UBYTE* WorkScreen = s_work_screen_buf;
-UBYTE* WorkWindow = s_work_screen_buf;
-SLONG WorkScreenHeight = 480;
-SLONG WorkScreenWidth = 640 * 4; // pitch in bytes (D3D convention)
-SLONG WorkScreenPixelWidth = 640;
-SLONG WorkWindowHeight = 480;
-SLONG WorkWindowWidth = 640;
-MFRect WorkWindowRect = { 0, 0, 640, 480, 640, 480 };
-UBYTE CurrentPalette[256 * 3] = {};
-
 // image_mem: used for loading screen background images (ge_init_back_image).
 static UBYTE s_image_mem_buf[640 * 480 * 3];
 UBYTE* image_mem = s_image_mem_buf;
@@ -2619,8 +2606,3 @@ SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b)
 }
 
 void SetLastClumpfile(char*, size_t) {}
-
-void* LockWorkScreen() { return s_work_screen_buf; }
-void UnlockWorkScreen() {}
-void ShowWorkScreen(ULONG) {}
-void ClearWorkScreen(UBYTE) {}

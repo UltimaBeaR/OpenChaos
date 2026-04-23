@@ -76,6 +76,13 @@ Already done:
   pillarbox depending on the source aspect. `ge_video_draw_and_swap`
   snapshots/restores GL scissor so a parent UI scope doesn't crop the
   video.
+- **Moon billboard aspect / FOV behaviour** — bounds check uses
+  `POLY_screen_width` / `POLY_screen_height` (was `DisplayWidth` /
+  `DisplayHeight`) so it no longer pops out early on the right edge
+  when yawing past it on widescreen; radius compensated by
+  `POLY_our_zoom` so widened FOV multiplier / auto-zoom doesn't blow
+  up its size relative to world objects. See "Moon rendering —
+  resolved" in [`issues.md`](issues.md).
 
 Remaining work — see [`issues.md`](issues.md):
 - **In-game HUD** still pillarboxed in the framed centre — needs
@@ -93,17 +100,8 @@ Remaining work — see [`issues.md`](issues.md):
   physical display — misleading).
 - Replace the stand-in simplified FXAA with canonical FXAA 3.11 or
   SMAA 1x.
-- `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).
-- Moon rendering bug cluster: (a) disappears on ultra-wide when
-  facing head-on (1920×480 repro); (b) residual size-wobble on
-  camera pitch — confirmed original-retail behaviour, out of scope
-  unless we want to change original feel; (c) "reflection" through
-  ground visible (missing depth occlusion); (d) pops out early on
-  yaw-**left** past the moon on wide aspects — asymmetric (right
-  yaw is fine); 4:3 is fine. See [`issues.md`](issues.md) "Moon
-  rendering" section.
 
 ## Files in this folder
 

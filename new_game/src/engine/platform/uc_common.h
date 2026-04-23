@@ -32,13 +32,7 @@
 
 // Display
 #define FLAGS_USE_3D (1 << 1)
-#define FLAGS_USE_WORKSCREEN (1 << 2)
 
-extern UBYTE WorkScreenDepth,
-    *WorkScreen;
-extern SLONG WorkScreenHeight,
-    WorkScreenPixelWidth,
-    WorkScreenWidth;
 // Fixed virtual resolution — always 640x480 (actual window size is in RealDisplayWidth/Height).
 #define DisplayWidth  640
 #define DisplayHeight 480
@@ -48,10 +42,6 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags);
 SLONG SetDisplay(ULONG width, ULONG height, ULONG depth);
 SLONG CloseDisplay(void);
 SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b);
-void* LockWorkScreen(void);
-void UnlockWorkScreen(void);
-void ShowWorkScreen(ULONG flags);
-void ClearWorkScreen(UBYTE colour);
 
 // Host
 #define H_CREATE_LOG (1 << 0)

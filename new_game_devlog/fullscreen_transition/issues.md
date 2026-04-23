@@ -181,53 +181,30 @@ if needed.
 
 ---
 
-## 🔴 `s_work_screen_buf` hardcoded to 640×480 (blocker until audited)
+## 🟢 `s_work_screen_buf` 640×480 legacy buffer — resolved by deletion
 
-### File / lines
+Audit confirmed there were zero live consumers in `new_game/src`. This
+was D3D6-era locked-backbuffer plumbing (DirectDraw `Lock` / `Unlock`
+on the back surface, pixel writes, `Unlock` / present) whose original
+2D draw routines — `DrawLine`, `DrawBox`, `DrawPxl`, `Sprites`,
+`QuickTxt` — were all replaced by the OpenGL poly pipeline during
+Stage 3. Only the declarations and stub functions remained. Removed:
 
-[`core.cpp:2322-2335`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp#L2322):
+- [`core.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp):
+  `s_work_screen_buf[640*480*4]`, globals `WorkScreen`, `WorkScreenDepth`,
+  `WorkScreenWidth/Height/PixelWidth`, `WorkWindow`,
+  `WorkWindowWidth/Height`, `WorkWindowRect`, `CurrentPalette[]`, plus
+  stub functions `LockWorkScreen`, `UnlockWorkScreen`,
+  `ShowWorkScreen`, `ClearWorkScreen`.
+- [`uc_common.h`](../../new_game/src/engine/platform/uc_common.h):
+  corresponding `extern` declarations and the `FLAGS_USE_WORKSCREEN`
+  macro.
+- [`game.cpp:265`](../../new_game/src/game/game.cpp#L265): `OpenDisplay`
+  call no longer ORs `FLAGS_USE_WORKSCREEN` into the flags argument
+  (which itself is ignored, but cleaned up for clarity).
 
-```cpp
-static UBYTE s_work_screen_buf[640 * 480 * 4];
-UBYTE* WorkScreen = s_work_screen_buf;
-SLONG WorkScreenDepth = 32;
-SLONG WorkScreenHeight = 480;
-SLONG WorkScreenWidth = 640 * 4;   // pitch
-SLONG WorkScreenPixelWidth = 640;
-MFRect WorkWindowRect = { 0, 0, 640, 480, 640, 480 };
-UBYTE CurrentPalette[256 * 3] = {};
-```
-
-### Why it's a concern
-
-This buffer was a D3D6-era locked-backbuffer staging area. On OpenGL the
-per-frame `glReadPixels`+writeback path is gone (Stage 3 rewrite),
-replaced by GPU passes. But the buffer + globals still exist and may
-still be touched by some consumer. If a caller writes pixels assuming
-`WorkScreenPixelWidth × WorkScreenHeight == RealDisplay*`, it will
-either overflow the fixed 640×480 buffer or silently write to the wrong
-offsets on widescreen.
-
-### Action items
-
-1. **Audit callers.** Grep for `LockWorkScreen`, `UnlockWorkScreen`,
-   `WorkScreen`, `WorkScreenWidth`, `WorkScreenHeight`,
-   `WorkScreenPixelWidth`, `WorkWindowRect`. For each hit, determine
-   whether the consumer is live or dead (e.g. an `#if 0`-ed block,
-   or a function no-one calls now).
-2. **If only the loading screen** (via `ge_init_back_image`) uses it —
-   document in a comment that the buffer is legacy-only at a fixed
-   640×480 resolution, and close this ticket.
-3. **If other live consumers exist** — pick:
-   - (a) Allocate the buffer dynamically at
-     `RealDisplayWidth × RealDisplayHeight × 4` on mode change. Needs
-     lifecycle hook for mode-change events.
-   - (b) Allocate once at a worst-case size (e.g. 4K = 33 MB). Simple,
-     wastes memory at low resolutions.
-   - (c) Rewrite the consumers to not use the locked-buffer paradigm
-     (usually means a GPU pass).
-4. **`WorkWindowRect`** — if consumed, update its layout to match real
-   dimensions.
+Frees ~1.2 MB of BSS and removes an obsolete abstraction layer. No
+behaviour change.
 
 ---
 
@@ -410,97 +387,40 @@ remove it again without asking.
 
 ---
 
-## 🟡 Moon rendering — multiple bugs cluster here
+## 🟢 Moon rendering — resolved
 
-Several distinct issues, likely sharing a code path (sky / moon billboard
-drawing). Worth investigating together once anyone touches it.
+Aspect-dependent pop-out (a, d) and FOV-dependent oversize solved by
+two fixes in
+[`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp)
+`SKY_draw_poly_moon` + `SKY_draw_moon_reflection`:
 
-### (a) Moon disappears on ultra-wide when camera faces it head-on
+1. **Bounds check uses real projection-space dimensions.** The visibility
+   test compared `mid.X` (output of `POLY_transform`, lives in
+   `[0, POLY_screen_width]`) against `DisplayWidth` (= 640 constant).
+   On aspects where `POLY_screen_width > 640` the right edge culled
+   early, producing the asymmetric yaw-left pop-out (d) and the
+   head-on disappearance on ultra-wide (a). Switched to
+   `POLY_screen_width` / `POLY_screen_height`.
+2. **Moon radius compensates for our FOV adjustments.** Radius was
+   `DisplayWidth × 0.15` (fixed 96 px). With `OC_FOV_MULTIPLIER > 1`
+   or auto-zoom the scene shrinks but the moon didn't → it grew
+   relative to world objects. Now divided by `POLY_our_zoom`
+   (= `OC_FOV_MULTIPLIER × auto_zoom`), mirroring the
+   `POLY_sprite_scale` compensation used for light flares and rain.
 
-Reproduced at 1920×480 (4:1). Moon in the car mission vanishes when the
-player looks directly at it; yawing the camera slightly off-axis makes
-it reappear. On 4:3 the moon is always drawn. Depends on camera yaw
-alignment with the moon direction, not distance / time.
+New export: `POLY_our_zoom` in
+[`poly.h`](../../new_game/src/engine/graphics/pipeline/poly.h) /
+[`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+(was a local `our_zoom` inside `POLY_camera_set`).
 
-### (b) Moon size varies with viewing angle — baseline retail wobble only, residual
+**(b) retail wobble — out of scope.** The slight size oscillation on
+camera pitch is original-game behaviour (confirmed in retail). Our
+earlier amplification of it via aspect scaling is gone with the fix
+above; what remains is the subtle retail-baseline wobble, not a bug
+we introduced.
 
-The moon billboard grows slightly when the camera tilts up, even in
-the original retail build (confirmed). So this oscillation is
-original-game behaviour — the moon isn't drawn at a fixed angular
-size but via some angle-dependent projection / billboard path.
-
-Earlier we amplified this on narrow aspects (the sprite stayed at
-its 4:3-pinned size while auto-zoom shrank the scene → moon looked
-relatively huge). That amplification is resolved by the
-`POLY_sprite_scale / (OC_FOV_MULTIPLIER × auto_zoom)` compensation
-(see "🟢 Sprite / rain / line widths" resolved section above).
-
-What remains is the subtle retail wobble. Out of scope unless we
-actively want to change original-game feel.
-
-### (d) Moon pops out early when yawing past it to the left (wide aspects only)
-
-On wider-than-4:3 windows, as the camera yaws from facing the moon
-towards the player's left, the moon disappears noticeably before it
-reaches the left screen edge — it's culled while still angularly
-on-screen. Yawing the **other** direction (right) does not do this:
-the moon slides off-screen normally. **Asymmetric** in left vs
-right. On the default 4:3 window the bug does not reproduce at all.
-
-The left/right asymmetry is the key diagnostic clue — it rules out
-uniform FOV / frustum checks and points at a signed-angle or
-signed-offset test with an aspect-dependent threshold. Candidates
-in the sky / moon draw path:
-- A test like `if (dot < -THRESHOLD)` culling when the moon vector
-  is too far off one side of the camera, where `THRESHOLD` was
-  calibrated against the 4:3 half-FOV.
-- A 2D screen-space bounds check after projection that uses a
-  fixed `640/2 = 320` left-clip boundary but doesn't account for
-  `POLY_screen_mid_x` changing with the clamped aspect /
-  pillarbox offset we added.
-- A signed `mid.X < 0` or `mid.X < POLY_screen_clip_left` where
-  one of those operands has stale or wrong sign.
-
-Repro recipe: wide window (e.g. 1600×600 or anything >= ~16:9),
-find the moon, yaw slowly left — note the angle at which the moon
-pops out. Yaw slowly right through the same angular distance —
-moon visible throughout its on-screen portion. Matches (a) in
-"moon disappears" symptom but is triggered by a different code
-path — (a) is camera-aligned, (d) is one-sided yaw offset.
-
-### (c) Moon reflection visible through the ground
-
-Observed at normal aspect. The moon's "reflection" (mirrored sprite
-below the horizon, likely for water reflection effect) is drawn
-without proper depth occlusion — visible through terrain / building
-floors instead of being hidden by them.
-
-### Likely cause (to investigate)
-
-Probably all in the sky / moon billboard draw path using
-aspect-dependent or angle-dependent thresholds that go wrong when
-the horizontal FOV is large (~150° at 1920×480) or when FOV
-multiplier > 1. Candidates:
-
-- sky / moon billboard visibility check comparing camera direction
-  against a fixed cone (explains (a));
-- a `POLY_screen_width` / `POLY_screen_mid_x` bounds check where an
-  off-screen early-out triggers incorrectly (also (a));
-- LOD / distance-based scale quantisation picking a wrong bucket at
-  the widened FOV (explains (b));
-- reflection pass writing colour without depth test or with wrong
-  depth mask (explains (c)) — classic "reflection quad goes through
-  geometry" bug.
-
-Not touched yet. When investigating, check the moon / sky drawing
-code path (look for `moon`, `sun`, sky billboards in
-[`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp) and
-[`aeng.cpp`](../../new_game/src/engine/graphics/pipeline/aeng.cpp)).
-Reproduce each scenario:
-- (a): 1920×480 car mission, aim camera at moon, slowly yaw.
-- (b): default aspect, `OC_FOV_MULTIPLIER = 1.5`, pan camera around.
-- (c): default aspect + FOV, find moon reflection area (likely
-  visible over a puddle or wet-ground mission).
+**(c) moon reflection through ground — resolved as part of the same
+change.** Confirmed by user after the bounds-check + radius fix.
 
 ---
 

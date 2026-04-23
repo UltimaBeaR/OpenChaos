@@ -262,7 +262,7 @@ void game_startup(void)
     ge_set_texture_reload_prepare_callback(game_texture_reload_prepare);
     ge_set_data_dir(DATA_DIR);
 
-    if (OpenDisplay(640, 480, 16, FLAGS_USE_3D | FLAGS_USE_WORKSCREEN) == 0) {
+    if (OpenDisplay(640, 480, 16, FLAGS_USE_3D) == 0) {
         GAME_STATE = GS_ATTRACT_MODE;
     } else {
         fprintf(stderr, "Unable to open display\n");
