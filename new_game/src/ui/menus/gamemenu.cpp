@@ -7,6 +7,7 @@
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
+#include "engine/graphics/ui_coords.h"          // UIAnchor
 #include "engine/graphics/text/menufont.h"
 #include "assets/xlat_str.h"
 #include "engine/audio/mfx.h"
@@ -238,7 +239,7 @@ SLONG GAMEMENU_process()
     }
 
     if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
-        GAMEMENU_background += millisecs >> 0;
+        GAMEMENU_background += millisecs;
         GAMEMENU_slowdown -= millisecs << 6;
         GAMEMENU_fadein_x += millisecs << 7;
 
@@ -388,12 +389,20 @@ void GAMEMENU_draw()
         return;
     }
 
-    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
+    // Darken the screen behind the menu — covers the full real framebuffer
+    // (including pillar/letterbox bars on non-4:3 aspects), not just the
+    // framed 4:3 UI region. Uses the fullscreen UI mode so virtual (0..640,
+    // 0..480) maps across the entire real screen for the darken pass only.
+    {
+        PolyPage::push_fullscreen_ui_mode();
+        POLY_frame_init(UC_FALSE, UC_FALSE);
+        PANEL_darken_screen(GAMEMENU_background);
+        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        PolyPage::pop_ui_mode();
+    }
 
-    // Darken the screen behind the menu.
-    POLY_frame_init(UC_FALSE, UC_FALSE);
-    PANEL_darken_screen(GAMEMENU_background);
-    POLY_frame_draw(UC_FALSE, UC_FALSE);
+    // Menu text stays framed (4:3 centred region with bars).
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
 
     POLY_frame_init(UC_FALSE, UC_FALSE);
 

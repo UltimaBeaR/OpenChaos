@@ -5,6 +5,7 @@
 #include "engine/graphics/geometry/sky_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/core/matrix.h"
 
@@ -234,8 +235,18 @@ void SKY_draw_stars(
 
     SKY_Star* ss;
 
-    float xmul = float(RealDisplayWidth) / float(DisplayWidth);
-    float ymul = float(RealDisplayHeight) / float(DisplayHeight);
+    // pp.X/pp.Y after POLY_transform live in [0, POLY_screen_width] ×
+    // [0, POLY_screen_height] (aspect-dependent after Hor+). To go to the
+    // real pixel space that the GEVertexTL path writes straight into the
+    // framebuffer, apply the same affine as PolyPage::AddFan:
+    //   real = virt * s_Scale + s_Offset
+    // (formerly this used RealDisplayWidth/DisplayWidth, which was correct
+    // only when POLY_transform output [0, 640] — pre-Hor+). That mismatch
+    // let stars scatter outside the 3D viewport on widescreen.
+    const float xmul = PolyPage::s_XScale;
+    const float ymul = PolyPage::s_YScale;
+    const float xoff = PolyPage::s_XOffset;
+    const float yoff = PolyPage::s_YOffset;
 
     s_star_verts.clear();
     s_star_inds.clear();
@@ -258,8 +269,8 @@ void SKY_draw_stars(
             &pp);
 
         if (!(pp.clip & (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR | POLY_CLIP_FAR))) {
-            SLONG px = SLONG(pp.X * xmul);
-            SLONG py = SLONG(pp.Y * ymul);
+            SLONG px = SLONG(pp.X * xmul + xoff);
+            SLONG py = SLONG(pp.Y * ymul + yoff);
 
             if ((rand() & 0x7f) == (i & 0x7f)) {
                 // Make the star twinkle — skip drawing this frame.
