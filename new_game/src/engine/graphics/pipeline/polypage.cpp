@@ -29,6 +29,9 @@ ULONG PolyPage::s_ColourMask = 0xFFFFFFFF;
 float PolyPage::s_XScale = 1.0;
 // uc_orig: s_YScale (fallen/DDEngine/Source/polypage.cpp)
 float PolyPage::s_YScale = 1.0;
+// Affine offsets — see polypage.h. Default 0; only nonzero inside push_ui_mode.
+float PolyPage::s_XOffset = 0.0f;
+float PolyPage::s_YOffset = 0.0f;
 
 // uc_orig: AlphaPremult (fallen/DDEngine/Source/polypage.cpp)
 // Premultiply colour channels by alpha channel.
@@ -100,6 +103,100 @@ void PolyPage::SetScaling(float xmul, float ymul)
 {
     not_private_smiley_xscale = s_XScale = xmul;
     not_private_smiley_yscale = s_YScale = ymul;
+    s_XOffset = 0.0f;
+    s_YOffset = 0.0f;
+}
+
+// UI mode stack — every push snapshots the current affine + scissor,
+// every pop restores it. Supports nesting different modes (framed inside
+// framed, fullscreen inside framed for one-off effects, etc.). 8 levels
+// is more than enough; if exhausted the assert fires loudly during dev.
+namespace {
+struct UIState {
+    float xs, ys, xo, yo;
+    bool scissor_active;
+    int32_t sx, sy, sw, sh;
+};
+constexpr int UI_STACK_MAX = 8;
+UIState s_ui_stack[UI_STACK_MAX];
+int s_ui_stack_top = 0;
+
+// Mirrors what's currently programmed on the backend so push/pop can
+// snapshot it. Initial state matches "no UI mode active": scissor wide
+// open (the viewport scissor that ge_set_viewport already programs).
+bool s_current_scissor_active = false;
+int32_t s_cur_sx = 0, s_cur_sy = 0, s_cur_sw = 0, s_cur_sh = 0;
+
+void apply_scissor(bool active, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    if (active) {
+        ge_set_scissor(x, y, w, h);
+    } else {
+        ge_disable_scissor();
+    }
+    s_current_scissor_active = active;
+    s_cur_sx = x; s_cur_sy = y; s_cur_sw = w; s_cur_sh = h;
+}
+
+void apply_ui_state(float xs, float ys, float xo, float yo,
+                    bool scissor_active, int32_t sx, int32_t sy, int32_t sw, int32_t sh)
+{
+    ASSERT(s_ui_stack_top < UI_STACK_MAX);
+    s_ui_stack[s_ui_stack_top++] = {
+        PolyPage::s_XScale, PolyPage::s_YScale,
+        PolyPage::s_XOffset, PolyPage::s_YOffset,
+        s_current_scissor_active, s_cur_sx, s_cur_sy, s_cur_sw, s_cur_sh,
+    };
+    not_private_smiley_xscale = PolyPage::s_XScale = xs;
+    not_private_smiley_yscale = PolyPage::s_YScale = ys;
+    PolyPage::s_XOffset = xo;
+    PolyPage::s_YOffset = yo;
+    apply_scissor(scissor_active, sx, sy, sw, sh);
+}
+} // namespace
+
+void PolyPage::push_ui_mode(ui_coords::UIAnchor anchor)
+{
+    // Affine mapping virtual 640x480 -> framed 4:3 region anchored in
+    // the real framebuffer. Scissor clips draws to that region so
+    // particles / overdraw don't spill onto the black bars.
+    const float scale = ui_coords::g_frame_scale;
+    const ui_coords::Vec2f origin01 = ui_coords::frame_origin_screen(anchor);
+    const float xo = origin01.x * ui_coords::g_real_w_px;
+    const float yo = origin01.y * ui_coords::g_real_h_px;
+    const int32_t fw = int32_t(float(DisplayWidth)  * scale + 0.5f);
+    const int32_t fh = int32_t(float(DisplayHeight) * scale + 0.5f);
+    apply_ui_state(scale, scale, xo, yo,
+                   /*scissor=*/true, int32_t(xo + 0.5f), int32_t(yo + 0.5f), fw, fh);
+}
+
+void PolyPage::push_fullscreen_ui_mode()
+{
+    // Stretch virtual 640x480 across the entire framebuffer, non-uniform.
+    // Used by fullscreen UI effects that intentionally cover the whole
+    // screen (kibble particles, fade transitions). No scissor — draws
+    // are free to fill the screen, overriding any parent framed clip.
+    const float xs = ui_coords::g_real_w_px / float(DisplayWidth);
+    const float ys = ui_coords::g_real_h_px / float(DisplayHeight);
+    apply_ui_state(xs, ys, 0.0f, 0.0f,
+                   /*scissor=*/false, 0, 0, 0, 0);
+}
+
+void PolyPage::pop_ui_mode()
+{
+    ASSERT(s_ui_stack_top > 0);
+    --s_ui_stack_top;
+    const UIState& s = s_ui_stack[s_ui_stack_top];
+    not_private_smiley_xscale = s_XScale = s.xs;
+    not_private_smiley_yscale = s_YScale = s.ys;
+    s_XOffset = s.xo;
+    s_YOffset = s.yo;
+    apply_scissor(s.scissor_active, s.sx, s.sy, s.sw, s.sh);
+}
+
+bool PolyPage::in_ui_mode()
+{
+    return s_ui_stack_top > 0;
 }
 
 // uc_orig: PointAlloc (fallen/DDEngine/Source/polypage.cpp)
@@ -187,7 +284,7 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
     if (RS.ZLift()) {
         float zbias = float(RS.ZLift()) / 65536.0F;
         for (ii = 0; ii < num_vertices; ii++) {
-            pv[ii].SetSC(pts[ii]->X * s_XScale, pts[ii]->Y * s_YScale, 1.0F - pts[ii]->Z - zbias);
+            pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset, pts[ii]->Y * s_YScale + s_YOffset, 1.0F - pts[ii]->Z - zbias);
             pv[ii].SetUV2(pts[ii]->u * m_UScale + m_UOffset,
                 pts[ii]->v * m_VScale + m_VOffset);
             pv[ii].SetColour(pts[ii]->colour & s_ColourMask);
@@ -199,7 +296,7 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
         pp->sort_z = zsum / num_vertices + zbias;
     } else {
         for (ii = 0; ii < num_vertices; ii++) {
-            pv[ii].SetSC(pts[ii]->X * s_XScale, pts[ii]->Y * s_YScale, 1.0F - pts[ii]->Z);
+            pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset, pts[ii]->Y * s_YScale + s_YOffset, 1.0F - pts[ii]->Z);
             pv[ii].SetUV2(pts[ii]->u * m_UScale + m_UOffset,
                 pts[ii]->v * m_VScale + m_VOffset);
             pv[ii].SetColour(pts[ii]->colour & s_ColourMask);

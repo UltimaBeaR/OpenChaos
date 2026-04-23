@@ -5,6 +5,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
 #include "ui/hud/panel.h"
 #include "ui/frontend/startscr.h"
 #define DEMO
@@ -192,6 +193,7 @@ reinit_because_of_language_change:
 // uc_orig: ScoresDraw (fallen/Source/Attract.cpp)
 void ScoresDraw(void)
 {
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
     extern SLONG stat_killed_thug;
     extern SLONG stat_killed_innocent;
     extern SLONG stat_arrested_thug;
@@ -420,6 +422,7 @@ void ATTRACT_loadscreen_init(void)
 // uc_orig: ATTRACT_loadscreen_draw (fallen/Source/Attract.cpp)
 void ATTRACT_loadscreen_draw(SLONG completion)
 {
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
     ge_show_back_image(UC_FALSE);
     PANEL_draw_completion_bar(completion);
     AENG_flip();

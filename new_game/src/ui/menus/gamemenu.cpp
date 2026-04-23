@@ -6,6 +6,7 @@
 
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
 #include "engine/graphics/text/menufont.h"
 #include "assets/xlat_str.h"
 #include "engine/audio/mfx.h"
@@ -386,6 +387,8 @@ void GAMEMENU_draw()
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE) {
         return;
     }
+
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
 
     // Darken the screen behind the menu.
     POLY_frame_init(UC_FALSE, UC_FALSE);

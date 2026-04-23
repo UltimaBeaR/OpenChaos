@@ -4,16 +4,16 @@ Read [`concepts.md`](concepts.md) first for terminology.
 
 ---
 
-## 📝 Pending design discussions
+## 📝 Design discussions
 
-Before touching HUD/UI scaling work (the pillarbox issue below), discuss
-with the user:
-
-- **Aspect ratio handling + UI coordinate system.** User has concrete
-  proposals on how the game should treat aspect ratio and what the UI
-  coordinate system should look like. Do not start HUD rework before this
-  conversation happens — the chosen model drives everything from anchor
-  semantics to which coords MSG/PANEL/frontend APIs accept.
+Aspect ratio + UI coordinate system design is now agreed and partly
+implemented. See [`ui_coords_plan.md`](ui_coords_plan.md) — read that
+before touching any UI rendering. Summary of what landed:
+- All UI is normalised to `[0..1]` floats via `ui_coords` helpers.
+- A 4:3 framed region is centred in the real screen for menu / frontend
+  / loading / pause. Hardware scissor + always-framed background paths.
+- Per-element anchors (HUD radar/ammo/etc.) — design done, code
+  pending in Stage 3c.
 
 ---
 
@@ -59,20 +59,31 @@ Render scale + scene FBO + composition pass are implemented (see
 
 ---
 
-## 🔴 HUD / UI layout — pillarboxed and small (blocker)
+## 🟡 HUD / UI layout — pillarboxed and small (partial)
 
-### Symptoms
+### Status
+
+**Resolved for** main menu, options, save/load, mission briefing, pause,
+score, loading screen, mission map, transitions, attract mode background
+— all centered in a 4:3 framed region with black bars (Stage 3a in
+[`ui_coords_plan.md`](ui_coords_plan.md)).
+
+**Still pending** — in-game HUD (Stage 3c): health bar, radar/compass,
+weapon indicator, ammo, body-part damage, wristwatch, on-screen messages.
+These need per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM`
+etc.) so they hug the real screen corners, not the framed centre. Same
+infra (`PolyPage::push_ui_mode(anchor)`) — just call sites left to wrap.
+
+### Symptoms (pre-fix; for in-game HUD still apply)
 
 On non-4:3 resolutions (e.g. 1920×1080, 2560×1080):
-- All HUD elements — health bar, radar/compass, weapon indicator, ammo,
+- HUD elements — health bar, radar/compass, weapon indicator, ammo,
   body-part damage, wristwatch, on-screen messages — live in the **left
   1440×1080 region** of the 1920×1080 framebuffer. Right ~480 px shows
   background/empty space.
 - Elements look small: a UI panel 200 px wide in virtual 640×480 space
   becomes 450 px on screen — fine on a laptop, tiny on a 27" 1080p.
 - Text rendered through the HUD path shares this scaling.
-- Main menu, pause menu, options dialogs, mission briefing, attract mode,
-  save/load — same issue (they share the HUD layout pipeline).
 
 ### Root cause
 
@@ -302,6 +313,27 @@ remove it again without asking.
 
 ---
 
+## 🟡 Cutscene video #3 cropped vertically on widescreen
+
+### Symptom
+
+Of the three intro / cutscene videos:
+- Videos #1 and #2 — render correctly (4:3 with black side bars on
+  widescreen, as intended).
+- Video #3 — appears to be **cropped on the top/bottom** when the screen
+  is wider than the source aspect ratio, instead of being letterboxed
+  with side bars like #1 and #2.
+
+### When to investigate
+
+After UI rework. The video pipeline has its own aspect-handling code
+(verified working for #1 and #2), so #3 is likely a content-specific
+or per-video parameter difference, not a global pipeline issue. Compare
+how the three videos are loaded / submitted; look for differences in
+source dimensions or aspect-ratio overrides.
+
+---
+
 ## 🟡 To verify (not yet tested)
 
 ### Outro / cutscenes
@@ -315,14 +347,14 @@ audited for aspect handling. Either play the outro at a widescreen
 resolution and watch for distortion, or grep those files for any 640 /
 480 / 0.75 / 4.0/3.0 aspect literals.
 
-### Frontend fade curtain
+### Frontend fade curtain (RESOLVED)
 
-[`frontend.cpp:397-402`](../../new_game/src/ui/frontend/frontend.cpp#L397)
-has an `if (RealDisplayWidth == 640)` branch; at `:1794` a switch on
-`RealDisplayWidth` with preset sizes. These work by accident on modern
-resolutions but the literal 640 is a marker that the original code
-didn't envision arbitrary resolution. Likely fine to leave as part of
-the broader HUD pass (Option A above); flag during that pass.
+`FRONTEND_init_xition` and `FRONTEND_show_xition` were updated to compute
+in framed-area pixel coords (`ui_coords::g_frame_w_px / g_frame_h_px`)
+instead of `RealDisplayWidth/Height`, and `ge_blit_surface_to_backbuffer`
+now takes framed-area input coords. Wipe and iris transitions stay
+inside the framed region. The `if (RealDisplayWidth == 640)` branch was
+dropped — the framed-coord version handles all resolutions uniformly.
 
 ### Menus / widgets
 

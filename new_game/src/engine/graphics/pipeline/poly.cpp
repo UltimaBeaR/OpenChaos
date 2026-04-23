@@ -1143,7 +1143,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
             // Fan vertex 0 (hub)
             ppt = rptr[0];
-            tri_pv[0].SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+            tri_pv[0].SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
             tri_pv[0].SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
             tri_pv[0].SetColour(ppt->colour);
             tri_pv[0].SetSpecular(ppt->specular);
@@ -1152,7 +1152,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
             // Fan vertex 1
             ppt = rptr[fan_i + 1];
-            tri_pv[1].SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+            tri_pv[1].SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
             tri_pv[1].SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
             tri_pv[1].SetColour(ppt->colour);
             tri_pv[1].SetSpecular(ppt->specular);
@@ -1161,7 +1161,7 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
             // Fan vertex 2
             ppt = rptr[fan_i + 2];
-            tri_pv[2].SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+            tri_pv[2].SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
             tri_pv[2].SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
             tri_pv[2].SetColour(ppt->colour);
             tri_pv[2].SetSpecular(ppt->specular);
@@ -1225,7 +1225,7 @@ second_page:;
 
     ppt = pt[0];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
@@ -1234,7 +1234,7 @@ second_page:;
 
     ppt = pt[1];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
@@ -1243,7 +1243,7 @@ second_page:;
 
     ppt = pt[2];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
@@ -1335,7 +1335,7 @@ second_page:;
 
     ppt = pt[0];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
@@ -1344,7 +1344,7 @@ second_page:;
 
     ppt = pt[1];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
@@ -1353,7 +1353,7 @@ second_page:;
 
     ppt = pt[2];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
@@ -1362,7 +1362,7 @@ second_page:;
 
     ppt = pt[3];
 
-    pv->SetSC(ppt->X * pp->s_XScale, ppt->Y * pp->s_YScale, 1.0F - ppt->Z);
+    pv->SetSC(ppt->X * pp->s_XScale + pp->s_XOffset, ppt->Y * pp->s_YScale + pp->s_YOffset, 1.0F - ppt->Z);
     pv->SetUV2(ppt->u * pp->m_UScale + pp->m_UOffset, ppt->v * pp->m_VScale + pp->m_VOffset);
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);

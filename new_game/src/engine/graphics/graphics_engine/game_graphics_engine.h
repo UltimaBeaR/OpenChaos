@@ -254,6 +254,13 @@ void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h);
 void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
                         float clip_x, float clip_y, float clip_w, float clip_h);
 
+// Hardware scissor rectangle (in framebuffer pixels, origin top-left).
+// Used by the UI mode stack (engine/graphics/ui_coords.h) to clip the
+// framed UI region — prevents particles / overdraw from spilling onto
+// the black bars on widescreen.
+void ge_set_scissor(int32_t x, int32_t y, int32_t w, int32_t h);
+void ge_disable_scissor();
+
 // ---------------------------------------------------------------------------
 // Background
 // ---------------------------------------------------------------------------

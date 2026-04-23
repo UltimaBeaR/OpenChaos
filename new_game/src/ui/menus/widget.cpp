@@ -9,6 +9,7 @@
 
 // DRAW2D_Box/Tri/Sprite migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
+#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
 // INPUT_MASK_*, and ShiftFlag is already in keyboard_globals.h.
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
@@ -1187,6 +1188,7 @@ Widget* FORM_GetWidgetFromPoint(Form* form, WidgetPoint pt)
 // uc_orig: FORM_Draw (fallen/Source/widget.cpp)
 void FORM_Draw(Form* form)
 {
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
     Widget* walk;
 
     walk = form->children;

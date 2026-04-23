@@ -299,6 +299,9 @@ set(SOURCES_NEW
     src/engine/graphics/postprocess/bloom.cpp
     src/engine/graphics/postprocess/bloom_globals.cpp
 
+    # === Engine: graphics — UI coordinate system ===
+    src/engine/graphics/ui_coords.cpp
+
     # === Engine: graphics — backend (selected by GRAPHICS_BACKEND) ===
     ${BACKEND_SOURCES}
 

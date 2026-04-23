@@ -685,7 +685,16 @@ void ge_clear(bool color, bool depth)
     if (mask) {
         if (color) glClearColor(s_clear_r, s_clear_g, s_clear_b, 1.0f);
         if (depth) glDepthMask(GL_TRUE); // ensure depth writes for clear
+
+        // glClear honours the scissor rectangle. In UI mode the scissor
+        // is tight around the framed UI region, but ge_clear is meant to
+        // wipe the entire framebuffer (including the black bars). Snapshot
+        // and disable scissor for the clear, then restore.
+        GLboolean scissor_was_enabled = GL_FALSE;
+        glGetBooleanv(GL_SCISSOR_TEST, &scissor_was_enabled);
+        if (scissor_was_enabled) glDisable(GL_SCISSOR_TEST);
         glClear(mask);
+        if (scissor_was_enabled) glEnable(GL_SCISSOR_TEST);
     }
 }
 
@@ -1108,7 +1117,13 @@ void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
     // OpenGL viewport Y is bottom-up, D3D is top-down.
     int32_t screen_h = gl_context_get_height();
     glViewport(x, screen_h - y - h, w, h);
-    glScissor(x, screen_h - y - h, w, h);
+    if (!PolyPage::in_ui_mode()) {
+        // Default behavior — scissor matches the new viewport.
+        glScissor(x, screen_h - y - h, w, h);
+    }
+    // In UI mode, the pipeline already owns scissor (set by push_ui_mode
+    // to the framed UI region); leave it alone so widening the viewport
+    // here doesn't break UI clipping.
     glEnable(GL_SCISSOR_TEST);
 }
 
@@ -1118,6 +1133,23 @@ void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
     // Clip parameters are D3D6-specific (D3DVIEWPORT2 clipping volume).
     // In OpenGL, clipping is done by the projection matrix.
     ge_set_viewport(x, y, w, h);
+}
+
+void ge_set_scissor(int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    // Top-left coords (D3D-style); flip for OpenGL bottom-up scissor.
+    int32_t screen_h = gl_context_get_height();
+    glScissor(x, screen_h - y - h, w, h);
+    glEnable(GL_SCISSOR_TEST);
+}
+
+void ge_disable_scissor()
+{
+    // ge_set_viewport leaves GL_SCISSOR_TEST enabled with scissor == viewport.
+    // "Disable" here means restore that wide-as-viewport state, so subsequent
+    // draws are not clipped by a tighter UI scissor.
+    int32_t screen_h = gl_context_get_height();
+    glScissor(s_vp_x, screen_h - s_vp_y - s_vp_h, s_vp_w, s_vp_h);
 }
 
 // ---------------------------------------------------------------------------
@@ -1348,14 +1380,10 @@ void ge_create_background_surface(uint8_t* pixels)
     s_bg_texture = gl_create_bgr_texture(pixels);
 }
 
-// Helper: draw a fullscreen textured quad with the given GL texture ID.
-static void gl_blit_fullscreen_texture(GLuint tex)
+// Helper: draw a textured quad covering [x..x+w] x [y..y+h] in screen pixels.
+static void gl_blit_textured_quad(GLuint tex, float x, float y, float w, float h)
 {
     if (!tex) return;
-
-    // Use current viewport size for screen coords (must match TL shader's u_viewport).
-    float w = (float)s_vp_w;
-    float h = (float)s_vp_h;
 
     // Offset by +0.5 to compensate the -0.5 D3D6 pixel center adjustment in
     // tl_vert.glsl — without this the quad lands at -0.5..w-0.5, leaving a
@@ -1363,16 +1391,16 @@ static void gl_blit_fullscreen_texture(GLuint tex)
     const float ox = 0.5f, oy = 0.5f;
 
     GEVertexTL verts[4];
-    verts[0].x = ox;     verts[0].y = oy;     verts[0].z = 0.5f; verts[0].rhw = 1.0f;
+    verts[0].x = x + ox;     verts[0].y = y + oy;     verts[0].z = 0.5f; verts[0].rhw = 1.0f;
     verts[0].color = 0xFFFFFFFF; verts[0].specular = 0xFF000000;
     verts[0].u = 0.0f; verts[0].v = 0.0f;
-    verts[1].x = w + ox; verts[1].y = oy;     verts[1].z = 0.5f; verts[1].rhw = 1.0f;
+    verts[1].x = x + w + ox; verts[1].y = y + oy;     verts[1].z = 0.5f; verts[1].rhw = 1.0f;
     verts[1].color = 0xFFFFFFFF; verts[1].specular = 0xFF000000;
     verts[1].u = 1.0f; verts[1].v = 0.0f;
-    verts[2].x = ox;     verts[2].y = h + oy; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
+    verts[2].x = x + ox;     verts[2].y = y + h + oy; verts[2].z = 0.5f; verts[2].rhw = 1.0f;
     verts[2].color = 0xFFFFFFFF; verts[2].specular = 0xFF000000;
     verts[2].u = 0.0f; verts[2].v = 1.0f;
-    verts[3].x = w + ox; verts[3].y = h + oy; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
+    verts[3].x = x + w + ox; verts[3].y = y + h + oy; verts[3].z = 0.5f; verts[3].rhw = 1.0f;
     verts[3].color = 0xFFFFFFFF; verts[3].specular = 0xFF000000;
     verts[3].u = 1.0f; verts[3].v = 1.0f;
 
@@ -1392,14 +1420,37 @@ static void gl_blit_fullscreen_texture(GLuint tex)
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
 }
 
+// Helper: draw a fullscreen textured quad with the given GL texture ID.
+static void gl_blit_fullscreen_texture(GLuint tex)
+{
+    gl_blit_textured_quad(tex, 0.0f, 0.0f, (float)s_vp_w, (float)s_vp_h);
+}
+
 void ge_blit_background_surface()
 {
     // Override takes priority (frontend theme surfaces).
-    if (s_background_override != GE_SCREEN_SURFACE_NONE) {
-        gl_blit_fullscreen_texture((GLuint)(uintptr_t)s_background_override);
-    } else if (s_bg_texture) {
-        gl_blit_fullscreen_texture(s_bg_texture);
-    }
+    GLuint tex = (s_background_override != GE_SCREEN_SURFACE_NONE)
+        ? (GLuint)(uintptr_t)s_background_override
+        : s_bg_texture;
+    if (!tex) return;
+
+    // Background images are 640x480 BMPs — always render into the 4:3
+    // framed region with black bars around (independent of any active
+    // UI scope, since this is also called from non-UI loaders like
+    // ATTRACT_loadscreen_init). Clear first so the bars are clean
+    // rather than carrying garbage from the previous frame.
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    GLboolean scissor_was_enabled = GL_FALSE;
+    glGetBooleanv(GL_SCISSOR_TEST, &scissor_was_enabled);
+    if (scissor_was_enabled) glDisable(GL_SCISSOR_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+    if (scissor_was_enabled) glEnable(GL_SCISSOR_TEST);
+
+    gl_blit_textured_quad(tex,
+                          ui_coords::g_real_w_px * 0.5f - ui_coords::g_frame_w_px * 0.5f,
+                          ui_coords::g_real_h_px * 0.5f - ui_coords::g_frame_h_px * 0.5f,
+                          ui_coords::g_frame_w_px,
+                          ui_coords::g_frame_h_px);
 }
 
 void ge_destroy_background_surface()
@@ -1539,6 +1590,15 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     sdl3_window_get_drawable_size(&win_w, &win_h);
     glViewport(0, 0, win_w, win_h);
 
+    // Snapshot+disable scissor: a UI scope above us may have set it tight
+    // around the framed UI region, which would crop the video into a small
+    // square. Restore on the way out so the next UI frame still clips.
+    GLboolean scissor_was_enabled = GL_FALSE;
+    GLint saved_scissor[4] = { 0, 0, 0, 0 };
+    glGetBooleanv(GL_SCISSOR_TEST, &scissor_was_enabled);
+    glGetIntegerv(GL_SCISSOR_BOX, saved_scissor);
+    glDisable(GL_SCISSOR_TEST);
+
     float va = (float)video_w / (float)video_h;
     float wa = (float)win_w  / (float)win_h;
     float sx = (va > wa) ? 1.0f : va / wa;
@@ -1569,6 +1629,10 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     glBindVertexArray(0);
 
     gl_context_swap();
+
+    // Restore scissor state captured before the video draw.
+    glScissor(saved_scissor[0], saved_scissor[1], saved_scissor[2], saved_scissor[3]);
+    if (scissor_was_enabled) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
 
     // Re-bind scene FBO for the next frame — keeps the "scene FBO is
     // always the active draw target between presents" invariant.
@@ -1705,23 +1769,27 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
 
     GLuint tex = (GLuint)(uintptr_t)surface;
 
-    // D3D creates the background surface at screen resolution (CopyBackground32
-    // scales 640x480 source → back buffer size). Blt uses same rect for src and dst
-    // because both are screen-sized. Our GL texture is 640x480 — we map screen coords
-    // to UV proportionally: screen (0..screen_w) → UV (0..1).
-    float scr_w = (float)s_vp_w;
-    float scr_h = (float)s_vp_h;
-    float u0 = (float)x / scr_w;
-    float v0 = (float)y / scr_h;
-    float u1 = (float)(x + w) / scr_w;
-    float v1 = (float)(y + h) / scr_h;
+    // Input (x,y,w,h) is in framed-area pixel coordinates (origin at the
+    // top-left of the 4:3 framed UI region, extending to g_frame_w_px x
+    // g_frame_h_px). Map both source UVs and destination pixels through
+    // the framed origin so the texture stretches across the framed area
+    // and the rect lands inside it. Used by frontend transitions only.
+    float fw = ui_coords::g_frame_w_px;
+    float fh = ui_coords::g_frame_h_px;
+    float fox = ui_coords::g_real_w_px * 0.5f - fw * 0.5f;
+    float foy = ui_coords::g_real_h_px * 0.5f - fh * 0.5f;
+
+    float u0 = (float)x       / fw;
+    float v0 = (float)y       / fh;
+    float u1 = (float)(x + w) / fw;
+    float v1 = (float)(y + h) / fh;
 
     // Offset by +0.5 to compensate the -0.5 D3D6 pixel center adjustment in
     // tl_vert.glsl (see gl_blit_fullscreen_texture comment).
-    float sx  = (float)x       + 0.5f;
-    float sy  = (float)y       + 0.5f;
-    float sx1 = (float)(x + w) + 0.5f;
-    float sy1 = (float)(y + h) + 0.5f;
+    float sx  = fox + (float)x       + 0.5f;
+    float sy  = foy + (float)y       + 0.5f;
+    float sx1 = fox + (float)(x + w) + 0.5f;
+    float sy1 = foy + (float)(y + h) + 0.5f;
 
     GEVertexTL verts[4];
     verts[0].x = sx;  verts[0].y = sy;  verts[0].z = 0.5f; verts[0].rhw = 1.0f;

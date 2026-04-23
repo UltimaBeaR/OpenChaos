@@ -4,6 +4,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/ui_coords.h"
 
 
 class PolyPage;
@@ -58,6 +59,39 @@ public:
     // uc_orig: SetScaling (fallen/DDEngine/Headers/polypage.h)
     static void SetScaling(float xmul, float ymul);
 
+    // UI draw mode: configures AddFan to draw existing virtual-640x480
+    // call sites into a 4:3 framed region pinned at the given anchor in
+    // the real screen. Snapshots s_XScale/s_YScale/s_XOffset/s_YOffset
+    // and replaces them with affine values derived from ui_coords. The
+    // depth counter makes push/pop pairs reentrant; only the outermost
+    // pop restores the snapshot. See engine/graphics/ui_coords.h.
+    static void push_ui_mode(ui_coords::UIAnchor anchor);
+    // Stretch virtual 640x480 across the whole real framebuffer (non-uniform
+    // scaling). Use for fullscreen UI effects (kibble particles, fade
+    // transitions) that should fill the screen rather than be confined
+    // to the framed UI region. Pops via the same pop_ui_mode().
+    static void push_fullscreen_ui_mode();
+    static void pop_ui_mode();
+    // True while at least one UI scope is active. Lets backend paths that
+    // bypass AddFan (e.g. fullscreen background blit) decide whether to
+    // honour the framed region.
+    static bool in_ui_mode();
+
+    // RAII wrappers around the push/pop pair. Use at the top of any UI
+    // render entry-point so every return path pops correctly.
+    struct UIModeScope {
+        UIModeScope(ui_coords::UIAnchor anchor) { PolyPage::push_ui_mode(anchor); }
+        ~UIModeScope() { PolyPage::pop_ui_mode(); }
+        UIModeScope(const UIModeScope&) = delete;
+        UIModeScope& operator=(const UIModeScope&) = delete;
+    };
+    struct FullscreenUIModeScope {
+        FullscreenUIModeScope() { PolyPage::push_fullscreen_ui_mode(); }
+        ~FullscreenUIModeScope() { PolyPage::pop_ui_mode(); }
+        FullscreenUIModeScope(const FullscreenUIModeScope&) = delete;
+        FullscreenUIModeScope& operator=(const FullscreenUIModeScope&) = delete;
+    };
+
     // uc_orig: SortBackFirst (fallen/DDEngine/Headers/polypage.h)
     void SortBackFirst();
 
@@ -98,6 +132,12 @@ public:
     static float s_XScale;
     // uc_orig: s_YScale (fallen/DDEngine/Headers/polypage.h)
     static float s_YScale;
+
+    // Affine offset added after scaling in AddFan. Default 0 — used by
+    // push_ui_mode to pin a virtual 640x480 draw region at a screen
+    // anchor without changing per-call sites. SetScaling resets to 0.
+    static float s_XOffset;
+    static float s_YOffset;
 
     // uc_orig: PointAlloc (fallen/DDEngine/Headers/polypage.h)
     PolyPoint2D* PointAlloc(ULONG num_points);

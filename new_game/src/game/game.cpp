@@ -122,6 +122,7 @@
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypage.h"  // PolyPage::SetScaling (mode change callback)
+#include "engine/graphics/ui_coords.h"          // ui_coords::recompute (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_set_draw_distance, AENG_screen_shot, AENG_draw_messages
 #include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
@@ -177,11 +178,12 @@ static void game_mode_changed(int32_t width, int32_t height)
     // Uniform scale (by vertical) — preserves aspect ratio. The extra
     // horizontal space on widescreen is filled by the wider virtual render
     // width set up in POLY_begin ("Hor+" FOV extension, not geometry
-    // stretching). HUD drawn through this path ends up pillarboxed — a
-    // dedicated HUD layout pass will address that separately.
-    (void)width;
+    // stretching). HUD drawn through this path ends up pillarboxed; the
+    // new ui_coords pipeline (via PolyPage::push_ui_mode at draw time)
+    // bypasses this scaling for UI call sites.
     const float uniform_scale = float(height) / float(DisplayHeight);
     PolyPage::SetScaling(uniform_scale, uniform_scale);
+    ui_coords::recompute(width, height);
 }
 
 // Polys-drawn callback: accumulates poly count for debug stats.

@@ -18,6 +18,7 @@ extern SLONG RealDisplayHeight;
 #include "game/input_actions_globals.h"
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/font2d.h"
+#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/core/fmatrix.h"
@@ -348,10 +349,12 @@ void FRONTEND_draw_title(SLONG x, SLONG y, SLONG cutx, CBYTE* str, BOOL wibble, 
 // uc_orig: FRONTEND_init_xition (fallen/Source/frontend.cpp)
 // Initializes the screen transition effect (wipe/iris).
 // Sets MidX/MidY/ScaleX/ScaleY and selects the appropriate screenfull surface.
+// Coords are in framed-area pixel space (the wipe/iris animates the 4:3
+// framed UI region, not the real screen — see ge_blit_surface_to_backbuffer).
 void FRONTEND_init_xition(void)
 {
-    MidX = RealDisplayWidth / 2;
-    MidY = RealDisplayHeight / 2;
+    MidX = SLONG(ui_coords::g_frame_w_px) / 2;
+    MidY = SLONG(ui_coords::g_frame_h_px) / 2;
     ScaleX = MidX / 64.0f;
     ScaleY = MidY / 64.0f;
     switch (menu_state.mode) {
@@ -393,14 +396,13 @@ void FRONTEND_show_xition()
             bDoBlit = UC_TRUE;
         }
     } else {
+        // Horizontal wipe across the framed UI region (not real screen).
+        const SLONG framed_w = SLONG(ui_coords::g_frame_w_px);
+        const SLONG framed_h = SLONG(ui_coords::g_frame_h_px);
         rc.top = 0;
-        rc.bottom = RealDisplayHeight;
+        rc.bottom = framed_h;
         rc.left = 0;
-        if (RealDisplayWidth == 640) {
-            rc.right = fade_state * 10;
-        } else {
-            rc.right = fade_state * 10 * RealDisplayWidth / 640;
-        }
+        rc.right = fade_state * 10 * framed_w / 640;
         if (rc.right > 0) {
             bDoBlit = UC_TRUE;
         }
@@ -531,6 +533,8 @@ void FRONTEND_draw_button(SLONG x, SLONG y, UBYTE which, UBYTE flash)
 
 // uc_orig: FRONTEND_kibble_draw (fallen/Source/frontend.cpp)
 // Draws all active kibble (leaf/rain/snow) particles as rotated quads.
+// Particles use parent's framed UI scope; the scissor that push_ui_mode
+// installs clips them to the 4:3 region so they don't bleed onto bars.
 void FRONTEND_kibble_draw()
 {
     UWORD c0;
@@ -2248,6 +2252,7 @@ static void FRONTEND_draw_districts(void)
 // district map and briefing text overlays.
 void FRONTEND_display()
 {
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
     UBYTE i;
     SLONG rgb, x, x2, y;
     MenuData* md = menu_data;

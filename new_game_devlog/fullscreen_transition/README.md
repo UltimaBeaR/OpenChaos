@@ -23,11 +23,20 @@ Already done:
   to the window. MSAA removed. See "Resolved" in
   [`issues.md`](issues.md) for file-by-file details and the invariants
   future work needs to preserve.
+- **Framed UI coord system** — main menu, options, save/load, briefing,
+  pause, score, loading screen and frontend transitions render in a
+  centered 4:3 region with black bars on widescreen. Backed by an
+  affine transform in `PolyPage::AddFan` + hardware scissor, opt-in
+  per UI scope via `PolyPage::UIModeScope`. Background images
+  (`ge_show_back_image`) and transitions (`ge_blit_surface_to_backbuffer`)
+  always framed. Kibble particles auto-clip via scissor. See
+  [`ui_coords_plan.md`](ui_coords_plan.md) for design + diff map.
 
 Remaining work — see [`issues.md`](issues.md):
-- HUD / UI is pillarboxed and too small on widescreen **(blocker)** —
-  pending design discussion on aspect ratio + UI coord system before
-  rework.
+- **In-game HUD** still pillarboxed in the framed centre — needs
+  per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM` etc.).
+  Same `PolyPage::push_ui_mode` infra, just call sites left to wrap.
+  This is Stage 3c in the plan.
 - Split UI rendering from the scaled scene FBO (part of the UI rework).
 - Rename `RealDisplayWidth/Height` (it now means scene-FBO size, not
   physical display — misleading).
@@ -36,7 +45,8 @@ Remaining work — see [`issues.md`](issues.md):
 - `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).
-- Outro / frontend fade / menus need a verification pass.
+- Outro / verification pass.
+- Cutscene video #3 is cropped vertically on widescreen (videos #1, #2 fine).
 
 ## Files in this folder
 

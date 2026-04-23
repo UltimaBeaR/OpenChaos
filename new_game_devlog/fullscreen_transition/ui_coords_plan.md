@@ -86,31 +86,118 @@ Vec2f old_px_to_screen_pixels(float x_px640, float y_px480, UIAnchor anchor);
 `PANEL_draw_quad(450, 200, ...)` with
 `Vec2f p = old_px_to_screen_pixels(450, 200, UIAnchor::CENTER_CENTER); PANEL_draw_quad(p.x, p.y, ...)`.
 
-### PolyPage UI mode
+### PolyPage UI mode (backend-transform approach)
 
-Today every UI draw eventually hits `PolyPage::AddFan` which multiplies by
-`s_XScale = s_YScale = RealH/480`. After this rework, UI call sites
-already produce real-pixel coords — they must NOT be re-multiplied.
-
-Add to `polypage.{h,cpp}`:
+`PolyPage::AddFan` was extended from a pure scale to an affine transform:
 
 ```cpp
-class PolyPage {
-    static void push_ui_mode();   // saves s_XScale/s_YScale, sets to 1.0
-    static void pop_ui_mode();    // restores
+pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset,
+             pts[ii]->Y * s_YScale + s_YOffset, ...);
+```
+
+`s_XOffset`/`s_YOffset` default to 0 (so 3D rendering is unaffected).
+`SetScaling` resets them to 0 explicitly.
+
+`push_ui_mode(UIAnchor)` snapshots the current `s_XScale/s_YScale/
+s_XOffset/s_YOffset`, then sets `s_XScale = s_YScale = g_frame_scale` and
+`s_XOffset/s_YOffset` to the framed-region origin in real pixels for the
+chosen anchor. Effectively, every existing call site that submits virtual
+640×480 vertex coords is now drawn into a 4:3 framed region inside the
+real screen, anchored as requested. No call-site changes needed.
+
+`pop_ui_mode()` restores the snapshot. A depth counter makes push/pop
+pairs reentrant (only outermost push/pop applies).
+
+`PolyPage::UIModeScope` is a small RAII wrapper:
+
+```cpp
+struct UIModeScope {
+    UIModeScope(UIAnchor anchor) { push_ui_mode(anchor); }
+    ~UIModeScope() { pop_ui_mode(); }
 };
 ```
 
-Wrap every high-level UI draw API (PANEL_*, FONT_*, MSG_*, CONSOLE_*,
-debug overlay draws) in push/pop. After the wrap, those APIs **accept
-real screen pixels** (semantic flip).
+Use as the first local at the top of any UI render entry-point. The
+destructor handles every return path (early-returns, exceptions if any).
 
-Open question: do we wrap at the top-level draw call (e.g. inside
-`PANEL_draw_quad` itself) so call sites don't need to know, or at the
-caller's loop boundary (one push/pop per frame's UI block)? Default plan
-is **at the top-level draw call** — minimizes call-site churn at the
-cost of redundant push/pops within a frame. Revisit if profiling shows
-overhead.
+This approach replaced the original "rewrite each call site" plan because
+the affine extension was 4 lines in `AddFan` while the call-site rewrite
+would have touched ~120 sites. Per-element anchors for the in-game HUD
+(Stage 3c) work the same way — just `UIModeScope` with a non-CENTER
+anchor at the function top.
+
+Trade-off: this requires that `PolyPage::AddFan` is the only path UI
+geometry takes to the GPU. `AddWirePoly` was empty (PC stub) and
+verified. **Discovered during integration:** `POLY_add_triangle_fast`,
+`POLY_add_quad_fast`, `POLY_add_nearclipped_triangle` (all in
+`poly.cpp`) write vertex screen coords directly through `pp->s_XScale`
+without going via `AddFan` — those 10 sites also got the `+ s_XOffset` /
+`+ s_YOffset` extension. Any future UI primitive path must apply the
+same affine.
+
+### Hardware scissor for the framed clip
+
+`push_ui_mode` programs `glScissor` to the framed pixel rectangle in
+addition to the affine. This clips draws that would otherwise spill
+onto the black bars — kibble particles in the main menu were the
+visible offender, and any future fullscreen-style UI effect (rain,
+snow, etc.) is now contained for free.
+
+Backend additions (`engine/graphics/graphics_engine`):
+- `ge_set_scissor(x, y, w, h)` / `ge_disable_scissor()` — public API,
+  honour the OpenGL bottom-up Y flip same as `ge_set_viewport`.
+- `ge_set_viewport` no longer overwrites scissor when
+  `PolyPage::in_ui_mode()` is true — the pipeline owns scissor in that
+  state. Outside UI mode, default behaviour (scissor == viewport)
+  unchanged.
+- `ge_clear` snapshots and disables scissor for the duration of
+  `glClear` so the bars get cleared too — without this, `ge_clear`
+  inside a UI scope only cleared the framed region and previous-frame
+  garbage (e.g. loading screen) bled onto the bars.
+- `ge_video_draw_and_swap` snapshots and disables scissor around the
+  video present, restores after — without this the video was clipped
+  to the framed UI rectangle when called from inside a UI scope.
+
+### Fullscreen UI mode (escape hatch for full-screen effects)
+
+Some intentional full-screen effects need to ignore the framed clip.
+`push_fullscreen_ui_mode()` / `FullscreenUIModeScope` push an affine
+that stretches virtual 640×480 across the entire framebuffer (non-
+uniform on widescreen) and **disables** scissor. Currently used by:
+- `FRONTEND_show_xition` had it briefly, then reverted — transition is
+  now framed (see "Framed background and transition" below).
+- No live consumers right now. Keep the API for future fullscreen
+  overlays (e.g. screen flashes that intentionally cover the whole
+  display).
+
+### UI mode stack
+
+The original two-value snapshot was replaced with a proper 8-deep
+stack of `{xs, ys, xo, yo, scissor_active, sx, sy, sw, sh}` so nested
+push/pop pairs with **different** modes (framed inside framed, or
+fullscreen inside framed for an escape-hatch effect) restore correctly.
+The depth limit fires a loud assert if exhausted.
+
+### Framed background and transition
+
+`ge_blit_background_surface` (the path behind every `ge_show_back_image`)
+now **always** renders the 640×480 background image into the framed
+4:3 region with a black `glClear` first, regardless of UI mode state.
+That's because backgrounds are inherently 4:3 source content (the BMPs
+are 640×480) and the function is called from both UI scopes
+(`FRONTEND_display`) and non-scope loaders (`ATTRACT_loadscreen_init`,
+`MainScreen`). Always-framed means every caller works without needing
+to know about the UI scope.
+
+`ge_blit_surface_to_backbuffer` (the only consumer is
+`FRONTEND_show_xition`) now interprets its input `(x, y, w, h)` as
+**framed-area pixel coordinates**: source UVs are mapped through the
+framed dimensions and destination pixels are offset by the framed
+origin. `FRONTEND_init_xition` / `FRONTEND_show_xition` were updated
+to compute `MidX/MidY/ScaleX/ScaleY` and the wipe rect in framed
+pixel space (`ui_coords::g_frame_w_px / g_frame_h_px`) instead of
+`RealDisplayWidth/Height`. Wipe and iris transitions now stay inside
+the framed region instead of expanding to fullscreen mid-animation.
 
 ---
 
@@ -169,15 +256,18 @@ Find via `Grep` for callers of `POLY_perspective` that draw UI-like
 overlays. Replace any 640/480 hardcodes with `RealW/RealH` reads.
 This is the trickiest stage and may need its own design pass.
 
-### Stage 4 — black bars
+### Stage 4 — black bars (DONE incidentally)
 
-For framed mode the area outside the 4:3 frame must be black. Two
-approaches:
-- (a) `glClear(black)` once per frame before any UI draw. Simplest. May
-  conflict with pause backdrop which currently draws 3D-ish background.
-- (b) Draw two black quads (left+right or top+bottom) in the gap.
+Resolved as a side effect of two changes in Stage 3a:
+- `ge_clear` now snapshots and disables scissor while clearing, so the
+  per-frame `ge_clear` inside `FRONTEND_display` wipes the entire
+  framebuffer (not just the framed region). Whatever the UI doesn't
+  draw stays the clear colour — black.
+- `ge_blit_background_surface` clears the screen black first, then
+  blits the 640×480 background into the framed area only. Bars are
+  guaranteed black even on call sites outside any UI scope.
 
-Pick during stage 4 after seeing what menus actually do.
+No explicit black-quad rendering needed.
 
 ### Stage 5 — mouse
 
@@ -226,19 +316,34 @@ Land the inverse helper now, hook it up later.
 - Builds clean.
 - Game behaves identically (still no integration).
 
-### Stage 3a — Frontend / menus
+### Stage 3a — Frontend / menus / loading / pause / scores (DONE)
 
-**Deliverables:**
-- All hardcoded pixel calls in `frontend.cpp` / `widget.cpp` routed
-  through `old_px_to_screen_pixels(..., CENTER_CENTER)`.
-- High-level draw funcs they call wrapped in PolyPage UI mode.
+Wrapped these UI render entry-points with
+`PolyPage::UIModeScope _ui_scope(UIAnchor::CENTER_CENTER);`:
 
-**Acceptance:**
-- Builds clean.
-- At 1920×1080: main menu and pause menu fill a centered 4:3 region with
-  black bars on the sides. Layout looks like 4:3 boxed inside a 16:9
-  screen, NOT a pillarboxed mess in the bottom-left.
-- At 640×480: pixel-perfect identical to before this stage.
+- `widget.cpp:FORM_Draw`            — generic form rendering (incl. `form_leave_map`)
+- `gamemenu.cpp:GAMEMENU_draw`      — pause/won/lost overlay
+- `attract.cpp:ScoresDraw`          — end-of-mission score screen
+- `attract.cpp:ATTRACT_loadscreen_draw` — loading bar
+- `frontend.cpp:FRONTEND_display`   — main menu, options, save/load, briefing
+
+Each is one-liner at the function top — RAII ensures pop on every return.
+Existing per-pixel literals untouched; the affine transform in `AddFan`
+maps them to a 4:3 region centered in the real framebuffer.
+
+Verified at 1920×1080:
+- Menu / pause / score / briefing render in centered 4:3 region, bars black.
+- Loading screen too (background path made always-framed — covers the call
+  sites that aren't inside a UI scope, like `ATTRACT_loadscreen_init`).
+- Kibble particles (leaves/rain/snow) in the main menu clip cleanly at the
+  framed border thanks to scissor — no bleed onto the bars.
+- Transition wipes/iris animate within the framed area (not "expanding to
+  fullscreen and snapping back" as before).
+- Intro / cutscene videos play fullscreen unaffected (snapshot+restore
+  scissor in `ge_video_draw_and_swap`).
+
+At 640×480: identity (`g_frame_scale == 1`, offsets 0, scissor =
+viewport) — pixel-perfect compatible with the original layout.
 
 ### Stage 3b — Messages, cinematic bars
 
