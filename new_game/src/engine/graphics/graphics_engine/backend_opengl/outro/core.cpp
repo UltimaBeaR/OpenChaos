@@ -5,6 +5,7 @@
 #include "engine/graphics/graphics_engine/outro_graphics_engine.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
+#include "engine/graphics/ui_coords.h"
 #include "engine/platform/uc_common.h"
 #include <string.h>
 #include <stdlib.h>
@@ -34,8 +35,40 @@ static os_texture* s_bound[2] = { nullptr, nullptr };
 
 void oge_init()
 {
-    OS_screen_width = (float)ge_get_screen_width();
-    OS_screen_height = (float)ge_get_screen_height();
+    // Render the outro into the same 4:3 framed region as the rest of
+    // the UI (menus, loading, frontend). The outro pipeline draws in
+    // pixel-space coords scaled by OS_screen_width / OS_screen_height,
+    // and TL vertex shader maps those through u_viewport into NDC.
+    //
+    // Two-level viewport: shader sees (0, 0, frame_w, frame_h) so coords
+    // 0..frame_w map to NDC -1..1 cleanly; GL-side glViewport / glScissor
+    // get the framed-area rect so that NDC quad lands in the centred 4:3
+    // region instead of the corner.
+    ui_coords::recompute(ge_get_screen_width(), ge_get_screen_height());
+    const int frame_w = (int)(ui_coords::g_frame_w_px + 0.5f);
+    const int frame_h = (int)(ui_coords::g_frame_h_px + 0.5f);
+    const int origin_x = (int)((ui_coords::g_real_w_px - ui_coords::g_frame_w_px) * 0.5f + 0.5f);
+    const int origin_y = (int)((ui_coords::g_real_h_px - ui_coords::g_frame_h_px) * 0.5f + 0.5f);
+
+    OS_screen_width  = (float)frame_w;
+    OS_screen_height = (float)frame_h;
+
+    // Shader-side viewport (used by tl_vert.glsl for pixel→NDC math).
+    ge_set_viewport(0, 0, frame_w, frame_h);
+
+    // GL-side viewport — override what ge_set_viewport just set so the
+    // framed NDC quad actually lands in the centred screen rect.
+    const int screen_h = ge_get_screen_height();
+    const int screen_w = ge_get_screen_width();
+    glViewport(origin_x, screen_h - origin_y - frame_h, frame_w, frame_h);
+
+    // Open up scissor to the whole render target. Outro has scrolling /
+    // motion-trail effects (e.g. the sliding bar transition) that draw
+    // shapes overlapping the framed-area boundary; if scissor clipped
+    // them to the framed rect, partial fragments at the edge couldn't
+    // be cleared the next frame, leaving a thin static strip. Viewport
+    // alone is enough to confine rasterization to the framed region.
+    glScissor(0, 0, screen_w, screen_h);
 }
 
 void oge_shutdown()
@@ -90,8 +123,13 @@ OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
                  GL_BGRA, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // CLAMP_TO_EDGE so bilinear sampling at UV=1.0 doesn't wrap to the
+    // opposite-colour leftmost texel — that wrap was visible as a thin
+    // vertical strip on the right edge of outro elements at higher
+    // resolutions (more pronounced when stretched into a smaller
+    // framed area on widescreen).
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     free(data);
@@ -267,6 +305,14 @@ void oge_clear_screen()
 void oge_scene_begin()
 {
     ge_begin_scene();
+    // Outro's main loop calls OS_clear_screen exactly once at startup; the
+    // design relied on BACK_draw fully repainting the framebuffer every
+    // frame. In our framed setup BACK_draw doesn't always cover the last
+    // pixel of the framed region (rounding / motion-effect partial draws),
+    // and stale fragments from the sliding-bar transition leave a thin
+    // visible strip that never gets erased. Clear here every frame so
+    // anything BACK_draw misses ends up black instead of stale.
+    ge_clear(true, true);
 }
 
 void oge_scene_end()

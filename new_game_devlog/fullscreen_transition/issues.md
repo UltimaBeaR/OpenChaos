@@ -313,39 +313,52 @@ remove it again without asking.
 
 ---
 
-## 🟡 Cutscene video #3 cropped vertically on widescreen
+## 🟡 Fish-eye distortion at extreme aspect ratios (e.g. 1920×480)
 
 ### Symptom
 
-Of the three intro / cutscene videos:
-- Videos #1 and #2 — render correctly (4:3 with black side bars on
-  widescreen, as intended).
-- Video #3 — appears to be **cropped on the top/bottom** when the screen
-  is wider than the source aspect ratio, instead of being letterboxed
-  with side bars like #1 and #2.
+At very wide-than-tall aspect ratios (user reproduced at 1920×480 — DAR
+4:1, 3× wider than 4:3), the 3D world shows a strong fish-eye / stretch
+distortion at the screen edges. The closer to the left/right edge, the
+more the geometry warps and stretches outward.
 
-### When to investigate
+### Root cause (suspected)
 
-After UI rework. The video pipeline has its own aspect-handling code
-(verified working for #1 and #2), so #3 is likely a content-specific
-or per-video parameter difference, not a global pipeline issue. Compare
-how the three videos are loaded / submitted; look for differences in
-source dimensions or aspect-ratio overrides.
+We use Hor+ FOV for widescreen — `POLY_screen_width = DisplayHeight ×
+RealW/RealH` extends the horizontal field. At DAR 4:1 the horizontal
+FOV becomes ~4× the original, well past where the planar projection
+stops looking natural; far-off-axis rays accumulate the standard
+rectilinear perspective stretch (a known property of any non-fisheye
+projection at very wide FOVs).
+
+Also possible: the camera matrix `MATRIX_skew` baking in the wide
+aspect produces correct math but visually unpleasant results at these
+extremes.
+
+### Fix ideas (when it's time)
+
+- Cap the effective horizontal FOV at some sane angle (e.g. 110°) and
+  letterbox the rest with bars — sacrifices "fill the screen" for
+  visual sanity at extreme widths.
+- Switch to a slight barrel/cylindrical projection above a threshold
+  aspect ratio — keeps the screen filled but reduces edge stretch.
+  More invasive.
+
+Low priority — most users run 16:9 / 16:10, where the effect is
+imperceptible. Worth fixing before 1.0 if convenient, otherwise
+post-1.0.
 
 ---
 
 ## 🟡 To verify (not yet tested)
 
-### Outro / cutscenes
+### Outro / cutscenes (RESOLVED — framed)
 
-Separate render path with its own projection (`OS_cam_aspect` etc.).
-Screen-size globals
-([`outro_os_globals.cpp:34-37`](../../new_game/src/outro/core/outro_os_globals.cpp#L34))
-correctly read `ge_get_screen_width/height()` (RealDisplay), but the
-camera / skew math in `outro_os.cpp` and `outro_cam.cpp` hasn't been
-audited for aspect handling. Either play the outro at a widescreen
-resolution and watch for distortion, or grep those files for any 640 /
-480 / 0.75 / 4.0/3.0 aspect literals.
+Outro now renders into the same 4:3 framed region as the rest of the UI
+on widescreen, with black bars on the sides matching the original 4:3
+layout. See [`ui_coords_plan.md`](ui_coords_plan.md) → "Outro framing"
+for the two-level viewport approach used and the per-frame clear that
+prevents motion-trail artifacts from outro's sliding-bar transition.
 
 ### Frontend fade curtain (RESOLVED)
 
@@ -368,6 +381,18 @@ pillarbox issue and get fixed together with Option A.
 
 ## Resolved
 
+- ~~**Cutscene video #3 (PCINTRO_withsound.bik) cropped on widescreen.**~~
+  All three videos now aspect-fit into the 4:3 framed region of the
+  screen instead of the full window. Result: video #1 and #2 (640×480)
+  fill the framed region exactly with pillarbox bars on the sides, and
+  video #3 (640×340 ≈ 16:9) gets letterbox bars top/bottom inside the
+  framed region plus pillarbox outside it — stylistically consistent
+  with the framed UI. Implemented in
+  [`ge_video_draw_and_swap`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp)
+  by computing aspect-fit against `ui_coords::g_frame_w_px / g_frame_h_px`
+  scaled by `frame_w_ndc / frame_h_ndc`. Snapshot/restore scissor around
+  video draw so the surrounding UI scope's framed clip doesn't crop the
+  video to a tiny square.
 - ~~**Fullscreen rendered only a 1920×1080 region in the bottom-left of
   higher-res monitors.**~~ Fixed in `sdl3_window_create` by explicitly
   querying `SDL_GetDesktopDisplayMode()` and forcing the fullscreen mode

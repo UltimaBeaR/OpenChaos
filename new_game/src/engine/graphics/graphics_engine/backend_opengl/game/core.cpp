@@ -1619,10 +1619,25 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     glGetIntegerv(GL_SCISSOR_BOX, saved_scissor);
     glDisable(GL_SCISSOR_TEST);
 
-    float va = (float)video_w / (float)video_h;
-    float wa = (float)win_w  / (float)win_h;
-    float sx = (va > wa) ? 1.0f : va / wa;
-    float sy = (va > wa) ? wa / va : 1.0f;
+    // Aspect-fit the video into the framed 4:3 region of the screen,
+    // not the full window. Keeps videos stylistically consistent with
+    // the framed UI (menus, loading screens) — a 4:3 video gets pillarbox
+    // bars exactly matching the UI, and a wider video gets letterbox
+    // inside the framed region. ui_coords::g_frame_* is recomputed
+    // defensively in case the mode-change callback hasn't fired yet.
+    ui_coords::recompute(gl_context_get_width(), gl_context_get_height());
+    const float frame_w = (ui_coords::g_frame_w_px > 0.0f)
+        ? ui_coords::g_frame_w_px : (float)win_w;
+    const float frame_h = (ui_coords::g_frame_h_px > 0.0f)
+        ? ui_coords::g_frame_h_px : (float)win_h;
+    const float frame_w_ndc = frame_w / (float)win_w;  // half-extent of framed region in NDC X
+    const float frame_h_ndc = frame_h / (float)win_h;
+    const float va = (float)video_w / (float)video_h;
+    const float fa = frame_w / frame_h;
+    const float aspect_sx = (va > fa) ? 1.0f : va / fa;
+    const float aspect_sy = (va > fa) ? fa / va : 1.0f;
+    const float sx = aspect_sx * frame_w_ndc;
+    const float sy = aspect_sy * frame_h_ndc;
 
     float verts[] = {
         -sx, -sy, 0.0f, 1.0f,

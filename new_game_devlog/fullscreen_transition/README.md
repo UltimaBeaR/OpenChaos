@@ -31,6 +31,16 @@ Already done:
   (`ge_show_back_image`) and transitions (`ge_blit_surface_to_backbuffer`)
   always framed. Kibble particles auto-clip via scissor. See
   [`ui_coords_plan.md`](ui_coords_plan.md) for design + diff map.
+- **Outro framed** — final outro (credits + 3D wireframe sequence)
+  renders into the same 4:3 framed region. Two-level viewport (shader
+  vs GL), per-frame clear to kill bar-transition trails, `CLAMP_TO_EDGE`
+  on outro textures to fix bilinear-edge wrap. See "Outro framing" in
+  [`ui_coords_plan.md`](ui_coords_plan.md).
+- **Videos framed** — intro Bink videos (Eidos, logo24, PCINTRO) all
+  aspect-fit into the framed 4:3 region with appropriate letterbox /
+  pillarbox depending on the source aspect. `ge_video_draw_and_swap`
+  snapshots/restores GL scissor so a parent UI scope doesn't crop the
+  video.
 
 Remaining work — see [`issues.md`](issues.md):
 - **In-game HUD** still pillarboxed in the framed centre — needs
@@ -45,8 +55,8 @@ Remaining work — see [`issues.md`](issues.md):
 - `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).
-- Outro / verification pass.
-- Cutscene video #3 is cropped vertically on widescreen (videos #1, #2 fine).
+- Fish-eye / edge stretch in 3D world at extreme aspect ratios
+  (e.g. 1920×480). Low priority — most users on 16:9 / 16:10.
 
 ## Files in this folder
 

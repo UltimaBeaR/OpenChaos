@@ -356,11 +356,78 @@ Verified at 1920×1080:
   framed border thanks to scissor — no bleed onto the bars.
 - Transition wipes/iris animate within the framed area (not "expanding to
   fullscreen and snapping back" as before).
-- Intro / cutscene videos play fullscreen unaffected (snapshot+restore
-  scissor in `ge_video_draw_and_swap`).
 
 At 640×480: identity (`g_frame_scale == 1`, offsets 0, scissor =
 viewport) — pixel-perfect compatible with the original layout.
+
+### Outro framing (DONE — extension of Stage 3a)
+
+Outro has its own backend (`engine/graphics/graphics_engine/backend_opengl/
+outro/core.cpp`) that draws via the TL pipeline using pixel coords
+scaled by `OS_screen_width / OS_screen_height`. To frame it like the
+rest of the UI on widescreen, `oge_init` was changed:
+
+1. Compute framed dims via `ui_coords::recompute(ge_get_screen_width(),
+   ge_get_screen_height())`.
+2. `OS_screen_width / OS_screen_height` set to the framed dims so all
+   outro coords are generated relative to a virtual 4:3 viewport.
+3. **Two-level viewport**: `ge_set_viewport(0, 0, frame_w, frame_h)`
+   programs the shader-side `u_viewport` (used by `tl_vert.glsl` for
+   pixel→NDC math, so outro coords 0..frame_w map cleanly to NDC
+   -1..+1), then `glViewport(origin_x, origin_y, frame_w, frame_h)`
+   is called directly to override the GL-side viewport, placing the
+   NDC quad in the centred screen rect. Without this two-level split,
+   the shader would map outro coords through `u_viewport.x = origin_x`
+   and they'd fall outside NDC, leaving outro mostly invisible.
+4. `glScissor(0, 0, screen_w, screen_h)` — open scissor to the full
+   render target. `glViewport` alone confines rasterization to the
+   framed region; using a tight scissor caused motion-trail artifacts
+   on outro's sliding-bar transition (partial fragments at the edge
+   couldn't be cleared the next frame, leaving a static strip).
+5. Per-frame clear in `oge_scene_begin`: outro's main loop calls
+   `OS_clear_screen` exactly once at startup; the design relied on
+   `BACK_draw` fully repainting the framebuffer every frame. In our
+   framed setup `BACK_draw` doesn't always cover the very last pixel
+   of the framed area, and stale fragments from the bar transition
+   leave a thin strip. Adding `ge_clear(true, true)` per frame in
+   `oge_scene_begin` clears anything `BACK_draw` misses to black.
+6. Outro textures changed from `GL_REPEAT` to `GL_CLAMP_TO_EDGE` —
+   bilinear sampling at `UV=1.0` was wrapping to the opposite-colour
+   leftmost texel, visible as a thin strip on the right edge of outro
+   sprites/photos at higher resolutions.
+
+**Don't break:** the two-level viewport split is load-bearing. If a
+future change collapses it back to a single `ge_set_viewport(origin,
+origin, frame_w, frame_h)`, outro will mostly disappear (vertices map
+outside NDC). The per-frame `ge_clear` in `oge_scene_begin` is also
+load-bearing — without it the bar-transition trail returns.
+
+### Video framing (DONE — extension of Stage 3a)
+
+`ge_video_draw_and_swap` aspect-fits each video into the framed 4:3
+region instead of the full window:
+
+```cpp
+const float frame_w_ndc = frame_w / (float)win_w;
+const float frame_h_ndc = frame_h / (float)win_h;
+const float fa = frame_w / frame_h;
+const float aspect_sx = (va > fa) ? 1.0f : va / fa;
+const float aspect_sy = (va > fa) ? fa / va : 1.0f;
+const float sx = aspect_sx * frame_w_ndc;
+const float sy = aspect_sy * frame_h_ndc;
+```
+
+So a 4:3 video (Eidos, logo24) fills the framed region exactly →
+pillarbox on the sides matches the surrounding UI bars; a 16:9-ish
+video (PCINTRO ~ 640×340) gets letterbox top/bottom inside the framed
+region plus pillarbox outside — visually consistent with the framed
+UI rather than randomly fullscreen.
+
+`ge_video_draw_and_swap` also snapshots and restores GL scissor around
+the video draw (`glGetBooleanv(GL_SCISSOR_TEST)` / `glGetIntegerv(
+GL_SCISSOR_BOX)`) so a parent UI scope's tight scissor doesn't crop
+the video into a small square — without this the video appeared as a
+glitched square in the framed region during play.
 
 ### Stage 3b — Messages, cinematic bars
 
@@ -480,11 +547,48 @@ available, otherwise against memory of \"correct\" layout.
 2. Read [`concepts.md`](concepts.md) for the pipeline / scale formulas
    and [`issues.md`](issues.md) §HUD pillarbox for symptom context.
 3. Run `git log --oneline -20` and look for commits with subjects like
-   `ui_coords`, `framed`, `anchor`, `PolyPage UI mode` — the latest one
-   tells you which stage was last completed.
+   `ui_coords`, `framed`, `anchor`, `PolyPage UI mode`, `outro framed`,
+   `video framed` — the latest one tells you which stage was last
+   completed.
 4. Resume at the next stage. Each stage has clear acceptance criteria
    above; don't move on until the current stage's acceptance holds.
 5. **Do not** silently change the design choices in this doc. If you
    need to, write the new decision into this file with a note explaining
    why — don't just diverge.
+
+### Current state (as of last commit on `resolution_change`)
+
+**DONE** (Stage 3a + outro + video):
+- `ui_coords` module + `PolyPage::UIModeScope` infra (Stages 1, 2).
+- Frontend / menus / loading / pause / score wrapped in framed scope.
+- Background image (`ge_show_back_image`) always renders framed (with
+  black-clear of bars), with viewport snapshot/restore around the blit
+  so it doesn't depend on whoever set s_vp_* last.
+- Frontend transitions (wipe / iris) framed.
+- Kibble particles auto-clip to framed area via scissor.
+- Outro (credits, wireframe sequence) framed via two-level viewport,
+  open scissor, per-frame `ge_clear`, and `CLAMP_TO_EDGE` on textures.
+- Intro / cutscene videos aspect-fit into framed area.
+- `ge_clear` ignores scissor so it wipes the full FBO including bars.
+- `ge_video_draw_and_swap` snapshots/restores scissor.
+- `OpenDisplay` clears the freshly-allocated scene FBO before the
+  first present so no flicker from uninitialised GPU memory.
+
+**NEXT** (in order):
+- Stage 3b — MSG / cinematic bars (small).
+- Stage 3c — In-game HUD with per-element anchors (radar=`RIGHT_TOP`,
+  ammo=`LEFT_BOTTOM` etc.). This is where the visible HUD pillarbox
+  in [`issues.md`](issues.md) actually goes away.
+- Stage 3d — Debug text / primitives.
+- Stage 3e — 3D-attached HUD (HP bars over heads).
+- Stage 4 — Black bars: already incidentally resolved, no work needed.
+- Stage 5 — Mouse picking inverse helper.
+- Stage 6 — Docs cleanup.
+
+**Out-of-scope follow-ups** in [`issues.md`](issues.md):
+- Fish-eye distortion at extreme aspect ratios (e.g. 1920×480) —
+  3D world only, low priority.
+- Wibble amplitude scaling, render-time AA upgrade, `RealDisplay*`
+  rename, `s_work_screen_buf` audit, focus-callback linker fix,
+  split UI from scene FBO.
 "
