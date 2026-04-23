@@ -313,40 +313,282 @@ remove it again without asking.
 
 ---
 
-## 🟡 Fish-eye distortion at extreme aspect ratios (e.g. 1920×480)
+## 🟡 Moon disappears on ultra-wide when camera faces it head-on
 
 ### Symptom
 
-At very wide-than-tall aspect ratios (user reproduced at 1920×480 — DAR
-4:1, 3× wider than 4:3), the 3D world shows a strong fish-eye / stretch
-distortion at the screen edges. The closer to the left/right edge, the
-more the geometry warps and stretches outward.
+On ultra-wide aspects (reproduced at 1920×480, DAR 4:1) the moon in
+the car mission disappears when the player is looking directly at it.
+Turning the camera slightly off-axis makes it reappear. On 4:3 the
+moon is always drawn. Seems to depend on camera yaw alignment with
+the moon direction, not distance / time.
 
-### Root cause (suspected)
+### Likely cause (to investigate)
 
-We use Hor+ FOV for widescreen — `POLY_screen_width = DisplayHeight ×
-RealW/RealH` extends the horizontal field. At DAR 4:1 the horizontal
-FOV becomes ~4× the original, well past where the planar projection
-stops looking natural; far-off-axis rays accumulate the standard
-rectilinear perspective stretch (a known property of any non-fisheye
-projection at very wide FOVs).
+Probably frustum or horizontal-angle culling in the sky/moon draw
+path using an aspect-dependent threshold that goes wrong when the
+horizontal FOV becomes large (~150° at 1920×480). Candidates:
+- sky / moon billboard visibility check that compares camera
+  direction against a fixed cone;
+- a `POLY_screen_width` / `POLY_screen_mid_x` bounds check where an
+  off-screen early-out triggers incorrectly;
+- moon placed at a Z near the far plane where
+  perspective / clip flags misbehave.
 
-Also possible: the camera matrix `MATRIX_skew` baking in the wide
-aspect produces correct math but visually unpleasant results at these
-extremes.
+Not touched yet — recorded for later. Reproduce at 1920×480 in the
+car mission, aim camera at moon, slowly yaw to find disappear /
+reappear boundary, then check the relevant sky / moon draw code for
+an aspect-dependent check.
 
-### Fix ideas (when it's time)
+---
 
-- Cap the effective horizontal FOV at some sane angle (e.g. 110°) and
-  letterbox the rest with bars — sacrifices "fill the screen" for
-  visual sanity at extreme widths.
-- Switch to a slight barrel/cylindrical projection above a threshold
-  aspect ratio — keeps the screen filled but reduces edge stretch.
-  More invasive.
+## 🟡 Fish-eye at wide aspect ratios — inherent to rectilinear projection
 
-Low priority — most users run 16:9 / 16:10, where the effect is
-imperceptible. Worth fixing before 1.0 if convenient, otherwise
-post-1.0.
+### Symptom
+
+At wide-than-tall aspect ratios the 3D world shows fish-eye / stretch
+distortion at the screen edges. Mild at 16:9, noticeable at 21:9,
+strong at 32:9, extreme at 4:1 (e.g. 1920×480). Geometry near the
+left/right edges warps outward.
+
+### Root cause (confirmed)
+
+Not a bug — it's a fundamental property of any rectilinear (planar)
+perspective projection. The game uses rectilinear projection
+(`POLY_perspective` in [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)).
+
+Horizontal half-FOV grows as `atan(W/H)` where `W = POLY_screen_width,
+H = POLY_screen_height`. Our Hor+ sets `POLY_screen_width = DisplayHeight ×
+RealW/RealH`:
+
+| Screen   | Half-FOV horiz | Full-FOV horiz | Appearance |
+|----------|----------------|----------------|------------|
+| 4:3      | 53.1° (atan 4/3)   | 106.3°     | Original  |
+| 16:10    | 58.0°              | 116.0°     | Fine      |
+| 16:9     | 60.6°              | 121.3°     | Slight    |
+| 21:9     | 66.8°              | 133.6°     | Noticeable|
+| 32:9     | 74.3°              | 148.5°     | Strong    |
+| 4:1      | 76.0°              | 152.0°     | Extreme   |
+
+Rectilinear projection maps each angular degree at off-axis angles to
+progressively more pixels — at the screen edge of a 120° horizontal
+FOV, 1° of world angle covers twice as many pixels as 1° near the
+centre. No bug: this is `tan()` stretching and is unavoidable without
+leaving rectilinear projection.
+
+Vertical FOV is a constant 90° (45° half, `atan(ZCLIP/ZCLIP) = atan(1)`)
+since `MATRIX_skew` only skews X — `POLY_screen_height` doesn't enter
+the vertical FOV.
+
+### Fix options (pick one, none is free)
+
+1. **Cap horizontal FOV at some cutoff, pillarbox beyond.** E.g. above
+   21:9 stop widening `POLY_screen_width` and add black bars on the
+   left/right. Keeps the cap on 4:3 and everything up to the cutoff
+   unchanged; at ultra-wide the player loses some horizontal screen
+   coverage but the image stays natural. **Does not affect 4:3.**
+2. **Cap horizontal FOV at 16:9, always pillarbox beyond.** Same idea
+   but a tighter cutoff — protects the "looks natural" threshold
+   aggressively at the cost of more unused screen on 21:9+.
+3. **Cylindrical / barrel projection above a threshold.** More
+   invasive — needs a tessellated full-screen shader pass or camera
+   rework. Keeps the screen filled at extreme widths without
+   fish-eye. Post-1.0 scope.
+
+### Recommended approach
+
+**Option 1**, cap at some value between 16:9 and 21:9. Preserves the
+default 4:3 and 16:9 experience exactly. Ultra-wide displays
+(≥ 21:9) get sane-looking 16:9-equivalent content centered with
+pillar bars.
+
+Implementation is in one place: the `POLY_screen_width =
+DisplayHeight × real_aspect` line in
+[`poly.cpp:153`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L153),
+plus adding pillarbox bars around the viewport. Already have the
+viewport infra (`g_viewData.dwX / dwWidth` in `POLY_begin`).
+
+---
+
+## 🔴 Tall-aspect zoom / character too large — Hor+ failure on portrait
+
+### Symptom
+
+On screens with `height > width` (e.g. a 700×1500 portrait window),
+the player character appears zoomed in — occupies ~half the screen
+width. Behind/ahead of the player you see very little world (as if
+the camera was pushed towards them). A landscape 4:3 view at
+equivalent total pixel count shows the character at normal size with
+much more world visible around. Direction of the bug matches the
+screenshot: left panel = tall window, right panel = 4:3 (default).
+
+### Root cause
+
+Same Hor+ formula, but running in the *wrong* direction:
+
+`POLY_screen_width = DisplayHeight × RealW/RealH`.
+
+When `RealH > RealW` (portrait), this collapses
+`POLY_screen_width < DisplayWidth` → horizontal half-FOV =
+`atan(W/H)` shrinks → narrow horizontal FOV.
+
+- 4:3 (640×480): half-FOV = atan(4/3) = 53.1°
+- portrait 1:2 (e.g. 540×1080): half-FOV = atan(0.5) = 26.6°
+- portrait 1:4 (e.g. 480×1920): half-FOV = atan(0.25) = 14.0°
+
+Meanwhile vertical FOV stays locked at 90°. The view becomes
+"telescope through a vertical slit": narrow horizontally, tall
+vertically. Combined with `s_YScale = RealH / 480` — which on a tall
+screen *is* the large dimension — every world unit maps to
+`RealH/(2×ZCLIP)` real pixels. On a tall screen that's a large
+number, hence the character pixels up to huge size.
+
+### Fix approach — Vert+ (vertical FOV expansion on portrait)
+
+Add a symmetric branch so portrait screens extend vertical FOV
+instead of narrowing horizontal:
+
+```cpp
+const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+const float base_aspect = float(DisplayWidth) / float(DisplayHeight);  // 4/3
+
+if (real_aspect >= base_aspect) {
+    // Landscape / square+: Hor+ (current behavior).
+    POLY_screen_width  = float(DisplayHeight) * real_aspect;
+    POLY_screen_height = float(DisplayHeight);
+} else {
+    // Portrait: Vert+ — keep horizontal span at 4:3, extend vertical.
+    POLY_screen_width  = float(DisplayWidth);
+    POLY_screen_height = float(DisplayWidth) / real_aspect;
+}
+```
+
+And change [`game.cpp`](../../new_game/src/game/game.cpp) so scaling
+uses `RealH / POLY_screen_height` (not the hardcoded `RealH / 480`)
+— on landscape this is identical, on portrait it correctly shrinks.
+
+### What this fixes and what it doesn't
+
+- **Fixes**: character at normal size relative to vertical FOV on
+  portrait. More world visible vertically (extra sky/ground) instead
+  of horizontal zoom-in.
+- **Doesn't fix**: the horizontal FOV at very extreme portrait
+  (e.g. 9:21) is still narrow by choice — can't widen both axes
+  simultaneously without non-uniform pixels. Vertical FOV at
+  extreme portrait goes past 120°+ which itself starts to show
+  (vertical) fish-eye. Same fundamental rectilinear-projection
+  limitation as the horizontal fish-eye case.
+
+### Does not break 4:3
+
+At `real_aspect = 4/3` exactly, the `>=` branch runs and produces
+`POLY_screen_width = 640, POLY_screen_height = 480`, identical to
+the current code. `RealH / POLY_screen_height = RealH / 480`, same
+scale. **640×480 default completely unchanged.**
+
+---
+
+## 🔴 Sprite / rain / line width scales with aspect ratio
+
+### Symptom (confirmed)
+
+On wide aspects (RealW/RealH > 4:3): light-source glow sprites
+(lamps, police bar lights, flares) and rain droplets are rendered
+**wider** than they should be, scaling with `real_aspect / base_aspect`.
+On narrow aspects (portrait): the inverse — droplets and light
+spots appear narrower/smaller. Behaves identically on width AND
+height components of the sprite — doesn't stretch non-uniformly,
+just scales larger/smaller.
+
+### Root cause
+
+[`POLY_world_length_to_screen`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L1398)
+uses `POLY_screen_mul_x`:
+
+```cpp
+float POLY_world_length_to_screen(float world_length)
+{
+    float view_length = world_length * POLY_cam_over_view_dist;
+    float screen_length = view_length * POLY_screen_mul_x;   // ← BUG
+    return screen_length;
+}
+```
+
+`POLY_screen_mul_x = POLY_screen_width/2/ZCLIP`, and after our Hor+
+fix `POLY_screen_width` scales with aspect. So this "world length →
+virtual screen pixels" helper returns aspect-dependent pixel counts
+— wider aspect → bigger result → larger sprites / rain.
+
+At 4:3 the function returned `640/2/ZCLIP = 320/ZCLIP`; that was
+the original game's design-time constant. It's meant to be an
+*aspect-independent* scalar because it's used symmetrically for both
+X and Y sprite extents, and for line widths that rotate freely.
+
+### Every call site affected (confirmed list)
+
+The helper is used by every billboard / sprite size computation in
+the world render path:
+
+- **Sprites** —
+  [`sprite.cpp:32, 126, 222, 320`](../../new_game/src/engine/graphics/geometry/sprite.cpp):
+  `SPRITE_draw`, `SPRITE_draw_tex`, `SPRITE_draw_tex_distorted`,
+  `SPRITE_draw_rotated`. Covers light-source glows (via
+  `SPRITE_draw_rotated` in `BLOOM_draw`), pyro blobs, any world-
+  space billboard sprite.
+- **Shape primitives** —
+  [`shape.cpp:697, 701, 867, 1222`](../../new_game/src/engine/graphics/geometry/shape.cpp):
+  `SHAPE_droplet` (rain/drips), `SHAPE_smoke_trail`, other world-
+  aligned quads.
+- **Pyro** —
+  [`pyro.cpp:1155`](../../new_game/src/effects/combat/pyro.cpp): fire
+  sprites.
+- **HUD weapon crosshair (3D ring)** —
+  [`panel.cpp:302-303, 347-348`](../../new_game/src/ui/hud/panel.cpp):
+  the accuracy reticule drawn around the player's weapon target.
+  The rings widen/shrink with aspect along with everything else.
+
+Plus two other uses of `POLY_screen_mul_x` as a generic "world width →
+screen pixels" scalar with the same bug:
+
+- **Line widths** —
+  [`poly.cpp:1502-1503`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L1502)
+  (`POLY_add_line_tex_uv`) and
+  [`poly.cpp:1601-1602`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L1601)
+  (`POLY_add_line`). These compute the half-width of 3D billboard
+  lines — used for bullet trails, laser beams, muzzle lines, shot
+  traces, spark trails, some HUD indicators. All of these get
+  fatter on widescreen, thinner on portrait.
+- **Sphere-to-screen-circle** —
+  [`poly.cpp:2205`](../../new_game/src/engine/graphics/pipeline/poly.cpp#L2205)
+  (`POLY_get_sphere_circle`). Used in the debug/dev light editor for
+  hit-testing mouse clicks on light sources; impacts mouse-over
+  radius matching, not gameplay visuals, but still wrong.
+
+### Fix
+
+Replace the aspect-dependent `POLY_screen_mul_x` with the 4:3
+design-time constant in these three spots:
+
+```cpp
+// baseline multiplier: always the 4:3 design-time horizontal mul_x,
+// so sprite / line / droplet sizes don't scale with screen aspect
+constexpr float POLY_screen_mul_x_baseline =
+    float(DisplayWidth) * 0.5f / POLY_ZCLIP_PLANE;
+```
+
+Use this constant (instead of `POLY_screen_mul_x`) in:
+- `POLY_world_length_to_screen` at `poly.cpp:1401`
+- `POLY_add_line` / `POLY_add_line_tex_uv` width calc
+  (`poly.cpp:1502-1503, 1601-1602`)
+- `POLY_get_sphere_circle` radius calc (`poly.cpp:2205`)
+
+The perspective-projection uses of `POLY_screen_mul_x` (lines 364,
+414, 440, 506) must stay aspect-aware — do not touch those.
+
+### Does not break 4:3
+
+At 4:3, `POLY_screen_mul_x = 320/ZCLIP = POLY_screen_mul_x_baseline`.
+Identical value, no behavior change on the default build.
 
 ---
 

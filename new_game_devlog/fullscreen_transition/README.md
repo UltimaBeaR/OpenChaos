@@ -55,8 +55,18 @@ Remaining work — see [`issues.md`](issues.md):
 - `s_work_screen_buf` hardcoded to 640×480 bytes, needs audit.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
 - Focus callback cursor show/hide breaks linker (low priority, defensive code).
-- Fish-eye / edge stretch in 3D world at extreme aspect ratios
-  (e.g. 1920×480). Low priority — most users on 16:9 / 16:10.
+- **Tall-aspect zoom (portrait windows)** — Hor+ formula narrows
+  horizontal FOV on `RealH > RealW`, making the character huge and
+  crushing the visible world around it. Needs a Vert+ branch.
+- **Sprite / rain / line widths scale with aspect** — wider screen
+  makes light glows, rain drops, bullet trails, crosshair rings wider;
+  narrower screen makes them thinner. All go through
+  `POLY_world_length_to_screen` (plus a few direct `POLY_screen_mul_x`
+  users) which is aspect-dependent instead of fixed at the 4:3
+  design-time value.
+- Fish-eye / edge stretch in 3D world at wide aspect ratios. Inherent
+  to rectilinear projection; mild at 16:9, strong at 21:9+. Fix: cap
+  horizontal FOV at some aspect and pillarbox beyond.
 
 ## Files in this folder
 

@@ -54,6 +54,18 @@ static UBYTE s_ClipMask;
 // uc_orig: STD_CLIPMASK (fallen/DDEngine/Source/poly.cpp)
 #define STD_CLIPMASK (POLY_CLIP_LEFT | POLY_CLIP_RIGHT | POLY_CLIP_TOP | POLY_CLIP_BOTTOM | POLY_CLIP_NEAR)
 
+// Aspect-independent horizontal multiplier for "world length → virtual screen
+// pixels" helpers (sprite sizes, billboard-line widths, sphere radii).
+// Pinned at the 4:3 design-time value of POLY_screen_mul_x. The live
+// POLY_screen_mul_x scales with aspect ratio via Hor+ (POLY_screen_width
+// widens on widescreen), which is correct for perspective projection but
+// wrong for symmetric sprite/line widths — using it there makes sprites,
+// rain drops and billboard line widths grow on widescreen and shrink on
+// portrait. Equal to POLY_screen_mul_x at 4:3, so the default build is
+// unchanged.
+static constexpr float POLY_SPRITE_SCALE_BASELINE =
+    float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE;
+
 // uc_orig: POLY_SWAP (fallen/DDEngine/Source/poly.cpp)
 // Swaps two POLY_Point pointers.
 #define POLY_SWAP(pp1, pp2)   \
@@ -1398,7 +1410,7 @@ void POLY_add_triangle(POLY_Point* pp[4], SLONG page, SLONG backface_cull, SLONG
 float POLY_world_length_to_screen(float world_length)
 {
     float view_length = world_length * POLY_cam_over_view_dist;
-    float screen_length = view_length * POLY_screen_mul_x;
+    float screen_length = view_length * POLY_SPRITE_SCALE_BASELINE;
 
     return screen_length;
 }
@@ -1499,8 +1511,8 @@ void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float wi
     vw1 = width1 * POLY_cam_over_view_dist;
     vw2 = width2 * POLY_cam_over_view_dist;
 
-    sw1 = POLY_screen_mul_x * vw1 * p1->Z;
-    sw2 = POLY_screen_mul_x * vw2 * p2->Z;
+    sw1 = POLY_SPRITE_SCALE_BASELINE * vw1 * p1->Z;
+    sw2 = POLY_SPRITE_SCALE_BASELINE * vw2 * p2->Z;
 
     dx1 = -dy * sw1;
     dy1 = +dx * sw1;
@@ -1598,8 +1610,8 @@ void POLY_add_line(POLY_Point* p1, POLY_Point* p2, float width1, float width2, S
     vw1 = width1 * POLY_cam_over_view_dist;
     vw2 = width2 * POLY_cam_over_view_dist;
 
-    sw1 = POLY_screen_mul_x * vw1 * p1->Z;
-    sw2 = POLY_screen_mul_x * vw2 * p2->Z;
+    sw1 = POLY_SPRITE_SCALE_BASELINE * vw1 * p1->Z;
+    sw2 = POLY_SPRITE_SCALE_BASELINE * vw2 * p2->Z;
 
     dx1 = -dy * sw1;
     dy1 = +dx * sw1;
@@ -2202,7 +2214,7 @@ SLONG POLY_get_sphere_circle(
 
     if (pp.IsValid()) {
         vw = world_radius * POLY_cam_over_view_dist;
-        width = vw * pp.Z * POLY_screen_mul_x;
+        width = vw * pp.Z * POLY_SPRITE_SCALE_BASELINE;
 
         *screen_x = SLONG(pp.X);
         *screen_y = SLONG(pp.Y);
