@@ -24,8 +24,11 @@ Render scale + scene FBO + composition pass are implemented (see
 
 - **Split UI from main render.** HUD / menu / overlay / text / console
   currently draw **into** the scaled scene FBO, so at scale < 1 they
-  share the upscale blur and at any scale FXAA softens text. Fix: draw
-  the UI **after** the composition pass, directly into the default
+  share the upscale blur and at any scale FXAA softens text.
+  **Confirmed reproducing on the small debug font — text gets smeared
+  into unreadable blur once the composition FXAA pass runs** (noticed
+  while reviewing OC_AA_ENABLE = true in-game). Fix: draw the UI
+  **after** the composition pass, directly into the default
   framebuffer at native resolution. Scene still goes scene-FBO → FXAA +
   upscale → default FB; UI then draws on top, untouched. UI coord
   system and draw APIs stay as they are — only execution order changes.

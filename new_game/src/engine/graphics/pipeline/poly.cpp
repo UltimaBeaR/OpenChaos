@@ -163,15 +163,23 @@ void POLY_camera_set(
     // geometry. Vertical FOV is kept at its designed-for-640x480 value —
     // i.e. "Hor+" scaling. At 4:3 (640/480) this reduces to DisplayWidth.
     //
-    // Beyond OC_FOV_CAP_ASPECT the effective aspect is clamped so the 3D
-    // scene renders into a capped-width centred viewport; the remaining
-    // real-framebuffer columns are blacked out as pillarbox bars by
-    // AENG_clear_viewport. This avoids rectilinear fish-eye at ultra-wide
-    // FOVs (e.g. 21:9 / 32:9). At 16:9 and narrower the cap never triggers.
+    // The effective aspect is clamped to [OC_FOV_MIN_ASPECT,
+    // OC_FOV_CAP_ASPECT]:
+    //   * aspect > CAP (ultra-wide): scene rendered at CAP inside a
+    //     centred region, left+right pillarbox bars. Avoids
+    //     rectilinear fish-eye at very wide FOVs.
+    //   * aspect < MIN (portrait / tall): scene rendered at MIN inside
+    //     a centred region, top+bottom letterbox bars. Avoids
+    //     "character huge" at narrow horizontal FOVs.
+    //   * aspect in between: scene fills the screen, no bars.
+    // AENG_clear_viewport paints the bars black after the per-frame
+    // clear; the scale / viewport math here puts the rendered region in
+    // the right place.
     const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
-    const float effective_aspect = (real_aspect > float(OC_FOV_CAP_ASPECT))
-        ? float(OC_FOV_CAP_ASPECT)
-        : real_aspect;
+    const float effective_aspect =
+        (real_aspect > float(OC_FOV_CAP_ASPECT))  ? float(OC_FOV_CAP_ASPECT) :
+        (real_aspect < float(OC_FOV_MIN_ASPECT))  ? float(OC_FOV_MIN_ASPECT) :
+                                                    real_aspect;
     POLY_screen_width = float(DisplayHeight) * effective_aspect;
     POLY_screen_clip_left = 0.0F;
     POLY_screen_clip_right = POLY_screen_width;
@@ -340,31 +348,56 @@ void POLY_camera_set(
     memset(&g_viewData, 0, sizeof(GEViewport));
     float fMyMulX = POLY_screen_mul_x * POLY_ZCLIP_PLANE;
     float fMyMulY = POLY_screen_mul_y * POLY_ZCLIP_PLANE;
-    g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
-    g_dw3DStuffY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
-    g_viewData.dwWidth = fMyMulX * PolyPage::s_XScale * 2;
-    g_viewData.dwHeight = fMyMulY * PolyPage::s_YScale * 2;
-    // Centre the 3D viewport horizontally so a capped-aspect render has
-    // symmetric pillarbox bars on both sides. When no cap is active
-    // (dwWidth == RealDisplayWidth) this reduces to 0 — identical to the
-    // pre-cap behaviour.
-    g_viewData.dwX = (float(RealDisplayWidth) - g_viewData.dwWidth) * 0.5F;
-    g_viewData.dwY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
 
-    // Shift POLY-path vertex output by the viewport's X offset. POLY emits
-    // pt->X in [0..POLY_screen_width], which — after PolyPage::AddFan
-    // scales by s_XScale — lands in [0..dwWidth] real pixels. The MM path
-    // (figure.cpp characters) already bakes (dwX + dwWidth/2) into its
-    // per-bone matrix, producing pixels in [dwX..dwX+dwWidth]. The shared
-    // tl_vert.glsl shader maps `(a_position.x - u_viewport.x) / dwWidth`
-    // to NDC — so it needs both paths to use the same origin. Before the
-    // pillarbox cap, dwX was always 0 and the mismatch didn't show. Adding
-    // dwX as the PolyPage offset shifts the environment path into the
-    // same coord space as characters. s_YOffset stays untouched — POLY's
-    // Y path already folds splitscreen / letterbox offsets into
-    // POLY_screen_mid_y directly, so its output is already in
-    // [dwY..dwY+dwHeight].
-    PolyPage::s_XOffset = g_viewData.dwX;
+    // Uniform "fit" scale — shrink by whichever axis is limiting so the
+    // virtual render rect (POLY_screen_width × DisplayHeight) fits inside
+    // the real framebuffer without overshooting. Overrides the
+    // mode-level scale set by PolyPage::SetScaling in game_mode_changed
+    // (RealH / DisplayHeight), which is correct for aspects in
+    // [MIN, CAP] but would overshoot the screen on letterboxed
+    // (portrait) aspects. For aspects in [MIN, CAP] both terms are
+    // equal and this reduces to the pre-change scale.
+    {
+        const float scale_w_fit = float(RealDisplayWidth)  / POLY_screen_width;
+        const float scale_h_fit = float(RealDisplayHeight) / float(DisplayHeight);
+        const float fit_scale   = (scale_w_fit < scale_h_fit) ? scale_w_fit : scale_h_fit;
+        PolyPage::s_XScale           = fit_scale;
+        PolyPage::s_YScale           = fit_scale;
+        not_private_smiley_xscale    = fit_scale;
+        not_private_smiley_yscale    = fit_scale;
+    }
+
+    // Centre the rendered rectangle inside the real framebuffer. One of
+    // the two offsets is always 0 (whichever axis the fit scale is
+    // limited by). On aspects inside [MIN, CAP] both are 0 — rendered
+    // rect fills the screen, no bars.
+    const float render_w = POLY_screen_width * PolyPage::s_XScale;
+    const float render_h = float(DisplayHeight) * PolyPage::s_YScale;
+    const float base_x = (float(RealDisplayWidth)  - render_w) * 0.5F;
+    const float base_y = (float(RealDisplayHeight) - render_h) * 0.5F;
+
+    g_viewData.dwWidth  = fMyMulX * PolyPage::s_XScale * 2;
+    g_viewData.dwHeight = fMyMulY * PolyPage::s_YScale * 2;
+    g_viewData.dwX = base_x;
+    g_viewData.dwY = base_y + (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
+
+    // Exported to figure.cpp's MM (character) matrix builder so it uses
+    // the same viewport bounds as the POLY pipeline.
+    g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
+    g_dw3DStuffY      = g_viewData.dwY;
+
+    // Shift POLY-path vertex output by the pillarbox / letterbox origin
+    // so it lands in the same pixel-space coordinate system as the MM
+    // path (figure.cpp bakes base_x + half-dwWidth into per-bone
+    // matrices). The tl_vert.glsl shader maps
+    // `(a_position.x - u_viewport.x) / dwWidth` to NDC, so both paths
+    // must emit vertices in [dwX..dwX+dwWidth]. Before the aspect
+    // clamps both base_x and base_y were 0 and the shift was a no-op.
+    // Note: POLY's Y path already folds splitscreen / cutscene-letterbox
+    // offsets into POLY_screen_mid_y; base_y is an *additional* shift
+    // for the aspect-floor letterbox only.
+    PolyPage::s_XOffset = base_x;
+    PolyPage::s_YOffset = base_y;
     g_viewData.dvClipX = -1.0f;
     g_viewData.dvClipY = 1.0;
     g_viewData.dvClipWidth = 2.0f;

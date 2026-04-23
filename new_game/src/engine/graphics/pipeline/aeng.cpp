@@ -8453,24 +8453,43 @@ void AENG_clear_viewport()
         ge_clear(true, true);
     }
 
-    // Paint black pillarbox bars when the 3D horizontal FOV is capped
-    // (real aspect > OC_FOV_CAP_ASPECT). POLY_begin centres the 3D
-    // viewport at the cap-aspect width; the remaining framebuffer
-    // columns are left holding the clear colour otherwise — would show
-    // sky-colour side bars on outdoor scenes. Compute render_x / render_w
-    // with the exact same truncation as POLY_begin's viewport so the bars
-    // abut the 3D viewport with no 1-pixel gap on odd-width remainders.
+    // Paint black aspect bars — pillarbox (left/right) when the real
+    // aspect exceeds OC_FOV_CAP_ASPECT, letterbox (top/bottom) when it
+    // falls below OC_FOV_MIN_ASPECT. POLY_begin centres the 3D viewport
+    // at the clamped aspect; the framebuffer area outside it would
+    // otherwise hold the sky / fog clear colour on outdoor scenes.
+    // Compute render region with the same "fit to smaller axis" formula
+    // used there so the bars abut the 3D viewport with no 1-pixel gap.
     {
         const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
-        if (real_aspect > float(OC_FOV_CAP_ASPECT)) {
-            const SLONG render_w = SLONG(float(OC_FOV_CAP_ASPECT) * float(RealDisplayHeight));
-            const SLONG render_x = (RealDisplayWidth - render_w) / 2;
+        const bool  pillarbox = (real_aspect > float(OC_FOV_CAP_ASPECT));
+        const bool  letterbox = (real_aspect < float(OC_FOV_MIN_ASPECT));
+
+        if (pillarbox || letterbox) {
+            const float eff_aspect =
+                pillarbox ? float(OC_FOV_CAP_ASPECT) : float(OC_FOV_MIN_ASPECT);
+            const float fit_w = float(RealDisplayWidth)  / eff_aspect;
+            const float fit_h = float(RealDisplayHeight);
+            const float fit_scale = (fit_w < fit_h) ? (fit_w / float(DisplayHeight))
+                                                    : (fit_h / float(DisplayHeight));
+            const SLONG render_w = SLONG(float(DisplayHeight) * eff_aspect * fit_scale);
+            const SLONG render_h = SLONG(float(DisplayHeight) * fit_scale);
+            const SLONG render_x = (RealDisplayWidth  - render_w) / 2;
+            const SLONG render_y = (RealDisplayHeight - render_h) / 2;
             const SLONG right_x  = render_x + render_w;
+            const SLONG bottom_y = render_y + render_h;
+
             if (render_x > 0) {
                 ge_fill_rect(0, 0, render_x, RealDisplayHeight, 0, 0, 0);
             }
             if (right_x < RealDisplayWidth) {
                 ge_fill_rect(right_x, 0, RealDisplayWidth - right_x, RealDisplayHeight, 0, 0, 0);
+            }
+            if (render_y > 0) {
+                ge_fill_rect(0, 0, RealDisplayWidth, render_y, 0, 0, 0);
+            }
+            if (bottom_y < RealDisplayHeight) {
+                ge_fill_rect(0, bottom_y, RealDisplayWidth, RealDisplayHeight - bottom_y, 0, 0, 0);
             }
         }
     }

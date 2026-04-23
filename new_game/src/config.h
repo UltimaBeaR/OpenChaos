@@ -55,3 +55,14 @@
 // (cap never triggers up to 16:9); 21:9 and wider users get pillarboxed
 // 16:9 content instead of stretched fish-eye edges.
 #define OC_FOV_CAP_ASPECT (18.0F / 9.0F)
+
+// Minimum horizontal aspect ratio the 3D scene is rendered at. Screens
+// narrower (taller) than this get letterboxed (black bars top+bottom)
+// with the scene centred at the floor aspect. Symmetric to
+// OC_FOV_CAP_ASPECT. Purpose: avoid "character looks huge" on portrait
+// / tall windows — rectilinear projection with isotropic pixels forces
+// a very narrow horizontal FOV at those aspects (atan(W/H) ≈ 14° at
+// 1:4 aspect vs 53° at 4:3), which visually reads as extreme zoom.
+// Default 4:3 — 5:4 / 16:10 / 16:9 never trigger; portrait or square
+// screens fall back to 4:3 centred inside the window.
+#define OC_FOV_MIN_ASPECT (2.0F / 3.0F)
