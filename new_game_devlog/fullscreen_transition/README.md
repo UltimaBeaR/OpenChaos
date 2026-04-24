@@ -141,12 +141,33 @@ Already done:
   ~1-second input grace at the start of the dialogue so a held
   jump/punch/select button doesn't dismiss it instantly — see
   [GAMEPLAY_CHANGES.md](../../GAMEPLAY_CHANGES.md) "Туториал".
+- **HUD bottom-row anchors.** Radar / health / weapon / ammo / crime
+  rate / beacons / grenade / panel mission timer
+  (`PANEL_draw_buffered`) / weapon-switch popup (`PANEL_inventory`) are
+  wrapped in `UIModeScope(LEFT_BOTTOM)` — flush with FBO bottom-left
+  on any aspect. Speech / radio / on-screen-message stack (the
+  `PLT_X/PLT_Y` block) is wrapped in `UIModeScope(CENTER_BOTTOM)` —
+  centres between the radar and the mirrored right-side empty gap with
+  equal rubber padding on both sides (algebraic identity: msg centre
+  and gap centre both equal `ScreenW/2 + 91 × g_frame_scale`). On 4:3
+  pixel-identical to the original; on portrait the full layout scales
+  uniformly by `g_frame_scale = ScreenW/640`; on widescreen radar /
+  empty stay original-sized at the corners, msg slides to the gap
+  centre. See `PANEL_inventory` / `PANEL_draw_buffered` / `PANEL_last`
+  in [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp). Debug flags
+  `OC_DEBUG_COMPOSITION_BARS_RED` and `OC_DEBUG_SOUND_DISABLED` added
+  in [`config.h`](../../new_game/src/config.h) to aid layout / mute
+  debugging (ternary runtime check, not `#if` — preprocessor treats
+  C++ `true` / `false` as zero).
 
 Remaining work — see [`issues.md`](issues.md):
-- **In-game HUD** still pillarboxed in the framed centre — needs
-  per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM` etc.).
-  Same `PolyPage::push_ui_mode` infra, just call sites left to wrap.
-  This is Stage 3c in the plan.
+- **Other in-game HUD elements still unframed** — top-of-screen mission
+  countdown (`PANEL_draw_timer` at virtual (320, 50) from `eway.cpp`),
+  road-sign flashes, search progress bar, PSX / version debug
+  overlays. Same `PolyPage::push_ui_mode` infra — just call sites left
+  to wrap (mostly `CENTER_TOP`).
+- **Runtime window resize (post-1.0)** — see the dedicated TODO
+  section at the top of [`issues.md`](issues.md).
 - **NIGHT lighting pool overflow at wide/tall FOV (post-1.0).**
   `UBYTE`-indexed 256-slot pool overflows when the view gamut exceeds
   255 lo-res map squares (triggered by wide `OC_FOV_MULTIPLIER` or

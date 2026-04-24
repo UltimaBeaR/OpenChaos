@@ -212,6 +212,13 @@ void PANEL_draw_timer(SLONG time, SLONG x, SLONG y)
 // uc_orig: PANEL_draw_buffered (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_buffered()
 {
+    // Timer text draws at (m_iPanelXPos+171, m_iPanelYPos-118) — inside the
+    // radar panel (upper portion). Must share the radar's LEFT_BOTTOM scope
+    // so g_frame_scale applies uniformly; default scope uses uniform_scale
+    // (ScreenH/480) which oversizes the timer on portrait and lands it in
+    // mid-scene instead of inside the radar.
+    PolyPage::UIModeScope _timer_scope(ui_coords::UIAnchor::LEFT_BOTTOM);
+
     for (int i = 0; i < PANEL_store_upto; i++) {
         float time = PANEL_store[i].time;
 
@@ -1564,6 +1571,14 @@ void PANEL_inventory(Thing* darci, Thing* player)
         return;
     }
 
+    // Weapon-switch popup anchors next to the radar panel (bottom-left).
+    // Must use the same LEFT_BOTTOM scope as PANEL_last's radar block so
+    // the popup scales identically to the radar on non-4:3 FBOs — without
+    // this, default uniform_scale (ScreenH/480) oversized the popup on
+    // portrait where g_frame_scale (min of ScreenH/480, ScreenW/640) is
+    // smaller.
+    PolyPage::UIModeScope _inv_scope(ui_coords::UIAnchor::LEFT_BOTTOM);
+
     PANEL_ADDWEAPON(0);
 
     sel = darci->Genus.Person->SpecialUse;
@@ -1678,6 +1693,17 @@ void PANEL_last(void)
         PANEL_wide_top_is_talking = UC_FALSE;
         PANEL_wide_text[0] = '\000';
     }
+
+    // HUD main panel block: radar / health / weapon / ammo / crime-rate
+    // / timer / grenade / beacons. Anchored at FBO bottom-left so on
+    // widescreen aspects the panel stays pinned to the corner; on
+    // portrait the whole virtual 640×480 layout scales uniformly down by
+    // g_frame_scale to fit the screen width. On 4:3 the frame origin is
+    // (0, 0) and scale = 1 → pixel-identical to the original layout.
+    // Scope closes before PANEL_new_text_process because the message
+    // block uses a different anchor (CENTER_BOTTOM).
+    {
+    PolyPage::UIModeScope _panel_scope(ui_coords::UIAnchor::LEFT_BOTTOM);
 
     // Draw the panel background sprite.
     PANEL_draw_quad(
@@ -2300,9 +2326,20 @@ void PANEL_last(void)
 #undef PLH_SEGS
 #undef PLH_MID_X
 #undef PLH_MID_Y
+    } // end panel LEFT_BOTTOM scope
 
     // Draw floating text messages from NPCs and radio chatter.
     PANEL_new_text_process();
+
+    // Speech / message stack. CENTER_BOTTOM anchor centres the virtual
+    // 640×480 frame horizontally in the FBO; the message block (virtual
+    // x=214..608) then sits exactly midway between the bottom-left HUD
+    // panel and the mirrored right-side gap (algebraic identity: msg
+    // centre vs FBO centre = 91×scale = gap centre vs FBO centre). On
+    // 4:3 frame origin coincides with the panel-scope origin so x1..x2
+    // map to their original virtual coords.
+    {
+    PolyPage::UIModeScope _msg_scope(ui_coords::UIAnchor::CENTER_BOTTOM);
 
     {
 #define PLT_X 214
@@ -2369,6 +2406,7 @@ void PANEL_last(void)
 #undef PLT_X
 #undef PLT_Y
     }
+    } // end msg CENTER_BOTTOM scope
 
     // Draw road sign flashes.
     uint64_t dtime = sdl3_get_ticks() - PANEL_sign_time;

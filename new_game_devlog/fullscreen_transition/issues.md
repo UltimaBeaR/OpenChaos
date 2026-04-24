@@ -17,6 +17,51 @@ before touching any UI rendering. Summary of what landed:
 
 ---
 
+## 🟢 TODO — runtime window resize
+
+**What the user wants.** Window should be resizable by the user at runtime
+(drag the OS resize handles), and the rendering should follow the new
+dimensions immediately — or with a short debounce if instant updates lag.
+Config-file window size (`OC_WINDOWED_WIDTH` / `OC_WINDOWED_HEIGHT`) becomes
+the **initial** size only; after launch the user drags as they like.
+
+**Current state.** Window is fixed at launch. SDL resize events aren't
+wired up. `SetDisplay()` is a stub (see
+[`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md)
+§E4 and §"Post-refactor surface"). `ScreenWidth`/`ScreenHeight` and the
+scene FBO are set once in `OpenDisplay` and never re-evaluated.
+
+**What needs doing.**
+1. Make the SDL window resizable (`SDL_WINDOW_RESIZABLE`).
+2. Listen for `SDL_EVENT_WINDOW_RESIZED` / `PIXEL_SIZE_CHANGED` in
+   `sdl3_bridge.cpp`.
+3. On resize (optionally debounced ~100-200 ms during active drag to
+   avoid per-pixel reallocation), run the same sequence
+   `OpenDisplay` does: recompute FBO dimensions (physical × render-scale,
+   clamped to `[OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]`), destroy + recreate
+   the scene FBO and its colour/depth attachments, update
+   `ScreenWidth`/`ScreenHeight`, call `ui_coords::recompute(...)` so the
+   framed-UI affine picks up the new size, notify `PolyPage::SetScaling`.
+4. Verify: every subsystem that captured FBO dimensions at init must
+   re-read them on resize. Candidates already noted:
+   - `composition.cpp` — `s_scene_w/h` and the colour/depth textures.
+   - Any cached aspect-fit dst rect in the composition blit.
+   - Frontend / menu transitions that snapshot pixel sizes.
+
+**Tradeoffs.**
+- Instant resize is the best UX but causes GPU texture allocation on
+  every resize event while the user drags; on slow GPUs that's
+  noticeable lag. Short debounce (one reallocation per ~150 ms of
+  "resize idle") is the standard fix.
+- Alt approach: keep the FBO at a fixed high resolution and just
+  re-aspect-fit into whatever window size is current — cheap but
+  wastes GPU memory if the user mostly uses a small window.
+
+**Scope.** Post-1.0 nice-to-have. Not blocking release — current
+config-based launch size works. Logged here so it isn't forgotten.
+
+---
+
 ## 🟣 Render scale follow-ups
 
 Render scale + scene FBO + composition pass are implemented (see
@@ -63,11 +108,23 @@ score, loading screen, mission map, transitions, attract mode background
 — all centered in a 4:3 framed region with black bars (Stage 3a in
 [`ui_coords_plan.md`](ui_coords_plan.md)).
 
-**Still pending** — in-game HUD (Stage 3c): health bar, radar/compass,
-weapon indicator, ammo, body-part damage, wristwatch, on-screen messages.
-These need per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM`
-etc.) so they hug the real screen corners, not the framed centre. Same
-infra (`PolyPage::push_ui_mode(anchor)`) — just call sites left to wrap.
+**Resolved for the bottom-row in-game HUD** (radar / health / weapon /
+ammo / beacons / crime-rate / grenade / mission-timer inside panel /
+speech-and-message stack / weapon-switch popup) — see "HUD bottom-row
+anchors" in the Resolved section below. Layout: radar at `LEFT_BOTTOM`
+(flush with FBO left edge), message stack at `CENTER_BOTTOM` (centred
+between radar and the symmetric right gap with equal rubber padding).
+Timer and inventory popup share the radar's `LEFT_BOTTOM` scope so they
+align with it. On 4:3 pixel-identical to original; on portrait everything
+scales uniformly by `g_frame_scale = ScreenW/640` to fit width; on
+widescreen radar/empty stay at the original size pinned to the corners.
+
+**Still pending** — other in-game HUD elements that weren't touched by
+the bottom-row pass: top-of-screen mission countdown (`PANEL_draw_timer`
+at virtual (320, 50) from `eway.cpp`), road-sign flashes, search-mode
+progress bar, "PSX mode" / version-overlay debug text, kibble/toss
+animations anchored top-centre. Same infra — just call sites left to
+wrap with the right anchor (`CENTER_TOP` for most).
 
 ### Symptoms (pre-fix; for in-game HUD still apply)
 
@@ -976,3 +1033,39 @@ pillarbox issue and get fixed together with Option A.
   FBO), then a `UIModeScope(CENTER_CENTER)` wraps the bubble + text so
   they stay framed and don't stretch. Mirrors the existing pattern in
   `GAMEMENU_draw` (fullscreen darken + framed menu text).
+
+- ~~**HUD bottom-row anchors (radar / msg stack / weapon popup / mission
+  timer inside panel).**~~ Pre-fix, everything in `PANEL_last`,
+  `PANEL_inventory`, and `PANEL_draw_buffered` used virtual 640×480
+  coords under the default scope, which scales by
+  `uniform_scale = ScreenHeight/480`. On widescreen the panel drifted
+  away from the FBO corner; on portrait it bloomed way past the radar
+  because the width-limited `g_frame_scale = ScreenW/640` was ignored
+  and the panel got `uniform_scale` (much larger on tall aspects).
+  Fixed in [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp) with a
+  two-anchor layout that matches the user's spec:
+  - **Radar / health / weapon / ammo / crime-rate / beacons / grenade /
+    panel mission timer (`PANEL_draw_buffered`) / weapon-switch popup
+    (`PANEL_inventory`)** → `UIModeScope(LEFT_BOTTOM)`. Flush with the
+    FBO bottom-left corner. `PANEL_inventory` and `PANEL_draw_buffered`
+    are wrapped at the function body since they're called from
+    `OVERLAY_handle` outside `PANEL_last`'s scope.
+  - **Speech / radio / on-screen-message stack** (the `PLT_X/PLT_Y`
+    block inside `PANEL_last`) → `UIModeScope(CENTER_BOTTOM)`.
+
+  **Why the algebra works.** Virtual radar width = 214, empty-right = 32,
+  msg block = 394 (centred at virtual x=411). Under `LEFT_BOTTOM` +
+  `CENTER_BOTTOM` + (notional) `RIGHT_BOTTOM`, on any aspect the msg
+  block's centre and the gap centre between radar-end and empty-start
+  both equal `ScreenW/2 + 91 × g_frame_scale`. Identically centred → one
+  scope pair produces the "rubber-padding equal on both sides" layout
+  the spec asked for, and on 4:3 all three frames collapse to the same
+  origin so the layout is pixel-identical to the original. Verified by
+  user with temporary magenta / green debug rects (removed after
+  confirmation).
+
+  **Still pending** — top-of-screen mission countdown (virtual (320, 50)
+  from `eway.cpp`), road-sign flashes, search bar, PSX / version debug
+  overlays. Same `PolyPage::push_ui_mode` infra — only call sites left
+  to wrap (mostly `CENTER_TOP`). See "Still pending" in the HUD /
+  UI-layout section above.
