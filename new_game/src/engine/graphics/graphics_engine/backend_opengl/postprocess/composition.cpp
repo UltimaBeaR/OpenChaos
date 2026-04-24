@@ -23,8 +23,20 @@ int32_t s_scene_h   = 0;
 GLuint s_program         = 0;
 GLint  s_u_scene         = -1;
 GLint  s_u_inv_scene_sz  = -1;
-GLint  s_u_window_sz     = -1;
+GLint  s_u_dst_sz        = -1;
+GLint  s_u_dst_offset    = -1;
 GLint  s_u_fxaa_enabled  = -1;
+
+// Last composition target rectangle on the real backbuffer (pixels,
+// origin top-left for storage; composition_blit flips to bottom-left for
+// glViewport). Used by input mapping (Stage 6) to translate mouse-event
+// window coordinates back into FBO coordinates.
+int32_t s_last_dst_x = 0;
+int32_t s_last_dst_y = 0;
+int32_t s_last_dst_w = 0;
+int32_t s_last_dst_h = 0;
+int32_t s_last_real_w = 0;
+int32_t s_last_real_h = 0;
 
 // Fullscreen quad VAO/VBO (NDC triangle strip covering [-1, +1]).
 GLuint s_vao = 0;
@@ -63,7 +75,8 @@ bool create_program()
     }
     s_u_scene        = glGetUniformLocation(s_program, "u_scene");
     s_u_inv_scene_sz = glGetUniformLocation(s_program, "u_inv_scene_size");
-    s_u_window_sz    = glGetUniformLocation(s_program, "u_window_size");
+    s_u_dst_sz       = glGetUniformLocation(s_program, "u_dst_size");
+    s_u_dst_offset   = glGetUniformLocation(s_program, "u_dst_offset");
     s_u_fxaa_enabled = glGetUniformLocation(s_program, "u_fxaa_enabled");
     return true;
 }
@@ -157,7 +170,7 @@ void composition_shutdown()
     if (s_program) { glDeleteProgram(s_program);       s_program = 0; }
     if (s_vbo)     { glDeleteBuffers(1, &s_vbo);       s_vbo = 0; }
     if (s_vao)     { glDeleteVertexArrays(1, &s_vao);  s_vao = 0; }
-    s_u_scene = s_u_inv_scene_sz = s_u_window_sz = s_u_fxaa_enabled = -1;
+    s_u_scene = s_u_inv_scene_sz = s_u_dst_sz = s_u_dst_offset = s_u_fxaa_enabled = -1;
 }
 
 bool composition_resize(int32_t scene_w, int32_t scene_h)
@@ -187,6 +200,7 @@ void composition_blit(int32_t window_w, int32_t window_h)
     GLint     prev_active  = 0;
     GLint     prev_vp[4]   = {};
     GLint     prev_sc[4]   = {};
+    GLfloat   prev_clear[4] = {};
     GLboolean prev_sc_on   = glIsEnabled(GL_SCISSOR_TEST);
     GLboolean prev_cull_on = glIsEnabled(GL_CULL_FACE);
     GLboolean prev_depth_on = glIsEnabled(GL_DEPTH_TEST);
@@ -197,12 +211,58 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glGetIntegerv(GL_ACTIVE_TEXTURE,        &prev_active);
     glGetIntegerv(GL_VIEWPORT,               prev_vp);
     glGetIntegerv(GL_SCISSOR_BOX,            prev_sc);
+    glGetFloatv  (GL_COLOR_CLEAR_VALUE,      prev_clear);
 
-    glViewport(0, 0, window_w, window_h);
+    // Aspect-fit the scene FBO into a centred rectangle on the real
+    // backbuffer, leave the leftover area black. This is the only layer
+    // that reconciles "real window size" with "FBO size"; everything else
+    // in the engine sees the FBO as its entire screen.
+    int32_t dst_x = 0, dst_y = 0, dst_w = window_w, dst_h = window_h;
+    if (s_scene_w > 0 && s_scene_h > 0) {
+        const float fbo_aspect  = (float)s_scene_w / (float)s_scene_h;
+        const float real_aspect = (float)window_w  / (float)window_h;
+        if (real_aspect > fbo_aspect) {
+            // Real is wider than FBO → pillarbox (bars on left/right).
+            dst_h = window_h;
+            dst_w = (int32_t)((float)window_h * fbo_aspect + 0.5f);
+            if (dst_w > window_w) dst_w = window_w;
+            dst_x = (window_w - dst_w) / 2;
+            dst_y = 0;
+        } else if (real_aspect < fbo_aspect) {
+            // Real is taller than FBO → letterbox (bars on top/bottom).
+            dst_w = window_w;
+            dst_h = (int32_t)((float)window_w / fbo_aspect + 0.5f);
+            if (dst_h > window_h) dst_h = window_h;
+            dst_x = 0;
+            dst_y = (window_h - dst_h) / 2;
+        }
+    }
+
+    // Publish for input mapping.
+    s_last_dst_x  = dst_x;
+    s_last_dst_y  = dst_y;
+    s_last_dst_w  = dst_w;
+    s_last_dst_h  = dst_h;
+    s_last_real_w = window_w;
+    s_last_real_h = window_h;
+
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     glDisable(GL_CULL_FACE);
+
+    // Clear the real backbuffer to black so outer pillar/letterbox bars
+    // are painted unconditionally — free on modern GPUs, and avoids the
+    // bars carrying stale pixels if the window was resized or a prior
+    // frame used a different dst rect.
+    glViewport(0, 0, window_w, window_h);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Now narrow the viewport to the aspect-fit rect and draw the FBO
+    // into it. The composite shader reads gl_FragCoord in real-backbuffer
+    // pixels and maps it to scene UVs via (u_dst_offset, u_dst_size).
+    glViewport(dst_x, dst_y, dst_w, dst_h);
 
     glUseProgram(s_program);
     glBindVertexArray(s_vao);
@@ -214,7 +274,8 @@ void composition_blit(int32_t window_w, int32_t window_h)
     const float inv_w = (s_scene_w > 0) ? 1.0f / (float)s_scene_w : 0.0f;
     const float inv_h = (s_scene_h > 0) ? 1.0f / (float)s_scene_h : 0.0f;
     glUniform2f(s_u_inv_scene_sz, inv_w, inv_h);
-    glUniform2f(s_u_window_sz,    (float)window_w, (float)window_h);
+    glUniform2f(s_u_dst_sz,       (float)dst_w, (float)dst_h);
+    glUniform2f(s_u_dst_offset,   (float)dst_x, (float)dst_y);
     glUniform1i(s_u_fxaa_enabled, OC_AA_ENABLE ? 1 : 0);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -226,6 +287,7 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glBindTexture(GL_TEXTURE_2D, (GLuint)prev_tex);
     glViewport(prev_vp[0], prev_vp[1], prev_vp[2], prev_vp[3]);
     glScissor(prev_sc[0], prev_sc[1], prev_sc[2], prev_sc[3]);
+    glClearColor(prev_clear[0], prev_clear[1], prev_clear[2], prev_clear[3]);
     if (prev_sc_on)    glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
     if (prev_cull_on)  glEnable(GL_CULL_FACE);    else glDisable(GL_CULL_FACE);
     if (prev_depth_on) glEnable(GL_DEPTH_TEST);   else glDisable(GL_DEPTH_TEST);

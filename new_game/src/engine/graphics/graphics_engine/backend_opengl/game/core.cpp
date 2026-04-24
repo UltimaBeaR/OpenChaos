@@ -2511,17 +2511,44 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     int logical_w = 0, logical_h = 0;
     sdl3_window_get_size(&logical_w, &logical_h);
 
-    // Apply the internal-render-scale knob. The game-visible render target
-    // (scene FBO) is (physical × scale); the composition pass at frame end
-    // upscales it to the physical window size. Game code never sees the
-    // physical size directly — RealDisplayWidth/Height here point to the
-    // scaled render target.
+    // Compute the scene FBO size — the render target the game treats as
+    // "the screen". Two shaping steps:
+    //   1. OC_RENDER_SCALE — scales the physical window size uniformly.
+    //      1.0 = pixel-perfect, lower = cheaper/blurrier.
+    //   2. Aspect clamp to [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] — the
+    //      range the rectilinear 3D projection can render at without
+    //      fish-eye (too wide) or tiny-character (too tall) artefacts.
+    //      When the physical window aspect lies outside this range, the
+    //      FBO is made narrower/shorter than scaled_w/h in one dimension;
+    //      the composition pass paints outer pillar/letterbox bars over
+    //      the leftover real-backbuffer area. The game itself never sees
+    //      those bars — from its point of view the FBO *is* the screen.
     float scale = OC_RENDER_SCALE;
     if (scale < OC_RENDER_SCALE_MIN) scale = OC_RENDER_SCALE_MIN;
     if (scale > 1.0f)                scale = 1.0f;
 
-    int fbo_w = (int)((float)phys_w * scale + 0.5f);
-    int fbo_h = (int)((float)phys_h * scale + 0.5f);
+    int scaled_w = (int)((float)phys_w * scale + 0.5f);
+    int scaled_h = (int)((float)phys_h * scale + 0.5f);
+    if (scaled_w < 1) scaled_w = 1;
+    if (scaled_h < 1) scaled_h = 1;
+
+    const float scaled_aspect = (float)scaled_w / (float)scaled_h;
+    int fbo_w, fbo_h;
+    bool clamped = false;
+    if (scaled_aspect > OC_FOV_CAP_ASPECT) {
+        // Physical aspect is wider than the allowed cap → narrow the FBO.
+        fbo_h = scaled_h;
+        fbo_w = (int)((float)scaled_h * OC_FOV_CAP_ASPECT + 0.5f);
+        clamped = true;
+    } else if (scaled_aspect < OC_FOV_MIN_ASPECT) {
+        // Physical aspect is taller/narrower than the allowed floor → shorten.
+        fbo_w = scaled_w;
+        fbo_h = (int)((float)scaled_w / OC_FOV_MIN_ASPECT + 0.5f);
+        clamped = true;
+    } else {
+        fbo_w = scaled_w;
+        fbo_h = scaled_h;
+    }
     if (fbo_w < 1) fbo_w = 1;
     if (fbo_h < 1) fbo_h = 1;
 
@@ -2531,20 +2558,25 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
 
     // Print the resolved dimensions so it's obvious what the game is
     // actually rendering at vs. what the window presents. Useful when
-    // HiDPI / render-scale math starts behaving unexpectedly.
+    // HiDPI / render-scale / aspect-clamp math starts behaving unexpectedly.
     fprintf(stderr,
             "Display init:\n"
             "  config request:     %dx%d physical px (fullscreen=%d)\n"
             "  window (logical):   %dx%d points\n"
             "  window (physical):  %dx%d pixels  [HiDPI ratio %.2fx]\n"
             "  render scale:       %.2f\n"
-            "  scene FBO (game):   %dx%d pixels\n",
+            "  after scale:        %dx%d pixels  [aspect %.3f]\n"
+            "  aspect clamp:       [%.3f .. %.3f]  %s\n"
+            "  scene FBO (game):   %dx%d pixels  [aspect %.3f]\n",
             OC_WINDOWED_WIDTH, OC_WINDOWED_HEIGHT, OC_FULLSCREEN ? 1 : 0,
             logical_w, logical_h,
             phys_w, phys_h,
             (logical_w > 0) ? (float)phys_w / (float)logical_w : 0.0f,
             (double)scale,
-            fbo_w, fbo_h);
+            scaled_w, scaled_h, (double)scaled_aspect,
+            (double)OC_FOV_MIN_ASPECT, (double)OC_FOV_CAP_ASPECT,
+            clamped ? "APPLIED (outer bars)" : "within range",
+            fbo_w, fbo_h, (double)((float)fbo_w / (float)fbo_h));
 
     s_fullscreen = OC_FULLSCREEN;
 

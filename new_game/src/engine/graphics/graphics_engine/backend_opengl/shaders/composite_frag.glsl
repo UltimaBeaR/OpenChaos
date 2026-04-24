@@ -14,7 +14,8 @@ out vec4 FragColor;
 
 uniform sampler2D u_scene;
 uniform vec2      u_inv_scene_size;  // 1.0 / scene_pixel_size
-uniform vec2      u_window_size;     // output framebuffer size (pixels)
+uniform vec2      u_dst_size;        // blit target rectangle size on the real backbuffer (pixels)
+uniform vec2      u_dst_offset;      // blit target origin on the real backbuffer (bottom-left, pixels)
 uniform int       u_fxaa_enabled;    // 0 = plain upscale, 1 = FXAA + upscale
 
 // FXAA tuning — close to Lottes's "PC Quality 12" defaults.
@@ -95,8 +96,12 @@ vec3 fxaa(vec2 uv)
 
 void main()
 {
-    // Output viewport covers the whole window; scene UVs span [0, 1].
-    vec2 uv = gl_FragCoord.xy / u_window_size;
+    // gl_FragCoord is in real-backbuffer pixels (origin bottom-left). The
+    // composition viewport is the aspect-fit target rect (dst_offset,
+    // dst_size); bring the coordinate into [0, 1] UV space relative to that
+    // rect so the scene texture samples land edge-to-edge regardless of
+    // where the rect sits inside the real backbuffer.
+    vec2 uv = (gl_FragCoord.xy - u_dst_offset) / u_dst_size;
 
     vec3 rgb;
     if (u_fxaa_enabled != 0) {
