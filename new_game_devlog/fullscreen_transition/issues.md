@@ -928,3 +928,28 @@ pillarbox issue and get fixed together with Option A.
   TODO), UI separation from scene FBO (still in scaled FBO, see
   "🟣 Render scale follow-ups"), high-quality AA (current FXAA is a
   stand-in).
+
+- ~~**Cut-scene dialogue box (Darci / other speakers) left-pinned on
+  widescreen.**~~ `PANEL_new_widescreen` draws portraits, text and the
+  cinematic top/bottom black bars in virtual 640×480 coords without any
+  UI-mode scope — default affine anchors virtual (0,0) at FBO (0,0), so
+  the 640-wide dialogue frame landed at the FBO left edge with empty
+  space on the right on 16:9+ aspects. Fixed in
+  [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp) by wrapping the
+  function body in `PolyPage::UIModeScope(CENTER_CENTER)`. Virtual
+  sizes untouched (still 640 wide, text wrap still 600) — only the
+  anchor changes, portraits/text/bars now centre together in the FBO
+  as a framed 4:3 region. Verified by user.
+
+- ~~**Tutorial panel (`EWAY_tutorial_string` speech bubble on early
+  missions) only darkened the FBO's left 4:3 column.**~~ Same
+  root-cause class as the cut-scene dialogue: `PANEL_last` drew
+  `PANEL_darken_screen(640)` + text + bubble in virtual 640 coords with
+  no scope, so the semi-transparent backdrop only covered the left
+  4:3-shaped region. Fixed in
+  [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp) with a split
+  scope: the darken quad + its immediate `POLY_frame_draw` flush run
+  inside `PolyPage::FullscreenUIModeScope` (non-uniform stretch → full
+  FBO), then a `UIModeScope(CENTER_CENTER)` wraps the bubble + text so
+  they stay framed and don't stretch. Mirrors the existing pattern in
+  `GAMEMENU_draw` (fullscreen darken + framed menu text).

@@ -7,15 +7,15 @@
 
 // true  = start fullscreen at the monitor's native resolution.
 // false = start windowed at OC_WINDOWED_WIDTH × OC_WINDOWED_HEIGHT.
-#define OC_FULLSCREEN true
+#define OC_FULLSCREEN false
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
 
-#define OC_WINDOWED_WIDTH  int(1920)
-#define OC_WINDOWED_HEIGHT int(480)
+// #define OC_WINDOWED_WIDTH  int(1920)
+// #define OC_WINDOWED_HEIGHT int(480)
 
-//#define OC_WINDOWED_WIDTH  int(480)
-//#define OC_WINDOWED_HEIGHT int(1920)
+#define OC_WINDOWED_WIDTH  int(480)
+#define OC_WINDOWED_HEIGHT int(1920)
 
 // #define OC_WINDOWED_WIDTH  int(900)
 // #define OC_WINDOWED_HEIGHT int(480)

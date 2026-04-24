@@ -1624,10 +1624,16 @@ void PANEL_last(void)
     bool bPanelIsAtBottomOfScreen = (m_iPanelYPos > 300);
 
     if (EWAY_tutorial_string) {
-        PANEL_darken_screen(640);
-
-        POLY_frame_draw(UC_FALSE, UC_FALSE);
+        // Darken spans whole FBO (fullscreen tutorial backdrop, not framed).
+        {
+            PolyPage::FullscreenUIModeScope _darken_scope;
+            PANEL_darken_screen(640);
+            POLY_frame_draw(UC_FALSE, UC_FALSE);
+        }
         POLY_frame_init(UC_FALSE, UC_FALSE);
+
+        // Text bubble stays framed (4:3 centred) so it doesn't stretch.
+        PolyPage::UIModeScope _text_scope(ui_coords::UIAnchor::CENTER_CENTER);
 
 #define PANEL_TUT_X 16
 #define PANEL_TUT_Y 16

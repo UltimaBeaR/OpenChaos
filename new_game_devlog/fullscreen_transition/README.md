@@ -120,6 +120,21 @@ Already done:
   it, but invariant I5 requires fullscreen effects cover the whole
   FBO, which default uniform affine can't do on non-4:3 FBOs).
   Plan: [`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md).
+- **Cut-scene dialogue centred** — `PANEL_new_widescreen` (Darci /
+  other speakers + cinematic bars) wrapped in
+  `UIModeScope(CENTER_CENTER)`. Previously the virtual-640 dialogue
+  frame pinned to the FBO left edge on widescreen; now it centres as a
+  framed 4:3 region. Sizes (640, text-wrap 600, portrait anchors) all
+  unchanged — text is laid out to fit the original 640 width, so
+  touching the dimensions would break the content.
+- **Tutorial panel split-scope framing** — `PANEL_last`'s
+  `EWAY_tutorial_string` path now runs the `PANEL_darken_screen(640)`
+  backdrop inside `FullscreenUIModeScope` (covers the whole FBO) and
+  the speech bubble + text inside `UIModeScope(CENTER_CENTER)` (stays
+  framed, no stretch). Mirrors the `GAMEMENU_draw` pattern. Adds a
+  ~1-second input grace at the start of the dialogue so a held
+  jump/punch/select button doesn't dismiss it instantly — see
+  [GAMEPLAY_CHANGES.md](../../GAMEPLAY_CHANGES.md) "Туториал".
 
 Remaining work — see [`issues.md`](issues.md):
 - **In-game HUD** still pillarboxed in the framed centre — needs

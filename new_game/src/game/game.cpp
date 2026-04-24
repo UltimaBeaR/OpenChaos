@@ -962,16 +962,27 @@ round_again:;
             if (EWAY_tutorial_string) {
                 EWAY_tutorial_counter += 64 * TICK_RATIO >> TICK_SHIFT;
 
-                if (EWAY_tutorial_counter > 64 * 20 * 2) {
-                    if (hardware_input_continue()) {
-                        EWAY_tutorial_string = NULL;
+                // Minimum display time (~1s; counter ticks at 960/s) before
+                // close/skip input is accepted — prevents instant dismissal
+                // when a button is already held as the dialog appears.
+                // hardware_input_continue() is called unconditionally to
+                // drain LastKey so a stale press from before the dialog
+                // doesn't leak into the post-grace close check.
+                const SLONG EWAY_TUT_INPUT_GRACE = 960;
+                SLONG continue_pressed = hardware_input_continue();
 
-                        NET_PERSON(0)->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_JUMP);
-                        NET_PLAYER(0)->Genus.Player->InputDone = -1;
-                    }
-                } else {
-                    if (hardware_input_continue()) {
-                        EWAY_tutorial_counter = 64 * 20 * 2;
+                if (EWAY_tutorial_counter >= EWAY_TUT_INPUT_GRACE) {
+                    if (EWAY_tutorial_counter > 64 * 20 * 2) {
+                        if (continue_pressed) {
+                            EWAY_tutorial_string = NULL;
+
+                            NET_PERSON(0)->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_JUMP);
+                            NET_PLAYER(0)->Genus.Player->InputDone = -1;
+                        }
+                    } else {
+                        if (continue_pressed) {
+                            EWAY_tutorial_counter = 64 * 20 * 2;
+                        }
                     }
                 }
             }
