@@ -696,6 +696,22 @@ pillarbox issue and get fixed together with Option A.
 
 ## Resolved
 
+- ~~**Pause/Restart/Abandon fade-out cat transition sized wrong on
+  non-4:3 aspects.**~~ The iris effect ("кошка" circle shrinking to a
+  dot) now describes the full rendered viewport regardless of aspect.
+  Fixed in [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp)
+  `PANEL_fadeout_draw`: the quad is sized so `cat_disc_diameter ≈
+  viewport_diagonal` at full UV visibility — `scale = 2 × diag /
+  DisplayWidth` (×2 factor accounts for the cat disc occupying only
+  ~half the texture width, `cat_radius ≈ 0.25`), centred inside the
+  viewport (`g_viewData.dwX/dwY`), affine save/restored around the
+  POLY flush. Verified by user on 4:3, 16:9 and portrait 480×1920.
+  Note: this is a point-fix inside `PANEL_fadeout_draw`. The same class
+  of "UI formulas need to ignore pillar/letterbox bars" problem exists
+  in many other effects and is queued up as a proper architectural
+  rework — see
+  [`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md).
+
 - ~~**UI text truncated on narrow / portrait aspects (e.g. "GAME PAUSED"
   rendered as "GAME P" on 480×1920).**~~ Fixed in
   [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)

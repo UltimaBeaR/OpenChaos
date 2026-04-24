@@ -106,6 +106,14 @@ Already done:
   stub functions, and the `FLAGS_USE_WORKSCREEN` macro.
 
 Remaining work — see [`issues.md`](issues.md):
+- **🔴 FBO-as-virtual-screen refactor** — architectural cleanup that
+  makes the game treat the scene FBO as "the screen" and moves all
+  pillarbox/letterbox bar painting into the composition layer. Eats
+  a whole cluster of smaller todos: removes per-effect bar-workaround
+  code (fade-out, menu darken, stars, moon), renames
+  `RealDisplayWidth/Height` → `ScreenWidth/Height`, deletes
+  `push_fullscreen_ui_mode`. **Full handoff:**
+  [`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md).
 - **In-game HUD** still pillarboxed in the framed centre — needs
   per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM` etc.).
   Same `PolyPage::push_ui_mode` infra, just call sites left to wrap.
@@ -117,8 +125,6 @@ Remaining work — see [`issues.md`](issues.md):
   save-file compatibility. **Workaround for 1.0: no user-facing FOV
   slider** — `OC_FOV_MULTIPLIER` stays a compile-time constant.
 - Split UI rendering from the scaled scene FBO (part of the UI rework).
-- Rename `RealDisplayWidth/Height` (it now means scene-FBO size, not
-  physical display — misleading).
 - Replace the stand-in simplified FXAA with canonical FXAA 3.11 or
   SMAA 1x.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
@@ -142,6 +148,12 @@ Remaining work — see [`issues.md`](issues.md):
   HUD / UI coordinate-system rework (framed coords + anchored HUD, fixes
   the pillarbox issue). Read this before doing any UI scaling work; it's
   the agreed design + stage-by-stage to-do.
+- **[`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md)** —
+  full handoff for the next architectural refactor: make the game see
+  the scene FBO as "the screen", move pillar/letterbox bar painting to
+  the composition layer, rename `RealDisplayWidth/Height` → `Screen*`,
+  delete the per-effect bar-workaround code. 1-2 days of focused work;
+  eats a whole cluster of todos in one pass.
 
 ## Workflow
 
