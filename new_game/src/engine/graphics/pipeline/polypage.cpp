@@ -181,9 +181,18 @@ void PolyPage::push_fullscreen_ui_mode()
     // opt-in escape hatch for draws that explicitly want the whole FBO.
     // No scissor — draws are free to fill the FBO, overriding any parent
     // framed clip.
+    //
+    // xo/yo = 0.5 cancels the D3D6 pixel-center -0.5 shift applied by the
+    // TL vertex shader (tl_vert.glsl). Without this compensation a quad
+    // addressing virtual (0..640, 0..480) maps to screen (0..fbo_w,
+    // 0..fbo_h), and after the shader's -0.5 subtract the right/bottom
+    // edges land at NDC = 1 - 1/fbo_{w,h} — one physical pixel short.
+    // Visible as a 1-pixel line of un-darkened scene on the right edge
+    // of the pause-menu overlay. Shifting by +0.5 physical px here makes
+    // virtual (0..640, 0..480) cover NDC [-1, 1] exactly.
     const float xs = ui_coords::g_screen_w_px / float(DisplayWidth);
     const float ys = ui_coords::g_screen_h_px / float(DisplayHeight);
-    apply_ui_state(xs, ys, 0.0f, 0.0f,
+    apply_ui_state(xs, ys, 0.5f, 0.5f,
                    /*scissor=*/false, 0, 0, 0, 0);
 }
 

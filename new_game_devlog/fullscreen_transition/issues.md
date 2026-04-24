@@ -770,6 +770,23 @@ pillarbox issue and get fixed together with Option A.
   the entire real framebuffer. Menu text stays in framed mode
   (`UIModeScope(CENTER_CENTER)`). Darken-sweep animation rate remains
   the original ~640 ms regardless of aspect.
+- ~~**Pause-menu darken overlay left a 1-pixel lit line on the right
+  (and implicitly bottom) edge of the FBO.**~~ Fixed in
+  [`polypage.cpp`](../../new_game/src/engine/graphics/pipeline/polypage.cpp)
+  `PolyPage::push_fullscreen_ui_mode`: affine offsets `xo`/`yo` changed
+  from `0.0` to `0.5` (physical px) to cancel the D3D6 pixel-center
+  `-0.5` subtract applied by the TL vertex shader
+  ([`tl_vert.glsl`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/shaders/tl_vert.glsl)).
+  **Root cause:** virtual `(0..640, 0..480)` mapped to screen
+  `(0..fbo_w, 0..fbo_h)`; after the shader's `-0.5` shift the right
+  edge landed at `ndc_x = 1 - 1/fbo_w` — one physical pixel short,
+  exposing the lit 3D scene through the alpha overlay. The `-0.5`
+  shader shift is a global D3D6-compat offset needed to keep text /
+  sprite atlases from bleeding, so the compensation lives in the
+  fullscreen scope itself rather than in the shader. Applies only to
+  `push_fullscreen_ui_mode`; framed/normal UI modes unaffected (their
+  right edge sits inside the FBO and doesn't need edge-to-edge
+  coverage).
 - ~~**Stars misaligned on non-4:3 aspects — "flying like flies" around
   the sky instead of attached to it.**~~ Fixed in
   [`sky.cpp`](../../new_game/src/engine/graphics/geometry/sky.cpp)
