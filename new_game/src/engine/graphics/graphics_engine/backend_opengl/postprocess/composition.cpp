@@ -201,6 +201,8 @@ void composition_blit(int32_t window_w, int32_t window_h)
     GLint     prev_vp[4]   = {};
     GLint     prev_sc[4]   = {};
     GLfloat   prev_clear[4] = {};
+    GLboolean prev_color_mask[4] = {};
+    GLboolean prev_depth_mask = GL_TRUE;
     GLboolean prev_sc_on   = glIsEnabled(GL_SCISSOR_TEST);
     GLboolean prev_cull_on = glIsEnabled(GL_CULL_FACE);
     GLboolean prev_depth_on = glIsEnabled(GL_DEPTH_TEST);
@@ -212,6 +214,8 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glGetIntegerv(GL_VIEWPORT,               prev_vp);
     glGetIntegerv(GL_SCISSOR_BOX,            prev_sc);
     glGetFloatv  (GL_COLOR_CLEAR_VALUE,      prev_clear);
+    glGetBooleanv(GL_COLOR_WRITEMASK,        prev_color_mask);
+    glGetBooleanv(GL_DEPTH_WRITEMASK,        &prev_depth_mask);
 
     // Aspect-fit the scene FBO into a centred rectangle on the real
     // backbuffer, leave the leftover area black. This is the only layer
@@ -251,13 +255,22 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glDisable(GL_BLEND);
     glDisable(GL_CULL_FACE);
 
-    // Clear the real backbuffer to black so outer pillar/letterbox bars
-    // are painted unconditionally — free on modern GPUs, and avoids the
-    // bars carrying stale pixels if the window was resized or a prior
-    // frame used a different dst rect.
+    // Force full write masks before clear — prior game draws may have
+    // restricted glColorMask/glDepthMask (e.g. depth-only passes), which
+    // would cause glClear to leave pixels untouched and the backbuffer
+    // to carry stale content from N-2 frames ago under double-buffering.
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE);
+
+    // Clear the entire real backbuffer unconditionally so outer pillar/
+    // letterbox bars are painted fresh every frame. Free on modern GPUs.
     glViewport(0, 0, window_w, window_h);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    // TEMP: outer bars painted red for visual verification during the
+    // FBO-as-virtual-screen refactor — makes it obvious where the scene
+    // FBO ends and the composition layer begins. Revert to (0,0,0,1)
+    // once the refactor is done.
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Now narrow the viewport to the aspect-fit rect and draw the FBO
     // into it. The composite shader reads gl_FragCoord in real-backbuffer
@@ -288,6 +301,9 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glViewport(prev_vp[0], prev_vp[1], prev_vp[2], prev_vp[3]);
     glScissor(prev_sc[0], prev_sc[1], prev_sc[2], prev_sc[3]);
     glClearColor(prev_clear[0], prev_clear[1], prev_clear[2], prev_clear[3]);
+    glColorMask(prev_color_mask[0], prev_color_mask[1],
+                prev_color_mask[2], prev_color_mask[3]);
+    glDepthMask(prev_depth_mask);
     if (prev_sc_on)    glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
     if (prev_cull_on)  glEnable(GL_CULL_FACE);    else glDisable(GL_CULL_FACE);
     if (prev_depth_on) glEnable(GL_DEPTH_TEST);   else glDisable(GL_DEPTH_TEST);

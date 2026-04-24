@@ -1626,16 +1626,14 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     vid_ensure_resources();
     if (!s_vid_program) return;
 
-    // Video is a standalone present path — bypasses the scene FBO and draws
-    // straight to the window. Force the default framebuffer in case a
-    // ge_begin_scene() call left the scene FBO bound.
-    composition_bind_default();
-
-    // Viewport must match the window — ge_set_viewport last set it to the
-    // scene FBO size.
-    int win_w, win_h;
-    sdl3_window_get_drawable_size(&win_w, &win_h);
-    glViewport(0, 0, win_w, win_h);
+    // Render the video into the scene FBO, exactly like every other game
+    // draw. The composition pass at frame end then aspect-fits the FBO into
+    // the real backbuffer and paints outer bars — video inherits that for
+    // free. The scene FBO is assumed bound (invariant maintained across
+    // frames); no explicit bind needed here.
+    const int fbo_w = gl_context_get_width();
+    const int fbo_h = gl_context_get_height();
+    glViewport(0, 0, fbo_w, fbo_h);
 
     // Snapshot+disable scissor: a UI scope above us may have set it tight
     // around the framed UI region, which would crop the video into a small
@@ -1646,19 +1644,19 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     glGetIntegerv(GL_SCISSOR_BOX, saved_scissor);
     glDisable(GL_SCISSOR_TEST);
 
-    // Aspect-fit the video into the framed 4:3 region of the screen,
-    // not the full window. Keeps videos stylistically consistent with
-    // the framed UI (menus, loading screens) — a 4:3 video gets pillarbox
-    // bars exactly matching the UI, and a wider video gets letterbox
-    // inside the framed region. ui_coords::g_frame_* is recomputed
-    // defensively in case the mode-change callback hasn't fired yet.
-    ui_coords::recompute(gl_context_get_width(), gl_context_get_height());
+    // Aspect-fit the video into the framed 4:3 region inside the FBO (NOT
+    // the full FBO). Keeps videos stylistically consistent with the framed
+    // UI (menus, loading screens) — a 4:3 video gets pillarbox bars
+    // exactly matching the UI, and a wider video gets letterbox inside
+    // the framed region. ui_coords::g_frame_* is recomputed defensively
+    // in case the mode-change callback hasn't fired yet.
+    ui_coords::recompute(fbo_w, fbo_h);
     const float frame_w = (ui_coords::g_frame_w_px > 0.0f)
-        ? ui_coords::g_frame_w_px : (float)win_w;
+        ? ui_coords::g_frame_w_px : (float)fbo_w;
     const float frame_h = (ui_coords::g_frame_h_px > 0.0f)
-        ? ui_coords::g_frame_h_px : (float)win_h;
-    const float frame_w_ndc = frame_w / (float)win_w;  // half-extent of framed region in NDC X
-    const float frame_h_ndc = frame_h / (float)win_h;
+        ? ui_coords::g_frame_h_px : (float)fbo_h;
+    const float frame_w_ndc = frame_w / (float)fbo_w;  // half-extent of framed region in NDC X
+    const float frame_h_ndc = frame_h / (float)fbo_h;
     const float va = (float)video_w / (float)video_h;
     const float fa = frame_w / frame_h;
     const float aspect_sx = (va > fa) ? 1.0f : va / fa;
@@ -1690,6 +1688,13 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glBindVertexArray(0);
 
+    // Present through composition — same path as ge_flip. Composition
+    // handles aspect-fit of the FBO into the real backbuffer and paints
+    // outer bars; video automatically gets that treatment.
+    int win_w = 0, win_h = 0;
+    sdl3_window_get_drawable_size(&win_w, &win_h);
+    composition_bind_default();
+    composition_blit(win_w, win_h);
     gl_context_swap();
 
     // Restore scissor state captured before the video draw.
