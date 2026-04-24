@@ -8,8 +8,8 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Display globals (defined in d3d/display_globals.cpp).
-extern SLONG RealDisplayWidth;
-extern SLONG RealDisplayHeight;
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 #include "ui/frontend/frontend.h"
 #include "ui/frontend/frontend_globals.h"
 
@@ -1795,7 +1795,7 @@ void FRONTEND_do_drivers()
 {
     CBYTE *str = menu_buffer, *str_tmp;
 
-    switch (RealDisplayWidth) {
+    switch (ScreenWidth) {
     case 640:
         CurrentVidMode = 0;
         break;

@@ -41,8 +41,8 @@
 
 // Real-framebuffer dimensions — defined in the graphics backend, used here
 // to compute the pillarbox regions when the horizontal FOV is capped.
-extern SLONG RealDisplayWidth;
-extern SLONG RealDisplayHeight;
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
@@ -8453,46 +8453,12 @@ void AENG_clear_viewport()
         ge_clear(true, true);
     }
 
-    // Paint black aspect bars — pillarbox (left/right) when the real
-    // aspect exceeds OC_FOV_CAP_ASPECT, letterbox (top/bottom) when it
-    // falls below OC_FOV_MIN_ASPECT. POLY_begin centres the 3D viewport
-    // at the clamped aspect; the framebuffer area outside it would
-    // otherwise hold the sky / fog clear colour on outdoor scenes.
-    // Compute render region with the same "fit to smaller axis" formula
-    // used there so the bars abut the 3D viewport with no 1-pixel gap.
-    {
-        const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
-        const bool  pillarbox = (real_aspect > float(OC_FOV_CAP_ASPECT));
-        const bool  letterbox = (real_aspect < float(OC_FOV_MIN_ASPECT));
-
-        if (pillarbox || letterbox) {
-            const float eff_aspect =
-                pillarbox ? float(OC_FOV_CAP_ASPECT) : float(OC_FOV_MIN_ASPECT);
-            const float fit_w = float(RealDisplayWidth)  / eff_aspect;
-            const float fit_h = float(RealDisplayHeight);
-            const float fit_scale = (fit_w < fit_h) ? (fit_w / float(DisplayHeight))
-                                                    : (fit_h / float(DisplayHeight));
-            const SLONG render_w = SLONG(float(DisplayHeight) * eff_aspect * fit_scale);
-            const SLONG render_h = SLONG(float(DisplayHeight) * fit_scale);
-            const SLONG render_x = (RealDisplayWidth  - render_w) / 2;
-            const SLONG render_y = (RealDisplayHeight - render_h) / 2;
-            const SLONG right_x  = render_x + render_w;
-            const SLONG bottom_y = render_y + render_h;
-
-            if (render_x > 0) {
-                ge_fill_rect(0, 0, render_x, RealDisplayHeight, 0, 0, 0);
-            }
-            if (right_x < RealDisplayWidth) {
-                ge_fill_rect(right_x, 0, RealDisplayWidth - right_x, RealDisplayHeight, 0, 0, 0);
-            }
-            if (render_y > 0) {
-                ge_fill_rect(0, 0, RealDisplayWidth, render_y, 0, 0, 0);
-            }
-            if (bottom_y < RealDisplayHeight) {
-                ge_fill_rect(0, bottom_y, RealDisplayWidth, RealDisplayHeight - bottom_y, 0, 0, 0);
-            }
-        }
-    }
+    // Aspect bars are no longer painted here. The scene FBO is the game's
+    // "screen" and already fills its own aspect range edge-to-edge (aspect
+    // clamp applied at FBO creation in OpenDisplay). If the real window
+    // aspect lies outside [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT], the
+    // composition layer paints outer pillar/letterbox bars over the real
+    // backbuffer when it blits the FBO — no game-side involvement needed.
 
     BreakTime("Cleared Viewport");
 }
@@ -8591,7 +8557,7 @@ void AENG_draw(SLONG draw_3d)
             // POLY_camera_set can take over continuously (character size
             // stays 4:3-width-equivalent across the MIN boundary).
             {
-                const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+                const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
                 const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
                 const float min_aspect  = float(OC_FOV_MIN_ASPECT);
                 float auto_zoom = 1.0F;
@@ -8688,7 +8654,7 @@ void AENG_draw(SLONG draw_3d)
         // AND auto-zoom are applied to AENG_lens itself rather than inside
         // POLY_camera_set.
         {
-            const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+            const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
             const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
             const float min_aspect  = float(OC_FOV_MIN_ASPECT);
             float auto_zoom = 1.0F;

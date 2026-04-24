@@ -312,3 +312,29 @@ void composition_blit(int32_t window_w, int32_t window_h)
 
 int32_t composition_scene_width()  { return s_scene_w; }
 int32_t composition_scene_height() { return s_scene_h; }
+
+bool composition_window_to_fbo(int win_x, int win_y, int* fbo_x, int* fbo_y)
+{
+    // No frame composited yet → no dst rect to map against. Treat as
+    // "inside" with identity mapping so the first few events (e.g. an
+    // early mouse-move before ge_flip runs) don't get dropped; callers
+    // can still clamp on their end.
+    if (s_last_dst_w <= 0 || s_last_dst_h <= 0 || s_scene_w <= 0 || s_scene_h <= 0) {
+        if (fbo_x) *fbo_x = win_x;
+        if (fbo_y) *fbo_y = win_y;
+        return true;
+    }
+
+    // Reject events in the outer bar area. UI buttons can only live
+    // inside the FBO, so a click outside the blit rect cannot plausibly
+    // intend to hit anything — dropping is cleaner than clamp-to-edge.
+    if (win_x < s_last_dst_x || win_x >= s_last_dst_x + s_last_dst_w) return false;
+    if (win_y < s_last_dst_y || win_y >= s_last_dst_y + s_last_dst_h) return false;
+
+    // Linear map: (window_px - dst_origin) × (fbo_size / dst_size).
+    const float fx = (float)(win_x - s_last_dst_x) * (float)s_scene_w / (float)s_last_dst_w;
+    const float fy = (float)(win_y - s_last_dst_y) * (float)s_scene_h / (float)s_last_dst_h;
+    if (fbo_x) *fbo_x = (int)(fx + 0.5f);
+    if (fbo_y) *fbo_y = (int)(fy + 0.5f);
+    return true;
+}

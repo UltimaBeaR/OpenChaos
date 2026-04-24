@@ -69,10 +69,10 @@ extern UBYTE draw_map_screen;
 extern UBYTE cheat;
 // uc_orig: tick_tock_unclipped (fallen/Source/Game.cpp)
 extern SLONG tick_tock_unclipped;
-// uc_orig: RealDisplayWidth (fallen/DDLibrary/Source/GDisplay.cpp)
-extern SLONG RealDisplayWidth;
-// uc_orig: RealDisplayHeight (fallen/DDLibrary/Source/GDisplay.cpp)
-extern SLONG RealDisplayHeight;
+// uc_orig: ScreenWidth (fallen/DDLibrary/Source/GDisplay.cpp)
+extern SLONG ScreenWidth;
+// uc_orig: ScreenHeight (fallen/DDLibrary/Source/GDisplay.cpp)
+extern SLONG ScreenHeight;
 
 // uc_orig: MAX_TRACK (fallen/Source/overlay.cpp)
 #define MAX_TRACK 4
@@ -293,7 +293,7 @@ void OVERLAY_handle(void)
     POLY_flush_local_rot();
 
     // Reset viewport to full screen (required for letterbox mode so HUD draws edge-to-edge).
-    ge_set_viewport(0, 0, RealDisplayWidth, RealDisplayHeight);
+    ge_set_viewport(0, 0, ScreenWidth, ScreenHeight);
 
     PANEL_start();
 

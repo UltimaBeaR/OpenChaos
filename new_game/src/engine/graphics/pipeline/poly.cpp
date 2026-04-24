@@ -6,11 +6,11 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "config.h"
 
-// uc_orig: RealDisplayWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
+// uc_orig: ScreenWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
 // Actual window/fullscreen size in pixels (set by OpenDisplay). Used here
 // to derive the aspect ratio for the software 3D projection.
-extern SLONG RealDisplayWidth;
-extern SLONG RealDisplayHeight;
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 #include <math.h>
 #include <algorithm>
 #include "engine/graphics/pipeline/poly.h"
@@ -171,29 +171,19 @@ void POLY_camera_set(
 {
     POLY_splitscreen = splitscreen;
 
-    // Virtual render width tracks the monitor's aspect ratio so that on a
-    // widescreen display we get a wider horizontal FOV instead of stretched
-    // geometry. Vertical FOV is kept at its designed-for-640x480 value —
-    // i.e. "Hor+" scaling. At 4:3 (640/480) this reduces to DisplayWidth.
+    // Virtual render width tracks the scene FBO's aspect ratio so that on
+    // a widescreen display we get a wider horizontal FOV instead of
+    // stretched geometry. Vertical FOV is kept at its designed-for-640×480
+    // value — i.e. "Hor+" scaling. At 4:3 (640/480) this reduces to
+    // DisplayWidth.
     //
-    // The effective aspect is clamped to [OC_FOV_MIN_ASPECT,
-    // OC_FOV_CAP_ASPECT]:
-    //   * aspect > CAP (ultra-wide): scene rendered at CAP inside a
-    //     centred region, left+right pillarbox bars. Avoids
-    //     rectilinear fish-eye at very wide FOVs.
-    //   * aspect < MIN (portrait / tall): scene rendered at MIN inside
-    //     a centred region, top+bottom letterbox bars. Avoids
-    //     "character huge" at narrow horizontal FOVs.
-    //   * aspect in between: scene fills the screen, no bars.
-    // AENG_clear_viewport paints the bars black after the per-frame
-    // clear; the scale / viewport math here puts the rendered region in
-    // the right place.
-    const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
-    const float effective_aspect =
-        (real_aspect > float(OC_FOV_CAP_ASPECT))  ? float(OC_FOV_CAP_ASPECT) :
-        (real_aspect < float(OC_FOV_MIN_ASPECT))  ? float(OC_FOV_MIN_ASPECT) :
-                                                    real_aspect;
-    POLY_screen_width = float(DisplayHeight) * effective_aspect;
+    // No per-frame aspect clamping — the scene FBO is pre-clamped to
+    // [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] at creation (OpenDisplay),
+    // so its aspect is always inside the range the rectilinear projection
+    // can render at. Physical windows outside that range get outer bars
+    // painted by the composition layer; the game itself sees only the FBO.
+    const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
+    POLY_screen_width = float(DisplayHeight) * real_aspect;
     POLY_screen_clip_left = 0.0F;
     // Clip bound must cover both 3D scene space (POLY_screen_width — may be
     // smaller than 640 on narrow/portrait windows because OC_FOV_MIN_ASPECT
@@ -309,7 +299,7 @@ void POLY_camera_set(
     // changes in the original never changed sprite sizes, only world
     // projection. Mirrors the divisor applied to AENG_lens in aeng.cpp.
     {
-        const float real_aspect = float(RealDisplayWidth) / float(RealDisplayHeight);
+        const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
         const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
         const float min_aspect  = float(OC_FOV_MIN_ASPECT);
         float auto_zoom = 1.0F;
@@ -398,55 +388,41 @@ void POLY_camera_set(
     float fMyMulX = POLY_screen_mul_x * POLY_ZCLIP_PLANE;
     float fMyMulY = POLY_screen_mul_y * POLY_ZCLIP_PLANE;
 
-    // Uniform "fit" scale — shrink by whichever axis is limiting so the
-    // virtual render rect (POLY_screen_width × DisplayHeight) fits inside
-    // the real framebuffer without overshooting. Overrides the
-    // mode-level scale set by PolyPage::SetScaling in game_mode_changed
-    // (RealH / DisplayHeight), which is correct for aspects in
-    // [MIN, CAP] but would overshoot the screen on letterboxed
-    // (portrait) aspects. For aspects in [MIN, CAP] both terms are
-    // equal and this reduces to the pre-change scale.
+    // Uniform scale from virtual 4:3 design canvas (640 × 480) to the
+    // scene FBO. With the FBO-aspect clamp applied at creation time,
+    // the old two-axis min-fit reduced to a single ratio — keeping both
+    // axes uniform preserves character proportions unconditionally.
     {
-        const float scale_w_fit = float(RealDisplayWidth)  / POLY_screen_width;
-        const float scale_h_fit = float(RealDisplayHeight) / float(DisplayHeight);
-        const float fit_scale   = (scale_w_fit < scale_h_fit) ? scale_w_fit : scale_h_fit;
-        PolyPage::s_XScale           = fit_scale;
-        PolyPage::s_YScale           = fit_scale;
-        not_private_smiley_xscale    = fit_scale;
-        not_private_smiley_yscale    = fit_scale;
+        const float uniform_scale    = float(ScreenHeight) / float(DisplayHeight);
+        PolyPage::s_XScale           = uniform_scale;
+        PolyPage::s_YScale           = uniform_scale;
+        not_private_smiley_xscale    = uniform_scale;
+        not_private_smiley_yscale    = uniform_scale;
     }
 
-    // Centre the rendered rectangle inside the real framebuffer. One of
-    // the two offsets is always 0 (whichever axis the fit scale is
-    // limited by). On aspects inside [MIN, CAP] both are 0 — rendered
-    // rect fills the screen, no bars.
-    const float render_w = POLY_screen_width * PolyPage::s_XScale;
-    const float render_h = float(DisplayHeight) * PolyPage::s_YScale;
-    const float base_x = (float(RealDisplayWidth)  - render_w) * 0.5F;
-    const float base_y = (float(RealDisplayHeight) - render_h) * 0.5F;
-
+    // The 3D viewport fills the scene FBO edge-to-edge — no pillar /
+    // letterbox centring inside the FBO. If the real window aspect is
+    // outside [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT], the composition
+    // layer paints outer bars; game code has no representation of them.
+    // dwY still accounts for cutscene letterbox (POLY_screen_mid_y folds
+    // the `wideify` offset in) and splitscreen top/bottom half offsets.
     g_viewData.dwWidth  = fMyMulX * PolyPage::s_XScale * 2;
     g_viewData.dwHeight = fMyMulY * PolyPage::s_YScale * 2;
-    g_viewData.dwX = base_x;
-    g_viewData.dwY = base_y + (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
+    g_viewData.dwX = 0.0F;
+    g_viewData.dwY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
 
     // Exported to figure.cpp's MM (character) matrix builder so it uses
     // the same viewport bounds as the POLY pipeline.
     g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
     g_dw3DStuffY      = g_viewData.dwY;
 
-    // Shift POLY-path vertex output by the pillarbox / letterbox origin
-    // so it lands in the same pixel-space coordinate system as the MM
-    // path (figure.cpp bakes base_x + half-dwWidth into per-bone
-    // matrices). The tl_vert.glsl shader maps
-    // `(a_position.x - u_viewport.x) / dwWidth` to NDC, so both paths
-    // must emit vertices in [dwX..dwX+dwWidth]. Before the aspect
-    // clamps both base_x and base_y were 0 and the shift was a no-op.
-    // Note: POLY's Y path already folds splitscreen / cutscene-letterbox
-    // offsets into POLY_screen_mid_y; base_y is an *additional* shift
-    // for the aspect-floor letterbox only.
-    PolyPage::s_XOffset = base_x;
-    PolyPage::s_YOffset = base_y;
+    // POLY-path vertex shift used to carry (base_x, base_y) to align the
+    // POLY output with the MM path's pillar/letterbox-centred bone
+    // matrices. With the FBO-as-screen refactor that shift is always
+    // (0, 0) — both paths emit into the same FBO-origin coordinate space.
+    // Globals kept (PolyPage::AddFan reads them) and always zero.
+    PolyPage::s_XOffset = 0.0F;
+    PolyPage::s_YOffset = 0.0F;
     g_viewData.dvClipX = -1.0f;
     g_viewData.dvClipY = 1.0;
     g_viewData.dvClipWidth = 2.0f;

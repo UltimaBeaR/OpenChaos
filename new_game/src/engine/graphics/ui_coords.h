@@ -3,19 +3,27 @@
 
 // UI coordinate system for the new HUD/menu/frontend layout.
 //
+// "The screen" here = the scene FBO. The game treats the FBO as its entire
+// screen; the real backbuffer is only known to the composition layer.
+// When the physical window aspect is outside [OC_FOV_MIN_ASPECT,
+// OC_FOV_CAP_ASPECT], the FBO is narrower/shorter than the window; the
+// composition layer paints outer pillar/letterbox bars over the real
+// backbuffer around the FBO. This module is blind to that — it only knows
+// about pixels inside the FBO.
+//
 // Three coordinate spaces are in play:
 //
-//   - "framed01"  : [0..1] inside a virtual 4:3 frame fitted to the screen
-//                   (g_frame_w_px x g_frame_h_px in real pixels).
-//   - "screen01"  : [0..1] across the full real framebuffer.
-//   - "pixels"    : real framebuffer pixels.
+//   - "framed01"  : [0..1] inside a virtual 4:3 frame fitted inside the FBO
+//                   (g_frame_w_px x g_frame_h_px in FBO pixels).
+//   - "screen01"  : [0..1] across the full FBO.
+//   - "pixels"    : FBO pixels.
 //
 // Anchored UI elements use a UIAnchor to say where the framed region is
-// pinned within the real screen. Framed content (menus, backdrops) uses
+// pinned within the FBO. Framed content (menus, backdrops) uses
 // CENTER_CENTER; HUD elements pick per-element anchors (radar = RIGHT_TOP,
-// ammo = LEFT_BOTTOM, etc.). The black space around the framed region on
-// non-4:3 monitors must be cleared / painted black separately — this
-// module only converts coordinates.
+// ammo = LEFT_BOTTOM, etc.). The inner bars around the framed 4:3 region
+// on non-4:3 FBOs are painted by the game itself as ordinary UI draws —
+// this module only converts coordinates.
 //
 // Migration helper old_px_to_screen_pixels() lets call sites that today
 // pass virtual 640x480 pixels to a draw call switch over with a one-line
@@ -43,33 +51,33 @@ enum class UIAnchor {
 extern float g_frame_scale;
 extern float g_frame_w_px;
 extern float g_frame_h_px;
-extern float g_real_w_px;
-extern float g_real_h_px;
+extern float g_screen_w_px;
+extern float g_screen_h_px;
 
 // Recompute cached metrics. Call from the graphics-engine mode-change
-// callback (game_mode_changed) with the real framebuffer dimensions.
+// callback (game_mode_changed) with the scene FBO dimensions.
 void recompute(int real_w, int real_h);
 
-// Top-left corner of the framed 4:3 region inside the real screen, in
+// Top-left corner of the framed 4:3 region inside the FBO, in
 // [0..1] screen coordinates, given the anchor.
 Vec2f frame_origin_screen(UIAnchor anchor);
 
 // [0..1] framed coord -> [0..1] screen coord, given the anchor of the
-// 4:3 frame within the real screen.
+// 4:3 frame within the FBO.
 Vec2f frame_to_screen(Vec2f framed01, UIAnchor anchor);
 
 // Inverse: [0..1] screen coord -> [0..1] framed coord. Coords outside the
 // framed region map to values outside [0..1] (caller decides how to handle
-// e.g. mouse clicks on the black bars).
+// e.g. mouse clicks on the inner bars).
 Vec2f screen_to_frame(Vec2f screen01, UIAnchor anchor);
 
 // Migration helper: old 640x480 pixel coord -> [0..1] screen coord.
 Vec2f old_px_to_screen(float x_px640, float y_px480, UIAnchor anchor);
 
-// [0..1] screen -> real framebuffer pixels.
+// [0..1] screen -> FBO pixels.
 Vec2f screen_to_pixels(Vec2f screen01);
 
-// Migration helper: old 640x480 pixel coord -> real framebuffer pixels.
+// Migration helper: old 640x480 pixel coord -> FBO pixels.
 // Most-common entry point during the bulk rewrite.
 Vec2f old_px_to_screen_pixels(float x_px640, float y_px480, UIAnchor anchor);
 

@@ -4,8 +4,8 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 
 // Display globals (defined in d3d/display_globals.cpp).
-extern SLONG RealDisplayWidth;
-extern SLONG RealDisplayHeight;
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 
 // uc_orig: WIBBLE_simple (fallen/DDEngine/Source/wibble.cpp)
 // The original implementation per-row shifted backbuffer pixels on the CPU via
@@ -26,13 +26,13 @@ void WIBBLE_simple(
 {
     // Uniform scale by vertical on both axes — matches the s_YScale used to
     // render the world (see PolyPage::SetScaling in game_mode_changed).
-    // Scaling X by RealDisplayWidth/DisplayWidth works only when the monitor
+    // Scaling X by ScreenWidth/DisplayWidth works only when the monitor
     // aspect is 4:3; on widescreen the horizontal ratio diverges from the
     // vertical one and the wibble bbox drifts off the rendered puddle.
-    x1 = x1 * RealDisplayHeight / DisplayHeight;
-    x2 = x2 * RealDisplayHeight / DisplayHeight;
-    y1 = y1 * RealDisplayHeight / DisplayHeight;
-    y2 = y2 * RealDisplayHeight / DisplayHeight;
+    x1 = x1 * ScreenHeight / DisplayHeight;
+    x2 = x2 * ScreenHeight / DisplayHeight;
+    y1 = y1 * ScreenHeight / DisplayHeight;
+    y2 = y2 * ScreenHeight / DisplayHeight;
 
     GEWibbleParams p{};
     p.wibble_y1 = wibble_y1;

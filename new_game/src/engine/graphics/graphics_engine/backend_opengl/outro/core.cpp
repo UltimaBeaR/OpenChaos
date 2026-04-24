@@ -47,8 +47,8 @@ void oge_init()
     ui_coords::recompute(ge_get_screen_width(), ge_get_screen_height());
     const int frame_w = (int)(ui_coords::g_frame_w_px + 0.5f);
     const int frame_h = (int)(ui_coords::g_frame_h_px + 0.5f);
-    const int origin_x = (int)((ui_coords::g_real_w_px - ui_coords::g_frame_w_px) * 0.5f + 0.5f);
-    const int origin_y = (int)((ui_coords::g_real_h_px - ui_coords::g_frame_h_px) * 0.5f + 0.5f);
+    const int origin_x = (int)((ui_coords::g_screen_w_px - ui_coords::g_frame_w_px) * 0.5f + 0.5f);
+    const int origin_y = (int)((ui_coords::g_screen_h_px - ui_coords::g_frame_h_px) * 0.5f + 0.5f);
 
     OS_screen_width  = (float)frame_w;
     OS_screen_height = (float)frame_h;

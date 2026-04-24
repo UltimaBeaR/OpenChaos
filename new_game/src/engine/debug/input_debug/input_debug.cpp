@@ -18,8 +18,8 @@
 #include <cstdio>
 #include <cstring>
 
-extern SLONG RealDisplayWidth;
-extern SLONG RealDisplayHeight;
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 
 // ---------------------------------------------------------------------------
 // State
@@ -51,8 +51,8 @@ const char* page_name(InputDebugPage p)
 // Scale logical (640x480) coordinates to literal window pixel coordinates
 // so text lines up with AENG_draw_rect primitives. See the big comment on
 // input_debug_text in the header for the full explanation.
-SLONG to_px_x(SLONG logical) { return (logical * RealDisplayWidth)  / 640; }
-SLONG to_px_y(SLONG logical) { return (logical * RealDisplayHeight) / 480; }
+SLONG to_px_x(SLONG logical) { return (logical * ScreenWidth)  / 640; }
+SLONG to_px_y(SLONG logical) { return (logical * ScreenHeight) / 480; }
 
 InputDeviceType page_to_device(InputDebugPage p)
 {

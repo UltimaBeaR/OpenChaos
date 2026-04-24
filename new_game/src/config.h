@@ -11,11 +11,11 @@
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
 
-#define OC_WINDOWED_WIDTH  int(1920)
-#define OC_WINDOWED_HEIGHT int(480)
+//#define OC_WINDOWED_WIDTH  int(1920)
+//#define OC_WINDOWED_HEIGHT int(480)
 
-// #define OC_WINDOWED_WIDTH  int(480)
-// #define OC_WINDOWED_HEIGHT int(1920)
+#define OC_WINDOWED_WIDTH  int(480)
+#define OC_WINDOWED_HEIGHT int(1920)
 
 // #define OC_WINDOWED_WIDTH  int(900)
 // #define OC_WINDOWED_HEIGHT int(480)

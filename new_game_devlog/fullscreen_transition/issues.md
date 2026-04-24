@@ -665,6 +665,46 @@ The perspective-projection uses of `POLY_screen_mul_x` (lines in
 
 ---
 
+## 💡 Ideas — not decided (pre- or post-1.0 TBD)
+
+### CRT / scanline shader as a fullscreen post-process
+
+Urban Chaos shipped in 1999, back when consumer displays were still CRTs.
+Art direction (low-poly silhouettes, chunky texture work, bright colour
+palette, gouraud shading) was implicitly tuned for the visual properties
+of a shadow-mask / aperture-grille tube: scanlines, dot-mask bloom,
+mild persistence, slight geometry curvature, RGB phosphor subpixel
+dither. On a modern flat-panel LCD those qualities read as "just low-res
+1999 graphics"; on a CRT they read as the style the artists actually
+authored against.
+
+A shader CRT emulation (e.g. CRT-Royale / Lottes CRT / easymode curvature
++ mask pass, or a pared-down in-house version) could run as a final
+composition-layer effect — slot in between the existing FXAA/upscale and
+the present swap. Because the refactor puts *every* game draw through
+the scene FBO and the composition layer is the sole present path, this
+is a one-file change in `composition.cpp`; the game itself stays blind
+to it. Toggleable via a config flag so players on small screens or
+latency-sensitive setups can leave it off.
+
+Decision deferred: this is purely an aesthetic knob, not a feature the
+game needs to play. Revisit once everything core is shipped. Could go
+into 1.0 if a lightweight shader lands cleanly during polish; otherwise
+a post-1.0 "nostalgia mode" ticket.
+
+References (for when someone picks this up):
+- RetroArch `crt-royale` preset — the gold standard, multi-pass, heavy.
+- Timothy Lottes's single-pass CRT shader — ~60 lines of GLSL, cheap
+  enough for Steam Deck. Good candidate for a first pass.
+- MAME's HLSL shader — simulates aperture grille + convergence errors.
+- `blargg/CRT-geom` — curvature + scanlines only, very compact.
+
+Cost estimate: 1-2 days for a first pass (Lottes-style) with a config
+toggle. Tuning to match a specific tube look (Sony PVM? consumer CRT?)
+is open-ended polish.
+
+---
+
 ## 🟡 To verify (not yet tested)
 
 ### Outro / cutscenes (RESOLVED — framed)

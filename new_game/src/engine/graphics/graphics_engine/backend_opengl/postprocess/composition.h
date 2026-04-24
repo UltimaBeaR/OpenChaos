@@ -52,3 +52,13 @@ void composition_blit(int32_t window_w, int32_t window_h);
 // Query current scene FBO size. 0 if not initialized.
 int32_t composition_scene_width();
 int32_t composition_scene_height();
+
+// Map a real-backbuffer pixel coordinate (e.g. a mouse event position)
+// into scene-FBO pixel coordinates using the most recent composition
+// target rectangle. Returns true when (win_x, win_y) falls inside the
+// aspect-fit blit rect, with (*fbo_x, *fbo_y) set. Returns false when
+// the point sits in an outer bar — caller should drop the event.
+// Uses the (dst_x, dst_y, dst_w, dst_h, real_w, real_h) tuple computed
+// in the last composition_blit. Call on whatever event-pump thread the
+// caller uses; it's a pure pixel math function, no GL state touched.
+bool composition_window_to_fbo(int win_x, int win_y, int* fbo_x, int* fbo_y);

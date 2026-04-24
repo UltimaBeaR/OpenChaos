@@ -73,6 +73,10 @@
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line, AENG_raytraced_position
 
 // Forward declarations for functions not yet migrated from old/
+// Scene FBO dimensions (defined in d3d/display_globals.cpp).
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
+
 extern SLONG am_i_a_thug(Thing* p_person);
 extern void drop_current_gun(Thing* p_person, SLONG change_anim);
 extern SLONG analogue;
@@ -3440,11 +3444,11 @@ extern	SLONG	FC_cam_height;
             // Teleport Darci to where the mouse is.
             //
 
-            int cw, ch;
-            sdl3_window_get_size(&cw, &ch);
-
-            float hitx = float(MouseX) * float(DisplayWidth) / float(cw);
-            float hity = float(MouseY) * float(DisplayHeight) / float(ch);
+            // MouseX/Y are in scene-FBO pixels after Stage 6 of the
+            // FBO-as-virtual-screen refactor; scale into the 640×480
+            // virtual UI canvas that AENG_raytraced_position expects.
+            float hitx = float(MouseX) * float(DisplayWidth)  / float(ScreenWidth);
+            float hity = float(MouseY) * float(DisplayHeight) / float(ScreenHeight);
 
             AENG_raytraced_position(
                 SLONG(hitx + 0.5f),

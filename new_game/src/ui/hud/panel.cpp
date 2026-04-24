@@ -12,6 +12,10 @@
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
+
+// Scene FBO dimensions (defined in d3d/display_globals.cpp).
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/font2d_globals.h"
 
@@ -1130,34 +1134,31 @@ void PANEL_fadeout_start(void)
 void PANEL_fadeout_draw(void)
 {
     if (PANEL_fadeout_time) {
-        // Size the fade-out quad so the cat disc (diameter ≈ quad_width
-        // at full UV [0,1]) describes the diagonal of the **rendered
-        // viewport** — i.e. the "virtual screen" that excludes any
-        // artificial pillarbox / letterbox bars (from OC_FOV_CAP_ASPECT /
-        // OC_FOV_MIN_ASPECT clamping). All UI coords are laid out inside
-        // that viewport so the bars stay black and out-of-scope, as if
-        // the screen were simply smaller than the physical window.
-        // Centred inside the viewport.
-        const float vp_w = float(g_viewData.dwWidth);
-        const float vp_h = float(g_viewData.dwHeight);
-        const float vp_x = float(g_viewData.dwX);
-        const float vp_y = float(g_viewData.dwY);
+        // Size the fade-out quad so the cat disc (diameter ≈ quad_width × 0.5
+        // at full UV [0,1]) describes the diagonal of the scene FBO — i.e.
+        // covers every pixel the game can draw to. Invariant I5 of the
+        // FBO-as-virtual-screen refactor: full-screen effects cover the
+        // entire FBO from (0, 0) to (ScreenWidth, ScreenHeight).
+        const float vp_w  = float(ScreenWidth);
+        const float vp_h  = float(ScreenHeight);
         const float diag  = sqrtf(vp_w * vp_w + vp_h * vp_h);
         // Cat disc occupies ~half the texture width (cat_radius ≈ 0.25 of
-        // texture width), so its visible diameter = quad_width × 0.5.
-        // To make the disc circumscribe the viewport (describe every
-        // corner), quad_width must be 2× viewport diagonal.
+        // texture width), so its visible diameter = quad_width × 0.5. To
+        // make the disc circumscribe the FBO (describe every corner),
+        // quad_width must be 2 × FBO diagonal.
         const float scale = diag * 2.0F / float(DisplayWidth);
 
-        // Save + override affine (static globals on PolyPage).
+        // Temporarily override the affine so the virtual 640×480 quad
+        // below maps to a centred rectangle of the chosen size. The
+        // default uniform 4:3 affine would only cover the framed region.
         const float saved_xs = PolyPage::s_XScale;
         const float saved_ys = PolyPage::s_YScale;
         const float saved_xo = PolyPage::s_XOffset;
         const float saved_yo = PolyPage::s_YOffset;
         PolyPage::s_XScale  = scale;
         PolyPage::s_YScale  = scale;
-        PolyPage::s_XOffset = vp_x + (vp_w - float(DisplayWidth)  * scale) * 0.5f;
-        PolyPage::s_YOffset = vp_y + (vp_h - float(DisplayHeight) * scale) * 0.5f;
+        PolyPage::s_XOffset = (vp_w - float(DisplayWidth)  * scale) * 0.5f;
+        PolyPage::s_YOffset = (vp_h - float(DisplayHeight) * scale) * 0.5f;
 
         POLY_frame_init(UC_FALSE, UC_FALSE);
 

@@ -10,8 +10,8 @@
 #include "engine/core/matrix.h"
 
 // Display globals (defined in d3d/display_globals.cpp).
-extern SLONG RealDisplayWidth;
-extern SLONG RealDisplayHeight;
+extern SLONG ScreenWidth;
+extern SLONG ScreenHeight;
 #include <math.h>
 #include <vector>
 
@@ -243,7 +243,7 @@ void SKY_draw_stars(
     // real pixel space that the GEVertexTL path writes straight into the
     // framebuffer, apply the same affine as PolyPage::AddFan:
     //   real = virt * s_Scale + s_Offset
-    // (formerly this used RealDisplayWidth/DisplayWidth, which was correct
+    // (formerly this used ScreenWidth/DisplayWidth, which was correct
     // only when POLY_transform output [0, 640] — pre-Hor+). That mismatch
     // let stars scatter outside the 3D viewport on widescreen.
     const float xmul = PolyPage::s_XScale;

@@ -33,7 +33,7 @@
 // Display
 #define FLAGS_USE_3D (1 << 1)
 
-// Fixed virtual resolution — always 640x480 (actual window size is in RealDisplayWidth/Height).
+// Fixed virtual resolution — always 640x480 (actual window size is in ScreenWidth/Height).
 #define DisplayWidth  640
 #define DisplayHeight 480
 extern SLONG DisplayBPP;

@@ -162,8 +162,8 @@ void PolyPage::push_ui_mode(ui_coords::UIAnchor anchor)
     // particles / overdraw don't spill onto the black bars.
     const float scale = ui_coords::g_frame_scale;
     const ui_coords::Vec2f origin01 = ui_coords::frame_origin_screen(anchor);
-    const float xo = origin01.x * ui_coords::g_real_w_px;
-    const float yo = origin01.y * ui_coords::g_real_h_px;
+    const float xo = origin01.x * ui_coords::g_screen_w_px;
+    const float yo = origin01.y * ui_coords::g_screen_h_px;
     const int32_t fw = int32_t(float(DisplayWidth)  * scale + 0.5f);
     const int32_t fh = int32_t(float(DisplayHeight) * scale + 0.5f);
     apply_ui_state(scale, scale, xo, yo,
@@ -172,12 +172,17 @@ void PolyPage::push_ui_mode(ui_coords::UIAnchor anchor)
 
 void PolyPage::push_fullscreen_ui_mode()
 {
-    // Stretch virtual 640x480 across the entire framebuffer, non-uniform.
-    // Used by fullscreen UI effects that intentionally cover the whole
-    // screen (kibble particles, fade transitions). No scissor — draws
-    // are free to fill the screen, overriding any parent framed clip.
-    const float xs = ui_coords::g_real_w_px / float(DisplayWidth);
-    const float ys = ui_coords::g_real_h_px / float(DisplayHeight);
+    // Stretch virtual 640×480 non-uniformly across the entire scene FBO.
+    // Used by fullscreen effects that must cover every FBO pixel (menu
+    // darken, fade-out transitions, kibble particles) — invariant I5 of
+    // the FBO-as-virtual-screen refactor. The default affine from
+    // POLY_camera_set is uniform (preserves character proportions) and
+    // only fills the 4:3-shaped centre of the FBO; this mode is the
+    // opt-in escape hatch for draws that explicitly want the whole FBO.
+    // No scissor — draws are free to fill the FBO, overriding any parent
+    // framed clip.
+    const float xs = ui_coords::g_screen_w_px / float(DisplayWidth);
+    const float ys = ui_coords::g_screen_h_px / float(DisplayHeight);
     apply_ui_state(xs, ys, 0.0f, 0.0f,
                    /*scissor=*/false, 0, 0, 0, 0);
 }

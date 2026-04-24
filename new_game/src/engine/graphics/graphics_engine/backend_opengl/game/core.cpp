@@ -1467,7 +1467,7 @@ void ge_blit_background_surface()
     ui_coords::recompute(gl_context_get_width(), gl_context_get_height());
 
     // If the GL context isn't fully sized yet, skip the blit entirely.
-    if (ui_coords::g_real_w_px <= 0.0f || ui_coords::g_real_h_px <= 0.0f) return;
+    if (ui_coords::g_screen_w_px <= 0.0f || ui_coords::g_screen_h_px <= 0.0f) return;
 
     // The TL vertex shader maps pixel coords -> NDC through u_viewport,
     // which tracks the most-recent ge_set_viewport call. Game init code
@@ -1492,8 +1492,8 @@ void ge_blit_background_surface()
     if (scissor_was_enabled) glEnable(GL_SCISSOR_TEST);
 
     gl_blit_textured_quad(tex,
-                          ui_coords::g_real_w_px * 0.5f - ui_coords::g_frame_w_px * 0.5f,
-                          ui_coords::g_real_h_px * 0.5f - ui_coords::g_frame_h_px * 0.5f,
+                          ui_coords::g_screen_w_px * 0.5f - ui_coords::g_frame_w_px * 0.5f,
+                          ui_coords::g_screen_h_px * 0.5f - ui_coords::g_frame_h_px * 0.5f,
                           ui_coords::g_frame_w_px,
                           ui_coords::g_frame_h_px);
 
@@ -1843,8 +1843,8 @@ void ge_blit_surface_to_backbuffer(GEScreenSurface surface, int32_t x, int32_t y
     // and the rect lands inside it. Used by frontend transitions only.
     float fw = ui_coords::g_frame_w_px;
     float fh = ui_coords::g_frame_h_px;
-    float fox = ui_coords::g_real_w_px * 0.5f - fw * 0.5f;
-    float foy = ui_coords::g_real_h_px * 0.5f - fh * 0.5f;
+    float fox = ui_coords::g_screen_w_px * 0.5f - fw * 0.5f;
+    float foy = ui_coords::g_screen_h_px * 0.5f - fh * 0.5f;
 
     float u0 = (float)x       / fw;
     float v0 = (float)y       / fh;
@@ -2489,8 +2489,8 @@ void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 // Display globals (expected by game code)
 // ===========================================================================
 
-SLONG RealDisplayWidth = 640;
-SLONG RealDisplayHeight = 480;
+SLONG ScreenWidth = 640;
+SLONG ScreenHeight = 480;
 SLONG DisplayBPP = 32;
 
 // image_mem: used for loading screen background images (ge_init_back_image).
@@ -2557,8 +2557,8 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     if (fbo_w < 1) fbo_w = 1;
     if (fbo_h < 1) fbo_h = 1;
 
-    RealDisplayWidth  = fbo_w;
-    RealDisplayHeight = fbo_h;
+    ScreenWidth  = fbo_w;
+    ScreenHeight = fbo_h;
     DisplayBPP        = 32;  // OpenGL is always 32bpp.
 
     // Print the resolved dimensions so it's obvious what the game is
@@ -2622,8 +2622,8 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
 SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
 {
     // TODO: resize GL context.
-    RealDisplayWidth = width;
-    RealDisplayHeight = height;
+    ScreenWidth = width;
+    ScreenHeight = height;
     DisplayBPP = depth;
     return 0;
 }

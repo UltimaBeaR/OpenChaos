@@ -389,10 +389,13 @@ void GAMEMENU_draw()
         return;
     }
 
-    // Darken the screen behind the menu — covers the full real framebuffer
-    // (including pillar/letterbox bars on non-4:3 aspects), not just the
-    // framed 4:3 UI region. Uses the fullscreen UI mode so virtual (0..640,
-    // 0..480) maps across the entire real screen for the darken pass only.
+    // Darken the scene FBO behind the menu — covers the entire FBO
+    // (including inner bars around the framed 4:3 region when the FBO
+    // aspect is not 4:3), not just the framed region itself. Invariant I5:
+    // full-screen effects cover the whole FBO. push_fullscreen_ui_mode
+    // stretches virtual (0..640, 0..480) non-uniformly across the FBO
+    // so the darken quad fills it; the framed 4:3 affine is then restored
+    // for the menu text draws below.
     {
         PolyPage::push_fullscreen_ui_mode();
         POLY_frame_init(UC_FALSE, UC_FALSE);
