@@ -1002,6 +1002,11 @@ void PANEL_new_widescreen(void)
     POLY_screen_clip_top = 0.0F;
     POLY_screen_clip_bottom = float(DisplayHeight);
 
+    // Centre the dialogue box in the FBO. Portrait positions, text wrap
+    // and right-justify x all assume virtual 640-wide space; without
+    // framing they pin to the FBO left edge on wider aspects.
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
+
     // Clear the widescreen borders to black.
     PANEL_draw_quad(
         0.0F,
