@@ -2501,6 +2501,74 @@ UBYTE* image_mem = s_image_mem_buf;
 // Display functions (called from game.cpp)
 // ---------------------------------------------------------------------------
 
+// Pure function: physical window size → scene-FBO size. Applies the
+// OC_RENDER_SCALE factor and clamps the resulting aspect into
+// [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]. Outputs also expose the
+// intermediate "scaled" values and whether a clamp fired — used by
+// OpenDisplay for one-time logging and nothing else.
+static void compute_fbo_size(int phys_w, int phys_h,
+                             int* out_fbo_w, int* out_fbo_h,
+                             int* out_scaled_w, int* out_scaled_h,
+                             float* out_scale, bool* out_clamped)
+{
+    float scale = OC_RENDER_SCALE;
+    if (scale < OC_RENDER_SCALE_MIN) scale = OC_RENDER_SCALE_MIN;
+    if (scale > 1.0f)                scale = 1.0f;
+
+    int scaled_w = (int)((float)phys_w * scale + 0.5f);
+    int scaled_h = (int)((float)phys_h * scale + 0.5f);
+    if (scaled_w < 1) scaled_w = 1;
+    if (scaled_h < 1) scaled_h = 1;
+
+    const float a = (float)scaled_w / (float)scaled_h;
+    int fbo_w, fbo_h;
+    bool clamped = false;
+    if (a > OC_FOV_CAP_ASPECT) {
+        fbo_h = scaled_h;
+        fbo_w = (int)((float)scaled_h * OC_FOV_CAP_ASPECT + 0.5f);
+        clamped = true;
+    } else if (a < OC_FOV_MIN_ASPECT) {
+        fbo_w = scaled_w;
+        fbo_h = (int)((float)scaled_w / OC_FOV_MIN_ASPECT + 0.5f);
+        clamped = true;
+    } else {
+        fbo_w = scaled_w;
+        fbo_h = scaled_h;
+    }
+    if (fbo_w < 1) fbo_w = 1;
+    if (fbo_h < 1) fbo_h = 1;
+
+    *out_fbo_w    = fbo_w;
+    *out_fbo_h    = fbo_h;
+    *out_scaled_w = scaled_w;
+    *out_scaled_h = scaled_h;
+    *out_scale    = scale;
+    *out_clamped  = clamped;
+}
+
+// Apply an already-computed FBO size: reallocate scene attachments,
+// publish the new dimensions to all downstream consumers (ScreenWidth/
+// Height, gl_context cached size), rebind the scene FBO as the default
+// draw target, and notify the game via the mode-change callback so
+// PolyPage::SetScaling + ui_coords::recompute refresh in lockstep.
+//
+// Shared tail of OpenDisplay (first init) and ge_resize_display (runtime
+// window resize). Returns false if the GPU allocation fails.
+static bool apply_fbo_size(int fbo_w, int fbo_h)
+{
+    if (!composition_resize(fbo_w, fbo_h)) return false;
+
+    ScreenWidth  = fbo_w;
+    ScreenHeight = fbo_h;
+    gl_context_set_size(fbo_w, fbo_h);
+    composition_bind_scene();
+
+    if (s_mode_change_callback) {
+        s_mode_change_callback(fbo_w, fbo_h);
+    }
+    return true;
+}
+
 SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
 {
     // Window was already created with the requested mode/size by SetupHost
@@ -2517,7 +2585,7 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     sdl3_window_get_size(&logical_w, &logical_h);
 
     // Compute the scene FBO size — the render target the game treats as
-    // "the screen". Two shaping steps:
+    // "the screen". Two shaping steps inside compute_fbo_size:
     //   1. OC_RENDER_SCALE — scales the physical window size uniformly.
     //      1.0 = pixel-perfect, lower = cheaper/blurrier.
     //   2. Aspect clamp to [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] — the
@@ -2528,38 +2596,15 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     //      the composition pass paints outer pillar/letterbox bars over
     //      the leftover real-backbuffer area. The game itself never sees
     //      those bars — from its point of view the FBO *is* the screen.
-    float scale = OC_RENDER_SCALE;
-    if (scale < OC_RENDER_SCALE_MIN) scale = OC_RENDER_SCALE_MIN;
-    if (scale > 1.0f)                scale = 1.0f;
-
-    int scaled_w = (int)((float)phys_w * scale + 0.5f);
-    int scaled_h = (int)((float)phys_h * scale + 0.5f);
-    if (scaled_w < 1) scaled_w = 1;
-    if (scaled_h < 1) scaled_h = 1;
-
-    const float scaled_aspect = (float)scaled_w / (float)scaled_h;
-    int fbo_w, fbo_h;
+    int fbo_w = 0, fbo_h = 0, scaled_w = 0, scaled_h = 0;
+    float scale = 1.0f;
     bool clamped = false;
-    if (scaled_aspect > OC_FOV_CAP_ASPECT) {
-        // Physical aspect is wider than the allowed cap → narrow the FBO.
-        fbo_h = scaled_h;
-        fbo_w = (int)((float)scaled_h * OC_FOV_CAP_ASPECT + 0.5f);
-        clamped = true;
-    } else if (scaled_aspect < OC_FOV_MIN_ASPECT) {
-        // Physical aspect is taller/narrower than the allowed floor → shorten.
-        fbo_w = scaled_w;
-        fbo_h = (int)((float)scaled_w / OC_FOV_MIN_ASPECT + 0.5f);
-        clamped = true;
-    } else {
-        fbo_w = scaled_w;
-        fbo_h = scaled_h;
-    }
-    if (fbo_w < 1) fbo_w = 1;
-    if (fbo_h < 1) fbo_h = 1;
+    compute_fbo_size(phys_w, phys_h,
+                     &fbo_w, &fbo_h, &scaled_w, &scaled_h,
+                     &scale, &clamped);
+    const float scaled_aspect = (float)scaled_w / (float)scaled_h;
 
-    ScreenWidth  = fbo_w;
-    ScreenHeight = fbo_h;
-    DisplayBPP        = 32;  // OpenGL is always 32bpp.
+    DisplayBPP = 32;  // OpenGL is always 32bpp.
 
     // Print the resolved dimensions so it's obvious what the game is
     // actually rendering at vs. what the window presents. Useful when
@@ -2596,35 +2641,56 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
         return -1;
     }
 
-    // Keep the scene FBO bound as the default draw target. Some game paths
-    // call ge_clear() before the frame's ge_begin_scene() (e.g.
-    // AENG_clear_viewport fires before POLY_begin) — we need those clears to
-    // hit the scene FBO, not the window. After every present (flip / blit /
-    // video) we re-bind the scene FBO too, so this invariant holds across
-    // the whole lifetime of the GL context.
-    composition_bind_scene();
-
     // Wipe the freshly-allocated scene FBO so the first present can't briefly
     // flicker uninitialized GPU memory in the bars around the framed UI
     // (e.g. before the intro video starts, ATTRACT_loadscreen_init blits a
     // 4:3 background and AENG_flip presents — without this clear, the area
     // outside the framed region carried garbage on the first frame).
+    composition_bind_scene();
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (s_mode_change_callback) {
-        s_mode_change_callback(fbo_w, fbo_h);
+    // Publish dimensions + fire mode-change callback. composition_resize
+    // inside apply_fbo_size is a no-op here (same size that composition_init
+    // just used); the call exists to share the "tail" with ge_resize_display.
+    if (!apply_fbo_size(fbo_w, fbo_h)) {
+        fprintf(stderr, "OpenDisplay: apply_fbo_size failed\n");
+        return -1;
     }
 
     return 0; // success (D3D backend returns HRESULT, 0 = S_OK)
 }
 
+// Public entry point for runtime window resize. Called from the host
+// event loop (host.cpp) after the OS reports a window size change. Safe
+// no-op if the FBO is already at the current drawable size.
+void ge_resize_display()
+{
+    int phys_w = 0, phys_h = 0;
+    sdl3_window_get_drawable_size(&phys_w, &phys_h);
+    if (phys_w <= 0 || phys_h <= 0) return;
+
+    int fbo_w = 0, fbo_h = 0, scaled_w = 0, scaled_h = 0;
+    float scale = 1.0f;
+    bool clamped = false;
+    compute_fbo_size(phys_w, phys_h,
+                     &fbo_w, &fbo_h, &scaled_w, &scaled_h,
+                     &scale, &clamped);
+
+    if (!apply_fbo_size(fbo_w, fbo_h)) {
+        fprintf(stderr, "ge_resize_display: apply_fbo_size failed (%dx%d)\n",
+                fbo_w, fbo_h);
+    }
+}
+
 SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
 {
-    // TODO: resize GL context.
-    ScreenWidth = width;
-    ScreenHeight = height;
-    DisplayBPP = depth;
+    // Legacy D3D-era API. The actual source of truth is now the OS-
+    // reported window drawable size; arguments are ignored. Delegates
+    // to ge_resize_display so any remaining caller gets the current
+    // behaviour instead of a stale-globals stub.
+    (void)width; (void)height; (void)depth;
+    ge_resize_display();
     return 0;
 }
 

@@ -77,3 +77,9 @@ void gl_context_swap()
 
 int32_t gl_context_get_width()  { return s_width; }
 int32_t gl_context_get_height() { return s_height; }
+
+void gl_context_set_size(int32_t width, int32_t height)
+{
+    s_width  = width;
+    s_height = height;
+}

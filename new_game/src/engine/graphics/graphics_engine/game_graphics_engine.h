@@ -374,6 +374,11 @@ void ge_clear_display_changed();
 // Update the internal display rect from window position (called on WM_MOVE/WM_SIZE).
 void ge_update_display_rect(void* hwnd, bool fullscreen);
 
+// Reconfigure the scene FBO and all dependent size globals to match the
+// current OS drawable size. Called from the host event loop after a
+// window resize. Safe no-op if the size hasn't changed.
+void ge_resize_display();
+
 // ---------------------------------------------------------------------------
 // Texture management
 // ---------------------------------------------------------------------------

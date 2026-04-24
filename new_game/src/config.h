@@ -10,22 +10,8 @@
 #define OC_FULLSCREEN false
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
-
-// Ультраширокий
-// #define OC_WINDOWED_WIDTH  int(1920)
-// #define OC_WINDOWED_HEIGHT int(480)
-
-// Шире среднего
-// #define OC_WINDOWED_WIDTH  int(900)
-// #define OC_WINDOWED_HEIGHT int(480)
-
-// Дефолт
-// #define OC_WINDOWED_WIDTH  int(640)
-// #define OC_WINDOWED_HEIGHT int(480)
-
-// Мобилка
-#define OC_WINDOWED_WIDTH  int(480)
-#define OC_WINDOWED_HEIGHT int(1920)
+#define OC_WINDOWED_WIDTH  int(640)
+#define OC_WINDOWED_HEIGHT int(480)
 
 
 // Enable VSync. Concrete strategy (driver VSync vs DwmFlush) depends on
@@ -85,7 +71,7 @@
 // Debug: paint the composition layer's outer pillar/letterbox bars
 // dark red instead of black so the FBO boundary is visible during
 // layout debugging. Keep OFF in shipping builds.
-#define OC_DEBUG_COMPOSITION_BARS_RED true
+#define OC_DEBUG_COMPOSITION_BARS_RED false
 
 // Debug: set to true to silence all sound/music by forcing the OpenAL
 // listener gain to 0 right after init. OpenAL itself stays fully

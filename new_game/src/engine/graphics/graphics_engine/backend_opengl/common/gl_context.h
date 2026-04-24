@@ -21,4 +21,10 @@ void gl_context_swap();
 int32_t gl_context_get_width();
 int32_t gl_context_get_height();
 
+// Update the cached framebuffer dimensions without recreating the GL
+// context. Called from the FBO-resize path (ge_resize_display) so that
+// gl_context_get_width/height report the new scene-FBO size — the wibble
+// effect, ge_set_viewport's y-flip, and several other call sites read it.
+void gl_context_set_size(int32_t width, int32_t height);
+
 #endif // ENGINE_GRAPHICS_BACKEND_OPENGL_GL_CONTEXT_H

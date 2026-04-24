@@ -71,9 +71,32 @@ static void on_window_moved()
     ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
 }
 
+// Runtime window resize is coalesced via a pending flag + last-event
+// timestamp. Destroying and recreating the scene FBO + its attachments on
+// every SDL resize event would stutter at ~60 events/sec while the user
+// drags an edge (each event reallocates two GL textures). We latch a
+// "pending" marker here and let LibShellActive's debounce check apply
+// the real reconfigure once events go quiet for RESIZE_DEBOUNCE_MS.
+static bool     s_resize_pending = false;
+static uint64_t s_resize_last_event_ms = 0;
+
+// Debounce window — empirically: short enough to feel instant when the
+// user stops dragging, long enough to coalesce a fast edge-drag burst.
+static constexpr uint64_t RESIZE_DEBOUNCE_MS = 150;
+
 static void on_window_resized()
 {
     ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
+    s_resize_pending = true;
+    s_resize_last_event_ms = sdl3_get_ticks();
+}
+
+static void process_pending_resize()
+{
+    if (!s_resize_pending) return;
+    if (sdl3_get_ticks() - s_resize_last_event_ms < RESIZE_DEBOUNCE_MS) return;
+    ge_resize_display();
+    s_resize_pending = false;
 }
 
 static void on_close()
@@ -168,6 +191,12 @@ BOOL LibShellActive(void)
     if (!sdl3_poll_events()) {
         ShellActive = UC_FALSE;
     }
+
+    // After pumping events, apply any debounced window resize. Running this
+    // here — at the top of the frame, before game logic / rendering begins —
+    // guarantees the scene FBO is not destroyed mid-frame (see Risk #2 in
+    // new_game_devlog/fullscreen_transition/runtime_window_resize_plan.md).
+    process_pending_resize();
 
     if (restore_surfaces) {
         ge_restore_all_surfaces();

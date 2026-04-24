@@ -41,7 +41,13 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
     // match physical pixels instead of logical points. The config width/
     // height below are treated as physical pixels too — we convert them to
     // logical points before SDL_CreateWindow.
-    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+    //
+    // SDL_WINDOW_RESIZABLE: allows the user to drag the window edges to
+    // resize at runtime. SDL ignores this flag in fullscreen, so it's safe
+    // to always pass. The renderer reconfigures on SDL_EVENT_WINDOW_PIXEL_
+    // SIZE_CHANGED via ge_resize_display() (see host.cpp on_window_resized).
+    Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN
+                 | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
 
     // Remember the caller's physical-pixel request before we mutate width/
     // height for fullscreen. Used after window creation to resize if the
@@ -72,6 +78,11 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
         fprintf(stderr, "SDL3: SDL_CreateWindow failed: %s\n", SDL_GetError());
         return false;
     }
+
+    // Defensive floor so a tiny window can't drive fbo_w/h → 1 and trip
+    // division-by-zero further down the pipeline. The aspect clamp in
+    // ge_resize_display still handles the extreme-aspect edges above this.
+    SDL_SetWindowMinimumSize(s_window, 320, 240);
 
     if (!fullscreen) {
         // Config supplies window size in physical pixels (consistent across
@@ -528,7 +539,15 @@ bool sdl3_poll_events()
             if (s_callbacks.on_window_moved) s_callbacks.on_window_moved();
             break;
 
+        // RESIZED fires on logical (point) size changes; PIXEL_SIZE_CHANGED
+        // fires on drawable (pixel) size changes. On non-HiDPI displays the
+        // two coincide; on HiDPI (Retina, per-monitor scaling) a window drag
+        // between monitors of differing density may only fire PIXEL_SIZE.
+        // We need the pixel path for FBO sizing, so handle both — the
+        // debounce in the resize handler absorbs duplicate events when both
+        // fire on the same change.
         case SDL_EVENT_WINDOW_RESIZED:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             if (s_callbacks.on_window_resized) s_callbacks.on_window_resized();
             break;
 
