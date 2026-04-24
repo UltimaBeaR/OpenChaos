@@ -142,7 +142,7 @@ Remaining work — see [`issues.md`](issues.md):
 
 - **[`concepts.md`](concepts.md)** — terminology and pipeline flow. **Read this
   first** if you're new to the code: explains `DisplayWidth` vs
-  `RealDisplayWidth` vs `POLY_screen_width`, what `s_XScale/s_YScale` does,
+  `ScreenWidth` vs `POLY_screen_width`, what `s_XScale/s_YScale` does,
   and how a vertex travels from virtual game coords to framebuffer pixels.
 - **[`testing.md`](testing.md)** — how to reproduce bugs. Critical: most bugs
   only show up on **non-4:3** resolutions. Testing only at 4:3 lies.

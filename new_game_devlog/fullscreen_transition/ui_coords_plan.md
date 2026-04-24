@@ -502,7 +502,6 @@ items.
 - **Wibble amplitude scaling.** Separate follow-up.
 - **User-configurable HUD scale multiplier.** Future work; HUD scale is
   hardwired to `g_frame_scale` for now.
-- **Renaming `RealDisplayWidth/Height`.** Separate follow-up.
 - **Aspect ratio strategy beyond framed-CENTER_CENTER for menus.** If
   framed menus look wrong on ultrawide we'll revisit — for now framed +
   CENTER_CENTER is the only mode.

@@ -1,9 +1,9 @@
 # Concepts & pipeline flow
 
-Terminology + pipeline flow for the 3D/HUD rendering path, updated
-through the FOV cap / letterbox floor / auto-zoom / sprite-scale
-work. Read this before touching `POLY_camera_set`, `AENG_clear_viewport`,
-`PolyPage::AddFan`, or anything that sets camera lens / aspect.
+Terminology + pipeline flow for the 3D/HUD rendering path after the
+FBO-as-virtual-screen refactor. Read this before touching
+`POLY_camera_set`, `AENG_clear_viewport`, `PolyPage::AddFan`, the
+composition layer, or anything that sets camera lens / aspect.
 
 ## Glossary
 
@@ -15,14 +15,20 @@ and 480.** They define the **virtual game coordinate space** — the reference
 frame the original 1999 code drew into. Every hardcoded layout (HUD panel
 positions, health bar width, button coords, etc.) assumes this space.
 
-**`RealDisplayWidth` / `RealDisplayHeight`** — runtime `SLONG` globals,
-defined in
+**`ScreenWidth` / `ScreenHeight`** — runtime `SLONG` globals, defined in
 [`core.cpp`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp).
-After the render-scale change, **these hold the scene FBO size, not the
-physical window** (FBO = physical × `OC_RENDER_SCALE`). Despite the
-misleading name — see the pending "Rename `RealDisplayWidth/Height`"
-task in [`issues.md`](issues.md). `gl_context_get_width/height` is
+Hold the **scene FBO size** — the game's "screen". The FBO is sized as
+`physical_window × OC_RENDER_SCALE`, then aspect-clamped to
+`[OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]` in `OpenDisplay`. Game code
+reads these as the one source of truth for "how big is the screen I'm
+drawing to"; the composition layer at frame end handles the gap between
+FBO size and real backbuffer size. `gl_context_get_width/height` is
 hooked to the same FBO dimensions.
+
+**Real backbuffer size** — queried directly from SDL3 via
+`sdl3_window_get_drawable_size`, visible **only** to the composition
+layer and the mouse-event mapping code. Everywhere else, code reads
+`ScreenWidth/Height` instead.
 
 ### Virtual 3D render space
 
@@ -32,14 +38,15 @@ by `POLY_camera_set()` in
 **virtual 3D render space** that `POLY_perspective` projects into.
 
 ```
-POLY_screen_width  = DisplayHeight × effective_aspect
+POLY_screen_width  = DisplayHeight × real_aspect
 POLY_screen_height = DisplayHeight (full-screen) or DisplayHeight/2 (splitscreen half)
+
+where real_aspect = ScreenWidth / ScreenHeight
 ```
 
-`effective_aspect` is clamped to `[OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]`:
-- `real_aspect > CAP`: `effective = CAP` → pillarbox bars left/right.
-- `real_aspect < MIN`: `effective = MIN` → letterbox bars top/bottom.
-- Otherwise: `effective = real_aspect` → scene fills the screen.
+No per-frame aspect clamping — the scene FBO is already pre-clamped at
+creation time (`OpenDisplay`), so `real_aspect` lives inside
+`[OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]` unconditionally.
 
 Every 3D vertex, after the software perspective pass
 (`POLY_perspective`), comes out in `[0..POLY_screen_width] × [0..POLY_screen_height]`
@@ -48,7 +55,7 @@ recomputed here — it's the "world length → virtual pixels" multiplier
 used by billboards / lines / sphere radii (see `POLY_sprite_scale`
 below).
 
-### Scale factors (virtual → real pixel conversion)
+### Scale factors (virtual → FBO pixel conversion)
 
 **`PolyPage::s_XScale` / `s_YScale`** — static floats in
 [`polypage.cpp`](../../new_game/src/engine/graphics/pipeline/polypage.cpp).
@@ -57,37 +64,35 @@ submission. Two initialisation paths, one overrides the other:
 
 1. `PolyPage::SetScaling()` called from `game_mode_changed()` in
    [`game.cpp`](../../new_game/src/game/game.cpp) — sets
-   `s_XScale = s_YScale = RealH / DisplayHeight`. This is a fallback
-   for non-3D code paths (menus using UI mode use their own scale;
-   initial frame before `POLY_camera_set` runs).
-2. **`POLY_camera_set` overrides per frame** with a uniform "fit"
-   scale — `min(RealW / POLY_screen_width, RealH / DisplayHeight)`.
-   Picks whichever axis is limiting so the virtual render rect fits
-   inside the real framebuffer without overshoot. For aspects in
-   `[MIN, CAP]` this equals `RealH / DisplayHeight` (same as path 1).
-   For aspects outside the range, the axis-limited scale shrinks the
-   render rect — pillarbox or letterbox bars fill the unused space.
+   `s_XScale = s_YScale = ScreenHeight / DisplayHeight`. Fallback for
+   non-3D code paths before `POLY_camera_set` runs.
+2. **`POLY_camera_set` overrides per frame** with the same uniform
+   scale — `ScreenHeight / DisplayHeight`. With the FBO pre-clamped
+   to `[MIN, CAP]`, the pre-refactor two-axis `min(scale_w, scale_h)`
+   "fit" reduced to a single ratio; the uniform scale preserves
+   character proportions unconditionally and the viewport always
+   fills the FBO edge-to-edge.
 
 **`PolyPage::s_XOffset` / `s_YOffset`** — static floats, added to
-vertex X / Y **after** scaling. Used to translate the POLY-path
-render region to the same pixel-coordinate origin as the MM-path
-(figure.cpp characters — bakes `dwX + dwWidth/2` into bone matrices).
-Set in `POLY_camera_set` to `(base_x, base_y)` = the pillar/letter
-offsets (see below). Zero on aspects inside `[MIN, CAP]`, non-zero
-outside. Also reused by the UI-mode stack (temporary override for
-framed UI, snapshot/restore around `push_ui_mode` / `pop_ui_mode`).
+vertex X / Y **after** scaling. Always `0` in the default camera
+path — the 3D viewport fills the FBO edge-to-edge (no inner
+centring). The UI-mode stack overrides them with a per-anchor origin
+for framed UI (snapshot/restore around `push_ui_mode` /
+`pop_ui_mode`).
 
 ### Aspect clamps & compensation
 
 **`OC_FOV_CAP_ASPECT`** — config constant in
-[`config.h`](../../new_game/src/config.h). Default `16.0F / 9.0F`.
-Maximum horizontal aspect the 3D scene is rendered at. Wider windows
-get pillarboxed to this aspect. Protects against rectilinear
-fish-eye at ultra-wide FOVs.
+[`config.h`](../../new_game/src/config.h). Default `18.0F / 9.0F` (2.0).
+Maximum horizontal aspect the scene FBO is sized at. Physical windows
+wider than this get pillarboxed (outer bars, painted by composition)
+with the FBO clamped to `CAP`. Protects against rectilinear fish-eye at
+ultra-wide FOVs.
 
-**`OC_FOV_MIN_ASPECT`** — default `4.0F / 3.0F`. Minimum horizontal
-aspect. Taller (narrower) windows get letterboxed to this aspect.
-Symmetric to CAP.
+**`OC_FOV_MIN_ASPECT`** — default `2.0F / 3.0F` (0.667). Minimum
+horizontal aspect. Taller / narrower physical windows get letterboxed
+(outer bars, painted by composition) with the FBO clamped to `MIN`.
+Symmetric to CAP. Avoids "character huge" at narrow horizontal FOVs.
 
 **`OC_FOV_MULTIPLIER`** — default `1.0F`. User-facing FOV slider.
 Divides the live camera lens in `aeng.cpp`'s `AENG_lens = …`
@@ -96,17 +101,17 @@ projection type — fish-eye returns if cranked high.
 
 **`auto_zoom`** — computed in `aeng.cpp` (where `AENG_lens` is set)
 and again in `poly.cpp` (`POLY_camera_set`, for `POLY_sprite_scale`).
-Compensation factor when aspect is narrower than 4:3:
+Compensation factor when FBO aspect is narrower than 4:3:
 
 ```
-if real_aspect >= base_aspect (4/3):  auto_zoom = 1
-else:                                 auto_zoom = base_aspect / max(real_aspect, MIN)
+if fbo_aspect >= base_aspect (4/3):  auto_zoom = 1
+else:                                auto_zoom = base_aspect / max(fbo_aspect, MIN)
 ```
 
 Applied by **dividing `AENG_lens`** by `auto_zoom × OC_FOV_MULTIPLIER`.
 This widens the FOV (smaller lens = wider camera) so the character's
-pixel size stays bounded by `RealW`, not `RealH`. Extra screen
-height fills with more sky / ground instead of pixel-blowing up
+pixel size stays bounded by `ScreenWidth`, not `ScreenHeight`. Extra
+screen height fills with more sky / ground instead of pixel-blowing up
 the character.
 
 **Must be applied at the `AENG_lens` source, not inside
@@ -116,24 +121,6 @@ computation. Applying the zoom only inside `POLY_camera_set`
 desyncs gamut culling from rendering → geometry visible in the
 widened render path gets pre-culled → black cut-outs on the
 periphery.
-
-**`base_x` / `base_y`** — local variables in `POLY_camera_set`,
-real-pixel offsets that centre the clamped render rect inside the
-real framebuffer:
-
-```
-render_w = POLY_screen_width × fit_scale     (real pixels, ≤ RealW)
-render_h = DisplayHeight     × fit_scale     (real pixels, ≤ RealH)
-base_x   = (RealW - render_w) × 0.5F
-base_y   = (RealH - render_h) × 0.5F
-```
-
-One of the two is always `0` (whichever axis the fit scale is
-limited by). Used for: (1) `g_viewData.dwX` / `dwY` viewport origin
-(also propagated to `g_dw3DStuffY` so `figure.cpp` MM-path builds
-correct bone matrices); (2) `PolyPage::s_XOffset` / `s_YOffset` so
-POLY-path vertices land in the same pixel space as MM-path
-characters.
 
 **`POLY_sprite_scale`** — file-scope float in
 [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp).
@@ -162,24 +149,29 @@ original-game cutscene lens changes never resized sprites anyway.
   What we do in `[4/3, CAP]`.
 - **Vert-** = keep horizontal FOV, squash vertical on wider screens.
   Old games. Not what we do.
-- **Pillarbox** = black bars on left/right; scene centered at a
-  narrower aspect. What we do when `real_aspect > CAP`.
-- **Letterbox** = black bars on top/bottom; scene centered at a
-  wider aspect. What we do when `real_aspect < MIN`.
-- **Auto-zoom** (our addition) = in `[MIN, 4/3]` don't letterbox,
-  instead zoom the camera out so horizontal FOV stays 4:3-equivalent
-  and the extra vertical space fills with world.
+- **Outer pillarbox** = black bars on left/right of the real
+  backbuffer (outside the FBO), painted by the **composition layer**
+  when physical window aspect > CAP. Game blind to them.
+- **Outer letterbox** = black bars on top/bottom of the real
+  backbuffer, painted by composition when physical window aspect < MIN.
+- **Inner bars** = black bars around the framed 4:3 UI region (menus,
+  frontend, loading, pause) when the FBO aspect is not 4:3. Painted
+  by the game itself as ordinary UI draws inside the FBO — separate
+  architectural layer from outer bars.
+- **Auto-zoom** (our addition) = in `[MIN, 4/3]` don't letterbox the
+  gameplay view, instead zoom the camera out so horizontal FOV stays
+  4:3-equivalent and the extra vertical space fills with world.
 
 ## Vertex pipeline flow
 
-How a single vertex goes from world position to framebuffer pixel:
+How a single vertex goes from world position to real backbuffer pixel:
 
 ```
 world (x,y,z)
    │
    │ POLY_transform: MATRIX_MUL by POLY_cam_matrix
    │  └── POLY_cam_matrix has MATRIX_skew baked in with:
-   │      aspect = POLY_screen_height / POLY_screen_width   (clamped aspect)
+   │      aspect = POLY_screen_height / POLY_screen_width   (FBO aspect)
    │      zoom   = POLY_cam_lens = AENG_lens (already divided by
    │               OC_FOV_MULTIPLIER × auto_zoom in aeng.cpp)
    │      scale  = 1 / view_dist
@@ -192,52 +184,61 @@ view (vx,vy,vz)
    ▼
 virtual screen pixels: (pt->X, pt->Y)
     range  0..POLY_screen_width × 0..POLY_screen_height
-    e.g. on 1920×1080 with no cap: 0..853 × 0..480
-         on 2560×1080 (CAP=16/9 pillar): 0..853 × 0..480
-         on 480×1920 (MIN=4/3 letter):   0..640 × 0..480
+    e.g. on FBO 1920×1080:            0..853   × 0..480
+         on FBO 2880×1440 (CAP clamp): 0..960  × 0..480
+         on FBO 480×720  (MIN clamp):  0..320  × 0..480
    │
    │ PolyPage::AddFan:
    │   X = pt->X × s_XScale + s_XOffset
    │   Y = pt->Y × s_YScale + s_YOffset
-   │   (s_XScale = s_YScale = fit_scale, computed in POLY_camera_set;
-   │    s_XOffset = base_x, s_YOffset = base_y, the pillar/letter centering)
+   │   (s_XScale = s_YScale = ScreenHeight / DisplayHeight,
+   │    s_XOffset = s_YOffset = 0 in default camera mode)
    ▼
-real framebuffer pixels: (X, Y)
-    range dwX..dwX+dwWidth × dwY..dwY+dwHeight
-    e.g. on 2560×1080 pillar: 320..2240 × 0..1080
-         on 480×1920 letter:  0..480 × 240..1680
+scene FBO pixels: (X, Y)
+    range 0..ScreenWidth × 0..ScreenHeight
+    e.g. FBO 1920×1080: 0..1920 × 0..1080
+         FBO 2880×1440: 0..2880 × 0..1440
+         FBO 480×720:   0..480  × 0..720
    │
-   │ GL: tl_vert.glsl shader maps screen-pixels → NDC relative to
-   │     u_viewport (dwX, dwY, dwWidth, dwHeight). glViewport
-   │     positions the output at the centered render region.
+   │ GL: tl_vert.glsl shader maps FBO pixels → NDC relative to
+   │     u_viewport (g_viewData.dwX/dwY/dwWidth/dwHeight = full FBO
+   │     by default; cutscene `wideify` / splitscreen override dwY).
    ▼
-gl_FragCoord
+gl_FragCoord (inside scene FBO)
+   │
+   │ Composition pass (composition_blit):
+   │   Computes aspect-fit dst rect centred in the real backbuffer,
+   │   clears the backbuffer to black (outer bars), blits the FBO
+   │   into dst via FXAA + bilinear upscale.
+   ▼
+real backbuffer pixels
 ```
 
 Characters (`figure.cpp` MM-path) follow a different route — they
 build bone matrices from `g_matWorld × g_matProjection`, bake
 `dwX + dwWidth/2` and `dwY + dwHeight/2` into per-bone matrix, and
 are submitted as pre-transformed vertices (`ge_draw_multi_matrix`).
-The **output pixel range is the same** `[dwX..dwX+dwWidth] ×
-[dwY..dwY+dwHeight]` as POLY-path: `s_XOffset`/`s_YOffset` on the
-POLY side is what makes both paths agree.
+Output range is the same `[0..ScreenWidth] × [0..ScreenHeight]` FBO
+pixels as POLY-path — both paths emit into the same FBO-origin
+coordinate space because `s_XOffset = s_YOffset = g_viewData.dwX =
+g_viewData.dwY = 0`.
 
 ### Why each step matters
 
 - **3D world** goes through the full chain. Its pixel size tracks:
-  - `RealH` in `[base, CAP]` (Hor+ unchanged).
-  - `RealW` in `[MIN, base]` (auto-zoom makes it width-based).
-  - `RealW` below MIN (letterbox MIN-aspect scale is width-limited).
-  - `RealH` above CAP (pillar CAP-aspect scale is height-limited).
+  - `ScreenHeight` in `[base, CAP]` (Hor+ unchanged).
+  - `ScreenWidth` in `[MIN, base]` (auto-zoom makes it width-based).
+  - `ScreenWidth` at the MIN clamp (FBO height was shrunk to hit MIN).
+  - `ScreenHeight` at the CAP clamp (FBO width was shrunk to hit CAP).
 
 - **HUD** skips the `POLY_transform` / `POLY_perspective` step — it
   enters at the `AddFan` step directly, with coords already in
-  virtual 640×480 pixel space. Multiplying by the per-frame fit
-  scale gives a region smaller than the real framebuffer on
-  widescreen → pillarboxed. The UI-mode stack overrides with its
-  own 4:3 framed coords (see [`ui_coords_plan.md`](ui_coords_plan.md))
-  for menus / frontend / loading. In-game HUD migration to
-  anchored coords is Stage 3c (see [`issues.md`](issues.md)).
+  virtual 640×480 pixel space. Multiplying by the per-frame uniform
+  scale gives the 4:3 region inside the FBO → inner-bar gutters on
+  non-4:3 FBOs. The UI-mode stack overrides with its own 4:3 framed
+  coords (see [`ui_coords_plan.md`](ui_coords_plan.md)) for menus /
+  frontend / loading. In-game HUD migration to anchored coords is
+  Stage 3c (see [`issues.md`](issues.md)).
 
 - **Sprite / billboard sizes** (lamps, flares, moon, rain, lines)
   go through `POLY_world_length_to_screen` etc. which use
@@ -253,9 +254,15 @@ POLY side is what makes both paths agree.
   on what's in-view.
 
 - **Post-process passes** (wibble) accept bboxes in virtual 640×480
-  space and scale with `× RealH / 480` on **both** axes (not
-  `× RealW / 640` on X — the old wibble bug; see resolved section
-  in [`issues.md`](issues.md)).
+  space and scale with `× ScreenHeight / 480` on **both** axes (not
+  `× ScreenWidth / 640` on X — the old wibble bug; see resolved
+  section in [`issues.md`](issues.md)).
+
+- **Composition layer** — one-place reconciliation of FBO size and
+  real backbuffer size. Computes aspect-fit dst rect, clears outer
+  bars black, blits FBO via FXAA + upscale. No game code except the
+  mouse-event mapper (`composition_window_to_fbo`) sees the real
+  backbuffer.
 
 ## Invariants — don't break these
 
@@ -271,13 +278,12 @@ POLY side is what makes both paths agree.
    divide by the factors **we added** (`OC_FOV_MULTIPLIER × auto_zoom`)
    only — mirror the `POLY_sprite_scale` formula.
 
-3. **POLY-path and MM-path must emit pixels in the same
-   framebuffer range**. POLY gets the pillar/letter offset via
-   `s_XOffset`/`s_YOffset`. MM gets it via `dwX + dwWidth/2`
-   baked in per-bone matrix. If you add a third render path,
+3. **POLY-path and MM-path must emit pixels in the same FBO range**.
+   Both start at the FBO origin `(0, 0)` and fill to
+   `(ScreenWidth, ScreenHeight)`. If you add a third render path,
    make it consume `g_viewData.dwX/dwY/dwWidth/dwHeight` or
-   `PolyPage::s_XOffset/s_YOffset` — don't reintroduce a
-   viewport-unaware origin.
+   `PolyPage::s_XOffset/s_YOffset` (both zero in the default camera
+   path) — don't reintroduce a viewport-unaware origin.
 
 4. **`PolyPage::s_XScale / s_YScale` are overridden per frame**
    by `POLY_camera_set`. `SetScaling()` from `game_mode_changed()`
@@ -293,39 +299,63 @@ POLY side is what makes both paths agree.
    to `POLY_sprite_scale` — don't add a fresh `POLY_screen_mul_x`
    reference for those use cases.
 
-6. **`AENG_clear_viewport` paints the pillar/letter bars** using
-   `ge_fill_rect` (scissored `glClear`) **after** the main
-   sky-/black- clear. The bar geometry replicates
-   `POLY_camera_set`'s `render_x / render_y / render_w / render_h`
-   formula so edges abut with no 1-pixel gap. If you change the
-   render-rect formula in one place, update the other.
+6. **Outer pillar / letterbox bars live in the composition layer,
+   not in game code.** `AENG_clear_viewport` clears the FBO to sky /
+   black and returns — it does not paint any bars. The FBO always
+   fills its own aspect range edge-to-edge. The composition layer's
+   `composition_blit` computes the aspect-fit dst rect, clears the
+   real backbuffer to black (outer bars), and draws the FBO into dst.
+
+7. **The game never reads the real window size.** Only
+   `composition.cpp` and `sdl3_bridge.cpp` plus the mouse-event
+   mapper may query the physical backbuffer. Everywhere else uses
+   `ScreenWidth/Height` = FBO size. If you find yourself reaching
+   for `sdl3_window_get_drawable_size` in game code, back out — the
+   FBO *is* the screen.
 
 ## Where scale is picked
 
 Live, per frame, in `POLY_camera_set`:
 
 ```cpp
-effective_aspect = clamp(real_aspect, OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT);
-POLY_screen_width = DisplayHeight × effective_aspect;
+real_aspect       = ScreenWidth / ScreenHeight;   // already in [MIN, CAP]
+POLY_screen_width = DisplayHeight × real_aspect;
 
-scale_w_fit = RealW / POLY_screen_width;
-scale_h_fit = RealH / DisplayHeight;
-fit_scale   = min(scale_w_fit, scale_h_fit);
+uniform_scale     = ScreenHeight / DisplayHeight;
+PolyPage::s_XScale = PolyPage::s_YScale = uniform_scale;
 
-PolyPage::s_XScale = PolyPage::s_YScale = fit_scale;
+g_viewData.dwX = 0;
+g_viewData.dwY = (POLY_screen_mid_y - fMyMulY) × uniform_scale;  // splitscreen / cutscene wideify only
+g_viewData.dwWidth  = ScreenWidth;     // uniform_scale × POLY_screen_width × 2 × ZCLIP / 2
+g_viewData.dwHeight = ScreenHeight;    // similarly, up to wideify cutscene letterbox
 
-base_x = (RealW - POLY_screen_width × fit_scale) × 0.5;
-base_y = (RealH - DisplayHeight     × fit_scale) × 0.5;
-g_viewData.dwX = base_x;
-g_viewData.dwY = base_y + (POLY_screen_mid_y - fMyMulY) × fit_scale;
-PolyPage::s_XOffset = base_x;
-PolyPage::s_YOffset = base_y;
+PolyPage::s_XOffset = PolyPage::s_YOffset = 0;
 
 auto_zoom = (real_aspect < base_aspect)
           ? base_aspect / max(real_aspect, MIN)
           : 1;
 POLY_sprite_scale = (DisplayWidth × 0.5 / POLY_ZCLIP_PLANE)
                   / (OC_FOV_MULTIPLIER × auto_zoom);
+```
+
+At FBO creation, in `OpenDisplay`:
+
+```cpp
+// Step 1: render scale.
+scaled_w = int(phys_w × OC_RENDER_SCALE + 0.5);
+scaled_h = int(phys_h × OC_RENDER_SCALE + 0.5);
+
+// Step 2: aspect clamp.
+scaled_aspect = scaled_w / scaled_h;
+if scaled_aspect > OC_FOV_CAP_ASPECT:
+    fbo_w = int(scaled_h × OC_FOV_CAP_ASPECT + 0.5);  fbo_h = scaled_h;
+elif scaled_aspect < OC_FOV_MIN_ASPECT:
+    fbo_w = scaled_w;                                 fbo_h = int(scaled_w / OC_FOV_MIN_ASPECT + 0.5);
+else:
+    fbo_w = scaled_w;                                 fbo_h = scaled_h;
+
+ScreenWidth  = fbo_w;
+ScreenHeight = fbo_h;
 ```
 
 And at `AENG_lens` source in aeng.cpp (feeds the `POLY_cam_lens` +
@@ -335,7 +365,6 @@ all culling paths):
 AENG_lens = fc->lens × stuff / (OC_FOV_MULTIPLIER × auto_zoom);
 ```
 
-Any other code that wants to map virtual → real pixels must use
-`PolyPage::s_XScale` / `s_YScale` (current frame values) — **not**
-the `RealH / DisplayHeight` formula directly, which only coincides
-with the fit scale for aspects in `[MIN, CAP]`.
+Any other code that wants to map virtual → FBO pixels must use
+`PolyPage::s_XScale` / `s_YScale` (current frame values) — which
+are always the uniform `ScreenHeight / DisplayHeight` scalar.
