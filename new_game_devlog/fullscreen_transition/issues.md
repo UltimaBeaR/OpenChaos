@@ -120,11 +120,43 @@ scales uniformly by `g_frame_scale = ScreenW/640` to fit width; on
 widescreen radar/empty stay at the original size pinned to the corners.
 
 **Still pending** — other in-game HUD elements that weren't touched by
-the bottom-row pass: top-of-screen mission countdown (`PANEL_draw_timer`
-at virtual (320, 50) from `eway.cpp`), road-sign flashes, search-mode
-progress bar, "PSX mode" / version-overlay debug text, kibble/toss
-animations anchored top-centre. Same infra — just call sites left to
-wrap with the right anchor (`CENTER_TOP` for most).
+the bottom-row pass:
+- **Top-of-screen mission countdown** (`PANEL_draw_timer` at virtual
+  (320, 50) from `eway.cpp`) — should be `CENTER_TOP`.
+- **Search-mode progress bar / bubble / text** — `PANEL_last` lines
+  ~2415-2454, drawn at virtual (320, 220) with hardcoded 320-center
+  math. Currently in default scope, drifts on non-4:3. Should be
+  `CENTER_CENTER`. Verified user-side: it's misplaced on portrait /
+  widescreen.
+- **Road-sign flashes** — `PANEL_last` drawing at virtual (320, 100)
+  or (320, 380) depending on `bPanelIsAtBottomOfScreen`. Default scope.
+  Should be `CENTER_TOP` or `CENTER_BOTTOM` matching the panel position.
+- **"PSX mode" / version-overlay debug text** — `PANEL_last` lines
+  ~2465-2504, drawn at virtual (5, 15) and (20, 20). Debug-only
+  overlays; should be `LEFT_TOP`.
+- **Kibble / toss animations** — `PANEL_do_tosses()` etc., anchored
+  top-centre visually. Needs scope audit.
+- **Gun sights, enemy health bars, tracked-enemy markers** — in-world
+  overlays rendered through `OVERLAY_draw_*` from
+  [`ui/hud/overlay.cpp`](../../new_game/src/ui/hud/overlay.cpp). These
+  use world→screen projection, not virtual HUD coords, so they may be
+  correct already; verify on wide/portrait.
+
+**Action item — enumerate all remaining HUD draw sites.** Before
+starting the next pass, `git grep` the following to build a complete
+punch list (so no element ships mis-anchored):
+- `FONT2D_DrawString*`, `FONT2D_DrawStringCentred`, `FONT_draw_*`
+- `PANEL_draw_*`, `PANEL_new_*`, `PANEL_last_*`, `PANEL_inv_*`
+- `OVERLAY_*` (mostly world-space but double-check)
+- `DRAW2D_*`
+- `CONSOLE_text*`, `MSG_*`
+- any literal 320/240 (screen centre virtual coords) or `DisplayWidth/2`
+  that doesn't already sit inside a `UIModeScope`.
+
+Each site → classify as `LEFT_BOTTOM` / `CENTER_TOP` / `CENTER_CENTER`
+/ etc. per intended anchor; then wrap call site (or function body) in
+the scope. Most are one-liner wraps like
+`PolyPage::UIModeScope _scope(ui_coords::UIAnchor::...);`.
 
 ### Symptoms (pre-fix; for in-game HUD still apply)
 
