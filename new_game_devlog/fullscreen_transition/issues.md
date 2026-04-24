@@ -929,17 +929,40 @@ pillarbox issue and get fixed together with Option A.
   "🟣 Render scale follow-ups"), high-quality AA (current FXAA is a
   stand-in).
 
-- ~~**Cut-scene dialogue box (Darci / other speakers) left-pinned on
-  widescreen.**~~ `PANEL_new_widescreen` draws portraits, text and the
-  cinematic top/bottom black bars in virtual 640×480 coords without any
-  UI-mode scope — default affine anchors virtual (0,0) at FBO (0,0), so
-  the 640-wide dialogue frame landed at the FBO left edge with empty
-  space on the right on 16:9+ aspects. Fixed in
-  [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp) by wrapping the
-  function body in `PolyPage::UIModeScope(CENTER_CENTER)`. Virtual
-  sizes untouched (still 640 wide, text wrap still 600) — only the
-  anchor changes, portraits/text/bars now centre together in the FBO
-  as a framed 4:3 region. Verified by user.
+- ~~**Cut-scene dialogue box (Darci / other speakers) mis-positioned on
+  non-4:3 aspects.**~~ Evolution across the session as new aspects were
+  tested:
+  1. **Left-pinned on widescreen (16:9+).** `PANEL_new_widescreen` drew
+     portraits, text and the cinematic top/bottom black bars in virtual
+     640×480 coords without any UI-mode scope; default affine anchored
+     virtual (0,0) at FBO (0,0), so the 640-wide frame landed at the
+     FBO left edge.
+  2. **Floating inside the 4:3 region on tall/portrait aspects.**
+     Wrapping the function in `UIModeScope(CENTER_CENTER)` centred the
+     frame but on windows narrower than 4:3 the cinematic bars drifted
+     away from the FBO top/bottom edges into the middle of the screen.
+  3. **"Double bar" on tall aspects (UI bar + visible 3D letterbox).**
+     Split to `UIModeScope(CENTER_TOP)` for the top bar/content and
+     `UIModeScope(CENTER_BOTTOM)` for the bottom, pinning them to the
+     FBO edges. Exposed an aspect-mismatch with the 3D viewport's
+     cutscene letterbox (`wideify = 80 virtual` in `POLY_camera_set`):
+     UI bars scaled by `g_frame_scale` (width-limited on portrait), 3D
+     letterbox scaled by `ScreenHeight/480`, so on tall aspects a
+     visible black gap appeared between the UI bar and the 3D scene.
+  4. **Final — bars flush with 3D letterbox.** Kept the split
+     `CENTER_TOP` / `CENTER_BOTTOM` UI scopes, and scaled `wideify` in
+     `POLY_camera_set` by `g_frame_scale / (ScreenHeight/480)`. On 4:3
+     or wider FBOs the two scales coincide → `wideify = 80` unchanged.
+     On tall/portrait FBOs wideify shrinks proportionally so the 3D
+     viewport letterbox matches the UI-bar height exactly. Verified by
+     user at 1920×480 and 480×1920.
+
+  **Invariant for future edits:** UI bar scale and 3D viewport letterbox
+  scale must use the same ratio. If either changes, the other must
+  track it — otherwise the "extra black gap" returns on non-4:3 FBOs.
+  Virtual sizes (640-wide frame, text-wrap 600, portrait positions,
+  bar height 80 virtual) untouched — layout content is tuned to fit
+  that box.
 
 - ~~**Tutorial panel (`EWAY_tutorial_string` speech bubble on early
   missions) only darkened the FBO's left 4:3 column.**~~ Same

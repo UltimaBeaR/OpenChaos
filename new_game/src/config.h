@@ -11,11 +11,11 @@
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
 
-// #define OC_WINDOWED_WIDTH  int(1920)
-// #define OC_WINDOWED_HEIGHT int(480)
+#define OC_WINDOWED_WIDTH  int(1920)
+#define OC_WINDOWED_HEIGHT int(480)
 
-#define OC_WINDOWED_WIDTH  int(480)
-#define OC_WINDOWED_HEIGHT int(1920)
+// #define OC_WINDOWED_WIDTH  int(480)
+// #define OC_WINDOWED_HEIGHT int(1920)
 
 // #define OC_WINDOWED_WIDTH  int(900)
 // #define OC_WINDOWED_HEIGHT int(480)
@@ -73,3 +73,15 @@
 // Default 4:3 — 5:4 / 16:10 / 16:9 never trigger; portrait or square
 // screens fall back to 4:3 centred inside the window.
 #define OC_FOV_MIN_ASPECT (2.0F / 3.0F)
+
+// Debug: paint the composition layer's outer pillar/letterbox bars
+// dark red instead of black so the FBO boundary is visible during
+// layout debugging. Keep OFF in shipping builds.
+#define OC_DEBUG_COMPOSITION_BARS_RED true
+
+// Debug: set to true to silence all sound/music by forcing the OpenAL
+// listener gain to 0 right after init. OpenAL itself stays fully
+// operational (skipping init caused busy AL_INVALID_OPERATION spin in
+// update paths and tanked FPS) — this is the cheap mute knob. Keep OFF
+// in shipping builds.
+#define OC_DEBUG_SOUND_DISABLED true

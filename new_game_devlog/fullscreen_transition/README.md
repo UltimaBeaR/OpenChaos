@@ -120,13 +120,19 @@ Already done:
   it, but invariant I5 requires fullscreen effects cover the whole
   FBO, which default uniform affine can't do on non-4:3 FBOs).
   Plan: [`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md).
-- **Cut-scene dialogue centred** — `PANEL_new_widescreen` (Darci /
-  other speakers + cinematic bars) wrapped in
-  `UIModeScope(CENTER_CENTER)`. Previously the virtual-640 dialogue
-  frame pinned to the FBO left edge on widescreen; now it centres as a
-  framed 4:3 region. Sizes (640, text-wrap 600, portrait anchors) all
-  unchanged — text is laid out to fit the original 640 width, so
-  touching the dimensions would break the content.
+- **Cut-scene dialogue split-anchored to top/bottom; 3D letterbox
+  tracks the UI bars.** `PANEL_new_widescreen` wraps the top
+  bar+portrait+text in `UIModeScope(CENTER_TOP)` and the bottom in
+  `UIModeScope(CENTER_BOTTOM)`, pinning the cinematic bars flush with
+  the FBO top/bottom edges on any aspect. `wideify` in
+  [`poly.cpp`](../../new_game/src/engine/graphics/pipeline/poly.cpp)
+  `POLY_camera_set` is scaled by `g_frame_scale / (ScreenHeight/480)`
+  so the 3D viewport letterbox matches the UI-bar height exactly on
+  non-4:3 FBOs (stays 80 virtual on 4:3-or-wider). No visible black
+  gap between UI bar and 3D scene. Virtual sizes (640 frame, text
+  wrap 600, 80-tall bar, portrait anchors) untouched — layout is
+  tuned to those. Invariant to preserve: UI bar scale and 3D letterbox
+  scale must track each other.
 - **Tutorial panel split-scope framing** — `PANEL_last`'s
   `EWAY_tutorial_string` path now runs the `PANEL_darken_screen(640)`
   backdrop inside `FullscreenUIModeScope` (covers the whole FBO) and

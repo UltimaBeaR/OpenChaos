@@ -13,6 +13,7 @@
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "assets/sound_id.h"
+#include "config.h"
 
 // uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname);
@@ -49,6 +50,12 @@ void MFX_init()
     alDevice = alcOpenDevice(nullptr);
     alContext = alcCreateContext(alDevice, nullptr);
     alcMakeContextCurrent(alContext);
+
+    // Debug mute: keep OpenAL fully functional (skipping init caused busy
+    // AL_INVALID_OPERATION spin in update paths), just silence the listener.
+    if (OC_DEBUG_SOUND_DISABLED) {
+        alListenerf(AL_GAIN, 0.0f);
+    }
 
     InitVoices();
 

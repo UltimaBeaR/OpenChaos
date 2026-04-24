@@ -27,6 +27,7 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "missions/eway.h"
+#include "engine/graphics/ui_coords.h"
 
 
 // draw_3d is defined in aeng.cpp (not yet migrated).
@@ -227,7 +228,17 @@ void POLY_camera_set(
             */
 
             if (EWAY_stop_player_moving()) {
-                wideify = 80.0F;
+                // Cutscene letterbox matches the PANEL_new_widescreen UI bars:
+                // the UI bars are drawn with g_frame_scale (uniform 4:3 fit),
+                // while POLY_screen_clip* scales by ScreenHeight/480 downstream
+                // via s_YScale. On 4:3-or-wider FBOs the two scales coincide
+                // and wideify stays 80; on tall/portrait FBOs they diverge,
+                // so scale wideify by (g_frame_scale / (ScreenHeight/480))
+                // to keep the 3D viewport letterbox flush with the UI bar
+                // (no visible black gap between bar and 3D scene).
+                const float uniform_scale = float(ScreenHeight) / float(DisplayHeight);
+                const float bar_scale     = ui_coords::g_frame_scale;
+                wideify = 80.0F * bar_scale / uniform_scale;
             } else {
                 wideify = 0.0F;
             }

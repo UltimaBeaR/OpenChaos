@@ -1002,28 +1002,7 @@ void PANEL_new_widescreen(void)
     POLY_screen_clip_top = 0.0F;
     POLY_screen_clip_bottom = float(DisplayHeight);
 
-    // Centre the dialogue box in the FBO. Portrait positions, text wrap
-    // and right-justify x all assume virtual 640-wide space; without
-    // framing they pin to the FBO left edge on wider aspects.
-    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
-
-    // Clear the widescreen borders to black.
-    PANEL_draw_quad(
-        0.0F,
-        0.0F,
-        float(DisplayWidth),
-        80.0F,
-        POLY_PAGE_COLOUR,
-        0x00000000);
-
-    PANEL_draw_quad(
-        0.0F,
-        float(DisplayHeight) - 80.0F,
-        float(DisplayWidth),
-        float(DisplayHeight),
-        POLY_PAGE_COLOUR,
-        0x00000000);
-
+    // Speaker / text-queue bookkeeping (no rendering).
     if (EWAY_conversation_happening(
             &PANEL_wide_top_person,
             &PANEL_wide_bot_person)) {
@@ -1058,22 +1037,29 @@ void PANEL_new_widescreen(void)
         }
     }
 
-    if (PANEL_wide_top_person != NULL) {
-        PANEL_new_face(
-            TO_THING(PANEL_wide_top_person),
-            float(DisplayWidth) - 72.0F,
-            8.0F,
-            PANEL_FACE_LARGE);
-    }
+    // Top-speaker content pinned to the FBO top edge (bar backdrop + content
+    // both framed so the orange block keeps its original size). 3D viewport
+    // letterbox (wideify in POLY_camera_set) is adjusted to match this bar.
+    {
+        PolyPage::UIModeScope _top_scope(ui_coords::UIAnchor::CENTER_TOP);
 
-    if (PANEL_wide_text[0]) {
-        PANEL_new_face(
-            (PANEL_wide_bot_person) ? TO_THING(PANEL_wide_bot_person) : NULL,
-            8.0F,
-            float(DisplayHeight) - 72.0F,
-            PANEL_FACE_LARGE);
+        PANEL_draw_quad(
+            0.0F,
+            0.0F,
+            float(DisplayWidth),
+            80.0F,
+            POLY_PAGE_COLOUR,
+            0x00000000);
 
-        if (PANEL_wide_top_is_talking) {
+        if (PANEL_wide_top_person != NULL) {
+            PANEL_new_face(
+                TO_THING(PANEL_wide_top_person),
+                float(DisplayWidth) - 72.0F,
+                8.0F,
+                PANEL_FACE_LARGE);
+        }
+
+        if (PANEL_wide_text[0] && PANEL_wide_top_is_talking) {
             SLONG iYpos = FONT2D_DrawStringRightJustify(
                 PANEL_wide_text,
                 DisplayWidth - 80,
@@ -1093,12 +1079,35 @@ void PANEL_new_widescreen(void)
                 POLY_PAGE_FONT2D,
                 0,
                 UC_FALSE);
-        } else {
-            FONT2D_DrawStringWrap(
-                PANEL_wide_text,
-                80,
-                DisplayHeight - 80 + 5,
-                0xffffff);
+        }
+    }
+
+    // Bottom-speaker content pinned to the FBO bottom edge (symmetric).
+    {
+        PolyPage::UIModeScope _bot_scope(ui_coords::UIAnchor::CENTER_BOTTOM);
+
+        PANEL_draw_quad(
+            0.0F,
+            float(DisplayHeight) - 80.0F,
+            float(DisplayWidth),
+            float(DisplayHeight),
+            POLY_PAGE_COLOUR,
+            0x00000000);
+
+        if (PANEL_wide_text[0]) {
+            PANEL_new_face(
+                (PANEL_wide_bot_person) ? TO_THING(PANEL_wide_bot_person) : NULL,
+                8.0F,
+                float(DisplayHeight) - 72.0F,
+                PANEL_FACE_LARGE);
+
+            if (!PANEL_wide_top_is_talking) {
+                FONT2D_DrawStringWrap(
+                    PANEL_wide_text,
+                    80,
+                    DisplayHeight - 80 + 5,
+                    0xffffff);
+            }
         }
     }
 }
