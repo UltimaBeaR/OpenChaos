@@ -36,14 +36,6 @@ Render scale + scene FBO + composition pass are implemented (see
   panel, overlay, frontend, menu, on-screen messages, console, debug
   overlay). Depends on the aspect-ratio / UI-coord-system design
   discussion at the top of this file.
-- **Rename `RealDisplayWidth/Height` → something accurate.** After the
-  render-scale change, this global holds the **scaled render target**
-  size, not the physical display. The name is now actively misleading
-  (game code reading "RealDisplay*" is looking at the scene FBO, not
-  the screen). Repo-wide rename to e.g. `RenderTargetWidth/Height` or
-  `SceneWidth/Height`. Scope: rename + update all call sites + touch
-  up `concepts.md` / `audit.md`. Not a behavior change, just
-  nomenclature.
 - **Replace the simplified FXAA with a proper shader AA.** The current
   `composite_frag.glsl` has a cut-down FXAA that drops the canonical
   3.11 edge-span search — result is effectively a cheap blur on

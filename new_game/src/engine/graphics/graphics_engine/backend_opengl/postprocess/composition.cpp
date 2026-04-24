@@ -265,11 +265,7 @@ void composition_blit(int32_t window_w, int32_t window_h)
     // Clear the entire real backbuffer unconditionally so outer pillar/
     // letterbox bars are painted fresh every frame. Free on modern GPUs.
     glViewport(0, 0, window_w, window_h);
-    // TEMP: outer bars painted red for visual verification during the
-    // FBO-as-virtual-screen refactor — makes it obvious where the scene
-    // FBO ends and the composition layer begins. Revert to (0,0,0,1)
-    // once the refactor is done.
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Now narrow the viewport to the aspect-fit rect and draw the FBO

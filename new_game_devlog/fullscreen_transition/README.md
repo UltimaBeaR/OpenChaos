@@ -104,16 +104,24 @@ Already done:
   confirmed no consumers in `new_game/src`. Removed the 1.2 MB buffer,
   all `WorkScreen*` / `WorkWindow*` / `CurrentPalette` globals, four
   stub functions, and the `FLAGS_USE_WORKSCREEN` macro.
+- **FBO-as-virtual-screen refactor** — game now treats the scene FBO
+  as "the screen"; outer pillar/letterbox bars painted by the
+  composition layer, game code blind to them. Aspect clamp runs once
+  at FBO creation (`OpenDisplay`), not per-frame. Gutted
+  `POLY_camera_set` (no `effective_aspect`, no `base_x/y` centring,
+  no `fit_scale` — uniform scale, viewport fills FBO). Deleted outer
+  bar painting in `AENG_clear_viewport`. Renamed `RealDisplayWidth/
+  Height` → `ScreenWidth/Height`, `ui_coords::g_real_*_px` →
+  `g_screen_*_px`. Mouse events mapped from window → FBO via
+  `composition_window_to_fbo`; events in outer bars dropped. Bonus:
+  video (`ge_video_draw_and_swap`) now renders into the scene FBO
+  too, gets outer bars from composition automatically. Deviation
+  from plan: `push_fullscreen_ui_mode` kept (plan proposed removing
+  it, but invariant I5 requires fullscreen effects cover the whole
+  FBO, which default uniform affine can't do on non-4:3 FBOs).
+  Plan: [`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md).
 
 Remaining work — see [`issues.md`](issues.md):
-- **🔴 FBO-as-virtual-screen refactor** — architectural cleanup that
-  makes the game treat the scene FBO as "the screen" and moves all
-  pillarbox/letterbox bar painting into the composition layer. Eats
-  a whole cluster of smaller todos: removes per-effect bar-workaround
-  code (fade-out, menu darken, stars, moon), renames
-  `RealDisplayWidth/Height` → `ScreenWidth/Height`, deletes
-  `push_fullscreen_ui_mode`. **Full handoff:**
-  [`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md).
 - **In-game HUD** still pillarboxed in the framed centre — needs
   per-element anchors (radar = `RIGHT_TOP`, ammo = `LEFT_BOTTOM` etc.).
   Same `PolyPage::push_ui_mode` infra, just call sites left to wrap.

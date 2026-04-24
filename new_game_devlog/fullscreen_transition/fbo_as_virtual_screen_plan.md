@@ -1,9 +1,18 @@
 # FBO-as-virtual-screen refactor — full handoff
 
-Status: proposed, not started. This document is the **authoritative
-spec**. If you're implementing, treat every "must / never / always" as
-binding. Assume nothing. If something here is unclear or contradicts
-reality when you start coding, stop and ask — don't improvise.
+**Status: LANDED.** All seven stages implemented. Kept for historical
+reference — the rationale, invariants, and numerical examples are still
+useful when touching adjacent code. One deliberate deviation from the
+plan: `PolyPage::push_fullscreen_ui_mode` was **not** deleted. The plan
+proposed removing it, but invariant I5 (full-screen effects cover the
+whole FBO) cannot be satisfied through the default uniform affine on a
+non-4:3 FBO — only a non-uniform stretch gets fullscreen-effect quads
+to the FBO edge on every aspect. `push_fullscreen_ui_mode` provides
+that stretch as an opt-in, used by menu darken + fade-out cat. Rest of
+the plan landed as written.
+
+Originally written before implementation started; content below is the
+original spec text, kept intact for provenance.
 
 ---
 
