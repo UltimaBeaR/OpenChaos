@@ -686,10 +686,14 @@ static void apply_trigger_mode(TriggerMode mode)
         break;
 
     case TRIGGER_MODE_CAR:
-        // Vehicle pedals. R2 = gas: free (analog throttle, no resistance).
-        // L2 = brake: strong resistance (no click, just progressive force).
+        // Vehicle pedals — both triggers FREE (analog throttle / brake with
+        // no haptic resistance). The L2 brake used to apply a progressive
+        // resistance effect (`ds_trigger_resistance(20, 200, 0)`); user
+        // feedback was that the constant tension on L2 felt unpleasant
+        // during long driving missions, so the effect was removed.
+        // Re-enable here if a "brake feel" config toggle is added later.
         ds_trigger_off(1);                     // R2 gas: free
-        ds_trigger_resistance(20, 200, 0);     // L2 brake: strong resistance, no click
+        ds_trigger_off(0);                     // L2 brake: free (was: ds_trigger_resistance(20, 200, 0))
         break;
     }
 

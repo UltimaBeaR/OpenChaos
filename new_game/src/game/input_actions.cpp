@@ -385,17 +385,35 @@ void init_joypad_config(void)
     // SDL3 button indices: 0=South(A/Cross), 1=East(B/Circle), 2=West(X/Square),
     // 3=North(Y/Triangle), 4=Back, 6=Start, 7=L3, 8=R3, 9=LB/L1, 10=RB/R1,
     // 15=LT/L2(digital), 16=RT/R2(digital).
+    //
+    // Live mapping (post 2026-04-25 rework):
+    //   Cross / A           : jump
+    //   Circle / B          : action (interact — doors / vehicles / pickups /
+    //                         get out of car). Stays on Circle because L2 is
+    //                         the brake while driving and an L2-bound ACTION
+    //                         couldn't be triggered without also braking;
+    //                         Circle has no in-car conflict.
+    //   Square / X          : (unbound — punch lives on R2 trigger only)
+    //   Triangle / Y        : menu cancel; toggles siren while driving (read
+    //                         directly from button index 3 — see get_hardware_input)
+    //   L1 / LB             : aim mode (held); also alias for camera-toggle press
+    //   R1 / RB             : kick (on foot; suppressed while driving)
+    //   L2 / LT (digital)   : on-foot unbound; in-car brake (read directly in
+    //                         apply_button_input_car)
+    //   R2 / RT (digital)   : punch / shoot (analog trigger via weapon_feel)
+    //   Walk-mode toggle    : removed — partial left-stick deflection produces
+    //                         walking speed, no dedicated button needed
     // Defaults come from the hardcoded config in env.cpp (see env_default_config).
     joypad_button_use[JOYPAD_BUTTON_JUMP]       = ENV_get_value_number("joypad_jump",       0, "Joypad");  // A / Cross
     joypad_button_use[JOYPAD_BUTTON_ACTION]     = ENV_get_value_number("joypad_action",     1, "Joypad");  // B / Circle
-    joypad_button_use[JOYPAD_BUTTON_PUNCH]      = ENV_get_value_number("joypad_punch",      2, "Joypad");  // X / Square
-    joypad_button_use[JOYPAD_BUTTON_KICK]       = ENV_get_value_number("joypad_kick",       3, "Joypad");  // Y / Triangle
+    joypad_button_use[JOYPAD_BUTTON_PUNCH]      = ENV_get_value_number("joypad_punch",      2, "Joypad");  // X / Square (gameplay-unbound; index kept for legacy code paths)
+    joypad_button_use[JOYPAD_BUTTON_KICK]       = ENV_get_value_number("joypad_kick",      10, "Joypad");  // RB / R1
     joypad_button_use[JOYPAD_BUTTON_SELECT]     = ENV_get_value_number("joypad_select",     4, "Joypad");  // Back / Select
     joypad_button_use[JOYPAD_BUTTON_START]      = ENV_get_value_number("joypad_start",      6, "Joypad");  // Start
     joypad_button_use[JOYPAD_BUTTON_CAMERA]     = ENV_get_value_number("joypad_camera",     9, "Joypad");  // LB / L1
-    joypad_button_use[JOYPAD_BUTTON_1STPERSON]  = ENV_get_value_number("joypad_1stperson",  9, "Joypad");  // LB / L1 (same as PS1)
-    joypad_button_use[JOYPAD_BUTTON_MOVE]       = ENV_get_value_number("joypad_move",      10, "Joypad");  // RB / R1 (step/strafe)
-    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]   = ENV_get_value_number("joypad_cam_left",  15, "Joypad");  // LT / L2
+    joypad_button_use[JOYPAD_BUTTON_1STPERSON]  = ENV_get_value_number("joypad_1stperson",  9, "Joypad");  // LB / L1 (held = aim)
+    joypad_button_use[JOYPAD_BUTTON_MOVE]       = ENV_get_value_number("joypad_move",      31, "Joypad");  // unbound (walk mode removed; stub index, never read in gameplay)
+    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]   = ENV_get_value_number("joypad_cam_left",  15, "Joypad");  // LT / L2 (legacy alias; in-car brake only)
     joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]  = ENV_get_value_number("joypad_cam_right", 16, "Joypad");  // RT / R2
 
     keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("keyboard_left", 203, "Keyboard");
@@ -3252,26 +3270,23 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_MOVE]])) {
-                    m_bForceWalk = UC_TRUE;
-                } else {
-                    m_bForceWalk = UC_FALSE;
-                }
+                // Walk-mode toggle (was R1 hold) removed — partial left-stick
+                // deflection produces walking speed, no dedicated button needed.
+                // m_bForceWalk stays false (its global init).
 
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_JUMP]])) {
                     input |= INPUT_MASK_JUMP;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
-                    // Triangle/Y stays as menu CANCEL (PS1 behavior); on foot
-                    // KICK lives on L2 only — see the analog-trigger block below.
-                    // When driving, L2/R2 serve as gas/brake (handled in
-                    // apply_button_input_car), so the analog trigger kick path
-                    // never fires. The in-car siren/light toggle is bound to
-                    // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
-                    // the triangle button must also emit INPUT_MASK_KICK, or
-                    // nothing will toggle the siren.
+                // Triangle / Y — menu CANCEL + driving siren toggle. Read by raw
+                // index 3 (constant across PS / Xbox layouts) because the
+                // JOYPAD_BUTTON_KICK alias has been rebound to R1 for the
+                // on-foot kick action and no longer points here.
+                // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
+                // the triangle press must also emit INPUT_MASK_KICK to flip
+                // the siren / lights.
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[3])) {
                     input |= INPUT_MASK_CANCEL;
                     {
                         Thing* p_darci = NET_PERSON(0);
@@ -3280,6 +3295,22 @@ ULONG get_hardware_input(UWORD type)
                         if (driving) input |= INPUT_MASK_KICK;
                     }
                     g_dwLastInputChangeTime = dwCurrentTime;
+                }
+
+                // R1 / RB — on-foot kick (JOYPAD_BUTTON_KICK = 10). Suppressed
+                // while driving because the player has no kick action in a
+                // vehicle (and the in-car CAN_PAD_SIREN bit is already covered
+                // by the Triangle path above; firing it again from R1 would
+                // toggle siren on every R1 press, which the player does not
+                // expect in-car).
+                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
+                    Thing* p_darci = NET_PERSON(0);
+                    const bool driving = p_darci && p_darci->Genus.Person &&
+                                         (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    if (!driving) {
+                        input |= INPUT_MASK_KICK;
+                        g_dwLastInputChangeTime = dwCurrentTime;
+                    }
                 }
 
                 // Square/X previously mapped to PUNCH/shoot; removed so that
@@ -3373,15 +3404,20 @@ ULONG get_hardware_input(UWORD type)
                             input |= INPUT_MASK_PUNCH;
                             g_dwLastInputChangeTime = dwCurrentTime;
                         }
-                        if (fd.kick) {
-                            input |= INPUT_MASK_KICK;
-                            g_dwLastInputChangeTime = dwCurrentTime;
-                        }
+                        // fd.kick (analog L2 trigger) intentionally NOT applied —
+                        // kick moved from L2 to R1 (digital, see the Triangle/R1
+                        // block above). L2 is the ACTION button on foot now and
+                        // the brake while driving.
                     }
                 }
 
+                // Circle / B — ACTION (interact / get-in-or-out of car / pick
+                // up items). Fires both on foot and while driving (the get-
+                // out-of-car flow consumes ACTION). No `!driving` gate here:
+                // an L2-bound ACTION couldn't coexist with the in-car brake
+                // (every brake tap would fire ACTION mid-drive), but Circle
+                // doesn't double as a vehicle control, so it can fire freely.
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_ACTION]])) {
-                    MSG_add(" action pressed \n");
                     input |= INPUT_MASK_ACTION;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3686,23 +3722,76 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             }
         }
 
-        if (input & INPUT_MASK_FORWARDS) {
-            look_pitch += 13;
-            input &= ~INPUT_MASK_MOVE;
-        }
-        if (input & INPUT_MASK_BACKWARDS) {
-            look_pitch -= 13;
-        }
+        // Aim-mode look is now driven by the RIGHT stick (gamepad) and the
+        // arrow keys (keyboard). LEFT stick is left free to drive movement
+        // via the standard INPUT_MASK_MOVE path below — the player can walk
+        // while aiming. Pre-rework the LEFT stick was repurposed as the
+        // look stick (FORWARDS/BACKWARDS/LEFT/RIGHT bits drove pitch + yaw)
+        // and movement was force-cleared in this scope; that conflicted with
+        // the natural FPS-style "left=move, right=look" layout.
+        //
+        // Vertical inverted to match the non-aim camera convention: in non-
+        // aim mode right-stick UP raises the orbital camera (so the view
+        // ends up looking DOWN at the character). Here right-stick UP /
+        // arrow-Up likewise pitch the view DOWN. Same intuition across both
+        // modes — toggling aim on/off doesn't flip the up/down feel.
+        {
+            constexpr SLONG STICK_DEAD = 8000;
+            constexpr SLONG STICK_PITCH_MAX = 13;  // per-frame pitch step at full deflection
+            constexpr SLONG STICK_YAW_MAX   = 32;  // per-frame angle delta at full deflection
 
-        if (!CONTROLS_inventory_mode) {
-            if (input & INPUT_MASK_LEFT) {
-                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 32) & 2047;
+            // Right stick — gamepad. Only consume it while a controller is
+            // the active input device, so a stuck/idle stick on a connected
+            // controller doesn't fight keyboard input.
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && the_state.connected) {
+                SLONG sx = (SLONG)the_state.rX - 32768;
+                SLONG sy = (SLONG)the_state.rY - 32768;
+
+                if (abs(sy) > STICK_DEAD) {
+                    // sy > 0 (stick down) → look UP   (look_pitch += step)
+                    // sy < 0 (stick up)   → look DOWN (look_pitch -= step)
+                    look_pitch += (sy * STICK_PITCH_MAX) / 32767;
+                }
+                if (!CONTROLS_inventory_mode && abs(sx) > STICK_DEAD) {
+                    // sx > 0 (stick right) → turn character right (angle -=)
+                    // sx < 0 (stick left)  → turn character left  (angle +=)
+                    SLONG ang_step = (sx * STICK_YAW_MAX) / 32767;
+                    p_person->Draw.Tweened->Angle =
+                        (p_person->Draw.Tweened->Angle - ang_step) & 2047;
+                }
             }
 
-            if (input & INPUT_MASK_RIGHT) {
-                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - 32) & 2047;
+            // Arrow keys — keyboard. Pitch inverted to match the gamepad
+            // convention above (Up arrow → look DOWN). Yaw direction
+            // unchanged: Left arrow turns the character left, Right turns
+            // right (same as pre-rework).
+            if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+                look_pitch -= STICK_PITCH_MAX;
+            }
+            if (Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]]) {
+                look_pitch += STICK_PITCH_MAX;
+            }
+            if (!CONTROLS_inventory_mode) {
+                if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
+                    p_person->Draw.Tweened->Angle =
+                        (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
+                }
+                if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+                    p_person->Draw.Tweened->Angle =
+                        (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
+                }
             }
         }
+
+        // Aim mode is a rooted pose — character pivots in place but doesn't
+        // walk. Both LEFT-stick forward and the Up arrow set INPUT_MASK_MOVE
+        // upstream in get_hardware_input; without this clear, holding either
+        // would kick set_person_running below and the player would jog
+        // forward while trying to aim. Original game behaviour was rooted
+        // (the pre-rework code did the same MASK clear, but only on the
+        // FORWARDS branch — moving the clear out makes it independent of
+        // which look-input source is active).
+        input &= ~INPUT_MASK_MOVE;
 
         if (input & INPUT_MASK_MOVE) {
             set_person_running(p_person);

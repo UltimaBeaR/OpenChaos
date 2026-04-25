@@ -766,3 +766,96 @@ Release и Debug собираются. Проверено с DualSense:
 - Мигалка: L2 не активирует ✅
 - Гражданские с поднятыми руками: адаптив убирается ✅
 - Пешком без пушки: триггеры свободные ✅
+
+---
+
+## Stage 12 polish — раскладка геймпада + DualSense triggers (2026-04-25)
+
+Серия мелких правок поверх Stage 5.1 базы. Все правки в
+[`input_actions.cpp`](../../new_game/src/game/input_actions.cpp) (init_joypad_config,
+get_hardware_input, apply_button_input_first_person) и
+[`gamepad.cpp`](../../new_game/src/engine/input/gamepad.cpp) apply_trigger_mode.
+
+### Kick: L2 → R1
+
+**Было:** удар ногой триггерился через `weapon_feel_evaluate_fire().kick` от
+аналогового L2-триггера (рядом с R2 stream'ом).
+
+**Стало:** удар на digital R1 (`JOYPAD_BUTTON_KICK = 10`). Аналоговый L2-фaйр
+больше не применяется — `fd.kick` игнорируется. Гейт `!driving`, потому что в
+машине у игрока нет действия "удар", а R1 firing INPUT_MASK_KICK перетряхнул бы
+сирену (INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK; сирена остаётся на Triangle).
+
+### Walk-mode (R1 hold) — выпилен
+
+**Было:** R1 нажат → `m_bForceWalk = UC_TRUE` → персонаж ходит вместо бега.
+
+**Стало:** удалён весь if-блок чтения `JOYPAD_BUTTON_MOVE`. `m_bForceWalk` остаётся
+в дефолте `UC_FALSE`. Эффект ходьбы достигается частичным отклонением левого
+стика (`process_analogue_movement` использует амплитуду стика для скорости).
+`JOYPAD_BUTTON_MOVE` дефолт изменён на 31 (unbound stub в пределах
+`rgbButtons[32]`).
+
+### Triangle / Y — теперь читается напрямую по индексу 3
+
+**Было:** `BUTTON_IS_PRESSED(rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])`,
+где KICK = 3 (Triangle). Двойная семантика "kick alias" + cancel/siren сбивала
+с толку.
+
+**Стало:** raw `rgbButtons[3]` (индекс одинаков на PS / Xbox). `JOYPAD_BUTTON_KICK`
+переехал на R1 = 10, теперь действительно kick action. Поведение Triangle
+(cancel + driving siren toggle) сохранено.
+
+### Action: переезд на L2 не сработал — оставили на Circle
+
+**Попытка:** `JOYPAD_BUTTON_ACTION` дефолт 1 (Circle) → 15 (L2 digital threshold).
+Идея — L2 удобнее для grip.
+
+**Откат:** L2 в машине = тормоз (`apply_button_input_car` читает raw
+`rgbButtons[15]`). При L2-bound ACTION каждое торможение фаирило бы
+INPUT_MASK_ACTION → срабатывало get-out-of-car / любая интеракция в самый
+неподходящий момент. Гейт `!driving` блокировал ACTION в машине вообще —
+становилось невозможно выйти из машины.
+
+**Решение:** ACTION остаётся на Circle. На foot Circle = ACTION; в машине Circle
+= ACTION (выход / интеракции работают). L2 на земле — unbound, в машине —
+тормоз. Никаких конфликтов. Code comments в `init_joypad_config` фиксируют этот
+recall для будущих переездов.
+
+### Aim mode (1st person) — переключение с левого на правый стик
+
+**Было:** удержание L1 → aim-режим. Левый стик репурпозился под look:
+INPUT_MASK_FORWARDS → `look_pitch += 13`, INPUT_MASK_LEFT → angle += 32, и т.д.
+Движение заглушено через `input &= ~INPUT_MASK_MOVE` на FORWARDS-ветке.
+
+**Стало:** правый стик контролит look (gamepad direct read of `the_state.rX/rY`),
+стрелки клавиатуры тоже работают (direct `Keys[]` read). Левый стик свободен
+для движения, но `INPUT_MASK_MOVE` всё равно сбрасывается безусловно — aim это
+rooted поза (без этого clear'а Up-стрелка / стик-вперёд через
+`set_person_running` заставлял персонажа бежать прицеливаясь).
+
+**Вертикаль инвертирована:** стик ↑ / Up-стрелка → взгляд ↓. Это **матчит**
+не-aim орбитальную камеру: в обычном режиме правый стик ↑ поднимает камеру
+выше → вид смотрит вниз на персонажа. Aim теперь даёт ту же интуицию.
+
+### DualSense L2 brake resistance — убрана
+
+**Было:** `TRIGGER_MODE_CAR` ставил `ds_trigger_resistance(20, 200, 0)` на L2.
+Прогрессивное сопротивление при торможении.
+
+**Стало:** `ds_trigger_off(0)` — L2 свободна. Юзер фидбек: constant force feedback
+оказался утомительным на длинных миссиях с вождением. R2 газ остаётся свободным
+(никогда не имел effect'а). Re-enable легко если добавится config toggle "brake
+feel".
+
+### Файлы
+
+- [`input_actions.cpp`](../../new_game/src/game/input_actions.cpp)
+  `init_joypad_config` — defaults + layout-таблица в комментарии (живой источник
+  правды для текущего маппинга).
+- `input_actions.cpp` `get_hardware_input` — Triangle (raw idx 3), R1 (KICK on
+  foot), ACTION без гейта; удаление walk-блока; `fd.kick` больше не применяется.
+- `input_actions.cpp` `apply_button_input_first_person` — aim-mode look на right
+  stick + arrows, безусловный `INPUT_MASK_MOVE` clear (rooted поза).
+- [`gamepad.cpp`](../../new_game/src/engine/input/gamepad.cpp) `apply_trigger_mode`
+  `TRIGGER_MODE_CAR` — L2 free вместо resistance.
