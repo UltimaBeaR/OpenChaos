@@ -10,9 +10,8 @@
 #define OC_FULLSCREEN false
 
 // Windowed-mode resolution. Ignored when OC_FULLSCREEN is true.
-#define OC_WINDOWED_WIDTH  int(640)
-#define OC_WINDOWED_HEIGHT int(480)
-
+#define OC_WINDOWED_WIDTH  640
+#define OC_WINDOWED_HEIGHT 480
 
 // Enable VSync. Concrete strategy (driver VSync vs DwmFlush) depends on
 // window mode and is selected inside sdl3_gl_configure_vsync().
@@ -24,12 +23,7 @@
 // lower = blurrier but cheaper on the GPU. Useful on 4K / Retina monitors
 // where a full-resolution frame is more than needed.
 // NOTE: config-only for now; will move into a runtime graphics menu later.
-#define OC_RENDER_SCALE 0.25f
-
-// Minimum value guarded by the composition pass — below this the scene
-// becomes unreadable and GL driver texture-size math gets wobbly on some
-// platforms.
-#define OC_RENDER_SCALE_MIN 0.25f
+#define OC_RENDER_SCALE 1.00F
 
 // Enable shader-based anti-aliasing (FXAA 3.11) in the composition pass.
 // This is a graphics quality setting: ON gives cheap post-process AA over
@@ -47,44 +41,3 @@
 // at large values. Sensible range ~0.75..1.30. Intended to move into a
 // runtime settings menu later.
 #define OC_FOV_MULTIPLIER 1.0F
-
-// Maximum horizontal aspect ratio the 3D scene is rendered at. Screens
-// wider than this get pillarboxed (black bars on left/right) with the
-// scene centred at the cap aspect. Protects against rectilinear fish-eye
-// at ultra-wide FOVs, which is a property of the projection itself, not
-// a bug. Default 16:9 — preserves 4:3 / 16:10 / 16:9 behaviour exactly
-// (cap never triggers up to 16:9); 21:9 and wider users get pillarboxed
-// 16:9 content instead of stretched fish-eye edges.
-#define OC_FOV_CAP_ASPECT (18.0F / 9.0F)
-
-// Minimum horizontal aspect ratio the 3D scene is rendered at. Screens
-// narrower (taller) than this get letterboxed (black bars top+bottom)
-// with the scene centred at the floor aspect. Symmetric to
-// OC_FOV_CAP_ASPECT. Purpose: avoid "character looks huge" on portrait
-// / tall windows — rectilinear projection with isotropic pixels forces
-// a very narrow horizontal FOV at those aspects (atan(W/H) ≈ 14° at
-// 1:4 aspect vs 53° at 4:3), which visually reads as extreme zoom.
-// Default 4:3 — 5:4 / 16:10 / 16:9 never trigger; portrait or square
-// screens fall back to 4:3 centred inside the window.
-#define OC_FOV_MIN_ASPECT (2.0F / 3.0F)
-
-// Debug: paint the composition layer's outer pillar/letterbox bars
-// dark red instead of black so the FBO boundary is visible during
-// layout debugging. Keep OFF in shipping builds.
-#define OC_DEBUG_COMPOSITION_BARS_RED true
-
-// Debug: strongly tint + blur the scene during composition so the
-// UI/scene split is visible at a glance — anything touched by the
-// composition pass (= the 3D scene and any UI that's still living in
-// the scene FBO) comes out magenta and blurry; UI that's drawn in
-// the post-composition pass stays sharp and original colours. Used to
-// audit which call sites still need to migrate. Keep OFF in shipping
-// builds.
-#define OC_DEBUG_HIGHLIGHT_NON_UI false
-
-// Debug: set to true to silence all sound/music by forcing the OpenAL
-// listener gain to 0 right after init. OpenAL itself stays fully
-// operational (skipping init caused busy AL_INVALID_OPERATION spin in
-// update paths and tanked FPS) — this is the cheap mute knob. Keep OFF
-// in shipping builds.
-#define OC_DEBUG_SOUND_DISABLED true

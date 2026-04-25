@@ -4,7 +4,8 @@
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
-#include "config.h"
+#include "config.h"        // OC_AA_ENABLE
+#include "debug_config.h"  // OC_DEBUG_COMPOSITION_BARS_RED / OC_DEBUG_HIGHLIGHT_NON_UI
 
 #include <stdio.h>
 
@@ -38,6 +39,13 @@ int32_t s_last_dst_w = 0;
 int32_t s_last_dst_h = 0;
 int32_t s_last_real_w = 0;
 int32_t s_last_real_h = 0;
+
+// Last-frame snapshot — captured at end of each real flip, presented
+// during interactive drag-resize. See composition.h for rationale.
+GLuint  s_snap_fbo = 0;
+GLuint  s_snap_tex = 0;
+int32_t s_snap_w   = 0;
+int32_t s_snap_h   = 0;
 
 // Fullscreen quad VAO/VBO (NDC triangle strip covering [-1, +1]).
 GLuint s_vao = 0;
@@ -169,9 +177,12 @@ bool composition_init(int32_t scene_w, int32_t scene_h)
 void composition_shutdown()
 {
     destroy_attachments();
-    if (s_program) { glDeleteProgram(s_program);       s_program = 0; }
-    if (s_vbo)     { glDeleteBuffers(1, &s_vbo);       s_vbo = 0; }
-    if (s_vao)     { glDeleteVertexArrays(1, &s_vao);  s_vao = 0; }
+    if (s_program)  { glDeleteProgram(s_program);         s_program = 0; }
+    if (s_vbo)      { glDeleteBuffers(1, &s_vbo);         s_vbo = 0; }
+    if (s_vao)      { glDeleteVertexArrays(1, &s_vao);    s_vao = 0; }
+    if (s_snap_fbo) { glDeleteFramebuffers(1, &s_snap_fbo); s_snap_fbo = 0; }
+    if (s_snap_tex) { glDeleteTextures(1, &s_snap_tex);   s_snap_tex = 0; }
+    s_snap_w = s_snap_h = 0;
     s_u_scene = s_u_inv_scene_sz = s_u_dst_sz = s_u_dst_offset =
         s_u_fxaa_enabled = s_u_debug_highlight = -1;
 }
@@ -334,24 +345,6 @@ void composition_blit(int32_t window_w, int32_t window_h)
                    /*publish_for_input=*/true);
 }
 
-void composition_present_stretched(int32_t dst_x, int32_t dst_y,
-                                   int32_t dst_w, int32_t dst_h,
-                                   int32_t window_w, int32_t window_h)
-{
-    if (window_w <= 0 || window_h <= 0) return;
-    if (dst_w <= 0 || dst_h <= 0) return;
-    // Publish for input/UI mapping too: during live drag-resize the
-    // post-composition UI pass needs an up-to-date dst rect to position
-    // its viewport correctly. Without this the UI layer would compute
-    // scissor/viewport against the previous (pre-drag) dst rect and
-    // either disappear or land in the wrong place. Mouse input mapping
-    // during the drag itself is moot (the cursor is on the title bar /
-    // border, not the client area), so updating s_last_dst_* here is
-    // harmless for input.
-    draw_composite(dst_x, dst_y, dst_w, dst_h, window_w, window_h,
-                   /*publish_for_input=*/true);
-}
-
 int32_t composition_scene_width()  { return s_scene_w; }
 int32_t composition_scene_height() { return s_scene_h; }
 
@@ -387,4 +380,93 @@ bool composition_window_to_fbo(int win_x, int win_y, int* fbo_x, int* fbo_y)
     if (fbo_x) *fbo_x = (int)(fx + 0.5f);
     if (fbo_y) *fbo_y = (int)(fy + 0.5f);
     return true;
+}
+
+void composition_capture_last_frame(int32_t window_w, int32_t window_h)
+{
+    if (window_w <= 0 || window_h <= 0) return;
+
+    // Lazy-allocate or resize the snapshot FBO + texture to match the
+    // current window size. Stored at native window resolution so the
+    // drag-time present can stretch up/down without re-doing FXAA.
+    if (!s_snap_fbo) glGenFramebuffers(1, &s_snap_fbo);
+    if (!s_snap_tex) glGenTextures(1, &s_snap_tex);
+    if (s_snap_w != window_w || s_snap_h != window_h) {
+        glBindTexture(GL_TEXTURE_2D, s_snap_tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, window_w, window_h, 0,
+                     GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, s_snap_fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, s_snap_tex, 0);
+
+        s_snap_w = window_w;
+        s_snap_h = window_h;
+    }
+
+    // Save the bindings + scissor state we touch so we don't desync the
+    // engine's tracker.
+    GLint prev_read = 0, prev_draw = 0;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_draw);
+    GLboolean prev_scissor = glIsEnabled(GL_SCISSOR_TEST);
+
+    // Disable scissor — glBlitFramebuffer clips to it on the DRAW FBO,
+    // and the UI pass leaves scissor set to whatever the last
+    // UIModeScope used (typically a tight rect around an anchored UI
+    // element). Without this disable the snapshot only covers that
+    // narrow rect; everything else stays as the last upload, so the
+    // drag-time stretch shows partial-frame glitches.
+    glDisable(GL_SCISSOR_TEST);
+
+    // Read from default FB (= what the user is about to see), write to
+    // snapshot FBO. 1:1 same-size copy → GL_NEAREST is correct.
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_snap_fbo);
+    glBlitFramebuffer(0, 0, window_w, window_h,
+                      0, 0, window_w, window_h,
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw);
+    if (prev_scissor) glEnable(GL_SCISSOR_TEST);
+}
+
+void composition_present_last_frame(int32_t window_w, int32_t window_h)
+{
+    if (s_snap_w <= 0 || s_snap_h <= 0 || !s_snap_fbo) return;
+    if (window_w <= 0 || window_h <= 0) return;
+
+    GLint prev_read = 0, prev_draw = 0;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prev_read);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prev_draw);
+    GLboolean prev_scissor = glIsEnabled(GL_SCISSOR_TEST);
+
+    // Disable scissor — glBlitFramebuffer obeys it on the DRAW side.
+    // Whatever scissor the engine had set going into this drag tick
+    // (typically a narrow UIModeScope rect from the last UI pass) would
+    // otherwise clip our blit to a tiny region, producing the
+    // "scissor glitch" stripe of stale content that the rest of the
+    // window would show through.
+    glDisable(GL_SCISSOR_TEST);
+
+    // Non-uniform stretch into the full window — intentionally introduces
+    // aspect distortion during the drag so the user sees the live shape
+    // of the window as they drag the edge. Aspect-fit (with bars) was
+    // tried first and felt wrong: the bars made it look like the window
+    // had already stabilised at a new aspect when in fact it was still
+    // mid-drag.
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, s_snap_fbo);
+    glBlitFramebuffer(0, 0, s_snap_w, s_snap_h,
+                      0, 0, window_w, window_h,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prev_read);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prev_draw);
+    if (prev_scissor) glEnable(GL_SCISSOR_TEST);
 }

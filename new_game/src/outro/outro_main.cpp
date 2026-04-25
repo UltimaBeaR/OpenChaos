@@ -15,6 +15,17 @@ void MAIN_main()
     // Preserve original extern declaration: the_end lives in Game.cpp (missions layer).
     extern UBYTE the_end;
 
+    // Defense in depth: ensure the frontend menu overlay (text + map
+    // markers — drawn by FRONTEND_display_overlay() from the post-
+    // composition UI pass when its pending bit is set) doesn't bleed
+    // into the outro's first frame. The pending bit is normally
+    // consumed by the very next flip after FRONTEND_display, but
+    // intermediate flip paths that don't run the post-composition
+    // callback (e.g. ge_video_draw_and_swap) leave it stale, so
+    // explicitly clear it here at the outro entry point.
+    extern bool g_frontend_overlay_pending;
+    g_frontend_overlay_pending = false;
+
     SLONG time1 = OS_ticks();
 
     // Show a loading or "THE END" screen while the rest of the outro initialises.

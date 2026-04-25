@@ -405,6 +405,14 @@ void ATTRACT_loadscreen_init(void)
 {
     PANEL_disable_screensaver(UC_TRUE);
 
+    // Defense in depth: ensure the frontend overlay isn't drawn over
+    // the loading screen. FRONTEND_loop also clears this when it
+    // returns a transition action, but anything that calls us by some
+    // other path (e.g. STARTS_LANGUAGE_CHANGE re-init) must not leak
+    // the menu overlay onto the loadscreen.
+    extern bool g_frontend_overlay_pending;
+    g_frontend_overlay_pending = false;
+
     // Clear any frontend background override (e.g. briefing screen) so the
     // loading screen is actually visible. Regression from the OpenGL migration:
     // the override system didn't exist in the D3D backend.

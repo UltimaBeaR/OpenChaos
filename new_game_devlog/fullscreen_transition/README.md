@@ -166,7 +166,7 @@ Already done:
   flips with the gameplay state bits set but no materialised player.
   Plan + handoff: [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md).
 - **Latent UI-scissor offset bug surfaced and fixed.** On windows
-  wider than `OC_FOV_CAP_ASPECT` the composition pass centres the FBO
+  wider than `FOV_CAP_ASPECT` the composition pass centres the FBO
   with pillar bars (`dst_x ≠ 0`), but `ge_set_scissor` /
   `ge_disable_scissor` weren't accounting for that offset — `glScissor`
   takes absolute FB coords while `push_ui_mode` hands it scissor
@@ -174,11 +174,55 @@ Already done:
   `u_viewport`). Symptom: pause menu / cutscene dialog / any
   `UIModeScope` UI clipped to a narrow band on the right where
   scissor and viewport intersected. Fix: `s_ui_vp_x/y` track the
-  actual viewport origin on the default FB, scissor adds it. Same
-  iteration also fixed UI vanishing during interactive drag-resize:
-  `ge_present_for_drag` now invokes the post-composition callback,
-  and `composition_present_stretched` publishes `s_last_dst_*` so
-  the UI pass picks up the live dst rect.
+  actual viewport origin on the default FB, scissor adds it.
+- **Universal drag-resize via last-frame snapshot.** Interactive
+  window-edge drag pauses the game's main loop (Windows owns the
+  message pump), so re-running the rendering pipeline on each drag
+  tick saw stale / consumed per-frame UI state — timer queues had
+  been emptied, dirty bits had been cleared, etc., so individual UI
+  elements would flicker / vanish until the drag ended. Replaced
+  the re-run approach with a snapshot: every normal flip captures
+  the finished default-FB into a backing texture (one
+  `glBlitFramebuffer`), and `ge_present_for_drag` simply stretches
+  that snapshot to the new window with `GL_LINEAR`. Whatever the
+  user saw a moment ago, they keep seeing — distorted to match the
+  live window aspect during the drag, snapping back to fresh content
+  once drag ends. Universal: works for any current and future UI
+  element regardless of its state-cycle. The three flip sites
+  (`ge_flip`, `ge_blit_back_buffer`, `ge_video_draw_and_swap`) all
+  call a shared `present_and_swap` helper so the snapshot can't be
+  forgotten when adding a new flip path.
+- **`ge_set_viewport` / `ge_clear` made UI-mode aware.** Symmetric
+  to the scissor fix — `ge_set_viewport(0, 0, w, h)` from inside
+  the UI pass now lands the viewport at the dst rect origin, not
+  at framebuffer (0, 0); `ge_clear` keeps scissor enabled in UI
+  mode so the clear stays bounded to the UI viewport instead of
+  wiping composition's outer pillarbox bars. Made the
+  `FRONTEND_display` split below possible — without these two
+  fixes any UI-pass call site that resets viewport/clears would
+  misbehave on non-matching-aspect windows.
+- **Frontend menu split into background + overlay halves.**
+  `FRONTEND_display` now does only the scene-FBO half (background
+  image, transition, kibble particles); the new
+  `FRONTEND_display_overlay` does menu items / arrows / title /
+  district map markers / mission select / corner tab buttons /
+  in-dev moving-panel preview, called from the post-composition
+  UI pass. Means main menu / options / save-load / map screen
+  text + map dots stay crisp; the leaf particles still pass
+  through composition AA where they look right. Gated by a
+  per-frame "dirty bit" raised by the background half — cleared
+  when `FRONTEND_loop` returns a transition action and at the
+  entry of `ATTRACT_loadscreen_init` / `MAIN_main` (outro) so the
+  overlay doesn't bleed into loadscreen / outro frames.
+- **Engine-internal constants moved out of `config.h`.** Aspect
+  clamps `FOV_CAP_ASPECT` / `FOV_MIN_ASPECT` (renamed from
+  `OC_FOV_*_ASPECT`) live in
+  [`engine/graphics/aspect_clamp.h`](../../new_game/src/engine/graphics/aspect_clamp.h)
+  — engine hard limits, not user-tuneable. `RENDER_SCALE_MIN`
+  is now a `static constexpr` inside the only consumer
+  (`compute_fbo_size`). `OC_DEBUG_*` toggles moved to
+  [`debug_config.h`](../../new_game/src/debug_config.h) sibling.
+  `config.h` keeps only the player-tuneable knobs.
 - **HUD bottom-row anchors.** Radar / health / weapon / ammo / crime
   rate / beacons / grenade / panel mission timer
   (`PANEL_draw_buffered`) / weapon-switch popup (`PANEL_inventory`) are

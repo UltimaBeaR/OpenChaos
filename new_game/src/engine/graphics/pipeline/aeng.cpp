@@ -35,7 +35,8 @@
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
-#include "config.h"  // OC_FOV_CAP_ASPECT
+#include "config.h"                        // OC_FOV_MULTIPLIER
+#include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT / FOV_CAP_ASPECT
 #include <math.h>
 #include <stdio.h>
 
@@ -8456,7 +8457,7 @@ void AENG_clear_viewport()
     // Aspect bars are no longer painted here. The scene FBO is the game's
     // "screen" and already fills its own aspect range edge-to-edge (aspect
     // clamp applied at FBO creation in OpenDisplay). If the real window
-    // aspect lies outside [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT], the
+    // aspect lies outside [FOV_MIN_ASPECT, FOV_CAP_ASPECT], the
     // composition layer paints outer pillar/letterbox bars over the real
     // backbuffer when it blits the FBO — no game-side involvement needed.
 
@@ -8559,7 +8560,7 @@ void AENG_draw(SLONG draw_3d)
             {
                 const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
                 const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
-                const float min_aspect  = float(OC_FOV_MIN_ASPECT);
+                const float min_aspect  = float(FOV_MIN_ASPECT);
                 float auto_zoom = 1.0F;
                 if (real_aspect < base_aspect) {
                     const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
@@ -8656,7 +8657,7 @@ void AENG_draw(SLONG draw_3d)
         {
             const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
             const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
-            const float min_aspect  = float(OC_FOV_MIN_ASPECT);
+            const float min_aspect  = float(FOV_MIN_ASPECT);
             float auto_zoom = 1.0F;
             if (real_aspect < base_aspect) {
                 const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;

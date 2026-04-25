@@ -5,8 +5,8 @@
 //
 // "The screen" here = the scene FBO. The game treats the FBO as its entire
 // screen; the real backbuffer is only known to the composition layer.
-// When the physical window aspect is outside [OC_FOV_MIN_ASPECT,
-// OC_FOV_CAP_ASPECT], the FBO is narrower/shorter than the window; the
+// When the physical window aspect is outside [FOV_MIN_ASPECT,
+// FOV_CAP_ASPECT], the FBO is narrower/shorter than the window; the
 // composition layer paints outer pillar/letterbox bars over the real
 // backbuffer around the FBO. This module is blind to that — it only knows
 // about pixels inside the FBO.

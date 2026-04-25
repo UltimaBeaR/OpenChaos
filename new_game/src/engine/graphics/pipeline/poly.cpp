@@ -4,6 +4,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT
 #include "config.h"
 
 // uc_orig: ScreenWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
@@ -179,7 +180,7 @@ void POLY_camera_set(
     // DisplayWidth.
     //
     // No per-frame aspect clamping — the scene FBO is pre-clamped to
-    // [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] at creation (OpenDisplay),
+    // [FOV_MIN_ASPECT, FOV_CAP_ASPECT] at creation (OpenDisplay),
     // so its aspect is always inside the range the rectilinear projection
     // can render at. Physical windows outside that range get outer bars
     // painted by the composition layer; the game itself sees only the FBO.
@@ -187,7 +188,7 @@ void POLY_camera_set(
     POLY_screen_width = float(DisplayHeight) * real_aspect;
     POLY_screen_clip_left = 0.0F;
     // Clip bound must cover both 3D scene space (POLY_screen_width — may be
-    // smaller than 640 on narrow/portrait windows because OC_FOV_MIN_ASPECT
+    // smaller than 640 on narrow/portrait windows because FOV_MIN_ASPECT
     // can clamp below 4:3) *and* UI virtual space (DisplayWidth = 640).
     // Otherwise UI draws that address the right half of the virtual 640-wide
     // canvas get clipped out as POLY_CLIP_RIGHT when POLY_screen_width < 640
@@ -312,7 +313,7 @@ void POLY_camera_set(
     {
         const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
         const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
-        const float min_aspect  = float(OC_FOV_MIN_ASPECT);
+        const float min_aspect  = float(FOV_MIN_ASPECT);
         float auto_zoom = 1.0F;
         if (real_aspect < base_aspect) {
             const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
@@ -413,7 +414,7 @@ void POLY_camera_set(
 
     // The 3D viewport fills the scene FBO edge-to-edge — no pillar /
     // letterbox centring inside the FBO. If the real window aspect is
-    // outside [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT], the composition
+    // outside [FOV_MIN_ASPECT, FOV_CAP_ASPECT], the composition
     // layer paints outer bars; game code has no representation of them.
     // dwY still accounts for cutscene letterbox (POLY_screen_mid_y folds
     // the `wideify` offset in) and splitscreen top/bottom half offsets.

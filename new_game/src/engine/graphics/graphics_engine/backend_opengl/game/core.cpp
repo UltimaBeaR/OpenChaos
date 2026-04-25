@@ -14,6 +14,7 @@
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
 #include "config.h"
+#include "engine/graphics/aspect_clamp.h"  // FOV_CAP_ASPECT / FOV_MIN_ASPECT
 #include "engine/core/memory.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include <string.h>
@@ -770,16 +771,47 @@ void ge_clear(bool color, bool depth)
         if (color) glClearColor(s_clear_r, s_clear_g, s_clear_b, 1.0f);
         if (depth) glDepthMask(GL_TRUE); // ensure depth writes for clear
 
-        // glClear honours the scissor rectangle. In UI mode the scissor
-        // is tight around the framed UI region, but ge_clear is meant to
-        // wipe the entire framebuffer (including the black bars). Snapshot
-        // and disable scissor for the clear, then restore.
+        // glClear honours the scissor rectangle. In SCENE mode the scissor
+        // matches the viewport (= full FBO), so disabling it makes no
+        // visible difference; we keep the disable to wipe the entire FBO
+        // even if some caller narrowed scissor before calling us.
+        //
+        // In UI mode, however, scissor is bounded to the UI viewport
+        // (s_ui_vp_x/y/w/h) — disabling it would wipe the entire default
+        // FB, taking out the composition layer's outer pillar/letterbox
+        // bars and any UI already drawn earlier in this pass. Keep
+        // scissor enabled in UI mode so the clear stays inside the UI
+        // rect (which is exactly what a frontend-style "clear and redraw
+        // background" wants).
         GLboolean scissor_was_enabled = GL_FALSE;
         glGetBooleanv(GL_SCISSOR_TEST, &scissor_was_enabled);
-        if (scissor_was_enabled) glDisable(GL_SCISSOR_TEST);
+        const bool keep_scissor = s_ui_mode_active;
+        if (scissor_was_enabled && !keep_scissor) glDisable(GL_SCISSOR_TEST);
         glClear(mask);
         if (scissor_was_enabled) glEnable(GL_SCISSOR_TEST);
     }
+}
+
+// Capture the final default-FB content into the snapshot texture and
+// then swap. Used by every "this frame is finished, present it"
+// path (ge_flip, ge_blit_back_buffer, ge_video_draw_and_swap) so the
+// drag-resize present always has a fresh snapshot to stretch. The
+// drag-resize present itself (ge_present_for_drag) does NOT go through
+// here — it intentionally skips capture (it presents the previous
+// snapshot) and does its own swap.
+//
+// Wraps capture+swap in one place so adding a new flip path can't
+// accidentally skip the snapshot (was the failure mode that left the
+// loadscreen visible during drag while a video was playing — video
+// had its own swap site that I forgot to update).
+static void present_and_swap(int win_w, int win_h)
+{
+    // Snapshot the finished default-FB into a backing texture so an
+    // OS-level drag-resize (which pauses the game's main loop and
+    // therefore can't refresh per-tick UI state) has a frame to scale
+    // visually. See composition.h's "Last-frame snapshot" section.
+    composition_capture_last_frame(win_w, win_h);
+    gl_context_swap();
 }
 
 void ge_flip()
@@ -808,7 +840,7 @@ void ge_flip()
     // on top at native resolution, untouched by the composition shader.
     if (s_post_composition_callback) s_post_composition_callback();
 
-    gl_context_swap();
+    present_and_swap(win_w, win_h);
 
     // Re-bind the scene FBO for the next frame — see OpenDisplay for why
     // the scene FBO is kept bound between frames (some clears fire before
@@ -1209,7 +1241,17 @@ void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
     // when OC_RENDER_SCALE < 1).
     int32_t screen_h = (s_ui_mode_active && s_ui_vp_h > 0) ? s_ui_vp_h
                                                            : gl_context_get_height();
-    glViewport(x, screen_h - y - h, w, h);
+    // In UI mode also offset by the actual viewport origin on the default
+    // FB. Caller passes UI-rect-relative coords (0..s_ui_vp_w, 0..s_ui_vp_h)
+    // mirroring how scissor is specified, but glViewport takes absolute FB
+    // coords. Without the offset, calling e.g. ge_set_viewport(0, 0, w, h)
+    // from inside the UI pass would land the viewport at FB origin (0, 0)
+    // rather than at the dst rect (s_ui_vp_x, s_ui_vp_y), yanking all
+    // subsequent draws into the upper-left corner on windows wider than
+    // the FBO aspect (composition pillarbox bars present).
+    int32_t off_x = s_ui_mode_active ? s_ui_vp_x : 0;
+    int32_t off_y = s_ui_mode_active ? s_ui_vp_y : 0;
+    glViewport(off_x + x, off_y + screen_h - y - h, w, h);
     if (!PolyPage::in_ui_mode()) {
         // Default behavior — scissor matches the new viewport.
         glScissor(x, screen_h - y - h, w, h);
@@ -1504,7 +1546,7 @@ void ge_blit_back_buffer()
     // on top at native resolution, untouched by the composition shader.
     if (s_post_composition_callback) s_post_composition_callback();
 
-    gl_context_swap();
+    present_and_swap(win_w, win_h);
 
     // Re-bind scene FBO for the next frame — see OpenDisplay for rationale.
     composition_bind_scene();
@@ -1824,7 +1866,8 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
     composition_blit(win_w, win_h);
-    gl_context_swap();
+
+    present_and_swap(win_w, win_h);
 
     // Restore scissor state captured before the video draw.
     glScissor(saved_scissor[0], saved_scissor[1], saved_scissor[2], saved_scissor[3]);
@@ -2632,7 +2675,7 @@ UBYTE* image_mem = s_image_mem_buf;
 
 // Pure function: physical window size → scene-FBO size. Applies the
 // OC_RENDER_SCALE factor and clamps the resulting aspect into
-// [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]. Outputs also expose the
+// [FOV_MIN_ASPECT, FOV_CAP_ASPECT]. Outputs also expose the
 // intermediate "scaled" values and whether a clamp fired — used by
 // OpenDisplay for one-time logging and nothing else.
 static void compute_fbo_size(int phys_w, int phys_h,
@@ -2640,9 +2683,14 @@ static void compute_fbo_size(int phys_w, int phys_h,
                              int* out_scaled_w, int* out_scaled_h,
                              float* out_scale, bool* out_clamped)
 {
+    // Hard floor on render scale: below this the scene becomes
+    // unreadable and GL driver texture-size math gets wobbly on some
+    // platforms. Internal limit, not user-tuneable.
+    static constexpr float RENDER_SCALE_MIN = 0.25f;
+
     float scale = OC_RENDER_SCALE;
-    if (scale < OC_RENDER_SCALE_MIN) scale = OC_RENDER_SCALE_MIN;
-    if (scale > 1.0f)                scale = 1.0f;
+    if (scale < RENDER_SCALE_MIN) scale = RENDER_SCALE_MIN;
+    if (scale > 1.0f)             scale = 1.0f;
 
     int scaled_w = (int)((float)phys_w * scale + 0.5f);
     int scaled_h = (int)((float)phys_h * scale + 0.5f);
@@ -2652,13 +2700,13 @@ static void compute_fbo_size(int phys_w, int phys_h,
     const float a = (float)scaled_w / (float)scaled_h;
     int fbo_w, fbo_h;
     bool clamped = false;
-    if (a > OC_FOV_CAP_ASPECT) {
+    if (a > FOV_CAP_ASPECT) {
         fbo_h = scaled_h;
-        fbo_w = (int)((float)scaled_h * OC_FOV_CAP_ASPECT + 0.5f);
+        fbo_w = (int)((float)scaled_h * FOV_CAP_ASPECT + 0.5f);
         clamped = true;
-    } else if (a < OC_FOV_MIN_ASPECT) {
+    } else if (a < FOV_MIN_ASPECT) {
         fbo_w = scaled_w;
-        fbo_h = (int)((float)scaled_w / OC_FOV_MIN_ASPECT + 0.5f);
+        fbo_h = (int)((float)scaled_w / FOV_MIN_ASPECT + 0.5f);
         clamped = true;
     } else {
         fbo_w = scaled_w;
@@ -2717,7 +2765,7 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     // "the screen". Two shaping steps inside compute_fbo_size:
     //   1. OC_RENDER_SCALE — scales the physical window size uniformly.
     //      1.0 = pixel-perfect, lower = cheaper/blurrier.
-    //   2. Aspect clamp to [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] — the
+    //   2. Aspect clamp to [FOV_MIN_ASPECT, FOV_CAP_ASPECT] — the
     //      range the rectilinear 3D projection can render at without
     //      fish-eye (too wide) or tiny-character (too tall) artefacts.
     //      When the physical window aspect lies outside this range, the
@@ -2753,7 +2801,7 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
             (logical_w > 0) ? (float)phys_w / (float)logical_w : 0.0f,
             (double)scale,
             scaled_w, scaled_h, (double)scaled_aspect,
-            (double)OC_FOV_MIN_ASPECT, (double)OC_FOV_CAP_ASPECT,
+            (double)FOV_MIN_ASPECT, (double)FOV_CAP_ASPECT,
             clamped ? "APPLIED (outer bars)" : "within range",
             fbo_w, fbo_h, (double)((float)fbo_w / (float)fbo_h));
 
@@ -2799,62 +2847,31 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
 // Single uniform path for all game modes (gameplay, menu, video,
 // outro): non-uniform stretch of the OLD scene FBO into the dst rect
 // the POST-resize composition would produce. The window aspect is
-// clamped into [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] and that clamped
+// clamped into [FOV_MIN_ASPECT, FOV_CAP_ASPECT] and that clamped
 // target is aspect-fit into the window. Inside the range → dst fills
 // window, FBO stretches freely. Outside → centred outer pillar/letter-
 // box bars (the same bars the post-resize composition_blit will draw).
 //
-// Drag-time and post-release outer letterbox are therefore identical;
-// only the FBO content changes at release (game re-renders, video
-// re-aspect-fits etc.). Matches the user-visible invariant: the
-// composition layer's bars are uniform across all modes; any "internal"
-// letterbox is the responsibility of the content drawing into the FBO.
+// Drag-time render = stretched re-present of the LAST captured real
+// frame. Architecturally cleaner than re-running the rendering pipeline
+// without a fresh game tick: timer queues, dirty-bit-driven UI, etc.
+// would all see stale / consumed state and individual UI elements would
+// flicker or vanish until the drag ends. Replaying the last frame is
+// universally correct — whatever the user saw a moment ago, they keep
+// seeing, smoothly rescaled. As soon as drag releases, the regular
+// game-loop flip resumes and re-renders fresh content at the new
+// resolution.
 void ge_present_for_drag()
 {
     // Skip if GL / composition isn't up yet (very early window events
-    // before OpenDisplay) or if the scene texture is empty.
+    // before OpenDisplay).
     if (composition_scene_width() <= 0 || composition_scene_height() <= 0) return;
 
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     if (win_w <= 0 || win_h <= 0) return;
 
-    // Clamp window aspect into the engine's supported FOV range,
-    // aspect-fit the clamped target into the window, full-stretch the
-    // FBO into the resulting dst rect.
-    const float win_aspect = (float)win_w / (float)win_h;
-    float target_aspect = win_aspect;
-    if (target_aspect > OC_FOV_CAP_ASPECT) target_aspect = OC_FOV_CAP_ASPECT;
-    if (target_aspect < OC_FOV_MIN_ASPECT) target_aspect = OC_FOV_MIN_ASPECT;
-
-    int32_t dst_x = 0, dst_y = 0, dst_w = win_w, dst_h = win_h;
-    if (win_aspect > target_aspect) {
-        // Window wider than clamp → pillarbox bars left/right.
-        dst_h = win_h;
-        dst_w = (int32_t)((float)win_h * target_aspect + 0.5f);
-        if (dst_w > win_w) dst_w = win_w;
-        dst_x = (win_w - dst_w) / 2;
-        dst_y = 0;
-    } else if (win_aspect < target_aspect) {
-        // Window taller than clamp → letterbox bars top/bottom.
-        dst_w = win_w;
-        dst_h = (int32_t)((float)win_w / target_aspect + 0.5f);
-        if (dst_h > win_h) dst_h = win_h;
-        dst_x = 0;
-        dst_y = (win_h - dst_h) / 2;
-    }
-
-    composition_bind_default();
-    composition_present_stretched(dst_x, dst_y, dst_w, dst_h, win_w, win_h);
-
-    // Run the post-composition UI pass too — without this the UI layer
-    // (HUD, menus, console, debug overlays) vanishes during interactive
-    // drag-resize because the engine's regular flip path is paused while
-    // the OS owns the message pump. composition_present_stretched
-    // already published the new dst rect via s_last_dst_*, so the UI
-    // pass picks up the live size and stays glued to the FBO content.
-    if (s_post_composition_callback) s_post_composition_callback();
-
+    composition_present_last_frame(win_w, win_h);
     gl_context_swap();
 
     // Restore the scene-FBO-as-default-target invariant — see OpenDisplay

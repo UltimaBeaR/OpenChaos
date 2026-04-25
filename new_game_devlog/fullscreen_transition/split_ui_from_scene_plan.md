@@ -5,30 +5,42 @@
 window pixels через dst rect-based scaling; отдельного шага не
 понадобилось). Кошачий fade / F1 / F11 / консоль / pause меню /
 FONT_buffer_draw / **HUD: PANEL_draw_buffered + PANEL_last +
-PANEL_inventory + cheat==2 FPS overlay** сейчас рисуются в
-post-composition, не блюрятся FXAA/bilinear. В scene FBO остались
-только depth-зависимые оверлеи: gun sights, deferred view lines,
-enemy health (со своей парой PANEL_start/PANEL_finish для
-собственного POLY-батча).
+PANEL_inventory + cheat==2 FPS overlay** / **Frontend menu overlay
+(текст пунктов / title / arrows / district map markers / mission
+select / corner tab buttons / m_bMovingPanel preview)** сейчас
+рисуются в post-composition, не блюрятся FXAA/bilinear. В scene FBO
+остались только depth-зависимые оверлеи (gun sights, deferred view
+lines, enemy health со своей парой PANEL_start/PANEL_finish для
+собственного POLY-батча) и frontend «задники» (background image,
+transition image, FRONTEND_kibble_draw — листики которые сами
+по сути 3D-style спрайты и им подходит composition AA).
 Остался Этап 6 — финальная матрица визуальных проверок (4:3 /
 16:9 / 21:9 / portrait × scale 1.0 / 0.5). По ходу всплыли и
-зафикшены 4 латентных бага (подробно в разделе "Сделано"):
+зафикшены 5 латентных багов (подробно в разделе "Сделано"):
 PANEL_fadeout overlay не сбрасывался после abandon миссии; UI scissor
 не учитывал dst_x offset на окнах шире cap-aspect (clip справа);
 UI слой пропадал во время интерактивного drag-resize; PANEL_fadeout
 ("кошка") размер брал из FBO, а должен из dst rect — при
-`OC_RENDER_SCALE<1.0` quad покрывал только 1/4 экрана в углу.
+`OC_RENDER_SCALE<1.0` quad покрывал только 1/4 экрана в углу;
+ge_set_viewport / ge_clear не были UI-mode aware (viewport уезжал в
+угол на широких окнах, ge_clear стирал outer pillarbox bars).
 Добавлен debug-флаг `OC_DEBUG_HIGHLIGHT_NON_UI` чтобы визуально
 видеть границу между UI и scene (scene тинтится магентовым +
 блюрится).
 
 **⚠️ TODO — найти оставшиеся UI элементы которые ещё в scene FBO.**
 Включить `OC_DEBUG_HIGHLIGHT_NON_UI = true` и пройтись по игре
-систематически (главное меню, briefing, pause, won/lost, миссии,
-видео, attract mode, заставка, finale, ...). Любой UI который виден
-магентовым/блюрным — кандидат на перенос в `ui_render_post_composition`.
-Пример выявленных позже элементов фиксировать в этой секции и в
-issues.md, чтобы не забыть.
+систематически (briefing, won/lost, видео, заставка, finale, ...).
+Любой UI который виден магентовым/блюрным — кандидат на перенос в
+`ui_render_post_composition`. Пример выявленных позже элементов
+фиксировать в этой секции и в issues.md, чтобы не забыть.
+
+**Уже мигрированные сцены (для справки):** главное меню /
+options / save / load / save confirm / map screen (district markers +
+labels) — через `FRONTEND_display_overlay` в UI pass. HUD / pause
+menu / cutscene dialog / outro — через свои блоки в
+`ui_render_post_composition`. Текст и точки на карте sharp на любом
+aspect и render scale.
 
 Задача: разделить отрисовку 3D мира и UI так чтобы UI не проходил через
 композиционный шейдер (FXAA + bilinear upscale). Сегодня все UI рисует
@@ -322,17 +334,33 @@ dst_w` (как у `u_viewport` в шейдере, который имеет orig
 **Бонусный фикс латентного бага №3 (UI исчезал во время drag-resize):**
 во время интерактивного ресайза окна Windows захватывает message pump,
 основной flip останавливается, SDL шлёт `SDL_EVENT_WINDOW_RESIZED` →
-host через `on_window_resize_live` зовёт `ge_present_for_drag`, который
-делает свой flip (`composition_present_stretched` + swap). Но
-post-composition callback там не вызывался → UI слой полностью
-пропадал на время перетаскивания. Дополнительно
-`composition_present_stretched` не обновлял `s_last_dst_*`, так что
-даже если бы callback стрельнул, UI pass работал бы со stale dst rect.
+host через `on_window_resize_live` зовёт `ge_present_for_drag`. Старая
+реализация re-running'ала pipeline (composition + UI pass) на каждом
+drag-tick'е без свежего game tick'а — UI элементы со state per-tick
+циклом (timer queue, dirty bit, кэшированные list'ы) видели stale /
+empty state и поодиночке моргали или пропадали.
 
-Фикс: `composition_present_stretched` теперь публикует `s_last_dst_*`
-(input mapping during drag не страдает — мышь на title bar, не в
-client area), `ge_present_for_drag` дёргает `s_post_composition_callback`
-сразу после `composition_present_stretched` и до `gl_context_swap`.
+Финальный фикс — **универсальный snapshot** вместо re-render'инга:
+
+- В каждом нормальном flip-сайте (`ge_flip`, `ge_blit_back_buffer`,
+  `ge_video_draw_and_swap`) после composition+UI и до swap делается
+  `glBlitFramebuffer` копия default FB в `s_snap_fbo` (lazily-allocated
+  под текущий window size). Все три сайта зовут общий helper
+  `present_and_swap` — нельзя забыть capture при добавлении нового
+  flip-path'а.
+- `ge_present_for_drag` НЕ запускает pipeline. Просто
+  `glBlitFramebuffer` со `GL_LINEAR` стретчит snapshot **non-uniformly**
+  в полное окно (с искажением aspect — это намеренно: юзер видит live
+  shape окна по мере drag'а; aspect-fit с барами создавал ложное
+  ощущение что drag уже закончился). Отключает `GL_SCISSOR_TEST` на
+  обе операции (capture и present) — без этого UI-pass scissor от
+  последнего `UIModeScope` клипал blit узким прямоугольником.
+- Удалена dead code'ом `composition_present_stretched`.
+
+Преимущества: универсально для всех текущих и будущих UI элементов,
+независимо от их state-цикла. Cost — один full-window
+`glBlitFramebuffer` на нормальный flip (~миллисекунда на интегрированной
+графике).
 
 **Бонусный фикс латентного бага №4 (PANEL_fadeout «кошка» при
 OC_RENDER_SCALE < 1.0):** quad с кошачьей радужкой при abandon миссии
@@ -350,6 +378,62 @@ window pixels). При `OC_RENDER_SCALE < 1.0` FBO в N раз меньше ок
 Фикс: `PANEL_fadeout_draw` теперь читает `ui_coords::g_screen_w_px /
 g_screen_h_px` вместо `ScreenWidth/Height`. Эти globals в UI pass
 указывают на dst rect, в scene pass — на FBO. Универсально.
+
+**Бонусный фикс латентного бага №5 (`ge_set_viewport` / `ge_clear`
+не были UI-mode aware):** инфраструктура rendering API'а не учитывала
+что в UI pass viewport на default FB центрирован в окне (`s_ui_vp_x/y`
+≠ 0 на окнах шире cap-aspect). Симптомы:
+
+1. Любой UI-pass call site который зовёт `ge_set_viewport(0, 0, w, h)`
+   (например, frontend `FRONTEND_display`) — viewport landed at FB
+   origin (0, 0), не на dst rect. На широких окнах все последующие
+   draws уезжали в верхне-левый угол.
+
+2. `ge_clear(true, true)` в UI pass отключал scissor и стирал весь
+   default FB — включая outer pillarbox bars от composition'а и
+   уже отрисованные UI элементы предыдущих блоков.
+
+Фикс:
+- `ge_set_viewport` в UI mode добавляет `s_ui_vp_x/y` offset
+  ([core.cpp:1219-1232](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp#L1219-L1232)).
+  Симметрично `ge_set_scissor`.
+- `ge_clear` в UI mode не отключает scissor — clear ограничен
+  активным scissor box (= UI rect или текущий UIModeScope)
+  ([core.cpp:786-790](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp#L786-L790)).
+  В scene mode поведение прежнее (отключает scissor для clear).
+
+**Frontend menu split + dirty bit gate:**
+[`FRONTEND_display`](../../new_game/src/ui/frontend/frontend.cpp)
+расщеплён на два:
+- Background half (по-прежнему `FRONTEND_display`, зовётся из
+  `FRONTEND_loop` до flip'а): `ge_clear` + `ge_show_back_image` +
+  `FRONTEND_show_xition` + `FRONTEND_kibble_draw`. Рендерится в scene
+  FBO. Ставит dirty bit `g_frontend_overlay_pending = true`.
+- Overlay half (новая `FRONTEND_display_overlay`, зовётся из
+  `ui_render_post_composition`): menu items + arrows + title +
+  district markers + mission select + corner tab buttons +
+  m_bMovingPanel preview.
+
+Gate через dirty bit (не `GAME_STATE & GS_ATTRACT_MODE`) — точное
+условие "background half только что отрендерил кадр". Очистка в
+3 точках для defense in depth:
+- `FRONTEND_loop` если `res != 0` (transition action — игрок выбрал
+  пункт меню, последующие flip'ы делает caller).
+- `ATTRACT_loadscreen_init` в начале (re-init по
+  `STARTS_LANGUAGE_CHANGE`).
+- `MAIN_main` (outro entry) в начале (на нештатные пути типа
+  `ge_video_draw_and_swap` который не дёргает post-composition
+  callback).
+
+**Рефактор констант:** `OC_FOV_CAP_ASPECT` / `OC_FOV_MIN_ASPECT` →
+`FOV_CAP_ASPECT` / `FOV_MIN_ASPECT` в новом
+[`engine/graphics/aspect_clamp.h`](../../new_game/src/engine/graphics/aspect_clamp.h)
+(внутренние engine-limits, не user-tuneable). `OC_RENDER_SCALE_MIN`
+→ `static constexpr` внутри `compute_fbo_size` (единственный
+consumer). `OC_DEBUG_*` → новый
+[`debug_config.h`](../../new_game/src/debug_config.h) рядом с
+config.h. config.h теперь содержит только пользовательские
+tuning-опции.
 
 **Debug визуализация:** `OC_DEBUG_HIGHLIGHT_NON_UI` в `config.h` +
 uniform в `composite_frag.glsl`. При `true` сцена рисуется магентовой

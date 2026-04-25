@@ -382,7 +382,7 @@ void ge_resize_display();
 // Repaint the window with the last-rendered scene FBO during an OS-
 // level window-edge drag (Windows modal resize loop). Single uniform
 // path across all game modes (gameplay, menu, video, outro): the
-// window aspect is clamped into [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT],
+// window aspect is clamped into [FOV_MIN_ASPECT, FOV_CAP_ASPECT],
 // that clamped target is aspect-fit into the window, and the FBO is
 // non-uniformly stretched into the resulting dst rect. Inside the range
 // dst fills the window (no bars); outside it picks up centred outer

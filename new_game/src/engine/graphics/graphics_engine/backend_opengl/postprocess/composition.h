@@ -49,19 +49,6 @@ void composition_bind_default();
 // have bound the target framebuffer before calling this.
 void composition_blit(int32_t window_w, int32_t window_h);
 
-// Full-stretch the scene color texture into an explicit dst rect inside
-// a window of (window_w, window_h), clearing the outer area. Unlike
-// composition_blit this does NOT aspect-fit the FBO — dst is used as-is,
-// FBO content is non-uniformly scaled to fill it, and aspect distortion
-// is the caller's responsibility. Used by the live window-edge-drag
-// path (ge_present_for_drag): caller clamps the dst rect to the engine's
-// allowed FOV aspect range so outer bars only appear when the window
-// aspect exceeds what the post-resize FBO would support.
-// Caller binds the target framebuffer before calling and swaps after.
-void composition_present_stretched(int32_t dst_x, int32_t dst_y,
-                                   int32_t dst_w, int32_t dst_h,
-                                   int32_t window_w, int32_t window_h);
-
 // Query current scene FBO size. 0 if not initialized.
 int32_t composition_scene_width();
 int32_t composition_scene_height();
@@ -83,3 +70,31 @@ bool composition_window_to_fbo(int win_x, int win_y, int* fbo_x, int* fbo_y);
 // Origin is bottom-left (matches glViewport convention). All four
 // outputs are zero before the first composition_blit.
 void composition_get_dst_rect(int32_t* x, int32_t* y, int32_t* w, int32_t* h);
+
+// ─── Last-frame snapshot (used by interactive drag-resize) ─────────────
+//
+// During an OS-level window drag the game's main loop is paused (Windows
+// owns the message pump), but SDL keeps firing window-resize events that
+// need a present each tick — otherwise the OS shows undefined / black
+// content while the window border is being dragged. We can't safely
+// re-run the rendering pipeline without a fresh game tick (per-frame UI
+// state like timer queues, dirty bits, etc. would be empty / stale and
+// individual UI elements would flicker), so we instead snapshot the
+// post-flip default framebuffer once per real frame and just rescale
+// that snapshot into the new window geometry during drag. End result:
+// the window contents simply "stretch" smoothly while being resized,
+// then the next real frame renders normally once the drag ends.
+
+// Capture the current default-framebuffer contents into the snapshot
+// buffer. Call after composition + UI pass + any other UI work, just
+// before swap, so the snapshot matches what the user sees this frame.
+// The snapshot resizes itself as the window changes; the first call
+// allocates GL resources lazily.
+void composition_capture_last_frame(int32_t window_w, int32_t window_h);
+
+// Present the last captured snapshot stretched to fit the current
+// window. Caller binds the default framebuffer beforehand and swaps
+// after. Aspect-fits the snapshot into the window (pillarbox /
+// letterbox bars when the window aspect drifted from the snapshot
+// aspect). No-op if no snapshot has been captured yet.
+void composition_present_last_frame(int32_t window_w, int32_t window_h);

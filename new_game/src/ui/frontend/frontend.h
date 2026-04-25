@@ -175,6 +175,15 @@ void FRONTEND_level_lost();
 // uc_orig: FRONTEND_display (fallen/Source/frontend.cpp)
 void FRONTEND_display(void);
 
+// Per-frame frontend OVERLAY render. Split out of FRONTEND_display so that
+// menu text + map markers can run in the post-composition UI pass on the
+// default FB at native resolution (sharp), while the background image and
+// the kibble (leaf) particles still go through the scene FBO. Called from
+// ui_render_post_composition when g_frontend_overlay_pending is set
+// (dirty bit raised by the matching FRONTEND_display() background half
+// in the same frame).
+void FRONTEND_display_overlay(void);
+
 // uc_orig: CacheScriptInMemory (fallen/Source/frontend.cpp)
 void CacheScriptInMemory(CBYTE* script_fname);
 // uc_orig: FileOpenScript (fallen/Source/frontend.cpp)

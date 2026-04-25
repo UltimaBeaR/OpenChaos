@@ -2247,17 +2247,27 @@ static void FRONTEND_draw_districts(void)
 
 
 // uc_orig: FRONTEND_display (fallen/Source/frontend.cpp)
-// Main per-frame frontend render: clear viewport, background, kibble particles,
-// menu items (with scrolling, strikethrough, widget rendering), title wibble,
-// district map and briefing text overlays.
+// Per-frame frontend BACKGROUND render: clear viewport, background image,
+// transition image, kibble particles. The TEXT/UI overlay half (menu items,
+// arrows, title, district map markers, mission select, moving panel preview)
+// was split off into FRONTEND_display_overlay() which runs in the post-
+// composition UI pass — keeps the menu glyphs and map dots crisp at native
+// resolution while the background image and the leaf particles still go
+// through the scene FBO (the leaves are essentially 3D-style sprites and
+// look better with composition-pass antialiasing).
+//
+// Sets g_frontend_overlay_pending so the next UI pass knows to call
+// FRONTEND_display_overlay() — a "dirty bit" that's reliably true ONLY
+// in the same frame where this background half ran. Using GAME_STATE bits
+// instead would leak into outro / video / other phases that share the
+// flip path but shouldn't get the menu overlay.
+//
+// Use-sites declare with `extern bool g_frontend_overlay_pending;`.
+bool g_frontend_overlay_pending = false;
+
 void FRONTEND_display()
 {
     PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
-    UBYTE i;
-    SLONG rgb, x, x2, y;
-    MenuData* md = menu_data;
-    UBYTE whichmap[] = { 2, 0, 1, 3 };
-    UBYTE arrow = 0;
 
     ge_set_viewport(
         0, 0, ge_get_screen_width(), ge_get_screen_height());
@@ -2268,6 +2278,27 @@ void FRONTEND_display()
         FRONTEND_show_xition();
     POLY_frame_init(UC_FALSE, UC_FALSE);
     FRONTEND_kibble_draw();
+    POLY_frame_draw(UC_FALSE, UC_FALSE);
+
+    g_frontend_overlay_pending = true;
+}
+
+// Per-frame frontend OVERLAY render: menu items (with scrolling, strikethrough,
+// widget rendering), "more" arrows, title wibble, district map markers,
+// mission select text, and the in-development moving-panel preview. Runs from
+// the post-composition UI pass (split_ui_from_scene_plan.md) so the text and
+// map dots land on the default FB at native window pixels untouched by FXAA /
+// bilinear upscale.
+void FRONTEND_display_overlay()
+{
+    PolyPage::UIModeScope _ui_scope(ui_coords::UIAnchor::CENTER_CENTER);
+    UBYTE i;
+    SLONG rgb, x, x2, y;
+    MenuData* md = menu_data;
+    UBYTE whichmap[] = { 2, 0, 1, 3 };
+    UBYTE arrow = 0;
+
+    POLY_frame_init(UC_FALSE, UC_FALSE);
 
     int iBigFontScale = BIG_FONT_SCALE;
     if (!IsEnglish) {
@@ -3312,6 +3343,21 @@ SBYTE FRONTEND_loop()
     PolyPage::EnableAlphaSort();
     res = FRONTEND_input();
     MUSIC_mode_process();
+
+    // If the player just committed to a transition (start mission, exit,
+    // change language, …), cancel the overlay pending bit set by
+    // FRONTEND_display() above. The caller (ATTRACT_loadscreen_init,
+    // outro, etc.) takes over rendering from here and runs its own
+    // flip(s) — without this clear, the very first of those flips
+    // would consume the pending bit and paint the menu overlay over
+    // whatever the caller was trying to show (loadscreen image, "THE
+    // END" splash, …). Symptom: menu briefly visible *under* the
+    // loadscreen "Loading" text on the way into a mission, or under
+    // the outro's first frame.
+    extern bool g_frontend_overlay_pending;
+    if (res != 0) {
+        g_frontend_overlay_pending = false;
+    }
 
     // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
     if (ControlFlag && ShiftFlag) {

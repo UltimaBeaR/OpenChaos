@@ -13,7 +13,7 @@
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "assets/sound_id.h"
-#include "config.h"
+#include "debug_config.h"  // OC_DEBUG_SOUND_DISABLED
 
 // uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname);

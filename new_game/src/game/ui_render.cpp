@@ -18,6 +18,7 @@
 #include "engine/graphics/pipeline/aeng.h"                // AENG_draw_messages
 #include "engine/input/keyboard_globals.h"                // ControlFlag
 #include "missions/eway.h"                                // EWAY_stop_player_moving
+#include "ui/frontend/frontend.h"                         // FRONTEND_display_overlay
 
 // GAME_FLAGS / GF_PAUSED + GAME_STATE / GS_* + NET_PERSON / NET_PLAYER.
 #include "game/game_types.h"
@@ -186,6 +187,30 @@ void ui_render_post_composition(void)
     // this flush ran inside screen_flip() before AENG_blit, so the text
     // landed in the scene FBO and got softened by FXAA / bilinear upscale.
     FONT_buffer_draw();
+
+    // Frontend menu overlay (text + map markers + corner tab buttons + title
+    // wibble + mission select + moving-panel preview). Drawn LAST so it sits
+    // on top of any other UI in attract mode. The frontend's background
+    // (back image, transitions, kibble particles) stays in the scene FBO
+    // half — `FRONTEND_display()` is still called from `FRONTEND_loop()`.
+    //
+    // Gate via a sticky flag rather than a per-frame dirty bit:
+    //   - Set true by `FRONTEND_display()` (the matching scene-FBO half).
+    //   - Cleared explicitly when leaving the frontend (FRONTEND_loop
+    //     on a transition action, ATTRACT_loadscreen_init,
+    //     MAIN_main / outro entry).
+    //
+    // The "consume after one render" version misbehaved during
+    // interactive window drag-resize: SDL fires the post-composition
+    // callback from `ge_present_for_drag` while the game's main loop
+    // is paused (OS owns the message pump), so `FRONTEND_display()`
+    // doesn't run that "frame" and the dirty bit had been cleared by
+    // the previous render — leaving the user dragging a frontend
+    // window with the scene visible but no menu text.
+    extern bool g_frontend_overlay_pending;
+    if (g_frontend_overlay_pending) {
+        FRONTEND_display_overlay();
+    }
     // ──────────────────────────────────────────────
 
     ge_set_ui_mode(false);
