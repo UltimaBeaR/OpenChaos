@@ -199,6 +199,16 @@ Already done:
   C++ `true` / `false` as zero).
 
 Remaining work — see [`issues.md`](issues.md):
+- **Hunt down remaining UI elements still drawn in the scene FBO.**
+  The HUD / menu / debug-overlay migration is the biggest chunk but
+  not exhaustive — some UI paths probably still render into the scene
+  FBO and get softened by FXAA / bilinear upscale. Methodology: enable
+  `OC_DEBUG_HIGHLIGHT_NON_UI = true` and walk the game (main menu,
+  briefing, pause, won/lost, missions, intro/cutscene videos, attract
+  mode, finale, outro). Anything that shows up magenta-tinted /
+  blurred is a candidate for migration into
+  `ui_render_post_composition`. Tracked in
+  [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md).
 - **PSX / version debug overlays still unframed** — `PANEL_last`
   ~lines 2494-2540, drawn at virtual (5, 15) and (20, 20). Debug-only
   overlays; should be `LEFT_TOP`. Low priority. (Mission-countdown

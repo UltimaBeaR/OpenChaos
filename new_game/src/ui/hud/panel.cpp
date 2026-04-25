@@ -1156,17 +1156,26 @@ void PANEL_fadeout_draw(void)
 {
     if (PANEL_fadeout_time) {
         // Size the fade-out quad so the cat disc (diameter ≈ quad_width × 0.5
-        // at full UV [0,1]) describes the diagonal of the scene FBO — i.e.
-        // covers every pixel the game can draw to. Invariant I5 of the
-        // FBO-as-virtual-screen refactor: full-screen effects cover the
-        // entire FBO from (0, 0) to (ScreenWidth, ScreenHeight).
-        const float vp_w  = float(ScreenWidth);
-        const float vp_h  = float(ScreenHeight);
+        // at full UV [0,1]) describes the diagonal of the active render
+        // target — i.e. covers every pixel the game can draw to. Invariant
+        // I5 of the FBO-as-virtual-screen refactor: full-screen effects
+        // cover the entire target.
+        //
+        // Use ui_coords::g_screen_w/h_px instead of ScreenWidth/Height: the
+        // latter is the scene FBO size, but PANEL_fadeout_draw runs in the
+        // post-composition UI pass on the default FB at dst rect resolution.
+        // At OC_RENDER_SCALE < 1.0 the FBO is smaller than the dst rect
+        // (e.g. RENDER_SCALE=0.25 → FBO 1/4 of dst rect), so sizing the cat
+        // quad to FBO dims would shrink it to a small upper-left patch on
+        // the default FB. ui_coords is recomputed to dst rect dims at the
+        // start of the UI pass, so it tracks the right target automatically.
+        const float vp_w  = ui_coords::g_screen_w_px;
+        const float vp_h  = ui_coords::g_screen_h_px;
         const float diag  = sqrtf(vp_w * vp_w + vp_h * vp_h);
         // Cat disc occupies ~half the texture width (cat_radius ≈ 0.25 of
         // texture width), so its visible diameter = quad_width × 0.5. To
-        // make the disc circumscribe the FBO (describe every corner),
-        // quad_width must be 2 × FBO diagonal.
+        // make the disc circumscribe the target (describe every corner),
+        // quad_width must be 2 × target diagonal.
         const float scale = diag * 2.0F / float(DisplayWidth);
 
         // Temporarily override the affine so the virtual 640×480 quad

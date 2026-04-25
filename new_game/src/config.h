@@ -24,7 +24,7 @@
 // lower = blurrier but cheaper on the GPU. Useful on 4K / Retina monitors
 // where a full-resolution frame is more than needed.
 // NOTE: config-only for now; will move into a runtime graphics menu later.
-#define OC_RENDER_SCALE 1.00f
+#define OC_RENDER_SCALE 0.25f
 
 // Minimum value guarded by the composition pass — below this the scene
 // becomes unreadable and GL driver texture-size math gets wobbly on some
@@ -80,7 +80,7 @@
 // the post-composition pass stays sharp and original colours. Used to
 // audit which call sites still need to migrate. Keep OFF in shipping
 // builds.
-#define OC_DEBUG_HIGHLIGHT_NON_UI true
+#define OC_DEBUG_HIGHLIGHT_NON_UI false
 
 // Debug: set to true to silence all sound/music by forcing the OpenAL
 // listener gain to 0 right after init. OpenAL itself stays fully
