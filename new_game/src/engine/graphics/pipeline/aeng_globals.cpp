@@ -209,10 +209,10 @@ AENG_Pow* AENG_pow_bucket[AENG_POW_NUM_BUCKETS];
 UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
 
 // uc_orig: AENG_upper (fallen/DDEngine/Source/aeng.cpp)
-POLY_Point AENG_upper[MAP_WIDTH][MAP_HEIGHT];
+POLY_Point AENG_upper[MAP_WIDTH / 2 + MAP_SIZE_TWEAK][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK];
 
 // uc_orig: AENG_lower (fallen/DDEngine/Source/aeng.cpp)
-POLY_Point AENG_lower[MAP_WIDTH][MAP_HEIGHT];
+POLY_Point AENG_lower[MAP_WIDTH / 2 + MAP_SIZE_TWEAK * 2][MAP_HEIGHT / 2 + MAP_SIZE_TWEAK * 2];
 
 // uc_orig: AENG_torch_on (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_torch_on = UC_FALSE;

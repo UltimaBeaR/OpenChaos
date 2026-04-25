@@ -488,34 +488,6 @@ void WMOVE_process()
     }
 }
 
-// uc_orig: WMOVE_remove (fallen/Source/wmove.cpp)
-// Bulk removal of WMOVE faces owned by Things of a given Class. Used when a class
-// of entity is being wiped on level transitions so their walkable surfaces don't
-// linger.
-void WMOVE_remove(UBYTE which_class)
-{
-    SLONG i;
-
-    WMOVE_Face* wf;
-    Thing* p_thing;
-
-    for (i = 1; i < WMOVE_face_upto; i++) {
-        wf = &WMOVE_face[i];
-
-        p_thing = TO_THING(wf->thing);
-
-        if (p_thing->Class == which_class) {
-            remove_walkable_from_map(wf->face4);
-
-            memmove((UBYTE*)wf, (UBYTE*)(wf + 1), (WMOVE_face_upto - i - 1) * sizeof(WMOVE_Face));
-
-            // Re-scan the same index because the array just shifted down.
-            i -= 1;
-            WMOVE_face_upto -= 1;
-        }
-    }
-}
-
 // uc_orig: WMOVE_relative_pos (fallen/Source/wmove.cpp)
 void WMOVE_relative_pos(
     UBYTE wmove_index,
@@ -595,12 +567,11 @@ void WMOVE_relative_pos(
     SLONG rcrossa = rx * daz - rz * dax;
     SLONG rcrossb = rx * dbz - rz * dbx;
 
-    along_a = ((rcrossb << 12) + (1 << 11)) / acrossb;
-    along_b = ((-rcrossa << 12) + (1 << 11)) / acrossb;
+    along_a = ((rcrossb << 13) + (1 << 12)) / acrossb;
+    along_b = ((-rcrossa << 13) + (1 << 12)) / acrossb;
 
-    // Height of the face at the last position. Y-contributions are split and
-    // shifted independently to avoid 32-bit intermediate overflow on large faces.
-    wy = (yo << 8) + (day * along_a >> 4) + (dby * along_b >> 4);
+    // Height of the face at the last position.
+    wy = (yo << 8) + (day * along_a + dby * along_b + (1 << 9) >> 5);
 
     dy = last_y - wy;
 
@@ -622,9 +593,9 @@ void WMOVE_relative_pos(
     dby = pp2->Y - pp0->Y;
     dbz = pp2->Z - pp0->Z;
 
-    *now_x = (xo << 8) + (along_a * dax + along_b * dbx + (1 << 8) >> 4);
-    *now_y = (yo << 8) + (along_a * day + along_b * dby + (1 << 8) >> 4);
-    *now_z = (zo << 8) + (along_a * daz + along_b * dbz + (1 << 8) >> 4);
+    *now_x = (xo << 8) + (along_a * dax + along_b * dbx + (1 << 9) >> 5);
+    *now_y = (yo << 8) + (along_a * day + along_b * dby + (1 << 9) >> 5);
+    *now_z = (zo << 8) + (along_a * daz + along_b * dbz + (1 << 9) >> 5);
 
     *now_y += dy;
 
@@ -640,6 +611,14 @@ void WMOVE_relative_pos(
     }
 
     *now_dangle = dangle;
+
+    // Clamp to prevent teleporting if face moved too far in one tick.
+    if (abs(*now_x - last_x) > 0x10000) {
+        *now_x = last_x;
+    }
+    if (abs(*now_z - last_z) > 0x10000) {
+        *now_z = last_z;
+    }
 }
 
 // uc_orig: WMOVE_draw (fallen/Source/wmove.cpp)

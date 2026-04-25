@@ -3743,7 +3743,7 @@ void AENG_draw_city()
                 worked_out_colour = UC_FALSE;
 
                 if (!(ph->Flags & PAP_FLAG_NOUPPER)) {
-                    pp = &AENG_upper[x][z];
+                    pp = &AENG_upper[x & 63][z & 63];
 
                     POLY_transform(world_x, world_y, world_z, pp);
 
@@ -3807,7 +3807,7 @@ void AENG_draw_city()
                         world_y += (COS(((x << 8) + (sea_offset >> 1)) & 2047) + SIN(((z << 8) + (sea_offset >> 1) + 700) & 2047)) >> 13;
                     }
 
-                    ppl = &AENG_lower[x][z];
+                    ppl = &AENG_lower[x & 63][z & 63];
 
                     POLY_transform(world_x, world_y, world_z, ppl);
 
@@ -4821,15 +4821,15 @@ void AENG_draw_city()
                 //
 
                 if (ph->Flags & PAP_FLAG_SINK_SQUARE) {
-                    quad[0] = &AENG_lower[x + 0][z + 0];
-                    quad[1] = &AENG_lower[x + 1][z + 0];
-                    quad[2] = &AENG_lower[x + 0][z + 1];
-                    quad[3] = &AENG_lower[x + 1][z + 1];
+                    quad[0] = &AENG_lower[(x + 0) & 63][(z + 0) & 63];
+                    quad[1] = &AENG_lower[(x + 1) & 63][(z + 0) & 63];
+                    quad[2] = &AENG_lower[(x + 0) & 63][(z + 1) & 63];
+                    quad[3] = &AENG_lower[(x + 1) & 63][(z + 1) & 63];
                 } else {
-                    quad[0] = &AENG_upper[x + 0][z + 0];
-                    quad[1] = &AENG_upper[x + 1][z + 0];
-                    quad[2] = &AENG_upper[x + 0][z + 1];
-                    quad[3] = &AENG_upper[x + 1][z + 1];
+                    quad[0] = &AENG_upper[(x + 0) & 63][(z + 0) & 63];
+                    quad[1] = &AENG_upper[(x + 1) & 63][(z + 0) & 63];
+                    quad[2] = &AENG_upper[(x + 0) & 63][(z + 1) & 63];
+                    quad[3] = &AENG_upper[(x + 1) & 63][(z + 1) & 63];
                 }
 
                 if (POLY_valid_quad(quad)) {
@@ -5221,31 +5221,31 @@ void AENG_draw_city()
                             }
 
                             if (ph->Flags & PAP_FLAG_SINK_SQUARE) {
-                                quad[0] = &AENG_lower[x + 0][z + 0];
-                                quad[1] = &AENG_lower[x + 1][z + 0];
-                                quad[2] = &AENG_lower[x + 0][z + 1];
-                                quad[3] = &AENG_lower[x + 1][z + 1];
+                                quad[0] = &AENG_lower[(x + 0) & 63][(z + 0) & 63];
+                                quad[1] = &AENG_lower[(x + 1) & 63][(z + 0) & 63];
+                                quad[2] = &AENG_lower[(x + 0) & 63][(z + 1) & 63];
+                                quad[3] = &AENG_lower[(x + 1) & 63][(z + 1) & 63];
                             } else {
 
                                 if ((MAV_SPARE(x, z) & MAV_SPARE_FLAG_WATER))
-                                    quad[0] = &AENG_lower[x + 0][z + 0];
+                                    quad[0] = &AENG_lower[(x + 0) & 63][(z + 0) & 63];
                                 else
-                                    quad[0] = &AENG_upper[x + 0][z + 0];
+                                    quad[0] = &AENG_upper[(x + 0) & 63][(z + 0) & 63];
 
                                 if ((MAV_SPARE(x + 1, z) & MAV_SPARE_FLAG_WATER))
-                                    quad[1] = &AENG_lower[x + 1][z + 0];
+                                    quad[1] = &AENG_lower[(x + 1) & 63][(z + 0) & 63];
                                 else
-                                    quad[1] = &AENG_upper[x + 1][z + 0];
+                                    quad[1] = &AENG_upper[(x + 1) & 63][(z + 0) & 63];
 
                                 if ((MAV_SPARE(x, z + 1) & MAV_SPARE_FLAG_WATER))
-                                    quad[2] = &AENG_lower[x + 0][z + 1];
+                                    quad[2] = &AENG_lower[(x + 0) & 63][(z + 1) & 63];
                                 else
-                                    quad[2] = &AENG_upper[x + 0][z + 1];
+                                    quad[2] = &AENG_upper[(x + 0) & 63][(z + 1) & 63];
 
                                 if ((MAV_SPARE(x + 1, z + 1) & MAV_SPARE_FLAG_WATER))
-                                    quad[3] = &AENG_lower[x + 1][z + 1];
+                                    quad[3] = &AENG_lower[(x + 1) & 63][(z + 1) & 63];
                                 else
-                                    quad[3] = &AENG_upper[x + 1][z + 1];
+                                    quad[3] = &AENG_upper[(x + 1) & 63][(z + 1) & 63];
                             }
                         }
 
@@ -5542,10 +5542,10 @@ void AENG_draw_city()
                                     // No need for a curb here.
                                     //
                                 } else {
-                                    quad[0] = &AENG_lower[x + curb[i].dpx1][z + curb[i].dpz1];
-                                    quad[1] = &AENG_lower[x + curb[i].dpx2][z + curb[i].dpz2];
-                                    quad[2] = &AENG_upper[x + curb[i].dpx1][z + curb[i].dpz1];
-                                    quad[3] = &AENG_upper[x + curb[i].dpx2][z + curb[i].dpz2];
+                                    quad[0] = &AENG_lower[(x + curb[i].dpx1) & 63][(z + curb[i].dpz1) & 63];
+                                    quad[1] = &AENG_lower[(x + curb[i].dpx2) & 63][(z + curb[i].dpz2) & 63];
+                                    quad[2] = &AENG_upper[(x + curb[i].dpx1) & 63][(z + curb[i].dpz1) & 63];
+                                    quad[3] = &AENG_upper[(x + curb[i].dpx2) & 63][(z + curb[i].dpz2) & 63];
 
                                     if (POLY_valid_quad(quad)) {
                                         TEXTURE_get_minitexturebits_uvs(
@@ -6821,7 +6821,7 @@ void AENG_draw_warehouse()
             world_y = ph->Alt * float(1 << ALT_SHIFT);
             world_z = z * 256.0F;
 
-            pp = &AENG_upper[x][z];
+            pp = &AENG_upper[x & 63][z & 63];
 
             POLY_transform(
                 world_x,
@@ -7241,10 +7241,10 @@ void AENG_draw_warehouse()
             }
 
             // The four points of the quad.
-            quad[0] = &AENG_upper[x + 0][z + 0];
-            quad[1] = &AENG_upper[x + 1][z + 0];
-            quad[2] = &AENG_upper[x + 0][z + 1];
-            quad[3] = &AENG_upper[x + 1][z + 1];
+            quad[0] = &AENG_upper[(x + 0) & 63][(z + 0) & 63];
+            quad[1] = &AENG_upper[(x + 1) & 63][(z + 0) & 63];
+            quad[2] = &AENG_upper[(x + 0) & 63][(z + 1) & 63];
+            quad[3] = &AENG_upper[(x + 1) & 63][(z + 1) & 63];
 
             if (POLY_valid_quad(quad)) {
                 TEXTURE_get_minitexturebits_uvs(

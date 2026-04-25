@@ -680,12 +680,13 @@ void OB_remove(OB_Info* oi)
     SLONG i;
     PrimFace4* f4;
 
+    // Sweep ALL matching prim faces, not just the first: an OB may own several
+    // walkable faces, and stopping after one leaves orphaned walkables on the map.
     for (i = 1; i < next_prim_face4; i++) {
         f4 = &prim_faces4[i];
         if (f4->FaceFlags & FACE_FLAG_PRIM) {
             if (f4->ThingIndex == -oi->index) {
                 remove_walkable_from_map(i);
-                return;
             }
         }
     }

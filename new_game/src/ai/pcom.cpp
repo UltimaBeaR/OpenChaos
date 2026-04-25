@@ -268,10 +268,10 @@ void PCOM_add_gang_member(THING_INDEX person, UBYTE group)
         pg->number += 1;
         PCOM_gang_person_upto += 1;
     } else {
-        // Shift all entries after this gang's slot to make room.
-        // Start at upto-2 (not upto-1): upto-1 is the free slot we're shifting INTO,
-        // so reading it would copy uninitialised data.
-        for (i = PCOM_gang_person_upto - 2; i >= pg->index + pg->number; i--) {
+        // Shift all entries after this gang's slot up by one to make room.
+        // upto is the next-free index, so the last filled slot is upto-1; copying
+        // it to upto preserves it. Starting at upto-2 would lose that element.
+        for (i = PCOM_gang_person_upto - 1; i >= pg->index + pg->number; i--) {
             PCOM_gang_person[i + 1] = PCOM_gang_person[i];
         }
 

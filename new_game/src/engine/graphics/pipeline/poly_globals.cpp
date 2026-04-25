@@ -14,7 +14,7 @@ SLONG POLY_buffer_upto;
 
 // Shadow vertex buffer.
 // uc_orig: POLY_shadow (fallen/DDEngine/Headers/poly.h)
-POLY_Point POLY_shadow[POLY_BUFFER_SIZE];
+POLY_Point POLY_shadow[POLY_SHADOW_SIZE];
 // uc_orig: POLY_shadow_upto (fallen/DDEngine/Headers/poly.h)
 SLONG POLY_shadow_upto;
 

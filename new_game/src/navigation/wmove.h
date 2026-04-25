@@ -70,11 +70,6 @@ void WMOVE_relative_pos(
     SLONG* now_z,
     SLONG* now_dangle);
 
-// Bulk removal: drop every WMOVE_Face whose owner is of the given Thing class
-// (used during level transitions to clear stale walkable surfaces).
-// uc_orig: WMOVE_remove (fallen/Source/wmove.cpp)
-void WMOVE_remove(UBYTE which_class);
-
 // Debug-only: draw outlines of all active WMOVE faces.
 // uc_orig: WMOVE_draw (fallen/Headers/wmove.h)
 void WMOVE_draw(void);

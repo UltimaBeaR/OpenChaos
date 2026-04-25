@@ -931,6 +931,39 @@ void BAT_balrog_slide_along(
         collide |= BAT_COLLIDE_ZL;
     }
 
+    // If the Balrog is on top of a building (PAP_FLAG_HIDDEN at his current
+    // tile), skip mapsquare collision entirely — otherwise pull mapsquare
+    // collision flags from the 8 neighbouring tiles.
+    if (PAP_2HI(mx, mz).Flags & PAP_FLAG_HIDDEN) {
+        // Balrog is on a building — skip mapsquare collision.
+    } else {
+        if (PAP_2HI(mx + 1, mz + 0).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_XL;
+        }
+        if (PAP_2HI(mx - 1, mz + 0).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_XS;
+        }
+        if (PAP_2HI(mx + 0, mz + 1).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_ZL;
+        }
+        if (PAP_2HI(mx + 0, mz - 1).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_ZS;
+        }
+
+        if (PAP_2HI(mx + 1, mz + 1).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_LL;
+        }
+        if (PAP_2HI(mx - 1, mz + 1).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_SL;
+        }
+        if (PAP_2HI(mx + 1, mz - 1).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_LS;
+        }
+        if (PAP_2HI(mx - 1, mz - 1).Flags & PAP_FLAG_HIDDEN) {
+            collide |= BAT_COLLIDE_SS;
+        }
+    }
+
     if (collide & BAT_COLLIDE_XS) {
         if ((*x2 & 0xffff) < BAT_BALROG_WIDTH) {
             *x2 &= ~0xffff;
