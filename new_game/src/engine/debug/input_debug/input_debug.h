@@ -196,12 +196,17 @@ void input_debug_draw_button(SLONG x, SLONG y,
 void input_debug_draw_checkbox(SLONG x, SLONG y,
                                const char* label, bool on);
 
-// Text rendering that matches the rects drawn by AENG_draw_rect. The
-// underlying FONT_buffer_add writes to the backbuffer at literal window
-// pixels, while AENG_draw_rect uses logical 640x480 that the pipeline
-// scales up. This wrapper takes logical coords and scales them to pixel
-// space so text lines up with the rects. ALWAYS use this (not raw
-// FONT_buffer_add) inside the panel.
+// Text rendering that matches the rects drawn by AENG_draw_rect. Both
+// land on the post-composition default framebuffer through the same
+// PolyPage::s_XScale / s_YScale non-uniform scale set by the panel's
+// `FullscreenUIModeScope` wrap: rects via AddFan, text via
+// `FONT_buffer_add_virtual` which defers scaling until `FONT_buffer_draw`
+// runs. Coordinates are fixed logical 640×480 game pixels — the scope
+// stretches the layout to fill the entire window non-uniformly, so on
+// portrait windows X compresses and on widescreen X stretches but
+// nothing falls off the edges. ALWAYS use this (not raw FONT_buffer_add)
+// inside the panel — raw FONT_buffer_add would put text at literal
+// framebuffer pixels which would stretch differently from the rects.
 void input_debug_text(SLONG x_logical, SLONG y_logical,
                       unsigned char r, unsigned char g, unsigned char b,
                       unsigned char shadow,

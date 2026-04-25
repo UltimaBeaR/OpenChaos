@@ -37,10 +37,25 @@ public:
 };
 
 // uc_orig: SetSC (fallen/DDEngine/Headers/polypoint.h)
+//
+// PIXEL_HALF_OFFSET cancels the -0.5 that tl_vert.glsl applies to every
+// incoming TL vertex (D3D6 pixel-center compatibility). Adding it here
+// at the single chokepoint that every POLY-path vertex passes through
+// (AddFan, POLY_add_triangle_fast, POLY_add_quad_fast, the nearclipped
+// fan paths in poly.cpp — all call SetSC) gives every 2D / 3D draw a
+// net-zero shift in framebuffer pixel space. Closes the universal
+// 1-px gap on the right and bottom edges of fullscreen rects (pause
+// menu darken, debug panel backdrop, any AENG_draw_rect that fills the
+// screen) and lines pixel centres on texel centres for textured quads.
+//
+// Direct-TL paths that bypass this class (font_atlas, sky stars,
+// gl_blit_textured_quad, ge_blit_to_framed_area) still apply their own
+// +0.5 manually because they don't go through SetSC.
 inline void PolyPoint2D::SetSC(float _sx, float _sy, float _sz)
 {
-    sx = _sx;
-    sy = _sy;
+    constexpr float PIXEL_HALF_OFFSET = 0.5f;
+    sx = _sx + PIXEL_HALF_OFFSET;
+    sy = _sy + PIXEL_HALF_OFFSET;
     sz = _sz;
     rhw = 1.0F - _sz;
 }

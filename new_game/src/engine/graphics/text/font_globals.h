@@ -91,6 +91,18 @@ extern CBYTE* FONT_buffer_upto;
 
 // Internal message record for the deferred queue.
 // uc_orig: FONT_Message (fallen/DDEngine/Source/Font.cpp)
+//
+// `scale_x` / `scale_y` carry the virtual-coords scale that was active at
+// the submit site. Two contracts:
+//   • scale_x == 0  → (x, y) are literal framebuffer pixels (debug overlays
+//                     pinned to a fixed corner regardless of window size).
+//   • scale_x != 0  → (x, y) are virtual coords; FONT_buffer_draw resolves
+//                     them as (x * scale_x, y * scale_y) at flush time.
+// The scale is captured at submit time rather than read live at draw time
+// because submit may happen inside a `FullscreenUIModeScope` (or any other
+// PolyPage scope) that has already been popped by the time the queue
+// flushes. Reading PolyPage::s_X/YScale at draw would pick up the
+// surrounding default scope, not the scope the caller meant to draw under.
 struct FONT_Message {
     SLONG x;
     SLONG y;
@@ -98,6 +110,8 @@ struct FONT_Message {
     UBYTE g;
     UBYTE b;
     UBYTE s;
+    float scale_x;
+    float scale_y;
     CBYTE* m;
 };
 

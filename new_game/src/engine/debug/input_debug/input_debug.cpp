@@ -5,21 +5,20 @@
 
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/polypage.h"   // FullscreenUIModeScope
 #include "engine/graphics/text/font.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/platform/ds_bridge.h"
+#include "engine/platform/uc_common.h"           // DisplayWidth, DisplayHeight
 #include "ui/hud/panel.h"
 
 #include <chrono>
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-
-extern SLONG ScreenWidth;
-extern SLONG ScreenHeight;
 
 // ---------------------------------------------------------------------------
 // State
@@ -47,12 +46,6 @@ const char* page_name(InputDebugPage p)
         default:                         return "?";
     }
 }
-
-// Scale logical (640x480) coordinates to literal window pixel coordinates
-// so text lines up with AENG_draw_rect primitives. See the big comment on
-// input_debug_text in the header for the full explanation.
-SLONG to_px_x(SLONG logical) { return (logical * ScreenWidth)  / 640; }
-SLONG to_px_y(SLONG logical) { return (logical * ScreenHeight) / 480; }
 
 InputDeviceType page_to_device(InputDebugPage p)
 {
@@ -266,9 +259,12 @@ static void draw_backdrop()
 {
     // 80% opaque black covers 3D scene and HUD. POLY_PAGE_COLOUR_ALPHA
     // enables src-alpha blending; alpha in the high byte of the colour.
-    const SLONG w = (SLONG)POLY_screen_width;
-    const SLONG h = (SLONG)POLY_screen_height;
-    AENG_draw_rect(0, 0, w, h, 0xE6000000, LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
+    // Logical 640×480 — non-uniformly stretched to the full FB by the
+    // FullscreenUIModeScope wrapping the whole panel render (so the
+    // backdrop and the rest of the panel cover edge-to-edge regardless
+    // of window aspect).
+    AENG_draw_rect(0, 0, DisplayWidth, DisplayHeight, 0xE6000000,
+                   LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
 }
 
 // Three tabs across the top — one per page. Each tab shows the name,
@@ -304,7 +300,7 @@ static void draw_one_tab(int idx, const char* name, const char* hotkey_hint,
 
 static void draw_tabs()
 {
-    const SLONG sw = (SLONG)POLY_screen_width;
+    const SLONG sw = DisplayWidth;
     const SLONG gap = 8;
     const SLONG tab_h = 28;
     const SLONG tab_w = (sw - 4 * gap) / 3;
@@ -328,14 +324,22 @@ static void draw_footer()
 {
     // Bottom hint line — controls summary. Kept as a single row so it
     // doesn't eat vertical real estate from the page content.
-    const SLONG sh = (SLONG)POLY_screen_height;
-    input_debug_text(10, sh - 14, 160, 160, 160, 1,
+    input_debug_text(10, DisplayHeight - 14, 160, 160, 160, 1,
         "arrows navigate  |  left/right adjust  |  Enter activate  |  1/2/3 page  |  TAB DS sub-page  |  F11 / ESC exit");
 }
 
 void input_debug_render()
 {
     if (!s_active) return;
+
+    // Stretch virtual 640×480 panel coords non-uniformly across the entire
+    // post-composition framebuffer. Picks the same xs/ys mapping as the
+    // pre-`FONT_buffer_add_virtual` text path (`ScreenWidth/640`,
+    // `ScreenHeight/480`) so on portrait windows the layout compresses
+    // horizontally instead of overflowing off-screen the way the default
+    // uniform-4:3 scope does. AddFan's PIXEL_HALF_OFFSET still applies on
+    // top, so the backdrop / tabs cover edge-to-edge with no 1-px gap.
+    PolyPage::FullscreenUIModeScope _panel_scope;
 
     PANEL_start();
 
@@ -442,8 +446,16 @@ void input_debug_text(SLONG x_logical, SLONG y_logical,
     va_start(ap, fmt);
     std::vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    FONT_buffer_add(to_px_x(x_logical), to_px_y(y_logical),
-                    r, g, b, shadow, (CBYTE*)"%s", buf);
+    // (x_logical, y_logical) are virtual 640×480 panel coords. Text and
+    // rects share the panel's `FullscreenUIModeScope` non-uniform scale
+    // (`ScreenWidth/640` × `ScreenHeight/480`), so the whole layout
+    // stretches together: text always sits where the rects expect it
+    // regardless of window aspect. `FONT_buffer_add_virtual` resolves
+    // these coords at flush time using the live PolyPage::s_XScale /
+    // s_YScale, which inside the post-composition UI pass picks up the
+    // scope's non-uniform mapping.
+    FONT_buffer_add_virtual(x_logical, y_logical,
+                            r, g, b, shadow, (CBYTE*)"%s", buf);
 }
 
 // ---------------------------------------------------------------------------

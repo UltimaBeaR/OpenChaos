@@ -4,6 +4,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/pipeline/polypage.h"   // PolyPage::s_XScale / s_YScale (virtual → pixel scale)
 
 #include "engine/core/macros.h"
 #include <math.h>
@@ -133,24 +134,16 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...)
     return x - xstart;
 }
 
-// uc_orig: FONT_buffer_add (fallen/DDEngine/Source/Font.cpp)
-void FONT_buffer_add(
-    SLONG x,
-    SLONG y,
-    UBYTE r,
-    UBYTE g,
-    UBYTE b,
-    UBYTE s,
-    CBYTE* fmt, ...)
+// Shared queue helper — both FONT_buffer_add variants funnel through here.
+// `scale_x` / `scale_y` are stored on the message; FONT_buffer_draw
+// resolves them as `(x * scale_x, y * scale_y)` at flush time. Pass
+// (0, 0) for the literal-pixel path. See FONT_Message in font_globals.h.
+static void font_buffer_add_impl(
+    SLONG x, SLONG y,
+    UBYTE r, UBYTE g, UBYTE b, UBYTE s,
+    float scale_x, float scale_y,
+    const CBYTE* message)
 {
-    FONT_Message* fm;
-
-    CBYTE message[FONT_MAX_LENGTH];
-    va_list ap;
-    va_start(ap, fmt);
-    vsprintf(message, fmt, ap);
-    va_end(ap);
-
     // Lazy initialisation — avoids needing an explicit init call.
     if (FONT_buffer_upto == NULL) {
         FONT_buffer_upto = &FONT_buffer[0];
@@ -166,16 +159,62 @@ void FONT_buffer_add(
 
     strcpy(FONT_buffer_upto, message);
 
-    fm = &FONT_message[FONT_message_upto++];
+    FONT_Message* fm = &FONT_message[FONT_message_upto++];
     fm->x = x;
     fm->y = y;
     fm->r = r;
     fm->g = g;
     fm->b = b;
     fm->s = s;
+    fm->scale_x = scale_x;
+    fm->scale_y = scale_y;
     fm->m = FONT_buffer_upto;
 
     FONT_buffer_upto += strlen(message) + 1;
+}
+
+// uc_orig: FONT_buffer_add (fallen/DDEngine/Source/Font.cpp)
+void FONT_buffer_add(
+    SLONG x,
+    SLONG y,
+    UBYTE r,
+    UBYTE g,
+    UBYTE b,
+    UBYTE s,
+    CBYTE* fmt, ...)
+{
+    CBYTE message[FONT_MAX_LENGTH];
+    va_list ap;
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
+
+    // scale 0/0 → literal-pixel path; FONT_buffer_draw will use (x, y) as-is.
+    font_buffer_add_impl(x, y, r, g, b, s, 0.0f, 0.0f, message);
+}
+
+void FONT_buffer_add_virtual(
+    SLONG x,
+    SLONG y,
+    UBYTE r,
+    UBYTE g,
+    UBYTE b,
+    UBYTE s,
+    CBYTE* fmt, ...)
+{
+    CBYTE message[FONT_MAX_LENGTH];
+    va_list ap;
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
+
+    // Snapshot the live PolyPage scale at SUBMIT time — by the time
+    // FONT_buffer_draw flushes, any FullscreenUIModeScope / push_ui_mode
+    // the caller may have used will already have been popped, so reading
+    // PolyPage::s_X/YScale at flush would pick up the wrong scope.
+    font_buffer_add_impl(x, y, r, g, b, s,
+                         PolyPage::s_XScale, PolyPage::s_YScale,
+                         message);
 }
 
 // uc_orig: FONT_buffer_draw (fallen/DDEngine/Source/Font.cpp)
@@ -198,15 +237,37 @@ void FONT_buffer_draw()
     FONT_atlas_begin_batch();
     for (i = 0; i < FONT_message_upto; i++) {
         fm = &FONT_message[i];
-        x = fm->x;
-        y = fm->y;
+
+        // Resolve virtual-coords messages to live FB pixels using the scale
+        // captured at SUBMIT time (see FONT_Message in font_globals.h). A
+        // zero scale means the caller passed literal FB pixels via
+        // FONT_buffer_add — leave (x, y) as-is.
+        SLONG line_start_x;
+        if (fm->scale_x != 0.0f) {
+            line_start_x = SLONG(float(fm->x) * fm->scale_x);
+            y = SLONG(float(fm->y) * fm->scale_y);
+        } else {
+            line_start_x = fm->x;
+            y = fm->y;
+        }
+        x = line_start_x;
 
         for (ch = fm->m; *ch; ch++) {
             if (*ch == '\t') {
                 x += FONT_TAB;
                 x &= ~(FONT_TAB - 1);
             } else if (*ch == '\n') {
-                x = fm->x;
+                // Reset to the resolved line-start x — for virtual_coords
+                // messages this is the SCALED x. Earlier code used fm->x
+                // directly here, which on virtual messages was the raw
+                // unscaled value, so multi-line AENG_world_text labels had
+                // line 1 at the right place but lines 2+ snapped to the
+                // upper-left of the framebuffer.
+                x = line_start_x;
+                // Line height stays unscaled — glyphs render at fixed
+                // pixel size (5×9), so a non-uniform percentage scope
+                // mustn't stretch the gap between lines independently of
+                // the glyph height.
                 y += 10;
             } else {
                 if (fm->s) {

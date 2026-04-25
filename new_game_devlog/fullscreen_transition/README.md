@@ -223,6 +223,65 @@ Already done:
   (`compute_fbo_size`). `OC_DEBUG_*` toggles moved to
   [`debug_config.h`](../../new_game/src/debug_config.h) sibling.
   `config.h` keeps only the player-tuneable knobs.
+- **Universal 1-pixel right/bottom-edge gap fix.** Every POLY-path 2D
+  primitive (untextured rects via `AENG_draw_rect`, textured quads via
+  `PANEL_draw_quad`, 3D world geometry, anything that ends up calling
+  `PolyPoint2D::SetSC`) used to land at NDC `[-1 - 1/W, 1 - 1/W]` after
+  the `tl_vert.glsl` D3D6 pixel-center -0.5 shift, leaving the right
+  and bottom-most pixel rows undrawn. The compensation was being
+  re-discovered and applied per-site (`push_fullscreen_ui_mode` xo/yo,
+  `font_atlas` ox/oy, `gl_blit_textured_quad`, `ge_blit_to_framed_area`,
+  `sky.cpp` star quads). Folded into `PolyPoint2D::SetSC` (the single
+  chokepoint every POLY-path vertex submission goes through — AddFan,
+  POLY_add_quad_fast, POLY_add_triangle_fast, the nearclipped fan
+  helpers in poly.cpp) as a uniform `PIXEL_HALF_OFFSET = 0.5f` added
+  to sx / sy. So every current and future POLY-path draw gets the gap
+  fix automatically and gets correct UV centring as a bonus. The
+  per-site compensations in direct-TL paths (font_atlas, gl_blit, sky
+  stars, composition blits) still apply manually because they bypass
+  SetSC; only `push_fullscreen_ui_mode` had to drop its now-redundant
+  0.5 to avoid a double shift. **Choosing SetSC over AddFan was load-
+  bearing**: AENG_draw_rect / PANEL_draw_quad route through
+  `POLY_add_quad_fast` (and friends) which inline their own
+  `pv->SetSC(X*scale + offset, ...)` and never enter AddFan — putting
+  the offset in AddFan only fixed the AddFan path and missed all the
+  fast-path callers, which is what kept the pause-menu darken /
+  input-debug backdrop bleeding 1 px of scene through on the right.
+- **3D-anchored debug labels (`AENG_world_text`) and the input debug
+  panel now share one virtual-coords pipeline.** `FONT_buffer_add` always
+  treated `(x, y)` as literal framebuffer pixels, but `pp.X`/`pp.Y` out
+  of `POLY_perspective` are virtual coords in the 0..480*aspect × 0..480
+  game space, and `input_debug_text` was wrapping with `ScreenWidth/640`
+  × `ScreenHeight/480` (different per-axis scale on widescreen).
+  Symptoms: Ctrl-held debug labels above NPCs drifted up-left as the
+  window grew; panel text and rects de-aligned on non-4:3 windows; on
+  portrait / very narrow windows the panel layout overflowed off-screen
+  to the right. New `FONT_buffer_add_virtual` companion to
+  `FONT_buffer_add` queues the message with a per-message `scale_x` /
+  `scale_y` snapshot captured from `PolyPage::s_X/YScale` AT SUBMIT
+  time. `FONT_buffer_draw` resolves virtual messages as `(x * scale_x,
+  y * scale_y)` at flush time. The submit-time snapshot is required
+  because the queue flushes once at the end of the UI pass — by then
+  any `FullscreenUIModeScope` / `push_ui_mode` the caller used has
+  been popped, so reading the live `s_XScale` at flush would pick up
+  the wrong scope. AENG_world_text submits during scene render
+  (captures uniform `ScreenHeight/480`); the input debug panel wraps
+  its draws in `PolyPage::FullscreenUIModeScope` (captures non-uniform
+  `ScreenWidth/640 × ScreenHeight/480`) and uses fixed logical 640×480
+  layout, so on portrait the panel compresses horizontally instead of
+  overflowing. `debug_help` (F1 legend) keeps the literal-pixel
+  `FONT_buffer_add` path — pinned to a fixed top-left pixel corner
+  intentionally.
+- **Multi-line `FONT_buffer_add_virtual` messages: line-start `x` reset
+  on `\n` now uses the SCALED line origin.** First implementation reset
+  to raw `fm->x` (unscaled virtual coords), so `AENG_world_text` debug
+  blocks above NPCs (multi-line via embedded `\n`) drew line 1 correctly
+  but lines 2+ snapped to the upper-left of the framebuffer. Cached the
+  resolved `line_start_x` once per message and reset to that on `\n`.
+  Line spacing (`y += 10`) intentionally stays unscaled because the
+  glyphs themselves render at a fixed 5×9 pixel size — stretching the
+  gap between lines independently of the glyph height would break visual
+  density on non-1:1 scopes.
 - **HUD bottom-row anchors.** Radar / health / weapon / ammo / crime
   rate / beacons / grenade / panel mission timer
   (`PANEL_draw_buffered`) / weapon-switch popup (`PANEL_inventory`) are

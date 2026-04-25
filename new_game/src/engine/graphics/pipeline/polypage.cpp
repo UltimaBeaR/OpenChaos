@@ -182,17 +182,12 @@ void PolyPage::push_fullscreen_ui_mode()
     // No scissor — draws are free to fill the FBO, overriding any parent
     // framed clip.
     //
-    // xo/yo = 0.5 cancels the D3D6 pixel-center -0.5 shift applied by the
-    // TL vertex shader (tl_vert.glsl). Without this compensation a quad
-    // addressing virtual (0..640, 0..480) maps to screen (0..fbo_w,
-    // 0..fbo_h), and after the shader's -0.5 subtract the right/bottom
-    // edges land at NDC = 1 - 1/fbo_{w,h} — one physical pixel short.
-    // Visible as a 1-pixel line of un-darkened scene on the right edge
-    // of the pause-menu overlay. Shifting by +0.5 physical px here makes
-    // virtual (0..640, 0..480) cover NDC [-1, 1] exactly.
+    // The +0.5 pixel-half offset that used to live in xo/yo here is now
+    // applied uniformly inside PolyPage::AddFan (see PIXEL_HALF_OFFSET
+    // there) — adding it again would double-shift fullscreen overlays.
     const float xs = ui_coords::g_screen_w_px / float(DisplayWidth);
     const float ys = ui_coords::g_screen_h_px / float(DisplayHeight);
-    apply_ui_state(xs, ys, 0.5f, 0.5f,
+    apply_ui_state(xs, ys, 0.0f, 0.0f,
                    /*scissor=*/false, 0, 0, 0, 0);
 }
 
@@ -295,10 +290,19 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
 
     float zsum = 0.0f;
 
+    // The pixel-half offset that closes the right/bottom 1-px gap on
+    // TL-shader output is now applied inside PolyPoint2D::SetSC (single
+    // chokepoint that every POLY-path SetSC caller — including the
+    // POLY_add_quad_fast / POLY_add_triangle_fast / nearclipped-fan
+    // helpers in poly.cpp that bypass AddFan — funnels through). No
+    // explicit compensation needed here.
+
     if (RS.ZLift()) {
         float zbias = float(RS.ZLift()) / 65536.0F;
         for (ii = 0; ii < num_vertices; ii++) {
-            pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset, pts[ii]->Y * s_YScale + s_YOffset, 1.0F - pts[ii]->Z - zbias);
+            pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset,
+                         pts[ii]->Y * s_YScale + s_YOffset,
+                         1.0F - pts[ii]->Z - zbias);
             pv[ii].SetUV2(pts[ii]->u * m_UScale + m_UOffset,
                 pts[ii]->v * m_VScale + m_VOffset);
             pv[ii].SetColour(pts[ii]->colour & s_ColourMask);
@@ -310,7 +314,9 @@ void PolyPage::AddFan(POLY_Point** pts, ULONG num_vertices)
         pp->sort_z = zsum / num_vertices + zbias;
     } else {
         for (ii = 0; ii < num_vertices; ii++) {
-            pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset, pts[ii]->Y * s_YScale + s_YOffset, 1.0F - pts[ii]->Z);
+            pv[ii].SetSC(pts[ii]->X * s_XScale + s_XOffset,
+                         pts[ii]->Y * s_YScale + s_YOffset,
+                         1.0F - pts[ii]->Z);
             pv[ii].SetUV2(pts[ii]->u * m_UScale + m_UOffset,
                 pts[ii]->v * m_VScale + m_VOffset);
             pv[ii].SetColour(pts[ii]->colour & s_ColourMask);

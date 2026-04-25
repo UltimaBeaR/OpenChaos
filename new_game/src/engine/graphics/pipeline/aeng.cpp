@@ -8238,9 +8238,16 @@ void AENG_world_text(
         vsprintf(message, fmt, ap);
         va_end(ap);
 
-        FONT_buffer_add(
-            pp.X,
-            pp.Y,
+        // pp.X / pp.Y come out of POLY_perspective in virtual screen pixels
+        // (0..POLY_screen_width × 0..POLY_screen_height = 0..480*aspect ×
+        // 0..480). FONT_buffer_add_virtual scales them to live framebuffer
+        // pixels at flush time using PolyPage::s_XScale / s_YScale — which
+        // tracks the post-composition UI viewport, so 3D-anchored labels
+        // land on the character at any aspect / render-scale instead of
+        // sitting in the upper-left because pp.X was treated as raw px.
+        FONT_buffer_add_virtual(
+            (SLONG)pp.X,
+            (SLONG)pp.Y,
             red,
             green,
             blue,

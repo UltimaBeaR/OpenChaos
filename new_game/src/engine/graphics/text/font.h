@@ -13,10 +13,28 @@
 // uc_orig: FONT_MAX_LENGTH (fallen/DDEngine/Headers/Font.h)
 #define FONT_MAX_LENGTH 512
 
-// Queues a message to be drawn later by FONT_buffer_draw.
-// Parameters: position, rgb colour, shadowed (1) or not (0), printf-style format.
+// Queues a message to be drawn later by FONT_buffer_draw. (x, y) are
+// literal framebuffer pixels — use this for overlays that intentionally
+// pin to a fixed pixel corner regardless of window size (F1 debug
+// legend etc.). Most call sites should prefer FONT_buffer_add_virtual.
 // uc_orig: FONT_buffer_add (fallen/DDEngine/Headers/Font.h)
 void FONT_buffer_add(
+    SLONG x,
+    SLONG y,
+    UBYTE red,
+    UBYTE green,
+    UBYTE blue,
+    UBYTE shadowed_or_not,
+    CBYTE* fmt, ...);
+
+// Same as FONT_buffer_add but (x, y) are virtual screen pixels in the
+// 480-tall game space (POLY_screen_width × POLY_screen_height). The flush
+// scales them by PolyPage::s_XScale / s_YScale at draw time, so virtual
+// coords land on the post-composition default framebuffer correctly at
+// any OC_RENDER_SCALE / aspect. Use this for AENG_world_text style
+// 3D-projected labels and any HUD text whose layout was computed in the
+// virtual game space (matches AENG_draw_rect / PANEL_draw_quad scaling).
+void FONT_buffer_add_virtual(
     SLONG x,
     SLONG y,
     UBYTE red,
