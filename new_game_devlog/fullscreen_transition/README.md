@@ -3,7 +3,48 @@
 Working notes for moving the game off its hardcoded 640×480 4:3 viewport
 to arbitrary resolution + fullscreen support. Targets Stage 12 / Release 1.0.
 
-## Status at a glance
+## Status: ✅ COMPLETED (2026-04-25, with known caveats)
+
+Workstream is **functionally done** — game runs at arbitrary aspect /
+resolution, fullscreen, with proper FOV handling, framed UI, post-
+composition UI pass, sharp text, no 1-pixel gaps in fullscreen overlays
+on the SetSC/POLY-path side, etc. See full "Already done" list below.
+
+**Known caveats (not blocking 1.0, won't be addressed inside this
+workstream):**
+
+- Some general-purpose render / composition issues that surfaced during
+  this work but aren't fullscreen-specific have been **moved to the
+  global issue list** at
+  [`../../new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md):
+  - **Wibble amplitude doesn't scale with resolution** — water ripple
+    effect ослаблен на 1080p+.
+  - **Composition AA** — упрощённый FXAA, заменить на canonical FXAA
+    3.11 / SMAA 1x.
+  - **CRT / scanline shader** — стилистическая идея (post-process в
+    composition layer).
+  - **Зоопарк `+0.5` / `-0.5` пиксельных компенсаций** в TL-vertex
+    путях (D3D6 → OpenGL convention mismatch). Архитектурная задача
+    отдельной итерацией. Подробный план →
+    [`../pixel_half_offset_plan.md`](../pixel_half_offset_plan.md).
+
+- **Stragglers внутри workstream'а** (низкий приоритет, можно делать
+  если найдётся время):
+  - PSX / version debug overlays unframed (`PANEL_last` ~ строки
+    2494-2540, virtual `(5, 15)` и `(20, 20)`) — debug-only, нужен
+    `LEFT_TOP` scope.
+  - Enumerate all remaining HUD draw sites — `git grep` punch list для
+    `FONT2D_DrawString*`, `PANEL_draw_*`, `OVERLAY_*`, `DRAW2D_*`,
+    `MSG_*`, литералов `320`/`240`. Каждый — в нужный `UIModeScope`.
+    UI **в целом выглядит ок** на момент завершения, но возможно
+    остались ещё неудобные кейсы на нестандартных аспектах.
+  - **NIGHT lighting pool overflow** на wide/tall FOV — UWORD рефактор
+    (post-1.0). Workaround: `OC_FOV_MULTIPLIER` остаётся compile-time,
+    user-facing FOV slider не делаем до фикса.
+  - **Focus callback cursor show/hide breaks linker** — defensive код,
+    SDL и сам справляется. Удалить или дебажить.
+
+Полный реестр недоработок и резолвед-фиксов → [`issues.md`](issues.md).
 
 Already done:
 - Fullscreen window creation (native monitor resolution, borderless-desktop).
@@ -301,32 +342,9 @@ Already done:
   debugging (ternary runtime check, not `#if` — preprocessor treats
   C++ `true` / `false` as zero).
 
-Remaining work — see [`issues.md`](issues.md):
-- **Hunt down remaining UI elements still drawn in the scene FBO.**
-  The HUD / menu / debug-overlay migration is the biggest chunk but
-  not exhaustive — some UI paths probably still render into the scene
-  FBO and get softened by FXAA / bilinear upscale. Methodology: enable
-  `OC_DEBUG_HIGHLIGHT_NON_UI = true` and walk the game (main menu,
-  briefing, pause, won/lost, missions, intro/cutscene videos, attract
-  mode, finale, outro). Anything that shows up magenta-tinted /
-  blurred is a candidate for migration into
-  `ui_render_post_composition`. Tracked in
-  [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md).
-- **PSX / version debug overlays still unframed** — `PANEL_last`
-  ~lines 2494-2540, drawn at virtual (5, 15) and (20, 20). Debug-only
-  overlays; should be `LEFT_TOP`. Low priority. (Mission-countdown
-  timer, road-sign flashes and search progress bar — already framed,
-  see entries above in "Already done".)
-- **NIGHT lighting pool overflow at wide/tall FOV (post-1.0).**
-  `UBYTE`-indexed 256-slot pool overflows when the view gamut exceeds
-  255 lo-res map squares (triggered by wide `OC_FOV_MULTIPLIER` or
-  narrow/portrait aspects). Fix is a UWORD refactor with preserved
-  save-file compatibility. **Workaround for 1.0: no user-facing FOV
-  slider** — `OC_FOV_MULTIPLIER` stays a compile-time constant.
-- Replace the stand-in simplified FXAA with canonical FXAA 3.11 or
-  SMAA 1x.
-- Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.
-- Focus callback cursor show/hide breaks linker (low priority, defensive code).
+См. блок **Status: ✅ COMPLETED** в начале файла — там перечислены
+оставшиеся stragglers и issues, переехавшие в global. Полный реестр
+проблем (включая resolved) → [`issues.md`](issues.md).
 
 ## Files in this folder
 

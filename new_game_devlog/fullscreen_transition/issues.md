@@ -17,37 +17,24 @@ before touching any UI rendering. Summary of what landed:
 
 ---
 
-## 🟣 Render scale follow-ups
+## 🟣 Render scale follow-ups — resolved or moved out
 
 Render scale + scene FBO + composition pass are implemented (see
-"Resolved" at the bottom for the full summary). What's still open:
+"Resolved" at the bottom for the full summary).
 
-- **Split UI from main render.** HUD / menu / overlay / text / console
-  currently draw **into** the scaled scene FBO, so at scale < 1 they
-  share the upscale blur and at any scale FXAA softens text.
-  **Confirmed reproducing on the small debug font — text gets smeared
-  into unreadable blur once the composition FXAA pass runs** (noticed
-  while reviewing OC_AA_ENABLE = true in-game). Fix: draw the UI
-  **after** the composition pass, directly into the default
-  framebuffer at native resolution. Scene still goes scene-FBO → FXAA +
-  upscale → default FB; UI then draws on top, untouched. **Detailed
-  staged plan:** [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md)
-  (in progress 2026-04-25).
-- **Replace the simplified FXAA with a proper shader AA.** The current
-  `composite_frag.glsl` has a cut-down FXAA that drops the canonical
-  3.11 edge-span search — result is effectively a cheap blur on
-  contrast-detected pixels, not real antialiasing. Two upgrade paths,
-  pick later:
-  1. **Canonical FXAA 3.11** (~2-3 h). Public `Fxaa3_11.h` from NVIDIA,
-     one file, no lookup tables, drop-in replacement for our composite
-     fragment shader. Still a blur-based filter — better than ours but
-     FXAA always softens text.
-  2. **SMAA 1x** (~3-4 h). From github.com/iryoku/smaa. Three passes
-     (edge detection → blending weights → neighborhood blending), two
-     extra FBOs, embeds two precomputed lookup textures (AreaTex ~180
-     KB, SearchTex ~1 KB) into the binary. Noticeably better than FXAA
-     especially on text and thin details. Scene-FBO infra already
-     exists, only the composition module needs the extra-pass runner.
+- ~~**Split UI from main render.**~~ **DONE.** HUD / menu / overlay /
+  text / console / debug overlays now render in a post-composition UI
+  pass directly on the default framebuffer at native resolution,
+  untouched by FXAA / bilinear upscale. Scene still goes
+  scene-FBO → composition → default FB; UI draws on top.
+  Implementation history: [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md).
+  (Possible stragglers — UI draws still living inside scene FBO — can
+  be hunted with `OC_DEBUG_HIGHLIGHT_NON_UI = true`; main UI is
+  confirmed clean post-Stage 12.)
+- **Replace the simplified FXAA with a proper shader AA.** Moved to
+  global issue list (not fullscreen-transition specific) →
+  [`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md)
+  "Composition AA — заменить упрощённый FXAA…". Doesn't gate 1.0.
 
 ---
 
@@ -361,55 +348,14 @@ factor to every emit.
 
 ---
 
-## 🟡 Wibble amplitude doesn't scale with resolution
+## 🟡 Wibble amplitude doesn't scale with resolution — moved out
 
-### Symptom
-
-At 1920×1080 (or higher) the water reflection distortion is visibly
-much weaker than on the original 640×480. At 4K it's nearly invisible.
-Bbox position is fixed (recent commit); only amplitude remains.
-
-### Root cause
-
-[`wibble_frag.glsl:51-52`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/shaders/wibble_frag.glsl#L51):
-
-```glsl
-offset = sin(angle1) * u_wibble_s1 * AMP_SCALE;  // AMP_SCALE = 1/8 pixels
-```
-
-`u_wibble_s1` is a byte in the original 640×480 pixel space. The shader
-uses it as a literal pixel offset. A value like `s1 = 16` means `±2 px`
-amplitude regardless of framebuffer size. On 640×480 that's a noticeable
-wave; on 1920×1080 the puddle is 2.25× larger on screen, so the same 2 px
-amplitude is 2.25× smaller relative to the puddle → barely visible.
-
-### Fix
-
-Scale amplitude by the same `RealH / DisplayHeight` factor we use for
-the bbox, in
-[`wibble.cpp`](../../new_game/src/engine/graphics/postprocess/wibble.cpp)
-just before calling `ge_apply_wibble`:
-
-```cpp
-const float scale = float(RealDisplayHeight) / float(DisplayHeight);
-UBYTE scaled_s1 = (UBYTE)MIN(255.0f, float(wibble_s1) * scale);
-UBYTE scaled_s2 = (UBYTE)MIN(255.0f, float(wibble_s2) * scale);
-// pass scaled values to ge_apply_wibble
-```
-
-Caveats:
-- `wibble_s1/s2` are `UBYTE` (0..255). At 4K (scale ≈ 4.5) the upper end
-  will clamp. If that's visibly capped, either:
-  - Pass the scaled value through the full float path — the shader
-    uniform is already `float`, so the 255 limit is only in our CPU
-    intermediate.
-  - Add a `u_amp_scale` uniform and do the scaling in the shader, leaving
-    `u_wibble_s1` as the un-scaled byte.
-- `max_shift` in
-  [`wibble_effect.cpp:171`](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/postprocess/wibble_effect.cpp#L171)
-  is computed from `s1 + s2` — it will scale automatically if we scale
-  the inputs on the CPU side. Sanity-check that the scratch-texture
-  padding keeps up.
+Not specifically a fullscreen-transition issue (puddle ripple amplitude
+is wrong at every render scale ≠ 1×, including stock 4:3 if the FBO
+size differs from 640×480). Moved to global issue list →
+[`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md)
+"Wibble amplitude не скейлится с разрешением". Full root-cause / fix
+plan kept there.
 
 ---
 
@@ -706,43 +652,14 @@ The perspective-projection uses of `POLY_screen_mul_x` (lines in
 
 ---
 
-## 💡 Ideas — not decided (pre- or post-1.0 TBD)
+## 💡 Ideas — moved out
 
 ### CRT / scanline shader as a fullscreen post-process
 
-Urban Chaos shipped in 1999, back when consumer displays were still CRTs.
-Art direction (low-poly silhouettes, chunky texture work, bright colour
-palette, gouraud shading) was implicitly tuned for the visual properties
-of a shadow-mask / aperture-grille tube: scanlines, dot-mask bloom,
-mild persistence, slight geometry curvature, RGB phosphor subpixel
-dither. On a modern flat-panel LCD those qualities read as "just low-res
-1999 graphics"; on a CRT they read as the style the artists actually
-authored against.
-
-A shader CRT emulation (e.g. CRT-Royale / Lottes CRT / easymode curvature
-+ mask pass, or a pared-down in-house version) could run as a final
-composition-layer effect — slot in between the existing FXAA/upscale and
-the present swap. Because the refactor puts *every* game draw through
-the scene FBO and the composition layer is the sole present path, this
-is a one-file change in `composition.cpp`; the game itself stays blind
-to it. Toggleable via a config flag so players on small screens or
-latency-sensitive setups can leave it off.
-
-Decision deferred: this is purely an aesthetic knob, not a feature the
-game needs to play. Revisit once everything core is shipped. Could go
-into 1.0 if a lightweight shader lands cleanly during polish; otherwise
-a post-1.0 "nostalgia mode" ticket.
-
-References (for when someone picks this up):
-- RetroArch `crt-royale` preset — the gold standard, multi-pass, heavy.
-- Timothy Lottes's single-pass CRT shader — ~60 lines of GLSL, cheap
-  enough for Steam Deck. Good candidate for a first pass.
-- MAME's HLSL shader — simulates aperture grille + convergence errors.
-- `blargg/CRT-geom` — curvature + scanlines only, very compact.
-
-Cost estimate: 1-2 days for a first pass (Lottes-style) with a config
-toggle. Tuning to match a specific tube look (Sony PVM? consumer CRT?)
-is open-ended polish.
+Not fullscreen-transition specific (post-process composition feature).
+Moved to global issue list →
+[`new_game_planning/known_issues_and_bugs.md`](../../new_game_planning/known_issues_and_bugs.md)
+"CRT / scanline shader как post-process".
 
 ---
 
