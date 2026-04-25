@@ -531,6 +531,7 @@ set(SOURCES_NEW
     src/game/game_tick_globals.cpp
     src/game/input_actions.cpp
     src/game/input_actions_globals.cpp
+    src/game/ui_render.cpp
 )
 
 # ---------------------------------------------------------------------------

@@ -52,10 +52,23 @@ static bool s_uniforms_ever_uploaded = false;
 
 // Callbacks registered by game code.
 static GEPreFlipCallback              s_pre_flip_callback = nullptr;
+static GEPostCompositionCallback      s_post_composition_callback = nullptr;
 static GEModeChangeCallback           s_mode_change_callback = nullptr;
 static GERenderStatesResetCallback    s_render_states_reset_callback = nullptr;
 static GETGALoadCallback              s_tga_load_callback = nullptr;
 static GETextureReloadPrepareCallback s_texture_reload_prepare_callback = nullptr;
+
+// UI mode flag — redirects ge_begin_scene() to default FB. See
+// game_graphics_engine.h for rationale.
+static bool s_ui_mode_active = false;
+
+// UI pass viewport size (set by ge_enter_ui_viewport). When ui_mode is
+// active, ge_get_screen_width/height report these instead of the scene
+// FBO size, so pixel-bounds checks inside UI draw code (e.g.
+// FONT_draw_coloured_char clipping glyphs outside screen) compare against
+// the actual UI target dimensions.
+static int32_t s_ui_vp_w = 0;
+static int32_t s_ui_vp_h = 0;
 
 // Background color for ge_clear.
 static float s_clear_r = 0.0f, s_clear_g = 0.0f, s_clear_b = 0.0f;
@@ -628,6 +641,43 @@ static void set_frag_uniforms(
 // ---------------------------------------------------------------------------
 
 void ge_set_pre_flip_callback(GEPreFlipCallback callback)              { s_pre_flip_callback = callback; }
+void ge_set_post_composition_callback(GEPostCompositionCallback callback) { s_post_composition_callback = callback; }
+void ge_set_ui_mode(bool active) { s_ui_mode_active = active; }
+
+void ge_enter_ui_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    // GL bottom-left viewport directly — no Y flip. Caller (UI pass) passes
+    // the composition dst rect, which is already in GL bottom-left form.
+    glViewport(x, y, w, h);
+
+    // Reset the tracked viewport to a 0-origin rect the size of the UI
+    // pass target. The TL vertex shader normalises incoming pixel coords
+    // by (u_viewport.x/y, u_viewport.z/w); with origin (0, 0) and the UI
+    // rect's width/height, literal pixel coords map directly onto the UI
+    // rect pixels on the default FB.
+    s_vp_x = 0;
+    s_vp_y = 0;
+    s_vp_w = w;
+    s_vp_h = h;
+
+    // Record the UI viewport size so ge_get_screen_width/height report
+    // it instead of the scene FBO size during UI draws. Game code uses
+    // those to clip off-screen glyphs / rects; clipping against the
+    // scene FBO size when we're actually drawing to a larger UI rect
+    // would truncate legitimate text (symptom before this fix: F1 legend
+    // at OC_RENDER_SCALE=0.25 cut off past the scene-FBO width).
+    s_ui_vp_w = w;
+    s_ui_vp_h = h;
+
+    // Force the next draw call to re-upload the uniform (the cache was
+    // populated with scene-FBO viewport values).
+    s_uniforms_ever_uploaded = false;
+}
+
+void ge_invalidate_uniform_cache()
+{
+    s_uniforms_ever_uploaded = false;
+}
 void ge_set_mode_change_callback(GEModeChangeCallback callback)        { s_mode_change_callback = callback; }
 void ge_set_render_states_reset_callback(GERenderStatesResetCallback callback) { s_render_states_reset_callback = callback; }
 void ge_set_tga_load_callback(GETGALoadCallback callback)              { s_tga_load_callback = callback; }
@@ -667,7 +717,17 @@ void ge_begin_scene()
     // Redirect the frame into the scene FBO. All subsequent game draw calls
     // (3D, HUD, overlays, pre-flip callback) land there. The composition
     // pass in ge_flip() upscales it to the default framebuffer.
-    composition_bind_scene();
+    //
+    // Exception: during the post-composition UI pass, ui_mode is on and we
+    // bind the default FB instead so UI draws land on top of the composed
+    // scene (at native resolution, untouched by FXAA/upscale). POLY_frame_init
+    // calls ge_begin_scene implicitly — without this redirect, UI code would
+    // silently send draws back into the scene FBO after composition already
+    // ran, and the results would be invisible until next frame.
+    if (s_ui_mode_active)
+        composition_bind_default();
+    else
+        composition_bind_scene();
 }
 
 void ge_end_scene()
@@ -719,6 +779,10 @@ void ge_flip()
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
     composition_blit(win_w, win_h);
+
+    // Default FB is bound and contains the composed scene. UI pass draws
+    // on top at native resolution, untouched by the composition shader.
+    if (s_post_composition_callback) s_post_composition_callback();
 
     gl_context_swap();
 
@@ -1114,8 +1178,13 @@ void ge_set_transform(GETransform type, const GEMatrix* matrix)
 void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
 {
     s_vp_x = x; s_vp_y = y; s_vp_w = w; s_vp_h = h;
-    // OpenGL viewport Y is bottom-up, D3D is top-down.
-    int32_t screen_h = gl_context_get_height();
+    // OpenGL viewport Y is bottom-up, D3D is top-down. The height used
+    // for the flip is the current render target height: scene FBO
+    // normally, but the UI viewport height during the post-composition
+    // UI pass (the default FB is typically larger than the scene FBO
+    // when OC_RENDER_SCALE < 1).
+    int32_t screen_h = (s_ui_mode_active && s_ui_vp_h > 0) ? s_ui_vp_h
+                                                           : gl_context_get_height();
     glViewport(x, screen_h - y - h, w, h);
     if (!PolyPage::in_ui_mode()) {
         // Default behavior — scissor matches the new viewport.
@@ -1138,7 +1207,10 @@ void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
 void ge_set_scissor(int32_t x, int32_t y, int32_t w, int32_t h)
 {
     // Top-left coords (D3D-style); flip for OpenGL bottom-up scissor.
-    int32_t screen_h = gl_context_get_height();
+    // Same render-target-height logic as ge_set_viewport — UI pass may
+    // target a larger FB than the scene FBO.
+    int32_t screen_h = (s_ui_mode_active && s_ui_vp_h > 0) ? s_ui_vp_h
+                                                           : gl_context_get_height();
     glScissor(x, screen_h - y - h, w, h);
     glEnable(GL_SCISSOR_TEST);
 }
@@ -1213,8 +1285,21 @@ void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b)
 // code: glReadPixels → caller-owned buffer → caller saves to disk → done.
 // No CPU-side buffer is retained, no writeback ever happens.
 
-int32_t ge_get_screen_width()  { return gl_context_get_width(); }
-int32_t ge_get_screen_height() { return gl_context_get_height(); }
+int32_t ge_get_screen_width()
+{
+    // During the UI pass we draw into the default FB at the composition
+    // dst rect (which may differ from the scene FBO size when
+    // OC_RENDER_SCALE < 1.0 or when the window aspect is outside the
+    // FOV clamp). UI code that clips against ge_get_screen_width must
+    // compare against the UI target, not the scene FBO.
+    if (s_ui_mode_active && s_ui_vp_w > 0) return s_ui_vp_w;
+    return gl_context_get_width();
+}
+int32_t ge_get_screen_height()
+{
+    if (s_ui_mode_active && s_ui_vp_h > 0) return s_ui_vp_h;
+    return gl_context_get_height();
+}
 int32_t ge_get_screen_bpp()    { return 32; }
 
 void ge_read_framebuffer_rgba(uint8_t* out, int32_t w, int32_t h)
@@ -1375,6 +1460,11 @@ void ge_blit_back_buffer()
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
     composition_blit(win_w, win_h);
+
+    // Default FB is bound and contains the composed scene. UI pass draws
+    // on top at native resolution, untouched by the composition shader.
+    if (s_post_composition_callback) s_post_composition_callback();
+
     gl_context_swap();
 
     // Re-bind scene FBO for the next frame — see OpenDisplay for rationale.

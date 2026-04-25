@@ -75,3 +75,11 @@ int32_t composition_scene_height();
 // in the last composition_blit. Call on whatever event-pump thread the
 // caller uses; it's a pure pixel math function, no GL state touched.
 bool composition_window_to_fbo(int win_x, int win_y, int* fbo_x, int* fbo_y);
+
+// Return the most recent composition target rectangle on the default
+// framebuffer (where composition_blit aspect-fitted the scene FBO).
+// Used by the post-composition UI pass to set its viewport so UI lands
+// exactly on top of the rendered scene (and not in the outer bars).
+// Origin is bottom-left (matches glViewport convention). All four
+// outputs are zero before the first composition_blit.
+void composition_get_dst_rect(int32_t* x, int32_t* y, int32_t* w, int32_t* h);

@@ -1,0 +1,155 @@
+#include "game/ui_render.h"
+
+#include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
+#include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
+#include "engine/graphics/pipeline/polypage.h"             // PolyPage::s_XScale etc.
+#include "engine/graphics/pipeline/polypage_globals.h"     // not_private_smiley_* mirrors
+#include "engine/graphics/ui_coords.h"                     // ui_coords::recompute
+
+// UI draws moved out of the scene FBO and into this post-composition pass.
+#include "ui/hud/panel.h"
+#include "ui/menus/gamemenu.h"
+#include "engine/console/console.h"
+#include "engine/debug/input_debug/input_debug.h"
+#include "engine/debug/debug_help/debug_help.h"
+#include "engine/graphics/text/font.h"                    // FONT_buffer_draw
+#include "engine/graphics/pipeline/aeng.h"                // AENG_draw_messages
+#include "engine/input/keyboard_globals.h"                // ControlFlag
+
+// GAME_FLAGS / GF_PAUSED for conditional CONSOLE_draw.
+#include "game/game_types.h"
+
+// allow_debug_keys toggles Ctrl-held debug draws.
+extern BOOL allow_debug_keys;
+
+void ui_render_post_composition(void)
+{
+    // Snapshot GL state we touch so the next frame's scene rendering finds
+    // the viewport / scissor / depth it expects. Composition has already
+    // restored its own state; we layer on top.
+    GLint     prev_vp[4]   = {};
+    GLint     prev_sc[4]   = {};
+    GLboolean prev_sc_on   = glIsEnabled(GL_SCISSOR_TEST);
+    GLboolean prev_depth_on = glIsEnabled(GL_DEPTH_TEST);
+    GLboolean prev_depth_mask = GL_TRUE;
+    glGetIntegerv(GL_VIEWPORT,    prev_vp);
+    glGetIntegerv(GL_SCISSOR_BOX, prev_sc);
+    glGetBooleanv(GL_DEPTH_WRITEMASK, &prev_depth_mask);
+
+    // Map our viewport to the rect where composition_blit landed the scene.
+    // On windows wider/taller than the FBO aspect this rect is centred with
+    // outer pillar/letterbox bars around it; the bars belong to composition,
+    // UI must stay inside the scene rect.
+    int32_t dst_x = 0, dst_y = 0, dst_w = 0, dst_h = 0;
+    composition_get_dst_rect(&dst_x, &dst_y, &dst_w, &dst_h);
+    if (dst_w <= 0 || dst_h <= 0) {
+        // Fallback: composition hasn't published a rect yet — skip the
+        // pass rather than draw at an uninitialised viewport.
+        return;
+    }
+    glDisable(GL_SCISSOR_TEST);
+
+    // Set viewport + TL shader's u_viewport together. The latter must match
+    // the dst rect — otherwise glyph quads (which pass literal pixel coords
+    // via GEVertexTL, bypassing PolyPage scaling) get normalised by a
+    // scene-FBO-sized u_viewport and end up stretched onto the larger
+    // default-FB viewport. Symptom: at OC_RENDER_SCALE=0.25 with a
+    // 1024×768 window, F1 text came out 4× too big.
+    ge_enter_ui_viewport(dst_x, dst_y, dst_w, dst_h);
+
+    // Save + reconfigure PolyPage scaling and ui_coords for the UI pass.
+    // Scene rendering leaves these tied to the scene FBO size; the UI
+    // pass draws into the default FB dst rect which can be a different
+    // size (render scale < 1.0, or when the composition aspect-fit
+    // pillarboxes the FBO inside the window). Recompute to match dst_w /
+    // dst_h so virtual 640×480 UI coords map to the correct dst pixels.
+    const float prev_xscale  = PolyPage::s_XScale;
+    const float prev_yscale  = PolyPage::s_YScale;
+    const float prev_xoffset = PolyPage::s_XOffset;
+    const float prev_yoffset = PolyPage::s_YOffset;
+    const int32_t scene_w = composition_scene_width();
+    const int32_t scene_h = composition_scene_height();
+    {
+        const float uniform_scale = float(dst_h) / 480.0f;
+        PolyPage::SetScaling(uniform_scale, uniform_scale);
+        ui_coords::recompute(dst_w, dst_h);
+    }
+
+    // UI draws on a freshly-cleared default FB depth buffer (composition_blit
+    // clears depth to 1.0). Our draws use depth bodges near the far plane
+    // which would fail GL_LESS against 1.0 — disable depth for UI entirely.
+    // Also disable depth writes so any future scene using default FB depth
+    // doesn't see UI-poisoned values.
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    // Flip ge_begin_scene() redirection on. UI code calls POLY_frame_init
+    // transitively (e.g. PANEL_fadeout_draw does so internally), which
+    // calls ge_begin_scene and would rebind the scene FBO — silently
+    // sending our UI draws to the wrong target. With ui_mode on they
+    // bind the default FB instead and our draws land on top of the
+    // composed scene.
+    ge_set_ui_mode(true);
+    composition_bind_default();
+
+    // ───── UI calls (will grow stage by stage) ─────
+    // Order mirrors the pre-refactor game loop (game.cpp:1221-1243). The
+    // comment around input_debug_render in the old location noted that
+    // GAMEMENU_draw clears the POLY queue via POLY_frame_init, so anything
+    // queued *before* GAMEMENU_draw must be flushed before it runs; those
+    // flushes happen inside PANEL_finish / FONT_buffer_draw paths.
+    input_debug_render();
+    debug_help_render();
+    if (!(GAME_FLAGS & GF_PAUSED)) {
+        CONSOLE_draw();
+    }
+    GAMEMENU_draw();
+    PANEL_fadeout_draw();
+
+    // Debug message overlay (Ctrl-held + debug mode).
+    if (ControlFlag && allow_debug_keys) {
+        AENG_draw_messages();
+    }
+
+    // Flush the pixel-path FONT buffer. Anything queued via FONT_buffer_add
+    // by the debug text paths (debug_help, FPS overlay, gamepad debug,
+    // AENG_draw_messages) renders here — into the default FB at native
+    // resolution, untouched by the composition shader. Before the split
+    // this flush ran inside screen_flip() before AENG_blit, so the text
+    // landed in the scene FBO and got softened by FXAA / bilinear upscale.
+    FONT_buffer_draw();
+    // ──────────────────────────────────────────────
+
+    ge_set_ui_mode(false);
+
+    // Restore PolyPage scaling + ui_coords so the next frame's scene
+    // rendering sees the scene-FBO-based values it was configured with.
+    // Keep the not_private_smiley_* mirrors in sync — SetScaling /
+    // push_ui_mode write both, so skipping the mirror would leave it
+    // stale for any legacy path that still reads from it.
+    PolyPage::s_XScale  = prev_xscale;
+    PolyPage::s_YScale  = prev_yscale;
+    PolyPage::s_XOffset = prev_xoffset;
+    PolyPage::s_YOffset = prev_yoffset;
+    not_private_smiley_xscale = prev_xscale;
+    not_private_smiley_yscale = prev_yscale;
+    if (scene_w > 0 && scene_h > 0) {
+        ui_coords::recompute(scene_w, scene_h);
+    }
+
+    // Restore GL state.
+    glDepthMask(prev_depth_mask);
+    if (prev_depth_on) glEnable(GL_DEPTH_TEST);
+    glViewport(prev_vp[0], prev_vp[1], prev_vp[2], prev_vp[3]);
+    glScissor (prev_sc[0], prev_sc[1], prev_sc[2], prev_sc[3]);
+    if (prev_sc_on) glEnable(GL_SCISSOR_TEST);
+
+    // Viewport restored via glViewport, but s_vp_* inside the backend was
+    // reconfigured by ge_enter_ui_viewport and must be resynced so the
+    // next scene draw sees the scene-FBO viewport in u_viewport. The
+    // simplest path is to just force a uniform re-upload on the next
+    // draw — scene's first ge_set_viewport call will then populate
+    // s_vp_* and the uniform afresh.
+    ge_invalidate_uniform_cache();
+}

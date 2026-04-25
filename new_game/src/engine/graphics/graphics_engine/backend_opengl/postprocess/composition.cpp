@@ -21,11 +21,12 @@ int32_t s_scene_h   = 0;
 
 // Composite shader + cached uniform locations.
 GLuint s_program         = 0;
-GLint  s_u_scene         = -1;
-GLint  s_u_inv_scene_sz  = -1;
-GLint  s_u_dst_sz        = -1;
-GLint  s_u_dst_offset    = -1;
-GLint  s_u_fxaa_enabled  = -1;
+GLint  s_u_scene             = -1;
+GLint  s_u_inv_scene_sz      = -1;
+GLint  s_u_dst_sz            = -1;
+GLint  s_u_dst_offset        = -1;
+GLint  s_u_fxaa_enabled      = -1;
+GLint  s_u_debug_highlight   = -1;
 
 // Last composition target rectangle on the real backbuffer (pixels,
 // origin top-left for storage; composition_blit flips to bottom-left for
@@ -73,11 +74,12 @@ bool create_program()
         fprintf(stderr, "Composition: failed to create composite shader program\n");
         return false;
     }
-    s_u_scene        = glGetUniformLocation(s_program, "u_scene");
-    s_u_inv_scene_sz = glGetUniformLocation(s_program, "u_inv_scene_size");
-    s_u_dst_sz       = glGetUniformLocation(s_program, "u_dst_size");
-    s_u_dst_offset   = glGetUniformLocation(s_program, "u_dst_offset");
-    s_u_fxaa_enabled = glGetUniformLocation(s_program, "u_fxaa_enabled");
+    s_u_scene           = glGetUniformLocation(s_program, "u_scene");
+    s_u_inv_scene_sz    = glGetUniformLocation(s_program, "u_inv_scene_size");
+    s_u_dst_sz          = glGetUniformLocation(s_program, "u_dst_size");
+    s_u_dst_offset      = glGetUniformLocation(s_program, "u_dst_offset");
+    s_u_fxaa_enabled    = glGetUniformLocation(s_program, "u_fxaa_enabled");
+    s_u_debug_highlight = glGetUniformLocation(s_program, "u_debug_highlight_non_ui");
     return true;
 }
 
@@ -170,7 +172,8 @@ void composition_shutdown()
     if (s_program) { glDeleteProgram(s_program);       s_program = 0; }
     if (s_vbo)     { glDeleteBuffers(1, &s_vbo);       s_vbo = 0; }
     if (s_vao)     { glDeleteVertexArrays(1, &s_vao);  s_vao = 0; }
-    s_u_scene = s_u_inv_scene_sz = s_u_dst_sz = s_u_dst_offset = s_u_fxaa_enabled = -1;
+    s_u_scene = s_u_inv_scene_sz = s_u_dst_sz = s_u_dst_offset =
+        s_u_fxaa_enabled = s_u_debug_highlight = -1;
 }
 
 bool composition_resize(int32_t scene_w, int32_t scene_h)
@@ -275,6 +278,7 @@ void draw_composite(int32_t dst_x, int32_t dst_y, int32_t dst_w, int32_t dst_h,
     glUniform2f(s_u_dst_sz,       (float)dst_w, (float)dst_h);
     glUniform2f(s_u_dst_offset,   (float)dst_x, (float)dst_y);
     glUniform1i(s_u_fxaa_enabled, OC_AA_ENABLE ? 1 : 0);
+    glUniform1i(s_u_debug_highlight, OC_DEBUG_HIGHLIGHT_NON_UI ? 1 : 0);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -342,6 +346,14 @@ void composition_present_stretched(int32_t dst_x, int32_t dst_y,
 
 int32_t composition_scene_width()  { return s_scene_w; }
 int32_t composition_scene_height() { return s_scene_h; }
+
+void composition_get_dst_rect(int32_t* x, int32_t* y, int32_t* w, int32_t* h)
+{
+    if (x) *x = s_last_dst_x;
+    if (y) *y = s_last_dst_y;
+    if (w) *w = s_last_dst_w;
+    if (h) *h = s_last_dst_h;
+}
 
 bool composition_window_to_fbo(int win_x, int win_y, int* fbo_x, int* fbo_y)
 {

@@ -30,12 +30,9 @@ Render scale + scene FBO + composition pass are implemented (see
   while reviewing OC_AA_ENABLE = true in-game). Fix: draw the UI
   **after** the composition pass, directly into the default
   framebuffer at native resolution. Scene still goes scene-FBO → FXAA +
-  upscale → default FB; UI then draws on top, untouched. UI coord
-  system and draw APIs stay as they are — only execution order changes.
-  Requires enumerating every "UI draw" call site unambiguously (HUD
-  panel, overlay, frontend, menu, on-screen messages, console, debug
-  overlay). Depends on the aspect-ratio / UI-coord-system design
-  discussion at the top of this file.
+  upscale → default FB; UI then draws on top, untouched. **Detailed
+  staged plan:** [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md)
+  (in progress 2026-04-25).
 - **Replace the simplified FXAA with a proper shader AA.** The current
   `composite_frag.glsl` has a cut-down FXAA that drops the canonical
   3.11 edge-span search — result is effectively a cheap blur on

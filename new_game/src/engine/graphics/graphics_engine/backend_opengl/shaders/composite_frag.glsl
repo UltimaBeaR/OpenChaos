@@ -17,6 +17,8 @@ uniform vec2      u_inv_scene_size;  // 1.0 / scene_pixel_size
 uniform vec2      u_dst_size;        // blit target rectangle size on the real backbuffer (pixels)
 uniform vec2      u_dst_offset;      // blit target origin on the real backbuffer (bottom-left, pixels)
 uniform int       u_fxaa_enabled;    // 0 = plain upscale, 1 = FXAA + upscale
+uniform int       u_debug_highlight_non_ui;  // 0 = normal; 1 = tint + blur the scene so the
+                                             //   UI/scene split is obvious (OC_DEBUG_HIGHLIGHT_NON_UI)
 
 // FXAA tuning — close to Lottes's "PC Quality 12" defaults.
 const float FXAA_EDGE_THRESHOLD     = 0.166;   // 1/6 — contrast ratio to flag an edge
@@ -109,5 +111,32 @@ void main()
     } else {
         rgb = texture(u_scene, uv).rgb;
     }
+
+    // Debug highlight: mark everything that passes through composition
+    // (= scene FBO contents, plus any UI still living there) so the
+    // UI/scene split can be audited visually. Effect: heavy 5×5 blur at
+    // wide offset + magenta tint. Anything drawn after composition
+    // (genuine post-composition UI) stays sharp and untinted on top of
+    // this. Cost when flag is off = a single uniform-control-flow
+    // branch per fragment (GPUs short-circuit this with no divergence
+    // and no texture fetches in the `if` body); not measurable in
+    // release. 25 texture fetches only happen when the flag is on,
+    // which should never be the case in shipping builds.
+    if (u_debug_highlight_non_ui != 0) {
+        vec3 blur = vec3(0.0);
+        const float BLUR_SPREAD = 2.5;  // texel offset — higher = more blur
+        for (int dy = -1; dy <= 1; ++dy) {
+            for (int dx = -1; dx <= 1; ++dx) {
+                vec2 off = vec2(dx, dy) * BLUR_SPREAD * u_inv_scene_size;
+                blur += texture(u_scene, uv + off).rgb;
+            }
+        }
+        blur *= (1.0 / 9.0);
+        // Heavy magenta tint: desaturate, then push toward magenta.
+        float g = dot(blur, vec3(0.299, 0.587, 0.114));
+        vec3 tinted = mix(vec3(g), vec3(1.0, 0.2, 1.0), 0.55);
+        rgb = mix(tinted, blur, 0.15);  // 85% debug cue, 15% original so shapes still read
+    }
+
     FragColor = vec4(rgb, 1.0);
 }

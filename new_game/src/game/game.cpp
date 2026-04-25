@@ -59,7 +59,6 @@
 #include "ui/hud/eng_map.h"  // MAP_process
 #include "ui/hud/eng_map_globals.h"
 #include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
-#include "engine/graphics/text/font.h"
 #include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
 #include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
@@ -79,6 +78,7 @@
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
 #include "ui/hud/overlay.h"     // OVERLAY_handle
+#include "game/ui_render.h"     // ui_render_post_composition
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
 #include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
@@ -255,6 +255,7 @@ void game_startup(void)
     // Register callbacks BEFORE OpenDisplay — SetDisplay() inside OpenDisplay()
     // calls mode_change_callback, and Flip() calls pre_flip_callback.
     ge_set_pre_flip_callback(game_pre_flip);
+    ge_set_post_composition_callback(ui_render_post_composition);
     ge_set_mode_change_callback(game_mode_changed);
     ge_set_polys_drawn_callback(game_polys_drawn);
     ge_set_render_states_reset_callback(game_render_states_reset);
@@ -660,8 +661,11 @@ void screen_flip(void)
     extern void AENG_screen_shot(void);
     AENG_screen_shot();
 
-    // Toggle debug overlay: Ctrl press toggles debug_overlay_locked_on,
-    // which forces ControlFlag=1 every frame so all debug draws activate.
+    // Ctrl-press toggle for the debug overlay flag stays here (pure input
+    // processing, not a draw). The AENG_draw_messages queue and the
+    // FONT_buffer flush moved to ui_render_post_composition — they draw
+    // text that must land on the default FB at native resolution, after
+    // composition, so FXAA / bilinear upscale don't soften the glyphs.
     {
         static bool ctrl_was_pressed = false;
         if (Keys[KB_LCONTROL] && allow_debug_keys) {
@@ -672,10 +676,6 @@ void screen_flip(void)
         } else if (!Keys[KB_LCONTROL]) {
             ctrl_was_pressed = false;
         }
-        if (ControlFlag && allow_debug_keys) {
-            AENG_draw_messages();
-        }
-        FONT_buffer_draw();
     }
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.
@@ -942,6 +942,19 @@ round_again:;
                     ASSERT(0);
                     break;
                 }
+
+                // Reset UI state on exit. Both of these are latent bugs
+                // pre-existing the split — the post-composition UI pass
+                // now renders on top of the default FB after composition,
+                // so whatever the next mode (main menu frontend) draws
+                // into the scene FBO can't overwrite stale UI state. Reset
+                // here so the next frame's UI pass sees clean flags.
+                //   PANEL_fadeout_time — black cat-iris accumulating quad
+                //       would keep drawing and cover the whole screen.
+                //   GAMEMENU_menu_type — "Are you sure? OK / Cancel"
+                //       dialog would persist on top of the main menu.
+                PANEL_fadeout_init();
+                GAMEMENU_init();
 
                 break;
             }
@@ -1212,27 +1225,13 @@ round_again:;
 
             OVERLAY_handle();
 
-            // Modal input debug overlay (F11). Same point as other HUD
-            // overlays — AENG_draw_rect primitives queued here get
-            // flushed with the rest of the HUD 2D batch. Queuing after
-            // GAMEMENU_draw is too late because GAMEMENU_draw calls
-            // POLY_frame_init internally, which clears anything queued
-            // after it. See new_game_devlog/shadow_corruption_investigation.md.
-            input_debug_render();
-
-            // Debug-hotkey legend (F1 / auto-show on bangunsnotgames).
-            // Pixel-coord text so it draws into the same FONT_buffer
-            // stream as the rest of the HUD overlays.
-            debug_help_render();
-
             SLONG i_want_to_exit = UC_FALSE;
 
-            if (!(GAME_FLAGS & GF_PAUSED))
-                CONSOLE_draw();
-
-            GAMEMENU_draw();
-
-            PANEL_fadeout_draw();
+            // input_debug_render, debug_help_render, CONSOLE_draw,
+            // GAMEMENU_draw, PANEL_fadeout_draw moved to
+            // ui_render_post_composition — they run after composition_blit
+            // so their text/graphics aren't softened by FXAA.
+            // See split_ui_from_scene_plan.md.
 
             BreakTime("About to flip");
 

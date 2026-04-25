@@ -635,6 +635,54 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 using GEPreFlipCallback = void (*)();
 void ge_set_pre_flip_callback(GEPreFlipCallback callback);
 
+// Post-composition callback: called by the backend AFTER composition_blit
+// (FXAA + upscale + outer bars) and BEFORE the buffer swap. At this point
+// the default framebuffer is bound and contains the composed scene; the
+// callback can draw UI on top at native window resolution, untouched by
+// any AA shader. Used by the post-composition UI pass to render HUD /
+// menus / console / debug overlays without going through FXAA blur.
+// Caller is responsible for saving/restoring GL state inside the callback.
+using GEPostCompositionCallback = void (*)();
+void ge_set_post_composition_callback(GEPostCompositionCallback callback);
+
+// Redirect ge_begin_scene() to the default framebuffer instead of the scene
+// FBO. Used by the post-composition UI pass: UI code that calls
+// POLY_frame_init transitively calls ge_begin_scene, which would otherwise
+// rebind the scene FBO and silently send UI draws there (after composition
+// has already run). With UI mode on, ge_begin_scene binds the default FB
+// instead so UI lands on top of the composed scene. No effect on
+// composition_bind_scene / composition_bind_default themselves — those
+// remain explicit. Call with true at the start of the UI pass, false at
+// the end.
+void ge_set_ui_mode(bool active);
+
+// Viewport helper for the post-composition UI pass.
+//
+// Sets the GL viewport to the given rect (GL bottom-left origin) AND
+// synchronises the TL vertex shader's u_viewport uniform with the same
+// size — so draw calls that pass literal pixel coordinates (glyph quads
+// from FONT_atlas_draw_glyph, anything using GEVertexTL directly) land
+// on the correct screen pixels regardless of scene FBO size.
+//
+// Normally ge_set_viewport assumes you're drawing into the scene FBO and
+// uses gl_context_get_height() (== scene FBO height) to flip Y, which is
+// wrong for the default framebuffer at a different resolution (e.g. when
+// OC_RENDER_SCALE < 1 makes the scene FBO smaller than the window). This
+// helper skips the flip — caller passes the rect in GL bottom-left form
+// directly, matching what composition_get_dst_rect returns — and sets
+// s_vp_* to (0, 0, w, h) so the TL shader treats incoming pixel coords as
+// relative to the UI rect origin.
+//
+// Also invalidates the frag uniform cache so the new u_viewport is
+// uploaded on the next draw call.
+void ge_enter_ui_viewport(int32_t x, int32_t y, int32_t w, int32_t h);
+
+// Invalidate the fragment-uniform cache so the next draw call forces an
+// upload. Used after the UI pass mutates s_vp_* indirectly (via
+// ge_enter_ui_viewport) so subsequent scene draws see the restored values
+// instead of the cached UI ones.
+void ge_invalidate_uniform_cache();
+
 // Mode change callback: called after display resolution changes.
 // Game code registers this to adjust scaling, viewport, etc.
 using GEModeChangeCallback = void (*)(int32_t width, int32_t height);
