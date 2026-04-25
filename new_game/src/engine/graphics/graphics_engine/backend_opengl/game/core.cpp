@@ -70,6 +70,21 @@ static bool s_ui_mode_active = false;
 static int32_t s_ui_vp_w = 0;
 static int32_t s_ui_vp_h = 0;
 
+// UI pass viewport ORIGIN on the default framebuffer (set by
+// ge_enter_ui_viewport). Needed by ge_set_scissor / ge_disable_scissor
+// because glScissor takes ABSOLUTE framebuffer coords — push_ui_mode hands
+// us scissor coords relative to the dst rect (assumes (0, 0) origin like
+// the shader uses for u_viewport), but the actual viewport may be offset
+// inside the window when the FBO aspect doesn't match the window aspect
+// (composition pillar/letterbox bars). Without adding this offset the
+// scissor lands at window-(0..dst_w) while the viewport draws at
+// window-(dst_x..dst_x+dst_w), and their intersection is the visible band
+// — which clipped pause-menu / cutscene-dialog UI to a narrow strip on
+// wider-than-cap-aspect windows. Stays 0 when ui_mode isn't active so
+// scene-pass scissor is unaffected.
+static int32_t s_ui_vp_x = 0;
+static int32_t s_ui_vp_y = 0;
+
 // Background color for ge_clear.
 static float s_clear_r = 0.0f, s_clear_g = 0.0f, s_clear_b = 0.0f;
 
@@ -668,6 +683,15 @@ void ge_enter_ui_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
     // at OC_RENDER_SCALE=0.25 cut off past the scene-FBO width).
     s_ui_vp_w = w;
     s_ui_vp_h = h;
+    // Also remember the actual viewport ORIGIN on the default FB. Used
+    // by ge_set_scissor / ge_disable_scissor to convert UI-relative
+    // scissor coords (which assume 0,0 origin like the shader's
+    // u_viewport) into absolute FB coords that glScissor expects. Without
+    // this, scissor lands at FB(0..w) while viewport draws at
+    // FB(x..x+w), so when x ≠ 0 (composition pillarbox bars present),
+    // the visible band gets clipped to their intersection.
+    s_ui_vp_x = x;
+    s_ui_vp_y = y;
 
     // Force the next draw call to re-upload the uniform (the cache was
     // populated with scene-FBO viewport values).
@@ -1208,10 +1232,17 @@ void ge_set_scissor(int32_t x, int32_t y, int32_t w, int32_t h)
 {
     // Top-left coords (D3D-style); flip for OpenGL bottom-up scissor.
     // Same render-target-height logic as ge_set_viewport — UI pass may
-    // target a larger FB than the scene FBO.
+    // target a larger FB than the scene FBO. In UI mode also offset the
+    // scissor by the actual viewport origin on the default FB: caller
+    // passes coords relative to the UI viewport (0..w, 0..h), but
+    // glScissor takes absolute FB coords. Without the offset, scissor
+    // lands at the wrong x/y when composition centres the FBO with
+    // pillar/letterbox bars.
     int32_t screen_h = (s_ui_mode_active && s_ui_vp_h > 0) ? s_ui_vp_h
                                                            : gl_context_get_height();
-    glScissor(x, screen_h - y - h, w, h);
+    int32_t off_x = s_ui_mode_active ? s_ui_vp_x : 0;
+    int32_t off_y = s_ui_mode_active ? s_ui_vp_y : 0;
+    glScissor(off_x + x, off_y + screen_h - y - h, w, h);
     glEnable(GL_SCISSOR_TEST);
 }
 
@@ -1220,8 +1251,16 @@ void ge_disable_scissor()
     // ge_set_viewport leaves GL_SCISSOR_TEST enabled with scissor == viewport.
     // "Disable" here means restore that wide-as-viewport state, so subsequent
     // draws are not clipped by a tighter UI scissor.
-    int32_t screen_h = gl_context_get_height();
-    glScissor(s_vp_x, screen_h - s_vp_y - s_vp_h, s_vp_w, s_vp_h);
+    if (s_ui_mode_active && s_ui_vp_h > 0) {
+        // UI pass: viewport is at (s_ui_vp_x, s_ui_vp_y) on the default
+        // FB sized (s_ui_vp_w × s_ui_vp_h). Scissor must match that
+        // absolute rect, not s_vp_* (which is reset to 0-origin for
+        // shader normalisation).
+        glScissor(s_ui_vp_x, s_ui_vp_y, s_ui_vp_w, s_ui_vp_h);
+    } else {
+        int32_t screen_h = gl_context_get_height();
+        glScissor(s_vp_x, screen_h - s_vp_y - s_vp_h, s_vp_w, s_vp_h);
+    }
 }
 
 void ge_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h,
@@ -2807,6 +2846,15 @@ void ge_present_for_drag()
 
     composition_bind_default();
     composition_present_stretched(dst_x, dst_y, dst_w, dst_h, win_w, win_h);
+
+    // Run the post-composition UI pass too — without this the UI layer
+    // (HUD, menus, console, debug overlays) vanishes during interactive
+    // drag-resize because the engine's regular flip path is paused while
+    // the OS owns the message pump. composition_present_stretched
+    // already published the new dst rect via s_last_dst_*, so the UI
+    // pass picks up the live size and stays glued to the FBO content.
+    if (s_post_composition_callback) s_post_composition_callback();
+
     gl_context_swap();
 
     // Restore the scene-FBO-as-default-target invariant — see OpenDisplay

@@ -151,6 +151,34 @@ Already done:
   via `PANEL_draw_buffered`'s `LEFT_BOTTOM` scope — the (320, 50)
   argument from `eway.cpp` is dead (stored but ignored, real position
   is `m_iPanelXPos + 171, m_iPanelYPos - 118` inside the radar).
+- **UI rendering split from scaled scene FBO** — HUD (PANEL_draw_buffered
+  / PANEL_last / PANEL_inventory / cheat==2 FPS overlay), pause/won/lost
+  menu, fade-out, console, F1/F11 debug overlays, AENG_draw_messages,
+  FONT_buffer flush all moved to a post-composition pass on the default
+  framebuffer. Means UI no longer goes through FXAA / bilinear upscale
+  → text stays pixel-sharp at `OC_AA_ENABLE = true` and any
+  `OC_RENDER_SCALE`. Scene-side `OVERLAY_handle` keeps only the
+  depth-dependent overlays (gun sights, deferred view lines, enemy
+  health) wrapped in their own `PANEL_start`/`PANEL_finish` POLY batch.
+  HUD block in the UI pass is gated on `NET_PERSON(0) && NET_PLAYER(0)`
+  (the actual precondition the PANEL_* code requires) — a `GAME_STATE`
+  bit check is insufficient because `ATTRACT_loadscreen_init` runs
+  flips with the gameplay state bits set but no materialised player.
+  Plan + handoff: [`split_ui_from_scene_plan.md`](split_ui_from_scene_plan.md).
+- **Latent UI-scissor offset bug surfaced and fixed.** On windows
+  wider than `OC_FOV_CAP_ASPECT` the composition pass centres the FBO
+  with pillar bars (`dst_x ≠ 0`), but `ge_set_scissor` /
+  `ge_disable_scissor` weren't accounting for that offset — `glScissor`
+  takes absolute FB coords while `push_ui_mode` hands it scissor
+  relative to the dst rect (assumes `(0, 0)` origin like the shader's
+  `u_viewport`). Symptom: pause menu / cutscene dialog / any
+  `UIModeScope` UI clipped to a narrow band on the right where
+  scissor and viewport intersected. Fix: `s_ui_vp_x/y` track the
+  actual viewport origin on the default FB, scissor adds it. Same
+  iteration also fixed UI vanishing during interactive drag-resize:
+  `ge_present_for_drag` now invokes the post-composition callback,
+  and `composition_present_stretched` publishes `s_last_dst_*` so
+  the UI pass picks up the live dst rect.
 - **HUD bottom-row anchors.** Radar / health / weapon / ammo / crime
   rate / beacons / grenade / panel mission timer
   (`PANEL_draw_buffered`) / weapon-switch popup (`PANEL_inventory`) are
@@ -182,7 +210,6 @@ Remaining work — see [`issues.md`](issues.md):
   narrow/portrait aspects). Fix is a UWORD refactor with preserved
   save-file compatibility. **Workaround for 1.0: no user-facing FOV
   slider** — `OC_FOV_MULTIPLIER` stays a compile-time constant.
-- Split UI rendering from the scaled scene FBO (part of the UI rework).
 - Replace the stand-in simplified FXAA with canonical FXAA 3.11 or
   SMAA 1x.
 - Wibble amplitude doesn't scale with resolution — effect too subtle at 1080p+.

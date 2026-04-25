@@ -14,14 +14,20 @@
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/debug/debug_help/debug_help.h"
 #include "engine/graphics/text/font.h"                    // FONT_buffer_draw
+#include "engine/graphics/text/font2d.h"                  // FONT2D_DrawString (cheat==2 FPS overlay)
 #include "engine/graphics/pipeline/aeng.h"                // AENG_draw_messages
 #include "engine/input/keyboard_globals.h"                // ControlFlag
+#include "missions/eway.h"                                // EWAY_stop_player_moving
 
-// GAME_FLAGS / GF_PAUSED for conditional CONSOLE_draw.
+// GAME_FLAGS / GF_PAUSED + GAME_STATE / GS_* + NET_PERSON / NET_PLAYER.
 #include "game/game_types.h"
 
 // allow_debug_keys toggles Ctrl-held debug draws.
 extern BOOL allow_debug_keys;
+// cheat == 2 enables the FPS / position overlay (was inside OVERLAY_handle).
+extern UBYTE cheat;
+// Per-frame integer ms delta from sdl3_get_ticks (used by FPS overlay).
+extern SLONG tick_tock_unclipped;
 
 void ui_render_post_composition(void)
 {
@@ -48,6 +54,7 @@ void ui_render_post_composition(void)
         // pass rather than draw at an uninitialised viewport.
         return;
     }
+
     glDisable(GL_SCISSOR_TEST);
 
     // Set viewport + TL shader's u_viewport together. The latter must match
@@ -99,6 +106,66 @@ void ui_render_post_composition(void)
     // GAMEMENU_draw clears the POLY queue via POLY_frame_init, so anything
     // queued *before* GAMEMENU_draw must be flushed before it runs; those
     // flushes happen inside PANEL_finish / FONT_buffer_draw paths.
+
+    // HUD block — was OVERLAY_handle's 2D portion. Gated on the actual
+    // precondition the PANEL_* code requires: an alive player Thing.
+    //
+    // ui_render_post_composition runs every flip (main menu, attract,
+    // video, **loadscreen during mission start-up**, etc). A GAME_STATE
+    // bit check is *not* enough — during ATTRACT_loadscreen_init the
+    // gameplay state bits are already set but NET_PERSON(0) is still
+    // null (player hasn't been materialised yet), and PANEL_inventory
+    // dereferences it unconditionally. Original OVERLAY_handle only
+    // ever ran inside the game loop where darci was guaranteed alive,
+    // so it skipped the null check; we have to add it.
+    Thing* darci  = NET_PERSON(0);
+    Thing* player = NET_PLAYER(0);
+    if (darci && player) {
+
+        PANEL_start();
+
+        if (!EWAY_stop_player_moving()) {
+            PANEL_draw_buffered();
+        }
+
+        if (!(GAME_STATE & GS_LEVEL_WON)) {
+            PANEL_last();
+        }
+
+        PANEL_inventory(darci, player);
+
+        if (cheat == 2) {
+            CBYTE str[50];
+
+            if (tick_tock_unclipped == 0)
+                tick_tock_unclipped = 1;
+
+            // tick_tock_unclipped is the raw per-frame delta in integer
+            // milliseconds from sdl3_get_ticks. At 30 FPS it toggles between
+            // 33 and 34 ms (true period 33.333), so 1000/33 = 30 and
+            // 1000/34 = 29 alternate. Smooth with an EMA so the displayed
+            // value doesn't flicker between 29 and 30 every frame.
+            static float fps_ema = 0.0f;
+            float fps_instant = 1000.0f / float(tick_tock_unclipped);
+            if (fps_ema == 0.0f) {
+                fps_ema = fps_instant;  // seed on first frame
+            } else {
+                // α = 0.05 → ~20-frame time constant (~0.67 s at 30 FPS).
+                fps_ema = 0.95f * fps_ema + 0.05f * fps_instant;
+            }
+
+            sprintf(str, "(%d,%d,%d) fps %.2f",
+                    darci->WorldPos.X >> 16,
+                    darci->WorldPos.Y >> 16,
+                    darci->WorldPos.Z >> 16,
+                    fps_ema);
+
+            FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
+        }
+
+        PANEL_finish();
+    }
+
     input_debug_render();
     debug_help_render();
     if (!(GAME_FLAGS & GF_PAUSED)) {

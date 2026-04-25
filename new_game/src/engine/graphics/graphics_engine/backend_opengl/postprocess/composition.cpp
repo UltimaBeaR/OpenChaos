@@ -340,8 +340,16 @@ void composition_present_stretched(int32_t dst_x, int32_t dst_y,
 {
     if (window_w <= 0 || window_h <= 0) return;
     if (dst_w <= 0 || dst_h <= 0) return;
+    // Publish for input/UI mapping too: during live drag-resize the
+    // post-composition UI pass needs an up-to-date dst rect to position
+    // its viewport correctly. Without this the UI layer would compute
+    // scissor/viewport against the previous (pre-drag) dst rect and
+    // either disappear or land in the wrong place. Mouse input mapping
+    // during the drag itself is moot (the cursor is on the title bar /
+    // border, not the client area), so updating s_last_dst_* here is
+    // harmless for input.
     draw_composite(dst_x, dst_y, dst_w, dst_h, window_w, window_h,
-                   /*publish_for_input=*/false);
+                   /*publish_for_input=*/true);
 }
 
 int32_t composition_scene_width()  { return s_scene_w; }

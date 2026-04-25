@@ -71,7 +71,7 @@
 // Debug: paint the composition layer's outer pillar/letterbox bars
 // dark red instead of black so the FBO boundary is visible during
 // layout debugging. Keep OFF in shipping builds.
-#define OC_DEBUG_COMPOSITION_BARS_RED false
+#define OC_DEBUG_COMPOSITION_BARS_RED true
 
 // Debug: strongly tint + blur the scene during composition so the
 // UI/scene split is visible at a glance — anything touched by the
@@ -80,11 +80,11 @@
 // the post-composition pass stays sharp and original colours. Used to
 // audit which call sites still need to migrate. Keep OFF in shipping
 // builds.
-#define OC_DEBUG_HIGHLIGHT_NON_UI false
+#define OC_DEBUG_HIGHLIGHT_NON_UI true
 
 // Debug: set to true to silence all sound/music by forcing the OpenAL
 // listener gain to 0 right after init. OpenAL itself stays fully
 // operational (skipping init caused busy AL_INVALID_OPERATION spin in
 // update paths and tanked FPS) — this is the cheap mute knob. Keep OFF
 // in shipping builds.
-#define OC_DEBUG_SOUND_DISABLED false
+#define OC_DEBUG_SOUND_DISABLED true

@@ -3,14 +3,9 @@
 #include "things/core/statedef.h"
 #include "missions/eway.h"
 #include "ui/hud/panel.h"
-#include "ui/hud/panel_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "things/core/interact.h"
-#include "things/core/interact_globals.h"
-#include "camera/fc.h"
-#include "camera/fc_globals.h"
-#include "engine/graphics/text/font2d.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"
@@ -63,12 +58,6 @@ extern void show_grenade_path(Thing* p_person);
 extern BOOL PersonIsMIB(Thing* p_person);
 // uc_orig: health (fallen/Source/Person.cpp)
 extern SWORD health[];
-// uc_orig: draw_map_screen (fallen/Source/Game.cpp)
-extern UBYTE draw_map_screen;
-// uc_orig: cheat (fallen/Source/Controls.cpp)
-extern UBYTE cheat;
-// uc_orig: tick_tock_unclipped (fallen/Source/Game.cpp)
-extern SLONG tick_tock_unclipped;
 // uc_orig: ScreenWidth (fallen/DDLibrary/Source/GDisplay.cpp)
 extern SLONG ScreenWidth;
 // uc_orig: ScreenHeight (fallen/DDLibrary/Source/GDisplay.cpp)
@@ -282,87 +271,35 @@ void OVERLAY_draw_enemy_health(void)
     }
 }
 
-// Draws the full HUD for one game frame: panel, gun sights, enemy health, debug info.
+// Scene-side overlay pass: 3D-depth-dependent draws only (gun sights,
+// enemy health, deferred view lines). The 2D HUD (panel, inventory, FPS
+// overlay, fade-out, menu, console, debug pages) was moved out into
+// ui_render_post_composition so it lands on the default FB at native
+// resolution, untouched by the composition shader's FXAA / bilinear
+// upscale. See split_ui_from_scene_plan.md.
+//
+// The scene-side overlays still need their own POLY_frame_init /
+// POLY_frame_draw bracket — previously they piggybacked on the
+// PANEL_start / PANEL_finish pair around the whole HUD chain. Now that
+// the HUD's pair lives in the UI pass, we add an own pair here so the
+// queued POLY draws actually flush into the scene FBO.
+//
 // uc_orig: OVERLAY_handle (fallen/Source/overlay.cpp)
 void OVERLAY_handle(void)
 {
-    Thing* darci = NET_PERSON(0);
-    Thing* player = NET_PLAYER(0);
-    SLONG panel = 1;
-
     POLY_flush_local_rot();
 
-    // Reset viewport to full screen (required for letterbox mode so HUD draws edge-to-edge).
+    // Reset viewport to full screen (required for letterbox mode so the
+    // overlays draw edge-to-edge).
     ge_set_viewport(0, 0, ScreenWidth, ScreenHeight);
 
-    PANEL_start();
-
     if (!EWAY_stop_player_moving()) {
-        if (panel) {
-            PANEL_draw_buffered();
-            OVERLAY_draw_gun_sights();
-            OVERLAY_draw_deferred_view_lines();
-            OVERLAY_draw_enemy_health();
-        }
+        PANEL_start();
+        OVERLAY_draw_gun_sights();
+        OVERLAY_draw_deferred_view_lines();
+        OVERLAY_draw_enemy_health();
+        PANEL_finish();
     }
-
-    if (panel) {
-        if (!(GAME_STATE & GS_LEVEL_WON)) {
-            PANEL_last();
-        }
-    }
-
-    if (!draw_map_screen) {
-        if (darci) {
-            if (darci->State == STATE_SEARCH) {
-                // PC search progress display was commented out in original.
-            }
-        }
-    }
-
-    PANEL_inventory(darci, player);
-
-    if (cheat == 2) {
-        CBYTE str[50];
-
-        extern SLONG tick_tock_unclipped;
-        if (tick_tock_unclipped == 0)
-            tick_tock_unclipped = 1;
-
-        extern SLONG SW_tick1;
-        extern SLONG SW_tick2;
-        extern ULONG debug_input;
-
-        extern SLONG geom;
-        extern SLONG EWAY_cam_jumped;
-        extern SLONG look_pitch;
-
-        // tick_tock_unclipped is the raw per-frame delta in integer
-        // milliseconds from sdl3_get_ticks. At 30 FPS it toggles between 33
-        // and 34 ms (the true period is 33.333), so 1000/33 = 30 and
-        // 1000/34 = 29 alternate. The legacy "+1" was a crude round-up
-        // that just shifted the display to 30/31 instead. Replace with a
-        // float reading and an EMA smoother — the mean of 33/34 weighted
-        // by time spent in each converges to 30.00 on a steady pace.
-        static float fps_ema = 0.0f;
-        float fps_instant = 1000.0f / float(tick_tock_unclipped);
-        if (fps_ema == 0.0f) {
-            fps_ema = fps_instant;  // seed on first frame
-        } else {
-            // α = 0.05 → ~20-frame time constant (~0.67 s at 30 FPS). Small
-            // enough to hide per-frame ms quantization, large enough to
-            // track genuine FPS drops quickly.
-            fps_ema = 0.95f * fps_ema + 0.05f * fps_instant;
-        }
-
-        sprintf(str, "(%d,%d,%d) fps %.2f", darci->WorldPos.X >> 16, darci->WorldPos.Y >> 16, darci->WorldPos.Z >> 16, fps_ema);
-
-        FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
-    }
-
-    // GS_LEVEL_LOST / GS_LEVEL_WON text is handled by GAMEMENU — display code here was commented out in original.
-
-    PANEL_finish();
 }
 
 // Empty — beacon system was fully commented out in original.
