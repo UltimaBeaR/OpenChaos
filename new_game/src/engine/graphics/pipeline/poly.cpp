@@ -417,14 +417,25 @@ void POLY_camera_set(
     // layer paints outer bars; game code has no representation of them.
     // dwY still accounts for cutscene letterbox (POLY_screen_mid_y folds
     // the `wideify` offset in) and splitscreen top/bottom half offsets.
-    g_viewData.dwWidth  = fMyMulX * PolyPage::s_XScale * 2;
-    g_viewData.dwHeight = fMyMulY * PolyPage::s_YScale * 2;
+    //
+    // Round-to-nearest (+ 0.5f) on float→int conversion. The float chain
+    // from ScreenWidth/ScreenHeight through aspect ratio, POLY_screen_*,
+    // fMyMul*, and PolyPage::s_*Scale ends back at ScreenWidth/Height
+    // algebraically, but on resolutions whose ratio isn't exactly float-
+    // representable (e.g. 837×549) the accumulated drift produces values
+    // like 799.9998. Default float→int truncates toward zero → 799,
+    // leaving a one-pixel column at the FBO right edge that the game
+    // never renders into; the composition layer presents that black
+    // column as-is on top of the user's expected scene. Explicit
+    // rounding fixes this.
+    g_viewData.dwWidth  = (int32_t)(fMyMulX * PolyPage::s_XScale * 2.0f + 0.5f);
+    g_viewData.dwHeight = (int32_t)(fMyMulY * PolyPage::s_YScale * 2.0f + 0.5f);
     g_viewData.dwX = 0.0F;
-    g_viewData.dwY = (POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale;
+    g_viewData.dwY = (int32_t)((POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale + 0.5f);
 
     // Exported to figure.cpp's MM (character) matrix builder so it uses
     // the same viewport bounds as the POLY pipeline.
-    g_dw3DStuffHeight = fMyMulY * PolyPage::s_YScale * 2;
+    g_dw3DStuffHeight = (int32_t)(fMyMulY * PolyPage::s_YScale * 2.0f + 0.5f);
     g_dw3DStuffY      = g_viewData.dwY;
 
     // POLY-path vertex shift used to carry (base_x, base_y) to align the

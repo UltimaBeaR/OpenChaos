@@ -7,6 +7,7 @@
 #include "engine/video/video_player.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/io/env.h"
+#include "engine/platform/host.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
 #include <SDL3/SDL.h>
@@ -286,6 +287,17 @@ bool video_play(const char* filename, bool allow_skip)
                     if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) { done = true; break; }
                 }
             }
+
+            // Apply any pending window resize that arrived while we were
+            // pumping. We use raw SDL_PollEvent (not sdl3_poll_events) so
+            // the regular on_window_resized callback never fires here —
+            // instead the SDL event watcher latches s_resize_pending in
+            // the bridge layer, and this call drains it into a real
+            // ge_resize_display. Without it, a resize during a video
+            // would leave the scene FBO at the pre-video size and the
+            // first menu frame after the video would render with the
+            // wrong composition letterbox.
+            host_process_pending_resize();
             // DualSense: edge-triggered skip (new press only, not hold)
             ds_poll_registry(0.033f);
             ds_update_input();

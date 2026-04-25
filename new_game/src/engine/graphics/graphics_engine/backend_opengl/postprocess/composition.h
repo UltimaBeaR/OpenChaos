@@ -49,6 +49,19 @@ void composition_bind_default();
 // have bound the target framebuffer before calling this.
 void composition_blit(int32_t window_w, int32_t window_h);
 
+// Full-stretch the scene color texture into an explicit dst rect inside
+// a window of (window_w, window_h), clearing the outer area. Unlike
+// composition_blit this does NOT aspect-fit the FBO — dst is used as-is,
+// FBO content is non-uniformly scaled to fill it, and aspect distortion
+// is the caller's responsibility. Used by the live window-edge-drag
+// path (ge_present_for_drag): caller clamps the dst rect to the engine's
+// allowed FOV aspect range so outer bars only appear when the window
+// aspect exceeds what the post-resize FBO would support.
+// Caller binds the target framebuffer before calling and swaps after.
+void composition_present_stretched(int32_t dst_x, int32_t dst_y,
+                                   int32_t dst_w, int32_t dst_h,
+                                   int32_t window_w, int32_t window_h);
+
 // Query current scene FBO size. 0 if not initialized.
 int32_t composition_scene_width();
 int32_t composition_scene_height();

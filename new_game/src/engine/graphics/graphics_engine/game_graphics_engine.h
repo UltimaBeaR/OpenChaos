@@ -379,6 +379,21 @@ void ge_update_display_rect(void* hwnd, bool fullscreen);
 // window resize. Safe no-op if the size hasn't changed.
 void ge_resize_display();
 
+// Repaint the window with the last-rendered scene FBO during an OS-
+// level window-edge drag (Windows modal resize loop). Single uniform
+// path across all game modes (gameplay, menu, video, outro): the
+// window aspect is clamped into [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT],
+// that clamped target is aspect-fit into the window, and the FBO is
+// non-uniformly stretched into the resulting dst rect. Inside the range
+// dst fills the window (no bars); outside it picks up centred outer
+// pillar/letterbox bars — the same bars the post-resize composition
+// will draw, so drag-time and post-release outer letterboxes are
+// identical. Any internal letterbox is the responsibility of the
+// content drawn into the FBO. Called from the SDL event watcher while
+// the main game loop is blocked by the OS. Safe no-op if GL/
+// composition isn't initialised yet.
+void ge_present_for_drag();
+
 // ---------------------------------------------------------------------------
 // Texture management
 // ---------------------------------------------------------------------------

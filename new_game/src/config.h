@@ -78,4 +78,4 @@
 // operational (skipping init caused busy AL_INVALID_OPERATION spin in
 // update paths and tanked FPS) — this is the cheap mute knob. Keep OFF
 // in shipping builds.
-#define OC_DEBUG_SOUND_DISABLED true
+#define OC_DEBUG_SOUND_DISABLED false

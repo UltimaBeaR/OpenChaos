@@ -22,6 +22,40 @@ static SDL3_Callbacks s_callbacks = {};
 // the strategy matrix.
 static bool s_use_dwm_flush = false;
 
+// SDL event watcher — fires synchronously when SDL_PushEvent is called,
+// including from inside the OS modal resize loop (Windows edge-drag),
+// where our main loop is blocked. We use it to repaint the window with
+// the last rendered scene composed against the new client area.
+//
+// We deliberately do NOT try to filter out events that arrive through
+// our own sdl3_poll_events drain. On Windows the OS modal loop runs
+// INSIDE our SDL_PollEvent call (Windows enters its sizing loop from
+// DefWindowProc, which SDL invokes via DispatchMessage), so any "we're
+// in the pump" flag would always be true during the very modal loop we
+// want to paint over. The cost on platforms without a modal loop
+// (Mac/Linux, Windows borderless) is one extra composition swap per
+// resize event during a drag — visually harmless under double buffering
+// since the next regular frame's swap follows within the same vsync
+// window and overwrites it.
+//
+// Type filter is essential: the watcher may be invoked from non-main
+// threads for event types like joystick hotplug. Window pixel-size
+// events come from the OS message pump on the main thread, so it's
+// safe to call back into GL from here on Windows. SDL3 ignores the
+// return value of event watchers (it's only meaningful for
+// SDL_SetEventFilter); we always return true.
+static bool SDLCALL window_event_watch(void* userdata, SDL_Event* event)
+{
+    (void)userdata;
+    if (!event) return true;
+    if (event->type != SDL_EVENT_WINDOW_RESIZED &&
+        event->type != SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) return true;
+    if (s_callbacks.on_window_resize_live) {
+        s_callbacks.on_window_resize_live();
+    }
+    return true;
+}
+
 bool sdl3_window_create(const char* title, int width, int height, bool fullscreen)
 {
     if (s_window) return false;
@@ -83,6 +117,13 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
     // division-by-zero further down the pipeline. The aspect clamp in
     // ge_resize_display still handles the extreme-aspect edges above this.
     SDL_SetWindowMinimumSize(s_window, 320, 240);
+
+    // Install the live-drag event watcher. SDL3 returns false on failure;
+    // a missing watcher only loses the live-drag stretch (the regular
+    // post-release resize still works), so the failure isn't fatal.
+    if (!SDL_AddEventWatch(window_event_watch, nullptr)) {
+        fprintf(stderr, "SDL3: SDL_AddEventWatch failed: %s\n", SDL_GetError());
+    }
 
     if (!fullscreen) {
         // Config supplies window size in physical pixels (consistent across
@@ -543,9 +584,9 @@ bool sdl3_poll_events()
         // fires on drawable (pixel) size changes. On non-HiDPI displays the
         // two coincide; on HiDPI (Retina, per-monitor scaling) a window drag
         // between monitors of differing density may only fire PIXEL_SIZE.
-        // We need the pixel path for FBO sizing, so handle both — the
-        // debounce in the resize handler absorbs duplicate events when both
-        // fire on the same change.
+        // We need the pixel path for FBO sizing, so handle both — the host
+        // coalesces duplicate events into a single per-frame apply via
+        // s_resize_pending (no time-based debounce).
         case SDL_EVENT_WINDOW_RESIZED:
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             if (s_callbacks.on_window_resized) s_callbacks.on_window_resized();

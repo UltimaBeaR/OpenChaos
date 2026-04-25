@@ -33,20 +33,24 @@ static os_texture* s_bound[2] = { nullptr, nullptr };
 // Init / shutdown
 // ---------------------------------------------------------------------------
 
-void oge_init()
+// Configure outro's two-level viewport for the current scene FBO size.
+// Idempotent and cheap — re-runnable per frame, which we need because
+// the user can resize the window at any time during the outro and
+// ge_resize_display will update ScreenWidth/Height + ui_coords WITHOUT
+// notifying the outro. Computing the viewport from live globals keeps
+// outro draws aligned to the centred 4:3 framed region after a resize.
+//
+// Outro pipeline draws in pixel-space coords scaled by OS_screen_width /
+// OS_screen_height; the TL vertex shader maps those through u_viewport
+// into NDC. Two-level viewport: shader sees (0, 0, frame_w, frame_h) so
+// coords 0..frame_w map to NDC -1..1 cleanly, while GL-side glViewport /
+// glScissor target the centred framed-area rect so the NDC quad lands
+// in the framed region instead of the corner.
+static void apply_outro_viewport()
 {
-    // Render the outro into the same 4:3 framed region as the rest of
-    // the UI (menus, loading, frontend). The outro pipeline draws in
-    // pixel-space coords scaled by OS_screen_width / OS_screen_height,
-    // and TL vertex shader maps those through u_viewport into NDC.
-    //
-    // Two-level viewport: shader sees (0, 0, frame_w, frame_h) so coords
-    // 0..frame_w map to NDC -1..1 cleanly; GL-side glViewport / glScissor
-    // get the framed-area rect so that NDC quad lands in the centred 4:3
-    // region instead of the corner.
     ui_coords::recompute(ge_get_screen_width(), ge_get_screen_height());
-    const int frame_w = (int)(ui_coords::g_frame_w_px + 0.5f);
-    const int frame_h = (int)(ui_coords::g_frame_h_px + 0.5f);
+    const int frame_w  = (int)(ui_coords::g_frame_w_px + 0.5f);
+    const int frame_h  = (int)(ui_coords::g_frame_h_px + 0.5f);
     const int origin_x = (int)((ui_coords::g_screen_w_px - ui_coords::g_frame_w_px) * 0.5f + 0.5f);
     const int origin_y = (int)((ui_coords::g_screen_h_px - ui_coords::g_frame_h_px) * 0.5f + 0.5f);
 
@@ -69,6 +73,11 @@ void oge_init()
     // be cleared the next frame, leaving a thin static strip. Viewport
     // alone is enough to confine rasterization to the framed region.
     glScissor(0, 0, screen_w, screen_h);
+}
+
+void oge_init()
+{
+    apply_outro_viewport();
 }
 
 void oge_shutdown()
@@ -304,6 +313,15 @@ void oge_clear_screen()
 
 void oge_scene_begin()
 {
+    // Re-apply the outro viewport every frame. Cheap (a few ge_get_*
+    // queries + glViewport / glScissor) and lets a live window resize
+    // during the outro sequence stay correct: ge_resize_display updates
+    // ScreenWidth/Height + ui_coords but does NOT notify the outro
+    // pipeline, so without this call the viewport set in oge_init
+    // would still be sized for the pre-resize FBO and the outro would
+    // render into the wrong rect.
+    apply_outro_viewport();
+
     ge_begin_scene();
     // Outro's main loop calls OS_clear_screen exactly once at startup; the
     // design relied on BACK_draw fully repainting the framebuffer every

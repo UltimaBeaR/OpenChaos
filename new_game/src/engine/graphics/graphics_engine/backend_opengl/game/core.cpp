@@ -2661,6 +2661,69 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
     return 0; // success (D3D backend returns HRESULT, 0 = S_OK)
 }
 
+// Live repaint during window-edge drag. The SDL event watcher fires
+// this synchronously while Windows is in its modal resize loop (main
+// game loop is frozen at that point); without it, the OS reveals each
+// new strip of client area filled with black and never repaints until
+// the user releases the mouse.
+//
+// Single uniform path for all game modes (gameplay, menu, video,
+// outro): non-uniform stretch of the OLD scene FBO into the dst rect
+// the POST-resize composition would produce. The window aspect is
+// clamped into [OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT] and that clamped
+// target is aspect-fit into the window. Inside the range → dst fills
+// window, FBO stretches freely. Outside → centred outer pillar/letter-
+// box bars (the same bars the post-resize composition_blit will draw).
+//
+// Drag-time and post-release outer letterbox are therefore identical;
+// only the FBO content changes at release (game re-renders, video
+// re-aspect-fits etc.). Matches the user-visible invariant: the
+// composition layer's bars are uniform across all modes; any "internal"
+// letterbox is the responsibility of the content drawing into the FBO.
+void ge_present_for_drag()
+{
+    // Skip if GL / composition isn't up yet (very early window events
+    // before OpenDisplay) or if the scene texture is empty.
+    if (composition_scene_width() <= 0 || composition_scene_height() <= 0) return;
+
+    int win_w = 0, win_h = 0;
+    sdl3_window_get_drawable_size(&win_w, &win_h);
+    if (win_w <= 0 || win_h <= 0) return;
+
+    // Clamp window aspect into the engine's supported FOV range,
+    // aspect-fit the clamped target into the window, full-stretch the
+    // FBO into the resulting dst rect.
+    const float win_aspect = (float)win_w / (float)win_h;
+    float target_aspect = win_aspect;
+    if (target_aspect > OC_FOV_CAP_ASPECT) target_aspect = OC_FOV_CAP_ASPECT;
+    if (target_aspect < OC_FOV_MIN_ASPECT) target_aspect = OC_FOV_MIN_ASPECT;
+
+    int32_t dst_x = 0, dst_y = 0, dst_w = win_w, dst_h = win_h;
+    if (win_aspect > target_aspect) {
+        // Window wider than clamp → pillarbox bars left/right.
+        dst_h = win_h;
+        dst_w = (int32_t)((float)win_h * target_aspect + 0.5f);
+        if (dst_w > win_w) dst_w = win_w;
+        dst_x = (win_w - dst_w) / 2;
+        dst_y = 0;
+    } else if (win_aspect < target_aspect) {
+        // Window taller than clamp → letterbox bars top/bottom.
+        dst_w = win_w;
+        dst_h = (int32_t)((float)win_w / target_aspect + 0.5f);
+        if (dst_h > win_h) dst_h = win_h;
+        dst_x = 0;
+        dst_y = (win_h - dst_h) / 2;
+    }
+
+    composition_bind_default();
+    composition_present_stretched(dst_x, dst_y, dst_w, dst_h, win_w, win_h);
+    gl_context_swap();
+
+    // Restore the scene-FBO-as-default-target invariant — see OpenDisplay
+    // for why the engine keeps it bound between presents.
+    composition_bind_scene();
+}
+
 // Public entry point for runtime window resize. Called from the host
 // event loop (host.cpp) after the OS reports a window size change. Safe
 // no-op if the FBO is already at the current drawable size.

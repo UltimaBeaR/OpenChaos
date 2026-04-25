@@ -71,32 +71,55 @@ static void on_window_moved()
     ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
 }
 
-// Runtime window resize is coalesced via a pending flag + last-event
-// timestamp. Destroying and recreating the scene FBO + its attachments on
-// every SDL resize event would stutter at ~60 events/sec while the user
-// drags an edge (each event reallocates two GL textures). We latch a
-// "pending" marker here and let LibShellActive's debounce check apply
-// the real reconfigure once events go quiet for RESIZE_DEBOUNCE_MS.
-static bool     s_resize_pending = false;
-static uint64_t s_resize_last_event_ms = 0;
-
-// Debounce window — empirically: short enough to feel instant when the
-// user stops dragging, long enough to coalesce a fast edge-drag burst.
-static constexpr uint64_t RESIZE_DEBOUNCE_MS = 150;
+// Runtime window resize is coalesced naturally by the event-pump cadence.
+// `host_process_pending_resize` runs once per LibShellActive iteration,
+// AFTER `sdl3_poll_events` has drained every queued resize event into our
+// latch — so no matter how many WM_SIZE / configure events arrived
+// (Windows modal loop drops the whole burst on release; Mac/Linux drips
+// one per frame during a smooth drag), we re-create the FBO at most once
+// per frame. The video player and any other secondary loop that pumps
+// SDL events itself (bypassing LibShellActive) MUST also call
+// host_process_pending_resize from inside its loop, otherwise resizes
+// queued during the loop never get applied. No timer-based debounce
+// needed; that previously delayed the post-release apply by 150 ms and
+// made the old-aspect FBO visible (with composition letterbox bars) for
+// ~9 frames.
+static bool s_resize_pending = false;
 
 static void on_window_resized()
 {
     ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());
     s_resize_pending = true;
-    s_resize_last_event_ms = sdl3_get_ticks();
 }
 
-static void process_pending_resize()
+void host_process_pending_resize(void)
 {
     if (!s_resize_pending) return;
-    if (sdl3_get_ticks() - s_resize_last_event_ms < RESIZE_DEBOUNCE_MS) return;
     ge_resize_display();
     s_resize_pending = false;
+}
+
+// Live-drag repaint — fires from SDL_AddEventWatch synchronously while
+// the OS is in its modal resize loop (Windows edge-drag) AND for every
+// regular resize event push. The main game loop may or may not be
+// pumping at this moment (it's frozen during the modal loop, and the
+// video player runs its own SDL_PollEvent loop bypassing LibShellActive
+// entirely), so we use this single-source-of-truth path for two jobs:
+//
+//   1. Paint the new client area immediately via ge_present_for_drag —
+//      otherwise the OS reveals black where the window expanded and
+//      shows nothing until somebody else swaps.
+//
+//   2. Latch s_resize_pending so the post-event FBO recreation happens
+//      whenever some pump path next calls host_process_pending_resize.
+//      Without this latch a resize that happens during a video would
+//      never get applied (video_player's raw SDL_PollEvent doesn't
+//      route to on_window_resized), and the menu after the video would
+//      keep rendering on the pre-resize FBO.
+static void on_window_resize_live()
+{
+    ge_present_for_drag();
+    s_resize_pending = true;
 }
 
 static void on_close()
@@ -133,9 +156,10 @@ BOOL SetupHost(ULONG flags)
     cb.on_mouse_button   = on_mouse_button;
     cb.on_focus_gained   = on_focus_gained;
     cb.on_focus_lost     = on_focus_lost;
-    cb.on_window_moved   = on_window_moved;
-    cb.on_window_resized = on_window_resized;
-    cb.on_close          = on_close;
+    cb.on_window_moved        = on_window_moved;
+    cb.on_window_resized      = on_window_resized;
+    cb.on_window_resize_live  = on_window_resize_live;
+    cb.on_close               = on_close;
     sdl3_set_callbacks(&cb);
 
     // Initialise the sound manager; failure is non-fatal.
@@ -196,7 +220,7 @@ BOOL LibShellActive(void)
     // here — at the top of the frame, before game logic / rendering begins —
     // guarantees the scene FBO is not destroyed mid-frame (see Risk #2 in
     // new_game_devlog/fullscreen_transition/runtime_window_resize_plan.md).
-    process_pending_resize();
+    host_process_pending_resize();
 
     if (restore_surfaces) {
         ge_restore_all_surfaces();

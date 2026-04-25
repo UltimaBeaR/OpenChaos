@@ -108,6 +108,16 @@ struct SDL3_Callbacks {
     void (*on_focus_lost)();
     void (*on_window_moved)();
     void (*on_window_resized)();
+    // Fires SYNCHRONOUSLY when SDL pushes a window pixel-size event,
+    // including events pushed from inside an OS-level modal resize loop
+    // (Windows edge-drag) where our main game loop is frozen. Wired via
+    // SDL_AddEventWatch. The handler should repaint the window
+    // backbuffer with the current scene contents (regular composition
+    // pass is fine). On platforms without a modal loop the watcher
+    // also fires during normal event drain — that just produces a
+    // harmless extra swap which the next regular frame overwrites.
+    // May be null if the host doesn't need live drag rendering.
+    void (*on_window_resize_live)();
     void (*on_close)();
 };
 

@@ -189,9 +189,22 @@ void composition_bind_default()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void composition_blit(int32_t window_w, int32_t window_h)
+namespace {
+
+// Save/restore + draw the composite quad of s_color_tex into the given
+// dst rect inside a window of (window_w, window_h). Shared inner body
+// of composition_blit (aspect-fit dst, computed from FBO aspect) and
+// composition_present_stretched (dst passed in directly by caller).
+// Caller must have bound the target framebuffer.
+//
+// `publish_for_input`: only the aspect-fit path updates s_last_dst_*
+// (used by mouse-event mapping). Drag-time stretched present is a
+// transient visual, never the basis for input mapping.
+void draw_composite(int32_t dst_x, int32_t dst_y, int32_t dst_w, int32_t dst_h,
+                    int32_t window_w, int32_t window_h,
+                    bool publish_for_input)
 {
-    if (!s_program || !s_color_tex || window_w <= 0 || window_h <= 0) return;
+    if (!s_program || !s_color_tex) return;
 
     // Save GL state we touch so we don't desync GERenderState's caches.
     GLint     prev_program = 0;
@@ -217,38 +230,14 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glGetBooleanv(GL_COLOR_WRITEMASK,        prev_color_mask);
     glGetBooleanv(GL_DEPTH_WRITEMASK,        &prev_depth_mask);
 
-    // Aspect-fit the scene FBO into a centred rectangle on the real
-    // backbuffer, leave the leftover area black. This is the only layer
-    // that reconciles "real window size" with "FBO size"; everything else
-    // in the engine sees the FBO as its entire screen.
-    int32_t dst_x = 0, dst_y = 0, dst_w = window_w, dst_h = window_h;
-    if (s_scene_w > 0 && s_scene_h > 0) {
-        const float fbo_aspect  = (float)s_scene_w / (float)s_scene_h;
-        const float real_aspect = (float)window_w  / (float)window_h;
-        if (real_aspect > fbo_aspect) {
-            // Real is wider than FBO → pillarbox (bars on left/right).
-            dst_h = window_h;
-            dst_w = (int32_t)((float)window_h * fbo_aspect + 0.5f);
-            if (dst_w > window_w) dst_w = window_w;
-            dst_x = (window_w - dst_w) / 2;
-            dst_y = 0;
-        } else if (real_aspect < fbo_aspect) {
-            // Real is taller than FBO → letterbox (bars on top/bottom).
-            dst_w = window_w;
-            dst_h = (int32_t)((float)window_w / fbo_aspect + 0.5f);
-            if (dst_h > window_h) dst_h = window_h;
-            dst_x = 0;
-            dst_y = (window_h - dst_h) / 2;
-        }
+    if (publish_for_input) {
+        s_last_dst_x  = dst_x;
+        s_last_dst_y  = dst_y;
+        s_last_dst_w  = dst_w;
+        s_last_dst_h  = dst_h;
+        s_last_real_w = window_w;
+        s_last_real_h = window_h;
     }
-
-    // Publish for input mapping.
-    s_last_dst_x  = dst_x;
-    s_last_dst_y  = dst_y;
-    s_last_dst_w  = dst_w;
-    s_last_dst_h  = dst_h;
-    s_last_real_w = window_w;
-    s_last_real_h = window_h;
 
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
@@ -268,9 +257,9 @@ void composition_blit(int32_t window_w, int32_t window_h)
     glClearColor(OC_DEBUG_COMPOSITION_BARS_RED ? 0.25f : 0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Now narrow the viewport to the aspect-fit rect and draw the FBO
-    // into it. The composite shader reads gl_FragCoord in real-backbuffer
-    // pixels and maps it to scene UVs via (u_dst_offset, u_dst_size).
+    // Narrow the viewport to the dst rect and draw the FBO into it. The
+    // composite shader reads gl_FragCoord in real-backbuffer pixels and
+    // maps it to scene UVs via (u_dst_offset, u_dst_size).
     glViewport(dst_x, dst_y, dst_w, dst_h);
 
     glUseProgram(s_program);
@@ -304,6 +293,51 @@ void composition_blit(int32_t window_w, int32_t window_h)
     if (prev_cull_on)  glEnable(GL_CULL_FACE);    else glDisable(GL_CULL_FACE);
     if (prev_depth_on) glEnable(GL_DEPTH_TEST);   else glDisable(GL_DEPTH_TEST);
     if (prev_blend_on) glEnable(GL_BLEND);        else glDisable(GL_BLEND);
+}
+
+} // namespace
+
+void composition_blit(int32_t window_w, int32_t window_h)
+{
+    if (!s_program || !s_color_tex || window_w <= 0 || window_h <= 0) return;
+
+    // Aspect-fit the scene FBO into a centred rectangle on the real
+    // backbuffer, leave the leftover area black. This is the only layer
+    // that reconciles "real window size" with "FBO size"; everything else
+    // in the engine sees the FBO as its entire screen.
+    int32_t dst_x = 0, dst_y = 0, dst_w = window_w, dst_h = window_h;
+    if (s_scene_w > 0 && s_scene_h > 0) {
+        const float fbo_aspect  = (float)s_scene_w / (float)s_scene_h;
+        const float real_aspect = (float)window_w  / (float)window_h;
+        if (real_aspect > fbo_aspect) {
+            // Real is wider than FBO → pillarbox (bars on left/right).
+            dst_h = window_h;
+            dst_w = (int32_t)((float)window_h * fbo_aspect + 0.5f);
+            if (dst_w > window_w) dst_w = window_w;
+            dst_x = (window_w - dst_w) / 2;
+            dst_y = 0;
+        } else if (real_aspect < fbo_aspect) {
+            // Real is taller than FBO → letterbox (bars on top/bottom).
+            dst_w = window_w;
+            dst_h = (int32_t)((float)window_w / fbo_aspect + 0.5f);
+            if (dst_h > window_h) dst_h = window_h;
+            dst_x = 0;
+            dst_y = (window_h - dst_h) / 2;
+        }
+    }
+
+    draw_composite(dst_x, dst_y, dst_w, dst_h, window_w, window_h,
+                   /*publish_for_input=*/true);
+}
+
+void composition_present_stretched(int32_t dst_x, int32_t dst_y,
+                                   int32_t dst_w, int32_t dst_h,
+                                   int32_t window_w, int32_t window_h)
+{
+    if (window_w <= 0 || window_h <= 0) return;
+    if (dst_w <= 0 || dst_h <= 0) return;
+    draw_composite(dst_x, dst_y, dst_w, dst_h, window_w, window_h,
+                   /*publish_for_input=*/false);
 }
 
 int32_t composition_scene_width()  { return s_scene_w; }
