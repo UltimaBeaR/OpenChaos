@@ -2408,50 +2408,61 @@ void PANEL_last(void)
     }
     } // end msg CENTER_BOTTOM scope
 
-    // Draw road sign flashes.
-    uint64_t dtime = sdl3_get_ticks() - PANEL_sign_time;
+    // Draw road sign flashes. Framed at CENTER_CENTER so the sign stays
+    // anchored inside the centred 4:3 region on non-4:3 FBOs (otherwise
+    // default uniform-scale put it in the lower-left quadrant on
+    // widescreen).
+    {
+        PolyPage::UIModeScope _sign_scope(ui_coords::UIAnchor::CENTER_CENTER);
 
-    if (dtime < 3000) {
-        dtime %= 600;
+        uint64_t dtime = sdl3_get_ticks() - PANEL_sign_time;
 
-        if (dtime < 400) {
-            float du;
-            float dv;
+        if (dtime < 3000) {
+            dtime %= 600;
 
-            float u_mid;
-            float v_mid;
+            if (dtime < 400) {
+                float du;
+                float dv;
 
-            u_mid = (PANEL_sign_which & 1) ? 0.75F : 0.25F;
-            v_mid = (PANEL_sign_which & 2) ? 0.75F : 0.25F;
+                float u_mid;
+                float v_mid;
 
-            du = (PANEL_sign_flip & PANEL_SIGN_FLIP_LEFT_AND_RIGHT) ? -0.25F : +0.25F;
-            dv = (PANEL_sign_flip & PANEL_SIGN_FLIP_TOP_AND_BOTTOM) ? -0.25F : +0.25F;
+                u_mid = (PANEL_sign_which & 1) ? 0.75F : 0.25F;
+                v_mid = (PANEL_sign_which & 2) ? 0.75F : 0.25F;
+
+                du = (PANEL_sign_flip & PANEL_SIGN_FLIP_LEFT_AND_RIGHT) ? -0.25F : +0.25F;
+                dv = (PANEL_sign_flip & PANEL_SIGN_FLIP_TOP_AND_BOTTOM) ? -0.25F : +0.25F;
 
 #define PANEL_SIGN_X 320
-            int iYPos;
-            if (bPanelIsAtBottomOfScreen) {
-                iYPos = 100;
-            } else {
-                iYPos = 480 - 100;
-            }
+                int iYPos;
+                if (bPanelIsAtBottomOfScreen) {
+                    iYPos = 100;
+                } else {
+                    iYPos = 480 - 100;
+                }
 
-            PANEL_draw_quad(
-                PANEL_SIGN_X - 64,
-                iYPos - 64,
-                PANEL_SIGN_X + 64,
-                iYPos + 64,
-                POLY_PAGE_SIGN,
-                0xffffffff,
-                u_mid - du,
-                v_mid - dv,
-                u_mid + du,
-                v_mid + dv);
+                PANEL_draw_quad(
+                    PANEL_SIGN_X - 64,
+                    iYPos - 64,
+                    PANEL_SIGN_X + 64,
+                    iYPos + 64,
+                    POLY_PAGE_SIGN,
+                    0xffffffff,
+                    u_mid - du,
+                    v_mid - dv,
+                    u_mid + du,
+                    v_mid + dv);
 #undef PANEL_SIGN_X
+            }
         }
     }
 
-    // Draw a progress bar when the player is in search mode.
+    // Draw a progress bar when the player is in search mode. Framed at
+    // CENTER_CENTER so the bubble + bar + text stay centred on screen on
+    // any aspect.
     {
+        PolyPage::UIModeScope _search_scope(ui_coords::UIAnchor::CENTER_CENTER);
+
         Thing* darci = NET_PERSON(0);
 
         if (darci) {

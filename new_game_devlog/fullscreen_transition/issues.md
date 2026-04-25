@@ -17,51 +17,6 @@ before touching any UI rendering. Summary of what landed:
 
 ---
 
-## 🟢 TODO — runtime window resize
-
-**What the user wants.** Window should be resizable by the user at runtime
-(drag the OS resize handles), and the rendering should follow the new
-dimensions immediately — or with a short debounce if instant updates lag.
-Config-file window size (`OC_WINDOWED_WIDTH` / `OC_WINDOWED_HEIGHT`) becomes
-the **initial** size only; after launch the user drags as they like.
-
-**Current state.** Window is fixed at launch. SDL resize events aren't
-wired up. `SetDisplay()` is a stub (see
-[`fbo_as_virtual_screen_plan.md`](fbo_as_virtual_screen_plan.md)
-§E4 and §"Post-refactor surface"). `ScreenWidth`/`ScreenHeight` and the
-scene FBO are set once in `OpenDisplay` and never re-evaluated.
-
-**What needs doing.**
-1. Make the SDL window resizable (`SDL_WINDOW_RESIZABLE`).
-2. Listen for `SDL_EVENT_WINDOW_RESIZED` / `PIXEL_SIZE_CHANGED` in
-   `sdl3_bridge.cpp`.
-3. On resize (optionally debounced ~100-200 ms during active drag to
-   avoid per-pixel reallocation), run the same sequence
-   `OpenDisplay` does: recompute FBO dimensions (physical × render-scale,
-   clamped to `[OC_FOV_MIN_ASPECT, OC_FOV_CAP_ASPECT]`), destroy + recreate
-   the scene FBO and its colour/depth attachments, update
-   `ScreenWidth`/`ScreenHeight`, call `ui_coords::recompute(...)` so the
-   framed-UI affine picks up the new size, notify `PolyPage::SetScaling`.
-4. Verify: every subsystem that captured FBO dimensions at init must
-   re-read them on resize. Candidates already noted:
-   - `composition.cpp` — `s_scene_w/h` and the colour/depth textures.
-   - Any cached aspect-fit dst rect in the composition blit.
-   - Frontend / menu transitions that snapshot pixel sizes.
-
-**Tradeoffs.**
-- Instant resize is the best UX but causes GPU texture allocation on
-  every resize event while the user drags; on slow GPUs that's
-  noticeable lag. Short debounce (one reallocation per ~150 ms of
-  "resize idle") is the standard fix.
-- Alt approach: keep the FBO at a fixed high resolution and just
-  re-aspect-fit into whatever window size is current — cheap but
-  wastes GPU memory if the user mostly uses a small window.
-
-**Scope.** Post-1.0 nice-to-have. Not blocking release — current
-config-based launch size works. Logged here so it isn't forgotten.
-
----
-
 ## 🟣 Render scale follow-ups
 
 Render scale + scene FBO + composition pass are implemented (see
@@ -119,20 +74,28 @@ align with it. On 4:3 pixel-identical to original; on portrait everything
 scales uniformly by `g_frame_scale = ScreenW/640` to fit width; on
 widescreen radar/empty stay at the original size pinned to the corners.
 
+**Resolved in subsequent passes:**
+- **Top-of-screen mission countdown** — already framed all along.
+  `PANEL_draw_timer(time, x, y)` stores `x`/`y` in `PANEL_store` but
+  `PANEL_draw_buffered` ignores them and draws at the radar position
+  (`m_iPanelXPos + 171, m_iPanelYPos - 118`) inside the radar's
+  `LEFT_BOTTOM` scope. The `(320, 50)` argument from `eway.cpp` is
+  dead.
+- **Search-mode progress bar / bubble / text** — wrapped in
+  `UIModeScope(CENTER_CENTER)` in `PANEL_last`. Bubble + bar + text
+  now centred on screen on any aspect.
+- **Road-sign flashes** — wrapped in `UIModeScope(CENTER_CENTER)` in
+  `PANEL_last`. Sign quad stays inside the centred 4:3 framed region;
+  `bPanelIsAtBottomOfScreen` keeps placing it at virtual y=100 (top
+  half) or y=380 (bottom half) within the frame, mirroring original
+  panel-vs-sign positioning. Note: this only fixes the *framing* — a
+  separate issue tracks that wrong-way road signs may not actually
+  trigger in vehicle missions (see `known_issues_and_bugs.md` Геймплей).
+
 **Still pending** — other in-game HUD elements that weren't touched by
 the bottom-row pass:
-- **Top-of-screen mission countdown** (`PANEL_draw_timer` at virtual
-  (320, 50) from `eway.cpp`) — should be `CENTER_TOP`.
-- **Search-mode progress bar / bubble / text** — `PANEL_last` lines
-  ~2415-2454, drawn at virtual (320, 220) with hardcoded 320-center
-  math. Currently in default scope, drifts on non-4:3. Should be
-  `CENTER_CENTER`. Verified user-side: it's misplaced on portrait /
-  widescreen.
-- **Road-sign flashes** — `PANEL_last` drawing at virtual (320, 100)
-  or (320, 380) depending on `bPanelIsAtBottomOfScreen`. Default scope.
-  Should be `CENTER_TOP` or `CENTER_BOTTOM` matching the panel position.
-- **"PSX mode" / version-overlay debug text** — `PANEL_last` lines
-  ~2465-2504, drawn at virtual (5, 15) and (20, 20). Debug-only
+- **"PSX mode" / version-overlay debug text** — `PANEL_last` ~lines
+  2494-2540, drawn at virtual (5, 15) and (20, 20). Debug-only
   overlays; should be `LEFT_TOP`.
 - **Kibble / toss animations** — `PANEL_do_tosses()` etc., anchored
   top-centre visually. Needs scope audit.

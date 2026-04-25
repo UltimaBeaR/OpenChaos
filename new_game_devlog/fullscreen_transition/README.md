@@ -141,6 +141,16 @@ Already done:
   ~1-second input grace at the start of the dialogue so a held
   jump/punch/select button doesn't dismiss it instantly — see
   [GAMEPLAY_CHANGES.md](../../GAMEPLAY_CHANGES.md) "Туториал".
+- **Road-sign flashes & search-mode progress bar framed at CENTER_CENTER.**
+  Both blocks in `PANEL_last` ([`panel.cpp`](../../new_game/src/ui/hud/panel.cpp))
+  wrapped in `UIModeScope(CENTER_CENTER)` — sign quad and search
+  bubble/bar/text now stay anchored inside the centred 4:3 region on
+  any aspect. Previously they sat in default uniform-scale scope which
+  pushed them into the lower-left quadrant on widescreen / non-4:3 FBOs.
+  Mission-countdown timer (`PANEL_draw_timer` arg) was already framed
+  via `PANEL_draw_buffered`'s `LEFT_BOTTOM` scope — the (320, 50)
+  argument from `eway.cpp` is dead (stored but ignored, real position
+  is `m_iPanelXPos + 171, m_iPanelYPos - 118` inside the radar).
 - **HUD bottom-row anchors.** Radar / health / weapon / ammo / crime
   rate / beacons / grenade / panel mission timer
   (`PANEL_draw_buffered`) / weapon-switch popup (`PANEL_inventory`) are
@@ -161,13 +171,11 @@ Already done:
   C++ `true` / `false` as zero).
 
 Remaining work — see [`issues.md`](issues.md):
-- **Other in-game HUD elements still unframed** — top-of-screen mission
-  countdown (`PANEL_draw_timer` at virtual (320, 50) from `eway.cpp`),
-  road-sign flashes, search progress bar, PSX / version debug
-  overlays. Same `PolyPage::push_ui_mode` infra — just call sites left
-  to wrap (mostly `CENTER_TOP`).
-- **Runtime window resize (post-1.0)** — see the dedicated TODO
-  section at the top of [`issues.md`](issues.md).
+- **PSX / version debug overlays still unframed** — `PANEL_last`
+  ~lines 2494-2540, drawn at virtual (5, 15) and (20, 20). Debug-only
+  overlays; should be `LEFT_TOP`. Low priority. (Mission-countdown
+  timer, road-sign flashes and search progress bar — already framed,
+  see entries above in "Already done".)
 - **NIGHT lighting pool overflow at wide/tall FOV (post-1.0).**
   `UBYTE`-indexed 256-slot pool overflows when the view gamut exceeds
   255 lo-res map squares (triggered by wide `OC_FOV_MULTIPLIER` or
