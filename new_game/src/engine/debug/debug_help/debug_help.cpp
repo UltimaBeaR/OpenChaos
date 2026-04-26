@@ -19,6 +19,7 @@ bool s_visible = false;
 struct Row { const char* key; const char* desc; };
 const Row s_rows[] = {
     { "F1",        "show this help (5s)"                   },
+    { "F2",        "toggle CRT scanline shader"            },
     { "F3",        "load game   (Shift+F3 save, poo.sav)"  },
     { "F4",        "toggle clouds"                         },
     { "F8",        "toggle single-step mode"               },

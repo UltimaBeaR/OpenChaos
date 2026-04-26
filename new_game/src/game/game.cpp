@@ -84,6 +84,7 @@
 #include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "engine/debug/debug_help/debug_help.h"   // F1 debug hotkey legend
+#include "engine/graphics/graphics_engine/backend_opengl/postprocess/crt_effect.h" // F2 CRT toggle
 #include "things/characters/anim_ids.h" // ANIM_HANDS_UP* for adaptive trigger check
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
@@ -667,6 +668,21 @@ SLONG special_keys(void)
     if (allow_debug_keys && ControlFlag && Keys[KB_Q]) {
         return 1;
     }
+    // F2: toggle CRT scanline shader. Gated behind bangunsnotgames.
+    {
+        static bool f2_was_pressed = false;
+        if (Keys[KB_F2] && allow_debug_keys) {
+            if (!f2_was_pressed) {
+                f2_was_pressed = true;
+                g_crt_enabled ^= 1;
+                if (g_crt_enabled) CONSOLE_text((CBYTE*)"CRT shader on",  3000);
+                else               CONSOLE_text((CBYTE*)"CRT shader off", 3000);
+            }
+        } else if (!Keys[KB_F2]) {
+            f2_was_pressed = false;
+        }
+    }
+
     // F8 toggles single-step mode. Originally bound to the quote key
     // (') — rebound because punctuation keys are opaque in the help
     // legend ("what does ' even mean?"). F8 is the usual debugger

@@ -53,6 +53,11 @@ void composition_blit(int32_t window_w, int32_t window_h);
 int32_t composition_scene_width();
 int32_t composition_scene_height();
 
+// Color texture of the scene FBO (0 if not initialized).
+// Post-process effects (e.g. CRT) may sample this directly instead of
+// reading from the already-upscaled default FB.
+uint32_t composition_get_scene_texture();
+
 // Map a real-backbuffer pixel coordinate (e.g. a mouse event position)
 // into scene-FBO pixel coordinates using the most recent composition
 // target rectangle. Returns true when (win_x, win_y) falls inside the

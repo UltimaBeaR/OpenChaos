@@ -32,6 +32,11 @@
 // unrelated rendering issues.
 #define OC_AA_ENABLE true
 
+// CRT scanline shader — emulates a CGA arcade monitor (crt-lottes, public domain).
+// Applies over the full frame including UI. Toggle at runtime with F2 in
+// bangunsnotgames debug mode.
+#define OC_CRT_ENABLE true
+
 // Horizontal/vertical FOV multiplier applied to the camera lens parameter.
 // 1.0 = original game FOV (unchanged). Higher = wider FOV, world appears
 // smaller (more visible horizontally and vertically, zoom-out effect).

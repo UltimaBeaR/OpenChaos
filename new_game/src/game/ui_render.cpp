@@ -1,5 +1,6 @@
 #include "game/ui_render.h"
 
+#include "engine/graphics/graphics_engine/backend_opengl/postprocess/crt_effect.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
@@ -244,4 +245,8 @@ void ui_render_post_composition(void)
     // draw — scene's first ge_set_viewport call will then populate
     // s_vp_* and the uniform afresh.
     ge_invalidate_uniform_cache();
+
+    // CRT scanline effect runs last — after all UI/HUD — so the filter
+    // covers the full frame just like a real CRT monitor would.
+    crt_effect_apply();
 }

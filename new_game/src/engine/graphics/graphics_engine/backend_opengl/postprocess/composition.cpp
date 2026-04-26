@@ -345,8 +345,9 @@ void composition_blit(int32_t window_w, int32_t window_h)
                    /*publish_for_input=*/true);
 }
 
-int32_t composition_scene_width()  { return s_scene_w; }
-int32_t composition_scene_height() { return s_scene_h; }
+int32_t  composition_scene_width()       { return s_scene_w; }
+int32_t  composition_scene_height()      { return s_scene_h; }
+uint32_t composition_get_scene_texture() { return s_color_tex; }
 
 void composition_get_dst_rect(int32_t* x, int32_t* y, int32_t* w, int32_t* h)
 {
