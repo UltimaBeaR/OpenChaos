@@ -1,40 +1,12 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "things/core/switch.h"
-#include "things/core/switch_globals.h"
-#include "things/core/statedef.h"
 
 // uc_orig: init_switches (fallen/Source/Switch.cpp)
 void init_switches(void)
 {
     memset((UBYTE*)SWITCHES, 0, sizeof(SWITCHES));
     SWITCH_COUNT = 0;
-}
-
-// uc_orig: alloc_switch (fallen/Source/Switch.cpp)
-Thing* alloc_switch(UBYTE type)
-{
-    SLONG c0;
-    Switch* new_switch;
-    Thing* switch_thing = NULL;
-
-    for (c0 = 0; c0 < MAX_SWITCHES; c0++) {
-        if (SWITCHES[c0].SwitchType == SWITCH_NONE) {
-            switch_thing = alloc_thing(CLASS_SWITCH);
-            if (switch_thing) {
-                new_switch = TO_SWITCH(c0);
-                new_switch->SwitchType = type;
-                new_switch->Thing = THING_NUMBER(switch_thing);
-
-                switch_thing->Genus.Switch = new_switch;
-
-                switch_thing->StateFn = switch_functions[type].StateFn;
-                switch_thing->State = STATE_NORMAL;
-            }
-            break;
-        }
-    }
-    return switch_thing;
 }
 
 // uc_orig: free_switch (fallen/Source/Switch.cpp)

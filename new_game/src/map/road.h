@@ -35,16 +35,6 @@ typedef struct
 // Squared distance threshold: car is "approaching" the junction.
 #define NEAR_JUNCTION (JN_RADIUS_OUT * JN_RADIUS_OUT)
 
-// Surface type codes returned by ROAD_get_mapsquare_type.
-// uc_orig: ROAD_TYPE_TARMAC (fallen/Headers/road.h)
-#define ROAD_TYPE_TARMAC 0
-// uc_orig: ROAD_TYPE_GRASS (fallen/Headers/road.h)
-#define ROAD_TYPE_GRASS 1
-// uc_orig: ROAD_TYPE_DIRT (fallen/Headers/road.h)
-#define ROAD_TYPE_DIRT 2
-// uc_orig: ROAD_TYPE_SLIPPERY (fallen/Headers/road.h)
-#define ROAD_TYPE_SLIPPERY 3
-
 // uc_orig: ROAD_sink (fallen/Source/road.cpp)
 // Applies camber and curb height adjustments to road squares in the PAP height map.
 void ROAD_sink(void);
@@ -54,14 +44,6 @@ SLONG ROAD_is_road(SLONG map_x, SLONG map_z);
 
 // uc_orig: ROAD_is_zebra (fallen/Source/road.cpp)
 SLONG ROAD_is_zebra(SLONG map_x, SLONG map_z);
-
-// uc_orig: ROAD_calc_mapsquare_type (fallen/Source/road.cpp)
-// Precomputes the surface type (tarmac/grass/dirt/slippery) for every texture page.
-// Slow — called once on level load.
-void ROAD_calc_mapsquare_type(void);
-
-// uc_orig: ROAD_get_mapsquare_type (fallen/Source/road.cpp)
-SLONG ROAD_get_mapsquare_type(SLONG map_x, SLONG map_z);
 
 // uc_orig: ROAD_wander_calc (fallen/Source/road.cpp)
 // Builds the vehicle wander graph (road nodes + edge list) from map texture data.

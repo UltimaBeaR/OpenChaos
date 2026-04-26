@@ -112,46 +112,6 @@ void NGAMUT_add_line(float p1x, float p1z, float p2x, float p2z)
     }
 }
 
-// uc_orig: NGAMUT_view_square (fallen/DDEngine/Source/NGamut.cpp)
-void NGAMUT_view_square(float mid_x, float mid_z, float radius)
-{
-    SLONG i;
-    SLONG z;
-
-    SLONG zmin;
-    SLONG zmax;
-
-    SLONG xmin;
-    SLONG xmax;
-
-    zmin = SLONG(mid_z - radius);
-    zmax = SLONG(mid_z + radius);
-
-    xmin = SLONG(mid_x - radius);
-    xmax = SLONG(mid_x + radius);
-
-    SATURATE(zmin, 0, NGAMUT_SIZE - 1);
-    SATURATE(zmax, 0, NGAMUT_SIZE - 1);
-
-    SATURATE(xmin, 0, NGAMUT_SIZE - 1);
-    SATURATE(xmax, 0, NGAMUT_SIZE - 1);
-
-    NGAMUT_zmin = zmin;
-    NGAMUT_zmax = zmax;
-
-    NGAMUT_xmin = xmin;
-
-    for (i = 0; i < NGAMUT_SIZE; i++) {
-        NGAMUT_gamut[i].xmin = UC_INFINITY;
-        NGAMUT_gamut[i].xmax = -UC_INFINITY;
-    }
-
-    for (z = zmin; z <= zmax; z++) {
-        NGAMUT_gamut[z].xmin = xmin;
-        NGAMUT_gamut[z].xmax = xmax;
-    }
-}
-
 // uc_orig: NGAMUT_calculate_point_gamut (fallen/DDEngine/Source/NGamut.cpp)
 void NGAMUT_calculate_point_gamut(void)
 {

@@ -12,5 +12,3 @@ UBYTE* ROAD_edge;
 // uc_orig: ROAD_edge_upto (fallen/Source/road.cpp)
 UWORD ROAD_edge_upto;
 
-// uc_orig: ROAD_mapsquare_type (fallen/Source/road.cpp)
-UBYTE ROAD_mapsquare_type[512 / 4];

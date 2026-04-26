@@ -90,8 +90,6 @@ SLONG NIGHT_found_upto;
 
 // uc_orig: NIGHT_first_walkable_prim_point (fallen/Source/night.cpp)
 SLONG NIGHT_first_walkable_prim_point;
-// uc_orig: NIGHT_walkable (fallen/Source/night.cpp)
-NIGHT_Colour NIGHT_walkable[NIGHT_MAX_WALKABLE];
 // uc_orig: NIGHT_roof_walkable (fallen/Source/night.cpp)
 // MAX_ROOF_FACE4 * 4 entries. MAX_ROOF_FACE4=10000 defined in fallen/Headers/memory.h.
 NIGHT_Colour NIGHT_roof_walkable[10000 * 4]; // 10000 = MAX_ROOF_FACE4

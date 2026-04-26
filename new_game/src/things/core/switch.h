@@ -55,9 +55,6 @@ typedef Switch* SwitchPtr;
 // uc_orig: init_switches (fallen/Headers/Switch.h)
 void init_switches(void);
 
-// uc_orig: alloc_switch (fallen/Headers/Switch.h)
-Thing* alloc_switch(UBYTE type);
-
 // uc_orig: free_switch (fallen/Headers/Switch.h)
 void free_switch(Thing* switch_thing);
 

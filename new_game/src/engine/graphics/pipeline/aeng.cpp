@@ -143,8 +143,6 @@ extern SLONG ScreenHeight;
 #define ALT_SHIFT (3)
 
 // Forward declarations for private helpers defined later in the file.
-// uc_orig: AENG_draw_far_facets (fallen/DDEngine/Source/aeng.cpp)
-void AENG_draw_far_facets(void);
 // uc_orig: AENG_draw_box_around_recessed_door (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_box_around_recessed_door(struct DFacet* df, SLONG inside_out);
 // uc_orig: AENG_get_rid_of_unused_dfcache_lighting (fallen/DDEngine/Source/aeng.cpp)
@@ -6623,98 +6621,6 @@ void AENG_draw_city()
     // LOG_EXIT ( AENG_Draw_City )
 
     // TRACE ( "AengOut" );
-}
-
-// uc_orig: AENG_draw_far_facets (fallen/DDEngine/Source/aeng.cpp)
-// Renders building facets at far distance using the lo-res gamut only.
-// Does two camera sets: one with a very large draw distance to compute the lo-res gamut,
-// then restores the normal draw distance at the end.
-void AENG_draw_far_facets(void)
-{
-    SLONG x, z;
-
-    POLY_camera_set(
-        AENG_cam_x,
-        AENG_cam_y,
-        AENG_cam_z,
-        AENG_cam_yaw,
-        AENG_cam_pitch,
-        AENG_cam_roll,
-        129.0F * 256.0F, // float(AENG_DRAW_DIST) * 256.0F*3.0F,
-        AENG_LENS,
-        POLY_SPLITSCREEN_NONE);
-
-    AENG_calc_gamut_lo_only(
-        AENG_cam_x,
-        AENG_cam_y,
-        AENG_cam_z,
-        AENG_cam_yaw,
-        AENG_cam_pitch,
-        AENG_cam_roll,
-        64.0F * 256.0F, // AENG_DRAW_DIST*3,
-        AENG_LENS);
-
-    for (z = AENG_gamut_lo_zmin; z <= AENG_gamut_lo_zmax; z++) {
-        for (x = AENG_gamut_lo_xmin; x <= AENG_gamut_lo_xmax; x++) {
-            ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
-            ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
-
-            {
-                SLONG f_list;
-                SLONG facet;
-                SLONG build;
-                SLONG exit = UC_FALSE;
-
-                f_list = PAP_2LO(x, z).ColVectHead;
-
-                if (f_list) {
-
-                    while (!exit) {
-                        facet = facet_links[f_list];
-
-                        ASSERT(facet);
-
-                        if (facet < 0) {
-                            facet = -facet;
-                            exit = UC_TRUE;
-                        }
-
-                        if (dfacets[facet].Counter[AENG_cur_fc_cam] != SUPERMAP_counter[AENG_cur_fc_cam]) {
-
-                            dfacets[facet].Counter[AENG_cur_fc_cam] = SUPERMAP_counter[AENG_cur_fc_cam];
-
-                            if (dfacets[facet].FacetType == STOREY_TYPE_NORMAL)
-                                build = dfacets[facet].Building;
-                            else
-                                build = 0;
-
-                            if (build && dbuildings[build].Type == BUILDING_TYPE_CRATE_IN || (dfacets[facet].FacetFlags & FACET_FLAG_INSIDE)) {
-                                // Don't draw inside buildings outside.
-                            } else if (dfacets[facet].FacetType == STOREY_TYPE_DOOR) {
-                            } else {
-                                show_facet(facet);
-                                extern void FACET_draw_quick(SLONG facet, UBYTE alpha);
-                                FACET_draw_quick(facet, 0);
-                            }
-                        }
-
-                        f_list++;
-                    }
-                }
-            }
-        }
-    }
-
-    POLY_camera_set(
-        AENG_cam_x,
-        AENG_cam_y,
-        AENG_cam_z,
-        AENG_cam_yaw,
-        AENG_cam_pitch,
-        AENG_cam_roll,
-        float(AENG_DRAW_DIST) * 256.0F,
-        AENG_LENS,
-        POLY_SPLITSCREEN_NONE);
 }
 
 // uc_orig: AENG_draw_warehouse (fallen/DDEngine/Source/aeng.cpp)

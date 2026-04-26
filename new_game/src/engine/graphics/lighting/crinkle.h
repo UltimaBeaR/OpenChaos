@@ -45,12 +45,4 @@ void CRINKLE_do(
     POLY_Point* pp[4],
     SLONG flip);
 
-// uc_orig: CRINKLE_project (fallen/DDEngine/Headers/crinkle.h)
-// Projects an SMAP shadow over the crinkle geometry.
-void CRINKLE_project(
-    CRINKLE_Handle crinkle,
-    float amount,
-    SVector_F poly[4],
-    SLONG flip);
-
 #endif // ENGINE_GRAPHICS_LIGHTING_CRINKLE_H

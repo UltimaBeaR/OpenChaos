@@ -6,12 +6,6 @@ float FACET_direction_matrix[9];
 // uc_orig: dfacets_drawn_this_gameturn (fallen/DDEngine/Source/facet.cpp)
 SLONG dfacets_drawn_this_gameturn;
 
-// uc_orig: iNumFacets (fallen/DDEngine/Source/facet.cpp)
-int iNumFacets = 0;
-
-// uc_orig: iNumFacetTextures (fallen/DDEngine/Source/facet.cpp)
-int iNumFacetTextures = 0;
-
 // uc_orig: facet_seed (fallen/DDEngine/Source/facet.cpp)
 ULONG facet_seed = 0x12345678;
 

@@ -24,13 +24,41 @@ Workflow:
 
 ## Workflow для продолжения чистки
 
-**Текущее состояние uncommitted в working tree** (на 2026-04-26 после батчей 1+3+4+5+6+7):
-- Батчи 1-5 закоммичены в "dead code cleanup: p1"
-- Батчи 6-7 — uncommitted, ~18 dead globals удалены
-- Discards count (DEAD_CODE_REPORT build): 2963 → 2947 (после батча 7)
-- Отфильтрованных dead символов: ~1098 при старте сессии (из них ~18 удалено)
-- Build OK (без ASan)
+**Текущее состояние uncommitted в working tree** (на 2026-04-26 после батчей 1+3+4+5+6+7+8):
+- Батчи 1-7 закоммичены в "dead code cleanup: p1" и "dead code cleanup: p2"
+- Батч 8 — uncommitted
+- Discards count (DEAD_CODE_REPORT build): 2947 → 2933 (после батча 8)
+- Отфильтрованных dead символов: ~1187 при старте батча 8
+- Build OK (с DEAD_CODE_REPORT=ON, без ASan)
 - НЕ закоммичено — пользователь хочет коммитить вручную
+
+**Что было сделано в батче 8 (2026-04-26):**
+
+Стратегия: связки (clusters) — leaf функции + их transitive зависимости. Удалялись вместе.
+
+Удалены (батч 8):
+- `facet_globals.cpp/h`: `iNumFacets`, `iNumFacetTextures`
+- `night_globals.cpp/h`: `NIGHT_walkable[NIGHT_MAX_WALKABLE]`
+- `night.h`: `NIGHT_MAX_WALKABLE` define + `NIGHT_WALKABLE_POINT` macro
+- `facet.cpp/h`: `FACET_draw_quick`, `FACET_draw_walkable_old`, `FACET_project_crinkled_shadow`
+- `crinkle.cpp/h`: `CRINKLE_project` (только caller был мёртвый FACET_project_crinkled_shadow)
+- `ngamut.cpp/h`: `NGAMUT_view_square`
+- `switch.cpp/h`: `alloc_switch` (caller `switch_functions`)
+- `switch_globals.cpp/h`: удалены целиком (только содержали `switch_functions[]`)
+- `CMakeLists.txt`: убран `switch_globals.cpp`
+- `road.cpp/h`: `ROAD_calc_mapsquare_type`, `ROAD_get_mapsquare_type`, `ROAD_TYPE_*` constants
+- `road_globals.cpp/h`: `ROAD_mapsquare_type[]`
+- `aeng.cpp`: `AENG_draw_far_facets` (caller мёртвого `FACET_draw_quick`)
+
+Пропущено:
+- `env_inifile` — caller `ENV_load` жив, dc_leaf_check.py ошибся в классификации
+- `LIGHT_building_point` — caller `BUILD_draw` жив в исходнике (transitive, нужно удалять вместе с `BUILD_draw`)
+- `find_anim_fight_height` — вызов в живом `should_i_block` (компилятор оптимизировал, но source-ref есть)
+
+Уроки батча 8:
+- Удаление include из .h может сломать транзитивные цепочки (`aeng.h` из `crinkle.h` — восстановлен)
+- `--gc-sections` требует разрешения всех символов ДО прунинга → нельзя удалять callee без caller
+- dc_leaf_check.py ненадёжен на Windows — проверять grep'ом вручную
 
 **Что было сделано в этой сессии (батчи 6-7):**
 
@@ -340,3 +368,4 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-26 | Batch 5 | ui_coords (5 funcs + .h decls), game_graphics_engine (3 GERenderState methods), overlay (4 funcs: should_i_add_message, show_help_text, OVERLAY_draw_tracked_enemies, add_damage_value, add_damage_value_thing — пропустил overlay_beacons тк живой caller в game.cpp:519), combat (4 funcs: find_possible_combat_target, find_hit_value, show_fight_range, is_person_under_attack — пропустил find_anim_fight_height тк compiler оптимизировал вызов в живом should_i_block но в исходнике вызов остался), vehicle (4: VEH_dealloc, VEH_get_assignments, animate_car, free_vehicle), input_actions (3 dead arrays: action_ladder/flip_left/flip_right + 2 funcs: get_last_input, allow_input_autorepeat — пропустил continue_action, set_look_pitch, lock_to_compass, pre_process_input тк live callers in person.cpp). | -38 discards, build OK |
 | 2026-04-26 | Batch 6 | leaf globals: BAT_state_name, thug_states, history_thing, PERSON_mode_name, dir_to_angle, demo_text, playbacks, help_text, help_xlat, grapple[], kicks[][], punches[][] (12 globals в 8 файлах). Пропущен find_anim_fight_height — вызов из живого should_i_block (compiler оптимизировал, но source-ref остался). | -12 discards, build OK |
 | 2026-04-26 | Batch 7 | leaf globals: gang_angle_priority, SOUNDENV_gndquads, body_part_parent_numbers (из hierarchy_globals.cpp + 2 .h), amb_choice + AMB_NUM_CHOICES (game_tick_globals) | -4 discards, build OK |
+| 2026-04-26 | Batch 8 | facet cluster (3 funcs + 2 globals + night_globals/h macros), crinkle_project, ngamut_view_square, switch cluster (alloc_switch + switch_functions + switch_globals.cpp/h deleted), road cluster (2 funcs + ROAD_mapsquare_type + ROAD_TYPE_* consts), AENG_draw_far_facets | -14 discards, build OK |

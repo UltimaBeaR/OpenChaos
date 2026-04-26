@@ -92,8 +92,6 @@ extern SLONG NIGHT_found_upto;
 
 // uc_orig: NIGHT_first_walkable_prim_point (fallen/Source/night.cpp)
 extern SLONG NIGHT_first_walkable_prim_point;
-// uc_orig: NIGHT_walkable (fallen/Source/night.cpp)
-extern NIGHT_Colour NIGHT_walkable[NIGHT_MAX_WALKABLE];
 // uc_orig: NIGHT_roof_walkable (fallen/Source/night.cpp)
 extern NIGHT_Colour NIGHT_roof_walkable[];
 

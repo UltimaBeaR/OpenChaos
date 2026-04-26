@@ -418,12 +418,6 @@ UBYTE NIGHT_dfcache_create(UWORD dfacet_index);
 // uc_orig: NIGHT_dfcache_destroy (fallen/Headers/Night.h)
 void NIGHT_dfcache_destroy(UBYTE dfcache_index);
 
-// uc_orig: NIGHT_MAX_WALKABLE (fallen/Headers/Night.h)
-#define NIGHT_MAX_WALKABLE 15000
-
-// uc_orig: NIGHT_WALKABLE_POINT (fallen/Headers/Night.h)
-#define NIGHT_WALKABLE_POINT(p) (NIGHT_walkable[(p) - NIGHT_first_walkable_prim_point])
-
 // uc_orig: NIGHT_ROOF_WALKABLE_POINT (fallen/Headers/Night.h)
 #define NIGHT_ROOF_WALKABLE_POINT(f, p) (NIGHT_roof_walkable[f * 4 + p])
 

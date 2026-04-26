@@ -9,12 +9,6 @@ extern float FACET_direction_matrix[9];
 // uc_orig: dfacets_drawn_this_gameturn (fallen/DDEngine/Source/facet.cpp)
 extern SLONG dfacets_drawn_this_gameturn;
 
-// uc_orig: iNumFacets (fallen/DDEngine/Source/facet.cpp)
-extern int iNumFacets;
-
-// uc_orig: iNumFacetTextures (fallen/DDEngine/Source/facet.cpp)
-extern int iNumFacetTextures;
-
 // uc_orig: facet_seed (fallen/DDEngine/Source/facet.cpp)
 extern ULONG facet_seed;
 

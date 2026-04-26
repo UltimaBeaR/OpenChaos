@@ -108,25 +108,13 @@ void FACET_draw(SLONG facet, UBYTE alpha);
 // barbed wire, multi-textured warehouse walls, etc.
 void FACET_draw_rare(SLONG facet, UBYTE alpha);
 
-// uc_orig: FACET_draw_quick (fallen/DDEngine/Source/facet.cpp)
-// Alternate version of FACET_draw used from the SUPERFACET cache path.
-void FACET_draw_quick(SLONG facet, UBYTE alpha);
-
 // uc_orig: FACET_draw_walkable (fallen/DDEngine/Source/facet.cpp)
 // Draws roof/walkable surface geometry for a building.
 void FACET_draw_walkable(SLONG build);
 
-// uc_orig: FACET_draw_walkable_old (fallen/DDEngine/Source/facet.cpp)
-// Older walkable draw path (kept for reference).
-void FACET_draw_walkable_old(SLONG build);
-
 // uc_orig: DRAW_ladder (fallen/DDEngine/Source/facet.cpp)
 // Draws a sewer ladder geometry.
 void DRAW_ladder(struct DFacet* p_facet);
-
-// uc_orig: FACET_project_crinkled_shadow (fallen/DDEngine/Source/facet.cpp)
-// Projects a shadow onto a crinkle-bump-mapped facet surface.
-void FACET_project_crinkled_shadow(SLONG facet);
 
 // uc_orig: FACET_draw_ns_ladder (fallen/DDEngine/Headers/facet.h)
 // Draws a sewer (NS) ladder by index and coordinate range.
