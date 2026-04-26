@@ -413,8 +413,6 @@ void FRONTEND_show_xition()
     }
 }
 
-extern UBYTE* image_mem;
-
 // uc_orig: FRONTEND_stop_xition (fallen/Source/frontend.cpp)
 // Finalizes a transition by making the full background surface active.
 void FRONTEND_stop_xition()

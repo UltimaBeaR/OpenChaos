@@ -134,9 +134,6 @@ struct GEVertex {
 // Called once at startup after window creation.
 void ge_init();
 
-// Called once at shutdown.
-void ge_shutdown();
-
 // ---------------------------------------------------------------------------
 // Frame
 // ---------------------------------------------------------------------------
@@ -179,9 +176,6 @@ void ge_set_perspective_correction(bool enabled);
 // ---------------------------------------------------------------------------
 
 void ge_bind_texture(GETextureHandle tex);
-// Returns true if the currently bound texture has an alpha channel.
-// Used by the shader to select correct ALPHAOP for D3DTBLEND_MODULATE.
-bool ge_bound_texture_contains_alpha();
 // Override the alpha flag for the currently bound texture.
 // Used by outro which creates GL textures outside the game texture pool.
 void ge_set_bound_texture_has_alpha(bool has_alpha);
@@ -190,17 +184,12 @@ void ge_set_bound_texture_has_alpha(bool has_alpha);
 // Drawing
 // ---------------------------------------------------------------------------
 
-void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t count);
 void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t vert_count,
                                const uint16_t* indices, uint32_t index_count);
 
 // Overloads for lit vertices (world-space, pre-lit).
 void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* verts, uint32_t vert_count,
                                    const uint16_t* indices, uint32_t index_count);
-
-// Overloads for unlit vertices (world-space, requires transformation).
-void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts, uint32_t vert_count,
-                                     const uint16_t* indices, uint32_t index_count);
 
 // ---------------------------------------------------------------------------
 // Transforms
@@ -261,13 +250,6 @@ void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
 void ge_set_scissor(int32_t x, int32_t y, int32_t w, int32_t h);
 void ge_disable_scissor();
 
-// Fill a rectangle (in top-left framebuffer-pixel coordinates) with a solid
-// colour. Uses scissored glClear internally. Used for pillarbox bars on
-// ultra-wide aspect ratios. Coordinates are in current-framebuffer pixels
-// (gl_context_get_width/height space).
-void ge_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h,
-                  uint8_t r, uint8_t g, uint8_t b);
-
 // ---------------------------------------------------------------------------
 // Background
 // ---------------------------------------------------------------------------
@@ -323,12 +305,6 @@ void ge_destroy_background_surface();
 void ge_init_back_image(const char* name);
 void ge_show_back_image(bool in_3d_frame = true);
 void ge_reset_back_image();
-
-// ---------------------------------------------------------------------------
-// Cutscene playback
-// ---------------------------------------------------------------------------
-
-void ge_run_cutscene(int32_t id);
 
 // ---------------------------------------------------------------------------
 // Video rendering (used by engine/video/video_player.cpp)
@@ -423,9 +399,6 @@ GEScreenSurface ge_load_screen_surface(const char* filename);
 // Release a screen surface.
 void ge_destroy_screen_surface(GEScreenSurface surface);
 
-// Restore a screen surface after device-lost (reload from source).
-void ge_restore_screen_surface(GEScreenSurface surface);
-
 // Set the active background override surface (shown behind 3D scene).
 void ge_set_background_override(GEScreenSurface surface);
 GEScreenSurface ge_get_background_override();
@@ -476,9 +449,6 @@ void ge_get_texture_pixel_format(int32_t page,
     int32_t* mask_r, int32_t* mask_g, int32_t* mask_b, int32_t* mask_a,
     int32_t* shift_r, int32_t* shift_g, int32_t* shift_b, int32_t* shift_a);
 
-
-// Check if a texture page is loaded.
-bool ge_is_texture_loaded(int32_t page);
 
 // Debug: paint a solid color block on the front surface (crash diagnostics).
 void ge_debug_paint_block(uint32_t color);
@@ -588,16 +558,11 @@ void ge_pop_render_state();
 // ---------------------------------------------------------------------------
 // Lightweight path for small engine-generated textures (bitmap font atlases,
 // lookup tables, post-process scratch). Bypasses the page/TGA/mipmap system.
-// Caller owns the handle and must release it via ge_destroy_user_texture.
-
 // Create a 2D texture from a single-channel byte array (one byte = one texel).
 // In the shader the texture samples as (R, R, R, R) via texture swizzle, so a
 // "white-on-black" mask modulates vertex color directly — suitable for 1-bit
 // bitmap fonts. Nearest filtering, clamp-to-edge addressing.
 GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8_t* pixels);
-
-// Release a texture allocated via ge_create_user_texture_*.
-void ge_destroy_user_texture(GETextureHandle handle);
 
 // ---------------------------------------------------------------------------
 // Post-process effects
@@ -717,16 +682,8 @@ void ge_set_data_dir(const char* dir);
 // Check if the display is NTSC mode (affects vertical position of some UI elements).
 bool ge_is_ntsc();
 
-// ---------------------------------------------------------------------------
-// Display driver enumeration (video settings menu)
-// ---------------------------------------------------------------------------
-
-// Callback for ge_enumerate_drivers: called once per available driver.
-// name: driver display name, is_primary: whether it's the primary adapter,
-// is_current: whether it's the currently selected driver.
+// Enumerate available display drivers. Calls callback once per driver.
 using GEDriverEnumCallback = void (*)(const char* name, bool is_primary, bool is_current, void* ctx);
-
-// Enumerate available display drivers. Calls callback for each driver.
 void ge_enumerate_drivers(GEDriverEnumCallback callback, void* ctx);
 
 // ===========================================================================

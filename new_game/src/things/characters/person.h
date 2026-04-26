@@ -35,10 +35,6 @@ void set_locked_anim(Thing* p_person, SLONG anim, SLONG sub_object);
 // uc_orig: set_locked_anim_angle (fallen/Source/Person.cpp)
 void set_locked_anim_angle(Thing* p_person, SLONG anim, SLONG sub_object, SLONG dangle);
 
-// Variant using game_chunk[AnimType] for animation lookup.
-// uc_orig: set_locked_anim_of_type (fallen/Source/Person.cpp)
-void set_locked_anim_of_type(Thing* p_person, SLONG anim, SLONG sub_object);
-
 // Returns true if the current animation frame index >= frameindex (for syncing effects).
 // uc_orig: MagicFrameCheck (fallen/Source/Person.cpp)
 BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex);
@@ -76,10 +72,6 @@ BOOL PersonIsMIB(Thing* p_person);
 // Helper: gets/sets PersonID on the DrawTween based on currently equipped item.
 // uc_orig: set_persons_personid (fallen/Source/Person.cpp)
 void set_persons_personid(Thing* p_person);
-
-// Helper: sets player_visited[x][z] bit to mark the map tile as visited.
-// uc_orig: set_player_visited (fallen/Source/Person.cpp)
-void set_player_visited(UBYTE x, UBYTE z);
 
 // Distance from person_a's pelvis to person_b's pelvis.
 // uc_orig: dist_to_target_pelvis (fallen/Source/Person.cpp)
@@ -130,10 +122,6 @@ SLONG footstep_wave(Thing* p_person);
 // uc_orig: is_there_room_behind_person (fallen/Source/Person.cpp)
 SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind);
 
-// Returns the fractional position along a collision facet at (x,z).
-// uc_orig: get_along_facet (fallen/Source/Person.cpp)
-SLONG get_along_facet(SLONG x, SLONG z, SLONG colvect);
-
 // Sets person into a death/knockdown state appropriate for death_type and aggressor.
 // uc_orig: set_person_dead (fallen/Source/Person.cpp)
 void set_person_dead(Thing* p_thing, Thing* p_aggressor, SLONG death_type, SLONG behind, SLONG height);
@@ -146,14 +134,6 @@ void knock_person_down(Thing* p_person, SLONG hitpoints, SLONG origin_x, SLONG o
 // uc_orig: person_bodge_forward (fallen/Source/Person.cpp)
 void person_bodge_forward(Thing* p_person, SLONG dist);
 
-// Returns true if there is a clear line-of-sight between the two persons' heads.
-// uc_orig: los_between_heads (fallen/Source/Person.cpp)
-SLONG los_between_heads(Thing* person_1, Thing* person_2);
-
-// Plays a tin-pan sound and turns nearby idle NPCs to look at (x,y,z).
-// uc_orig: oscilate_tinpanum (fallen/Source/Person.cpp)
-void oscilate_tinpanum(SLONG x, SLONG y, SLONG z, Thing* p_thing, SLONG vol);
-
 // Relative bearing from person to target in 256-unit circle (0 = behind, 128 = ahead).
 // uc_orig: get_dangle (fallen/Source/Person.cpp)
 SLONG get_dangle(Thing* p_person, Thing* p_target);
@@ -162,10 +142,6 @@ SLONG get_dangle(Thing* p_person, Thing* p_target);
 // range=0 uses default (8<<8); no_los=1 skips geometric LOS check (FOV only).
 // uc_orig: can_a_see_b (fallen/Source/Person.cpp)
 SLONG can_a_see_b(Thing* p_person_a, Thing* p_thing_b, SLONG range = 0, SLONG no_los = 0);
-
-// Returns true if this person can see the player character.
-// uc_orig: can_i_see_player (fallen/Source/Person.cpp)
-SLONG can_i_see_player(Thing* p_person);
 
 // Returns true if person can see the world-space point (x,y,z).
 // uc_orig: can_i_see_place (fallen/Source/Person.cpp)
@@ -182,14 +158,6 @@ SLONG set_person_vault(Thing* p_person, SLONG facet);
 // Attempts a half-block step up over facet; returns true if climb was initiated.
 // uc_orig: set_person_climb_half (fallen/Source/Person.cpp)
 SLONG set_person_climb_half(Thing* p_person, SLONG facet);
-
-// Returns true if person can see player 0.
-// uc_orig: can_i_see_player (fallen/Source/Person.cpp)
-SLONG can_i_see_player(Thing* p_person);
-
-// Checks if person can see any enemies and starts pursuit if so.
-// uc_orig: do_look_for_enemies (fallen/Source/Person.cpp)
-void do_look_for_enemies(Thing* p_person);
 
 // Per-frame player-specific updates: fight mode, boredom timer, camera roll.
 // uc_orig: general_process_player (fallen/Source/Person.cpp)
@@ -261,23 +229,11 @@ SLONG person_normal_animate(Thing* p_person);
 // uc_orig: person_backwards_animate (fallen/Source/Person.cpp)
 SLONG person_backwards_animate(Thing* p_person);
 
-// Camera helpers — bodies removed before shipping in the original.
-// uc_orig: camera_shoot (fallen/Source/Person.cpp)
-void camera_shoot(void);
-// uc_orig: camera_fight (fallen/Source/Person.cpp)
-void camera_fight(void);
-// uc_orig: camera_normal (fallen/Source/Person.cpp)
-void camera_normal(void);
-
 // --- chunk 4: set_person_aim..drop_all_items ---
 
 // Sets person into aiming stance using their current weapon.
 // uc_orig: set_person_aim (fallen/Source/Person.cpp)
 void set_person_aim(Thing* p_person, SLONG locked = 0);
-
-// Checks if the vehicle is driven or occupied by a MIB agent.
-// uc_orig: VehicleBelongsToMIB (fallen/Source/Person.cpp)
-UBYTE VehicleBelongsToMIB(Thing* p_target);
 
 // Computes damage dealt to p_target when p_person shoots.
 // Returns 0 on miss. Sets *gun_type to one of HIT_TYPE_GUN_SHOT_*.
@@ -356,10 +312,6 @@ void set_person_idle(Thing* p_person);
 // uc_orig: set_person_locked_idle_ready (fallen/Source/Person.cpp)
 void set_person_locked_idle_ready(Thing* p_person);
 
-// Checks if person's back is against a wall and sets sidle sub-state. Returns 1 if active.
-// uc_orig: set_person_sidle (fallen/Source/Person.cpp)
-SLONG set_person_sidle(struct Thing* p_person);
-
 // Starts a flip animation (0=left, 1=right).
 // uc_orig: set_person_flip (fallen/Source/Person.cpp)
 void set_person_flip(Thing* p_person, SLONG dir);
@@ -367,10 +319,6 @@ void set_person_flip(Thing* p_person, SLONG dir);
 // Sets person into running/walking/sneaking/sprint based on current Mode.
 // uc_orig: set_person_running (fallen/Source/Person.cpp)
 void set_person_running(Thing* p_person);
-
-// Sets person running starting from a specific animation frame.
-// uc_orig: set_person_running_frame (fallen/Source/Person.cpp)
-void set_person_running_frame(Thing* p_person, SLONG frame);
 
 // Cycles to the next carried special item and plays the draw sound.
 // uc_orig: set_person_draw_special (fallen/Source/Person.cpp)
@@ -438,10 +386,6 @@ void set_person_walk_backwards(Thing* p_person);
 // uc_orig: set_person_sneaking (fallen/Source/Person.cpp)
 void set_person_sneaking(Thing* p_person);
 
-// Starts a short backward hop (used in fight responses).
-// uc_orig: set_person_hop_back (fallen/Source/Person.cpp)
-void set_person_hop_back(Thing* p_person);
-
 // Returns the best fight-idle animation for the person given their current weapon.
 // uc_orig: find_idle_fight_stance (fallen/Source/Person.cpp)
 SLONG find_idle_fight_stance(Thing* p_person);
@@ -451,10 +395,6 @@ SLONG find_idle_fight_stance(Thing* p_person);
 // Starts a fight step in the given cardinal direction (0=N, 1=E, 2=S, 3=W).
 // uc_orig: set_person_fight_step (fallen/Source/Person.cpp)
 void set_person_fight_step(Thing* p_person, SLONG dir);
-
-// Starts a fight step forward if not already in that animation.
-// uc_orig: set_person_fight_step_forward (fallen/Source/Person.cpp)
-void set_person_fight_step_forward(Thing* p_person);
 
 // Plays the block animation for the current weapon.
 // uc_orig: set_person_block (fallen/Source/Person.cpp)
@@ -475,10 +415,6 @@ void carry_running(Thing* p_person);
 // Begins carrying another person: sets carry state, pickup animations, positions victim.
 // uc_orig: set_person_carry (fallen/Source/Person.cpp)
 void set_person_carry(Thing* p_person, SLONG s_index);
-
-// Stub for setting a vehicle animation (always asserts — disabled in original).
-// uc_orig: set_vehicle_anim (fallen/Source/Person.cpp)
-void set_vehicle_anim(Thing* p_vehicle, SLONG anim);
 
 // --- chunk 6: set_person_uncarry..set_person_pos_for_fence_vault ---
 
@@ -566,10 +502,6 @@ void set_person_standing_jump_backwards(Thing* p_person);
 // uc_orig: set_person_running_jump (fallen/Source/Person.cpp)
 void set_person_running_jump(Thing* p_person);
 
-// Stub for left/right running jump variant (body removed before shipping in original).
-// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
-void set_person_running_jump_lr(Thing* p_person, SLONG dir);
-
 // Checks traverse feasibility in given direction and repositions person on ledge.
 // Returns 1 if traverse is possible, 0 if blocked.
 // uc_orig: traverse_pos (fallen/Source/Person.cpp)
@@ -592,10 +524,6 @@ void set_person_drop_down(Thing* p_person, SLONG flag);
 // Locked-anim variant of set_person_drop_down with explicit DY.
 // uc_orig: set_person_locked_drop_down (fallen/Source/Person.cpp)
 void set_person_locked_drop_down(Thing* p_person, SLONG vely);
-
-// Returns true if the col wall is suitable for a bump-and-turn maneuver.
-// uc_orig: is_wall_good_for_bump_and_turn (fallen/Source/Person.cpp)
-SLONG is_wall_good_for_bump_and_turn(Thing* p_person, SLONG col);
 
 // Returns true if person is facing within vault_da degrees of wall col's normal.
 // Sets *wall_angle. Default vault_da=128 (~22.5 degrees).
@@ -632,10 +560,6 @@ SLONG is_facet_half_step(SLONG facet);
 // Attempts to land person on a fence facet (vault or grab).
 // uc_orig: set_person_land_on_fence (fallen/Source/Person.cpp)
 SLONG set_person_land_on_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG while_walking = 0);
-
-// Positions person against wall for a wall-kick attack.
-// uc_orig: set_person_kick_off_wall (fallen/Source/Person.cpp)
-SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos);
 
 // Switches person to fight mode against their gang attacker if any.
 // uc_orig: fight_any_gang_attacker (fallen/Source/Person.cpp)
@@ -689,10 +613,6 @@ void locked_anim_change_height_type(Thing* p_person, UWORD locked_object, UWORD 
 // uc_orig: set_limb_to_y (fallen/Source/Person.cpp)
 SLONG set_limb_to_y(Thing* p_person, SLONG obj, SLONG y);
 
-// Switches to queued_frame while locking a limb in world-space.
-// uc_orig: locked_next_anim_change (fallen/Source/Person.cpp)
-void locked_next_anim_change(Thing* p_person, UWORD locked_object, GameKeyFrame* queued_frame);
-
 // Jumps to the last frame of an animation (typed bank) while locking a limb.
 // uc_orig: locked_anim_change_end_type (fallen/Source/Person.cpp)
 void locked_anim_change_end_type(Thing* p_person, UWORD locked_object, UWORD anim, SLONG type);
@@ -708,10 +628,6 @@ SLONG steep_cable(SLONG facet);
 // Sets person's angle to face downhill along a cable.
 // uc_orig: face_down_cable (fallen/Source/Person.cpp)
 void face_down_cable(Thing* p_person, SLONG facet);
-
-// Returns the cable's angle closest to person's current facing (0-2047).
-// uc_orig: find_best_cable_angle (fallen/Source/Person.cpp)
-SLONG find_best_cable_angle(Thing* p_person, SLONG facet);
 
 // --- chunk 8: grab_ledge..do_person_on_cable ---
 
@@ -767,10 +683,6 @@ ULONG check_limb_pos_on_ladder(Thing* p_person, SLONG sub_part, SLONG i_am_going
 // uc_orig: check_limb_pos_on_fence (fallen/Source/Person.cpp)
 SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part);
 
-// Returns UC_TRUE if the sub_part limb is along (not off the end of) the fence facet.
-// uc_orig: check_limb_pos_on_fence_sideways (fallen/Source/Person.cpp)
-SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part);
-
 // STATE_CLIMB_LADDER state machine: handles all ladder sub-states.
 // uc_orig: fn_person_laddering (fallen/Source/Person.cpp)
 void fn_person_laddering(Thing* p_person);
@@ -778,10 +690,6 @@ void fn_person_laddering(Thing* p_person);
 // STATE_CLIMBING state machine: handles all fence/cable climbing sub-states.
 // uc_orig: fn_person_climbing (fallen/Source/Person.cpp)
 void fn_person_climbing(Thing* p_person);
-
-// Sets person's facing angle to be along the cable they are on.
-// uc_orig: set_cable_angle (fallen/Source/Person.cpp)
-void set_cable_angle(Thing* p_person);
 
 // Updates person Y to track the cable height at their current XZ position.
 // uc_orig: do_person_on_cable (fallen/Source/Person.cpp)
@@ -792,10 +700,6 @@ void do_person_on_cable(Thing* p_person);
 // STATE_DANGLING state machine: hanging, falling from ledge/cable, zip-wire, landing.
 // uc_orig: fn_person_dangling (fallen/Source/Person.cpp)
 void fn_person_dangling(Thing* p_person);
-
-// Initiates a stopping animation after a run (leg=0 left, leg=1 right).
-// uc_orig: set_person_running_stop (fallen/Source/Person.cpp)
-void set_person_running_stop(Thing* p_person, SLONG leg);
 
 // Returns UC_TRUE if a player running into this fence facet should automatically begin climbing it.
 // uc_orig: should_person_automatically_land_on_fence (fallen/Source/Person.cpp)
@@ -886,14 +790,6 @@ void init_dead_tween(void);
 // uc_orig: fn_person_dead (fallen/Source/Person.cpp)
 void fn_person_dead(Thing* p_person);
 
-// Returns quick 2D scalar distance between two Things (in world/256 units).
-// uc_orig: dist_from_a_to_b (fallen/Source/Person.cpp)
-SLONG dist_from_a_to_b(Thing* a, Thing* b);
-
-// Snaps the player's look angle to face the newly selected gun target.
-// uc_orig: player_aim_at_new_person (fallen/Source/Person.cpp)
-void player_aim_at_new_person(Thing* p_person, UWORD new_target);
-
 // Returns the angle from the person toward their current Target (0-2047).
 // uc_orig: get_angle_to_target (fallen/Source/Person.cpp)
 SLONG get_angle_to_target(Thing* p_person);
@@ -913,11 +809,6 @@ SLONG might_i_be_a_villain(Thing* p_person);
 // Returns 1 if person is a thug (Rasta, Grey, Red, or Tramp), else 0.
 // uc_orig: am_i_a_thug (fallen/Source/Person.cpp)
 SLONG am_i_a_thug(Thing* p_person);
-
-// Returns an aim-quality benefit (in ticks) based on distance to target.
-// Closer = higher benefit. Returns 0 if negative.
-// uc_orig: calc_dist_benefit_to_gun (fallen/Source/Person.cpp)
-SLONG calc_dist_benefit_to_gun(Thing* p_person, SLONG dist);
 
 // Updates the gun-sight crosshair position and tweaks look_pitch toward the target.
 // uc_orig: highlight_gun_target (fallen/Source/Person.cpp)
@@ -956,14 +847,6 @@ void fn_person_wait(Thing* p_person);
 // uc_orig: turn_to_face_thing (fallen/Source/Person.cpp)
 SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow);
 
-// Instantly snaps person's angle to face p_target (no speed-limiting).
-// uc_orig: turn_to_face_thing_quick (fallen/Source/Person.cpp)
-void turn_to_face_thing_quick(Thing* p_person, Thing* p_target);
-
-// Returns the vertical pitch angle (0-2047) from person to p_target.
-// uc_orig: get_pitch_to_thing_quick (fallen/Source/Person.cpp)
-SLONG get_pitch_to_thing_quick(Thing* p_person, Thing* p_target);
-
 // Starts the weapon draw animation for special_type and enters STATE_GUN/draw sub-state.
 // uc_orig: set_person_draw_item (fallen/Source/Person.cpp)
 void set_person_draw_item(Thing* p_person, SLONG special_type);
@@ -983,10 +866,6 @@ SLONG set_face_thing(Thing* p_person, Thing* p_target);
 // Gradually turns person toward p_target by at most 32 angle units per frame.
 // uc_orig: turn_towards_thing (fallen/Source/Person.cpp)
 void turn_towards_thing(Thing* p_person, Thing* p_target);
-
-// STATE_STAND_UP placeholder — fully commented out in original (no-op).
-// uc_orig: fn_person_stand_up (fallen/Source/Person.cpp)
-void fn_person_stand_up(Thing* p_person);
 
 // Old STATE_FIGHT handler — body mostly commented out; asserts immediately.
 // uc_orig: fn_person_fight (fallen/Source/Person.cpp)
@@ -1008,14 +887,6 @@ void set_person_grappling_hook_pickup(Thing* p_person);
 // STATE_GRAPPLING state machine: pickup, windup, and release sub-states for grappling hook.
 // uc_orig: fn_person_grapple (fallen/Source/Person.cpp)
 void fn_person_grapple(Thing* p_person);
-
-// Always asserts — unfinished MAV targeting by world coordinate.
-// uc_orig: set_person_mav_to_xz (fallen/Source/Person.cpp)
-void set_person_mav_to_xz(Thing* p_person, SLONG x, SLONG z);
-
-// Always asserts — unfinished MAV targeting by Thing.
-// uc_orig: set_person_mav_to_thing (fallen/Source/Person.cpp)
-void set_person_mav_to_thing(Thing* p_person, Thing* p_target);
 
 // Returns which surface type (metal, water, etc.) the person is standing on in sewers.
 // uc_orig: person_is_on_sewer (fallen/Source/Person.cpp)
@@ -1084,18 +955,10 @@ void fn_person_hug_wall(Thing* p_person);
 // uc_orig: fn_person_circle (fallen/Source/Person.cpp)
 void fn_person_circle(Thing* p_person);
 
-// Legacy circling function — superseded by fn_person_circle (kept for reference).
-// uc_orig: fn_person_circle_old (fallen/Source/Person.cpp)
-void fn_person_circle_old(Thing* p_person);
-
 // Returns person render scale in 8.8 fixed point (256 = normal size).
 // Called ~15 times per character per frame from the figure renderer.
 // uc_orig: person_get_scale (fallen/Source/Person.cpp)
 SLONG person_get_scale(Thing* t);
-
-// Returns how many game ticks (1/20 s each) the given animation takes to play once.
-// uc_orig: how_long_is_anim (fallen/Source/Person.cpp)
-SLONG how_long_is_anim(SLONG anim);
 
 // Returns true if the person is in a state where conversation can be triggered.
 // uc_orig: person_ok_for_conversation (fallen/Source/Person.cpp)
@@ -1104,10 +967,6 @@ SLONG person_ok_for_conversation(Thing* p_person);
 // Enters the STATE_FLOAT/up sub-state (person floats upward, used by Bane boss summon).
 // uc_orig: set_person_float_up (fallen/Source/Person.cpp)
 void set_person_float_up(Thing* p_person);
-
-// Transitions from floating to the downward float sub-state. Only call while already floating.
-// uc_orig: set_person_float_down (fallen/Source/Person.cpp)
-void set_person_float_down(Thing* p_person);
 
 // STATE_FLOAT state machine: float up, bob in place, float back down to ground level.
 // uc_orig: fn_person_float (fallen/Source/Person.cpp)
@@ -1136,10 +995,6 @@ void set_thing_velocity(Thing* t_thing, SLONG vel);
 // Set current animation for a person (immediate, no tween).
 // uc_orig: set_anim (fallen/Source/Person.cpp)
 void set_anim(Thing* p_person, SLONG anim);
-
-// Tween smoothly from current animation to the new one.
-// uc_orig: tween_to_anim (fallen/Source/Person.cpp)
-void tween_to_anim(Thing* p_person, SLONG anim);
 
 // Queue an animation to play after the current one finishes.
 // uc_orig: queue_anim (fallen/Source/Person.cpp)

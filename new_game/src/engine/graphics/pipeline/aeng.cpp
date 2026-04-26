@@ -2148,9 +2148,6 @@ void AENG_draw_city()
                 ASSERT(WITHIN(x, 0, MAP_WIDTH - 1));
                 ASSERT(WITHIN(z, 0, MAP_HEIGHT - 1));
 
-                extern UBYTE player_visited[16][128];
-                //			player_visited[x>>3][z]|=1<<(x&7);
-
                 ph = &PAP_2HI(x, z);
                 // show_gamut_hi(x,z);
 

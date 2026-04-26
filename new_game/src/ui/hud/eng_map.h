@@ -13,10 +13,6 @@ void MAP_beacon_init(void);
 // uc_orig: MAP_pulse_init (fallen/DDEngine/Source/engineMap.cpp)
 void MAP_pulse_init(void);
 
-// Drawn every frame while the map screen is active.
-// uc_orig: MAP_draw (fallen/DDEngine/Headers/map.h)
-void MAP_draw(void);
-
 // Per-frame beacon and pulse animation update.
 // uc_orig: MAP_process (fallen/DDEngine/Headers/map.h)
 void MAP_process(void);

@@ -4,11 +4,9 @@
 // Phase 3: texture loading, binding, font extraction, user pages.
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/graphics_engine/outro_graphics_engine.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_context.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
-#include "engine/graphics/graphics_engine/backend_opengl/postprocess/wibble_effect.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
@@ -135,9 +133,6 @@ static GEMatrix s_projection_matrix;
 
 // Fullscreen.
 static bool s_fullscreen = false;
-
-// Display changed flag.
-static bool s_display_changed = false;
 
 // Background override.
 static GEScreenSurface s_background_override = GE_SCREEN_SURFACE_NONE;
@@ -719,20 +714,6 @@ void ge_init()
     // Shaders are initialized lazily on first draw call.
 }
 
-void ge_shutdown()
-{
-    // Destroy all textures.
-    for (int32_t i = 0; i < GL_TEX_MAX; i++) {
-        if (s_textures[i].type != GE_TEXTURE_TYPE_UNUSED) {
-            gl_destroy_texture(s_textures[i]);
-        }
-    }
-
-    destroy_shaders();
-    gl_wibble_effect_shutdown();
-    gl_context_destroy();
-}
-
 // ---------------------------------------------------------------------------
 // Frame
 // ---------------------------------------------------------------------------
@@ -1063,11 +1044,6 @@ void ge_bind_texture(GETextureHandle tex)
     }
 }
 
-bool ge_bound_texture_contains_alpha()
-{
-    return s_bound_texture_has_alpha;
-}
-
 void ge_set_bound_texture_has_alpha(bool has_alpha)
 {
     s_bound_texture_has_alpha = has_alpha;
@@ -1076,33 +1052,6 @@ void ge_set_bound_texture_has_alpha(bool has_alpha)
 // ---------------------------------------------------------------------------
 // Drawing
 // ---------------------------------------------------------------------------
-
-void ge_draw_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t count)
-{
-    if (!count) return;
-    if (!init_shaders()) return;
-
-    if (s_cached_program != s_program_tl) {
-        glUseProgram(s_program_tl);
-        s_cached_program = s_program_tl;
-        s_uniforms_ever_uploaded = false;
-    }
-
-    set_frag_uniforms(
-        s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,
-        s_tl_u_alpha_test_enabled, s_tl_u_alpha_ref, s_tl_u_alpha_func,
-        s_tl_u_fog_enabled, s_tl_u_fog_color, s_tl_u_fog_near, s_tl_u_fog_far,
-        s_tl_u_specular_enabled, s_tl_u_color_key_enabled, s_tl_u_tex_has_alpha,
-        s_tl_u_farfacet_mode);
-
-    glBindVertexArray(s_vao_tl);
-    glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-    glBufferData(GL_ARRAY_BUFFER, count * sizeof(GEVertexTL), verts, GL_STREAM_DRAW);
-
-    GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
-    glDrawArrays(gl_mode, 0, count);
-
-}
 
 void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t vert_count,
                                const uint16_t* indices, uint32_t index_count)
@@ -1207,13 +1156,6 @@ void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* vert
     ge_draw_indexed_primitive(type, tl, vert_count, indices, index_count);
 }
 
-void ge_draw_indexed_primitive_unlit(GEPrimitiveType type, const GEVertex* verts, uint32_t vert_count,
-                                     const uint16_t* indices, uint32_t index_count)
-{
-    // Never called in the codebase (0 call sites). Stub for now.
-    (void)type; (void)verts; (void)vert_count; (void)indices; (void)index_count;
-}
-
 // ---------------------------------------------------------------------------
 // Transforms
 // ---------------------------------------------------------------------------
@@ -1305,33 +1247,6 @@ void ge_disable_scissor()
     }
 }
 
-void ge_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h,
-                  uint8_t r, uint8_t g, uint8_t b)
-{
-    if (w <= 0 || h <= 0) return;
-
-    // Snapshot scissor + clear-colour so the caller's state is untouched.
-    GLboolean was_enabled = GL_FALSE;
-    glGetBooleanv(GL_SCISSOR_TEST, &was_enabled);
-    GLint prev_scissor[4] = {};
-    glGetIntegerv(GL_SCISSOR_BOX, prev_scissor);
-    GLfloat prev_clear[4] = {};
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, prev_clear);
-
-    int32_t screen_h = gl_context_get_height();
-    glEnable(GL_SCISSOR_TEST);
-    glScissor(x, screen_h - y - h, w, h);
-    glClearColor(float(r) * (1.0F / 255.0F),
-                 float(g) * (1.0F / 255.0F),
-                 float(b) * (1.0F / 255.0F),
-                 1.0F);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glClearColor(prev_clear[0], prev_clear[1], prev_clear[2], prev_clear[3]);
-    glScissor(prev_scissor[0], prev_scissor[1], prev_scissor[2], prev_scissor[3]);
-    if (!was_enabled) glDisable(GL_SCISSOR_TEST);
-}
-
 // ---------------------------------------------------------------------------
 // Background
 // ---------------------------------------------------------------------------
@@ -1381,8 +1296,6 @@ int32_t ge_get_screen_height()
     if (s_ui_mode_active && s_ui_vp_h > 0) return s_ui_vp_h;
     return gl_context_get_height();
 }
-int32_t ge_get_screen_bpp()    { return 32; }
-
 void ge_read_framebuffer_rgba(uint8_t* out, int32_t w, int32_t h)
 {
     if (!out || w <= 0 || h <= 0) return;
@@ -1518,18 +1431,6 @@ GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8
     glBindTexture(GL_TEXTURE_2D, (GLuint)prev_tex);
 
     return (GETextureHandle)(uintptr_t)tex;
-}
-
-void ge_destroy_user_texture(GETextureHandle handle)
-{
-    if (handle == GE_TEXTURE_NONE) return;
-    GLuint tex = (GLuint)(uintptr_t)handle;
-    if (s_bound_texture == handle) {
-        s_bound_texture = GE_TEXTURE_NONE;
-        s_bound_texture_has_alpha = false;
-        s_bound_texture_has_mipmaps = false;
-    }
-    glDeleteTextures(1, &tex);
 }
 
 void ge_blit_back_buffer()
@@ -1715,11 +1616,6 @@ void ge_reset_back_image()
 }
 
 // ---------------------------------------------------------------------------
-// Cutscene
-// ---------------------------------------------------------------------------
-
-void ge_run_cutscene(int32_t) {}
-
 // ---------------------------------------------------------------------------
 // Video rendering
 // ---------------------------------------------------------------------------
@@ -1894,23 +1790,15 @@ bool ge_is_primary_driver() { return true; }
 // Display mode management
 // ---------------------------------------------------------------------------
 
-void ge_to_gdi()
-{
-    // No exclusive display mode in OpenGL windowed — no-op.
-}
-
-void ge_from_gdi()
-{
-    // No-op.
-}
-
 void ge_restore_all_surfaces()
 {
     // No device-lost in OpenGL — no-op.
 }
 
-bool ge_is_display_changed() { return s_display_changed; }
-void ge_clear_display_changed() { s_display_changed = false; }
+void ge_to_gdi() {}
+void ge_from_gdi() {}
+bool ge_is_display_changed() { return false; }
+void ge_clear_display_changed() {}
 
 void ge_update_display_rect(void*, bool) {}
 
@@ -1995,8 +1883,6 @@ void ge_destroy_screen_surface(GEScreenSurface surface)
         glDeleteTextures(1, &tex);
     }
 }
-
-void ge_restore_screen_surface(GEScreenSurface) {}  // No device-lost in OpenGL.
 
 void ge_set_background_override(GEScreenSurface surface) { s_background_override = surface; }
 GEScreenSurface ge_get_background_override() { return s_background_override; }
@@ -2330,12 +2216,6 @@ void ge_get_texture_pixel_format(int32_t page,
     *mask_a = 7; *shift_a = 15;  // 1 bit alpha  (8-1=7)
 }
 
-bool ge_is_texture_loaded(int32_t page)
-{
-    if (page < 0 || page >= GL_TEX_MAX) return false;
-    return s_textures[page].type != GE_TEXTURE_TYPE_UNUSED;
-}
-
 void ge_debug_paint_block(uint32_t) {}
 
 // ---------------------------------------------------------------------------
@@ -2426,28 +2306,6 @@ void ge_texture_destroy(int32_t page)
     gl_destroy_texture(s_textures[page]);
 }
 
-void ge_texture_free_all()
-{
-    // Reset render states and sorting.
-    if (s_render_states_reset_callback) s_render_states_reset_callback();
-}
-
-void ge_texture_change_tga(int32_t page, const char* path)
-{
-    if (page < 0 || page >= GL_TEX_MAX) return;
-    GLTexture& tex = s_textures[page];
-
-    if (tex.type == GE_TEXTURE_TYPE_UNUSED) return;
-
-    // Destroy old GL texture but keep metadata (flags, fonts get rebuilt).
-    if (tex.gl_id) { glDeleteTextures(1, &tex.gl_id); tex.gl_id = 0; }
-
-    strncpy(tex.name, path, sizeof(tex.name) - 1);
-    tex.name[sizeof(tex.name) - 1] = '\0';
-
-    gl_load_tga(tex);
-}
-
 void ge_texture_font_on(int32_t page)
 {
     if (page < 0 || page >= GL_TEX_MAX) return;
@@ -2458,21 +2316,6 @@ void ge_texture_font2_on(int32_t page)
 {
     if (page < 0 || page >= GL_TEX_MAX) return;
     s_textures[page].flags |= GL_TEX_FLAG_FONT2;
-}
-
-void ge_texture_set_greyscale(int32_t page, bool greyscale)
-{
-    if (page < 0 || page >= GL_TEX_MAX) return;
-    GLTexture& tex = s_textures[page];
-
-    if ((bool)tex.greyscale != greyscale) {
-        tex.greyscale = greyscale;
-        if (tex.type == GE_TEXTURE_TYPE_TGA) {
-            // Reload to apply greyscale.
-            if (tex.gl_id) { glDeleteTextures(1, &tex.gl_id); tex.gl_id = 0; }
-            gl_load_tga(tex);
-        }
-    }
 }
 
 void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* vScale, float* vOffset)
@@ -2504,12 +2347,6 @@ void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* v
     }
 }
 
-int32_t ge_texture_get_size(int32_t page)
-{
-    if (page < 0 || page >= GL_TEX_MAX) return 0;
-    return s_textures[page].size;
-}
-
 int32_t ge_texture_get_type(int32_t page)
 {
     if (page < 0 || page >= GL_TEX_MAX) return 0;
@@ -2528,16 +2365,15 @@ GETextureHandle ge_get_texture_handle(int32_t page)
     return (GETextureHandle)s_textures[page].gl_id;
 }
 
-Font* ge_get_font(int32_t page, int32_t id)
-{
-    if (page < 0 || page >= GL_TEX_MAX) return nullptr;
-    Font* f = s_textures[page].font_list;
-    while (id && f) {
-        f = f->NextFont;
-        id--;
-    }
-    return f;
-}
+// Dead in DEAD_CODE_REPORT builds (all callers are dead); stubs needed for
+// regular builds where dead callers share a .o with live code.
+void ge_texture_free_all() {}
+void ge_texture_change_tga(int32_t, const char*) {}
+void ge_texture_set_greyscale(int32_t, bool) {}
+int32_t ge_texture_get_size(int32_t) { return 0; }
+Font* ge_get_font(int32_t, int32_t) { return nullptr; }
+int32_t ge_get_screen_bpp() { return 32; }
+void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 
 // ---------------------------------------------------------------------------
 // Font extraction from texture pixels
@@ -2650,7 +2486,6 @@ map_font:
 // ---------------------------------------------------------------------------
 
 bool ge_is_ntsc() { return false; }
-void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 
 // ===========================================================================
 // GERenderState — same as game_graphics_engine.cpp (shared)
@@ -2664,10 +2499,6 @@ void ge_enumerate_drivers(GEDriverEnumCallback, void*) {}
 SLONG ScreenWidth = 640;
 SLONG ScreenHeight = 480;
 SLONG DisplayBPP = 32;
-
-// image_mem: used for loading screen background images (ge_init_back_image).
-static UBYTE s_image_mem_buf[640 * 480 * 3];
-UBYTE* image_mem = s_image_mem_buf;
 
 // ---------------------------------------------------------------------------
 // Display functions (called from game.cpp)
@@ -2901,29 +2732,11 @@ void ge_resize_display()
     }
 }
 
-SLONG SetDisplay(ULONG width, ULONG height, ULONG depth)
-{
-    // Legacy D3D-era API. The actual source of truth is now the OS-
-    // reported window drawable size; arguments are ignored. Delegates
-    // to ge_resize_display so any remaining caller gets the current
-    // behaviour instead of a stale-globals stub.
-    (void)width; (void)height; (void)depth;
-    ge_resize_display();
-    return 0;
-}
-
 SLONG CloseDisplay()
 {
     composition_shutdown();
     gl_context_destroy();
     return 1;
-}
-
-SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b)
-{
-    glClearColor(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    return 0;
 }
 
 void SetLastClumpfile(char*, size_t) {}

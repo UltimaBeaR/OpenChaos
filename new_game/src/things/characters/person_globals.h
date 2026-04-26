@@ -45,11 +45,6 @@ extern uint64_t stat_start_time;
 // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
 extern uint64_t stat_game_time;
 
-// Tracks which map tiles the player has visited (for fog-of-war / minimap).
-// 16 bytes wide * 128 entries = 16*128 bit array.
-// uc_orig: player_visited (fallen/Source/Person.cpp)
-extern UBYTE player_visited[16][128];
-
 // Counter incremented each time create_person() is called.
 // uc_orig: global_person (fallen/Source/Person.cpp)
 extern UBYTE global_person;

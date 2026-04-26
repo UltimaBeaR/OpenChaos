@@ -159,9 +159,6 @@ uint64_t stat_start_time;
 // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
 uint64_t stat_game_time;
 
-// uc_orig: player_visited (fallen/Source/Person.cpp)
-UBYTE player_visited[16][128];
-
 // uc_orig: global_person (fallen/Source/Person.cpp)
 UBYTE global_person = 0;
 

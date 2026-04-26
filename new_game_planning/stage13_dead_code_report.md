@@ -24,24 +24,12 @@ Workflow:
 
 ## Workflow для продолжения чистки
 
-**Текущее состояние uncommitted в working tree** (на 2026-04-26 после батчей 1+3+4+5+6+7+8):
-- Батчи 1-7 закоммичены в "dead code cleanup: p1" и "dead code cleanup: p2"
-- Батч 8 — uncommitted
-- Discards count (DEAD_CODE_REPORT build): 2947 → 2933 (после батча 8)
-- Отфильтрованных dead символов: ~1187 при старте батча 8
-- Build OK (с DEAD_CODE_REPORT=ON, без ASan)
-- НЕ закоммичено — пользователь хочет коммитить вручную
-
-**Текущее состояние (2026-04-26, после батчей 9-14, сессия 4):**
-- Discards count: 2947 → 2933 (батч 8) → 2894 (батчи 9-12) → 2881 (батч 13) → 2873 (батч 14a: fastprim) → 2865 (батч 14b: polypage) → **2863** (батч 14c: ds_bridge)
-- Build OK (DEAD_CODE_REPORT=ON, без ASan)
+**Текущее состояние (2026-04-26, после батча 21, сессия 9):**
+- Discards count: 4534 (старт) → ... → 2293 (батч 18) → 2292 (батч 18b) → 2242 (батч 19) → ~2242 (батч 20, MAP_draw + float const) → **~2218** (батч 21: core.cpp, ~24 удалено/в stubs)
+- Примечание: 10 функций из core.cpp сохранены как stubs (caller-ы мертвы но в .o с live кодом) — они по-прежнему в discard-list DEAD_CODE_REPORT, но нужны для обычного Release-билда
+- Build OK (make build-release, exit 0)
 - Uncommitted — пользователь коммитит вручную
-
-**Текущее состояние (2026-04-26, батч 15, сессия 5):**
-- Discards count: 2863 → 2725 (батч 15a: building.cpp удалён) → 2697 (батч 15b: build.cpp удалён + prim.cpp -23 функции) → **2639** (батч 15c: building_globals.cpp/h очищены до 4 live символов)
-- Dead symbols: 960 → **902**
-- Build OK (DEAD_CODE_REPORT=ON, без ASan)
-- Uncommitted — пользователь коммитит вручную
+- Следующие: `collide.cpp` (22 dead), `outro_os.cpp` (16 dead), `aeng.cpp` (14 dead). Также нужно удалить caller-ов из host.cpp/texture.cpp/text.cpp/frontend.cpp для освобождения stubs
 
 **Сделано в батче 9 (leaf globals из live files):**
 - `soundenv_globals.cpp/h`: `SOUNDENV_gndctr`
@@ -446,11 +434,13 @@ src/game/input_actions.cpp	action_flip_right
 ## Подводные камни (false positives класс ошибок)
 
 1. **Транзитивно мёртвое**: вызов в коде есть, но caller сам мёртв. Линкер выкидывает обоих. Если удалить функцию вслепую — код caller не компилируется. Нужно удалять связкой.
+1a. **Empty stub с живыми callers**: пустая функция `void f() {}` или `SLONG f(...) { return 0; }` вызывается из живого кода. Компилятор инлайнит её в ничто, поэтому линкер не видит reference и выкидывает как dead. Но ОПРЕДЕЛЕНИЕ нужно для компиляции — нельзя удалять. Верификация: grep включать сам .cpp файл (`grep -rn "\bfunc\b" new_game/src/`). Типичный симптом: build fail с `error: use of undeclared identifier 'func'` после удаления.
 2. **Callback'и через указатель**: функция зарегистрирована как `&fn` в setter'е (`ge_set_X_callback`). `--gc-sections` это видит как live (адрес взят), так что в dead-list таких быть не должно. Но если setter сам вырезан — функция станет мёртвой. Проверять при удалении.
 3. **Виртуальные методы**: vtable классов используется через виртуальный диспатч, конкретный метод может выглядеть мёртвым но вызывается через указатель на базовый класс.
 4. **Шаблонные инстансы**: STL contains'ы могут давать ложные leaf-кандидаты.
 5. **Импорты из системных DLL**: `c_DwmMaxQueuedBuffers`, `_Avx2WmemEnabledWeakValue` — это extern символы из системных либ. Уже отфильтрованы.
 6. **Stale .obj от удалённых исходников**: `weapon_feel_test.cpp.obj` остался в build/ но исходника нет, в линке не участвует. Уже отфильтрован.
+7. **Stub-only в обычном билде**: `DEAD_CODE_REPORT=ON` включает `-ffunction-sections` → каждая функция в своей секции → линкер выкидывает dead функцию отдельно от её соседей. В обычном Release-билде без этого флага все функции из одного `.cpp` делят одну `.text`-секцию. Если в файле есть хоть одна live-функция — весь `.o` линкуется, включая dead caller-ов. Dead caller-ы содержат references на callees (ge_texture_free_all и т.п.) → линкер требует их определения. **Правило:** перед удалением определения callee нужно сначала удалить всех его caller-ов (или убедиться что caller-ы находятся в файлах только с dead-кодом — тогда весь `.o` не линкуется). Если caller удалить нельзя сейчас — оставить callee как minimal stub (`{}` / `return 0`), он останется в discard-list для DEAD_CODE_REPORT сборки, но не сломает обычный Release.
 
 ## Прогресс по итерациям
 
@@ -510,3 +500,8 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-26 | Batch 15 | game_globals.cpp/h: 11 dead globals (CAM_cur_x/y/z/yaw/pitch/roll, pause_menu, game_paused_highlight, bullet_point, screen_mem, verifier_name) | build OK |
 | 2026-04-26 | Batch 16 | planmap.cpp/h + planmap_globals.cpp/h: DELETED ENTIRE MODULE (2 dead funcs + 13 dead globals). anim_loader.cpp: 8 dead funcs cluster (load_frame_numbers, sort_multi_object, set_default_people_types, make_compress_matrix, load_multi_vue, load_anim_mesh, load_key_frame_chunks, load_a_multi_prim) + anim_loader.h decl cleanup. outro_os_globals.cpp/h: 21 dead globals (OS_application_name, OS_frame_is_fullscreen, OS_frame_is_hardware, KEY_inkey, OS_midas_ok, OS_trans_upto, all OS_bitmap_*). Fix: figure.h needed direct includes for Pyro+DrawTween; game.h→game_types.h to fix Thing cascade; game.cpp needed direct #include game_globals.h. | build OK |
 | 2026-04-26 | Batch 17 | sewers.cpp: 23 dead funcs removed (NS_init, NS_precalculate, NS_cache_*, NS_add_*, NS_create_wallstrip_point×2, NS_get_unused_st) — kept 5 live (NS_calc_height_at, NS_calc_splash_height_at, NS_slide_along, NS_inside, NS_there_is_a_los). sewers_globals.cpp: 20 dead globals removed — kept NS_hi + NS_los_fail_x/y/z. sewers_globals.h: trimmed to only 4 live externs. Note: attempted full module delete — caught by linker (darci/dirt live callers). | build OK |
+| 2026-04-26 | Batch 18 | person.cpp: 31 dead funcs deleted; person.h: ~35 dead decls removed; cop.cpp: extern fn_person_stand_up removed; darci.cpp: extern set_person_kick_off_wall removed. Restored 5 as empty stubs (inlined by compiler, but source-level callers exist): camera_shoot/fight/normal (called at ~10 sites in person.cpp), set_person_sidle (called at lines 4409,4476), set_person_running_jump_lr (called at lines 10071,10074,12733,12737). Discards: 2324→2293 (-31). | build OK |
+| 2026-04-26 | Batch 18b | person_globals.cpp/h: deleted player_visited[16][128]; aeng.cpp: removed dead extern decl + commented-out use. Discards: 2293→2292. | build OK |
+| 2026-04-26 | Batch 19 | widget.cpp: rewrote keeping 6 live fns (WIDGET_snd, FORM_KeyProc, FORM_Process, FORM_GetWidgetFromPoint, FORM_Draw, FORM_Free, FORM_Focus), deleted 34 dead + 6 static helpers + struct ListEntry + dead defines. widget_globals.cpp: deleted 9 dead Methods structs, kept WidgetTick+EatenKey. widget.h: removed ~50 dead decls/inlines/extern-Methods. game_tick.cpp: deleted dead form_proc (ref'd BUTTON_Methods). game_tick.h: removed form_proc decl + widget.h include; game_tick.cpp: added direct widget.h include (for Form* in local extern decl). Discards: 2292→2242 (-50). | build OK |
+| 2026-04-26 | Batch 20 | eng_map.cpp: deleted MAP_draw (260 lines, 1 named dead fn + 31 float/XMM constants). eng_map.h: removed MAP_draw decl. | build OK |
+| 2026-04-26 | Batch 21 | core.cpp: deleted 14 definitions entirely (ge_shutdown, ge_bound_texture_contains_alpha, ge_draw_primitive, ge_draw_indexed_primitive_unlit, ge_fill_rect, ge_destroy_user_texture, ge_run_cutscene, ge_restore_screen_surface, ge_is_texture_loaded, image_mem global, s_display_changed static, SetDisplay, ClearDisplay, s_image_mem_buf). 10 converted to minimal stubs: ge_to_gdi/from_gdi/is_display_changed/clear_display_changed (called from dead ShellPauseOn/LibShellChanged in host.cpp), ge_get_font/texture_free_all/texture_change_tga/texture_set_greyscale/texture_get_size (dead callers in texture.cpp/text.cpp), ge_get_screen_bpp/enumerate_drivers (dead FRONTEND_do_drivers in frontend.cpp). Removed outro_graphics_engine.h + wibble_effect.h from core.cpp includes; removed frontend.cpp extern image_mem. game_graphics_engine.h: removed 19 dead decls; uc_common.h: removed SetDisplay/ClearDisplay decls. **Lesson:** cannot delete a callee definition if caller lives in same .o as live code (non-function-sections build). Must delete callers first. See "Подводные камни" #7. | build OK |

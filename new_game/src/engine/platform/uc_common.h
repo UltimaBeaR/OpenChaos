@@ -39,9 +39,7 @@
 extern SLONG DisplayBPP;
 
 SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags);
-SLONG SetDisplay(ULONG width, ULONG height, ULONG depth);
 SLONG CloseDisplay(void);
-SLONG ClearDisplay(UBYTE r, UBYTE g, UBYTE b);
 
 // Host
 #define H_CREATE_LOG (1 << 0)

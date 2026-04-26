@@ -174,18 +174,6 @@ void init_stats(void)
     stat_start_time = sdl3_get_ticks();
 }
 
-// Marks the map tile at (x, z) as visited by the player (fog-of-war / minimap).
-// uc_orig: set_player_visited (fallen/Source/Person.cpp)
-void set_player_visited(UBYTE x, UBYTE z)
-{
-    UWORD bit;
-    ASSERT(WITHIN(x, 0, 127));
-    ASSERT(WITHIN(z, 0, 127));
-    bit = x & 7;
-    x = x >> 3;
-    player_visited[x][z] |= 1 << bit;
-}
-
 // Returns true if a sound sync event should fire at the given animation frame.
 // Used to synchronize sound effects to a specific frame in an animation.
 // uc_orig: MagicFrameCheck (fallen/Source/Person.cpp)
@@ -1004,29 +992,6 @@ void queue_anim(Thing* p_person, SLONG anim)
     ShowAnimNumber(anim);
 }
 
-// Blends (tweens) to the target animation from the current one.
-// If there is a locked anim change pending, applies it immediately.
-// uc_orig: tween_to_anim (fallen/Source/Person.cpp)
-void tween_to_anim(Thing* p_person, SLONG anim)
-{
-    p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
-    if (p_person->Genus.Person->Flags & FLAG_PERSON_LOCK_ANIM_CHANGE) {
-        locked_anim_change(p_person, 0, anim, 0);
-        p_person->Genus.Person->Flags &= ~FLAG_PERSON_LOCK_ANIM_CHANGE;
-    } else {
-        p_person->Draw.Tweened->NextFrame = global_anim_array[p_person->Genus.Person->AnimType][anim];
-        p_person->Draw.Tweened->QueuedFrame = 0;
-    }
-
-    p_person->Draw.Tweened->CurrentAnim = anim;
-    p_person->Draw.Tweened->FrameIndex = 0;
-    ASSERT(p_person->Draw.Tweened->CurrentFrame->FirstElement);
-    if (p_person->Draw.Tweened->NextFrame)
-        ASSERT(p_person->Draw.Tweened->NextFrame->FirstElement);
-
-    ShowAnimNumber(anim);
-}
-
 // Immediately switches to the target animation (no blend/tween).
 // If there is a locked anim change pending, applies it immediately.
 // uc_orig: set_anim (fallen/Source/Person.cpp)
@@ -1105,23 +1070,6 @@ void set_locked_anim_angle(Thing* p_person, SLONG anim, SLONG sub_object, SLONG 
     p_person->Draw.Tweened->QueuedFrame = 0;
     p_person->Draw.Tweened->CurrentFrame = global_anim_array[p_person->Genus.Person->AnimType][anim];
     p_person->Draw.Tweened->NextFrame = global_anim_array[p_person->Genus.Person->AnimType][anim]->NextFrame;
-    p_person->Draw.Tweened->CurrentAnim = anim;
-    p_person->Draw.Tweened->FrameIndex = 0;
-    ShowAnimNumber(anim);
-}
-
-// Variant of set_locked_anim using game_chunk[AnimType] instead of global_anim_array.
-// uc_orig: set_locked_anim_of_type (fallen/Source/Person.cpp)
-void set_locked_anim_of_type(Thing* p_person, SLONG anim, SLONG sub_object)
-{
-    ASSERT(anim != 1);
-    ASSERT(anim);
-    p_person->Genus.Person->Flags2 &= ~FLAG2_SYNC_SOUNDFX;
-    locked_anim_change(p_person, sub_object, anim, 0);
-    p_person->Draw.Tweened->AnimTween = 0;
-    p_person->Draw.Tweened->QueuedFrame = 0;
-    p_person->Draw.Tweened->CurrentFrame = game_chunk[p_person->Genus.Person->AnimType].AnimList[anim];
-    p_person->Draw.Tweened->NextFrame = game_chunk[p_person->Genus.Person->AnimType].AnimList[anim]->NextFrame;
     p_person->Draw.Tweened->CurrentAnim = anim;
     p_person->Draw.Tweened->FrameIndex = 0;
     ShowAnimNumber(anim);
@@ -1363,31 +1311,6 @@ SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind)
     }
 
     return UC_TRUE;
-}
-
-// Returns the fractional position along collision facet colvect at world position (x,z).
-// Result is in [0,1] range where 0=start vertex, 1=end vertex.
-// uc_orig: get_along_facet (fallen/Source/Person.cpp)
-SLONG get_along_facet(SLONG x, SLONG z, SLONG colvect)
-{
-    DFacet* p_facet;
-    SLONG dx, dz;
-    SLONG along;
-
-    p_facet = &dfacets[colvect];
-
-    dx = p_facet->x[1] - p_facet->x[0];
-    dz = p_facet->z[1] - p_facet->z[0];
-
-    if (dx) {
-        along = x - (p_facet->x[0] << 8);
-        along = along / dx;
-    } else {
-        along = z - (p_facet->z[0] << 8);
-        along = along / dz;
-    }
-
-    return (along);
 }
 
 // Transitions person into a dying/knockdown state based on death_type.
@@ -1861,76 +1784,6 @@ void person_bodge_forward(Thing* p_person, SLONG dist)
     move_thing_on_map(p_person, &new_position);
 }
 
-// Returns true if there is a clear sight line between the two persons' head positions.
-// uc_orig: los_between_heads (fallen/Source/Person.cpp)
-SLONG los_between_heads(
-    Thing* person_1,
-    Thing* person_2)
-{
-    SLONG x1 = person_1->WorldPos.X >> 8;
-    SLONG y1 = person_1->WorldPos.Y >> 8;
-    SLONG z1 = person_1->WorldPos.Z >> 8;
-
-    SLONG x2 = person_2->WorldPos.X >> 8;
-    SLONG y2 = person_2->WorldPos.Y >> 8;
-    SLONG z2 = person_2->WorldPos.Z >> 8;
-
-    y1 += 0x70;
-    y2 += 0x70;
-
-    return there_is_a_los(
-        x1, y1, z1,
-        x2, y2, z2,
-        0);
-}
-
-// Plays a tin-pan sound at (x,y,z) and makes nearby idle NPCs look toward p_thing.
-// NPCs with p_thing as their current target are skipped.
-// uc_orig: oscilate_tinpanum (fallen/Source/Person.cpp)
-void oscilate_tinpanum(SLONG x, SLONG y, SLONG z, Thing* p_thing, SLONG vol)
-{
-    SLONG col_with_upto;
-    SLONG collide_types = (1 << CLASS_PERSON);
-    Thing* col_thing;
-    SLONG i;
-
-    col_with_upto = THING_find_sphere(
-        x,
-        y,
-        z,
-        5 * 256,
-        col_with,
-        MAX_COL_WITH,
-        collide_types);
-
-    for (i = 0; i < col_with_upto; i++) {
-        col_thing = TO_THING(col_with[i]);
-
-        if (col_thing->State == STATE_DEAD || col_thing->State == STATE_DYING) {
-            continue;
-        }
-
-        switch (col_thing->Class) {
-        case CLASS_PERSON:
-            if (col_thing == p_thing) {
-                // Don't influence the source person.
-            } else {
-                if ((col_thing->Genus.Person->Target != THING_NUMBER(p_thing)) && (col_thing->Genus.Person->PlayerID == 0)) {
-                    if (col_thing->State == STATE_IDLE) {
-                        // Only idle NPCs react.
-                        if (los_between_heads(col_thing, p_thing)) {
-                            set_face_thing(col_thing, p_thing);
-                        } else {
-                            turn_to_face_thing(col_thing, p_thing, 2);
-                        }
-                    }
-                }
-            }
-            break;
-        }
-    }
-}
-
 // Returns the 2D approximate distance between two persons' feet.
 // uc_orig: dist_to_target (fallen/Source/Person.cpp)
 SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b)
@@ -2226,27 +2079,6 @@ SLONG set_person_climb_half(Thing* p_person, SLONG facet)
     }
 
     return UC_FALSE;
-}
-
-// Returns true if person can see player 0.
-// uc_orig: can_i_see_player (fallen/Source/Person.cpp)
-SLONG can_i_see_player(Thing* p_person)
-{
-    return can_a_see_b(p_person, NET_PERSON(0));
-}
-
-// If person can see player 0, sets them as target and starts navigation toward them.
-// uc_orig: do_look_for_enemies (fallen/Source/Person.cpp)
-void do_look_for_enemies(Thing* p_person)
-{
-    if (can_i_see_player(p_person)) {
-        p_person->Genus.Person->Target = THING_NUMBER(NET_PERSON(0));
-        ASSERT(p_person->Genus.Person->Target != THING_NUMBER(p_person));
-        ASSERT(TO_THING(p_person->Genus.Person->Target)->Class == CLASS_PERSON);
-        p_person->Genus.Person->Flags |= FLAG_PERSON_NAV_TO_KILL;
-
-        set_person_mav_to_thing(p_person, NET_PERSON(0));
-    }
 }
 
 // --- chunk 3: lines 3202–4739 of original Person.cpp ---
@@ -3179,26 +3011,16 @@ SLONG person_backwards_animate(Thing* p_person)
     return (ret);
 }
 
-// Camera helpers — all bodies were removed (commented out) in the original before shipping.
-// The camera system was moved to a separate camera module.
+// Camera mode stubs — bodies removed before shipping in the original. Inlined away by compiler.
+void camera_shoot(void) {}
+void camera_fight(void) {}
+void camera_normal(void) {}
 
-// uc_orig: camera_shoot (fallen/Source/Person.cpp)
-void camera_shoot(void)
-{
-    // Stub — camera mode adjustments removed before shipping.
-}
-
-// uc_orig: camera_fight (fallen/Source/Person.cpp)
-void camera_fight(void)
-{
-    // Stub — camera mode adjustments removed before shipping.
-}
-
-// uc_orig: camera_normal (fallen/Source/Person.cpp)
-void camera_normal(void)
-{
-    // Stub — camera mode adjustments removed before shipping.
-}
+// Stubs inlined away by compiler; definitions required for compilation.
+// uc_orig: set_person_sidle (fallen/Source/Person.cpp)
+SLONG set_person_sidle(struct Thing* p_person) { return (0); }
+// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
+void set_person_running_jump_lr(Thing* p_person, SLONG dir) {}
 
 // ============================================================
 // Chunk 4: set_person_aim..drop_all_items (original lines 4742-6140)
@@ -3263,32 +3085,6 @@ static SLONG weapon_accuracy_at_dist(Thing* p_person, SLONG dist)
         // Pistol — accuracy unmodified.
         return (dist);
     }
-}
-
-// Returns UC_TRUE if the given vehicle is driven or occupied by any MIB agent.
-// uc_orig: VehicleBelongsToMIB (fallen/Source/Person.cpp)
-UBYTE VehicleBelongsToMIB(Thing* p_target)
-{
-    Vehicle* veh = p_target->Genus.Vehicle;
-    Thing* thing;
-    SWORD passenger;
-
-    if ((p_target->Class != CLASS_VEHICLE) || !veh)
-        return 0;
-
-    if (veh->Driver) {
-        thing = TO_THING(veh->Driver);
-        if (PersonIsMIB(thing))
-            return 1;
-    }
-    passenger = veh->Passenger;
-    while (passenger) {
-        thing = TO_THING(passenger);
-        if (PersonIsMIB(thing))
-            return 1;
-        passenger = thing->Genus.Person->Passenger;
-    }
-    return 0;
 }
 
 // Computes shot damage from p_person to p_target.
@@ -4686,18 +4482,6 @@ void set_person_locked_idle_ready(Thing* p_person)
     set_person_sidle(p_person);
 }
 
-// Checks if the person's back is against a wall and sets sidle (wall-hug) sub-state.
-// Returns 1 if sidling is now active, 0 otherwise. Body is disabled in the original
-// (the implementation is commented out — only early return remains).
-// uc_orig: set_person_sidle (fallen/Source/Person.cpp)
-SLONG set_person_sidle(struct Thing* p_person)
-{
-    return (0);
-    /*
-    (original body disabled in the prerelease source — returns 0 always)
-    */
-}
-
 // Starts a flip animation in the given direction (0=left, 1=right).
 // uc_orig: set_person_flip (fallen/Source/Person.cpp)
 void set_person_flip(Thing* p_person, SLONG dir)
@@ -4785,34 +4569,6 @@ void set_person_running(Thing* p_person)
         break;
     default:
         ASSERT(0);
-    }
-}
-
-// Sets person into running state starting from a specific animation frame index.
-// Only supports Mode==0 (run), Mode==1 (walk), Mode==2 (sneak).
-// uc_orig: set_person_running_frame (fallen/Source/Person.cpp)
-void set_person_running_frame(Thing* p_person, SLONG frame)
-{
-    switch (p_person->Genus.Person->Mode) {
-    case 0:
-        MSG_add(" start running");
-        queue_anim(p_person, ANIM_RUN);
-
-        set_generic_person_state_function(p_person, STATE_MOVEING);
-        p_person->SubState = SUB_STATE_RUNNING;
-        p_person->Genus.Person->Action = ACTION_RUN;
-        p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
-        while (frame) {
-            p_person->Draw.Tweened->QueuedFrame = p_person->Draw.Tweened->QueuedFrame->NextFrame;
-            frame--;
-        }
-        break;
-    case 1:
-        set_person_walking(p_person);
-        break;
-    case 2:
-        set_person_sneaking(p_person);
-        break;
     }
 }
 
@@ -4934,15 +4690,6 @@ void set_person_step_right(Thing* p_person)
     p_person->SubState = SUB_STATE_STEP_RIGHT;
     p_person->Genus.Person->Action = ACTION_SIDE_STEP;
     p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
-}
-
-// Stub for setting a vehicle animation. Always asserts — left unimplemented in the original.
-// uc_orig: set_vehicle_anim (fallen/Source/Person.cpp)
-void set_vehicle_anim(Thing* p_vehicle, SLONG anim)
-{
-    // 1 is still, 2 is open/close
-    ASSERT(0);
-    return;
 }
 
 // Positions person at the correct entry point for the given vehicle door (0=driver, 1=passenger).
@@ -5333,19 +5080,6 @@ void set_person_sneaking(Thing* p_person)
     p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
 }
 
-// Starts a backward hop (short backward jump, used in fight responses).
-// uc_orig: set_person_hop_back (fallen/Source/Person.cpp)
-void set_person_hop_back(Thing* p_person)
-{
-    set_thing_velocity(p_person, 0);
-    set_generic_person_state_function(p_person, STATE_MOVEING);
-    p_person->SubState = SUB_STATE_HOP_BACK;
-    p_person->Genus.Person->Action = ACTION_HOP_BACK;
-    p_person->Genus.Person->Timer1 = 3;
-    p_person->Genus.Person->Flags |= (FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
-    set_anim(p_person, ANIM_BACK_HOP);
-}
-
 // Returns the best fight-idle animation for the person given their current weapon.
 // uc_orig: find_idle_fight_stance (fallen/Source/Person.cpp)
 SLONG find_idle_fight_stance(Thing* p_person)
@@ -5463,18 +5197,6 @@ void set_person_fight_step(Thing* p_person, SLONG dir)
     p_person->SubState = SUB_STATE_STEP_FORWARD;
     p_person->Velocity = (p_person->Genus.Person->AnimType == ANIM_TYPE_ROPER) ? 10 : 20;
     p_person->Genus.Person->Timer1 = 0;
-}
-
-// Starts a fight step forward if not already in that animation.
-// uc_orig: set_person_fight_step_forward (fallen/Source/Person.cpp)
-void set_person_fight_step_forward(Thing* p_person)
-{
-    if (p_person->Draw.Tweened->CurrentAnim != ANIM_FIGHT_STEP_N) {
-        set_anim(p_person, ANIM_FIGHT_STEP_N);
-        set_generic_person_state_function(p_person, STATE_FIGHTING);
-        p_person->SubState = SUB_STATE_STEP_FORWARD;
-        p_person->Velocity = 10;
-    }
 }
 
 // Plays the block animation for the current weapon (bat, shotgun, or fist).
@@ -6359,10 +6081,6 @@ void set_person_standing_jump_backwards(Thing* p_person)
     p_person->OnFace = 0;
 }
 
-// Forward declaration for set_person_running_jump_lr (used inside set_person_running_jump).
-// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
-void set_person_running_jump_lr(Thing* p_person, SLONG dir);
-
 // Initiates a running jump: STATE_JUMPING + run-jump-left anim, sets initial DY.
 // Skips if on steep slope, slipping, or inside. NPC jump speed from PCOM.
 // uc_orig: set_person_running_jump (fallen/Source/Person.cpp)
@@ -6403,12 +6121,6 @@ void set_person_running_jump(Thing* p_person)
     p_person->OnFace = 0;
 
     play_jump_sound(p_person);
-}
-
-// Stub for left/right running jump variant — body was removed before shipping in original.
-// uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
-void set_person_running_jump_lr(Thing* p_person, SLONG dir)
-{
 }
 
 // Checks whether a traverse move is possible in the given direction (right=1, left=0)
@@ -6662,38 +6374,6 @@ void set_person_locked_drop_down(Thing* p_person, SLONG vely)
     p_person->DY = (vely << 8);
     p_person->OnFace = 0;
     p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
-}
-
-// Nearest-point extern needed for wall-bump check below.
-// uc_orig: nearest_point_on_line_and_dist (fallen/Headers/collide.h)
-extern SLONG nearest_point_on_line_and_dist(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b, SLONG* ret_x, SLONG* ret_z);
-
-// Returns true if the wall described by col facet is suitable for a bump-and-turn:
-// checks that the square ahead is well below the current height (i.e. not a ceiling).
-// uc_orig: is_wall_good_for_bump_and_turn (fallen/Source/Person.cpp)
-SLONG is_wall_good_for_bump_and_turn(Thing* p_person, SLONG col)
-{
-    SLONG angle, wy, wx, wz;
-    SLONG mx, my, mz, dx, dz;
-
-    angle = p_person->Draw.Tweened->Angle;
-
-    wx = p_person->WorldPos.X >> 8;
-    wy = p_person->WorldPos.Y >> 8;
-    wz = p_person->WorldPos.Z >> 8;
-
-    dx = -(SIN(angle)) >> 9;
-    dz = -(COS(angle)) >> 9;
-
-    mx = (wx + dx) >> 8;
-    mz = (wz + dz) >> 8;
-
-    my = MAVHEIGHT(mx, mz) << 6;
-
-    if (wy > my - 196)
-        return (0);
-
-    return (1);
 }
 
 // Returns true if person is facing a wall described by col facet within vault_da angle tolerance.
@@ -7197,30 +6877,6 @@ SLONG set_person_land_on_fence(Thing* p_person, SLONG col, SLONG set_pos, SLONG 
     p_person->DY = 0;
     p_person->Genus.Person->OnFacet = col;
     p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C;
-    return (1);
-}
-
-// Positions person for a wall kick (pressing against wall col at dist=100/110 for Roper).
-// Returns 1 on success, 0 if not possible.
-// uc_orig: set_person_kick_off_wall (fallen/Source/Person.cpp)
-SLONG set_person_kick_off_wall(Thing* p_person, SLONG col, SLONG set_pos)
-{
-    SLONG dist = 100;
-    MSG_add(" set person land on fence");
-    if (p_person->Genus.Person->PersonType == PERSON_ROPER)
-        dist = 110;
-
-    if (set_person_pos_for_fence(p_person, col, set_pos, dist) == -1)
-        return (0);
-    set_generic_person_state_function(p_person, STATE_FIGHTING);
-    p_person->SubState = SUB_STATE_WALL_KICK;
-    queue_anim(p_person, ANIM_WALL_KICK);
-
-    p_person->Genus.Person->Action = ACTION_FIGHT_KICK;
-    p_person->Draw.Tweened->Locked = 0;
-    p_person->Velocity = 0;
-    p_person->DeltaVelocity = 0;
-    p_person->DY = 0;
     return (1);
 }
 
@@ -7857,29 +7513,6 @@ SLONG set_limb_to_y(Thing* p_person, SLONG obj, SLONG y)
     return (0);
 }
 
-// Switches to a queued frame while keeping the given locked limb in the same world position.
-// uc_orig: locked_next_anim_change (fallen/Source/Person.cpp)
-void locked_next_anim_change(Thing* p_person, UWORD locked_object, GameKeyFrame* queued_frame)
-{
-    SLONG lock_x1, lock_y1, lock_z1;
-    SLONG lock_x2, lock_y2, lock_z2;
-    DrawTween* draw_info;
-    GameCoord temp_pos;
-
-    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x1, &lock_y1, &lock_z1);
-
-    draw_info = p_person->Draw.Tweened;
-    draw_info->NextFrame = queued_frame;
-
-    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, locked_object, &lock_x2, &lock_y2, &lock_z2);
-
-    temp_pos.X = ((+lock_x1 - lock_x2) << 8) + p_person->WorldPos.X;
-    temp_pos.Y = ((+lock_y1 - lock_y2) << 8) + p_person->WorldPos.Y;
-    temp_pos.Z = ((+lock_z1 - lock_z2) << 8) + p_person->WorldPos.Z;
-
-    move_thing_on_map(p_person, &temp_pos);
-}
-
 // Like locked_anim_change_of_type but jumps to the last frame of the animation.
 // Used for smooth reverse-climb transitions on ladders.
 // uc_orig: locked_anim_change_end_type (fallen/Source/Person.cpp)
@@ -7986,30 +7619,6 @@ void face_down_cable(Thing* p_person, SLONG facet)
     } else {
         p_person->Draw.Tweened->Angle = calc_angle(-dx, -dz);
     }
-}
-
-// Returns the cable angle (0-2047) that is closest to the person's current facing.
-// Flips by 1024 if the person is facing the opposite end of the cable.
-// uc_orig: find_best_cable_angle (fallen/Source/Person.cpp)
-SLONG find_best_cable_angle(Thing* p_person, SLONG facet)
-{
-    struct DFacet* p_facet;
-    SLONG dx, dz;
-    SLONG dangle, cable_angle;
-
-    p_facet = &dfacets[facet];
-
-    dx = (p_facet->x[1] - p_facet->x[0]) << 8;
-    dz = (p_facet->z[1] - p_facet->z[0]) << 8;
-
-    cable_angle = calc_angle(dx, dz);
-
-    dangle = p_person->Draw.Tweened->Angle - cable_angle;
-
-    if (abs(dangle) > 1024)
-        return ((cable_angle + 1024) & 2047);
-    else
-        return (cable_angle);
 }
 
 // =============================================================================
@@ -8767,34 +8376,6 @@ SLONG check_limb_pos_on_fence(Thing* p_person, SLONG sub_part)
     }
 }
 
-// Returns UC_TRUE if the sub_part limb is within the sideways extent of the fence facet
-// (not off either end). Uses calc_along_vect to determine position along the fence.
-// uc_orig: check_limb_pos_on_fence_sideways (fallen/Source/Person.cpp)
-SLONG check_limb_pos_on_fence_sideways(Thing* p_person, SLONG sub_part)
-{
-    SLONG x1, y1, z1;
-    SLONG col;
-    SLONG along;
-
-    col = p_person->Genus.Person->OnFacet;
-
-    // calc_along_vect is a file-local function in collide.cpp; forward declared here.
-    SLONG calc_along_vect(SLONG ax, SLONG az, struct DFacet * p_vect);
-
-    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, sub_part, &x1, &y1, &z1);
-
-    x1 += p_person->WorldPos.X >> 8;
-    z1 += p_person->WorldPos.Z >> 8;
-
-    along = calc_along_vect(x1, z1, &dfacets[col]);
-
-    if (along <= 0 || along >= 255) {
-        return (0);
-    } else {
-        return (1);
-    }
-}
-
 // STATE_CLIMB_LADDER state machine. Handles mounting, climbing up/down, and
 // stepping off the top or bottom of ladders. Plays rung sounds on each stride.
 // uc_orig: fn_person_laddering (fallen/Source/Person.cpp)
@@ -9174,26 +8755,6 @@ void fn_person_climbing(Thing* p_person)
         MSG_add("CLIMBING unknow substate %d \n", p_person->SubState);
         break;
     }
-}
-
-// uc_orig: set_cable_angle (fallen/Source/Person.cpp)
-void set_cable_angle(Thing* p_person)
-{
-    SLONG dx, dz;
-    struct DFacet* p_facet;
-    SLONG angle;
-
-    ASSERT(p_person->Genus.Person->Flags & FLAG_PERSON_ON_CABLE);
-    ASSERT(dfacets[p_person->Genus.Person->OnFacet].FacetType == STOREY_TYPE_CABLE);
-
-    p_facet = &dfacets[p_person->Genus.Person->OnFacet];
-
-    dx = p_facet->x[1] - p_facet->x[0] << 8;
-    dz = p_facet->z[1] - p_facet->z[0] << 8;
-
-    angle = calc_angle(dx, dz);
-
-    p_person->Draw.Tweened->Angle = angle;
 }
 
 // Tracks person Y to the cable height at their current XZ position.
@@ -9651,15 +9212,6 @@ void fn_person_dangling(Thing* p_person)
         set_person_drop_down(p_person, 0); // EMERGENCY!
         break;
     }
-}
-
-// Transitions person into a stopping animation after running.
-// leg=0 left foot, leg=1 right foot (animation index offset).
-// uc_orig: set_person_running_stop (fallen/Source/Person.cpp)
-void set_person_running_stop(Thing* p_person, SLONG leg)
-{
-    // tween_to_anim(p_person,ANIM_STOP_RUN_L+leg);
-    p_person->SubState = SUB_STATE_STOPPING;
 }
 
 // Returns UC_TRUE if a player running into this facet should automatically begin climbing it.
@@ -11649,41 +11201,6 @@ void fn_person_dead(Thing* p_person)
     }
 }
 
-// uc_orig: dist_from_a_to_b (fallen/Source/Person.cpp)
-SLONG dist_from_a_to_b(Thing* a, Thing* b)
-{
-    SLONG dx, dz, dist;
-
-    dx = (a->WorldPos.X - b->WorldPos.X) >> 8;
-    dz = (a->WorldPos.Z - b->WorldPos.Z) >> 8;
-
-    dx = abs(dx);
-    dz = abs(dz);
-
-    dist = QDIST2(dx, dz);
-    return (dist);
-}
-
-// uc_orig: player_aim_at_new_person (fallen/Source/Person.cpp)
-void player_aim_at_new_person(Thing* p_person, UWORD new_target)
-{
-    SLONG pitch;
-    Thing* p_target;
-
-    ASSERT(p_person->Genus.Person->PlayerID);
-
-    p_target = TO_THING(new_target);
-
-    pitch = get_pitch_to_thing_quick(p_person, p_target);
-    pitch -= 1024;
-    pitch &= 2047;
-
-    turn_to_face_thing_quick(p_person, p_target);
-
-    extern void set_look_pitch(SLONG p);
-    set_look_pitch(pitch);
-}
-
 // uc_orig: get_angle_to_target (fallen/Source/Person.cpp)
 SLONG get_angle_to_target(Thing* p_person)
 {
@@ -11793,27 +11310,6 @@ SLONG am_i_a_thug(Thing* p_person)
         return (1);
     else
         return (0);
-}
-
-// Returns an aim-quality benefit in ticks based on distance to target.
-// Closer targets give a higher benefit (improves aim faster).
-// uc_orig: calc_dist_benefit_to_gun (fallen/Source/Person.cpp)
-SLONG calc_dist_benefit_to_gun(Thing* p_person, SLONG dist)
-{
-    SLONG benefit;
-
-    if (dist < 512) {
-        benefit = (1024 + 300 - (dist << 1));
-
-    } else {
-        benefit = 500 - (dist >> 3);
-    }
-
-    if (benefit < 0) {
-        return 0;
-    } else {
-        return benefit * TICK_RATIO >> TICK_SHIFT;
-    }
 }
 
 // uc_orig: highlight_gun_target (fallen/Source/Person.cpp)
@@ -12814,63 +12310,6 @@ SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow)
     return (dist);
 }
 
-// Instantly snaps person's angle to face p_target using raw world positions.
-// uc_orig: turn_to_face_thing_quick (fallen/Source/Person.cpp)
-void turn_to_face_thing_quick(Thing* p_person, Thing* p_target)
-{
-    SLONG dx, dz;
-    SLONG angle;
-    SLONG dist;
-    SLONG ax, az, bx, bz;
-
-    ASSERT(p_target->Class == CLASS_PERSON);
-    ASSERT(p_target->Draw.Tweened);
-    ax = p_person->WorldPos.X >> 8;
-    az = p_person->WorldPos.Z >> 8;
-
-    bx = p_target->WorldPos.X >> 8;
-    bz = p_target->WorldPos.Z >> 8;
-
-    dx = bx - ax;
-    dz = bz - az;
-    dist = QDIST2(abs(dx), abs(dz));
-
-    if (dist > 0x30) {
-        angle = (Arctan(dx, -dz) + 1024 + 2048) & 2047;
-
-        p_person->Draw.Tweened->Angle = angle;
-    }
-}
-
-// Returns the vertical pitch angle (0-2047) from person toward p_target.
-// uc_orig: get_pitch_to_thing_quick (fallen/Source/Person.cpp)
-SLONG get_pitch_to_thing_quick(Thing* p_person, Thing* p_target)
-{
-    SLONG dx, dy, dz, dxz;
-    SLONG angle;
-    SLONG ax, ay, az, bx, by, bz;
-
-    ASSERT(p_target->Class == CLASS_PERSON);
-    ASSERT(p_target->Draw.Tweened);
-    ax = p_person->WorldPos.X >> 8;
-    ay = p_person->WorldPos.Y >> 8;
-    az = p_person->WorldPos.Z >> 8;
-
-    bx = p_target->WorldPos.X >> 8;
-    by = p_target->WorldPos.Y >> 8;
-    bz = p_target->WorldPos.Z >> 8;
-
-    dx = abs(bx - ax);
-    dy = (by - ay);
-    dz = abs(bz - az);
-
-    dxz = QDIST2(dx, dz);
-
-    angle = Arctan(dy, dxz);
-
-    return (angle & 2047);
-}
-
 // Starts the draw animation for the given special weapon type and enters STATE_GUN/draw sub-state.
 // uc_orig: set_person_draw_item (fallen/Source/Person.cpp)
 void set_person_draw_item(Thing* p_person, SLONG special_type)
@@ -12997,12 +12436,6 @@ void turn_towards_thing(Thing* p_person, Thing* p_target)
         p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + 32) & 2047;
     else if (dangle > 32)
         p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - 32) & 2047;
-}
-
-// fn_person_stand_up -- body was fully commented out in the original (no-op placeholder).
-// uc_orig: fn_person_stand_up (fallen/Source/Person.cpp)
-void fn_person_stand_up(Thing* p_person)
-{
 }
 
 // fn_person_fight -- old state handler; body mostly commented out, asserts immediately.
@@ -13399,20 +12832,6 @@ void fn_person_grapple(Thing* p_person)
         ASSERT(0);
         break;
     }
-}
-
-// Dead stub — MAV navigation to world-space coordinate never implemented.
-// uc_orig: set_person_mav_to_xz (fallen/Source/Person.cpp)
-void set_person_mav_to_xz(Thing* p_person, SLONG x, SLONG z)
-{
-    ASSERT(0);
-}
-
-// Dead stub — MAV navigation to another Thing never implemented.
-// uc_orig: set_person_mav_to_thing (fallen/Source/Person.cpp)
-void set_person_mav_to_thing(Thing* p_person, Thing* p_target)
-{
-    ASSERT(0);
 }
 
 // Returns which surface type the person is standing on when inside sewers.
@@ -14632,105 +14051,6 @@ void fn_person_circle(Thing* p_person)
     }
 }
 
-// Legacy circling function — entirely superseded by fn_person_circle.
-// Uses a simple shove-based lateral drift rather than the gang-slot system.
-// uc_orig: fn_person_circle_old (fallen/Source/Person.cpp)
-void fn_person_circle_old(Thing* p_person)
-{
-    SLONG dx;
-    SLONG dz;
-    SLONG end;
-    SLONG dist;
-    SLONG angle;
-    SLONG shove;
-    SLONG dangle;
-    SLONG random;
-    SLONG ddist;
-
-    SLONG vx = 0;
-    SLONG vz = 0;
-
-    Thing* p_target = TO_THING(p_person->Genus.Person->Target);
-
-    end = person_normal_animate(p_person);
-
-    if (end == 1) {
-        set_anim(p_person, ANIM_FIGHT);
-    }
-
-    dx = p_target->WorldPos.X - p_person->WorldPos.X >> 8;
-    dz = p_target->WorldPos.Z - p_person->WorldPos.Z >> 8;
-
-    dist = QDIST2(abs(dx), abs(dz)) + 1;
-    angle = calc_angle(dx, dz) + 1024;
-    angle &= 2047;
-    dangle = angle_diff(angle, p_person->Draw.Tweened->Angle);
-
-    dangle += 256;
-    dangle &= 0xff;
-
-    shove = p_person->Genus.Person->Shove;
-    shove += dangle - 256 >> 4;
-
-    SATURATE(shove, -127, +127);
-
-    if (shove > 0) {
-        shove -= 16;
-    } else {
-        shove += 16;
-    }
-
-    p_person->Genus.Person->Shove = shove;
-
-    dx = ((0x10 * TICK_RATIO) * dx) / dist;
-    dz = ((0x10 * TICK_RATIO) * dz) / dist;
-
-    dx >>= TICK_SHIFT;
-    dz >>= TICK_SHIFT;
-
-    if (shove > 0) {
-        random = Random() & 0x7f;
-
-        if (shove > random) {
-            vx += -dz;
-            vz += +dx;
-        }
-    } else {
-        random = Random() & 0x7f;
-        random = -random;
-
-        if (shove < random) {
-            vx += +dz;
-            vz += -dx;
-        }
-    }
-
-    ddist = dist - 0x80;
-
-    if (ddist > 0) {
-        random = Random() & 0x3f;
-
-        if (ddist > random) {
-            vx += dx;
-            vz += dz;
-        }
-    } else {
-        random = Random() & 0x3f;
-        random = -random;
-
-        if (ddist < random) {
-            vx += -dx;
-            vz += -dz;
-        }
-    }
-
-    move_thing(
-        vx << 8,
-        0 << 8,
-        vz << 8,
-        p_person);
-}
-
 // Returns the character's render scale in 8.8 fixed point (256 = 100%).
 // Roper is slightly taller (276). All others return 256.
 // Called ~15 times per character per frame from the figure renderer — keep it fast.
@@ -14754,32 +14074,6 @@ SLONG person_get_scale(Thing* t)
     // return ((SLONG(t) >> 3) & 7) * (384 / 7) + 128;
 
     // PS - this function should be reasonably quick.  it's called 15 times per character per frame.
-}
-
-// Returns the total number of game ticks (at 1/20 s each) the given animation takes to play once.
-// Walks the keyframe chain summing 256/TweenStep per frame; treats TweenStep == 0 as 1.
-// uc_orig: how_long_is_anim (fallen/Source/Person.cpp)
-SLONG how_long_is_anim(SLONG anim)
-{
-    GameKeyFrame* frame;
-    SLONG total = 0;
-
-    frame = global_anim_array[0][anim];
-
-    while (frame) {
-        SLONG step;
-
-        step = frame->TweenStep;
-        if (!step)
-            step = 1;
-
-        total += 256 / step;
-        if (frame->Flags & ANIM_FLAG_LAST_FRAME)
-            break;
-
-        frame = frame->NextFrame;
-    }
-    return (total);
 }
 
 // Returns true if the person can enter a conversation (not KO, dead, dying, jumping, driving, or on a ladder).
@@ -14821,14 +14115,6 @@ void set_person_float_up(Thing* p_person)
     set_generic_person_state_function(p_person, STATE_FLOAT);
     p_person->SubState = SUB_STATE_FLOAT_UP;
     //	set_anim(p_person, ANIM_DANCE_HEADBANG);
-}
-
-// Switches floating person from up/bob to down sub-state. Only call when already floating.
-// uc_orig: set_person_float_down (fallen/Source/Person.cpp)
-void set_person_float_down(Thing* p_person)
-{
-    ASSERT(p_person->State == STATE_FLOAT);
-    p_person->SubState = SUB_STATE_FLOAT_DOWN;
 }
 
 // STATE_FLOAT state machine.

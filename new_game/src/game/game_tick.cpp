@@ -68,6 +68,7 @@
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 
+#include "ui/menus/widget.h"          // Form type for form_leave_map extern decl
 #include "game/game_tick.h"
 #include "game/game_tick_globals.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line, AENG_raytraced_position
@@ -853,19 +854,6 @@ void CONTROLS_set_inventory(Thing* darci, Thing* player, SLONG count)
         } else {
             set_person_idle(darci);
         }
-    }
-}
-
-// uc_orig: form_proc (fallen/Source/Controls.cpp)
-// Widget callback for popup dialog forms. Any button push closes the form.
-BOOL form_proc(Form* form, Widget* widget, SLONG message)
-{
-    if (widget && widget->methods == &BUTTON_Methods && message == WBN_PUSH) {
-        form->returncode = UC_TRUE;
-
-        return UC_TRUE;
-    } else {
-        return UC_FALSE;
     }
 }
 

@@ -6,7 +6,6 @@
 // Corresponds to fallen/Source/Controls.cpp.
 
 #include "engine/platform/uc_common.h"                 // Basic types: SLONG, UBYTE, etc.
-#include "ui/menus/widget.h"
 
 // Forward declaration (full type from Game.h, which includes this header transitively).
 struct Thing;
@@ -25,9 +24,6 @@ SLONG can_i_draw_this_special(Thing* p_special);
 
 // uc_orig: CONTROLS_set_inventory (fallen/Source/Controls.cpp)
 void CONTROLS_set_inventory(Thing* darci, Thing* player, SLONG count);
-
-// uc_orig: form_proc (fallen/Source/Controls.cpp)
-BOOL form_proc(Form* form, Widget* widget, SLONG message);
 
 // uc_orig: CONTROLS_get_selected_item (fallen/Source/Controls.cpp)
 SBYTE CONTROLS_get_selected_item(Thing* darci, Thing* player);
