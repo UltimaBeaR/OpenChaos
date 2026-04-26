@@ -344,10 +344,6 @@ private:
     UBYTE TweakSpeed;
 
 public:
-    Anim();
-    ~Anim();
-    void AddKeyFrame(KeyFrame* the_frame);
-    void RemoveKeyFrame(KeyFrame* the_frame);
     inline void SetAnimName(CBYTE* string) { strcpy(AnimName, string); }
     inline CBYTE* GetAnimName(void) { return AnimName; }
     inline void SetCurrentFrame(KeyFrame* the_frame) { CurrentFrame = the_frame; }
@@ -360,9 +356,6 @@ public:
     inline void SetFrameCount(SLONG count) { FrameCount = count; }
     inline ULONG GetAnimFlags(void) { return AnimFlags; }
     inline void SetAnimFlags(ULONG flags) { AnimFlags = flags; }
-    void SetAllTweens(SLONG tween);
-    void StartLooping(void);
-    void StopLooping(void);
     inline void SetNextAnim(Anim* next) { NextAnim = next; }
     inline Anim* GetNextAnim(void) { return NextAnim; }
     inline void SetLastAnim(Anim* last) { LastAnim = last; }
@@ -380,8 +373,6 @@ private:
     Anim AnimList[50];
 
 public:
-    void AddAnim(Anim* the_anim);
-    void RemoveAnim(Anim* the_anim);
     inline CBYTE* GetCharName(void) { return CharName; }
     inline void SetCharName(CBYTE* string) { strcpy(CharName, string); }
     inline UWORD GetMultiObject(void) { return MultiObject; }

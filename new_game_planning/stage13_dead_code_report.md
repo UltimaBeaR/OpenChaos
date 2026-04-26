@@ -32,8 +32,8 @@ Workflow:
 - Build OK (с DEAD_CODE_REPORT=ON, без ASan)
 - НЕ закоммичено — пользователь хочет коммитить вручную
 
-**Текущее состояние (2026-04-26, после батчей 9-12, сессия 2):**
-- Discards count: 2947 → 2933 (батч 8) → 2903 (батчи 9-11, без build-verify за батч 10-11 до этой сессии) → **2894** (батчи 9-12, verify после восстановлений)
+**Текущее состояние (2026-04-26, после батчей 9-13, сессия 3):**
+- Discards count: 2947 → 2933 (батч 8) → 2894 (батчи 9-12) → **2881** (батч 13)
 - Build OK (DEAD_CODE_REPORT=ON, без ASan)
 - Uncommitted — пользователь коммитит вручную
 
@@ -136,9 +136,15 @@ Workflow:
 Пропущено (с обоснованием):
 - `find_anim_fight_height` (combat.cpp): компилятор оптимизировал вызов из живого `should_i_block` (return value дисcard), но в исходнике вызов присутствует. Правило #4 — не удалять вызовы из живого кода.
 
+**Сделано в батче 13 (poly.cpp + anim.cpp leaf cluster):**
+- `poly.cpp`: удалены `NewTweenVertex2D_X`, `NewTweenVertex2D_Y`, `POLY_clip_against_side_X`, `POLY_clip_against_side_Y` (кластер: clip_side вызывает tween, у cluster нет внешних callers)
+- `anim.cpp`: удалены `Anim::Anim()`, `Anim::~Anim()`, `Anim::StartLooping`, `Anim::StopLooping`, `Anim::SetAllTweens`, `Anim::AddKeyFrame`, `Anim::RemoveKeyFrame`, `Character::AddAnim`, `Character::RemoveAnim` (9 методов, нет внешних callers)
+- Объявления в `anim_types.h` оставлены (не вызываются → linker не ругается; зачистка хедеров отдельной итерацией)
+- Build OK, 2894 → 2881 discards (-13)
+
 **Что делать дальше:**
 
-1. Текущий build log: `/tmp/b12_build.log` (2894 discards, актуальный). Регенерировать при начале следующей сессии:
+1. Текущий build log: `/tmp/b13_build.log` (2881 discards, актуальный). Регенерировать при начале следующей сессии:
    ```bash
    CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=OFF" make configure
    make build-release > /tmp/dead_code_build.log 2>&1
@@ -426,3 +432,4 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-26 | Batch 6 | leaf globals: BAT_state_name, thug_states, history_thing, PERSON_mode_name, dir_to_angle, demo_text, playbacks, help_text, help_xlat, grapple[], kicks[][], punches[][] (12 globals в 8 файлах). Пропущен find_anim_fight_height — вызов из живого should_i_block (compiler оптимизировал, но source-ref остался). | -12 discards, build OK |
 | 2026-04-26 | Batch 7 | leaf globals: gang_angle_priority, SOUNDENV_gndquads, body_part_parent_numbers (из hierarchy_globals.cpp + 2 .h), amb_choice + AMB_NUM_CHOICES (game_tick_globals) | -4 discards, build OK |
 | 2026-04-26 | Batch 8 | facet cluster (3 funcs + 2 globals + night_globals/h macros), crinkle_project, ngamut_view_square, switch cluster (alloc_switch + switch_functions + switch_globals.cpp/h deleted), road cluster (2 funcs + ROAD_mapsquare_type + ROAD_TYPE_* consts), AENG_draw_far_facets | -14 discards, build OK |
+| 2026-04-26 | Batch 13 | poly.cpp cluster (4 funcs: NewTweenVertex2D_X/Y + POLY_clip_against_side_X/Y), anim.cpp Anim+Character methods (9 funcs) | -13 discards, build OK |
