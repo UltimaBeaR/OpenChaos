@@ -1,39 +1,39 @@
 #version 410 core
 
-// CRT-Lottes scanline post-process shader.
-// Adapted from Timothy Lottes' PUBLIC DOMAIN crt-lottes shader:
-// https://github.com/libretro/glsl-shaders/blob/master/crt/shaders/crt-lottes.glsl
+// CRT-geom adaptation for OpenChaos — PUBLIC DOMAIN
+// Based on crt-geom by cgwg (Christian Gosch):
+//   https://github.com/libretro/glsl-shaders/blob/master/crt/shaders/crt-geom.glsl
 //
-// Reads directly from the scene FBO color texture (pre-FXAA, pre-upscale),
-// and writes the CRT-filtered result to the game area on the default FB,
-// replacing the composition_blit output for the game image pixels.
+// Modifications vs original:
+//   - Removed barrel curvature and corner rounding (flat screen)
+//   - Adapted coordinate system: u_source = display-res scratch texture,
+//     u_content_size = virtual game resolution (e.g. 640x480)
+//   - Added explicit halation pass (warm phosphor glow for dark 3D content)
+//   - Mask tuned to very subtle (3D polygonal game, not pixel art)
 //
-// Coordinate contract:
-//   gl_FragCoord    — GL window-space pixels, bottom-left origin.
-//   u_game_rect     — game area (x, y, w, h) in GL pixels, bottom-left origin.
-//                     Matches the aspect-fit rect from composition_blit.
-//   u_source        — scene FBO color texture (size = u_content_size).
-//   u_content_size  — scene FBO dimensions (virtual game resolution, e.g. 640×480).
+// Algorithm:
+//   For each output pixel, reconstruct colour from the two nearest content
+//   scanlines using a 4th-power Gaussian beam profile (crt-geom characteristic:
+//   sharper falloff than 2nd-power → real dark gap between lines).
+//   Beam width scales with local luminance: bright phosphors spread more,
+//   dark areas show a fully black gap — correct CRT physics.
 
 out vec4 FragColor;
 
 uniform sampler2D u_source;
-uniform vec4  u_game_rect;      // (x, y, w, h) of game area in GL pixel coords
-uniform vec2  u_content_size;   // scene FBO size (= virtual game resolution)
+uniform vec4  u_game_rect;
+uniform vec2  u_content_size;
 
-// CRT tuning parameters (all set from C++).
-uniform float u_hard_scan;       // scanline hardness: -8.0 soft, -16.0 medium
-uniform float u_hard_pix;        // horizontal pixel hardness: -3.0 soft, -4.0 hard
-uniform float u_warp_x;          // barrel curvature X: 0.0 = flat, 0.031 = mild
-uniform float u_warp_y;          // barrel curvature Y: 0.0 = flat, 0.041 = mild
-uniform float u_mask_dark;       // phosphor mask dark channel (0.5)
-uniform float u_mask_light;      // phosphor mask light channel (1.5)
-uniform float u_bloom_amount;    // bloom intensity (0.15, set 0 to disable)
-uniform float u_hard_bloom_pix;  // bloom horizontal softness (-1.5)
-uniform float u_hard_bloom_scan; // bloom vertical softness (-2.0)
-uniform float u_shape;           // Gaussian kernel shape exponent (2.0)
+uniform float u_scanline_weight;    // beam width: 1.0 = sharp, 3.0 = soft/bloomy
+uniform float u_mask_dark;          // phosphor mask dark value  (1.0 = mask off)
+uniform float u_mask_light;         // phosphor mask bright value (1.0 = mask off)
+uniform float u_halation_strength;  // warm glow intensity around bright objects
+uniform float u_halation_radius;    // glow spread in content pixels
+uniform float u_vignette_strength;
+uniform float u_brightness;
+uniform float u_warmth;
 
-// ---- sRGB <-> linear -------------------------------------------------
+// ---- sRGB <-> linear -----------------------------------------------
 
 float ToLinear1(float c) {
     return (c <= 0.04045) ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4);
@@ -48,140 +48,128 @@ vec3 ToSrgb(vec3 c) {
     return vec3(ToSrgb1(c.r), ToSrgb1(c.g), ToSrgb1(c.b));
 }
 
-// ---- sampling --------------------------------------------------------
+// ---- sampling -------------------------------------------------------
 
-// Sample the scene FBO at a content-pixel-aligned position.
-// game_uv: position within game area, range [0, 1].
-// off:     integer offset in content pixels.
-vec3 Fetch(vec2 game_uv, vec2 off) {
-    // Snap to content pixel grid, apply offset, renormalize to source UV.
-    vec2 src_uv = (floor(game_uv * u_content_size + off) + 0.5) / u_content_size;
-    if (max(abs(src_uv.x - 0.5), abs(src_uv.y - 0.5)) > 0.5)
-        return vec3(0.0);
-    return ToLinear(texture(u_source, src_uv).rgb);
+// Sample scratch texture at an exact content-row centre (Y snapped, X free).
+// The scratch texture is display-resolution; snapping Y to content row centres
+// is the key to making scanlines reconstruct correctly.
+vec3 FetchRow(float x_uv, float row) {
+    vec2 uv = vec2(x_uv, (row + 0.5) / u_content_size.y);
+    return ToLinear(texture(u_source, clamp(uv, vec2(0.0), vec2(1.0))).rgb);
 }
 
-// Sub-pixel distance from current position to the nearest content-pixel centre.
-vec2 Dist(vec2 game_uv) {
-    vec2 cp = game_uv * u_content_size;
-    return -((cp - floor(cp)) - 0.5);
+// Sample with a content-pixel offset (used for halation wide kernel).
+vec3 FetchOffset(vec2 uv, vec2 cp_off) {
+    return ToLinear(texture(u_source,
+        clamp(uv + cp_off / u_content_size, vec2(0.0), vec2(1.0))).rgb);
 }
 
-float Gaus(float pos, float scale) {
-    return exp2(scale * pow(abs(pos), u_shape));
+// ---- crt-geom scanline beam ----------------------------------------
+
+// 4th-power Gaussian profile from crt-geom (cgwg).
+// Compared to 2nd-power: sharper falloff → darker gap at midpoint between lines.
+// Width scales with luminance: bright phosphors spread, dark areas stay sharp.
+float ScanlineWeight(float dist, float lum) {
+    float wid = u_scanline_weight * (0.3 + 0.2 * lum * lum * lum);
+    float d   = dist / wid;
+    return (0.4 / wid) * exp(-d * d * d * d);
 }
 
-// ---- horizontal Gaussian taps ----------------------------------------
+// Reconstruct output pixel from 4 nearest content scanlines.
+vec3 CrtScan(vec2 uv) {
+    float cy = uv.y * u_content_size.y;
 
-vec3 Horz3(vec2 uv, float off) {
-    vec3 b = Fetch(uv, vec2(-1.0, off));
-    vec3 c = Fetch(uv, vec2( 0.0, off));
-    vec3 d = Fetch(uv, vec2( 1.0, off));
-    float dst = Dist(uv).x;
-    float wb = Gaus(dst - 1.0, u_hard_pix);
-    float wc = Gaus(dst + 0.0, u_hard_pix);
-    float wd = Gaus(dst + 1.0, u_hard_pix);
-    return (b*wb + c*wc + d*wd) / (wb + wc + wd);
+    // r: index of the content row whose centre is just below the current position.
+    // t: fractional distance past r's centre (0 = at r centre, 1 = at r+1 centre).
+    float r = floor(cy - 0.5);
+    float t = cy - (r + 0.5);
+
+    vec3 c0 = FetchRow(uv.x, r - 1.0);
+    vec3 c1 = FetchRow(uv.x, r);
+    vec3 c2 = FetchRow(uv.x, r + 1.0);
+    vec3 c3 = FetchRow(uv.x, r + 2.0);
+
+    // Luminance of the two primary rows drives their beam width.
+    float l1 = dot(c1, vec3(0.2126, 0.7152, 0.0722));
+    float l2 = dot(c2, vec3(0.2126, 0.7152, 0.0722));
+
+    float w0 = ScanlineWeight(t + 1.0, l1);  // r-1: far above
+    float w1 = ScanlineWeight(t,       l1);  // r:   near above
+    float w2 = ScanlineWeight(1.0 - t, l2);  // r+1: near below
+    float w3 = ScanlineWeight(2.0 - t, l2);  // r+2: far below
+
+    return w0*c0 + w1*c1 + w2*c2 + w3*c3;
 }
 
-vec3 Horz5(vec2 uv, float off) {
-    vec3 a = Fetch(uv, vec2(-2.0, off));
-    vec3 b = Fetch(uv, vec2(-1.0, off));
-    vec3 c = Fetch(uv, vec2( 0.0, off));
-    vec3 d = Fetch(uv, vec2( 1.0, off));
-    vec3 e = Fetch(uv, vec2( 2.0, off));
-    float dst = Dist(uv).x;
-    float wa = Gaus(dst - 2.0, u_hard_pix);
-    float wb = Gaus(dst - 1.0, u_hard_pix);
-    float wc = Gaus(dst + 0.0, u_hard_pix);
-    float wd = Gaus(dst + 1.0, u_hard_pix);
-    float we = Gaus(dst + 2.0, u_hard_pix);
-    return (a*wa + b*wb + c*wc + d*wd + e*we) / (wa + wb + wc + wd + we);
-}
+// ---- phosphor mask -------------------------------------------------
 
-vec3 Horz7(vec2 uv, float off) {
-    vec3 a = Fetch(uv, vec2(-3.0, off));
-    vec3 b = Fetch(uv, vec2(-2.0, off));
-    vec3 c = Fetch(uv, vec2(-1.0, off));
-    vec3 d = Fetch(uv, vec2( 0.0, off));
-    vec3 e = Fetch(uv, vec2( 1.0, off));
-    vec3 f = Fetch(uv, vec2( 2.0, off));
-    vec3 g = Fetch(uv, vec2( 3.0, off));
-    float dst = Dist(uv).x;
-    float wa = Gaus(dst - 3.0, u_hard_bloom_pix);
-    float wb = Gaus(dst - 2.0, u_hard_bloom_pix);
-    float wc = Gaus(dst - 1.0, u_hard_bloom_pix);
-    float wd = Gaus(dst + 0.0, u_hard_bloom_pix);
-    float we = Gaus(dst + 1.0, u_hard_bloom_pix);
-    float wf = Gaus(dst + 2.0, u_hard_bloom_pix);
-    float wg = Gaus(dst + 3.0, u_hard_bloom_pix);
-    return (a*wa + b*wb + c*wc + d*wd + e*we + f*wf + g*wg) /
-           (wa + wb + wc + wd + we + wf + wg);
-}
-
-// ---- scanlines + bloom -----------------------------------------------
-
-float Scan(vec2 uv, float off) {
-    return Gaus(Dist(uv).y + off, u_hard_scan);
-}
-float BloomScan(vec2 uv, float off) {
-    return Gaus(Dist(uv).y + off, u_hard_bloom_scan);
-}
-
-vec3 Tri(vec2 uv) {
-    return Horz3(uv, -1.0) * Scan(uv, -1.0)
-         + Horz5(uv,  0.0) * Scan(uv,  0.0)
-         + Horz3(uv,  1.0) * Scan(uv,  1.0);
-}
-
-vec3 Bloom(vec2 uv) {
-    return Horz5(uv, -2.0) * BloomScan(uv, -2.0)
-         + Horz7(uv, -1.0) * BloomScan(uv, -1.0)
-         + Horz7(uv,  0.0) * BloomScan(uv,  0.0)
-         + Horz7(uv,  1.0) * BloomScan(uv,  1.0)
-         + Horz5(uv,  2.0) * BloomScan(uv,  2.0);
-}
-
-// ---- distortion + mask -----------------------------------------------
-
-// Barrel distortion: game_uv [0,1] → warped game_uv [0,1].
-vec2 Warp(vec2 uv) {
-    uv = uv * 2.0 - 1.0;
-    uv *= vec2(1.0 + uv.y * uv.y * u_warp_x,
-               1.0 + uv.x * uv.x * u_warp_y);
-    return uv * 0.5 + 0.5;
-}
-
-// Stretched VGA shadow mask (mask style 3 from original crt-lottes).
-vec3 Mask(vec2 screen_pos) {
-    screen_pos.x += screen_pos.y * 3.0;
-    vec3 mask = vec3(u_mask_dark);
-    screen_pos.x = fract(screen_pos.x / 6.0);
-    if      (screen_pos.x < 0.333) mask.r = u_mask_light;
-    else if (screen_pos.x < 0.666) mask.g = u_mask_light;
-    else                           mask.b = u_mask_light;
+// Subtle aperture-grille: R / G / B columns, 3-pixel repeat.
+// With u_mask_dark=0.85 / u_mask_light=1.15 the effect is barely perceptible
+// on 3D content but adds a faint screen texture.
+vec3 PhosphorMask(vec2 screen_pos) {
+    float x    = mod(floor(screen_pos.x), 3.0);
+    vec3  mask = vec3(u_mask_dark);
+    if      (x < 1.0) mask.r = u_mask_light;
+    else if (x < 2.0) mask.g = u_mask_light;
+    else              mask.b = u_mask_light;
     return mask;
 }
 
-// ---- entry point -----------------------------------------------------
+// ---- halation ------------------------------------------------------
+
+// Warm phosphor glow: bright objects bleed light into surrounding dark areas.
+// Main visual effect for dark 3D scenes (streetlights, explosions, gunfire).
+vec3 Halation(vec2 uv) {
+    vec3  glow  = vec3(0.0);
+    float total = 0.0;
+    for (float dy = -1.0; dy <= 1.0; dy += 1.0) {
+        for (float dx = -1.0; dx <= 1.0; dx += 1.0) {
+            float w  = exp(-(dx*dx + dy*dy));
+            glow    += FetchOffset(uv, vec2(dx, dy) * u_halation_radius) * w;
+            total   += w;
+        }
+    }
+    glow /= total;
+    float lum = dot(glow, vec3(0.2126, 0.7152, 0.0722));
+    // Warm phosphor tint: red-heavy, low blue.
+    const vec3 PHOSPHOR_WARM = vec3(1.1, 0.75, 0.3);
+    return glow * PHOSPHOR_WARM * lum * u_halation_strength;
+}
+
+// ---- vignette ------------------------------------------------------
+
+float Vignette(vec2 uv) {
+    float aspect = u_content_size.x / u_content_size.y;
+    vec2  d = (uv - 0.5) * vec2(aspect, 1.0);
+    float r = dot(d, d);
+    return 1.0 - u_vignette_strength * smoothstep(0.0, 0.75, r * 4.0);
+}
+
+// ---- entry point ---------------------------------------------------
 
 void main() {
-    // Derive game-area UV [0, 1] from this fragment's screen position.
     vec2 game_uv = (gl_FragCoord.xy - u_game_rect.xy) / u_game_rect.zw;
 
-    // Apply barrel distortion.
-    vec2 warped = Warp(game_uv);
+    // Scanline reconstruction (crt-geom 4th-power Gaussian beam model).
+    vec3 col = CrtScan(game_uv);
 
-    // Pixels warped past the screen edge → solid black (CRT bezel).
-    if (warped.x < 0.0 || warped.x > 1.0 ||
-        warped.y < 0.0 || warped.y > 1.0) {
-        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
-    }
+    // Phosphor mask (very subtle for 3D content).
+    col *= PhosphorMask(gl_FragCoord.xy);
 
-    vec3 col = Tri(warped);
-    col += Bloom(warped) * u_bloom_amount;
-    col *= Mask(gl_FragCoord.xy);
+    // Halation: additive warm glow around bright areas.
+    col += Halation(game_uv);
+
+    // Vignette.
+    col *= Vignette(game_uv);
+
+    // Warm phosphor colour temperature.
+    col.r *= 1.0 + u_warmth * 0.07;
+    col.b *= 1.0 - u_warmth * 0.07;
+
+    col *= u_brightness;
+
+    // Clamp before gamma to avoid artefacts from scanline energy overshoot.
+    col = min(col, vec3(1.5));
 
     FragColor = vec4(ToSrgb(col), 1.0);
 }

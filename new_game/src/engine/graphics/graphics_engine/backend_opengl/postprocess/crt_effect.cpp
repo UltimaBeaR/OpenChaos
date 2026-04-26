@@ -1,4 +1,4 @@
-// CRT-Lottes scanline post-process effect.
+// CRT-geom post-process effect — consumer TV aesthetic for dark 3D content.
 //
 // Called at the end of the UI pass (after all game content AND UI/HUD have
 // rendered into the default FB), so the CRT filter covers the full frame
@@ -25,24 +25,20 @@ bool g_crt_enabled = OC_CRT_ENABLE;
 
 namespace {
 
-GLuint s_program            = 0;
-GLint  s_u_source           = -1;
-GLint  s_u_game_rect        = -1;
-GLint  s_u_content_size     = -1;
-GLint  s_u_hard_scan        = -1;
-GLint  s_u_hard_pix         = -1;
-GLint  s_u_warp_x           = -1;
-GLint  s_u_warp_y           = -1;
-GLint  s_u_mask_dark        = -1;
-GLint  s_u_mask_light       = -1;
-GLint  s_u_bloom_amount     = -1;
-GLint  s_u_hard_bloom_pix   = -1;
-GLint  s_u_hard_bloom_scan  = -1;
-GLint  s_u_shape            = -1;
+GLuint s_program               = 0;
+GLint  s_u_source              = -1;
+GLint  s_u_game_rect           = -1;
+GLint  s_u_content_size        = -1;
+GLint  s_u_scanline_weight     = -1;
+GLint  s_u_mask_dark           = -1;
+GLint  s_u_mask_light          = -1;
+GLint  s_u_halation_strength   = -1;
+GLint  s_u_halation_radius     = -1;
+GLint  s_u_vignette_strength   = -1;
+GLint  s_u_brightness          = -1;
+GLint  s_u_warmth              = -1;
 
 // Scratch texture — persistent copy of the game area from the default FB.
-// Resized when the game area changes.  Sized to game area (not full window)
-// so the shader can address it directly with game_uv [0, 1].
 GLuint  s_scratch_tex = 0;
 int32_t s_scratch_w   = 0;
 int32_t s_scratch_h   = 0;
@@ -50,17 +46,25 @@ int32_t s_scratch_h   = 0;
 GLuint s_vao = 0;
 GLuint s_vbo = 0;
 
-// Default tuning constants matching crt-lottes original values.
-constexpr float CRT_HARD_SCAN       = -8.0f;   // soft scanlines
-constexpr float CRT_HARD_PIX        = -3.0f;   // soft horizontal pixels
-constexpr float CRT_WARP_X          = 0.031f;  // mild barrel curvature X
-constexpr float CRT_WARP_Y          = 0.041f;  // mild barrel curvature Y
-constexpr float CRT_MASK_DARK       = 0.5f;
-constexpr float CRT_MASK_LIGHT      = 1.5f;
-constexpr float CRT_BLOOM_AMOUNT    = 0.15f;
-constexpr float CRT_HARD_BLOOM_PIX  = -1.5f;
-constexpr float CRT_HARD_BLOOM_SCAN = -2.0f;
-constexpr float CRT_SHAPE           = 2.0f;    // Gaussian kernel shape
+// Tuning: crt-geom beam model, flat screen, dark 3D game.
+//
+// CRT_SCANLINE_WEIGHT: beam width multiplier.
+//   1.0 = sharp (wide dark gap), 3.0 = soft (gap almost filled).
+//   At 1.5 dark areas show a clear gap, bright areas (explosions) fill in.
+//
+// Phosphor mask: very subtle (3D polygonal game, not pixel art).
+//   1.0 / 1.0 = completely off.
+//
+// Halation is the main visual effect for dark 3D: streetlights, explosions,
+// and gunfire bleed warm light into surrounding dark areas.
+constexpr float CRT_SCANLINE_WEIGHT   = 1.5f;   // beam width (1=sharp gap, 3=soft)
+constexpr float CRT_MASK_DARK         = 0.85f;  // subtle aperture-grille
+constexpr float CRT_MASK_LIGHT        = 1.15f;
+constexpr float CRT_HALATION_STRENGTH = 0.22f;  // warm glow intensity
+constexpr float CRT_HALATION_RADIUS   = 2.5f;   // glow spread in content pixels
+constexpr float CRT_VIGNETTE_STRENGTH = 0.30f;
+constexpr float CRT_BRIGHTNESS        = 1.15f;  // compensates scanline energy loss
+constexpr float CRT_WARMTH            = 0.4f;   // warm phosphor colour temperature
 
 bool ensure_program()
 {
@@ -70,19 +74,17 @@ bool ensure_program()
         fprintf(stderr, "CRT effect: failed to create shader program\n");
         return false;
     }
-    s_u_source          = glGetUniformLocation(s_program, "u_source");
-    s_u_game_rect       = glGetUniformLocation(s_program, "u_game_rect");
-    s_u_content_size    = glGetUniformLocation(s_program, "u_content_size");
-    s_u_hard_scan       = glGetUniformLocation(s_program, "u_hard_scan");
-    s_u_hard_pix        = glGetUniformLocation(s_program, "u_hard_pix");
-    s_u_warp_x          = glGetUniformLocation(s_program, "u_warp_x");
-    s_u_warp_y          = glGetUniformLocation(s_program, "u_warp_y");
-    s_u_mask_dark       = glGetUniformLocation(s_program, "u_mask_dark");
-    s_u_mask_light      = glGetUniformLocation(s_program, "u_mask_light");
-    s_u_bloom_amount    = glGetUniformLocation(s_program, "u_bloom_amount");
-    s_u_hard_bloom_pix  = glGetUniformLocation(s_program, "u_hard_bloom_pix");
-    s_u_hard_bloom_scan = glGetUniformLocation(s_program, "u_hard_bloom_scan");
-    s_u_shape           = glGetUniformLocation(s_program, "u_shape");
+    s_u_source            = glGetUniformLocation(s_program, "u_source");
+    s_u_game_rect         = glGetUniformLocation(s_program, "u_game_rect");
+    s_u_content_size      = glGetUniformLocation(s_program, "u_content_size");
+    s_u_scanline_weight   = glGetUniformLocation(s_program, "u_scanline_weight");
+    s_u_mask_dark         = glGetUniformLocation(s_program, "u_mask_dark");
+    s_u_mask_light        = glGetUniformLocation(s_program, "u_mask_light");
+    s_u_halation_strength = glGetUniformLocation(s_program, "u_halation_strength");
+    s_u_halation_radius   = glGetUniformLocation(s_program, "u_halation_radius");
+    s_u_vignette_strength = glGetUniformLocation(s_program, "u_vignette_strength");
+    s_u_brightness        = glGetUniformLocation(s_program, "u_brightness");
+    s_u_warmth            = glGetUniformLocation(s_program, "u_warmth");
     return true;
 }
 
@@ -103,7 +105,7 @@ void ensure_scratch(int32_t w, int32_t h)
     glBindTexture(GL_TEXTURE_2D, s_scratch_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0,
                  GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    // LINEAR so the Gaussian filter gets proper sub-pixel interpolation.
+    // LINEAR so horizontal sub-content-pixel interpolation is smooth.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
@@ -148,15 +150,14 @@ void crt_effect_apply()
     if (!s_scratch_tex) return;
     ensure_quad();
 
-    // ---- 1. Copy the full game area (game + UI) from default FB → scratch --
-    // Preserves current texture binding so we don't desync the engine cache.
+    // ---- 1. Copy the full game area from default FB → scratch -------------
     GLint prev_tex = 0;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &prev_tex);
 
     glBindTexture(GL_TEXTURE_2D, s_scratch_tex);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0,
-                        0, 0,           // dst offset in scratch (origin)
-                        game_x, game_y, // src offset in default FB (GL coords)
+                        0, 0,
+                        game_x, game_y,
                         game_w, game_h);
 
     // ---- 2. Draw CRT-filtered result back to the game area ----------------
@@ -189,26 +190,21 @@ void crt_effect_apply()
     glBindTexture(GL_TEXTURE_2D, s_scratch_tex);
     glUniform1i(s_u_source, 0);
 
-    // u_game_rect tells the shader how to compute game_uv from gl_FragCoord.
     glUniform4f(s_u_game_rect,
                 (float)game_x, (float)game_y,
                 (float)game_w, (float)game_h);
-    // u_content_size drives the scanline grid — matches the virtual game
-    // resolution (scene FBO size, e.g. 640×480), not the scratch texture size.
     glUniform2f(s_u_content_size,
                 (float)composition_scene_width(),
                 (float)composition_scene_height());
 
-    glUniform1f(s_u_hard_scan,       CRT_HARD_SCAN);
-    glUniform1f(s_u_hard_pix,        CRT_HARD_PIX);
-    glUniform1f(s_u_warp_x,          CRT_WARP_X);
-    glUniform1f(s_u_warp_y,          CRT_WARP_Y);
-    glUniform1f(s_u_mask_dark,       CRT_MASK_DARK);
-    glUniform1f(s_u_mask_light,      CRT_MASK_LIGHT);
-    glUniform1f(s_u_bloom_amount,    CRT_BLOOM_AMOUNT);
-    glUniform1f(s_u_hard_bloom_pix,  CRT_HARD_BLOOM_PIX);
-    glUniform1f(s_u_hard_bloom_scan, CRT_HARD_BLOOM_SCAN);
-    glUniform1f(s_u_shape,           CRT_SHAPE);
+    glUniform1f(s_u_scanline_weight,   CRT_SCANLINE_WEIGHT);
+    glUniform1f(s_u_mask_dark,         CRT_MASK_DARK);
+    glUniform1f(s_u_mask_light,        CRT_MASK_LIGHT);
+    glUniform1f(s_u_halation_strength, CRT_HALATION_STRENGTH);
+    glUniform1f(s_u_halation_radius,   CRT_HALATION_RADIUS);
+    glUniform1f(s_u_vignette_strength, CRT_VIGNETTE_STRENGTH);
+    glUniform1f(s_u_brightness,        CRT_BRIGHTNESS);
+    glUniform1f(s_u_warmth,            CRT_WARMTH);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -233,7 +229,7 @@ void crt_effect_shutdown()
     if (s_vbo)         { glDeleteBuffers(1, &s_vbo);          s_vbo = 0; }
     s_scratch_w = s_scratch_h = 0;
     s_u_source = s_u_game_rect = s_u_content_size = -1;
-    s_u_hard_scan = s_u_hard_pix = s_u_warp_x = s_u_warp_y = -1;
-    s_u_mask_dark = s_u_mask_light = s_u_bloom_amount = -1;
-    s_u_hard_bloom_pix = s_u_hard_bloom_scan = s_u_shape = -1;
+    s_u_scanline_weight = s_u_mask_dark = s_u_mask_light = -1;
+    s_u_halation_strength = s_u_halation_radius = -1;
+    s_u_vignette_strength = s_u_brightness = s_u_warmth = -1;
 }

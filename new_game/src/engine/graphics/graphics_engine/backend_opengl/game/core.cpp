@@ -8,6 +8,7 @@
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
+#include "engine/graphics/graphics_engine/backend_opengl/postprocess/crt_effect.h"
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
@@ -1762,6 +1763,7 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
     composition_blit(win_w, win_h);
+    crt_effect_apply();
 
     present_and_swap(win_w, win_h);
 
