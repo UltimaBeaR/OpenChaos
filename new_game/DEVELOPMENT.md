@@ -28,6 +28,18 @@ Config is in `.clang-format` (project root of `new_game/`).
 
 ---
 
+## VSCode IntelliSense (code hints / completions)
+
+If you want code hints, jump-to-definition, completions, and other IntelliSense features to work in VSCode, install the **clangd** extension:
+
+```
+llvm-vs-code-extensions.vscode-clangd
+```
+
+It uses the `compile_commands.json` produced by CMake to give accurate semantic info (much better than the default C/C++ extension on this codebase). The CMake build already emits `compile_commands.json` into the build directory, so no extra setup is needed beyond installing the extension.
+
+---
+
 ## DualSense support
 
 DualSense controller support is provided by **libDualsense** — an
