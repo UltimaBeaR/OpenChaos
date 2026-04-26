@@ -17,10 +17,6 @@ extern StateFunction darci_states[];
 // Debug/legacy flag — was used to track whether Darci is walking on air. Unused in current code.
 extern SLONG air_walking;
 
-// uc_orig: history_thing (fallen/Source/Darci.cpp)
-// Ring buffer of recently touched thing indices — legacy debug data, no longer used.
-extern THING_INDEX history_thing[100];
-
 // uc_orig: history (fallen/Source/Darci.cpp)
 // Current index into history_thing ring buffer.
 extern SWORD history;

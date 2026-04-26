@@ -1,5 +1,4 @@
 #include "things/characters/thug.h"
-#include "things/characters/thug_globals.h"
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/animation/anim_types.h"      // GameKeyFrame

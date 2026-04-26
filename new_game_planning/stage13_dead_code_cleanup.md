@@ -226,6 +226,35 @@ llvm-cov report OpenChaos.exe -instr-profile=coverage.profdata
 - Assertion helpers и крэш-хендлеры (могут не иметь обычных caller'ов
   но вызываются системой через signal/exception).
 
+## Финальный проход — удаление пустых файлов (1 раз, в конце)
+
+После того как все символы вычищены — пройтись по всем файлам проекта
+и удалить те, что стали фактически пустыми в результате чистки.
+
+**Критерий пустого файла:**
+- `.h`: только include-guard (`#ifndef / #define / #endif`) и возможно один `#include` — без объявлений
+- `.cpp`: только один `#include` самого себя (или вообще ничего) — без определений
+
+**Что делать с пустым файлом:**
+1. Найти все `#include "файл"` в проекте → удалить эти строки
+2. Удалить файл из `CMakeLists.txt` (если `.cpp`)
+3. Удалить сам файл (`rm` или `git rm`)
+
+**Команда для поиска кандидатов:**
+```bash
+# Файлы с ≤1 значимой строкой (не пустые, не комменты, не include/guard)
+for f in $(find new_game/src -name "*.cpp" -o -name "*.h"); do
+  meaningful=$(grep -v "^[[:space:]]*$\|^[[:space:]]*//" "$f" | \
+               grep -v "^#ifndef\|^#define [A-Z_]*_H\|^#endif\|^#pragma once\|^#include" | wc -l)
+  [ "$meaningful" -le 1 ] && echo "$f"
+done
+```
+
+Это делается **один раз в конце** всей чистки, не на каждую итерацию.
+Пример из практики: `thug_globals.h/.cpp` — после удаления `thug_states[]`
+файлы стали пустыми и были удалены вместе с их `#include` в `thug.cpp`
+и строкой в `CMakeLists.txt`.
+
 ## Критерий готовности Stage 13 dead-code
 
 - cppcheck `unusedFunction` выхлоп < N (какое-то небольшое число
@@ -237,6 +266,7 @@ llvm-cov report OpenChaos.exe -instr-profile=coverage.profdata
 - Ревью PR'ами с конкретными группами (сразу 500 файлов не
   ревьюируется, лучше по подсистемам: graphics dead, audio dead, AI
   dead, etc.).
+- **Финальный проход:** все фактически пустые файлы удалены (см. секцию выше).
 
 ## Примерный объём
 

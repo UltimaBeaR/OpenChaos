@@ -10,8 +10,5 @@
 // THING_INDEX array of bodies being levitated by the Bane boss.
 extern UWORD BAT_summon[BAT_SUMMON_NUM_BODIES];
 
-// uc_orig: BAT_state_name (fallen/Source/bat.cpp)
-// State name strings for debug/assert output. Indexed by BAT_STATE_*.
-extern const char* BAT_state_name[];
 
 #endif // THINGS_ANIMALS_BAT_GLOBALS_H

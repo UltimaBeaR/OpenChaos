@@ -71,22 +71,10 @@ extern SWORD fight_tree[][10];
 // uc_orig: take_hit (fallen/Source/Combat.cpp)
 extern UBYTE take_hit[7][2];
 
-// Punch animation candidates grouped by power level for AI selection.
-// uc_orig: punches (fallen/Source/Combat.cpp)
-extern SWORD punches[4][5];
-
-// Kick animation candidates grouped by power level for AI selection.
-// uc_orig: kicks (fallen/Source/Combat.cpp)
-extern SWORD kicks[4][5];
-
 // Available grapple moves for both Darci and Roper.
 // Terminated with a zero-anim sentinel entry.
 // uc_orig: grapples (fallen/Source/Combat.cpp)
 extern struct Grapples grapples[];
-
-// Neck snap grapple (only accessible to player via step-forward input).
-// uc_orig: grapple (fallen/Source/Combat.cpp)
-extern SWORD grapple[];
 
 // Temp THING_INDEX buffer used across multiple sphere-query functions in combat.cpp.
 // Declared as file-scope to avoid repeated stack allocations in nested calls.

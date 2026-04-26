@@ -15,10 +15,6 @@ extern GenusFunctions people_functions[];
 // uc_orig: generic_people_functions (fallen/Source/Person.cpp)
 extern StateFunction generic_people_functions[];
 
-// Movement mode name strings, indexed by PERSON_MODE_* constants.
-// uc_orig: PERSON_mode_name (fallen/Source/Person.cpp)
-extern CBYTE* PERSON_mode_name[];
-
 // Per-type initial health values.
 // uc_orig: health (fallen/Source/Person.cpp)
 extern SWORD health[];
@@ -85,8 +81,5 @@ extern UWORD near_facet;
 // uc_orig: kick_or_punch (fallen/Source/Person.cpp)
 extern SLONG kick_or_punch;
 
-// Direction index to angle lookup (0=N, 1=E, 2=W, 3=S), used by MAV navigation stubs.
-// uc_orig: dir_to_angle (fallen/Source/Person.cpp)
-extern UWORD dir_to_angle[];
 
 #endif // THINGS_CHARACTERS_PERSON_GLOBALS_H

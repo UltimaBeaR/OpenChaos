@@ -11,10 +11,6 @@
 // Name pairs: [bone_name, parent_bone_name]. Root bone has empty parent string.
 extern CBYTE* body_part_parent[][2];
 
-// uc_orig: body_part_parent_numbers (fallen/Headers/Hierarchy.h)
-// Index of the parent bone for each bone. -1 = root (no parent).
-extern SLONG body_part_parent_numbers[];
-
 // uc_orig: body_part_children (fallen/Headers/Hierarchy.h)
 // Up to 5 children per bone. Terminated by -1.
 extern SLONG body_part_children[][5];

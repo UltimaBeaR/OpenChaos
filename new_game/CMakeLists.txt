@@ -393,7 +393,6 @@ set(SOURCES_NEW
     src/things/characters/roper.cpp
     src/things/characters/roper_globals.cpp
     src/things/characters/thug.cpp
-    src/things/characters/thug_globals.cpp
     src/things/characters/snipe.cpp
     src/things/characters/snipe_globals.cpp
     src/things/characters/darci.cpp

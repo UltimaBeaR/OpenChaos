@@ -46,10 +46,6 @@ extern UWORD PCOM_found[PCOM_MAX_FIND];
 // uc_orig: PCOM_found_num (fallen/Source/pcom.cpp)
 extern SLONG PCOM_found_num;
 
-// Priority order for assigning cardinal attack angles (compass sectors, clockwise).
-// uc_orig: gang_angle_priority (fallen/Source/pcom.cpp)
-extern UBYTE gang_angle_priority[8];
-
 // Bane boss summon targets — up to 4 bodies raised during PCOM_AI_STATE_SUMMON.
 // uc_orig: PCOM_SUMMON_NUM_BODIES (fallen/Source/pcom.cpp)
 #define PCOM_SUMMON_NUM_BODIES 4

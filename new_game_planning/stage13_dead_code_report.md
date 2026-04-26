@@ -24,13 +24,63 @@ Workflow:
 
 ## Workflow для продолжения чистки
 
-**Текущее состояние uncommitted в working tree** (на 2026-04-26 после батчей 1+3+4+5):
-- Изменены 29 файлов, удалены 2 (quaternion_globals.cpp/.h)
-- ~70 dead функций + ~5 dead arrays/globals удалены
-- Discards count: 4534 → 4412
+**Текущее состояние uncommitted в working tree** (на 2026-04-26 после батчей 1+3+4+5+6+7):
+- Батчи 1-5 закоммичены в "dead code cleanup: p1"
+- Батчи 6-7 — uncommitted, ~18 dead globals удалены
+- Discards count (DEAD_CODE_REPORT build): 2963 → 2947 (после батча 7)
+- Отфильтрованных dead символов: ~1098 при старте сессии (из них ~18 удалено)
 - Build OK (без ASan)
-- Игра запускается визуально OK (тестировал пользователь)
 - НЕ закоммичено — пользователь хочет коммитить вручную
+
+**Что было сделано в этой сессии (батчи 6-7):**
+
+Стратегия: leaf globals — глобальные переменные без единого реального caller'а (только definition в .cpp + extern в .h). Верифицировались grep'ом перед удалением.
+
+Удалены (батч 6):
+- `bat_globals.cpp/h`: `BAT_state_name[]`
+- `thug_globals.cpp/h`: `thug_states[]` (весь файл стал пустым — сокращён до минимума)
+- `darci_globals.cpp/h`: `history_thing[100]`
+- `person_globals.cpp/h`: `PERSON_mode_name[]`, `dir_to_angle[]`
+- `attract_globals.cpp/h`: `demo_text[]`, `playbacks[]`
+- `overlay_globals.cpp/h`: `help_text[]`, `help_xlat[]` (+ убран лишний #include xlat_str.h)
+- `combat_globals.cpp/h`: `grapple[]`, `kicks[][]`, `punches[][]`
+
+Удалены (батч 7):
+- `pcom_globals.cpp/h`: `gang_angle_priority[]`
+- `soundenv_globals.cpp/h`: `SOUNDENV_gndquads[]`
+- `hierarchy_globals.cpp/h` + `hierarchy.h`: `body_part_parent_numbers[]`
+- `game_tick_globals.cpp/h`: `amb_choice[]` + `#define AMB_NUM_CHOICES`
+
+Пропущено (с обоснованием):
+- `find_anim_fight_height` (combat.cpp): компилятор оптимизировал вызов из живого `should_i_block` (return value дисcard), но в исходнике вызов присутствует. Правило #4 — не удалять вызовы из живого кода.
+
+**Что делать дальше:**
+
+1. Регенерировать dead-list (батчи изменили состояние):
+   ```bash
+   CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=OFF" make configure
+   make build-release > /tmp/dead_code_build.log 2>&1
+   grep '^lld-link: Discarded' /tmp/dead_code_build.log | sed 's/^lld-link: Discarded //' > /tmp/discarded.txt
+   ```
+
+2. Следующие приоритеты (по количеству dead символов):
+   - **`src/buildings/building.cpp` (134 dead)** — огромный transitive кластер, нужна осторожность
+   - **`src/buildings/building_globals.cpp` (58 dead)** — связан с building.cpp
+   - **`src/engine/graphics/pipeline/aeng.cpp` (41 dead)** — pipeline legacy
+   - **`src/things/characters/person.cpp` (36 dead)**
+   - **`src/ui/menus/widget.cpp` (34 dead)**
+   - Быстрые: файлы с 1-4 dead, у которых все символы leaf (верифицировать grep'ом)
+
+3. Продолжать стратегию: сначала leaf, потом transitive связками
+
+**Инструменты (если нужно восстановить dc_file_to_dead.json):**
+
+Скрипты лежат в `C:/Users/BeaR/AppData/Local/Temp/`:
+- `dc_map.py` — строит file→dead_symbols маппинг
+- `dc_demangle.py` — добавляет demangled имена
+- `dc_leaf_check.py` — грубая leaf/transitive классификация (есть баги в path matching на Windows — не доверять на 100%, всегда верифицировать grep'ом вручную)
+
+После регенерации: `/tmp/discarded.txt` → `/tmp/discarded_filtered.txt` → `dc_map.py` → `dc_demangle.py`
 
 **Для продолжения с того же места:**
 
@@ -288,3 +338,5 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-26 | Batch 3 | superfacet.cpp (9 dead funcs) + superfacet_globals (2 globals) | -45 discards, build OK |
 | 2026-04-26 | Batch 4 | matrix.cpp (5 funcs) + matrix.h + outro_matrix.h + fc.cpp (3 funcs) + fc.h + cop.cpp (fn_cop_fight) + pcom.cpp (4 funcs + extern decl) + pcom.h. Не тронуто: MATRIX_find_angles (есть caller в HM_draw который сам мёртв но не удалён). | -15 discards, build OK |
 | 2026-04-26 | Batch 5 | ui_coords (5 funcs + .h decls), game_graphics_engine (3 GERenderState methods), overlay (4 funcs: should_i_add_message, show_help_text, OVERLAY_draw_tracked_enemies, add_damage_value, add_damage_value_thing — пропустил overlay_beacons тк живой caller в game.cpp:519), combat (4 funcs: find_possible_combat_target, find_hit_value, show_fight_range, is_person_under_attack — пропустил find_anim_fight_height тк compiler оптимизировал вызов в живом should_i_block но в исходнике вызов остался), vehicle (4: VEH_dealloc, VEH_get_assignments, animate_car, free_vehicle), input_actions (3 dead arrays: action_ladder/flip_left/flip_right + 2 funcs: get_last_input, allow_input_autorepeat — пропустил continue_action, set_look_pitch, lock_to_compass, pre_process_input тк live callers in person.cpp). | -38 discards, build OK |
+| 2026-04-26 | Batch 6 | leaf globals: BAT_state_name, thug_states, history_thing, PERSON_mode_name, dir_to_angle, demo_text, playbacks, help_text, help_xlat, grapple[], kicks[][], punches[][] (12 globals в 8 файлах). Пропущен find_anim_fight_height — вызов из живого should_i_block (compiler оптимизировал, но source-ref остался). | -12 discards, build OK |
+| 2026-04-26 | Batch 7 | leaf globals: gang_angle_priority, SOUNDENV_gndquads, body_part_parent_numbers (из hierarchy_globals.cpp + 2 .h), amb_choice + AMB_NUM_CHOICES (game_tick_globals) | -4 discards, build OK |

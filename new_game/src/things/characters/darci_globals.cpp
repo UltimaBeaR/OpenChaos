@@ -28,9 +28,6 @@ StateFunction darci_states[] = {
 // uc_orig: air_walking (fallen/Source/Darci.cpp)
 SLONG air_walking = 0;
 
-// uc_orig: history_thing (fallen/Source/Darci.cpp)
-THING_INDEX history_thing[100];
-
 // uc_orig: history (fallen/Source/Darci.cpp)
 SWORD history = 0;
 

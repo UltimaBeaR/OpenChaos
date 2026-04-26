@@ -9,8 +9,6 @@ struct AudioGroundQuad {
     SLONG x, y, ox, oy;
 };
 
-// uc_orig: SOUNDENV_gndquads (fallen/Source/soundenv.cpp)
-extern AudioGroundQuad SOUNDENV_gndquads[64];
 // uc_orig: SOUNDENV_gndctr (fallen/Source/soundenv.cpp)
 extern int SOUNDENV_gndctr;
 

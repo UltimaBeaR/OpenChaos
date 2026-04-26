@@ -10,9 +10,6 @@ extern SLONG NIGHT_specular_enable;
 // uc_orig: draw_3d (fallen/Source/Controls.cpp)
 extern SLONG draw_3d;
 
-// uc_orig: amb_choice (fallen/Source/Controls.cpp)
-extern LIGHT_Colour amb_choice[3];
-
 // uc_orig: amb_colour (fallen/Source/Controls.cpp)
 extern LIGHT_Colour amb_colour;
 

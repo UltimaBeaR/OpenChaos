@@ -14,12 +14,6 @@ struct TrackEnemy {
     SWORD Face;
 };
 
-// uc_orig: help_text (fallen/Source/overlay.cpp)
-extern CBYTE* help_text[];
-
-// uc_orig: help_xlat (fallen/Source/overlay.cpp)
-extern UWORD help_xlat[];
-
 // uc_orig: panel_enemy (fallen/Source/overlay.cpp)
 extern struct TrackEnemy panel_enemy[];
 

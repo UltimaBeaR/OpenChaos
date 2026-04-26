@@ -44,22 +44,6 @@ UBYTE take_hit[7][2] = {
     { 0, 0 }
 };
 
-// uc_orig: punches (fallen/Source/Combat.cpp)
-SWORD punches[4][5] = {
-    { ANIM_PUNCH_COMBO1, ANIM_PUNCH_COMBO2, ANIM_PUNCH_COMBO3, 0, 0 },
-    { ANIM_PUNCH3, ANIM_PUNCH1, 0, 0, 0 },
-    { ANIM_PUNCH2, 0, 0, 0 },
-    { 0, 0, 0, 0, 0 }
-};
-
-// uc_orig: kicks (fallen/Source/Combat.cpp)
-SWORD kicks[4][5] = {
-    { ANIM_KICK_COMBO1, ANIM_KICK_COMBO2, ANIM_KICK_COMBO3, 0, 0 },
-    { ANIM_KICK2, ANIM_KICK_ROUND1, 0, 0, 0 },
-    { ANIM_KICK3, 0, 0, 0, 0 },
-    { 0, 0, 0, 0, 0 }
-};
-
 // uc_orig: grapples (fallen/Source/Combat.cpp)
 struct Grapples grapples[] = {
     { ANIM_PISTOL_WHIP, 75, 65, 1024, 0, 1 },
@@ -67,12 +51,6 @@ struct Grapples grapples[] = {
     { ANIM_HEADBUTT, 65, 20, 0, 0, 2 },
     { ANIM_GRAB_ARM, 60, 20, 0, 0, 1 },
     { 0, 0, 0, 0, 0 },
-};
-
-// uc_orig: grapple (fallen/Source/Combat.cpp)
-SWORD grapple[] = {
-    ANIM_SNAP_KNECK,
-    0
 };
 
 // uc_orig: found (fallen/Source/Combat.cpp)

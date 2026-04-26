@@ -122,15 +122,6 @@ StateFunction generic_people_functions[] = {
     { 0, NULL }
 };
 
-// Movement mode name strings, indexed by PERSON_MODE_* constants.
-// uc_orig: PERSON_mode_name (fallen/Source/Person.cpp)
-CBYTE* PERSON_mode_name[PERSON_MODE_NUMBER] = {
-    "Run",
-    "Walk",
-    "Sneak",
-    "Fight"
-};
-
 // Per-type initial health values.
 // uc_orig: health (fallen/Source/Person.cpp)
 SWORD health[PERSON_NUM_TYPES] = {
@@ -192,11 +183,3 @@ UWORD near_facet = 0;
 // uc_orig: kick_or_punch (fallen/Source/Person.cpp)
 SLONG kick_or_punch = 0;
 
-// Direction index to angle lookup (0=N, 1=E, 2=W, 3=S), used by MAV navigation stubs.
-// uc_orig: dir_to_angle (fallen/Source/Person.cpp)
-UWORD dir_to_angle[] = {
-    512,
-    512 + 1024,
-    0,
-    1024
-};

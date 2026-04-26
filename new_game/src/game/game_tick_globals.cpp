@@ -3,21 +3,11 @@
 
 #include "game/game_tick_globals.h"
 
-// uc_orig: AMB_NUM_CHOICES (fallen/Source/Controls.cpp)
-#define AMB_NUM_CHOICES 3
-
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
 SLONG NIGHT_specular_enable = UC_FALSE;
 
 // uc_orig: draw_3d (fallen/Source/Controls.cpp)
 SLONG draw_3d;
-
-// uc_orig: amb_choice (fallen/Source/Controls.cpp)
-LIGHT_Colour amb_choice[AMB_NUM_CHOICES] = {
-    { 32, 32, 32 },
-    { 38, 32, 30 },
-    { 30, 32, 38 }
-};
 
 // uc_orig: amb_colour (fallen/Source/Controls.cpp)
 LIGHT_Colour amb_colour;

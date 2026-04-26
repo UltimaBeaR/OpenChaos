@@ -3,12 +3,6 @@
 
 #include "engine/core/types.h"
 
-// uc_orig: demo_text (fallen/Source/Attract.cpp)
-extern CBYTE demo_text[];
-
-// uc_orig: playbacks (fallen/Source/Attract.cpp)
-extern CBYTE* playbacks[];
-
 // uc_orig: current_playback (fallen/Source/Attract.cpp)
 extern SLONG current_playback;
 
