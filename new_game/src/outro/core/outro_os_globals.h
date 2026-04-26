@@ -9,26 +9,12 @@
 
 #include <stdint.h>
 
-// uc_orig: OS_application_name (fallen/outro/os.cpp)
-extern CBYTE* OS_application_name;
-
-// uc_orig: OS_frame_is_fullscreen (fallen/outro/os.cpp)
-extern UBYTE OS_frame_is_fullscreen;
-// uc_orig: OS_frame_is_hardware (fallen/outro/os.cpp)
-extern UBYTE OS_frame_is_hardware;
-
 // KEY_on: one byte per virtual key code; non-zero while the key is held down.
-// KEY_inkey: last pressed key character.
 // KEY_shift: non-zero if shift is held.
 // uc_orig: KEY_on (fallen/outro/os.cpp)
 extern UBYTE KEY_on[256];
-// uc_orig: KEY_inkey (fallen/outro/os.cpp)
-extern UBYTE KEY_inkey;
 // uc_orig: KEY_shift (fallen/outro/os.cpp)
 extern UBYTE KEY_shift;
-
-// uc_orig: OS_midas_ok (fallen/outro/os.cpp)
-extern SLONG OS_midas_ok;
 
 // Joystick state — updated by OS_joy_poll() called from OS_process_messages().
 // uc_orig: OS_joy_x (fallen/outro/os.cpp)
@@ -91,9 +77,6 @@ extern float OS_cam_screen_mul_x;
 // uc_orig: OS_cam_screen_mul_y (fallen/outro/os.cpp)
 extern float OS_cam_screen_mul_y;
 
-// Bitmap lock state — declared in outro_graphics_engine.h (OS_bitmap_*).
-// Definitions remain in outro_os_globals.cpp.
-
 // sound global — the currently playing music track ID.
 // uc_orig: sound (fallen/outro/os.cpp)
 extern SLONG sound;
@@ -125,7 +108,5 @@ typedef struct {
 
 // uc_orig: OS_trans (fallen/outro/os.cpp)
 extern OS_Trans OS_trans[OS_MAX_TRANS];
-// uc_orig: OS_trans_upto (fallen/outro/os.cpp)
-extern SLONG OS_trans_upto;
 
 #endif // OUTRO_CORE_OUTRO_OS_GLOBALS_H

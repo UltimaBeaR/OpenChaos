@@ -3,6 +3,7 @@
 // handling level win/loss, and dispatching to attract mode.
 
 #include "game/game.h"
+#include "game/game_globals.h"
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "game/game_types.h"
@@ -126,8 +127,6 @@
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_set_draw_distance, AENG_screen_shot, AENG_draw_messages
 #include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
-#include "engine/input/mouse.h"     // MouseY, MouseX
-#include "engine/input/mouse_globals.h"
 #include "engine/input/joystick.h"  // GetInputDevice, JOYSTICK
 #include "engine/input/joystick_globals.h"
 
@@ -136,9 +135,6 @@
 #include <math.h>
 #include <string.h>  // strstr
 #include <stdlib.h>  // exit, srand
-
-// plan_view_shot renders the world top-down into a provided buffer (Controls.cpp variant with args).
-extern void plan_view_shot(SLONG wx, SLONG wz, SLONG pixelw, SLONG sx, SLONG sy, SLONG w, SLONG h, UBYTE* buf);
 
 extern BOOL allow_debug_keys;
 extern BOOL g_farfacet_debug;
@@ -510,53 +506,6 @@ void game(void)
     game_shutdown();
 }
 
-// uc_orig: GAME_map_draw (fallen/Source/Game.cpp)
-void GAME_map_draw(void)
-{
-    Thing* darci = NET_PERSON(0);
-
-    plan_view_shot(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 1 + (MouseY >> 4), 77, 78, 401, 328, (UBYTE*)screen_mem);
-    overlay_beacons();
-    ge_create_background_surface((UBYTE*)screen_mem);
-    ge_blit_background_surface();
-    ge_destroy_background_surface();
-}
-
-// uc_orig: leave_map_form_proc (fallen/Source/Game.cpp)
-BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message)
-{
-    if (widget && widget->methods == &BUTTON_Methods && message == WBN_PUSH) {
-        form->returncode = widget->tag;
-
-        return UC_TRUE;
-    } else {
-        return UC_FALSE;
-    }
-}
-
-// uc_orig: process_bullet_points (fallen/Source/Game.cpp)
-void process_bullet_points(void)
-{
-    bullet_counter -= 1;
-
-    if (bullet_counter < 0) {
-        bullet_upto += 1;
-        bullet_upto = bullet_upto % NUM_BULLETS;
-        bullet_counter = 250;
-    }
-
-    SLONG bright = bullet_counter * 32;
-
-    if (bright > 255) {
-        bright = 255;
-    }
-
-    text_fudge = UC_FALSE;
-    text_colour = bright * 0x00010101;
-
-    draw_centre_text_at(10, 420, bullet_point[bullet_upto], 0, 0);
-}
-
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)
 //
 // Original code was a pure busy-wait `while (1) { tick = ...; if (...) break; }`
@@ -846,17 +795,6 @@ void draw_screen(void)
     if (form_leave_map) {
         do_leave_map_form();
     }
-}
-
-// uc_orig: hardware_input_replay (fallen/Source/Game.cpp)
-SLONG hardware_input_replay(void)
-{
-    if (LastKey == KB_R) {
-        LastKey = 0;
-        return (1);
-    }
-
-    return (0);
 }
 
 // uc_orig: hardware_input_continue (fallen/Source/Game.cpp)

@@ -1,9 +1,7 @@
 #ifndef GAME_GAME_H
 #define GAME_GAME_H
 
-#include "game/game_globals.h"
-#include "ui/menus/widget.h"
-#include "ui/menus/widget_globals.h"
+#include "game/game_types.h"
 
 // Stops all music and sound effects immediately (called on scene transitions).
 // uc_orig: stop_all_fx_and_music (fallen/Source/Game.cpp)
@@ -39,18 +37,6 @@ void game_fini(void);
 // then calls game_shutdown.
 // uc_orig: game (fallen/Source/Game.cpp)
 void game(void);
-
-// Draws the overhead map view: plan_view_shot → overlay_beacons → blit to display.
-// uc_orig: GAME_map_draw (fallen/Source/Game.cpp)
-void GAME_map_draw(void);
-
-// Widget callback for the "Leave map?" dialog. Returns UC_TRUE when a button is pushed.
-// uc_orig: leave_map_form_proc (fallen/Source/Game.cpp)
-BOOL leave_map_form_proc(Form* form, Widget* widget, SLONG message);
-
-// Advances the loading-screen tip display (cycles every 250 frames with fade-in).
-// uc_orig: process_bullet_points (fallen/Source/Game.cpp)
-void process_bullet_points(void);
 
 // Busy-waits until the current frame has taken at least 1000/fps milliseconds.
 // uc_orig: lock_frame_rate (fallen/Source/Game.cpp)

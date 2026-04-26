@@ -237,8 +237,6 @@ set(SOURCES_NEW
     # === Engine: graphics — pipeline ===
     src/engine/graphics/pipeline/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
-    src/engine/graphics/pipeline/qeng.cpp
-    src/engine/graphics/pipeline/qeng_globals.cpp
     src/engine/graphics/pipeline/poly_render.cpp
     src/engine/graphics/pipeline/poly_render_globals.cpp
     src/engine/graphics/pipeline/aeng.cpp
@@ -327,8 +325,6 @@ set(SOURCES_NEW
     src/assets/sound_id_globals.cpp
 
     # === Map ===
-    src/map/qmap.cpp
-    src/map/qmap_globals.cpp
     src/map/map.cpp
     src/map/map_globals.cpp
     src/map/pap.cpp
@@ -358,8 +354,7 @@ set(SOURCES_NEW
     src/buildings/building_globals.cpp
     src/buildings/prim.cpp
     src/buildings/prim_globals.cpp
-    src/buildings/stair.cpp
-    src/buildings/stair_globals.cpp
+
     src/buildings/ware.cpp
     src/buildings/ware_globals.cpp
 
@@ -490,8 +485,6 @@ set(SOURCES_NEW
     src/ui/menus/pause.cpp
     src/ui/menus/widget.cpp
     src/ui/menus/widget_globals.cpp
-    src/ui/hud/planmap.cpp
-    src/ui/hud/planmap_globals.cpp
     src/ui/hud/eng_map.cpp
     src/ui/hud/eng_map_globals.cpp
     src/ui/hud/overlay.cpp

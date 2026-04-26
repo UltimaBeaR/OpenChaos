@@ -2,30 +2,12 @@
 #define ENGINE_GRAPHICS_PIPELINE_AENG_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/graphics_engine/game_graphics_engine.h" // GEMatrix, GEVertexLit, GERenderState
 #include "engine/graphics/pipeline/aeng.h"
 #include "buildings/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/graphics/lighting/smap.h"                  // SMAP_Link
 #include "engine/compression/compression.h"
 #include "map/map.h"
-
-// uc_orig: StoreLine (fallen/DDEngine/Source/aeng.cpp)
-// One entry in the debug line draw list.
-struct StoreLine
-{
-    SLONG x1, y1, z1, x2, y2, z2;
-    ULONG col;
-};
-
-// uc_orig: MAX_LINES (fallen/DDEngine/Source/aeng.cpp)
-#define MAX_LINES 100
-
-// uc_orig: Lines (fallen/DDEngine/Source/aeng.cpp)
-extern StoreLine Lines[MAX_LINES];
-
-// uc_orig: next_line (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG next_line;
 
 // Renamed from anonymous struct to AENG_ConePoint to allow external linkage.
 // uc_orig: AENG_cone (fallen/DDEngine/Source/aeng.cpp)
@@ -112,10 +94,6 @@ extern int AENG_detail_crinkles;
 // Index of the currently active FC_cam (0 = player 1, 1 = player 2 in splitscreen).
 extern SLONG AENG_cur_fc_cam;
 
-// uc_orig: global_b (fallen/DDEngine/Source/aeng.cpp)
-// Pre-computed cloud shadow intensity at the last calc_global_cloud position (0..255).
-extern SLONG global_b;
-
 // uc_orig: AENG_lens (fallen/DDEngine/Source/aeng.cpp)
 // Camera lens factor controlling field of view (higher = narrower FOV).
 extern float AENG_lens;
@@ -150,10 +128,6 @@ extern float AENG_cam_matrix[9];
 // Camera forward vector in 16.16 fixed-point.
 extern SLONG AENG_cam_vec[3];
 
-// uc_orig: AENG_sewer_page (fallen/DDEngine/Source/aeng.cpp)
-// Texture page indices used for sewer geometry.
-extern SLONG AENG_sewer_page[];
-
 // uc_orig: AENG_MAX_MOVIE_DATA (fallen/DDEngine/Source/aeng.cpp)
 // Maximum size of the pre-rendered movie video data buffer (512 KB).
 #define AENG_MAX_MOVIE_DATA (512 * 1024)
@@ -176,18 +150,6 @@ extern SLONG AENG_frame_tick;
 // Total number of frames in the loaded movie (0 = no movie loaded).
 extern SLONG AENG_frame_number;
 
-// uc_orig: AENG_gamut_lo_xmin (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_gamut_lo_xmin;
-
-// uc_orig: AENG_gamut_lo_xmax (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_gamut_lo_xmax;
-
-// uc_orig: AENG_gamut_lo_zmin (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_gamut_lo_zmin;
-
-// uc_orig: AENG_gamut_lo_zmax (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_gamut_lo_zmax;
-
 // uc_orig: AENG_project_offset_u (fallen/DDEngine/Source/aeng.cpp)
 // UV offset applied to projected shadow polygons (set by AENG_add_projected_*).
 extern float AENG_project_offset_u;
@@ -200,18 +162,6 @@ extern float AENG_project_mul_u;
 
 // uc_orig: AENG_project_mul_v (fallen/DDEngine/Source/aeng.cpp)
 extern float AENG_project_mul_v;
-
-// uc_orig: AENG_project_lit_light_x (fallen/DDEngine/Source/aeng.cpp)
-extern float AENG_project_lit_light_x;
-
-// uc_orig: AENG_project_lit_light_y (fallen/DDEngine/Source/aeng.cpp)
-extern float AENG_project_lit_light_y;
-
-// uc_orig: AENG_project_lit_light_z (fallen/DDEngine/Source/aeng.cpp)
-extern float AENG_project_lit_light_z;
-
-// uc_orig: AENG_project_lit_light_range (fallen/DDEngine/Source/aeng.cpp)
-extern float AENG_project_lit_light_range;
 
 // uc_orig: AENG_project_fadeout_x (fallen/DDEngine/Source/aeng.cpp)
 extern float AENG_project_fadeout_x;
@@ -374,18 +324,6 @@ extern SLONG AENG_torch_on;
 // Non-zero when shadow rendering is active.
 extern SLONG AENG_shadows_on;
 
-// uc_orig: AENG_sky_type (fallen/DDEngine/Source/aeng.cpp)
-// Current sky type: AENG_SKY_TYPE_DAY or AENG_SKY_TYPE_NIGHT.
-extern SLONG AENG_sky_type;
-
-// uc_orig: AENG_sky_colour_bot (fallen/DDEngine/Source/aeng.cpp)
-// Bottom horizon colour for the sky gradient (ARGB packed).
-extern ULONG AENG_sky_colour_bot;
-
-// uc_orig: AENG_sky_colour_top (fallen/DDEngine/Source/aeng.cpp)
-// Top sky colour for the sky gradient (ARGB packed).
-extern ULONG AENG_sky_colour_top;
-
 // uc_orig: RRect (fallen/DDEngine/Source/aeng.cpp)
 // Deferred screen-space rectangle entry, queued via AENG_draw_rectr, flushed by draw_all_boxes.
 struct RRect
@@ -409,68 +347,6 @@ extern SLONG next_rrect;
 
 // uc_orig: MAX_WIDTH_DRAWN (fallen/DDEngine/Source/aeng.cpp)
 #define MAX_WIDTH_DRAWN 100
-
-// uc_orig: MAX_FLOOR_TILES_FOR_STRIPS (fallen/DDEngine/Source/aeng.cpp)
-// Maximum ground tiles batched in one indexed primitive strip.
-#define MAX_FLOOR_TILES_FOR_STRIPS 16
-
-// uc_orig: MAX_VERTS_FOR_STRIPS (fallen/DDEngine/Source/aeng.cpp)
-#define MAX_VERTS_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 4)
-
-// uc_orig: MAX_INDICES_FOR_STRIPS (fallen/DDEngine/Source/aeng.cpp)
-#define MAX_INDICES_FOR_STRIPS (MAX_FLOOR_TILES_FOR_STRIPS * 5)
-
-// uc_orig: IPRIM_COUNT (fallen/DDEngine/Source/aeng.cpp)
-// Number of parallel indexed primitive groups used during floor tile rendering.
-#define IPRIM_COUNT 5
-
-// uc_orig: MAX_DRAW_WIDTH (fallen/DDEngine/Source/aeng.cpp)
-#define MAX_DRAW_WIDTH 128
-
-// uc_orig: FloorStore (fallen/DDEngine/Source/aeng.cpp)
-// Cached per-vertex data for one map tile corner (colour, altitude, flags, texture).
-struct FloorStore
-{
-    ULONG Colour;
-    float Alt;
-    UWORD Flags;
-    UWORD Texture;
-};
-
-// uc_orig: GroupInfo (fallen/DDEngine/Source/aeng.cpp)
-// Tracks which D3D texture page is bound in each of the IPRIM_COUNT strip groups.
-struct GroupInfo
-{
-    GETextureHandle page;
-};
-
-// uc_orig: KERB_TILES (fallen/DDEngine/Source/aeng.cpp)
-#define KERB_TILES 16
-// uc_orig: KERB_VERTS (fallen/DDEngine/Source/aeng.cpp)
-#define KERB_VERTS (4 * KERB_TILES)
-// uc_orig: KERB_INDICIES (fallen/DDEngine/Source/aeng.cpp)
-#define KERB_INDICIES (5 * KERB_TILES)
-
-// uc_orig: m_vert_mem_block32 (fallen/DDEngine/Source/aeng.cpp)
-// Raw allocation block for kerb + floor strip vertices; sized for 32-byte alignment.
-extern UBYTE m_vert_mem_block32[sizeof(GEVertexLit) * KERB_VERTS + sizeof(GEVertexLit) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
-
-// uc_orig: m_indicies (fallen/DDEngine/Source/aeng.cpp)
-// Index buffers for each of the IPRIM_COUNT floor strip groups.
-extern UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1];
-
-// uc_orig: MAX_STEAM (fallen/DDEngine/Source/aeng.cpp)
-// Maximum number of steam sources accumulated in one frame.
-#define MAX_STEAM 20
-
-// uc_orig: kerb_scaleu (fallen/DDEngine/Source/aeng.cpp)
-extern float kerb_scaleu;
-// uc_orig: kerb_scalev (fallen/DDEngine/Source/aeng.cpp)
-extern float kerb_scalev;
-// uc_orig: kerb_du (fallen/DDEngine/Source/aeng.cpp)
-extern float kerb_du;
-// uc_orig: kerb_dv (fallen/DDEngine/Source/aeng.cpp)
-extern float kerb_dv;
 
 // uc_orig: HALF_COL (fallen/DDEngine/Source/aeng.cpp)
 // In-place halves each colour channel of a packed ARGB value.

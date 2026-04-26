@@ -1,15 +1,8 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
-#include "engine/graphics/pipeline/polypage.h"
 #include "engine/compression/compression.h"
 
 // uc_orig: AENG_dx_prim_points (fallen/DDEngine/Source/aeng.cpp)
 SVector_F AENG_dx_prim_points[RMAX_PRIM_POINTS];
-
-// uc_orig: Lines (fallen/DDEngine/Source/aeng.cpp)
-StoreLine Lines[MAX_LINES];
-
-// uc_orig: next_line (fallen/DDEngine/Source/aeng.cpp)
-SLONG next_line = 0;
 
 // uc_orig: AENG_cone (fallen/DDEngine/Source/aeng.cpp)
 AENG_ConePoint AENG_cone[5];
@@ -77,9 +70,6 @@ int AENG_detail_crinkles = 1;
 // uc_orig: AENG_cur_fc_cam (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_cur_fc_cam;
 
-// uc_orig: global_b (fallen/DDEngine/Source/aeng.cpp)
-SLONG global_b = 0;
-
 // uc_orig: AENG_lens (fallen/DDEngine/Source/aeng.cpp)
 float AENG_lens = 4.0F;
 
@@ -110,15 +100,6 @@ float AENG_cam_matrix[9];
 // uc_orig: AENG_cam_vec (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_cam_vec[3];
 
-// uc_orig: AENG_sewer_page (fallen/DDEngine/Source/aeng.cpp)
-#include "engine/graphics/pipeline/poly_globals.h"
-SLONG AENG_sewer_page[4] = { // 4 == SEWER_PAGE_NUMBER from deleted sewer.h
-    3,
-    4,
-    5,
-    POLY_PAGE_WATER
-};
-
 // uc_orig: AENG_movie_data (fallen/DDEngine/Source/aeng.cpp)
 UBYTE AENG_movie_data[AENG_MAX_MOVIE_DATA];
 
@@ -146,18 +127,6 @@ SLONG AENG_frame_tick;
 // uc_orig: AENG_frame_number (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_frame_number;
 
-// uc_orig: AENG_gamut_lo_xmin (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_gamut_lo_xmin;
-
-// uc_orig: AENG_gamut_lo_xmax (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_gamut_lo_xmax;
-
-// uc_orig: AENG_gamut_lo_zmin (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_gamut_lo_zmin;
-
-// uc_orig: AENG_gamut_lo_zmax (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_gamut_lo_zmax;
-
 // uc_orig: AENG_project_offset_u (fallen/DDEngine/Source/aeng.cpp)
 float AENG_project_offset_u;
 
@@ -169,18 +138,6 @@ float AENG_project_mul_u;
 
 // uc_orig: AENG_project_mul_v (fallen/DDEngine/Source/aeng.cpp)
 float AENG_project_mul_v;
-
-// uc_orig: AENG_project_lit_light_x (fallen/DDEngine/Source/aeng.cpp)
-float AENG_project_lit_light_x;
-
-// uc_orig: AENG_project_lit_light_y (fallen/DDEngine/Source/aeng.cpp)
-float AENG_project_lit_light_y;
-
-// uc_orig: AENG_project_lit_light_z (fallen/DDEngine/Source/aeng.cpp)
-float AENG_project_lit_light_z;
-
-// uc_orig: AENG_project_lit_light_range (fallen/DDEngine/Source/aeng.cpp)
-float AENG_project_lit_light_range;
 
 // uc_orig: AENG_project_fadeout_x (fallen/DDEngine/Source/aeng.cpp)
 float AENG_project_fadeout_x;
@@ -220,35 +177,11 @@ SLONG AENG_torch_on = UC_FALSE;
 // uc_orig: AENG_shadows_on (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_shadows_on = UC_TRUE;
 
-// uc_orig: AENG_sky_type (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_sky_type = AENG_SKY_TYPE_DAY;
-
-// uc_orig: AENG_sky_colour_bot (fallen/DDEngine/Source/aeng.cpp)
-ULONG AENG_sky_colour_bot = 0x008890ee;
-
-// uc_orig: AENG_sky_colour_top (fallen/DDEngine/Source/aeng.cpp)
-ULONG AENG_sky_colour_top = 0x006670cc;
-
 // uc_orig: rrect (fallen/DDEngine/Source/aeng.cpp)
 RRect rrect[2000];
 
 // uc_orig: next_rrect (fallen/DDEngine/Source/aeng.cpp)
 SLONG next_rrect = 1;
-
-// uc_orig: m_vert_mem_block32 (fallen/DDEngine/Source/aeng.cpp)
-UBYTE m_vert_mem_block32[sizeof(GEVertexLit) * KERB_VERTS + sizeof(GEVertexLit) * MAX_VERTS_FOR_STRIPS * IPRIM_COUNT + 32];
-
-// uc_orig: m_indicies (fallen/DDEngine/Source/aeng.cpp)
-UWORD m_indicies[IPRIM_COUNT][MAX_INDICES_FOR_STRIPS + 1];
-
-// uc_orig: kerb_scaleu (fallen/DDEngine/Source/aeng.cpp)
-float kerb_scaleu;
-// uc_orig: kerb_scalev (fallen/DDEngine/Source/aeng.cpp)
-float kerb_scalev;
-// uc_orig: kerb_du (fallen/DDEngine/Source/aeng.cpp)
-float kerb_du;
-// uc_orig: kerb_dv (fallen/DDEngine/Source/aeng.cpp)
-float kerb_dv;
 
 // uc_orig: index_lookup (fallen/DDEngine/Source/aeng.cpp)
 UBYTE index_lookup[] = { 0, 1, 3, 2 };

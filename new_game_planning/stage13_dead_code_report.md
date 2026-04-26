@@ -193,6 +193,19 @@ Workflow:
 - Build OK (make build-release, exit code 0)
 - Uncommitted — пользователь коммитит вручную
 
+**Сделано в батче 17 (QMAP/QENG/stair кластеры + aeng_globals + game.cpp, сессия 7):**
+- `qmap.cpp/h` + `qmap_globals.cpp/h`: удалены целиком (ни одного live caller)
+- `qeng.cpp/h` + `qeng_globals.cpp/h`: удалены целиком (ни одного live caller)
+- `stair.cpp/h` + `stair_globals.cpp/h`: удалены целиком (ни одного live caller)
+- CMakeLists.txt: убраны qeng.cpp, qeng_globals.cpp, qmap.cpp, qmap_globals.cpp, stair.cpp, stair_globals.cpp
+- `aeng_globals.cpp`: удалены 21 dead global + убраны 2 includes (`polypage.h`, `game_graphics_engine.h`)
+- `aeng_globals.h`: удалены декларации + types/constants только для dead globals (`StoreLine`, `MAX_LINES`, `FloorStore`, `GroupInfo`, `MAX_FLOOR_TILES_FOR_STRIPS` и др.)
+- `game.cpp`: удалены 4 dead функции (`GAME_map_draw`, `leave_map_form_proc`, `process_bullet_points`, `hardware_input_replay`) + extern decl `plan_view_shot` + dead includes
+- `game.h`: удалены декларации dead функций + удалены includes `widget.h`, `widget_globals.h`, `game_globals.h`; добавлен `game_types.h` (вместо game_globals.h — чистый types-only header)
+- Побочный эффект: `game.cpp` добавлен `#include "game/game_globals.h"` (прямая зависимость вместо транзитивной через game.h)
+- Побочный эффект: `figure.h` добавлены `#include "effects/combat/pyro.h"` и `#include "things/core/drawtype.h"` (были скрытой транзитивной зависимостью через game.h → game_globals.h → thing.h)
+- Build OK (make build-release, exit code 0)
+
 **Что делать дальше:**
 
 1. Регенерировать dead-list при начале следующей сессии:
@@ -486,7 +499,14 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-26 | Batch 6 | leaf globals: BAT_state_name, thug_states, history_thing, PERSON_mode_name, dir_to_angle, demo_text, playbacks, help_text, help_xlat, grapple[], kicks[][], punches[][] (12 globals в 8 файлах). Пропущен find_anim_fight_height — вызов из живого should_i_block (compiler оптимизировал, но source-ref остался). | -12 discards, build OK |
 | 2026-04-26 | Batch 7 | leaf globals: gang_angle_priority, SOUNDENV_gndquads, body_part_parent_numbers (из hierarchy_globals.cpp + 2 .h), amb_choice + AMB_NUM_CHOICES (game_tick_globals) | -4 discards, build OK |
 | 2026-04-26 | Batch 8 | facet cluster (3 funcs + 2 globals + night_globals/h macros), crinkle_project, ngamut_view_square, switch cluster (alloc_switch + switch_functions + switch_globals.cpp/h deleted), road cluster (2 funcs + ROAD_mapsquare_type + ROAD_TYPE_* consts), AENG_draw_far_facets | -14 discards, build OK |
+| 2026-04-26 | Batch 9 | qeng.cpp/h + qeng_globals.cpp/h: DELETED ENTIRE MODULE (software rasterizer, unused since OpenGL migration) | build OK |
+| 2026-04-26 | Batch 10 | qmap.cpp/h + qmap_globals.cpp/h: DELETED ENTIRE MODULE (software map renderer tied to qeng) | build OK |
+| 2026-04-26 | Batch 11 | stair.cpp/h + stair_globals.cpp/h: DELETED ENTIRE MODULE (stair rendering, dead since new renderer) | build OK |
+| 2026-04-26 | Batch 12 | aeng_globals.cpp/h: deleted dead globals (Lines[], next_line, global_b, AENG_sewer_page, AENG_gamut_lo_*, AENG_project_lit_*, AENG_sky_type/colour, m_vert_mem_block32, m_indicies, kerb_scale*/du/dv) + dead struct/macro defs (StoreLine, FloorStore, GroupInfo, MAX_LINES, KERB_*) | build OK |
 | 2026-04-26 | Batch 13 | poly.cpp cluster (4 funcs: NewTweenVertex2D_X/Y + POLY_clip_against_side_X/Y), anim.cpp Anim+Character methods (9 funcs) | -13 discards, build OK |
 | 2026-04-26 | Batch 14a | fastprim.cpp (7 dead funcs удалены кластером: FASTPRIM_draw и 6 хелперов); fastprim.h/cpp include cleanup | -8 discards, build OK |
 | 2026-04-26 | Batch 14b | polypage.cpp (AddFan, AddWirePoly, DrawSinglePoly, SortBackFirst, MergeSortIteration, DoMerge); polypage.h decl cleanup + убран #include poly.h | -8 discards, build OK |
 | 2026-04-26 | Batch 14c | ds_bridge.cpp/h: ds_trigger_bow, ds_trigger_machine (legacy simplified wrappers) | -2 discards, build OK |
+| 2026-04-26 | Batch 15 | game_globals.cpp/h: 11 dead globals (CAM_cur_x/y/z/yaw/pitch/roll, pause_menu, game_paused_highlight, bullet_point, screen_mem, verifier_name) | build OK |
+| 2026-04-26 | Batch 16 | planmap.cpp/h + planmap_globals.cpp/h: DELETED ENTIRE MODULE (2 dead funcs + 13 dead globals). anim_loader.cpp: 8 dead funcs cluster (load_frame_numbers, sort_multi_object, set_default_people_types, make_compress_matrix, load_multi_vue, load_anim_mesh, load_key_frame_chunks, load_a_multi_prim) + anim_loader.h decl cleanup. outro_os_globals.cpp/h: 21 dead globals (OS_application_name, OS_frame_is_fullscreen, OS_frame_is_hardware, KEY_inkey, OS_midas_ok, OS_trans_upto, all OS_bitmap_*). Fix: figure.h needed direct includes for Pyro+DrawTween; game.h→game_types.h to fix Thing cascade; game.cpp needed direct #include game_globals.h. | build OK |
+| 2026-04-26 | Batch 17 | sewers.cpp: 23 dead funcs removed (NS_init, NS_precalculate, NS_cache_*, NS_add_*, NS_create_wallstrip_point×2, NS_get_unused_st) — kept 5 live (NS_calc_height_at, NS_calc_splash_height_at, NS_slide_along, NS_inside, NS_there_is_a_los). sewers_globals.cpp: 20 dead globals removed — kept NS_hi + NS_los_fail_x/y/z. sewers_globals.h: trimmed to only 4 live externs. Note: attempted full module delete — caught by linker (darci/dirt live callers). | build OK |

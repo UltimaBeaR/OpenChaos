@@ -3,6 +3,8 @@
 
 #include "engine/graphics/geometry/figure_globals.h"
 #include "buildings/prim_types.h" // Matrix33 (via fmatrix.h), TomsPrimObject
+#include "effects/combat/pyro.h"    // Pyro
+#include "things/core/drawtype.h"   // DrawTween
 
 struct Thing;
 

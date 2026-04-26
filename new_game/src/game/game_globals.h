@@ -7,44 +7,8 @@
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
 
-// Number of tips shown during loading screens.
-#define NUM_BULLETS 15
-
-// Pause menu entry count.
-#define PAUSE_MENU_SIZE 2
-
-// Camera position/orientation set each frame (from either FC or EWAY cinematic camera).
-// uc_orig: CAM_cur_x (fallen/Source/Game.cpp)
-extern SLONG CAM_cur_x;
-
-// uc_orig: CAM_cur_y (fallen/Source/Game.cpp)
-extern SLONG CAM_cur_y;
-
-// uc_orig: CAM_cur_z (fallen/Source/Game.cpp)
-extern SLONG CAM_cur_z;
-
-// uc_orig: CAM_cur_yaw (fallen/Source/Game.cpp)
-extern SLONG CAM_cur_yaw;
-
-// uc_orig: CAM_cur_pitch (fallen/Source/Game.cpp)
-extern SLONG CAM_cur_pitch;
-
-// uc_orig: CAM_cur_roll (fallen/Source/Game.cpp)
-extern SLONG CAM_cur_roll;
-
-// PSX-style pause menu options (unused on PC — PC uses GAMEMENU).
-// uc_orig: pause_menu (fallen/Source/Game.cpp)
-extern CBYTE* pause_menu[PAUSE_MENU_SIZE];
-
 // uc_orig: game_paused_key (fallen/Source/Game.cpp)
 extern UBYTE game_paused_key;
-
-// uc_orig: game_paused_highlight (fallen/Source/Game.cpp)
-extern SBYTE game_paused_highlight;
-
-// Loading-screen tips shown while the level loads.
-// uc_orig: bullet_point (fallen/Source/Game.cpp)
-extern CBYTE* bullet_point[NUM_BULLETS];
 
 // Index and countdown for the currently-displayed loading tip.
 // uc_orig: bullet_upto (fallen/Source/Game.cpp)
@@ -52,10 +16,6 @@ extern SLONG bullet_upto;
 
 // uc_orig: bullet_counter (fallen/Source/Game.cpp)
 extern SLONG bullet_counter;
-
-// Scratch buffer used by GAME_map_draw() for the plan-view screenshot.
-// uc_orig: screen_mem (fallen/Source/Game.cpp)
-extern UBYTE screen_mem[640 * 3][480];
 
 // Tick used to debounce the "leaving map" edge warning.
 // uc_orig: already_warned_about_leaving_map (fallen/Source/Game.cpp)
@@ -113,9 +73,6 @@ extern SLONG sum;
 // File paths for gameplay recording and playback (.pkt) files.
 // uc_orig: playback_name (fallen/Source/Game.cpp)
 extern CBYTE* playback_name;
-
-// uc_orig: verifier_name (fallen/Source/Game.cpp)
-extern CBYTE* verifier_name;
 
 
 #endif // GAME_GAME_GLOBALS_H

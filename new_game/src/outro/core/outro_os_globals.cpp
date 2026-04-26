@@ -2,23 +2,10 @@
 
 #include "outro/core/outro_os_globals.h"
 
-// uc_orig: OS_application_name (fallen/outro/os.cpp)
-CBYTE* OS_application_name = "Urban Chaos credits";
-
-// uc_orig: OS_frame_is_fullscreen (fallen/outro/os.cpp)
-UBYTE OS_frame_is_fullscreen = 0;
-// uc_orig: OS_frame_is_hardware (fallen/outro/os.cpp)
-UBYTE OS_frame_is_hardware = 0;
-
 // uc_orig: KEY_on (fallen/outro/os.cpp)
 UBYTE KEY_on[256] = {};
-// uc_orig: KEY_inkey (fallen/outro/os.cpp)
-UBYTE KEY_inkey = 0;
 // uc_orig: KEY_shift (fallen/outro/os.cpp)
 UBYTE KEY_shift = 0;
-
-// uc_orig: OS_midas_ok (fallen/outro/os.cpp)
-SLONG OS_midas_ok = 0;
 
 // uc_orig: OS_joy_x (fallen/outro/os.cpp)
 float OS_joy_x = 0.0F;
@@ -79,26 +66,6 @@ float OS_cam_screen_mul_x = 0.0F;
 // uc_orig: OS_cam_screen_mul_y (fallen/outro/os.cpp)
 float OS_cam_screen_mul_y = 0.0F;
 
-// Bitmap lock state — declared in outro_graphics_engine.h, defined here.
-// Using int32_t/uint16_t/uint8_t to match the contract types.
-#include "engine/graphics/graphics_engine/outro_graphics_engine.h"
-
-int32_t OS_bitmap_format = 0;
-uint16_t* OS_bitmap_uword_screen = NULL;
-int32_t OS_bitmap_uword_pitch = 0;
-uint8_t* OS_bitmap_ubyte_screen = NULL;
-int32_t OS_bitmap_ubyte_pitch = 0;
-int32_t OS_bitmap_width = 0;
-int32_t OS_bitmap_height = 0;
-int32_t OS_bitmap_mask_r = 0;
-int32_t OS_bitmap_mask_g = 0;
-int32_t OS_bitmap_mask_b = 0;
-int32_t OS_bitmap_mask_a = 0;
-int32_t OS_bitmap_shift_r = 0;
-int32_t OS_bitmap_shift_g = 0;
-int32_t OS_bitmap_shift_b = 0;
-int32_t OS_bitmap_shift_a = 0;
-
 // uc_orig: sound (fallen/outro/os.cpp)
 SLONG sound = 0;
 
@@ -107,5 +74,3 @@ struct os_buffer* OS_buffer_free = NULL;
 
 // uc_orig: OS_trans (fallen/outro/os.cpp)
 OS_Trans OS_trans[OS_MAX_TRANS] = {};
-// uc_orig: OS_trans_upto (fallen/outro/os.cpp)
-SLONG OS_trans_upto = 0;
