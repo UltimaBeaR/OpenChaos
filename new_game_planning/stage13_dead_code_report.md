@@ -162,6 +162,37 @@ Workflow:
 - `building_globals.h`: очищен до 4 live extern declarations + minimal includes
 - CMakeLists.txt: убраны building.cpp, build.cpp
 
+**Сделано в батче 16 (aeng.cpp + HM module, сессия 6):**
+- `hm.cpp` + `hm.h`: удалены целиком (все функции мёртвые, все callers в game_tick.cpp в `/* */` блоках)
+- `hm_globals.cpp` + `hm_globals.h`: удалены целиком (4 dead globals)
+- `CMakeLists.txt`: убраны hm.cpp, hm_globals.cpp
+- `attract.cpp`: убрана dead forward declaration `AENG_demo_attract` (3 строки)
+- `combat.cpp`: убраны extern decls для `e_draw_3d_line` и `e_draw_3d_line_col` (4 строки)
+- `collide.cpp`: убрана extern decl для `e_draw_3d_line` (1 строка)
+- `aeng.h`: удалены 14 диапазонов мёртвых деклараций (119 строк) — `AENG_e_draw_3d_line*`, `e_draw_3d_line*` макросы, `AENG_draw_scanner/power/FPS/fade_in`, `AENG_light_draw/waypoint_draw/rad_trigger_draw/groundsquare_draw`, `AENG_set_sky_nighttime/daytime`, `AENG_draw_col_tri`, `AENG_fade_in`, `AENG_get_draw_distance`, `AENG_set_camera_radians` (6-param)
+- `aeng_globals.h`: удалены декларации `AENG_calc_gamut_lo_only`, `AENG_do_cached_lighting_old`, `AENG_draw_rain_old`, `AENG_draw_cloth`, `AENG_add_projected_lit_shadow_poly`, `show_gamut_hi`, `cache_a_row`, `add_kerb`, `draw_i_prim`, `general_steam`, `draw_quick_floor`, `AENG_draw_rectr`
+- `poly.h`: удалены декларации `calc_global_cloud`, `use_global_cloud`
+- `aeng.cpp`: удалено 2112 строк мёртвых функций (9156 → 7044 строк):
+  - `calc_global_cloud`, `use_global_cloud`
+  - `AENG_get_draw_distance`
+  - `AENG_calc_gamut_lo_only`
+  - 6-param `AENG_set_camera_radians` (без splitscreen)
+  - `AENG_do_cached_lighting_old`
+  - `AENG_add_projected_lit_shadow_poly`, `AENG_draw_rain_old`
+  - `AENG_draw_cloth`
+  - `AENG_set_sky_nighttime`, `AENG_set_sky_daytime`, `AENG_draw_rectr`
+  - `AENG_draw_col_tri`
+  - `show_gamut_hi`
+  - floor cluster: `cache_a_row`, `add_kerb`, `draw_i_prim`, `general_steam`, `draw_quick_floor`
+  - `AENG_draw_scanner`, `AENG_draw_power`
+  - `AENG_draw_FPS`
+  - `AENG_fade_in`
+  - `AENG_e_draw_3d_line`, `AENG_e_draw_3d_line_dir`, `AENG_e_draw_3d_line_col`, `AENG_e_draw_3d_line_col_sorted`, `AENG_e_draw_3d_mapwho`, `AENG_e_draw_3d_mapwho_y`, `AENG_demo_attract`
+  - `AENG_light_draw`, `AENG_waypoint_draw`, `AENG_rad_trigger_draw`, `AENG_groundsquare_draw`
+  - Добавлен `#define AENG_NUM_RAINDROPS 128` на file scope (был внутри удалённой dead функции, но используется в живой `AENG_draw_rain`)
+- Build OK (make build-release, exit code 0)
+- Uncommitted — пользователь коммитит вручную
+
 **Что делать дальше:**
 
 1. Регенерировать dead-list при начале следующей сессии:
@@ -172,8 +203,7 @@ Workflow:
    python /c/Users/BeaR/AppData/Local/Temp/dc_demangle.py
    ```
 
-2. Следующие приоритеты (актуально после батча 15, **2639 discards, 902 dead symbols**):
-   - **`src/engine/graphics/pipeline/aeng.cpp` (57 dead)** — pipeline legacy
+2. Следующие приоритеты (актуально после батча 16, **~2639 discards, ~902 dead symbols**; точные числа — регенерировать):
    - **`src/things/characters/person.cpp` (36 dead)**
    - **`src/ui/menus/widget.cpp` (34 dead)** — `MENUFONT_Draw_floats` transitive (caller `BUTTON_Draw` тоже dead)
    - **`src/ui/hud/eng_map.cpp` (32 dead)**
@@ -183,7 +213,7 @@ Workflow:
    - `engine/physics/collide.cpp` (22 dead)
    - `engine/graphics/pipeline/aeng_globals.cpp` (22 dead)
    - `outro/core/outro_os_globals.cpp` (21 dead)
-   - `engine/physics/hm.cpp` (21 dead)
+   - ~~`engine/physics/hm.cpp` (21 dead)~~ — удалён в батче 16
    - `buildings/prim_globals.cpp` (3 dead globals: global_bright, global_flags, global_res)
 
 3. Продолжать стратегию: сначала leaf, потом transitive связками

@@ -22,10 +22,6 @@
 // Functions not yet in any header: declared here as in the original.
 // uc_orig: set_face_thing (fallen/Source/Person.cpp)
 extern SLONG set_face_thing(Thing* p_person, Thing* p_target);
-// uc_orig: e_draw_3d_line (fallen/DDEngine/Source/aeng.cpp)
-extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
-// uc_orig: e_draw_3d_line_col (fallen/DDEngine/Source/aeng.cpp)
-extern void e_draw_3d_line_col(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG r, SLONG g, SLONG b);
 // uc_orig: check_combat_hit_with_person (fallen/Source/Combat.cpp)
 SLONG check_combat_hit_with_person(Thing* p_victim, SLONG x, SLONG y, SLONG z, struct GameFightCol* fight, Thing* p_agressor, SLONG* ret_angle);
 // uc_orig: check_combat_grapple_with_person (fallen/Source/Combat.cpp)

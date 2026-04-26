@@ -227,8 +227,6 @@ set(SOURCES_NEW
     # === Engine: physics ===
     src/engine/physics/sm.cpp
     src/engine/physics/sm_globals.cpp
-    src/engine/physics/hm.cpp
-    src/engine/physics/hm_globals.cpp
     src/engine/physics/collide.cpp
     src/engine/physics/collide_globals.cpp
 

@@ -28,9 +28,6 @@
 // uc_orig: LoadBackImage (fallen/DDLibrary/Source/GDisplay.cpp)
 void LoadBackImage(UBYTE* image_data);
 
-// uc_orig: AENG_demo_attract (fallen/DDEngine/Source/aeng.cpp)
-void AENG_demo_attract(SLONG x, SLONG y, CBYTE* text);
-
 extern BOOL text_fudge;
 
 // uc_orig: do_start_menu (fallen/Source/frontend.cpp)

@@ -8,7 +8,6 @@
 #include "things/core/statedef.h"
 #include "map/map_constants.h"
 
-extern void e_draw_3d_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
 extern BOOL allow_debug_keys;
 

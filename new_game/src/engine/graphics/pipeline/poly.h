@@ -43,17 +43,9 @@ static inline int ftol(float f)
 // One-time init for the polygon renderer. Call once at program startup.
 void POLY_init(void);
 
-// uc_orig: calc_global_cloud (fallen/DDEngine/Headers/poly.h)
-// Computes the cloud/fog colour at a world-space position.
-void calc_global_cloud(SLONG x, SLONG y, SLONG z);
-
 // uc_orig: apply_cloud (fallen/DDEngine/Headers/poly.h)
 // Applies the cloud/fog colour to a vertex colour. Modulates col in-place.
 void apply_cloud(SLONG x, SLONG y, SLONG z, ULONG* col);
-
-// uc_orig: use_global_cloud (fallen/DDEngine/Headers/poly.h)
-// Applies the last computed cloud colour to a vertex colour without recomputing position.
-void use_global_cloud(ULONG* col);
 
 // uc_orig: POLY_init_texture_flags (fallen/DDEngine/Headers/poly.h)
 // Resets all per-page texture flags to zero.

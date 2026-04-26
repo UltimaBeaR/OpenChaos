@@ -249,15 +249,6 @@ void AENG_calc_gamut(float x, float y, float z,
     float yaw, float pitch, float roll,
     float draw_dist, float lens);
 
-// uc_orig: AENG_calc_gamut_lo_only (fallen/DDEngine/Source/aeng.cpp)
-// Lightweight gamut computation for the lo-res skyline map (bounding box only).
-void AENG_calc_gamut_lo_only(float x, float y, float z,
-    float yaw, float pitch, float roll,
-    float draw_dist, float lens);
-
-// uc_orig: AENG_do_cached_lighting_old (fallen/DDEngine/Source/aeng.cpp)
-void AENG_do_cached_lighting_old(void);
-
 // uc_orig: AENG_mark_night_squares_as_deleteme (fallen/DDEngine/Source/aeng.cpp)
 void AENG_mark_night_squares_as_deleteme(void);
 
@@ -303,9 +294,6 @@ extern SLONG AENG_pow_upto;
 // Linked-list heads for each depth bucket used to sort POW sprites back-to-front.
 extern AENG_Pow* AENG_pow_bucket[AENG_POW_NUM_BUCKETS];
 
-// uc_orig: AENG_draw_rain_old (fallen/DDEngine/Source/aeng.cpp)
-void AENG_draw_rain_old(float angle);
-
 // uc_orig: AENG_draw_rain (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_rain(void);
 
@@ -314,9 +302,6 @@ void AENG_draw_drips(UBYTE puddles_only);
 
 // uc_orig: AENG_draw_bangs (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_bangs(void);
-
-// uc_orig: AENG_draw_cloth (fallen/DDEngine/Source/aeng.cpp)
-void AENG_draw_cloth(void);
 
 // uc_orig: AENG_draw_fire (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_fire(void);
@@ -332,9 +317,6 @@ void AENG_add_projected_shadow_poly(SMAP_Link* sl);
 
 // uc_orig: AENG_add_projected_fadeout_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
 void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl);
-
-// uc_orig: AENG_add_projected_lit_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
-void AENG_add_projected_lit_shadow_poly(SMAP_Link* sl);
 
 // uc_orig: AENG_colour_mult (fallen/DDEngine/Source/aeng.cpp)
 // Component-wise multiply two packed RGB colours (each channel * channel / 256).
@@ -502,39 +484,11 @@ extern float kerb_dv;
 // Debug stub for visualising lo-res gamut cells.
 void show_gamut_lo(SLONG x, SLONG z);
 
-// uc_orig: show_gamut_hi (fallen/DDEngine/Source/aeng.cpp)
-// Debug stub for visualising hi-res gamut cells.
-void show_gamut_hi(SLONG x, SLONG z);
-
 // Forward declaration — full definition in polypage.h.
 struct GEMultiMatrix;
 
-// uc_orig: cache_a_row (fallen/DDEngine/Source/aeng.cpp)
-// Pre-fetches lighting and PAP data for a row of map tile corners.
-void cache_a_row(SLONG x, SLONG z, struct FloorStore* p2, SLONG endx);
-
-// uc_orig: add_kerb (fallen/DDEngine/Source/aeng.cpp)
-// Emits four vertices for one kerb quad; returns UC_TRUE if the quad was added.
-SLONG add_kerb(float alt1, float alt2, SLONG x, SLONG z, SLONG dx, SLONG dz, GEVertexLit* pv, UWORD* p_indicies, SLONG count, ULONG c1, ULONG c2, SLONG flip);
-
-// uc_orig: draw_i_prim (fallen/DDEngine/Source/aeng.cpp)
-// Flushes one indexed primitive strip group to the GPU using DrawIndPrimMM.
-void draw_i_prim(GETextureHandle page, GEVertexLit* verts, UWORD* indicies, SLONG* vert_count, SLONG* index_count, GEMultiMatrix* mm_draw_floor);
-
-// uc_orig: general_steam (fallen/DDEngine/Source/aeng.cpp)
-// Accumulates (mode=1), flushes (mode=2), or resets (mode=0) steam source positions.
-void general_steam(SLONG x, SLONG z, UWORD texture, SLONG mode);
-
-// uc_orig: draw_quick_floor (fallen/DDEngine/Source/aeng.cpp)
-// Renders the ground tile mesh using indexed primitive strips.
-void draw_quick_floor(SLONG warehouse);
-
 // uc_orig: AENG_draw_released_balloons (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_released_balloons(void);
-
-// uc_orig: AENG_draw_rectr (fallen/DDEngine/Source/aeng.cpp)
-// Queues a deferred 2D rectangle to be flushed later by draw_all_boxes.
-void AENG_draw_rectr(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, SLONG page);
 
 // uc_orig: draw_all_boxes (fallen/DDEngine/Source/aeng.cpp)
 // Flushes all queued AENG_draw_rectr rectangles via AENG_draw_rect.
