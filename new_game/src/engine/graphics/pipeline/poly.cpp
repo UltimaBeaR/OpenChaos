@@ -5,7 +5,7 @@
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT
-#include "config.h"
+#include "engine/io/oc_config.h"
 
 // uc_orig: ScreenWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
 // Actual window/fullscreen size in pixels (set by OpenDisplay). Used here
@@ -319,7 +319,7 @@ void POLY_camera_set(
             const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
             auto_zoom = base_aspect / zoom_aspect;
         }
-        POLY_our_zoom = float(OC_FOV_MULTIPLIER) * auto_zoom;
+        POLY_our_zoom = OC_CONFIG_get_float("openchaos", "fov_multiplier", 1.0f) * auto_zoom;
         POLY_sprite_scale = float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE / POLY_our_zoom;
     }
     POLY_cam_view_dist = view_dist;

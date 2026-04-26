@@ -4,7 +4,8 @@
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
-#include "config.h"        // OC_AA_ENABLE
+#include "engine/io/oc_config.h"
+#include "engine/graphics/graphics_engine/backend_opengl/postprocess/crt_effect.h"
 #include "debug_config.h"  // OC_DEBUG_COMPOSITION_BARS_RED / OC_DEBUG_HIGHLIGHT_NON_UI
 
 #include <stdio.h>
@@ -167,8 +168,12 @@ bool create_attachments(int32_t w, int32_t h)
 
 } // namespace
 
+static bool s_aa_enabled = true;
+
 bool composition_init(int32_t scene_w, int32_t scene_h)
 {
+    s_aa_enabled = OC_CONFIG_get_int("openchaos", "aa_enable", 1) != 0;
+    crt_effect_init();
     if (!create_program()) return false;
     if (!s_vao && !create_quad()) return false;
     return create_attachments(scene_w, scene_h);
@@ -288,7 +293,7 @@ void draw_composite(int32_t dst_x, int32_t dst_y, int32_t dst_w, int32_t dst_h,
     glUniform2f(s_u_inv_scene_sz, inv_w, inv_h);
     glUniform2f(s_u_dst_sz,       (float)dst_w, (float)dst_h);
     glUniform2f(s_u_dst_offset,   (float)dst_x, (float)dst_y);
-    glUniform1i(s_u_fxaa_enabled, OC_AA_ENABLE ? 1 : 0);
+    glUniform1i(s_u_fxaa_enabled, s_aa_enabled ? 1 : 0);
     glUniform1i(s_u_debug_highlight, OC_DEBUG_HIGHLIGHT_NON_UI ? 1 : 0);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

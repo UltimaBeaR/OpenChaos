@@ -43,9 +43,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release")
 # ---------------------------------------------------------------------------
 # Dependencies (via vcpkg)
 # ---------------------------------------------------------------------------
-find_package(SDL3   CONFIG REQUIRED)
-find_package(OpenAL CONFIG REQUIRED)
-find_package(FFMPEG REQUIRED)
+find_package(SDL3         CONFIG REQUIRED)
+find_package(OpenAL       CONFIG REQUIRED)
+find_package(FFMPEG       REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 # ---------------------------------------------------------------------------
 # Optional: AddressSanitizer for memory error detection (heap overflows, etc.)
@@ -183,6 +184,7 @@ set(SOURCES_NEW
     src/engine/io/file_globals.cpp
     src/engine/io/env.cpp
     src/engine/io/env_globals.cpp
+    src/engine/io/oc_config.cpp
 
     # === Engine: input ===
     src/engine/input/keyboard.cpp
@@ -643,6 +645,7 @@ target_link_libraries(OpenChaos PRIVATE
     SDL3::SDL3
     OpenAL::OpenAL
     ${FFMPEG_LIBRARIES}
+    nlohmann_json::nlohmann_json
 
     # Graphics backend libraries
     ${BACKEND_LIBS}

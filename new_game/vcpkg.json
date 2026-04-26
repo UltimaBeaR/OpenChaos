@@ -4,6 +4,7 @@
   "dependencies": [
     "sdl3",
     "openal-soft",
+    "nlohmann-json",
     {
       "name": "ffmpeg",
       "default-features": false,

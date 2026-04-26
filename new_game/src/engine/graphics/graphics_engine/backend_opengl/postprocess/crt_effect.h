@@ -12,6 +12,9 @@
 // Whether the CRT effect is currently active. Settable from anywhere.
 extern bool g_crt_enabled;
 
+// Read crt_enable from config and apply to g_crt_enabled. Call once after config is loaded.
+void crt_effect_init();
+
 // Apply the CRT pass to the current default framebuffer.
 // Must be called while the default framebuffer is bound (after composition_blit).
 // No-op when g_crt_enabled == false.

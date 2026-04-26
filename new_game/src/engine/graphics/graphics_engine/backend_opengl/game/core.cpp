@@ -12,7 +12,7 @@
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
-#include "config.h"
+#include "engine/io/oc_config.h"
 #include "engine/graphics/aspect_clamp.h"  // FOV_CAP_ASPECT / FOV_MIN_ASPECT
 #include "engine/core/memory.h"
 #include "engine/graphics/pipeline/polypage.h"
@@ -2521,7 +2521,7 @@ static void compute_fbo_size(int phys_w, int phys_h,
     // platforms. Internal limit, not user-tuneable.
     static constexpr float RENDER_SCALE_MIN = 0.25f;
 
-    float scale = OC_RENDER_SCALE;
+    float scale = OC_CONFIG_get_float("openchaos", "render_scale", 1.0f);
     if (scale < RENDER_SCALE_MIN) scale = RENDER_SCALE_MIN;
     if (scale > 1.0f)             scale = 1.0f;
 
@@ -2628,7 +2628,9 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
             "  after scale:        %dx%d pixels  [aspect %.3f]\n"
             "  aspect clamp:       [%.3f .. %.3f]  %s\n"
             "  scene FBO (game):   %dx%d pixels  [aspect %.3f]\n",
-            OC_WINDOWED_WIDTH, OC_WINDOWED_HEIGHT, OC_FULLSCREEN ? 1 : 0,
+            OC_CONFIG_get_int("openchaos", "windowed_width", 640),
+            OC_CONFIG_get_int("openchaos", "windowed_height", 480),
+            OC_CONFIG_get_int("openchaos", "fullscreen", 0),
             logical_w, logical_h,
             phys_w, phys_h,
             (logical_w > 0) ? (float)phys_w / (float)logical_w : 0.0f,
@@ -2638,11 +2640,11 @@ SLONG OpenDisplay(ULONG width, ULONG height, ULONG depth, ULONG flags)
             clamped ? "APPLIED (outer bars)" : "within range",
             fbo_w, fbo_h, (double)((float)fbo_w / (float)fbo_h));
 
-    s_fullscreen = OC_FULLSCREEN;
+    s_fullscreen = OC_CONFIG_get_int("openchaos", "fullscreen", 0) != 0;
 
     // gl_context_get_width/height must return the render-target size
     // (wibble effect and ge_set_viewport's y-flip both rely on it).
-    if (!gl_context_create(fbo_w, fbo_h, OC_VSYNC)) {
+    if (!gl_context_create(fbo_w, fbo_h, OC_CONFIG_get_int("openchaos", "vsync", 1) != 0)) {
         return -1;
     }
 

@@ -35,7 +35,7 @@
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
-#include "config.h"                        // OC_FOV_MULTIPLIER
+#include "engine/io/oc_config.h"
 #include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT / FOV_CAP_ASPECT
 #include <math.h>
 #include <stdio.h>
@@ -6369,7 +6369,7 @@ void AENG_draw(SLONG draw_3d)
                     auto_zoom = base_aspect / zoom_aspect;
                 }
                 AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F))
-                    / (float(OC_FOV_MULTIPLIER) * auto_zoom);
+                    / (OC_CONFIG_get_float("openchaos", "fov_multiplier", 1.0f) * auto_zoom);
             }
 
             AENG_set_camera_radians(
@@ -6466,7 +6466,7 @@ void AENG_draw(SLONG draw_3d)
                 auto_zoom = base_aspect / zoom_aspect;
             }
             AENG_lens = fc->lens * (1.0F / float(65536.0F))
-                / (float(OC_FOV_MULTIPLIER) * auto_zoom);
+                / (OC_CONFIG_get_float("openchaos", "fov_multiplier", 1.0f) * auto_zoom);
         }
 
         AENG_set_camera_radians(

@@ -14,14 +14,19 @@
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
-#include "config.h"
+#include "engine/io/oc_config.h"
 
 #include <stdio.h>
 #include <stdint.h>
 
 #include "gl_shaders_embedded.h"
 
-bool g_crt_enabled = OC_CRT_ENABLE;
+bool g_crt_enabled = true; // default; overridden from config in crt_effect_init()
+
+void crt_effect_init()
+{
+    g_crt_enabled = OC_CONFIG_get_int("openchaos", "crt_enable", 1) != 0;
+}
 
 namespace {
 

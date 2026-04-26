@@ -10,6 +10,7 @@
 #include "engine/io/env.h"
 #include "engine/io/env_globals.h"
 #include "engine/io/file.h"
+#include "engine/io/oc_config.h"
 
 // --- Simple INI parser (internal) ---
 
@@ -252,149 +253,38 @@ static void ini_write_string(const char* filepath, const char* section, const ch
 
 // --- Public API ---
 
-// Hardcoded default config — replaces reading config.ini from disk.
-// The original game reads config.ini from the working directory, but its values
-// use legacy DirectInput button indices and platform-specific settings that conflict
-// with OpenChaos (SDL3). To ensure identical behaviour everywhere regardless of what
-// config.ini is present (e.g. Steam's default), we serve all ENV_get_value_* calls
-// from this in-memory string. No files are read or written.
-// TODO: replace with OpenChaos's own config system (see stage11.md).
-static const char* const env_default_config =
-    "[Game]\n"
-    "language=text\\lang_english.txt\n"
-    "scanner_follows=1\n"
-    "iamapsx=0\n"
-
-    "[LocalInstall]\n"
-    "textures=1\n"
-    "sfx=1\n"
-    "speech=1\n"
-    "movies=1\n"
-
-    "[TextureClumps]\n"
-    "enable_clumps=1\n"
-
-    "[Render]\n"
-    "detail_stars=1\n"
-    "detail_shadows=1\n"
-    "detail_moon_reflection=1\n"
-    "detail_people_reflection=1\n"
-    "detail_puddles=1\n"
-    "detail_dirt=1\n"
-    "detail_mist=1\n"
-    "detail_rain=1\n"
-    "detail_skyline=1\n"
-    "detail_filter=1\n"
-    "detail_perspective=1\n"
-    "detail_crinkles=1\n"
-    "video_truecolour=1\n"
-    "video_res=4\n"
-    "Adami_lighting=1\n"
-    "max_frame_rate=30\n"
-    "draw_distance=22\n"
-
-    "[Audio]\n"
-    "ambient_volume=127\n"
-    "music_volume=127\n"
-    "fx_volume=127\n"
-
-    // [Joypad] intentionally omitted — defaults are in init_joypad_config()
-    // (input_actions.cpp), already tested and working.
-
-    "[Keyboard]\n"
-    "keyboard_left=203\n"
-    "keyboard_right=205\n"
-    "keyboard_forward=200\n"
-    "keyboard_back=208\n"
-    "keyboard_punch=44\n"
-    "keyboard_kick=45\n"
-    "keyboard_action=46\n"
-    "keyboard_run=47\n"
-    "keyboard_jump=57\n"
-    "keyboard_start=15\n"
-    "keyboard_select=28\n"
-    "keyboard_camera=207\n"
-    "keyboard_cam_left=211\n"
-    "keyboard_cam_right=209\n"
-    "keyboard_1stperson=30\n"
-
-    "[Gamma]\n"
-    "BlackPoint=0\n"
-    "WhitePoint=256\n"
-
-    "[Movie]\n"
-    "play_movie=1\n";
-
 // uc_orig: ENV_load (fallen/Source/env2.cpp)
 void ENV_load(CBYTE* fname)
 {
-    // Hardcoded config stub — no file I/O. To restore reading from config.ini,
-    // uncomment the original code below and comment out the (void)fname line.
-    (void)fname;
-
-    /*
-    // --- Original config.ini loading ---
-    oc_getcwd(env_inifile, ENV_MAX_PATH);
-    size_t len = strlen(env_inifile);
-    if (len > 0 && env_inifile[len - 1] != '\\' && env_inifile[len - 1] != '/')
-        strcat(env_inifile, "/");
-    strcat(env_inifile, fname);
-
-    SLONG local = ini_read_int(env_inifile, "MuckyFoot", "local", 0);
-
-    if (local) {
-        // uc-abs-path: was "c:\fallen.ini"
-        strcpy(env_inifile, "fallen.ini");
-    }
-    */
+    OC_CONFIG_load(fname);
 }
 
 // uc_orig: ENV_get_value_string (fallen/Source/env2.cpp)
 CBYTE* ENV_get_value_string(CBYTE* name, CBYTE* section)
 {
-    // Reads from hardcoded config in memory. To restore config.ini reading,
-    // replace ini_read_string_mem with: ini_read_string(env_inifile, ...)
-    ini_read_string_mem(env_default_config, section, name, env_strbuf, ENV_MAX_PATH);
-    return env_strbuf[0] ? env_strbuf : NULL;
-
-    /*
-    // --- Original config.ini reading ---
-    // ini_read_string(env_inifile, section, name, env_strbuf, ENV_MAX_PATH);
-    // return env_strbuf[0] ? env_strbuf : NULL;
-    */
+    const char* val = OC_CONFIG_get_string(section, name, nullptr);
+    if (!val) { env_strbuf[0] = '\0'; return NULL; }
+    strncpy(env_strbuf, val, ENV_MAX_PATH - 1);
+    env_strbuf[ENV_MAX_PATH - 1] = '\0';
+    return env_strbuf;
 }
 
 // uc_orig: ENV_get_value_number (fallen/Source/env2.cpp)
 SLONG ENV_get_value_number(CBYTE* name, SLONG def, CBYTE* section)
 {
-    // Reads from hardcoded config in memory. To restore config.ini reading,
-    // replace ini_read_int_mem with: ini_read_int(env_inifile, ...)
-    return ini_read_int_mem(env_default_config, section, name, def);
-
-    /*
-    // --- Original config.ini reading + write-back ---
-    // SLONG val = ini_read_int(env_inifile, section, name, def);
-    // if (oc_stricmp(section, "Secret"))
-    //     ENV_set_value_number(name, val, section); // don't write out "psx" key
-    // return val;
-    */
+    return OC_CONFIG_get_int(section, name, def);
 }
 
 // uc_orig: ENV_set_value_string (fallen/Source/env2.cpp)
 void ENV_set_value_string(CBYTE* name, CBYTE* value, CBYTE* section)
 {
-    // No-op — hardcoded config, no file to write to.
-    // To restore: ini_write_string(env_inifile, section, name, value);
-    (void)name; (void)value; (void)section;
+    OC_CONFIG_set_string(section, name, value);
 }
 
 // uc_orig: ENV_set_value_number (fallen/Source/env2.cpp)
 void ENV_set_value_number(CBYTE* name, SLONG value, CBYTE* section)
 {
-    // No-op — hardcoded config, no file to write to.
-    // To restore: sprintf(env_strbuf, "%d", value);
-    //             ini_write_string(env_inifile, section, name, env_strbuf);
-    (void)name; (void)value; (void)section;
+    OC_CONFIG_set_int(section, name, value);
 }
 
 // --- Public INI access (cross-platform replacement for Win32 GetPrivateProfile*) ---
