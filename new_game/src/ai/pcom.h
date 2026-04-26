@@ -390,9 +390,6 @@ void PCOM_attack_happened(Thing* p_victim, Thing* p_attacker);
 // uc_orig: PCOM_attack_happened_but_missed (fallen/Headers/pcom.h)
 void PCOM_attack_happened_but_missed(Thing* p_victim, Thing* p_attacker);
 
-// uc_orig: PCOM_youre_being_grappled (fallen/Headers/pcom.h)
-void PCOM_youre_being_grappled(Thing* p_victim, Thing* p_attacker);
-
 // uc_orig: PCOM_process_person (fallen/Headers/pcom.h)
 void PCOM_process_person(Thing* p_person);
 
@@ -656,14 +653,8 @@ SLONG PCOM_person_dist_from(Thing* p_person, SLONG world_x, SLONG world_z);
 // uc_orig: PCOM_find_hiding_place (fallen/Source/pcom.cpp)
 SLONG PCOM_find_hiding_place(Thing* p_person, SLONG* hide_x, SLONG* hide_z);
 
-// uc_orig: PCOM_player_is_doing_something_naughty (fallen/Source/pcom.cpp)
-SLONG PCOM_player_is_doing_something_naughty(Thing* darci);
-
 // uc_orig: PCOM_alert_my_gang_to_a_fight (fallen/Source/pcom.cpp)
 void PCOM_alert_my_gang_to_a_fight(Thing* p_person, Thing* p_target);
-
-// uc_orig: PCOM_alert_my_gang_to_flee (fallen/Source/pcom.cpp)
-void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target);
 
 // uc_orig: PCOM_should_fake_person_attack_darci (fallen/Source/pcom.cpp)
 SLONG PCOM_should_fake_person_attack_darci(Thing* p_person);
@@ -792,9 +783,6 @@ void PCOM_process_investigating(Thing* p_person);
 
 // uc_orig: PCOM_process_following (fallen/Source/pcom.cpp)
 void PCOM_process_following(Thing* p_person);
-
-// uc_orig: PCOM_find_mib_appear_pos (fallen/Source/pcom.cpp)
-void PCOM_find_mib_appear_pos(Thing* p_mib, Thing* p_target, SLONG* appear_x, SLONG* appear_z);
 
 // uc_orig: draw_view_line (fallen/Source/pcom.cpp)
 void draw_view_line(Thing* p_person, Thing* p_target);

@@ -54,6 +54,16 @@ find_package(FFMPEG REQUIRED)
 option(ENABLE_ASAN "Enable AddressSanitizer (heap overflow detection)" OFF)
 
 # ---------------------------------------------------------------------------
+# Optional: dead-code report. Enables function-level linking + verbose linker
+# output so the linker prints which functions/sections were discarded as
+# unreferenced. Used for Stage 13 dead-code cleanup (see
+# new_game_planning/stage13_dead_code_cleanup.md).
+# Usage: CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON" make configure && make build-release
+# Then check build/Release/.ninja_log or capture build output to a file.
+# ---------------------------------------------------------------------------
+option(DEAD_CODE_REPORT "Print dropped (dead) sections during link" OFF)
+
+# ---------------------------------------------------------------------------
 # DualSense backend
 # ---------------------------------------------------------------------------
 # libDualsense itself lives at repo root as an independent static library
@@ -153,7 +163,6 @@ set(SOURCES_NEW
     src/engine/core/matrix.cpp
     src/engine/core/fmatrix.cpp
     src/engine/core/quaternion.cpp
-    src/engine/core/quaternion_globals.cpp
     src/engine/core/timer.cpp
     src/engine/core/timer_globals.cpp
     src/engine/core/heap.cpp
@@ -585,6 +594,10 @@ target_compile_options(OpenChaos PRIVATE
     # AddressSanitizer: detects heap overflows, use-after-free, etc.
     $<$<BOOL:${ENABLE_ASAN}>:-fsanitize=address>
     $<$<BOOL:${ENABLE_ASAN}>:-fno-omit-frame-pointer>
+    # Dead-code report: function/data-level sections so linker can drop unreferenced ones.
+    # On clang-cl/clang targeting MSVC, -ffunction-sections maps to /Gy.
+    $<$<BOOL:${DEAD_CODE_REPORT}>:-ffunction-sections>
+    $<$<BOOL:${DEAD_CODE_REPORT}>:-fdata-sections>
 )
 
 # ---------------------------------------------------------------------------
@@ -618,6 +631,23 @@ endif()
 # ASan linker flags (must be outside the WIN32 block for cross-platform support)
 if(ENABLE_ASAN)
     target_link_options(OpenChaos PRIVATE -fsanitize=address)
+endif()
+
+# Dead-code report linker flags. On Windows (lld-link) use /OPT:REF + /VERBOSE.
+# On Unix (ld.lld / ld) use --gc-sections + --print-gc-sections.
+# /VERBOSE on lld-link prints "Discarded ..." lines for sections dropped by /OPT:REF.
+if(DEAD_CODE_REPORT)
+    if(WIN32)
+        target_link_options(OpenChaos PRIVATE
+            "LINKER:/OPT:REF"
+            "LINKER:/VERBOSE"
+        )
+    else()
+        target_link_options(OpenChaos PRIVATE
+            "LINKER:--gc-sections"
+            "LINKER:--print-gc-sections"
+        )
+    endif()
 endif()
 
 # ---------------------------------------------------------------------------

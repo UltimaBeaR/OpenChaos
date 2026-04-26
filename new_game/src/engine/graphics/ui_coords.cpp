@@ -75,43 +75,4 @@ Vec2f frame_origin_screen(UIAnchor anchor)
     return Vec2f{ ox01, oy01 };
 }
 
-Vec2f frame_to_screen(Vec2f framed01, UIAnchor anchor)
-{
-    const Vec2f origin = frame_origin_screen(anchor);
-    const float fw01 = g_frame_w_px / g_screen_w_px;
-    const float fh01 = g_frame_h_px / g_screen_h_px;
-    return Vec2f{
-        origin.x + framed01.x * fw01,
-        origin.y + framed01.y * fh01,
-    };
-}
-
-Vec2f screen_to_frame(Vec2f screen01, UIAnchor anchor)
-{
-    const Vec2f origin = frame_origin_screen(anchor);
-    const float fw01 = g_frame_w_px / g_screen_w_px;
-    const float fh01 = g_frame_h_px / g_screen_h_px;
-    return Vec2f{
-        (screen01.x - origin.x) / fw01,
-        (screen01.y - origin.y) / fh01,
-    };
-}
-
-Vec2f old_px_to_screen(float x_px640, float y_px480, UIAnchor anchor)
-{
-    return frame_to_screen(
-        Vec2f{ x_px640 / float(DisplayWidth), y_px480 / float(DisplayHeight) },
-        anchor);
-}
-
-Vec2f screen_to_pixels(Vec2f screen01)
-{
-    return Vec2f{ screen01.x * g_screen_w_px, screen01.y * g_screen_h_px };
-}
-
-Vec2f old_px_to_screen_pixels(float x_px640, float y_px480, UIAnchor anchor)
-{
-    return screen_to_pixels(old_px_to_screen(x_px640, y_px480, anchor));
-}
-
 } // namespace ui_coords

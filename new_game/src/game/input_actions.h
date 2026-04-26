@@ -222,11 +222,6 @@ extern SLONG person_get_in_car(Thing* p_person);
 extern SLONG person_get_in_specific_car(Thing* p_person, Thing* p_vehicle);
 // uc_orig: get_hardware_input (fallen/Headers/interfac.h)
 extern ULONG get_hardware_input(UWORD type);
-// uc_orig: get_last_input (fallen/Headers/interfac.h)
-extern ULONG get_last_input(UWORD type);
-// uc_orig: allow_input_autorepeat (fallen/Headers/interfac.h)
-extern void allow_input_autorepeat(void);
-
 // Functions declared/used in interfac.cpp chunk 1 (migrated to new/ui/interfac.cpp).
 // uc_orig: init_joypad_config (fallen/Source/interfac.cpp)
 extern void init_joypad_config(void);

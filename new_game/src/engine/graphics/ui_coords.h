@@ -62,25 +62,6 @@ void recompute(int real_w, int real_h);
 // [0..1] screen coordinates, given the anchor.
 Vec2f frame_origin_screen(UIAnchor anchor);
 
-// [0..1] framed coord -> [0..1] screen coord, given the anchor of the
-// 4:3 frame within the FBO.
-Vec2f frame_to_screen(Vec2f framed01, UIAnchor anchor);
-
-// Inverse: [0..1] screen coord -> [0..1] framed coord. Coords outside the
-// framed region map to values outside [0..1] (caller decides how to handle
-// e.g. mouse clicks on the inner bars).
-Vec2f screen_to_frame(Vec2f screen01, UIAnchor anchor);
-
-// Migration helper: old 640x480 pixel coord -> [0..1] screen coord.
-Vec2f old_px_to_screen(float x_px640, float y_px480, UIAnchor anchor);
-
-// [0..1] screen -> FBO pixels.
-Vec2f screen_to_pixels(Vec2f screen01);
-
-// Migration helper: old 640x480 pixel coord -> FBO pixels.
-// Most-common entry point during the bulk rewrite.
-Vec2f old_px_to_screen_pixels(float x_px640, float y_px480, UIAnchor anchor);
-
 } // namespace ui_coords
 
 #endif // ENGINE_GRAPHICS_UI_COORDS_H

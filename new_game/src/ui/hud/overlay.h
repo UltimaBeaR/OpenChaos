@@ -19,17 +19,8 @@ extern void init_overlay(void);
 // uc_orig: overlay_beacons (fallen/Source/overlay.cpp)
 extern void overlay_beacons(void);
 
-// uc_orig: add_damage_value (fallen/Source/overlay.cpp)
-extern void add_damage_value(SWORD x, SWORD y, SWORD z, SLONG value);
-
 // uc_orig: add_damage_text (fallen/Source/overlay.cpp)
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
-
-// uc_orig: add_damage_value_thing (fallen/Source/overlay.cpp)
-extern void add_damage_value_thing(Thing* p_thing, SLONG value);
-
-// uc_orig: should_i_add_message (fallen/Source/overlay.cpp)
-extern SLONG should_i_add_message(SLONG type);
 
 // Queue a view line (shooter→target) for deferred rendering during overlay pass.
 // Called from pcom during game tick; drawn after POLY_frame_init in render pass.

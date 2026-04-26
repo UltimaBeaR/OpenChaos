@@ -534,18 +534,6 @@ void VEH_init_vehinfo()
     }
 }
 
-// Returns vertex-to-crumple-zone assignment map for a body prim by scanning veh_info[].
-// uc_orig: VEH_get_assignments (fallen/Source/Vehicle.cpp)
-UBYTE* VEH_get_assignments(ULONG prim)
-{
-    for (int ii = 0; ii < VEH_TYPE_NUMBER; ii++) {
-        if (veh_info[ii].BodyPrim == prim) {
-            return veh_info[ii].VertexAssignments;
-        }
-    }
-    return NULL;
-}
-
 // Scans the Vehicle pool for a free slot (Spring[0].Compression == VEH_NULL).
 // Claims the slot by setting Spring[0].Compression = MIN_COMPRESSION.
 // uc_orig: VEH_alloc (fallen/Source/Vehicle.cpp)
@@ -566,14 +554,6 @@ Vehicle* VEH_alloc(void)
     ASSERT(0);
 
     return NULL;
-}
-
-// uc_orig: VEH_dealloc (fallen/Source/Vehicle.cpp)
-void VEH_dealloc(Vehicle* veh)
-{
-    veh->Spring[0].Compression = VEH_NULL;
-    if (veh->dlight)
-        NIGHT_dlight_destroy(veh->dlight);
 }
 
 // Spawns a vehicle Thing at world position with given orientation, type, and key lock.
@@ -704,19 +684,6 @@ void reinit_vehicle(Thing* p_thing)
     p_thing->WorldPos.Y = (height + 107) << 8;
 }
 
-// uc_orig: free_vehicle (fallen/Source/Vehicle.cpp)
-void free_vehicle(Thing* p_thing)
-{
-    ASSERT(0);
-    if (p_thing->Genus.Vehicle) {
-        VEH_dealloc(p_thing->Genus.Vehicle);
-    }
-
-    free_draw_mesh(p_thing->Draw.Mesh);
-
-    free_thing(p_thing);
-}
-
 // Forward declarations for calc functions defined in chunk 3.
 // uc_orig: calc_car_collision_turn (fallen/Source/Vehicle.cpp)
 SLONG calc_car_collision_turn(Thing* p_car, SLONG angle, SLONG tilt, SLONG roll);
@@ -726,15 +693,6 @@ void calc_car_normal(SLONG* p, SLONG* dy, SLONG* nx, SLONG* ny, SLONG* nz);
 void calc_car_vect(SLONG p1, SLONG p2, SLONG* dy, SLONG* vx, SLONG* vy, SLONG* vz);
 // uc_orig: normalise_val256 (fallen/Source/Vehicle.cpp)
 void normalise_val256(SLONG* vx, SLONG* vy, SLONG* vz);
-
-// animate_car: dead stub — body starts with ASSERT(0) and returns immediately.
-// The actual vehicle animation is handled by draw_car via MESH_draw_poly.
-// uc_orig: animate_car (fallen/Source/Vehicle.cpp)
-void animate_car(Thing* p_car)
-{
-    ASSERT(0);
-    return;
-}
 
 // Renders the vehicle body mesh, wheels, lights, smoke, skidmarks, and shadow.
 // Steps: crumple deform → body mesh → shadow → headlights → flashing lights →

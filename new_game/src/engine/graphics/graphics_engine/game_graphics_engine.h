@@ -758,11 +758,9 @@ struct GERenderState {
     // Typed setters (replace generic SetRenderState(DWORD, DWORD))
     void SetTexture(GETextureHandle texture);
     void SetTextureAddress(GETextureAddress addr);
-    void SetTextureFilter(GETextureFilter mag, GETextureFilter min);
     void SetTextureMag(GETextureFilter mag);
     void SetTextureMin(GETextureFilter min);
     void SetTextureBlend(GETextureBlend blend);
-    void SetBlendMode(GEBlendMode mode);
     void SetSrcBlend(GEBlendFactor src);
     void SetDstBlend(GEBlendFactor dst);
     void SetAlphaBlendEnabled(bool enabled);
@@ -776,7 +774,6 @@ struct GERenderState {
     void SetCullMode(GECullMode mode);
     void SetEffect(GERenderEffect effect);
 
-    void SetTempTransparent();
     void ResetTempTransparent();
 
     GETextureHandle GetTexture() { return Texture; }

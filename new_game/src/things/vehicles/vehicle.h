@@ -222,10 +222,6 @@ Thing* get_vehicle_driver(Thing* p_vehicle);
 // uc_orig: VEH_init_vehinfo (fallen/Headers/Vehicle.h)
 void VEH_init_vehinfo();
 
-// Returns vertex-to-crumple-zone assignment array for a given body prim.
-// uc_orig: VEH_get_assignments (fallen/Headers/Vehicle.h)
-UBYTE* VEH_get_assignments(ULONG prim);
-
 // Resets all dynamic vehicle state (velocities, health, damage). Called after teleport or creation.
 // uc_orig: reinit_vehicle (fallen/Headers/Vehicle.h)
 void reinit_vehicle(Thing* p_thing);

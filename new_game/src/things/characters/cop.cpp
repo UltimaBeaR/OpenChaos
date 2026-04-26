@@ -71,9 +71,3 @@ void fn_cop_init(Thing* t_thing)
 void fn_cop_normal(Thing* t_thing)
 {
 }
-
-// uc_orig: fn_cop_fight (fallen/Source/Cop.cpp)
-// Stub — combat code is entirely commented out in the pre-release version.
-void fn_cop_fight(Thing* p_person)
-{
-}

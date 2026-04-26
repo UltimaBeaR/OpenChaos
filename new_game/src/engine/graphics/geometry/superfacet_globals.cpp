@@ -56,9 +56,3 @@ GEMatrix* SUPERFACET_matrix = nullptr;
 
 // uc_orig: SUPERFACET_direction_matrix (fallen/DDEngine/Source/superfacet.cpp)
 float SUPERFACET_direction_matrix[4][9] = {};
-
-// uc_orig: SUPERFACET_colour_base (fallen/DDEngine/Source/superfacet.cpp)
-NIGHT_Colour* SUPERFACET_colour_base = nullptr;
-
-// uc_orig: m_iFacetDirection (fallen/DDEngine/Source/superfacet.cpp)
-int m_iFacetDirection = 0;

@@ -137,8 +137,4 @@ SLONG find_best_grapple(Thing* p_person);
 // uc_orig: is_person_under_attack_low_level (fallen/Source/Combat.cpp)
 Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG radius);
 
-// Calls is_person_under_attack_low_level with radius 0x800 (standard search range).
-// uc_orig: is_person_under_attack (fallen/Source/Combat.cpp)
-Thing* is_person_under_attack(Thing* p_person);
-
 #endif // COMBAT_COMBAT_H

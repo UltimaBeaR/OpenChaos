@@ -194,9 +194,6 @@ extern SLONG dist_to_target_pelvis(Thing* p_person_a, Thing* p_person_b);
 // uc_orig: set_person_recircle (fallen/Source/pcom.cpp)
 extern void set_person_recircle(Thing* p_person);
 
-// uc_orig: FC_kill_player_cam (fallen/Source/pcom.cpp)
-extern void FC_kill_player_cam(Thing* p_thing);
-
 // uc_orig: person_has_gun_out (fallen/Source/pcom.cpp)
 extern SLONG person_has_gun_out(Thing* p_person);
 
@@ -1190,45 +1187,6 @@ SLONG PCOM_find_hiding_place(
     return (best_score > -UC_INFINITY);
 }
 
-// Returns UC_TRUE if Darci is doing something that would get her arrested (fighting).
-// uc_orig: PCOM_player_is_doing_something_naughty (fallen/Source/pcom.cpp)
-SLONG PCOM_player_is_doing_something_naughty(Thing* darci)
-{
-    // She isn't allowed to be fighting anyone.
-    if (darci->Genus.Person->Mode == PERSON_MODE_FIGHT) {
-        return UC_TRUE;
-    }
-
-    /*
-    map_x = darci->WorldPos.X >> 16;
-    map_z = darci->WorldPos.Z >> 16;
-
-    if (PAP_2HI(map_x,map_z).Flags & PAP_FLAG_NAUGHTY)
-    {
-            return UC_TRUE;
-    }
-
-    if (darci->Genus.Person->Action == ACTION_CLIMBING)
-    {
-            SLONG dx;
-            SLONG dz;
-
-            dx = -SIN(darci->Draw.Tweened->Angle);
-            dz = -COS(darci->Draw.Tweened->Angle);
-
-            map_x = darci->WorldPos.X + dx >> 16;
-            map_z = darci->WorldPos.Z + dz >> 16;
-
-            if (PAP_2HI(map_x,map_z).Flags & PAP_FLAG_NAUGHTY)
-            {
-                    return UC_TRUE;
-            }
-    }
-    */
-
-    return UC_FALSE;
-}
-
 // uc_orig: PCOM_set_person_ai_kill_person (fallen/Source/pcom.cpp)  [forward decl used by gang alert]
 void PCOM_set_person_ai_kill_person(Thing* p_person, Thing* p_target, SLONG alert_gang);
 
@@ -1258,34 +1216,6 @@ void PCOM_alert_my_gang_to_a_fight(Thing* p_person, Thing* p_target)
                         PCOM_set_person_ai_kill_person(p_gang, p_target, UC_FALSE);
                     }
             }
-    }
-}
-
-// Signals all same-colour gang members to flee from p_target.
-// uc_orig: PCOM_alert_my_gang_to_flee (fallen/Source/pcom.cpp)
-void PCOM_alert_my_gang_to_flee(Thing* p_person, Thing* p_target)
-{
-    SLONG i;
-
-    PCOM_Gang* pg;
-    Thing* p_gang;
-
-    ASSERT(WITHIN(p_person->Genus.Person->pcom_colour, 0, PCOM_MAX_GANGS - 1));
-    ASSERT(p_person->Genus.Person->pcom_bent & PCOM_BENT_GANG);
-
-    pg = &PCOM_gang[p_person->Genus.Person->pcom_colour];
-
-    for (i = 0; i < pg->number; i++) {
-        p_gang = TO_THING(PCOM_gang_person[pg->index + i]);
-
-        if (p_gang->Class == CLASS_PERSON)
-            if (!am_i_a_thug(p_person) || (!(p_gang->Genus.Person->pcom_bent & PCOM_BENT_FIGHT_BACK)))
-                if (p_gang != p_person) {
-                    if (!(p_gang->Genus.Person->Flags & FLAG_PERSON_HELPLESS))
-                        if (p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_FOLLOWING || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_SEARCHING || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_TAUNT || p_gang->Genus.Person->pcom_ai_state == PCOM_AI_STATE_INVESTIGATING) {
-                            PCOM_set_person_ai_flee_person(p_gang, p_target);
-                        }
-                }
     }
 }
 
@@ -2238,30 +2168,6 @@ UWORD get_any_gang_member(Thing* p_target)
         }
     }
     return (0);
-}
-
-// Return the THING_NUMBER of the closest non-KO'd attacker in p_target's gang ring.
-// uc_orig: get_nearest_gang_member (fallen/Source/pcom.cpp)
-UWORD get_nearest_gang_member(Thing* p_target)
-{
-    SLONG gang;
-    SLONG c0, ret;
-    SLONG bdist = 99999999, best_targ = 0, dist;
-
-    gang = p_target->Genus.Person->GangAttack;
-    if (gang == 0)
-        return (0);
-
-    for (c0 = 0; c0 < 4; c0++) {
-        if (ret = gang_attacks[gang].Perp[c0]) {
-            if (!is_person_ko(TO_THING(ret)))
-                if ((dist = dist_to_target(p_target, TO_THING(ret))) < bdist) {
-                    best_targ = ret;
-                    bdist = dist;
-                }
-        }
-    }
-    return (best_targ);
 }
 
 // Return the THING_NUMBER of the first occupied slot (priority: 0,1,3,2).
@@ -5441,17 +5347,6 @@ void PCOM_process_following(Thing* p_person)
             }
         }
     }
-}
-
-// uc_orig: PCOM_find_mib_appear_pos (fallen/Source/pcom.cpp)
-// Stub — calculates a position for an MIB to teleport to. Body left empty in the
-// pre-release source; presumably completed post-fork.
-void PCOM_find_mib_appear_pos(
-    Thing* p_mib,
-    Thing* p_target,
-    SLONG* appear_x,
-    SLONG* appear_z)
-{
 }
 
 // uc_orig: draw_view_line (fallen/Source/pcom.cpp)
@@ -8747,14 +8642,6 @@ void PCOM_oscillate_tympanum(
 // ============================================================
 // Combat callbacks
 // ============================================================
-
-// Called when p_victim is grappled by p_attacker. Currently no-op (stub).
-// uc_orig: PCOM_youre_being_grappled (fallen/Source/pcom.cpp)
-void PCOM_youre_being_grappled(
-    Thing* p_victim,
-    Thing* p_attacker)
-{
-}
 
 // Returns non-zero if both persons are on the same side (cop/Darci/Roper).
 // uc_orig: on_same_side (fallen/Source/pcom.cpp)

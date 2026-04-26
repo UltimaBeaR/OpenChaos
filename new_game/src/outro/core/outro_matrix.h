@@ -86,17 +86,6 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9]);
         SWAP_FL(m[5], m[7]); \
     }
 
-// uc_orig: MATRIX_rotate_about_its_x (fallen/outro/outroMatrix.cpp)
-void MATRIX_rotate_about_its_x(float* matrix, float angle);
-// uc_orig: MATRIX_rotate_about_its_y (fallen/outro/outroMatrix.cpp)
-void MATRIX_rotate_about_its_y(float* matrix, float angle);
-// uc_orig: MATRIX_rotate_about_its_z (fallen/outro/outroMatrix.cpp)
-void MATRIX_rotate_about_its_z(float* matrix, float angle);
-
-// Returns the yaw/pitch/roll decomposition of the given rotation matrix.
-// uc_orig: MATRIX_find_angles (fallen/outro/outroMatrix.cpp)
-Direction MATRIX_find_angles(float matrix[9]);
-
 // Scales all elements of the matrix by mulby.
 // uc_orig: MATRIX_scale (fallen/outro/outroMatrix.cpp)
 void MATRIX_scale(float matrix[9], float mulby);

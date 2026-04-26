@@ -44,7 +44,6 @@ GERenderState::GERenderState(GETextureFilter mag, GETextureFilter min)
 
 void GERenderState::SetTexture(GETextureHandle texture) { Texture = texture; }
 void GERenderState::SetTextureAddress(GETextureAddress addr) { TexAddress = addr; }
-void GERenderState::SetTextureFilter(GETextureFilter mag, GETextureFilter min) { TexMag = mag; TexMin = min; }
 void GERenderState::SetTextureMag(GETextureFilter mag) { TexMag = mag; }
 void GERenderState::SetTextureMin(GETextureFilter min) { TexMin = min; }
 
@@ -60,37 +59,6 @@ void GERenderState::SetTextureBlend(GETextureBlend blend)
         }
     }
     TexBlend = blend;
-}
-
-void GERenderState::SetBlendMode(GEBlendMode mode)
-{
-    switch (mode) {
-    case GEBlendMode::Opaque:
-        SrcBlend = GEBlendFactor::One;
-        DstBlend = GEBlendFactor::Zero;
-        AlphaBlendEnabled = false;
-        break;
-    case GEBlendMode::Alpha:
-        SrcBlend = GEBlendFactor::SrcAlpha;
-        DstBlend = GEBlendFactor::InvSrcAlpha;
-        AlphaBlendEnabled = true;
-        break;
-    case GEBlendMode::Additive:
-        SrcBlend = GEBlendFactor::One;
-        DstBlend = GEBlendFactor::One;
-        AlphaBlendEnabled = true;
-        break;
-    case GEBlendMode::Modulate:
-        SrcBlend = GEBlendFactor::Zero;
-        DstBlend = GEBlendFactor::SrcColor;
-        AlphaBlendEnabled = true;
-        break;
-    case GEBlendMode::InvModulate:
-        SrcBlend = GEBlendFactor::Zero;
-        DstBlend = GEBlendFactor::InvSrcColor;
-        AlphaBlendEnabled = true;
-        break;
-    }
 }
 
 void GERenderState::SetSrcBlend(GEBlendFactor src) { SrcBlend = src; }
@@ -128,26 +96,6 @@ void GERenderState::SetEffect(GERenderEffect effect)
         break;
     default:
         break;
-    }
-}
-
-void GERenderState::SetTempTransparent()
-{
-    if (!TempTransparent) {
-        TempTransparent = true;
-        TempSrcBlend = SrcBlend;
-        TempDstBlend = DstBlend;
-        TempAlphaBlendEnabled = AlphaBlendEnabled;
-        TempDepthWrite = DepthWrite;
-        TempTexBlend = TexBlend;
-        TempEffect = Effect;
-
-        SrcBlend = GEBlendFactor::SrcAlpha;
-        DstBlend = GEBlendFactor::InvSrcAlpha;
-        AlphaBlendEnabled = true;
-        DepthWrite = false;
-        TexBlend = GETextureBlend::ModulateAlpha;
-        Effect = GE_EFFECT_NONE;
     }
 }
 

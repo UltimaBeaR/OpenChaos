@@ -101,30 +101,6 @@ extern SLONG ScreenHeight;
 // uc_orig: HELP_USE_BIKE (fallen/Source/overlay.cpp)
 #define HELP_USE_BIKE 3
 
-// Returns true if an in-world hint message of this type can be shown this frame.
-// Throttles messages to once per 100 game turns to avoid spamming.
-// uc_orig: should_i_add_message (fallen/Source/overlay.cpp)
-SLONG should_i_add_message(SLONG type)
-{
-    static SLONG last_message[4] = { 0, 0, 0, 0 };
-
-    ASSERT(WITHIN(type, 0, 3));
-
-    if (last_message[type] > GAME_TURN || last_message[type] <= GAME_TURN - 100) {
-        last_message[type] = GAME_TURN;
-        return UC_TRUE;
-    } else {
-        return UC_FALSE;
-    }
-}
-
-// Empty stub — help text display was disabled pre-release.
-// uc_orig: show_help_text (fallen/Source/overlay.cpp)
-void show_help_text(SLONG index)
-{
-    // Stub — help text display was disabled pre-release.
-}
-
 // uc_orig: track_enemy (fallen/Source/overlay.cpp)
 void track_enemy(Thing* p_thing)
 {
@@ -148,31 +124,6 @@ void track_gun_sight(Thing* p_thing, SLONG accuracy)
         panel_gun_sight[track_count].Timer = accuracy;
         panel_gun_sight[track_count].PThing = p_thing;
         track_count++;
-    }
-}
-
-// Draws tracked enemy faces and health bars (disabled in original — loop body has unconditional STATE_UNUSED).
-// uc_orig: OVERLAY_draw_tracked_enemies (fallen/Source/overlay.cpp)
-void OVERLAY_draw_tracked_enemies(void)
-{
-    SLONG c0;
-    for (c0 = 0; c0 < MAX_TRACK; c0++) {
-        if (panel_enemy[c0].State == STATE_TRACKING) {
-            SLONG h;
-
-            h = panel_enemy[c0].PThing->Genus.Person->Health;
-            if (h < 0)
-                h = 0;
-            PANEL_draw_face(c0 * 150 + 5, 450 - 14, panel_enemy[c0].Face, 32);
-            PANEL_draw_health_bar(40 + c0 * 150, 450, h >> 1);
-            PANEL_draw_health_bar(40 + c0 * 150, 460, (GET_SKILL(panel_enemy[c0].PThing) * 100) / 15);
-
-            panel_enemy[c0].Timer -= TICK_TOCK;
-            {
-                panel_enemy[c0].State = STATE_UNUSED;
-                panel_enemy[c0].PThing = 0;
-            }
-        }
     }
 }
 
@@ -309,19 +260,9 @@ void overlay_beacons(void)
     // Stub — beacon overlay was cut.
 }
 
-// Empty stubs — DAMAGE_TEXT system was behind #ifdef DAMAGE_TEXT (never defined).
-// uc_orig: add_damage_value (fallen/Source/overlay.cpp)
-void add_damage_value(SWORD x, SWORD y, SWORD z, SLONG value)
-{
-}
-
+// Empty stub — DAMAGE_TEXT system was behind #ifdef DAMAGE_TEXT (never defined).
 // uc_orig: add_damage_text (fallen/Source/overlay.cpp)
 void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text)
-{
-}
-
-// uc_orig: add_damage_value_thing (fallen/Source/overlay.cpp)
-void add_damage_value_thing(Thing* p_thing, SLONG value)
 {
 }
 

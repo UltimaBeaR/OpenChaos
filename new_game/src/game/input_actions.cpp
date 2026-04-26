@@ -240,27 +240,9 @@ struct ActionInfo action_stand_relax[] = {
     { 0, 0, 0 }
 };
 
-// uc_orig: action_ladder (fallen/Source/interfac.cpp)
-struct ActionInfo action_ladder[] = {
-    { ACTION_DROP_DOWN, 0, INPUT_MASK_JUMP },
-    { 0, 0, 0 }
-};
-
 // uc_orig: action_dead (fallen/Source/interfac.cpp)
 struct ActionInfo action_dead[] = {
     { ACTION_BLOCK_FLAG, 0, INPUT_MASK_ACTION },
-    { 0, 0, 0 }
-};
-
-// uc_orig: action_flip_left (fallen/Source/interfac.cpp)
-struct ActionInfo action_flip_left[] = {
-    { ACTION_FLIP_LEFT, 1, INPUT_MASK_LEFT },
-    { 0, 0, 0 }
-};
-
-// uc_orig: action_flip_right (fallen/Source/interfac.cpp)
-struct ActionInfo action_flip_right[] = {
-    { ACTION_FLIP_RIGHT, 1, INPUT_MASK_RIGHT },
     { 0, 0, 0 }
 };
 
@@ -3187,18 +3169,6 @@ void set_look_pitch(SLONG p)
     look_pitch = p;
 }
 
-// uc_orig: get_last_input (fallen/Source/interfac.cpp)
-// Returns the last polled hardware input. Pass INPUT_TYPE_GONEDOWN to get only newly-pressed buttons.
-ULONG get_last_input(UWORD type)
-{
-    if (type == INPUT_TYPE_GONEDOWN) {
-        return (m_CurrentGoneDownInput);
-    } else {
-        ASSERT(type == 0);
-        return (m_CurrentInput);
-    }
-}
-
 // uc_orig: get_hardware_input (fallen/Source/interfac.cpp)
 // Polls the DirectInput device and keyboard, packs all button states and analog axes into a ULONG.
 // Analog X axis goes to bits 18-24, Y axis to bits 25-31 (GET_JOYX/GET_JOYY unpack them).
@@ -3632,14 +3602,6 @@ ULONG get_hardware_input(UWORD type)
     } else {
         return (m_CurrentInput);
     }
-}
-
-// uc_orig: allow_input_autorepeat (fallen/Source/interfac.cpp)
-// Clears the previous-input state so the next get_hardware_input(GONEDOWN) will return all
-// currently-held buttons as "newly pressed" (used in menus to allow held navigation).
-void allow_input_autorepeat(void)
-{
-    m_PreviousInput = 0;
 }
 
 // uc_orig: pre_process_input (fallen/Source/interfac.cpp)

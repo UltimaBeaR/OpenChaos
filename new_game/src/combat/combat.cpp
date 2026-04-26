@@ -169,41 +169,6 @@ SLONG get_gangattack(Thing* p_person)
     return (best);
 }
 
-// Tests each person within radius 0x280 of (x,y,z) for a melee hit.
-// Returns sum of (Damage+5) for all people hit. Sets *p_victim to the last hit.
-// uc_orig: find_possible_combat_target (fallen/Source/Combat.cpp)
-SLONG find_possible_combat_target(struct GameFightCol* p_fight, SLONG x, SLONG y, SLONG z, Thing* p_thing, Thing** p_victim)
-{
-    SLONG i;
-    SLONG hit;
-    SLONG angle;
-    Thing* t_thing;
-    SLONG found_upto;
-
-    found_upto = THING_find_sphere(x, y, z, 0x280, found, 16, (1 << CLASS_PERSON));
-
-    hit = 0;
-
-    for (i = 0; i < found_upto; i++) {
-        t_thing = TO_THING(found[i]);
-
-        if (t_thing != p_thing) {
-            if (check_combat_hit_with_person(
-                    t_thing,
-                    x, y, z,
-                    p_fight,
-                    p_thing,
-                    &angle)
-                > 0) {
-                hit += p_fight->Damage + 5;
-                *p_victim = t_thing;
-            }
-        }
-    }
-
-    return hit;
-}
-
 // Tests each person within radius 0x280 of (x,y,z) for a grapple hit.
 // Additional filters: victim must not already be grappled, dead, or KO'd.
 // Returns 1000 per valid grapple target (large value ensures grapple beats normal hit in scoring).
@@ -240,31 +205,6 @@ SLONG find_possible_grapple_target(struct GameFightCol* p_fight, SLONG x, SLONG 
     }
 
     return hit;
-}
-
-// Walks all keyframes of 'anim', sums hit scores from find_possible_combat_target per frame.
-// Uses the pelvis sub-object position as the attack origin.
-// uc_orig: find_hit_value (fallen/Source/Combat.cpp)
-SLONG find_hit_value(Thing* p_person, SLONG anim, Thing** p_victim)
-{
-    GameKeyFrame* current;
-    SLONG x, y, z;
-    SLONG hits = 0;
-
-    current = global_anim_array[p_person->Genus.Person->AnimType][anim];
-
-    calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, 0, &x, &y, &z);
-    x += p_person->WorldPos.X >> 8;
-    y += p_person->WorldPos.Y >> 8;
-    z += p_person->WorldPos.Z >> 8;
-
-    while (current) {
-        if (current->Fight) {
-            hits += find_possible_combat_target(current->Fight, x, y, z, p_person, p_victim);
-        }
-        current = current->NextFrame;
-    }
-    return (hits);
 }
 
 // Walks all keyframes of 'anim', sums grapple scores from find_possible_grapple_target.
@@ -511,31 +451,6 @@ SLONG should_i_block(Thing* p_person, Thing* p_agressor, SLONG anim)
         return (1);
     else
         return (0);
-}
-
-// Draws the current fight-zone arc in world space (debug visualization).
-// uc_orig: show_fight_range (fallen/Source/Combat.cpp)
-void show_fight_range(Thing* p_thing)
-{
-    SLONG temp_angle, temp_angle2;
-    SLONG x, z;
-    struct GameFightCol* fight;
-
-    x = p_thing->WorldPos.X >> 8;
-    z = p_thing->WorldPos.Z >> 8;
-
-    fight = p_thing->Draw.Tweened->CurrentFrame->Fight;
-    temp_angle = +(fight->Angle << 3) - p_thing->Draw.Tweened->Angle;
-    temp_angle -= (FIGHT_ANGLE_RANGE >> 1);
-    if (temp_angle < 0)
-        temp_angle = 2048 + temp_angle;
-    temp_angle = temp_angle & 2047;
-
-    e_draw_3d_line(x, 0, z, x + (COS(temp_angle) >> 8), 0, z + (SIN(temp_angle) >> 8));
-
-    temp_angle2 = temp_angle + FIGHT_ANGLE_RANGE;
-    temp_angle2 = temp_angle2 & 2047;
-    e_draw_3d_line(x, 0, z, x + (COS(temp_angle2) >> 8), 0, z + (SIN(temp_angle2) >> 8));
 }
 
 // Core melee hit detection: tests if the attack at (x,y,z) hits p_victim.
@@ -1840,8 +1755,3 @@ Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG 
     return best_person;
 }
 
-// uc_orig: is_person_under_attack (fallen/Source/Combat.cpp)
-Thing* is_person_under_attack(Thing* p_person)
-{
-    return (is_person_under_attack_low_level(p_person, 0, 0x800));
-}

@@ -62,9 +62,6 @@ void FC_init(void);
 // uc_orig: FC_look_at (fallen/Headers/fc.h)
 void FC_look_at(SLONG cam, UWORD thing_index);
 
-// uc_orig: FC_move_to (fallen/Headers/fc.h)
-void FC_move_to(SLONG cam, SLONG world_x, SLONG world_y, SLONG world_z);
-
 // uc_orig: FC_change_camera_type (fallen/Headers/fc.h)
 void FC_change_camera_type(SLONG cam, SLONG cam_type);
 
@@ -73,9 +70,6 @@ void FC_rotate_left(SLONG cam);
 
 // uc_orig: FC_rotate_right (fallen/Headers/fc.h)
 void FC_rotate_right(SLONG cam);
-
-// uc_orig: FC_kill_player_cam (fallen/Headers/fc.h)
-void FC_kill_player_cam(Thing* p_thing);
 
 // uc_orig: FC_process (fallen/Headers/fc.h)
 void FC_process(void);

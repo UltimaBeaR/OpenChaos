@@ -168,14 +168,6 @@ void FC_change_camera_type(SLONG cam, SLONG cam_type)
     }
 }
 
-// Returns UC_TRUE if the camera needs to move up and around to the front of the player.
-// Always returns UC_FALSE in this codebase (stub for future use or PSX variant).
-// uc_orig: FC_must_move_up_and_around (fallen/Source/fc.cpp)
-SLONG FC_must_move_up_and_around(SLONG cam)
-{
-    return UC_FALSE;
-}
-
 // uc_orig: FC_look_at (fallen/Source/fc.cpp)
 void FC_look_at(SLONG cam, UWORD thing_index)
 {
@@ -185,24 +177,6 @@ void FC_look_at(SLONG cam, UWORD thing_index)
 
     fc->focus = TO_THING(thing_index);
     GAME_cut_scene = 0;
-}
-
-// uc_orig: FC_move_to (fallen/Source/fc.cpp)
-void FC_move_to(SLONG cam, SLONG world_x, SLONG world_y, SLONG world_z)
-{
-    ASSERT(WITHIN(cam, 0, FC_MAX_CAMS - 1));
-
-    FC_Cam* fc = &FC_cam[cam];
-
-    fc->x = world_x << 8;
-    fc->y = world_y << 8;
-    fc->z = world_z << 8;
-    fc->want_x = world_x << 8;
-    fc->want_y = world_y << 8;
-    fc->want_z = world_z << 8;
-    fc->dx = 0;
-    fc->dy = 0;
-    fc->dz = 0;
 }
 
 // Returns the desired height of the camera above the focus point.
@@ -1429,11 +1403,3 @@ void FC_explosion(SLONG x, SLONG y, SLONG z, SLONG force)
     }
 }
 
-// Freezes camera behind the player and activates cut-scene mode (death camera).
-// uc_orig: FC_kill_player_cam (fallen/Source/fc.cpp)
-void FC_kill_player_cam(Thing* p_thing)
-{
-    FC_cam[0].focus = p_thing;
-    FC_force_camera_behind(0);
-    GAME_cut_scene = 1;
-}

@@ -101,14 +101,6 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9]);
         SWAP_FL(m[5], m[7]); \
     }
 
-// Rotate matrix about its local axes.
-// uc_orig: MATRIX_rotate_about_its_x (fallen/DDEngine/Source/Matrix.cpp)
-void MATRIX_rotate_about_its_x(float* matrix, float angle);
-// uc_orig: MATRIX_rotate_about_its_y (fallen/DDEngine/Source/Matrix.cpp)
-void MATRIX_rotate_about_its_y(float* matrix, float angle);
-// uc_orig: MATRIX_rotate_about_its_z (fallen/DDEngine/Source/Matrix.cpp)
-void MATRIX_rotate_about_its_z(float* matrix, float angle);
-
 // Yaw/pitch/roll angles extracted from a rotation matrix.
 // uc_orig: Direction (fallen/DDEngine/Headers/Matrix.h)
 typedef struct

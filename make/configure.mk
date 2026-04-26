@@ -43,8 +43,16 @@ define run_configure
 	  "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=$(TOOLCHAIN)" \
 	  "-DVCPKG_INSTALLED_DIR=$(abspath $(SRC_DIR)/vcpkg_installed)" \
 	  "-DCMAKE_MAKE_PROGRAM=$(shell which ninja)" \
+	  "-DENABLE_ASAN=OFF" \
+	  "-DDEAD_CODE_REPORT=OFF" \
 	  $(CMAKE_EXTRA_ARGS)
 endef
+# Note: ENABLE_ASAN and DEAD_CODE_REPORT are explicitly reset to OFF here so
+# every `make configure` produces a clean known state (CMake otherwise persists
+# previous cache values silently). CMAKE_EXTRA_ARGS comes after, so targets
+# like `configure-asan` (which sets -DENABLE_ASAN=ON via CMAKE_EXTRA_ARGS)
+# still override correctly. If you add a new toggleable option, list it here
+# so it gets reset by default too.
 
 # Usage: make configure
 # Run once on first clone, re-run after CMakeLists.txt changes.

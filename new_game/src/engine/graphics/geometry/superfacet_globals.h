@@ -92,13 +92,4 @@ extern GEMatrix* SUPERFACET_matrix;
 // uc_orig: SUPERFACET_direction_matrix (fallen/DDEngine/Source/superfacet.cpp)
 extern float SUPERFACET_direction_matrix[4][9];
 
-// uc_orig: SUPERFACET_colour_base (fallen/DDEngine/Source/superfacet.cpp)
-// Pointer to the base of the NIGHT_Colour array for the current facet being processed.
-// Used to compute vertex index (pp->user = col - base) for lighting updates.
-extern NIGHT_Colour* SUPERFACET_colour_base;
-
-// uc_orig: m_iFacetDirection (fallen/DDEngine/Source/superfacet.cpp)
-// Cached direction index for the facet currently being processed (0-3).
-extern int m_iFacetDirection;
-
 #endif // ENGINE_GRAPHICS_GEOMETRY_SUPERFACET_GLOBALS_H
