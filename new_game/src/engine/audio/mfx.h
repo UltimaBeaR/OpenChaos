@@ -71,8 +71,6 @@ void MFX_stop_attached(Thing* p);
 void MFX_set_pitch(UWORD channel_id, ULONG wave, SLONG pitchbend);
 // uc_orig: MFX_set_gain (fallen/DDLibrary/Headers/MFX.h)
 void MFX_set_gain(UWORD channel_id, ULONG wave, UBYTE gain);
-// uc_orig: MFX_set_queue_gain (fallen/DDLibrary/Headers/MFX.h)
-void MFX_set_queue_gain(UWORD channel_id, ULONG wave, UBYTE gain);
 
 // uc_orig: MFX_set_listener (fallen/DDLibrary/Headers/MFX.h)
 void MFX_set_listener(SLONG x, SLONG y, SLONG z, SLONG heading, SLONG roll, SLONG pitch);
@@ -82,8 +80,6 @@ void MFX_load_wave_list();
 // uc_orig: MFX_free_wave_list (fallen/DDLibrary/Headers/MFX.h)
 void MFX_free_wave_list();
 
-// uc_orig: MFX_get_wave (fallen/DDLibrary/Headers/MFX.h)
-UWORD MFX_get_wave(UWORD channel_id, UBYTE index = 0);
 
 // uc_orig: MFX_update (fallen/DDLibrary/Headers/MFX.h)
 void MFX_update(void);

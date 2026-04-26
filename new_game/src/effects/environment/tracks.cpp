@@ -37,18 +37,11 @@ void TRACKS_Reset(SWORD size)
         remove_thing_from_map(TO_THING(TO_TRACK(track_tail)->thing));
         free_thing(TO_THING(TO_TRACK(track_tail)->thing));
         track_tail++;
-        if (track_tail == track_eob)
-            track_tail = 0;
+        if (track_tail == track_eob) { track_tail = 0; }
     }
     TRACKS_InitOnce(size);
 }
 
-
-// uc_orig: TRACKS_Draw (fallen/Source/tracks.cpp)
-void TRACKS_Draw()
-{
-    // Stub — commented out in original.
-}
 
 // uc_orig: TRACKS_CalcDiffs (fallen/Source/tracks.cpp)
 void TRACKS_CalcDiffs(Track& track, UBYTE width)

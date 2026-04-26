@@ -25,11 +25,6 @@ StateFunction darci_states[] = {
     { STATE_IDLE, fn_person_idle }
 };
 
-// uc_orig: air_walking (fallen/Source/Darci.cpp)
-SLONG air_walking = 0;
-
-// uc_orig: history (fallen/Source/Darci.cpp)
-SWORD history = 0;
 
 // uc_orig: just_started_falling_off_backwards (fallen/Source/Darci.cpp)
 UBYTE just_started_falling_off_backwards;

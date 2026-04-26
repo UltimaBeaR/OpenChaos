@@ -9,8 +9,6 @@ CBYTE FontName[_MAX_PATH];
 // uc_orig: FontPage (fallen/DDEngine/Source/menufont.cpp)
 SLONG FontPage;
 
-// uc_orig: FONT_TICK (fallen/DDEngine/Source/menufont.cpp)
-SLONG FONT_TICK = 0;
 
 // uc_orig: MENUFONT_fadein_x (fallen/DDEngine/Source/menufont.cpp)
 float MENUFONT_fadein_x;

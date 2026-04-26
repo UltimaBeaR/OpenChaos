@@ -23,7 +23,5 @@ extern struct TrackEnemy panel_gun_sight[];
 // uc_orig: track_count (fallen/Source/overlay.cpp)
 extern UWORD track_count;
 
-// uc_orig: timer_prev (fallen/Source/overlay.cpp)
-extern SWORD timer_prev;
 
 #endif // UI_HUD_OVERLAY_GLOBALS_H

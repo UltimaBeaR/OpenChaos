@@ -18,8 +18,6 @@ typedef struct {
 extern MSG_Message MSG_message[MSG_MAX_MESSAGES];
 // uc_orig: current_message (fallen/DDEngine/Source/Message.cpp)
 extern SLONG current_message;
-// uc_orig: message_count (fallen/DDEngine/Source/Message.cpp)
-extern SLONG message_count;
 // uc_orig: draw_message_offset (fallen/DDEngine/Source/Message.cpp)
 extern SLONG draw_message_offset;
 

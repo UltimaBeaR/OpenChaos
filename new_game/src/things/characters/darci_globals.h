@@ -13,13 +13,6 @@
 // State dispatch table for Darci (the player-controlled character).
 extern StateFunction darci_states[];
 
-// uc_orig: air_walking (fallen/Source/Darci.cpp)
-// Debug/legacy flag — was used to track whether Darci is walking on air. Unused in current code.
-extern SLONG air_walking;
-
-// uc_orig: history (fallen/Source/Darci.cpp)
-// Current index into history_thing ring buffer.
-extern SWORD history;
 
 // uc_orig: just_started_falling_off_backwards (fallen/Source/Darci.cpp)
 // Set to UC_TRUE for one tick when Darci begins a backwards fall-off animation.

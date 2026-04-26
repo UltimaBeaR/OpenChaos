@@ -1,37 +1,23 @@
 #ifndef ENGINE_COMPRESSION_IMAGE_COMPRESSION_H
 #define ENGINE_COMPRESSION_IMAGE_COMPRESSION_H
 
+// S3 texture compression (4x4 block, 5:6:5 colour pairs + 2-bit per-pixel index).
+// uc_orig: ic.h (fallen/DDEngine/Headers/ic.h)
+
+#include "engine/core/types.h"
 #include "assets/formats/tga.h"
-#include "engine/platform/uc_common.h"
 
-// S3-style compressed block: two 5:6:5 endpoint colours and a 2-bit-per-pixel index bitfield.
 // uc_orig: IC_Packet (fallen/DDEngine/Headers/ic.h)
-typedef struct
-{
-    UWORD colour1;
-    UWORD colour2;
+typedef struct {
+    UWORD colour1; // 5:6:5
+    UWORD colour2; // 5:6:5
     ULONG bit;
-
 } IC_Packet;
 
-// Pack a 4x4 pixel block from a TGA into an IC_Packet using S3-style compression.
-// Ignores the alpha channel.
 // uc_orig: IC_pack (fallen/DDEngine/Headers/ic.h)
-IC_Packet IC_pack(
-    TGA_Pixel* tga,
-    SLONG tga_width,
-    SLONG tga_height,
-    SLONG px,
-    SLONG py);
+IC_Packet IC_pack(TGA_Pixel* tga, SLONG tga_width, SLONG tga_height, SLONG px, SLONG py);
 
-// Decompress an IC_Packet back into a 4x4 pixel block in a TGA.
 // uc_orig: IC_unpack (fallen/DDEngine/Headers/ic.h)
-void IC_unpack(
-    IC_Packet ip,
-    TGA_Pixel* tga,
-    SLONG tga_width,
-    SLONG tga_height,
-    SLONG px,
-    SLONG py);
+void IC_unpack(IC_Packet ip, TGA_Pixel* tga, SLONG tga_width, SLONG tga_height, SLONG px, SLONG py);
 
 #endif // ENGINE_COMPRESSION_IMAGE_COMPRESSION_H

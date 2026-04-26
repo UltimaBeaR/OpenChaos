@@ -817,26 +817,6 @@ void MFX_set_gain(UWORD channel_id, ULONG wave, UBYTE gain)
     SetVoiceGain(vptr, fgain);
 }
 
-// uc_orig: MFX_set_queue_gain (fallen/DDLibrary/Source/MFX.cpp)
-void MFX_set_queue_gain(UWORD channel_id, ULONG wave, UBYTE gain)
-{
-    float fgain = float(gain) / 256.0f;
-
-    MFX_Voice* vptr = FindFirst(channel_id);
-    while (vptr) {
-        if (!vptr->queue && (vptr->wave == wave)) {
-            SetVoiceGain(vptr, fgain);
-        }
-
-        for (MFX_QWave* qptr = vptr->queue; qptr; qptr = qptr->next) {
-            if (qptr->wave == wave) {
-                qptr->gain = fgain;
-            }
-        }
-
-        vptr = FindNext(vptr);
-    }
-}
 
 // uc_orig: LoadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
 static void LoadWaveFile(MFX_Sample* sptr)
@@ -1041,17 +1021,6 @@ void MFX_update()
     }
 }
 
-// uc_orig: MFX_get_wave (fallen/DDLibrary/Source/MFX.cpp)
-UWORD MFX_get_wave(UWORD channel_id, UBYTE index)
-{
-    MFX_Voice* vptr = FindFirst(channel_id);
-
-    while (index--) {
-        vptr = FindNext(vptr);
-    }
-
-    return vptr ? vptr->wave : 0;
-}
 
 // uc_orig: MFX_QUICK_play (fallen/DDLibrary/Source/MFX.cpp)
 SLONG MFX_QUICK_play(CBYTE* str, SLONG x, SLONG y, SLONG z)

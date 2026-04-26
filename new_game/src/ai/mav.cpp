@@ -165,51 +165,6 @@ void MAV_calc_height_array(SLONG ignore_warehouses)
         }
 }
 
-// uc_orig: MAV_turn_off_square (fallen/Source/mav.cpp)
-void MAV_turn_off_square(
-    SLONG x,
-    SLONG z)
-{
-    ASSERT(WITHIN(x, 0, MAP_WIDTH - 1));
-    ASSERT(WITHIN(z, 0, MAP_HEIGHT - 1));
-
-    struct
-    {
-        SLONG dx;
-        SLONG dz;
-
-    } order[4] = {
-        { -1, 0 },
-        { +1, 0 },
-        { 0, -1 },
-        { 0, +1 }
-    };
-
-    UBYTE opt[4];
-
-    SLONG i;
-
-    SLONG mx;
-    SLONG mz;
-
-    for (i = 0; i < 4; i++) {
-        mx = x - order[i].dx;
-        mz = z - order[i].dz;
-
-        if (WITHIN(mx, 0, MAP_WIDTH - 1) && WITHIN(mz, 0, MAP_HEIGHT - 1)) {
-            ASSERT(WITHIN(MAV_NAV(mx, mz), 0, MAV_opt_upto - 1));
-
-            opt[0] = MAV_opt[MAV_NAV(mx, mz)].opt[0];
-            opt[1] = MAV_opt[MAV_NAV(mx, mz)].opt[1];
-            opt[2] = MAV_opt[MAV_NAV(mx, mz)].opt[2];
-            opt[3] = MAV_opt[MAV_NAV(mx, mz)].opt[3];
-
-            opt[i] &= ~MAV_CAPS_GOTO;
-
-            StoreMavOpts(mx, mz, opt);
-        }
-    }
-}
 
 // uc_orig: MAV_turn_off_whole_square (fallen/Source/mav.cpp)
 void MAV_turn_off_whole_square(
@@ -1597,43 +1552,6 @@ SLONG MAV_inside(
 }
 
 // Fast terrain LOS using the MAVHEIGHT grid. Steps ~1 cell at a time.
-// Returns UC_FALSE if any step is underground; failure point saved in MAV_height_los_fail_*.
-// uc_orig: MAV_height_los_fast (fallen/Source/mav.cpp)
-SLONG MAV_height_los_fast(
-    SLONG x1, SLONG y1, SLONG z1,
-    SLONG x2, SLONG y2, SLONG z2)
-{
-    SLONG dx = x2 - x1;
-    SLONG dy = y2 - y1;
-    SLONG dz = z2 - z1;
-
-    SLONG dist = QDIST2(abs(dx), abs(dz));
-    SLONG steps = (dist >> 8) + 1;
-
-    SLONG x = x1;
-    SLONG y = y1;
-    SLONG z = z1;
-
-    dx /= steps;
-    dy /= steps;
-    dz /= steps;
-
-    while (steps-- >= 0) {
-        if (MAV_inside(x, y, z)) {
-            MAV_height_los_fail_x = x - (dx >> 0);
-            MAV_height_los_fail_y = y - (dy >> 0);
-            MAV_height_los_fail_z = z - (dz >> 0);
-
-            return UC_FALSE;
-        }
-
-        x += dx;
-        y += dy;
-        z += dz;
-    }
-
-    return UC_TRUE;
-}
 
 // Slow terrain LOS — like MAV_height_los_fast but uses WARE_inside() when ware != 0.
 // Starts from (x1+dx, y1+dy, z1+dz) to skip the source point and avoid self-occlusion.

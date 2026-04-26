@@ -43,8 +43,6 @@ extern SWORD next_paint_mem;
 extern SWORD next_facet_link;
 // uc_orig: facet_link_count (fallen/Source/supermap.cpp)
 extern SWORD facet_link_count;
-// uc_orig: next_inside_mem (fallen/Source/supermap.cpp)
-extern SLONG next_inside_mem;
 
 // Level-list entry: maps .ucm mission name to .map filename, level index, and person skip mask.
 // uc_orig: Levels (fallen/Source/supermap.cpp)

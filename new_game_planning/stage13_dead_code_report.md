@@ -32,6 +32,60 @@ Workflow:
 - Build OK (с DEAD_CODE_REPORT=ON, без ASan)
 - НЕ закоммичено — пользователь хочет коммитить вручную
 
+**Текущее состояние (2026-04-26, после батчей 9-12, сессия 2):**
+- Discards count: 2947 → 2933 (батч 8) → 2903 (батчи 9-11, без build-verify за батч 10-11 до этой сессии) → **2894** (батчи 9-12, verify после восстановлений)
+- Build OK (DEAD_CODE_REPORT=ON, без ASan)
+- Uncommitted — пользователь коммитит вручную
+
+**Сделано в батче 9 (leaf globals из live files):**
+- `soundenv_globals.cpp/h`: `SOUNDENV_gndctr`
+- `message_globals.cpp/h`: `message_count`
+- `menufont_globals.cpp/h`: `FONT_TICK`
+- `overlay_globals.cpp/h`: `timer_prev`
+- `attract_globals.cpp/h`: `current_playback`
+- `network_state_globals.cpp/h`: `CNET_i_am_host`, `CNET_connected`
+- `supermap_globals.cpp/h`: `next_inside_mem`
+- `music_globals.cpp/h`: `last_MFX_QUICK_mode`, `music_volume`
+- `game_tick_globals.cpp/h`: `amb_colour` (LIGHT_Colour), `amb_choice_cur`, `controls` (UWORD)
+- `player_globals.cpp` + `player.h`: `player_pos`
+- `darci_globals.cpp/h`: `air_walking`, `history` (SLONG[10])
+- `anim_loader_globals.cpp/h`: `key_frame_count`
+- `hm_globals.cpp/h`: `HM_object_upto`
+- `special_globals.cpp/h`: `special_di` + `#include "world_objects/dirt.h"` removed
+
+**Сделано в батче 10 — Timer cluster (fully dead, deleted entirely):**
+- DELETED: `src/engine/core/timer.cpp` (StartStopwatch, StopStopwatch)
+- DELETED: `src/engine/core/timer_globals.cpp/h` (stopwatch_start)
+- MODIFIED: `src/engine/core/timer.h` — убраны StartStopwatch/StopStopwatch декларации (BreakStart/BreakEnd оставлены — живые)
+- `CMakeLists.txt`: убраны timer.cpp, timer_globals.cpp
+
+**Сделано в батче 10 — SoundEnv cluster (fully dead, deleted entirely):**
+- DELETED: `src/engine/audio/soundenv.cpp` (SOUNDENV_precalc stub, SOUNDENV_upload stub)
+- DELETED: `src/engine/audio/soundenv.h`
+- DELETED: `src/engine/audio/soundenv_globals.cpp` (остался пустым после батча 9)
+- DELETED: `src/engine/audio/soundenv_globals.h` (AudioGroundQuad struct, unused)
+- `CMakeLists.txt`: убраны soundenv.cpp, soundenv_globals.cpp
+
+**Сделано в батче 11 — Bucket cluster (fully dead, deleted entirely):**
+- DELETED: `src/engine/graphics/pipeline/bucket.cpp` (init_buckets)
+- DELETED: `src/engine/graphics/pipeline/bucket.h`
+- DELETED: `src/engine/graphics/pipeline/bucket_globals.cpp` (e_bucket_pool, e_buckets, e_end_buckets, bucket_lists)
+- DELETED: `src/engine/graphics/pipeline/bucket_globals.h`
+- `CMakeLists.txt`: убраны bucket.cpp, bucket_globals.cpp
+
+**Сделано в батче 12 — dead functions из live files:**
+- `mav.cpp/h`: удалены `MAV_turn_off_square`, `MAV_height_los_fast`
+- `ware.cpp/h`: удалены `WARE_enter`, `WARE_exit` (их вызовы в collide.cpp закомментированы в `/* */`)
+- `mfx.cpp/h`: удалены `MFX_set_queue_gain`, `MFX_get_wave`
+- `image_compression.cpp/h`: **восстановлены** после ошибочного удаления — `IC_pack`, `IC_unpack`, `IC_Packet` живы (используются в compression.cpp). `IC_pack`/`IC_unpack` discarded linker-ом потому что callers в compression.cpp — мёртвые функции, но сам файл должен существовать для компиляции.
+- `morph.cpp/h`: **восстановлены** `MORPH_get_points`, `MORPH_get_num_points` — используются в mesh.cpp
+- `tracks.cpp/h`: **восстановлена** `TRACKS_Reset` — используется в save.cpp. `TRACKS_Draw` (stub) удалена верно — её вызов в aeng.cpp закомментирован.
+
+**Уроки батча 12:**
+- Если linker discards функцию, это не означает что весь её файл можно удалить — нужно проверять используется ли .h и другие символы из .cpp
+- Вызовы в `/* */` блоках — функция действительно мёртвая (caller никогда не компилируется)
+- **ВСЕГДА** grep-верифицировать: не только саму функцию но и её возвращаемые типы и структуры из того же .h
+
 **Что было сделано в батче 8 (2026-04-26):**
 
 Стратегия: связки (clusters) — leaf функции + их transitive зависимости. Удалялись вместе.
@@ -84,19 +138,22 @@ Workflow:
 
 **Что делать дальше:**
 
-1. Регенерировать dead-list (батчи изменили состояние):
+1. Текущий build log: `/tmp/b12_build.log` (2894 discards, актуальный). Регенерировать при начале следующей сессии:
    ```bash
    CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=OFF" make configure
    make build-release > /tmp/dead_code_build.log 2>&1
    grep '^lld-link: Discarded' /tmp/dead_code_build.log | sed 's/^lld-link: Discarded //' > /tmp/discarded.txt
    ```
 
-2. Следующие приоритеты (по количеству dead символов):
-   - **`src/buildings/building.cpp` (134 dead)** — огромный transitive кластер, нужна осторожность
-   - **`src/buildings/building_globals.cpp` (58 dead)** — связан с building.cpp
-   - **`src/engine/graphics/pipeline/aeng.cpp` (41 dead)** — pipeline legacy
-   - **`src/things/characters/person.cpp` (36 dead)**
-   - **`src/ui/menus/widget.cpp` (34 dead)**
+2. Следующие приоритеты (по количеству dead символов, актуально после батчей 9-12):
+   - **`src/buildings/building.cpp` (~133 dead)** — огромный transitive кластер, нужна осторожность
+   - **`src/buildings/building_globals.cpp` (~58 dead)** — связан с building.cpp
+   - **`src/engine/graphics/pipeline/aeng.cpp` (~57 dead)** — pipeline legacy
+   - **`src/things/characters/person.cpp` (~36 dead)**
+   - **`src/ui/menus/widget.cpp` (~34 dead)**
+   - `night.cpp`: NIGHT_cache_create_inside, NIGHT_slight_delete, NIGHT_slight_delete_all (small cluster)
+   - `menufont.cpp`: MENUFONT_Draw_floats, MENUFONT_Free, MENUFONT_Page
+   - `ds_bridge_own.cpp`: ds_shutdown, ds_trigger_bow, ds_trigger_machine
    - Быстрые: файлы с 1-4 dead, у которых все символы leaf (верифицировать grep'ом)
 
 3. Продолжать стратегию: сначала leaf, потом transitive связками

@@ -10,9 +10,6 @@
 // Pool of 8 HM object slots. Each slot has a 'used' flag.
 extern HM_Object HM_object[HM_MAX_OBJECTS];
 
-// uc_orig: HM_object_upto (fallen/Source/hm.cpp)
-// Unused counter (kept for binary compatibility — original never used it either).
-extern SLONG HM_object_upto;
 
 // uc_orig: HM_primgrid (fallen/Source/hm.cpp)
 // Per-prim spring lattice config table, populated by HM_load().

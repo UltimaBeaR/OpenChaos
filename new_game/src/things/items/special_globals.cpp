@@ -1,6 +1,5 @@
 #include "things/items/special_globals.h"
 #include "buildings/prim_types.h" // PRIM_OBJ_ITEM_* constants
-#include "world_objects/dirt.h"
 
 // uc_orig: SPECIAL_info (fallen/Source/Special.cpp)
 SPECIAL_Info SPECIAL_info[SPECIAL_NUM_TYPES] = {
@@ -36,6 +35,3 @@ SPECIAL_Info SPECIAL_info[SPECIAL_NUM_TYPES] = {
     { "Wire Cutters", PRIM_OBJ_ITEM_WRENCH,     SPECIAL_GROUP_USEFUL         },
 };
 
-// Dead file-scope global from the original; declared but never referenced.
-// uc_orig: special_di (fallen/Source/Special.cpp)
-DIRT_Info special_di;

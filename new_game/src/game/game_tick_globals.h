@@ -10,14 +10,6 @@ extern SLONG NIGHT_specular_enable;
 // uc_orig: draw_3d (fallen/Source/Controls.cpp)
 extern SLONG draw_3d;
 
-// uc_orig: amb_colour (fallen/Source/Controls.cpp)
-extern LIGHT_Colour amb_colour;
-
-// uc_orig: amb_choice_cur (fallen/Source/Controls.cpp)
-extern SLONG amb_choice_cur;
-
-// uc_orig: controls (fallen/Source/Controls.cpp)
-extern UWORD controls;
 
 // uc_orig: stealth_debug (fallen/Source/Controls.cpp)
 // If set, Darci is undetected by enemies (testing stealth).

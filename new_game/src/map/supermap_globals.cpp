@@ -40,8 +40,6 @@ SWORD next_paint_mem = 1;
 SWORD next_facet_link = 1;
 // uc_orig: facet_link_count (fallen/Source/supermap.cpp)
 SWORD facet_link_count = 0;
-// uc_orig: next_inside_mem (fallen/Source/supermap.cpp)
-SLONG next_inside_mem = 1;
 
 // uc_orig: levels (fallen/Source/supermap.cpp)
 struct Levels levels[] = {

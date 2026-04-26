@@ -13,5 +13,3 @@ GenusFunctions player_functions[] = {
     { PLAYER_ROPER, roper_states }
 };
 
-// uc_orig: player_pos (fallen/Source/Player.cpp)
-GameCoord player_pos;

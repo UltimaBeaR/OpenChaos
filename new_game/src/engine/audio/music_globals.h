@@ -23,9 +23,5 @@ extern UBYTE just_asked_for_mode_now;
 extern UBYTE just_asked_for_mode_number;
 // uc_orig: last_MFX_QUICK_play_id (fallen/Source/music.cpp)
 extern SLONG last_MFX_QUICK_play_id;
-// uc_orig: last_MFX_QUICK_mode (fallen/Source/music.cpp)
-extern SLONG last_MFX_QUICK_mode;
-// uc_orig: music_volume (fallen/Source/music.cpp)
-extern float music_volume;
 
 #endif // ENGINE_AUDIO_MUSIC_GLOBALS_H

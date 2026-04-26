@@ -106,9 +106,6 @@ void MAV_init(void);
 // uc_orig: MAV_calc_height_array (fallen/Source/mav.cpp)
 void MAV_calc_height_array(SLONG ignore_warehouses);
 
-// Clears plain-walk (MAV_CAPS_GOTO) access into cell (x,z) from its 4 neighbours.
-// uc_orig: MAV_turn_off_square (fallen/Source/mav.cpp)
-void MAV_turn_off_square(SLONG x, SLONG z);
 
 // Clears ALL movement capabilities into cell (x,z) from its 4 neighbours.
 // Stronger than MAV_turn_off_square — used for slopes and NOGO cells.
@@ -174,10 +171,6 @@ MAV_Action MAV_do(SLONG me_x, SLONG me_z, SLONG dest_x, SLONG dest_z, UBYTE caps
 // uc_orig: MAV_inside (fallen/Source/mav.cpp)
 SLONG MAV_inside(SLONG x, SLONG y, SLONG z);
 
-// Fast terrain LOS using the MAVHEIGHT grid (~1 cell step resolution).
-// Returns UC_FALSE if any step is underground. Failure point saved in MAV_height_los_fail_*.
-// uc_orig: MAV_height_los_fast (fallen/Source/mav.cpp)
-SLONG MAV_height_los_fast(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
 
 // Slow terrain LOS — like MAV_height_los_fast but uses WARE_inside() when ware != 0.
 // Skips the source point (starts from x1+dx) to avoid self-occlusion.

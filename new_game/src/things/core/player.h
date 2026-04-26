@@ -65,9 +65,6 @@ typedef Player* PlayerPtr;
 // Maps PLAYER_* type to its state function table.
 extern GenusFunctions player_functions[];
 
-// uc_orig: player_pos (fallen/Source/Player.cpp)
-// Last stored player position (currently unused — store_player_pos is a stub).
-extern GameCoord player_pos;
 
 // uc_orig: init_players (fallen/Headers/Player.h)
 void init_players(void);

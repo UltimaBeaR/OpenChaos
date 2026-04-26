@@ -3,9 +3,6 @@
 
 #include "engine/core/types.h"
 
-// Total number of keyframes accumulated during load_multi_vue().
-// uc_orig: key_frame_count (fallen/Source/io.cpp)
-extern SLONG key_frame_count;
 
 // Next write position into the_elements[] during load_multi_vue().
 // uc_orig: current_element (fallen/Source/io.cpp)

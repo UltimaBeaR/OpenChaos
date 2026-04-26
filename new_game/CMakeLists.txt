@@ -163,8 +163,6 @@ set(SOURCES_NEW
     src/engine/core/matrix.cpp
     src/engine/core/fmatrix.cpp
     src/engine/core/quaternion.cpp
-    src/engine/core/timer.cpp
-    src/engine/core/timer_globals.cpp
     src/engine/core/heap.cpp
     src/engine/core/heap_globals.cpp
 
@@ -208,8 +206,6 @@ set(SOURCES_NEW
     src/engine/audio/mfx_globals.cpp
     src/engine/audio/music.cpp
     src/engine/audio/music_globals.cpp
-    src/engine/audio/soundenv.cpp
-    src/engine/audio/soundenv_globals.cpp
     src/engine/audio/sound.cpp
     src/engine/audio/sound_globals.cpp
 
@@ -220,9 +216,9 @@ set(SOURCES_NEW
     src/engine/console/console_globals.cpp
 
     # === Engine: compression ===
-    src/engine/compression/image_compression.cpp
     src/engine/compression/compression.cpp
     src/engine/compression/compression_globals.cpp
+    src/engine/compression/image_compression.cpp
 
     # === Engine: animation ===
     src/engine/animation/morph.cpp
@@ -241,8 +237,6 @@ set(SOURCES_NEW
     src/engine/effects/psystem_globals.cpp
 
     # === Engine: graphics — pipeline ===
-    src/engine/graphics/pipeline/bucket.cpp
-    src/engine/graphics/pipeline/bucket_globals.cpp
     src/engine/graphics/pipeline/polypage.cpp
     src/engine/graphics/pipeline/polypage_globals.cpp
     src/engine/graphics/pipeline/qeng.cpp

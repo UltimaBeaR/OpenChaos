@@ -70,13 +70,6 @@ UBYTE WARE_get_caps(UBYTE ware, UBYTE x, UBYTE z, UBYTE dir);
 // uc_orig: WARE_calc_height_at (fallen/Source/ware.cpp)
 SLONG WARE_calc_height_at(UBYTE ware, SLONG x, SLONG z);
 
-// Sets WARE_in and invalidates lighting caches when the player enters a warehouse.
-// uc_orig: WARE_enter (fallen/Source/ware.cpp)
-void WARE_enter(SLONG building);
-
-// Clears WARE_in and invalidates lighting caches when the player exits a warehouse.
-// uc_orig: WARE_exit (fallen/Source/ware.cpp)
-void WARE_exit(void);
 
 // MAV navigation for a person approaching a warehouse from outside.
 // uc_orig: WARE_mav_enter (fallen/Source/ware.cpp)

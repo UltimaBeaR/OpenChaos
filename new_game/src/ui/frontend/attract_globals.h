@@ -3,8 +3,6 @@
 
 #include "engine/core/types.h"
 
-// uc_orig: current_playback (fallen/Source/Attract.cpp)
-extern SLONG current_playback;
 
 // uc_orig: go_into_game (fallen/Source/Attract.cpp)
 extern SLONG go_into_game;

@@ -7,8 +7,6 @@
 // uc_orig: HM_object (fallen/Source/hm.cpp)
 HM_Object HM_object[HM_MAX_OBJECTS];
 
-// uc_orig: HM_object_upto (fallen/Source/hm.cpp)
-SLONG HM_object_upto;
 
 // uc_orig: HM_primgrid (fallen/Source/hm.cpp)
 HM_Primgrid HM_primgrid[HM_MAX_PRIMGRIDS];

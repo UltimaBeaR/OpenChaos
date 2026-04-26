@@ -343,30 +343,6 @@ void WARE_init()
 // The ambient light save/restore logic was removed; only WARE_in and cache invalidation remain.
 // Implementations were behind /* */ in the original and incomplete.
 
-// uc_orig: WARE_enter (fallen/Source/ware.cpp)
-void WARE_enter(SLONG building)
-{
-    DBuilding* db;
-
-    ASSERT(WITHIN(building, 1, next_dbuilding - 1));
-
-    db = &dbuildings[building];
-
-    ASSERT(db->Type == BUILDING_TYPE_WAREHOUSE);
-    ASSERT(WITHIN(db->Ware, 1, WARE_ware_upto - 1));
-
-    WARE_in = db->Ware;
-
-    NIGHT_destroy_all_cached_info();
-}
-
-// uc_orig: WARE_exit (fallen/Source/ware.cpp)
-void WARE_exit(void)
-{
-    WARE_in = NULL;
-
-    NIGHT_destroy_all_cached_info();
-}
 
 // uc_orig: WARE_mav_enter (fallen/Source/ware.cpp)
 MAV_Action WARE_mav_enter(Thing* p_person, UBYTE ware, UBYTE caps)
