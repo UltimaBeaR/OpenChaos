@@ -3,7 +3,6 @@
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypoint.h"
-#include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/ui_coords.h"
 
 
@@ -49,11 +48,6 @@ public:
     // uc_orig: SetTexOffset (fallen/DDEngine/Headers/polypage.h)
     void SetTexOffset(SLONG page);
 
-    // uc_orig: AddFan (fallen/DDEngine/Headers/polypage.h)
-    void AddFan(POLY_Point** pts, ULONG num_vertices);
-    // uc_orig: AddWirePoly (fallen/DDEngine/Headers/polypage.h)
-    void AddWirePoly(POLY_Point** pts, ULONG num_vertices);
-
     // uc_orig: SetGreenScreen (fallen/DDEngine/Headers/polypage.h)
     static void SetGreenScreen(bool enabled = true);
     // uc_orig: SetScaling (fallen/DDEngine/Headers/polypage.h)
@@ -92,9 +86,6 @@ public:
         FullscreenUIModeScope& operator=(const FullscreenUIModeScope&) = delete;
     };
 
-    // uc_orig: SortBackFirst (fallen/DDEngine/Headers/polypage.h)
-    void SortBackFirst();
-
     // uc_orig: EnableAlphaSort (fallen/DDEngine/Headers/polypage.h)
     static void EnableAlphaSort() { s_AlphaSort = true; }
     // uc_orig: DisableAlphaSort (fallen/DDEngine/Headers/polypage.h)
@@ -111,9 +102,6 @@ public:
     // Original 2048-bucket sort replaced by CollectForSort + std::stable_sort
     // for precise per-polygon depth ordering.
     void CollectForSort(PolyPoly** sort_array, int& count, int max_count);
-    // uc_orig: DrawSinglePoly (fallen/DDEngine/Headers/polypage.h)
-    void DrawSinglePoly(PolyPoly* poly);
-
     // Draw multiple pre-sorted polygons in one batched draw call.
     // Used by batched alpha sort to avoid per-polygon GL overhead.
     void DrawBatchedPolys(const UWORD* indices, uint32_t index_count);
@@ -181,9 +169,6 @@ public:
     // D3D: IDirect3DVertexBuffer*, OpenGL: TBD.
     // uc_orig: m_VB (fallen/DDEngine/Headers/polypage.h)
     void* m_VB;
-
-    // uc_orig: MergeSortIteration (fallen/DDEngine/Headers/polypage.h)
-    void MergeSortIteration(ULONG sort_len);
 
     // uc_orig: PolyBufAlloc (fallen/DDEngine/Headers/polypage.h)
     PolyPoly* PolyBufAlloc();

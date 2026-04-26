@@ -362,19 +362,6 @@ void ds_trigger_vibration(uint8_t position, uint8_t amplitude, uint8_t frequency
 }
 
 // Game API: (start_zone, snap_back, hand). duaLib Bow takes four
-// parameters (start, end, strength, snap); pick sensible defaults
-// that match what the legacy call likely intended (full-range bow
-// with max strength = snap).
-void ds_trigger_bow(uint8_t start_zone, uint8_t snap_back, uint8_t hand)
-{
-    const std::uint8_t end = 8;
-    const std::uint8_t strength = snap_back;
-    std::uint8_t *l, *r;
-    pick_slots(hand, &l, &r);
-    if (l) { trigger_bow(l, start_zone, end, strength, snap_back); s_output_dirty = true; }
-    if (r) { trigger_bow(r, start_zone, end, strength, snap_back); s_output_dirty = true; }
-}
-
 void ds_debug_get_trigger_slots(uint8_t left[10], uint8_t right[10])
 {
     std::memcpy(left,  s_output.trigger_left,  10);
@@ -393,18 +380,6 @@ const oc::dualsense::InputState* ds_debug_get_raw_input()
 
 DSDebugDeviceLock::DSDebugDeviceLock()  { s_device_mutex.lock();   }
 DSDebugDeviceLock::~DSDebugDeviceLock() { s_device_mutex.unlock(); }
-
-// Game API: (start, behavior_flag, force, amplitude, period,
-// frequency, hand). Maps to trigger_machine with uniform amplitudes.
-void ds_trigger_machine(uint8_t start_zone, uint8_t /*behavior_flag*/, uint8_t /*force*/,
-                        uint8_t amplitude, uint8_t period, uint8_t frequency, uint8_t hand)
-{
-    const std::uint8_t end = 9;
-    std::uint8_t *l, *r;
-    pick_slots(hand, &l, &r);
-    if (l) { trigger_machine(l, start_zone, end, amplitude, amplitude, frequency, period); s_output_dirty = true; }
-    if (r) { trigger_machine(r, start_zone, end, amplitude, amplitude, frequency, period); s_output_dirty = true; }
-}
 
 // ===========================================================================
 // Full-parameter / additional effects (used by the input debug panel)

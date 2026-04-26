@@ -32,8 +32,8 @@ Workflow:
 - Build OK (с DEAD_CODE_REPORT=ON, без ASan)
 - НЕ закоммичено — пользователь хочет коммитить вручную
 
-**Текущее состояние (2026-04-26, после батчей 9-13, сессия 3):**
-- Discards count: 2947 → 2933 (батч 8) → 2894 (батчи 9-12) → **2881** (батч 13)
+**Текущее состояние (2026-04-26, после батчей 9-14, сессия 4):**
+- Discards count: 2947 → 2933 (батч 8) → 2894 (батчи 9-12) → 2881 (батч 13) → 2873 (батч 14a: fastprim) → 2865 (батч 14b: polypage) → **2863** (батч 14c: ds_bridge)
 - Build OK (DEAD_CODE_REPORT=ON, без ASan)
 - Uncommitted — пользователь коммитит вручную
 
@@ -142,25 +142,29 @@ Workflow:
 - Объявления в `anim_types.h` оставлены (не вызываются → linker не ругается; зачистка хедеров отдельной итерацией)
 - Build OK, 2894 → 2881 discards (-13)
 
+**Сделано в батче 14 (сессия 4):**
+- `fastprim.cpp/h`: удалены `FASTPRIM_find_texture_from_page`, `FASTPRIM_free_cached_prim`, `FASTPRIM_free_queue_for_call`, `FASTPRIM_create_call`, `FASTPRIM_add_point_to_call`, `FASTPRIM_ensure_room_for_indices`, `FASTPRIM_draw` (7 функций-кластером); почищены include'ы в fastprim.h и fastprim.cpp (−8 discards)
+- `polypage.cpp/h`: удалены `AddFan`, `AddWirePoly`, `DrawSinglePoly`, `SortBackFirst`, `MergeSortIteration` + `DoMerge` static template; почищен `#include "poly.h"` из polypage.h (−8 discards)
+- `ds_bridge.cpp/h`: удалены `ds_trigger_bow`, `ds_trigger_machine` (legacy simplified wrappers без callers) (−2 discards)
+
 **Что делать дальше:**
 
-1. Текущий build log: `/tmp/b13_build.log` (2881 discards, актуальный). Регенерировать при начале следующей сессии:
+1. Текущий build log: `/tmp/dc16_build.log` (2863 discards, актуальный). Регенерировать при начале следующей сессии:
    ```bash
    CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=OFF" make configure
    make build-release > /tmp/dead_code_build.log 2>&1
    grep '^lld-link: Discarded' /tmp/dead_code_build.log | sed 's/^lld-link: Discarded //' > /tmp/discarded.txt
    ```
 
-2. Следующие приоритеты (по количеству dead символов, актуально после батчей 9-12):
+2. Следующие приоритеты (актуально после батча 14, 2863 discards):
    - **`src/buildings/building.cpp` (~133 dead)** — огромный transitive кластер, нужна осторожность
    - **`src/buildings/building_globals.cpp` (~58 dead)** — связан с building.cpp
-   - **`src/engine/graphics/pipeline/aeng.cpp` (~57 dead)** — pipeline legacy
+   - **`src/engine/graphics/pipeline/aeng.cpp` (~40+ dead)** — pipeline legacy
    - **`src/things/characters/person.cpp` (~36 dead)**
-   - **`src/ui/menus/widget.cpp` (~34 dead)**
+   - **`src/ui/menus/widget.cpp` (~34 dead)** — `MENUFONT_Draw_floats` transitive (caller `BUTTON_Draw` тоже dead)
+   - `map/sewers.cpp` — весь NS_cache_* + NS_init/NS_precalculate кластер (~14+ dead), но файл имеет живые функции (NS_calc_height_at и др.) — удалять выборочно
    - `night.cpp`: NIGHT_cache_create_inside, NIGHT_slight_delete, NIGHT_slight_delete_all (small cluster)
-   - `menufont.cpp`: MENUFONT_Draw_floats, MENUFONT_Free, MENUFONT_Page
-   - `ds_bridge_own.cpp`: ds_shutdown, ds_trigger_bow, ds_trigger_machine
-   - Быстрые: файлы с 1-4 dead, у которых все символы leaf (верифицировать grep'ом)
+   - `gamepad_shutdown` cluster (transitive: ds_shutdown + sdl3_gamepad_shutdown)
 
 3. Продолжать стратегию: сначала leaf, потом transitive связками
 
@@ -433,3 +437,6 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-26 | Batch 7 | leaf globals: gang_angle_priority, SOUNDENV_gndquads, body_part_parent_numbers (из hierarchy_globals.cpp + 2 .h), amb_choice + AMB_NUM_CHOICES (game_tick_globals) | -4 discards, build OK |
 | 2026-04-26 | Batch 8 | facet cluster (3 funcs + 2 globals + night_globals/h macros), crinkle_project, ngamut_view_square, switch cluster (alloc_switch + switch_functions + switch_globals.cpp/h deleted), road cluster (2 funcs + ROAD_mapsquare_type + ROAD_TYPE_* consts), AENG_draw_far_facets | -14 discards, build OK |
 | 2026-04-26 | Batch 13 | poly.cpp cluster (4 funcs: NewTweenVertex2D_X/Y + POLY_clip_against_side_X/Y), anim.cpp Anim+Character methods (9 funcs) | -13 discards, build OK |
+| 2026-04-26 | Batch 14a | fastprim.cpp (7 dead funcs удалены кластером: FASTPRIM_draw и 6 хелперов); fastprim.h/cpp include cleanup | -8 discards, build OK |
+| 2026-04-26 | Batch 14b | polypage.cpp (AddFan, AddWirePoly, DrawSinglePoly, SortBackFirst, MergeSortIteration, DoMerge); polypage.h decl cleanup + убран #include poly.h | -8 discards, build OK |
+| 2026-04-26 | Batch 14c | ds_bridge.cpp/h: ds_trigger_bow, ds_trigger_machine (legacy simplified wrappers) | -2 discards, build OK |
