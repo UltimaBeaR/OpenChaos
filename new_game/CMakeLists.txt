@@ -355,10 +355,8 @@ set(SOURCES_NEW
 
     # === Buildings ===
     src/buildings/outline.cpp
-    src/buildings/build.cpp
     src/buildings/build_globals.cpp
     src/buildings/build2.cpp
-    src/buildings/building.cpp
     src/buildings/building_globals.cpp
     src/buildings/prim.cpp
     src/buildings/prim_globals.cpp

@@ -37,6 +37,12 @@ Workflow:
 - Build OK (DEAD_CODE_REPORT=ON, без ASan)
 - Uncommitted — пользователь коммитит вручную
 
+**Текущее состояние (2026-04-26, батч 15, сессия 5):**
+- Discards count: 2863 → 2725 (батч 15a: building.cpp удалён) → 2697 (батч 15b: build.cpp удалён + prim.cpp -23 функции) → **2639** (батч 15c: building_globals.cpp/h очищены до 4 live символов)
+- Dead symbols: 960 → **902**
+- Build OK (DEAD_CODE_REPORT=ON, без ASan)
+- Uncommitted — пользователь коммитит вручную
+
 **Сделано в батче 9 (leaf globals из live files):**
 - `soundenv_globals.cpp/h`: `SOUNDENV_gndctr`
 - `message_globals.cpp/h`: `message_count`
@@ -147,24 +153,38 @@ Workflow:
 - `polypage.cpp/h`: удалены `AddFan`, `AddWirePoly`, `DrawSinglePoly`, `SortBackFirst`, `MergeSortIteration` + `DoMerge` static template; почищен `#include "poly.h"` из polypage.h (−8 discards)
 - `ds_bridge.cpp/h`: удалены `ds_trigger_bow`, `ds_trigger_machine` (legacy simplified wrappers без callers) (−2 discards)
 
+**Сделано в батче 15 (building cluster, сессия 5):**
+- `building.cpp`: удалён целиком (135 dead functions, все были dead) (-138 discards)
+- `building.h`: очищен до forwarding header (только includes prim_types.h + building_types.h)
+- `build.cpp` + `build.h`: удалены целиком (3 dead functions: BUILD_draw, BUILD_draw_inside, LIGHT_get_colour)
+- `prim.cpp`: удалены 23 dead functions (delete_prim_points_block, compress_prims, smooth_a_prim, copy_prim_to_end, delete_prim_*, delete_last_prim, delete_a_prim, quick_normal, apply_ambient_light_to_object, get_rotated_point_world_pos, set_anim_prim_anim, toggle_anim_prim_switch_state и др.); убраны dead macros (shadow_calc, in_shadow, in_shadowo)
+- `building_globals.cpp`: очищен до 4 live globals (next_roof_bound, textures_xy, dx_textures_xy, textures_flags) (-58 discards)
+- `building_globals.h`: очищен до 4 live extern declarations + minimal includes
+- CMakeLists.txt: убраны building.cpp, build.cpp
+
 **Что делать дальше:**
 
-1. Текущий build log: `/tmp/dc16_build.log` (2863 discards, актуальный). Регенерировать при начале следующей сессии:
+1. Регенерировать dead-list при начале следующей сессии:
    ```bash
    CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=OFF" make configure
-   make build-release > /tmp/dead_code_build.log 2>&1
-   grep '^lld-link: Discarded' /tmp/dead_code_build.log | sed 's/^lld-link: Discarded //' > /tmp/discarded.txt
+   make build-release 2>&1 | grep "^lld-link: Discarded" | sed 's/^lld-link: Discarded //' > /c/Users/BeaR/AppData/Local/Temp/discarded_filtered.txt
+   python /c/Users/BeaR/AppData/Local/Temp/dc_map.py
+   python /c/Users/BeaR/AppData/Local/Temp/dc_demangle.py
    ```
 
-2. Следующие приоритеты (актуально после батча 14, 2863 discards):
-   - **`src/buildings/building.cpp` (~133 dead)** — огромный transitive кластер, нужна осторожность
-   - **`src/buildings/building_globals.cpp` (~58 dead)** — связан с building.cpp
-   - **`src/engine/graphics/pipeline/aeng.cpp` (~40+ dead)** — pipeline legacy
-   - **`src/things/characters/person.cpp` (~36 dead)**
-   - **`src/ui/menus/widget.cpp` (~34 dead)** — `MENUFONT_Draw_floats` transitive (caller `BUTTON_Draw` тоже dead)
-   - `map/sewers.cpp` — весь NS_cache_* + NS_init/NS_precalculate кластер (~14+ dead), но файл имеет живые функции (NS_calc_height_at и др.) — удалять выборочно
-   - `night.cpp`: NIGHT_cache_create_inside, NIGHT_slight_delete, NIGHT_slight_delete_all (small cluster)
-   - `gamepad_shutdown` cluster (transitive: ds_shutdown + sdl3_gamepad_shutdown)
+2. Следующие приоритеты (актуально после батча 15, **2639 discards, 902 dead symbols**):
+   - **`src/engine/graphics/pipeline/aeng.cpp` (57 dead)** — pipeline legacy
+   - **`src/things/characters/person.cpp` (36 dead)**
+   - **`src/ui/menus/widget.cpp` (34 dead)** — `MENUFONT_Draw_floats` transitive (caller `BUTTON_Draw` тоже dead)
+   - **`src/ui/hud/eng_map.cpp` (32 dead)**
+   - `map/qmap_globals.cpp` (29 dead)
+   - `engine/graphics/graphics_engine/backend_opengl/game/core.cpp` (24 dead)
+   - `map/sewers.cpp` (23 dead) — NS_cache_* + NS_init/NS_precalculate кластер, файл имеет живые функции
+   - `engine/physics/collide.cpp` (22 dead)
+   - `engine/graphics/pipeline/aeng_globals.cpp` (22 dead)
+   - `outro/core/outro_os_globals.cpp` (21 dead)
+   - `engine/physics/hm.cpp` (21 dead)
+   - `buildings/prim_globals.cpp` (3 dead globals: global_bright, global_flags, global_res)
 
 3. Продолжать стратегию: сначала leaf, потом transitive связками
 
