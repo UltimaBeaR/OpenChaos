@@ -142,15 +142,6 @@ static bool ini_read_string_mem(const char* ini_data, const char* section, const
     return false;
 }
 
-// In-memory variant of ini_read_int.
-static int ini_read_int_mem(const char* ini_data, const char* section, const char* key, int def)
-{
-    char buf[64];
-    if (ini_read_string_mem(ini_data, section, key, buf, sizeof(buf)) && buf[0])
-        return atoi(buf);
-    return def;
-}
-
 // Read an integer value from an INI file. Returns def if not found.
 static int ini_read_int(const char* filepath, const char* section, const char* key, int def)
 {
@@ -160,111 +151,6 @@ static int ini_read_int(const char* filepath, const char* section, const char* k
     return def;
 }
 
-// Write a string value to an INI file. Creates the file/section/key as needed.
-// Rewrites the entire file to update or insert the key.
-static void ini_write_string(const char* filepath, const char* section, const char* key,
-    const char* value)
-{
-    // Read entire file into memory.
-    FILE* f = fopen_ci(filepath, "r");
-
-    // Generous buffer — INI files are small.
-    static char filebuf[32768];
-    int filelen = 0;
-
-    if (f) {
-        filelen = (int)fread(filebuf, 1, sizeof(filebuf) - 1, f);
-        fclose(f);
-    }
-    filebuf[filelen] = '\0';
-
-    // Parse and rebuild, replacing the key if found.
-    static char outbuf[32768];
-    int outlen = 0;
-    bool key_written = false;
-    bool in_target_section = false;
-    bool section_found = false;
-
-    char* p = filebuf;
-    while (*p) {
-        // Read one line.
-        char* linestart = p;
-        while (*p && *p != '\n')
-            p++;
-        if (*p == '\n')
-            p++;
-        int linelen = (int)(p - linestart);
-
-        // Copy line into temp buffer for parsing.
-        char line[512];
-        int copylen = linelen < (int)sizeof(line) - 1 ? linelen : (int)sizeof(line) - 1;
-        memcpy(line, linestart, copylen);
-        line[copylen] = '\0';
-
-        char* trimmed = ini_trim(line);
-
-        if (*trimmed == '[') {
-            // If we were in the target section and didn't write the key yet, insert it.
-            if (in_target_section && !key_written) {
-                outlen += sprintf(outbuf + outlen, "%s=%s\n", key, value);
-                key_written = true;
-            }
-
-            char* end = strchr(trimmed, ']');
-            if (end) {
-                *end = '\0';
-                in_target_section = (oc_stricmp(trimmed + 1, section) == 0);
-                if (in_target_section)
-                    section_found = true;
-            }
-
-            // Copy original line.
-            memcpy(outbuf + outlen, linestart, linelen);
-            outlen += linelen;
-            continue;
-        }
-
-        if (in_target_section && *trimmed && *trimmed != ';' && *trimmed != '#') {
-            char* eq = strchr(trimmed, '=');
-            if (eq) {
-                *eq = '\0';
-                char* k = ini_trim(trimmed);
-                if (oc_stricmp(k, key) == 0) {
-                    // Replace this line.
-                    outlen += sprintf(outbuf + outlen, "%s=%s\n", key, value);
-                    key_written = true;
-                    continue;
-                }
-            }
-        }
-
-        // Copy original line.
-        memcpy(outbuf + outlen, linestart, linelen);
-        outlen += linelen;
-    }
-
-    // If key not written yet, append section + key.
-    if (!key_written) {
-        if (in_target_section) {
-            // We were at end of file still in the target section.
-            outlen += sprintf(outbuf + outlen, "%s=%s\n", key, value);
-        } else {
-            if (!section_found) {
-                // Add newline if file doesn't end with one.
-                if (outlen > 0 && outbuf[outlen - 1] != '\n')
-                    outbuf[outlen++] = '\n';
-                outlen += sprintf(outbuf + outlen, "[%s]\n", section);
-            }
-            outlen += sprintf(outbuf + outlen, "%s=%s\n", key, value);
-        }
-    }
-
-    f = fopen_ci(filepath, "w");
-    if (f) {
-        fwrite(outbuf, 1, outlen, f);
-        fclose(f);
-    }
-}
 
 // --- Public API ---
 

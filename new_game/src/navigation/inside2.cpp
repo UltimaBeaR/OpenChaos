@@ -6,11 +6,6 @@
 // Forward declaration of slide_door (defined in door.cpp, not yet fully migrated here).
 extern SLONG slide_door;
 
-// uc_orig: find_stair_in (fallen/Source/inside2.cpp)
-// File-private: given a map cell (mx, mz) inside the storey, finds which staircase
-// occupies that cell. Returns the stair index, fills (rdx, rdz) with the stair extents.
-static UWORD find_stair_in(SLONG mx, SLONG mz, SLONG* rdx, SLONG* rdz, UWORD inside);
-
 // uc_orig: find_inside_room (fallen/Source/inside2.cpp)
 SLONG find_inside_room(SLONG inside, SLONG x, SLONG z)
 {
@@ -359,71 +354,3 @@ SLONG person_slide_inside(
     return ret_val;
 }
 
-// uc_orig: find_stair_in (fallen/Source/inside2.cpp)
-static UWORD find_stair_in(SLONG mx, SLONG mz, SLONG* rdx, SLONG* rdz, UWORD inside)
-{
-    SLONG dx, dz;
-    SLONG stair;
-    SLONG x_ok, z_ok;
-
-    stair = inside_storeys[inside].StairCaseHead;
-    while (stair) {
-        UBYTE sx, sz;
-        UBYTE dir;
-
-        sx = inside_stairs[stair].X;
-        sz = inside_stairs[stair].Z;
-
-        dir = GET_STAIR_DIR(inside_stairs[stair].Flags);
-
-        dx = 0;
-        dz = 0;
-
-        switch (dir) {
-        case 0:
-            dz = -2;
-            dx = 1;
-            break; // north
-        case 1:
-            dx = 2;
-            dz = 1;
-            break; // east
-        case 2:
-            dz = 2;
-            dx = -1;
-            break; // south
-        case 3:
-            dx = -2;
-            dz = -1;
-            break; // west
-        }
-
-        x_ok = 0;
-        z_ok = 0;
-        if (dx > 0) {
-            if (mx >= sx && mx < sx + dx)
-                x_ok = 1;
-        } else {
-            if (mx >= sx + dx && mx < sx)
-                x_ok = 1;
-        }
-
-        if (x_ok) {
-            if (dz > 0) {
-                if (mz >= sz && mz < sz + dz)
-                    z_ok = 1;
-            } else {
-                if (mz >= sz + dz && mz < sz)
-                    z_ok = 1;
-            }
-
-            if (x_ok && z_ok) {
-                *rdx = dx;
-                *rdz = dz;
-                return stair;
-            }
-        }
-        stair = inside_stairs[stair].NextStairs;
-    }
-    return 0;
-}

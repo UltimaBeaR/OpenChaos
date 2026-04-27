@@ -3,6 +3,7 @@
 #include "effects/combat/pow.h"
 #include "effects/combat/pow_globals.h"
 #include "engine/core/fmatrix.h"
+#include "map/pap.h" // PAP_SIZE_LO
 
 // Debug check stub — originally scanned for list corruption; empty in pre-release.
 // uc_orig: check_pows (fallen/Source/pow.cpp)

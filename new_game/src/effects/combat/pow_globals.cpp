@@ -1,4 +1,5 @@
 #include "effects/combat/pow_globals.h"
+#include "map/pap.h" // PAP_SIZE_LO
 
 // uc_orig: POW_sprite (fallen/Headers/pow.h)
 POW_Sprite POW_sprite[POW_MAX_SPRITES];

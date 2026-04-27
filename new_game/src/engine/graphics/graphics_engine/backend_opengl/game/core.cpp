@@ -585,27 +585,6 @@ static bool init_shaders()
     return true;
 }
 
-static void destroy_shaders()
-{
-    if (s_program_tl) {
-        glDeleteProgram(s_program_tl);
-        s_program_tl = 0;
-    }
-    if (s_vao_tl) {
-        glDeleteVertexArrays(1, &s_vao_tl);
-        s_vao_tl = 0;
-    }
-    if (s_vbo) {
-        glDeleteBuffers(1, &s_vbo);
-        s_vbo = 0;
-    }
-    if (s_ebo) {
-        glDeleteBuffers(1, &s_ebo);
-        s_ebo = 0;
-    }
-    s_shaders_ready = false;
-}
-
 // Upload current fragment shader uniforms to the active program.
 // Uses snapshot comparison to skip re-upload when nothing changed.
 static void set_frag_uniforms(
@@ -1645,12 +1624,6 @@ static void gl_blit_textured_quad(GLuint tex, float x, float y, float w, float h
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, verts, 4, indices, 6);
 }
 
-// Helper: draw a fullscreen textured quad with the given GL texture ID.
-static void gl_blit_fullscreen_texture(GLuint tex)
-{
-    gl_blit_textured_quad(tex, 0.0f, 0.0f, (float)s_vp_w, (float)s_vp_h);
-}
-
 void ge_blit_background_surface()
 {
     // Override takes priority (frontend theme surfaces).
@@ -1954,11 +1927,6 @@ void ge_restore_all_surfaces()
 {
     // No device-lost in OpenGL — no-op.
 }
-
-void ge_to_gdi() { }
-void ge_from_gdi() { }
-bool ge_is_display_changed() { return false; }
-void ge_clear_display_changed() { }
 
 void ge_update_display_rect(void*, bool) { }
 
@@ -2597,16 +2565,6 @@ GETextureHandle ge_get_texture_handle(int32_t page)
         return GE_TEXTURE_NONE;
     return (GETextureHandle)s_textures[page].gl_id;
 }
-
-// Dead in DEAD_CODE_REPORT builds (all callers are dead); stubs needed for
-// regular builds where dead callers share a .o with live code.
-void ge_texture_free_all() { }
-void ge_texture_change_tga(int32_t, const char*) { }
-void ge_texture_set_greyscale(int32_t, bool) { }
-int32_t ge_texture_get_size(int32_t) { return 0; }
-Font* ge_get_font(int32_t, int32_t) { return nullptr; }
-int32_t ge_get_screen_bpp() { return 32; }
-void ge_enumerate_drivers(GEDriverEnumCallback, void*) { }
 
 // ---------------------------------------------------------------------------
 // Font extraction from texture pixels

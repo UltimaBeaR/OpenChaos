@@ -6,10 +6,6 @@
 // uc_orig: PUDDLE_init (fallen/Headers/puddle.h)
 void PUDDLE_init(void);
 
-// uc_orig: PUDDLE_create (fallen/Headers/puddle.h)
-// Creates a whole puddle centered at (x,y,z).
-void PUDDLE_create(UWORD x, SWORD y, UWORD z);
-
 // uc_orig: PUDDLE_precalculate (fallen/Headers/puddle.h)
 // Places puddles along building edges, road edges, and curb corners.
 void PUDDLE_precalculate(void);

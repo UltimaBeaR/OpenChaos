@@ -176,15 +176,6 @@ Thing* alloc_thing(SBYTE classification);
 // uc_orig: free_thing (fallen/Headers/Thing.h)
 void free_thing(Thing* t_thing);
 
-// Inline helper to set world position directly.
-// uc_orig: set_thing_pos (fallen/Headers/Thing.h)
-inline void set_thing_pos(Thing* t, SLONG x, SLONG y, SLONG z)
-{
-    t->WorldPos.X = x;
-    t->WorldPos.Y = y;
-    t->WorldPos.Z = z;
-}
-
 // uc_orig: THING_dist_between (fallen/Headers/Thing.h)
 SLONG THING_dist_between(Thing* p_thing_a, Thing* p_thing_b);
 // uc_orig: THING_kill (fallen/Headers/Thing.h)

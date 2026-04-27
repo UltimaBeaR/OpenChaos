@@ -1061,12 +1061,6 @@ int IWouldLikeSomePyroSpritesHowManyCanIHave(int iIWantThisMany)
     return (iIWantThisMany);
 }
 
-// uc_orig: IHaveToHaveSomePyroSprites (fallen/DDEngine/Source/drawxtra.cpp)
-void IHaveToHaveSomePyroSprites(int iINeedThisMany)
-{
-    // Stub — PC build no-op.
-}
-
 // uc_orig: Pyros_EndOfFrameMarker (fallen/DDEngine/Source/drawxtra.cpp)
 void Pyros_EndOfFrameMarker(void)
 {

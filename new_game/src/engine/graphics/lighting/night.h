@@ -216,44 +216,6 @@ inline void NIGHT_get_colour(NIGHT_Colour col, ULONG* colour, ULONG* specular)
 #define POLY_FADEOUT_END (0.95F)
 #endif
 
-// uc_orig: NIGHT_get_colour_and_fade (fallen/Headers/Night.h)
-// Like NIGHT_get_colour but fades out at depth range [POLY_FADEOUT_START, POLY_FADEOUT_END].
-inline void NIGHT_get_colour_and_fade(NIGHT_Colour col, ULONG* colour, ULONG* specular, float z)
-{
-    SLONG red = col.red;
-    SLONG green = col.green;
-    SLONG blue = col.blue;
-    SLONG multi = 255 - (SLONG)((z - POLY_FADEOUT_START) * (256.0F / (POLY_FADEOUT_END - POLY_FADEOUT_START)));
-
-    if (multi > 255) {
-        multi = 255;
-    }
-    if (multi < 0) {
-        multi = 0;
-    }
-    multi *= 4;
-
-    red = red * multi >> 8;
-    green = green * multi >> 8;
-    blue = blue * multi >> 8;
-
-    {
-        if (red > 255) {
-            red = 255;
-        }
-        if (green > 255) {
-            green = 255;
-        }
-        if (blue > 255) {
-            blue = 255;
-        }
-
-        *colour = (red << 16) | (green << 8) | (blue << 0);
-        *specular = 0xff000000;
-    }
-    *colour |= 0xff000000;
-}
-
 // uc_orig: NIGHT_get_colour_dim (fallen/Headers/Night.h)
 // Like NIGHT_get_colour but halves the brightness (dim variant).
 inline void NIGHT_get_colour_dim(NIGHT_Colour col, ULONG* colour, ULONG* specular)

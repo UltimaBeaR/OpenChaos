@@ -1,9 +1,7 @@
 #ifndef EFFECTS_COMBAT_POW_H
 #define EFFECTS_COMBAT_POW_H
 
-#include "engine/platform/uc_common.h" // for ASSERT
 #include "engine/core/types.h"
-#include "map/pap.h"
 
 // Sprite-based visual explosion effect (no damage, purely cosmetic).
 // Each explosion is a POW_Pow that owns a linked list of POW_Sprite particles.
@@ -101,26 +99,6 @@ void POW_init(void);
 // Positions and velocities are in high-res coordinates (16 bits per map square).
 // uc_orig: POW_new (fallen/Headers/pow.h)
 void POW_new(SLONG type, SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz);
-
-// Creates an explosion using a simplified 3-level preset (POW_CREATE_*).
-// uc_orig: POW_create (fallen/Headers/pow.h)
-inline void POW_create(SLONG which, SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz)
-{
-    switch (which) {
-    case POW_CREATE_LARGE_SEMI:
-        POW_new(POW_TYPE_MULTISPAWN_SEMI, x, y, z, dx, dy, dz);
-        break;
-    case POW_CREATE_MEDIUM:
-        POW_new(POW_TYPE_SPAWN_SPHERE_MEDIUM, x, y, z, dx, dy, dz);
-        break;
-    case POW_CREATE_LARGE:
-        POW_new(POW_TYPE_MULTISPAWN, x, y, z, dx, dy, dz);
-        break;
-    default:
-        ASSERT(0);
-        break;
-    }
-}
 
 // Advances all active explosions by one game tick — animates sprites,
 // moves them, and handles child-spawning chains.

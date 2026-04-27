@@ -31,53 +31,6 @@
 // uc_orig: HOOK_NUM_HOLD (fallen/Source/hook.cpp)
 #define HOOK_NUM_HOLD 5
 
-// Arranges all string points in a flat coil at the given map position.
-// Used when initialising or resetting the hook.
-// uc_orig: HOOK_make_loop (fallen/Source/hook.cpp)
-static void HOOK_make_loop(SLONG x, SLONG z)
-{
-    SLONG i;
-    SLONG dy;
-    SLONG angle;
-    SLONG dx;
-    SLONG dz;
-    SLONG mx;
-    SLONG mz;
-    SLONG ground;
-
-    HOOK_Point* hp;
-
-    dy = 0;
-    angle = 0;
-    ground = PAP_calc_height_at(x, z) << 8;
-
-    mx = x << 8;
-    mz = z << 8;
-
-    for (i = HOOK_NUM_POINTS - 1; i >= 0; i--) {
-        hp = &HOOK_point[i];
-
-        dx = SIN(angle) * HOOK_LOOP_RADIUS >> 16;
-        dz = COS(angle) * HOOK_LOOP_RADIUS >> 16;
-
-        hp->x = mx + dx;
-        hp->z = mz + dz;
-        hp->y = ground + dy;
-        hp->dx = 0;
-        hp->dy = 0;
-        hp->dz = 0;
-        hp->alive = UC_FALSE;
-
-        mx += SIN(i << 2) >> 11;
-        mz += COS(i << 2) >> 11;
-
-        dy += HOOK_LOOP_RAISE;
-        angle += HOOK_LOOP_ANGLE;
-
-        angle &= 2047;
-    }
-}
-
 // Advances physics simulation for all active string points from start_point to the last reeled point.
 // Applies link forces, gravity, friction, and ground collision.
 // Automatically unreels additional points if tension demands it.

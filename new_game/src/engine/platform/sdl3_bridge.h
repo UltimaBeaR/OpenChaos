@@ -55,9 +55,6 @@ void sdl3_get_global_mouse_pos(int* x, int* y);
 void sdl3_show_cursor();
 void sdl3_hide_cursor();
 
-// Grab / release mouse input (confine to window).
-void sdl3_set_mouse_grab(bool grab);
-
 // ---------------------------------------------------------------------------
 // Keyboard
 // ---------------------------------------------------------------------------

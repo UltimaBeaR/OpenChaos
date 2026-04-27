@@ -307,7 +307,6 @@ void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b);
 
 int32_t ge_get_screen_width();
 int32_t ge_get_screen_height();
-int32_t ge_get_screen_bpp();
 
 // ---------------------------------------------------------------------------
 // One-shot framebuffer read (screenshots only)
@@ -379,16 +378,8 @@ bool ge_is_primary_driver();
 // Display mode management
 // ---------------------------------------------------------------------------
 
-// Switch to GDI mode (for message boxes, etc.) and back.
-void ge_to_gdi();
-void ge_from_gdi();
-
 // Device-lost recovery: restore all surfaces after focus regain.
 void ge_restore_all_surfaces();
-
-// Display configuration changed detection.
-bool ge_is_display_changed();
-void ge_clear_display_changed();
 
 // Update the internal display rect from window position (called on WM_MOVE/WM_SIZE).
 void ge_update_display_rect(void* hwnd, bool fullscreen);
@@ -522,9 +513,6 @@ struct GEFont {
 using Char = GEFontChar;
 using Font = GEFont;
 
-// Get the font at position id (0 = first) from a texture page's font list.
-Font* ge_get_font(int32_t page, int32_t id);
-
 // ---------------------------------------------------------------------------
 // Texture loading lifecycle
 // ---------------------------------------------------------------------------
@@ -551,26 +539,14 @@ void ge_texture_create_user_page(int32_t page, int32_t size, bool alpha_fill);
 // Destroy a texture page and free its GPU resources.
 void ge_texture_destroy(int32_t page);
 
-// Free all texture pages and release internal GPU memory pools.
-void ge_texture_free_all();
-
-// Replace a texture page's contents from a new TGA file.
-void ge_texture_change_tga(int32_t page, const char* path);
-
 // Enable font-glyph mode on a texture page (for bitmap font rendering).
 void ge_texture_font_on(int32_t page);
 
 // Enable secondary font mode on a texture page (for LCD-style font).
 void ge_texture_font2_on(int32_t page);
 
-// Set greyscale mode on a texture page.
-void ge_texture_set_greyscale(int32_t page, bool greyscale);
-
 // Get UV offset/scale for a texture page (for sub-page addressing).
 void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* vScale, float* vOffset);
-
-// Get the pixel size of a texture page.
-int32_t ge_texture_get_size(int32_t page);
 
 // Get/set the texture type (GE_TEXTURE_TYPE_* constants).
 int32_t ge_texture_get_type(int32_t page);
@@ -723,10 +699,6 @@ void ge_set_data_dir(const char* dir);
 // Check if the display is NTSC mode (affects vertical position of some UI elements).
 bool ge_is_ntsc();
 
-// Enumerate available display drivers. Calls callback once per driver.
-using GEDriverEnumCallback = void (*)(const char* name, bool is_primary, bool is_current, void* ctx);
-void ge_enumerate_drivers(GEDriverEnumCallback callback, void* ctx);
-
 // ===========================================================================
 // Render state cache (higher-level batching layer over ge_* functions)
 // ===========================================================================
@@ -777,10 +749,7 @@ struct GERenderState {
     GETextureHandle GetTexture() { return Texture; }
     GERenderEffect GetEffect() { return Effect; }
     bool NeedsSorting() { return !DepthWrite; }
-    int32_t ZLift() { return DepthBias; }
     void WrapJustOnce() { WrapOnce = true; }
-    bool IsAlphaBlendEnabled() { return AlphaBlendEnabled; }
-    bool IsAdditiveBlend() { return AlphaBlendEnabled && DstBlend == GEBlendFactor::One; }
 
     bool IsSameRenderState(GERenderState* pRS);
 

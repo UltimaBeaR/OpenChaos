@@ -273,12 +273,6 @@ void sdl3_hide_cursor()
     SDL_HideCursor();
 }
 
-void sdl3_set_mouse_grab(bool grab)
-{
-    if (s_window)
-        SDL_SetWindowMouseGrab(s_window, grab);
-}
-
 // ===========================================================================
 // GL context
 // ===========================================================================

@@ -120,44 +120,4 @@ void LIGHT_building_use_normals(THING_INDEX t_index);
 
 // uc_orig: LIGHT_point_colour (fallen/Headers/light.h)
 extern LIGHT_Colour LIGHT_point_colour[LIGHT_MAX_POINTS];
-// uc_orig: LIGHT_get_colour (fallen/Headers/light.h)
-// Converts LIGHT_Colour to packed ARGB colour + specular highlight.
-// Overflow above 255 is halved into the specular channel (white wash effect).
-inline void LIGHT_get_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
-{
-    SLONG red = col.red;
-    SLONG green = col.green;
-    SLONG blue = col.blue;
-
-    SLONG wred = 0;
-    SLONG wgreen = 0;
-    SLONG wblue = 0;
-
-    red *= (256 / LIGHT_MAX_BRIGHT);
-    green *= (256 / LIGHT_MAX_BRIGHT);
-    blue *= (256 / LIGHT_MAX_BRIGHT);
-
-    if (red > 255) {
-        wred = red - 255 >> 1;
-        red = 255;
-        if (wred > 255)
-            wred = 255;
-    }
-    if (green > 255) {
-        wgreen = green - 255 >> 1;
-        green = 255;
-        if (wgreen > 255)
-            wgreen = 255;
-    }
-    if (blue > 255) {
-        wblue = blue - 255 >> 1;
-        blue = 255;
-        if (wblue > 255)
-            wblue = 255;
-    }
-
-    *colour = (red << 16) | (green << 8) | (blue << 0);
-    *specular = (wred << 16) | (wgreen << 8) | (wblue << 0);
-}
-
 #endif // ENGINE_GRAPHICS_LIGHTING_LIGHT_H

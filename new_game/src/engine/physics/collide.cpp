@@ -42,6 +42,7 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "combat/combat.h"
 #include "navigation/inside2.h"
 #include "things/items/barrel.h"
+#include "things/items/special.h" // SPECIAL_MINE
 #include "effects/weather/mist.h"
 #include "world_objects/dirt.h"
 #include "ai/mav_globals.h"
@@ -4031,596 +4032,249 @@ SLONG slide_around_box(
     return UC_TRUE;
 }
 
-// uc_orig: slide_around_box_lowstack (fallen/Source/collide.cpp)
-// Simplified version of slide_around_box without the NOGO retry loop.
-// Does not check NOGO, no globals. Used where stack depth is a concern.
-SLONG slide_around_box_lowstack(
-    SLONG box_mid_x,
-    SLONG box_mid_z,
-    SLONG box_min_x,
-    SLONG box_min_z,
-    SLONG box_max_x,
-    SLONG box_max_z,
-    SLONG box_yaw,
-    SLONG radius,
-    SLONG x1,
-    SLONG z1,
-    SLONG* x2,
-    SLONG* z2)
-{
-    SLONG tx2;
-    SLONG tz2;
-
-    SLONG rx2;
-    SLONG rz2;
-
-    SLONG dminx;
-    SLONG dminz;
-    SLONG dmaxx;
-    SLONG dmaxz;
-
-    SLONG minx;
-    SLONG minz;
-
-    SLONG maxx;
-    SLONG maxz;
-
-    SLONG best;
-    SLONG best_x;
-    SLONG best_z;
-
-    SLONG matrix[4];
-    SLONG useangle;
-
-    SLONG sin_yaw;
-    SLONG cos_yaw;
-
-    useangle = -box_yaw;
-    useangle &= 2047;
-
-    sin_yaw = SIN(useangle);
-    cos_yaw = COS(useangle);
-
-    matrix[0] = cos_yaw;
-    matrix[1] = sin_yaw;
-    matrix[2] = -sin_yaw;
-    matrix[3] = cos_yaw;
-
-    tx2 = *x2 - box_mid_x;
-    tz2 = *z2 - box_mid_z;
-
-    rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
-    rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
-
-    minx = box_min_x - radius;
-    minz = box_min_z - radius;
-
-    maxx = box_max_x + radius;
-    maxz = box_max_z + radius;
-
-    if (rx2 > maxx || rx2 < minx || rz2 > maxz || rz2 < minz) {
-        return UC_FALSE;
-    }
-
-    dminx = rx2 - minx;
-    dmaxx = maxx - rx2;
-
-    dminz = rz2 - minz;
-    dmaxz = maxz - rz2;
-
-    best = dminx;
-    best_x = minx - 1;
-    best_z = rz2;
-
-    if (dmaxx < best) {
-        best = dmaxx;
-        best_x = maxx - 1;
-        best_z = rz2;
-    }
-
-    if (dminz < best) {
-        best = dminz;
-        best_x = rx2;
-        best_z = minz - 1;
-    }
-
-    if (dmaxz < best) {
-        best = dmaxz;
-        best_x = rx2;
-        best_z = maxz + 1;
-    }
-
-    // Un-rotate using transpose of the rotation matrix.
-    SWAP(matrix[1], matrix[2]);
-
-    *x2 = MUL64(best_x, matrix[0]) + MUL64(best_z, matrix[1]);
-    *z2 = MUL64(best_x, matrix[2]) + MUL64(best_z, matrix[3]);
-
-    *x2 += box_mid_x;
-    *z2 += box_mid_z;
-
-    return UC_TRUE;
-}
-
-// uc_orig: COL_CLIP_XS (fallen/Source/collide.cpp)
-// Cohen-Sutherland clip code: point is left of (less than) box minx.
-#define COL_CLIP_XS (1 << 0)
-
-// uc_orig: COL_CLIP_XL (fallen/Source/collide.cpp)
-// Cohen-Sutherland clip code: point is right of (greater than) box maxx.
-#define COL_CLIP_XL (1 << 1)
-
-// uc_orig: COL_CLIP_ZS (fallen/Source/collide.cpp)
-// Cohen-Sutherland clip code: point is near (less than) box minz.
-#define COL_CLIP_ZS (1 << 2)
-
-// uc_orig: COL_CLIP_ZL (fallen/Source/collide.cpp)
-// Cohen-Sutherland clip code: point is far (greater than) box maxz.
-#define COL_CLIP_ZL (1 << 3)
-
-// uc_orig: collide_box_with_line (fallen/Source/collide.cpp)
-// Returns UC_TRUE if the line segment (lx1,lz1)-(lx2,lz2) intersects the OBB
-// defined by [minx..maxx] x [minz..maxz] rotated by yaw around (midx, midz).
-// Uses Cohen-Sutherland clip codes in box-local space.
+// uc_orig: collide_box_with_line (fallen/Headers/collide.h)
 SLONG collide_box_with_line(
-    SLONG midx,
-    SLONG midz,
+    SLONG midx, SLONG midz,
     SLONG minx, SLONG minz,
     SLONG maxx, SLONG maxz,
     SLONG yaw,
-    SLONG lx1,
-    SLONG lz1,
-    SLONG lx2,
-    SLONG lz2)
+    SLONG lx1, SLONG lz1,
+    SLONG lx2, SLONG lz2)
 {
-    SLONG tx1;
-    SLONG tz1;
-    SLONG tx2;
-    SLONG tz2;
+#define COL_CLIP_XS (1 << 0)
+#define COL_CLIP_XL (1 << 1)
+#define COL_CLIP_ZS (1 << 2)
+#define COL_CLIP_ZL (1 << 3)
 
-    SLONG rx1;
-    SLONG rz1;
-    SLONG rx2;
-    SLONG rz2;
+    SLONG useangle = (-yaw) & 2047;
+    SLONG sin_yaw  = SIN(useangle);
+    SLONG cos_yaw  = COS(useangle);
 
-    SLONG ix;
-    SLONG iz;
+    SLONG matrix[4] = { cos_yaw, sin_yaw, -sin_yaw, cos_yaw };
 
-    SLONG matrix[4];
-    SLONG useangle;
+    SLONG tx1 = lx1 - midx;
+    SLONG tz1 = lz1 - midz;
+    SLONG tx2 = lx2 - midx;
+    SLONG tz2 = lz2 - midz;
 
-    SLONG sin_yaw;
-    SLONG cos_yaw;
-
-    useangle = -yaw;
-    useangle &= 2047;
-
-    sin_yaw = SIN(useangle);
-    cos_yaw = COS(useangle);
-
-    matrix[0] = cos_yaw;
-    matrix[1] = sin_yaw;
-    matrix[2] = -sin_yaw;
-    matrix[3] = cos_yaw;
-
-    // Rotate line endpoints into box-local space.
-    tx1 = lx1 - midx;
-    tz1 = lz1 - midz;
-
-    tx2 = lx2 - midx;
-    tz2 = lz2 - midz;
-
-    rx1 = MUL64(tx1, matrix[0]) + MUL64(tz1, matrix[1]);
-    rz1 = MUL64(tx1, matrix[2]) + MUL64(tz1, matrix[3]);
-
-    rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
-    rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
+    SLONG rx1 = MUL64(tx1, matrix[0]) + MUL64(tz1, matrix[1]);
+    SLONG rz1 = MUL64(tx1, matrix[2]) + MUL64(tz1, matrix[3]);
+    SLONG rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
+    SLONG rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
 
     UBYTE clip1 = 0;
     UBYTE clip2 = 0;
 
-    if (rx1 < minx) {
-        clip1 |= COL_CLIP_XS;
-    }
-    if (rx1 > maxx) {
-        clip1 |= COL_CLIP_XL;
-    }
-    if (rz1 < minz) {
-        clip1 |= COL_CLIP_ZS;
-    }
-    if (rz1 > maxz) {
-        clip1 |= COL_CLIP_ZL;
-    }
+    if (rx1 < minx) { clip1 |= COL_CLIP_XS; }
+    if (rx1 > maxx) { clip1 |= COL_CLIP_XL; }
+    if (rz1 < minz) { clip1 |= COL_CLIP_ZS; }
+    if (rz1 > maxz) { clip1 |= COL_CLIP_ZL; }
 
-    if (clip1 == 0) {
+    if (clip1 == 0)
         return UC_TRUE;
-    }
 
-    if (rx2 < minx) {
-        clip2 |= COL_CLIP_XS;
-    }
-    if (rx2 > maxx) {
-        clip2 |= COL_CLIP_XL;
-    }
-    if (rz2 < minz) {
-        clip2 |= COL_CLIP_ZS;
-    }
-    if (rz2 > maxz) {
-        clip2 |= COL_CLIP_ZL;
-    }
+    if (rx2 < minx) { clip2 |= COL_CLIP_XS; }
+    if (rx2 > maxx) { clip2 |= COL_CLIP_XL; }
+    if (rz2 < minz) { clip2 |= COL_CLIP_ZS; }
+    if (rz2 > maxz) { clip2 |= COL_CLIP_ZL; }
 
-    if (clip2 == 0) {
+    if (clip2 == 0)
         return UC_TRUE;
-    }
 
-    UBYTE clip_and = clip1 & clip2;
-
-    if (clip_and) {
+    if (clip1 & clip2)
         return UC_FALSE;
-    }
 
     UBYTE clip_xor = clip1 ^ clip2;
 
     if (clip_xor & COL_CLIP_XS) {
-        iz = rz1 + (rz2 - rz1) * (minx - rx1) / (rx2 - rx1);
-
-        if (WITHIN(iz, minz, maxz)) {
-            return UC_TRUE;
-        }
+        SLONG iz = rz1 + (rz2 - rz1) * (minx - rx1) / (rx2 - rx1);
+        if (WITHIN(iz, minz, maxz)) return UC_TRUE;
     }
-
     if (clip_xor & COL_CLIP_XL) {
-        iz = rz1 + (rz2 - rz1) * (maxx - rx1) / (rx2 - rx1);
-
-        if (WITHIN(iz, minz, maxz)) {
-            return UC_TRUE;
-        }
+        SLONG iz = rz1 + (rz2 - rz1) * (maxx - rx1) / (rx2 - rx1);
+        if (WITHIN(iz, minz, maxz)) return UC_TRUE;
     }
-
     if (clip_xor & COL_CLIP_ZS) {
-        ix = rx1 + (rx2 - rx1) * (minz - rz1) / (rz2 - rz1);
-
-        if (WITHIN(ix, minx, maxx)) {
-            return UC_TRUE;
-        }
+        SLONG ix = rx1 + (rx2 - rx1) * (minz - rz1) / (rz2 - rz1);
+        if (WITHIN(ix, minx, maxx)) return UC_TRUE;
     }
-
     if (clip_xor & COL_CLIP_ZL) {
-        ix = rx1 + (rx2 - rx1) * (maxz - rz1) / (rz2 - rz1);
-
-        // Note: original uses 'iz' (not 'ix') in the WITHIN check here — preserved 1:1.
-        if (WITHIN(iz, minx, maxx)) {
-            return UC_TRUE;
-        }
+        SLONG ix = rx1 + (rx2 - rx1) * (maxz - rz1) / (rz2 - rz1);
+        if (WITHIN(ix, minx, maxx)) return UC_TRUE;
     }
 
     return UC_FALSE;
+
+#undef COL_CLIP_XS
+#undef COL_CLIP_XL
+#undef COL_CLIP_ZS
+#undef COL_CLIP_ZL
 }
 
-// uc_orig: SHOCKWAVE_FIND (fallen/Source/collide.cpp)
-// Maximum number of Things inspected per create_shockwave call.
-#define SHOCKWAVE_FIND 16
-
 // uc_orig: create_shockwave (fallen/Source/collide.cpp)
-// Applies area-effect damage to all Things and OB objects within radius of (x,y,z).
-// Damage falls off linearly from maxdamage at the centre to 0 at the edge.
-// People above hitpoints=30 threshold are knocked down; lighter hits cause recoil.
-// Vehicles and Balrogs take damage separately. Camera shakes via FC_explosion.
-// just_people=UC_TRUE skips vehicles, specials, and bats.
-void create_shockwave(
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG radius,
-    SLONG maxdamage,
-    Thing* p_aggressor, ULONG just_people)
+void create_shockwave(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG maxdamage, Thing* p_aggressor, ULONG just_people)
 {
-    SLONG i;
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-    SLONG dist;
-    SLONG hitpoints;
-
+#define SHOCKWAVE_FIND 16
     UWORD found[SHOCKWAVE_FIND];
-    SLONG num;
 
-    Thing* p_found;
-    ULONG classes;
-
-    // Shake the camera.
     FC_explosion(x, y, z, maxdamage);
 
-    if (just_people) {
-        classes = 1 << CLASS_PERSON;
-    } else {
-        classes = (1 << CLASS_PERSON) | (1 << CLASS_SPECIAL) | (1 << CLASS_VEHICLE) | (1 << CLASS_BAT);
-    }
-    num = THING_find_sphere(x, y, z, radius, found, SHOCKWAVE_FIND, classes);
+    ULONG classes = just_people
+        ? (1 << CLASS_PERSON)
+        : (1 << CLASS_PERSON) | (1 << CLASS_SPECIAL) | (1 << CLASS_VEHICLE) | (1 << CLASS_BAT);
 
-    for (i = 0; i < num; i++) {
-        p_found = TO_THING(found[i]);
+    SLONG num = THING_find_sphere(x, y, z, radius, found, SHOCKWAVE_FIND, classes);
 
-        dx = abs((p_found->WorldPos.X >> 8) - x);
-        dy = abs((p_found->WorldPos.Y >> 8) - y);
-        dz = abs((p_found->WorldPos.Z >> 8) - z);
+    for (SLONG i = 0; i < num; i++) {
+        Thing* p_found = TO_THING(found[i]);
 
-        dist = QDIST3(dx, dy, dz);
+        SLONG dx   = abs((p_found->WorldPos.X >> 8) - x);
+        SLONG dy   = abs((p_found->WorldPos.Y >> 8) - y);
+        SLONG dz   = abs((p_found->WorldPos.Z >> 8) - z);
+        SLONG dist = QDIST3(dx, dy, dz);
 
-        extern SLONG is_person_ko(Thing * p_person);
+        SLONG hitpoints;
 
-        {
-            if (p_found->Class == CLASS_PERSON && !is_person_ko(p_found)) {
-                {
-                    hitpoints = maxdamage * (radius - dist) / radius;
+        if (p_found->Class == CLASS_PERSON && !is_person_ko(p_found)) {
+            hitpoints = maxdamage * (radius - dist) / radius;
 
-                    if (p_found->State == STATE_JUMPING || (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING)) {
-                        hitpoints -= hitpoints >> 1;
-                        hitpoints += 1;
-                    }
+            if (p_found->State == STATE_JUMPING ||
+                (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING))
+            {
+                hitpoints -= hitpoints >> 1;
+                hitpoints += 1;
+            }
 
-                    if (hitpoints > 30) {
-                        knock_person_down(
-                            p_found,
-                            hitpoints,
-                            x,
-                            z,
-                            p_aggressor);
-                    } else {
-                        if (p_found->State == STATE_JUMPING || (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING)) {
-                            // Jumping people don't recoil from a shockwave.
-                        } else {
-                            set_face_pos(
-                                p_found,
-                                x,
-                                z);
-
-                            set_person_recoil(
-                                p_found,
-                                ANIM_HIT_FRONT_MID,
-                                0);
-                        }
-                    }
-                }
-            } else if (p_found->Class == CLASS_SPECIAL) {
-                if (p_found->Genus.Special->SpecialType == SPECIAL_MINE) {
-                    if (dist < 0x120) {
-                        // Mines don't explode immediately; ammo counts down to detonation.
-                        p_found->Genus.Special->ammo = (Random() & 0x7) + 5;
-                    }
-                }
-            } else if (p_found->Class == CLASS_VEHICLE) {
-                dist -= 0x100;
-
-                if (dist <= 0) {
-                    hitpoints = maxdamage;
-                } else {
-                    hitpoints = maxdamage * (radius - dist) / radius;
-                }
-
-                hitpoints <<= 1;
-
-                extern void VEH_reduce_health(
-                    Thing * p_car,
-                    Thing * p_person,
-                    SLONG damage);
-
-                VEH_reduce_health(
-                    p_found,
-                    p_aggressor,
-                    hitpoints >> 1);
-            } else if (p_found->Class == CLASS_BAT) {
-                // Balrogs are damaged by shockwaves.
-                {
-                    if (p_aggressor == p_found) {
-                        // If the Balrog caused the explosion it doesn't hurt itself.
-                    } else {
-                        hitpoints = maxdamage * (radius - dist + 0x80) / radius;
-
-                        if (p_found->Genus.Bat->type == BAT_TYPE_BALROG) {
-                            // Balrogs are so hard they take quadruple shockwave damage.
-                            hitpoints <<= 2;
-                        }
-
-                        BAT_apply_hit(
-                            p_found,
-                            p_aggressor,
-                            hitpoints);
-                    }
-                }
+            if (hitpoints > 30) {
+                knock_person_down(p_found, hitpoints, x, z, p_aggressor);
+            } else if (!(p_found->State == STATE_JUMPING ||
+                         (p_found->State == STATE_MOVEING && p_found->SubState == SUB_STATE_FLIPING))) {
+                set_face_pos(p_found, x, z);
+                set_person_recoil(p_found, ANIM_HIT_FRONT_MID, 0);
+            }
+        } else if (p_found->Class == CLASS_SPECIAL) {
+            if (p_found->Genus.Special->SpecialType == SPECIAL_MINE && dist < 0x120)
+                p_found->Genus.Special->ammo = (Random() & 0x7) + 5;
+        } else if (p_found->Class == CLASS_VEHICLE) {
+            dist -= 0x100;
+            hitpoints = (dist <= 0) ? maxdamage : maxdamage * (radius - dist) / radius;
+            hitpoints <<= 1;
+            VEH_reduce_health(p_found, p_aggressor, hitpoints >> 1);
+        } else if (p_found->Class == CLASS_BAT) {
+            if (p_aggressor != p_found) {
+                hitpoints = maxdamage * (radius - dist + 0x80) / radius;
+                if (p_found->Genus.Bat->type == BAT_TYPE_BALROG)
+                    hitpoints <<= 2;
+                BAT_apply_hit(p_found, p_aggressor, hitpoints);
             }
         }
     }
 
-    // Find OB objects within the shockwave.
     if (!just_people) {
-        UBYTE mx;
-        UBYTE mz;
-
-        SWORD mx1;
-        SWORD mz1;
-        SWORD mx2;
-        SWORD mz2;
-
-        SLONG dx;
-        SLONG dy;
-        SLONG dz;
-        SLONG dist;
-
-        OB_Info* oi;
-
-        mx1 = x - radius >> PAP_SHIFT_LO;
-        mz1 = z - radius >> PAP_SHIFT_LO;
-        mx2 = x + radius >> PAP_SHIFT_LO;
-        mz2 = z + radius >> PAP_SHIFT_LO;
+        SLONG mx1 = (x - radius) >> PAP_SHIFT_LO;
+        SLONG mz1 = (z - radius) >> PAP_SHIFT_LO;
+        SLONG mx2 = (x + radius) >> PAP_SHIFT_LO;
+        SLONG mz2 = (z + radius) >> PAP_SHIFT_LO;
 
         SATURATE(mx1, 0, PAP_SIZE_LO - 1);
         SATURATE(mz1, 0, PAP_SIZE_LO - 1);
         SATURATE(mx2, 0, PAP_SIZE_LO - 1);
         SATURATE(mz2, 0, PAP_SIZE_LO - 1);
 
-        for (mx = mx1; mx <= mx2; mx++)
-            for (mz = mz1; mz <= mz2; mz++) {
-                for (oi = OB_find(mx, mz); oi->prim; oi++) {
+        for (SLONG mx = (SLONG)(UBYTE)mx1; mx <= (SLONG)(UBYTE)mx2; mx++) {
+            for (SLONG mz = (SLONG)(UBYTE)mz1; mz <= (SLONG)(UBYTE)mz2; mz++) {
+                for (OB_Info* oi = OB_find((UBYTE)mx, (UBYTE)mz); oi->prim; oi++) {
                     if (prim_objects[oi->prim].damage & PRIM_DAMAGE_DAMAGABLE) {
-                        dx = oi->x - x;
-                        dy = oi->y - y;
-                        dz = oi->z - z;
-
-                        dist = abs(dx) + abs(dy) + abs(dz);
-
+                        SLONG odx  = oi->x - x;
+                        SLONG ody  = oi->y - y;
+                        SLONG odz  = oi->z - z;
+                        SLONG dist = abs(odx) + abs(ody) + abs(odz);
                         if (dist < radius) {
-                            hitpoints = maxdamage * (radius - dist) / radius;
-
-                            if (hitpoints > 50) {
-                                OB_damage(
-                                    oi->index,
-                                    x,
-                                    z,
-                                    oi->x,
-                                    oi->z,
-                                    p_aggressor);
-                            }
+                            SLONG hitpoints = maxdamage * (radius - dist) / radius;
+                            if (hitpoints > 50)
+                                OB_damage(oi->index, x, z, oi->x, oi->z, p_aggressor);
                         }
                     }
-
-                    oi += 1;
                 }
             }
-    }
-}
-
-// uc_orig: COLLIDE_find_seethrough_fences (fallen/Source/collide.cpp)
-// Marks all fence and outside-door DFacets with FACET_FLAG_SEETHROUGH.
-// Called once at level load after all facets are built.
-void COLLIDE_find_seethrough_fences()
-{
-    SLONG i;
-
-    DFacet* df;
-
-    for (i = 1; i < next_dfacet; i++) {
-        df = &dfacets[i];
-
-        if (df->FacetType == STOREY_TYPE_FENCE || df->FacetType == STOREY_TYPE_FENCE_FLAT || df->FacetType == STOREY_TYPE_OUTSIDE_DOOR) {
-            df->FacetFlags |= FACET_FLAG_SEETHROUGH;
         }
     }
+#undef SHOCKWAVE_FIND
 }
 
 // uc_orig: COLLIDE_calc_fastnav_bits (fallen/Source/collide.cpp)
-// Rebuilds the COLLIDE_fastnav bitfield. Initially marks every hi-res cell
-// as fastnav-capable, then clears cells adjacent to any axis-aligned DFacet.
-void COLLIDE_calc_fastnav_bits()
+void COLLIDE_calc_fastnav_bits(void)
 {
-    // Mark all squares as fastnav-capable.
     memset(COLLIDE_fastnav, -1, PAP_SIZE_HI * PAP_SIZE_HI >> 3);
 
-    SLONG i;
-    SLONG j;
-    SLONG k;
-    SLONG x;
-    SLONG z;
-    SLONG dx;
-    SLONG dz;
-    SLONG mx;
-    SLONG mz;
-    SLONG len;
+    for (SLONG i = 1; i < next_dfacet; i++) {
+        DFacet* df = &dfacets[i];
 
-    DFacet* df;
+        SLONG dx  = df->x[1] - df->x[0];
+        SLONG dz  = df->z[1] - df->z[0];
+        SLONG len = MAX(abs(dx), abs(dz));
 
-    for (i = 1; i < next_dfacet; i++) {
-        df = &dfacets[i];
-
-        dx = df->x[1] - df->x[0];
-        dz = df->z[1] - df->z[0];
-
-        len = MAX(abs(dx), abs(dz));
-
-        if (!(dx == 0 || dz == 0)) {
-            // Skip diagonal facets; fastnav only handles axis-aligned walls.
+        if (!(dx == 0 || dz == 0))
             continue;
-        }
 
         dx = SIGN(dx);
         dz = SIGN(dz);
 
-        x = df->x[0];
-        z = df->z[0];
+        SLONG x = df->x[0];
+        SLONG z = df->z[0];
 
-        for (j = 0; j < len; j++) {
-            // Mark the 4 cells surrounding this facet segment as non-fastnav.
-            for (k = 0; k < 4; k++) {
-                mx = x - (k & 1);
-                mz = z - (k >> 1);
-
-                if (WITHIN(mx, 0, PAP_SIZE_HI - 1) && WITHIN(mz, 0, PAP_SIZE_HI - 1)) {
+        for (SLONG j = 0; j < len; j++) {
+            for (SLONG k = 0; k < 4; k++) {
+                SLONG mx = x - (k &  1);
+                SLONG mz = z - (k >> 1);
+                if (WITHIN(mx, 0, PAP_SIZE_HI - 1) && WITHIN(mz, 0, PAP_SIZE_HI - 1))
                     COLLIDE_fastnav[mx][mz >> 3] &= ~(1 << (mz & 0x7));
-                }
             }
-
             x += dx;
             z += dz;
         }
     }
 }
 
-// uc_orig: COLLIDE_debug_fastnav (fallen/Source/collide.cpp)
-// Debug visualisation: draws a cross over each fastnav-capable cell near (world_x, world_z).
-void COLLIDE_debug_fastnav(
-    SLONG world_x,
-    SLONG world_z)
+// uc_orig: COLLIDE_find_seethrough_fences (fallen/Source/collide.cpp)
+void COLLIDE_find_seethrough_fences(void)
 {
-    SLONG mx;
-    SLONG mz;
+    for (SLONG i = 1; i < next_dfacet; i++) {
+        DFacet* df = &dfacets[i];
+        if (df->FacetType == STOREY_TYPE_FENCE ||
+            df->FacetType == STOREY_TYPE_FENCE_FLAT ||
+            df->FacetType == STOREY_TYPE_OUTSIDE_DOOR)
+        {
+            df->FacetFlags |= FACET_FLAG_SEETHROUGH;
+        }
+    }
+}
 
-    SLONG cx;
-    SLONG cy;
-    SLONG cz;
-
-    SLONG mx1 = world_x - 0x800 >> 8;
-    SLONG mz1 = world_z - 0x800 >> 8;
-    SLONG mx2 = world_x + 0x800 >> 8;
-    SLONG mz2 = world_z + 0x800 >> 8;
+// uc_orig: COLLIDE_debug_fastnav (fallen/Source/collide.cpp)
+void COLLIDE_debug_fastnav(SLONG world_x, SLONG world_z)
+{
+    SLONG mx1 = (world_x - 0x800) >> 8;
+    SLONG mz1 = (world_z - 0x800) >> 8;
+    SLONG mx2 = (world_x + 0x800) >> 8;
+    SLONG mz2 = (world_z + 0x800) >> 8;
 
     SATURATE(mx1, 0, PAP_SIZE_HI - 1);
     SATURATE(mz1, 0, PAP_SIZE_HI - 1);
     SATURATE(mx2, 0, PAP_SIZE_HI - 1);
     SATURATE(mz2, 0, PAP_SIZE_HI - 1);
 
-    for (mx = mx1; mx <= mx2; mx++)
-        for (mz = mz1; mz <= mz2; mz++) {
+    for (SLONG mx = mx1; mx <= mx2; mx++) {
+        for (SLONG mz = mz1; mz <= mz2; mz++) {
             if (COLLIDE_can_i_fastnav(mx, mz)) {
-                cx = (mx << 8) + 0x80;
-                cz = (mz << 8) + 0x80;
+                SLONG cx = (mx << 8) + 0x80;
+                SLONG cz = (mz << 8) + 0x80;
+                SLONG cy = PAP_calc_map_height_at(cx, cz);
 
-                cy = PAP_calc_map_height_at(cx, cz);
-
-                AENG_world_line(
-                    cx - 0x10,
-                    cy,
-                    cz - 0x10,
-                    16,
-                    0xff00ff,
-                    cx + 0x10,
-                    cy,
-                    cz + 0x10,
-                    16,
-                    0xff00ff,
-                    UC_TRUE);
-
-                AENG_world_line(
-                    cx + 0x10,
-                    cy,
-                    cz - 0x10,
-                    16,
-                    0xff00ff,
-                    cx - 0x10,
-                    cy,
-                    cz + 0x10,
-                    16,
-                    0xff00ff,
-                    UC_TRUE);
+                AENG_world_line(cx - 0x10, cy, cz - 0x10, 16, 0xff00ff,
+                                cx + 0x10, cy, cz + 0x10, 16, 0xff00ff, 1);
+                AENG_world_line(cx + 0x10, cy, cz - 0x10, 16, 0xff00ff,
+                                cx - 0x10, cy, cz + 0x10, 16, 0xff00ff, 1);
             }
         }
+    }
 }

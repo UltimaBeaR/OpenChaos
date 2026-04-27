@@ -471,15 +471,6 @@ SLONG slide_around_box(
     SLONG box_yaw, SLONG radius,
     SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
 
-// uc_orig: slide_around_box_lowstack (fallen/Source/collide.cpp)
-// Simplified slide_around_box without NOGO retry. Used where stack depth matters.
-inline SLONG slide_around_box_lowstack(
-    SLONG box_mid_x, SLONG box_mid_z,
-    SLONG box_min_x, SLONG box_min_z,
-    SLONG box_max_x, SLONG box_max_z,
-    SLONG box_yaw, SLONG radius,
-    SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
-
 // uc_orig: slide_around_sausage (fallen/Source/collide.cpp)
 // Slides (*x2, *z2) around the outside of a sausage (capsule) shape defined by
 // segment (sx1,sz1)-(sx2,sz2) with radius sradius. Returns UC_TRUE on collision.

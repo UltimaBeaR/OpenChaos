@@ -129,27 +129,14 @@ static void LOAD_special_full(Thing* p_special);
 static void LOAD_vehicle_full(Thing* p_vehicle);
 // uc_orig: LOAD_eways (fallen/Source/save.cpp)
 static SLONG LOAD_eways(void);
-// uc_orig: fix_thing_lists (fallen/Source/save.cpp)
-static void fix_thing_lists(void);
-// uc_orig: remove_specials (fallen/Source/save.cpp)
-static void remove_specials(void);
 // uc_orig: set_person_default_data (fallen/Source/save.cpp)
 static void set_person_default_data(Thing* p_person, SAVE_Person* sp);
-// uc_orig: LOAD_open (fallen/Source/save.cpp)
-static FILE* LOAD_open(void);
-// uc_orig: SAVE_things (fallen/Source/save.cpp)
-static SLONG SAVE_things(void);
-// uc_orig: SAVE_eways (fallen/Source/save.cpp)
-static SLONG SAVE_eways(void);
 // uc_orig: SAVE_special (fallen/Source/save.cpp)
 static SLONG SAVE_special(Thing* p_special);
 // uc_orig: SAVE_vehicle (fallen/Source/save.cpp)
 static SLONG SAVE_vehicle(Thing* p_vehicle);
 // uc_orig: SAVE_person (fallen/Source/save.cpp)
 static SLONG SAVE_person(Thing* p_person);
-// uc_orig: LOAD_types (fallen/Source/save.cpp)
-static SLONG LOAD_types(void);
-
 extern UWORD* thing_class_head;
 extern SLONG find_empty_special(void);
 extern void free_special(Thing* s_thing);
@@ -175,12 +162,6 @@ static SLONG LOAD_in_data(void* data, ULONG num_bytes)
     } else {
         return UC_TRUE;
     }
-}
-
-// uc_orig: LOAD_open (fallen/Source/save.cpp)
-static FILE* LOAD_open()
-{
-    return MF_Fopen("ingame.sav", "rb");
 }
 
 // Serializes a special-class thing (full state: header + Special + DrawMesh + Thing blobs).
@@ -310,73 +291,6 @@ static SLONG SAVE_person(Thing* p_person)
             return (UC_FALSE);
     }
     return (UC_TRUE);
-}
-
-// Iterates all thing slots and serializes each according to its class.
-// uc_orig: SAVE_things (fallen/Source/save.cpp)
-static SLONG SAVE_things(void)
-{
-    SLONG index;
-    Thing* p_thing;
-
-    for (index = 0; index < MAX_THINGS; index++) {
-        p_thing = TO_THING(index);
-
-        switch (p_thing->Class) {
-        case CLASS_PERSON:
-            if (!SAVE_person(p_thing)) {
-                return (UC_FALSE);
-            }
-            break;
-        case CLASS_SPECIAL:
-            if (!SAVE_special(p_thing)) {
-                return (UC_FALSE);
-            }
-            break;
-        case CLASS_VEHICLE:
-            if (!SAVE_vehicle(p_thing)) {
-                return (UC_FALSE);
-            }
-            break;
-        case CLASS_NONE:
-            SAVE_out_data(&skip_class_none, sizeof(skip_class_none));
-            break;
-
-        default:
-            SAVE_out_data(&skip, sizeof(skip));
-            break;
-        }
-    }
-    return (0);
-}
-
-// Serializes EWAY way-flags and countdown timers plus the timer array.
-// uc_orig: SAVE_eways (fallen/Source/save.cpp)
-static SLONG SAVE_eways(void)
-{
-    UBYTE marker = SAVE_GAME_EWAY;
-    SLONG c0, res = 1;
-    EWAY_Way* ew;
-
-    if (!SAVE_out_data(&marker, sizeof(marker))) {
-        return UC_FALSE;
-    }
-
-    for (c0 = 0; c0 < EWAY_way_upto; c0++) {
-        ew = &EWAY_way[c0];
-
-        if (ew->flag & EWAY_FLAG_COUNTDOWN) {
-            res &= SAVE_out_data(&ew->flag, sizeof(ew->flag));
-            res &= SAVE_out_data(&ew->timer, sizeof(ew->timer));
-        } else {
-            res &= SAVE_out_data(&ew->flag, sizeof(ew->flag));
-        }
-
-        if (!res)
-            return (UC_FALSE);
-    }
-    res &= SAVE_out_data(EWAY_timer, sizeof(UWORD) * EWAY_MAX_TIMERS);
-    return UC_TRUE;
 }
 
 // Restores EWAY flags, countdown timers, and the timer array from the save stream.
@@ -559,120 +473,3 @@ static void LOAD_vehicle_full(Thing* p_vehicle)
     }
 }
 
-// Reads all thing records sequentially from SAVE_handle, dispatching by type tag.
-// uc_orig: LOAD_types (fallen/Source/save.cpp)
-static SLONG LOAD_types(void)
-{
-    UBYTE type;
-    Thing* p_thing;
-
-    p_thing = TO_THING(0);
-    while (LOAD_in_data(&type, 1)) {
-        switch (type) {
-        case SAVE_PERSON_TYPE_NORMAL:
-            ASSERT(0);
-            break;
-        case SAVE_PERSON_TYPE_WANDERING_DRIVER:
-            ASSERT(0);
-            break;
-        case SAVE_PERSON_TYPE_DEAD:
-            LOAD_person_dead(p_thing);
-            break;
-        case SAVE_PERSON_TYPE_ARRESTED:
-            LOAD_person_arrested(p_thing);
-            break;
-        case SAVE_PERSON_TYPE_WANDERING_CIV:
-            ASSERT(0);
-            break;
-        case SAVE_PERSON_TYPE_FULL:
-            LOAD_person_full(p_thing);
-            break;
-        case SAVE_SPECIAL_TYPE_FULL:
-            LOAD_special_full(p_thing);
-            break;
-        case SAVE_VEHICLE_TYPE_FULL:
-            LOAD_vehicle_full(p_thing);
-            break;
-        case SAVE_GAME_EWAY:
-            LOAD_eways();
-        case SAVE_SKIP: // Fall-through intentional.
-            switch (p_thing->Class) {
-            case CLASS_SPECIAL:
-                remove_thing_from_map(p_thing);
-                p_thing->Class = CLASS_NONE;
-                break;
-            }
-            break;
-        case SAVE_SKIP_CLASS_NONE:
-            remove_thing_from_map(p_thing);
-            switch (p_thing->Class) {
-            case CLASS_NONE:
-                break;
-            case CLASS_SPECIAL:
-                void free_special(Thing * special_thing);
-                free_special(p_thing);
-                break;
-            case CLASS_TRACK:
-                break;
-            default:
-                ASSERT(0);
-                break;
-            }
-            p_thing->Class = CLASS_NONE;
-            break;
-        default:
-            ASSERT(0);
-            break;
-        }
-        p_thing++;
-    }
-
-    return 0;
-}
-
-// Rebuilds PRIMARY_USED/UNUSED/COUNT linked lists and thing_class_head[] from scratch.
-// Must be called after LOAD_types() restores raw thing data.
-// uc_orig: fix_thing_lists (fallen/Source/save.cpp)
-static void fix_thing_lists(void)
-{
-    SLONG c0;
-    Thing* p_thing;
-
-    PRIMARY_USED = 0;
-    PRIMARY_UNUSED = 0;
-    PRIMARY_COUNT = 0;
-
-    for (c0 = 0; c0 < MAX_THINGS; c0++) {
-        p_thing = TO_THING(c0);
-
-        if (p_thing->Class != CLASS_NONE) {
-            p_thing->LinkParent = 0;
-            p_thing->LinkChild = PRIMARY_USED;
-            PRIMARY_USED = c0;
-            PRIMARY_COUNT++;
-
-            thing_class_head[p_thing->Class] = c0;
-        } else {
-            p_thing->LinkParent = 0;
-            p_thing->LinkChild = PRIMARY_UNUSED;
-            PRIMARY_UNUSED = c0;
-        }
-    }
-}
-
-// Frees all CLASS_SPECIAL things (called before reloading a level to clear stale state).
-// uc_orig: remove_specials (fallen/Source/save.cpp)
-static void remove_specials(void)
-{
-    SLONG index, next;
-    Thing* p_special;
-
-    index = thing_class_head[CLASS_SPECIAL];
-
-    while (index) {
-        p_special = TO_THING(index);
-        next = p_special->NextLink;
-        free_special(p_special);
-        index = next;
-    }
-}

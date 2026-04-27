@@ -227,29 +227,6 @@ static inline float qdist2(float x, float y)
     return ans;
 }
 
-// Fast approximation of sqrt(x*x + y*y + z*z); all args must be non-negative.
-// uc_orig: qdist3 (fallen/outro/always.h)
-static inline float qdist3(float x, float y, float z)
-{
-    float ans;
-    ASSERT(x >= 0.0F);
-    ASSERT(y >= 0.0F);
-    ASSERT(z >= 0.0F);
-    if (x > y) {
-        if (x > z) {
-            ans = x + (y + z) * 0.2941F;
-            return ans;
-        }
-    } else {
-        if (y > z) {
-            ans = y + (x + z) * 0.2941F;
-            return ans;
-        }
-    }
-    ans = z + (x + y) * 0.2941F;
-    return ans;
-}
-
 // Returns a random float in [0, 1).
 // uc_orig: frand (fallen/outro/always.h)
 static inline float frand(void)

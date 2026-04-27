@@ -37,20 +37,6 @@ constexpr SLONG LAYER_BACKDROP = INPUT_DEBUG_LAYER_BACKDROP;
 constexpr SLONG LAYER_CONTENT = INPUT_DEBUG_LAYER_CONTENT;
 constexpr SLONG LAYER_ACCENT = INPUT_DEBUG_LAYER_ACCENT;
 
-const char* page_name(InputDebugPage p)
-{
-    switch (p) {
-    case INPUT_DEBUG_PAGE_KEYBOARD:
-        return "Keyboard";
-    case INPUT_DEBUG_PAGE_GAMEPAD:
-        return "Gamepad";
-    case INPUT_DEBUG_PAGE_DUALSENSE:
-        return "DualSense";
-    default:
-        return "?";
-    }
-}
-
 InputDeviceType page_to_device(InputDebugPage p)
 {
     switch (p) {

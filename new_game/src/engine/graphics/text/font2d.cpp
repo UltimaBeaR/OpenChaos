@@ -269,25 +269,6 @@ void FONT2D_DrawString(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLO
     }
 }
 
-// Like FONT2D_DrawString but always uses the bitmap path (no TrueType).
-// Only called internally from FONT2D_DrawString_3d.
-// uc_orig: FONT2D_DrawString_NoTrueType (fallen/DDEngine/Source/font2d.cpp)
-static void FONT2D_DrawString_NoTrueType(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLONG page, SWORD fade)
-{
-    if (str == NULL) {
-        str = "Null string";
-    }
-
-    for (UBYTE i = 0; i < strlen(str); i++) {
-        if (str[i] == '\t') {
-            x &= ~127;
-            x += 128;
-        } else {
-            x += FONT2D_DrawLetter(str[i], x, y, rgb, scale, page, fade);
-        }
-    }
-}
-
 // uc_orig: FONT2D_DrawStringWrap (fallen/DDEngine/Headers/font2d.h)
 SLONG FONT2D_DrawStringWrap(CBYTE* str, SLONG x, SLONG y, ULONG rgb, SLONG scale, SLONG page, SWORD fade)
 {

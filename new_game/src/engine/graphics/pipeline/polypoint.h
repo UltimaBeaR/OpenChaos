@@ -17,8 +17,6 @@ class PolyPoint2D : private GEVertexTL {
 public:
     // uc_orig: SetSC (fallen/DDEngine/Headers/polypoint.h)
     void SetSC(float sx, float sy, float sz = 0);
-    // uc_orig: SetUV (fallen/DDEngine/Headers/polypoint.h)
-    void SetUV(float& u, float& v);
     // uc_orig: SetUV2 (fallen/DDEngine/Headers/polypoint.h)
     void SetUV2(float u, float v);
     // uc_orig: MakeColour (fallen/DDEngine/Headers/polypoint.h)
@@ -57,13 +55,6 @@ inline void PolyPoint2D::SetSC(float _sx, float _sy, float _sz)
     sy = _sy + PIXEL_HALF_OFFSET;
     sz = _sz;
     rhw = 1.0F - _sz;
-}
-
-// uc_orig: SetUV (fallen/DDEngine/Headers/polypoint.h)
-inline void PolyPoint2D::SetUV(float& u, float& v)
-{
-    INT_COPY_FLOAT(tu, u);
-    INT_COPY_FLOAT(tv, v);
 }
 
 // uc_orig: SetUV2 (fallen/DDEngine/Headers/polypoint.h)

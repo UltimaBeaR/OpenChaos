@@ -42,100 +42,6 @@ static struct
     { 62, 137, 17, 178, 40, 45 },
 };
 
-// uc_orig: PUDDLE_create_do (fallen/Source/puddle.cpp)
-// Internal helper: inserts a puddle quad into the sorted spatial index.
-static void PUDDLE_create_do(
-    UWORD x1,
-    UWORD z1,
-    UWORD x2,
-    UWORD z2,
-    SWORD y,
-    UBYTE type,
-    UBYTE rotate_uvs)
-{
-    SLONG x;
-    SLONG z;
-    PUDDLE_Puddle* pp;
-    UBYTE next;
-    UBYTE* prev;
-
-    UBYTE map_x = x1 + x2 >> 9;
-    UBYTE map_z = z1 + z2 >> 9;
-
-    if (!WITHIN(map_z, 0, PUDDLE_MAPWHO_SIZE - 1)) {
-        return;
-    }
-
-    if (!WITHIN(PUDDLE_puddle_upto, 1, PUDDLE_MAX_PUDDLES - 1)) {
-        return;
-    }
-
-    if (!PAP_is_flattish(x1, z1, x2, z2)) {
-        return;
-    }
-
-    pp = &PUDDLE_puddle[PUDDLE_puddle_upto];
-    pp->x1 = x1;
-    pp->z1 = z1;
-    pp->x2 = x2;
-    pp->z2 = z2;
-    pp->y = y;
-    pp->map_x = map_x;
-    pp->rotate_uvs = rotate_uvs;
-    pp->type = type;
-
-    // Insert into the z-line linked list sorted by map_x.
-    prev = &PUDDLE_mapwho[map_z];
-    next = PUDDLE_mapwho[map_z];
-
-    while (1) {
-        ASSERT(WITHIN(next, 0, PUDDLE_puddle_upto - 1));
-
-        if (next == NULL || PUDDLE_puddle[next].map_x >= map_x) {
-            *prev = PUDDLE_puddle_upto;
-            pp->next = next;
-            PUDDLE_puddle_upto += 1;
-            break;
-        }
-
-        prev = &PUDDLE_puddle[next].next;
-        next = PUDDLE_puddle[next].next;
-    }
-
-    // Mark map squares around this puddle as reflective.
-    {
-        SLONG mx1, mz1, mx2, mz2;
-
-#define PUDDLE_EXTEND_REFLECTION 128
-
-        mx1 = pp->x1;
-        mz1 = pp->z1;
-        mx2 = pp->x2;
-        mz2 = pp->z2;
-
-        if (mx1 > mx2) {
-            SWAP(mx1, mx2);
-        }
-        if (mz1 > mz2) {
-            SWAP(mz1, mz2);
-        }
-
-        mx1 = mx1 - PUDDLE_EXTEND_REFLECTION >> ELE_SHIFT;
-        mz1 = mz1 - PUDDLE_EXTEND_REFLECTION >> ELE_SHIFT;
-        mx2 = mx2 + PUDDLE_EXTEND_REFLECTION >> ELE_SHIFT;
-        mz2 = mz2 + PUDDLE_EXTEND_REFLECTION >> ELE_SHIFT;
-
-        SATURATE(mx1, 0, MAP_WIDTH - 1);
-        SATURATE(mx2, 0, MAP_WIDTH - 1);
-        SATURATE(mz1, 0, MAP_HEIGHT - 1);
-        SATURATE(mz2, 0, MAP_HEIGHT - 1);
-
-        for (x = mx1; x <= mx2; x++)
-            for (z = mz1; z <= mz2; z++) {
-                PAP_2HI(x, z).Flags |= PAP_FLAG_REFLECTIVE;
-            }
-    }
-}
 
 // uc_orig: PUDDLE_init (fallen/Source/puddle.cpp)
 void PUDDLE_init()
@@ -155,27 +61,71 @@ void PUDDLE_init()
         }
 }
 
-// uc_orig: PUDDLE_create (fallen/Source/puddle.cpp)
-void PUDDLE_create(UWORD x, SWORD y, UWORD z)
+
+// uc_orig: PUDDLE_create_do (fallen/Source/puddle.cpp)
+static void PUDDLE_create_do(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG y, UBYTE type, UBYTE rotate_uvs)
 {
-    SLONG x1, z1, x2, z2;
+    PUDDLE_Puddle* pp;
+    UBYTE next;
+    UBYTE* prev;
 
-#define PUDDLE_WHOLE_SIZE 0x140
+    SLONG map_x = (x1 + x2) >> 9;
+    SLONG map_z = (z1 + z2) >> 9;
 
-    x1 = x - PUDDLE_WHOLE_SIZE;
-    z1 = z - PUDDLE_WHOLE_SIZE;
-    x2 = x + PUDDLE_WHOLE_SIZE;
-    z2 = z + PUDDLE_WHOLE_SIZE;
+    if (!WITHIN(map_z, 0, PUDDLE_MAPWHO_SIZE - 1))
+        return;
 
-    // Randomise the orientation of the puddle quad.
-    if (rand() & 0x1) {
-        SWAP(x1, x2);
+    if (!WITHIN(PUDDLE_puddle_upto, 1, PUDDLE_MAX_PUDDLES - 1))
+        return;
+
+    if (!PAP_is_flattish(x1, z1, x2, z2))
+        return;
+
+    pp = &PUDDLE_puddle[PUDDLE_puddle_upto];
+
+    pp->x1         = (UWORD)x1;
+    pp->z1         = (UWORD)z1;
+    pp->x2         = (UWORD)x2;
+    pp->z2         = (UWORD)z2;
+    pp->y          = (SWORD)y;
+    pp->map_x      = (UBYTE)map_x;
+    pp->rotate_uvs = rotate_uvs;
+    pp->type       = type;
+
+    prev = &PUDDLE_mapwho[map_z];
+    next =  PUDDLE_mapwho[map_z];
+
+    while (1) {
+        ASSERT(WITHIN(next, 0, PUDDLE_puddle_upto - 1));
+
+        if (next == 0 || PUDDLE_puddle[next].map_x >= map_x) {
+            *prev                = PUDDLE_puddle_upto;
+            pp->next             = next;
+            PUDDLE_puddle_upto  += 1;
+            break;
+        }
+
+        prev = &PUDDLE_puddle[next].next;
+        next =  PUDDLE_puddle[next].next;
     }
-    if (rand() & 0x1) {
-        SWAP(z1, z2);
-    }
 
-    PUDDLE_create_do(x1, z1, x2, z2, y, PUDDLE_TYPE_WHOLE, UC_FALSE);
+    {
+        constexpr SLONG PUDDLE_EXTEND_REFLECTION = 128;
+
+        SLONG mx1 = ((x1 < x2 ? x1 : x2) - PUDDLE_EXTEND_REFLECTION) >> ELE_SHIFT;
+        SLONG mz1 = ((z1 < z2 ? z1 : z2) - PUDDLE_EXTEND_REFLECTION) >> ELE_SHIFT;
+        SLONG mx2 = ((x1 > x2 ? x1 : x2) + PUDDLE_EXTEND_REFLECTION) >> ELE_SHIFT;
+        SLONG mz2 = ((z1 > z2 ? z1 : z2) + PUDDLE_EXTEND_REFLECTION) >> ELE_SHIFT;
+
+        SATURATE(mx1, 0, MAP_WIDTH  - 1);
+        SATURATE(mx2, 0, MAP_WIDTH  - 1);
+        SATURATE(mz1, 0, MAP_HEIGHT - 1);
+        SATURATE(mz2, 0, MAP_HEIGHT - 1);
+
+        for (SLONG x = mx1; x <= mx2; x++)
+            for (SLONG z = mz1; z <= mz2; z++)
+                PAP_2HI(x, z).Flags |= PAP_FLAG_REFLECTIVE;
+    }
 }
 
 // uc_orig: PUDDLE_precalculate (fallen/Source/puddle.cpp)

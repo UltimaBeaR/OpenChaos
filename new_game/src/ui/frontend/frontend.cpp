@@ -1769,31 +1769,6 @@ void FRONTEND_store_video_data()
     AENG_set_detail_levels(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9], data[10], data[11]);
 }
 
-// State passed through the driver enumeration callback.
-struct DriverEnumState {
-    CBYTE* str;
-    SLONG count;
-    SLONG selected;
-};
-
-static void driver_enum_callback(const char* name, bool is_primary, bool is_current, void* ctx)
-{
-    auto* state = static_cast<DriverEnumState*>(ctx);
-    char szBuff[80];
-    if (is_primary)
-        sprintf(szBuff, "%s (Primary)", name);
-    else
-        sprintf(szBuff, "%s", name);
-
-    strcpy(state->str, szBuff);
-    state->str += strlen(state->str) + 1;
-
-    if (is_current)
-        state->selected = state->count;
-
-    state->count++;
-}
-
 // uc_orig: FRONTEND_do_gamma (fallen/Source/frontend.cpp)
 // Inserts a gamma slider item into the config video menu.
 void FRONTEND_do_gamma()

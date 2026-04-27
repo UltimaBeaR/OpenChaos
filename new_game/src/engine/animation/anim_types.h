@@ -9,7 +9,6 @@
 
 #include "engine/core/types.h"
 #include "engine/core/fmatrix.h" // Matrix33, CMatrix33, SVector
-#include <string.h> // strcpy used by Anim::SetAnimName
 
 // ---- Creature/people limits ----
 
@@ -147,12 +146,6 @@ struct GameKeyFrameElement {
 inline void GetCMatrix(GameKeyFrameElement* e, CMatrix33* c)
 {
     *c = e->CMatrix;
-}
-
-// uc_orig: SetCMatrix (fallen/Editor/Headers/Anim.h)
-inline void SetCMatrix(GameKeyFrameElement* e, CMatrix33* c)
-{
-    e->CMatrix = *c;
 }
 
 // ---- Fight collision ----
@@ -343,25 +336,6 @@ private:
         *FrameListStart;
     UBYTE TweakSpeed;
 
-public:
-    inline void SetAnimName(CBYTE* string) { strcpy(AnimName, string); }
-    inline CBYTE* GetAnimName(void) { return AnimName; }
-    inline void SetCurrentFrame(KeyFrame* the_frame) { CurrentFrame = the_frame; }
-    inline KeyFrame* GetFrameList(void) { return FrameListStart; }
-    inline void SetFrameList(KeyFrame* frame_list) { FrameListStart = frame_list; }
-    inline KeyFrame* GetFrameListEnd(void) { return FrameListEnd; }
-    inline KeyFrame* GetFrameListStart(void) { return FrameListStart; }
-    inline void SetFrameListEnd(KeyFrame* frame_list_end) { FrameListEnd = frame_list_end; }
-    inline SLONG GetFrameCount(void) { return FrameCount; }
-    inline void SetFrameCount(SLONG count) { FrameCount = count; }
-    inline ULONG GetAnimFlags(void) { return AnimFlags; }
-    inline void SetAnimFlags(ULONG flags) { AnimFlags = flags; }
-    inline void SetNextAnim(Anim* next) { NextAnim = next; }
-    inline Anim* GetNextAnim(void) { return NextAnim; }
-    inline void SetLastAnim(Anim* last) { LastAnim = last; }
-    inline Anim* GetLastAnim(void) { return LastAnim; }
-    inline UBYTE GetTweakSpeed(void) { return TweakSpeed; }
-    inline void SetTweakSpeed(UBYTE speed) { TweakSpeed = speed; }
 };
 
 // A named character rig: holds a fixed array of Anim slots.
@@ -372,11 +346,6 @@ private:
     UWORD MultiObject;
     Anim AnimList[50];
 
-public:
-    inline CBYTE* GetCharName(void) { return CharName; }
-    inline void SetCharName(CBYTE* string) { strcpy(CharName, string); }
-    inline UWORD GetMultiObject(void) { return MultiObject; }
-    inline void SetMultiObject(UWORD multi) { MultiObject = multi; }
 };
 
 #endif // ENGINE_ANIMATION_ANIM_TYPES_H
