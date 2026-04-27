@@ -1,4 +1,0 @@
-#ifndef MAP_MAP_GLOBALS_H
-#define MAP_MAP_GLOBALS_H
-
-#endif // MAP_MAP_GLOBALS_H

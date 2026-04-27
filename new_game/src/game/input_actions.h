@@ -251,8 +251,7 @@ extern SLONG get_camera_angle(void);
 extern void player_stop_move(Thing* p_thing, ULONG input);
 // uc_orig: player_interface_move (fallen/Source/interfac.cpp)
 extern void player_interface_move(Thing* p_thing, ULONG input);
-// uc_orig: lock_to_compass (fallen/Source/interfac.cpp)
-extern void lock_to_compass(Thing* p_thing);
+
 // Flag for get_joy_angle: adjust the returned angle relative to the camera yaw.
 // uc_orig: JOY_REL_CAMERA (fallen/Source/interfac.cpp)
 #define JOY_REL_CAMERA (1 << 0)
@@ -283,8 +282,6 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 SLONG can_darci_change_weapon(Thing* p_person);
 // uc_orig: pre_process_input (fallen/Source/interfac.cpp)
 ULONG pre_process_input(SLONG mode, ULONG input);
-// uc_orig: set_look_pitch (fallen/Source/interfac.cpp)
-void set_look_pitch(SLONG p);
 // uc_orig: continue_pressing_action (fallen/Source/interfac.cpp)
 SLONG continue_pressing_action(Thing* p_person);
 // uc_orig: set_action_used (fallen/Source/interfac.cpp)

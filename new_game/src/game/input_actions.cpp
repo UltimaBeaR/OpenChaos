@@ -1507,31 +1507,6 @@ void init_user_interface(void)
     PANEL_scanner_poo = ENV_get_value_number("scanner_follows", UC_TRUE, "Game");
 }
 
-// Snapping threshold for lock_to_compass: angles within ±DLOCK of a cardinal direction snap to it.
-// uc_orig: DLOCK (fallen/Source/interfac.cpp)
-#define DLOCK 32
-
-// uc_orig: lock_to_compass (fallen/Source/interfac.cpp)
-// Snaps the thing's facing angle to the nearest 90-degree compass direction
-// if it is within DLOCK units (32) of that direction.
-void lock_to_compass(Thing* p_thing)
-{
-    SLONG angle;
-
-    angle = p_thing->Draw.Tweened->Angle;
-
-    if (angle < DLOCK || angle > 2048 - DLOCK) {
-        angle = 0;
-    } else if (angle > 512 - DLOCK && angle < 512 + DLOCK) {
-        angle = 512;
-    } else if (angle > 1024 - DLOCK && angle < 1024 + DLOCK) {
-        angle = 1024;
-    } else if (angle > 1536 - DLOCK && angle < 1536 + DLOCK) {
-        angle = 1536;
-    }
-    p_thing->Draw.Tweened->Angle = angle;
-}
-
 // Maximum turn speed per frame when rotating (controls animation frame advance rate).
 // uc_orig: TURN_TIMER (fallen/Source/interfac.cpp)
 #define TURN_TIMER 512
@@ -3144,13 +3119,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     }
 
     return (processed_input);
-}
-
-// uc_orig: set_look_pitch (fallen/Source/interfac.cpp)
-// Forces the first-person look pitch to a specific value (called from cutscene/EWAY code).
-void set_look_pitch(SLONG p)
-{
-    look_pitch = p;
 }
 
 // uc_orig: get_hardware_input (fallen/Source/interfac.cpp)

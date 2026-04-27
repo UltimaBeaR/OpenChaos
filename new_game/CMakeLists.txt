@@ -191,7 +191,6 @@ set(SOURCES_NEW
     src/engine/input/mouse.cpp
     src/engine/input/mouse_globals.cpp
     src/engine/input/joystick.cpp
-    src/engine/input/joystick_globals.cpp
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
     src/engine/input/weapon_feel.cpp
@@ -219,11 +218,6 @@ set(SOURCES_NEW
     src/engine/console/message_globals.cpp
     src/engine/console/console.cpp
     src/engine/console/console_globals.cpp
-
-    # === Engine: compression ===
-    src/engine/compression/compression.cpp
-    src/engine/compression/compression_globals.cpp
-    src/engine/compression/image_compression.cpp
 
     # === Engine: animation ===
     src/engine/animation/morph.cpp
@@ -328,7 +322,6 @@ set(SOURCES_NEW
 
     # === Map ===
     src/map/map.cpp
-    src/map/map_globals.cpp
     src/map/pap.cpp
     src/map/pap_globals.cpp
     src/map/road.cpp
@@ -350,7 +343,6 @@ set(SOURCES_NEW
     src/navigation/wmove_globals.cpp
 
     # === Buildings ===
-    src/buildings/build_globals.cpp
     src/buildings/build2.cpp
     src/buildings/building_globals.cpp
     src/buildings/prim.cpp
@@ -376,7 +368,6 @@ set(SOURCES_NEW
     src/things/characters/cop_globals.cpp
     src/things/characters/roper.cpp
     src/things/characters/roper_globals.cpp
-    src/things/characters/thug.cpp
     src/things/characters/snipe.cpp
     src/things/characters/snipe_globals.cpp
     src/things/characters/darci.cpp
@@ -482,7 +473,6 @@ set(SOURCES_NEW
     src/ui/frontend/frontend_globals.cpp
     src/ui/menus/gamemenu.cpp
     src/ui/menus/gamemenu_globals.cpp
-    src/ui/menus/pause.cpp
     src/ui/menus/widget.cpp
     src/ui/menus/widget_globals.cpp
     src/ui/hud/eng_map.cpp

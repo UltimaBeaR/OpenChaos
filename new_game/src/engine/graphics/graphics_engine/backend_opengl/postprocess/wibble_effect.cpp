@@ -17,7 +17,6 @@
 // Shader sources (SHADER_FULLSCREEN_QUAD_VERT, SHADER_WIBBLE_FRAG) are
 // embedded by CMake from the .glsl files in backend_opengl/shaders/.
 
-#include "engine/graphics/graphics_engine/backend_opengl/postprocess/wibble_effect.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_context.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/gl_shader.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"

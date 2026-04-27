@@ -7014,9 +7014,6 @@ UWORD perform_arrest(Thing* p_person, UWORD s_index)
     return (0);
 }
 
-// Forward decl — defined in interfac.cpp, only referenced in a commented-out block below.
-void lock_to_compass(Thing* p_thing);
-
 // STATE_SEARCH state machine: handles prim search and corpse looting animations.
 // uc_orig: fn_person_search (fallen/Source/Person.cpp)
 void fn_person_search(Thing* p_person)
