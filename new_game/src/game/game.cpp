@@ -125,7 +125,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypage.h"  // PolyPage::SetScaling (mode change callback)
 #include "engine/graphics/ui_coords.h"          // ui_coords::recompute (mode change callback)
-#include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_set_draw_distance, AENG_screen_shot, AENG_draw_messages
+#include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_screen_shot, AENG_draw_messages
 #include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/joystick.h"  // GetInputDevice, JOYSTICK

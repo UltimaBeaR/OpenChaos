@@ -78,9 +78,6 @@ void AENG_set_camera_radians(
     float roll,
     SLONG splitscreen);
 
-// uc_orig: AENG_set_draw_distance (fallen/DDEngine/Headers/aeng.h)
-void AENG_set_draw_distance(SLONG dist);
-
 // uc_orig: AENG_world_line (fallen/DDEngine/Headers/aeng.h)
 void AENG_world_line(
     SLONG x1, SLONG y1, SLONG z1, SLONG width1, ULONG colour1,

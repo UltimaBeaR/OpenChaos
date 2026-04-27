@@ -278,12 +278,6 @@ file_error:;
     return;
 }
 
-// uc_orig: AENG_set_draw_distance (fallen/DDEngine/Source/aeng.cpp)
-// Currently a no-op stub (the draw distance is not runtime-adjustable in this build).
-void AENG_set_draw_distance(SLONG dist)
-{
-}
-
 // uc_orig: AENG_init (fallen/DDEngine/Source/aeng.cpp)
 // One-time engine startup: inits meshes, cloud data, sky, polygon system, textures.
 void AENG_init(void)

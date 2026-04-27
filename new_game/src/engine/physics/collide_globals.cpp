@@ -9,37 +9,8 @@ SLONG cprod = 0;
 // uc_orig: global_on (fallen/Source/collide.cpp)
 SLONG global_on = 0;
 
-// uc_orig: col_vects_links (fallen/Source/collide.cpp)
-// Per-cell linked list nodes binding collision barriers to PAP LO cells. ~40KB.
-struct CollisionVectLink col_vects_links[MAX_COL_VECT_LINK];
-
-// uc_orig: col_vects (fallen/Source/collide.cpp)
-// Pool of all linear collision barriers for the current level. ~300KB.
-struct CollisionVect col_vects[MAX_COL_VECT];
-
-// uc_orig: next_col_vect (fallen/Source/collide.cpp)
-UWORD next_col_vect = 1;
-
-// uc_orig: next_col_vect_link (fallen/Source/collide.cpp)
-UWORD next_col_vect_link = 1;
-
-// uc_orig: walk_links (fallen/Source/collide.cpp)
-struct WalkLink walk_links[MAX_WALK_POOL];
-
-// uc_orig: next_walk_link (fallen/Source/collide.cpp)
-UWORD next_walk_link = 1;
-
-// uc_orig: already (fallen/Source/collide.cpp)
-UWORD already[MAX_ALREADY];
-
-// uc_orig: max_facet_find (fallen/Source/collide.cpp)
-UWORD max_facet_find = 0;
-
 // uc_orig: last_slide_colvect (fallen/Source/collide.cpp)
 SLONG last_slide_colvect = 0;
-
-// uc_orig: last_slide_dist (fallen/Source/collide.cpp)
-SLONG last_slide_dist = 0;
 
 // uc_orig: actual_sliding (fallen/Source/collide.cpp)
 SLONG actual_sliding = 0;

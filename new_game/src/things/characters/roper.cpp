@@ -7,9 +7,6 @@
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 
-// uc_orig: calc_height_at (fallen/Source/Roper.cpp)
-extern SLONG calc_height_at(SLONG x, SLONG z);
-
 // uc_orig: fn_roper_init (fallen/Source/Roper.cpp)
 void fn_roper_init(Thing* t_thing)
 {

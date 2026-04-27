@@ -69,14 +69,6 @@ struct WalkLink {
 // Global collision arrays (declared in collide_globals.h via _globals.cpp)
 // ========================================================================
 
-// uc_orig: col_vects_links (fallen/Source/collide.cpp)
-// Per-cell linked list nodes binding barriers to PAP LO cells.
-extern struct CollisionVectLink col_vects_links[MAX_COL_VECT_LINK];
-
-// uc_orig: col_vects (fallen/Source/collide.cpp)
-// Pool of all collision barriers loaded for the current level.
-extern struct CollisionVect col_vects[MAX_COL_VECT];
-
 // ========================================================================
 // Slide-along flags
 // ========================================================================
@@ -128,39 +120,10 @@ typedef UBYTE COLLIDE_Fastnavrow[PAP_SIZE_HI >> 3];
 // for the 2D segment pair (x1,y1)-(x2,y2) and (x3,y3)-(x4,y4).
 UBYTE two4_line_intersection(SLONG x1, SLONG y1, SLONG x2, SLONG y2, SLONG x3, SLONG y3, SLONG x4, SLONG y4);
 
-// uc_orig: clear_all_col_info (fallen/Source/collide.cpp)
-// Stub — was used to reset debug collision info. No-op in this build.
-void clear_all_col_info(void);
-
-// uc_orig: get_height_along_vect (fallen/Source/collide.cpp)
-// Interpolates Y at position (ax,az) along a CollisionVect segment.
-SLONG get_height_along_vect(SLONG ax, SLONG az, struct CollisionVect* p_vect);
-
-// uc_orig: get_height_along_facet (fallen/Source/collide.cpp)
-// Interpolates Y at position (ax,az) along a DFacet segment.
-SLONG get_height_along_facet(SLONG ax, SLONG az, struct DFacet* p_facet);
-
-// uc_orig: check_big_point_triangle_col (fallen/Source/collide.cpp)
-// Returns 1 if 2D point (x,y) lies inside the triangle (ux,uy)-(vx,vy)-(wx,wy), 0 otherwise.
-UBYTE check_big_point_triangle_col(SLONG x, SLONG y, SLONG ux, SLONG uy, SLONG vx, SLONG vy, SLONG wx, SLONG wy);
-
-// uc_orig: point_in_quad_old (fallen/Source/collide.cpp)
-// Returns non-zero if (px,pz) lies within the prim quad face at (x,y,z).
-SLONG point_in_quad_old(SLONG px, SLONG pz, SLONG x, SLONG y, SLONG z, SWORD face);
-
-// uc_orig: dist_to_line (fallen/Source/collide.cpp)
-// Returns distance from point (a,b) to the nearest point on segment (x1,z1)-(x2,z2).
-// Also sets global dprod and cprod as side effects.
-SLONG dist_to_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b);
-
 // uc_orig: which_side (fallen/Source/collide.cpp)
 // Returns the cross product sign of (a,b) relative to directed segment (x1,z1)-(x2,z2).
 // Negative = right side, positive = left side.
 SLONG which_side(SLONG x1, SLONG z1, SLONG x2, SLONG z2, SLONG a, SLONG b);
-
-// uc_orig: calc_along_vect (fallen/Source/collide.cpp)
-// Returns how far along a DFacet segment the point (ax,az) projects, in 8.8 fixed point.
-SLONG calc_along_vect(SLONG ax, SLONG az, struct DFacet* p_vect);
 
 // uc_orig: signed_dist_to_line_with_normal (fallen/Source/collide.cpp)
 // Signed distance from (a,b) to segment (x1,z1)-(x2,z2); returns outward normal vector
@@ -197,42 +160,6 @@ SLONG nearest_point_on_line_and_dist_and_along(SLONG x1, SLONG z1, SLONG x2, SLO
     SLONG* ret_x, SLONG* ret_z, SLONG* ret_along);
 
 // ========================================================================
-// Height queries
-// ========================================================================
-
-// uc_orig: calc_height_at (fallen/Source/collide.cpp)
-// Returns ground height at (x,z). Stub — body commented out in original; returns 0.
-SLONG calc_height_at(SLONG x, SLONG z);
-
-// ========================================================================
-// Collision layer classification
-// ========================================================================
-
-// uc_orig: collision_storey (fallen/Source/collide.cpp)
-// Returns 1 if the storey type participates in collision detection.
-SLONG collision_storey(SLONG type);
-
-// ========================================================================
-// Debug visualisation (no-op in release, early return on entry)
-// ========================================================================
-
-// uc_orig: highlight_face (fallen/Source/collide.cpp)
-// Debug: draws wireframe of a prim quad face. Always returns early.
-void highlight_face(SLONG face);
-
-// uc_orig: highlight_rface (fallen/Source/collide.cpp)
-// Debug: draws wireframe of a roof face. Always returns early.
-void highlight_rface(SLONG rface);
-
-// uc_orig: highlight_quad (fallen/Source/collide.cpp)
-// Debug: draws wireframe of a quad at a given world position. Always returns early.
-void highlight_quad(SLONG face, SLONG face_x, SLONG face_y, SLONG face_z);
-
-// uc_orig: vect_intersect_wall (fallen/Source/collide.cpp)
-// Stub — was intended to find walls intersecting a vector. Returns 0.
-SLONG vect_intersect_wall(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2);
-
-// ========================================================================
 // Face / walkable surface queries
 // ========================================================================
 
@@ -240,10 +167,6 @@ SLONG vect_intersect_wall(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLON
 // Searches PAP LO-res cells near (x,z) for a walkable face within [neg_dy,pos_dy]
 // of y.  Returns face index (negative = roof face); writes height to *ret_y.
 SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_this_building, Thing* p_person, SLONG neg_dy, SLONG pos_dy, SLONG* ret_y);
-
-// uc_orig: find_alt_for_this_pos (fallen/Source/collide.cpp)
-// Returns the walkable floor height at (x,z), falling back to terrain height.
-SLONG find_alt_for_this_pos(SLONG x, SLONG z);
 
 // ========================================================================
 // Ladder helpers
@@ -303,24 +226,6 @@ SLONG get_person_radius(SLONG type);
 SLONG get_person_radius2(SLONG type);
 
 // ========================================================================
-// Fence height
-// ========================================================================
-
-// uc_orig: get_fence_height (fallen/Source/collide.cpp)
-// Converts packed fence height to world units. h==2 maps to 85, otherwise h*64.
-SLONG get_fence_height(SLONG h);
-
-// ========================================================================
-// Slide-along support
-// ========================================================================
-
-// uc_orig: step_back_along_vect (fallen/Source/collide.cpp)
-// Walks (x2,z2) back along its delta until it crosses to the required side
-// of wall segment (vx1,vz1)-(vx2,vz2).  side_required: 1=this side, 0=other.
-void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2,
-    SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2, SLONG side_required);
-
-// ========================================================================
 // Main slide collision
 // ========================================================================
 
@@ -330,18 +235,6 @@ void step_back_along_vect(SLONG x1, SLONG z1, SLONG* x2, SLONG* z2,
 SLONG slide_along(SLONG x1, SLONG my_y1, SLONG z1,
     SLONG* x2, SLONG* y2, SLONG* z2,
     SLONG extra_wall_height, SLONG radius, ULONG flags);
-
-// uc_orig: cross_door (fallen/Source/collide.cpp)
-// Tests if movement (x1,y1,z1)->(x2,y2,z2) crosses a door DFacet.
-// Returns -1=blocked inside, 0=no crossing, 1=exited building.
-SLONG cross_door(SLONG x1, SLONG my_y1, SLONG z1,
-    SLONG x2, SLONG y2, SLONG z2, SLONG radius);
-
-// uc_orig: bump_person (fallen/Source/collide.cpp)
-// Cancels movement if it would bring p_person's radius inside Thing 'index'.
-// Sets p_person->InWay on collision. Returns 0.
-SLONG bump_person(Thing* p_person, THING_INDEX index,
-    SLONG x1, SLONG my_y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2);
 
 // ========================================================================
 // Roof/walkable-face edge sliding
@@ -433,15 +326,6 @@ SLONG there_is_a_los(
     SLONG x2, SLONG y2, SLONG z2,
     SLONG los_flag);
 
-// uc_orig: in_my_fov (fallen/Source/collide.cpp)
-// Returns UC_TRUE if (him_x,him_z) is within FOV looking from (me_x,me_z)
-// in direction (im_looking_x, im_looking_z).
-SLONG in_my_fov(
-    SLONG me_x, SLONG me_z,
-    SLONG him_x, SLONG him_z,
-    SLONG im_looking_x,
-    SLONG im_looking_z);
-
 // uc_orig: find_nearby_person (fallen/Source/collide.cpp)
 // Finds the nearest visible person of the given type within max_range.
 // person_type_bits: one bit per person type. Returns THING_INDEX or -1.
@@ -465,18 +349,6 @@ SLONG find_intersected_colvect(
 // ========================================================================
 // Box / circle intersection tests (early-out helpers)
 // ========================================================================
-
-// uc_orig: box_box_early_out (fallen/Headers/collide.h)
-// Returns UC_TRUE if the two OBBs definitely do not collide (early exit).
-void box_box_early_out(
-    SLONG box1_mid_x, SLONG box1_mid_z,
-    SLONG box1_min_x, SLONG box1_min_z,
-    SLONG box1_max_x, SLONG box1_max_z,
-    SLONG box1_yaw,
-    SLONG box2_mid_x, SLONG box2_mid_z,
-    SLONG box2_min_x, SLONG box2_min_z,
-    SLONG box2_max_x, SLONG box2_max_z,
-    SLONG box2_yaw);
 
 // uc_orig: slide_around_circle (fallen/Headers/collide.h)
 // Slides endpoint (*x2,*z2) around a circle (cx,cz,cradius).
@@ -503,18 +375,6 @@ SLONG collide_box_with_line(
     SLONG yaw,
     SLONG lx1, SLONG lz1,
     SLONG lx2, SLONG lz2);
-
-// uc_orig: collide_against_sausage (fallen/Headers/collide.h)
-// Orthogonal sausage-shape collision. Slides (vx2,vz2) away from sausage.
-// Returns UC_TRUE on collision.
-SLONG collide_against_sausage(
-    SLONG sx1, SLONG sz1,
-    SLONG sx2, SLONG sz2,
-    SLONG swidth,
-    SLONG vx1, SLONG vz1,
-    SLONG vx2, SLONG vz2,
-    SLONG* slide_x,
-    SLONG* slide_z);
 
 // ========================================================================
 // Col-vect management
@@ -619,14 +479,6 @@ inline SLONG slide_around_box_lowstack(
     SLONG box_max_x, SLONG box_max_z,
     SLONG box_yaw, SLONG radius,
     SLONG x1, SLONG z1, SLONG* x2, SLONG* z2);
-
-// uc_orig: box_circle_early_out (fallen/Source/collide.cpp)
-// Stub — only declared (no definition) in the original. Body added here for completeness.
-void box_circle_early_out(
-    SLONG box1_mid_x, SLONG box1_mid_z,
-    SLONG box1_min_x, SLONG box1_min_z, SLONG box1_max_x, SLONG box1_max_z,
-    SLONG box1_yaw,
-    SLONG cx, SLONG cz, SLONG cradius);
 
 // uc_orig: slide_around_sausage (fallen/Source/collide.cpp)
 // Slides (*x2, *z2) around the outside of a sausage (capsule) shape defined by

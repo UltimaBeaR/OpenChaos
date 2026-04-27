@@ -103,50 +103,9 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
     return tex;
 }
 
-// uc_orig: OS_texture_create (fallen/outro/os.cpp)
-OS_Texture* OS_texture_create(SLONG size, SLONG format)
-{
-    return oge_texture_create_blank(size, format);
-}
-
-// uc_orig: OS_texture_finished_creating (fallen/outro/os.cpp)
-void OS_texture_finished_creating()
-{
-    oge_texture_finished_creating();
-}
-
-// uc_orig: OS_texture_size (fallen/outro/os.cpp)
-SLONG OS_texture_size(OS_Texture* ot)
-{
-    return oge_texture_size(ot);
-}
-
-// uc_orig: OS_texture_lock (fallen/outro/os.cpp)
-void OS_texture_lock(OS_Texture* ot)
-{
-    oge_texture_lock(ot);
-}
-
-// uc_orig: OS_texture_unlock (fallen/outro/os.cpp)
-void OS_texture_unlock(OS_Texture* ot)
-{
-    oge_texture_unlock(ot);
-}
-
 // ========================================================
 // WINDOWS UTILITIES
 // ========================================================
-
-// uc_orig: OS_string (fallen/outro/os.cpp)
-void OS_string(CBYTE* fmt, ...)
-{
-    CBYTE message[512];
-    va_list ap;
-    va_start(ap, fmt);
-    vsprintf(message, fmt, ap);
-    va_end(ap);
-    fprintf(stderr, "%s", message);
-}
 
 // uc_orig: OS_ticks (fallen/outro/os.cpp)
 SLONG OS_ticks(void)
@@ -163,21 +122,6 @@ void OS_ticks_reset()
 // ========================================================
 // MOUSE
 // ========================================================
-
-// uc_orig: OS_mouse_get (fallen/outro/os.cpp)
-void OS_mouse_get(SLONG* x, SLONG* y)
-{
-    int mx, my;
-    sdl3_get_global_mouse_pos(&mx, &my);
-    *x = mx;
-    *y = my;
-}
-
-// uc_orig: OS_mouse_set (fallen/outro/os.cpp)
-void OS_mouse_set(SLONG x, SLONG y)
-{
-    sdl3_warp_mouse_global(x, y);
-}
 
 // Processes Windows messages and maps keyboard/joystick input.
 // Note: the function returns early at OS_CARRY_ON before the message pump —
@@ -304,67 +248,6 @@ void OS_scene_begin()
 void OS_scene_end()
 {
     oge_scene_end();
-}
-
-// Draws a framerate indicator as a row of ticks at the top of the screen.
-// uc_orig: OS_fps (fallen/outro/os.cpp)
-void OS_fps()
-{
-    SLONG i;
-    static SLONG fps = 0;
-    static SLONG last_time = 0;
-    static SLONG last_frame_count = 0;
-    static SLONG frame_count = 0;
-
-    float x1;
-    float y1;
-    float x2;
-    float y2;
-    float tick;
-    SLONG now;
-
-    now = OS_ticks();
-    frame_count += 1;
-
-    if (now >= last_time + 1000) {
-        fps = frame_count - last_frame_count;
-        last_frame_count = frame_count;
-        last_time = now;
-    }
-
-    OS_Buffer* ob = OS_buffer_new();
-
-    for (i = 0; i < fps; i++) {
-        switch ((i + 1) % 10) {
-        case 0:
-            tick = 8.0F;
-            break;
-        case 5:
-            tick = 5.0F;
-            break;
-        default:
-            tick = 3.0F;
-            break;
-        }
-
-        x1 = float(i)       / 100.0F;
-        x2 = float(i + 1)   / 100.0F - 0.001F;
-        y1 = 1.0F - tick    / OS_screen_height;
-        y2 = 1.0F;
-
-        OS_buffer_add_sprite(
-            ob,
-            x1, y1,
-            x2, y2,
-            0.0F, 1.0F,
-            0.0F, 1.0F,
-            0.0F,
-            0x00ffffff,
-            0x00000000,
-            OS_FADE_BOTTOM);
-    }
-
-    OS_buffer_draw(ob, NULL);
 }
 
 // uc_orig: OS_show (fallen/outro/os.cpp)
@@ -590,79 +473,6 @@ void OS_buffer_add_sprite(
             ob->flert[ob->num_flerts + 0].colour = 0x00000000;
             ob->flert[ob->num_flerts + 2].colour = 0x00000000;
         }
-    }
-
-    ob->index[ob->num_indices + 0] = ob->num_flerts + 0;
-    ob->index[ob->num_indices + 1] = ob->num_flerts + 1;
-    ob->index[ob->num_indices + 2] = ob->num_flerts + 3;
-    ob->index[ob->num_indices + 3] = ob->num_flerts + 0;
-    ob->index[ob->num_indices + 4] = ob->num_flerts + 3;
-    ob->index[ob->num_indices + 5] = ob->num_flerts + 2;
-
-    ob->num_indices += 6;
-    ob->num_flerts  += 4;
-}
-
-// uc_orig: OS_buffer_add_sprite_rot (fallen/outro/os.cpp)
-void OS_buffer_add_sprite_rot(
-    OS_Buffer* ob,
-    float x_mid, float y_mid,
-    float size,
-    float angle,
-    float u1, float v1,
-    float u2, float v2,
-    float z,
-    ULONG colour,
-    ULONG specular,
-    float tu1, float tv1,
-    float tu2, float tv2)
-{
-    SLONG i;
-    OS_Flert* of;
-
-    float dx = sin(angle) * size;
-    float dy = cos(angle) * size;
-    float x;
-    float y;
-
-    x_mid *= OS_screen_width;
-    y_mid *= OS_screen_height;
-
-    if (ob->num_indices + 6 > ob->max_indices) {
-        OS_buffer_grow_indices(ob);
-    }
-    if (ob->num_flerts + 4 > ob->max_flerts) {
-        OS_buffer_grow_flerts(ob);
-    }
-
-    for (i = 0; i < 4; i++) {
-        of = &ob->flert[ob->num_flerts + i];
-
-        x = 0.0F;
-        y = 0.0F;
-
-        if (i & 1) { x -= dx; y -= dy; }
-        else        { x += dx; y += dy; }
-
-        if (i & 2) { x += -dy; y += +dx; }
-        else        { x -= -dy; y -= +dx; }
-
-        x *= OS_screen_width;
-        y *= OS_screen_height * 1.33F;
-
-        x += x_mid;
-        y += y_mid;
-
-        of->sx       = x;
-        of->sy       = y;
-        of->sz       = z;
-        of->rhw      = 0.5F;
-        of->colour   = colour;
-        of->specular = specular;
-        of->tu1      = ((i & 1) ? u1  : u2);
-        of->tv1      = ((i & 2) ? v1  : v2);
-        of->tu2      = ((i & 1) ? tu1 : tu2);
-        of->tv2      = ((i & 2) ? tv1 : tv2);
     }
 
     ob->index[ob->num_indices + 0] = ob->num_flerts + 0;
@@ -910,28 +720,6 @@ void OS_buffer_draw(OS_Buffer* ob, OS_Texture* ot1, OS_Texture* ot2, ULONG draw)
     }
 
     OS_buffer_give(ob);
-}
-
-// ========================================================
-// SOUND
-// ========================================================
-
-// uc_orig: OS_sound_init (fallen/outro/os.cpp)
-void OS_sound_init()
-{
-    // Stub — MIDAS implementation was removed.
-}
-
-// uc_orig: OS_sound_start (fallen/outro/os.cpp)
-void OS_sound_start(void)
-{
-    // Stub — MIDAS implementation was removed.
-}
-
-// uc_orig: OS_sound_volume (fallen/outro/os.cpp)
-void OS_sound_volume(float vol)
-{
-    // Stub — MIDAS implementation was removed.
 }
 
 // Entry point from the main game. Initialises graphics, runs the outro loop, cleans up.

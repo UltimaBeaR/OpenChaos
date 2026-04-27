@@ -10,8 +10,6 @@
 #include "things/characters/anim_ids.h"
 
 // Forward declarations for functions defined in other not-yet-migrated files.
-// uc_orig: calc_height_at (fallen/Source/Cop.cpp)
-extern SLONG calc_height_at(SLONG x, SLONG z);
 // uc_orig: person_normal_animate (fallen/Source/Cop.cpp)
 extern SLONG person_normal_animate(Thing* p_person);
 // uc_orig: change_velocity_to (fallen/Source/Cop.cpp)

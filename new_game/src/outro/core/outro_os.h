@@ -23,17 +23,10 @@
 // uc_orig: OS_process_messages (fallen/outro/os.cpp)
 SLONG OS_process_messages(void);
 
-// uc_orig: OS_string (fallen/outro/os.cpp)
-void OS_string(CBYTE* fmt, ...);
 // uc_orig: OS_ticks (fallen/outro/os.cpp)
 SLONG OS_ticks(void);
 // uc_orig: OS_ticks_reset (fallen/outro/os.cpp)
 void OS_ticks_reset(void);
-
-// uc_orig: OS_mouse_get (fallen/outro/os.cpp)
-void OS_mouse_get(SLONG* x, SLONG* y);
-// uc_orig: OS_mouse_set (fallen/outro/os.cpp)
-void OS_mouse_set(SLONG x, SLONG y);
 
 // ========================================================
 // TEXTURE TYPES AND CONSTANTS
@@ -51,39 +44,6 @@ typedef struct os_texture OS_Texture;
 
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
 OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert = UC_FALSE);
-// uc_orig: OS_texture_create (fallen/outro/os.cpp)
-OS_Texture* OS_texture_create(SLONG size, SLONG format);
-// uc_orig: OS_texture_finished_creating (fallen/outro/os.cpp)
-void OS_texture_finished_creating(void);
-// uc_orig: OS_texture_size (fallen/outro/os.cpp)
-SLONG OS_texture_size(OS_Texture* ot);
-// uc_orig: OS_texture_lock (fallen/outro/os.cpp)
-void OS_texture_lock(OS_Texture* ot);
-// uc_orig: OS_texture_unlock (fallen/outro/os.cpp)
-void OS_texture_unlock(OS_Texture* ot);
-
-// Globals set after OS_texture_lock() — see outro_os_globals.h for declarations.
-// (OS_bitmap_format, OS_bitmap_uword_screen, OS_bitmap_uword_pitch, etc.)
-
-// Pixel helper macros for writing into a locked 16-bit texture surface.
-// uc_orig: OS_BITMAP_UWORD_PIXEL (fallen/outro/os.h)
-#define OS_BITMAP_UWORD_PIXEL(x, y) \
-    (OS_bitmap_uword_screen + (x) + (y) * OS_bitmap_uword_pitch)
-// uc_orig: OS_BITMAP_UWORD_COLOUR (fallen/outro/os.h)
-#define OS_BITMAP_UWORD_COLOUR(r, g, b) \
-    ((((r) >> OS_bitmap_mask_r) << OS_bitmap_shift_r) | \
-     (((g) >> OS_bitmap_mask_g) << OS_bitmap_shift_g) | \
-     (((b) >> OS_bitmap_mask_b) << OS_bitmap_shift_b))
-// uc_orig: OS_BITMAP_UWORD_PLOT (fallen/outro/os.h)
-#define OS_BITMAP_UWORD_PLOT(x, y, r, g, b) \
-    { *OS_BITMAP_UWORD_PIXEL(x, y) = OS_BITMAP_UWORD_COLOUR(r, g, b); }
-
-// uc_orig: OS_BITMAP_UBYTE_PIXEL (fallen/outro/os.h)
-#define OS_BITMAP_UBYTE_PIXEL(x, y) \
-    (OS_bitmap_ubyte_screen + (x) + (y) * OS_bitmap_ubyte_pitch)
-// uc_orig: OS_BITMAP_UBYTE_PLOT (fallen/outro/os.h)
-#define OS_BITMAP_UBYTE_PLOT(x, y, c) \
-    { *OS_BITMAP_UBYTE_PIXEL(x, y) = (c); }
 
 // ========================================================
 // CAMERA AND TRANSFORM
@@ -176,20 +136,6 @@ void OS_buffer_add_sprite(
     ULONG specular = 0x00000000,
     ULONG fade = 0);
 
-// uc_orig: OS_buffer_add_sprite_rot (fallen/outro/os.cpp)
-void OS_buffer_add_sprite_rot(
-    OS_Buffer* ob,
-    float x_mid, float y_mid,
-    float radius,  // Percentage of screen width
-    float angle,
-    float u1 = 0.0F, float v1 = 0.0F,
-    float u2 = 1.0F, float v2 = 1.0F,
-    float z = 0.0F,
-    ULONG colour = 0x00ffffff,
-    ULONG specular = 0x00000000,
-    float tu1 = 0.0F, float tv1 = 0.0F,
-    float tu2 = 1.0F, float tv2 = 1.0F);
-
 // uc_orig: OS_buffer_add_sprite_arbitrary (fallen/outro/os.cpp)
 void OS_buffer_add_sprite_arbitrary(
     OS_Buffer* ob,
@@ -246,8 +192,6 @@ void OS_scene_begin(void);
 void OS_scene_end(void);
 // uc_orig: OS_clear_screen (fallen/outro/os.cpp)
 void OS_clear_screen(UBYTE r = 0, UBYTE g = 0, UBYTE b = 0, float z = 1.0F);
-// uc_orig: OS_fps (fallen/outro/os.cpp)
-void OS_fps(void);
 // uc_orig: OS_show (fallen/outro/os.cpp)
 void OS_show(void);
 
@@ -255,12 +199,6 @@ void OS_show(void);
 // SOUND
 // ========================================================
 
-// uc_orig: OS_sound_init (fallen/outro/os.h)
-void OS_sound_init(void);
-// uc_orig: OS_sound_start (fallen/outro/os.h)
-void OS_sound_start(void);
-// uc_orig: OS_sound_volume (fallen/outro/os.h)
-void OS_sound_volume(float vol);
 // uc_orig: OS_sound_loop_start (fallen/outro/os.h)
 void OS_sound_loop_start();
 // uc_orig: OS_sound_loop_process (fallen/outro/os.h)

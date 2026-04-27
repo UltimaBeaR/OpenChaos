@@ -12,9 +12,6 @@
 #include "map/level_pools.h"
 #include "ai/mav.h"
 
-// Forward declaration for highlighting (defined in aeng.cpp, not yet migrated).
-extern void highlight_rface(SLONG rface);
-
 // Helper: returns 1 if the cross product (dx,dz) x (dx1,dz1) is positive (clockwise turn).
 // uc_orig: clock (fallen/Source/walkable.cpp)
 static SLONG clock(const SLONG dx, const SLONG dz, const SLONG dx1, const SLONG dz1)

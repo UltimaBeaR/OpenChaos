@@ -15,43 +15,10 @@ extern SLONG cprod;
 // Set by nearest_point_on_line_and_dist: 1 if projected point lies on the segment, 0 if at an endpoint.
 extern SLONG global_on;
 
-// uc_orig: next_col_vect (fallen/Source/collide.cpp)
-// Index of the next free slot in col_vects[]. Starts at 1 (slot 0 unused).
-extern UWORD next_col_vect;
-
-// uc_orig: next_col_vect_link (fallen/Source/collide.cpp)
-// Index of the next free slot in col_vects_links[]. Starts at 1.
-extern UWORD next_col_vect_link;
-
-// uc_orig: walk_links (fallen/Source/collide.cpp)
-// Pool of walkable-surface linked-list nodes. 30000 entries, 4 bytes each = 120KB.
-extern struct WalkLink walk_links[MAX_WALK_POOL];
-
-// uc_orig: next_walk_link (fallen/Source/collide.cpp)
-// Index of the next free slot in walk_links[]. Starts at 1.
-extern UWORD next_walk_link;
-
-// uc_orig: MAX_ALREADY (fallen/Source/collide.cpp)
-// Maximum number of already-processed facets remembered per slide_along call.
-// Defined here (rather than collide.h) to avoid a circular include.
-#define MAX_ALREADY 50
-
-// uc_orig: already (fallen/Source/collide.cpp)
-// Per-call cache of facet indices already tested during one slide_along pass.
-extern UWORD already[MAX_ALREADY];
-
-// uc_orig: max_facet_find (fallen/Source/collide.cpp)
-// Debug counter tracking the highest number of facets found in a single cell.
-extern UWORD max_facet_find;
-
 // uc_orig: last_slide_colvect (fallen/Source/collide.cpp)
 // Index of the last facet/colvect that deflected movement in slide_along.
 // Set to fence_colvect if the slide was along a fence.
 extern SLONG last_slide_colvect;
-
-// uc_orig: last_slide_dist (fallen/Source/collide.cpp)
-// Distance slid along the wall in the last slide_along call.
-extern SLONG last_slide_dist;
 
 // uc_orig: actual_sliding (fallen/Source/collide.cpp)
 // Set to UC_TRUE inside slide_along when the movement vector was actually

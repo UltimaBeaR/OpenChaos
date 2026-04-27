@@ -4,11 +4,6 @@
 #include "effects/weather/mist.h"
 #include "effects/weather/mist_globals.h"
 
-// Forward declaration: height query from collide.cpp.
-// The call site is commented out in this pre-release build (calc_height_at is declared but not called).
-// uc_orig: calc_height_at (fallen/Source/collide.cpp)
-SLONG calc_height_at(SLONG x, SLONG z);
-
 // uc_orig: MIST_init (fallen/Source/mist.cpp)
 // Resets both the point pool and layer array to empty.
 void MIST_init()

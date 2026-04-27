@@ -4,12 +4,6 @@
 #include "engine/platform/uc_common.h"
 #include "map/pap_globals.h"
 
-// calc_height_at is defined in collide.cpp. Not including collide.h to avoid
-// pulling in thing.h and its transitive includes. This function is not actually
-// called in the released code (the call in FOG_create uses PAP_calc_height_at).
-// uc_orig: calc_height_at (fallen/Source/collide.cpp)
-SLONG calc_height_at(SLONG x, SLONG z);
-
 // uc_orig: FOG_get_dyaw (fallen/Source/fog.cpp)
 // Return the natural (equilibrium) angular velocity for fog patch f_index.
 // Based on the lower 4 bits of the index, giving a range of -7..+8 dyaw values.

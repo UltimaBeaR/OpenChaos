@@ -9,8 +9,6 @@
 #include "things/characters/anim_ids.h"
 #include "map/pap_globals.h"
 
-// uc_orig: calc_height_at (fallen/Source/Thug.cpp)
-extern SLONG calc_height_at(SLONG x, SLONG z);
 // uc_orig: person_normal_animate (fallen/Source/Thug.cpp)
 extern SLONG person_normal_animate(Thing* p_person);
 
