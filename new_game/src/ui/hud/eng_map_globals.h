@@ -43,7 +43,7 @@ extern float MAP_scale_y;
 // uc_orig: MAP_Pulse (fallen/DDEngine/Source/engineMap.cpp)
 typedef struct
 {
-    SLONG life;   // countdown; 0 = unused
+    SLONG life; // countdown; 0 = unused
     ULONG colour;
     float wx;
     float wz;

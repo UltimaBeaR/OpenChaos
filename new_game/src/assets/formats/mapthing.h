@@ -7,21 +7,21 @@
 #include "assets/formats/anim.h"
 
 // uc_orig: MAP_THING_TYPE_PRIM (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_PRIM       1
+#define MAP_THING_TYPE_PRIM 1
 // uc_orig: MAP_THING_TYPE_MULTI_PRIM (fallen/Editor/Headers/Thing.h)
 #define MAP_THING_TYPE_MULTI_PRIM 2
 // uc_orig: MAP_THING_TYPE_ROT_MULTI (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_ROT_MULTI  3
+#define MAP_THING_TYPE_ROT_MULTI 3
 // uc_orig: MAP_THING_TYPE_SPRITE (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_SPRITE     4
+#define MAP_THING_TYPE_SPRITE 4
 // uc_orig: MAP_THING_TYPE_AGENT (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_AGENT      5
+#define MAP_THING_TYPE_AGENT 5
 // uc_orig: MAP_THING_TYPE_LIGHT (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_LIGHT      6
+#define MAP_THING_TYPE_LIGHT 6
 // uc_orig: MAP_THING_TYPE_BUILDING (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_BUILDING   7
+#define MAP_THING_TYPE_BUILDING 7
 // uc_orig: MAP_THING_TYPE_ANIM_PRIM (fallen/Editor/Headers/Thing.h)
-#define MAP_THING_TYPE_ANIM_PRIM  8
+#define MAP_THING_TYPE_ANIM_PRIM 8
 
 // uc_orig: MapThingPSX (fallen/Editor/Headers/Thing.h)
 // PSX map thing entry as stored in level files. Describes a placed object:
@@ -54,8 +54,8 @@ struct MapThingPSX {
         EditorData;
     ULONG DummyArea[3];
     SLONG TweenStage;
-    uint32_t CurrentFrame;  // on-disk: old pointer value, never used after read
-    uint32_t NextFrame;     // on-disk: old pointer value, never used after read
+    uint32_t CurrentFrame; // on-disk: old pointer value, never used after read
+    uint32_t NextFrame; // on-disk: old pointer value, never used after read
 };
 #pragma pack(pop)
 static_assert(sizeof(MapThingPSX) == 82, "MapThingPSX: binary file layout");

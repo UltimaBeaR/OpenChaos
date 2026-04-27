@@ -176,14 +176,15 @@ constexpr uint32_t STAR_FLUSH_QUAD_THRESHOLD = 16383;
 
 // Render-thread singletons. clear() on vector<POD> is O(1) and keeps capacity.
 std::vector<GEVertexTL> s_star_verts;
-std::vector<uint16_t>   s_star_inds;
+std::vector<uint16_t> s_star_inds;
 
 inline void star_flush_batch()
 {
-    if (s_star_inds.empty()) return;
+    if (s_star_inds.empty())
+        return;
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
         s_star_verts.data(), uint32_t(s_star_verts.size()),
-        s_star_inds.data(),  uint32_t(s_star_inds.size()));
+        s_star_inds.data(), uint32_t(s_star_inds.size()));
     s_star_verts.clear();
     s_star_inds.clear();
 }
@@ -204,20 +205,32 @@ inline void star_emit_pixel(SLONG px, SLONG py, uint8_t c, SLONG size = 1)
     // ge_unlock_screen). `size` scales with resolution — on 4:3 640×480 = 1
     // (original behaviour), on 1080p ≈ 2, on 4K ≈ 4 — so stars keep the
     // same apparent on-screen size rather than shrinking into subpixels.
-    const float x0 = float(px)        + 0.5f;
-    const float y0 = float(py)        + 0.5f;
+    const float x0 = float(px) + 0.5f;
+    const float y0 = float(py) + 0.5f;
     const float x1 = float(px + size) + 0.5f;
     const float y1 = float(py + size) + 0.5f;
 
     const uint16_t base = uint16_t(s_star_verts.size());
 
     GEVertexTL v;
-    v.z = 0.0f; v.rhw = 1.0f;
-    v.color = color; v.specular = 0xFF000000; v.u = 0.0f; v.v = 0.0f;
-    v.x = x0; v.y = y0; s_star_verts.push_back(v);
-    v.x = x1; v.y = y0; s_star_verts.push_back(v);
-    v.x = x0; v.y = y1; s_star_verts.push_back(v);
-    v.x = x1; v.y = y1; s_star_verts.push_back(v);
+    v.z = 0.0f;
+    v.rhw = 1.0f;
+    v.color = color;
+    v.specular = 0xFF000000;
+    v.u = 0.0f;
+    v.v = 0.0f;
+    v.x = x0;
+    v.y = y0;
+    s_star_verts.push_back(v);
+    v.x = x1;
+    v.y = y0;
+    s_star_verts.push_back(v);
+    v.x = x0;
+    v.y = y1;
+    s_star_verts.push_back(v);
+    v.x = x1;
+    v.y = y1;
+    s_star_verts.push_back(v);
 
     s_star_inds.push_back(base + 0);
     s_star_inds.push_back(base + 1);
@@ -259,7 +272,8 @@ void SKY_draw_stars(
     // stays constant across resolutions. At 4:3 640×480 this is 1 px
     // (original). On 1080p ≈ 2 px, on 4K ≈ 4 px.
     SLONG star_size = SLONG(ymul);
-    if (star_size < 1) star_size = 1;
+    if (star_size < 1)
+        star_size = 1;
 
     s_star_verts.clear();
     s_star_inds.clear();
@@ -304,7 +318,8 @@ void SKY_draw_stars(
 
     // Nothing accumulated → no draw, no state touch. Common case for clipped
     // or daytime camera angles (caller already gates daytime away).
-    if (s_star_inds.empty()) return;
+    if (s_star_inds.empty())
+        return;
 
     // 2D overlay config: no depth, no blend, no texture — pure vertex color.
     // push/pop keeps these mutations out of the GERenderState cache that the
@@ -323,7 +338,6 @@ void SKY_draw_stars(
 
     ge_pop_render_state();
 }
-
 
 // uc_orig: SKY_draw_poly_moon (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_poly_moon(
@@ -576,7 +590,6 @@ SLONG SKY_draw_moon_reflection(
 
     return UC_TRUE;
 }
-
 
 //  0  1
 //

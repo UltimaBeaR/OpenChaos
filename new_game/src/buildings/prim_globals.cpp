@@ -1,7 +1,7 @@
 // Global variable definitions for the prim (static world mesh object) system.
 
 #include "buildings/prim_globals.h"
-#include "engine/core/types.h"   // CBYTE, SLONG, UWORD
+#include "engine/core/types.h" // CBYTE, SLONG, UWORD
 
 // uc_orig: prim_info (fallen/Source/Prim.cpp)
 PrimInfo* prim_info;

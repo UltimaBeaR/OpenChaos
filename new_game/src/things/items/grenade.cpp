@@ -1,5 +1,5 @@
-#include "things/core/thing.h"     // Thing, pool types
-#include "game/game_types.h"   // GAME_TURN, TICK_RATIO, TICK_SHIFT, pool macros
+#include "things/core/thing.h" // Thing, pool types
+#include "game/game_types.h" // GAME_TURN, TICK_RATIO, TICK_SHIFT, pool macros
 #include "assets/sound_id.h"
 #include "engine/audio/mfx.h"
 #include "engine/core/fmatrix.h"
@@ -9,15 +9,15 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "things/core/statedef.h"
-#include "engine/graphics/pipeline/aeng.h"   // AENG_world_line_nondebug
-#include "engine/input/keyboard_globals.h"   // ControlFlag
-#include "game/game_tick_globals.h"          // allow_debug_keys
+#include "engine/graphics/pipeline/aeng.h" // AENG_world_line_nondebug
+#include "engine/input/keyboard_globals.h" // ControlFlag
+#include "game/game_tick_globals.h" // allow_debug_keys
 #include "engine/graphics/postprocess/bloom.h"
-#include "engine/effects/psystem.h"           // PFLAG_* particle flags
+#include "engine/effects/psystem.h" // PFLAG_* particle flags
 #include "things/items/grenade.h"
 #include "things/items/grenade_globals.h"
-#include "things/core/interact.h"       // calc_sub_objects_position
-#include "engine/physics/collide.h"     // create_shockwave
+#include "things/core/interact.h" // calc_sub_objects_position
+#include "engine/physics/collide.h" // create_shockwave
 
 // Forward declarations for functions not yet migrated.
 // uc_orig: PANEL_draw_gun_sight (fallen/Source/gamemenu.cpp or frontend.cpp)

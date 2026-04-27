@@ -19,7 +19,6 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/text/font2d_globals.h"
 
-
 // Thing, Class constants, person types, special items
 #include "things/core/thing.h"
 #include "things/core/thing_globals.h"
@@ -32,7 +31,6 @@ extern SLONG ScreenHeight;
 #include "assets/sound_id.h"
 
 #include "missions/eway.h"
-
 
 // FC_cam[] for compass bearing calculation in PANEL_last
 #include "camera/fc.h"
@@ -237,7 +235,7 @@ void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLO
     p1.colour = 0xc0000000 | 0x0f;
     p1.specular = 0xff000000;
 
-    extern void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, unsigned char sort_to_front);
+    extern void POLY_add_rect(POLY_Point * p1, SLONG width, SLONG height, SLONG page, unsigned char sort_to_front);
 
     if (p1.IsValid()) {
         POLY_add_rect(&p1, 54, 4, POLY_PAGE_COLOUR, 0);
@@ -286,10 +284,18 @@ void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG sc
     for (c0 = 0; c0 < 4; c0++) {
         p2 = p1 = pstart;
         switch (c0) {
-        case 0: cangle = +angle; break;
-        case 1: cangle = -angle; break;
-        case 2: cangle = 1024 + angle; break;
-        case 3: cangle = 1024 - angle; break;
+        case 0:
+            cangle = +angle;
+            break;
+        case 1:
+            cangle = -angle;
+            break;
+        case 2:
+            cangle = 1024 + angle;
+            break;
+        case 3:
+            cangle = 1024 - angle;
+            break;
         }
 
         dx1 = ((COS(cangle & 2047) * r_out) >> 16);
@@ -324,10 +330,18 @@ void PANEL_draw_gun_sight(SLONG mx, SLONG my, SLONG mz, SLONG accuracy, SLONG sc
     for (c0 = 0; c0 < 4; c0++) {
         p2 = p1 = pstart;
         switch (c0) {
-        case 0: cangle = 512; break;
-        case 1: cangle = -512; break;
-        case 2: cangle = 1024; break;
-        case 3: cangle = 0; break;
+        case 0:
+            cangle = 512;
+            break;
+        case 1:
+            cangle = -512;
+            break;
+        case 2:
+            cangle = 1024;
+            break;
+        case 3:
+            cangle = 0;
+            break;
         }
 
         dx1 = ((COS(cangle & 2047) * (r_out)) >> 16);
@@ -892,9 +906,9 @@ void PANEL_fadeout_draw(void)
         // quad to FBO dims would shrink it to a small upper-left patch on
         // the default FB. ui_coords is recomputed to dst rect dims at the
         // start of the UI pass, so it tracks the right target automatically.
-        const float vp_w  = ui_coords::g_screen_w_px;
-        const float vp_h  = ui_coords::g_screen_h_px;
-        const float diag  = sqrtf(vp_w * vp_w + vp_h * vp_h);
+        const float vp_w = ui_coords::g_screen_w_px;
+        const float vp_h = ui_coords::g_screen_h_px;
+        const float diag = sqrtf(vp_w * vp_w + vp_h * vp_h);
         // Cat disc occupies ~half the texture width (cat_radius ≈ 0.25 of
         // texture width), so its visible diameter = quad_width × 0.5. To
         // make the disc circumscribe the target (describe every corner),
@@ -908,9 +922,9 @@ void PANEL_fadeout_draw(void)
         const float saved_ys = PolyPage::s_YScale;
         const float saved_xo = PolyPage::s_XOffset;
         const float saved_yo = PolyPage::s_YOffset;
-        PolyPage::s_XScale  = scale;
-        PolyPage::s_YScale  = scale;
-        PolyPage::s_XOffset = (vp_w - float(DisplayWidth)  * scale) * 0.5f;
+        PolyPage::s_XScale = scale;
+        PolyPage::s_YScale = scale;
+        PolyPage::s_XOffset = (vp_w - float(DisplayWidth) * scale) * 0.5f;
         PolyPage::s_YOffset = (vp_h - float(DisplayHeight) * scale) * 0.5f;
 
         POLY_frame_init(UC_FALSE, UC_FALSE);
@@ -1000,8 +1014,8 @@ void PANEL_fadeout_draw(void)
         POLY_frame_draw(UC_FALSE, UC_FALSE);
 
         // Restore caller affine.
-        PolyPage::s_XScale  = saved_xs;
-        PolyPage::s_YScale  = saved_ys;
+        PolyPage::s_XScale = saved_xs;
+        PolyPage::s_YScale = saved_ys;
         PolyPage::s_XOffset = saved_xo;
         PolyPage::s_YOffset = saved_yo;
     }
@@ -1435,218 +1449,218 @@ void PANEL_last(void)
     // Scope closes before PANEL_new_text_process because the message
     // block uses a different anchor (CENTER_BOTTOM).
     {
-    PolyPage::UIModeScope _panel_scope(ui_coords::UIAnchor::LEFT_BOTTOM);
+        PolyPage::UIModeScope _panel_scope(ui_coords::UIAnchor::LEFT_BOTTOM);
 
-    // Draw the panel background sprite.
-    PANEL_draw_quad(
-        (float)(m_iPanelXPos + 0),
-        (float)(m_iPanelYPos - 165),
-        (float)(m_iPanelXPos + 212),
-        (float)(m_iPanelYPos - 0),
-        POLY_PAGE_LASTPANEL_ALPHA,
-        0xffffffff,
-        0.0F,
-        90.0F / 256.0F,
-        212.0F / 256.0F,
-        1.0F);
-
-    // Determine current weapon/item sprite and ammo text.
-    SLONG sprite = -1;
-    CBYTE text[64];
-    text[0] = '\000';
-
-    if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
-        sprite = PANEL_LSPRITE_LOW_GEAR;
-    } else {
-        if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
-            sprite = PANEL_LSPRITE_PISTOL;
-            if (darci->Genus.Person->ammo_packs_pistol) {
-                sprintf(text, "%d\\%d", darci->Genus.Person->Ammo, darci->Genus.Person->ammo_packs_pistol / 15);
-            } else {
-                sprintf(text, "%d", darci->Genus.Person->Ammo);
-            }
-        } else if (darci->Genus.Person->SpecialUse) {
-            Thing* p_special = TO_THING(darci->Genus.Person->SpecialUse);
-
-            switch (p_special->Genus.Special->SpecialType) {
-            case SPECIAL_SHOTGUN:
-                sprite = PANEL_LSPRITE_SHOTGUN;
-                if (darci->Genus.Person->ammo_packs_shotgun) {
-                    sprintf(text, "%d\\%d", p_special->Genus.Special->ammo, darci->Genus.Person->ammo_packs_shotgun / SPECIAL_AMMO_IN_A_SHOTGUN);
-                } else {
-                    sprintf(text, "%d", p_special->Genus.Special->ammo);
-                }
-                break;
-
-            case SPECIAL_AK47:
-                sprite = PANEL_LSPRITE_AK47;
-                if (darci->Genus.Person->ammo_packs_ak47) {
-                    sprintf(text, "%d\\%d", p_special->Genus.Special->ammo, darci->Genus.Person->ammo_packs_ak47 / SPECIAL_AMMO_IN_A_AK47);
-                } else {
-                    sprintf(text, "%d", p_special->Genus.Special->ammo);
-                }
-                break;
-
-            case SPECIAL_EXPLOSIVES:
-                sprite = PANEL_LSPRITE_EXPLOSIVES;
-                sprintf(text, "%d", p_special->Genus.Special->ammo);
-                break;
-
-            case SPECIAL_GRENADE:
-                sprite = PANEL_LSPRITE_GRENADE;
-                // If pin is pulled, show countdown.
-                if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
-                    SLONG secsleft;
-                    secsleft = p_special->Genus.Special->timer / (16 * 20) + 1;
-                    SATURATE(secsleft, 0, 6);
-
-                    ULONG colour, colours[] = { 0xff3300, 0xff8800, 0x88ff00, 0x888888 };
-                    if (secsleft < 1)
-                        colour = *colours;
-                    else if (secsleft > 3)
-                        colour = colours[3];
-                    else
-                        colour = colours[secsleft];
-
-                    sprintf(text, "%d", secsleft);
-
-                    FONT2D_DrawString(
-                        text,
-                        m_iPanelXPos + 141,
-                        m_iPanelYPos - 53,
-                        colour,
-                        256);
-                }
-                sprintf(text, "%d", p_special->Genus.Special->ammo);
-                break;
-
-            case SPECIAL_KNIFE:
-                sprite = PANEL_LSPRITE_KNIFE;
-                break;
-
-            case SPECIAL_BASEBALLBAT:
-                sprite = PANEL_LSPRITE_BBB;
-                break;
-
-            default:
-                sprite = PANEL_LSPRITE_QMARK;
-                break;
-            }
-        } else {
-            sprite = PANEL_LSPRITE_FIST;
-        }
-    }
-
-    // Draw the weapon/item icon centred in the panel.
-    {
-        ASSERT(WITHIN(sprite, 0, PANEL_LSPRITE_NUMBER - 1));
-
-        PANEL_Lsprite* pls = &PANEL_lsprite[sprite];
-
-        float uwidth = (pls->u2 - pls->u1) * 256.0F;
-        float vwidth = (pls->v2 - pls->v1) * 256.0F;
-
-        float x1 = (float)(m_iPanelXPos + 170) - uwidth * 0.5F;
-        float y1 = (float)(m_iPanelYPos - 63) - vwidth * 0.5F;
-        float x2 = (float)(m_iPanelXPos + 170) + uwidth * 0.5F;
-        float y2 = (float)(m_iPanelYPos - 63) + vwidth * 0.5F;
-
-        if (ftol(uwidth) & 0x1) {
-            x1 -= 0.5F;
-            x2 -= 0.5F;
-        }
-        if (ftol(vwidth) & 0x1) {
-            y1 -= 0.5F;
-            y2 -= 0.5F;
-        }
-        // Move the AK47 icon up a bit so it doesn't overlap ammo count.
-        if (sprite == PANEL_LSPRITE_AK47) {
-            y1 -= 8.0F;
-            y2 -= 8.0F;
-        }
-
+        // Draw the panel background sprite.
         PANEL_draw_quad(
-            x1, y1,
-            x2, y2,
-            BodgePageIntoAdd(pls->page),
-            0xFFffffff,
-            pls->u1, pls->v1,
-            pls->u2, pls->v2);
-    }
+            (float)(m_iPanelXPos + 0),
+            (float)(m_iPanelYPos - 165),
+            (float)(m_iPanelXPos + 212),
+            (float)(m_iPanelYPos - 0),
+            POLY_PAGE_LASTPANEL_ALPHA,
+            0xffffffff,
+            0.0F,
+            90.0F / 256.0F,
+            212.0F / 256.0F,
+            1.0F);
 
-    // Draw the ammo count text.
-    if (text) {
-        FONT2D_DrawStringRightJustify(
-            text,
-            m_iPanelXPos + 215,
-            m_iPanelYPos - 50,
-            0xffffff,
-            256 + 64);
-    }
+        // Determine current weapon/item sprite and ammo text.
+        SLONG sprite = -1;
+        CBYTE text[64];
+        text[0] = '\000';
 
-    // Draw crime rate if the HUD flag is set.
-    if (GAME_FLAGS & GF_SHOW_CRIMERATE) {
-        CBYTE crimerate[64];
-        sprintf(crimerate, "%d%%", CRIME_RATE);
-
-        if (CRIME_RATE >= 95) {
-            static UWORD pulse = 0;
-            SLONG colour;
-            pulse += (TICK_RATIO * 80) >> TICK_SHIFT;
-            colour = (SIN(pulse & 2047) >> 9) + 128;
-            colour = colour | (colour << 8);
-            FONT2D_DrawStringCentred(
-                crimerate,
-                m_iPanelXPos + 170,
-                m_iPanelYPos - 116,
-                0xff0000 | colour);
+        if (darci->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
+            sprite = PANEL_LSPRITE_LOW_GEAR;
         } else {
-            FONT2D_DrawStringCentred(
-                crimerate,
-                m_iPanelXPos + 170,
-                m_iPanelYPos - 116,
-                0xffffff);
+            if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
+                sprite = PANEL_LSPRITE_PISTOL;
+                if (darci->Genus.Person->ammo_packs_pistol) {
+                    sprintf(text, "%d\\%d", darci->Genus.Person->Ammo, darci->Genus.Person->ammo_packs_pistol / 15);
+                } else {
+                    sprintf(text, "%d", darci->Genus.Person->Ammo);
+                }
+            } else if (darci->Genus.Person->SpecialUse) {
+                Thing* p_special = TO_THING(darci->Genus.Person->SpecialUse);
+
+                switch (p_special->Genus.Special->SpecialType) {
+                case SPECIAL_SHOTGUN:
+                    sprite = PANEL_LSPRITE_SHOTGUN;
+                    if (darci->Genus.Person->ammo_packs_shotgun) {
+                        sprintf(text, "%d\\%d", p_special->Genus.Special->ammo, darci->Genus.Person->ammo_packs_shotgun / SPECIAL_AMMO_IN_A_SHOTGUN);
+                    } else {
+                        sprintf(text, "%d", p_special->Genus.Special->ammo);
+                    }
+                    break;
+
+                case SPECIAL_AK47:
+                    sprite = PANEL_LSPRITE_AK47;
+                    if (darci->Genus.Person->ammo_packs_ak47) {
+                        sprintf(text, "%d\\%d", p_special->Genus.Special->ammo, darci->Genus.Person->ammo_packs_ak47 / SPECIAL_AMMO_IN_A_AK47);
+                    } else {
+                        sprintf(text, "%d", p_special->Genus.Special->ammo);
+                    }
+                    break;
+
+                case SPECIAL_EXPLOSIVES:
+                    sprite = PANEL_LSPRITE_EXPLOSIVES;
+                    sprintf(text, "%d", p_special->Genus.Special->ammo);
+                    break;
+
+                case SPECIAL_GRENADE:
+                    sprite = PANEL_LSPRITE_GRENADE;
+                    // If pin is pulled, show countdown.
+                    if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
+                        SLONG secsleft;
+                        secsleft = p_special->Genus.Special->timer / (16 * 20) + 1;
+                        SATURATE(secsleft, 0, 6);
+
+                        ULONG colour, colours[] = { 0xff3300, 0xff8800, 0x88ff00, 0x888888 };
+                        if (secsleft < 1)
+                            colour = *colours;
+                        else if (secsleft > 3)
+                            colour = colours[3];
+                        else
+                            colour = colours[secsleft];
+
+                        sprintf(text, "%d", secsleft);
+
+                        FONT2D_DrawString(
+                            text,
+                            m_iPanelXPos + 141,
+                            m_iPanelYPos - 53,
+                            colour,
+                            256);
+                    }
+                    sprintf(text, "%d", p_special->Genus.Special->ammo);
+                    break;
+
+                case SPECIAL_KNIFE:
+                    sprite = PANEL_LSPRITE_KNIFE;
+                    break;
+
+                case SPECIAL_BASEBALLBAT:
+                    sprite = PANEL_LSPRITE_BBB;
+                    break;
+
+                default:
+                    sprite = PANEL_LSPRITE_QMARK;
+                    break;
+                }
+            } else {
+                sprite = PANEL_LSPRITE_FIST;
+            }
         }
-    }
 
-    // Draw the circular health/stamina arc for the player.
-    {
-        SLONG i;
+        // Draw the weapon/item icon centred in the panel.
+        {
+            ASSERT(WITHIN(sprite, 0, PANEL_LSPRITE_NUMBER - 1));
 
-        float angle;
+            PANEL_Lsprite* pls = &PANEL_lsprite[sprite];
 
-        float du;
-        float dv;
+            float uwidth = (pls->u2 - pls->u1) * 256.0F;
+            float vwidth = (pls->v2 - pls->v1) * 256.0F;
 
-        float u1;
-        float v1;
-        float u2;
-        float v2;
+            float x1 = (float)(m_iPanelXPos + 170) - uwidth * 0.5F;
+            float y1 = (float)(m_iPanelYPos - 63) - vwidth * 0.5F;
+            float x2 = (float)(m_iPanelXPos + 170) + uwidth * 0.5F;
+            float y2 = (float)(m_iPanelYPos - 63) + vwidth * 0.5F;
 
-        float last_u1;
-        float last_v1;
-        float last_u2;
-        float last_v2;
+            if (ftol(uwidth) & 0x1) {
+                x1 -= 0.5F;
+                x2 -= 0.5F;
+            }
+            if (ftol(vwidth) & 0x1) {
+                y1 -= 0.5F;
+                y2 -= 0.5F;
+            }
+            // Move the AK47 icon up a bit so it doesn't overlap ammo count.
+            if (sprite == PANEL_LSPRITE_AK47) {
+                y1 -= 8.0F;
+                y2 -= 8.0F;
+            }
 
-        POLY_Point pp[4];
-        POLY_Point* quad[4];
-        POLY_Point* tri[3];
+            PANEL_draw_quad(
+                x1, y1,
+                x2, y2,
+                BodgePageIntoAdd(pls->page),
+                0xFFffffff,
+                pls->u1, pls->v1,
+                pls->u2, pls->v2);
+        }
 
-        quad[0] = &pp[0];
-        quad[1] = &pp[1];
-        quad[2] = &pp[2];
-        quad[3] = &pp[3];
+        // Draw the ammo count text.
+        if (text) {
+            FONT2D_DrawStringRightJustify(
+                text,
+                m_iPanelXPos + 215,
+                m_iPanelYPos - 50,
+                0xffffff,
+                256 + 64);
+        }
 
-        tri[0] = &pp[0];
-        tri[1] = &pp[1];
-        tri[2] = &pp[2];
+        // Draw crime rate if the HUD flag is set.
+        if (GAME_FLAGS & GF_SHOW_CRIMERATE) {
+            CBYTE crimerate[64];
+            sprintf(crimerate, "%d%%", CRIME_RATE);
 
-        static float blah1 = (-43 * 2.0F * PI / 360.0F);
-        static float blah2 = (-227 * 2.0F * PI / 360.0F);
-        UBYTE is_in_car = darci->Genus.Person->InCar ? 1 : 0;
-        float car_offset = is_in_car ? 130.0F : 0.0F;
+            if (CRIME_RATE >= 95) {
+                static UWORD pulse = 0;
+                SLONG colour;
+                pulse += (TICK_RATIO * 80) >> TICK_SHIFT;
+                colour = (SIN(pulse & 2047) >> 9) + 128;
+                colour = colour | (colour << 8);
+                FONT2D_DrawStringCentred(
+                    crimerate,
+                    m_iPanelXPos + 170,
+                    m_iPanelYPos - 116,
+                    0xff0000 | colour);
+            } else {
+                FONT2D_DrawStringCentred(
+                    crimerate,
+                    m_iPanelXPos + 170,
+                    m_iPanelYPos - 116,
+                    0xffffff);
+            }
+        }
 
-        Thing* the_car = is_in_car ? TO_THING(darci->Genus.Person->InCar) : 0;
+        // Draw the circular health/stamina arc for the player.
+        {
+            SLONG i;
+
+            float angle;
+
+            float du;
+            float dv;
+
+            float u1;
+            float v1;
+            float u2;
+            float v2;
+
+            float last_u1;
+            float last_v1;
+            float last_u2;
+            float last_v2;
+
+            POLY_Point pp[4];
+            POLY_Point* quad[4];
+            POLY_Point* tri[3];
+
+            quad[0] = &pp[0];
+            quad[1] = &pp[1];
+            quad[2] = &pp[2];
+            quad[3] = &pp[3];
+
+            tri[0] = &pp[0];
+            tri[1] = &pp[1];
+            tri[2] = &pp[2];
+
+            static float blah1 = (-43 * 2.0F * PI / 360.0F);
+            static float blah2 = (-227 * 2.0F * PI / 360.0F);
+            UBYTE is_in_car = darci->Genus.Person->InCar ? 1 : 0;
+            float car_offset = is_in_car ? 130.0F : 0.0F;
+
+            Thing* the_car = is_in_car ? TO_THING(darci->Genus.Person->InCar) : 0;
 
 #define PLH_MID_U (71.0F + car_offset)
 #define PLH_MID_V (71.0F)
@@ -1658,396 +1672,396 @@ void PANEL_last(void)
 #define PLH_MID_X ((float)(m_iPanelXPos + 74))
 #define PLH_MID_Y ((float)(m_iPanelYPos - (256 - 166)))
 
-        angle = PLH_ANGLE1;
+            angle = PLH_ANGLE1;
 
-        float dangle;
-        float fraction;
+            float dangle;
+            float fraction;
 
-        dangle = (PLH_ANGLE2 - PLH_ANGLE1) / PLH_SEGS;
+            dangle = (PLH_ANGLE2 - PLH_ANGLE1) / PLH_SEGS;
 
-        // Fraction of health remaining (different scale for vehicles/Roper).
-        fraction = is_in_car ? float(the_car->Genus.Vehicle->Health) * (1.0F / 300.0F) : float(darci->Genus.Person->Health) * ((darci->Genus.Person->PersonType == PERSON_ROPER) ? (1.0F / 400.0F) : (1.0F / 200.0F));
+            // Fraction of health remaining (different scale for vehicles/Roper).
+            fraction = is_in_car ? float(the_car->Genus.Vehicle->Health) * (1.0F / 300.0F) : float(darci->Genus.Person->Health) * ((darci->Genus.Person->PersonType == PERSON_ROPER) ? (1.0F / 400.0F) : (1.0F / 200.0F));
 
-        SATURATE(fraction, 0.0F, 1.0F);
+            SATURATE(fraction, 0.0F, 1.0F);
 
-        dangle *= fraction;
+            dangle *= fraction;
 
-        for (i = 0; i <= PLH_SEGS; i++) {
-            du = sin(angle);
-            dv = cos(angle);
+            for (i = 0; i <= PLH_SEGS; i++) {
+                du = sin(angle);
+                dv = cos(angle);
 
-            u1 = (PLH_MID_U + du * (PLH_RADIUS + PLH_WIDTH));
-            v1 = (PLH_MID_V + dv * (PLH_RADIUS + PLH_WIDTH));
+                u1 = (PLH_MID_U + du * (PLH_RADIUS + PLH_WIDTH));
+                v1 = (PLH_MID_V + dv * (PLH_RADIUS + PLH_WIDTH));
 
-            u2 = (PLH_MID_U + du * (PLH_RADIUS - PLH_WIDTH));
-            v2 = (PLH_MID_V + dv * (PLH_RADIUS - PLH_WIDTH));
+                u2 = (PLH_MID_U + du * (PLH_RADIUS - PLH_WIDTH));
+                v2 = (PLH_MID_V + dv * (PLH_RADIUS - PLH_WIDTH));
 
-            if (i > 0) {
-                float fWDepthBodge = PANEL_GetNextDepthBodge();
-                float fZDepthBodge = 1.0f - fWDepthBodge;
+                if (i > 0) {
+                    float fWDepthBodge = PANEL_GetNextDepthBodge();
+                    float fZDepthBodge = 1.0f - fWDepthBodge;
 
-                pp[0].X = PLH_MID_X + (u1 - PLH_MID_U);
-                pp[0].Y = PLH_MID_Y + (v1 - PLH_MID_V);
-                pp[0].z = fZDepthBodge;
-                pp[0].Z = fWDepthBodge;
-                pp[0].x = 0.0F;
-                pp[0].y = 0.0F;
-                pp[0].u = u1 * (1.0F / 256.0F);
-                pp[0].v = v1 * (1.0F / 256.0F);
-                pp[0].colour = 0xffffffff;
-                pp[0].specular = 0xff000000;
+                    pp[0].X = PLH_MID_X + (u1 - PLH_MID_U);
+                    pp[0].Y = PLH_MID_Y + (v1 - PLH_MID_V);
+                    pp[0].z = fZDepthBodge;
+                    pp[0].Z = fWDepthBodge;
+                    pp[0].x = 0.0F;
+                    pp[0].y = 0.0F;
+                    pp[0].u = u1 * (1.0F / 256.0F);
+                    pp[0].v = v1 * (1.0F / 256.0F);
+                    pp[0].colour = 0xffffffff;
+                    pp[0].specular = 0xff000000;
 
-                pp[1].X = PLH_MID_X + (u2 - PLH_MID_U);
-                pp[1].Y = PLH_MID_Y + (v2 - PLH_MID_V);
-                pp[1].z = fZDepthBodge;
-                pp[1].Z = fWDepthBodge;
-                pp[1].x = 0.0F;
-                pp[1].y = 0.0F;
-                pp[1].u = u2 * (1.0F / 256.0F);
-                pp[1].v = v2 * (1.0F / 256.0F);
-                pp[1].colour = 0xffffffff;
-                pp[1].specular = 0xff000000;
+                    pp[1].X = PLH_MID_X + (u2 - PLH_MID_U);
+                    pp[1].Y = PLH_MID_Y + (v2 - PLH_MID_V);
+                    pp[1].z = fZDepthBodge;
+                    pp[1].Z = fWDepthBodge;
+                    pp[1].x = 0.0F;
+                    pp[1].y = 0.0F;
+                    pp[1].u = u2 * (1.0F / 256.0F);
+                    pp[1].v = v2 * (1.0F / 256.0F);
+                    pp[1].colour = 0xffffffff;
+                    pp[1].specular = 0xff000000;
 
-                pp[2].X = PLH_MID_X + (last_u1 - PLH_MID_U);
-                pp[2].Y = PLH_MID_Y + (last_v1 - PLH_MID_V);
-                pp[2].z = fZDepthBodge;
-                pp[2].Z = fWDepthBodge;
-                pp[2].x = 0.0F;
-                pp[2].y = 0.0F;
-                pp[2].u = last_u1 * (1.0F / 256.0F);
-                pp[2].v = last_v1 * (1.0F / 256.0F);
-                pp[2].colour = 0xffffffff;
-                pp[2].specular = 0xff000000;
+                    pp[2].X = PLH_MID_X + (last_u1 - PLH_MID_U);
+                    pp[2].Y = PLH_MID_Y + (last_v1 - PLH_MID_V);
+                    pp[2].z = fZDepthBodge;
+                    pp[2].Z = fWDepthBodge;
+                    pp[2].x = 0.0F;
+                    pp[2].y = 0.0F;
+                    pp[2].u = last_u1 * (1.0F / 256.0F);
+                    pp[2].v = last_v1 * (1.0F / 256.0F);
+                    pp[2].colour = 0xffffffff;
+                    pp[2].specular = 0xff000000;
 
-                pp[3].X = PLH_MID_X + (last_u2 - PLH_MID_U);
-                pp[3].Y = PLH_MID_Y + (last_v2 - PLH_MID_V);
-                pp[3].z = fZDepthBodge;
-                pp[3].Z = fWDepthBodge;
-                pp[3].x = 0.0F;
-                pp[3].y = 0.0F;
-                pp[3].u = last_u2 * (1.0F / 256.0F);
-                pp[3].v = last_v2 * (1.0F / 256.0F);
-                pp[3].colour = 0xffffffff;
-                pp[3].specular = 0xff000000;
+                    pp[3].X = PLH_MID_X + (last_u2 - PLH_MID_U);
+                    pp[3].Y = PLH_MID_Y + (last_v2 - PLH_MID_V);
+                    pp[3].z = fZDepthBodge;
+                    pp[3].Z = fWDepthBodge;
+                    pp[3].x = 0.0F;
+                    pp[3].y = 0.0F;
+                    pp[3].u = last_u2 * (1.0F / 256.0F);
+                    pp[3].v = last_v2 * (1.0F / 256.0F);
+                    pp[3].colour = 0xffffffff;
+                    pp[3].specular = 0xff000000;
 
-                POLY_add_quad(quad, POLY_PAGE_LASTPANEL2_ALPHA, UC_FALSE, UC_TRUE);
+                    POLY_add_quad(quad, POLY_PAGE_LASTPANEL2_ALPHA, UC_FALSE, UC_TRUE);
+                }
+
+                last_u1 = u1;
+                last_v1 = v1;
+                last_u2 = u2;
+                last_v2 = v2;
+
+                angle += dangle;
             }
-
-            last_u1 = u1;
-            last_v1 = v1;
-            last_u2 = u2;
-            last_v2 = v2;
-
-            angle += dangle;
         }
-    }
 
-    // Draw the stamina pip marks (coloured squares).
-    {
-        UBYTE i, stamina = darci->Genus.Person->Stamina / 25;
-        SLONG x = m_iPanelXPos + 107;
-        SLONG y = m_iPanelYPos - 36;
-        SLONG rgb[] = { 0x00FF0000, 0x00C04000, 0x00808000, 0x0040C000, 0x0000ff00 };
+        // Draw the stamina pip marks (coloured squares).
+        {
+            UBYTE i, stamina = darci->Genus.Person->Stamina / 25;
+            SLONG x = m_iPanelXPos + 107;
+            SLONG y = m_iPanelYPos - 36;
+            SLONG rgb[] = { 0x00FF0000, 0x00C04000, 0x00808000, 0x0040C000, 0x0000ff00 };
 
-        SATURATE(stamina, 0, 5);
+            SATURATE(stamina, 0, 5);
 
-        for (i = 0; i < stamina; i++) {
-            PANEL_draw_quad(
-                x, y - 10,
-                x + 10, y,
-                POLY_PAGE_LASTPANEL_ADD,
-                rgb[i],
-                (243.0 / 256.0),
-                (198.0 / 256.0),
-                (253.0 / 256.0),
-                (208.0 / 256.0));
-            x += 3;
-            y -= 3;
-        }
-    }
-
-    // Draw navigation beacons on the mini-map scanner.
-    {
-        SLONG i;
-
-        float dx;
-        float dz;
-        float dist;
-        float dangle;
-        float score;
-
-        float x;
-        float y;
-
-        MAP_Beacon* mb;
-
-        ULONG colour;
-
-        SLONG best_beacon = NULL;
-        float best_score = float(UC_INFINITY);
-
-        for (i = 1; i < MAP_MAX_BEACONS; i++) {
-            mb = &MAP_beacon[i];
-
-            if (!mb->used) {
-                continue;
+            for (i = 0; i < stamina; i++) {
+                PANEL_draw_quad(
+                    x, y - 10,
+                    x + 10, y,
+                    POLY_PAGE_LASTPANEL_ADD,
+                    rgb[i],
+                    (243.0 / 256.0),
+                    (198.0 / 256.0),
+                    (253.0 / 256.0),
+                    (208.0 / 256.0));
+                x += 3;
+                y -= 3;
             }
+        }
 
-            if (mb->track_thing) {
-                Thing* p_track = TO_THING(mb->track_thing);
+        // Draw navigation beacons on the mini-map scanner.
+        {
+            SLONG i;
 
-                mb->wx = p_track->WorldPos.X >> 8;
-                mb->wz = p_track->WorldPos.Z >> 8;
+            float dx;
+            float dz;
+            float dist;
+            float dangle;
+            float score;
 
-                extern SLONG is_person_dead(Thing * p_person);
+            float x;
+            float y;
 
-                if (p_track->Class == CLASS_PERSON) {
-                    if (p_track->State == STATE_DEAD) {
-                        if (p_track->SubState == SUB_STATE_DEAD_INJURED) {
-                            if (p_track->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
+            MAP_Beacon* mb;
+
+            ULONG colour;
+
+            SLONG best_beacon = NULL;
+            float best_score = float(UC_INFINITY);
+
+            for (i = 1; i < MAP_MAX_BEACONS; i++) {
+                mb = &MAP_beacon[i];
+
+                if (!mb->used) {
+                    continue;
+                }
+
+                if (mb->track_thing) {
+                    Thing* p_track = TO_THING(mb->track_thing);
+
+                    mb->wx = p_track->WorldPos.X >> 8;
+                    mb->wz = p_track->WorldPos.Z >> 8;
+
+                    extern SLONG is_person_dead(Thing * p_person);
+
+                    if (p_track->Class == CLASS_PERSON) {
+                        if (p_track->State == STATE_DEAD) {
+                            if (p_track->SubState == SUB_STATE_DEAD_INJURED) {
+                                if (p_track->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
+                                    continue;
+                                }
+                            } else {
                                 continue;
                             }
-                        } else {
-                            continue;
                         }
                     }
                 }
-            }
 
-            colour = PANEL_beacon_colour[i % PANEL_MAX_BEACON_COLOURS] | (0xff000000);
+                colour = PANEL_beacon_colour[i % PANEL_MAX_BEACON_COLOURS] | (0xff000000);
 
-            dx = float(mb->wx - (darci->WorldPos.X >> 8));
-            dz = float(mb->wz - (darci->WorldPos.Z >> 8));
+                dx = float(mb->wx - (darci->WorldPos.X >> 8));
+                dz = float(mb->wz - (darci->WorldPos.Z >> 8));
 
-            dist = sqrt(dx * dx + dz * dz);
+                dist = sqrt(dx * dx + dz * dz);
 
-            {
-                UBYTE is_dot = 0;
+                {
+                    UBYTE is_dot = 0;
 
-                if (PANEL_scanner_poo)
-                    dangle = atan2(dx, dz) - float(darci->Draw.Tweened->Angle) * (2.0F * PI / 2048.0F);
-                else
-                    dangle = atan2(dx, dz) - float(FC_cam[0].yaw >> 8) * (2.0F * PI / 2048.0F);
-                score = (float)fmod(dangle, 2.0F * PI) - PI;
+                    if (PANEL_scanner_poo)
+                        dangle = atan2(dx, dz) - float(darci->Draw.Tweened->Angle) * (2.0F * PI / 2048.0F);
+                    else
+                        dangle = atan2(dx, dz) - float(FC_cam[0].yaw >> 8) * (2.0F * PI / 2048.0F);
+                    score = (float)fmod(dangle, 2.0F * PI) - PI;
 
-                if (score > +PI) {
-                    score -= 2.0F * PI;
-                }
-                if (score < -PI) {
-                    score += 2.0F * PI;
-                }
+                    if (score > +PI) {
+                        score -= 2.0F * PI;
+                    }
+                    if (score < -PI) {
+                        score += 2.0F * PI;
+                    }
 
-                dist /= 16.0F * 256.0F;
+                    dist /= 16.0F * 256.0F;
 
-                if (dist < 1.0F)
-                    is_dot = 1;
+                    if (dist < 1.0F)
+                        is_dot = 1;
 
-                SATURATE(dist, 0.0F, 1.0F);
+                    SATURATE(dist, 0.0F, 1.0F);
 
 #define PLS_MID_X PLH_MID_X
 #define PLS_MID_Y PLH_MID_Y
 #define PLS_RADIUS 50.0F
 
+                    {
+                        x = PLS_MID_X + (float)sin(dangle) * PLS_RADIUS * dist;
+                        y = PLS_MID_Y + (float)cos(dangle) * PLS_RADIUS * dist;
+
+                        float size = (mb->pad && !is_dot) ? 9.0F : 6.0F;
+
+                        int64_t alive = sdl3_get_ticks() - mb->ticks;
+
+                        if (alive < 4096) {
+                            alive &= 0x100;
+
+                            SATURATE(alive, 0, 255);
+
+                            colour &= 0x00ffffff;
+                            colour |= alive << 24;
+                        }
+
+                        PANEL_last_arrow(x, y, dangle, size, colour, is_dot);
+                    }
+                }
+
+                if (fabs(score) < best_score) {
+                    best_score = fabs(score);
+                    best_beacon = i;
+                }
+
+                mb->pad = UC_FALSE;
+            }
+
+            if (PANEL_info_time > sdl3_get_ticks() - 2000) {
+                SLONG x_right;
+
+                SLONG colour_main;
+                SLONG colour_shad;
+
+                uint64_t now = sdl3_get_ticks();
+                uint64_t onfor = now - PANEL_info_time;
+
+                if (onfor < 255) {
+                    colour_main = onfor;
+                    colour_shad = onfor;
+                } else if (onfor < 768) {
+                    colour_main = 0xff;
+                    colour_shad = 255 - (onfor - 256 >> 1);
+                } else {
+                    colour_main = 0xff;
+                    colour_shad = 0x00;
+                }
+
+                x_right = onfor >> 1;
+
+                SATURATE(colour_main, 0, 255);
+                SATURATE(colour_shad, 0, 255);
+                SATURATE(x_right, 16, 205);
+
+                x_right += m_iPanelXPos;
+
+                colour_main = colour_main | (colour_main << 8) | (colour_main << 16);
+                colour_shad = colour_shad | (colour_shad << 8) | (colour_shad << 16);
+
                 {
-                    x = PLS_MID_X + (float)sin(dangle) * PLS_RADIUS * dist;
-                    y = PLS_MID_Y + (float)cos(dangle) * PLS_RADIUS * dist;
+                    FONT2D_DrawStringRightJustifyNoWrap(
+                        PANEL_info_message,
+                        x_right + 2,
+                        m_iPanelYPos - 23 + 2,
+                        colour_shad,
+                        256);
 
-                    float size = (mb->pad && !is_dot) ? 9.0F : 6.0F;
-
-                    int64_t alive = sdl3_get_ticks() - mb->ticks;
-
-                    if (alive < 4096) {
-                        alive &= 0x100;
-
-                        SATURATE(alive, 0, 255);
-
-                        colour &= 0x00ffffff;
-                        colour |= alive << 24;
-                    }
-
-                    PANEL_last_arrow(x, y, dangle, size, colour, is_dot);
+                    FONT2D_DrawStringRightJustifyNoWrap(
+                        PANEL_info_message,
+                        x_right,
+                        m_iPanelYPos - 23,
+                        colour_main,
+                        256);
                 }
-            }
-
-            if (fabs(score) < best_score) {
-                best_score = fabs(score);
-                best_beacon = i;
-            }
-
-            mb->pad = UC_FALSE;
-        }
-
-        if (PANEL_info_time > sdl3_get_ticks() - 2000) {
-            SLONG x_right;
-
-            SLONG colour_main;
-            SLONG colour_shad;
-
-            uint64_t now = sdl3_get_ticks();
-            uint64_t onfor = now - PANEL_info_time;
-
-            if (onfor < 255) {
-                colour_main = onfor;
-                colour_shad = onfor;
-            } else if (onfor < 768) {
-                colour_main = 0xff;
-                colour_shad = 255 - (onfor - 256 >> 1);
             } else {
-                colour_main = 0xff;
-                colour_shad = 0x00;
-            }
+                if (best_beacon) {
+                    ASSERT(WITHIN(best_beacon, 1, MAP_MAX_BEACONS - 1));
 
-            x_right = onfor >> 1;
+                    mb = &MAP_beacon[best_beacon];
 
-            SATURATE(colour_main, 0, 255);
-            SATURATE(colour_shad, 0, 255);
-            SATURATE(x_right, 16, 205);
+                    extern CBYTE* EWAY_get_mess(SLONG index);
 
-            x_right += m_iPanelXPos;
+                    FONT2D_DrawString(
+                        EWAY_get_mess(mb->index),
+                        m_iPanelXPos + 12 + 2,
+                        m_iPanelYPos - 23 + 2,
+                        0x00000000,
+                        256);
 
-            colour_main = colour_main | (colour_main << 8) | (colour_main << 16);
-            colour_shad = colour_shad | (colour_shad << 8) | (colour_shad << 16);
+                    FONT2D_DrawString(
+                        EWAY_get_mess(mb->index),
+                        m_iPanelXPos + 12,
+                        m_iPanelYPos - 23,
+                        PANEL_beacon_colour[best_beacon % PANEL_MAX_BEACON_COLOURS],
+                        256);
 
-            {
-                FONT2D_DrawStringRightJustifyNoWrap(
-                    PANEL_info_message,
-                    x_right + 2,
-                    m_iPanelYPos - 23 + 2,
-                    colour_shad,
-                    256);
-
-                FONT2D_DrawStringRightJustifyNoWrap(
-                    PANEL_info_message,
-                    x_right,
-                    m_iPanelYPos - 23,
-                    colour_main,
-                    256);
-            }
-        } else {
-            if (best_beacon) {
-                ASSERT(WITHIN(best_beacon, 1, MAP_MAX_BEACONS - 1));
-
-                mb = &MAP_beacon[best_beacon];
-
-                extern CBYTE* EWAY_get_mess(SLONG index);
-
-                FONT2D_DrawString(
-                    EWAY_get_mess(mb->index),
-                    m_iPanelXPos + 12 + 2,
-                    m_iPanelYPos - 23 + 2,
-                    0x00000000,
-                    256);
-
-                FONT2D_DrawString(
-                    EWAY_get_mess(mb->index),
-                    m_iPanelXPos + 12,
-                    m_iPanelYPos - 23,
-                    PANEL_beacon_colour[best_beacon % PANEL_MAX_BEACON_COLOURS],
-                    256);
-
-                mb->pad = UC_TRUE;
-            }
-        }
-    }
-
-    // Draw hostile NPCs on the mini-map scanner dot.
-    {
-        SLONG i;
-
-        float x;
-        float y;
-        float dx;
-        float dz;
-        float dist;
-        float dangle;
-        float size;
-        float flash = fabs(sin(float(GAME_TURN) * 0.2F));
-        SLONG display;
-        ULONG colour;
-
-        PANEL_Lsprite* pls = &PANEL_lsprite[PANEL_LSPRITE_DOT];
-
-        SLONG num_found = THING_find_sphere(
-            darci->WorldPos.X >> 8,
-            darci->WorldPos.Y >> 8,
-            darci->WorldPos.Z >> 8,
-            0x1000,
-            THING_array,
-            THING_ARRAY_SIZE,
-            1 << CLASS_PERSON);
-
-        Thing* p_found;
-
-        for (i = 0; i < num_found; i++) {
-            p_found = TO_THING(THING_array[i]);
-
-            if (p_found == darci) {
-                continue;
-            }
-
-            if (p_found->State == STATE_DEAD) {
-                continue;
-            }
-
-            display = UC_FALSE;
-
-            switch (p_found->Genus.Person->PersonType) {
-            case PERSON_THUG_RASTA:
-            case PERSON_THUG_GREY:
-            case PERSON_THUG_RED:
-                display = UC_TRUE;
-                size = 0.5F;
-                colour = 0xdd2222;
-                break;
-
-            case PERSON_MIB1:
-            case PERSON_MIB2:
-            case PERSON_MIB3:
-                display = UC_TRUE;
-                size = 0.5F;
-                colour = 0xdddddd;
-                break;
-
-            default:
-                break;
-            }
-
-            if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(darci)) {
-                display = UC_TRUE;
-                size = flash;
-            }
-
-            if (display) {
-                dx = float(p_found->WorldPos.X - darci->WorldPos.X >> 8);
-                dz = float(p_found->WorldPos.Z - darci->WorldPos.Z >> 8);
-
-                dist = sqrt(dx * dx + dz * dz);
-                dist *= 1.0F / (16.0F * 256.0F);
-
-                if (dist < 1.0F) {
-                    if (PANEL_scanner_poo) {
-                        dangle = atan2(dx, dz) - float(darci->Draw.Tweened->Angle) * (2.0F * PI / 2048.0F);
-                    } else {
-                        dangle = atan2(dx, dz) - float(FC_cam[0].yaw >> 8) * (2.0F * PI / 2048.0F);
-                    }
-
-                    x = PLS_MID_X + (float)sin(dangle) * PLS_RADIUS * dist;
-                    y = PLS_MID_Y + (float)cos(dangle) * PLS_RADIUS * dist;
-
-                    size += 0.5F;
-                    size *= 2.0F;
-
-                    PANEL_draw_quad(
-                        x - size, y - size,
-                        x + size, y + size,
-                        POLY_PAGE_LASTPANEL_ADD,
-                        colour,
-                        pls->u1, pls->v1,
-                        pls->u2, pls->v2);
+                    mb->pad = UC_TRUE;
                 }
             }
         }
-    }
+
+        // Draw hostile NPCs on the mini-map scanner dot.
+        {
+            SLONG i;
+
+            float x;
+            float y;
+            float dx;
+            float dz;
+            float dist;
+            float dangle;
+            float size;
+            float flash = fabs(sin(float(GAME_TURN) * 0.2F));
+            SLONG display;
+            ULONG colour;
+
+            PANEL_Lsprite* pls = &PANEL_lsprite[PANEL_LSPRITE_DOT];
+
+            SLONG num_found = THING_find_sphere(
+                darci->WorldPos.X >> 8,
+                darci->WorldPos.Y >> 8,
+                darci->WorldPos.Z >> 8,
+                0x1000,
+                THING_array,
+                THING_ARRAY_SIZE,
+                1 << CLASS_PERSON);
+
+            Thing* p_found;
+
+            for (i = 0; i < num_found; i++) {
+                p_found = TO_THING(THING_array[i]);
+
+                if (p_found == darci) {
+                    continue;
+                }
+
+                if (p_found->State == STATE_DEAD) {
+                    continue;
+                }
+
+                display = UC_FALSE;
+
+                switch (p_found->Genus.Person->PersonType) {
+                case PERSON_THUG_RASTA:
+                case PERSON_THUG_GREY:
+                case PERSON_THUG_RED:
+                    display = UC_TRUE;
+                    size = 0.5F;
+                    colour = 0xdd2222;
+                    break;
+
+                case PERSON_MIB1:
+                case PERSON_MIB2:
+                case PERSON_MIB3:
+                    display = UC_TRUE;
+                    size = 0.5F;
+                    colour = 0xdddddd;
+                    break;
+
+                default:
+                    break;
+                }
+
+                if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(darci)) {
+                    display = UC_TRUE;
+                    size = flash;
+                }
+
+                if (display) {
+                    dx = float(p_found->WorldPos.X - darci->WorldPos.X >> 8);
+                    dz = float(p_found->WorldPos.Z - darci->WorldPos.Z >> 8);
+
+                    dist = sqrt(dx * dx + dz * dz);
+                    dist *= 1.0F / (16.0F * 256.0F);
+
+                    if (dist < 1.0F) {
+                        if (PANEL_scanner_poo) {
+                            dangle = atan2(dx, dz) - float(darci->Draw.Tweened->Angle) * (2.0F * PI / 2048.0F);
+                        } else {
+                            dangle = atan2(dx, dz) - float(FC_cam[0].yaw >> 8) * (2.0F * PI / 2048.0F);
+                        }
+
+                        x = PLS_MID_X + (float)sin(dangle) * PLS_RADIUS * dist;
+                        y = PLS_MID_Y + (float)cos(dangle) * PLS_RADIUS * dist;
+
+                        size += 0.5F;
+                        size *= 2.0F;
+
+                        PANEL_draw_quad(
+                            x - size, y - size,
+                            x + size, y + size,
+                            POLY_PAGE_LASTPANEL_ADD,
+                            colour,
+                            pls->u1, pls->v1,
+                            pls->u2, pls->v2);
+                    }
+                }
+            }
+        }
 
 #undef PLH_MID_U
 #undef PLH_MID_V
@@ -2071,73 +2085,73 @@ void PANEL_last(void)
     // 4:3 frame origin coincides with the panel-scope origin so x1..x2
     // map to their original virtual coords.
     {
-    PolyPage::UIModeScope _msg_scope(ui_coords::UIAnchor::CENTER_BOTTOM);
+        PolyPage::UIModeScope _msg_scope(ui_coords::UIAnchor::CENTER_BOTTOM);
 
-    {
+        {
 #define PLT_X 214
 #define PLT_Y 360
 
-        SLONG i;
-        SLONG ybase;
-        SLONG y = m_iPanelYPos - (480 - PLT_Y);
-        SLONG x1 = (m_iPanelXPos < 260) ? (m_iPanelXPos + PLT_X) : (32);
-        SLONG x2 = (m_iPanelXPos < 260) ? (640 - 32) : (m_iPanelXPos - 16);
-        SLONG height;
+            SLONG i;
+            SLONG ybase;
+            SLONG y = m_iPanelYPos - (480 - PLT_Y);
+            SLONG x1 = (m_iPanelXPos < 260) ? (m_iPanelXPos + PLT_X) : (32);
+            SLONG x2 = (m_iPanelXPos < 260) ? (640 - 32) : (m_iPanelXPos - 16);
+            SLONG height;
 
-        PANEL_Text* pt;
+            PANEL_Text* pt;
 
-        // If the circular text buffer has wrapped past its maximum depth, advance the
-        // head to discard stale entries (matches PSX behaviour).
-        if ((PANEL_text_tail - PANEL_text_head) > PANEL_MAX_TEXTS) {
-            PANEL_text_head = PANEL_text_tail - (PANEL_MAX_TEXTS - 1);
-        }
-
-        for (i = PANEL_text_head; i < PANEL_text_tail; i++) {
-            pt = &PANEL_text[i & (PANEL_MAX_TEXTS - 1)];
-
-            if (i == PANEL_text_head) {
-                if (pt->delay == 0) {
-                    PANEL_text_head += 1;
-                }
+            // If the circular text buffer has wrapped past its maximum depth, advance the
+            // head to discard stale entries (matches PSX behaviour).
+            if ((PANEL_text_tail - PANEL_text_head) > PANEL_MAX_TEXTS) {
+                PANEL_text_head = PANEL_text_tail - (PANEL_MAX_TEXTS - 1);
             }
 
-            if (pt->delay != 0) {
-                ybase = y;
+            for (i = PANEL_text_head; i < PANEL_text_tail; i++) {
+                pt = &PANEL_text[i & (PANEL_MAX_TEXTS - 1)];
 
-                PANEL_new_face(
-                    pt->who,
-                    x1,
-                    ybase - 2,
-                    PANEL_FACE_SMALL);
-
-                height = FONT2D_DrawStringWrapTo(pt->text,
-                             x1 + 36 + 6,
-                             y + 2,
-                             0xffffff,
-                             256,
-                             POLY_PAGE_FONT2D,
-                             0,
-                             x2)
-                    - y;
-                height += 20;
-
-                PANEL_last_bubble(
-                    x1 + 36,
-                    ybase - 4,
-                    float(FONT2D_rightmost_x) + 6.0F,
-                    ybase - 2 + height);
-
-                if (height < 34) {
-                    height = 34;
+                if (i == PANEL_text_head) {
+                    if (pt->delay == 0) {
+                        PANEL_text_head += 1;
+                    }
                 }
 
-                y += height;
+                if (pt->delay != 0) {
+                    ybase = y;
+
+                    PANEL_new_face(
+                        pt->who,
+                        x1,
+                        ybase - 2,
+                        PANEL_FACE_SMALL);
+
+                    height = FONT2D_DrawStringWrapTo(pt->text,
+                                 x1 + 36 + 6,
+                                 y + 2,
+                                 0xffffff,
+                                 256,
+                                 POLY_PAGE_FONT2D,
+                                 0,
+                                 x2)
+                        - y;
+                    height += 20;
+
+                    PANEL_last_bubble(
+                        x1 + 36,
+                        ybase - 4,
+                        float(FONT2D_rightmost_x) + 6.0F,
+                        ybase - 2 + height);
+
+                    if (height < 34) {
+                        height = 34;
+                    }
+
+                    y += height;
+                }
             }
-        }
 
 #undef PLT_X
 #undef PLT_Y
-    }
+        }
     } // end msg CENTER_BOTTOM scope
 
     // Draw road sign flashes. Framed at CENTER_CENTER so the sign stays

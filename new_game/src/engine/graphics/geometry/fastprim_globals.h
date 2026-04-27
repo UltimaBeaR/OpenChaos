@@ -83,19 +83,19 @@ extern SLONG FASTPRIM_queue_end;
 
 // Call type constants.
 // uc_orig: FASTPRIM_CALL_TYPE_NORMAL (fallen/DDEngine/Source/fastprim.cpp)
-#define FASTPRIM_CALL_TYPE_NORMAL    0
+#define FASTPRIM_CALL_TYPE_NORMAL 0
 // uc_orig: FASTPRIM_CALL_TYPE_COLOURAND (fallen/DDEngine/Source/fastprim.cpp)
 #define FASTPRIM_CALL_TYPE_COLOURAND 1
 // uc_orig: FASTPRIM_CALL_TYPE_INDEXED (fallen/DDEngine/Source/fastprim.cpp)
-#define FASTPRIM_CALL_TYPE_INDEXED   2
+#define FASTPRIM_CALL_TYPE_INDEXED 2
 // uc_orig: FASTPRIM_CALL_TYPE_ENVMAP (fallen/DDEngine/Source/fastprim.cpp)
-#define FASTPRIM_CALL_TYPE_ENVMAP    3
+#define FASTPRIM_CALL_TYPE_ENVMAP 3
 
 // uc_orig: FASTPRIM_CALL_FLAG_SELF_ILLUM (fallen/DDEngine/Source/fastprim.cpp)
 #define FASTPRIM_CALL_FLAG_SELF_ILLUM (1 << 0)
 
 // uc_orig: FASTPRIM_PRIM_FLAG_CACHED (fallen/DDEngine/Source/fastprim.cpp)
-#define FASTPRIM_PRIM_FLAG_CACHED  (1 << 0)
+#define FASTPRIM_PRIM_FLAG_CACHED (1 << 0)
 // uc_orig: FASTPRIM_PRIM_FLAG_INVALID (fallen/DDEngine/Source/fastprim.cpp)
 #define FASTPRIM_PRIM_FLAG_INVALID (1 << 1)
 

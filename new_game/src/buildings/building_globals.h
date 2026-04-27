@@ -2,7 +2,7 @@
 #define BUILDINGS_BUILDING_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "buildings/building_types.h"  // TXTY, DXTXTY
+#include "buildings/building_types.h" // TXTY, DXTXTY
 
 // uc_orig: next_roof_bound (fallen/Source/Building.cpp)
 extern UWORD next_roof_bound;

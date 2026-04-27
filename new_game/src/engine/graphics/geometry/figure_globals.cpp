@@ -166,16 +166,16 @@ static char cMMBodyParts_pNormalStorage[8 + MAX_NUM_BODY_PARTS_AT_ONCE * 4 * siz
 // This constructor runs before main, guaranteeing MM_* are valid for any code that calls
 // BuildMMLightingTable or FIGURE_draw_prim_tween_*.
 namespace {
-    struct MMLightingTableInit {
-        MMLightingTableInit()
-        {
-            MM_pcFadeTable      = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage      + 3)  & ~(uintptr_t)3);
-            MM_pcFadeTableTint  = (ULONG*)(((uintptr_t)cMM_pcFadeTableTintStorage  + 3)  & ~(uintptr_t)3);
-            MM_pMatrix          = (GEMatrix*)(((uintptr_t)cMM_pMatrixStorage          + 31) & ~(uintptr_t)31);
-            MM_Vertex           = (GEVertex*)(((uintptr_t)cMM_VertexStorage           + 31) & ~(uintptr_t)31);
-            MM_pNormal          = (float*)(    ((uintptr_t)cMM_pNormalStorage           + 7)  & ~(uintptr_t)7);
-            MMBodyParts_pMatrix = (GEMatrix*)(((uintptr_t)cMMBodyParts_pMatrixStorage  + 31) & ~(uintptr_t)31);
-            MMBodyParts_pNormal = (float*)(    ((uintptr_t)cMMBodyParts_pNormalStorage   + 7)  & ~(uintptr_t)7);
-        }
-    } g_MMLightingTableInit;
+struct MMLightingTableInit {
+    MMLightingTableInit()
+    {
+        MM_pcFadeTable = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage + 3) & ~(uintptr_t)3);
+        MM_pcFadeTableTint = (ULONG*)(((uintptr_t)cMM_pcFadeTableTintStorage + 3) & ~(uintptr_t)3);
+        MM_pMatrix = (GEMatrix*)(((uintptr_t)cMM_pMatrixStorage + 31) & ~(uintptr_t)31);
+        MM_Vertex = (GEVertex*)(((uintptr_t)cMM_VertexStorage + 31) & ~(uintptr_t)31);
+        MM_pNormal = (float*)(((uintptr_t)cMM_pNormalStorage + 7) & ~(uintptr_t)7);
+        MMBodyParts_pMatrix = (GEMatrix*)(((uintptr_t)cMMBodyParts_pMatrixStorage + 31) & ~(uintptr_t)31);
+        MMBodyParts_pNormal = (float*)(((uintptr_t)cMMBodyParts_pNormalStorage + 7) & ~(uintptr_t)7);
+    }
+} g_MMLightingTableInit;
 }

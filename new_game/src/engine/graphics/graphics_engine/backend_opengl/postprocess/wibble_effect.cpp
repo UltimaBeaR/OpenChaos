@@ -31,20 +31,20 @@ namespace {
 
 // Shader program + cached uniform locations (lazy init).
 GLuint s_program = 0;
-GLint  s_u_source       = -1;
-GLint  s_u_source_size  = -1;
-GLint  s_u_rect         = -1;
-GLint  s_u_wibble_y1    = -1;
-GLint  s_u_wibble_y2    = -1;
-GLint  s_u_wibble_s1    = -1;
-GLint  s_u_wibble_s2    = -1;
-GLint  s_u_phase1       = -1;
-GLint  s_u_phase2       = -1;
+GLint s_u_source = -1;
+GLint s_u_source_size = -1;
+GLint s_u_rect = -1;
+GLint s_u_wibble_y1 = -1;
+GLint s_u_wibble_y2 = -1;
+GLint s_u_wibble_s1 = -1;
+GLint s_u_wibble_s2 = -1;
+GLint s_u_phase1 = -1;
+GLint s_u_phase2 = -1;
 
 // Persistent scratch color texture, resized when the framebuffer grows.
-GLuint  s_scratch_tex = 0;
-int32_t s_scratch_w   = 0;
-int32_t s_scratch_h   = 0;
+GLuint s_scratch_tex = 0;
+int32_t s_scratch_w = 0;
+int32_t s_scratch_h = 0;
 
 // Dedicated VAO/VBO for the NDC fullscreen quad (2D positions only).
 GLuint s_vao = 0;
@@ -52,11 +52,12 @@ GLuint s_vbo = 0;
 
 // Angle-space constants mirroring the CPU SIN/COS LUT (2048 units per turn).
 constexpr int32_t ANGLE_UNITS = 2048;
-constexpr int32_t ANGLE_MASK  = ANGLE_UNITS - 1;
+constexpr int32_t ANGLE_MASK = ANGLE_UNITS - 1;
 
 bool ensure_program()
 {
-    if (s_program) return true;
+    if (s_program)
+        return true;
 
     s_program = gl_shader_create_program(SHADER_FULLSCREEN_QUAD_VERT, SHADER_WIBBLE_FRAG);
     if (!s_program) {
@@ -64,21 +65,22 @@ bool ensure_program()
         return false;
     }
 
-    s_u_source      = glGetUniformLocation(s_program, "u_source");
+    s_u_source = glGetUniformLocation(s_program, "u_source");
     s_u_source_size = glGetUniformLocation(s_program, "u_source_size");
-    s_u_rect        = glGetUniformLocation(s_program, "u_rect");
-    s_u_wibble_y1   = glGetUniformLocation(s_program, "u_wibble_y1");
-    s_u_wibble_y2   = glGetUniformLocation(s_program, "u_wibble_y2");
-    s_u_wibble_s1   = glGetUniformLocation(s_program, "u_wibble_s1");
-    s_u_wibble_s2   = glGetUniformLocation(s_program, "u_wibble_s2");
-    s_u_phase1      = glGetUniformLocation(s_program, "u_phase1");
-    s_u_phase2      = glGetUniformLocation(s_program, "u_phase2");
+    s_u_rect = glGetUniformLocation(s_program, "u_rect");
+    s_u_wibble_y1 = glGetUniformLocation(s_program, "u_wibble_y1");
+    s_u_wibble_y2 = glGetUniformLocation(s_program, "u_wibble_y2");
+    s_u_wibble_s1 = glGetUniformLocation(s_program, "u_wibble_s1");
+    s_u_wibble_s2 = glGetUniformLocation(s_program, "u_wibble_s2");
+    s_u_phase1 = glGetUniformLocation(s_program, "u_phase1");
+    s_u_phase2 = glGetUniformLocation(s_program, "u_phase2");
     return true;
 }
 
 void ensure_scratch(int32_t fb_w, int32_t fb_h)
 {
-    if (s_scratch_tex && s_scratch_w == fb_w && s_scratch_h == fb_h) return;
+    if (s_scratch_tex && s_scratch_w == fb_w && s_scratch_h == fb_h)
+        return;
 
     if (s_scratch_tex) {
         glDeleteTextures(1, &s_scratch_tex);
@@ -86,21 +88,22 @@ void ensure_scratch(int32_t fb_w, int32_t fb_h)
     }
 
     glGenTextures(1, &s_scratch_tex);
-    if (!s_scratch_tex) return;
+    if (!s_scratch_tex)
+        return;
 
     GLint prev_tex = 0;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &prev_tex);
 
     glBindTexture(GL_TEXTURE_2D, s_scratch_tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fb_w, fb_h, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     // Nearest filtering — wibble samples at fractional-pixel offsets but the
     // input is full-resolution and the per-row shift is what we want to
     // visualize, not a smooth interpolation between columns.
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glBindTexture(GL_TEXTURE_2D, (GLuint)prev_tex);
 
@@ -110,15 +113,20 @@ void ensure_scratch(int32_t fb_w, int32_t fb_h)
 
 void ensure_quad()
 {
-    if (s_vao) return;
+    if (s_vao)
+        return;
 
     // NDC triangle strip covering [-1, +1] — the actual affected region is
     // clipped by glScissor on every draw.
     static const float verts[] = {
-        -1.0f, -1.0f,
-         1.0f, -1.0f,
-        -1.0f,  1.0f,
-         1.0f,  1.0f,
+        -1.0f,
+        -1.0f,
+        1.0f,
+        -1.0f,
+        -1.0f,
+        1.0f,
+        1.0f,
+        1.0f,
     };
 
     glGenVertexArrays(1, &s_vao);
@@ -135,32 +143,41 @@ void ensure_quad()
 } // namespace
 
 void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                     const GEWibbleParams& p)
+    const GEWibbleParams& p)
 {
-    if (x2 <= x1 || y2 <= y1) return;
+    if (x2 <= x1 || y2 <= y1)
+        return;
 
     int32_t fb_w = gl_context_get_width();
     int32_t fb_h = gl_context_get_height();
-    if (fb_w <= 0 || fb_h <= 0) return;
+    if (fb_w <= 0 || fb_h <= 0)
+        return;
 
     // Clamp to framebuffer — puddle bbox from aeng.cpp can extend slightly
     // off-screen at the edges (bounding box of transformed world quad).
-    if (x1 < 0)    x1 = 0;
-    if (y1 < 0)    y1 = 0;
-    if (x2 > fb_w) x2 = fb_w;
-    if (y2 > fb_h) y2 = fb_h;
-    if (x2 <= x1 || y2 <= y1) return;
+    if (x1 < 0)
+        x1 = 0;
+    if (y1 < 0)
+        y1 = 0;
+    if (x2 > fb_w)
+        x2 = fb_w;
+    if (y2 > fb_h)
+        y2 = fb_h;
+    if (x2 <= x1 || y2 <= y1)
+        return;
 
-    if (!ensure_program()) return;
+    if (!ensure_program())
+        return;
     ensure_scratch(fb_w, fb_h);
-    if (!s_scratch_tex) return;
+    if (!s_scratch_tex)
+        return;
     ensure_quad();
 
     // Game coords are top-down; GL pixel coords are bottom-up. The scratch
     // texture uses the GL (bottom-up) orientation so dst and src share the
     // same layout; we just flip y when computing the GL rect.
-    const int32_t reg_w       = x2 - x1;
-    const int32_t reg_h       = y2 - y1;
+    const int32_t reg_w = x2 - x1;
+    const int32_t reg_h = y2 - y1;
     const int32_t gl_y_bottom = fb_h - y2;
 
     // Widen the area we copy into scratch by the maximum possible horizontal
@@ -170,8 +187,10 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     const int32_t max_shift = ((int32_t)p.wibble_s1 + (int32_t)p.wibble_s2) / 8 + 1;
     int32_t copy_x1 = x1 - max_shift;
     int32_t copy_x2 = x2 + max_shift;
-    if (copy_x1 < 0)    copy_x1 = 0;
-    if (copy_x2 > fb_w) copy_x2 = fb_w;
+    if (copy_x1 < 0)
+        copy_x1 = 0;
+    if (copy_x2 > fb_w)
+        copy_x2 = fb_w;
     const int32_t copy_w = copy_x2 - copy_x1;
 
     // ---- 1. Copy the puddle region (+ shift margin) from default FB →
@@ -183,9 +202,9 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 
     glBindTexture(GL_TEXTURE_2D, s_scratch_tex);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0,
-                        copy_x1, gl_y_bottom,   // dst offset in scratch tex
-                        copy_x1, gl_y_bottom,   // src offset in read FB
-                        copy_w,  reg_h);
+        copy_x1, gl_y_bottom, // dst offset in scratch tex
+        copy_x1, gl_y_bottom, // src offset in read FB
+        copy_w, reg_h);
 
     // ---- 2. Draw the warped rect back into the default FB ---------------
     // Save GL state we touch directly. ge_push_render_state covers the GE-
@@ -194,16 +213,16 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     // those aren't part of the GE cache.
     ge_push_render_state();
 
-    GLint     prev_program = 0;
-    GLint     prev_vao     = 0;
-    GLint     prev_vp[4]   = {};
-    GLint     prev_sc[4]   = {};
-    GLboolean prev_sc_on   = glIsEnabled(GL_SCISSOR_TEST);
+    GLint prev_program = 0;
+    GLint prev_vao = 0;
+    GLint prev_vp[4] = {};
+    GLint prev_sc[4] = {};
+    GLboolean prev_sc_on = glIsEnabled(GL_SCISSOR_TEST);
     GLboolean prev_cull_on = glIsEnabled(GL_CULL_FACE);
-    glGetIntegerv(GL_CURRENT_PROGRAM,       &prev_program);
-    glGetIntegerv(GL_VERTEX_ARRAY_BINDING,  &prev_vao);
-    glGetIntegerv(GL_VIEWPORT,               prev_vp);
-    glGetIntegerv(GL_SCISSOR_BOX,            prev_sc);
+    glGetIntegerv(GL_CURRENT_PROGRAM, &prev_program);
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prev_vao);
+    glGetIntegerv(GL_VIEWPORT, prev_vp);
+    glGetIntegerv(GL_SCISSOR_BOX, prev_sc);
 
     glViewport(0, 0, fb_w, fb_h);
     glEnable(GL_SCISSOR_TEST);
@@ -225,8 +244,8 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     glUniform1i(s_u_source, 0);
     glUniform2f(s_u_source_size, (float)fb_w, (float)fb_h);
     glUniform4f(s_u_rect,
-                (float)x1,      (float)gl_y_bottom,
-                (float)x2,      (float)(gl_y_bottom + reg_h));
+        (float)x1, (float)gl_y_bottom,
+        (float)x2, (float)(gl_y_bottom + reg_h));
     glUniform1f(s_u_wibble_y1, (float)p.wibble_y1);
     glUniform1f(s_u_wibble_y2, (float)p.wibble_y2);
     glUniform1f(s_u_wibble_s1, (float)p.wibble_s1);
@@ -247,8 +266,14 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     glBindVertexArray((GLuint)prev_vao);
     glViewport(prev_vp[0], prev_vp[1], prev_vp[2], prev_vp[3]);
     glScissor(prev_sc[0], prev_sc[1], prev_sc[2], prev_sc[3]);
-    if (prev_sc_on)   glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-    if (prev_cull_on) glEnable(GL_CULL_FACE);    else glDisable(GL_CULL_FACE);
+    if (prev_sc_on)
+        glEnable(GL_SCISSOR_TEST);
+    else
+        glDisable(GL_SCISSOR_TEST);
+    if (prev_cull_on)
+        glEnable(GL_CULL_FACE);
+    else
+        glDisable(GL_CULL_FACE);
 
     // Texture binding on unit 0: the GERenderState uniform snapshot may skip
     // re-binding on the next draw if its cached s_bound_texture hasn't
@@ -257,4 +282,3 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
 
     ge_pop_render_state();
 }
-

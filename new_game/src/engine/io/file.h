@@ -10,30 +10,30 @@ typedef FILE* MFFileHandle;
 
 // Sentinel values returned on failure (all NULL for FILE*-based API).
 // uc_orig: FILE_OPEN_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_OPEN_ERROR     ((MFFileHandle)NULL)
+#define FILE_OPEN_ERROR ((MFFileHandle)NULL)
 // uc_orig: FILE_CLOSE_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_CLOSE_ERROR    ((MFFileHandle)NULL)
+#define FILE_CLOSE_ERROR ((MFFileHandle)NULL)
 // uc_orig: FILE_CREATION_ERROR (MFStdLib/Headers/StdFile.h)
 #define FILE_CREATION_ERROR ((MFFileHandle)NULL)
 
 // uc_orig: FILE_SIZE_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_SIZE_ERROR     ((SLONG) - 103)
+#define FILE_SIZE_ERROR ((SLONG) - 103)
 // uc_orig: FILE_READ_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_READ_ERROR     ((SLONG) - 104)
+#define FILE_READ_ERROR ((SLONG) - 104)
 // uc_orig: FILE_WRITE_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_WRITE_ERROR    ((SLONG) - 105)
+#define FILE_WRITE_ERROR ((SLONG) - 105)
 // uc_orig: FILE_SEEK_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_SEEK_ERROR     ((SLONG) - 106)
+#define FILE_SEEK_ERROR ((SLONG) - 106)
 // uc_orig: FILE_LOAD_AT_ERROR (MFStdLib/Headers/StdFile.h)
-#define FILE_LOAD_AT_ERROR  ((SLONG) - 107)
+#define FILE_LOAD_AT_ERROR ((SLONG) - 107)
 
 // Seek origin constants for FileSeek().
 // uc_orig: SEEK_MODE_BEGINNING (MFStdLib/Headers/StdFile.h)
 #define SEEK_MODE_BEGINNING 0
 // uc_orig: SEEK_MODE_CURRENT (MFStdLib/Headers/StdFile.h)
-#define SEEK_MODE_CURRENT   1
+#define SEEK_MODE_CURRENT 1
 // uc_orig: SEEK_MODE_END (MFStdLib/Headers/StdFile.h)
-#define SEEK_MODE_END       2
+#define SEEK_MODE_END 2
 
 // All file paths are resolved relative to a base path set via FileSetBasePath().
 

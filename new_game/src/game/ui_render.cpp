@@ -4,9 +4,9 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 #include "engine/graphics/graphics_engine/backend_opengl/common/glad/include/glad/gl.h"
-#include "engine/graphics/pipeline/polypage.h"             // PolyPage::s_XScale etc.
-#include "engine/graphics/pipeline/polypage_globals.h"     // not_private_smiley_* mirrors
-#include "engine/graphics/ui_coords.h"                     // ui_coords::recompute
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::s_XScale etc.
+#include "engine/graphics/pipeline/polypage_globals.h" // not_private_smiley_* mirrors
+#include "engine/graphics/ui_coords.h" // ui_coords::recompute
 
 // UI draws moved out of the scene FBO and into this post-composition pass.
 #include "ui/hud/panel.h"
@@ -14,12 +14,12 @@
 #include "engine/console/console.h"
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/debug/debug_help/debug_help.h"
-#include "engine/graphics/text/font.h"                    // FONT_buffer_draw
-#include "engine/graphics/text/font2d.h"                  // FONT2D_DrawString (cheat==2 FPS overlay)
-#include "engine/graphics/pipeline/aeng.h"                // AENG_draw_messages
-#include "engine/input/keyboard_globals.h"                // ControlFlag
-#include "missions/eway.h"                                // EWAY_stop_player_moving
-#include "ui/frontend/frontend.h"                         // FRONTEND_display_overlay
+#include "engine/graphics/text/font.h" // FONT_buffer_draw
+#include "engine/graphics/text/font2d.h" // FONT2D_DrawString (cheat==2 FPS overlay)
+#include "engine/graphics/pipeline/aeng.h" // AENG_draw_messages
+#include "engine/input/keyboard_globals.h" // ControlFlag
+#include "missions/eway.h" // EWAY_stop_player_moving
+#include "ui/frontend/frontend.h" // FRONTEND_display_overlay
 
 // GAME_FLAGS / GF_PAUSED + GAME_STATE / GS_* + NET_PERSON / NET_PLAYER.
 #include "game/game_types.h"
@@ -36,12 +36,12 @@ void ui_render_post_composition(void)
     // Snapshot GL state we touch so the next frame's scene rendering finds
     // the viewport / scissor / depth it expects. Composition has already
     // restored its own state; we layer on top.
-    GLint     prev_vp[4]   = {};
-    GLint     prev_sc[4]   = {};
-    GLboolean prev_sc_on   = glIsEnabled(GL_SCISSOR_TEST);
+    GLint prev_vp[4] = {};
+    GLint prev_sc[4] = {};
+    GLboolean prev_sc_on = glIsEnabled(GL_SCISSOR_TEST);
     GLboolean prev_depth_on = glIsEnabled(GL_DEPTH_TEST);
     GLboolean prev_depth_mask = GL_TRUE;
-    glGetIntegerv(GL_VIEWPORT,    prev_vp);
+    glGetIntegerv(GL_VIEWPORT, prev_vp);
     glGetIntegerv(GL_SCISSOR_BOX, prev_sc);
     glGetBooleanv(GL_DEPTH_WRITEMASK, &prev_depth_mask);
 
@@ -73,8 +73,8 @@ void ui_render_post_composition(void)
     // size (render scale < 1.0, or when the composition aspect-fit
     // pillarboxes the FBO inside the window). Recompute to match dst_w /
     // dst_h so virtual 640×480 UI coords map to the correct dst pixels.
-    const float prev_xscale  = PolyPage::s_XScale;
-    const float prev_yscale  = PolyPage::s_YScale;
+    const float prev_xscale = PolyPage::s_XScale;
+    const float prev_yscale = PolyPage::s_YScale;
     const float prev_xoffset = PolyPage::s_XOffset;
     const float prev_yoffset = PolyPage::s_YOffset;
     const int32_t scene_w = composition_scene_width();
@@ -120,7 +120,7 @@ void ui_render_post_composition(void)
     // dereferences it unconditionally. Original OVERLAY_handle only
     // ever ran inside the game loop where darci was guaranteed alive,
     // so it skipped the null check; we have to add it.
-    Thing* darci  = NET_PERSON(0);
+    Thing* darci = NET_PERSON(0);
     Thing* player = NET_PLAYER(0);
     if (darci && player) {
 
@@ -150,17 +150,17 @@ void ui_render_post_composition(void)
             static float fps_ema = 0.0f;
             float fps_instant = 1000.0f / float(tick_tock_unclipped);
             if (fps_ema == 0.0f) {
-                fps_ema = fps_instant;  // seed on first frame
+                fps_ema = fps_instant; // seed on first frame
             } else {
                 // α = 0.05 → ~20-frame time constant (~0.67 s at 30 FPS).
                 fps_ema = 0.95f * fps_ema + 0.05f * fps_instant;
             }
 
             sprintf(str, "(%d,%d,%d) fps %.2f",
-                    darci->WorldPos.X >> 16,
-                    darci->WorldPos.Y >> 16,
-                    darci->WorldPos.Z >> 16,
-                    fps_ema);
+                darci->WorldPos.X >> 16,
+                darci->WorldPos.Y >> 16,
+                darci->WorldPos.Z >> 16,
+                fps_ema);
 
             FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
         }
@@ -221,8 +221,8 @@ void ui_render_post_composition(void)
     // Keep the not_private_smiley_* mirrors in sync — SetScaling /
     // push_ui_mode write both, so skipping the mirror would leave it
     // stale for any legacy path that still reads from it.
-    PolyPage::s_XScale  = prev_xscale;
-    PolyPage::s_YScale  = prev_yscale;
+    PolyPage::s_XScale = prev_xscale;
+    PolyPage::s_YScale = prev_yscale;
     PolyPage::s_XOffset = prev_xoffset;
     PolyPage::s_YOffset = prev_yoffset;
     not_private_smiley_xscale = prev_xscale;
@@ -233,10 +233,12 @@ void ui_render_post_composition(void)
 
     // Restore GL state.
     glDepthMask(prev_depth_mask);
-    if (prev_depth_on) glEnable(GL_DEPTH_TEST);
+    if (prev_depth_on)
+        glEnable(GL_DEPTH_TEST);
     glViewport(prev_vp[0], prev_vp[1], prev_vp[2], prev_vp[3]);
-    glScissor (prev_sc[0], prev_sc[1], prev_sc[2], prev_sc[3]);
-    if (prev_sc_on) glEnable(GL_SCISSOR_TEST);
+    glScissor(prev_sc[0], prev_sc[1], prev_sc[2], prev_sc[3]);
+    if (prev_sc_on)
+        glEnable(GL_SCISSOR_TEST);
 
     // Viewport restored via glViewport, but s_vp_* inside the backend was
     // reconfigured by ge_enter_ui_viewport and must be resynced so the

@@ -5,10 +5,10 @@
 // A* search on a 128x128 map of movement options.
 // Each cell stores packed walk/car/spare bits in a UWORD.
 
-#include "engine/platform/uc_common.h"               // ASSERT
-#include "engine/core/macros.h"            // WITHIN
-#include "ai/mav_globals.h"         // MAV_Opt, MAV_MAX_OPTS, extern vars, MAV_LOOKAHEAD
-#include "map/pap_globals.h"  // PAP_hi — required for MAVHEIGHT macro
+#include "engine/platform/uc_common.h" // ASSERT
+#include "engine/core/macros.h" // WITHIN
+#include "ai/mav_globals.h" // MAV_Opt, MAV_MAX_OPTS, extern vars, MAV_LOOKAHEAD
+#include "map/pap_globals.h" // PAP_hi — required for MAVHEIGHT macro
 
 // MAV_nav UWORD packing: 10 bits nav index | 4 bits car flags | 2 bits spare.
 // uc_orig: MAV_NAV (fallen/Headers/mav.h)
@@ -106,7 +106,6 @@ void MAV_init(void);
 // uc_orig: MAV_calc_height_array (fallen/Source/mav.cpp)
 void MAV_calc_height_array(SLONG ignore_warehouses);
 
-
 // Clears ALL movement capabilities into cell (x,z) from its 4 neighbours.
 // Stronger than MAV_turn_off_square — used for slopes and NOGO cells.
 // uc_orig: MAV_turn_off_whole_square (fallen/Source/mav.cpp)
@@ -170,7 +169,6 @@ MAV_Action MAV_do(SLONG me_x, SLONG me_z, SLONG dest_x, SLONG dest_z, UBYTE caps
 // Returns UC_TRUE if world-space point (x,y,z) is below the MAVHEIGHT terrain surface.
 // uc_orig: MAV_inside (fallen/Source/mav.cpp)
 SLONG MAV_inside(SLONG x, SLONG y, SLONG z);
-
 
 // Slow terrain LOS — like MAV_height_los_fast but uses WARE_inside() when ware != 0.
 // Skips the source point (starts from x1+dx) to avoid self-occlusion.

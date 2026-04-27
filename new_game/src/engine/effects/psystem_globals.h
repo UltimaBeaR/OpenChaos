@@ -2,7 +2,7 @@
 #define ENGINE_EFFECTS_PSYSTEM_GLOBALS_H
 
 #include <stdint.h>
-#include "engine/core/types.h"  // BOOL, SLONG
+#include "engine/core/types.h" // BOOL, SLONG
 #include "engine/effects/psystem.h"
 
 // The full particle pool — statically allocated.

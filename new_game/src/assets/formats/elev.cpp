@@ -61,15 +61,15 @@
 #include "things/vehicles/vehicle_globals.h"
 #include "world_objects/plat.h"
 #include "buildings/prim_types.h" // PrimObject, PrimInfo, PRIM_OBJ_*
-#include "buildings/prim.h"       // get_prim_info
+#include "buildings/prim.h" // get_prim_info
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
-#include "ui/frontend/startscr_globals.h"    // STARTSCR_mission
-#include "things/core/thing_globals.h"  // playback_file
-#include "things/characters/person.h"  // init_persons
+#include "ui/frontend/startscr_globals.h" // STARTSCR_mission
+#include "things/core/thing_globals.h" // playback_file
+#include "things/characters/person.h" // init_persons
 #include "engine/console/console.h" // CONSOLE_clear
-#include "assets/texture.h"            // TEXTURE_fix_prim_textures
-#include "engine/graphics/pipeline/aeng.h"  // AENG_create_dx_prim_points, TEXTURE_load_needed
+#include "assets/texture.h" // TEXTURE_fix_prim_textures
+#include "engine/graphics/pipeline/aeng.h" // AENG_create_dx_prim_points, TEXTURE_load_needed
 
 // vehicle_random[]: shared table from Vehicle.cpp defining which vehicle prims
 // appear in FAKE_CARS random spawns. Accessed here as an extern (not in any header).
@@ -1025,12 +1025,6 @@ void ELEV_load_level(CBYTE* fname_level)
                         // Spot effects are auto-generated at load time; skip waypoint creation.
                         goto dont_create_a_waypoint;
 
-                        /*
-                        ed.type    = EWAY_DO_SPOT_FX;
-                        ed.subtype = event_point.Data[0];
-                        ed.arg1    = event_point.Data[1];
-                        */
-
                         break;
 
                     case WPT_TELEPORT:
@@ -1268,18 +1262,18 @@ void ELEV_load_level(CBYTE* fname_level)
 
                     case WPT_MAKE_SEARCHABLE:
 
-                        {
-                            OB_Info* oi = OB_find_index(
-                                ew_world_x,
-                                ew_world_y,
-                                ew_world_z,
-                                0x100,
-                                UC_FALSE);
+                    {
+                        OB_Info* oi = OB_find_index(
+                            ew_world_x,
+                            ew_world_y,
+                            ew_world_z,
+                            0x100,
+                            UC_FALSE);
 
-                            if (oi) {
-                                OB_ob[oi->index].flags |= OB_FLAG_SEARCHABLE;
-                            }
+                        if (oi) {
+                            OB_ob[oi->index].flags |= OB_FLAG_SEARCHABLE;
                         }
+                    }
 
                         goto dont_create_a_waypoint;
 
@@ -1742,14 +1736,6 @@ SLONG ELEV_game_init(
 {
     SLONG i;
 
-    /*
-
-    extern UWORD darci_dlight;
-
-    darci_dlight = 0;
-
-    */
-
     ATTRACT_loadscreen_draw(10 * 256 / 100);
 
     strcpy(ELEV_last_map_loaded, fname_map);
@@ -2013,7 +1999,10 @@ SLONG ELEV_load_name(CBYTE* fname_level)
 
         } else {
             stop_all_fx_and_music();
-            { extern void video_play_cutscene(int); video_play_cutscene(2); }
+            {
+                extern void video_play_cutscene(int);
+                video_play_cutscene(2);
+            }
 
             // Reshow the "loading" screen.
             ATTRACT_loadscreen_init();
@@ -2094,32 +2083,6 @@ SLONG ELEV_load_user(SLONG mission)
 
 try_again:;
 
-    /*
-            if(mission<0)
-            {
-                    //
-                    // bodge for publishing meeting
-                    //
-                            {
-                                    SLONG	c0;
-                                    strcpy(tab_map_name,my_mission_names[-mission]);
-                                    for(c0=0;c0<strlen(tab_map_name);c0++)
-                                    {
-                                            if(tab_map_name[c0]=='.')
-                                            {
-                                                    tab_map_name[c0+1]='t';
-                                                    tab_map_name[c0+2]='g';
-                                                    tab_map_name[c0+3]='a';
-
-                                                    break;
-                                            }
-                                    }
-                            }
-                    return ELEV_load_name(my_mission_names[-mission]);
-
-            }
-    */
-
     oc_getcwd(curr_directory, _MAX_PATH);
 
     if (GAME_STATE & GS_PLAYBACK) {
@@ -2138,11 +2101,6 @@ try_again:;
                 strcat(ELEV_fname_level, "/");
             strcat(ELEV_fname_level, temp);
             return ELEV_load_name(ELEV_fname_level);
-
-            /*
-            strcpy(ELEV_fname_level,temp);
-            return ELEV_load_name(&ELEV_fname_level[23]);  // The stupid thing saves the absolute address
-            */
         }
     }
 

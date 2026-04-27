@@ -13,17 +13,17 @@
 // =====================================================================
 
 // uc_orig: TEXTURE_PIECE_LEFT (fallen/Headers/building.h)
-#define TEXTURE_PIECE_LEFT    (0)
+#define TEXTURE_PIECE_LEFT (0)
 // uc_orig: TEXTURE_PIECE_MIDDLE (fallen/Headers/building.h)
-#define TEXTURE_PIECE_MIDDLE  (1)
+#define TEXTURE_PIECE_MIDDLE (1)
 // uc_orig: TEXTURE_PIECE_RIGHT (fallen/Headers/building.h)
-#define TEXTURE_PIECE_RIGHT   (2)
+#define TEXTURE_PIECE_RIGHT (2)
 // uc_orig: TEXTURE_PIECE_MIDDLE1 (fallen/Headers/building.h)
 #define TEXTURE_PIECE_MIDDLE1 (3)
 // uc_orig: TEXTURE_PIECE_MIDDLE2 (fallen/Headers/building.h)
 #define TEXTURE_PIECE_MIDDLE2 (4)
 // uc_orig: TEXTURE_PIECE_NUMBER (fallen/Headers/building.h)
-#define TEXTURE_PIECE_NUMBER  (5)
+#define TEXTURE_PIECE_NUMBER (5)
 
 // =====================================================================
 // Map grid dimensions
@@ -32,7 +32,7 @@
 // uc_orig: BLOCK_SHIFT (fallen/Headers/building.h)
 #define BLOCK_SHIFT (6)
 // uc_orig: BLOCK_SIZE (fallen/Headers/building.h)
-#define BLOCK_SIZE  (1 << BLOCK_SHIFT)
+#define BLOCK_SIZE (1 << BLOCK_SHIFT)
 
 // =====================================================================
 // Build mode
@@ -41,169 +41,169 @@
 // uc_orig: BUILD_MODE_EDITOR (fallen/Headers/building.h)
 #define BUILD_MODE_EDITOR (1)
 // uc_orig: BUILD_MODE_DX (fallen/Headers/building.h)
-#define BUILD_MODE_DX     (2)
+#define BUILD_MODE_DX (2)
 // uc_orig: BUILD_MODE_SOFT (fallen/Headers/building.h)
-#define BUILD_MODE_SOFT   (3)
+#define BUILD_MODE_SOFT (3)
 // uc_orig: BUILD_MODE_PSX (fallen/Headers/building.h)
-#define BUILD_MODE_PSX    (4)
+#define BUILD_MODE_PSX (4)
 // uc_orig: BUILD_MODE_OTHER (fallen/Headers/building.h)
-#define BUILD_MODE_OTHER  (5)
+#define BUILD_MODE_OTHER (5)
 
 // =====================================================================
 // Building type codes (FBuilding.BuildingType)
 // =====================================================================
 
 // uc_orig: BUILDING_TYPE_HOUSE (fallen/Headers/building.h)
-#define BUILDING_TYPE_HOUSE      0
+#define BUILDING_TYPE_HOUSE 0
 // uc_orig: BUILDING_TYPE_WAREHOUSE (fallen/Headers/building.h)
-#define BUILDING_TYPE_WAREHOUSE  1
+#define BUILDING_TYPE_WAREHOUSE 1
 // uc_orig: BUILDING_TYPE_OFFICE (fallen/Headers/building.h)
-#define BUILDING_TYPE_OFFICE     2
+#define BUILDING_TYPE_OFFICE 2
 // uc_orig: BUILDING_TYPE_APARTEMENT (fallen/Headers/building.h)
 #define BUILDING_TYPE_APARTEMENT 3
 // uc_orig: BUILDING_TYPE_CRATE_IN (fallen/Headers/building.h)
-#define BUILDING_TYPE_CRATE_IN   4
+#define BUILDING_TYPE_CRATE_IN 4
 // uc_orig: BUILDING_TYPE_CRATE_OUT (fallen/Headers/building.h)
-#define BUILDING_TYPE_CRATE_OUT  5
+#define BUILDING_TYPE_CRATE_OUT 5
 
 // =====================================================================
 // Building/storey/wall pool limits
 // =====================================================================
 
 // uc_orig: MAX_BUILDINGS (fallen/Headers/building.h)
-#define MAX_BUILDINGS         (500)
+#define MAX_BUILDINGS (500)
 // uc_orig: MAX_STOREYS (fallen/Headers/building.h)
-#define MAX_STOREYS           (MAX_BUILDINGS * 5)
+#define MAX_STOREYS (MAX_BUILDINGS * 5)
 // uc_orig: MAX_WALLS (fallen/Headers/building.h)
-#define MAX_WALLS             (MAX_STOREYS * 6)
+#define MAX_WALLS (MAX_STOREYS * 6)
 // uc_orig: MAX_WINDOWS (fallen/Headers/building.h)
-#define MAX_WINDOWS           (50)
+#define MAX_WINDOWS (50)
 // uc_orig: MAX_INSIDE_STOREYS (fallen/Headers/building.h)
-#define MAX_INSIDE_STOREYS    (1024)
+#define MAX_INSIDE_STOREYS (1024)
 // uc_orig: MAX_BUILDING_FACETS (fallen/Headers/building.h)
-#define MAX_BUILDING_FACETS   4000
+#define MAX_BUILDING_FACETS 4000
 // uc_orig: MAX_BUILDING_OBJECTS (fallen/Headers/building.h)
-#define MAX_BUILDING_OBJECTS  400
+#define MAX_BUILDING_OBJECTS 400
 
 // =====================================================================
 // Facet flags (BuildingFacet.FacetFlags / DFacet flags)
 // =====================================================================
 
 // uc_orig: FACET_FLAG_NEAR_SORT (fallen/Headers/building.h)
-#define FACET_FLAG_NEAR_SORT     (1 << 0)
+#define FACET_FLAG_NEAR_SORT (1 << 0)
 // uc_orig: FACET_FLAG_ROOF (fallen/Headers/building.h)
-#define FACET_FLAG_ROOF          (1 << 1)
+#define FACET_FLAG_ROOF (1 << 1)
 // uc_orig: FACET_FLAG_CABLE (fallen/Headers/building.h)
-#define FACET_FLAG_CABLE         (1 << 2)
+#define FACET_FLAG_CABLE (1 << 2)
 // uc_orig: FACET_FLAG_NON_SORT (fallen/Headers/building.h)
-#define FACET_FLAG_NON_SORT      (1 << 3)
+#define FACET_FLAG_NON_SORT (1 << 3)
 // uc_orig: FACET_FLAG_DONT_CULL (fallen/Headers/building.h)
-#define FACET_FLAG_DONT_CULL     (1 << 3)
+#define FACET_FLAG_DONT_CULL (1 << 3)
 
 // uc_orig: FACET_FLAG_IN_SEWERS (fallen/Headers/building.h)
-#define FACET_FLAG_IN_SEWERS     (1 << 4)
+#define FACET_FLAG_IN_SEWERS (1 << 4)
 // uc_orig: FACET_FLAG_LADDER_LINK (fallen/Headers/building.h)
-#define FACET_FLAG_LADDER_LINK   (1 << 5)
+#define FACET_FLAG_LADDER_LINK (1 << 5)
 
 // uc_orig: FACET_FLAG_INVISIBLE (fallen/Headers/building.h)
-#define FACET_FLAG_INVISIBLE     (1 << 0)
+#define FACET_FLAG_INVISIBLE (1 << 0)
 // uc_orig: FACET_FLAG_INSIDE (fallen/Headers/building.h)
-#define FACET_FLAG_INSIDE        (1 << 3)
+#define FACET_FLAG_INSIDE (1 << 3)
 // uc_orig: FACET_FLAG_DLIT (fallen/Headers/building.h)
-#define FACET_FLAG_DLIT          (1 << 4)
+#define FACET_FLAG_DLIT (1 << 4)
 // uc_orig: FACET_FLAG_HUG_FLOOR (fallen/Headers/building.h)
-#define FACET_FLAG_HUG_FLOOR     (1 << 5)
+#define FACET_FLAG_HUG_FLOOR (1 << 5)
 // uc_orig: FACET_FLAG_ELECTRIFIED (fallen/Headers/building.h)
-#define FACET_FLAG_ELECTRIFIED   (1 << 6)
+#define FACET_FLAG_ELECTRIFIED (1 << 6)
 // uc_orig: FACET_FLAG_2SIDED (fallen/Headers/building.h)
-#define FACET_FLAG_2SIDED        (1 << 7)
+#define FACET_FLAG_2SIDED (1 << 7)
 // uc_orig: FACET_FLAG_UNCLIMBABLE (fallen/Headers/building.h)
-#define FACET_FLAG_UNCLIMBABLE   (1 << 8)
+#define FACET_FLAG_UNCLIMBABLE (1 << 8)
 // uc_orig: FACET_FLAG_ONBUILDING (fallen/Headers/building.h)
-#define FACET_FLAG_ONBUILDING    (1 << 9)
+#define FACET_FLAG_ONBUILDING (1 << 9)
 // uc_orig: FACET_FLAG_BARB_TOP (fallen/Headers/building.h)
-#define FACET_FLAG_BARB_TOP      (1 << 10)
+#define FACET_FLAG_BARB_TOP (1 << 10)
 // uc_orig: FACET_FLAG_SEETHROUGH (fallen/Headers/building.h)
-#define FACET_FLAG_SEETHROUGH    (1 << 11)
+#define FACET_FLAG_SEETHROUGH (1 << 11)
 // uc_orig: FACET_FLAG_OPEN (fallen/Headers/building.h)
-#define FACET_FLAG_OPEN          (1 << 12)
+#define FACET_FLAG_OPEN (1 << 12)
 // uc_orig: FACET_FLAG_90DEGREE (fallen/Headers/building.h)
-#define FACET_FLAG_90DEGREE      (1 << 13)
+#define FACET_FLAG_90DEGREE (1 << 13)
 // uc_orig: FACET_FLAG_2TEXTURED (fallen/Headers/building.h)
-#define FACET_FLAG_2TEXTURED     (1 << 14)
+#define FACET_FLAG_2TEXTURED (1 << 14)
 // uc_orig: FACET_FLAG_FENCE_CUT (fallen/Headers/building.h)
-#define FACET_FLAG_FENCE_CUT     (1 << 15)
+#define FACET_FLAG_FENCE_CUT (1 << 15)
 
 // =====================================================================
 // Roof flags
 // =====================================================================
 
 // uc_orig: FLAG_ROOF_FLAT (fallen/Headers/building.h)
-#define FLAG_ROOF_FLAT           (1 << 1)
+#define FLAG_ROOF_FLAT (1 << 1)
 // uc_orig: FLAG_ROOF_OVERLAP_SMALL (fallen/Headers/building.h)
-#define FLAG_ROOF_OVERLAP_SMALL  (1 << 2)
+#define FLAG_ROOF_OVERLAP_SMALL (1 << 2)
 // uc_orig: FLAG_ROOF_OVERLAP_MEDIUM (fallen/Headers/building.h)
 #define FLAG_ROOF_OVERLAP_MEDIUM (1 << 3)
 // uc_orig: FLAG_ROOF_WALLED (fallen/Headers/building.h)
-#define FLAG_ROOF_WALLED         (1 << 4)
+#define FLAG_ROOF_WALLED (1 << 4)
 // uc_orig: FLAG_ROOF_RECESSED (fallen/Headers/building.h)
-#define FLAG_ROOF_RECESSED       (1 << 5)
+#define FLAG_ROOF_RECESSED (1 << 5)
 
 // =====================================================================
 // Wall flags
 // =====================================================================
 
 // uc_orig: FLAG_WALL_USED (fallen/Headers/building.h)
-#define FLAG_WALL_USED          (1 << 0)
+#define FLAG_WALL_USED (1 << 0)
 // uc_orig: FLAG_WALL_AUTO_WINDOWS (fallen/Headers/building.h)
-#define FLAG_WALL_AUTO_WINDOWS  (1 << 1)
+#define FLAG_WALL_AUTO_WINDOWS (1 << 1)
 // uc_orig: FLAG_WALL_FACET_LINKED (fallen/Headers/building.h)
-#define FLAG_WALL_FACET_LINKED  (1 << 2)
+#define FLAG_WALL_FACET_LINKED (1 << 2)
 // uc_orig: FLAG_WALL_FENCE_POST1 (fallen/Headers/building.h)
-#define FLAG_WALL_FENCE_POST1   (1 << 3)
+#define FLAG_WALL_FENCE_POST1 (1 << 3)
 // uc_orig: FLAG_WALL_FENCE_POST2 (fallen/Headers/building.h)
-#define FLAG_WALL_FENCE_POST2   (1 << 4)
+#define FLAG_WALL_FENCE_POST2 (1 << 4)
 // uc_orig: FLAG_WALL_RECESSED (fallen/Headers/building.h)
-#define FLAG_WALL_RECESSED      (1 << 5)
+#define FLAG_WALL_RECESSED (1 << 5)
 // uc_orig: FLAG_WALL_CLIMBABLE (fallen/Headers/building.h)
-#define FLAG_WALL_CLIMBABLE     (1 << 6)
+#define FLAG_WALL_CLIMBABLE (1 << 6)
 // uc_orig: FLAG_WALL_ARCH_TOP (fallen/Headers/building.h)
-#define FLAG_WALL_ARCH_TOP      (1 << 7)
+#define FLAG_WALL_ARCH_TOP (1 << 7)
 // uc_orig: FLAG_WALL_BARB_TOP (fallen/Headers/building.h)
-#define FLAG_WALL_BARB_TOP      (1 << 8)
+#define FLAG_WALL_BARB_TOP (1 << 8)
 
 // =====================================================================
 // Storey flags
 // =====================================================================
 
 // uc_orig: FLAG_STOREY_USED (fallen/Headers/building.h)
-#define FLAG_STOREY_USED             (1 << 0)
+#define FLAG_STOREY_USED (1 << 0)
 // uc_orig: FLAG_STOREY_FLAT_TILED_ROOF (fallen/Headers/building.h)
-#define FLAG_STOREY_FLAT_TILED_ROOF  (1 << 1)
+#define FLAG_STOREY_FLAT_TILED_ROOF (1 << 1)
 // uc_orig: FLAG_STOREY_LEDGE (fallen/Headers/building.h)
-#define FLAG_STOREY_LEDGE            (1 << 2)
+#define FLAG_STOREY_LEDGE (1 << 2)
 // uc_orig: FLAG_STOREY_ROOF (fallen/Headers/building.h)
-#define FLAG_STOREY_ROOF             (1 << 3)
+#define FLAG_STOREY_ROOF (1 << 3)
 // uc_orig: FLAG_STOREY_FACET_LINKED (fallen/Headers/building.h)
-#define FLAG_STOREY_FACET_LINKED     (1 << 4)
+#define FLAG_STOREY_FACET_LINKED (1 << 4)
 // uc_orig: FLAG_STOREY_TILED_ROOF (fallen/Headers/building.h)
-#define FLAG_STOREY_TILED_ROOF       (1 << 5)
+#define FLAG_STOREY_TILED_ROOF (1 << 5)
 // uc_orig: FLAG_STOREY_ROOF_RIM (fallen/Headers/building.h)
-#define FLAG_STOREY_ROOF_RIM         (1 << 6)
+#define FLAG_STOREY_ROOF_RIM (1 << 6)
 // uc_orig: FLAG_STOREY_ROOF_RIM2 (fallen/Headers/building.h)
-#define FLAG_STOREY_ROOF_RIM2        (1 << 7)
+#define FLAG_STOREY_ROOF_RIM2 (1 << 7)
 // uc_orig: FLAG_STOREY_UNCLIMBABLE (fallen/Headers/building.h)
-#define FLAG_STOREY_UNCLIMBABLE      (1 << 10)
+#define FLAG_STOREY_UNCLIMBABLE (1 << 10)
 // uc_orig: FLAG_STOREY_ONBUILDING (fallen/Headers/building.h)
-#define FLAG_STOREY_ONBUILDING       (1 << 11)
+#define FLAG_STOREY_ONBUILDING (1 << 11)
 
 // Extra storey flags (FStorey.ExtraFlags).
 // uc_orig: FLAG_STOREY_EXTRA_UNCLIMBABLE (fallen/Headers/building.h)
 #define FLAG_STOREY_EXTRA_UNCLIMBABLE (1 << 0)
 // uc_orig: FLAG_STOREY_EXTRA_ONBUILDING (fallen/Headers/building.h)
-#define FLAG_STOREY_EXTRA_ONBUILDING  (1 << 1)
+#define FLAG_STOREY_EXTRA_ONBUILDING (1 << 1)
 // uc_orig: FLAG_STOREY_EXTRA_90DEGREE (fallen/Headers/building.h)
-#define FLAG_STOREY_EXTRA_90DEGREE    (1 << 2)
+#define FLAG_STOREY_EXTRA_90DEGREE (1 << 2)
 
 // uc_orig: FLAG_ISTOREY_DOOR (fallen/Headers/building.h)
 #define FLAG_ISTOREY_DOOR (1 << 1)
@@ -213,49 +213,49 @@
 // =====================================================================
 
 // uc_orig: STOREY_TYPE_NORMAL (fallen/Headers/building.h)
-#define STOREY_TYPE_NORMAL         (1)
+#define STOREY_TYPE_NORMAL (1)
 // uc_orig: STOREY_TYPE_ROOF (fallen/Headers/building.h)
-#define STOREY_TYPE_ROOF           (2)
+#define STOREY_TYPE_ROOF (2)
 // uc_orig: STOREY_TYPE_WALL (fallen/Headers/building.h)
-#define STOREY_TYPE_WALL           (3)
+#define STOREY_TYPE_WALL (3)
 // uc_orig: STOREY_TYPE_ROOF_QUAD (fallen/Headers/building.h)
-#define STOREY_TYPE_ROOF_QUAD      (4)
+#define STOREY_TYPE_ROOF_QUAD (4)
 // uc_orig: STOREY_TYPE_FLOOR_POINTS (fallen/Headers/building.h)
-#define STOREY_TYPE_FLOOR_POINTS   (5)
+#define STOREY_TYPE_FLOOR_POINTS (5)
 // uc_orig: STOREY_TYPE_FIRE_ESCAPE (fallen/Headers/building.h)
-#define STOREY_TYPE_FIRE_ESCAPE    (6)
+#define STOREY_TYPE_FIRE_ESCAPE (6)
 // uc_orig: STOREY_TYPE_STAIRCASE (fallen/Headers/building.h)
-#define STOREY_TYPE_STAIRCASE      (7)
+#define STOREY_TYPE_STAIRCASE (7)
 // uc_orig: STOREY_TYPE_SKYLIGHT (fallen/Headers/building.h)
-#define STOREY_TYPE_SKYLIGHT       (8)
+#define STOREY_TYPE_SKYLIGHT (8)
 // Zip-line/cable that Darci can slide along.
 // uc_orig: STOREY_TYPE_CABLE (fallen/Headers/building.h)
-#define STOREY_TYPE_CABLE          (9)
+#define STOREY_TYPE_CABLE (9)
 // uc_orig: STOREY_TYPE_FENCE (fallen/Headers/building.h)
-#define STOREY_TYPE_FENCE          (10)
+#define STOREY_TYPE_FENCE (10)
 // uc_orig: STOREY_TYPE_FENCE_BRICK (fallen/Headers/building.h)
-#define STOREY_TYPE_FENCE_BRICK    (11)
+#define STOREY_TYPE_FENCE_BRICK (11)
 // uc_orig: STOREY_TYPE_LADDER (fallen/Headers/building.h)
-#define STOREY_TYPE_LADDER         (12)
+#define STOREY_TYPE_LADDER (12)
 // uc_orig: STOREY_TYPE_FENCE_FLAT (fallen/Headers/building.h)
-#define STOREY_TYPE_FENCE_FLAT     (13)
+#define STOREY_TYPE_FENCE_FLAT (13)
 // uc_orig: STOREY_TYPE_TRENCH (fallen/Headers/building.h)
-#define STOREY_TYPE_TRENCH         (14)
+#define STOREY_TYPE_TRENCH (14)
 // uc_orig: STOREY_TYPE_JUST_COLLISION (fallen/Headers/building.h)
 #define STOREY_TYPE_JUST_COLLISION (15)
 // uc_orig: STOREY_TYPE_PARTITION (fallen/Headers/building.h)
-#define STOREY_TYPE_PARTITION      (16)
+#define STOREY_TYPE_PARTITION (16)
 // uc_orig: STOREY_TYPE_INSIDE (fallen/Headers/building.h)
-#define STOREY_TYPE_INSIDE         (17)
+#define STOREY_TYPE_INSIDE (17)
 // uc_orig: STOREY_TYPE_DOOR (fallen/Headers/building.h)
-#define STOREY_TYPE_DOOR           (18)
+#define STOREY_TYPE_DOOR (18)
 // uc_orig: STOREY_TYPE_INSIDE_DOOR (fallen/Headers/building.h)
-#define STOREY_TYPE_INSIDE_DOOR    (19)
+#define STOREY_TYPE_INSIDE_DOOR (19)
 // uc_orig: STOREY_TYPE_OINSIDE (fallen/Headers/building.h)
-#define STOREY_TYPE_OINSIDE        (20)
+#define STOREY_TYPE_OINSIDE (20)
 // External entrance to a building interior.
 // uc_orig: STOREY_TYPE_OUTSIDE_DOOR (fallen/Headers/building.h)
-#define STOREY_TYPE_OUTSIDE_DOOR   (21)
+#define STOREY_TYPE_OUTSIDE_DOOR (21)
 
 // uc_orig: STOREY_TYPE_NORMAL_FOUNDATION (fallen/Headers/building.h)
 #define STOREY_TYPE_NORMAL_FOUNDATION (100)
@@ -274,18 +274,18 @@
 // uc_orig: CABLE_ALONG_SHIFT (fallen/Headers/building.h)
 #define CABLE_ALONG_SHIFT 12
 // uc_orig: CABLE_ALONG_MAX (fallen/Headers/building.h)
-#define CABLE_ALONG_MAX   (1 << CABLE_ALONG_SHIFT)
+#define CABLE_ALONG_MAX (1 << CABLE_ALONG_SHIFT)
 
 // =====================================================================
 // Stair flags
 // =====================================================================
 
 // uc_orig: STAIR_FLAG_UP (fallen/Headers/building.h)
-#define STAIR_FLAG_UP    (1 << 0)
+#define STAIR_FLAG_UP (1 << 0)
 // uc_orig: STAIR_FLAG_DOWN (fallen/Headers/building.h)
-#define STAIR_FLAG_DOWN  (1 << 1)
+#define STAIR_FLAG_DOWN (1 << 1)
 // uc_orig: STAIR_FLAGS_DIR (fallen/Headers/building.h)
-#define STAIR_FLAGS_DIR  ((1 << 2) | (1 << 3))
+#define STAIR_FLAGS_DIR ((1 << 2) | (1 << 3))
 // uc_orig: SET_STAIR_DIR (fallen/Headers/building.h)
 #define SET_STAIR_DIR(x, dir) ((x) = ((x) & ~STAIR_FLAGS_DIR) | (dir << 2))
 // uc_orig: GET_STAIR_DIR (fallen/Headers/building.h)
@@ -296,25 +296,25 @@
 // =====================================================================
 
 // uc_orig: BROWN_BRICK1 (fallen/Headers/building.h)
-#define BROWN_BRICK1     1
+#define BROWN_BRICK1 1
 // uc_orig: BROWN_BRICK2 (fallen/Headers/building.h)
-#define BROWN_BRICK2     2
+#define BROWN_BRICK2 2
 // uc_orig: GREY_RIM1 (fallen/Headers/building.h)
-#define GREY_RIM1        3
+#define GREY_RIM1 3
 // uc_orig: GREY_RIM2 (fallen/Headers/building.h)
-#define GREY_RIM2        4
+#define GREY_RIM2 4
 // uc_orig: RED_WINDOW (fallen/Headers/building.h)
-#define RED_WINDOW       5
+#define RED_WINDOW 5
 // uc_orig: GREY_CORIGATED (fallen/Headers/building.h)
-#define GREY_CORIGATED   6
+#define GREY_CORIGATED 6
 // uc_orig: CRATES_SMALL_BROWN (fallen/Headers/building.h)
 #define CRATES_SMALL_BROWN 7
 // uc_orig: GREY_POSH (fallen/Headers/building.h)
-#define GREY_POSH        8
+#define GREY_POSH 8
 // uc_orig: HOTEL_SIGN1 (fallen/Headers/building.h)
-#define HOTEL_SIGN1      9
+#define HOTEL_SIGN1 9
 // uc_orig: HOTEL_SIGN2 (fallen/Headers/building.h)
-#define HOTEL_SIGN2      10
+#define HOTEL_SIGN2 10
 
 // =====================================================================
 // Building data structures (binary-format-compatible)
@@ -369,12 +369,12 @@ struct TempBuilding {
 // uc_orig: TempFacet (fallen/Headers/building.h)
 struct TempFacet {
     SLONG x1, z1, x2, z2;
-    SWORD  Y;
-    UWORD  PrevFacet;
-    UWORD  NextFacet;
-    UWORD  RoofType;
-    UWORD  StoreyHead;
-    UWORD  StoreyCount;
+    SWORD Y;
+    UWORD PrevFacet;
+    UWORD NextFacet;
+    UWORD RoofType;
+    UWORD StoreyHead;
+    UWORD StoreyCount;
 };
 
 // Editor scratch storey.
@@ -439,7 +439,7 @@ struct FWall {
     UWORD StoreyHead;
 
     UBYTE* Textures;
-    UWORD  Tcount;
+    UWORD Tcount;
     UBYTE* Textures2;
 
     UWORD Dummy[1];

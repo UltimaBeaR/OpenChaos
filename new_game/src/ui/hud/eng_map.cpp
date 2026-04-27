@@ -22,17 +22,17 @@ extern SLONG EWAY_mess_upto;
 // MAP_SCREEN_IX/IY: integer world position (>>8 units) → virtual screen position.
 // MAP_WORLD_X/Z: virtual screen position → world position.
 // uc_orig: MAP_SCREEN_X (fallen/DDEngine/Source/engineMap.cpp)
-#define MAP_SCREEN_X(world_x)  (MAP_screen_x + ((world_x) - MAP_world_x) * MAP_scale_x)
+#define MAP_SCREEN_X(world_x) (MAP_screen_x + ((world_x) - MAP_world_x) * MAP_scale_x)
 // uc_orig: MAP_SCREEN_Y (fallen/DDEngine/Source/engineMap.cpp)
-#define MAP_SCREEN_Y(world_z)  (MAP_screen_y + ((world_z) - MAP_world_z) * MAP_scale_y)
+#define MAP_SCREEN_Y(world_z) (MAP_screen_y + ((world_z) - MAP_world_z) * MAP_scale_y)
 // uc_orig: MAP_SCREEN_IX (fallen/DDEngine/Source/engineMap.cpp)
 #define MAP_SCREEN_IX(world_x) (MAP_screen_x + (((float)(world_x)) * (1.0f / 256.0f) - MAP_world_x) * MAP_scale_x)
 // uc_orig: MAP_SCREEN_IY (fallen/DDEngine/Source/engineMap.cpp)
 #define MAP_SCREEN_IY(world_z) (MAP_screen_y + (((float)(world_z)) * (1.0f / 256.0f) - MAP_world_z) * MAP_scale_y)
 // uc_orig: MAP_WORLD_X (fallen/DDEngine/Source/engineMap.cpp)
-#define MAP_WORLD_X(screen_x)  (((screen_x) - MAP_screen_x) / MAP_scale_x + MAP_world_x)
+#define MAP_WORLD_X(screen_x) (((screen_x) - MAP_screen_x) / MAP_scale_x + MAP_world_x)
 // uc_orig: MAP_WORLD_Z (fallen/DDEngine/Source/engineMap.cpp)
-#define MAP_WORLD_Z(screen_y)  (((screen_y) - MAP_screen_y) / MAP_scale_y + MAP_world_z)
+#define MAP_WORLD_Z(screen_y) (((screen_y) - MAP_screen_y) / MAP_scale_y + MAP_world_z)
 
 // Returns a grey shade (as ARGB) based on distance from map centre.
 // Used to fade out map sprites and dots towards the edge.
@@ -504,22 +504,22 @@ static void MAP_draw_dot(float x, float y, float size, float angle, ULONG colour
 
         a = (colour >> 24) & 0xff;
         r = (colour >> 16) & 0xff;
-        g = (colour >>  8) & 0xff;
-        b = (colour >>  0) & 0xff;
+        g = (colour >> 8) & 0xff;
+        b = (colour >> 0) & 0xff;
 
         a = a * mul >> 8;
         r = r * mul >> 8;
         g = g * mul >> 8;
         b = b * mul >> 8;
 
-        colour  = a << 24;
+        colour = a << 24;
         colour |= r << 16;
-        colour |= g <<  8;
-        colour |= b <<  0;
+        colour |= g << 8;
+        colour |= b << 0;
     }
 
-    x  *= MAP_screen_size_x;
-    y  *= MAP_screen_size_y;
+    x *= MAP_screen_size_x;
+    y *= MAP_screen_size_y;
     dx *= MAP_screen_size_x;
     dy *= MAP_screen_size_y;
 
@@ -849,18 +849,18 @@ static void MAP_draw_3d_arrow(float angle, ULONG colour)
     quad[3] = &pp[3];
 
     static float dangle = 0.25F;
-    static float ddist  = 0.25F;
-    static float width  = 800.0F;
-    static float below  = 0.5F;
+    static float ddist = 0.25F;
+    static float width = 800.0F;
+    static float below = 0.5F;
 
 // uc_orig: MAP_3DARROW_DANGLE (fallen/DDEngine/Source/engineMap.cpp)
 #define MAP_3DARROW_DANGLE (dangle)
 // uc_orig: MAP_3DARROW_DDIST (fallen/DDEngine/Source/engineMap.cpp)
-#define MAP_3DARROW_DDIST  (ddist)
+#define MAP_3DARROW_DDIST (ddist)
 
     for (i = 0; i < 4; i++) {
         pangle = angle;
-        pdist  = 1.0F;
+        pdist = 1.0F;
 
         if (i & 1) {
             pangle -= MAP_3DARROW_DANGLE;
@@ -907,13 +907,13 @@ UBYTE MAP_beacon_create(SLONG x, SLONG z, SLONG index, UWORD track_thing)
         mb = &MAP_beacon[i];
 
         if (!mb->used) {
-            mb->used        = UC_TRUE;
-            mb->counter     = 0;
+            mb->used = UC_TRUE;
+            mb->counter = 0;
             mb->track_thing = track_thing;
-            mb->index       = index;
-            mb->wx          = x >> 0;
-            mb->wz          = z >> 0;
-            mb->ticks       = sdl3_get_ticks();
+            mb->index = index;
+            mb->wx = x >> 0;
+            mb->wz = z >> 0;
+            mb->ticks = sdl3_get_ticks();
 
             return i;
         }
@@ -930,7 +930,7 @@ static void MAP_process_beacons()
     MAP_Beacon* mb;
 
     // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
-    static uint64_t now  = 0;
+    static uint64_t now = 0;
     static uint64_t last = 0;
 
     now = sdl3_get_ticks();

@@ -1,10 +1,10 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
+#include "engine/graphics/pipeline/aeng.h" // AENG_flip, AENG_fade_out, AENG_clear_screen
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "ui/hud/panel.h"
 #include "ui/frontend/startscr.h"
 #define DEMO
@@ -104,20 +104,18 @@ reinit_because_of_language_change:
                 switch (res) {
                 case STARTS_PSX:
                     break;
-                case STARTS_START:
-                    {
-                        GAME_STATE &= ~GS_ATTRACT_MODE;
-                        GAME_STATE |= GS_PLAY_GAME;
-                        go_into_game = UC_TRUE;
+                case STARTS_START: {
+                    GAME_STATE &= ~GS_ATTRACT_MODE;
+                    GAME_STATE |= GS_PLAY_GAME;
+                    go_into_game = UC_TRUE;
 
-                        ATTRACT_loadscreen_init();
+                    ATTRACT_loadscreen_init();
 
-                        stop_all_fx_and_music();
+                    stop_all_fx_and_music();
 
-                        extern void init_joypad_config(void);
-                        init_joypad_config();
-                    }
-                    break;
+                    extern void init_joypad_config(void);
+                    init_joypad_config();
+                } break;
                 case STARTS_PLAYBACK:
                     GAME_STATE &= ~GS_ATTRACT_MODE;
                     GAME_STATE |= GS_PLAY_GAME;
@@ -176,7 +174,6 @@ reinit_because_of_language_change:
     text_fudge = UC_FALSE;
     ge_reset_back_image();
 }
-
 
 // uc_orig: SCORE_SPACER (fallen/Source/Attract.cpp)
 #define SCORE_SPACER 20
@@ -428,5 +425,3 @@ void ATTRACT_loadscreen_draw(SLONG completion)
     PANEL_draw_completion_bar(completion);
     AENG_flip();
 }
-
-

@@ -11,4 +11,3 @@ struct TrackEnemy panel_gun_sight[MAX_TRACK];
 
 // uc_orig: track_count (fallen/Source/overlay.cpp)
 UWORD track_count = 0;
-

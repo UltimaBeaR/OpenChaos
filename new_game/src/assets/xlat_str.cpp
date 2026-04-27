@@ -29,7 +29,6 @@ static CBYTE* mbcs_prev_char(CBYTE* c, CBYTE* base)
     return c - 1;
 }
 
-
 // MBCS-safe strchr: finds first occurrence of c in str.
 // uc_orig: mbcs_strchr (fallen/Source/xlat_str.cpp)
 static CBYTE* mbcs_strchr(CBYTE* str, CBYTE c)
@@ -42,7 +41,6 @@ static CBYTE* mbcs_strchr(CBYTE* str, CBYTE c)
     }
     return 0;
 }
-
 
 // MBCS-safe strspnp: skips characters found in badlist, returns first non-match.
 // uc_orig: mbcs_strspnp (fallen/Source/xlat_str.cpp)

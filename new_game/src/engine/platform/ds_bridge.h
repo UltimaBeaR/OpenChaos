@@ -45,12 +45,12 @@ bool ds_is_connected();
 // ---------------------------------------------------------------------------
 
 struct DS_InputState {
-    float left_stick_x;    // -1.0 .. +1.0
-    float left_stick_y;    // -1.0 .. +1.0
-    float right_stick_x;   // -1.0 .. +1.0
-    float right_stick_y;   // -1.0 .. +1.0
-    float trigger_left;    // 0.0 .. 1.0
-    float trigger_right;   // 0.0 .. 1.0
+    float left_stick_x; // -1.0 .. +1.0
+    float left_stick_y; // -1.0 .. +1.0
+    float right_stick_x; // -1.0 .. +1.0
+    float right_stick_y; // -1.0 .. +1.0
+    float trigger_left; // 0.0 .. 1.0
+    float trigger_right; // 0.0 .. 1.0
 
     // Face buttons
     bool cross;
@@ -61,7 +61,7 @@ struct DS_InputState {
     // Shoulders
     bool l1;
     bool r1;
-    bool l2_digital;  // trigger past threshold
+    bool l2_digital; // trigger past threshold
     bool r2_digital;
 
     // D-Pad
@@ -72,7 +72,7 @@ struct DS_InputState {
 
     // Menu
     bool start;
-    bool share;      // Select/Create
+    bool share; // Select/Create
     bool ps_button;
 
     // Sticks click
@@ -91,18 +91,18 @@ struct DS_InputState {
     // Weapon (0x25), Vibration/MachineGun (0x26).
     uint8_t left_trigger_feedback_state;
     uint8_t right_trigger_feedback_state;
-    bool    left_trigger_effect_active;
-    bool    right_trigger_effect_active;
+    bool left_trigger_effect_active;
+    bool right_trigger_effect_active;
 
     // Touchpad fingers. Coordinates are raw touchpad pixels (hardware
     // is 1920×1080). When a finger isn't touching, `*_down` is false and
     // X/Y hold the last position the finger had while down.
     uint16_t touchpad_finger_1_x;
     uint16_t touchpad_finger_1_y;
-    bool     touchpad_finger_1_down;
+    bool touchpad_finger_1_down;
     uint16_t touchpad_finger_2_x;
     uint16_t touchpad_finger_2_y;
-    bool     touchpad_finger_2_down;
+    bool touchpad_finger_2_down;
 };
 
 bool ds_get_input(DS_InputState* out);
@@ -113,7 +113,7 @@ bool ds_get_input(DS_InputState* out);
 
 void ds_set_lightbar(uint8_t r, uint8_t g, uint8_t b);
 void ds_set_player_led(uint8_t led_mask);
-void ds_set_player_led_brightness(uint8_t brightness);   // 0 = brightest, 2 = dimmest
+void ds_set_player_led_brightness(uint8_t brightness); // 0 = brightest, 2 = dimmest
 void ds_set_vibration(uint8_t left, uint8_t right);
 
 // Mic-mute LED: 0 = Off, 1 = On (steady), 2 = Blink. Values outside
@@ -152,23 +152,23 @@ void ds_trigger_vibration(uint8_t position, uint8_t amplitude, uint8_t frequency
 // The simplified *_trigger_bow / *_trigger_machine above collapse
 // parameters for game code; these expose every tunable byte.
 void ds_trigger_bow_full(uint8_t start, uint8_t end,
-                         uint8_t strength, uint8_t snap, uint8_t hand);
+    uint8_t strength, uint8_t snap, uint8_t hand);
 void ds_trigger_machine_full(uint8_t start, uint8_t end,
-                             uint8_t amplitude_a, uint8_t amplitude_b,
-                             uint8_t frequency, uint8_t period, uint8_t hand);
+    uint8_t amplitude_a, uint8_t amplitude_b,
+    uint8_t frequency, uint8_t period, uint8_t hand);
 
 // Additional effects — not used by game code today, exposed for the
 // input debug panel trigger tester. hand: 0=left, 1=right, 2=both.
 void ds_trigger_galloping(uint8_t start, uint8_t end,
-                          uint8_t first_foot, uint8_t second_foot,
-                          uint8_t frequency, uint8_t hand);
+    uint8_t first_foot, uint8_t second_foot,
+    uint8_t frequency, uint8_t hand);
 void ds_trigger_simple_weapon(uint8_t start_raw, uint8_t end_raw,
-                              uint8_t strength_raw, uint8_t hand);
+    uint8_t strength_raw, uint8_t hand);
 void ds_trigger_simple_vibration(uint8_t position, uint8_t amplitude,
-                                 uint8_t frequency, uint8_t hand);
+    uint8_t frequency, uint8_t hand);
 void ds_trigger_limited_feedback(uint8_t position, uint8_t strength, uint8_t hand);
 void ds_trigger_limited_weapon(uint8_t start_raw, uint8_t end_raw,
-                               uint8_t strength, uint8_t hand);
+    uint8_t strength, uint8_t hand);
 
 // Debug: copy the current 10-byte trigger effect slot bytes
 // (as they will be sent in the next output report). Used by the

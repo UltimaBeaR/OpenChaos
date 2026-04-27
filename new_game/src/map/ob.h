@@ -64,23 +64,23 @@ struct Thing;
 // Spatial index entry: maps one lo-res mapsquare to a contiguous slice of OB_ob[].
 // uc_orig: OB_Mapwho (fallen/Headers/ob.h)
 typedef struct {
-    UWORD index : 11;   // first entry in OB_ob[] for this square
-    UWORD num : 5;      // number of entries on this square
+    UWORD index : 11; // first entry in OB_ob[] for this square
+    UWORD num : 5; // number of entries on this square
 } OB_Mapwho;
 
 // Full info about one placed object, as returned by OB_find().
 // Fields are expanded from the compressed OB_Ob storage format.
 // uc_orig: OB_Info (fallen/Headers/ob.h)
 typedef struct {
-    UWORD prim;         // prim ID; 0 = end-of-array sentinel
+    UWORD prim; // prim ID; 0 = end-of-array sentinel
     UWORD x;
     SWORD y;
     UWORD z;
     UWORD yaw;
     UWORD pitch;
     UWORD roll;
-    UWORD index;        // index into OB_ob[]
-    UBYTE crumple;      // visual damage scale 0-4 (for non-lean prims)
+    UWORD index; // index into OB_ob[]
+    UBYTE crumple; // visual damage scale 0-4 (for non-lean prims)
     UBYTE InsideIndex;
     UBYTE Room;
     UBYTE flags;
@@ -124,7 +124,7 @@ void OB_load_needed_prims(void);
 
 // uc_orig: OB_create (fallen/Source/ob.cpp)
 void OB_create(SLONG x, SLONG y, SLONG z, SLONG yaw, SLONG pitch, SLONG roll,
-               SLONG prim, UBYTE flag, UWORD Inside, UBYTE Room);
+    SLONG prim, UBYTE flag, UWORD Inside, UBYTE Room);
 
 // Returns null-terminated array of OB_Info for all objects on mapsquare (x, z).
 // uc_orig: OB_find (fallen/Source/ob.cpp)
@@ -134,25 +134,25 @@ OB_Info* OB_find(SLONG lo_map_x, SLONG lo_map_z);
 // prim_flags <= 255: PRIM_FLAG_* bitmask. prim_flags > 255: FIND_OB_* special type.
 // uc_orig: OB_find_type (fallen/Source/ob.cpp)
 SLONG OB_find_type(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range,
-                   ULONG prim_flags,
-                   SLONG* ob_x, SLONG* ob_y, SLONG* ob_z, SLONG* ob_yaw,
-                   SLONG* ob_prim, SLONG* ob_index);
+    ULONG prim_flags,
+    SLONG* ob_x, SLONG* ob_y, SLONG* ob_z, SLONG* ob_yaw,
+    SLONG* ob_prim, SLONG* ob_index);
 
 // uc_orig: OB_find_index (fallen/Source/ob.cpp)
 OB_Info* OB_find_index(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range,
-                       SLONG must_be_searchable);
+    SLONG must_be_searchable);
 
 // Avoidance helper: given movement (x1,z1)->(x2,z2), returns -1/+1 to steer around ob_prim.
 // uc_orig: OB_avoid (fallen/Source/ob.cpp)
 SLONG OB_avoid(SLONG ob_x, SLONG ob_y, SLONG ob_z, SLONG ob_yaw, SLONG ob_prim,
-               SLONG x1, SLONG z1, SLONG x2, SLONG z2);
+    SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 
 // uc_orig: OB_remove (fallen/Source/ob.cpp)
 void OB_remove(OB_Info* oi);
 
 // uc_orig: OB_damage (fallen/Source/ob.cpp)
 void OB_damage(SLONG index, SLONG from_dx, SLONG from_dz, SLONG ob_x, SLONG ob_z,
-               Thing* p_aggressor);
+    Thing* p_aggressor);
 
 // uc_orig: OB_inside_prim (fallen/Source/ob.cpp)
 SLONG OB_inside_prim(SLONG x, SLONG y, SLONG z);

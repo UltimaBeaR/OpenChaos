@@ -35,5 +35,4 @@ void setup_global_anim_array(void);
 // uc_orig: setup_extra_anims (fallen/Source/Anim.cpp)
 void setup_extra_anims(void);
 
-
 #endif // ASSETS_FORMATS_ANIM_H

@@ -5,13 +5,13 @@
 
 #include "ai/pcom.h"
 #include "ai/pcom_globals.h"
-#include "ui/hud/overlay.h"   // OVERLAY_queue_view_line
+#include "ui/hud/overlay.h" // OVERLAY_queue_view_line
 #include "ai/mav.h"
 #include "combat/combat.h"
 #include "combat/combat_globals.h"
 #include "missions/eway.h"
 #include "map/level_pools.h"
-#include "buildings/prim.h"    // get_prim_info
+#include "buildings/prim.h" // get_prim_info
 #include "engine/physics/collide.h"
 #include "map/road.h"
 #include "navigation/wand.h"
@@ -19,7 +19,7 @@
 #include "map/ob.h"
 #include "things/characters/anim_ids.h"
 #include "things/core/statedef.h"
-#include "things/characters/person.h"   // set_person_idle, set_person_goto_xz, set_person_circle, etc.
+#include "things/characters/person.h" // set_person_idle, set_person_goto_xz, set_person_circle, etc.
 #include "engine/audio/mfx.h"
 #include "engine/audio/sound.h"
 #include "assets/sound_id.h"
@@ -2297,45 +2297,6 @@ void process_gang_attack(Thing* p_person, Thing* p_target)
     }
 
     return;
-    // Original rotation logic below was commented out in the original (left-in dead block).
-    /*
-        for(c0=0;c0<4;c0++)
-        {
-            if(gang_attacks[gang].Perp[c0]==me)
-            {
-                left=gang_attacks[gang].Perp[(c0-1)&3];
-                right=gang_attacks[gang].Perp[(c0+1)&3];
-                if(left==0 && right==0)
-                    return;
-
-                if(left==0&& right)
-                {
-                    lleft=gang_attacks[gang].Perp[(c0-2)&3];
-                    if(lleft==0)
-                    {
-                        gang_attacks[gang].Perp[c0]=0;
-                        p_person->Genus.Person->AttackAngle=(c0-1)&3;
-                        gang_attacks[gang].Perp[(c0-1)&3]=me;
-                        p_person->Genus.Person->Agression=-60-(c0<<2);
-                    }
-                }
-                else
-                if(left&&right==0)
-                {
-                    rright=gang_attacks[gang].Perp[(c0+2)&3];
-                    if(rright==0)
-                    {
-                        gang_attacks[gang].Perp[c0]=0;
-                        p_person->Genus.Person->AttackAngle=(c0+1)&3;
-                        ASSERT(gang_attacks[gang].Perp[(c0+1)&3]==0);
-                        gang_attacks[gang].Perp[(c0+1)&3]=me;
-                        p_person->Genus.Person->Agression=-60-(c0<<2);
-                    }
-                }
-                return;
-            }
-        }
-    */
 }
 
 // Claim a cardinal slot in the gang ring for p_person, displacing others if needed.
@@ -2551,13 +2512,6 @@ void PCOM_set_person_ai_kill_person(Thing* p_person, Thing* p_target, SLONG aler
             PCOM_call_cop_to_arrest_me(p_person, 1);
     }
 
-    /*
-            if(p_person->Genus.Person->pcom_ai_state    == PCOM_AI_STATE_KILLING)
-                    return;
-            if(p_person->Genus.Person->State    == STATE_CIRCLING)
-                    return;
-    */
-
     if (p_person->Genus.Person->Target) {
         remove_from_gang_attack(p_person, TO_THING(p_person->Genus.Person->Target));
     }
@@ -2679,12 +2633,6 @@ void PCOM_set_person_ai_flee_place(
 {
     if ((p_person->Genus.Person->Flags & FLAG_PERSON_HELPLESS))
         return;
-    /*
-            play_quick_wave(
-                    p_person,
-                    S_ARGH,
-                    WAVE_PLAY_INTERUPT);
-    */
     if (p_person->Genus.Person->Target) {
         remove_from_gang_attack(p_person, TO_THING(p_person->Genus.Person->Target));
     }
@@ -3216,14 +3164,6 @@ void PCOM_set_person_ai_summon(Thing* p_person)
 // The commented-out body below is the original definition, later moved.
 // uc_orig: PersonIsMIB (fallen/Source/pcom.cpp)
 extern BOOL PersonIsMIB(Thing* p_person);
-/*
-BOOL PersonIsMIB(Thing* p_person)
-{
-        return (p_person->Genus.Person->PersonType == PERSON_MIB1 ||
-                p_person->Genus.Person->PersonType == PERSON_MIB2 ||
-                p_person->Genus.Person->PersonType == PERSON_MIB3);
-};
-*/
 
 // Scan nearby for a weapon special that can be safely reached.
 // MIBs and people already armed skip this check.
@@ -3798,10 +3738,6 @@ void PCOM_change_person_attributes(
     if (p_person->Genus.Person->pcom_move == PCOM_MOVE_STILL || p_person->Genus.Person->pcom_move == PCOM_MOVE_DANCE || p_person->Genus.Person->pcom_move == PCOM_MOVE_HANDS_UP || p_person->Genus.Person->pcom_move == PCOM_MOVE_TIED_UP) {
         p_person->Genus.Person->HomeX = p_person->WorldPos.X >> 8;
         p_person->Genus.Person->HomeZ = p_person->WorldPos.Z >> 8;
-        /*
-        p_person->Genus.Person->HomeYaw = yaw >> 3;
-        p_person->Draw.Tweened->Angle   = yaw;
-        */
     }
 
     PCOM_set_person_ai_normal(p_person);
@@ -4565,8 +4501,7 @@ SLONG PCOM_do_regen(Thing* p_person)
         p_person->Genus.Person->Ware = 0;
         p_person->OnFace = 0;
 
-        if ((signed)timer_bored > (BOREDOM_RATE * 5000) && BOREDOM_RATE != 255)
-        {
+        if ((signed)timer_bored > (BOREDOM_RATE * 5000) && BOREDOM_RATE != 255) {
             Thing* darci;
             darci = NET_PERSON(0);
 
@@ -4681,53 +4616,11 @@ void PCOM_process_wander(Thing* p_person)
                 } else {
                     p_person->Genus.Person->InsideRoom++;
 
-                    if (should_person_regen(p_person))
-                    {
+                    if (should_person_regen(p_person)) {
                         p_person->Genus.Person->InsideRoom = 240;
 
                         if (PCOM_do_regen(p_person))
                             return;
-                        /*
-                        extern	SLONG	WAND_find_good_start_point(SLONG *mapx,SLONG *mapz);
-                                                                        if(WAND_find_good_start_point(&nx,&nz))
-                                                                        {
-                                                                                GameCoord new_position;
-
-                                                                                new_position.X = nx<<8;
-                                                                                new_position.Y = PAP_calc_height_at(nx,nz)<<8;
-                                                                                new_position.Z = nz<<8;
-                                                                                move_thing_on_map(p_person, &new_position);
-
-                                                                                if(timer_bored>10000)
-                                                                                {
-                                                                                        p_person->Genus.Person->pcom_ai     = PCOM_AI_GANG;
-                                                                                        p_person->Genus.Person->pcom_bent   = PCOM_BENT_FIGHT_BACK;
-
-                                                                                        p_person->Genus.Person->pcom_ai_state     = PCOM_AI_STATE_NORMAL;
-                                                                                        p_person->Genus.Person->pcom_ai_substate  = PCOM_AI_SUBSTATE_NONE;
-                                                                                        p_person->Genus.Person->pcom_ai_arg       = NULL;
-                                                                                        p_person->Genus.Person->pcom_ai_other     = NULL;
-
-                                                                                        p_person->Genus.Person->pcom_move_counter = 0;
-                                                                                        p_person->Genus.Person->pcom_move_arg     = 0;
-
-                                                                                        p_person->Genus.Person->InsideRoom=Random()&15;
-                                                                                        p_person->Draw.Tweened->PersonID = 0;
-                                                                                        p_person->Draw.Tweened->MeshID=0;
-                                                                                        p_person->Genus.Person->pcom_colour=Random()&3;
-                                                                                        PCOM_set_person_ai_kill_person(p_person,NET_PERSON(0),0);
-                                                                                }
-                                                                                else
-                                                                                {
-                                                                                        p_person->Genus.Person->InsideRoom=Random()&15;
-                                                                                        p_person->Draw.Tweened->PersonID = 0;
-                                                                                        p_person->Draw.Tweened->MeshID=(Random()&1)+8;
-                                                                                        p_person->Genus.Person->pcom_colour=Random()&3;
-
-                                                                                        goto new_wander;
-                                                                                }
-                                                                        }
-                        */
                     }
                 }
             }
@@ -6847,7 +6740,6 @@ extern void set_person_fight_idle(Thing* p_person);
 // uc_orig: people_allowed_to_hit_each_other (fallen/Source/Person.cpp)
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
 
-
 // uc_orig: PCOM_process_state_change (fallen/Source/pcom.cpp)
 void PCOM_process_state_change(Thing* p_person)
 {
@@ -6879,28 +6771,6 @@ void PCOM_process_state_change(Thing* p_person)
 
     case PCOM_AI_CIV:
         PCOM_process_default(p_person);
-        /*
-                if (((GAME_TURN + THING_NUMBER(p_person)) & 0xff) == 0)
-                {
-                        if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL   ||
-                                p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_HOMESICK ||
-                                p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_WARM_HANDS)
-                        {
-                                if (p_person->Genus.Person->pcom_ai_memory && !EWAY_stop_player_moving())
-                                {
-                                        Thing *p_nasty = TO_THING(p_person->Genus.Person->pcom_ai_memory);
-                                        if (PCOM_get_dist_between(p_person, p_nasty) < 0x120)
-                                        {
-                                                PCOM_set_person_ai_talk_to(p_person, p_nasty, PCOM_AI_SUBSTATE_TALK_TELL, UC_FALSE);
-                                                if (p_nasty->Genus.Person->PlayerID && p_nasty->Genus.Person->PersonType == PERSON_DARCI)
-                                                {
-                                                        PANEL_new_text(p_person, 4000, EWAY_get_fake_wander_message(EWAY_FAKE_MESSAGE_ANNOYED));
-                                                }
-                                        }
-                                }
-                        }
-                }
-        */
         break;
 
     case PCOM_AI_GUARD:
@@ -6975,10 +6845,6 @@ void PCOM_process_state_change(Thing* p_person)
                     }
                     //						else //play wav anyway MikeD
                     {
-                        /*
-                                                        if(((GAME_TURN+THING_NUMBER(p_person))&255)==0)
-                                                                MFX_play_thing(THING_NUMBER(p_person),S_HEY_YOU,MFX_REPLACE,p_person);
-                        */
                     }
                     PCOM_oscillate_tympanum(
                         PCOM_SOUND_HEY,
@@ -7160,23 +7026,6 @@ void PCOM_process_state_change(Thing* p_person)
     case PCOM_AI_COP_DRIVER:
 
         if (p_person->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL) {
-            /*
-                            if ((GAME_TURN & 0x7) == 0)
-                            {
-                                    p_target = PCOM_can_i_see_person_to_arrest(p_person);
-
-                                    if (p_target)
-                                    {
-                                            p_target->Genus.Person->Flags |= FLAG_PERSON_FELON;
-
-                                            PCOM_set_person_ai_leavecar(
-                                                    p_person,
-                                                    PCOM_EXCAR_ARREST_PERSON,
-                                                    0,
-                                                    THING_NUMBER(p_target));
-                                    }
-                            }
-            */
         }
 
         // FALLTHROUGH to driving code.
@@ -7422,21 +7271,6 @@ void PCOM_process_state_change(Thing* p_person)
                 if (best_target) {
                     PCOM_set_person_ai_kill_person(p_person, best_target);
                 }
-
-                /*
-                else
-                {
-                        if (p_person->Genus.Person->PersonType == PERSON_COP)
-                        {
-                                p_person->Genus.Person->pcom_ai = PCOM_AI_COP;
-                        }
-                        else
-                        {
-                                p_person->Genus.Person->pcom_ai    = PCOM_AI_CIV;
-                                p_person->Genus.Person->pcom_bent |= PCOM_BENT_FIGHT_BACK;
-                        }
-                }
-                */
             }
         }
 
@@ -7481,7 +7315,7 @@ void PCOM_process_state_change(Thing* p_person)
 
 // Bit flags returned by PCOM_find_runover_thing.
 // uc_orig: PCOM_RUNOVER_STOP (fallen/Source/pcom.cpp)
-#define PCOM_RUNOVER_STOP      (1 << 0)
+#define PCOM_RUNOVER_STOP (1 << 0)
 // uc_orig: PCOM_RUNOVER_BEEP_HORN (fallen/Source/pcom.cpp)
 #define PCOM_RUNOVER_BEEP_HORN (1 << 1)
 // uc_orig: PCOM_RUNOVER_SHOUT_OUT (fallen/Source/pcom.cpp)
@@ -7493,9 +7327,9 @@ void PCOM_process_state_change(Thing* p_person)
 // uc_orig: PCOM_RUNOVER_SLOW_DOWN (fallen/Source/pcom.cpp)
 #define PCOM_RUNOVER_SLOW_DOWN (1 << 5)
 // uc_orig: PCOM_RUNOVER_RUNAWAY (fallen/Source/pcom.cpp)
-#define PCOM_RUNOVER_RUNAWAY   (1 << 6)
+#define PCOM_RUNOVER_RUNAWAY (1 << 6)
 // uc_orig: PCOM_RUNOVER_REVERSE (fallen/Source/pcom.cpp)
-#define PCOM_RUNOVER_REVERSE   (1 << 7)
+#define PCOM_RUNOVER_REVERSE (1 << 7)
 
 // BLOCKED(C) is a debug-coloring marker compiled to nothing on PC.
 // uc_orig: BLOCKED (fallen/Source/pcom.cpp)
@@ -7849,13 +7683,6 @@ void PCOM_process_movement(Thing* p_person)
                     0x000000ff,
                     UC_TRUE);
             }
-            /*
-                                    goal_x &= 0xffffff00;
-                                    goal_z &= 0xffffff00;
-
-                                    goal_x |= 0x80;
-                                    goal_z |= 0x80;
-            */
             dist = PCOM_person_dist_from(p_person, goal_x, goal_z);
 
             if (dist < PCOM_ARRIVE_DIST) {
@@ -8696,16 +8523,6 @@ void PCOM_attack_happened(
     case PCOM_AI_COP:
     case PCOM_AI_COP_DRIVER:
 
-        /*
-        if (p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP ||
-                p_attacker->Genus.Person->pcom_ai == PCOM_AI_COP_DRIVER)
-        {
-                // A cop hitting another cop? It must have been
-                // an accident.
-                return;
-        }
-        */
-
         // FALL-THROUGH
 
     case PCOM_AI_GANG:
@@ -8977,34 +8794,11 @@ SLONG PCOM_cop_aiming_at_you(Thing* p_person, Thing* p_cop)
         } else {
             return (0);
         }
-        /*
-                if (PCOM_person_has_any_sort_of_gun(p_person))
-                {
-                        // you have a gun so kill the cop
-                        PCOM_set_person_ai_navtokill_shoot(p_person, p_cop);
-                        return(1);
-                }
-                else
-                if (!(p_person->Genus.Person->pcom_bent & PCOM_BENT_FIGHT_BACK) && p_person->Genus.Person->pcom_ai != PCOM_AI_ASSASIN)
-                {
-                        // no gun so run away
-                        PCOM_set_person_ai_flee_person(p_person, p_cop);
-                        return(1);
-                }
-        */
     }
     if (p_person->Genus.Person->PersonType == PERSON_ROPER || p_person->Genus.Person->PersonType == PERSON_DARCI || p_person->Genus.Person->PersonType == PERSON_COP) {
         // Cops, Darci, and Roper don't put hands up.
         return (0);
     }
-
-    /*
-            if(p_person->Genus.Person->PersonType==PERSON_ROPER||p_person->Genus.Person->PersonType==PERSON_DARCI||p_person->Genus.Person->PersonType==PERSON_COP||p_person->Genus.Person->PersonType==PERSON_THUG_GREY || p_person->Genus.Person->PersonType==PERSON_THUG_RASTA|| p_person->Genus.Person->PersonType==PERSON_THUG_RED)
-            {
-                    // Thugs don't hands up
-                    return(0);
-            }
-    */
 
     if (PCOM_person_doing_nothing_important(p_person)) {
         PCOM_set_person_ai_hands_up(p_person, p_cop);
@@ -9446,20 +9240,6 @@ void DriveCar(Thing* p_person)
             p_person->Genus.Person->pcom_move_flag &= ~(PCOM_MOVE_FLAG_AVOID_LEFT | PCOM_MOVE_FLAG_AVOID_RIGHT);
         }
     }
-    /*
-            AENG_world_line_infinite(
-                    p_vehicle->WorldPos.X >> 8,
-                    p_vehicle->WorldPos.Y >> 8,
-                    p_vehicle->WorldPos.Z >> 8,
-                    32,
-                    0xffffff,
-                    dest_x,
-                    0,
-                    dest_z,
-                    0,
-                    0x000000,
-                    UC_TRUE);
-    */
     p_person->Genus.Person->pcom_move_counter += PCOM_TICKS_PER_TURN * TICK_RATIO >> TICK_SHIFT;
 }
 

@@ -424,10 +424,18 @@ void person_get_item(Thing* p_person, Thing* p_special)
 
         // Mission-critical items: keys, keycards, files, disks, melee weapons, etc.
         // Melee weapons and mission items all land here; only specific types get a HUD message.
-        if (p_special->Genus.Special->SpecialType == SPECIAL_KNIFE)       { x_message = X_KNIFE; }
-        if (p_special->Genus.Special->SpecialType == SPECIAL_BASEBALLBAT) { x_message = X_BASEBALL_BAT; }
-        if (p_special->Genus.Special->SpecialType == SPECIAL_KEY)         { x_message = X_KEYCARD; }
-        if (p_special->Genus.Special->SpecialType == SPECIAL_VIDEO)       { x_message = X_VIDEO; }
+        if (p_special->Genus.Special->SpecialType == SPECIAL_KNIFE) {
+            x_message = X_KNIFE;
+        }
+        if (p_special->Genus.Special->SpecialType == SPECIAL_BASEBALLBAT) {
+            x_message = X_BASEBALL_BAT;
+        }
+        if (p_special->Genus.Special->SpecialType == SPECIAL_KEY) {
+            x_message = X_KEYCARD;
+        }
+        if (p_special->Genus.Special->SpecialType == SPECIAL_VIDEO) {
+            x_message = X_VIDEO;
+        }
 
         special_pickup(p_special, p_person);
 
@@ -1016,12 +1024,24 @@ Thing* alloc_special(
 
     // Default ammo per weapon type.
     switch (type) {
-    case SPECIAL_GUN:        new_special->ammo = SPECIAL_AMMO_IN_A_PISTOL;  break;
-    case SPECIAL_SHOTGUN:    new_special->ammo = SPECIAL_AMMO_IN_A_SHOTGUN; break;
-    case SPECIAL_AK47:       new_special->ammo = SPECIAL_AMMO_IN_A_AK47;    break;
-    case SPECIAL_GRENADE:    new_special->ammo = SPECIAL_AMMO_IN_A_GRENADE; break;
-    case SPECIAL_EXPLOSIVES: new_special->ammo = 1;                         break;
-    default:                 new_special->ammo = 0;                         break;
+    case SPECIAL_GUN:
+        new_special->ammo = SPECIAL_AMMO_IN_A_PISTOL;
+        break;
+    case SPECIAL_SHOTGUN:
+        new_special->ammo = SPECIAL_AMMO_IN_A_SHOTGUN;
+        break;
+    case SPECIAL_AK47:
+        new_special->ammo = SPECIAL_AMMO_IN_A_AK47;
+        break;
+    case SPECIAL_GRENADE:
+        new_special->ammo = SPECIAL_AMMO_IN_A_GRENADE;
+        break;
+    case SPECIAL_EXPLOSIVES:
+        new_special->ammo = 1;
+        break;
+    default:
+        new_special->ammo = 0;
+        break;
     }
 
     dm->ObjectId = SPECIAL_info[type].prim;
@@ -1029,10 +1049,18 @@ Thing* alloc_special(
     // Treasure badges: pick a random variant (Skill/Strength/Stamina/Constitution).
     if (dm->ObjectId == PRIM_OBJ_ITEM_TREASURE) {
         switch (Random() & 3) {
-        case 0: dm->ObjectId = 71; break;
-        case 1: dm->ObjectId = 94; break;
-        case 2: dm->ObjectId = 81; break;
-        case 3: dm->ObjectId = 39; break;
+        case 0:
+            dm->ObjectId = 71;
+            break;
+        case 1:
+            dm->ObjectId = 94;
+            break;
+        case 2:
+            dm->ObjectId = 81;
+            break;
+        case 3:
+            dm->ObjectId = 39;
+            break;
         }
     }
 
@@ -1106,16 +1134,6 @@ void SPECIAL_prime_grenade(Thing* p_special)
     p_special->SubState = SPECIAL_SUBSTATE_ACTIVATED;
     p_special->Genus.Special->timer = 16 * 20 * 6; // 6-second fuse
 }
-
-/*
-// SPECIAL_throw_mine is fully commented out in the original pre-release.
-// In the final game, mines are map-placed only (via alloc_special from level scripts).
-// uc_orig: SPECIAL_throw_mine (fallen/Source/Special.cpp)
-void SPECIAL_throw_mine(Thing *p_special)
-{
-    ...
-}
-*/
 
 // uc_orig: SPECIAL_set_explosives (fallen/Source/Special.cpp)
 void SPECIAL_set_explosives(Thing* p_person)

@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
-#include "map/map.h"   // MAP_WIDTH, MAP_HEIGHT, ELE_SHIFT, MapElement
-#include "engine/core/macros.h"     // WITHIN, SWAP
+#include "map/map.h" // MAP_WIDTH, MAP_HEIGHT, ELE_SHIFT, MapElement
+#include "engine/core/macros.h" // WITHIN, SWAP
 #include "ai/mav.h"
 #include "world_objects/puddle.h"
 #include "world_objects/puddle_globals.h"
@@ -113,8 +113,12 @@ static void PUDDLE_create_do(
         mx2 = pp->x2;
         mz2 = pp->z2;
 
-        if (mx1 > mx2) { SWAP(mx1, mx2); }
-        if (mz1 > mz2) { SWAP(mz1, mz2); }
+        if (mx1 > mx2) {
+            SWAP(mx1, mx2);
+        }
+        if (mz1 > mz2) {
+            SWAP(mz1, mz2);
+        }
 
         mx1 = mx1 - PUDDLE_EXTEND_REFLECTION >> ELE_SHIFT;
         mz1 = mz1 - PUDDLE_EXTEND_REFLECTION >> ELE_SHIFT;
@@ -164,8 +168,12 @@ void PUDDLE_create(UWORD x, SWORD y, UWORD z)
     z2 = z + PUDDLE_WHOLE_SIZE;
 
     // Randomise the orientation of the puddle quad.
-    if (rand() & 0x1) { SWAP(x1, x2); }
-    if (rand() & 0x1) { SWAP(z1, z2); }
+    if (rand() & 0x1) {
+        SWAP(x1, x2);
+    }
+    if (rand() & 0x1) {
+        SWAP(z1, z2);
+    }
 
     PUDDLE_create_do(x1, z1, x2, z2, y, PUDDLE_TYPE_WHOLE, UC_FALSE);
 }
@@ -182,7 +190,10 @@ void PUDDLE_precalculate()
     SLONG midx, midz, size;
     SLONG px1, px2, pz1, pz2, py;
 
-    struct { SLONG dx; SLONG dz; } order[4] = {
+    struct {
+        SLONG dx;
+        SLONG dz;
+    } order[4] = {
         { -1, 0 }, { +1, 0 }, { 0, -1 }, { 0, +1 }
     };
 
@@ -262,9 +273,12 @@ void PUDDLE_precalculate()
                 for (i = 0; i < 4; i++) {
                     dx = order[i].dx;
                     dz = order[i].dz;
-                    vec1x = dx; vec1z = dz;
-                    vec2x = dz; vec2z = -dx;
-                    cx = mx + vec1x; cz = mz + vec1z;
+                    vec1x = dx;
+                    vec1z = dz;
+                    vec2x = dz;
+                    vec2z = -dx;
+                    cx = mx + vec1x;
+                    cz = mz + vec1z;
 
                     if (!(PAP_2HI(cx, cz).Flags & PAP_FLAG_HIDDEN) || (PAP_2HI(cx, cz).Flags & (PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER)))
                         goto not_a_building_edge;
@@ -273,13 +287,15 @@ void PUDDLE_precalculate()
                     if (MAV_SPARE(cx, cz) & MAV_SPARE_FLAG_WATER)
                         goto not_a_building_edge;
 
-                    cx = mx + vec1x + vec2x; cz = mz + vec1z + vec2z;
+                    cx = mx + vec1x + vec2x;
+                    cz = mz + vec1z + vec2z;
                     if (!(PAP_2HI(cx, cz).Flags & PAP_FLAG_HIDDEN) || (PAP_2HI(cx, cz).Flags & (PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER)))
                         goto not_a_building_edge;
                     if (MAVHEIGHT(cx, cz) < MAVHEIGHT(mx, mz))
                         goto not_a_building_edge;
 
-                    cx = mx + vec2x; cz = mz + vec2z;
+                    cx = mx + vec2x;
+                    cz = mz + vec2z;
                     if (PAP_2HI(cx, cz).Flags & (PAP_FLAG_HIDDEN | PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER))
                         goto not_a_building_edge;
 
@@ -301,21 +317,27 @@ void PUDDLE_precalculate()
             // Edges of roads.
             if ((PAP_2HI(mx, mz).Flags & PAP_FLAG_SINK_SQUARE) && !(PAP_2HI(mx, mz).Flags & (PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER))) {
                 for (i = 0; i < 4; i++) {
-                    dx = order[i].dx; dz = order[i].dz;
-                    vec1x = dx; vec1z = dz;
-                    vec2x = dz; vec2z = -dx;
-                    cx = mx + vec1x; cz = mz + vec1z;
+                    dx = order[i].dx;
+                    dz = order[i].dz;
+                    vec1x = dx;
+                    vec1z = dz;
+                    vec2x = dz;
+                    vec2z = -dx;
+                    cx = mx + vec1x;
+                    cz = mz + vec1z;
 
                     if (PAP_2HI(cx, cz).Flags & (PAP_FLAG_SINK_SQUARE | PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER))
                         goto not_a_road_edge;
                     if (MAV_SPARE(cx, cz) & MAV_SPARE_FLAG_WATER)
                         goto not_a_road_edge;
 
-                    cx = mx + vec1x + vec2x; cz = mz + vec1z + vec2z;
+                    cx = mx + vec1x + vec2x;
+                    cz = mz + vec1z + vec2z;
                     if (PAP_2HI(cx, cz).Flags & (PAP_FLAG_SINK_SQUARE | PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER))
                         goto not_a_road_edge;
 
-                    cx = mx + vec2x; cz = mz + vec2z;
+                    cx = mx + vec2x;
+                    cz = mz + vec2z;
                     if (!(PAP_2HI(cx, cz).Flags & PAP_FLAG_SINK_SQUARE) || (PAP_2HI(cx, cz).Flags & (PAP_FLAG_REFLECTIVE | PAP_FLAG_WATER)))
                         goto not_a_road_edge;
 
@@ -365,11 +387,17 @@ SLONG PUDDLE_in(SLONG x, SLONG z)
                     ASSERT(WITHIN(next, 1, PUDDLE_puddle_upto - 1));
                     pp = &PUDDLE_puddle[next];
 
-                    px1 = pp->x1; pz1 = pp->z1;
-                    px2 = pp->x2; pz2 = pp->z2;
+                    px1 = pp->x1;
+                    pz1 = pp->z1;
+                    px2 = pp->x2;
+                    pz2 = pp->z2;
 
-                    if (px1 > px2) { SWAP(px1, px2); }
-                    if (pz1 > pz2) { SWAP(pz1, pz2); }
+                    if (px1 > px2) {
+                        SWAP(px1, px2);
+                    }
+                    if (pz1 > pz2) {
+                        SWAP(pz1, pz2);
+                    }
 
                     if (WITHIN(x, px1, px2) && WITHIN(z, pz1, pz2)) {
                         return UC_TRUE;
@@ -414,8 +442,12 @@ void PUDDLE_splash(SLONG x, SLONG y, SLONG z)
                         SLONG px1 = pp->x1, pz1 = pp->z1;
                         SLONG px2 = pp->x2, pz2 = pp->z2;
 
-                        if (px1 > px2) { SWAP(px1, px2); }
-                        if (pz1 > pz2) { SWAP(pz1, pz2); }
+                        if (px1 > px2) {
+                            SWAP(px1, px2);
+                        }
+                        if (pz1 > pz2) {
+                            SWAP(pz1, pz2);
+                        }
 
                         if (WITHIN(x, px1, px2) && WITHIN(z, pz1, pz2)) {
                             SLONG ripple = rand() & (PUDDLE_NUM_RIPPLES - 1);
@@ -445,8 +477,12 @@ void PUDDLE_process()
         if (pp->s1 | pp->s2) {
             s1 = pp->s1;
             s2 = pp->s2;
-            if (s1 > 0) { s1 -= 1; }
-            if (s2 > 0) { s2 -= 1; }
+            if (s1 > 0) {
+                s1 -= 1;
+            }
+            if (s2 > 0) {
+                s2 -= 1;
+            }
             pp->s1 = s1;
             pp->s2 = s2;
         }

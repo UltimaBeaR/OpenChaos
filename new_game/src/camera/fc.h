@@ -12,7 +12,7 @@
 // uc_orig: FC_Cam (fallen/Headers/fc.h)
 typedef struct {
     // What the camera is looking at.
-    Thing* focus;       // NULL => camera is inactive
+    Thing* focus; // NULL => camera is inactive
     SLONG focus_x;
     SLONG focus_y;
     SLONG focus_z;

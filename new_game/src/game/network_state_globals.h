@@ -15,5 +15,4 @@ extern UBYTE CNET_player_id;
 // uc_orig: CNET_num_players (fallen/Source/cnet.cpp)
 extern UBYTE CNET_num_players;
 
-
 #endif // GAME_NETWORK_STATE_GLOBALS_H

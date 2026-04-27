@@ -75,5 +75,4 @@ SLONG FONT_draw_coloured_char(
     UBYTE blue,
     CBYTE ch);
 
-
 #endif // ENGINE_GRAPHICS_TEXT_FONT_H

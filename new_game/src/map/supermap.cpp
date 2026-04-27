@@ -185,8 +185,8 @@ void set_electric_fence_state(SLONG dbuilding, SLONG onoroff)
     SLONG facet;
 
     for (facet = dbuildings[dbuilding].StartFacet;
-         facet < dbuildings[dbuilding].EndFacet;
-         facet++) {
+        facet < dbuildings[dbuilding].EndFacet;
+        facet++) {
         if (onoroff)
             dfacets[facet].FacetFlags |= FACET_FLAG_ELECTRIFIED;
         else

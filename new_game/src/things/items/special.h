@@ -144,11 +144,11 @@ typedef struct
     THING_INDEX NextSpecial,
         OwnerThing;
 
-    UWORD ammo;    // ammo count in the magazine, or countdown for an activated mine
+    UWORD ammo; // ammo count in the magazine, or countdown for an activated mine
     UWORD waypoint; // waypoint that spawned this item, or 0; also dirt index for SUBSTATE_IS_DIRT
 
     UWORD counter;
-    UWORD timer;   // grenade fuse countdown (16*20 ticks/sec); also encodes velocity in PROJECTILE substate
+    UWORD timer; // grenade fuse countdown (16*20 ticks/sec); also encodes velocity in PROJECTILE substate
 
 } Special;
 

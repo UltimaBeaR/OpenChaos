@@ -1,7 +1,7 @@
 #ifndef EFFECTS_COMBAT_POW_H
 #define EFFECTS_COMBAT_POW_H
 
-#include "engine/platform/uc_common.h"      // for ASSERT
+#include "engine/platform/uc_common.h" // for ASSERT
 #include "engine/core/types.h"
 #include "map/pap.h"
 
@@ -12,9 +12,9 @@
 typedef struct
 {
     UBYTE next;
-    UBYTE frame;         // Current animation frame (dies when >= 16).
-    UBYTE frame_speed;   // How fast it advances between frames.
-    UBYTE damp;          // Motion damping exponent.
+    UBYTE frame; // Current animation frame (dies when >= 16).
+    UBYTE frame_speed; // How fast it advances between frames.
+    UBYTE damp; // Motion damping exponent.
     SLONG x;
     SLONG y;
     SLONG z;
@@ -37,7 +37,7 @@ typedef struct
 {
     UBYTE type;
     UBYTE next;
-    UBYTE sprite;    // Head of linked list of sprites for this explosion.
+    UBYTE sprite; // Head of linked list of sprites for this explosion.
     UBYTE mapwho;
     SLONG x;
     SLONG y;
@@ -67,31 +67,31 @@ extern UBYTE POW_mapwho[];
 
 // Explosion type constants.
 // uc_orig: POW_TYPE_UNUSED (fallen/Headers/pow.h)
-#define POW_TYPE_UNUSED              0
+#define POW_TYPE_UNUSED 0
 // uc_orig: POW_TYPE_BASIC_SPHERE_LARGE (fallen/Headers/pow.h)
-#define POW_TYPE_BASIC_SPHERE_LARGE  1
+#define POW_TYPE_BASIC_SPHERE_LARGE 1
 // uc_orig: POW_TYPE_BASIC_SPHERE_MEDIUM (fallen/Headers/pow.h)
 #define POW_TYPE_BASIC_SPHERE_MEDIUM 2
 // uc_orig: POW_TYPE_BASIC_SPHERE_SMALL (fallen/Headers/pow.h)
-#define POW_TYPE_BASIC_SPHERE_SMALL  3
+#define POW_TYPE_BASIC_SPHERE_SMALL 3
 // uc_orig: POW_TYPE_SPAWN_SPHERE_LARGE (fallen/Headers/pow.h)
-#define POW_TYPE_SPAWN_SPHERE_LARGE  4
+#define POW_TYPE_SPAWN_SPHERE_LARGE 4
 // uc_orig: POW_TYPE_SPAWN_SPHERE_MEDIUM (fallen/Headers/pow.h)
 #define POW_TYPE_SPAWN_SPHERE_MEDIUM 5
 // uc_orig: POW_TYPE_MULTISPAWN (fallen/Headers/pow.h)
-#define POW_TYPE_MULTISPAWN          6
+#define POW_TYPE_MULTISPAWN 6
 // uc_orig: POW_TYPE_MULTISPAWN_SEMI (fallen/Headers/pow.h)
-#define POW_TYPE_MULTISPAWN_SEMI     7
+#define POW_TYPE_MULTISPAWN_SEMI 7
 // uc_orig: POW_TYPE_NUMBER (fallen/Headers/pow.h)
-#define POW_TYPE_NUMBER              8
+#define POW_TYPE_NUMBER 8
 
 // High-level explosion presets passed to POW_create().
 // uc_orig: POW_CREATE_LARGE_SEMI (fallen/Headers/pow.h)
 #define POW_CREATE_LARGE_SEMI 0
 // uc_orig: POW_CREATE_MEDIUM (fallen/Headers/pow.h)
-#define POW_CREATE_MEDIUM     1
+#define POW_CREATE_MEDIUM 1
 // uc_orig: POW_CREATE_LARGE (fallen/Headers/pow.h)
-#define POW_CREATE_LARGE      2
+#define POW_CREATE_LARGE 2
 
 // Resets all explosion state (called on init or when pools overflow).
 // uc_orig: POW_init (fallen/Headers/pow.h)

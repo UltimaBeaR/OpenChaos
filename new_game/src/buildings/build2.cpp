@@ -41,7 +41,7 @@ static SLONG find_empty_facet_block(SLONG count)
 {
     SLONG c0, c1;
 
-    if ((MAX_FACET_LINK) - next_facet_link > count) {
+    if ((MAX_FACET_LINK)-next_facet_link > count) {
         next_facet_link += count;
         return next_facet_link - count;
     } else {
@@ -455,15 +455,7 @@ static bool facet_is_solid(const DFacet* pf)
     if (pf->FacetFlags & FACET_FLAG_2TEXTURED)
         return false;
 
-    if ((pf->FacetType == STOREY_TYPE_JUST_COLLISION) ||
-        (pf->FacetType == STOREY_TYPE_FENCE) ||
-        (pf->FacetType == STOREY_TYPE_FENCE_FLAT) ||
-        (pf->FacetType == STOREY_TYPE_FENCE_BRICK) ||
-        (pf->FacetType == STOREY_TYPE_INSIDE) ||
-        (pf->FacetType == STOREY_TYPE_INSIDE_DOOR) ||
-        (pf->FacetType == STOREY_TYPE_OUTSIDE_DOOR) ||
-        (pf->FacetType == STOREY_TYPE_LADDER) ||
-        (pf->FacetType == STOREY_TYPE_CABLE)) {
+    if ((pf->FacetType == STOREY_TYPE_JUST_COLLISION) || (pf->FacetType == STOREY_TYPE_FENCE) || (pf->FacetType == STOREY_TYPE_FENCE_FLAT) || (pf->FacetType == STOREY_TYPE_FENCE_BRICK) || (pf->FacetType == STOREY_TYPE_INSIDE) || (pf->FacetType == STOREY_TYPE_INSIDE_DOOR) || (pf->FacetType == STOREY_TYPE_OUTSIDE_DOOR) || (pf->FacetType == STOREY_TYPE_LADDER) || (pf->FacetType == STOREY_TYPE_CABLE)) {
         return false;
     }
 
@@ -501,17 +493,24 @@ static int compare_facets(const DFacet* pf1, const DFacet* pf2)
     // Project onto the longer axis for containment tests.
     SLONG s1, e1, s2, e2;
     if (abs(dx1) > abs(dz1)) {
-        s1 = pf1->x[0]; e1 = pf1->x[1];
-        s2 = pf2->x[0]; e2 = pf2->x[1];
+        s1 = pf1->x[0];
+        e1 = pf1->x[1];
+        s2 = pf2->x[0];
+        e2 = pf2->x[1];
     } else {
-        s1 = pf1->z[0]; e1 = pf1->z[1];
-        s2 = pf2->z[0]; e2 = pf2->z[1];
+        s1 = pf1->z[0];
+        e1 = pf1->z[1];
+        s2 = pf2->z[0];
+        e2 = pf2->z[1];
     }
 
     int rc = 0;
-    if (s1 == e1) rc += 1;
-    if (s2 == e2) rc += 2;
-    if (rc) return rc;
+    if (s1 == e1)
+        rc += 1;
+    if (s2 == e2)
+        rc += 2;
+    if (rc)
+        return rc;
 
     SLONG sgn1 = s1 - e1;
     SLONG sgn2 = s2 - e2;
@@ -522,8 +521,14 @@ static int compare_facets(const DFacet* pf1, const DFacet* pf2)
     SLONG h1 = (pf1->Height / 4) * pf1->BlockHeight * 16;
     SLONG h2 = (pf2->Height / 4) * pf2->BlockHeight * 16;
 
-    if (s1 > e1) { SWAP(s1, e1); SWAP(ys1, ye1); }
-    if (s2 > e2) { SWAP(s2, e2); SWAP(ys2, ye2); }
+    if (s1 > e1) {
+        SWAP(s1, e1);
+        SWAP(ys1, ye1);
+    }
+    if (s2 > e2) {
+        SWAP(s2, e2);
+        SWAP(ys2, ye2);
+    }
 
     if ((s1 == s2) && (e1 == e2) && (ys1 == ys2) && (ye1 == ye2) && (h1 == h2)) {
         if (sameway)
@@ -599,8 +604,12 @@ static void mark_naughty_facets(void)
                 continue;
 
             switch (compare_facets(pf1, pf2)) {
-            case 1: pf1->FacetFlags |= FACET_FLAG_INVISIBLE; break;
-            case 2: pf2->FacetFlags |= FACET_FLAG_INVISIBLE; break;
+            case 1:
+                pf1->FacetFlags |= FACET_FLAG_INVISIBLE;
+                break;
+            case 2:
+                pf2->FacetFlags |= FACET_FLAG_INVISIBLE;
+                break;
             case 3:
                 pf1->FacetFlags |= FACET_FLAG_INVISIBLE;
                 pf2->FacetFlags |= FACET_FLAG_INVISIBLE;

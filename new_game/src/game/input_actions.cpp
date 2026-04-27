@@ -33,10 +33,10 @@
 #include "things/core/statedef.h"
 #include "engine/physics/collide.h"
 #include "combat/combat.h"
-#include "engine/input/joystick.h"             // ReadInputDevice
-#include "engine/input/joystick_globals.h"  // the_state (GamepadState)
-#include "engine/input/gamepad_globals.h"   // active_input_device
-#include "engine/input/weapon_feel.h"       // weapon_feel_evaluate_fire
+#include "engine/input/joystick.h" // ReadInputDevice
+#include "engine/input/joystick_globals.h" // the_state (GamepadState)
+#include "engine/input/gamepad_globals.h" // active_input_device
+#include "engine/input/weapon_feel.h" // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
@@ -45,8 +45,8 @@
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/mouse_globals.h"
 #include "game/game_globals.h"
-#include "engine/graphics/pipeline/aeng.h"       // MSG_add
-#include "engine/console/console.h"   // CONSOLE_text_at
+#include "engine/graphics/pipeline/aeng.h" // MSG_add
+#include "engine/console/console.h" // CONSOLE_text_at
 
 // Forward declaration for gang-attack reset (defined in pcom.cpp, not yet in pcom.h).
 // uc_orig: reset_gang_attack (fallen/Source/pcom.cpp)
@@ -281,11 +281,11 @@ struct ActionInfo* action_tree[] = {
     0,
     action_aim_gun,
     action_shoot, // Shoot gun
-    0,  // Gun Away
-    0,  // Respawn
+    0, // Gun Away
+    0, // Respawn
     action_dead, // Dead
-    0,  // 27
-    0,  // flip right
+    0, // 27
+    0, // flip right
     action_idle,
     0,
     action_run_jump,
@@ -302,12 +302,12 @@ struct ActionInfo* action_tree[] = {
     0,
     action_grapple,
     action_grapplee,
-    0,  // Enter vehicle
-    0,  // Inside vehicle
+    0, // Enter vehicle
+    0, // Inside vehicle
     action_sit, // Sit bench
     action_hug_wall, // hug wall
-    0,  // hug left
-    0,  // hug right
+    0, // hug left
+    0, // hug right
     0,
     0,
     0,
@@ -363,17 +363,17 @@ void init_joypad_config(void)
     //   R2 / RT (digital)   : punch / shoot (analog trigger via weapon_feel)
     //   Walk-mode toggle    : removed — partial left-stick deflection produces
     //                         walking speed, no dedicated button needed
-    joypad_button_use[JOYPAD_BUTTON_JUMP]       = 0;   // A / Cross
-    joypad_button_use[JOYPAD_BUTTON_ACTION]     = 1;   // B / Circle
-    joypad_button_use[JOYPAD_BUTTON_PUNCH]      = 2;   // X / Square (gameplay-unbound; index kept for legacy code paths)
-    joypad_button_use[JOYPAD_BUTTON_KICK]       = 10;  // RB / R1
-    joypad_button_use[JOYPAD_BUTTON_SELECT]     = 4;   // Back / Select
-    joypad_button_use[JOYPAD_BUTTON_START]      = 6;   // Start
-    joypad_button_use[JOYPAD_BUTTON_CAMERA]     = 9;   // LB / L1
-    joypad_button_use[JOYPAD_BUTTON_1STPERSON]  = 9;   // LB / L1 (held = aim)
-    joypad_button_use[JOYPAD_BUTTON_MOVE]       = 31;  // unbound (walk mode removed; stub index, never read in gameplay)
-    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]   = 15;  // LT / L2 (legacy alias; in-car brake only)
-    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]  = 16;  // RT / R2
+    joypad_button_use[JOYPAD_BUTTON_JUMP] = 0; // A / Cross
+    joypad_button_use[JOYPAD_BUTTON_ACTION] = 1; // B / Circle
+    joypad_button_use[JOYPAD_BUTTON_PUNCH] = 2; // X / Square (gameplay-unbound; index kept for legacy code paths)
+    joypad_button_use[JOYPAD_BUTTON_KICK] = 10; // RB / R1
+    joypad_button_use[JOYPAD_BUTTON_SELECT] = 4; // Back / Select
+    joypad_button_use[JOYPAD_BUTTON_START] = 6; // Start
+    joypad_button_use[JOYPAD_BUTTON_CAMERA] = 9; // LB / L1
+    joypad_button_use[JOYPAD_BUTTON_1STPERSON] = 9; // LB / L1 (held = aim)
+    joypad_button_use[JOYPAD_BUTTON_MOVE] = 31; // unbound (walk mode removed; stub index, never read in gameplay)
+    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT] = 15; // LT / L2 (legacy alias; in-car brake only)
+    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT] = 16; // RT / R2
 
     keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("left", 203, "Keyboard");
     keybrd_button_use[KEYBRD_BUTTON_RIGHT] = ENV_get_value_number("right", 205, "Keyboard");
@@ -809,13 +809,7 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
         extern SLONG is_there_room_in_front_of_me(Thing * p_person, SLONG how_much_room);
 
         if (!is_there_room_in_front_of_me(p_thing, 192)) {
-            /*
-                                    add_damage_text(
-                                            p_thing->WorldPos.X          >> 8,
-                                            p_thing->WorldPos.Y + 0x6000 >> 8,
-                                            p_thing->WorldPos.Z          >> 8,
-                                            "No room!");
-            */
+
         } else {
             extern void set_person_uncarry(Thing * p_person);
 
@@ -977,25 +971,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
     }
 
     if ((p_thing->State == STATE_IDLE || (p_thing->State == STATE_GUN && p_thing->SubState == SUB_STATE_AIM_GUN)) && p_thing->SubState != SUB_STATE_IDLE_CROUTCH && p_thing->SubState != SUB_STATE_IDLE_CROUTCHING) {
-
-        /* moved up a bit
-                        //
-                        // Find someone to arrest?
-                        //
-
-                        {
-                                UWORD index;
-
-                                extern UWORD find_arrestee(Thing *p_person);
-
-                                if (p_thing->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_thing)))
-                                {
-                                        set_person_arrest(p_thing, index);
-
-                                        return INPUT_MASK_ACTION;
-                                }
-                        }
-        */
 
         //
         // Near a switch or a valve?
@@ -1299,19 +1274,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
         SLONG angle;
 
-        /*
-        if (THING_find_nearest(
-                        p_thing->WorldPos.X >> 8,
-                        p_thing->WorldPos.Y >> 8,
-                        p_thing->WorldPos.Z >> 8,
-                        0x80,
-                        (1 << CLASS_BARREL)))
-        {
-                set_person_barrel_pickup(p_thing);
-
-                return INPUT_MASK_ACTION;
-        }
-        */
         if (p_thing->SubState != SUB_STATE_IDLE_CROUTCH && p_thing->SubState != SUB_STATE_IDLE_CROUTCHING)
             if (angle = can_i_hug_wall(p_thing)) {
                 p_thing->Draw.Tweened->Angle = angle - 1;
@@ -1341,25 +1303,6 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
     }
 
     if (p_thing->State == STATE_IDLE || p_thing->State == STATE_MOVEING) {
-        /*
-                // now auto climb ladders
-                        //
-                        // Can she mount a ladder? ...so to speak!
-                        //
-
-                        ladder_col = find_nearby_ladder_colvect(p_thing);
-
-                        if (ladder_col)
-                        {
-                                //
-                                // Mount the ladder.  This could call set_person_climb_ladder(),
-                                // but then it would need the storey instead of the col_vect.
-                                //
-
-                                if(mount_ladder(p_thing, ladder_col))
-                                        return (INPUT_MASK_ACTION);
-                        }
-        */
 
         if (p_thing->State == STATE_IDLE || p_thing->State == STATE_GUN) {
             //
@@ -2301,57 +2244,21 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
     ULONG input_used = 0;
     ULONG processed = 0;
 
-    /*
-
-    if (p_person->Genus.Person->UnderAttack && p_person->Genus.Person->Mode != PERSON_MODE_FIGHT)
-    {
-            //
-            // Lets the player know that pressing 'MODE' with put him into
-            // fight mode.
-            //
-    }
-
-    */
-
     if (p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
         CONSOLE_text_at(400, 400, 50, "Fight mode");
     }
-    /*
-            if(input&INPUT_MASK_MODE_CHANGE)
-            {
-                    person_change_mode(p_person);
-
-                    processed |= INPUT_MASK_MODE_CHANGE;
-            }
-    */
 
     if (input & INPUT_MASK_ACTION) {
         processed |= do_an_action(p_person, input);
         input &= ~processed;
 
     } else {
-        /*
-                        if (p_person->Genus.Person->AnimType==ANIM_TYPE_ROPER)
-                        {
-                                if (p_person->Genus.Person->Mode==PERSON_MODE_RUN)
-                                        p_person->Genus.Person->Mode=PERSON_MODE_SPRINT;
-                        }
-                        else
-        */
+
         {
             if (p_person->Genus.Person->Mode == PERSON_MODE_SPRINT)
                 p_person->Genus.Person->Mode = PERSON_MODE_RUN;
         }
-        /*
-                        if(p_person->Genus.Person->InsideIndex)
-                        {
-                                //
-                                // your inside so walk unless actioning
-                                //
-                                if(p_person->Genus.Person->Mode==PERSON_MODE_RUN)
-                                        p_person->Genus.Person->Mode=PERSON_MODE_WALK;
-                        }
-        */
+
         if (p_person->SubState == SUB_STATE_IDLE_CROUTCHING) {
             MSG_add("no action so stand up");
             set_person_idle_uncroutch(p_person);
@@ -2415,20 +2322,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             break;
         case ACTION_SHOOT:
             if (p_person->Genus.Person->Action == ACTION_SHOOT) {
-                /*
 
-                //
-                // Only the pistol animation can be interrupted so you
-                // can shoot again.
-                //
-
-                if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
-                {
-                        set_player_shoot(p_person,0);
-                        processed|=input_used; //needs a clear click
-                }
-
-                */
             } else {
                 {
                     set_player_shoot(p_person, 0);
@@ -2539,8 +2433,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 if (person_has_gun_out(p_person)) {
                     set_person_shoot(p_person, 0);
                 } else if (!player_activate_in_hand(p_person))
-                    if (turn_to_target_and_punch(p_person))
-                    {
+                    if (turn_to_target_and_punch(p_person)) {
                         person_enter_fight_mode(p_person);
                     }
 
@@ -2604,33 +2497,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 }
 
                 break;
-                /*
-                                        case	STATE_CLIMB_LADDER:
-                                                switch(p_person->SubState)
-                                                {
-                                                        case	SUB_STATE_MOUNT_LADDER:
-                                                                break;
-                                                        case	SUB_STATE_STOPPING:
-                                                        case	SUB_STATE_ON_LADDER:
-                                                        case	SUB_STATE_CLIMB_UP_LADDER:
-                                                        case	SUB_STATE_CLIMB_DOWN_LADDER:
-                                                                player_stop_move(p_person,input);
-                                                                break;
-                                                }
-                */
-                /*
-                                                case	STATE_CLIMBING:
-                                                switch(p_person->SubState)
-                                                {
-                                                        case	SUB_STATE_STOPPING:
-                                                        case	SUB_STATE_CLIMB_UP_WALL:
-                                                        case	SUB_STATE_CLIMB_AROUND_WALL:
-                                                        case	SUB_STATE_CLIMB_DOWN_WALL:
-                                                                player_stop_move(p_person,input);
-                                                                break;
-                                                }
-                                                break;
-                */
+
             case STATE_DANGLING:
                 switch (p_person->SubState) {
                 case SUB_STATE_STOPPING:
@@ -2681,12 +2548,6 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             }
         }
     }
-
-    /*
-           #ifdef MUST_DOUBLE_CLICK_FORWARDS_TO_GET_OUT_OF_FIGHT_MODE
-           ...
-           #endif
-    */
 
     if (input) {
         SLONG new_action;
@@ -2987,17 +2848,7 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             pl->DoneSomething = UC_TRUE;
             return (INPUT_MASK_ACTION);
         }
-        /*
-                        if ((pl->Released & INPUT_MASK_LEFT) && !pl->DoneSomething)
-                        {
-                                turn_to_target(p_person, FIND_DIR_TURN_LEFT);
-                        }
 
-                        if ((pl->Released & INPUT_MASK_RIGHT) && !pl->DoneSomething)
-                        {
-                                turn_to_target(p_person, FIND_DIR_TURN_RIGHT);
-                        }
-        */
     } else {
         // Combo queuing: set REQUEST flags when buttons pressed during a fighting animation.
         if (pl->Pressed & INPUT_MASK_PUNCH) {
@@ -3033,22 +2884,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
     Vehicle* veh = p_furn->Genus.Vehicle;
 
     if (analogue) {
-        /*
-                        SLONG	dx,vx;
-
-                        dx = GET_JOYX(input);	// -128 to 127
-                        vx = p_furn->Velocity-1000;
-                        SATURATE(vx,0,1000);
-
-                        vx = 64000-(vx*48);
-
-                        veh->IsAnalog = 1;
-
-                        dx =(((dx+31)&0xffffffe0) * vx) >> 17;	// now -64 to +63, * (290/256)
-                        SATURATE(dx,-32,32);
-
-                        veh->Steering = dx;
-        */
 
         // Damped analogue steering.
         static SWORD wCurrentSteering = 0;
@@ -3123,7 +2958,8 @@ ULONG get_hardware_input(UWORD type)
     // Modal input debug panel consumes all input — return no-input so
     // do_packets (called from process_things) doesn't drive the player
     // character while the panel is open.
-    if (input_debug_is_active()) return 0;
+    if (input_debug_is_active())
+        return 0;
 
     ULONG input = 0;
 
@@ -3157,8 +2993,10 @@ ULONG get_hardware_input(UWORD type)
                     // must pack as centre, otherwise continue_moveing() sees phantom input.
                     SLONG pack_x = the_state.lX;
                     SLONG pack_y = the_state.lY;
-                    if (pack_x >= (SLONG)ulAxisMin && pack_x <= (SLONG)ulAxisMax) pack_x = AXIS_CENTRE;
-                    if (pack_y >= (SLONG)ulAxisMin && pack_y <= (SLONG)ulAxisMax) pack_y = AXIS_CENTRE;
+                    if (pack_x >= (SLONG)ulAxisMin && pack_x <= (SLONG)ulAxisMax)
+                        pack_x = AXIS_CENTRE;
+                    if (pack_y >= (SLONG)ulAxisMin && pack_y <= (SLONG)ulAxisMax)
+                        pack_y = AXIS_CENTRE;
                     input |= ((pack_x >> 9) + 0) << 18;
                     input |= ((pack_y >> 9) + 0) << 25;
 
@@ -3205,9 +3043,9 @@ ULONG get_hardware_input(UWORD type)
                     input |= INPUT_MASK_CANCEL;
                     {
                         Thing* p_darci = NET_PERSON(0);
-                        const bool driving = p_darci && p_darci->Genus.Person &&
-                                             (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
-                        if (driving) input |= INPUT_MASK_KICK;
+                        const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                        if (driving)
+                            input |= INPUT_MASK_KICK;
                     }
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3220,8 +3058,7 @@ ULONG get_hardware_input(UWORD type)
                 // expect in-car).
                 if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
                     Thing* p_darci = NET_PERSON(0);
-                    const bool driving = p_darci && p_darci->Genus.Person &&
-                                         (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
                         input |= INPUT_MASK_KICK;
                         g_dwLastInputChangeTime = dwCurrentTime;
@@ -3257,8 +3094,7 @@ ULONG get_hardware_input(UWORD type)
                 // Keyboard CAM_LEFT/CAM_RIGHT mapping is preserved below.
                 {
                     Thing* p_darci = NET_PERSON(0);
-                    bool driving = p_darci && p_darci->Genus.Person &&
-                                   (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
+                    bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
                         // Fire detection (rising-edge vs held-down + thresholds)
                         // is fully encapsulated in the weapon_feel module. The
@@ -3269,15 +3105,13 @@ ULONG get_hardware_input(UWORD type)
                         int32_t current_weapon = SPECIAL_NONE;
                         bool weapon_drawn = false;
                         if (p_darci && p_darci->Genus.Person) {
-                            const bool has_pistol_out =
-                                (p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                            const bool has_pistol_out = (p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
                             bool has_heavy_out = false;
                             if (p_darci->Genus.Person->SpecialUse) {
                                 Thing* p_special = TO_THING(p_darci->Genus.Person->SpecialUse);
                                 if (p_special) {
                                     current_weapon = p_special->Genus.Special->SpecialType;
-                                    has_heavy_out = (current_weapon == SPECIAL_AK47 ||
-                                                     current_weapon == SPECIAL_SHOTGUN);
+                                    has_heavy_out = (current_weapon == SPECIAL_AK47 || current_weapon == SPECIAL_SHOTGUN);
                                 }
                             }
                             // Pistol sits in FLAG_PERSON_GUN_OUT with no Thing*;
@@ -3305,12 +3139,14 @@ ULONG get_hardware_input(UWORD type)
                         if (p_darci && p_darci->Genus.Person) {
                             if (p_darci->Genus.Person->SpecialUse) {
                                 Thing* p_su3 = TO_THING(p_darci->Genus.Person->SpecialUse);
-                                if (p_su3 && p_su3->Genus.Special->ammo == 0) mag_empty = true;
+                                if (p_su3 && p_su3->Genus.Special->ammo == 0)
+                                    mag_empty = true;
                             } else if ((p_darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
-                                       && p_darci->Genus.Person->Ammo == 0) {
+                                && p_darci->Genus.Person->Ammo == 0) {
                                 mag_empty = true;
                             }
-                            if (input_actions_ak47_reload_gate_set()) mag_empty = true;
+                            if (input_actions_ak47_reload_gate_set())
+                                mag_empty = true;
                         }
                         WeaponFireDecision fd = weapon_feel_evaluate_fire(
                             current_weapon, the_state.trigger_right,
@@ -3342,9 +3178,9 @@ ULONG get_hardware_input(UWORD type)
                 // Works on DualSense (Share+L1+L2) and Xbox (Back+LB+LT).
                 {
                     static bool bCheatLastFrame = false;
-                    bool cheat_combo = BUTTON_IS_PRESSED(the_state.rgbButtons[4])   // Select/Back
-                                    && BUTTON_IS_PRESSED(the_state.rgbButtons[9])   // L1/LB
-                                    && BUTTON_IS_PRESSED(the_state.rgbButtons[15]);  // L2/LT (digital)
+                    bool cheat_combo = BUTTON_IS_PRESSED(the_state.rgbButtons[4]) // Select/Back
+                        && BUTTON_IS_PRESSED(the_state.rgbButtons[9]) // L1/LB
+                        && BUTTON_IS_PRESSED(the_state.rgbButtons[15]); // L2/LT (digital)
 
                     if (cheat_combo) {
                         if (BUTTON_IS_PRESSED(the_state.rgbButtons[11])) {
@@ -3368,14 +3204,14 @@ ULONG get_hardware_input(UWORD type)
                             // D-pad Left: spawn weapons around player (AK47, shotgun, pistol, 3 grenades).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
-                                #define CHEAT_RING_SIZE 128
-                                alloc_special(SPECIAL_AK47,    SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE,  NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE,  NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
-                                alloc_special(SPECIAL_GUN,     SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE,  NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
+#define CHEAT_RING_SIZE 128
+                                alloc_special(SPECIAL_AK47, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_SHOTGUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_GUN, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) - CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) + CHEAT_RING_SIZE, 0);
                                 alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE - 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE - 32, 0);
-                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE,      NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
+                                alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE, 0);
                                 alloc_special(SPECIAL_GRENADE, SPECIAL_SUBSTATE_NONE, (NET_PERSON(0)->WorldPos.X >> 8) + CHEAT_RING_SIZE + 32, NET_PERSON(0)->WorldPos.Y >> 8, (NET_PERSON(0)->WorldPos.Z >> 8) - CHEAT_RING_SIZE + 32, 0);
-                                #undef CHEAT_RING_SIZE
+#undef CHEAT_RING_SIZE
                                 CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
                             }
                         } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[14])) {
@@ -3416,10 +3252,7 @@ ULONG get_hardware_input(UWORD type)
         // (analog mode only makes sense with a stick).
         // Also clear analog bits 18-31 — otherwise player_turn_left_right sees
         // non-zero upper bits and treats centered stick (value 0) as analog input.
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]] ||
-            Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]] ||
-            Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]] ||
-            Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]] || Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]] || Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]] || Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
             analogue = 0;
             input &= 0x0003FFFF;
         }
@@ -3467,16 +3300,6 @@ ULONG get_hardware_input(UWORD type)
             Keys[KB_F7] = 0;
         }
 
-        /*
-        if(Keys[KB_F8])
-        {
-                input|=INPUT_MASK_CAMERA;
-                input&=~INPUT_MASKM_CAM_TYPE;
-                input|=INPUT_MASKM_CAM4;
-                Keys[KB_F8]=0;
-        }
-        */
-
         if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]]) {
             Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]] = 0;
             input |= INPUT_MASK_CAM_BEHIND;
@@ -3494,7 +3317,8 @@ ULONG get_hardware_input(UWORD type)
         if (Keys[keybrd_button_use[JOYPAD_BUTTON_JUMP]])
             input |= INPUT_MASK_JUMP;
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]]) input |= INPUT_MASK_PUNCH;
+        if (Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]])
+            input |= INPUT_MASK_PUNCH;
         if (Keys[keybrd_button_use[JOYPAD_BUTTON_KICK]]) {
             MSG_add(" HARDWARE KICK");
             input |= INPUT_MASK_KICK;
@@ -3504,36 +3328,10 @@ ULONG get_hardware_input(UWORD type)
             input |= INPUT_MASK_ACTION;
         }
 
-        /*
-
-        // Take out the V key?!
-
-        if(Keys[keybrd_button_use[JOYPAD_BUTTON_MOVE]])
-        {
-                input|=INPUT_MASK_MOVE;
-        }
-        */
-
         if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
             input |= INPUT_MASK_MOVE;
         }
     }
-
-    /*
-
-    if (EWAY_stop_player_moving())
-    {
-        input&=INPUT_MASK_JUMP;
-    }
-
-    */
-
-    /*
-            if (SNIPE_on)
-            {
-                    ...sniper mode input (all commented out in original)...
-            }
-    */
 
     if (input) {
         input_mode = INPUT_KEYS;
@@ -3555,24 +3353,6 @@ ULONG get_hardware_input(UWORD type)
 ULONG pre_process_input(SLONG mode, ULONG input)
 {
     return (input);
-    /*
-            UWORD	output;
-
-            output=input;
-
-            switch(mode)
-            {
-                    case	PERSON_MODE_FIGHT:
-                            break;
-                    case	PERSON_MODE_RUN:
-                            if(input&(INPUT_MASK_SPRINT|INPUT_MASK_YOMP))
-                            {
-                                    output|=INPUT_MASK_FORWARDS;
-                            }
-                            break;
-            }
-            return(output);
-    */
 }
 
 // uc_orig: apply_button_input_first_person (fallen/Source/interfac.cpp)
@@ -3595,14 +3375,6 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
     if (p_person->State != STATE_IDLE && p_person->State != STATE_GUN && p_person->State != STATE_NORMAL && p_person->State != STATE_HIT_RECOIL) {
         fpm = UC_FALSE;
     }
-
-    /*
-    else
-    if (p_person->Genus.Person->Action == ACTION_AIM_GUN || ...)
-    {
-        ...draw-gun / special aim cases (commented out in original)...
-    }
-    */
 
     if (fpm) {
 
@@ -3644,8 +3416,8 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
         // modes — toggling aim on/off doesn't flip the up/down feel.
         {
             constexpr SLONG STICK_DEAD = 8000;
-            constexpr SLONG STICK_PITCH_MAX = 13;  // per-frame pitch step at full deflection
-            constexpr SLONG STICK_YAW_MAX   = 32;  // per-frame angle delta at full deflection
+            constexpr SLONG STICK_PITCH_MAX = 13; // per-frame pitch step at full deflection
+            constexpr SLONG STICK_YAW_MAX = 32; // per-frame angle delta at full deflection
 
             // Right stick — gamepad. Only consume it while a controller is
             // the active input device, so a stuck/idle stick on a connected
@@ -3663,8 +3435,7 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
                     // sx > 0 (stick right) → turn character right (angle -=)
                     // sx < 0 (stick left)  → turn character left  (angle +=)
                     SLONG ang_step = (sx * STICK_YAW_MAX) / 32767;
-                    p_person->Draw.Tweened->Angle =
-                        (p_person->Draw.Tweened->Angle - ang_step) & 2047;
+                    p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - ang_step) & 2047;
                 }
             }
 
@@ -3680,12 +3451,10 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             }
             if (!CONTROLS_inventory_mode) {
                 if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
-                    p_person->Draw.Tweened->Angle =
-                        (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
+                    p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
                 if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
-                    p_person->Draw.Tweened->Angle =
-                        (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
+                    p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
         }
@@ -3718,34 +3487,12 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
         if (person_has_gun_out(p_person)) {
             if (input & INPUT_MASK_PUNCH) {
                 if (p_person->Genus.Person->Action == ACTION_SHOOT) {
-                    /*
 
-                    //
-                    // Only the pistol animation can be interrupted so you
-                    // can shoot again.
-                    //
-
-                    if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
-                    {
-                            set_player_shoot(p_person,0);
-                            *processed|=INPUT_MASK_PUNCH; //needs a clear click
-                    }
-
-                    */
                 } else {
                     set_player_shoot(p_person, 0);
                     *processed |= INPUT_MASK_PUNCH;
                 }
             }
-
-            /*
-            if(input&INPUT_MASK_SELECT)
-            {
-                    set_person_gun_away(p_person);
-                    *processed|=INPUT_MASK_SELECT;
-
-            }
-            */
         }
     } else {
         if (look_ami) {
@@ -3812,7 +3559,8 @@ void process_hardware_level_input_for_player(Thing* p_player)
     // Modal input debug panel — bail out entirely so neither the packet
     // path nor the direct Keys[]/rgbButtons[] reads inside this dispatcher
     // (e.g. apply_button_input_first_person) can drive the player.
-    if (input_debug_is_active()) return;
+    if (input_debug_is_active())
+        return;
 
     SLONG i;
 
@@ -3881,18 +3629,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
     pl->Pressed = pl->ThisInput & ~pl->LastInput;
     pl->Released = ~pl->ThisInput & pl->LastInput;
-
-    /*
-
-    if (pl->Pressed & INPUT_MASK_JUMP)
-    {
-            CBYTE str[100];
-
-            sprintf(str, "Pressed jump turn %d\n", GAME_TURN);
-
-    }
-
-    */
 
     if (pl->Pressed) {
         pl->DoneSomething = UC_FALSE;
@@ -3977,13 +3713,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                             set_person_draw_gun(p_person);
                         } else {
-                            /*
-                                                                                    add_damage_text(
-                                                                                            p_person->WorldPos.X          >> 8,
-                                                                                            p_person->WorldPos.Y + 0x6000 >> 8,
-                                                                                            p_person->WorldPos.Z          >> 8,
-                                                                                            "No Gun");
-                            */
                         }
                     }
                 }
@@ -4023,17 +3752,6 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                         set_person_draw_item(p_person, special_type);
                     } else {
-                        /*
-                                                                        CBYTE str[40];
-
-                                                                        sprintf(str, "No %s", SPECIAL_info[special_type].name);
-
-                                                                        add_damage_text(
-                                                                                p_person->WorldPos.X >> 8,
-                                                                                p_person->WorldPos.Y + 0x6000 >> 8,
-                                                                                p_person->WorldPos.Z          >> 8,
-                                                                                str);
-                        */
                     }
                 }
             }
@@ -4156,9 +3874,9 @@ SLONG continue_dir(Thing* p_person, SLONG dir)
 // fire kick in.
 static bool s_ak47_reload_gate = false;
 
-void input_actions_mark_ak47_reload_gate()  { s_ak47_reload_gate = true;  }
+void input_actions_mark_ak47_reload_gate() { s_ak47_reload_gate = true; }
 void input_actions_clear_ak47_reload_gate() { s_ak47_reload_gate = false; }
-bool input_actions_ak47_reload_gate_set()   { return s_ak47_reload_gate;  }
+bool input_actions_ak47_reload_gate_set() { return s_ak47_reload_gate; }
 
 // uc_orig: continue_firing (fallen/Source/interfac.cpp)
 // Returns true if the player/NPC should keep firing (PUNCH held, AK47 has ammo, target alive).
@@ -4182,7 +3900,8 @@ SLONG continue_firing(Thing* p_person)
         input = PACKET_DATA(p_player->Genus.Player->PlayerID);
 
         if (input & INPUT_MASK_PUNCH) {
-            if (s_ak47_reload_gate) return UC_FALSE;
+            if (s_ak47_reload_gate)
+                return UC_FALSE;
             return UC_TRUE;
         } else {
             // PUNCH bit low — just report "not firing". We do NOT clear

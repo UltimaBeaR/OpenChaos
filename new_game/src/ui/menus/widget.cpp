@@ -4,7 +4,7 @@
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"
-#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "game/input_actions.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/platform/sdl3_bridge.h"
@@ -34,12 +34,24 @@ extern UBYTE InkeyToAsciiShift[];
 void WIDGET_snd(SLONG snd)
 {
     switch (snd) {
-    case WS_MOVE:     snd = _WS_MOVE;    break;
-    case WS_FADEOUT:  snd = _WS_FADEOUT; break;
-    case WS_FADEIN:   snd = _WS_FADEIN;  break;
-    case WS_OK:       snd = _WS_OK;      break;
-    case WS_FAIL:     snd = _WS_FAIL;    break;
-    case WS_BLIP:     snd = _WS_BLIP;    break;
+    case WS_MOVE:
+        snd = _WS_MOVE;
+        break;
+    case WS_FADEOUT:
+        snd = _WS_FADEOUT;
+        break;
+    case WS_FADEIN:
+        snd = _WS_FADEIN;
+        break;
+    case WS_OK:
+        snd = _WS_OK;
+        break;
+    case WS_FAIL:
+        snd = _WS_FAIL;
+        break;
+    case WS_BLIP:
+        snd = _WS_BLIP;
+        break;
     }
     MFX_play_ambient(0, snd, MFX_REPLACE);
 }
@@ -79,17 +91,39 @@ SLONG FORM_Process(Form* form)
             key = 127;
         if (!key)
             switch (LastKey) {
-            case KB_UP:     key = 11; break;
-            case KB_RIGHT:  key = 9;  break;
-            case KB_LEFT:   key = 8;  break;
-            case KB_DOWN:   key = 10; break;
-            case KB_ESC:    key = 27; break;
-            case KB_ENTER:  key = 13; break;
-            case KB_PGUP:   key = 1;  break;
-            case KB_PGDN:   key = 2;  break;
-            case KB_HOME:   key = 3;  break;
-            case KB_END:    key = 4;  break;
-            case KB_DEL:    key = 5;  break;
+            case KB_UP:
+                key = 11;
+                break;
+            case KB_RIGHT:
+                key = 9;
+                break;
+            case KB_LEFT:
+                key = 8;
+                break;
+            case KB_DOWN:
+                key = 10;
+                break;
+            case KB_ESC:
+                key = 27;
+                break;
+            case KB_ENTER:
+                key = 13;
+                break;
+            case KB_PGUP:
+                key = 1;
+                break;
+            case KB_PGDN:
+                key = 2;
+                break;
+            case KB_HOME:
+                key = 3;
+                break;
+            case KB_END:
+                key = 4;
+                break;
+            case KB_DEL:
+                key = 5;
+                break;
             }
     } else
         key = 0;

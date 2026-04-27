@@ -5,7 +5,7 @@
 // debug console, and the main process_controls() dispatcher.
 // Corresponds to fallen/Source/Controls.cpp.
 
-#include "engine/platform/uc_common.h"                 // Basic types: SLONG, UBYTE, etc.
+#include "engine/platform/uc_common.h" // Basic types: SLONG, UBYTE, etc.
 
 // Forward declaration (full type from Game.h, which includes this header transitively).
 struct Thing;

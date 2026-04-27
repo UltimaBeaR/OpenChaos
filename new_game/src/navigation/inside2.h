@@ -49,16 +49,16 @@ struct Thing;
 // One floor of a building interior: bounding rect in map coords, room grid, stair list.
 // uc_orig: InsideStorey (fallen/Headers/inside2.h)
 struct InsideStorey {
-    UBYTE MinX;         // bounding rect (map squares)
+    UBYTE MinX; // bounding rect (map squares)
     UBYTE MinZ;
     UBYTE MaxX;
     UBYTE MaxZ;
-    UWORD InsideBlock;  // index into inside_block[] — packed array of 1-byte room IDs
+    UWORD InsideBlock; // index into inside_block[] — packed array of 1-byte room IDs
     UWORD StairCaseHead; // linked list head into inside_stairs[]
-    UWORD TexType;      // interior style index
-    UWORD FacetStart;   // dfacet range for this interior
+    UWORD TexType; // interior style index
+    UWORD FacetStart; // dfacet range for this interior
     UWORD FacetEnd;
-    SWORD StoreyY;      // Y coordinate of this floor
+    SWORD StoreyY; // Y coordinate of this floor
     UWORD Building;
     UWORD Dummy[2];
 };
@@ -66,12 +66,12 @@ struct InsideStorey {
 // Connection between two InsideStoreys — a staircase or vertical passage.
 // uc_orig: Staircase (fallen/Headers/inside2.h)
 struct Staircase {
-    UBYTE X, Z;         // map position of staircase
-    UBYTE Flags;        // direction (GET_STAIR_DIR) and up/down bits
+    UBYTE X, Z; // map position of staircase
+    UBYTE Flags; // direction (GET_STAIR_DIR) and up/down bits
     UBYTE ID;
-    SWORD NextStairs;   // linked list: next staircase in same InsideStorey
-    SWORD DownInside;   // InsideStorey index for going downstairs (0 = none)
-    SWORD UpInside;     // InsideStorey index for going upstairs (0 = none)
+    SWORD NextStairs; // linked list: next staircase in same InsideStorey
+    SWORD DownInside; // InsideStorey index for going downstairs (0 = none)
+    SWORD UpInside; // InsideStorey index for going upstairs (0 = none)
 };
 
 #pragma pack(pop)

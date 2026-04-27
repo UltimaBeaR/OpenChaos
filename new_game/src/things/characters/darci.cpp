@@ -13,15 +13,15 @@
 #include "ai/mav.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "buildings/building_types.h"  // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
+#include "buildings/building_types.h" // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
 #include "things/items/barrel.h"
 #include "things/characters/person.h"
 #include "things/characters/darci.h"
 #include "things/characters/darci_globals.h"
-#include "things/core/interact.h"              // calc_sub_objects_position
-#include "engine/input/gamepad.h"              // gamepad_set_shock
-#include "assets/formats/anim_globals.h"               // game_chunk
-#include "engine/graphics/pipeline/aeng.h"    // MSG_add
+#include "things/core/interact.h" // calc_sub_objects_position
+#include "engine/input/gamepad.h" // gamepad_set_shock
+#include "assets/formats/anim_globals.h" // game_chunk
+#include "engine/graphics/pipeline/aeng.h" // MSG_add
 
 // Forward declarations for functions not in any header (declared in originals).
 extern void add_damage_value_thing(Thing* p_thing, SLONG value);
@@ -34,7 +34,6 @@ extern SLONG person_slide_inside(SLONG inside_index, SLONG x1, SLONG y1, SLONG z
 // Gravity applied to Darci's DY each tick: 4<<8 = 1024 units/tick.
 // uc_orig: GRAVITY (fallen/Source/Darci.cpp)
 #define GRAVITY ((4 << 8))
-
 
 // uc_orig: fn_darci_init (fallen/Source/Darci.cpp)
 void fn_darci_init(Thing* t_thing)

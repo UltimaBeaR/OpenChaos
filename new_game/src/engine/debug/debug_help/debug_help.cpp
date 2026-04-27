@@ -3,8 +3,8 @@
 #include "engine/debug/debug_help/debug_help.h"
 
 #include "engine/graphics/text/font.h"
-#include "engine/input/keyboard.h"           // KB_F1
-#include "engine/input/keyboard_globals.h"   // Keys[]
+#include "engine/input/keyboard.h" // KB_F1
+#include "engine/input/keyboard_globals.h" // Keys[]
 
 #include <chrono>
 
@@ -16,27 +16,30 @@ std::chrono::steady_clock::time_point s_hide_at;
 bool s_visible = false;
 
 // One row per line. First column = key, second = description.
-struct Row { const char* key; const char* desc; };
+struct Row {
+    const char* key;
+    const char* desc;
+};
 const Row s_rows[] = {
-    { "F1",        "show this help (5s)"                   },
-    { "F2",        "toggle CRT scanline shader"            },
-    { "F3",        "load game   (Shift+F3 save, poo.sav)"  },
-    { "F4",        "toggle clouds"                         },
-    { "F8",        "toggle single-step mode"               },
-    { "F9",        "console (type bangunsnotgames to exit)"},
-    { "F10",       "farfacet debug split view"             },
-    { "F11",       "input debug panel"                     },
-    { "F12",       "spawn weapons around player + heal"    },
-    { "Shift+F12", "cheat toggle (prints FPS)"             },
-    { "Insert",    "step once (while single-step)"         },
-    { "Ctrl",      "lock debug overlay (force-visible)"    },
-    { "Ctrl+L",    "toggle outside / ambient lighting"     },
-    { "Ctrl+Q",    "quit"                                  },
-    { "Shift+M",   "spawn mine at mouse cursor"            },
-    { "/",         "toggle stealth debug"                  },
-    { "L",         "toggle dynamic light at player"        },
-    { "T",         "warehouse debug (doors, MAV arrows)"   },
-    { "V",         "show version string"                   },
+    { "F1", "show this help (5s)" },
+    { "F2", "toggle CRT scanline shader" },
+    { "F3", "load game   (Shift+F3 save, poo.sav)" },
+    { "F4", "toggle clouds" },
+    { "F8", "toggle single-step mode" },
+    { "F9", "console (type bangunsnotgames to exit)" },
+    { "F10", "farfacet debug split view" },
+    { "F11", "input debug panel" },
+    { "F12", "spawn weapons around player + heal" },
+    { "Shift+F12", "cheat toggle (prints FPS)" },
+    { "Insert", "step once (while single-step)" },
+    { "Ctrl", "lock debug overlay (force-visible)" },
+    { "Ctrl+L", "toggle outside / ambient lighting" },
+    { "Ctrl+Q", "quit" },
+    { "Shift+M", "spawn mine at mouse cursor" },
+    { "/", "toggle stealth debug" },
+    { "L", "toggle dynamic light at player" },
+    { "T", "warehouse debug (doors, MAV arrows)" },
+    { "V", "show version string" },
 };
 constexpr int s_row_count = sizeof(s_rows) / sizeof(s_rows[0]);
 
@@ -71,7 +74,8 @@ void debug_help_tick()
 
 void debug_help_render()
 {
-    if (!s_visible) return;
+    if (!s_visible)
+        return;
 
     // Draw in literal window pixels via FONT_buffer_add. The legend
     // lives in the top-left corner where pixel-coord text works fine —
@@ -79,17 +83,17 @@ void debug_help_render()
     // 640×480 scaling would drift the legend across wider windows.
     constexpr int line_h = 10;
     constexpr int header_x = 10;
-    constexpr int header_y = 40;   // below the tab bar if input panel opens later
-    constexpr int rows_x   = 10;
-    constexpr int rows_y   = header_y + line_h * 2;
-    constexpr int col_split = 90;  // key column width in pixels
+    constexpr int header_y = 40; // below the tab bar if input panel opens later
+    constexpr int rows_x = 10;
+    constexpr int rows_y = header_y + line_h * 2;
+    constexpr int col_split = 90; // key column width in pixels
 
     FONT_buffer_add(header_x, header_y, 255, 255, 0, 1,
         (CBYTE*)"DEBUG MODE  (bangunsnotgames)");
 
     for (int i = 0; i < s_row_count; ++i) {
         const int y = rows_y + i * line_h;
-        FONT_buffer_add(rows_x,             y, 120, 220, 255, 1, (CBYTE*)"%s", s_rows[i].key);
+        FONT_buffer_add(rows_x, y, 120, 220, 255, 1, (CBYTE*)"%s", s_rows[i].key);
         FONT_buffer_add(rows_x + col_split, y, 220, 220, 220, 1, (CBYTE*)"%s", s_rows[i].desc);
     }
 }

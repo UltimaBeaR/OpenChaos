@@ -1,7 +1,7 @@
 #ifndef ENGINE_GRAPHICS_LIGHTING_NIGHT_H
 #define ENGINE_GRAPHICS_LIGHTING_NIGHT_H
 
-#include "engine/platform/uc_common.h"              // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
+#include "engine/platform/uc_common.h" // UBYTE, SLONG, SBYTE, UWORD, SWORD, ULONG base types
 #include "map/pap_globals.h"
 
 // uc_orig: NIGHT_MAX_SLIGHTS (fallen/Headers/Night.h)
@@ -213,7 +213,7 @@ inline void NIGHT_get_colour(NIGHT_Colour col, ULONG* colour, ULONG* specular)
 // uc_orig: POLY_FADEOUT_END (fallen/Headers/Night.h)
 #ifndef POLY_FADEOUT_START
 #define POLY_FADEOUT_START (0.60F)
-#define POLY_FADEOUT_END   (0.95F)
+#define POLY_FADEOUT_END (0.95F)
 #endif
 
 // uc_orig: NIGHT_get_colour_and_fade (fallen/Headers/Night.h)

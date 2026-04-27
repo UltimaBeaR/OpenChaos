@@ -7,7 +7,7 @@
 #include "things/core/statedef.h"
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h" // WARE_ware
-#include "ui/frontend/frontend_globals.h"          // IsEnglish
+#include "ui/frontend/frontend_globals.h" // IsEnglish
 
 // Internal height category used by PlayAmbient3D.
 // uc_orig: HeightType (fallen/Source/Sound.cpp)

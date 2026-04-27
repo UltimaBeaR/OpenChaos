@@ -2,7 +2,7 @@
 #define THINGS_CORE_INTERACT_H
 
 #include "buildings/building_types.h" // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
-#include "map/supermap.h"               // DFacet (used in function params)
+#include "map/supermap.h" // DFacet (used in function params)
 #include "things/core/thing.h"
 #include "things/core/thing_globals.h"
 #include "assets/formats/anim_globals.h"

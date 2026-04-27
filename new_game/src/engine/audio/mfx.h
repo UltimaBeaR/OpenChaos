@@ -80,7 +80,6 @@ void MFX_load_wave_list();
 // uc_orig: MFX_free_wave_list (fallen/DDLibrary/Headers/MFX.h)
 void MFX_free_wave_list();
 
-
 // uc_orig: MFX_update (fallen/DDLibrary/Headers/MFX.h)
 void MFX_update(void);
 

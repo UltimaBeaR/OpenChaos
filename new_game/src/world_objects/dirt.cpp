@@ -28,32 +28,32 @@
 
 // Pigeon state IDs used by DIRT_pigeon_process and state init functions.
 // uc_orig: DIRT_PIGEON_WAIT (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_WAIT     0
+#define DIRT_PIGEON_WAIT 0
 // uc_orig: DIRT_PIGEON_PECK (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_PECK     1
+#define DIRT_PIGEON_PECK 1
 // uc_orig: DIRT_PIGEON_WALK (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_WALK     2
+#define DIRT_PIGEON_WALK 2
 // uc_orig: DIRT_PIGEON_HOP (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_HOP      3
+#define DIRT_PIGEON_HOP 3
 // uc_orig: DIRT_PIGEON_COURT (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_COURT    4
+#define DIRT_PIGEON_COURT 4
 // uc_orig: DIRT_PIGEON_RUN (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_RUN      5
+#define DIRT_PIGEON_RUN 5
 // uc_orig: DIRT_PIGEON_TAKEOFF (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_TAKEOFF  6
+#define DIRT_PIGEON_TAKEOFF 6
 // uc_orig: DIRT_PIGEON_FLY (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_FLY      7
+#define DIRT_PIGEON_FLY 7
 // uc_orig: DIRT_PIGEON_LAND (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_LAND     8
+#define DIRT_PIGEON_LAND 8
 // uc_orig: DIRT_PIGEON_PERCHED (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_PERCHED  9
+#define DIRT_PIGEON_PERCHED 9
 // uc_orig: DIRT_PIGEON_SIDLE (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_SIDLE    10
+#define DIRT_PIGEON_SIDLE 10
 // uc_orig: DIRT_PIGEON_NUM_STATES (fallen/Source/dirt.cpp)
 #define DIRT_PIGEON_NUM_STATES 11
 
 // uc_orig: DIRT_PIGEON_HOPUP (fallen/Source/dirt.cpp)
-#define DIRT_PIGEON_HOPUP   1
+#define DIRT_PIGEON_HOPUP 1
 // uc_orig: DIRT_PIGEON_HOPDOWN (fallen/Source/dirt.cpp)
 #define DIRT_PIGEON_HOPDOWN 2
 
@@ -1296,35 +1296,35 @@ void DIRT_process(void)
         case DIRT_TYPE_HELDCAN:
         case DIRT_TYPE_HELDHEAD:
 
-            {
-                SLONG px;
-                SLONG py;
-                SLONG pz;
+        {
+            SLONG px;
+            SLONG py;
+            SLONG pz;
 
-                Thing* p_person = TO_THING(dd->droll);
+            Thing* p_person = TO_THING(dd->droll);
 
-                calc_sub_objects_position(
-                    p_person,
-                    p_person->Draw.Tweened->AnimTween,
-                    SUB_OBJECT_PREFERRED_HAND,
-                    &px,
-                    &py,
-                    &pz);
+            calc_sub_objects_position(
+                p_person,
+                p_person->Draw.Tweened->AnimTween,
+                SUB_OBJECT_PREFERRED_HAND,
+                &px,
+                &py,
+                &pz);
 
-                px += p_person->WorldPos.X >> 8;
-                py += p_person->WorldPos.Y >> 8;
-                pz += p_person->WorldPos.Z >> 8;
+            px += p_person->WorldPos.X >> 8;
+            py += p_person->WorldPos.Y >> 8;
+            pz += p_person->WorldPos.Z >> 8;
 
-                dd->x = px;
-                dd->y = py;
-                dd->z = pz;
+            dd->x = px;
+            dd->y = py;
+            dd->z = pz;
 
-                dd->yaw = p_person->Draw.Tweened->Angle;
-                dd->pitch = 0;
-                dd->roll = 0;
-            }
+            dd->yaw = p_person->Draw.Tweened->Angle;
+            dd->pitch = 0;
+            dd->roll = 0;
+        }
 
-            break;
+        break;
 
         case DIRT_TYPE_THROWCAN:
         case DIRT_TYPE_THROWHEAD:

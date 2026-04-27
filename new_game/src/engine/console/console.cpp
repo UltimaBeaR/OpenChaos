@@ -13,7 +13,6 @@
 // uc_orig: PANEL_new_text (fallen/DDEngine/Headers/panel.h)
 extern void PANEL_new_text(struct Thing* who, SLONG delay, CBYTE* fmt, ...);
 
-
 // Returns UC_TRUE when there are no active positioned messages to display.
 // uc_orig: CONSOLE_no_text (fallen/DDEngine/Source/console.cpp)
 static SLONG CONSOLE_no_text(void)

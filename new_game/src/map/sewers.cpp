@@ -8,7 +8,6 @@
 #include "map/pap.h"
 #include "engine/physics/collide.h"
 
-
 // Returns the sewer floor height (in world Y units) at world position (x, z).
 // Returns -0x200 if the position is solid rock (no sewer here).
 // uc_orig: NS_calc_height_at (fallen/Source/ns.cpp)
@@ -103,10 +102,18 @@ void NS_slide_along(
 #define NS_SLIDE_MIN ((1 << PAP_SHIFT_LO) << 8)
 #define NS_SLIDE_MAX (((PAP_SIZE_LO - 1) << PAP_SHIFT_LO) << 8)
 
-    if (*x2 < NS_SLIDE_MIN) { *x2 = NS_SLIDE_MIN; }
-    if (*x2 > NS_SLIDE_MAX) { *x2 = NS_SLIDE_MAX; }
-    if (*z2 < NS_SLIDE_MIN) { *z2 = NS_SLIDE_MIN; }
-    if (*z2 > NS_SLIDE_MAX) { *z2 = NS_SLIDE_MAX; }
+    if (*x2 < NS_SLIDE_MIN) {
+        *x2 = NS_SLIDE_MIN;
+    }
+    if (*x2 > NS_SLIDE_MAX) {
+        *x2 = NS_SLIDE_MAX;
+    }
+    if (*z2 < NS_SLIDE_MIN) {
+        *z2 = NS_SLIDE_MIN;
+    }
+    if (*z2 > NS_SLIDE_MAX) {
+        *z2 = NS_SLIDE_MAX;
+    }
 
     radius <<= 8;
 

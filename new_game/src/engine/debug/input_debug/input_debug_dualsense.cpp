@@ -41,7 +41,7 @@ namespace {
 // Y positions are set by render_ds_tests.
 constexpr SLONG MENU_X = 20;
 
-constexpr int RUMBLE_ROWS   = 3;
+constexpr int RUMBLE_ROWS = 3;
 constexpr int LIGHTBAR_ROWS = 3;
 // PLAYER_LED_ROWS is defined next to render_player_led further down
 // (depends on PLAYER_LED_MASK_ROWS + brightness row below it).
@@ -80,11 +80,11 @@ void draw_touchpad_viz(SLONG x, SLONG y, SLONG w, SLONG h)
 
     if (f1_down) {
         AENG_draw_rect(to_wx(f1_x) - 2, to_wy(f1_y) - 2, 4, 4,
-                       0x30FF30, INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
+            0x30FF30, INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
     }
     if (f2_down) {
         AENG_draw_rect(to_wx(f2_x) - 2, to_wy(f2_y) - 2, 4, 4,
-                       0xFF30FF, INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
+            0xFF30FF, INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
     }
 
     input_debug_text(x, y - 12, 200, 200, 200, 1, "Touchpad");
@@ -100,7 +100,7 @@ void draw_touchpad_viz(SLONG x, SLONG y, SLONG w, SLONG h)
 
 int s_lightbar_r = 0;
 int s_lightbar_g = 0;
-int s_lightbar_b = 255;   // default blue, matches gamepad_led_reset
+int s_lightbar_b = 255; // default blue, matches gamepad_led_reset
 int s_lightbar_last_r = -1, s_lightbar_last_g = -1, s_lightbar_last_b = -1;
 
 constexpr int LIGHTBAR_STEP = 16;
@@ -114,21 +114,24 @@ int render_lightbar(SLONG x, SLONG y, int local_cursor)
     if (local_cursor >= 0 && local_cursor < LIGHTBAR_ROWS) {
         const InputDebugNav& n = input_debug_nav();
         int* tgt = nullptr;
-        if (local_cursor == 0) tgt = &s_lightbar_r;
-        if (local_cursor == 1) tgt = &s_lightbar_g;
-        if (local_cursor == 2) tgt = &s_lightbar_b;
+        if (local_cursor == 0)
+            tgt = &s_lightbar_r;
+        if (local_cursor == 1)
+            tgt = &s_lightbar_g;
+        if (local_cursor == 2)
+            tgt = &s_lightbar_b;
         if (tgt) {
-            if (n.left)  *tgt = clamp_u8(*tgt - LIGHTBAR_STEP);
-            if (n.right) *tgt = clamp_u8(*tgt + LIGHTBAR_STEP);
+            if (n.left)
+                *tgt = clamp_u8(*tgt - LIGHTBAR_STEP);
+            if (n.right)
+                *tgt = clamp_u8(*tgt + LIGHTBAR_STEP);
         }
     }
 
     // Apply to controller when any channel changed. ds_set_lightbar
     // already no-ops on unchanged values, but we cache the last-sent set
     // to avoid even that check when nothing moved.
-    if (s_lightbar_r != s_lightbar_last_r ||
-        s_lightbar_g != s_lightbar_last_g ||
-        s_lightbar_b != s_lightbar_last_b) {
+    if (s_lightbar_r != s_lightbar_last_r || s_lightbar_g != s_lightbar_last_g || s_lightbar_b != s_lightbar_last_b) {
         ds_set_lightbar((uint8_t)s_lightbar_r, (uint8_t)s_lightbar_g, (uint8_t)s_lightbar_b);
         ds_update_output();
         s_lightbar_last_r = s_lightbar_r;
@@ -166,12 +169,12 @@ constexpr int PLAYER_LED_MASK_ROWS = 3;
 // exactly the same LEDs that the mask toggles on/off — putting it
 // elsewhere disconnects it visually from the thing it controls.
 constexpr int PLAYER_LED_ROWS = PLAYER_LED_MASK_ROWS + 1;
-constexpr int PLAYER_LED_BRIGHTNESS_ROW = PLAYER_LED_MASK_ROWS;  // last row
+constexpr int PLAYER_LED_BRIGHTNESS_ROW = PLAYER_LED_MASK_ROWS; // last row
 
 constexpr uint8_t PLAYER_LED_BITS[PLAYER_LED_MASK_ROWS] = {
-    0x01 | 0x10,  // Outer pair  (bits 0 and 4)
-    0x02 | 0x08,  // Inner pair  (bits 1 and 3)
-    0x04,         // Centre      (bit 2)
+    0x01 | 0x10, // Outer pair  (bits 0 and 4)
+    0x02 | 0x08, // Inner pair  (bits 1 and 3)
+    0x04, // Centre      (bit 2)
 };
 static const char* PLAYER_LED_NAMES[PLAYER_LED_MASK_ROWS] = {
     "Outer pair (LED 1 & 5)",
@@ -179,10 +182,10 @@ static const char* PLAYER_LED_NAMES[PLAYER_LED_MASK_ROWS] = {
     "Centre (LED 3)",
 };
 
-uint8_t s_player_led_mask      = 0;
-int     s_player_led_last_mask = -1;
-int     s_led_brightness       = 0;        // 0 = brightest, 2 = dimmest
-int     s_led_brightness_last  = -1;
+uint8_t s_player_led_mask = 0;
+int s_player_led_last_mask = -1;
+int s_led_brightness = 0; // 0 = brightest, 2 = dimmest
+int s_led_brightness_last = -1;
 
 int render_player_led(SLONG x, SLONG y, int local_cursor)
 {
@@ -195,8 +198,10 @@ int render_player_led(SLONG x, SLONG y, int local_cursor)
         }
     } else if (local_cursor == PLAYER_LED_BRIGHTNESS_ROW) {
         const InputDebugNav& n = input_debug_nav();
-        if (n.left  && s_led_brightness > 0) s_led_brightness -= 1;
-        if (n.right && s_led_brightness < 2) s_led_brightness += 1;
+        if (n.left && s_led_brightness > 0)
+            s_led_brightness -= 1;
+        if (n.right && s_led_brightness < 2)
+            s_led_brightness += 1;
     }
 
     if ((int)s_player_led_mask != s_player_led_last_mask) {
@@ -238,9 +243,9 @@ int render_player_led(SLONG x, SLONG y, int local_cursor)
         const UBYTE b = sel ? 120 : 150;
         const char* prefix = sel ? "> " : "  ";
         input_debug_text(x + 4, y + 14 + PLAYER_LED_BRIGHTNESS_ROW * 12,
-                         r, g, b, 1,
-                         "%sbrightness       %d (0 = bright, 2 = dim)",
-                         prefix, s_led_brightness);
+            r, g, b, 1,
+            "%sbrightness       %d (0 = bright, 2 = dim)",
+            prefix, s_led_brightness);
     }
 
     return PLAYER_LED_ROWS;
@@ -260,15 +265,18 @@ int render_player_led(SLONG x, SLONG y, int local_cursor)
 
 constexpr int MISC_ROWS = 1;
 
-int s_mute_led            = 0;          // 0 = Off, 1 = On, 2 = Blink
-int s_mute_led_last       = -1;
+int s_mute_led = 0; // 0 = Off, 1 = On, 2 = Blink
+int s_mute_led_last = -1;
 
 const char* mute_led_name(int v)
 {
     switch (v) {
-        case 1:  return "On";
-        case 2:  return "Blink";
-        default: return "Off";
+    case 1:
+        return "On";
+    case 2:
+        return "Blink";
+    default:
+        return "Off";
     }
 }
 
@@ -280,9 +288,12 @@ int render_misc_outputs(SLONG x, SLONG y, int local_cursor)
         const InputDebugNav& n = input_debug_nav();
         // Enter cycles Off → On → Blink → Off; left/right mirror for
         // nav symmetry.
-        if (n.enter) s_mute_led = (s_mute_led + 1) % 3;
-        if (n.right) s_mute_led = (s_mute_led + 1) % 3;
-        if (n.left)  s_mute_led = (s_mute_led + 2) % 3;
+        if (n.enter)
+            s_mute_led = (s_mute_led + 1) % 3;
+        if (n.right)
+            s_mute_led = (s_mute_led + 1) % 3;
+        if (n.left)
+            s_mute_led = (s_mute_led + 2) % 3;
     }
 
     if (s_mute_led != s_mute_led_last) {
@@ -297,7 +308,7 @@ int render_misc_outputs(SLONG x, SLONG y, int local_cursor)
     const UBYTE b = sel ? 120 : 150;
     const char* p = sel ? "> " : "  ";
     input_debug_text(x + 4, y + 14, r, g, b, 1,
-                     "%smic mute LED  %s", p, mute_led_name(s_mute_led));
+        "%smic mute LED  %s", p, mute_led_name(s_mute_led));
 
     return MISC_ROWS;
 }
@@ -323,7 +334,7 @@ int render_misc_outputs(SLONG x, SLONG y, int local_cursor)
 //   2. WAVEOUT_CTRL (AUDIO, action 2) with 3 bytes {enable, 1, 0} —
 //      actually starts or stops the tone generator.
 
-constexpr int AUDIO_ROWS = 2;  // volume + test tone
+constexpr int AUDIO_ROWS = 2; // volume + test tone
 constexpr int AUDIO_VOLUME_STEP = 8;
 // Start the slider at something audible so the first cycle of the
 // test tone plays at a reasonable volume without the user having to
@@ -332,8 +343,8 @@ constexpr int AUDIO_DEFAULT_VOL = 128;
 
 // Test-tone source enum mirrors the UI cycle order.
 enum AudioTestTone {
-    AUDIO_TONE_OFF       = 0,
-    AUDIO_TONE_SPEAKER   = 1,
+    AUDIO_TONE_OFF = 0,
+    AUDIO_TONE_SPEAKER = 1,
     AUDIO_TONE_HEADPHONE = 2,
     AUDIO_TONE_COUNT,
 };
@@ -346,10 +357,10 @@ enum AudioTestTone {
 // the non-selected output otherwise). When no tone is playing both
 // hardware volumes are 0, but the UI slider still shows the user's
 // preferred value so switching the tone back on restores the level.
-int  s_volume         = AUDIO_DEFAULT_VOL;
-int  s_volume_last    = -1;
-int  s_test_tone      = AUDIO_TONE_OFF;
-int  s_test_tone_last = -1;
+int s_volume = AUDIO_DEFAULT_VOL;
+int s_volume_last = -1;
+int s_test_tone = AUDIO_TONE_OFF;
+int s_test_tone_last = -1;
 
 // Audio test-tone sender — runs on a **detached background thread**.
 //
@@ -363,10 +374,11 @@ static void send_audio_test_tone(int source)
     std::thread([source]() {
         using namespace oc::dualsense;
         Device* dev = ds_debug_get_device();
-        if (!dev || !dev->connected) return;
+        if (!dev || !dev->connected)
+            return;
 
-        constexpr uint8_t ACTION_ROUTE_PREPARE = 4;  // BUILTIN_MIC_CALIB_DATA_VERIFY
-        constexpr uint8_t ACTION_WAVEOUT_CTRL  = 2;
+        constexpr uint8_t ACTION_ROUTE_PREPARE = 4; // BUILTIN_MIC_CALIB_DATA_VERIFY
+        constexpr uint8_t ACTION_WAVEOUT_CTRL = 2;
 
         // Use `test_command` (fire + poll 0x81) rather than
         // `test_command_set` (fire-only) for audio: empirically, a
@@ -382,7 +394,7 @@ static void send_audio_test_tone(int source)
         // because the controller doesn't emit a matching 0x81 response
         // — that's fine, the side-effect (tone on/off) still happens.
         std::uint8_t rx[72] = {};
-        std::size_t  rx_n   = 0;
+        std::size_t rx_n = 0;
 
         // Each HID round-trip wrapped in the bridge device lock so a
         // main-thread disconnect can't free the SDL_hid_device* while
@@ -401,21 +413,23 @@ static void send_audio_test_tone(int source)
                     : WaveOutRoute::Headphone,
                 route);
             DSDebugDeviceLock lk;
-            if (!dev->connected) return;
+            if (!dev->connected)
+                return;
             test_command(dev, TestDevice::Audio, ACTION_ROUTE_PREPARE,
-                         route, sizeof(route),
-                         rx, sizeof(rx), &rx_n);
+                route, sizeof(route),
+                rx, sizeof(rx), &rx_n);
         }
 
-        const std::uint8_t enable  = (source != AUDIO_TONE_OFF) ? 1 : 0;
+        const std::uint8_t enable = (source != AUDIO_TONE_OFF) ? 1 : 0;
         const std::uint8_t ctrl[3] = { enable, 1, 0 };
         rx_n = 0;
         {
             DSDebugDeviceLock lk;
-            if (!dev->connected) return;
+            if (!dev->connected)
+                return;
             test_command(dev, TestDevice::Audio, ACTION_WAVEOUT_CTRL,
-                         ctrl, sizeof(ctrl),
-                         rx, sizeof(rx), &rx_n);
+                ctrl, sizeof(ctrl),
+                rx, sizeof(rx), &rx_n);
         }
     }).detach();
 }
@@ -427,16 +441,19 @@ static void audio_test_tone_force_off()
     if (s_test_tone != AUDIO_TONE_OFF) {
         send_audio_test_tone(AUDIO_TONE_OFF);
     }
-    s_test_tone      = AUDIO_TONE_OFF;
+    s_test_tone = AUDIO_TONE_OFF;
     s_test_tone_last = -1;
 }
 
 static const char* test_tone_name(int v)
 {
     switch (v) {
-        case AUDIO_TONE_SPEAKER:   return "on via speaker";
-        case AUDIO_TONE_HEADPHONE: return "on via 3.5mm jack";
-        default:                   return "off";
+    case AUDIO_TONE_SPEAKER:
+        return "on via speaker";
+    case AUDIO_TONE_HEADPHONE:
+        return "on via 3.5mm jack";
+    default:
+        return "off";
     }
 }
 
@@ -470,7 +487,7 @@ static void audio_apply_state()
 int render_audio_outputs(SLONG x, SLONG y, int local_cursor)
 {
     input_debug_text(x, y, 220, 200, 120, 1,
-                     "Controller audio (speaker + 3.5mm jack)");
+        "Controller audio (speaker + 3.5mm jack)");
 
     // Keep the lib in "take over audio" mode while the OUTPUT page is
     // rendering. Idempotent (bridge setter no-ops on unchanged value),
@@ -481,14 +498,19 @@ int render_audio_outputs(SLONG x, SLONG y, int local_cursor)
         const InputDebugNav& n = input_debug_nav();
         switch (local_cursor) {
         case 0:
-            if (n.left)  s_volume = clamp_u8(s_volume - AUDIO_VOLUME_STEP);
-            if (n.right) s_volume = clamp_u8(s_volume + AUDIO_VOLUME_STEP);
+            if (n.left)
+                s_volume = clamp_u8(s_volume - AUDIO_VOLUME_STEP);
+            if (n.right)
+                s_volume = clamp_u8(s_volume + AUDIO_VOLUME_STEP);
             break;
         case 1:
             // Enter cycles off → speaker → jack → off. left/right mirror.
-            if (n.enter) s_test_tone = (s_test_tone + 1) % AUDIO_TONE_COUNT;
-            if (n.right) s_test_tone = (s_test_tone + 1) % AUDIO_TONE_COUNT;
-            if (n.left)  s_test_tone = (s_test_tone + AUDIO_TONE_COUNT - 1) % AUDIO_TONE_COUNT;
+            if (n.enter)
+                s_test_tone = (s_test_tone + 1) % AUDIO_TONE_COUNT;
+            if (n.right)
+                s_test_tone = (s_test_tone + 1) % AUDIO_TONE_COUNT;
+            if (n.left)
+                s_test_tone = (s_test_tone + AUDIO_TONE_COUNT - 1) % AUDIO_TONE_COUNT;
             break;
         }
     }
@@ -496,13 +518,13 @@ int render_audio_outputs(SLONG x, SLONG y, int local_cursor)
     // Volume slider is read live: any movement during an active tone
     // immediately updates the active output's hardware volume, the
     // inactive output stays at 0.
-    const bool volume_changed    = (s_volume    != s_volume_last);
+    const bool volume_changed = (s_volume != s_volume_last);
     const bool test_tone_changed = (s_test_tone != s_test_tone_last);
 
     if (volume_changed || test_tone_changed) {
         audio_apply_state();
         ds_update_output();
-        s_volume_last    = s_volume;
+        s_volume_last = s_volume;
     }
     if (test_tone_changed) {
         // send_audio_test_tone runs on a background thread; by the
@@ -520,18 +542,18 @@ int render_audio_outputs(SLONG x, SLONG y, int local_cursor)
         const UBYTE b = sel ? 120 : 150;
         const char* prefix = sel ? "> " : "  ";
         input_debug_text(x + 4, y + 14, r, g, b, 1,
-                         "%svolume            %3d", prefix, s_volume);
+            "%svolume            %3d", prefix, s_volume);
     }
     {
-        const bool sel    = (local_cursor == 1);
+        const bool sel = (local_cursor == 1);
         const bool active = (s_test_tone != AUDIO_TONE_OFF);
-        const UBYTE r = sel ? (active ? 120 : 255) : (active ? 80  : 150);
-        const UBYTE g = sel ? 255                  : (active ? 255 : 150);
-        const UBYTE b = sel ? (active ? 120 : 120) : (active ? 80  : 150);
+        const UBYTE r = sel ? (active ? 120 : 255) : (active ? 80 : 150);
+        const UBYTE g = sel ? 255 : (active ? 255 : 150);
+        const UBYTE b = sel ? (active ? 120 : 120) : (active ? 80 : 150);
         const char* prefix = sel ? "> " : "  ";
         input_debug_text(x + 4, y + 26, r, g, b, 1,
-                         "%stest tone 1kHz    %s",
-                         prefix, test_tone_name(s_test_tone));
+            "%stest tone 1kHz    %s",
+            prefix, test_tone_name(s_test_tone));
     }
 
     return AUDIO_ROWS;
@@ -563,14 +585,14 @@ DualSenseSub s_sub = DS_SUB_VIEW;
 // sit above the full trigger-tester namespace block further down) can
 // poke them. Full tester state (TriggerTesterState s_trig, params) lives
 // in its own block near render_ds_triggers.
-bool s_trig_dirty       = false;
+bool s_trig_dirty = false;
 bool s_trig_first_frame = true;
 
 // INPUT sub-page calibration cache — fetched once per panel session via
 // get_sensor_calibration(). Required to convert raw IMU samples into
 // physical deg/s / g. Invalidated by reset_state().
-oc::dualsense::SensorCalibration s_imu_cal   = {};
-bool                             s_imu_cal_loaded = false;
+oc::dualsense::SensorCalibration s_imu_cal = {};
+bool s_imu_cal_loaded = false;
 
 // TELEMETRY sub-page cache — all feature-report / test-command results
 // fetched once per panel session. Each field has its own "ok" flag so
@@ -592,50 +614,53 @@ constexpr int TELEMETRY_LOAD_STEP_COUNT = 16;
 
 struct TelemetryCache {
     bool loaded = false;
-    int  load_step = 0;  // progress 0..TELEMETRY_LOAD_STEP_COUNT (driven by thread)
+    int load_step = 0; // progress 0..TELEMETRY_LOAD_STEP_COUNT (driven by thread)
 
     oc::dualsense::FirmwareInfo fw = {};
-    std::uint32_t               bt_patch    = 0;
-    bool                        bt_patch_ok = false;
+    std::uint32_t bt_patch = 0;
+    bool bt_patch_ok = false;
     oc::dualsense::SensorCalibration cal = {};
 
-    std::uint64_t mcu_id    = 0;
-    bool          mcu_ok    = false;
+    std::uint64_t mcu_id = 0;
+    bool mcu_ok = false;
 
-    std::uint8_t  bt_mac[6] = {};
-    bool          bt_mac_ok = false;
+    std::uint8_t bt_mac[6] = {};
+    bool bt_mac_ok = false;
 
-    std::uint64_t pcba_id   = 0;
-    bool          pcba_ok   = false;
+    std::uint64_t pcba_id = 0;
+    bool pcba_ok = false;
 
-    std::uint8_t  pcba_full[24] = {};
-    std::size_t   pcba_full_len = 0;
+    std::uint8_t pcba_full[24] = {};
+    std::size_t pcba_full_len = 0;
 
-    std::uint8_t  serial[32] = {};
-    std::size_t   serial_len = 0;
+    std::uint8_t serial[32] = {};
+    std::size_t serial_len = 0;
 
-    std::uint8_t  assemble[32] = {};
-    std::size_t   assemble_len = 0;
+    std::uint8_t assemble[32] = {};
+    std::size_t assemble_len = 0;
 
-    std::uint8_t  batt_barcode[32] = {};
-    std::size_t   batt_barcode_len = 0;
+    std::uint8_t batt_barcode[32] = {};
+    std::size_t batt_barcode_len = 0;
 
-    std::uint8_t  vcm_left[32] = {};
-    std::size_t   vcm_left_len = 0;
+    std::uint8_t vcm_left[32] = {};
+    std::size_t vcm_left_len = 0;
 
-    std::uint8_t  vcm_right[32] = {};
-    std::size_t   vcm_right_len = 0;
+    std::uint8_t vcm_right[32] = {};
+    std::size_t vcm_right_len = 0;
 
     oc::dualsense::BatteryVoltageRaw batt_v = {};
 
-    std::uint8_t pos_tracking    = 0;  bool pos_tracking_ok    = false;
-    std::uint8_t always_on       = 0;  bool always_on_ok       = false;
-    std::uint8_t auto_switchoff  = 0;  bool auto_switchoff_ok  = false;
+    std::uint8_t pos_tracking = 0;
+    bool pos_tracking_ok = false;
+    std::uint8_t always_on = 0;
+    bool always_on_ok = false;
+    std::uint8_t auto_switchoff = 0;
+    bool auto_switchoff_ok = false;
 };
-TelemetryCache    s_tel = {};
-std::mutex        s_tel_mutex;
-std::atomic<bool> s_tel_load_active{false};
-std::atomic<int>  s_tel_gen{0};
+TelemetryCache s_tel = {};
+std::mutex s_tel_mutex;
+std::atomic<bool> s_tel_load_active { false };
+std::atomic<int> s_tel_gen { 0 };
 }
 
 void input_debug_dualsense_toggle_sub()
@@ -669,7 +694,7 @@ void input_debug_dualsense_reset_state()
     s_lightbar_last_g = -1;
     s_lightbar_last_b = -1;
 
-    s_player_led_mask      = 0;
+    s_player_led_mask = 0;
     s_player_led_last_mask = -1;
 
     s_sub = DS_SUB_VIEW;
@@ -677,7 +702,7 @@ void input_debug_dualsense_reset_state()
     // Trigger tester: re-push initial state the next time the user
     // enters the TRIGGERS sub-page. Also clear any pending edit flag.
     s_trig_first_frame = true;
-    s_trig_dirty       = false;
+    s_trig_dirty = false;
 
     // Telemetry / calibration caches: invalidate so the next open
     // re-reads them. The controller may have been swapped between
@@ -697,9 +722,12 @@ void input_debug_dualsense_reset_state()
     // the UI state and the controller state to defaults so reopening
     // the panel doesn't inherit a previously-set value that the cached
     // "last applied" check would then skip sending.
-    s_led_brightness = 0;                  s_led_brightness_last = -1;
-    s_mute_led       = 0;                  s_mute_led_last       = -1;
-    s_volume         = AUDIO_DEFAULT_VOL;  s_volume_last         = -1;
+    s_led_brightness = 0;
+    s_led_brightness_last = -1;
+    s_mute_led = 0;
+    s_mute_led_last = -1;
+    s_volume = AUDIO_DEFAULT_VOL;
+    s_volume_last = -1;
 
     // Force the diagnostic 1 kHz tone off (and resync its cache) so
     // the controller doesn't keep beeping between panel sessions.
@@ -745,20 +773,20 @@ static void render_ds_view(const GamepadState& s)
 
     constexpr SLONG L_TRIG_X = 200;
     constexpr SLONG R_TRIG_X = 418;
-    constexpr SLONG TR_Y     = 70;
-    constexpr SLONG TR_W     = 22;
-    constexpr SLONG TR_H     = 96;
-    constexpr SLONG LSTK_CX  = 160;
-    constexpr SLONG RSTK_CX  = 480;
+    constexpr SLONG TR_Y = 70;
+    constexpr SLONG TR_W = 22;
+    constexpr SLONG TR_H = 96;
+    constexpr SLONG LSTK_CX = 160;
+    constexpr SLONG RSTK_CX = 480;
 
     // L1 / R1 centred over their bars.
     input_debug_draw_button(L_TRIG_X + TR_W / 2 - 6, 55, "L1", btn(s, 9));
     input_debug_draw_button(R_TRIG_X + TR_W / 2 - 6, 55, "R1", btn(s, 10));
 
     input_debug_draw_trigger_bar(L_TRIG_X, TR_Y, TR_W, TR_H,
-                                 s.trigger_left,  255, "L2");
+        s.trigger_left, 255, "L2");
     input_debug_draw_trigger_bar(R_TRIG_X, TR_Y, TR_W, TR_H,
-                                 s.trigger_right, 255, "R2");
+        s.trigger_right, 255, "R2");
 
     // Touchpad box + click indicator (act/fb feedback lives on the
     // TRIGGERS sub-page, not here).
@@ -768,21 +796,21 @@ static void render_ds_view(const GamepadState& s)
     constexpr SLONG TPV_H = 70;
     draw_touchpad_viz(TPV_X, TPV_Y, TPV_W, TPV_H);
     input_debug_draw_button(TPV_X + TPV_W / 2 - 42, TPV_Y - 12,
-                            "Touchpad click", btn(s, 17));
+        "Touchpad click", btn(s, 17));
 
     // Share centred over the left stick column, Options over the right —
     // both raised to touchpad-height so they sit at the same level as
     // the touchpad (mirroring the physical DS where Share / Options
     // flank the touchpad, not the D-pad / face buttons below).
-    input_debug_draw_button(LSTK_CX - 15, 100, "Share",   btn(s, 4));
+    input_debug_draw_button(LSTK_CX - 15, 100, "Share", btn(s, 4));
     input_debug_draw_button(RSTK_CX - 21, 100, "Options", btn(s, 6));
 
     // D-pad diamond centred on the left stick column.
     constexpr SLONG DPAD_CY = 235;
-    input_debug_draw_button(LSTK_CX -  3, DPAD_CY - 15, "U", btn(s, 11));
-    input_debug_draw_button(LSTK_CX - 15, DPAD_CY,      "L", btn(s, 13));
-    input_debug_draw_button(LSTK_CX +  9, DPAD_CY,      "R", btn(s, 14));
-    input_debug_draw_button(LSTK_CX -  3, DPAD_CY + 15, "D", btn(s, 12));
+    input_debug_draw_button(LSTK_CX - 3, DPAD_CY - 15, "U", btn(s, 11));
+    input_debug_draw_button(LSTK_CX - 15, DPAD_CY, "L", btn(s, 13));
+    input_debug_draw_button(LSTK_CX + 9, DPAD_CY, "R", btn(s, 14));
+    input_debug_draw_button(LSTK_CX - 3, DPAD_CY + 15, "D", btn(s, 12));
 
     // Face buttons diamond centred on the right stick column.
     // Triangle / Cross get a small +3 / -3 x-nudge so their visible
@@ -791,32 +819,32 @@ static void render_ds_view(const GamepadState& s)
     // in the bitmap font).
     constexpr SLONG FACE_CY = 235;
     input_debug_draw_button(RSTK_CX - 21, FACE_CY - 15, "Triangle", btn(s, 3));
-    input_debug_draw_button(RSTK_CX - 48, FACE_CY,      "Square",   btn(s, 2));
-    input_debug_draw_button(RSTK_CX + 12, FACE_CY,      "Circle",   btn(s, 1));
-    input_debug_draw_button(RSTK_CX - 18, FACE_CY + 15, "Cross",    btn(s, 0));
+    input_debug_draw_button(RSTK_CX - 48, FACE_CY, "Square", btn(s, 2));
+    input_debug_draw_button(RSTK_CX + 12, FACE_CY, "Circle", btn(s, 1));
+    input_debug_draw_button(RSTK_CX - 18, FACE_CY + 15, "Cross", btn(s, 0));
 
     // ----- Sticks at the bottom, L3 / R3 indicators on the title row,
     // numeric readouts below each box. -----
-    constexpr SLONG STK_SIZE    = 96;
-    constexpr SLONG STK_CY      = 330;
-    constexpr SLONG STK_TITLE_Y = STK_CY - STK_SIZE / 2 - 12;       // 270
-    constexpr SLONG STK_READ_Y  = STK_CY + STK_SIZE / 2 + 8;        // 386
+    constexpr SLONG STK_SIZE = 96;
+    constexpr SLONG STK_CY = 330;
+    constexpr SLONG STK_TITLE_Y = STK_CY - STK_SIZE / 2 - 12; // 270
+    constexpr SLONG STK_READ_Y = STK_CY + STK_SIZE / 2 + 8; // 386
 
     input_debug_draw_stick(LSTK_CX, STK_CY, STK_SIZE,
-                           norm_axis(s.lX), norm_axis(s.lY), "Left stick");
+        norm_axis(s.lX), norm_axis(s.lY), "Left stick");
     input_debug_draw_button(LSTK_CX + 34, STK_TITLE_Y, "L3", btn(s, 7));
     input_debug_text(LSTK_CX - STK_SIZE / 2, STK_READ_Y, 180, 180, 180, 1,
-                     "X=%5d  Y=%5d", s.lX, s.lY);
+        "X=%5d  Y=%5d", s.lX, s.lY);
 
     input_debug_draw_stick(RSTK_CX, STK_CY, STK_SIZE,
-                           norm_axis(s.rX), norm_axis(s.rY), "Right stick");
+        norm_axis(s.rX), norm_axis(s.rY), "Right stick");
     input_debug_draw_button(RSTK_CX + 37, STK_TITLE_Y, "R3", btn(s, 8));
     input_debug_text(RSTK_CX - STK_SIZE / 2, STK_READ_Y, 180, 180, 180, 1,
-                     "X=%5d  Y=%5d", s.rX, s.rY);
+        "X=%5d  Y=%5d", s.rX, s.rY);
 
     // PS + Mute stacked centrally between the stick boxes — the
     // "belly" of the controller. Screen width 640, midpoint 320.
-    input_debug_draw_button(314, STK_CY - 8, "PS",   btn(s, 5));
+    input_debug_draw_button(314, STK_CY - 8, "PS", btn(s, 5));
     input_debug_draw_button(308, STK_CY + 8, "Mute", btn(s, 18));
 }
 
@@ -875,56 +903,56 @@ namespace {
 struct TriggerTesterState {
     bool enable_l = false;
     bool enable_r = true;
-    int  effect_idx = TEFF_OFF;
+    int effect_idx = TEFF_OFF;
 
     // Off — no params.
     // Simple_Feedback: raw bytes, full resolution.
-    int sfb_pos    = 128;
-    int sfb_str    = 200;
+    int sfb_pos = 128;
+    int sfb_str = 200;
     // Simple_Weapon: raw bytes.
-    int sw_start   = 64;
-    int sw_end     = 160;
-    int sw_str     = 255;
+    int sw_start = 64;
+    int sw_end = 160;
+    int sw_str = 255;
     // Simple_Vibration: position raw, amplitude raw, frequency Hz raw.
-    int sv_pos     = 0;
-    int sv_amp     = 128;
-    int sv_freq    = 40;
+    int sv_pos = 0;
+    int sv_amp = 128;
+    int sv_freq = 40;
     // Feedback: zone 0..9, strength 0..8.
-    int fb_pos     = 5;
-    int fb_str     = 4;
+    int fb_pos = 5;
+    int fb_str = 4;
     // Limited_Feedback: raw pos, strength 0..10.
-    int lfb_pos    = 128;
-    int lfb_str    = 5;
+    int lfb_pos = 128;
+    int lfb_str = 5;
     // Weapon: start 2..7, end start+1..8, strength 0..8.
-    int w_start    = 3;
-    int w_end      = 5;
-    int w_str      = 8;
+    int w_start = 3;
+    int w_end = 5;
+    int w_str = 8;
     // Limited_Weapon: start_raw >=0x10, end_raw, strength 0..10.
-    int lw_start   = 64;
-    int lw_end     = 128;
-    int lw_str     = 8;
+    int lw_start = 64;
+    int lw_end = 128;
+    int lw_str = 8;
     // Vibration (zone-based): pos 0..9, amp 0..8, freq Hz.
-    int v_pos      = 0;
-    int v_amp      = 6;
-    int v_freq     = 40;
+    int v_pos = 0;
+    int v_amp = 6;
+    int v_freq = 40;
     // Bow: start 0..7, end start+1..8, strength 0..8, snap 0..8.
-    int bw_start   = 2;
-    int bw_end     = 6;
-    int bw_str     = 6;
-    int bw_snap    = 6;
+    int bw_start = 2;
+    int bw_end = 6;
+    int bw_str = 6;
+    int bw_snap = 6;
     // Galloping: start 0..7, end start+1..8, first 0..6, second first+1..7, freq.
-    int g_start    = 0;
-    int g_end      = 9;
-    int g_first    = 2;
-    int g_second   = 5;
-    int g_freq     = 20;
+    int g_start = 0;
+    int g_end = 9;
+    int g_first = 2;
+    int g_second = 5;
+    int g_freq = 20;
     // Machine: start 0..7, end start+1..9, ampA 0..7, ampB 0..7, freq, period.
-    int m_start    = 1;
-    int m_end      = 8;
-    int m_ampA     = 7;
-    int m_ampB     = 3;
-    int m_freq     = 8;
-    int m_period   = 80;
+    int m_start = 1;
+    int m_end = 8;
+    int m_ampA = 7;
+    int m_ampB = 3;
+    int m_freq = 8;
+    int m_period = 80;
 };
 
 TriggerTesterState s_trig;
@@ -938,7 +966,7 @@ TriggerTesterState s_trig;
 // `this_row` is the local row index inside the tester (0 = enable-L
 // row, etc.). The row is focused when local_cursor == this_row.
 int trig_param_row(SLONG x, SLONG y, int local_cursor, int this_row,
-                   const char* name, int* value, int min_v, int max_v, int step)
+    const char* name, int* value, int min_v, int max_v, int step)
 {
     const bool selected = (local_cursor == this_row);
     if (selected) {
@@ -946,26 +974,29 @@ int trig_param_row(SLONG x, SLONG y, int local_cursor, int this_row,
         int before = *value;
         if (n.left) {
             *value -= step;
-            if (*value < min_v) *value = min_v;
+            if (*value < min_v)
+                *value = min_v;
         }
         if (n.right) {
             *value += step;
-            if (*value > max_v) *value = max_v;
+            if (*value > max_v)
+                *value = max_v;
         }
-        if (*value != before) s_trig_dirty = true;
+        if (*value != before)
+            s_trig_dirty = true;
     }
     const UBYTE r = selected ? 255 : 150;
     const UBYTE g = selected ? 255 : 150;
     const UBYTE b = selected ? 120 : 150;
     const char* prefix = selected ? "> " : "  ";
     input_debug_text(x + 4, y, r, g, b, 1,
-                     "%s%-10s %4d", prefix, name, *value);
+        "%s%-10s %4d", prefix, name, *value);
     return 1;
 }
 
 // Enter-toggle row (used for enable-L / enable-R). Returns 1.
 int trig_toggle_row(SLONG x, SLONG y, int local_cursor, int this_row,
-                    const char* label, bool* value)
+    const char* label, bool* value)
 {
     const bool selected = (local_cursor == this_row);
     if (selected) {
@@ -975,12 +1006,12 @@ int trig_toggle_row(SLONG x, SLONG y, int local_cursor, int this_row,
             s_trig_dirty = true;
         }
     }
-    const UBYTE r = selected ? (*value ? 120 : 255) : (*value ? 80  : 150);
-    const UBYTE g = selected ? 255                  : (*value ? 255 : 150);
-    const UBYTE b = selected ? (*value ? 120 : 120) : (*value ? 80  : 150);
+    const UBYTE r = selected ? (*value ? 120 : 255) : (*value ? 80 : 150);
+    const UBYTE g = selected ? 255 : (*value ? 255 : 150);
+    const UBYTE b = selected ? (*value ? 120 : 120) : (*value ? 80 : 150);
     const char* prefix = selected ? "> " : "  ";
     input_debug_text(x + 4, y, r, g, b, 1,
-                     "%s(%s) %s", prefix, *value ? "x" : " ", label);
+        "%s(%s) %s", prefix, *value ? "x" : " ", label);
     return 1;
 }
 
@@ -1004,7 +1035,7 @@ int trig_effect_row(SLONG x, SLONG y, int local_cursor, int this_row)
     const UBYTE b = selected ? 120 : 180;
     const char* prefix = selected ? "> " : "  ";
     input_debug_text(x + 4, y, r, g, b, 1,
-                     "%sEffect: < %s >", prefix, TEFF_NAMES[s_trig.effect_idx]);
+        "%sEffect: < %s >", prefix, TEFF_NAMES[s_trig.effect_idx]);
     return 1;
 }
 
@@ -1021,68 +1052,74 @@ int trig_effect_params(SLONG x, SLONG y, int local_cursor, int row_offset)
     case TEFF_OFF:
         break;
     case TEFF_SIMPLE_FEEDBACK:
-        r += trig_param_row(x, y + r*12, pc, r, "position", &s_trig.sfb_pos, 0, 255, 8);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.sfb_str, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "position", &s_trig.sfb_pos, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.sfb_str, 0, 255, 8);
         break;
     case TEFF_SIMPLE_WEAPON:
-        r += trig_param_row(x, y + r*12, pc, r, "start",    &s_trig.sw_start, 0, 255, 8);
-        r += trig_param_row(x, y + r*12, pc, r, "end",      &s_trig.sw_end,   0, 255, 8);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.sw_str,   0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "start", &s_trig.sw_start, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "end", &s_trig.sw_end, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.sw_str, 0, 255, 8);
         break;
     case TEFF_SIMPLE_VIBRATION:
-        r += trig_param_row(x, y + r*12, pc, r, "position",  &s_trig.sv_pos,  0, 255, 8);
-        r += trig_param_row(x, y + r*12, pc, r, "amplitude", &s_trig.sv_amp,  0, 255, 8);
-        r += trig_param_row(x, y + r*12, pc, r, "frequency", &s_trig.sv_freq, 0, 255, 5);
+        r += trig_param_row(x, y + r * 12, pc, r, "position", &s_trig.sv_pos, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "amplitude", &s_trig.sv_amp, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "frequency", &s_trig.sv_freq, 0, 255, 5);
         break;
     case TEFF_FEEDBACK:
-        r += trig_param_row(x, y + r*12, pc, r, "position", &s_trig.fb_pos, 0, 9, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.fb_str, 0, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "position", &s_trig.fb_pos, 0, 9, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.fb_str, 0, 8, 1);
         break;
     case TEFF_LIMITED_FEEDBACK:
-        r += trig_param_row(x, y + r*12, pc, r, "position", &s_trig.lfb_pos, 0, 255, 8);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.lfb_str, 0, 10,  1);
+        r += trig_param_row(x, y + r * 12, pc, r, "position", &s_trig.lfb_pos, 0, 255, 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.lfb_str, 0, 10, 1);
         break;
     case TEFF_WEAPON:
-        r += trig_param_row(x, y + r*12, pc, r, "start",    &s_trig.w_start, 2, 7, 1);
-        if (s_trig.w_end <= s_trig.w_start) s_trig.w_end = s_trig.w_start + 1;
-        r += trig_param_row(x, y + r*12, pc, r, "end",      &s_trig.w_end,   s_trig.w_start + 1, 8, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.w_str,   0, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "start", &s_trig.w_start, 2, 7, 1);
+        if (s_trig.w_end <= s_trig.w_start)
+            s_trig.w_end = s_trig.w_start + 1;
+        r += trig_param_row(x, y + r * 12, pc, r, "end", &s_trig.w_end, s_trig.w_start + 1, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.w_str, 0, 8, 1);
         break;
     case TEFF_LIMITED_WEAPON:
-        r += trig_param_row(x, y + r*12, pc, r, "start",    &s_trig.lw_start, 0x10, 255, 8);
-        if (s_trig.lw_end < s_trig.lw_start) s_trig.lw_end = s_trig.lw_start;
-        r += trig_param_row(x, y + r*12, pc, r, "end",      &s_trig.lw_end,   s_trig.lw_start, std::min(255, s_trig.lw_start + 100), 8);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.lw_str,   0, 10, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "start", &s_trig.lw_start, 0x10, 255, 8);
+        if (s_trig.lw_end < s_trig.lw_start)
+            s_trig.lw_end = s_trig.lw_start;
+        r += trig_param_row(x, y + r * 12, pc, r, "end", &s_trig.lw_end, s_trig.lw_start, std::min(255, s_trig.lw_start + 100), 8);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.lw_str, 0, 10, 1);
         break;
     case TEFF_VIBRATION:
-        r += trig_param_row(x, y + r*12, pc, r, "position",  &s_trig.v_pos,  0, 9,   1);
-        r += trig_param_row(x, y + r*12, pc, r, "amplitude", &s_trig.v_amp,  0, 8,   1);
-        r += trig_param_row(x, y + r*12, pc, r, "frequency", &s_trig.v_freq, 0, 255, 5);
+        r += trig_param_row(x, y + r * 12, pc, r, "position", &s_trig.v_pos, 0, 9, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "amplitude", &s_trig.v_amp, 0, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "frequency", &s_trig.v_freq, 0, 255, 5);
         break;
     case TEFF_BOW:
-        r += trig_param_row(x, y + r*12, pc, r, "start",    &s_trig.bw_start, 0, 7, 1);
-        if (s_trig.bw_end <= s_trig.bw_start) s_trig.bw_end = s_trig.bw_start + 1;
-        r += trig_param_row(x, y + r*12, pc, r, "end",      &s_trig.bw_end,   s_trig.bw_start + 1, 8, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "strength", &s_trig.bw_str,   0, 8, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "snap",     &s_trig.bw_snap,  0, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "start", &s_trig.bw_start, 0, 7, 1);
+        if (s_trig.bw_end <= s_trig.bw_start)
+            s_trig.bw_end = s_trig.bw_start + 1;
+        r += trig_param_row(x, y + r * 12, pc, r, "end", &s_trig.bw_end, s_trig.bw_start + 1, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "strength", &s_trig.bw_str, 0, 8, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "snap", &s_trig.bw_snap, 0, 8, 1);
         break;
     case TEFF_GALLOPING:
-        r += trig_param_row(x, y + r*12, pc, r, "start",    &s_trig.g_start,  0, 7, 1);
-        if (s_trig.g_end <= s_trig.g_start) s_trig.g_end = s_trig.g_start + 1;
-        r += trig_param_row(x, y + r*12, pc, r, "end",      &s_trig.g_end,    s_trig.g_start + 1, 9, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "first",    &s_trig.g_first,  0, 6, 1);
-        if (s_trig.g_second <= s_trig.g_first) s_trig.g_second = s_trig.g_first + 1;
-        r += trig_param_row(x, y + r*12, pc, r, "second",   &s_trig.g_second, s_trig.g_first + 1, 7, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "frequency",&s_trig.g_freq,   0, 255, 5);
+        r += trig_param_row(x, y + r * 12, pc, r, "start", &s_trig.g_start, 0, 7, 1);
+        if (s_trig.g_end <= s_trig.g_start)
+            s_trig.g_end = s_trig.g_start + 1;
+        r += trig_param_row(x, y + r * 12, pc, r, "end", &s_trig.g_end, s_trig.g_start + 1, 9, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "first", &s_trig.g_first, 0, 6, 1);
+        if (s_trig.g_second <= s_trig.g_first)
+            s_trig.g_second = s_trig.g_first + 1;
+        r += trig_param_row(x, y + r * 12, pc, r, "second", &s_trig.g_second, s_trig.g_first + 1, 7, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "frequency", &s_trig.g_freq, 0, 255, 5);
         break;
     case TEFF_MACHINE:
-        r += trig_param_row(x, y + r*12, pc, r, "start",    &s_trig.m_start,  0, 7, 1);
-        if (s_trig.m_end <= s_trig.m_start) s_trig.m_end = s_trig.m_start + 1;
-        r += trig_param_row(x, y + r*12, pc, r, "end",      &s_trig.m_end,    s_trig.m_start + 1, 9, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "ampA",     &s_trig.m_ampA,   0, 7, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "ampB",     &s_trig.m_ampB,   0, 7, 1);
-        r += trig_param_row(x, y + r*12, pc, r, "frequency",&s_trig.m_freq,   0, 255, 5);
-        r += trig_param_row(x, y + r*12, pc, r, "period",   &s_trig.m_period, 0, 255, 5);
+        r += trig_param_row(x, y + r * 12, pc, r, "start", &s_trig.m_start, 0, 7, 1);
+        if (s_trig.m_end <= s_trig.m_start)
+            s_trig.m_end = s_trig.m_start + 1;
+        r += trig_param_row(x, y + r * 12, pc, r, "end", &s_trig.m_end, s_trig.m_start + 1, 9, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "ampA", &s_trig.m_ampA, 0, 7, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "ampB", &s_trig.m_ampB, 0, 7, 1);
+        r += trig_param_row(x, y + r * 12, pc, r, "frequency", &s_trig.m_freq, 0, 255, 5);
+        r += trig_param_row(x, y + r * 12, pc, r, "period", &s_trig.m_period, 0, 255, 5);
         break;
     }
     return r;
@@ -1093,19 +1130,32 @@ int trig_effect_params(SLONG x, SLONG y, int local_cursor, int row_offset)
 int trig_effect_param_count()
 {
     switch (s_trig.effect_idx) {
-    case TEFF_OFF:               return 0;
-    case TEFF_SIMPLE_FEEDBACK:   return 2;
-    case TEFF_SIMPLE_WEAPON:     return 3;
-    case TEFF_SIMPLE_VIBRATION:  return 3;
-    case TEFF_FEEDBACK:          return 2;
-    case TEFF_LIMITED_FEEDBACK:  return 2;
-    case TEFF_WEAPON:            return 3;
-    case TEFF_LIMITED_WEAPON:    return 3;
-    case TEFF_VIBRATION:         return 3;
-    case TEFF_BOW:               return 4;
-    case TEFF_GALLOPING:         return 5;
-    case TEFF_MACHINE:           return 6;
-    default: return 0;
+    case TEFF_OFF:
+        return 0;
+    case TEFF_SIMPLE_FEEDBACK:
+        return 2;
+    case TEFF_SIMPLE_WEAPON:
+        return 3;
+    case TEFF_SIMPLE_VIBRATION:
+        return 3;
+    case TEFF_FEEDBACK:
+        return 2;
+    case TEFF_LIMITED_FEEDBACK:
+        return 2;
+    case TEFF_WEAPON:
+        return 3;
+    case TEFF_LIMITED_WEAPON:
+        return 3;
+    case TEFF_VIBRATION:
+        return 3;
+    case TEFF_BOW:
+        return 4;
+    case TEFF_GALLOPING:
+        return 5;
+    case TEFF_MACHINE:
+        return 6;
+    default:
+        return 0;
     }
 }
 
@@ -1121,11 +1171,11 @@ void trig_apply_effect_to_hand(uint8_t hand)
         break;
     case TEFF_SIMPLE_WEAPON:
         ds_trigger_simple_weapon((uint8_t)s_trig.sw_start, (uint8_t)s_trig.sw_end,
-                                 (uint8_t)s_trig.sw_str, hand);
+            (uint8_t)s_trig.sw_str, hand);
         break;
     case TEFF_SIMPLE_VIBRATION:
         ds_trigger_simple_vibration((uint8_t)s_trig.sv_pos, (uint8_t)s_trig.sv_amp,
-                                    (uint8_t)s_trig.sv_freq, hand);
+            (uint8_t)s_trig.sv_freq, hand);
         break;
     case TEFF_FEEDBACK:
         ds_trigger_feedback((uint8_t)s_trig.fb_pos, (uint8_t)s_trig.fb_str, hand);
@@ -1135,29 +1185,29 @@ void trig_apply_effect_to_hand(uint8_t hand)
         break;
     case TEFF_WEAPON:
         ds_trigger_weapon((uint8_t)s_trig.w_start, (uint8_t)s_trig.w_end,
-                          (uint8_t)s_trig.w_str, 0, hand);
+            (uint8_t)s_trig.w_str, 0, hand);
         break;
     case TEFF_LIMITED_WEAPON:
         ds_trigger_limited_weapon((uint8_t)s_trig.lw_start, (uint8_t)s_trig.lw_end,
-                                  (uint8_t)s_trig.lw_str, hand);
+            (uint8_t)s_trig.lw_str, hand);
         break;
     case TEFF_VIBRATION:
         ds_trigger_vibration((uint8_t)s_trig.v_pos, (uint8_t)s_trig.v_amp,
-                             (uint8_t)s_trig.v_freq, hand);
+            (uint8_t)s_trig.v_freq, hand);
         break;
     case TEFF_BOW:
         ds_trigger_bow_full((uint8_t)s_trig.bw_start, (uint8_t)s_trig.bw_end,
-                            (uint8_t)s_trig.bw_str,   (uint8_t)s_trig.bw_snap, hand);
+            (uint8_t)s_trig.bw_str, (uint8_t)s_trig.bw_snap, hand);
         break;
     case TEFF_GALLOPING:
         ds_trigger_galloping((uint8_t)s_trig.g_start, (uint8_t)s_trig.g_end,
-                             (uint8_t)s_trig.g_first, (uint8_t)s_trig.g_second,
-                             (uint8_t)s_trig.g_freq, hand);
+            (uint8_t)s_trig.g_first, (uint8_t)s_trig.g_second,
+            (uint8_t)s_trig.g_freq, hand);
         break;
     case TEFF_MACHINE:
         ds_trigger_machine_full((uint8_t)s_trig.m_start, (uint8_t)s_trig.m_end,
-                                (uint8_t)s_trig.m_ampA,  (uint8_t)s_trig.m_ampB,
-                                (uint8_t)s_trig.m_freq,  (uint8_t)s_trig.m_period, hand);
+            (uint8_t)s_trig.m_ampA, (uint8_t)s_trig.m_ampB,
+            (uint8_t)s_trig.m_freq, (uint8_t)s_trig.m_period, hand);
         break;
     }
 }
@@ -1168,10 +1218,14 @@ void trig_apply_effect_to_hand(uint8_t hand)
 // was last sent there.
 void trig_apply_all()
 {
-    if (s_trig.enable_l) trig_apply_effect_to_hand(0);
-    else                 ds_trigger_off(0);
-    if (s_trig.enable_r) trig_apply_effect_to_hand(1);
-    else                 ds_trigger_off(1);
+    if (s_trig.enable_l)
+        trig_apply_effect_to_hand(0);
+    else
+        ds_trigger_off(0);
+    if (s_trig.enable_r)
+        trig_apply_effect_to_hand(1);
+    else
+        ds_trigger_off(1);
     ds_update_output();
 }
 
@@ -1180,28 +1234,28 @@ void trig_apply_all()
 // reports (0..15; semantics vary per effect), the "effect engaged"
 // flag, and the raw 10-byte slot the library is currently packing.
 void trig_draw_indicators(SLONG x, SLONG y, bool right, int analog_value,
-                          const std::uint8_t slot[10])
+    const std::uint8_t slot[10])
 {
     const char* side = right ? "R2" : "L2";
     input_debug_text(x, y, 220, 200, 120, 1, "%s readout (live from controller)", side);
 
     input_debug_text(x + 4, y + 14, 200, 200, 200, 1,
-                     "analog pull   %3d / 255", analog_value);
+        "analog pull   %3d / 255", analog_value);
 
     const uint8_t fb = input_debug_read_ds_feedback(right);
     input_debug_text(x + 4, y + 26, 200, 200, 200, 1,
-                     "motor state   %2u  (low nibble)", (unsigned)fb);
+        "motor state   %2u  (low nibble)", (unsigned)fb);
 
     const bool act = input_debug_read_ds_effect_active(right);
     input_debug_draw_checkbox(x + 4, y + 38, "effect engaged (act bit)", act);
 
     input_debug_text(x + 4, y + 52, 160, 160, 160, 1,
-                     "outgoing slot bytes (mode + params 0..8):");
+        "outgoing slot bytes (mode + params 0..8):");
     input_debug_text(x + 4, y + 64, 160, 160, 160, 1,
-                     "  %02X  %02X %02X %02X %02X %02X %02X %02X %02X %02X",
-                     slot[0],
-                     slot[1], slot[2], slot[3], slot[4],
-                     slot[5], slot[6], slot[7], slot[8], slot[9]);
+        "  %02X  %02X %02X %02X %02X %02X %02X %02X %02X %02X",
+        slot[0],
+        slot[1], slot[2], slot[3], slot[4],
+        slot[5], slot[6], slot[7], slot[8], slot[9]);
 }
 
 } // namespace
@@ -1211,7 +1265,7 @@ static void render_ds_triggers()
     const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_DUALSENSE);
 
     input_debug_text(20, 48, 255, 255, 255, 1,
-                     "Adaptive trigger test  (TAB to cycle sub-pages)");
+        "Adaptive trigger test  (TAB to cycle sub-pages)");
 
     // Fixed rows: enable-L, enable-R, effect. Param rows follow.
     constexpr int FIXED_ROWS = 3;
@@ -1219,12 +1273,16 @@ static void render_ds_triggers()
     const int total_rows = FIXED_ROWS + param_rows;
 
     static int s_cursor = 0;
-    if (s_cursor >= total_rows) s_cursor = total_rows - 1;
-    if (s_cursor < 0)           s_cursor = 0;
+    if (s_cursor >= total_rows)
+        s_cursor = total_rows - 1;
+    if (s_cursor < 0)
+        s_cursor = 0;
 
     const InputDebugNav& n = input_debug_nav();
-    if (n.up)   s_cursor = (s_cursor - 1 + total_rows) % total_rows;
-    if (n.down) s_cursor = (s_cursor + 1) % total_rows;
+    if (n.up)
+        s_cursor = (s_cursor - 1 + total_rows) % total_rows;
+    if (n.down)
+        s_cursor = (s_cursor + 1) % total_rows;
 
     // Render rows. MENU_X matches the TESTS sub-page so switching between
     // tests / triggers doesn't horizontally shuffle widgets.
@@ -1246,11 +1304,11 @@ static void render_ds_triggers()
     std::uint8_t slot_l[10] = {};
     std::uint8_t slot_r[10] = {};
     ds_debug_get_trigger_slots(slot_l, slot_r);
-    constexpr SLONG IND_Y  = 310;
+    constexpr SLONG IND_Y = 310;
     constexpr SLONG IND_XL = 20;
     constexpr SLONG IND_XR = 330;
-    trig_draw_indicators(IND_XL, IND_Y, false, s.trigger_left,  slot_l);
-    trig_draw_indicators(IND_XR, IND_Y, true,  s.trigger_right, slot_r);
+    trig_draw_indicators(IND_XL, IND_Y, false, s.trigger_left, slot_l);
+    trig_draw_indicators(IND_XR, IND_Y, true, s.trigger_right, slot_r);
 }
 
 // ===========================================================================
@@ -1272,16 +1330,19 @@ static void render_ds_triggers()
 
 static void ensure_imu_calibration_loaded()
 {
-    if (s_imu_cal_loaded) return;
+    if (s_imu_cal_loaded)
+        return;
 
     oc::dualsense::Device* dev = ds_debug_get_device();
-    if (!dev || !dev->connected) return;
+    if (!dev || !dev->connected)
+        return;
 
     // Runs on main thread, but the background telemetry / audio-tone
     // threads may be inside their own HID calls on the same device.
     // Take the bridge device lock to serialise.
     DSDebugDeviceLock lk;
-    if (!dev->connected) return;
+    if (!dev->connected)
+        return;
     if (oc::dualsense::get_sensor_calibration(dev, &s_imu_cal)) {
         s_imu_cal_loaded = s_imu_cal.valid;
     }
@@ -1294,30 +1355,38 @@ static void ensure_imu_calibration_loaded()
 //   |val| > range clamps to the end and draws in "overflow" red.
 // x, y = top-left of the bar; w, h = dimensions.
 static void draw_centered_bar(SLONG x, SLONG y, SLONG w, SLONG h,
-                              float val, float range)
+    float val, float range)
 {
     // Background.
     AENG_draw_rect(x, y, w, h, 0x202020,
-                   INPUT_DEBUG_LAYER_CONTENT, POLY_PAGE_COLOUR);
+        INPUT_DEBUG_LAYER_CONTENT, POLY_PAGE_COLOUR);
     // Centre tick (1px vertical line).
     const SLONG cx = x + w / 2;
     AENG_draw_rect(cx, y, 1, h, 0x606060,
-                   INPUT_DEBUG_LAYER_CONTENT, POLY_PAGE_COLOUR);
+        INPUT_DEBUG_LAYER_CONTENT, POLY_PAGE_COLOUR);
 
-    if (range <= 0.0f) return;
+    if (range <= 0.0f)
+        return;
     float norm = val / range;
     bool overflow = false;
-    if (norm > 1.0f)  { norm = 1.0f;  overflow = true; }
-    if (norm < -1.0f) { norm = -1.0f; overflow = true; }
+    if (norm > 1.0f) {
+        norm = 1.0f;
+        overflow = true;
+    }
+    if (norm < -1.0f) {
+        norm = -1.0f;
+        overflow = true;
+    }
 
-    const SLONG half     = w / 2;
-    const SLONG fill_w   = (SLONG)((norm < 0.0f ? -norm : norm) * (float)half);
-    if (fill_w <= 0) return;
+    const SLONG half = w / 2;
+    const SLONG fill_w = (SLONG)((norm < 0.0f ? -norm : norm) * (float)half);
+    if (fill_w <= 0)
+        return;
 
     const unsigned int colour = overflow ? 0xFF4040 : 0x50C0FF;
     const SLONG x0 = (norm >= 0.0f) ? cx : (cx - fill_w);
     AENG_draw_rect(x0, y + 1, fill_w, h - 2, colour,
-                   INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
+        INPUT_DEBUG_LAYER_ACCENT, POLY_PAGE_COLOUR);
 }
 
 static const char* charge_status_text(bool charging, bool full, uint8_t raw_high_nibble)
@@ -1325,28 +1394,35 @@ static const char* charge_status_text(bool charging, bool full, uint8_t raw_high
     // battery_charging and battery_full are mutually exclusive already;
     // the raw nibble lets us also surface the error codes (10/11/15)
     // that daidr's InputInfo.vue exposes verbatim.
-    if (full)     return "charging_complete";
-    if (charging) return "charging";
+    if (full)
+        return "charging_complete";
+    if (charging)
+        return "charging";
     switch (raw_high_nibble) {
-        case 0:  return "discharging";
-        case 10: return "abnormal_voltage";
-        case 11: return "abnormal_temperature";
-        case 15: return "charging_error";
-        default: return "unknown";
+    case 0:
+        return "discharging";
+    case 10:
+        return "abnormal_voltage";
+    case 11:
+        return "abnormal_temperature";
+    case 15:
+        return "charging_error";
+    default:
+        return "unknown";
     }
 }
 
 static void render_ds_input()
 {
     input_debug_text(20, 48, 255, 255, 255, 1,
-                     "DualSense input  (extras not on the Layout view; TAB to cycle)");
+        "DualSense input  (extras not on the Layout view; TAB to cycle)");
 
     const oc::dualsense::InputState* in = ds_debug_get_raw_input();
     const bool connected = ds_is_connected();
 
     if (!connected) {
         input_debug_text(20, 80, 200, 80, 80, 1,
-                         "DualSense not connected — raw readout unavailable");
+            "DualSense not connected — raw readout unavailable");
         return;
     }
 
@@ -1369,8 +1445,10 @@ static void render_ds_input()
     // branches in charge_status_text. Best-effort: infer 0 = discharge,
     // anything else is error if the bools are both false.
     std::uint8_t charge_hi = 0;
-    if (in->battery_charging) charge_hi = 1;
-    else if (in->battery_full) charge_hi = 2;
+    if (in->battery_charging)
+        charge_hi = 1;
+    else if (in->battery_full)
+        charge_hi = 2;
 
     // ---- Column A: power / audio / trigger feedback / finger IDs ----
     constexpr SLONG COL_A_X = 15;
@@ -1378,18 +1456,18 @@ static void render_ds_input()
     input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Power / audio");
     y += 14;
     input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                     "battery     %3u%%",
-                     (unsigned)in->battery_level_percent);
+        "battery     %3u%%",
+        (unsigned)in->battery_level_percent);
     y += 12;
     input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                     "status      %s",
-                     charge_status_text(in->battery_charging, in->battery_full, charge_hi));
+        "status      %s",
+        charge_status_text(in->battery_charging, in->battery_full, charge_hi));
     y += 12;
     input_debug_draw_checkbox(COL_A_X + 4, y, "headphone jack",
-                              in->headphone_connected);
+        in->headphone_connected);
     y += 12;
     input_debug_draw_checkbox(COL_A_X + 4, y, "microphone (on jack)",
-                              in->mic_connected);
+        in->mic_connected);
     y += 18;
 
     // (Adaptive-trigger feedback lives on the Triggers sub-page where
@@ -1399,78 +1477,78 @@ static void render_ds_input()
     input_debug_text(COL_A_X, y, 220, 200, 120, 1, "Touch IDs");
     y += 14;
     input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                     "f1 id 0x%02X  %s",
-                     (unsigned)in->touchpad_finger_1_id,
-                     in->touchpad_finger_1_down ? "contact" : "lifted");
+        "f1 id 0x%02X  %s",
+        (unsigned)in->touchpad_finger_1_id,
+        in->touchpad_finger_1_down ? "contact" : "lifted");
     y += 12;
     input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                     "f2 id 0x%02X  %s",
-                     (unsigned)in->touchpad_finger_2_id,
-                     in->touchpad_finger_2_down ? "contact" : "lifted");
+        "f2 id 0x%02X  %s",
+        (unsigned)in->touchpad_finger_2_id,
+        in->touchpad_finger_2_down ? "contact" : "lifted");
 
     // ---- Column B: motion (gyro + accel with centered bars, raw,
     //                         calibrated, timestamp, temperature) -----
-    constexpr SLONG COL_B_X      = 240;
-    constexpr SLONG BAR_LABEL_W  = 38;   // px for "pitch" / "yaw  " / "roll " / "X" etc
-    constexpr SLONG BAR_W        = 180;
-    constexpr SLONG BAR_H        = 8;
-    constexpr float GYRO_RANGE_DPS = 500.0f;   // visual scale; overflow is red
-    constexpr float ACCEL_RANGE_G  = 2.0f;
+    constexpr SLONG COL_B_X = 240;
+    constexpr SLONG BAR_LABEL_W = 38; // px for "pitch" / "yaw  " / "roll " / "X" etc
+    constexpr SLONG BAR_W = 180;
+    constexpr SLONG BAR_H = 8;
+    constexpr float GYRO_RANGE_DPS = 500.0f; // visual scale; overflow is red
+    constexpr float ACCEL_RANGE_G = 2.0f;
 
     y = 72;
     input_debug_text(COL_B_X, y, 220, 200, 120, 1,
-                     "Gyro  (bar scale \u00b1500 deg/s; red = out of range)");
+        "Gyro  (bar scale \u00b1500 deg/s; red = out of range)");
     y += 14;
 
     auto draw_gyro_row = [&](const char* label, std::int16_t raw, float dps) {
         input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1, "%s", label);
         draw_centered_bar(COL_B_X + BAR_LABEL_W, y, BAR_W, BAR_H,
-                          dps, GYRO_RANGE_DPS);
+            dps, GYRO_RANGE_DPS);
         if (s_imu_cal_loaded) {
             input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
-                             200, 200, 200, 1,
-                             "%+7.1f\u00b0/s  raw %+6d", dps, (int)raw);
+                200, 200, 200, 1,
+                "%+7.1f\u00b0/s  raw %+6d", dps, (int)raw);
         } else {
             input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
-                             200, 200, 200, 1,
-                             "raw %+6d  (no cal)", (int)raw);
+                200, 200, 200, 1,
+                "raw %+6d  (no cal)", (int)raw);
         }
         y += 12;
     };
 
     if (s_imu_cal_loaded) {
         const float pdps = oc::dualsense::calibrate_gyro_pitch_deg_per_sec(in->gyro_pitch, s_imu_cal);
-        const float ydps = oc::dualsense::calibrate_gyro_yaw_deg_per_sec  (in->gyro_yaw,   s_imu_cal);
-        const float rdps = oc::dualsense::calibrate_gyro_roll_deg_per_sec (in->gyro_roll,  s_imu_cal);
+        const float ydps = oc::dualsense::calibrate_gyro_yaw_deg_per_sec(in->gyro_yaw, s_imu_cal);
+        const float rdps = oc::dualsense::calibrate_gyro_roll_deg_per_sec(in->gyro_roll, s_imu_cal);
         draw_gyro_row("pitch", in->gyro_pitch, pdps);
-        draw_gyro_row("yaw",   in->gyro_yaw,   ydps);
-        draw_gyro_row("roll",  in->gyro_roll,  rdps);
+        draw_gyro_row("yaw", in->gyro_yaw, ydps);
+        draw_gyro_row("roll", in->gyro_roll, rdps);
     } else {
         // No calibration — scale raw int16 by a heuristic so the bar
         // still shows motion. Full-scale ≈ 32767; use that as the
         // visual range.
         draw_gyro_row("pitch", in->gyro_pitch, (float)in->gyro_pitch * (GYRO_RANGE_DPS / 32767.0f));
-        draw_gyro_row("yaw",   in->gyro_yaw,   (float)in->gyro_yaw   * (GYRO_RANGE_DPS / 32767.0f));
-        draw_gyro_row("roll",  in->gyro_roll,  (float)in->gyro_roll  * (GYRO_RANGE_DPS / 32767.0f));
+        draw_gyro_row("yaw", in->gyro_yaw, (float)in->gyro_yaw * (GYRO_RANGE_DPS / 32767.0f));
+        draw_gyro_row("roll", in->gyro_roll, (float)in->gyro_roll * (GYRO_RANGE_DPS / 32767.0f));
     }
     y += 8;
 
     input_debug_text(COL_B_X, y, 220, 200, 120, 1,
-                     "Accel (bar scale \u00b12 g; red = out of range)");
+        "Accel (bar scale \u00b12 g; red = out of range)");
     y += 14;
 
     auto draw_accel_row = [&](const char* label, std::int16_t raw, float g) {
         input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1, "%s", label);
         draw_centered_bar(COL_B_X + BAR_LABEL_W, y, BAR_W, BAR_H,
-                          g, ACCEL_RANGE_G);
+            g, ACCEL_RANGE_G);
         if (s_imu_cal_loaded) {
             input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
-                             200, 200, 200, 1,
-                             "%+5.2f g  raw %+6d", g, (int)raw);
+                200, 200, 200, 1,
+                "%+5.2f g  raw %+6d", g, (int)raw);
         } else {
             input_debug_text(COL_B_X + BAR_LABEL_W + BAR_W + 6, y,
-                             200, 200, 200, 1,
-                             "raw %+6d  (no cal)", (int)raw);
+                200, 200, 200, 1,
+                "raw %+6d  (no cal)", (int)raw);
         }
         y += 12;
     };
@@ -1492,15 +1570,15 @@ static void render_ds_input()
     input_debug_text(COL_B_X, y, 220, 200, 120, 1, "Misc IMU");
     y += 14;
     input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
-                     "timestamp %10u us", (unsigned)in->motion_timestamp);
+        "timestamp %10u us", (unsigned)in->motion_timestamp);
     y += 12;
     input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
-                     "temperature %4d (raw)", (int)in->motion_temperature);
+        "temperature %4d (raw)", (int)in->motion_temperature);
 
     if (!s_imu_cal_loaded) {
         y += 16;
         input_debug_text(COL_B_X, y, 160, 160, 160, 1,
-                         "(calibration unavailable \u2014 bars use raw-\u00b132767 fallback)");
+            "(calibration unavailable \u2014 bars use raw-\u00b132767 fallback)");
     }
 }
 
@@ -1519,32 +1597,32 @@ static void render_ds_input()
 // daidr's formatThreePartVersion does: high-byte, next-byte,
 // low-16-bit patch as decimals. Example: 0x0110002A → "1.16.42".
 static void format_three_part_version(char* buf, std::size_t buf_size,
-                                      std::uint32_t v)
+    std::uint32_t v)
 {
     std::snprintf(buf, buf_size, "%u.%u.%u",
         (unsigned)((v >> 24) & 0xFFu),
         (unsigned)((v >> 16) & 0xFFu),
-        (unsigned)( v        & 0xFFFFu));
+        (unsigned)(v & 0xFFFFu));
 }
 
 // 16-bit "update" version: two hex halves separated by a dot.
 // Example: 0x0630 → "6.30".
 static void format_update_version(char* buf, std::size_t buf_size,
-                                  std::uint16_t v)
+    std::uint16_t v)
 {
     std::snprintf(buf, buf_size, "%X.%02X",
         (unsigned)((v >> 8) & 0xFFu),
-        (unsigned)( v       & 0xFFu));
+        (unsigned)(v & 0xFFu));
 }
 
 // DSP version: two 4-digit hex halves separated by an underscore.
 // Example: 0x00031010 → "0003_1010".
 static void format_dsp_version(char* buf, std::size_t buf_size,
-                               std::uint32_t v)
+    std::uint32_t v)
 {
     std::snprintf(buf, buf_size, "%04X_%04X",
         (unsigned)((v >> 16) & 0xFFFFu),
-        (unsigned)( v        & 0xFFFFu));
+        (unsigned)(v & 0xFFFFu));
 }
 
 // Map the DualSense serial-number "colour code" (characters 5..6 of
@@ -1552,35 +1630,56 @@ static void format_dsp_version(char* buf, std::size_t buf_size,
 // printable characters) to the factory colour variant name. Mirrors
 // daidr's DualSenseColorMap in ds.type.ts.
 static const char* ds_color_variant_from_serial(const std::uint8_t* serial,
-                                                 std::size_t len)
+    std::size_t len)
 {
-    if (len < 6) return nullptr;
-    const std::uint16_t key =
-        (static_cast<std::uint16_t>(serial[4]) << 8) |
-         static_cast<std::uint16_t>(serial[5]);
+    if (len < 6)
+        return nullptr;
+    const std::uint16_t key = (static_cast<std::uint16_t>(serial[4]) << 8) | static_cast<std::uint16_t>(serial[5]);
     switch (key) {
-        case (std::uint16_t('0') << 8) | '0': return "White";
-        case (std::uint16_t('0') << 8) | '1': return "Midnight Black";
-        case (std::uint16_t('0') << 8) | '2': return "Cosmic Red";
-        case (std::uint16_t('0') << 8) | '3': return "Nova Pink";
-        case (std::uint16_t('0') << 8) | '4': return "Galactic Purple";
-        case (std::uint16_t('0') << 8) | '5': return "Starlight Blue";
-        case (std::uint16_t('0') << 8) | '6': return "Grey Camouflage";
-        case (std::uint16_t('0') << 8) | '7': return "Volcanic Red";
-        case (std::uint16_t('0') << 8) | '8': return "Sterling Silver";
-        case (std::uint16_t('0') << 8) | '9': return "Cobalt Blue";
-        case (std::uint16_t('1') << 8) | '0': return "Chroma Teal";
-        case (std::uint16_t('1') << 8) | '1': return "Chroma Indigo";
-        case (std::uint16_t('1') << 8) | '2': return "Chroma Pearl";
-        case (std::uint16_t('3') << 8) | '0': return "30th Anniversary";
-        case (std::uint16_t('Z') << 8) | '1': return "God of War Ragnarok";
-        case (std::uint16_t('Z') << 8) | '2': return "Spider-Man 2";
-        case (std::uint16_t('Z') << 8) | '3': return "Astro Bot";
-        case (std::uint16_t('Z') << 8) | '4': return "Fortnite";
-        case (std::uint16_t('Z') << 8) | '6': return "The Last of Us";
-        case (std::uint16_t('Z') << 8) | 'B': return "Icon Blue LE";
-        case (std::uint16_t('Z') << 8) | 'E': return "Genshin Impact";
-        default: return nullptr;
+    case (std::uint16_t('0') << 8) | '0':
+        return "White";
+    case (std::uint16_t('0') << 8) | '1':
+        return "Midnight Black";
+    case (std::uint16_t('0') << 8) | '2':
+        return "Cosmic Red";
+    case (std::uint16_t('0') << 8) | '3':
+        return "Nova Pink";
+    case (std::uint16_t('0') << 8) | '4':
+        return "Galactic Purple";
+    case (std::uint16_t('0') << 8) | '5':
+        return "Starlight Blue";
+    case (std::uint16_t('0') << 8) | '6':
+        return "Grey Camouflage";
+    case (std::uint16_t('0') << 8) | '7':
+        return "Volcanic Red";
+    case (std::uint16_t('0') << 8) | '8':
+        return "Sterling Silver";
+    case (std::uint16_t('0') << 8) | '9':
+        return "Cobalt Blue";
+    case (std::uint16_t('1') << 8) | '0':
+        return "Chroma Teal";
+    case (std::uint16_t('1') << 8) | '1':
+        return "Chroma Indigo";
+    case (std::uint16_t('1') << 8) | '2':
+        return "Chroma Pearl";
+    case (std::uint16_t('3') << 8) | '0':
+        return "30th Anniversary";
+    case (std::uint16_t('Z') << 8) | '1':
+        return "God of War Ragnarok";
+    case (std::uint16_t('Z') << 8) | '2':
+        return "Spider-Man 2";
+    case (std::uint16_t('Z') << 8) | '3':
+        return "Astro Bot";
+    case (std::uint16_t('Z') << 8) | '4':
+        return "Fortnite";
+    case (std::uint16_t('Z') << 8) | '6':
+        return "The Last of Us";
+    case (std::uint16_t('Z') << 8) | 'B':
+        return "Icon Blue LE";
+    case (std::uint16_t('Z') << 8) | 'E':
+        return "Genshin Impact";
+    default:
+        return nullptr;
     }
 }
 
@@ -1588,32 +1687,42 @@ static const char* ds_color_variant_from_serial(const std::uint8_t* serial,
 // through BDM-050). iFixit docs reference:
 // https://www.ifixit.com/Wiki/How_to_Identify_PS5_DualSense_Controller_Version
 static const char* ds_board_version_from_serial(const std::uint8_t* serial,
-                                                 std::size_t len)
+    std::size_t len)
 {
-    if (len < 2) return nullptr;
+    if (len < 2)
+        return nullptr;
     switch (serial[1]) {
-        case '1': return "BDM-010";
-        case '2': return "BDM-020";
-        case '3': return "BDM-030";
-        case '4': return "BDM-040";
-        case '5': return "BDM-050";
-        default:  return nullptr;
+    case '1':
+        return "BDM-010";
+    case '2':
+        return "BDM-020";
+    case '3':
+        return "BDM-030";
+    case '4':
+        return "BDM-040";
+    case '5':
+        return "BDM-050";
+    default:
+        return nullptr;
     }
 }
 
 // Hex-dump helper: formats `len` bytes as 2-char hex pairs into `buf`
 // (which must be at least `len*3 + 1` bytes). Separates with spaces.
 static void hex_dump_line(char* buf, std::size_t buf_size,
-                          const std::uint8_t* bytes, std::size_t len)
+    const std::uint8_t* bytes, std::size_t len)
 {
     std::size_t off = 0;
     for (std::size_t i = 0; i < len && off + 3 < buf_size; ++i) {
         int n = std::snprintf(buf + off, buf_size - off, "%02X ", (unsigned)bytes[i]);
-        if (n <= 0) break;
+        if (n <= 0)
+            break;
         off += (std::size_t)n;
     }
-    if (off < buf_size) buf[off] = 0;
-    else if (buf_size > 0) buf[buf_size - 1] = 0;
+    if (off < buf_size)
+        buf[off] = 0;
+    else if (buf_size > 0)
+        buf[buf_size - 1] = 0;
 }
 
 // Background telemetry loader. Fills a LOCAL TelemetryCache, then
@@ -1638,37 +1747,56 @@ static void tel_thread_body(int my_gen)
     // Per-step helper: take the device lock, verify still connected,
     // run the HID call, release. Returns false once device is gone.
     auto step = [&](auto&& fn) -> bool {
-        if (s_tel_gen.load() != my_gen) return false;
+        if (s_tel_gen.load() != my_gen)
+            return false;
         DSDebugDeviceLock lk;
-        if (!dev || !dev->connected) return false;
+        if (!dev || !dev->connected)
+            return false;
         fn();
         return true;
     };
 
     auto advance = [&](int n) {
-        if (s_tel_gen.load() != my_gen) return;
+        if (s_tel_gen.load() != my_gen)
+            return;
         std::lock_guard<std::mutex> lk(s_tel_mutex);
         s_tel.load_step = n;
     };
 
-    step([&] { get_firmware_info(dev, &local.fw); });                                              advance(1);
-    step([&] { local.bt_patch_ok = get_bt_patch_version(dev, &local.bt_patch); });                 advance(2);
-    step([&] { get_sensor_calibration(dev, &local.cal); });                                        advance(3);
-    step([&] { local.mcu_ok = get_mcu_unique_id(dev, &local.mcu_id); });                           advance(4);
-    step([&] { local.bt_mac_ok = get_bd_mac_address(dev, local.bt_mac); });                        advance(5);
-    step([&] { local.pcba_ok = get_pcba_id(dev, &local.pcba_id); });                               advance(6);
-    step([&] { local.pcba_full_len = get_pcba_id_full(dev, local.pcba_full); });                   advance(7);
-    step([&] { local.serial_len = get_serial_number(dev, local.serial); });                        advance(8);
-    step([&] { local.assemble_len = get_assemble_parts_info(dev, local.assemble); });              advance(9);
-    step([&] { local.batt_barcode_len = get_battery_barcode(dev, local.batt_barcode); });          advance(10);
-    step([&] { local.vcm_left_len = get_vcm_left_barcode(dev, local.vcm_left); });                 advance(11);
-    step([&] { local.vcm_right_len = get_vcm_right_barcode(dev, local.vcm_right); });              advance(12);
-    step([&] { get_battery_voltage(dev, &local.batt_v); });                                        advance(13);
-    step([&] { local.pos_tracking_ok = get_position_tracking_state(dev, &local.pos_tracking); }); advance(14);
-    step([&] { local.always_on_ok = get_always_on_startup_state(dev, &local.always_on); });        advance(15);
-    step([&] { local.auto_switchoff_ok = get_auto_switchoff_flag(dev, &local.auto_switchoff); });  advance(16);
+    step([&] { get_firmware_info(dev, &local.fw); });
+    advance(1);
+    step([&] { local.bt_patch_ok = get_bt_patch_version(dev, &local.bt_patch); });
+    advance(2);
+    step([&] { get_sensor_calibration(dev, &local.cal); });
+    advance(3);
+    step([&] { local.mcu_ok = get_mcu_unique_id(dev, &local.mcu_id); });
+    advance(4);
+    step([&] { local.bt_mac_ok = get_bd_mac_address(dev, local.bt_mac); });
+    advance(5);
+    step([&] { local.pcba_ok = get_pcba_id(dev, &local.pcba_id); });
+    advance(6);
+    step([&] { local.pcba_full_len = get_pcba_id_full(dev, local.pcba_full); });
+    advance(7);
+    step([&] { local.serial_len = get_serial_number(dev, local.serial); });
+    advance(8);
+    step([&] { local.assemble_len = get_assemble_parts_info(dev, local.assemble); });
+    advance(9);
+    step([&] { local.batt_barcode_len = get_battery_barcode(dev, local.batt_barcode); });
+    advance(10);
+    step([&] { local.vcm_left_len = get_vcm_left_barcode(dev, local.vcm_left); });
+    advance(11);
+    step([&] { local.vcm_right_len = get_vcm_right_barcode(dev, local.vcm_right); });
+    advance(12);
+    step([&] { get_battery_voltage(dev, &local.batt_v); });
+    advance(13);
+    step([&] { local.pos_tracking_ok = get_position_tracking_state(dev, &local.pos_tracking); });
+    advance(14);
+    step([&] { local.always_on_ok = get_always_on_startup_state(dev, &local.always_on); });
+    advance(15);
+    step([&] { local.auto_switchoff_ok = get_auto_switchoff_flag(dev, &local.auto_switchoff); });
+    advance(16);
 
-    local.loaded    = true;
+    local.loaded = true;
     local.load_step = TELEMETRY_LOAD_STEP_COUNT;
 
     // Publish if our generation is still current. Otherwise discard —
@@ -1687,8 +1815,10 @@ static void tel_thread_body(int my_gen)
 // haven't yet cached a result for the current generation.
 static void start_telemetry_load_if_needed()
 {
-    if (s_tel.loaded) return;
-    if (s_tel_load_active.exchange(true)) return;  // already running
+    if (s_tel.loaded)
+        return;
+    if (s_tel_load_active.exchange(true))
+        return; // already running
 
     const int my_gen = s_tel_gen.load();
     std::thread t(tel_thread_body, my_gen);
@@ -1698,11 +1828,11 @@ static void start_telemetry_load_if_needed()
 static void render_ds_telemetry()
 {
     input_debug_text(20, 48, 255, 255, 255, 1,
-                     "DualSense telemetry  (TAB to cycle sub-pages)");
+        "DualSense telemetry  (TAB to cycle sub-pages)");
 
     if (!ds_is_connected()) {
         input_debug_text(20, 80, 200, 80, 80, 1,
-                         "DualSense not connected — telemetry unavailable");
+            "DualSense not connected — telemetry unavailable");
         return;
     }
 
@@ -1717,8 +1847,8 @@ static void render_ds_telemetry()
 
     if (!s_tel.loaded) {
         input_debug_text(20, 66, 200, 200, 120, 1,
-                         "Loading factory data (%d / %d)...  (running in background)",
-                         s_tel.load_step, TELEMETRY_LOAD_STEP_COUNT);
+            "Loading factory data (%d / %d)...  (running in background)",
+            s_tel.load_step, TELEMETRY_LOAD_STEP_COUNT);
     }
 
     // ---- Column A: firmware + calibration summary + IDs + PCBA ----
@@ -1729,38 +1859,38 @@ static void render_ds_telemetry()
     y += 14;
     if (s_tel.fw.valid) {
         char main_fw[24], sbl_fw[24], mcu_dsp[24], dsp_fw[24], upd_ver[16];
-        format_three_part_version(main_fw,  sizeof(main_fw),  s_tel.fw.mainFwVersion);
-        format_three_part_version(sbl_fw,   sizeof(sbl_fw),   s_tel.fw.sblFwVersion);
-        format_three_part_version(mcu_dsp,  sizeof(mcu_dsp),  s_tel.fw.spiderDspFwVersion);
-        format_dsp_version       (dsp_fw,   sizeof(dsp_fw),   s_tel.fw.dspFwVersion);
-        format_update_version    (upd_ver,  sizeof(upd_ver),  s_tel.fw.updateVersion);
+        format_three_part_version(main_fw, sizeof(main_fw), s_tel.fw.mainFwVersion);
+        format_three_part_version(sbl_fw, sizeof(sbl_fw), s_tel.fw.sblFwVersion);
+        format_three_part_version(mcu_dsp, sizeof(mcu_dsp), s_tel.fw.spiderDspFwVersion);
+        format_dsp_version(dsp_fw, sizeof(dsp_fw), s_tel.fw.dspFwVersion);
+        format_update_version(upd_ver, sizeof(upd_ver), s_tel.fw.updateVersion);
 
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "built            %s  %s", s_tel.fw.buildDate, s_tel.fw.buildTime);
+            "built            %s  %s", s_tel.fw.buildDate, s_tel.fw.buildTime);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "fwType  0x%04X   swSeries 0x%04X",
-                         (unsigned)s_tel.fw.fwType, (unsigned)s_tel.fw.swSeries);
+            "fwType  0x%04X   swSeries 0x%04X",
+            (unsigned)s_tel.fw.fwType, (unsigned)s_tel.fw.swSeries);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "hwInfo           0x%08X  (board %u)",
-                         (unsigned)s_tel.fw.hwInfo, (unsigned)(s_tel.fw.hwInfo & 0xFFFFu));
+            "hwInfo           0x%08X  (board %u)",
+            (unsigned)s_tel.fw.hwInfo, (unsigned)(s_tel.fw.hwInfo & 0xFFFFu));
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "main FW          %s     update %s",
-                         main_fw, upd_ver);
+            "main FW          %s     update %s",
+            main_fw, upd_ver);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "SBL FW           %s     DSP FW %s",
-                         sbl_fw, dsp_fw);
+            "SBL FW           %s     DSP FW %s",
+            sbl_fw, dsp_fw);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "MCU DSP FW       %s", mcu_dsp);
+            "MCU DSP FW       %s", mcu_dsp);
         y += 12;
         char dev_info[80];
         hex_dump_line(dev_info, sizeof(dev_info), s_tel.fw.deviceInfo, 12);
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
-                         "deviceInfo  %s", dev_info);
+            "deviceInfo  %s", dev_info);
         y += 14;
     } else {
         input_debug_text(COL_A_X + 4, y, 200, 80, 80, 1, "(report failed)");
@@ -1771,10 +1901,10 @@ static void render_ds_telemetry()
     y += 14;
     if (s_tel.bt_patch_ok) {
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "patch   0x%08X", (unsigned)s_tel.bt_patch);
+            "patch   0x%08X", (unsigned)s_tel.bt_patch);
     } else {
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
-                         "(not available on this firmware)");
+            "(not available on this firmware)");
     }
     y += 16;
 
@@ -1782,27 +1912,27 @@ static void render_ds_telemetry()
     y += 14;
     if (s_tel.cal.valid) {
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "gyro bias    p=%5d  y=%5d  r=%5d",
-                         (int)s_tel.cal.gyro_pitch_bias,
-                         (int)s_tel.cal.gyro_yaw_bias,
-                         (int)s_tel.cal.gyro_roll_bias);
+            "gyro bias    p=%5d  y=%5d  r=%5d",
+            (int)s_tel.cal.gyro_pitch_bias,
+            (int)s_tel.cal.gyro_yaw_bias,
+            (int)s_tel.cal.gyro_roll_bias);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "gyro speed   +=%5d  -=%5d",
-                         (int)s_tel.cal.gyro_speed_plus,
-                         (int)s_tel.cal.gyro_speed_minus);
+            "gyro speed   +=%5d  -=%5d",
+            (int)s_tel.cal.gyro_speed_plus,
+            (int)s_tel.cal.gyro_speed_minus);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "accel X     +=%5d  -=%5d",
-                         (int)s_tel.cal.accel_x_plus, (int)s_tel.cal.accel_x_minus);
+            "accel X     +=%5d  -=%5d",
+            (int)s_tel.cal.accel_x_plus, (int)s_tel.cal.accel_x_minus);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "accel Y     +=%5d  -=%5d",
-                         (int)s_tel.cal.accel_y_plus, (int)s_tel.cal.accel_y_minus);
+            "accel Y     +=%5d  -=%5d",
+            (int)s_tel.cal.accel_y_plus, (int)s_tel.cal.accel_y_minus);
         y += 12;
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "accel Z     +=%5d  -=%5d",
-                         (int)s_tel.cal.accel_z_plus, (int)s_tel.cal.accel_z_minus);
+            "accel Z     +=%5d  -=%5d",
+            (int)s_tel.cal.accel_z_plus, (int)s_tel.cal.accel_z_minus);
         y += 14;
     } else {
         input_debug_text(COL_A_X + 4, y, 200, 80, 80, 1, "(report failed)");
@@ -1813,26 +1943,26 @@ static void render_ds_telemetry()
     y += 14;
     if (s_tel.mcu_ok) {
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "MCU unique  0x%016llX",
-                         (unsigned long long)s_tel.mcu_id);
+            "MCU unique  0x%016llX",
+            (unsigned long long)s_tel.mcu_id);
     } else {
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "MCU unique  n/a");
     }
     y += 12;
     if (s_tel.bt_mac_ok) {
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "BT MAC      %02X:%02X:%02X:%02X:%02X:%02X",
-                         (unsigned)s_tel.bt_mac[0], (unsigned)s_tel.bt_mac[1],
-                         (unsigned)s_tel.bt_mac[2], (unsigned)s_tel.bt_mac[3],
-                         (unsigned)s_tel.bt_mac[4], (unsigned)s_tel.bt_mac[5]);
+            "BT MAC      %02X:%02X:%02X:%02X:%02X:%02X",
+            (unsigned)s_tel.bt_mac[0], (unsigned)s_tel.bt_mac[1],
+            (unsigned)s_tel.bt_mac[2], (unsigned)s_tel.bt_mac[3],
+            (unsigned)s_tel.bt_mac[4], (unsigned)s_tel.bt_mac[5]);
     } else {
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "BT MAC      n/a");
     }
     y += 12;
     if (s_tel.pcba_ok) {
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "PCBA (48b)  0x%012llX",
-                         (unsigned long long)(s_tel.pcba_id & 0xFFFFFFFFFFFFull));
+            "PCBA (48b)  0x%012llX",
+            (unsigned long long)(s_tel.pcba_id & 0xFFFFFFFFFFFFull));
     } else {
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "PCBA (48b)  n/a");
     }
@@ -1841,11 +1971,11 @@ static void render_ds_telemetry()
         char hex[80];
         hex_dump_line(hex, sizeof(hex), s_tel.pcba_full, 12);
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "PCBA full   %s", hex);
+            "PCBA full   %s", hex);
         y += 12;
         hex_dump_line(hex, sizeof(hex), s_tel.pcba_full + 12, 12);
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "            %s", hex);
+            "            %s", hex);
     } else {
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1, "PCBA full   n/a");
     }
@@ -1860,17 +1990,17 @@ static void render_ds_telemetry()
     if (s_tel.serial_len > 0) {
         const char* colour = ds_color_variant_from_serial(s_tel.serial, s_tel.serial_len);
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "colour variant  %s", colour ? colour : "(unknown code)");
+            "colour variant  %s", colour ? colour : "(unknown code)");
         y += 12;
         const char* board = ds_board_version_from_serial(s_tel.serial, s_tel.serial_len);
         input_debug_text(COL_A_X + 4, y, 200, 200, 200, 1,
-                         "board version   %s", board ? board : "(unknown)");
+            "board version   %s", board ? board : "(unknown)");
     } else {
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
-                         "colour variant  n/a  (serial not readable)");
+            "colour variant  n/a  (serial not readable)");
         y += 12;
         input_debug_text(COL_A_X + 4, y, 180, 180, 180, 1,
-                         "board version   n/a");
+            "board version   n/a");
     }
 
     // ---- Column B: serial / barcodes / voltage / flags ----
@@ -1900,11 +2030,11 @@ static void render_ds_telemetry()
         y += 2;
     };
 
-    render_barcode("Serial number (Shift-JIS raw)",   s_tel.serial,       s_tel.serial_len);
-    render_barcode("Assemble parts info",             s_tel.assemble,     s_tel.assemble_len);
-    render_barcode("Battery barcode",                 s_tel.batt_barcode, s_tel.batt_barcode_len);
-    render_barcode("VCM left barcode (adaptive L)",   s_tel.vcm_left,     s_tel.vcm_left_len);
-    render_barcode("VCM right barcode (adaptive R)",  s_tel.vcm_right,    s_tel.vcm_right_len);
+    render_barcode("Serial number (Shift-JIS raw)", s_tel.serial, s_tel.serial_len);
+    render_barcode("Assemble parts info", s_tel.assemble, s_tel.assemble_len);
+    render_barcode("Battery barcode", s_tel.batt_barcode, s_tel.batt_barcode_len);
+    render_barcode("VCM left barcode (adaptive L)", s_tel.vcm_left, s_tel.vcm_left_len);
+    render_barcode("VCM right barcode (adaptive R)", s_tel.vcm_right, s_tel.vcm_right_len);
 
     input_debug_text(COL_B_X, y, 220, 200, 120, 1, "Battery voltage (raw)");
     y += 14;
@@ -1912,7 +2042,7 @@ static void render_ds_telemetry()
         char hex[32];
         hex_dump_line(hex, sizeof(hex), s_tel.batt_v.data, s_tel.batt_v.len);
         input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
-                         "%u byte(s)  %s", (unsigned)s_tel.batt_v.len, hex);
+            "%u byte(s)  %s", (unsigned)s_tel.batt_v.len, hex);
     } else {
         input_debug_text(COL_B_X + 4, y, 180, 180, 180, 1, "(n/a)");
     }
@@ -1921,16 +2051,16 @@ static void render_ds_telemetry()
     input_debug_text(COL_B_X, y, 220, 200, 120, 1, "System flags");
     y += 14;
     input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
-                     "position tracking  %s",
-                     s_tel.pos_tracking_ok ? (s_tel.pos_tracking ? "ENABLED" : "disabled") : "n/a");
+        "position tracking  %s",
+        s_tel.pos_tracking_ok ? (s_tel.pos_tracking ? "ENABLED" : "disabled") : "n/a");
     y += 12;
     input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
-                     "always-on startup  %s",
-                     s_tel.always_on_ok ? (s_tel.always_on ? "on" : "off") : "n/a");
+        "always-on startup  %s",
+        s_tel.always_on_ok ? (s_tel.always_on ? "on" : "off") : "n/a");
     y += 12;
     input_debug_text(COL_B_X + 4, y, 200, 200, 200, 1,
-                     "auto switchoff     %s",
-                     s_tel.auto_switchoff_ok ? (s_tel.auto_switchoff ? "on" : "off") : "n/a");
+        "auto switchoff     %s",
+        s_tel.auto_switchoff_ok ? (s_tel.auto_switchoff ? "on" : "off") : "n/a");
 }
 
 // ===========================================================================
@@ -1945,22 +2075,23 @@ static void render_ds_telemetry()
 static void render_ds_output()
 {
     input_debug_text(20, 48, 255, 255, 255, 1,
-                     "DualSense output  (TAB to cycle sub-pages)");
+        "DualSense output  (TAB to cycle sub-pages)");
 
     static int s_cursor = 0;
-    const int total_rows =
-        RUMBLE_ROWS + LIGHTBAR_ROWS + PLAYER_LED_ROWS + MISC_ROWS + AUDIO_ROWS;
+    const int total_rows = RUMBLE_ROWS + LIGHTBAR_ROWS + PLAYER_LED_ROWS + MISC_ROWS + AUDIO_ROWS;
 
     const InputDebugNav& n = input_debug_nav();
-    if (n.up)   s_cursor = (s_cursor - 1 + total_rows) % total_rows;
-    if (n.down) s_cursor = (s_cursor + 1) % total_rows;
+    if (n.up)
+        s_cursor = (s_cursor - 1 + total_rows) % total_rows;
+    if (n.down)
+        s_cursor = (s_cursor + 1) % total_rows;
 
     int base = 0;
-    base += input_debug_render_rumble_test(MENU_X, 80,  s_cursor - base);
-    base += render_lightbar               (MENU_X, 142, s_cursor - base);
-    base += render_player_led             (MENU_X, 204, s_cursor - base);
-    base += render_misc_outputs           (MENU_X, 278, s_cursor - base);
-    base += render_audio_outputs          (MENU_X, 316, s_cursor - base);
+    base += input_debug_render_rumble_test(MENU_X, 80, s_cursor - base);
+    base += render_lightbar(MENU_X, 142, s_cursor - base);
+    base += render_player_led(MENU_X, 204, s_cursor - base);
+    base += render_misc_outputs(MENU_X, 278, s_cursor - base);
+    base += render_audio_outputs(MENU_X, 316, s_cursor - base);
 }
 
 void input_debug_render_dualsense_page()
@@ -1972,11 +2103,22 @@ void input_debug_render_dualsense_page()
     const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_DUALSENSE);
 
     switch (s_sub) {
-        case DS_SUB_VIEW:      render_ds_view(s);      break;
-        case DS_SUB_INPUT:     render_ds_input();      break;
-        case DS_SUB_OUTPUT:    render_ds_output();     break;
-        case DS_SUB_TRIGGERS:  render_ds_triggers();   break;
-        case DS_SUB_TELEMETRY: render_ds_telemetry();  break;
-        default: break;
+    case DS_SUB_VIEW:
+        render_ds_view(s);
+        break;
+    case DS_SUB_INPUT:
+        render_ds_input();
+        break;
+    case DS_SUB_OUTPUT:
+        render_ds_output();
+        break;
+    case DS_SUB_TRIGGERS:
+        render_ds_triggers();
+        break;
+    case DS_SUB_TELEMETRY:
+        render_ds_telemetry();
+        break;
+    default:
+        break;
     }
 }

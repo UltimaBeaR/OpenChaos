@@ -39,9 +39,15 @@ struct Vec2f {
 };
 
 enum class UIAnchor {
-    LEFT_TOP,    CENTER_TOP,    RIGHT_TOP,
-    LEFT_CENTER, CENTER_CENTER, RIGHT_CENTER,
-    LEFT_BOTTOM, CENTER_BOTTOM, RIGHT_BOTTOM,
+    LEFT_TOP,
+    CENTER_TOP,
+    RIGHT_TOP,
+    LEFT_CENTER,
+    CENTER_CENTER,
+    RIGHT_CENTER,
+    LEFT_BOTTOM,
+    CENTER_BOTTOM,
+    RIGHT_BOTTOM,
 };
 
 // Cached frame metrics. Recomputed by ui_coords_recompute().

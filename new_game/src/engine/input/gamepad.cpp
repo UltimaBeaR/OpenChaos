@@ -13,7 +13,7 @@
 #include <cstring>
 
 // Sony vendor/product IDs for DualSense detection (SDL3 path).
-static constexpr uint16_t SONY_VENDOR_ID       = 0x054C;
+static constexpr uint16_t SONY_VENDOR_ID = 0x054C;
 static constexpr uint16_t DUALSENSE_PRODUCT_ID = 0x0CE6;
 static constexpr uint16_t DUALSENSE_EDGE_PRODUCT_ID = 0x0DF2;
 
@@ -43,8 +43,10 @@ static void debug_log_backend([[maybe_unused]] const char* event)
 #ifdef _DEBUG
     if (FILE* f = fopen("gamepad_log.txt", "a")) {
         const char* backend = "none";
-        if (s_is_dualsense) backend = "DualSense (libDualsense/ds_bridge)";
-        else if (s_gamepad) backend = "Xbox/generic (SDL3)";
+        if (s_is_dualsense)
+            backend = "DualSense (libDualsense/ds_bridge)";
+        else if (s_gamepad)
+            backend = "Xbox/generic (SDL3)";
         fprintf(f, "[%s] %s\n", event, backend);
         fclose(f);
     }
@@ -55,8 +57,7 @@ static bool is_dualsense_sdl(SDL3_GamepadHandle handle)
 {
     uint16_t vid = sdl3_gamepad_vendor_id(handle);
     uint16_t pid = sdl3_gamepad_product_id(handle);
-    return vid == SONY_VENDOR_ID &&
-           (pid == DUALSENSE_PRODUCT_ID || pid == DUALSENSE_EDGE_PRODUCT_ID);
+    return vid == SONY_VENDOR_ID && (pid == DUALSENSE_PRODUCT_ID || pid == DUALSENSE_EDGE_PRODUCT_ID);
 }
 
 void gamepad_init()
@@ -111,10 +112,10 @@ void gamepad_shutdown()
 // exposed via the gamepad_get_*_trigger_feedback_* accessors below.
 // ---------------------------------------------------------------------------
 
-static uint8_t s_left_trigger_feedback_state  = 0;
+static uint8_t s_left_trigger_feedback_state = 0;
 static uint8_t s_right_trigger_feedback_state = 0;
-static bool    s_left_trigger_effect_active   = false;
-static bool    s_right_trigger_effect_active  = false;
+static bool s_left_trigger_effect_active = false;
+static bool s_right_trigger_effect_active = false;
 
 // ---------------------------------------------------------------------------
 // DualSense input path — translate DS_InputState to GamepadState
@@ -147,10 +148,11 @@ static bool poll_dualsense()
     ds_update_input();
 
     DS_InputState ds;
-    if (!ds_get_input(&ds)) return false;
+    if (!ds_get_input(&ds))
+        return false;
 
     // Translate float sticks (-1..+1) to DI range (0..65535, center 32768).
-    gamepad_state.lX = static_cast<int32_t>(ds.left_stick_x  * 32767.0f) + 32768;
+    gamepad_state.lX = static_cast<int32_t>(ds.left_stick_x * 32767.0f) + 32768;
     gamepad_state.lY = static_cast<int32_t>(-ds.left_stick_y * 32767.0f) + 32768; // invert Y
     gamepad_state.rX = static_cast<int32_t>(ds.right_stick_x * 32767.0f) + 32768;
     gamepad_state.rY = static_cast<int32_t>(-ds.right_stick_y * 32767.0f) + 32768;
@@ -163,48 +165,71 @@ static bool poll_dualsense()
     // open anyway.
     gamepad_state.dpad_active = ds.dpad_up || ds.dpad_down || ds.dpad_left || ds.dpad_right;
     if (!input_debug_is_active()) {
-        if (ds.dpad_left)  gamepad_state.lX = 0;
-        if (ds.dpad_right) gamepad_state.lX = 65535;
-        if (ds.dpad_up)    gamepad_state.lY = 0;
-        if (ds.dpad_down)  gamepad_state.lY = 65535;
+        if (ds.dpad_left)
+            gamepad_state.lX = 0;
+        if (ds.dpad_right)
+            gamepad_state.lX = 65535;
+        if (ds.dpad_up)
+            gamepad_state.lY = 0;
+        if (ds.dpad_down)
+            gamepad_state.lY = 65535;
     }
 
     // Map to rgbButtons[] — same indices as SDL3 path for compatibility with
     // joypad_button_use[] mapping in input_actions.cpp.
     memset(gamepad_state.rgbButtons, 0, sizeof(gamepad_state.rgbButtons));
-    if (ds.cross)    gamepad_state.rgbButtons[0]  = 0x80; // SDL3_BTN_SOUTH
-    if (ds.circle)   gamepad_state.rgbButtons[1]  = 0x80; // SDL3_BTN_EAST
-    if (ds.square)   gamepad_state.rgbButtons[2]  = 0x80; // SDL3_BTN_WEST
-    if (ds.triangle) gamepad_state.rgbButtons[3]  = 0x80; // SDL3_BTN_NORTH
-    if (ds.share)    gamepad_state.rgbButtons[4]  = 0x80; // SDL3_BTN_BACK
-    if (ds.ps_button) gamepad_state.rgbButtons[5] = 0x80; // SDL3_BTN_GUIDE
-    if (ds.start)    gamepad_state.rgbButtons[6]  = 0x80; // SDL3_BTN_START
-    if (ds.l3)       gamepad_state.rgbButtons[7]  = 0x80; // SDL3_BTN_LEFT_STICK
-    if (ds.r3)       gamepad_state.rgbButtons[8]  = 0x80; // SDL3_BTN_RIGHT_STICK
-    if (ds.l1)       gamepad_state.rgbButtons[9]  = 0x80; // SDL3_BTN_LEFT_SHOULDER
-    if (ds.r1)       gamepad_state.rgbButtons[10] = 0x80; // SDL3_BTN_RIGHT_SHOULDER
-    if (ds.dpad_up)    gamepad_state.rgbButtons[11] = 0x80;
-    if (ds.dpad_down)  gamepad_state.rgbButtons[12] = 0x80;
-    if (ds.dpad_left)  gamepad_state.rgbButtons[13] = 0x80;
-    if (ds.dpad_right) gamepad_state.rgbButtons[14] = 0x80;
+    if (ds.cross)
+        gamepad_state.rgbButtons[0] = 0x80; // SDL3_BTN_SOUTH
+    if (ds.circle)
+        gamepad_state.rgbButtons[1] = 0x80; // SDL3_BTN_EAST
+    if (ds.square)
+        gamepad_state.rgbButtons[2] = 0x80; // SDL3_BTN_WEST
+    if (ds.triangle)
+        gamepad_state.rgbButtons[3] = 0x80; // SDL3_BTN_NORTH
+    if (ds.share)
+        gamepad_state.rgbButtons[4] = 0x80; // SDL3_BTN_BACK
+    if (ds.ps_button)
+        gamepad_state.rgbButtons[5] = 0x80; // SDL3_BTN_GUIDE
+    if (ds.start)
+        gamepad_state.rgbButtons[6] = 0x80; // SDL3_BTN_START
+    if (ds.l3)
+        gamepad_state.rgbButtons[7] = 0x80; // SDL3_BTN_LEFT_STICK
+    if (ds.r3)
+        gamepad_state.rgbButtons[8] = 0x80; // SDL3_BTN_RIGHT_STICK
+    if (ds.l1)
+        gamepad_state.rgbButtons[9] = 0x80; // SDL3_BTN_LEFT_SHOULDER
+    if (ds.r1)
+        gamepad_state.rgbButtons[10] = 0x80; // SDL3_BTN_RIGHT_SHOULDER
+    if (ds.dpad_up)
+        gamepad_state.rgbButtons[11] = 0x80;
+    if (ds.dpad_down)
+        gamepad_state.rgbButtons[12] = 0x80;
+    if (ds.dpad_left)
+        gamepad_state.rgbButtons[13] = 0x80;
+    if (ds.dpad_right)
+        gamepad_state.rgbButtons[14] = 0x80;
 
     // Triggers as digital buttons (indices 15/16).
-    if (ds.l2_digital) gamepad_state.rgbButtons[15] = 0x80;
-    if (ds.r2_digital) gamepad_state.rgbButtons[16] = 0x80;
+    if (ds.l2_digital)
+        gamepad_state.rgbButtons[15] = 0x80;
+    if (ds.r2_digital)
+        gamepad_state.rgbButtons[16] = 0x80;
 
     // DualSense extras.
-    if (ds.touchpad_click) gamepad_state.rgbButtons[17] = 0x80;
-    if (ds.mute)           gamepad_state.rgbButtons[18] = 0x80;
+    if (ds.touchpad_click)
+        gamepad_state.rgbButtons[17] = 0x80;
+    if (ds.mute)
+        gamepad_state.rgbButtons[18] = 0x80;
 
     // Analog trigger values (0..255).
-    gamepad_state.trigger_left  = static_cast<uint8_t>(ds.trigger_left  * 255.0f);
+    gamepad_state.trigger_left = static_cast<uint8_t>(ds.trigger_left * 255.0f);
     gamepad_state.trigger_right = static_cast<uint8_t>(ds.trigger_right * 255.0f);
 
     // Cache adaptive trigger feedback state for the test/diagnostic getters.
-    s_left_trigger_feedback_state   = ds.left_trigger_feedback_state;
-    s_right_trigger_feedback_state  = ds.right_trigger_feedback_state;
-    s_left_trigger_effect_active    = ds.left_trigger_effect_active;
-    s_right_trigger_effect_active   = ds.right_trigger_effect_active;
+    s_left_trigger_feedback_state = ds.left_trigger_feedback_state;
+    s_right_trigger_feedback_state = ds.right_trigger_feedback_state;
+    s_left_trigger_effect_active = ds.left_trigger_effect_active;
+    s_right_trigger_effect_active = ds.right_trigger_effect_active;
 
     gamepad_state.connected = true;
     return true;
@@ -274,16 +299,19 @@ static void poll_sdl3()
         }
     }
 
-    if (!s_gamepad) return;
+    if (!s_gamepad)
+        return;
 
     // Skip input read while DS is primary — otherwise poll_dualsense's
     // freshly-written gamepad_state would get stomped by a stale Xbox
     // read. The s_gamepad handle stays open so it can take over
     // immediately if the DualSense disconnects.
-    if (s_is_dualsense) return;
+    if (s_is_dualsense)
+        return;
 
     SDL3_GamepadState sdl_state;
-    if (!sdl3_gamepad_get_state(s_gamepad, &sdl_state)) return;
+    if (!sdl3_gamepad_get_state(s_gamepad, &sdl_state))
+        return;
 
     // Translate SDL3 axes (-32768..+32767) to DI range (0..65535).
     gamepad_state.lX = static_cast<int32_t>(sdl_state.axis_left_x) + 32768;
@@ -297,10 +325,14 @@ static void poll_sdl3()
     uint32_t dpad = btns & (SDL3_BTN_DPAD_LEFT | SDL3_BTN_DPAD_RIGHT | SDL3_BTN_DPAD_UP | SDL3_BTN_DPAD_DOWN);
     gamepad_state.dpad_active = (dpad != 0);
     if (!input_debug_is_active()) {
-        if (btns & SDL3_BTN_DPAD_LEFT)  gamepad_state.lX = 0;
-        if (btns & SDL3_BTN_DPAD_RIGHT) gamepad_state.lX = 65535;
-        if (btns & SDL3_BTN_DPAD_UP)    gamepad_state.lY = 0;
-        if (btns & SDL3_BTN_DPAD_DOWN)  gamepad_state.lY = 65535;
+        if (btns & SDL3_BTN_DPAD_LEFT)
+            gamepad_state.lX = 0;
+        if (btns & SDL3_BTN_DPAD_RIGHT)
+            gamepad_state.lX = 65535;
+        if (btns & SDL3_BTN_DPAD_UP)
+            gamepad_state.lY = 0;
+        if (btns & SDL3_BTN_DPAD_DOWN)
+            gamepad_state.lY = 65535;
     }
 
     // Map SDL3 buttons to rgbButtons[].
@@ -312,21 +344,19 @@ static void poll_sdl3()
     }
 
     // Triggers as digital buttons.
-    if (sdl_state.trigger_left > 8000)  gamepad_state.rgbButtons[15] = 0x80;
-    if (sdl_state.trigger_right > 8000) gamepad_state.rgbButtons[16] = 0x80;
+    if (sdl_state.trigger_left > 8000)
+        gamepad_state.rgbButtons[15] = 0x80;
+    if (sdl_state.trigger_right > 8000)
+        gamepad_state.rgbButtons[16] = 0x80;
 
     // Analog trigger values: SDL3 range 0..32767 → 0..255.
-    gamepad_state.trigger_left  = static_cast<uint8_t>(sdl_state.trigger_left  >> 7);
+    gamepad_state.trigger_left = static_cast<uint8_t>(sdl_state.trigger_left >> 7);
     gamepad_state.trigger_right = static_cast<uint8_t>(sdl_state.trigger_right >> 7);
 
     gamepad_state.connected = true;
 
     // Track activity.
-    if (btns || sdl_state.trigger_left > 8000 || sdl_state.trigger_right > 8000 ||
-        sdl_state.axis_left_x < -8000 || sdl_state.axis_left_x > 8000 ||
-        sdl_state.axis_left_y < -8000 || sdl_state.axis_left_y > 8000 ||
-        sdl_state.axis_right_x < -8000 || sdl_state.axis_right_x > 8000 ||
-        sdl_state.axis_right_y < -8000 || sdl_state.axis_right_y > 8000) {
+    if (btns || sdl_state.trigger_left > 8000 || sdl_state.trigger_right > 8000 || sdl_state.axis_left_x < -8000 || sdl_state.axis_left_x > 8000 || sdl_state.axis_left_y < -8000 || sdl_state.axis_left_y > 8000 || sdl_state.axis_right_x < -8000 || sdl_state.axis_right_x > 8000 || sdl_state.axis_right_y < -8000 || sdl_state.axis_right_y > 8000) {
         active_input_device = INPUT_DEVICE_XBOX;
     }
 }
@@ -367,17 +397,13 @@ void gamepad_poll()
                     break;
                 }
             }
-            if (gamepad_state.lX < 16384 || gamepad_state.lX > 49152 ||
-                gamepad_state.lY < 16384 || gamepad_state.lY > 49152 ||
-                gamepad_state.rX < 16384 || gamepad_state.rX > 49152 ||
-                gamepad_state.rY < 16384 || gamepad_state.rY > 49152) {
+            if (gamepad_state.lX < 16384 || gamepad_state.lX > 49152 || gamepad_state.lY < 16384 || gamepad_state.lY > 49152 || gamepad_state.rX < 16384 || gamepad_state.rX > 49152 || gamepad_state.rY < 16384 || gamepad_state.rY > 49152) {
                 active_input_device = INPUT_DEVICE_DUALSENSE;
             }
             // Touchpad fingers are DS-only state not mirrored into
             // rgbButtons — read directly from DS_InputState.
             DS_InputState ds_probe;
-            if (ds_get_input(&ds_probe) &&
-                (ds_probe.touchpad_finger_1_down || ds_probe.touchpad_finger_2_down)) {
+            if (ds_get_input(&ds_probe) && (ds_probe.touchpad_finger_1_down || ds_probe.touchpad_finger_2_down)) {
                 active_input_device = INPUT_DEVICE_DUALSENSE;
             }
         }
@@ -442,7 +468,7 @@ void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)
     if (s_is_dualsense && ds_is_connected()) {
         // DS-lib vibration: scale 16-bit to 8-bit.
         ds_set_vibration(static_cast<uint8_t>(low_freq >> 8),
-                         static_cast<uint8_t>(high_freq >> 8));
+            static_cast<uint8_t>(high_freq >> 8));
         ds_update_output();
     } else if (s_gamepad) {
         sdl3_gamepad_rumble(s_gamepad, low_freq, high_freq, duration_ms);
@@ -451,11 +477,15 @@ void gamepad_rumble(uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)
 
 void gamepad_set_shock(int fast, int slow)
 {
-    if (!g_bEngineVibrations) return;
-    if (slow > 255) slow = 255;
+    if (!g_bEngineVibrations)
+        return;
+    if (slow > 255)
+        slow = 255;
     // Maximum tracking: only update if new value exceeds current.
-    if (fast > s_motor_fast) s_motor_fast = fast;
-    if (slow > s_motor_slow) s_motor_slow = slow;
+    if (fast > s_motor_fast)
+        s_motor_fast = fast;
+    if (slow > s_motor_slow)
+        s_motor_slow = slow;
 }
 
 void gamepad_rumble_tick()
@@ -489,7 +519,8 @@ void gamepad_rumble_tick()
     }
 
     int out_slow = s_motor_slow;
-    if (haptic_slow > out_slow) out_slow = haptic_slow;
+    if (haptic_slow > out_slow)
+        out_slow = haptic_slow;
 
     if (s_is_dualsense) {
         uint8_t vib_left = static_cast<uint8_t>(out_slow);
@@ -512,9 +543,10 @@ void gamepad_rumble_tick()
         // hits) still takes full-binary precedence on the high motor.
         uint8_t low_pct = 100, high_pct = 0;
         weapon_feel_get_active_xbox_rumble_scales(&low_pct, &high_pct);
-        const uint16_t low  = static_cast<uint16_t>((out_slow * low_pct  / 100) * 257);
+        const uint16_t low = static_cast<uint16_t>((out_slow * low_pct / 100) * 257);
         uint16_t high = static_cast<uint16_t>((out_slow * high_pct / 100) * 257);
-        if (s_motor_fast) high = 65535;
+        if (s_motor_fast)
+            high = 65535;
         sdl3_gamepad_rumble(s_gamepad, low, high, 100);
     }
 
@@ -539,15 +571,19 @@ void gamepad_rumble_stop()
 
 void gamepad_led_reset()
 {
-    if (!s_is_dualsense || !ds_is_connected()) return;
-    s_led_r = 0; s_led_g = 0; s_led_b = 255;
+    if (!s_is_dualsense || !ds_is_connected())
+        return;
+    s_led_r = 0;
+    s_led_g = 0;
+    s_led_b = 255;
     ds_set_lightbar(0, 0, 255); // default blue
     ds_update_output();
 }
 
 void gamepad_led_update(float health_fraction, bool siren)
 {
-    if (!s_is_dualsense || !ds_is_connected()) return;
+    if (!s_is_dualsense || !ds_is_connected())
+        return;
 
     uint8_t r, g, b;
 
@@ -557,18 +593,26 @@ void gamepad_led_update(float health_fraction, bool siren)
         siren_counter++;
         bool phase = (siren_counter / 4) & 1; // ~7.5 Hz at 30fps — fast strobe
         if (phase) {
-            r = 255; g = 0; b = 0;
+            r = 255;
+            g = 0;
+            b = 0;
         } else {
-            r = 0; g = 0; b = 255;
+            r = 0;
+            g = 0;
+            b = 255;
         }
     } else {
         // Health-based color
-        if (health_fraction < 0.0f) health_fraction = 0.0f;
-        if (health_fraction > 1.0f) health_fraction = 1.0f;
+        if (health_fraction < 0.0f)
+            health_fraction = 0.0f;
+        if (health_fraction > 1.0f)
+            health_fraction = 1.0f;
 
         if (health_fraction > 0.75f) {
             // 100-75%: green
-            r = 0; g = 255; b = 0;
+            r = 0;
+            g = 255;
+            b = 0;
         } else if (health_fraction > 0.5f) {
             // 75-50%: green → yellow gradient
             float t = (health_fraction - 0.5f) / 0.25f;
@@ -594,8 +638,11 @@ void gamepad_led_update(float health_fraction, bool siren)
 
     // Only send HID write when color actually changed — on macOS Bluetooth,
     // each write (~78 bytes) can block 7-30ms, flooding the pipe and delaying input reads.
-    if (r == s_led_r && g == s_led_g && b == s_led_b) return;
-    s_led_r = r; s_led_g = g; s_led_b = b;
+    if (r == s_led_r && g == s_led_g && b == s_led_b)
+        return;
+    s_led_r = r;
+    s_led_g = g;
+    s_led_b = b;
 
     ds_set_lightbar(r, g, b);
     ds_update_output();
@@ -606,9 +653,9 @@ void gamepad_led_update(float health_fraction, bool siren)
 // ---------------------------------------------------------------------------
 
 uint8_t gamepad_get_right_trigger_feedback_state() { return s_right_trigger_feedback_state; }
-uint8_t gamepad_get_left_trigger_feedback_state()  { return s_left_trigger_feedback_state; }
-bool    gamepad_get_right_trigger_effect_active()  { return s_right_trigger_effect_active; }
-bool    gamepad_get_left_trigger_effect_active()   { return s_left_trigger_effect_active; }
+uint8_t gamepad_get_left_trigger_feedback_state() { return s_left_trigger_feedback_state; }
+bool gamepad_get_right_trigger_effect_active() { return s_right_trigger_effect_active; }
+bool gamepad_get_left_trigger_effect_active() { return s_left_trigger_effect_active; }
 // gamepad_is_adaptive_click_active defined below, next to s_trigger_mode.
 
 // ---------------------------------------------------------------------------
@@ -617,9 +664,9 @@ bool    gamepad_get_left_trigger_effect_active()   { return s_left_trigger_effec
 
 // Track current mode to avoid spamming HID output every frame.
 enum TriggerMode {
-    TRIGGER_MODE_NONE,      // triggers free (no effect)
-    TRIGGER_MODE_AIM_GUN,   // weapon click on R2 (shooting)
-    TRIGGER_MODE_CAR,       // machine feel (R2=gas, L2=brake)
+    TRIGGER_MODE_NONE, // triggers free (no effect)
+    TRIGGER_MODE_AIM_GUN, // weapon click on R2 (shooting)
+    TRIGGER_MODE_CAR, // machine feel (R2=gas, L2=brake)
 };
 static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 
@@ -636,18 +683,19 @@ static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 //
 // libDualsense semantics: trigger_weapon start 2..7, end (start+1)..8,
 // strength 0..8; trigger_machine_full amplitudes 0..7.
-static TriggerEffectType s_aim_gun_effect    = TriggerEffectType::Weapon;
+static TriggerEffectType s_aim_gun_effect = TriggerEffectType::Weapon;
 static uint8_t s_aim_gun_start_zone = 4;
-static uint8_t s_aim_gun_end_zone   = 6;
-static uint8_t s_aim_gun_strength   = 5;
-static uint8_t s_aim_gun_amp_a      = 0;
-static uint8_t s_aim_gun_amp_b      = 0;
-static uint8_t s_aim_gun_frequency  = 0;
-static uint8_t s_aim_gun_period     = 0;
+static uint8_t s_aim_gun_end_zone = 6;
+static uint8_t s_aim_gun_strength = 5;
+static uint8_t s_aim_gun_amp_a = 0;
+static uint8_t s_aim_gun_amp_b = 0;
+static uint8_t s_aim_gun_frequency = 0;
+static uint8_t s_aim_gun_period = 0;
 
 static void apply_trigger_mode(TriggerMode mode)
 {
-    if (!s_is_dualsense || !ds_is_connected()) return;
+    if (!s_is_dualsense || !ds_is_connected())
+        return;
 
     switch (mode) {
     case TRIGGER_MODE_NONE:
@@ -663,8 +711,8 @@ static void apply_trigger_mode(TriggerMode mode)
             break;
         case TriggerEffectType::Machine:
             ds_trigger_machine_full(s_aim_gun_start_zone, s_aim_gun_end_zone,
-                                    s_aim_gun_amp_a, s_aim_gun_amp_b,
-                                    s_aim_gun_frequency, s_aim_gun_period, 1);
+                s_aim_gun_amp_a, s_aim_gun_amp_b,
+                s_aim_gun_frequency, s_aim_gun_period, 1);
             break;
         case TriggerEffectType::Vibration:
             // Vibration override: used for the post-shot recoil burst.
@@ -687,8 +735,8 @@ static void apply_trigger_mode(TriggerMode mode)
         // feedback was that the constant tension on L2 felt unpleasant
         // during long driving missions, so the effect was removed.
         // Re-enable here if a "brake feel" config toggle is added later.
-        ds_trigger_off(1);                     // R2 gas: free
-        ds_trigger_off(0);                     // L2 brake: free (was: ds_trigger_resistance(20, 200, 0))
+        ds_trigger_off(1); // R2 gas: free
+        ds_trigger_off(0); // L2 brake: free (was: ds_trigger_resistance(20, 200, 0))
         break;
     }
 
@@ -697,7 +745,8 @@ static void apply_trigger_mode(TriggerMode mode)
 
 void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon, bool mag_empty)
 {
-    if (!s_is_dualsense || !ds_is_connected()) return;
+    if (!s_is_dualsense || !ds_is_connected())
+        return;
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
         // Not actively using DualSense — clear triggers if they were on.
         if (s_trigger_mode != TRIGGER_MODE_NONE) {
@@ -711,14 +760,14 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // Cheap lookup, lets a weapon swap mid-game update the feel on the
     // very next transition without any extra plumbing.
     const WeaponFeelProfile* profile = weapon_feel_get_profile(current_weapon);
-    s_aim_gun_effect     = profile->trigger_effect;
+    s_aim_gun_effect = profile->trigger_effect;
     s_aim_gun_start_zone = profile->trigger_start_zone;
-    s_aim_gun_end_zone   = profile->trigger_end_zone;
-    s_aim_gun_strength   = profile->trigger_strength;
-    s_aim_gun_amp_a      = profile->machine_amp_a;
-    s_aim_gun_amp_b      = profile->machine_amp_b;
-    s_aim_gun_frequency  = profile->machine_frequency;
-    s_aim_gun_period     = profile->machine_period;
+    s_aim_gun_end_zone = profile->trigger_end_zone;
+    s_aim_gun_strength = profile->trigger_strength;
+    s_aim_gun_amp_a = profile->machine_amp_a;
+    s_aim_gun_amp_b = profile->machine_amp_b;
+    s_aim_gun_frequency = profile->machine_frequency;
+    s_aim_gun_period = profile->machine_period;
     // Reload click override: when the weapon's magazine is empty and
     // the profile has a reload click configured, swap the effect to a
     // Weapon25 click with reload params. The player's next R2 press
@@ -727,10 +776,10 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // shot or auto-fire. Main Machine effect resumes after the reload
     // refills the clip and a real shot fires (mag_empty becomes false).
     if (mag_empty && profile->reload_click_strength != 0) {
-        s_aim_gun_effect     = TriggerEffectType::Weapon;
+        s_aim_gun_effect = TriggerEffectType::Weapon;
         s_aim_gun_start_zone = profile->reload_click_start_zone;
-        s_aim_gun_end_zone   = profile->reload_click_end_zone;
-        s_aim_gun_strength   = profile->reload_click_strength;
+        s_aim_gun_end_zone = profile->reload_click_end_zone;
+        s_aim_gun_strength = profile->reload_click_strength;
     }
 
     // Post-shot trigger-vibration burst override: while the profile's
@@ -743,23 +792,20 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // mag_empty (reload click above takes precedence).
     uint8_t tv_position = 0, tv_amp = 0, tv_freq = 0;
     if (!mag_empty && weapon_feel_tick_trigger_vibration(&tv_position, &tv_amp, &tv_freq)) {
-        s_aim_gun_effect     = TriggerEffectType::Vibration;
+        s_aim_gun_effect = TriggerEffectType::Vibration;
         s_aim_gun_start_zone = tv_position;
-        s_aim_gun_strength   = tv_amp;
-        s_aim_gun_amp_a      = tv_freq;
-        s_aim_gun_end_zone   = 0;
-        s_aim_gun_amp_b      = 0;
-        s_aim_gun_frequency  = 0;
-        s_aim_gun_period     = 0;
+        s_aim_gun_strength = tv_amp;
+        s_aim_gun_amp_a = tv_freq;
+        s_aim_gun_end_zone = 0;
+        s_aim_gun_amp_b = 0;
+        s_aim_gun_frequency = 0;
+        s_aim_gun_period = 0;
     }
     // Profiles with None opt out of any adaptive trigger effect. Weapon
     // with zero strength and Machine with both amps zero also count as
     // "no effect" — the params would produce a silent trigger anyway.
     // Vibration with zero amplitude also counts as no effect.
-    const bool weapon_has_effect =
-        (s_aim_gun_effect == TriggerEffectType::Weapon    && s_aim_gun_strength != 0) ||
-        (s_aim_gun_effect == TriggerEffectType::Machine   && (s_aim_gun_amp_a != 0 || s_aim_gun_amp_b != 0)) ||
-        (s_aim_gun_effect == TriggerEffectType::Vibration && s_aim_gun_strength != 0);
+    const bool weapon_has_effect = (s_aim_gun_effect == TriggerEffectType::Weapon && s_aim_gun_strength != 0) || (s_aim_gun_effect == TriggerEffectType::Machine && (s_aim_gun_amp_a != 0 || s_aim_gun_amp_b != 0)) || (s_aim_gun_effect == TriggerEffectType::Vibration && s_aim_gun_strength != 0);
 
     // AIM_GUN stays continuously enabled whenever the weapon is ready.
     //
@@ -795,43 +841,37 @@ void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_wea
     // the effect or any parameter changed (e.g. player swapped weapons
     // from pistol Weapon25 to AK47 Machine without dropping through
     // NONE first).
-    static TriggerEffectType s_last_effect     = TriggerEffectType::None;
+    static TriggerEffectType s_last_effect = TriggerEffectType::None;
     static uint8_t s_last_start = 0, s_last_end = 0, s_last_strength = 0;
     static uint8_t s_last_amp_a = 0, s_last_amp_b = 0, s_last_freq = 0, s_last_period = 0;
-    const bool params_changed =
-        s_last_effect     != s_aim_gun_effect     ||
-        s_last_start      != s_aim_gun_start_zone ||
-        s_last_end        != s_aim_gun_end_zone   ||
-        s_last_strength   != s_aim_gun_strength   ||
-        s_last_amp_a      != s_aim_gun_amp_a      ||
-        s_last_amp_b      != s_aim_gun_amp_b      ||
-        s_last_freq       != s_aim_gun_frequency  ||
-        s_last_period     != s_aim_gun_period;
+    const bool params_changed = s_last_effect != s_aim_gun_effect || s_last_start != s_aim_gun_start_zone || s_last_end != s_aim_gun_end_zone || s_last_strength != s_aim_gun_strength || s_last_amp_a != s_aim_gun_amp_a || s_last_amp_b != s_aim_gun_amp_b || s_last_freq != s_aim_gun_frequency || s_last_period != s_aim_gun_period;
 
     if (desired != s_trigger_mode || (desired == TRIGGER_MODE_AIM_GUN && params_changed)) {
         s_trigger_mode = desired;
         apply_trigger_mode(desired);
-        s_last_effect   = s_aim_gun_effect;
-        s_last_start    = s_aim_gun_start_zone;
-        s_last_end      = s_aim_gun_end_zone;
+        s_last_effect = s_aim_gun_effect;
+        s_last_start = s_aim_gun_start_zone;
+        s_last_end = s_aim_gun_end_zone;
         s_last_strength = s_aim_gun_strength;
-        s_last_amp_a    = s_aim_gun_amp_a;
-        s_last_amp_b    = s_aim_gun_amp_b;
-        s_last_freq     = s_aim_gun_frequency;
-        s_last_period   = s_aim_gun_period;
+        s_last_amp_a = s_aim_gun_amp_a;
+        s_last_amp_b = s_aim_gun_amp_b;
+        s_last_freq = s_aim_gun_frequency;
+        s_last_period = s_aim_gun_period;
     }
 }
 
 void gamepad_triggers_off()
 {
-    if (s_trigger_mode == TRIGGER_MODE_NONE) return;
+    if (s_trigger_mode == TRIGGER_MODE_NONE)
+        return;
     s_trigger_mode = TRIGGER_MODE_NONE;
     apply_trigger_mode(TRIGGER_MODE_NONE);
 }
 
 void gamepad_triggers_lockout(int /*reserved*/)
 {
-    if (s_trigger_mode == TRIGGER_MODE_NONE) return;
+    if (s_trigger_mode == TRIGGER_MODE_NONE)
+        return;
     s_trigger_mode = TRIGGER_MODE_NONE;
     apply_trigger_mode(TRIGGER_MODE_NONE);
 }

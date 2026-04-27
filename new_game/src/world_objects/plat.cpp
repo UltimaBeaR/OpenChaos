@@ -2,7 +2,7 @@
 // game.h pulls in the core game types (Thing, GameCoord, TICK_RATIO, etc.)
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "things/characters/person.h"  // set_face_thing
+#include "things/characters/person.h" // set_face_thing
 #include "missions/eway.h"
 #include "map/ob.h"
 #include "things/core/statedef.h"
@@ -11,19 +11,19 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/postprocess/bloom.h" // BLOOM_draw, BLOOM_BEAM, BLOOM_LENSFLARE
 
-#include "buildings/prim.h"    // get_prim_info, slide_along_prim
+#include "buildings/prim.h" // get_prim_info, slide_along_prim
 #include "world_objects/plat.h"
 #include "world_objects/plat_globals.h"
 
 // Private state values for Plat.state.
 // uc_orig: PLAT_STATE_NONE (fallen/Source/plat.cpp)
-#define PLAT_STATE_NONE  0
+#define PLAT_STATE_NONE 0
 // uc_orig: PLAT_STATE_GOTO (fallen/Source/plat.cpp)
-#define PLAT_STATE_GOTO  1  // Moving toward a waypoint
+#define PLAT_STATE_GOTO 1 // Moving toward a waypoint
 // uc_orig: PLAT_STATE_PAUSE (fallen/Source/plat.cpp)
-#define PLAT_STATE_PAUSE 2  // Waiting at a waypoint
+#define PLAT_STATE_PAUSE 2 // Waiting at a waypoint
 // uc_orig: PLAT_STATE_STOP (fallen/Source/plat.cpp)
-#define PLAT_STATE_STOP  3  // Permanently stopped
+#define PLAT_STATE_STOP 3 // Permanently stopped
 
 // Private axis-lock flags stored in Plat.flag (bits 5-7, not exposed in public header).
 // uc_orig: PLAT_FLAG_LOCK_X (fallen/Source/plat.cpp)
@@ -145,11 +145,19 @@ void PLAT_process(Thing* p_thing)
         wspeed = plat->wspeed;
         speed = plat->speed;
 
-        if (len < 0x100) { wspeed >>= 2; }
-        if (len < 0x80)  { wspeed >>= 2; }
-        if (len < 0x40)  { wspeed >>= 2; }
+        if (len < 0x100) {
+            wspeed >>= 2;
+        }
+        if (len < 0x80) {
+            wspeed >>= 2;
+        }
+        if (len < 0x40) {
+            wspeed >>= 2;
+        }
 
-        if (wspeed < 3) { wspeed = 3; }
+        if (wspeed < 3) {
+            wspeed = 3;
+        }
 
         if (abs(speed - wspeed) < ticks) {
             speed = wspeed;

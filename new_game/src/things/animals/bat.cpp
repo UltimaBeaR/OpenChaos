@@ -15,16 +15,16 @@
 #include "engine/graphics/lighting/night.h"
 #include "engine/physics/collide.h"
 #include "effects/combat/pyro.h"
-#include "assets/formats/level_loader.h"       // load_anim_prim_object
-#include "things/characters/person.h"  // set_person_dead, set_face_thing, set_person_recoil, set_person_float_up
-#include "assets/formats/anim_globals.h"       // anim_chunk
-#include "things/core/interact.h"      // calc_sub_objects_position
+#include "assets/formats/level_loader.h" // load_anim_prim_object
+#include "things/characters/person.h" // set_person_dead, set_face_thing, set_person_recoil, set_person_float_up
+#include "assets/formats/anim_globals.h" // anim_chunk
+#include "things/core/interact.h" // calc_sub_objects_position
 
 // Bitmask flags stored in Bat::flag.
 // uc_orig: BAT_FLAG_ATTACKED (fallen/Source/bat.cpp)
 #define BAT_FLAG_ATTACKED (1 << 0)
 // uc_orig: BAT_FLAG_SYNC_FX (fallen/Source/bat.cpp)
-#define BAT_FLAG_SYNC_FX  (1 << 1)
+#define BAT_FLAG_SYNC_FX (1 << 1)
 // uc_orig: BAT_FLAG_SYNC_FX2 (fallen/Source/bat.cpp)
 #define BAT_FLAG_SYNC_FX2 (1 << 2)
 
@@ -34,131 +34,131 @@
 
 // State IDs for Bat::state.
 // uc_orig: BAT_STATE_IDLE (fallen/Source/bat.cpp)
-#define BAT_STATE_IDLE           0
+#define BAT_STATE_IDLE 0
 // uc_orig: BAT_STATE_GOTO (fallen/Source/bat.cpp)
-#define BAT_STATE_GOTO           1
+#define BAT_STATE_GOTO 1
 // uc_orig: BAT_STATE_CIRCLE (fallen/Source/bat.cpp)
-#define BAT_STATE_CIRCLE         2
+#define BAT_STATE_CIRCLE 2
 // uc_orig: BAT_STATE_ATTACK (fallen/Source/bat.cpp)
-#define BAT_STATE_ATTACK         3
+#define BAT_STATE_ATTACK 3
 // uc_orig: BAT_STATE_DYING (fallen/Source/bat.cpp)
-#define BAT_STATE_DYING          4
+#define BAT_STATE_DYING 4
 // uc_orig: BAT_STATE_DEAD (fallen/Source/bat.cpp)
-#define BAT_STATE_DEAD           5
+#define BAT_STATE_DEAD 5
 // uc_orig: BAT_STATE_GROUND (fallen/Source/bat.cpp)
-#define BAT_STATE_GROUND         6
+#define BAT_STATE_GROUND 6
 // uc_orig: BAT_STATE_RECOIL (fallen/Source/bat.cpp)
-#define BAT_STATE_RECOIL         7
+#define BAT_STATE_RECOIL 7
 // uc_orig: BAT_STATE_BALROG_WANDER (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_WANDER  8
+#define BAT_STATE_BALROG_WANDER 8
 // uc_orig: BAT_STATE_BALROG_ROAR (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_ROAR    9
+#define BAT_STATE_BALROG_ROAR 9
 // uc_orig: BAT_STATE_BALROG_FOLLOW (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_FOLLOW  10
+#define BAT_STATE_BALROG_FOLLOW 10
 // uc_orig: BAT_STATE_BALROG_CHARGE (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_CHARGE  11
+#define BAT_STATE_BALROG_CHARGE 11
 // uc_orig: BAT_STATE_BALROG_SWIPE (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_SWIPE   12
+#define BAT_STATE_BALROG_SWIPE 12
 // uc_orig: BAT_STATE_BALROG_STOMP (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_STOMP   13
+#define BAT_STATE_BALROG_STOMP 13
 // uc_orig: BAT_STATE_BALROG_FIREBALL (fallen/Source/bat.cpp)
 #define BAT_STATE_BALROG_FIREBALL 14
 // uc_orig: BAT_STATE_BALROG_IDLE (fallen/Source/bat.cpp)
-#define BAT_STATE_BALROG_IDLE    15
+#define BAT_STATE_BALROG_IDLE 15
 // uc_orig: BAT_STATE_BANE_IDLE (fallen/Source/bat.cpp)
-#define BAT_STATE_BANE_IDLE      16
+#define BAT_STATE_BANE_IDLE 16
 // uc_orig: BAT_STATE_BANE_ATTACK (fallen/Source/bat.cpp)
-#define BAT_STATE_BANE_ATTACK    17
+#define BAT_STATE_BANE_ATTACK 17
 // uc_orig: BAT_STATE_BANE_START (fallen/Source/bat.cpp)
-#define BAT_STATE_BANE_START     18
+#define BAT_STATE_BANE_START 18
 // uc_orig: BAT_STATE_NUMBER (fallen/Source/bat.cpp)
-#define BAT_STATE_NUMBER         19
+#define BAT_STATE_NUMBER 19
 
 // Substate IDs for Bat::substate.
 // uc_orig: BAT_SUBSTATE_NONE (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_NONE            0
+#define BAT_SUBSTATE_NONE 0
 // uc_orig: BAT_SUBSTATE_CIRCLE_HOME (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_CIRCLE_HOME     1
+#define BAT_SUBSTATE_CIRCLE_HOME 1
 // uc_orig: BAT_SUBSTATE_CIRCLE_TARGET (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_CIRCLE_TARGET   2
+#define BAT_SUBSTATE_CIRCLE_TARGET 2
 // uc_orig: BAT_SUBSTATE_CIRCLE_WANT (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_CIRCLE_WANT     3
+#define BAT_SUBSTATE_CIRCLE_WANT 3
 // uc_orig: BAT_SUBSTATE_GROUND_WAIT (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_GROUND_WAIT     4
+#define BAT_SUBSTATE_GROUND_WAIT 4
 // uc_orig: BAT_SUBSTATE_GROUND_WAKE_UP (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_GROUND_WAKE_UP  5
+#define BAT_SUBSTATE_GROUND_WAKE_UP 5
 // uc_orig: BAT_SUBSTATE_GROUND_FLY_UP (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_GROUND_FLY_UP   6
+#define BAT_SUBSTATE_GROUND_FLY_UP 6
 // uc_orig: BAT_SUBSTATE_DEAD_INITIAL (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_DEAD_INITIAL    7
+#define BAT_SUBSTATE_DEAD_INITIAL 7
 // uc_orig: BAT_SUBSTATE_DEAD_LOOP (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_DEAD_LOOP       8
+#define BAT_SUBSTATE_DEAD_LOOP 8
 // uc_orig: BAT_SUBSTATE_DEAD_FINAL (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_DEAD_FINAL      9
+#define BAT_SUBSTATE_DEAD_FINAL 9
 // uc_orig: BAT_SUBSTATE_YOMP_START (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_YOMP_START      10
+#define BAT_SUBSTATE_YOMP_START 10
 // uc_orig: BAT_SUBSTATE_YOMP_MIDDLE (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_YOMP_MIDDLE     11
+#define BAT_SUBSTATE_YOMP_MIDDLE 11
 // uc_orig: BAT_SUBSTATE_YOMP_END (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_YOMP_END        12
+#define BAT_SUBSTATE_YOMP_END 12
 // uc_orig: BAT_SUBSTATE_FIREBALL_TURN (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_FIREBALL_TURN   13
+#define BAT_SUBSTATE_FIREBALL_TURN 13
 // uc_orig: BAT_SUBSTATE_FIREBALL_FIRE (fallen/Source/bat.cpp)
-#define BAT_SUBSTATE_FIREBALL_FIRE   14
+#define BAT_SUBSTATE_FIREBALL_FIRE 14
 
 // Animation indices per bat type.
 // uc_orig: BAT_ANIM_BAT_FLY (fallen/Source/bat.cpp)
-#define BAT_ANIM_BAT_FLY                1
+#define BAT_ANIM_BAT_FLY 1
 // uc_orig: BAT_ANIM_BAT_DIE (fallen/Source/bat.cpp)
-#define BAT_ANIM_BAT_DIE                2
+#define BAT_ANIM_BAT_DIE 2
 // uc_orig: BAT_ANIM_GARGOYLE_WAIT (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_WAIT          1
+#define BAT_ANIM_GARGOYLE_WAIT 1
 // uc_orig: BAT_ANIM_GARGOYLE_WAKE_UP (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_WAKE_UP       15
+#define BAT_ANIM_GARGOYLE_WAKE_UP 15
 // uc_orig: BAT_ANIM_GARGOYLE_FLY_UP (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_FLY_UP        3
+#define BAT_ANIM_GARGOYLE_FLY_UP 3
 // uc_orig: BAT_ANIM_GARGOYLE_FLY (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_FLY           2
+#define BAT_ANIM_GARGOYLE_FLY 2
 // uc_orig: BAT_ANIM_GARGOYLE_FLY_FORWARDS (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_FLY_FORWARDS  12
+#define BAT_ANIM_GARGOYLE_FLY_FORWARDS 12
 // uc_orig: BAT_ANIM_GARGOYLE_ATTACK (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_ATTACK        4
+#define BAT_ANIM_GARGOYLE_ATTACK 4
 // uc_orig: BAT_ANIM_GARGOYLE_TAKE_HIT (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_TAKE_HIT      14
+#define BAT_ANIM_GARGOYLE_TAKE_HIT 14
 // uc_orig: BAT_ANIM_GARGOYLE_START_FALL (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_START_FALL    16
+#define BAT_ANIM_GARGOYLE_START_FALL 16
 // uc_orig: BAT_ANIM_GARGOYLE_FALL_LOOP (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_FALL_LOOP     17
+#define BAT_ANIM_GARGOYLE_FALL_LOOP 17
 // uc_orig: BAT_ANIM_GARGOYLE_HIT_GROUND (fallen/Source/bat.cpp)
-#define BAT_ANIM_GARGOYLE_HIT_GROUND    18
+#define BAT_ANIM_GARGOYLE_HIT_GROUND 18
 // uc_orig: BAT_ANIM_BALROG_YOMP (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_YOMP            2
+#define BAT_ANIM_BALROG_YOMP 2
 // uc_orig: BAT_ANIM_BALROG_IDLE (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_IDLE            3
+#define BAT_ANIM_BALROG_IDLE 3
 // uc_orig: BAT_ANIM_BALROG_SWIPE (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_SWIPE           4
+#define BAT_ANIM_BALROG_SWIPE 4
 // uc_orig: BAT_ANIM_BALROG_YOMP_START (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_YOMP_START      5
+#define BAT_ANIM_BALROG_YOMP_START 5
 // uc_orig: BAT_ANIM_BALROG_YOMP_END (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_YOMP_END        6
+#define BAT_ANIM_BALROG_YOMP_END 6
 // uc_orig: BAT_ANIM_BALROG_TURN (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_TURN            8
+#define BAT_ANIM_BALROG_TURN 8
 // uc_orig: BAT_ANIM_BALROG_ROAR (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_ROAR            9
+#define BAT_ANIM_BALROG_ROAR 9
 // uc_orig: BAT_ANIM_BALROG_STOMP (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_STOMP           10
+#define BAT_ANIM_BALROG_STOMP 10
 // uc_orig: BAT_ANIM_BALROG_TAKE_HIT (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_TAKE_HIT        11
+#define BAT_ANIM_BALROG_TAKE_HIT 11
 // uc_orig: BAT_ANIM_BALROG_DIE (fallen/Source/bat.cpp)
-#define BAT_ANIM_BALROG_DIE             12
+#define BAT_ANIM_BALROG_DIE 12
 // uc_orig: BAT_ANIM_BANE_IDLE (fallen/Source/bat.cpp)
-#define BAT_ANIM_BANE_IDLE              2
+#define BAT_ANIM_BANE_IDLE 2
 // uc_orig: BAT_ANIM_BANE_ATTACK (fallen/Source/bat.cpp)
-#define BAT_ANIM_BANE_ATTACK            3
+#define BAT_ANIM_BANE_ATTACK 3
 
 // Generic animation placeholders resolved at runtime based on bat type.
 // uc_orig: BAT_ANIM_GENERIC_FLY (fallen/Source/bat.cpp)
-#define BAT_ANIM_GENERIC_FLY      (-1)
+#define BAT_ANIM_GENERIC_FLY (-1)
 // uc_orig: BAT_ANIM_GENERIC_TAKE_HIT (fallen/Source/bat.cpp)
 #define BAT_ANIM_GENERIC_TAKE_HIT (-2)
 
@@ -2122,11 +2122,6 @@ void BAT_normal(Thing* p_thing)
             << 8;
         NIGHT_dlight_move(p_bat->glow, newpos.X >> 8, (newpos.Y >> 8) + 64, newpos.Z >> 8);
 
-        /*
-        #define BAT_ANIM_BALROG_YOMP			2
-        #define BAT_ANIM_BALROG_YOMP_START		5
-        #define BAT_ANIM_BALROG_YOMP_END		6
-        */
         switch (p_thing->Draw.Tweened->CurrentAnim) {
         case BAT_ANIM_BALROG_YOMP:
             if (

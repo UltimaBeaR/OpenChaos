@@ -46,6 +46,6 @@ const oc::dualsense::InputState* ds_debug_get_raw_input();
 struct DSDebugDeviceLock {
     DSDebugDeviceLock();
     ~DSDebugDeviceLock();
-    DSDebugDeviceLock(const DSDebugDeviceLock&)            = delete;
+    DSDebugDeviceLock(const DSDebugDeviceLock&) = delete;
     DSDebugDeviceLock& operator=(const DSDebugDeviceLock&) = delete;
 };

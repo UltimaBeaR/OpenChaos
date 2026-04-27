@@ -237,21 +237,6 @@ static float FONT_draw_letter(
         width = fl->uwidth;
 
         if (shimmer == 0.0F) {
-            /*
-
-            OS_buffer_add_sprite(
-                    ob,
-                    x,
-                    y,
-                    x + fl->uwidth * scale,
-                    y + (FONT_LETTER_HEIGHT * 1.33F / 256.0F) * scale,
-                    fl->u,
-                    1.0F - (fl->v),
-                    fl->u + fl->uwidth,
-                    1.0F - (fl->v + (FONT_LETTER_HEIGHT / 256.0F)),
-                    0.0F,
-                    colour);
-            */
 
             OS_buffer_add_sprite_arbitrary(
                 ob,

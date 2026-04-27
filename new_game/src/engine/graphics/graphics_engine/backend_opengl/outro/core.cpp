@@ -15,12 +15,12 @@
 // ---------------------------------------------------------------------------
 
 struct os_texture {
-    GLuint      gl_id;
-    char        name[260];
-    uint8_t     format;
-    uint8_t     inverted;
-    uint8_t     has_alpha;
-    uint16_t    size;
+    GLuint gl_id;
+    char name[260];
+    uint8_t format;
+    uint8_t inverted;
+    uint8_t has_alpha;
+    uint16_t size;
     os_texture* next;
 };
 
@@ -49,12 +49,12 @@ static os_texture* s_bound[2] = { nullptr, nullptr };
 static void apply_outro_viewport()
 {
     ui_coords::recompute(ge_get_screen_width(), ge_get_screen_height());
-    const int frame_w  = (int)(ui_coords::g_frame_w_px + 0.5f);
-    const int frame_h  = (int)(ui_coords::g_frame_h_px + 0.5f);
+    const int frame_w = (int)(ui_coords::g_frame_w_px + 0.5f);
+    const int frame_h = (int)(ui_coords::g_frame_h_px + 0.5f);
     const int origin_x = (int)((ui_coords::g_screen_w_px - ui_coords::g_frame_w_px) * 0.5f + 0.5f);
     const int origin_y = (int)((ui_coords::g_screen_h_px - ui_coords::g_frame_h_px) * 0.5f + 0.5f);
 
-    OS_screen_width  = (float)frame_w;
+    OS_screen_width = (float)frame_w;
     OS_screen_height = (float)frame_h;
 
     // Shader-side viewport (used by tl_vert.glsl for pixel→NDC math).
@@ -85,7 +85,7 @@ void oge_init()
 // ---------------------------------------------------------------------------
 
 OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
-                              uint32_t flags, const uint8_t* pixels, int32_t invert)
+    uint32_t flags, const uint8_t* pixels, int32_t invert)
 {
     // Dedup: return existing if name+invert match.
     for (os_texture* ot = s_texture_head; ot; ot = ot->next) {
@@ -94,7 +94,8 @@ OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
     }
 
     os_texture* ot = (os_texture*)calloc(1, sizeof(os_texture));
-    if (!ot) return nullptr;
+    if (!ot)
+        return nullptr;
 
     strncpy(ot->name, name, sizeof(ot->name) - 1);
     ot->inverted = (uint8_t)invert;
@@ -104,7 +105,10 @@ OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
     // Make a mutable copy for inversion.
     int32_t pixel_count = width * height;
     uint8_t* data = (uint8_t*)malloc(pixel_count * 4);
-    if (!data) { free(ot); return nullptr; }
+    if (!data) {
+        free(ot);
+        return nullptr;
+    }
     memcpy(data, pixels, pixel_count * 4);
 
     if (invert) {
@@ -116,7 +120,7 @@ OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
     glGenTextures(1, &ot->gl_id);
     glBindTexture(GL_TEXTURE_2D, ot->gl_id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-                 GL_BGRA, GL_UNSIGNED_BYTE, data);
+        GL_BGRA, GL_UNSIGNED_BYTE, data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // CLAMP_TO_EDGE so bilinear sampling at UV=1.0 doesn't wrap to the
@@ -210,7 +214,8 @@ void oge_undo_renderstate_changes()
 
 void oge_bind_texture(int32_t stage, OGETexture tex)
 {
-    if (stage < 0 || stage > 1) return;
+    if (stage < 0 || stage > 1)
+        return;
     s_bound[stage] = tex;
 
     // Only bind stage 0 to game engine (stage 1 = dual-texture, not yet supported).
@@ -234,13 +239,15 @@ void oge_bind_texture(int32_t stage, OGETexture tex)
 //   float u, v (8)
 
 void oge_draw_indexed(const void* verts, int32_t num_verts,
-                      const uint16_t* indices, int32_t num_indices)
+    const uint16_t* indices, int32_t num_indices)
 {
-    if (!verts || num_verts <= 0 || !indices || num_indices <= 0) return;
+    if (!verts || num_verts <= 0 || !indices || num_indices <= 0)
+        return;
 
     // Convert outro vertices to game TL vertices (drop texcoord2).
     GEVertexTL* tl = (GEVertexTL*)malloc(num_verts * sizeof(GEVertexTL));
-    if (!tl) return;
+    if (!tl)
+        return;
 
     const uint8_t* src = (const uint8_t*)verts;
     for (int32_t i = 0; i < num_verts; i++) {
@@ -250,7 +257,7 @@ void oge_draw_indexed(const void* verts, int32_t num_verts,
     }
 
     ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
-                              tl, num_verts, indices, num_indices);
+        tl, num_verts, indices, num_indices);
     free(tl);
 }
 

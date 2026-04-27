@@ -12,11 +12,11 @@
 #include "missions/eway_globals.h"
 #include "missions/memory_globals.h"
 #include "buildings/building_globals.h" // textures_xy, textures_flags, building_list, etc.
-#include "buildings/prim_globals.h"     // prim_names[]
-#include "buildings/prim.h"             // clear_prims
+#include "buildings/prim_globals.h" // prim_names[]
+#include "buildings/prim.h" // clear_prims
 #include "engine/audio/sound.h"
 #include "engine/audio/sound_globals.h"
-#include "assets/texture.h"               // TEXTURE_choose_set
+#include "assets/texture.h" // TEXTURE_choose_set
 
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
@@ -524,4 +524,3 @@ file_error:;
     FileClose(handle);
     return UC_FALSE;
 }
-

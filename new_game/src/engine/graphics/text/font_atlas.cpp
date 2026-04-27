@@ -17,51 +17,106 @@
 // because the quad's UVs span only the FONT_WIDTH × FONT_HEIGHT populated
 // region. ATLAS_H is not strictly PoT but GL 4.1 has no NPOT restrictions.
 
-#define CELL_W            8
-#define CELL_H            16
-#define ATLAS_COLS        16
-#define ATLAS_ROWS        6     // ceil((26+26+10+FONT_PUNCT_NUMBER) / ATLAS_COLS) = ceil(87/16)
-#define ATLAS_W           (CELL_W  * ATLAS_COLS)   // 128
-#define ATLAS_H           (CELL_H  * ATLAS_ROWS)   // 96
+#define CELL_W 8
+#define CELL_H 16
+#define ATLAS_COLS 16
+#define ATLAS_ROWS 6 // ceil((26+26+10+FONT_PUNCT_NUMBER) / ATLAS_COLS) = ceil(87/16)
+#define ATLAS_W (CELL_W * ATLAS_COLS) // 128
+#define ATLAS_H (CELL_H * ATLAS_ROWS) // 96
 
 // Index into a flat glyph array where [0..25] = upper, [26..51] = lower,
 // [52..61] = digit, [62..86] = punct.
 static int32_t s_ch_to_index(CBYTE ch)
 {
-    if (ch >= 'A' && ch <= 'Z') return      0 + (ch - 'A');
-    if (ch >= 'a' && ch <= 'z') return     26 + (ch - 'a');
-    if (ch >= '0' && ch <= '9') return     52 + (ch - '0');
+    if (ch >= 'A' && ch <= 'Z')
+        return 0 + (ch - 'A');
+    if (ch >= 'a' && ch <= 'z')
+        return 26 + (ch - 'a');
+    if (ch >= '0' && ch <= '9')
+        return 52 + (ch - '0');
 
     // Punctuation dispatch mirrors FONT_draw_coloured_char exactly. A mismatch
     // here would render a different bitmap than the pre-atlas path.
     int32_t p;
     switch (ch) {
-    case '.':   p = FONT_PUNCT_DOT;    break;
-    case ',':   p = FONT_PUNCT_COMMA;  break;
-    case '?':   p = FONT_PUNCT_QMARK;  break;
-    case '!':   p = FONT_PUNCT_PLING;  break;
-    case '"':   p = FONT_PUNCT_QUOTES; break;
-    case '(':   p = FONT_PUNCT_OPEN;   break;
-    case ')':   p = FONT_PUNCT_CLOSE;  break;
-    case '+':   p = FONT_PUNCT_PLUS;   break;
-    case '-':   p = FONT_PUNCT_MINUS;  break;
-    case '=':   p = FONT_PUNCT_EQUAL;  break;
-    case '#':   p = FONT_PUNCT_HASH;   break;
-    case '%':   p = FONT_PUNCT_PCENT;  break;
-    case '*':   p = FONT_PUNCT_STAR;   break;
-    case '\\':  p = FONT_PUNCT_BSLASH; break;
-    case '/':   p = FONT_PUNCT_FSLASH; break;
-    case ':':   p = FONT_PUNCT_COLON;  break;
-    case ';':   p = FONT_PUNCT_SCOLON; break;
-    case '\'':  p = FONT_PUNCT_APOST;  break;
-    case '&':   p = FONT_PUNCT_AMPER;  break;
-    case '\xa3': p = FONT_PUNCT_POUND; break;
-    case '$':   p = FONT_PUNCT_DOLLAR; break;
-    case '<':   p = FONT_PUNCT_LT;     break;
-    case '>':   p = FONT_PUNCT_GT;     break;
-    case '@':   p = FONT_PUNCT_AT;     break;
-    case '_':   p = FONT_PUNCT_UNDER;  break;
-    default:    p = FONT_PUNCT_QMARK;  break;
+    case '.':
+        p = FONT_PUNCT_DOT;
+        break;
+    case ',':
+        p = FONT_PUNCT_COMMA;
+        break;
+    case '?':
+        p = FONT_PUNCT_QMARK;
+        break;
+    case '!':
+        p = FONT_PUNCT_PLING;
+        break;
+    case '"':
+        p = FONT_PUNCT_QUOTES;
+        break;
+    case '(':
+        p = FONT_PUNCT_OPEN;
+        break;
+    case ')':
+        p = FONT_PUNCT_CLOSE;
+        break;
+    case '+':
+        p = FONT_PUNCT_PLUS;
+        break;
+    case '-':
+        p = FONT_PUNCT_MINUS;
+        break;
+    case '=':
+        p = FONT_PUNCT_EQUAL;
+        break;
+    case '#':
+        p = FONT_PUNCT_HASH;
+        break;
+    case '%':
+        p = FONT_PUNCT_PCENT;
+        break;
+    case '*':
+        p = FONT_PUNCT_STAR;
+        break;
+    case '\\':
+        p = FONT_PUNCT_BSLASH;
+        break;
+    case '/':
+        p = FONT_PUNCT_FSLASH;
+        break;
+    case ':':
+        p = FONT_PUNCT_COLON;
+        break;
+    case ';':
+        p = FONT_PUNCT_SCOLON;
+        break;
+    case '\'':
+        p = FONT_PUNCT_APOST;
+        break;
+    case '&':
+        p = FONT_PUNCT_AMPER;
+        break;
+    case '\xa3':
+        p = FONT_PUNCT_POUND;
+        break;
+    case '$':
+        p = FONT_PUNCT_DOLLAR;
+        break;
+    case '<':
+        p = FONT_PUNCT_LT;
+        break;
+    case '>':
+        p = FONT_PUNCT_GT;
+        break;
+    case '@':
+        p = FONT_PUNCT_AT;
+        break;
+    case '_':
+        p = FONT_PUNCT_UNDER;
+        break;
+    default:
+        p = FONT_PUNCT_QMARK;
+        break;
     }
     return 62 + p;
 }
@@ -76,8 +131,8 @@ static void s_paste_glyph(uint8_t* atlas, int32_t atlas_index, const FONT_Char* 
 {
     int32_t col = atlas_index % ATLAS_COLS;
     int32_t row = atlas_index / ATLAS_COLS;
-    int32_t x0  = col * CELL_W;
-    int32_t y0  = row * CELL_H;
+    int32_t x0 = col * CELL_W;
+    int32_t y0 = row * CELL_H;
 
     for (int32_t y = 0; y < FONT_HEIGHT; ++y) {
         uint8_t row_bits = fc->bit[y];
@@ -93,14 +148,19 @@ static void s_paste_glyph(uint8_t* atlas, int32_t atlas_index, const FONT_Char* 
 
 void FONT_atlas_ensure()
 {
-    if (s_atlas != GE_TEXTURE_NONE) return;
+    if (s_atlas != GE_TEXTURE_NONE)
+        return;
 
     uint8_t* atlas = (uint8_t*)calloc(1, ATLAS_W * ATLAS_H);
-    if (!atlas) return;
+    if (!atlas)
+        return;
 
-    for (int32_t i = 0; i < 26; ++i) s_paste_glyph(atlas,       i, &FONT_upper[i]);
-    for (int32_t i = 0; i < 26; ++i) s_paste_glyph(atlas,  26 + i, &FONT_lower[i]);
-    for (int32_t i = 0; i < 10; ++i) s_paste_glyph(atlas,  52 + i, &FONT_number[i]);
+    for (int32_t i = 0; i < 26; ++i)
+        s_paste_glyph(atlas, i, &FONT_upper[i]);
+    for (int32_t i = 0; i < 26; ++i)
+        s_paste_glyph(atlas, 26 + i, &FONT_lower[i]);
+    for (int32_t i = 0; i < 10; ++i)
+        s_paste_glyph(atlas, 52 + i, &FONT_number[i]);
     for (int32_t i = 0; i < FONT_PUNCT_NUMBER; ++i)
         s_paste_glyph(atlas, 62 + i, &FONT_punct[i]);
 
@@ -110,10 +170,12 @@ void FONT_atlas_ensure()
 
 void FONT_atlas_draw_glyph(SLONG sx, SLONG sy, UBYTE r, UBYTE g, UBYTE b, CBYTE ch)
 {
-    if (ch == ' ') return;
+    if (ch == ' ')
+        return;
 
     FONT_atlas_ensure();
-    if (s_atlas == GE_TEXTURE_NONE) return;
+    if (s_atlas == GE_TEXTURE_NONE)
+        return;
 
     int32_t idx = s_ch_to_index(ch);
     int32_t col = idx % ATLAS_COLS;
@@ -125,16 +187,16 @@ void FONT_atlas_draw_glyph(SLONG sx, SLONG sy, UBYTE r, UBYTE g, UBYTE b, CBYTE 
     const int32_t GLYPH_COLS = 5;
     const float inv_w = 1.0f / (float)ATLAS_W;
     const float inv_h = 1.0f / (float)ATLAS_H;
-    float u0 = (col * CELL_W)               * inv_w;
-    float v0 = (row * CELL_H)               * inv_h;
-    float u1 = (col * CELL_W + GLYPH_COLS)  * inv_w;
+    float u0 = (col * CELL_W) * inv_w;
+    float v0 = (row * CELL_H) * inv_h;
+    float u1 = (col * CELL_W + GLYPH_COLS) * inv_w;
     float v1 = (row * CELL_H + FONT_HEIGHT) * inv_h;
 
     // D3D6 color format expected by tl_vert.glsl: bytes in memory are B, G, R, A.
     uint32_t color = ((uint32_t)0xFF << 24)
-                   | ((uint32_t)r    << 16)
-                   | ((uint32_t)g    <<  8)
-                   | ((uint32_t)b    <<  0);
+        | ((uint32_t)r << 16)
+        | ((uint32_t)g << 8)
+        | ((uint32_t)b << 0);
 
     // Quad spans 5 × FONT_HEIGHT screen pixels starting at (sx, sy) — same
     // footprint as the legacy per-pixel plot loop.
@@ -148,29 +210,49 @@ void FONT_atlas_draw_glyph(SLONG sx, SLONG sy, UBYTE r, UBYTE g, UBYTE b, CBYTE 
     // screen pixel then maps to exactly one atlas texel. Same trick as the
     // fullscreen blit in ge_unlock_screen.
     const float ox = 0.5f, oy = 0.5f;
-    const float x0f = (float)sx                + ox;
-    const float y0f = (float)sy                + oy;
+    const float x0f = (float)sx + ox;
+    const float y0f = (float)sy + oy;
     const float x1f = (float)(sx + GLYPH_COLS) + ox;
     const float y1f = (float)(sy + FONT_HEIGHT) + oy;
-    const float z   = 0.0f;
+    const float z = 0.0f;
     const float rhw = 1.0f;
 
     GEVertexTL verts[4];
-    verts[0].x = x0f; verts[0].y = y0f; verts[0].z = z; verts[0].rhw = rhw;
-    verts[0].color = color; verts[0].specular = 0xFF000000;
-    verts[0].u = u0; verts[0].v = v0;
+    verts[0].x = x0f;
+    verts[0].y = y0f;
+    verts[0].z = z;
+    verts[0].rhw = rhw;
+    verts[0].color = color;
+    verts[0].specular = 0xFF000000;
+    verts[0].u = u0;
+    verts[0].v = v0;
 
-    verts[1].x = x1f; verts[1].y = y0f; verts[1].z = z; verts[1].rhw = rhw;
-    verts[1].color = color; verts[1].specular = 0xFF000000;
-    verts[1].u = u1; verts[1].v = v0;
+    verts[1].x = x1f;
+    verts[1].y = y0f;
+    verts[1].z = z;
+    verts[1].rhw = rhw;
+    verts[1].color = color;
+    verts[1].specular = 0xFF000000;
+    verts[1].u = u1;
+    verts[1].v = v0;
 
-    verts[2].x = x0f; verts[2].y = y1f; verts[2].z = z; verts[2].rhw = rhw;
-    verts[2].color = color; verts[2].specular = 0xFF000000;
-    verts[2].u = u0; verts[2].v = v1;
+    verts[2].x = x0f;
+    verts[2].y = y1f;
+    verts[2].z = z;
+    verts[2].rhw = rhw;
+    verts[2].color = color;
+    verts[2].specular = 0xFF000000;
+    verts[2].u = u0;
+    verts[2].v = v1;
 
-    verts[3].x = x1f; verts[3].y = y1f; verts[3].z = z; verts[3].rhw = rhw;
-    verts[3].color = color; verts[3].specular = 0xFF000000;
-    verts[3].u = u1; verts[3].v = v1;
+    verts[3].x = x1f;
+    verts[3].y = y1f;
+    verts[3].z = z;
+    verts[3].rhw = rhw;
+    verts[3].color = color;
+    verts[3].specular = 0xFF000000;
+    verts[3].u = u1;
+    verts[3].v = v1;
 
     uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
 

@@ -18,10 +18,10 @@ struct Plat {
     UBYTE move;
 
     UBYTE state;
-    UBYTE wspeed;   // Desired speed
-    UBYTE speed;    // Current speed
+    UBYTE wspeed; // Desired speed
+    UBYTE speed; // Current speed
     UBYTE flag;
-    UWORD counter;  // Countdown timer in milliseconds
+    UWORD counter; // Countdown timer in milliseconds
     UWORD waypoint;
 };
 

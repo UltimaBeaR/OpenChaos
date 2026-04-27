@@ -9,12 +9,12 @@
 // The actual allocations and definitions live in missions/memory.cpp (memory_globals.cpp).
 
 #include "engine/core/types.h"
-#include "engine/core/vector.h"                        // SVector
-#include "buildings/prim_types.h"       // PrimPoint, PrimFace3/4, PrimObject, PrimMultiObject, PrimNormal, PrimInfo, RoofFace4
-#include "buildings/building_types.h"   // BoundBox
-#include "map/supermap.h"                 // DBuilding, DFacet, DWalkable, DStorey, DInsideRect
-#include "navigation/inside2.h"           // InsideStorey, Staircase
-#include "navigation/inside2_globals.h"   // next_inside_storey, etc.
+#include "engine/core/vector.h" // SVector
+#include "buildings/prim_types.h" // PrimPoint, PrimFace3/4, PrimObject, PrimMultiObject, PrimNormal, PrimInfo, RoofFace4
+#include "buildings/building_types.h" // BoundBox
+#include "map/supermap.h" // DBuilding, DFacet, DWalkable, DStorey, DInsideRect
+#include "navigation/inside2.h" // InsideStorey, Staircase
+#include "navigation/inside2_globals.h" // next_inside_storey, etc.
 
 // ---- Prim geometry pools (static world geometry: vertices and faces) ----
 

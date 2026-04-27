@@ -31,17 +31,17 @@
 // uc_orig: Ribbon (fallen/Headers/ribbon.h)
 struct Ribbon {
     SLONG Flags;
-    SLONG Page;       // POLY_PAGE texture page index
-    SLONG Life;       // ticks remaining; -1 = infinite
-    SLONG RGB;        // colour
-    UBYTE Size;       // max points allowed
-    UBYTE Head;       // next write position
-    UBYTE Tail;       // oldest point
-    UBYTE Scroll;     // texture offset for looped textures
-    UBYTE FadePoint;  // number of steps over which alpha fades out
+    SLONG Page; // POLY_PAGE texture page index
+    SLONG Life; // ticks remaining; -1 = infinite
+    SLONG RGB; // colour
+    UBYTE Size; // max points allowed
+    UBYTE Head; // next write position
+    UBYTE Tail; // oldest point
+    UBYTE Scroll; // texture offset for looped textures
+    UBYTE FadePoint; // number of steps over which alpha fades out
     UBYTE SlideSpeed; // how much Scroll advances per tick
-    UBYTE TextureU;   // texture repeat count along width
-    UBYTE TextureV;   // texture steps per loop
+    UBYTE TextureU; // texture repeat count along width
+    UBYTE TextureV; // texture steps per loop
     GameCoord Points[MAX_RIBBON_SIZE];
 };
 

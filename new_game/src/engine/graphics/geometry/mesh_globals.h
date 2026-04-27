@@ -65,5 +65,4 @@ typedef struct
 
 } MESH_Face;
 
-
 #endif // ENGINE_GRAPHICS_GEOMETRY_MESH_GLOBALS_H

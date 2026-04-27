@@ -2,8 +2,8 @@
 #define MAP_SUPERMAP_H
 
 #include "engine/core/types.h"
-#include "engine/platform/uc_common.h"                          // MFFileHandle (used in load_super_map / save_super_map)
-#include "buildings/building_types.h"  // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, etc.
+#include "engine/platform/uc_common.h" // MFFileHandle (used in load_super_map / save_super_map)
+#include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, etc.
 // Global state: allocation cursors, level list.
 #include "map/supermap_globals.h"
 
@@ -17,9 +17,9 @@
 
 // uc_orig: DStorey (fallen/Headers/supermap.h)
 struct DStorey {
-    UWORD Style;    // Replacement style index
-    UWORD Index;    // Index into painted info
-    SBYTE Count;    // Positive = style, negative = (unused)
+    UWORD Style; // Replacement style index
+    UWORD Index; // Index into painted info
+    SBYTE Count; // Positive = style, negative = (unused)
     UBYTE BloodyPadding;
 };
 
@@ -27,18 +27,18 @@ struct DStorey {
 struct DFacet {
     UBYTE FacetType;
     UBYTE Height;
-    UBYTE x[2];         // Grid-based X coordinates (byte precision)
+    UBYTE x[2]; // Grid-based X coordinates (byte precision)
     SWORD Y[2];
-    UBYTE z[2];         // Grid-based Z coordinates (byte precision)
+    UBYTE z[2]; // Grid-based Z coordinates (byte precision)
     UWORD FacetFlags;
     UWORD StyleIndex;
     UWORD Building;
     UWORD DStorey;
     UBYTE FHeight;
     UBYTE BlockHeight;
-    UBYTE Open;         // How open/closed a STOREY_TYPE_OUTSIDE_DOOR is
-    UBYTE Dfcache;      // Index into NIGHT_dfcache[] or NULL
-    UBYTE Shake;        // Set when a fence has been hit hard by something
+    UBYTE Open; // How open/closed a STOREY_TYPE_OUTSIDE_DOOR is
+    UBYTE Dfcache; // Index into NIGHT_dfcache[] or NULL
+    UBYTE Shake; // Set when a fence has been hit hard by something
     UBYTE CutHole;
     UBYTE Counter[2];
 };
@@ -51,18 +51,18 @@ struct DBuilding {
     UWORD Walkable;
     UBYTE Counter[2];
     UWORD Padding;
-    UBYTE Ware;     // If this building is a warehouse, index into WARE_ware[]
+    UBYTE Ware; // If this building is a warehouse, index into WARE_ware[]
     UBYTE Type;
 };
 
 // uc_orig: DWalkable (fallen/Headers/supermap.h)
 struct DWalkable {
-    UWORD StartPoint;   // Unused
-    UWORD EndPoint;     // Unused
-    UWORD StartFace3;   // Unused
-    UWORD EndFace3;     // Unused
+    UWORD StartPoint; // Unused
+    UWORD EndPoint; // Unused
+    UWORD StartFace3; // Unused
+    UWORD EndFace3; // Unused
 
-    UWORD StartFace4;   // Indices into the roof faces
+    UWORD StartFace4; // Indices into the roof faces
     UWORD EndFace4;
 
     UBYTE X1;
@@ -89,8 +89,8 @@ struct DInsideRect {
     UBYTE Width;
     UBYTE Depth;
     UBYTE StoreyY;
-    UBYTE Flags;        // Flags; also pads the struct to a nice size
-    UWORD BitIndex;     // Index into block of data for inside buildings
+    UBYTE Flags; // Flags; also pads the struct to a nice size
+    UWORD BitIndex; // Index into block of data for inside buildings
 };
 
 // ---- Array limits ----

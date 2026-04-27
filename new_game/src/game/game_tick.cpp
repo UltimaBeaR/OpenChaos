@@ -5,14 +5,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "game/game_types.h"       // NET_PERSON, NET_PLAYER, GAME_STATE, GAME_TURN, the_game
+#include "game/game_types.h" // NET_PERSON, NET_PLAYER, GAME_STATE, GAME_TURN, the_game
 #include "ai/pcom.h"
 #include "assets/sound_id.h"
 #include "engine/audio/music.h"
 #include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"
 #include "engine/console/console.h"
-#include "engine/debug/debug_help/debug_help.h"   // F1 debug hotkey legend
+#include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "map/pap.h"
@@ -63,10 +63,10 @@
 #include "assets/formats/anim_tmap.h"
 #include "ui/hud/panel.h"
 
-#include "ui/menus/widget.h"          // Form type for form_leave_map extern decl
+#include "ui/menus/widget.h" // Form type for form_leave_map extern decl
 #include "game/game_tick.h"
 #include "game/game_tick_globals.h"
-#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line, AENG_raytraced_position
+#include "engine/graphics/pipeline/aeng.h" // AENG_world_line, AENG_raytraced_position
 
 // Forward declarations for functions not yet migrated from old/
 // Scene FBO dimensions (defined in d3d/display_globals.cpp).
@@ -80,13 +80,12 @@ extern UWORD fade_black;
 extern void reload_level(void);
 extern SLONG plant_feet(Thing* p_person);
 extern UWORD count_gang(Thing* p_target);
-extern SLONG mouse_input;            // defined in interfac.cpp
-extern UBYTE aeng_draw_cloud_flag;   // defined in aeng.cpp
+extern SLONG mouse_input; // defined in interfac.cpp
+extern UBYTE aeng_draw_cloud_flag; // defined in aeng.cpp
 
 // tga[] is file-local, used only by tga_dump and plan_view_shot.
 // uc_orig: tga (fallen/Source/Controls.cpp)
 static TGA_Pixel tga[480][640];
-
 
 // uc_orig: INVENTORY_FADE_SPEED (fallen/Source/Controls.cpp)
 // Inventory panel fade speed in opacity units per frame.
@@ -418,16 +417,20 @@ found_file:;
     // alpha channel into the TGA_Pixel packing. No lock/unlock writeback path
     // — that was the WDDM throttle trigger (see startup_hang_investigation).
     uint8_t* rgba = (uint8_t*)malloc((size_t)w * (size_t)h * 4);
-    if (!rgba) return;
+    if (!rgba)
+        return;
     ge_read_framebuffer_rgba(rgba, w, h);
 
     TGA_Pixel* pixels = (TGA_Pixel*)malloc(w * h * sizeof(TGA_Pixel));
-    if (!pixels) { free(rgba); return; }
+    if (!pixels) {
+        free(rgba);
+        return;
+    }
 
     for (SLONG p = 0, n = w * h; p < n; ++p) {
-        pixels[p].red   = rgba[p * 4 + 0];
+        pixels[p].red = rgba[p * 4 + 0];
         pixels[p].green = rgba[p * 4 + 1];
-        pixels[p].blue  = rgba[p * 4 + 2];
+        pixels[p].blue = rgba[p * 4 + 2];
     }
     free(rgba);
 
@@ -978,22 +981,6 @@ SLONG CONTROLS_new_inventory(Thing* darci, Thing* player)
         player->Genus.Player->PopupFade = temp;
 
     if (player->Genus.Player->ItemFocus == -1) {
-        /*
-                        if(darci->Genus.Person->SpecialUse==0 &&  !(darci->Flags & FLAGS_HAS_GUN) )
-                        {
-                                //
-                                // currently unarmed so pick best weapon
-                                //
-
-                                player->Genus.Player->ItemFocus = CONTROLS_get_best_item(darci, player);
-                                if(player->Genus.Player->ItemFocus)
-                                {
-                                        CONTROLS_set_inventory(darci,player,player->Genus.Player->ItemFocus);
-                                        return(1);
-                                }
-                        }
-                        else
-        */
 
         {
             player->Genus.Player->ItemFocus = CONTROLS_get_selected_item(darci, player);
@@ -1155,35 +1142,6 @@ void process_controls(void)
 {
     Thing* darci = NET_PERSON(0);
 
-    /*
-
-    if (Keys[KB_R])
-    {
-            Keys[KB_R] = 0;
-
-            void FACET_facetinfo_trace(void);
-
-            FACET_facetinfo_trace();
-    }
-
-    */
-
-    /*
-    {
-            static werwer = UC_FALSE;
-
-            if (!werwer)
-            {
-                    werwer = UC_TRUE;
-
-                    extern void DCLL_looping_sample_conversion(void);
-
-                    DCLL_looping_sample_conversion();
-
-            }
-    }
-    */
-
     //	if (Keys[KB_D])
 
     if (GAME_TURN <= 1) {
@@ -1201,16 +1159,6 @@ void process_controls(void)
 
             ASSERT(p_thing->Class == CLASS_PERSON);
         }
-
-        /*
-
-        extern void convert_pointers_to_index(void);
-        extern void convert_index_to_pointers(void);
-
-        convert_pointers_to_index();
-        convert_index_to_pointers();
-
-        */
     }
 
     if (Keys[KB_D]) {
@@ -1230,68 +1178,6 @@ void process_controls(void)
     //	PANEL_new_text(NULL, 2000, "a-b-c-d-e-f-g  h-i-j-k-l-m-n");
 
     if (allow_debug_keys) {
-        /*
-
-        if (Keys[KB_B])
-        {
-                Keys[KB_B] = 0;
-
-                extern UWORD last_fudge_camera;
-
-                for (i = 0; i < EWAY_way_upto; i++)
-                {
-                        last_fudge_camera += 1;
-
-                        if (last_fudge_camera >= EWAY_way_upto)
-                        {
-                                last_fudge_camera = 1;
-                        }
-
-                        if (EWAY_way[last_fudge_camera].ed.type == EWAY_DO_CAMERA_CREATE)
-                        {
-                                extern void EWAY_set_active(EWAY_Way *ew);
-
-                                EWAY_set_active(&EWAY_way[last_fudge_camera]);
-
-                                break;
-                        }
-                }
-        }
-
-        if (Keys[KB_M] && !ShiftFlag)
-        {
-                Keys[KB_M] = 0;
-
-                extern UWORD last_fudge_message;
-
-                SLONG old_flag;
-
-                for (i = 0; i < EWAY_way_upto; i++)
-                {
-                        last_fudge_message += 1;
-
-                        if (last_fudge_message >= EWAY_way_upto)
-                        {
-                                last_fudge_message = 1;
-                        }
-
-                        if (EWAY_way[last_fudge_message].ed.type == EWAY_DO_MESSAGE ||
-                                EWAY_way[last_fudge_message].ed.type == EWAY_DO_CONVERSATION)
-                        {
-                                extern void EWAY_set_active(EWAY_Way *ew);
-
-                                old_flag = EWAY_way[last_fudge_message].flag;
-
-                                EWAY_set_active(&EWAY_way[last_fudge_message]);
-
-                                EWAY_way[last_fudge_message].flag = old_flag;
-
-                                break;
-                        }
-                }
-        }
-
-        */
     }
 
     if ((GAME_TURN & 0x0f) == 0)
@@ -1361,81 +1247,6 @@ void process_controls(void)
         }
     }
 
-    /*
-
-    if ((GAME_TURN & 0xffff) == 0)
-    {
-            SLONG look = ROAD_get_mapsquare_type(darci->WorldPos.X >> 16, darci->WorldPos.Z >> 16);
-
-            CBYTE *look_names[] =
-            {
-                    "stone",
-                    "grass",
-                    "dirt",
-                    "slippery",
-            };
-
-            PANEL_new_text(darci, 250, "Texture feels like %s", look_names[look]);
-    }
-
-    */
-
-    /*
-            static DIKE_Dike *dd = NULL;
-
-            if (dd == NULL || Keys[KB_7])
-            {
-                    Keys[KB_7] = 0;
-
-                    DIKE_init();
-
-                    dd = DIKE_create(
-                                    darci->WorldPos.X >> 8,
-                                    darci->WorldPos.Z >> 8,
-                                    darci->Draw.Tweened->Angle);
-            }
-
-            if (dd)
-            {
-                    dd->control = 0;
-
-                    if (Keys[KB_PSLASH  ]) {dd->control |= DIKE_CONTROL_LEFT;}
-                    if (Keys[KB_ASTERISK]) {dd->control |= DIKE_CONTROL_RIGHT;}
-                    if (Keys[KB_P8      ]) {dd->control |= DIKE_CONTROL_ACCEL;}
-
-                    DIKE_process(dd);
-                    DIKE_draw   (dd);
-            }
-    */
-    /*
-
-    if (Keys[KB_7])
-    {
-            Keys[KB_7] = 0;
-
-            remove_thing_from_map(darci);
-    }
-
-    */
-    /*
-    SLONG is_person_crouching(Thing *p_person);
-
-            if (is_person_crouching(darci))
-            {
-                    AENG_world_line(
-                            darci->WorldPos.X >> 8,
-                            darci->WorldPos.Y >> 8,
-                            darci->WorldPos.Z >> 8,
-                            32,
-                            0xffffff,
-                            darci->WorldPos.X >> 8,
-                            (darci->WorldPos.Y >> 8) + 0x80,
-                            darci->WorldPos.Z >> 8,
-                            0,
-                            0x111111,
-                            UC_TRUE);
-            }
-    */
     // this stuff shouldn't even _be_ in process_controls.
 
     DIRT_set_focus(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8, 0xc00);
@@ -1510,11 +1321,6 @@ void process_controls(void)
 
         //		if (can_darci_change_weapon(darci))
         {
-            /*
-                                    if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT) {
-                                            CONTROLS_inventory_mode^=1;
-                                    }
-            */
 
             if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT) {
                 CONTROLS_new_inventory(darci, the_player);
@@ -1550,20 +1356,6 @@ void process_controls(void)
                     // does the fade in
                     //
                     CONTROLS_new_inventory(darci, the_player);
-                    /*
-                                                            if ((NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_LEFT)||(NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_FORWARDS))
-                                                            {
-                    //						NET_PLAYER(0)->Genus.Player->Pressed &= ~(INPUT_MASK_LEFT|INPUT_MASK_FORWARDS);
-                                                                    CONTROLS_rot_inventory(darci,the_player,-1,0);
-                                                                    CONTROLS_inventory_mode=500;
-                                                            }
-                                                            if ((NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_RIGHT)||(NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_BACKWARDS))
-                                                            {
-                    //						NET_PLAYER(0)->Genus.Player->Pressed &= ~(INPUT_MASK_RIGHT|INPUT_MASK_BACKWARDS);
-                                                                    CONTROLS_rot_inventory(darci,the_player, 1,0);
-                                                                    CONTROLS_inventory_mode=500;
-                                                            }
-                    */
 
                 } else {
                     //
@@ -1574,10 +1366,6 @@ void process_controls(void)
                 }
             }
         }
-        /*		else
-                        {
-                                CONTROLS_inventory_mode=0;
-                        }*/
 
         //		if (the_player->Genus.Player->PopupFade&&!(NET_PLAYER(0)->Genus.Player->ThisInput & INPUT_MASK_SELECT)) {
 
@@ -1644,20 +1432,6 @@ void process_controls(void)
     WARE_debug();
 
     if (ControlFlag && ShiftFlag) {
-        /*
-
-        MSG_add(" yomp %d sprint %d \n",yomp_speed,sprint_speed);
-
-        if(Keys[KB_1])
-                yomp_speed--;
-        if(Keys[KB_2])
-                yomp_speed++;
-        if(Keys[KB_3])
-                sprint_speed--;
-        if(Keys[KB_4])
-                sprint_speed++;
-
-        */
 
         if (yomp_speed < 10)
             yomp_speed = 10;
@@ -1688,180 +1462,12 @@ void process_controls(void)
 
     //	Thing *darci = NET_PERSON(0);
 
-    /*
-
-    //
-    // Is darci still?
-    //
-
-    if (darci->State == STATE_IDLE)
-    {
-            if (darci->Draw.Tweened->CurrentAnim != ANIM_ROTATE_L &&
-                    darci->Draw.Tweened->CurrentAnim != ANIM_ROTATE_R)
-            {
-                    AENG_world_line(
-                            darci->WorldPos.X >> 8,
-                            darci->WorldPos.Y >> 8,
-                            darci->WorldPos.Z >> 8,
-                            32, 0xffffff,
-                            darci->WorldPos.X          >> 8,
-                            darci->WorldPos.Y + 0x8000 >> 8,
-                            darci->WorldPos.Z          >> 8,
-                            0, 0xffffff,
-                            UC_TRUE);
-            }
-    }
-
-    if (darci->SubState == SUB_STATE_CRAWLING)
-    {
-            AENG_world_line(
-                    darci->WorldPos.X >> 8,
-                    darci->WorldPos.Y >> 8,
-                    darci->WorldPos.Z >> 8,
-                    32, 0xff0000,
-                    darci->WorldPos.X          >> 8,
-                    darci->WorldPos.Y + 0x8000 >> 8,
-                    darci->WorldPos.Z          >> 8,
-                    0, 0xff0000,
-                    UC_TRUE);
-    }
-
-    */
-
     void set_person_idle(Thing * p_person);
 
     if (Keys[KB_P]) {
         void save_whole_game(CBYTE * gamename);
         save_whole_game("save.me");
     }
-
-    /*
-
-    if(Keys[KB_1])
-    {
-extern	UBYTE	anim_type[];
-
-            darci->Genus.Person->PersonType =  PERSON_DARCI;
-            darci->Genus.Person->AnimType =  ANIM_TYPE_DARCI;
-            darci->Draw.Tweened->TheChunk   = &game_chunk[ANIM_TYPE_DARCI];
-            set_person_idle(darci);
-            darci->Draw.Tweened->PersonID=0;
-            darci->Draw.Tweened->MeshID	= 0;
-//		if(darci->Draw.Tweened->PersonID>19)
-//			darci->Draw.Tweened->PersonID=0;
-
-
-//darci->Genus.Person->Flags&=~FLAG_PERSON_OTHERHAND;
-void FC_look_at(SLONG cam, UWORD thing_index);
-
-
-            FC_look_at(0,THING_NUMBER(darci));
-
-//		yomp_speed=50;
-//		sprint_speed=80;
-    }
-
-    */
-
-    /*
-
-    if(Keys[KB_2])
-    {
-            darci->Genus.Person->PersonType =  PERSON_ROPER;
-            darci->Genus.Person->AnimType =  ANIM_TYPE_ROPER;
-            darci->Draw.Tweened->TheChunk	= &game_chunk[ANIM_TYPE_ROPER];
-            darci->Draw.Tweened->MeshID	= 0;
-            darci->Draw.Tweened->PersonID=0;
-            set_person_idle(darci);
-//darci->Genus.Person->Flags|=FLAG_PERSON_OTHERHAND;
-            FC_look_at(0,THING_NUMBER(darci));
-//		yomp_speed=36;
-//		sprint_speed=56;
-    }
-
-    */
-
-    /*	if (playing&&(Keys[KB_3]||Keys[KB_4]||Keys[KB_5])) {
-                    MFX_stop(THING_NUMBER(darci),MFX_WAVE_ALL);
-                    playing=0;
-                    Keys[KB_3]=Keys[KB_4]=Keys[KB_5]=0;
-            }*/
-
-    /*	if (Keys[KB_3]) play_music(S_TEST_MUSIC_START,0);
-            if (Keys[KB_4]) play_music(S_TEST_MUSIC_START+1,0);*/
-
-    /*
-    if (Keys[KB_5]) {
-            Keys[KB_5]=0;
-            MUSIC_play(S_TEST_MUSIC_START,MUSIC_FLAG_QUEUED);
-    }
-
-    */
-
-    /*	if (Keys[KB_3])
-            {
-                    Keys[KB_3] = 0;
-
-    //		MFX_play_thing(THING_NUMBER(darci),S_TUNE_CHAOS,MFX_REPLACE|MFX_LOOPED,darci);
-    //		MFX_play_thing(THING_NUMBER(darci),S_TUNE_DARCI_BASS,MFX_REPLACE|MFX_LOOPED,darci);
-                    play_music(S_TUNE_DARCI_BASS,1);
-                    playing=1;
-            }
-
-            if (Keys[KB_4])
-            {
-                    Keys[KB_4] = 0;
-
-    //		MFX_play_thing(THING_NUMBER(darci),S_TUNE_CLUB,MFX_REPLACE|MFX_LOOPED,darci);
-    //		MFX_play_thing(THING_NUMBER(darci),S_TUNE_DARCI_CHASE,MFX_REPLACE|MFX_LOOPED,darci);
-                    play_music(S_TUNE_DARCI_CHASE,0);
-                    playing=1;
-            }
-
-            if (Keys[KB_5])
-            {
-                    Keys[KB_5] = 0;
-
-    //		MFX_play_thing(THING_NUMBER(darci),S_TUNE_DANGER,MFX_REPLACE|MFX_LOOPED,darci);
-    //		MFX_play_thing(THING_NUMBER(darci),S_TUNE_DARCI_TROUBLE,MFX_REPLACE|MFX_LOOPED,darci);
-                    play_music(S_TUNE_DARCI_TROUBLE,0);
-                    playing=1;
-            }*/
-    /*
-            // auto music scheduling test...
-            switch (NET_PLAYER(0)->Genus.Player->Danger) {
-            case 0: // no danger warning
-                    break;
-            case 3: // green, mild danger
-                    play_music(S_TUNE_DARCI_BASS,1);
-                    break; // no music
-            case 2: // yellow
-    //		play_music(S_TUNE_DARCI_BASS,1);
-                    play_music(S_TUNE_DARCI_BASS,1);
-                    play_music(S_TUNE_DARCI_CHASE,0);
-                    break;
-            case 1: // red
-                    play_music(S_TUNE_DARCI_BASS,1);
-                    play_music(S_TUNE_DARCI_TROUBLE,0);
-                    break;
-            }
-            */
-    /*
-            switch (NET_PLAYER(0)->Genus.Player->Danger)
-            {
-                    case 0: // no danger warning
-                            break;
-                    case 3: // green, mild danger
-                            play_music(S_TUNE_DARCI_BASS,1);
-                            break; // no music
-                    case 2: // yellow
-                            play_music(S_TUNE_DARCI_SLOW,1);
-                            break;
-                    case 1: // red
-                            play_music(S_TUNE_DARCI_SPOOKY,1);
-                            break;
-            }
-    */
 
     //	TRACE("danger numbers: %d\n",(NET_PLAYER(0)->Genus.Player->Danger));
 
@@ -1881,79 +1487,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
 
             WAND_draw(mx, mz);
         }
-        /*
-                        if (Keys[KB_LBRACE])
-                        {
-                                Keys[KB_LBRACE] = 0;
-
-                        }
-        */
     }
-
-    /*
-
-    //
-    // Hook control.
-    //
-
-    if (HOOK_get_state() == HOOK_STATE_SPINNING)
-    {
-            static SLONG spin_speed = 0;
-
-            if (ControlFlag) {spin_speed += 15;}
-
-            spin_speed -= 5;
-
-            SATURATE(spin_speed, 64, 154);
-
-            SLONG px;
-            SLONG py;
-            SLONG pz;
-
-            calc_sub_objects_position(
-                    darci,
-                    darci->Draw.Tweened->AnimTween,
-                    SUB_OBJECT_RIGHT_HAND,
-               &px,
-               &py,
-               &pz);
-
-            px += darci->WorldPos.X >> 8;
-            py += darci->WorldPos.Y >> 8;
-            pz += darci->WorldPos.Z >> 8;
-
-            HOOK_spin(
-                    px,
-                    py,
-                    pz,
-                    darci->Draw.Tweened->Angle,
-                    spin_speed);
-
-            if (Keys[KB_F])
-            {
-                    Keys[KB_F] = 0;
-
-                    HOOK_release();
-            }
-    }
-
-    */
-
-    /*
-
-    if(!(GAME_FLAGS & GF_SHOW_MAP))
-    {
-            if(Keys[KB_TAB])
-            {
-                    Keys[KB_TAB]=0;
-//			InitBackImage(tab_map_name);
-                    InitBackImage("handhold.tga");
-                    GAME_FLAGS|=GF_SHOW_MAP;
-
-            }
-    }
-
-    */
 
     if (Keys[KB_E]) {
         SLONG y;
@@ -1975,51 +1509,11 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         }
     }
 
-    /*
-
-    if (Keys[KB_B])
-    {
-            Keys[KB_B] = 0;
-
-                    extern SLONG NIGHT_specular_enable;
-                    NIGHT_specular_enable ^= UC_TRUE;
-    }
-
-    */
-
     //	CLOTH_process();
 
     //
     // Enter and leave the sewers if Darci does.
     //
-    /*	if (darci->Flags & FLAGS_IN_SEWERS)
-            {
-                    if (!(GAME_FLAGS & GF_SEWERS))
-                    {
-                            GAME_FLAGS |= GF_SEWERS;
-
-                            DIRT_init(0, 0, 0, UC_INFINITY, UC_INFINITY, UC_INFINITY, UC_INFINITY);
-                            NIGHT_destroy_all_cached_info();
-                            NS_cache_init();
-                    }
-            }
-            else
-            {
-                    if (GAME_FLAGS & GF_SEWERS)
-                    {
-                            GAME_FLAGS &= ~GF_SEWERS;
-
-                            NS_cache_fini();
-                            DIRT_init(100, 3, 3, UC_INFINITY, UC_INFINITY, UC_INFINITY, UC_INFINITY);
-
-                            //
-                            // Reposition the camera at a decent place to watch Darci exit the sewers.
-                            //
-    #ifdef	OLD_CAM
-                            CAM_set_to_leave_sewers_position(darci);
-    #endif
-                    }
-            }*/
 
     if (Keys[KB_W]) {
         SLONG px = darci->WorldPos.X >> 8;
@@ -2043,91 +1537,7 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         }
     }
 
-    /*
-    {
-            SLONG process;
-
-            //
-            // How many times to process?
-            //
-
-            #define AT_TWENTY ((ShiftFlag) ? 4 : 8)
-
-            process = AT_TWENTY * TICK_RATIO >> TICK_SHIFT;
-
-            for (SLONG i = 0; i < process; i++)
-            {
-                    HM_process();
-                    SM_process();
-                    //HM_collide_all();
-
-                    //if (hm_1 != 255 &&
-                    //	hm_2 != 255)
-                    //{
-                    //	HM_collide(hm_2, hm_1);
-                    //}
-            }
-    }
-    */
-
-    /*
-
-    if (Keys[KB_4]) {HM_draw();}
-
-    */
-
     if (GAME_FLAGS & GF_INDOORS) {
-        /*
-
-        //
-        // Is darci ready to go upstairs?
-        //
-
-        SLONG dfloor;
-        SLONG new_floor;
-
-        SLONG new_x;
-        SLONG new_z;
-        SLONG new_storey;
-
-        dfloor = ID_change_floor(
-                                darci->WorldPos.X >> 8,
-                                darci->WorldPos.Z >> 8,
-                           &new_x,
-                           &new_z,
-                           &new_storey);
-
-        if (dfloor)
-        {
-                //
-                // Delete the old furniture and colvects.
-                //
-
-                ID_remove_inside_things();
-                ID_wall_colvects_remove();
-
-                //
-                // Enter the building on a new floor.
-                //
-
-                if (ENTER_setup(INDOORS_BUILDING, new_storey, UC_TRUE))
-                {
-                        GameCoord newpos;
-
-                        //
-                        // Move Darci to the new position.
-                        //
-
-                        newpos.X = new_x<<8;
-                        newpos.Y = INDOORS_HEIGHT_FLOOR<<8;
-                        newpos.Z = new_z<<8;
-
-                        move_thing_on_map(darci, &newpos);
-
-                }
-        }
-
-        */
     }
 
     //
@@ -2136,50 +1546,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
     //
 
     //	ID_this_is_where_i_am((darci->WorldPos.X>>8) >> ELE_SHIFT, (darci->WorldPos.Z>>8) >> ELE_SHIFT);
-
-    /*
-
-            if (Keys[KB_P4])
-            {
-                    static SLONG startx = 0;
-                    static SLONG startz = 0;
-                    static SLONG startvalid = 0;
-
-                    static SLONG endx = 0;
-                    static SLONG endz = 0;
-                    static SLONG endvalid = 0;
-
-                    Keys[KB_P4] = 0;
-
-                    if (!startvalid)
-                    {
-                            startx     = darci->WorldPos.X >> 8;
-                            startz     = darci->WorldPos.Z >> 8;
-                            startvalid = UC_TRUE;
-                    }
-                    else
-                    if (!endvalid)
-                    {
-                            endx     = darci->WorldPos.X >> 8;
-                            endz     = darci->WorldPos.Z >> 8;
-                            endvalid = UC_TRUE;
-                    }
-
-                    if (startvalid && endvalid)
-                    {
-                            startvalid = UC_FALSE;
-                            endvalid   = UC_FALSE;
-
-                            TRIP_create(
-                                    darci->WorldPos.Y + 0x4000 >> 8,
-                                    startx,
-                                    startz,
-                                    endx,
-                                    endz);
-                    }
-            }
-
-            */
 
     // pyrotest
     {
@@ -2285,22 +1651,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
                 PYRO_create(posn, PYRO_WHOOMPH);
                 break;
             }
-
-            /*		Keys[KB_P5]=0;
-                            if (line) {
-                                    posn.X=darci->WorldPos.X;
-                                    posn.Z=darci->WorldPos.Z;
-                                    posn.Y=(PAP_calc_height_at(posn.X>>8,posn.Z>>8)<<8)+0x3000;
-                                    pyro=PYRO_create(oldposn,PYRO_FIREWALL);
-                                    pyro->Genus.Pyro->target=posn;
-                                    line=0;
-                            } else {
-                                    oldposn.X=darci->WorldPos.X;
-                                    oldposn.Z=darci->WorldPos.Z;
-                                    oldposn.Y=(PAP_calc_height_at(oldposn.X>>8,oldposn.Z>>8)<<8)+0x3000;
-                                    line=1;
-
-                            }*/
         }
         if (ribbon_id != -1) {
             static int ribbon_tick = 0;
@@ -2323,100 +1673,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             }
         }
     }
-
-    /*
-            if (Keys[KB_P8])
-            {
-                    Keys[KB_P8] = 0;
-    #ifdef	OLD_CAM
-                    switch(CAM_get_mode())
-                    {
-                            case CAM_MODE_NORMAL:       CAM_set_mode(CAM_MODE_THIRD_PERSON); break;
-                            case CAM_MODE_THIRD_PERSON: CAM_set_mode(CAM_MODE_NORMAL); CAM_set_zoom(0x320); break;
-                            default:
-                                    CAM_set_mode(CAM_MODE_NORMAL);
-                                    break;
-                    }
-    #endif
-            }
-
-    */
-
-    /*
-
-    //
-    // Simon's idea! Make the camera look at whoever darci is targeting.
-    //
-
-    if (darci->State    == STATE_GUN &&
-            darci->SubState == SUB_STATE_AIM_GUN)
-    {
-            if (darci->Genus.Person->Target)
-            {
-                    CAM_set_focus(TO_THING(darci->Genus.Person->Target));
-            }
-    }
-    else
-    {
-            CAM_set_focus(darci);
-    }
-
-    */
-    /*
-            if (Keys[KB_8])
-            {
-                    Keys[KB_8] = 0;
-
-                    SPARK_in_sphere(
-                            darci->WorldPos.X >> 8,
-                            darci->WorldPos.Y >> 8,
-                            darci->WorldPos.Z >> 8,
-                            0x400,
-                            rand() & 0x3f,
-                            1);
-            }
-
-            if (Keys[KB_9])
-            {
-                    Keys[KB_9] = 0;
-
-                    SPARK_Pinfo p1;
-                    SPARK_Pinfo p2;
-
-                    p1.type   = SPARK_TYPE_LIMB;
-                    p1.flag   = 0;
-                    p1.person = THING_NUMBER(darci);
-                    p1.limb   = SUB_OBJECT_RIGHT_HAND;
-
-
-                    p2.type   = SPARK_TYPE_GROUND;
-                    p2.flag   = SPARK_FLAG_STILL;
-                    p2.x      = (darci->WorldPos.X >> 8) + 31;
-                    p2.z      = (darci->WorldPos.Z >> 8) + 64;
-
-                    SPARK_create(
-                            &p1,
-                            &p2,
-                             40);
-            }
-    */
-
-    /*
-
-    if (Keys[KB_L])
-    {
-            DRIP_create(
-                    darci->WorldPos.X >> 8,
-                    darci->WorldPos.Y >> 8,
-                    darci->WorldPos.Z >> 8);
-
-            PUDDLE_splash(
-                    darci->WorldPos.X >> 8,
-                    darci->WorldPos.Y >> 8,
-                    darci->WorldPos.Z >> 8);
-    }
-
-    */
 
     {
         static UBYTE dlight = NULL;
@@ -2502,16 +1758,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         }
     }
     static UBYTE smokin = 0;
-    /*	if (Keys[KB_FORESLASH]) {
-
-                    Keys[KB_FORESLASH]=0;
-
-                    if (!ShiftFlag) {
-                            smokin=!smokin;
-                    } else {
-                            the_ff_manager->Test();
-                    }
-            }*/
     if (Keys[KB_FORESLASH]) {
         Keys[KB_FORESLASH] = 0;
 
@@ -2521,27 +1767,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         else
             CONSOLE_text("STEALTH DEBUG MODE OFF");
     }
-
-    /*
-
-    static SWORD steamypos = 0;
-    if (Keys[KB_POINT]) {
-            Keys[KB_POINT]=0;
-            if (ShiftFlag)
-              steamypos=-120;
-            else
-              steamypos=120;
-    }
-    if (steamypos>0) {
-      PARTICLE_Steam(darci->WorldPos.X,darci->WorldPos.Y+0x5800,darci->WorldPos.Z,0,800,2,steamypos);
-      steamypos--;
-    }
-    if (steamypos<0) {
-      if (!PARTICLE_SGrenade(darci,-steamypos))
-      steamypos++;
-    }
-
-    */
 
     if (Keys[KB_POINT]) {
         PARTICLE_Add(
@@ -2690,257 +1915,11 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             darci->Genus.Person->Action = ACTION_SIT_BENCH;
         }
 
-        /*
-                        if (Keys[KB_Z])
-                        {
-                                Keys[KB_Z] = 0;
-
-                                nav_x = darci->WorldPos.X >> 16;
-                                nav_z = darci->WorldPos.Z >> 16;
-
-                                ma_valid = UC_FALSE;
-                        }
-
-                        if (Keys[KB_X])
-                        {
-                                Keys[KB_X] = 0;
-
-        void	set_person_mav_to_xz(Thing *p_person,SLONG x,SLONG z);
-                                set_person_mav_to_xz(darci,nav_x<<8,nav_z<<8);
-
-                                ma_valid = UC_TRUE;
-
-                        }
-        */
-        /*
-
-        if (Keys[KB_R])
-        {
-                static GameCoord before_enter_pos = {0x400000, 0, 0x400000};
-
-                Keys[KB_R] = 0;
-
-                darci->Flags                  ^= FLAGS_IN_SEWERS;
-                darci->Genus.Person->sewerbits = 0;
-
-                if (darci->Flags & FLAGS_IN_SEWERS)
-                {
-                        //
-                        // Look for a good square in the sewers near Darci.
-                        //
-
-                        SLONG i;
-                        SLONG dx;
-                        SLONG dz;
-                        SLONG mx = darci->WorldPos.X >> 16;
-                        SLONG mz = darci->WorldPos.Z >> 16;
-                        SLONG sx;
-                        SLONG sz;
-
-                        before_enter_pos = darci->WorldPos;
-
-                        for (i = 0; i < (128 << 3); i++)
-                        {
-                                dx = (rand() % ((i >> 3) + 1)) - (i >> 4);
-                                dz = (rand() % ((i >> 3) + 1)) - (i >> 4);
-
-                                sx = mx + dx;
-                                sz = mz + dz;
-
-                                sx = 0x40;
-                                sz = 0x3e;
-
-                                if (PAP_on_map_hi(sx,sz))
-                                {
-                                        if (NS_HI_TYPE(&NS_hi[sx][sz]) == NS_HI_TYPE_STONE ||
-                                                NS_HI_TYPE(&NS_hi[sx][sz]) == NS_HI_TYPE_SEWER)
-                                        {
-                                                //
-                                                // Move Darci here.
-                                                //
-
-                                                GameCoord new_position = darci->WorldPos;
-
-                                                new_position.X = (sx << 16) + 0x8000;
-                                                new_position.Z = (sz << 16) + 0x8000;
-
-                                                new_position.Y = NS_calc_height_at(
-                                                                                        new_position.X >> 8,
-                                                                                        new_position.Z >> 8) << 8;
-
-                                                move_thing_on_map(darci, &new_position);
-
-                                                break;
-                                        }
-                                }
-                        }
-                }
-                else
-                {
-                        //
-                        // Move Darci back.
-                        //
-
-                        move_thing_on_map(darci, &before_enter_pos);
-                }
-        }
-
-
-        if (Keys[KB_B])
-        {
-                Keys[KB_B] = 0;
-
-                PUDDLE_create(
-                         darci->WorldPos.X >> 8,
-                        (darci->WorldPos.Y >> 8) + 0x4,
-                         darci->WorldPos.Z >> 8);
-        }
-
-        if (Keys[KB_F])
-        {
-                Keys[KB_F] = 0;
-
-                SLONG px;
-                SLONG py;
-                SLONG pz;
-
-                calc_sub_objects_position(
-                        darci,
-                        darci->Draw.Tweened->AnimTween,
-                        SUB_OBJECT_RIGHT_HAND,
-                   &px,
-                   &py,
-                   &pz);
-
-                px += darci->WorldPos.X >> 8;
-                py += darci->WorldPos.Y >> 8;
-                pz += darci->WorldPos.Z >> 8;
-
-                HOOK_spin(
-                        px,
-                        py,
-
-                        pz,
-                        darci->Draw.Tweened->Angle,
-                        50);
-        }
-        */
-
         if (Keys[KB_Y]) {
             COLLIDE_debug_fastnav(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Z >> 8);
         }
-
-        /*
-        if (Keys[KB_T])
-        {
-                Keys[KB_T] = 0;
-
-#ifndef	PSX
-                UBYTE cloth = CLOTH_create(
-                                                        CLOTH_TYPE_FLAG,
-                                                        (darci->WorldPos.X >> 8) + 0x80,
-                                                        (darci->WorldPos.Y >> 8) + 0x80,
-                                                        (darci->WorldPos.Z >> 8) + 0x80,
-                                                        16, 0,  0,
-                                                        0, 16,  0,
-                                                        16,
-                                                        0x00ff8888);
-
-                if (cloth && ControlFlag)
-                {
-                        static choose = 0;
-
-                        if (choose++ & 1)
-                        {
-                                CLOTH_point_lock(cloth, 0, 1);
-                                CLOTH_point_lock(cloth, 0, 3);
-                        }
-                        else
-                        {
-                                CLOTH_point_lock(cloth, 0, 0);
-                                CLOTH_point_lock(cloth, 0, 4);
-                        }
-                }
-#endif
-        }
-        */
-
-        /*
-        if (Keys[KB_X] && fti)
-        {
-                Keys[KB_X] = 0;
-
-                GameCoord p1 = darci->WorldPos;
-                GameCoord p2;
-
-                p1.X>>=8;
-                p1.Y>>=8;
-                p1.Z>>=8;
-
-                p2 = p1;
-
-
-                p2.X -= (SIN(darci->Draw.Tweened->Angle)*32)>>16;
-                p2.Z -=	(COS(darci->Draw.Tweened->Angle)*32)>>16;
-
-                FURN_push(
-                        fti,
-                        p1.X, p1.Y, p1.Z,
-                        p2.X, p2.Y, p2.Z);
-        }
-        */
-
-        /*
-
-        if (Keys[KB_M])
-        {
-                Keys[KB_M] = 0;
-
-                static SLONG last_detail = 17;
-                static SLONG last_height = 84;
-
-                #define MIST_SIZE 0x800
-
-                SLONG x1 = (darci->WorldPos.X>>8) - MIST_SIZE;
-                SLONG z1 = (darci->WorldPos.Z>>8) - MIST_SIZE;
-                SLONG x2 = (darci->WorldPos.X>>8) + MIST_SIZE;
-                SLONG z2 = (darci->WorldPos.Z>>8) + MIST_SIZE;
-
-                MIST_create(
-                        last_detail,
-                        last_height,
-                        x1, z1,
-                        x2, z2);
-
-                last_height += (last_height & 0x1) ? -25 : +25;
-        }
-
-        if (Keys[KB_M])
-        {
-                Keys[KB_M] = 0;
-
-                static SLONG last_detail = 17;
-                static SLONG last_height = 84;
-
-                #define MIST_SIZE 0x800
-
-                SLONG x1 = (darci->WorldPos.X>>8) - MIST_SIZE;
-                SLONG z1 = (darci->WorldPos.Z>>8) - MIST_SIZE;
-                SLONG x2 = (darci->WorldPos.X>>8) + MIST_SIZE;
-                SLONG z2 = (darci->WorldPos.Z>>8) + MIST_SIZE;
-
-                MIST_create(
-                        last_detail,
-                        last_height,
-                        x1, z1,
-                        x2, z2);
-
-                last_height += (last_height & 0x1) ? -25 : +25;
-        }
-
-        */
 
         if (Keys[KB_D] && !ShiftFlag) {
             Keys[KB_D] = 0;
@@ -2970,20 +1949,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
         if (Keys[KB_G]) {
 
             Keys[KB_G] = 0;
-            /*
-                                    NIGHT_slight_create(
-                                            (darci->WorldPos.X >> 8),
-                                            (darci->WorldPos.Y >> 8) + 0x80,
-                                            (darci->WorldPos.Z >> 8),
-                                            200,
-                                       -30,
-                                       -30,
-                                       -30);
-
-                                    NIGHT_cache_recalc();
-                                    NIGHT_dfcache_recalc();
-                                    NIGHT_generate_walkable_lighting();
-            */
             darci->Flags |= FLAGS_HAS_GUN;
         }
 
@@ -2991,211 +1956,8 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             Keys[KB_H] = 0;
 
             plan_view_shot();
-
-            /*
-
-            SM_init();
-
-            SM_create_cube(
-                    (darci->WorldPos.X >> 8) + 0x000,
-                    (darci->WorldPos.Y >> 8) + 0x080,
-                    (darci->WorldPos.Z >> 8) + 0x000,
-                    (darci->WorldPos.X >> 8) + 0x000 + 0x80,
-                    (darci->WorldPos.Y >> 8) + 0x080 + 0x80,
-                    (darci->WorldPos.Z >> 8) + 0x000 + 0x80,
-                    3,
-                    0x10000,
-                    0x10000);
-
-            */
-
-            /*
-
-            if (fti)
-            {
-                    static float force = 20.0F;
-
-                    FURN_hypermatterise(fti);
-
-                    if (TO_THING(fti)->Draw.Mesh->Hm != 255)
-                    {
-                            HM_shockwave(
-                                    TO_THING(fti)->Draw.Mesh->Hm,
-                                    float( darci->WorldPos.X >> 8),
-                                    float((darci->WorldPos.Y >> 8) - 32),
-                                    float( darci->WorldPos.Z >> 8),
-                                    400.0F,
-                                    force);
-                    }
-            }
-            else
-            {
-                    HM_Primgrid *hpg = HM_get_primgrid(6);
-
-                    UBYTE hm = HM_create(
-                                                    6,
-
-                                                    (darci->WorldPos.X>>8),
-                                                    (darci->WorldPos.Y>>8) + 512,
-                                                    (darci->WorldPos.Z>>8),
-
-                                                    0, 0, 0,
-                                                    0, 0, 0,
-
-                                                    hpg->x_res,
-                                                    hpg->y_res,
-                                                    hpg->z_res,
-                                                    hpg->x_point,
-                                                    hpg->y_point,
-                                                    hpg->z_point,
-
-                                                    hpg->x_dgrav,
-                                                    hpg->y_dgrav,
-                                                    hpg->z_dgrav,
-
-                                                    0.050F,		// elasticity
-                                                    0.900F,		// bounciness
-                                                    0.000F,		// friction
-                                                    0.999F);	// damping
-
-                    if (hm_1 == 255) {hm_1 = hm;} else {hm_2 = hm;}
-            }
-
-            */
         }
 
-        /*
-                        if (Keys[KB_E])
-                        {
-                                Keys[KB_E] = 0;
-
-                                if (GAME_FLAGS & GF_INDOORS)
-                                {
-                                        //
-                                        // Toggle out of this mode.
-                                        //
-
-                                        GAME_FLAGS   &= ~GF_INDOORS;
-                                        darci->Flags &= ~FLAGS_IN_BUILDING;
-
-                                        //
-                                        // Move Darci to where she entered the building.
-                                        //
-
-                                        move_thing_on_map(darci, &enter_pos);
-
-                                        //
-                                        // Get rid of all the things created to be
-                                        // inside the building.
-                                        //
-
-                                        //ID_remove_inside_things();
-                                        //ID_wall_colvects_remove();
-
-                                }
-                                else
-                                {
-                                        //
-                                        // Find and enter a nearby building.
-                                        //
-
-                                        ENTER_Okay eo;
-
-                                        eo = ENTER_can_i(THING_NUMBER(NET_PERSON(0)));
-
-                                        if (eo.dbuilding)
-                                        {
-                                                //
-                                                // Ground level of the building.
-                                                //
-
-                                                SLONG top;
-                                                SLONG bot;
-
-                                                ENTER_get_extents(
-                                                        eo.dbuilding,
-                                                   &bot,
-                                                   &top);
-
-                                                if (WITHIN(darci->WorldPos.Y >> 8, bot - 0x40, bot + 0x40))
-                                                {
-                                                        if (ENTER_setup(eo.dbuilding, bot, UC_TRUE, UC_FALSE))
-                                                        {
-                                                                //
-                                                                // Remember where Darci is.
-                                                                //
-
-                                                                enter_pos = darci->WorldPos;
-
-                                                                //
-                                                                // Move darci to inside the building.
-                                                                //
-
-                                                                SLONG x1;
-                                                                SLONG z1;
-                                                                SLONG x2;
-                                                                SLONG z2;
-
-                                                                GameCoord pos;
-
-                                                                ID_get_floorplan_bounding_box(
-                                                                        &x1,
-                                                                        &z1,
-                                                                        &x2,
-                                                                        &z2);
-
-
-                                                                pos.X = (x1 + x2) << (ELE_SHIFT + 7);
-                                                                pos.Z = (z1 + z2) << (ELE_SHIFT + 7);
-
-                                                                pos.Y = 0;
-
-                                                                //
-                                                                // Don't go to the centre of the building, use the coordinates
-                                                                // give to use by the ENTER module.
-                                                                //
-
-                                                                pos.X  = eo.map_x << 16;
-                                                                pos.Z  = eo.map_z << 16;
-
-                                                                pos.X += 0x8000;
-                                                                pos.Z += 0x8000;
-
-                                                                move_thing_on_map(darci, &pos);
-
-                                                                //
-                                                                // Mark Darci as being inside the building.
-                                                                //
-
-                                                                darci->Flags     |= FLAGS_IN_BUILDING;
-                                                                darci->WorldPos.Y = INDOORS_HEIGHT_FLOOR;
-
-                                                                //
-                                                                // Go into 'inside' mode.
-                                                                //
-
-                                                                GAME_FLAGS ^= GF_INDOORS;
-                                                        }
-                                                }
-                                        }
-                                }
-                        }
-        */
-
-        /*
-                        if (Keys[KB_N])
-                        {
-                                GameCoord posn;
-
-                                Keys[KB_N] = 0;
-
-                                posn.X=darci->WorldPos.X;
-                                posn.Y=darci->WorldPos.Y;
-                                posn.Z=darci->WorldPos.Z;
-                                ANIMAL_create(posn,ANIMAL_CANID);
-
-                        }
-        */
         if (Keys[KB_O]) {
             Thing* chopper;
             GameCoord posn;
@@ -3209,90 +1971,6 @@ void FC_look_at(SLONG cam, UWORD thing_index);
             chopper = CHOPPER_create(posn, CHOPPER_CIVILIAN);
             chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
         }
-
-        /*
-
-        if (TO_CHOPPER(1)->ChopperType!=CHOPPER_NONE)
-        {
-                if (Keys[KB_5]) {
-                        Keys[KB_5] = 0;
-                        CHOPPER_init_state(TO_CHOPPER(1)->thing, CHOPPER_substate_takeoff);
-                }
-
-                if (Keys[KB_6]) {
-                        Keys[KB_6] = 0;
-                        CHOPPER_init_state(TO_CHOPPER(1)->thing, CHOPPER_substate_landing);
-                }
-
-
-                if (Keys[KB_7]) {
-                        Keys[KB_7] = 0;
-                        if (TO_CHOPPER(1)->substate==CHOPPER_substate_tracking) {
-                                CHOPPER_init_state(TO_CHOPPER(1)->thing, CHOPPER_substate_patrolling);
-                        } else {
-                                TO_CHOPPER(1)->target=darci;
-                                CHOPPER_init_state(TO_CHOPPER(1)->thing, CHOPPER_substate_tracking);
-                        }
-                }
-        }
-
-        */
-
-        /*
-extern	SLONG	FC_cam_dist;
-extern	SLONG	FC_cam_height;
-        if(Keys[KB_7])
-        {
-                CBYTE	str[50];
-                sprintf(str,"cam_dist %d cam_height %d",FC_cam_dist,FC_cam_height>>8);
-                CONSOLE_text(str,500);
-                FC_cam_dist-=16;
-        }
-        if(Keys[KB_8])
-        {
-                CBYTE	str[50];
-                sprintf(str,"cam_dist %d cam_height %d",FC_cam_dist,FC_cam_height>>8);
-                CONSOLE_text(str,500);
-                FC_cam_dist+=16;
-        }
-        if(Keys[KB_9])
-        {
-                CBYTE	str[50];
-                sprintf(str,"cam_dist %d cam_height %d",FC_cam_dist,FC_cam_height>>8);
-                CONSOLE_text(str,500);
-                FC_cam_height-=0x1000;
-        }
-        if(Keys[KB_0])
-        {
-                CBYTE	str[50];
-                sprintf(str,"cam_dist %d cam_height %d",FC_cam_dist,FC_cam_height>>8);
-                CONSOLE_text(str,500);
-                FC_cam_height+=0x1000;
-        }
-        */
-        /*
-                        if(Keys[KB_F12])
-                        {
-                                mouse_input^=1;
-
-                                Keys[KB_F12]=0;
-                                if(mouse_input)
-                                {
-
-                                        sdl3_set_mouse_grab(true);
-                                        sdl3_hide_cursor();
-                                }
-                                else
-                                {
-                                        sdl3_set_mouse_grab(false);
-                                        sdl3_show_cursor();
-                                }
-                                        //SetCursor(LoadCursor(NULL,IDC_ARROW));
-
-
-
-                        }
-        */
 
         if (Keys[KB_M]) {
             Keys[KB_M] = 0;
@@ -3332,25 +2010,6 @@ extern	SLONG	FC_cam_height;
 
         if (Keys[KB_F12]) {
             Keys[KB_F12] = 0;
-
-            /*
-
-            alloc_special(
-                    SPECIAL_EXPLOSIVES,
-                    SPECIAL_SUBSTATE_NONE,
-                    darci->WorldPos.X + 0x8000 >> 8,
-                    darci->WorldPos.Y + 0x2000 >> 8,
-                    darci->WorldPos.Z + 0x8000 >> 8,
-                    NULL);
-
-            alloc_special(
-                    SPECIAL_SHOTGUN,
-                    SPECIAL_SUBSTATE_NONE,
-                    darci->WorldPos.X + 0x8000 >> 8,
-                    darci->WorldPos.Y + 0x2000 >> 8,
-                    darci->WorldPos.Z + 0x8000 >> 8,
-                    NULL);
-            */
 
             SLONG wx, wy, wz, dx, dz;
             SLONG angle;
@@ -3394,26 +2053,6 @@ extern	SLONG	FC_cam_height;
                     break;
                 }
             }
-
-            /*
-            {
-                    SLONG	c0,index1,index2,index3;
-                    for(c0=0;c0<4;c0++)
-                    {
-                            SLONG	index;
-                            index=PCOM_create_person(1,0,0,PCOM_AI_FIGHT_TEST,0,c0*5,PCOM_MOVE_STILL,0,PCOM_BENT_FIGHT_BACK,0,(wx+(c0+2)*300)<<8,wy<<8,wz<<8,0);
-                    }
-
-                    index1=PCOM_create_person(1,0,0,PCOM_AI_FIGHT_TEST,0,15,PCOM_MOVE_STILL,0,PCOM_BENT_FIGHT_BACK,0,(wx-(2)*300)<<8,wy<<8,wz<<8,0);
-                    index2=PCOM_create_person(1,0,0,PCOM_AI_FIGHT_TEST,0,7,PCOM_MOVE_STILL,0,PCOM_BENT_FIGHT_BACK,0,(wx-(3)*300)<<8,wy<<8,wz<<8,0);
-                    index3=PCOM_create_person(1,0,0,PCOM_AI_FIGHT_TEST,0,7,PCOM_MOVE_STILL,0,PCOM_BENT_FIGHT_BACK,0,(wx-(3)*300)<<8,wy<<8,(wz-200)<<8,0);
-
-                    PCOM_attack_happened(TO_THING(index1),TO_THING(index2));
-                    PCOM_attack_happened(TO_THING(index2),TO_THING(index1));
-                    PCOM_attack_happened(TO_THING(index3),TO_THING(index1));
-
-            }
-            */
         }
 
         if (Keys[KB_G]) {
@@ -3430,7 +2069,7 @@ extern	SLONG	FC_cam_height;
             // MouseX/Y are in scene-FBO pixels after Stage 6 of the
             // FBO-as-virtual-screen refactor; scale into the 640×480
             // virtual UI canvas that AENG_raytraced_position expects.
-            float hitx = float(MouseX) * float(DisplayWidth)  / float(ScreenWidth);
+            float hitx = float(MouseX) * float(DisplayWidth) / float(ScreenWidth);
             float hity = float(MouseY) * float(DisplayHeight) / float(ScreenHeight);
 
             AENG_raytraced_position(
@@ -3459,112 +2098,6 @@ extern	SLONG	FC_cam_height;
                 darci->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS);
             }
         }
-
-        /*
-                        if (Keys[KB_N])
-                        {
-                                Keys[KB_N] = 0;
-
-                                //
-                                // Toggle in/out of sniper mode.
-                                //
-
-                                if (SNIPE_on)
-                                {
-                                        SNIPE_mode_off();
-                                }
-                                else
-                                {
-                                        if (darci->State == STATE_IDLE)
-                                        {
-                                                SLONG head_x;
-                                                SLONG head_y;
-                                                SLONG head_z;
-
-                                                //
-                                                // Where is Darci's head?
-                                                //
-
-                                                calc_sub_objects_position(
-                                                        darci,
-                                                        darci->Draw.Tweened->AnimTween,
-                                                        SUB_OBJECT_HEAD,
-                                                   &head_x,
-                                                   &head_y,
-                                                   &head_z);
-
-                                                head_x += darci->WorldPos.X >> 8;
-                                                head_y += darci->WorldPos.Y >> 8;
-                                                head_z += darci->WorldPos.Z >> 8;
-
-                                                SNIPE_mode_on(
-                                                        head_x,
-                                                        head_y,
-                                                        head_z,
-                                                        darci->Draw.Tweened->Angle + 1024);
-                                        }
-                                }
-                        }
-
-                        if (Keys[KB_B])
-                        {
-                                Keys[KB_B] = 0;
-
-                                SNIPE_shoot();
-                        }
-        */
-
-        /*
-        #ifndef TARGET_DC
-        #if !defined(PSX)
-                        if (Keys[KB_R])
-                        {
-                                Keys[KB_R] = 0;
-
-                                SLONG world_x;
-                                SLONG world_y;
-                                SLONG world_z;
-
-                                //
-                                // Place a barrel where the mouse is.
-                                //
-
-                                AENG_raytraced_position(
-                                        MouseX,
-                                        MouseY,
-                                   &world_x,
-                                   &world_y,
-                                   &world_z);
-
-                                if (WITHIN(world_x, 0, (PAP_SIZE_HI << PAP_SHIFT_HI) - 1) &&
-                                        WITHIN(world_z, 0, (PAP_SIZE_HI << PAP_SHIFT_HI) - 1))
-                                {
-                                        //
-                                        // Place a barrel where Darci is.
-                                        //
-
-                                        BARREL_alloc(
-                                                BARREL_TYPE_NORMAL,
-                                                PRIM_OBJ_BARREL,
-                                                world_x,
-                                                world_z,
-                                                NULL);
-                                }
-                        }
-        #else
-                        {
-                                if(PadKeyIsPressed(&PAD_Input2,PAD_FRB))
-                                        BARREL_alloc(
-                                                BARREL_TYPE_NORMAL,
-                                                141,
-                                                (darci->WorldPos.X>>8)+200,
-                                                darci->WorldPos.Z>>8,
-                                                NULL);
-                        }
-
-        #endif
-        #endif
-        */
 
         if (Keys[KB_U]) {
             BARREL_hit_with_sphere(

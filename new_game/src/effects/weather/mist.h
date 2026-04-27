@@ -21,8 +21,8 @@
 // uc_orig: MIST_Point (fallen/Source/mist.cpp)
 typedef struct
 {
-    float u;  // UV offset from base u
-    float v;  // UV offset from base v
+    float u; // UV offset from base u
+    float v; // UV offset from base v
     float du; // velocity along u (applied each tick)
     float dv; // velocity along v (applied each tick)
 } MIST_Point;
@@ -31,12 +31,12 @@ typedef struct
 // uc_orig: MIST_Mist (fallen/Source/mist.cpp)
 typedef struct
 {
-    UBYTE type;    // scroll pattern variant (0..3), cycles on creation
-    UBYTE detail;  // grid resolution (quads-per-row, clamped 3..255)
+    UBYTE type; // scroll pattern variant (0..3), cycles on creation
+    UBYTE detail; // grid resolution (quads-per-row, clamped 3..255)
     UWORD p_index; // first index into the shared MIST_point[] pool
-    SLONG height;  // world Y offset above the ground
-    SLONG x1, z1;  // world min corner
-    SLONG x2, z2;  // world max corner
+    SLONG height; // world Y offset above the ground
+    SLONG x1, z1; // world min corner
+    SLONG x2, z2; // world max corner
 } MIST_Mist;
 
 // uc_orig: MIST_init (fallen/Headers/mist.h)

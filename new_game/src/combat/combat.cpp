@@ -1,22 +1,22 @@
 #include "combat/combat.h"
 
 #include "ai/pcom.h"
-#include "ui/hud/overlay.h"            // track_enemy (already migrated)
-#include "engine/audio/mfx.h"         // MFX_play_thing, MFX_play_xyz, MFX_stop (already migrated)
-#include "engine/audio/sound.h"       // PainSound (already migrated)
-#include "engine/effects/psystem.h"   // PARTICLE_Add, PFLAG_* (already migrated)
+#include "ui/hud/overlay.h" // track_enemy (already migrated)
+#include "engine/audio/mfx.h" // MFX_play_thing, MFX_play_xyz, MFX_stop (already migrated)
+#include "engine/audio/sound.h" // PainSound (already migrated)
+#include "engine/effects/psystem.h" // PARTICLE_Add, PFLAG_* (already migrated)
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
 #include "things/characters/anim_ids.h"
 #include "things/core/statedef.h"
 #include "engine/audio/sound.h"
-#include "assets/formats/anim_globals.h"      // estate, semtex (already migrated)
+#include "assets/formats/anim_globals.h" // estate, semtex (already migrated)
 #include "world_objects/dirt.h"
-#include "missions/eway.h"            // EWAY_get_person (already migrated)
-#include "things/core/interact.h"     // calc_sub_objects_position
+#include "missions/eway.h" // EWAY_get_person (already migrated)
+#include "things/core/interact.h" // calc_sub_objects_position
 #include "things/characters/person.h" // can_a_see_b, set_anim
-#include "engine/graphics/pipeline/aeng.h"  // MSG_add
-#include "engine/physics/collide.h"   // LOS_FLAG_IGNORE_*
-#include "engine/input/gamepad.h"    // gamepad_set_shock
+#include "engine/graphics/pipeline/aeng.h" // MSG_add
+#include "engine/physics/collide.h" // LOS_FLAG_IGNORE_*
+#include "engine/input/gamepad.h" // gamepad_set_shock
 
 // Functions not yet in any header: declared here as in the original.
 // uc_orig: set_face_thing (fallen/Source/Person.cpp)
@@ -1025,7 +1025,8 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
             // uc_orig: PSX_SetShock (fallen/Source/Combat.cpp:2468)
             if (p_thing->Genus.Person->PlayerID) {
                 SLONG dam = (damage << 4) + 96;
-                if (dam > 255) dam = 255;
+                if (dam > 255)
+                    dam = 255;
                 gamepad_set_shock(1, dam);
             }
         }
@@ -1749,4 +1750,3 @@ Thing* is_person_under_attack_low_level(Thing* p_person, SLONG any_state, SLONG 
 
     return best_person;
 }
-

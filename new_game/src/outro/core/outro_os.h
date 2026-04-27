@@ -36,10 +36,10 @@ void OS_ticks_reset(void);
 typedef struct os_texture OS_Texture;
 
 // Texture format aliases — canonical values in outro_graphics_engine.h (OGE_TEXTURE_FORMAT_*).
-#define OS_TEXTURE_FORMAT_RGB    OGE_TEXTURE_FORMAT_RGB
-#define OS_TEXTURE_FORMAT_1555   OGE_TEXTURE_FORMAT_1555
-#define OS_TEXTURE_FORMAT_4444   OGE_TEXTURE_FORMAT_4444
-#define OS_TEXTURE_FORMAT_8      OGE_TEXTURE_FORMAT_8
+#define OS_TEXTURE_FORMAT_RGB OGE_TEXTURE_FORMAT_RGB
+#define OS_TEXTURE_FORMAT_1555 OGE_TEXTURE_FORMAT_1555
+#define OS_TEXTURE_FORMAT_4444 OGE_TEXTURE_FORMAT_4444
+#define OS_TEXTURE_FORMAT_8 OGE_TEXTURE_FORMAT_8
 #define OS_TEXTURE_FORMAT_NUMBER OGE_TEXTURE_FORMAT_NUMBER
 
 // uc_orig: OS_texture_create (fallen/outro/os.cpp)
@@ -63,19 +63,19 @@ void OS_camera_set(
 
 // Clipping flags — bitmask describing the clip status of a transformed point.
 // uc_orig: OS_CLIP_TOP (fallen/outro/os.h)
-#define OS_CLIP_TOP         (1 << 0)
+#define OS_CLIP_TOP (1 << 0)
 // uc_orig: OS_CLIP_BOTTOM (fallen/outro/os.h)
-#define OS_CLIP_BOTTOM      (1 << 1)
+#define OS_CLIP_BOTTOM (1 << 1)
 // uc_orig: OS_CLIP_LEFT (fallen/outro/os.h)
-#define OS_CLIP_LEFT        (1 << 2)
+#define OS_CLIP_LEFT (1 << 2)
 // uc_orig: OS_CLIP_RIGHT (fallen/outro/os.h)
-#define OS_CLIP_RIGHT       (1 << 3)
+#define OS_CLIP_RIGHT (1 << 3)
 // uc_orig: OS_CLIP_FAR (fallen/outro/os.h)
-#define OS_CLIP_FAR         (1 << 4)
+#define OS_CLIP_FAR (1 << 4)
 // uc_orig: OS_CLIP_NEAR (fallen/outro/os.h)
-#define OS_CLIP_NEAR        (1 << 5)
+#define OS_CLIP_NEAR (1 << 5)
 // uc_orig: OS_CLIP_ROTATED (fallen/outro/os.h)
-#define OS_CLIP_ROTATED     (1 << 6)
+#define OS_CLIP_ROTATED (1 << 6)
 // uc_orig: OS_CLIP_TRANSFORMED (fallen/outro/os.h)
 #define OS_CLIP_TRANSFORMED (1 << 7)
 
@@ -100,10 +100,10 @@ typedef struct os_buffer OS_Buffer;
 // plus UV coordinates for up to two texture stages and ARGB colour.
 // uc_orig: OS_Vert (fallen/outro/os.h)
 typedef struct {
-    UWORD trans;     // Index into OS_trans[]
-    UWORD index;     // Flert index — set to NULL before adding to a buffer
+    UWORD trans; // Index into OS_trans[]
+    UWORD index; // Flert index — set to NULL before adding to a buffer
     float u1, v1;
-    float u2, v2;    // Second UV set for multitexturing
+    float u2, v2; // Second UV set for multitexturing
     ULONG colour;
     ULONG specular;
 } OS_Vert;
@@ -116,18 +116,18 @@ void OS_buffer_add_triangle(OS_Buffer* ob, OS_Vert* ov1, OS_Vert* ov2, OS_Vert* 
 
 // Fade flags for OS_buffer_add_sprite — which edges to fade to transparent.
 // uc_orig: OS_FADE_TOP (fallen/outro/os.h)
-#define OS_FADE_TOP    (1 << 0)
+#define OS_FADE_TOP (1 << 0)
 // uc_orig: OS_FADE_BOTTOM (fallen/outro/os.h)
 #define OS_FADE_BOTTOM (1 << 1)
 // uc_orig: OS_FADE_LEFT (fallen/outro/os.h)
-#define OS_FADE_LEFT   (1 << 2)
+#define OS_FADE_LEFT (1 << 2)
 // uc_orig: OS_FADE_RIGHT (fallen/outro/os.h)
-#define OS_FADE_RIGHT  (1 << 3)
+#define OS_FADE_RIGHT (1 << 3)
 
 // uc_orig: OS_buffer_add_sprite (fallen/outro/os.cpp)
 void OS_buffer_add_sprite(
     OS_Buffer* ob,
-    float x1, float y1,           // Normalised screen coords 0.0-1.0
+    float x1, float y1, // Normalised screen coords 0.0-1.0
     float x2, float y2,
     float u1 = 0.0F, float v1 = 0.0F,
     float u2 = 1.0F, float v2 = 1.0F,
@@ -163,7 +163,7 @@ void OS_buffer_add_line_2d(
 // uc_orig: OS_buffer_add_line_3d (fallen/outro/os.cpp)
 void OS_buffer_add_line_3d(
     OS_Buffer* ob,
-    float X1, float Y1, float X2, float Y2,  // Real screen coordinates
+    float X1, float Y1, float X2, float Y2, // Real screen coordinates
     float width = 0.01F,
     float u1 = 0.0F, float v1 = 0.0F,
     float u2 = 1.0F, float v2 = 1.0F,
@@ -176,7 +176,7 @@ void OS_buffer_add_line_3d(
 // uc_orig: OS_buffer_draw (fallen/outro/os.cpp)
 void OS_buffer_draw(
     OS_Buffer* ob,
-    OS_Texture* ot1,           // NULL = no texture
+    OS_Texture* ot1, // NULL = no texture
     OS_Texture* ot2 = NULL,
     ULONG draw = OS_DRAW_NORMAL);
 

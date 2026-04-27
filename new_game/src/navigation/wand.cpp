@@ -1,5 +1,5 @@
-#include "engine/platform/uc_common.h"              // ASSERT, base types
-#include "engine/core/macros.h"           // WITHIN, SATURATE, QDIST2
+#include "engine/platform/uc_common.h" // ASSERT, base types
+#include "engine/core/macros.h" // WITHIN, SATURATE, QDIST2
 #include "game/game_types.h"
 #include "buildings/prim.h" // prim_get_collision_model
 #include "map/ob.h"
@@ -128,7 +128,10 @@ void WAND_get_next_place(
 #define WAND_MAX_LOOKS 8
 #define WAND_MAX_MOVE 3
 
-    const struct { SBYTE dx; SBYTE dz; } look[WAND_MAX_LOOKS] = {
+    const struct {
+        SBYTE dx;
+        SBYTE dz;
+    } look[WAND_MAX_LOOKS] = {
         { +WAND_MAX_MOVE, 0 },
         { -WAND_MAX_MOVE, 0 },
         { 0, +WAND_MAX_MOVE },
@@ -252,11 +255,15 @@ SLONG WAND_find_good_start_point(SLONG* mapx, SLONG* mapz)
     x >>= 8;
     z >>= 8;
 
-    minx = x - SEARCH_SIZE; maxx = x + SEARCH_SIZE;
-    minz = z - SEARCH_SIZE; maxz = z + SEARCH_SIZE;
+    minx = x - SEARCH_SIZE;
+    maxx = x + SEARCH_SIZE;
+    minz = z - SEARCH_SIZE;
+    maxz = z + SEARCH_SIZE;
 
-    SATURATE(minx, 2, 125); SATURATE(minz, 2, 125);
-    SATURATE(maxx, 2, 125); SATURATE(maxz, 2, 125);
+    SATURATE(minx, 2, 125);
+    SATURATE(minz, 2, 125);
+    SATURATE(maxx, 2, 125);
+    SATURATE(maxz, 2, 125);
 
     for (x = minx; x <= maxx; x++)
         for (z = minz; z <= maxz; z++) {
@@ -280,11 +287,15 @@ SLONG WAND_find_good_start_point_near(SLONG* mapx, SLONG* mapz)
     x = *mapx;
     z = *mapz;
 
-    minx = x - SEARCH_SIZE2; maxx = x + SEARCH_SIZE2;
-    minz = z - SEARCH_SIZE2; maxz = z + SEARCH_SIZE2;
+    minx = x - SEARCH_SIZE2;
+    maxx = x + SEARCH_SIZE2;
+    minz = z - SEARCH_SIZE2;
+    maxz = z + SEARCH_SIZE2;
 
-    SATURATE(minx, 2, 125); SATURATE(minz, 2, 125);
-    SATURATE(maxx, 2, 125); SATURATE(maxz, 2, 125);
+    SATURATE(minx, 2, 125);
+    SATURATE(minz, 2, 125);
+    SATURATE(maxx, 2, 125);
+    SATURATE(maxz, 2, 125);
 
     for (x = minx; x <= maxx; x++)
         for (z = minz; z <= maxz; z++) {
@@ -335,8 +346,10 @@ SLONG WAND_find_good_start_point_for_car(SLONG* posx, SLONG* posz, SLONG* yaw, S
 
         if ((z < z1 && z < z2) || (z > z1 && z > z2))
             return 0;
-        if (abs(z - z1) < 0x280) return 0;
-        if (abs(z - z2) < 0x280) return 0;
+        if (abs(z - z1) < 0x280)
+            return 0;
+        if (abs(z - z2) < 0x280)
+            return 0;
 
         if (PAP_2HI(x >> 8, z >> 8).Flags & PAP_FLAG_HIDDEN) {
             ASSERT(0);
@@ -353,8 +366,10 @@ SLONG WAND_find_good_start_point_for_car(SLONG* posx, SLONG* posz, SLONG* yaw, S
 
         if ((x < x1 && x < x2) || (x > x1 && x > x2))
             return 0;
-        if (abs(x - x1) < 0x280) return 0;
-        if (abs(x - x2) < 0x280) return 0;
+        if (abs(x - x1) < 0x280)
+            return 0;
+        if (abs(x - x2) < 0x280)
+            return 0;
 
         if (PAP_2HI(x >> 8, z >> 8).Flags & PAP_FLAG_HIDDEN) {
             ASSERT(0);

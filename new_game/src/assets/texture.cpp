@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
-#include "assets/formats/anim_globals.h"   // next_prim_face3, next_prim_face4
+#include "assets/formats/anim_globals.h" // next_prim_face3, next_prim_face4
 #include "engine/graphics/pipeline/aeng.h"
 #include "assets/formats/anim_tmap.h"
 #include "map/supermap.h"
@@ -17,7 +17,7 @@
 #include "assets/formats/tga.h"
 #include "map/level_pools.h"
 #include "assets/formats/level_loader.h"
-#include "buildings/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
+#include "buildings/building_types.h" // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
 #include "buildings/building_globals.h" // dx_textures_xy, building_list
 #include "map/supermap_globals.h" // next_dfacet
 #include "buildings/ware_globals.h" // WARE_rooftex, WARE_rooftex_upto
@@ -25,17 +25,17 @@
 
 // Internal page-count constants.
 // uc_orig: TEXTURE_NORM_SIZE (fallen/DDEngine/Source/texture.cpp)
-#define TEXTURE_NORM_SIZE    32
+#define TEXTURE_NORM_SIZE 32
 // uc_orig: TEXTURE_NORM_SQUARES (fallen/DDEngine/Source/texture.cpp)
 #define TEXTURE_NORM_SQUARES 8
 
 // DC packing system state (Dreamcast feature, disabled on PC).
 // uc_orig: TEXTURE_ENABLE_DC_PACKING (fallen/DDEngine/Source/texture.cpp)
-#define TEXTURE_ENABLE_DC_PACKING      0
+#define TEXTURE_ENABLE_DC_PACKING 0
 // uc_orig: TEXTURE_DC_PACK_POS_WHOLE_PAGE (fallen/DDEngine/Source/texture.cpp)
 #define TEXTURE_DC_PACK_POS_WHOLE_PAGE 42
 // uc_orig: TEXTURE_DC_NORMAL_START (fallen/DDEngine/Source/texture.cpp)
-#define TEXTURE_DC_NORMAL_START        128
+#define TEXTURE_DC_NORMAL_START 128
 
 // uc_orig: TEXTURE_DC_pack_init (fallen/DDEngine/Source/texture.cpp)
 static void TEXTURE_DC_pack_init(void)
@@ -45,7 +45,6 @@ static void TEXTURE_DC_pack_init(void)
     TEXTURE_DC_pack_page_pos = 0;
     TEXTURE_DC_pack_normal_upto = TEXTURE_DC_NORMAL_START;
 }
-
 
 // uc_orig: TEXTURE_choose_set (fallen/DDEngine/Source/texture.cpp)
 // Switches the active texture set (world n). Frees previously loaded world textures,
@@ -293,7 +292,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     SLONG page;
     float u[4];
     float v[4];
-
 
     extern UBYTE loading_screen_active;
 
@@ -804,28 +802,44 @@ void TEXTURE_get_minitexturebits_uvs(
 
     switch (trot) {
     case 0:
-        *u0 = base_u;            *v0 = base_v;
-        *u1 = base_u + base_size; *v1 = base_v;
-        *u2 = base_u;            *v2 = base_v + base_size;
-        *u3 = base_u + base_size; *v3 = base_v + base_size;
+        *u0 = base_u;
+        *v0 = base_v;
+        *u1 = base_u + base_size;
+        *v1 = base_v;
+        *u2 = base_u;
+        *v2 = base_v + base_size;
+        *u3 = base_u + base_size;
+        *v3 = base_v + base_size;
         break;
     case 1:
-        *u2 = base_u;            *v2 = base_v;
-        *u0 = base_u + base_size; *v0 = base_v;
-        *u3 = base_u;            *v3 = base_v + base_size;
-        *u1 = base_u + base_size; *v1 = base_v + base_size;
+        *u2 = base_u;
+        *v2 = base_v;
+        *u0 = base_u + base_size;
+        *v0 = base_v;
+        *u3 = base_u;
+        *v3 = base_v + base_size;
+        *u1 = base_u + base_size;
+        *v1 = base_v + base_size;
         break;
     case 2:
-        *u3 = base_u;            *v3 = base_v;
-        *u2 = base_u + base_size; *v2 = base_v;
-        *u1 = base_u;            *v1 = base_v + base_size;
-        *u0 = base_u + base_size; *v0 = base_v + base_size;
+        *u3 = base_u;
+        *v3 = base_v;
+        *u2 = base_u + base_size;
+        *v2 = base_v;
+        *u1 = base_u;
+        *v1 = base_v + base_size;
+        *u0 = base_u + base_size;
+        *v0 = base_v + base_size;
         break;
     case 3:
-        *u1 = base_u;            *v1 = base_v;
-        *u3 = base_u + base_size; *v3 = base_v;
-        *u0 = base_u;            *v0 = base_v + base_size;
-        *u2 = base_u + base_size; *v2 = base_v + base_size;
+        *u1 = base_u;
+        *v1 = base_v;
+        *u3 = base_u + base_size;
+        *v3 = base_v;
+        *u0 = base_u;
+        *v0 = base_v + base_size;
+        *u2 = base_u + base_size;
+        *v2 = base_v + base_size;
         break;
     }
 }
@@ -901,8 +915,12 @@ void TEXTURE_fix_prim_textures()
                 v -= base_v;
                 SATURATE(u, 0, 32);
                 SATURATE(v, 0, 32);
-                if (u == 31) { u = 32; }
-                if (v == 31) { v = 32; }
+                if (u == 31) {
+                    u = 32;
+                }
+                if (v == 31) {
+                    v = 32;
+                }
                 f3->UV[j][0] = u;
                 f3->UV[j][1] = v;
             }
@@ -965,8 +983,12 @@ void TEXTURE_fix_prim_textures()
                     v -= base_v;
                     SATURATE(u, 0, 32);
                     SATURATE(v, 0, 32);
-                    if (u == 31) { u = 32; }
-                    if (v == 31) { v = 32; }
+                    if (u == 31) {
+                        u = 32;
+                    }
+                    if (v == 31) {
+                        v = 32;
+                    }
                     f4->UV[j][0] = u;
                     f4->UV[j][1] = v;
                 }
@@ -1026,8 +1048,12 @@ void TEXTURE_fix_prim_textures()
                 p_a->UV[k][j][1] -= base_v;
                 SATURATE(p_a->UV[k][j][0], 0, 32);
                 SATURATE(p_a->UV[k][j][1], 0, 32);
-                if (p_a->UV[k][j][0] == 31) { p_a->UV[k][j][0] = 32; }
-                if (p_a->UV[k][j][1] == 31) { p_a->UV[k][j][1] = 32; }
+                if (p_a->UV[k][j][0] == 31) {
+                    p_a->UV[k][j][0] = 32;
+                }
+                if (p_a->UV[k][j][1] == 31) {
+                    p_a->UV[k][j][1] = 32;
+                }
             }
 
             page = av_u + av_v * TEXTURE_NORM_SQUARES + p_a->Page[k] * TEXTURE_NORM_SQUARES * TEXTURE_NORM_SQUARES;
@@ -1059,10 +1085,14 @@ SLONG TEXTURE_shadow_lock(void)
     TEXTURE_shadow_pitch = pitch;
     int32_t mr, mg, mb, ma, sr, sg, sb, sa;
     ge_get_texture_pixel_format(TEXTURE_page_shadow, &mr, &mg, &mb, &ma, &sr, &sg, &sb, &sa);
-    TEXTURE_shadow_mask_red = mr;   TEXTURE_shadow_mask_green = mg;
-    TEXTURE_shadow_mask_blue = mb;  TEXTURE_shadow_mask_alpha = ma;
-    TEXTURE_shadow_shift_red = sr;  TEXTURE_shadow_shift_green = sg;
-    TEXTURE_shadow_shift_blue = sb; TEXTURE_shadow_shift_alpha = sa;
+    TEXTURE_shadow_mask_red = mr;
+    TEXTURE_shadow_mask_green = mg;
+    TEXTURE_shadow_mask_blue = mb;
+    TEXTURE_shadow_mask_alpha = ma;
+    TEXTURE_shadow_shift_red = sr;
+    TEXTURE_shadow_shift_green = sg;
+    TEXTURE_shadow_shift_blue = sb;
+    TEXTURE_shadow_shift_alpha = sa;
     return UC_TRUE;
 }
 
@@ -1077,6 +1107,3 @@ void TEXTURE_shadow_unlock()
 void TEXTURE_shadow_update(void)
 {
 }
-
-
-

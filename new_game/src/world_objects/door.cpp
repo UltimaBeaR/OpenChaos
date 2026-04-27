@@ -85,7 +85,6 @@ static UWORD DOOR_find(
     return best_facet;
 }
 
-
 // Begins opening the door nearest to (world_x, world_z).
 // Sets FACET_FLAG_OPEN, registers the facet in DOOR_door[] for per-frame animation,
 // and enables MAV navigation links across the door span so pedestrians/vehicles can pass.

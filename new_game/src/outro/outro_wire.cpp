@@ -152,11 +152,6 @@ void WIRE_init()
     static SLONG done;
 
     if (!done) {
-        /*
-        WIRE_mesh[0] = IMP_load("Meshes/coinlogo.sex", 0.80F);
-        WIRE_mesh[1] = IMP_load("Meshes/tallpot.sex",  0.25F);
-        WIRE_mesh[2] = IMP_load("Meshes/capsule.sex",  0.25F);
-        */
 
         WIRE_mesh[0] = IMP_binary_load("Meshes/heart.imp");
         WIRE_mesh[1] = IMP_binary_load("Meshes/coinlogo.imp");

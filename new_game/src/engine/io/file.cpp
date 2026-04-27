@@ -28,7 +28,8 @@ static bool resolve_path_ci(const char* path, char* resolved, size_t resolved_si
         size_t comp_len = slash ? (size_t)(slash - rest) : strlen(rest);
 
         char component[256];
-        if (comp_len >= sizeof(component)) return false;
+        if (comp_len >= sizeof(component))
+            return false;
         memcpy(component, rest, comp_len);
         component[comp_len] = '\0';
 
@@ -51,14 +52,18 @@ static bool resolve_path_ci(const char* path, char* resolved, size_t resolved_si
         // For intermediate dirs we could stat(), but just try opendir scan on mismatch.
 
         DIR* d = opendir(dir_so_far);
-        if (!d) return false;
+        if (!d)
+            return false;
 
         bool found = false;
         struct dirent* entry;
         while ((entry = readdir(d)) != NULL) {
             if (strcasecmp(entry->d_name, component) == 0) {
                 size_t name_len = strlen(entry->d_name);
-                if (pos + name_len + 1 >= resolved_size) { closedir(d); return false; }
+                if (pos + name_len + 1 >= resolved_size) {
+                    closedir(d);
+                    return false;
+                }
                 memcpy(resolved + pos, entry->d_name, name_len);
                 pos += name_len;
                 found = true;
@@ -66,7 +71,8 @@ static bool resolve_path_ci(const char* path, char* resolved, size_t resolved_si
             }
         }
         closedir(d);
-        if (!found) return false;
+        if (!found)
+            return false;
 
         // Add slash separator if more components follow.
         if (slash) {
@@ -86,7 +92,8 @@ static bool resolve_path_ci(const char* path, char* resolved, size_t resolved_si
 FILE* fopen_ci(const char* path, const char* mode)
 {
     FILE* f = fopen(path, mode);
-    if (f) return f;
+    if (f)
+        return f;
 
     char resolved[512];
     if (resolve_path_ci(path, resolved, sizeof(resolved))) {
@@ -107,7 +114,8 @@ static CBYTE* MakeFullPathName(const CBYTE* cFilename)
     strcpy(cTempFilename, cBasePath);
     strcat(cTempFilename, cFilename);
     for (CBYTE* p = cTempFilename; *p; ++p) {
-        if (*p == '\\') *p = '/';
+        if (*p == '\\')
+            *p = '/';
     }
     return (cTempFilename);
 }
@@ -131,14 +139,16 @@ MFFileHandle FileOpen(CBYTE* file_name)
     file_name = MakeFullPathName(file_name);
 
     FILE* f = fopen_ci(file_name, "rb");
-    if (!f) return FILE_OPEN_ERROR;
+    if (!f)
+        return FILE_OPEN_ERROR;
     return f;
 }
 
 // uc_orig: FileClose (MFStdLib/Source/StdLib/StdFile.cpp)
 void FileClose(MFFileHandle file_handle)
 {
-    if (file_handle) fclose(file_handle);
+    if (file_handle)
+        fclose(file_handle);
 }
 
 // uc_orig: FileCreate (MFStdLib/Source/StdLib/StdFile.cpp)
@@ -156,7 +166,8 @@ MFFileHandle FileCreate(CBYTE* file_name, BOOL overwrite)
     }
 
     FILE* f = fopen_ci(file_name, "w+b");
-    if (!f) return FILE_CREATION_ERROR;
+    if (!f)
+        return FILE_CREATION_ERROR;
     return f;
 }
 
@@ -179,21 +190,25 @@ void FileDelete(CBYTE* file_name)
 // uc_orig: FileSize (MFStdLib/Source/StdLib/StdFile.cpp)
 SLONG FileSize(MFFileHandle file_handle)
 {
-    if (!file_handle) return FILE_SIZE_ERROR;
+    if (!file_handle)
+        return FILE_SIZE_ERROR;
 
     long pos = ftell(file_handle);
-    if (fseek(file_handle, 0, SEEK_END) != 0) return FILE_SIZE_ERROR;
+    if (fseek(file_handle, 0, SEEK_END) != 0)
+        return FILE_SIZE_ERROR;
     long size = ftell(file_handle);
     fseek(file_handle, pos, SEEK_SET);
 
-    if (size < 0) return FILE_SIZE_ERROR;
+    if (size < 0)
+        return FILE_SIZE_ERROR;
     return (SLONG)size;
 }
 
 // uc_orig: FileRead (MFStdLib/Source/StdLib/StdFile.cpp)
 SLONG FileRead(MFFileHandle file_handle, void* buffer, ULONG size)
 {
-    if (!file_handle) return FILE_READ_ERROR;
+    if (!file_handle)
+        return FILE_READ_ERROR;
 
     size_t bytes_read = fread(buffer, 1, size, file_handle);
     if (bytes_read == 0 && ferror(file_handle))
@@ -204,7 +219,8 @@ SLONG FileRead(MFFileHandle file_handle, void* buffer, ULONG size)
 // uc_orig: FileWrite (MFStdLib/Source/StdLib/StdFile.cpp)
 SLONG FileWrite(MFFileHandle file_handle, void* buffer, ULONG size)
 {
-    if (!file_handle) return FILE_WRITE_ERROR;
+    if (!file_handle)
+        return FILE_WRITE_ERROR;
 
     size_t bytes_written = fwrite(buffer, 1, size, file_handle);
     if (bytes_written == 0 && ferror(file_handle))
@@ -215,14 +231,22 @@ SLONG FileWrite(MFFileHandle file_handle, void* buffer, ULONG size)
 // uc_orig: FileSeek (MFStdLib/Source/StdLib/StdFile.cpp)
 SLONG FileSeek(MFFileHandle file_handle, const int mode, SLONG offset)
 {
-    if (!file_handle) return FILE_SEEK_ERROR;
+    if (!file_handle)
+        return FILE_SEEK_ERROR;
 
     int whence;
     switch (mode) {
-    case SEEK_MODE_BEGINNING: whence = SEEK_SET; break;
-    case SEEK_MODE_CURRENT:   whence = SEEK_CUR; break;
-    case SEEK_MODE_END:       whence = SEEK_END; break;
-    default:                  return FILE_SEEK_ERROR;
+    case SEEK_MODE_BEGINNING:
+        whence = SEEK_SET;
+        break;
+    case SEEK_MODE_CURRENT:
+        whence = SEEK_CUR;
+        break;
+    case SEEK_MODE_END:
+        whence = SEEK_END;
+        break;
+    default:
+        return FILE_SEEK_ERROR;
     }
 
     if (fseek(file_handle, offset, whence) != 0)

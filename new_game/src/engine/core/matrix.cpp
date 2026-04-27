@@ -89,4 +89,3 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
     a[7] = m[6] * n[1] + m[7] * n[4] + m[8] * n[7];
     a[8] = m[6] * n[2] + m[7] * n[5] + m[8] * n[8];
 }
-

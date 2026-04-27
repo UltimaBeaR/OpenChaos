@@ -8,4 +8,3 @@ float not_private_smiley_xscale;
 
 // uc_orig: not_private_smiley_yscale (fallen/DDEngine/Source/polypage.cpp)
 float not_private_smiley_yscale;
-

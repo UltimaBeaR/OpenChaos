@@ -24,16 +24,16 @@
 // uc_orig: FIRE_Flame (fallen/Source/fire.cpp)
 typedef struct
 {
-    SBYTE dx;      // horizontal offset from fire center
-    SBYTE dz;      // depth offset from fire center
-    UBYTE die;     // lifetime limit (flame dies when counter >= die, range 32..63)
+    SBYTE dx; // horizontal offset from fire center
+    SBYTE dz; // depth offset from fire center
+    UBYTE die; // lifetime limit (flame dies when counter >= die, range 32..63)
     UBYTE counter; // age counter, incremented every tick
-    UBYTE height;  // visual height = 255 - (|dx| + |dz|); center flames tallest
-    UBYTE next;    // intrusive linked-list next index (0 = end)
-    UBYTE points;  // number of animated control points (2..4, derived from height)
-    UBYTE shit;    // padding / unused
+    UBYTE height; // visual height = 255 - (|dx| + |dz|); center flames tallest
+    UBYTE next; // intrusive linked-list next index (0 = end)
+    UBYTE points; // number of animated control points (2..4, derived from height)
+    UBYTE shit; // padding / unused
 
-    UBYTE angle[FIRE_MAX_FLAME_POINTS];  // per-control-point animated angle (wraps 0..255)
+    UBYTE angle[FIRE_MAX_FLAME_POINTS]; // per-control-point animated angle (wraps 0..255)
     UBYTE offset[FIRE_MAX_FLAME_POINTS]; // per-control-point animated radial offset
 } FIRE_Flame;
 
@@ -41,13 +41,13 @@ typedef struct
 // uc_orig: FIRE_Fire (fallen/Source/fire.cpp)
 typedef struct
 {
-    UBYTE num;    // number of active flames (0 = slot unused)
-    UBYTE next;   // head of this fire's flame linked list
-    UBYTE size;   // current intensity; decreases over time; controls target flame count
+    UBYTE num; // number of active flames (0 = slot unused)
+    UBYTE next; // head of this fire's flame linked list
+    UBYTE size; // current intensity; decreases over time; controls target flame count
     UBYTE shrink; // burn-out speed (subtracted from size every 4 ticks)
-    UWORD x;      // world X position
-    SWORD y;      // world Y position
-    UWORD z;      // world Z position
+    UWORD x; // world X position
+    SWORD y; // world Y position
+    UWORD z; // world Z position
 } FIRE_Fire;
 
 // uc_orig: FIRE_MAX_POINTS (fallen/Source/fire.cpp)

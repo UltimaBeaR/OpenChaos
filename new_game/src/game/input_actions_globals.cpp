@@ -66,18 +66,18 @@ int g_iPlayerCameraMode = 0;
 // -> 256-unit angle base for fight-step direction (shifted left 3 to get 2048-range angle).
 // uc_orig: input_to_angle (fallen/Source/interfac.cpp)
 UBYTE input_to_angle[] = {
-    0,       // 0000 - no direction
-    0,       // 0001 - forward
-    128,     // 0010 - back
-    0,       // 0011 - forward+back (cancel)
-    192,     // 0100 - left
-    192+32,  // 0101 - forward+left
-    192-32,  // 0110 - back+left
-    0,       // 0111 - (unused)
-    64,      // 1000 - right
-    32,      // 1001 - forward+right
-    96,      // 1010 - back+right
-    0,       // 1011 - (unused)
-    0,       // 1100 - (unused)
-    0,       // 1101 - (unused)
+    0, // 0000 - no direction
+    0, // 0001 - forward
+    128, // 0010 - back
+    0, // 0011 - forward+back (cancel)
+    192, // 0100 - left
+    192 + 32, // 0101 - forward+left
+    192 - 32, // 0110 - back+left
+    0, // 0111 - (unused)
+    64, // 1000 - right
+    32, // 1001 - forward+right
+    96, // 1010 - back+right
+    0, // 1011 - (unused)
+    0, // 1100 - (unused)
+    0, // 1101 - (unused)
 };

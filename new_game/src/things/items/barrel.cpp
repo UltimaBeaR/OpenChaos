@@ -4,7 +4,7 @@
 // Types: NORMAL (explodes), CONE (small, no stack), BURNING (starts on fire), BIN (rubbish+cans).
 
 #include "game/game_types.h"
-#include "buildings/prim.h"    // get_prim_info
+#include "buildings/prim.h" // get_prim_info
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
 #include "engine/core/fmatrix.h"
@@ -17,38 +17,38 @@
 #include "world_objects/dirt.h"
 #include "ui/hud/panel.h"
 #include "effects/combat/pyro.h"
-#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
-#include "engine/physics/collide.h"          // create_shockwave
+#include "engine/graphics/pipeline/aeng.h" // AENG_world_line
+#include "engine/physics/collide.h" // create_shockwave
 
 // uc_orig: BARREL_FLAG_STACKED (fallen/Source/barrel.cpp)
-#define BARREL_FLAG_STACKED  (1 << 0)
+#define BARREL_FLAG_STACKED (1 << 0)
 // uc_orig: BARREL_FLAG_STILL (fallen/Source/barrel.cpp)
-#define BARREL_FLAG_STILL    (1 << 1)
+#define BARREL_FLAG_STILL (1 << 1)
 // uc_orig: BARREL_FLAG_GROUNDED (fallen/Source/barrel.cpp)
 #define BARREL_FLAG_GROUNDED (1 << 2)
 // uc_orig: BARREL_FLAG_HELD (fallen/Source/barrel.cpp)
-#define BARREL_FLAG_HELD     (1 << 3)
+#define BARREL_FLAG_HELD (1 << 3)
 // uc_orig: BARREL_FLAG_HIT (fallen/Source/barrel.cpp)
-#define BARREL_FLAG_HIT      (1 << 4)
+#define BARREL_FLAG_HIT (1 << 4)
 // uc_orig: BARREL_FLAG_RUBBISH (fallen/Source/barrel.cpp)
-#define BARREL_FLAG_RUBBISH  (1 << 5)
+#define BARREL_FLAG_RUBBISH (1 << 5)
 // uc_orig: BARREL_FLAG_CANS (fallen/Source/barrel.cpp)
-#define BARREL_FLAG_CANS     (1 << 6)
+#define BARREL_FLAG_CANS (1 << 6)
 
 // uc_orig: BARREL_DIAMETER (fallen/Source/barrel.cpp)
-#define BARREL_DIAMETER     80
+#define BARREL_DIAMETER 80
 // uc_orig: BARREL_RADIUS (fallen/Source/barrel.cpp)
-#define BARREL_RADIUS       40
+#define BARREL_RADIUS 40
 // uc_orig: BARREL_HEIGHT (fallen/Source/barrel.cpp)
-#define BARREL_HEIGHT       93
+#define BARREL_HEIGHT 93
 // uc_orig: BARREL_STACK_RADIUS (fallen/Source/barrel.cpp)
 #define BARREL_STACK_RADIUS 45
 // uc_orig: BARREL_SPHERE_RADIUS (fallen/Source/barrel.cpp)
 #define BARREL_SPHERE_RADIUS 85
 // uc_orig: BARREL_SPHERE_DIST (fallen/Source/barrel.cpp)
-#define BARREL_SPHERE_DIST  50
+#define BARREL_SPHERE_DIST 50
 // uc_orig: BARREL_GRAVITY (fallen/Source/barrel.cpp)
-#define BARREL_GRAVITY      0x80
+#define BARREL_GRAVITY 0x80
 
 extern BOOL allow_debug_keys;
 
@@ -185,35 +185,6 @@ void BARREL_convert_stationary_to_moving(Thing* p_barrel)
     ASSERT(bb->flag & (BARREL_FLAG_STACKED | BARREL_FLAG_STILL));
 
     if (p_barrel->Genus.Barrel->type == BARREL_TYPE_CONE) {
-        /*
-                if (!(p_barrel->Genus.Barrel->flag & BARREL_FLAG_HIT))
-                {
-                        p_barrel->Genus.Barrel->flag |= BARREL_FLAG_HIT;
-
-                        extern UBYTE EWAY_count_up_visible;
-                        extern SLONG EWAY_count_up;
-
-                        if (EWAY_count_up_visible)
-                        {
-                                EWAY_count_up += 500;
-
-                                void add_damage_text(SWORD x,SWORD y,SWORD z,CBYTE *text);
-
-                                add_damage_text(
-                                        p_barrel->WorldPos.X >> 8,
-                                        p_barrel->WorldPos.Y >> 8,
-                                        p_barrel->WorldPos.Z >> 8,
-                                        "Time penalty");
-
-                                PANEL_new_info_message("Time Penalty");
-                        }
-
-                        if (GAME_FLAGS & GF_CONE_PENALTIES)
-                        {
-                                EWAY_deduct_time_penalty(50);
-                        }
-                }
-        */
 
         MFX_play_thing(THING_NUMBER(p_barrel), S_TRAFFIC_CONE, 0, p_barrel);
     } else
@@ -1260,34 +1231,6 @@ void BARREL_shoot(
 
         BARREL_dissapear(p_barrel);
 
-        /*
-
-        if (in_the_air)
-        {
-                SLONG i;
-                GameCoord pos = barrelpos;
-
-                PARTICLE_Add(pos.X,pos.Y,pos.Z, 0, 0, 0, POLY_PAGE_SMOKECLOUD, 2, 0xFFFFFFFF, PFLAG_SPRITEANI|PFLAG_SPRITELOOP|PFLAG_FADE|PFLAG_RESIZE, 100, 440+(Random()&0x7f), 1, 3, 50);
-
-                PARTICLE_Add(pos.X,pos.Y,pos.Z, 0, 0, 0, POLY_PAGE_EXPLODE1-(Random()&1), 2, 0xFFFFFF, PFLAG_SPRITEANI|PFLAG_RESIZE, 20, 120+(Random()&0x7f), 1, 0, 30);
-                PARTICLE_Add(pos.X,pos.Y,pos.Z, 0, 0, 0, POLY_PAGE_EXPLODE1-(Random()&1), 2, 0x7fFFFFFF, PFLAG_SPRITEANI|PFLAG_RESIZE, 20, 120+(Random()&0x7f), 1, 0, 40);
-                for (i=0;i<25;i++) {
-                  PARTICLE_Add(pos.X,pos.Y,pos.Z, ((Random()&0x1f)-0xf)<<6, (Random()&0x1f)<<6, ((Random()&0x1f)-0xf)<<6, POLY_PAGE_EXPLODE1-(Random()&1), 2+((Random()&3)<<2), 0xFFFFFF, PFLAG_GRAVITY|PFLAG_RESIZE2|PFLAG_FADE|PFLAG_INVALPHA, 240, 20+(Random()&0x1f), 1, 3+(Random()&3), 0);
-                  if (Random()&3)
-                        PARTICLE_Add(pos.X,pos.Y,pos.Z, ((Random()&0x1f)-0xf)<<8, (Random()&0x1f)<<8, ((Random()&0x1f)-0xf)<<8, POLY_PAGE_EXPLODE1-(Random()&1), 2+((Random()&3)<<2), 0xFFFFFF, PFLAG_GRAVITY|PFLAG_RESIZE2|PFLAG_FADE|PFLAG_INVALPHA|PFLAG_BOUNCE, 240, 20+(Random()&0x1f), 1, 2+(Random()&3), 0);
-                  else
-                        PARTICLE_Add(pos.X,pos.Y,pos.Z, ((Random()&0x1f)-0xf)<<12, (Random()&0x1f)<<8, ((Random()&0x1f)-0xf)<<12, POLY_PAGE_EXPLODE1-(Random()&1), 2+((Random()&3)<<2), 0xFFFFFF, PFLAG_GRAVITY|PFLAG_RESIZE2|PFLAG_FADE|PFLAG_INVALPHA, 240, 20+(Random()&0x1f), 1, 3, 0);
-                }
-        }
-        else
-        {
-                PYRO_construct(
-                        barrelpos,
-                   -1,
-                        256);
-        }
-
-        */
         PYRO_create(barrelpos, PYRO_FIREBOMB);
 
         PCOM_oscillate_tympanum(

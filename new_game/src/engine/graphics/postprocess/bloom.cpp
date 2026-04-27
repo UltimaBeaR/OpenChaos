@@ -1,7 +1,6 @@
 // uc_orig: drawxtra.cpp (fallen/DDEngine/Source/drawxtra.cpp)
 // Light bloom and lens flare rendering: BLOOM_flare_draw + BLOOM_draw.
 
-
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
@@ -11,7 +10,7 @@
 
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/graphics/postprocess/bloom_globals.h"
-#include "engine/graphics/geometry/sprite.h"  // SPRITE_draw_rotated
+#include "engine/graphics/geometry/sprite.h" // SPRITE_draw_rotated
 
 // AENG_cur_fc_cam and AENG_cam_vec are defined in aeng.cpp without a public header declaration.
 extern SLONG AENG_cur_fc_cam;

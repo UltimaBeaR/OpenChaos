@@ -1,5 +1,5 @@
 #include "game/game_types.h"
-#include "things/characters/person.h"  // create_person
+#include "things/characters/person.h" // create_person
 #include "things/core/player.h"
 #include "game/input_actions.h"
 
@@ -100,4 +100,3 @@ Thing* create_player(UBYTE type, MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG player_i
 
     return person_thing;
 }
-

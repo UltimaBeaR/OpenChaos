@@ -69,27 +69,27 @@
 //   pos = lerp(CurrentFrame.verts[i], NextFrame.verts[i], AnimTween / MAX_ANIM_TWEEN)
 typedef struct
 {
-    UBYTE TweakSpeed;        // animation playback speed multiplier
-    SBYTE Locked;            // if >=0, hold this keyframe index (frozen pose)
-    UBYTE FrameIndex;        // current keyframe index being played
-    UBYTE QueuedFrameIndex;  // next animation to play after current finishes
+    UBYTE TweakSpeed; // animation playback speed multiplier
+    SBYTE Locked; // if >=0, hold this keyframe index (frozen pose)
+    UBYTE FrameIndex; // current keyframe index being played
+    UBYTE QueuedFrameIndex; // next animation to play after current finishes
 
-    SWORD Angle, AngleTo,    // current and target facing angle (0–2047)
-        Roll, DRoll,         // banking roll and delta roll
-        Tilt, TiltTo;        // forward/back tilt and target tilt
+    SWORD Angle, AngleTo, // current and target facing angle (0–2047)
+        Roll, DRoll, // banking roll and delta roll
+        Tilt, TiltTo; // forward/back tilt and target tilt
 
-    SLONG CurrentAnim,       // index of the currently playing animation clip
-        AnimTween,           // blend fraction between CurrentFrame and NextFrame
-        TweenStage;          // sub-stage within the tween (for multi-step blends)
-    struct GameKeyFrame *CurrentFrame,   // keyframe N (start of current blend)
-        *NextFrame,                      // keyframe N+1 (end of current blend)
-        *InterruptFrame,                 // keyframe to jump to on interruption
-        *QueuedFrame;                    // keyframe to play after current animation ends
-    struct GameKeyFrameChunk* TheChunk;  // loaded keyframe data block for this mesh/anim
+    SLONG CurrentAnim, // index of the currently playing animation clip
+        AnimTween, // blend fraction between CurrentFrame and NextFrame
+        TweenStage; // sub-stage within the tween (for multi-step blends)
+    struct GameKeyFrame *CurrentFrame, // keyframe N (start of current blend)
+        *NextFrame, // keyframe N+1 (end of current blend)
+        *InterruptFrame, // keyframe to jump to on interruption
+        *QueuedFrame; // keyframe to play after current animation ends
+    struct GameKeyFrameChunk* TheChunk; // loaded keyframe data block for this mesh/anim
 
-    UBYTE Flags;    // DT_FLAG_* bits (UNUSED, GUNFLASH)
-    UBYTE Drawn;    // game turn number when last rendered (for occlusion skip)
-    UBYTE MeshID;   // index into the mesh table (which .IMP model to use)
+    UBYTE Flags; // DT_FLAG_* bits (UNUSED, GUNFLASH)
+    UBYTE Drawn; // game turn number when last rendered (for occlusion skip)
+    UBYTE MeshID; // index into the mesh table (which .IMP model to use)
     UBYTE PersonID; // index of the Person/Thing this tween belongs to
 } DrawTween;
 
@@ -98,12 +98,12 @@ typedef struct
 // No animation — just a mesh instance at a given orientation.
 typedef struct
 {
-    UWORD Angle;      // yaw rotation (0–2047 = 0–360 degrees)
-    UWORD Roll;       // roll (banking) rotation
-    UWORD Tilt;       // pitch (forward tilt) rotation
-    UWORD ObjectId;   // mesh asset ID (index into loaded mesh table)
+    UWORD Angle; // yaw rotation (0–2047 = 0–360 degrees)
+    UWORD Roll; // roll (banking) rotation
+    UWORD Tilt; // pitch (forward tilt) rotation
+    UWORD ObjectId; // mesh asset ID (index into loaded mesh table)
     CACHE_Index Cache; // texture cache slot
-    UBYTE Hm;         // height-map index; 255 = NULL (no height override)
+    UBYTE Hm; // height-map index; 255 = NULL (no height override)
 } DrawMesh;
 
 // uc_orig: init_draw_tweens (fallen/Source/drawtype.cpp)

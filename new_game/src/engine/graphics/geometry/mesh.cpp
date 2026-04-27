@@ -14,7 +14,7 @@
 #include "map/level_pools.h"
 
 #include <math.h>
-#include <stdlib.h>                    // realloc, fabs
+#include <stdlib.h> // realloc, fabs
 
 // uc_orig: frand (fallen/DDEngine/Source/mesh.cpp)
 // Returns a random float in [0.0, 1.0].
@@ -577,4 +577,3 @@ NIGHT_Colour* MESH_draw_poly_inv_matrix(
 
     return MESH_draw_guts(prim, at_x, at_y, at_z, matrix, lpc, 0);
 }
-

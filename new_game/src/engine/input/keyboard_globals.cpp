@@ -2,13 +2,13 @@
 
 // uc_orig: AltFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
 volatile UBYTE AltFlag,
-// uc_orig: ControlFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
+    // uc_orig: ControlFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
     ControlFlag,
-// uc_orig: ShiftFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
+    // uc_orig: ShiftFlag (fallen/DDLibrary/Source/GKeyboard.cpp)
     ShiftFlag;
 // uc_orig: Keys (fallen/DDLibrary/Source/GKeyboard.cpp)
 volatile UBYTE Keys[256],
-// uc_orig: LastKey (fallen/DDLibrary/Source/GKeyboard.cpp)
+    // uc_orig: LastKey (fallen/DDLibrary/Source/GKeyboard.cpp)
     LastKey;
 
 // uc_orig: key_turn (fallen/DDLibrary/Source/GKeyboard.cpp)

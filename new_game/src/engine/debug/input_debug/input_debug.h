@@ -10,7 +10,7 @@
 
 #include <cstdint>
 
-#include "engine/input/gamepad.h"      // GamepadState, InputDeviceType
+#include "engine/input/gamepad.h" // GamepadState, InputDeviceType
 #include "engine/platform/uc_common.h"
 
 // ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ void input_debug_render();
 
 enum InputDebugPage {
     INPUT_DEBUG_PAGE_KEYBOARD = 0,
-    INPUT_DEBUG_PAGE_GAMEPAD,      // Xbox / generic
+    INPUT_DEBUG_PAGE_GAMEPAD, // Xbox / generic
     INPUT_DEBUG_PAGE_DUALSENSE,
     INPUT_DEBUG_PAGE_COUNT,
 };
@@ -74,7 +74,7 @@ bool input_debug_key_held(unsigned char scancode);
 uint8_t input_debug_read_ds_feedback(bool right_trigger);
 // Effect-active bit (bit 4 of the feedback byte): the trigger is currently
 // engaged with its adaptive-trigger resistance.
-bool    input_debug_read_ds_effect_active(bool right_trigger);
+bool input_debug_read_ds_effect_active(bool right_trigger);
 
 // ---------------------------------------------------------------------------
 // Navigation edge-detect (shared across all interactive widgets)
@@ -113,7 +113,7 @@ int input_debug_render_rumble_test(SLONG x, SLONG y, int local_cursor);
 // DualSense is not the active input source. Coordinates are raw hardware
 // pixels (X 0..1919, Y 0..1079). `down` is the contact flag.
 void input_debug_read_ds_touchpad(int* f1_x, int* f1_y, bool* f1_down,
-                                  int* f2_x, int* f2_y, bool* f2_down);
+    int* f2_x, int* f2_y, bool* f2_down);
 
 // Reset DualSense page widget state — called on panel open/close so the
 // lightbar / player LED tests start from a clean slate and don't leave
@@ -146,9 +146,9 @@ void input_debug_gamepad_reset_sub();
 // the fill that sits on top). POLY_PAGE_COLOUR has depth write on, so a
 // dot drawn with a *higher* layer than its backing rect gets rejected by
 // the depth test and disappears. Keep accent < content < backdrop.
-constexpr SLONG INPUT_DEBUG_LAYER_ACCENT   = 10;  // dots, fills — on top
-constexpr SLONG INPUT_DEBUG_LAYER_CONTENT  = 11;  // widget backgrounds
-constexpr SLONG INPUT_DEBUG_LAYER_BACKDROP = 12;  // full-screen dimmer
+constexpr SLONG INPUT_DEBUG_LAYER_ACCENT = 10; // dots, fills — on top
+constexpr SLONG INPUT_DEBUG_LAYER_CONTENT = 11; // widget backgrounds
+constexpr SLONG INPUT_DEBUG_LAYER_BACKDROP = 12; // full-screen dimmer
 
 // ---------------------------------------------------------------------------
 // Shared widget positions
@@ -158,16 +158,16 @@ constexpr SLONG INPUT_DEBUG_LAYER_BACKDROP = 12;  // full-screen dimmer
 // so switching between Keyboard / Xbox / DualSense doesn't visually
 // shuffle those anchors. Page-specific decoration (button labels, act/fb
 // indicators, touchpad viz, etc.) varies freely around these positions.
-constexpr SLONG INPUT_DEBUG_CONTENT_Y     = 48;
-constexpr SLONG INPUT_DEBUG_STICK_SIZE    = 96;
-constexpr SLONG INPUT_DEBUG_STICK_Y       = 110;
-constexpr SLONG INPUT_DEBUG_LEFT_STICK_X  = 100;
+constexpr SLONG INPUT_DEBUG_CONTENT_Y = 48;
+constexpr SLONG INPUT_DEBUG_STICK_SIZE = 96;
+constexpr SLONG INPUT_DEBUG_STICK_Y = 110;
+constexpr SLONG INPUT_DEBUG_LEFT_STICK_X = 100;
 constexpr SLONG INPUT_DEBUG_RIGHT_STICK_X = 540;
-constexpr SLONG INPUT_DEBUG_TRIG_W        = 22;
-constexpr SLONG INPUT_DEBUG_TRIG_H        = 96;
-constexpr SLONG INPUT_DEBUG_TRIG_Y        = 60;
-constexpr SLONG INPUT_DEBUG_LEFT_TRIG_X   = 220;
-constexpr SLONG INPUT_DEBUG_RIGHT_TRIG_X  = 418;
+constexpr SLONG INPUT_DEBUG_TRIG_W = 22;
+constexpr SLONG INPUT_DEBUG_TRIG_H = 96;
+constexpr SLONG INPUT_DEBUG_TRIG_Y = 60;
+constexpr SLONG INPUT_DEBUG_LEFT_TRIG_X = 220;
+constexpr SLONG INPUT_DEBUG_RIGHT_TRIG_X = 418;
 // Gap from the bottom of a stick box to the first line of the numeric
 // readout ("X=.. Y=..") that both pages render under the stick.
 constexpr SLONG INPUT_DEBUG_STICK_READOUT_GAP = 8;
@@ -176,25 +176,25 @@ constexpr SLONG INPUT_DEBUG_STICK_READOUT_GAP = 8;
 // cx, cy = centre of the box. size = width/height. nx, ny = normalized
 // deflection in [-1..+1] (as from (lX - 32768)/32768).
 void input_debug_draw_stick(SLONG cx, SLONG cy, SLONG size,
-                            float nx, float ny,
-                            const char* label);
+    float nx, float ny,
+    const char* label);
 
 // Vertical trigger bar. Fill grows from the bottom proportional to
 // value/max. w, h = bar dimensions. label shown below the bar with
 // the numeric value.
 void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
-                                  int value, int max_val,
-                                  const char* label);
+    int value, int max_val,
+    const char* label);
 
 // Single-line button state: bright green when pressed, dim grey when not.
 // Useful for dense grids of buttons in a page.
 void input_debug_draw_button(SLONG x, SLONG y,
-                             const char* label, bool pressed);
+    const char* label, bool pressed);
 
 // Checkbox-style indicator for a boolean flag: "[x] label" on, "[ ] label" off.
 // Useful for DualSense feedback act bits and similar single-bit states.
 void input_debug_draw_checkbox(SLONG x, SLONG y,
-                               const char* label, bool on);
+    const char* label, bool on);
 
 // Text rendering that matches the rects drawn by AENG_draw_rect. Both
 // land on the post-composition default framebuffer through the same
@@ -208,6 +208,6 @@ void input_debug_draw_checkbox(SLONG x, SLONG y,
 // inside the panel — raw FONT_buffer_add would put text at literal
 // framebuffer pixels which would stretch differently from the rects.
 void input_debug_text(SLONG x_logical, SLONG y_logical,
-                      unsigned char r, unsigned char g, unsigned char b,
-                      unsigned char shadow,
-                      const char* fmt, ...);
+    unsigned char r, unsigned char g, unsigned char b,
+    unsigned char shadow,
+    const char* fmt, ...);

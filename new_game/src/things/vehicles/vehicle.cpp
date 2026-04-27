@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-#include "engine/platform/uc_common.h"            // base types, ASSERT
+#include "engine/platform/uc_common.h" // base types, ASSERT
 #include "game/game_types.h" // Game struct, TICK_RATIO, pool macros
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/oval.h"
@@ -16,9 +16,9 @@
 #include "engine/core/fmatrix.h"
 #include "things/core/statedef.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
-#include "buildings/prim.h"       // slide_along_prim, get_prim_info, etc.
+#include "buildings/prim.h" // slide_along_prim, get_prim_info, etc.
 #include "things/characters/anim_ids.h"
-#include "engine/animation/anim_types.h"  // GameKeyFrame, ANIM_FLAG_LAST_FRAME
+#include "engine/animation/anim_types.h" // GameKeyFrame, ANIM_FLAG_LAST_FRAME
 #include "engine/audio/sound.h"
 #include "map/ob.h"
 #include "engine/graphics/lighting/night.h"
@@ -27,7 +27,7 @@
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "game/input_actions.h"
-#include "engine/input/gamepad.h"        // gamepad_set_shock
+#include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
@@ -39,8 +39,8 @@
 #include "engine/effects/psystem.h"
 #include "things/vehicles/vehicle.h"
 #include "things/vehicles/vehicle_globals.h"
-#include "things/characters/person.h"          // set_person_exit_vehicle, knock_person_down, set_person_flip, set_person_ko_recoil, person_is_lying_on_what
-#include "engine/physics/collide.h"            // collide_box_with_line, distance_to_line
+#include "things/characters/person.h" // set_person_exit_vehicle, knock_person_down, set_person_flip, set_person_ko_recoil, person_is_lying_on_what
+#include "engine/physics/collide.h" // collide_box_with_line, distance_to_line
 
 #include "ai/pcom.h"
 
@@ -282,38 +282,6 @@ void VEH_find_door(Thing* p_vehicle, SLONG i_am_a_passenger, SLONG* door_x, SLON
     iz = p_vehicle->WorldPos.Z >> 8;
 
     if (i_am_a_passenger) {
-        /*
-                        switch(p_vehicle->Genus.Vehicle->Type)
-                        {
-                                case VEH_TYPE_VAN:
-                                case VEH_TYPE_AMBULANCE:
-                                case VEH_TYPE_JEEP:
-                                case VEH_TYPE_MEATWAGON:
-                                case VEH_TYPE_WILDCATVAN:
-
-                                        ix -= dx >> 10;
-                                        iz -= dz >> 10;
-
-                                        break;
-
-                                case VEH_TYPE_CAR:
-                                case VEH_TYPE_TAXI:
-                                case VEH_TYPE_POLICE:
-                                case VEH_TYPE_SEDAN:
-
-                                        ix -= dx >> 10;
-                                        iz -= dz >> 10;
-
-                                        ix += dz >> 9;
-                                        iz -= dx >> 9;
-
-                                        break;
-
-                                default:
-                                        ASSERT(0);
-                                        break;
-                        }
-        */
 
         ix += dx >> 10;
         iz += dz >> 10;
@@ -711,8 +679,7 @@ void draw_car(Thing* p_car)
             NULL,
             0xff,
             -1)
-        == NULL)
-    {
+        == NULL) {
         // body culled — could skip wheels here, but doesn't
     }
 
@@ -1490,25 +1457,25 @@ void nudge_car(Thing* p_car, SLONG flags, SLONG* x, SLONG* z, SLONG neg)
 
 // Collision result codes — combined corner/edge contact pattern → response direction.
 // uc_orig: COLL_NONE (fallen/Source/Vehicle.cpp)
-#define COLL_NONE  0x00
+#define COLL_NONE 0x00
 // uc_orig: COLL_FL (fallen/Source/Vehicle.cpp)
-#define COLL_FL    0x01
+#define COLL_FL 0x01
 // uc_orig: COLL_FR (fallen/Source/Vehicle.cpp)
-#define COLL_FR    0x02
+#define COLL_FR 0x02
 // uc_orig: COLL_BR (fallen/Source/Vehicle.cpp)
-#define COLL_BR    0x03
+#define COLL_BR 0x03
 // uc_orig: COLL_BL (fallen/Source/Vehicle.cpp)
-#define COLL_BL    0x04
+#define COLL_BL 0x04
 // uc_orig: COLL_FRONT (fallen/Source/Vehicle.cpp)
 #define COLL_FRONT 0x05
 // uc_orig: COLL_BACK (fallen/Source/Vehicle.cpp)
-#define COLL_BACK  0x06
+#define COLL_BACK 0x06
 // uc_orig: COLL_LEFT (fallen/Source/Vehicle.cpp)
-#define COLL_LEFT  0x07
+#define COLL_LEFT 0x07
 // uc_orig: COLL_RIGHT (fallen/Source/Vehicle.cpp)
 #define COLL_RIGHT 0x08
 // uc_orig: COLL_ALL (fallen/Source/Vehicle.cpp)
-#define COLL_ALL   0x09
+#define COLL_ALL 0x09
 
 extern UBYTE last_mav_square_x;
 extern UBYTE last_mav_square_z;
@@ -2411,8 +2378,7 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
             // Analog throttle: scale accel by R2 trigger position (gamepad only).
             // Full press = full accel, partial press = proportional.
             // Cross button always gives full accel (digital).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE &&
-                gamepad_state.trigger_right > 0 && gamepad_state.trigger_right < 240) {
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.trigger_right > 0 && gamepad_state.trigger_right < 240) {
                 accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_right) / 255);
             }
 
@@ -2430,8 +2396,7 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
 
             // Analog brake: scale braking force by L2 trigger position (gamepad only).
             // Square button always gives full brake (digital).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE &&
-                gamepad_state.trigger_left > 0 && gamepad_state.trigger_left < 240) {
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.trigger_left > 0 && gamepad_state.trigger_left < 240) {
                 accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_left) / 255);
             }
 

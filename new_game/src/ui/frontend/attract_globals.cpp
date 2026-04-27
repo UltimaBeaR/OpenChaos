@@ -1,6 +1,5 @@
 #include "ui/frontend/attract_globals.h"
 
-
 // uc_orig: go_into_game (fallen/Source/Attract.cpp)
 SLONG go_into_game = 0;
 

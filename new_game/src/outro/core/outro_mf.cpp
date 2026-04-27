@@ -31,10 +31,10 @@ void MF_load_textures(IMP_Mesh* im)
 // uc_orig: MF_backup (fallen/outro/mf.cpp)
 void MF_backup(IMP_Mesh* im)
 {
-    im->old_vert  = (IMP_Vert*)malloc(sizeof(IMP_Vert)  * im->num_verts);
+    im->old_vert = (IMP_Vert*)malloc(sizeof(IMP_Vert) * im->num_verts);
     im->old_svert = (IMP_Svert*)malloc(sizeof(IMP_Svert) * im->num_sverts);
 
-    memcpy(im->old_vert,  im->vert,  sizeof(IMP_Vert)  * im->num_verts);
+    memcpy(im->old_vert, im->vert, sizeof(IMP_Vert) * im->num_verts);
     memcpy(im->old_svert, im->svert, sizeof(IMP_Svert) * im->num_sverts);
 }
 
@@ -58,7 +58,7 @@ void MF_rotate_mesh(
     for (i = 0; i < im->num_sverts; i++) {
         im->svert[i] = im->old_svert[i];
 
-        MATRIX_MUL(matrix, im->svert[i].nx,   im->svert[i].ny,   im->svert[i].nz);
+        MATRIX_MUL(matrix, im->svert[i].nx, im->svert[i].ny, im->svert[i].nz);
         MATRIX_MUL(matrix, im->svert[i].dxdu, im->svert[i].dydu, im->svert[i].dzdu);
         MATRIX_MUL(matrix, im->svert[i].dxdv, im->svert[i].dydv, im->svert[i].dzdv);
     }
@@ -90,7 +90,7 @@ void MF_rotate_mesh(
     for (i = 0; i < im->num_sverts; i++) {
         im->svert[i] = im->old_svert[i];
 
-        MATRIX_MUL(matrix, im->svert[i].nx,   im->svert[i].ny,   im->svert[i].nz);
+        MATRIX_MUL(matrix, im->svert[i].nx, im->svert[i].ny, im->svert[i].nz);
         MATRIX_MUL(matrix, im->svert[i].dxdu, im->svert[i].dydu, im->svert[i].dzdu);
         MATRIX_MUL(matrix, im->svert[i].dxdv, im->svert[i].dydv, im->svert[i].dzdv);
     }
@@ -172,10 +172,10 @@ void MF_diffuse_spotlight(
             is->colour = 0x00000000;
         }
 
-        dprod  = is->dxdu * light_matrix[6] + is->dydu * light_matrix[7] + is->dzdu * light_matrix[8];
+        dprod = is->dxdu * light_matrix[6] + is->dydu * light_matrix[7] + is->dzdu * light_matrix[8];
         is->du = dprod * 0.005F;
 
-        dprod  = is->dxdv * light_matrix[6] + is->dydv * light_matrix[7] + is->dzdv * light_matrix[8];
+        dprod = is->dxdv * light_matrix[6] + is->dydv * light_matrix[7] + is->dzdv * light_matrix[8];
         is->dv = dprod * 0.005F;
     }
 }
@@ -290,14 +290,14 @@ void MF_add_triangles_specular_bumpmapped(IMP_Mesh* im, OS_Texture* ot, ULONG dr
         is = &im->svert[i];
         ov = &MF_vert[i];
 
-        ov->trans    = is->vert;
-        ov->index    = NULL;
-        ov->colour   = is->colour;
+        ov->trans = is->vert;
+        ov->index = NULL;
+        ov->colour = is->colour;
         ov->specular = 0x00000000;
-        ov->u1       = is->lu;
-        ov->v1       = is->lv;
-        ov->u2       = is->u;
-        ov->v2       = is->v;
+        ov->u1 = is->lu;
+        ov->v1 = is->lv;
+        ov->u2 = is->u;
+        ov->v2 = is->v;
     }
 
     for (i = 0; i < im->num_mats; i++) {
@@ -365,14 +365,14 @@ void MF_add_triangles_bumpmapped_pass(IMP_Mesh* im, SLONG pass, ULONG draw)
             is = &im->svert[i];
             ov = &MF_vert[i];
 
-            ov->trans    = is->vert;
-            ov->index    = NULL;
-            ov->colour   = is->colour;
+            ov->trans = is->vert;
+            ov->index = NULL;
+            ov->colour = is->colour;
             ov->specular = 0x00000000;
-            ov->u1       = is->u + is->du;
-            ov->v1       = is->v + is->dv;
-            ov->u2       = 0.0F;
-            ov->v2       = 0.0F;
+            ov->u1 = is->u + is->du;
+            ov->v1 = is->v + is->dv;
+            ov->u2 = 0.0F;
+            ov->v2 = 0.0F;
         }
     } else {
         // Pass 1: shift UVs in the opposite direction.
@@ -382,14 +382,14 @@ void MF_add_triangles_bumpmapped_pass(IMP_Mesh* im, SLONG pass, ULONG draw)
             is = &im->svert[i];
             ov = &MF_vert[i];
 
-            ov->trans    = is->vert;
-            ov->index    = NULL;
-            ov->colour   = is->colour;
+            ov->trans = is->vert;
+            ov->index = NULL;
+            ov->colour = is->colour;
             ov->specular = 0x00000000;
-            ov->u1       = is->u - is->du;
-            ov->v1       = is->v - is->dv;
-            ov->u2       = 0.0F;
-            ov->v2       = 0.0F;
+            ov->u1 = is->u - is->du;
+            ov->v1 = is->v - is->dv;
+            ov->u2 = 0.0F;
+            ov->v2 = 0.0F;
         }
     }
 
@@ -432,14 +432,14 @@ void MF_add_triangles_texture_after_bumpmap(IMP_Mesh* im)
         is = &im->svert[i];
         ov = &MF_vert[i];
 
-        ov->trans    = is->vert;
-        ov->index    = NULL;
-        ov->colour   = is->colour;
+        ov->trans = is->vert;
+        ov->index = NULL;
+        ov->colour = is->colour;
         ov->specular = 0x00000000;
-        ov->u1       = is->u;
-        ov->v1       = is->v;
-        ov->u2       = 0.0F;
-        ov->v2       = 0.0F;
+        ov->u1 = is->u;
+        ov->v1 = is->v;
+        ov->u2 = 0.0F;
+        ov->v2 = 0.0F;
     }
 
     for (i = 0; i < im->num_mats; i++) {
@@ -456,8 +456,10 @@ void MF_add_triangles_texture_after_bumpmap(IMP_Mesh* im)
         it = &im->mat[i];
 
         draw = OS_DRAW_NORMAL;
-        if (it->sided)      draw |= OS_DRAW_DOUBLESIDED;
-        if (it->has_bumpmap) draw |= OS_DRAW_MULBYONE | OS_DRAW_DECAL;
+        if (it->sided)
+            draw |= OS_DRAW_DOUBLESIDED;
+        if (it->has_bumpmap)
+            draw |= OS_DRAW_MULBYONE | OS_DRAW_DECAL;
 
         OS_buffer_draw(it->ob, it->ot_tex, NULL, draw);
     }

@@ -13,7 +13,7 @@
 #include "engine/io/env.h"
 #include "engine/io/file.h"
 #include "assets/sound_id.h"
-#include "debug_config.h"  // OC_DEBUG_SOUND_DISABLED
+#include "debug_config.h" // OC_DEBUG_SOUND_DISABLED
 
 // uc_orig: GetFullName (fallen/DDLibrary/Source/MFX.cpp)
 static char* GetFullName(char* fname);
@@ -149,7 +149,8 @@ static char* GetFullName(char* fname)
 
     if (strchr(fname, '-')) {
         CHAR* ptr = strrchr(fname, '\\');
-        if (!ptr) ptr = strrchr(fname, '/');
+        if (!ptr)
+            ptr = strrchr(fname, '/');
         ptr = ptr + 1;
         sprintf(buf, "talk2/misc/%s", ptr);
         strcpy(pathname, "./");
@@ -813,7 +814,6 @@ void MFX_set_gain(UWORD channel_id, ULONG wave, UBYTE gain)
     SetVoiceGain(vptr, fgain);
 }
 
-
 // uc_orig: LoadWaveFile (fallen/DDLibrary/Source/MFX.cpp)
 static void LoadWaveFile(MFX_Sample* sptr)
 {
@@ -1016,7 +1016,6 @@ void MFX_update()
         }
     }
 }
-
 
 // uc_orig: MFX_QUICK_play (fallen/DDLibrary/Source/MFX.cpp)
 SLONG MFX_QUICK_play(CBYTE* str, SLONG x, SLONG y, SLONG z)

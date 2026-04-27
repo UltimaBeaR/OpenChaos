@@ -37,12 +37,12 @@ typedef struct
 typedef struct
 {
     UBYTE used;
-    UBYTE die;         // ticks remaining; 0 = dead
+    UBYTE die; // ticks remaining; 0 = dead
     UBYTE num_points;
-    UBYTE next;        // next spark in the mapwho z-bucket linked list
+    UBYTE next; // next spark in the mapwho z-bucket linked list
     UBYTE map_z;
     UBYTE map_x;
-    UBYTE glitter;     // associated GLITTER index (NULL = none)
+    UBYTE glitter; // associated GLITTER index (NULL = none)
     UBYTE useless_padding;
     SPARK_Point point[4];
 } SPARK_Spark;

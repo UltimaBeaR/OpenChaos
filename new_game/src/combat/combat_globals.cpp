@@ -4,31 +4,31 @@
 // uc_orig: fight_tree (fallen/Source/Combat.cpp)
 SWORD fight_tree[][10] = {
     { 0, 0, 1, 1, 6, 6, 0, 0, 0, COMBAT_NONE },
-    { ANIM_PUNCH_COMBO1, 2, 3, 0, 11, 11, 0, 0, 10, COMBAT_PUNCH },    // 1
-    { ANIM_PUNCH_RETURN1, 0, 1, 1, 0, 0, 0, 0, 0, COMBAT_NONE },       // 2
-    { ANIM_PUNCH_COMBO2, 4, 5, 1, 12, 12, 0, 0, 30, COMBAT_PUNCH },    // 3
-    { ANIM_PUNCH_RETURN2, 0, 1, 1, 0, 0, 0, 0, 0, COMBAT_NONE },       // 4
-    { ANIM_PUNCH_COMBO3, 0, 0, 0, 0, 0, 0, 0, 60, COMBAT_PUNCH },      // 5
+    { ANIM_PUNCH_COMBO1, 2, 3, 0, 11, 11, 0, 0, 10, COMBAT_PUNCH }, // 1
+    { ANIM_PUNCH_RETURN1, 0, 1, 1, 0, 0, 0, 0, 0, COMBAT_NONE }, // 2
+    { ANIM_PUNCH_COMBO2, 4, 5, 1, 12, 12, 0, 0, 30, COMBAT_PUNCH }, // 3
+    { ANIM_PUNCH_RETURN2, 0, 1, 1, 0, 0, 0, 0, 0, COMBAT_NONE }, // 4
+    { ANIM_PUNCH_COMBO3, 0, 0, 0, 0, 0, 0, 0, 60, COMBAT_PUNCH }, // 5
 
-    { ANIM_KICK_COMBO1, 7, 7, 7, 8, 0, 0, 0, 10, COMBAT_KICK },        // 6
-    { ANIM_KICK_RETURN1, 0, 1, 0, 6, 0, 0, 0, 0, COMBAT_NONE },        // 7
-    { ANIM_KICK_COMBO2, 9, 13, 13, 10, 0, 0, 0, 30, COMBAT_KICK },     // 8
-    { ANIM_KICK_RETURN2, 0, 1, 0, 6, 0, 0, 0, 0, COMBAT_NONE },        // 9
-    { ANIM_KICK_COMBO3, 0, 0, 0, 6, 0, 0, 0, 60, COMBAT_KICK },        // 10
+    { ANIM_KICK_COMBO1, 7, 7, 7, 8, 0, 0, 0, 10, COMBAT_KICK }, // 6
+    { ANIM_KICK_RETURN1, 0, 1, 0, 6, 0, 0, 0, 0, COMBAT_NONE }, // 7
+    { ANIM_KICK_COMBO2, 9, 13, 13, 10, 0, 0, 0, 30, COMBAT_KICK }, // 8
+    { ANIM_KICK_RETURN2, 0, 1, 0, 6, 0, 0, 0, 0, COMBAT_NONE }, // 9
+    { ANIM_KICK_COMBO3, 0, 0, 0, 6, 0, 0, 0, 60, COMBAT_KICK }, // 10
 
-    { ANIM_PUNCH_COMBO2b, 0, 0, 0, 0, 0, 0, 0, 30, COMBAT_KICK },      // 11
-    { ANIM_PUNCH_COMBO3b, 0, 0, 0, 0, 0, 0, 0, 80, COMBAT_KICK },      // 12
-    { ANIM_KICK_COMBO3b, 0, 0, 0, 0, 0, 0, 0, 80, COMBAT_PUNCH },      // 13
+    { ANIM_PUNCH_COMBO2b, 0, 0, 0, 0, 0, 0, 0, 30, COMBAT_KICK }, // 11
+    { ANIM_PUNCH_COMBO3b, 0, 0, 0, 0, 0, 0, 0, 80, COMBAT_KICK }, // 12
+    { ANIM_KICK_COMBO3b, 0, 0, 0, 0, 0, 0, 0, 80, COMBAT_PUNCH }, // 13
 
-    { ANIM_KNIFE_ATTACK1, 15, 16, 0, 0, 0, 0, 0, 30, COMBAT_KNIFE },       // 14
-    { ANIM_KNIFE_ATTACK1_RET, 0, 14, 14, 0, 0, 0, 0, 0, COMBAT_NONE },     // 15
-    { ANIM_KNIFE_ATTACK2, 17, 18, 14, 0, 0, 0, 0, 60, COMBAT_KNIFE },      // 16
-    { ANIM_KNIFE_ATTACK2_RET, 0, 14, 14, 0, 0, 0, 0, 0, COMBAT_NONE },     // 17
-    { ANIM_KNIFE_ATTACK3, 0, 0, 0, 0, 0, 0, 0, 80, COMBAT_KNIFE },         // 18
+    { ANIM_KNIFE_ATTACK1, 15, 16, 0, 0, 0, 0, 0, 30, COMBAT_KNIFE }, // 14
+    { ANIM_KNIFE_ATTACK1_RET, 0, 14, 14, 0, 0, 0, 0, 0, COMBAT_NONE }, // 15
+    { ANIM_KNIFE_ATTACK2, 17, 18, 14, 0, 0, 0, 0, 60, COMBAT_KNIFE }, // 16
+    { ANIM_KNIFE_ATTACK2_RET, 0, 14, 14, 0, 0, 0, 0, 0, COMBAT_NONE }, // 17
+    { ANIM_KNIFE_ATTACK3, 0, 0, 0, 0, 0, 0, 0, 80, COMBAT_KNIFE }, // 18
 
-    { ANIM_BAT_HIT1, 20, 21, 0, 0, 0, 0, 0, 60, COMBAT_KNIFE },        // 19
-    { ANIM_BAT_HIT1_RET, 0, 19, 0, 0, 0, 0, 0, 0, COMBAT_NONE },       // 20
-    { ANIM_BAT_HIT2, 0, 0, 0, 0, 0, 0, 0, 90, COMBAT_KNIFE },          // 21
+    { ANIM_BAT_HIT1, 20, 21, 0, 0, 0, 0, 0, 60, COMBAT_KNIFE }, // 19
+    { ANIM_BAT_HIT1_RET, 0, 19, 0, 0, 0, 0, 0, 0, COMBAT_NONE }, // 20
+    { ANIM_BAT_HIT2, 0, 0, 0, 0, 0, 0, 0, 90, COMBAT_KNIFE }, // 21
 };
 
 // Lookup table: incoming hit [height + behind*3] -> [anim, knockdown_flag].

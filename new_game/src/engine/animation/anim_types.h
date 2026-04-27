@@ -8,8 +8,8 @@
 // asset loading (assets/anim.*).
 
 #include "engine/core/types.h"
-#include "engine/core/fmatrix.h"  // Matrix33, CMatrix33, SVector
-#include <string.h>        // strcpy used by Anim::SetAnimName
+#include "engine/core/fmatrix.h" // Matrix33, CMatrix33, SVector
+#include <string.h> // strcpy used by Anim::SetAnimName
 
 // ---- Creature/people limits ----
 

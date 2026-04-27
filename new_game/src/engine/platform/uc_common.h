@@ -34,7 +34,7 @@
 #define FLAGS_USE_3D (1 << 1)
 
 // Fixed virtual resolution — always 640x480 (actual window size is in ScreenWidth/Height).
-#define DisplayWidth  640
+#define DisplayWidth 640
 #define DisplayHeight 480
 extern SLONG DisplayBPP;
 
@@ -69,8 +69,11 @@ BOOL LibShellActive(void);
 // Writes crash_log.txt directly (before abort's SIGABRT handler) so details are preserved.
 #ifndef ASSERT
 void uc_assert_fail(const char* expr, const char* file, int line);
-#define ASSERT(e) \
-    do { if (!(e)) uc_assert_fail(#e, __FILE__, __LINE__); } while(0)
+#define ASSERT(e)                                   \
+    do {                                            \
+        if (!(e))                                   \
+            uc_assert_fail(#e, __FILE__, __LINE__); \
+    } while (0)
 #endif
 
 #include "engine/core/macros.h"

@@ -12,7 +12,7 @@
 // disappears when the timer elapses. Game input continues normally
 // while it's visible.
 
-void debug_help_tick();                        // call every frame (edge-detect F1, tick timer)
-void debug_help_render();                      // call inside HUD pass; no-op when hidden
-void debug_help_show(float seconds);           // explicit show (used by bangunsnotgames toggle)
-void debug_help_notify_bangunsnotgames_on();   // called from parse_console when the cheat turns on
+void debug_help_tick(); // call every frame (edge-detect F1, tick timer)
+void debug_help_render(); // call inside HUD pass; no-op when hidden
+void debug_help_show(float seconds); // explicit show (used by bangunsnotgames toggle)
+void debug_help_notify_bangunsnotgames_on(); // called from parse_console when the cheat turns on

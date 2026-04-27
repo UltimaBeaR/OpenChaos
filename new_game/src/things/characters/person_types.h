@@ -6,10 +6,10 @@
 // do not pull in the full person API.
 
 #include "engine/core/types.h"
-#include "engine/core/vector.h"          // GameCoord (used by GunMuzzle)
-#include "things/core/common.h"   // COMMON macro
-#include "ai/mav_action.h"        // MAV_Action
-#include "missions/save.h"        // save_table[], SAVE_TABLE_PEOPLE (needed by MAX_PEOPLE)
+#include "engine/core/vector.h" // GameCoord (used by GunMuzzle)
+#include "things/core/common.h" // COMMON macro
+#include "ai/mav_action.h" // MAV_Action
+#include "missions/save.h" // save_table[], SAVE_TABLE_PEOPLE (needed by MAX_PEOPLE)
 
 // ---- Character rig type IDs ----
 

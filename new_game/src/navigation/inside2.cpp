@@ -380,10 +380,22 @@ static UWORD find_stair_in(SLONG mx, SLONG mz, SLONG* rdx, SLONG* rdz, UWORD ins
         dz = 0;
 
         switch (dir) {
-        case 0: dz = -2; dx = 1;  break; // north
-        case 1: dx = 2;  dz = 1;  break; // east
-        case 2: dz = 2;  dx = -1; break; // south
-        case 3: dx = -2; dz = -1; break; // west
+        case 0:
+            dz = -2;
+            dx = 1;
+            break; // north
+        case 1:
+            dx = 2;
+            dz = 1;
+            break; // east
+        case 2:
+            dz = 2;
+            dx = -1;
+            break; // south
+        case 3:
+            dx = -2;
+            dz = -1;
+            break; // west
         }
 
         x_ok = 0;
@@ -415,4 +427,3 @@ static UWORD find_stair_in(SLONG mx, SLONG mz, SLONG* rdx, SLONG* rdz, UWORD ins
     }
     return 0;
 }
-

@@ -52,20 +52,20 @@ void render_xbox_view(const GamepadState& s)
 
     constexpr SLONG L_TRIG_X = 200;
     constexpr SLONG R_TRIG_X = 418;
-    constexpr SLONG TR_Y     = 70;
-    constexpr SLONG TR_W     = 22;
-    constexpr SLONG TR_H     = 96;
-    constexpr SLONG LSTK_CX  = 160;
-    constexpr SLONG RSTK_CX  = 480;
+    constexpr SLONG TR_Y = 70;
+    constexpr SLONG TR_W = 22;
+    constexpr SLONG TR_H = 96;
+    constexpr SLONG LSTK_CX = 160;
+    constexpr SLONG RSTK_CX = 480;
 
     // LB / RB centred over their bars.
     input_debug_draw_button(L_TRIG_X + TR_W / 2 - 6, 55, "LB", btn(s, 9));
     input_debug_draw_button(R_TRIG_X + TR_W / 2 - 6, 55, "RB", btn(s, 10));
 
     input_debug_draw_trigger_bar(L_TRIG_X, TR_Y, TR_W, TR_H,
-                                 s.trigger_left,  255, "LT");
+        s.trigger_left, 255, "LT");
     input_debug_draw_trigger_bar(R_TRIG_X, TR_Y, TR_W, TR_H,
-                                 s.trigger_right, 255, "RT");
+        s.trigger_right, 255, "RT");
 
     // Xbox (Guide) button at top-centre — where the DS touchpad lives.
     // SDL gamepad Guide maps to rgbButtons[5] on Xbox controllers.
@@ -76,42 +76,42 @@ void render_xbox_view(const GamepadState& s)
     // centre of the body (just below the Xbox/Guide logo), so place
     // them at mid-screen rather than over the stick columns like the
     // DualSense Share / Options. "Back" = 24 px, "Start" = 30 px wide.
-    input_debug_draw_button(278, 240, "Back",  btn(s, 4));
+    input_debug_draw_button(278, 240, "Back", btn(s, 4));
     input_debug_draw_button(335, 240, "Start", btn(s, 6));
 
     // D-pad diamond centred on the left stick column.
     constexpr SLONG DPAD_CY = 235;
-    input_debug_draw_button(LSTK_CX -  3, DPAD_CY - 15, "U", btn(s, 11));
-    input_debug_draw_button(LSTK_CX - 15, DPAD_CY,      "L", btn(s, 13));
-    input_debug_draw_button(LSTK_CX +  9, DPAD_CY,      "R", btn(s, 14));
-    input_debug_draw_button(LSTK_CX -  3, DPAD_CY + 15, "D", btn(s, 12));
+    input_debug_draw_button(LSTK_CX - 3, DPAD_CY - 15, "U", btn(s, 11));
+    input_debug_draw_button(LSTK_CX - 15, DPAD_CY, "L", btn(s, 13));
+    input_debug_draw_button(LSTK_CX + 9, DPAD_CY, "R", btn(s, 14));
+    input_debug_draw_button(LSTK_CX - 3, DPAD_CY + 15, "D", btn(s, 12));
 
     // Face buttons diamond centred on the right stick column
     // (Y top, X left, B right, A bottom — standard Xbox).
     constexpr SLONG FACE_CY = 235;
-    input_debug_draw_button(RSTK_CX -  3, FACE_CY - 15, "Y", btn(s, 3));
-    input_debug_draw_button(RSTK_CX - 15, FACE_CY,      "X", btn(s, 2));
-    input_debug_draw_button(RSTK_CX +  9, FACE_CY,      "B", btn(s, 1));
-    input_debug_draw_button(RSTK_CX -  3, FACE_CY + 15, "A", btn(s, 0));
+    input_debug_draw_button(RSTK_CX - 3, FACE_CY - 15, "Y", btn(s, 3));
+    input_debug_draw_button(RSTK_CX - 15, FACE_CY, "X", btn(s, 2));
+    input_debug_draw_button(RSTK_CX + 9, FACE_CY, "B", btn(s, 1));
+    input_debug_draw_button(RSTK_CX - 3, FACE_CY + 15, "A", btn(s, 0));
 
     // Sticks with LS / RS click indicators and numeric readouts — same
     // positions as the DualSense VIEW sub-page.
-    constexpr SLONG STK_SIZE    = 96;
-    constexpr SLONG STK_CY      = 330;
+    constexpr SLONG STK_SIZE = 96;
+    constexpr SLONG STK_CY = 330;
     constexpr SLONG STK_TITLE_Y = STK_CY - STK_SIZE / 2 - 12;
-    constexpr SLONG STK_READ_Y  = STK_CY + STK_SIZE / 2 + 8;
+    constexpr SLONG STK_READ_Y = STK_CY + STK_SIZE / 2 + 8;
 
     input_debug_draw_stick(LSTK_CX, STK_CY, STK_SIZE,
-                           norm_axis(s.lX), norm_axis(s.lY), "Left stick");
+        norm_axis(s.lX), norm_axis(s.lY), "Left stick");
     input_debug_draw_button(LSTK_CX + 34, STK_TITLE_Y, "LS", btn(s, 7));
     input_debug_text(LSTK_CX - STK_SIZE / 2, STK_READ_Y, 180, 180, 180, 1,
-                     "X=%5d  Y=%5d", s.lX, s.lY);
+        "X=%5d  Y=%5d", s.lX, s.lY);
 
     input_debug_draw_stick(RSTK_CX, STK_CY, STK_SIZE,
-                           norm_axis(s.rX), norm_axis(s.rY), "Right stick");
+        norm_axis(s.rX), norm_axis(s.rY), "Right stick");
     input_debug_draw_button(RSTK_CX + 37, STK_TITLE_Y, "RS", btn(s, 8));
     input_debug_text(RSTK_CX - STK_SIZE / 2, STK_READ_Y, 180, 180, 180, 1,
-                     "X=%5d  Y=%5d", s.rX, s.rY);
+        "X=%5d  Y=%5d", s.rX, s.rY);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,13 +121,15 @@ void render_xbox_view(const GamepadState& s)
 void render_xbox_tests()
 {
     input_debug_text(20, 48, 255, 255, 255, 1,
-                     "Xbox rumble test  (TAB to return)");
+        "Xbox rumble test  (TAB to return)");
 
     static int s_cursor = 0;
     const InputDebugNav& n = input_debug_nav();
     const int total = 3;
-    if (n.up)   s_cursor = (s_cursor - 1 + total) % total;
-    if (n.down) s_cursor = (s_cursor + 1) % total;
+    if (n.up)
+        s_cursor = (s_cursor - 1 + total) % total;
+    if (n.down)
+        s_cursor = (s_cursor + 1) % total;
 
     input_debug_render_rumble_test(20, 80, s_cursor);
 }
@@ -149,8 +151,13 @@ void input_debug_render_gamepad_page()
     const GamepadState& s = input_debug_read_gamepad_for(INPUT_DEVICE_XBOX);
 
     switch (s_sub) {
-        case XBOX_SUB_VIEW:  render_xbox_view(s);  break;
-        case XBOX_SUB_TESTS: render_xbox_tests();  break;
-        default: break;
+    case XBOX_SUB_VIEW:
+        render_xbox_view(s);
+        break;
+    case XBOX_SUB_TESTS:
+        render_xbox_tests();
+        break;
+    default:
+        break;
     }
 }

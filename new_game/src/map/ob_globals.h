@@ -20,9 +20,9 @@ extern SLONG OB_ob_upto;
 // Tracks damaged fire hydrants for the particle water spray in OB_process().
 // uc_orig: OB_Hydrant (fallen/Source/ob.cpp)
 typedef struct {
-    UWORD life;     // remaining ticks; 0 = slot unused
-    UWORD index;    // index into OB_ob[] for the hydrant
-    UWORD x;        // world-space x (fine coord)
+    UWORD life; // remaining ticks; 0 = slot unused
+    UWORD index; // index into OB_ob[] for the hydrant
+    UWORD x; // world-space x (fine coord)
     UWORD z;
 } OB_Hydrant;
 

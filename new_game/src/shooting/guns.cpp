@@ -9,8 +9,8 @@
 #include "map/level_pools.h"
 #include "things/characters/anim_ids.h"
 #include "shooting/guns.h"
-#include "things/characters/person.h"  // can_a_see_b
-#include "engine/physics/collide.h"    // LOS_FLAG_IGNORE_PRIMS
+#include "things/characters/person.h" // can_a_see_b
+#include "engine/physics/collide.h" // LOS_FLAG_IGNORE_PRIMS
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 
 // uc_orig: is_person_dead (fallen/Source/guns.cpp)
@@ -352,4 +352,3 @@ THING_INDEX find_target_new(Thing* p_person)
         }
     }
 }
-

@@ -22,17 +22,17 @@ struct Thing;
 // Per-animal instance data. Stored in the_game.Animals[].
 typedef struct
 {
-    Thing* target;   // Currently chasing or barking at this thing.
-    UWORD counter;   // Random delays and timing.
-    UWORD dist;      // Generically useful for pathfinding/chasing.
-    UWORD starty;    // Initial height — may be removed.
+    Thing* target; // Currently chasing or barking at this thing.
+    UWORD counter; // Random delays and timing.
+    UWORD dist; // Generically useful for pathfinding/chasing.
+    UWORD starty; // Initial height — may be removed.
     UBYTE AnimalType; // Species: ANIMAL_CANID etc.
-    UBYTE substate;  // Behaviour sub-state.
-    UBYTE map_x;     // Ready-shifted world X position on map.
-    UBYTE map_z;     // Ready-shifted world Z position on map.
+    UBYTE substate; // Behaviour sub-state.
+    UBYTE map_x; // Ready-shifted world X position on map.
+    UBYTE map_z; // Ready-shifted world Z position on map.
     UBYTE dest_x, dest_z; // Temporary destination.
     UBYTE home_x, home_z; // Spawn/home point.
-    UBYTE extra;     // Animal-specific extra data.
+    UBYTE extra; // Animal-specific extra data.
     UBYTE padding;
 } Animal;
 
@@ -46,6 +46,5 @@ extern GenusFunctions ANIMAL_functions[ANIMAL_NUMBER];
 // uc_orig: init_animals (fallen/Headers/animal.h)
 // Zeros out the Animals array in the_game and resets the animal counter.
 void init_animals(void);
-
 
 #endif // THINGS_ANIMALS_ANIMAL_H

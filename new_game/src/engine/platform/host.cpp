@@ -2,7 +2,7 @@
 #include "engine/platform/host_globals.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/oc_config.h"
-#include "engine/platform/wind_procs_globals.h"  // app_inactive, restore_surfaces
+#include "engine/platform/wind_procs_globals.h" // app_inactive, restore_surfaces
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
@@ -52,7 +52,8 @@ static void on_focus_gained()
     // Re-hide the cursor when returning from alt-tab etc. SDL is supposed
     // to persist the hidden state across focus changes, but being explicit
     // here avoids driver/platform quirks.
-    if (ge_is_fullscreen()) sdl3_hide_cursor();
+    if (ge_is_fullscreen())
+        sdl3_hide_cursor();
 }
 
 static void on_focus_lost()
@@ -61,7 +62,8 @@ static void on_focus_lost()
 
     // Show the cursor while focus is elsewhere so the user can interact
     // with whatever they alt-tabbed into, even if our window overlaps it.
-    if (ge_is_fullscreen()) sdl3_show_cursor();
+    if (ge_is_fullscreen())
+        sdl3_show_cursor();
 }
 
 static void on_window_moved()
@@ -92,7 +94,8 @@ static void on_window_resized()
 
 void host_process_pending_resize(void)
 {
-    if (!s_resize_pending) return;
+    if (!s_resize_pending)
+        return;
     ge_resize_display();
     s_resize_pending = false;
 
@@ -103,7 +106,7 @@ void host_process_pending_resize(void)
             int w = 0, h = 0;
             sdl3_window_get_size(&w, &h);
             if (w > 0 && h > 0) {
-                OC_CONFIG_set_int("video", "windowed_width",  w);
+                OC_CONFIG_set_int("video", "windowed_width", w);
                 OC_CONFIG_set_int("video", "windowed_height", h);
             }
         }
@@ -152,9 +155,9 @@ BOOL SetupHost(ULONG flags)
     // Create the SDL3 window (hidden until GL context is ready).
     bool fullscreen = OC_CONFIG_get_int("video", "fullscreen", 0) != 0;
     if (!sdl3_window_create("Urban Chaos",
-                            OC_CONFIG_get_int("video", "windowed_width",  640),
-                            OC_CONFIG_get_int("video", "windowed_height", 480),
-                            fullscreen)) {
+            OC_CONFIG_get_int("video", "windowed_width", 640),
+            OC_CONFIG_get_int("video", "windowed_height", 480),
+            fullscreen)) {
         return UC_FALSE;
     }
 
@@ -166,16 +169,16 @@ BOOL SetupHost(ULONG flags)
 
     // Register SDL3 event callbacks.
     SDL3_Callbacks cb = {};
-    cb.on_key_down       = on_key_down;
-    cb.on_key_up         = on_key_up;
-    cb.on_mouse_move     = on_mouse_move;
-    cb.on_mouse_button   = on_mouse_button;
-    cb.on_focus_gained   = on_focus_gained;
-    cb.on_focus_lost     = on_focus_lost;
-    cb.on_window_moved        = on_window_moved;
-    cb.on_window_resized      = on_window_resized;
-    cb.on_window_resize_live  = on_window_resize_live;
-    cb.on_close               = on_close;
+    cb.on_key_down = on_key_down;
+    cb.on_key_up = on_key_up;
+    cb.on_mouse_move = on_mouse_move;
+    cb.on_mouse_button = on_mouse_button;
+    cb.on_focus_gained = on_focus_gained;
+    cb.on_focus_lost = on_focus_lost;
+    cb.on_window_moved = on_window_moved;
+    cb.on_window_resized = on_window_resized;
+    cb.on_window_resize_live = on_window_resize_live;
+    cb.on_close = on_close;
     sdl3_set_callbacks(&cb);
 
     // Initialise the sound manager; failure is non-fatal.
@@ -253,19 +256,21 @@ static void write_exit_timestamp(FILE* f, const char* label)
     time_t raw = time(nullptr);
     struct tm* lt = localtime(&raw);
     fprintf(f, "%s at %04d-%02d-%02d %02d:%02d:%02d\n\n",
-            label,
-            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-            lt->tm_hour, lt->tm_min, lt->tm_sec);
+        label,
+        lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+        lt->tm_hour, lt->tm_min, lt->tm_sec);
 }
 
 // atexit handler: catches normal exit() and return from main().
 static void exit_log_handler(void)
 {
-    if (g_exit_log_written) return;
+    if (g_exit_log_written)
+        return;
     g_exit_log_written = true;
 
     FILE* f = fopen("crash_log.txt", "w");
-    if (!f) return;
+    if (!f)
+        return;
 
     write_exit_timestamp(f, "Clean exit");
     fprintf(f, "Type: Normal exit (returned from main or exit() called)\n");
@@ -276,7 +281,11 @@ static void exit_log_handler(void)
 // SIGABRT handler: catches abort() which bypasses both atexit and exception filters.
 static void abort_signal_handler(int sig)
 {
-    if (g_exit_log_written) { signal(sig, SIG_DFL); raise(sig); return; }
+    if (g_exit_log_written) {
+        signal(sig, SIG_DFL);
+        raise(sig);
+        return;
+    }
     g_exit_log_written = true;
 
     FILE* f = fopen("crash_log.txt", "w");
@@ -297,16 +306,25 @@ extern "C" void install_crash_handler(void);
 #else
 static void crash_signal_handler(int sig)
 {
-    if (g_exit_log_written) { signal(sig, SIG_DFL); raise(sig); return; }
+    if (g_exit_log_written) {
+        signal(sig, SIG_DFL);
+        raise(sig);
+        return;
+    }
     g_exit_log_written = true;
 
     FILE* f = fopen("crash_log.txt", "w");
-    if (!f) { signal(sig, SIG_DFL); raise(sig); return; }
+    if (!f) {
+        signal(sig, SIG_DFL);
+        raise(sig);
+        return;
+    }
 
     write_exit_timestamp(f, "Crash (signal)");
     fprintf(f, "Signal: %d (%s)\n", sig,
-            sig == SIGSEGV ? "SIGSEGV" : sig == SIGABRT ? "SIGABRT" :
-            sig == SIGFPE  ? "SIGFPE"  : "unknown");
+        sig == SIGSEGV ? "SIGSEGV" : sig == SIGABRT ? "SIGABRT"
+            : sig == SIGFPE                         ? "SIGFPE"
+                                                    : "unknown");
 
     void* frames[32];
     int n = backtrace(frames, 32);
@@ -349,8 +367,8 @@ int HOST_run(int argc_in, char* argv_in[])
         time_t raw = time(nullptr);
         struct tm* lt = localtime(&raw);
         fprintf(stderr, "=== Session started: %04d-%02d-%02d %02d:%02d:%02d ===\n",
-                lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-                lt->tm_hour, lt->tm_min, lt->tm_sec);
+            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+            lt->tm_hour, lt->tm_min, lt->tm_sec);
     }
 
     // Register exit/crash handlers for all termination paths.
@@ -361,11 +379,10 @@ int HOST_run(int argc_in, char* argv_in[])
     install_crash_handler();
 #else
     signal(SIGSEGV, crash_signal_handler);
-    signal(SIGFPE,  crash_signal_handler);
+    signal(SIGFPE, crash_signal_handler);
 #endif
 
     init_best_found();
 
     return MF_main((UWORD)argc_in, argv_in);
 }
-

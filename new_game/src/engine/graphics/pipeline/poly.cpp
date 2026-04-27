@@ -4,7 +4,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT
+#include "engine/graphics/aspect_clamp.h" // FOV_MIN_ASPECT
 #include "config.h"
 
 // uc_orig: ScreenWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
@@ -28,7 +28,6 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/lighting/night_globals.h"
 #include "missions/eway.h"
 #include "engine/graphics/ui_coords.h"
-
 
 // draw_3d is defined in aeng.cpp (not yet migrated).
 // uc_orig: draw_3d (fallen/DDEngine/Headers/poly.h)
@@ -71,8 +70,7 @@ static UBYTE s_ClipMask;
 //     (character smaller), sprites would stay their old size and
 //     visually blow out of proportion relative to the character.
 // Recomputed per frame in POLY_camera_set.
-static float POLY_sprite_scale =
-    float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE;
+static float POLY_sprite_scale = float(DisplayWidth) * 0.5F / POLY_ZCLIP_PLANE;
 
 // Combined OC_FOV_MULTIPLIER × auto_zoom, recomputed per frame in
 // POLY_camera_set. Exported for screen-space billboards that don't go
@@ -184,8 +182,8 @@ void POLY_camera_set(
     // window because clip_right was 320). Extra overdraw on the 3D side is
     // bounded by the scissor/viewport that always matches POLY_screen_width.
     POLY_screen_clip_right = POLY_screen_width > float(DisplayWidth)
-                                 ? POLY_screen_width
-                                 : float(DisplayWidth);
+        ? POLY_screen_width
+        : float(DisplayWidth);
     POLY_screen_mid_x = POLY_screen_width * 0.5F;
     POLY_screen_mul_x = POLY_screen_width * 0.5F / POLY_ZCLIP_PLANE;
 
@@ -201,21 +199,6 @@ void POLY_camera_set(
             // Commented-out smooth version is intentionally kept (matches original).
             static float wideify = 0.0f;
 
-            /*
-
-            if (EWAY_stop_player_moving())
-            {
-                    wideify += (80.0F - wideify) * 0.125F;
-            }
-            else
-            {
-                    wideify += (0.0F - wideify) * 0.125F;
-            }
-
-            if (wideify < 1)	wideify = 0;
-
-            */
-
             if (EWAY_stop_player_moving()) {
                 // Cutscene letterbox matches the PANEL_new_widescreen UI bars:
                 // the UI bars are drawn with g_frame_scale (uniform 4:3 fit),
@@ -226,7 +209,7 @@ void POLY_camera_set(
                 // to keep the 3D viewport letterbox flush with the UI bar
                 // (no visible black gap between bar and 3D scene).
                 const float uniform_scale = float(ScreenHeight) / float(DisplayHeight);
-                const float bar_scale     = ui_coords::g_frame_scale;
+                const float bar_scale = ui_coords::g_frame_scale;
                 wideify = 80.0F * bar_scale / uniform_scale;
             } else {
                 wideify = 0.0F;
@@ -301,7 +284,7 @@ void POLY_camera_set(
     {
         const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
         const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
-        const float min_aspect  = float(FOV_MIN_ASPECT);
+        const float min_aspect = float(FOV_MIN_ASPECT);
         float auto_zoom = 1.0F;
         if (real_aspect < base_aspect) {
             const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
@@ -393,11 +376,11 @@ void POLY_camera_set(
     // the old two-axis min-fit reduced to a single ratio — keeping both
     // axes uniform preserves character proportions unconditionally.
     {
-        const float uniform_scale    = float(ScreenHeight) / float(DisplayHeight);
-        PolyPage::s_XScale           = uniform_scale;
-        PolyPage::s_YScale           = uniform_scale;
-        not_private_smiley_xscale    = uniform_scale;
-        not_private_smiley_yscale    = uniform_scale;
+        const float uniform_scale = float(ScreenHeight) / float(DisplayHeight);
+        PolyPage::s_XScale = uniform_scale;
+        PolyPage::s_YScale = uniform_scale;
+        not_private_smiley_xscale = uniform_scale;
+        not_private_smiley_yscale = uniform_scale;
     }
 
     // The 3D viewport fills the scene FBO edge-to-edge — no pillar /
@@ -417,7 +400,7 @@ void POLY_camera_set(
     // never renders into; the composition layer presents that black
     // column as-is on top of the user's expected scene. Explicit
     // rounding fixes this.
-    g_viewData.dwWidth  = (int32_t)(fMyMulX * PolyPage::s_XScale * 2.0f + 0.5f);
+    g_viewData.dwWidth = (int32_t)(fMyMulX * PolyPage::s_XScale * 2.0f + 0.5f);
     g_viewData.dwHeight = (int32_t)(fMyMulY * PolyPage::s_YScale * 2.0f + 0.5f);
     g_viewData.dwX = 0.0F;
     g_viewData.dwY = (int32_t)((POLY_screen_mid_y - fMyMulY) * PolyPage::s_YScale + 0.5f);
@@ -425,7 +408,7 @@ void POLY_camera_set(
     // Exported to figure.cpp's MM (character) matrix builder so it uses
     // the same viewport bounds as the POLY pipeline.
     g_dw3DStuffHeight = (int32_t)(fMyMulY * PolyPage::s_YScale * 2.0f + 0.5f);
-    g_dw3DStuffY      = g_viewData.dwY;
+    g_dw3DStuffY = g_viewData.dwY;
 
     // POLY-path vertex shift used to carry (base_x, base_y) to align the
     // POLY output with the MM path's pillar/letterbox-centred bone
@@ -442,7 +425,7 @@ void POLY_camera_set(
     g_viewData.dvMaxZ = 1.0f;
 
     ge_set_viewport_3d(g_viewData.dwX, g_viewData.dwY, g_viewData.dwWidth, g_viewData.dwHeight,
-                       g_viewData.dvClipX, g_viewData.dvClipY, g_viewData.dvClipWidth, g_viewData.dvClipHeight);
+        g_viewData.dvClipX, g_viewData.dvClipY, g_viewData.dvClipWidth, g_viewData.dvClipHeight);
 
     SUPERFACET_start_frame();
 }
@@ -733,7 +716,7 @@ void POLY_frame_init(SLONG keep_shadow_page, SLONG keep_text_page)
     // Convert POLY_FADEOUT thresholds from view-space to v_view_z space,
     // scaled by draw distance ratio.
     float draw_dist_ratio = CurDrawDistance / (22.f * 256.0f);
-    float fFogDist     = (POLY_FADEOUT_END   / POLY_ZCLIP_PLANE) * draw_dist_ratio;
+    float fFogDist = (POLY_FADEOUT_END / POLY_ZCLIP_PLANE) * draw_dist_ratio;
     float fFogDistNear = (POLY_FADEOUT_START / POLY_ZCLIP_PLANE) * draw_dist_ratio;
     DefRenderState.InitScene(fog_colour, fFogDistNear, fFogDist);
 
@@ -1004,7 +987,8 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
 
         for (SLONG fan_i = 0; fan_i < num_fan_tris; fan_i++) {
             PolyPoly* ppoly = ppDrawn->PolyBufAlloc();
-            if (!ppoly) break;
+            if (!ppoly)
+                break;
             ppoly->first_vertex = (pv + fan_i * 3) - ppDrawn->m_VertexPtr;
             ppoly->num_vertices = 3;
 
@@ -1606,20 +1590,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     ge_set_blend_mode(GEBlendMode::Additive);
                     ge_set_depth_bias(2);
                 }
-                /*
-                                                if(INDOORS_INDEX)
-                                                {
-                                                  //poo poo poo for fadeing current floor of building
-
-
-
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_TEXTUREMAPBLEND,D3DTBLEND_MODULATEALPHA);
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_SRCBLEND,D3DBLEND_SRCALPHA);
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_DESTBLEND,D3DBLEND_INVSRCALPHA);
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_ALPHABLENDENABLE,UC_TRUE);
-                                                        SET_RENDER_STATE(D3DRENDERSTATE_FOGENABLE,UC_FALSE);
-                                                }
-                */
 
                 pa->Render();
             }
@@ -1717,28 +1687,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         }
         POLY_Page[iPageNumberToClear].Clear();
     }
-
-    /*
-
-//
-//	Guy Demo Dodge!!!
-//
-
-    if(GAME_STATE&GS_ATTRACT_MODE)
-    {
-extern	void	draw_text_at(float x,float y,CBYTE *message,SLONG font_id);
-    extern BOOL  text_fudge;
-    extern ULONG text_colour;
-
-            text_fudge  = UC_FALSE;
-            text_colour = 0x00ffffff;
-            draw_text_at(200,150,"Press Anything To Play",0);
-
-extern void	show_text(void);
-            show_text();
-    }
-
-    */
 }
 
 // uc_orig: POLY_frame_draw_odd (fallen/DDEngine/Source/poly.cpp)
@@ -1753,8 +1701,8 @@ void POLY_frame_draw_odd()
     ge_begin_scene();
 
 // Force-set both cache and hardware for the debug odd-frame render path.
-#define FORCE_SET_TEXTURE(s)                                              \
-    RenderState::s_State.SetTexture(s);                                    \
+#define FORCE_SET_TEXTURE(s)            \
+    RenderState::s_State.SetTexture(s); \
     ge_bind_texture(s)
 
     ge_set_specular_enabled(true);
@@ -1819,7 +1767,7 @@ void POLY_frame_draw_puddles()
         ge_begin_scene();
 
         float draw_dist_ratio = CurDrawDistance / (22.f * 256.0f);
-        float fFogDist     = (POLY_FADEOUT_END   / POLY_ZCLIP_PLANE) * draw_dist_ratio;
+        float fFogDist = (POLY_FADEOUT_END / POLY_ZCLIP_PLANE) * draw_dist_ratio;
         float fFogDistNear = (POLY_FADEOUT_START / POLY_ZCLIP_PLANE) * draw_dist_ratio;
         pp->RS.InitScene(0, fFogDistNear, fFogDist);
 

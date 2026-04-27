@@ -3,8 +3,8 @@
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "game/game.h"
-#include "buildings/prim_types.h"  // MAX_PRIM_OBJECTS, TomsPrimObject, Matrix33 (via fmatrix.h)
-#include "engine/animation/anim_types.h"  // BodyDef, GameKeyFrameElement, CMatrix33, etc.
+#include "buildings/prim_types.h" // MAX_PRIM_OBJECTS, TomsPrimObject, Matrix33 (via fmatrix.h)
+#include "engine/animation/anim_types.h" // BodyDef, GameKeyFrameElement, CMatrix33, etc.
 #include "engine/graphics/pipeline/poly.h" // POLY_Point
 
 // Forward declaration: MSMesh is fully declared in figure.h (included by figure.cpp).

@@ -55,4 +55,3 @@ void load_animtmaps(void)
     }
     sync_animtmaps();
 }
-

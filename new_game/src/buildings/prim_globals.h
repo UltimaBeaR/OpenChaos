@@ -2,8 +2,8 @@
 #define BUILDINGS_PRIM_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/core/vector.h"                        // SVector
-#include "buildings/prim_types.h"       // PrimFace3/4, PrimObject, PrimPoint, PrimMultiObject, MAX_PRIM_OBJECTS
+#include "engine/core/vector.h" // SVector
+#include "buildings/prim_types.h" // PrimFace3/4, PrimObject, PrimPoint, PrimMultiObject, MAX_PRIM_OBJECTS
 
 // ---- Internal constants ----
 

@@ -22,11 +22,11 @@ constexpr int32_t GE_TEXTURE_TYPE_TGA = 1;
 constexpr int32_t GE_TEXTURE_TYPE_USER = 2;
 
 enum class GEBlendMode {
-    Opaque,         // no blending
-    Alpha,          // src*srcA + dst*(1-srcA)
-    Additive,       // src*1 + dst*1
-    Modulate,       // src*dst
-    InvModulate,    // src*(1-dst)
+    Opaque, // no blending
+    Alpha, // src*srcA + dst*(1-srcA)
+    Additive, // src*1 + dst*1
+    Modulate, // src*dst
+    InvModulate, // src*(1-dst)
 };
 
 // Individual blend factors for custom src/dst combinations.
@@ -44,16 +44,16 @@ enum class GEBlendFactor {
 };
 
 enum class GEDepthMode {
-    Off,            // no depth test, no depth write
-    ReadOnly,       // depth test on, depth write off
-    WriteOnly,      // depth test off, depth write on
-    ReadWrite,      // depth test on, depth write on (default)
+    Off, // no depth test, no depth write
+    ReadOnly, // depth test on, depth write off
+    WriteOnly, // depth test off, depth write on
+    ReadWrite, // depth test on, depth write on (default)
 };
 
 enum class GECullMode {
     None,
     CW,
-    CCW,            // default
+    CCW, // default
 };
 
 enum class GETextureFilter {
@@ -62,9 +62,9 @@ enum class GETextureFilter {
 };
 
 enum class GETextureBlend {
-    Modulate,       // vertex color * texture
-    ModulateAlpha,  // vertex color * texture, with alpha
-    Decal,          // texture only, ignore vertex color
+    Modulate, // vertex color * texture
+    ModulateAlpha, // vertex color * texture, with alpha
+    Decal, // texture only, ignore vertex color
 };
 
 enum class GETextureAddress {
@@ -93,14 +93,29 @@ struct GEVector {
 
 // Pre-transformed, pre-lit vertex (screen space).
 struct GEVertexTL {
-    union { float x;  float sx; };
-    union { float y;  float sy; };
-    union { float z;  float sz; };
+    union {
+        float x;
+        float sx;
+    };
+    union {
+        float y;
+        float sy;
+    };
+    union {
+        float z;
+        float sz;
+    };
     float rhw;
     uint32_t color;
     uint32_t specular;
-    union { float u;  float tu; };
-    union { float v;  float tv; };
+    union {
+        float u;
+        float tu;
+    };
+    union {
+        float v;
+        float tv;
+    };
 };
 
 // Lit vertex (world space, pre-lit).
@@ -111,8 +126,14 @@ struct GEVertexLit {
     uint32_t _reserved; // padding to match D3DLVERTEX layout
     uint32_t color;
     uint32_t specular;
-    union { float u;  float tu; };
-    union { float v;  float tv; };
+    union {
+        float u;
+        float tu;
+    };
+    union {
+        float v;
+        float tv;
+    };
 };
 
 // Unlit vertex (world space, needs lighting).
@@ -123,8 +144,14 @@ struct GEVertex {
     float nx;
     float ny;
     float nz;
-    union { float u;  float tu; };
-    union { float v;  float tv; };
+    union {
+        float u;
+        float tu;
+    };
+    union {
+        float v;
+        float tv;
+    };
 };
 
 // ---------------------------------------------------------------------------
@@ -185,11 +212,11 @@ void ge_set_bound_texture_has_alpha(bool has_alpha);
 // ---------------------------------------------------------------------------
 
 void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t vert_count,
-                               const uint16_t* indices, uint32_t index_count);
+    const uint16_t* indices, uint32_t index_count);
 
 // Overloads for lit vertices (world-space, pre-lit).
 void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* verts, uint32_t vert_count,
-                                   const uint16_t* indices, uint32_t index_count);
+    const uint16_t* indices, uint32_t index_count);
 
 // ---------------------------------------------------------------------------
 // Transforms
@@ -224,13 +251,27 @@ void ge_set_transform(GETransform type, const GEMatrix* matrix);
 // Viewport descriptor.
 // Named member aliases (dwX, dwWidth, etc.) for legacy compatibility.
 // RGBA color value (float, 0-1 range).
-struct GEColorValue { float r, g, b, a; };
+struct GEColorValue {
+    float r, g, b, a;
+};
 
 struct GEViewport {
-    union { int32_t x; uint32_t dwX; };
-    union { int32_t y; uint32_t dwY; };
-    union { int32_t width; uint32_t dwWidth; };
-    union { int32_t height; uint32_t dwHeight; };
+    union {
+        int32_t x;
+        uint32_t dwX;
+    };
+    union {
+        int32_t y;
+        uint32_t dwY;
+    };
+    union {
+        int32_t width;
+        uint32_t dwWidth;
+    };
+    union {
+        int32_t height;
+        uint32_t dwHeight;
+    };
     float dvClipX, dvClipY, dvClipWidth, dvClipHeight;
     float dvMinZ, dvMaxZ;
     uint32_t dwSize; // legacy, kept for compat
@@ -241,7 +282,7 @@ void ge_set_viewport(int32_t x, int32_t y, int32_t w, int32_t h);
 
 // Set viewport with explicit clip volume (for 3D projection rendering).
 void ge_set_viewport_3d(int32_t x, int32_t y, int32_t w, int32_t h,
-                        float clip_x, float clip_y, float clip_w, float clip_h);
+    float clip_x, float clip_y, float clip_w, float clip_h);
 
 // Hardware scissor rectangle (in framebuffer pixels, origin top-left).
 // Used by the UI mode stack (engine/graphics/ui_coords.h) to clip the
@@ -254,7 +295,9 @@ void ge_disable_scissor();
 // Background
 // ---------------------------------------------------------------------------
 
-enum class GEBackground { Black, White, User };
+enum class GEBackground { Black,
+    White,
+    User };
 void ge_set_background(GEBackground bg);
 void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b);
 
@@ -262,9 +305,9 @@ void ge_set_background_color(uint8_t r, uint8_t g, uint8_t b);
 // Screen dimensions
 // ---------------------------------------------------------------------------
 
-int32_t  ge_get_screen_width();
-int32_t  ge_get_screen_height();
-int32_t  ge_get_screen_bpp();
+int32_t ge_get_screen_width();
+int32_t ge_get_screen_height();
+int32_t ge_get_screen_bpp();
 
 // ---------------------------------------------------------------------------
 // One-shot framebuffer read (screenshots only)
@@ -318,7 +361,7 @@ GEVideoTexture ge_video_texture_create(int width, int height);
 
 // Upload RGB24 pixel data to the video texture.
 void ge_video_texture_upload(GEVideoTexture tex, int width, int height,
-                             const uint8_t* rgb_data, int row_stride);
+    const uint8_t* rgb_data, int row_stride);
 
 // Draw the video texture as a fullscreen letterboxed quad and swap.
 void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h);
@@ -379,7 +422,6 @@ void ge_remove_all_loaded_textures();
 // ---------------------------------------------------------------------------
 // Surface blitting
 // ---------------------------------------------------------------------------
-
 
 // ---------------------------------------------------------------------------
 // Screen surfaces (menu backgrounds)
@@ -448,7 +490,6 @@ void ge_unlock_texture_pixels(int32_t page);
 void ge_get_texture_pixel_format(int32_t page,
     int32_t* mask_r, int32_t* mask_g, int32_t* mask_b, int32_t* mask_a,
     int32_t* shift_r, int32_t* shift_g, int32_t* shift_b, int32_t* shift_a);
-
 
 // Debug: paint a solid color block on the front surface (crash diagnostics).
 void ge_debug_paint_block(uint32_t color);
@@ -575,13 +616,13 @@ GETextureHandle ge_create_user_texture_r8_rrrr(int32_t w, int32_t h, const uint8
 // new_game_devlog/startup_hang_investigation/).
 
 struct GEWibbleParams {
-    uint8_t wibble_y1;   // per-row angle multiplier 1 (UBYTE, 0..255)
-    uint8_t wibble_y2;   // per-row angle multiplier 2
-    uint8_t wibble_g1;   // GAME_TURN phase multiplier 1
-    uint8_t wibble_g2;   // GAME_TURN phase multiplier 2
-    uint8_t wibble_s1;   // amplitude 1
-    uint8_t wibble_s2;   // amplitude 2
-    int32_t game_turn;   // current GAME_TURN — phase animates with it
+    uint8_t wibble_y1; // per-row angle multiplier 1 (UBYTE, 0..255)
+    uint8_t wibble_y2; // per-row angle multiplier 2
+    uint8_t wibble_g1; // GAME_TURN phase multiplier 1
+    uint8_t wibble_g2; // GAME_TURN phase multiplier 2
+    uint8_t wibble_s1; // amplitude 1
+    uint8_t wibble_s2; // amplitude 2
+    int32_t game_turn; // current GAME_TURN — phase animates with it
 };
 
 // Apply the wibble effect to the rectangle (x1,y1)-(x2,y2) in game screen
@@ -589,7 +630,7 @@ struct GEWibbleParams {
 // rects. Must be called with the default framebuffer currently bound for
 // both read and draw.
 void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                     const GEWibbleParams& params);
+    const GEWibbleParams& params);
 
 // ---------------------------------------------------------------------------
 // Callbacks (game code hooks into backend lifecycle)
@@ -666,8 +707,8 @@ void ge_set_render_states_reset_callback(GERenderStatesResetCallback callback);
 // Callee allocates out_pixels (BGRA, 4 bytes/pixel); caller frees via MemFree.
 // Returns true on success.
 using GETGALoadCallback = bool (*)(const char* name, uint32_t id, bool can_shrink,
-                                    uint8_t** out_pixels, int32_t* out_width, int32_t* out_height,
-                                    bool* out_contains_alpha);
+    uint8_t** out_pixels, int32_t* out_width, int32_t* out_height,
+    bool* out_contains_alpha);
 void ge_set_tga_load_callback(GETGALoadCallback callback);
 
 // Texture reload prepare callback: called before/after batch texture reload (device-lost recovery).
@@ -693,24 +734,24 @@ void ge_enumerate_drivers(GEDriverEnumCallback callback, void* ctx);
 // Special per-polygon rendering effects applied during vertex massaging.
 // uc_orig: SpecialEffect (fallen/DDEngine/Headers/renderstate.h)
 enum GERenderEffect {
-    GE_EFFECT_NONE,            // no special effect
-    GE_EFFECT_ALPHA_PREMULT,   // premultiply vertex colours by alpha, set alpha to 0
-    GE_EFFECT_BLACK_WITH_ALPHA,// set vertex R,G,B to (0,0,0)
+    GE_EFFECT_NONE, // no special effect
+    GE_EFFECT_ALPHA_PREMULT, // premultiply vertex colours by alpha, set alpha to 0
+    GE_EFFECT_BLACK_WITH_ALPHA, // set vertex R,G,B to (0,0,0)
     GE_EFFECT_INV_ALPHA_PREMULT, // premultiply vertex colours by 1-alpha, set alpha to 0
-    GE_EFFECT_DECAL_MODE       // set vertex A,R,G,B to (255,255,255,255)
+    GE_EFFECT_DECAL_MODE // set vertex A,R,G,B to (255,255,255,255)
 };
 
 // Legacy aliases for SpecialEffect names used throughout the codebase.
-inline constexpr GERenderEffect RS_None           = GE_EFFECT_NONE;
-inline constexpr GERenderEffect RS_AlphaPremult   = GE_EFFECT_ALPHA_PREMULT;
+inline constexpr GERenderEffect RS_None = GE_EFFECT_NONE;
+inline constexpr GERenderEffect RS_AlphaPremult = GE_EFFECT_ALPHA_PREMULT;
 inline constexpr GERenderEffect RS_BlackWithAlpha = GE_EFFECT_BLACK_WITH_ALPHA;
 inline constexpr GERenderEffect RS_InvAlphaPremult = GE_EFFECT_INV_ALPHA_PREMULT;
-inline constexpr GERenderEffect RS_DecalMode      = GE_EFFECT_DECAL_MODE;
+inline constexpr GERenderEffect RS_DecalMode = GE_EFFECT_DECAL_MODE;
 
 #pragma pack(push, 4)
 struct GERenderState {
     GERenderState(GETextureFilter mag = GETextureFilter::Linear,
-                  GETextureFilter min = GETextureFilter::Nearest);
+        GETextureFilter min = GETextureFilter::Nearest);
 
     // Typed setters (replace generic SetRenderState(DWORD, DWORD))
     void SetTexture(GETextureHandle texture);

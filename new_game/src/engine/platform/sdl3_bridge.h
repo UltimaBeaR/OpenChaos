@@ -103,7 +103,7 @@ void sdl3_gl_configure_vsync(bool vsync_enabled);
 
 // Callbacks for dispatching SDL events to game subsystems.
 struct SDL3_Callbacks {
-    void (*on_key_down)(uint8_t scancode);       // scancode = game KB_* code
+    void (*on_key_down)(uint8_t scancode); // scancode = game KB_* code
     void (*on_key_up)(uint8_t scancode);
     void (*on_mouse_move)(int x, int y);
     void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=right, 2=middle
@@ -194,32 +194,32 @@ struct SDL3_GamepadEvent {
 uint32_t sdl3_gamepad_instance_id(SDL3_GamepadHandle handle);
 
 struct SDL3_GamepadState {
-    int16_t axis_left_x;   // -32768..+32767
+    int16_t axis_left_x; // -32768..+32767
     int16_t axis_left_y;
     int16_t axis_right_x;
     int16_t axis_right_y;
-    int16_t trigger_left;  // 0..32767
+    int16_t trigger_left; // 0..32767
     int16_t trigger_right;
-    uint32_t buttons;      // bitmask, see SDL3_GAMEPAD_BUTTON_* below
+    uint32_t buttons; // bitmask, see SDL3_GAMEPAD_BUTTON_* below
 };
 
 // Button bitmask values (match SDL_GamepadButton order).
 enum SDL3_GamepadButton : uint32_t {
-    SDL3_BTN_SOUTH        = 1 << 0,   // A / Cross
-    SDL3_BTN_EAST         = 1 << 1,   // B / Circle
-    SDL3_BTN_WEST         = 1 << 2,   // X / Square
-    SDL3_BTN_NORTH        = 1 << 3,   // Y / Triangle
-    SDL3_BTN_BACK         = 1 << 4,   // Back / Select
-    SDL3_BTN_GUIDE        = 1 << 5,   // Xbox / PS button
-    SDL3_BTN_START        = 1 << 6,
-    SDL3_BTN_LEFT_STICK   = 1 << 7,
-    SDL3_BTN_RIGHT_STICK  = 1 << 8,
-    SDL3_BTN_LEFT_SHOULDER  = 1 << 9,  // LB / L1
+    SDL3_BTN_SOUTH = 1 << 0, // A / Cross
+    SDL3_BTN_EAST = 1 << 1, // B / Circle
+    SDL3_BTN_WEST = 1 << 2, // X / Square
+    SDL3_BTN_NORTH = 1 << 3, // Y / Triangle
+    SDL3_BTN_BACK = 1 << 4, // Back / Select
+    SDL3_BTN_GUIDE = 1 << 5, // Xbox / PS button
+    SDL3_BTN_START = 1 << 6,
+    SDL3_BTN_LEFT_STICK = 1 << 7,
+    SDL3_BTN_RIGHT_STICK = 1 << 8,
+    SDL3_BTN_LEFT_SHOULDER = 1 << 9, // LB / L1
     SDL3_BTN_RIGHT_SHOULDER = 1 << 10, // RB / R1
-    SDL3_BTN_DPAD_UP      = 1 << 11,
-    SDL3_BTN_DPAD_DOWN    = 1 << 12,
-    SDL3_BTN_DPAD_LEFT    = 1 << 13,
-    SDL3_BTN_DPAD_RIGHT   = 1 << 14,
+    SDL3_BTN_DPAD_UP = 1 << 11,
+    SDL3_BTN_DPAD_DOWN = 1 << 12,
+    SDL3_BTN_DPAD_LEFT = 1 << 13,
+    SDL3_BTN_DPAD_RIGHT = 1 << 14,
 };
 
 bool sdl3_gamepad_init();

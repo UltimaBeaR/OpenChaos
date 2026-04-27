@@ -3,7 +3,7 @@
 // helper queries, animation setters, and death-slide helpers.
 // (lines ~1-1757 of original Person.cpp)
 
-#include "game/game_types.h"    // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
+#include "game/game_types.h" // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
 #include "engine/platform/sdl3_bridge.h"
 #include "things/characters/cop.h"
 #include "things/characters/darci.h"
@@ -44,7 +44,7 @@
 #include "ui/hud/panel.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "buildings/building_types.h"  // CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*
+#include "buildings/building_types.h" // CABLE_ALONG_MAX, CABLE_ALONG_SHIFT, FACET_FLAG_*
 
 #include "things/characters/person.h"
 #include "things/characters/person_globals.h"
@@ -58,10 +58,10 @@
 #include "things/items/barrel.h"
 #include "things/core/interact.h"
 #include "buildings/prim_types.h" // PrimFace3/4, FACE_FLAG_*, PRIM_OBJ_*
-#include "buildings/prim.h"       // does_fence_lie_along_line (chunk 6)
+#include "buildings/prim.h" // does_fence_lie_along_line (chunk 6)
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h"
-#include "engine/input/gamepad.h"    // gamepad_set_shock
+#include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/weapon_feel.h" // weapon_feel_on_shot_fired
 
 // External helpers declared in their own files (not yet migrated or in old headers).
@@ -101,7 +101,7 @@ extern SLONG sprint_speed;
 // FPS-invariant. See set_person_running_shoot / fn_person_moveing walking.
 // Sized for the game's MAX_PLAYERS (=2 at time of writing, see player.h);
 // literal to avoid adding an include just for this constant.
-static UWORD s_player_anim_linger_timer[2] = {0};
+static UWORD s_player_anim_linger_timer[2] = { 0 };
 // find_face_for_this_pos declared via fallen/Headers/walkable.h above
 extern void add_thing_to_map(Thing* p_thing);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
@@ -124,7 +124,7 @@ extern SLONG continue_moveing(Thing* p_person); // interfac.cpp
 extern SLONG mount_ladder(Thing* p_thing, SLONG facet); // collide.cpp
 // player_running_aim_gun: defined in this file (chunk 10 below)
 extern SLONG continue_firing(Thing* p_person); // interfac.cpp
-extern void input_actions_mark_ak47_reload_gate();  // input_actions.cpp
+extern void input_actions_mark_ak47_reload_gate(); // input_actions.cpp
 extern void input_actions_clear_ak47_reload_gate(); // input_actions.cpp
 // set_person_do_a_simple_anim: now defined in this file (chunk 12 below)
 // chunk 10 additional externs (Person.cpp not yet migrated)
@@ -174,8 +174,8 @@ BOOL MagicFrameCheck(Thing* p_person, UBYTE frameindex)
 BOOL PersonIsMIB(Thing* p_person)
 {
     return (p_person->Genus.Person->PersonType == PERSON_MIB1
-         || p_person->Genus.Person->PersonType == PERSON_MIB2
-         || p_person->Genus.Person->PersonType == PERSON_MIB3);
+        || p_person->Genus.Person->PersonType == PERSON_MIB2
+        || p_person->Genus.Person->PersonType == PERSON_MIB3);
 }
 
 // Manages the sliding sound effect: starts S_SLIDE_START when skid-stopping, stops it otherwise.
@@ -1148,14 +1148,14 @@ void person_death_slide(Thing* p_person)
 // emergency_uncarry is defined in chunk 5 (below)
 // fight_any_gang_attacker / set_person_pos_for_fence_vault / set_person_pos_for_half_step:
 // now defined in person.cpp chunk 7 (below); declared in person.h
-extern SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target);          // pcom.cpp (migrated)
-extern UWORD count_gang(Thing* p_target);                                         // pcom.cpp (migrated)
-extern UWORD find_target_from_gang(Thing* p_target);                             // pcom.cpp (migrated)
-extern void check_players_gang(Thing* p_target);                                 // pcom.cpp (migrated)
-extern SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow);   // Person.cpp (later chunk)
-extern void set_fence_hole(struct DFacet* p_facet, SLONG pos);                   // Person.cpp (later chunk)
+extern SLONG remove_from_gang_attack(Thing* p_person, Thing* p_target); // pcom.cpp (migrated)
+extern UWORD count_gang(Thing* p_target); // pcom.cpp (migrated)
+extern UWORD find_target_from_gang(Thing* p_target); // pcom.cpp (migrated)
+extern void check_players_gang(Thing* p_target); // pcom.cpp (migrated)
+extern SLONG turn_to_face_thing(Thing* p_person, Thing* p_target, SLONG slow); // Person.cpp (later chunk)
+extern void set_fence_hole(struct DFacet* p_facet, SLONG pos); // Person.cpp (later chunk)
 extern SLONG slide_along(SLONG x1, SLONG y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2, SLONG extra_wall_height, SLONG radius, ULONG flags); // collide.cpp
-extern void set_person_mav_to_thing(Thing* p_person, Thing* p_target);            // Person.cpp (later chunk)
+extern void set_person_mav_to_thing(Thing* p_person, Thing* p_target); // Person.cpp (later chunk)
 
 // uc_orig: sweep_feet (fallen/Source/Person.cpp)
 void sweep_feet(Thing* p_person, Thing* p_aggressor, SLONG death_type)
@@ -1285,8 +1285,7 @@ SLONG is_there_room_behind_person(Thing* p_person, SLONG hit_from_behind)
             (p_person->WorldPos.X + dx >> 8),
             (p_person->WorldPos.Y + 0x3000 >> 8),
             (p_person->WorldPos.Z + dz >> 8),
-            los_flag))
-    {
+            los_flag)) {
         return UC_FALSE;
     }
 
@@ -1436,8 +1435,7 @@ void set_person_dead(
 
     case PERSON_DEATH_TYPE_SHOT_PISTOL:
     case PERSON_DEATH_TYPE_SHOT_SHOTGUN:
-    case PERSON_DEATH_TYPE_SHOT_AK47:
-    {
+    case PERSON_DEATH_TYPE_SHOT_AK47: {
         // uc_orig: shoot_dead_anim (fallen/Source/Person.cpp)
         static UWORD shoot_dead_anim[3] = {
             ANIM_SHOT_DEAD_HEAD,
@@ -1452,8 +1450,7 @@ void set_person_dead(
 
         substate = SUB_STATE_DYING_FINAL_ANI;
         p_thing->Genus.Person->Flags &= ~FLAG_PERSON_KO;
-    }
-    break;
+    } break;
 
     case PERSON_DEATH_TYPE_COMBAT:
         ASSERT(WITHIN(behind, 0, 1));
@@ -1483,8 +1480,7 @@ void set_person_dead(
         substate = SUB_STATE_DYING_FINAL_ANI;
         break;
 
-    case PERSON_DEATH_TYPE_OTHER:
-    {
+    case PERSON_DEATH_TYPE_OTHER: {
         SLONG ground;
         SLONG dy;
 
@@ -1498,8 +1494,7 @@ void set_person_dead(
             anim = ANIM_KD_FRONT_HI;
             substate = SUB_STATE_DYING_INITIAL_ANI;
         }
-    }
-    break;
+    } break;
 
     case PERSON_DEATH_TYPE_GET_DOWN:
         set_anim(p_thing, ANIM_HANDS_UP_LIE);
@@ -1516,8 +1511,7 @@ void set_person_dead(
         quick = UC_TRUE;
         break;
 
-    case PERSON_DEATH_TYPE_STAY_ALIVE:
-    {
+    case PERSON_DEATH_TYPE_STAY_ALIVE: {
         SLONG ground;
         SLONG dy;
 
@@ -1533,8 +1527,7 @@ void set_person_dead(
             anim = ANIM_KD_FRONT_HI;
             substate = SUB_STATE_DYING_INITIAL_ANI;
         }
-    }
-    break;
+    } break;
 
     case PERSON_DEATH_TYPE_LEG_SWEEP:
         anim = ANIM_KD_BACK_LOW;
@@ -1591,8 +1584,7 @@ SLONG is_person_guilty(Thing* p_person)
     if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)
         return (1);
 
-    if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED ||
-        p_person->Genus.Person->PersonType == PERSON_THUG_GREY) {
+    if (p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED || p_person->Genus.Person->PersonType == PERSON_THUG_GREY) {
         return (2);
     }
 
@@ -2992,15 +2984,15 @@ SLONG person_backwards_animate(Thing* p_person)
 }
 
 // Camera mode stubs — bodies removed before shipping in the original. Inlined away by compiler.
-void camera_shoot(void) {}
-void camera_fight(void) {}
-void camera_normal(void) {}
+void camera_shoot(void) { }
+void camera_fight(void) { }
+void camera_normal(void) { }
 
 // Stubs inlined away by compiler; definitions required for compilation.
 // uc_orig: set_person_sidle (fallen/Source/Person.cpp)
 SLONG set_person_sidle(struct Thing* p_person) { return (0); }
 // uc_orig: set_person_running_jump_lr (fallen/Source/Person.cpp)
-void set_person_running_jump_lr(Thing* p_person, SLONG dir) {}
+void set_person_running_jump_lr(Thing* p_person, SLONG dir) { }
 
 // ============================================================
 // Chunk 4: set_person_aim..drop_all_items (original lines 4742-6140)
@@ -3200,7 +3192,7 @@ SLONG get_shoot_damage(Thing* p_person, Thing* p_target, SLONG* gun_type)
 // uc_orig: NOT_A_GUN_YOU_SHOOT (fallen/Source/Person.cpp)
 #define NOT_A_GUN_YOU_SHOOT (-1)
 // uc_orig: HAD_TO_CHANGE_CLIP (fallen/Source/Person.cpp)
-#define HAD_TO_CHANGE_CLIP  (-2)
+#define HAD_TO_CHANGE_CLIP (-2)
 
 // Consumes ammo and fills in sound/anim/time for a shot.
 // Returns ammo count, NOT_A_GUN_YOU_SHOOT (non-shootable special), or HAD_TO_CHANGE_CLIP.
@@ -3351,7 +3343,7 @@ void actually_fire_gun(Thing* p_person)
         if (p_person->Genus.Person->SpecialUse) {
             Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
             weapon_feel_on_shot_fired(p_special->Genus.Special->SpecialType,
-                                      (int32_t)remaining_timer1);
+                (int32_t)remaining_timer1);
         } else {
             weapon_feel_on_shot_fired(SPECIAL_GUN, (int32_t)remaining_timer1);
         }
@@ -3700,7 +3692,8 @@ void set_person_running_shoot(Thing* p_person)
             ? TO_THING(p_person->Genus.Person->SpecialUse)->Genus.Special->SpecialType
             : SPECIAL_GUN;
         int32_t calc = weapon_feel_consume_shot_cooldown_timer1(special);
-        if (calc > 0) timer1_value = calc;
+        if (calc > 0)
+            timer1_value = calc;
     }
     p_person->Genus.Person->Timer1 = timer1_value;
 
@@ -3717,11 +3710,10 @@ void set_person_running_shoot(Thing* p_person)
     // anim carries enough visual time on its own).
     if (p_person->Genus.Person->PlayerID) {
         constexpr SLONG ANIM_LINGER_PISTOL = 360; // ≈0.9s
-        constexpr SLONG ANIM_LINGER_AK47   = 360; // ≈0.9s (same as pistol — user pref)
+        constexpr SLONG ANIM_LINGER_AK47 = 360; // ≈0.9s (same as pistol — user pref)
         SLONG linger = 0;
         if (!p_person->Genus.Person->SpecialUse
-            && (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT))
-        {
+            && (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
             linger = ANIM_LINGER_PISTOL;
         } else if (p_person->Genus.Person->SpecialUse) {
             Thing* p_sp = TO_THING(p_person->Genus.Person->SpecialUse);
@@ -3840,8 +3832,7 @@ void set_person_shoot(Thing* p_person, UWORD shoot_target)
     // their walk cycle mid-shot.
     if (p_person->SubState == SUB_STATE_RUNNING
         || p_person->SubState == SUB_STATE_WALKING
-        || p_person->SubState == SUB_STATE_WALKING_BACKWARDS)
-    {
+        || p_person->SubState == SUB_STATE_WALKING_BACKWARDS) {
         set_person_running_shoot(p_person);
         return;
     }
@@ -4360,8 +4351,7 @@ void set_person_idle(Thing* p_person)
             GAME_FLAGS &= ~GF_SIDE_ON_COMBAT;
         }
 
-        if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT)
-        {
+        if (p_person->Genus.Person->Mode != PERSON_MODE_FIGHT) {
             if (continue_moveing(p_person)) {
                 set_person_running(p_person);
                 return;
@@ -5784,13 +5774,13 @@ SLONG set_person_kick_near(Thing* p_person, SLONG dist)
         p_victim = TO_THING(p_person->Genus.Person->Target);
 
         if (p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_TAKE
-         || p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_STUNNED
-         || p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_RECOVER)
+            || p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_STUNNED
+            || p_victim->Draw.Tweened->CurrentAnim == ANIM_KICK_NAD_RECOVER)
             not_nad = 1;
     }
 
     if (p_person->Genus.Person->PersonType == PERSON_DARCI && dist < 100
-     && p_person->SubState == SUB_STATE_STEP_FORWARD && !not_nad)
+        && p_person->SubState == SUB_STATE_STEP_FORWARD && !not_nad)
         anim = ANIM_KICK_NAD;
     else
         anim = ANIM_KICK_NEAR;
@@ -5886,9 +5876,9 @@ void set_person_climb_ladder(Thing* p_person, UWORD storey)
     if (p_person->Genus.Person->PersonType == PERSON_ROPER) {
         set_anim_of_type(p_person, COP_ROPER_ANIM_LADDER_START, ANIM_TYPE_ROPER);
     } else if (p_person->Genus.Person->PersonType == PERSON_COP
-            || p_person->Genus.Person->PersonType == PERSON_THUG_GREY
-            || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA
-            || p_person->Genus.Person->PersonType == PERSON_THUG_RED) {
+        || p_person->Genus.Person->PersonType == PERSON_THUG_GREY
+        || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA
+        || p_person->Genus.Person->PersonType == PERSON_THUG_RED) {
         set_anim_of_type(p_person, COP_ROPER_ANIM_LADDER_START, ANIM_TYPE_ROPER);
     } else {
         set_anim(p_person, ANIM_MOUNT_LADDER);
@@ -5912,9 +5902,9 @@ void set_person_on_ladder(Thing* p_person)
     if (p_person->Genus.Person->PersonType == PERSON_ROPER) {
         locked_anim_change_of_type(p_person, 0, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
     } else if (p_person->Genus.Person->PersonType == PERSON_COP
-            || p_person->Genus.Person->PersonType == PERSON_THUG_GREY
-            || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA
-            || p_person->Genus.Person->PersonType == PERSON_THUG_RED) {
+        || p_person->Genus.Person->PersonType == PERSON_THUG_GREY
+        || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA
+        || p_person->Genus.Person->PersonType == PERSON_THUG_RED) {
         locked_anim_change_of_type(p_person, 0, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
     } else {
         locked_anim_change(p_person, 0, ANIM_ON_LADDER, 0);
@@ -5985,8 +5975,8 @@ void set_person_standing_jump(Thing* p_person)
                 df = &dfacets[los_failure_dfacet];
 
                 if (df->FacetType == STOREY_TYPE_FENCE
-                 || df->FacetType == STOREY_TYPE_FENCE_FLAT
-                 || df->FacetType == STOREY_TYPE_FENCE_BRICK) {
+                    || df->FacetType == STOREY_TYPE_FENCE_FLAT
+                    || df->FacetType == STOREY_TYPE_FENCE_BRICK) {
                     if (!(df->FacetFlags & FACET_FLAG_UNCLIMBABLE)) {
                         set_person_land_on_fence(p_person, los_failure_dfacet, 1);
                         return;
@@ -6521,7 +6511,7 @@ SLONG set_person_pos_for_fence_vault(Thing* p_person, SLONG col)
         SLONG fr_height = MAVHEIGHT(frx, fry) << 6;
 
         if (fl_height - (p_person->WorldPos.Y >> 8) > 0x50
-         || fr_height - (p_person->WorldPos.Y >> 8) > 0x50) {
+            || fr_height - (p_person->WorldPos.Y >> 8) > 0x50) {
             return 0;
         }
     }
@@ -6973,8 +6963,7 @@ UWORD find_corpse(Thing* p_person)
     if (s_index) {
         p_target = TO_THING(s_index);
 
-        if (dist_to_target_pelvis(p_person, p_target) < 128 && p_target->State == STATE_DEAD && p_target->SubState == SUB_STATE_DEAD_INJURED)
-        {
+        if (dist_to_target_pelvis(p_person, p_target) < 128 && p_target->State == STATE_DEAD && p_target->SubState == SUB_STATE_DEAD_INJURED) {
             return (s_index);
         }
     }
@@ -7357,7 +7346,6 @@ void set_person_in_vehicle(Thing* p_person, Thing* p_car)
     p_car->Genus.Vehicle->Flags &= ~FLAG_VEH_ANIMATING;
     p_car->Genus.Vehicle->Driver = THING_NUMBER(p_person);
     set_state_function(p_car, STATE_FDRIVING);
-
 }
 
 // Removes p_person from their current vehicle.
@@ -8392,34 +8380,16 @@ void fn_person_laddering(Thing* p_person)
             if (end == 1) {
                 if (p_person->Genus.Person->PersonType == PERSON_ROPER)
                     locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, p_person->Genus.Person->AnimType);
+                else if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
+                    locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
                 else
-                    if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
-                        locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
-                    else
-                        locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, ANIM_ON_LADDER, ANIM_TYPE_DARCI);
+                    locked_anim_change_height_type(p_person, SUB_OBJECT_LEFT_HAND, ANIM_ON_LADDER, ANIM_TYPE_DARCI);
 
                 if (p_person->Genus.Person->PlayerID) {
                     p_person->SubState = SUB_STATE_STOPPING;
                 }
             }
 
-            // Commented-out sewer ladder exit code (disabled in original):
-            /*
-            if (p_person->Flags & FLAGS_IN_SEWERS) {
-                SLONG   ladder = p_person->Genus.Person->OnFacet;
-                DFacet *df;
-                ASSERT(WITHIN(ladder, 1, next_dfacet - 1));
-                ASSERT(dfacets[ladder].FacetType == STOREY_TYPE_LADDER);
-                df = &dfacets[ladder];
-                if (df->FacetFlags & FACET_FLAG_LADDER_LINK)
-                {
-                    if ((on_ladder_left|on_ladder_right) & PERSON_LIMB_TOP_BLOCK)
-                    {
-                        p_person->Flags &= ~FLAGS_IN_SEWERS;
-                    }
-                }
-            }
-            */
         } else {
             // Hands reached the top — climb off.
             p_person->SubState = SUB_STATE_CLIMB_OFF_LADDER_TOP;
@@ -8460,32 +8430,14 @@ void fn_person_laddering(Thing* p_person)
                 p_person->Draw.Tweened->AnimTween = 0;
                 if (p_person->Genus.Person->PersonType == PERSON_ROPER)
                     locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, p_person->Genus.Person->AnimType);
+                else if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
+                    locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
                 else
-                    if (p_person->Genus.Person->PersonType == PERSON_COP || p_person->Genus.Person->PersonType == PERSON_THUG_GREY || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED)
-                        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, COP_ROPER_ANIM_LADDER_LOOP, ANIM_TYPE_ROPER);
-                    else
-                        locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, ANIM_ON_LADDER, p_person->Genus.Person->AnimType);
+                    locked_anim_change_end_type(p_person, SUB_OBJECT_LEFT_HAND, ANIM_ON_LADDER, p_person->Genus.Person->AnimType);
 
                 p_person->SubState = SUB_STATE_STOPPING;
             }
 
-            // Commented-out sewer ladder entry code (disabled in original):
-            /*
-            if (p_person->Flags & FLAGS_IN_SEWERS) {
-                SLONG   ladder = p_person->Genus.Person->OnFacet;
-                DFacet *df;
-                ASSERT(WITHIN(ladder, 1, next_dfacet - 1));
-                ASSERT(dfacets[ladder].FacetType == STOREY_TYPE_LADDER);
-                df = &dfacets[ladder];
-                if (df->FacetFlags & FACET_FLAG_LADDER_LINK)
-                {
-                    if (!(on_ladder_left & PERSON_LIMB_TOP_BLOCK))
-                    {
-                        p_person->Flags |= FLAGS_IN_SEWERS;
-                    }
-                }
-            }
-            */
         } else {
             // Feet reached the bottom — climb off.
             p_person->SubState = SUB_STATE_CLIMB_OFF_LADDER_BOT;
@@ -8800,19 +8752,9 @@ void fn_person_dangling(Thing* p_person)
             MSG_add("anim end \n");
             p_person->Draw.Tweened->Locked = 0;
 
-            if (p_person->Genus.Person->Flags & FLAG_PERSON_ON_CABLE)
-            {
+            if (p_person->Genus.Person->Flags & FLAG_PERSON_ON_CABLE) {
 
                 set_person_drop_down(p_person, PERSON_DROP_DOWN_OFF_FACE);
-                /*
-
-                                                                p_person->SubState=SUB_STATE_DANGLING_CABLE;
-                                                                MSG_add(" its a cable grab face %d",p_person->Genus.Person->OnFacet);
-                                                                p_person->Draw.Tweened->Angle=find_best_cable_angle(p_person,p_person->Genus.Person->OnFacet);
-
-                                                                p_person->Genus.Person->Action=ACTION_DANGLING_CABLE;
-                                                                locked_anim_change(p_person,SUB_OBJECT_LEFT_HAND,ANIM_HAND_OVER_HAND);
-                */
 
             } else
 
@@ -8840,13 +8782,6 @@ void fn_person_dangling(Thing* p_person)
 
     case SUB_STATE_DANGLING:
         MSG_add(" dangling NORMAL ");
-
-        /*
-
-        if(Keys[KB_0])
-                set_person_idle(p_person);
-
-        */
 
         break;
     case SUB_STATE_DANGLING_CABLE:
@@ -8959,118 +8894,6 @@ void fn_person_dangling(Thing* p_person)
 
         break;
 
-        /*
-
-                        case	SUB_STATE_DROP_DOWN_OFF_FACE:
-                                        {
-                                                SLONG	temp_angle;
-
-        //If you slip of a face then your velocity is not necessarily in the direction your facing
-        //(while slipping angleto is your movement angle), and it continues with dropdown
-
-                                                if(p_person->Genus.Person->Flags&FLAG_PERSON_MOVE_ANGLETO)
-                                                {
-                                                        temp_angle=p_person->Draw.Tweened->Angle;
-                                                        p_person->Draw.Tweened->Angle=p_person->Draw.Tweened->AngleTo;
-                                                }
-
-                                                if(p_person->Velocity>0)
-                                                        hit=projectile_move_thing(p_person,3);
-                                                else
-                                                        hit=projectile_move_thing(p_person,2); //2
-
-                                                if(p_person->Genus.Person->Flags&FLAG_PERSON_MOVE_ANGLETO)
-                                                {
-                                                        p_person->Draw.Tweened->Angle=temp_angle;
-                                                        if(hit)
-                                                                p_person->Genus.Person->Flags&=~FLAG_PERSON_MOVE_ANGLETO;
-
-                                                }
-                                        }
-                                        drop_on_heads(p_person);
-                                        if(hit==100)
-                                        {
-                                                //
-                                                // dead
-                                                //
-
-                                                return;
-                                        }
-                                        if(hit==1)
-                                        {
-        //				MSG_add(" hit something while falling ");
-                                                if (p_person->DY < -15000)
-                                                {
-                                                        locked_anim_change(p_person,SUB_OBJECT_LEFT_FOOT,ANIM_BIG_LAND);
-                                                } else {
-                                                        locked_anim_change(p_person,SUB_OBJECT_LEFT_FOOT,ANIM_LAND_VERT);
-                                                }
-                                                p_person->SubState		=	SUB_STATE_DROP_DOWN_LAND;
-                                                p_person->Genus.Person->Action		=	ACTION_LANDING;
-
-                                                person_splash(p_person, -1);
-
-                                                {
-                                                        wave_id1	=	footstep_wave(p_person);
-                                                        wave_id2	=	footstep_wave(p_person);
-                                                        MFX_play_thing(THING_NUMBER(p_person),wave_id1,MFX_REPLACE,p_person);
-                                                        MFX_play_thing(THING_NUMBER(p_person),wave_id2,MFX_REPLACE,p_person);
-                                                }
-                                        }
-
-                                break;
-
-                        case	SUB_STATE_DROP_DOWN:
-                                        person_normal_animate(p_person);
-                                        {
-                                                SLONG	temp_angle;
-                                                if(p_person->Genus.Person->Flags&FLAG_PERSON_MOVE_ANGLETO)
-                                                {
-                                                        temp_angle=p_person->Draw.Tweened->Angle;
-                                                        p_person->Draw.Tweened->Angle=p_person->Draw.Tweened->AngleTo;
-                                                }
-                                                if(p_person->Velocity>0)
-                                                        hit=projectile_move_thing(p_person,3);
-                                                else
-                                                        hit=projectile_move_thing(p_person,2);
-                                                if(p_person->Genus.Person->Flags&FLAG_PERSON_MOVE_ANGLETO)
-                                                {
-                                                        p_person->Draw.Tweened->Angle=temp_angle;
-                                                        if(hit)
-                                                                p_person->Genus.Person->Flags&=~FLAG_PERSON_MOVE_ANGLETO;
-                                                }
-                                        }
-                                        drop_on_heads(p_person);
-                                        if(hit==100)
-                                        {
-                                                // dead
-                                                return;
-                                        }
-                                        grab=grab_ledge(p_person);
-                                        if(grab)
-                                                MSG_add(" running jump grabbed \n");
-                                        if(!grab)
-                                        if(hit==1)
-                                        {
-                                                if (p_person->DY < -15000)
-                                                {
-                                                        locked_anim_change(p_person,SUB_OBJECT_LEFT_FOOT,ANIM_BIG_LAND);
-                                                } else {
-                                                        locked_anim_change(p_person,SUB_OBJECT_LEFT_FOOT,ANIM_LAND_VERT);
-                                                }
-                                                p_person->SubState		=	SUB_STATE_DROP_DOWN_LAND;
-                                                p_person->Genus.Person->Action		=	ACTION_LANDING;
-                                                person_splash(p_person, -1);
-                                                {
-                                                        wave_id1	=	footstep_wave(p_person);
-                                                        wave_id2	=	footstep_wave(p_person);
-                                                        MFX_play_thing(THING_NUMBER(p_person),wave_id1,MFX_REPLACE,p_person);
-                                                        MFX_play_thing(THING_NUMBER(p_person),wave_id2,MFX_REPLACE,p_person);
-                                                }
-                                        }
-                                break;
-        */
-
     case SUB_STATE_DROP_DOWN_LAND:
         change_velocity_to(p_person, 0);
         if (over_nogo(p_person))
@@ -9092,24 +8915,6 @@ void fn_person_dangling(Thing* p_person)
 
             p_person->SubState = SUB_STATE_DANGLING;
             p_person->Genus.Person->Action = ACTION_DANGLING;
-            /*
-                                            if((dist=abs(check_near_facet(p_person,64,64,(p_person->WorldPos.X)>>8,(p_person->WorldPos.Z)>>8)))==0)
-                                            {
-                                                    return;
-                                            }
-
-                                            if(abs(32-dist)<32)
-                                            {
-                                                    SLONG	angle;
-                                                    angle=(p_person->Draw.Tweened->Angle+1024)&2047;
-
-                                                    dx = -(SIN(angle) * (32-dist)) >> 8;
-                                                    dz = -(COS(angle) * (32-dist)) >> 8;
-
-                                            }
-
-                                            person_normal_move_dxdz(p_person,dx,dz);
-            */
         }
 
         break;
@@ -9172,13 +8977,6 @@ void fn_person_dangling(Thing* p_person)
 
             // This is a subset of set_person_idle (the set_anim stuff is removed).
             set_person_idle(p_person);
-
-            /*
-            set_generic_person_state_function(p_person,STATE_IDLE);
-            p_person->SubState=0;
-            p_person->Genus.Person->Action=ACTION_IDLE;
-            p_person->Genus.Person->Flags&=~(FLAG_PERSON_NON_INT_M|FLAG_PERSON_NON_INT_C);
-            */
         }
         break;
 
@@ -9239,16 +9037,6 @@ SLONG should_person_automatically_land_on_fence(Thing* p_person, SLONG facet)
             }
         }
     }
-
-    /*
-
-    if (da > 512 && da < 2048 - 512)
-    {
-            angle += 1024;
-            angle &= 2047;
-    }
-
-    */
 
     return UC_FALSE;
 }
@@ -9530,8 +9318,7 @@ void fn_person_moveing(Thing* p_person)
         last_slide_colvect = 0;
 
         if (!(p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING))
-            if (p_person->Genus.Person->PlayerID)
-            {
+            if (p_person->Genus.Person->PlayerID) {
                 // Countdown since the person last fired his gun.
                 if (p_person->Genus.Person->Timer1) {
                     SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
@@ -9554,8 +9341,7 @@ void fn_person_moveing(Thing* p_person)
                 // the whole block. continue_firing() still enforces R2
                 // held + ammo + reload gate.
                 if (p_person->Genus.Person->Timer1 == 0
-                    && p_person->Genus.Person->SpecialUse)
-                {
+                    && p_person->Genus.Person->SpecialUse) {
                     Thing* p_special = TO_THING(p_person->Genus.Person->SpecialUse);
                     if (p_special->Genus.Special->SpecialType == SPECIAL_AK47) {
                         if (continue_firing(p_person)) {
@@ -9612,24 +9398,6 @@ void fn_person_moveing(Thing* p_person)
             }
             }
         }
-
-        /*
-                                        switch(p_person->Genus.Person->AnimType)
-                                        {
-                                                case ANIM_TYPE_ROPER:
-                                                        sprint=60;
-                                                        yomp=34;
-                                                        change=40; // immediately :}
-                                                        stamina_used=4; // since roper runs all the time...
-                                                        break;
-                                                default:	// darci, others
-                                                        sprint=sprint_speed;
-                                                        yomp=yomp_speed;
-                                                        change=50;
-                                                        stamina_used=2;
-                                                        break;
-                                        }
-        */
 
         sprint = sprint_speed;
         yomp = yomp_speed;
@@ -9710,7 +9478,6 @@ void fn_person_moveing(Thing* p_person)
                     set_person_land_on_fence(p_person, last_slide_colvect, 1, 1);
                     return;
                 }
-
             }
 
             if (p_person->Genus.Person->PlayerID)
@@ -9725,17 +9492,6 @@ void fn_person_moveing(Thing* p_person)
             } else {
                 foot_step_wave = footstep_wave(p_person);
 
-                /*
-
-                oscilate_tinpanum(
-                        p_person->WorldPos.X >> 8,
-                        p_person->WorldPos.Y >> 8,
-                        p_person->WorldPos.Z >> 8,
-                        p_person,
-                        64);
-
-                */
-
                 PCOM_oscillate_tympanum(
                     PCOM_SOUND_FOOTSTEP,
                     p_person,
@@ -9743,17 +9499,6 @@ void fn_person_moveing(Thing* p_person)
                     p_person->WorldPos.Y >> 8,
                     p_person->WorldPos.Z >> 8);
 
-                /*
-                if(GAME_FLAGS&GF_SEWERS && p_person->Draw.Tweened->FrameIndex!=last_frame)
-                {
-                        foot_step_wave	=	((Random()*(S_FOOTS_SEWER_END-S_FOOTS_SEWER_START))>>16)+S_FOOTS_SEWER_START;;
-                        play_quick_wave_old(&foot_step,foot_step_wave,0,0);
-                }
-                else
-                {
-                        play_quick_wave_old(&foot_step,foot_step_wave,0,0);
-                }
-                */
                 MFX_play_thing(THING_NUMBER(p_person), foot_step_wave, MFX_REPLACE, p_person);
 
                 p_person->Flags |= FLAGS_PLAYED_FOOTSTEP;
@@ -9767,21 +9512,11 @@ void fn_person_moveing(Thing* p_person)
         if (slope_ahead(p_person, 100))
             return;
 
-        /*
-        switch(p_person->Genus.Person->AnimType)
-        {
-                default:	// darci, others
-        */
         change_velocity_to(p_person, 15);
-        /*
-                        break;
-        }
-        */
         person_normal_move(p_person);
         person_normal_animate(p_person);
         break;
-    case SUB_STATE_WALKING:
-    {
+    case SUB_STATE_WALKING: {
         // Walking fire — symmetric with SUB_STATE_RUNNING.
         // set_person_shoot dispatches walking to set_person_running_shoot
         // (same as running), so the first shot commits without changing
@@ -9801,8 +9536,7 @@ void fn_person_moveing(Thing* p_person)
         bool firing_active = false;
 
         if (!(p_person->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING))
-            if (p_person->Genus.Person->PlayerID)
-            {
+            if (p_person->Genus.Person->PlayerID) {
                 SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
                 if (p_person->Genus.Person->Timer1) {
                     if (p_person->Genus.Person->Timer1 <= ticks) {
@@ -9816,8 +9550,7 @@ void fn_person_moveing(Thing* p_person)
                 // set_person_running_shoot at each fire.
                 const SLONG player_idx = p_person->Genus.Person->PlayerID - 1;
                 if (player_idx >= 0 && player_idx < 2
-                    && s_player_anim_linger_timer[player_idx])
-                {
+                    && s_player_anim_linger_timer[player_idx]) {
                     if (s_player_anim_linger_timer[player_idx] <= ticks) {
                         s_player_anim_linger_timer[player_idx] = 0;
                     } else {
@@ -9845,8 +9578,7 @@ void fn_person_moveing(Thing* p_person)
                 const bool linger_active = (player_idx >= 0 && player_idx < 2
                     && s_player_anim_linger_timer[player_idx] > 0);
                 if ((p_person->Genus.Person->Timer1 > 0 || linger_active)
-                    && person_has_gun_out(p_person))
-                {
+                    && person_has_gun_out(p_person)) {
                     firing_active = true;
                 }
 
@@ -9915,15 +9647,6 @@ void fn_person_moveing(Thing* p_person)
             } else {
                 foot_step_wave = footstep_wave(p_person);
 
-                /* //nah were only walking
-                                                                PCOM_oscillate_tympanum(
-                                                                        PCOM_SOUND_FOOTSTEP,
-                                                                        p_person,
-                                                                        p_person->WorldPos.X >> 8,
-                                                                        p_person->WorldPos.Y >> 8,
-                                                                        p_person->WorldPos.Z >> 8);
-                */
-
                 MFX_play_thing(THING_NUMBER(p_person), foot_step_wave, MFX_REPLACE, p_person);
 
                 p_person->Flags |= FLAGS_PLAYED_FOOTSTEP;
@@ -9939,13 +9662,6 @@ void fn_person_moveing(Thing* p_person)
         person_normal_move(p_person);
         person_normal_animate(p_person);
         break;
-        /*
-                        case	SUB_STATE_SNEAKING:
-                                        change_velocity_to(p_person,16);
-                                        person_normal_move(p_person);
-                                        person_normal_animate(p_person);
-                                break;
-        */
     case SUB_STATE_RUN_STOP:
         person_normal_move(p_person);
         end = person_normal_animate(p_person);
@@ -10022,20 +9738,6 @@ void fn_person_moveing(Thing* p_person)
             break;
         }
 
-        /*
-                                        if (WITHIN(p_person->Draw.Tweened->FrameIndex, 0, 0))
-                                        {
-                                                set_person_running_stop(p_person,0);
-                                                p_person->SubState=SUB_STATE_STOPPING_OT;
-                                        }
-                                        else
-                                        if (WITHIN(p_person->Draw.Tweened->FrameIndex, 3, 3))
-                                        {
-                                                // jump frame found
-                                                set_person_running_stop(p_person,1);
-                                        }
-        */
-
         break;
 
     case SUB_STATE_RUNNING_THEN_JUMP:
@@ -10053,19 +9755,6 @@ void fn_person_moveing(Thing* p_person)
             // jump frame found
             set_person_running_jump_lr(p_person, 1);
         }
-
-        /*
-        if (WITHIN(p_person->Draw.Tweened->FrameIndex, 3, 3))
-        {
-                set_person_running_jump_lr(p_person,2);
-        }
-        else
-        if (WITHIN(p_person->Draw.Tweened->FrameIndex, 7, 7))
-        {
-                // jump frame found
-                set_person_running_jump_lr(p_person,3);
-        }
-        */
 
         break;
 
@@ -10098,31 +9787,7 @@ void fn_person_moveing(Thing* p_person)
                 p_person->Draw.Tweened->Locked = SUB_OBJECT_LEFT_FOOT;
             p_person->Velocity = 0;
         }
-        /*
-                                MSG_add("stopping vel %d",p_person->Velocity);
-                                        if( (p_person->Draw.Tweened->FrameIndex==0))
-                                                end=person_normal_animate(p_person);
-                                        else
-                                        if( (p_person->Draw.Tweened->FrameIndex==1))
-                                                end=person_normal_animate_tween(p_person,64);
-                                        else
-                                                end=person_normal_animate(p_person);
-
-                                        if( (p_person->Draw.Tweened->FrameIndex<2))
-                                                trickle_velocity_to(p_person,0);
-                                        else
-                                                change_velocity_to(p_person,0);
-
-                                                person_normal_move(p_person);
-
-                                        if(end==1)
-                                                p_person->Velocity=0;
-                                        else
-                                                trickle_velocity_to(p_person,0);
-
-        */
-        if (end)
-        {
+        if (end) {
             set_person_locked_idle_ready(p_person);
             plant_feet(p_person);
             p_person->Draw.Tweened->Locked = 0;
@@ -10181,31 +9846,6 @@ void fn_person_moveing(Thing* p_person)
 
         end = person_normal_animate(p_person);
         if (end == 1) {
-            /*
-                                                    if(continue_action(p_person))
-                                                    {
-                                                            switch(p_person->Genus.Person->Action)
-                                                            {
-                                                                    case	ACTION_FLIP_LEFT:
-                                                                            locked_anim_change(p_person,SUB_OBJECT_LEFT_FOOT,ANIM_FLIP_LEFT_CONT);
-                                                                            p_person->Draw.Tweened->FrameIndex=0;
-                                                                            if(!foot_hold_available(p_person,100,0,0))
-                                                                            {
-                                                                                    set_person_locked_idle_ready(p_person);
-                                                                            }
-                                                                            break;
-                                                                    case	ACTION_FLIP_RIGHT:
-                                                                            locked_anim_change(p_person,SUB_OBJECT_LEFT_FOOT,ANIM_FLIP_RIGHT_CONT);
-                                                                            p_person->Draw.Tweened->FrameIndex=0;
-                                                                            if(!foot_hold_available(p_person,-100,0,0))
-                                                                            {
-                                                                                    set_person_locked_idle_ready(p_person);
-                                                                            }
-                                                                            break;
-                                                            }
-                                                    }
-                                                    else
-            */
             set_locked_anim(p_person, ANIM_STAND_READY, SUB_OBJECT_LEFT_FOOT);
             plant_feet(p_person);
             if (p_person->State != STATE_DANGLING)
@@ -10226,15 +9866,6 @@ void fn_person_moveing(Thing* p_person)
 
         end = person_normal_animate(p_person);
 
-        /*
-        //dog poo
-                        if(!p_person->Genus.Person->Channel)
-                                p_person->Genus.Person->Channel=play_object_wave(p_person->Genus.Person->Channel,p_person,S_BIKE_IDLE,WAVE_PLAY_NO_INTERUPT|WAVE_LOOP);
-        #ifdef USE_A3D
-        //		if(p_person->Genus.Person->Channel)
-        //			A3DPosition(person->Genus.Person->Channel,p_person->WorldPos.X,p_person->WorldPos.Y,p_person->WorldPos.Z);
-        #endif
-        */
         if (end == 1) {
             p_person->SubState = SUB_STATE_RIDING_BIKE;
         }
@@ -10243,19 +9874,19 @@ void fn_person_moveing(Thing* p_person)
 
     case SUB_STATE_RIDING_BIKE:
 
-        {
-            Thing* p_bike = TO_THING(p_person->Genus.Person->InCar);
+    {
+        Thing* p_bike = TO_THING(p_person->Genus.Person->InCar);
 
-            // Move to the same position above the bike.
-            GameCoord newpos = p_bike->WorldPos;
+        // Move to the same position above the bike.
+        GameCoord newpos = p_bike->WorldPos;
 
-            move_thing_on_map(p_person, &newpos);
+        move_thing_on_map(p_person, &newpos);
 
-            // The code to animate the person is all done in the engine nowadays
-            // just before the person is drawn.
-        }
+        // The code to animate the person is all done in the engine nowadays
+        // just before the person is drawn.
+    }
 
-        break;
+    break;
 
     case SUB_STATE_DISMOUNTING_BIKE:
 
@@ -10825,8 +10456,7 @@ void fn_person_dying(Thing* p_person)
                     locked_anim_change(p_person, SUB_OBJECT_PELVIS, ANIM_QUICK_GET_UP);
                 } else if (part_bad(p_person, SUB_OBJECT_HEAD)) {
                     locked_anim_change(p_person, SUB_OBJECT_PELVIS, ANIM_KO_BACK_GU);
-                } else if (p_person->Genus.Person->PersonType == PERSON_DARCI ||
-                    p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED || p_person->Genus.Person->PersonType == PERSON_THUG_GREY) {
+                } else if (p_person->Genus.Person->PersonType == PERSON_DARCI || p_person->Genus.Person->PersonType == PERSON_THUG_RASTA || p_person->Genus.Person->PersonType == PERSON_THUG_RED || p_person->Genus.Person->PersonType == PERSON_THUG_GREY) {
                     // Acrobatic fast get-up for certain person types.
                     locked_anim_change(p_person, SUB_OBJECT_PELVIS, ANIM_QUICK_GET_UP);
                 } else {
@@ -10989,12 +10619,10 @@ void fn_person_dead(Thing* p_person)
                 set_anim(p_person, ANIM_ARREST_STRUGGLE);
         }
         break;
-    case SUB_STATE_DEAD_RESPAWN:
-        {
-            extern SLONG PCOM_do_regen(Thing * p_person);
-            PCOM_do_regen(p_person);
-        }
-        break;
+    case SUB_STATE_DEAD_RESPAWN: {
+        extern SLONG PCOM_do_regen(Thing * p_person);
+        PCOM_do_regen(p_person);
+    } break;
 
     case SUB_STATE_PICKUP_CARRY_V:
         end = person_normal_animate(p_person);
@@ -11377,8 +11005,7 @@ void fn_person_gun(Thing* p_person)
             // notified from the auto-fire path at all.
             if (p_person->Genus.Person->Target
                 && old_target != p_person->Genus.Person->Target
-                && p_person->Genus.Person->PersonType == PERSON_DARCI)
-            {
+                && p_person->Genus.Person->PersonType == PERSON_DARCI) {
                 Thing* p_target = TO_THING(p_person->Genus.Person->Target);
                 if (p_target->Class == CLASS_PERSON) {
                     if (might_i_be_a_villain(p_target)) {
@@ -11387,10 +11014,16 @@ void fn_person_gun(Thing* p_person)
                         if ((p_target->State != STATE_DEAD) && (p_target->State != STATE_DYING)) {
                             SLONG sample;
                             switch (Random() & 3) {
-                            case 0: sample = S_DARCI_FREEZE_START; break;
-                            case 1: sample = S_DARCI_FREEZE_END;   break;
+                            case 0:
+                                sample = S_DARCI_FREEZE_START;
+                                break;
+                            case 1:
+                                sample = S_DARCI_FREEZE_END;
+                                break;
                             case 2:
-                            case 3: sample = S_DARCI_STOP_POLICE;  break;
+                            case 3:
+                                sample = S_DARCI_STOP_POLICE;
+                                break;
                             }
                             if (IsEnglish)
                                 MFX_play_thing(THING_NUMBER(p_person), sample, 0, p_person);
@@ -11524,9 +11157,7 @@ void fn_person_gun(Thing* p_person)
         // Fallback: if Timer1 is 0 (anim duration calc wasn't available at
         // set_person_shoot time), fall through to the NPC anim-end path
         // so the player can still exit the state.
-        if (p_person->Genus.Person->PlayerID &&
-            p_person->Genus.Person->Timer1 > 0)
-        {
+        if (p_person->Genus.Person->PlayerID && p_person->Genus.Person->Timer1 > 0) {
             // Decrement matches fn_person_moveing's running-shot countdown
             // so running and standing Timer1 tick at identical rates.
             SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
@@ -11549,8 +11180,7 @@ void fn_person_gun(Thing* p_person)
                 if (p_person->Genus.Person->SpecialUse) {
                     Thing* p_su = TO_THING(p_person->Genus.Person->SpecialUse);
                     if (p_su && p_su->Genus.Special->SpecialType == SPECIAL_AK47
-                        && continue_firing(p_person))
-                    {
+                        && continue_firing(p_person)) {
                         ak47_player_holding = true;
                     }
                 }
@@ -11661,7 +11291,6 @@ void fn_person_gun(Thing* p_person)
         break;
     }
 }
-
 
 // =============================================================================
 // chunk 11: person_new_combat_node .. fn_person_goto (lines 15734-17267 of Person.cpp)
@@ -12870,23 +12499,6 @@ SLONG person_is_on(Thing* p_person)
             return -page;
 
             // return -SOUND_FXMapping[page];
-
-            /*			if (page == 65 ||
-                                            page == 66 ||
-                                            page == 143)
-                                    {
-                                            return PERSON_ON_WOOD;
-                                    }
-
-                                    if (page >= 69 && page <= 74)
-                                    {
-                                            return PERSON_ON_GRASS;
-                                    }
-
-                                    if (page == 68 || (page >= 106 && page <= 111))
-                                    {
-                                            return PERSON_ON_GRAVEL;
-                                    }*/
         }
     }
 
@@ -13012,26 +12624,6 @@ void fn_person_can(Thing* p_person)
                         SPECIAL_throw_grenade(TO_THING(p_person->Genus.Person->SpecialUse));
                     }
                 }
-                /*
-
-                //
-                // You can't throw mines any more.
-                //
-
-                else
-                {
-                        p_special = person_has_special(p_person, SPECIAL_MINE);
-
-                        if (p_special)
-                        {
-                                if (p_special->SubState == SPECIAL_SUBSTATE_ACTIVATED)
-                                {
-                                        SPECIAL_throw_mine(p_special);
-                                }
-                        }
-                }
-
-                */
             }
         }
 
@@ -13047,77 +12639,6 @@ void fn_person_can(Thing* p_person)
     case SUB_STATE_CANNING_GET_BARREL:
 
         ASSERT(0);
-
-        /*
-
-        end = person_normal_animate(p_person);
-
-        if (end)
-        {
-                //
-                // Finished throwing the barrel.
-                //
-
-                set_person_idle(p_person);
-
-                return;
-        }
-
-        if (p_person->Draw.Tweened->FrameIndex == 2)
-        {
-                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_BARRELING))
-                {
-                        //
-                        // Find a barrel to pickup.
-                        //
-
-                        p_person->Genus.Person->Hold = THING_find_nearest(
-                                                                                                p_person->WorldPos.X >> 8,
-                                                                                                p_person->WorldPos.Y >> 8,
-                                                                                                p_person->WorldPos.Z >> 8,
-                                                                                                0x80,
-                                                                                                (1 << CLASS_BARREL));
-
-                        if (p_person->Genus.Person->Hold == NULL)
-                        {
-                                //
-                                // No barrel to pickup.
-                                //
-
-                                set_person_idle(p_person);
-                        }
-                        else
-                        {
-                                p_person->Genus.Person->Flags |= FLAG_PERSON_BARRELING;
-                        }
-                }
-        }
-
-        if (p_person->Genus.Person->Flags & FLAG_PERSON_BARRELING)
-
-        {
-                BARREL_position_on_hands(TO_THING(p_person->Genus.Person->Hold), p_person);
-        }
-
-        {
-                if (p_person->Draw.Tweened->FrameIndex == 9 || (p_person->Draw.Tweened->FrameIndex == 8 && p_person->Draw.Tweened->AnimTween >= 128))
-                {
-
-
-                        if (p_person->Genus.Person->Flags & FLAG_PERSON_BARRELING)
-                        {
-                                //
-                                // Release the barrel.
-                                //
-
-                                BARREL_throw(TO_THING(p_person->Genus.Person->Hold));
-
-                                p_person->Genus.Person->Flags &= ~FLAG_PERSON_BARRELING;
-                        }
-                }
-        }
-
-        */
 
         break;
 
@@ -13275,23 +12796,6 @@ void set_person_hug_wall_stand(Thing* p_person, SLONG dangle, SLONG locked)
     } else {
         set_locked_anim_angle(p_person, anim, SUB_OBJECT_PELVIS, dangle);
     }
-    /*
-            if((dist=abs(check_near_facet(p_person,64,64,(p_person->WorldPos.X)>>8,(p_person->WorldPos.Z)>>8)))==0)
-            {
-                    return;
-            }
-            else
-            if(abs(32-dist)<32)
-            {
-                    SLONG	angle;
-                    angle=(p_person->Draw.Tweened->Angle)&2047;
-
-                    dx = -(SIN(angle) * (32-dist)) >> 8;
-                    dz = -(COS(angle) * (32-dist)) >> 8;
-                    person_normal_move_dxdz(p_person,dx,dz);
-
-            }
-    */
 
     //	set_anim(p_person,anim);
 }
@@ -13315,20 +12819,6 @@ SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLON
 
     SUPERMAP_counter_increase(0);
     near_facet = 0;
-    /*
-                                    AENG_world_line(
-                                            (p_person->WorldPos.X >> 8),
-                                            (p_person->WorldPos.Y >> 8),
-                                            (p_person->WorldPos.Z >> 8),
-                                            3,
-                                            0x00ffffff,
-                                            px,
-                                            (p_person->WorldPos.Y)>>8,
-                                            pz,
-                                            0,
-                                            0x00123456,
-                                            UC_TRUE);
-      */
 
     {
         SLONG a;
@@ -13429,38 +12919,6 @@ SLONG check_near_facet(Thing* p_person, SLONG max_dist, SLONG max_end_dist, SLON
         if (abs(best_dist) < max_dist) {
             return (best_dist);
         }
-        /*
-                        {
-                                SLONG	angle;
-                                SLONG	dx,dz,nx,nz;
-                                angle=(p_person->Draw.Tweened->Angle+1024)&2047;
-                                dx = -(SIN(angle) * 128) >> 16;
-                                dz = -(COS(angle) * 128) >> 16;
-
-                                nx=(px+dx)>>10;
-                                nz=(pz+dz)>>10;
-
-                                if(nx==mx && nz==mz)
-                                {
-                                        if(abs(best_dist)<max_dist)
-                                        {
-                                                return(best_dist);
-                                        }
-                                        else
-                                        {
-                                                near_facet=0;
-                        PANEL_new_text(p_person,3000,"NO HUGb");
-                                                return(0);
-                                        }
-                                }
-                                else
-                                {
-                                        mx=nx;
-                                        mz=nz;
-
-                                }
-                        }
-        */
     }
 
     if (abs(best_dist) < max_dist) {
@@ -13609,12 +13067,6 @@ void fn_person_hug_wall(Thing* p_person)
 
         person_normal_move_dxdz(p_person, dx, dz);
         end = person_normal_animate(p_person);
-        /*
-                                if(end)
-                                {
-                                        set_person_hug_wall_stand(p_person);
-                                }
-        */
 
         break;
     case SUB_STATE_HUG_WALL_LEAP_OUT:
@@ -13640,23 +13092,12 @@ void fn_person_hug_wall(Thing* p_person)
             p_person->Genus.Person->InsideRoom = 16;
 
         end = person_normal_animate(p_person);
-        /*			else
-                                {
-                                        set_person_hug_wall_stand(p_person);
-                                }
-        */
         break;
     case SUB_STATE_HUG_WALL_LOOK_R:
         //			if(continue_dir(p_person,1))
         if (++p_person->Genus.Person->InsideRoom > 16)
             p_person->Genus.Person->InsideRoom = 16;
         end = person_normal_animate(p_person);
-        /*
-                                else
-                                {
-                                        set_person_hug_wall_stand(p_person);
-                                }
-        */
 
         break;
     case SUB_STATE_HUG_WALL_STEP_RIGHT:
@@ -13689,12 +13130,6 @@ void fn_person_hug_wall(Thing* p_person)
 
         person_normal_move_dxdz(p_person, dx, dz);
         end = person_normal_animate(p_person);
-        /*
-                                if(end)
-                                {
-                                        set_person_hug_wall_stand(p_person);
-                                }
-        */
         break;
     }
 }
@@ -13771,15 +13206,6 @@ void fn_person_circle(Thing* p_person)
         p_person->SubState = SUB_STATE_CIRCLING_BACK_OFF;
     }
 
-    /*
-
-    if(p_person->Genus.Person->Agression>0)
-    {
-            hit_distance=140;
-    }
-
-    */
-
     switch (p_person->SubState) {
     case SUB_STATE_CIRCLING_BACK_OFF:
         hit_distance = 280;
@@ -13841,13 +13267,6 @@ void fn_person_circle(Thing* p_person)
         dz = p_person->Genus.Person->TargetZ - (p_person->WorldPos.Z >> 8);
 
         dist = QDIST2(abs(dx), abs(dz)) + 1;
-        /*
-                                        {
-                                                CBYTE	str[100];
-                                                sprintf(str," combat dist %d hit_dist %d \n",dist,hit_distance);
-                                                CONSOLE_text(str);
-                                        }
-        */
         angle = (calc_angle(dx, dz)) & 2047;
 
         dx = 0;
@@ -13889,18 +13308,6 @@ void fn_person_circle(Thing* p_person)
                 p_person->Genus.Person->Timer1 = 0;
             }
         }
-        /*
-                                        else
-                                        if(p_person->SubState==SUB_STATE_CIRCLING_CIRCLE)
-                                        {
-
-                                                if(p_person->Genus.Person->Timer1++==15)
-                                                {
-                                                        process_gang_attack(p_person,p_target);
-                                                        p_person->Genus.Person->Timer1=0;
-                                                }
-                                        }
-        */
 
         if (dist > 80) {
             p_person->Draw.Tweened->Angle = (angle + 1024) & 2047;
@@ -13948,13 +13355,6 @@ void fn_person_circle(Thing* p_person)
 
         if (dx || dz) {
             person_normal_move_dxdz(p_person, dx, dz);
-            /*
-                                                    move_thing(
-                                                            dx ,
-                                                             0 << 8,
-                                                            dz ,
-                                                            p_person);
-            */
 
             if (reqd_anim)
                 if (p_person->Draw.Tweened->CurrentAnim == ANIM_FIGHT || p_person->Draw.Tweened->CurrentAnim == ANIM_BAT_IDLE || p_person->Draw.Tweened->CurrentAnim == ANIM_KNIFE_FIGHT_READY)
@@ -13994,20 +13394,7 @@ void fn_person_circle(Thing* p_person)
                                 PCOM_set_person_move_kick(p_person);
                             }
                         }
-                    }
-                    /*
-                    else
-                    if (p_target->SubState              == SUB_STATE_GRAPPLE_HELD &&
-                            p_person->Genus.Person->pcom_ai == PCOM_AI_COP)
-                    {
-                            //
-                            // Cops always throw their grapplee's so they can arrest them!
-                            //
-
-                            PCOM_set_person_move_punch(p_person);
-                    }
-                    */
-                    else if (dist < 160 && dist > 90) {
+                    } else if (dist < 160 && dist > 90) {
 
                         if (kick_or_punch & 1) {
                             PCOM_set_person_move_punch(p_person);

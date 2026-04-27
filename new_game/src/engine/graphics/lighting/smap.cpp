@@ -11,10 +11,10 @@
 #include "engine/core/fmatrix.h"
 #include "map/level_pools.h"
 #include "game/game_types.h"
-#include "engine/animation/anim_types.h"    // GameKeyFrame, GameKeyFrameElement, GameKeyFrameChunk, GetCMatrix
+#include "engine/animation/anim_types.h" // GameKeyFrame, GameKeyFrameElement, GameKeyFrameChunk, GetCMatrix
 #include "things/characters/person_types.h" // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
-#include "things/characters/person.h"       // person_get_scale
-#include "things/core/interact.h"           // calc_sub_objects_position_global
+#include "things/characters/person.h" // person_get_scale
+#include "things/core/interact.h" // calc_sub_objects_position_global
 
 // SMAP_vector_normalise: normalise a 3D float vector in-place.
 // uc_orig: SMAP_vector_normalise (fallen/DDEngine/Source/smap.cpp)
@@ -256,7 +256,6 @@ static void SMAP_add_prim_triangles(
             p_f4->Points[2] + index);
     }
 }
-
 
 // uc_orig: SMAP_add_tweened_points (fallen/DDEngine/Source/smap.cpp)
 // Adds all shadow-map points for one body part at a tweened position.
@@ -972,4 +971,3 @@ SMAP_Link* SMAP_project_onto_poly(SVector_F poly[], SLONG num_points)
 
     return NULL;
 }
-

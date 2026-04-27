@@ -28,7 +28,7 @@ struct VehInfo {
     SWORD HLX, HLY, HLZ; // headlight position
     SWORD BLX, BLY, BLZ; // brakelight position (BLZ==0 = no brakelights)
     SWORD FLX, FLY, FLZ; // flashing light position (FLZ==0 = no flashing lights)
-    SWORD FLRED;          // 1 = both lights red; 0 = red+blue
+    SWORD FLRED; // 1 = both lights red; 0 = red+blue
 
     UBYTE shad_size;
     UBYTE shad_elongate; // in 6-bit fixed point

@@ -11,4 +11,3 @@ GenusFunctions player_functions[] = {
     { PLAYER_DARCI, darci_states },
     { PLAYER_ROPER, roper_states }
 };
-

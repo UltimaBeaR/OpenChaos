@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 #include "engine/core/types.h"
-#include "things/core/state.h"  // GenusFunctions, StateFunction
+#include "things/core/state.h" // GenusFunctions, StateFunction
 
 // Dispatch table: PERSON_TYPE -> state function table (darci_states / cop_states).
 // uc_orig: people_functions (fallen/Source/Person.cpp)
@@ -75,6 +75,5 @@ extern UWORD near_facet;
 // Incremented each time the circle AI decides to attack; odd=punch, even=kick.
 // uc_orig: kick_or_punch (fallen/Source/Person.cpp)
 extern SLONG kick_or_punch;
-
 
 #endif // THINGS_CHARACTERS_PERSON_GLOBALS_H

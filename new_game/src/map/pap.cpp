@@ -17,7 +17,6 @@ SLONG PAP_on_map_hi(SLONG x, SLONG z)
     }
 }
 
-
 // uc_orig: PAP_calc_height_at_point (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
 {

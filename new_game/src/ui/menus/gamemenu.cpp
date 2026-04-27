@@ -6,8 +6,8 @@
 
 #include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
-#include "engine/graphics/ui_coords.h"          // UIAnchor
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
+#include "engine/graphics/ui_coords.h" // UIAnchor
 #include "engine/graphics/text/menufont.h"
 #include "assets/xlat_str.h"
 #include "engine/audio/mfx.h"
@@ -50,9 +50,9 @@ void GAMEMENU_initialise(SLONG menu)
     // When closing the menu, consume held gamepad buttons so they don't leak
     // to gameplay (e.g. Triangle=KICK, Cross=JUMP, Start would re-trigger).
     if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE && menu == GAMEMENU_MENU_TYPE_NONE) {
-        gamepad_consume_until_released(0);  // Cross/A
-        gamepad_consume_until_released(3);  // Triangle/Y
-        gamepad_consume_until_released(6);  // Start
+        gamepad_consume_until_released(0); // Cross/A
+        gamepad_consume_until_released(3); // Triangle/Y
+        gamepad_consume_until_released(6); // Start
     }
 
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE || menu == GAMEMENU_MENU_TYPE_NONE) {
@@ -188,12 +188,16 @@ SLONG GAMEMENU_process()
                 uint64_t now = sdl3_get_ticks();
                 if (dir) {
                     if (dir != gm_last_dir) {
-                        if (dir == 1) Keys[KB_UP] = 1;
-                        else Keys[KB_DOWN] = 1;
+                        if (dir == 1)
+                            Keys[KB_UP] = 1;
+                        else
+                            Keys[KB_DOWN] = 1;
                         gm_dir_next_fire = now + 400;
                     } else if (now >= gm_dir_next_fire) {
-                        if (dir == 1) Keys[KB_UP] = 1;
-                        else Keys[KB_DOWN] = 1;
+                        if (dir == 1)
+                            Keys[KB_UP] = 1;
+                        else
+                            Keys[KB_DOWN] = 1;
                         gm_dir_next_fire = now + 150;
                     }
                 }

@@ -3,7 +3,7 @@
 
 #include "engine/core/types.h"
 #include "things/core/state.h"
-#include "engine/animation/anim_types.h"  // KeyFrame
+#include "engine/animation/anim_types.h" // KeyFrame
 
 struct Thing;
 

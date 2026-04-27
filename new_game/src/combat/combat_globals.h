@@ -26,9 +26,9 @@
 // Used by AI to prevent all enemies piling in from the same angle.
 // uc_orig: GangAttack (fallen/Headers/combat.h)
 struct GangAttack {
-    UWORD Owner;     // THING_NUMBER of the person being attacked (the victim)
-    UWORD Perp[8];   // THING_NUMBERs of attackers per compass slot (N/NE/E/SE/S/SW/W/NW)
-    UWORD LastUsed;  // GAME_TURN when this entry was last active
+    UWORD Owner; // THING_NUMBER of the person being attacked (the victim)
+    UWORD Perp[8]; // THING_NUMBERs of attackers per compass slot (N/NE/E/SE/S/SW/W/NW)
+    UWORD LastUsed; // GAME_TURN when this entry was last active
     UBYTE Index;
     UBYTE Count;
 };

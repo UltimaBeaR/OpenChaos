@@ -31,11 +31,11 @@
 // uc_orig: ID_Stair (fallen/Headers/id.h)
 typedef struct
 {
-    UBYTE type;         // ID_STAIR_TYPE_BOTTOM/_MIDDLE/_TOP
+    UBYTE type; // ID_STAIR_TYPE_BOTTOM/_MIDDLE/_TOP
     UBYTE id;
     UWORD shit;
-    SLONG handle_up;    // Floor handle above (if going up)
-    SLONG handle_down;  // Floor handle below (if going down)
+    SLONG handle_up; // Floor handle above (if going up)
+    SLONG handle_down; // Floor handle below (if going down)
     UBYTE x1;
     UBYTE z1;
     UBYTE x2;

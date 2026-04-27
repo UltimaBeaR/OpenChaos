@@ -90,4 +90,3 @@ SLONG Root(SLONG square)
 {
     return (int)sqrt(square);
 }
-

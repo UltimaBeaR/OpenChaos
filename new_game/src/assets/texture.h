@@ -265,13 +265,12 @@ void TEXTURE_set_colour_key(SLONG page);
 void TEXTURE_free(void);
 
 // uc_orig: TEXTURE_LOOK_ROAD (fallen/DDEngine/Headers/texture.h)
-#define TEXTURE_LOOK_ROAD     0
+#define TEXTURE_LOOK_ROAD 0
 // uc_orig: TEXTURE_LOOK_GRASS (fallen/DDEngine/Headers/texture.h)
-#define TEXTURE_LOOK_GRASS    1
+#define TEXTURE_LOOK_GRASS 1
 // uc_orig: TEXTURE_LOOK_DIRT (fallen/DDEngine/Headers/texture.h)
-#define TEXTURE_LOOK_DIRT     2
+#define TEXTURE_LOOK_DIRT 2
 // uc_orig: TEXTURE_LOOK_SLIPPERY (fallen/DDEngine/Headers/texture.h)
 #define TEXTURE_LOOK_SLIPPERY 3
-
 
 #endif // ASSETS_TEXTURE_H

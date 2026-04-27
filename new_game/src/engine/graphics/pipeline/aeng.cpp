@@ -3,7 +3,7 @@
 // All Direct3D rendering will be replaced in Stage 7; for now this is a 1:1 port.
 
 #include "engine/graphics/pipeline/aeng_globals.h"
-#include "engine/console/message.h"  // MSG_draw
+#include "engine/console/message.h" // MSG_draw
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/lighting/ngamut.h"
@@ -19,7 +19,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "game/game_types.h"
-#include "buildings/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
+#include "buildings/prim_types.h" // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
 #include "navigation/inside2.h"
 #include "map/pap.h"
@@ -29,7 +29,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "config.h"
-#include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT / FOV_CAP_ASPECT
+#include "engine/graphics/aspect_clamp.h" // FOV_MIN_ASPECT / FOV_CAP_ASPECT
 #include <math.h>
 #include <stdio.h>
 
@@ -39,12 +39,12 @@ extern SLONG ScreenWidth;
 extern SLONG ScreenHeight;
 
 #include "engine/graphics/geometry/figure.h"
-#include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
+#include "engine/graphics/geometry/figure_globals.h" // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
-#include "engine/audio/sound.h"   // WORLD_TYPE_SNOW
+#include "engine/audio/sound.h" // WORLD_TYPE_SNOW
 #include "engine/audio/sound_globals.h" // world_type
-#include "assets/formats/anim_globals.h"  // estate
+#include "assets/formats/anim_globals.h" // estate
 #include "effects/weather/drip.h"
 #include "effects/environment/fire.h"
 #include "effects/combat/spark.h"
@@ -266,7 +266,8 @@ void AENG_world_line(
 {
     // Drop geometry added outside render pass — it would be cleared by
     // POLY_frame_init and the freed VB slot causes shadow corruption.
-    if (!s_in_render_pass) return;
+    if (!s_in_render_pass)
+        return;
 
     POLY_Point p1;
     POLY_Point p2;
@@ -1291,8 +1292,12 @@ void AENG_draw_dirt()
 
                     temp[j].u = ubase;
                     temp[j].v = vbase;
-                    if (j & 1) { temp[j].u += 0.5F; }
-                    if (j & 2) { temp[j].v += 0.5F; }
+                    if (j & 1) {
+                        temp[j].u += 0.5F;
+                    }
+                    if (j & 2) {
+                        temp[j].v += 0.5F;
+                    }
 
                     temp[j].colour = (rubbish_colour & colour_and) | 0xff000000;
                     temp[j].specular = 0xff000000;
@@ -1514,7 +1519,6 @@ void AENG_draw_dirt()
 
     do_next_dirt:;
     }
-
 }
 
 // uc_orig: AENG_draw_pows (fallen/DDEngine/Source/aeng.cpp)
@@ -1850,12 +1854,6 @@ void AENG_set_bike_wheel_rotation(UWORD rot, UBYTE prim)
     }
 }
 
-/*
-uc_orig: AENG_draw_warehouse_floor_near_door (fallen/DDEngine/Source/aeng.cpp)
-This function was commented out in the original source (#if 0 / block comment).
-Dead code — not migrated.
-*/
-
 // uc_orig: AENG_set_detail_levels (fallen/DDEngine/Source/aeng.cpp)
 // Writes new detail level settings to the config (INI) and re-reads them.
 void AENG_set_detail_levels(int stars,
@@ -2103,12 +2101,7 @@ void AENG_draw_city()
                         //
 
                         if (INDOORS_INDEX) {
-                            /*
-                                                                            NIGHT_get_colour_dim(
-                                                                                    nq->colour[dx + dz * PAP_BLOCKS],
-                                                                               &pp->colour,
-                                                                               &pp->specular);
-                            */
+
                             pp->colour = 0x80808080; // 202020;
                             pp->specular = 0x80000000;
                         } else {
@@ -2175,12 +2168,7 @@ void AENG_draw_city()
                             //
 
                             if (INDOORS_INDEX) {
-                                /*
-                                                                                        NIGHT_get_colour_dim(
-                                                                                                nq->colour[dx + dz * PAP_BLOCKS],
-                                                                                           &ppl->colour,
-                                                                                           &ppl->specular);
-                                */
+
                                 ppl->colour = 0x202020;
                                 ppl->specular = 0xff000000;
 
@@ -2770,22 +2758,6 @@ void AENG_draw_city()
                 &moon_y1,
                 &moon_x2,
                 &moon_y2)) {
-            /*
-
-            //
-            // The moon is wibbled with polys now.
-            //
-
-            bbox[0].x1 = MAX((SLONG)moon_x1 - AENG_BBOX_PUSH_OUT, AENG_BBOX_PUSH_IN);
-            bbox[0].y1 = MAX((SLONG)moon_y1, 0);
-            bbox[0].x2 = MIN((SLONG)moon_x2 + AENG_BBOX_PUSH_OUT, DisplayWidth  - AENG_BBOX_PUSH_IN);
-            bbox[0].y2 = MIN((SLONG)moon_y2, DisplayHeight);
-
-            bbox[0].water_box = UC_FALSE;
-
-            bbox_upto = 1;
-
-            */
         }
     }
 
@@ -2875,60 +2847,6 @@ void AENG_draw_city()
                 }
             }
         }
-
-    /*
-
-    //
-    // Draw the reflections of the OBs.
-    //
-
-    if(DETAIL_LEVEL&DETAIL_REFLECTIONS)
-    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++)
-    {
-            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++)
-            {
-                    for (oi = OB_find(x,z); oi->prim; oi += 1)
-                    {
-                            //
-                            // On map?
-                            //
-
-                            mx = oi->x >> 8;
-                            mz = oi->z >> 8;
-
-                            if (WITHIN(mx, 0, PAP_SIZE_HI - 1) &&
-                                    WITHIN(mz, 0, PAP_SIZE_HI - 1))
-                            {
-                                    //
-                                    // On a reflective square?
-                                    //
-
-                                    if (PAP_2HI(mx,mz).Flags & (PAP_FLAG_WATER|PAP_FLAG_REFLECTIVE))
-                                    {
-                                            //
-                                            // Not too far away?
-                                            //
-
-                                            dx = abs(oi->x - (FC_cam[AENG_cur_fc_cam].x >> 8));
-                                            dz = abs(oi->z - (FC_cam[AENG_cur_fc_cam].z >> 8));
-
-                                            if (dx + dz < 0x00)
-                                            {
-                                                    MESH_draw_reflection(
-                                                            oi->prim,
-                                                            oi->x,
-                                                            oi->y,
-                                                            oi->z,
-                                                            oi->yaw,
-                                                            NULL);
-                                            }
-                                    }
-                            }
-                    }
-            }
-    }
-
-    */
 
     BreakTime("Drawn reflections");
 
@@ -3251,153 +3169,6 @@ void AENG_draw_city()
     }
     BreakTime("Drawn reflective squares");
 
-    /*
-
-    //
-    // Draw the water in the city.
-    //
-
-    {
-            SLONG dmx;
-            SLONG dmz;
-
-            SLONG dx;
-            SLONG dz;
-
-            SLONG px;
-            SLONG py;
-            SLONG pz;
-
-            SLONG ix;
-            SLONG iz;
-
-            POLY_Point  water_pp[5][5];
-            POLY_Point *quad[4];
-            POLY_Point *pp;
-
-            SLONG user_upto = 1;
-
-            for (i = 0, pp = &water_pp[0][0]; i < 25; i++, pp++)
-            {
-                    pp->user = 0;
-            }
-
-            for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++)
-            {
-                    for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++)
-                    {
-                            pl = &PAP_2LO(x,z);
-
-                            if (pl->water == PAP_LO_NO_WATER)
-                            {
-                                    //
-                                    // No water in this square.
-                                    //
-                            }
-                            else
-                            {
-                                    //
-                                    // The height of water in this lo-res mapsquare.
-                                    //
-
-                                    py = pl->water << ALT_SHIFT;
-
-                                    //
-                                    // Look for water in the hi-res mapsquare enclosed by this
-                                    // lo-res mapsqure.
-                                    //
-
-                                    for (dmx = 0; dmx < 4; dmx++)
-                                    for (dmz = 0; dmz < 4; dmz++)
-                                    {
-                                            mx = (x << 2) + dmx;
-                                            mz = (z << 2) + dmz;
-
-                                            ph = &PAP_2HI(mx,mz);
-
-                                            if (ph->Flags & PAP_FLAG_WATER)
-                                            {
-                                                    //
-                                                    // Transform all the points.
-                                                    //
-
-                                                    i = 0;
-
-                                                    for (i = 0; i < 4; i++)
-                                                    {
-                                                            dx = i &  1;
-                                                            dz = i >> 1;
-
-                                                            ix = dmx + dx;
-                                                            iz = dmz + dz;
-
-                                                            if (water_pp[ix][iz].user == user_upto)
-                                                            {
-                                                                    //
-                                                                    // Already transformed.
-                                                                    //
-                                                            }
-                                                            else
-                                                            {
-                                                                    //
-                                                                    // Transform this point.
-                                                                    //
-
-                                                                    water_pp[ix][iz].user = user_upto;
-
-                                                                    px = mx + dx << 8;
-                                                                    pz = mz + dz << 8;
-
-                                                                    POLY_transform(
-                                                                            float(px),
-                                                                            float(py),
-                                                                            float(pz),
-                                                                       &water_pp[ix][iz]);
-
-                                                                    water_pp[ix][iz].colour   = 0x44608564;
-                                                                    water_pp[ix][iz].specular = 0xff000000;
-
-                                                                    POLY_fadeout_point(&water_pp[ix][iz]);
-
-                                                                    //
-                                                                    // This point's (u,v) coordinates are a function of its
-                                                                    // position and the time.
-                                                                    //
-
-                                                                    {
-                                                                            float angle_u = float(((((mx + dx) * 5 + (mz + dz) * 6) & 0x1f) + 0x1f) * GAME_TURN) * (1.0F / 1754.0F);
-                                                                            float angle_v = float(((((mx + dx) * 4 + (mz + dz) * 7) & 0x1f) + 0x1f) * GAME_TURN) * (1.0F / 1816.0F);
-
-                                                                            water_pp[ix][iz].u = px * (1.0F / 256.0F) + sin(angle_u) * 0.15F;
-                                                                            water_pp[ix][iz].v = pz * (1.0F / 256.0F) + cos(angle_v) * 0.15F;
-                                                                    }
-                                                            }
-
-                                                            if (!water_pp[ix][iz].MaybeValid())
-                                                            {
-                                                                    goto abandon_poly;
-                                                            }
-
-                                                            quad[i] = &water_pp[ix][iz];
-                                                    }
-
-                                                    if (POLY_valid_quad(quad))
-                                                    {
-                                                            POLY_add_quad(quad, POLY_PAGE_SEWATER, UC_FALSE);
-                                                    }
-                                            }
-
-                                      abandon_poly:;
-                                    }
-
-                                    user_upto += 1;
-                            }
-                    }
-            }
-    }
-
-    */
-
     // End of reflection stuff.
 
     //
@@ -3408,13 +3179,7 @@ void AENG_draw_city()
 
     if (AENG_detail_skyline)
         SKY_draw_poly_sky_old(AENG_cam_x, AENG_cam_y, AENG_cam_z, AENG_cam_yaw, AENG_DRAW_DIST * 256.0F, 0xffffff, 0xffffff);
-    /*
-            SKY_draw_poly_clouds(
-                    AENG_cam_x,
-                    AENG_cam_y,
-                    AENG_cam_z,
-                    AENG_DRAW_DIST * 256.0F);
-      */
+
     if (!INDOORS_INDEX || outside)
         if (!(NIGHT_flag & NIGHT_FLAG_DAYTIME)) {
             SKY_draw_poly_moon(
@@ -3474,7 +3239,8 @@ void AENG_draw_city()
     // in isolation. See game.cpp for the toggle and stage12 devlog.
     {
         extern BOOL g_farfacet_debug;
-        if (g_farfacet_debug) return;
+        if (g_farfacet_debug)
+            return;
     }
 
     // #if defined(NDEBUG) || defined(TARGET_DC)
@@ -3490,7 +3256,6 @@ void AENG_draw_city()
     // draw floor draw_floor  //things to search for
     //
 
-
     {
         if (!INDOORS_INDEX || outside)
             for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++) {
@@ -3504,17 +3269,6 @@ void AENG_draw_city()
                         continue;
                     }
 
-                    /*
-
-                    if (ph->Flags & PAP_FLAG_WATER)
-                    {
-                            //
-                            // We don't draw the ground because it is covered by water.
-                            //
-                    }
-                    else
-
-                    */
                     {
                         POLY_Point fake_roof[4];
 
@@ -3604,32 +3358,6 @@ void AENG_draw_city()
                                 //
                                 // Texture the quad.
                                 //
-                                /*
-                                                                                if (ph->Flags & PAP_FLAG_ANIM_TMAP)
-                                                                                {
-                                                                                        struct	AnimTmap	*p_a;
-                                                                                        SLONG	cur;
-                                                                                        p_a=&anim_tmaps[ph->Texture];
-                                                                                        cur=p_a->Current;
-
-                                                                                        quad[0]->u = float(p_a->UV[cur][0][0] & 0x3f) * (1.0F / 32.0F);
-                                                                                        quad[0]->v = float(p_a->UV[cur][0][1]       ) * (1.0F / 32.0F);
-
-                                                                                        quad[1]->u = float(p_a->UV[cur][1][0]       ) * (1.0F / 32.0F);
-                                                                                        quad[1]->v = float(p_a->UV[cur][1][1]       ) * (1.0F / 32.0F);
-
-                                                                                        quad[2]->u = float(p_a->UV[cur][2][0]       ) * (1.0F / 32.0F);
-                                                                                        quad[2]->v = float(p_a->UV[cur][2][1]       ) * (1.0F / 32.0F);
-
-                                                                                        quad[3]->u = float(p_a->UV[cur][3][0]       ) * (1.0F / 32.0F);
-                                                                                        quad[3]->v = float(p_a->UV[cur][3][1]       ) * (1.0F / 32.0F);
-
-                                                                                        page   = p_a->UV[cur][0][0] & 0xc0;
-                                                                                        page <<= 2;
-                                                                                        page  |= p_a->Page[cur];
-                                                                                }
-                                                                                else
-                                */
                                 {
                                     TEXTURE_get_minitexturebits_uvs(
                                         ph->Texture,
@@ -3999,12 +3727,7 @@ void AENG_draw_city()
 
                             switch (oi->prim) {
                             case 2:
-                                /*
-                                BLOOM_draw(oi->x+270,oi->y+350,oi->z, 0,-255,0,0x7f6500,BLOOM_BEAM);
-                                BLOOM_draw(oi->x-270,oi->y+350,oi->z, 0,-255,0,0x7f6500,BLOOM_BEAM);
-                                BLOOM_draw(oi->x,oi->y+350,oi->z+270, 0,-255,0,0x7f6500,BLOOM_BEAM);
-                                BLOOM_draw(oi->x,oi->y+350,oi->z-270, 0,-255,0,0x7f6500,BLOOM_BEAM);
-                                */
+
                                 break;
                             case 190:
                                 BLOOM_draw(oi->x, oi->y, oi->z, 0, 0, 0, 0x808080, 0);
@@ -4059,13 +3782,6 @@ void AENG_draw_city()
                     if (f_list) {
                         while (!exit) {
                             facet = facet_links[f_list];
-
-                            /*
-                                                                                    AENG_world_text(x<<10,(PAP_2HI(x<<2,z<<2).Alt<<3)+50,z<<10,128,128,128,1,"x %d z %d %d type %d",x,z,facet,dfacets[facet].FacetType);
-                                                                                    if(x==13 && z==5)
-                                                                                    AENG_world_line_infinite(dfacets[facet].X[0],dfacets[facet].Y[0]+10,dfacets[facet].Z[0],2,0xffffff,
-                                                                                      dfacets[facet].X[1],dfacets[facet].Y[1]+10,dfacets[facet].Z[1],2,0xffffff,0);
-                                                                                      */
 
                             ASSERT(facet);
 
@@ -4195,97 +3911,54 @@ void AENG_draw_city()
 
                         case DT_ROT_MULTI:
 
-                            /*
-                            if (ControlFlag)
-                            if (p_thing->Genus.Person->PlayerID)
-                            {
-                                    //
-                                    // Draw some wheels above Darci's head!
-                                    //
-
-                                    AENG_set_bike_wheel_rotation((GAME_TURN << 3) & 2047, PRIM_OBJ_BIKE_BWHEEL);
-
-                                    MESH_draw_poly(
-                                                    PRIM_OBJ_BIKE_BWHEEL,
-                                                    p_thing->WorldPos.X          >> 8,
-                                                    p_thing->WorldPos.Y + 0xa000 >> 8,
-                                                    p_thing->WorldPos.Z          >> 8,
-                                                    p_thing->Draw.Tweened->Angle,
-                                                    0,0,
-                                                    NULL,0);
-
-                                    AENG_set_bike_wheel_rotation((GAME_TURN << 3) & 2047, PRIM_OBJ_VAN_WHEEL);
-
-                                    MESH_draw_poly(
-                                                    PRIM_OBJ_VAN_WHEEL,
-                                                    p_thing->WorldPos.X           >> 8,
-                                                    p_thing->WorldPos.Y + 0x10000 >> 8,
-                                                    p_thing->WorldPos.Z           >> 8,
-                                                    p_thing->Draw.Tweened->Angle,
-                                                    0,0,
-                                                    NULL,0);
-
-                                    AENG_set_bike_wheel_rotation((GAME_TURN << 3) & 2047, PRIM_OBJ_CAR_WHEEL);
-
-                                    MESH_draw_poly(
-                                                    PRIM_OBJ_CAR_WHEEL,
-                                                    p_thing->WorldPos.X           >> 8,
-                                                    p_thing->WorldPos.Y + 0x16000 >> 8,
-                                                    p_thing->WorldPos.Z           >> 8,
-                                                    p_thing->Draw.Tweened->Angle,
-                                                    0,0,
-                                                    NULL,0);
-                            }
-                            */
+                        {
+                            ASSERT(p_thing->Class == CLASS_PERSON);
 
                             {
-                                ASSERT(p_thing->Class == CLASS_PERSON);
-
-                                {
-                                    if (p_thing->Genus.Person->PlayerID) {
-                                        if (FirstPersonMode) {
-                                            FirstPersonAlpha -= (TICK_RATIO * 16) >> TICK_SHIFT;
-                                            if (FirstPersonAlpha < MAX_FPM_ALPHA)
-                                                FirstPersonAlpha = MAX_FPM_ALPHA;
-                                        } else {
-                                            FirstPersonAlpha += (TICK_RATIO * 16) >> TICK_SHIFT;
-                                            if (FirstPersonAlpha > 255)
-                                                FirstPersonAlpha = 255;
-                                        }
-
-                                        // FIGURE_alpha = FirstPersonAlpha;
-                                        FIGURE_draw(p_thing);
-                                        // FIGURE_alpha = 255;
+                                if (p_thing->Genus.Person->PlayerID) {
+                                    if (FirstPersonMode) {
+                                        FirstPersonAlpha -= (TICK_RATIO * 16) >> TICK_SHIFT;
+                                        if (FirstPersonAlpha < MAX_FPM_ALPHA)
+                                            FirstPersonAlpha = MAX_FPM_ALPHA;
                                     } else {
-                                        SLONG dx, dy, dz, dist;
+                                        FirstPersonAlpha += (TICK_RATIO * 16) >> TICK_SHIFT;
+                                        if (FirstPersonAlpha > 255)
+                                            FirstPersonAlpha = 255;
+                                    }
 
-                                        dx = abs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
-                                        dy = abs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
-                                        dz = abs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
+                                    // FIGURE_alpha = FirstPersonAlpha;
+                                    FIGURE_draw(p_thing);
+                                    // FIGURE_alpha = 255;
+                                } else {
+                                    SLONG dx, dy, dz, dist;
 
-                                        dist = QDIST3(dx, dy, dz);
+                                    dx = abs((p_thing->WorldPos.X >> 8) - AENG_cam_x);
+                                    dy = abs((p_thing->WorldPos.Y >> 8) - AENG_cam_y);
+                                    dz = abs((p_thing->WorldPos.Z >> 8) - AENG_cam_z);
 
-                                        if (dist < AENG_DRAW_PEOPLE_DIST) {
+                                    dist = QDIST3(dx, dy, dz);
 
-                                            FIGURE_draw(p_thing);
-                                        }
+                                    if (dist < AENG_DRAW_PEOPLE_DIST) {
+
+                                        FIGURE_draw(p_thing);
                                     }
                                 }
-
-                                p_thing->Draw.Tweened->Drawn = SUPERMAP_counter[AENG_cur_fc_cam];
-
-                                if (ControlFlag && allow_debug_keys) {
-                                    AENG_world_text(
-                                        (p_thing->WorldPos.X >> 8),
-                                        (p_thing->WorldPos.Y >> 8) + 0x60,
-                                        (p_thing->WorldPos.Z >> 8),
-                                        200,
-                                        180,
-                                        50,
-                                        UC_TRUE,
-                                        PCOM_person_state_debug(p_thing));
-                                }
                             }
+
+                            p_thing->Draw.Tweened->Drawn = SUPERMAP_counter[AENG_cur_fc_cam];
+
+                            if (ControlFlag && allow_debug_keys) {
+                                AENG_world_text(
+                                    (p_thing->WorldPos.X >> 8),
+                                    (p_thing->WorldPos.Y >> 8) + 0x60,
+                                    (p_thing->WorldPos.Z >> 8),
+                                    200,
+                                    180,
+                                    50,
+                                    UC_TRUE,
+                                    PCOM_person_state_debug(p_thing));
+                            }
+                        }
 
                             if (p_thing->State == STATE_DEAD) {
                                 if (p_thing->Genus.Person->Timer1 > 10) {
@@ -4294,42 +3967,6 @@ void AENG_draw_city()
                                         // Dead MIB self destruct!
                                         //
                                         DRAWXTRA_MIB_destruct(p_thing);
-                                        /*
-                                                                                                                                SLONG px;
-                                                                                                                                SLONG py;
-                                                                                                                                SLONG pz;
-
-                                                                                                                                calc_sub_objects_position(
-                                                                                                                                        p_thing,
-                                                                                                                                        p_thing->Draw.Tweened->AnimTween,
-                                                                                                                                        SUB_OBJECT_PELVIS,
-                                                                                                                                   &px,
-                                                                                                                                   &py,
-                                                                                                                                   &pz);
-
-                                                                                                                                px += p_thing->WorldPos.X >> 8;
-                                                                                                                                py += p_thing->WorldPos.Y >> 8;
-                                                                                                                                pz += p_thing->WorldPos.Z >> 8;
-
-                                                                                                                                //
-                                                                                                                                // Ripped from the DRAWXTRA_special!
-                                                                                                                                //
-
-                                                                                                                                // (So why didn't you put it there?!)
-
-                                                                                                                                {
-                                                                                                                                        SLONG c0;
-                                                                                                                                        SLONG dx;
-                                                                                                                                        SLONG dz;
-
-                                                                                                                                  c0=3+(THING_NUMBER(p_thing)&7);
-                                                                                                                                  c0=(((GAME_TURN*c0)+(THING_NUMBER(p_thing)*9))<<4)&2047;
-                                                                                                                                  dx=SIN(c0)>>8;
-                                                                                                                                  dz=COS(c0)>>8;
-                                                                                                                                  BLOOM_draw(
-                                                                                                                                        px, py+15, pz,
-                                                                                                                                        dx,0,dz,0x9F2040,0);
-                                                                                                                                }*/
                                     }
                                 }
                             }
@@ -4644,17 +4281,6 @@ void AENG_draw_city()
     // Rain.
     //
 
-    /*
-    #ifdef _DEBUG	// about time we removed this kind of crap
-            if (Keys[KB_R] && !ShiftFlag)
-            {
-                    Keys[KB_R] = 0;
-
-                    GAME_FLAGS ^= GF_RAINING;
-            }
-    #endif
-    */
-
     if (!INDOORS_INDEX || outside) {
         if (GAME_FLAGS & GF_RAINING) {
             if (AENG_detail_rain)
@@ -4680,36 +4306,6 @@ void AENG_draw_city()
     if (!INDOORS_INDEX || outside)
         AENG_draw_sparks();
     //	ANEG_draw_messages();
-
-    /*
-
-          for (z = NGAMUT_zmin; z <= NGAMUT_zmax; z++)
-          {
-                  PUDDLE_Info *pi;
-                          SLONG	sx,sy,sz;
-                          SLONG	dx,dy,dz,dist,lod;
-                          PUDDLE_get_start(z, NGAMUT_gamut[z].xmin, NGAMUT_gamut[z].xmax);
-
-                          while(pi = PUDDLE_get_next())
-                          {
-                                  sx = (pi->x1+pi->x2)>>1;
-                                  sz = (pi->z1+pi->z2)>>1;
-                                  sy = pi->y;
-
-                                  dx=abs( ((SLONG)AENG_cam_x>>0)-sx);
-  //				dy=abs( ((SLONG)AENG_cam_y>>0)-SLONG(world_y))*4;
-                                  dy=abs( ((SLONG)AENG_cam_y>>0)-sy);
-                                  dz=abs( ((SLONG)AENG_cam_z>>0)-sz);
-
-                                  dist=QDIST3(dx,dy,dz);
-
-                                  lod = 90-(dist/(32*2));
-                                  if(lod>0)
-                                          draw_steam(sx,sy,sz,lod);
-  //                    draw_flames(sx,sy,sz,lod);
-                          }
-                  }
-  */
 
     //	if (Keys[KB_RBRACE] && !ShiftFlag) {Keys[KB_RBRACE] = 0; AENG_torch_on ^= UC_TRUE;}
 
@@ -4885,10 +4481,6 @@ void AENG_draw_city()
     //
     // Draw the tyre tracks (changed -- now turned into things)
     //
-    /*
-            if (ControlFlag) {
-                    TRACKS_Draw();
-            }*/
 
     //
     // Draw the cloth.
@@ -4907,21 +4499,6 @@ void AENG_draw_city()
     AENG_draw_people_messages();
 
     //	MSG_add(" draw insides %d and %d \n",INDOORS_INDEX,INDOORS_INDEX_NEXT);
-
-    /*
-
-    POLY_frame_draw(UC_TRUE,UC_TRUE);
-    if(INDOORS_INDEX_NEXT)
-            AENG_draw_inside_floor(INDOORS_INDEX_NEXT,INDOORS_ROOM_NEXT,255); //downtairs non transparent
-
-    POLY_frame_draw(UC_TRUE,UC_TRUE);
-    if(INDOORS_INDEX)
-    {
-            AENG_draw_inside_floor(INDOORS_INDEX,INDOORS_ROOM,INDOORS_INDEX_FADE);
-
-    }
-
-    */
 
     BreakTime("Drawn other crap");
 
@@ -4948,24 +4525,6 @@ void AENG_draw_city()
     Pyros_EndOfFrameMarker();
 
     //	ANEG_draw_messages();
-
-    /*
-
-    //
-    // This really _is_ shite!
-    //
-
-    if (ShiftFlag)
-    {
-            static float focus = 0.95F;
-
-            if (Keys[KB_P7]) {focus += 0.001F;}
-            if (Keys[KB_P4]) {focus -= 0.001F;}
-
-            POLY_frame_draw_focused(focus);
-    }
-
-    */
 
     //	TRACE("Total polys = %d\n", AENG_total_polys_drawn);
 
@@ -5525,19 +5084,6 @@ void AENG_draw_warehouse()
     // Draw the objects and the things.
     for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
         for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
-            /*
-
-            {
-                    CBYTE str[20];
-
-                    sprintf(str, "%d,%d", x, z);
-
-                    FONT2D_DrawString(str, (pos & 7) * 60 + 20, (pos >> 3) * 20 + 200, 0xff00ff);
-            }
-
-            pos += 1;
-
-            */
 
             ASSERT(WITHIN(x, 0, PAP_SIZE_LO - 1));
             ASSERT(WITHIN(z, 0, PAP_SIZE_LO - 1));
@@ -6203,47 +5749,10 @@ void AENG_clear_viewport()
 // cutscene camera override, playback/record of camera data, warehouse vs city.
 void AENG_draw(SLONG draw_3d)
 {
-    /*
-
-    if (Keys[KB_PPOINT])
-    {
-            Keys[KB_PPOINT] = 0;
-
-            NIGHT_amb_red   <<= 1;
-            NIGHT_amb_green <<= 1;
-            NIGHT_amb_blue  <<= 1;
-
-            NIGHT_Colour amb_colour;
-
-            amb_colour.red   = NIGHT_amb_red;
-            amb_colour.green = NIGHT_amb_green;
-            amb_colour.blue  = NIGHT_amb_blue;
-
-            NIGHT_get_colour(
-                    amb_colour,
-               &NIGHT_amb_colour,
-               &NIGHT_amb_specular);
-
-            NIGHT_cache_recalc();
-            NIGHT_dfcache_recalc();
-            NIGHT_generate_walkable_lighting();
-    }
-
-    */
-
     SLONG i;
     SLONG warehouse;
 
     FC_Cam* fc;
-
-    /*
-            if (Keys[KB_RBRACE])
-            {
-                    Keys[KB_RBRACE] = 0;
-
-                    AENG_transparent_warehouses ^= 1;
-            }
-    */
 
     AENG_drawing_a_warehouse = UC_FALSE;
 
@@ -6293,7 +5802,7 @@ void AENG_draw(SLONG draw_3d)
             {
                 const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
                 const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
-                const float min_aspect  = float(FOV_MIN_ASPECT);
+                const float min_aspect = float(FOV_MIN_ASPECT);
                 float auto_zoom = 1.0F;
                 if (real_aspect < base_aspect) {
                     const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
@@ -6390,7 +5899,7 @@ void AENG_draw(SLONG draw_3d)
         {
             const float real_aspect = float(ScreenWidth) / float(ScreenHeight);
             const float base_aspect = float(DisplayWidth) / float(DisplayHeight);
-            const float min_aspect  = float(FOV_MIN_ASPECT);
+            const float min_aspect = float(FOV_MIN_ASPECT);
             float auto_zoom = 1.0F;
             if (real_aspect < base_aspect) {
                 const float zoom_aspect = (real_aspect < min_aspect) ? min_aspect : real_aspect;
@@ -6440,19 +5949,6 @@ void AENG_draw(SLONG draw_3d)
         fc->roll = old_cam_roll;
         fc->lens = old_cam_lens;
     }
-
-    /*
-
-    if (draw_3d)
-    {
-            ...stereo/left-eye/right-eye block (commented out in original)...
-    }
-    else
-    {
-    ...
-    }
-
-    */
 
     // Take out the dynamic lighting.
     NIGHT_dlight_squares_down();

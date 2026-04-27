@@ -7,4 +7,3 @@ void init_map(void)
 {
     memset((UBYTE*)MAP, 0, sizeof(MAP));
 }
-

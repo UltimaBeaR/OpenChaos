@@ -98,6 +98,6 @@ void RecenterMouse(void)
     // Anchor the delta-tracker at the FBO centre — window centre maps to
     // FBO centre under aspect-fit blit, so the next mouse event produces
     // a sensible delta regardless of outer-bar geometry.
-    OldMouseX = ScreenWidth  / 2;
+    OldMouseX = ScreenWidth / 2;
     OldMouseY = ScreenHeight / 2;
 }

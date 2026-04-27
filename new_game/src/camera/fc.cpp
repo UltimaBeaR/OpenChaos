@@ -1,7 +1,7 @@
 // Camera and player control logic.
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "engine/physics/collide.h"     // LOS_FLAG_* constants
+#include "engine/physics/collide.h" // LOS_FLAG_* constants
 #include "things/characters/anim_ids.h"
 #include "engine/core/fmatrix.h"
 #include "buildings/ware.h"
@@ -12,7 +12,7 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "map/pap.h"
-#include "engine/input/gamepad.h"    // gamepad_set_shock
+#include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // gamepad_state (right stick camera)
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 
@@ -57,7 +57,6 @@
 
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
-
 
 // uc_orig: person_has_gun_out (fallen/Source/fc.cpp)
 extern SLONG person_has_gun_out(Thing* p_person);
@@ -335,8 +334,7 @@ void FC_calc_focus(FC_Cam* fc)
 
         break;
 
-    case CLASS_VEHICLE:
-    {
+    case CLASS_VEHICLE: {
         SLONG dyaw;
         SLONG yaw_car;
         SLONG yaw_cam;
@@ -355,8 +353,7 @@ void FC_calc_focus(FC_Cam* fc)
 
         fc->focus_yaw = yaw_car + dyaw * 4;
         fc->focus_yaw &= 2047;
-    }
-    break;
+    } break;
 
     default:
         ASSERT(0);
@@ -386,8 +383,7 @@ void FC_calc_focus(FC_Cam* fc)
             fc->focus_z += fc->focus->WorldPos.Z;
             break;
 
-        case CAM_AT_FEET:
-        {
+        case CAM_AT_FEET: {
             SLONG lfx, lfy, lfz;
             SLONG rfx, rfy, rfz;
 
@@ -410,8 +406,7 @@ void FC_calc_focus(FC_Cam* fc)
             fc->focus_x += fc->focus->WorldPos.X;
             fc->focus_y += fc->focus->WorldPos.Y;
             fc->focus_z += fc->focus->WorldPos.Z;
-        }
-        break;
+        } break;
 
         case CAM_AT_WORLD_POS:
             fc->focus_x = fc->focus->WorldPos.X;
@@ -469,10 +464,18 @@ void FC_look_at_focus(FC_Cam* fc)
 
         dangle = fc->focus_yaw - fc->toonear_focus_yaw;
 
-        if (dangle > +1024)  { dangle -= 2048; }
-        if (dangle < -1024)  { dangle += 2048; }
-        if (dangle < -512)   { dangle = -512 + (-512 - dangle); }
-        if (dangle > 512)    { dangle = 512 - (dangle - 512); }
+        if (dangle > +1024) {
+            dangle -= 2048;
+        }
+        if (dangle < -1024) {
+            dangle += 2048;
+        }
+        if (dangle < -512) {
+            dangle = -512 + (-512 - dangle);
+        }
+        if (dangle > 512) {
+            dangle = 512 - (dangle - 512);
+        }
 
         angle = fc->toonear_focus_yaw + dangle;
         angle &= 2047;
@@ -542,10 +545,18 @@ void FC_force_camera_behind(SLONG cam)
 
         for (i = 0; i < 4; i++) {
             switch (i) {
-            case 0: dangle = +100; break;
-            case 1: dangle = -100; break;
-            case 2: dangle = +200; break;
-            case 3: dangle = -200; break;
+            case 0:
+                dangle = +100;
+                break;
+            case 1:
+                dangle = -100;
+                break;
+            case 2:
+                dangle = +200;
+                break;
+            case 3:
+                dangle = -200;
+                break;
             }
 
             gox = fc->focus_x + (SIN((fc->focus_yaw + dangle) & 2047) * fc->cam_dist >> 8);
@@ -669,10 +680,18 @@ SLONG FC_allowed_to_rotate(FC_Cam* fc, SLONG rotate_dir)
         dz = 0;
 
         switch (i) {
-        case 0: dx = +FC_ROTATE_NEAR; break;
-        case 1: dx = -FC_ROTATE_NEAR; break;
-        case 2: dz = +FC_ROTATE_NEAR; break;
-        case 3: dz = -FC_ROTATE_NEAR; break;
+        case 0:
+            dx = +FC_ROTATE_NEAR;
+            break;
+        case 1:
+            dx = -FC_ROTATE_NEAR;
+            break;
+        case 2:
+            dz = +FC_ROTATE_NEAR;
+            break;
+        case 3:
+            dz = -FC_ROTATE_NEAR;
+            break;
         }
 
         cx = mx + dx;
@@ -895,8 +914,10 @@ void FC_process()
                     // Clamp: don't go below character feet, don't go too high above.
                     SLONG min_y = fc->focus_y + 0x2000;
                     SLONG max_y = fc->focus_y + 0x28000;
-                    if (fc->want_y < min_y) fc->want_y = min_y;
-                    if (fc->want_y > max_y) fc->want_y = max_y;
+                    if (fc->want_y < min_y)
+                        fc->want_y = min_y;
+                    if (fc->want_y > max_y)
+                        fc->want_y = max_y;
                 }
             }
         } else {
@@ -917,8 +938,12 @@ void FC_process()
 
                 dangle = fc->toonear_focus_yaw - cangle;
 
-                if (dangle < -1024) { dangle += 2048; }
-                if (dangle > +1024) { dangle -= 2048; }
+                if (dangle < -1024) {
+                    dangle += 2048;
+                }
+                if (dangle > +1024) {
+                    dangle -= 2048;
+                }
 
                 if (abs(dangle) > 200) {
                     fc->toonear = UC_FALSE;
@@ -1002,10 +1027,18 @@ void FC_process()
 
                     push = 0;
 
-                    if (MAV_inside(x - 0x100, y, z)) { push |= FC_PUSH_XS; }
-                    if (MAV_inside(x + 0x100, y, z)) { push |= FC_PUSH_XL; }
-                    if (MAV_inside(x, y, z - 0x100)) { push |= FC_PUSH_ZS; }
-                    if (MAV_inside(x, y, z + 0x100)) { push |= FC_PUSH_ZL; }
+                    if (MAV_inside(x - 0x100, y, z)) {
+                        push |= FC_PUSH_XS;
+                    }
+                    if (MAV_inside(x + 0x100, y, z)) {
+                        push |= FC_PUSH_XL;
+                    }
+                    if (MAV_inside(x, y, z - 0x100)) {
+                        push |= FC_PUSH_ZS;
+                    }
+                    if (MAV_inside(x, y, z + 0x100)) {
+                        push |= FC_PUSH_ZL;
+                    }
 
                     if (!MAV_inside(x, y, z)) {
                         SLONG ground = PAP_calc_map_height_at(x, z);
@@ -1047,10 +1080,18 @@ void FC_process()
                         }
                     }
 
-                    if (push & FC_PUSH_XS) { xforce += 0x100 - (x & 0xff); }
-                    if (push & FC_PUSH_XL) { xforce -= (x & 0xff); }
-                    if (push & FC_PUSH_ZS) { zforce += 0x100 - (z & 0xff); }
-                    if (push & FC_PUSH_ZL) { zforce -= (z & 0xff); }
+                    if (push & FC_PUSH_XS) {
+                        xforce += 0x100 - (x & 0xff);
+                    }
+                    if (push & FC_PUSH_XL) {
+                        xforce -= (x & 0xff);
+                    }
+                    if (push & FC_PUSH_ZS) {
+                        zforce += 0x100 - (z & 0xff);
+                    }
+                    if (push & FC_PUSH_ZL) {
+                        zforce -= (z & 0xff);
+                    }
 
                     x += dx;
                     y += dy;
@@ -1125,11 +1166,17 @@ void FC_process()
             if (dy > 0x10000) {
                 // Well below target: move faster.
                 dy >>= 3;
-                if (dy > 0x2000) { dy = 0x2000; }
+                if (dy > 0x2000) {
+                    dy = 0x2000;
+                }
             } else {
                 dy >>= 3;
-                if (dy >  0x0d00) { dy =  0x0d00; }
-                if (dy < -0x0c00) { dy = -0x0c00; }
+                if (dy > 0x0d00) {
+                    dy = 0x0d00;
+                }
+                if (dy < -0x0c00) {
+                    dy = -0x0c00;
+                }
             }
 
             if (dy > 0) {
@@ -1215,26 +1262,32 @@ void FC_process()
         FC_look_at_focus(fc);
 
         // Smooth angles: want → actual >>2.
-        SLONG dyaw   = fc->want_yaw   - fc->yaw;
+        SLONG dyaw = fc->want_yaw - fc->yaw;
         SLONG dpitch = fc->want_pitch - fc->pitch;
-        SLONG droll  = fc->want_roll  - fc->roll;
+        SLONG droll = fc->want_roll - fc->roll;
 
-        dyaw   &= (2048 << 8) - 1;
+        dyaw &= (2048 << 8) - 1;
         dpitch &= (2048 << 8) - 1;
-        droll  &= (2048 << 8) - 1;
+        droll &= (2048 << 8) - 1;
 
-        if (dyaw   > (1024) << 8) { dyaw   -= (2048 << 8); }
-        if (dpitch > (1024) << 8) { dpitch -= (2048 << 8); }
-        if (droll  > (1024) << 8) { droll  -= (2048 << 8); }
+        if (dyaw > (1024) << 8) {
+            dyaw -= (2048 << 8);
+        }
+        if (dpitch > (1024) << 8) {
+            dpitch -= (2048 << 8);
+        }
+        if (droll > (1024) << 8) {
+            droll -= (2048 << 8);
+        }
 
         if (QDIST3(abs(dyaw), abs(dpitch), abs(droll)) > 0x180) {
-            fc->yaw   += dyaw   >> 2;
+            fc->yaw += dyaw >> 2;
             fc->pitch += dpitch >> 2;
-            fc->roll  += droll  >> 2;
+            fc->roll += droll >> 2;
         } else {
-            fc->want_yaw   = fc->yaw;
+            fc->want_yaw = fc->yaw;
             fc->want_pitch = fc->pitch;
-            fc->want_roll  = fc->roll;
+            fc->want_roll = fc->roll;
         }
 
         // Fixed lens (FOV). Fight zoom is commented out in original.
@@ -1397,4 +1450,3 @@ void FC_explosion(SLONG x, SLONG y, SLONG z, SLONG force)
         }
     }
 }
-

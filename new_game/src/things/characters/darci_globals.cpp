@@ -25,6 +25,5 @@ StateFunction darci_states[] = {
     { STATE_IDLE, fn_person_idle }
 };
 
-
 // uc_orig: just_started_falling_off_backwards (fallen/Source/Darci.cpp)
 UBYTE just_started_falling_off_backwards;

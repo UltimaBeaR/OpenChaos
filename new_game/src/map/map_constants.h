@@ -9,21 +9,21 @@
 
 // uc_orig: ELE_SHIFT (fallen/Editor/Headers/map.h)
 #undef ELE_SIZE
-#define ELE_SHIFT      (8)
+#define ELE_SHIFT (8)
 // uc_orig: ELE_SIZE (fallen/Editor/Headers/map.h)
-#define ELE_SIZE       (1 << ELE_SHIFT)
+#define ELE_SIZE (1 << ELE_SHIFT)
 // uc_orig: HALF_ELE_SIZE (fallen/Editor/Headers/map.h)
-#define HALF_ELE_SIZE  ((ELE_SIZE) >> 1)
+#define HALF_ELE_SIZE ((ELE_SIZE) >> 1)
 // uc_orig: ELE_AND (fallen/Editor/Headers/map.h)
-#define ELE_AND        (0xffffff00)
+#define ELE_AND (0xffffff00)
 
 // uc_orig: EDIT_MAP_WIDTH (fallen/Editor/Headers/map.h)
-#define EDIT_MAP_WIDTH  128
+#define EDIT_MAP_WIDTH 128
 // uc_orig: EDIT_MAP_HEIGHT (fallen/Editor/Headers/map.h)
 // Note: height is 1 (flat map), depth is the second spatial dimension.
 #define EDIT_MAP_HEIGHT 1
 // uc_orig: EDIT_MAP_DEPTH (fallen/Editor/Headers/map.h)
-#define EDIT_MAP_DEPTH  128
+#define EDIT_MAP_DEPTH 128
 
 // uc_orig: DepthStrip (fallen/Editor/Headers/map.h)
 // One cell of the editor map, storing texture, geometry, and walkability data.

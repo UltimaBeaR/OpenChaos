@@ -6,7 +6,6 @@
 
 struct Thing;
 
-
 // uc_orig: BARREL_MAX_SPHERES (fallen/Headers/barrel.h)
 #define BARREL_MAX_SPHERES 80
 
@@ -23,35 +22,35 @@ struct Thing;
 // One physics sphere (each barrel uses two, one per end).
 typedef struct
 {
-    SLONG x;       // -UC_INFINITY means unused
+    SLONG x; // -UC_INFINITY means unused
     SLONG y;
     SLONG z;
     SLONG dx;
     SLONG dy;
     SLONG dz;
-    SWORD still;   // Number of gameturns below movement threshold.
-    UWORD radius;  // In fine coordinate space (note: stored as UWORD).
+    SWORD still; // Number of gameturns below movement threshold.
+    UWORD radius; // In fine coordinate space (note: stored as UWORD).
 } BARREL_Sphere;
 
 // uc_orig: Barrel (fallen/Headers/barrel.h)
 struct Barrel {
     UBYTE type;
     UBYTE flag;
-    UWORD on;  // For stacked barrels: index of the barrel we rest on (NULL = on ground).
-    UWORD bs;  // For moving barrels: index into BARREL_sphere[] for this barrel's 2 spheres.
+    UWORD on; // For stacked barrels: index of the barrel we rest on (NULL = on ground).
+    UWORD bs; // For moving barrels: index into BARREL_sphere[] for this barrel's 2 spheres.
 };
 
 // uc_orig: BarrelPtr (fallen/Headers/barrel.h)
 typedef Barrel* BarrelPtr;
 
 // uc_orig: BARREL_TYPE_NORMAL (fallen/Headers/barrel.h)
-#define BARREL_TYPE_NORMAL  0
+#define BARREL_TYPE_NORMAL 0
 // uc_orig: BARREL_TYPE_CONE (fallen/Headers/barrel.h)
-#define BARREL_TYPE_CONE    1
+#define BARREL_TYPE_CONE 1
 // uc_orig: BARREL_TYPE_BURNING (fallen/Headers/barrel.h)
 #define BARREL_TYPE_BURNING 2
 // uc_orig: BARREL_TYPE_BIN (fallen/Headers/barrel.h)
-#define BARREL_TYPE_BIN     3
+#define BARREL_TYPE_BIN 3
 
 // uc_orig: BARREL_sphere (fallen/Headers/barrel.h)
 extern BARREL_Sphere* BARREL_sphere;

@@ -97,11 +97,11 @@ struct Thing;
 // Lo-res map cell (32x32). Covers a 4x4 area of hi-res cells.
 typedef struct
 {
-    UWORD MapWho;       // THING_INDEX of first thing in this lo-res cell (linked list)
-    SWORD Walkable;     // Head of walkable face linked list: +ve = DFacet, -ve = roof quad
-    UWORD ColVectHead;  // Head of collision vector linked list for this cell
-    SBYTE water;        // Water height; PAP_LO_NO_WATER (-127) = no water
-    UBYTE Flag;         // PAP_LO_FLAG_*
+    UWORD MapWho; // THING_INDEX of first thing in this lo-res cell (linked list)
+    SWORD Walkable; // Head of walkable face linked list: +ve = DFacet, -ve = roof quad
+    UWORD ColVectHead; // Head of collision vector linked list for this cell
+    SBYTE water; // Water height; PAP_LO_NO_WATER (-127) = no water
+    UBYTE Flag; // PAP_LO_FLAG_*
 
 } PAP_Lo;
 
@@ -109,10 +109,10 @@ typedef struct
 // Hi-res map cell (128x128). 6 bytes.
 typedef struct
 {
-    UWORD Texture;  // Floor texture index (3 spare bits)
-    UWORD Flags;    // PAP_FLAG_* bitfield
-    SBYTE Alt;      // Corner height; real_height = Alt << PAP_ALT_SHIFT
-    SBYTE Height;   // Unused padding (reserved for future use)
+    UWORD Texture; // Floor texture index (3 spare bits)
+    UWORD Flags; // PAP_FLAG_* bitfield
+    SBYTE Alt; // Corner height; real_height = Alt << PAP_ALT_SHIFT
+    SBYTE Height; // Unused padding (reserved for future use)
 
 } PAP_Hi;
 

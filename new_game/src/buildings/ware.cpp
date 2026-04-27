@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
-#include "buildings/prim.h"   // get_prim_info
+#include "engine/graphics/pipeline/aeng.h" // AENG_world_line
+#include "buildings/prim.h" // get_prim_info
 #include "ai/mav.h"
 #include "map/level_pools.h"
 #include "map/supermap.h"
@@ -75,17 +75,27 @@ static void WARE_bounding_box(SLONG dbuilding, SLONG* bx1, SLONG* bz1, SLONG* bx
         df = &dfacets[i];
 
         if (df->FacetType == STOREY_TYPE_NORMAL) {
-            x = df->x[0]; z = df->z[0];
-            if (x < x1) x1 = x;
-            if (x > x2) x2 = x;
-            if (z < z1) z1 = z;
-            if (z > z2) z2 = z;
+            x = df->x[0];
+            z = df->z[0];
+            if (x < x1)
+                x1 = x;
+            if (x > x2)
+                x2 = x;
+            if (z < z1)
+                z1 = z;
+            if (z > z2)
+                z2 = z;
 
-            x = df->x[1]; z = df->z[1];
-            if (x < x1) x1 = x;
-            if (x > x2) x2 = x;
-            if (z < z1) z1 = z;
-            if (z > z2) z2 = z;
+            x = df->x[1];
+            z = df->z[1];
+            if (x < x1)
+                x1 = x;
+            if (x > x2)
+                x2 = x;
+            if (z < z1)
+                z1 = z;
+            if (z > z2)
+                z2 = z;
         }
     }
 
@@ -281,8 +291,10 @@ void WARE_init()
         x2 = ww->maxx >> 2;
         z2 = ww->maxz >> 2;
 
-        x1 -= 1; z1 -= 1;
-        x2 += 1; z2 += 1;
+        x1 -= 1;
+        z1 -= 1;
+        x2 += 1;
+        z2 += 1;
 
         SATURATE(x1, 0, PAP_SIZE_LO - 1);
         SATURATE(z1, 0, PAP_SIZE_LO - 1);
@@ -339,7 +351,6 @@ void WARE_init()
 // WARE_enter and WARE_exit are commented out in the pre-release source.
 // The ambient light save/restore logic was removed; only WARE_in and cache invalidation remain.
 // Implementations were behind /* */ in the original and incomplete.
-
 
 // uc_orig: WARE_mav_enter (fallen/Source/ware.cpp)
 MAV_Action WARE_mav_enter(Thing* p_person, UBYTE ware, UBYTE caps)
@@ -602,7 +613,10 @@ void WARE_debug(void)
 
             MAV_Opt* mo;
 
-            struct { SLONG dx; SLONG dz; } order[4] = {
+            struct {
+                SLONG dx;
+                SLONG dz;
+            } order[4] = {
                 { -1, 0 }, { +1, 0 }, { 0, -1 }, { 0, +1 }
             };
 

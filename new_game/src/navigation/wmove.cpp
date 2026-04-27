@@ -1,7 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
-#include "assets/formats/anim_globals.h"             // next_prim_point, next_prim_face4
+#include "engine/graphics/pipeline/aeng.h" // AENG_world_line
+#include "assets/formats/anim_globals.h" // next_prim_point, next_prim_face4
 #include "navigation/wmove.h"
 #include "navigation/wmove_globals.h"
 #include "buildings/build2.h"
@@ -11,7 +11,7 @@
 #include "things/vehicles/vehicle.h"
 #include "map/level_pools.h"
 #include "buildings/prim_types.h" // PrimFace4, PrimPoint, FACE_FLAG_*
-#include "buildings/prim.h"       // get_prim_info, slide_along_prim
+#include "buildings/prim.h" // get_prim_info, slide_along_prim
 
 // uc_orig: WMOVE_get_num_faces (fallen/Source/wmove.cpp)
 static SLONG WMOVE_get_num_faces(Thing* p_thing)
@@ -84,8 +84,7 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
     UWORD get_vehicle_body_prim(SLONG type);
 
     switch (p_thing->Class) {
-    case CLASS_PERSON:
-    {
+    case CLASS_PERSON: {
         // Build a small triangle on top of the person's head, oriented with their facing.
         dx = SIN(p_thing->Draw.Tweened->Angle) >> 10;
         dz = COS(p_thing->Draw.Tweened->Angle) >> 10;
@@ -112,11 +111,9 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
         pos[2].x = xb;
         pos[2].y = y;
         pos[2].z = zb;
-    }
-    break;
+    } break;
 
-    case CLASS_VEHICLE:
-    {
+    case CLASS_VEHICLE: {
         typedef struct {
             UBYTE p[3];
         } WMOVE_Tri;
@@ -151,16 +148,6 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
             { { 11, 30, 9 } },
             { { 9, 28, 19 } }
         };
-
-        /*
-        const static WMOVE_Tri tri_meatwagon[4] =
-        {
-                {{25,44, 4}},
-                {{ 4, 6,22}},
-                {{22,41,20}},
-                {{20,39,30}}
-        };
-        */
 
         const static WMOVE_Tri* tri_vehicle[VEH_TYPE_NUMBER] = {
             tri_van,
@@ -214,11 +201,9 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
             pos[i].y = y;
             pos[i].z = z;
         }
-    }
-    break;
+    } break;
 
-    case CLASS_PLAT:
-    {
+    case CLASS_PLAT: {
         if (p_thing->Class == CLASS_VEHICLE) {
             prim = get_vehicle_body_prim(p_thing->Genus.Vehicle->Type);
             useangle = -p_thing->Genus.Vehicle->Angle;
@@ -283,8 +268,7 @@ static void WMOVE_get_pos(Thing* p_thing, WMOVE_Point pos[3], SLONG number)
         pos[2].x = xb;
         pos[2].y = y;
         pos[2].z = zb;
-    }
-    break;
+    } break;
 
     default:
         ASSERT(0);

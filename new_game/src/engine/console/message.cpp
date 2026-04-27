@@ -26,15 +26,6 @@ void MSG_add(char* fmt, ...)
     vsprintf(message, fmt, ap);
     va_end(ap);
 
-    /*
-    for (i=0; i<MSG_MAX_MESSAGES; i++) {
-        if (MSG_message[i].timer < oldtimer) {
-            oldest = i;
-            oldtimer = MSG_message[i].timer;
-        }
-    }
-    */
-
     strncpy(MSG_message[current_message].message, message, MSG_MAX_LENGTH - 1);
     MSG_message[current_message].timer = MSG_TIMER;
     current_message++;

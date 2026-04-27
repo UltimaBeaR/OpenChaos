@@ -276,6 +276,21 @@ Workflow:
 
 1. ✅ **Финальный проход: пустые файлы** — ВЫПОЛНЕН (батч 35 + батч 36, 2026-04-27)
 2. ✅ **Финальный проход: лишние #include** — ВЫПОЛНЕН (батч 37, сессия 19, 2026-04-27): `clang-tidy misc-include-cleaner` по всем 170+ `.cpp` файлам. 93 файла изменены, ~355 лишних `#include` удалено. Сборка OK.
+3. ⬜ **Проход: cppcheck `--enable=unusedFunction`** — ещё не установлен. Отложен. Дополняет gc-sections: видит функции без синтаксических вызовов в коде (gc-sections видит "не достижимо от entry point"). Разные слепые пятна. Workflow:
+   ```bash
+   cppcheck --enable=unusedFunction \
+            --project=new_game/build/Release/compile_commands.json \
+            -j 8 2>cppcheck_unused.txt
+   cat cppcheck_unused.txt | grep "unusedFunction"
+   ```
+   Ожидаются false positives: callback-registered функции, virtual методы, template инстансы. Каждый кандидат верифицировать grep'ом.
+4. ⬜ **Проход: `#if 0` и `#if false` блоки** — gc-sections не видит (код не компилируется). Найти:
+   ```bash
+   grep -rn "^#if 0\|^#if false\|^#if FALSE" new_game/src/ --include="*.cpp" --include="*.h"
+   ```
+   Каждый блок смотреть глазами — мёртвый код из оригинала который так и не убрали.
+   ⚠️ **`#if DEFINE` блоки** — если define не `0`/`false` а именованный (`#ifdef FOO`, `#if SOME_FLAG`) — **спрашивать у пользователя перед удалением** каждого такого блока: точно ли этот define мёртв.
+5. ✅ **Проход: крупные закомментированные блоки** — ВЫПОЛНЕН (батч 38, сессия 20-21, 2026-04-27). Regex-pass по всему `new_game/src/` — удалено ~120 блоков ≥4 строк. Осталось: 0 блоков.
 
 **Инструменты (если нужно восстановить dc_file_to_dead.json):**
 
@@ -571,6 +586,105 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-27 | Batch 32 (сессия 15) | Регенерация: 2024 discards. dirt.cpp/h: удалены DIRT_get_info, DIRT_behead_person, DIRT_create_mine, DIRT_destroy_mine, DIRT_gale + DIRT_INFO_TYPE_*/DIRT_Info. animal.cpp/h: удалены alloc_animal, ANIMAL_create, ANIMAL_animatetween, ANIMAL_animate, ANIMAL_set_anim, ANIMAL_get_animal, ANIMAL_draw (6 funcs). shape.cpp/h: удалены SHAPE_semisphere, SHAPE_semisphere_textured, SHAPE_waterfall, SHAPE_alpha_sphere (4 funcs). fog.cpp/h: удалены FOG_get_dyaw (static), FOG_create (static), FOG_set_focus, FOG_gust, FOG_process, FOG_get_start, FOG_get_info + FOG_Info struct + FOG_TYPE_TRANS*/NO_MORE. fog_globals.cpp/h: удалены FOG_focus_x, FOG_focus_z, FOG_focus_radius, FOG_get_upto (4 globals). psystem.cpp/h: удалены PARTICLE_Exhaust, PARTICLE_Exhaust2, PARTICLE_Steam, PARTICLE_SGrenade + fmatrix.h include. snipe.cpp/h: удалены SNIPE_mode_on, SNIPE_mode_off, SNIPE_turn, SNIPE_shoot + SNIPE_TURN_* flags; SNIPE_LENS_END вынесен на file scope (нужен живой SNIPE_process). snipe_globals.cpp/h: удалены SNIPE_on, SNIPE_cam_x, SNIPE_cam_y, SNIPE_cam_z. sm.cpp/h: удалены SM_init, SM_create_cube, SM_process + SM_CUBE_*/SM_GRAVITY макросы + SM_CUBE_TYPE_* константы + dead includes. sound.cpp/h: удалены DieSound, play_ambient_wave, play_music, SewerSoundProcess + fc.h/fc_globals.h includes. ВОССТАНОВЛЕНЫ (ошибочно удалённые, нет callers только потому что game_shutdown не вызывал gamepad_shutdown): gamepad_shutdown, weapon_feel_shutdown, ds_shutdown, ds_set_haptic_volume, ds_set_lightbar_setup. game_shutdown() дополнен вызовом gamepad_shutdown(). game_startup(): удалён дублирующий MFX_init() (первый вызов в SetupHost(), второй был лишним — утечка AL device). dc_map.py после: 272 symbols в 99 файлах. | build OK |
 | 2026-04-27 | Batch 35 (сессия 17) | Регенерация: 1800 discards, 80 symbols в 19 файлах. input_actions.cpp/h: удалены lock_to_compass + set_look_pitch (нет callers). person.cpp: убрана forward decl lock_to_compass. Список gc-sections exhausted — все оставшиеся нельзя удалять. Финальный проход пустых файлов: удалены compression/*.cpp/h (6 файлов), thug.cpp/h, build_globals.cpp/h, map_globals.cpp/h, pause.cpp/h, wibble_effect.h, joystick_globals.cpp; убраны из CMakeLists.txt; убран #include "map/map_globals.h" из map.cpp. | build OK |
 | 2026-04-27 | Batch 37 (сессия 19) | Финальный проход: лишние #include. `clang-tidy -p build/compile_commands.json --checks='-*,misc-include-cleaner'` по всем ~170 .cpp файлам. 93 файла изменены, ~355 лишних `#include` удалено. Основные паттерны: `uc_common.h` (тянул types транзитивно), `eway.h`→`eway_globals.h` (EWAY_Way+vars в globals), `sound.h`→`sound_globals.h`, `game_types.h`/`statedef.h`/`pap_globals.h` false positives (оставлены где нужны транзитивно), `cop.h/darci.h/roper.h` не нужны в person_globals.cpp (только _globals.h нужны), `person.h` в panel.cpp (PERSON_* из person_types.h через thing.h). Сборка: build OK. | build OK |
+| 2026-04-27 | Batch 38 (сессия 20-21) | Проход: закомментированные /* */ блоки. Удалено ~120 блоков по всей кодовой базе: person.cpp (~30), collide.cpp (10), pcom.cpp (15), game_tick.cpp (8), aeng.cpp (15), vehicle.cpp (1), barrel.cpp (2), figure.cpp (6), elev.cpp (4), poly.cpp (3), input_actions.cpp (25), eway.cpp (4), wmove.cpp (1), bat.cpp (1), special.cpp (1), message.cpp (1), outro_wire.cpp (1), outro_font.cpp (1), save.cpp (1), и др. Regex-pass по всему src/ — 0 блоков ≥4 строк осталось. | build OK |
 | 2026-04-27 | Batch 36 (сессия 18) | Финальный проход пустых файлов (продолжение). DELETED: shadow_globals.cpp/h (нет деклараций/определений — остался пустым после батча 7), startscr.cpp (нет определений — globals-only модуль, все данные в startscr_globals.cpp). Убраны из CMakeLists.txt. Убран #include "engine/graphics/lighting/shadow_globals.h" из elev.cpp, shadow.cpp, game.cpp (получали только types.h транзитивно, shadow.h уже его включает). | build OK |
 | 2026-04-27 | Batch 34 (сессия 16) | Регенерация: 1821 discards, 134 dead symbols в 38 файлах. anim_globals.cpp/h: удалён test_chunk. env_globals.cpp/h: DELETED ENTIRE (env_inifile, env_strbuf — нет callers вне env_globals); убран #include env_globals.h из env.cpp; убран из CMakeLists.txt. sm_globals.cpp/h: удалены SM_object, SM_object_upto + SM_Object type + SM_MAX_OBJECTS define. hierarchy_globals.cpp/h + hierarchy.h: удалён body_part_parent (нет .cpp callers). spark.cpp/h: удалена SPARK_in_sphere (caller в /* */). eway.cpp/h: удалена EWAY_deduct_time_penalty (caller в /* */). projectile.cpp/h: удалена alloc_projectile (нет callers). outro_imp.cpp/h: удалены IMP_load и IMP_binary_save (IMP_load callers в /* */, IMP_binary_save нет callers). Пропущены: save_globals.cpp/h — попытка удалить откатана (save.cpp компилируется всегда и использует эти globals); index_lookup (aeng_globals) — live source-level caller в aeng.cpp; PUDDLE_create — live caller в process_controls (KB_B debug, не в /* */); FIGURE_draw_hierarchical_prim_recurse_individual_cull — inlined from live caller, source ref exists; set_person_in_building_through_roof — после ASSERT(0) но source ref есть; camera_*/set_person_* stubs — live source callers. | build OK |
 | 2026-04-27 | Batch 33 (сессия 15) | Продолжение с dc_map.py списком (272 symbols). elev.cpp/h: ELEV_create_similar_name. tga.cpp/h: TGA_load_remap (~145 строк с goto). anim_tmap.cpp/h: save_animtmaps. thug.cpp/h: fn_thug_init, fn_thug_normal (файл сведён к минимуму; убран #include thug.h из person.cpp). playcuts.cpp/h: PLAYCUTS_Free (empty stub), PLAYCUTS_Reset. gamepad.cpp/h: gamepad_is_adaptive_click_active. composition.cpp/h: composition_get_scene_texture. crt_effect.cpp/h: crt_effect_shutdown. wibble_effect.cpp/h: gl_wibble_effect_shutdown (h сведён к пустому guard). morph.cpp/h: MORPH_get_points, MORPH_get_num_points (ВОССТАНОВЛЕНЫ: ошибочно удалены в батче 12, реально мертвы — нет callers в mesh.cpp). night.cpp: убрана dead forward declaration calc_inside_for_xyz внутри блока; блок реструктурирован (убраны лишние `{}`). supermap.cpp/h: calc_inside_for_xyz, add_sewer_ladder. inside2.cpp/h: find_stair_y (~100 строк). map.cpp/h + map_globals.cpp/h: MAP_light_get_height, MAP_light_get_light, MAP_light_set_light, MAP_light_map (global). font.cpp/h: FONT_draw_speech_bubble_text. polypage.cpp/h: GenerateMMMatrix (~89 строк D3D matrix builder); убран #include compression.h. smap.cpp/h: SMAP_bike (empty stub). eway.cpp/h: count_people_types (immediate-return stub), EWAY_cam_get_position_for_angle, EWAY_cam_look_at (кластер, только внутренние callers). pause.cpp/h: PAUSE_handler (~180 строк); файлы сведены к минимуму; убраны #include pause.h из game.cpp + исправлен misleading comment. frontend.cpp/h: FRONTEND_do_drivers, FRONTEND_gamma_update. frontend_globals.cpp/h: CurrentVidMode, CurrentBitDepth. attract.cpp/h: level_won, level_lost (empty stubs). overlay.cpp/h: overlay_beacons (empty stub); убрана extern decl из game.cpp. compression.cpp/h + compression_globals.cpp/h + image_compression.cpp/h: весь compression кластер (COMP_load, COMP_calc, COMP_decomp, IC_pack, IC_unpack, COMP_data/frame/tga_data/tga_info, типы COMP_Frame/DataBuffer/Delta); файлы сведены к минимуму. aeng.cpp: AENG_movie_init (~38 строк), убран вызов из AENG_init(), убран #include compression.h. aeng_globals.cpp/h: удалены 9 movie globals (AENG_movie_data[512*1024], AENG_movie_upto, AENG_frame_one/two/last/next, AENG_frame_count/tick/number, AENG_MAX_MOVIE_DATA). Инцидент: aeng_globals.h ломался из-за COMP_Frame после очистки compression.h — диагностировано как dead AENG_movie кластер, решено удалением всего кластера. | build OK |
+
+## Проход: закомментированные /* */ блоки (Batch 38+)
+
+Сгенерирован 2026-04-27, все блоки ≥4 строк в `new_game/src/`. Исключены vendor файлы (`glad/gl.h`, `khrplatform.h`).
+
+Правила:
+- Удалять только явно мёртвый закомментированный код (замещённая реализация, вырезанная фича, debug-хак)
+- НЕ удалять блоки с TODO/FIXME — это осознанные заглушки
+- `#if DEFINE` (не `#if 0`) — спрашивать у пользователя перед удалением
+
+### aeng.cpp (6 блоков)
+
+| Строка | Размер | Описание | Статус |
+|--------|--------|----------|--------|
+| 2879 | 52 | Draw reflections of OBs — DETAIL_REFLECTIONS ветка | ✅ |
+| 3254 | 145 | Draw water in the city — вся водная система | ✅ |
+| 3607 | 25 | PAP_FLAG_ANIM_TMAP animated texture mapping | ✅ |
+| 4198 | 41 | Draw wheels above Darci's head (debug viz) | ✅ |
+| 4297 | 35 | Dead MIB sub-objects position calc | ✅ |
+| 4684 | 28 | PUDDLE drawing loop | ✅ |
+| 6206 | 26 | KB_PPOINT ambient light tweak (debug key) | ✅ |
+
+### game_tick.cpp (~20 блоков)
+
+Большинство — debug key handlers (`if (Keys[KB_X]) { ... }`) которые закомментированы ещё в оригинале. Все безопасны к удалению.
+
+| Строка | Размер | Описание | Статус |
+|--------|--------|----------|--------|
+| 1233 | 61 | KB_B debug handler | ✅ |
+| 1383 | 26 | DIKE_Dike debug | ✅ |
+| 1420 | 18 | is_person_crouching darci check | ✅ |
+| 1691 | 38 | "Is darci still?" — idle check | ✅ |
+| 1738 | 26 | KB_1 anim_type[] debug | ✅ |
+| 1801 | 28 | KB_3 debug | ✅ |
+| 1830 | 18 | auto music scheduling test | ✅ |
+| 1893 | 47 | Hook control (HOOK_get_state) | ✅ |
+| 1995 | 27 | darci in sewers GF_SEWERS check | ✅ |
+| 2046 | 25 | process count loop | ✅ |
+| 2080 | 50 | "Is darci ready to go upstairs?" | ✅ |
+| 2140 | 42 | KB_P4 splitscreen debug | ✅ |
+| 2345 | 19 | "Simon's idea!" camera target look | ✅ |
+| 2365 | 37 | KB_8 debug | ✅ |
+| 2525 | 19 | KB_POINT steam/ypos debug | ✅ |
+| 2693 | 21 | KB_Z debug | ✅ |
+| 2715 | 112 | KB_R big debug block | ✅ |
+| 2835 | 33 | KB_T debug | ✅ |
+| 2870 | 23 | KB_X + fti debug | ✅ |
+| 2895 | 48 | KB_M debug | ✅ |
+| 3012 | 52 | fti static force block | ✅ |
+| 3067 | 116 | large unnamed debug block | ✅ |
+| 3213 | 26 | KB_5 chopper debug | ✅ |
+| 3241 | 31 | FC_cam_dist / FC_cam_height debug | ✅ |
+| 3273 | 22 | KB_F12 debug | ✅ |
+| 3398 | 18 | loop с c0/index1/index2/index3 | ✅ |
+| 3463 | 52 | KB_N debug | ✅ |
+| 3517 | 50 | `#ifndef TARGET_DC #if !defined(PSX)` KB_R block | ✅ (внутри `/* */` — удалено вместе с блоком) |
+
+### person.cpp (5 блоков)
+
+| Строка | Размер | Описание | Статус |
+|--------|--------|----------|--------|
+| 8962 | 110 | SUB_STATE_DROP_DOWN_OFF_FACE case | ✅ |
+| 10101 | 22 | MSG_add "stopping vel" debug | ✅ |
+| 10184 | 24 | continue_action check | ✅ |
+| 13015 | 19 | "You can't throw mines any more" | ✅ |
+| 13051 | 69 | person_normal_animate end block | ✅ |
+| 13432 | 31 | angle calc block | ✅ |
+
+### collide.cpp (4 блока)
+
+| Строка | Размер | Описание | Статус |
+|--------|--------|----------|--------|
+| 2044 | 23 | unnamed block | ✅ |
+| 2594 | 30 | find_face_for person_inside check | ✅ |
+| 2672 | 57 | actual_sliding dx/dy/dz block | ✅ |
+| 2769 | 30 | slide_door < 0 check | ✅ |
+
+### pcom.cpp (3 блока)
+
+| Строка | Размер | Описание | Статус |
+|--------|--------|----------|--------|
+| 2301 | 37 | gang_attacks[gang].Perp loop | ✅ |
+| 4690 | 40 | WAND_find_good_start_point extern + call | ✅ |
+| 6882 | 21 | GAME_TURN + THING_NUMBER debug | ✅ |
+
+### Остальные файлы
+
+| Файл | Строка | Размер | Описание | Статус |
+|------|--------|--------|----------|--------|
+| vehicle.cpp | 285 | 31 | switch на vehicle type | ✅ |
+| barrel.cpp | 188 | 28 | BARREL_FLAG_HIT check | ✅ |
+| barrel.cpp | 1263 | 27 | in_the_air barrel block | ✅ |
+| figure.cpp | 2812 | 19 | AnimPrimBbox world_link | ✅ |
+| figure.cpp | 3146 | 24 | ENGINE_palette Col2 (red/green/blue) | ✅ |
+| figure.cpp | 3212 | 22 | ENGINE_palette Col2 (second instance) | ✅ |
+| elev.cpp | 2097 | 24 | "bodge for puzzle" mission < 0 | ✅ |
+| poly.cpp | 1721 | 20 | "Guy Demo Dodge!!!" ATTRACT_MODE | ✅ |
+| input_actions.cpp | 1344 | 18 | auto climb ladders | ✅ |

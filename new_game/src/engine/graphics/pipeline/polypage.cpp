@@ -134,17 +134,26 @@ void apply_scissor(bool active, int32_t x, int32_t y, int32_t w, int32_t h)
         ge_disable_scissor();
     }
     s_current_scissor_active = active;
-    s_cur_sx = x; s_cur_sy = y; s_cur_sw = w; s_cur_sh = h;
+    s_cur_sx = x;
+    s_cur_sy = y;
+    s_cur_sw = w;
+    s_cur_sh = h;
 }
 
 void apply_ui_state(float xs, float ys, float xo, float yo,
-                    bool scissor_active, int32_t sx, int32_t sy, int32_t sw, int32_t sh)
+    bool scissor_active, int32_t sx, int32_t sy, int32_t sw, int32_t sh)
 {
     ASSERT(s_ui_stack_top < UI_STACK_MAX);
     s_ui_stack[s_ui_stack_top++] = {
-        PolyPage::s_XScale, PolyPage::s_YScale,
-        PolyPage::s_XOffset, PolyPage::s_YOffset,
-        s_current_scissor_active, s_cur_sx, s_cur_sy, s_cur_sw, s_cur_sh,
+        PolyPage::s_XScale,
+        PolyPage::s_YScale,
+        PolyPage::s_XOffset,
+        PolyPage::s_YOffset,
+        s_current_scissor_active,
+        s_cur_sx,
+        s_cur_sy,
+        s_cur_sw,
+        s_cur_sh,
     };
     not_private_smiley_xscale = PolyPage::s_XScale = xs;
     not_private_smiley_yscale = PolyPage::s_YScale = ys;
@@ -163,10 +172,10 @@ void PolyPage::push_ui_mode(ui_coords::UIAnchor anchor)
     const ui_coords::Vec2f origin01 = ui_coords::frame_origin_screen(anchor);
     const float xo = origin01.x * ui_coords::g_screen_w_px;
     const float yo = origin01.y * ui_coords::g_screen_h_px;
-    const int32_t fw = int32_t(float(DisplayWidth)  * scale + 0.5f);
+    const int32_t fw = int32_t(float(DisplayWidth) * scale + 0.5f);
     const int32_t fh = int32_t(float(DisplayHeight) * scale + 0.5f);
     apply_ui_state(scale, scale, xo, yo,
-                   /*scissor=*/true, int32_t(xo + 0.5f), int32_t(yo + 0.5f), fw, fh);
+        /*scissor=*/true, int32_t(xo + 0.5f), int32_t(yo + 0.5f), fw, fh);
 }
 
 void PolyPage::push_fullscreen_ui_mode()
@@ -187,7 +196,7 @@ void PolyPage::push_fullscreen_ui_mode()
     const float xs = ui_coords::g_screen_w_px / float(DisplayWidth);
     const float ys = ui_coords::g_screen_h_px / float(DisplayHeight);
     apply_ui_state(xs, ys, 0.0f, 0.0f,
-                   /*scissor=*/false, 0, 0, 0, 0);
+        /*scissor=*/false, 0, 0, 0, 0);
 }
 
 void PolyPage::pop_ui_mode()
@@ -452,8 +461,10 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
             uint32_t fog_specular;
             {
                 SLONG multi = 255 - (SLONG)((g_mm_fog_view_z - POLY_FADEOUT_START) * (256.0F / (POLY_FADEOUT_END - POLY_FADEOUT_START)));
-                if (multi > 255) multi = 255;
-                if (multi < 0)   multi = 0;
+                if (multi > 255)
+                    multi = 255;
+                if (multi < 0)
+                    multi = 0;
                 fog_specular = (uint32_t)multi << 24;
             }
 
@@ -470,7 +481,8 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 pTLVert[i].x = pLVertCur->x * pmCur->_12 + pLVertCur->y * pmCur->_22 + pLVertCur->z * pmCur->_32 + pmCur->_42;
                 pTLVert[i].y = pLVertCur->x * pmCur->_13 + pLVertCur->y * pmCur->_23 + pLVertCur->z * pmCur->_33 + pmCur->_43;
                 pTLVert[i].z = pLVertCur->x * pmCur->_14 + pLVertCur->y * pmCur->_24 + pLVertCur->z * pmCur->_34 + pmCur->_44;
-                if (pTLVert[i].z < 0.001f) pTLVert[i].z = 0.001f; // div/0 guard for near-plane vertices
+                if (pTLVert[i].z < 0.001f)
+                    pTLVert[i].z = 0.001f; // div/0 guard for near-plane vertices
                 pTLVert[i].rhw = 1.0f / pTLVert[i].z;
                 pTLVert[i].x *= pTLVert[i].rhw;
                 pTLVert[i].y *= pTLVert[i].rhw;
@@ -501,12 +513,14 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                     float lz = pLightDirs[bMatIndex * 4 + 3];
 
                     float dot_raw = nx * lx + ny * ly + nz * lz;
-                    float cos_nl = dot_raw * (1.0f / 251.0f);       // undo fNormScale
+                    float cos_nl = dot_raw * (1.0f / 251.0f); // undo fNormScale
 
-                    float wrap = cos_nl * 0.5f + 0.5f;              // half-Lambert [0,1]
+                    float wrap = cos_nl * 0.5f + 0.5f; // half-Lambert [0,1]
                     int idx = (int)(wrap * 64.0f);
-                    if (idx < 0)  idx = 0;
-                    if (idx > 63) idx = 63;
+                    if (idx < 0)
+                        idx = 0;
+                    if (idx > 63)
+                        idx = 63;
 
                     pTLVert[i].color = pLightTable[idx];
                     pTLVert[i].specular = fog_specular;

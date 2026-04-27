@@ -28,7 +28,6 @@ extern ULONG OS_joy_button_down;
 // uc_orig: OS_joy_button_up (fallen/outro/os.cpp)
 extern ULONG OS_joy_button_up;
 
-
 // Screen dimensions — declared in outro_graphics_engine.h (OS_screen_width/height).
 
 // Tick counter base — set when the outro loop starts.
@@ -98,9 +97,9 @@ extern struct os_buffer* OS_buffer_free;
 
 // uc_orig: OS_Trans (fallen/outro/os.h)
 typedef struct {
-    float x, y, z;   // View-space position
-    float X, Y, Z;   // Screen-space position
-    ULONG clip;       // OS_CLIP_* flags
+    float x, y, z; // View-space position
+    float X, Y, Z; // Screen-space position
+    ULONG clip; // OS_CLIP_* flags
 } OS_Trans;
 
 // uc_orig: OS_MAX_TRANS (fallen/outro/os.h)

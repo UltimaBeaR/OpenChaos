@@ -36,7 +36,7 @@ struct Thing;
 typedef struct
 {
     UWORD Compression; // current spring compression
-    UWORD Length;      // current spring length
+    UWORD Length; // current spring length
 } Suspension;
 
 // DControl button bitmask values.
@@ -67,33 +67,33 @@ typedef struct
     DrawTween Draw;
 
     Suspension Spring[4]; // 4-wheel suspension
-    SLONG DY[4];          // vertical velocity per wheel point
+    SLONG DY[4]; // vertical velocity per wheel point
 
     SLONG Angle; // yaw (0-2047)
     SLONG Tilt;
     SLONG Roll;
 
-    SBYTE Steering;    // -64..+64 or -1..+1
-    UBYTE IsAnalog;    // if set, steering uses full -64..+64 range
-    UBYTE DControl;    // VEH_ACCEL / VEH_DECEL / VEH_FASTER / VEH_SIREN bitmask
-    UBYTE GrabAction;  // action key was grabbed this frame
+    SBYTE Steering; // -64..+64 or -1..+1
+    UBYTE IsAnalog; // if set, steering uses full -64..+64 range
+    UBYTE DControl; // VEH_ACCEL / VEH_DECEL / VEH_FASTER / VEH_SIREN bitmask
+    UBYTE GrabAction; // action key was grabbed this frame
 
-    SWORD Wheel;      // steering wheel position
-    UWORD Allocated;  // 0 if slot is free
+    SWORD Wheel; // steering wheel position
+    UWORD Allocated; // 0 if slot is free
 
     UWORD Flags;
-    UWORD Driver;    // THING_INDEX of driver, 0 = none
+    UWORD Driver; // THING_INDEX of driver, 0 = none
 
     UWORD Passenger; // linked list of passengers
-    UWORD Type;      // VEH_TYPE_*
+    UWORD Type; // VEH_TYPE_*
 
-    UBYTE still;       // ticks at zero velocity (for stability detection)
-    UBYTE dlight;      // dynamic night light handle
-    UBYTE key;         // key required to enter, or SPECIAL_NONE
-    UBYTE Brakelight;  // brakelight timer
+    UBYTE still; // ticks at zero velocity (for stability detection)
+    UBYTE dlight; // dynamic night light handle
+    UBYTE key; // key required to enter, or SPECIAL_NONE
+    UBYTE Brakelight; // brakelight timer
 
     UBYTE damage[6]; // crumple zone damage (0=intact, 4=max)
-    SWORD Spin;      // wheel rotation accumulator
+    SWORD Spin; // wheel rotation accumulator
 
     SLONG VelX;
     SLONG VelY;
@@ -101,17 +101,17 @@ typedef struct
     SLONG VelR; // rotational velocity
 
     SWORD WheelAngle;
-    UBYTE Siren;          // siren active
+    UBYTE Siren; // siren active
     UBYTE LastSoundState; // previous sound state for change detection
 
-    SBYTE Dir;   // +2=fwd, +1=fwd braking, -1/-2=reverse variants, 0=stopped
-    UBYTE Skid;  // 0=no skid; >=SKID_START=full skid
+    SBYTE Dir; // +2=fwd, +1=fwd braking, -1/-2=reverse variants, 0=stopped
+    UBYTE Skid; // 0=no skid; >=SKID_START=full skid
     UBYTE Stable;
     UBYTE Smokin; // tyre smoke active
 
-    UBYTE Scrapin;      // scraping metal against wall
-    UBYTE OnRoadFlags;  // per-wheel on-road bitmask
-    SWORD Health;       // 300=full; 0=explode
+    UBYTE Scrapin; // scraping metal against wall
+    UBYTE OnRoadFlags; // per-wheel on-road bitmask
+    SWORD Health; // 300=full; 0=explode
 
     SLONG oldX[4], oldZ[4]; // previous wheel positions for skidmark rendering
 
@@ -158,9 +158,9 @@ typedef Vehicle* VehiclePtr;
 // uc_orig: VEH_Col (fallen/Headers/Vehicle.h)
 typedef struct
 {
-    UWORD type;       // VEH_COL_TYPE_BBOX or VEH_COL_TYPE_CYLINDER
-    UWORD ob_index;   // OB index if from an OB object, else 0
-    Thing* veh;       // pointer to vehicle/Balrog Thing, or NULL
+    UWORD type; // VEH_COL_TYPE_BBOX or VEH_COL_TYPE_CYLINDER
+    UWORD ob_index; // OB index if from an OB object, else 0
+    Thing* veh; // pointer to vehicle/Balrog Thing, or NULL
     UWORD mid_x;
     UWORD mid_y;
     UWORD mid_z;

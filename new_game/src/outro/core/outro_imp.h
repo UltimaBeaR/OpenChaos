@@ -19,13 +19,13 @@
 // A face with all three edge flags set is a standalone triangle; otherwise it is part of a quad.
 // BACKFACE is not set by the importer but may be set externally.
 // uc_orig: IMP_FACE_FLAG_EDGE (fallen/outro/imp.h)
-#define IMP_FACE_FLAG_EDGE    (1 << 0)
+#define IMP_FACE_FLAG_EDGE (1 << 0)
 // uc_orig: IMP_FACE_FLAG_EDGE_A (fallen/outro/imp.h)
-#define IMP_FACE_FLAG_EDGE_A  (1 << 0)
+#define IMP_FACE_FLAG_EDGE_A (1 << 0)
 // uc_orig: IMP_FACE_FLAG_EDGE_B (fallen/outro/imp.h)
-#define IMP_FACE_FLAG_EDGE_B  (1 << 1)
+#define IMP_FACE_FLAG_EDGE_B (1 << 1)
 // uc_orig: IMP_FACE_FLAG_EDGE_C (fallen/outro/imp.h)
-#define IMP_FACE_FLAG_EDGE_C  (1 << 2)
+#define IMP_FACE_FLAG_EDGE_C (1 << 2)
 // uc_orig: IMP_FACE_FLAG_QUADDED (fallen/outro/imp.h)
 #define IMP_FACE_FLAG_QUADDED (1 << 3)
 // uc_orig: IMP_FACE_FLAG_BACKFACE (fallen/outro/imp.h)
@@ -40,14 +40,14 @@ typedef struct
     float b;
     float shininess;
     float shinstr;
-    UBYTE alpha;       // IMP_ALPHA_*
-    UBYTE sided;       // IMP_SIDED_*
+    UBYTE alpha; // IMP_ALPHA_*
+    UBYTE sided; // IMP_SIDED_*
     UBYTE has_texture; // Non-zero if a texture is present
     UBYTE has_bumpmap; // Non-zero if a bumpmap is present
-    CBYTE tname[32];   // Texture filename or "none"
-    CBYTE bname[32];   // Bumpmap filename or "none"
+    CBYTE tname[32]; // Texture filename or "none"
+    CBYTE bname[32]; // Bumpmap filename or "none"
 
-    OS_Texture* ot_tex;  // Loaded texture object
+    OS_Texture* ot_tex; // Loaded texture object
     OS_Texture* ot_bpos; // Bumpmap (positive version)
     OS_Texture* ot_bneg; // Bumpmap (1 - bumpmap, negative version)
 
@@ -98,9 +98,9 @@ typedef struct
     float dzdv;
 
     UWORD vert; // Index into IMP_Mesh.vert[]
-    UWORD mat;  // Material index for faces that use this shared vertex
+    UWORD mat; // Material index for faces that use this shared vertex
 
-    ULONG colour;   // Computed lighting colour
+    ULONG colour; // Computed lighting colour
     ULONG specular;
 
     float lu; // Lightmap U
@@ -119,7 +119,7 @@ typedef struct
     UWORD v[3]; // Index into IMP_Mesh.vert[]
     UWORD t[3]; // Index into IMP_Mesh.tvert[]
     UWORD s[3]; // Index into IMP_Mesh.svert[]
-    UBYTE mat;  // Material index
+    UBYTE mat; // Material index
     UBYTE flag; // IMP_FACE_FLAG_*
     ULONG group; // Smoothing group bitmask
 
@@ -170,8 +170,8 @@ typedef struct
 // uc_orig: IMP_Mesh (fallen/outro/imp.h)
 typedef struct
 {
-    SLONG valid;       // UC_TRUE if the mesh was loaded successfully
-    CBYTE name[32];    // Name of the first object in the SEX file
+    SLONG valid; // UC_TRUE if the mesh was loaded successfully
+    CBYTE name[32]; // Name of the first object in the SEX file
     SLONG num_mats;
     SLONG num_verts;
     SLONG num_tverts;
@@ -180,14 +180,14 @@ typedef struct
     SLONG num_quads;
     SLONG num_edges;
     SLONG num_lines;
-    IMP_Mat*   mat;
-    IMP_Vert*  vert;
+    IMP_Mat* mat;
+    IMP_Vert* vert;
     IMP_Tvert* tvert;
-    IMP_Face*  face;
+    IMP_Face* face;
     IMP_Svert* svert;
-    IMP_Quad*  quad;
-    IMP_Edge*  edge;
-    IMP_Line*  line;
+    IMP_Quad* quad;
+    IMP_Edge* edge;
+    IMP_Line* line;
 
     float min_x; // Axis-aligned bounding box
     float min_y;
@@ -197,7 +197,7 @@ typedef struct
     float max_z;
     float radius; // Bounding sphere radius
 
-    IMP_Vert*  old_vert;  // Backup copy of vert[] for rotation (after MF_backup)
+    IMP_Vert* old_vert; // Backup copy of vert[] for rotation (after MF_backup)
     IMP_Svert* old_svert; // Backup copy of svert[]
 
 } IMP_Mesh;

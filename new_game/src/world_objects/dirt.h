@@ -104,7 +104,7 @@ typedef struct
 
 // uc_orig: DIRT_MARK_AS_OFFSCREEN_QUICK (fallen/Headers/dirt.h)
 #define DIRT_MARK_AS_OFFSCREEN_QUICK(which)           \
-    {                                                  \
+    {                                                 \
         DIRT_dirt[which].flag |= DIRT_FLAG_DELETE_OK; \
     }
 
@@ -128,7 +128,7 @@ void DIRT_gust(Thing* p_thing, SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 
 // uc_orig: DIRT_new_water (fallen/Headers/dirt.h)
 void DIRT_new_water(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz,
-                    SLONG dirt_type = DIRT_TYPE_WATER);
+    SLONG dirt_type = DIRT_TYPE_WATER);
 
 // uc_orig: DIRT_process (fallen/Headers/dirt.h)
 void DIRT_process(void);

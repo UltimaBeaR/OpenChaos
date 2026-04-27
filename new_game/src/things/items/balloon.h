@@ -28,10 +28,10 @@ typedef struct {
 // uc_orig: BALLOON_Balloon (fallen/Headers/balloon.h)
 typedef struct {
     UBYTE type;
-    UBYTE next;   // Next balloon in linked list attached to this person.
-    UWORD yaw;    // 0xffff => This balloon is unused.
+    UBYTE next; // Next balloon in linked list attached to this person.
+    UWORD yaw; // 0xffff => This balloon is unused.
     UWORD pitch;
-    UWORD thing;  // The thing this balloon is attached to.
+    UWORD thing; // The thing this balloon is attached to.
     BALLOON_Point bp[BALLOON_POINTS_PER_BALLOON];
 } BALLOON_Balloon;
 

@@ -12,13 +12,13 @@
 // ---- Camera modes ----
 
 // uc_orig: CAM_MODE_CRAPPY (fallen/Headers/cam.h)
-#define CAM_MODE_CRAPPY       0
+#define CAM_MODE_CRAPPY 0
 // uc_orig: CAM_MODE_NORMAL (fallen/Headers/cam.h)
-#define CAM_MODE_NORMAL       1
+#define CAM_MODE_NORMAL 1
 // uc_orig: CAM_MODE_STATIONARY (fallen/Headers/cam.h)
-#define CAM_MODE_STATIONARY   2
+#define CAM_MODE_STATIONARY 2
 // uc_orig: CAM_MODE_BEHIND (fallen/Headers/cam.h)
-#define CAM_MODE_BEHIND       3
+#define CAM_MODE_BEHIND 3
 // uc_orig: CAM_MODE_FIRST_PERSON (fallen/Headers/cam.h)
 #define CAM_MODE_FIRST_PERSON 4
 // uc_orig: CAM_MODE_THIRD_PERSON (fallen/Headers/cam.h)
@@ -31,11 +31,11 @@
 // ---- Lens types ----
 
 // uc_orig: CAM_LENS_NORMAL (fallen/Headers/cam.h)
-#define CAM_LENS_NORMAL    0
+#define CAM_LENS_NORMAL 0
 // uc_orig: CAM_LENS_WIDEANGLE (fallen/Headers/cam.h)
 #define CAM_LENS_WIDEANGLE 1
 // uc_orig: CAM_LENS_ZOOM (fallen/Headers/cam.h)
-#define CAM_LENS_ZOOM      2
+#define CAM_LENS_ZOOM 2
 
 // ---- Predefined camera types ----
 // Convenience wrappers that set mode, focus, and zoom together.
@@ -43,13 +43,13 @@
 // uc_orig: CAM_TYPE_STANDARD (fallen/Headers/cam.h)
 #define CAM_TYPE_STANDARD 1
 // uc_orig: CAM_TYPE_LOWER (fallen/Headers/cam.h)
-#define CAM_TYPE_LOWER    2
+#define CAM_TYPE_LOWER 2
 // uc_orig: CAM_TYPE_BEHIND (fallen/Headers/cam.h)
-#define CAM_TYPE_BEHIND   3
+#define CAM_TYPE_BEHIND 3
 // uc_orig: CAM_TYPE_WIDE (fallen/Headers/cam.h)
-#define CAM_TYPE_WIDE     4
+#define CAM_TYPE_WIDE 4
 // uc_orig: CAM_TYPE_ZOOM (fallen/Headers/cam.h)
-#define CAM_TYPE_ZOOM     5
+#define CAM_TYPE_ZOOM 5
 
 // Sets camera mode, focus, and zoom to a preconfigured type.
 // uc_orig: CAM_set_type (fallen/Headers/cam.h)

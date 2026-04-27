@@ -11,4 +11,3 @@ void FIRE_get_start(UBYTE z, UBYTE xmin, UBYTE xmax)
     FIRE_get_xmin = xmin;
     FIRE_get_xmax = xmax;
 }
-

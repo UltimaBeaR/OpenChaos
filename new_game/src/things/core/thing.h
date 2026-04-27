@@ -2,26 +2,26 @@
 #define THINGS_CORE_THING_H
 
 #include "engine/core/types.h"
-#include "engine/core/vector.h"          // GameCoord
+#include "engine/core/vector.h" // GameCoord
 #include "things/core/drawtype.h" // DrawTween, DrawMesh
 // *Ptr typedef headers for all class-specific data stored in Thing.Genus.
 // Use the lowest-level header that defines the struct and *Ptr typedef to avoid
 // pulling in function declarations (which might conflict with forward decls in .cpp files).
-#include "things/vehicles/vehicle.h"   // Vehicle, VehiclePtr
+#include "things/vehicles/vehicle.h" // Vehicle, VehiclePtr
 #include "things/vehicles/furn.h"
-#include <string.h>                       // anim_types.h uses strcpy in inline methods
-#include "things/characters/person_types.h"  // Person, PersonPtr
-#include "things/animals/animal.h"     // Animal, AnimalPtr
-#include "things/vehicles/chopper.h"   // Chopper, ChopperPtr
-#include "effects/combat/pyro.h"              // Pyro, PyroPtr
-#include "things/core/player.h"        // Player, PlayerPtr
-#include "shooting/projectile.h"   // Projectile, ProjectilePtr
-#include "things/items/special.h"      // Special, SpecialPtr
-#include "things/core/switch.h"        // Switch, SwitchPtr
-#include "effects/environment/tracks.h"            // Track, TrackPtr
-#include "world_objects/plat.h"    // Plat, PlatPtr
-#include "things/items/barrel.h"       // Barrel, BarrelPtr
-#include "things/animals/bat.h"        // Bat, BatPtr
+#include <string.h> // anim_types.h uses strcpy in inline methods
+#include "things/characters/person_types.h" // Person, PersonPtr
+#include "things/animals/animal.h" // Animal, AnimalPtr
+#include "things/vehicles/chopper.h" // Chopper, ChopperPtr
+#include "effects/combat/pyro.h" // Pyro, PyroPtr
+#include "things/core/player.h" // Player, PlayerPtr
+#include "shooting/projectile.h" // Projectile, ProjectilePtr
+#include "things/items/special.h" // Special, SpecialPtr
+#include "things/core/switch.h" // Switch, SwitchPtr
+#include "effects/environment/tracks.h" // Track, TrackPtr
+#include "world_objects/plat.h" // Plat, PlatPtr
+#include "things/items/barrel.h" // Barrel, BarrelPtr
+#include "things/animals/bat.h" // Bat, BatPtr
 
 // Object pool limits: 400 primary (characters, vehicles, etc.) + 300 secondary (switches, tracks).
 // uc_orig: MAX_PRIMARY_THINGS (fallen/Headers/Thing.h)
@@ -136,10 +136,10 @@ struct Thing {
     UWORD Index;
     SWORD OnFace;
 
-    UWORD NextLink;   // Next thing of the same class in the class linked list.
+    UWORD NextLink; // Next thing of the same class in the class linked list.
     UWORD DogPoo1;
 
-    THING_INDEX DogPoo2;  // Temporary field for building unlock switches.
+    THING_INDEX DogPoo2; // Temporary field for building unlock switches.
 };
 
 // uc_orig: Thing (fallen/Headers/Thing.h)
@@ -193,45 +193,45 @@ void THING_kill(Thing* t);
 // Thing class identifiers. Each Thing has a Class field matching one of these.
 // CLASS_* values are used as bit-shift positions in the THING_FIND_* bitmasks.
 // uc_orig: CLASS_NONE (fallen/Headers/Game.h)
-#define CLASS_NONE        0
+#define CLASS_NONE 0
 // uc_orig: CLASS_PLAYER (fallen/Headers/Game.h)
-#define CLASS_PLAYER      1
+#define CLASS_PLAYER 1
 // uc_orig: CLASS_CAMERA (fallen/Headers/Game.h)
-#define CLASS_CAMERA      2
+#define CLASS_CAMERA 2
 // uc_orig: CLASS_PROJECTILE (fallen/Headers/Game.h)
-#define CLASS_PROJECTILE  3
+#define CLASS_PROJECTILE 3
 // uc_orig: CLASS_BUILDING (fallen/Headers/Game.h)
-#define CLASS_BUILDING    4
+#define CLASS_BUILDING 4
 // uc_orig: CLASS_PERSON (fallen/Headers/Game.h)
-#define CLASS_PERSON      5
+#define CLASS_PERSON 5
 // uc_orig: CLASS_ANIMAL (fallen/Headers/Game.h)
-#define CLASS_ANIMAL      6
+#define CLASS_ANIMAL 6
 // uc_orig: CLASS_FURNITURE (fallen/Headers/Game.h)
-#define CLASS_FURNITURE   7
+#define CLASS_FURNITURE 7
 // uc_orig: CLASS_SWITCH (fallen/Headers/Game.h)
-#define CLASS_SWITCH      8
+#define CLASS_SWITCH 8
 // uc_orig: CLASS_VEHICLE (fallen/Headers/Game.h)
-#define CLASS_VEHICLE     9
+#define CLASS_VEHICLE 9
 // uc_orig: CLASS_SPECIAL (fallen/Headers/Game.h)
-#define CLASS_SPECIAL    10
+#define CLASS_SPECIAL 10
 // uc_orig: CLASS_ANIM_PRIM (fallen/Headers/Game.h)
-#define CLASS_ANIM_PRIM  11
+#define CLASS_ANIM_PRIM 11
 // uc_orig: CLASS_CHOPPER (fallen/Headers/Game.h)
-#define CLASS_CHOPPER    12
+#define CLASS_CHOPPER 12
 // uc_orig: CLASS_PYRO (fallen/Headers/Game.h)
-#define CLASS_PYRO       13
+#define CLASS_PYRO 13
 // uc_orig: CLASS_TRACK (fallen/Headers/Game.h)
-#define CLASS_TRACK      14
+#define CLASS_TRACK 14
 // uc_orig: CLASS_PLAT (fallen/Headers/Game.h)
-#define CLASS_PLAT       15
+#define CLASS_PLAT 15
 // uc_orig: CLASS_BARREL (fallen/Headers/Game.h)
-#define CLASS_BARREL     16
+#define CLASS_BARREL 16
 // uc_orig: CLASS_BIKE (fallen/Headers/Game.h)
-#define CLASS_BIKE       17
+#define CLASS_BIKE 17
 // uc_orig: CLASS_BAT (fallen/Headers/Game.h)
-#define CLASS_BAT        18
+#define CLASS_BAT 18
 // uc_orig: CLASS_END (fallen/Headers/Game.h)
-#define CLASS_END        19
+#define CLASS_END 19
 
 // Scratch array for spatial queries (size 32).
 // uc_orig: THING_ARRAY_SIZE (fallen/Headers/Thing.h)

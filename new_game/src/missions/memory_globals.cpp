@@ -1,8 +1,8 @@
 // uc_orig: memory.cpp (fallen/Source/memory.cpp)
 // Global variable definitions for the game-level memory allocation system.
 
-#include "things/core/thing.h"         // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
-#include "game/game_types.h"      // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
+#include "things/core/thing.h" // pool types (Vehicle, Person, Animal, etc.) needed by save_table entries
+#include "game/game_types.h" // Game struct, MemTable, PEOPLE, VEHICLES, ANIMALS macros
 #include "map/ob.h"
 #include "map/ob_globals.h"
 #include "navigation/wmove.h"
@@ -33,9 +33,9 @@
 #include "missions/memory_globals.h"
 #include "missions/memory.h"
 #include "buildings/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
-#include "assets/formats/anim_globals.h"                // next_prim_point, next_prim_face3/4/object, game_chunk, anim_chunk
-#include "world_objects/plat_globals.h"    // PLAT_plat (PLAT_plat_upto)
-#include "engine/physics/collide_globals.h"    // COLLIDE_fastnav
+#include "assets/formats/anim_globals.h" // next_prim_point, next_prim_face3/4/object, game_chunk, anim_chunk
+#include "world_objects/plat_globals.h" // PLAT_plat (PLAT_plat_upto)
+#include "engine/physics/collide_globals.h" // COLLIDE_fastnav
 
 // EWAY_counter is defined in eway.cpp (not yet migrated) and not in eway.h.
 extern UBYTE* EWAY_counter;
@@ -50,8 +50,8 @@ extern UBYTE* EWAY_counter;
 // uc_orig: save_table (fallen/Source/memory.cpp)
 struct MemTable save_table[] = {
 
-    { M_("Pap_Hi"), (void**)&PAP_hi, MEM_STATIC, 0, 0, PAP_SIZE_HI * PAP_SIZE_HI, sizeof(PAP_Hi), 0 }, // 0
-    { M_("Pap_Lo"), (void**)&PAP_lo, MEM_STATIC, 0, 0, PAP_SIZE_LO * PAP_SIZE_LO, sizeof(PAP_Lo), 0 }, // 1
+    { M_("Pap_Hi"), (void**)&PAP_hi, MEM_STATIC, 0, 0, PAP_SIZE_HI* PAP_SIZE_HI, sizeof(PAP_Hi), 0 }, // 0
+    { M_("Pap_Lo"), (void**)&PAP_lo, MEM_STATIC, 0, 0, PAP_SIZE_LO* PAP_SIZE_LO, sizeof(PAP_Lo), 0 }, // 1
     { M_("net_peep"), (void**)&NETPERSON, MEM_STATIC, 0, 0, 10, sizeof(Thing*), 0 }, // 2
     { M_("net_plyr"), (void**)&NETPLAYERS, MEM_STATIC, 0, 0, 10, sizeof(Thing*), 0 }, // 3
     { M_("f-links"), (void**)&facet_links, MEM_DYNAMIC, 0, (UWORD*)&next_facet_link, MAX_FACET_LINK, sizeof(SWORD), 0 }, // 4
@@ -71,7 +71,7 @@ struct MemTable save_table[] = {
     { M_("prim_objects"), (void**)&prim_objects, MEM_DYNAMIC, 0, &next_prim_object, MAX_PRIM_OBJECTS, sizeof(struct PrimObject), 0 }, // 18
     { M_("prim_Mobjects"), (void**)&prim_multi_objects, MEM_DYNAMIC, 0, &next_prim_multi_object, MAX_PRIM_MOBJECTS, sizeof(struct PrimMultiObject), 0 }, // 19
     { M_("ob_ob"), (void**)&OB_ob, MEM_DYNAMIC, &OB_ob_upto, 0, OB_MAX_OBS, sizeof(OB_Ob), 0 }, // 20
-    { M_("ob_ mapwho"), (void**)&OB_mapwho, MEM_STATIC, 0, 0, OB_SIZE * OB_SIZE, sizeof(OB_Mapwho), 0 }, // 21
+    { M_("ob_ mapwho"), (void**)&OB_mapwho, MEM_STATIC, 0, 0, OB_SIZE* OB_SIZE, sizeof(OB_Mapwho), 0 }, // 21
     { M_("EWAY_mess"), (void**)&EWAY_mess, MEM_DYNAMIC, &EWAY_mess_upto, 0, EWAY_MAX_MESSES, sizeof(CBYTE*), 0 }, // 22
     { M_("EWAY_mess buf"), (void**)&EWAY_mess_buffer, MEM_DYNAMIC, &EWAY_mess_buffer_upto, 0, EWAY_MESS_BUFFER_SIZE, sizeof(CBYTE), 0 }, // 23
     { M_("EWAY_timer"), (void**)&EWAY_timer, MEM_STATIC, 0, 0, EWAY_MAX_TIMERS, sizeof(UWORD), 0 }, // 24
@@ -97,14 +97,14 @@ struct MemTable save_table[] = {
     { M_("plat"), (void**)&PLAT_plat, MEM_DYNAMIC, &PLAT_plat_upto, 0, RPLAT_MAX_PLATS, sizeof(Plat), 2 }, // 45
     { M_("wmove"), (void**)&WMOVE_face, MEM_DYNAMIC, &WMOVE_face_upto, 0, RWMOVE_MAX_FACES, sizeof(WMOVE_Face), 64 }, // 46
     { M_("mav_opt"), (void**)&MAV_opt, MEM_DYNAMIC, &MAV_opt_upto, 0, MAV_MAX_OPTS, sizeof(MAV_Opt), 0 }, // 47
-    { M_("mav_nav"), (void**)&MAV_nav, MEM_STATIC, 0, 0, PAP_SIZE_HI * PAP_SIZE_HI, sizeof(UWORD), 0 }, // 48
+    { M_("mav_nav"), (void**)&MAV_nav, MEM_STATIC, 0, 0, PAP_SIZE_HI* PAP_SIZE_HI, sizeof(UWORD), 0 }, // 48
     { M_("road_noads"), (void**)&ROAD_node, MEM_DYNAMIC, &ROAD_node_upto, 0, ROAD_MAX_NODES, sizeof(ROAD_Node), 0 }, // 49
     { M_("balloons"), (void**)&BALLOON_balloon, MEM_DYNAMIC, &BALLOON_balloon_upto, 0, BALLOON_MAX_BALLOONS, sizeof(BALLOON_Balloon), 0 }, // 50
     { M_("tracks"), (void**)&tracks, MEM_STATIC, 0, 0, TRACK_BUFFER_LENGTH, sizeof(Track), 0 }, // 51
     { M_("roofface4"), (void**)&roof_faces4, MEM_DYNAMIC, 0, &next_roof_face4, MAX_ROOF_FACE4, sizeof(struct RoofFace4), 0 }, // 52
-    { M_("fastnav"), (void**)&COLLIDE_fastnav, MEM_STATIC, 0, 0, PAP_SIZE_HI * PAP_SIZE_HI >> 3, sizeof(UBYTE), 0 }, // 53
+    { M_("fastnav"), (void**)&COLLIDE_fastnav, MEM_STATIC, 0, 0, PAP_SIZE_HI* PAP_SIZE_HI >> 3, sizeof(UBYTE), 0 }, // 53
     { M_("night_slight"), (void**)&NIGHT_slight, MEM_DYNAMIC, &NIGHT_slight_upto, 0, NIGHT_MAX_SLIGHTS, sizeof(NIGHT_Slight), 0 }, // 54
-    { M_("night_smap"), (void**)&NIGHT_smap, MEM_STATIC, 0, 0, PAP_SIZE_LO * PAP_SIZE_LO, sizeof(NIGHT_Smap), 0 }, // 55
+    { M_("night_smap"), (void**)&NIGHT_smap, MEM_STATIC, 0, 0, PAP_SIZE_LO* PAP_SIZE_LO, sizeof(NIGHT_Smap), 0 }, // 55
     { M_("night_dlight"), (void**)&NIGHT_dlight, MEM_STATIC, 0, 0, NIGHT_MAX_DLIGHTS, sizeof(NIGHT_Dlight), 0 }, // 56
     { M_("WARE_ware"), (void**)&WARE_ware, MEM_DYNAMIC, 0, &WARE_ware_upto, WARE_MAX_WARES, sizeof(WARE_Ware), 0 }, // 57
     { M_("WARE_nav"), (void**)&WARE_nav, MEM_DYNAMIC, 0, &WARE_nav_upto, WARE_MAX_NAVS, sizeof(UWORD), 0 }, // 58

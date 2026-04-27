@@ -4,14 +4,13 @@
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "buildings/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
-#include "engine/graphics/pipeline/poly.h"          // POLY_Point
-#include "engine/graphics/lighting/smap.h"                  // SMAP_Link
+#include "engine/graphics/pipeline/poly.h" // POLY_Point
+#include "engine/graphics/lighting/smap.h" // SMAP_Link
 #include "map/map.h"
 
 // Renamed from anonymous struct to AENG_ConePoint to allow external linkage.
 // uc_orig: AENG_cone (fallen/DDEngine/Source/aeng.cpp)
-struct AENG_ConePoint
-{
+struct AENG_ConePoint {
     float x;
     float y;
     float z;
@@ -176,8 +175,7 @@ void AENG_get_rid_of_deleteme_squares(void);
 
 // uc_orig: aeng_pow (fallen/DDEngine/Source/aeng.cpp)
 // Projected screen-space entry for one explosion sprite, sorted into a depth bucket.
-typedef struct aeng_pow
-{
+typedef struct aeng_pow {
     SLONG frame;
     float sx;
     float sy;
@@ -288,8 +286,7 @@ extern SLONG AENG_shadows_on;
 
 // uc_orig: RRect (fallen/DDEngine/Source/aeng.cpp)
 // Deferred screen-space rectangle entry, queued via AENG_draw_rectr, flushed by draw_all_boxes.
-struct RRect
-{
+struct RRect {
     SLONG x;
     SLONG y;
     SLONG w;

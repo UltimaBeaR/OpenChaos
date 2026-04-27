@@ -125,8 +125,8 @@ void GERenderState::InitScene(uint32_t fog_colour, float fog_near, float fog_far
     ge_set_texture_filter(TexMag, TexMin);
 
     ge_set_depth_mode(DepthEnabled
-        ? (DepthWrite ? GEDepthMode::ReadWrite : GEDepthMode::ReadOnly)
-        : (DepthWrite ? GEDepthMode::WriteOnly : GEDepthMode::Off));
+            ? (DepthWrite ? GEDepthMode::ReadWrite : GEDepthMode::ReadOnly)
+            : (DepthWrite ? GEDepthMode::WriteOnly : GEDepthMode::Off));
     ge_set_depth_func(DepthFunc);
 
     ge_set_fog_enabled(FogEnabled);
@@ -145,7 +145,10 @@ void GERenderState::InitScene(uint32_t fog_colour, float fog_near, float fog_far
 }
 
 #define MAYBE_FLUSH(field, setter) \
-    if (s_State.field != field) { setter; s_State.field = field; }
+    if (s_State.field != field) {  \
+        setter;                    \
+        s_State.field = field;     \
+    }
 
 void GERenderState::SetChanged()
 {
@@ -166,8 +169,8 @@ void GERenderState::SetChanged()
 
     if (s_State.DepthEnabled != DepthEnabled || s_State.DepthWrite != DepthWrite) {
         ge_set_depth_mode(DepthEnabled
-            ? (DepthWrite ? GEDepthMode::ReadWrite : GEDepthMode::ReadOnly)
-            : (DepthWrite ? GEDepthMode::WriteOnly : GEDepthMode::Off));
+                ? (DepthWrite ? GEDepthMode::ReadWrite : GEDepthMode::ReadOnly)
+                : (DepthWrite ? GEDepthMode::WriteOnly : GEDepthMode::Off));
         s_State.DepthEnabled = DepthEnabled;
         s_State.DepthWrite = DepthWrite;
     }
@@ -199,21 +202,5 @@ void GERenderState::SetChanged()
 
 bool GERenderState::IsSameRenderState(GERenderState* pRS)
 {
-    return Texture == pRS->Texture &&
-        TexAddress == pRS->TexAddress &&
-        TexMag == pRS->TexMag &&
-        TexMin == pRS->TexMin &&
-        TexBlend == pRS->TexBlend &&
-        DepthEnabled == pRS->DepthEnabled &&
-        DepthWrite == pRS->DepthWrite &&
-        AlphaTestEnabled == pRS->AlphaTestEnabled &&
-        SrcBlend == pRS->SrcBlend &&
-        DstBlend == pRS->DstBlend &&
-        AlphaBlendEnabled == pRS->AlphaBlendEnabled &&
-        DepthFunc == pRS->DepthFunc &&
-        FogEnabled == pRS->FogEnabled &&
-        ColorKeyEnabled == pRS->ColorKeyEnabled &&
-        Cull == pRS->Cull &&
-        DepthBias == pRS->DepthBias &&
-        Effect == pRS->Effect;
+    return Texture == pRS->Texture && TexAddress == pRS->TexAddress && TexMag == pRS->TexMag && TexMin == pRS->TexMin && TexBlend == pRS->TexBlend && DepthEnabled == pRS->DepthEnabled && DepthWrite == pRS->DepthWrite && AlphaTestEnabled == pRS->AlphaTestEnabled && SrcBlend == pRS->SrcBlend && DstBlend == pRS->DstBlend && AlphaBlendEnabled == pRS->AlphaBlendEnabled && DepthFunc == pRS->DepthFunc && FogEnabled == pRS->FogEnabled && ColorKeyEnabled == pRS->ColorKeyEnabled && Cull == pRS->Cull && DepthBias == pRS->DepthBias && Effect == pRS->Effect;
 }

@@ -13,8 +13,8 @@
 // Window
 // ===========================================================================
 
-static SDL_Window*   s_window   = nullptr;
-static SDL_GLContext  s_gl_ctx   = nullptr;
+static SDL_Window* s_window = nullptr;
+static SDL_GLContext s_gl_ctx = nullptr;
 static SDL3_Callbacks s_callbacks = {};
 
 // Whether sdl3_gl_swap() should call DwmFlush() before SDL_GL_SwapWindow.
@@ -47,9 +47,10 @@ static bool s_use_dwm_flush = false;
 static bool SDLCALL window_event_watch(void* userdata, SDL_Event* event)
 {
     (void)userdata;
-    if (!event) return true;
-    if (event->type != SDL_EVENT_WINDOW_RESIZED &&
-        event->type != SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) return true;
+    if (!event)
+        return true;
+    if (event->type != SDL_EVENT_WINDOW_RESIZED && event->type != SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED)
+        return true;
     if (s_callbacks.on_window_resize_live) {
         s_callbacks.on_window_resize_live();
     }
@@ -58,7 +59,8 @@ static bool SDLCALL window_event_watch(void* userdata, SDL_Event* event)
 
 bool sdl3_window_create(const char* title, int width, int height, bool fullscreen)
 {
-    if (s_window) return false;
+    if (s_window)
+        return false;
 
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
         fprintf(stderr, "SDL3: SDL_INIT_VIDEO failed: %s\n", SDL_GetError());
@@ -81,7 +83,7 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
     // to always pass. The renderer reconfigures on SDL_EVENT_WINDOW_PIXEL_
     // SIZE_CHANGED via ge_resize_display() (see host.cpp on_window_resized).
     Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN
-                 | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
+        | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE;
 
     // Remember the caller's physical-pixel request before we mutate width/
     // height for fullscreen. Used after window creation to resize if the
@@ -101,7 +103,7 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
         SDL_DisplayID display = SDL_GetPrimaryDisplay();
         const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(display);
         if (mode) {
-            width  = mode->w;
+            width = mode->w;
             height = mode->h;
         }
         flags |= SDL_WINDOW_FULLSCREEN;
@@ -143,8 +145,8 @@ bool sdl3_window_create(const char* title, int width, int height, bool fullscree
             SDL_SetWindowSize(s_window, new_logical_w, new_logical_h);
             // Re-center after resize so the window isn't off-screen.
             SDL_SetWindowPosition(s_window,
-                                  SDL_WINDOWPOS_CENTERED,
-                                  SDL_WINDOWPOS_CENTERED);
+                SDL_WINDOWPOS_CENTERED,
+                SDL_WINDOWPOS_CENTERED);
         }
     } else {
         // Belt-and-suspenders: force borderless-desktop fullscreen (passing
@@ -170,7 +172,8 @@ void sdl3_window_destroy()
 
 void sdl3_window_show()
 {
-    if (s_window) SDL_ShowWindow(s_window);
+    if (s_window)
+        SDL_ShowWindow(s_window);
 }
 
 void sdl3_window_get_size(int* w, int* h)
@@ -178,8 +181,10 @@ void sdl3_window_get_size(int* w, int* h)
     if (s_window) {
         SDL_GetWindowSize(s_window, w, h);
     } else {
-        if (w) *w = 0;
-        if (h) *h = 0;
+        if (w)
+            *w = 0;
+        if (h)
+            *h = 0;
     }
 }
 
@@ -188,8 +193,10 @@ void sdl3_window_get_position(int* x, int* y)
     if (s_window) {
         SDL_GetWindowPosition(s_window, x, y);
     } else {
-        if (x) *x = 0;
-        if (y) *y = 0;
+        if (x)
+            *x = 0;
+        if (y)
+            *y = 0;
     }
 }
 
@@ -198,8 +205,10 @@ void sdl3_window_get_center(int* x, int* y)
     int wx, wy, ww, wh;
     sdl3_window_get_position(&wx, &wy);
     sdl3_window_get_size(&ww, &wh);
-    if (x) *x = wx + ww / 2;
-    if (y) *y = wy + wh / 2;
+    if (x)
+        *x = wx + ww / 2;
+    if (y)
+        *y = wy + wh / 2;
 }
 
 void sdl3_window_get_drawable_size(int* w, int* h)
@@ -207,14 +216,17 @@ void sdl3_window_get_drawable_size(int* w, int* h)
     if (s_window) {
         SDL_GetWindowSizeInPixels(s_window, w, h);
     } else {
-        if (w) *w = 0;
-        if (h) *h = 0;
+        if (w)
+            *w = 0;
+        if (h)
+            *h = 0;
     }
 }
 
 void* sdl3_window_get_native_handle()
 {
-    if (!s_window) return nullptr;
+    if (!s_window)
+        return nullptr;
     SDL_PropertiesID props = SDL_GetWindowProperties(s_window);
 #ifdef _WIN32
     return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
@@ -225,13 +237,15 @@ void* sdl3_window_get_native_handle()
 
 bool sdl3_window_is_maximized()
 {
-    if (!s_window) return false;
+    if (!s_window)
+        return false;
     return (SDL_GetWindowFlags(s_window) & SDL_WINDOW_MAXIMIZED) != 0;
 }
 
 void sdl3_window_maximize()
 {
-    if (s_window) SDL_MaximizeWindow(s_window);
+    if (s_window)
+        SDL_MaximizeWindow(s_window);
 }
 
 void sdl3_warp_mouse_global(int x, int y)
@@ -243,8 +257,10 @@ void sdl3_get_global_mouse_pos(int* x, int* y)
 {
     float fx, fy;
     SDL_GetGlobalMouseState(&fx, &fy);
-    if (x) *x = (int)fx;
-    if (y) *y = (int)fy;
+    if (x)
+        *x = (int)fx;
+    if (y)
+        *y = (int)fy;
 }
 
 void sdl3_show_cursor()
@@ -269,7 +285,8 @@ void sdl3_set_mouse_grab(bool grab)
 
 bool sdl3_gl_create_context(int major, int minor)
 {
-    if (!s_window) return false;
+    if (!s_window)
+        return false;
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, major);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, minor);
@@ -306,15 +323,16 @@ void sdl3_gl_swap()
     // In that mode driver VSync is off and DwmFlush is our pacing mechanism;
     // in all other modes (VSync off, fullscreen VSync, non-Windows) the
     // driver-side path handles pacing and we skip this.
-    if (s_use_dwm_flush) DwmFlush();
+    if (s_use_dwm_flush)
+        DwmFlush();
 #endif
-    if (s_window) SDL_GL_SwapWindow(s_window);
+    if (s_window)
+        SDL_GL_SwapWindow(s_window);
 }
 
 void sdl3_gl_configure_vsync(bool vsync_enabled)
 {
-    const bool fullscreen =
-        s_window && (SDL_GetWindowFlags(s_window) & SDL_WINDOW_FULLSCREEN) != 0;
+    const bool fullscreen = s_window && (SDL_GetWindowFlags(s_window) & SDL_WINDOW_FULLSCREEN) != 0;
 
     // Three paths:
     //   1. vsync_enabled=false → driver VSync off, no DwmFlush. Max FPS, tearing.
@@ -392,126 +410,227 @@ static uint8_t sdl_to_game_scancode(SDL_Scancode sc)
 {
     switch (sc) {
     // Row 0: Escape, F-keys
-    case SDL_SCANCODE_ESCAPE:    return 0x01;
-    case SDL_SCANCODE_F1:        return 0x3b;
-    case SDL_SCANCODE_F2:        return 0x3c;
-    case SDL_SCANCODE_F3:        return 0x3d;
-    case SDL_SCANCODE_F4:        return 0x3e;
-    case SDL_SCANCODE_F5:        return 0x3f;
-    case SDL_SCANCODE_F6:        return 0x40;
-    case SDL_SCANCODE_F7:        return 0x41;
-    case SDL_SCANCODE_F8:        return 0x42;
-    case SDL_SCANCODE_F9:        return 0x43;
-    case SDL_SCANCODE_F10:       return 0x44;
-    case SDL_SCANCODE_F11:       return 0x57;
-    case SDL_SCANCODE_F12:       return 0x58;
+    case SDL_SCANCODE_ESCAPE:
+        return 0x01;
+    case SDL_SCANCODE_F1:
+        return 0x3b;
+    case SDL_SCANCODE_F2:
+        return 0x3c;
+    case SDL_SCANCODE_F3:
+        return 0x3d;
+    case SDL_SCANCODE_F4:
+        return 0x3e;
+    case SDL_SCANCODE_F5:
+        return 0x3f;
+    case SDL_SCANCODE_F6:
+        return 0x40;
+    case SDL_SCANCODE_F7:
+        return 0x41;
+    case SDL_SCANCODE_F8:
+        return 0x42;
+    case SDL_SCANCODE_F9:
+        return 0x43;
+    case SDL_SCANCODE_F10:
+        return 0x44;
+    case SDL_SCANCODE_F11:
+        return 0x57;
+    case SDL_SCANCODE_F12:
+        return 0x58;
 
     // Row 1: Number row
-    case SDL_SCANCODE_GRAVE:     return 0x29;
-    case SDL_SCANCODE_1:         return 0x02;
-    case SDL_SCANCODE_2:         return 0x03;
-    case SDL_SCANCODE_3:         return 0x04;
-    case SDL_SCANCODE_4:         return 0x05;
-    case SDL_SCANCODE_5:         return 0x06;
-    case SDL_SCANCODE_6:         return 0x07;
-    case SDL_SCANCODE_7:         return 0x08;
-    case SDL_SCANCODE_8:         return 0x09;
-    case SDL_SCANCODE_9:         return 0x0a;
-    case SDL_SCANCODE_0:         return 0x0b;
-    case SDL_SCANCODE_MINUS:     return 0x0c;
-    case SDL_SCANCODE_EQUALS:    return 0x0d;
-    case SDL_SCANCODE_BACKSPACE: return 0x0e;
+    case SDL_SCANCODE_GRAVE:
+        return 0x29;
+    case SDL_SCANCODE_1:
+        return 0x02;
+    case SDL_SCANCODE_2:
+        return 0x03;
+    case SDL_SCANCODE_3:
+        return 0x04;
+    case SDL_SCANCODE_4:
+        return 0x05;
+    case SDL_SCANCODE_5:
+        return 0x06;
+    case SDL_SCANCODE_6:
+        return 0x07;
+    case SDL_SCANCODE_7:
+        return 0x08;
+    case SDL_SCANCODE_8:
+        return 0x09;
+    case SDL_SCANCODE_9:
+        return 0x0a;
+    case SDL_SCANCODE_0:
+        return 0x0b;
+    case SDL_SCANCODE_MINUS:
+        return 0x0c;
+    case SDL_SCANCODE_EQUALS:
+        return 0x0d;
+    case SDL_SCANCODE_BACKSPACE:
+        return 0x0e;
 
     // Row 2: Tab, QWERTY...
-    case SDL_SCANCODE_TAB:       return 0x0f;
-    case SDL_SCANCODE_Q:         return 0x10;
-    case SDL_SCANCODE_W:         return 0x11;
-    case SDL_SCANCODE_E:         return 0x12;
-    case SDL_SCANCODE_R:         return 0x13;
-    case SDL_SCANCODE_T:         return 0x14;
-    case SDL_SCANCODE_Y:         return 0x15;
-    case SDL_SCANCODE_U:         return 0x16;
-    case SDL_SCANCODE_I:         return 0x17;
-    case SDL_SCANCODE_O:         return 0x18;
-    case SDL_SCANCODE_P:         return 0x19;
-    case SDL_SCANCODE_LEFTBRACKET:  return 0x1a;
-    case SDL_SCANCODE_RIGHTBRACKET: return 0x1b;
-    case SDL_SCANCODE_RETURN:    return 0x1c;
+    case SDL_SCANCODE_TAB:
+        return 0x0f;
+    case SDL_SCANCODE_Q:
+        return 0x10;
+    case SDL_SCANCODE_W:
+        return 0x11;
+    case SDL_SCANCODE_E:
+        return 0x12;
+    case SDL_SCANCODE_R:
+        return 0x13;
+    case SDL_SCANCODE_T:
+        return 0x14;
+    case SDL_SCANCODE_Y:
+        return 0x15;
+    case SDL_SCANCODE_U:
+        return 0x16;
+    case SDL_SCANCODE_I:
+        return 0x17;
+    case SDL_SCANCODE_O:
+        return 0x18;
+    case SDL_SCANCODE_P:
+        return 0x19;
+    case SDL_SCANCODE_LEFTBRACKET:
+        return 0x1a;
+    case SDL_SCANCODE_RIGHTBRACKET:
+        return 0x1b;
+    case SDL_SCANCODE_RETURN:
+        return 0x1c;
 
     // Row 3: Caps, ASDF...
-    case SDL_SCANCODE_CAPSLOCK:  return 0x3a;
-    case SDL_SCANCODE_A:         return 0x1e;
-    case SDL_SCANCODE_S:         return 0x1f;
-    case SDL_SCANCODE_D:         return 0x20;
-    case SDL_SCANCODE_F:         return 0x21;
-    case SDL_SCANCODE_G:         return 0x22;
-    case SDL_SCANCODE_H:         return 0x23;
-    case SDL_SCANCODE_J:         return 0x24;
-    case SDL_SCANCODE_K:         return 0x25;
-    case SDL_SCANCODE_L:         return 0x26;
-    case SDL_SCANCODE_SEMICOLON: return 0x27;
-    case SDL_SCANCODE_APOSTROPHE: return 0x28;
-    case SDL_SCANCODE_BACKSLASH: return 0x2b;
+    case SDL_SCANCODE_CAPSLOCK:
+        return 0x3a;
+    case SDL_SCANCODE_A:
+        return 0x1e;
+    case SDL_SCANCODE_S:
+        return 0x1f;
+    case SDL_SCANCODE_D:
+        return 0x20;
+    case SDL_SCANCODE_F:
+        return 0x21;
+    case SDL_SCANCODE_G:
+        return 0x22;
+    case SDL_SCANCODE_H:
+        return 0x23;
+    case SDL_SCANCODE_J:
+        return 0x24;
+    case SDL_SCANCODE_K:
+        return 0x25;
+    case SDL_SCANCODE_L:
+        return 0x26;
+    case SDL_SCANCODE_SEMICOLON:
+        return 0x27;
+    case SDL_SCANCODE_APOSTROPHE:
+        return 0x28;
+    case SDL_SCANCODE_BACKSLASH:
+        return 0x2b;
 
     // Row 4: Shift, ZXCV...
-    case SDL_SCANCODE_LSHIFT:    return 0x2a;
-    case SDL_SCANCODE_Z:         return 0x2c;
-    case SDL_SCANCODE_X:         return 0x2d;
-    case SDL_SCANCODE_C:         return 0x2e;
-    case SDL_SCANCODE_V:         return 0x2f;
-    case SDL_SCANCODE_B:         return 0x30;
-    case SDL_SCANCODE_N:         return 0x31;
-    case SDL_SCANCODE_M:         return 0x32;
-    case SDL_SCANCODE_COMMA:     return 0x33;
-    case SDL_SCANCODE_PERIOD:    return 0x34;
-    case SDL_SCANCODE_SLASH:     return 0x35;
-    case SDL_SCANCODE_RSHIFT:    return 0x36;
+    case SDL_SCANCODE_LSHIFT:
+        return 0x2a;
+    case SDL_SCANCODE_Z:
+        return 0x2c;
+    case SDL_SCANCODE_X:
+        return 0x2d;
+    case SDL_SCANCODE_C:
+        return 0x2e;
+    case SDL_SCANCODE_V:
+        return 0x2f;
+    case SDL_SCANCODE_B:
+        return 0x30;
+    case SDL_SCANCODE_N:
+        return 0x31;
+    case SDL_SCANCODE_M:
+        return 0x32;
+    case SDL_SCANCODE_COMMA:
+        return 0x33;
+    case SDL_SCANCODE_PERIOD:
+        return 0x34;
+    case SDL_SCANCODE_SLASH:
+        return 0x35;
+    case SDL_SCANCODE_RSHIFT:
+        return 0x36;
 
     // Row 5: Ctrl, Alt, Space
-    case SDL_SCANCODE_LCTRL:     return 0x1d;
-    case SDL_SCANCODE_LALT:      return 0x38;
-    case SDL_SCANCODE_SPACE:     return 0x39;
-    case SDL_SCANCODE_RALT:      return 0x38 + 0x80; // extended
-    case SDL_SCANCODE_RCTRL:     return 0x1d + 0x80; // extended
+    case SDL_SCANCODE_LCTRL:
+        return 0x1d;
+    case SDL_SCANCODE_LALT:
+        return 0x38;
+    case SDL_SCANCODE_SPACE:
+        return 0x39;
+    case SDL_SCANCODE_RALT:
+        return 0x38 + 0x80; // extended
+    case SDL_SCANCODE_RCTRL:
+        return 0x1d + 0x80; // extended
 
     // Navigation (extended keys, +0x80)
-    case SDL_SCANCODE_INSERT:    return 0x52 + 0x80;
-    case SDL_SCANCODE_HOME:      return 0x47 + 0x80;
-    case SDL_SCANCODE_PAGEUP:    return 0x49 + 0x80;
-    case SDL_SCANCODE_DELETE:    return 0x53 + 0x80;
-    case SDL_SCANCODE_END:       return 0x4f + 0x80;
-    case SDL_SCANCODE_PAGEDOWN:  return 0x51 + 0x80;
+    case SDL_SCANCODE_INSERT:
+        return 0x52 + 0x80;
+    case SDL_SCANCODE_HOME:
+        return 0x47 + 0x80;
+    case SDL_SCANCODE_PAGEUP:
+        return 0x49 + 0x80;
+    case SDL_SCANCODE_DELETE:
+        return 0x53 + 0x80;
+    case SDL_SCANCODE_END:
+        return 0x4f + 0x80;
+    case SDL_SCANCODE_PAGEDOWN:
+        return 0x51 + 0x80;
 
     // Arrow keys (extended)
-    case SDL_SCANCODE_UP:        return 0x48 + 0x80;
-    case SDL_SCANCODE_DOWN:      return 0x50 + 0x80;
-    case SDL_SCANCODE_LEFT:      return 0x4b + 0x80;
-    case SDL_SCANCODE_RIGHT:     return 0x4d + 0x80;
+    case SDL_SCANCODE_UP:
+        return 0x48 + 0x80;
+    case SDL_SCANCODE_DOWN:
+        return 0x50 + 0x80;
+    case SDL_SCANCODE_LEFT:
+        return 0x4b + 0x80;
+    case SDL_SCANCODE_RIGHT:
+        return 0x4d + 0x80;
 
     // Numpad
-    case SDL_SCANCODE_NUMLOCKCLEAR: return 0x45;
-    case SDL_SCANCODE_KP_DIVIDE:    return 0x35 + 0x80; // extended
-    case SDL_SCANCODE_KP_MULTIPLY:  return 0x37;
-    case SDL_SCANCODE_KP_MINUS:     return 0x4a;
-    case SDL_SCANCODE_KP_PLUS:      return 0x4e;
-    case SDL_SCANCODE_KP_ENTER:     return 0x1c + 0x80; // extended
-    case SDL_SCANCODE_KP_7:         return 0x47;
-    case SDL_SCANCODE_KP_8:         return 0x48;
-    case SDL_SCANCODE_KP_9:         return 0x49;
-    case SDL_SCANCODE_KP_4:         return 0x4b;
-    case SDL_SCANCODE_KP_5:         return 0x4c;
-    case SDL_SCANCODE_KP_6:         return 0x4d;
-    case SDL_SCANCODE_KP_1:         return 0x4f;
-    case SDL_SCANCODE_KP_2:         return 0x50;
-    case SDL_SCANCODE_KP_3:         return 0x51;
-    case SDL_SCANCODE_KP_0:         return 0x52;
-    case SDL_SCANCODE_KP_PERIOD:    return 0x53;
+    case SDL_SCANCODE_NUMLOCKCLEAR:
+        return 0x45;
+    case SDL_SCANCODE_KP_DIVIDE:
+        return 0x35 + 0x80; // extended
+    case SDL_SCANCODE_KP_MULTIPLY:
+        return 0x37;
+    case SDL_SCANCODE_KP_MINUS:
+        return 0x4a;
+    case SDL_SCANCODE_KP_PLUS:
+        return 0x4e;
+    case SDL_SCANCODE_KP_ENTER:
+        return 0x1c + 0x80; // extended
+    case SDL_SCANCODE_KP_7:
+        return 0x47;
+    case SDL_SCANCODE_KP_8:
+        return 0x48;
+    case SDL_SCANCODE_KP_9:
+        return 0x49;
+    case SDL_SCANCODE_KP_4:
+        return 0x4b;
+    case SDL_SCANCODE_KP_5:
+        return 0x4c;
+    case SDL_SCANCODE_KP_6:
+        return 0x4d;
+    case SDL_SCANCODE_KP_1:
+        return 0x4f;
+    case SDL_SCANCODE_KP_2:
+        return 0x50;
+    case SDL_SCANCODE_KP_3:
+        return 0x51;
+    case SDL_SCANCODE_KP_0:
+        return 0x52;
+    case SDL_SCANCODE_KP_PERIOD:
+        return 0x53;
 
     // Misc
-    case SDL_SCANCODE_PRINTSCREEN:  return 0x37 + 0x80; // extended
-    case SDL_SCANCODE_SCROLLLOCK:   return 0x46;
+    case SDL_SCANCODE_PRINTSCREEN:
+        return 0x37 + 0x80; // extended
+    case SDL_SCANCODE_SCROLLLOCK:
+        return 0x46;
 
-    default: return 0;
+    default:
+        return 0;
     }
 }
 
@@ -524,7 +643,7 @@ static uint8_t sdl_to_game_scancode(SDL_Scancode sc)
 static constexpr int GP_EVENT_QUEUE_SIZE = 8;
 static SDL3_GamepadEvent s_gp_queue[GP_EVENT_QUEUE_SIZE];
 static int s_gp_queue_count = 0;
-static int s_gp_queue_read  = 0;
+static int s_gp_queue_read = 0;
 
 void sdl3_set_callbacks(const SDL3_Callbacks* cb)
 {
@@ -541,19 +660,22 @@ bool sdl3_poll_events()
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
         case SDL_EVENT_QUIT:
-            if (s_callbacks.on_close) s_callbacks.on_close();
+            if (s_callbacks.on_close)
+                s_callbacks.on_close();
             return false;
 
         case SDL_EVENT_KEY_DOWN:
             if (!e.key.repeat) {
                 uint8_t sc = sdl_to_game_scancode(e.key.scancode);
-                if (sc && s_callbacks.on_key_down) s_callbacks.on_key_down(sc);
+                if (sc && s_callbacks.on_key_down)
+                    s_callbacks.on_key_down(sc);
             }
             break;
 
         case SDL_EVENT_KEY_UP: {
             uint8_t sc = sdl_to_game_scancode(e.key.scancode);
-            if (sc && s_callbacks.on_key_up) s_callbacks.on_key_up(sc);
+            if (sc && s_callbacks.on_key_up)
+                s_callbacks.on_key_up(sc);
             break;
         }
 
@@ -566,24 +688,30 @@ bool sdl3_poll_events()
         case SDL_EVENT_MOUSE_BUTTON_UP: {
             bool down = (e.type == SDL_EVENT_MOUSE_BUTTON_DOWN);
             int btn = -1;
-            if (e.button.button == SDL_BUTTON_LEFT)   btn = 0;
-            if (e.button.button == SDL_BUTTON_RIGHT)  btn = 1;
-            if (e.button.button == SDL_BUTTON_MIDDLE) btn = 2;
+            if (e.button.button == SDL_BUTTON_LEFT)
+                btn = 0;
+            if (e.button.button == SDL_BUTTON_RIGHT)
+                btn = 1;
+            if (e.button.button == SDL_BUTTON_MIDDLE)
+                btn = 2;
             if (btn >= 0 && s_callbacks.on_mouse_button)
                 s_callbacks.on_mouse_button(btn, down, (int)e.button.x, (int)e.button.y);
             break;
         }
 
         case SDL_EVENT_WINDOW_FOCUS_GAINED:
-            if (s_callbacks.on_focus_gained) s_callbacks.on_focus_gained();
+            if (s_callbacks.on_focus_gained)
+                s_callbacks.on_focus_gained();
             break;
 
         case SDL_EVENT_WINDOW_FOCUS_LOST:
-            if (s_callbacks.on_focus_lost) s_callbacks.on_focus_lost();
+            if (s_callbacks.on_focus_lost)
+                s_callbacks.on_focus_lost();
             break;
 
         case SDL_EVENT_WINDOW_MOVED:
-            if (s_callbacks.on_window_moved) s_callbacks.on_window_moved();
+            if (s_callbacks.on_window_moved)
+                s_callbacks.on_window_moved();
             break;
 
         // RESIZED fires on logical (point) size changes; PIXEL_SIZE_CHANGED
@@ -595,7 +723,8 @@ bool sdl3_poll_events()
         // s_resize_pending (no time-based debounce).
         case SDL_EVENT_WINDOW_RESIZED:
         case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-            if (s_callbacks.on_window_resized) s_callbacks.on_window_resized();
+            if (s_callbacks.on_window_resized)
+                s_callbacks.on_window_resized();
             break;
 
         // Queue gamepad connect/disconnect for sdl3_gamepad_poll_event().
@@ -605,13 +734,11 @@ bool sdl3_poll_events()
         // disambiguate.
         case SDL_EVENT_GAMEPAD_ADDED:
             if (s_gp_queue_count < GP_EVENT_QUEUE_SIZE)
-                s_gp_queue[s_gp_queue_count++] =
-                    { SDL3_GAMEPAD_EVENT_ADDED, (uint32_t)e.gdevice.which };
+                s_gp_queue[s_gp_queue_count++] = { SDL3_GAMEPAD_EVENT_ADDED, (uint32_t)e.gdevice.which };
             break;
         case SDL_EVENT_GAMEPAD_REMOVED:
             if (s_gp_queue_count < GP_EVENT_QUEUE_SIZE)
-                s_gp_queue[s_gp_queue_count++] =
-                    { SDL3_GAMEPAD_EVENT_REMOVED, (uint32_t)e.gdevice.which };
+                s_gp_queue[s_gp_queue_count++] = { SDL3_GAMEPAD_EVENT_REMOVED, (uint32_t)e.gdevice.which };
             break;
 
         default:
@@ -696,7 +823,8 @@ SDL3_GamepadHandle sdl3_gamepad_open()
 
 uint32_t sdl3_gamepad_instance_id(SDL3_GamepadHandle handle)
 {
-    if (!handle) return 0;
+    if (!handle)
+        return 0;
     SDL_JoystickID id = SDL_GetGamepadID(static_cast<SDL_Gamepad*>(handle));
     return (uint32_t)id;
 }
@@ -717,31 +845,47 @@ void sdl3_gamepad_close(SDL3_GamepadHandle handle)
 bool sdl3_gamepad_get_state(SDL3_GamepadHandle handle, SDL3_GamepadState* out)
 {
     SDL_Gamepad* gp = static_cast<SDL_Gamepad*>(handle);
-    if (!gp) return false;
+    if (!gp)
+        return false;
 
-    out->axis_left_x   = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_LEFTX);
-    out->axis_left_y   = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_LEFTY);
-    out->axis_right_x  = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_RIGHTX);
-    out->axis_right_y  = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_RIGHTY);
-    out->trigger_left  = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
+    out->axis_left_x = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_LEFTX);
+    out->axis_left_y = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_LEFTY);
+    out->axis_right_x = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_RIGHTX);
+    out->axis_right_y = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_RIGHTY);
+    out->trigger_left = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
     out->trigger_right = SDL_GetGamepadAxis(gp, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
 
     uint32_t btns = 0;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_SOUTH))          btns |= SDL3_BTN_SOUTH;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_EAST))           btns |= SDL3_BTN_EAST;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_WEST))           btns |= SDL3_BTN_WEST;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_NORTH))          btns |= SDL3_BTN_NORTH;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_BACK))           btns |= SDL3_BTN_BACK;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_GUIDE))          btns |= SDL3_BTN_GUIDE;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_START))          btns |= SDL3_BTN_START;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_LEFT_STICK))     btns |= SDL3_BTN_LEFT_STICK;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_RIGHT_STICK))    btns |= SDL3_BTN_RIGHT_STICK;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))  btns |= SDL3_BTN_LEFT_SHOULDER;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) btns |= SDL3_BTN_RIGHT_SHOULDER;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_UP))        btns |= SDL3_BTN_DPAD_UP;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_DOWN))      btns |= SDL3_BTN_DPAD_DOWN;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_LEFT))      btns |= SDL3_BTN_DPAD_LEFT;
-    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_RIGHT))     btns |= SDL3_BTN_DPAD_RIGHT;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_SOUTH))
+        btns |= SDL3_BTN_SOUTH;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_EAST))
+        btns |= SDL3_BTN_EAST;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_WEST))
+        btns |= SDL3_BTN_WEST;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_NORTH))
+        btns |= SDL3_BTN_NORTH;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_BACK))
+        btns |= SDL3_BTN_BACK;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_GUIDE))
+        btns |= SDL3_BTN_GUIDE;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_START))
+        btns |= SDL3_BTN_START;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_LEFT_STICK))
+        btns |= SDL3_BTN_LEFT_STICK;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_RIGHT_STICK))
+        btns |= SDL3_BTN_RIGHT_STICK;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER))
+        btns |= SDL3_BTN_LEFT_SHOULDER;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER))
+        btns |= SDL3_BTN_RIGHT_SHOULDER;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_UP))
+        btns |= SDL3_BTN_DPAD_UP;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_DOWN))
+        btns |= SDL3_BTN_DPAD_DOWN;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_LEFT))
+        btns |= SDL3_BTN_DPAD_LEFT;
+    if (SDL_GetGamepadButton(gp, SDL_GAMEPAD_BUTTON_DPAD_RIGHT))
+        btns |= SDL3_BTN_DPAD_RIGHT;
     out->buttons = btns;
 
     return true;
@@ -750,21 +894,24 @@ bool sdl3_gamepad_get_state(SDL3_GamepadHandle handle, SDL3_GamepadState* out)
 bool sdl3_gamepad_rumble(SDL3_GamepadHandle handle, uint16_t low_freq, uint16_t high_freq, uint32_t duration_ms)
 {
     SDL_Gamepad* gp = static_cast<SDL_Gamepad*>(handle);
-    if (!gp) return false;
+    if (!gp)
+        return false;
     return SDL_RumbleGamepad(gp, low_freq, high_freq, duration_ms);
 }
 
 uint16_t sdl3_gamepad_vendor_id(SDL3_GamepadHandle handle)
 {
     SDL_Gamepad* gp = static_cast<SDL_Gamepad*>(handle);
-    if (!gp) return 0;
+    if (!gp)
+        return 0;
     return SDL_GetGamepadVendor(gp);
 }
 
 uint16_t sdl3_gamepad_product_id(SDL3_GamepadHandle handle)
 {
     SDL_Gamepad* gp = static_cast<SDL_Gamepad*>(handle);
-    if (!gp) return 0;
+    if (!gp)
+        return 0;
     return SDL_GetGamepadProduct(gp);
 }
 

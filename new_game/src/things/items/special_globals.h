@@ -7,5 +7,4 @@
 // uc_orig: SPECIAL_info (fallen/Source/Special.cpp)
 extern SPECIAL_Info SPECIAL_info[SPECIAL_NUM_TYPES];
 
-
 #endif // THINGS_ITEMS_SPECIAL_GLOBALS_H

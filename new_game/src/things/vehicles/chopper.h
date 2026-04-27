@@ -7,7 +7,6 @@
 #include "things/core/state.h"
 #include "things/core/drawtype.h"
 
-
 struct Thing;
 
 // uc_orig: MAX_CHOPPERS (fallen/Headers/chopper.h)
@@ -40,26 +39,26 @@ struct Thing;
 // Per-chopper instance data stored in the_game.Choppers[].
 typedef struct
 {
-    Thing* thing;         // Back-pointer to the Thing.
-    Thing* target;        // Thing being tracked.
-    GameCoord home;       // Home position — returns here when not engaged.
-    ULONG dist;           // Distance to target (used for speed selection).
-    SLONG radius;         // Radius around home before homing state triggers.
-    SLONG patrol;         // Rotation counter for patrolling sub-state.
-    SLONG spotx, spotz;   // Beam target coordinates.
+    Thing* thing; // Back-pointer to the Thing.
+    Thing* target; // Thing being tracked.
+    GameCoord home; // Home position — returns here when not engaged.
+    ULONG dist; // Distance to target (used for speed selection).
+    SLONG radius; // Radius around home before homing state triggers.
+    SLONG patrol; // Rotation counter for patrolling sub-state.
+    SLONG spotx, spotz; // Beam target coordinates.
     SLONG spotdx, spotdz; // Beam target deltas.
-    SLONG dx, dy, dz;     // Motion vector applied each tick.
-    SLONG victim;         // EWAY person index to track.
-    SWORD rx, ry, rz;     // Rotation deltas.
-    UWORD counter;        // General-purpose timer.
-    UWORD rotors;         // Rotor rotation angle.
-    UWORD rotorspeed;     // Rotor spin speed.
-    UWORD speed;          // Preferred cruising speed.
-    UBYTE ChopperType;    // CHOPPER_CIVILIAN etc.
-    UBYTE rotorprim;      // Prim index for rotor blades.
-    UBYTE substate;       // Current sub-state.
-    UBYTE light;          // Spotlight brightness.
-    UBYTE since_takeoff;  // Ticks since takeoff (capped at 255).
+    SLONG dx, dy, dz; // Motion vector applied each tick.
+    SLONG victim; // EWAY person index to track.
+    SWORD rx, ry, rz; // Rotation deltas.
+    UWORD counter; // General-purpose timer.
+    UWORD rotors; // Rotor rotation angle.
+    UWORD rotorspeed; // Rotor spin speed.
+    UWORD speed; // Preferred cruising speed.
+    UBYTE ChopperType; // CHOPPER_CIVILIAN etc.
+    UBYTE rotorprim; // Prim index for rotor blades.
+    UBYTE substate; // Current sub-state.
+    UBYTE light; // Spotlight brightness.
+    UBYTE since_takeoff; // Ticks since takeoff (capped at 255).
     UBYTE padding;
 } Chopper;
 

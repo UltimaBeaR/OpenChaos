@@ -69,29 +69,29 @@ struct WidgetPoint {
 // uc_orig: Widget (fallen/Headers/widget.h)
 class Widget {
 public:
-    SLONG x, y, ox, oy;   // parent-relative bounding box
-    SLONG tag;             // opaque value for parent dialog proc
-    SLONG state;           // WIDGET_STATE_* flags
-    intptr_t data[5];      // widget-type-specific state (stores both ints and pointers)
-    CBYTE* caption;        // text label
-    Form* form;            // owning form
-    Methods* methods;      // virtual method table
-    Widget *prev, *next;   // doubly-linked list pointers
+    SLONG x, y, ox, oy; // parent-relative bounding box
+    SLONG tag; // opaque value for parent dialog proc
+    SLONG state; // WIDGET_STATE_* flags
+    intptr_t data[5]; // widget-type-specific state (stores both ints and pointers)
+    CBYTE* caption; // text label
+    Form* form; // owning form
+    Methods* methods; // virtual method table
+    Widget *prev, *next; // doubly-linked list pointers
 };
 
 // A dialog container that owns a list of widgets and drives input routing.
 // uc_orig: Form (fallen/Headers/widget.h)
 class Form {
 public:
-    SLONG x, y, ox, oy;    // screen-space bounding box
-    ULONG textcolour;       // RGBA text colour
-    SLONG returncode;       // non-zero signals dialog completion
-    SLONG age;              // ticks since creation (used for fade-in)
-    SLONG inverse;          // invert rendering flag
-    Widget* children;       // head of child widget list
-    Widget* focus;          // currently focused widget
-    FORM_Proc proc;         // dialog message handler
-    CBYTE caption[32];      // form title string
+    SLONG x, y, ox, oy; // screen-space bounding box
+    ULONG textcolour; // RGBA text colour
+    SLONG returncode; // non-zero signals dialog completion
+    SLONG age; // ticks since creation (used for fade-in)
+    SLONG inverse; // invert rendering flag
+    Widget* children; // head of child widget list
+    Widget* focus; // currently focused widget
+    FORM_Proc proc; // dialog message handler
+    CBYTE caption[32]; // form title string
 };
 
 // Form management.

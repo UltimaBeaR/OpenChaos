@@ -6,7 +6,7 @@
 
 #include <stdio.h>
 
-static int32_t s_width  = 640;
+static int32_t s_width = 640;
 static int32_t s_height = 480;
 
 // GLAD loader callback — forwards to SDL3's GL proc address.
@@ -75,11 +75,11 @@ void gl_context_swap()
     sdl3_gl_swap();
 }
 
-int32_t gl_context_get_width()  { return s_width; }
+int32_t gl_context_get_width() { return s_width; }
 int32_t gl_context_get_height() { return s_height; }
 
 void gl_context_set_size(int32_t width, int32_t height)
 {
-    s_width  = width;
+    s_width = width;
     s_height = height;
 }

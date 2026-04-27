@@ -35,11 +35,11 @@ extern void MAIN_main(void);
 void OS_joy_poll(void)
 {
     if (!gamepad_state.connected) {
-        OS_joy_x           = 0.0F;
-        OS_joy_y           = 0.0F;
-        OS_joy_button      = 0;
+        OS_joy_x = 0.0F;
+        OS_joy_y = 0.0F;
+        OS_joy_button = 0;
         OS_joy_button_down = 0;
-        OS_joy_button_up   = 0;
+        OS_joy_button_up = 0;
         return;
     }
 
@@ -48,7 +48,7 @@ void OS_joy_poll(void)
     OS_joy_y = (float(gamepad_state.lY) / 32768.0F) - 1.0F;
 
     ULONG last = OS_joy_button;
-    ULONG now  = 0;
+    ULONG now = 0;
 
     for (SLONG i = 0; i < 32; i++) {
         if (gamepad_state.rgbButtons[i] & 0x80) {
@@ -56,9 +56,9 @@ void OS_joy_poll(void)
         }
     }
 
-    OS_joy_button      = now;
+    OS_joy_button = now;
     OS_joy_button_down = now & ~last;
-    OS_joy_button_up   = last & ~now;
+    OS_joy_button_up = last & ~now;
 }
 
 // ========================================================
@@ -72,11 +72,12 @@ void OS_joy_poll(void)
 OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
 {
     OUTRO_TGA_Pixel* data;
-    OUTRO_TGA_Info   ti;
-    CBYTE            fullpath[_MAX_PATH];
+    OUTRO_TGA_Info ti;
+    CBYTE fullpath[_MAX_PATH];
 
     data = (OUTRO_TGA_Pixel*)malloc(256 * 256 * sizeof(OUTRO_TGA_Pixel));
-    if (data == NULL) return NULL;
+    if (data == NULL)
+        return NULL;
 
     sprintf(fullpath, OS_TEXTURE_DIR "%s", fname);
     ti = OUTRO_TGA_load(fullpath, 256, 256, data);
@@ -98,7 +99,7 @@ OS_Texture* OS_texture_create(CBYTE* fname, SLONG invert)
     }
 
     OGETexture tex = oge_texture_create(fname, ti.width, ti.height,
-                                         flags, (const uint8_t*)data, invert);
+        flags, (const uint8_t*)data, invert);
     free(data);
     return tex;
 }
@@ -160,21 +161,21 @@ void OS_camera_set(
     OS_cam_screen_x2 = screen_x2 * OS_screen_width;
     OS_cam_screen_y2 = screen_y2 * OS_screen_height;
 
-    OS_cam_screen_width  = OS_cam_screen_x2 - OS_cam_screen_x1;
+    OS_cam_screen_width = OS_cam_screen_x2 - OS_cam_screen_x1;
     OS_cam_screen_height = OS_cam_screen_y2 - OS_cam_screen_y1;
-    OS_cam_screen_mid_x  = OS_cam_screen_x1 + OS_cam_screen_width  * 0.5F;
-    OS_cam_screen_mid_y  = OS_cam_screen_y1 + OS_cam_screen_height * 0.5F;
-    OS_cam_screen_mul_x  = OS_cam_screen_width  * 0.5F / OS_ZCLIP_PLANE;
-    OS_cam_screen_mul_y  = OS_cam_screen_height * 0.5F / OS_ZCLIP_PLANE;
+    OS_cam_screen_mid_x = OS_cam_screen_x1 + OS_cam_screen_width * 0.5F;
+    OS_cam_screen_mid_y = OS_cam_screen_y1 + OS_cam_screen_height * 0.5F;
+    OS_cam_screen_mul_x = OS_cam_screen_width * 0.5F / OS_ZCLIP_PLANE;
+    OS_cam_screen_mul_y = OS_cam_screen_height * 0.5F / OS_ZCLIP_PLANE;
 
     OS_cam_x = world_x;
     OS_cam_y = world_y;
     OS_cam_z = world_z;
 
-    OS_cam_lens           = lens;
-    OS_cam_view_dist      = view_dist;
+    OS_cam_lens = lens;
+    OS_cam_view_dist = view_dist;
     OS_cam_over_view_dist = 1.0F / view_dist;
-    OS_cam_aspect         = OS_cam_screen_height / OS_cam_screen_width;
+    OS_cam_aspect = OS_cam_screen_height / OS_cam_screen_width;
 
     MATRIX_calc(OS_cam_matrix, yaw, pitch, roll);
 
@@ -275,13 +276,13 @@ typedef struct {
 // Full definition of OS_Buffer (opaque in the header).
 // uc_orig: os_buffer (fallen/outro/os.cpp)
 typedef struct os_buffer {
-    SLONG       num_flerts;
-    SLONG       num_indices;
-    SLONG       max_flerts;
-    SLONG       max_indices;
-    OS_Flert*   flert;
-    UWORD*      index;
-    OS_Buffer*  next;
+    SLONG num_flerts;
+    SLONG num_indices;
+    SLONG max_flerts;
+    SLONG max_indices;
+    OS_Flert* flert;
+    UWORD* index;
+    OS_Buffer* next;
 } OS_Buffer;
 
 // uc_orig: OS_buffer_create (fallen/outro/os.cpp)
@@ -289,15 +290,15 @@ OS_Buffer* OS_buffer_create(void)
 {
     OS_Buffer* ob = (OS_Buffer*)malloc(sizeof(OS_Buffer));
 
-    ob->max_flerts  = 256;
+    ob->max_flerts = 256;
     ob->max_indices = 1024;
-    ob->num_flerts  = 0;
+    ob->num_flerts = 0;
     ob->num_indices = 1;
-    ob->flert       = (OS_Flert*)malloc(sizeof(OS_Flert) * ob->max_flerts);
-    ob->index       = (UWORD*)malloc(sizeof(UWORD)      * ob->max_indices);
+    ob->flert = (OS_Flert*)malloc(sizeof(OS_Flert) * ob->max_flerts);
+    ob->index = (UWORD*)malloc(sizeof(UWORD) * ob->max_indices);
 
-    memset(ob->flert,  0, sizeof(OS_Flert) * ob->max_flerts);
-    memset(ob->index,  0, sizeof(UWORD)    * ob->max_indices);
+    memset(ob->flert, 0, sizeof(OS_Flert) * ob->max_flerts);
+    memset(ob->index, 0, sizeof(UWORD) * ob->max_indices);
 
     ob->next = NULL;
 
@@ -310,9 +311,9 @@ OS_Buffer* OS_buffer_get(void)
     OS_Buffer* ans;
 
     if (OS_buffer_free) {
-        ans              = OS_buffer_free;
-        OS_buffer_free   = OS_buffer_free->next;
-        ans->next        = NULL;
+        ans = OS_buffer_free;
+        OS_buffer_free = OS_buffer_free->next;
+        ans->next = NULL;
     } else {
         ans = OS_buffer_create();
     }
@@ -323,7 +324,7 @@ OS_Buffer* OS_buffer_get(void)
 // uc_orig: OS_buffer_give (fallen/outro/os.cpp)
 void OS_buffer_give(OS_Buffer* ob)
 {
-    ob->next       = OS_buffer_free;
+    ob->next = OS_buffer_free;
     OS_buffer_free = ob;
 }
 
@@ -332,7 +333,7 @@ OS_Buffer* OS_buffer_new(void)
 {
     OS_Buffer* ob = OS_buffer_get();
     ob->num_indices = 0;
-    ob->num_flerts  = 1;
+    ob->num_flerts = 1;
     return ob;
 }
 
@@ -365,16 +366,16 @@ void OS_buffer_add_vert(OS_Buffer* ob, OS_Vert* ov)
     of = &ob->flert[ob->num_flerts];
     ot = &OS_trans[ov->trans];
 
-    of->sx       = ot->X;
-    of->sy       = ot->Y;
-    of->sz       = 1.0F - ot->Z;
-    of->rhw      = ot->Z;
-    of->colour   = ov->colour;
+    of->sx = ot->X;
+    of->sy = ot->Y;
+    of->sz = 1.0F - ot->Z;
+    of->rhw = ot->Z;
+    of->colour = ov->colour;
     of->specular = ov->specular;
-    of->tu1      = ov->u1;
-    of->tv1      = ov->v1;
-    of->tu2      = ov->u2;
-    of->tv2      = ov->v2;
+    of->tu1 = ov->u1;
+    of->tv1 = ov->v1;
+    of->tu2 = ov->u2;
+    of->tv2 = ov->v2;
 
     ov->index = ob->num_flerts++;
 }
@@ -444,16 +445,16 @@ void OS_buffer_add_sprite(
     for (i = 0; i < 4; i++) {
         of = &ob->flert[ob->num_flerts + i];
 
-        of->sx       = ((i & 1) ? x1 : x2) * OS_screen_width;
-        of->sy       = ((i & 2) ? y1 : y2) * OS_screen_height;
-        of->sz       = z;
-        of->rhw      = 0.5F;
-        of->colour   = colour;
+        of->sx = ((i & 1) ? x1 : x2) * OS_screen_width;
+        of->sy = ((i & 2) ? y1 : y2) * OS_screen_height;
+        of->sz = z;
+        of->rhw = 0.5F;
+        of->colour = colour;
         of->specular = specular;
-        of->tu1      = ((i & 1) ? u1 : u2);
-        of->tv1      = ((i & 2) ? v1 : v2);
-        of->tu2      = ((i & 1) ? u1 : u2);
-        of->tv2      = ((i & 2) ? v1 : v2);
+        of->tu1 = ((i & 1) ? u1 : u2);
+        of->tv1 = ((i & 2) ? v1 : v2);
+        of->tu2 = ((i & 1) ? u1 : u2);
+        of->tv2 = ((i & 2) ? v1 : v2);
     }
 
     if (fade) {
@@ -483,7 +484,7 @@ void OS_buffer_add_sprite(
     ob->index[ob->num_indices + 5] = ob->num_flerts + 2;
 
     ob->num_indices += 6;
-    ob->num_flerts  += 4;
+    ob->num_flerts += 4;
 }
 
 // uc_orig: OS_buffer_add_sprite_arbitrary (fallen/outro/os.cpp)
@@ -516,26 +517,48 @@ void OS_buffer_add_sprite_arbitrary(
         of = &ob->flert[ob->num_flerts + i];
 
         switch (i) {
-        case 0: x = x1; y = y1; u = u1; v = v0; break;
-        case 1: x = x2; y = y2; u = u2; v = v2; break;
-        case 2: x = x3; y = y3; u = u3; v = v3; break;
-        case 3: x = x4; y = y4; u = u4; v = v4; break;
-        default: ASSERT(0); break;
+        case 0:
+            x = x1;
+            y = y1;
+            u = u1;
+            v = v0;
+            break;
+        case 1:
+            x = x2;
+            y = y2;
+            u = u2;
+            v = v2;
+            break;
+        case 2:
+            x = x3;
+            y = y3;
+            u = u3;
+            v = v3;
+            break;
+        case 3:
+            x = x4;
+            y = y4;
+            u = u4;
+            v = v4;
+            break;
+        default:
+            ASSERT(0);
+            break;
         }
 
         x *= OS_screen_width;
         y *= OS_screen_height;
 
-        of->sx       = x;
-        of->sy       = y;
-        of->sz       = z;
-        of->rhw      = 0.5F;
-        of->colour   = colour;
+        of->sx = x;
+        of->sy = y;
+        of->sz = z;
+        of->rhw = 0.5F;
+        of->colour = colour;
         of->specular = specular;
-        of->tu1      = u;
-        of->tv1      = v;
-        of->tu2      = u;
-        of->tv2      = v;
+        of->tu1 = u;
+        of->tv1 = v;
+        of->tu2 = u;
+        of->tv2 = v;
     }
 
     ob->index[ob->num_indices + 0] = ob->num_flerts + 0;
@@ -546,7 +569,7 @@ void OS_buffer_add_sprite_arbitrary(
     ob->index[ob->num_indices + 5] = ob->num_flerts + 2;
 
     ob->num_indices += 6;
-    ob->num_flerts  += 4;
+    ob->num_flerts += 4;
 }
 
 // uc_orig: OS_buffer_add_line_3d (fallen/outro/os.cpp)
@@ -588,22 +611,32 @@ void OS_buffer_add_line_3d(
         x = 0.0F;
         y = 0.0F;
 
-        if (i & 1) { x += -dy; y += +dx; }
-        else        { x -= -dy; y -= +dx; }
+        if (i & 1) {
+            x += -dy;
+            y += +dx;
+        } else {
+            x -= -dy;
+            y -= +dx;
+        }
 
-        if (i & 2) { x += X1;  y += Y1;  }
-        else        { x += X2;  y += Y2;  }
+        if (i & 2) {
+            x += X1;
+            y += Y1;
+        } else {
+            x += X2;
+            y += Y2;
+        }
 
-        of->sx       = x;
-        of->sy       = y;
-        of->sz       = ((i & 2) ? z1 : z2);
-        of->rhw      = 0.5F;
-        of->colour   = colour;
+        of->sx = x;
+        of->sy = y;
+        of->sz = ((i & 2) ? z1 : z2);
+        of->rhw = 0.5F;
+        of->colour = colour;
         of->specular = specular;
-        of->tu1      = ((i & 1) ? u1 : u2);
-        of->tv1      = ((i & 2) ? v1 : v2);
-        of->tu2      = ((i & 1) ? u1 : u2);
-        of->tv2      = ((i & 2) ? v1 : v2);
+        of->tu1 = ((i & 1) ? u1 : u2);
+        of->tv1 = ((i & 2) ? v1 : v2);
+        of->tu2 = ((i & 1) ? u1 : u2);
+        of->tv2 = ((i & 2) ? v1 : v2);
     }
 
     ob->index[ob->num_indices + 0] = ob->num_flerts + 0;
@@ -614,7 +647,7 @@ void OS_buffer_add_line_3d(
     ob->index[ob->num_indices + 5] = ob->num_flerts + 2;
 
     ob->num_indices += 6;
-    ob->num_flerts  += 4;
+    ob->num_flerts += 4;
 }
 
 // uc_orig: OS_buffer_add_line_2d (fallen/outro/os.cpp)
@@ -661,22 +694,32 @@ void OS_buffer_add_line_2d(
         x = 0.0F;
         y = 0.0F;
 
-        if (i & 1) { x += -dy; y += +dx; }
-        else        { x -= -dy; y -= +dx; }
+        if (i & 1) {
+            x += -dy;
+            y += +dx;
+        } else {
+            x -= -dy;
+            y -= +dx;
+        }
 
-        if (i & 2) { x += x1; y += y1; }
-        else        { x += x2; y += y2; }
+        if (i & 2) {
+            x += x1;
+            y += y1;
+        } else {
+            x += x2;
+            y += y2;
+        }
 
-        of->sx       = x;
-        of->sy       = y;
-        of->sz       = z;
-        of->rhw      = 0.5F;
-        of->colour   = colour;
+        of->sx = x;
+        of->sy = y;
+        of->sz = z;
+        of->rhw = 0.5F;
+        of->colour = colour;
         of->specular = specular;
-        of->tu1      = ((i & 1) ? u1 : u2);
-        of->tv1      = ((i & 2) ? v1 : v2);
-        of->tu2      = ((i & 1) ? u1 : u2);
-        of->tv2      = ((i & 2) ? v1 : v2);
+        of->tu1 = ((i & 1) ? u1 : u2);
+        of->tv1 = ((i & 2) ? v1 : v2);
+        of->tu2 = ((i & 1) ? u1 : u2);
+        of->tv2 = ((i & 2) ? v1 : v2);
     }
 
     ob->index[ob->num_indices + 0] = ob->num_flerts + 0;
@@ -687,7 +730,7 @@ void OS_buffer_add_line_2d(
     ob->index[ob->num_indices + 5] = ob->num_flerts + 2;
 
     ob->num_indices += 6;
-    ob->num_flerts  += 4;
+    ob->num_flerts += 4;
 }
 
 // Submits the buffer for rendering then returns it to the free pool.
@@ -730,11 +773,21 @@ void OS_hack(void)
     MUSIC_mode_process();
 
     switch (rand() % 5) {
-    case 0: sound = S_TUNE_COMBAT_TRAINING;   break;
-    case 1: sound = S_TUNE_DRIVING_TRAINING;  break;
-    case 2: sound = S_TUNE_CLUB_START;        break;
-    case 3: sound = S_TUNE_CLUB_END;          break;
-    case 4: sound = S_TUNE_ASSAULT_TRAINING;  break;
+    case 0:
+        sound = S_TUNE_COMBAT_TRAINING;
+        break;
+    case 1:
+        sound = S_TUNE_DRIVING_TRAINING;
+        break;
+    case 2:
+        sound = S_TUNE_CLUB_START;
+        break;
+    case 3:
+        sound = S_TUNE_CLUB_END;
+        break;
+    case 4:
+        sound = S_TUNE_ASSAULT_TRAINING;
+        break;
     }
 
     sound = S_CREDITS_LOOP;

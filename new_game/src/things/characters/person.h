@@ -3,9 +3,9 @@
 
 // Person subsystem: Person struct, flags, type constants, and full public API.
 
-#include "engine/platform/uc_common.h"                         // BOOL, SLONG, base types (pulls in Windows headers)
-#include "things/core/thing.h"               // Thing (needed for all function declarations)
-#include "things/characters/person_types.h"  // Person, PersonPtr, FLAG_PERSON_*, PERSON_* constants
+#include "engine/platform/uc_common.h" // BOOL, SLONG, base types (pulls in Windows headers)
+#include "things/core/thing.h" // Thing (needed for all function declarations)
+#include "things/characters/person_types.h" // Person, PersonPtr, FLAG_PERSON_*, PERSON_* constants
 #include "things/characters/person_globals.h"
 
 // Internal helpers — defined in person.cpp, declared here because
@@ -656,15 +656,15 @@ void fn_person_jumping(Thing* p_person);
 
 // Bitmask constants for check_limb_pos_on_ladder results.
 // uc_orig: PERSON_LIMB_ON_LADDER (fallen/Source/Person.cpp)
-#define PERSON_LIMB_ON_LADDER  (1 << 0)
+#define PERSON_LIMB_ON_LADDER (1 << 0)
 // uc_orig: PERSON_LIMB_TOP_BLOCK (fallen/Source/Person.cpp)
-#define PERSON_LIMB_TOP_BLOCK  (1 << 1)
+#define PERSON_LIMB_TOP_BLOCK (1 << 1)
 // uc_orig: PERSON_LIMB_BOT_BLOCK (fallen/Source/Person.cpp)
-#define PERSON_LIMB_BOT_BLOCK  (1 << 2)
+#define PERSON_LIMB_BOT_BLOCK (1 << 2)
 // uc_orig: PERSON_LIMB_OFF_TOP (fallen/Source/Person.cpp)
-#define PERSON_LIMB_OFF_TOP    (1 << 3)
+#define PERSON_LIMB_OFF_TOP (1 << 3)
 // uc_orig: PERSON_LIMB_OFF_BOT (fallen/Source/Person.cpp)
-#define PERSON_LIMB_OFF_BOT    (1 << 4)
+#define PERSON_LIMB_OFF_BOT (1 << 4)
 
 // Adjusts person Y so the given limb is at the top of the ladder facet.
 // uc_orig: position_person_at_ladder_top (fallen/Source/Person.cpp)
@@ -756,11 +756,11 @@ void fn_person_recoil(Thing* p_person);
 
 // Fall direction constants for fn_person_dying (returned by find_anim_fall_dir).
 // uc_orig: FALL_DIR_STRANGE_LAND (fallen/Source/Person.cpp)
-#define FALL_DIR_STRANGE_LAND   (-1)
+#define FALL_DIR_STRANGE_LAND (-1)
 // uc_orig: FALL_DIR_LAND_ON_FRONT (fallen/Source/Person.cpp)
-#define FALL_DIR_LAND_ON_FRONT  (0)
+#define FALL_DIR_LAND_ON_FRONT (0)
 // uc_orig: FALL_DIR_LAND_ON_BACK (fallen/Source/Person.cpp)
-#define FALL_DIR_LAND_ON_BACK   (1)
+#define FALL_DIR_LAND_ON_BACK (1)
 
 // Returns FALL_DIR_* for a dying animation (which way is the person falling?).
 // uc_orig: find_anim_fall_dir (fallen/Source/Person.cpp)

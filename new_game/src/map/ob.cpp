@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "assets/formats/anim_globals.h"   // next_prim_point, next_prim_face4
+#include "assets/formats/anim_globals.h" // next_prim_point, next_prim_face4
 #include "map/pap.h"
 #include "map/ob.h"
 #include "map/ob_globals.h"
@@ -11,7 +11,7 @@
 #include "engine/core/fmatrix.h"
 #include "world_objects/dirt.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
-#include "buildings/prim.h"       // slide_along_prim, get_prim_info
+#include "buildings/prim.h" // slide_along_prim, get_prim_info
 #include "map/level_pools.h"
 
 #include "engine/graphics/pipeline/poly.h"
@@ -155,10 +155,18 @@ void OB_process()
                 yaw = oo->yaw << 3;
 
                 switch (oo->flags >> 6) {
-                case 0: yaw += 1024 + 256; break;
-                case 1: yaw += 1024 - 256; break;
-                case 2: yaw += +256;        break;
-                case 3: yaw += -256;        break;
+                case 0:
+                    yaw += 1024 + 256;
+                    break;
+                case 1:
+                    yaw += 1024 - 256;
+                    break;
+                case 2:
+                    yaw += +256;
+                    break;
+                case 3:
+                    yaw += -256;
+                    break;
                 }
 
                 yaw &= 2047;
@@ -408,12 +416,18 @@ void OB_load_needed_prims()
             PrimObject* po = &prim_objects[SPECIAL_info[i].prim];
 
             for (j = po->StartPoint; j < po->EndPoint; j++) {
-                if (prim_points[j].X < min_x) min_x = prim_points[j].X;
-                if (prim_points[j].Y < min_y) min_y = prim_points[j].Y;
-                if (prim_points[j].Z < min_z) min_z = prim_points[j].Z;
-                if (prim_points[j].X > max_x) max_x = prim_points[j].X;
-                if (prim_points[j].Y > max_y) max_y = prim_points[j].Y;
-                if (prim_points[j].Z > max_z) max_z = prim_points[j].Z;
+                if (prim_points[j].X < min_x)
+                    min_x = prim_points[j].X;
+                if (prim_points[j].Y < min_y)
+                    min_y = prim_points[j].Y;
+                if (prim_points[j].Z < min_z)
+                    min_z = prim_points[j].Z;
+                if (prim_points[j].X > max_x)
+                    max_x = prim_points[j].X;
+                if (prim_points[j].Y > max_y)
+                    max_y = prim_points[j].Y;
+                if (prim_points[j].Z > max_z)
+                    max_z = prim_points[j].Z;
             }
 
             mid_x = min_x + max_x >> 1;
@@ -574,8 +588,7 @@ void OB_add_walkable_faces()
                                         pz &= ~0xff;
                                     }
 
-                                    if (!WITHIN(px, 0, (PAP_SIZE_HI << 8) - 1) ||
-                                        !WITHIN(pz, 0, (PAP_SIZE_HI << 8) - 1)) {
+                                    if (!WITHIN(px, 0, (PAP_SIZE_HI << 8) - 1) || !WITHIN(pz, 0, (PAP_SIZE_HI << 8) - 1)) {
                                         goto abandon_face;
                                     }
 
@@ -690,8 +703,7 @@ SLONG OB_find_type(
     for (mx = mx1; mx <= mx2; mx++)
         for (mz = mz1; mz <= mz2; mz++) {
             for (oi = OB_find(mx, mz); oi->prim; oi++) {
-                if ((prim_objects[oi->prim].flag & prim_flags) ||
-                    (prim_flags > 255 && special_object_flag(oi, prim_flags))) {
+                if ((prim_objects[oi->prim].flag & prim_flags) || (prim_flags > 255 && special_object_flag(oi, prim_flags))) {
                     dx = oi->x - mid_x;
                     dy = oi->y - mid_y;
                     dz = oi->z - mid_z;
@@ -724,7 +736,7 @@ SLONG OB_find_type(
 
 // uc_orig: OB_find_index (fallen/Source/ob.cpp)
 OB_Info* OB_find_index(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range,
-                       SLONG must_be_searchable)
+    SLONG must_be_searchable)
 {
     SLONG mx, mz;
     SLONG mx1, mz1, mx2, mz2;
@@ -795,14 +807,17 @@ void OB_damage(
             SLONG cprod = lx * from_dz - lz * from_dx;
 
             oo->flags &= 0x3f;
-            if (cprod > 0) oo->flags |= OB_FLAG_RESERVED1;
-            if (dprod > 0) oo->flags |= OB_FLAG_RESERVED2;
+            if (cprod > 0)
+                oo->flags |= OB_FLAG_RESERVED1;
+            if (dprod > 0)
+                oo->flags |= OB_FLAG_RESERVED2;
             oo->flags |= Random() & 0xc0;
 
         } else if (po->damage & PRIM_DAMAGE_CRUMPLE) {
             UBYTE crumple = oo->flags >> 6;
             crumple += 1;
-            if (crumple == 5) crumple = 3;
+            if (crumple == 5)
+                crumple = 3;
             oo->flags &= 0x3f;
             oo->flags |= crumple << 6;
         }
@@ -816,11 +831,10 @@ void OB_damage(
             oh->x = x;
             oh->z = z;
             MFX_play_xyz(MAX_THINGS + OB_hydrant_last, S_FIRE_HYDRANT, MFX_LOOPED,
-                         x << 8, PAP_calc_map_height_at(x, z) << 8, z << 8);
+                x << 8, PAP_calc_map_height_at(x, z) << 8, z << 8);
         }
 
-        if (((po->damage & PRIM_DAMAGE_EXPLODES) || (po->flag & PRIM_FLAG_LAMPOST)) &&
-            !(oo->flags & OB_FLAG_DAMAGED)) {
+        if (((po->damage & PRIM_DAMAGE_EXPLODES) || (po->flag & PRIM_FLAG_LAMPOST)) && !(oo->flags & OB_FLAG_DAMAGED)) {
             GameCoord pos;
             pos.X = x << 8;
             pos.Z = z << 8;
@@ -922,8 +936,7 @@ void OB_make_all_the_switches_be_at_the_proper_height()
                 {
                     // Clunk the Y of all walkways to the nearest 0x40 boundary.
                     for (i = 0; i < OB_ob_upto; i++) {
-                        if (OB_ob[i].prim == 29 || OB_ob[i].prim == 129 ||
-                            WITHIN(OB_ob[i].prim, 12, 17)) {
+                        if (OB_ob[i].prim == 29 || OB_ob[i].prim == 129 || WITHIN(OB_ob[i].prim, 12, 17)) {
                             OB_ob[i].y += 0x20;
                             OB_ob[i].y &= ~0x3f;
                         }

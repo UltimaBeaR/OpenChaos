@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_GEOMETRY_FARFACET_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/game_graphics_engine.h"   // GEVertexLit, GEMatrix
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // GEVertexLit, GEMatrix
 #include "engine/core/types.h"
 #include "map/pap.h"
 

@@ -129,10 +129,22 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
     }
     beta = DIV64(top, bot);
 
-    if (alpha < 0) { alpha = 0; on_face = 0; }
-    if (beta < 0) { beta = 0; on_face = 0; }
-    if (alpha > 0x10000) { alpha = 0x10000; on_face = 0; }
-    if (beta > 0x10000) { beta = 0x10000; on_face = 0; }
+    if (alpha < 0) {
+        alpha = 0;
+        on_face = 0;
+    }
+    if (beta < 0) {
+        beta = 0;
+        on_face = 0;
+    }
+    if (alpha > 0x10000) {
+        alpha = 0x10000;
+        on_face = 0;
+    }
+    if (beta > 0x10000) {
+        beta = 0x10000;
+        on_face = 0;
+    }
 
     if (alpha + beta > 0x10000) {
         // Other triangular half of the quad.
@@ -164,10 +176,22 @@ SLONG get_height_on_face_quad64_at(SLONG rx, SLONG rz, SWORD face, SLONG* height
         }
         beta = DIV64(top, bot);
 
-        if (alpha < 0) { alpha = 0; on_face = 0; }
-        if (beta < 0) { beta = 0; on_face = 0; }
-        if (alpha > 0x10000) { alpha = 0x10000; on_face = 0; }
-        if (beta > 0x10000) { beta = 0x10000; on_face = 0; }
+        if (alpha < 0) {
+            alpha = 0;
+            on_face = 0;
+        }
+        if (beta < 0) {
+            beta = 0;
+            on_face = 0;
+        }
+        if (alpha > 0x10000) {
+            alpha = 0x10000;
+            on_face = 0;
+        }
+        if (beta > 0x10000) {
+            beta = 0x10000;
+            on_face = 0;
+        }
 
         if (alpha + beta > 0x10000) {
             // Benign degenerate case; very rare.

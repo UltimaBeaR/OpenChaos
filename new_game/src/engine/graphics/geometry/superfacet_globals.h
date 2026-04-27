@@ -2,7 +2,7 @@
 #define ENGINE_GRAPHICS_GEOMETRY_SUPERFACET_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
-#include "engine/graphics/graphics_engine/game_graphics_engine.h"   // GEVertexLit, GEMatrix
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // GEVertexLit, GEMatrix
 #include "engine/core/types.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/lighting/night.h"
@@ -17,16 +17,16 @@
 // Per-texture draw call descriptor accumulated during facet caching.
 typedef struct
 {
-    UBYTE flag;         // SUPERFACET_CALL_FLAG_* bits
-    UBYTE dir;          // Facing direction of the facet (0-3)
-    UWORD quads;        // Number of quads in this call
-    UWORD lvert;        // Start index into SUPERFACET_lvert[]
-    UWORD lvertcount;   // Number of lit vertices used
-    UWORD index;        // Start index into SUPERFACET_index[]
-    UWORD indexcount;   // Number of indices used
-    UWORD index2;       // For 2-pass textures (second index list start)
+    UBYTE flag; // SUPERFACET_CALL_FLAG_* bits
+    UBYTE dir; // Facing direction of the facet (0-3)
+    UWORD quads; // Number of quads in this call
+    UWORD lvert; // Start index into SUPERFACET_lvert[]
+    UWORD lvertcount; // Number of lit vertices used
+    UWORD index; // Start index into SUPERFACET_index[]
+    UWORD indexcount; // Number of indices used
+    UWORD index2; // For 2-pass textures (second index list start)
 
-    GETextureHandle texture;       // Primary texture
+    GETextureHandle texture; // Primary texture
     GETextureHandle texture_2pass; // Secondary texture for 2-pass pages
 
 } SUPERFACET_Call;
@@ -39,7 +39,7 @@ typedef struct
 typedef struct
 {
     UWORD call; // Index into SUPERFACET_call[] of the first call for this facet
-    UWORD num;  // Number of calls for this facet
+    UWORD num; // Number of calls for this facet
 
 } SUPERFACET_Facet;
 

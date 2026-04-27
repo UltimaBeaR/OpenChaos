@@ -13,7 +13,6 @@
 // State dispatch table for Darci (the player-controlled character).
 extern StateFunction darci_states[];
 
-
 // uc_orig: just_started_falling_off_backwards (fallen/Source/Darci.cpp)
 // Set to UC_TRUE for one tick when Darci begins a backwards fall-off animation.
 // Read by slide_along during projectile_move_thing.

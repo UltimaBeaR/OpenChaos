@@ -34,7 +34,7 @@ typedef struct
     SBYTE dy;
     SBYTE dz;
     UBYTE next; // next spark in linked list (0 = end)
-    UBYTE die;  // counts down to 0; spark removed when die == 0
+    UBYTE die; // counts down to 0; spark removed when die == 0
     UBYTE useless_padding;
 } GLITTER_Spark;
 
@@ -42,11 +42,11 @@ typedef struct
 // uc_orig: GLITTER_Glitter (fallen/Source/glitter.cpp)
 typedef struct
 {
-    UBYTE flag;    // GLITTER_FLAG_* bitmask
-    UBYTE spark;   // head of this glitter's spark linked list
-    UBYTE next;    // next glitter in the same mapwho z-bucket
-    UBYTE map_x;   // map X anchor
-    UBYTE map_z;   // map Z anchor (indexes GLITTER_mapwho[])
+    UBYTE flag; // GLITTER_FLAG_* bitmask
+    UBYTE spark; // head of this glitter's spark linked list
+    UBYTE next; // next glitter in the same mapwho z-bucket
+    UBYTE map_x; // map X anchor
+    UBYTE map_z; // map Z anchor (indexes GLITTER_mapwho[])
     UBYTE red;
     UBYTE green;
     UBYTE blue;

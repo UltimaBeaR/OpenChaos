@@ -7,11 +7,11 @@
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "game/game_types.h"
-#include "things/core/thing_globals.h"  // playback_file, verifier_file
-#include "things/items/special.h"       // SPECIAL_* constants for weapon_feel
-#include "engine/input/weapon_feel.h"   // weapon_feel_pre_release_timer1
-#include "game/game_tick.h"                // process_controls
-#include "buildings/prim.h"    // clear_prims
+#include "things/core/thing_globals.h" // playback_file, verifier_file
+#include "things/items/special.h" // SPECIAL_* constants for weapon_feel
+#include "engine/input/weapon_feel.h" // weapon_feel_pre_release_timer1
+#include "game/game_tick.h" // process_controls
+#include "buildings/prim.h" // clear_prims
 
 // These modules are not yet fully migrated:
 #include "assets/formats/level_loader.h"
@@ -23,53 +23,53 @@
 #include "map/supermap.h"
 #include "effects/combat/pow.h"
 #include "ui/menus/widget.h"
-#include "missions/memory.h"         // MEMORY_quick_init, init_memory
+#include "missions/memory.h" // MEMORY_quick_init, init_memory
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "things/items/balloon.h"
 #include "engine/io/env.h"
 #include "navigation/wmove.h"
-#include "engine/console/console.h"  // CONSOLE_draw, CONSOLE_font
-#include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
-#include "assets/formats/tga.h"              // TGA_load, OpenTGAClump, CloseTGAClump
-#include "ui/hud/eng_map.h"  // MAP_process
-#include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
-#include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
-#include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
-#include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
-#include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
+#include "engine/console/console.h" // CONSOLE_draw, CONSOLE_font
+#include "engine/graphics/pipeline/poly.h" // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
+#include "assets/formats/tga.h" // TGA_load, OpenTGAClump, CloseTGAClump
+#include "ui/hud/eng_map.h" // MAP_process
+#include "engine/graphics/text/menufont.h" // MENUFONT_Draw
+#include "engine/core/timer.h" // BreakStart, BreakTime, BreakEnd, BreakFrame
+#include "engine/graphics/geometry/superfacet.h" // SUPERFACET_init, SUPERFACET_fini
+#include "engine/graphics/geometry/farfacet.h" // FARFACET_init, FARFACET_fini
+#include "engine/graphics/geometry/fastprim.h" // FASTPRIM_init, FASTPRIM_fini
 
-#include "assets/formats/elev.h"      // ELEV_load_user, ELEV_load_name, ELEV_fname_level
+#include "assets/formats/elev.h" // ELEV_load_user, ELEV_load_name, ELEV_fname_level
 #include "assets/formats/elev_globals.h"
-#include "missions/eway.h"      // EWAY_process, EWAY_grab_camera, EWAY_tutorial_string, EWAY_tutorial_counter
+#include "missions/eway.h" // EWAY_process, EWAY_grab_camera, EWAY_tutorial_string, EWAY_tutorial_counter
 #include "missions/eway_globals.h"
 
-#include "ui/frontend/attract.h"         // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
+#include "ui/frontend/attract.h" // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
 #include "ui/frontend/attract_globals.h" // go_into_game
 #include "ui/menus/gamemenu.h"
-#include "ui/hud/overlay.h"     // OVERLAY_handle
-#include "game/ui_render.h"     // ui_render_post_composition
-#include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
+#include "ui/hud/overlay.h" // OVERLAY_handle
+#include "game/ui_render.h" // ui_render_post_composition
+#include "engine/input/gamepad.h" // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
-#include "engine/debug/debug_help/debug_help.h"   // F1 debug hotkey legend
+#include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/crt_effect.h" // F2 CRT toggle
 #include "things/characters/anim_ids.h" // ANIM_HANDS_UP* for adaptive trigger check
 
-#include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
-#include "assets/formats/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
-#include "assets/texture.h"     // TEXTURE_load_needed
+#include "things/core/thing.h" // process_things, TICK_RATIO, TICK_SHIFT
+#include "assets/formats/anim.h" // ANIM_init, ANIM_fini, init_draw_tweens
+#include "assets/texture.h" // TEXTURE_load_needed
 
-#include "effects/environment/ribbon.h"     // RIBBON_process
-#include "effects/environment/tracks.h"     // (transitively)
+#include "effects/environment/ribbon.h" // RIBBON_process
+#include "effects/environment/tracks.h" // (transitively)
 #include "engine/effects/psystem.h" // PARTICLE_Run
 
 #include "world_objects/dirt.h"
 #include "things/items/grenade.h"
 #include "effects/weather/drip.h"
 #include "assets/xlat_str.h"
-#include "engine/graphics/text/font2d.h"  // FONT2D_DrawStringWrapTo
+#include "engine/graphics/text/font2d.h" // FONT2D_DrawStringWrapTo
 #include "engine/audio/music.h"
-#include "ui/hud/panel.h"  // PANEL_wide_top_person, PANEL_wide_bot_person
+#include "ui/hud/panel.h" // PANEL_wide_top_person, PANEL_wide_bot_person
 #include "ui/hud/panel_globals.h"
 #include "ui/frontend/frontend.h"
 #include "things/characters/snipe.h"
@@ -77,20 +77,20 @@
 #include "world_objects/door.h"
 #include "world_objects/puddle.h"
 
-#include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
+#include "engine/audio/sound.h" // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/pipeline/polypage.h"  // PolyPage::SetScaling (mode change callback)
-#include "engine/graphics/ui_coords.h"          // ui_coords::recompute (mode change callback)
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::SetScaling (mode change callback)
+#include "engine/graphics/ui_coords.h" // ui_coords::recompute (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_screen_shot, AENG_draw_messages
-#include "engine/input/keyboard.h"  // Keys, LastKey, KB_*
+#include "engine/input/keyboard.h" // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
-#include "engine/input/joystick.h"  // GetInputDevice, JOYSTICK
+#include "engine/input/joystick.h" // GetInputDevice, JOYSTICK
 #include "engine/input/joystick_globals.h"
 
 #include <math.h>
-#include <string.h>  // strstr
-#include <stdlib.h>  // exit, srand
+#include <string.h> // strstr
+#include <stdlib.h> // exit, srand
 
 extern BOOL allow_debug_keys;
 extern BOOL g_farfacet_debug;
@@ -150,12 +150,13 @@ static void game_render_states_reset()
 // TGA load callback: backend calls this to load texture pixels.
 // Game code handles TGA format; backend receives raw BGRA pixels.
 static bool game_tga_load(const char* name, uint32_t id, bool can_shrink,
-                           uint8_t** out_pixels, int32_t* out_width, int32_t* out_height,
-                           bool* out_contains_alpha)
+    uint8_t** out_pixels, int32_t* out_width, int32_t* out_height,
+    bool* out_contains_alpha)
 {
     // Allocate max-size buffer (256x256 BGRA).
     *out_pixels = (uint8_t*)MemAlloc(256 * 256 * 4);
-    if (!*out_pixels) return false;
+    if (!*out_pixels)
+        return false;
 
     TGA_Info ti = TGA_load(name, 256, 256, (TGA_Pixel*)*out_pixels, id, can_shrink ? UC_TRUE : UC_FALSE);
     if (!ti.valid) {
@@ -173,7 +174,8 @@ static bool game_tga_load(const char* name, uint32_t id, bool can_shrink,
 static void game_texture_reload_prepare(bool begin, const char* clump_file, size_t clump_size)
 {
     if (begin) {
-        if (clump_file && clump_file[0]) OpenTGAClump(clump_file, clump_size, true);
+        if (clump_file && clump_file[0])
+            OpenTGAClump(clump_file, clump_size, true);
     } else {
         CloseTGAClump();
     }
@@ -482,16 +484,16 @@ void lock_frame_rate(SLONG fps)
     // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
     static uint64_t tick1 = 0;
 
-    const uint64_t pc_freq   = sdl3_get_performance_frequency();     // counter ticks per second
-    const uint64_t target_pc = pc_freq / (uint32_t)fps;               // ticks per frame, exact
+    const uint64_t pc_freq = sdl3_get_performance_frequency(); // counter ticks per second
+    const uint64_t target_pc = pc_freq / (uint32_t)fps; // ticks per frame, exact
 
     // Sleep precision is typically 1-2 ms on modern OS (SDL3 uses Windows
     // high-resolution waitable timers / clock_nanosleep). 2 ms of tail spin
     // covers scheduler jitter without giving up the CPU savings.
-    const uint64_t SPIN_PC = pc_freq / 500;   // 2 ms in counter units (1/500 of a second)
+    const uint64_t SPIN_PC = pc_freq / 500; // 2 ms in counter units (1/500 of a second)
 
     for (;;) {
-        uint64_t now     = sdl3_get_performance_counter();
+        uint64_t now = sdl3_get_performance_counter();
         uint64_t elapsed = now - tick1;
 
         if (elapsed >= target_pc) {
@@ -625,8 +627,10 @@ SLONG special_keys(void)
             if (!f2_was_pressed) {
                 f2_was_pressed = true;
                 g_crt_enabled ^= 1;
-                if (g_crt_enabled) CONSOLE_text((CBYTE*)"CRT shader on",  3000);
-                else               CONSOLE_text((CBYTE*)"CRT shader off", 3000);
+                if (g_crt_enabled)
+                    CONSOLE_text((CBYTE*)"CRT shader on", 3000);
+                else
+                    CONSOLE_text((CBYTE*)"CRT shader off", 3000);
             }
         } else if (!Keys[KB_F2]) {
             f2_was_pressed = false;
@@ -945,175 +949,158 @@ round_again:;
             // input_debug_open.
             if (!input_debug_is_active()) {
 
-            // Update rumble motor decay and send to controller every frame.
-            gamepad_rumble_tick();
+                // Update rumble motor decay and send to controller every frame.
+                gamepad_rumble_tick();
 
-            // Update DualSense LED lightbar based on player health / siren.
-            // In pause menu — show default blue instead of health.
-            if (GAMEMENU_is_paused()) {
-                gamepad_led_reset();
-            } else {
-                Thing* darci = NET_PERSON(0);
-                if (darci && darci->Genus.Person) {
-                    float fraction;
-                    bool siren_on = false;
-                    if (darci->Genus.Person->InCar) {
-                        Thing* car = TO_THING(darci->Genus.Person->InCar);
-                        fraction = float(car->Genus.Vehicle->Health) * (1.0f / 300.0f);
-                        siren_on = car->Genus.Vehicle->Siren != 0;
-                    } else {
-                        float max_hp = (darci->Genus.Person->PersonType == PERSON_ROPER) ? 400.0f : 200.0f;
-                        fraction = float(darci->Genus.Person->Health) / max_hp;
-                    }
-                    gamepad_led_update(fraction, siren_on);
-                }
-            }
-
-            // Update DualSense adaptive triggers based on gameplay context.
-            if (GAMEMENU_is_paused()) {
-                gamepad_triggers_off();
-            } else {
-                Thing* darci_t = NET_PERSON(0);
-                if (darci_t && darci_t->Genus.Person) {
-                    bool in_car = darci_t->Genus.Person->InCar != 0;
-                    // Player has a firearm in hand. Two storage paths in the
-                    // original game: pistol uses FLAG_PERSON_GUN_OUT (no
-                    // Thing* — pistol is implicit), heavy weapons (AK47,
-                    // shotgun) live in SpecialUse with FLAG_PERSON_GUN_OUT
-                    // cleared (see set_person_draw_item in person.cpp).
-                    // Treat either as "gun out" for adaptive-trigger purposes.
-                    bool has_pistol_out = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
-                    bool has_heavy_out = false;
-                    // Also compute current_weapon here so we can look up the
-                    // WeaponFeelProfile early and branch on auto-fire below.
-                    int32_t current_weapon = SPECIAL_NONE;
-                    if (darci_t->Genus.Person->SpecialUse) {
-                        Thing* p_su = TO_THING(darci_t->Genus.Person->SpecialUse);
-                        if (p_su) {
-                            current_weapon = p_su->Genus.Special->SpecialType;
-                            has_heavy_out = (current_weapon == SPECIAL_AK47 ||
-                                             current_weapon == SPECIAL_SHOTGUN);
+                // Update DualSense LED lightbar based on player health / siren.
+                // In pause menu — show default blue instead of health.
+                if (GAMEMENU_is_paused()) {
+                    gamepad_led_reset();
+                } else {
+                    Thing* darci = NET_PERSON(0);
+                    if (darci && darci->Genus.Person) {
+                        float fraction;
+                        bool siren_on = false;
+                        if (darci->Genus.Person->InCar) {
+                            Thing* car = TO_THING(darci->Genus.Person->InCar);
+                            fraction = float(car->Genus.Vehicle->Health) * (1.0f / 300.0f);
+                            siren_on = car->Genus.Vehicle->Siren != 0;
+                        } else {
+                            float max_hp = (darci->Genus.Person->PersonType == PERSON_ROPER) ? 400.0f : 200.0f;
+                            fraction = float(darci->Genus.Person->Health) / max_hp;
                         }
+                        gamepad_led_update(fraction, siren_on);
                     }
-                    bool has_gun = has_pistol_out || has_heavy_out;
-                    // Cooldown signals taken directly from game state —
-                    // no wall-clock timers or per-weapon magic numbers.
-                    // Timer1 is the unified post-shot cooldown counter
-                    // for BOTH running and standing fire: set to the
-                    // shoot animation's derived tick count, decremented
-                    // in STATE_MOVEING SUB_STATE_RUNNING and in
-                    // STATE_GUN SUB_STATE_SHOOT_GUN (player only).
-                    // State is still checked so a frozen Timer1 left
-                    // over from a running shot the player interrupted
-                    // by stopping doesn't wrongly gate an unrelated
-                    // future state.
-                    //
-                    // Pre-release: motor mode=AIM_GUN turns on while
-                    // Timer1 is in the last couple of ticks of the
-                    // cooldown, so the HID packet has time to
-                    // propagate before the player's next press reaches
-                    // the click point. weapon_feel captures any remaining
-                    // Timer1 at fire as debt so average rate stays
-                    // pinned to the anim duration.
-                    const SLONG pre_release = weapon_feel_pre_release_timer1();
-                    const bool in_running_cooldown =
-                        (darci_t->State == STATE_MOVEING &&
-                         darci_t->Genus.Person->Timer1 > pre_release);
-                    const bool in_standing_cooldown =
-                        (darci_t->State == STATE_GUN &&
-                         darci_t->SubState == SUB_STATE_SHOOT_GUN &&
-                         darci_t->Genus.Person->Timer1 > pre_release);
-                    bool on_cooldown = in_running_cooldown || in_standing_cooldown;
+                }
 
-                    // States where the player physically can't fire. In these
-                    // states pulling R2 doesn't produce a shot, so there
-                    // shouldn't be a click either.
-                    SLONG st = darci_t->State;
-                    bool non_firing_state =
-                        st == STATE_JUMPING || st == STATE_FALLING ||
-                        st == STATE_DYING   || st == STATE_DEAD    ||
-                        st == STATE_DOWN    || st == STATE_HIT     ||
-                        st == STATE_HIT_RECOIL ||
-                        st == STATE_CLIMBING || st == STATE_CLIMB_LADDER ||
-                        st == STATE_DANGLING || st == STATE_GRAPPLING ||
-                        st == STATE_USE_SCENERY || st == STATE_CHANGE_LOCATION ||
-                        st == STATE_STAND_UP || st == STATE_FIGHTING ||
-                        st == STATE_FIGHT;
+                // Update DualSense adaptive triggers based on gameplay context.
+                if (GAMEMENU_is_paused()) {
+                    gamepad_triggers_off();
+                } else {
+                    Thing* darci_t = NET_PERSON(0);
+                    if (darci_t && darci_t->Genus.Person) {
+                        bool in_car = darci_t->Genus.Person->InCar != 0;
+                        // Player has a firearm in hand. Two storage paths in the
+                        // original game: pistol uses FLAG_PERSON_GUN_OUT (no
+                        // Thing* — pistol is implicit), heavy weapons (AK47,
+                        // shotgun) live in SpecialUse with FLAG_PERSON_GUN_OUT
+                        // cleared (see set_person_draw_item in person.cpp).
+                        // Treat either as "gun out" for adaptive-trigger purposes.
+                        bool has_pistol_out = (darci_t->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) != 0;
+                        bool has_heavy_out = false;
+                        // Also compute current_weapon here so we can look up the
+                        // WeaponFeelProfile early and branch on auto-fire below.
+                        int32_t current_weapon = SPECIAL_NONE;
+                        if (darci_t->Genus.Person->SpecialUse) {
+                            Thing* p_su = TO_THING(darci_t->Genus.Person->SpecialUse);
+                            if (p_su) {
+                                current_weapon = p_su->Genus.Special->SpecialType;
+                                has_heavy_out = (current_weapon == SPECIAL_AK47 || current_weapon == SPECIAL_SHOTGUN);
+                            }
+                        }
+                        bool has_gun = has_pistol_out || has_heavy_out;
+                        // Cooldown signals taken directly from game state —
+                        // no wall-clock timers or per-weapon magic numbers.
+                        // Timer1 is the unified post-shot cooldown counter
+                        // for BOTH running and standing fire: set to the
+                        // shoot animation's derived tick count, decremented
+                        // in STATE_MOVEING SUB_STATE_RUNNING and in
+                        // STATE_GUN SUB_STATE_SHOOT_GUN (player only).
+                        // State is still checked so a frozen Timer1 left
+                        // over from a running shot the player interrupted
+                        // by stopping doesn't wrongly gate an unrelated
+                        // future state.
+                        //
+                        // Pre-release: motor mode=AIM_GUN turns on while
+                        // Timer1 is in the last couple of ticks of the
+                        // cooldown, so the HID packet has time to
+                        // propagate before the player's next press reaches
+                        // the click point. weapon_feel captures any remaining
+                        // Timer1 at fire as debt so average rate stays
+                        // pinned to the anim duration.
+                        const SLONG pre_release = weapon_feel_pre_release_timer1();
+                        const bool in_running_cooldown = (darci_t->State == STATE_MOVEING && darci_t->Genus.Person->Timer1 > pre_release);
+                        const bool in_standing_cooldown = (darci_t->State == STATE_GUN && darci_t->SubState == SUB_STATE_SHOOT_GUN && darci_t->Genus.Person->Timer1 > pre_release);
+                        bool on_cooldown = in_running_cooldown || in_standing_cooldown;
 
-                    // Disable weapon trigger effect when target has surrendered (hands up)
-                    // or is an innocent cop — game will "talk" instead of shoot.
-                    // Only applies when the player is standing still: set_person_shoot
-                    // handles the surrender case (makes the target lie down / shows
-                    // "can't shoot cop") so no real shot fires — no click either.
-                    // On the run, set_person_running_shoot ignores target status and
-                    // always fires, so the click must still happen; we skip the
-                    // surrender gate in that state.
-                    // mag_empty: weapon's current clip is 0 (and the weapon
-                    // is one that has a clip to be empty). Used by the
-                    // adaptive trigger to switch from Machine to a
-                    // pistol-style Weapon25 click so the reload press
-                    // feels mechanical. Pistol also tracks ammo but its
-                    // own effect is already a click, so mag_empty
-                    // doesn't change anything for it (profile has
-                    // reload_click_strength=0).
-                    //
-                    // Extended mag_empty: also TRUE while the reload gate
-                    // is set. Without this extension, the hardware click
-                    // window is too short: the game detects PUNCH at the
-                    // Machine-start zone (r2=112) and immediately refills
-                    // the clip + sends mode=NONE, but the Weapon25 click
-                    // fires at the reload-click end zone (r2=168) —
-                    // trigger hasn't reached that point yet. Keeping the
-                    // Weapon25 effect active through the reload-gate
-                    // window (from reload press until next fire or R2
-                    // release) gives the hardware enough time to complete
-                    // the click.
-                    bool mag_empty = false;
-                    if (darci_t->Genus.Person->SpecialUse) {
-                        Thing* p_su2 = TO_THING(darci_t->Genus.Person->SpecialUse);
-                        if (p_su2 && p_su2->Genus.Special->ammo == 0) {
+                        // States where the player physically can't fire. In these
+                        // states pulling R2 doesn't produce a shot, so there
+                        // shouldn't be a click either.
+                        SLONG st = darci_t->State;
+                        bool non_firing_state = st == STATE_JUMPING || st == STATE_FALLING || st == STATE_DYING || st == STATE_DEAD || st == STATE_DOWN || st == STATE_HIT || st == STATE_HIT_RECOIL || st == STATE_CLIMBING || st == STATE_CLIMB_LADDER || st == STATE_DANGLING || st == STATE_GRAPPLING || st == STATE_USE_SCENERY || st == STATE_CHANGE_LOCATION || st == STATE_STAND_UP || st == STATE_FIGHTING || st == STATE_FIGHT;
+
+                        // Disable weapon trigger effect when target has surrendered (hands up)
+                        // or is an innocent cop — game will "talk" instead of shoot.
+                        // Only applies when the player is standing still: set_person_shoot
+                        // handles the surrender case (makes the target lie down / shows
+                        // "can't shoot cop") so no real shot fires — no click either.
+                        // On the run, set_person_running_shoot ignores target status and
+                        // always fires, so the click must still happen; we skip the
+                        // surrender gate in that state.
+                        // mag_empty: weapon's current clip is 0 (and the weapon
+                        // is one that has a clip to be empty). Used by the
+                        // adaptive trigger to switch from Machine to a
+                        // pistol-style Weapon25 click so the reload press
+                        // feels mechanical. Pistol also tracks ammo but its
+                        // own effect is already a click, so mag_empty
+                        // doesn't change anything for it (profile has
+                        // reload_click_strength=0).
+                        //
+                        // Extended mag_empty: also TRUE while the reload gate
+                        // is set. Without this extension, the hardware click
+                        // window is too short: the game detects PUNCH at the
+                        // Machine-start zone (r2=112) and immediately refills
+                        // the clip + sends mode=NONE, but the Weapon25 click
+                        // fires at the reload-click end zone (r2=168) —
+                        // trigger hasn't reached that point yet. Keeping the
+                        // Weapon25 effect active through the reload-gate
+                        // window (from reload press until next fire or R2
+                        // release) gives the hardware enough time to complete
+                        // the click.
+                        bool mag_empty = false;
+                        if (darci_t->Genus.Person->SpecialUse) {
+                            Thing* p_su2 = TO_THING(darci_t->Genus.Person->SpecialUse);
+                            if (p_su2 && p_su2->Genus.Special->ammo == 0) {
+                                mag_empty = true;
+                            }
+                        } else if (has_pistol_out && darci_t->Genus.Person->Ammo == 0) {
                             mag_empty = true;
                         }
-                    } else if (has_pistol_out && darci_t->Genus.Person->Ammo == 0) {
-                        mag_empty = true;
-                    }
-                    if (input_actions_ak47_reload_gate_set()) {
-                        mag_empty = true;
-                    }
+                        if (input_actions_ak47_reload_gate_set()) {
+                            mag_empty = true;
+                        }
 
-                    // Per-weapon trigger effect policy lives in weapon_feel.
-                    // Auto-fire (AK47 Machine): ON while in_shot_cycle —
-                    // represents recoil from real shots, so the pulse
-                    // dies when shooting stops. Additionally ON when
-                    // mag_empty AND the profile has a reload click
-                    // configured (gamepad swaps to Weapon25 with reload
-                    // params). Single-shot (pistol Weapon25): OFF while
-                    // in_shot_cycle (same gate as before — click can't
-                    // fire during cooldown), ON otherwise.
-                    // in_shot_cycle is the existing on_cooldown signal
-                    // (Timer1 > pre_release AND matching state).
-                    const bool trigger_effect_active =
-                        weapon_feel_trigger_effect_should_run(current_weapon, on_cooldown, mag_empty);
-                    bool weapon_ready = has_gun && !non_firing_state && trigger_effect_active;
-                    const bool is_running = (darci_t->State == STATE_MOVEING);
-                    if (weapon_ready && !is_running && darci_t->Genus.Person->Target) {
-                        Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
-                        if (tgt->Class == CLASS_PERSON) {
-                            SLONG anim = tgt->Draw.Tweened->CurrentAnim;
-                            if (anim == ANIM_HANDS_UP || anim == ANIM_HANDS_UP_LOOP) {
-                                weapon_ready = false;
-                            }
-                            if (tgt->Genus.Person->PersonType == PERSON_COP &&
-                                !(tgt->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
-                                weapon_ready = false;
+                        // Per-weapon trigger effect policy lives in weapon_feel.
+                        // Auto-fire (AK47 Machine): ON while in_shot_cycle —
+                        // represents recoil from real shots, so the pulse
+                        // dies when shooting stops. Additionally ON when
+                        // mag_empty AND the profile has a reload click
+                        // configured (gamepad swaps to Weapon25 with reload
+                        // params). Single-shot (pistol Weapon25): OFF while
+                        // in_shot_cycle (same gate as before — click can't
+                        // fire during cooldown), ON otherwise.
+                        // in_shot_cycle is the existing on_cooldown signal
+                        // (Timer1 > pre_release AND matching state).
+                        const bool trigger_effect_active = weapon_feel_trigger_effect_should_run(current_weapon, on_cooldown, mag_empty);
+                        bool weapon_ready = has_gun && !non_firing_state && trigger_effect_active;
+                        const bool is_running = (darci_t->State == STATE_MOVEING);
+                        if (weapon_ready && !is_running && darci_t->Genus.Person->Target) {
+                            Thing* tgt = TO_THING(darci_t->Genus.Person->Target);
+                            if (tgt->Class == CLASS_PERSON) {
+                                SLONG anim = tgt->Draw.Tweened->CurrentAnim;
+                                if (anim == ANIM_HANDS_UP || anim == ANIM_HANDS_UP_LOOP) {
+                                    weapon_ready = false;
+                                }
+                                if (tgt->Genus.Person->PersonType == PERSON_COP && !(tgt->Genus.Person->Flags2 & FLAG2_PERSON_GUILTY)) {
+                                    weapon_ready = false;
+                                }
                             }
                         }
-                    }
 
-                    // current_weapon computed up top alongside has_heavy_out.
-                    gamepad_triggers_update(in_car, weapon_ready, current_weapon, mag_empty);
+                        // current_weapon computed up top alongside has_heavy_out.
+                        gamepad_triggers_update(in_car, weapon_ready, current_weapon, mag_empty);
+                    }
                 }
-            }
 
             } // end of "!input_debug_is_active()" block — gamepad outputs
 
@@ -1174,11 +1161,17 @@ round_again:;
             if (strstr(ELEV_fname_level, "park2.ucm")) {
                 // MIB introduction cutscene after park2 mission.
                 stop_all_fx_and_music();
-                { extern void video_play_cutscene(int); video_play_cutscene(1); }
+                {
+                    extern void video_play_cutscene(int);
+                    video_play_cutscene(1);
+                }
             } else if (strstr(ELEV_fname_level, "Finale1.ucm")) {
                 // Final credits cutscene.
                 stop_all_fx_and_music();
-                { extern void video_play_cutscene(int); video_play_cutscene(3); }
+                {
+                    extern void video_play_cutscene(int);
+                    video_play_cutscene(3);
+                }
 
                 extern void OS_hack(void);
                 the_end = UC_TRUE;
@@ -1282,7 +1275,6 @@ round_again:;
 
     return 1;
 }
-
 
 // uc_orig: ResetSmoothTicks (fallen/Source/Game.cpp)
 void ResetSmoothTicks(void)

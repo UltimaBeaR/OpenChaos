@@ -21,9 +21,9 @@ static void write_crash_timestamp(FILE* f, const char* label)
     time_t raw = time(nullptr);
     struct tm* lt = localtime(&raw);
     fprintf(f, "%s at %04d-%02d-%02d %02d:%02d:%02d\n\n",
-            label,
-            lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
-            lt->tm_hour, lt->tm_min, lt->tm_sec);
+        label,
+        lt->tm_year + 1900, lt->tm_mon + 1, lt->tm_mday,
+        lt->tm_hour, lt->tm_min, lt->tm_sec);
 }
 
 static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
@@ -33,8 +33,9 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
     // For stack overflow: use a small static buffer and WriteFile as fallback,
     // since fprintf/localtime may need stack space we don't have.
     HANDLE hFile = CreateFileA("crash_log.txt", GENERIC_WRITE, 0, nullptr,
-                               CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (hFile == INVALID_HANDLE_VALUE) return EXCEPTION_CONTINUE_SEARCH;
+        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (hFile == INVALID_HANDLE_VALUE)
+        return EXCEPTION_CONTINUE_SEARCH;
 
     // Minimal header via WriteFile (no CRT, minimal stack usage).
     DWORD code = ep->ExceptionRecord->ExceptionCode;
@@ -47,16 +48,15 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
         SYSTEMTIME st;
         GetLocalTime(&st);
         len = wsprintfA(buf, "Crash (exception) at %04d-%02d-%02d %02d:%02d:%02d\r\n\r\n",
-                        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+            st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
         DWORD written;
         WriteFile(hFile, buf, len, &written, nullptr);
 
         len = wsprintfA(buf, "Exception: 0x%08lX (%s)\r\n",
-                        code,
-                        code == EXCEPTION_ACCESS_VIOLATION ? "ACCESS_VIOLATION" :
-                        code == EXCEPTION_INT_DIVIDE_BY_ZERO ? "INT_DIVIDE_BY_ZERO" :
-                        code == EXCEPTION_STACK_OVERFLOW ? "STACK_OVERFLOW" :
-                        "OTHER");
+            code,
+            code == EXCEPTION_ACCESS_VIOLATION ? "ACCESS_VIOLATION" : code == EXCEPTION_INT_DIVIDE_BY_ZERO ? "INT_DIVIDE_BY_ZERO"
+                : code == EXCEPTION_STACK_OVERFLOW                                                         ? "STACK_OVERFLOW"
+                                                                                                           : "OTHER");
         WriteFile(hFile, buf, len, &written, nullptr);
 
         len = wsprintfA(buf, "Address: 0x%p\r\n", ep->ExceptionRecord->ExceptionAddress);
@@ -69,7 +69,8 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
     CloseHandle(hFile);
 
     FILE* f = fopen("crash_log.txt", "a"); // append to what we wrote above
-    if (!f) return EXCEPTION_CONTINUE_SEARCH;
+    if (!f)
+        return EXCEPTION_CONTINUE_SEARCH;
 
     // RVA = crash address - module base
     HMODULE hMod = GetModuleHandle(nullptr);
@@ -81,9 +82,9 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
     // Access violation details
     if (code == EXCEPTION_ACCESS_VIOLATION && ep->ExceptionRecord->NumberParameters >= 2) {
         fprintf(f, "Access type: %s, target address: 0x%p\n",
-                ep->ExceptionRecord->ExceptionInformation[0] == 0 ? "READ" :
-                ep->ExceptionRecord->ExceptionInformation[0] == 1 ? "WRITE" : "EXECUTE",
-                (void*)ep->ExceptionRecord->ExceptionInformation[1]);
+            ep->ExceptionRecord->ExceptionInformation[0] == 0 ? "READ" : ep->ExceptionRecord->ExceptionInformation[0] == 1 ? "WRITE"
+                                                                                                                           : "EXECUTE",
+            (void*)ep->ExceptionRecord->ExceptionInformation[1]);
     }
 
     // Registers
@@ -111,7 +112,7 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
 
     for (int i = 0; i < 32; i++) {
         if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, hProcess, hThread, &sf, ctx,
-                         nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+                nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
             break;
         uintptr_t frame_rva = sf.AddrPC.Offset - base;
         // Try to resolve symbol name
@@ -122,7 +123,7 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
         DWORD64 displacement = 0;
         if (SymFromAddr(hProcess, sf.AddrPC.Offset, &displacement, sym)) {
             fprintf(f, "  [%2d] RVA 0x%08llx  %s+0x%llx\n", i,
-                    (unsigned long long)frame_rva, sym->Name, (unsigned long long)displacement);
+                (unsigned long long)frame_rva, sym->Name, (unsigned long long)displacement);
         } else {
             fprintf(f, "  [%2d] RVA 0x%08llx\n", i, (unsigned long long)frame_rva);
         }
@@ -137,15 +138,15 @@ static LONG WINAPI crash_exception_handler(EXCEPTION_POINTERS* ep)
 // Console event handler: catches Ctrl+C, console window close, logoff, shutdown.
 static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
 {
-    if (g_exit_log_written) return FALSE;
+    if (g_exit_log_written)
+        return FALSE;
     g_exit_log_written = true;
 
-    const char* desc =
-        ctrl_type == CTRL_C_EVENT        ? "Ctrl+C" :
-        ctrl_type == CTRL_BREAK_EVENT    ? "Ctrl+Break" :
-        ctrl_type == CTRL_CLOSE_EVENT    ? "Console window closed" :
-        ctrl_type == CTRL_LOGOFF_EVENT   ? "User logoff" :
-        ctrl_type == CTRL_SHUTDOWN_EVENT ? "System shutdown" : "Unknown console event";
+    const char* desc = ctrl_type == CTRL_C_EVENT ? "Ctrl+C" : ctrl_type == CTRL_BREAK_EVENT ? "Ctrl+Break"
+        : ctrl_type == CTRL_CLOSE_EVENT                                                     ? "Console window closed"
+        : ctrl_type == CTRL_LOGOFF_EVENT                                                    ? "User logoff"
+        : ctrl_type == CTRL_SHUTDOWN_EVENT                                                  ? "System shutdown"
+                                                                                            : "Unknown console event";
 
     FILE* f = fopen("crash_log.txt", "w");
     if (f) {
@@ -161,22 +162,27 @@ static BOOL WINAPI console_ctrl_handler(DWORD ctrl_type)
 // CRT invalid parameter handler: catches CRT assertion failures (e.g. from libraries).
 // Writes details to crash_log.txt before abort.
 static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
-                                       const wchar_t* file, unsigned int line, uintptr_t)
+    const wchar_t* file, unsigned int line, uintptr_t)
 {
     extern volatile bool g_exit_log_written;
-    if (g_exit_log_written) return;
+    if (g_exit_log_written)
+        return;
     g_exit_log_written = true;
 
     FILE* f = fopen("crash_log.txt", "w");
     if (f) {
         write_crash_timestamp(f, "Crash (CRT invalid parameter)");
-        if (expr) fprintf(f, "Expression: %ls\n", expr);
-        if (func) fprintf(f, "Function: %ls\n", func);
-        if (file) fprintf(f, "File: %ls line %u\n", file, line);
+        if (expr)
+            fprintf(f, "Expression: %ls\n", expr);
+        if (func)
+            fprintf(f, "Function: %ls\n", func);
+        if (file)
+            fprintf(f, "File: %ls line %u\n", file, line);
         fflush(f);
         fclose(f);
     }
-    if (expr) fprintf(stderr, "CRT invalid param: %ls (%ls:%u)\n", expr, file ? file : L"?", line);
+    if (expr)
+        fprintf(stderr, "CRT invalid param: %ls (%ls:%u)\n", expr, file ? file : L"?", line);
 }
 
 // CRT debug report hook: intercepts assert/error messages from CRT (debug builds).
@@ -184,10 +190,9 @@ static void crt_invalid_param_handler(const wchar_t* expr, const wchar_t* func,
 static int crt_report_hook(int report_type, char* message, int* return_value)
 {
     (void)return_value;
-    const char* type_str =
-        report_type == _CRT_WARN   ? "CRT_WARN" :
-        report_type == _CRT_ERROR  ? "CRT_ERROR" :
-        report_type == _CRT_ASSERT ? "CRT_ASSERT" : "CRT_UNKNOWN";
+    const char* type_str = report_type == _CRT_WARN ? "CRT_WARN" : report_type == _CRT_ERROR ? "CRT_ERROR"
+        : report_type == _CRT_ASSERT                                                         ? "CRT_ASSERT"
+                                                                                             : "CRT_UNKNOWN";
 
     // Write to crash_log.txt
     extern volatile bool g_exit_log_written;
@@ -197,16 +202,19 @@ static int crt_report_hook(int report_type, char* message, int* return_value)
         if (f) {
             write_crash_timestamp(f, "Crash (CRT assert)");
             fprintf(f, "Type: %s\n", type_str);
-            if (message) fprintf(f, "Message: %s\n", message);
+            if (message)
+                fprintf(f, "Message: %s\n", message);
             fflush(f);
             fclose(f);
         }
     }
 
-    if (message) fprintf(stderr, "%s: %s\n", type_str, message);
+    if (message)
+        fprintf(stderr, "%s: %s\n", type_str, message);
 
     // Return TRUE to skip the CRT debug dialog — go straight to abort().
-    if (return_value) *return_value = 0;
+    if (return_value)
+        *return_value = 0;
     return TRUE;
 }
 

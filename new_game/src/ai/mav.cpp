@@ -1,7 +1,7 @@
 // Platform header first: base types before any other headers.
 #include "engine/platform/uc_common.h"
-#include "engine/core/math.h"             // SIN, COS lookup tables
-#include "engine/core/fixed_math.h"       // MUL64
+#include "engine/core/math.h" // SIN, COS lookup tables
+#include "engine/core/fixed_math.h" // MUL64
 #include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"
 
@@ -17,8 +17,8 @@
 
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
-#include "buildings/prim_types.h"    // PrimInfo, RFACE_FLAG_NODRAW, RoofFace4
-#include "buildings/prim.h"         // get_prim_info, does_fence_lie_along_line
+#include "buildings/prim_types.h" // PrimInfo, RFACE_FLAG_NODRAW, RoofFace4
+#include "buildings/prim.h" // get_prim_info, does_fence_lie_along_line
 #include "buildings/building_types.h" // BUILDING_TYPE_WAREHOUSE, STOREY_TYPE_FENCE_FLAT, STOREY_TYPE_LADDER, FACET_FLAG_UNCLIMBABLE
 #include "map/level_pools.h"
 
@@ -164,7 +164,6 @@ void MAV_calc_height_array(SLONG ignore_warehouses)
             }
         }
 }
-
 
 // uc_orig: MAV_turn_off_whole_square (fallen/Source/mav.cpp)
 void MAV_turn_off_whole_square(
@@ -797,8 +796,7 @@ void MAV_precalculate()
                     continue;
                 }
 
-                if (PAP_on_slope((mx << 8) + 0x40, (mz << 8) + 0x40, &angle) > 100 ||
-                    PAP_on_slope((mx << 8) + 0xc0, (mz << 8) + 0xc0, &angle) > 100) {
+                if (PAP_on_slope((mx << 8) + 0x40, (mz << 8) + 0x40, &angle) > 100 || PAP_on_slope((mx << 8) + 0xc0, (mz << 8) + 0xc0, &angle) > 100) {
                     MAV_turn_off_whole_square(mx, mz);
                 }
             }
@@ -897,77 +895,77 @@ void MAV_draw(
     SATURATE(sz1, 0, MAP_HEIGHT - 1);
 
     for (x = sx1; x < sx2; x++)
-    for (z = sz1; z < sz2; z++) {
-        // Draw a blue cross at the height we think the square is at.
-        x1 = x + 0 << 8;
-        z1 = z + 0 << 8;
-        x2 = x + 1 << 8;
-        z2 = z + 1 << 8;
+        for (z = sz1; z < sz2; z++) {
+            // Draw a blue cross at the height we think the square is at.
+            x1 = x + 0 << 8;
+            z1 = z + 0 << 8;
+            x2 = x + 1 << 8;
+            z2 = z + 1 << 8;
 
-        y1 = MAVHEIGHT(x, z) << 6;
-        y2 = MAVHEIGHT(x, z) << 6;
+            y1 = MAVHEIGHT(x, z) << 6;
+            y2 = MAVHEIGHT(x, z) << 6;
 
-        AENG_world_line(
-            x1, y1, z1, 4, 0x00000077,
-            x2, y2, z2, 4, 0x00000077,
-            UC_TRUE);
+            AENG_world_line(
+                x1, y1, z1, 4, 0x00000077,
+                x2, y2, z2, 4, 0x00000077,
+                UC_TRUE);
 
-        AENG_world_line(
-            x2, y1, z1, 4, 0x00000077,
-            x1, y2, z2, 4, 0x00000077,
-            UC_TRUE);
+            AENG_world_line(
+                x2, y1, z1, 4, 0x00000077,
+                x1, y2, z2, 4, 0x00000077,
+                UC_TRUE);
 
-        // Draw options for leaving this square.
-        if (!ControlFlag) {
-            ASSERT(WITHIN(MAV_NAV(x, z), 0, MAV_opt_upto - 1));
+            // Draw options for leaving this square.
+            if (!ControlFlag) {
+                ASSERT(WITHIN(MAV_NAV(x, z), 0, MAV_opt_upto - 1));
 
-            mo = &MAV_opt[MAV_NAV(x, z)];
+                mo = &MAV_opt[MAV_NAV(x, z)];
 
-            mx = x1 + x2 >> 1;
-            mz = z1 + z2 >> 1;
+                mx = x1 + x2 >> 1;
+                mz = z1 + z2 >> 1;
 
-            for (i = 0; i < 4; i++) {
-                dx = order[i].dx;
-                dz = order[i].dz;
+                for (i = 0; i < 4; i++) {
+                    dx = order[i].dx;
+                    dz = order[i].dz;
 
-                lx = mx + dx * 96;
-                lz = mz + dz * 96;
+                    lx = mx + dx * 96;
+                    lz = mz + dz * 96;
 
-                lx += dz * (16 * 3);
-                lz += -dx * (16 * 3);
+                    lx += dz * (16 * 3);
+                    lz += -dx * (16 * 3);
 
-                for (j = 0; j < 8; j++) {
-                    if (mo->opt[i] & (1 << j)) {
+                    for (j = 0; j < 8; j++) {
+                        if (mo->opt[i] & (1 << j)) {
+                            AENG_world_line(
+                                mx, y1, mz, 0, 0,
+                                lx, y2, lz, 9, colour[j],
+                                UC_TRUE);
+                        }
+
+                        lx += -dz * 16;
+                        lz += +dx * 16;
+                    }
+                }
+            } else {
+                mx = x1 + x2 >> 1;
+                mz = z1 + z2 >> 1;
+
+                for (i = 0; i < 4; i++) {
+                    dx = order[i].dx;
+                    dz = order[i].dz;
+
+                    lx = mx + dx * 96;
+                    lz = mz + dz * 96;
+
+                    if (MAV_CAR_GOTO(x, z, i)) {
                         AENG_world_line(
                             mx, y1, mz, 0, 0,
-                            lx, y2, lz, 9, colour[j],
+                            lx, y2, lz, 9, colour[0],
                             UC_TRUE);
                     }
-
-                    lx += -dz * 16;
-                    lz += +dx * 16;
-                }
-            }
-        } else {
-            mx = x1 + x2 >> 1;
-            mz = z1 + z2 >> 1;
-
-            for (i = 0; i < 4; i++) {
-                dx = order[i].dx;
-                dz = order[i].dz;
-
-                lx = mx + dx * 96;
-                lz = mz + dz * 96;
-
-                if (MAV_CAR_GOTO(x, z, i)) {
-                    AENG_world_line(
-                        mx, y1, mz, 0, 0,
-                        lx, y2, lz, 9, colour[0],
-                        UC_TRUE);
                 }
             }
         }
-    }
 
     TRACE("MAV_opts_upto = %d\n", MAV_opt_upto);
 }
@@ -1236,7 +1234,7 @@ typedef struct
 {
     UBYTE x;
     UBYTE z;
-    UBYTE score;  // Lower is better (heuristic distance to goal).
+    UBYTE score; // Lower is better (heuristic distance to goal).
     UBYTE length; // Depth from start (capped at MAV_LOOKAHEAD).
 
 } PQ_Type;
@@ -1671,254 +1669,10 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
     OB_Info* oi;
 
     for (x = 0; x < PAP_SIZE_LO; x++)
-    for (z = 0; z < PAP_SIZE_LO; z++) {
-        for (oi = OB_find(x, z); oi->prim; oi++) {
-            if (oi->prim == 41) {
-                // The step prim — find which mapsquare its centre is over.
-                PrimInfo* pi = get_prim_info(oi->prim);
-
-                mx = pi->minx + pi->maxx >> 1;
-                mz = pi->minz + pi->maxz >> 1;
-
-                useangle = -oi->yaw;
-                useangle &= 2047;
-
-                sin_yaw = SIN(useangle);
-                cos_yaw = COS(useangle);
-
-                matrix[0] = cos_yaw;
-                matrix[1] = -sin_yaw;
-                matrix[2] = sin_yaw;
-                matrix[3] = cos_yaw;
-
-                rx = MUL64(mx, matrix[0]) + MUL64(mz, matrix[1]);
-                rz = MUL64(mx, matrix[2]) + MUL64(mz, matrix[3]);
-
-                rx += oi->x;
-                rz += oi->z;
-
-                rx >>= 8;
-                rz >>= 8;
-
-                if (WITHIN(rx, ww->minx, ww->maxx) &&
-                    WITHIN(rz, ww->minz, ww->maxz)) {
-                    MAVHEIGHT(rx, rz) = oi->y + 0x40 >> 6;
-                }
-            }
-        }
-    }
-
-    // Main pass: compute navigation options for each cell in the warehouse bounding box.
-    for (x = ww->minx; x <= ww->maxx; x++)
-    for (z = ww->minz; z <= ww->maxz; z++) {
-        mx = x - ww->minx;
-        mz = z - ww->minz;
-
-        // Look for a nearby ladder.
-        ladder = find_nearby_ladder_colvect_radius(
-                    (x << 8) + 0x80,
-                    (z << 8) + 0x80,
-                    0x100);
-
-        for (i = 0; i < 4; i++) {
-            opt[i] = 0;
-
-            dx = order[i].dx;
-            dz = order[i].dz;
-
-            tx = x + dx;
-            tz = z + dz;
-
-            if (!(PAP_2HI(x, z).Flags & PAP_FLAG_HIDDEN)) {
-                // This square is outside the warehouse.
-                continue;
-            }
-
-            if (!WITHIN(tx, ww->minx, ww->maxx) ||
-                !WITHIN(tz, ww->minz, ww->maxz)) {
-                // Cannot navigate in this direction — outside the warehouse.
-                continue;
-            }
-
-            if (!(PAP_2HI(tx, tz).Flags & PAP_FLAG_HIDDEN)) {
-                // Target square is outside the warehouse.
-                continue;
-            }
-
-            // Can we walk from (x,z) to (tx,tz)?
-            dh = MAVHEIGHT(tx, tz) - MAVHEIGHT(x, z);
-
-            if (abs(dh) > 1) {
-                // Different heights — can't just walk.
-                if (dh < 0) {
-                    // Lower target — check for wall/fence in the way.
-                    x1 = (x << 8) + 0x80;
-                    z1 = (z << 8) + 0x80;
-                    x2 = (tx << 8) + 0x80;
-                    z2 = (tz << 8) + 0x80;
-
-                    y1 = (MAVHEIGHT(x, z) << 6) + 0x50;
-                    y2 = (MAVHEIGHT(tx, tz) << 6) + 0x50;
-
-                    y = MAX(y1, y2);
-
-                    if (there_is_a_los(
-                            x1, y, z1,
-                            x2, y, z2,
-                            LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-                        // Can always fall down — nothing in the way.
-                        opt[i] |= MAV_CAPS_FALL_OFF;
-                    } else {
-                        // If there is a fence in the way, we might scale it.
-                        DFacet* df = &dfacets[los_failure_dfacet];
-
-                        if (df->FacetType == STOREY_TYPE_FENCE_FLAT) {
-                            if (df->FacetFlags & FACET_FLAG_UNCLIMBABLE) {
-                                // Unclimbable fence.
-                            } else {
-                                opt[i] |= MAV_CAPS_CLIMB_OVER;
-                            }
-                        }
-                    }
-                } else {
-                    if (WITHIN(dh, 3, 5)) {
-                        // Can pull up.
-                        opt[i] |= MAV_CAPS_PULLUP;
-                    }
-
-                    if (ladder) {
-                        DFacet* df_ladder;
-
-                        ASSERT(WITHIN(ladder, 1, next_dfacet - 1));
-
-                        df_ladder = &dfacets[ladder];
-
-                        ASSERT(df_ladder->FacetType == STOREY_TYPE_LADDER);
-
-                        // There is a ladder — can we climb up it in this direction?
-                        x1 = (x << 8) + 0x80;
-                        z1 = (z << 8) + 0x80;
-                        x2 = (tx << 8) + 0x80;
-                        z2 = (tz << 8) + 0x80;
-
-                        if (two4_line_intersection(
-                                x1, z1,
-                                x2, z2,
-                                df_ladder->x[0] << 8, df_ladder->z[0] << 8,
-                                df_ladder->x[1] << 8, df_ladder->z[1] << 8)) {
-                            opt[i] |= MAV_CAPS_LADDER_UP;
-                        }
-                    }
-                }
-            } else {
-                // Same or close height — check for wall/fence in the way.
-                x1 = (x << 8) + 0x80;
-                z1 = (z << 8) + 0x80;
-                x2 = (tx << 8) + 0x80;
-                z2 = (tz << 8) + 0x80;
-
-                y1 = (MAVHEIGHT(x, z) << 6) + 0x50;
-                y2 = (MAVHEIGHT(tx, tz) << 6) + 0x50;
-
-                y = MAX(y1, y2);
-
-                if (there_is_a_los(
-                        x1, y, z1,
-                        x2, y, z2,
-                        LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-                    // Nothing in the way.
-                    opt[i] |= MAV_CAPS_GOTO;
-                } else {
-                    // If there is a fence in the way, we might scale it.
-                    DFacet* df = &dfacets[los_failure_dfacet];
-
-                    if (df->FacetType == STOREY_TYPE_FENCE_FLAT) {
-                        if (df->FacetFlags & FACET_FLAG_UNCLIMBABLE) {
-                            // Unclimbable fence.
-                        } else {
-                            opt[i] |= MAV_CAPS_CLIMB_OVER;
-                        }
-                    }
-                }
-            }
-
-            // If no direct walk or fence-climb, try jump moves.
-            if (!(opt[i] & MAV_CAPS_GOTO) &&
-                !(opt[i] & MAV_CAPS_CLIMB_OVER)) {
-                // Try jumping one block.
-                tx += dx;
-                tz += dz;
-
-                if (WITHIN(tx, ww->minx, ww->maxx) &&
-                    WITHIN(tz, ww->minz, ww->maxz) &&
-                    (PAP_2HI(tx, tz).Flags & PAP_FLAG_HIDDEN)) {
-                    dh = MAVHEIGHT(tx, tz) - MAVHEIGHT(x, z);
-
-                    x1 = (x << 8) + 0x80;
-                    z1 = (z << 8) + 0x80;
-                    x2 = (tx << 8) + 0x80;
-                    z2 = (tz << 8) + 0x80;
-
-                    y1 = (MAVHEIGHT(x, z) << 6) + 0xa0;
-                    y2 = (MAVHEIGHT(tx, tz) << 6) + 0xa0;
-
-                    if (there_is_a_los(
-                            x1, y1, z1,
-                            x2, y2, z2,
-                            LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-                        if (dh < 2) {
-                            opt[i] |= MAV_CAPS_JUMP;
-                        } else {
-                            if (WITHIN(dh, 2, 5)) {
-                                opt[i] |= MAV_CAPS_JUMPPULL;
-                            }
-                        }
-                    }
-
-                    // Try jumping two blocks.
-                    tx += dx;
-                    tz += dz;
-
-                    if (WITHIN(tx, 0, MAP_WIDTH - 1) &&
-                        WITHIN(tz, 0, MAP_HEIGHT - 1)) {
-                        dh = MAVHEIGHT(tx, tz) - MAVHEIGHT(x, z);
-
-                        if (dh > 4) {
-                            // Can't make this jump.
-                        } else {
-                            if (dh > -6) {
-                                x1 = (x << 8) + 0x80;
-                                z1 = (z << 8) + 0x80;
-                                x2 = (tx << 8) + 0x80;
-                                z2 = (tz << 8) + 0x80;
-
-                                y1 = (MAVHEIGHT(x, z) << 6) + 0xa0;
-                                y2 = (MAVHEIGHT(tx, tz) << 6) + 0xa0;
-
-                                if (there_is_a_los(
-                                        x1, y1, z1,
-                                        x2, y2, z2,
-                                        LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-                                    opt[i] |= MAV_CAPS_JUMPPULL2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        StoreMavOpts(mx, mz, opt);
-    }
-
-    // Second pass: staircase prim hack — fix up movement directions around step prims.
-    for (x = 0; x < PAP_SIZE_LO; x++)
-    for (z = 0; z < PAP_SIZE_LO; z++) {
-        for (oi = OB_find(x, z); oi->prim; oi++) {
-            if (oi->prim == 41) {
-                // The step prim!
-                {
-                    // Find which mapsquare the middle of this prim is over.
+        for (z = 0; z < PAP_SIZE_LO; z++) {
+            for (oi = OB_find(x, z); oi->prim; oi++) {
+                if (oi->prim == 41) {
+                    // The step prim — find which mapsquare its centre is over.
                     PrimInfo* pi = get_prim_info(oi->prim);
 
                     mx = pi->minx + pi->maxx >> 1;
@@ -1944,61 +1698,299 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
                     rx >>= 8;
                     rz >>= 8;
 
-                    if (WITHIN(rx, ww->minx, ww->maxx) &&
-                        WITHIN(rz, ww->minz, ww->maxz)) {
-                        mx = rx - ww->minx;
-                        mz = rz - ww->minz;
+                    if (WITHIN(rx, ww->minx, ww->maxx) && WITHIN(rz, ww->minz, ww->maxz)) {
+                        MAVHEIGHT(rx, rz) = oi->y + 0x40 >> 6;
+                    }
+                }
+            }
+        }
 
-                        if (oi->yaw < 256 || oi->yaw > 1792 || WITHIN(oi->yaw, 768, 1280)) {
-                            if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx - 1, rz)) {
-                                // Walking left-right on a wide staircase.
-                            } else {
-                                MAV_turn_movement_off(mx, mz, MAV_DIR_XS);
-                                MAV_turn_movement_off(mx - 1, mz, MAV_DIR_XL);
-                            }
+    // Main pass: compute navigation options for each cell in the warehouse bounding box.
+    for (x = ww->minx; x <= ww->maxx; x++)
+        for (z = ww->minz; z <= ww->maxz; z++) {
+            mx = x - ww->minx;
+            mz = z - ww->minz;
 
-                            if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx + 1, rz)) {
-                                // Walking left-right on a wide staircase.
-                            } else {
-                                MAV_turn_movement_off(mx, mz, MAV_DIR_XL);
-                                MAV_turn_movement_off(mx + 1, mz, MAV_DIR_XS);
-                            }
+            // Look for a nearby ladder.
+            ladder = find_nearby_ladder_colvect_radius(
+                (x << 8) + 0x80,
+                (z << 8) + 0x80,
+                0x100);
 
-                            if (!WITHIN(oi->yaw, 768, 1280)) {
-                                if (MAVHEIGHT(rx, rz + 1) <= MAVHEIGHT(rx, rz) + 3) {
-                                    MAV_turn_movement_on(mx, mz, MAV_DIR_ZL);
-                                    MAV_turn_movement_on(mx, mz + 1, MAV_DIR_ZS);
-                                }
-                            } else {
-                                if (MAVHEIGHT(rx, rz - 1) <= MAVHEIGHT(rx, rz) + 3) {
-                                    MAV_turn_movement_on(mx, mz, MAV_DIR_ZS);
-                                    MAV_turn_movement_on(mx, mz - 1, MAV_DIR_ZL);
-                                }
-                            }
+            for (i = 0; i < 4; i++) {
+                opt[i] = 0;
+
+                dx = order[i].dx;
+                dz = order[i].dz;
+
+                tx = x + dx;
+                tz = z + dz;
+
+                if (!(PAP_2HI(x, z).Flags & PAP_FLAG_HIDDEN)) {
+                    // This square is outside the warehouse.
+                    continue;
+                }
+
+                if (!WITHIN(tx, ww->minx, ww->maxx) || !WITHIN(tz, ww->minz, ww->maxz)) {
+                    // Cannot navigate in this direction — outside the warehouse.
+                    continue;
+                }
+
+                if (!(PAP_2HI(tx, tz).Flags & PAP_FLAG_HIDDEN)) {
+                    // Target square is outside the warehouse.
+                    continue;
+                }
+
+                // Can we walk from (x,z) to (tx,tz)?
+                dh = MAVHEIGHT(tx, tz) - MAVHEIGHT(x, z);
+
+                if (abs(dh) > 1) {
+                    // Different heights — can't just walk.
+                    if (dh < 0) {
+                        // Lower target — check for wall/fence in the way.
+                        x1 = (x << 8) + 0x80;
+                        z1 = (z << 8) + 0x80;
+                        x2 = (tx << 8) + 0x80;
+                        z2 = (tz << 8) + 0x80;
+
+                        y1 = (MAVHEIGHT(x, z) << 6) + 0x50;
+                        y2 = (MAVHEIGHT(tx, tz) << 6) + 0x50;
+
+                        y = MAX(y1, y2);
+
+                        if (there_is_a_los(
+                                x1, y, z1,
+                                x2, y, z2,
+                                LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
+                            // Can always fall down — nothing in the way.
+                            opt[i] |= MAV_CAPS_FALL_OFF;
                         } else {
-                            if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx, rz - 1)) {
-                                // Walking across a wide staircase.
-                            } else {
-                                MAV_turn_movement_off(mx, mz, MAV_DIR_ZS);
-                                MAV_turn_movement_off(mx, mz - 1, MAV_DIR_ZL);
-                            }
+                            // If there is a fence in the way, we might scale it.
+                            DFacet* df = &dfacets[los_failure_dfacet];
 
-                            if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx, rz + 1)) {
-                                // Walking across a wide staircase.
-                            } else {
-                                MAV_turn_movement_off(mx, mz, MAV_DIR_ZL);
-                                MAV_turn_movement_off(mx, mz + 1, MAV_DIR_ZS);
+                            if (df->FacetType == STOREY_TYPE_FENCE_FLAT) {
+                                if (df->FacetFlags & FACET_FLAG_UNCLIMBABLE) {
+                                    // Unclimbable fence.
+                                } else {
+                                    opt[i] |= MAV_CAPS_CLIMB_OVER;
+                                }
                             }
+                        }
+                    } else {
+                        if (WITHIN(dh, 3, 5)) {
+                            // Can pull up.
+                            opt[i] |= MAV_CAPS_PULLUP;
+                        }
 
-                            if (!WITHIN(oi->yaw, 256, 768)) {
-                                if (MAVHEIGHT(rx - 1, rz) <= MAVHEIGHT(rx, rz) + 3) {
-                                    MAV_turn_movement_on(mx, mz, MAV_DIR_XS);
-                                    MAV_turn_movement_on(mx - 1, mz, MAV_DIR_XL);
+                        if (ladder) {
+                            DFacet* df_ladder;
+
+                            ASSERT(WITHIN(ladder, 1, next_dfacet - 1));
+
+                            df_ladder = &dfacets[ladder];
+
+                            ASSERT(df_ladder->FacetType == STOREY_TYPE_LADDER);
+
+                            // There is a ladder — can we climb up it in this direction?
+                            x1 = (x << 8) + 0x80;
+                            z1 = (z << 8) + 0x80;
+                            x2 = (tx << 8) + 0x80;
+                            z2 = (tz << 8) + 0x80;
+
+                            if (two4_line_intersection(
+                                    x1, z1,
+                                    x2, z2,
+                                    df_ladder->x[0] << 8, df_ladder->z[0] << 8,
+                                    df_ladder->x[1] << 8, df_ladder->z[1] << 8)) {
+                                opt[i] |= MAV_CAPS_LADDER_UP;
+                            }
+                        }
+                    }
+                } else {
+                    // Same or close height — check for wall/fence in the way.
+                    x1 = (x << 8) + 0x80;
+                    z1 = (z << 8) + 0x80;
+                    x2 = (tx << 8) + 0x80;
+                    z2 = (tz << 8) + 0x80;
+
+                    y1 = (MAVHEIGHT(x, z) << 6) + 0x50;
+                    y2 = (MAVHEIGHT(tx, tz) << 6) + 0x50;
+
+                    y = MAX(y1, y2);
+
+                    if (there_is_a_los(
+                            x1, y, z1,
+                            x2, y, z2,
+                            LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
+                        // Nothing in the way.
+                        opt[i] |= MAV_CAPS_GOTO;
+                    } else {
+                        // If there is a fence in the way, we might scale it.
+                        DFacet* df = &dfacets[los_failure_dfacet];
+
+                        if (df->FacetType == STOREY_TYPE_FENCE_FLAT) {
+                            if (df->FacetFlags & FACET_FLAG_UNCLIMBABLE) {
+                                // Unclimbable fence.
+                            } else {
+                                opt[i] |= MAV_CAPS_CLIMB_OVER;
+                            }
+                        }
+                    }
+                }
+
+                // If no direct walk or fence-climb, try jump moves.
+                if (!(opt[i] & MAV_CAPS_GOTO) && !(opt[i] & MAV_CAPS_CLIMB_OVER)) {
+                    // Try jumping one block.
+                    tx += dx;
+                    tz += dz;
+
+                    if (WITHIN(tx, ww->minx, ww->maxx) && WITHIN(tz, ww->minz, ww->maxz) && (PAP_2HI(tx, tz).Flags & PAP_FLAG_HIDDEN)) {
+                        dh = MAVHEIGHT(tx, tz) - MAVHEIGHT(x, z);
+
+                        x1 = (x << 8) + 0x80;
+                        z1 = (z << 8) + 0x80;
+                        x2 = (tx << 8) + 0x80;
+                        z2 = (tz << 8) + 0x80;
+
+                        y1 = (MAVHEIGHT(x, z) << 6) + 0xa0;
+                        y2 = (MAVHEIGHT(tx, tz) << 6) + 0xa0;
+
+                        if (there_is_a_los(
+                                x1, y1, z1,
+                                x2, y2, z2,
+                                LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
+                            if (dh < 2) {
+                                opt[i] |= MAV_CAPS_JUMP;
+                            } else {
+                                if (WITHIN(dh, 2, 5)) {
+                                    opt[i] |= MAV_CAPS_JUMPPULL;
+                                }
+                            }
+                        }
+
+                        // Try jumping two blocks.
+                        tx += dx;
+                        tz += dz;
+
+                        if (WITHIN(tx, 0, MAP_WIDTH - 1) && WITHIN(tz, 0, MAP_HEIGHT - 1)) {
+                            dh = MAVHEIGHT(tx, tz) - MAVHEIGHT(x, z);
+
+                            if (dh > 4) {
+                                // Can't make this jump.
+                            } else {
+                                if (dh > -6) {
+                                    x1 = (x << 8) + 0x80;
+                                    z1 = (z << 8) + 0x80;
+                                    x2 = (tx << 8) + 0x80;
+                                    z2 = (tz << 8) + 0x80;
+
+                                    y1 = (MAVHEIGHT(x, z) << 6) + 0xa0;
+                                    y2 = (MAVHEIGHT(tx, tz) << 6) + 0xa0;
+
+                                    if (there_is_a_los(
+                                            x1, y1, z1,
+                                            x2, y2, z2,
+                                            LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
+                                        opt[i] |= MAV_CAPS_JUMPPULL2;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            StoreMavOpts(mx, mz, opt);
+        }
+
+    // Second pass: staircase prim hack — fix up movement directions around step prims.
+    for (x = 0; x < PAP_SIZE_LO; x++)
+        for (z = 0; z < PAP_SIZE_LO; z++) {
+            for (oi = OB_find(x, z); oi->prim; oi++) {
+                if (oi->prim == 41) {
+                    // The step prim!
+                    {
+                        // Find which mapsquare the middle of this prim is over.
+                        PrimInfo* pi = get_prim_info(oi->prim);
+
+                        mx = pi->minx + pi->maxx >> 1;
+                        mz = pi->minz + pi->maxz >> 1;
+
+                        useangle = -oi->yaw;
+                        useangle &= 2047;
+
+                        sin_yaw = SIN(useangle);
+                        cos_yaw = COS(useangle);
+
+                        matrix[0] = cos_yaw;
+                        matrix[1] = -sin_yaw;
+                        matrix[2] = sin_yaw;
+                        matrix[3] = cos_yaw;
+
+                        rx = MUL64(mx, matrix[0]) + MUL64(mz, matrix[1]);
+                        rz = MUL64(mx, matrix[2]) + MUL64(mz, matrix[3]);
+
+                        rx += oi->x;
+                        rz += oi->z;
+
+                        rx >>= 8;
+                        rz >>= 8;
+
+                        if (WITHIN(rx, ww->minx, ww->maxx) && WITHIN(rz, ww->minz, ww->maxz)) {
+                            mx = rx - ww->minx;
+                            mz = rz - ww->minz;
+
+                            if (oi->yaw < 256 || oi->yaw > 1792 || WITHIN(oi->yaw, 768, 1280)) {
+                                if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx - 1, rz)) {
+                                    // Walking left-right on a wide staircase.
+                                } else {
+                                    MAV_turn_movement_off(mx, mz, MAV_DIR_XS);
+                                    MAV_turn_movement_off(mx - 1, mz, MAV_DIR_XL);
+                                }
+
+                                if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx + 1, rz)) {
+                                    // Walking left-right on a wide staircase.
+                                } else {
+                                    MAV_turn_movement_off(mx, mz, MAV_DIR_XL);
+                                    MAV_turn_movement_off(mx + 1, mz, MAV_DIR_XS);
+                                }
+
+                                if (!WITHIN(oi->yaw, 768, 1280)) {
+                                    if (MAVHEIGHT(rx, rz + 1) <= MAVHEIGHT(rx, rz) + 3) {
+                                        MAV_turn_movement_on(mx, mz, MAV_DIR_ZL);
+                                        MAV_turn_movement_on(mx, mz + 1, MAV_DIR_ZS);
+                                    }
+                                } else {
+                                    if (MAVHEIGHT(rx, rz - 1) <= MAVHEIGHT(rx, rz) + 3) {
+                                        MAV_turn_movement_on(mx, mz, MAV_DIR_ZS);
+                                        MAV_turn_movement_on(mx, mz - 1, MAV_DIR_ZL);
+                                    }
                                 }
                             } else {
-                                if (MAVHEIGHT(rx + 1, rz) <= MAVHEIGHT(rx, rz) + 3) {
-                                    MAV_turn_movement_on(mx, mz, MAV_DIR_XL);
-                                    MAV_turn_movement_on(mx + 1, mz, MAV_DIR_XS);
+                                if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx, rz - 1)) {
+                                    // Walking across a wide staircase.
+                                } else {
+                                    MAV_turn_movement_off(mx, mz, MAV_DIR_ZS);
+                                    MAV_turn_movement_off(mx, mz - 1, MAV_DIR_ZL);
+                                }
+
+                                if (MAVHEIGHT(rx, rz) == MAVHEIGHT(rx, rz + 1)) {
+                                    // Walking across a wide staircase.
+                                } else {
+                                    MAV_turn_movement_off(mx, mz, MAV_DIR_ZL);
+                                    MAV_turn_movement_off(mx, mz + 1, MAV_DIR_ZS);
+                                }
+
+                                if (!WITHIN(oi->yaw, 256, 768)) {
+                                    if (MAVHEIGHT(rx - 1, rz) <= MAVHEIGHT(rx, rz) + 3) {
+                                        MAV_turn_movement_on(mx, mz, MAV_DIR_XS);
+                                        MAV_turn_movement_on(mx - 1, mz, MAV_DIR_XL);
+                                    }
+                                } else {
+                                    if (MAVHEIGHT(rx + 1, rz) <= MAVHEIGHT(rx, rz) + 3) {
+                                        MAV_turn_movement_on(mx, mz, MAV_DIR_XL);
+                                        MAV_turn_movement_on(mx + 1, mz, MAV_DIR_XS);
+                                    }
                                 }
                             }
                         }
@@ -2006,7 +1998,6 @@ void MAV_precalculate_warehouse_nav(UBYTE ware)
                 }
             }
         }
-    }
 
     // Restore city grid pointer.
     MAV_nav = old_mav_nav;

@@ -9,21 +9,21 @@
 // uc_orig: DIJOYSTATE (DirectInput) — GamepadState mirrors the fields that game code uses,
 // with the same value ranges (lX/lY: 0..65535, center 32768; rgbButtons: 0x80 = pressed).
 struct GamepadState {
-    int32_t lX;            // left stick X, 0..65535 (center 32768)
-    int32_t lY;            // left stick Y, 0..65535 (center 32768)
-    int32_t rX;            // right stick X, 0..65535 (center 32768)
-    int32_t rY;            // right stick Y, 0..65535 (center 32768)
+    int32_t lX; // left stick X, 0..65535 (center 32768)
+    int32_t lY; // left stick Y, 0..65535 (center 32768)
+    int32_t rX; // right stick X, 0..65535 (center 32768)
+    int32_t rY; // right stick Y, 0..65535 (center 32768)
     uint8_t rgbButtons[32]; // 0x80 = pressed, compatible with DIJOYSTATE
-    uint8_t trigger_left;  // L2 analog: 0 (released) .. 255 (fully pressed)
+    uint8_t trigger_left; // L2 analog: 0 (released) .. 255 (fully pressed)
     uint8_t trigger_right; // R2 analog: 0 (released) .. 255 (fully pressed)
     bool connected;
-    bool dpad_active;      // true when D-Pad is providing axis values (digital, not analog)
+    bool dpad_active; // true when D-Pad is providing axis values (digital, not analog)
 };
 
 enum InputDeviceType {
     INPUT_DEVICE_KEYBOARD_MOUSE,
-    INPUT_DEVICE_XBOX,       // Xbox / generic gamepad (via SDL3)
-    INPUT_DEVICE_DUALSENSE,  // DualSense (via libDualsense)
+    INPUT_DEVICE_XBOX, // Xbox / generic gamepad (via SDL3)
+    INPUT_DEVICE_DUALSENSE, // DualSense (via libDualsense)
 };
 
 void gamepad_init();
@@ -79,7 +79,6 @@ void gamepad_led_update(float health_fraction, bool siren);
 // Call once per game tick.
 void gamepad_triggers_update(bool in_car, bool weapon_ready, int32_t current_weapon, bool mag_empty);
 
-
 // Disable all adaptive trigger effects. Call on pause, menu, death, level transition.
 void gamepad_triggers_off();
 
@@ -105,11 +104,10 @@ void gamepad_consume_until_released(uint8_t button_index);
 // stay 0/false on other devices.
 uint8_t gamepad_get_right_trigger_feedback_state();
 uint8_t gamepad_get_left_trigger_feedback_state();
-bool    gamepad_get_right_trigger_effect_active();
-bool    gamepad_get_left_trigger_effect_active();
+bool gamepad_get_right_trigger_effect_active();
+bool gamepad_get_left_trigger_effect_active();
 
 // True iff the DualSense adaptive trigger Weapon25 click is currently
 // active on the hardware (i.e. the trigger state machine is in AIM_GUN
 // mode, not NONE/CAR). Reflects the most recent state set by
 // gamepad_triggers_update. Returns false for non-DualSense devices
-

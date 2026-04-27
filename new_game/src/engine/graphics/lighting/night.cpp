@@ -9,9 +9,8 @@
 #include "buildings/ware_globals.h"
 #include "ai/mav.h"
 #include "buildings/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_LAMPOST
-#include "buildings/prim.h"       // get_prim_info
+#include "buildings/prim.h" // get_prim_info
 #include "engine/io/file.h"
-
 
 // uc_orig: NIGHT_Precalc (fallen/Source/night.cpp)
 // Precalculated normal + height per hi-map point for NIGHT_light_mapsquare.
@@ -26,8 +25,6 @@ typedef struct
 
 // uc_orig: NIGHT_Preblock (fallen/Source/night.cpp)
 typedef NIGHT_Precalc NIGHT_Preblock[PAP_BLOCKS];
-
-
 
 // uc_orig: NIGHT_Point (fallen/Source/night.cpp)
 // World-space point with normal, used in NIGHT_light_prim.
@@ -282,10 +279,14 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
     mx2 = lo_map_x + 1;
     mz2 = lo_map_z + 1;
 
-    if (mx1 < 0) mx1 = 0;
-    if (mz1 < 0) mz1 = 0;
-    if (mx2 >= PAP_SIZE_LO - 1) mx2 = PAP_SIZE_LO - 1;
-    if (mz2 >= PAP_SIZE_LO - 1) mz2 = PAP_SIZE_LO - 1;
+    if (mx1 < 0)
+        mx1 = 0;
+    if (mz1 < 0)
+        mz1 = 0;
+    if (mx2 >= PAP_SIZE_LO - 1)
+        mx2 = PAP_SIZE_LO - 1;
+    if (mz2 >= PAP_SIZE_LO - 1)
+        mz2 = PAP_SIZE_LO - 1;
 
     // Apply static lights from neighbouring squares.
     for (mx = mx1; mx <= mx2; mx++)
@@ -321,15 +322,23 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
                         x2 -= hi_map_x;
                         z2 -= hi_map_z;
 
-                        if (x1 > PAP_BLOCKS - 1) continue;
-                        if (z1 > PAP_BLOCKS - 1) continue;
-                        if (x2 < 0) continue;
-                        if (z2 < 0) continue;
+                        if (x1 > PAP_BLOCKS - 1)
+                            continue;
+                        if (z1 > PAP_BLOCKS - 1)
+                            continue;
+                        if (x2 < 0)
+                            continue;
+                        if (z2 < 0)
+                            continue;
 
-                        if (x1 < 0) x1 = 0;
-                        if (z1 < 0) z1 = 0;
-                        if (x2 > PAP_BLOCKS - 1) x2 = PAP_BLOCKS - 1;
-                        if (z2 > PAP_BLOCKS - 1) z2 = PAP_BLOCKS - 1;
+                        if (x1 < 0)
+                            x1 = 0;
+                        if (z1 < 0)
+                            z1 = 0;
+                        if (x2 > PAP_BLOCKS - 1)
+                            x2 = PAP_BLOCKS - 1;
+                        if (z2 > PAP_BLOCKS - 1)
+                            z2 = PAP_BLOCKS - 1;
 
                         for (x = x1; x <= x2; x++)
                             for (z = z1; z <= z2; z++) {
@@ -399,15 +408,23 @@ void NIGHT_light_mapsquare(SLONG lo_map_x, SLONG lo_map_z, NIGHT_Colour* colour,
         x2 -= hi_map_x;
         z2 -= hi_map_z;
 
-        if (x1 > PAP_BLOCKS - 1) continue;
-        if (z1 > PAP_BLOCKS - 1) continue;
-        if (x2 < 0) continue;
-        if (z2 < 0) continue;
+        if (x1 > PAP_BLOCKS - 1)
+            continue;
+        if (z1 > PAP_BLOCKS - 1)
+            continue;
+        if (x2 < 0)
+            continue;
+        if (z2 < 0)
+            continue;
 
-        if (x1 < 0) x1 = 0;
-        if (z1 < 0) z1 = 0;
-        if (x2 > PAP_BLOCKS - 1) x2 = PAP_BLOCKS - 1;
-        if (z2 > PAP_BLOCKS - 1) z2 = PAP_BLOCKS - 1;
+        if (x1 < 0)
+            x1 = 0;
+        if (z1 < 0)
+            z1 = 0;
+        if (x2 > PAP_BLOCKS - 1)
+            x2 = PAP_BLOCKS - 1;
+        if (z2 > PAP_BLOCKS - 1)
+            z2 = PAP_BLOCKS - 1;
 
         for (x = x1; x <= x2; x++)
             for (z = z1; z <= z2; z++) {
@@ -597,10 +614,14 @@ void NIGHT_light_prim(SLONG prim, SLONG prim_x, SLONG prim_y, SLONG prim_z, SLON
     xmax = xmid + 1;
     zmax = zmid + 1;
 
-    if (xmin < 0) xmin = 0;
-    if (zmin < 0) zmin = 0;
-    if (xmax > PAP_SIZE_LO - 1) xmax = PAP_SIZE_LO - 1;
-    if (zmax > PAP_SIZE_LO - 1) zmax = PAP_SIZE_LO - 1;
+    if (xmin < 0)
+        xmin = 0;
+    if (zmin < 0)
+        zmin = 0;
+    if (xmax > PAP_SIZE_LO - 1)
+        xmax = PAP_SIZE_LO - 1;
+    if (zmax > PAP_SIZE_LO - 1)
+        zmax = PAP_SIZE_LO - 1;
 
     for (mz = zmin; mz <= zmax; mz++) {
         for (mx = xmin; mx <= xmax; mx++) {
@@ -920,10 +941,14 @@ static void NIGHT_dlight_squares_do(SLONG subtract)
                     x2 -= hi_map_x;
                     z2 -= hi_map_z;
 
-                    if (x1 < 0) x1 = 0;
-                    if (z1 < 0) z1 = 0;
-                    if (x2 > PAP_BLOCKS - 1) x2 = PAP_BLOCKS - 1;
-                    if (z2 > PAP_BLOCKS - 1) z2 = PAP_BLOCKS - 1;
+                    if (x1 < 0)
+                        x1 = 0;
+                    if (z1 < 0)
+                        z1 = 0;
+                    if (x2 > PAP_BLOCKS - 1)
+                        x2 = PAP_BLOCKS - 1;
+                    if (z2 > PAP_BLOCKS - 1)
+                        z2 = PAP_BLOCKS - 1;
 
                     for (x = x1; x <= x2; x++)
                         for (z = z1; z <= z2; z++) {
@@ -1219,7 +1244,8 @@ void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE ware)
     nq->sizeof_colour = memory;
 
     ASSERT(nq->colour);
-    if (nq->colour == NULL) return;
+    if (nq->colour == NULL)
+        return;
 
     NIGHT_light_mapsquare(lo_map_x, lo_map_z, nq->colour, 0, 0);
 

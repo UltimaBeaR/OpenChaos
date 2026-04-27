@@ -5,7 +5,7 @@
 #include "engine/graphics/geometry/fastprim.h"
 #include "engine/graphics/geometry/fastprim_globals.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "buildings/prim_types.h"    // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
+#include "buildings/prim_types.h" // PrimFace3/4, PrimObject, FACE_FLAG_*, PRIM_FLAG_*
 
 // uc_orig: FASTPRIM_init (fallen/DDEngine/Source/fastprim.cpp)
 void FASTPRIM_init()

@@ -112,7 +112,7 @@ CRINKLE_Handle CRINKLE_read_bin(FileClump* tclump, int id)
     {
         static const size_t CRINKLE_CRINKLE_DISK_SIZE = 16;
         cc->num_points = *(SLONG*)(bptr + 0);
-        cc->num_faces  = *(SLONG*)(bptr + 4);
+        cc->num_faces = *(SLONG*)(bptr + 4);
         bptr += CRINKLE_CRINKLE_DISK_SIZE;
     }
 
@@ -221,14 +221,23 @@ void CRINKLE_do(
     pp[3]->y *= CRINKLE_mul_recip_y;
 
     // Compute base vectors of the quad.
-    float ox = pp[0]->x; float oy = pp[0]->y; float oz = pp[0]->z;
-    float ou = pp[0]->u; float ov = pp[0]->v;
+    float ox = pp[0]->x;
+    float oy = pp[0]->y;
+    float oz = pp[0]->z;
+    float ou = pp[0]->u;
+    float ov = pp[0]->v;
 
-    float ax = pp[1]->x - ox; float ay = pp[1]->y - oy; float az = pp[1]->z - oz;
-    float au = pp[1]->u - ou; float av = pp[1]->v - ov;
+    float ax = pp[1]->x - ox;
+    float ay = pp[1]->y - oy;
+    float az = pp[1]->z - oz;
+    float au = pp[1]->u - ou;
+    float av = pp[1]->v - ov;
 
-    float bx = pp[2]->x - ox; float by = pp[2]->y - oy; float bz = pp[2]->z - oz;
-    float bu = pp[2]->u - ou; float bv = pp[2]->v - ov;
+    float bx = pp[2]->x - ox;
+    float by = pp[2]->y - oy;
+    float bz = pp[2]->z - oz;
+    float bu = pp[2]->u - ou;
+    float bv = pp[2]->v - ov;
 
     // Cross product gives normal direction; scale for extrusion.
     float cx = (ay * bz - az * by) * (1.0F / 256.0F);
@@ -238,24 +247,32 @@ void CRINKLE_do(
     float len = sqrt(cx * cx + cy * cy + cz * cz);
     float overlen = 0.05F / len;
 
-    if (flip) { overlen = -overlen; }
+    if (flip) {
+        overlen = -overlen;
+    }
 
     SLONG pr[4], pg[4], pb[4], pa[4];
 
     for (i = 0; i < 4; i++) {
         pa[i] = (pp[i]->colour >> 24) & 0xff;
         pr[i] = (pp[i]->colour >> 16) & 0xff;
-        pg[i] = (pp[i]->colour >> 8)  & 0xff;
-        pb[i] = (pp[i]->colour >> 0)  & 0xff;
+        pg[i] = (pp[i]->colour >> 8) & 0xff;
+        pb[i] = (pp[i]->colour >> 0) & 0xff;
     }
 
-    cx *= overlen; cy *= overlen; cz *= overlen;
+    cx *= overlen;
+    cy *= overlen;
+    cz *= overlen;
 
     // Re-warp view space.
-    pp[0]->x *= CRINKLE_mul_x; pp[1]->x *= CRINKLE_mul_x;
-    pp[2]->x *= CRINKLE_mul_x; pp[3]->x *= CRINKLE_mul_x;
-    pp[0]->y *= CRINKLE_mul_y; pp[1]->y *= CRINKLE_mul_y;
-    pp[2]->y *= CRINKLE_mul_y; pp[3]->y *= CRINKLE_mul_y;
+    pp[0]->x *= CRINKLE_mul_x;
+    pp[1]->x *= CRINKLE_mul_x;
+    pp[2]->x *= CRINKLE_mul_x;
+    pp[3]->x *= CRINKLE_mul_x;
+    pp[0]->y *= CRINKLE_mul_y;
+    pp[1]->y *= CRINKLE_mul_y;
+    pp[2]->y *= CRINKLE_mul_y;
+    pp[3]->y *= CRINKLE_mul_y;
 
     // Transform all crinkle mesh points into view space.
     CRINKLE_Point* cp;
@@ -283,7 +300,7 @@ void CRINKLE_do(
         ASSERT(WITHIN(b, 0, 255));
         ASSERT(WITHIN(a, 0, 255));
 
-        pt->colour   = (a << 24) | (r << 16) | (g << 8) | (b << 0);
+        pt->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
         pt->specular = 0xff000000;
 
         pt->x *= CRINKLE_mul_x;
@@ -313,8 +330,12 @@ void CRINKLE_do(
             // Only shade faces that actually extrude (have nonzero vec3 on all corners).
             if (fabsf(cc->point[cf->point[0]].vec3) + fabsf(cc->point[cf->point[1]].vec3) + fabsf(cc->point[cf->point[2]].vec3) > 0.001F) {
                 // Compute face normal and modulate vertex colour by light dot product.
-                float ax2 = tri[1]->x - tri[0]->x; float ay2 = tri[1]->y - tri[0]->y; float az2 = tri[1]->z - tri[0]->z;
-                float bx2 = tri[2]->x - tri[0]->x; float by2 = tri[2]->y - tri[0]->y; float bz2 = tri[2]->z - tri[0]->z;
+                float ax2 = tri[1]->x - tri[0]->x;
+                float ay2 = tri[1]->y - tri[0]->y;
+                float az2 = tri[1]->z - tri[0]->z;
+                float bx2 = tri[2]->x - tri[0]->x;
+                float by2 = tri[2]->y - tri[0]->y;
+                float bz2 = tri[2]->z - tri[0]->z;
 
                 float nx = ay2 * bz2 - az2 * by2;
                 float ny = az2 * bx2 - ax2 * bz2;
@@ -322,7 +343,9 @@ void CRINKLE_do(
 
                 float nlen = sqrt(nx * nx + ny * ny + nz * nz);
                 float noverlen = 1.0F / nlen;
-                nx *= noverlen; ny *= noverlen; nz *= noverlen;
+                nx *= noverlen;
+                ny *= noverlen;
+                nz *= noverlen;
 
                 float dprod = nx * CRINKLE_light_x + ny * CRINKLE_light_y + nz * CRINKLE_light_z;
                 float dbright = dprod * extrude;
@@ -334,19 +357,34 @@ void CRINKLE_do(
 
                 SLONG r, g, b, a;
 
-                r = ((c0 >> 16) & 0xff) + drgb; g = ((c0 >> 8) & 0xff) + drgb;
-                b = ((c0 >> 0) & 0xff) + drgb;  a = ((c0 >> 24) & 0xff) + drgb;
-                SATURATE(r, 0, 255); SATURATE(g, 0, 255); SATURATE(b, 0, 255); SATURATE(a, 0, 255);
+                r = ((c0 >> 16) & 0xff) + drgb;
+                g = ((c0 >> 8) & 0xff) + drgb;
+                b = ((c0 >> 0) & 0xff) + drgb;
+                a = ((c0 >> 24) & 0xff) + drgb;
+                SATURATE(r, 0, 255);
+                SATURATE(g, 0, 255);
+                SATURATE(b, 0, 255);
+                SATURATE(a, 0, 255);
                 tri[0]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
 
-                r = ((c1 >> 16) & 0xff) + drgb; g = ((c1 >> 8) & 0xff) + drgb;
-                b = ((c1 >> 0) & 0xff) + drgb;  a = ((c1 >> 24) & 0xff) + drgb;
-                SATURATE(r, 0, 255); SATURATE(g, 0, 255); SATURATE(b, 0, 255); SATURATE(a, 0, 255);
+                r = ((c1 >> 16) & 0xff) + drgb;
+                g = ((c1 >> 8) & 0xff) + drgb;
+                b = ((c1 >> 0) & 0xff) + drgb;
+                a = ((c1 >> 24) & 0xff) + drgb;
+                SATURATE(r, 0, 255);
+                SATURATE(g, 0, 255);
+                SATURATE(b, 0, 255);
+                SATURATE(a, 0, 255);
                 tri[1]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
 
-                r = ((c2 >> 16) & 0xff) + drgb; g = ((c2 >> 8) & 0xff) + drgb;
-                b = ((c2 >> 0) & 0xff) + drgb;  a = ((c2 >> 24) & 0xff) + drgb;
-                SATURATE(r, 0, 255); SATURATE(g, 0, 255); SATURATE(b, 0, 255); SATURATE(a, 0, 255);
+                r = ((c2 >> 16) & 0xff) + drgb;
+                g = ((c2 >> 8) & 0xff) + drgb;
+                b = ((c2 >> 0) & 0xff) + drgb;
+                a = ((c2 >> 24) & 0xff) + drgb;
+                SATURATE(r, 0, 255);
+                SATURATE(g, 0, 255);
+                SATURATE(b, 0, 255);
+                SATURATE(a, 0, 255);
                 tri[2]->colour = (a << 24) | (r << 16) | (g << 8) | (b << 0);
 
                 POLY_add_triangle(tri, page, UC_TRUE);

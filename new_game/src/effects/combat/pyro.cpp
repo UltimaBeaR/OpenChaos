@@ -17,8 +17,8 @@
 #include "ai/pcom.h"
 #include "ui/menus/gamemenu.h"
 #include "things/characters/anim_ids.h"
-#include "things/core/interact.h"      // calc_sub_objects_position
-#include "things/characters/person.h"  // set_person_dead, knock_person_down
+#include "things/core/interact.h" // calc_sub_objects_position
+#include "things/characters/person.h" // set_person_dead, knock_person_down
 #include "engine/graphics/pipeline/poly.h"
 
 // uc_orig: init_pyros (fallen/Source/pyro.cpp)
@@ -2223,7 +2223,7 @@ static void PYRO_draw_newdome(Pyro* pyro)
 
     // Save and restore random seed to get consistent per-pyro spark placement.
     store_seed = GetSeed();
-    SetSeed((ULONG)(uintptr_t)pyro);  // address as seed — truncation is fine for PRNG
+    SetSeed((ULONG)(uintptr_t)pyro); // address as seed — truncation is fine for PRNG
 
     tri[0] = &pp[0];
     tri[1] = &pp[1];
@@ -2489,7 +2489,6 @@ static void PYRO_draw_streamer(Pyro* pyro)
             pyro->counter--;
         }
 }
-
 
 // uc_orig: PYRO_draw_armageddon (fallen/DDEngine/Source/drawxtra.cpp)
 // Draws PYRO_GAMEOVER (final boss): spawns PYRO_NEWDOME and meteor particles around Darci's

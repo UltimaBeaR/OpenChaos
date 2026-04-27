@@ -42,27 +42,27 @@ struct DFacet;
 // uc_orig: CollisionVectLink (fallen/Headers/collide.h)
 // Links a collision barrier to a LO-res PAP cell (4 bytes). Stored in col_vects_links[].
 struct CollisionVectLink {
-    UWORD Next;       // next entry in the linked list for this cell (0 = end)
-    UWORD VectIndex;  // index into col_vects[]
+    UWORD Next; // next entry in the linked list for this cell (0 = end)
+    UWORD VectIndex; // index into col_vects[]
 };
 
 // uc_orig: CollisionVect (fallen/Headers/collide.h)
 // A linear collision barrier in 3D (wall, fence, staircase, etc.). ~20 bytes.
 // Stored in col_vects[MAX_COL_VECT].
 struct CollisionVect {
-    SLONG X[2];       // world X of barrier start/end
-    SWORD Y[2];       // bottom/top height of barrier
-    SLONG Z[2];       // world Z of barrier start/end
-    UBYTE PrimType;   // storey type (wall, fence, ladder, etc.)
-    UBYTE PrimExtra;  // extra parameter depending on PrimType
-    SWORD Face;       // DFacet index, or -1 if not tied to a facet
+    SLONG X[2]; // world X of barrier start/end
+    SWORD Y[2]; // bottom/top height of barrier
+    SLONG Z[2]; // world Z of barrier start/end
+    UBYTE PrimType; // storey type (wall, fence, ladder, etc.)
+    UBYTE PrimExtra; // extra parameter depending on PrimType
+    SWORD Face; // DFacet index, or -1 if not tied to a facet
 };
 
 // uc_orig: WalkLink (fallen/Headers/collide.h)
 // Walkable surface record (4 bytes). Stored in walk_links[MAX_WALK_POOL].
 struct WalkLink {
-    UWORD Next;  // next entry in the linked list for this PAP LO cell
-    SWORD Face;  // face index (building face the character can walk on)
+    UWORD Next; // next entry in the linked list for this PAP LO cell
+    SWORD Face; // face index (building face the character can walk on)
 };
 
 // ========================================================================
@@ -77,11 +77,11 @@ struct WalkLink {
 #define SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT (-0x50)
 
 // uc_orig: SLIDE_ALONG_FLAG_CRAWL (fallen/Headers/collide.h)
-#define SLIDE_ALONG_FLAG_CRAWL    (1 << 0)
+#define SLIDE_ALONG_FLAG_CRAWL (1 << 0)
 // uc_orig: SLIDE_ALONG_FLAG_CARRYING (fallen/Headers/collide.h)
 #define SLIDE_ALONG_FLAG_CARRYING (1 << 1)
 // uc_orig: SLIDE_ALONG_FLAG_JUMPING (fallen/Headers/collide.h)
-#define SLIDE_ALONG_FLAG_JUMPING  (1 << 2)
+#define SLIDE_ALONG_FLAG_JUMPING (1 << 2)
 
 // ========================================================================
 // Line-of-sight flags
@@ -90,12 +90,12 @@ struct WalkLink {
 // uc_orig: LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG (fallen/Headers/collide.h)
 #define LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG (1 << 0)
 // uc_orig: LOS_FLAG_IGNORE_PRIMS (fallen/Headers/collide.h)
-#define LOS_FLAG_IGNORE_PRIMS                 (1 << 1)
+#define LOS_FLAG_IGNORE_PRIMS (1 << 1)
 // uc_orig: LOS_FLAG_IGNORE_UNDERGROUND_CHECK (fallen/Headers/collide.h)
-#define LOS_FLAG_IGNORE_UNDERGROUND_CHECK     (1 << 2)
+#define LOS_FLAG_IGNORE_UNDERGROUND_CHECK (1 << 2)
 // uc_orig: LOS_FLAG_INCLUDE_CARS (fallen/Headers/collide.h)
 // Only relevant when prims are not ignored.
-#define LOS_FLAG_INCLUDE_CARS                 (1 << 3)
+#define LOS_FLAG_INCLUDE_CARS (1 << 3)
 
 // ========================================================================
 // Fastnav bit array
@@ -107,9 +107,9 @@ typedef UBYTE COLLIDE_Fastnavrow[PAP_SIZE_HI >> 3];
 
 // uc_orig: COLLIDE_can_i_fastnav (fallen/Headers/collide.h)
 // Returns true if the map cell (x,z) allows fast-nav (no nearby DFacets in that cell).
-#define COLLIDE_can_i_fastnav(x, z) \
+#define COLLIDE_can_i_fastnav(x, z)                                        \
     (!(WITHIN((x), 0, PAP_SIZE_HI - 1) || !WITHIN((z), 0, PAP_SIZE_HI - 1) \
-       || (COLLIDE_fastnav[x][(z) >> 3] & (1 << ((z) & 0x7)))))
+        || (COLLIDE_fastnav[x][(z) >> 3] & (1 << ((z) & 0x7)))))
 
 // ========================================================================
 // Geometry math — 2D line and segment utilities

@@ -1,6 +1,5 @@
 #include "engine/core/math_globals.h"
 
-
 // uc_orig: AtanTable (MFStdLib/Source/StdLib/StdMaths.cpp)
 SWORD AtanTable[] = {
     2048L * 0 / 131072L,

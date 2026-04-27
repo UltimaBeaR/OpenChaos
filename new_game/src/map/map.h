@@ -50,7 +50,7 @@ typedef struct
     UWORD ColVectHead,
         TextureNotUsedAnyMore;
     SWORD Walkable;
-    UWORD MapWho;   // THING_INDEX of first thing in this cell (linked list via Thing.NextLink)
+    UWORD MapWho; // THING_INDEX of first thing in this cell (linked list via Thing.NextLink)
 } MapElement; // 14 bytes for pc
 
 // Compact UV/page/rotation encoding for a floor texture.

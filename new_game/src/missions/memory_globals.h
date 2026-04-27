@@ -5,7 +5,7 @@
 #include "engine/core/types.h"
 // All level geometry pools (prim_points, prim_faces4, dfacets, etc.) live here:
 #include "map/level_pools.h"
-#include "missions/save.h"                      // MemTable, save_table[] (moved out of Game.h)
+#include "missions/save.h" // MemTable, save_table[] (moved out of Game.h)
 
 // Types declared in old memory.h that have not yet moved to their own subsystem headers.
 

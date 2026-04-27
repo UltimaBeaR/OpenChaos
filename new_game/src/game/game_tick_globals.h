@@ -1,7 +1,7 @@
 #ifndef GAME_GAME_TICK_GLOBALS_H
 #define GAME_GAME_TICK_GLOBALS_H
 
-#include "engine/platform/uc_common.h"              // SLONG, UBYTE, UWORD, CBYTE, BOOL base types
+#include "engine/platform/uc_common.h" // SLONG, UBYTE, UWORD, CBYTE, BOOL base types
 #include "engine/graphics/lighting/light.h"
 
 // uc_orig: NIGHT_specular_enable (fallen/Source/Controls.cpp)
@@ -9,7 +9,6 @@ extern SLONG NIGHT_specular_enable;
 
 // uc_orig: draw_3d (fallen/Source/Controls.cpp)
 extern SLONG draw_3d;
-
 
 // uc_orig: stealth_debug (fallen/Source/Controls.cpp)
 // If set, Darci is undetected by enemies (testing stealth).

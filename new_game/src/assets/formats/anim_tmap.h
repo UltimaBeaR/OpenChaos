@@ -18,11 +18,11 @@
 #pragma pack(push, 1)
 struct AnimTmap {
     UBYTE UV[MAX_TMAP_FRAMES][4][2]; // UV coordinates for each corner of each frame
-    SBYTE Delay[MAX_TMAP_FRAMES];    // tick delay before advancing to next frame
-    UBYTE Page[MAX_TMAP_FRAMES];     // texture page index for each frame
-    UWORD Current;                    // index of the currently displayed frame
-    UWORD Timer;                      // ticks elapsed on current frame
-    UWORD Flags;                      // non-zero = slot in use
+    SBYTE Delay[MAX_TMAP_FRAMES]; // tick delay before advancing to next frame
+    UBYTE Page[MAX_TMAP_FRAMES]; // texture page index for each frame
+    UWORD Current; // index of the currently displayed frame
+    UWORD Timer; // ticks elapsed on current frame
+    UWORD Flags; // non-zero = slot in use
 };
 #pragma pack(pop)
 static_assert(sizeof(AnimTmap) == 166, "AnimTmap: binary file layout");

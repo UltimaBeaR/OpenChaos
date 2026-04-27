@@ -7,7 +7,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
-#include "engine/graphics/pipeline/polypage.h"   // PolyPage::s_XScale / s_YScale (virtual → pixel scale)
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::s_XScale / s_YScale (virtual → pixel scale)
 
 #include "engine/core/macros.h"
 #include <math.h>
@@ -37,32 +37,84 @@ SLONG FONT_draw_coloured_char(
         fc = &FONT_number[ch - '0'];
     } else {
         switch (ch) {
-        case '.':   fc = &FONT_punct[FONT_PUNCT_DOT];    break;
-        case ',':   fc = &FONT_punct[FONT_PUNCT_COMMA];  break;
-        case '?':   fc = &FONT_punct[FONT_PUNCT_QMARK];  break;
-        case '!':   fc = &FONT_punct[FONT_PUNCT_PLING];  break;
-        case '"':   fc = &FONT_punct[FONT_PUNCT_QUOTES]; break;
-        case '(':   fc = &FONT_punct[FONT_PUNCT_OPEN];   break;
-        case ')':   fc = &FONT_punct[FONT_PUNCT_CLOSE];  break;
-        case '+':   fc = &FONT_punct[FONT_PUNCT_PLUS];   break;
-        case '-':   fc = &FONT_punct[FONT_PUNCT_MINUS];  break;
-        case '=':   fc = &FONT_punct[FONT_PUNCT_EQUAL];  break;
-        case '#':   fc = &FONT_punct[FONT_PUNCT_HASH];   break;
-        case '%':   fc = &FONT_punct[FONT_PUNCT_PCENT];  break;
-        case '*':   fc = &FONT_punct[FONT_PUNCT_STAR];   break;
-        case '\\':  fc = &FONT_punct[FONT_PUNCT_BSLASH]; break;
-        case '/':   fc = &FONT_punct[FONT_PUNCT_FSLASH]; break;
-        case ':':   fc = &FONT_punct[FONT_PUNCT_COLON];  break;
-        case ';':   fc = &FONT_punct[FONT_PUNCT_SCOLON]; break;
-        case '\'':  fc = &FONT_punct[FONT_PUNCT_APOST];  break;
-        case '&':   fc = &FONT_punct[FONT_PUNCT_AMPER];  break;
-        case '\xa3': fc = &FONT_punct[FONT_PUNCT_POUND]; break;
-        case '$':   fc = &FONT_punct[FONT_PUNCT_DOLLAR]; break;
-        case '<':   fc = &FONT_punct[FONT_PUNCT_LT];     break;
-        case '>':   fc = &FONT_punct[FONT_PUNCT_GT];     break;
-        case '@':   fc = &FONT_punct[FONT_PUNCT_AT];     break;
-        case '_':   fc = &FONT_punct[FONT_PUNCT_UNDER];  break;
-        default:    fc = &FONT_punct[FONT_PUNCT_QMARK];  break;
+        case '.':
+            fc = &FONT_punct[FONT_PUNCT_DOT];
+            break;
+        case ',':
+            fc = &FONT_punct[FONT_PUNCT_COMMA];
+            break;
+        case '?':
+            fc = &FONT_punct[FONT_PUNCT_QMARK];
+            break;
+        case '!':
+            fc = &FONT_punct[FONT_PUNCT_PLING];
+            break;
+        case '"':
+            fc = &FONT_punct[FONT_PUNCT_QUOTES];
+            break;
+        case '(':
+            fc = &FONT_punct[FONT_PUNCT_OPEN];
+            break;
+        case ')':
+            fc = &FONT_punct[FONT_PUNCT_CLOSE];
+            break;
+        case '+':
+            fc = &FONT_punct[FONT_PUNCT_PLUS];
+            break;
+        case '-':
+            fc = &FONT_punct[FONT_PUNCT_MINUS];
+            break;
+        case '=':
+            fc = &FONT_punct[FONT_PUNCT_EQUAL];
+            break;
+        case '#':
+            fc = &FONT_punct[FONT_PUNCT_HASH];
+            break;
+        case '%':
+            fc = &FONT_punct[FONT_PUNCT_PCENT];
+            break;
+        case '*':
+            fc = &FONT_punct[FONT_PUNCT_STAR];
+            break;
+        case '\\':
+            fc = &FONT_punct[FONT_PUNCT_BSLASH];
+            break;
+        case '/':
+            fc = &FONT_punct[FONT_PUNCT_FSLASH];
+            break;
+        case ':':
+            fc = &FONT_punct[FONT_PUNCT_COLON];
+            break;
+        case ';':
+            fc = &FONT_punct[FONT_PUNCT_SCOLON];
+            break;
+        case '\'':
+            fc = &FONT_punct[FONT_PUNCT_APOST];
+            break;
+        case '&':
+            fc = &FONT_punct[FONT_PUNCT_AMPER];
+            break;
+        case '\xa3':
+            fc = &FONT_punct[FONT_PUNCT_POUND];
+            break;
+        case '$':
+            fc = &FONT_punct[FONT_PUNCT_DOLLAR];
+            break;
+        case '<':
+            fc = &FONT_punct[FONT_PUNCT_LT];
+            break;
+        case '>':
+            fc = &FONT_punct[FONT_PUNCT_GT];
+            break;
+        case '@':
+            fc = &FONT_punct[FONT_PUNCT_AT];
+            break;
+        case '_':
+            fc = &FONT_punct[FONT_PUNCT_UNDER];
+            break;
+        default:
+            fc = &FONT_punct[FONT_PUNCT_QMARK];
+            break;
         }
     }
 
@@ -216,8 +268,8 @@ void FONT_buffer_add_virtual(
     // the caller may have used will already have been popped, so reading
     // PolyPage::s_X/YScale at flush would pick up the wrong scope.
     font_buffer_add_impl(x, y, r, g, b, s,
-                         PolyPage::s_XScale, PolyPage::s_YScale,
-                         message);
+        PolyPage::s_XScale, PolyPage::s_YScale,
+        message);
 }
 
 // uc_orig: FONT_buffer_draw (fallen/DDEngine/Source/Font.cpp)
@@ -288,4 +340,3 @@ void FONT_buffer_draw()
     FONT_buffer_upto = &FONT_buffer[0];
     FONT_message_upto = 0;
 }
-

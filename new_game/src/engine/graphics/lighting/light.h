@@ -83,10 +83,10 @@ typedef UWORD LIGHT_Index;
 #define LIGHT_TYPE_BROKEN 2
 // uc_orig: LIGHT_TYPE_PULSE (fallen/Headers/light.h)
 // param = flash speed.
-#define LIGHT_TYPE_PULSE  3
+#define LIGHT_TYPE_PULSE 3
 // uc_orig: LIGHT_TYPE_FADE (fallen/Headers/light.h)
 // param = lifetime in ticks.
-#define LIGHT_TYPE_FADE   4
+#define LIGHT_TYPE_FADE 4
 
 // uc_orig: LIGHT_create (fallen/Headers/light.h)
 LIGHT_Index LIGHT_create(
@@ -125,35 +125,38 @@ extern LIGHT_Colour LIGHT_point_colour[LIGHT_MAX_POINTS];
 // Overflow above 255 is halved into the specular channel (white wash effect).
 inline void LIGHT_get_colour(LIGHT_Colour col, ULONG* colour, ULONG* specular)
 {
-    SLONG red   = col.red;
+    SLONG red = col.red;
     SLONG green = col.green;
-    SLONG blue  = col.blue;
+    SLONG blue = col.blue;
 
-    SLONG wred   = 0;
+    SLONG wred = 0;
     SLONG wgreen = 0;
-    SLONG wblue  = 0;
+    SLONG wblue = 0;
 
-    red   *= (256 / LIGHT_MAX_BRIGHT);
+    red *= (256 / LIGHT_MAX_BRIGHT);
     green *= (256 / LIGHT_MAX_BRIGHT);
-    blue  *= (256 / LIGHT_MAX_BRIGHT);
+    blue *= (256 / LIGHT_MAX_BRIGHT);
 
     if (red > 255) {
         wred = red - 255 >> 1;
         red = 255;
-        if (wred > 255) wred = 255;
+        if (wred > 255)
+            wred = 255;
     }
     if (green > 255) {
         wgreen = green - 255 >> 1;
         green = 255;
-        if (wgreen > 255) wgreen = 255;
+        if (wgreen > 255)
+            wgreen = 255;
     }
     if (blue > 255) {
         wblue = blue - 255 >> 1;
         blue = 255;
-        if (wblue > 255) wblue = 255;
+        if (wblue > 255)
+            wblue = 255;
     }
 
-    *colour   = (red << 16) | (green << 8) | (blue << 0);
+    *colour = (red << 16) | (green << 8) | (blue << 0);
     *specular = (wred << 16) | (wgreen << 8) | (wblue << 0);
 }
 

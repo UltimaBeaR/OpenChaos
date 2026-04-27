@@ -48,5 +48,4 @@ NIGHT_Colour* MESH_draw_poly_inv_matrix(
     SLONG i_roll,
     NIGHT_Colour* lpc);
 
-
 #endif // ENGINE_GRAPHICS_GEOMETRY_MESH_H

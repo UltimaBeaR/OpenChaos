@@ -48,7 +48,8 @@ uint32_t gl_shader_link(uint32_t vert, uint32_t frag)
 uint32_t gl_shader_create_program(const char* vert_source, const char* frag_source)
 {
     uint32_t vert = gl_shader_compile(GL_VERTEX_SHADER, vert_source);
-    if (!vert) return 0;
+    if (!vert)
+        return 0;
 
     uint32_t frag = gl_shader_compile(GL_FRAGMENT_SHADER, frag_source);
     if (!frag) {

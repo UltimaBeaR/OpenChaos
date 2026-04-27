@@ -3,9 +3,9 @@
 // particles[0] is a permanent sentinel so that the used-list always has a non-null head.
 
 #include "engine/platform/sdl3_bridge.h"
-#include "things/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
+#include "things/core/thing.h" // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
 #include "game/game_types.h"
-#include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
+#include "engine/graphics/pipeline/poly.h" // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
 #include "engine/audio/sound.h"
 #include "ai/pcom.h"
 #include "things/characters/anim_ids.h"
@@ -14,7 +14,7 @@
 #include "engine/physics/collide.h"
 
 #include "engine/effects/psystem_globals.h"
-#include "map/pap.h"  // PAP_calc_map_height_at
+#include "map/pap.h" // PAP_calc_map_height_at
 
 // fire_pal is a 256-entry RGB palette (768 bytes) loaded from data\flames1.pal by figure.cpp.
 // Alpha value of a PFLAG_FIRE particle indexes into the palette to give a fire colour gradient.
@@ -91,8 +91,7 @@ void PARTICLE_Run()
 
     // Walk backwards through the used list: next_used → ... → 0 (sentinel).
     // Backwards traversal lets us safely unlink the current particle during iteration.
-    for (p = particles + next_used; p != particles;)
-    {
+    for (p = particles + next_used; p != particles;) {
         // POSITION INTEGRATION — uses fixed TICK_RATIO, runs every frame for smooth motion at high fps.
         tx = p->x + ((p->dx * TICK_RATIO) >> TICK_SHIFT);
         ty = p->y + ((p->dy * TICK_RATIO) >> TICK_SHIFT);

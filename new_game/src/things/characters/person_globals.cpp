@@ -18,19 +18,19 @@ extern void fn_person_carry(Thing* p_person);
 UBYTE anim_type[] = {
     ANIM_TYPE_DARCI, // PERSON_DARCI
     ANIM_TYPE_ROPER, // PERSON_ROPER
-    ANIM_TYPE_CIV,   // PERSON_COP
-    ANIM_TYPE_CIV,   // PERSON_CIV
-    ANIM_TYPE_CIV,   // PERSON_THUG_RASTA
-    ANIM_TYPE_CIV,   // PERSON_THUG_GREY
-    ANIM_TYPE_CIV,   // PERSON_THUG_RED
+    ANIM_TYPE_CIV, // PERSON_COP
+    ANIM_TYPE_CIV, // PERSON_CIV
+    ANIM_TYPE_CIV, // PERSON_THUG_RASTA
+    ANIM_TYPE_CIV, // PERSON_THUG_GREY
+    ANIM_TYPE_CIV, // PERSON_THUG_RED
     ANIM_TYPE_DARCI, // PERSON_SLAG_TART
     ANIM_TYPE_DARCI, // PERSON_SLAG_FATUGLY
     ANIM_TYPE_DARCI, // PERSON_HOSTAGE
-    ANIM_TYPE_CIV,   // PERSON_MECHANIC
-    ANIM_TYPE_CIV,   // PERSON_TRAMP
-    ANIM_TYPE_CIV,   // PERSON_MIB1
-    ANIM_TYPE_CIV,   // PERSON_MIB2
-    ANIM_TYPE_CIV,   // PERSON_MIB3
+    ANIM_TYPE_CIV, // PERSON_MECHANIC
+    ANIM_TYPE_CIV, // PERSON_TRAMP
+    ANIM_TYPE_CIV, // PERSON_MIB1
+    ANIM_TYPE_CIV, // PERSON_MIB2
+    ANIM_TYPE_CIV, // PERSON_MIB3
 };
 
 // uc_orig: mesh_type (fallen/Source/Person.cpp)
@@ -56,66 +56,66 @@ UBYTE mesh_type[] = {
 // All NPC types except Darci and Roper use cop_states.
 // uc_orig: people_functions (fallen/Source/Person.cpp)
 GenusFunctions people_functions[] = {
-    { PERSON_DARCI,         darci_states },
-    { PERSON_ROPER,         roper_states },
-    { PERSON_COP,           cop_states },
-    { PERSON_CIV,           cop_states },
-    { PERSON_THUG_RASTA,    cop_states },
-    { PERSON_THUG_GREY,     cop_states },
-    { PERSON_THUG_RED,      cop_states },
-    { PERSON_SLAG_TART,     cop_states },
-    { PERSON_SLAG_FATUGLY,  cop_states },
-    { PERSON_HOSTAGE,       cop_states },
-    { PERSON_MECHANIC,      cop_states },
-    { PERSON_TRAMP,         cop_states },
-    { PERSON_MIB1,          cop_states },
-    { PERSON_MIB2,          cop_states },
-    { PERSON_MIB3,          cop_states },
+    { PERSON_DARCI, darci_states },
+    { PERSON_ROPER, roper_states },
+    { PERSON_COP, cop_states },
+    { PERSON_CIV, cop_states },
+    { PERSON_THUG_RASTA, cop_states },
+    { PERSON_THUG_GREY, cop_states },
+    { PERSON_THUG_RED, cop_states },
+    { PERSON_SLAG_TART, cop_states },
+    { PERSON_SLAG_FATUGLY, cop_states },
+    { PERSON_HOSTAGE, cop_states },
+    { PERSON_MECHANIC, cop_states },
+    { PERSON_TRAMP, cop_states },
+    { PERSON_MIB1, cop_states },
+    { PERSON_MIB2, cop_states },
+    { PERSON_MIB3, cop_states },
 };
 
 // Generic state table shared by all character types.
 // Character-specific tables (darci_states, cop_states) override individual entries.
 // uc_orig: generic_people_functions (fallen/Source/Person.cpp)
 StateFunction generic_people_functions[] = {
-    { STATE_INIT,           NULL },
-    { STATE_NORMAL,         NULL },
-    { STATE_HIT,            NULL },
+    { STATE_INIT, NULL },
+    { STATE_NORMAL, NULL },
+    { STATE_HIT, NULL },
     { STATE_ABOUT_TO_REMOVE, NULL },
-    { STATE_REMOVE_ME,      NULL },
+    { STATE_REMOVE_ME, NULL },
 
-    { STATE_MOVEING,        fn_person_moveing },
-    { STATE_IDLE,           fn_person_idle },
-    { STATE_LANDING,        NULL },
-    { STATE_JUMPING,        fn_person_jumping },
-    { STATE_FIGHTING,       fn_person_fighting },
-    { STATE_FALLING,        NULL },
-    { STATE_USE_SCENERY,    NULL },
-    { STATE_DOWN,           NULL },
-    { STATE_HIT,            NULL },
+    { STATE_MOVEING, fn_person_moveing },
+    { STATE_IDLE, fn_person_idle },
+    { STATE_LANDING, NULL },
+    { STATE_JUMPING, fn_person_jumping },
+    { STATE_FIGHTING, fn_person_fighting },
+    { STATE_FALLING, NULL },
+    { STATE_USE_SCENERY, NULL },
+    { STATE_DOWN, NULL },
+    { STATE_HIT, NULL },
     { STATE_CHANGE_LOCATION, NULL },
-    { STATE_DRIVING,        NULL },
-    { STATE_DYING,          fn_person_dying },
-    { STATE_DEAD,           fn_person_dead },
-    { STATE_DANGLING,       fn_person_dangling },
-    { STATE_CLIMB_LADDER,   fn_person_laddering },
-    { STATE_HIT_RECOIL,     fn_person_recoil },
-    { STATE_CLIMBING,       fn_person_climbing },
-    { STATE_GUN,            fn_person_gun },
+    { STATE_DRIVING, NULL },
+    { STATE_DYING, fn_person_dying },
+    { STATE_DEAD, fn_person_dead },
+    { STATE_DANGLING, fn_person_dangling },
+    { STATE_CLIMB_LADDER, fn_person_laddering },
+    { STATE_HIT_RECOIL, fn_person_recoil },
+    { STATE_CLIMBING, fn_person_climbing },
+    { STATE_GUN, fn_person_gun },
     { 0, NULL },
     { 0, NULL },
     { 0, NULL }, // STATE_NAVIGATING removed (dead MAV stub)
-    { STATE_WAIT,           fn_person_wait },
-    { STATE_FIGHT,          fn_person_fight },
+    { STATE_WAIT, fn_person_wait },
+    { STATE_FIGHT, fn_person_fight },
     { 0, NULL }, // stand up (unused slot)
     { 0, NULL }, // STATE_MAVIGATING removed (dead MAV stub)
-    { STATE_GRAPPLING,      fn_person_grapple },
-    { STATE_GOTOING,        fn_person_goto },
-    { STATE_CANNING,        fn_person_can },
-    { STATE_CIRCLING,       fn_person_circle },
-    { STATE_HUG_WALL,       fn_person_hug_wall },
-    { STATE_SEARCH,         fn_person_search },
-    { STATE_CARRY,          fn_person_carry },
-    { STATE_FLOAT,          fn_person_float },
+    { STATE_GRAPPLING, fn_person_grapple },
+    { STATE_GOTOING, fn_person_goto },
+    { STATE_CANNING, fn_person_can },
+    { STATE_CIRCLING, fn_person_circle },
+    { STATE_HUG_WALL, fn_person_hug_wall },
+    { STATE_SEARCH, fn_person_search },
+    { STATE_CARRY, fn_person_carry },
+    { STATE_FLOAT, fn_person_float },
     { 0, NULL }
 };
 
@@ -176,4 +176,3 @@ UWORD near_facet = 0;
 
 // uc_orig: kick_or_punch (fallen/Source/Person.cpp)
 SLONG kick_or_punch = 0;
-

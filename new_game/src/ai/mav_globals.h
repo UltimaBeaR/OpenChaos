@@ -2,7 +2,7 @@
 #define AI_MAV_GLOBALS_H
 
 #include "ai/mav_action.h"
-#include "map/map.h"  // MAP_HEIGHT, MAP_WIDTH for MAV_flag/MAV_dir array dimensions
+#include "map/map.h" // MAP_HEIGHT, MAP_WIDTH for MAV_flag/MAV_dir array dimensions
 
 // Navigation option record: one entry per unique combination of per-direction movement caps.
 // MAV_NAV(x,z) indexes into MAV_opt[]; there are at most MAV_MAX_OPTS unique entries.

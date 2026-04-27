@@ -2,8 +2,8 @@
 
 #include <math.h>
 
-#include "engine/core/macros.h"                      // UC_INFINITY, QDIST2, WITHIN, ASSERT
-#include "engine/core/matrix.h"                     // MATRIX_calc
+#include "engine/core/macros.h" // UC_INFINITY, QDIST2, WITHIN, ASSERT
+#include "engine/core/matrix.h" // MATRIX_calc
 #include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -15,24 +15,24 @@
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/geometry/superfacet.h"
 #include "engine/graphics/lighting/night.h"
-#include "engine/graphics/lighting/night_globals.h"   // NIGHT_dfcache
+#include "engine/graphics/lighting/night_globals.h" // NIGHT_dfcache
 #include "engine/graphics/lighting/crinkle.h"
-#include "engine/input/keyboard_globals.h"   // ControlFlag, Keys, ShiftFlag
+#include "engine/input/keyboard_globals.h" // ControlFlag, Keys, ShiftFlag
 #include "map/pap.h"
-#include "map/pap_globals.h"           // PAP_hi
-#include "map/supermap_globals.h"      // next_dfacet, next_dbuilding
+#include "map/pap_globals.h" // PAP_hi
+#include "map/supermap_globals.h" // next_dfacet, next_dbuilding
 #include "navigation/inside2.h"
 #include "navigation/inside2_globals.h"
-#include "buildings/building.h"         // building API
+#include "buildings/building.h" // building API
 #include "buildings/building_globals.h" // dx_textures_xy, dbuildings, dwalkables, roof_faces4
-#include "map/level_pools.h"               // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
+#include "map/level_pools.h" // dstyles, dstoreys, paint_mem, inside_storeys, inside_stairs
 #include "assets/texture.h"
-#include "buildings/ware.h"          // WARE_Ware struct
-#include "buildings/ware_globals.h"  // WARE_ware, WARE_rooftex, WARE_ware_upto
-#include "game/game_tick_globals.h"             // allow_debug_keys
-#include "camera/fc_globals.h"            // FC_cam
-#include "engine/graphics/lighting/smap.h"            // SMAP_Link, SMAP_project_onto_poly
-#include "buildings/prim_types.h"    // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
+#include "buildings/ware.h" // WARE_Ware struct
+#include "buildings/ware_globals.h" // WARE_ware, WARE_rooftex, WARE_ware_upto
+#include "game/game_tick_globals.h" // allow_debug_keys
+#include "camera/fc_globals.h" // FC_cam
+#include "engine/graphics/lighting/smap.h" // SMAP_Link, SMAP_project_onto_poly
+#include "buildings/prim_types.h" // PrimFace4, PrimFace3, RFACE_FLAG_*, ROOF_SHIFT, RoofFace4
 
 // POLY_set_local_rotation_none is a no-op on PC. On Dreamcast it reset the local
 // rotation matrix before DrawIndexedPrimitive. Defined as a macro here to match
@@ -54,7 +54,7 @@ extern int AENG_detail_crinkles;
 // pop in while walking toward buildings. Used by all crinkle call sites.
 // uc_orig: constants were inline literals in fallen/DDEngine/Source/facet.cpp
 #define CRINKLE_FADE_NEAR 0.3F
-#define CRINKLE_FADE_FAR  0.8F
+#define CRINKLE_FADE_FAR 0.8F
 
 // Returns bump-mapping extrude factor for a post-transform Z:
 //   > 0   — caller should call CRINKLE_do/CRINKLE_project with this value
@@ -103,7 +103,7 @@ static inline float crinkle_extrude_for_z(float z)
 // Applied only when AENG_detail_crinkles is on — keeps strict cull when bumps
 // are disabled. Current grace: ~15° past grazing (sin² ≈ 0.067).
 // uc_orig: hard `if (cprod >= 0) return;` in fallen/DDEngine/Source/facet.cpp
-#define FACET_BACKFACE_CULL_GRACE_SIN_SQ 0.067F  // sin²(~15°)
+#define FACET_BACKFACE_CULL_GRACE_SIN_SQ 0.067F // sin²(~15°)
 
 // Like crinkle_extrude_for_z but takes all 4 quad vertices and uses the MIN Z
 // (= the closest vertex to the camera). Fixes a release bug where rotating the
@@ -116,9 +116,12 @@ static inline float crinkle_extrude_for_z(float z)
 static inline float crinkle_extrude_for_quad(POLY_Point* const quad[4])
 {
     float z = quad[0]->z;
-    if (quad[1]->z < z) z = quad[1]->z;
-    if (quad[2]->z < z) z = quad[2]->z;
-    if (quad[3]->z < z) z = quad[3]->z;
+    if (quad[1]->z < z)
+        z = quad[1]->z;
+    if (quad[2]->z < z)
+        z = quad[2]->z;
+    if (quad[3]->z < z)
+        z = quad[3]->z;
     return crinkle_extrude_for_z(z);
 }
 
@@ -1343,14 +1346,38 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     // Shake displacement table used for electrified/damaged fence vibration.
     // uc_orig: shake (fallen/DDEngine/Source/facet.cpp)
     static float shake[MAX_SHAKE] = {
-        0,  0,  0,  0,
-        +1, -2, +1, -1,
-        +3, -3, +2, -2,
-        +4, -3, +2, -4,
-        +5, -5, +5, -4,
-        +6, -4, +7, -6,
-        +7, -6, +8, -9,
-        +9, -7, +8, -9,
+        0,
+        0,
+        0,
+        0,
+        +1,
+        -2,
+        +1,
+        -1,
+        +3,
+        -3,
+        +2,
+        -2,
+        +4,
+        -3,
+        +2,
+        -4,
+        +5,
+        -5,
+        +5,
+        -4,
+        +6,
+        -4,
+        +7,
+        -6,
+        +7,
+        -6,
+        +8,
+        -9,
+        +9,
+        -7,
+        +8,
+        -9,
     };
 
     ASSERT(facet > 0 && facet < next_dfacet);
@@ -1372,8 +1399,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     }
 
     // Double-sided and symmetrical facet types cannot be back-face culled.
-    if ((p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT || p_facet->FacetType == STOREY_TYPE_FENCE_BRICK || p_facet->FacetType == STOREY_TYPE_INSIDE ||
-            p_facet->FacetType == STOREY_TYPE_INSIDE_DOOR || p_facet->FacetType == STOREY_TYPE_OUTSIDE_DOOR || p_facet->FacetType == STOREY_TYPE_LADDER)
+    if ((p_facet->FacetType == STOREY_TYPE_FENCE || p_facet->FacetType == STOREY_TYPE_FENCE_FLAT || p_facet->FacetType == STOREY_TYPE_FENCE_BRICK || p_facet->FacetType == STOREY_TYPE_INSIDE || p_facet->FacetType == STOREY_TYPE_INSIDE_DOOR || p_facet->FacetType == STOREY_TYPE_OUTSIDE_DOOR || p_facet->FacetType == STOREY_TYPE_LADDER)
         && !(p_facet->FacetFlags & FACET_FLAG_2SIDED)) {
         // These are inherently double-sided.
     } else if (p_facet->FacetType == STOREY_TYPE_JUST_COLLISION) {
@@ -1583,8 +1609,7 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
     case STOREY_TYPE_FENCE:
     case STOREY_TYPE_FENCE_FLAT:
     case STOREY_TYPE_FENCE_BRICK:
-    case STOREY_TYPE_OUTSIDE_DOOR:
-    {
+    case STOREY_TYPE_OUTSIDE_DOOR: {
         float* p_diffy;
         float dy;
 

@@ -31,11 +31,11 @@ typedef struct
     SLONG dpitch;
     SLONG droll;
 
-    SWORD Wheel;           // steering wheel position
+    SWORD Wheel; // steering wheel position
     SWORD RAngle;
     SWORD OverSteer;
     SWORD DeltaOverSteer;
-    SWORD Compression[4];  // suspension extension *4
+    SWORD Compression[4]; // suspension extension *4
     SWORD SpringDY[4];
     UWORD Flags;
     UWORD Driver;
@@ -43,8 +43,8 @@ typedef struct
     UWORD Command;
     UWORD Waypoint;
 
-    UWORD closed_angle;    // door resting angle when closed
-    UWORD ajar;            // door resting angle when ajar
+    UWORD closed_angle; // door resting angle when closed
+    UWORD ajar; // door resting angle when ajar
 } Furniture;
 
 // uc_orig: FurniturePtr (fallen/Headers/Furn.h)

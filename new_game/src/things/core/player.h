@@ -65,7 +65,6 @@ typedef Player* PlayerPtr;
 // Maps PLAYER_* type to its state function table.
 extern GenusFunctions player_functions[];
 
-
 // uc_orig: alloc_player (fallen/Headers/Player.h)
 Thing* alloc_player(UBYTE type);
 

@@ -5,14 +5,14 @@
 
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/pipeline/polypage.h"   // FullscreenUIModeScope
+#include "engine/graphics/pipeline/polypage.h" // FullscreenUIModeScope
 #include "engine/graphics/text/font.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/platform/ds_bridge.h"
-#include "engine/platform/uc_common.h"           // DisplayWidth, DisplayHeight
+#include "engine/platform/uc_common.h" // DisplayWidth, DisplayHeight
 #include "ui/hud/panel.h"
 
 #include <chrono>
@@ -34,26 +34,34 @@ InputDebugPage s_page = INPUT_DEBUG_PAGE_KEYBOARD;
 // content which sits on top of the backdrop. See the header comment on
 // INPUT_DEBUG_LAYER_* for the full rationale.
 constexpr SLONG LAYER_BACKDROP = INPUT_DEBUG_LAYER_BACKDROP;
-constexpr SLONG LAYER_CONTENT  = INPUT_DEBUG_LAYER_CONTENT;
-constexpr SLONG LAYER_ACCENT   = INPUT_DEBUG_LAYER_ACCENT;
+constexpr SLONG LAYER_CONTENT = INPUT_DEBUG_LAYER_CONTENT;
+constexpr SLONG LAYER_ACCENT = INPUT_DEBUG_LAYER_ACCENT;
 
 const char* page_name(InputDebugPage p)
 {
     switch (p) {
-        case INPUT_DEBUG_PAGE_KEYBOARD:  return "Keyboard";
-        case INPUT_DEBUG_PAGE_GAMEPAD:   return "Gamepad";
-        case INPUT_DEBUG_PAGE_DUALSENSE: return "DualSense";
-        default:                         return "?";
+    case INPUT_DEBUG_PAGE_KEYBOARD:
+        return "Keyboard";
+    case INPUT_DEBUG_PAGE_GAMEPAD:
+        return "Gamepad";
+    case INPUT_DEBUG_PAGE_DUALSENSE:
+        return "DualSense";
+    default:
+        return "?";
     }
 }
 
 InputDeviceType page_to_device(InputDebugPage p)
 {
     switch (p) {
-        case INPUT_DEBUG_PAGE_KEYBOARD:  return INPUT_DEVICE_KEYBOARD_MOUSE;
-        case INPUT_DEBUG_PAGE_GAMEPAD:   return INPUT_DEVICE_XBOX;
-        case INPUT_DEBUG_PAGE_DUALSENSE: return INPUT_DEVICE_DUALSENSE;
-        default:                         return INPUT_DEVICE_KEYBOARD_MOUSE;
+    case INPUT_DEBUG_PAGE_KEYBOARD:
+        return INPUT_DEVICE_KEYBOARD_MOUSE;
+    case INPUT_DEBUG_PAGE_GAMEPAD:
+        return INPUT_DEVICE_XBOX;
+    case INPUT_DEBUG_PAGE_DUALSENSE:
+        return INPUT_DEVICE_DUALSENSE;
+    default:
+        return INPUT_DEVICE_KEYBOARD_MOUSE;
     }
 }
 
@@ -62,7 +70,7 @@ InputDeviceType page_to_device(InputDebugPage p)
 // than in a corner; everything else zero (buttons released, triggers idle).
 GamepadState make_idle_state()
 {
-    GamepadState s{};
+    GamepadState s {};
     s.lX = s.lY = s.rX = s.rY = 32768;
     return s;
 }
@@ -79,20 +87,22 @@ bool s_prev_enter = false;
 
 void refresh_nav()
 {
-    const bool up    = Keys[KB_UP]    != 0;
-    const bool down  = Keys[KB_DOWN]  != 0;
-    const bool left  = Keys[KB_LEFT]  != 0;
+    const bool up = Keys[KB_UP] != 0;
+    const bool down = Keys[KB_DOWN] != 0;
+    const bool left = Keys[KB_LEFT] != 0;
     const bool right = Keys[KB_RIGHT] != 0;
-    const bool ent   = Keys[KB_ENTER] != 0;
+    const bool ent = Keys[KB_ENTER] != 0;
 
-    s_nav.up    = up    && !s_prev_up;
-    s_nav.down  = down  && !s_prev_down;
-    s_nav.left  = left  && !s_prev_left;
+    s_nav.up = up && !s_prev_up;
+    s_nav.down = down && !s_prev_down;
+    s_nav.left = left && !s_prev_left;
     s_nav.right = right && !s_prev_right;
-    s_nav.enter = ent   && !s_prev_enter;
+    s_nav.enter = ent && !s_prev_enter;
 
-    s_prev_up = up; s_prev_down = down;
-    s_prev_left = left; s_prev_right = right;
+    s_prev_up = up;
+    s_prev_down = down;
+    s_prev_left = left;
+    s_prev_right = right;
     s_prev_enter = ent;
 }
 
@@ -106,8 +116,8 @@ enum RumbleRow {
     RUMBLE_ROW_COUNT,
 };
 
-int  s_rumble_low  = 128;
-int  s_rumble_high = 128;
+int s_rumble_low = 128;
+int s_rumble_high = 128;
 bool s_rumble_firing = false;
 std::chrono::steady_clock::time_point s_rumble_start;
 
@@ -121,7 +131,8 @@ void rumble_auto_stop_tick()
     // path), so we stop it manually after the 200 ms window elapses.
     if (s_rumble_firing) {
         const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - s_rumble_start).count();
+            std::chrono::steady_clock::now() - s_rumble_start)
+                                 .count();
         if (elapsed >= 200) {
             gamepad_rumble(0, 0, 0);
             s_rumble_firing = false;
@@ -160,14 +171,16 @@ static void isolate_controller_from_game()
 
 void input_debug_open()
 {
-    if (s_active) return;
+    if (s_active)
+        return;
     s_active = true;
     isolate_controller_from_game();
 }
 
 void input_debug_close()
 {
-    if (!s_active) return;
+    if (!s_active)
+        return;
     s_active = false;
     rumble_stop();
     // Reset DS widget state so player LEDs / lightbar don't linger
@@ -178,8 +191,10 @@ void input_debug_close()
 
 void input_debug_toggle()
 {
-    if (s_active) input_debug_close();
-    else          input_debug_open();
+    if (s_active)
+        input_debug_close();
+    else
+        input_debug_open();
 }
 
 bool input_debug_is_active() { return s_active; }
@@ -190,7 +205,8 @@ bool input_debug_is_active() { return s_active; }
 
 void input_debug_tick()
 {
-    if (!s_active) return;
+    if (!s_active)
+        return;
 
     // Re-poll the gamepad ourselves. While the panel is open, the normal
     // callers of ReadInputDevice (GAMEMENU_process, get_hardware_input,
@@ -213,9 +229,18 @@ void input_debug_tick()
     }
 
     // 1 / 2 / 3 — switch page. Consume to keep the game clean.
-    if (Keys[KB_1]) { Keys[KB_1] = 0; s_page = INPUT_DEBUG_PAGE_KEYBOARD; }
-    if (Keys[KB_2]) { Keys[KB_2] = 0; s_page = INPUT_DEBUG_PAGE_GAMEPAD; }
-    if (Keys[KB_3]) { Keys[KB_3] = 0; s_page = INPUT_DEBUG_PAGE_DUALSENSE; }
+    if (Keys[KB_1]) {
+        Keys[KB_1] = 0;
+        s_page = INPUT_DEBUG_PAGE_KEYBOARD;
+    }
+    if (Keys[KB_2]) {
+        Keys[KB_2] = 0;
+        s_page = INPUT_DEBUG_PAGE_GAMEPAD;
+    }
+    if (Keys[KB_3]) {
+        Keys[KB_3] = 0;
+        s_page = INPUT_DEBUG_PAGE_DUALSENSE;
+    }
 
     // TAB cycles the current page through its sub-views (controller
     // viz → tests / triggers → back). Only pages that define sub-views
@@ -264,7 +289,7 @@ static void draw_backdrop()
     // backdrop and the rest of the panel cover edge-to-edge regardless
     // of window aspect).
     AENG_draw_rect(0, 0, DisplayWidth, DisplayHeight, 0xE6000000,
-                   LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
+        LAYER_BACKDROP, POLY_PAGE_COLOUR_ALPHA);
 }
 
 // Three tabs across the top — one per page. Each tab shows the name,
@@ -275,26 +300,31 @@ static void draw_backdrop()
 // The two highlights stack: a tab can be both open AND active (bright
 // green name inside a white box).
 static void draw_one_tab(int idx, const char* name, const char* hotkey_hint,
-                         SLONG tab_x, SLONG tab_y, SLONG tab_w, SLONG tab_h)
+    SLONG tab_x, SLONG tab_y, SLONG tab_w, SLONG tab_h)
 {
     const InputDebugPage this_page = (InputDebugPage)idx;
-    const bool is_open   = (s_page == this_page);
+    const bool is_open = (s_page == this_page);
     const bool is_active = (active_input_device == page_to_device(this_page));
 
     // White box outline around the open tab (4 thin rects).
     if (is_open) {
-        AENG_draw_rect(tab_x, tab_y,              tab_w, 1, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
-        AENG_draw_rect(tab_x, tab_y + tab_h - 1,  tab_w, 1, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
-        AENG_draw_rect(tab_x, tab_y,              1, tab_h, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
-        AENG_draw_rect(tab_x + tab_w - 1, tab_y,  1, tab_h, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x, tab_y, tab_w, 1, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x, tab_y + tab_h - 1, tab_w, 1, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x, tab_y, 1, tab_h, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        AENG_draw_rect(tab_x + tab_w - 1, tab_y, 1, tab_h, 0xFFFFFF, LAYER_ACCENT, POLY_PAGE_COLOUR);
     }
 
     // Name colour: green when active, grey otherwise; bright when open.
     UBYTE nr, ng, nb;
-    if (is_active) { nr = is_open ? 120 : 80;  ng = is_open ? 255 : 180; nb = is_open ? 120 : 80; }
-    else           { nr = ng = nb = is_open ? 255 : 140; }
+    if (is_active) {
+        nr = is_open ? 120 : 80;
+        ng = is_open ? 255 : 180;
+        nb = is_open ? 120 : 80;
+    } else {
+        nr = ng = nb = is_open ? 255 : 140;
+    }
 
-    input_debug_text(tab_x + 6, tab_y + 4,  nr, ng, nb, 1, "%s", name);
+    input_debug_text(tab_x + 6, tab_y + 4, nr, ng, nb, 1, "%s", name);
     input_debug_text(tab_x + 6, tab_y + 16, 180, 180, 80, 1, "%s", hotkey_hint);
 }
 
@@ -307,14 +337,14 @@ static void draw_tabs()
     const SLONG tab_y = 4;
 
     draw_one_tab(INPUT_DEBUG_PAGE_KEYBOARD,
-                 "Keyboard", "press 1",
-                 gap + 0 * (tab_w + gap), tab_y, tab_w, tab_h);
+        "Keyboard", "press 1",
+        gap + 0 * (tab_w + gap), tab_y, tab_w, tab_h);
     draw_one_tab(INPUT_DEBUG_PAGE_GAMEPAD,
-                 "Xbox controller", "press 2",
-                 gap + 1 * (tab_w + gap), tab_y, tab_w, tab_h);
+        "Xbox controller", "press 2",
+        gap + 1 * (tab_w + gap), tab_y, tab_w, tab_h);
     draw_one_tab(INPUT_DEBUG_PAGE_DUALSENSE,
-                 "DualSense controller", "press 3",
-                 gap + 2 * (tab_w + gap), tab_y, tab_w, tab_h);
+        "DualSense controller", "press 3",
+        gap + 2 * (tab_w + gap), tab_y, tab_w, tab_h);
 
     // Separator under the tab row.
     AENG_draw_rect(0, tab_y + tab_h + 4, sw, 1, 0x606060, LAYER_ACCENT, POLY_PAGE_COLOUR);
@@ -330,7 +360,8 @@ static void draw_footer()
 
 void input_debug_render()
 {
-    if (!s_active) return;
+    if (!s_active)
+        return;
 
     // Stretch virtual 640×480 panel coords non-uniformly across the entire
     // post-composition framebuffer. Picks the same xs/ys mapping as the
@@ -348,10 +379,17 @@ void input_debug_render()
     draw_footer();
 
     switch (s_page) {
-        case INPUT_DEBUG_PAGE_KEYBOARD:  input_debug_render_keyboard_page();  break;
-        case INPUT_DEBUG_PAGE_GAMEPAD:   input_debug_render_gamepad_page();   break;
-        case INPUT_DEBUG_PAGE_DUALSENSE: input_debug_render_dualsense_page(); break;
-        default: break;
+    case INPUT_DEBUG_PAGE_KEYBOARD:
+        input_debug_render_keyboard_page();
+        break;
+    case INPUT_DEBUG_PAGE_GAMEPAD:
+        input_debug_render_gamepad_page();
+        break;
+    case INPUT_DEBUG_PAGE_DUALSENSE:
+        input_debug_render_dualsense_page();
+        break;
+    default:
+        break;
     }
 
     PANEL_finish();
@@ -362,11 +400,17 @@ void input_debug_render()
 // ---------------------------------------------------------------------------
 
 void input_debug_draw_stick(SLONG cx, SLONG cy, SLONG size,
-                            float nx, float ny, const char* label)
+    float nx, float ny, const char* label)
 {
     // Clamp deflection so the dot never escapes the box on bad data.
-    if (nx < -1.0f) nx = -1.0f; else if (nx > 1.0f) nx = 1.0f;
-    if (ny < -1.0f) ny = -1.0f; else if (ny > 1.0f) ny = 1.0f;
+    if (nx < -1.0f)
+        nx = -1.0f;
+    else if (nx > 1.0f)
+        nx = 1.0f;
+    if (ny < -1.0f)
+        ny = -1.0f;
+    else if (ny > 1.0f)
+        ny = 1.0f;
 
     const SLONG half = size / 2;
     const SLONG x0 = cx - half;
@@ -382,7 +426,7 @@ void input_debug_draw_stick(SLONG cx, SLONG cy, SLONG size,
     const SLONG dx = (SLONG)(nx * (float)half);
     const SLONG dy = (SLONG)(ny * (float)half);
     AENG_draw_rect(cx + dx - 2, cy + dy - 2, 4, 4,
-                   0xFF3030, LAYER_ACCENT, POLY_PAGE_COLOUR);
+        0xFF3030, LAYER_ACCENT, POLY_PAGE_COLOUR);
 
     // Label centred above the box so the title visually lines up with
     // the stick centre (makes it easy to eyeball whether a d-pad /
@@ -392,11 +436,14 @@ void input_debug_draw_stick(SLONG cx, SLONG cy, SLONG size,
 }
 
 void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
-                                  int value, int max_val, const char* label)
+    int value, int max_val, const char* label)
 {
-    if (value < 0) value = 0;
-    if (value > max_val) value = max_val;
-    if (max_val <= 0) max_val = 1;
+    if (value < 0)
+        value = 0;
+    if (value > max_val)
+        value = max_val;
+    if (max_val <= 0)
+        max_val = 1;
 
     // Dim outline box.
     AENG_draw_rect(x, y, w, h, 0x202020, LAYER_CONTENT, POLY_PAGE_COLOUR);
@@ -404,7 +451,7 @@ void input_debug_draw_trigger_bar(SLONG x, SLONG y, SLONG w, SLONG h,
     const SLONG fill_h = (h * value) / max_val;
     if (fill_h > 0) {
         AENG_draw_rect(x, y + h - fill_h, w, fill_h,
-                       0xFFCC00, LAYER_ACCENT, POLY_PAGE_COLOUR);
+            0xFFCC00, LAYER_ACCENT, POLY_PAGE_COLOUR);
     }
 
     // Numeric readout below bar.
@@ -438,8 +485,8 @@ void input_debug_draw_checkbox(SLONG x, SLONG y, const char* label, bool on)
 }
 
 void input_debug_text(SLONG x_logical, SLONG y_logical,
-                      unsigned char r, unsigned char g, unsigned char b,
-                      unsigned char shadow, const char* fmt, ...)
+    unsigned char r, unsigned char g, unsigned char b,
+    unsigned char shadow, const char* fmt, ...)
 {
     char buf[256];
     va_list ap;
@@ -455,7 +502,7 @@ void input_debug_text(SLONG x_logical, SLONG y_logical,
     // s_YScale, which inside the post-composition UI pass picks up the
     // scope's non-uniform mapping.
     FONT_buffer_add_virtual(x_logical, y_logical,
-                            r, g, b, shadow, (CBYTE*)"%s", buf);
+        r, g, b, shadow, (CBYTE*)"%s", buf);
 }
 
 // ---------------------------------------------------------------------------
@@ -464,46 +511,62 @@ void input_debug_text(SLONG x_logical, SLONG y_logical,
 
 const GamepadState& input_debug_read_gamepad_for(InputDeviceType page_device)
 {
-    if (active_input_device != page_device) return s_idle_state;
+    if (active_input_device != page_device)
+        return s_idle_state;
     return gamepad_state_raw();
 }
 
 bool input_debug_key_held(unsigned char scancode)
 {
-    if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE) return false;
+    if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE)
+        return false;
     return Keys[scancode] != 0;
 }
 
 uint8_t input_debug_read_ds_feedback(bool right_trigger)
 {
-    if (active_input_device != INPUT_DEVICE_DUALSENSE) return 0;
+    if (active_input_device != INPUT_DEVICE_DUALSENSE)
+        return 0;
     return right_trigger ? gamepad_get_right_trigger_feedback_state()
                          : gamepad_get_left_trigger_feedback_state();
 }
 
 bool input_debug_read_ds_effect_active(bool right_trigger)
 {
-    if (active_input_device != INPUT_DEVICE_DUALSENSE) return false;
+    if (active_input_device != INPUT_DEVICE_DUALSENSE)
+        return false;
     return right_trigger ? gamepad_get_right_trigger_effect_active()
                          : gamepad_get_left_trigger_effect_active();
 }
 
 void input_debug_read_ds_touchpad(int* f1_x, int* f1_y, bool* f1_down,
-                                  int* f2_x, int* f2_y, bool* f2_down)
+    int* f2_x, int* f2_y, bool* f2_down)
 {
     if (active_input_device != INPUT_DEVICE_DUALSENSE) {
-        *f1_x = 0; *f1_y = 0; *f1_down = false;
-        *f2_x = 0; *f2_y = 0; *f2_down = false;
+        *f1_x = 0;
+        *f1_y = 0;
+        *f1_down = false;
+        *f2_x = 0;
+        *f2_y = 0;
+        *f2_down = false;
         return;
     }
     DS_InputState s;
     if (!ds_get_input(&s)) {
-        *f1_x = 0; *f1_y = 0; *f1_down = false;
-        *f2_x = 0; *f2_y = 0; *f2_down = false;
+        *f1_x = 0;
+        *f1_y = 0;
+        *f1_down = false;
+        *f2_x = 0;
+        *f2_y = 0;
+        *f2_down = false;
         return;
     }
-    *f1_x = s.touchpad_finger_1_x; *f1_y = s.touchpad_finger_1_y; *f1_down = s.touchpad_finger_1_down;
-    *f2_x = s.touchpad_finger_2_x; *f2_y = s.touchpad_finger_2_y; *f2_down = s.touchpad_finger_2_down;
+    *f1_x = s.touchpad_finger_1_x;
+    *f1_y = s.touchpad_finger_1_y;
+    *f1_down = s.touchpad_finger_1_down;
+    *f2_x = s.touchpad_finger_2_x;
+    *f2_y = s.touchpad_finger_2_y;
+    *f2_down = s.touchpad_finger_2_down;
 }
 
 int input_debug_render_rumble_test(SLONG x, SLONG y, int local_cursor)
@@ -514,15 +577,19 @@ int input_debug_render_rumble_test(SLONG x, SLONG y, int local_cursor)
     if (local_cursor >= 0 && local_cursor < RUMBLE_ROW_COUNT) {
         const InputDebugNav& n = input_debug_nav();
         if (n.left) {
-            if (local_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  - RUMBLE_STEP);
-            if (local_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high - RUMBLE_STEP);
+            if (local_cursor == RUMBLE_ROW_LOW)
+                s_rumble_low = clamp_motor(s_rumble_low - RUMBLE_STEP);
+            if (local_cursor == RUMBLE_ROW_HIGH)
+                s_rumble_high = clamp_motor(s_rumble_high - RUMBLE_STEP);
         }
         if (n.right) {
-            if (local_cursor == RUMBLE_ROW_LOW)  s_rumble_low  = clamp_motor(s_rumble_low  + RUMBLE_STEP);
-            if (local_cursor == RUMBLE_ROW_HIGH) s_rumble_high = clamp_motor(s_rumble_high + RUMBLE_STEP);
+            if (local_cursor == RUMBLE_ROW_LOW)
+                s_rumble_low = clamp_motor(s_rumble_low + RUMBLE_STEP);
+            if (local_cursor == RUMBLE_ROW_HIGH)
+                s_rumble_high = clamp_motor(s_rumble_high + RUMBLE_STEP);
         }
         if (n.enter && local_cursor == RUMBLE_ROW_FIRE) {
-            const uint16_t lo = (uint16_t)((s_rumble_low  << 8) | s_rumble_low);
+            const uint16_t lo = (uint16_t)((s_rumble_low << 8) | s_rumble_low);
             const uint16_t hi = (uint16_t)((s_rumble_high << 8) | s_rumble_high);
             gamepad_rumble(lo, hi, 200);
             s_rumble_firing = true;
@@ -539,19 +606,19 @@ int input_debug_render_rumble_test(SLONG x, SLONG y, int local_cursor)
         const SLONG row_y = y + 14 + row * 12;
 
         switch (row) {
-            case RUMBLE_ROW_LOW:
-                input_debug_text(x + 4, row_y, r, g, b, 1,
-                    "%slow motor        %3d", prefix, s_rumble_low);
-                break;
-            case RUMBLE_ROW_HIGH:
-                input_debug_text(x + 4, row_y, r, g, b, 1,
-                    "%shigh motor       %3d", prefix, s_rumble_high);
-                break;
-            case RUMBLE_ROW_FIRE:
-                input_debug_text(x + 4, row_y, r, g, b, 1,
-                    "%sfire 200ms pulse%s",
-                    prefix, s_rumble_firing ? "    [FIRING]" : "");
-                break;
+        case RUMBLE_ROW_LOW:
+            input_debug_text(x + 4, row_y, r, g, b, 1,
+                "%slow motor        %3d", prefix, s_rumble_low);
+            break;
+        case RUMBLE_ROW_HIGH:
+            input_debug_text(x + 4, row_y, r, g, b, 1,
+                "%shigh motor       %3d", prefix, s_rumble_high);
+            break;
+        case RUMBLE_ROW_FIRE:
+            input_debug_text(x + 4, row_y, r, g, b, 1,
+                "%sfire 200ms pulse%s",
+                prefix, s_rumble_firing ? "    [FIRING]" : "");
+            break;
         }
     }
 

@@ -1,12 +1,12 @@
 #include "things/core/state.h"
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "things/core/player_globals.h"          // player_functions
-#include "things/characters/person_globals.h"     // people_functions, generic_people_functions
-#include "things/vehicles/vehicle_globals.h"      // VEH_statefunctions
-#include "things/animals/animal_globals.h"        // ANIMAL_functions
-#include "things/vehicles/chopper_globals.h"      // CHOPPER_functions
-#include "effects/combat/pyro_globals.h"                 // PYRO_functions
+#include "things/core/player_globals.h" // player_functions
+#include "things/characters/person_globals.h" // people_functions, generic_people_functions
+#include "things/vehicles/vehicle_globals.h" // VEH_statefunctions
+#include "things/animals/animal_globals.h" // ANIMAL_functions
+#include "things/vehicles/chopper_globals.h" // CHOPPER_functions
+#include "effects/combat/pyro_globals.h" // PYRO_functions
 
 // uc_orig: set_state_function (fallen/Source/State.cpp)
 void set_state_function(Thing* t_thing, UBYTE state)
@@ -59,4 +59,3 @@ void set_generic_person_state_function(Thing* t_thing, UBYTE state)
     t_thing->StateFn = generic_people_functions[state].StateFn;
     t_thing->State = state;
 }
-

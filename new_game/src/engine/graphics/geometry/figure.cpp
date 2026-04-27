@@ -16,7 +16,7 @@
 #include "engine/graphics/geometry/mesh.h"
 #include "map/level_pools.h"
 #include "assets/texture.h"
-#include "assets/texture_globals.h"  // alt_texture
+#include "assets/texture_globals.h" // alt_texture
 #include <math.h>
 #include "things/core/hierarchy.h"
 #include "engine/core/quaternion.h"
@@ -1715,14 +1715,6 @@ void FIGURE_draw_prim_tween(
         offset.M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
         offset.M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
 
-        /* We don't have bikes.
-                        if (p_thing->Class == CLASS_BIKE && part_number == 3)
-                        {
-                                //offset.M[0] = 0x0;
-                                //offset.M[1] = 0x900;
-                                offset.M[2] = 0x3500;
-                        }
-        */
         if (end_pos) {
             *end_pos = offset;
         }
@@ -1739,17 +1731,6 @@ void FIGURE_draw_prim_tween(
     off_x *= character_scalef;
     off_y *= character_scalef;
     off_z *= character_scalef;
-
-    /*
-
-    if (p_thing->Class == CLASS_BIKE)
-    {
-            off_x = 0;
-            off_y = 0;
-            off_z = 0;
-    }
-
-    */
 
     off_x += float(x);
     off_y += float(y);
@@ -1803,23 +1784,6 @@ void FIGURE_draw_prim_tween(
         imatrix[8] = mat_final.M[2][2] * 2;
     }
 
-    /*
-
-    if (part_number == SUB_OBJECT_HEAD)
-    {
-            fmatrix[0]=	+0.131534;
-            fmatrix[1]=	-0.000000;
-            fmatrix[2]=	+0.991312;
-            fmatrix[3]=	+0.00133604;
-            fmatrix[4]=	+0.999999;
-            fmatrix[5]=	-0.000177275;
-            fmatrix[6]=	-0.991311;
-            fmatrix[7]=	0.00134775;
-            fmatrix[8]=	0.131534;;
-    }
-
-    */
-
     POLY_set_local_rotation(
         off_x,
         off_y,
@@ -1836,14 +1800,12 @@ void FIGURE_draw_prim_tween(
     // Gun muzzle position extraction: vertex 0 of each gun prim is the muzzle point.
     if (prim == 256) {
         i = sp;
+    } else if (prim == 258) {
+        i = sp + 15;
+    } else if (prim == 260) {
+        i = sp + 32;
     } else
-        if (prim == 258) {
-            i = sp + 15;
-        }
-        else if (prim == 260) {
-            i = sp + 32;
-        } else
-            goto no_muzzle_calcs;
+        goto no_muzzle_calcs;
 
     pp = &POLY_buffer[POLY_buffer_upto]; // reused (no ++)
     pp->x = AENG_dx_prim_points[i].X;
@@ -2809,27 +2771,6 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
         return;
     }
 
-    /*
-
-    {
-            AnimPrimBbox *apb = &anim_prim_bbox[p_thing->Index];
-
-            AENG_world_line(
-                    apb->minx + (p_thing->WorldPos.X >> 8),
-                    apb->miny + (p_thing->WorldPos.Y >> 8),
-                    apb->minz + (p_thing->WorldPos.Z >> 8),
-                    0x16,
-                    0x00ffffff,
-                    apb->maxx + (p_thing->WorldPos.X >> 8),
-                    apb->maxy + (p_thing->WorldPos.Y >> 8),
-                    apb->maxz + (p_thing->WorldPos.Z >> 8),
-                    0x16,
-                    0x000ccccff,
-                    UC_TRUE);
-    }
-
-    */
-
     dx = 0;
     dy = 0;
     dz = 0;
@@ -3143,31 +3084,6 @@ void FIGURE_draw_prim_tween_reflection(
                 }
                 POLY_add_quad(quad, page, UC_TRUE);
             } else {
-                /*
-
-                r = ENGINE_palette[p_f4->Col2].red;
-                g = ENGINE_palette[p_f4->Col2].green;
-                b = ENGINE_palette[p_f4->Col2].blue;
-
-                r = r * red   >> 8;
-                g = g * green >> 8;
-                b = b * blue  >> 8;
-
-                face_colour = (r << 16) | (g << 8) | (b << 0);
-
-                quad[0]->colour = face_colour;
-                quad[1]->colour = face_colour;
-                quad[2]->colour = face_colour;
-                quad[3]->colour = face_colour;
-
-                POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_TRUE);
-
-                quad[0]->colour = colour;
-                quad[1]->colour = colour;
-                quad[2]->colour = colour;
-                quad[3]->colour = colour;
-
-                */
             }
         }
     }
@@ -3209,29 +3125,6 @@ void FIGURE_draw_prim_tween_reflection(
                 }
                 POLY_add_triangle(tri, page, UC_TRUE);
             } else {
-                /*
-
-                r = ENGINE_palette[p_f3->Col2].red;
-                g = ENGINE_palette[p_f3->Col2].green;
-                b = ENGINE_palette[p_f3->Col2].blue;
-
-                r = r * red   >> 8;
-                g = g * green >> 8;
-                b = b * blue  >> 8;
-
-                face_colour = (r << 16) | (g << 8) | (b << 0);
-
-                tri[0]->colour = face_colour;
-                tri[1]->colour = face_colour;
-                tri[2]->colour = face_colour;
-
-                POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_TRUE);
-
-                tri[0]->colour = colour;
-                tri[1]->colour = colour;
-                tri[2]->colour = colour;
-
-                */
             }
         }
     }

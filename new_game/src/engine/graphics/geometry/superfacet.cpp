@@ -23,9 +23,9 @@
     }
 
 // Defines for array bounds using the runtime-determined sizes (set in SUPERFACET_init).
-#define SUPERFACET_MAX_LVERTS   (SUPERFACET_max_lverts)
-#define SUPERFACET_MAX_INDICES  (SUPERFACET_max_indices)
-#define SUPERFACET_MAX_FACETS   SUPERFACET_max_facets
+#define SUPERFACET_MAX_LVERTS (SUPERFACET_max_lverts)
+#define SUPERFACET_MAX_INDICES (SUPERFACET_max_indices)
+#define SUPERFACET_MAX_FACETS SUPERFACET_max_facets
 
 // facet.cpp entities used by superfacet rendering.
 #include "engine/graphics/geometry/facet.h"

@@ -10,20 +10,20 @@
 #include "buildings/prim.h"
 #include "buildings/prim_globals.h"
 
-#include "engine/core/fmatrix.h"               // FMATRIX_calc, FMATRIX_MUL_BY_TRANSPOSE, build_tween_matrix
-#include "engine/core/matrix.h"                // MATRIX_MUL
-#include "engine/core/math.h"                  // Root
-#include "engine/core/macros.h"                // ASSERT, WITHIN, SATURATE, SWAP, INFINITY, QDIST2, Random
-#include "map/pap.h"              // PAP_calc_height_at, PAP_2LO, PAP_SIZE_LO, PAP_SIZE_HI, PAP_SHIFT_LO
-#include "navigation/walkable.h"  // find_height_for_this_pos
-#include "engine/physics/collide.h"     // slide_around_box
+#include "engine/core/fmatrix.h" // FMATRIX_calc, FMATRIX_MUL_BY_TRANSPOSE, build_tween_matrix
+#include "engine/core/matrix.h" // MATRIX_MUL
+#include "engine/core/math.h" // Root
+#include "engine/core/macros.h" // ASSERT, WITHIN, SATURATE, SWAP, INFINITY, QDIST2, Random
+#include "map/pap.h" // PAP_calc_height_at, PAP_2LO, PAP_SIZE_LO, PAP_SIZE_HI, PAP_SHIFT_LO
+#include "navigation/walkable.h" // find_height_for_this_pos
+#include "engine/physics/collide.h" // slide_around_box
 #include "things/core/thing.h"
 #include "things/vehicles/vehicle.h"
 #include "things/characters/person.h"
 
 // Anim types needed for expand_anim_prim_bbox / fn_anim_prim_normal
-#include "engine/animation/anim_types.h"  // GameKeyFrameElement, GetCMatrix, CMatrix33, Matrix33, KeyFrameChunk
-#include "buildings/prim_types.h"     // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
+#include "engine/animation/anim_types.h" // GameKeyFrameElement, GetCMatrix, CMatrix33, Matrix33, KeyFrameChunk
+#include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
 #include "buildings/building_types.h" // BoundBox, MAX_BUILDINGS, STOREY_TYPE_*, FACET_FLAG_*
 #include "map/supermap.h"
 #include "game/game_types.h"
@@ -136,13 +136,15 @@ void calc_normal(SWORD face, struct SVector* p_normal)
 
     length = vx * vx + vy * vy + vz * vz;
     length = Root(length);
-    if (length == 0) length = 1;
+    if (length == 0)
+        length = 1;
     vx = (vx << 8) / length;
     vy = (vy << 8) / length;
     vz = (vz << 8) / length;
 
     length = Root(wx * wx + wy * wy + wz * wz);
-    if (length == 0) length = 1;
+    if (length == 0)
+        length = 1;
     wx = (wx << 8) / length;
     wy = (wy << 8) / length;
     wz = (wz << 8) / length;
@@ -152,11 +154,13 @@ void calc_normal(SWORD face, struct SVector* p_normal)
     nz = ((vx) * (wy)) - (vy * wx) >> 8;
 
     length = Root((nx * nx + ny * ny + nz * nz));
-    if (length == 0) length = 1;
+    if (length == 0)
+        length = 1;
     nx = (nx << 8) / length;
     ny = (ny << 8) / length;
     nz = (nz << 8) / length;
-    if (nx == 0 && ny == 0 && nz == 0) ny = 255;
+    if (nx == 0 && ny == 0 && nz == 0)
+        ny = 255;
     p_normal->X = -nx;
     p_normal->Y = -ny;
     p_normal->Z = -nz;
@@ -165,7 +169,6 @@ void calc_normal(SWORD face, struct SVector* p_normal)
 // ============================================================
 // Lighting
 // ============================================================
-
 
 // ============================================================
 // Bounding info
@@ -194,14 +197,20 @@ void calc_prim_info()
         if (obj->StartPoint == NULL)
             continue;
 
-        inf->minx = +UC_INFINITY; inf->miny = +UC_INFINITY; inf->minz = +UC_INFINITY;
-        inf->maxx = -UC_INFINITY; inf->maxy = -UC_INFINITY; inf->maxz = -UC_INFINITY;
+        inf->minx = +UC_INFINITY;
+        inf->miny = +UC_INFINITY;
+        inf->minz = +UC_INFINITY;
+        inf->maxx = -UC_INFINITY;
+        inf->maxy = -UC_INFINITY;
+        inf->maxz = -UC_INFINITY;
         inf->radius = -UC_INFINITY;
 
         for (j = obj->StartPoint; j < obj->EndPoint; j++) {
             pt = &prim_points[j];
-            if (pt->Y < inf->miny) inf->miny = pt->Y;
-            if (pt->Y > inf->maxy) inf->maxy = pt->Y;
+            if (pt->Y < inf->miny)
+                inf->miny = pt->Y;
+            if (pt->Y > inf->maxy)
+                inf->maxy = pt->Y;
         }
 
         below = inf->miny + (inf->maxy - inf->miny >> 3);
@@ -210,22 +219,31 @@ void calc_prim_info()
             pt = &prim_points[j];
 
             if (i == 41) {
-                if (pt->X < inf->minx) inf->minx = pt->X;
-                if (pt->Z < inf->minz) inf->minz = pt->Z;
-                if (pt->X > inf->maxx) inf->maxx = pt->X;
-                if (pt->Z > inf->maxz) inf->maxz = pt->Z;
+                if (pt->X < inf->minx)
+                    inf->minx = pt->X;
+                if (pt->Z < inf->minz)
+                    inf->minz = pt->Z;
+                if (pt->X > inf->maxx)
+                    inf->maxx = pt->X;
+                if (pt->Z > inf->maxz)
+                    inf->maxz = pt->Z;
             } else {
                 if (pt->Y < below) {
-                    if (pt->X < inf->minx) inf->minx = pt->X;
-                    if (pt->Z < inf->minz) inf->minz = pt->Z;
-                    if (pt->X > inf->maxx) inf->maxx = pt->X;
-                    if (pt->Z > inf->maxz) inf->maxz = pt->Z;
+                    if (pt->X < inf->minx)
+                        inf->minx = pt->X;
+                    if (pt->Z < inf->minz)
+                        inf->minz = pt->Z;
+                    if (pt->X > inf->maxx)
+                        inf->maxx = pt->X;
+                    if (pt->Z > inf->maxz)
+                        inf->maxz = pt->Z;
                 }
             }
 
             dist = pt->X * pt->X + pt->Y * pt->Y + pt->Z * pt->Z;
             dist = Root(dist);
-            if (dist > inf->radius) inf->radius = dist;
+            if (dist > inf->radius)
+                inf->radius = dist;
         }
 
         if (i == PRIM_OBJ_WILDCATVAN_BODY) {
@@ -235,8 +253,10 @@ void calc_prim_info()
                     pt->X -= 128;
                     pt->Z += 256;
                 }
-                inf->minx -= 128; inf->minz += 256;
-                inf->maxx -= 128; inf->maxz += 256;
+                inf->minx -= 128;
+                inf->minz += 256;
+                inf->maxx -= 128;
+                inf->maxz += 256;
             }
         }
 
@@ -253,11 +273,15 @@ void calc_prim_info()
         }
 
         if (i == 181 || i == 182) {
-            inf->minx -= 0x40; inf->minz -= 0x40;
-            inf->maxx += 0x40; inf->maxz += 0x40;
+            inf->minx -= 0x40;
+            inf->minz -= 0x40;
+            inf->maxx += 0x40;
+            inf->maxz += 0x40;
         }
 
-        inf->cogx = 0; inf->cogy = 0; inf->cogz = 0;
+        inf->cogx = 0;
+        inf->cogy = 0;
+        inf->cogz = 0;
 
         obj->flag &= ~PRIM_FLAG_ENVMAPPED;
 
@@ -432,10 +456,14 @@ void calc_slide_edges_roof()
         x = (rf1->RX & 127) << 8;
         z = (rf1->RZ & 127) << 8;
 
-        if (does_fence_lie_along_line(x, z, x + 256, z))         rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_0);
-        if (does_fence_lie_along_line(x + 256, z, x + 256, z + 256)) rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_1);
-        if (does_fence_lie_along_line(x, z + 256, x + 256, z + 256)) rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_2);
-        if (does_fence_lie_along_line(x, z, x, z + 256))         rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_3);
+        if (does_fence_lie_along_line(x, z, x + 256, z))
+            rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_0);
+        if (does_fence_lie_along_line(x + 256, z, x + 256, z + 256))
+            rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_1);
+        if (does_fence_lie_along_line(x, z + 256, x + 256, z + 256))
+            rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_2);
+        if (does_fence_lie_along_line(x, z, x, z + 256))
+            rf1->DrawFlags &= ~(RFACE_FLAG_SLIDE_EDGE_3);
 
         {
             SLONG pap[4], roof[4];
@@ -557,29 +585,43 @@ void calc_slide_edges()
     // Pass 2: clear shared interior edges between neighbouring walkable faces.
     for (i = 1; i < next_prim_face4; i++) {
         f = &prim_faces4[i];
-        if (!(f->FaceFlags & FACE_FLAG_WALKABLE)) continue;
-        if (f->FaceFlags & FACE_FLAG_WMOVE) continue;
+        if (!(f->FaceFlags & FACE_FLAG_WALKABLE))
+            continue;
+        if (f->FaceFlags & FACE_FLAG_WMOVE)
+            continue;
 
-        x1 = +UC_INFINITY; z1 = +UC_INFINITY;
-        x2 = -UC_INFINITY; z2 = -UC_INFINITY;
+        x1 = +UC_INFINITY;
+        z1 = +UC_INFINITY;
+        x2 = -UC_INFINITY;
+        z2 = -UC_INFINITY;
 
         for (p = 0; p < 4; p++) {
             px = prim_points[f->Points[p]].X;
             pz = prim_points[f->Points[p]].Z;
-            if (px < x1) x1 = px;
-            if (px > x2) x2 = px;
-            if (pz < z1) z1 = pz;
-            if (pz > z2) z2 = pz;
+            if (px < x1)
+                x1 = px;
+            if (px > x2)
+                x2 = px;
+            if (pz < z1)
+                z1 = pz;
+            if (pz > z2)
+                z2 = pz;
         }
 
-        x1 -= JUST_IN_CASE; z1 -= JUST_IN_CASE;
-        x2 += JUST_IN_CASE; z2 += JUST_IN_CASE;
+        x1 -= JUST_IN_CASE;
+        z1 -= JUST_IN_CASE;
+        x2 += JUST_IN_CASE;
+        z2 += JUST_IN_CASE;
 
-        x1 >>= PAP_SHIFT_LO; z1 >>= PAP_SHIFT_LO;
-        x2 >>= PAP_SHIFT_LO; z2 >>= PAP_SHIFT_LO;
+        x1 >>= PAP_SHIFT_LO;
+        z1 >>= PAP_SHIFT_LO;
+        x2 >>= PAP_SHIFT_LO;
+        z2 >>= PAP_SHIFT_LO;
 
-        SATURATE(x1, 0, PAP_SIZE_LO - 1); SATURATE(x2, 0, PAP_SIZE_LO - 1);
-        SATURATE(z1, 0, PAP_SIZE_LO - 1); SATURATE(z2, 0, PAP_SIZE_LO - 1);
+        SATURATE(x1, 0, PAP_SIZE_LO - 1);
+        SATURATE(x2, 0, PAP_SIZE_LO - 1);
+        SATURATE(z1, 0, PAP_SIZE_LO - 1);
+        SATURATE(z2, 0, PAP_SIZE_LO - 1);
 
         for (mx = x1; mx <= x2; mx++)
             for (mz = z1; mz <= z2; mz++) {
@@ -591,7 +633,8 @@ void calc_slide_edges()
                     else
                         index = prim_faces4[j].WALKABLE;
 
-                    if (j <= 0 || j == i) continue;
+                    if (j <= 0 || j == i)
+                        continue;
 
                     g = &prim_faces4[j];
                     ASSERT(g->FaceFlags & FACE_FLAG_WALKABLE);
@@ -602,15 +645,23 @@ void calc_slide_edges()
                         ip1 = f->Points[point_order[ei]];
                         ip2 = f->Points[point_order[(ei + 1) & 0x3]];
 
-                        ip1x = prim_points[ip1].X; ip1y = prim_points[ip1].Y; ip1z = prim_points[ip1].Z;
-                        ip2x = prim_points[ip2].X; ip2y = prim_points[ip2].Y; ip2z = prim_points[ip2].Z;
+                        ip1x = prim_points[ip1].X;
+                        ip1y = prim_points[ip1].Y;
+                        ip1z = prim_points[ip1].Z;
+                        ip2x = prim_points[ip2].X;
+                        ip2y = prim_points[ip2].Y;
+                        ip2z = prim_points[ip2].Z;
 
                         for (ej = 0; ej < 4; ej++) {
                             jp1 = g->Points[point_order[ej]];
                             jp2 = g->Points[point_order[(ej + 1) & 0x3]];
 
-                            jp1x = prim_points[jp1].X; jp1y = prim_points[jp1].Y; jp1z = prim_points[jp1].Z;
-                            jp2x = prim_points[jp2].X; jp2y = prim_points[jp2].Y; jp2z = prim_points[jp2].Z;
+                            jp1x = prim_points[jp1].X;
+                            jp1y = prim_points[jp1].Y;
+                            jp1z = prim_points[jp1].Z;
+                            jp2x = prim_points[jp2].X;
+                            jp2y = prim_points[jp2].Y;
+                            jp2z = prim_points[jp2].Z;
 
                             if ((ip1 == jp2 && ip2 == jp1) || (ip1x == jp2x && ip1y == jp2y && ip1z == jp2z && ip2x == jp1x && ip2y == jp1y && ip2z == jp1z)) {
                                 f->FaceFlags &= ~(FACE_FLAG_SLIDE_EDGE << ei);
@@ -625,23 +676,31 @@ void calc_slide_edges()
     // Pass 3: clear slide edges where the ground drop is less than SLIDE_EDGE_HEIGHT.
     for (i = 1; i < next_prim_face4; i++) {
         f = &prim_faces4[i];
-        if (!(f->FaceFlags & FACE_FLAG_WALKABLE)) continue;
-        if (f->FaceFlags & FACE_FLAG_WMOVE) continue;
+        if (!(f->FaceFlags & FACE_FLAG_WALKABLE))
+            continue;
+        if (f->FaceFlags & FACE_FLAG_WMOVE)
+            continue;
 
         for (ei = 0; ei < 4; ei++) {
-            if (!(f->FaceFlags & (FACE_FLAG_SLIDE_EDGE << ei))) continue;
+            if (!(f->FaceFlags & (FACE_FLAG_SLIDE_EDGE << ei)))
+                continue;
 
             ip1 = f->Points[point_order[(ei + 0) & 0x3]];
             ip2 = f->Points[point_order[(ei + 1) & 0x3]];
 
-            ip1x = prim_points[ip1].X; ip1y = prim_points[ip1].Y; ip1z = prim_points[ip1].Z;
-            ip2x = prim_points[ip2].X; ip2y = prim_points[ip2].Y; ip2z = prim_points[ip2].Z;
+            ip1x = prim_points[ip1].X;
+            ip1y = prim_points[ip1].Y;
+            ip1z = prim_points[ip1].Z;
+            ip2x = prim_points[ip2].X;
+            ip2y = prim_points[ip2].Y;
+            ip2z = prim_points[ip2].Z;
 
             bx = ip1x + ip2x >> 1;
             by = ip1y + ip2y >> 1;
             bz = ip1z + ip2z >> 1;
 
-            dx = ip2x - ip1x; dz = ip2z - ip1z;
+            dx = ip2x - ip1x;
+            dz = ip2z - ip1z;
             len = QDIST2(abs(dx), abs(dz)) + 1;
 
             dx = dx * SLIDE_EDGE_PROBE / len;
@@ -663,17 +722,24 @@ void calc_slide_edges()
     // Pass 4: clear edges that lie along a fence.
     for (i = 1; i < next_prim_face4; i++) {
         f = &prim_faces4[i];
-        if (!(f->FaceFlags & FACE_FLAG_WALKABLE)) continue;
-        if (f->FaceFlags & FACE_FLAG_WMOVE) continue;
+        if (!(f->FaceFlags & FACE_FLAG_WALKABLE))
+            continue;
+        if (f->FaceFlags & FACE_FLAG_WMOVE)
+            continue;
 
         for (ei = 0; ei < 4; ei++) {
-            if (!(f->FaceFlags & (FACE_FLAG_SLIDE_EDGE << ei))) continue;
+            if (!(f->FaceFlags & (FACE_FLAG_SLIDE_EDGE << ei)))
+                continue;
 
             ip1 = f->Points[point_order[(ei + 0) & 0x3]];
             ip2 = f->Points[point_order[(ei + 1) & 0x3]];
 
-            ip1x = prim_points[ip1].X; ip1y = prim_points[ip1].Y; ip1z = prim_points[ip1].Z;
-            ip2x = prim_points[ip2].X; ip2y = prim_points[ip2].Y; ip2z = prim_points[ip2].Z;
+            ip1x = prim_points[ip1].X;
+            ip1y = prim_points[ip1].Y;
+            ip1z = prim_points[ip1].Z;
+            ip2x = prim_points[ip2].X;
+            ip2y = prim_points[ip2].Y;
+            ip2z = prim_points[ip2].Z;
 
             if (does_fence_lie_along_line(ip1x, ip1z, ip2x, ip2z))
                 f->FaceFlags &= ~(FACE_FLAG_SLIDE_EDGE << ei);
@@ -705,8 +771,12 @@ SLONG slide_along_prim(
     SWORD y_bot, y_top;
     PrimInfo* pi;
 
-    x1 >>= 8; y1 >>= 8; z1 >>= 8;
-    *x2 >>= 8; *y2 >>= 8; *z2 >>= 8;
+    x1 >>= 8;
+    y1 >>= 8;
+    z1 >>= 8;
+    *x2 >>= 8;
+    *y2 >>= 8;
+    *z2 >>= 8;
 
     if (shrink)
         radius -= 0x30;
@@ -771,7 +841,8 @@ void fn_anim_prim_normal(Thing* p_thing)
     draw_info = p_thing->Draw.Tweened;
     tween_step = draw_info->CurrentFrame->TweenStep << 1;
     tween_step = (tween_step * TICK_RATIO) >> TICK_SHIFT;
-    if (tween_step == 0) tween_step = 1;
+    if (tween_step == 0)
+        tween_step = 1;
     draw_info->AnimTween += tween_step;
 
     if (draw_info->AnimTween > 256) {
@@ -870,9 +941,18 @@ void create_anim_prim(SLONG x, SLONG y, SLONG z, SLONG prim, SLONG yaw)
 SLONG get_anim_prim_type(SLONG anim_prim)
 {
     switch (anim_prim) {
-    case 4: return ANIM_PRIM_TYPE_SWITCH;
-    case 3: case 5: case 6: case 7: case 8: case 10: case 11: return ANIM_PRIM_TYPE_DOOR;
-    default: return ANIM_PRIM_TYPE_NORMAL;
+    case 4:
+        return ANIM_PRIM_TYPE_SWITCH;
+    case 3:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 10:
+    case 11:
+        return ANIM_PRIM_TYPE_DOOR;
+    default:
+        return ANIM_PRIM_TYPE_NORMAL;
     }
 }
 
@@ -952,16 +1032,26 @@ void expand_anim_prim_bbox(
 
         MATRIX_MUL(fmatrix, px, py, pz);
 
-        px += ox; py += oy; pz += oz;
+        px += ox;
+        py += oy;
+        pz += oz;
 
-        ix = SLONG(px); iy = SLONG(py); iz = SLONG(pz);
+        ix = SLONG(px);
+        iy = SLONG(py);
+        iz = SLONG(pz);
 
-        if (ix < *min_x) *min_x = ix;
-        if (iy < *min_y) *min_y = iy;
-        if (iz < *min_z) *min_z = iz;
-        if (ix > *max_x) *max_x = ix;
-        if (iy > *max_y) *max_y = iy;
-        if (iz > *max_z) *max_z = iz;
+        if (ix < *min_x)
+            *min_x = ix;
+        if (iy < *min_y)
+            *min_y = iy;
+        if (iz < *min_z)
+            *min_z = iz;
+        if (ix > *max_x)
+            *max_x = ix;
+        if (iy > *max_y)
+            *max_y = iy;
+        if (iz > *max_z)
+            *max_z = iz;
     }
 }
 
@@ -977,8 +1067,12 @@ void find_anim_prim_bboxes()
     for (i = 1; i < MAX_ANIM_CHUNKS; i++) {
         pmb = &anim_prim_bbox[i];
 
-        pmb->minx = +UC_INFINITY; pmb->miny = +UC_INFINITY; pmb->minz = +UC_INFINITY;
-        pmb->maxx = -UC_INFINITY; pmb->maxy = -UC_INFINITY; pmb->maxz = -UC_INFINITY;
+        pmb->minx = +UC_INFINITY;
+        pmb->miny = +UC_INFINITY;
+        pmb->minz = +UC_INFINITY;
+        pmb->maxx = -UC_INFINITY;
+        pmb->maxy = -UC_INFINITY;
+        pmb->maxz = -UC_INFINITY;
 
         if (anim_chunk[i].MultiObject[0] == 0)
             continue;
@@ -1061,8 +1155,10 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
     SLONG f_list, exit, facet;
     DFacet* df;
 
-    SATURATE(mx1, 0, PAP_SIZE_LO - 1); SATURATE(mz1, 0, PAP_SIZE_LO - 1);
-    SATURATE(mx2, 0, PAP_SIZE_LO - 1); SATURATE(mz2, 0, PAP_SIZE_LO - 1);
+    SATURATE(mx1, 0, PAP_SIZE_LO - 1);
+    SATURATE(mz1, 0, PAP_SIZE_LO - 1);
+    SATURATE(mx2, 0, PAP_SIZE_LO - 1);
+    SATURATE(mz2, 0, PAP_SIZE_LO - 1);
 
     for (mx = mx1; mx <= mx2; mx++)
         for (mz = mz1; mz <= mz2; mz++) {
@@ -1078,15 +1174,13 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
 
                     df = &dfacets[facet];
 
-                    if (df->FacetType == STOREY_TYPE_FENCE ||
-                        df->FacetType == STOREY_TYPE_FENCE_FLAT ||
-                        df->FacetType == STOREY_TYPE_FENCE_BRICK ||
-                        (df->FacetFlags & FACET_FLAG_BARB_TOP)) {
+                    if (df->FacetType == STOREY_TYPE_FENCE || df->FacetType == STOREY_TYPE_FENCE_FLAT || df->FacetType == STOREY_TYPE_FENCE_BRICK || (df->FacetFlags & FACET_FLAG_BARB_TOP)) {
                         if (x1 == x2) {
                             if ((df->x[0] << 8) == x1) {
                                 minz = df->z[0] << 8;
                                 maxz = df->z[1] << 8;
-                                if (minz > maxz) SWAP(minz, maxz);
+                                if (minz > maxz)
+                                    SWAP(minz, maxz);
                                 if (WITHIN(z1, minz, maxz) && WITHIN(z2, minz, maxz))
                                     return UC_TRUE;
                             }
@@ -1094,7 +1188,8 @@ SLONG does_fence_lie_along_line(SLONG x1, SLONG z1, SLONG x2, SLONG z2)
                             if ((df->z[0] << 8) == z1) {
                                 minx = df->x[0] << 8;
                                 maxx = df->x[1] << 8;
-                                if (minx > maxx) SWAP(minx, maxx);
+                                if (minx > maxx)
+                                    SWAP(minx, maxx);
                                 if (WITHIN(x1, minx, maxx) && WITHIN(x2, minx, maxx))
                                     return UC_TRUE;
                             }

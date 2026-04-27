@@ -19,7 +19,7 @@ extern SLONG ScreenHeight;
 #include "game/input_actions_globals.h"
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/font2d.h"
-#include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
+#include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/core/fmatrix.h"
@@ -29,22 +29,21 @@ extern SLONG ScreenHeight;
 #include "game/game_types.h"
 
 // Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
-#include "engine/audio/music.h"               // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code
-#include "engine/audio/mfx.h"                 // MFX_play_stereo, MFX_stop, MFX_set_volumes, etc.
-#include "engine/audio/sound.h"               // WEATHER_REF, SIREN_REF
-#include "assets/sound_id.h"                  // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
-#include "engine/input/keyboard_globals.h"    // Keys[], LastKey, ControlFlag, ShiftFlag
-#include "engine/input/joystick.h"             // ReadInputDevice
-#include "engine/input/joystick_globals.h"    // the_state (DIJOYSTATE)
+#include "engine/audio/music.h" // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code
+#include "engine/audio/mfx.h" // MFX_play_stereo, MFX_stop, MFX_set_volumes, etc.
+#include "engine/audio/sound.h" // WEATHER_REF, SIREN_REF
+#include "assets/sound_id.h" // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
+#include "engine/input/keyboard_globals.h" // Keys[], LastKey, ControlFlag, ShiftFlag
+#include "engine/input/joystick.h" // ReadInputDevice
+#include "engine/input/joystick_globals.h" // the_state (DIJOYSTATE)
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
-#include "game/input_actions.h"                       // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
-#include "game/input_actions_globals.h"              // g_bPunishMePleaseICheatedOnThisLevel
-#include "ui/frontend/startscr_globals.h"          // STARTSCR_mission
-#include "ui/frontend/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
-#include "map/supermap_globals.h"       // DONT_load
-#include "game/game_tick_globals.h"              // allow_debug_keys
-
+#include "game/input_actions.h" // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
+#include "game/input_actions_globals.h" // g_bPunishMePleaseICheatedOnThisLevel
+#include "ui/frontend/startscr_globals.h" // STARTSCR_mission
+#include "ui/frontend/startscr.h" // STARTS_START, STARTS_EXIT, STARTS_EDITOR
+#include "map/supermap_globals.h" // DONT_load
+#include "game/game_tick_globals.h" // allow_debug_keys
 
 // uc_orig: RandStream (fallen/Source/frontend.cpp)
 // Pseudo-random stream — used for kibble particle variety and title wibble.
@@ -145,24 +144,38 @@ void FRONTEND_scr_new_theme(
     stop_all_fx_and_music();
 
     GEScreenSurface active = ge_get_background_override();
-    if (active == screenfull_back)   last = 1;
-    if (active == screenfull_map)    last = 2;
-    if (active == screenfull_brief)  last = 3;
-    if (active == screenfull_config) last = 4;
+    if (active == screenfull_back)
+        last = 1;
+    if (active == screenfull_map)
+        last = 2;
+    if (active == screenfull_brief)
+        last = 3;
+    if (active == screenfull_config)
+        last = 4;
 
     FRONTEND_scr_unload_theme();
 
-    screenfull_back   = ge_load_screen_surface(fname_back);
-    screenfull_map    = ge_load_screen_surface(fname_map);
-    screenfull_brief  = ge_load_screen_surface(fname_brief);
+    screenfull_back = ge_load_screen_surface(fname_back);
+    screenfull_map = ge_load_screen_surface(fname_map);
+    screenfull_brief = ge_load_screen_surface(fname_brief);
     screenfull_config = ge_load_screen_surface(fname_config);
 
     switch (last) {
-    case 1: ge_set_background_override(screenfull_back);   break;
-    case 2: ge_set_background_override(screenfull_map);    break;
-    case 3: ge_set_background_override(screenfull_brief);  break;
-    case 4: ge_set_background_override(screenfull_config); break;
-    default: ASSERT(UC_FALSE); break;
+    case 1:
+        ge_set_background_override(screenfull_back);
+        break;
+    case 2:
+        ge_set_background_override(screenfull_map);
+        break;
+    case 3:
+        ge_set_background_override(screenfull_brief);
+        break;
+    case 4:
+        ge_set_background_override(screenfull_config);
+        break;
+    default:
+        ASSERT(UC_FALSE);
+        break;
     }
 
     MUSIC_mode(MUSIC_MODE_FRONTEND);
@@ -379,7 +392,9 @@ void FRONTEND_init_xition(void)
 // Mission briefing screens use an iris (rect from center); others use a horizontal wipe.
 void FRONTEND_show_xition()
 {
-    struct { SLONG left, top, right, bottom; } rc;
+    struct {
+        SLONG left, top, right, bottom;
+    } rc;
 
     bool bDoBlit = UC_FALSE;
 
@@ -1082,7 +1097,8 @@ void FRONTEND_find_savegames(bool bGreyOutEmpties, bool bCheckSaveSpace)
         struct stat st;
         time_t ftime = 0;
         if (file != FILE_OPEN_ERROR) {
-            if (fstat(fileno(file), &st) == 0) ftime = st.st_mtime;
+            if (fstat(fileno(file), &st) == 0)
+                ftime = st.st_mtime;
             FRONTEND_LoadString(file, ttl);
             FileClose(file);
         } else {
@@ -1483,7 +1499,7 @@ void FRONTEND_MissionList(CBYTE* script, UBYTE district)
 // Reads the mission script and caches all mission entries into mission_cache[].
 void FRONTEND_CacheMissionList(CBYTE* script)
 {
-    CBYTE *text;
+    CBYTE* text;
     SLONG ver;
     MissionData* mdata = MFnew<MissionData>();
     UBYTE i = 0;
@@ -1989,7 +2005,6 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
     FRONTEND_recenter_menu();
 }
 
-
 // ---- Chunk 3: district/mission display, input, init, main loop -------------
 
 // Forward declarations for internal helpers used before their definitions.
@@ -2151,7 +2166,6 @@ static void FRONTEND_draw_districts(void)
         }
     }
 }
-
 
 // uc_orig: FRONTEND_display (fallen/Source/frontend.cpp)
 // Per-frame frontend BACKGROUND render: clear viewport, background image,
@@ -2337,9 +2351,9 @@ static void FRONTEND_storedata(void)
     case FE_CONFIG_AUDIO:
         MFX_stop(WEATHER_REF, MFX_WAVE_ALL);
         MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
-        ENV_set_value_number("fx_volume",      menu_data[0].Data >> 1, "Audio");
+        ENV_set_value_number("fx_volume", menu_data[0].Data >> 1, "Audio");
         ENV_set_value_number("ambient_volume", menu_data[1].Data >> 1, "Audio");
-        ENV_set_value_number("music_volume",   menu_data[2].Data >> 1, "Audio");
+        ENV_set_value_number("music_volume", menu_data[2].Data >> 1, "Audio");
         break;
 
     case FE_CONFIG_INPUT_KB:
@@ -2437,22 +2451,30 @@ static UBYTE FRONTEND_input(void)
         if (the_state.connected) {
             // X axis hysteresis.
             if (held_x == 0) {
-                if (the_state.lX > AXIS_CENTRE + ACTIVATE_ZONE) held_x = 1;
-                else if (the_state.lX < AXIS_CENTRE - ACTIVATE_ZONE) held_x = -1;
+                if (the_state.lX > AXIS_CENTRE + ACTIVATE_ZONE)
+                    held_x = 1;
+                else if (the_state.lX < AXIS_CENTRE - ACTIVATE_ZONE)
+                    held_x = -1;
             } else if (held_x > 0) {
-                if (the_state.lX < AXIS_CENTRE + RELEASE_ZONE) held_x = 0;
+                if (the_state.lX < AXIS_CENTRE + RELEASE_ZONE)
+                    held_x = 0;
             } else {
-                if (the_state.lX > AXIS_CENTRE - RELEASE_ZONE) held_x = 0;
+                if (the_state.lX > AXIS_CENTRE - RELEASE_ZONE)
+                    held_x = 0;
             }
 
             // Y axis hysteresis.
             if (held_y == 0) {
-                if (the_state.lY > AXIS_CENTRE + ACTIVATE_ZONE) held_y = 1;
-                else if (the_state.lY < AXIS_CENTRE - ACTIVATE_ZONE) held_y = -1;
+                if (the_state.lY > AXIS_CENTRE + ACTIVATE_ZONE)
+                    held_y = 1;
+                else if (the_state.lY < AXIS_CENTRE - ACTIVATE_ZONE)
+                    held_y = -1;
             } else if (held_y > 0) {
-                if (the_state.lY < AXIS_CENTRE + RELEASE_ZONE) held_y = 0;
+                if (the_state.lY < AXIS_CENTRE + RELEASE_ZONE)
+                    held_y = 0;
             } else {
-                if (the_state.lY > AXIS_CENTRE - RELEASE_ZONE) held_y = 0;
+                if (the_state.lY > AXIS_CENTRE - RELEASE_ZONE)
+                    held_y = 0;
             }
 
             // No diagonals — dominant axis wins (prevents Y wobble from overriding X).
@@ -2460,14 +2482,20 @@ static UBYTE FRONTEND_input(void)
             int32_t dy = the_state.lY > AXIS_CENTRE ? the_state.lY - AXIS_CENTRE : AXIS_CENTRE - the_state.lY;
 
             if (held_y != 0 && (dy >= dx || held_x == 0)) {
-                if (held_y > 0) input |= INPUT_MASK_BACKWARDS;
-                else input |= INPUT_MASK_FORWARDS;
+                if (held_y > 0)
+                    input |= INPUT_MASK_BACKWARDS;
+                else
+                    input |= INPUT_MASK_FORWARDS;
             } else if (held_x != 0) {
-                if (held_x > 0) input |= INPUT_MASK_RIGHT;
-                else input |= INPUT_MASK_LEFT;
+                if (held_x > 0)
+                    input |= INPUT_MASK_RIGHT;
+                else
+                    input |= INPUT_MASK_LEFT;
             } else if (held_y != 0) {
-                if (held_y > 0) input |= INPUT_MASK_BACKWARDS;
-                else input |= INPUT_MASK_FORWARDS;
+                if (held_y > 0)
+                    input |= INPUT_MASK_BACKWARDS;
+                else
+                    input |= INPUT_MASK_FORWARDS;
             }
         } else {
             held_x = 0;
@@ -2478,10 +2506,14 @@ static UBYTE FRONTEND_input(void)
             // Merge keyboard arrows into the gamepad direction path — one unified repeat.
             // Don't clear Keys[] — it's populated by async keyboard hook, clearing causes
             // gaps between auto-repeat events that make the ticker stutter.
-            if (Keys[KB_UP])    input |= INPUT_MASK_FORWARDS;
-            if (Keys[KB_DOWN])  input |= INPUT_MASK_BACKWARDS;
-            if (Keys[KB_LEFT])  input |= INPUT_MASK_LEFT;
-            if (Keys[KB_RIGHT]) input |= INPUT_MASK_RIGHT;
+            if (Keys[KB_UP])
+                input |= INPUT_MASK_FORWARDS;
+            if (Keys[KB_DOWN])
+                input |= INPUT_MASK_BACKWARDS;
+            if (Keys[KB_LEFT])
+                input |= INPUT_MASK_LEFT;
+            if (Keys[KB_RIGHT])
+                input |= INPUT_MASK_RIGHT;
 
             // Split into directions (need auto-repeat) and buttons (edge-detect only).
             SLONG dir_mask = INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS;

@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "things/core/interact.h"      // calc_sub_objects_position
+#include "things/core/interact.h" // calc_sub_objects_position
 #include "things/characters/anim_ids.h"
 #include "world_objects/tripwire.h"
 #include "world_objects/tripwire_globals.h"

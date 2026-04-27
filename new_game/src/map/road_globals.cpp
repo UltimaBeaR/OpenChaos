@@ -11,4 +11,3 @@ UBYTE* ROAD_edge;
 
 // uc_orig: ROAD_edge_upto (fallen/Source/road.cpp)
 UWORD ROAD_edge_upto;
-

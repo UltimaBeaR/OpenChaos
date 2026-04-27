@@ -3,7 +3,6 @@
 
 #include "engine/core/types.h"
 
-
 // uc_orig: go_into_game (fallen/Source/Attract.cpp)
 extern SLONG go_into_game;
 

@@ -10,5 +10,4 @@
 // THING_INDEX array of bodies being levitated by the Bane boss.
 extern UWORD BAT_summon[BAT_SUMMON_NUM_BODIES];
 
-
 #endif // THINGS_ANIMALS_BAT_GLOBALS_H

@@ -77,7 +77,6 @@ static SLONG IMP_add_line(IMP_Mesh* im, SLONG* max_lines, UWORD v1, UWORD v2)
     return UC_TRUE;
 }
 
-
 // Frees all heap-allocated arrays inside the mesh. Sets freed pointers to NULL.
 // Safe to call on a partially-initialised mesh (any NULL pointer is skipped).
 // uc_orig: IMP_free (fallen/outro/imp.cpp)
@@ -122,7 +121,7 @@ void IMP_free(IMP_Mesh* im)
 // IMP_Mesh x86: valid(4) + name(32) + 8×num_*(32) + 8×ptr(32) + 7×float(28) + 2×ptr(8) = 136
 // IMP_Mat  x86: 5×float(20) + 4×UBYTE(4) + 2×name(64) + 4×ptr(16) = 104
 #define IMP_MESH_DISK_SIZE 136
-#define IMP_MAT_DISK_SIZE  104
+#define IMP_MAT_DISK_SIZE 104
 
 // Write IMP_Mesh header in 32-bit compatible on-disk format.
 static int IMP_write_mesh_header(FILE* handle, IMP_Mesh* im)
@@ -131,24 +130,41 @@ static int IMP_write_mesh_header(FILE* handle, IMP_Mesh* im)
     memset(buf, 0, sizeof(buf));
 
     UBYTE* p = buf;
-    memcpy(p, &im->valid,      4);  p += 4;
-    memcpy(p, im->name,        32); p += 32;
-    memcpy(p, &im->num_mats,   4);  p += 4;
-    memcpy(p, &im->num_verts,  4);  p += 4;
-    memcpy(p, &im->num_tverts, 4);  p += 4;
-    memcpy(p, &im->num_faces,  4);  p += 4;
-    memcpy(p, &im->num_sverts, 4);  p += 4;
-    memcpy(p, &im->num_quads,  4);  p += 4;
-    memcpy(p, &im->num_edges,  4);  p += 4;
-    memcpy(p, &im->num_lines,  4);  p += 4;
+    memcpy(p, &im->valid, 4);
+    p += 4;
+    memcpy(p, im->name, 32);
+    p += 32;
+    memcpy(p, &im->num_mats, 4);
+    p += 4;
+    memcpy(p, &im->num_verts, 4);
+    p += 4;
+    memcpy(p, &im->num_tverts, 4);
+    p += 4;
+    memcpy(p, &im->num_faces, 4);
+    p += 4;
+    memcpy(p, &im->num_sverts, 4);
+    p += 4;
+    memcpy(p, &im->num_quads, 4);
+    p += 4;
+    memcpy(p, &im->num_edges, 4);
+    p += 4;
+    memcpy(p, &im->num_lines, 4);
+    p += 4;
     p += 8 * 4; // skip 8 x86 pointer slots (zeroed)
-    memcpy(p, &im->min_x,      4);  p += 4;
-    memcpy(p, &im->min_y,      4);  p += 4;
-    memcpy(p, &im->min_z,      4);  p += 4;
-    memcpy(p, &im->max_x,      4);  p += 4;
-    memcpy(p, &im->max_y,      4);  p += 4;
-    memcpy(p, &im->max_z,      4);  p += 4;
-    memcpy(p, &im->radius,     4);  p += 4;
+    memcpy(p, &im->min_x, 4);
+    p += 4;
+    memcpy(p, &im->min_y, 4);
+    p += 4;
+    memcpy(p, &im->min_z, 4);
+    p += 4;
+    memcpy(p, &im->max_x, 4);
+    p += 4;
+    memcpy(p, &im->max_y, 4);
+    p += 4;
+    memcpy(p, &im->max_z, 4);
+    p += 4;
+    memcpy(p, &im->radius, 4);
+    p += 4;
     // 2 x86 pointer slots (old_vert, old_svert) — already zeroed
 
     return fwrite(buf, IMP_MESH_DISK_SIZE, 1, handle) == 1;
@@ -162,17 +178,24 @@ static int IMP_write_mat_array(FILE* handle, IMP_Mat* mats, SLONG count)
     for (SLONG i = 0; i < count; i++) {
         memset(buf, 0, sizeof(buf));
         UBYTE* p = buf;
-        memcpy(p, &mats[i].r,           4);  p += 4;
-        memcpy(p, &mats[i].g,           4);  p += 4;
-        memcpy(p, &mats[i].b,           4);  p += 4;
-        memcpy(p, &mats[i].shininess,   4);  p += 4;
-        memcpy(p, &mats[i].shinstr,     4);  p += 4;
+        memcpy(p, &mats[i].r, 4);
+        p += 4;
+        memcpy(p, &mats[i].g, 4);
+        p += 4;
+        memcpy(p, &mats[i].b, 4);
+        p += 4;
+        memcpy(p, &mats[i].shininess, 4);
+        p += 4;
+        memcpy(p, &mats[i].shinstr, 4);
+        p += 4;
         *p++ = mats[i].alpha;
         *p++ = mats[i].sided;
         *p++ = mats[i].has_texture;
         *p++ = mats[i].has_bumpmap;
-        memcpy(p, mats[i].tname,        32); p += 32;
-        memcpy(p, mats[i].bname,        32); p += 32;
+        memcpy(p, mats[i].tname, 32);
+        p += 32;
+        memcpy(p, mats[i].bname, 32);
+        p += 32;
         // 4 x86 pointer slots — already zeroed
 
         if (fwrite(buf, IMP_MAT_DISK_SIZE, 1, handle) != 1)
@@ -190,24 +213,41 @@ static int IMP_read_mesh_header(FILE* handle, IMP_Mesh* out)
         return 0;
 
     UBYTE* p = buf;
-    memcpy(&out->valid,      p, 4);  p += 4;
-    memcpy(out->name,        p, 32); p += 32;
-    memcpy(&out->num_mats,   p, 4);  p += 4;
-    memcpy(&out->num_verts,  p, 4);  p += 4;
-    memcpy(&out->num_tverts, p, 4);  p += 4;
-    memcpy(&out->num_faces,  p, 4);  p += 4;
-    memcpy(&out->num_sverts, p, 4);  p += 4;
-    memcpy(&out->num_quads,  p, 4);  p += 4;
-    memcpy(&out->num_edges,  p, 4);  p += 4;
-    memcpy(&out->num_lines,  p, 4);  p += 4;
+    memcpy(&out->valid, p, 4);
+    p += 4;
+    memcpy(out->name, p, 32);
+    p += 32;
+    memcpy(&out->num_mats, p, 4);
+    p += 4;
+    memcpy(&out->num_verts, p, 4);
+    p += 4;
+    memcpy(&out->num_tverts, p, 4);
+    p += 4;
+    memcpy(&out->num_faces, p, 4);
+    p += 4;
+    memcpy(&out->num_sverts, p, 4);
+    p += 4;
+    memcpy(&out->num_quads, p, 4);
+    p += 4;
+    memcpy(&out->num_edges, p, 4);
+    p += 4;
+    memcpy(&out->num_lines, p, 4);
+    p += 4;
     p += 8 * 4; // skip 8 x86 pointers (mat..line)
-    memcpy(&out->min_x,      p, 4);  p += 4;
-    memcpy(&out->min_y,      p, 4);  p += 4;
-    memcpy(&out->min_z,      p, 4);  p += 4;
-    memcpy(&out->max_x,      p, 4);  p += 4;
-    memcpy(&out->max_y,      p, 4);  p += 4;
-    memcpy(&out->max_z,      p, 4);  p += 4;
-    memcpy(&out->radius,     p, 4);  p += 4;
+    memcpy(&out->min_x, p, 4);
+    p += 4;
+    memcpy(&out->min_y, p, 4);
+    p += 4;
+    memcpy(&out->min_z, p, 4);
+    p += 4;
+    memcpy(&out->max_x, p, 4);
+    p += 4;
+    memcpy(&out->max_y, p, 4);
+    p += 4;
+    memcpy(&out->max_z, p, 4);
+    p += 4;
+    memcpy(&out->radius, p, 4);
+    p += 4;
     // skip 2 x86 pointers (old_vert, old_svert)
 
     return 1;
@@ -223,23 +263,30 @@ static int IMP_read_mat_array(FILE* handle, IMP_Mat* out, SLONG count)
             return 0;
 
         UBYTE* p = buf;
-        memcpy(&out[i].r,           p, 4);  p += 4;
-        memcpy(&out[i].g,           p, 4);  p += 4;
-        memcpy(&out[i].b,           p, 4);  p += 4;
-        memcpy(&out[i].shininess,   p, 4);  p += 4;
-        memcpy(&out[i].shinstr,     p, 4);  p += 4;
-        out[i].alpha       = *p++;
-        out[i].sided       = *p++;
+        memcpy(&out[i].r, p, 4);
+        p += 4;
+        memcpy(&out[i].g, p, 4);
+        p += 4;
+        memcpy(&out[i].b, p, 4);
+        p += 4;
+        memcpy(&out[i].shininess, p, 4);
+        p += 4;
+        memcpy(&out[i].shinstr, p, 4);
+        p += 4;
+        out[i].alpha = *p++;
+        out[i].sided = *p++;
         out[i].has_texture = *p++;
         out[i].has_bumpmap = *p++;
-        memcpy(out[i].tname,        p, 32); p += 32;
-        memcpy(out[i].bname,        p, 32); p += 32;
+        memcpy(out[i].tname, p, 32);
+        p += 32;
+        memcpy(out[i].bname, p, 32);
+        p += 32;
         // skip 4 x86 pointers (ot_tex, ot_bpos, ot_bneg, ob)
 
-        out[i].ot_tex  = NULL;
+        out[i].ot_tex = NULL;
         out[i].ot_bpos = NULL;
         out[i].ot_bneg = NULL;
-        out[i].ob      = NULL;
+        out[i].ob = NULL;
     }
 
     return 1;
@@ -273,14 +320,14 @@ IMP_Mesh IMP_binary_load(CBYTE* fname)
     if (!IMP_read_mesh_header(handle, &ans))
         goto file_error;
 
-    ans.mat   = (IMP_Mat*)malloc(sizeof(IMP_Mat) * ans.num_mats);
-    ans.vert  = (IMP_Vert*)malloc(sizeof(IMP_Vert) * ans.num_verts);
+    ans.mat = (IMP_Mat*)malloc(sizeof(IMP_Mat) * ans.num_mats);
+    ans.vert = (IMP_Vert*)malloc(sizeof(IMP_Vert) * ans.num_verts);
     ans.tvert = (IMP_Tvert*)malloc(sizeof(IMP_Tvert) * ans.num_tverts);
-    ans.face  = (IMP_Face*)malloc(sizeof(IMP_Face) * ans.num_faces);
+    ans.face = (IMP_Face*)malloc(sizeof(IMP_Face) * ans.num_faces);
     ans.svert = (IMP_Svert*)malloc(sizeof(IMP_Svert) * ans.num_sverts);
-    ans.quad  = (IMP_Quad*)malloc(sizeof(IMP_Quad) * ans.num_quads);
-    ans.edge  = (IMP_Edge*)malloc(sizeof(IMP_Edge) * ans.num_edges);
-    ans.line  = (IMP_Line*)malloc(sizeof(IMP_Line) * ans.num_lines);
+    ans.quad = (IMP_Quad*)malloc(sizeof(IMP_Quad) * ans.num_quads);
+    ans.edge = (IMP_Edge*)malloc(sizeof(IMP_Edge) * ans.num_edges);
+    ans.line = (IMP_Line*)malloc(sizeof(IMP_Line) * ans.num_lines);
 
     if (ans.mat == NULL || ans.vert == NULL || ans.tvert == NULL || ans.face == NULL || ans.svert == NULL || ans.quad == NULL || ans.edge == NULL || ans.line == NULL) {
         goto file_error;
@@ -289,19 +336,19 @@ IMP_Mesh IMP_binary_load(CBYTE* fname)
     if (!IMP_read_mat_array(handle, ans.mat, ans.num_mats))
         goto file_error;
     // Remaining structs have no pointers — on-disk size == runtime sizeof.
-    if (fread(ans.vert,  sizeof(IMP_Vert),  ans.num_verts,  handle) != (size_t)ans.num_verts)
+    if (fread(ans.vert, sizeof(IMP_Vert), ans.num_verts, handle) != (size_t)ans.num_verts)
         goto file_error;
     if (fread(ans.tvert, sizeof(IMP_Tvert), ans.num_tverts, handle) != (size_t)ans.num_tverts)
         goto file_error;
-    if (fread(ans.face,  sizeof(IMP_Face),  ans.num_faces,  handle) != (size_t)ans.num_faces)
+    if (fread(ans.face, sizeof(IMP_Face), ans.num_faces, handle) != (size_t)ans.num_faces)
         goto file_error;
     if (fread(ans.svert, sizeof(IMP_Svert), ans.num_sverts, handle) != (size_t)ans.num_sverts)
         goto file_error;
-    if (fread(ans.quad,  sizeof(IMP_Quad),  ans.num_quads,  handle) != (size_t)ans.num_quads)
+    if (fread(ans.quad, sizeof(IMP_Quad), ans.num_quads, handle) != (size_t)ans.num_quads)
         goto file_error;
-    if (fread(ans.edge,  sizeof(IMP_Edge),  ans.num_edges,  handle) != (size_t)ans.num_edges)
+    if (fread(ans.edge, sizeof(IMP_Edge), ans.num_edges, handle) != (size_t)ans.num_edges)
         goto file_error;
-    if (fread(ans.line,  sizeof(IMP_Line),  ans.num_lines,  handle) != (size_t)ans.num_lines)
+    if (fread(ans.line, sizeof(IMP_Line), ans.num_lines, handle) != (size_t)ans.num_lines)
         goto file_error;
 
     fclose(handle);

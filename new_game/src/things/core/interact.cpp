@@ -1,5 +1,5 @@
 #include "engine/platform/uc_common.h"
-#include "things/core/thing.h"   // pool types
+#include "things/core/thing.h" // pool types
 #include "game/game_types.h" // Game struct, TICK_RATIO, PEOPLE, etc.
 #include "map/pap.h"
 #include "map/pap_globals.h"
@@ -60,7 +60,6 @@ SLONG angle_diff(SLONG angle1, SLONG angle2)
     }
     return diff;
 }
-
 
 // Returns the Y height of a cable facet at fractional position `along` (0..CABLE_ALONG_MAX).
 // The cable sags in a cosine-curve shape with a dip at the midpoint.

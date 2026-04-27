@@ -38,7 +38,7 @@
 #define NS_HI_TYPE_CURVE 4 // Private — set by NS_precalculate for edge smoothing
 
 // uc_orig: NS_HI_FLAG_GRATE (fallen/Headers/ns.h)
-#define NS_HI_FLAG_GRATE (1 << 5)   // Hole through which water can pour
+#define NS_HI_FLAG_GRATE (1 << 5) // Hole through which water can pour
 // uc_orig: NS_HI_FLAG_LOCKTOP (fallen/Headers/ns.h)
 #define NS_HI_FLAG_LOCKTOP (1 << 6) // Private — top height is locked
 // uc_orig: NS_HI_FLAG_TOPUSED (fallen/Headers/ns.h)
@@ -157,7 +157,7 @@ typedef struct
     UBYTE* memory;
     UWORD num_points;
     UWORD num_faces; // Face data starts immediately after point data
-    UBYTE fall;      // Linked list index of first waterfall in this square
+    UBYTE fall; // Linked list index of first waterfall in this square
     UBYTE padding;
 } NS_Cache;
 

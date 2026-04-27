@@ -1,6 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "things/core/interact.h"   // calc_sub_objects_position
+#include "things/core/interact.h" // calc_sub_objects_position
 #include "things/characters/anim_ids.h"
 #include "ai/mav.h"
 #include "things/items/balloon.h"
@@ -165,12 +165,24 @@ void BALLOON_process()
                 dz = bp2->z - bp1->z;
 
                 // Guard against overflows.
-                if (dx >  0x7000) { dx =  0x7000; }
-                if (dy >  0x7000) { dy =  0x7000; }
-                if (dz >  0x7000) { dz =  0x7000; }
-                if (dx < -0x7000) { dx = -0x7000; }
-                if (dy < -0x7000) { dy = -0x7000; }
-                if (dz < -0x7000) { dz = -0x7000; }
+                if (dx > 0x7000) {
+                    dx = 0x7000;
+                }
+                if (dy > 0x7000) {
+                    dy = 0x7000;
+                }
+                if (dz > 0x7000) {
+                    dz = 0x7000;
+                }
+                if (dx < -0x7000) {
+                    dx = -0x7000;
+                }
+                if (dy < -0x7000) {
+                    dy = -0x7000;
+                }
+                if (dz < -0x7000) {
+                    dz = -0x7000;
+                }
 
                 dist = QDIST3(abs(dx), abs(dy), abs(dz)) + 1;
 
@@ -206,10 +218,18 @@ void BALLOON_process()
             SLONG py = bp->y >> 8;
             SLONG pz = bp->z >> 8;
 
-            if (MAV_inside(px + BALLOON_RADIUS, py, pz)) { bp->dx -= BALLOON_BOUNCE; }
-            if (MAV_inside(px - BALLOON_RADIUS, py, pz)) { bp->dx += BALLOON_BOUNCE; }
-            if (MAV_inside(px, py, pz + BALLOON_RADIUS)) { bp->dz -= BALLOON_BOUNCE; }
-            if (MAV_inside(px, py, pz - BALLOON_RADIUS)) { bp->dz += BALLOON_BOUNCE; }
+            if (MAV_inside(px + BALLOON_RADIUS, py, pz)) {
+                bp->dx -= BALLOON_BOUNCE;
+            }
+            if (MAV_inside(px - BALLOON_RADIUS, py, pz)) {
+                bp->dx += BALLOON_BOUNCE;
+            }
+            if (MAV_inside(px, py, pz + BALLOON_RADIUS)) {
+                bp->dz -= BALLOON_BOUNCE;
+            }
+            if (MAV_inside(px, py, pz - BALLOON_RADIUS)) {
+                bp->dz += BALLOON_BOUNCE;
+            }
         } else {
             // Balloon is released: drift upward until too high, then destroy.
 
@@ -239,12 +259,24 @@ void BALLOON_process()
                     dy = bp2->y - bp1->y;
                     dz = bp2->z - bp1->z;
 
-                    if (dx >  0x4000) { dx =  0x4000; }
-                    if (dy >  0x4000) { dy =  0x4000; }
-                    if (dz >  0x4000) { dz =  0x4000; }
-                    if (dx < -0x4000) { dx = -0x4000; }
-                    if (dy < -0x4000) { dy = -0x4000; }
-                    if (dz < -0x4000) { dz = -0x4000; }
+                    if (dx > 0x4000) {
+                        dx = 0x4000;
+                    }
+                    if (dy > 0x4000) {
+                        dy = 0x4000;
+                    }
+                    if (dz > 0x4000) {
+                        dz = 0x4000;
+                    }
+                    if (dx < -0x4000) {
+                        dx = -0x4000;
+                    }
+                    if (dy < -0x4000) {
+                        dy = -0x4000;
+                    }
+                    if (dz < -0x4000) {
+                        dz = -0x4000;
+                    }
 
                     dist = QDIST3(abs(dx), abs(dy), abs(dz)) + 1;
 

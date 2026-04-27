@@ -13,8 +13,7 @@
 // Wraps GEVertexTL with convenient helpers for setting screen coords,
 // UV coordinates, and colour values. Private base prevents accidental
 // GEVertexTL* casts from outside this class.
-class PolyPoint2D : private GEVertexTL
-{
+class PolyPoint2D : private GEVertexTL {
 public:
     // uc_orig: SetSC (fallen/DDEngine/Headers/polypoint.h)
     void SetSC(float sx, float sy, float sz = 0);

@@ -37,15 +37,15 @@ struct Thing;
 // One tyre track or footprint decal entry. Linked to a Thing for map placement.
 // uc_orig: Track (fallen/Headers/tracks.h)
 struct Track {
-    SLONG dx, dy, dz;       // direction vector
-    SLONG page, colour;     // texture page and ARGB colour
-    UWORD thing;            // THING_INDEX of the owning secondary Thing
-    SWORD sx, sz;           // half-width offsets perpendicular to direction
+    SLONG dx, dy, dz; // direction vector
+    SLONG page, colour; // texture page and ARGB colour
+    UWORD thing; // THING_INDEX of the owning secondary Thing
+    SWORD sx, sz; // half-width offsets perpendicular to direction
     UWORD padtolong;
     UBYTE flip;
-    UBYTE flags;            // TRACK_FLAGS_*
-    UBYTE splut;            // current splut fade counter
-    UBYTE splutmax;         // max splut value (fades alpha over time)
+    UBYTE flags; // TRACK_FLAGS_*
+    UBYTE splut; // current splut fade counter
+    UBYTE splutmax; // max splut value (fades alpha over time)
 };
 
 // uc_orig: TrackPtr (fallen/Headers/tracks.h)

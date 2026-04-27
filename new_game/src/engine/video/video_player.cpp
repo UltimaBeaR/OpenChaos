@@ -31,37 +31,38 @@ extern "C" {
 // Constants
 // ---------------------------------------------------------------------------
 
-static constexpr int AUDIO_QUEUE_BUFFERS  = 4;
-static constexpr int AUDIO_BUFFER_SAMPLES = 4096;  // samples per buffer
+static constexpr int AUDIO_QUEUE_BUFFERS = 4;
+static constexpr int AUDIO_BUFFER_SAMPLES = 4096; // samples per buffer
 
 // ---------------------------------------------------------------------------
 // OpenAL audio streaming
 // ---------------------------------------------------------------------------
 
 struct AudioStream {
-    ALuint   source;
-    ALuint   buffers[AUDIO_QUEUE_BUFFERS];
-    int      sample_rate;
-    int      channels;
-    ALenum   format;
-    bool     playing;
-    int      next_buf;  // next buffer slot to fill before playing
+    ALuint source;
+    ALuint buffers[AUDIO_QUEUE_BUFFERS];
+    int sample_rate;
+    int channels;
+    ALenum format;
+    bool playing;
+    int next_buf; // next buffer slot to fill before playing
 
     // Accumulation buffer — never drops data
     int16_t* accum;
-    int      accum_count;  // samples (per channel) stored
-    int      accum_cap;    // capacity in samples (per channel)
+    int accum_count; // samples (per channel) stored
+    int accum_cap; // capacity in samples (per channel)
 };
 
 static bool audio_init(AudioStream* a, int sample_rate, int channels)
 {
     memset(a, 0, sizeof(*a));
     a->sample_rate = sample_rate;
-    a->channels    = channels;
-    a->format      = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+    a->channels = channels;
+    a->format = (channels == 1) ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
 
     alGenSources(1, &a->source);
-    if (!a->source) return false;
+    if (!a->source)
+        return false;
 
     alGenBuffers(AUDIO_QUEUE_BUFFERS, a->buffers);
 
@@ -100,7 +101,8 @@ static void audio_accumulate(AudioStream* a, const int16_t* samples, int count)
 // Returns true if a buffer was filled.
 static bool audio_fill_one_buffer(AudioStream* a, ALuint buf)
 {
-    if (a->accum_count <= 0) return false;
+    if (a->accum_count <= 0)
+        return false;
 
     int n = a->accum_count > AUDIO_BUFFER_SAMPLES ? AUDIO_BUFFER_SAMPLES : a->accum_count;
     alBufferData(buf, a->format, a->accum, n * a->channels * sizeof(int16_t), a->sample_rate);
@@ -120,7 +122,8 @@ static void audio_flush(AudioStream* a)
     if (!a->playing) {
         // Pre-start: fill initial buffer slots
         while (a->next_buf < AUDIO_QUEUE_BUFFERS && a->accum_count > 0) {
-            if (!audio_fill_one_buffer(a, a->buffers[a->next_buf])) break;
+            if (!audio_fill_one_buffer(a, a->buffers[a->next_buf]))
+                break;
             a->next_buf++;
         }
         // Start when we have enough buffers
@@ -253,12 +256,12 @@ bool video_play(const char* filename, bool allow_skip)
     GEVideoTexture tex = ge_video_texture_create(vctx->width, vctx->height);
 
     // Playback loop
-    AVPacket* pkt   = av_packet_alloc();
-    AVFrame*  frame = av_frame_alloc();
-    bool      done  = false;
-    bool      ok    = true;
-    double    video_timebase = av_q2d(fmt_ctx->streams[video_idx]->time_base);
-    uint64_t  start_ticks = sdl3_get_ticks(); // wall clock = master for everything
+    AVPacket* pkt = av_packet_alloc();
+    AVFrame* frame = av_frame_alloc();
+    bool done = false;
+    bool ok = true;
+    double video_timebase = av_q2d(fmt_ctx->streams[video_idx]->time_base);
+    uint64_t start_ticks = sdl3_get_ticks(); // wall clock = master for everything
 
     // Audio sample accumulation buffer
     int16_t* audio_buf = nullptr;
@@ -278,15 +281,26 @@ bool video_play(const char* filename, bool allow_skip)
         {
             SDL_Event ev;
             while (SDL_PollEvent(&ev)) {
-                if (ev.type == SDL_EVENT_QUIT) { done = true; break; }
+                if (ev.type == SDL_EVENT_QUIT) {
+                    done = true;
+                    break;
+                }
                 if (allow_skip) {
                     if (ev.type == SDL_EVENT_KEY_DOWN) {
                         SDL_Keycode key = ev.key.key;
-                        if (key == SDLK_ESCAPE || key == SDLK_RETURN || key == SDLK_SPACE)
-                        { done = true; break; }
+                        if (key == SDLK_ESCAPE || key == SDLK_RETURN || key == SDLK_SPACE) {
+                            done = true;
+                            break;
+                        }
                     }
-                    if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) { done = true; break; }
-                    if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) { done = true; break; }
+                    if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                        done = true;
+                        break;
+                    }
+                    if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
+                        done = true;
+                        break;
+                    }
                 }
             }
 
@@ -306,17 +320,17 @@ bool video_play(const char* filename, bool allow_skip)
             if (allow_skip && ds_is_connected()) {
                 DS_InputState ds = {};
                 ds_get_input(&ds);
-                if ((!ds_prev.cross  && ds.cross) ||
-                    (!ds_prev.circle && ds.circle) ||
-                    (!ds_prev.start  && ds.start))
+                if ((!ds_prev.cross && ds.cross) || (!ds_prev.circle && ds.circle) || (!ds_prev.start && ds.start))
                     done = true;
                 ds_prev = ds;
             }
-            if (done) break;
+            if (done)
+                break;
         }
 
         // --- Flush accumulated audio into OpenAL buffers ---
-        if (has_audio) audio_flush(&audio);
+        if (has_audio)
+            audio_flush(&audio);
 
         // --- Read and decode packets ---
         int ret = av_read_frame(fmt_ctx, pkt);
@@ -333,15 +347,17 @@ bool video_play(const char* filename, bool allow_skip)
                 double elapsed = (double)(sdl3_get_ticks() - start_ticks) / 1000.0;
                 if (pts > elapsed + 0.005) {
                     uint32_t wait_ms = (uint32_t)((pts - elapsed) * 1000.0);
-                    if (wait_ms > 100) wait_ms = 100; // safety cap
-                    if (wait_ms > 0) SDL_Delay(wait_ms);
+                    if (wait_ms > 100)
+                        wait_ms = 100; // safety cap
+                    if (wait_ms > 0)
+                        SDL_Delay(wait_ms);
                 }
 
                 // Convert to RGB
                 uint8_t* dst_data[1] = { rgb_data };
                 int dst_linesize[1] = { rgb_linesize };
                 sws_scale(sws, frame->data, frame->linesize, 0, vctx->height,
-                          dst_data, dst_linesize);
+                    dst_data, dst_linesize);
 
                 // Upload and render via graphics engine
                 ge_video_texture_upload(tex, vctx->width, vctx->height, rgb_data, rgb_linesize);
@@ -375,13 +391,17 @@ bool video_play(const char* filename, bool allow_skip)
     av_packet_free(&pkt);
     av_free(rgb_data);
 
-    if (sws) sws_freeContext(sws);
-    if (swr) swr_free(&swr);
-    if (actx) avcodec_free_context(&actx);
+    if (sws)
+        sws_freeContext(sws);
+    if (swr)
+        swr_free(&swr);
+    if (actx)
+        avcodec_free_context(&actx);
     avcodec_free_context(&vctx);
     avformat_close_input(&fmt_ctx);
 
-    if (has_audio) audio_destroy(&audio);
+    if (has_audio)
+        audio_destroy(&audio);
 
     ge_video_texture_destroy(tex);
 

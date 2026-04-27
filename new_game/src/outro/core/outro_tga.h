@@ -20,16 +20,16 @@ typedef struct
 // uc_orig: TGA_FLAG_CONTAINS_ALPHA (fallen/outro/Tga.h)
 #define TGA_FLAG_CONTAINS_ALPHA (1 << 0)
 // uc_orig: TGA_FLAG_ONE_BIT_ALPHA (fallen/outro/Tga.h)
-#define TGA_FLAG_ONE_BIT_ALPHA  (1 << 1)
+#define TGA_FLAG_ONE_BIT_ALPHA (1 << 1)
 // uc_orig: TGA_FLAG_GRAYSCALE (fallen/outro/Tga.h)
-#define TGA_FLAG_GRAYSCALE      (1 << 2)
+#define TGA_FLAG_GRAYSCALE (1 << 2)
 
 typedef struct
 {
     SLONG valid;
     SLONG width;
     SLONG height;
-    ULONG flag;  // TGA_FLAG_* bitmask
+    ULONG flag; // TGA_FLAG_* bitmask
 } OUTRO_TGA_Info;
 
 // uc_orig: OUTRO_TGA_FileLoad_Error (fallen/outro/OutroTga.cpp)

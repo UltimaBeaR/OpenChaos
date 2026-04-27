@@ -69,8 +69,7 @@ extern THING_INDEX col_with_things[MAX_COL_WITH];
 // Shared LOS ray endpoints: set by there_is_a_los, read by check_vector_against_mapsquare
 // and check_vector_against_mapsquare_objects during cell traversal.
 // Named struct type extracted from the original anonymous struct for extern linkage.
-struct SaveStack
-{
+struct SaveStack {
     SLONG x1;
     SLONG my_y1;
     SLONG z1;
@@ -195,7 +194,7 @@ extern COLLIDE_Fastnavrow* COLLIDE_fastnav;
 
 // uc_orig: FALL_OFF_FLAG_TRUE (fallen/Source/collide.cpp)
 // Set when move_thing determines the person has walked off a face edge.
-#define FALL_OFF_FLAG_TRUE      (1 << 0)
+#define FALL_OFF_FLAG_TRUE (1 << 0)
 
 // uc_orig: FALL_OFF_FLAG_FIRE_ESCAPE (fallen/Source/collide.cpp)
 // Set when the person is walking on a fire-escape face (affects fall-off behaviour).

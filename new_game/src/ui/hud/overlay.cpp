@@ -152,8 +152,7 @@ void OVERLAY_draw_gun_sights(void)
         case CLASS_SPECIAL:
             PANEL_draw_gun_sight(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 30, p_thing->WorldPos.Z >> 8, panel_gun_sight[c0].Timer, 128);
             break;
-        case CLASS_BAT:
-        {
+        case CLASS_BAT: {
             SLONG scale;
             if (p_thing->Genus.Bat->type == BAT_TYPE_BALROG) {
                 scale = 450;
@@ -161,8 +160,7 @@ void OVERLAY_draw_gun_sights(void)
                 scale = 128;
             }
             PANEL_draw_gun_sight(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 30, p_thing->WorldPos.Z >> 8, panel_gun_sight[c0].Timer, scale);
-        }
-        break;
+        } break;
         case CLASS_BARREL:
             p_thing = panel_gun_sight[c0].PThing;
             PANEL_draw_gun_sight(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 80, p_thing->WorldPos.Z >> 8, panel_gun_sight[c0].Timer, 200);
@@ -203,8 +201,7 @@ void OVERLAY_draw_enemy_health(void)
                     PANEL_draw_local_health(p_target->WorldPos.X >> 8, p_target->WorldPos.Y >> 8, p_target->WorldPos.Z >> 8, (100 * p_target->Genus.Bat->health) >> 8, 300);
                 }
                 break;
-            case CLASS_PERSON:
-            {
+            case CLASS_PERSON: {
                 SLONG percent;
 
                 if (PersonIsMIB(p_target)) {
@@ -214,8 +211,7 @@ void OVERLAY_draw_enemy_health(void)
                 }
 
                 PANEL_draw_local_health(p_target->WorldPos.X >> 8, p_target->WorldPos.Y >> 8, p_target->WorldPos.Z >> 8, percent, 60);
-            }
-            break;
+            } break;
             }
         }
     }

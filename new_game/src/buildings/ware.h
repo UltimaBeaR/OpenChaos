@@ -31,11 +31,11 @@ typedef struct {
     UBYTE maxz; // Inclusive.
 
     UBYTE nav_pitch; // Stride for WARE_nav: index = (x - minx) * nav_pitch + (z - minz).
-    UWORD nav;       // Start index into the global WARE_nav pool for this warehouse.
-    UWORD building;  // DBuilding index this warehouse corresponds to.
-    UWORD height;    // Start index into the global WARE_height pool.
-    UWORD rooftex;   // Start index into the global WARE_rooftex pool.
-    UBYTE ambience;  // Ambient sound preset to use while inside.
+    UWORD nav; // Start index into the global WARE_nav pool for this warehouse.
+    UWORD building; // DBuilding index this warehouse corresponds to.
+    UWORD height; // Start index into the global WARE_height pool.
+    UWORD rooftex; // Start index into the global WARE_rooftex pool.
+    UBYTE ambience; // Ambient sound preset to use while inside.
     UBYTE padding;
 } WARE_Ware;
 
@@ -69,7 +69,6 @@ UBYTE WARE_get_caps(UBYTE ware, UBYTE x, UBYTE z, UBYTE dir);
 // Returns the floor height at world-space (x, z) inside warehouse ware.
 // uc_orig: WARE_calc_height_at (fallen/Source/ware.cpp)
 SLONG WARE_calc_height_at(UBYTE ware, SLONG x, SLONG z);
-
 
 // MAV navigation for a person approaching a warehouse from outside.
 // uc_orig: WARE_mav_enter (fallen/Source/ware.cpp)

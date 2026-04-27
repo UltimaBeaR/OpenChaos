@@ -8,8 +8,8 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/core/matrix.h"
 
-#include "buildings/prim_types.h"  // PrimObject, PrimInfo, PRIM_FLAG_*, FACE_FLAG_*, PRIM_OBJ_*
-#include "buildings/prim.h"        // get_prim_info, slide_along_prim, etc.
+#include "buildings/prim_types.h" // PrimObject, PrimInfo, PRIM_FLAG_*, FACE_FLAG_*, PRIM_OBJ_*
+#include "buildings/prim.h" // get_prim_info, slide_along_prim, etc.
 
 #include "things/items/balloon.h"
 #include "things/items/balloon_globals.h"
@@ -331,7 +331,6 @@ void SHAPE_sparky_line(
                     pnx = -dy;
                     pny = dx;
                 }
-
             }
 
             nx[i] = pnx;

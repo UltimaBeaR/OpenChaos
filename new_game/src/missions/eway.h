@@ -321,5 +321,4 @@ SLONG EWAY_conversation_happening(
 // uc_orig: EWAY_prim_activated (fallen/Source/eway.cpp)
 void EWAY_prim_activated(SLONG ob_index);
 
-
 #endif // MISSIONS_EWAY_H

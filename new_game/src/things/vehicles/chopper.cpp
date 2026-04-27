@@ -3,7 +3,7 @@
 
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "things/core/interact.h"   // calc_sub_objects_position
+#include "things/core/interact.h" // calc_sub_objects_position
 #include "things/core/statedef.h"
 #include "ai/mav.h"
 #include "engine/audio/mfx.h"
@@ -469,20 +469,18 @@ void CHOPPER_fn_normal(Thing* thing)
 
         break;
 
-    case CHOPPER_substate_patrolling:
-        {
-            GameCoord targ;
-            SLONG rot;
+    case CHOPPER_substate_patrolling: {
+        GameCoord targ;
+        SLONG rot;
 
-            chopper->patrol++;
-            rot = chopper->patrol;
-            rot &= 2047;
-            targ.X = chopper->home.X + (SIN(rot) * 5);
-            targ.Z = chopper->home.Z + (COS(rot) * 5);
-            targ.Y = thing->WorldPos.Y;
-            CHOPPER_home(thing, targ);
-        }
-        break;
+        chopper->patrol++;
+        rot = chopper->patrol;
+        rot &= 2047;
+        targ.X = chopper->home.X + (SIN(rot) * 5);
+        targ.Z = chopper->home.Z + (COS(rot) * 5);
+        targ.Y = thing->WorldPos.Y;
+        CHOPPER_home(thing, targ);
+    } break;
 
     case CHOPPER_substate_homing:
         CHOPPER_predict_altitude(thing, chopper);

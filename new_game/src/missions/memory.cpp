@@ -2,10 +2,10 @@
 // Game-level memory management and level save/load system.
 // First chunk: globals init, level memory table, pointer/index conversion, anim serialization.
 
-#include "things/core/thing.h"         // pool types (Vehicle, Person, etc.)
-#include "game/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
-#include "buildings/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
-#include "assets/formats/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
+#include "things/core/thing.h" // pool types (Vehicle, Person, etc.)
+#include "game/game_types.h" // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
+#include "buildings/prim.h" // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
+#include "assets/formats/anim_globals.h" // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
 #include "assets/texture.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "camera/fc.h"
@@ -189,103 +189,99 @@ void save_whole_game(CBYTE* gamename)
 void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
 {
     switch (meshtype) {
-    case DT_MESH:
-        {
-            DrawMesh* drawtype;
-            drawtype = TO_DRAW_MESH((uintptr_t)p_thing->Draw.Mesh);
-            p_thing->Draw.Mesh = drawtype;
-            drawtype->Cache = 0;
-        }
-        break;
+    case DT_MESH: {
+        DrawMesh* drawtype;
+        drawtype = TO_DRAW_MESH((uintptr_t)p_thing->Draw.Mesh);
+        p_thing->Draw.Mesh = drawtype;
+        drawtype->Cache = 0;
+    } break;
     case DT_ROT_MULTI:
     case DT_ANIM_PRIM:
-    case DT_BIKE:
-        {
-            DrawTween* drawtype;
-            SLONG chunk;
+    case DT_BIKE: {
+        DrawTween* drawtype;
+        SLONG chunk;
 
-            drawtype = TO_DRAW_TWEEN((uintptr_t)p_thing->Draw.Tweened);
-            ASSERT((uintptr_t)(p_thing->Draw.Tweened) < RMAX_DRAW_TWEENS);
-            p_thing->Draw.Tweened = drawtype;
+        drawtype = TO_DRAW_TWEEN((uintptr_t)p_thing->Draw.Tweened);
+        ASSERT((uintptr_t)(p_thing->Draw.Tweened) < RMAX_DRAW_TWEENS);
+        p_thing->Draw.Tweened = drawtype;
 
-            chunk = (intptr_t)drawtype->TheChunk;
-            switch (chunk >> 16) {
-            case 1:
-                drawtype->TheChunk = &game_chunk[chunk & 0xffff];
-                break;
-            case 2:
-                drawtype->TheChunk = &anim_chunk[chunk & 0xffff];
-                break;
-            default:
-                ASSERT(0);
-                break;
-            }
-
-            switch (p_thing->Class) {
-            case CLASS_PERSON:
-                drawtype->QueuedFrame = 0;
-                drawtype->InterruptFrame = 0;
-                if (p_thing->Genus.Person->PersonType == PERSON_CIV && (drawtype->CurrentAnim > 100 && drawtype->CurrentAnim < 140) && drawtype->CurrentAnim != 109) {
-                    drawtype->CurrentFrame = game_chunk[ANIM_TYPE_CIV].AnimList[drawtype->CurrentAnim];
-                } else if (p_thing->Genus.Person->PersonType == PERSON_COP && (drawtype->CurrentAnim > 200 && drawtype->CurrentAnim < 220)) {
-                    drawtype->CurrentFrame = game_chunk[ANIM_TYPE_ROPER].AnimList[drawtype->CurrentAnim];
-                } else
-                    drawtype->CurrentFrame = global_anim_array[p_thing->Genus.Person->AnimType][drawtype->CurrentAnim];
-
-                if (drawtype->CurrentFrame)
-                    drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
-                else
-                    drawtype->NextFrame = 0;
-
-                if (p_thing->State == STATE_DEAD) {
-                    SLONG c0;
-                    SLONG old_tick;
-
-                    old_tick = TICK_RATIO;
-
-                    the_game.TickRatio = 1 << TICK_SHIFT;
-                    extern SLONG person_normal_animate(Thing* p_thing);
-                    for (c0 = 0; c0 < 40; c0++)
-                        person_normal_animate(p_thing);
-
-                    the_game.TickRatio = old_tick;
-                }
-                break;
-            case CLASS_BAT:
-
-            case CLASS_BIKE:
-            case CLASS_ANIM_PRIM:
-                drawtype->QueuedFrame = 0;
-                drawtype->InterruptFrame = 0;
-
-                drawtype->CurrentFrame = anim_chunk[p_thing->Index].AnimList[drawtype->CurrentAnim];
-                if (drawtype->CurrentFrame)
-                    drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
-                else
-                    drawtype->NextFrame = 0;
-
-                break;
-
-            case CLASS_ANIMAL:
-                drawtype->QueuedFrame = 0;
-                drawtype->InterruptFrame = 0;
-                drawtype->CurrentFrame = game_chunk[6].AnimList[1];
-                if (drawtype->CurrentFrame)
-                    drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
-                else
-                    drawtype->NextFrame = 0;
-                break;
-
-            default:
-                ASSERT(0);
-                drawtype->QueuedFrame = 0;
-                drawtype->InterruptFrame = 0;
-                drawtype->CurrentFrame = 0;
-                drawtype->NextFrame = 0;
-                break;
-            }
+        chunk = (intptr_t)drawtype->TheChunk;
+        switch (chunk >> 16) {
+        case 1:
+            drawtype->TheChunk = &game_chunk[chunk & 0xffff];
+            break;
+        case 2:
+            drawtype->TheChunk = &anim_chunk[chunk & 0xffff];
+            break;
+        default:
+            ASSERT(0);
+            break;
         }
-        break;
+
+        switch (p_thing->Class) {
+        case CLASS_PERSON:
+            drawtype->QueuedFrame = 0;
+            drawtype->InterruptFrame = 0;
+            if (p_thing->Genus.Person->PersonType == PERSON_CIV && (drawtype->CurrentAnim > 100 && drawtype->CurrentAnim < 140) && drawtype->CurrentAnim != 109) {
+                drawtype->CurrentFrame = game_chunk[ANIM_TYPE_CIV].AnimList[drawtype->CurrentAnim];
+            } else if (p_thing->Genus.Person->PersonType == PERSON_COP && (drawtype->CurrentAnim > 200 && drawtype->CurrentAnim < 220)) {
+                drawtype->CurrentFrame = game_chunk[ANIM_TYPE_ROPER].AnimList[drawtype->CurrentAnim];
+            } else
+                drawtype->CurrentFrame = global_anim_array[p_thing->Genus.Person->AnimType][drawtype->CurrentAnim];
+
+            if (drawtype->CurrentFrame)
+                drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
+            else
+                drawtype->NextFrame = 0;
+
+            if (p_thing->State == STATE_DEAD) {
+                SLONG c0;
+                SLONG old_tick;
+
+                old_tick = TICK_RATIO;
+
+                the_game.TickRatio = 1 << TICK_SHIFT;
+                extern SLONG person_normal_animate(Thing * p_thing);
+                for (c0 = 0; c0 < 40; c0++)
+                    person_normal_animate(p_thing);
+
+                the_game.TickRatio = old_tick;
+            }
+            break;
+        case CLASS_BAT:
+
+        case CLASS_BIKE:
+        case CLASS_ANIM_PRIM:
+            drawtype->QueuedFrame = 0;
+            drawtype->InterruptFrame = 0;
+
+            drawtype->CurrentFrame = anim_chunk[p_thing->Index].AnimList[drawtype->CurrentAnim];
+            if (drawtype->CurrentFrame)
+                drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
+            else
+                drawtype->NextFrame = 0;
+
+            break;
+
+        case CLASS_ANIMAL:
+            drawtype->QueuedFrame = 0;
+            drawtype->InterruptFrame = 0;
+            drawtype->CurrentFrame = game_chunk[6].AnimList[1];
+            if (drawtype->CurrentFrame)
+                drawtype->NextFrame = drawtype->CurrentFrame->NextFrame;
+            else
+                drawtype->NextFrame = 0;
+            break;
+
+        default:
+            ASSERT(0);
+            drawtype->QueuedFrame = 0;
+            drawtype->InterruptFrame = 0;
+            drawtype->CurrentFrame = 0;
+            drawtype->NextFrame = 0;
+            break;
+        }
+    } break;
     }
 }
 
@@ -293,8 +289,8 @@ void convert_drawtype_to_pointer(Thing* p_thing, SLONG meshtype)
 // uc_orig: convert_thing_to_pointer (fallen/Source/memory.cpp)
 void convert_thing_to_pointer(Thing* p_thing)
 {
-    extern void process_hardware_level_input_for_player(Thing* p_thing);
-    extern void fn_anim_prim_normal(Thing* p_thing);
+    extern void process_hardware_level_input_for_player(Thing * p_thing);
+    extern void fn_anim_prim_normal(Thing * p_thing);
 
     switch (p_thing->Class) {
 

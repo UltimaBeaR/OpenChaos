@@ -10,4 +10,3 @@ UBYTE CNET_player_id = 0;
 
 // uc_orig: CNET_num_players (fallen/Source/cnet.cpp)
 UBYTE CNET_num_players = 1;
-

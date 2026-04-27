@@ -1,7 +1,7 @@
 #include "assets/formats/anim.h"
 #include "engine/core/memory.h"
 #include "things/characters/anim_ids.h"
-#include "things/characters/person_types.h"  // ANIM_TYPE_DARCI/ROPER/CIV/ROPER2
+#include "things/characters/person_types.h" // ANIM_TYPE_DARCI/ROPER/CIV/ROPER2
 
 // File-local animation index constants for the "new Roper" animation set (roper.all).
 // These indices match the animation's position in the .all file.
@@ -185,7 +185,7 @@ void init_anim_prims(void)
 }
 
 // uc_orig: setup_anim_stuff (fallen/Source/Anim.cpp)
-static void setup_anim_stuff(void) {}
+static void setup_anim_stuff(void) { }
 
 // Load .all animation files for all runtime character types.
 // Load order: darci1.all, roper.all, rthug.all, roper2.all,

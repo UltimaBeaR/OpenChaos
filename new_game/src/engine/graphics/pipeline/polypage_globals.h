@@ -15,5 +15,4 @@ extern float not_private_smiley_xscale;
 // uc_orig: not_private_smiley_yscale (fallen/DDEngine/Source/polypage.cpp)
 extern float not_private_smiley_yscale;
 
-
 #endif // ENGINE_GRAPHICS_PIPELINE_POLYPAGE_GLOBALS_H

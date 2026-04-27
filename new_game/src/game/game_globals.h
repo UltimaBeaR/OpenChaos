@@ -2,7 +2,7 @@
 #define GAME_GAME_GLOBALS_H
 
 #include "engine/platform/uc_common.h"
-#include "things/core/thing.h"     // Pool type definitions (Vehicle, Person, Animal, etc.) needed by game_types.h
+#include "things/core/thing.h" // Pool type definitions (Vehicle, Person, Animal, etc.) needed by game_types.h
 #include "game/game_types.h"
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
@@ -73,6 +73,5 @@ extern SLONG sum;
 // File paths for gameplay recording and playback (.pkt) files.
 // uc_orig: playback_name (fallen/Source/Game.cpp)
 extern CBYTE* playback_name;
-
 
 #endif // GAME_GAME_GLOBALS_H

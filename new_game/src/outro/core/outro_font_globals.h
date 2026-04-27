@@ -6,8 +6,7 @@
 
 // uc_orig: FONT_Letter (fallen/outro/outroFont.cpp)
 // UV and width data for each letter in the font texture.
-struct FONT_Letter
-{
+struct FONT_Letter {
     float u;
     float v;
     float uwidth;

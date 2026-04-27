@@ -137,13 +137,20 @@ static void PLAYCUTS_Read_Channel(MFFileHandle handle, CPChannel* channel)
 
     // Read fixed-size 32-bit on-disk layout (8 bytes of scalar fields + 4 bytes pointer placeholder).
     // Cannot use sizeof(CPChannel) — it contains a pointer (4 bytes on x86, 8 on x64).
-    struct { UBYTE type; UBYTE flags; UBYTE pad1, pad2; UWORD index; UWORD packetcount; uint32_t packets_placeholder; } disk;
+    struct {
+        UBYTE type;
+        UBYTE flags;
+        UBYTE pad1, pad2;
+        UWORD index;
+        UWORD packetcount;
+        uint32_t packets_placeholder;
+    } disk;
     FileRead(handle, &disk, sizeof(disk));
-    channel->type        = disk.type;
-    channel->flags       = disk.flags;
-    channel->pad1        = disk.pad1;
-    channel->pad2        = disk.pad2;
-    channel->index       = disk.index;
+    channel->type = disk.type;
+    channel->flags = disk.flags;
+    channel->pad1 = disk.pad1;
+    channel->pad2 = disk.pad2;
+    channel->index = disk.index;
     channel->packetcount = disk.packetcount;
     channel->packets = PLAYCUTS_packets + PLAYCUTS_packet_ctr;
     PLAYCUTS_packet_ctr += channel->packetcount;
@@ -169,7 +176,6 @@ CPData* PLAYCUTS_Read(MFFileHandle handle)
         PLAYCUTS_Read_Channel(handle, cutscene->channels + channum);
     return cutscene;
 }
-
 
 // Find the packet that exactly matches frame 'cell', or NULL if none.
 // uc_orig: PLAYCUTS_Get_Packet (fallen/Source/playcuts.cpp)

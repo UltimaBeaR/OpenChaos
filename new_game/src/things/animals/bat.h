@@ -25,20 +25,20 @@ struct Thing;
 // Per-bat instance data stored in the_game.Bats[].
 typedef struct
 {
-    UBYTE type;     // BAT_TYPE_*
+    UBYTE type; // BAT_TYPE_*
     UBYTE health;
-    UBYTE state;    // BAT_STATE_*
+    UBYTE state; // BAT_STATE_*
     UBYTE substate; // BAT_SUBSTATE_*
-    UBYTE home_x;   // Home mapsquare X (WorldPos.X >> 16)
-    UBYTE home_z;   // Home mapsquare Z (WorldPos.Z >> 16)
-    UWORD target;   // THING_INDEX of current attack target, or 0
+    UBYTE home_x; // Home mapsquare X (WorldPos.X >> 16)
+    UBYTE home_z; // Home mapsquare Z (WorldPos.Z >> 16)
+    UWORD target; // THING_INDEX of current attack target, or 0
     UWORD timer;
-    UWORD flag;     // BAT_FLAG_* bits
-    SWORD want_x;   // Target position (WorldPos units >> 8)
+    UWORD flag; // BAT_FLAG_* bits
+    SWORD want_x; // Target position (WorldPos units >> 8)
     SWORD want_y;
     SWORD want_z;
-    UWORD glow;     // Bane: how much it glows
-    SLONG dx;       // Balrog: movement delta X
+    UWORD glow; // Bane: how much it glows
+    SLONG dx; // Balrog: movement delta X
     SLONG dy;
     SLONG dz;
 

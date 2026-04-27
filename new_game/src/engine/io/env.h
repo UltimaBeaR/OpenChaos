@@ -20,7 +20,7 @@ void ENV_set_value_number(CBYTE* name, SLONG value, CBYTE* section = "Game");
 
 // Generic INI file access (cross-platform replacement for Win32 GetPrivateProfile*).
 // These operate on arbitrary INI files, not just config.ini.
-int  INI_get_int(const char* filepath, const char* section, const char* key, int def);
+int INI_get_int(const char* filepath, const char* section, const char* key, int def);
 bool INI_get_string(const char* filepath, const char* section, const char* key, char* out, int out_size);
 bool INI_get_section(const char* filepath, const char* section, char* out, int out_size);
 

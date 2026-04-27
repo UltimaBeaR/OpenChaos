@@ -11,7 +11,7 @@
 
 struct FeatureFlags {
     // --- Cut features (existed in pre-release, absent in final release) ---
-    bool cut_bats;  // Flying bats on missions (placeholder models)
+    bool cut_bats; // Flying bats on missions (placeholder models)
 
     // --- Extended features (added by OpenChaos) ---
     // (none yet)

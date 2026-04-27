@@ -27,12 +27,12 @@
 // (AK47) get a Machine (0x27) two-beat pulse spanning the whole press
 // range so feedback stays present when the trigger is held fully down.
 enum class TriggerEffectType : uint8_t {
-    None = 0,   // no adaptive trigger effect (trigger free)
-    Weapon,     // single click between start/end zones
-    Machine,    // continuous two-amplitude pulse between start/end zones
-    Vibration,  // sustained periodic vibration from `position` onwards
-                // (used as a runtime override for the post-shot recoil
-                // burst — not typically set as a baseline profile effect).
+    None = 0, // no adaptive trigger effect (trigger free)
+    Weapon, // single click between start/end zones
+    Machine, // continuous two-amplitude pulse between start/end zones
+    Vibration, // sustained periodic vibration from `position` onwards
+               // (used as a runtime override for the post-shot recoil
+               // burst — not typically set as a baseline profile effect).
 };
 
 struct WeaponFeelProfile {
@@ -55,10 +55,10 @@ struct WeaponFeelProfile {
     //                 clamped to 255 after the multiply. 1.0 = no
     //                 change.
     uint32_t haptic_wave_id;
-    float    haptic_gain;
-    uint8_t  haptic_ceiling;
-    float    haptic_max_seconds;
-    float    haptic_xbox_boost;
+    float haptic_gain;
+    uint8_t haptic_ceiling;
+    float haptic_max_seconds;
+    float haptic_xbox_boost;
 
     // Xbox / generic SDL rumble — per-motor routing of the envelope peak.
     // The envelope peak (0..255, boosted by xbox_boost) is scaled by
@@ -69,8 +69,8 @@ struct WeaponFeelProfile {
     // useful for weapons where a single heavy thump feels flat (e.g.
     // AK47 held-fire). DualSense path uses its own slow-motor envelope
     // routing and is unaffected.
-    uint8_t  xbox_rumble_low_percent;   // 0..100
-    uint8_t  xbox_rumble_high_percent;  // 0..100
+    uint8_t xbox_rumble_low_percent; // 0..100
+    uint8_t xbox_rumble_high_percent; // 0..100
 
     // --- Adaptive trigger (DualSense) --------------------------------------
     // trigger_effect selects which DualSense effect runs on R2 while the
@@ -90,13 +90,13 @@ struct WeaponFeelProfile {
     //             effect cover the whole press range so the pulse
     //             doesn't cut out when the player bottoms the trigger.
     TriggerEffectType trigger_effect;
-    uint8_t  trigger_start_zone;
-    uint8_t  trigger_end_zone;
-    uint8_t  trigger_strength;     // Weapon only
-    uint8_t  machine_amp_a;        // Machine only, 0..7
-    uint8_t  machine_amp_b;        // Machine only, 0..7
-    uint8_t  machine_frequency;    // Machine only, pulse rate
-    uint8_t  machine_period;       // Machine only, pattern period
+    uint8_t trigger_start_zone;
+    uint8_t trigger_end_zone;
+    uint8_t trigger_strength; // Weapon only
+    uint8_t machine_amp_a; // Machine only, 0..7
+    uint8_t machine_amp_b; // Machine only, 0..7
+    uint8_t machine_frequency; // Machine only, pulse rate
+    uint8_t machine_period; // Machine only, pattern period
 
     // --- Reload click (auto-fire weapons) ---------------------------------
     // When the weapon's magazine is empty, the adaptive trigger briefly
@@ -107,9 +107,9 @@ struct WeaponFeelProfile {
     //   reload_click_start_zone: click zone begin (2..7)
     //   reload_click_end_zone:   click zone end   (start+1..8)
     //   reload_click_strength:   0..8 (hardware receives strength-1)
-    uint8_t  reload_click_start_zone;
-    uint8_t  reload_click_end_zone;
-    uint8_t  reload_click_strength;
+    uint8_t reload_click_start_zone;
+    uint8_t reload_click_end_zone;
+    uint8_t reload_click_strength;
 
     // --- Post-shot trigger vibration burst (e.g. shotgun recoil feel) -----
     // Right after a shot fires, override the main trigger_effect with a
@@ -122,11 +122,11 @@ struct WeaponFeelProfile {
     //   post_shot_vibration_frequency:  vibration rate in Hz (1..255)
     //   post_shot_vibration_amp_start:  amplitude at t=0 (0..8)
     //   post_shot_vibration_amp_end:    amplitude at t=seconds (0..8; usually 0)
-    float    post_shot_vibration_seconds;
-    uint8_t  post_shot_vibration_position;
-    uint8_t  post_shot_vibration_frequency;
-    uint8_t  post_shot_vibration_amp_start;
-    uint8_t  post_shot_vibration_amp_end;
+    float post_shot_vibration_seconds;
+    uint8_t post_shot_vibration_position;
+    uint8_t post_shot_vibration_frequency;
+    uint8_t post_shot_vibration_amp_start;
+    uint8_t post_shot_vibration_amp_end;
 
     // --- Between-shot anim interlude (for auto-fire weapons) --------------
     // aim_interlude_anim: secondary animation ID played during the latter
@@ -143,7 +143,7 @@ struct WeaponFeelProfile {
     //     calls set_anim on it when person_normal_animate_speed signals
     //     end==1, which then plays naturally on subsequent ticks until
     //     Timer1=0 triggers the next shot.
-    int32_t  aim_interlude_anim;
+    int32_t aim_interlude_anim;
 
     // --- Analog fire detection ---------------------------------------------
     // fire_threshold: R2/L2 value above which the shot fires (0..255).
@@ -157,9 +157,9 @@ struct WeaponFeelProfile {
     //            rising-edge (pistol, shotgun — each shot requires the
     //            trigger to drop to reset_threshold and then rise past
     //            fire_threshold again).
-    uint8_t  fire_threshold;
-    uint8_t  reset_threshold;
-    bool     auto_fire;
+    uint8_t fire_threshold;
+    uint8_t reset_threshold;
+    bool auto_fire;
 };
 
 // ---------------------------------------------------------------------------
@@ -260,7 +260,7 @@ uint8_t weapon_feel_tick_haptic(bool* out_active);
 // after weapon_feel_tick_haptic to route the peak to the two motors.
 // Returns defaults (low=100, high=0) when no envelope is playing.
 void weapon_feel_get_active_xbox_rumble_scales(uint8_t* out_low_percent,
-                                               uint8_t* out_high_percent);
+    uint8_t* out_high_percent);
 
 // Stop envelope playback (death, level reset, menu).
 void weapon_feel_stop_haptic();
@@ -283,7 +283,7 @@ bool weapon_feel_tick_trigger_vibration(
 
 struct WeaponFireDecision {
     bool shoot; // R2 produced a shot event this frame
-    bool kick;  // L2 produced a kick event this frame
+    bool kick; // L2 produced a kick event this frame
 };
 
 // Run one tick of fire detection for the given analog trigger positions.

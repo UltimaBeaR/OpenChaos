@@ -19,4 +19,3 @@ void crt_effect_init();
 // Must be called while the default framebuffer is bound (after composition_blit).
 // No-op when g_crt_enabled == false.
 void crt_effect_apply();
-

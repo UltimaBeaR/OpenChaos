@@ -2,11 +2,11 @@
 #define ENGINE_GRAPHICS_GEOMETRY_FACET_H
 
 #include "engine/core/types.h"
-#include "engine/graphics/pipeline/poly.h"    // POLY_Point
-#include "engine/graphics/lighting/night.h"             // NIGHT_Colour
-#include "engine/graphics/geometry/facet_globals.h"  // all facet globals (FacetRows, FacetDiffY, flip, etc.)
-#include "map/supermap.h"                  // DFacet, DBuilding, DStorey, DWalkable
-#include "buildings/building_types.h"   // TEXTURE_PIECE_*
+#include "engine/graphics/pipeline/poly.h" // POLY_Point
+#include "engine/graphics/lighting/night.h" // NIGHT_Colour
+#include "engine/graphics/geometry/facet_globals.h" // all facet globals (FacetRows, FacetDiffY, flip, etc.)
+#include "map/supermap.h" // DFacet, DBuilding, DStorey, DWalkable
+#include "buildings/building_types.h" // TEXTURE_PIECE_*
 
 // =====================================================================
 // Exterior building wall/roof renderer.

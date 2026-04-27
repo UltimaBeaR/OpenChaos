@@ -1,7 +1,6 @@
 // uc_orig: drawxtra.cpp (fallen/DDEngine/Source/drawxtra.cpp)
 // 2D screen-space drawing utilities used by the UI widget system.
 
-
 #include "engine/graphics/pipeline/poly.h"
 
 #include "engine/graphics/pipeline/draw2d.h"
@@ -54,4 +53,3 @@ void DRAW2D_Tri(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG tx, SLONG ty, SLONG 
 
     POLY_add_triangle(tri, page, UC_FALSE, UC_TRUE);
 }
-

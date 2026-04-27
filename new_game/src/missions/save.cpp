@@ -13,7 +13,7 @@
 
 #include "missions/save.h"
 #include "missions/save_globals.h"
-#include "things/characters/person.h"  // set_anim
+#include "things/characters/person.h" // set_anim
 
 // Record type tags written into the save stream to identify what follows.
 // uc_orig: SAVE_PERSON_TYPE_NORMAL (fallen/Source/save.cpp)
@@ -183,7 +183,6 @@ static FILE* LOAD_open()
     return MF_Fopen("ingame.sav", "rb");
 }
 
-
 // Serializes a special-class thing (full state: header + Special + DrawMesh + Thing blobs).
 // uc_orig: SAVE_special (fallen/Source/save.cpp)
 static SLONG SAVE_special(Thing* p_special)
@@ -219,20 +218,6 @@ static SLONG SAVE_vehicle(Thing* p_vehicle)
                 if (p_driver->Genus.Person->pcom_ai_state == PCOM_AI_STATE_NORMAL) {
                     SAVE_out_data(&skip, sizeof(skip));
                     return (1);
-
-                    /*
-                    // (Original half-vehicle save code, never reached)
-                    SAVE_just_vehicle extrav;
-                    extrav.Type=SAVE_VEHICLE_TYPE_HALF;
-                    extrav.Yaw =(p_vehicle->Genus.Vehicle->Angle&2047)>>3;
-                    extrav.Thing = THING_NUMBER(p_vehicle);
-                    extrav.x=p_vehicle->WorldPos.X>>8;
-                    extrav.y=p_vehicle->WorldPos.Y>>8;
-                    extrav.z=p_vehicle->WorldPos.Z>>8;
-                    extrav.driver=p_vehicle->Genus.Vehicle->Driver;
-                    extrav.passenger=p_vehicle->Genus.Vehicle->Passenger;
-                    return(SAVE_out_data(&extrav, sizeof(extrav)));
-                    */
                 }
             }
         }
@@ -393,7 +378,6 @@ static SLONG SAVE_eways(void)
     res &= SAVE_out_data(EWAY_timer, sizeof(UWORD) * EWAY_MAX_TIMERS);
     return UC_TRUE;
 }
-
 
 // Restores EWAY flags, countdown timers, and the timer array from the save stream.
 // uc_orig: LOAD_eways (fallen/Source/save.cpp)
@@ -692,4 +676,3 @@ static void remove_specials(void)
         index = next;
     }
 }
-

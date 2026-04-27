@@ -192,8 +192,8 @@ constexpr float ENV_STEP_SECONDS = 0.005f;
 // 28 units. Profile fields trigger_start_zone / trigger_end_zone are in
 // zone units; multiplying by R2_UNITS_PER_ZONE converts to an r2 value to
 // compare physical trigger position against a zone boundary.
-constexpr int WEAPON25_ZONE_COUNT    = 9;
-constexpr int R2_UNITS_PER_ZONE      = 256 / WEAPON25_ZONE_COUNT; // = 28
+constexpr int WEAPON25_ZONE_COUNT = 9;
+constexpr int R2_UNITS_PER_ZONE = 256 / WEAPON25_ZONE_COUNT; // = 28
 
 // Threshold-path defaults for single-shot weapons. The act-bit click path
 // (DualSense + Weapon25 effect) ignores these and fires on zone crossing;
@@ -205,7 +205,7 @@ constexpr int R2_UNITS_PER_ZONE      = 256 / WEAPON25_ZONE_COUNT; // = 28
 //          between shots).
 // Chosen to sit comfortably outside the typical zone 4..6 click range
 // (~112..168 r2) so the fallback still feels similar to the hardware click.
-constexpr uint8_t DEFAULT_FIRE_THRESHOLD_R2  = 200;
+constexpr uint8_t DEFAULT_FIRE_THRESHOLD_R2 = 200;
 constexpr uint8_t DEFAULT_RESET_THRESHOLD_R2 = 80;
 
 struct HapticEnvelope {
@@ -215,13 +215,13 @@ struct HapticEnvelope {
 
 struct ProfileEntry {
     WeaponFeelProfile profile;
-    HapticEnvelope    envelope;
+    HapticEnvelope envelope;
     // Anim-derived cooldown: cached number of game ticks the weapon's
     // shoot animation takes to reach its end, at the current TICK_RATIO.
     // Lazily computed on first query — anim data isn't loaded at
     // weapon_feel_init() time. Zero = not yet computed (or computation
     // failed).
-    SLONG              cached_anim_ticks = 0;
+    SLONG cached_anim_ticks = 0;
 };
 
 std::unordered_map<int32_t, ProfileEntry> s_profiles;
@@ -230,33 +230,33 @@ bool s_initialized = false;
 // Default fallback for weapons with no registered profile. Pistol-like
 // rising-edge fire with no haptic and no adaptive trigger effect.
 const WeaponFeelProfile k_default_profile = {
-    /*haptic_wave_id*/    0,
-    /*haptic_gain*/       0.0f,
-    /*haptic_ceiling*/    0,
-    /*haptic_max_seconds*/0.0f,
+    /*haptic_wave_id*/ 0,
+    /*haptic_gain*/ 0.0f,
+    /*haptic_ceiling*/ 0,
+    /*haptic_max_seconds*/ 0.0f,
     /*haptic_xbox_boost*/ 1.0f,
-    /*xbox_rumble_low_percent*/  100,
+    /*xbox_rumble_low_percent*/ 100,
     /*xbox_rumble_high_percent*/ 0,
-    /*trigger_effect*/    TriggerEffectType::None,
-    /*trigger_start_zone*/0,
-    /*trigger_end_zone*/  0,
-    /*trigger_strength*/  0,
-    /*machine_amp_a*/     0,
-    /*machine_amp_b*/     0,
+    /*trigger_effect*/ TriggerEffectType::None,
+    /*trigger_start_zone*/ 0,
+    /*trigger_end_zone*/ 0,
+    /*trigger_strength*/ 0,
+    /*machine_amp_a*/ 0,
+    /*machine_amp_b*/ 0,
     /*machine_frequency*/ 0,
-    /*machine_period*/    0,
-    /*reload_click_start_zone*/0,
-    /*reload_click_end_zone*/  0,
-    /*reload_click_strength*/  0,
-    /*post_shot_vibration_seconds*/0.0f,
-    /*post_shot_vibration_position*/0,
-    /*post_shot_vibration_frequency*/0,
-    /*post_shot_vibration_amp_start*/0,
-    /*post_shot_vibration_amp_end*/0,
-    /*aim_interlude_anim*/0,
-    /*fire_threshold*/    200,
-    /*reset_threshold*/   80,
-    /*auto_fire*/         false,
+    /*machine_period*/ 0,
+    /*reload_click_start_zone*/ 0,
+    /*reload_click_end_zone*/ 0,
+    /*reload_click_strength*/ 0,
+    /*post_shot_vibration_seconds*/ 0.0f,
+    /*post_shot_vibration_position*/ 0,
+    /*post_shot_vibration_frequency*/ 0,
+    /*post_shot_vibration_amp_start*/ 0,
+    /*post_shot_vibration_amp_end*/ 0,
+    /*aim_interlude_anim*/ 0,
+    /*fire_threshold*/ 200,
+    /*reset_threshold*/ 80,
+    /*auto_fire*/ false,
 };
 
 // ---------------------------------------------------------------------------
@@ -282,10 +282,14 @@ constexpr SLONG PLAYER_ANIM_TYPE = ANIM_TYPE_DARCI;
 SLONG weapon_to_shoot_anim_id(int32_t special_type)
 {
     switch (special_type) {
-        case SPECIAL_GUN:     return ANIM_PISTOL_SHOOT;
-        case SPECIAL_NONE:    return ANIM_PISTOL_SHOOT; // pistol profile fallback
-        case SPECIAL_AK47:    return ANIM_AK_FIRE;
-        case SPECIAL_SHOTGUN: return ANIM_SHOTGUN_FIRE;
+    case SPECIAL_GUN:
+        return ANIM_PISTOL_SHOOT;
+    case SPECIAL_NONE:
+        return ANIM_PISTOL_SHOOT; // pistol profile fallback
+    case SPECIAL_AK47:
+        return ANIM_AK_FIRE;
+    case SPECIAL_SHOTGUN:
+        return ANIM_SHOTGUN_FIRE;
     }
     return 0;
 }
@@ -297,13 +301,16 @@ SLONG weapon_to_shoot_anim_id(int32_t special_type)
 // Returns 0 if the anim isn't loaded (e.g. not yet loaded at init time).
 SLONG calc_anim_ticks(SLONG anim_type, SLONG anim_id)
 {
-    if (anim_type < 0 || anim_type >= 4) return 0;
-    if (anim_id   < 0 || anim_id   >= 450) return 0;
+    if (anim_type < 0 || anim_type >= 4)
+        return 0;
+    if (anim_id < 0 || anim_id >= 450)
+        return 0;
     GameKeyFrame* first_frame = global_anim_array[anim_type][anim_id];
-    if (!first_frame || !first_frame->NextFrame) return 0;
+    if (!first_frame || !first_frame->NextFrame)
+        return 0;
 
     GameKeyFrame* current = first_frame;
-    GameKeyFrame* next    = first_frame->NextFrame;
+    GameKeyFrame* next = first_frame->NextFrame;
     SLONG animTween = 0;
 
     // Safety cap — real shoot anims complete in <20 ticks; 1024 is a
@@ -312,7 +319,8 @@ SLONG calc_anim_ticks(SLONG anim_type, SLONG anim_id)
 
     for (SLONG tick = 1; tick <= MAX_TICKS; tick++) {
         SLONG tween_step = (current->TweenStep << 1) * TICK_RATIO >> TICK_SHIFT;
-        if (tween_step <= 0) tween_step = 1;
+        if (tween_step <= 0)
+            tween_step = 1;
         animTween += tween_step;
 
         while (animTween >= 256) {
@@ -325,7 +333,8 @@ SLONG calc_anim_ticks(SLONG anim_type, SLONG anim_id)
             current = next;
             if (next->NextFrame) {
                 next = next->NextFrame;
-                if (current->Flags & ANIM_FLAG_LAST_FRAME) return tick;
+                if (current->Flags & ANIM_FLAG_LAST_FRAME)
+                    return tick;
             } else {
                 return tick;
             }
@@ -360,15 +369,19 @@ SLONG s_cooldown_debt = 0;
 SLONG weapon_feel_get_shoot_anim_ticks(int32_t special_type)
 {
     auto it = s_profiles.find(special_type);
-    if (it == s_profiles.end()) return 0;
+    if (it == s_profiles.end())
+        return 0;
     ProfileEntry& entry = it->second;
-    if (entry.cached_anim_ticks > 0) return entry.cached_anim_ticks;
+    if (entry.cached_anim_ticks > 0)
+        return entry.cached_anim_ticks;
 
     SLONG anim_id = weapon_to_shoot_anim_id(special_type);
-    if (anim_id == 0) return 0;
+    if (anim_id == 0)
+        return 0;
 
     SLONG ticks = calc_anim_ticks(PLAYER_ANIM_TYPE, anim_id);
-    if (ticks > 0) entry.cached_anim_ticks = ticks;
+    if (ticks > 0)
+        entry.cached_anim_ticks = ticks;
     return ticks;
 }
 
@@ -388,14 +401,16 @@ void build_sfx_path(const char* fname, char* out, size_t out_size)
 // absolute loudness to drive motor intensity so the relative feel between
 // pistol and shotgun matches the audio.
 void compute_envelope(const int16_t* pcm, size_t frame_count, int channels,
-                      int sample_rate, const WeaponFeelProfile& p,
-                      HapticEnvelope* out)
+    int sample_rate, const WeaponFeelProfile& p,
+    HapticEnvelope* out)
 {
-    if (frame_count == 0 || channels <= 0 || sample_rate <= 0) return;
+    if (frame_count == 0 || channels <= 0 || sample_rate <= 0)
+        return;
 
     const size_t window_frames = static_cast<size_t>(
         static_cast<float>(sample_rate) * ENV_STEP_SECONDS);
-    if (window_frames == 0) return;
+    if (window_frames == 0)
+        return;
 
     const size_t max_frames = static_cast<size_t>(
         static_cast<float>(sample_rate) * p.haptic_max_seconds);
@@ -422,18 +437,22 @@ void compute_envelope(const int16_t* pcm, size_t frame_count, int channels,
         const float rms = count ? static_cast<float>(std::sqrt(sum_sq / count)) : 0.0f;
         float v = rms * p.haptic_gain * 255.0f;
         const float ceiling_f = static_cast<float>(p.haptic_ceiling);
-        if (v < 0.0f) v = 0.0f;
-        if (v > ceiling_f) v = ceiling_f;
+        if (v < 0.0f)
+            v = 0.0f;
+        if (v > ceiling_f)
+            v = ceiling_f;
         out->samples[w] = static_cast<uint8_t>(v);
     }
 }
 
 bool build_envelope_from_wave(const WeaponFeelProfile& p, HapticEnvelope* out)
 {
-    if (p.haptic_wave_id == 0) return false;
+    if (p.haptic_wave_id == 0)
+        return false;
 
     const char* fname = sound_list[p.haptic_wave_id];
-    if (!fname || std::strcmp(fname, "NULL.wav") == 0) return false;
+    if (!fname || std::strcmp(fname, "NULL.wav") == 0)
+        return false;
 
     char path[512];
     build_sfx_path(fname, path, sizeof(path));
@@ -459,20 +478,20 @@ bool build_envelope_from_wave(const WeaponFeelProfile& p, HapticEnvelope* out)
 // Envelope playback state
 // ===========================================================================
 
-bool   s_playing = false;
-float  s_play_time = 0.0f;
+bool s_playing = false;
+float s_play_time = 0.0f;
 size_t s_prev_index = 0;
 const HapticEnvelope* s_active_env = nullptr;
 // Non-DS multiplier for the currently playing envelope. Latched when
 // the envelope starts so a weapon swap mid-playback doesn't remix
 // scaling factors on the same waveform. Applied only on non-DualSense
 // devices; DualSense path reads s_active_env peaks unchanged.
-float  s_active_xbox_boost = 1.0f;
+float s_active_xbox_boost = 1.0f;
 // Per-motor envelope scaling for the Xbox / SDL rumble path. Latched
 // from the profile when an envelope starts so a mid-playback weapon
 // swap doesn't remix scales. Defaults match "single-motor low-freq
 // only" — pre-per-motor behaviour.
-uint8_t s_active_xbox_rumble_low_percent  = 100;
+uint8_t s_active_xbox_rumble_low_percent = 100;
 uint8_t s_active_xbox_rumble_high_percent = 0;
 
 std::chrono::steady_clock::time_point s_last_tick;
@@ -482,13 +501,13 @@ bool s_tick_initialized = false;
 // Post-shot trigger vibration burst state (see WeaponFeelProfile.post_shot_vibration_*)
 // ===========================================================================
 
-bool  s_tv_active = false;                 // burst in progress
-float s_tv_elapsed = 0.0f;                 // seconds since burst start
-float s_tv_duration = 0.0f;                // total duration
-uint8_t s_tv_position  = 0;
+bool s_tv_active = false; // burst in progress
+float s_tv_elapsed = 0.0f; // seconds since burst start
+float s_tv_duration = 0.0f; // total duration
+uint8_t s_tv_position = 0;
 uint8_t s_tv_frequency = 1;
 uint8_t s_tv_amp_start = 0;
-uint8_t s_tv_amp_end   = 0;
+uint8_t s_tv_amp_end = 0;
 std::chrono::steady_clock::time_point s_tv_last_tick;
 bool s_tv_tick_initialized = false;
 
@@ -537,92 +556,92 @@ void weapon_feel_init()
     // With end=8 a fully bottomed-out R2 (zone 9) sits past the effect
     // and the pulse goes silent — the user felt this as "выключается
     // при вжимании в пол".
-    constexpr uint8_t AK47_MACHINE_END   = 9;
+    constexpr uint8_t AK47_MACHINE_END = 9;
     // Machine params mirror the input-debug Machine tester defaults —
     // empirically confirmed to produce a clearly felt rattle on real
     // hardware. Weaker values (ampA=5, ampB=2, period=4) were tried
     // first and felt absent on the controller.
-    constexpr uint8_t AK47_MACHINE_AMP_A = 7;    // 0..7, pulse amplitude high beat
-    constexpr uint8_t AK47_MACHINE_AMP_B = 3;    // 0..7, low beat
-    constexpr uint8_t AK47_MACHINE_FREQ  = 8;    // pulse frequency (Hz-ish)
-    constexpr uint8_t AK47_MACHINE_PERIOD = 80;  // pattern period; higher = slower pulse rate
+    constexpr uint8_t AK47_MACHINE_AMP_A = 7; // 0..7, pulse amplitude high beat
+    constexpr uint8_t AK47_MACHINE_AMP_B = 3; // 0..7, low beat
+    constexpr uint8_t AK47_MACHINE_FREQ = 8; // pulse frequency (Hz-ish)
+    constexpr uint8_t AK47_MACHINE_PERIOD = 80; // pattern period; higher = slower pulse rate
     WeaponFeelProfile ak47 = {
-        /*haptic_wave_id*/    S_AK47_BURST,
-        /*haptic_gain*/       0.4f,
-        /*haptic_ceiling*/    90,
-        /*haptic_max_seconds*/0.04f,
+        /*haptic_wave_id*/ S_AK47_BURST,
+        /*haptic_gain*/ 0.4f,
+        /*haptic_ceiling*/ 90,
+        /*haptic_max_seconds*/ 0.04f,
         /*haptic_xbox_boost*/ 1.0f,
         // AK47 on Xbox: fan the envelope out to BOTH motors with the
         // low-freq thump slightly weaker than the high-freq buzz.
         // Single-motor low-only felt flat for held-fire auto bursts.
-        /*xbox_rumble_low_percent*/  75,
+        /*xbox_rumble_low_percent*/ 75,
         /*xbox_rumble_high_percent*/ 100,
-        /*trigger_effect*/    TriggerEffectType::Machine,
-        /*trigger_start_zone*/PISTOL_CLICK_START,
-        /*trigger_end_zone*/  AK47_MACHINE_END,
-        /*trigger_strength*/  0,                  // unused for Machine
-        /*machine_amp_a*/     AK47_MACHINE_AMP_A,
-        /*machine_amp_b*/     AK47_MACHINE_AMP_B,
+        /*trigger_effect*/ TriggerEffectType::Machine,
+        /*trigger_start_zone*/ PISTOL_CLICK_START,
+        /*trigger_end_zone*/ AK47_MACHINE_END,
+        /*trigger_strength*/ 0, // unused for Machine
+        /*machine_amp_a*/ AK47_MACHINE_AMP_A,
+        /*machine_amp_b*/ AK47_MACHINE_AMP_B,
         /*machine_frequency*/ AK47_MACHINE_FREQ,
-        /*machine_period*/    AK47_MACHINE_PERIOD,
+        /*machine_period*/ AK47_MACHINE_PERIOD,
         // Reload click: when mag is empty, trigger feels like the pistol
         // (single Weapon25 click) so the reload press has a physical snap.
         // Params match the pistol profile — same zone + strength.
-        /*reload_click_start_zone*/4,
-        /*reload_click_end_zone*/  6,
-        /*reload_click_strength*/  5,
+        /*reload_click_start_zone*/ 4,
+        /*reload_click_end_zone*/ 6,
+        /*reload_click_strength*/ 5,
         // No post-shot trigger vibration on AK47 — the Machine pulse is
         // the ongoing feedback; a vibration burst on top would be mud.
-        /*post_shot_vibration_seconds*/0.0f,
-        /*post_shot_vibration_position*/0,
-        /*post_shot_vibration_frequency*/0,
-        /*post_shot_vibration_amp_start*/0,
-        /*post_shot_vibration_amp_end*/0,
+        /*post_shot_vibration_seconds*/ 0.0f,
+        /*post_shot_vibration_position*/ 0,
+        /*post_shot_vibration_frequency*/ 0,
+        /*post_shot_vibration_amp_start*/ 0,
+        /*post_shot_vibration_amp_end*/ 0,
         // Between-shot pose anim matches what set_person_aim would have
         // assigned on the original AIM_GUN transition (SpecialUse != NULL
         // → ANIM_SHOTGUN_AIM). Unified SHOOT_GUN handler swaps to this
         // after the shoot anim ends so persona still "колбасится"
         // visually (SHOOT pose → aim pose → SHOOT pose per cycle) even
         // though the state machine no longer bounces through AIM_GUN.
-        /*aim_interlude_anim*/ANIM_SHOTGUN_AIM,
-        /*fire_threshold*/    (uint8_t)(PISTOL_CLICK_START * R2_UNITS_PER_ZONE),
-        /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
-        /*auto_fire*/         true,
+        /*aim_interlude_anim*/ ANIM_SHOTGUN_AIM,
+        /*fire_threshold*/ (uint8_t)(PISTOL_CLICK_START * R2_UNITS_PER_ZONE),
+        /*reset_threshold*/ DEFAULT_RESET_THRESHOLD_R2,
+        /*auto_fire*/ true,
     };
     // Pistol — single-shot light pop. Rising-edge fire on Weapon25 click.
     // Xbox boost compensates for the rumble motor's low-amplitude
     // insensitivity — the DS-calibrated ceiling=18 is barely perceptible
     // on Xbox without it.
     WeaponFeelProfile pistol = {
-        /*haptic_wave_id*/    S_PISTOL_SHOT,
-        /*haptic_gain*/       0.05f,
-        /*haptic_ceiling*/    18,
-        /*haptic_max_seconds*/0.035f,
+        /*haptic_wave_id*/ S_PISTOL_SHOT,
+        /*haptic_gain*/ 0.05f,
+        /*haptic_ceiling*/ 18,
+        /*haptic_max_seconds*/ 0.035f,
         /*haptic_xbox_boost*/ 4.0f,
-        /*xbox_rumble_low_percent*/  100, // single-motor low-only (unchanged)
+        /*xbox_rumble_low_percent*/ 100, // single-motor low-only (unchanged)
         /*xbox_rumble_high_percent*/ 0,
-        /*trigger_effect*/    TriggerEffectType::Weapon,
-        /*trigger_start_zone*/PISTOL_CLICK_START,
-        /*trigger_end_zone*/  6,
-        /*trigger_strength*/  5,
-        /*machine_amp_a*/     0,
-        /*machine_amp_b*/     0,
+        /*trigger_effect*/ TriggerEffectType::Weapon,
+        /*trigger_start_zone*/ PISTOL_CLICK_START,
+        /*trigger_end_zone*/ 6,
+        /*trigger_strength*/ 5,
+        /*machine_amp_a*/ 0,
+        /*machine_amp_b*/ 0,
         /*machine_frequency*/ 0,
-        /*machine_period*/    0,
-        /*reload_click_start_zone*/0, // pistol's main effect already IS a click
-        /*reload_click_end_zone*/  0,
-        /*reload_click_strength*/  0,
+        /*machine_period*/ 0,
+        /*reload_click_start_zone*/ 0, // pistol's main effect already IS a click
+        /*reload_click_end_zone*/ 0,
+        /*reload_click_strength*/ 0,
         // No post-shot trigger vibration — pistol's single click is the
         // whole story; a buzz tail after would clash with "clean pop" feel.
-        /*post_shot_vibration_seconds*/0.0f,
-        /*post_shot_vibration_position*/0,
-        /*post_shot_vibration_frequency*/0,
-        /*post_shot_vibration_amp_start*/0,
-        /*post_shot_vibration_amp_end*/0,
-        /*aim_interlude_anim*/0, // single-shot — no interlude needed
-        /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
-        /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
-        /*auto_fire*/         false,
+        /*post_shot_vibration_seconds*/ 0.0f,
+        /*post_shot_vibration_position*/ 0,
+        /*post_shot_vibration_frequency*/ 0,
+        /*post_shot_vibration_amp_start*/ 0,
+        /*post_shot_vibration_amp_end*/ 0,
+        /*aim_interlude_anim*/ 0, // single-shot — no interlude needed
+        /*fire_threshold*/ DEFAULT_FIRE_THRESHOLD_R2,
+        /*reset_threshold*/ DEFAULT_RESET_THRESHOLD_R2,
+        /*auto_fire*/ false,
     };
     // Shotgun — heavy slam with longer decay. Weapon25 click at narrow
     // zone gives the "pump-action" trigger feel (resistance → snap). Right
@@ -631,41 +650,41 @@ void weapon_feel_init()
     // strong on first impact, fades to nothing. All initial values are
     // first-pass tune — adjust by feel.
     WeaponFeelProfile shotgun = {
-        /*haptic_wave_id*/    S_SHOTGUN_SHOT,
-        /*haptic_gain*/       0.55f,
-        /*haptic_ceiling*/    140,
-        /*haptic_max_seconds*/0.09f,
+        /*haptic_wave_id*/ S_SHOTGUN_SHOT,
+        /*haptic_gain*/ 0.55f,
+        /*haptic_ceiling*/ 140,
+        /*haptic_max_seconds*/ 0.09f,
         /*haptic_xbox_boost*/ 1.0f,
-        /*xbox_rumble_low_percent*/  100, // single-motor low-only (unchanged)
+        /*xbox_rumble_low_percent*/ 100, // single-motor low-only (unchanged)
         /*xbox_rumble_high_percent*/ 0,
-        /*trigger_effect*/    TriggerEffectType::Weapon,
-        /*trigger_start_zone*/3,   // resistance starts early (feel the "упор")
-        /*trigger_end_zone*/  6,
-        /*trigger_strength*/  7,   // stronger than pistol (=5) — shotgun is heavier
-        /*machine_amp_a*/     0,
-        /*machine_amp_b*/     0,
+        /*trigger_effect*/ TriggerEffectType::Weapon,
+        /*trigger_start_zone*/ 3, // resistance starts early (feel the "упор")
+        /*trigger_end_zone*/ 6,
+        /*trigger_strength*/ 7, // stronger than pistol (=5) — shotgun is heavier
+        /*machine_amp_a*/ 0,
+        /*machine_amp_b*/ 0,
         /*machine_frequency*/ 0,
-        /*machine_period*/    0,
-        /*reload_click_start_zone*/0,
-        /*reload_click_end_zone*/  0,
-        /*reload_click_strength*/  0,
+        /*machine_period*/ 0,
+        /*reload_click_start_zone*/ 0,
+        /*reload_click_end_zone*/ 0,
+        /*reload_click_strength*/ 0,
         // Post-shot vibration: linear fade 8 → 0 over 0.25s, 60Hz buzz,
         // position=0 so it's felt across the full trigger travel.
-        /*post_shot_vibration_seconds*/0.25f,
-        /*post_shot_vibration_position*/0,
-        /*post_shot_vibration_frequency*/60,
-        /*post_shot_vibration_amp_start*/8,
-        /*post_shot_vibration_amp_end*/0,
-        /*aim_interlude_anim*/0, // single-shot — no interlude needed
-        /*fire_threshold*/    DEFAULT_FIRE_THRESHOLD_R2,
-        /*reset_threshold*/   DEFAULT_RESET_THRESHOLD_R2,
-        /*auto_fire*/         false,
+        /*post_shot_vibration_seconds*/ 0.25f,
+        /*post_shot_vibration_position*/ 0,
+        /*post_shot_vibration_frequency*/ 60,
+        /*post_shot_vibration_amp_start*/ 8,
+        /*post_shot_vibration_amp_end*/ 0,
+        /*aim_interlude_anim*/ 0, // single-shot — no interlude needed
+        /*fire_threshold*/ DEFAULT_FIRE_THRESHOLD_R2,
+        /*reset_threshold*/ DEFAULT_RESET_THRESHOLD_R2,
+        /*auto_fire*/ false,
     };
 
     s_initialized = true;
-    weapon_feel_register(SPECIAL_AK47,    ak47);
-    weapon_feel_register(SPECIAL_GUN,     pistol);
-    weapon_feel_register(SPECIAL_NONE,    pistol); // SpecialUse==null reads SpecialType as 0
+    weapon_feel_register(SPECIAL_AK47, ak47);
+    weapon_feel_register(SPECIAL_GUN, pistol);
+    weapon_feel_register(SPECIAL_NONE, pistol); // SpecialUse==null reads SpecialType as 0
     weapon_feel_register(SPECIAL_SHOTGUN, shotgun);
 
     s_playing = false;
@@ -689,7 +708,7 @@ void weapon_feel_register(int32_t special_type, const WeaponFeelProfile& profile
 {
     ProfileEntry& entry = s_profiles[special_type];
     entry.profile = profile;
-    entry.envelope = HapticEnvelope{};
+    entry.envelope = HapticEnvelope {};
     if (s_initialized && profile.haptic_wave_id != 0) {
         build_envelope_from_wave(profile, &entry.envelope);
     }
@@ -698,7 +717,8 @@ void weapon_feel_register(int32_t special_type, const WeaponFeelProfile& profile
 const WeaponFeelProfile* weapon_feel_get_profile(int32_t special_type)
 {
     auto it = s_profiles.find(special_type);
-    if (it != s_profiles.end()) return &it->second.profile;
+    if (it != s_profiles.end())
+        return &it->second.profile;
     return &k_default_profile;
 }
 
@@ -726,7 +746,8 @@ void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1)
     }
 
     auto it = s_profiles.find(special_type);
-    if (it == s_profiles.end()) return;
+    if (it == s_profiles.end())
+        return;
     const ProfileEntry& entry = it->second;
 
     // Force mode=NONE on fire frame for single-shot weapons so the
@@ -745,15 +766,14 @@ void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1)
     // stack by resetting the linear fade, matching the rumble envelope
     // restart below).
     if (entry.profile.post_shot_vibration_seconds > 0.0f
-        && entry.profile.post_shot_vibration_amp_start > 0)
-    {
-        s_tv_active   = true;
-        s_tv_elapsed  = 0.0f;
+        && entry.profile.post_shot_vibration_amp_start > 0) {
+        s_tv_active = true;
+        s_tv_elapsed = 0.0f;
         s_tv_duration = entry.profile.post_shot_vibration_seconds;
-        s_tv_position  = entry.profile.post_shot_vibration_position;
+        s_tv_position = entry.profile.post_shot_vibration_position;
         s_tv_frequency = entry.profile.post_shot_vibration_frequency;
         s_tv_amp_start = entry.profile.post_shot_vibration_amp_start;
-        s_tv_amp_end   = entry.profile.post_shot_vibration_amp_end;
+        s_tv_amp_end = entry.profile.post_shot_vibration_amp_end;
         s_tv_tick_initialized = false;
     }
 
@@ -761,13 +781,14 @@ void weapon_feel_on_shot_fired(int32_t special_type, int32_t remaining_timer1)
     // gamepads via the low-frequency rumble channel. gamepad_rumble_tick
     // max-merges the envelope value into whichever output path the
     // active device uses.
-    if (!entry.envelope.loaded) return;
+    if (!entry.envelope.loaded)
+        return;
 
     // Restart envelope on each shot — matches sound retrigger behaviour for
     // auto-fire bursts.
     s_active_env = &entry.envelope;
     s_active_xbox_boost = entry.profile.haptic_xbox_boost;
-    s_active_xbox_rumble_low_percent  = entry.profile.xbox_rumble_low_percent;
+    s_active_xbox_rumble_low_percent = entry.profile.xbox_rumble_low_percent;
     s_active_xbox_rumble_high_percent = entry.profile.xbox_rumble_high_percent;
     s_play_time = 0.0f;
     s_prev_index = 0;
@@ -826,8 +847,10 @@ bool weapon_feel_trigger_effect_should_run(int32_t current_weapon, bool in_shot_
     // cooldown (can't re-click yet), ON otherwise. Opposite polarity
     // from auto-fire by design.
     if (p->auto_fire) {
-        if (in_shot_cycle) return true;
-        if (mag_empty && p->reload_click_strength != 0) return true;
+        if (in_shot_cycle)
+            return true;
+        if (mag_empty && p->reload_click_strength != 0)
+            return true;
         return false;
     }
     // Single-shot: normally OFF during cooldown. Exception: if a post-shot
@@ -836,7 +859,8 @@ bool weapon_feel_trigger_effect_should_run(int32_t current_weapon, bool in_shot_
     // otherwise weapon_ready falls to false during exactly the window
     // we want the recoil buzz in (Timer1 > 0 == in_shot_cycle for
     // single-shot by design).
-    if (s_tv_active) return true;
+    if (s_tv_active)
+        return true;
     return !in_shot_cycle;
 }
 
@@ -854,8 +878,10 @@ int32_t weapon_feel_pre_release_timer1()
 
 uint8_t weapon_feel_tick_haptic(bool* out_active)
 {
-    if (out_active) *out_active = false;
-    if (!s_playing || !s_active_env) return 0;
+    if (out_active)
+        *out_active = false;
+    if (!s_playing || !s_active_env)
+        return 0;
 
     const auto now = std::chrono::steady_clock::now();
     if (!s_tick_initialized) {
@@ -883,7 +909,8 @@ uint8_t weapon_feel_tick_haptic(bool* out_active)
     const size_t scan_end = curr_index < env_len ? curr_index : env_len - 1;
     uint8_t peak = 0;
     for (size_t i = s_prev_index; i <= scan_end; i++) {
-        if (s_active_env->samples[i] > peak) peak = s_active_env->samples[i];
+        if (s_active_env->samples[i] > peak)
+            peak = s_active_env->samples[i];
     }
     s_prev_index = curr_index + 1;
 
@@ -893,11 +920,13 @@ uint8_t weapon_feel_tick_haptic(bool* out_active)
     // DS path keeps the envelope peak untouched.
     if (gamepad_get_device_type() != INPUT_DEVICE_DUALSENSE && s_active_xbox_boost != 1.0f) {
         float boosted = (float)peak * s_active_xbox_boost;
-        if (boosted > 255.0f) boosted = 255.0f;
+        if (boosted > 255.0f)
+            boosted = 255.0f;
         peak = (uint8_t)boosted;
     }
 
-    if (out_active) *out_active = true;
+    if (out_active)
+        *out_active = true;
     return peak;
 }
 
@@ -908,10 +937,12 @@ void weapon_feel_stop_haptic()
 }
 
 void weapon_feel_get_active_xbox_rumble_scales(uint8_t* out_low_percent,
-                                               uint8_t* out_high_percent)
+    uint8_t* out_high_percent)
 {
-    if (out_low_percent)  *out_low_percent  = s_active_xbox_rumble_low_percent;
-    if (out_high_percent) *out_high_percent = s_active_xbox_rumble_high_percent;
+    if (out_low_percent)
+        *out_low_percent = s_active_xbox_rumble_low_percent;
+    if (out_high_percent)
+        *out_high_percent = s_active_xbox_rumble_high_percent;
 }
 
 bool weapon_feel_tick_trigger_vibration(
@@ -919,7 +950,8 @@ bool weapon_feel_tick_trigger_vibration(
     uint8_t* out_amplitude,
     uint8_t* out_frequency)
 {
-    if (!s_tv_active) return false;
+    if (!s_tv_active)
+        return false;
 
     const auto now = std::chrono::steady_clock::now();
     if (!s_tv_tick_initialized) {
@@ -939,12 +971,17 @@ bool weapon_feel_tick_trigger_vibration(
     const float t = s_tv_elapsed / s_tv_duration;
     const float a = (1.0f - t) * (float)s_tv_amp_start + t * (float)s_tv_amp_end;
     int amp_i = (int)(a + 0.5f);
-    if (amp_i < 0) amp_i = 0;
-    if (amp_i > 8) amp_i = 8;
+    if (amp_i < 0)
+        amp_i = 0;
+    if (amp_i > 8)
+        amp_i = 8;
 
-    if (out_position)  *out_position  = s_tv_position;
-    if (out_amplitude) *out_amplitude = (uint8_t)amp_i;
-    if (out_frequency) *out_frequency = s_tv_frequency;
+    if (out_position)
+        *out_position = s_tv_position;
+    if (out_amplitude)
+        *out_amplitude = (uint8_t)amp_i;
+    if (out_frequency)
+        *out_frequency = s_tv_frequency;
     return true;
 }
 
@@ -1012,10 +1049,10 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     // before the click is felt.
     const bool reload_press_mode = mag_empty && p->auto_fire && p->reload_click_strength != 0;
 
-    const TriggerEffectType eff_effect   = reload_press_mode ? TriggerEffectType::Weapon : p->trigger_effect;
-    const uint8_t           eff_end_zone = reload_press_mode ? p->reload_click_end_zone  : p->trigger_end_zone;
-    const uint8_t           eff_strength = reload_press_mode ? p->reload_click_strength  : p->trigger_strength;
-    const bool              eff_auto     = reload_press_mode ? false                     : p->auto_fire;
+    const TriggerEffectType eff_effect = reload_press_mode ? TriggerEffectType::Weapon : p->trigger_effect;
+    const uint8_t eff_end_zone = reload_press_mode ? p->reload_click_end_zone : p->trigger_end_zone;
+    const uint8_t eff_strength = reload_press_mode ? p->reload_click_strength : p->trigger_strength;
+    const bool eff_auto = reload_press_mode ? false : p->auto_fire;
 
     // Pick fire-detection path. The act-bit path requires all of:
     //   * DualSense device (act bit is a DualSense-specific signal).
@@ -1029,9 +1066,9 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     // Note: SPECIAL_NONE is registered with the pistol profile, so we
     // CANNOT distinguish bare-hand from pistol by current_weapon
     // alone — the caller passes weapon_drawn (FLAG_PERSON_GUN_OUT).
-    const bool device_is_ds     = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
+    const bool device_is_ds = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
     const bool weapon_has_click = (eff_effect == TriggerEffectType::Weapon && eff_strength != 0);
-    const bool use_act_path     = device_is_ds && weapon_has_click && !eff_auto && weapon_drawn;
+    const bool use_act_path = device_is_ds && weapon_has_click && !eff_auto && weapon_drawn;
 
     if (use_act_path) {
         // R2-position click detection: press is registered when the
@@ -1043,8 +1080,7 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
         // Weapon25 zone or adding a new weapon doesn't need
         // hand-calibrated thresholds.
         const int zone_upper_r2 = (int)eff_end_zone * R2_UNITS_PER_ZONE;
-        const bool rose_past_upper =
-            (prev_r2_snapshot < zone_upper_r2) && (r2 >= zone_upper_r2);
+        const bool rose_past_upper = (prev_r2_snapshot < zone_upper_r2) && (r2 >= zone_upper_r2);
         if (rose_past_upper) {
             s_r2_armed = false;
             out.shoot = true;
@@ -1065,7 +1101,8 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     // ---- L2 kick channel — same plain rising-edge, never auto-fires ----
 
     const bool l2_released = l2 <= p->reset_threshold;
-    if (l2_released) s_l2_armed = true;
+    if (l2_released)
+        s_l2_armed = true;
     s_prev_l2 = l2;
 
     if (l2 > p->fire_threshold && s_l2_armed) {
@@ -1075,4 +1112,3 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 
     return out;
 }
-

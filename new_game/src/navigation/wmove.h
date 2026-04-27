@@ -20,10 +20,10 @@ typedef struct {
 // State for one moving walkable face.
 // uc_orig: WMOVE_Face (fallen/Headers/wmove.h)
 typedef struct {
-    UWORD face4;       // Index into prim_faces4[] for the walkable quad.
+    UWORD face4; // Index into prim_faces4[] for the walkable quad.
     WMOVE_Point last[3]; // Positions of the face's three corner points last frame.
-    UWORD thing;       // Owner Thing index.
-    UWORD number;      // Sub-index when a thing owns multiple faces (e.g. car roof).
+    UWORD thing; // Owner Thing index.
+    UWORD number; // Sub-index when a thing owns multiple faces (e.g. car roof).
 } WMOVE_Face;
 
 // Maximum WMOVE faces (driven by save table; hard limit is RWMOVE_MAX_FACES).

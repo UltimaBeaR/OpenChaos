@@ -1,14 +1,14 @@
-#include "engine/platform/uc_common.h"              // MFFileHandle, UBYTE etc.
-#include "game/game_types.h"   // Game struct, ENGINE_palette macro
-#include "engine/animation/anim_types.h"  // KeyFrameChunk, GameKeyFrameChunk, KeyFrameElement, etc.
-#include "buildings/prim_types.h"  // PrimObject, PrimFace3/4, PrimPoint, PRIM_OBJ_*
+#include "engine/platform/uc_common.h" // MFFileHandle, UBYTE etc.
+#include "game/game_types.h" // Game struct, ENGINE_palette macro
+#include "engine/animation/anim_types.h" // KeyFrameChunk, GameKeyFrameChunk, KeyFrameElement, etc.
+#include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PrimPoint, PRIM_OBJ_*
 #include "buildings/prim_globals.h" // prim_names[]
 #include "map/level_pools.h"
 
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_globals.h"           // the_elements, game_chunk, anim_chunk
-#include "assets/formats/anim.h"                   // free_game_chunk
-#include "assets/formats/level_loader.h"           // change_extension, DATA_DIR, read_object_name
+#include "assets/formats/anim_globals.h" // the_elements, game_chunk, anim_chunk
+#include "assets/formats/anim.h" // free_game_chunk
+#include "assets/formats/level_loader.h" // change_extension, DATA_DIR, read_object_name
 #include "map/supermap_globals.h"
 
 #include <stdio.h>
@@ -127,7 +127,7 @@ file_error:;
 SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_chunk)
 {
     SLONG save_type = 0, c0;
-    ULONG addr1, addr2;  // original 32-bit addresses read from file
+    ULONG addr1, addr2; // original 32-bit addresses read from file
     ULONG addr3;
     UWORD check;
 
@@ -173,13 +173,13 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
         GameKeyFrame_Disk* disk_kf = (GameKeyFrame_Disk*)MemAlloc(sizeof(GameKeyFrame_Disk) * p_chunk->MaxKeyFrames);
         FileRead(handle, (UBYTE*)disk_kf, sizeof(GameKeyFrame_Disk) * p_chunk->MaxKeyFrames);
         for (SLONG i = 0; i < p_chunk->MaxKeyFrames; i++) {
-            p_chunk->AnimKeyFrames[i].XYZIndex     = disk_kf[i].XYZIndex;
-            p_chunk->AnimKeyFrames[i].TweenStep    = disk_kf[i].TweenStep;
-            p_chunk->AnimKeyFrames[i].Flags         = disk_kf[i].Flags;
-            p_chunk->AnimKeyFrames[i].FirstElement  = (GameKeyFrameElement*)(uintptr_t)disk_kf[i].FirstElement;
-            p_chunk->AnimKeyFrames[i].PrevFrame     = (GameKeyFrame*)(uintptr_t)disk_kf[i].PrevFrame;
-            p_chunk->AnimKeyFrames[i].NextFrame     = (GameKeyFrame*)(uintptr_t)disk_kf[i].NextFrame;
-            p_chunk->AnimKeyFrames[i].Fight         = (GameFightCol*)(uintptr_t)disk_kf[i].Fight;
+            p_chunk->AnimKeyFrames[i].XYZIndex = disk_kf[i].XYZIndex;
+            p_chunk->AnimKeyFrames[i].TweenStep = disk_kf[i].TweenStep;
+            p_chunk->AnimKeyFrames[i].Flags = disk_kf[i].Flags;
+            p_chunk->AnimKeyFrames[i].FirstElement = (GameKeyFrameElement*)(uintptr_t)disk_kf[i].FirstElement;
+            p_chunk->AnimKeyFrames[i].PrevFrame = (GameKeyFrame*)(uintptr_t)disk_kf[i].PrevFrame;
+            p_chunk->AnimKeyFrames[i].NextFrame = (GameKeyFrame*)(uintptr_t)disk_kf[i].NextFrame;
+            p_chunk->AnimKeyFrames[i].Fight = (GameFightCol*)(uintptr_t)disk_kf[i].Fight;
         }
         MemFree(disk_kf);
     }
@@ -211,17 +211,17 @@ SLONG load_insert_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
         GameFightCol_Disk* disk_fc = (GameFightCol_Disk*)MemAlloc(sizeof(GameFightCol_Disk) * p_chunk->MaxFightCols);
         FileRead(handle, (UBYTE*)disk_fc, sizeof(GameFightCol_Disk) * p_chunk->MaxFightCols);
         for (SLONG i = 0; i < p_chunk->MaxFightCols; i++) {
-            p_chunk->FightCols[i].Dist1        = disk_fc[i].Dist1;
-            p_chunk->FightCols[i].Dist2        = disk_fc[i].Dist2;
-            p_chunk->FightCols[i].Angle        = disk_fc[i].Angle;
-            p_chunk->FightCols[i].Priority     = disk_fc[i].Priority;
-            p_chunk->FightCols[i].Damage       = disk_fc[i].Damage;
-            p_chunk->FightCols[i].Tween        = disk_fc[i].Tween;
+            p_chunk->FightCols[i].Dist1 = disk_fc[i].Dist1;
+            p_chunk->FightCols[i].Dist2 = disk_fc[i].Dist2;
+            p_chunk->FightCols[i].Angle = disk_fc[i].Angle;
+            p_chunk->FightCols[i].Priority = disk_fc[i].Priority;
+            p_chunk->FightCols[i].Damage = disk_fc[i].Damage;
+            p_chunk->FightCols[i].Tween = disk_fc[i].Tween;
             p_chunk->FightCols[i].AngleHitFrom = disk_fc[i].AngleHitFrom;
-            p_chunk->FightCols[i].Height       = disk_fc[i].Height;
-            p_chunk->FightCols[i].Width        = disk_fc[i].Width;
-            p_chunk->FightCols[i].Dummy        = disk_fc[i].Dummy;
-            p_chunk->FightCols[i].Next         = (GameFightCol*)(uintptr_t)disk_fc[i].Next;
+            p_chunk->FightCols[i].Height = disk_fc[i].Height;
+            p_chunk->FightCols[i].Width = disk_fc[i].Width;
+            p_chunk->FightCols[i].Dummy = disk_fc[i].Dummy;
+            p_chunk->FightCols[i].Next = (GameFightCol*)(uintptr_t)disk_fc[i].Next;
         }
         MemFree(disk_fc);
     }
@@ -475,13 +475,13 @@ SLONG load_append_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
         GameKeyFrame_Disk* disk_kf = (GameKeyFrame_Disk*)MemAlloc(sizeof(GameKeyFrame_Disk) * MaxKeyFrames);
         FileRead(handle, (UBYTE*)disk_kf, sizeof(GameKeyFrame_Disk) * MaxKeyFrames);
         for (SLONG i = 0; i < MaxKeyFrames; i++) {
-            p_chunk->AnimKeyFrames[kf_start + i].XYZIndex     = disk_kf[i].XYZIndex;
-            p_chunk->AnimKeyFrames[kf_start + i].TweenStep    = disk_kf[i].TweenStep;
-            p_chunk->AnimKeyFrames[kf_start + i].Flags         = disk_kf[i].Flags;
-            p_chunk->AnimKeyFrames[kf_start + i].FirstElement  = (GameKeyFrameElement*)(uintptr_t)disk_kf[i].FirstElement;
-            p_chunk->AnimKeyFrames[kf_start + i].PrevFrame     = (GameKeyFrame*)(uintptr_t)disk_kf[i].PrevFrame;
-            p_chunk->AnimKeyFrames[kf_start + i].NextFrame     = (GameKeyFrame*)(uintptr_t)disk_kf[i].NextFrame;
-            p_chunk->AnimKeyFrames[kf_start + i].Fight         = (GameFightCol*)(uintptr_t)disk_kf[i].Fight;
+            p_chunk->AnimKeyFrames[kf_start + i].XYZIndex = disk_kf[i].XYZIndex;
+            p_chunk->AnimKeyFrames[kf_start + i].TweenStep = disk_kf[i].TweenStep;
+            p_chunk->AnimKeyFrames[kf_start + i].Flags = disk_kf[i].Flags;
+            p_chunk->AnimKeyFrames[kf_start + i].FirstElement = (GameKeyFrameElement*)(uintptr_t)disk_kf[i].FirstElement;
+            p_chunk->AnimKeyFrames[kf_start + i].PrevFrame = (GameKeyFrame*)(uintptr_t)disk_kf[i].PrevFrame;
+            p_chunk->AnimKeyFrames[kf_start + i].NextFrame = (GameKeyFrame*)(uintptr_t)disk_kf[i].NextFrame;
+            p_chunk->AnimKeyFrames[kf_start + i].Fight = (GameFightCol*)(uintptr_t)disk_kf[i].Fight;
         }
         MemFree(disk_kf);
     }
@@ -515,17 +515,17 @@ SLONG load_append_game_chunk(MFFileHandle handle, struct GameKeyFrameChunk* p_ch
         GameFightCol_Disk* disk_fc = (GameFightCol_Disk*)MemAlloc(sizeof(GameFightCol_Disk) * MaxFightCols);
         FileRead(handle, (UBYTE*)disk_fc, sizeof(GameFightCol_Disk) * MaxFightCols);
         for (SLONG i = 0; i < MaxFightCols; i++) {
-            p_chunk->FightCols[fc_start + i].Dist1        = disk_fc[i].Dist1;
-            p_chunk->FightCols[fc_start + i].Dist2        = disk_fc[i].Dist2;
-            p_chunk->FightCols[fc_start + i].Angle        = disk_fc[i].Angle;
-            p_chunk->FightCols[fc_start + i].Priority     = disk_fc[i].Priority;
-            p_chunk->FightCols[fc_start + i].Damage       = disk_fc[i].Damage;
-            p_chunk->FightCols[fc_start + i].Tween        = disk_fc[i].Tween;
+            p_chunk->FightCols[fc_start + i].Dist1 = disk_fc[i].Dist1;
+            p_chunk->FightCols[fc_start + i].Dist2 = disk_fc[i].Dist2;
+            p_chunk->FightCols[fc_start + i].Angle = disk_fc[i].Angle;
+            p_chunk->FightCols[fc_start + i].Priority = disk_fc[i].Priority;
+            p_chunk->FightCols[fc_start + i].Damage = disk_fc[i].Damage;
+            p_chunk->FightCols[fc_start + i].Tween = disk_fc[i].Tween;
             p_chunk->FightCols[fc_start + i].AngleHitFrom = disk_fc[i].AngleHitFrom;
-            p_chunk->FightCols[fc_start + i].Height       = disk_fc[i].Height;
-            p_chunk->FightCols[fc_start + i].Width        = disk_fc[i].Width;
-            p_chunk->FightCols[fc_start + i].Dummy        = disk_fc[i].Dummy;
-            p_chunk->FightCols[fc_start + i].Next         = (GameFightCol*)(uintptr_t)disk_fc[i].Next;
+            p_chunk->FightCols[fc_start + i].Height = disk_fc[i].Height;
+            p_chunk->FightCols[fc_start + i].Width = disk_fc[i].Width;
+            p_chunk->FightCols[fc_start + i].Dummy = disk_fc[i].Dummy;
+            p_chunk->FightCols[fc_start + i].Next = (GameFightCol*)(uintptr_t)disk_fc[i].Next;
         }
         MemFree(disk_fc);
     }

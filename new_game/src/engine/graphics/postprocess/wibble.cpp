@@ -34,7 +34,7 @@ void WIBBLE_simple(
     y1 = y1 * ScreenHeight / DisplayHeight;
     y2 = y2 * ScreenHeight / DisplayHeight;
 
-    GEWibbleParams p{};
+    GEWibbleParams p {};
     p.wibble_y1 = wibble_y1;
     p.wibble_y2 = wibble_y2;
     p.wibble_g1 = wibble_g1;

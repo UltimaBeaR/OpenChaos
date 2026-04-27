@@ -2,7 +2,7 @@
 #define THINGS_CORE_THING_GLOBALS_H
 
 #include "engine/core/types.h"
-#include "engine/io/file.h"   // MFFileHandle
+#include "engine/io/file.h" // MFFileHandle
 
 // Need THING_INDEX without pulling in all of Game.h
 #ifndef THING_INDEX

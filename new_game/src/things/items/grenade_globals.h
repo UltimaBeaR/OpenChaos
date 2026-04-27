@@ -8,7 +8,7 @@ struct Thing;
 // uc_orig: Grenade (fallen/Source/grenade.cpp)
 // File-private struct in original; exposed here only for _globals linkage.
 struct Grenade {
-    Thing* owner;   // Person who threw the grenade.
+    Thing* owner; // Person who threw the grenade.
     SLONG x;
     SLONG y;
     SLONG z;
@@ -19,7 +19,7 @@ struct Grenade {
     SLONG dz;
     SWORD dyaw;
     SWORD dpitch;
-    UWORD timer;    // Countdown to explosion.
+    UWORD timer; // Countdown to explosion.
     UWORD rsvd;
 };
 

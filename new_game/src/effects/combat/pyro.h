@@ -81,20 +81,20 @@ struct Thing;
 // uc_orig: Pyro (fallen/Headers/pyro.h)
 typedef struct
 {
-    UWORD Flags;      // pyro flags (see PYRO_FLAGS_*)
-    UBYTE PyroType;   // effect type (see PYRO_* constants)
-    UBYTE dlight;     // dynamic light handle, if any
-    Thing* thing;     // back-pointer to the owning Thing
-    Thing* victim;    // immolation target
+    UWORD Flags; // pyro flags (see PYRO_FLAGS_*)
+    UBYTE PyroType; // effect type (see PYRO_* constants)
+    UBYTE dlight; // dynamic light handle, if any
+    Thing* thing; // back-pointer to the owning Thing
+    Thing* victim; // immolation target
     GameCoord target; // fire wall endpoint, or hit location
-    SLONG radius;     // area effect radius
-    SLONG counter;    // general-purpose timer
-    ULONG radii[8];   // per-type per-point data (ribbon handles, streamer data, etc.)
-    SLONG scale;      // size modifier
-    SLONG tints[2];   // colour tints for light effects
-    SLONG soundid;    // active sound handle (thing number used as ID)
-    SWORD Timer1;     // legacy per-thing timer
-    UWORD Dummy;      // overloaded field: ribbon handle (FLICKER), burn stage (IMMOLATE), etc.
+    SLONG radius; // area effect radius
+    SLONG counter; // general-purpose timer
+    ULONG radii[8]; // per-type per-point data (ribbon handles, streamer data, etc.)
+    SLONG scale; // size modifier
+    SLONG tints[2]; // colour tints for light effects
+    SLONG soundid; // active sound handle (thing number used as ID)
+    SWORD Timer1; // legacy per-thing timer
+    UWORD Dummy; // overloaded field: ribbon handle (FLICKER), burn stage (IMMOLATE), etc.
 } Pyro;
 
 // uc_orig: PyroPtr (fallen/Headers/pyro.h)

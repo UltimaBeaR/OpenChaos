@@ -36,22 +36,22 @@ struct CPData {
 
 // uc_orig: CPChannel (fallen/Headers/playcuts.h)
 struct CPChannel {
-    UBYTE type;        // 0=unused, 1=character, 2=camera, 3=spot sound, 4=vfx
+    UBYTE type; // 0=unused, 1=character, 2=camera, 3=spot sound, 4=vfx
     UBYTE flags;
     UBYTE pad1, pad2;
-    UWORD index;       // Sound/character index or effect type.
+    UWORD index; // Sound/character index or effect type.
     UWORD packetcount;
     CPPacket* packets;
 };
 
 // uc_orig: CPPacket (fallen/Headers/playcuts.h)
 struct CPPacket {
-    UBYTE type;        // 0=unused, 1=animation, 2=action, 3=sound, 4=camerarec
+    UBYTE type; // 0=unused, 1=animation, 2=action, 3=sound, 4=camerarec
     UBYTE flags;
-    UWORD index;       // Animation/sound index.
-    UWORD start;       // Packet start time (frame number).
-    UWORD length;      // Natural packet length (and packed fade level / lens in high byte).
-    GameCoord pos;     // World-space position keyframe.
+    UWORD index; // Animation/sound index.
+    UWORD start; // Packet start time (frame number).
+    UWORD length; // Natural packet length (and packed fade level / lens in high byte).
+    GameCoord pos; // World-space position keyframe.
     UWORD angle, pitch;
 };
 

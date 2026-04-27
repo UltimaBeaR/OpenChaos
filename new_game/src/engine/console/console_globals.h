@@ -2,7 +2,7 @@
 #define ENGINE_CONSOLE_CONSOLE_GLOBALS_H
 
 #include <stdint.h>
-#include <stdlib.h>  // _MAX_PATH
+#include <stdlib.h> // _MAX_PATH
 #include "engine/console/console.h"
 
 // Maximum number of simultaneously active positioned messages.

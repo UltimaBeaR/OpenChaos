@@ -36,8 +36,8 @@ typedef struct
 {
     struct Thing* who; // NULL = computer/radio message
     char text[PANEL_TEXT_MAX_LENGTH + 2];
-    int delay;  // 0 = unused
-    int turns;  // number of game turns this has been alive
+    int delay; // 0 = unused
+    int turns; // number of game turns this has been alive
 } PANEL_Text;
 
 #define PANEL_MAX_TEXTS 8

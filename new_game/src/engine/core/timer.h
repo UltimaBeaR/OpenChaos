@@ -16,5 +16,4 @@
 // uc_orig: BreakTime (fallen/DDEngine/Headers/BreakTimer.h)
 #define BreakTime(X) 0
 
-
 #endif // ENGINE_CORE_TIMER_H

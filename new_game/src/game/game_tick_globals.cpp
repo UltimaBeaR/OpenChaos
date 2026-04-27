@@ -9,7 +9,6 @@ SLONG NIGHT_specular_enable = UC_FALSE;
 // uc_orig: draw_3d (fallen/Source/Controls.cpp)
 SLONG draw_3d;
 
-
 // uc_orig: stealth_debug (fallen/Source/Controls.cpp)
 UBYTE stealth_debug = 0;
 

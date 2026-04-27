@@ -5,18 +5,17 @@
 #include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/ui_coords.h"
 
-
 class PolyPage;
 
 // uc_orig: PolyPoly (fallen/DDEngine/Headers/polypage.h)
 // A single polygon stored inside a PolyPage. Holds its sort depth, index into
 // the vertex buffer, and a linked-list pointer used during bucket sorting.
 struct PolyPoly {
-    float sort_z;        // Z value used for back-to-front sorting
-    UWORD first_vertex;  // Index of first vertex in the PolyPage vertex buffer
-    UWORD num_vertices;  // Number of vertices; if high bit set, draw as wireframe
-    PolyPage* page;      // Page owning this polygon (set during bucket sort)
-    PolyPoly* next;      // Next polygon in bucket linked list
+    float sort_z; // Z value used for back-to-front sorting
+    UWORD first_vertex; // Index of first vertex in the PolyPage vertex buffer
+    UWORD num_vertices; // Number of vertices; if high bit set, draw as wireframe
+    PolyPage* page; // Page owning this polygon (set during bucket sort)
+    PolyPoly* next; // Next polygon in bucket linked list
 };
 
 // uc_orig: operator< (fallen/DDEngine/Headers/polypage.h)
@@ -193,10 +192,10 @@ extern GEViewport g_viewData;
 // uc_orig: GEMultiMatrix (fallen/DDEngine/Headers/polypage.h)
 // Multi-matrix vertex draw block for batched character/object rendering.
 struct GEMultiMatrix {
-    void* lpvVertices;        // Pointer to vertex data, must be 32-byte aligned
-    GEMatrix* matrices;  // Pointer to matrix array, must be 32-byte aligned
-    void* lpvLightDirs;       // Pointer to light direction array (NULL if unlit), 8-byte aligned
-    ULONG* lpLightTable;      // Pointer to fade table (NULL if unlit), 4-byte aligned
+    void* lpvVertices; // Pointer to vertex data, must be 32-byte aligned
+    GEMatrix* matrices; // Pointer to matrix array, must be 32-byte aligned
+    void* lpvLightDirs; // Pointer to light direction array (NULL if unlit), 8-byte aligned
+    ULONG* lpLightTable; // Pointer to fade table (NULL if unlit), 4-byte aligned
 };
 
 // uc_orig: SET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
@@ -206,8 +205,8 @@ struct GEMultiMatrix {
 
 // Vertex type for DrawMultiMatrix: determines whether vertex colors are used or forced to white.
 enum class GEMMVertexType {
-    Lit,    // GEVertexLit — use vertex dcColor/dcSpecular (D3DFVF_LVERTEX equivalent)
-    Unlit,  // GEVertex — force white color (D3DFVF_VERTEX equivalent)
+    Lit, // GEVertexLit — use vertex dcColor/dcSpecular (D3DFVF_LVERTEX equivalent)
+    Unlit, // GEVertex — force white color (D3DFVF_VERTEX equivalent)
 };
 
 // uc_orig: DrawIndPrimMM (fallen/DDEngine/Headers/polypage.h)

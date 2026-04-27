@@ -7,7 +7,6 @@
 #include "map/level_pools.h"
 #include "things/core/statedef.h"
 
-
 extern BOOL allow_debug_keys;
 
 extern SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face);
@@ -18,14 +17,14 @@ extern SLONG is_thing_on_this_quad(SLONG x, SLONG z, SLONG face);
 extern void set_tween_for_dy(Thing* p_person, SLONG dy);
 
 #include "ai/mav.h"
-#include "things/characters/anim_ids.h"     // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
-#include "things/core/interact.h"       // calc_sub_objects_position
-#include "things/core/state.h"          // set_generic_person_state_function, STATE_CLIMB_LADDER
-#include "things/core/thing.h"          // move_thing_on_map
-#include "things/characters/person.h"   // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
-#include "map/pap.h"              // PAP_calc_height_at, PAP_calc_height_at_thing
-#include "engine/console/console.h"  // CONSOLE_text
-#include "engine/input/keyboard_globals.h"      // ControlFlag
+#include "things/characters/anim_ids.h" // SUB_OBJECT_LEFT_FOOT, COP_ROPER_ANIM_LADDER_END_L, ANIM_OFF_LADDER_TOP, ACTION_CLIMBING
+#include "things/core/interact.h" // calc_sub_objects_position
+#include "things/core/state.h" // set_generic_person_state_function, STATE_CLIMB_LADDER
+#include "things/core/thing.h" // move_thing_on_map
+#include "things/characters/person.h" // person_splash, set_person_climb_ladder, set_person_drop_down, locked_anim_change_end_type
+#include "map/pap.h" // PAP_calc_height_at, PAP_calc_height_at_thing
+#include "engine/console/console.h" // CONSOLE_text
+#include "engine/input/keyboard_globals.h" // ControlFlag
 
 extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLONG z2, SLONG colour);
 
@@ -34,8 +33,8 @@ extern void add_debug_line(SLONG x1, SLONG y1, SLONG z1, SLONG x2, SLONG y2, SLO
 #include "map/supermap_globals.h"
 #include "assets/formats/anim_globals.h"
 
-#include "buildings/prim_types.h"  // PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
-#include "buildings/prim.h"        // slide_along_prim, prim_get_collision_model, get_prim_info
+#include "buildings/prim_types.h" // PRIM_OBJ_SPIKE, PRIM_COLLIDE_*, FACE_FLAG_FIRE_ESCAPE, FACE_FLAG_WMOVE, FACE_FLAG_PRIM
+#include "buildings/prim.h" // slide_along_prim, prim_get_collision_model, get_prim_info
 #include "map/ob.h"
 #include "map/ob_globals.h"
 #include "things/vehicles/vehicle.h"
@@ -693,13 +692,12 @@ SLONG find_face_near_y(MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG ignore_faces_of_th
                                 *ret_y = new_y;
 
                                 return (check_face);
-                            } else
-                                if (dy > -128) {
-                                    if (p_person->SubState == SUB_STATE_RUNNING_JUMP_FLY) {
-                                        set_tween_for_dy(p_person, y - new_y);
-                                    }
-                                    MSG_add(" LAND on face y  %d peep y %d miss dy=%d ", new_y, y, y - new_y);
+                            } else if (dy > -128) {
+                                if (p_person->SubState == SUB_STATE_RUNNING_JUMP_FLY) {
+                                    set_tween_for_dy(p_person, y - new_y);
                                 }
+                                MSG_add(" LAND on face y  %d peep y %d miss dy=%d ", new_y, y, y - new_y);
+                            }
                         }
                     }
 
@@ -1585,8 +1583,6 @@ SLONG slide_along(
     return UC_FALSE;
 }
 
-
-
 // uc_orig: EDGE_WIDTH (fallen/Source/collide.cpp)
 // Sub-mapsquare half-width margin used by slide_along_redges.
 #define EDGE_WIDTH 0x4000
@@ -2041,30 +2037,6 @@ SLONG collide_against_things(
                         radius = 66 << 8;
                     else
                         radius = 50 << 8;
-                    /*
-                                                    {
-                                                            SLONG	cx,cz,cy,r,ang,x1,z1,x2,z2;
-                                                            cx=col_thing->WorldPos.X>>8;
-                                                            cy=col_thing->WorldPos.Y>>8;
-                                                            cz=col_thing->WorldPos.Z>>8;
-                                                            r=radius>>8;
-
-                                                            x1=cx+(r*COS(0)>>16);
-                                                            z1=cz+(r*SIN(0)>>16);
-                                                            for(ang=0;ang<2048;ang+=128)
-                                                            {
-                                                                    x2=cx+(r*COS(ang)>>16);
-                                                                    z2=cz+(r*SIN(ang)>>16);
-
-                                                                    add_debug_line(x1,cy+10,z1,x2,cy+10,z2,0xffffff);
-                                                                    x1=x2;
-                                                                    z1=z2;
-
-                                                            }
-                                                    }
-
-                                                    add_debug_line(x1,10,z1,col_thing->WorldPos.X>>8,10,col_thing->WorldPos.Z>>8,0xff00ff);
-                    */
 
                     tx2 = *x2;
                     tz2 = *z2;
@@ -2151,22 +2123,6 @@ SLONG collide_against_things(
 
                     if (p_thing && p_thing->Class == CLASS_PERSON) {
                         if (col_thing->Velocity > 200) {
-                            /*
-
-                            Thing *p_driver = get_vehicle_driver(col_thing);
-
-                            knock_person_down(
-                                    p_thing,
-                                    100 + (col_thing->Velocity >> 4),
-                                    col_thing->WorldPos.X >> 8,
-                                    col_thing->WorldPos.Z >> 8,
-                                    p_driver);
-
-                            MFX_play_thing(THING_NUMBER(p_thing),S_THUMP_SQUISH,MFX_REPLACE,p_thing);
-
-                            return;
-
-                            */
 
                         } else {
                             if (!p_thing->Genus.Person->PlayerID) {
@@ -2424,18 +2380,6 @@ ULONG move_thing(
         return (0);
     }
 
-    /*
-    if(p_thing->Class==CLASS_PERSON)
-    {
-            if(p_thing->Genus.Person->PlayerID)
-            {
-extern	void	set_player_visited(UBYTE x,UBYTE z);
-                    set_player_visited(x2>>16,z2>>16);
-
-            }
-    }
-    */
-
     if (x2 < 0 || z2 < 0 || (x2 >> 16) >= MAP_WIDTH || (z2 >> 16 >= MAP_WIDTH)) {
         return (0);
     }
@@ -2508,15 +2452,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
         if (p_thing->State == STATE_CIRCLING || p_thing->SubState == SUB_STATE_STEP_FORWARD || ((p_thing->SubState == SUB_STATE_WALKING) && p_thing->Genus.Person->PlayerID) || (fall_off_flag & FALL_OFF_FLAG_FIRE_ESCAPE))
         //		if(p_thing->State==STATE_CIRCLING || (p_thing->SubState==SUB_STATE_WALKING&&p_thing->Genus.Person->PlayerID)||(fall_off_flag&FALL_OFF_FLAG_FIRE_ESCAPE))
         {
-            /*
-                                    if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS)
-                                    {
-                                            //
-                                            // But never when walking backwards...
-                                            //
-                                    }
-                                    else
-            */
             {
                 if (p_thing->OnFace > 0) {
                     slide_along_edges(p_thing->OnFace, x1, z1, &x2, &z2);
@@ -2591,37 +2526,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
         }
     } else {
 
-        /*
-
-        if(person_inside==0 || look_for_face)
-        {
-                new_face = find_face_for_this_pos(x2>>8, y2>>8, z2>>8, &new_y, 0,0); //ignore,0);
-        }
-        else
-        {
-                new_face=0;
-        }
-
-        if (new_face && (new_face!=GRAB_FLOOR))
-        {
-                ASSERT(abs(new_y - (y2 >> 8)) < 0x100);
-
-                p_thing->OnFace = new_face;
-
-                if( (y2>>8)-new_y > 0x50)
-                {
-                        // long drop
-                        fall_off_flag        |= FALL_OFF_FLAG_TRUE;
-                }
-                else
-                {
-                        // short drop or small step up
-                        y2=(new_y)<<8;  //+4?
-                }
-        }
-        else
-
-        */
         {
 
             {
@@ -2630,18 +2534,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
                 if (p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING) {
                     saflag |= SLIDE_ALONG_FLAG_CARRYING;
                 }
-                /* this code is never true, as jumping people call slide along from projectile_move in darci.cpp.
-                                                if(p_thing->Genus.Person->PlayerID)
-                                                {
-                                                        if (p_thing->SubState               == SUB_STATE_RUNNING_JUMP||
-                                                                p_thing->SubState               == SUB_STATE_RUNNING_JUMP_FLY||
-                                                                p_thing->SubState               == SUB_STATE_FLYING_KICK||
-                                                                p_thing->SubState               == SUB_STATE_FLYING_KICK_FALL)
-                                                        {
-                                                                saflag |= SLIDE_ALONG_FLAG_JUMPING;
-                                                        }
-                                                }
-                */
 
                 slide_along(
                     x1, my_y1, z1,
@@ -2668,65 +2560,6 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
                         y2 = (new_y) << 8;
                     }
                 }
-
-                /*
-
-
-                if(actual_sliding)
-                {
-                        SLONG	dx,dy,dz;
-                        SLONG	ax,ay,az;
-                        SLONG	len,r;
-
-                        dx=(ox2-x1)>>8;
-                        dy=(oy2-my_y1)>>8;
-                        dz=(oz2-z1)>>8;
-
-                        len=Root(dx*dx+dz*dz);
-                        if(len==0)
-                                len=1;
-
-                        r=last_slide_dist+15;
-
-
-                        radius+=25;
-
-                        dx=(dx*radius)/len;
-                        dz=(dz*radius)/len;
-
-                        ax=x2+(dx<<8);
-                        ay=y2; //+(dy<<8);
-                        az=z2+(dz<<8);
-
-                        new_face = find_face_for_this_pos(ax>>8, ay>>8, az>>8, &new_y, ignore_building);
-
-                        if(new_face && (new_face!=GRAB_FLOOR))
-                        {
-                                x2=ox2;
-                                y2=oy2;
-                                z2=oz2;
-                        }
-                        else
-                        {
-
-                                p_thing->Genus.Person->Flags|=FLAG_PERSON_HIT_WALL;
-
-                                if(col)
-                                {
-                                        slide_along(
-                                                x1,
-                                                my_y1,
-                                                z1,
-                                           &x2,
-                                           &y2,
-                                           &z2,
-                                            SLIDE_ALONG_DEFAULT_EXTRA_WALL_HEIGHT,
-                                                radius+20);
-                                }
-                        }
-                }
-
-                */
             }
         }
     }
@@ -2766,64 +2599,14 @@ extern	void	set_player_visited(UBYTE x,UBYTE z);
 
     move_thing_on_map(p_thing, &new_position);
 
-    /*
-
-    if(slide_door)
-    {
-            if(slide_door<0)
-            {
-                    if(p_thing->Genus.Person->PlayerID)
-                    {
-                            INDOORS_INDEX=0;
-                            INDOORS_DBUILDING=0;
-                    }
-                    p_thing->Genus.Person->InsideIndex=0;
-                    p_thing->Genus.Person->InsideRoom=0;
-                    p_thing->OnFace=0;
-            }
-            else
-            {
-                    p_thing->Genus.Person->InsideIndex=slide_door;
-                    p_thing->Genus.Person->InsideRoom=find_inside_room(slide_door,new_position.X>>16,new_position.Z>>16);
-                    p_thing->OnFace=0;
-                    fall_off=0;
-                    if(p_thing->Genus.Person->PlayerID)
-                    {
-                            INDOORS_INDEX=slide_door;
-                            INDOORS_DBUILDING=inside_storeys[slide_door].Building;
-                            INDOORS_ROOM=p_thing->Genus.Person->InsideRoom&0xf;
-                    }
-            }
-    }
-
-    */
-
     if (slide_into_warehouse) {
         p_thing->Genus.Person->Flags |= FLAG_PERSON_WAREHOUSE;
         p_thing->Genus.Person->Ware = dbuildings[slide_into_warehouse].Ware;
-
-        /*
-
-        if (p_thing->Genus.Person->PlayerID && !WARE_in)
-        {
-                WARE_enter(slide_into_warehouse);
-        }
-
-        */
     }
 
     if (slide_outof_warehouse) {
         p_thing->Genus.Person->Flags &= ~FLAG_PERSON_WAREHOUSE;
         p_thing->Genus.Person->Ware = 0;
-
-        /*
-
-        if (p_thing->Genus.Person->PlayerID && WARE_in)
-        {
-                WARE_exit();
-        }
-
-        */
     }
 
     // Update the person's inside-room index after movement.
@@ -3377,7 +3160,6 @@ SLONG there_is_a_los_mav(
     SLONG end_mx;
     SLONG end_mz;
 
-
     SLONG frac;
 
     SLONG xfrac;
@@ -3390,7 +3172,6 @@ SLONG there_is_a_los_mav(
 
     SLONG adx = abs(dx);
     SLONG adz = abs(dz);
-
 
     mx = x1 >> PAP_SHIFT_HI;
     mz = z1 >> PAP_SHIFT_HI;
@@ -3574,7 +3355,6 @@ SLONG there_is_a_los_car(
     SLONG end_mx;
     SLONG end_mz;
 
-
     SLONG frac;
 
     SLONG xfrac;
@@ -3585,7 +3365,6 @@ SLONG there_is_a_los_car(
 
     SLONG adx = abs(dx);
     SLONG adz = abs(dz);
-
 
     mx = x1 >> PAP_SHIFT_HI;
     mz = z1 >> PAP_SHIFT_HI;
@@ -3803,7 +3582,6 @@ SLONG slide_around_circle(
 
     return UC_FALSE;
 }
-
 
 // uc_orig: collide_with_circle (fallen/Source/collide.cpp)
 // Returns UC_TRUE if (*x2, *z2) is strictly inside the circle (no push-out).
@@ -4170,7 +3948,6 @@ SLONG slide_around_box(
     tx2 = *x2 - box_mid_x;
     tz2 = *z2 - box_mid_z;
 
-
     rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
     rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
 
@@ -4309,10 +4086,8 @@ SLONG slide_around_box_lowstack(
     matrix[2] = -sin_yaw;
     matrix[3] = cos_yaw;
 
-
     tx2 = *x2 - box_mid_x;
     tz2 = *z2 - box_mid_z;
-
 
     rx2 = MUL64(tx2, matrix[0]) + MUL64(tz2, matrix[1]);
     rz2 = MUL64(tx2, matrix[2]) + MUL64(tz2, matrix[3]);
@@ -4572,7 +4347,7 @@ void create_shockwave(
 
         dist = QDIST3(dx, dy, dz);
 
-        extern SLONG is_person_ko(Thing* p_person);
+        extern SLONG is_person_ko(Thing * p_person);
 
         {
             if (p_found->Class == CLASS_PERSON && !is_person_ko(p_found)) {
@@ -4626,8 +4401,8 @@ void create_shockwave(
                 hitpoints <<= 1;
 
                 extern void VEH_reduce_health(
-                    Thing* p_car,
-                    Thing* p_person,
+                    Thing * p_car,
+                    Thing * p_person,
                     SLONG damage);
 
                 VEH_reduce_health(
@@ -4849,4 +4624,3 @@ void COLLIDE_debug_fastnav(
             }
         }
 }
-

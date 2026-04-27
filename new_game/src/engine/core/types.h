@@ -95,21 +95,26 @@ typedef CHAR TCHAR;
 #ifdef _MSC_VER
 #include <direct.h>
 #include <io.h>
-#define oc_getcwd    _getcwd
-#define oc_stricmp   _stricmp
-#define oc_strnicmp  _strnicmp
-#define oc_mkdir(p)  _mkdir(p)
-#define oc_strlwr    _strlwr
+#define oc_getcwd _getcwd
+#define oc_stricmp _stricmp
+#define oc_strnicmp _strnicmp
+#define oc_mkdir(p) _mkdir(p)
+#define oc_strlwr _strlwr
 #else
 #include <unistd.h>
 #include <strings.h>
 #include <sys/stat.h>
 #include <ctype.h>
-#define oc_getcwd    getcwd
-#define oc_stricmp   strcasecmp
-#define oc_strnicmp  strncasecmp
-#define oc_mkdir(p)  mkdir(p, 0755)
-static inline char* oc_strlwr(char* s) { for (char* p = s; *p; ++p) *p = (char)tolower((unsigned char)*p); return s; }
+#define oc_getcwd getcwd
+#define oc_stricmp strcasecmp
+#define oc_strnicmp strncasecmp
+#define oc_mkdir(p) mkdir(p, 0755)
+static inline char* oc_strlwr(char* s)
+{
+    for (char* p = s; *p; ++p)
+        *p = (char)tolower((unsigned char)*p);
+    return s;
+}
 #endif
 
 // Index type for Things and other pool objects.

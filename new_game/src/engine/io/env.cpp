@@ -16,16 +16,18 @@
 // Trim leading/trailing whitespace in place. Returns pointer into the same buffer.
 static char* ini_trim(char* s)
 {
-    while (*s && isspace((unsigned char)*s)) s++;
+    while (*s && isspace((unsigned char)*s))
+        s++;
     char* end = s + strlen(s);
-    while (end > s && isspace((unsigned char)end[-1])) end--;
+    while (end > s && isspace((unsigned char)end[-1]))
+        end--;
     *end = '\0';
     return s;
 }
 
 // Read a string value from an INI file. Returns true if found.
 static bool ini_read_string(const char* filepath, const char* section, const char* key,
-                            char* out, int out_size)
+    char* out, int out_size)
 {
     FILE* f = fopen_ci(filepath, "r");
     if (!f) {
@@ -80,9 +82,12 @@ static bool ini_read_string(const char* filepath, const char* section, const cha
 
 // Read a string value from an in-memory INI string. Returns true if found.
 static bool ini_read_string_mem(const char* ini_data, const char* section, const char* key,
-                                char* out, int out_size)
+    char* out, int out_size)
 {
-    if (!ini_data) { out[0] = '\0'; return false; }
+    if (!ini_data) {
+        out[0] = '\0';
+        return false;
+    }
 
     bool in_section = false;
     const char* p = ini_data;
@@ -90,29 +95,37 @@ static bool ini_read_string_mem(const char* ini_data, const char* section, const
     while (*p) {
         // Extract one line.
         const char* line_end = p;
-        while (*line_end && *line_end != '\n') line_end++;
+        while (*line_end && *line_end != '\n')
+            line_end++;
 
         char line[512];
         int len = (int)(line_end - p);
-        if (len >= (int)sizeof(line)) len = (int)sizeof(line) - 1;
+        if (len >= (int)sizeof(line))
+            len = (int)sizeof(line) - 1;
         memcpy(line, p, len);
         line[len] = '\0';
 
         p = *line_end ? line_end + 1 : line_end;
 
         char* trimmed = ini_trim(line);
-        if (!*trimmed || *trimmed == ';' || *trimmed == '#') continue;
+        if (!*trimmed || *trimmed == ';' || *trimmed == '#')
+            continue;
 
         if (*trimmed == '[') {
             char* end = strchr(trimmed, ']');
-            if (end) { *end = '\0'; in_section = (oc_stricmp(trimmed + 1, section) == 0); }
+            if (end) {
+                *end = '\0';
+                in_section = (oc_stricmp(trimmed + 1, section) == 0);
+            }
             continue;
         }
 
-        if (!in_section) continue;
+        if (!in_section)
+            continue;
 
         char* eq = strchr(trimmed, '=');
-        if (!eq) continue;
+        if (!eq)
+            continue;
 
         *eq = '\0';
         char* k = ini_trim(trimmed);
@@ -150,7 +163,7 @@ static int ini_read_int(const char* filepath, const char* section, const char* k
 // Write a string value to an INI file. Creates the file/section/key as needed.
 // Rewrites the entire file to update or insert the key.
 static void ini_write_string(const char* filepath, const char* section, const char* key,
-                             const char* value)
+    const char* value)
 {
     // Read entire file into memory.
     FILE* f = fopen_ci(filepath, "r");
@@ -176,8 +189,10 @@ static void ini_write_string(const char* filepath, const char* section, const ch
     while (*p) {
         // Read one line.
         char* linestart = p;
-        while (*p && *p != '\n') p++;
-        if (*p == '\n') p++;
+        while (*p && *p != '\n')
+            p++;
+        if (*p == '\n')
+            p++;
         int linelen = (int)(p - linestart);
 
         // Copy line into temp buffer for parsing.
@@ -199,7 +214,8 @@ static void ini_write_string(const char* filepath, const char* section, const ch
             if (end) {
                 *end = '\0';
                 in_target_section = (oc_stricmp(trimmed + 1, section) == 0);
-                if (in_target_section) section_found = true;
+                if (in_target_section)
+                    section_found = true;
             }
 
             // Copy original line.
@@ -287,7 +303,11 @@ bool INI_get_string(const char* filepath, const char* section, const char* key, 
 bool INI_get_section(const char* filepath, const char* section, char* out, int out_size)
 {
     FILE* f = fopen_ci(filepath, "r");
-    if (!f) { out[0] = '\0'; out[1] = '\0'; return false; }
+    if (!f) {
+        out[0] = '\0';
+        out[1] = '\0';
+        return false;
+    }
 
     bool in_section = false;
     char line[512];
@@ -295,19 +315,26 @@ bool INI_get_section(const char* filepath, const char* section, char* out, int o
 
     while (fgets(line, sizeof(line), f)) {
         char* trimmed = ini_trim(line);
-        if (!*trimmed || *trimmed == ';' || *trimmed == '#') continue;
+        if (!*trimmed || *trimmed == ';' || *trimmed == '#')
+            continue;
 
         if (*trimmed == '[') {
-            if (in_section) break;
+            if (in_section)
+                break;
             char* end = strchr(trimmed, ']');
-            if (end) { *end = '\0'; in_section = (oc_stricmp(trimmed + 1, section) == 0); }
+            if (end) {
+                *end = '\0';
+                in_section = (oc_stricmp(trimmed + 1, section) == 0);
+            }
             continue;
         }
 
-        if (!in_section) continue;
+        if (!in_section)
+            continue;
 
         int len = (int)strlen(trimmed);
-        if (pos + len + 2 > out_size) break;
+        if (pos + len + 2 > out_size)
+            break;
         memcpy(out + pos, trimmed, len);
         pos += len;
         out[pos++] = '\0';

@@ -28,8 +28,6 @@ void TRACKS_InitOnce(SWORD size)
     memset((UBYTE*)tracks, 0, sizeof(Track) * size);
 }
 
-
-
 // uc_orig: TRACKS_CalcDiffs (fallen/Source/tracks.cpp)
 void TRACKS_CalcDiffs(Track& track, UBYTE width)
 {
