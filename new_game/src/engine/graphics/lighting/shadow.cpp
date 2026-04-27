@@ -1,5 +1,4 @@
 #include "engine/graphics/lighting/shadow.h"
-#include "engine/graphics/lighting/shadow_globals.h"
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "map/pap_globals.h"

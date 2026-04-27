@@ -43,7 +43,6 @@
 #include "game/input_actions_globals.h"
 #include "assets/formats/anim_tmap.h"
 #include "engine/graphics/lighting/shadow.h"
-#include "engine/graphics/lighting/shadow_globals.h"
 #include "ui/frontend/attract.h"
 #include "camera/cam.h"
 #include "engine/effects/psystem.h"

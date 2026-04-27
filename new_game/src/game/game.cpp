@@ -33,7 +33,6 @@
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/lighting/shadow.h"
-#include "engine/graphics/lighting/shadow_globals.h"
 #include "map/sewers.h"
 #include "map/supermap.h"
 #include "buildings/build2.h"

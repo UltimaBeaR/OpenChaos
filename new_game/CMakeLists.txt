@@ -283,7 +283,6 @@ set(SOURCES_NEW
     src/engine/graphics/lighting/ngamut.cpp
     src/engine/graphics/lighting/ngamut_globals.cpp
     src/engine/graphics/lighting/shadow.cpp
-    src/engine/graphics/lighting/shadow_globals.cpp
     src/engine/graphics/lighting/smap.cpp
     src/engine/graphics/lighting/smap_globals.cpp
     src/engine/graphics/lighting/night.cpp
@@ -465,7 +464,6 @@ set(SOURCES_NEW
     src/camera/fc_globals.cpp
 
     # === UI ===
-    src/ui/frontend/startscr.cpp
     src/ui/frontend/startscr_globals.cpp
     src/ui/frontend/attract.cpp
     src/ui/frontend/attract_globals.cpp

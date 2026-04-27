@@ -299,10 +299,16 @@ int device_send_feature_report(Device* dev,
 // SHUTDOWN_FINAL_LATCH_MS: small delay after the zeroed output report
 //   so the controller has time to apply the reset before we drop the
 //   HID handle.
+// SHUTDOWN_LIGHTBAR_*: lightbar colour sent on shutdown — matches the
+//   firmware's own "idle connected" blue so the user can tell the
+//   controller is still paired (black would look like powered off).
 static constexpr std::uint8_t  ACTION_WAVEOUT_CTRL              = 2;
 static constexpr int           SHUTDOWN_TONE_DISABLE_RETRIES    = 2;
 static constexpr std::uint32_t SHUTDOWN_TONE_DISABLE_GAP_MS     = 80;
 static constexpr std::uint32_t SHUTDOWN_FINAL_LATCH_MS          = 50;
+static constexpr std::uint8_t  SHUTDOWN_LIGHTBAR_R              = 0;
+static constexpr std::uint8_t  SHUTDOWN_LIGHTBAR_G              = 0;
+static constexpr std::uint8_t  SHUTDOWN_LIGHTBAR_B              = 255;
 
 void device_shutdown(Device* dev)
 {
@@ -321,12 +327,16 @@ void device_shutdown(Device* dev)
         SDL_Delay(SHUTDOWN_TONE_DISABLE_GAP_MS);
     }
 
-    // Step 2: zeroed output — rumble / triggers / lightbar / player LED /
-    // mute LED all go dark. `audio_volumes_enabled = false` means we
-    // don't re-engage host-managed audio mode on our way out.
+    // Step 2: reset output — rumble / triggers / player LED / mute LED
+    // all go dark; lightbar restores to idle blue so the user can see
+    // the controller is still paired. `audio_volumes_enabled = false`
+    // means we don't re-engage host-managed audio mode on our way out.
     OutputState quiet = {};
     trigger_off(quiet.trigger_left);
     trigger_off(quiet.trigger_right);
+    quiet.lightbar_r = SHUTDOWN_LIGHTBAR_R;
+    quiet.lightbar_g = SHUTDOWN_LIGHTBAR_G;
+    quiet.lightbar_b = SHUTDOWN_LIGHTBAR_B;
     device_send_output(dev, quiet);
 
     // Step 3: latch gap so the zeroed state lands before handle close.
@@ -373,7 +383,19 @@ bool device_send_init_packet(Device* dev)
     buf[76] = static_cast<std::uint8_t>((crc >> 16) & 0xFF);
     buf[77] = static_cast<std::uint8_t>((crc >> 24) & 0xFF);
 
-    return device_write(dev, buf, sizeof(buf)) > 0;
+    if (device_write(dev, buf, sizeof(buf)) <= 0) return false;
+
+    // The handshake packet zeroes the lightbar (all validFlags set, RGB=0).
+    // Immediately follow with idle blue so the controller looks "connected
+    // but idle" from the start — same colour as device_shutdown restores.
+    OutputState idle = {};
+    trigger_off(idle.trigger_left);
+    trigger_off(idle.trigger_right);
+    idle.lightbar_r = SHUTDOWN_LIGHTBAR_R;
+    idle.lightbar_g = SHUTDOWN_LIGHTBAR_G;
+    idle.lightbar_b = SHUTDOWN_LIGHTBAR_B;
+    device_send_output(dev, idle);
+    return true;
 }
 
 } // namespace oc::dualsense
