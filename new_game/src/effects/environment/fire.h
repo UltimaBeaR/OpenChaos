@@ -73,16 +73,6 @@ typedef struct
     FIRE_Point* point;
 } FIRE_Info;
 
-// uc_orig: FIRE_init (fallen/Headers/fire.h)
-void FIRE_init(void);
-
-// uc_orig: FIRE_create (fallen/Headers/fire.h)
-// life=0 means burn forever; higher life = faster burnout.
-void FIRE_create(UWORD x, SWORD y, UWORD z, UBYTE size, UBYTE life);
-
-// uc_orig: FIRE_process (fallen/Headers/fire.h)
-void FIRE_process(void);
-
 // uc_orig: FIRE_get_start (fallen/Headers/fire.h)
 void FIRE_get_start(UBYTE z, UBYTE x_min, UBYTE x_max);
 

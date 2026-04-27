@@ -25,9 +25,6 @@ void PANEL_draw_timer(SLONG time_in_hundredths, SLONG x, SLONG y);
 // uc_orig: PANEL_draw_buffered (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_buffered(void);
 
-// uc_orig: PANEL_draw_health_bar (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_health_bar(SLONG x, SLONG y, SLONG percentage);
-
 // uc_orig: PANEL_new_text_init (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_text_init(void);
 
@@ -78,9 +75,6 @@ float PANEL_GetNextDepthBodge(void);
 // uc_orig: PANEL_ResetDepthBodge (fallen/DDEngine/Source/panel.cpp)
 void PANEL_ResetDepthBodge(void);
 
-// uc_orig: PANEL_enable_screensaver (fallen/DDEngine/Source/panel.cpp)
-void PANEL_enable_screensaver(void);
-
 // uc_orig: PANEL_disable_screensaver (fallen/DDEngine/Source/panel.cpp)
 void PANEL_disable_screensaver(bool bImmediately = false);
 
@@ -103,21 +97,8 @@ void PANEL_draw_quad(
 // uc_orig: PANEL_inventory (fallen/DDEngine/Source/panel.cpp)
 void PANEL_inventory(struct Thing* darci, struct Thing* player);
 
-// uc_orig: PANEL_draw_face (fallen/DDEngine/Source/panel.cpp)
-void PANEL_draw_face(SLONG x, SLONG y, SLONG face, SLONG size);
-
 // uc_orig: PANEL_draw_local_health (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLONG radius = 60);
-
-// uc_orig: PANEL_funky_quad (fallen/DDEngine/Source/panel.cpp)
-void PANEL_funky_quad(SLONG which, SLONG x, SLONG y, SLONG panel_page, ULONG colour,
-    float width = -1.0F, float height = -1.0F);
-
-// uc_orig: PANEL_new_toss (fallen/DDEngine/Source/panel.cpp)
-void PANEL_new_toss(SLONG type, float sx, float sy);
-
-// uc_orig: PANEL_do_tosses (fallen/DDEngine/Source/panel.cpp)
-void PANEL_do_tosses(void);
 
 // uc_orig: PANEL_new_face (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_face(struct Thing* who, float x, float y, SLONG size);
@@ -130,9 +111,6 @@ void PANEL_new_face(struct Thing* who, float x, float y, SLONG size);
 
 // uc_orig: PANEL_new_text_process (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_text_process(void);
-
-// uc_orig: PANEL_help_message_do (fallen/DDEngine/Source/panel.cpp)
-void PANEL_help_message_do(void);
 
 // uc_orig: PANEL_new_widescreen (fallen/DDEngine/Source/panel.cpp)
 void PANEL_new_widescreen(void);

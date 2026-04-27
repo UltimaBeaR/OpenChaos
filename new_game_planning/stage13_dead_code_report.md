@@ -24,12 +24,12 @@ Workflow:
 
 ## Workflow для продолжения чистки
 
-**Текущее состояние (2026-04-27, после батча 23, сессия 10):**
-- Discards count: 4534 (старт) → ... → **~2278** (батч 22: collide cluster, свежий прогон) → **~2250** (батч 23: outro_os.cpp + aeng.cpp)
+**Текущее состояние (2026-04-27, после батча 28, сессия 11):**
+- Discards count: 4534 (старт) → ... → **~2278** (батч 22) → **~2250** (батч 23) → **~2170** (батч 24-26) → **~2090** (батч 27-28: fire + poly/sky/mesh cluster)
 - Примечание: 10 функций из core.cpp сохранены как stubs (caller-ы мертвы но в .o с live кодом) — они по-прежнему в discard-list DEAD_CODE_REPORT, но нужны для обычного Release-билда
 - Build OK (make build-release, exit 0) — сброшено в нормальный билд (без DEAD_CODE_REPORT)
 - Uncommitted — пользователь коммитит вручную
-- Следующие: регенерировать dead-list, затем memory.cpp (12 dead), panel_globals.cpp (12 dead), fire.cpp (11 dead), poly.cpp (11 dead)
+- Следующие: регенерировать dead-list, затем core.cpp (11 dead), texture.cpp (9 dead), outro_mf.cpp (9 dead), anim_globals.cpp (8 dead)
 - ⚠️ aeng.cpp: 6 функций пропущены (apply_cloud, show_gamut_lo, AENG_draw_bangs, AENG_draw_people_messages, AENG_clear_screen, AENG_fade_out) — linker их дискардит из-за инлайнинга/мёртвых веток, но source-level вызовы существуют в живых функциях. Нельзя удалить определение без удаления вызовов (нарушение правила "не трогать живой код"). Зарегистрировать как известную проблему.
 
 **Сделано в батче 9 (leaf globals из live files):**
@@ -193,6 +193,44 @@ Workflow:
 - `game.h`: удалены декларации dead функций + удалены includes `widget.h`, `widget_globals.h`, `game_globals.h`; добавлен `game_types.h` (вместо game_globals.h — чистый types-only header)
 - Побочный эффект: `game.cpp` добавлен `#include "game/game_globals.h"` (прямая зависимость вместо транзитивной через game.h)
 - Побочный эффект: `figure.h` добавлены `#include "effects/combat/pyro.h"` и `#include "things/core/drawtype.h"` (были скрытой транзитивной зависимостью через game.h → game_globals.h → thing.h)
+- Build OK (make build-release, exit code 0)
+
+**Сделано в батче 24 (memory.cpp cluster, сессия 11):**
+- `memory.cpp`: удалены 12 dead функций: `release_memory`, `set_darci_normals`, `convert_drawtype_to_index`, `convert_thing_to_index`, `convert_pointers_to_index`, `STORE_DATA` macro + body, `convert_keyframe_to_index`, `convert_animlist_to_index`, `convert_fightcol_to_index`, `save_whole_anims`, `find_best_anim_offset_old`, `find_best_anim_offset`, `MEMORY_quick_load_available`
+- `memory.h`: удалены декларации всех 12 функций; обновлён "Internal helpers" комментарий
+- Подтверждено: `convert_pointers_to_index` — единственный call site в game_tick.cpp внутри `/* */` блока (не компилируется)
+- Подтверждено: `save_whole_game` (пустой stub) оставлен — вызывается из game_tick.cpp F3 debug path (live)
+- Build OK (make build-release, exit code 0)
+
+**Сделано в батче 25 (oc_config + env string cascade, сессия 11):**
+- `oc_config.cpp`: удалены `OC_CONFIG_get_string`, `OC_CONFIG_set_string`, `g_str_return_buf` static global
+- `oc_config.h`: удалены декларации `OC_CONFIG_get_string`, `OC_CONFIG_set_string`; обновлён комментарий
+- `env.cpp`: удалены `ENV_get_value_string`, `ENV_set_value_string`
+- `env.h`: удалены декларации `ENV_get_value_string`, `ENV_set_value_string`
+- Эффект: устранена каскадная генерация ~52 dead символов от nlohmann::json template instantiations (генерировались 2 функциями `OC_CONFIG_get/set_string`)
+- Build OK (make build-release, exit code 0)
+
+**Сделано в батче 26 (panel module, сессия 11):**
+- `panel_globals.cpp`: удалены через Python (строки 18-125): `#define PIC/PICALL0/PICALL1`, `PANEL_ic[PANEL_IC_NUMBER]` (большой инициализатор), `PANEL_page[4][PANEL_PAGE_NUMBER]`, `PANEL_beat[2][...]`, `PANEL_beat_head/tick/last_ammo/last_specialtype/x[2]`, `PANEL_ammo[PANEL_AMMO_NUMBER]`, `PANEL_toss[PANEL_MAX_TOSSES]`, `PANEL_toss_last`, `PANEL_toss_tick`; убран `#include "engine/graphics/pipeline/poly.h"` (нужен был только для PANEL_page init)
+- `panel_globals.h`: удалены через Python (строки 33-167): `PANEL_Ic` struct, все `PANEL_IC_*` defines (46 entries), `extern PANEL_ic`, `PANEL_PAGE_*` defines, `extern PANEL_page`, `PANEL_Beat` struct + `PANEL_NUM_BEATS`, extern-группа `PANEL_beat*`, `PANEL_Ammo` struct + `PANEL_AMMO_*` defines + `extern PANEL_ammo`, `PANEL_Toss` struct + `PANEL_MAX_TOSSES` + `extern PANEL_toss/toss_last/toss_tick`
+- `panel.cpp`: удалены 7 dead функций: `PANEL_draw_face`, `PANEL_draw_health_bar`, `PANEL_funky_quad`, `PANEL_new_toss`, `PANEL_do_tosses`, `PANEL_help_message_do`, `PANEL_enable_screensaver`
+- `panel.h`: удалены декларации всех 7 функций
+- Build OK (make build-release, exit code 0)
+
+**Сделано в батче 27 (fire.cpp cluster, сессия 11):**
+- `fire.cpp`: удалены `FIRE_init`, `FIRE_create`, `FIRE_process` + 2 static helpers `FIRE_num_flames_for_size`, `FIRE_add_flame`; убраны dead includes `uc_common.h`, `game_types.h`
+- `fire.h`: удалены декларации `FIRE_init`, `FIRE_create`, `FIRE_process` (FIRE_get_start оставлен — жив, вызывается из aeng.cpp)
+- Build OK (make build-release, exit code 0)
+
+**Сделано в батче 28 (poly.cpp + sky/mesh кластер, сессия 11):**
+- `poly.cpp`: удалены 10 dead функций: `fade_point_more`, `POLY_transform_abs`, `POLY_get_screen_pos`, `POLY_transform_using_local_rotation_and_wibble`, `POLY_fadeout_buffer`, `POLY_add_line_2d`, `POLY_clip_line_box`, `POLY_clip_line_add`, `POLY_get_sphere_circle`, `POLY_inside_quad` (397 строк)
+- `poly.h`: удалены декларации всех 10 функций
+- `poly_globals.cpp/h`: удалены `POLY_clip_left/right/top/bottom` (использовались только POLY_clip_line_box/add)
+- `sky.cpp`: удалены `SKY_draw_poly_clouds`, `SKY_draw_poly_sky` (вынесен `SKY_VERY_FAR_AWAY` в file scope — нужен live-функциям)
+- `sky.h`: удалены декларации `SKY_draw_poly_clouds`, `SKY_draw_poly_sky`
+- `mesh.cpp`: удалены `MESH_draw_morph`, `MESH_init_reflections`, `MESH_draw_reflection` + static helpers `MESH_grow_points`, `MESH_grow_faces`, `MESH_add_point`, `MESH_add_face`, `MESH_add_poly`, `MESH_create_reflection` + dead macros `MESH_MAX_DY`, `MESH_255_DIVIDED_BY_MAX_DY`, `MESH_NEXT_CLOCK`, `MESH_NEXT_ANTI` (780 строк)
+- `mesh.h`: удалены декларации `MESH_init_reflections`, `MESH_draw_reflection`, `MESH_draw_morph`
+- `mesh_globals.cpp/h`: удалены `MESH_reflection[]`, `MESH_add[]`, `MESH_add_upto` globals + типы `MESH_Reflection`, `MESH_Add`, константы `MESH_MAX_REFLECTIONS`, `MESH_MAX_ADD`
 - Build OK (make build-release, exit code 0)
 
 **Что делать дальше:**

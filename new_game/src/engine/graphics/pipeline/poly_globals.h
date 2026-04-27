@@ -111,14 +111,4 @@ extern DWORD g_dw3DStuffY;
 // World matrix uploaded to D3D by POLY_set_local_rotation.
 extern GEMatrix g_matWorld;
 
-// uc_orig: POLY_clip_left (fallen/DDEngine/Source/poly.cpp)
-// 2D clip rectangle used by POLY_clip_line_add.
-extern float POLY_clip_left;
-// uc_orig: POLY_clip_right (fallen/DDEngine/Source/poly.cpp)
-extern float POLY_clip_right;
-// uc_orig: POLY_clip_top (fallen/DDEngine/Source/poly.cpp)
-extern float POLY_clip_top;
-// uc_orig: POLY_clip_bottom (fallen/DDEngine/Source/poly.cpp)
-extern float POLY_clip_bottom;
-
 #endif // ENGINE_GRAPHICS_PIPELINE_POLY_GLOBALS_H

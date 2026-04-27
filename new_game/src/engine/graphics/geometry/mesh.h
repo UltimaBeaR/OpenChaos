@@ -48,35 +48,5 @@ NIGHT_Colour* MESH_draw_poly_inv_matrix(
     SLONG i_roll,
     NIGHT_Colour* lpc);
 
-// uc_orig: MESH_init_reflections (fallen/DDEngine/Headers/mesh.h)
-// Clears all cached reflection geometry. Must be called when loading a new level.
-void MESH_init_reflections(void);
-
-// uc_orig: MESH_draw_reflection (fallen/DDEngine/Headers/mesh.h)
-// Draws a reflection of the given prim on a water surface at the bottom of the prim.
-void MESH_draw_reflection(
-    SLONG prim,
-    SLONG at_x,
-    SLONG at_y,
-    SLONG at_z,
-    SLONG at_yaw,
-    NIGHT_Colour* lpc);
-
-// uc_orig: MESH_draw_morph (fallen/DDEngine/Headers/mesh.h)
-// Draws a mesh using keyframe vertex morphing: vertices are interpolated between
-// morph frame morph1 and morph2 by blend factor tween (0..256 = 0.0..1.0).
-// Face data (UVs, texture pages) comes from the base prim geometry, not the morph data.
-void MESH_draw_morph(
-    SLONG prim,
-    UBYTE morph1,
-    UBYTE morph2,
-    UWORD tween,
-    SLONG at_x,
-    SLONG at_y,
-    SLONG at_z,
-    SLONG i_yaw,
-    SLONG i_pitch,
-    SLONG i_roll,
-    NIGHT_Colour* lpc);
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_MESH_H

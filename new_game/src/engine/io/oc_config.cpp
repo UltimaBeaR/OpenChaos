@@ -18,8 +18,6 @@ namespace fs = std::filesystem;
 
 static json        g_config;
 static std::string g_config_path;
-static std::string g_str_return_buf; // backing store for OC_CONFIG_get_string
-
 static std::string to_lower(const char* s)
 {
     std::string r = s;
@@ -246,23 +244,6 @@ float OC_CONFIG_get_float(const char* section, const char* key, float def)
     return def;
 }
 
-const char* OC_CONFIG_get_string(const char* section, const char* key, const char* def)
-{
-    std::string sec = to_lower(section);
-    auto it = g_config.find(sec);
-    if (it == g_config.end()) return def;
-    auto jt = it->find(key);
-    if (jt == it->end()) return def;
-    if (jt->is_string()) {
-        g_str_return_buf = jt->get<std::string>();
-        return g_str_return_buf.c_str();
-    }
-    fprintf(stderr, "oc_config: bad value for %s.%s, resetting to \"%s\"\n", sec.c_str(), key, def ? def : "");
-    *jt = def ? std::string(def) : std::string();
-    config_save();
-    return def;
-}
-
 void OC_CONFIG_set_int(const char* section, const char* key, int value)
 {
     std::string sec = to_lower(section);
@@ -280,8 +261,3 @@ void OC_CONFIG_set_int(const char* section, const char* key, int value)
     config_save();
 }
 
-void OC_CONFIG_set_string(const char* section, const char* key, const char* value)
-{
-    g_config[to_lower(section)][key] = std::string(value);
-    config_save();
-}

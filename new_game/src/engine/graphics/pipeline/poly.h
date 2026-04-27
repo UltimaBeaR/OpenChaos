@@ -185,14 +185,6 @@ void POLY_transform_c(
 // Disables the local rotation matrix (reverts to camera-only transform).
 void POLY_set_local_rotation_none(void);
 
-// uc_orig: POLY_transform_abs (fallen/DDEngine/Headers/poly.h)
-// Transforms a world-space point without local rotation, only camera matrix.
-void POLY_transform_abs(
-    float world_x,
-    float world_y,
-    float world_z,
-    POLY_Point* pt);
-
 // uc_orig: POLY_transform_c_saturate_z (fallen/DDEngine/Headers/poly.h)
 // Like POLY_transform_c but clamps Z to the near plane instead of discarding the point.
 void POLY_transform_c_saturate_z(
@@ -205,16 +197,6 @@ void POLY_transform_c_saturate_z(
 // Given a point already in view space (x,y,z,u,v,colour,specular set), computes
 // screen coordinates X,Y,Z and clip flags.
 void POLY_transform_from_view_space(POLY_Point* pt);
-
-// uc_orig: POLY_get_screen_pos (fallen/DDEngine/Headers/poly.h)
-// Projects a world-space point to screen coordinates. Returns UC_TRUE if the point
-// is in front of the near plane (z > 0). Does not enforce the far-plane range.
-SLONG POLY_get_screen_pos(
-    float world_x,
-    float world_y,
-    float world_z,
-    float* screen_x,
-    float* screen_y);
 
 // uc_orig: POLY_perspective (fallen/DDEngine/Headers/poly.h)
 // Applies the perspective divide to a view-space POLY_Point, filling in X,Y,Z and clip flags.
@@ -232,18 +214,6 @@ float POLY_world_length_to_screen(float world_length);
 // uc_orig: POLY_approx_len (fallen/DDEngine/Headers/poly.h)
 // Returns the approximate length of a 2D screen-space vector using an octagonal approximation.
 float POLY_approx_len(float dx, float dy);
-
-// uc_orig: POLY_get_sphere_circle (fallen/DDEngine/Headers/poly.h)
-// Projects a world-space sphere to screen circle. Returns UC_FALSE if the sphere is behind the camera.
-// screen_radius is approximate (based on screen-space projection of world_radius).
-SLONG POLY_get_sphere_circle(
-    float world_x,
-    float world_y,
-    float world_z,
-    float world_radius,
-    SLONG* screen_x,
-    SLONG* screen_y,
-    SLONG* screen_radius);
 
 // uc_orig: POLY_set_wibble (fallen/DDEngine/Headers/poly.h)
 // Sets the wibble (sinusoidal wobble) parameters used during POLY_perspective.
@@ -271,15 +241,6 @@ void POLY_transform_using_local_rotation(
     float local_y,
     float local_z,
     POLY_Point* pt);
-
-// uc_orig: POLY_transform_using_local_rotation_and_wibble (fallen/DDEngine/Headers/poly.h)
-// Like POLY_transform_using_local_rotation but also applies wibble during perspective.
-void POLY_transform_using_local_rotation_and_wibble(
-    float local_x,
-    float local_y,
-    float local_z,
-    POLY_Point* pt,
-    UBYTE wibble_key);
 
 // uc_orig: POLY_sphere_visible (fallen/DDEngine/Headers/poly.h)
 // Returns UC_TRUE if the world-space sphere is visible within the view frustum.
@@ -327,10 +288,6 @@ extern ULONG POLY_force_additive_alpha;
 // Distance fraction at which distance-based fog is fully opaque.
 #define POLY_FADEOUT_END   (0.95F)
 
-// uc_orig: fade_point_more (fallen/DDEngine/Headers/poly.h)
-// Extended fade calculation; used as an alternative to the inline POLY_fadeout_point path.
-SLONG fade_point_more(POLY_Point* pp);
-
 // uc_orig: POLY_fadeout_point (fallen/DDEngine/Headers/poly.h)
 // Applies distance-based fog to a single vertex. Writes the fog factor into specular alpha.
 // Also applies POLY_colour_restrict to both colour and specular channels.
@@ -354,10 +311,6 @@ static void inline POLY_fadeout_point(POLY_Point* pp)
     pp->colour &= ~POLY_colour_restrict;
     pp->specular &= ~POLY_colour_restrict;
 }
-
-// uc_orig: POLY_fadeout_buffer (fallen/DDEngine/Headers/poly.h)
-// Applies POLY_fadeout_point to all points in POLY_buffer[0..POLY_buffer_upto].
-void POLY_fadeout_buffer(void);
 
 // uc_orig: POLY_NUM_PAGES (fallen/DDEngine/Headers/poly.h)
 // Total number of texture page slots: 22 sets * 64 textures + 111 special pages = 1508.
@@ -626,18 +579,6 @@ void POLY_add_line_tex(POLY_Point* p1, POLY_Point* p2, float width1, float width
 // Like POLY_add_line_tex but allows independent widths for p1 and p2 ends.
 void POLY_add_line_tex_uv(POLY_Point* p1, POLY_Point* p2, float width1, float width2, SLONG page, UBYTE sort_to_front);
 
-// uc_orig: POLY_add_line_2d (fallen/DDEngine/Headers/poly.h)
-// Draws a 2D screen-space line directly (no 3D transform).
-void POLY_add_line_2d(float sx1, float sy1, float sx2, float sy2, ULONG colour);
-
-// uc_orig: POLY_clip_line_box (fallen/DDEngine/Headers/poly.h)
-// Sets the 2D clip rectangle for POLY_clip_line_add.
-void POLY_clip_line_box(float sx1, float sy1, float sx2, float sy2);
-
-// uc_orig: POLY_clip_line_add (fallen/DDEngine/Headers/poly.h)
-// Draws a 2D line clipped to the current clip box.
-void POLY_clip_line_add(float sx1, float sy1, float sx2, float sy2, ULONG colour);
-
 // uc_orig: POLY_frame_draw (fallen/DDEngine/Headers/poly.h)
 // Flushes all buffered polygons to D3D. draw_shadow_page/draw_text_page = UC_FALSE to skip those buckets.
 void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page);
@@ -675,16 +616,6 @@ void POLY_add_shared_point(POLY_Point* pp);
 // Adds a triangle by index into the current shared group's vertex list.
 // p1/p2/p3 are 0-based indices relative to the first shared point added.
 void POLY_add_shared_tri(UWORD p1, UWORD p2, UWORD p3);
-
-// uc_orig: POLY_inside_quad (fallen/DDEngine/Headers/poly.h)
-// Returns UC_TRUE if the 2D screen point is inside the given parallelogram quad.
-// along_01 and along_02 receive the barycentric coordinates along the two edge vectors.
-SLONG POLY_inside_quad(
-    float screen_x,
-    float screen_y,
-    POLY_Point* quad[3],
-    float* along_01,
-    float* along_02);
 
 // Per-page rendering flags.
 // uc_orig: POLY_PAGE_FLAG_TRANSPARENT (fallen/DDEngine/Headers/poly.h)

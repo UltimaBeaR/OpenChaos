@@ -22,14 +22,6 @@ void SKY_draw_stars(
     float world_camera_z,
     float max_dist);
 
-// Draw animated cloud quads via the poly pipeline.
-// uc_orig: SKY_draw_poly_clouds (fallen/DDEngine/Source/sky.cpp)
-void SKY_draw_poly_clouds(
-    float world_camera_x,
-    float world_camera_y,
-    float world_camera_z,
-    float max_dist);
-
 // Draw the moon quad via the poly pipeline.
 // uc_orig: SKY_draw_poly_moon (fallen/DDEngine/Source/sky.cpp)
 void SKY_draw_poly_moon(
@@ -51,17 +43,6 @@ SLONG SKY_draw_moon_reflection(
     float* moon_screen_y1,
     float* moon_screen_x2,
     float* moon_screen_y2);
-
-// Draw the daytime sky gradient quads via the poly pipeline.
-// uc_orig: SKY_draw_poly_sky (fallen/DDEngine/Source/sky.cpp)
-void SKY_draw_poly_sky(
-    float world_camera_x,
-    float world_camera_y,
-    float world_camera_z,
-    float world_camera_yaw,
-    float max_dist,
-    ULONG bot_colour,
-    ULONG top_colour);
 
 // Older cylindrical sky implementation using a circle of vertical quads.
 // Still called from aeng.cpp when AENG_detail_skyline is true.

@@ -123,13 +123,3 @@ DWORD g_dw3DStuffHeight;
 DWORD g_dw3DStuffY;
 // uc_orig: g_matWorld (fallen/DDEngine/Source/poly.cpp)
 GEMatrix g_matWorld;
-
-// 2D clip box for POLY_clip_line_add.
-// uc_orig: POLY_clip_left (fallen/DDEngine/Source/poly.cpp)
-float POLY_clip_left;
-// uc_orig: POLY_clip_right (fallen/DDEngine/Source/poly.cpp)
-float POLY_clip_right;
-// uc_orig: POLY_clip_top (fallen/DDEngine/Source/poly.cpp)
-float POLY_clip_top;
-// uc_orig: POLY_clip_bottom (fallen/DDEngine/Source/poly.cpp)
-float POLY_clip_bottom;

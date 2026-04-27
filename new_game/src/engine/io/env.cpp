@@ -259,26 +259,10 @@ void ENV_load(CBYTE* fname)
     OC_CONFIG_load(fname);
 }
 
-// uc_orig: ENV_get_value_string (fallen/Source/env2.cpp)
-CBYTE* ENV_get_value_string(CBYTE* name, CBYTE* section)
-{
-    const char* val = OC_CONFIG_get_string(section, name, nullptr);
-    if (!val) { env_strbuf[0] = '\0'; return NULL; }
-    strncpy(env_strbuf, val, ENV_MAX_PATH - 1);
-    env_strbuf[ENV_MAX_PATH - 1] = '\0';
-    return env_strbuf;
-}
-
 // uc_orig: ENV_get_value_number (fallen/Source/env2.cpp)
 SLONG ENV_get_value_number(CBYTE* name, SLONG def, CBYTE* section)
 {
     return OC_CONFIG_get_int(section, name, def);
-}
-
-// uc_orig: ENV_set_value_string (fallen/Source/env2.cpp)
-void ENV_set_value_string(CBYTE* name, CBYTE* value, CBYTE* section)
-{
-    OC_CONFIG_set_string(section, name, value);
 }
 
 // uc_orig: ENV_set_value_number (fallen/Source/env2.cpp)
