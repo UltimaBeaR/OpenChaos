@@ -282,7 +282,6 @@ set(SOURCES_NEW
     src/engine/graphics/text/font_globals.cpp
     src/engine/graphics/text/menufont.cpp
     src/engine/graphics/text/menufont_globals.cpp
-    src/engine/graphics/text/text.cpp
     src/engine/graphics/text/text_globals.cpp
     src/engine/graphics/text/font2d.cpp
     src/engine/graphics/text/font2d_globals.cpp
@@ -300,7 +299,6 @@ set(SOURCES_NEW
 
     # === Engine: graphics — postprocess ===
     src/engine/graphics/postprocess/wibble.cpp
-    src/engine/graphics/postprocess/wibble_globals.cpp
     src/engine/graphics/postprocess/bloom.cpp
     src/engine/graphics/postprocess/bloom_globals.cpp
 
@@ -354,7 +352,6 @@ set(SOURCES_NEW
     src/navigation/wmove_globals.cpp
 
     # === Buildings ===
-    src/buildings/outline.cpp
     src/buildings/build_globals.cpp
     src/buildings/build2.cpp
     src/buildings/building_globals.cpp

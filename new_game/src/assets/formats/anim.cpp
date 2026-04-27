@@ -179,87 +179,6 @@ void ANIM_fini(void)
     free_game_chunk(&game_chunk[ANIM_TYPE_CIV]);
 }
 
-// Compress a CMatrix33 into GameKeyFrameElementComp encoding.
-// Stores only 2 of 3 elements per row; the 3rd (the largest) is reconstructed at runtime
-// via sqrt(1 - a^2 - b^2). The Pad byte encodes which element was the largest and its sign.
-// Row 0: bits 0-3 encode dominance; bit 0 = row0 sign, bits 2-3 = which omitted.
-// Row 1: bits 4-5 encode dominance; bit 1 = row1 sign.
-// uc_orig: SetCMatrixComp (fallen/Source/Anim.cpp)
-void SetCMatrixComp(GameKeyFrameElementComp* e, CMatrix33* cm)
-{
-    e->Pad = 0;
-
-    SBYTE a, b, c;
-
-    a = ((cm->M[0] & CMAT0_MASK) >> 22);
-    b = ((cm->M[0] & CMAT1_MASK) >> 12);
-    c = ((cm->M[0] & CMAT2_MASK) >> 02);
-
-    if (abs(a) > abs(b)) {
-        if (abs(a) > abs(c)) {
-            e->m00 = b;
-            e->m01 = c;
-            e->Pad |= 0;
-            if (a < 0)
-                e->Pad |= 1;
-        } else {
-            e->m00 = a;
-            e->m01 = b;
-            e->Pad |= 4;
-            if (c < 0)
-                e->Pad |= 1;
-        }
-    } else {
-        if (abs(b) > abs(c)) {
-            e->m00 = a;
-            e->m01 = c;
-            e->Pad |= 8;
-            if (b < 0)
-                e->Pad |= 1;
-        } else {
-            e->m00 = a;
-            e->m01 = b;
-            e->Pad |= 4;
-            if (c < 0)
-                e->Pad |= 1;
-        }
-    }
-
-    a = ((cm->M[1] & CMAT0_MASK) >> 22);
-    b = ((cm->M[1] & CMAT1_MASK) >> 12);
-    c = ((cm->M[1] & CMAT2_MASK) >> 02);
-
-    if (abs(a) > abs(b)) {
-        if (abs(a) > abs(c)) {
-            e->m10 = b;
-            e->m11 = c;
-            e->Pad |= 0;
-            if (a < 0)
-                e->Pad |= 2;
-        } else {
-            e->m10 = a;
-            e->m11 = b;
-            e->Pad |= 16;
-            if (c < 0)
-                e->Pad |= 2;
-        }
-    } else {
-        if (abs(b) > abs(c)) {
-            e->m10 = a;
-            e->m11 = c;
-            e->Pad |= 32;
-            if (b < 0)
-                e->Pad |= 2;
-        } else {
-            e->m10 = a;
-            e->m11 = b;
-            e->Pad |= 16;
-            if (c < 0)
-                e->Pad |= 2;
-        }
-    }
-}
-
 // uc_orig: init_anim_prims (fallen/Source/Anim.cpp)
 void init_anim_prims(void)
 {
@@ -269,27 +188,9 @@ void init_anim_prims(void)
     }
 }
 
-// uc_orig: reset_anim_stuff (fallen/Source/Anim.cpp)
-void reset_anim_stuff(void)
-{
-    if (test_chunk) {
-        test_chunk->MultiObject = 0;
-        test_chunk->ElementCount = 0;
-    }
-}
-
 // No-op placeholder; originally intended to clear test_chunk before editor reuse.
 // uc_orig: setup_anim_stuff (fallen/Source/Anim.cpp)
-static void setup_anim_stuff(void)
-{
-    // Stub — intentionally empty.
-}
-
-// uc_orig: set_next_prim_point (fallen/Source/Anim.cpp)
-void set_next_prim_point(SLONG v)
-{
-    next_prim_point = v;
-}
+static void setup_anim_stuff(void) {}
 
 // Load .all animation files for all runtime character types.
 // Load order: darci1.all, roper.all, rthug.all, roper2.all,
@@ -470,55 +371,6 @@ void setup_global_anim_array(void)
         global_anim_array[c0][ANIM_PUTDOWN_CARRY_V] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_PUTDOWN_CARRY_V];
         global_anim_array[c0][ANIM_STAND_CARRY_V] = game_chunk[ANIM_TYPE_ROPER].AnimList[NROPER_STAND_CARRY_V];
     }
-}
-
-// uc_orig: calc_sub_objects_position_no_tween (fallen/Source/Anim.cpp)
-void calc_sub_objects_position_no_tween(GameKeyFrame* cur_frame, UWORD object, SLONG* x, SLONG* y, SLONG* z)
-{
-    struct GameKeyFrameElement* anim_info;
-
-    anim_info = &cur_frame->FirstElement[object];
-
-    *x = (anim_info->OffsetX) >> TWEEN_OFFSET_SHIFT;
-    *y = (anim_info->OffsetY) >> TWEEN_OFFSET_SHIFT;
-    *z = (anim_info->OffsetZ) >> TWEEN_OFFSET_SHIFT;
-}
-
-// Stub: originally intended to adjust prim multi-object bone matrices for animation.
-// Body is empty — never fully implemented in the prerelease build.
-// uc_orig: fix_multi_object_for_anim (fallen/Source/Anim.cpp)
-void fix_multi_object_for_anim(UWORD obj, struct PrimMultiAnim* p_anim)
-{
-}
-
-// Convert raw KeyFrameElement data from source chunk into compressed GameKeyFrameElement format.
-// Skips elements with p_reloc[i] == 0xffff (duplicates already mapped elsewhere).
-// uc_orig: convert_elements (fallen/Source/Anim.cpp)
-void convert_elements(KeyFrameChunk* the_chunk, GameKeyFrameChunk* game_chunk, UWORD* p_reloc, SLONG max_ele)
-{
-    struct KeyFrameElement* first_element;
-    struct KeyFrameElement* last_element;
-    struct KeyFrameElement* element;
-    SLONG count = 0;
-    UWORD pos = 0;
-
-    first_element = the_chunk->FirstElement;
-    last_element = the_chunk->LastElement;
-
-    for (element = first_element; element < last_element; element++) {
-
-        if (p_reloc[count] != 0xffff) {
-            pos = p_reloc[count];
-
-            SetCMatrix(&game_chunk->TheElements[pos], &element->CMatrix);
-            game_chunk->TheElements[pos].OffsetX = (SWORD)element->OffsetX;
-            game_chunk->TheElements[pos].OffsetY = (SWORD)element->OffsetY;
-            game_chunk->TheElements[pos].OffsetZ = (SWORD)element->OffsetZ;
-        }
-
-        count++;
-    }
-    game_chunk->MaxElements = max_ele;
 }
 
 // Free all heap-allocated arrays inside a GameKeyFrameChunk and null its pointers.

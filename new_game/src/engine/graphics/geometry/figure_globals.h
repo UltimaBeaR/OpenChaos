@@ -19,10 +19,6 @@ extern SLONG FIGURE_alpha;
 // LCG seed for get_steam_rand(); reset each draw call for reproducible steam patterns.
 extern SLONG steam_seed;
 
-// uc_orig: body_part_upper (fallen/DDEngine/Source/figure.cpp)
-// Per-part-slot flag: 1=upper body (torso+arms), 0=lower body. 15 entries for 15 body parts.
-extern UBYTE body_part_upper[15];
-
 // uc_orig: fire_pal (fallen/DDEngine/Source/figure.cpp)
 // 256-entry RGB palette loaded from data\flames1.pal; used by draw_flames/draw_flame_element.
 extern UBYTE fire_pal[768];
@@ -229,22 +225,6 @@ extern structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
 // uc_orig: PART_HANDS (fallen/DDEngine/Source/figure.cpp)
 #define PART_HANDS 6
 
-// uc_orig: part_type (fallen/DDEngine/Source/figure.cpp)
-// Body-part clothing category for each of the 15 character body parts (PART_* constants).
-extern UBYTE part_type[15];
-
-// uc_orig: local_seed (fallen/DDEngine/Source/figure.cpp)
-// LCG seed used by mandom() for per-character clothing colour randomisation.
-extern ULONG local_seed;
-
-// uc_orig: jacket_col (fallen/DDEngine/Source/figure.cpp)
-// Current jacket colour value computed per character during hierarchical draw.
-extern ULONG jacket_col;
-
-// uc_orig: leg_col (fallen/DDEngine/Source/figure.cpp)
-// Current leg/trouser colour value computed per character during hierarchical draw.
-extern ULONG leg_col;
-
 // uc_orig: MAX_NUM_BODY_PARTS_AT_ONCE (fallen/DDEngine/Source/figure.cpp)
 // Maximum number of body parts batched in one DrawIndPrimMM call.
 #define MAX_NUM_BODY_PARTS_AT_ONCE 20
@@ -260,15 +240,6 @@ extern GEMatrix* MMBodyParts_pMatrix;
 extern float* MMBodyParts_pNormal;
 
 // --- Misc character draw state ---
-
-// uc_orig: peep_recol (fallen/DDEngine/Source/figure.cpp)
-// 16-entry RGB colour table for civilian clothing variation (r/g/b scaled 0-70).
-// PeepRecolEntry is a new name for the anonymous struct used in the original.
-struct PeepRecolEntry {
-    SWORD r, g, b;
-};
-// uc_orig: peep_recol (fallen/DDEngine/Source/figure.cpp)
-extern PeepRecolEntry peep_recol[16];
 
 // uc_orig: kludge_shrink (fallen/DDEngine/Source/figure.cpp)
 // When true, scales down the next MESH_draw_poly call (used for grenade-in-hand rendering).

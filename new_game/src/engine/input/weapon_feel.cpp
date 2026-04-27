@@ -1076,12 +1076,3 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     return out;
 }
 
-void weapon_feel_fire_reset()
-{
-    s_r2_armed = true;
-    s_l2_armed = true;
-    s_prev_r2 = 0;
-    s_prev_l2 = 0;
-    s_cooldown_debt = 0;
-}
-

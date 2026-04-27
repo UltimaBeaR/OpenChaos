@@ -140,9 +140,6 @@
 extern BOOL allow_debug_keys;
 extern BOOL g_farfacet_debug;
 extern BOOL text_fudge;
-extern ULONG text_colour;
-extern void draw_centre_text_at(float x, float y, CBYTE* message, SLONG font_id, SLONG flag);
-extern void draw_text_at(float x, float y, CBYTE* message, SLONG font_id);
 extern void draw_debug_lines(void);
 extern void overlay_beacons(void);
 extern SLONG draw_3d;

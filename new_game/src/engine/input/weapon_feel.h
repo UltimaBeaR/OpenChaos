@@ -305,8 +305,3 @@ struct WeaponFireDecision {
 //     auto-fire weapons, click-less weapons, and non-DualSense devices.
 // See the design section at the top of weapon_feel.cpp for details.
 WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn, bool mag_empty);
-
-// Reset rising-edge armed state. Call when the player enters a car, drops
-// the weapon, or in any context where triggers aren't being read as fire
-// input. Prevents a stray "fire" the instant control is handed back.
-void weapon_feel_fire_reset();

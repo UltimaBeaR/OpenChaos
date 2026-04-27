@@ -8,7 +8,6 @@
 #include "game/game_types.h"
 
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/text/text.h"
 #include "assets/texture.h"
 #include "ai/mav.h"
 #include "engine/graphics/text/menufont.h"

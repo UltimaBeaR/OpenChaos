@@ -12,9 +12,6 @@ UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
 // uc_orig: TEXTURE_set (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_set = 0;
 
-// uc_orig: TEXTURE_fiddled (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_fiddled = 0;
-
 // uc_orig: TEXTURE_shadow_bitmap (fallen/DDEngine/Source/texture.cpp)
 UWORD* TEXTURE_shadow_bitmap = nullptr;
 // uc_orig: TEXTURE_shadow_pitch (fallen/DDEngine/Source/texture.cpp)
@@ -180,10 +177,6 @@ SLONG TEXTURE_page_bigrain = 0;
 SLONG TEXTURE_page_finalglow = 0;
 // uc_orig: TEXTURE_page_tinybutt (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_tinybutt = 0;
-// uc_orig: TEXTURE_page_lcdfont_alpha (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_page_lcdfont_alpha = 0;
-// uc_orig: TEXTURE_page_flames_alpha (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_page_flames_alpha = 0;
 // uc_orig: TEXTURE_page_tyretrack_alpha (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_tyretrack_alpha = 0;
 // uc_orig: TEXTURE_page_people3 (fallen/DDEngine/Source/texture.cpp)
@@ -216,15 +209,6 @@ SLONG TEXTURE_page_ladshad = 0;
 SLONG TEXTURE_page_meteor = 0;
 // uc_orig: TEXTURE_page_splash (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_page_splash = 0;
-
-// uc_orig: TEXTURE_liney (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_liney = 0;
-// uc_orig: TEXTURE_av_r (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_av_r = 0;
-// uc_orig: TEXTURE_av_g (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_av_g = 0;
-// uc_orig: TEXTURE_av_b (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_av_b = 0;
 
 // uc_orig: TEXTURE_create_clump (fallen/DDEngine/Source/texture.cpp)
 int TEXTURE_create_clump = 0;

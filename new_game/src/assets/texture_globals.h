@@ -37,10 +37,6 @@ extern UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
 // Currently active texture world set number.
 extern SLONG TEXTURE_set;
 
-// uc_orig: TEXTURE_fiddled (fallen/DDEngine/Source/texture.cpp)
-// Non-zero when using fiddled (remapped) texture pages.
-extern SLONG TEXTURE_fiddled;
-
 // Shadow texture locked pixel data (set by TEXTURE_shadow_lock).
 // uc_orig: TEXTURE_shadow_bitmap (fallen/DDEngine/Source/texture.cpp)
 extern UWORD* TEXTURE_shadow_bitmap;
@@ -209,11 +205,6 @@ extern SLONG TEXTURE_page_bigrain;
 extern SLONG TEXTURE_page_finalglow;
 // uc_orig: TEXTURE_page_tinybutt (fallen/DDEngine/Source/texture.cpp)
 extern SLONG TEXTURE_page_tinybutt;
-// uc_orig: TEXTURE_page_lcdfont_alpha (fallen/DDEngine/Source/texture.cpp)
-// Note: Not set in TEXTURE_load_needed (was unused in this build).
-extern SLONG TEXTURE_page_lcdfont_alpha;
-// uc_orig: TEXTURE_page_flames_alpha (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_page_flames_alpha;
 // uc_orig: TEXTURE_page_tyretrack_alpha (fallen/DDEngine/Source/texture.cpp)
 extern SLONG TEXTURE_page_tyretrack_alpha;
 // uc_orig: TEXTURE_page_people3 (fallen/DDEngine/Source/texture.cpp)
@@ -246,16 +237,6 @@ extern SLONG TEXTURE_page_ladshad;
 extern SLONG TEXTURE_page_meteor;
 // uc_orig: TEXTURE_page_splash (fallen/DDEngine/Source/texture.cpp)
 extern SLONG TEXTURE_page_splash;
-
-// TEXTURE_liney, TEXTURE_av_r/g/b — set as side-effect of TEXTURE_looks_like().
-// uc_orig: TEXTURE_liney (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_liney;
-// uc_orig: TEXTURE_av_r (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_av_r;
-// uc_orig: TEXTURE_av_g (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_av_g;
-// uc_orig: TEXTURE_av_b (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_av_b;
 
 // Alternative texture mapping table for people3 body-part substitution.
 // Used by figure.cpp for character skinning.

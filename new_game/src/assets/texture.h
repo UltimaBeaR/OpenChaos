@@ -154,10 +154,6 @@ extern SLONG TEXTURE_page_bigrain;
 extern SLONG TEXTURE_page_finalglow;
 // uc_orig: TEXTURE_page_tinybutt (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_tinybutt;
-// uc_orig: TEXTURE_page_lcdfont_alpha (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_page_lcdfont_alpha;
-// uc_orig: TEXTURE_page_flames_alpha (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_page_flames_alpha;
 // uc_orig: TEXTURE_page_tyretrack_alpha (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_page_tyretrack_alpha;
 // uc_orig: TEXTURE_page_people3 (fallen/DDEngine/Headers/texture.h)
@@ -277,13 +273,5 @@ void TEXTURE_free(void);
 // uc_orig: TEXTURE_LOOK_SLIPPERY (fallen/DDEngine/Headers/texture.h)
 #define TEXTURE_LOOK_SLIPPERY 3
 
-// uc_orig: TEXTURE_liney (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_liney;
-// uc_orig: TEXTURE_av_r (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_av_r;
-// uc_orig: TEXTURE_av_g (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_av_g;
-// uc_orig: TEXTURE_av_b (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_av_b;
 
 #endif // ASSETS_TEXTURE_H

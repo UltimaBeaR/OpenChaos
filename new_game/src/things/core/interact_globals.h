@@ -14,18 +14,8 @@ extern SLONG grab_py[4];
 extern SLONG grab_pz[4];
 // uc_orig: best_dist (fallen/Source/interact.cpp)
 extern SLONG best_dist;
-// uc_orig: best_x (fallen/Source/interact.cpp)
-extern SLONG best_x;
-// uc_orig: best_y (fallen/Source/interact.cpp)
-extern SLONG best_y;
-// uc_orig: best_z (fallen/Source/interact.cpp)
-extern SLONG best_z;
-// uc_orig: best_angle (fallen/Source/interact.cpp)
-extern SLONG best_angle;
 
 // Temporary rotation matrix and offset vector used by calc_sub_objects_position().
-// uc_orig: r_matrix (fallen/Source/interact.cpp)
-extern struct Matrix33 r_matrix;
 // uc_orig: offset (fallen/Source/interact.cpp)
 extern struct Matrix31 offset;
 // uc_orig: matrix (fallen/Source/interact.cpp)

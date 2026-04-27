@@ -7,11 +7,6 @@ SLONG FIGURE_alpha = 255;
 // uc_orig: steam_seed (fallen/DDEngine/Source/figure.cpp)
 SLONG steam_seed = 0;
 
-// uc_orig: body_part_upper (fallen/DDEngine/Source/figure.cpp)
-UBYTE body_part_upper[15] = {
-    0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0
-};
-
 // uc_orig: fire_pal (fallen/DDEngine/Source/figure.cpp)
 UBYTE fire_pal[768];
 
@@ -121,34 +116,6 @@ structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
 // uc_orig: FIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
 structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
 
-// uc_orig: part_type (fallen/DDEngine/Source/figure.cpp)
-UBYTE part_type[15] = {
-    2, // pelvis
-    2, // lfemur
-    2, // ltibia
-    4, // lfoot
-    3, // torso
-    3, // rhumorus
-    3, // rradius
-    6, // rhand
-    3, // lhumorus
-    3, // lradius
-    6, // lhand
-    1, // skull
-    2, // rfemur
-    2, // rtibia
-    4  // rfoot
-};
-
-// uc_orig: local_seed (fallen/DDEngine/Source/figure.cpp)
-ULONG local_seed = 0;
-
-// uc_orig: jacket_col (fallen/DDEngine/Source/figure.cpp)
-ULONG jacket_col = 0;
-
-// uc_orig: leg_col (fallen/DDEngine/Source/figure.cpp)
-ULONG leg_col = 0;
-
 // uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
 GEMatrix* MMBodyParts_pMatrix = NULL;
 
@@ -156,26 +123,6 @@ GEMatrix* MMBodyParts_pMatrix = NULL;
 float* MMBodyParts_pNormal = NULL;
 
 // --- Misc character draw state ---
-
-// uc_orig: peep_recol (fallen/DDEngine/Source/figure.cpp)
-PeepRecolEntry peep_recol[16] = {
-    { 12, 64, 64 },
-    { 64, 28, 64 },
-    { 64, 4, 55 },
-    { 54, 32, 22 },
-    { 42, 14, 12 },
-    { 32, 42, 64 },
-    { 22, 64, 54 },
-    { 64, 14, 32 },
-    { 34, 32, 64 },
-    { 0, 32, 64 },
-    { 32, 64, 0 },
-    { 64, 0, 32 },
-    { 56, 30, 0 },
-    { 0, 40, 56 },
-    { 33, 26, 70 },
-    { 56, 36, 0 },
-};
 
 // uc_orig: kludge_shrink (fallen/DDEngine/Source/figure.cpp)
 UBYTE kludge_shrink = UC_FALSE;
