@@ -22,8 +22,6 @@
 #include "assets/formats/anim_loader_globals.h"
 #include "engine/core/heap.h"
 #include "ai/mav.h"
-#include "effects/weather/fog.h"
-#include "effects/weather/fog_globals.h"
 #include "effects/weather/mist.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
@@ -269,9 +267,6 @@ void game_startup(void)
 
     ATTRACT_loadscreen_init();
 
-    extern void MFX_init(void);
-    MFX_init();
-
     ATTRACT_loadscreen_draw(160);
 
     void init_joypad_config(void);
@@ -302,6 +297,8 @@ void game_startup(void)
 // uc_orig: game_shutdown (fallen/Source/Game.cpp)
 void game_shutdown(void)
 {
+    gamepad_shutdown();
+
     CloseDisplay();
 
     AENG_fini();

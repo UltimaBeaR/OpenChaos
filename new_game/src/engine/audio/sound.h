@@ -97,22 +97,10 @@ void SOUND_Curious(Thing* p_thing);
 // uc_orig: SOUND_Gender (fallen/Source/Sound.cpp)
 UBYTE SOUND_Gender(Thing* p_thing);
 
-// uc_orig: DieSound (fallen/Source/Sound.cpp)
-void DieSound(Thing* p_thing);
-
 // uc_orig: init_ambient (fallen/Source/Sound.cpp)
 void init_ambient(void);
 
 // uc_orig: SND_BeginAmbient (fallen/Source/Sound.cpp)
 void SND_BeginAmbient();
-
-// uc_orig: play_ambient_wave (fallen/Source/Sound.cpp)
-SLONG play_ambient_wave(SLONG sample, SLONG id, SLONG mode, SLONG range, UBYTE flags);
-
-// uc_orig: play_music (fallen/Source/Sound.cpp)
-void play_music(UWORD id, UBYTE track);
-
-// uc_orig: SewerSoundProcess (fallen/Source/Sound.cpp)
-void SewerSoundProcess();
 
 #endif // ENGINE_AUDIO_SOUND_H

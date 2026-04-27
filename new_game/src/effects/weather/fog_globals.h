@@ -1,6 +1,7 @@
 #ifndef EFFECTS_WEATHER_FOG_GLOBALS_H
 #define EFFECTS_WEATHER_FOG_GLOBALS_H
 
+#include "engine/core/types.h"
 #include "effects/weather/fog.h"
 
 // uc_orig: FOG_MAX_FOG (fallen/Source/fog.cpp)
@@ -23,13 +24,5 @@ typedef struct
 // uc_orig: FOG_fog (fallen/Source/fog.cpp)
 extern FOG_Fog FOG_fog[FOG_MAX_FOG];
 
-// uc_orig: FOG_focus_x (fallen/Source/fog.cpp)
-extern SLONG FOG_focus_x;
-// uc_orig: FOG_focus_z (fallen/Source/fog.cpp)
-extern SLONG FOG_focus_z;
-// uc_orig: FOG_focus_radius (fallen/Source/fog.cpp)
-extern SLONG FOG_focus_radius;
-// uc_orig: FOG_get_upto (fallen/Source/fog.cpp)
-extern SLONG FOG_get_upto;
 
 #endif // EFFECTS_WEATHER_FOG_GLOBALS_H

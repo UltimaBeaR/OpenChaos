@@ -1,60 +1,9 @@
 #include "engine/platform/uc_common.h"
 #include "things/characters/snipe.h"
 #include "things/characters/snipe_globals.h"
-#include "game/game_types.h"
-#include "shooting/guns.h"
-#include "combat/combat.h"
 
-// uc_orig: SNIPE_mode_on (fallen/Source/snipe.cpp)
-void SNIPE_mode_on(SLONG x, SLONG y, SLONG z, SLONG initial_yaw)
-{
-#define SNIPE_INITIAL_PITCH (0)
-#define SNIPE_LENS_START (20 << 16)
+// uc_orig: SNIPE_LENS_END (fallen/Source/snipe.cpp) — was #define inside SNIPE_mode_on, moved to file scope since SNIPE_process uses it
 #define SNIPE_LENS_END (30 << 16)
-
-    SNIPE_on = UC_TRUE;
-    SNIPE_yaw = initial_yaw << 16;
-    SNIPE_pitch = -SNIPE_INITIAL_PITCH << 16;
-
-    SNIPE_dyaw = 0;
-    SNIPE_dpitch = 0;
-    SNIPE_dlens = 0;
-
-    SNIPE_cam_x = x;
-    SNIPE_cam_y = y;
-    SNIPE_cam_z = z;
-
-    SNIPE_cam_yaw = SNIPE_yaw & ((2048 << 16) - 1);
-    SNIPE_cam_pitch = SNIPE_pitch & ((2048 << 16) - 1);
-    SNIPE_cam_lens = SNIPE_LENS_START;
-}
-
-// uc_orig: SNIPE_mode_off (fallen/Source/snipe.cpp)
-void SNIPE_mode_off()
-{
-    SNIPE_on = UC_FALSE;
-}
-
-// uc_orig: SNIPE_turn (fallen/Source/snipe.cpp)
-void SNIPE_turn(SLONG dir)
-{
-#define SNIPE_TURN_SPEED_YAW (0x6000)
-#define SNIPE_TURN_SPEED_PITCH (0x6000)
-
-    if (dir & SNIPE_TURN_LEFT) {
-        SNIPE_dyaw += SNIPE_TURN_SPEED_YAW;
-    }
-    if (dir & SNIPE_TURN_RIGHT) {
-        SNIPE_dyaw -= SNIPE_TURN_SPEED_YAW;
-    }
-
-    if (dir & SNIPE_TURN_UP) {
-        SNIPE_dpitch += SNIPE_TURN_SPEED_PITCH;
-    }
-    if (dir & SNIPE_TURN_DOWN) {
-        SNIPE_dpitch -= SNIPE_TURN_SPEED_PITCH;
-    }
-}
 
 // uc_orig: SNIPE_process (fallen/Source/snipe.cpp)
 void SNIPE_process()
@@ -98,22 +47,4 @@ void SNIPE_process()
 
     SNIPE_cam_yaw = SNIPE_yaw & ((2048 << 16) - 1);
     SNIPE_cam_pitch = SNIPE_pitch & ((2048 << 16) - 1);
-}
-
-// uc_orig: SNIPE_shoot (fallen/Source/snipe.cpp)
-void SNIPE_shoot()
-{
-    THING_INDEX i_target;
-
-    Thing* darci = NET_PERSON(0);
-
-    darci->Draw.Tweened->Angle = SNIPE_yaw >> 16;
-    darci->Draw.Tweened->Angle += 1024;
-    darci->Draw.Tweened->Angle &= 2047;
-
-    i_target = find_snipe_target(darci);
-
-    if (i_target) {
-        apply_hit_to_person(TO_THING(i_target), 0, HIT_TYPE_GUN_SHOT_M, 260, darci, 0);
-    }
 }

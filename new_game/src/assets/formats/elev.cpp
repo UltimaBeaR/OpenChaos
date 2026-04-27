@@ -21,7 +21,6 @@
 #include "engine/audio/music.h"
 #include "world_objects/dirt.h"
 #include "effects/weather/fog.h"
-#include "effects/weather/fog_globals.h"
 #include "things/items/hook.h"
 #include "things/items/hook_globals.h"
 #include "effects/weather/mist.h"

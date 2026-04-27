@@ -126,9 +126,7 @@ void ds_set_haptic_volume(uint8_t volume);
 
 // Lightbar setup/override byte — raw DualSense wire value. 0 = default.
 // Sent on the wire but no documented meaning has been verified on real
-// hardware (daidr's own UI does not expose it either). Kept as a
-// passthrough for API completeness; game code has no current reason
-// to use it.
+// hardware. Kept as a passthrough for API completeness.
 void ds_set_lightbar_setup(uint8_t setup);
 
 // Audio volume control — opt-in so the game does not fight the host OS

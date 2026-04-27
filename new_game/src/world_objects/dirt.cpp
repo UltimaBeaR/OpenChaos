@@ -5,7 +5,6 @@
 #include "engine/effects/psystem.h"
 #include "engine/animation/morph.h"
 #include "engine/audio/mfx.h"
-#include "engine/core/fmatrix.h"
 #include "map/pap.h"
 #include "map/ob.h"
 #include "map/sewers.h"
@@ -1715,155 +1714,6 @@ void DIRT_release_can_or_head(Thing* p_person, SLONG power)
     p_person->Genus.Person->Flags &= ~FLAG_PERSON_CANNING;
 }
 
-// Returns rendering info for dirt entry 'which'. Returns 0 if nothing to draw.
-// Clears DIRT_FLAG_DELETE_OK when called (marks as on-screen).
-// uc_orig: DIRT_get_info (fallen/Source/dirt.cpp)
-SLONG DIRT_get_info(SLONG which, DIRT_Info* ans)
-{
-    if (GAME_FLAGS & GF_NO_FLOOR) {
-        return UC_FALSE;
-    }
-
-    DIRT_Dirt* dd;
-
-    ASSERT(WITHIN(which, 0, DIRT_MAX_DIRT - 1));
-
-    dd = &DIRT_dirt[which];
-
-    dd->flag &= ~DIRT_FLAG_DELETE_OK;
-
-    switch (dd->type) {
-    case DIRT_TYPE_UNUSED:
-        return (0);
-        ans->type = DIRT_INFO_TYPE_UNUSED;
-        break;
-
-    case DIRT_TYPE_WATER:
-        ans->type = DIRT_INFO_TYPE_WATER;
-        // FALL THRU
-    case DIRT_TYPE_SPARKS:
-        if (dd->type == DIRT_TYPE_SPARKS) {
-            ans->type = DIRT_INFO_TYPE_SPARKS;
-        }
-        // FALL THRU
-    case DIRT_TYPE_BLOOD:
-        if (dd->type == DIRT_TYPE_BLOOD) {
-            ans->type = DIRT_INFO_TYPE_BLOOD;
-        }
-        // FALL THRU
-    case DIRT_TYPE_URINE:
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-        ans->dx = dd->dx >> 4;
-        ans->dy = dd->dy >> (TICK_SHIFT_LOWRES + 4);
-        ans->dz = dd->dz >> 4;
-
-        if (dd->type == DIRT_TYPE_URINE) {
-            ans->type = DIRT_INFO_TYPE_URINE;
-        }
-
-        break;
-
-    case DIRT_TYPE_LEAF:
-    case DIRT_TYPE_SNOW:
-        ans->tween = dd->UU.Leaf.col;
-        if (dd->type == DIRT_TYPE_LEAF)
-            ans->type = DIRT_INFO_TYPE_LEAF;
-        else
-            ans->type = DIRT_INFO_TYPE_SNOW;
-        ans->yaw = dd->yaw;
-        ans->pitch = dd->pitch;
-        ans->roll = dd->roll;
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-        ans->morph1 = dd->UU.Leaf.fade;
-        break;
-
-    case DIRT_TYPE_CAN:
-    case DIRT_TYPE_THROWCAN:
-        ans->type = DIRT_INFO_TYPE_PRIM;
-        ans->prim = PRIM_OBJ_CAN;
-        ans->held = UC_FALSE;
-        ans->yaw = dd->yaw;
-        ans->pitch = dd->pitch;
-        ans->roll = dd->roll;
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-        break;
-
-    case DIRT_TYPE_HELDCAN: {
-        Thing* p_person = TO_THING(dd->droll);
-
-        if (p_person->Genus.Person->InCar)
-            return (0);
-
-        ans->type = DIRT_INFO_TYPE_PRIM;
-        ans->prim = PRIM_OBJ_CAN;
-        ans->held = UC_TRUE;
-        ans->yaw = dd->yaw;
-        ans->pitch = dd->pitch;
-        ans->roll = dd->roll;
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-        break;
-    }
-
-    case DIRT_TYPE_PIGEON:
-        ans->type = DIRT_INFO_TYPE_MORPH;
-        ans->prim = PRIM_OBJ_ITEM_KEY;
-        ans->morph1 = dd->UU.Pidgeon.morph1;
-        ans->morph2 = dd->UU.Pidgeon.morph2;
-        ans->tween = dd->UU.Pidgeon.tween;
-        ans->yaw = dd->yaw;
-        ans->pitch = dd->pitch;
-        ans->roll = dd->roll;
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-
-        if (ans->tween == 255) {
-            // tween is UBYTE but needs to represent 256.
-            ans->tween = 256;
-        }
-        break;
-
-    case DIRT_TYPE_HEAD:
-    case DIRT_TYPE_THROWHEAD:
-    case DIRT_TYPE_HELDHEAD:
-    case DIRT_TYPE_BRASS:
-        ans->type = DIRT_INFO_TYPE_PRIM;
-        ans->prim = dd->UU.Head.prim;
-        ans->held = UC_FALSE;
-        ans->yaw = dd->yaw;
-        ans->pitch = dd->pitch;
-        ans->roll = dd->roll;
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-        break;
-
-    case DIRT_TYPE_MINE:
-        ans->type = DIRT_INFO_TYPE_UNUSED;
-        ans->yaw = dd->yaw;
-        ans->pitch = dd->pitch;
-        ans->roll = dd->roll;
-        ans->x = dd->x;
-        ans->y = dd->y;
-        ans->z = dd->z;
-        return (0);
-
-    default:
-        ASSERT(0);
-        break;
-    }
-
-    return (1);
-}
-
 // uc_orig: DIRT_mark_as_offscreen (fallen/Source/dirt.cpp)
 void DIRT_mark_as_offscreen(SLONG which)
 {
@@ -1968,75 +1818,6 @@ SLONG DIRT_shoot(Thing* p_person)
     } else {
         return UC_FALSE;
     }
-}
-
-// uc_orig: DIRT_behead_person (fallen/Source/dirt.cpp)
-void DIRT_behead_person(Thing* p_person, Thing* p_attacker)
-{
-    // Stub — no implementation in this codebase.
-}
-
-// uc_orig: DIRT_create_mine (fallen/Source/dirt.cpp)
-UWORD DIRT_create_mine(Thing* p_person)
-{
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-    SLONG power = 128;
-
-    SLONG vector[3];
-
-    DIRT_Dirt* dd = DIRT_find_useless();
-
-    FMATRIX_vector(
-        vector,
-        p_person->Draw.Tweened->Angle,
-        0);
-
-    dx = -vector[0] * power >> 18;
-    dz = -vector[2] * power >> 18;
-
-    dy = power >> 2;
-
-    dd->type = DIRT_TYPE_MINE;
-    dd->flag = 0;
-    dd->dx = dx;
-    dd->dy = dy << TICK_SHIFT;
-    dd->dz = dz;
-    dd->dyaw = (Random() & 0x3f) - 0x1f;
-    dd->dpitch = 50;
-
-    SLONG px;
-    SLONG py;
-    SLONG pz;
-
-    calc_sub_objects_position(
-        p_person,
-        p_person->Draw.Tweened->AnimTween,
-        SUB_OBJECT_LEFT_HAND,
-        &px,
-        &py,
-        &pz);
-
-    px += p_person->WorldPos.X >> 8;
-    py += p_person->WorldPos.Y >> 8;
-    pz += p_person->WorldPos.Z >> 8;
-
-    dd->x = px;
-    dd->y = py;
-    dd->z = pz;
-
-    dd->droll = THING_NUMBER(p_person);
-
-    return dd - DIRT_dirt;
-}
-
-// uc_orig: DIRT_destroy_mine (fallen/Source/dirt.cpp)
-void DIRT_destroy_mine(UWORD dirt_mine)
-{
-    ASSERT(WITHIN(dirt_mine, 0, DIRT_MAX_DIRT - 1));
-
-    DIRT_dirt[dirt_mine].type = DIRT_TYPE_UNUSED;
 }
 
 // Creates up to 4 floating paper/leaf dirt pieces at the given position.
@@ -2176,11 +1957,4 @@ void DIRT_create_brass(
         dd->dpitch = 0;
         dd->droll = 0;
     }
-}
-
-// DIRT_gale stub — original was in /* */ dead code block.
-// uc_orig: DIRT_gale (fallen/Headers/dirt.h)
-void DIRT_gale(SLONG dx, SLONG dz)
-{
-    // Stub — DIRT_gale_height was cut.
 }

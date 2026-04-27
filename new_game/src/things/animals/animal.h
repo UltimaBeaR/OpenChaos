@@ -47,32 +47,5 @@ extern GenusFunctions ANIMAL_functions[ANIMAL_NUMBER];
 // Zeros out the Animals array in the_game and resets the animal counter.
 void init_animals(void);
 
-// uc_orig: alloc_animal (fallen/Headers/animal.h)
-// Allocates an animal Thing of the given type.
-struct Thing* alloc_animal(UBYTE type);
-
-// uc_orig: free_animal (fallen/Headers/animal.h)
-// Frees an animal's Thing, DrawTween, and Animal structures.
-void free_animal(struct Thing* animal_thing);
-
-// uc_orig: ANIMAL_create (fallen/Headers/animal.h)
-// Creates an animal Thing at the given position and triggers its STATE_INIT.
-Thing* ANIMAL_create(GameCoord pos, UBYTE type);
-
-// uc_orig: ANIMAL_animate (fallen/Headers/animal.h)
-// Advances the animal's tween animation one step. Returns 1 if the animation finished.
-UBYTE ANIMAL_animate(Thing* animal);
-
-// uc_orig: ANIMAL_set_anim (fallen/Headers/animal.h)
-// Changes the current animation on an animal's DrawTween.
-void ANIMAL_set_anim(Thing* thing, SLONG anim);
-
-// uc_orig: ANIMAL_draw (fallen/Headers/animal.h)
-// Draws the animal — provided for AENG.
-void ANIMAL_draw(Thing* p_thing);
-
-// uc_orig: ANIMAL_get_animal (fallen/Headers/animal.h)
-// Returns the Animal struct associated with an animal Thing.
-Animal* ANIMAL_get_animal(Thing* animal_thing);
 
 #endif // THINGS_ANIMALS_ANIMAL_H

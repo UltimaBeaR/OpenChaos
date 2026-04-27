@@ -13,40 +13,6 @@
 // uc_orig: SHAPE_MAX_SPARKY_POINTS (fallen/DDEngine/Headers/shape.h)
 #define SHAPE_MAX_SPARKY_POINTS 16
 
-// Draws a hemisphere: solid-colour cone of tris and quads, alpha-blended outward.
-// Direction (dx,dy,dz) must be 256 units long. The apex points in that direction.
-// uc_orig: SHAPE_semisphere (fallen/DDEngine/Headers/shape.h)
-void SHAPE_semisphere(
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG dx,
-    SLONG dy,
-    SLONG dz,
-    SLONG radius,
-    SLONG page,
-    UBYTE red,
-    UBYTE green,
-    UBYTE blue);
-
-// Textured variant of SHAPE_semisphere: UV coords computed from polar angle around the axis.
-// uc_orig: SHAPE_semisphere_textured (fallen/DDEngine/Headers/shape.h)
-void SHAPE_semisphere_textured(
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG dx,
-    SLONG dy,
-    SLONG dz,
-    SLONG radius,
-    float u_mid,
-    float v_mid,
-    float uv_radius,
-    SLONG page,
-    UBYTE red,
-    UBYTE green,
-    UBYTE blue);
-
 // Draws a full sphere, lit by ambient light. Flat-colour (POLY_PAGE_COLOUR).
 // uc_orig: SHAPE_sphere (fallen/DDEngine/Headers/shape.h)
 void SHAPE_sphere(
@@ -55,16 +21,6 @@ void SHAPE_sphere(
     SLONG z,
     SLONG radius,
     ULONG colour);
-
-// Draws an alpha-blended sphere. Same as SHAPE_sphere but alpha channel comes from 'alpha'.
-// uc_orig: SHAPE_alpha_sphere (fallen/DDEngine/Headers/shape.h)
-void SHAPE_alpha_sphere(
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG radius,
-    ULONG colour,
-    ULONG alpha);
 
 // Draws a glowing line through a sequence of world points, rendered as screen-space quads.
 // uc_orig: SHAPE_sparky_line (fallen/DDEngine/Headers/shape.h)
@@ -101,16 +57,6 @@ void SHAPE_tripwire(
     ULONG colour,
     UWORD counter,
     UBYTE along);
-
-// Draws a waterfall: three translucent horizontal quads falling away from the wall edge.
-// uc_orig: SHAPE_waterfall (fallen/DDEngine/Headers/shape.h)
-void SHAPE_waterfall(
-    SLONG map_x,
-    SLONG map_z,
-    SLONG map_dx,
-    SLONG map_dz,
-    SLONG top,
-    SLONG bot);
 
 // Draws a water-droplet sprite (elongated triangle in screen space).
 // uc_orig: SHAPE_droplet (fallen/DDEngine/Headers/shape.h)

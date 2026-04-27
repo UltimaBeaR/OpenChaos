@@ -5,8 +5,6 @@
 #include "engine/io/env.h"
 #include "map/pap.h"
 #include "map/sewers.h"
-#include "camera/fc.h"
-#include "camera/fc_globals.h"         // FC_cam
 #include "engine/audio/mfx.h"
 #include "things/core/statedef.h"
 #include "buildings/ware.h"
@@ -382,30 +380,6 @@ void SOUND_Curious(Thing* p_thing)
     MFX_play_thing(THING_NUMBER(p_thing), snd_a, 0, p_thing);
 }
 
-// uc_orig: DieSound (fallen/Source/Sound.cpp)
-void DieSound(Thing* p_thing)
-{
-    SWORD hit_a, hit_b;
-    switch (p_thing->Genus.Person->PersonType) {
-    case PERSON_DARCI:
-        hit_a = S_DARCI_HIT_START;
-        hit_b = S_DARCI_HIT_END;
-        break;
-    case PERSON_ROPER:
-        hit_a = S_ROPER_HIT_START;
-        hit_b = S_ROPER_HIT_END;
-        break;
-    case PERSON_COP:
-        hit_a = S_COP_DIE_START;
-        hit_b = S_COP_DIE_END;
-        break;
-    default:
-        return;
-    }
-    hit_a = SOUND_Range(hit_a, hit_b);
-    MFX_play_thing(THING_NUMBER(p_thing), hit_a, MFX_QUEUED | MFX_SHORT_QUEUE, p_thing);
-}
-
 // uc_orig: PainSound (fallen/Source/Sound.cpp)
 void PainSound(Thing* p_thing)
 {
@@ -580,21 +554,6 @@ void SOUND_InitFXGroups(CBYTE* fn)
     delete[] buff;
 }
 
-// Plays a positioned sound relative to the camera. Used for ambient sound effects triggered from script.
-// type=0: overlapping one-shot at XYZ. type=1: replaces current music channel at XYZ.
-// uc_orig: play_ambient_wave (fallen/Source/Sound.cpp)
-SLONG play_ambient_wave(SLONG sample, SLONG id, SLONG mode, SLONG range, UBYTE flags)
-{
-    SLONG x, y, z;
-
-    x = FC_cam[0].x;
-    y = FC_cam[0].y;
-    z = FC_cam[0].z;
-
-    MFX_play_xyz(id, sample, mode, x, y, z);
-    return id;
-}
-
 // Triggers a sound from level script data. type=0: overlapping one-shot. type=1: replaces music channel.
 // uc_orig: play_glue_wave (fallen/Source/Sound.cpp)
 void play_glue_wave(UWORD type, UWORD id, SLONG x, SLONG y, SLONG z)
@@ -609,27 +568,9 @@ void play_glue_wave(UWORD type, UWORD id, SLONG x, SLONG y, SLONG z)
     }
 }
 
-// Plays a music track using MSS32 paired-track crossfade system.
-// track=1 plays on TRK1 (music_id-1), track=0 plays on TRK2 (music_id).
-// uc_orig: play_music (fallen/Source/Sound.cpp)
-void play_music(UWORD id, UBYTE track)
-{
-    SLONG flags;
-    music_id = AMBIENT_EFFECT_REF + 2;
-    flags = MFX_SHORT_QUEUE | MFX_QUEUED | MFX_EARLY_OUT;
-    flags |= (track) ? MFX_PAIRED_TRK1 : MFX_PAIRED_TRK2;
-    MFX_play_stereo(music_id - track, id, flags);
-}
-
 // Sewer waterfall sound precalculation — body commented out in original (sewer sounds were cut).
 // uc_orig: SOUND_SewerPrecalc (fallen/Source/Sound.cpp)
 void SOUND_SewerPrecalc()
-{
-    // Stub — sewer sound system was cut.
-}
-
-// uc_orig: SewerSoundProcess (fallen/Source/Sound.cpp)
-void SewerSoundProcess()
 {
     // Stub — sewer sound system was cut.
 }

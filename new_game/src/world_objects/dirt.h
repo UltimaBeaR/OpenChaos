@@ -95,51 +95,12 @@ typedef struct
 // uc_orig: DIRT_MAX_DIRT (fallen/Headers/dirt.h)
 #define DIRT_MAX_DIRT (1024)
 
-// uc_orig: DIRT_INFO_TYPE_UNUSED (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_UNUSED 0
-// uc_orig: DIRT_INFO_TYPE_LEAF (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_LEAF 1
-// uc_orig: DIRT_INFO_TYPE_PRIM (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_PRIM 2
-// uc_orig: DIRT_INFO_TYPE_MORPH (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_MORPH 3
-// uc_orig: DIRT_INFO_TYPE_WATER (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_WATER 4
-// uc_orig: DIRT_INFO_TYPE_URINE (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_URINE 5
-// uc_orig: DIRT_INFO_TYPE_SPARKS (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_SPARKS 6
-// uc_orig: DIRT_INFO_TYPE_BLOOD (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_BLOOD 7
-// uc_orig: DIRT_INFO_TYPE_SNOW (fallen/Headers/dirt.h)
-#define DIRT_INFO_TYPE_SNOW 8
-
 // uc_orig: DIRT_FLAG_STILL (fallen/Headers/dirt.h)
 #define DIRT_FLAG_STILL (1 << 0)
 // uc_orig: DIRT_FLAG_HIT_FLOOR (fallen/Headers/dirt.h)
 #define DIRT_FLAG_HIT_FLOOR (1 << 1)
 // uc_orig: DIRT_FLAG_DELETE_OK (fallen/Headers/dirt.h)
 #define DIRT_FLAG_DELETE_OK (1 << 2)
-
-// uc_orig: DIRT_Info (fallen/Headers/dirt.h)
-typedef struct
-{
-    UBYTE type;
-    UBYTE held;
-    UBYTE morph1;
-    UBYTE morph2;
-    UWORD prim;
-    UWORD tween;
-    UWORD yaw;
-    UWORD pitch;
-    UWORD roll;
-    SLONG x;
-    SLONG y;
-    SLONG z;
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-} DIRT_Info;
 
 // uc_orig: DIRT_MARK_AS_OFFSCREEN_QUICK (fallen/Headers/dirt.h)
 #define DIRT_MARK_AS_OFFSCREEN_QUICK(which)           \
@@ -165,9 +126,6 @@ void DIRT_set_focus(SLONG x, SLONG z, SLONG radius);
 // uc_orig: DIRT_gust (fallen/Headers/dirt.h)
 void DIRT_gust(Thing* p_thing, SLONG x1, SLONG z1, SLONG x2, SLONG z2);
 
-// uc_orig: DIRT_gale (fallen/Headers/dirt.h)
-void DIRT_gale(SLONG dx, SLONG dz);
-
 // uc_orig: DIRT_new_water (fallen/Headers/dirt.h)
 void DIRT_new_water(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz,
                     SLONG dirt_type = DIRT_TYPE_WATER);
@@ -184,17 +142,8 @@ void DIRT_pick_up_can_or_head(Thing* p_person);
 // uc_orig: DIRT_release_can_or_head (fallen/Headers/dirt.h)
 void DIRT_release_can_or_head(Thing* p_person, SLONG power);
 
-// uc_orig: DIRT_behead_person (fallen/Headers/dirt.h)
-void DIRT_behead_person(Thing* p_person, Thing* p_attacker);
-
 // uc_orig: DIRT_create_grenade (fallen/Headers/dirt.h)
 void DIRT_create_grenade(Thing* p_person, SLONG ticks_to_go, SLONG power);
-
-// uc_orig: DIRT_create_mine (fallen/Headers/dirt.h)
-UWORD DIRT_create_mine(Thing* p_person);
-
-// uc_orig: DIRT_destroy_mine (fallen/Headers/dirt.h)
-void DIRT_destroy_mine(UWORD dirt_mine);
 
 // uc_orig: DIRT_shoot (fallen/Headers/dirt.h)
 SLONG DIRT_shoot(Thing* p_person);
@@ -204,9 +153,6 @@ void DIRT_create_papers(SLONG x, SLONG y, SLONG z);
 
 // uc_orig: DIRT_create_cans (fallen/Headers/dirt.h)
 void DIRT_create_cans(SLONG x, SLONG z, SLONG angle);
-
-// uc_orig: DIRT_get_info (fallen/Headers/dirt.h)
-SLONG DIRT_get_info(SLONG which, DIRT_Info* ans);
 
 // uc_orig: DIRT_mark_as_offscreen (fallen/Headers/dirt.h)
 void DIRT_mark_as_offscreen(SLONG which);
@@ -218,7 +164,6 @@ void DIRT_new_sparks(SLONG px, SLONG py, SLONG pz, UBYTE dir);
 // uc_orig: DIRT_create_brass (fallen/Source/dirt.cpp)
 void DIRT_create_brass(SLONG x, SLONG y, SLONG z, SLONG angle);
 
-// The live dirt pool (declared here so renderer can iterate it via DIRT_get_info).
 // uc_orig: DIRT_dirt (fallen/Headers/dirt.h)
 extern DIRT_Dirt DIRT_dirt[DIRT_MAX_DIRT];
 

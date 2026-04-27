@@ -84,20 +84,6 @@ UWORD PARTICLE_AddParticle(Particle& p);
 // uc_orig: PARTICLE_Add (fallen/Source/psystem.cpp)
 UWORD PARTICLE_Add(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, UWORD page, UWORD sprite, SLONG colour, SLONG flags, SLONG life, UBYTE size, UBYTE priority, SBYTE fade, SBYTE resize);
 
-// ---- Commonly-used effect helpers ----
-
-// uc_orig: PARTICLE_Exhaust (fallen/Source/psystem.cpp)
-UWORD PARTICLE_Exhaust(SLONG x, SLONG y, SLONG z, UBYTE density, UBYTE disperse);
-
-// uc_orig: PARTICLE_Exhaust2 (fallen/Source/psystem.cpp)
-UWORD PARTICLE_Exhaust2(struct Thing* object, UBYTE density, UBYTE disperse);
-
-// uc_orig: PARTICLE_Steam (fallen/Source/psystem.cpp)
-UWORD PARTICLE_Steam(SLONG x, SLONG y, SLONG z, UBYTE axis, SLONG vel, SLONG range, UBYTE time);
-
-// uc_orig: PARTICLE_SGrenade (fallen/Source/psystem.cpp)
-UWORD PARTICLE_SGrenade(struct Thing* object, UBYTE time);
-
 // uc_orig: PARTICLE_Draw (fallen/DDEngine/Source/drawxtra.cpp)
 // Iterates the live-particle linked list and submits each particle as a sprite quad.
 void PARTICLE_Draw();
