@@ -5,9 +5,6 @@
 // uc_orig: global_anim_array (fallen/Source/interact.cpp)
 struct GameKeyFrame* global_anim_array[4][450];
 
-// uc_orig: test_chunk (fallen/Source/interact.cpp)
-struct KeyFrameChunk* test_chunk;
-
 // uc_orig: game_chunk (fallen/Source/interact.cpp)
 struct GameKeyFrameChunk game_chunk[MAX_GAME_CHUNKS];
 // uc_orig: anim_chunk (fallen/Source/interact.cpp)

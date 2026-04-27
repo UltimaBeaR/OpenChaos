@@ -202,19 +202,12 @@ typedef struct
 
 } IMP_Mesh;
 
-// Loads a SEX (3ds-exported text) file and returns a fully built IMP_Mesh.
-// Returns a mesh with valid==UC_FALSE on failure.
-// uc_orig: IMP_load (fallen/outro/imp.h)
-IMP_Mesh IMP_load(CBYTE* fname, float scale = 1.0F);
-
 // Frees all heap-allocated arrays in the mesh. Safe to call on a partially-initialised mesh.
 // uc_orig: IMP_free (fallen/outro/imp.h)
 void IMP_free(IMP_Mesh* im);
 
-// Saves/loads a binary (pre-processed) version of the mesh for faster loading.
-// Returns UC_FALSE on failure.
-// uc_orig: IMP_binary_save (fallen/outro/imp.h)
-SLONG IMP_binary_save(CBYTE* fname, IMP_Mesh* im);
+// Loads a binary (pre-processed) version of the mesh for faster loading.
+// Returns a mesh with valid==UC_FALSE on failure.
 // uc_orig: IMP_binary_load (fallen/outro/imp.h)
 IMP_Mesh IMP_binary_load(CBYTE* fname);
 

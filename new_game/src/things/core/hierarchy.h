@@ -7,10 +7,6 @@
 // Bone hierarchy data for skeletal animation.
 // 15 body parts: pelvis, leg joints, torso, arm joints, skull.
 
-// uc_orig: body_part_parent (fallen/Headers/Hierarchy.h)
-// Name pairs: [bone_name, parent_bone_name]. Root bone has empty parent string.
-extern CBYTE* body_part_parent[][2];
-
 // uc_orig: body_part_children (fallen/Headers/Hierarchy.h)
 // Up to 5 children per bone. Terminated by -1.
 extern SLONG body_part_children[][5];

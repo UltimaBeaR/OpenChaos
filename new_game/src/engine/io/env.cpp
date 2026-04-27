@@ -8,7 +8,6 @@
 #include <string.h>
 
 #include "engine/io/env.h"
-#include "engine/io/env_globals.h"
 #include "engine/io/file.h"
 #include "engine/io/oc_config.h"
 

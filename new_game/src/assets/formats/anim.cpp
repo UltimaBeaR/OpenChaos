@@ -188,7 +188,6 @@ void init_anim_prims(void)
     }
 }
 
-// No-op placeholder; originally intended to clear test_chunk before editor reuse.
 // uc_orig: setup_anim_stuff (fallen/Source/Anim.cpp)
 static void setup_anim_stuff(void) {}
 

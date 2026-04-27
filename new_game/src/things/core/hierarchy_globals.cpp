@@ -1,24 +1,5 @@
 #include "things/core/hierarchy_globals.h"
 
-// uc_orig: body_part_parent (fallen/Source/Hierarchy.cpp)
-CBYTE* body_part_parent[][2] = {
-    { "pelvis", "" },
-    { "lfemur", "pelvis" },
-    { "ltibia", "lfemur" },
-    { "lfoot", "ltibia" },
-    { "torso", "pelvis" },
-    { "rhumorus", "torso" },
-    { "rradius", "rhumorus" },
-    { "rhand", "rradius" },
-    { "lhumorus", "torso" },
-    { "lradius", "lhumorus" },
-    { "lhand", "lradius" },
-    { "skull", "torso" },
-    { "rfemur", "pelvis" },
-    { "rtibia", "rfemur" },
-    { "rfoot", "rtibia" }
-};
-
 // uc_orig: body_part_children (fallen/Source/Hierarchy.cpp)
 // Each entry lists up to 5 child bone indices, terminated by -1.
 SLONG body_part_children[][5] = {

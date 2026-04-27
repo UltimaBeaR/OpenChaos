@@ -32,9 +32,6 @@ struct Thing;
 // uc_orig: init_projectiles (fallen/Source/Pjectile.cpp)
 void init_projectiles(void);
 
-// uc_orig: alloc_projectile (fallen/Source/Pjectile.cpp)
-Thing* alloc_projectile(UBYTE type);
-
 // uc_orig: free_projectile (fallen/Source/Pjectile.cpp)
 void free_projectile(Thing* proj_thing);
 

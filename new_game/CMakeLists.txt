@@ -183,7 +183,6 @@ set(SOURCES_NEW
     src/engine/io/file.cpp
     src/engine/io/file_globals.cpp
     src/engine/io/env.cpp
-    src/engine/io/env_globals.cpp
     src/engine/io/oc_config.cpp
 
     # === Engine: input ===

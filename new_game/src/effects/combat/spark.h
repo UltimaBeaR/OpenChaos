@@ -71,11 +71,6 @@ void SPARK_init(void);
 // Creates a branching lightning bolt between p1 and p2, lasting up to max_life ticks.
 void SPARK_create(SPARK_Pinfo* point1, SPARK_Pinfo* point2, UBYTE max_life);
 
-// uc_orig: SPARK_in_sphere (fallen/Headers/spark.h)
-// Creates sparks between random collision vectors within a sphere.
-void SPARK_in_sphere(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG radius,
-    UBYTE max_life, UBYTE max_create);
-
 // uc_orig: SPARK_show_electric_fences (fallen/Headers/spark.h)
 // Creates sparks along electrified DFacets on the map (called once per 32 ticks).
 void SPARK_show_electric_fences(void);

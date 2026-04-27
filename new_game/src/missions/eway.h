@@ -321,8 +321,5 @@ SLONG EWAY_conversation_happening(
 // uc_orig: EWAY_prim_activated (fallen/Source/eway.cpp)
 void EWAY_prim_activated(SLONG ob_index);
 
-// Deducts time_to_deduct (hundredths/sec) from all active COUNTDOWN_SEE timers (driving penalty).
-// uc_orig: EWAY_deduct_time_penalty (fallen/Source/eway.cpp)
-void EWAY_deduct_time_penalty(SLONG time_to_deduct_in_hundreths_of_a_second);
 
 #endif // MISSIONS_EWAY_H

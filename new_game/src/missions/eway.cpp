@@ -5032,31 +5032,3 @@ void EWAY_prim_activated(SLONG ob_index)
         }
     }
 }
-
-// Deducts a time penalty (in hundredths of a second) from all active COUNTDOWN_SEE timers.
-// Used for driving missions: hitting a cone deducts time from the player's countdown.
-// uc_orig: EWAY_deduct_time_penalty (fallen/Source/eway.cpp)
-void EWAY_deduct_time_penalty(SLONG time_to_deduct_in_hundreths_of_a_second)
-{
-    SLONG i;
-
-    EWAY_Way* ew;
-
-    for (i = 0; i < EWAY_MAX_WAYS; i++) {
-        ew = &EWAY_way[i];
-
-        if (ew->ec.type == EWAY_COND_COUNTDOWN_SEE) {
-            SLONG depend = ew->ec.arg1;
-
-            ASSERT(depend == 0 || WITHIN(depend, 1, EWAY_way_upto - 1));
-
-            if (!depend || (EWAY_way[depend].flag & EWAY_FLAG_ACTIVE)) {
-                if (ew->ec.arg2 < time_to_deduct_in_hundreths_of_a_second) {
-                    ew->ec.arg2 = 0;
-                } else {
-                    ew->ec.arg2 -= time_to_deduct_in_hundreths_of_a_second;
-                }
-            }
-        }
-    }
-}

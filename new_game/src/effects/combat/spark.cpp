@@ -582,67 +582,6 @@ tail_recurse:;
     return &SPARK_get_info;
 }
 
-// uc_orig: SPARK_in_sphere (fallen/Source/spark.cpp)
-void SPARK_in_sphere(
-    SLONG mid_x,
-    SLONG mid_y,
-    SLONG mid_z,
-    SLONG radius,
-    UBYTE max_life,
-    UBYTE max_create)
-{
-    SLONG x1;
-    SLONG z1;
-    SLONG x2;
-    SLONG z2;
-
-    SLONG mx;
-    SLONG mz;
-
-#define SPARK_MAX_CHOICES 16
-
-    struct
-    {
-        SPARK_Pinfo p1;
-        SPARK_Pinfo p2;
-
-    } choice[SPARK_MAX_CHOICES];
-    SLONG choice_upto = 0;
-
-    x1 = mid_x - radius >> 8;
-    z1 = mid_z - radius >> 8;
-    x2 = mid_x + radius >> 8;
-    z2 = mid_z + radius >> 8;
-
-    SATURATE(x1, 0, MAP_WIDTH - 1);
-    SATURATE(z1, 0, MAP_HEIGHT - 1);
-    SATURATE(x2, 0, MAP_WIDTH - 1);
-    SATURATE(z2, 0, MAP_HEIGHT - 1);
-
-    for (mx = x1; mx <= x2; mx++)
-        for (mz = z1; mz <= z2; mz++) {
-            /*
-            // (prim-based spark origins — commented out in original)
-            */
-        }
-
-    SLONG choose;
-
-    while (max_create && choice_upto) {
-        choose = rand() % choice_upto;
-
-        SPARK_create(
-            &choice[choose].p1,
-            &choice[choose].p2,
-            max_life);
-
-        choice[choose] = choice[choice_upto - 1];
-
-        max_create -= 1;
-        choice_upto -= 1;
-    }
-}
-
 // uc_orig: SPARK_show_electric_fences (fallen/Source/spark.cpp)
 void SPARK_show_electric_fences()
 {

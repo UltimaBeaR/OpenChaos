@@ -51,10 +51,6 @@ typedef struct {
 // uc_orig: global_anim_array (fallen/Source/interact.cpp)
 extern struct GameKeyFrame* global_anim_array[4][450];
 
-// Legacy chunk structure (used by reset_anim_stuff; callee path dead but not commented out).
-// uc_orig: test_chunk (fallen/Source/interact.cpp)
-extern struct KeyFrameChunk* test_chunk;
-
 // Runtime animation data for the four character type slots.
 // uc_orig: game_chunk (fallen/Source/interact.cpp)
 extern struct GameKeyFrameChunk game_chunk[MAX_GAME_CHUNKS];
