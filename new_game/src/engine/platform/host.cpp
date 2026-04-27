@@ -97,6 +97,19 @@ void host_process_pending_resize(void)
     if (!s_resize_pending) return;
     ge_resize_display();
     s_resize_pending = false;
+
+    if (!ge_is_fullscreen()) {
+        bool maximized = sdl3_window_is_maximized();
+        OC_CONFIG_set_int("video", "windowed_maximized", maximized ? 1 : 0);
+        if (!maximized) {
+            int w = 0, h = 0;
+            sdl3_window_get_size(&w, &h);
+            if (w > 0 && h > 0) {
+                OC_CONFIG_set_int("video", "windowed_width",  w);
+                OC_CONFIG_set_int("video", "windowed_height", h);
+            }
+        }
+    }
 }
 
 // Live-drag repaint — fires from SDL_AddEventWatch synchronously while
@@ -139,12 +152,16 @@ BOOL SetupHost(ULONG flags)
         return UC_FALSE;
 
     // Create the SDL3 window (hidden until GL context is ready).
+    bool fullscreen = OC_CONFIG_get_int("video", "fullscreen", 0) != 0;
     if (!sdl3_window_create("Urban Chaos",
-                            OC_CONFIG_get_int("openchaos", "windowed_width", 640),
-                            OC_CONFIG_get_int("openchaos", "windowed_height", 480),
-                            OC_CONFIG_get_int("openchaos", "fullscreen", 0) != 0)) {
+                            OC_CONFIG_get_int("video", "windowed_width",  640),
+                            OC_CONFIG_get_int("video", "windowed_height", 480),
+                            fullscreen)) {
         return UC_FALSE;
     }
+
+    if (!fullscreen && OC_CONFIG_get_int("video", "windowed_maximized", 0))
+        sdl3_window_maximize();
 
     // Set initial display rect from window position.
     ge_update_display_rect(sdl3_window_get_native_handle(), ge_is_fullscreen());

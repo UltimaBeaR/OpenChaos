@@ -728,10 +728,6 @@ void MFX_set_volumes(SLONG fx, SLONG amb, SLONG mus)
     Volumes[SMP_Effect] = float(fx) / 127.0f;
     Volumes[SMP_Ambient] = float(amb) / 127.0f;
     Volumes[SMP_Music] = float(mus) / 127.0f;
-
-    ENV_set_value_number("ambient_volume", amb, "Audio");
-    ENV_set_value_number("music_volume", mus, "Audio");
-    ENV_set_value_number("fx_volume", fx, "Audio");
 }
 
 // uc_orig: MFX_play_xyz (fallen/DDLibrary/Source/MFX.cpp)

@@ -68,7 +68,9 @@ static bool audio_init(AudioStream* a, int sample_rate, int channels)
     // Non-spatialized: direct stereo output
     alSourcei(a->source, AL_SOURCE_RELATIVE, AL_TRUE);
     alSource3f(a->source, AL_POSITION, 0.0f, 0.0f, 0.0f);
-    alSourcef(a->source, AL_GAIN, 1.0f);
+    // Volume follows the "Volume" (fx) slider from Sound menu.
+    float gain = (float)ENV_get_value_number("fx_volume", 127, "Audio") / 127.0f;
+    alSourcef(a->source, AL_GAIN, gain);
 
     // Initial accumulator
     a->accum_cap = AUDIO_BUFFER_SAMPLES * AUDIO_QUEUE_BUFFERS * 2;

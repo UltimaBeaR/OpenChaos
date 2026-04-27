@@ -172,7 +172,7 @@ static bool s_aa_enabled = true;
 
 bool composition_init(int32_t scene_w, int32_t scene_h)
 {
-    s_aa_enabled = OC_CONFIG_get_int("openchaos", "aa_enable", 1) != 0;
+    s_aa_enabled = OC_CONFIG_get_int("video", "antialiasing", 1) != 0;
     crt_effect_init();
     if (!create_program()) return false;
     if (!s_vao && !create_quad()) return false;

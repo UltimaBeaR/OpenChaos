@@ -342,27 +342,12 @@ struct ActionInfo* action_tree[] = {
     0,
 };
 
-// Reads joypad and keyboard button mappings from config.ini via ENV_get_value_number.
 // Fills joypad_button_use[] and keybrd_button_use[] with physical button indices
-// for each logical function (JOYPAD_BUTTON_*).
+// for each logical function (JOYPAD_BUTTON_*). Joypad bindings are hardcoded
+// (gamepad Joypad config menu was removed); keyboard bindings come from config.json.
 // uc_orig: init_joypad_config (fallen/Source/interfac.cpp)
 void init_joypad_config(void)
 {
-    /*
-            //was
-            joypad_button_use[JOYPAD_BUTTON_KICK]		= ENV_get_value_number("joypad_kick",		2, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_PUNCH]		= ENV_get_value_number("joypad_punch",		3, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_JUMP]		= ENV_get_value_number("joypad_jump",		0, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_ACTION]		= ENV_get_value_number("joypad_action",		1, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_MOVE]		= ENV_get_value_number("joypad_move",		5, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_START]		= ENV_get_value_number("joypad_start",		9, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_SELECT]		= ENV_get_value_number("joypad_select",		10, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_CAMERA]		= ENV_get_value_number("joypad_camera",		6, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]	= ENV_get_value_number("joypad_cam_left",	7, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]	= ENV_get_value_number("joypad_cam_right",	8, "Joypad");
-            joypad_button_use[JOYPAD_BUTTON_1STPERSON]	= ENV_get_value_number("joypad_1stperson",	4, "Joypad");
-    */
-
     // PS1 Config 0 (Classic) adapted for Xbox/DualSense layout.
     // SDL3 button indices: 0=South(A/Cross), 1=East(B/Circle), 2=West(X/Square),
     // 3=North(Y/Triangle), 4=Back, 6=Start, 7=L3, 8=R3, 9=LB/L1, 10=RB/R1,
@@ -385,35 +370,34 @@ void init_joypad_config(void)
     //   R2 / RT (digital)   : punch / shoot (analog trigger via weapon_feel)
     //   Walk-mode toggle    : removed — partial left-stick deflection produces
     //                         walking speed, no dedicated button needed
-    // Defaults come from the hardcoded config in env.cpp (see env_default_config).
-    joypad_button_use[JOYPAD_BUTTON_JUMP]       = ENV_get_value_number("joypad_jump",       0, "Joypad");  // A / Cross
-    joypad_button_use[JOYPAD_BUTTON_ACTION]     = ENV_get_value_number("joypad_action",     1, "Joypad");  // B / Circle
-    joypad_button_use[JOYPAD_BUTTON_PUNCH]      = ENV_get_value_number("joypad_punch",      2, "Joypad");  // X / Square (gameplay-unbound; index kept for legacy code paths)
-    joypad_button_use[JOYPAD_BUTTON_KICK]       = ENV_get_value_number("joypad_kick",      10, "Joypad");  // RB / R1
-    joypad_button_use[JOYPAD_BUTTON_SELECT]     = ENV_get_value_number("joypad_select",     4, "Joypad");  // Back / Select
-    joypad_button_use[JOYPAD_BUTTON_START]      = ENV_get_value_number("joypad_start",      6, "Joypad");  // Start
-    joypad_button_use[JOYPAD_BUTTON_CAMERA]     = ENV_get_value_number("joypad_camera",     9, "Joypad");  // LB / L1
-    joypad_button_use[JOYPAD_BUTTON_1STPERSON]  = ENV_get_value_number("joypad_1stperson",  9, "Joypad");  // LB / L1 (held = aim)
-    joypad_button_use[JOYPAD_BUTTON_MOVE]       = ENV_get_value_number("joypad_move",      31, "Joypad");  // unbound (walk mode removed; stub index, never read in gameplay)
-    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]   = ENV_get_value_number("joypad_cam_left",  15, "Joypad");  // LT / L2 (legacy alias; in-car brake only)
-    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]  = ENV_get_value_number("joypad_cam_right", 16, "Joypad");  // RT / R2
+    joypad_button_use[JOYPAD_BUTTON_JUMP]       = 0;   // A / Cross
+    joypad_button_use[JOYPAD_BUTTON_ACTION]     = 1;   // B / Circle
+    joypad_button_use[JOYPAD_BUTTON_PUNCH]      = 2;   // X / Square (gameplay-unbound; index kept for legacy code paths)
+    joypad_button_use[JOYPAD_BUTTON_KICK]       = 10;  // RB / R1
+    joypad_button_use[JOYPAD_BUTTON_SELECT]     = 4;   // Back / Select
+    joypad_button_use[JOYPAD_BUTTON_START]      = 6;   // Start
+    joypad_button_use[JOYPAD_BUTTON_CAMERA]     = 9;   // LB / L1
+    joypad_button_use[JOYPAD_BUTTON_1STPERSON]  = 9;   // LB / L1 (held = aim)
+    joypad_button_use[JOYPAD_BUTTON_MOVE]       = 31;  // unbound (walk mode removed; stub index, never read in gameplay)
+    joypad_button_use[JOYPAD_BUTTON_CAM_LEFT]   = 15;  // LT / L2 (legacy alias; in-car brake only)
+    joypad_button_use[JOYPAD_BUTTON_CAM_RIGHT]  = 16;  // RT / R2
 
-    keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("keyboard_left", 203, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_RIGHT] = ENV_get_value_number("keyboard_right", 205, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_FORWARDS] = ENV_get_value_number("keyboard_forward", 200, "Keyboard");
-    keybrd_button_use[KEYBRD_BUTTON_BACK] = ENV_get_value_number("keyboard_back", 208, "Keyboard");
+    keybrd_button_use[KEYBRD_BUTTON_LEFT] = ENV_get_value_number("left", 203, "Keyboard");
+    keybrd_button_use[KEYBRD_BUTTON_RIGHT] = ENV_get_value_number("right", 205, "Keyboard");
+    keybrd_button_use[KEYBRD_BUTTON_FORWARDS] = ENV_get_value_number("forward", 200, "Keyboard");
+    keybrd_button_use[KEYBRD_BUTTON_BACK] = ENV_get_value_number("back", 208, "Keyboard");
 
-    keybrd_button_use[JOYPAD_BUTTON_PUNCH] = ENV_get_value_number("keyboard_punch", 44, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_KICK] = ENV_get_value_number("keyboard_kick", 45, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_ACTION] = ENV_get_value_number("keyboard_action", 46, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_MOVE] = ENV_get_value_number("keyboard_run", 47, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_JUMP] = ENV_get_value_number("keyboard_jump", 57, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_START] = ENV_get_value_number("keyboard_start", 15, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_SELECT] = ENV_get_value_number("keyboard_select", 28, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAMERA] = ENV_get_value_number("keyboard_camera", 207, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT] = ENV_get_value_number("keyboard_cam_left", 211, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT] = ENV_get_value_number("keyboard_cam_right", 209, "Keyboard");
-    keybrd_button_use[JOYPAD_BUTTON_1STPERSON] = ENV_get_value_number("keyboard_1stperson", 30, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_PUNCH] = ENV_get_value_number("punch", 44, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_KICK] = ENV_get_value_number("kick", 45, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_ACTION] = ENV_get_value_number("action", 46, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_MOVE] = ENV_get_value_number("run", 47, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_JUMP] = ENV_get_value_number("jump", 57, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_START] = ENV_get_value_number("start", 15, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_SELECT] = ENV_get_value_number("select", 28, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_CAMERA] = ENV_get_value_number("camera", 207, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT] = ENV_get_value_number("cam_left", 211, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT] = ENV_get_value_number("cam_right", 209, "Keyboard");
+    keybrd_button_use[JOYPAD_BUTTON_1STPERSON] = ENV_get_value_number("1stperson", 30, "Keyboard");
 }
 
 // If the player is holding a grenade or explosives, activates/primes it.

@@ -25,7 +25,7 @@ bool g_crt_enabled = true; // default; overridden from config in crt_effect_init
 
 void crt_effect_init()
 {
-    g_crt_enabled = OC_CONFIG_get_int("openchaos", "crt_enable", 1) != 0;
+    g_crt_enabled = OC_CONFIG_get_int("video", "crt_effect", 1) != 0;
 }
 
 namespace {

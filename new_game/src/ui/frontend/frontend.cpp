@@ -3,6 +3,7 @@
 // FRONTEND_display, FRONTEND_init, FRONTEND_loop, etc.
 
 #include <sys/stat.h>
+#include "config.h"
 #include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
@@ -423,10 +424,8 @@ void FRONTEND_stop_xition()
         ge_set_background_override(screenfull_back);
         break;
     case FE_CONFIG:
-    case FE_CONFIG_VIDEO:
     case FE_CONFIG_AUDIO:
     case FE_CONFIG_INPUT_KB:
-    case FE_CONFIG_INPUT_JP:
     case FE_LOADSCREEN:
     case FE_SAVESCREEN:
         ge_set_background_override(screenfull_config);
@@ -1208,11 +1207,9 @@ void FRONTEND_MissionHierarchy(CBYTE* script)
             ge_set_background_override(screenfull_back);
             break;
         case FE_CONFIG:
-        case FE_CONFIG_VIDEO:
         case FE_CONFIG_AUDIO:
         case FE_CONFIG_OPTIONS:
         case FE_CONFIG_INPUT_KB:
-        case FE_CONFIG_INPUT_JP:
         case FE_LOADSCREEN:
         case FE_SAVESCREEN:
             ge_set_background_override(screenfull_config);
@@ -2028,37 +2025,20 @@ void FRONTEND_mode(SBYTE mode, bool bDoTransition)
             FRONTEND_init_xition();
         }
         FRONTEND_easy(mode);
-        menu_data[0].Data = ENV_get_value_number("keyboard_left", 203, "Keyboard");
-        menu_data[1].Data = ENV_get_value_number("keyboard_right", 205, "Keyboard");
-        menu_data[2].Data = ENV_get_value_number("keyboard_forward", 200, "Keyboard");
-        menu_data[3].Data = ENV_get_value_number("keyboard_back", 208, "Keyboard");
-        menu_data[4].Data = ENV_get_value_number("keyboard_punch", 44, "Keyboard");
-        menu_data[5].Data = ENV_get_value_number("keyboard_kick", 45, "Keyboard");
-        menu_data[6].Data = ENV_get_value_number("keyboard_action", 46, "Keyboard");
-        menu_data[7].Data = ENV_get_value_number("keyboard_jump", 57, "Keyboard");
-        menu_data[8].Data = ENV_get_value_number("keyboard_start", 15, "Keyboard");
-        menu_data[9].Data = ENV_get_value_number("keyboard_select", 28, "Keyboard");
-        menu_data[11].Data = ENV_get_value_number("keyboard_camera", 207, "Keyboard");
-        menu_data[12].Data = ENV_get_value_number("keyboard_cam_left", 211, "Keyboard");
-        menu_data[13].Data = ENV_get_value_number("keyboard_cam_right", 209, "Keyboard");
-        menu_data[14].Data = ENV_get_value_number("keyboard_1stperson", 30, "Keyboard");
-        break;
-    case FE_CONFIG_INPUT_JP:
-        if (bDoTransition) {
-            FRONTEND_init_xition();
-        }
-        FRONTEND_easy(mode);
-        menu_data[0].Data = ENV_get_value_number("joypad_kick", 4, "Joypad");
-        menu_data[1].Data = ENV_get_value_number("joypad_punch", 3, "Joypad");
-        menu_data[2].Data = ENV_get_value_number("joypad_jump", 0, "Joypad");
-        menu_data[3].Data = ENV_get_value_number("joypad_action", 1, "Joypad");
-        menu_data[4].Data = ENV_get_value_number("joypad_move", 7, "Joypad");
-        menu_data[5].Data = ENV_get_value_number("joypad_start", 8, "Joypad");
-        menu_data[6].Data = ENV_get_value_number("joypad_select", 2, "Joypad");
-        menu_data[8].Data = ENV_get_value_number("joypad_camera", 6, "Joypad");
-        menu_data[9].Data = ENV_get_value_number("joypad_cam_left", 9, "Joypad");
-        menu_data[10].Data = ENV_get_value_number("joypad_cam_right", 10, "Joypad");
-        menu_data[11].Data = ENV_get_value_number("joypad_1stperson", 5, "Joypad");
+        menu_data[0].Data = ENV_get_value_number("left", 203, "Keyboard");
+        menu_data[1].Data = ENV_get_value_number("right", 205, "Keyboard");
+        menu_data[2].Data = ENV_get_value_number("forward", 200, "Keyboard");
+        menu_data[3].Data = ENV_get_value_number("back", 208, "Keyboard");
+        menu_data[4].Data = ENV_get_value_number("punch", 44, "Keyboard");
+        menu_data[5].Data = ENV_get_value_number("kick", 45, "Keyboard");
+        menu_data[6].Data = ENV_get_value_number("action", 46, "Keyboard");
+        menu_data[7].Data = ENV_get_value_number("jump", 57, "Keyboard");
+        menu_data[8].Data = ENV_get_value_number("start", 15, "Keyboard");
+        menu_data[9].Data = ENV_get_value_number("select", 28, "Keyboard");
+        menu_data[11].Data = ENV_get_value_number("camera", 207, "Keyboard");
+        menu_data[12].Data = ENV_get_value_number("cam_left", 211, "Keyboard");
+        menu_data[13].Data = ENV_get_value_number("cam_right", 209, "Keyboard");
+        menu_data[14].Data = ENV_get_value_number("1stperson", 30, "Keyboard");
         break;
     case FE_CONFIG_OPTIONS:
         if (bDoTransition) {
@@ -2428,39 +2408,27 @@ static void FRONTEND_storedata(void)
     case FE_CONFIG_AUDIO:
         MFX_stop(WEATHER_REF, MFX_WAVE_ALL);
         MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
+        ENV_set_value_number("fx_volume",      menu_data[0].Data >> 1, "Audio");
+        ENV_set_value_number("ambient_volume", menu_data[1].Data >> 1, "Audio");
+        ENV_set_value_number("music_volume",   menu_data[2].Data >> 1, "Audio");
         break;
 
     case FE_CONFIG_INPUT_KB:
-        ENV_set_value_number("keyboard_left", menu_data[0].Data, "Keyboard");
-        ENV_set_value_number("keyboard_right", menu_data[1].Data, "Keyboard");
-        ENV_set_value_number("keyboard_forward", menu_data[2].Data, "Keyboard");
-        ENV_set_value_number("keyboard_back", menu_data[3].Data, "Keyboard");
-        ENV_set_value_number("keyboard_punch", menu_data[4].Data, "Keyboard");
-        ENV_set_value_number("keyboard_kick", menu_data[5].Data, "Keyboard");
-        ENV_set_value_number("keyboard_action", menu_data[6].Data, "Keyboard");
-        ENV_set_value_number("keyboard_jump", menu_data[7].Data, "Keyboard");
-        ENV_set_value_number("keyboard_start", menu_data[8].Data, "Keyboard");
-        ENV_set_value_number("keyboard_select", menu_data[9].Data, "Keyboard");
+        ENV_set_value_number("left", menu_data[0].Data, "Keyboard");
+        ENV_set_value_number("right", menu_data[1].Data, "Keyboard");
+        ENV_set_value_number("forward", menu_data[2].Data, "Keyboard");
+        ENV_set_value_number("back", menu_data[3].Data, "Keyboard");
+        ENV_set_value_number("punch", menu_data[4].Data, "Keyboard");
+        ENV_set_value_number("kick", menu_data[5].Data, "Keyboard");
+        ENV_set_value_number("action", menu_data[6].Data, "Keyboard");
+        ENV_set_value_number("jump", menu_data[7].Data, "Keyboard");
+        ENV_set_value_number("start", menu_data[8].Data, "Keyboard");
+        ENV_set_value_number("select", menu_data[9].Data, "Keyboard");
         // gap for label
-        ENV_set_value_number("keyboard_camera", menu_data[11].Data, "Keyboard");
-        ENV_set_value_number("keyboard_cam_left", menu_data[12].Data, "Keyboard");
-        ENV_set_value_number("keyboard_cam_right", menu_data[13].Data, "Keyboard");
-        ENV_set_value_number("keyboard_1stperson", menu_data[14].Data, "Keyboard");
-        break;
-
-    case FE_CONFIG_INPUT_JP:
-        ENV_set_value_number("joypad_kick", menu_data[0].Data, "Joypad");
-        ENV_set_value_number("joypad_punch", menu_data[1].Data, "Joypad");
-        ENV_set_value_number("joypad_jump", menu_data[2].Data, "Joypad");
-        ENV_set_value_number("joypad_action", menu_data[3].Data, "Joypad");
-        ENV_set_value_number("joypad_move", menu_data[4].Data, "Joypad");
-        ENV_set_value_number("joypad_start", menu_data[5].Data, "Joypad");
-        ENV_set_value_number("joypad_select", menu_data[6].Data, "Joypad");
-        // gap for label
-        ENV_set_value_number("joypad_camera", menu_data[8].Data, "Joypad");
-        ENV_set_value_number("joypad_cam_left", menu_data[9].Data, "Joypad");
-        ENV_set_value_number("joypad_cam_right", menu_data[10].Data, "Joypad");
-        ENV_set_value_number("joypad_1stperson", menu_data[11].Data, "Joypad");
+        ENV_set_value_number("camera", menu_data[11].Data, "Keyboard");
+        ENV_set_value_number("cam_left", menu_data[12].Data, "Keyboard");
+        ENV_set_value_number("cam_right", menu_data[13].Data, "Keyboard");
+        ENV_set_value_number("1stperson", menu_data[14].Data, "Keyboard");
         break;
 
     case FE_CONFIG_OPTIONS:
@@ -2876,20 +2844,6 @@ static UBYTE FRONTEND_input(void)
                 menu_data[13].Data = 209;
                 menu_data[14].Data = 30;
                 break;
-            case FE_CONFIG_INPUT_JP:
-                menu_data[0].Data = 4;
-                menu_data[1].Data = 3;
-                menu_data[2].Data = 0;
-                menu_data[3].Data = 1;
-                menu_data[4].Data = 7;
-                menu_data[5].Data = 8;
-                menu_data[6].Data = 2;
-                // gap for label
-                menu_data[8].Data = 6;
-                menu_data[9].Data = 9;
-                menu_data[10].Data = 10;
-                menu_data[11].Data = 5;
-                break;
             }
             break;
         }
@@ -2919,8 +2873,6 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         }
 
-        if (menu_state.mode == FE_CONFIG_VIDEO)
-            FRONTEND_gamma_update();
         if ((menu_state.mode == FE_CONFIG_AUDIO) && !menu_state.selected) {
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
@@ -2950,8 +2902,6 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         }
 
-        if (menu_state.mode == FE_CONFIG_VIDEO)
-            FRONTEND_gamma_update();
         if ((menu_state.mode == FE_CONFIG_AUDIO) && !menu_state.selected) {
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
@@ -2967,14 +2917,9 @@ static UBYTE FRONTEND_input(void)
             return 0;
         }
         if (menu_state.stackpos) {
-            switch (menu_state.mode) {
-            case FE_CONFIG_VIDEO: // eidos want ESC to store opts
-                FRONTEND_store_video_data();
-                break;
-            case FE_CONFIG_AUDIO:
+            if (menu_state.mode == FE_CONFIG_AUDIO) {
                 MFX_stop(WEATHER_REF, MFX_WAVE_ALL);
                 MFX_set_volumes(menu_data[0].Data >> 1, menu_data[1].Data >> 1, menu_data[2].Data >> 1);
-                break;
             }
 
             // Store any options settings.
@@ -3034,11 +2979,8 @@ void FRONTEND_init(bool bGoToTitleScreen)
     // Reset the transition buffer's contents.
     lpFRONTEND_show_xition_LastBlit = NULL;
 
-    CBYTE *str, *lang = ENV_get_value_string("language");
-
-    if (!lang)
-        lang = "text/lang_english.txt";
-    XLAT_load(lang);
+    XLAT_load((CBYTE*)OC_LANGUAGE_FILE);
+    CBYTE* str;
     XLAT_init();
 
     IsEnglish = !oc_stricmp(XLAT_str(X_THIS_LANGUAGE_IS), "English");
@@ -3049,7 +2991,7 @@ void FRONTEND_init(bool bGoToTitleScreen)
     strcpy(str, XLAT_str(X_YES));
 
     strcpy(MISSION_SCRIPT, "data/");
-    lang = XLAT_str(X_THIS_LANGUAGE_IS);
+    CBYTE* lang = XLAT_str(X_THIS_LANGUAGE_IS);
     if (strcmp(lang, "English") == 0)
         strcat(MISSION_SCRIPT, "urban");
     else
@@ -3080,8 +3022,8 @@ void FRONTEND_init(bool bGoToTitleScreen)
 
     memset(menu_choice_scanner, 0, 255);
     XLAT_str(X_CAMERA, menu_choice_scanner);
-    lang = menu_choice_scanner + strlen(menu_choice_scanner) + 1;
-    XLAT_str(X_CHARACTER, lang);
+    CBYTE* lang2 = menu_choice_scanner + strlen(menu_choice_scanner) + 1;
+    XLAT_str(X_CHARACTER, lang2);
 
     MUSIC_mode(MUSIC_MODE_FRONTEND);
 

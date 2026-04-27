@@ -833,8 +833,7 @@ UBYTE game_loop(void)
 {
     extern void save_all_nads(void);
 
-    env_frame_rate = ENV_get_value_number("max_frame_rate", 30, "Render");
-    AENG_set_draw_distance(ENV_get_value_number("draw_distance", 22, "Render"));
+    // max_frame_rate hardcoded: env_frame_rate default (30) from game_globals.cpp
 round_again:;
 
     MEMORY_quick_init();

@@ -35,7 +35,7 @@
 #include "map/level_pools.h"
 
 #include "engine/platform/uc_common.h"
-#include "engine/io/oc_config.h"
+#include "config.h"
 #include "engine/graphics/aspect_clamp.h"  // FOV_MIN_ASPECT / FOV_CAP_ASPECT
 #include <math.h>
 #include <stdio.h>
@@ -1940,13 +1940,13 @@ void AENG_set_detail_levels(int stars,
     int perspective,
     int crinkles)
 {
-    ENV_set_value_number("detail_shadows", shadows, "Render");
-    ENV_set_value_number("detail_puddles", puddles, "Render");
-    ENV_set_value_number("detail_dirt", dirt, "Render");
-    ENV_set_value_number("detail_mist", mist, "Render");
-    ENV_set_value_number("detail_rain", rain, "Render");
-    ENV_set_value_number("detail_skyline", skyline, "Render");
-    ENV_set_value_number("detail_crinkles", crinkles, "Render");
+    ENV_set_value_number("detail_shadows", shadows, "Video");
+    ENV_set_value_number("detail_puddles", puddles, "Video");
+    ENV_set_value_number("detail_dirt", dirt, "Video");
+    ENV_set_value_number("detail_mist", mist, "Video");
+    ENV_set_value_number("detail_rain", rain, "Video");
+    ENV_set_value_number("detail_skyline", skyline, "Video");
+    ENV_set_value_number("detail_crinkles", crinkles, "Video");
 
     AENG_read_detail_levels();
 }
@@ -6369,7 +6369,7 @@ void AENG_draw(SLONG draw_3d)
                     auto_zoom = base_aspect / zoom_aspect;
                 }
                 AENG_lens = fc->lens * 1.5F * (1.0F / float(65536.0F))
-                    / (OC_CONFIG_get_float("openchaos", "fov_multiplier", 1.0f) * auto_zoom);
+                    / (OC_FOV_MULTIPLIER * auto_zoom);
             }
 
             AENG_set_camera_radians(
@@ -6466,7 +6466,7 @@ void AENG_draw(SLONG draw_3d)
                 auto_zoom = base_aspect / zoom_aspect;
             }
             AENG_lens = fc->lens * (1.0F / float(65536.0F))
-                / (OC_CONFIG_get_float("openchaos", "fov_multiplier", 1.0f) * auto_zoom);
+                / (OC_FOV_MULTIPLIER * auto_zoom);
         }
 
         AENG_set_camera_radians(
@@ -6546,18 +6546,18 @@ void AENG_draw(SLONG draw_3d)
 // Reads per-feature detail level settings from the environment (ini/registry).
 void AENG_read_detail_levels()
 {
-    AENG_detail_stars = ENV_get_value_number("detail_stars", 1, "Render");
-    AENG_detail_shadows = ENV_get_value_number("detail_shadows", 1, "Render");
-    AENG_detail_moon_reflection = ENV_get_value_number("detail_moon_reflection", 1, "Render");
-    AENG_detail_people_reflection = ENV_get_value_number("detail_people_reflection", 1, "Render");
-    AENG_detail_puddles = ENV_get_value_number("detail_puddles", 1, "Render");
-    AENG_detail_dirt = ENV_get_value_number("detail_dirt", 1, "Render");
-    AENG_detail_mist = ENV_get_value_number("detail_mist", 1, "Render");
-    AENG_detail_rain = ENV_get_value_number("detail_rain", 1, "Render");
-    AENG_detail_skyline = ENV_get_value_number("detail_skyline", 1, "Render");
-    AENG_detail_filter = ENV_get_value_number("detail_filter", 1, "Render");
-    AENG_detail_perspective = ENV_get_value_number("detail_perspective", 1, "Render");
-    AENG_detail_crinkles = ENV_get_value_number("detail_crinkles", 1, "Render");
+    AENG_detail_stars = ENV_get_value_number("detail_stars", 1, "Video");
+    AENG_detail_shadows = ENV_get_value_number("detail_shadows", 1, "Video");
+    AENG_detail_moon_reflection = ENV_get_value_number("detail_moon_reflection", 1, "Video");
+    AENG_detail_people_reflection = ENV_get_value_number("detail_people_reflection", 1, "Video");
+    AENG_detail_puddles = ENV_get_value_number("detail_puddles", 1, "Video");
+    AENG_detail_dirt = ENV_get_value_number("detail_dirt", 1, "Video");
+    AENG_detail_mist = ENV_get_value_number("detail_mist", 1, "Video");
+    AENG_detail_rain = ENV_get_value_number("detail_rain", 1, "Video");
+    AENG_detail_skyline = ENV_get_value_number("detail_skyline", 1, "Video");
+    AENG_detail_filter = ENV_get_value_number("detail_filter", 1, "Video");
+    AENG_detail_perspective = ENV_get_value_number("detail_perspective", 1, "Video");
+    AENG_detail_crinkles = ENV_get_value_number("detail_crinkles", 1, "Video");
 }
 
 // uc_orig: AENG_draw_box_around_recessed_door (fallen/DDEngine/Source/aeng.cpp)

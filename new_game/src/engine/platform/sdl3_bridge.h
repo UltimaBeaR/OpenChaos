@@ -42,6 +42,12 @@ void sdl3_window_get_drawable_size(int* w, int* h);
 // Get native window handle (HWND on Windows). Returns nullptr if no window.
 void* sdl3_window_get_native_handle();
 
+// Returns true if the window is currently maximized.
+bool sdl3_window_is_maximized();
+
+// Maximize the window. Safe to call on hidden windows.
+void sdl3_window_maximize();
+
 // Warp mouse cursor to screen coordinates.
 void sdl3_warp_mouse_global(int x, int y);
 

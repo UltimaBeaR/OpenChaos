@@ -228,6 +228,17 @@ void* sdl3_window_get_native_handle()
 #endif
 }
 
+bool sdl3_window_is_maximized()
+{
+    if (!s_window) return false;
+    return (SDL_GetWindowFlags(s_window) & SDL_WINDOW_MAXIMIZED) != 0;
+}
+
+void sdl3_window_maximize()
+{
+    if (s_window) SDL_MaximizeWindow(s_window);
+}
+
 void sdl3_warp_mouse_global(int x, int y)
 {
     SDL_WarpMouseGlobal((float)x, (float)y);
@@ -782,10 +793,13 @@ char* sdl3_get_key_name(int game_scancode, char* out, int out_size)
 {
     SDL_Scancode sc = game_to_sdl_scancode(game_scancode);
     if (sc != SDL_SCANCODE_UNKNOWN) {
-        const char* name = SDL_GetKeyName(SDL_GetKeyFromScancode(sc, SDL_KMOD_NONE, false));
+        const char* name = SDL_GetScancodeName(sc);
         if (name && name[0]) {
             strncpy(out, name, out_size - 1);
             out[out_size - 1] = '\0';
+            // MENUFONT only has uppercase A-Z; SDL returns lowercase for letter keys.
+            for (char* p = out; *p; ++p)
+                *p = (char)toupper((unsigned char)*p);
             return out;
         }
     }
