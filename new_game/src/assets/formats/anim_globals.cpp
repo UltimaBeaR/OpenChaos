@@ -34,9 +34,6 @@ UWORD next_prim_object = 1;
 // uc_orig: next_prim_multi_object (fallen/Source/Anim.cpp)
 UWORD next_prim_multi_object = 1;
 
-// uc_orig: roper_pickup (fallen/Source/Anim.cpp)
-UBYTE roper_pickup = 0;
-
 // uc_orig: estate (fallen/Source/Anim.cpp)
 UBYTE estate = 0;
 // uc_orig: semtex (fallen/Source/Anim.cpp)

@@ -32,9 +32,4 @@ typedef struct {
 // uc_orig: MORPH_load (fallen/Source/morph.cpp)
 void MORPH_load(void);
 
-// uc_orig: MORPH_get_points (fallen/Source/morph.cpp)
-MORPH_Point* MORPH_get_points(SLONG morph);
-// uc_orig: MORPH_get_num_points (fallen/Source/morph.cpp)
-SLONG MORPH_get_num_points(SLONG morph);
-
 #endif // ENGINE_ANIMATION_MORPH_H

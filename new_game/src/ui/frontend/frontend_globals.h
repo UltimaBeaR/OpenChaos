@@ -113,10 +113,6 @@ extern float ScaleX;
 extern float ScaleY;
 // uc_orig: AllowSave (fallen/Source/frontend.cpp)
 extern UBYTE AllowSave;
-// uc_orig: CurrentVidMode (fallen/Source/frontend.cpp)
-extern SLONG CurrentVidMode;
-// uc_orig: CurrentBitDepth (fallen/Source/frontend.cpp)
-extern UBYTE CurrentBitDepth;
 // uc_orig: save_slot (fallen/Source/frontend.cpp)
 extern UBYTE save_slot;
 // uc_orig: bonus_this_turn (fallen/Source/frontend.cpp)

@@ -56,10 +56,6 @@ void calc_sub_objects_position(Thing* p_mthing, SLONG tween, UWORD object, SLONG
 // uc_orig: calc_sub_objects_position_fix8 (fallen/Source/interact.cpp)
 void calc_sub_objects_position_fix8(Thing* p_mthing, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z);
 
-// Variant that takes explicit frame pointers instead of reading from Thing.
-// uc_orig: calc_sub_objects_position_keys (fallen/Source/interact.cpp)
-void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z, struct GameKeyFrame* frame1, struct GameKeyFrame* frame2);
-
 // Variant that does not reference a Thing at all — takes two keyframes directly.
 // uc_orig: calc_sub_objects_position_global (fallen/Source/interact.cpp)
 void calc_sub_objects_position_global(GameKeyFrame* cur_frame, GameKeyFrame* next_frame, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z);

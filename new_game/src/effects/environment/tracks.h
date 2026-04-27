@@ -69,11 +69,6 @@ extern UWORD track_eob;
 // uc_orig: TRACKS_InitOnce (fallen/Headers/tracks.h)
 void TRACKS_InitOnce(SWORD size = TRACK_BUFFER_LENGTH);
 
-// Reset and reinitialise the track ring buffer, freeing all active track Things.
-// uc_orig: TRACKS_Reset (fallen/Headers/tracks.h)
-void TRACKS_Reset(SWORD size = TRACK_BUFFER_LENGTH);
-
-
 // Draw a single track Thing (called from drawxtra.cpp).
 // uc_orig: TRACKS_DrawTrack (fallen/Headers/tracks.h)
 void TRACKS_DrawTrack(Thing* p_thing);

@@ -315,7 +315,6 @@ set(SOURCES_NEW
     src/assets/formats/anim.cpp
     src/assets/formats/anim_globals.cpp
     src/assets/formats/anim_loader.cpp
-    src/assets/formats/anim_loader_globals.cpp
     src/assets/formats/anim_tmap.cpp
     src/assets/formats/anim_tmap_globals.cpp
     src/assets/formats/level_loader.cpp

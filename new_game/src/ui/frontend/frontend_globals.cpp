@@ -230,10 +230,6 @@ float ScaleX = 0.0f;
 float ScaleY = 0.0f;
 // uc_orig: AllowSave (fallen/Source/frontend.cpp)
 UBYTE AllowSave = 0;
-// uc_orig: CurrentVidMode (fallen/Source/frontend.cpp)
-SLONG CurrentVidMode = 0;
-// uc_orig: CurrentBitDepth (fallen/Source/frontend.cpp)
-UBYTE CurrentBitDepth = 16;
 // uc_orig: save_slot (fallen/Source/frontend.cpp)
 UBYTE save_slot = 0;
 // uc_orig: bonus_this_turn (fallen/Source/frontend.cpp)

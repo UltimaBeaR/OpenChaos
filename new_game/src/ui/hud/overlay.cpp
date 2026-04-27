@@ -253,13 +253,6 @@ void OVERLAY_handle(void)
     }
 }
 
-// Empty — beacon system was fully commented out in original.
-// uc_orig: overlay_beacons (fallen/Source/overlay.cpp)
-void overlay_beacons(void)
-{
-    // Stub — beacon overlay was cut.
-}
-
 // Empty stub — DAMAGE_TEXT system was behind #ifdef DAMAGE_TEXT (never defined).
 // uc_orig: add_damage_text (fallen/Source/overlay.cpp)
 void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text)

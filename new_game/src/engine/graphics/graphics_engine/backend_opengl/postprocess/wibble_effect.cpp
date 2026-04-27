@@ -259,15 +259,3 @@ void ge_apply_wibble(int32_t x1, int32_t y1, int32_t x2, int32_t y2,
     ge_pop_render_state();
 }
 
-void gl_wibble_effect_shutdown()
-{
-    if (s_program)     { glDeleteProgram(s_program);         s_program = 0; }
-    if (s_scratch_tex) { glDeleteTextures(1, &s_scratch_tex); s_scratch_tex = 0; }
-    if (s_vao)         { glDeleteVertexArrays(1, &s_vao);     s_vao = 0; }
-    if (s_vbo)         { glDeleteBuffers(1, &s_vbo);          s_vbo = 0; }
-    s_scratch_w = s_scratch_h = 0;
-    s_u_source = s_u_source_size = s_u_rect = -1;
-    s_u_wibble_y1 = s_u_wibble_y2 = -1;
-    s_u_wibble_s1 = s_u_wibble_s2 = -1;
-    s_u_phase1 = s_u_phase2 = -1;
-}

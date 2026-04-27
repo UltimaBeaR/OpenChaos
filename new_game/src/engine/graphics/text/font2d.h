@@ -55,11 +55,6 @@ void FONT2D_DrawStringCentred(CBYTE* chr, SLONG x, SLONG y, ULONG rgb = 0xffffff
 // uc_orig: FONT2D_DrawStrikethrough (fallen/DDEngine/Headers/font2d.h)
 void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scale, SLONG page, SLONG fade, bool bUseLastOffset = false);
 
-// Draws a string at a 3D world position, projected to screen.
-// Not declared in original font2d.h; used via extern in facet.cpp and guns.cpp.
-// uc_orig: FONT2D_DrawString_3d (fallen/DDEngine/Source/font2d.cpp)
-void FONT2D_DrawString_3d(CBYTE* str, ULONG world_x, ULONG world_y, ULONG world_z, ULONG rgb, SLONG text_size, SWORD fade);
-
 // x-coordinate of the rightmost character drawn by the last DrawString call.
 // uc_orig: FONT2D_rightmost_x (fallen/DDEngine/Headers/font2d.h)
 extern SLONG FONT2D_rightmost_x;

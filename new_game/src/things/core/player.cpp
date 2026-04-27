@@ -11,13 +11,6 @@
 // uc_orig: set_up_camera (fallen/Source/Player.cpp)
 extern void set_up_camera(Thing* t_camera, GameCoord* start_pos, Thing* track_thing);
 
-// uc_orig: init_players (fallen/Source/Player.cpp)
-void init_players(void)
-{
-    memset((UBYTE*)PLAYERS, 0, sizeof(Player) * MAX_PLAYERS);
-    PLAYER_COUNT = 0;
-}
-
 // uc_orig: alloc_player (fallen/Source/Player.cpp)
 // Allocates a free Player slot and a corresponding Thing. Returns the player Thing.
 Thing* alloc_player(UBYTE type)
@@ -113,36 +106,3 @@ Thing* create_player(UBYTE type, MAPCO16 x, MAPCO16 y, MAPCO16 z, SLONG player_i
     return person_thing;
 }
 
-// uc_orig: store_player_pos (fallen/Source/Player.cpp)
-// Stub — player position capture was commented out in pre-release.
-void store_player_pos(void)
-{
-}
-
-// uc_orig: PLAYER_redmark (fallen/Source/Player.cpp)
-void PLAYER_redmark(SLONG playerid, SLONG dredmarks)
-{
-    SLONG redmarks;
-    Thing* p_player;
-
-    if (NO_PLAYERS != 1) {
-        return;
-    }
-
-    p_player = NET_PLAYER(playerid);
-
-    ASSERT(playerid == 0);
-    ASSERT(p_player);
-    ASSERT(p_player->Class == CLASS_PLAYER);
-
-    redmarks = p_player->Genus.Player->RedMarks;
-    redmarks += dredmarks;
-
-    SATURATE(redmarks, 0, 10);
-
-    p_player->Genus.Player->RedMarks = redmarks;
-
-    if (redmarks == 10) {
-        GAME_STATE = GS_LEVEL_LOST;
-    }
-}

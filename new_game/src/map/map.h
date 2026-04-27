@@ -69,12 +69,4 @@ typedef struct
 // uc_orig: init_map (fallen/Headers/Map.h)
 void init_map(void);
 
-// Lighting interface callbacks for the LIGHT subsystem.
-// uc_orig: MAP_light_get_height (fallen/Headers/Map.h)
-SLONG MAP_light_get_height(SLONG x, SLONG z);
-// uc_orig: MAP_light_get_light (fallen/Headers/Map.h)
-LIGHT_Colour MAP_light_get_light(SLONG x, SLONG z);
-// uc_orig: MAP_light_set_light (fallen/Headers/Map.h)
-void MAP_light_set_light(SLONG x, SLONG z, LIGHT_Colour colour);
-
 #endif // MAP_MAP_H

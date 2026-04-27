@@ -10,12 +10,6 @@
 // uc_orig: game_attract_mode (fallen/Source/Attract.cpp)
 void game_attract_mode(void);
 
-// uc_orig: level_won (fallen/Headers/attract.h)
-void level_won(void);
-
-// uc_orig: level_lost (fallen/Headers/attract.h)
-void level_lost(void);
-
 // uc_orig: ScoresDraw (fallen/Source/Attract.cpp)
 void ScoresDraw(void);
 

@@ -30,17 +30,6 @@ void TRACKS_InitOnce(SWORD size)
     memset((UBYTE*)tracks, 0, sizeof(Track) * size);
 }
 
-// uc_orig: TRACKS_Reset (fallen/Source/tracks.cpp)
-void TRACKS_Reset(SWORD size)
-{
-    while (track_tail != track_head) {
-        remove_thing_from_map(TO_THING(TO_TRACK(track_tail)->thing));
-        free_thing(TO_THING(TO_TRACK(track_tail)->thing));
-        track_tail++;
-        if (track_tail == track_eob) { track_tail = 0; }
-    }
-    TRACKS_InitOnce(size);
-}
 
 
 // uc_orig: TRACKS_CalcDiffs (fallen/Source/tracks.cpp)

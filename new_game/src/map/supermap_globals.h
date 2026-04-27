@@ -5,9 +5,6 @@
 
 // Global state for the supermap system: allocation cursors, level list, per-frame counters.
 
-// uc_orig: level_index (fallen/Source/supermap.cpp)
-extern ULONG level_index;
-
 // uc_orig: SUPERMAP_counter (fallen/Source/supermap.cpp)
 extern UBYTE SUPERMAP_counter[2];
 

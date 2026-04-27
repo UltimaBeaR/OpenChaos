@@ -170,11 +170,5 @@ void MUSIC_gain(UBYTE gain)
 // uc_orig: MUSIC_is_playing (fallen/Source/music.cpp)
 SLONG MUSIC_is_playing(void)
 {
-    SLONG MFX_QUICK_play_id = last_MFX_QUICK_play_id;
-
-    if (MFX_QUICK_play_id == last_MFX_QUICK_play_id && MFX_QUICK_still_playing()) {
-        return UC_TRUE;
-    } else {
-        return UC_FALSE;
-    }
+    return MFX_QUICK_still_playing() ? UC_TRUE : UC_FALSE;
 }

@@ -19,7 +19,6 @@
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "engine/core/heap.h"
 #include "ai/mav.h"
 #include "effects/weather/mist.h"
@@ -75,7 +74,6 @@
 #include "ui/frontend/attract.h"         // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
 #include "ui/frontend/attract_globals.h" // go_into_game
 #include "ui/menus/gamemenu.h"
-#include "ui/menus/pause.h"           // PANEL_fadeout_init, PANEL_fadeout_start, PANEL_fadeout_finished, PANEL_fadeout_draw, PANEL_draw_timer_do
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "game/ui_render.h"     // ui_render_post_composition
 #include "camera/fc.h"       // FC_init, FC_process, FC_cam
@@ -139,7 +137,6 @@ extern BOOL allow_debug_keys;
 extern BOOL g_farfacet_debug;
 extern BOOL text_fudge;
 extern void draw_debug_lines(void);
-extern void overlay_beacons(void);
 extern SLONG draw_3d;
 extern SLONG GAMEMENU_menu_type;
 extern SLONG BARREL_fx_rate;

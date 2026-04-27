@@ -66,9 +66,6 @@ typedef Player* PlayerPtr;
 extern GenusFunctions player_functions[];
 
 
-// uc_orig: init_players (fallen/Headers/Player.h)
-void init_players(void);
-
 // uc_orig: alloc_player (fallen/Headers/Player.h)
 Thing* alloc_player(UBYTE type);
 
@@ -77,12 +74,5 @@ void free_player(Thing* player_thing);
 
 // uc_orig: create_player (fallen/Headers/Player.h)
 Thing* create_player(UBYTE type, SLONG x, SLONG y, SLONG z, SLONG id);
-
-// uc_orig: PLAYER_redmark (fallen/Headers/Player.h)
-// Adds dredmarks to player's red-mark count (0–10). At 10, triggers game over.
-void PLAYER_redmark(SLONG playerid, SLONG dredmarks);
-
-// uc_orig: store_player_pos (fallen/Source/Player.cpp)
-void store_player_pos(void);
 
 #endif // THINGS_CORE_PLAYER_H

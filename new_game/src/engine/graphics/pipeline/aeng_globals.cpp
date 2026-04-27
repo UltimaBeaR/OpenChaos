@@ -1,5 +1,4 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
-#include "engine/compression/compression.h"
 
 // uc_orig: AENG_dx_prim_points (fallen/DDEngine/Source/aeng.cpp)
 SVector_F AENG_dx_prim_points[RMAX_PRIM_POINTS];
@@ -99,33 +98,6 @@ float AENG_cam_matrix[9];
 
 // uc_orig: AENG_cam_vec (fallen/DDEngine/Source/aeng.cpp)
 SLONG AENG_cam_vec[3];
-
-// uc_orig: AENG_movie_data (fallen/DDEngine/Source/aeng.cpp)
-UBYTE AENG_movie_data[AENG_MAX_MOVIE_DATA];
-
-// uc_orig: AENG_movie_upto (fallen/DDEngine/Source/aeng.cpp)
-UBYTE* AENG_movie_upto;
-
-// uc_orig: AENG_frame_one (fallen/DDEngine/Source/aeng.cpp)
-COMP_Frame AENG_frame_one;
-
-// uc_orig: AENG_frame_two (fallen/DDEngine/Source/aeng.cpp)
-COMP_Frame AENG_frame_two;
-
-// uc_orig: AENG_frame_last (fallen/DDEngine/Source/aeng.cpp)
-COMP_Frame* AENG_frame_last = &AENG_frame_one;
-
-// uc_orig: AENG_frame_next (fallen/DDEngine/Source/aeng.cpp)
-COMP_Frame* AENG_frame_next = &AENG_frame_two;
-
-// uc_orig: AENG_frame_count (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_frame_count;
-
-// uc_orig: AENG_frame_tick (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_frame_tick;
-
-// uc_orig: AENG_frame_number (fallen/DDEngine/Source/aeng.cpp)
-SLONG AENG_frame_number;
 
 // uc_orig: AENG_project_offset_u (fallen/DDEngine/Source/aeng.cpp)
 float AENG_project_offset_u;

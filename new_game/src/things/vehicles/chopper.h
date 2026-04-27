@@ -80,10 +80,6 @@ void init_choppers(void);
 // Allocates a new Chopper Thing of the given type.
 struct Thing* alloc_chopper(UBYTE type);
 
-// uc_orig: free_chopper (fallen/Headers/chopper.h)
-// Frees a Chopper Thing and its associated structures.
-void free_chopper(struct Thing* chopper_thing);
-
 // uc_orig: CHOPPER_create (fallen/Headers/chopper.h)
 // Creates a Chopper Thing at pos, adds it to the map and triggers STATE_INIT.
 Thing* CHOPPER_create(GameCoord pos, UBYTE type);

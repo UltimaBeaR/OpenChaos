@@ -55,10 +55,6 @@ void FMATRIX_find_angles(SLONG matrix[9], SLONG* yaw, SLONG* pitch, SLONG* roll)
 
 // uc_orig: build_tween_matrix (fallen/Headers/FMatrix.h)
 void build_tween_matrix(struct Matrix33* mat, struct CMatrix33* cmat1, struct CMatrix33* cmat2, SLONG tween);
-// uc_orig: init_matrix33 (fallen/Headers/FMatrix.h)
-void init_matrix33(struct Matrix33* mat);
-// uc_orig: matrix_transform (fallen/Headers/FMatrix.h)
-void matrix_transform(struct Matrix31* result, struct Matrix33* trans, struct Matrix31* mat2);
 // uc_orig: matrix_transform_small (fallen/Headers/FMatrix.h)
 void matrix_transform_small(struct Matrix31* result, struct Matrix33* trans, struct SMatrix31* mat2);
 // uc_orig: matrix_transformZMY (fallen/Headers/FMatrix.h)

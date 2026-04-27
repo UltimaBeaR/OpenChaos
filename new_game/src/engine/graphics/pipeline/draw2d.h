@@ -13,17 +13,9 @@
 // uc_orig: DRAW2D_Box (fallen/DDEngine/Source/drawxtra.cpp)
 void DRAW2D_Box(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, UBYTE flag, UBYTE depth = 128);
 
-// Like DRAW2D_Box but uses an explicit texture page instead of choosing by flag.
-// uc_orig: DRAW2D_Box_Page (fallen/DDEngine/Source/drawxtra.cpp)
-void DRAW2D_Box_Page(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG rgb, SLONG page, UBYTE depth = 128);
-
 // Draws a 2D triangle with vertices (x,y), (ox,oy), (tx,ty).
 // flag selects blending mode same as DRAW2D_Box.
 // uc_orig: DRAW2D_Tri (fallen/DDEngine/Source/drawxtra.cpp)
 void DRAW2D_Tri(SLONG x, SLONG y, SLONG ox, SLONG oy, SLONG tx, SLONG ty, SLONG rgb, UBYTE flag);
-
-// Draws a textured 2D quad from (x,y) to (ox,oy) with UV coords (u,v)-(ou,ov).
-// uc_orig: DRAW2D_Sprite (fallen/DDEngine/Source/drawxtra.cpp)
-void DRAW2D_Sprite(SLONG x, SLONG y, SLONG ox, SLONG oy, float u, float v, float ou, float ov, SLONG page, SLONG rgb);
 
 #endif // ENGINE_GRAPHICS_PIPELINE_DRAW2D_H

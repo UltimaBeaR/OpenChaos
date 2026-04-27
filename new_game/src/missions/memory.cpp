@@ -49,7 +49,6 @@
 #include "missions/memory.h"
 #include "missions/memory_globals.h"
 
-extern ULONG level_index;
 extern void BAT_normal(Thing* p_thing);
 
 // TEXTURE_set — texture set index, defined in assets/texture_globals.cpp.

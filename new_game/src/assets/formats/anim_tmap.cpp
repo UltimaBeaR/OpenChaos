@@ -56,18 +56,3 @@ void load_animtmaps(void)
     sync_animtmaps();
 }
 
-// uc_orig: save_animtmaps (fallen/Source/animtmap.cpp)
-void save_animtmaps(void)
-{
-    MFFileHandle handle;
-    SLONG how_many = MAX_ANIM_TMAPS;
-    SLONG save_type = 1;
-
-    handle = FileCreate("data/tmap.ani", 1);
-    if (handle != FILE_OPEN_ERROR) {
-        FileWrite(handle, (UBYTE*)&save_type, 4);
-        FileWrite(handle, (UBYTE*)&how_many, 4);
-        FileWrite(handle, (UBYTE*)&anim_tmaps[0], sizeof(struct AnimTmap) * how_many);
-        FileClose(handle);
-    }
-}

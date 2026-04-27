@@ -27,13 +27,4 @@ SLONG calc_target_score_new(Thing* darci, Thing* p_target);
 // uc_orig: find_target_new (fallen/Source/guns.cpp)
 THING_INDEX find_target_new(Thing* p_person);
 
-// Computes snipe-mode targeting score for an NPC sniper.
-// Used by PCOM_AI_SHOOT_DEAD NPCs; no LOS check.
-// uc_orig: calc_snipe_target_score (fallen/Source/guns.cpp)
-SLONG calc_snipe_target_score(Thing* p_person, Thing* p_target);
-
-// Finds best snipe target via linear scan of PRIMARY_USED list.
-// uc_orig: find_snipe_target (fallen/Source/guns.cpp)
-THING_INDEX find_snipe_target(Thing* p_person);
-
 #endif // SHOOTING_GUNS_H

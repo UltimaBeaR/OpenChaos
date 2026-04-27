@@ -16,9 +16,4 @@
 // roof faces, and walkable prim faces. Called once after the city is built.
 void SHADOW_do(void);
 
-// uc_orig: SHADOW_in (fallen/Source/shadow.cpp)
-// Returns non-zero if the given world point is in shadow (i.e. blocked from the sun).
-// Uses a line-of-sight ray cast toward the fixed light direction.
-SLONG SHADOW_in(SLONG x, SLONG y, SLONG z);
-
 #endif // ENGINE_GRAPHICS_LIGHTING_SHADOW_H

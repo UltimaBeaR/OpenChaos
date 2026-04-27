@@ -78,13 +78,6 @@ static void HOOK_make_loop(SLONG x, SLONG z)
     }
 }
 
-// uc_orig: HOOK_init (fallen/Source/hook.cpp)
-void HOOK_init(SLONG x, SLONG z)
-{
-    HOOK_make_loop(x, z);
-    HOOK_grapple_pitch = 512;
-}
-
 // Advances physics simulation for all active string points from start_point to the last reeled point.
 // Applies link forces, gravity, friction, and ground collision.
 // Automatically unreels additional points if tension demands it.

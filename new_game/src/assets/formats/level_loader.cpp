@@ -29,14 +29,10 @@
 // Forward declaration for load_anim_system (in anim_loader.cpp, not yet migrated).
 SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG type);
 
-// uc_orig: EXTRAS_DIR (fallen/Source/io.cpp)
-CBYTE EXTRAS_DIR[100] = "data/textures";
 // uc_orig: PRIM_DIR (fallen/Source/io.cpp)
 CBYTE PRIM_DIR[100] = "server/prims";
 // uc_orig: DATA_DIR (fallen/Source/io.cpp)
 CBYTE DATA_DIR[100] = "";
-// uc_orig: LEVELS_DIR (fallen/Source/io.cpp)
-CBYTE LEVELS_DIR[100] = "";
 // uc_orig: TEXTURE_WORLD_DIR (fallen/Source/io.cpp)
 CBYTE TEXTURE_WORLD_DIR[100] = "";
 
@@ -371,14 +367,6 @@ void load_game_map(CBYTE* name)
     }
 }
 
-// Legacy bulk prim loader from pre-built binary dump (the code is commented out in original).
-// Effectively always returns 0 at runtime.
-// uc_orig: load_all_prims (fallen/Source/io.cpp)
-SLONG load_all_prims(CBYTE* name)
-{
-    return (0);
-}
-
 // Load a single static prim object (.prm file) by prim ID (1-265) into the global prim database.
 // Supports new format (nprimNNN.prm, file_type=1) and old format (primNNN.prm, file_type=0).
 // Adjusts face point indices from file-relative to global-array offsets after loading.
@@ -538,44 +526,3 @@ file_error:;
     return UC_FALSE;
 }
 
-// Editor-mode: clear prim database and force-load all 265 static + 255 animated prims.
-// Not used at runtime; at runtime only required prims are loaded via OB_load_needed_prims().
-// uc_orig: load_all_individual_prims (fallen/Source/io.cpp)
-void load_all_individual_prims(void)
-{
-    SLONG i;
-
-    clear_prims();
-
-    for (i = 1; i < 266; i++) {
-        load_prim_object(i);
-    }
-    if (next_prim_object < 266)
-        next_prim_object = 266;
-
-    for (i = 1; i < 256; i++) {
-        load_anim_prim_object(i);
-    }
-}
-
-// Read a quoted name from a text file handle (used when parsing .vue animation files).
-// Scans forward to the first '"', then reads characters until the next '"'.
-// uc_orig: read_object_name (fallen/Source/io.cpp)
-void read_object_name(FILE* file_handle, CBYTE* dest_string)
-{
-    CBYTE the_char = 0;
-    SLONG count = 0;
-
-    while (the_char != '"' && count++ < 100) {
-        fscanf(file_handle, "%c", &the_char);
-    }
-
-    fscanf(file_handle, "%c", &the_char);
-
-    count = 0;
-    while (the_char != '"' && count++ < 100) {
-        *(dest_string++) = the_char;
-        fscanf(file_handle, "%c", &the_char);
-    }
-    *dest_string = 0;
-}

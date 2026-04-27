@@ -41,21 +41,9 @@ extern CharData FontInfo[256];
 // uc_orig: MENUFONT_Load (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Load(CBYTE* fn, SLONG page, CBYTE* fontlist);
 
-// Sets which poly page font quads are submitted to.
-// uc_orig: MENUFONT_Page (fallen/DDEngine/Source/menufont.cpp)
-void MENUFONT_Page(SLONG page);
-
 // Draws a string using the menu font with the given flags, scale, and colour.
 // uc_orig: MENUFONT_Draw (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags, SWORD max = -1);
-
-// Draws a string with floating-point position.
-// uc_orig: MENUFONT_Draw_floats (fallen/DDEngine/Source/menufont.cpp)
-void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags);
-
-// Frees the font (clears the font name so the next MENUFONT_Load reloads).
-// uc_orig: MENUFONT_Free (fallen/DDEngine/Source/menufont.cpp)
-void MENUFONT_Free();
 
 // Returns rendered pixel width and height of a string at the given scale.
 // uc_orig: MENUFONT_Dimensions (fallen/DDEngine/Source/menufont.cpp)

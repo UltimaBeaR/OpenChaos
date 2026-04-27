@@ -20,5 +20,3 @@ void crt_effect_init();
 // No-op when g_crt_enabled == false.
 void crt_effect_apply();
 
-// Release all GPU resources owned by the CRT effect. Idempotent.
-void crt_effect_shutdown();

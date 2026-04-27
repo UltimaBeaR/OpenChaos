@@ -12,12 +12,6 @@ POLY_Point POLY_buffer[POLY_BUFFER_SIZE];
 // uc_orig: POLY_buffer_upto (fallen/DDEngine/Headers/poly.h)
 SLONG POLY_buffer_upto;
 
-// Shadow vertex buffer.
-// uc_orig: POLY_shadow (fallen/DDEngine/Headers/poly.h)
-POLY_Point POLY_shadow[POLY_SHADOW_SIZE];
-// uc_orig: POLY_shadow_upto (fallen/DDEngine/Headers/poly.h)
-SLONG POLY_shadow_upto;
-
 // Camera world-space position, set by POLY_camera_set.
 // uc_orig: POLY_cam_x (fallen/DDEngine/Headers/poly.h)
 float POLY_cam_x;

@@ -11,10 +11,6 @@ struct Thing;
 // Initialises a Darci thing: sets draw type, animation, and adds it to the map.
 void fn_darci_init(Thing* t_thing);
 
-// uc_orig: advance_keyframe (fallen/Source/Darci.cpp)
-// Advances a KeyFrame pointer by `count` steps following NextFrame links.
-KeyFrame* advance_keyframe(KeyFrame* frame, SLONG count);
-
 // uc_orig: do_floor_collide (fallen/Source/Darci.cpp)
 // Checks whether the given person's foot sub-object intersects the floor at their current position.
 // Returns 1 on collision; sets *new_y and *foot_y.
@@ -53,9 +49,5 @@ void change_velocity_to(Thing* p_thing, SWORD velocity);
 // uc_orig: change_velocity_to_slow (fallen/Source/Darci.cpp)
 // Like change_velocity_to but steps by 1 when close to target.
 void change_velocity_to_slow(Thing* p_thing, SWORD velocity);
-
-// uc_orig: trickle_velocity_to (fallen/Source/Darci.cpp)
-// Moves velocity towards target by 1 unit per tick.
-void trickle_velocity_to(Thing* p_thing, SWORD velocity);
 
 #endif // THINGS_CHARACTERS_DARCI_H

@@ -20,10 +20,6 @@ extern UWORD next_prim_object;
 // uc_orig: next_prim_multi_object (fallen/Source/Anim.cpp)
 extern UWORD next_prim_multi_object;
 
-// Set when the Roper pickup animation has been loaded.
-// uc_orig: roper_pickup (fallen/Source/Anim.cpp)
-extern UBYTE roper_pickup;
-
 // Set when the current level uses the estate variant (banesuit models).
 // uc_orig: estate (fallen/Source/Anim.cpp)
 extern UBYTE estate;

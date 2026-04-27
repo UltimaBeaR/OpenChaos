@@ -28,8 +28,4 @@ void* HEAP_get(SLONG num_bytes);
 // uc_orig: HEAP_give (fallen/Source/heap.cpp)
 void HEAP_give(void* mem, SLONG num_bytes);
 
-// Returns the size of the largest available free block.
-// uc_orig: HEAP_max_free (fallen/Source/heap.cpp)
-SLONG HEAP_max_free(void);
-
 #endif // ENGINE_CORE_HEAP_H

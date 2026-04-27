@@ -867,50 +867,6 @@ void calc_sub_objects_position_fix8(Thing* p_mthing, SLONG tween, UWORD object, 
         *y += HAND_HEIGHT;
 }
 
-// calc_sub_objects_position variant that takes explicit frame pointers instead of reading from Thing.
-// uc_orig: calc_sub_objects_position_keys (fallen/Source/interact.cpp)
-void calc_sub_objects_position_keys(Thing* p_mthing, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z, struct GameKeyFrame* frame1, struct GameKeyFrame* frame2)
-{
-    struct SVector temp;
-    struct Matrix33 r_matrix;
-    struct Matrix31 offset;
-    struct GameKeyFrameElement* anim_info;
-    struct GameKeyFrameElement* anim_info_next;
-    SLONG wx, wy, wz;
-
-    wx = 0;
-    wy = 0;
-    wz = 0;
-
-    if (p_mthing->Draw.Tweened->CurrentFrame && p_mthing->Draw.Tweened->NextFrame) {
-        anim_info = &frame1->FirstElement[object];
-        anim_info_next = &frame2->FirstElement[object];
-
-        offset.M[0] = ((anim_info->OffsetX + (((anim_info_next->OffsetX - anim_info->OffsetX) * tween) >> 8)) >> TWEEN_OFFSET_SHIFT) + wx;
-        offset.M[1] = ((anim_info->OffsetY + (((anim_info_next->OffsetY - anim_info->OffsetY) * tween) >> 8)) >> TWEEN_OFFSET_SHIFT) + wy;
-        offset.M[2] = ((anim_info->OffsetZ + (((anim_info_next->OffsetZ - anim_info->OffsetZ) * tween) >> 8)) >> TWEEN_OFFSET_SHIFT) + wz;
-
-        rotate_obj(
-            p_mthing->Draw.Tweened->Tilt,
-            p_mthing->Draw.Tweened->Angle,
-            p_mthing->Draw.Tweened->Roll,
-            &r_matrix);
-
-        matrix_transformZMY((struct Matrix31*)&temp, &r_matrix, &offset);
-        *x = temp.X;
-        *y = temp.Y;
-        *z = temp.Z;
-    } else {
-        *x = 0;
-        *y = 0;
-        *z = 0;
-    }
-    if (object == SUB_OBJECT_LEFT_FOOT || object == SUB_OBJECT_RIGHT_FOOT)
-        *y -= FOOT_HEIGHT;
-    if (object == SUB_OBJECT_LEFT_HAND || object == SUB_OBJECT_RIGHT_HAND)
-        *y += HAND_HEIGHT;
-}
-
 // calc_sub_objects_position variant that does not reference a Thing — takes two raw keyframe pointers.
 // uc_orig: calc_sub_objects_position_global (fallen/Source/interact.cpp)
 void calc_sub_objects_position_global(GameKeyFrame* cur_frame, GameKeyFrame* next_frame, SLONG tween, UWORD object, SLONG* x, SLONG* y, SLONG* z)

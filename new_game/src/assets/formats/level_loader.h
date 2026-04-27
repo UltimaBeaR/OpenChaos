@@ -26,14 +26,10 @@ static_assert(sizeof(LoadGameThing) == 44, "LoadGameThing: binary file layout");
 
 // Directory path buffers for game resource lookups.
 // Set at startup based on whether a server mount is available.
-// uc_orig: EXTRAS_DIR (fallen/Source/io.cpp)
-extern CBYTE EXTRAS_DIR[100];
 // uc_orig: PRIM_DIR (fallen/Source/io.cpp)
 extern CBYTE PRIM_DIR[100];
 // uc_orig: DATA_DIR (fallen/Source/io.cpp)
 extern CBYTE DATA_DIR[100];
-// uc_orig: LEVELS_DIR (fallen/Source/io.cpp)
-extern CBYTE LEVELS_DIR[100];
 // uc_orig: TEXTURE_WORLD_DIR (fallen/Source/io.cpp)
 extern CBYTE TEXTURE_WORLD_DIR[100];
 
@@ -66,21 +62,9 @@ void load_level_anim_prims(void);
 // uc_orig: load_game_map (fallen/Source/io.cpp)
 void load_game_map(CBYTE* name);
 
-// Legacy bulk loader: loads all 265 static prims from a pre-built binary dump (unused at runtime).
-// uc_orig: load_all_prims (fallen/Source/io.cpp)
-SLONG load_all_prims(CBYTE* name);
-
 // Load a single static prim (.prm file) by prim ID into the global prim database.
 // Returns UC_TRUE on success. Short-circuits if already loaded.
 // uc_orig: load_prim_object (fallen/Source/io.cpp)
 SLONG load_prim_object(SLONG prim);
-
-// Editor-mode: clear prim database and reload all 265 static + 255 animated prims.
-// uc_orig: load_all_individual_prims (fallen/Source/io.cpp)
-void load_all_individual_prims(void);
-
-// Read a quoted object name string from a text file handle.
-// uc_orig: read_object_name (fallen/Source/io.cpp)
-void read_object_name(FILE* file_handle, CBYTE* dest_string);
 
 #endif // ASSETS_FORMATS_LEVEL_LOADER_H

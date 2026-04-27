@@ -110,8 +110,4 @@ typedef struct
     float roll;
 } Direction;
 
-// Extract Euler angles from rotation matrix.
-// uc_orig: MATRIX_find_angles (fallen/DDEngine/Source/Matrix.cpp)
-Direction MATRIX_find_angles(float matrix[9]);
-
 #endif // ENGINE_CORE_MATRIX_H

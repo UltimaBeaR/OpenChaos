@@ -11,12 +11,6 @@ extern SLONG SinTable[];
 // uc_orig: CosTable (MFStdLib/Headers/StdMaths.h)
 extern SLONG* CosTable;
 
-// Float sine/cosine tables (2048 entries + 512 offset for cosine).
-// uc_orig: SinTableF (MFStdLib/Headers/StdMaths.h)
-extern float SinTableF[];
-// uc_orig: CosTableF (MFStdLib/Headers/StdMaths.h)
-extern float* CosTableF;
-
 // Arctangent lookup for Arctan() function (256 entries, 0-90 deg).
 
 // uc_orig: AtanTable (MFStdLib/Headers/StdMaths.h)

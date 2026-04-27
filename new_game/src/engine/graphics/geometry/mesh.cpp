@@ -195,7 +195,6 @@ static NIGHT_Colour* MESH_draw_guts(
     ep = p_obj->EndPoint;
 
     POLY_buffer_upto = 0;
-    POLY_shadow_upto = 0;
 
     if (crumple >= 0) {
         for (i = sp; i < ep; i++) {

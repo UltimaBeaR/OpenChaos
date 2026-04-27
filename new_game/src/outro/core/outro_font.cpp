@@ -187,16 +187,6 @@ static SLONG FONT_get_index(CBYTE chr)
     return letter;
 }
 
-// uc_orig: FONT_char_is_valid (fallen/outro/outroFont.cpp)
-SLONG FONT_char_is_valid(CBYTE ch)
-{
-    if (FONT_get_index(ch) == FONT_PUNCT_QMARK && ch != '?') {
-        return UC_FALSE;
-    } else {
-        return UC_TRUE;
-    }
-}
-
 // uc_orig: FONT_get_letter_width (fallen/outro/outroFont.cpp)
 // Returns normalised width of a single character (space = 8/256).
 static float FONT_get_letter_width(CBYTE chr)

@@ -395,17 +395,6 @@ static SLONG SAVE_eways(void)
     return UC_TRUE;
 }
 
-// uc_orig: SAVE_ingame (fallen/Source/save.cpp)
-SLONG SAVE_ingame(CBYTE* fname)
-{
-    SAVE_handle = MF_Fopen("ingame.sav", "wb");
-
-    SAVE_things();
-    SAVE_eways();
-
-    MF_Fclose(SAVE_handle);
-    return (UC_TRUE);
-}
 
 // Restores EWAY flags, countdown timers, and the timer array from the save stream.
 // uc_orig: LOAD_eways (fallen/Source/save.cpp)
@@ -705,23 +694,3 @@ static void remove_specials(void)
     }
 }
 
-// uc_orig: LOAD_ingame (fallen/Source/save.cpp)
-SLONG LOAD_ingame(CBYTE* fname)
-{
-    TRACKS_Reset();
-
-    remove_specials();
-
-    void reload_level(void);
-    reload_level();
-
-    SAVE_handle = LOAD_open();
-
-    SAVE_handle = LOAD_open(); // Original opens twice (bug — kept 1:1).
-    LOAD_types();
-    MF_Fclose(SAVE_handle);
-
-    fix_thing_lists();
-
-    return (UC_TRUE);
-}

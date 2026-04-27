@@ -2336,7 +2336,6 @@ void FACET_draw_walkable(SLONG build)
 
         {
             POLY_buffer_upto = 0;
-            POLY_shadow_upto = 0;
 
             for (i = p_walk->StartFace4; i < p_walk->EndFace4; i++, rooftex++) {
                 float px, py, pz, sy;

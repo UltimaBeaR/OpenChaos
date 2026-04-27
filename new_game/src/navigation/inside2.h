@@ -99,11 +99,4 @@ SLONG find_inside_flags(SLONG inside, SLONG x, SLONG z);
 // uc_orig: person_slide_inside (fallen/Source/inside2.cpp)
 SLONG person_slide_inside(SLONG inside, SLONG x1, SLONG y1, SLONG z1, SLONG* x2, SLONG* y2, SLONG* z2);
 
-// Computes stair Y interpolation for the person's current position.
-// Sets *y1 to the correct floor height and *new_floor to the new InsideStorey
-// index if the person crossed a stair threshold (0 = no floor change).
-// Returns 0 if movement is blocked by a stair.
-// uc_orig: find_stair_y (fallen/Source/inside2.cpp)
-SLONG find_stair_y(struct Thing* p_person, SLONG* y1, SLONG x, SLONG y, SLONG z, UWORD* new_floor);
-
 #endif // NAVIGATION_INSIDE2_H

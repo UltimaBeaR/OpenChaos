@@ -61,16 +61,6 @@ void fn_darci_init(Thing* t_thing)
 // Forward declaration for already-migrated matrix function (core/fmatrix.h).
 void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2);
 
-// uc_orig: advance_keyframe (fallen/Source/Darci.cpp)
-KeyFrame* advance_keyframe(KeyFrame* frame, SLONG count)
-{
-    while (count && frame->NextFrame) {
-        frame = frame->NextFrame;
-        count--;
-    }
-    return (frame);
-}
-
 // uc_orig: do_floor_collide (fallen/Source/Darci.cpp)
 SLONG do_floor_collide(Thing* p_thing, SWORD pelvis, SLONG* new_y, SLONG* foot_y, SLONG max_range)
 {
@@ -634,22 +624,6 @@ void change_velocity_to_slow(Thing* p_thing, SWORD velocity)
             p_thing->Velocity = velocity;
         else
             p_thing->Velocity += 1;
-    }
-}
-
-// uc_orig: trickle_velocity_to (fallen/Source/Darci.cpp)
-void trickle_velocity_to(Thing* p_thing, SWORD velocity)
-{
-    SLONG dv;
-
-    velocity = (velocity * 3) >> 2;
-
-    dv = velocity - p_thing->Velocity;
-    if (dv < 0) {
-        p_thing->Velocity--;
-
-    } else if (dv > 0) {
-        p_thing->Velocity++;
     }
 }
 

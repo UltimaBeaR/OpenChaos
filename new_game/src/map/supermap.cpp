@@ -17,11 +17,9 @@
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "engine/platform/uc_common.h"
 #include <string.h>
 
-extern UBYTE roper_pickup;
 extern SLONG TEXTURE_set;
 extern int TEXTURE_create_clump;
 
@@ -43,33 +41,6 @@ void add_facet_to_map(SLONG facet);
 // Levels struct and levels[] table are defined in supermap_globals.cpp.
 
 // ---- Functions ----
-
-// uc_orig: calc_inside_for_xyz (fallen/Source/supermap.cpp)
-UWORD calc_inside_for_xyz(SLONG x, SLONG y, SLONG z, UWORD* room)
-{
-    SLONG c0;
-    SLONG mx = x >> 8;
-    SLONG mz = z >> 8;
-
-    for (c0 = 1; c0 < next_inside_storey; c0++) {
-        if (mx >= inside_storeys[c0].MinX)
-            if (mx < inside_storeys[c0].MaxX)
-                if (mz >= inside_storeys[c0].MinZ)
-                    if (mz < inside_storeys[c0].MaxZ) {
-                        if (y > inside_storeys[c0].StoreyY &&
-                            y < inside_storeys[c0].StoreyY + 256) {
-                            SLONG r = find_inside_room(c0, mx, mz);
-                            if (r) {
-                                *room = r;
-                                return c0;
-                            }
-                        }
-                    }
-    }
-
-    *room = 0;
-    return 0;
-}
 
 // Load walkable geometry (DWalkable array and roof face quads) from the level file.
 // uc_orig: load_walkables (fallen/Source/supermap.cpp)
@@ -150,39 +121,6 @@ void load_super_map(MFFileHandle handle, SLONG save_type)
         FileRead(handle, (UBYTE*)&OB_ob[0], sizeof(OB_Ob) * OB_ob_upto);
         FileRead(handle, (UBYTE*)&OB_mapwho[0][0], sizeof(OB_Mapwho) * OB_SIZE * OB_SIZE);
     }
-}
-
-// uc_orig: add_sewer_ladder (fallen/Source/supermap.cpp)
-void add_sewer_ladder(
-    SLONG x1, SLONG z1,
-    SLONG x2, SLONG z2,
-    SLONG bottom, SLONG height,
-    SLONG link)
-{
-    DFacet* df;
-
-    if (!WITHIN(next_dfacet, 0, MAX_DFACETS - 1))
-        return;
-
-    if (next_dfacet == 0)
-        next_dfacet = 1;
-
-    df = &dfacets[next_dfacet];
-    df->FacetType = STOREY_TYPE_LADDER;
-    df->FacetFlags = FACET_FLAG_IN_SEWERS;
-    df->x[0] = x1 >> 8;
-    df->z[0] = z1 >> 8;
-    df->x[1] = x2 >> 8;
-    df->z[1] = z2 >> 8;
-    df->Y[0] = bottom;
-    df->Y[1] = bottom;
-    df->Height = height;
-
-    if (link)
-        df->FacetFlags |= FACET_FLAG_LADDER_LINK;
-
-    add_facet_to_map(next_dfacet);
-    next_dfacet += 1;
 }
 
 // uc_orig: find_electric_fence_dbuilding (fallen/Source/supermap.cpp)
@@ -276,34 +214,6 @@ void SUPERMAP_counter_increase(UBYTE which)
         }
         SUPERMAP_counter[which] = 1;
     }
-}
-
-// uc_orig: get_level_no (fallen/Source/supermap.cpp)
-SLONG get_level_no(CBYTE* name)
-{
-    SLONG p0, p1, c0 = 0;
-
-    roper_pickup = 0;
-
-    while (levels[c0].level) {
-        p0 = strlen(name) - 5;
-        p1 = strlen(levels[c0].name) - 1;
-
-        for (; p1 >= 0; p1--, p0--) {
-            if (tolower(name[p0]) != tolower(levels[c0].name[p1]))
-                break;
-        }
-
-        if (p1 < 0) {
-            level_index = c0;
-            DONT_load = levels[c0].dontload;
-            return levels[c0].level;
-        }
-
-        c0++;
-    }
-
-    return 0;
 }
 
 // Dev tool: iterates all levels, generates texture clump files, then exits.

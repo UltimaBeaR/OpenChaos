@@ -75,14 +75,5 @@ SLONG FONT_draw_coloured_char(
     UBYTE blue,
     CBYTE ch);
 
-// Draws text word-wrapped into a roughly square box. Bottom-left at (x,y).
-// uc_orig: FONT_draw_speech_bubble_text (fallen/DDEngine/Headers/Font.h)
-void FONT_draw_speech_bubble_text(
-    SLONG x,
-    SLONG y,
-    UBYTE red,
-    UBYTE green,
-    UBYTE blue,
-    CBYTE* fmt, ...);
 
 #endif // ENGINE_GRAPHICS_TEXT_FONT_H

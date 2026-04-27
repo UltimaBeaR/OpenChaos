@@ -28,7 +28,6 @@ extern SLONG ScreenHeight;
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "engine/audio/music.h"
 #include "game/game_types.h"
 
@@ -1781,72 +1780,6 @@ static void driver_enum_callback(const char* name, bool is_primary, bool is_curr
         state->selected = state->count;
 
     state->count++;
-}
-
-// uc_orig: FRONTEND_do_drivers (fallen/Source/frontend.cpp)
-// Populates the display driver/resolution/bit-depth menus by querying
-// the display driver list and current display settings.
-void FRONTEND_do_drivers()
-{
-    CBYTE *str = menu_buffer, *str_tmp;
-
-    switch (ScreenWidth) {
-    case 640:
-        CurrentVidMode = 0;
-        break;
-    case 800:
-        CurrentVidMode = 1;
-        break;
-    case 1024:
-        CurrentVidMode = 2;
-        break;
-    case 320:
-        CurrentVidMode = 3;
-        break;
-    case 512:
-        CurrentVidMode = 4;
-        break;
-    default:
-        CurrentVidMode = 0;
-        break;
-    }
-    CurrentBitDepth = ge_get_screen_bpp();
-
-    strcpy(str, "640x480");
-    str += strlen(str) + 1;
-    strcpy(str, "800x600");
-    str += strlen(str) + 1;
-    strcpy(str, "1024x768");
-    str += strlen(str) + 1;
-    strcpy(str, "320x240");
-    str += strlen(str) + 1;
-    strcpy(str, "512x384");
-    str += strlen(str) + 1;
-    str_tmp = str;
-    menu_data[1].Data = CurrentVidMode | (5 << 8);
-    menu_data[1].Choices = menu_buffer;
-
-    strcpy(str, "16 bit");
-    str += strlen(str) + 1;
-    strcpy(str, "32 bit");
-    str += strlen(str) + 1;
-    menu_data[3].Data = ((UBYTE)(CurrentBitDepth == 32)) | (2 << 8);
-    menu_data[3].Choices = str_tmp;
-    str_tmp = str;
-
-    DriverEnumState state = { str, 0, 0 };
-    ge_enumerate_drivers(driver_enum_callback, &state);
-
-    menu_data[2].Data = state.selected | (state.count << 8);
-    menu_data[2].Choices = str_tmp;
-}
-
-// uc_orig: FRONTEND_gamma_update (fallen/Source/frontend.cpp)
-// Applies the current gamma slider value to the display.
-void FRONTEND_gamma_update()
-{
-    if (menu_state.selected == GammaIndex)
-        ge_set_gamma(menu_data[GammaIndex].Data & 0xff, 256);
 }
 
 // uc_orig: FRONTEND_do_gamma (fallen/Source/frontend.cpp)

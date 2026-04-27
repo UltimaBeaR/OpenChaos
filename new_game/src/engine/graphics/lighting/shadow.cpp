@@ -17,28 +17,6 @@
 // uc_orig: SHADOW_DIR_Z (fallen/Source/shadow.cpp)
 #define SHADOW_DIR_Z (-147)
 
-// uc_orig: SHADOW_DIST (fallen/Source/shadow.cpp)
-#define SHADOW_DIST shadow_dist;
-
-// uc_orig: SHADOW_in (fallen/Source/shadow.cpp)
-// Cast a ray from (x1,y1,z1) toward the light source and return non-zero if blocked.
-// Offsets the origin slightly away from the surface to avoid self-intersection.
-SLONG SHADOW_in(SLONG x1, SLONG y1, SLONG z1)
-{
-    x1 -= SHADOW_DIR_X >> 5;
-    y1 -= SHADOW_DIR_Y >> 5;
-    z1 -= SHADOW_DIR_Z >> 5;
-
-    SLONG x2 = x1 - SHADOW_DIR_X * SHADOW_DIST;
-    SLONG y2 = y1 - SHADOW_DIR_Y * SHADOW_DIST;
-    SLONG z2 = z1 - SHADOW_DIR_Z * SHADOW_DIST;
-
-    return !there_is_a_los(
-        x1, y1, z1,
-        x2, y2, z2,
-        0);
-}
-
 // uc_orig: SHADOW_do (fallen/Source/shadow.cpp)
 // Compute 3-bit shadow values for all floor squares, roof tiles, roof faces,
 // and walkable prim faces. Each shadow value encodes which neighbours are taller

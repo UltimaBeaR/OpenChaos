@@ -90,36 +90,3 @@ void MATRIX_3x3mul(float a[9], float m[9], float n[9])
     a[8] = m[6] * n[2] + m[7] * n[5] + m[8] * n[8];
 }
 
-// uc_orig: MATRIX_find_angles (fallen/DDEngine/Source/Matrix.cpp)
-Direction MATRIX_find_angles(float matrix[9])
-{
-    Direction ans;
-
-    ans.pitch = (float)asin(matrix[7]);
-
-    if (fabsf(ans.pitch) > (PI / 4.0F)) {
-        if (fabsf(matrix[0]) + fabsf(matrix[2]) < 0.1F) {
-        }
-
-        ans.yaw = (float)atan2(matrix[0], matrix[2]) - (PI / 2.0F);
-    } else {
-        ans.yaw = (float)atan2(matrix[6], matrix[8]);
-    }
-
-    float cos_roll;
-    float sin_roll;
-    float cos_pitch;
-
-    cos_pitch = (float)cos(ans.pitch);
-
-    if (fabsf(cos_pitch) < 0.0001F) {
-        ans.roll = 0.0F;
-    } else {
-        cos_roll = matrix[4] / cos_pitch;
-        sin_roll = matrix[1] / -cos_pitch;
-
-        ans.roll = (float)atan2(sin_roll, cos_roll);
-    }
-
-    return ans;
-}

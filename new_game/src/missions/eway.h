@@ -214,10 +214,6 @@ SLONG EWAY_stop_player_moving(void);
 // uc_orig: EWAY_process_penalties (fallen/Source/eway.cpp)
 void EWAY_process_penalties(void);
 
-// Counts CREATE_ENEMY waypoints per subtype into people_types[]. Starts with early return (dead code preserved).
-// uc_orig: count_people_types (fallen/Source/eway.cpp)
-void count_people_types(void);
-
 // Main mission update: evaluates all waypoints each frame, ticks conversation/penalties/camera.
 // uc_orig: EWAY_process (fallen/Source/eway.cpp)
 void EWAY_process(void);
@@ -303,22 +299,9 @@ SLONG EWAY_used_person(UWORD t_index);
 // uc_orig: EWAY_work_out_which_ones_are_in_warehouses (fallen/Source/eway.cpp)
 void EWAY_work_out_which_ones_are_in_warehouses(void);
 
-// Computes a candidate camera world position at discrete angle 'angle' around a Thing.
-// uc_orig: EWAY_cam_get_position_for_angle (fallen/Source/eway.cpp)
-void EWAY_cam_get_position_for_angle(
-    Thing* p_thing,
-    SLONG angle,
-    SLONG* vx,
-    SLONG* vy,
-    SLONG* vz);
-
 // Positions the scripted camera for a two-person conversation using scored LOS sampling.
 // uc_orig: EWAY_cam_converse (fallen/Source/eway.cpp)
 void EWAY_cam_converse(Thing* p_thing, Thing* p_listener);
-
-// Positions the scripted camera to look at a single Thing, picking best angle by LOS+facing score.
-// uc_orig: EWAY_cam_look_at (fallen/Source/eway.cpp)
-void EWAY_cam_look_at(Thing* p_thing);
 
 // Begins the fade-out back from scripted camera to player camera (sets goinactive=2).
 // uc_orig: EWAY_cam_relinquish (fallen/Source/eway.cpp)

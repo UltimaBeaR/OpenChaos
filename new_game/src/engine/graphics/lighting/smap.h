@@ -35,18 +35,6 @@ void SMAP_person(
     SLONG light_dy,
     SLONG light_dz);
 
-// SMAP_bike is declared here for completeness but was never implemented.
-// Dead code: no definition exists in the original or new codebase.
-// uc_orig: SMAP_bike (fallen/DDEngine/Headers/smap.h)
-void SMAP_bike(
-    Thing* person,
-    UBYTE* bitmap,
-    UBYTE u_res,
-    UBYTE v_res,
-    SLONG light_dx,
-    SLONG light_dy,
-    SLONG light_dz);
-
 // Projects the shadow map computed by SMAP_person() onto a convex polygon in world space.
 // poly must be given in clockwise order. Returns NULL if the polygon is behind the light
 // or outside the shadow map's bounds. The returned linked list is valid only until the

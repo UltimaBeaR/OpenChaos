@@ -139,17 +139,9 @@ typedef PAP_Hi MEM_PAP_Hi[PAP_SIZE_HI];
 // Check if lo-res indices (x,z) are within map bounds.
 #define ON_PAP_LO(x, z) ((x) >= 0 && (z) >= 0 && (x) < PAP_SIZE_LO && (z) < PAP_SIZE_LO)
 
-// Returns whether the lo-res index is on the map.
-// uc_orig: PAP_on_map_lo (fallen/Source/pap.cpp)
-SLONG PAP_on_map_lo(SLONG x, SLONG z);
-
 // Returns whether the hi-res index is on the map.
 // uc_orig: PAP_on_map_hi (fallen/Source/pap.cpp)
 SLONG PAP_on_map_hi(SLONG x, SLONG z);
-
-// Clears all map data to zero.
-// uc_orig: PAP_clear (fallen/Source/pap.cpp)
-void PAP_clear(void);
 
 // Returns the height at the corner of a hi-res cell. map_x, map_z are already-shifted indices.
 // uc_orig: PAP_calc_height_at_point (fallen/Source/pap.cpp)
@@ -171,10 +163,6 @@ SLONG PAP_calc_map_height_at(SLONG x, SLONG z);
 // Returns terrain height ignoring road curbs and sink-square modifiers.
 // uc_orig: PAP_calc_height_noroads (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_noroads(SLONG x, SLONG z);
-
-// Returns the maximum terrain height among the four neighbors of (x,z), used for placement.
-// uc_orig: PAP_calc_map_height_near (fallen/Source/pap.cpp)
-SLONG PAP_calc_map_height_near(SLONG x, SLONG z);
 
 // Returns true if the rectangular region is roughly flat (height difference < 16 units).
 // uc_orig: PAP_is_flattish (fallen/Source/pap.cpp)

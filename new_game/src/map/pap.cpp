@@ -10,16 +10,6 @@
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 
-// uc_orig: PAP_on_map_lo (fallen/Source/pap.cpp)
-SLONG PAP_on_map_lo(SLONG x, SLONG z)
-{
-    if (WITHIN(x, 0, PAP_SIZE_LO - 1) && WITHIN(z, 0, PAP_SIZE_LO - 1)) {
-        return UC_TRUE;
-    } else {
-        return UC_FALSE;
-    }
-}
-
 // uc_orig: PAP_on_map_hi (fallen/Source/pap.cpp)
 SLONG PAP_on_map_hi(SLONG x, SLONG z)
 {
@@ -30,13 +20,6 @@ SLONG PAP_on_map_hi(SLONG x, SLONG z)
     }
 }
 
-
-// uc_orig: PAP_clear (fallen/Source/pap.cpp)
-void PAP_clear(void)
-{
-    memset((UBYTE*)&PAP_lo[0][0], 0, sizeof(PAP_Lo) * PAP_SIZE_LO * PAP_SIZE_LO);
-    memset((UBYTE*)&PAP_hi[0][0], 0, sizeof(PAP_Hi) * PAP_SIZE_HI * PAP_SIZE_HI);
-}
 
 // uc_orig: PAP_calc_height_at_point (fallen/Source/pap.cpp)
 SLONG PAP_calc_height_at_point(SLONG map_x, SLONG map_z)
@@ -299,31 +282,6 @@ SLONG PAP_calc_height_noroads(SLONG x, SLONG z)
     }
 
     return answer;
-}
-
-// uc_orig: PAP_calc_map_height_near (fallen/Source/pap.cpp)
-SLONG PAP_calc_map_height_near(SLONG x, SLONG z)
-{
-    SLONG i;
-
-    SLONG dx;
-    SLONG dz;
-
-    SLONG height;
-    SLONG max = -UC_INFINITY;
-
-    for (i = 0; i < 4; i++) {
-        dx = (i & 1) ? -8 : +8;
-        dz = (i & 2) ? -8 : +8;
-
-        height = PAP_calc_map_height_at(x + dx, z + dz);
-
-        if (height > max) {
-            max = height;
-        }
-    }
-
-    return max;
 }
 
 // Returns slope steepness (0 = flat) and fills *angle with the downslope direction.

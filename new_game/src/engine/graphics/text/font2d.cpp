@@ -452,35 +452,6 @@ void FONT2D_DrawStringCentred(CBYTE* chr, SLONG x, SLONG y, ULONG rgb, SLONG sca
     FONT2D_DrawString(chr, x, y, rgb, scale, page, fade);
 }
 
-// Draws the string at a 3D world coordinate, projected onto the screen.
-// Scale is derived from the projected Z depth.
-// uc_orig: FONT2D_DrawString_3d (fallen/DDEngine/Source/font2d.cpp)
-void FONT2D_DrawString_3d(CBYTE* str, ULONG world_x, ULONG world_y, ULONG world_z, ULONG rgb, SLONG text_size, SWORD fade)
-{
-    if (str == NULL) {
-        str = "Null string";
-    }
-
-    POLY_Point mid;
-    POLY_transform(world_x, world_y, world_z, &mid);
-
-    if (mid.IsValid()) {
-        float x = mid.X;
-        float y = mid.Y;
-        SLONG scale = SLONG(mid.Z * 6 * 256);
-
-        // Compute total pixel width and centre horizontally.
-        SLONG len = 0;
-        for (CBYTE* ch = str; *ch; ch++) {
-            len += FONT2D_GetLetterWidth(*ch) * scale >> 8;
-        }
-
-        x -= len / 2;
-
-        FONT2D_DrawString_NoTrueType(str, (SLONG)x, (SLONG)y, 0xFFFFFF, scale, POLY_PAGE_FONT2D, 0);
-    }
-}
-
 // uc_orig: FONT2D_DrawStrikethrough (fallen/DDEngine/Headers/font2d.h)
 void FONT2D_DrawStrikethrough(SLONG x1, SLONG x2, SLONG y, ULONG rgb, SLONG scale, SLONG page, SLONG fade, bool bUseLastOffset)
 {

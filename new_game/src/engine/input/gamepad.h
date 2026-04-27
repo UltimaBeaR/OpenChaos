@@ -112,9 +112,4 @@ bool    gamepad_get_left_trigger_effect_active();
 // active on the hardware (i.e. the trigger state machine is in AIM_GUN
 // mode, not NONE/CAR). Reflects the most recent state set by
 // gamepad_triggers_update. Returns false for non-DualSense devices
-// and whenever the weapon isn't ready (no gun, non-firing state,
-// post-fire cooldown, etc.). Callers use this to decide whether the
-// act-bit fire-detection signal is meaningful this tick — when mode
-// is NONE the hardware can't emit clicks.
-bool    gamepad_is_adaptive_click_active();
 

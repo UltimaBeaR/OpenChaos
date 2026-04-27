@@ -32,7 +32,6 @@
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "effects/combat/pow.h"
 #include "effects/combat/pow_globals.h"
 #include "buildings/build2.h"
@@ -2004,50 +2003,6 @@ SLONG ELEV_game_init(
     ATTRACT_loadscreen_draw(100 * 256 / 100);
 
     return UC_TRUE;
-}
-
-// Strips the directory prefix from src, copies the filename (without extension)
-// into dest, and appends a dot followed by the given extension.
-// Used to derive related filenames from a map path (e.g. "city.iam" → "city.lgt").
-// uc_orig: ELEV_create_similar_name (fallen/Source/elev.cpp)
-void ELEV_create_similar_name(
-    CBYTE* dest,
-    CBYTE* src,
-    CBYTE* ext)
-{
-    CBYTE* ch;
-    CBYTE* ci;
-
-    for (ch = src; *ch; ch++)
-        ;
-
-    while (1) {
-        if (ch == src) {
-            break;
-        }
-
-        if (*ch == '\\' || *ch == '/') {
-            ch++;
-
-            break;
-        }
-
-        ch--;
-    }
-
-    ci = dest;
-
-    while (1) {
-        *ci++ = *ch++;
-
-        if (*ch == '.' || *ch == '\000') {
-            break;
-        }
-    }
-
-    *ci++ = '.';
-
-    strcpy(ci, ext);
 }
 
 // Reads map/lighting/citsez paths from the .ucm header, then calls ELEV_game_init.

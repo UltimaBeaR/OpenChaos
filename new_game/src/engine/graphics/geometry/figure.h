@@ -169,25 +169,6 @@ void FIGURE_draw_prim_tween(
     SLONG part_number = 0xffffffff,
     ULONG colour_and = 0xffffffff);
 
-// Variant of FIGURE_draw_prim_tween that applies a sinusoidal Z-dependent position warp.
-// Used for cloaking/teleport visual distortion effects.
-// uc_orig: FIGURE_draw_prim_tween_warped (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween_warped(
-    SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    ULONG colour,
-    ULONG specular,
-    Thing* p_thing);
-
 // Optimised hierarchical 15-body-part character renderer using D3D MultiMatrix extension.
 // Batches all 15 body part transforms, then issues a single DrawIndPrimMM call.
 // Falls back to FIGURE_draw_hierarchical_prim_recurse_individual_cull on partial visibility.

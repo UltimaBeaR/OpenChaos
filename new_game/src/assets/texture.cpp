@@ -22,7 +22,6 @@
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "buildings/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
 #include "buildings/building_globals.h" // dx_textures_xy, building_list
 #include "map/supermap_globals.h" // next_dfacet

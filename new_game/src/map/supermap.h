@@ -133,10 +133,6 @@ struct DInsideRect {
 // uc_orig: load_super_map (fallen/Source/supermap.cpp)
 void load_super_map(MFFileHandle handle, SLONG save_type);
 
-// uc_orig: add_sewer_ladder (fallen/Source/supermap.cpp)
-void add_sewer_ladder(SLONG x1, SLONG z1, SLONG x2, SLONG z2,
-                      SLONG bottom, SLONG height, SLONG link);
-
 // uc_orig: find_electric_fence_dbuilding (fallen/Source/supermap.cpp)
 SLONG find_electric_fence_dbuilding(SLONG world_x, SLONG world_y, SLONG world_z, SLONG range);
 
@@ -145,15 +141,6 @@ void set_electric_fence_state(SLONG dbuilding, SLONG onoroff);
 
 // uc_orig: SUPERMAP_counter_increase (fallen/Source/supermap.cpp)
 void SUPERMAP_counter_increase(UBYTE which);
-
-// Returns level index for mission name, or 0 if not found. Sets DONT_load bitmask.
-// uc_orig: get_level_no (fallen/Source/supermap.cpp)
-SLONG get_level_no(CBYTE* name);
-
-// Returns InsideStorey index (1-based) for world point (x,y,z), or 0 if outdoors.
-// Also fills *room with the room ID within that InsideStorey.
-// uc_orig: calc_inside_for_xyz (fallen/Source/supermap.cpp)
-UWORD calc_inside_for_xyz(SLONG x, SLONG y, SLONG z, UWORD* room);
 
 // Dev tool: iterates all levels, generates texture clump files, then exits.
 // Called from game_startup() when TEXTURE_create_clump mode is active.

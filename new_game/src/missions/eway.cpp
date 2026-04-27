@@ -4218,14 +4218,6 @@ void EWAY_process_penalties()
 // uc_orig: people_types (fallen/Source/Person.cpp)
 extern SWORD people_types[50];
 
-// Counts how many CREATE_ENEMY waypoints of each subtype exist.
-// Always returns immediately — body is unreachable in original.
-// uc_orig: count_people_types (fallen/Source/eway.cpp)
-void count_people_types(void)
-{
-    return;
-}
-
 // Main mission update tick. Evaluates every waypoint each frame:
 // activates waypoints whose conditions are met, deactivates timed/conditional ones.
 // Also ticks the active conversation, driving penalty display, and scripted camera.
@@ -4742,36 +4734,6 @@ void EWAY_work_out_which_ones_are_in_warehouses()
 // uc_orig: EWAY_CAM_VIEW_ANGLES (fallen/Source/eway.cpp)
 #define EWAY_CAM_VIEW_ANGLES 16
 
-// Computes a camera world position at 'angle' steps around a Thing,
-// at a fixed lateral distance and elevation.
-// uc_orig: EWAY_cam_get_position_for_angle (fallen/Source/eway.cpp)
-void EWAY_cam_get_position_for_angle(
-    Thing* p_thing,
-    SLONG angle,
-    SLONG* vx,
-    SLONG* vy,
-    SLONG* vz)
-{
-    SLONG dx;
-    SLONG dz;
-
-    ASSERT(WITHIN(angle, 0, EWAY_CAM_VIEW_ANGLES - 1));
-
-    angle = angle * (2048 / EWAY_CAM_VIEW_ANGLES) + 100;
-    angle &= 2047;
-
-    dx = SIN(angle);
-    dz = COS(angle);
-
-    *vx = p_thing->WorldPos.X >> 8;
-    *vy = p_thing->WorldPos.Y >> 8;
-    *vz = p_thing->WorldPos.Z >> 8;
-
-    *vx += dx >> 7;
-    *vz += dz >> 7;
-    *vy += 0x140;
-}
-
 // Number of angles sampled when finding the best conversation camera position.
 // Must be a power of 2.
 // uc_orig: EWAY_CONVERSE_ANGLES (fallen/Source/eway.cpp)
@@ -4986,147 +4948,6 @@ void EWAY_cam_converse(Thing* p_thing, Thing* p_listener)
     }
 
     EWAY_cam_active = UC_TRUE;
-}
-
-// Positions the scripted camera to look at a single Thing (used for scripted cut-scenes).
-// Scores EWAY_CAM_VIEW_ANGLES candidate positions by LOS and facing; picks best.
-// uc_orig: EWAY_cam_look_at (fallen/Source/eway.cpp)
-void EWAY_cam_look_at(Thing* p_thing)
-{
-    SLONG i;
-
-    SLONG dx;
-    SLONG dz;
-
-    SLONG cx;
-    SLONG cz;
-
-    SLONG dprod;
-
-    SLONG vx;
-    SLONG vy;
-    SLONG vz;
-
-    SLONG score;
-
-    SLONG best_angle;
-    SLONG best_score;
-
-    UWORD thing_yaw;
-
-    SLONG view[EWAY_CAM_VIEW_ANGLES];
-
-    // Get the facing direction of the target.
-    switch (p_thing->Class) {
-    case CLASS_PERSON:
-        thing_yaw = p_thing->Draw.Tweened->Angle;
-        break;
-
-    case CLASS_VEHICLE:
-        thing_yaw = p_thing->Genus.Vehicle->Angle;
-        break;
-
-    default:
-        ASSERT(0);
-        break;
-    }
-
-    dx = -SIN(thing_yaw);
-    dz = -COS(thing_yaw);
-
-    // Score each candidate angle: positive dot product (camera behind target) + LOS.
-    for (i = 0; i < EWAY_CAM_VIEW_ANGLES; i++) {
-        EWAY_cam_get_position_for_angle(
-            p_thing,
-            i,
-            &vx,
-            &vy,
-            &vz);
-
-        if (there_is_a_los(
-                vx, vy, vz,
-                (p_thing->WorldPos.X >> 8),
-                (p_thing->WorldPos.Y >> 8) + 0x80,
-                (p_thing->WorldPos.Z >> 8),
-                0)) {
-            cx = vx - (p_thing->WorldPos.X >> 8);
-            cz = vz - (p_thing->WorldPos.Z >> 8);
-
-            dprod = dx * cx + dz * cz;
-
-            if (dprod < 1000) {
-                dprod = 1000;
-            }
-
-            view[i] = dprod;
-        } else {
-            view[i] = UC_FALSE;
-        }
-    }
-
-    best_score = 0;
-
-    // Use a deterministic-but-varied seed based on Thing position.
-    ULONG seed = p_thing->WorldPos.X ^ p_thing->WorldPos.Z;
-
-    for (i = 0; i < EWAY_CAM_VIEW_ANGLES; i++) {
-        seed *= 69069;
-        seed += 1;
-
-        if (!view[i]) {
-            continue;
-        }
-
-        score = seed & 0x3ffff;
-        score += 1; // In case (seed & 0xfff) is zero.
-        score += view[i];
-
-        if (view[(i - 1) & (EWAY_CAM_VIEW_ANGLES - 1)]) {
-            score += seed & 0x3ffff;
-        }
-        if (view[(i + 1) & (EWAY_CAM_VIEW_ANGLES - 1)]) {
-            score += seed & 0x3ffff;
-        }
-
-        if (score > best_score) {
-            EWAY_cam_get_position_for_angle(
-                p_thing,
-                i,
-                &vx,
-                &vy,
-                &vz);
-
-            best_score = score;
-            best_angle = i;
-        }
-    }
-
-    if (best_score) {
-        EWAY_cam_get_position_for_angle(
-            p_thing,
-            best_angle,
-            &EWAY_cam_x,
-            &EWAY_cam_y,
-            &EWAY_cam_z);
-    } else {
-        // Fallback: place camera slightly behind the Thing.
-        EWAY_cam_x = p_thing->WorldPos.X >> 8;
-        EWAY_cam_y = p_thing->WorldPos.Y >> 8;
-        EWAY_cam_z = p_thing->WorldPos.Z >> 8;
-
-        EWAY_cam_x -= dx >> 8;
-        EWAY_cam_y += 0x140;
-        EWAY_cam_z -= dz >> 8;
-    }
-
-    EWAY_cam_active = UC_TRUE;
-    EWAY_cam_thing = THING_NUMBER(p_thing);
-    EWAY_cam_waypoint = NULL;
-    EWAY_cam_freeze = UC_TRUE;
-
-    EWAY_cam_x <<= 8;
-    EWAY_cam_y <<= 8;
-    EWAY_cam_z <<= 8;
 }
 
 // Begins the fade-out transition back from the scripted camera to the player camera.

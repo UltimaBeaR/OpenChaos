@@ -6,7 +6,6 @@
 #include "map/level_pools.h"
 
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "assets/formats/anim_globals.h"           // the_elements, game_chunk, anim_chunk
 #include "assets/formats/anim.h"                   // free_game_chunk
 #include "assets/formats/level_loader.h"           // change_extension, DATA_DIR, read_object_name

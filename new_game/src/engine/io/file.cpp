@@ -230,26 +230,6 @@ SLONG FileSeek(MFFileHandle file_handle, const int mode, SLONG offset)
     return 0;
 }
 
-// uc_orig: FileLoadAt (MFStdLib/Source/StdLib/StdFile.cpp)
-SLONG FileLoadAt(CBYTE* file_name, void* buffer)
-{
-    SLONG size;
-    MFFileHandle handle;
-
-    handle = FileOpen(file_name);
-    if (handle != FILE_OPEN_ERROR) {
-        size = FileSize(handle);
-        if (size > 0) {
-            if (FileRead(handle, buffer, size) == size) {
-                FileClose(handle);
-                return size;
-            }
-        }
-        FileClose(handle);
-    }
-    return FILE_LOAD_AT_ERROR;
-}
-
 // uc_orig: FileSetBasePath (MFStdLib/Source/StdLib/StdFile.cpp)
 void FileSetBasePath(CBYTE* path_name)
 {

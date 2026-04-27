@@ -20,7 +20,6 @@
 #include "assets/formats/level_loader.h"
 #include "assets/formats/level_loader_globals.h"
 #include "assets/formats/anim_loader.h"
-#include "assets/formats/anim_loader_globals.h"
 #include "things/items/special.h"
 #include "things/items/special_globals.h"
 #include "things/items/barrel.h"
@@ -234,49 +233,6 @@ OB_Info* OB_find(SLONG x, SLONG z)
 
             of += 1;
         }
-
-        index += 1;
-    }
-
-    of->prim = NULL;
-    return OB_found;
-}
-
-// uc_orig: OB_find_inside (fallen/Source/ob.cpp)
-OB_Info* OB_find_inside(SLONG x, SLONG z, SLONG indoors)
-{
-    OB_Info* of;
-    SLONG num;
-    SLONG index;
-    OB_Mapwho* om;
-    OB_Ob* oo;
-
-    ASSERT(WITHIN(x, 0, OB_SIZE - 1));
-    ASSERT(WITHIN(z, 0, OB_SIZE - 1));
-
-    om = &OB_mapwho[x][z];
-    index = om->index;
-    num = om->num;
-    of = OB_found;
-
-    while (num--) {
-        ASSERT(WITHIN(index, 1, OB_ob_upto - 1));
-        oo = &OB_ob[index];
-
-        if (oo->InsideIndex == indoors)
-            if (oo->prim) {
-                of->prim = oo->prim;
-                of->x = (x << 10) + (oo->x << 2);
-                of->z = (z << 10) + (oo->z << 2);
-                of->y = oo->y;
-                of->yaw = oo->yaw << 3;
-                of->pitch = 0;
-                of->roll = 0;
-                of->index = index;
-                of->InsideIndex = oo->InsideIndex;
-                of->flags = oo->flags;
-                of += 1;
-            }
 
         index += 1;
     }
@@ -813,22 +769,6 @@ OB_Info* OB_find_index(SLONG mid_x, SLONG mid_y, SLONG mid_z, SLONG max_range,
 
     return best_ob;
 }
-
-// uc_orig: OB_find_min_y (fallen/Source/ob.cpp)
-SLONG OB_find_min_y(SLONG prim)
-{
-    SLONG sp = prim_objects[prim].StartPoint;
-    SLONG ep = prim_objects[prim].EndPoint;
-    SLONG c0;
-    SLONG min_y = 999999;
-
-    for (c0 = sp; c0 < ep; c0++) {
-        if (prim_points[c0].Y < min_y)
-            min_y = prim_points[c0].Y;
-    }
-    return min_y;
-}
-
 
 // uc_orig: OB_damage (fallen/Source/ob.cpp)
 void OB_damage(

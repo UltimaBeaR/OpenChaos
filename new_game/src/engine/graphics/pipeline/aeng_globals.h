@@ -6,7 +6,6 @@
 #include "buildings/prim_types.h" // RMAX_PRIM_POINTS, PrimObject types
 #include "engine/graphics/pipeline/poly.h"          // POLY_Point
 #include "engine/graphics/lighting/smap.h"                  // SMAP_Link
-#include "engine/compression/compression.h"
 #include "map/map.h"
 
 // Renamed from anonymous struct to AENG_ConePoint to allow external linkage.
@@ -128,28 +127,6 @@ extern float AENG_cam_matrix[9];
 // Camera forward vector in 16.16 fixed-point.
 extern SLONG AENG_cam_vec[3];
 
-// uc_orig: AENG_MAX_MOVIE_DATA (fallen/DDEngine/Source/aeng.cpp)
-// Maximum size of the pre-rendered movie video data buffer (512 KB).
-#define AENG_MAX_MOVIE_DATA (512 * 1024)
-
-// uc_orig: AENG_movie_data (fallen/DDEngine/Source/aeng.cpp)
-// Buffer for the pre-rendered "movie" video texture data (bond.mmv).
-extern UBYTE AENG_movie_data[AENG_MAX_MOVIE_DATA];
-
-// uc_orig: AENG_movie_upto (fallen/DDEngine/Source/aeng.cpp)
-// Read pointer into AENG_movie_data for the current playback position.
-extern UBYTE* AENG_movie_upto;
-
-// uc_orig: AENG_frame_count (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_frame_count;
-
-// uc_orig: AENG_frame_tick (fallen/DDEngine/Source/aeng.cpp)
-extern SLONG AENG_frame_tick;
-
-// uc_orig: AENG_frame_number (fallen/DDEngine/Source/aeng.cpp)
-// Total number of frames in the loaded movie (0 = no movie loaded).
-extern SLONG AENG_frame_number;
-
 // uc_orig: AENG_project_offset_u (fallen/DDEngine/Source/aeng.cpp)
 // UV offset applied to projected shadow polygons (set by AENG_add_projected_*).
 extern float AENG_project_offset_u;
@@ -169,18 +146,6 @@ extern float AENG_project_fadeout_x;
 // uc_orig: AENG_project_fadeout_z (fallen/DDEngine/Source/aeng.cpp)
 extern float AENG_project_fadeout_z;
 
-// uc_orig: AENG_frame_one (fallen/DDEngine/Source/aeng.cpp)
-extern COMP_Frame AENG_frame_one;
-
-// uc_orig: AENG_frame_two (fallen/DDEngine/Source/aeng.cpp)
-extern COMP_Frame AENG_frame_two;
-
-// uc_orig: AENG_frame_last (fallen/DDEngine/Source/aeng.cpp)
-extern COMP_Frame* AENG_frame_last;
-
-// uc_orig: AENG_frame_next (fallen/DDEngine/Source/aeng.cpp)
-extern COMP_Frame* AENG_frame_next;
-
 // uc_orig: GetShadowPixelMapping (fallen/DDEngine/Source/aeng.cpp)
 // Returns a 256-entry UBYTE->UWORD table mapping shadow density values to
 // the correct 16-bit pixel format for the shadow texture surface.
@@ -189,9 +154,6 @@ UWORD* GetShadowPixelMapping();
 // uc_orig: move_clouds (fallen/DDEngine/Source/aeng.cpp)
 // Advances the cloud scroll offsets by a fixed amount each call.
 void move_clouds(void);
-
-// uc_orig: AENG_movie_init (fallen/DDEngine/Source/aeng.cpp)
-void AENG_movie_init(void);
 
 // uc_orig: AENG_calc_gamut (fallen/DDEngine/Source/aeng.cpp)
 // Computes the full view frustum gamut for camera-based culling.

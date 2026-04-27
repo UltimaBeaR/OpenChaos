@@ -99,17 +99,6 @@ found_chopper:
     }
 }
 
-// uc_orig: free_chopper (fallen/Source/chopper.cpp)
-void free_chopper(Thing* p_thing)
-{
-    Chopper* chopper = CHOPPER_get_chopper(p_thing);
-
-    chopper->ChopperType = CHOPPER_NONE;
-    CHOPPER_COUNT -= 1;
-
-    free_thing(p_thing);
-}
-
 // uc_orig: CHOPPER_create (fallen/Source/chopper.cpp)
 Thing* CHOPPER_create(GameCoord pos, UBYTE type)
 {

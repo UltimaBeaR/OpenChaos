@@ -19,15 +19,6 @@
 // uc_orig: COS (MFStdLib/Headers/StdMaths.h)
 #define COS(a) CosTable[a]
 
-// Float sine/cosine via PSX angle.
-// Only covers 0-511 (0-90 degrees). Out-of-range is undefined.
-
-// uc_orig: SIN_F (MFStdLib/Headers/StdMaths.h)
-#define SIN_F(a) SinTableF[a]
-
-// uc_orig: COS_F (MFStdLib/Headers/StdMaths.h)
-#define COS_F(a) CosTableF[a]
-
 // Arctangent in PSX angle units (0-2047). 8-quadrant decomposition
 // using AtanTable for the 0-90 degree range.
 
@@ -40,12 +31,4 @@ SLONG Arctan(SLONG X, SLONG Y);
 SLONG Root(SLONG square);
 
 // 2D segment intersection test in XZ plane.
-// Returns TRUE if segment V (vx1,vz1)→(vx2,vz2) intersects segment W (wx1,wz1)→(wx2,wz2).
-// Touching endpoints count as an intersection.
-// Uses bounding box pre-check then parametric cross-product test (no division).
-// uc_orig: MATHS_seg_intersect (fallen/Headers/maths.h)
-SLONG MATHS_seg_intersect(
-    SLONG vx1, SLONG vz1, SLONG vx2, SLONG vz2,
-    SLONG wx1, SLONG wz1, SLONG wx2, SLONG wz2);
-
 #endif // ENGINE_CORE_MATH_H

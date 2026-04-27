@@ -33,20 +33,6 @@ extern PrimInfo* prim_info;
 // uc_orig: prim_names (fallen/Source/Prim.cpp)
 extern CBYTE prim_names[MAX_PRIM_OBJECTS][32];
 
-// Transformed vertex output buffer. Shared scratch space used by the DDEngine
-// rendering layer to store projected screen-space coordinates.
-// 15560 = max vertices across all prims in a single draw call.
-// uc_orig: global_res (fallen/Source/Prim.cpp)
-extern struct SVector global_res[15560];
-
-// Per-vertex clip flags output buffer (parallel to global_res[]).
-// uc_orig: global_flags (fallen/Source/Prim.cpp)
-extern SLONG global_flags[15560];
-
-// Per-vertex brightness output buffer (parallel to global_res[]).
-// uc_orig: global_bright (fallen/Source/Prim.cpp)
-extern UWORD global_bright[15560];
-
 // Temporary scratch buffer for the per-vertex normal averaging pass.
 // Each element counts how many faces reference the corresponding prim point.
 // uc_orig: each_point (fallen/Source/Prim.cpp)

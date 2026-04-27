@@ -142,12 +142,6 @@ void special_drop(Thing* p_special, Thing* p_person)
     }
 }
 
-// uc_orig: person_has_twohanded_weapon (fallen/Source/Special.cpp)
-SLONG person_has_twohanded_weapon(Thing* p_person)
-{
-    return (person_has_special(p_person, SPECIAL_SHOTGUN) || person_has_special(p_person, SPECIAL_AK47) || person_has_special(p_person, SPECIAL_BASEBALLBAT));
-}
-
 // ---------------------------------------------------------------------------
 // Pickup eligibility
 // ---------------------------------------------------------------------------

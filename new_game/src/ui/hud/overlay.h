@@ -16,9 +16,6 @@ extern void track_gun_sight(Thing* p_thing, SLONG accuracy);
 // uc_orig: init_overlay (fallen/Source/overlay.cpp)
 extern void init_overlay(void);
 
-// uc_orig: overlay_beacons (fallen/Source/overlay.cpp)
-extern void overlay_beacons(void);
-
 // uc_orig: add_damage_text (fallen/Source/overlay.cpp)
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 

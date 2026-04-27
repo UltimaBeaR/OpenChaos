@@ -130,10 +130,6 @@ void OB_create(SLONG x, SLONG y, SLONG z, SLONG yaw, SLONG pitch, SLONG roll,
 // uc_orig: OB_find (fallen/Source/ob.cpp)
 OB_Info* OB_find(SLONG lo_map_x, SLONG lo_map_z);
 
-// Like OB_find but filters by InsideIndex (room ID).
-// uc_orig: OB_find_inside (fallen/Source/ob.cpp)
-OB_Info* OB_find_inside(SLONG x, SLONG z, SLONG indoors);
-
 // Search for the nearest OB matching prim_flags within max_range of (mid_x, mid_y, mid_z).
 // prim_flags <= 255: PRIM_FLAG_* bitmask. prim_flags > 255: FIND_OB_* special type.
 // uc_orig: OB_find_type (fallen/Source/ob.cpp)
@@ -173,9 +169,6 @@ void OB_make_all_the_switches_be_at_the_proper_height(void);
 
 // uc_orig: OB_add_walkable_faces (fallen/Source/ob.cpp)
 void OB_add_walkable_faces(void);
-
-// uc_orig: OB_find_min_y (fallen/Source/ob.cpp)
-SLONG OB_find_min_y(SLONG prim);
 
 // Called from elev.cpp and Game.cpp to set environment mapping on special objects.
 // uc_orig: envmap_specials (fallen/Source/ob.cpp)

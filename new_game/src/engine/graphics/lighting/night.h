@@ -381,12 +381,6 @@ NIGHT_Colour NIGHT_ambient_at_point(SLONG norm_x, SLONG norm_y, SLONG norm_z);
 // uc_orig: NIGHT_slight_create (fallen/Headers/Night.h)
 SLONG NIGHT_slight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SBYTE green, SBYTE blue);
 
-// uc_orig: NIGHT_slight_delete (fallen/Headers/Night.h)
-void NIGHT_slight_delete(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SBYTE green, SBYTE blue);
-
-// uc_orig: NIGHT_slight_delete_all (fallen/Headers/Night.h)
-void NIGHT_slight_delete_all(void);
-
 // uc_orig: NIGHT_dlight_create (fallen/Headers/Night.h)
 UBYTE NIGHT_dlight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, UBYTE red, UBYTE green, UBYTE blue);
 
@@ -406,8 +400,6 @@ void NIGHT_dlight_squares_down(void);
 void NIGHT_cache_recalc(void);
 // uc_orig: NIGHT_cache_create (fallen/Headers/Night.h)
 void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE inside_warehouse = UC_FALSE);
-// uc_orig: NIGHT_cache_create_inside (fallen/Headers/Night.h)
-void NIGHT_cache_create_inside(UBYTE lo_map_x, UBYTE lo_map_z, SLONG floor_y);
 // uc_orig: NIGHT_cache_destroy (fallen/Headers/Night.h)
 void NIGHT_cache_destroy(UBYTE square_index);
 

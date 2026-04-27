@@ -73,17 +73,4 @@ void MORPH_load()
     }
 }
 
-// uc_orig: MORPH_get_points (fallen/Source/morph.cpp)
-MORPH_Point* MORPH_get_points(SLONG morph)
-{
-    MORPH_Morph* mm = &MORPH_morph[morph];
-    return &MORPH_point[mm->index];
-}
-
-// uc_orig: MORPH_get_num_points (fallen/Source/morph.cpp)
-SLONG MORPH_get_num_points(SLONG morph)
-{
-    MORPH_Morph* mm = &MORPH_morph[morph];
-    return mm->num_points;
-}
 

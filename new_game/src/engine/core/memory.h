@@ -14,9 +14,6 @@ void ResetMemory(void);
 // uc_orig: MemAlloc (MFStdLib/Source/StdLib/StdMem.cpp)
 void* MemAlloc(ULONG size);
 
-// uc_orig: MemReAlloc (MFStdLib/Source/StdLib/StdMem.cpp)
-void* MemReAlloc(void* ptr, ULONG size);
-
 // uc_orig: MemFree (MFStdLib/Source/StdLib/StdMem.cpp)
 void MemFree(void* mem_ptr);
 

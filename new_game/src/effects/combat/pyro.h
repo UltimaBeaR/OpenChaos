@@ -182,10 +182,6 @@ void PYRO_hitspang(Thing* p_person, Thing* victim);
 // uc_orig: PYRO_hitspang (fallen/Source/pyro.cpp)
 void PYRO_hitspang(Thing* p_person, SLONG x, SLONG y, SLONG z);
 
-// Finds all CLASS_PERSON Things in radius and creates PYRO_IMMOLATE on each.
-// uc_orig: PYRO_blast_radius (fallen/Source/pyro.cpp)
-void PYRO_blast_radius(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG strength);
-
 // PYRO_init_state declared in original header but never implemented — dead declaration.
 // Kept here for ABI compatibility only.
 // uc_orig: PYRO_init_state (fallen/Headers/pyro.h)

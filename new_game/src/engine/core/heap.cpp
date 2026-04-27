@@ -136,16 +136,6 @@ void* HEAP_get(SLONG size)
     }
 }
 
-// uc_orig: HEAP_max_free (fallen/Source/heap.cpp)
-SLONG HEAP_max_free(void)
-{
-    if (HEAP_free) {
-        return (HEAP_free->size);
-    } else {
-        return (0);
-    }
-}
-
 // uc_orig: HEAP_give (fallen/Source/heap.cpp)
 void HEAP_give(void* mem, SLONG num_bytes)
 {

@@ -31,12 +31,6 @@ static BOOL Mata(SLONG ofs, TGA_Pixel* data)
     return (Red(ofs, data) && Red(ofs + 1, data) && (Red(ofs + 256, data)));
 }
 
-// uc_orig: MENUFONT_Page (fallen/DDEngine/Source/menufont.cpp)
-void MENUFONT_Page(SLONG page)
-{
-    FontPage = page;
-}
-
 // uc_orig: TEXTURE_EXTRA_DIR (fallen/DDEngine/Source/menufont.cpp)
 #define TEXTURE_EXTRA_DIR "server/textures/extras/"
 
@@ -188,89 +182,6 @@ void MENUFONT_Draw(SWORD x, SWORD y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD f
     }
 }
 
-// uc_orig: MENUFONT_Draw_floats (fallen/DDEngine/Source/menufont.cpp)
-void MENUFONT_Draw_floats(float x, float y, UWORD scale, CBYTE* msg, SLONG rgb, UWORD flags)
-{
-    SLONG c0, len = strlen(msg);
-    float width = 0, height;
-    UBYTE* pt;
-    float fscale = (float)scale / 256.0f;
-    POLY_Point pp[4];
-    POLY_Point* quad[4] = { &pp[0], &pp[1], &pp[2], &pp[3] };
-    UBYTE hchar = (flags & MENUFONT_SUPER_YCTR) ? (UBYTE)*msg : 'M';
-
-    if (flags & MENUFONT_HSCALEONLY) {
-        y -= FontInfo[hchar].height * 0.5f;
-    } else {
-        y -= (FontInfo[hchar].height * fscale) * 0.5f;
-    }
-
-    if (flags & (MENUFONT_CENTRED | MENUFONT_RIGHTALIGN)) {
-        pt = (UBYTE*)msg;
-        for (c0 = 0; c0 < len; c0++)
-            width += ((float)FontInfo[*(pt++)].width - 1) * fscale;
-        x -= (flags & MENUFONT_CENTRED) ? width * 0.5f : width;
-    }
-
-    {
-        SLONG a = (rgb >> 24) & 0xff;
-        SLONG r = (rgb >> 16) & 0xff;
-        SLONG g = (rgb >> 8) & 0xff;
-        SLONG b = (rgb >> 0) & 0xff;
-
-        r = r * a >> 8;
-        g = g * a >> 8;
-        b = b * a >> 8;
-
-        rgb = (r << 16) | (g << 8) | (b << 0);
-    }
-
-    pp[0].specular = pp[1].specular = pp[2].specular = pp[3].specular = 0xff000000;
-    pp[0].colour = pp[1].colour = pp[2].colour = pp[3].colour = rgb;
-    pp[0].Z = pp[1].Z = pp[2].Z = pp[3].Z = 0.5f;
-
-    pt = (UBYTE*)msg;
-    for (c0 = 0; c0 < len; c0++) {
-        width = ((float)FontInfo[*pt].width) * fscale;
-        if (flags & MENUFONT_HSCALEONLY) {
-            height = ((float)FontInfo[*pt].height);
-        } else {
-            height = ((float)FontInfo[*pt].height) * fscale;
-        }
-
-        y += FontInfo[*pt].yofs;
-
-        if ((width > 0) && (height > 0)) {
-            pp[0].u = FontInfo[*pt].x;
-            pp[0].v = FontInfo[*pt].y;
-            pp[1].u = FontInfo[*pt].ox;
-            pp[1].v = FontInfo[*pt].y;
-            pp[2].u = FontInfo[*pt].x;
-            pp[2].v = FontInfo[*pt].oy;
-            pp[3].u = FontInfo[*pt].ox;
-            pp[3].v = FontInfo[*pt].oy;
-
-            if (!(flags & MENUFONT_ONLY)) {
-                pp[0].X = x;
-                pp[0].Y = y;
-                pp[1].X = x + width;
-                pp[1].Y = y;
-                pp[2].X = x;
-                pp[2].Y = y + height;
-                pp[3].X = x + width;
-                pp[3].Y = y + height;
-
-                POLY_add_quad(quad, FontPage, UC_FALSE, UC_TRUE);
-            }
-        }
-
-        y -= FontInfo[*pt].yofs;
-
-        pt++;
-        x += width - 1;
-    }
-}
-
 // uc_orig: MENUFONT_Dimensions (fallen/DDEngine/Source/menufont.cpp)
 void MENUFONT_Dimensions(CBYTE* fn, SLONG& x, SLONG& y, SWORD max, SWORD scale)
 {
@@ -324,12 +235,6 @@ SLONG MENUFONT_CharFit(CBYTE* fn, SLONG x, UWORD scale)
     if (width > x)
         ctr--;
     return ctr;
-}
-
-// uc_orig: MENUFONT_Free (fallen/DDEngine/Source/menufont.cpp)
-void MENUFONT_Free()
-{
-    FontName[0] = 0;
 }
 
 // uc_orig: MENUFONT_MergeLower (fallen/DDEngine/Source/menufont.cpp)

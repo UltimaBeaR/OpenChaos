@@ -154,47 +154,6 @@ Pyro* PYRO_get_pyro(struct Thing* pyro_thing)
     return pyro;
 }
 
-// Finds all CLASS_PERSON Things in radius and applies PYRO_IMMOLATE to each.
-// uc_orig: PYRO_blast_radius (fallen/Source/pyro.cpp)
-void PYRO_blast_radius(SLONG x, SLONG y, SLONG z, SLONG radius, SLONG strength)
-{
-// Local MAX_COL_WITH is separate from the file-scope col_with[] array.
-#define MAX_COL_WITH 16
-
-    SLONG collide_types, col_with_upto, i;
-    THING_INDEX local_col_with[MAX_COL_WITH];
-    Thing* col_thing;
-
-    collide_types = (1 << CLASS_PERSON);
-
-    col_with_upto = THING_find_sphere(
-        x >> 8,
-        y >> 8,
-        z >> 8,
-        radius,
-        local_col_with,
-        MAX_COL_WITH,
-        collide_types);
-
-    ASSERT(col_with_upto <= MAX_COL_WITH);
-
-    for (i = 0; i < col_with_upto; i++) {
-        col_thing = TO_THING(local_col_with[i]);
-
-        switch (col_thing->Class) {
-        case CLASS_PERSON: {
-            Thing* pyro = PYRO_create(col_thing->WorldPos, PYRO_IMMOLATE);
-            if (pyro) {
-                pyro->Genus.Pyro->victim = col_thing;
-                pyro->Genus.Pyro->Flags = PYRO_FLAGS_FLICKER;
-            }
-        } break;
-        }
-    }
-
-#undef MAX_COL_WITH
-}
-
 // Tries to share a sound effect with a nearby pyro of the same type.
 // If no match is found, creates a new sound for EXPLODE2, BONFIRE, or FLICKER.
 // uc_orig: MergeSoundFX (fallen/Source/pyro.cpp)

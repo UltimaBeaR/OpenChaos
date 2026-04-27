@@ -43,8 +43,4 @@ void animate_texture_maps(void);
 // uc_orig: load_animtmaps (fallen/Source/animtmap.cpp)
 void load_animtmaps(void);
 
-// Saves animated texture data to "data/tmap.ani".
-// uc_orig: save_animtmaps (fallen/Source/animtmap.cpp)
-void save_animtmaps(void);
-
 #endif // ASSETS_FORMATS_ANIM_TMAP_H

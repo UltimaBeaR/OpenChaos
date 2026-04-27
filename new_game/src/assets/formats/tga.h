@@ -37,10 +37,6 @@ TGA_Info TGA_load(
     ULONG id,
     BOOL bCanShrink = UC_TRUE);
 
-// Load a paletted TGA and remap its colours using a remap palette file.
-// uc_orig: TGA_load_remap (fallen/DDLibrary/Source/Tga.cpp)
-TGA_Info TGA_load_remap(const CBYTE* file, const CBYTE* pname, SLONG max_width, SLONG max_height, TGA_Pixel* data);
-
 // Save pixel data to a TGA file. Pass contains_alpha=UC_FALSE to write 24-bit without alpha.
 // uc_orig: TGA_save (fallen/DDLibrary/Headers/Tga.h)
 void TGA_save(

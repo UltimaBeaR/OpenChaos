@@ -182,14 +182,6 @@ public:
 // Defined in poly.cpp (not yet migrated), declared here for external use.
 extern PolyPage POLY_Page[];
 
-// uc_orig: GenerateMMMatrix (fallen/DDEngine/Headers/polypage.h)
-// Builds a multi-matrix transform from standard D3D camera matrices.
-// If mWorldMatrix is NULL, uses the current POLY_cam_* globals.
-extern void GenerateMMMatrix(GEMatrix* mOutput,
-    const GEMatrix* mProjectionMatrix,
-    const GEMatrix* mWorldMatrix,
-    const GEViewport* viewport);
-
 // Camera matrix globals maintained by the poly system (defined in poly.cpp).
 // uc_orig: g_matProjection (fallen/DDEngine/Headers/polypage.h)
 extern GEMatrix g_matProjection;

@@ -57,9 +57,6 @@ typedef struct
 // uc_orig: LIGHT_set_hf (fallen/Headers/light.h)
 void LIGHT_set_hf(LIGHT_Map* map);
 
-// uc_orig: LIGHT_amb_colour (fallen/Headers/light.h)
-// Do not set these directly — use LIGHT_set_ambient().
-extern LIGHT_Colour LIGHT_amb_colour;
 // uc_orig: LIGHT_set_ambient (fallen/Headers/light.h)
 // Sets ambient colour and directional normal (length 255).
 void LIGHT_set_ambient(
@@ -71,10 +68,6 @@ void LIGHT_set_ambient(
 // uc_orig: LIGHT_init (fallen/Headers/light.h)
 // Removes all lights and clears all cached light data.
 void LIGHT_init(void);
-
-// uc_orig: LIGHT_building_point (fallen/Headers/light.h)
-// Per-vertex lighting results for building prims, indexed by prim point index.
-extern LIGHT_Colour LIGHT_building_point[RMAX_PRIM_POINTS];
 
 // uc_orig: LIGHT_recalc_hf (fallen/Headers/light.h)
 // Recalculates all lighting on the current height-field and fills LIGHT_building_point[].

@@ -24,8 +24,8 @@ Workflow:
 
 ## Workflow для продолжения чистки
 
-**Текущее состояние (2026-04-27, после батча 32, сессия 15):**
-- Discards count: 4534 (старт) → ... → **2078** (батч 30) → **2024** (батч 31) → **272 dead symbols в 99 файлах** (батч 32, dc_map.py)
+**Текущее состояние (2026-04-27, после батча 33, сессия 15):**
+- Discards count: 4534 (старт) → ... → **2078** (батч 30) → **2024** (батч 31) → **272 dead symbols в 99 файлах** (батч 32, dc_map.py) → регенерация нужна (батч 33 завершён)
 - Регенерация перед батчем 30: 2101 discards, 372 dead symbols в 116 файлах
 - Примечание: 10 функций из core.cpp сохранены как stubs (caller-ы мертвы но в .o с live кодом) — они по-прежнему в discard-list DEAD_CODE_REPORT, но нужны для обычного Release-билда
 - Build OK (make build-release, exit 0)
@@ -234,6 +234,39 @@ Workflow:
 - `mesh.h`: удалены декларации `MESH_init_reflections`, `MESH_draw_reflection`, `MESH_draw_morph`
 - `mesh_globals.cpp/h`: удалены `MESH_reflection[]`, `MESH_add[]`, `MESH_add_upto` globals + типы `MESH_Reflection`, `MESH_Add`, константы `MESH_MAX_REFLECTIONS`, `MESH_MAX_ADD`
 - Build OK (make build-release, exit code 0)
+
+**Сделано в батче 33 (сессия 15, продолжение):**
+- `elev.cpp/h`: удалена `ELEV_create_similar_name`
+- `tga.cpp/h`: удалена `TGA_load_remap` (~145 строк, с goto-метками)
+- `anim_tmap.cpp/h`: удалена `save_animtmaps`
+- `thug.cpp/h`: удалены `fn_thug_init`, `fn_thug_normal`; файл сведён к минимуму; убран `#include thug.h` из `person.cpp`
+- `playcuts.cpp/h`: удалены `PLAYCUTS_Free` (empty stub), `PLAYCUTS_Reset`
+- `gamepad.cpp/h`: удалена `gamepad_is_adaptive_click_active`
+- `composition.cpp/h`: удалена `composition_get_scene_texture`
+- `crt_effect.cpp/h`: удалена `crt_effect_shutdown`
+- `wibble_effect.cpp/h`: удалена `gl_wibble_effect_shutdown`; h сведён к пустому guard
+- `morph.cpp/h`: удалены `MORPH_get_points`, `MORPH_get_num_points`
+- `night.cpp`: убрана dead forward declaration `calc_inside_for_xyz` внутри block scope; реструктурирован окружающий блок (убраны лишние `{}`)
+- `supermap.cpp/h`: удалены `calc_inside_for_xyz`, `add_sewer_ladder`
+- `inside2.cpp/h`: удалена `find_stair_y` (~100 строк)
+- `map.cpp/h` + `map_globals.cpp/h`: удалены `MAP_light_get_height`, `MAP_light_get_light`, `MAP_light_set_light`, global `MAP_light_map`; map_globals сведён к минимуму
+- `font.cpp/h`: удалена `FONT_draw_speech_bubble_text` (~54 строки)
+- `polypage.cpp/h`: удалена `GenerateMMMatrix` (~89 строк, D3D matrix builder); убран `#include compression.h`
+- `smap.cpp/h`: удалена `SMAP_bike` (empty stub)
+- `eway.cpp/h`: удалены `count_people_types`, `EWAY_cam_get_position_for_angle`, `EWAY_cam_look_at` (кластер)
+- `pause.cpp/h`: удалён `PAUSE_handler` (~180 строк); файлы сведены к минимуму; убран `#include pause.h` + misleading comment из `game.cpp`
+- `frontend.cpp/h`: удалены `FRONTEND_do_drivers`, `FRONTEND_gamma_update`
+- `frontend_globals.cpp/h`: удалены `CurrentVidMode`, `CurrentBitDepth`
+- `attract.cpp/h`: удалены `level_won`, `level_lost` (empty stubs)
+- `overlay.cpp/h`: удалена `overlay_beacons` (empty stub); убрана extern decl из `game.cpp`
+- `compression.cpp/h` + `compression_globals.cpp/h` + `image_compression.cpp/h`: удалён весь compression кластер (`COMP_load`, `COMP_calc`, `COMP_decomp`, `IC_pack`, `IC_unpack`, `COMP_data/frame/tga_data/tga_info`, типы `COMP_Frame/DataBuffer/Delta`); файлы сведены к минимуму
+- `aeng.cpp`: удалена `AENG_movie_init` (~38 строк); убран вызов из `AENG_init()`; убран `#include compression.h`
+- `aeng_globals.cpp/h`: удалены 9 movie globals (`AENG_movie_data[512*1024]`, `AENG_movie_upto`, `AENG_frame_one/two/last/next`, `AENG_frame_count/tick/number`), `AENG_MAX_MOVIE_DATA` define
+- Build OK (make build-release, exit 0)
+
+**Инциденты батча 33:**
+- `aeng_globals.h:173: error: unknown type name 'COMP_Frame'` после очистки compression.h — диагностировано как dead AENG_movie кластер (единственный user `COMP_Frame` — `AENG_movie_init`). Решение: удалить весь AENG_movie кластер.
+- `game.cpp:77` имел stale `#include pause.h` с misleading комментарием про `PANEL_`-функции — функции реально из `panel.h`. Исправлено и include убран.
 
 **Что делать дальше:**
 
@@ -552,3 +585,4 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-27 | Batch 30 (сессия 13) | Регенерация: 2101 discards, 372 symbols в 116 файлах. switch.cpp: удалён целиком (7 dead funcs: init_switches, free_switch, create_switch, fn_switch_player/thing/group/class); switch.h: убраны декларации 7 функций, оставлены Switch struct + SwitchPtr (используются в game_types.h/memory.cpp/thing.h); CMakeLists.txt: убран switch.cpp. thing.cpp: удалены 7 dead (move_thing_on_map_dxdydz, log_primary_used/unused_list, log_secondary_used/unused_list, wait_ticks, set_slow_motion) + extern decl Time; thing.h: убраны декларации всех 7. fc.cpp: убран extern decl set_slow_motion. host.cpp: удалены 7 dead (ShellPaused, ShellPauseOn, ShellPauseOff, LibShellChanged, LibShellMessage, Time, TraceText); host.h: убраны декларации, добавлен прямой #include uc_common.h; uc_common.h: убраны TraceText/LibShellChanged/LibShellMessage. sdl3_bridge.cpp/h: удалена sdl3_window_set_size (нет callers). Пропущены sdl3_gamepad_shutdown/sdl3_set_mouse_grab — live callers в gamepad.cpp и game_tick.cpp. Discards: 2101→2078 (-23). | build OK |
 | 2026-04-27 | Batch 31 (сессия 14) | Регенерация: 2078 discards. DELETED целиком: wibble_globals.cpp/h (6 dead globals), outline.cpp/h (5 dead funcs), text.cpp/h (5 dead funcs: draw_centre_text_at, draw_text_at, show_text, text_height, text_width); CMakeLists.txt: убраны wibble_globals.cpp, outline.cpp, text.cpp. text_globals.cpp/h: убран text_colour (dead). game.cpp: убраны extern decls draw_centre_text_at/draw_text_at. eng_map.cpp: убран #include text.h. interact_globals.cpp/h: убраны best_angle, best_x, best_y, best_z, r_matrix (локальные переменные с тем же именем в interact.cpp — не глобалы). figure_globals.cpp/h: убраны body_part_upper, part_type, local_seed, jacket_col, leg_col, peep_recol + PeepRecolEntry type. fire_globals.cpp/h: убраны FIRE_fire, FIRE_fire_last, FIRE_flame, FIRE_flame_free, FIRE_get_info, FIRE_get_point (оставлены live: FIRE_get_z/xmin/xmax/fire_upto/flame). texture_globals.cpp/h + texture.h: убраны TEXTURE_fiddled, TEXTURE_page_lcdfont_alpha, TEXTURE_page_flames_alpha, TEXTURE_liney, TEXTURE_av_r/g/b. anim.cpp/h: убраны SetCMatrixComp, calc_sub_objects_position_no_tween, convert_elements, fix_multi_object_for_anim, reset_anim_stuff, set_next_prim_point (setup_anim_stuff оставлен — static stub с live caller). weapon_feel.cpp/h: убрана weapon_feel_fire_reset. Discards: 2078→2024 (-54). | build OK |
 | 2026-04-27 | Batch 32 (сессия 15) | Регенерация: 2024 discards. dirt.cpp/h: удалены DIRT_get_info, DIRT_behead_person, DIRT_create_mine, DIRT_destroy_mine, DIRT_gale + DIRT_INFO_TYPE_*/DIRT_Info. animal.cpp/h: удалены alloc_animal, ANIMAL_create, ANIMAL_animatetween, ANIMAL_animate, ANIMAL_set_anim, ANIMAL_get_animal, ANIMAL_draw (6 funcs). shape.cpp/h: удалены SHAPE_semisphere, SHAPE_semisphere_textured, SHAPE_waterfall, SHAPE_alpha_sphere (4 funcs). fog.cpp/h: удалены FOG_get_dyaw (static), FOG_create (static), FOG_set_focus, FOG_gust, FOG_process, FOG_get_start, FOG_get_info + FOG_Info struct + FOG_TYPE_TRANS*/NO_MORE. fog_globals.cpp/h: удалены FOG_focus_x, FOG_focus_z, FOG_focus_radius, FOG_get_upto (4 globals). psystem.cpp/h: удалены PARTICLE_Exhaust, PARTICLE_Exhaust2, PARTICLE_Steam, PARTICLE_SGrenade + fmatrix.h include. snipe.cpp/h: удалены SNIPE_mode_on, SNIPE_mode_off, SNIPE_turn, SNIPE_shoot + SNIPE_TURN_* flags; SNIPE_LENS_END вынесен на file scope (нужен живой SNIPE_process). snipe_globals.cpp/h: удалены SNIPE_on, SNIPE_cam_x, SNIPE_cam_y, SNIPE_cam_z. sm.cpp/h: удалены SM_init, SM_create_cube, SM_process + SM_CUBE_*/SM_GRAVITY макросы + SM_CUBE_TYPE_* константы + dead includes. sound.cpp/h: удалены DieSound, play_ambient_wave, play_music, SewerSoundProcess + fc.h/fc_globals.h includes. ВОССТАНОВЛЕНЫ (ошибочно удалённые, нет callers только потому что game_shutdown не вызывал gamepad_shutdown): gamepad_shutdown, weapon_feel_shutdown, ds_shutdown, ds_set_haptic_volume, ds_set_lightbar_setup. game_shutdown() дополнен вызовом gamepad_shutdown(). game_startup(): удалён дублирующий MFX_init() (первый вызов в SetupHost(), второй был лишним — утечка AL device). dc_map.py после: 272 symbols в 99 файлах. | build OK |
+| 2026-04-27 | Batch 33 (сессия 15) | Продолжение с dc_map.py списком (272 symbols). elev.cpp/h: ELEV_create_similar_name. tga.cpp/h: TGA_load_remap (~145 строк с goto). anim_tmap.cpp/h: save_animtmaps. thug.cpp/h: fn_thug_init, fn_thug_normal (файл сведён к минимуму; убран #include thug.h из person.cpp). playcuts.cpp/h: PLAYCUTS_Free (empty stub), PLAYCUTS_Reset. gamepad.cpp/h: gamepad_is_adaptive_click_active. composition.cpp/h: composition_get_scene_texture. crt_effect.cpp/h: crt_effect_shutdown. wibble_effect.cpp/h: gl_wibble_effect_shutdown (h сведён к пустому guard). morph.cpp/h: MORPH_get_points, MORPH_get_num_points (ВОССТАНОВЛЕНЫ: ошибочно удалены в батче 12, реально мертвы — нет callers в mesh.cpp). night.cpp: убрана dead forward declaration calc_inside_for_xyz внутри блока; блок реструктурирован (убраны лишние `{}`). supermap.cpp/h: calc_inside_for_xyz, add_sewer_ladder. inside2.cpp/h: find_stair_y (~100 строк). map.cpp/h + map_globals.cpp/h: MAP_light_get_height, MAP_light_get_light, MAP_light_set_light, MAP_light_map (global). font.cpp/h: FONT_draw_speech_bubble_text. polypage.cpp/h: GenerateMMMatrix (~89 строк D3D matrix builder); убран #include compression.h. smap.cpp/h: SMAP_bike (empty stub). eway.cpp/h: count_people_types (immediate-return stub), EWAY_cam_get_position_for_angle, EWAY_cam_look_at (кластер, только внутренние callers). pause.cpp/h: PAUSE_handler (~180 строк); файлы сведены к минимуму; убраны #include pause.h из game.cpp + исправлен misleading comment. frontend.cpp/h: FRONTEND_do_drivers, FRONTEND_gamma_update. frontend_globals.cpp/h: CurrentVidMode, CurrentBitDepth. attract.cpp/h: level_won, level_lost (empty stubs). overlay.cpp/h: overlay_beacons (empty stub); убрана extern decl из game.cpp. compression.cpp/h + compression_globals.cpp/h + image_compression.cpp/h: весь compression кластер (COMP_load, COMP_calc, COMP_decomp, IC_pack, IC_unpack, COMP_data/frame/tga_data/tga_info, типы COMP_Frame/DataBuffer/Delta); файлы сведены к минимуму. aeng.cpp: AENG_movie_init (~38 строк), убран вызов из AENG_init(), убран #include compression.h. aeng_globals.cpp/h: удалены 9 movie globals (AENG_movie_data[512*1024], AENG_movie_upto, AENG_frame_one/two/last/next, AENG_frame_count/tick/number, AENG_MAX_MOVIE_DATA). Инцидент: aeng_globals.h ломался из-за COMP_Frame после очистки compression.h — диагностировано как dead AENG_movie кластер, решено удалением всего кластера. | build OK |

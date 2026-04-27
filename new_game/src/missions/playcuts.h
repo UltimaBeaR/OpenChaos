@@ -59,16 +59,8 @@ struct CPPacket {
 // uc_orig: PLAYCUTS_Read (fallen/Headers/playcuts.h)
 CPData* PLAYCUTS_Read(MFFileHandle handle);
 
-// Release a loaded cutscene (currently a no-op; pool is reset with PLAYCUTS_Reset).
-// uc_orig: PLAYCUTS_Free (fallen/Headers/playcuts.h)
-void PLAYCUTS_Free(CPData* cutscene);
-
 // Run the cutscene playback loop; blocks until done or space is pressed.
 // uc_orig: PLAYCUTS_Play (fallen/Headers/playcuts.h)
 void PLAYCUTS_Play(CPData* cutscene);
-
-// Reset the static pool counters so the pool can be reused.
-// uc_orig: PLAYCUTS_Reset (fallen/Headers/playcuts.h)
-void PLAYCUTS_Reset();
 
 #endif // MISSIONS_PLAYCUTS_H

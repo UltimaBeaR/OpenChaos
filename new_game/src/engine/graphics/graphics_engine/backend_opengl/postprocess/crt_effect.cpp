@@ -226,15 +226,3 @@ void crt_effect_apply()
     if (prev_cull_on)  glEnable(GL_CULL_FACE);    else glDisable(GL_CULL_FACE);
 }
 
-void crt_effect_shutdown()
-{
-    if (s_program)     { glDeleteProgram(s_program);          s_program = 0; }
-    if (s_scratch_tex) { glDeleteTextures(1, &s_scratch_tex); s_scratch_tex = 0; }
-    if (s_vao)         { glDeleteVertexArrays(1, &s_vao);     s_vao = 0; }
-    if (s_vbo)         { glDeleteBuffers(1, &s_vbo);          s_vbo = 0; }
-    s_scratch_w = s_scratch_h = 0;
-    s_u_source = s_u_game_rect = s_u_content_size = -1;
-    s_u_scanline_weight = s_u_mask_dark = s_u_mask_light = -1;
-    s_u_halation_strength = s_u_halation_radius = -1;
-    s_u_vignette_strength = s_u_brightness = s_u_warmth = -1;
-}

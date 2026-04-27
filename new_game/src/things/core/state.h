@@ -30,8 +30,4 @@ void set_state_function(Thing* t_thing, UBYTE state);
 // Like set_state_function but always uses the generic_people_functions table regardless of class.
 void set_generic_person_state_function(Thing* t_thing, UBYTE state);
 
-// uc_orig: set_generic_person_just_function (fallen/Headers/State.h)
-// Assigns StateFn from generic_people_functions[state] without updating t_thing->State.
-void set_generic_person_just_function(Thing* t_thing, UBYTE state);
-
 #endif // THINGS_CORE_STATE_H

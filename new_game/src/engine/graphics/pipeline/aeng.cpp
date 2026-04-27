@@ -14,7 +14,6 @@
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/geometry/sky.h"
-#include "engine/compression/compression.h"
 #include "assets/formats/tga.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
@@ -241,43 +240,6 @@ UWORD* GetShadowPixelMapping()
     return mapping;
 }
 
-// uc_orig: AENG_movie_init (fallen/DDEngine/Source/aeng.cpp)
-// Loads the pre-rendered movie file (movie\bond.mmv) into AENG_movie_data.
-void AENG_movie_init()
-{
-    SLONG bytes_read;
-
-    FILE* handle;
-
-    handle = MF_Fopen("movie/bond.mmv", "rb");
-
-    if (!handle) {
-        goto file_error;
-    }
-
-    bytes_read = fread(AENG_movie_data, sizeof(UBYTE), AENG_MAX_MOVIE_DATA, handle);
-    ASSERT(bytes_read < AENG_MAX_MOVIE_DATA);
-
-    AENG_frame_last = &AENG_frame_one;
-    AENG_frame_next = &AENG_frame_two;
-    AENG_frame_count = 0;
-    AENG_frame_tick = 0;
-    AENG_frame_number = 200;
-    AENG_movie_upto = AENG_movie_data;
-
-    return;
-
-file_error:;
-
-    AENG_frame_last = NULL;
-    AENG_frame_next = NULL;
-    AENG_frame_count = 0;
-    AENG_frame_tick = 0;
-    AENG_frame_number = 0;
-
-    return;
-}
-
 // uc_orig: AENG_init (fallen/DDEngine/Source/aeng.cpp)
 // One-time engine startup: inits meshes, cloud data, sky, polygon system, textures.
 void AENG_init(void)
@@ -286,7 +248,6 @@ void AENG_init(void)
     init_clouds();
     SKY_init("stars/poo");
     POLY_init();
-    AENG_movie_init();
     TEXTURE_choose_set(1);
     INDOORS_INDEX_FADE = 255;
 

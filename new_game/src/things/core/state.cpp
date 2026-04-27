@@ -60,8 +60,3 @@ void set_generic_person_state_function(Thing* t_thing, UBYTE state)
     t_thing->State = state;
 }
 
-// uc_orig: set_generic_person_just_function (fallen/Source/State.cpp)
-void set_generic_person_just_function(Thing* t_thing, UBYTE state)
-{
-    t_thing->StateFn = generic_people_functions[state].StateFn;
-}

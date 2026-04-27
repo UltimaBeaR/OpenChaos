@@ -623,11 +623,6 @@ enum TriggerMode {
 };
 static TriggerMode s_trigger_mode = TRIGGER_MODE_NONE;
 
-bool    gamepad_is_adaptive_click_active()
-{
-    return s_is_dualsense && s_trigger_mode == TRIGGER_MODE_AIM_GUN;
-}
-
 // Per-weapon adaptive trigger params for the currently active AIM_GUN
 // profile. Looked up from the weapon_feel profile at apply time so
 // per-weapon tuning flows through without touching this state machine.

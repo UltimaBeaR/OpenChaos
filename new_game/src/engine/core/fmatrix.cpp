@@ -95,30 +95,8 @@ void FMATRIX_vector(SLONG vector[3], SLONG yaw, SLONG pitch)
     vector[2] = MUL64(cy, cp);
 }
 
-// uc_orig: init_matrix33 (fallen/Source/FMatrix.cpp)
-void init_matrix33(struct Matrix33* mat)
-{
-    mat->M[0][0] = (1 << 15);
-    mat->M[0][1] = 0;
-    mat->M[0][2] = 0;
-    mat->M[1][0] = 0;
-    mat->M[1][1] = (1 << 15);
-    mat->M[1][2] = 0;
-    mat->M[2][0] = 0;
-    mat->M[2][1] = 0;
-    mat->M[2][2] = (1 << 15);
-}
-
 // uc_orig: matrix_transformZMY (fallen/Source/FMatrix.cpp)
 void matrix_transformZMY(Matrix31* result, Matrix33* trans, Matrix31* mat2)
-{
-    result->M[0] = (mat2->M[0] * trans->M[0][0]) + (mat2->M[1] * trans->M[0][1]) + (mat2->M[2] * trans->M[0][2]) >> 15;
-    result->M[1] = (mat2->M[0] * trans->M[1][0]) + (mat2->M[1] * trans->M[1][1]) + (mat2->M[2] * trans->M[1][2]) >> 15;
-    result->M[2] = (mat2->M[0] * trans->M[2][0]) + (mat2->M[1] * trans->M[2][1]) + (mat2->M[2] * trans->M[2][2]) >> 15;
-}
-
-// uc_orig: matrix_transform (fallen/Source/FMatrix.cpp)
-void matrix_transform(struct Matrix31* result, struct Matrix33* trans, struct Matrix31* mat2)
 {
     result->M[0] = (mat2->M[0] * trans->M[0][0]) + (mat2->M[1] * trans->M[0][1]) + (mat2->M[2] * trans->M[0][2]) >> 15;
     result->M[1] = (mat2->M[0] * trans->M[1][0]) + (mat2->M[1] * trans->M[1][1]) + (mat2->M[2] * trans->M[1][2]) >> 15;

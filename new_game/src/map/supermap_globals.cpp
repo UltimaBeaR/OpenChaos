@@ -1,9 +1,6 @@
 #include "map/supermap_globals.h"
 #include "things/characters/person_types.h"
 
-// uc_orig: level_index (fallen/Source/supermap.cpp)
-ULONG level_index = 0;
-
 // uc_orig: SUPERMAP_counter (fallen/Source/supermap.cpp)
 UBYTE SUPERMAP_counter[2] = { 0, 0 };
 

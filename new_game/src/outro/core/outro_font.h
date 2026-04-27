@@ -19,10 +19,6 @@
 // Loads the font texture and calculates UV coordinates of each glyph.
 void FONT_init(void);
 
-// uc_orig: FONT_char_is_valid (fallen/outro/font.h)
-// Returns UC_TRUE if the font module can render the given ASCII character.
-SLONG FONT_char_is_valid(CBYTE ch);
-
 // uc_orig: FONT_draw (fallen/outro/font.h)
 // Draws formatted text at (start_x, start_y) in normalised screen coords.
 // shimmer: 0.0F = solid, 1.0F = fully shimmered/transparent.

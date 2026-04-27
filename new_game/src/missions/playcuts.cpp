@@ -171,20 +171,6 @@ CPData* PLAYCUTS_Read(MFFileHandle handle)
 }
 
 
-// uc_orig: PLAYCUTS_Free (fallen/Source/playcuts.cpp)
-void PLAYCUTS_Free(CPData* cutscene)
-{
-    // Stub — pool-allocated, use PLAYCUTS_Reset() to reclaim.
-}
-
-// uc_orig: PLAYCUTS_Reset (fallen/Source/playcuts.cpp)
-void PLAYCUTS_Reset()
-{
-    PLAYCUTS_cutscene_ctr = 0;
-    PLAYCUTS_track_ctr = 0;
-    PLAYCUTS_packet_ctr = 0;
-}
-
 // Find the packet that exactly matches frame 'cell', or NULL if none.
 // uc_orig: PLAYCUTS_Get_Packet (fallen/Source/playcuts.cpp)
 static CPPacket* PLAYCUTS_Get_Packet(CPChannel* chan, SLONG cell)

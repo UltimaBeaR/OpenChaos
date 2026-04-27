@@ -21,15 +21,6 @@ void* MemAlloc(ULONG size)
     return calloc(1, size);
 }
 
-// uc_orig: MemReAlloc (MFStdLib/Source/StdLib/StdMem.cpp)
-// Note: Win32 HeapReAlloc with HEAP_ZERO_MEMORY zeroed new bytes; realloc does not.
-// Currently unused in the codebase — kept for API compatibility.
-void* MemReAlloc(void* ptr, ULONG size)
-{
-    size = (size + 3) & 0xfffffffc;
-    return realloc(ptr, size);
-}
-
 // uc_orig: MemFree (MFStdLib/Source/StdLib/StdMem.cpp)
 void MemFree(void* mem_ptr)
 {

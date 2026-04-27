@@ -18,5 +18,3 @@ UBYTE MUSIC_bodge_code = 0;
 UBYTE just_asked_for_mode_now = 0;
 // uc_orig: just_asked_for_mode_number (fallen/Source/music.cpp)
 UBYTE just_asked_for_mode_number = 0;
-// uc_orig: last_MFX_QUICK_play_id (fallen/Source/music.cpp)
-SLONG last_MFX_QUICK_play_id = 0;

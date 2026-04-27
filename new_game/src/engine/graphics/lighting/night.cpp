@@ -177,67 +177,15 @@ SLONG NIGHT_slight_create(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SB
     // Bottom bit of blue encodes whether this light is inside a building.
     nsl->blue &= 0xfe;
 
-    {
-        UWORD calc_inside_for_xyz(SLONG x, SLONG y, SLONG z, UWORD * room);
-
-        // Inside test: use height as proxy — if light is below terrain, it's inside.
-        {
-            if (y < PAP_calc_map_height_at(x, z)) {
-                nsl->blue |= 1;
-            }
-        }
+    // Inside test: use height as proxy — if light is below terrain, it's inside.
+    if (y < PAP_calc_map_height_at(x, z)) {
+        nsl->blue |= 1;
     }
 
     ns->number += 1;
     NIGHT_slight_upto += 1;
 
     return UC_TRUE;
-}
-
-// uc_orig: NIGHT_slight_delete (fallen/Source/night.cpp)
-void NIGHT_slight_delete(SLONG x, SLONG y, SLONG z, UBYTE radius, SBYTE red, SBYTE green, SBYTE blue)
-{
-    SLONG i;
-    SLONG mx;
-    SLONG mz;
-    SLONG map_x;
-    SLONG map_z;
-
-    NIGHT_Smap* ns;
-    NIGHT_Slight* nsl;
-
-    mx = x >> PAP_SHIFT_LO;
-    mz = z >> PAP_SHIFT_LO;
-
-    ASSERT(WITHIN(mx, 0, PAP_SIZE_LO - 1));
-    ASSERT(WITHIN(mz, 0, PAP_SIZE_LO - 1));
-
-    ns = &NIGHT_smap[mx][mz];
-
-    map_x = mx << PAP_SHIFT_LO;
-    map_z = mz << PAP_SHIFT_LO;
-
-    for (i = 0; i < ns->number; i++) {
-        ASSERT(WITHIN(ns->index + i, 0, NIGHT_MAX_SLIGHTS - 1));
-
-        nsl = &NIGHT_slight[ns->index + i];
-
-        if ((nsl->x << 2) + map_x == (x & ~3) && (nsl->z << 2) + map_z == (z & ~3) && nsl->y == y && nsl->red == (red >> 1) && nsl->green == (green >> 1) && (nsl->blue >> 1) == (blue >> 2) && nsl->radius == radius) {
-            NIGHT_slight[ns->index + i] = NIGHT_slight[ns->index + ns->number - 1];
-            ns->number -= 1;
-            return;
-        }
-    }
-
-    // Trying to delete a light that doesn't exist.
-    ASSERT(0);
-}
-
-// uc_orig: NIGHT_slight_delete_all (fallen/Source/night.cpp)
-void NIGHT_slight_delete_all(void)
-{
-    memset((UBYTE*)NIGHT_smap, 0, sizeof(UBYTE) * PAP_SIZE_LO * PAP_SIZE_LO);
-    NIGHT_slight_upto = 0;
 }
 
 // uc_orig: NIGHT_light_mapsquare (fallen/Source/night.cpp)
@@ -1309,66 +1257,6 @@ void NIGHT_cache_create(UBYTE lo_map_x, UBYTE lo_map_z, UBYTE ware)
         NIGHT_amb_norm_y = NIGHT_old_amb_norm_y;
         NIGHT_amb_norm_z = NIGHT_old_amb_norm_z;
     }
-}
-
-// uc_orig: NIGHT_cache_create_inside (fallen/Source/night.cpp)
-// Build the lighting cache for the inside (building interior) of a lo-map square.
-void NIGHT_cache_create_inside(UBYTE lo_map_x, UBYTE lo_map_z, SLONG floor_y)
-{
-    SLONG num_points;
-    SLONG memory;
-    SLONG square;
-
-    OB_Info* oi;
-    NIGHT_Square* nq;
-    NIGHT_Colour* nc;
-    PrimObject* p_obj;
-
-    ASSERT(WITHIN(lo_map_x, 0, PAP_SIZE_LO - 1));
-    ASSERT(WITHIN(lo_map_z, 0, PAP_SIZE_LO - 1));
-
-    ASSERT(WITHIN(NIGHT_square_free, 1, NIGHT_MAX_SQUARES - 1));
-
-    square = NIGHT_square_free;
-    nq = &NIGHT_square[square];
-    NIGHT_square_free = nq->next;
-
-    nq->next = NULL;
-    nq->flag = NIGHT_SQUARE_FLAG_USED;
-    nq->lo_map_x = lo_map_x;
-    nq->lo_map_z = lo_map_z;
-
-    memory = PAP_BLOCKS * PAP_BLOCKS * sizeof(NIGHT_Colour);
-
-    for (oi = OB_find_inside(lo_map_x, lo_map_z, INDOORS_INDEX); oi->prim; oi++) {
-        p_obj = &prim_objects[oi->prim];
-        num_points = p_obj->EndPoint - p_obj->StartPoint;
-        memory += num_points * sizeof(NIGHT_Colour);
-    }
-
-    nq->colour = (NIGHT_Colour*)HEAP_get(memory);
-    nq->sizeof_colour = memory;
-
-    ASSERT(nq->colour);
-    if (nq->colour == NULL) return;
-
-    NIGHT_light_mapsquare(lo_map_x, lo_map_z, nq->colour, floor_y, 1);
-
-    nc = nq->colour + (PAP_BLOCKS * PAP_BLOCKS);
-
-    for (oi = OB_find_inside(lo_map_x, lo_map_z, INDOORS_INDEX); oi->prim; oi++) {
-        p_obj = &prim_objects[oi->prim];
-        num_points = p_obj->EndPoint - p_obj->StartPoint;
-
-        NIGHT_light_prim(oi->prim, oi->x, oi->y, oi->z, oi->yaw, oi->pitch, oi->roll, oi->InsideIndex, nc);
-
-        nc += num_points;
-    }
-
-    // Original had debug1-4 assertions here — debug variables never existed in this build.
-
-    NIGHT_cache[lo_map_x][lo_map_z] = square;
-    NIGHT_square_num_used += 1;
 }
 
 // uc_orig: NIGHT_cache_destroy (fallen/Source/night.cpp)

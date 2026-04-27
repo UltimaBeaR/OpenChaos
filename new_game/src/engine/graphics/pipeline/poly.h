@@ -266,12 +266,6 @@ extern POLY_Point POLY_buffer[POLY_BUFFER_SIZE];
 // uc_orig: POLY_buffer_upto (fallen/DDEngine/Headers/poly.h)
 extern SLONG POLY_buffer_upto;
 
-// uc_orig: POLY_shadow (fallen/DDEngine/Headers/poly.h)
-// Scratch buffer for shadow polygon vertices.
-extern POLY_Point POLY_shadow[POLY_SHADOW_SIZE];
-// uc_orig: POLY_shadow_upto (fallen/DDEngine/Headers/poly.h)
-extern SLONG POLY_shadow_upto;
-
 // uc_orig: POLY_colour_restrict (fallen/DDEngine/Headers/poly.h)
 // Bitmask ANDed (inverted) with all vertex colours before submission.
 // Set to restrict colour channels (e.g. force-dark scenes).

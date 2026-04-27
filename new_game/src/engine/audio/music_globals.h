@@ -21,7 +21,5 @@ extern UBYTE MUSIC_bodge_code;
 extern UBYTE just_asked_for_mode_now;
 // uc_orig: just_asked_for_mode_number (fallen/Source/music.cpp)
 extern UBYTE just_asked_for_mode_number;
-// uc_orig: last_MFX_QUICK_play_id (fallen/Source/music.cpp)
-extern SLONG last_MFX_QUICK_play_id;
 
 #endif // ENGINE_AUDIO_MUSIC_GLOBALS_H

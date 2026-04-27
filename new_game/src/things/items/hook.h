@@ -20,10 +20,6 @@
 // uc_orig: HOOK_REELED_TAUT (fallen/Headers/hook.h)
 #define HOOK_REELED_TAUT 2
 
-// Initialises the grappling hook coiled at the given map position.
-// uc_orig: HOOK_init (fallen/Headers/hook.h)
-void HOOK_init(SLONG x, SLONG z);
-
 // Returns the current hook state (STILL, SPINNING, or FLYING).
 // uc_orig: HOOK_get_state (fallen/Headers/hook.h)
 SLONG HOOK_get_state(void);

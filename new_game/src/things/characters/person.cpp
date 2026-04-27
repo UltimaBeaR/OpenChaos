@@ -11,7 +11,6 @@
 #include "things/characters/darci_globals.h"
 #include "things/characters/roper.h"
 #include "things/characters/roper_globals.h"
-#include "things/characters/thug.h"
 #include "buildings/id.h"
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
@@ -8795,9 +8794,6 @@ void do_person_on_cable(Thing* p_person)
 // ============================================================
 // chunk 9: fn_person_dangling..fn_person_moveing (lines 12330-13977)
 // ============================================================
-
-// trickle_velocity_to: used in SUB_STATE_STOPPING_OT (active code path).
-extern void trickle_velocity_to(Thing* p_thing, SWORD velocity);
 
 // STATE_DANGLING state machine.
 // Sub-states cover: ledge grab transition, static hang, zip-wire traversal (forward/backward),

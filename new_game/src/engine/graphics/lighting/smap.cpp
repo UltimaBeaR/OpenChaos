@@ -973,16 +973,3 @@ SMAP_Link* SMAP_project_onto_poly(SVector_F poly[], SLONG num_points)
     return NULL;
 }
 
-// SMAP_bike is declared in smap.h for ABI compatibility but has no implementation.
-// uc_orig: SMAP_bike (fallen/DDEngine/Headers/smap.h)
-void SMAP_bike(
-    Thing* person,
-    UBYTE* bitmap,
-    UBYTE u_res,
-    UBYTE v_res,
-    SLONG light_dx,
-    SLONG light_dy,
-    SLONG light_dz)
-{
-    // Not implemented in the original (pre-release) codebase.
-}

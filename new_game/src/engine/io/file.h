@@ -64,10 +64,6 @@ SLONG FileWrite(MFFileHandle file_handle, void* buffer, ULONG size);
 // uc_orig: FileSeek (MFStdLib/Source/StdLib/StdFile.cpp)
 SLONG FileSeek(MFFileHandle file_handle, const int mode, SLONG offset);
 
-// Read entire file into a pre-allocated buffer. Returns file size or FILE_LOAD_AT_ERROR.
-// uc_orig: FileLoadAt (MFStdLib/Source/StdLib/StdFile.cpp)
-SLONG FileLoadAt(CBYTE* file_name, void* buffer);
-
 // Set the base directory prepended to all file paths.
 // uc_orig: FileSetBasePath (MFStdLib/Source/StdLib/StdFile.cpp)
 void FileSetBasePath(CBYTE* path_name);
