@@ -166,21 +166,10 @@ void add_thing_to_map(Thing* t_thing);
 void remove_thing_from_map(Thing* t_thing);
 // uc_orig: move_thing_on_map (fallen/Headers/Thing.h)
 void move_thing_on_map(Thing* t_thing, GameCoord* new_position);
-// uc_orig: move_thing_on_map_dxdydz (fallen/Source/Thing.cpp)
-void move_thing_on_map_dxdydz(Thing* t_thing, SLONG dx, SLONG dy, SLONG dz);
 // uc_orig: process_things (fallen/Headers/Thing.h)
 void process_things(SLONG f_r_i);
 // uc_orig: process_things_tick (fallen/Source/Thing.cpp)
 void process_things_tick(SLONG frame_rate_independant);
-
-// uc_orig: log_primary_used_list (fallen/Headers/Thing.h)
-void log_primary_used_list(void);
-// uc_orig: log_primary_unused_list (fallen/Headers/Thing.h)
-void log_primary_unused_list(void);
-// uc_orig: log_secondary_used_list (fallen/Source/Thing.cpp)
-void log_secondary_used_list(void);
-// uc_orig: log_secondary_unused_list (fallen/Source/Thing.cpp)
-void log_secondary_unused_list(void);
 
 // uc_orig: alloc_thing (fallen/Headers/Thing.h)
 Thing* alloc_thing(SBYTE classification);
@@ -295,13 +284,8 @@ SLONG THING_find_nearest(
 // uc_orig: THING_find_nearest_person (fallen/Source/Thing.cpp)
 SLONG THING_find_nearest_person(Thing* p_person, SLONG radius, ULONG classes);
 
-// Tick-independent replay helpers: store/check thing states to/from verifier_file.
-// uc_orig: wait_ticks (fallen/Source/Thing.cpp)
-void wait_ticks(SLONG wait);
 // uc_orig: do_packets (fallen/Source/Thing.cpp)
 void do_packets(void);
-// uc_orig: set_slow_motion (fallen/Source/Thing.cpp)
-void set_slow_motion(UWORD motion);
 // uc_orig: copy_important_thing_bits (fallen/Source/Thing.cpp)
 void copy_important_thing_bits(const Thing* src, Thing* dst);
 // uc_orig: store_thing (fallen/Source/Thing.cpp)

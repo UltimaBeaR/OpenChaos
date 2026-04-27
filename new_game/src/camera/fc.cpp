@@ -78,9 +78,6 @@ extern void calc_sub_objects_position(
 extern SLONG EWAY_cam_jumped;
 // Note: EWAY_grab_camera declared in fallen/Headers/eway.h (returns SLONG)
 
-// uc_orig: set_slow_motion (fallen/Source/fc.cpp)
-extern void set_slow_motion(UWORD motion);
-
 // Adjusts the camera height offset (dheight) and distance (ddist) based on the
 // focus character's current state: gun-out, driving a vehicle, or idle walking.
 // Gun-out: camera moves closer and lower (dheight=0, ddist=200).

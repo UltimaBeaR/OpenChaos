@@ -33,9 +33,6 @@ void sdl3_window_get_position(int* x, int* y);
 // Get window center in screen coordinates.
 void sdl3_window_get_center(int* x, int* y);
 
-// Resize the window client area.
-void sdl3_window_set_size(int w, int h);
-
 // Get actual drawable size in pixels (may differ from window size on HiDPI).
 void sdl3_window_get_drawable_size(int* w, int* h);
 

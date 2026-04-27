@@ -63,10 +63,7 @@ struct MFTime {
 SLONG main(UWORD argc, char** argv);
 BOOL SetupHost(ULONG flags);
 void ResetHost(void);
-void TraceText(char* error, ...);
 BOOL LibShellActive(void);
-BOOL LibShellChanged(void);
-BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine);
 
 // Assert: logs condition, file, line to crash_log.txt and stderr, then aborts.
 // Writes crash_log.txt directly (before abort's SIGABRT handler) so details are preserved.

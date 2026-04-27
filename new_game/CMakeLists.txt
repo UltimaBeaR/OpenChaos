@@ -367,7 +367,6 @@ set(SOURCES_NEW
     # === Things: core ===
     src/things/core/drawtype.cpp
     src/things/core/state.cpp
-    src/things/core/switch.cpp
     src/things/core/hierarchy.cpp
     src/things/core/hierarchy_globals.cpp
     src/things/core/player.cpp

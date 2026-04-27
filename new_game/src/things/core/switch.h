@@ -52,23 +52,4 @@ typedef struct
 
 typedef Switch* SwitchPtr;
 
-// uc_orig: init_switches (fallen/Headers/Switch.h)
-void init_switches(void);
-
-// uc_orig: free_switch (fallen/Headers/Switch.h)
-void free_switch(Thing* switch_thing);
-
-// uc_orig: create_switch (fallen/Headers/Switch.h)
-THING_INDEX create_switch(void);
-
-// State handler functions for each switch type.
-// uc_orig: fn_switch_player (fallen/Headers/Switch.h)
-void fn_switch_player(Thing* s_thing);
-// uc_orig: fn_switch_thing (fallen/Headers/Switch.h)
-void fn_switch_thing(Thing* s_thing);
-// uc_orig: fn_switch_group (fallen/Headers/Switch.h)
-void fn_switch_group(Thing* s_thing);
-// uc_orig: fn_switch_class (fallen/Headers/Switch.h)
-void fn_switch_class(Thing* s_thing);
-
 #endif // THINGS_CORE_SWITCH_H

@@ -202,11 +202,6 @@ void sdl3_window_get_center(int* x, int* y)
     if (y) *y = wy + wh / 2;
 }
 
-void sdl3_window_set_size(int w, int h)
-{
-    if (s_window) SDL_SetWindowSize(s_window, w, h);
-}
-
 void sdl3_window_get_drawable_size(int* w, int* h)
 {
     if (s_window) {

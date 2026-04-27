@@ -204,25 +204,6 @@ void ResetHost(void)
     sdl3_window_destroy();
 }
 
-// uc_orig: ShellPaused (fallen/DDLibrary/Source/GHost.cpp)
-void ShellPaused(void)
-{
-    return;
-}
-
-// uc_orig: ShellPauseOn (fallen/DDLibrary/Source/GHost.cpp)
-void ShellPauseOn(void)
-{
-    ge_to_gdi();
-    return;
-}
-
-// uc_orig: ShellPauseOff (fallen/DDLibrary/Source/GHost.cpp)
-void ShellPauseOff(void)
-{
-    return;
-}
-
 // uc_orig: LibShellActive (fallen/DDLibrary/Source/GHost.cpp)
 // Polls the SDL3 event queue, dispatching input/window events via callbacks.
 // Returns UC_TRUE while the app is alive.
@@ -250,43 +231,6 @@ BOOL LibShellActive(void)
     }
 
     return ShellActive;
-}
-
-// uc_orig: LibShellChanged (fallen/DDLibrary/Source/GHost.cpp)
-BOOL LibShellChanged(void)
-{
-    if (ge_is_display_changed()) {
-        ge_clear_display_changed();
-        return UC_TRUE;
-    }
-    return UC_FALSE;
-}
-
-// uc_orig: LibShellMessage (fallen/DDLibrary/Source/GHost.cpp)
-BOOL LibShellMessage(const char* pMessage, const char* pFile, ULONG dwLine)
-{
-    if (pMessage == NULL) {
-        pMessage = "Looks like a coder has caught a bug.";
-    }
-
-    fprintf(stderr, "=== Mucky Foot Message ===\n%s\nIn: %s line %u\n", pMessage, pFile, dwLine);
-    return UC_FALSE;
-}
-
-// uc_orig: Time (fallen/DDLibrary/Source/GHost.cpp)
-void Time(MFTime* the_time)
-{
-    time_t raw = time(nullptr);
-    struct tm* lt = localtime(&raw);
-    the_time->Hours = lt->tm_hour;
-    the_time->Minutes = lt->tm_min;
-    the_time->Seconds = lt->tm_sec;
-    the_time->MSeconds = 0; // localtime doesn't provide milliseconds
-    the_time->DayOfWeek = lt->tm_wday; // 0=Sunday, same as SYSTEMTIME
-    the_time->Day = lt->tm_mday;
-    the_time->Month = lt->tm_mon + 1; // tm_mon is 0-based, MFTime is 1-based
-    the_time->Year = lt->tm_year + 1900;
-    the_time->Ticks = sdl3_get_ticks();
 }
 
 // ---------------------------------------------------------------------------
@@ -427,15 +371,3 @@ int HOST_run(int argc_in, char* argv_in[])
     return MF_main((UWORD)argc_in, argv_in);
 }
 
-// uc_orig: TraceText (MFStdLib/Source/StdLib/StdFile.cpp)
-void TraceText(char* fmt, ...)
-{
-    char message[512];
-    va_list ap;
-
-    va_start(ap, fmt);
-    vsprintf(message, fmt, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s", message);
-}

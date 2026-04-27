@@ -15,8 +15,6 @@
 #include "things/core/statedef.h"
 
 // Forward declarations for external functions not yet migrated.
-// uc_orig: Time (MFStdLib/Headers/MFStdLib.h)
-void Time(struct MFTime* the_time);
 // uc_orig: free_person (fallen/Headers/Person.h)
 void free_person(Thing* person_thing);
 // uc_orig: free_projectile (fallen/Headers/Pjectile.h)
@@ -296,75 +294,6 @@ void move_thing_on_map(Thing* t_thing, GameCoord* new_position)
     }
 }
 
-// uc_orig: move_thing_on_map_dxdydz (fallen/Source/Thing.cpp)
-void move_thing_on_map_dxdydz(Thing* t_thing, SLONG dx, SLONG dy, SLONG dz)
-{
-    GameCoord new_position;
-    new_position.X = t_thing->WorldPos.X + dx;
-    new_position.Y = t_thing->WorldPos.Y + dy;
-    new_position.Z = t_thing->WorldPos.Z + dz;
-
-    move_thing_on_map(t_thing, &new_position);
-}
-
-// uc_orig: log_primary_used_list (fallen/Source/Thing.cpp)
-void log_primary_used_list(void)
-{
-    THING_INDEX thing;
-
-    thing = PRIMARY_USED;
-    while (thing) {
-        thing = TO_THING(thing)->LinkChild;
-    }
-}
-
-// uc_orig: log_primary_unused_list (fallen/Source/Thing.cpp)
-void log_primary_unused_list(void)
-{
-    THING_INDEX thing;
-
-    thing = PRIMARY_UNUSED;
-    while (thing) {
-        thing = TO_THING(thing)->LinkChild;
-    }
-}
-
-// uc_orig: log_secondary_used_list (fallen/Source/Thing.cpp)
-void log_secondary_used_list(void)
-{
-    THING_INDEX thing;
-
-    thing = SECONDARY_USED;
-    while (thing) {
-        thing = TO_THING(thing)->LinkChild;
-    }
-}
-
-// uc_orig: log_secondary_unused_list (fallen/Source/Thing.cpp)
-void log_secondary_unused_list(void)
-{
-    THING_INDEX thing;
-
-    thing = SECONDARY_UNUSED;
-    while (thing) {
-        thing = TO_THING(thing)->LinkChild;
-    }
-}
-
-// uc_orig: wait_ticks (fallen/Source/Thing.cpp)
-void wait_ticks(SLONG wait)
-{
-    struct MFTime the_time;
-
-    // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
-    uint64_t tick_reqd;
-    Time(&the_time);
-    tick_reqd = the_time.Ticks + wait;
-    while (the_time.Ticks < tick_reqd) {
-        Time(&the_time);
-    }
-}
-
 // uc_orig: do_packets (fallen/Source/Thing.cpp)
 void do_packets(void)
 {
@@ -408,12 +337,6 @@ void do_packets(void)
 
         PACKET_DATA(PLAYER_ID) = packets[PLAYER_ID].Input;
     }
-}
-
-// uc_orig: set_slow_motion (fallen/Source/Thing.cpp)
-void set_slow_motion(UWORD motion)
-{
-    slow_mo = motion;
 }
 
 // uc_orig: copy_important_thing_bits (fallen/Source/Thing.cpp)
