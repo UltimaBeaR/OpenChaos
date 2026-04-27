@@ -44,26 +44,6 @@ void MF_rotate_mesh(
 // uc_orig: MF_transform_points (fallen/outro/mf.h)
 void MF_transform_points(IMP_Mesh* im);
 
-// Inverts the Z values in OS_trans[] so that 0=far, 1=near (for reversed z-buffer).
-// Call after MF_transform_points().
-// uc_orig: MF_invert_zeds (fallen/outro/mf.h)
-void MF_invert_zeds(IMP_Mesh* im);
-
-// Computes per-vertex ambient + directional lighting colour into svert[].colour.
-// Light vector does not need to be normalised.
-// uc_orig: MF_ambient (fallen/outro/mf.h)
-void MF_ambient(
-    IMP_Mesh* im,
-    float light_dx,
-    float light_dy,
-    float light_dz,
-    SLONG light_r,
-    SLONG light_g,
-    SLONG light_b,
-    SLONG amb_r,
-    SLONG amb_g,
-    SLONG amb_b);
-
 // Computes diffuse spotlight UVs (lu, lv on IMP_Vert) and gouraud + bumpmap offsets
 // (colour, du, dv on IMP_Svert) for the given spotlight.
 // uc_orig: MF_diffuse_spotlight (fallen/outro/mf.h)
@@ -85,33 +65,9 @@ void MF_specular_spotlight(
     float light_matrix[9],
     float light_lens);
 
-// Submits mesh triangles using per-material textures with per-vertex colour.
-// uc_orig: MF_add_triangles_normal (fallen/outro/mf.h)
-void MF_add_triangles_normal(IMP_Mesh* im, ULONG draw = OS_DRAW_NORMAL);
-
-// Same as MF_add_triangles_normal but overrides all vertex colours with a constant.
-// uc_orig: MF_add_triangles_normal_colour (fallen/outro/mf.h)
-void MF_add_triangles_normal_colour(IMP_Mesh* im, ULONG draw = OS_DRAW_NORMAL, ULONG colour = 0xffffff);
-
-// Submits mesh triangles using lightmap coordinates (lu/lv from IMP_Vert) and a single texture.
-// uc_orig: MF_add_triangles_light (fallen/outro/mf.h)
-void MF_add_triangles_light(IMP_Mesh* im, OS_Texture* ot, ULONG draw = OS_DRAW_ADD | OS_DRAW_CLAMP);
-
-// Two-pass lightmap with bumpmap: first pass draws bump offset UVs, second pass draws additive.
-// uc_orig: MF_add_triangles_light_bumpmapped (fallen/outro/mf.h)
-void MF_add_triangles_light_bumpmapped(IMP_Mesh* im, OS_Texture* ot, ULONG draw = OS_DRAW_ADD | OS_DRAW_CLAMP);
-
-// Submits mesh triangles using specular spotlight UVs (lu/lv from IMP_Svert).
-// uc_orig: MF_add_triangles_specular (fallen/outro/mf.h)
-void MF_add_triangles_specular(IMP_Mesh* im, OS_Texture* ot, ULONG draw = OS_DRAW_ADD | OS_DRAW_CLAMP);
-
 // Single-pass specular with bumpmap: submits materials with bumpmaps using multiply blend.
 // uc_orig: MF_add_triangles_specular_bumpmapped (fallen/outro/mf.h)
 void MF_add_triangles_specular_bumpmapped(IMP_Mesh* im, OS_Texture* ot, ULONG draw = OS_DRAW_ADD | OS_DRAW_CLAMP);
-
-// Draws specular highlight shadowed by a diffuse spotlight. Uses two textures.
-// uc_orig: MF_add_triangles_specular_shadowed (fallen/outro/mf.h)
-void MF_add_triangles_specular_shadowed(IMP_Mesh* im, OS_Texture* ot_specdot, OS_Texture* ot_diffdot, ULONG draw = OS_DRAW_ADD | OS_DRAW_CLAMP | OS_DRAW_TEX_MUL);
 
 // Draws visible mesh edges as 3D lines using OS_buffer_add_line_3d.
 // uc_orig: MF_add_wireframe (fallen/outro/mf.h)

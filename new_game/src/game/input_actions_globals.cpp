@@ -31,34 +31,15 @@ bool g_bEngineVibrations = UC_TRUE;
 // uc_orig: m_bForceWalk (fallen/Source/interfac.cpp)
 bool m_bForceWalk = UC_FALSE;
 
-// uc_orig: g_iCheatNumber (fallen/Source/interfac.cpp)
-int g_iCheatNumber = -1;
-
 // uc_orig: joypad_button_use (fallen/Source/interfac.cpp)
 UBYTE joypad_button_use[16];
 
 // uc_orig: keybrd_button_use (fallen/Source/interfac.cpp)
 UBYTE keybrd_button_use[16];
 
-// Dead camera position deltas from "look around" mode (not used in current PC code path).
-// uc_orig: last_camera_dx (fallen/Source/interfac.cpp)
-SLONG last_camera_dx = 0;
-// uc_orig: last_camera_dy (fallen/Source/interfac.cpp)
-SLONG last_camera_dy = 0;
-// uc_orig: last_camera_dz (fallen/Source/interfac.cpp)
-SLONG last_camera_dz = 0;
-// uc_orig: last_camera_yaw (fallen/Source/interfac.cpp)
-SLONG last_camera_yaw = 0;
-// uc_orig: last_camera_pitch (fallen/Source/interfac.cpp)
-SLONG last_camera_pitch = 0;
-
 // Current pitch angle for first-person look mode (0..2047).
 // uc_orig: look_pitch (fallen/Source/interfac.cpp)
 SLONG look_pitch = 0;
-
-// Raw hardware input captured last frame (debug / replay use).
-// uc_orig: debug_input (fallen/Source/interfac.cpp)
-ULONG debug_input;
 
 // Last polled input state and edge-detect buffers (used by get_last_input).
 // uc_orig: m_CurrentInput (fallen/Source/interfac.cpp)

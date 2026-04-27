@@ -80,19 +80,6 @@ void oge_init()
     apply_outro_viewport();
 }
 
-void oge_shutdown()
-{
-    os_texture* ot = s_texture_head;
-    while (ot) {
-        os_texture* next = ot->next;
-        if (ot->gl_id) glDeleteTextures(1, &ot->gl_id);
-        free(ot);
-        ot = next;
-    }
-    s_texture_head = nullptr;
-    s_bound[0] = s_bound[1] = nullptr;
-}
-
 // ---------------------------------------------------------------------------
 // Textures
 // ---------------------------------------------------------------------------
@@ -149,44 +136,9 @@ OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
     return ot;
 }
 
-OGETexture oge_texture_create_blank(int32_t size, int32_t format)
-{
-    os_texture* ot = (os_texture*)calloc(1, sizeof(os_texture));
-    if (!ot) return nullptr;
-
-    ot->size = (uint16_t)size;
-    ot->format = (uint8_t)format;
-
-    glGenTextures(1, &ot->gl_id);
-    glBindTexture(GL_TEXTURE_2D, ot->gl_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, size, 0,
-                 GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    ot->next = s_texture_head;
-    s_texture_head = ot;
-
-    return ot;
-}
-
-void oge_texture_finished_creating() {}
-
-int32_t oge_texture_size(OGETexture tex)
-{
-    return tex ? tex->size : 0;
-}
-
-void oge_texture_lock(OGETexture) {}
-void oge_texture_unlock(OGETexture) {}
-
 // ---------------------------------------------------------------------------
 // Render state
 // ---------------------------------------------------------------------------
-
-void oge_init_renderstates() {}
-void oge_calculate_pipeline() {}
 
 void oge_change_renderstate(uint32_t flags)
 {

@@ -41,9 +41,6 @@ extern float OS_screen_height;
 // enumerate texture formats, compute mask/shift tables.
 void oge_init();
 
-// Release all outro textures.
-void oge_shutdown();
-
 // ---------------------------------------------------------------------------
 // Texture creation flags
 // ---------------------------------------------------------------------------
@@ -61,19 +58,6 @@ constexpr uint32_t OGE_TEX_GRAYSCALE     = (1 << 2);
 // flags: OGE_TEX_HAS_ALPHA, OGE_TEX_ONE_BIT_ALPHA, OGE_TEX_GRAYSCALE.
 OGETexture oge_texture_create(const char* name, int32_t width, int32_t height,
                               uint32_t flags, const uint8_t* pixels, int32_t invert);
-
-// Create a blank texture of given size and format (for dynamic writing).
-OGETexture oge_texture_create_blank(int32_t size, int32_t format);
-
-// Called after all textures are loaded (hint to driver, currently a no-op).
-void oge_texture_finished_creating();
-
-// Get texture dimensions.
-int32_t oge_texture_size(OGETexture tex);
-
-// Lock texture for CPU write. Populates the OS_bitmap_* globals.
-void oge_texture_lock(OGETexture tex);
-void oge_texture_unlock(OGETexture tex);
 
 // ---------------------------------------------------------------------------
 // Draw mode flags (passed to oge_change_renderstate)
@@ -116,12 +100,6 @@ extern int32_t OS_bitmap_shift_r, OS_bitmap_shift_g, OS_bitmap_shift_b, OS_bitma
 // ---------------------------------------------------------------------------
 // Render states
 // ---------------------------------------------------------------------------
-
-// Reset all render states to outro defaults (Gouraud, zbuffer, CCW cull, etc.).
-void oge_init_renderstates();
-
-// Probe which multitexture blending method the device supports.
-void oge_calculate_pipeline();
 
 // Apply render state overrides for a given OS_DRAW_* flag combination.
 void oge_change_renderstate(uint32_t draw_flags);

@@ -38,9 +38,6 @@ void TEXTURE_load_needed(CBYTE* fname_level,
     int iEndCompletionBar = 0,
     int iNumberTexturesProbablyLoaded = 0);
 
-// uc_orig: TEXTURE_load_needed_object (fallen/DDEngine/Headers/aeng.h)
-void TEXTURE_load_needed_object(SLONG prim_object);
-
 // uc_orig: AENG_create_dx_prim_points (fallen/DDEngine/Headers/aeng.h)
 void AENG_create_dx_prim_points(void);
 
@@ -49,14 +46,6 @@ void TEXTURE_fix_texture_styles(void);
 
 // uc_orig: TEXTURE_fix_prim_textures (fallen/DDEngine/Headers/aeng.h)
 void TEXTURE_fix_prim_textures(void);
-
-// uc_orig: TEXTURE_get_fiddled_position (fallen/DDEngine/Headers/aeng.h)
-SLONG TEXTURE_get_fiddled_position(
-    SLONG square_u,
-    SLONG square_v,
-    SLONG page,
-    float* u,
-    float* v);
 
 // uc_orig: AENG_set_camera (fallen/DDEngine/Headers/aeng.h)
 void AENG_set_camera(

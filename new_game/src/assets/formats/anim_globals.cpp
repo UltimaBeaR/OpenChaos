@@ -7,14 +7,6 @@ struct GameKeyFrame* global_anim_array[4][450];
 
 // uc_orig: test_chunk (fallen/Source/interact.cpp)
 struct KeyFrameChunk* test_chunk;
-// uc_orig: test_chunk2 (fallen/Source/interact.cpp)
-struct KeyFrameChunk test_chunk2;
-// uc_orig: test_chunk3 (fallen/Source/interact.cpp)
-struct KeyFrameChunk test_chunk3;
-// uc_orig: thug_chunk (fallen/Source/interact.cpp)
-struct KeyFrameChunk thug_chunk;
-// uc_orig: the_elements (fallen/Source/interact.cpp)
-struct KeyFrameElement* the_elements;
 
 // uc_orig: game_chunk (fallen/Source/interact.cpp)
 struct GameKeyFrameChunk game_chunk[MAX_GAME_CHUNKS];
@@ -44,11 +36,6 @@ UWORD next_prim_multi_object = 1;
 
 // uc_orig: roper_pickup (fallen/Source/Anim.cpp)
 UBYTE roper_pickup = 0;
-
-// uc_orig: prim_multi_anims (fallen/Source/Anim.cpp)
-struct PrimMultiAnim prim_multi_anims[10000];
-// uc_orig: next_prim_multi_anim (fallen/Source/Anim.cpp)
-UWORD next_prim_multi_anim = 1;
 
 // uc_orig: estate (fallen/Source/Anim.cpp)
 UBYTE estate = 0;

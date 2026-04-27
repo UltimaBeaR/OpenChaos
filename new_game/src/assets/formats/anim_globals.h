@@ -24,12 +24,6 @@ extern UWORD next_prim_multi_object;
 // uc_orig: roper_pickup (fallen/Source/Anim.cpp)
 extern UBYTE roper_pickup;
 
-// Multi-part animation data for character body variants.
-// uc_orig: prim_multi_anims (fallen/Source/Anim.cpp)
-extern struct PrimMultiAnim prim_multi_anims[10000];
-// uc_orig: next_prim_multi_anim (fallen/Source/Anim.cpp)
-extern UWORD next_prim_multi_anim;
-
 // Set when the current level uses the estate variant (banesuit models).
 // uc_orig: estate (fallen/Source/Anim.cpp)
 extern UBYTE estate;
@@ -61,17 +55,9 @@ typedef struct {
 // uc_orig: global_anim_array (fallen/Source/interact.cpp)
 extern struct GameKeyFrame* global_anim_array[4][450];
 
-// Legacy chunk structures (used by older animation loading code paths).
+// Legacy chunk structure (used by reset_anim_stuff; callee path dead but not commented out).
 // uc_orig: test_chunk (fallen/Source/interact.cpp)
 extern struct KeyFrameChunk* test_chunk;
-// uc_orig: test_chunk2 (fallen/Source/interact.cpp)
-extern struct KeyFrameChunk test_chunk2;
-// uc_orig: test_chunk3 (fallen/Source/interact.cpp)
-extern struct KeyFrameChunk test_chunk3;
-// uc_orig: thug_chunk (fallen/Source/interact.cpp)
-extern struct KeyFrameChunk thug_chunk;
-// uc_orig: the_elements (fallen/Source/interact.cpp)
-extern struct KeyFrameElement* the_elements;
 
 // Runtime animation data for the four character type slots.
 // uc_orig: game_chunk (fallen/Source/interact.cpp)

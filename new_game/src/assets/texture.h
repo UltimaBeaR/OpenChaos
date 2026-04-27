@@ -236,13 +236,6 @@ void TEXTURE_shadow_unlock(void);
 // uc_orig: TEXTURE_shadow_update (fallen/DDEngine/Headers/texture.h)
 void TEXTURE_shadow_update(void);
 
-// uc_orig: TEXTURE_86_lock (fallen/DDEngine/Headers/texture.h)
-SLONG TEXTURE_86_lock(void);
-// uc_orig: TEXTURE_86_unlock (fallen/DDEngine/Headers/texture.h)
-void TEXTURE_86_unlock(void);
-// uc_orig: TEXTURE_86_update (fallen/DDEngine/Headers/texture.h)
-void TEXTURE_86_update(void);
-
 // Packed texture coordinate descriptor stored as a UWORD in building/prim data.
 // Fields encode texture page, UV tile offset, rotation and size in 16 bits total.
 // uc_orig: MiniTextureBits (fallen/Headers/Structs.h)
@@ -269,31 +262,11 @@ void TEXTURE_get_minitexturebits_uvs(
     float* u3,
     float* v3);
 
-// uc_orig: TEXTURE_get_fiddled_position (fallen/DDEngine/Headers/texture.h)
-// Given texture square coords on a page, returns the fiddled page and UV position.
-SLONG TEXTURE_get_fiddled_position(
-    SLONG square_u,
-    SLONG square_v,
-    SLONG page,
-    float* u,
-    float* v);
-
 // uc_orig: TEXTURE_set_colour_key (fallen/DDEngine/Headers/texture.h)
 void TEXTURE_set_colour_key(SLONG page);
 
-// uc_orig: TEXTURE_set_greyscale (fallen/DDEngine/Headers/texture.h)
-void TEXTURE_set_greyscale(SLONG is_greyscale);
-
-// uc_orig: TEXTURE_set_tga (fallen/DDEngine/Headers/texture.h)
-// Replaces a specific texture page with a different TGA file.
-void TEXTURE_set_tga(SLONG page, CBYTE* fn);
-
 // uc_orig: TEXTURE_free (fallen/DDEngine/Headers/texture.h)
 void TEXTURE_free(void);
-
-// uc_orig: TEXTURE_free_unneeded (fallen/DDEngine/Headers/texture.h)
-// Frees all non-frontend texture pages (called at level unload).
-void TEXTURE_free_unneeded(void);
 
 // uc_orig: TEXTURE_LOOK_ROAD (fallen/DDEngine/Headers/texture.h)
 #define TEXTURE_LOOK_ROAD     0
@@ -312,9 +285,5 @@ extern SLONG TEXTURE_av_r;
 extern SLONG TEXTURE_av_g;
 // uc_orig: TEXTURE_av_b (fallen/DDEngine/Headers/texture.h)
 extern SLONG TEXTURE_av_b;
-
-// uc_orig: TEXTURE_looks_like (fallen/DDEngine/Headers/texture.h)
-// Returns one of TEXTURE_LOOK_* constants based on pixel analysis of the page.
-SLONG TEXTURE_looks_like(SLONG page);
 
 #endif // ASSETS_TEXTURE_H
