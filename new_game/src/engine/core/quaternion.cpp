@@ -1,6 +1,7 @@
 #include "engine/core/quaternion.h"
 #include "engine/core/fmatrix.h"
-#include "engine/core/math.h"
+#include <cmath>
+#include "engine/core/types.h"
 
 // 3x3 floating-point matrix used internally during quaternion interpolation.
 // uc_orig: FloatMatrix (fallen/DDEngine/Headers/Quaternion.h)

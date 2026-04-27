@@ -2,21 +2,15 @@
 // Pool is split into a doubly-linked "used" list (iterated backwards) and a singly-linked "free" list.
 // particles[0] is a permanent sentinel so that the used-list always has a non-null head.
 
-#include "engine/platform/uc_common.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "things/core/thing.h"     // CLASS_PERSON, Thing, GameCoord, THING_find_sphere, TO_THING
 #include "game/game_types.h"
-#include "ai/mav.h"
 #include "engine/graphics/pipeline/poly.h"  // POLY_PAGE_FLAMES2, POLY_PAGE_STEAM, POLY_PAGE_SMOKECLOUD2
 #include "engine/audio/sound.h"
 #include "ai/pcom.h"
-#include "effects/combat/pow.h"
-#include "effects/combat/pow_globals.h"
 #include "things/characters/anim_ids.h"
-#include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "things/core/interact.h"
-#include "things/core/interact_globals.h"
 #include "engine/physics/collide.h"
 
 #include "engine/effects/psystem_globals.h"

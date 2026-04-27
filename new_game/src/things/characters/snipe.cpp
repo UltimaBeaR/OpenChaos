@@ -1,4 +1,4 @@
-#include "engine/platform/uc_common.h"
+#include "engine/core/macros.h"
 #include "things/characters/snipe.h"
 #include "things/characters/snipe_globals.h"
 

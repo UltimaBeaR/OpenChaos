@@ -3,12 +3,10 @@
 #include "game/game_types.h"
 #include "buildings/prim.h" // prim_get_collision_model
 #include "map/ob.h"
-#include "map/ob_globals.h"
 #include "navigation/wand.h"
 #include "map/pap.h"
 #include "map/pap_globals.h"
 #include "map/road.h"
-#include "map/road_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 
 // uc_orig: WAND_init (fallen/Source/wand.cpp)

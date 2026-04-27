@@ -1,4 +1,3 @@
-#include "engine/platform/uc_common.h"
 #include "ngamut.h"
 
 // uc_orig: MIN3 (fallen/DDEngine/Source/NGamut.cpp)

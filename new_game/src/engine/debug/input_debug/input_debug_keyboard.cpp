@@ -6,13 +6,7 @@
 
 #include "engine/debug/input_debug/input_debug.h"
 
-#include "engine/graphics/text/font.h"
-#include "engine/input/gamepad.h"
-#include "engine/input/gamepad_globals.h"
 #include "engine/input/keyboard.h"
-#include "engine/input/keyboard_globals.h"
-
-#include <cstdio>
 
 namespace {
 

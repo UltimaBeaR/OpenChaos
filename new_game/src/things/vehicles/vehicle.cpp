@@ -9,41 +9,30 @@
 
 #include "engine/platform/uc_common.h"            // base types, ASSERT
 #include "game/game_types.h" // Game struct, TICK_RATIO, pool macros
-#include "engine/core/matrix.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/oval.h"
 
 #include "map/pap.h"
-#include "map/pap_globals.h"
 #include "engine/core/fmatrix.h"
 #include "things/core/statedef.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
 #include "buildings/prim.h"       // slide_along_prim, get_prim_info, etc.
 #include "things/characters/anim_ids.h"
+#include "engine/animation/anim_types.h"  // GameKeyFrame, ANIM_FLAG_LAST_FRAME
 #include "engine/audio/sound.h"
-#include "things/core/interact.h"
-#include "things/core/interact_globals.h"
 #include "map/ob.h"
-#include "map/ob_globals.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
-#include "effects/combat/pow.h"
-#include "effects/combat/pow_globals.h"
 #include "game/input_actions.h"
-#include "game/input_actions_globals.h"
 #include "engine/input/gamepad.h"        // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "things/items/barrel.h"
-#include "things/items/barrel_globals.h"
 #include "map/road.h"
-#include "map/road_globals.h"
-#include "engine/graphics/text/font2d.h"
-#include "missions/memory.h"
 #include "map/level_pools.h"
 #include "engine/audio/mfx.h"
 #include "effects/environment/tracks.h"
@@ -54,8 +43,6 @@
 #include "engine/physics/collide.h"            // collide_box_with_line, distance_to_line
 
 #include "ai/pcom.h"
-// engine/effects/psystem.h already included above; psystem_globals needed too
-#include "engine/effects/psystem_globals.h"
 
 extern BOOL allow_debug_keys;
 extern SLONG is_person_ko(Thing* p_person);

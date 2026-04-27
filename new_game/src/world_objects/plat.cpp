@@ -7,9 +7,7 @@
 #include "map/ob.h"
 #include "things/core/statedef.h"
 #include "navigation/wmove.h"
-#include "things/characters/anim_ids.h"
 #include "engine/effects/psystem.h"
-#include "ui/hud/panel.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/postprocess/bloom.h" // BLOOM_draw, BLOOM_BEAM, BLOOM_LENSFLARE
 

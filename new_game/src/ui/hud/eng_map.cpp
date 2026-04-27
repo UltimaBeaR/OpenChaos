@@ -8,13 +8,9 @@
 #include "game/game_types.h"
 
 #include "engine/graphics/pipeline/poly.h"
-#include "assets/texture.h"
-#include "ai/mav.h"
 #include "engine/graphics/text/menufont.h"
 #include "engine/core/matrix.h"
-#include "engine/graphics/text/font2d.h"
 #include "missions/memory_globals.h"
-#include "engine/graphics/pipeline/aeng.h"
 
 // EWAY_get_mess returns the message string for a beacon label.
 extern CBYTE* EWAY_get_mess(SLONG index);

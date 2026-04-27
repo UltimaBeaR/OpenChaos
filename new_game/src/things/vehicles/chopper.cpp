@@ -5,7 +5,6 @@
 #include "game/game_types.h"
 #include "things/core/interact.h"   // calc_sub_objects_position
 #include "things/core/statedef.h"
-#include "map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
@@ -14,7 +13,6 @@
 #include <stdio.h>
 
 #include "things/vehicles/chopper.h"
-#include "things/vehicles/chopper_globals.h"
 
 // Chopper detection/avoidance radii (in world units).
 // uc_orig: HARDWIRED_RADIUS (fallen/Source/chopper.cpp)

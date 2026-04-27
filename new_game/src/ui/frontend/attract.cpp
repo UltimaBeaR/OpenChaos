@@ -1,7 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_flip, AENG_fade_out, AENG_clear_screen
-#include "camera/cam.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/poly.h"
@@ -10,9 +9,6 @@
 #include "ui/frontend/startscr.h"
 #define DEMO
 #include "ui/frontend/attract.h"
-#include "engine/io/env.h"
-#include "ui/hud/overlay.h"
-#include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"
 #include "missions/eway.h"
 #include "game/input_actions.h"

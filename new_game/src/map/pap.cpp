@@ -1,14 +1,11 @@
 // Two-tier heightfield map (PAP).
 // Provides terrain height queries and map bounds checks used throughout game, AI, and collision code.
 
-#include "engine/platform/uc_common.h"
 #include "map/pap.h"
-#include "map/pap_globals.h"
 #include "game/game_types.h"
 #include "ai/mav.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "buildings/ware.h"
-#include "buildings/ware_globals.h"
 
 // uc_orig: PAP_on_map_hi (fallen/Source/pap.cpp)
 SLONG PAP_on_map_hi(SLONG x, SLONG z)

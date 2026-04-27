@@ -4,8 +4,6 @@
 #include "engine/physics/collide.h"     // LOS_FLAG_* constants
 #include "things/characters/anim_ids.h"
 #include "engine/core/fmatrix.h"
-#include "navigation/walkable.h"
-#include "navigation/walkable_globals.h"
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 #include "things/core/statedef.h"

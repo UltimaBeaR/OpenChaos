@@ -1,15 +1,12 @@
 #include "engine/platform/uc_common.h"
-#include "game/game_types.h"
 #include "engine/graphics/pipeline/aeng.h"  // AENG_world_line
 #include "buildings/prim.h"   // get_prim_info
 #include "ai/mav.h"
 #include "map/level_pools.h"
 #include "map/supermap.h"
-#include "engine/graphics/lighting/night.h"
-#include "engine/graphics/lighting/night_globals.h"
 #include "map/ob.h"
 #include "map/ob_globals.h"
-#include "assets/formats/elev.h"
+#include "assets/formats/elev_globals.h"
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 #include "map/pap.h"

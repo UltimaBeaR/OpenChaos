@@ -9,12 +9,10 @@
 #include "assets/formats/anim_globals.h"           // the_elements, game_chunk, anim_chunk
 #include "assets/formats/anim.h"                   // free_game_chunk
 #include "assets/formats/level_loader.h"           // change_extension, DATA_DIR, read_object_name
-#include "assets/formats/level_loader_globals.h"
 #include "map/supermap_globals.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 // These functions are defined in memory.cpp (not yet migrated).
 extern void convert_keyframe_to_pointer(GameKeyFrame* p, GameKeyFrameElement* p_ele, GameFightCol* p_fight, SLONG count);

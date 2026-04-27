@@ -14,7 +14,6 @@
 #include "engine/core/matrix.h"                // MATRIX_MUL
 #include "engine/core/math.h"                  // Root
 #include "engine/core/macros.h"                // ASSERT, WITHIN, SATURATE, SWAP, INFINITY, QDIST2, Random
-#include "engine/core/memory.h"                // MSG_add
 #include "map/pap.h"              // PAP_calc_height_at, PAP_2LO, PAP_SIZE_LO, PAP_SIZE_HI, PAP_SHIFT_LO
 #include "navigation/walkable.h"  // find_height_for_this_pos
 #include "engine/physics/collide.h"     // slide_around_box
@@ -29,7 +28,6 @@
 #include "map/supermap.h"
 #include "game/game_types.h"
 #include "assets/formats/anim_globals.h"
-#include "engine/graphics/pipeline/aeng.h"
 #include "map/level_pools.h"
 
 // Forward declaration for advance_keyframe (defined in person.cpp / old Person.cpp).

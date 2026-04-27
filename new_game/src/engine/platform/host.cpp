@@ -8,14 +8,12 @@
 #include "engine/input/mouse.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <signal.h>
 #ifndef _WIN32
 #include <execinfo.h>
 #endif
 
 #include "game/game_types.h"
-#include "engine/audio/sound.h"
 #include "engine/audio/mfx.h"
 #include "engine/platform/uc_common.h"
 

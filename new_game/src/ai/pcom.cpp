@@ -14,12 +14,9 @@
 #include "buildings/prim.h"    // get_prim_info
 #include "engine/physics/collide.h"
 #include "map/road.h"
-#include "map/road_globals.h"
 #include "navigation/wand.h"
 #include "buildings/ware.h"
-#include "buildings/ware_globals.h"
 #include "map/ob.h"
-#include "map/ob_globals.h"
 #include "things/characters/anim_ids.h"
 #include "things/core/statedef.h"
 #include "things/characters/person.h"   // set_person_idle, set_person_goto_xz, set_person_circle, etc.
@@ -28,10 +25,8 @@
 #include "assets/sound_id.h"
 #include "effects/combat/spark.h"
 #include "things/items/balloon.h"
-#include "things/items/balloon_globals.h"
 #include "ui/hud/overlay.h"
 #include "things/vehicles/vehicle.h"
-#include "things/vehicles/vehicle_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "things/core/interact.h"
 #include "things/core/thing.h"

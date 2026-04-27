@@ -1,4 +1,3 @@
-#include "engine/platform/uc_common.h"
 #include "ui/menus/widget.h"
 #include "ui/menus/widget_globals.h"
 #include "engine/audio/mfx.h"
@@ -7,7 +6,6 @@
 #include "engine/input/keyboard.h"
 #include "engine/graphics/pipeline/polypage.h"  // PolyPage::UIModeScope
 #include "game/input_actions.h"
-#include "game/input_actions_globals.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/platform/sdl3_bridge.h"
 

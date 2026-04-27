@@ -1,16 +1,14 @@
-#include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 
 #include "effects/environment/tracks.h"
 #include "effects/environment/tracks_globals.h"
 #include "engine/graphics/pipeline/poly.h"
 
+#include "map/pap.h"
 #include "map/pap_globals.h"
 #include "things/characters/anim_ids.h"
 #include "world_objects/puddle.h"
-#include "world_objects/puddle_globals.h"
 #include "things/core/interact.h"
-#include "things/core/interact_globals.h"
 
 // world_type is in Sound.cpp; WORLD_TYPE_SNOW from sound.h (pulled via game.h chain indirectly)
 // but we use extern to avoid the sound.h → Structs.h → anim.h inclusion issues

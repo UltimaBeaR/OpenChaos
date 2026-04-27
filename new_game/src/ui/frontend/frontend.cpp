@@ -25,9 +25,6 @@ extern SLONG ScreenHeight;
 #include "engine/core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
-#include "assets/formats/level_loader.h"
-#include "assets/formats/level_loader_globals.h"
-#include "assets/formats/anim_loader.h"
 #include "engine/audio/music.h"
 #include "game/game_types.h"
 
@@ -47,7 +44,6 @@ extern SLONG ScreenHeight;
 #include "ui/frontend/startscr.h"                  // STARTS_START, STARTS_EXIT, STARTS_EDITOR
 #include "map/supermap_globals.h"       // DONT_load
 #include "game/game_tick_globals.h"              // allow_debug_keys
-#include "game/game_globals.h"            // VIOLENCE
 
 
 // uc_orig: RandStream (fallen/Source/frontend.cpp)

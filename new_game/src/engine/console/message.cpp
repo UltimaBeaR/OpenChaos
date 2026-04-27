@@ -1,7 +1,6 @@
 #include "engine/console/message.h"
 #include "engine/console/message_globals.h"
 #include "engine/core/types.h"
-#include "engine/core/macros.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/graphics/text/font.h"

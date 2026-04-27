@@ -1,7 +1,6 @@
 #include "engine/platform/uc_common.h"
 #include <string.h>
 #include <stdlib.h>
-#include "game/game_types.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
 #include "assets/formats/anim_globals.h"   // next_prim_face3, next_prim_face4
@@ -12,16 +11,12 @@
 #include "map/pap.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/lighting/crinkle.h"
-#include "engine/console/message.h"
 #include "engine/audio/sound.h"
-#include "buildings/ware.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/io/env.h"
 #include "assets/formats/tga.h"
 #include "map/level_pools.h"
 #include "assets/formats/level_loader.h"
-#include "assets/formats/level_loader_globals.h"
-#include "assets/formats/anim_loader.h"
 #include "buildings/building_types.h"  // TEXTURE_PIECE_NUMBER, STOREY_TYPE_*, FACET_FLAG_2SIDED
 #include "buildings/building_globals.h" // dx_textures_xy, building_list
 #include "map/supermap_globals.h" // next_dfacet

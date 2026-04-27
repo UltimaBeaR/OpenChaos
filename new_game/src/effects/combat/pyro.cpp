@@ -11,12 +11,12 @@
 #include "effects/environment/ribbon.h"
 #include "engine/graphics/lighting/night.h"
 #include "world_objects/dirt.h"
-#include "engine/audio/sound.h"
+#include "assets/sound_id.h"
+#include "engine/audio/mfx.h"
 #include "engine/effects/psystem.h"
 #include "ai/pcom.h"
 #include "ui/menus/gamemenu.h"
 #include "things/characters/anim_ids.h"
-#include "combat/combat.h"
 #include "things/core/interact.h"      // calc_sub_objects_position
 #include "things/characters/person.h"  // set_person_dead, knock_person_down
 #include "engine/graphics/pipeline/poly.h"
@@ -1034,8 +1034,6 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
 #include "effects/environment/ribbon.h"
 #include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/sprite.h"
-#include "effects/combat/spark.h"
-#include "buildings/id.h"
 #include "map/pap.h"
 // BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.
 #include "engine/graphics/postprocess/bloom.h"

@@ -5,32 +5,23 @@
 #include "engine/graphics/geometry/figure_globals.h"
 
 // D3D, game types, and all subsystems needed throughout the original file.
-#include "game/game.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/geometry/sprite.h"
 #include "engine/core/fmatrix.h"
 #include "things/core/interact.h"
-#include "engine/graphics/lighting/shadow.h"
 #include "engine/core/matrix.h"
 #include "things/characters/anim_ids.h"
 #include "engine/graphics/geometry/mesh.h"
-#include "world_objects/dirt.h"
+#include "map/level_pools.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"  // alt_texture
 #include <math.h>
-#include "game/input_actions.h"
 #include "things/core/hierarchy.h"
 #include "engine/core/quaternion.h"
-#include "missions/memory.h"
 #include "things/characters/person.h"
-#include "ai/pcom.h"
-#include "missions/eway.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "ui/hud/panel.h"
-#include "engine/graphics/pipeline/polypage.h"
-#include "engine/effects/psystem.h"
 
 // Note: animation depends on lighting (BuildMMLightingTable reads NIGHT_* globals).
 // This cross-engine coupling exists in the original; will be resolved in Stage 7.
@@ -2159,7 +2150,6 @@ no_muzzle_calcs:
 }
 
 #include "things/items/special.h"
-#include "things/items/special_globals.h"
 #include "things/core/interact.h"
 #include "engine/input/keyboard_globals.h"
 #include "things/core/hierarchy.h"

@@ -23,7 +23,6 @@ extern SLONG ScreenHeight;
 // Thing, Class constants, person types, special items
 #include "things/core/thing.h"
 #include "things/core/thing_globals.h"
-#include "things/characters/person.h"
 #include "things/items/special.h"
 #include "things/items/special_globals.h"
 

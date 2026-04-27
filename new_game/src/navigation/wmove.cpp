@@ -9,7 +9,6 @@
 #include "things/core/statedef.h"
 
 #include "things/vehicles/vehicle.h"
-#include "things/vehicles/vehicle_globals.h"
 #include "map/level_pools.h"
 #include "buildings/prim_types.h" // PrimFace4, PrimPoint, FACE_FLAG_*
 #include "buildings/prim.h"       // get_prim_info, slide_along_prim

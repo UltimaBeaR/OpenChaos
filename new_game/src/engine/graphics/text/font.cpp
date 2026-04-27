@@ -2,8 +2,11 @@
 #include "engine/graphics/text/font_atlas.h"
 #include "engine/graphics/text/font_globals.h"
 
-#include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 #include "engine/graphics/pipeline/polypage.h"   // PolyPage::s_XScale / s_YScale (virtual → pixel scale)
 
 #include "engine/core/macros.h"

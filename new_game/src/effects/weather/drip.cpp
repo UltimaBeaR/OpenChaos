@@ -1,12 +1,9 @@
-#include "game/game_types.h"
 #include "effects/weather/drip.h"
 #include "effects/weather/drip_globals.h"
-#include "map/pap_globals.h"
 #include "engine/effects/psystem.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "world_objects/puddle.h"
 #include "ai/mav.h"
-#include "missions/memory.h"
 
 // Starting fade and size for a newly created drip.
 #define DRIP_SFADE (255)

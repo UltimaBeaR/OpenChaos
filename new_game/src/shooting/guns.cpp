@@ -5,8 +5,8 @@
 #include "game/game_types.h"
 #include "things/core/statedef.h"
 #include "ai/pcom.h"
-#include "missions/memory.h"
 #include "navigation/wmove.h"
+#include "map/level_pools.h"
 #include "things/characters/anim_ids.h"
 #include "shooting/guns.h"
 #include "things/characters/person.h"  // can_a_see_b

@@ -1,5 +1,4 @@
 #include "engine/platform/uc_common.h"
-#include "game/game_types.h"
 #include "effects/environment/ribbon.h"
 #include "effects/environment/ribbon_globals.h"
 #include "engine/graphics/pipeline/poly.h"

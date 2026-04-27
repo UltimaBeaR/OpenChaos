@@ -5,15 +5,10 @@
 #include "things/core/thing.h"         // pool types (Vehicle, Person, etc.)
 #include "game/game_types.h"      // Game struct, TICK_RATIO, PEOPLE, VEHICLES, etc.
 #include "buildings/prim.h"  // calc_prim_normals, calc_prim_info, mark_prim_objects_as_unloaded, etc.
-#include "buildings/building_globals.h" // next_roof_bound, building_list, end_prim_point, etc.
 #include "assets/formats/anim_globals.h"                // game_chunk, anim_chunk, next_game_chunk, next_anim_chunk, next_prim_*
-#include "world_objects/plat_globals.h"    // PLAT_plat, PLAT_plat_upto
 #include "assets/texture.h"
 #include "engine/graphics/pipeline/aeng.h"
-#include "map/ob.h"
-#include "map/ob_globals.h"
 #include "camera/fc.h"
-#include "camera/fc_globals.h"
 #include "navigation/wmove.h"
 #include "navigation/wmove_globals.h"
 #include "map/supermap.h"
@@ -21,30 +16,15 @@
 #include "engine/graphics/lighting/night_globals.h"
 #include "things/items/barrel.h"
 #include "things/items/barrel_globals.h"
-#include "missions/eway.h"
-#include "map/pap_globals.h"
-#include "ai/mav.h"
-#include "map/road.h"
-#include "map/road_globals.h"
-#include "things/items/balloon.h"
-#include "things/items/balloon_globals.h"
+#include "missions/eway_globals.h"
 #include "effects/environment/tracks.h"
-#include "buildings/ware.h"
-#include "buildings/ware_globals.h"
-#include "world_objects/tripwire.h"
-#include "world_objects/tripwire_globals.h"
-#include "engine/effects/psystem.h"
-#include "engine/effects/psystem_globals.h"
-#include "engine/io/env.h"
 #include "things/animals/bat.h"
-#include "world_objects/door.h"
-#include "world_objects/door_globals.h"
-#include "effects/combat/spark.h"
 #include "missions/playcuts.h"
 #include "missions/playcuts_globals.h"
+
 #include "things/core/statedef.h"
-#include "engine/graphics/pipeline/poly.h"
-#include "engine/audio/sound.h"
+#include "world_objects/plat_globals.h"
+#include "engine/audio/sound_globals.h"
 
 #include "missions/memory.h"
 #include "missions/memory_globals.h"

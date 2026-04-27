@@ -16,7 +16,6 @@ extern SLONG ScreenHeight;
 #include <algorithm>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
-#include "engine/graphics/pipeline/poly_render.h"
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/polypage_globals.h"

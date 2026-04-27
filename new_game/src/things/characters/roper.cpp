@@ -1,11 +1,6 @@
 #include "things/characters/roper.h"
-#include "things/characters/roper_globals.h"
-#include "engine/platform/uc_common.h"
-#include "game/game_types.h"
 #include "things/characters/person.h"          // set_person_idle, health
 #include "things/characters/person_globals.h"  // health[]
-#include "things/core/statedef.h"
-#include "things/characters/anim_ids.h"
 
 // uc_orig: fn_roper_init (fallen/Source/Roper.cpp)
 void fn_roper_init(Thing* t_thing)

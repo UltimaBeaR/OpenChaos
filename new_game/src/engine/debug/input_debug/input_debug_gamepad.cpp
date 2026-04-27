@@ -14,7 +14,6 @@
 #include "engine/debug/input_debug/input_debug.h"
 
 #include "engine/input/gamepad.h"
-#include "engine/input/gamepad_globals.h"
 
 namespace {
 

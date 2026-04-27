@@ -5,16 +5,12 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
 #include "engine/console/message.h"  // MSG_draw
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/pipeline/poly_globals.h"
-#include "engine/graphics/pipeline/polypage.h"
-#include "engine/graphics/pipeline/polypoint.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/lighting/ngamut.h"
 #include "engine/graphics/lighting/ngamut_globals.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/geometry/sky.h"
-#include "assets/formats/tga.h"
 #include "assets/texture.h"
 #include "assets/texture_globals.h"
 #include "engine/core/matrix.h"
@@ -26,9 +22,7 @@
 #include "buildings/prim_types.h"    // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
 #include "navigation/inside2.h"
-#include "navigation/inside2_globals.h"
 #include "map/pap.h"
-#include "map/pap_globals.h"
 #include "ai/mav.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "map/level_pools.h"
@@ -48,18 +42,13 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/geometry/figure_globals.h"  // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
-#include "engine/graphics/lighting/smap_globals.h"
 #include "engine/audio/sound.h"   // WORLD_TYPE_SNOW
 #include "engine/audio/sound_globals.h" // world_type
 #include "assets/formats/anim_globals.h"  // estate
 #include "effects/weather/drip.h"
-#include "effects/weather/drip_globals.h"
 #include "effects/environment/fire.h"
-#include "effects/environment/fire_globals.h"
 #include "effects/combat/spark.h"
-#include "effects/combat/spark_globals.h"
 #include "effects/combat/glitter.h"
-#include "effects/combat/glitter_globals.h"
 #include "world_objects/dirt.h"
 #include "world_objects/dirt_globals.h"
 #include "effects/combat/pow.h"
@@ -69,11 +58,7 @@ extern SLONG ScreenHeight;
 #include "engine/core/timer.h"
 #include "engine/io/env.h"
 
-// Additional includes for chunks 4b and 5a
-#include "engine/graphics/text/font2d.h"
-
 // Additional includes for chunk 5b
-#include "navigation/inside2.h"
 #include "map/sewers.h"
 #include "missions/eway.h"
 #include "things/core/thing_globals.h"
@@ -81,24 +66,15 @@ extern SLONG ScreenHeight;
 
 // Additional includes for AENG_draw_city() (chunk 4b)
 #include "world_objects/puddle.h"
-#include "world_objects/puddle_globals.h"
 #include "effects/weather/mist.h"
-#include "effects/weather/mist_globals.h"
 #include "engine/graphics/postprocess/wibble.h"
 #include "engine/graphics/postprocess/bloom.h"
-#include "engine/graphics/postprocess/bloom_globals.h"
 #include "engine/graphics/geometry/cone.h"
-#include "engine/graphics/geometry/cone_globals.h"
 #include "world_objects/tripwire.h"
-#include "world_objects/tripwire_globals.h"
 #include "engine/physics/sm.h"
-#include "engine/physics/sm_globals.h"
 #include "engine/effects/psystem.h"
-#include "engine/effects/psystem_globals.h"
 #include "effects/environment/ribbon.h"
-#include "effects/environment/ribbon_globals.h"
 #include "effects/combat/pyro.h"
-#include "effects/combat/pyro_globals.h"
 #include "map/ob.h"
 #include "map/ob_globals.h"
 #include "map/supermap.h"

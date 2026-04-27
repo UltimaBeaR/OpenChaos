@@ -5,7 +5,6 @@
 #include "world_objects/puddle.h"
 #include "world_objects/puddle_globals.h"
 #include "map/pap.h"
-#include "map/pap_globals.h"
 
 // uc_orig: PUDDLE_Texture (fallen/Source/puddle.cpp)
 // UV coordinates for each puddle type.

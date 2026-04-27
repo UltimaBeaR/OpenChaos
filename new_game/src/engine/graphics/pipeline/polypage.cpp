@@ -1,7 +1,6 @@
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/polypage_globals.h"
-#include "engine/core/matrix.h"
 #include "engine/platform/uc_common.h"
 #include "assets/texture.h"
 

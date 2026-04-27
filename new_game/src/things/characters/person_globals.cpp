@@ -2,11 +2,8 @@
 // Global variable definitions for the person subsystem.
 
 #include "things/characters/person.h"
-#include "things/characters/cop.h"
 #include "things/characters/cop_globals.h"
-#include "things/characters/darci.h"
 #include "things/characters/darci_globals.h"
-#include "things/characters/roper.h"
 #include "things/characters/roper_globals.h"
 #include "things/core/statedef.h"
 

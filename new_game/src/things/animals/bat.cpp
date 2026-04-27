@@ -12,7 +12,6 @@
 #include "navigation/wand.h"
 #include "effects/combat/spark.h"
 #include "ai/pcom.h"
-#include "missions/memory.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/physics/collide.h"
 #include "effects/combat/pyro.h"

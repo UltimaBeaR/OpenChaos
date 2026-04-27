@@ -4,10 +4,9 @@
 // On load: restores all living things from the stream and rebuilds the linked lists.
 
 #include "game/game_types.h"
-#include "missions/memory.h"
 #include "ai/pcom.h"
 #include "things/core/statedef.h"
-#include "missions/eway.h"
+#include "missions/eway_globals.h"
 #include "things/characters/anim_ids.h"
 #include "things/items/special.h"
 #include "effects/environment/tracks.h"

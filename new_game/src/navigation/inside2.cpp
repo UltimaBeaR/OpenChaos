@@ -1,10 +1,6 @@
-#include "engine/platform/uc_common.h"
-#include "game/game_types.h"
-#include "engine/graphics/pipeline/aeng.h"  // MSG_add
 #include "navigation/inside2.h"
 #include "navigation/inside2_globals.h"
 #include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, FStorey, FWall, STAIR_FLAG_*, etc.
-#include "buildings/prim_types.h"     // PrimObject, PRIM_OBJ_* (used by stair logic)
 #include "map/level_pools.h"
 
 // Forward declaration of slide_door (defined in door.cpp, not yet fully migrated here).

@@ -3,13 +3,11 @@
 #include "effects/combat/spark.h"
 #include "effects/combat/spark_globals.h"
 #include "effects/combat/glitter.h"
-#include "effects/combat/glitter_globals.h"
-#include "engine/audio/sound.h"
-#include "map/pap_globals.h"
+#include "assets/sound_id.h"
 #include "engine/audio/mfx.h"
+#include "map/level_pools.h"
 #include "engine/physics/collide.h"
 #include "things/core/interact.h"
-#include "missions/memory.h"
 
 // uc_orig: SPARK_init (fallen/Source/spark.cpp)
 void SPARK_init()

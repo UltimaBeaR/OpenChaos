@@ -1,4 +1,3 @@
-#include "things/animals/bat.h"
 #include "things/animals/bat_globals.h"
 
 // THING_INDEX array of bodies being levitated by the Bane boss.

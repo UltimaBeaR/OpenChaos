@@ -31,7 +31,6 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "assets/formats/tga.h"
 
-#include "engine/platform/sdl3_bridge.h"
 #include "engine/io/file.h"
 #include "map/level_pools.h"
 #include "map/supermap.h"
@@ -60,13 +59,9 @@
 #include "engine/effects/psystem.h"
 #include "engine/physics/collide.h"
 #include "engine/input/mouse.h"
-#include "engine/graphics/pipeline/poly_render.h"
-#include "engine/platform/host.h"
 #include "ai/mav.h"
-#include "missions/save.h"
 #include "assets/formats/anim_tmap.h"
 #include "ui/hud/panel.h"
-#include "ui/hud/panel_globals.h"
 
 #include "ui/menus/widget.h"          // Form type for form_leave_map extern decl
 #include "game/game_tick.h"

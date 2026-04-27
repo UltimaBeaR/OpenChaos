@@ -8,7 +8,6 @@
 #include "engine/graphics/pipeline/poly.h" // POLY_PAGE_SMOKECLOUD2 (already migrated)
 #include "things/characters/anim_ids.h"
 #include "things/core/statedef.h"
-#include "map/pap_globals.h"
 #include "engine/audio/sound.h"
 #include "assets/formats/anim_globals.h"      // estate, semtex (already migrated)
 #include "world_objects/dirt.h"

@@ -1,4 +1,3 @@
-#include "game/game_types.h"
 #include "map/sewers_globals.h"
 
 // uc_orig: NS_hi (fallen/Source/ns.cpp)

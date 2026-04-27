@@ -1,13 +1,7 @@
 #include "world_objects/door.h"
 #include "world_objects/door_globals.h"
 #include "map/pap.h"
-#include "map/pap_globals.h"
-
-// Temporary includes — not yet migrated:
-#include "engine/platform/uc_common.h"
-#include "game/game_types.h"
 #include "map/supermap.h"
-#include "buildings/building.h"
 #include "map/level_pools.h"
 #include "ai/mav.h"
 

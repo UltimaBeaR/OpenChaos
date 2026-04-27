@@ -1,7 +1,7 @@
-#include "engine/platform/uc_common.h"              // base types
 #include "things/core/thing.h"     // Thing, pool types
 #include "game/game_types.h"   // GAME_TURN, TICK_RATIO, TICK_SHIFT, pool macros
-#include "engine/audio/sound.h"
+#include "assets/sound_id.h"
+#include "engine/audio/mfx.h"
 #include "engine/core/fmatrix.h"
 #include "ai/pcom.h"
 #include "things/characters/anim_ids.h"

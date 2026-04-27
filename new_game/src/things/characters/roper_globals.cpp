@@ -1,4 +1,3 @@
-#include "engine/platform/uc_common.h"
 #include "things/characters/roper_globals.h"
 #include "things/characters/roper.h"
 #include "things/core/statedef.h"

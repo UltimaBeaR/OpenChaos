@@ -10,17 +10,13 @@
 
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/pipeline/poly.h"
-#include "engine/graphics/text/font.h"
 #include "engine/input/gamepad.h"
-#include "engine/input/gamepad_globals.h"
 #include "engine/platform/ds_bridge.h"
 #include "engine/platform/ds_bridge_debug.h"
 
 #include <libDualsense/ds_calibration.h>
 #include <libDualsense/ds_feature.h>
 #include <libDualsense/ds_test.h>
-
-#include <SDL3/SDL_timer.h>
 
 #include <algorithm>
 #include <atomic>

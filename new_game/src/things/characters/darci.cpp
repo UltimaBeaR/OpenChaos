@@ -6,7 +6,6 @@
 #include "game/game_types.h"
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
-#include "map/pap_globals.h"
 #include "ai/pcom.h"
 #include "map/sewers.h"
 #include "map/level_pools.h"
@@ -15,9 +14,7 @@
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
 #include "buildings/building_types.h"  // CABLE_ALONG_*, FACET_FLAG_*, STOREY_TYPE_*
-#include "buildings/building.h"        // get_cable_along, make_cable_taut_along, etc.
 #include "things/items/barrel.h"
-#include "things/items/barrel_globals.h"
 #include "things/characters/person.h"
 #include "things/characters/darci.h"
 #include "things/characters/darci_globals.h"

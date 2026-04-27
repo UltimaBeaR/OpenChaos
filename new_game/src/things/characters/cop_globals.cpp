@@ -1,4 +1,3 @@
-#include "engine/platform/uc_common.h"
 #include "things/characters/cop_globals.h"
 #include "things/characters/cop.h"
 #include "things/core/statedef.h"

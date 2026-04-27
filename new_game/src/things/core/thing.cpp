@@ -7,11 +7,9 @@
 #include "map/pap.h"
 #include "map/pap_globals.h"
 #include "engine/input/keyboard.h"
-#include "engine/graphics/pipeline/aeng.h"
 #include "engine/audio/mfx.h"
 #include "engine/input/keyboard_globals.h"  // Keys[] (volatile UBYTE[256])
 #include "game/input_actions.h"
-#include "game/input_actions_globals.h"
 #include "things/core/statedef.h"
 
 // Forward declarations for external functions not yet migrated.

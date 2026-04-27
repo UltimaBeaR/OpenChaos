@@ -19,7 +19,6 @@
 #include "ui/menus/gamemenu_globals.h"
 #include "engine/input/joystick.h"
 #include "engine/input/gamepad.h"
-#include "engine/input/gamepad_globals.h"
 
 // Joystick axis deadzone for menu navigation.
 #define GM_AXIS_CENTRE 32768

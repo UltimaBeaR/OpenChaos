@@ -10,7 +10,6 @@
 #include "engine/core/math.h"
 #include "engine/core/fmatrix.h"
 #include "world_objects/dirt.h"
-#include "effects/combat/pow.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PRIM_OBJ_*, FACE_FLAG_*
 #include "buildings/prim.h"       // slide_along_prim, get_prim_info
 #include "map/level_pools.h"
@@ -18,8 +17,6 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "assets/texture.h"
 #include "assets/formats/level_loader.h"
-#include "assets/formats/level_loader_globals.h"
-#include "assets/formats/anim_loader.h"
 #include "things/items/special.h"
 #include "things/items/special_globals.h"
 #include "things/items/barrel.h"

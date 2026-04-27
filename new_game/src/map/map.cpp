@@ -1,4 +1,3 @@
-#include "engine/platform/uc_common.h"
 #include "game/game_types.h"
 
 #include "map/map.h"

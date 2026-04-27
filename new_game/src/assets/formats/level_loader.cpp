@@ -9,7 +9,7 @@
 #include "map/ob.h"
 #include "map/ob_globals.h"
 #include "map/supermap.h"
-#include "missions/eway.h"
+#include "missions/eway_globals.h"
 #include "missions/memory_globals.h"
 #include "buildings/building_globals.h" // textures_xy, textures_flags, building_list, etc.
 #include "buildings/prim_globals.h"     // prim_names[]
@@ -24,7 +24,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 
 // Forward declaration for load_anim_system (in anim_loader.cpp, not yet migrated).
 SLONG load_anim_system(struct GameKeyFrameChunk* p_chunk, CBYTE* name, SLONG type);

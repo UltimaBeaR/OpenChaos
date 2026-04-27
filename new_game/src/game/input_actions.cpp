@@ -7,12 +7,9 @@
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/env.h"
 #include "things/core/thing.h"
-#include "things/core/thing_globals.h"
 #include "things/core/player.h"
-#include "things/core/player_globals.h"
 #include "things/core/interact.h"
 #include "things/core/state.h"
-#include "things/core/hierarchy.h"
 #include "things/characters/person.h"
 #include "things/items/special.h"
 #include "things/items/hook.h"
@@ -20,7 +17,6 @@
 #include "map/ob.h"
 #include "map/pap.h"
 #include "buildings/ware.h"
-#include "buildings/id.h"
 #include "ai/mav.h"
 #include "ai/pcom.h"
 #include "missions/eway.h"
@@ -39,18 +35,15 @@
 #include "combat/combat.h"
 #include "engine/input/joystick.h"             // ReadInputDevice
 #include "engine/input/joystick_globals.h"  // the_state (GamepadState)
-#include "game/game_tick_globals.h"         // allow_debug_keys, dkeys_have_been_used
 #include "engine/input/gamepad_globals.h"   // active_input_device
 #include "engine/input/weapon_feel.h"       // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
-#include "camera/cam.h"
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/mouse_globals.h"
-#include "game/game.h"
 #include "game/game_globals.h"
 #include "engine/graphics/pipeline/aeng.h"       // MSG_add
 #include "engine/console/console.h"   // CONSOLE_text_at

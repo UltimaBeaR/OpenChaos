@@ -14,68 +14,41 @@
 #include "buildings/prim.h"    // clear_prims
 
 // These modules are not yet fully migrated:
-#include "ui/frontend/attract.h"
-#include "buildings/id.h"
 #include "assets/formats/level_loader.h"
-#include "assets/formats/level_loader_globals.h"
-#include "assets/formats/anim_loader.h"
-#include "engine/core/heap.h"
-#include "ai/mav.h"
-#include "effects/weather/mist.h"
 #include "game/input_actions.h"
-#include "game/input_actions_globals.h"
-#include "ui/menus/gamemenu.h"
 #include "effects/combat/spark.h"
 #include "things/core/statedef.h"
 #include "map/ob.h"
-#include "map/ob_globals.h"
 #include "engine/animation/morph.h"
-#include "engine/graphics/lighting/night.h"
-#include "engine/graphics/lighting/night_globals.h"
-#include "engine/graphics/lighting/shadow.h"
-#include "map/sewers.h"
 #include "map/supermap.h"
-#include "buildings/build2.h"
 #include "effects/combat/pow.h"
-#include "effects/combat/pow_globals.h"
 #include "ui/menus/widget.h"
-#include "ui/menus/widget_globals.h"
-#include "missions/memory_globals.h"
 #include "missions/memory.h"         // MEMORY_quick_init, init_memory
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
-#include "missions/save.h"
 #include "things/items/balloon.h"
-#include "things/items/balloon_globals.h"
 #include "engine/io/env.h"
 #include "navigation/wmove.h"
-#include "navigation/wmove_globals.h"
 #include "engine/console/console.h"  // CONSOLE_draw, CONSOLE_font
 #include "engine/graphics/pipeline/poly.h"  // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
 #include "assets/formats/tga.h"              // TGA_load, OpenTGAClump, CloseTGAClump
 #include "ui/hud/eng_map.h"  // MAP_process
-#include "ui/hud/eng_map_globals.h"
 #include "engine/graphics/text/menufont.h"  // MENUFONT_Draw
 #include "engine/core/timer.h"  // BreakStart, BreakTime, BreakEnd, BreakFrame
 #include "engine/graphics/geometry/superfacet.h"  // SUPERFACET_init, SUPERFACET_fini
 #include "engine/graphics/geometry/farfacet.h"  // FARFACET_init, FARFACET_fini
 #include "engine/graphics/geometry/fastprim.h"  // FASTPRIM_init, FASTPRIM_fini
-#include "engine/graphics/geometry/fastprim_globals.h"
 
 #include "assets/formats/elev.h"      // ELEV_load_user, ELEV_load_name, ELEV_fname_level
 #include "assets/formats/elev_globals.h"
 #include "missions/eway.h"      // EWAY_process, EWAY_grab_camera, EWAY_tutorial_string, EWAY_tutorial_counter
 #include "missions/eway_globals.h"
 
-#include "buildings/build2.h" // (transitively, if needed)
-#include "map/supermap.h"
-
 #include "ui/frontend/attract.h"         // ATTRACT_loadscreen_init, ATTRACT_loadscreen_draw, game_attract_mode
 #include "ui/frontend/attract_globals.h" // go_into_game
 #include "ui/menus/gamemenu.h"
 #include "ui/hud/overlay.h"     // OVERLAY_handle
 #include "game/ui_render.h"     // ui_render_post_composition
-#include "camera/fc.h"       // FC_init, FC_process, FC_cam
 #include "engine/input/gamepad.h"    // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "engine/debug/debug_help/debug_help.h"   // F1 debug hotkey legend
@@ -84,8 +57,6 @@
 
 #include "things/core/thing.h"  // process_things, TICK_RATIO, TICK_SHIFT
 #include "assets/formats/anim.h"        // ANIM_init, ANIM_fini, init_draw_tweens
-#include "assets/formats/anim_loader.h" // setup_people_anims, setup_extra_anims, setup_global_anim_array
-#include "assets/formats/level_loader.h"// (transitively)
 #include "assets/texture.h"     // TEXTURE_load_needed
 
 #include "effects/environment/ribbon.h"     // RIBBON_process
@@ -94,26 +65,17 @@
 
 #include "world_objects/dirt.h"
 #include "things/items/grenade.h"
-#include "effects/environment/ribbon.h"
 #include "effects/weather/drip.h"
 #include "assets/xlat_str.h"
 #include "engine/graphics/text/font2d.h"  // FONT2D_DrawStringWrapTo
-#include "ui/hud/overlay.h"
 #include "engine/audio/music.h"
 #include "ui/hud/panel.h"  // PANEL_wide_top_person, PANEL_wide_bot_person
 #include "ui/hud/panel_globals.h"
 #include "ui/frontend/frontend.h"
-#include "ui/frontend/frontend_globals.h"
 #include "things/characters/snipe.h"
-#include "things/characters/snipe_globals.h"
 #include "world_objects/tripwire.h"
-#include "world_objects/tripwire_globals.h"
 #include "world_objects/door.h"
-#include "world_objects/door_globals.h"
 #include "world_objects/puddle.h"
-#include "world_objects/puddle_globals.h"
-#include "map/pap_globals.h"
-#include "camera/cam.h"
 
 #include "engine/audio/sound.h"     // MFX_QUICK_stop, MFX_stop, MFX_set_listener, MFX_update, MFX_free_wave_list, MFX_CHANNEL_ALL, MFX_WAVE_ALL
 
@@ -125,8 +87,6 @@
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/joystick.h"  // GetInputDevice, JOYSTICK
 #include "engine/input/joystick_globals.h"
-
-#include "ui/frontend/startscr.h"        // (transitively)
 
 #include <math.h>
 #include <string.h>  // strstr

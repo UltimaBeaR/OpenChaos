@@ -6,7 +6,6 @@
 #include "map/pap_globals.h"
 #include "map/level_pools.h"
 #include "things/core/statedef.h"
-#include "map/map_constants.h"
 
 
 extern BOOL allow_debug_keys;
