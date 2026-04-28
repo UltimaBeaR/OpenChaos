@@ -20,6 +20,12 @@
 #include "things/core/interact.h" // calc_sub_objects_position
 #include "things/characters/person.h" // set_person_dead, knock_person_down
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/graphics/pipeline/aeng.h"
+#include "map/level_pools.h"
+#include "things/items/barrel.h"
+#include "engine/graphics/geometry/sprite.h"
+#include "map/pap.h"
+#include "engine/graphics/postprocess/bloom.h"
 
 // uc_orig: init_pyros (fallen/Source/pyro.cpp)
 void init_pyros(void)
@@ -1028,16 +1034,6 @@ void PYRO_hitspang(Thing* p_person, SLONG x, SLONG y, SLONG z)
 extern UBYTE fire_pal[768];
 void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset);
 void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE rand = 1);
-#include "engine/graphics/pipeline/aeng.h"
-#include "map/level_pools.h"
-#include "things/items/barrel.h"
-#include "effects/environment/ribbon.h"
-#include "things/characters/anim_ids.h"
-#include "engine/graphics/geometry/sprite.h"
-#include "map/pap.h"
-// BLOOM_flare_draw migrated to bloom.h (iteration 136); RIBBON_draw_ribbon already in ribbon.h.
-#include "engine/graphics/postprocess/bloom.h"
-
 // Forward declarations for draw functions defined later in this file.
 // uc_orig: PYRO_draw_explosion (fallen/DDEngine/Source/drawxtra.cpp)
 static void PYRO_draw_explosion(Pyrex* pyro);

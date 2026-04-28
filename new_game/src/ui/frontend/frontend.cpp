@@ -15,20 +15,13 @@ extern SLONG ScreenHeight;
 #include "ui/frontend/frontend_globals.h"
 
 #include "assets/xlat_str.h"
-#include "game/input_actions.h"
-#include "game/input_actions_globals.h"
 #include "engine/graphics/text/menufont.h"
 #include "engine/graphics/text/font2d.h"
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
-#include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/core/fmatrix.h"
 // DRAW2D_Box, DRAW2D_Tri migrated to draw2d.h (iteration 136).
 #include "engine/graphics/pipeline/draw2d.h"
-#include "engine/audio/music.h"
-#include "game/game_types.h"
-
-// Additional headers for chunks 2-3 (FRONTEND_display, FRONTEND_input, FRONTEND_init, FRONTEND_loop)
 #include "engine/audio/music.h" // MUSIC_gain, MUSIC_reset, MUSIC_mode_process, MUSIC_bodge_code
 #include "engine/audio/mfx.h" // MFX_play_stereo, MFX_stop, MFX_set_volumes, etc.
 #include "engine/audio/sound.h" // WEATHER_REF, SIREN_REF
@@ -44,6 +37,9 @@ extern SLONG ScreenHeight;
 #include "ui/frontend/startscr.h" // STARTS_START, STARTS_EXIT, STARTS_EDITOR
 #include "map/supermap_globals.h" // DONT_load
 #include "game/game_tick_globals.h" // allow_debug_keys
+#include "engine/graphics/pipeline/aeng.h"
+#include "engine/io/env.h"
+#include "game/game_types.h"
 
 // uc_orig: RandStream (fallen/Source/frontend.cpp)
 // Pseudo-random stream — used for kibble particle variety and title wibble.
@@ -832,13 +828,6 @@ void FRONTEND_kibble_flurry()
             }
         }
 }
-
-// ---- Additional includes for chunk 2 ----------------------------------------
-
-#include "engine/audio/mfx.h"
-#include "assets/sound_id.h"
-#include "engine/graphics/pipeline/aeng.h"
-#include "engine/io/env.h"
 
 // ---- Kibble process ---------------------------------------------------------
 

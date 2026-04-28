@@ -28,6 +28,8 @@ Workflow:
 - Discards count: 4534 (старт) → ... → **1800** (батч 35)
 - **Список gc-sections exhausted** — все 80 оставшихся символов нельзя удалять (system noise / source-level callers / inlining artifacts)
 - **Финальный проход пустых файлов: выполнен** — удалены shadow_globals.cpp/h + startscr.cpp
+- **cppcheck unusedFunction pass: выполнен** (батч 39) — все реально dead статические функции удалены
+- **✅ Все плановые проходы завершены** — dead-code чистка Stage 13 выполнена полностью
 - Build OK (make build-release, exit 0)
 - Uncommitted — пользователь коммитит вручную
 - ⚠️ aeng.cpp: 6 функций пропущены (apply_cloud, show_gamut_lo, AENG_draw_bangs, AENG_draw_people_messages, AENG_clear_screen, AENG_fade_out) — linker их дискардит из-за инлайнинга/мёртвых веток, но source-level вызовы существуют в живых функциях. Нельзя удалить определение без удаления вызовов (нарушение правила "не трогать живой код").
@@ -270,62 +272,18 @@ Workflow:
 - `aeng_globals.h:173: error: unknown type name 'COMP_Frame'` после очистки compression.h — диагностировано как dead AENG_movie кластер (единственный user `COMP_Frame` — `AENG_movie_init`). Решение: удалить весь AENG_movie кластер.
 - `game.cpp:77` имел stale `#include pause.h` с misleading комментарием про `PANEL_`-функции — функции реально из `panel.h`. Исправлено и include убран.
 
-**Что делать дальше:**
+## ✅ Dead-code чистка ЗАВЕРШЕНА (2026-04-27)
 
-⚠️ **gc-sections dead-code pass ЗАВЕРШЁН** (батч 35, 2026-04-27). Все 80 оставшихся символов нельзя удалять — system noise, source-level callers, inlining artifacts.
+Все плановые проходы выполнены:
 
-1. ✅ **Финальный проход: пустые файлы** — ВЫПОЛНЕН (батч 35 + батч 36, 2026-04-27)
-2. ✅ **Финальный проход: лишние #include** — ВЫПОЛНЕН (батч 37, сессия 19, 2026-04-27): `clang-tidy misc-include-cleaner` по всем 170+ `.cpp` файлам. 93 файла изменены, ~355 лишних `#include` удалено. Сборка OK.
-3. ⬜ **Проход: cppcheck `--enable=unusedFunction`** — ещё не установлен. Отложен. Дополняет gc-sections: видит функции без синтаксических вызовов в коде (gc-sections видит "не достижимо от entry point"). Разные слепые пятна. Workflow:
-   ```bash
-   cppcheck --enable=unusedFunction \
-            --project=new_game/build/Release/compile_commands.json \
-            -j 8 2>cppcheck_unused.txt
-   cat cppcheck_unused.txt | grep "unusedFunction"
-   ```
-   Ожидаются false positives: callback-registered функции, virtual методы, template инстансы. Каждый кандидат верифицировать grep'ом.
-4. ✅ **Проход: `#if 0` и `#if false` блоки** — ВЫПОЛНЕН (сессия 2026-04-27, проверка grep'ом). В `new_game/src/` не найдено ни одного `#if 0`/`#if false`/`#if FALSE` блока. Чисто.
-5. ✅ **Проход: крупные закомментированные блоки** — ВЫПОЛНЕН (батч 38, сессия 20-21, 2026-04-27). Regex-pass по всему `new_game/src/` — удалено ~120 блоков ≥4 строк. Осталось: 0 блоков.
+1. ✅ **gc-sections exhausted** (батч 35) — 4534→1800 discards, все 80 оставшихся нельзя удалять
+2. ✅ **Пустые файлы** (батч 35+36) — удалены shadow_globals.cpp/h, startscr.cpp
+3. ✅ **Лишние #include** (батч 37) — ~355 лишних include удалено из 93 файлов
+4. ✅ **#if 0 / #if false блоки** — 0 найдено в `new_game/src/`, чисто
+5. ✅ **Закомментированные /* */ блоки ≥4 строк** (батч 38) — ~120 блоков удалено, 0 осталось
+6. ✅ **cppcheck unusedFunction** (батч 39) — все dead статические функции удалены
 
-**Инструменты (если нужно восстановить dc_file_to_dead.json):**
-
-Скрипты лежат в `C:/Users/BeaR/AppData/Local/Temp/`:
-- `dc_map.py` — строит file→dead_symbols маппинг
-- `dc_demangle.py` — добавляет demangled имена
-- `dc_leaf_check.py` — грубая leaf/transitive классификация (есть баги в path matching на Windows — не доверять на 100%, всегда верифицировать grep'ом вручную)
-
-После регенерации: `/tmp/discarded.txt` → `/tmp/discarded_filtered.txt` → `dc_map.py` → `dc_demangle.py`
-
-**Для продолжения с того же места:**
-
-1. Прочитать стек правил выше + правила в `stage13_dead_code_cleanup.md`
-2. Учесть предупреждение выше про DEAD_CODE_REPORT + ASan — не комбинировать
-3. Если есть закоммиченные изменения — продолжать с уже накопленного состояния (`git diff main` покажет что было сделано). Если нет — статус выше актуален
-4. Регенерировать актуальный dead-list (изменилось после удалений):
-   ```bash
-   CMAKE_EXTRA_ARGS="-DDEAD_CODE_REPORT=ON -DENABLE_ASAN=OFF" make configure
-   make build-release > /tmp/dead_code_build.log 2>&1
-   grep '^lld-link: Discarded' /tmp/dead_code_build.log | sed 's/^lld-link: Discarded //' > /tmp/discarded.txt
-   ```
-   (или использовать существующий список — но он мог устареть после батчей 1+3+4+5)
-5. Выбрать файл из таблицы "Top hot zones / Transitive dead" — приоритет `building.cpp` (134 dead символов!), `aeng.cpp` (40+22 globals), `person.cpp` (36), `widget.cpp` (34)
-6. Для выбранного файла:
-   - `grep "src/<файл>" /tmp/dc/all_dead_per_file.txt` → реальный список dead символов
-   - **ВАЖНО:** не использовать списки из памяти/контекста — только grep'ом из файла. В прошлой сессии я галлюцинировал списки (см. "Batch 2 attempt REVERTED")
-   - Для каждого dead символа: проверить `grep -rn "\b$symbol\b" new_game/src/` — есть ли callers вне самого файла
-   - Если есть call sites вне dead-set — пропустить символ (caller жив)
-   - Если call sites только внутри dead функций — удалить связкой
-7. Edit/Write для удаления функции (uc_orig comment + signature + body) и декларации в .h
-8. После каждых 1-3 файлов — build (без ASan!) для верификации
-9. После 4-5 файлов или ~30-50 удалений — обновить отчёт + предложить пользователю коммит
-
-**Что НЕ делать:**
-- **НЕ запускать subagent'ов** для самого удаления — в прошлой сессии главный агент галлюцинировал списки символов и передавал их subagent'ам, те "честно" удаляли несуществующие функции и пытались удалять живые. Откатили весь батч. Работать в основном контексте, последовательно файл за файлом.
-- **НЕ брать списки символов из памяти/контекста** — ТОЛЬКО через `grep` из реальных файлов на диске (`/tmp/dc/all_dead_per_file.txt`, build log). Это правило #1 для предотвращения галлюцинаций.
-- Не комбинировать DEAD_CODE_REPORT + ASan (см. блок выше)
-- Не "пока трогаем — давай починим" — записать баг в devlog и идти дальше
-- Не менять живой код — только удаление мёртвых символов
-- Не "чинить" найденные баги inline — записывать в devlog
+**Критерий готовности выполнен:** gc-sections не выкидывает ничего существенного, cppcheck выдаёт только подтверждённые false positives.
 
 ## Как сгенерирован
 
@@ -585,6 +543,8 @@ src/game/input_actions.cpp	action_flip_right
 | 2026-04-27 | Batch 36 (сессия 18) | Финальный проход пустых файлов (продолжение). DELETED: shadow_globals.cpp/h (нет деклараций/определений — остался пустым после батча 7), startscr.cpp (нет определений — globals-only модуль, все данные в startscr_globals.cpp). Убраны из CMakeLists.txt. Убран #include "engine/graphics/lighting/shadow_globals.h" из elev.cpp, shadow.cpp, game.cpp (получали только types.h транзитивно, shadow.h уже его включает). | build OK |
 | 2026-04-27 | Batch 34 (сессия 16) | Регенерация: 1821 discards, 134 dead symbols в 38 файлах. anim_globals.cpp/h: удалён test_chunk. env_globals.cpp/h: DELETED ENTIRE (env_inifile, env_strbuf — нет callers вне env_globals); убран #include env_globals.h из env.cpp; убран из CMakeLists.txt. sm_globals.cpp/h: удалены SM_object, SM_object_upto + SM_Object type + SM_MAX_OBJECTS define. hierarchy_globals.cpp/h + hierarchy.h: удалён body_part_parent (нет .cpp callers). spark.cpp/h: удалена SPARK_in_sphere (caller в /* */). eway.cpp/h: удалена EWAY_deduct_time_penalty (caller в /* */). projectile.cpp/h: удалена alloc_projectile (нет callers). outro_imp.cpp/h: удалены IMP_load и IMP_binary_save (IMP_load callers в /* */, IMP_binary_save нет callers). Пропущены: save_globals.cpp/h — попытка удалить откатана (save.cpp компилируется всегда и использует эти globals); index_lookup (aeng_globals) — live source-level caller в aeng.cpp; PUDDLE_create — live caller в process_controls (KB_B debug, не в /* */); FIGURE_draw_hierarchical_prim_recurse_individual_cull — inlined from live caller, source ref exists; set_person_in_building_through_roof — после ASSERT(0) но source ref есть; camera_*/set_person_* stubs — live source callers. | build OK |
 | 2026-04-27 | Batch 33 (сессия 15) | Продолжение с dc_map.py списком (272 symbols). elev.cpp/h: ELEV_create_similar_name. tga.cpp/h: TGA_load_remap (~145 строк с goto). anim_tmap.cpp/h: save_animtmaps. thug.cpp/h: fn_thug_init, fn_thug_normal (файл сведён к минимуму; убран #include thug.h из person.cpp). playcuts.cpp/h: PLAYCUTS_Free (empty stub), PLAYCUTS_Reset. gamepad.cpp/h: gamepad_is_adaptive_click_active. composition.cpp/h: composition_get_scene_texture. crt_effect.cpp/h: crt_effect_shutdown. wibble_effect.cpp/h: gl_wibble_effect_shutdown (h сведён к пустому guard). morph.cpp/h: MORPH_get_points, MORPH_get_num_points (ВОССТАНОВЛЕНЫ: ошибочно удалены в батче 12, реально мертвы — нет callers в mesh.cpp). night.cpp: убрана dead forward declaration calc_inside_for_xyz внутри блока; блок реструктурирован (убраны лишние `{}`). supermap.cpp/h: calc_inside_for_xyz, add_sewer_ladder. inside2.cpp/h: find_stair_y (~100 строк). map.cpp/h + map_globals.cpp/h: MAP_light_get_height, MAP_light_get_light, MAP_light_set_light, MAP_light_map (global). font.cpp/h: FONT_draw_speech_bubble_text. polypage.cpp/h: GenerateMMMatrix (~89 строк D3D matrix builder); убран #include compression.h. smap.cpp/h: SMAP_bike (empty stub). eway.cpp/h: count_people_types (immediate-return stub), EWAY_cam_get_position_for_angle, EWAY_cam_look_at (кластер, только внутренние callers). pause.cpp/h: PAUSE_handler (~180 строк); файлы сведены к минимуму; убраны #include pause.h из game.cpp + исправлен misleading comment. frontend.cpp/h: FRONTEND_do_drivers, FRONTEND_gamma_update. frontend_globals.cpp/h: CurrentVidMode, CurrentBitDepth. attract.cpp/h: level_won, level_lost (empty stubs). overlay.cpp/h: overlay_beacons (empty stub); убрана extern decl из game.cpp. compression.cpp/h + compression_globals.cpp/h + image_compression.cpp/h: весь compression кластер (COMP_load, COMP_calc, COMP_decomp, IC_pack, IC_unpack, COMP_data/frame/tga_data/tga_info, типы COMP_Frame/DataBuffer/Delta); файлы сведены к минимуму. aeng.cpp: AENG_movie_init (~38 строк), убран вызов из AENG_init(), убран #include compression.h. aeng_globals.cpp/h: удалены 9 movie globals (AENG_movie_data[512*1024], AENG_movie_upto, AENG_frame_one/two/last/next, AENG_frame_count/tick/number, AENG_MAX_MOVIE_DATA). Инцидент: aeng_globals.h ломался из-за COMP_Frame после очистки compression.h — диагностировано как dead AENG_movie кластер, решено удалением всего кластера. | build OK |
+
+| 2026-04-27 | Batch 39 (сессия 23) | cppcheck `--enable=unusedFunction` pass. Удалены все реально dead статические функции: `SetUV(float&,float&)` (polypoint.h), `set_thing_pos` inline (thing.h), `qdist3` (outro_always.h), 5 write-path statics (outro_imp.cpp), 6 statics + forward decls (save.cpp), 7 MAP_* draw funcs ~600 строк (eng_map.cpp), `destroy_shaders`/`gl_blit_fullscreen_texture`/11 GE стабов (core.cpp), соответствующие объявления (game_graphics_engine.h), `SetCMatrix`/18 Set*/Get* аксессоров/GetCharName*/GetMultiObject* (anim_types.h), `slide_around_box_lowstack` ~593 строк (collide.cpp), `page_name` (input_debug.cpp), `HOOK_make_loop` (hook.cpp), `find_stair_in` ~68 строк (inside2.cpp), `PUDDLE_create` (puddle.cpp/h), `FONT2D_DrawString_NoTrueType` (font2d.cpp), `ini_read_int_mem`/`ini_write_string` ~115 строк (env.cpp), `sdl3_set_mouse_grab` (sdl3_bridge.cpp/h), `DriverEnumState`+`driver_enum_callback` (frontend.cpp), `IHaveToHaveSomePyroSprites` (pyro.cpp/h), `LIGHT_get_colour` inline ~38 строк (light.h), `NIGHT_get_colour_and_fade` inline ~36 строк (night.h), `POW_create` inline (pow.h). Ложные срабатывания оставлены: `WAND_*`/`get_person_radius`/`which_side` (extern в теле функций), `ds_set_haptic_volume`/`ds_set_lightbar_setup` (API stubs), `GEFont`/`Font` typedef. Восстановлены ошибочно удалённые в этом же батче: PUDDLE_create_do, COLLIDE_debug_fastnav/find_seethrough_fences/calc_fastnav_bits/collide_box_with_line/create_shockwave. Build OK. | build OK |
 
 ## Проход: закомментированные /* */ блоки (Batch 38+)
 
