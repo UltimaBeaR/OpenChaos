@@ -12,22 +12,25 @@
 
 ## Код
 
-### BUG-1 — Аудио retrigger при render rate > 30 Hz (sound.cpp)
+### ~~BUG-1 — Аудио retrigger при render rate > 30 Hz~~ — НЕ БАГ (закрыто)
 
-[`engine/audio/sound.cpp:258`](../../../new_game/src/engine/audio/sound.cpp#L258), [`:262`](../../../new_game/src/engine/audio/sound.cpp#L262):
-```cpp
-if ((VISUAL_TURN & 0x3f) == 0)
-    MFX_play_ambient(WEATHER_REF, S_RAIN_START, MFX_LOOPED);
-```
+Изначально подозревалось что `(VISUAL_TURN & 0x3f) == 0` в [`engine/audio/sound.cpp:258, 262`](../../../new_game/src/engine/audio/sound.cpp#L258) срабатывает несколько раз подряд на render >30 Hz и рестартит ambient звук, потому что VISUAL_TURN-агент сообщил что "MFX_play_ambient не идемпотентен (mfx.cpp:747)". При проверке кода mfx.cpp оказалось обратное:
 
-`process_weather()` вызывается **раз в render frame**, а `VISUAL_TURN` тикает на 30 Hz wall-clock. При render > 30 fps каждое значение `VISUAL_TURN` "висит" более одного render-кадра ⇒ условие `==0` срабатывает несколько раз подряд (2× при 60 fps, 8× при 240 fps), и `MFX_play_ambient` вызывается несколько раз. На PS1 (30 Hz рендер = 30 Hz GAME_TURN) условие срабатывало строго один раз за цикл.
+- `MFX_play_ambient` вызывает `PlayWave` с `MFX_LOOPED` (без `MFX_QUEUED`/`MFX_OVERLAP`/`MFX_NEVER_OVERLAP`).
+- `GetVoiceForWave` идёт по else-ветке `FindVoice(channel_id, wave)` — ищет voice с **тем же wave** на канале ([mfx.cpp:336](../../../new_game/src/engine/audio/mfx.cpp#L336)).
+- В `PlayWave`: если voice уже играет тот же wave, выполняется `MoveVoice` (обновить 3D-позицию) и `return 0` — **звук НЕ перезапускается** ([mfx.cpp:659-662](../../../new_game/src/engine/audio/mfx.cpp#L659)).
 
-**`MFX_play_ambient` не идемпотентен** — VISUAL_TURN-агент проверил `mfx.cpp:747`, dedupe нет, каждый вызов рестартит/замешивает звук. Это подтверждённый BUG.
+То есть `MFX_play_ambient(channel, same_wave, MFX_LOOPED)` идемпотентен относительно повторного вызова. Несколько срабатываний `(VISUAL_TURN & 0x3f) == 0` подряд за один период — слухом не отличить, только лишний `MoveVoice` overhead (микро-CPU).
 
-Аналогично (sample, но в physics-tick где меньше критично):
-- [`effects/combat/pyro.cpp:482`](../../../new_game/src/effects/combat/pyro.cpp#L482) — `(THING_NUMBER + VISUAL_TURN) & 7 == 0` для bonfire `MFX_play_thing`. `PYRO_fn_normal` в physics-tick (20 Hz), так что VISUAL_TURN сэмплится при 20 Hz а не render — гейт открывается реже, retrigger меньше выражен. Но семантика "ровно раз в N тиков" нарушена (20 Hz сэмплинг 30 Hz счётчика → пропуски/повторы).
+Аналогично `pyro.cpp:482` (`MFX_play_thing(..., S_FIRE, MFX_LOOPED | MFX_QUEUED, thing)`):
+- `MFX_QUEUED` отправляет дубликат в очередь ([mfx.cpp:655](../../../new_game/src/engine/audio/mfx.cpp#L655)).
+- `S_FIRE` с `MFX_LOOPED` никогда не заканчивается ⇒ очередь не воспроизводится.
+- Очередь копится до `MAX_QVOICE`, после чего новые добавления игнорируются ([mfx.cpp:588](../../../new_game/src/engine/audio/mfx.cpp#L588)).
+- Слухом не отличить.
 
-**Чинить:** edge-detect — запоминать `last_fire_visual_turn` (как уже сделано в wind-gust блоке [`sound.cpp:269`](../../../new_game/src/engine/audio/sound.cpp#L269) — там `tick_tock` advance делает корректный edge), либо bucket-strobe accumulator (как в `SPARK_show_electric_fences`).
+**Урок ревью**: когда субагент рапортует про API-семантику, проверять глубже одной строки — следить за полным путём вызова. Изначальная диагностика "не идемпотентен" была поверхностной.
+
+**Статус:** не баг. Никакой code-правки не требуется. `sound.cpp` после кратковременного эксперимента откачен в исходное состояние ветки.
 
 ### BUG-2 — `physics_acc_ms = 0` на pause приводит к "rollback" одного тика рендера
 
@@ -247,12 +250,12 @@ if (VISUAL_TURN & 1) { ... SPARK_create(...) }
 - [ ] FMV / cutscenes / attract debug keys
 - [ ] Save/load (INFO-1)
 - [ ] Render interpolation toggle (key 3)
-- [ ] High render rate (240+ fps) — sound retrigger (BUG-1)
+- [x] ~~High render rate (240+ fps) — sound retrigger (BUG-1)~~ — закрыто как не баг (`MFX_play_ambient` идемпотентен на стороне mfx.cpp; pyro проверен на слух — звук костра ровный)
 
 ## Краткий вердикт
 
 **Нужны правки** перед merge:
-1. **BUG-1** — sound retrigger, либо edge-detect, либо доказать идемпотентность `MFX_play_ambient/thing`.
+1. ~~**BUG-1**~~ — закрыто как не-баг (см. выше): и `MFX_play_ambient` с одинаковым wave, и `MFX_play_thing` с `MFX_QUEUED|MFX_LOOPED` идемпотентны на стороне `mfx.cpp`.
 2. **BUG-2** — pause "step back" — корректно клампать alpha=1 на паузе.
 3. **BUG-3** — выключить `RENDER_INTERP_LOG` (если bug #1 в render_interpolation/known_issues закрыт).
 4. **BUG-4 / Doc-vs-Code** — либо доделать миграцию `panel.cpp:1978` и `combat.cpp:990`, либо убрать из таблицы overview.md.
@@ -269,4 +272,4 @@ VISUAL_TURN-агент (отдельно прошёлся по миграции 
 - Все AI cooldowns / mission scripted timers / save-load (`pcom.cpp`, `eway.cpp`, `combat.cpp:133/144/161/340`, `vehicle.cpp:1956`, `psystem.cpp:271`, `darci.cpp:541`, `game_tick.cpp:1183`, `memory.cpp`, `game.cpp:1066` bench-health) — **корректно** оставлены на `GAME_TURN`.
 - Все мигрированные визуальные сайты (vehicle siren / tire skid, sky wibble, mesh debug colour, shape sparky UV, wibble post-effect, special bloom, grenade trail/path, person punch sounds, game_tick Darci dirt water + flashlight, figure flames, pyro flame phase, aeng object yaws/camera oscillation) — корректно классифицированы как визуал.
 - Sound variation indices (`S_PUNCH_START + (X & 3)`) единообразно классифицируются как визуал по CORE_PRINCIPLE — что подсвечивает несоответствие в `combat.cpp:990` (см. BUG-4).
-- `MFX_play_ambient` подтверждённо НЕ идемпотентен (`mfx.cpp:747`) — BUG-1 валиден.
+- ~~`MFX_play_ambient` подтверждённо НЕ идемпотентен (`mfx.cpp:747`) — BUG-1 валиден.~~ — **поправка**: при ручной проверке `mfx.cpp` оказалось что `MFX_play_ambient` идемпотентен через путь `FindVoice(channel, wave)` + `(vptr->wave == wave) && !MFX_REPLACE` → `MoveVoice` no-op. Агент проверил только entry point. См. BUG-1 секцию выше.
