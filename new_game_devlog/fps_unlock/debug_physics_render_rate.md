@@ -48,7 +48,9 @@ cutscenes, outro и FMV):
 
 ### Overlay в левом верхнем углу
 
-`debug_timing_overlay_render_font2d()` показывает строку:
+`debug_timing_overlay_render_font2d()` показывает две строки.
+
+**Строка 1 — timing:**
 ```
 phys: <N>  lock: <M> fps  IP: <on/off>  fps: <X.X>
 phys: <N>  lock: unlim  IP: <on/off>  fps: <X.X>     // когда render cap = 0
@@ -57,6 +59,21 @@ phys: <N>  lock: unlim  IP: <on/off>  fps: <X.X>     // когда render cap = 
 - `lock` — render cap в FPS или `unlim` если cap отключён
 - `IP` — interpolation enabled (`on`/`off`, `g_render_interp_enabled`)
 - `fps` — измеренный wall-clock FPS
+
+**Строка 2 — анимация Дарси (диагностика render-interp):**
+```
+darci anim=<id> mesh=<id> frame=<N>/<M> tw=<0..255>
+```
+- `anim` — `Draw.Tweened->CurrentAnim` (ID текущей анимации)
+- `mesh` — `Draw.Tweened->MeshID`
+- `frame=N/M` — текущий keyframe (1-based) из общего числа в анимации
+  (M считается walking по `NextFrame` от `CurrentFrame` до `ANIM_FLAG_LAST_FRAME`,
+  плюс `FrameIndex` уже сыгранных)
+- `tw` — текущий `AnimTween` (0..255), фракция вертексного морфа
+
+Читается через `NET_PERSON(0)` (Дарси в SP). Overlay вызывается из
+`ge_flip` callback'а — после `draw_screen()` и dtor'а `RenderInterpFrame`,
+поэтому видим **live физические** значения, не интерполированные.
 
 ### Физика: fixed-step accumulator (`game.cpp`)
 

@@ -115,10 +115,28 @@ struct ThingSnap {
     UBYTE last_mesh_id;
     SLONG last_anim;
 
+    // Vertex-morph fraction (Draw.Tweened->AnimTween) + указатели keyframe'ов
+    // которые она индексирует. AnimTween продвигается на physics-tick'е,
+    // не per-frame. Указатели CurrentFrame/NextFrame нужны чтобы лерпить
+    // через границу keyframe — на быстрых анимациях FrameIndex меняется
+    // почти каждый тик.
+    SLONG anim_tween_prev, anim_tween_curr;
+    UBYTE frame_index_prev, frame_index_curr;
+    struct GameKeyFrame* current_frame_prev;
+    struct GameKeyFrame* current_frame_curr;
+    struct GameKeyFrame* next_frame_prev;
+    struct GameKeyFrame* next_frame_curr;
+
     // Frame-scope save (заполняется RenderInterpFrame ctor, читается dtor)
     GameCoord saved_pos;
     SWORD saved_angle, saved_tilt, saved_roll;
+    SLONG saved_anim_tween;
+    struct GameKeyFrame* saved_current_frame;
+    struct GameKeyFrame* saved_next_frame;
     bool applied;
+    bool anim_tween_applied;  // covers AnimTween + CurrentFrame + NextFrame
+                              // override. Skipped on >1-keyframe jumps per
+                              // tick (нет промежуточной истории указателей).
 };
 ```
 
@@ -325,10 +343,41 @@ phys: 20  lock: unlim  IP: on  fps: 144.3
 
 Используется для отладки spawn/despawn багов. Через grep `[render_interp]` в `stderr.log` видна последовательность жизни slot'ов.
 
+## AnimTween (vertex-morph fraction)
+
+`Draw.Tweened->AnimTween` — это фракция `[0, 256)` морфа между двумя соседними keyframe'ами текущей анимации (`CurrentFrame` и `NextFrame`). Продвигается анимационными хендлерами **на physics-тике** (например `person_normal_animate_speed` в [person.cpp:2848](../../../new_game/src/things/characters/person.cpp#L2848) масштабирует `tween_step` на `TICK_RATIO`). При 20 Hz physics + 60 Hz render одно значение AnimTween держится 3 render-кадра подряд → морф рывками, хотя позиция плавная.
+
+> ⚠️ Раньше документация утверждала «AnimTween обновляется per render-frame» — это было неверно. Тиковый источник подтверждён в коде.
+
+**Что делаем:** capture'им `AnimTween`, `FrameIndex` и указатели `CurrentFrame`/`NextFrame` рядом с углами Tween. В `RenderInterpFrame::ctor` подменяем все три (`dt->AnimTween`, `dt->CurrentFrame`, `dt->NextFrame`) на правильные для текущего alpha значения. Дальше FIGURE_draw / `calc_sub_objects_position` / smap читают подменённые поля и вертексный морф идёт плавно на render-rate.
+
+**Случай 1: FrameIndex стабилен (`frame_index_prev == frame_index_curr`).** За тик анимация не перешла keyframe границу. CurrentFrame/NextFrame одни и те же. Прямой `lerp_i32(prev_AT, curr_AT, alpha)`.
+
+**Случай 2: FrameIndex продвинулся ровно на 1** (`(UBYTE)(curr - prev) == 1`). За тик пересекли одну границу keyframe — CurrentFrame/NextFrame сменились. Используем virtual extended координату:
+
+```
+total = (256 - prev_AT) + curr_AT       // фракционных keyframe-units пройдено за тик
+v = prev_AT + alpha * total
+если v < 256:
+    рендер с prev's (CurrentFrame, NextFrame), AnimTween = v
+иначе:
+    рендер с curr's (CurrentFrame, NextFrame), AnimTween = v - 256
+```
+
+Это даёт непрерывный визуальный переход через границу: при `alpha = (256 - prev_AT) / total` мы ровно на стыке двух пар keyframe'ов — pose в обоих интерпретациях одна и та же (последний кадр прошлой пары = первый кадр следующей).
+
+**Случай 3: Loop wrap** — в конце цикла анимации `ANIM_FLAG_LAST_FRAME`-флагнутый keyframe сбрасывает FrameIndex `N→0` (а не инкремент). UBYTE diff в этом случае `256-N`, не 1, и Случай 2 не сработает. Детект: `current_frame_prev->Flags & ANIM_FLAG_LAST_FRAME` (предыдущий тик был на терминальном keyframe). Логика та же что в Случае 2 — формула virtual extended координаты, переключение пары указателей. Зрительно: на стыке (last frame's NextFrame ↔ wrap-around start frame) обе пары дают одну и ту же позу (loop continuity), v=256 граница совпадает.
+
+**Случай 4: FrameIndex продвинулся больше чем на 1 за тик** (TweenStep > 256, очень быстрая анимация). У нас нет промежуточных указателей — пропускаем подмену, рендер использует live curr. Редкий случай.
+
+**Покрытие:** работает для всех `draw_type_uses_tween()` → CLASS_PERSON (Дарси, NPC), CLASS_ANIMAL, CLASS_BAT, CLASS_PYRO, CLASS_CHOPPER, generic DT_TWEEN.
+
+**Что НЕ покрывает:** cross-fade между **разными** анимациями (idle→sprint и т.п.). Когда меняется `CurrentAnim`/`MeshID`, anim-transition детектор ставит `skip_once` → AnimTween prev=curr, никакой смешанной позы. Это отдельный баг → [`known_issues.md`](known_issues.md) #2.
+
 ## Что НЕ делает эта система
 
 - **Не меняет физику.** Physics работает как всегда, на 20 Hz, с тем же `process_things` и тем же state.
-- **Не интерполирует AnimTween (вертексный morph персонажей).** Та анимация уже плавная сама по себе — она tweens между keyframes раз в render-кадр.
+- **Не делает cross-fade между разными анимациями.** AnimTween интерполируется только в рамках одной анимации (одного `CurrentAnim`/`MeshID`). На границе смены анимации — дискретный скачок (см. [`known_issues.md`](known_issues.md) #2).
 - **Не интерполирует партиклы** (`PARTICLE_*` pool). Они в отдельной структуре, движутся через TICK_RATIO. На фоне их короткого lifetime и flicker'а — обычно не бросается в глаза. См. [`plans.md`](plans.md).
 - **Не интерполирует wall-clock эффекты** (rain, drip ripples, ribbons, sparks от заборов, sky, fire). Они и так плавные через `g_frame_dt_ms` — см. `CORE_PRINCIPLE.md`.
 - **Не уменьшает input latency.** Render lag ~50мс остаётся (показываем интерполированное прошлое). Если нужна латенси — другая задача (поднятие physics Hz с timer scaling), см. [`../fps_unlock.md`](../fps_unlock.md).

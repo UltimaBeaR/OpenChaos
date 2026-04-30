@@ -7,9 +7,11 @@
 
 ## Статус
 
-**В работе.** Базовая система работает — Дарси, NPC, машины и камера интерполируются на render-rate. Есть остаточные баги (мельтешащие педестрианы), отлаживаются по логу.
+**В работе.** Базовая система работает — позиции и углы Tween (Дарси, NPC, animals, chopper, pyro), позиция машин, камера интерполируются на render-rate. **Vertex-morph анимация** персонажей теперь тоже плавная (с lerp'ом через границу keyframe и через loop wrap, см. [`architecture.md`](architecture.md)).
 
-Runtime toggle клавишей **3** (`g_render_interp_enabled`). Состояние видно в overlay как `IP: on/off`. Полный набор debug-клавиш → [`../debug_physics_render_rate.md`](../debug_physics_render_rate.md).
+Остаточные баги: мельтешащие педестрианы (#1), мигание на смене анимации idle→sprint (#2), поворот машин рывками (#3) — см. [`known_issues.md`](known_issues.md).
+
+Runtime toggle клавишей **3** (`g_render_interp_enabled`). Состояние видно в overlay как `IP: on/off`. Под основной строкой timing'а — диагностический вывод анимации Дарси (`darci anim=... frame=N/M tw=...`). Полный набор debug-клавиш → [`../debug_physics_render_rate.md`](../debug_physics_render_rate.md).
 
 ## Документы
 

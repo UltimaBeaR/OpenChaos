@@ -2,6 +2,7 @@
 
 #include "things/core/thing.h"
 #include "things/core/drawtype.h"
+#include "engine/animation/anim_types.h" // GameKeyFrame layout, ANIM_FLAG_LAST_FRAME
 #include "game/game_types.h" // THINGS, TO_THING
 
 #include <stdio.h> // debug logging
@@ -31,12 +32,38 @@ struct ThingSnap {
     UBYTE last_mesh_id;
     SLONG last_anim;
 
+    // Vertex-morph fraction (Draw.Tweened->AnimTween, range [0, 256)) plus
+    // the morph-endpoint keyframe pointers it indexes. AnimTween is advanced
+    // once per physics tick by anim handlers (e.g. person_normal_animate_speed
+    // scales by TICK_RATIO), so without interpolation the morph judders at
+    // physics rate while body position is smooth.
+    //
+    // We snapshot the keyframe pointers (CurrentFrame/NextFrame) too so that
+    // when a tick crosses a keyframe boundary (`tween_step` >= 256-AnimTween),
+    // the render path can lerp through the boundary in a virtual extended
+    // coordinate: v = prev_AT + alpha * ((256 - prev_AT) + curr_AT). For
+    // v < 256 we render with prev's keyframe pair, for v >= 256 with curr's
+    // pair (AnimTween = v - 256). FrameIndex is captured purely as the cheap
+    // boundary-detector — its diff selects the apply branch.
+    SLONG anim_tween_prev, anim_tween_curr;
+    UBYTE frame_index_prev, frame_index_curr;
+    struct GameKeyFrame* current_frame_prev;
+    struct GameKeyFrame* current_frame_curr;
+    struct GameKeyFrame* next_frame_prev;
+    struct GameKeyFrame* next_frame_curr;
+
     // Frame-scope save: live Thing values overwritten by RenderInterpFrame
     // ctor and restored by dtor. applied=false means this entry was not
     // touched this frame and dtor must skip it.
     GameCoord saved_pos;
     SWORD saved_angle, saved_tilt, saved_roll;
+    SLONG saved_anim_tween;
+    struct GameKeyFrame* saved_current_frame;
+    struct GameKeyFrame* saved_next_frame;
     bool applied;
+    bool anim_tween_applied;  // covers AnimTween + CurrentFrame + NextFrame
+                              // override. Skipped on >1-keyframe jumps where
+                              // we lack the intermediate pointer history.
 };
 
 // Indexed by (p_thing - &THINGS[0]). MAX_THINGS == 701.
@@ -187,6 +214,10 @@ void render_interp_capture(Thing* p_thing)
             s.angle_curr = dt->Angle;
             s.tilt_curr = dt->Tilt;
             s.roll_curr = dt->Roll;
+            s.anim_tween_curr = dt->AnimTween;
+            s.frame_index_curr = dt->FrameIndex;
+            s.current_frame_curr = dt->CurrentFrame;
+            s.next_frame_curr = dt->NextFrame;
             s.has_angles = true;
         } else {
             s.has_angles = false;
@@ -194,6 +225,10 @@ void render_interp_capture(Thing* p_thing)
         s.angle_prev = s.angle_curr;
         s.tilt_prev = s.tilt_curr;
         s.roll_prev = s.roll_curr;
+        s.anim_tween_prev = s.anim_tween_curr;
+        s.frame_index_prev = s.frame_index_curr;
+        s.current_frame_prev = s.current_frame_curr;
+        s.next_frame_prev = s.next_frame_curr;
         s.valid = true;
         s.skip_once = false;
         return;
@@ -203,12 +238,20 @@ void render_interp_capture(Thing* p_thing)
     s.angle_prev = s.angle_curr;
     s.tilt_prev = s.tilt_curr;
     s.roll_prev = s.roll_curr;
+    s.anim_tween_prev = s.anim_tween_curr;
+    s.frame_index_prev = s.frame_index_curr;
+    s.current_frame_prev = s.current_frame_curr;
+    s.next_frame_prev = s.next_frame_curr;
 
     s.pos_curr = p_thing->WorldPos;
     if (dt) {
         s.angle_curr = dt->Angle;
         s.tilt_curr = dt->Tilt;
         s.roll_curr = dt->Roll;
+        s.anim_tween_curr = dt->AnimTween;
+        s.frame_index_curr = dt->FrameIndex;
+        s.current_frame_curr = dt->CurrentFrame;
+        s.next_frame_curr = dt->NextFrame;
         s.has_angles = true;
     } else {
         // DrawType changed away from Tween — drop angle interpolation.
@@ -220,6 +263,10 @@ void render_interp_capture(Thing* p_thing)
         s.angle_prev = s.angle_curr;
         s.tilt_prev = s.tilt_curr;
         s.roll_prev = s.roll_curr;
+        s.anim_tween_prev = s.anim_tween_curr;
+        s.frame_index_prev = s.frame_index_curr;
+        s.current_frame_prev = s.current_frame_curr;
+        s.next_frame_prev = s.next_frame_curr;
         s.skip_once = false;
     }
 }
@@ -331,9 +378,73 @@ RenderInterpFrame::RenderInterpFrame()
             dt->Angle = lerp_angle_2048(s.angle_prev, s.angle_curr, alpha);
             dt->Tilt  = lerp_angle_2048(s.tilt_prev,  s.tilt_curr,  alpha);
             dt->Roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
+
+            // Vertex-morph: AnimTween + the keyframe pointers it indexes.
+            // Two cases:
+            //   (a) FrameIndex stable across tick — same morph endpoints,
+            //       straight lerp on AnimTween.
+            //   (b) FrameIndex advanced by exactly 1 (or wrapped via
+            //       LAST_FRAME) — span the keyframe boundary using a virtual
+            //       extended coordinate, switching keyframe pointers when
+            //       v crosses 256.
+            // Cases >1 keyframes per tick: no intermediate pointer history,
+            // skip lerp (rare — needs very fast TweenStep).
+            bool apply_anim = false;
+            SLONG new_anim_tween = 0;
+            struct GameKeyFrame* new_current = nullptr;
+            struct GameKeyFrame* new_next = nullptr;
+            UBYTE frame_diff = (UBYTE)(s.frame_index_curr - s.frame_index_prev);
+            // Loop wrap: anim with LAST_FRAME-flagged terminal keyframe resets
+            // FrameIndex to 0 instead of incrementing. UBYTE diff is then
+            // (0 - N) wrapping to 256-N, not 1. Detect via the prev-tick's
+            // CurrentFrame->Flags — that frame *was* the last-frame terminal,
+            // so a single keyframe transition still happened semantically.
+            // The new CurrentFrame is the loop's start frame and prev's
+            // NextFrame should point to the same keyframe (loop continuity),
+            // so the v=256 boundary lines up visually.
+            bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
+                                 && s.current_frame_prev
+                                 && (s.current_frame_prev->Flags & ANIM_FLAG_LAST_FRAME));
+            if (frame_diff == 0) {
+                new_anim_tween = lerp_i32(s.anim_tween_prev, s.anim_tween_curr, alpha);
+                new_current = s.current_frame_curr;
+                new_next = s.next_frame_curr;
+                apply_anim = (new_current != nullptr && new_next != nullptr);
+            } else if ((frame_diff == 1 || is_loop_wrap)
+                       && s.current_frame_prev && s.next_frame_prev
+                       && s.current_frame_curr && s.next_frame_curr) {
+                // Total fractional advancement from prev to curr (unitless,
+                // 256 = one full keyframe). Always > 0 because frame
+                // advanced.
+                SLONG total = (256 - s.anim_tween_prev) + s.anim_tween_curr;
+                SLONG v = s.anim_tween_prev + SLONG(float(total) * alpha);
+                if (v < 256) {
+                    new_current = s.current_frame_prev;
+                    new_next = s.next_frame_prev;
+                    new_anim_tween = v;
+                } else {
+                    new_current = s.current_frame_curr;
+                    new_next = s.next_frame_curr;
+                    new_anim_tween = v - 256;
+                }
+                apply_anim = true;
+            }
+
+            if (apply_anim) {
+                s.saved_anim_tween = dt->AnimTween;
+                s.saved_current_frame = dt->CurrentFrame;
+                s.saved_next_frame = dt->NextFrame;
+                dt->AnimTween = new_anim_tween;
+                dt->CurrentFrame = new_current;
+                dt->NextFrame = new_next;
+                s.anim_tween_applied = true;
+            } else {
+                s.anim_tween_applied = false;
+            }
         } else {
             // No angle apply; but mark applied so dtor restores position.
             s.has_angles = false;  // local guard for restore path
+            s.anim_tween_applied = false;
         }
 
         s.applied = true;
@@ -390,6 +501,12 @@ RenderInterpFrame::~RenderInterpFrame()
             dt->Angle = s.saved_angle;
             dt->Tilt  = s.saved_tilt;
             dt->Roll  = s.saved_roll;
+            if (s.anim_tween_applied) {
+                dt->AnimTween = s.saved_anim_tween;
+                dt->CurrentFrame = s.saved_current_frame;
+                dt->NextFrame = s.saved_next_frame;
+                s.anim_tween_applied = false;
+            }
         }
         s.applied = false;
     }

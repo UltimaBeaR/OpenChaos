@@ -58,11 +58,22 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 
 ## Что НЕ нужно интерполировать (уже плавно)
 
-### AnimTween (вертексный morph)
+### AnimTween (вертексный morph) — теперь интерполируется
 
-Анимации персонажей в Urban Chaos — это **per-vertex morph между keyframes**, а не skeletal. Tween-фракция `dt->AnimTween` обновляется **каждый render-кадр** (не каждый physics-тик), так что vertex positions уже плавно tweens. Эта анимация плавная независимо от render rate.
+Анимации персонажей в Urban Chaos — это **per-vertex morph между keyframes**, не skeletal. Tween-фракция `dt->AnimTween` определяет где на оси `[CurrentFrame, NextFrame]` мы сейчас.
 
-Мы интерполируем `Angle/Tilt/Roll` (общий поворот всего меша), но **не сами вершины** — этим занимается morph-pipeline в `FIGURE_draw`.
+> ⚠️ Раньше тут было написано «AnimTween обновляется per render-frame, плавная сама по себе» — **это было неверно**. AnimTween продвигается анимационными хендлерами **на physics-тике** (e.g. [`person_normal_animate_speed` person.cpp:2848](../../../new_game/src/things/characters/person.cpp#L2848) масштабирует `tween_step` на `TICK_RATIO`). При 20 Hz physics + 60 Hz render значение держится 3 кадра подряд → морф рывками.
+
+`AnimTween` (фракция [0, 256) внутри keyframe пары) + указатели `CurrentFrame`/`NextFrame` теперь capture'ятся и подменяются в frame-scope:
+- Capture рядом с Angle/Tilt/Roll (когда `dt = Draw.Tweened` валиден)
+- Apply: при стабильном FrameIndex — прямой lerp; при продвижении на 1 keyframe за тик — virtual extended coordinate с переключением пары указателей; при >1 keyframes за тик — пропуск (редко)
+- Это нужно потому что на быстрых анимациях (running, sprint) FrameIndex меняется почти каждый тик и одного только лерпа AnimTween недостаточно
+
+Подробнее → [`architecture.md`](architecture.md), секция «AnimTween».
+
+Углы (`Angle/Tilt/Roll`, общий поворот меша) интерполируются параллельно. Сами вершины не трогаем — этим занимается morph-pipeline в `FIGURE_draw`, ему достаточно правильного `AnimTween`.
+
+**Не покрывает:** cross-fade между **разными** анимациями (`CurrentAnim`/`MeshID` change). На таком переходе срабатывает `skip_once` — поза дискретно скачет с старой на новую. Отдельный баг → [`known_issues.md`](known_issues.md) #2.
 
 ### Wall-clock эффекты (см. `CORE_PRINCIPLE.md`)
 
