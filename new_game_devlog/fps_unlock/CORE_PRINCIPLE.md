@@ -5,9 +5,12 @@
 > **Ничто — к номеру рендер-кадра или `lock_frame_rate(g_render_fps_cap)`.**
 
 **Базовая частота физики: 20 Hz** (`g_physics_hz = UC_PHYSICS_DESIGN_HZ = 20`,
-локальный override `NORMAL_TICK_TOCK = 50ms` в `thing.cpp` — глобальный
-`NORMAL_TICK_TOCK = 66.67ms` в `game_types.h` остался от ранней разработки
-и используется только psystem.cpp как scaling base, не дизайновая частота).
+`THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ = 50ms` в `thing.cpp`).
+В оригинале была пара значений `NORMAL_TICK_TOCK`: глобальный `1000/15 = 66.67ms`
+из `Headers/Game.h` (использовался только psystem.cpp как scaling base) и локальный
+override в `Thing.cpp` `1000/20 = 50ms` (там TICK_RATIO реально считается).
+Сейчас `NORMAL_TICK_TOCK` удалён — каждая подсистема имеет явную базу:
+`THING_TICK_BASE_MS` (50ms) в thing.cpp и `PSYSTEM_TICK_BASE_MS` (66.67ms) в psystem.cpp.
 Это дизайновая частота оригинала — при ней таймер миссий идёт 1:1 с реальным временем.
 PS1 и PC-релиз работали на ~30 Hz и ~22 Hz соответственно, не достигая 1:1.
 Не менять без веской причины.
@@ -118,10 +121,12 @@ counter или зависимость от `g_render_fps_cap`. Любая так
 
 ## Таймеры геймплея: наша скорость быстрее оригинала (1:1 с реальным временем)
 
-`NORMAL_TICK_TOCK = 50ms` (= 1000/20) — дизайновая базовая единица, задана
-**локальным override'ом в `thing.cpp`** (там где TICK_RATIO реально считается).
-Глобальное значение `NORMAL_TICK_TOCK = 66.67ms` в `game_types.h` — наследие
-ранней разработки, его видит только psystem.cpp.
+`THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ = 50ms` — дизайновая базовая
+единица, объявлена в `thing.cpp` (там где TICK_RATIO реально считается).
+В оригинале здесь стоял локальный `#undef NORMAL_TICK_TOCK + #define 1000/20`
+поверх глобального `NORMAL_TICK_TOCK = 1000/15 = 66.67ms` из `Headers/Game.h`.
+Сейчас глобальный `NORMAL_TICK_TOCK` удалён, каждая подсистема имеет явную
+базу: `THING_TICK_BASE_MS` (50ms) и `PSYSTEM_TICK_BASE_MS` (66.67ms).
 
 При 20 Hz: tick_diff = 50ms → `TICK_RATIO = (50 * 256) / 50 = 256`.
 Формула `5 * 256 >> 8 = 5` → 5 × 20 тиков/сек = **100 единиц/сек = 1:1 с реальным временем**.

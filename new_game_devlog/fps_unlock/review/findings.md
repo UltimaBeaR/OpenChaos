@@ -212,40 +212,40 @@ if (VISUAL_TURN & 1) { ... SPARK_create(...) }
 
 `DRAWXTRA_MIB_destruct` вызывается из `AENG_draw_city` per render frame. Гейт `VISUAL_TURN & 1` открыт ~16.6 ms (полпериода), и при unlimited FPS открыт несколько render-frames подряд ⇒ `SPARK_create` (game-state SPARK pool) спавнится больше раз/сек при высоком render rate. Не регрессия от этой ветки (тот же дефект существовал до миграции с `GAME_TURN`), но `SPARK` объекты — game state, должны быть на physics-tick.
 
-## Документация
+## Документация — ЗАКРЫТО (пакет правок применён)
 
-> Полный анализ от doc-consistency агента ниже.
+Все CRITICAL-пункты ниже поправлены за один проход:
 
-### CRITICAL (фактические ошибки в актуальной части доков)
+### CRITICAL (фактические ошибки) — все ✅
 
-1. **`CORE_PRINCIPLE.md:8-12, 119-128`** — упоминает `NORMAL_TICK_TOCK = 50ms` как текущий локальный override и `NORMAL_TICK_TOCK = 66.67ms` как глобальный. **Удалены из кода.** Заменено на `THING_TICK_BASE_MS` / `PSYSTEM_TICK_BASE_MS`. Заменить упоминания.
-2. **`fps_unlock.md:41`** — `Debug-инструмент (клавиши 1/2/9/0)` — пропущена клавиша 3 (toggle интерполяции).
-3. **`fps_unlock.md:76, 78-79, 88-99, 108-112`** — несколько утверждений "physics 30 Hz default", "обновляет позиции объектов раз в 33 мс", "`physics_fps=30, render_fps=60`". Default — 20 Hz. Текст устарел.
-4. **`fps_unlock_issues.md:1-4`** — title "Проблемы найденные при тестировании debug-инструмента (клавиши 1/2/9/0)". Пропущена 3.
-5. **`fps_unlock_issues.md:41-42, 99-106`** — issue #5 / #7 говорят "При нормальной физике (30 Hz) — реагирует". Default — 20 Hz.
-6. **`fps_unlock_physics_visual.md:21, 39, 56`** — issues #4/#8/#9 ссылаются на "штатные 30 Hz". Default — 20 Hz.
-7. **`original_tick_rates/summary.md:25-26`** — объявляет `UC_PHYSICS_DESIGN_TICK_MS = 50.0f`. Эта константа **не определена** в `game_types.h` (есть только `UC_VISUAL_CADENCE_TICK_MS`). Либо добавить в код, либо убрать из доки.
-8. **`README.md:40`** — ссылка `[review/findings.md](review/findings.md)` — на момент ревью этого файла **не существовало** (этот файл — он самый, создаётся прямо сейчас в рамках ревью). После создания ссылка станет валидной.
-9. **`README.md:62`** — "Physics по умолчанию 20 Hz (дизайновая частота, NORMAL_TICK_TOCK=50ms)" — должно ссылаться на `THING_TICK_BASE_MS`.
-10. **`render_interpolation/architecture.md:8`** — `NORMAL_TICK_TOCK=50ms` — заменить на `THING_TICK_BASE_MS`.
-11. **`render_interpolation/plans.md:84`** — то же самое.
+1. ✅ `CORE_PRINCIPLE.md:8-12, 119-128` — `NORMAL_TICK_TOCK` заменён на `THING_TICK_BASE_MS` / `PSYSTEM_TICK_BASE_MS`, текст переписан "в оригинале было … сейчас удалено".
+2. ✅ `fps_unlock.md:40-41` — клавиши `1/2/3/9/0`, упомянут toggle интерполяции.
+3. ✅ `fps_unlock.md:76-129` — все упоминания "physics 30 Hz default" заменены на 20 Hz; example `physics_fps=20` / `render_fps=60`; вариант А переписан "реализовано в этой ветке".
+4. ✅ `fps_unlock_issues.md` — преамбула с клавишами `1/2/3/9/0`.
+5. ✅ `fps_unlock_issues.md` issues #5, #7 — baseline "штатные 20 Hz".
+6. ✅ `fps_unlock_physics_visual.md` issues #4, #8, #9 — baseline 20 Hz.
+7. ✅ `original_tick_rates/summary.md` — добавлена пометка что секция "Single source of truth" — research-предложение, не текущее состояние; `UC_PHYSICS_DESIGN_TICK_MS` явно отмечен как не объявленный в коде.
+8. ✅ `README.md:40` — ссылка на `review/findings.md` теперь валидна (этот файл).
+9. ✅ `README.md:62` — `THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ = 50ms`.
+10. ✅ `render_interpolation/architecture.md:8` — то же.
+11. ✅ `render_interpolation/plans.md:84` — то же.
 
-### MEDIUM (противоречия между доками)
+### MEDIUM (противоречия) — все закрыты
 
-1. **Default physics rate**: `fps_unlock.md` (78, 89, 108) говорит 30 Hz, остальные доки — 20. fps_unlock.md outlier.
-2. **Debug key set**: `fps_unlock.md:41`, `fps_unlock_issues.md:3` — `1/2/9/0`. Остальные — `1/2/3/9/0`.
-3. **`NORMAL_TICK_TOCK` lifecycle**: CORE_PRINCIPLE/README/architecture/plans считают живым; overview.md и код — удалён.
-4. **Issue #16 status**: `fps_unlock_issues.md` отмечает open, overview.md (line 503) говорит "частично закрыта VISUAL_TURN".
+1. ✅ Default physics rate — единый 20 Hz по всем докам.
+2. ✅ Debug key set — единый `1/2/3/9/0`.
+3. ✅ `NORMAL_TICK_TOCK` lifecycle — везде описано как удалённое.
+4. ✅ Issue #16 status — добавлена пометка "частично закрыта VISUAL_TURN" в `fps_unlock_issues.md`.
 
-### MINOR (стиль, дублирование)
+### MINOR (стиль) — оставлено как есть
 
-1. Дубль "тайминги геймплея 1:1" в CORE_PRINCIPLE.md (119-135), fps_unlock.md (117-129), overview.md.
-2. Bucket-strobe pattern описан в CORE_PRINCIPLE (139-198) и в abridged-форме в coverage.md, summary.md, overview.md. Принято.
-3. `fps_unlock_issues.md` — issue #16 идёт после #18 (порядок).
+1. Дубль "тайминги геймплея 1:1" в нескольких файлах — приемлем для design doc.
+2. Bucket-strobe pattern — описан в CORE_PRINCIPLE с подробностями + ссылки в других местах.
+3. `fps_unlock_issues.md` order #16 после #18 — косметика.
 
-### Doc → Overview claims которые расходятся с кодом
+### Doc → Overview claims расходились с кодом
 
-См. **BUG-4** выше — `panel.cpp:1978` и `combat.cpp:990` перечислены в overview-таблице раздела "5. Visual GAME_TURN-gated эффекты — миграция", но не модифицированы.
+✅ Закрыто через **BUG-4** (миграция выполнена + поправлено в overview ложное связывание `panel.cpp:1978` с issue #18).
 
 ## Test plan checklist
 
@@ -266,7 +266,7 @@ if (VISUAL_TURN & 1) { ... SPARK_create(...) }
 2. ~~**BUG-2**~~ — закрыто (alpha=1 на паузе, фикс применён).
 3. ~~**BUG-3**~~ — закрыто как не баг (включено осознанно, документировано, выключение при закрытии bug #1).
 4. ~~**BUG-4 / Doc-vs-Code**~~ — закрыто: оба сайта мигрированы на `VISUAL_TURN`, проверено пользователем. Issue #18 остаётся открытым (другое место — `PANEL_draw_timer`).
-5. **DOC fixes** — обновить упоминания `NORMAL_TICK_TOCK` → `THING_TICK_BASE_MS`, выбор клавиш `1/2/3/9/0`, default 20 Hz, `UC_PHYSICS_DESIGN_TICK_MS`.
+5. ~~**DOC fixes**~~ — закрыто (пакет применён, см. секцию "Документация" выше).
 
 Архитектура (accumulator-loop, RenderInterpFrame, capture/lerp, VISUAL_TURN отделение) — концептуально корректна и хорошо реализована. Wall-clock эффекты (drip, puddle, ribbon, spark, AENG_draw_rain bucket-strobe) — правильно через accumulator на `UC_VISUAL_CADENCE_TICK_MS`. Главные риски — в edge-cases использования `VISUAL_TURN & MASK == VAL` (множественный retrigger при render >30 Hz).
 

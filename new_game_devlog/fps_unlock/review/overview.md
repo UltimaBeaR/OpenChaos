@@ -208,7 +208,7 @@ Build files (`CMakeLists.txt`, etc.) тоже стоит проверить.
 | [`things/characters/person.cpp`](../../../new_game/src/things/characters/person.cpp) | Punch sound variation (×2), spark spawn gate. **Также:** `set_person_fight_step_forward` восстановлен из оригинала (use-without-define из Stage4 миграции, попало в эту ветку случайно) |
 | [`things/items/grenade.cpp`](../../../new_game/src/things/items/grenade.cpp) | Trail rotation, path count |
 | [`things/items/special.cpp`](../../../new_game/src/things/items/special.cpp) | Bloom rotation phase |
-| [`ui/hud/panel.cpp`](../../../new_game/src/ui/hud/panel.cpp) | UI flash effect (закрывает основу issue #18 про мерцание timer'а) |
+| [`ui/hud/panel.cpp`](../../../new_game/src/ui/hud/panel.cpp) | Минимапа: мерцание dot'а врагов (`PANEL_LSPRITE_DOT` flash). NB: к issue #18 (мерцание истёкшего mission timer'а) **отношения не имеет** — это другое место в panel.cpp около `PANEL_draw_timer`. |
 
 ### 6. Прочие правки (gameplay / UI)
 

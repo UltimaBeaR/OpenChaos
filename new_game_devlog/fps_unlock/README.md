@@ -58,7 +58,7 @@
 ## Ключевые концепции
 
 **`g_physics_hz` / `g_render_fps_cap`** — глобалы в `game_globals.h`, управляют Hz.
-Physics по умолчанию 20 Hz (дизайновая частота, NORMAL_TICK_TOCK=50ms). Render без ограничений.
+Physics по умолчанию 20 Hz (дизайновая частота, `THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ = 50ms`). Render без ограничений.
 
 **`phys_tick_diff`** = `1000 / g_physics_hz` — целочисленный ms шаг физики.
 Передаётся в `process_things` как `tick_diff_override`, перекрывает реальный wall-clock delta.

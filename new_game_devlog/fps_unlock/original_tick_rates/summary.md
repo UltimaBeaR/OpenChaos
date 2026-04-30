@@ -20,6 +20,10 @@
 
 ## Single source of truth — три константы
 
+> **⚠️ Это секция-research-предложение**, как чище всего вырезать три rate'а
+> в код. Реальное состояние кодовой базы может отличаться — сверяться с
+> [`new_game/src/game/game_types.h`](../../../new_game/src/game/game_types.h).
+
 ```cpp
 // Design rate физики/геймплея. Захардкожен формулами оригинала.
 #define UC_PHYSICS_DESIGN_HZ        20
@@ -35,10 +39,12 @@
 #define UC_PARTICLE_SCALING_HZ      15
 ```
 
-**Статус (2026-04-30):** все три константы выше уже определены в
-[`game_types.h`](../../../new_game/src/game/game_types.h). Старое имя
-`UC_ORIG_TICK_HZ` переименовано в `UC_VISUAL_CADENCE_HZ`. См. шаги
-1–3 этой задачи и `review/findings.md` для деталей.
+**Статус (2026-04-30):** в коде определены `UC_PHYSICS_DESIGN_HZ`,
+`UC_VISUAL_CADENCE_HZ`, `UC_VISUAL_CADENCE_TICK_MS`, `UC_PARTICLE_SCALING_HZ`.
+`UC_PHYSICS_DESIGN_TICK_MS` в коде **не объявлен** — текущая реализация
+использует `THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ` локально в
+`thing.cpp`. Старое имя `UC_ORIG_TICK_HZ` переименовано в `UC_VISUAL_CADENCE_HZ`.
+См. шаги 1–3 этой задачи и `review/findings.md` для деталей.
 
 ---
 
