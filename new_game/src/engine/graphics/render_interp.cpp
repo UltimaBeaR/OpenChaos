@@ -3,9 +3,11 @@
 #include "things/core/thing.h"
 #include "things/core/drawtype.h"
 #include "engine/animation/anim_types.h" // GameKeyFrame layout, ANIM_FLAG_LAST_FRAME
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (cross-anim blend timing)
 #include "game/game_types.h" // THINGS, TO_THING
 
 #include <stdio.h> // debug logging
+#include <stdint.h> // uint64_t
 
 // Set to 1 to log first-capture and free events to stderr for diagnosing
 // "things flicker across the scene for one frame" bugs.
@@ -52,6 +54,38 @@ struct ThingSnap {
     struct GameKeyFrame* next_frame_prev;
     struct GameKeyFrame* next_frame_curr;
 
+    // Cross-anim blend (variant A "snap-aligned blend", multi-segment).
+    // Activated when CurrentAnim or MeshID change is detected and same-mesh
+    // blend is possible. Overrides the standard AnimTween logic for the
+    // duration of the blend window.
+    //
+    // We snapshot the old anim's full state at the moment of transition
+    // (CF/NF/AT) and morph in two segments using a virtual extended
+    // coordinate v = blend_old_at + blend_t * total where
+    // total = (256 - blend_old_at) + 256:
+    //
+    //   v < 256   — first segment: render(blend_old_cf, blend_old_nf, v)
+    //               i.e. complete the old anim's pending morph through
+    //               its NextFrame. Starts at v=blend_old_at which equals
+    //               the actual pre-transition pose — no start-snap.
+    //   v >= 256  — second segment: render(blend_old_nf, live_new_cf, v-256)
+    //               morph from old's NextFrame to live new-anim's
+    //               CurrentFrame. live_new_cf tracks physics so the new
+    //               anim's keyframe progression during the blend is
+    //               followed.
+    //
+    // At v=512 the morph lands at live_new_cf and the standard path
+    // resumes. Hand-off discontinuity is bounded by live_at/256 of one
+    // keyframe distance — small after only ~2 physics ticks of blend.
+    //
+    // Skipped when MeshID changes — different vertex layouts cannot be
+    // morphed safely.
+    bool blend_active;
+    uint64_t blend_start_ms;
+    struct GameKeyFrame* blend_old_cf;
+    struct GameKeyFrame* blend_old_nf;
+    SLONG blend_old_at;
+
     // Frame-scope save: live Thing values overwritten by RenderInterpFrame
     // ctor and restored by dtor. applied=false means this entry was not
     // touched this frame and dtor must skip it.
@@ -65,6 +99,12 @@ struct ThingSnap {
                               // override. Skipped on >1-keyframe jumps where
                               // we lack the intermediate pointer history.
 };
+
+// Cross-anim blend duration (wall-clock ms). 100ms ≈ 2 physics ticks at
+// 20 Hz — short enough that fast actions (sprint kick-in, hit reactions)
+// don't feel laggy, long enough to hide the pose discontinuity at the
+// keyframe-snap endpoints.
+static constexpr uint64_t BLEND_DURATION_MS = 100;
 
 // Indexed by (p_thing - &THINGS[0]). MAX_THINGS == 701.
 ThingSnap g_thing_snaps[MAX_THINGS] = {};
@@ -183,8 +223,10 @@ void render_interp_capture(Thing* p_thing)
     DrawTween* dt = draw_type_uses_tween(p_thing->DrawType) ? p_thing->Draw.Tweened : nullptr;
 
     // Detect anim transitions: if MeshID or CurrentAnim changed since last
-    // capture, the pose jumped and lerping would visibly squash the model
-    // across the change. Treat as a teleport.
+    // capture, the pose jumped and lerping in the standard tween path
+    // would visibly squash the model across the change. Treat as a
+    // teleport, AND attempt to start a render-side cross-anim blend if
+    // the mesh structure stayed the same.
     //
     // When DrawType is not Tween-based (dt == nullptr) we drop the cached
     // mesh/anim — otherwise on a later return to Tween the comparison would
@@ -192,6 +234,29 @@ void render_interp_capture(Thing* p_thing)
     // transition if the new MeshID happened to match the old one.
     if (dt) {
         if (s.last_mesh_id != dt->MeshID || s.last_anim != dt->CurrentAnim) {
+            // Pre-transition state is currently in s.*_curr (set by the
+            // previous tick's capture, not yet shifted to *_prev). Use it
+            // to seed the blend's "from" representative keyframe.
+            //
+            // Conditions to start a blend:
+            //   - MeshID unchanged across the transition (same vertex
+            //     layout — morph between arbitrary keyframes is meaningful)
+            //   - We had valid pre-transition keyframe state
+            bool mesh_stable = (s.last_mesh_id == dt->MeshID);
+            if (mesh_stable && s.valid && s.has_angles
+                && s.current_frame_curr && s.next_frame_curr) {
+                // Snapshot old anim's full state so first blend segment
+                // can render the exact pre-transition pose at v=blend_old_at
+                // (no start-snap), then morph through old's NextFrame to
+                // the new anim's CurrentFrame in the second segment.
+                s.blend_old_cf = s.current_frame_curr;
+                s.blend_old_nf = s.next_frame_curr;
+                s.blend_old_at = s.anim_tween_curr;
+                s.blend_active = true;
+                s.blend_start_ms = sdl3_get_ticks();
+            } else {
+                s.blend_active = false;
+            }
             s.skip_once = true;
             s.last_mesh_id = dt->MeshID;
             s.last_anim = dt->CurrentAnim;
@@ -199,6 +264,7 @@ void render_interp_capture(Thing* p_thing)
     } else {
         s.last_mesh_id = 0;
         s.last_anim = 0;
+        s.blend_active = false;
     }
 
     if (!s.valid) {
@@ -259,10 +325,14 @@ void render_interp_capture(Thing* p_thing)
     }
 
     if (s.skip_once) {
-        s.pos_prev = s.pos_curr;
-        s.angle_prev = s.angle_curr;
-        s.tilt_prev = s.tilt_curr;
-        s.roll_prev = s.roll_curr;
+        // Anim-only skip: keyframe-pair / AnimTween / FrameIndex were
+        // discontinuously reset by an anim transition (set_anim/MeshID
+        // change). Without this, the standard tween path would lerp
+        // across two unrelated keyframe pairs and visibly squash the
+        // model. Position and angles are NOT skipped — set_anim leaves
+        // WorldPos/Angle/Tilt/Roll alone, so they keep lerping smoothly
+        // across the transition. (Previously this skipped everything,
+        // freezing position for one tick interval at every transition.)
         s.anim_tween_prev = s.anim_tween_curr;
         s.frame_index_prev = s.frame_index_curr;
         s.current_frame_prev = s.current_frame_curr;
@@ -379,6 +449,44 @@ RenderInterpFrame::RenderInterpFrame()
             dt->Tilt  = lerp_angle_2048(s.tilt_prev,  s.tilt_curr,  alpha);
             dt->Roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
 
+            // Cross-anim blend supersedes the per-tick AnimTween logic
+            // while active. Multi-segment in a virtual extended coordinate
+            // v = blend_old_at + blend_t * total, total = (256 - blend_old_at) + 256.
+            // First segment (v < 256) renders (blend_old_cf, blend_old_nf, v) —
+            // starts at v=blend_old_at = exact pre-transition pose, no
+            // start-snap. Second segment (v >= 256) renders
+            // (blend_old_nf, live_new_cf, v - 256) — morphs to live new-
+            // anim CurrentFrame, which tracks physics during the blend.
+            bool blend_apply = false;
+            if (s.blend_active && s.blend_old_cf && s.blend_old_nf
+                && dt->CurrentFrame) {
+                uint64_t now_ms = sdl3_get_ticks();
+                uint64_t elapsed = now_ms - s.blend_start_ms;
+                if (elapsed >= BLEND_DURATION_MS) {
+                    s.blend_active = false;
+                } else {
+                    float blend_t = float(elapsed) / float(BLEND_DURATION_MS);
+                    SLONG total = (256 - s.blend_old_at) + 256;
+                    SLONG v = s.blend_old_at + SLONG(blend_t * float(total));
+
+                    s.saved_anim_tween = dt->AnimTween;
+                    s.saved_current_frame = dt->CurrentFrame;
+                    s.saved_next_frame = dt->NextFrame;
+
+                    if (v < 256) {
+                        dt->CurrentFrame = s.blend_old_cf;
+                        dt->NextFrame    = s.blend_old_nf;
+                        dt->AnimTween    = v;
+                    } else {
+                        dt->CurrentFrame = s.blend_old_nf;
+                        dt->NextFrame    = s.saved_current_frame; // live new CF
+                        dt->AnimTween    = v - 256;
+                    }
+                    s.anim_tween_applied = true;
+                    blend_apply = true;
+                }
+            }
+
             // Vertex-morph: AnimTween + the keyframe pointers it indexes.
             // Two cases:
             //   (a) FrameIndex stable across tick — same morph endpoints,
@@ -430,16 +538,18 @@ RenderInterpFrame::RenderInterpFrame()
                 apply_anim = true;
             }
 
-            if (apply_anim) {
-                s.saved_anim_tween = dt->AnimTween;
-                s.saved_current_frame = dt->CurrentFrame;
-                s.saved_next_frame = dt->NextFrame;
-                dt->AnimTween = new_anim_tween;
-                dt->CurrentFrame = new_current;
-                dt->NextFrame = new_next;
-                s.anim_tween_applied = true;
-            } else {
-                s.anim_tween_applied = false;
+            if (!blend_apply) {
+                if (apply_anim) {
+                    s.saved_anim_tween = dt->AnimTween;
+                    s.saved_current_frame = dt->CurrentFrame;
+                    s.saved_next_frame = dt->NextFrame;
+                    dt->AnimTween = new_anim_tween;
+                    dt->CurrentFrame = new_current;
+                    dt->NextFrame = new_next;
+                    s.anim_tween_applied = true;
+                } else {
+                    s.anim_tween_applied = false;
+                }
             }
         } else {
             // No angle apply; but mark applied so dtor restores position.
