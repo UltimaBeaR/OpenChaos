@@ -32,16 +32,20 @@
 
 **Статус:** не баг. Никакой code-правки не требуется. `sound.cpp` после кратковременного эксперимента откачен в исходное состояние ветки.
 
-### BUG-2 — `physics_acc_ms = 0` на pause приводит к "rollback" одного тика рендера
+### ~~BUG-2 — `physics_acc_ms = 0` на pause приводит к "rollback" одного тика рендера~~ — ЗАКРЫТО
 
-[`game/game.cpp:1110`](../../../new_game/src/game/game.cpp#L1110):
+[`game/game.cpp:1110`](../../../new_game/src/game/game.cpp#L1110): при входе в pause physics_acc_ms сбрасывался в 0 ⇒ `g_render_alpha = 0`, RenderInterpFrame применял `lerp(prev, curr, 0) = prev` — рендерил предыдущее состояние, а не последнее (`curr`). Видимый "step back" на один physics tick в момент паузы для движущихся объектов.
+
+**Фикс:** на паузе клампим `g_render_alpha = 1.0`, рендерим latest captured snapshot.
+
 ```cpp
-if (!should_i_process_game()) physics_acc_ms = 0.0;
+const bool game_frozen = !should_i_process_game();
+if (game_frozen) physics_acc_ms = 0.0;
+...
+double a = game_frozen ? 1.0 : (physics_acc_ms / phys_step_ms);
 ```
 
-При входе в pause physics_acc_ms сбрасывается в 0 ⇒ `g_render_alpha = 0`. RenderInterpFrame применяет `lerp(prev, curr, 0) = prev` — рендерится **предыдущее** состояние, а не последнее (`curr`). Это видимый "step back" на один physics tick в момент паузы.
-
-**Чинить:** на паузе либо клампать `g_render_alpha = 1.0` (рендерить `curr`), либо не сбрасывать `physics_acc_ms` (если только защититься от unbounded-роста аккумулятора).
+**Статус:** фикс применён, проверен пользователем — проблем не видно.
 
 ### BUG-3 — `RENDER_INTERP_LOG = 1` оставлен включённым
 
@@ -246,7 +250,7 @@ if (VISUAL_TURN & 1) { ... SPARK_create(...) }
 
 Чтобы закрыть ревью, рекомендуется прогнать вручную из overview.md:
 - [ ] Master test wall-clock invariance (раздел "Wall-clock эффекты")
-- [ ] Pause behavior (BUG-2 — есть подозрение на "step back")
+- [x] Pause behavior — BUG-2 закрыт фиксом (alpha=1 на паузе)
 - [ ] FMV / cutscenes / attract debug keys
 - [ ] Save/load (INFO-1)
 - [ ] Render interpolation toggle (key 3)
@@ -256,7 +260,7 @@ if (VISUAL_TURN & 1) { ... SPARK_create(...) }
 
 **Нужны правки** перед merge:
 1. ~~**BUG-1**~~ — закрыто как не-баг (см. выше): и `MFX_play_ambient` с одинаковым wave, и `MFX_play_thing` с `MFX_QUEUED|MFX_LOOPED` идемпотентны на стороне `mfx.cpp`.
-2. **BUG-2** — pause "step back" — корректно клампать alpha=1 на паузе.
+2. ~~**BUG-2**~~ — закрыто (alpha=1 на паузе, фикс применён).
 3. **BUG-3** — выключить `RENDER_INTERP_LOG` (если bug #1 в render_interpolation/known_issues закрыт).
 4. **BUG-4 / Doc-vs-Code** — либо доделать миграцию `panel.cpp:1978` и `combat.cpp:990`, либо убрать из таблицы overview.md.
 5. **DOC fixes** — обновить упоминания `NORMAL_TICK_TOCK` → `THING_TICK_BASE_MS`, выбор клавиш `1/2/3/9/0`, default 20 Hz, `UC_PHYSICS_DESIGN_TICK_MS`.

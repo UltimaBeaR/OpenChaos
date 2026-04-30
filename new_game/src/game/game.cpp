@@ -1107,13 +1107,20 @@ round_again:;
 
                     physics_acc_ms -= phys_step_ms;
                 }
-                if (!should_i_process_game()) physics_acc_ms = 0.0;
+                const bool game_frozen = !should_i_process_game();
+                if (game_frozen) physics_acc_ms = 0.0;
 
                 // Alpha = how far we are between the last and next physics
                 // tick. Read by RenderInterpFrame at draw time. Clamped to
-                // [0, 1) so lerp never overshoots curr.
+                // [0, 1] so lerp never overshoots curr.
+                //
+                // On pause: clamp to 1 so the world is rendered at the latest
+                // captured snapshot instead of falling back to the older
+                // "prev" tick (acc=0 → alpha=0 → lerp returns prev). Without
+                // this, the moment of pausing visibly snaps moving objects
+                // back ~50 ms (one physics tick).
                 {
-                    double a = physics_acc_ms / phys_step_ms;
+                    double a = game_frozen ? 1.0 : (physics_acc_ms / phys_step_ms);
                     if (a < 0.0) a = 0.0;
                     else if (a > 1.0) a = 1.0;
                     g_render_alpha = float(a);
