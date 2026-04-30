@@ -47,23 +47,26 @@ double a = game_frozen ? 1.0 : (physics_acc_ms / phys_step_ms);
 
 **Статус:** фикс применён, проверен пользователем — проблем не видно.
 
-### BUG-3 — `RENDER_INTERP_LOG = 1` оставлен включённым
+### ~~BUG-3 — `RENDER_INTERP_LOG = 1` оставлен включённым~~ — НЕ БАГ
 
-[`engine/graphics/render_interp.cpp:11`](../../../new_game/src/engine/graphics/render_interp.cpp#L11):
-```cpp
-#define RENDER_INTERP_LOG 1
-```
+[`engine/graphics/render_interp.cpp:11`](../../../new_game/src/engine/graphics/render_interp.cpp#L11) — `#define RENDER_INTERP_LOG 1`. Логирует FIRST_CAPTURE / FREE thing в stderr.
 
-Логирует каждый FIRST_CAPTURE и каждый FREE в stderr. **Уже отмечено в overview.md** как известная точка для отключения перед merge — упоминаю для полноты, чтобы не забыли. Включает запись в `stderr.log`/`crash_log.txt` буфер при каждом `free_thing()`.
+**Включено осознанно** для активной отладки render-interpolation bug #1 (мельтешащие педестрианы при spawn'е новых NPC). Документировано в трёх местах:
+- [`render_interpolation/architecture.md:318-321`](../render_interpolation/architecture.md) — описание формата debug-вывода;
+- [`render_interpolation/known_issues.md:30`](../render_interpolation/known_issues.md) — "**Сейчас лог включён для активной отладки**";
+- [`review/overview.md:394-399`](overview.md) — пометка "выключить перед merge".
 
-### BUG-4 — Сайты заявленные как мигрированные в overview.md, но не модифицированные
+Не баг, осознанная конфигурация. Выключение — задача релизного цикла, когда bug #1 закроется.
 
-Overview таблица (раздел "5. Visual GAME_TURN-gated эффекты — миграция на VISUAL_TURN") перечисляет следующие файлы как мигрированные, но в staging diff их нет:
+### ~~BUG-4 — Сайты заявленные как мигрированные в overview.md, но не модифицированные~~ — ЗАКРЫТО
 
-- [`ui/hud/panel.cpp:1978`](../../../new_game/src/ui/hud/panel.cpp#L1978) — UI flash effect (`fabs(sin(GAME_TURN * 0.2F))`). Overview claim: "закрывает основу issue #18". **Не закрывает** — сайт остаётся на `GAME_TURN`. Анимация мерцания timer'а замедлится в 1.5× по сравнению с PS1 (20 Hz vs 30 Hz).
-- [`combat/combat.cpp:990`](../../../new_game/src/combat/combat.cpp#L990) — hit-wave sound `S_PUNCH_START + (GAME_TURN & 3)`. Overview claim: "Hit-wave sound variation". **Сайт остаётся на `GAME_TURN`**.
+Изначально в overview таблице (раздел "5. Visual GAME_TURN-gated эффекты — миграция") числились мигрированными, но в коде остались на `GAME_TURN`:
+- [`ui/hud/panel.cpp:1978`](../../../new_game/src/ui/hud/panel.cpp#L1978) — мерцание точек врагов на миникарте (`fabs(sin(GAME_TURN * 0.2F))`). Чисто визуальный эффект, должен идти на 30 Hz wall-clock и не паузиться.
+- [`combat/combat.cpp:990`](../../../new_game/src/combat/combat.cpp#L990) — `hit_wave = S_PUNCH_START + (GAME_TURN & 3)`. Sound variation index. Парные сайты в `person.cpp:11766/11772` уже мигрированы — несоответствие.
 
-**Чинить:** либо мигрировать (если решение остаётся за миграцией), либо удалить эти строки из таблицы overview.md / обновить статус в issue #18.
+**Поправка:** overview неверно связал `panel.cpp:1978` с issue #18 — issue #18 про мерцание mission timer (когда истёк, красный) в `PANEL_draw_timer`, отдельный эффект. Issue #18 остаётся открытым, эта миграция к нему отношения не имеет.
+
+**Фикс:** оба сайта мигрированы на `VISUAL_TURN`. Проверено пользователем — кругляши на миникарте мерцают нормально, звуки ударов разнообразны. Проблем не видно.
 
 ### REGRESSION-1 — `attract` lock_frame_rate был жёстко 60, стал unlimited по умолчанию
 
@@ -261,8 +264,8 @@ if (VISUAL_TURN & 1) { ... SPARK_create(...) }
 **Нужны правки** перед merge:
 1. ~~**BUG-1**~~ — закрыто как не-баг (см. выше): и `MFX_play_ambient` с одинаковым wave, и `MFX_play_thing` с `MFX_QUEUED|MFX_LOOPED` идемпотентны на стороне `mfx.cpp`.
 2. ~~**BUG-2**~~ — закрыто (alpha=1 на паузе, фикс применён).
-3. **BUG-3** — выключить `RENDER_INTERP_LOG` (если bug #1 в render_interpolation/known_issues закрыт).
-4. **BUG-4 / Doc-vs-Code** — либо доделать миграцию `panel.cpp:1978` и `combat.cpp:990`, либо убрать из таблицы overview.md.
+3. ~~**BUG-3**~~ — закрыто как не баг (включено осознанно, документировано, выключение при закрытии bug #1).
+4. ~~**BUG-4 / Doc-vs-Code**~~ — закрыто: оба сайта мигрированы на `VISUAL_TURN`, проверено пользователем. Issue #18 остаётся открытым (другое место — `PANEL_draw_timer`).
 5. **DOC fixes** — обновить упоминания `NORMAL_TICK_TOCK` → `THING_TICK_BASE_MS`, выбор клавиш `1/2/3/9/0`, default 20 Hz, `UC_PHYSICS_DESIGN_TICK_MS`.
 
 Архитектура (accumulator-loop, RenderInterpFrame, capture/lerp, VISUAL_TURN отделение) — концептуально корректна и хорошо реализована. Wall-clock эффекты (drip, puddle, ribbon, spark, AENG_draw_rain bucket-strobe) — правильно через accumulator на `UC_VISUAL_CADENCE_TICK_MS`. Главные риски — в edge-cases использования `VISUAL_TURN & MASK == VAL` (множественный retrigger при render >30 Hz).

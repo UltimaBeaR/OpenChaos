@@ -987,7 +987,7 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
             } else if (nad)
                 MFX_play_thing(THING_NUMBER(p_thing), SOUND_Range(S_KICK_IN_THE_NUTS_START, S_KICK_IN_THE_NUTS_END), 0, p_thing);
             else {
-                hit_wave = S_PUNCH_START + (GAME_TURN & 3);
+                hit_wave = S_PUNCH_START + (VISUAL_TURN & 3);
                 MFX_play_xyz(0, hit_wave, 0, p_thing->WorldPos.X, p_thing->WorldPos.Y, p_thing->WorldPos.Z);
                 if (!pain)
                     PainSound(p_thing);

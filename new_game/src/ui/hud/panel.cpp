@@ -1975,7 +1975,7 @@ void PANEL_last(void)
             float dist;
             float dangle;
             float size;
-            float flash = fabs(sin(float(GAME_TURN) * 0.2F));
+            float flash = fabs(sin(float(VISUAL_TURN) * 0.2F));
             SLONG display;
             ULONG colour;
 
