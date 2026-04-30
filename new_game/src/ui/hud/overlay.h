@@ -16,6 +16,11 @@ extern void track_gun_sight(Thing* p_thing, SLONG accuracy);
 // uc_orig: init_overlay (fallen/Source/overlay.cpp)
 extern void init_overlay(void);
 
+// Call at the start of each physics tick to clear stale gun-sight registrations.
+// Keeps track_count alive across render frames so the HUD doesn't flicker when
+// render outruns physics.
+extern void OVERLAY_begin_physics_tick(void);
+
 // uc_orig: add_damage_text (fallen/Source/overlay.cpp)
 extern void add_damage_text(SWORD x, SWORD y, SWORD z, CBYTE* text);
 

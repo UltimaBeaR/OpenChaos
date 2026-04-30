@@ -2369,7 +2369,7 @@ static UBYTE FRONTEND_input(void)
     static SLONG last_input = 0;
     static UBYTE last_button = 0;
     static UBYTE first_pad = 1;
-    static int dir_ticker = 0;
+    static uint64_t dir_next_fire = 0;
     static int held_x = 0; // hysteresis state: -1=LEFT, 0=center, 1=RIGHT
     static int held_y = 0; // hysteresis state: -1=UP, 0=center, 1=DOWN
 
@@ -2495,35 +2495,37 @@ static UBYTE FRONTEND_input(void)
                 btn_input = 0;
             }
 
-            // Directions: ticker-based auto-repeat. Reset on release for clean quick taps.
+            // Directions: time-based auto-repeat (wall-clock ms, not frames).
             if (dir_input) {
+                uint64_t now = sdl3_get_ticks();
                 if (dir_input != last_dir) {
-                    // New direction or first press — fire immediately.
-                    dir_ticker = 12;
-                } else if (dir_ticker < 1) {
-                    // Same direction held long enough — repeat.
-                    dir_ticker = 5;
-                } else {
+                    // New direction or first press — fire immediately, set initial delay.
+                    dir_next_fire = now + 400;
+                } else if (now < dir_next_fire) {
                     // Waiting for repeat — suppress.
                     dir_input = 0;
-                    dir_ticker--;
+                } else {
+                    // Repeat fired — schedule next.
+                    dir_next_fire = now + 150;
                 }
             } else {
-                // Released — reset immediately so next tap fires cleanly.
-                dir_ticker = 0;
+                // Released — reset so next tap fires cleanly.
+                dir_next_fire = 0;
             }
 
             last_input = input;
             input = dir_input | btn_input;
 
-            // Suppress very first movement: PC joysticks have a strange habit of doing
-            // one spurious movement on boot-up for some reason.
+            // Suppress carry-over button presses from the previous screen (e.g. X used
+            // to skip the intro video landing on a menu item). Wait until the button is
+            // released before accepting any button actions. Directional input is always
+            // allowed immediately so first-frame navigation works.
             if (first_pad) {
-                if (any_button)
+                if (!any_button) {
                     first_pad = 0;
-                else if (dir_input) {
-                    first_pad = 0;
+                } else {
                     input = 0;
+                    any_button = 0;
                 }
             }
             if (last_button) {
@@ -2940,6 +2942,8 @@ void FRONTEND_init(bool bGoToTitleScreen)
     if (!complete_point)
         memset(mission_hierarchy, 0, 60);
     menu_state.mode = -1;
+    fade_state = 0;
+    fade_mode = 1;
 
     FRONTEND_CacheMissionList(MISSION_SCRIPT);
 
@@ -2977,6 +2981,13 @@ void FRONTEND_init(bool bGoToTitleScreen)
     } else {
         // Frontend menu.
         FRONTEND_mode(FE_MAINMENU);
+    }
+
+    // On first launch there is no previous screen to wipe from — skip the xition.
+    if (bFirstTime) {
+        fade_state = 63;
+        fade_mode = 0;
+        FRONTEND_stop_xition();
     }
 
     // Stop all the music - about to start it again, properly.
@@ -3158,10 +3169,19 @@ SBYTE FRONTEND_loop()
     last = now;
 
     // How fast should the fade state fade?
+    // Max cap = 4: one full 30 Hz step (33 ms >> 3). Prevents instant fade
+    // on first frame after load, when elapsed time may be up to 250 ms (the
+    // clamp above). NOTE: this does NOT fix issue #12 (fade speeds up at
+    // very high render FPS) — at 240+ FPS millisecs<8 still floors to 1
+    // giving ~240/sec instead of the design 120/sec. Real fix needs float
+    // accumulation of fractional fade_speed; deferred.
+    static const SLONG FADE_SPEED_MAX = 4;
     SLONG fade_speed = (millisecs >> 3);
 
     if (fade_speed < 1) {
         fade_speed = 1;
+    } else if (fade_speed > FADE_SPEED_MAX) {
+        fade_speed = FADE_SPEED_MAX;
     }
 
     switch (fade_mode & 3) {

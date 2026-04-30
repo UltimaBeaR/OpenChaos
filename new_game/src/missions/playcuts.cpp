@@ -18,6 +18,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "navigation/wmove.h"
+#include "game/game_globals.h"
 
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
@@ -458,7 +459,6 @@ void PLAYCUTS_Play(CPData* cutscene)
 {
     typedef Thing* ThingPtr;
 
-    UBYTE env_frame_rate = 20;
     SLONG read_head = 0, sub_ctr = 0;
     UBYTE channum;
     ThingPtr* cs_things;
@@ -492,16 +492,31 @@ void PLAYCUTS_Play(CPData* cutscene)
 
     remove_thing_from_map(darci);
 
+    extern uint64_t sdl3_get_ticks();
+    uint64_t cut_prev_ms = sdl3_get_ticks();
+
     while (SHELL_ACTIVE && (!Keys[KB_SPACE]) && (!no_more_packets) && !hardware_input_continue()) {
+        uint64_t cut_now_ms = sdl3_get_ticks();
+        float cut_dt_ms = float(cut_now_ms - cut_prev_ms);
+        if (cut_dt_ms > 200.0f) cut_dt_ms = 200.0f;
+        cut_prev_ms = cut_now_ms;
+
+        // Publish wall-clock dt for render-side effects (rain density,
+        // per-puddle drip spawn) — see g_frame_dt_ms.
+        g_frame_dt_ms = cut_dt_ms;
+        // Tick the 30 Hz visual cadence counter for GAME_TURN-gated
+        // visuals (siren flash, wheel rotation, etc.) — see VISUAL_TURN.
+        visual_turn_tick(g_frame_dt_ms);
+
         PARTICLE_Run();
-        RIBBON_process();
+        RIBBON_process(cut_dt_ms);
         DIRT_process();
         ProcessGrenades();
         WMOVE_draw();
         BALLOON_process();
         POW_process();
-        PUDDLE_process();
-        DRIP_process();
+        PUDDLE_process(cut_dt_ms);
+        DRIP_process(cut_dt_ms);
 
         for (channum = 0; channum < cutscene->channelcount; channum++) {
             chan = cutscene->channels + channum;
@@ -530,7 +545,17 @@ void PLAYCUTS_Play(CPData* cutscene)
 
         screen_flip();
 
-        lock_frame_rate(env_frame_rate);
+        extern void check_debug_timing_keys(void);
+        check_debug_timing_keys();
+
+        // PLAYCUTS_Play is used only by dev / test maps (cutstest, smoketest,
+        // moo) — no shipped mission references it. The cutscene packet stream
+        // advances by one packet per loop iteration via `read_head++` below,
+        // so the loop tick rate determines playback speed. Lock to the
+        // physics design rate (20 FPS) so each packet sits for the designed
+        // 50 ms regardless of g_render_fps_cap; without this, unlimited
+        // render would play these test cutscenes at warp speed.
+        lock_frame_rate(UC_PHYSICS_DESIGN_HZ);
 
         GAME_TURN++;
 

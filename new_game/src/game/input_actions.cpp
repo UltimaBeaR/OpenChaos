@@ -1524,7 +1524,15 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
 
         if (angle >= 0) {
             SLONG ca;
-            SLONG max_angle = 128;
+            // Turn-rate caps in angle-units/tick at 20 Hz design rate.
+            // Values scaled ×1.5 vs original (128/16/64) so that 20 Hz × cap
+            // = 3840/480/1920 units/sec — presumably matching the original feel
+            // (original source has 128/16/64; at what Hz it was tuned is unknown).
+            static const SLONG TURN_CAP_RUN    = 192; // 192×20 = 3840 = 128×30
+            static const SLONG TURN_CAP_JUMP   =  24; //  24×20 =  480 =  16×30
+            static const SLONG TURN_CAP_CRAWL  =  96; //  96×20 = 1920 =  64×30
+
+            SLONG max_angle = TURN_CAP_RUN;
             SLONG dangle;
 
             ca = get_camera_angle();
@@ -1540,9 +1548,9 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
             angle = (angle + 2048) & 2047;
 
             if (p_thing->State == STATE_JUMPING || p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP)
-                max_angle = 16;
+                max_angle = TURN_CAP_JUMP;
             if (p_thing->SubState == SUB_STATE_CRAWLING)
-                max_angle = 64;
+                max_angle = TURN_CAP_CRAWL;
 
             if (player_relative) {
                 max_angle >>= 1;
@@ -1552,6 +1560,10 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
                 if (p_thing->State == STATE_IDLE || (p_thing->SubState == SUB_STATE_AIM_GUN))
                     max_angle = 1024;
             }
+
+            // Scale turn-rate cap from ticks to seconds so angular velocity
+            // stays constant if physics Hz is changed from the 20 Hz design rate.
+            max_angle = (max_angle * TICK_RATIO) >> TICK_SHIFT;
 
             if (reduce_turn) {
                 max_angle -= (reduce_turn << 5);

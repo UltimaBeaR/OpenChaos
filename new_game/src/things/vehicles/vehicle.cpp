@@ -724,8 +724,8 @@ void draw_car(Thing* p_car)
         if (info->FLZ && (vp->Siren == 1)) {
             SLONG rx, rz;
 
-            rx = SIN(((SLONG)(uintptr_t)(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
-            rz = COS(((SLONG)(uintptr_t)(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
+            rx = SIN(((SLONG)(uintptr_t)(p_car) + (VISUAL_TURN << 7)) & 2047) >> 8;
+            rz = COS(((SLONG)(uintptr_t)(p_car) + (VISUAL_TURN << 7)) & 2047) >> 8;
 
             vector[2] = info->FLX + (rx >> 6);
             vector[1] = info->FLY;
@@ -898,7 +898,7 @@ void draw_car(Thing* p_car)
                     MFX_play_thing(THING_NUMBER(p_car), S_SKID_END, MFX_MOVING, p_car);
             }
 
-            if ((speed > 200) && (GAME_TURN & 1)) {
+            if ((speed > 200) && (VISUAL_TURN & 1)) {
                 SLONG dx, dz;
                 if (vp->oldX[c0] && vp->oldZ[c0]) {
                     dx = (vp->oldX[c0] - wx) >> 8;

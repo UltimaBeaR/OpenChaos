@@ -479,7 +479,7 @@ void PYRO_fn_normal(Thing* thing)
         break;
     case PYRO_BONFIRE:
         // Update dynamic light with flickering colour.
-        if ((((THING_NUMBER(thing)) + GAME_TURN) & 7) == 0)
+        if ((((THING_NUMBER(thing)) + VISUAL_TURN) & 7) == 0)
             MFX_play_thing(99, S_FIRE, MFX_LOOPED | MFX_QUEUED, thing);
 
         if (pyro->dlight) {
@@ -1192,7 +1192,7 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
         page = POLY_PAGE_SMOKE;
 
     dy = get_pyro_rand() & 0x1ff;
-    dy += (GAME_TURN * 5);
+    dy += (VISUAL_TURN * 5);
     dy %= 256;
     dx = (((get_pyro_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
     dz = (((get_pyro_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
@@ -1339,7 +1339,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         id &= 2047;
                         pyro->radii[i] += abs(SIN(id) / 4095);
                     } else {
-                        id = ((GAME_TURN << 1) + (i << 8));
+                        id = ((VISUAL_TURN << 1) + (i << 8));
                         id &= 2047;
                         pyro->radii[i] = radius + 256 + (SIN(id) / 256);
                     }

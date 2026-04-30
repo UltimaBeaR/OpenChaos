@@ -204,7 +204,7 @@ void DrawGrenades()
         if (gp->owner) {
             MESH_draw_poly(PRIM_OBJ_ITEM_GRENADE, gp->x >> 8, gp->y >> 8, gp->z >> 8, gp->yaw, gp->pitch, 0, NULL, 0xff);
 
-            angle = GAME_TURN;
+            angle = VISUAL_TURN;
             angle <<= 6;
             angle &= 2047;
 
@@ -292,7 +292,7 @@ void show_grenade_path(Thing* p_person)
 {
     Grenade* gp;
     SLONG x, y, z, x1, y1, z1;
-    SLONG count = (-GAME_TURN);
+    SLONG count = (-VISUAL_TURN);
 
     if (GAMEMENU_is_paused())
         return;

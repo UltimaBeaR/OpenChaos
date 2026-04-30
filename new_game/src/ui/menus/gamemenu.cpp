@@ -26,8 +26,6 @@
 #define GM_AXIS_MIN (GM_AXIS_CENTRE - GM_NOISE_TOLERANCE)
 #define GM_AXIS_MAX (GM_AXIS_CENTRE + GM_NOISE_TOLERANCE)
 
-extern void process_things_tick(SLONG frame_rate_independant);
-
 // Menu type constants — file private.
 // uc_orig: GAMEMENU_MENU_TYPE_NONE (fallen/Source/gamemenu.cpp)
 #define GAMEMENU_MENU_TYPE_NONE 0

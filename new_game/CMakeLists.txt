@@ -240,6 +240,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/poly_render_globals.cpp
     src/engine/graphics/pipeline/aeng.cpp
     src/engine/graphics/pipeline/aeng_globals.cpp
+    src/engine/graphics/render_interp.cpp
     src/engine/graphics/pipeline/poly.cpp
     src/engine/graphics/pipeline/poly_globals.cpp
     src/engine/graphics/pipeline/draw2d.cpp
@@ -510,6 +511,7 @@ set(SOURCES_NEW
     src/game/input_actions.cpp
     src/game/input_actions_globals.cpp
     src/game/ui_render.cpp
+    src/game/debug_timing_overlay.cpp
 )
 
 # ---------------------------------------------------------------------------

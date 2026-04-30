@@ -1421,6 +1421,7 @@ void EWAY_created_last_waypoint()
     EWAY_time_accurate = 0;
     EWAY_time = 0;
     EWAY_count_up = 0;
+    EWAY_hud_countdown_value = -1;
 
     EWAY_count_up_add_penalties = 0;
     EWAY_count_up_num_penalties = 0;
@@ -1606,7 +1607,8 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                             music_mode_override = 0;
                     }
                 }
-                PANEL_draw_timer(ec->arg2, 320, 50);
+                // Persist value for the render path. -1 when done so the HUD clears.
+                EWAY_hud_countdown_value = ans ? -1 : ec->arg2;
             }
         } else {
             // Not counting down.
@@ -4113,8 +4115,6 @@ void EWAY_process_penalties()
 
     EWAY_count_up_penalty_timer += EWAY_tick;
 
-    PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
-
     if (EWAY_count_up_penalty_timer > 100) {
         CBYTE str[64];
 
@@ -4152,6 +4152,18 @@ void EWAY_process_penalties()
                 }
             }
         }
+    }
+}
+
+// Queues HUD mission timers for drawing. Called once per render frame (not per physics tick)
+// so the display is stable even when render outruns physics (no flicker at high FPS).
+void EWAY_draw_hud_timers()
+{
+    if (EWAY_count_up_visible || EWAY_count_up_add_penalties) {
+        PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
+    }
+    if (EWAY_hud_countdown_value >= 0) {
+        PANEL_draw_timer(EWAY_hud_countdown_value, 320, 50);
     }
 }
 
@@ -4202,8 +4214,6 @@ void EWAY_process()
                     }
                 } else if (ew->ed.type == EWAY_DO_VISIBLE_COUNT_UP) {
                     EWAY_count_up += (50 * TICK_RATIO >> TICK_SHIFT) * step; // 50 * 20 ticks/sec = 1000 units/sec
-
-                    PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
 
                     EWAY_count_up_visible = UC_TRUE;
 

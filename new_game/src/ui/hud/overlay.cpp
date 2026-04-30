@@ -126,9 +126,16 @@ void track_gun_sight(Thing* p_thing, SLONG accuracy)
     }
 }
 
-// Draws 3D crosshair sights on all targets registered this frame.
+// Clears gun-sight registrations at the start of a physics tick so the draw pass
+// always has fresh data. Registrations persist across render frames (not reset after
+// drawing) so the HUD doesn't flicker when render outruns physics.
+void OVERLAY_begin_physics_tick(void)
+{
+    track_count = 0;
+}
+
+// Draws 3D crosshair sights on all targets registered since the last physics tick.
 // Also draws grenade path preview when the player holds a grenade.
-// Resets track_count to 0 after drawing.
 // uc_orig: OVERLAY_draw_gun_sights (fallen/Source/overlay.cpp)
 void OVERLAY_draw_gun_sights(void)
 {
@@ -171,7 +178,6 @@ void OVERLAY_draw_gun_sights(void)
             break;
         }
     }
-    track_count = 0;
 
     Thing* p_player = NET_PERSON(0);
 

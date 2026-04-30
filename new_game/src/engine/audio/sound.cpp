@@ -255,24 +255,24 @@ void process_weather(void)
             wind_gain = 255;
 
         if (GAME_FLAGS & GF_RAINING) {
-            if ((GAME_TURN & 0x3f) == 0)
+            if ((VISUAL_TURN & 0x3f) == 0)
                 MFX_play_ambient(WEATHER_REF, S_RAIN_START, MFX_LOOPED);
             MFX_set_gain(WEATHER_REF, S_RAIN_START, rain_gain);
         } else if ((wtype == BusyCity) || (wtype == QuietCity)) {
-            if ((GAME_TURN & 0x3f) == 0)
+            if ((VISUAL_TURN & 0x3f) == 0)
                 MFX_play_ambient(WEATHER_REF, S_AMBIENCE_END, MFX_LOOPED);
             MFX_set_gain(WEATHER_REF, S_AMBIENCE_END, rain_gain);
         }
 
         SLONG wind_wave = -1;
 
-        if (GAME_TURN - tick_tock >= 25) {
+        if (VISUAL_TURN - tick_tock >= 25) {
 
             if ((wtype == BusyCity) || (wtype == QuietCity)) {
-                tick_tock = GAME_TURN + 30 + (Random() & 63);
+                tick_tock = VISUAL_TURN + 30 + (Random() & 63);
                 wind_wave = S_WIND_START + (Random() % 7);
             } else if (wtype == Snow) {
-                tick_tock = GAME_TURN + (Random() & 15);
+                tick_tock = VISUAL_TURN + (Random() & 15);
                 wind_wave = S_START_SNOW_WIND + (Random() % 5);
                 wind_gain = 127;
             }

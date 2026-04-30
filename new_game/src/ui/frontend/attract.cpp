@@ -100,6 +100,11 @@ reinit_because_of_language_change:
 
             res = FRONTEND_loop();
 
+            // Debug timing keys: must run AFTER FRONTEND_loop because ReadInputDevice
+            // is called inside it — Keys[] is stale before that call.
+            extern void check_debug_timing_keys(void);
+            check_debug_timing_keys();
+
             if (res) {
                 switch (res) {
                 case STARTS_PSX:
@@ -149,7 +154,8 @@ reinit_because_of_language_change:
         }
 
         extern void lock_frame_rate(SLONG fps);
-        lock_frame_rate(60);
+        extern SLONG g_render_fps_cap;
+        lock_frame_rate(g_render_fps_cap);
 
         if ((GAME_STATE & GS_PLAY_GAME) == 0) {
             AENG_flip();

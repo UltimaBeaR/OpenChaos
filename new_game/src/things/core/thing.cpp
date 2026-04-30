@@ -51,11 +51,20 @@ struct NET_packet {
     SLONG Check1;
 };
 
-// Timing constant used in do_packets and process_things_tick.
-// The original undef+redefine pattern is preserved 1:1.
-#undef NORMAL_TICK_TOCK
-// uc_orig: NORMAL_TICK_TOCK (fallen/Source/Thing.cpp)
-#define NORMAL_TICK_TOCK (1000 / 20)
+// Tick-base reference in milliseconds for TICK_RATIO computation in
+// process_things_tick. Normalises real frame time against the physics
+// design rate (UC_PHYSICS_DESIGN_HZ = 20 Hz, period = 50 ms).
+//
+// uc_orig: NORMAL_TICK_TOCK (fallen/Source/Thing.cpp local override).
+// The original had a global NORMAL_TICK_TOCK = 1000/15 = 66.67 ms in
+// Headers/Game.h and a per-file `#undef` + redefine to 1000/20 = 50 ms
+// at the top of fallen/Source/Thing.cpp. Only Thing.cpp and psystem.cpp
+// used the macro, with two different values. We replaced that pattern
+// with explicit per-subsystem bases (THING_TICK_BASE_MS here,
+// PSYSTEM_TICK_BASE_MS in psystem.cpp) so each use-site is honest about
+// which rate it normalises against — see game_types.h for the full
+// 15 / 20 / 30 Hz triplet rationale.
+static constexpr SLONG THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ;
 
 // uc_orig: init_things (fallen/Source/Thing.cpp)
 void init_things(void)
@@ -414,7 +423,7 @@ void check_thing_data()
 }
 
 // uc_orig: process_things_tick (fallen/Source/Thing.cpp)
-void process_things_tick(SLONG frame_rate_independant)
+void process_things_tick(SLONG frame_rate_independant, SLONG tick_diff_override)
 {
     // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
     static uint64_t prev_tick = 0;
@@ -427,13 +436,18 @@ void process_things_tick(SLONG frame_rate_independant)
     tick_diff = cur_tick - prev_tick;
     prev_tick = cur_tick;
 
+    // Fixed-step override: caller supplies the authoritative tick_diff so that
+    // physics is decoupled from actual frame time (accumulator pattern in game_loop).
+    if (tick_diff_override > 0)
+        tick_diff = tick_diff_override;
+
     if (first_pass) {
-        tick_diff = NORMAL_TICK_TOCK;
+        tick_diff = THING_TICK_BASE_MS;
         first_pass = UC_FALSE;
     }
 
     if (CNET_network_game) {
-        tick_diff = 1000 / 20;
+        tick_diff = 1000 / UC_PHYSICS_DESIGN_HZ;
     }
 
     if (frame_rate_independant == 0)
@@ -452,7 +466,7 @@ void process_things_tick(SLONG frame_rate_independant)
         tick_diff = 40;
 
     TICK_TOCK = tick_diff;
-    TICK_RATIO = (TICK_TOCK << TICK_SHIFT) / (NORMAL_TICK_TOCK);
+    TICK_RATIO = (TICK_TOCK << TICK_SHIFT) / (THING_TICK_BASE_MS);
 
     tick_tock_unclipped = TICK_TOCK;
 
@@ -461,20 +475,20 @@ void process_things_tick(SLONG frame_rate_independant)
 #define MIN_TICK_RATIO ((1 << TICK_SHIFT) / 2)
 #define MAX_TICK_RATIO ((1 << TICK_SHIFT) * 3 >> 1)
 
-    SATURATE(TICK_TOCK, NORMAL_TICK_TOCK >> 1, NORMAL_TICK_TOCK * 2);
+    SATURATE(TICK_TOCK, THING_TICK_BASE_MS >> 1, THING_TICK_BASE_MS * 2);
     SATURATE(TICK_RATIO, MIN_TICK_RATIO, MAX_TICK_RATIO);
 
     if (slow_mo) {
         slow_mo--;
         TICK_RATIO = 32;
-        TICK_TOCK = (TICK_RATIO * NORMAL_TICK_TOCK) >> TICK_SHIFT;
+        TICK_TOCK = (TICK_RATIO * THING_TICK_BASE_MS) >> TICK_SHIFT;
     }
 
     REAL_TICK_RATIO = TICK_RATIO;
     if (!GAMEMENU_is_paused())
         if (GAMEMENU_slowdown_mul() != 0x100) {
             TICK_RATIO = TICK_RATIO * GAMEMENU_slowdown_mul() >> 8;
-            TICK_TOCK = TICK_RATIO * NORMAL_TICK_TOCK >> TICK_SHIFT;
+            TICK_TOCK = TICK_RATIO * THING_TICK_BASE_MS >> TICK_SHIFT;
 
             if (TICK_RATIO == 0) {
                 TICK_RATIO = 1;
@@ -484,12 +498,12 @@ void process_things_tick(SLONG frame_rate_independant)
 }
 
 // uc_orig: process_things (fallen/Source/Thing.cpp)
-void process_things(SLONG frame_rate_independant)
+void process_things(SLONG frame_rate_independant, SLONG tick_diff_override)
 {
     Thing* p_thing;
     UWORD index = 0;
 
-    process_things_tick(frame_rate_independant);
+    process_things_tick(frame_rate_independant, tick_diff_override);
 
     do_packets();
 
@@ -619,6 +633,10 @@ void free_thing(Thing* t_thing)
 {
     if (t_thing->Flags & FLAGS_HAS_ATTACHED_SOUND)
         MFX_stop_attached(t_thing);
+    // Drop render-interpolation snapshot so a future occupant of this slot
+    // doesn't lerp from the dead Thing's pose.
+    extern void render_interp_invalidate(Thing*);
+    render_interp_invalidate(t_thing);
     if (is_class_primary(t_thing->Class))
         free_primary_thing(THING_NUMBER(t_thing));
     else

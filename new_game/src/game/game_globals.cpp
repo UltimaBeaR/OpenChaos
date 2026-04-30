@@ -48,6 +48,30 @@ UBYTE the_end = 0;
 // uc_orig: env_frame_rate (fallen/Source/Game.cpp)
 UWORD env_frame_rate = 30;
 
+SLONG g_physics_hz     = UC_PHYSICS_DESIGN_HZ;
+SLONG g_render_fps_cap = 0;  // 0 = unlimited (no frame cap)
+
+SLONG VISUAL_TURN = 0;
+
+void visual_turn_tick(float dt_ms)
+{
+    // Wall-clock accumulator — independent of physics rate, render rate
+    // and pause state. Same cap as the main loop's frame_dt_ms (200 ms)
+    // prevents catch-up bursts after long stalls / debugger pauses.
+    static double acc_ms = 0.0;
+    acc_ms += double(dt_ms);
+    if (acc_ms > 200.0) acc_ms = 200.0;
+    while (acc_ms >= double(UC_VISUAL_CADENCE_TICK_MS)) {
+        VISUAL_TURN++;
+        acc_ms -= double(UC_VISUAL_CADENCE_TICK_MS);
+    }
+}
+
+// Default to one UC_VISUAL_CADENCE_TICK_MS so callers that read this
+// before any render loop has set it still get a sensible value (one
+// 30 Hz visual-cadence frame = 33.33 ms).
+float g_frame_dt_ms = UC_VISUAL_CADENCE_TICK_MS;
+
 // uc_orig: playback_name (fallen/Source/Game.cpp)
 // uc-abs-path: was "C:\Windows\Desktop\UrbanChaosRecordedGame.pkt"
 CBYTE* playback_name = "UrbanChaosRecordedGame.pkt";

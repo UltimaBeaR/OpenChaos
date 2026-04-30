@@ -359,7 +359,7 @@ void SHAPE_sparky_line(
             pp2.X += nx[i + 1];
             pp2.Y += ny[i + 1];
 
-            UBYTE which = (GAME_TURN + i) & 3;
+            UBYTE which = (VISUAL_TURN + i) & 3;
             float which_v = (float)which * 0.25f;
 
             pp[i + 0].colour = colour | 0xff000000;

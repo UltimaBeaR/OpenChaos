@@ -73,12 +73,19 @@ void PARTICLE_Run()
     cur_tick = sdl3_get_ticks();
     tick_diff = (SLONG)(cur_tick - prev_tick);
 
+    // Tick-base reference in milliseconds for local_ratio fixed-point
+    // scaling. Particle velocity formulas in PARTICLE_Add were calibrated
+    // against the original global NORMAL_TICK_TOCK = 1000/15 = 66.67 ms
+    // (15 Hz reference) — see UC_PARTICLE_SCALING_HZ in game_types.h for
+    // why this is 15 and not 20 or 30. Wall-clock-correct via local_ratio.
+    static constexpr SLONG PSYSTEM_TICK_BASE_MS = 1000 / UC_PARTICLE_SCALING_HZ;
+
     if (first_pass) {
-        tick_diff = NORMAL_TICK_TOCK; // pretend exactly one tick elapsed on first call
+        tick_diff = PSYSTEM_TICK_BASE_MS; // pretend exactly one tick elapsed on first call
         first_pass = 0;
     }
     local_shift = TICK_SHIFT;
-    local_ratio = (tick_diff << local_shift) / (NORMAL_TICK_TOCK);
+    local_ratio = (tick_diff << local_shift) / (PSYSTEM_TICK_BASE_MS);
 
     if (local_ratio < 256) {
         // Frame was too short — skip logic updates this frame; position still integrates via constant TICK_RATIO.

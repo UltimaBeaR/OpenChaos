@@ -69,6 +69,13 @@ void MAIN_main()
             return;
         }
 
+        // Debug-timing keys 1/2/3/9/0: same as in-game / attract — adjust
+        // physics & render caps and toggle render interpolation.
+        // OS_process_messages above pumps SDL events (via SHELL_ACTIVE
+        // → sdl3_poll_events), so Keys[KB_*] are current.
+        extern void check_debug_timing_keys(void);
+        check_debug_timing_keys();
+
         // Cross/A (button 0) or ESC skips the outro (PS1: Cross only).
         if (KEY_on[KEY_ESCAPE] || (OS_joy_button_down & (1 << 0))) {
             return;
@@ -110,5 +117,10 @@ void MAIN_main()
 
         OS_scene_end();
         OS_show();
+
+        // Render cap — same g_render_fps_cap the main game and FMV honour.
+        extern void lock_frame_rate(SLONG fps);
+        extern SLONG g_render_fps_cap;
+        lock_frame_rate(g_render_fps_cap);
     }
 }

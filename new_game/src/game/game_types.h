@@ -160,8 +160,9 @@ typedef struct
         PrimaryThingCount,
         SecondaryThingCount,
 
-        // Frame timing: TickTock = ms/frame (target 67ms = 15Hz).
-        // TickRatio = (TickTock << TICK_SHIFT) / NORMAL_TICK_TOCK, fixed-point 8.
+        // Frame timing: TickTock = ms/frame (target 50ms = 20Hz design rate).
+        // TickRatio = (TickTock << TICK_SHIFT) / THING_TICK_BASE_MS, fixed-point 8
+        // (THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ = 50 ms — see thing.cpp).
         // Multiply motion values by TickRatio >> TICK_SHIFT for frame-rate independence.
         TickTock,
         TickRatio,
@@ -291,8 +292,53 @@ extern UBYTE VIOLENCE;
 // Tick-rate constants and accessors.
 // uc_orig: TICK_SHIFT (fallen/Headers/Game.h)
 #define TICK_SHIFT (8)
-// uc_orig: NORMAL_TICK_TOCK (fallen/Headers/Game.h)
-#define NORMAL_TICK_TOCK (1000 / 15)
+
+// Original Urban Chaos used THREE distinct rates simultaneously, depending
+// on the subsystem. Full research with code citations:
+//   new_game_devlog/fps_unlock/original_tick_rates/findings.md
+// Compact summary with per-effect mapping:
+//   new_game_devlog/fps_unlock/original_tick_rates/summary.md
+//
+// 1) UC_PHYSICS_DESIGN_HZ = 20 Hz — design rate of physics and gameplay.
+//    Hardcoded into Vehicle.cpp GRAVITY (TICKS_PER_SECOND = 20*4 = 80),
+//    bat.cpp / pow.cpp /20 dividers, EWAY mission timer formula
+//    (truncation-free only at TICK_RATIO=256 which requires 50ms
+//    tick_diff = 20 Hz), CNET network sync, PSX gamemenu hardcode
+//    "millisecs = 50; // 20 fps". TICK_RATIO normalises against this rate
+//    in thing.cpp (THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ).
+//    This is the rate the runtime variable g_physics_hz defaults to.
+//
+// 2) UC_VISUAL_CADENCE_HZ = 30 Hz — render-tied visual calibration rate.
+//    PS1 hardware locked to 30 Hz, PC config default env_frame_rate = 30.
+//    Wall-clock effects (drip ripple fade/expand, puddle splash decay,
+//    mist UV-drift, rain bucket-strobe, drip-spawn density) and
+//    GAME_TURN-gated visuals (siren flash, wheel rotation, spark fence
+//    gate, object yaw, etc.) were tested and tuned against this rate.
+//    Render-side animations that must remain frame-rate independent
+//    accumulate wall-clock dt and tick at UC_VISUAL_CADENCE_TICK_MS to
+//    preserve the original visual feel regardless of physics or render
+//    rate. Visual GAME_TURN-gated effects use VISUAL_TURN (separate
+//    counter ticking 30/sec wall-clock) instead of GAME_TURN to keep
+//    the original cadence after physics moved to 20 Hz.
+//
+// 3) UC_PARTICLE_SCALING_HZ = 15 Hz — particle velocity scaling base.
+//    In the original this came from the global NORMAL_TICK_TOCK = 1000/15
+//    = 66.67ms in Headers/Game.h that psystem.cpp saw (Thing.cpp had a
+//    local #undef + redefine to 1000/20, so it normalised against 20 Hz
+//    instead). We removed the global NORMAL_TICK_TOCK macro and instead
+//    each subsystem declares its own explicit base — psystem.cpp uses
+//    PSYSTEM_TICK_BASE_MS = 1000 / UC_PARTICLE_SCALING_HZ. Wall-clock-
+//    correct via local_ratio compensation in PARTICLE_Run — not a design
+//    rate, just a scaling artefact that survived from early development.
+//    Unifying psystem.cpp on 20 Hz would require multiplying every
+//    PARTICLE_Add velocity argument by 20/15 = 1.33×, large work without
+//    visible win.
+#define UC_PHYSICS_DESIGN_HZ      20
+
+#define UC_VISUAL_CADENCE_HZ      30
+#define UC_VISUAL_CADENCE_TICK_MS (1000.0f / float(UC_VISUAL_CADENCE_HZ))
+
+#define UC_PARTICLE_SCALING_HZ    15
 // uc_orig: TICK_TOCK (fallen/Headers/Game.h)
 #define TICK_TOCK (the_game.TickTock)
 // uc_orig: TICK_RATIO (fallen/Headers/Game.h)
@@ -304,6 +350,27 @@ extern UBYTE VIOLENCE;
 #define GAME_STATE (the_game.GameState)
 // uc_orig: GAME_TURN (fallen/Headers/Game.h)
 #define GAME_TURN the_game.GameTurn
+
+// Visual cadence counter — wall-clock 30 Hz strobe for visual GAME_TURN-
+// gated effects (siren flash, wheel rotation, object yaw, heli rotation,
+// bird flapping, music alternation, wind gust, hit-wave RNG, dirt/blood
+// gating, touch fire, etc.). Increments at UC_VISUAL_CADENCE_HZ pace via
+// a g_frame_dt_ms accumulator in the main render loop — independent of
+// physics rate, render rate, and pause state. See visual_turn_tick() in
+// game_globals.h.
+//
+// In the original game GAME_TURN itself ticked once per render frame
+// (= 30/sec on PS1 hardware lock, = 30/sec on PC retail config default),
+// so visual effects gated on (GAME_TURN & N) were calibrated against
+// that 30 Hz cadence. We moved GAME_TURN to physics-tick (20/sec, paused
+// on pause — game-state semantics), which left visual effects 1.5× too
+// slow. VISUAL_TURN restores the original visual cadence for those
+// effects without re-coupling render to physics.
+//
+// Game-state effects (bench-health re-enable, AI patrol cycles, EWAY
+// scripted events) keep using GAME_TURN — those are gameplay timers,
+// must pause on pause and run at design rate.
+extern SLONG VISUAL_TURN;
 // uc_orig: GAME_FLAGS (fallen/Headers/Game.h)
 #define GAME_FLAGS (the_game.GameFlags)
 

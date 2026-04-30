@@ -476,6 +476,9 @@ extern SLONG EWAY_count_up;
 // uc_orig: EWAY_count_up_visible (fallen/Source/eway.cpp)
 extern UBYTE EWAY_count_up_visible;
 
+// Countdown timer value for the render path. -1 = inactive. Set per physics tick.
+extern SLONG EWAY_hud_countdown_value;
+
 // uc_orig: EWAY_count_up_add_penalties (fallen/Source/eway.cpp)
 extern UBYTE EWAY_count_up_add_penalties;
 

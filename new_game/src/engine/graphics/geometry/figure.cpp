@@ -488,7 +488,7 @@ void draw_steam(SLONG x, SLONG y, SLONG z, SLONG lod)
             v = 0.5;
 
         dy = get_steam_rand() & 0x1ff;
-        dy += (GAME_TURN * ((c0 & 3) + 2));
+        dy += (VISUAL_TURN * ((c0 & 3) + 2));
         dy %= 500;
         dx = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 80)) >> 9;
         dz = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 80)) >> 9;
@@ -579,7 +579,7 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
                 page = POLY_PAGE_FLAMES2;
             else
                 page = POLY_PAGE_PCFLAMER;
-            dy = (GAME_TURN + c0) / 2;
+            dy = (VISUAL_TURN + c0) / 2;
             u = 0.25f * (dy & 3);
             v = 0.25f * ((dy & !3) / 3);
             v += 0.002f;
@@ -588,7 +588,7 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
         }
 
         dy = get_steam_rand() & 0x1ff;
-        dy += (GAME_TURN * 5);
+        dy += (VISUAL_TURN * 5);
         dy %= 500;
         dx = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
         dz = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
@@ -678,7 +678,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
             page = POLY_PAGE_FLAMES;
         } else {
             page = POLY_PAGE_FLAMES2;
-            dy = (GAME_TURN + c0) / 2;
+            dy = (VISUAL_TURN + c0) / 2;
             u = 0.25f * (dy & 3);
             v = 0.25f * ((dy >> 2) & 3);
             w = h = 0.25f;
@@ -686,7 +686,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
     }
 
     dy = get_steam_rand() & 0x1ff;
-    dy += (GAME_TURN * 5);
+    dy += (VISUAL_TURN * 5);
     dy %= 500;
     dx = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
     dz = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;

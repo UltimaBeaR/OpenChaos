@@ -5169,6 +5169,17 @@ void set_person_fight_step(Thing* p_person, SLONG dir)
     p_person->Genus.Person->Timer1 = 0;
 }
 
+// uc_orig: set_person_fight_step_forward (fallen/Source/Person.cpp)
+void set_person_fight_step_forward(Thing* p_person)
+{
+    if (p_person->Draw.Tweened->CurrentAnim != ANIM_FIGHT_STEP_N) {
+        set_anim(p_person, ANIM_FIGHT_STEP_N);
+        set_generic_person_state_function(p_person, STATE_FIGHTING);
+        p_person->SubState = SUB_STATE_STEP_FORWARD;
+        p_person->Velocity = 10;
+    }
+}
+
 // Plays the block animation for the current weapon (bat, shotgun, or fist).
 // uc_orig: set_person_block (fallen/Source/Person.cpp)
 void set_person_block(Thing* p_person)
@@ -11752,13 +11763,13 @@ void fn_person_fighting(Thing* p_person)
             break;
         case ANIM_GRAB_ARM_KNEE1V:
             if (MagicFrameCheck(p_person, 2)) {
-                MFX_play_thing(THING_NUMBER(p_person), S_PUNCH_START + (GAME_TURN & 3), 0, p_person);
+                MFX_play_thing(THING_NUMBER(p_person), S_PUNCH_START + (VISUAL_TURN & 3), 0, p_person);
                 PainSound(p_person);
             }
             break;
         case ANIM_GRAB_ARM_KNEE2V:
             if (MagicFrameCheck(p_person, 2)) {
-                MFX_play_thing(THING_NUMBER(p_person), S_PUNCH_START + (GAME_TURN & 3), 0, p_person);
+                MFX_play_thing(THING_NUMBER(p_person), S_PUNCH_START + (VISUAL_TURN & 3), 0, p_person);
                 PainSound(p_person);
             }
             if (end) {
@@ -13664,7 +13675,7 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
     } else
         p_thing->Genus.Person->ammo_packs_pistol = 0;
 
-    if (GAME_TURN & 1) {
+    if (VISUAL_TURN & 1) {
 
         SPARK_Pinfo p1;
         SPARK_Pinfo p2;

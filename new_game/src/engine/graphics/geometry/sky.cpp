@@ -523,8 +523,8 @@ SLONG SKY_draw_moon_reflection(
             // Calculate the first line's wibble offset.
             angle1 = SLONG(y) * SKY_wibble_y1;
             angle2 = SLONG(y) * SKY_wibble_y2;
-            angle1 += GAME_TURN * SKY_wibble_g1;
-            angle2 += GAME_TURN * SKY_wibble_g2;
+            angle1 += VISUAL_TURN * SKY_wibble_g1;
+            angle2 += VISUAL_TURN * SKY_wibble_g2;
 
             angle1 &= 2047;
             angle2 &= 2047;
@@ -544,8 +544,8 @@ SLONG SKY_draw_moon_reflection(
                 // Calculate the next line's wibble offset.
                 angle1 = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y1;
                 angle2 = SLONG(y + SKY_MOON_SEG_DY) * SKY_wibble_y2;
-                angle1 += GAME_TURN * SKY_wibble_g1;
-                angle2 += GAME_TURN * SKY_wibble_g2;
+                angle1 += VISUAL_TURN * SKY_wibble_g1;
+                angle2 += VISUAL_TURN * SKY_wibble_g2;
 
                 angle1 &= 2047;
                 angle2 &= 2047;

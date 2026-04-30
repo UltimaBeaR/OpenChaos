@@ -167,9 +167,9 @@ void remove_thing_from_map(Thing* t_thing);
 // uc_orig: move_thing_on_map (fallen/Headers/Thing.h)
 void move_thing_on_map(Thing* t_thing, GameCoord* new_position);
 // uc_orig: process_things (fallen/Headers/Thing.h)
-void process_things(SLONG f_r_i);
+void process_things(SLONG f_r_i, SLONG tick_diff_override = 0);
 // uc_orig: process_things_tick (fallen/Source/Thing.cpp)
-void process_things_tick(SLONG frame_rate_independant);
+void process_things_tick(SLONG frame_rate_independant, SLONG tick_diff_override = 0);
 
 // uc_orig: alloc_thing (fallen/Headers/Thing.h)
 Thing* alloc_thing(SBYTE classification);

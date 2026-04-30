@@ -5,6 +5,7 @@
 #include "world_objects/puddle.h"
 #include "world_objects/puddle_globals.h"
 #include "map/pap.h"
+#include "game/game_types.h" // UC_VISUAL_CADENCE_TICK_MS — 30 Hz visual cadence
 
 // uc_orig: PUDDLE_Texture (fallen/Source/puddle.cpp)
 // UV coordinates for each puddle type.
@@ -43,6 +44,17 @@ static struct
 };
 
 
+// Splash-blob decay runs at a fixed wall-clock cadence
+// (UC_VISUAL_CADENCE_TICK_MS = 33.33 ms = 30 Hz, matching the original
+// game's visual calibration rate). PUDDLE_process accumulates dt and
+// decrements s1/s2 by 1 per accumulated tick — this keeps the splash
+// fade-out duration constant regardless of render or physics frame rate.
+//
+// Cap matches the spiral-of-death cap in the main render loop (game.cpp).
+#define PUDDLE_ACC_MAX_MS 200.0f
+
+static float PUDDLE_tick_acc_ms = 0.0f;
+
 // uc_orig: PUDDLE_init (fallen/Source/puddle.cpp)
 void PUDDLE_init()
 {
@@ -53,6 +65,8 @@ void PUDDLE_init()
     memset(PUDDLE_mapwho, 0, sizeof(PUDDLE_mapwho));
 
     PUDDLE_puddle_upto = 1;
+
+    PUDDLE_tick_acc_ms = 0.0f;
 
     // Clear the reflective flag on all map squares.
     for (x = 0; x < MAP_WIDTH; x++)
@@ -416,8 +430,20 @@ void PUDDLE_splash(SLONG x, SLONG y, SLONG z)
 }
 
 // uc_orig: PUDDLE_process (fallen/Source/puddle.cpp)
-void PUDDLE_process()
+void PUDDLE_process(float dt_ms)
 {
+    if (dt_ms <= 0.0f)
+        return;
+
+    PUDDLE_tick_acc_ms += dt_ms;
+    if (PUDDLE_tick_acc_ms > PUDDLE_ACC_MAX_MS)
+        PUDDLE_tick_acc_ms = PUDDLE_ACC_MAX_MS;
+
+    SLONG ticks = SLONG(PUDDLE_tick_acc_ms / UC_VISUAL_CADENCE_TICK_MS);
+    if (ticks <= 0)
+        return;
+    PUDDLE_tick_acc_ms -= float(ticks) * UC_VISUAL_CADENCE_TICK_MS;
+
     SLONG i, s1, s2;
     PUDDLE_Puddle* pp;
 
@@ -427,12 +453,10 @@ void PUDDLE_process()
         if (pp->s1 | pp->s2) {
             s1 = pp->s1;
             s2 = pp->s2;
-            if (s1 > 0) {
-                s1 -= 1;
-            }
-            if (s2 > 0) {
-                s2 -= 1;
-            }
+            s1 -= ticks;
+            s2 -= ticks;
+            if (s1 < 0) s1 = 0;
+            if (s2 < 0) s2 = 0;
             pp->s1 = s1;
             pp->s2 = s2;
         }

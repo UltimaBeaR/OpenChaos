@@ -49,6 +49,7 @@
 #include "ui/menus/gamemenu.h"
 #include "ui/hud/overlay.h" // OVERLAY_handle
 #include "game/ui_render.h" // ui_render_post_composition
+#include "game/debug_timing_overlay.h" // debug_timing_overlay_render_font2d
 #include "engine/input/gamepad.h" // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
@@ -83,6 +84,7 @@
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::SetScaling (mode change callback)
 #include "engine/graphics/ui_coords.h" // ui_coords::recompute (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_screen_shot, AENG_draw_messages
+#include "engine/graphics/render_interp.h" // g_render_alpha, render_interp_capture, render_interp_reset
 #include "engine/input/keyboard.h" // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/joystick.h" // GetInputDevice, JOYSTICK
@@ -206,6 +208,7 @@ void game_startup(void)
     // calls mode_change_callback, and Flip() calls pre_flip_callback.
     ge_set_pre_flip_callback(game_pre_flip);
     ge_set_post_composition_callback(ui_render_post_composition);
+    ge_set_diagnostic_overlay_callback(debug_timing_overlay_render_font2d);
     ge_set_mode_change_callback(game_mode_changed);
     ge_set_polys_drawn_callback(game_polys_drawn);
     ge_set_render_states_reset_callback(game_render_states_reset);
@@ -325,8 +328,10 @@ BOOL game_init(void)
         PLAYER_ID = 0;
     }
 
-    // TICK_RATIO is scaled each frame by the real frame time: (real_ms << TICK_SHIFT) / NORMAL_TICK_TOCK.
-    // NORMAL_TICK_TOCK = 66.67ms (15 FPS base). Smoothed over 4 frames via SmoothTicks().
+    // TICK_RATIO is scaled each frame by the real frame time:
+    // (real_ms << TICK_SHIFT) / THING_TICK_BASE_MS, where THING_TICK_BASE_MS
+    // = 1000 / UC_PHYSICS_DESIGN_HZ = 50 ms (20 Hz reference, see thing.cpp).
+    // Smoothed over 4 frames via SmoothTicks().
     TICK_RATIO = (1 << TICK_SHIFT);
     DETAIL_LEVEL = 0xffff;
 
@@ -484,6 +489,13 @@ void lock_frame_rate(SLONG fps)
     // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
     static uint64_t tick1 = 0;
 
+    // fps <= 0 means "unlimited" — no cap, just record the timestamp so the
+    // next call has a fresh baseline if a cap gets re-enabled mid-session.
+    if (fps <= 0) {
+        tick1 = sdl3_get_performance_counter();
+        return;
+    }
+
     const uint64_t pc_freq = sdl3_get_performance_frequency(); // counter ticks per second
     const uint64_t target_pc = pc_freq / (uint32_t)fps; // ticks per frame, exact
 
@@ -610,6 +622,62 @@ void playback_game_keys(void)
     }
 }
 
+// Debug timing hotkeys.
+//   1 — toggle physics 20<->5 (default 20, design rate)
+//   2 — toggle render fps cap unlimited<->25 (default unlimited; 0 = no cap)
+//   3 — toggle render interpolation on/off (default on)
+//   9 — physics -1 (clamped to 1)
+//   0 — physics +1 (clamped to 20)
+// Called from both special_keys (in-game) and game_attract_mode (main menu)
+// so the hotkeys work at all times without bangunsnotgames gate.
+void check_debug_timing_keys(void)
+{
+    constexpr SLONG PHYS_HZ_TOGGLE_LOW   = 5;
+    constexpr SLONG PHYS_HZ_FINE_MIN     = 1;
+    constexpr SLONG PHYS_HZ_FINE_MAX     = UC_PHYSICS_DESIGN_HZ;
+
+    constexpr SLONG RENDER_FPS_UNLIMITED  = 0;
+    constexpr SLONG RENDER_FPS_TOGGLE_LOW = 25;
+
+    static bool k1_prev = false, k2_prev = false, k3_prev = false, k9_prev = false, k0_prev = false;
+
+    bool k1 = Keys[KB_1] != 0;
+    if (k1 && !k1_prev) {
+        g_physics_hz = (g_physics_hz == UC_PHYSICS_DESIGN_HZ)
+            ? PHYS_HZ_TOGGLE_LOW
+            : UC_PHYSICS_DESIGN_HZ;
+    }
+    k1_prev = k1;
+
+    bool k2 = Keys[KB_2] != 0;
+    if (k2 && !k2_prev) {
+        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_UNLIMITED)
+            ? RENDER_FPS_TOGGLE_LOW
+            : RENDER_FPS_UNLIMITED;
+    }
+    k2_prev = k2;
+
+    bool k3 = Keys[KB_3] != 0;
+    if (k3 && !k3_prev) {
+        g_render_interp_enabled = !g_render_interp_enabled;
+    }
+    k3_prev = k3;
+
+    bool k9 = Keys[KB_9] != 0;
+    if (k9 && !k9_prev) {
+        g_physics_hz -= 1;
+        if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
+    }
+    k9_prev = k9;
+
+    bool k0 = Keys[KB_0] != 0;
+    if (k0 && !k0_prev) {
+        g_physics_hz += 1;
+        if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
+    }
+    k0_prev = k0;
+}
+
 // uc_orig: special_keys (fallen/Source/Game.cpp)
 SLONG special_keys(void)
 {
@@ -704,6 +772,9 @@ SLONG special_keys(void)
         }
     }
 
+    // Keys 1/2/9/0: debug timing hotkeys — see check_debug_timing_keys.
+    check_debug_timing_keys();
+
     return (0);
 }
 
@@ -756,6 +827,12 @@ SLONG should_i_process_game(void)
 // uc_orig: draw_screen (fallen/Source/Game.cpp)
 void draw_screen(void)
 {
+    // Render-side interpolation: writes interpolated WorldPos / Tweened
+    // angles / FC_cam[0] into the live structs for the duration of the draw,
+    // then restores authoritative values on scope exit. Every reader inside
+    // the render path sees interpolated state without per-call-site plumbing.
+    RenderInterpFrame interp_frame;
+
     if (draw_map_screen) {
         // MAP_draw() was here — removed in original
     } else {
@@ -818,7 +895,29 @@ round_again:;
         extern void envmap_specials(void);
         envmap_specials();
 
+        uint64_t prev_frame_ms = sdl3_get_ticks();
+        double   physics_acc_ms = 0.0;
+
+        // Drop any stale interpolation snapshots from the previous mission
+        // so the first capture re-seeds prev = curr (no startup judder).
+        render_interp_reset();
+
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
+
+            {
+                uint64_t now_ms = sdl3_get_ticks();
+                double frame_dt_ms = double(now_ms - prev_frame_ms);
+                if (frame_dt_ms > 200.0) frame_dt_ms = 200.0; // cap to prevent spiral-of-death on stalls
+                prev_frame_ms = now_ms;
+                physics_acc_ms += frame_dt_ms;
+                // Publish wall-clock dt for render-side effects (rain
+                // density, per-puddle drip spawn) — see g_frame_dt_ms.
+                g_frame_dt_ms = float(frame_dt_ms);
+                // Tick the 30 Hz visual cadence counter for GAME_TURN-
+                // gated visuals (siren flash, wheel rotation, etc.) —
+                // see VISUAL_TURN.
+                visual_turn_tick(g_frame_dt_ms);
+            }
 
             if (!exit_game_loop && !input_debug_is_active()) {
                 exit_game_loop = GAMEMENU_process();
@@ -917,30 +1016,108 @@ round_again:;
             void check_pows(void);
             check_pows();
 
-            if (should_i_process_game()) {
+            {
+                const double phys_step_ms  = 1000.0 / double(g_physics_hz);
+                const SLONG  phys_tick_diff = 1000 / g_physics_hz;
+                const float  phys_dt_ms    = float(phys_step_ms);
 
-                if (!single_step) {
-                    process_things(1);
+                while (should_i_process_game() && physics_acc_ms >= phys_step_ms) {
+
+                    OVERLAY_begin_physics_tick();
+
+                    if (!single_step) {
+                        process_things(1, phys_tick_diff);
+                    }
+
+                    PARTICLE_Run();
+                    OB_process();
+                    TRIP_process();
+                    DOOR_process();
+
+                    EWAY_process();
+
+                    // SPARK_show_electric_fences and RIBBON_process are
+                    // called once per render frame (below, after the
+                    // physics loop) with the wall-clock frame dt — both
+                    // are pure visual effects calibrated against the
+                    // 30 Hz visual cadence, must be independent of
+                    // physics rate. Same with DRIP_process / PUDDLE_process.
+                    DIRT_process();
+                    ProcessGrenades();
+                    WMOVE_draw();
+                    BALLOON_process();
+                    MAP_process();
+                    POW_process();
+                    FC_process();
+
+                    GAME_TURN++;
+                    // GAME_TURN ticks once per physics tick (= UC_PHYSICS_DESIGN_HZ
+                    // = 20/sec by default). Original ticked GAME_TURN per render
+                    // frame (PS1 = 30/sec, PC config default = 30/sec, PC retail
+                    // ~22/sec) — moving it here makes it strictly game-state
+                    // (paused on pause, decoupled from render). Visual effects
+                    // that used GAME_TURN as a "render cadence" counter are
+                    // migrated to VISUAL_TURN (separate 30/sec wall-clock
+                    // counter) — see new_game_devlog/fps_unlock/original_tick_rates/.
+                    //
+                    // Bench-health re-enable: 1024 GAME_TURN cycle = ~51 sec at
+                    // 20 Hz (was ~34 sec at 30 Hz on PS1). 314 magic constant is
+                    // an arbitrary phase offset, not load-bearing.
+                    if ((GAME_TURN & 0x3ff) == 314) {
+                        GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH;
+                    }
+
+                    // Render-side interpolation: snapshot post-tick state of
+                    // moving Things and the camera. Done at the end of each
+                    // physics tick so that on multi-tick frames snap.prev/curr
+                    // always span the most recent tick boundary.
+                    //
+                    // Camera is captured so body-vs-camera stay on the same
+                    // render-time clock — without this, the interpolated body
+                    // snaps relative to the discretely-updated camera at every
+                    // tick boundary.
+                    {
+                        // Walk per-class linked lists for movement-bearing
+                        // classes only. Each class is a small list (<400
+                        // entries combined), much cheaper than scanning all
+                        // 701 Thing slots.
+                        const UBYTE moving_classes[] = {
+                            CLASS_PERSON,
+                            CLASS_VEHICLE,
+                            CLASS_PROJECTILE,
+                            CLASS_ANIMAL,
+                            CLASS_PYRO,
+                            CLASS_CHOPPER,
+                            CLASS_PLAT,
+                            CLASS_BARREL,
+                            CLASS_BAT,
+                            CLASS_BIKE,
+                            CLASS_SPECIAL,  // grenades thrown can move
+                        };
+                        for (UBYTE c : moving_classes) {
+                            UWORD t_idx = thing_class_head[c];
+                            while (t_idx) {
+                                Thing* p = TO_THING(t_idx);
+                                render_interp_capture(p);
+                                t_idx = p->NextLink;
+                            }
+                        }
+                        render_interp_capture_camera(&FC_cam[0]);
+                    }
+
+                    physics_acc_ms -= phys_step_ms;
                 }
+                if (!should_i_process_game()) physics_acc_ms = 0.0;
 
-                PARTICLE_Run();
-                OB_process();
-                TRIP_process();
-                DOOR_process();
-
-                EWAY_process();
-
-                SPARK_show_electric_fences();
-                RIBBON_process();
-                DIRT_process();
-                ProcessGrenades();
-                WMOVE_draw();
-                BALLOON_process();
-                MAP_process();
-                POW_process();
-                FC_process();
-
-            } else {
+                // Alpha = how far we are between the last and next physics
+                // tick. Read by RenderInterpFrame at draw time. Clamped to
+                // [0, 1) so lerp never overshoots curr.
+                {
+                    double a = physics_acc_ms / phys_step_ms;
+                    if (a < 0.0) a = 0.0;
+                    else if (a > 1.0) a = 1.0;
+                    g_render_alpha = float(a);
+                }
             }
 
             // Gamepad output (rumble, LED, adaptive triggers) is fully
@@ -1104,10 +1281,14 @@ round_again:;
 
             } // end of "!input_debug_is_active()" block — gamepad outputs
 
-            {
-                PUDDLE_process();
-                DRIP_process();
-            }
+            // Render-side wall-clock animation: puddle splash blobs,
+            // drip ripples, ribbons (electric wires / convect smoke
+            // tendrils) and electric-fence spark bursts all run at a
+            // fixed 30 Hz cadence regardless of physics or render rate.
+            PUDDLE_process(g_frame_dt_ms);
+            DRIP_process(g_frame_dt_ms);
+            RIBBON_process(g_frame_dt_ms);
+            SPARK_show_electric_fences(g_frame_dt_ms);
 
             BreakTime("Done thing processing");
 
@@ -1132,20 +1313,13 @@ round_again:;
             extern void AENG_set_render_pass(bool active);
             AENG_set_render_pass(false);
 
-            lock_frame_rate(env_frame_rate);
+            lock_frame_rate(g_render_fps_cap);
 
             BreakTime("Done flip");
 
             BreakFrame();
 
             handle_sfx();
-
-            GAME_TURN++;
-
-            // Every ~34 seconds at 30 FPS (1024 frames), re-enable bench healing.
-            if ((GAME_TURN & 0x3ff) == 314) {
-                GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH;
-            }
 
             if (i_want_to_exit) {
                 break;

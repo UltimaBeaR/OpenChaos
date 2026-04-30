@@ -20,8 +20,10 @@ void PUDDLE_splash(SLONG x, SLONG y, SLONG z);
 SLONG PUDDLE_in(SLONG x, SLONG z);
 
 // uc_orig: PUDDLE_process (fallen/Headers/puddle.h)
-// Decays ripple animations each frame.
-void PUDDLE_process(void);
+// Decays ripple splash blobs (s1/s2) at a fixed 30 Hz cadence driven by
+// wall-clock dt — must be frame-rate independent. dt_ms is the caller's
+// render-frame wall-clock delta in milliseconds.
+void PUDDLE_process(float dt_ms);
 
 // uc_orig: PUDDLE_Info (fallen/Headers/puddle.h)
 // Rendering info for a single puddle quad, returned by PUDDLE_get_next.

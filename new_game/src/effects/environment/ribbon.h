@@ -56,7 +56,7 @@ void RIBBON_init();
 void RIBBON_draw();
 
 // uc_orig: RIBBON_process (fallen/Headers/ribbon.h)
-void RIBBON_process();
+void RIBBON_process(float dt_ms);
 
 // uc_orig: RIBBON_alloc (fallen/Headers/ribbon.h)
 // Allocates a ribbon slot; returns 1-based index, or 0 on failure.

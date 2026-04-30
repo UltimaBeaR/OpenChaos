@@ -1525,10 +1525,10 @@ void process_controls(void)
         pz += 0x80;
 
         if (ControlFlag) {
-            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
-            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, -1 + (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
-            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, 1 + (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
-            DIRT_new_water(px, py, pz, -1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, -1 + (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, 1 + (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, -1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
         } else {
             DIRT_new_water(px + 2, py, pz, -1, 28, 0);
             DIRT_new_water(px, py, pz + 2, 0, 29, -1);
@@ -1703,7 +1703,7 @@ void process_controls(void)
                 (darci->WorldPos.Y >> 8) + 0x80,
                 (darci->WorldPos.Z >> 8));
 
-            if (GAME_TURN & 0x20) {
+            if (VISUAL_TURN & 0x20) {
                 NIGHT_dlight_colour(
                     dlight,
                     60, 20, 20);

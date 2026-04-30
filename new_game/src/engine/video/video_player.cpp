@@ -279,11 +279,38 @@ bool video_play(const char* filename, bool allow_skip)
     while (!done) {
         // --- Skip check: keyboard/mouse/gamepad/DualSense ---
         {
+            extern SLONG g_physics_hz;
+            extern SLONG g_render_fps_cap;
             SDL_Event ev;
             while (SDL_PollEvent(&ev)) {
                 if (ev.type == SDL_EVENT_QUIT) {
                     done = true;
                     break;
+                }
+                if (ev.type == SDL_EVENT_KEY_DOWN && !ev.key.repeat) {
+                    // Mirror of game.cpp::check_debug_timing_keys for FMV
+                    // playback. Values must match the constants there.
+                    extern bool g_render_interp_enabled;
+                    switch (ev.key.scancode) {
+                    case SDL_SCANCODE_1:
+                        g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
+                        break;
+                    case SDL_SCANCODE_2:
+                        g_render_fps_cap = (g_render_fps_cap == 0) ? 25 : 0;
+                        break;
+                    case SDL_SCANCODE_3:
+                        g_render_interp_enabled = !g_render_interp_enabled;
+                        break;
+                    case SDL_SCANCODE_9:
+                        g_physics_hz -= 1;
+                        if (g_physics_hz < 1) g_physics_hz = 1;
+                        break;
+                    case SDL_SCANCODE_0:
+                        g_physics_hz += 1;
+                        if (g_physics_hz > 20) g_physics_hz = 20;
+                        break;
+                    default: break;
+                    }
                 }
                 if (allow_skip) {
                     if (ev.type == SDL_EVENT_KEY_DOWN) {
@@ -342,9 +369,25 @@ bool video_play(const char* filename, bool allow_skip)
         if (pkt->stream_index == video_idx) {
             avcodec_send_packet(vctx, pkt);
             while (avcodec_receive_frame(vctx, frame) == 0) {
-                // Sync video to wall clock
+                // Wall-clock-driven presentation. Three cases:
+                //  1. pts > elapsed → frame is in the future, wait for it.
+                //  2. pts < elapsed - DROP_THRESHOLD → frame is too late
+                //     (renderer fell behind, e.g. slow GPU or debug
+                //     `lock_frame_rate(g_render_fps_cap)` artificially
+                //     throttling the outer loop). Skip drawing — keeps the
+                //     video timeline tied to real time instead of to render
+                //     cadence. Audio plays independently via the OpenAL
+                //     accumulator, so no resync needed.
+                //  3. otherwise → on time, draw.
                 double pts = frame->pts * video_timebase;
                 double elapsed = (double)(sdl3_get_ticks() - start_ticks) / 1000.0;
+                // Half a 30-fps frame period — frames within this window of
+                // current wall clock are considered "on time".
+                static constexpr double DROP_THRESHOLD = 0.016;
+                if (pts < elapsed - DROP_THRESHOLD) {
+                    // Drop this decoded frame, move on to the next one.
+                    continue;
+                }
                 if (pts > elapsed + 0.005) {
                     uint32_t wait_ms = (uint32_t)((pts - elapsed) * 1000.0);
                     if (wait_ms > 100)
@@ -362,6 +405,9 @@ bool video_play(const char* filename, bool allow_skip)
                 // Upload and render via graphics engine
                 ge_video_texture_upload(tex, vctx->width, vctx->height, rgb_data, rgb_linesize);
                 ge_video_draw_and_swap(tex, vctx->width, vctx->height);
+                extern void lock_frame_rate(SLONG fps);
+                extern SLONG g_render_fps_cap;
+                lock_frame_rate(g_render_fps_cap);
             }
         } else if (pkt->stream_index == audio_idx && has_audio) {
             avcodec_send_packet(actx, pkt);

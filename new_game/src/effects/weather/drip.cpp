@@ -4,14 +4,25 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "world_objects/puddle.h"
 #include "ai/mav.h"
+#include "game/game_types.h" // UC_VISUAL_CADENCE_TICK_MS — 30 Hz visual cadence
 
 // Starting fade and size for a newly created drip.
 #define DRIP_SFADE (255)
 #define DRIP_SSIZE (rand() & 0x7)
 
-// Per-tick changes applied in DRIP_process.
+// Per-tick changes applied in DRIP_process. One tick = UC_VISUAL_CADENCE_TICK_MS
+// of wall-clock time (= 33.33 ms = 30 Hz) — see the accumulator in DRIP_process.
+// Decrement values are calibrated against the original 30 Hz visual cadence
+// (PS1 hardware lock / PC config default — see game_types.h).
 #define DRIP_DFADE 16
 #define DRIP_DSIZE 4
+
+// Cap for the accumulator after a long stall — prevents catching up too
+// many ticks at once. 200 ms matches the spiral-of-death cap in the main
+// render loop (game.cpp).
+#define DRIP_ACC_MAX_MS 200.0f
+
+static float DRIP_tick_acc_ms = 0.0f;
 
 // uc_orig: DRIP_init (fallen/Source/drip.cpp)
 void DRIP_init()
@@ -21,6 +32,8 @@ void DRIP_init()
     for (i = 0; i < DRIP_MAX_DRIPS; i++) {
         DRIP_drip[i].fade = 0;
     }
+
+    DRIP_tick_acc_ms = 0.0f;
 }
 
 // uc_orig: DRIP_create (fallen/Source/drip.cpp)
@@ -80,8 +93,20 @@ void DRIP_create_if_in_puddle(
 }
 
 // uc_orig: DRIP_process (fallen/Source/drip.cpp)
-void DRIP_process()
+void DRIP_process(float dt_ms)
 {
+    if (dt_ms <= 0.0f)
+        return;
+
+    DRIP_tick_acc_ms += dt_ms;
+    if (DRIP_tick_acc_ms > DRIP_ACC_MAX_MS)
+        DRIP_tick_acc_ms = DRIP_ACC_MAX_MS;
+
+    SLONG ticks = SLONG(DRIP_tick_acc_ms / UC_VISUAL_CADENCE_TICK_MS);
+    if (ticks <= 0)
+        return;
+    DRIP_tick_acc_ms -= float(ticks) * UC_VISUAL_CADENCE_TICK_MS;
+
     SLONG i;
     SLONG fade;
     SLONG size;
@@ -95,11 +120,18 @@ void DRIP_process()
             fade = dd->fade;
             size = dd->size;
 
-            fade -= DRIP_DFADE;
-            size += DRIP_DSIZE;
+            // Apply N ticks of decay/growth at once. Cap size to fit UBYTE
+            // (255) — reaching the cap means the drip is invisible anyway
+            // (fade hits 0 first at DRIP_DFADE=16 over ~16 ticks, while
+            // size needs 64 ticks to reach 255).
+            fade -= DRIP_DFADE * ticks;
+            size += DRIP_DSIZE * ticks;
 
             if (fade < 0) {
                 fade = 0;
+            }
+            if (size > 255) {
+                size = 255;
             }
 
             dd->fade = fade;

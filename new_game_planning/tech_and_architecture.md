@@ -55,15 +55,44 @@
 
 ### Физика и логика не привязаны к FPS
 
-Game loop строится на фиксированном timestep: физика и игровая логика обновляются
-с фиксированным шагом, рендеринг — с любой частотой кадров.
-Скорость рендеринга не влияет на скорость игры.
+**В работе (ветка `fps_unlock`):** accumulator-based game loop в `game.cpp`.
+Физика работает фиксированным шагом через accumulator; рендер независим.
+Lock частоты кадров — на performance counter (точный, без дрейфа).
 
-Оригинал жёстко зафиксирован на 30 FPS через spin-loop busy-wait (логика на 15 FPS),
-с `TICK_RATIO` для компенсации просадок на медленных машинах.
-Результат: на современном железе игра искусственно ограничена 30 FPS.
-В новой версии — явный fixed-timestep loop: логика обновляется с фиксированным шагом,
-рендеринг — с любой частотой, без busy-wait.
+```
+physics_acc_ms += frame_dt_ms
+while (acc >= phys_step_ms):
+    process_things(1, phys_tick_diff)   // фиксированный шаг
+    acc -= phys_step_ms
+draw_screen()
+lock_frame_rate(g_render_fps_cap)       // perf counter, без busy-wait drift
+```
+
+**Текущий таргет для 1.0:** physics 20 Hz (`UC_PHYSICS_DESIGN_HZ` — design rate
+оригинала, mission timer идёт 1:1 с реальным временем), render unlimited
+(`g_render_fps_cap = 0`) с интерполяцией. Визуальная каденция отдельно — 30 Hz
+через `UC_VISUAL_CADENCE_HZ` (wall-clock эффекты + `VISUAL_TURN` для
+GAME_TURN-gated визуалов). Подробно: [`fps_unlock/original_tick_rates/summary.md`](../new_game_devlog/fps_unlock/original_tick_rates/summary.md).
+
+**Почему нельзя просто поднять physics Hz:** `Timer1`/`Timer2` в
+анимациях/кулдаунах и `GAME_TURN` декрементируются/инкрементируются раз в
+physics-тик без масштабирования. При 60 Hz физики анимации и AI-события
+наступают в 3× раза быстрее. Поднять physics Hz — фактически реинжиниринг
+всей игровой логики.
+
+**Рендер > 20 FPS без интерполяции** не даёт плавности: позиции объектов
+обновляются с частотой физики (20 Hz), кадры только дублируются. Польза — только
+уменьшение input latency.
+
+**Нужно до 1.0:** render interpolation (lerp позиций между t-1 и t physics-снапшотами
+с коэффициентом `alpha = acc / phys_step`). Правильный путь к плавному движению на
+любом render FPS при 20 Hz физики.
+
+Подробно о реализации, причинах ограничений и roadmap — `new_game_devlog/fps_unlock/README.md`.
+
+Оригинал жёстко зафиксирован на 30 FPS через spin-loop busy-wait, фактически работал
+на ~22 FPS из-за нагрузки рендерера. Физика рассчитана под 20 Hz (NORMAL_TICK_TOCK=50ms).
+TICK_RATIO компенсирует просадки на медленных машинах.
 
 ### Строгое разделение рендерера и game state
 

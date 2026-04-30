@@ -52,6 +52,11 @@ SLONG EWAY_count_up;
 // uc_orig: EWAY_count_up_visible (fallen/Source/eway.cpp)
 UBYTE EWAY_count_up_visible;
 
+// Countdown timer value (ec->arg2) for the render path. -1 = no active COUNTDOWN_SEE.
+// Set each physics tick; persists between ticks so the HUD doesn't flicker when the
+// render rate exceeds the physics rate.
+SLONG EWAY_hud_countdown_value = -1;
+
 // uc_orig: EWAY_count_up_add_penalties (fallen/Source/eway.cpp)
 UBYTE EWAY_count_up_add_penalties;
 

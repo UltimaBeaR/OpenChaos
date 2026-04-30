@@ -581,8 +581,32 @@ tail_recurse:;
 }
 
 // uc_orig: SPARK_show_electric_fences (fallen/Source/spark.cpp)
-void SPARK_show_electric_fences()
+//
+// Original gated this function on (GAME_TURN & 0x1f) == 0 — fire one burst
+// of sparks every 32 GAME_TURN ticks. On PS1 GAME_TURN ticked at the render
+// rate (30 Hz hardware lock), so the burst period was 32/30 ≈ 1.07 sec.
+// We accumulate wall-clock dt and fire on the same period regardless of
+// physics or render rate.
+//
+// On stalls longer than one period we still fire only one burst (set acc=0
+// on fire instead of subtracting period) — matches "missed events stay
+// missed", same semantic as the original gate when render dropped frames.
+void SPARK_show_electric_fences(float dt_ms)
 {
+    if (dt_ms <= 0.0f)
+        return;
+
+    static constexpr float SPARK_FENCE_PERIOD_MS = 32.0f * UC_VISUAL_CADENCE_TICK_MS; // ~1067 ms
+    static constexpr float SPARK_FENCE_ACC_MAX_MS = SPARK_FENCE_PERIOD_MS * 2.0f; // spiral cap
+    static float SPARK_fence_acc_ms = 0.0f;
+
+    SPARK_fence_acc_ms += dt_ms;
+    if (SPARK_fence_acc_ms > SPARK_FENCE_ACC_MAX_MS)
+        SPARK_fence_acc_ms = SPARK_FENCE_ACC_MAX_MS;
+    if (SPARK_fence_acc_ms < SPARK_FENCE_PERIOD_MS)
+        return;
+    SPARK_fence_acc_ms = 0.0f;
+
     SLONG i;
 
     SLONG dx;
@@ -593,10 +617,6 @@ void SPARK_show_electric_fences()
     SLONG along;
 
     DFacet* df;
-
-    if (GAME_TURN & 0x1f) {
-        return;
-    }
 
     for (i = 1; i < next_dfacet; i++) {
         df = &dfacets[i];

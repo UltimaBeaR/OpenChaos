@@ -1192,7 +1192,7 @@ void DRAWXTRA_Special(Thing* p_thing)
                 dx, 0, dz, 0x7F0000, BLOOM_BEAM);
         } else {
             c0 = 3 + (THING_NUMBER(p_thing) & 7);
-            c0 = (((GAME_TURN * c0) + (THING_NUMBER(p_thing) * 9)) << 4) & 2047;
+            c0 = (((VISUAL_TURN * c0) + (THING_NUMBER(p_thing) * 9)) << 4) & 2047;
             dx = SIN(c0) >> 8;
             dz = COS(c0) >> 8;
             BLOOM_draw(p_thing->WorldPos.X >> 8, (p_thing->WorldPos.Y >> 8) + 15, p_thing->WorldPos.Z >> 8,
