@@ -955,7 +955,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
             int iOldestSlot = -1;
             for (int i = 0; i < m_iLRUQueueSize; i++) {
                 if (ptpoLRUQueue[i] != NULL) {
-                    DWORD dwTurnsAgo = (GAME_TURN - dwGameTurnLastUsed[i]);
+                    DWORD dwTurnsAgo = (VISUAL_TURN - dwGameTurnLastUsed[i]);
                     if (dwMostTurns <= dwTurnsAgo) {
                         dwMostTurns = dwTurnsAgo;
                         iOldestSlot = i;
@@ -977,7 +977,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
             int iOldestSlot = -1;
             for (int i = 0; i < m_iLRUQueueSize; i++) {
                 if (ptpoLRUQueue[i] != NULL) {
-                    DWORD dwTurnsAgo = (GAME_TURN - dwGameTurnLastUsed[i]);
+                    DWORD dwTurnsAgo = (VISUAL_TURN - dwGameTurnLastUsed[i]);
                     if (dwMostTurns <= dwTurnsAgo) {
                         dwMostTurns = dwTurnsAgo;
                         iOldestSlot = i;
@@ -1013,7 +1013,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
 
     ptpoLRUQueue[iQueuePos] = pPrimObj;
     pPrimObj->bLRUQueueNumber = iQueuePos;
-    dwGameTurnLastUsed[iQueuePos] = GAME_TURN;
+    dwGameTurnLastUsed[iQueuePos] = VISUAL_TURN;
     m_dwSizeOfQueue += (DWORD)pPrimObj->wTotalSizeOfObj;
     ASSERT(m_dwSizeOfQueue < PRIM_LRU_QUEUE_SIZE);
 }
@@ -1024,7 +1024,7 @@ void FIGURE_touch_LRU_of_object(TomsPrimObject* pPrimObj)
 {
     ASSERT((pPrimObj->bLRUQueueNumber >= 0) && (pPrimObj->bLRUQueueNumber < m_iLRUQueueSize));
     ASSERT(ptpoLRUQueue[pPrimObj->bLRUQueueNumber] == pPrimObj);
-    dwGameTurnLastUsed[pPrimObj->bLRUQueueNumber] = GAME_TURN;
+    dwGameTurnLastUsed[pPrimObj->bLRUQueueNumber] = VISUAL_TURN;
 }
 
 // uc_orig: FIGURE_TPO_init_3d_object (fallen/DDEngine/Source/figure.cpp)

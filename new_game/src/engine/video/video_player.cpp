@@ -10,6 +10,7 @@
 #include "engine/platform/host.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
+#include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
 
 #include <AL/al.h>
@@ -296,7 +297,7 @@ bool video_play(const char* filename, bool allow_skip)
                         g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
                         break;
                     case SDL_SCANCODE_2:
-                        g_render_fps_cap = (g_render_fps_cap == 0) ? 25 : 0;
+                        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP) ? 25 : RENDER_FPS_DEFAULT_CAP;
                         break;
                     case SDL_SCANCODE_3:
                         g_render_interp_enabled = !g_render_interp_enabled;

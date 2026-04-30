@@ -636,7 +636,6 @@ void check_debug_timing_keys(void)
     constexpr SLONG PHYS_HZ_FINE_MIN     = 1;
     constexpr SLONG PHYS_HZ_FINE_MAX     = UC_PHYSICS_DESIGN_HZ;
 
-    constexpr SLONG RENDER_FPS_UNLIMITED  = 0;
     constexpr SLONG RENDER_FPS_TOGGLE_LOW = 25;
 
     static bool k1_prev = false, k2_prev = false, k3_prev = false, k9_prev = false, k0_prev = false;
@@ -651,9 +650,9 @@ void check_debug_timing_keys(void)
 
     bool k2 = Keys[KB_2] != 0;
     if (k2 && !k2_prev) {
-        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_UNLIMITED)
+        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
-            : RENDER_FPS_UNLIMITED;
+            : RENDER_FPS_DEFAULT_CAP;
     }
     k2_prev = k2;
 
@@ -896,7 +895,14 @@ round_again:;
         envmap_specials();
 
         uint64_t prev_frame_ms = sdl3_get_ticks();
-        double   physics_acc_ms = 0.0;
+        // Pre-charge the accumulator with one physics step so the first
+        // iteration of the loop runs a physics tick BEFORE the first render
+        // frame. Without this, mission_init's spawn poses (e.g. arrested
+        // cops in Urban Shakedown set up standing-then-fall by their state
+        // machines on the first tick) are visible for one frame in their
+        // pre-tick state. Cost: mission timer / EWAY scripted events start
+        // ~50 ms earlier — within frame margin, not gameplay-significant.
+        double   physics_acc_ms = 1000.0 / double(g_physics_hz);
 
         // Drop any stale interpolation snapshots from the previous mission
         // so the first capture re-seeds prev = curr (no startup judder).

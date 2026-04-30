@@ -375,3 +375,47 @@ drip/puddle) с фиксированным периодом ~300-500ms. Либо
 
 **Фикс:** для каждого затронутого места пересчитать константу под 20 Hz, либо
 перевести на `TICK_RATIO`-масштабируемый вариант чтобы значение не зависело от Hz.
+
+---
+
+## 19. MIB destruct (электрический эффект смерти Men in Black)
+
+**Где:** [`person.cpp:13601 DRAWXTRA_MIB_destruct`](../../new_game/src/things/characters/person.cpp). Вызывается из render path (`AENG_draw_city`) per render frame пока MIB в state электрической смерти. Содержит несколько визуальных компонентов:
+
+1. **Зигзагообразная синяя/белая линия "молния"** от пелвиса до земли — `POLY_add_line_tex_uv` с `POLY_PAGE_LITE_BOLT`. Без VT/time gate.
+2. **Dynamic light flash + PYRO_TWANGER spawn** — gated `if (ctr > 1200 + ammo_packs_pistol)` (где `ctr = Timer1`). Самотротль через ammo_packs_pistol после первого spawn остаётся вечно открытым → spawn на каждом render frame.
+3. **SPARK_create** "электрические искры" — gated `if (VISUAL_TURN & 1)`.
+4. **WorldPos.Y oscillation** через `+= SIN(ctr >> 2) >> 7` — модификация позиции для "вибрации" тела.
+
+### Симптомы
+
+**Симптом 1 — анимация молний быстрее на high render rate.**
+При unlimited render эффекты "движутся быстрее" чем при 25 fps cap. Проявляется как ускоренная анимация электрических разрядов.
+
+Попытка фикса (откачена для дальнейшего разбора) — gap-detect для SPARK_create (>= 2 visual ticks) и PYRO_TWANGER+dlight (>= 1 visual tick), индексированный per Thing slot. **Не закрыл** проблему: пользователь сообщает что молнии всё ещё двигаются быстрее. Корень не локализован — может быть в самой PYRO_TWANGER state machine, или в линии (1) которая вообще не gated, или в чём-то ещё.
+
+Test plan для дальнейшего разбора:
+- Нажать debug-key 1 (physics 20→5). Если эффект **замедляется** — корень привязан к physics rate (PYRO state machine, anim, или что-то на physics-tick'е).
+- Сравнить unlimited vs 25 fps cap. Если на unlimited эффект **завершается** быстрее (= MIB destruct'ится за меньшее время) — render-rate-bound bug, искать в render path.
+
+**Симптом 2 — тело MIB не поднимается с включённой интерполяцией (debug-key 3 ON).**
+В оригинальной анимации тело MIB при destruct'е поднимается вверх. С render interpolation выключенной (key 3) — поднимается. С включённой — **не поднимается**.
+
+Возможная причина — `WorldPos.Y += SIN(ctr >> 2) >> 7` в строке 13608 модифицирует `WorldPos.Y` уже после того как RenderInterpFrame применил интерполяцию (lerp(prev_y, curr_y, alpha)). dtor RenderInterpFrame восстанавливает `saved_pos.Y` (= ORIGINAL physics value до lerp), затирая накопительные модификации. Если "поднятие тела" реализовано через накопительный `+=` (а не через physics velocity / position update в physics tick), интерполяция перетирает прогресс на каждом dtor.
+
+Если это так — фикс: либо переделать "поднятие" через physics-tick velocity (накопление в physics, не в render), либо вынести модификацию `WorldPos.Y` за пределы RenderInterpFrame scope (но тогда теряем интерполяцию для линии/spark'ов).
+
+**Симптом 3 — анимация ментов в Urban Shakedown дёргается на 20 Hz physics.**
+Это связанная общая проблема animation system, не специфичная для MIB.
+
+Воспроизводится на любом render cap (включая 25 fps cap + интерполяция выкл, даже на physics=20). На версии Piero (наш старый D3D код, physics=render lockstep 30 Hz) анимация ровная. То есть проблема введена расцеплением physics/render и переходом на 20 Hz physics.
+
+Корень — `Draw.Tweened->FrameIndex` (индекс кадра анимации) обновляется на physics tick (20 Hz), не интерполируется в render-interp. Между physics ticks render показывает один и тот же frame. На render 25+ fps это видно как ступенчатая анимация.
+
+С render-interpolation **on** интерполируются position и angles, но не FrameIndex — поэтому персонажи "плавно скользят", но pose остаётся на дискретных physics кадрах = всё равно дёргается на animation frame transitions.
+
+Также возможна ускоренная/замедленная скорость animation playback из-за смены physics rate с 30 → 20 Hz (см. issue #16). Animation duration constants (frames per anim) могли калиброваться под 30 Hz.
+
+**Замечание про Piero baseline:** там менты сразу в lying state (правильно), но кровь и звук смерти проигрываются в начале сцены — другой Piero-specific bug, не связан с этим issue. На наших правках поведение ещё не такое же.
+
+**Расширение интерполяции на FrameIndex** — отдельная задача, потенциально нетривиальная (интерполяция между frame N и frame N+1 в Tweened animation требует доступа к kostно-skin'овой структуре между двумя key frames).

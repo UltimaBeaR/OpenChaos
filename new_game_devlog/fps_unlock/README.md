@@ -36,8 +36,6 @@
 
 | Файл | Что внутри |
 |------|-----------|
-| [review/overview.md](review/overview.md) | **⚠️ Для ревью всего объёма правок — single entrypoint с картой файлов, test plan и опасными местами. Не замена полного ревью, а навигатор.** |
-| [review/findings.md](review/findings.md) | Детальные находки ревью ветки (баги, расхождения с доками, doc-fixes) — упорядочено по приоритету. |
 | [CORE_PRINCIPLE.md](CORE_PRINCIPLE.md) | **⚠️ Основной принцип задачи — читать ПЕРЕД любым кодом** |
 | [fps_unlock.md](fps_unlock.md) | Главный документ: почему всё сложно, пути вперёд, технические детали |
 | [render_interpolation/](render_interpolation/README.md) | **Подзадача:** render-side интерполяция (lerp между physics-снапшотами) — отдельная папка с архитектурой, coverage, известными багами и планами |

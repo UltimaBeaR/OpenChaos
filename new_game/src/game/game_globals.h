@@ -70,11 +70,20 @@ extern UWORD env_frame_rate;
 // hotkeys stay as a dev-only diagnostic aid.
 extern SLONG g_physics_hz;
 
-// Runtime-adjustable render frame cap in fps. 0 = unlimited (no cap),
-// the production default. Diagnostic hotkey 2 toggles unlimited<->25 to
-// test how visuals behave at low render rate (interpolation correctness,
-// stutter on cap transitions). Used by lock_frame_rate() in every render
-// loop (main game, FMV, attract, outro, cutscenes).
+// Default production render fps cap. We don't ship "unlimited" because
+// unbounded redraws in the main menu/attract burn the GPU for nothing on
+// some setups. 300 is well above any reasonable display refresh, so
+// gameplay still feels uncapped while the GPU stays well-behaved when the
+// scene is trivial. lock_frame_rate(0) still means "no cap" in the API —
+// a debug overlay or future config could opt back into 0 if desired.
+static constexpr SLONG RENDER_FPS_DEFAULT_CAP = 300;
+
+// Runtime-adjustable render frame cap in fps. Default = RENDER_FPS_DEFAULT_CAP;
+// 0 = unlimited (no cap) is still supported by lock_frame_rate() but not
+// the production default. Diagnostic hotkey 2 toggles default<->25 to test
+// how visuals behave at low render rate (interpolation correctness, stutter
+// on cap transitions). Used by lock_frame_rate() in every render loop
+// (main game, FMV, attract, outro, cutscenes).
 extern SLONG g_render_fps_cap;
 
 // VISUAL_TURN is declared in game_types.h alongside GAME_TURN so any

@@ -49,7 +49,7 @@ UBYTE the_end = 0;
 UWORD env_frame_rate = 30;
 
 SLONG g_physics_hz     = UC_PHYSICS_DESIGN_HZ;
-SLONG g_render_fps_cap = 0;  // 0 = unlimited (no frame cap)
+SLONG g_render_fps_cap = RENDER_FPS_DEFAULT_CAP;
 
 SLONG VISUAL_TURN = 0;
 

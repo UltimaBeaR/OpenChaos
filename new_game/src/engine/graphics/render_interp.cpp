@@ -158,12 +158,20 @@ void render_interp_capture(Thing* p_thing)
     // Detect anim transitions: if MeshID or CurrentAnim changed since last
     // capture, the pose jumped and lerping would visibly squash the model
     // across the change. Treat as a teleport.
+    //
+    // When DrawType is not Tween-based (dt == nullptr) we drop the cached
+    // mesh/anim — otherwise on a later return to Tween the comparison would
+    // run against a stale pre-leave value and could miss a real anim
+    // transition if the new MeshID happened to match the old one.
     if (dt) {
         if (s.last_mesh_id != dt->MeshID || s.last_anim != dt->CurrentAnim) {
             s.skip_once = true;
             s.last_mesh_id = dt->MeshID;
             s.last_anim = dt->CurrentAnim;
         }
+    } else {
+        s.last_mesh_id = 0;
+        s.last_anim = 0;
     }
 
     if (!s.valid) {

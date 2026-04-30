@@ -44,7 +44,7 @@
 `UC_PHYSICS_DESIGN_TICK_MS` в коде **не объявлен** — текущая реализация
 использует `THING_TICK_BASE_MS = 1000 / UC_PHYSICS_DESIGN_HZ` локально в
 `thing.cpp`. Старое имя `UC_ORIG_TICK_HZ` переименовано в `UC_VISUAL_CADENCE_HZ`.
-См. шаги 1–3 этой задачи и `review/findings.md` для деталей.
+См. шаги 1–3 этой задачи для деталей.
 
 ---
 

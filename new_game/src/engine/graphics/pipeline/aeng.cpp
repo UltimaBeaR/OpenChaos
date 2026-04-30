@@ -3767,7 +3767,19 @@ void AENG_draw_city()
                             //
                             // This prim slowly rotates...
                             //
-
+                            // FIXME-ARCHITECTURE: writing oi->yaw from the
+                            // render path while collide.cpp / mav.cpp / pcom.cpp
+                            // read it from physics-side code is a layering
+                            // violation — render is mutating game-state. When
+                            // the object is off-screen (no render call) yaw
+                            // freezes, so collisions and NPC pathing read a
+                            // stale value. Pre-existing in the original;
+                            // visually invisible (yaw is in lockstep with the
+                            // draw that uses it). Real fix is non-trivial:
+                            // either compute yaw at every collide/mav/pcom
+                            // read site, or add a parallel physics-tick writer
+                            // and accept duplication. Not done — left as a
+                            // pre-existing pre-1.0 concern.
                             oi->yaw = (VISUAL_TURN << 1) & 2047;
                         }
 
@@ -5170,6 +5182,10 @@ void AENG_draw_warehouse()
                 // Only draw objects that are in buildings (assume that means our warehouse!).
                 if (oi->flags & OB_FLAG_WAREHOUSE) {
                     if (oi->prim == 235) {
+                        // FIXME-ARCHITECTURE: render path writes oi->yaw,
+                        // physics-side collide / mav / pcom reads it. See
+                        // the longer comment in AENG_draw_city for the full
+                        // explanation. Pre-existing pre-1.0 concern.
                         oi->yaw = VISUAL_TURN;
                     }
 
