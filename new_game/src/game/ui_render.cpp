@@ -137,31 +137,51 @@ void ui_render_post_composition(void)
         PANEL_inventory(darci, player);
 
         if (cheat == 2) {
-            // Measure real render-frame interval. ui_render_post_composition
-            // is called exactly once per presented frame, so the wall-clock
-            // delta here is the true render period regardless of how many
-            // physics ticks ran inside that frame.
-            static uint64_t fps_prev_tick = 0;
-            static float    fps_ema       = 0.0f;
+            // Measure real render-frame interval via a sliding wall-clock
+            // window, same algorithm as debug_timing_overlay. ui_render_post_composition
+            // is called exactly once per presented frame, so each call is a
+            // valid sample regardless of how many physics ticks ran in the
+            // frame. Window 500 ms — short enough to react quickly, long
+            // enough to average out integer-ms granularity (33/34 ms
+            // alternation at 30 fps).
+            static constexpr uint64_t FPS_WINDOW_MS = 500;
+            static constexpr SLONG    FPS_RING_SIZE = 256; // 240+ fps × 0.5 s with headroom
+            static constexpr SLONG    FPS_RING_MASK = FPS_RING_SIZE - 1;
+            static uint64_t s_ring[FPS_RING_SIZE] = { 0 };
+            static SLONG    s_head  = 0;
+            static SLONG    s_count = 0;
+            static float    s_value = 0.0f;
 
-            uint64_t fps_now = sdl3_get_ticks();
-            if (fps_prev_tick != 0) {
-                SLONG dt = (SLONG)(fps_now - fps_prev_tick);
-                if (dt < 1) dt = 1;
-                float fps_instant = 1000.0f / float(dt);
-                // α = 0.05 → ~20-frame time constant (~0.67 s at 30 FPS).
-                fps_ema = (fps_ema == 0.0f) ? fps_instant
-                                            : (0.95f * fps_ema + 0.05f * fps_instant);
+            const uint64_t now = sdl3_get_ticks();
+            s_ring[s_head] = now;
+            s_head = (s_head + 1) & FPS_RING_MASK;
+            if (s_count < FPS_RING_SIZE) s_count += 1;
+
+            const uint64_t cutoff = (now > FPS_WINDOW_MS) ? (now - FPS_WINDOW_MS) : 0;
+            SLONG    in_window     = 0;
+            uint64_t oldest_in_win = now;
+            for (SLONG i = 0; i < s_count; i++) {
+                const SLONG    idx = (s_head - 1 - i) & FPS_RING_MASK;
+                const uint64_t ts  = s_ring[idx];
+                if (ts < cutoff) break;
+                oldest_in_win = ts;
+                in_window    += 1;
             }
-            fps_prev_tick = fps_now;
 
-            if (fps_ema > 0.0f) {
+            if (in_window >= 2) {
+                const uint64_t span_ms = now - oldest_in_win;
+                if (span_ms > 0) {
+                    s_value = float(in_window - 1) * 1000.0f / float(span_ms);
+                }
+            }
+
+            if (s_value > 0.0f) {
                 CBYTE str[50];
                 snprintf((char*)str, sizeof(str), "(%d,%d,%d) fps %.2f",
                          darci->WorldPos.X >> 16,
                          darci->WorldPos.Y >> 16,
                          darci->WorldPos.Z >> 16,
-                         fps_ema);
+                         s_value);
                 FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
             }
         }

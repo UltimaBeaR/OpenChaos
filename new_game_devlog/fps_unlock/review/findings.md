@@ -68,44 +68,30 @@ double a = game_frozen ? 1.0 : (physics_acc_ms / phys_step_ms);
 
 **Фикс:** оба сайта мигрированы на `VISUAL_TURN`. Проверено пользователем — кругляши на миникарте мерцают нормально, звуки ударов разнообразны. Проблем не видно.
 
-### REGRESSION-1 — `attract` lock_frame_rate был жёстко 60, стал unlimited по умолчанию
+### ~~REGRESSION-1 — `attract` lock_frame_rate был жёстко 60, стал unlimited по умолчанию~~ — НЕ РЕГРЕССИЯ
 
-[`ui/frontend/attract.cpp:158`](../../../new_game/src/ui/frontend/attract.cpp#L158):
-```cpp
-- lock_frame_rate(60);
-+ lock_frame_rate(g_render_fps_cap);
-```
+[`ui/frontend/attract.cpp:158`](../../../new_game/src/ui/frontend/attract.cpp#L158): `lock_frame_rate(60)` → `lock_frame_rate(g_render_fps_cap)` (default unlimited).
 
-`g_render_fps_cap = 0` ⇒ unlimited. Функционально это правильно (по CORE_PRINCIPLE: `lock_frame_rate` чисто debug-busy-wait), но семантически attract-цикл больше не имеет 60-fps кэпа. Если в attract-меню есть таймер-зависимая логика на render-cadence (issue #11 анимация меню паузы / #12 fade), они теперь фигачат на 240+ FPS. Это ожидаемо в новой модели и описано в issues, **но не регрессия по семантике** — скорее изменение поведения.
+**Намеренное изменение** в рамках задачи fps_unlock — соответствует CORE_PRINCIPLE (`lock_frame_rate` — чисто debug-busy-wait, на него ничего не должно опираться). Attract-screen честно крутится на нативном render rate.
 
-> INFO, не BUG: уберите слово "регрессия" если предпочтительно.
+Возможные побочки видны в issues #11 (анимация меню паузы) / #12 (fade), но они и раньше существовали — теперь просто стали заметнее на attract без 60-fps маски.
 
-### MINOR-1 — `playback_game_keys` единственный путь без `check_debug_timing_keys`
+### ~~MINOR-1 — `do_leave_map_form` без `check_debug_timing_keys`~~ — ЗАКРЫТО (debug-клавиши временные).
 
-`special_keys` ⇒ `check_debug_timing_keys` срабатывает в основном loop'е, в `attract`/`outro`/`playcuts`/`video_player` зеркала добавлены. Но `do_leave_map_form` и FORM-loop'ы не пробрасываются — debug-клавиши там не работают. Не критично, но overview test plan ожидает "Hotkeys работают везде".
+### ~~MINOR-2 — Дублирование констант debug-клавиш в `video_player.cpp`~~ — ЗАКРЫТО (debug-клавиши временные).
 
-### MINOR-2 — Дублирование констант debug-клавиш в `video_player.cpp`
+### ~~MINOR-3 — `TURN_CAP_RUN/JUMP/CRAWL` именованные, но не в общем header~~ — ЗАКРЫТО
 
-[`engine/video/video_player.cpp:288-301`](../../../new_game/src/engine/video/video_player.cpp#L288):
-```cpp
-case SDL_SCANCODE_1:
-    g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
-```
+Константы намеренно локальные — они привязаны к физическому rate'у и используются только в одной функции. Тюна через config не предполагается.
 
-Hardcoded `20`, `5`, `25`, `1`. Те же значения, что в `check_debug_timing_keys`, но не разделяют constexpr. Если кто-то поменяет `PHYS_HZ_TOGGLE_LOW` в game.cpp — здесь не поправит. Перенести константы в общий header.
+### ~~MINOR-4 — несколько разных реализаций FPS-readout~~ — ЗАКРЫТО
 
-### MINOR-3 — `TURN_CAP_RUN/JUMP/CRAWL` именованные, но не в общем header
+Было три счётчика. Сейчас:
+1. `debug_timing_overlay.cpp` — sliding window 500 ms (Ctrl-toggle overlay). Не трогался — debug-инструмент временный.
+2. `ui_render.cpp` cheat==2 (Shift+F12) — раньше EMA по wall-clock dt; теперь **sliding window 500 ms** (та же логика что в overlay). Стабилизировано, число больше не дрейфует.
+3. `aeng.cpp` `AENG_draw_messages` legacy — FPS-блок **выпилен**. Функция теперь только вызывает `MSG_draw()`.
 
-[`game/input_actions.cpp:1530-1532`](../../../new_game/src/game/input_actions.cpp#L1530) — `static const SLONG TURN_CAP_*` локальные. ОК для одного места, но если их захотят тюнить через config — надо вытащить.
-
-### MINOR-4 — `s_fps_value` алиас нескольких реализаций FPS-readout
-
-Сейчас в коде ТРИ независимых FPS-счётчика:
-1. [`game/debug_timing_overlay.cpp:31`](../../../new_game/src/game/debug_timing_overlay.cpp#L31) — `s_fps_value`, sliding window 500 ms (новый, корректный).
-2. [`game/ui_render.cpp:144-156`](../../../new_game/src/game/ui_render.cpp#L144) — `cheat == 2` блок, EMA по wall-clock dt (корректный).
-3. [`engine/graphics/pipeline/aeng.cpp:5421-5436`](../../../new_game/src/engine/graphics/pipeline/aeng.cpp#L5421) — legacy `AENG_draw_messages`, считает `VISUAL_TURN - last_visual_turn` ⇒ всегда показывает ~30, не реальный render rate. Комментарий честно отмечает "superseded by debug_timing_overlay", но код активен. Если выводится одновременно с `cheat=2` — пользователь увидит 30 vs 144 на одном экране.
-
-**Чинить:** удалить FPS-чтение из `AENG_draw_messages` (переменные `last_visual_turn`, `fps`), либо оставить заглушку без отображения.
+Проверено пользователем — Shift+F12 показывает корректный fps, Ctrl+cheat не рисует никаких legacy "FPS: NN" сверху.
 
 ### MINOR-5 — `render_interp.cpp:328` модифицирует snapshot-поле `has_angles` при apply
 

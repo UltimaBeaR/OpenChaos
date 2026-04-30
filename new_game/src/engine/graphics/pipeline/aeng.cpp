@@ -5409,36 +5409,14 @@ void AENG_screen_shot(void)
 }
 
 // uc_orig: AENG_draw_messages (fallen/DDEngine/Source/aeng.cpp)
-// Legacy FPS display using direct screen lock (mostly superseded by AENG_draw_FPS).
+// Original printed a legacy "FPS: NN" string here from a clock()-based delta
+// of GAME_TURN (later VISUAL_TURN). The readout was superseded by the
+// debug_timing_overlay (lock toggle: Ctrl) which shows the real wall-clock
+// render rate via a sliding-window perf-counter measurement, so the legacy
+// FPS print was dropped. The function now just flushes the debug message
+// queue.
 void AENG_draw_messages()
 {
-    static SLONG fps = 0;
-    static SLONG last_visual_turn = 0;
-    static clock_t last_time = 0;
-    clock_t this_time = 0;
-
-    this_time = clock() / CLOCKS_PER_SEC;
-
-    if (this_time != last_time) {
-        if (this_time - last_time > 1) {
-            // Only work out the new frames per second if there hasn't been a major delay.
-        } else {
-            // Legacy on-screen FPS readout — superseded by debug_timing_overlay
-            // (Shift+F12). Now reads VISUAL_TURN deltas (= UC_VISUAL_CADENCE_HZ
-            // = 30 baseline) instead of GAME_TURN deltas (which would show
-            // physics rate, ~20). Not real render fps; for that, see the
-            // debug_timing_overlay perf-counter measurement.
-            fps = VISUAL_TURN - last_visual_turn;
-        }
-
-        last_time = this_time;
-        last_visual_turn = VISUAL_TURN;
-    }
-
-    // Text now emits textured quads through the TL pipeline — no backbuffer
-    // lock/unlock. Wrapping the draws in ge_lock_screen/ge_unlock_screen would
-    // unconditionally overwrite them with the pre-draw framebuffer contents.
-    FONT_draw(DisplayWidth >> 1, 10, "FPS: %d", fps);
     MSG_draw();
 }
 
