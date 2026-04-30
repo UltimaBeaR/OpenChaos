@@ -249,3 +249,45 @@ void CQuaternion::BuildTween(struct Matrix33* dest, struct CMatrix33* cm1, struc
     build_tween_matrix(dest, cm1, cm2, tween);
     normalise_matrix_rows(dest);
 }
+
+// Triple-slerp for cross-anim blend (render-interp variant A1). Slerps the
+// old pose pair, slerps the new pose pair, then slerps between them at
+// fraction blend_t. Falls back to BuildTween of the new pair if any of the
+// four input matrices fails the right-handedness check (rare with valid
+// keyframe data).
+void CQuaternion::BuildBlendTween(
+    Matrix33* dest,
+    CMatrix33* old_cm1, CMatrix33* old_cm2, SLONG old_tween,
+    CMatrix33* new_cm1, CMatrix33* new_cm2, SLONG new_tween,
+    float blend_t)
+{
+    FloatMatrix f_old1, f_old2, f_new1, f_new2, f_final;
+    cmat_to_fmat(old_cm1, &f_old1);
+    cmat_to_fmat(old_cm2, &f_old2);
+    cmat_to_fmat(new_cm1, &f_new1);
+    cmat_to_fmat(new_cm2, &f_new2);
+
+    BOOL h1 = check_isonormal(f_old1);
+    BOOL h2 = check_isonormal(f_old2);
+    BOOL h3 = check_isonormal(f_new1);
+    BOOL h4 = check_isonormal(f_new2);
+    if (h1 != h2 || h3 != h4 || h1 != h3) {
+        // Mismatched handedness somewhere — bail to plain new-pair tween.
+        BuildTween(dest, new_cm1, new_cm2, new_tween);
+        return;
+    }
+
+    CQuaternion q_old1, q_old2, q_new1, q_new2;
+    MatrixToQuat(&f_old1, &q_old1);
+    MatrixToQuat(&f_old2, &q_old2);
+    MatrixToQuat(&f_new1, &q_new1);
+    MatrixToQuat(&f_new2, &q_new2);
+
+    CQuaternion q_old, q_new, q_final;
+    QuatSlerp(&q_old1, &q_old2, float(old_tween) / 256.f, &q_old);
+    QuatSlerp(&q_new1, &q_new2, float(new_tween) / 256.f, &q_new);
+    QuatSlerp(&q_old,  &q_new,  blend_t,                    &q_final);
+
+    QuatToMatrix(&q_final, &f_final);
+    fmat_to_mat(&f_final, dest);
+}

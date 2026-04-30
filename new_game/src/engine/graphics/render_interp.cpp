@@ -100,11 +100,11 @@ struct ThingSnap {
                               // we lack the intermediate pointer history.
 };
 
-// Cross-anim blend duration (wall-clock ms). 100ms ≈ 2 physics ticks at
-// 20 Hz — short enough that fast actions (sprint kick-in, hit reactions)
-// don't feel laggy, long enough to hide the pose discontinuity at the
-// keyframe-snap endpoints.
-static constexpr uint64_t BLEND_DURATION_MS = 100;
+// Cross-anim blend duration (wall-clock ms). 200ms ≈ 4 physics ticks at
+// 20 Hz / ~12 render frames at 60fps — long enough that dramatic
+// transitions (jump→land, walk→fight) read as a real fade rather than a
+// micro-tween, short enough that fast actions still feel responsive.
+static constexpr uint64_t BLEND_DURATION_MS = 200;
 
 // Indexed by (p_thing - &THINGS[0]). MAX_THINGS == 701.
 ThingSnap g_thing_snaps[MAX_THINGS] = {};
@@ -245,10 +245,14 @@ void render_interp_capture(Thing* p_thing)
             bool mesh_stable = (s.last_mesh_id == dt->MeshID);
             if (mesh_stable && s.valid && s.has_angles
                 && s.current_frame_curr && s.next_frame_curr) {
-                // Snapshot old anim's full state so first blend segment
-                // can render the exact pre-transition pose at v=blend_old_at
-                // (no start-snap), then morph through old's NextFrame to
-                // the new anim's CurrentFrame in the second segment.
+                // Snapshot old anim's pose state (CF, NF, AT) AND pre-
+                // transition WorldPos. The pose snapshot lets figure.cpp
+                // morph cross-fade per body part; the pos snapshot lets
+                // the frame-scope tween position from old→new in lockstep
+                // with the pose blend, preventing the "feet under ground"
+                // artifact on dramatic transitions like jump→land where
+                // physics snaps WorldPos to ground in one tick while the
+                // pose still tweens from airborne to grounded.
                 s.blend_old_cf = s.current_frame_curr;
                 s.blend_old_nf = s.next_frame_curr;
                 s.blend_old_at = s.anim_tween_curr;
@@ -415,6 +419,34 @@ void render_interp_mark_camera_teleport(FC_Cam* fc)
     if (s) s->skip_once = true;
 }
 
+void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
+{
+    if (!out) return;
+    out->active = false;
+    out->old_ae1 = nullptr;
+    out->old_ae2 = nullptr;
+    out->old_tween = 0;
+    out->blend_t = 0.0f;
+    if (!p_thing || !g_render_interp_enabled) return;
+
+    UWORD idx = thing_index(p_thing);
+    if (idx >= MAX_THINGS) return;
+    ThingSnap& s = g_thing_snaps[idx];
+    if (!s.blend_active) return;
+    if (!s.blend_old_cf || !s.blend_old_nf) return;
+    if (!s.blend_old_cf->FirstElement || !s.blend_old_nf->FirstElement) return;
+
+    uint64_t now_ms = sdl3_get_ticks();
+    uint64_t elapsed = now_ms - s.blend_start_ms;
+    if (elapsed >= BLEND_DURATION_MS) return;
+
+    out->active   = true;
+    out->old_ae1  = s.blend_old_cf->FirstElement;
+    out->old_ae2  = s.blend_old_nf->FirstElement;
+    out->old_tween = s.blend_old_at;
+    out->blend_t  = float(elapsed) / float(BLEND_DURATION_MS);
+}
+
 RenderInterpFrame::RenderInterpFrame()
 {
     // Master toggle — when off, no apply happens and the dtor has nothing
@@ -440,6 +472,15 @@ RenderInterpFrame::RenderInterpFrame()
         p->WorldPos.Y = lerp_i32(s.pos_prev.Y, s.pos_curr.Y, alpha);
         p->WorldPos.Z = lerp_i32(s.pos_prev.Z, s.pos_curr.Z, alpha);
 
+        // Note: an earlier iteration also lerped WorldPos from
+        // s.blend_old_pos (frozen at transition) to the live lerped pos
+        // over the blend window, hoping to fix the "feet under ground"
+        // artifact at jump→land. That backfired on continuous-motion
+        // transitions (run→sprint): the visual speed ramps from 0 to 2v
+        // during blend then snaps to v after — produces a body-stutter
+        // rывок. Live pos here is correct; the per-body-part pose blend
+        // in figure.cpp is what handles cross-anim smoothing.
+
         if (s.has_angles && draw_type_uses_tween(p->DrawType) && p->Draw.Tweened) {
             DrawTween* dt = p->Draw.Tweened;
             s.saved_angle = dt->Angle;
@@ -449,41 +490,16 @@ RenderInterpFrame::RenderInterpFrame()
             dt->Tilt  = lerp_angle_2048(s.tilt_prev,  s.tilt_curr,  alpha);
             dt->Roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
 
-            // Cross-anim blend supersedes the per-tick AnimTween logic
-            // while active. Multi-segment in a virtual extended coordinate
-            // v = blend_old_at + blend_t * total, total = (256 - blend_old_at) + 256.
-            // First segment (v < 256) renders (blend_old_cf, blend_old_nf, v) —
-            // starts at v=blend_old_at = exact pre-transition pose, no
-            // start-snap. Second segment (v >= 256) renders
-            // (blend_old_nf, live_new_cf, v - 256) — morphs to live new-
-            // anim CurrentFrame, which tracks physics during the blend.
-            bool blend_apply = false;
-            if (s.blend_active && s.blend_old_cf && s.blend_old_nf
-                && dt->CurrentFrame) {
+            // Cross-anim blend now operates per-body-part inside figure.cpp's
+            // morph functions (queried via render_interp_get_blend). We just
+            // expire the blend window here when its wall-clock duration is
+            // up — the per-tick AnimTween logic below continues to interpolate
+            // the new anim's playback during the blend in parallel.
+            if (s.blend_active) {
                 uint64_t now_ms = sdl3_get_ticks();
                 uint64_t elapsed = now_ms - s.blend_start_ms;
                 if (elapsed >= BLEND_DURATION_MS) {
                     s.blend_active = false;
-                } else {
-                    float blend_t = float(elapsed) / float(BLEND_DURATION_MS);
-                    SLONG total = (256 - s.blend_old_at) + 256;
-                    SLONG v = s.blend_old_at + SLONG(blend_t * float(total));
-
-                    s.saved_anim_tween = dt->AnimTween;
-                    s.saved_current_frame = dt->CurrentFrame;
-                    s.saved_next_frame = dt->NextFrame;
-
-                    if (v < 256) {
-                        dt->CurrentFrame = s.blend_old_cf;
-                        dt->NextFrame    = s.blend_old_nf;
-                        dt->AnimTween    = v;
-                    } else {
-                        dt->CurrentFrame = s.blend_old_nf;
-                        dt->NextFrame    = s.saved_current_frame; // live new CF
-                        dt->AnimTween    = v - 256;
-                    }
-                    s.anim_tween_applied = true;
-                    blend_apply = true;
                 }
             }
 
@@ -538,18 +554,16 @@ RenderInterpFrame::RenderInterpFrame()
                 apply_anim = true;
             }
 
-            if (!blend_apply) {
-                if (apply_anim) {
-                    s.saved_anim_tween = dt->AnimTween;
-                    s.saved_current_frame = dt->CurrentFrame;
-                    s.saved_next_frame = dt->NextFrame;
-                    dt->AnimTween = new_anim_tween;
-                    dt->CurrentFrame = new_current;
-                    dt->NextFrame = new_next;
-                    s.anim_tween_applied = true;
-                } else {
-                    s.anim_tween_applied = false;
-                }
+            if (apply_anim) {
+                s.saved_anim_tween = dt->AnimTween;
+                s.saved_current_frame = dt->CurrentFrame;
+                s.saved_next_frame = dt->NextFrame;
+                dt->AnimTween = new_anim_tween;
+                dt->CurrentFrame = new_current;
+                dt->NextFrame = new_next;
+                s.anim_tween_applied = true;
+            } else {
+                s.anim_tween_applied = false;
             }
         } else {
             // No angle apply; but mark applied so dtor restores position.

@@ -16,8 +16,25 @@
 // interpolated values without per-call-site plumbing.
 
 #include "camera/fc.h"
+#include "engine/core/types.h" // SLONG
 
 struct Thing;
+struct GameKeyFrameElement;
+
+// Cross-anim blend state queried by the render path. When `active` is true
+// the renderer must compose the displayed pose as
+//   lerp(  lerp(old_ae1[i], old_ae2[i], old_tween),
+//          live_new_pose_for_part_i,
+//          blend_t  )
+// for each body part `i`. live_new_pose is computed by the existing per-tick
+// morph using the live (post-RenderInterpFrame) DrawTween fields.
+struct RenderInterpBlend {
+    bool active;
+    GameKeyFrameElement* old_ae1;  // FirstElement of pre-transition CurrentFrame
+    GameKeyFrameElement* old_ae2;  // FirstElement of pre-transition NextFrame
+    SLONG old_tween;               // pre-transition AnimTween, [0, 256)
+    float blend_t;                 // [0, 1] — 0=fully old pose, 1=fully new pose
+};
 
 // Interpolation factor in [0, 1). 0 = at previous tick, ~1 = just before next.
 // Recomputed by the game loop after the physics-tick while-loop.
@@ -57,6 +74,12 @@ void render_interp_capture_camera(FC_Cam* fc);
 
 // Mark camera teleport (cutscene cut, sudden focus change).
 void render_interp_mark_camera_teleport(FC_Cam* fc);
+
+// Query cross-anim blend state for `p_thing`. Sets out->active=false if the
+// thing is not currently in a blend. Otherwise fills the four fields the
+// renderer needs to mix the pre-transition pose with the live post-transition
+// pose for each body part. Safe to call any time during render path.
+void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out);
 
 // Frame-scope: at construction, walks all valid snapshots and writes
 // interpolated values directly into the live Thing.WorldPos / Tweened
