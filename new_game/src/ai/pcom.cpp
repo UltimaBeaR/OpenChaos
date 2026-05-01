@@ -8164,7 +8164,13 @@ void PCOM_oscillate_tympanum(
         struct Noise* p_noise;
 
         if (noise_count >= MAX_NOISE) {
-            ASSERT(0);
+            // Queue full — drop this noise. Original game ASSERTed here
+            // (the noise count was bounded by typical state-handler
+            // throughput), but at unusually slow physics rates (e.g. the
+            // 5 Hz debug mode used for fps_unlock testing) one tick can
+            // span multiple anim cycles and queue 5+ events from a single
+            // handler. Silent drop is benign — at most a missed footstep
+            // hearing event for AI for that frame.
             return;
         }
 

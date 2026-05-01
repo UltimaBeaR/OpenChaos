@@ -116,9 +116,10 @@ struct ThingSnap {
 // "sharpness"). The 5Hz case happens to land on exactly 1 tick for free;
 // keeping that ratio at every rate reproduces the smooth feel.
 //
-// Earlier iterations used 1.5× tick (3/2) — fixed jump-up at 20Hz but
+// Earlier iterations: 1.5× tick (3/2) — fixed jump-up at 20Hz but
 // landing transitions still showed sharpness because the half-extra
-// tick still advanced the new pose mid-blend.
+// tick still advanced the new pose mid-blend. MIN=100 — gave more
+// visible blend on jump-kick but reintroduced jump-landing U-shape.
 static constexpr uint64_t BLEND_DURATION_MIN_MS = 50;
 static constexpr uint64_t BLEND_DURATION_MAX_MS = 200;
 static constexpr int BLEND_DURATION_TICK_FACTOR_NUM = 1;
@@ -565,6 +566,13 @@ RenderInterpFrame::RenderInterpFrame()
                 // backwards interpolation"). Snap to curr instead — keeps
                 // forward AT smoothly interpolated, gives discrete (but
                 // not reversed) appearance for backward AT segments.
+                //
+                // (An earlier iteration tried direction-reversal-only
+                // snap — i.e. lerp consistent backward play, snap only
+                // on direction flip. That brought the punch glitches
+                // back: the natural smooth-backward of subsequent
+                // backward ticks looked like reverse playback. Combat
+                // anims really do need any-backward-snap.)
                 if (s.anim_tween_curr < s.anim_tween_prev) {
                     new_anim_tween = s.anim_tween_curr;
                 } else {
