@@ -25,6 +25,16 @@
 #include "engine/graphics/render_interp.h" // RenderInterpBlend, render_interp_get_blend
 #include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
 #include "things/core/drawtype.h"
+#include "game/game_types.h" // NET_PERSON (player Thing*) for figure-morph debug log
+#include "game/game_globals.h" // g_physics_hz for log
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for log timestamp
+#include <stdio.h>
+#include <stdint.h>
+
+// Enable per-render-frame CSV log of player root body part morph state.
+// Lines go to stderr (and stderr.log via Makefile redirect). Use to compare
+// blend behaviour at different physics rates.
+#define FIGURE_MORPH_LOG 1
 
 // Note: animation depends on lighting (BuildMMLightingTable reads NIGHT_* globals).
 // This cross-engine coupling exists in the original; will be resolved in Stage 7.
@@ -1671,30 +1681,54 @@ static void figure_morph_root_offset(
 
     RenderInterpBlend bs;
     render_interp_get_blend(p_thing, &bs);
-    if (!bs.active) {
-        *out_offset = new_offset;
-        return;
-    }
 
+    Matrix31 old_offset = {};
     DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt || !dt->CurrentFrame || !dt->CurrentFrame->FirstElement) {
+    bool blended = false;
+
+    if (bs.active && dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
+        SLONG part_index = SLONG(anim_info - dt->CurrentFrame->FirstElement);
+
+        GameKeyFrameElement* old_a1 = &bs.old_ae1[part_index];
+        GameKeyFrameElement* old_a2 = &bs.old_ae2[part_index];
+        old_offset.M[0] = (old_a1->OffsetX << 8) + ((old_a2->OffsetX - old_a1->OffsetX) * bs.old_tween);
+        old_offset.M[1] = (old_a1->OffsetY << 8) + ((old_a2->OffsetY - old_a1->OffsetY) * bs.old_tween);
+        old_offset.M[2] = (old_a1->OffsetZ << 8) + ((old_a2->OffsetZ - old_a1->OffsetZ) * bs.old_tween);
+
+        SLONG t256 = SLONG(bs.blend_t * 256.0f);
+        if (t256 < 0) t256 = 0; else if (t256 > 256) t256 = 256;
+        out_offset->M[0] = old_offset.M[0] + ((new_offset.M[0] - old_offset.M[0]) * t256) / 256;
+        out_offset->M[1] = old_offset.M[1] + ((new_offset.M[1] - old_offset.M[1]) * t256) / 256;
+        out_offset->M[2] = old_offset.M[2] + ((new_offset.M[2] - old_offset.M[2]) * t256) / 256;
+        blended = true;
+    } else {
         *out_offset = new_offset;
-        return;
     }
-    SLONG part_index = SLONG(anim_info - dt->CurrentFrame->FirstElement);
 
-    GameKeyFrameElement* old_a1 = &bs.old_ae1[part_index];
-    GameKeyFrameElement* old_a2 = &bs.old_ae2[part_index];
-    Matrix31 old_offset;
-    old_offset.M[0] = (old_a1->OffsetX << 8) + ((old_a2->OffsetX - old_a1->OffsetX) * bs.old_tween);
-    old_offset.M[1] = (old_a1->OffsetY << 8) + ((old_a2->OffsetY - old_a1->OffsetY) * bs.old_tween);
-    old_offset.M[2] = (old_a1->OffsetZ << 8) + ((old_a2->OffsetZ - old_a1->OffsetZ) * bs.old_tween);
-
-    SLONG t256 = SLONG(bs.blend_t * 256.0f);
-    if (t256 < 0) t256 = 0; else if (t256 > 256) t256 = 256;
-    out_offset->M[0] = old_offset.M[0] + ((new_offset.M[0] - old_offset.M[0]) * t256) / 256;
-    out_offset->M[1] = old_offset.M[1] + ((new_offset.M[1] - old_offset.M[1]) * t256) / 256;
-    out_offset->M[2] = old_offset.M[2] + ((new_offset.M[2] - old_offset.M[2]) * t256) / 256;
+#if FIGURE_MORPH_LOG
+    // Log only the player's ROOT body part (part_index == 0). One CSV row
+    // per render call. Columns:
+    //   t_ms, phys_hz, blend_act, blend_t, anim, frame_idx, anim_tween,
+    //   wpY, off_new_y, off_old_y, off_final_y
+    if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement
+        && anim_info == dt->CurrentFrame->FirstElement
+        && p_thing == NET_PERSON(0))
+    {
+        fprintf(stderr,
+            "FML,%llu,%d,%d,%.4f,%ld,%u,%ld,%d,%ld,%ld,%ld\n",
+            (unsigned long long)sdl3_get_ticks(),
+            (int)g_physics_hz,
+            blended ? 1 : 0,
+            (double)bs.blend_t,
+            (long)dt->CurrentAnim,
+            (unsigned)dt->FrameIndex,
+            (long)dt->AnimTween,
+            (int)p_thing->WorldPos.Y,
+            (long)new_offset.M[1],
+            (long)old_offset.M[1],
+            (long)out_offset->M[1]);
+    }
+#endif
 }
 
 // Rotation matrix slerp. Used by both root and child branches (children's

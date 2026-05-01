@@ -5,6 +5,7 @@
 #include "engine/animation/anim_types.h" // GameKeyFrame layout, ANIM_FLAG_LAST_FRAME
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (cross-anim blend timing)
 #include "game/game_types.h" // THINGS, TO_THING
+#include "game/game_globals.h" // g_physics_hz (adaptive blend duration)
 
 #include <stdio.h> // debug logging
 #include <stdint.h> // uint64_t
@@ -82,6 +83,8 @@ struct ThingSnap {
     // morphed safely.
     bool blend_active;
     uint64_t blend_start_ms;
+    uint64_t blend_duration_ms;     // captured at transition based on then-current
+                                    // g_physics_hz; constant for the whole blend.
     struct GameKeyFrame* blend_old_cf;
     struct GameKeyFrame* blend_old_nf;
     SLONG blend_old_at;
@@ -100,11 +103,26 @@ struct ThingSnap {
                               // we lack the intermediate pointer history.
 };
 
-// Cross-anim blend duration (wall-clock ms). 200ms ≈ 4 physics ticks at
-// 20 Hz / ~12 render frames at 60fps — long enough that dramatic
-// transitions (jump→land, walk→fight) read as a real fade rather than a
-// micro-tween, short enough that fast actions still feel responsive.
-static constexpr uint64_t BLEND_DURATION_MS = 200;
+// Cross-anim blend duration (wall-clock ms). Computed adaptively per
+// transition as exactly 1 physics-tick interval, clamped to [MIN, MAX]:
+//   5Hz physics  → 200ms (= 1 tick, hits cap from above only at <=5Hz)
+//   10Hz physics → 100ms (= 1 tick)
+//   20Hz physics → 50ms  (= 1 tick, hits floor)
+//   60Hz physics → 50ms  (floor; 1 tick = 16.7ms < MIN)
+// Why exactly 1 tick: live new-anim pose advances on every physics tick
+// inside the blend window. If blend > 1 tick, an extra tick fires mid-
+// blend and the new pose jumps mid-cross-fade — visible as the off_final
+// trajectory bending non-monotonically (jump-up apex dip, landing
+// "sharpness"). The 5Hz case happens to land on exactly 1 tick for free;
+// keeping that ratio at every rate reproduces the smooth feel.
+//
+// Earlier iterations used 1.5× tick (3/2) — fixed jump-up at 20Hz but
+// landing transitions still showed sharpness because the half-extra
+// tick still advanced the new pose mid-blend.
+static constexpr uint64_t BLEND_DURATION_MIN_MS = 50;
+static constexpr uint64_t BLEND_DURATION_MAX_MS = 200;
+static constexpr int BLEND_DURATION_TICK_FACTOR_NUM = 1;
+static constexpr int BLEND_DURATION_TICK_FACTOR_DEN = 1;
 
 // Indexed by (p_thing - &THINGS[0]). MAX_THINGS == 701.
 ThingSnap g_thing_snaps[MAX_THINGS] = {};
@@ -258,6 +276,15 @@ void render_interp_capture(Thing* p_thing)
                 s.blend_old_at = s.anim_tween_curr;
                 s.blend_active = true;
                 s.blend_start_ms = sdl3_get_ticks();
+                // Compute adaptive blend duration based on the current
+                // physics rate. See comment above BLEND_DURATION_MIN_MS.
+                SLONG hz = (g_physics_hz > 0) ? g_physics_hz : 20;
+                uint64_t tick_ms = uint64_t(1000) / uint64_t(hz);
+                uint64_t dur = (tick_ms * BLEND_DURATION_TICK_FACTOR_NUM)
+                             /  BLEND_DURATION_TICK_FACTOR_DEN;
+                if (dur < BLEND_DURATION_MIN_MS) dur = BLEND_DURATION_MIN_MS;
+                if (dur > BLEND_DURATION_MAX_MS) dur = BLEND_DURATION_MAX_MS;
+                s.blend_duration_ms = dur;
             } else {
                 s.blend_active = false;
             }
@@ -438,13 +465,13 @@ void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
 
     uint64_t now_ms = sdl3_get_ticks();
     uint64_t elapsed = now_ms - s.blend_start_ms;
-    if (elapsed >= BLEND_DURATION_MS) return;
+    if (elapsed >= s.blend_duration_ms) return;
 
     out->active   = true;
     out->old_ae1  = s.blend_old_cf->FirstElement;
     out->old_ae2  = s.blend_old_nf->FirstElement;
     out->old_tween = s.blend_old_at;
-    out->blend_t  = float(elapsed) / float(BLEND_DURATION_MS);
+    out->blend_t  = float(elapsed) / float(s.blend_duration_ms);
 }
 
 RenderInterpFrame::RenderInterpFrame()
@@ -498,7 +525,7 @@ RenderInterpFrame::RenderInterpFrame()
             if (s.blend_active) {
                 uint64_t now_ms = sdl3_get_ticks();
                 uint64_t elapsed = now_ms - s.blend_start_ms;
-                if (elapsed >= BLEND_DURATION_MS) {
+                if (elapsed >= s.blend_duration_ms) {
                     s.blend_active = false;
                 }
             }

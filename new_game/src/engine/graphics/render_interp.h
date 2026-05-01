@@ -22,12 +22,12 @@ struct Thing;
 struct GameKeyFrameElement;
 
 // Cross-anim blend state queried by the render path. When `active` is true
-// the renderer must compose the displayed pose as
+// the renderer composes the displayed pose as
 //   lerp(  lerp(old_ae1[i], old_ae2[i], old_tween),
 //          live_new_pose_for_part_i,
 //          blend_t  )
-// for each body part `i`. live_new_pose is computed by the existing per-tick
-// morph using the live (post-RenderInterpFrame) DrawTween fields.
+// for each body part `i`. live_new_pose comes from the live (post-
+// RenderInterpFrame) DrawTween fields the caller already has.
 struct RenderInterpBlend {
     bool active;
     GameKeyFrameElement* old_ae1;  // FirstElement of pre-transition CurrentFrame
