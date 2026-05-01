@@ -557,7 +557,19 @@ RenderInterpFrame::RenderInterpFrame()
                                  && s.current_frame_prev
                                  && (s.current_frame_prev->Flags & ANIM_FLAG_LAST_FRAME));
             if (frame_diff == 0) {
-                new_anim_tween = lerp_i32(s.anim_tween_prev, s.anim_tween_curr, alpha);
+                // Backward AnimTween between physics ticks (combat anims
+                // sometimes write AnimTween directly via gameplay code,
+                // including negative values — see person.cpp:7513/7545/
+                // 10898). A naïve forward lerp here renders the anim
+                // playing in reverse, which is visually a glitch ("smooth
+                // backwards interpolation"). Snap to curr instead — keeps
+                // forward AT smoothly interpolated, gives discrete (but
+                // not reversed) appearance for backward AT segments.
+                if (s.anim_tween_curr < s.anim_tween_prev) {
+                    new_anim_tween = s.anim_tween_curr;
+                } else {
+                    new_anim_tween = lerp_i32(s.anim_tween_prev, s.anim_tween_curr, alpha);
+                }
                 new_current = s.current_frame_curr;
                 new_next = s.next_frame_curr;
                 apply_anim = (new_current != nullptr && new_next != nullptr);
