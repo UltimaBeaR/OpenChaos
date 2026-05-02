@@ -54,8 +54,10 @@ void render_interp_reset(void);
 // physics has run, for every moving Thing that should be interpolated.
 // Position is always captured. Angle/Tilt/Roll are captured for Tween-based
 // drawables (persons, animals, bats — DT_TWEEN family) where they live in
-// Draw.Tweened. Other DrawType angle storage (Genus.Vehicle->Draw.Angle for
-// cars, etc.) is not interpolated in this iteration.
+// Draw.Tweened. CLASS_VEHICLE's separate yaw/tilt/roll
+// (Genus.Vehicle->Angle/Tilt/Roll, SLONG, used by draw_car/make_car_matrix)
+// are also captured. Other DrawType angle storage (DrawMesh.Angle for static
+// rotating mesh, DT_BIKE) is not interpolated in this iteration.
 void render_interp_capture(Thing* p_thing);
 
 // Suppress lerp on the next frame for a Thing (after teleport / respawn).

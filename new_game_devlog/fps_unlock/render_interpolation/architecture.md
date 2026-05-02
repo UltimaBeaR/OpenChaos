@@ -127,16 +127,34 @@ struct ThingSnap {
     struct GameKeyFrame* next_frame_prev;
     struct GameKeyFrame* next_frame_curr;
 
+    // Vehicle yaw/tilt/roll — отдельная ветка для CLASS_VEHICLE.
+    // veh_velr_curr — Vehicle->VelR (rotational velocity), используется
+    // как direction hint в lerp_angle_2048_directed.
+    // veh_ptr_curr — закэшированный Genus.Vehicle на момент capture.
+    // Используется в ctor/dtor для identity-check: если live
+    // p->Genus.Vehicle != veh_ptr_curr → пропускаем apply (vehicle slot
+    // был перепривязан в катсцене; mismatch может означать stale capture
+    // или невалидный live pointer).
+    bool  has_vehicle_angles;
+    Vehicle* veh_ptr_curr;
+    SLONG veh_angle_prev, veh_angle_curr;
+    SLONG veh_tilt_prev,  veh_tilt_curr;
+    SLONG veh_roll_prev,  veh_roll_curr;
+    SLONG veh_velr_curr;
+
     // Frame-scope save (заполняется RenderInterpFrame ctor, читается dtor)
     GameCoord saved_pos;
     SWORD saved_angle, saved_tilt, saved_roll;
     SLONG saved_anim_tween;
     struct GameKeyFrame* saved_current_frame;
     struct GameKeyFrame* saved_next_frame;
+    SLONG saved_veh_angle, saved_veh_tilt, saved_veh_roll;
     bool applied;
     bool anim_tween_applied;  // covers AnimTween + CurrentFrame + NextFrame
                               // override. Skipped on >1-keyframe jumps per
                               // tick (нет промежуточной истории указателей).
+    bool veh_angles_applied;  // ctor wrote interp values into Genus.Vehicle->
+                              // Angle/Tilt/Roll; dtor restores them.
 };
 ```
 
@@ -195,6 +213,19 @@ Short-path: интерполяция идёт по короткой сторон
 
 Камера хранит углы в fixed-point (`1 angle unit = 256 sub-units`). Полная окружность = 524288 (2048 × 256). Та же short-path логика на расширенном диапазоне.
 
+### Углы Vehicle (SLONG, диапазон 0..2047 для Angle, любой — для Tilt/Roll)
+
+`Genus.Vehicle->Angle/Tilt/Roll` хранятся как SLONG. `Angle` нормализуется `& 2047` в физике, Tilt/Roll — нет (но обычно небольшие).
+
+Для Angle используется `lerp_angle_2048_directed(a, b, t, vel_hint)` — short-path с tie-break по vel_hint в ambiguous-зоне.
+
+- `|diff| <= 1024`: лерп идёт по реальному `diff` как есть, vel_hint игнорируется. Это критично — иначе micro-correction назад (например, diff=-1 после столкновения) при положительном VelR превратился бы в почти полный круг вперёд.
+- `|diff| > 1024`: physics реально провернула >180° за тик, short-path выбрал бы противоположный знак. Используем vel_hint: положительный → выбираем положительную ветку (long-path forward), отрицательный → отрицательную. При `vel_hint == 0` — обычный short-path (нет предпочтения).
+
+В нормальной езде `|VelR|` маленький и `|diff|` тоже маленький — hint никогда не активируется. Hint срабатывает только при импульсном раскручивании (удар, перевёрнутая машина).
+
+Для Tilt/Roll используется `lerp_angle_2048_slong` — обычный short-path с маскировкой к [0, 2047]. У Vehicle нет per-axis angular velocity для Tilt/Roll, и они не накапливаются за полный круг (машина не делает кувырок через 360° по pitch).
+
 ## API
 
 ### Capture (вызывается из physics-loop)
@@ -245,8 +276,6 @@ inline bool draw_type_uses_tween(UBYTE dt) {
         case DT_TWEEN:
         case DT_ROT_MULTI:    // CLASS_PERSON
         case DT_ANIM_PRIM:    // animals/bats
-        case DT_PYRO:
-        case DT_CHOPPER:
             return true;
         default:
             return false;
@@ -254,10 +283,19 @@ inline bool draw_type_uses_tween(UBYTE dt) {
 }
 ```
 
+**`DT_CHOPPER` и `DT_PYRO` сюда НЕ входят** — вертолёты используют `Draw.Mesh` (DrawMesh), а pyro вообще не использует поле `Draw` (state в `Genus.Pyro`). Включение их в Tween-семейство приводило к чтению DrawMesh / stale памяти как DrawTween через union, что давало non-canonical pointer'ы в `current_frame_curr`/`next_frame_curr` snapshot fields и крашило ctor на дереференсе. Подтверждено через диагностический лог в катсцене (slot=143 chopper, NextFrame инкрементировался ровно на 0x20 каждый тик — DrawMesh поле, не keyframe pointer).
+
+**Vehicle — отдельная ветка (вне `draw_type_uses_tween`):**
+
+CLASS_VEHICLE хранит yaw/tilt/roll в `Genus.Vehicle->Angle/Tilt/Roll` (SLONG). Это поле — то самое что читает `make_car_matrix` ([vehicle.cpp:125](../../../new_game/src/things/vehicles/vehicle.cpp#L125)) и `draw_car`. `Vehicle.Draw.Angle` (внутри вложенного DrawTween Draw) — другое поле и не интерполируется.
+
+Snapshot хранит `veh_angle/tilt/roll_prev/curr` плюс `veh_velr_curr` (`Vehicle->VelR`, rotational velocity). При apply используется direction-aware lerp `lerp_angle_2048_directed`: знак `VelR` определяет на какой стороне круга идёт `prev → curr`. Это закрывает кейс «very fast spin > 180°/tick», где обычный short-path выбрал бы обратное направление.
+
 **Не покрыты углы у:**
-- `DT_VEHICLE` — машины. Угол в `Genus.Vehicle->Draw.Angle`, а не в DrawTween. Позиция плавная, поворот рывками. Нужно расширение системы (см. [`plans.md`](plans.md)).
 - `DT_MESH` — статичные mesh. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Большинство таких объектов не вращаются, но если будут — нужно отдельная ветка.
 - `DT_BIKE` — велосипеды. Также через DrawMesh.
+- `DT_CHOPPER` — вертолёты. Через DrawMesh, аналогично Vehicle. Если потребуется плавность поворотов — расширить DrawMesh-ветку.
+- `DT_PYRO` — pyro-эффекты, pyro state в `Genus.Pyro`, нет direct angle storage.
 
 Подробнее → [`coverage.md`](coverage.md).
 

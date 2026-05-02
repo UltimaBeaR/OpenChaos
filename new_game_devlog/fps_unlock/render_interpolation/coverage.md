@@ -13,7 +13,7 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 | Класс | Что это | Что интерполируется |
 |---|---|---|
 | `CLASS_PERSON` | Дарси, NPC всех типов (cops, thugs, MIB, civilians) | WorldPos + Tweened Angle/Tilt/Roll |
-| `CLASS_VEHICLE` | Машины (car, police, ambulance, jeep) | WorldPos. **Угол не интерполируется** (хранится в `Genus.Vehicle->Draw.Angle`, не в DrawTween) |
+| `CLASS_VEHICLE` | Машины (car, police, ambulance, jeep) | WorldPos + `Genus.Vehicle->Angle/Tilt/Roll` (отдельная ветка снапшота, не через DrawTween) |
 | `CLASS_PROJECTILE` | Пули | WorldPos |
 | `CLASS_ANIMAL` | Крысы, собаки, кошки | WorldPos + Tweened углы (через DT_ANIM_PRIM) |
 | `CLASS_PYRO` | Огонь, immolation | WorldPos + Tweened углы |
@@ -45,16 +45,25 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 | `DT_TWEEN` | Generic tween-mesh |
 | `DT_ROT_MULTI` | CLASS_PERSON (Дарси, NPC) |
 | `DT_ANIM_PRIM` | CLASS_ANIMAL, CLASS_BAT |
-| `DT_PYRO` | CLASS_PYRO |
-| `DT_CHOPPER` | CLASS_CHOPPER |
+
+### Покрыто (Vehicle — отдельная ветка)
+
+`Genus.Vehicle->Angle/Tilt/Roll` (SLONG, диапазон 0..2047 циклически для Angle; Tilt/Roll обычно небольшие и не нормализованы):
+
+| DrawType | Класс/назначение |
+|---|---|
+| `DT_VEHICLE` | CLASS_VEHICLE (car, police, ambulance, jeep, ...) |
+
+`Vehicle->Angle` использует **direction-aware lerp**: знак `Vehicle->VelR` (rotational velocity) служит hint'ом, чтобы при очень быстром вращении (>180°/тик, например конусы/мусор после удара машиной — если бы они были vehicles) короткий путь не выбирал обратное направление. Для Tilt/Roll — обычный short-path (нет per-axis angular velocity в Vehicle struct, но они и не накапливаются за полный круг).
 
 ### Не покрыто (требует расширения системы)
 
-- **`DT_VEHICLE`** — машины. Угол в `Genus.Vehicle->Draw.Angle` (отдельная структура). Позиция плавная, поворот зернистый (рывками 20 Hz). Заметно при поворотах машины.
 - **`DT_MESH`** — статичные mesh-объекты. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Часть таких объектов (`CLASS_SPECIAL` static pickups) — не вращаются вообще; часть — вращается (барабанящие предметы, эффекты). Сейчас не покрыто.
 - **`DT_BIKE`** — велосипеды. Через DrawMesh.
+- **`DT_CHOPPER`** — вертолёты. `alloc_chopper` ставит `Draw.Mesh = dm` (DrawMesh), не Tween. Углы в `Draw.Mesh->Angle/Roll/Tilt` (UWORD). Раньше ошибочно числился в Tween-семействе — приводило к чтению DrawMesh-памяти как DrawTween и появлению non-canonical pointer'ов в snapshot (catscene crash на slot=143). Если потребуется плавность поворотов вертолёта — нужно расширение DrawMesh-ветки аналогично Vehicle.
+- **`DT_PYRO`** — pyro-эффекты. `alloc_pyro` не присваивает `Draw.X` вообще (state в `Genus.Pyro`). Раньше ошибочно числился в Tween-семействе, читал stale memory предыдущего жильца slot'а.
 
-См. [`plans.md`](plans.md) — задача расширения на DrawMesh-углы и Vehicle-углы.
+См. [`plans.md`](plans.md) — задача расширения на DrawMesh-углы.
 
 ## Что НЕ нужно интерполировать (уже плавно)
 
@@ -111,9 +120,10 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 
 ```
 Physics-rate state (нужна интерполяция):
-  ├── Things (movement classes) → WorldPos + Tween-углы
+  ├── Things (movement classes) → WorldPos + Tween-углы (DT_TWEEN family)
+  ├── Vehicles → Genus.Vehicle->Angle/Tilt/Roll (SLONG, отдельная ветка с VelR direction hint)
   ├── Camera (FC_cam) → x/y/z/yaw/pitch/roll
-  └── НЕ покрыто: Vehicle Angle, DrawMesh углы, particles
+  └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE), particles
 
 Wall-clock state (уже плавно, не трогаем):
   ├── AnimTween (vertex morph)

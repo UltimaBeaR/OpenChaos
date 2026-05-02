@@ -34,7 +34,7 @@
 // Enable per-render-frame CSV log of player root body part morph state.
 // Lines go to stderr (and stderr.log via Makefile redirect). Use to compare
 // blend behaviour at different physics rates.
-#define FIGURE_MORPH_LOG 1
+#define FIGURE_MORPH_LOG 0
 
 // Note: animation depends on lighting (BuildMMLightingTable reads NIGHT_* globals).
 // This cross-engine coupling exists in the original; will be resolved in Stage 7.

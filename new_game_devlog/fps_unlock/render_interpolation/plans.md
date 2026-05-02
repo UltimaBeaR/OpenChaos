@@ -26,24 +26,21 @@
 
 **Рекомендация:** начать с А (наименее инвазивно), проверить по логу что промельки исчезли. Если останутся — добавить C как safety net.
 
-### Расширение углов на DrawMesh / Vehicle
+### Расширение углов на DrawMesh
 
-Текущая система интерполирует углы только для Tween-семейства DrawType. Для **DT_VEHICLE** угол лежит в `Genus.Vehicle->Draw.Angle` — нужна отдельная ветка в capture/scope.
+**Vehicle уже сделан** — закрыт отдельной веткой `Genus.Vehicle->Angle/Tilt/Roll` с direction-aware lerp по `Vehicle->VelR`. См. [`known_issues.md`](known_issues.md) → «Закрытые баги».
 
-Структуры расширения:
-- В `ThingSnap` добавить поля `vehicle_angle_prev`, `vehicle_angle_curr` (UWORD?) или общий `extra_angle_prev/curr` со флагом источника
-- В capture: если `Class == CLASS_VEHICLE` → также захватить `Genus.Vehicle->Draw.Angle`
-- В `RenderInterpFrame` ctor/dtor: соответственно подменить и восстановить
+Что ещё не покрыто:
+- **DT_MESH** — статичные mesh-объекты. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Большинство таких объектов не вращаются вообще, но некоторые могут (вращающиеся pickup'ы / эффекты).
+- **DT_BIKE** — велосипеды. Также через DrawMesh.
+- **DT_CHOPPER** — вертолёты. `alloc_chopper` ставит `Draw.Mesh = dm`, формат тот же DrawMesh. Раньше ошибочно числились в Tween-семействе (см. `known_issues.md` → «Закрытые баги», cutscene crash). Если потребуется плавность поворотов вертолёта — расширить DrawMesh-ветку.
+- **DT_PYRO** — pyro-эффекты. `alloc_pyro` не ставит `Draw.X` вообще, state в `Genus.Pyro`. Если будет видимое дёрганье — нужен отдельный путь через Genus-структуру (аналогично Vehicle).
 
-Аналогично для DT_MESH (`Draw.Mesh->Angle/Tilt/Roll`, UWORD). Большинство таких объектов статичны, но если будут вращающиеся — единая инфраструктура.
+Если потребуется — единая инфраструктура: в `ThingSnap` добавить `mesh_angle/tilt/roll_prev/curr` + флаг `has_mesh_angles`, ветку в capture для `DrawType == DT_MESH/DT_BIKE/DT_CHOPPER`, ветку в ctor/dtor.
 
-**Связанная задача:** короткий путь lerp ломается при быстром вращении (>180°/тик).
-См. [`known_issues.md`](known_issues.md) баг #4. При расширении на Vehicle подумать про
-angular velocity hint — если в `Genus.*` хранится угловая скорость, использовать её для
-направленного lerp вместо short-path. Иначе быстро крутящиеся отлетевшие объекты могут
-визуально крутиться в обратную сторону.
+**Связанная задача:** короткий путь lerp ломается при быстром вращении (>180°/тик). См. [`known_issues.md`](known_issues.md) баг #4 — для Vehicle закрыто через VelR; для других классов остаётся открытым (актуально для CLASS_PROJECTILE/CLASS_PYRO/CLASS_BARREL если они начнут крутиться слишком быстро).
 
-**Приоритет:** средний. Наглядно видно при поворотах машин.
+**Приоритет:** низкий. DT_MESH объекты в большинстве статичны, видимых дёрганий пока не наблюдается.
 
 ### Партиклы (если потребуется)
 

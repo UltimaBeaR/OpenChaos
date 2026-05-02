@@ -7,12 +7,12 @@
 #include "game/game_types.h" // THINGS, TO_THING
 #include "game/game_globals.h" // g_physics_hz (adaptive blend duration)
 
-#include <stdio.h> // debug logging
 #include <stdint.h> // uint64_t
+#include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
 
 // Set to 1 to log first-capture and free events to stderr for diagnosing
 // "things flicker across the scene for one frame" bugs.
-#define RENDER_INTERP_LOG 1
+#define RENDER_INTERP_LOG 0
 
 float g_render_alpha = 0.0f;
 bool  g_render_interp_enabled = true;
@@ -89,6 +89,28 @@ struct ThingSnap {
     struct GameKeyFrame* blend_old_nf;
     SLONG blend_old_at;
 
+    // Vehicle yaw/tilt/roll. CLASS_VEHICLE stores these in Genus.Vehicle->
+    // Angle/Tilt/Roll (SLONG), separate from Draw.Tweened. Angle is normalised
+    // to [0, 2047] each tick by the vehicle physics; Tilt/Roll typically stay
+    // small around 0 but are not normalised. veh_velr_curr is the post-tick
+    // VelR — used as a direction hint when the per-tick angular delta is
+    // large enough that short-path lerp would otherwise rotate backwards
+    // (issue: very fast spin > 180°/tick).
+    //
+    // veh_ptr_curr caches Genus.Vehicle at the time of capture. The render
+    // frame compares it against the live p->Genus.Vehicle and only applies
+    // when they match. This guards against cutscene scenarios where a slot's
+    // vehicle pointer is rebound between capture and apply (new actor cued
+    // in, slot reused) — applying lerp values from a stale capture against
+    // an unrelated live Vehicle struct, or worse against an invalid pointer
+    // that survived the rebind, would crash.
+    bool  has_vehicle_angles;
+    Vehicle* veh_ptr_curr;
+    SLONG veh_angle_prev, veh_angle_curr;
+    SLONG veh_tilt_prev,  veh_tilt_curr;
+    SLONG veh_roll_prev,  veh_roll_curr;
+    SLONG veh_velr_curr;
+
     // Frame-scope save: live Thing values overwritten by RenderInterpFrame
     // ctor and restored by dtor. applied=false means this entry was not
     // touched this frame and dtor must skip it.
@@ -97,10 +119,14 @@ struct ThingSnap {
     SLONG saved_anim_tween;
     struct GameKeyFrame* saved_current_frame;
     struct GameKeyFrame* saved_next_frame;
+    SLONG saved_veh_angle, saved_veh_tilt, saved_veh_roll;
     bool applied;
     bool anim_tween_applied;  // covers AnimTween + CurrentFrame + NextFrame
                               // override. Skipped on >1-keyframe jumps where
                               // we lack the intermediate pointer history.
+    bool veh_angles_applied;  // set when ctor wrote interpolated values into
+                              // Genus.Vehicle->Angle/Tilt/Roll; tells dtor to
+                              // restore them.
 };
 
 // Cross-anim blend duration (wall-clock ms). Computed adaptively per
@@ -168,6 +194,62 @@ inline SWORD lerp_angle_2048(SWORD a, SWORD b, float t)
     return SWORD(((result % 2048) + 2048) % 2048);
 }
 
+// Same circular 0..2047 lerp but accepting SLONG inputs. Vehicle Tilt/Roll
+// are SLONG and not always normalised — mask to [0, 2047] before short-path.
+inline SLONG lerp_angle_2048_slong(SLONG a, SLONG b, float t)
+{
+    int ai = ((int(a) % 2048) + 2048) % 2048;
+    int bi = ((int(b) % 2048) + 2048) % 2048;
+    int diff = bi - ai;
+    if (diff > 1024) diff -= 2048;
+    else if (diff < -1024) diff += 2048;
+    int result = ai + int(float(diff) * t);
+    return SLONG(((result % 2048) + 2048) % 2048);
+}
+
+// Direction-aware lerp on 0..2047 range. Used for Vehicle->Angle so that
+// very fast spins (>180°/tick) don't render as backwards rotation.
+//
+// Logic:
+//  - Raw diff = (b mod 2048) - (a mod 2048), range [-2047, +2047].
+//  - When |diff| <= 1024: physics rotated by less than half a circle in
+//    the direction matching `diff`. There is no ambiguity, hint is ignored,
+//    and we lerp along `diff` as-is. Critical: a tiny backwards diff
+//    (e.g. -1 from a collision micro-correction) must NOT be flipped to
+//    +2047 just because vel_hint says "forward" — that would lerp the model
+//    almost a full circle forward instead of -1 backward.
+//  - When |diff| > 1024: short-path would pick the opposite-sign wrap (e.g.
+//    diff=+1500 short-paths to -548, diff=-1500 short-paths to +548).
+//    This is the ambiguous case. We prefer the side whose sign matches
+//    `vel_hint`: positive vel_hint -> keep/produce positive diff
+//    (long-path forward), negative -> keep/produce negative.
+//  - vel_hint == 0 (not spinning) is treated as "no preference" -> standard
+//    short-path. Reasonable because if vehicle isn't rotating and |diff|
+//    is suddenly huge, both wraps are equally suspect; short-path
+//    minimises visual artifact.
+//
+// In practice |diff| > 1024 means >180° per physics tick (>10 turns/sec at
+// 20 Hz) — rare for normal driving (VelR caps near KERB_TURN scale ~10
+// units/tick). The hint is mostly a safety net for impact-induced spin.
+inline SLONG lerp_angle_2048_directed(SLONG a, SLONG b, float t, SLONG vel_hint)
+{
+    int ai = ((int(a) % 2048) + 2048) % 2048;
+    int bi = ((int(b) % 2048) + 2048) % 2048;
+    int diff = bi - ai;
+    if (diff > 1024) {
+        // Raw diff is positive-large. Short-path picks (diff - 2048) which
+        // is small-negative. If vel_hint says forward, keep raw long-path;
+        // otherwise use short-path.
+        if (vel_hint <= 0) diff -= 2048;
+    } else if (diff < -1024) {
+        // Raw diff is negative-large. Short-path picks (diff + 2048).
+        if (vel_hint >= 0) diff += 2048;
+    }
+    // |diff| <= 1024: lerp as-is regardless of vel_hint.
+    int result = ai + int(float(diff) * t);
+    return SLONG(((result % 2048) + 2048) % 2048);
+}
+
 // Short-path lerp on a circular 0..(2048*256) range (FC_Cam yaw/pitch/roll
 // units — 1 angle unit = 256 sub-units). Output always in [0, 2048*256).
 constexpr int CAM_ANGLE_FULL = 2048 * 256;
@@ -190,18 +272,51 @@ inline UWORD thing_index(Thing* p_thing)
     return UWORD(p_thing - THINGS);
 }
 
+// Canonical-address sanity check. x86_64 user-mode pointers have bits 47-63
+// all zero (the addressable virtual range is the low 47 bits). Garbage
+// values that survive in snapshot fields (observed pattern in cutscenes:
+// 0xff00007800000000) fail this check before we dereference and crash.
+//
+// This is a belt-and-suspenders guard. Snapshot pointer fields normally
+// contain genuine GameKeyFrame*/Vehicle* allocated from static pools; if
+// one is corrupted by an edge case (slot reuse without proper invalidation,
+// DrawType transition leaving stale prev/curr) the canonicity check skips
+// the dereference instead of segfaulting.
+inline bool render_interp_addr_looks_valid(const void* p)
+{
+    uintptr_t u = reinterpret_cast<uintptr_t>(p);
+    return u != 0 && (u >> 47) == 0;
+}
+
+
 // Tween-based DrawTypes: angles live in Draw.Tweened (SWORD, range 0..2047).
-// Other DrawTypes either store angles elsewhere (Vehicle: Genus.Vehicle->Draw)
-// or have no rotation. For this iteration we interpolate angles only for
-// Tween-based things; vehicle rotation will judder visually until added.
+// ONLY include DrawTypes that actually allocate via alloc_draw_tween() and
+// store a real DrawTween* in Draw.Tweened — otherwise we read DrawMesh
+// (or uninitialised) memory through the union and get garbage in
+// CurrentFrame/NextFrame snapshot fields, which later crashes the AnimTween
+// apply path on a non-canonical pointer.
+//
+// Verified via grep on `p_thing->DrawType = DT_*` and the save/load
+// convert_thing_to_pointer switch in [missions/memory.cpp]:
+//   DT_ROT_MULTI  — person/cop/darci/roper, alloc_draw_tween, real Tweened
+//   DT_ANIM_PRIM  — bat (and animal/bike via memory.cpp), real Tweened
+//   DT_TWEEN      — generic, treated as Tweened in convert path
+//   DT_CHOPPER    — chopper.cpp:85 sets p_thing->Draw.Mesh = dm (DrawMesh!)
+//                   — memory.cpp converts as DT_MESH. NOT a tween. (Was
+//                   incorrectly listed here; investigation root-caused
+//                   the cutscene 0xff... crash on slot=143 chopper to this.)
+//   DT_PYRO       — alloc_pyro never assigns Draw.X; pyro state lives in
+//                   Genus.Pyro. Reading Draw.Tweened gives whatever the
+//                   slot's previous occupant left there. NOT a tween.
+//   DT_VEHICLE    — Genus.Vehicle->Angle/Tilt/Roll — handled separately
+//                   via has_vehicle_angles below.
+//   DT_MESH/DT_BIKE rotators — DrawMesh, not yet covered.
 inline bool draw_type_uses_tween(UBYTE dt)
 {
     switch (dt) {
         case DT_TWEEN:
         case DT_ROT_MULTI:
         case DT_ANIM_PRIM:
-        case DT_PYRO:
-        case DT_CHOPPER:
             return true;
         default:
             return false;
@@ -240,6 +355,7 @@ void render_interp_capture(Thing* p_thing)
 
     ThingSnap& s = g_thing_snaps[idx];
     DrawTween* dt = draw_type_uses_tween(p_thing->DrawType) ? p_thing->Draw.Tweened : nullptr;
+    Vehicle* vp = (p_thing->Class == CLASS_VEHICLE) ? p_thing->Genus.Vehicle : nullptr;
 
     // Detect anim transitions: if MeshID or CurrentAnim changed since last
     // capture, the pose jumped and lerping in the standard tween path
@@ -327,6 +443,20 @@ void render_interp_capture(Thing* p_thing)
         s.frame_index_prev = s.frame_index_curr;
         s.current_frame_prev = s.current_frame_curr;
         s.next_frame_prev = s.next_frame_curr;
+        if (vp) {
+            s.veh_ptr_curr = vp;
+            s.veh_angle_curr = vp->Angle;
+            s.veh_tilt_curr  = vp->Tilt;
+            s.veh_roll_curr  = vp->Roll;
+            s.veh_velr_curr  = vp->VelR;
+            s.veh_angle_prev = s.veh_angle_curr;
+            s.veh_tilt_prev  = s.veh_tilt_curr;
+            s.veh_roll_prev  = s.veh_roll_curr;
+            s.has_vehicle_angles = true;
+        } else {
+            s.has_vehicle_angles = false;
+            s.veh_ptr_curr = nullptr;
+        }
         s.valid = true;
         s.skip_once = false;
         return;
@@ -340,6 +470,9 @@ void render_interp_capture(Thing* p_thing)
     s.frame_index_prev = s.frame_index_curr;
     s.current_frame_prev = s.current_frame_curr;
     s.next_frame_prev = s.next_frame_curr;
+    s.veh_angle_prev = s.veh_angle_curr;
+    s.veh_tilt_prev  = s.veh_tilt_curr;
+    s.veh_roll_prev  = s.veh_roll_curr;
 
     s.pos_curr = p_thing->WorldPos;
     if (dt) {
@@ -354,6 +487,32 @@ void render_interp_capture(Thing* p_thing)
     } else {
         // DrawType changed away from Tween — drop angle interpolation.
         s.has_angles = false;
+    }
+    if (vp) {
+        // Vehicle pointer changed (cutscene rebind, slot's vehicle pool
+        // entry reallocated) — treat as a fresh capture so we don't lerp
+        // across two unrelated Vehicle structs.
+        bool ptr_changed = (s.veh_ptr_curr != vp);
+        s.veh_ptr_curr = vp;
+        s.veh_angle_curr = vp->Angle;
+        s.veh_tilt_curr  = vp->Tilt;
+        s.veh_roll_curr  = vp->Roll;
+        s.veh_velr_curr  = vp->VelR;
+        // First capture as a vehicle (slot was non-vehicle before, or this
+        // is the first tick its vehicle pointer is non-null), or pointer
+        // identity changed — collapse prev=curr so the next render frame
+        // doesn't lerp from stale data.
+        if (!s.has_vehicle_angles || ptr_changed) {
+            s.veh_angle_prev = s.veh_angle_curr;
+            s.veh_tilt_prev  = s.veh_tilt_curr;
+            s.veh_roll_prev  = s.veh_roll_curr;
+            s.has_vehicle_angles = true;
+        }
+    } else {
+        // Class changed away from CLASS_VEHICLE (slot reused). Drop vehicle
+        // angle interpolation; will re-establish on next CLASS_VEHICLE capture.
+        s.has_vehicle_angles = false;
+        s.veh_ptr_curr = nullptr;
     }
 
     if (s.skip_once) {
@@ -461,7 +620,11 @@ void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
     if (idx >= MAX_THINGS) return;
     ThingSnap& s = g_thing_snaps[idx];
     if (!s.blend_active) return;
-    if (!s.blend_old_cf || !s.blend_old_nf) return;
+    // Canonicity check before dereferencing — same defence as the AnimTween
+    // branch in ctor. Stale blend_old_cf/_nf survives slot/state transitions
+    // similarly to current_frame_prev and would crash on FirstElement read.
+    if (!render_interp_addr_looks_valid(s.blend_old_cf)
+        || !render_interp_addr_looks_valid(s.blend_old_nf)) return;
     if (!s.blend_old_cf->FirstElement || !s.blend_old_nf->FirstElement) return;
 
     uint64_t now_ms = sdl3_get_ticks();
@@ -554,8 +717,21 @@ RenderInterpFrame::RenderInterpFrame()
             // The new CurrentFrame is the loop's start frame and prev's
             // NextFrame should point to the same keyframe (loop continuity),
             // so the v=256 boundary lines up visually.
-            bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
-                                 && s.current_frame_prev
+            //
+            // Tightened from "frame_diff != 0 && != 1" to "frame_diff >= 200":
+            // a real loop wrap on an animation with terminal index N produces
+            // UBYTE-wrapped diff = 256 - N, and N is bounded by anim length
+            // (usually 5-50, never close to 200+). frame_diff in [2, 199] is
+            // either an unhandled multi-keyframe-per-tick advance (fall
+            // through, not a loop wrap) OR snapshot corruption (cutscene
+            // edge cases where stale current_frame_prev/curr survive across
+            // a slot/state transition). Either way we should NOT dereference
+            // current_frame_prev — combined with the canonicity check it
+            // protects against crashes like the cutscene access-violation
+            // observed reading a 0xff00007800000000 sentinel out of
+            // current_frame_prev.
+            bool is_loop_wrap = (frame_diff >= 200
+                                 && render_interp_addr_looks_valid(s.current_frame_prev)
                                  && (s.current_frame_prev->Flags & ANIM_FLAG_LAST_FRAME));
             if (frame_diff == 0) {
                 // Backward AnimTween between physics ticks (combat anims
@@ -580,10 +756,13 @@ RenderInterpFrame::RenderInterpFrame()
                 }
                 new_current = s.current_frame_curr;
                 new_next = s.next_frame_curr;
-                apply_anim = (new_current != nullptr && new_next != nullptr);
+                apply_anim = render_interp_addr_looks_valid(new_current)
+                          && render_interp_addr_looks_valid(new_next);
             } else if ((frame_diff == 1 || is_loop_wrap)
-                       && s.current_frame_prev && s.next_frame_prev
-                       && s.current_frame_curr && s.next_frame_curr) {
+                       && render_interp_addr_looks_valid(s.current_frame_prev)
+                       && render_interp_addr_looks_valid(s.next_frame_prev)
+                       && render_interp_addr_looks_valid(s.current_frame_curr)
+                       && render_interp_addr_looks_valid(s.next_frame_curr)) {
                 // Total fractional advancement from prev to curr (unitless,
                 // 256 = one full keyframe). Always > 0 because frame
                 // advanced.
@@ -616,6 +795,42 @@ RenderInterpFrame::RenderInterpFrame()
             // No angle apply; but mark applied so dtor restores position.
             s.has_angles = false;  // local guard for restore path
             s.anim_tween_applied = false;
+        }
+
+        // Vehicle yaw/tilt/roll apply. Independent of the Tween branch above —
+        // CLASS_VEHICLE's DrawType (DT_VEHICLE) is not in draw_type_uses_tween,
+        // so vehicle angles live in Genus.Vehicle->Angle/Tilt/Roll instead of
+        // Draw.Tweened.
+        //
+        // Pointer-identity check: only apply when the live Genus.Vehicle is
+        // the same pointer we cached during capture. Cutscenes can rebind
+        // a slot's vehicle (cue actor in / out, slot reuse) between physics
+        // capture and the next render frame; in that case the captured
+        // angles refer to the previous Vehicle struct and the live pointer
+        // is either a different valid Vehicle or — observed in mission cut-
+        // scene — an uninitialised pointer that survived a partial bind.
+        // Comparing identity skips apply on mismatch (vehicle just renders
+        // without interpolation that frame, no crash).
+        if (s.has_vehicle_angles
+            && p->Class == CLASS_VEHICLE
+            && p->Genus.Vehicle
+            && p->Genus.Vehicle == s.veh_ptr_curr) {
+            Vehicle* v = p->Genus.Vehicle;
+            s.saved_veh_angle = v->Angle;
+            s.saved_veh_tilt  = v->Tilt;
+            s.saved_veh_roll  = v->Roll;
+            // Yaw uses VelR as direction hint so very fast spins (post-impact
+            // cars, debris) don't reverse-rotate from short-path lerp.
+            v->Angle = lerp_angle_2048_directed(s.veh_angle_prev, s.veh_angle_curr,
+                                                alpha, s.veh_velr_curr);
+            // Tilt/Roll have no per-axis angular-velocity counterpart in
+            // Vehicle struct; use plain short-path. Values are typically
+            // small (vehicle leaning) so wraparound is irrelevant in practice.
+            v->Tilt  = lerp_angle_2048_slong(s.veh_tilt_prev, s.veh_tilt_curr, alpha);
+            v->Roll  = lerp_angle_2048_slong(s.veh_roll_prev, s.veh_roll_curr, alpha);
+            s.veh_angles_applied = true;
+        } else {
+            s.veh_angles_applied = false;
         }
 
         s.applied = true;
@@ -678,6 +893,18 @@ RenderInterpFrame::~RenderInterpFrame()
                 dt->NextFrame = s.saved_next_frame;
                 s.anim_tween_applied = false;
             }
+        }
+        // Restore through the same pointer ctor wrote to (cached at capture
+        // time and identity-checked in ctor). Using p->Genus.Vehicle here
+        // would risk restoring into a different Vehicle if the pointer was
+        // somehow rebound after ctor — instead we touch exactly the struct
+        // we modified.
+        if (s.veh_angles_applied && s.veh_ptr_curr) {
+            Vehicle* v = s.veh_ptr_curr;
+            v->Angle = s.saved_veh_angle;
+            v->Tilt  = s.saved_veh_tilt;
+            v->Roll  = s.saved_veh_roll;
+            s.veh_angles_applied = false;
         }
         s.applied = false;
     }

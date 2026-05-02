@@ -72,14 +72,6 @@
 
 ## Известные ограничения (не баги — отсутствие покрытия)
 
-### 3. Поворот машин рывками
-
-**Симптом:** машины на повороте вращаются ступеньками 20 Hz (не плавно), хотя позиция плавная.
-
-**Причина:** угол машин хранится в `Genus.Vehicle->Draw.Angle`, а не в `Draw.Tweened`. Текущая система покрывает только Tween-углы. Нужно расширение на Vehicle.
-
-**Приоритет:** низкий. Заметно только при резких поворотах. См. [`plans.md`](plans.md).
-
 ### 3. Партиклы рывками
 
 **Симптом:** искры, glitter, дым могут двигаться зернисто на 60 Hz рендере.
@@ -100,15 +92,50 @@
 - Угловая скорость > 1024 ед/тик = >180° за 50ms = >3600°/сек = >10 оборотов в секунду
 - Это **очень быстрое** вращение, бывает только при резких физ-импульсах (отлетающие объекты, перевёрнутые машины)
 
-**Возможные решения:**
-- **Хранить знак угловой скорости рядом со снапшотом.** При capture сравнивать prev_angle и текущий angle: если |delta| > 1024 и физика реально крутит дальше (а не меняет направление) — нужно знать это извне. Можно посмотреть на разницу с `prev_prev` и определить тренд, но при 2 точках информации не хватает.
-- **Сохранять угловую скорость как часть состояния физики** — самое чистое решение. Если объект уже хранит `angular_velocity` где-то в Genus-структуре, читать оттуда направление вращения и использовать его для lerp вместо short-path. Если не хранит — добавить.
-- **Выборочное применение** — на медленных вращениях short-path работает корректно, проблема только при быстрых. Можно держать обычный short-path и только для объектов с явной угловой скоростью переключаться на directed lerp.
-- **Просто отключить угловую интерполяцию для таких объектов** (`skip_once` на каждом тике пока скорость > threshold). Лучше дёрганье на 20Hz чем визуальный реверс направления.
+**Решение для CLASS_VEHICLE — закрыто через `Vehicle->VelR` direction hint** (`lerp_angle_2048_directed`). Знак VelR определяет на какой стороне круга идёт `prev → curr`, обходя short-path heuristic. Vehicle снимает Angle/Tilt/Roll своим snapshot веткой (см. [`architecture.md`](architecture.md), `coverage.md`).
 
-**Приоритет:** низкий до подтверждения на практике. Быстрое вращение — короткий эффект (объект быстро остановится), большинство игроков может не заметить. Включить в общую ревизию когда дойдут руки до углов Vehicle (см. [`plans.md`](plans.md)) — там же подумать про angular velocity hint.
+**Для других классов проблема остаётся открытой** в той части где быстро крутящиеся объекты используют Tween-углы (`lerp_angle_2048` short-path). Кандидаты:
+- `CLASS_PROJECTILE` — пули обычно по прямой, угол не критичен.
+- `CLASS_PYRO`, `CLASS_BARREL` — могут быстро крутиться (катящиеся бочки, отлетающие при взрыве). Если станет видимо, нужен angular velocity hint в физике этих классов либо selective skip.
+
+**Возможные решения для оставшихся классов:**
+- **Хранить знак угловой скорости рядом со снапшотом.** Аналогично Vehicle, но требует чтобы класс физически хранил angular velocity где-то в Genus-структуре.
+- **Просто отключить угловую интерполяцию для быстрых объектов** (`skip_once` на каждом тике пока скорость > threshold). Лучше дёрганье на 20Hz чем визуальный реверс направления.
+
+**Приоритет:** низкий до подтверждения на практике. Быстрое вращение — короткий эффект (объект быстро остановится), большинство игроков может не заметить.
 
 ## Закрытые баги
+
+### Crash в катсцене на чтении мусорного `current_frame_prev` (root cause найден)
+
+**Симптом:** ASan access-violation на адресе `0xffffffffffffffff` в `RenderInterpFrame::RenderInterpFrame`, ближе к концу начальной катсцены миссии. Регистры идентичны от запуска к запуску — детерминированный.
+
+**Анализ:** дизассемблирование показало, crash в `is_loop_wrap`:
+```cpp
+bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
+                     && s.current_frame_prev
+                     && (s.current_frame_prev->Flags & ANIM_FLAG_LAST_FRAME));
+```
+`s.current_frame_prev` = `0xff00007800000000` — non-canonical pointer.
+
+**Root cause** (найдено через диагностический лог в `render_interp_capture`):
+- `DT_CHOPPER` (вертолёт) и `DT_PYRO` ошибочно были включены в `draw_type_uses_tween()`.
+- Реально chopper'ы используют `Draw.Mesh` (DrawMesh) — `alloc_chopper` ([chopper.cpp:85](../../../new_game/src/things/vehicles/chopper.cpp#L85)) ставит `p_thing->Draw.Mesh = dm`. Pyro не использует поле `Draw` вообще (state в `Genus.Pyro`).
+- Через union `Draw.Tweened` я читал DrawMesh-память как DrawTween → `dt->CurrentFrame`/`NextFrame` мапились на DrawMesh-поля (UWORD Angle/Roll/Tilt/ObjectId/Cache/Hm) и out-of-bounds в DRAW_MESHES pool.
+- Conclusive evidence: лог показал `slot=143 class=12 (CLASS_CHOPPER) drawtype=11 (DT_CHOPPER)`, и `NextFrame` инкрементировался ровно на `0x20` каждый physics-тик (`0x20 → 0x40 → 0x60 → 0x80`) — это какое-то DrawMesh поле / соседний slot pool, не keyframe pointer.
+- Save/load convert_thing_to_pointer ([memory.cpp:371-373](../../../new_game/src/missions/memory.cpp#L371)) подтверждает: `DT_CHOPPER` идёт в `convert_drawtype_to_pointer(p_thing, DT_MESH)` — официально DrawMesh.
+
+**Фикс:** `DT_PYRO` и `DT_CHOPPER` убраны из `draw_type_uses_tween()`. Эти DrawType теперь не интерполируются в render-interp (как уже было для `DT_VEHICLE` до отдельной ветки). Если потребуется плавность поворотов вертолётов — расширить DrawMesh-ветку аналогично Vehicle.
+
+**Defensive guards остаются** на всякий случай (canonicity check `render_interp_addr_looks_valid`, `is_loop_wrap` сужен до `frame_diff >= 200`) — для других потенциальных edge case'ов которые не угадаешь заранее.
+
+### Поворот машин рывками
+
+**Был:** машины на повороте вращались ступеньками 20 Hz, хотя позиция была плавная. Угол машины хранится в `Genus.Vehicle->Angle/Tilt/Roll` (SLONG), отдельно от `Draw.Tweened`. Прежняя версия системы покрывала только Tween-углы.
+
+**Закрыто:** в `ThingSnap` добавлена отдельная ветка `has_vehicle_angles` + `veh_angle/tilt/roll_prev/curr` + `veh_velr_curr` + `veh_ptr_curr` (cached `Genus.Vehicle`). `render_interp_capture` для CLASS_VEHICLE снимает `Genus.Vehicle->Angle/Tilt/Roll` и `VelR`. `RenderInterpFrame::ctor` подменяет их на интерполированные через `lerp_angle_2048_directed` (Angle, использует знак VelR как direction hint для long-path при быстром вращении) и `lerp_angle_2048_slong` (Tilt/Roll). `dtor` восстанавливает live values. Закрывает также подмножество #4 (short-path при быстром вращении) для CLASS_VEHICLE.
+
+**Pointer-identity guard:** ctor/dtor применяют lerp **только** если `p->Genus.Vehicle == s.veh_ptr_curr` (cached pointer). Был замечен crash в начальной катсцене миссии: между capture и render-frame `Genus.Vehicle` мог быть rebind'нут (slot переиспользован под нового актёра, либо partial bind где Class уже CLASS_VEHICLE а pointer ещё не финализирован). Без identity-check ctor разыменовывал stale/garbage pointer → access violation на `0xffffffffffffffff`. С identity-check mismatched frames просто рендерятся без интерполяции (no crash, no stutter — следующий tick восстановит окно).
 
 ### Camera-body desync
 
