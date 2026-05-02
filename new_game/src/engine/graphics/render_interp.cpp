@@ -15,6 +15,12 @@
 // "things flicker across the scene for one frame" bugs.
 #define RENDER_INTERP_LOG 0
 
+// Diagnostic logging for chasing cutscene-camera cut timing — emits a
+// [render_interp:CUT] line on each physics tick where EWAY_cam_x/y/z/yaw
+// jumps by more than a "smooth motion" threshold (i.e. scene cut, not
+// EWAY between-waypoint sweep). Off by default; flip to 1 to debug.
+#define RENDER_INTERP_DIAG_LOG 0
+
 float g_render_alpha = 0.0f;
 bool  g_render_interp_enabled = true;
 
@@ -190,6 +196,11 @@ struct EwayCamSnap {
     SLONG pitch_prev, pitch_curr;
     SLONG lens_prev, lens_curr;
     bool valid;
+    // Set by the delta-based cut detector inside capture. When true, after
+    // prev/curr have been updated to the post-cut EWAY values, prev is
+    // forced to equal curr — so render frames between this and the next
+    // tick lerp(curr, curr, alpha) = curr, locking the camera at the new
+    // position with no "fly across the cut" interpolation.
     bool skip_once;
 };
 
@@ -673,6 +684,52 @@ void render_interp_capture_eway_camera(void)
     g_eway_cam_snap.yaw_curr = EWAY_cam_yaw;
     g_eway_cam_snap.pitch_curr = EWAY_cam_pitch;
     g_eway_cam_snap.lens_curr = EWAY_cam_lens;
+
+    // Delta-based cut detection. EWAY scripts have multiple cut paths
+    // (conversation swap, scene change via EWAY_create_camera, target
+    // change in EWAY_cam_converse) and not all of them set EWAY_cam_jumped.
+    // Instead of trying to enumerate every cut signal in the script
+    // pipeline, detect cuts by inspecting the per-tick position/yaw delta:
+    // smooth EWAY motion (waypoint-to-waypoint via velocity, or midpoint
+    // tracking of moving speakers) never exceeds a few world units per
+    // tick, while a cut produces tens of thousands of sub-units. Anything
+    // above threshold = cut, collapse prev=curr immediately to prevent
+    // render from lerping across.
+    {
+        SLONG dx = g_eway_cam_snap.x_curr - g_eway_cam_snap.x_prev;
+        SLONG dy = g_eway_cam_snap.y_curr - g_eway_cam_snap.y_prev;
+        SLONG dz = g_eway_cam_snap.z_curr - g_eway_cam_snap.z_prev;
+        SLONG dyaw = g_eway_cam_snap.yaw_curr - g_eway_cam_snap.yaw_prev;
+        // Position threshold ~5m in world coords: smooth EWAY camera
+        // velocity caps far below this per physics tick even at 5 Hz.
+        const SLONG POS_CUT_THRESHOLD = 50000;
+        // Yaw threshold ~30° on the 524288-unit camera angle range.
+        const SLONG YAW_CUT_THRESHOLD = 43690;
+        SLONG dyaw_abs = abs(dyaw);
+        if (dyaw_abs > 524288 / 2) dyaw_abs = 524288 - dyaw_abs;
+        bool is_cut = (abs(dx) > POS_CUT_THRESHOLD
+                    || abs(dy) > POS_CUT_THRESHOLD
+                    || abs(dz) > POS_CUT_THRESHOLD
+                    || dyaw_abs > YAW_CUT_THRESHOLD);
+        if (is_cut) {
+            // prev/curr now both hold the post-cut EWAY values. Collapsing
+            // them below locks the camera at the post-cut position so
+            // render frames between this and the next tick lerp to curr
+            // (no "fly across the cut").
+            g_eway_cam_snap.skip_once = true;
+#if RENDER_INTERP_DIAG_LOG
+            extern SLONG EWAY_cam_jumped;
+            fprintf(stderr,
+                "[render_interp:CUT] auto-detect EWAY cut: dx=%d dy=%d dz=%d dyaw=%d "
+                "EWAY_cam_jumped=%d "
+                "prev_pos=(%d,%d,%d) curr_pos=(%d,%d,%d)\n",
+                dx, dy, dz, dyaw,
+                (int)EWAY_cam_jumped,
+                g_eway_cam_snap.x_prev, g_eway_cam_snap.y_prev, g_eway_cam_snap.z_prev,
+                g_eway_cam_snap.x_curr, g_eway_cam_snap.y_curr, g_eway_cam_snap.z_curr);
+#endif
+        }
+    }
 
     if (g_eway_cam_snap.skip_once) {
         g_eway_cam_snap.x_prev = g_eway_cam_snap.x_curr;

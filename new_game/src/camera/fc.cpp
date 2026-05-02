@@ -847,6 +847,11 @@ void FC_process()
             } else {
                 FC_setup_initial_camera(cam);
             }
+            // FC_cam was just hard-snapped to a new position — collapse
+            // render-interp prev=curr so the renderer doesn't lerp across
+            // the warehouse boundary jump.
+            extern void render_interp_mark_camera_teleport(FC_Cam*);
+            render_interp_mark_camera_teleport(fc);
         }
 
         // lookabove: height the camera looks above the focus.

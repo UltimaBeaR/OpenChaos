@@ -3013,6 +3013,9 @@ void EWAY_process_conversation(void)
         // Swap who's talking for next line.
         SWAP(EWAY_conv_person_a, EWAY_conv_person_b);
         EWAY_cam_jumped = 10;
+        // (render-interp uses delta-based cut detection on the EWAY camera
+        // snapshot — see render_interp_capture_eway_camera. No explicit
+        // teleport-mark needed here.)
     }
 
     // If either person gets attacked, knocked over, or otherwise disrupted, abort.

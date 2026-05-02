@@ -106,6 +106,12 @@
 
 ## Закрытые баги
 
+### Кажущаяся дёрганость анимаций персонажей в катсценах
+
+**Был:** в in-game катсценах казалось что анимации персонажей дёрганые. На разных моментах разных катсцен по-разному.
+
+**Закрыто (наблюдение):** после фикса дёрганости EWAY камеры (см. ниже) кажущаяся дёрганость анимаций тоже исчезла. Скорее всего восприятие было одно — резкие cut'ы / дёрги камеры визуально портили ощущение от анимаций. Сами анимационные пути (AnimTween, FC_cam tracking) на персонажей-актёров в катсцене работали корректно изначально. Если баг всё-таки проявится в специфических сценах — открыть заново с конкретным репро.
+
 ### Дёрганость камеры в in-game катсценах (EWAY)
 
 **Симптом:** в любой in-game катсцене (EWAY scripts — начало миссии, диалоговые сцены) камера двигается ступеньками на physics rate (20 Hz), несмотря на `IP: on` в overlay. Toggle 3 (g_render_interp_enabled) на симптом не влиял. В обычном геймплее player-camera при этом интерполировалась корректно.
@@ -122,6 +128,10 @@
 5. **Не трогаем** другие места `EWAY_grab_camera`: `fc.cpp:1365` (camera physics), `input_actions.cpp:1389` (input — должен видеть real state), `game.cpp:791` (audio listener — interp lag не подходит для звука).
 
 После фикса toggle 3 в катсцене работает, камера плавная.
+
+**Cut detection (резкие переходы между сценами):** internal катсцены содержат cut'ы (смена waypoint'а / scene → scene → переключение говорящего в conversation). Без обработки render lerp плавно «пролетает» камеру через cut за 50ms — выглядит как медленный sweep между сценами вместо мгновенного переключения. EWAY-script использует разные пути для cut (signal `EWAY_cam_jumped = 10` ставится не во всех случаях — например, не ставится в `EWAY_create_camera` или `EWAY_cam_converse`-target-change), так что enumeration manual mark-точек хрупкое.
+
+Решение — **delta-based auto-detect** в `render_interp_capture_eway_camera`: после обновления prev/curr считаем дельту между ними. Smooth EWAY motion (waypoint chase via velocity, midpoint двух speakers) физически не превышает несколько world units за physics tick, тогда как cut даёт 50000+ sub-units (≈5m+) или >30° по yaw. Если delta превышает threshold — `skip_once = true`, и в этом же capture prev копируется в curr → render frames между этим тиком и следующим лерпят `lerp(curr, curr, alpha) = curr` (камера зафиксирована на post-cut позиции). Cut виден на экране как hard transition между двумя render frames, без интерполяционного «полёта». Threshold'ы (5m / 30°) с большим запасом над максимальной скоростью smooth-EWAY motion на 5Hz physics; false-positive не наблюдается на практике.
 
 **Симптом:** ASan access-violation на адресе `0xffffffffffffffff` в `RenderInterpFrame::RenderInterpFrame`, ближе к концу начальной катсцены миссии. Регистры идентичны от запуска к запуску — детерминированный.
 
