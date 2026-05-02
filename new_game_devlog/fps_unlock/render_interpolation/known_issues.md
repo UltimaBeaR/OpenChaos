@@ -60,6 +60,10 @@
 - Two-phase blend (сначала cross-fade на frozen new, в конце catchup до live).
 - Доработка underлying anim/physics код чтобы не было `AnimTween = -twist` или подобных AT-as-parameter трюков.
 
+**2026-05-03 — гипотеза о root cause** (Phase 0 проверка [`world_pose_snapshot_plan.md`](world_pose_snapshot_plan.md)):
+Дебаг-визуализация ROOT (raw `Thing.WorldPos`) показала что во время прыжков root **снапит** на стыках фаз прыжка (jump-up → fall → land). Текущая интерполяция linearly lerp'ит pos через эти снапы, что и даёт visible jerk. На 20 Hz физики костыли частично замаскировали; на 5 Hz баги остаются.
+World-pose snapshot (Phase 1+ в `world_pose_snapshot_plan.md`) должен закрыть это автоматически: snapshot захватывает **видимый** pelvis world position (= `WorldPos + R · bone_local`), который через cancel-out остаётся плавным даже когда WorldPos снапит. Render видит smooth target вместо discrete snap'ов. Все 4 направления выше (per-body-part lerp, selective blend disable, two-phase blend, AT cleanup) → станут не нужны.
+
 ### 2a. Регресс инпута комбо-ударов — открыт
 
 **Симптом:** при комбо ударов нажатия как будто плохо регистрируются — последовательные нажатия могут не срабатывать. До недавних изменений (в render_interp / fps_unlock в целом) такого не было.

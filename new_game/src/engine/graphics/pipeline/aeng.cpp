@@ -4039,6 +4039,50 @@ void AENG_draw_city()
                                     UC_TRUE,
                                     PCOM_person_state_debug(p_thing));
                             }
+
+                            // Phase 0 debug for world-pose-snapshot work (see
+                            // new_game_devlog/fps_unlock/render_interpolation/
+                            // world_pose_snapshot_plan.md). Always-on labels:
+                            //   "PEL"      — visible pelvis world position
+                            //                (= WorldPos + R(angles) * bone_local).
+                            //                Smooth anchor candidate for snapshot.
+                            //   "_____ROOT" — raw Thing.WorldPos. Snaps during
+                            //                anim-cycle wraps; reference point.
+                            // Both labels share per-character colour so they're
+                            // easy to associate. TODO: remove after Phase 0.
+                            {
+                                SLONG ppx, ppy, ppz;
+                                calc_sub_objects_position(
+                                    p_thing,
+                                    p_thing->Draw.Tweened->AnimTween,
+                                    SUB_OBJECT_PELVIS,
+                                    &ppx, &ppy, &ppz);
+                                ppx += p_thing->WorldPos.X >> 8;
+                                ppy += p_thing->WorldPos.Y >> 8;
+                                ppz += p_thing->WorldPos.Z >> 8;
+
+                                UBYTE pel_r, pel_b, pel_g;
+                                if (p_thing->Genus.Person->PlayerID) {
+                                    pel_r = 255; pel_b = 255; pel_g = 255;
+                                } else {
+                                    UWORD pel_idx = (UWORD)(p_thing - THINGS);
+                                    pel_r = (UBYTE)(((pel_idx * 37)  & 0x7f) + 0x80);
+                                    pel_b = (UBYTE)(((pel_idx * 67)  & 0x7f) + 0x80);
+                                    pel_g = (UBYTE)(((pel_idx * 113) & 0x7f) + 0x80);
+                                }
+                                AENG_world_text(
+                                    ppx, ppy, ppz,
+                                    pel_r, pel_b, pel_g,
+                                    UC_TRUE,
+                                    (CBYTE*)"PEL");
+                                AENG_world_text(
+                                    p_thing->WorldPos.X >> 8,
+                                    p_thing->WorldPos.Y >> 8,
+                                    p_thing->WorldPos.Z >> 8,
+                                    pel_r, pel_b, pel_g,
+                                    UC_TRUE,
+                                    (CBYTE*)"_____ROOT");
+                            }
                         }
 
                             if (p_thing->State == STATE_DEAD) {
@@ -5330,6 +5374,50 @@ void AENG_draw_warehouse()
                                 50,
                                 UC_TRUE,
                                 PCOM_person_state_debug(p_thing));
+                        }
+
+                        // Phase 0 debug for world-pose-snapshot work (see
+                        // new_game_devlog/fps_unlock/render_interpolation/
+                        // world_pose_snapshot_plan.md). Always-on labels:
+                        //   "PEL"      — visible pelvis world position
+                        //                (= WorldPos + R(angles) * bone_local).
+                        //                Smooth anchor candidate for snapshot.
+                        //   "_____ROOT" — raw Thing.WorldPos. Snaps during
+                        //                anim-cycle wraps; reference point.
+                        // Both labels share per-character colour so they're
+                        // easy to associate. TODO: remove after Phase 0.
+                        {
+                            SLONG ppx, ppy, ppz;
+                            calc_sub_objects_position(
+                                p_thing,
+                                p_thing->Draw.Tweened->AnimTween,
+                                SUB_OBJECT_PELVIS,
+                                &ppx, &ppy, &ppz);
+                            ppx += p_thing->WorldPos.X >> 8;
+                            ppy += p_thing->WorldPos.Y >> 8;
+                            ppz += p_thing->WorldPos.Z >> 8;
+
+                            UBYTE pel_r, pel_b, pel_g;
+                            if (p_thing->Genus.Person->PlayerID) {
+                                pel_r = 255; pel_b = 255; pel_g = 255;
+                            } else {
+                                UWORD pel_idx = (UWORD)(p_thing - THINGS);
+                                pel_r = (UBYTE)(((pel_idx * 37)  & 0x7f) + 0x80);
+                                pel_b = (UBYTE)(((pel_idx * 67)  & 0x7f) + 0x80);
+                                pel_g = (UBYTE)(((pel_idx * 113) & 0x7f) + 0x80);
+                            }
+                            AENG_world_text(
+                                ppx, ppy, ppz,
+                                pel_r, pel_b, pel_g,
+                                UC_TRUE,
+                                (CBYTE*)"PEL");
+                            AENG_world_text(
+                                p_thing->WorldPos.X >> 8,
+                                p_thing->WorldPos.Y >> 8,
+                                p_thing->WorldPos.Z >> 8,
+                                pel_r, pel_b, pel_g,
+                                UC_TRUE,
+                                (CBYTE*)"_____ROOT");
                         }
 
                         if ((p_thing->State == STATE_DEAD) && (p_thing->Genus.Person->Timer1 > 10)) {
