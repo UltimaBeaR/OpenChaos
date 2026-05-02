@@ -1,4 +1,5 @@
 #include "engine/graphics/render_interp.h"
+#include "debug_interpolation_config.h"
 
 #include "things/core/thing.h"
 #include "things/core/drawtype.h"
@@ -884,6 +885,7 @@ bool render_interp_apply_eway_camera(
     SLONG* cam_lens)
 {
     if (!g_render_interp_enabled || !g_eway_cam_snap.valid) return false;
+    if constexpr (!ri_cfg::INTERP_EWAY_CAM) return false;
     const float alpha = g_render_alpha;
     if (cam_x)     *cam_x = lerp_i32(g_eway_cam_snap.x_prev, g_eway_cam_snap.x_curr, alpha);
     if (cam_y)     *cam_y = lerp_i32(g_eway_cam_snap.y_prev, g_eway_cam_snap.y_curr, alpha);
@@ -954,6 +956,7 @@ void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
     out->old_tween = 0;
     out->blend_t = 0.0f;
     if (!p_thing || !g_render_interp_enabled) return;
+    if constexpr (!ri_cfg::INTERP_THING_CROSS_ANIM_BLEND) return;
 
     UWORD idx = thing_index(p_thing);
     if (idx >= MAX_THINGS) return;
@@ -998,27 +1001,22 @@ RenderInterpFrame::RenderInterpFrame()
         if (p->Class == CLASS_NONE) { s.applied = false; continue; }
 
         s.saved_pos = p->WorldPos;
-        p->WorldPos.X = lerp_i32(s.pos_prev.X, s.pos_curr.X, alpha);
-        p->WorldPos.Y = lerp_i32(s.pos_prev.Y, s.pos_curr.Y, alpha);
-        p->WorldPos.Z = lerp_i32(s.pos_prev.Z, s.pos_curr.Z, alpha);
-
-        // Note: an earlier iteration also lerped WorldPos from
-        // s.blend_old_pos (frozen at transition) to the live lerped pos
-        // over the blend window, hoping to fix the "feet under ground"
-        // artifact at jump→land. That backfired on continuous-motion
-        // transitions (run→sprint): the visual speed ramps from 0 to 2v
-        // during blend then snaps to v after — produces a body-stutter
-        // rывок. Live pos here is correct; the per-body-part pose blend
-        // in figure.cpp is what handles cross-anim smoothing.
+        if constexpr (ri_cfg::INTERP_THING_POS) {
+            p->WorldPos.X = lerp_i32(s.pos_prev.X, s.pos_curr.X, alpha);
+            p->WorldPos.Y = lerp_i32(s.pos_prev.Y, s.pos_curr.Y, alpha);
+            p->WorldPos.Z = lerp_i32(s.pos_prev.Z, s.pos_curr.Z, alpha);
+        }
 
         if (s.has_angles && draw_type_uses_tween(p->DrawType) && p->Draw.Tweened) {
             DrawTween* dt = p->Draw.Tweened;
             s.saved_angle = dt->Angle;
             s.saved_tilt = dt->Tilt;
             s.saved_roll = dt->Roll;
-            dt->Angle = lerp_angle_2048(s.angle_prev, s.angle_curr, alpha);
-            dt->Tilt  = lerp_angle_2048(s.tilt_prev,  s.tilt_curr,  alpha);
-            dt->Roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
+            if constexpr (ri_cfg::INTERP_THING_TWEEN_ANGLE) {
+                dt->Angle = lerp_angle_2048(s.angle_prev, s.angle_curr, alpha);
+                dt->Tilt  = lerp_angle_2048(s.tilt_prev,  s.tilt_curr,  alpha);
+                dt->Roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
+            }
 
             // Cross-anim blend now operates per-body-part inside figure.cpp's
             // morph functions (queried via render_interp_get_blend). We just
@@ -1119,7 +1117,7 @@ RenderInterpFrame::RenderInterpFrame()
                 apply_anim = true;
             }
 
-            if (apply_anim) {
+            if (apply_anim && ri_cfg::INTERP_THING_ANIM_MORPH) {
                 s.saved_anim_tween = dt->AnimTween;
                 s.saved_current_frame = dt->CurrentFrame;
                 s.saved_next_frame = dt->NextFrame;
@@ -1158,15 +1156,17 @@ RenderInterpFrame::RenderInterpFrame()
             s.saved_veh_angle = v->Angle;
             s.saved_veh_tilt  = v->Tilt;
             s.saved_veh_roll  = v->Roll;
-            // Yaw uses VelR as direction hint so very fast spins (post-impact
-            // cars, debris) don't reverse-rotate from short-path lerp.
-            v->Angle = lerp_angle_2048_directed(s.veh_angle_prev, s.veh_angle_curr,
-                                                alpha, s.veh_velr_curr);
-            // Tilt/Roll have no per-axis angular-velocity counterpart in
-            // Vehicle struct; use plain short-path. Values are typically
-            // small (vehicle leaning) so wraparound is irrelevant in practice.
-            v->Tilt  = lerp_angle_2048_slong(s.veh_tilt_prev, s.veh_tilt_curr, alpha);
-            v->Roll  = lerp_angle_2048_slong(s.veh_roll_prev, s.veh_roll_curr, alpha);
+            if constexpr (ri_cfg::INTERP_VEHICLE_ANGLE) {
+                // Yaw uses VelR as direction hint so very fast spins (post-impact
+                // cars, debris) don't reverse-rotate from short-path lerp.
+                v->Angle = lerp_angle_2048_directed(s.veh_angle_prev, s.veh_angle_curr,
+                                                    alpha, s.veh_velr_curr);
+                // Tilt/Roll have no per-axis angular-velocity counterpart in
+                // Vehicle struct; use plain short-path. Values are typically
+                // small (vehicle leaning) so wraparound is irrelevant in practice.
+                v->Tilt  = lerp_angle_2048_slong(s.veh_tilt_prev, s.veh_tilt_curr, alpha);
+                v->Roll  = lerp_angle_2048_slong(s.veh_roll_prev, s.veh_roll_curr, alpha);
+            }
             s.veh_angles_applied = true;
         } else {
             s.veh_angles_applied = false;
@@ -1188,12 +1188,14 @@ RenderInterpFrame::RenderInterpFrame()
         s.saved_pitch = fc->pitch;
         s.saved_roll = fc->roll;
 
-        fc->x     = lerp_i32(s.x_prev, s.x_curr, alpha);
-        fc->y     = lerp_i32(s.y_prev, s.y_curr, alpha);
-        fc->z     = lerp_i32(s.z_prev, s.z_curr, alpha);
-        fc->yaw   = lerp_angle_cam(s.yaw_prev,   s.yaw_curr,   alpha);
-        fc->pitch = lerp_angle_cam(s.pitch_prev, s.pitch_curr, alpha);
-        fc->roll  = lerp_angle_cam(s.roll_prev,  s.roll_curr,  alpha);
+        if constexpr (ri_cfg::INTERP_FC_CAM) {
+            fc->x     = lerp_i32(s.x_prev, s.x_curr, alpha);
+            fc->y     = lerp_i32(s.y_prev, s.y_curr, alpha);
+            fc->z     = lerp_i32(s.z_prev, s.z_curr, alpha);
+            fc->yaw   = lerp_angle_cam(s.yaw_prev,   s.yaw_curr,   alpha);
+            fc->pitch = lerp_angle_cam(s.pitch_prev, s.pitch_curr, alpha);
+            fc->roll  = lerp_angle_cam(s.roll_prev,  s.roll_curr,  alpha);
+        }
 
         s.applied = true;
     }
@@ -1201,30 +1203,35 @@ RenderInterpFrame::RenderInterpFrame()
     // DIRT pool (leaves, brass, cans, blood, etc). 1024 slots, most usually
     // UNUSED — early skip on those keeps the loop cheap. valid=true active
     // slots get pos+angles substituted for the duration of the render frame.
-    for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
-        DirtSnap& s = g_dirt_snaps[i];
-        if (!s.valid) { s.applied = false; continue; }
+    if constexpr (ri_cfg::INTERP_DIRT) {
+        for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
+            DirtSnap& s = g_dirt_snaps[i];
+            if (!s.valid) { s.applied = false; continue; }
 
-        DIRT_Dirt& d = DIRT_dirt[i];
-        // Defensive: if the slot got freed since capture (DIRT_process this
-        // frame already ran, but we are between physics ticks here), skip.
-        if (d.type == DIRT_TYPE_UNUSED) { s.applied = false; continue; }
+            DIRT_Dirt& d = DIRT_dirt[i];
+            // Defensive: if the slot got freed since capture (DIRT_process this
+            // frame already ran, but we are between physics ticks here), skip.
+            if (d.type == DIRT_TYPE_UNUSED) { s.applied = false; continue; }
 
-        s.saved_x = d.x;
-        s.saved_y = d.y;
-        s.saved_z = d.z;
-        s.saved_yaw = d.yaw;
-        s.saved_pitch = d.pitch;
-        s.saved_roll = d.roll;
+            s.saved_x = d.x;
+            s.saved_y = d.y;
+            s.saved_z = d.z;
+            s.saved_yaw = d.yaw;
+            s.saved_pitch = d.pitch;
+            s.saved_roll = d.roll;
 
-        d.x = lerp_i16(s.x_prev, s.x_curr, alpha);
-        d.y = lerp_i16(s.y_prev, s.y_curr, alpha);
-        d.z = lerp_i16(s.z_prev, s.z_curr, alpha);
-        d.yaw   = lerp_angle_2048(s.yaw_prev,   s.yaw_curr,   alpha);
-        d.pitch = lerp_angle_2048(s.pitch_prev, s.pitch_curr, alpha);
-        d.roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
+            d.x = lerp_i16(s.x_prev, s.x_curr, alpha);
+            d.y = lerp_i16(s.y_prev, s.y_curr, alpha);
+            d.z = lerp_i16(s.z_prev, s.z_curr, alpha);
+            d.yaw   = lerp_angle_2048(s.yaw_prev,   s.yaw_curr,   alpha);
+            d.pitch = lerp_angle_2048(s.pitch_prev, s.pitch_curr, alpha);
+            d.roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
 
-        s.applied = true;
+            s.applied = true;
+        }
+    } else {
+        // Mark all snaps as not-applied so dtor doesn't try to restore.
+        for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i].applied = false;
     }
 }
 

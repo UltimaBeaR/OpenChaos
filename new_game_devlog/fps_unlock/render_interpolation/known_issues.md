@@ -92,6 +92,25 @@
 
 **Приоритет:** средний — заметно на каждом приземлении, прыжке, переходе в combat.
 
+### 2c. Дёрганые анимации Дарси на лестнице (вверх редко, вниз почти постоянно) — открыт
+
+**Симптом:** проявляется только при включённой интерполяции (`g_render_interp_enabled = true`, IP: on). При карабкании Дарси по лестнице:
+- **Вверх:** иногда (не на каждый шаг) verхняя часть модели резко дёргается куда-то и возвращается. Выглядит как 1-кадровый артефакт.
+- **Вниз:** почти **постоянное** "тяжёлое" дёргание туда-сюда — анимация конечностей рывками, не плавно. Существенно более выражено чем на подъёме.
+
+При выключенной интерполяции (toggle 3) — анимация лестницы работает корректно (дискретно на physics rate, без artifact'ов). Значит баг в интерполяции, не в самом ladder state-handler'е.
+
+**Гипотеза:** state-handler лестницы (вероятно `STATE_USE_SCENERY` substate ladder, либо отдельный `SUB_STATE_LADDER_*`) **дискретно перепозиционирует** Дарси на каждом step (snap-to-rung) или меняет **AnimTween** нелинейно (e.g. AnimTween reset to 0 на каждом step + immediate large advance к ~256). Intra-anim AnimTween jumps уже частично закрыты `snap-on-any-backward` (см. баг #2 / closed combat AnimTween fixes), но ladder-down может иметь специфические forward jumps которые тоже дают visual mush после lerp'а.
+
+Возможные конкретные кандидаты:
+- **AnimTween reset на каждый rung step:** ladder-down anim проигрывается incrementally, и каждый rung — full anim cycle (`FrameIndex` wraps to 0). Loop-wrap detection в render-interp есть, но если wrap случается чаще чем раз в N тиков, multi-keyframe-per-tick path не отрабатывает (известно из architecture, "Случай 4: FrameIndex продвинулся больше чем на 1 за тик — пропускаем").
+- **Position snap к ladder rungs:** если каждый physics tick body snaps к next rung position, а render lерпит между snaps — видно "ездит" между rungs.
+- **Cross-anim transition spam:** если ladder-down меняет MeshID/CurrentAnim каждые N тиков, anim-transition детектор каждый раз ставит `skip_once` + cross-anim blend window открывается и закрывается часто — может дать дёрганый blend.
+
+**Что нужно:** воспроизвести с RENDER_INTERP_LOG=1, посмотреть что доминирует — `ANIM_TRANS` спам, `BIG_ANGLE_DELTA`, `BIG_DELTA` (pos), либо AnimTween jumps. На ladder-down эффект сильнее → корреляция с rung step direction. По данным решить: добавить snap-on-large-AnimTween-jump аналогично snap-on-backward, либо collapse position на anim transition (см. также bug 2b/2c обсуждение conditional collapse).
+
+**Приоритет:** средний — лестницы используются нечасто, но когда используются — заметно.
+
 ## Известные ограничения (не баги — отсутствие покрытия)
 
 ### 3. Партиклы рывками
