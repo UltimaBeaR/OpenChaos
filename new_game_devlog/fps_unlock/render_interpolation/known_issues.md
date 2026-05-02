@@ -181,3 +181,33 @@ bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
 **Закрыто:** hook `render_interp_invalidate(t_thing)` в `free_thing`. Snapshot обнуляется при освобождении slot'а. Первый capture нового жильца идёт по ветке `!valid` → `prev=curr=current`.
 
 Однако этот фикс **не закрыл** «мельтешащих педестрианов» — это другой кейс (см. баг 1 выше).
+
+### Машины и педестрианы летели через всю карту (PCOM wander-recycle teleports)
+
+**Симптом:** в in-game катсценах (особенно RTA intro) и в обычном геймплее с активным трафиком — машины с пассажирами и пешеходы периодически дёргаются мгновенным полётом через всю карту за один физ-тик. Render-interp линейно лерпит pos между двумя несвязанными точками в течение тика → визуально модель проносится через всё игровое пространство и оседает на новом месте.
+
+**Root cause (`pcom.cpp`):** Urban Chaos использует **wander recycle** — когда NPC (driver/passenger или pedestrian) уходит за `DRAW_DIST` и не виден игроку (`!FLAGS_IN_VIEW`) дольше определённого времени, он переселяется на новый wander-point рядом с Darci через семейство `WAND_find_*` функций. Это позволяет городу всегда казаться населённым без бесконечного спавна. NPC + его машина (если есть) переcпавниваются мгновенно. Render-interp видит огромный `pos_prev → pos_curr` и lerp'ит между ними весь тик.
+
+Подтверждение: bracket-trace через `process_things` показал что все `BIG_DELTA` события `|d| ≈ 1M-5M sub-units` происходят **внутри `PCOM_process_person`** (не в EWAY как казалось изначально). Парные `slot=N (PERSON) + slot=N+1 (VEHICLE)` объясняются тем что passenger и его car telep'ятся вместе.
+
+**Фикс — `render_interp_mark_teleport(thing)` сразу после каждого WorldPos write в pcom.cpp:**
+
+1. [`pcom.cpp:707`](../../../new_game/src/ai/pcom.cpp) — общий person teleport (с гейтом `dont_teleport` capping distance к 0x5000, но безгейтовый путь не cap'ит).
+2. [`pcom.cpp:4211/4215/4217`](../../../new_game/src/ai/pcom.cpp) — `FLAG2_PERSON_FAKE_WANDER` traffic recycle через `WAND_find_good_start_point_for_car`. **Главный источник** наблюдавшегося jitter'а в RTA intro. Mark на vehicle и passenger.
+3. [`pcom.cpp:4258`](../../../new_game/src/ai/pcom.cpp) — vehicle end-of-road recycle через `ROAD_find_me_somewhere_to_appear`. Mark на vehicle и driver.
+4. [`pcom.cpp:4499`](../../../new_game/src/ai/pcom.cpp) — pedestrian respawn через `WAND_find_good_start_point` (KO/helpless/arrested cleanup).
+5. [`pcom.cpp:6267`](../../../new_game/src/ai/pcom.cpp) — `PCOM_teleport_home` (явное "go home").
+
+**Дополнительно — превентивный фикс в EWAY** ([`eway.cpp`](../../../new_game/src/missions/eway.cpp)):
+- `EWAY_DO_CREATE_ENEMY` end-handler — telep актёра off-stage в `(0x8000, _, 0x8000)` после remove_thing_from_map.
+- `EWAY_DO_MOVE_THING` — scene-transition move, обе ветки (on-map / off-map). В наблюдавшейся катсцене не triggered, но семантически тоже teleport.
+
+**Также исправлен сам `render_interp_mark_teleport`** ([`render_interp.cpp`](../../../new_game/src/engine/graphics/render_interp.cpp)): раньше она ставила `s.skip_once = true`, но `skip_once` collapse'ит **только** anim-keyframe поля (AnimTween, FrameIndex, CurrentFrame, NextFrame) и **не** collapse'ит pos/angles — это специально, потому что тот же флаг переиспользуется anim-transition детектором, где pose меняется но WorldPos должен продолжать лерпиться. Для настоящего teleport'а нужен полный wipe → теперь `mark_teleport` делегирует `render_interp_invalidate` (полный сброс snapshot'а; на следующем capture идёт `!valid` ветка которая ставит `prev=curr=current`).
+
+**Подтверждено пользователем 2026-05-02:** машины и пешеходы перестали летать через карту в RTA intro и в обычном геймплее.
+
+**Не закрыто** этим фиксом (отдельные кейсы для будущих итераций):
+- spawn-stale (см. баг 1, "Мельтешащие педестрианы") — alloc Thing в slot → physics-tick capture со stale WorldPos от прошлого жильца → caller выставляет настоящую WorldPos позже → следующий tick видит большую дельту. Не PCOM-driven, baseline pre-release bug.
+- Vehicle slot reuse без `free_thing` (`THING_kill` no-op для CLASS_VEHICLE) — теоретический, на практике не наблюдался.
+
+**Diagnostic infrastructure:** `RENDER_INTERP_LOG` флаг (default 0) в `render_interp.cpp` пишет в stderr.log события CLASS_CHG / VEH_REBIND / FIRST_CAPTURE / BIG_DELTA для post-mortem анализа. Поднимать на 1 при поиске новых кейсов teleport'а — паттерн "BIG_DELTA в одном и том же slot повторяющийся" указывает на recycle-mechanism, "CLASS_CHG" указывает на slot reuse без proper invalidate.

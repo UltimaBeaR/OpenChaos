@@ -236,7 +236,7 @@ Short-path: интерполяция идёт по короткой сторон
 ### Invalidation (вызывается извне)
 
 - `void render_interp_invalidate(Thing*)` — обнулить snapshot. Сейчас: hook на `free_thing` (slot reuse). Может вызываться в любой момент когда thing «начинает новую жизнь».
-- `void render_interp_mark_teleport(Thing*)` — на следующем capture сделать `prev=curr`. Использовать при явном телепорте без смены MeshID/CurrentAnim. **Сейчас нигде не вызывается** — зарезервирована.
+- `void render_interp_mark_teleport(Thing*)` — полный сброс snapshot'а thing'а через `render_interp_invalidate`. На следующем capture идёт `!valid` ветка, prev=curr=current — никакого лерпа через teleport. Используется в EWAY-обработчиках которые двигают actors / vehicles между сценами катсцены ([`eway.cpp`](../../../new_game/src/missions/eway.cpp) — `EWAY_DO_CREATE_ENEMY`, `EWAY_DO_MOVE_THING`). **Важно:** ранее реализация была через `s.skip_once = true`, но `skip_once` collapse'ит только anim-keyframe поля (AnimTween, FrameIndex, CurrentFrame, NextFrame) и НЕ collapse'ит pos/angles — это специально, потому что тот же флаг переиспользуется anim-transition детектором, где pose меняется но WorldPos должен продолжать лерпиться. Для настоящего teleport'а нужен полный wipe → invalidate.
 - `void render_interp_mark_camera_teleport(FC_Cam*)` — то же для камеры. **Сейчас нигде не вызывается**.
 - `void render_interp_reset(void)` — обнулить всё. Вызывается перед main loop в `game_loop()`.
 

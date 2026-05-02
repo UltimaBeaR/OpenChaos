@@ -10,9 +10,34 @@
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
+#include <stdlib.h> // abs — Manhattan distance for diagnostic delta detector
 
-// Set to 1 to log first-capture and free events to stderr for diagnosing
-// "things flicker across the scene for one frame" bugs.
+// Set to 1 to write slot-reuse / teleport-class events to stderr (which
+// the Makefile redirects to stderr.log next to the exe). Default 0 —
+// flip to 1 only when chasing a specific "object teleports across the map
+// for one frame" bug, then revert. Output is post-mortem only (no
+// on-screen overlay) so the noise stays out of normal play.
+//
+// Events logged:
+//   FIRST_CAPTURE slot=N class=C dt=D pos=(X,Y,Z) t=T
+//     First capture into a snapshot slot after reset/invalidate. Useful
+//     to correlate with subsequent BIG_DELTA in the same slot.
+//   CLASS_CHG slot=N old=C1 new=C2 dt=D t=T
+//     Slot held one Class last tick, holds another now. Strongest signal
+//     of slot reuse without free_thing — previous occupant's snapshot
+//     data is almost certainly stale.
+//   VEH_REBIND slot=N old=ptr new=ptr t=T
+//     CLASS_VEHICLE slot's Genus.Vehicle pointer changed. VEH_alloc
+//     returned a different Vehicle struct — new car in the same Thing
+//     slot.
+//   BIG_DELTA slot=N class=C dt=D from=(...) to=(...) |d|=N t=T
+//     Manhattan distance between snap.prev and snap.curr WorldPos exceeds
+//     RI_BIG_DELTA_THRESHOLD. Per-tick threshold deliberately set above
+//     fast-vehicle motion at 5 Hz physics so legitimate movement rarely
+//     trips. Diagnostic only — fixes go at the source code path that
+//     causes the jump (mark_teleport at the WorldPos write), not as a
+//     threshold gate here (false-negative risk when stale prev happens
+//     to be near the new curr for dense spawn ensembles in cutscenes).
 #define RENDER_INTERP_LOG 0
 
 // Diagnostic logging for chasing cutscene-camera cut timing — emits a
@@ -41,6 +66,14 @@ struct ThingSnap {
     // converted into skip_once.
     UBYTE last_mesh_id;
     SLONG last_anim;
+
+    // Class observed at the previous capture. Used by RENDER_INTERP_LOG
+    // diagnostics to detect Thing slot reuse (e.g. CLASS_VEHICLE car
+    // despawn → CLASS_PERSON spawn into the same slot). Slot reuse for
+    // vehicles bypasses free_thing (THING_kill is a no-op for
+    // CLASS_VEHICLE), so render_interp_invalidate is never hit and the
+    // previous occupant's snapshot lingers.
+    UBYTE last_seen_class;
 
     // Vertex-morph fraction (Draw.Tweened->AnimTween, range [0, 256)) plus
     // the morph-endpoint keyframe pointers it indexes. AnimTween is advanced
@@ -386,6 +419,15 @@ void render_interp_reset(void)
     g_eway_cam_snap = {};
 }
 
+// Manhattan-distance threshold for "WorldPos jumped a lot in one tick".
+// Diagnostic only — see RENDER_INTERP_LOG comment. World coords are sub-units
+// of inches (256 sub-units/inch); 30000 sub-units ≈ 117 inches ≈ 3 m.
+// Set just above fast-vehicle per-tick motion at 5 Hz physics
+// (~28000 sub-units/tick at 100 km/h) so genuine motion rarely trips, but
+// low enough to catch sub-room teleports like NPC spawn-and-fly in dense
+// cutscene ensembles.
+static constexpr SLONG RI_BIG_DELTA_THRESHOLD = 30000;
+
 void render_interp_capture(Thing* p_thing)
 {
     if (!p_thing) return;
@@ -395,6 +437,29 @@ void render_interp_capture(Thing* p_thing)
     ThingSnap& s = g_thing_snaps[idx];
     DrawTween* dt = draw_type_uses_tween(p_thing->DrawType) ? p_thing->Draw.Tweened : nullptr;
     Vehicle* vp = (p_thing->Class == CLASS_VEHICLE) ? p_thing->Genus.Vehicle : nullptr;
+
+#if RENDER_INTERP_LOG
+    // Diagnostic events for chasing slot-reuse / teleport-source bugs.
+    // No effect on interpolation — exists to identify the game-code paths
+    // that produce mid-tick teleports so render_interp_mark_teleport can
+    // be inserted at the source.
+    if (s.valid) {
+        if (s.last_seen_class != p_thing->Class) {
+            fprintf(stderr,
+                "[render_interp] CLASS_CHG slot=%u old=%u new=%u dt=%u t=%llu\n",
+                idx, (unsigned)s.last_seen_class, (unsigned)p_thing->Class,
+                (unsigned)p_thing->DrawType,
+                (unsigned long long)sdl3_get_ticks());
+        }
+        if (vp && s.has_vehicle_angles && s.veh_ptr_curr && s.veh_ptr_curr != vp) {
+            fprintf(stderr,
+                "[render_interp] VEH_REBIND slot=%u old=%p new=%p t=%llu\n",
+                idx, (void*)s.veh_ptr_curr, (void*)vp,
+                (unsigned long long)sdl3_get_ticks());
+        }
+    }
+#endif
+    s.last_seen_class = p_thing->Class;
 
     // Detect anim transitions: if MeshID or CurrentAnim changed since last
     // capture, the pose jumped and lerping in the standard tween path
@@ -457,9 +522,10 @@ void render_interp_capture(Thing* p_thing)
     if (!s.valid) {
 #if RENDER_INTERP_LOG
         fprintf(stderr,
-            "[render_interp] FIRST_CAPTURE slot=%u class=%d dt=%d pos=(%d,%d,%d)\n",
+            "[render_interp] FIRST_CAPTURE slot=%u class=%d dt=%d pos=(%d,%d,%d) t=%llu\n",
             idx, p_thing->Class, p_thing->DrawType,
-            p_thing->WorldPos.X, p_thing->WorldPos.Y, p_thing->WorldPos.Z);
+            p_thing->WorldPos.X, p_thing->WorldPos.Y, p_thing->WorldPos.Z,
+            (unsigned long long)sdl3_get_ticks());
 #endif
         s.pos_curr = p_thing->WorldPos;
         s.pos_prev = s.pos_curr;
@@ -514,6 +580,27 @@ void render_interp_capture(Thing* p_thing)
     s.veh_roll_prev  = s.veh_roll_curr;
 
     s.pos_curr = p_thing->WorldPos;
+
+#if RENDER_INTERP_LOG
+    // BIG_DELTA diagnostic. Manhattan distance, threshold above legitimate
+    // per-tick motion at 5 Hz physics for fast vehicles.
+    {
+        SLONG dx = s.pos_curr.X - s.pos_prev.X;
+        SLONG dy = s.pos_curr.Y - s.pos_prev.Y;
+        SLONG dz = s.pos_curr.Z - s.pos_prev.Z;
+        SLONG manh = abs(dx) + abs(dy) + abs(dz);
+        if (manh > RI_BIG_DELTA_THRESHOLD) {
+            fprintf(stderr,
+                "[render_interp] BIG_DELTA slot=%u class=%d dt=%d "
+                "from=(%d,%d,%d) to=(%d,%d,%d) |d|=%d t=%llu\n",
+                idx, p_thing->Class, p_thing->DrawType,
+                s.pos_prev.X, s.pos_prev.Y, s.pos_prev.Z,
+                s.pos_curr.X, s.pos_curr.Y, s.pos_curr.Z,
+                manh, (unsigned long long)sdl3_get_ticks());
+        }
+    }
+#endif
+
     if (dt) {
         s.angle_curr = dt->Angle;
         s.tilt_curr = dt->Tilt;
@@ -591,10 +678,16 @@ void render_interp_invalidate(Thing* p_thing)
 
 void render_interp_mark_teleport(Thing* p_thing)
 {
-    if (!p_thing) return;
-    UWORD idx = thing_index(p_thing);
-    if (idx >= MAX_THINGS) return;
-    g_thing_snaps[idx].skip_once = true;
+    // Full snapshot reset. Previous implementation only set skip_once,
+    // but skip_once is scoped to anim-only fields (AnimTween, FrameIndex,
+    // CurrentFrame, NextFrame) — the same comment block in render_interp_capture
+    // explicitly states pos/angles are NOT collapsed by it, because that
+    // path is shared with anim-transition handling where pose changes but
+    // WorldPos should keep lerping. Genuine teleports need full
+    // pos/angle/vehicle/anim collapse, which is exactly what
+    // render_interp_invalidate does (next capture goes through !valid
+    // path and sets prev=curr=current).
+    render_interp_invalidate(p_thing);
 }
 
 void render_interp_capture_camera(FC_Cam* fc)

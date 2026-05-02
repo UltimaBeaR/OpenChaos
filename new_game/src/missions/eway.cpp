@@ -20,6 +20,7 @@
 #include "things/core/statedef.h"
 #include "navigation/wmove.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/render_interp.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 #include "engine/audio/mfx.h"
@@ -3555,6 +3556,13 @@ void EWAY_set_active(EWAY_Way* ew)
 
                     p_person->WorldPos.Y = PAP_calc_map_height_at(0x80, 0x80);
 
+                    // Tell render-interp not to lerp from the previous
+                    // WorldPos to (0x8000, _, 0x8000) — the actor was just
+                    // teleported off-stage; without this the next render
+                    // frame draws the body sliding from its last on-stage
+                    // position to the corner of the map.
+                    render_interp_mark_teleport(p_person);
+
                     set_person_idle(p_person);
 
                     // As if this person has never been created.
@@ -3972,6 +3980,17 @@ void EWAY_set_active(EWAY_Way* ew)
                 } else {
                     p_thing->WorldPos = newpos;
                 }
+
+                // EWAY scene transitions teleport actors / vehicles between
+                // scenes (entire-map jumps, ~millions of sub-units). Without
+                // this hint the next render frame would lerp the model
+                // smoothly across the whole map for one tick — visually a
+                // huge "fly across the world" artifact each cinematic cut.
+                // Covers both the on-map (move_thing_on_map) and off-map
+                // (direct WorldPos assign) paths above. Person yaw is
+                // overwritten below as well, so the same teleport mark
+                // also collapses the angle interpolation discontinuity.
+                render_interp_mark_teleport(p_thing);
 
                 if (p_thing->Class == CLASS_PERSON) {
                     plant_feet(p_thing);

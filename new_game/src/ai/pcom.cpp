@@ -28,6 +28,7 @@
 #include "ui/hud/overlay.h"
 #include "things/vehicles/vehicle.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/render_interp.h"
 #include "things/core/interact.h"
 #include "things/core/thing.h"
 #include "things/items/special.h"
@@ -705,6 +706,11 @@ SLONG PCOM_position_person_to_sit_on_prim(
     newpos.Y = prim_y << 8;
 
     move_thing_on_map(p_person, &newpos);
+
+    // Explicit teleport — dont_teleport gate above caps distance to 0x5000
+    // when set, but the unguarded path can jump arbitrarily. Render-interp
+    // must not lerp through it.
+    render_interp_mark_teleport(p_person);
 
     return UC_TRUE;
 }
@@ -4218,6 +4224,14 @@ void PCOM_process_driving_wander(Thing* p_person)
                         veh->Angle = yaw ^ 1024;
 
                         reinit_vehicle(p_vehicle);
+
+                        // Wander-traffic recycle: car + driver get teleported
+                        // off-screen-far → near-player. Without this the next
+                        // render frame lerps the model across the whole map
+                        // for one tick — exactly the "fly across the world"
+                        // jitter we hunted with bracket diagnostics.
+                        render_interp_mark_teleport(p_vehicle);
+                        render_interp_mark_teleport(p_person);
                     }
                 }
             }
@@ -4265,6 +4279,13 @@ void PCOM_process_driving_wander(Thing* p_person)
 
                 p_person->Genus.Person->pcom_move_arg = nrn1 << 8;
                 p_person->Genus.Person->pcom_move_arg |= nrn2;
+
+                // End-of-the-line vehicle recycle: car gets relocated to a
+                // valid road segment via ROAD_find_me_somewhere_to_appear.
+                // Driver rides along (vehicle physics syncs WorldPos next
+                // tick), so mark both.
+                render_interp_mark_teleport(p_vehicle);
+                render_interp_mark_teleport(p_person);
             }
         } else {
             PCOM_get_person_dest(
@@ -4497,6 +4518,8 @@ SLONG PCOM_do_regen(Thing* p_person)
         new_position.Y = PAP_calc_height_at(nx, nz) << 8;
         new_position.Z = nz << 8;
         move_thing_on_map(p_person, &new_position);
+        // Wander-recycle teleport (KO / helpless / arrested cleanup).
+        render_interp_mark_teleport(p_person);
         p_person->Genus.Person->Flags &= ~(FLAG_PERSON_KO | FLAG_PERSON_HELPLESS | FLAG_PERSON_WAREHOUSE | FLAG_PERSON_ARRESTED | FLAG_PERSON_ARRESTED | FLAG_PERSON_SEARCHED);
         p_person->Genus.Person->Ware = 0;
         p_person->OnFace = 0;
@@ -6265,6 +6288,8 @@ void PCOM_teleport_home(Thing* p_person)
     pos.Z = p_person->Genus.Person->HomeZ << 8;
 
     move_thing_on_map(p_person, &pos);
+    // Explicit "go home" teleport — name says it all.
+    render_interp_mark_teleport(p_person);
 
     p_person->Draw.Tweened->Angle = p_person->Genus.Person->HomeYaw << 3;
 }
