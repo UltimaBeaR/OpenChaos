@@ -1109,6 +1109,14 @@ round_again:;
                             }
                         }
                         render_interp_capture_camera(&FC_cam[0]);
+                        // Cutscene camera lives in EWAY_cam_* globals (separate
+                        // from FC_cam), and EWAY_grab_camera copies them into
+                        // fc->* inside the renderer, overwriting our FC_cam apply
+                        // with raw post-tick state. Snapshot them too so the
+                        // renderer can substitute interpolated values right after
+                        // EWAY_grab_camera writes. EWAY_process inside this same
+                        // physics tick has already updated EWAY_cam_*.
+                        render_interp_capture_eway_camera();
                     }
 
                     physics_acc_ms -= phys_step_ms;

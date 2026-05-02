@@ -32,6 +32,14 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 
 **Почему важно:** камера обновляется в `FC_process` внутри physics-loop — то есть сама дискретна на 20 Hz. Если её не интерполировать — interp'нутая Дарси начинает «дёргаться относительно камеры» (рендеримся в frame камеры из end-of-tick state, а тело — из интерполированного состояния). Получается screen-space jitter.
 
+### EWAY катсценная камера — `EWAY_cam_x/y/z/yaw/pitch/lens`
+
+Параллельный snapshot для **in-game катсценной камеры** — она хранится не в `FC_cam[0]`, а в отдельных глобалах из `eway_globals.h`. `EWAY_process_camera` обновляет их в physics-tick; render-path функция `EWAY_grab_camera` копирует raw post-tick state в `fc->*`, перетирая FC_cam apply.
+
+`render_interp_capture_eway_camera` снимает EWAY-глобалы рядом с capture FC_cam[0]. `render_interp_apply_eway_camera` подменяет на lerp в render path сразу после `EWAY_grab_camera` (в `aeng.cpp` и `bloom.cpp`). Apply **не вызывается** для audio (`MFX_set_listener`) и input — там должен быть real post-tick state без render-lag.
+
+`EWAY_cam_roll` всегда константа `1024 << 8` (хардкод в `EWAY_grab_camera`); lerp по нему не делается, apply пишет ту же константу.
+
 ## Углы по DrawType
 
 Углы хранятся в разных местах в зависимости от DrawType — поэтому интерполируются избирательно.
@@ -123,6 +131,7 @@ Physics-rate state (нужна интерполяция):
   ├── Things (movement classes) → WorldPos + Tween-углы (DT_TWEEN family)
   ├── Vehicles → Genus.Vehicle->Angle/Tilt/Roll (SLONG, отдельная ветка с VelR direction hint)
   ├── Camera (FC_cam) → x/y/z/yaw/pitch/roll
+  ├── EWAY катсценная камера → EWAY_cam_x/y/z/yaw/pitch/lens (отдельный snapshot, render-time substitution после EWAY_grab_camera)
   └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE), particles
 
 Wall-clock state (уже плавно, не трогаем):

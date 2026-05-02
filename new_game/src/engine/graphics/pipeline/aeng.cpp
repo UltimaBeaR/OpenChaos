@@ -5925,6 +5925,16 @@ void AENG_draw(SLONG draw_3d)
                 &fc->pitch,
                 &fc->roll,
                 &fc->lens)) {
+            // EWAY_grab_camera just wrote raw post-tick state from the
+            // EWAY_cam_* globals into fc->*. Substitute interpolated values
+            // from the EWAY snapshot — without this, render reads camera
+            // state at physics rate and the cutscene camera judders even
+            // though FC_cam interpolation is otherwise active.
+            extern bool render_interp_apply_eway_camera(SLONG*, SLONG*, SLONG*,
+                                                        SLONG*, SLONG*, SLONG*, SLONG*);
+            render_interp_apply_eway_camera(&fc->x, &fc->y, &fc->z,
+                                            &fc->yaw, &fc->pitch, &fc->roll,
+                                            &fc->lens);
             warehouse = EWAY_camera_warehouse();
         } else {
             warehouse = (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Ware);

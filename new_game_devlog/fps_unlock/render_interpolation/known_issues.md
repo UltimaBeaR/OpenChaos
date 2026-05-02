@@ -106,7 +106,22 @@
 
 ## Закрытые баги
 
-### Crash в катсцене на чтении мусорного `current_frame_prev` (root cause найден)
+### Дёрганость камеры в in-game катсценах (EWAY)
+
+**Симптом:** в любой in-game катсцене (EWAY scripts — начало миссии, диалоговые сцены) камера двигается ступеньками на physics rate (20 Hz), несмотря на `IP: on` в overlay. Toggle 3 (g_render_interp_enabled) на симптом не влиял. В обычном геймплее player-camera при этом интерполировалась корректно.
+
+**Root cause:** in-game катсцены используют **отдельную** камеру со state в глобалах `EWAY_cam_x/y/z/yaw/pitch/lens` (см. [eway_globals.h](../../../new_game_planning/...) и `EWAY_process_camera` в `eway.cpp`). В render path (`AENG_draw`) функция `EWAY_grab_camera` копирует эти raw post-tick глобалы в `fc->x/y/z/...` (т.е. в `FC_cam[0]`) **поверх** нашего FC_cam apply. Render видит raw EWAY state, наш lerp затирается. Toggle 3 не имел эффекта потому что apply вообще не действовал — между ctor и AENG_draw в катсцене всё равно перезаписывалось.
+
+Подтверждено через diagnostic logging: в катсцене capture работал нормально (alpha варьировался, valid_cams=1, FC_cam apply писал lerp правильно), но render использовал EWAY-перезапись.
+
+**Фикс:**
+1. Новый snapshot `EwayCamSnap` (один экземпляр) в `render_interp.cpp` хранит prev/curr для `EWAY_cam_x/y/z/yaw/pitch/lens` (roll константа `1024 << 8`).
+2. `render_interp_capture_eway_camera()` снимает EWAY-глобалы в physics tick (после `EWAY_process()`, рядом с `render_interp_capture_camera(&FC_cam[0])`). Если катсцена не активна — snapshot инвалидируется (re-seed prev=curr на следующей активации).
+3. `render_interp_apply_eway_camera(SLONG* x, SLONG* y, SLONG* z, SLONG* yaw, SLONG* pitch, SLONG* roll, SLONG* lens)` — переписывает указатели на интерполированные значения, если interp enabled и snapshot valid.
+4. В `aeng.cpp` (одиночная-камера branch + splitscreen branch dead code) и в `bloom.cpp` (BLOOM_flare_draw, BLOOM line-of-sight) — после `EWAY_grab_camera` вызывается apply, raw post-tick state заменяется на lerp.
+5. **Не трогаем** другие места `EWAY_grab_camera`: `fc.cpp:1365` (camera physics), `input_actions.cpp:1389` (input — должен видеть real state), `game.cpp:791` (audio listener — interp lag не подходит для звука).
+
+После фикса toggle 3 в катсцене работает, камера плавная.
 
 **Симптом:** ASan access-violation на адресе `0xffffffffffffffff` в `RenderInterpFrame::RenderInterpFrame`, ближе к концу начальной катсцены миссии. Регистры идентичны от запуска к запуску — детерминированный.
 

@@ -74,6 +74,25 @@ void render_interp_invalidate(Thing* p_thing);
 // Camera capture. Splitscreen unused — pass &FC_cam[0].
 void render_interp_capture_camera(FC_Cam* fc);
 
+// Capture the cutscene-camera global state (EWAY_cam_x/y/z/yaw/pitch/lens).
+// Call once per physics tick after EWAY_process_camera updates these globals.
+// In-game cutscenes (EWAY) write a separate camera state to these globals
+// and EWAY_grab_camera copies them into FC_cam[*] inside the render path,
+// overwriting our FC_cam apply with raw post-tick values. Capturing them
+// here lets render_interp_apply_eway_camera replace those raw values with
+// interpolated ones during AENG_draw.
+void render_interp_capture_eway_camera(void);
+
+// Render-time replacement of EWAY_grab_camera's just-written values with
+// interpolated ones, when render-interp is enabled and a valid snapshot
+// exists. Returns true if substitution happened. Call from the renderer
+// immediately after EWAY_grab_camera writes its raw post-tick state into
+// fc->x/y/z/yaw/pitch/roll/lens.
+bool render_interp_apply_eway_camera(
+    SLONG* cam_x, SLONG* cam_y, SLONG* cam_z,
+    SLONG* cam_yaw, SLONG* cam_pitch, SLONG* cam_roll,
+    SLONG* cam_lens);
+
 // Mark camera teleport (cutscene cut, sudden focus change).
 void render_interp_mark_camera_teleport(FC_Cam* fc);
 

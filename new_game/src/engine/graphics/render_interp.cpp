@@ -6,6 +6,7 @@
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (cross-anim blend timing)
 #include "game/game_types.h" // THINGS, TO_THING
 #include "game/game_globals.h" // g_physics_hz (adaptive blend duration)
+#include "missions/eway_globals.h" // EWAY_cam_* — cutscene camera globals
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
@@ -171,6 +172,32 @@ struct CamSnap {
     SLONG saved_yaw, saved_pitch, saved_roll;
     bool applied;
 };
+
+// EWAY (in-game cutscene) camera snapshot. The cutscene camera lives in
+// separate globals (EWAY_cam_x/y/z/yaw/pitch/lens) rather than FC_cam, and
+// EWAY_grab_camera copies them into fc->* inside the render path — after
+// our FC_cam apply, defeating interpolation. We snapshot the EWAY globals
+// in physics-tick and apply lerped values from the renderer immediately
+// after EWAY_grab_camera writes its raw post-tick state.
+//
+// EWAY_grab_camera always sets *cam_roll = 1024 << 8 (a constant), so roll
+// is not part of the snapshot; apply just writes that constant through.
+struct EwayCamSnap {
+    SLONG x_prev, x_curr;
+    SLONG y_prev, y_curr;
+    SLONG z_prev, z_curr;
+    SLONG yaw_prev, yaw_curr;
+    SLONG pitch_prev, pitch_curr;
+    SLONG lens_prev, lens_curr;
+    bool valid;
+    bool skip_once;
+};
+
+EwayCamSnap g_eway_cam_snap = {};
+
+// EWAY-grab roll is hard-coded to 1024 << 8 in eway.cpp:4510.
+// uc_orig: EWAY_grab_camera (fallen/Source/eway.cpp)
+static constexpr SLONG EWAY_GRAB_ROLL = 1024 << 8;
 
 // FC_MAX_CAMS == 2; only [0] is used in the shipped game, but supporting both
 // is trivial.
@@ -345,6 +372,7 @@ void render_interp_reset(void)
 {
     for (int i = 0; i < MAX_THINGS; ++i) g_thing_snaps[i] = {};
     for (int i = 0; i < FC_MAX_CAMS; ++i) g_cam_snaps[i] = {};
+    g_eway_cam_snap = {};
 }
 
 void render_interp_capture(Thing* p_thing)
@@ -562,7 +590,6 @@ void render_interp_capture_camera(FC_Cam* fc)
 {
     CamSnap* s = cam_find_or_alloc(fc);
     if (!s) return;
-
     if (!s->valid) {
         s->x_curr = fc->x;     s->x_prev = s->x_curr;
         s->y_curr = fc->y;     s->y_prev = s->y_curr;
@@ -604,6 +631,75 @@ void render_interp_mark_camera_teleport(FC_Cam* fc)
 {
     CamSnap* s = cam_find_or_alloc(fc);
     if (s) s->skip_once = true;
+}
+
+void render_interp_capture_eway_camera(void)
+{
+    // Cutscene not active — drop the snapshot so the next activation
+    // starts fresh with prev=curr (no lerp from stale pre-cutscene state).
+    if (!EWAY_cam_active) {
+        g_eway_cam_snap.valid = false;
+        return;
+    }
+
+    if (!g_eway_cam_snap.valid) {
+        g_eway_cam_snap.x_curr = EWAY_cam_x;
+        g_eway_cam_snap.y_curr = EWAY_cam_y;
+        g_eway_cam_snap.z_curr = EWAY_cam_z;
+        g_eway_cam_snap.yaw_curr = EWAY_cam_yaw;
+        g_eway_cam_snap.pitch_curr = EWAY_cam_pitch;
+        g_eway_cam_snap.lens_curr = EWAY_cam_lens;
+        g_eway_cam_snap.x_prev = g_eway_cam_snap.x_curr;
+        g_eway_cam_snap.y_prev = g_eway_cam_snap.y_curr;
+        g_eway_cam_snap.z_prev = g_eway_cam_snap.z_curr;
+        g_eway_cam_snap.yaw_prev = g_eway_cam_snap.yaw_curr;
+        g_eway_cam_snap.pitch_prev = g_eway_cam_snap.pitch_curr;
+        g_eway_cam_snap.lens_prev = g_eway_cam_snap.lens_curr;
+        g_eway_cam_snap.valid = true;
+        g_eway_cam_snap.skip_once = false;
+        return;
+    }
+
+    g_eway_cam_snap.x_prev = g_eway_cam_snap.x_curr;
+    g_eway_cam_snap.y_prev = g_eway_cam_snap.y_curr;
+    g_eway_cam_snap.z_prev = g_eway_cam_snap.z_curr;
+    g_eway_cam_snap.yaw_prev = g_eway_cam_snap.yaw_curr;
+    g_eway_cam_snap.pitch_prev = g_eway_cam_snap.pitch_curr;
+    g_eway_cam_snap.lens_prev = g_eway_cam_snap.lens_curr;
+
+    g_eway_cam_snap.x_curr = EWAY_cam_x;
+    g_eway_cam_snap.y_curr = EWAY_cam_y;
+    g_eway_cam_snap.z_curr = EWAY_cam_z;
+    g_eway_cam_snap.yaw_curr = EWAY_cam_yaw;
+    g_eway_cam_snap.pitch_curr = EWAY_cam_pitch;
+    g_eway_cam_snap.lens_curr = EWAY_cam_lens;
+
+    if (g_eway_cam_snap.skip_once) {
+        g_eway_cam_snap.x_prev = g_eway_cam_snap.x_curr;
+        g_eway_cam_snap.y_prev = g_eway_cam_snap.y_curr;
+        g_eway_cam_snap.z_prev = g_eway_cam_snap.z_curr;
+        g_eway_cam_snap.yaw_prev = g_eway_cam_snap.yaw_curr;
+        g_eway_cam_snap.pitch_prev = g_eway_cam_snap.pitch_curr;
+        g_eway_cam_snap.lens_prev = g_eway_cam_snap.lens_curr;
+        g_eway_cam_snap.skip_once = false;
+    }
+}
+
+bool render_interp_apply_eway_camera(
+    SLONG* cam_x, SLONG* cam_y, SLONG* cam_z,
+    SLONG* cam_yaw, SLONG* cam_pitch, SLONG* cam_roll,
+    SLONG* cam_lens)
+{
+    if (!g_render_interp_enabled || !g_eway_cam_snap.valid) return false;
+    const float alpha = g_render_alpha;
+    if (cam_x)     *cam_x = lerp_i32(g_eway_cam_snap.x_prev, g_eway_cam_snap.x_curr, alpha);
+    if (cam_y)     *cam_y = lerp_i32(g_eway_cam_snap.y_prev, g_eway_cam_snap.y_curr, alpha);
+    if (cam_z)     *cam_z = lerp_i32(g_eway_cam_snap.z_prev, g_eway_cam_snap.z_curr, alpha);
+    if (cam_yaw)   *cam_yaw   = lerp_angle_cam(g_eway_cam_snap.yaw_prev,   g_eway_cam_snap.yaw_curr,   alpha);
+    if (cam_pitch) *cam_pitch = lerp_angle_cam(g_eway_cam_snap.pitch_prev, g_eway_cam_snap.pitch_curr, alpha);
+    if (cam_roll)  *cam_roll  = EWAY_GRAB_ROLL; // EWAY_grab_camera writes a constant; preserve.
+    if (cam_lens)  *cam_lens  = lerp_i32(g_eway_cam_snap.lens_prev, g_eway_cam_snap.lens_curr, alpha);
+    return true;
 }
 
 void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
