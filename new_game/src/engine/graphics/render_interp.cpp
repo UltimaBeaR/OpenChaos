@@ -9,6 +9,7 @@
 #include "game/game_globals.h" // g_physics_hz (adaptive blend duration)
 #include "missions/eway_globals.h" // EWAY_cam_* — cutscene camera globals
 #include "world_objects/dirt.h" // DIRT_dirt pool — leaves, brass, cans, etc.
+#include "engine/graphics/geometry/pose_composer.h" // Phase 2: per-bone world-pose capture
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
@@ -280,6 +281,57 @@ struct DirtSnap {
 
 DirtSnap g_dirt_snaps[DIRT_MAX_DIRT] = {};
 
+// Per-bone snapshot (Phase 2 of world-pose-snapshot work). Stored format
+// matches the architecture decision in
+// new_game_devlog/fps_unlock/render_interpolation/world_pose_snapshot_plan.md:
+//   bone[0] (PELVIS)  — VISIBLE pelvis in WORLD coords (= the smooth anchor
+//                       confirmed by Phase 0 ladder/jump testing).
+//   bones[1..14]      — local-to-parent (offset + rotation in parent's local
+//                       frame). At apply time, hierarchy is rebuilt by
+//                       chaining parent_world × local_to_parent → child_world.
+//                       This preserves rigid kinematics across interpolation
+//                       (parent's interpolated rotation propagates to children
+//                       so joints stay connected even on fast rotational
+//                       motion).
+//
+// Rotation stored as CMatrix33 (10-bit-per-component packed, same format
+// as keyframes) — halves storage vs Matrix33 and matches CQuaternion::
+// BuildTween's input format directly. Lossy (each element rounded to nearest
+// multiple of 64) but anim keyframes already use this precision.
+struct BoneSnap {
+    SLONG x, y, z;       // bone[0]: WORLD pos; bones[1..14]: parent-local offset
+    CMatrix33 cmat;      // bone[0]: WORLD rot;  bones[1..14]: parent-local rot
+};
+
+struct PoseSnap {
+    BoneSnap bones_prev[POSE_MAX_BONES];
+    BoneSnap bones_curr[POSE_MAX_BONES];
+    UBYTE last_mesh_id;     // invalidate when this changes (different skeleton)
+    bool  valid;            // false until first successful capture
+};
+
+// 24 bytes per bone × 15 bones × 2 (prev+curr) = 720 bytes per Thing slot.
+// × MAX_THINGS = ~500 KB total. Memory budget per
+// world_pose_snapshot_plan.md.
+PoseSnap g_pose_snaps[MAX_THINGS] = {};
+
+// Inverse of uncompress_matrix (hierarchy.cpp): pack a Matrix33 into a
+// CMatrix33 via 10-bit-per-component packing. Each input element (range
+// [-32768, 32767], scale 32768) is divided by 64 to fit signed 10-bit.
+// Masks must match CMAT0/1/2_MASK in fmatrix.h.
+inline void compress_matrix(const Matrix33* m, CMatrix33* cm)
+{
+    cm->M[0] = (((m->M[0][0] >> 6) & 0x3ff) << 20)
+             | (((m->M[0][1] >> 6) & 0x3ff) << 10)
+             |  ((m->M[0][2] >> 6) & 0x3ff);
+    cm->M[1] = (((m->M[1][0] >> 6) & 0x3ff) << 20)
+             | (((m->M[1][1] >> 6) & 0x3ff) << 10)
+             |  ((m->M[1][2] >> 6) & 0x3ff);
+    cm->M[2] = (((m->M[2][0] >> 6) & 0x3ff) << 20)
+             | (((m->M[2][1] >> 6) & 0x3ff) << 10)
+             |  ((m->M[2][2] >> 6) & 0x3ff);
+}
+
 inline SLONG lerp_i32(SLONG a, SLONG b, float t)
 {
     return a + SLONG(float(b - a) * t);
@@ -453,6 +505,103 @@ CamSnap* cam_find_or_alloc(FC_Cam* fc)
     return nullptr;
 }
 
+// Phase 2: capture full per-bone pose into g_pose_snaps[idx].
+// Called once per physics tick from render_interp_capture for Tween-family
+// person Things. Output format per BoneSnap comment above:
+//   bones_curr[0]    = visible PELVIS world transform (pos + compressed rot).
+//   bones_curr[1..N] = parent-local offset + rotation (derived from composer's
+//                      body-local intermediates, independent of body angles).
+//
+// On first capture (or after invalidation) prev is seeded equal to curr so
+// the first apply lerp returns curr exactly (no slide from stale state).
+// On MeshID change the snapshot is invalidated — next capture re-seeds; the
+// skeleton may have a different bone count or layout, so previous bone
+// data is meaningless.
+void capture_pose(int idx, Thing* p_thing)
+{
+    PoseSnap& s = g_pose_snaps[idx];
+
+    // Phase 2 covers persons only (15-bone hierarchical skeleton). Other
+    // DT_TWEEN family (DT_ANIM_PRIM animals/bats, generic DT_TWEEN with
+    // flat skeletons) handled in a later phase via a separate path.
+    if (p_thing->Class != CLASS_PERSON || p_thing->DrawType != DT_ROT_MULTI) {
+        s.valid = false;
+        return;
+    }
+    DrawTween* dt = p_thing->Draw.Tweened;
+    if (!dt) { s.valid = false; return; }
+
+    // MeshID change → skeleton may differ → invalidate.
+    if (s.valid && s.last_mesh_id != dt->MeshID) {
+        s.valid = false;
+    }
+
+    ComposedSkeletalPose pose;
+    if (!compose_full_skeletal_pose(p_thing, &pose) || pose.bone_count != POSE_MAX_BONES) {
+        s.valid = false;
+        return;
+    }
+
+    BoneSnap new_bones[POSE_MAX_BONES];
+
+    // Bone 0 (PELVIS): WORLD transform — copy directly from composer.
+    new_bones[0].x = SLONG(pose.bones[0].pos_x);
+    new_bones[0].y = SLONG(pose.bones[0].pos_y);
+    new_bones[0].z = SLONG(pose.bones[0].pos_z);
+    compress_matrix(&pose.bones[0].rot, &new_bones[0].cmat);
+
+    // Bones 1..14: parent-local transform. Derived from composer's body-local
+    // intermediates (end_pos / end_mat) using the identities:
+    //   local_pos[i] = end_mat[parent]^T × (end_pos[i] - end_pos[parent])
+    //   local_rot[i] = end_mat[parent]^T × end_mat[i]
+    // Both R_body and WorldPos cancel out — parent-local data is purely a
+    // function of anim keyframes, so it lerps smoothly across body rotations
+    // and translations without breaking rigid bone connections.
+    for (int i = 1; i < POSE_MAX_BONES; i++) {
+        int p = body_part_parent[i];
+
+        // Transpose parent's body-local rotation in-place (= inverse for
+        // orthogonal rotation matrix). Same swap pattern as
+        // HIERARCHY_Get_Body_Part_Offset (hierarchy.cpp:58-60).
+        Matrix33 parent_rot_inv = pose.bones[p].body_local_rot;
+        SWAP(parent_rot_inv.M[0][1], parent_rot_inv.M[1][0]);
+        SWAP(parent_rot_inv.M[0][2], parent_rot_inv.M[2][0]);
+        SWAP(parent_rot_inv.M[1][2], parent_rot_inv.M[2][1]);
+
+        // local_pos = parent_rot_inv × (end_pos[i] - end_pos[p])
+        Matrix31 diff;
+        diff.M[0] = pose.bones[i].body_local_pos.M[0] - pose.bones[p].body_local_pos.M[0];
+        diff.M[1] = pose.bones[i].body_local_pos.M[1] - pose.bones[p].body_local_pos.M[1];
+        diff.M[2] = pose.bones[i].body_local_pos.M[2] - pose.bones[p].body_local_pos.M[2];
+        Matrix31 local_pos;
+        matrix_transformZMY(&local_pos, &parent_rot_inv, &diff);
+        new_bones[i].x = local_pos.M[0];
+        new_bones[i].y = local_pos.M[1];
+        new_bones[i].z = local_pos.M[2];
+
+        // local_rot = parent_rot_inv × end_mat[i]
+        Matrix33 local_rot;
+        matrix_mult33(&local_rot, &parent_rot_inv, &pose.bones[i].body_local_rot);
+        compress_matrix(&local_rot, &new_bones[i].cmat);
+    }
+
+    if (!s.valid) {
+        // First capture: prev = curr = new — apply lerps to identity.
+        for (int i = 0; i < POSE_MAX_BONES; i++) {
+            s.bones_prev[i] = new_bones[i];
+            s.bones_curr[i] = new_bones[i];
+        }
+        s.valid = true;
+    } else {
+        // Standard window shift.
+        for (int i = 0; i < POSE_MAX_BONES; i++) {
+            s.bones_prev[i] = s.bones_curr[i];
+            s.bones_curr[i] = new_bones[i];
+        }
+    }
+    s.last_mesh_id = dt->MeshID;
+}
+
 }  // namespace
 
 void render_interp_reset(void)
@@ -460,6 +609,7 @@ void render_interp_reset(void)
     for (int i = 0; i < MAX_THINGS; ++i) g_thing_snaps[i] = {};
     for (int i = 0; i < FC_MAX_CAMS; ++i) g_cam_snaps[i] = {};
     for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i] = {};
+    for (int i = 0; i < MAX_THINGS; ++i) g_pose_snaps[i] = {};
     g_eway_cam_snap = {};
 }
 
@@ -700,6 +850,12 @@ void render_interp_capture(Thing* p_thing)
         s.next_frame_prev = s.next_frame_curr;
         s.skip_once = false;
     }
+
+    // Phase 2: world-space per-bone pose capture. Walks the skeleton
+    // hierarchy, computes parent-local representation, stores in
+    // g_pose_snaps[idx] for use by Phase 3 apply path. No-op for non-person
+    // Things (handled in a later phase).
+    capture_pose(idx, p_thing);
 }
 
 void render_interp_invalidate(Thing* p_thing)
@@ -718,6 +874,7 @@ void render_interp_invalidate(Thing* p_thing)
     }
 #endif
     g_thing_snaps[idx] = {};
+    g_pose_snaps[idx] = {};
 }
 
 void render_interp_mark_teleport(Thing* p_thing)
@@ -978,6 +1135,19 @@ void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
     out->old_ae2  = s.blend_old_nf->FirstElement;
     out->old_tween = s.blend_old_at;
     out->blend_t  = float(elapsed) / float(s.blend_duration_ms);
+}
+
+bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* out_y, SLONG* out_z)
+{
+    if (!p_thing || !out_x || !out_y || !out_z) return false;
+    UWORD idx = thing_index(p_thing);
+    if (idx >= MAX_THINGS) return false;
+    PoseSnap& s = g_pose_snaps[idx];
+    if (!s.valid) return false;
+    *out_x = s.bones_curr[0].x;
+    *out_y = s.bones_curr[0].y;
+    *out_z = s.bones_curr[0].z;
+    return true;
 }
 
 RenderInterpFrame::RenderInterpFrame()

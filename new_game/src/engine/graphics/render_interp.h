@@ -119,6 +119,15 @@ void render_interp_mark_camera_teleport(FC_Cam* fc);
 // pose for each body part. Safe to call any time during render path.
 void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out);
 
+// Phase 2 debug: retrieve the captured PELVIS world position from the per-
+// bone pose snapshot (curr value, not lerped). Returns true and writes
+// (x, y, z) iff the snapshot is valid and bones_curr[0] holds usable data.
+// Used by the PEL_SNAP debug label in aeng.cpp to verify capture round-trip
+// matches PEL_NEW (live compose) — both come from the same composer output
+// path, so the labels should overlap exactly. TODO: remove once Phase 3
+// apply path consumes the snapshot directly.
+bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* out_y, SLONG* out_z);
+
 // Frame-scope: at construction, walks all valid snapshots and writes
 // interpolated values directly into the live Thing.WorldPos / Tweened
 // angles and into FC_cam[0]. At destruction, restores the captured-at-tick

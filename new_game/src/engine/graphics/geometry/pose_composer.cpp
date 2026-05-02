@@ -10,6 +10,28 @@
 
 // matrix_mult33 prototype is in fmatrix.h (transitively included).
 
+// Inverse of body_part_children[][]. PELVIS (0) is root with parent = -1.
+// Verified by walking body_part_children entries in hierarchy_globals.cpp:
+//   0 → [1, 4, 12]; 1 → [2]; 2 → [3]; 4 → [5, 8, 11]; 5 → [6]; 6 → [7];
+//   8 → [9]; 9 → [10]; 12 → [13]; 13 → [14]. Leaves: 3, 7, 10, 11, 14.
+const int body_part_parent[POSE_MAX_BONES] = {
+    -1,  // 0  PELVIS (root)
+     0,  // 1  LEFT_FEMUR
+     1,  // 2  LEFT_TIBIA
+     2,  // 3  LEFT_FOOT
+     0,  // 4  TORSO
+     4,  // 5  LEFT_HUMORUS
+     5,  // 6  LEFT_RADIUS
+     6,  // 7  LEFT_HAND
+     4,  // 8  RIGHT_HUMORUS
+     8,  // 9  RIGHT_RADIUS
+     9,  // 10 RIGHT_HAND
+     4,  // 11 HEAD
+     0,  // 12 RIGHT_FEMUR
+    12,  // 13 RIGHT_TIBIA
+    13,  // 14 RIGHT_FOOT
+};
+
 // Iterative pre-order DFS frame, mirroring FIGURE_draw_hierarchical_prim_recurse
 // (figure.cpp:2266) but pure — no globals mutated.
 namespace {
@@ -192,6 +214,11 @@ bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out)
             mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
             mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
             out->bones[part].rot = mat_final;
+
+            // Body-local intermediates (no character_scale, no R_body) — used
+            // by snapshot capture to derive parent-local representation.
+            out->bones[part].body_local_pos = end_pos[part];
+            out->bones[part].body_local_rot = end_mat[part];
         }
 
         // Descend to next child (or backtrack if no more). Mirrors recurse

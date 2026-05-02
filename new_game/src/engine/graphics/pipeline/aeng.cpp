@@ -40,6 +40,7 @@ extern SLONG ScreenHeight;
 
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/pose_composer.h" // Phase 1 debug: PEL_NEW label golden test
+#include "engine/graphics/render_interp.h" // Phase 2 debug: PEL_SNAP label (snapshot round-trip verify)
 #include "engine/graphics/geometry/figure_globals.h" // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
@@ -4102,6 +4103,24 @@ void AENG_draw_city()
                                             (CBYTE*)"__________PEL_NEW");
                                     }
                                 }
+
+                                // Phase 2 verification: read pelvis world pos
+                                // from g_pose_snaps[idx].bones_curr[0] (captured
+                                // last physics tick). Should overlay PEL_NEW
+                                // exactly when alpha=0 (= just past tick boundary)
+                                // — both come from the same composer output, just
+                                // one is stored and one is recomputed. Drift =
+                                // capture bug. TODO: remove after Phase 3.
+                                {
+                                    SLONG sx, sy, sz;
+                                    if (render_interp_debug_get_pelvis_world(p_thing, &sx, &sy, &sz)) {
+                                        AENG_world_text(
+                                            sx, sy, sz,
+                                            pel_r, pel_b, pel_g,
+                                            UC_TRUE,
+                                            (CBYTE*)"_________________________PEL_SNAP");
+                                    }
+                                }
                             }
                         }
 
@@ -5455,6 +5474,23 @@ void AENG_draw_warehouse()
                                         pel_r, pel_b, pel_g,
                                         UC_TRUE,
                                         (CBYTE*)"__________PEL_NEW");
+                                }
+                            }
+
+                            // Phase 2 verification: read pelvis world pos from
+                            // g_pose_snaps[idx].bones_curr[0] (captured last
+                            // physics tick). Should overlay PEL_NEW exactly
+                            // when alpha=0 — both come from same composer output,
+                            // just one stored and one recomputed. Drift = capture
+                            // bug. TODO: remove after Phase 3.
+                            {
+                                SLONG sx, sy, sz;
+                                if (render_interp_debug_get_pelvis_world(p_thing, &sx, &sy, &sz)) {
+                                    AENG_world_text(
+                                        sx, sy, sz,
+                                        pel_r, pel_b, pel_g,
+                                        UC_TRUE,
+                                        (CBYTE*)"_________________________PEL_SNAP");
                                 }
                             }
                         }
