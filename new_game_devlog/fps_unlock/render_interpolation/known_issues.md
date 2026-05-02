@@ -70,6 +70,28 @@
 
 **Приоритет:** средний — мешает играть в комбатах.
 
+### 2b. Тень Дарси не синхронизирована с телом на сменах анимации — открыт
+
+**Симптом:** в обычной езде/беге тень визуально **плавная** — позиция и углы лерпятся синхронно с телом. **Проблема — на границах смены анимации** (jump → land, idle → run, любая anim transition). На моменте перехода тень рисует уже новую pose, в то время как тело ещё в blend'е между старой и новой (per-body-part cross-fade через `render_interp_get_blend`). На приземлении прыжка особенно заметно — тень "приземлилась" в финальной позе, тело ещё в air-pose с морфом.
+
+**Root cause гипотеза:** shadow rendering path **не повторяет полный комплект interp-трюков** что используется для основной модели в `FIGURE_draw`:
+
+1. **WorldPos** — лерпится через `RenderInterpFrame` (substitution в `Thing.WorldPos`). У теней работает (pos-плавность есть).
+2. **Tween-углы** (`Draw.Tweened->Angle/Tilt/Roll`) — substituted в ctor. Скорее всего работает.
+3. **AnimTween + CurrentFrame + NextFrame** (vertex morph fraction + keyframe pointer pair) — substituted в ctor. Если shadow path не использует эти поля, либо использует другие копии — баг.
+4. **Cross-anim blend per-body-part** через `render_interp_get_blend()` — это **активный query** который надо звать в render path. `FIGURE_draw` его зовёт, shadow path вероятно нет.
+
+**Что нужно:** повторить в shadow rendering path полный набор:
+- Использовать те же `dt->AnimTween/CurrentFrame/NextFrame` (мы их подменяем)
+- Запросить `render_interp_get_blend(p_thing, &out)` и если active — composить shadow pose так же как тело (`lerp(old_pose, new_pose, blend_t)` per-body-part)
+
+Кандидаты shadow rendering files (искать):
+- `AENG_detail_shadows` (city) / `AENG_shadows_on` (warehouse) в [`aeng.cpp`](../../../new_game/src/engine/graphics/pipeline/aeng.cpp) — выбор 4 ближайших actors + detail shadow рисовка.
+- `FIGURE_draw_shadow` или аналог — может рисовать через own shadow projection.
+- Shadow path для blob-теней — отдельная история, blob уже не зависит от pose.
+
+**Приоритет:** средний — заметно на каждом приземлении, прыжке, переходе в combat.
+
 ## Известные ограничения (не баги — отсутствие покрытия)
 
 ### 3. Партиклы рывками
@@ -211,3 +233,19 @@ bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
 - Vehicle slot reuse без `free_thing` (`THING_kill` no-op для CLASS_VEHICLE) — теоретический, на практике не наблюдался.
 
 **Diagnostic infrastructure:** `RENDER_INTERP_LOG` флаг (default 0) в `render_interp.cpp` пишет в stderr.log события CLASS_CHG / VEH_REBIND / FIRST_CAPTURE / BIG_DELTA для post-mortem анализа. Поднимать на 1 при поиске новых кейсов teleport'а — паттерн "BIG_DELTA в одном и том же slot повторяющийся" указывает на recycle-mechanism, "CLASS_CHG" указывает на slot reuse без proper invalidate.
+
+### Листья / DIRT pool — рывки целых "блоков" при движении игрока
+
+**Симптом:** при движении персонажа по карте (особенно бег/езда) на сцене заметно **дёргание целых групп листьев на земле** — будто блок листьев на 1 кадр телепортируется на другое место. На месте (стоя) проблемы нет — тянется только при движении. Также проявляется на снегу, банках, других DIRT-объектах в разной мере.
+
+**Root cause:** `DIRT_process` использует **focus-based recycle** ([`dirt.cpp:340-475`](../../../new_game/src/world_objects/dirt.cpp)) — каждый physics tick проверяется ~`DIRT_MAX_DIRT/8` слотов. Если slot дальше `DIRT_focus_radius` от focus point (~camera position), он **перепозиционируется** на новое случайное место около focus point. При движении игрока focus сдвигается → много слотов сразу выходят за radius → recycle'ятся группой в одном тике → render-interp лерпит каждый из них через всю карту от старой позиции к новой за один тик. **Тип DIRT не меняется** (LEAF→LEAF) — мой capture-side `last_type` change check не срабатывает, идёт стандартный window-shift.
+
+Второй recycle path — `DIRT_tree`-driven leaf spawn ([`dirt.cpp:282-326`](../../../new_game/src/world_objects/dirt.cpp)): когда дерево становится in-range, листья spawn'ятся вокруг него. Если кандидат slot имел `DIRT_FLAG_DELETE_OK` (LEAF marked для удаления) и реинкарнируется как LEAF на новой позиции — тоже type-stays-LEAF, тот же баг.
+
+**Фикс — `render_interp_mark_dirt_teleport(slot_idx)` в обоих recycle paths:**
+- [`dirt.cpp:472-486`](../../../new_game/src/world_objects/dirt.cpp) — после switch'а в focus-based recycle, гейтован `if (dd->type != DIRT_TYPE_UNUSED)` (UNUSED handled by capture-side type-change auto-detect).
+- [`dirt.cpp:325`](../../../new_game/src/world_objects/dirt.cpp) — внутри tree-based DELETE_OK reuse path, после успешного set'а new x/y/z.
+
+**API:** новый `render_interp_mark_dirt_teleport(int idx)` в [`render_interp.h`](../../../new_game/src/engine/graphics/render_interp.h) — wipes `g_dirt_snaps[idx]`, на следующем capture идёт `!valid` (first-capture) path, prev=curr=new. Аналог `render_interp_mark_teleport(Thing*)` для Things.
+
+**Подтверждено пользователем 2026-05-02:** дёргания "блоков" листьев исчезли. Bounce-back collision pos write'ы (line 1080/1265/1395 в dirt.cpp) — small per-cell bounce, не teleport, mark не нужен. Held-can/head positioning (line 1340) — отдельный потенциальный body-vs-held-item desync, не наблюдался, не трогаем.

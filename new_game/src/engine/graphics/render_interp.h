@@ -83,6 +83,23 @@ void render_interp_capture_camera(FC_Cam* fc);
 // interpolated ones during AENG_draw.
 void render_interp_capture_eway_camera(void);
 
+// Capture the entire DIRT pool (leaves, brass, cans, blood, snow, etc — see
+// DIRT_TYPE_* in world_objects/dirt.h). Call once per physics tick after
+// DIRT_process so the most recent post-tick values are captured. The frame
+// scope (RenderInterpFrame) substitutes lerped pos/angles back into the
+// live DIRT_dirt entries during render so debris moves smoothly between
+// physics ticks instead of judder-stepping.
+void render_interp_capture_dirt(void);
+
+// Mark a DIRT slot as just-teleported (recycle, explicit reposition, etc.).
+// Invalidates the snapshot so the next capture goes through the !valid
+// (first-capture) path and prev=curr=new — render does not lerp across
+// the teleport. Call directly after writing the new x/y/z. `idx` must be
+// in [0, DIRT_MAX_DIRT). Safe to call when render-interp is not enabled
+// (becomes a cheap snapshot wipe). uc_orig: behaviour analogous to
+// render_interp_mark_teleport for Things.
+void render_interp_mark_dirt_teleport(int idx);
+
 // Render-time replacement of EWAY_grab_camera's just-written values with
 // interpolated ones, when render-interp is enabled and a valid snapshot
 // exists. Returns true if substitution happened. Call from the renderer

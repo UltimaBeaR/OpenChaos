@@ -1,5 +1,6 @@
 #include "world_objects/dirt.h"
 #include "world_objects/dirt_globals.h"
+#include "engine/graphics/render_interp.h" // render_interp_mark_dirt_teleport — recycle hint
 #include "effects/weather/drip.h"
 #include "effects/combat/pyro.h"
 #include "engine/effects/psystem.h"
@@ -321,6 +322,13 @@ void DIRT_set_focus(
                                 dd->dyaw = 0;
                                 dd->dpitch = 0;
                                 dd->droll = 0;
+                                // DIRT_FLAG_DELETE_OK reuse path: prior LEAF
+                                // (about to be deleted) is reincarnated at a
+                                // different position around a newly-in-range
+                                // tree. Type stays LEAF so the capture-side
+                                // last_type comparison wouldn't catch this;
+                                // explicit mark.
+                                render_interp_mark_dirt_teleport(int(dd - DIRT_dirt));
                             }
                         }
 
@@ -469,6 +477,20 @@ void DIRT_set_focus(
                 default:
                     ASSERT(0);
                     break;
+                }
+
+                // The slot was just relocated to a new (cx, cz, ground_y)
+                // around the focus point — typically several thousand
+                // sub-units away from where it sat last tick. Render-interp
+                // would otherwise lerp the leaf/can/etc. across that delta
+                // for one tick, which produces visible "block of leaves
+                // teleports across the screen" jitter when the player runs
+                // and many slots recycle in the same tick. Tell render-interp
+                // to skip the lerp on the next capture. UNUSED outcome (slot
+                // freed) is detected automatically by capture; only mark the
+                // non-UNUSED relocation paths.
+                if (dd->type != DIRT_TYPE_UNUSED) {
+                    render_interp_mark_dirt_teleport(int(dd - DIRT_dirt));
                 }
             } else {
                 dd->type = DIRT_TYPE_UNUSED;

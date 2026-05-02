@@ -132,7 +132,8 @@ Physics-rate state (нужна интерполяция):
   ├── Vehicles → Genus.Vehicle->Angle/Tilt/Roll (SLONG, отдельная ветка с VelR direction hint)
   ├── Camera (FC_cam) → x/y/z/yaw/pitch/roll
   ├── EWAY катсценная камера → EWAY_cam_x/y/z/yaw/pitch/lens (отдельный snapshot, render-time substitution после EWAY_grab_camera)
-  └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE), particles
+  ├── DIRT pool (leaves, brass, cans, blood, snow, etc — DIRT_dirt[1024]) → x/y/z/yaw/pitch/roll (SWORD), отдельный DirtSnap pool
+  └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE), particles (PARTICLE_* pool)
 
 Wall-clock state (уже плавно, не трогаем):
   ├── AnimTween (vertex morph)

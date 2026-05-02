@@ -266,6 +266,20 @@ Short-path: интерполяция идёт по короткой сторон
 
 Не входят: `CLASS_BUILDING`, `CLASS_SWITCH`, `CLASS_FURNITURE`, `CLASS_TRACK`, `CLASS_PLAYER`, `CLASS_CAMERA`, `CLASS_ANIM_PRIM`. Это статичные либо нерелевантные для движения.
 
+## DIRT pool (отдельная подсистема — листья, гильзы, банки и т.п.)
+
+`DIRT_dirt[1024]` ([world_objects/dirt.h](../../../new_game/src/world_objects/dirt.h)) — отдельный pool ambient-debris не в `THINGS[]`. Включает все `DIRT_TYPE_*`: leaves, brass casings, cans, blood, snow, sparks, urine, head props и др. Updates per physics tick через `DIRT_process` (`world_objects/dirt.cpp`) — gravity, friction, waft, scatter от игрока через `DIRT_gust`. Render — `AENG_draw_dirt` (`engine/graphics/pipeline/aeng.cpp`).
+
+**Snapshot инфраструктура:** отдельный `DirtSnap g_dirt_snaps[DIRT_MAX_DIRT]` (~30 KB) с prev/curr для `x/y/z` (SWORD), `yaw/pitch/roll` (SWORD, диапазон 0..2047). `last_type` отслеживается для детекции slot reuse — когда `DIRT_TYPE_UNUSED` сменяется на любой не-UNUSED тип (или один тип на другой), snapshot обнуляется и идёт через !valid first-capture path.
+
+**Capture:** `render_interp_capture_dirt()` — один проход на 1024 слота в physics tick после `DIRT_process` (рядом с другими capture-вызовами). Свободные слоты (`type == DIRT_TYPE_UNUSED`) early-skip — стоимость прохода ничтожная даже когда pool почти пуст.
+
+**Apply/restore:** в `RenderInterpFrame::ctor/dtor` после Things и cameras — write lerped pos/angles прямо в `DIRT_dirt[i]`, save originals в snapshot для восстановления. Render-path читает интерполированные значения автоматически (как для Things).
+
+**Lerp функции:**
+- Позиция SWORD — `lerp_i16(a, b, t)` (математика идёт через SLONG чтобы diff не overflow'нул на extremes; результат cast'ится обратно в SWORD).
+- Углы 0..2047 — `lerp_angle_2048` (тот же short-path что для Tween-углов Things).
+
 ## Углы — какие DrawType покрыты
 
 Углы интерполируются **только для Tween-семейства DrawType** (углы лежат в `Draw.Tweened->{Angle,Tilt,Roll}`):

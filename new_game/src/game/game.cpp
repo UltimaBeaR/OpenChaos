@@ -1117,6 +1117,12 @@ round_again:;
                         // EWAY_grab_camera writes. EWAY_process inside this same
                         // physics tick has already updated EWAY_cam_*.
                         render_interp_capture_eway_camera();
+                        // DIRT pool (leaves, brass, cans, etc) — separate from
+                        // THINGS[]. DIRT_process above advanced positions /
+                        // angles for this tick; snapshot them so the renderer
+                        // can lerp between ticks instead of showing them
+                        // judder-stepping at physics rate.
+                        render_interp_capture_dirt();
                     }
 
                     physics_acc_ms -= phys_step_ms;

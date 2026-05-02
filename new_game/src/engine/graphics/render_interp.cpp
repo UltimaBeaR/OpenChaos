@@ -7,6 +7,7 @@
 #include "game/game_types.h" // THINGS, TO_THING
 #include "game/game_globals.h" // g_physics_hz (adaptive blend duration)
 #include "missions/eway_globals.h" // EWAY_cam_* — cutscene camera globals
+#include "world_objects/dirt.h" // DIRT_dirt pool — leaves, brass, cans, etc.
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
@@ -247,9 +248,50 @@ static constexpr SLONG EWAY_GRAB_ROLL = 1024 << 8;
 // is trivial.
 CamSnap g_cam_snaps[FC_MAX_CAMS] = {};
 
+// DIRT pool snapshot (leaves, brass, cans, blood, snow, etc — see DIRT_TYPE_*).
+// DIRT_dirt is a 1024-slot pool of physics-driven debris updated once per
+// physics tick by DIRT_process. Without interpolation each leaf judders at
+// physics rate while the world around it lerps smoothly.
+//
+// Coordinates are SWORD (16-bit, scaled local around DIRT focus). Per-tick
+// motion stays well inside SWORD range. Angles (yaw/pitch/roll) are SWORD on
+// the standard 0..2047 Tween range.
+//
+// `last_type` is the type observed at the previous capture. Detects slot
+// reuse: if a slot transitions UNUSED → in-use, or one type → another
+// (different debris altogether), we treat it as a fresh first-capture so
+// the next render frame doesn't lerp from the previous occupant's state.
+struct DirtSnap {
+    SWORD x_prev, x_curr;
+    SWORD y_prev, y_curr;
+    SWORD z_prev, z_curr;
+    SWORD yaw_prev, yaw_curr;
+    SWORD pitch_prev, pitch_curr;
+    SWORD roll_prev, roll_curr;
+    UBYTE last_type;
+    bool  valid;
+
+    // Frame-scope save.
+    SWORD saved_x, saved_y, saved_z;
+    SWORD saved_yaw, saved_pitch, saved_roll;
+    bool  applied;
+};
+
+DirtSnap g_dirt_snaps[DIRT_MAX_DIRT] = {};
+
 inline SLONG lerp_i32(SLONG a, SLONG b, float t)
 {
     return a + SLONG(float(b - a) * t);
+}
+
+// Linear lerp on SWORD-stored coords (DIRT pool x/y/z). Goes through SLONG
+// for the math because SWORD diff can overflow on extremes (e.g. b=32000,
+// a=-32000 → diff=64000 doesn't fit in SWORD).
+inline SWORD lerp_i16(SWORD a, SWORD b, float t)
+{
+    SLONG ai = a;
+    SLONG bi = b;
+    return SWORD(ai + SLONG(float(bi - ai) * t));
 }
 
 // Short-path lerp on a circular 0..2047 range (Tween Angle/Tilt/Roll units).
@@ -416,6 +458,7 @@ void render_interp_reset(void)
 {
     for (int i = 0; i < MAX_THINGS; ++i) g_thing_snaps[i] = {};
     for (int i = 0; i < FC_MAX_CAMS; ++i) g_cam_snaps[i] = {};
+    for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i] = {};
     g_eway_cam_snap = {};
 }
 
@@ -852,6 +895,56 @@ bool render_interp_apply_eway_camera(
     return true;
 }
 
+void render_interp_mark_dirt_teleport(int idx)
+{
+    if (idx < 0 || idx >= DIRT_MAX_DIRT) return;
+    // Wipe the snapshot. Next render_interp_capture_dirt sees !valid and
+    // takes the first-capture path → prev=curr=current. No lerp through
+    // the teleport.
+    g_dirt_snaps[idx] = {};
+}
+
+void render_interp_capture_dirt(void)
+{
+    // One pass over the whole 1024-slot pool. Active slots shift
+    // prev <- curr <- live; freed/never-allocated slots clear validity so
+    // re-allocation goes through the !valid (first-capture) path and the
+    // next render frame doesn't lerp from the previous occupant's pose.
+    for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
+        const DIRT_Dirt& d = DIRT_dirt[i];
+        DirtSnap& s = g_dirt_snaps[i];
+
+        if (d.type == DIRT_TYPE_UNUSED) {
+            s.valid = false;
+            s.last_type = DIRT_TYPE_UNUSED;
+            continue;
+        }
+
+        // Slot was either freed-and-re-allocated since last capture, or just
+        // started its life. Either way: collapse prev=curr=live so render
+        // doesn't slide across the type/identity transition.
+        if (!s.valid || s.last_type != d.type) {
+            s.x_curr = d.x;     s.x_prev = s.x_curr;
+            s.y_curr = d.y;     s.y_prev = s.y_curr;
+            s.z_curr = d.z;     s.z_prev = s.z_curr;
+            s.yaw_curr = d.yaw; s.yaw_prev = s.yaw_curr;
+            s.pitch_curr = d.pitch; s.pitch_prev = s.pitch_curr;
+            s.roll_curr = d.roll;   s.roll_prev = s.roll_curr;
+            s.last_type = d.type;
+            s.valid = true;
+            continue;
+        }
+
+        // Standard window-shift.
+        s.x_prev = s.x_curr;     s.x_curr = d.x;
+        s.y_prev = s.y_curr;     s.y_curr = d.y;
+        s.z_prev = s.z_curr;     s.z_curr = d.z;
+        s.yaw_prev = s.yaw_curr;     s.yaw_curr = d.yaw;
+        s.pitch_prev = s.pitch_curr; s.pitch_curr = d.pitch;
+        s.roll_prev = s.roll_curr;   s.roll_curr = d.roll;
+    }
+}
+
 void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
 {
     if (!out) return;
@@ -1104,12 +1197,54 @@ RenderInterpFrame::RenderInterpFrame()
 
         s.applied = true;
     }
+
+    // DIRT pool (leaves, brass, cans, blood, etc). 1024 slots, most usually
+    // UNUSED — early skip on those keeps the loop cheap. valid=true active
+    // slots get pos+angles substituted for the duration of the render frame.
+    for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
+        DirtSnap& s = g_dirt_snaps[i];
+        if (!s.valid) { s.applied = false; continue; }
+
+        DIRT_Dirt& d = DIRT_dirt[i];
+        // Defensive: if the slot got freed since capture (DIRT_process this
+        // frame already ran, but we are between physics ticks here), skip.
+        if (d.type == DIRT_TYPE_UNUSED) { s.applied = false; continue; }
+
+        s.saved_x = d.x;
+        s.saved_y = d.y;
+        s.saved_z = d.z;
+        s.saved_yaw = d.yaw;
+        s.saved_pitch = d.pitch;
+        s.saved_roll = d.roll;
+
+        d.x = lerp_i16(s.x_prev, s.x_curr, alpha);
+        d.y = lerp_i16(s.y_prev, s.y_curr, alpha);
+        d.z = lerp_i16(s.z_prev, s.z_curr, alpha);
+        d.yaw   = lerp_angle_2048(s.yaw_prev,   s.yaw_curr,   alpha);
+        d.pitch = lerp_angle_2048(s.pitch_prev, s.pitch_curr, alpha);
+        d.roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
+
+        s.applied = true;
+    }
 }
 
 RenderInterpFrame::~RenderInterpFrame()
 {
-    // Restore in reverse order (camera then Things) just to mirror ctor —
+    // Restore in reverse order (DIRT, camera, Things) just to mirror ctor —
     // ordering doesn't actually matter since the saves are independent.
+    for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
+        DirtSnap& s = g_dirt_snaps[i];
+        if (!s.applied) continue;
+        DIRT_Dirt& d = DIRT_dirt[i];
+        d.x = s.saved_x;
+        d.y = s.saved_y;
+        d.z = s.saved_z;
+        d.yaw = s.saved_yaw;
+        d.pitch = s.saved_pitch;
+        d.roll = s.saved_roll;
+        s.applied = false;
+    }
+
     for (int i = 0; i < FC_MAX_CAMS; ++i) {
         CamSnap& s = g_cam_snaps[i];
         if (!s.applied) continue;
