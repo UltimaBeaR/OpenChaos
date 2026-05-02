@@ -39,6 +39,7 @@ extern SLONG ScreenWidth;
 extern SLONG ScreenHeight;
 
 #include "engine/graphics/geometry/figure.h"
+#include "engine/graphics/geometry/pose_composer.h" // Phase 1 debug: PEL_NEW label golden test
 #include "engine/graphics/geometry/figure_globals.h" // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
@@ -4082,6 +4083,25 @@ void AENG_draw_city()
                                     pel_r, pel_b, pel_g,
                                     UC_TRUE,
                                     (CBYTE*)"_____ROOT");
+
+                                // Phase 1 golden test: render bone[0] world
+                                // position computed by compose_full_skeletal_pose
+                                // and compare with PEL above. Should overlay
+                                // exactly (composer mirrors figure.cpp's per-
+                                // bone math). TODO: remove when Phase 2 ships
+                                // and snapshot reads compose output directly.
+                                {
+                                    ComposedSkeletalPose pose;
+                                    if (compose_full_skeletal_pose(p_thing, &pose) && pose.bone_count > 0) {
+                                        AENG_world_text(
+                                            (SLONG)pose.bones[0].pos_x,
+                                            (SLONG)pose.bones[0].pos_y,
+                                            (SLONG)pose.bones[0].pos_z,
+                                            pel_r, pel_b, pel_g,
+                                            UC_TRUE,
+                                            (CBYTE*)"__________PEL_NEW");
+                                    }
+                                }
                             }
                         }
 
@@ -5418,6 +5438,25 @@ void AENG_draw_warehouse()
                                 pel_r, pel_b, pel_g,
                                 UC_TRUE,
                                 (CBYTE*)"_____ROOT");
+
+                            // Phase 1 golden test: render bone[0] world position
+                            // computed by compose_full_skeletal_pose and compare
+                            // with PEL above. Should overlay exactly (composer
+                            // mirrors figure.cpp's per-bone math). TODO: remove
+                            // when Phase 2 ships and snapshot reads compose
+                            // output directly.
+                            {
+                                ComposedSkeletalPose pose;
+                                if (compose_full_skeletal_pose(p_thing, &pose) && pose.bone_count > 0) {
+                                    AENG_world_text(
+                                        (SLONG)pose.bones[0].pos_x,
+                                        (SLONG)pose.bones[0].pos_y,
+                                        (SLONG)pose.bones[0].pos_z,
+                                        pel_r, pel_b, pel_g,
+                                        UC_TRUE,
+                                        (CBYTE*)"__________PEL_NEW");
+                                }
+                            }
                         }
 
                         if ((p_thing->State == STATE_DEAD) && (p_thing->Genus.Person->Timer1 > 10)) {

@@ -265,6 +265,7 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/superfacet_globals.cpp
     src/engine/graphics/geometry/figure.cpp
     src/engine/graphics/geometry/figure_globals.cpp
+    src/engine/graphics/geometry/pose_composer.cpp
     src/engine/graphics/geometry/mesh.cpp
     src/engine/graphics/geometry/mesh_globals.cpp
     src/engine/graphics/geometry/shape.cpp

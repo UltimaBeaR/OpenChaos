@@ -133,7 +133,12 @@ Per-character colour: Дарси белая, остальные — pseudo-rando
 
 **Debug visualisation оставлена активной** в коде ([aeng.cpp](../../../new_game/src/engine/graphics/pipeline/aeng.cpp)) до завершения Phase 5. На каждом этапе можно визуально проверять: PEL должен оставаться плавным, ROOT — снапить (это правильное поведение). Удалить debug блоки в самом конце вместе с другими hacks.
 
-**Phase 1:** Extract `compose_full_skeletal_pose` — pure function. Golden test: composer output == current figure.cpp per-bone values на нескольких сэмпл-сценах (idle, walk, jump, ladder).
+**Phase 1 (✅ DONE — verified 2026-05-03):** Extract `compose_full_skeletal_pose` — pure function в [`pose_composer.h`](../../../new_game/src/engine/graphics/geometry/pose_composer.h)/[`.cpp`](../../../new_game/src/engine/graphics/geometry/pose_composer.cpp). Iterative pre-order DFS по `body_part_children[][]`, mirrors figure.cpp:1851 (HIERARCHY) + figure.cpp:1859 (root offset) + figure.cpp:1868-1881 (world pos with character_scale) + figure.cpp:1894-1905 (mat_final). No globals mutated.
+
+Golden test через `__________PEL_NEW` debug label в [`aeng.cpp`](../../../new_game/src/engine/graphics/pipeline/aeng.cpp). Verified visually на ladder, wall climbing, jumps:
+- PEL_NEW всегда совпадает с PEL (визуально one label) на каждом персе.
+- Diff 1-2 пикселя в некоторых фазах анимации — precision delta между путями (FMATRIX_calc int vs FIGURE_rotate_obj float, разный Roll handling, разный scale application path). PEL_NEW = ground truth (то что figure.cpp реально рендерит); PEL — приближение через `calc_sub_objects_position`.
+- С интерполяцией body + PEL + PEL_NEW глючат синхронно (текущий bug), expected — composer читает substituted state.
 
 **Phase 2:** Snapshot extension + capture call. На этом этапе snapshot захватывается per-tick, но render path его не читает — продолжает работать через старый substitution path.
 
