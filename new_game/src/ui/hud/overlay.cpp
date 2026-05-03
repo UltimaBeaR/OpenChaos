@@ -7,6 +7,7 @@
 #include "things/core/interact.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/render_interp.h" // render_interp_get_cached_pose
+#include "things/characters/anim_ids.h" // SUB_OBJECT_PELVIS / LEFT_FOOT / RIGHT_FOOT
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"
 
@@ -226,7 +227,47 @@ void OVERLAY_draw_enemy_health(void)
                     percent = p_target->Genus.Person->Health * 100 / health[p_target->Genus.Person->PersonType];
                 }
 
-                PANEL_draw_local_health(p_target->WorldPos.X >> 8, p_target->WorldPos.Y >> 8, p_target->WorldPos.Z >> 8, percent, 60);
+                // Position from animation pose (3 bones), not WorldPos:
+                // - X/Z from pelvis — center of body, smoothly interpolated
+                //   on render rate via render_interp_get_cached_pose (same
+                //   approach as PANEL_draw_gun_sight for CLASS_PERSON).
+                // - Y = min(pelvis, left_foot, right_foot) — the lowest
+                //   visible point of the body. WorldPos.Y can drift below
+                //   ground during ragdoll/falling and would render the bar
+                //   "under the terrain" now that we draw on top of all 3D;
+                //   bone positions track the actual visual pose so the bar
+                //   stays anchored to the body. Y is up here (foundations
+                //   use -= 256 to extend below ground), so min = lowest.
+                // Fallback to calc_sub_objects_position when no cached pose
+                // is available (e.g. target has no Tweened draw).
+                SLONG hx, hy, hz;
+                const BoneInterpTransform* pose = render_interp_get_cached_pose(p_target);
+                if (pose) {
+                    hx = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
+                    hz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
+                    SLONG y_pelvis = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
+                    SLONG y_lfoot  = SLONG(pose[SUB_OBJECT_LEFT_FOOT].pos_y);
+                    SLONG y_rfoot  = SLONG(pose[SUB_OBJECT_RIGHT_FOOT].pos_y);
+                    hy = y_pelvis;
+                    if (y_lfoot < hy) hy = y_lfoot;
+                    if (y_rfoot < hy) hy = y_rfoot;
+                } else {
+                    SLONG fx, fy, fz;
+                    const SLONG tween = p_target->Draw.Tweened->AnimTween;
+                    calc_sub_objects_position(p_target, tween, SUB_OBJECT_PELVIS, &fx, &fy, &fz);
+                    hx = fx + (p_target->WorldPos.X >> 8);
+                    hz = fz + (p_target->WorldPos.Z >> 8);
+                    SLONG y_pelvis = fy;
+                    calc_sub_objects_position(p_target, tween, SUB_OBJECT_LEFT_FOOT, &fx, &fy, &fz);
+                    SLONG y_lfoot = fy;
+                    calc_sub_objects_position(p_target, tween, SUB_OBJECT_RIGHT_FOOT, &fx, &fy, &fz);
+                    SLONG y_rfoot = fy;
+                    SLONG min_local_y = y_pelvis;
+                    if (y_lfoot < min_local_y) min_local_y = y_lfoot;
+                    if (y_rfoot < min_local_y) min_local_y = y_rfoot;
+                    hy = min_local_y + (p_target->WorldPos.Y >> 8);
+                }
+                PANEL_draw_local_health(hx, hy, hz, percent, 60);
             } break;
             }
         }
