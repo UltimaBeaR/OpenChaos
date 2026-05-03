@@ -255,7 +255,7 @@ Golden test через `__________PEL_NEW` debug label в [`aeng.cpp`](../../../
 - Diff 1-2 пикселя в некоторых фазах анимации — precision delta между путями (FMATRIX_calc int vs FIGURE_rotate_obj float, разный Roll handling, разный scale application path). PEL_NEW = ground truth (то что figure.cpp реально рендерит); PEL — приближение через `calc_sub_objects_position`.
 - С интерполяцией body + PEL + PEL_NEW глючат синхронно (текущий bug), expected — composer читает substituted state.
 
-**Phase 2:** Snapshot extension + capture call. На этом этапе snapshot захватывается per-tick, но render path его не читает — продолжает работать через старый substitution path.
+**Phase 2 (✅ DONE — verified 2026-05-03):** Snapshot extension + capture call. `PoseSnap` структура в [render_interp.cpp](../../../new_game/src/engine/graphics/render_interp.cpp) (per-bone prev/curr с CMatrix33 packed rotation), `capture_pose()` вызывается из `render_interp_capture` per-tick. На этой стадии snapshot захватывается, но render path его не читает — продолжает работать через старый substitution path. Подготовка для Phase 3 apply.
 
 **Phase 3 (✅ DONE — verified 2026-05-03):** New apply path за флагом `INTERP_THING_WORLD_POSE` в [`debug_interpolation_config.h`](../../../new_game/src/debug_interpolation_config.h). Реализация:
 - `render_interp_compute_pose()` в [`render_interp.cpp`](../../../new_game/src/engine/graphics/render_interp.cpp) — лерпит per-bone из snapshot (bone[0] world pos+rot, bones[1..14] parent-local + hierarchy reconstruction).
@@ -288,9 +288,43 @@ Golden test через `__________PEL_NEW` debug label в [`aeng.cpp`](../../../
 
 Тесты пройдены: тень синхронна с телом во всех scenarios. Reflection корректное и плавное во всех направлениях (после fix Y row vs Y col).
 
-**Phase 5:** Cleanup всех hacks (см. таблицу выше) **+ debug visualisation в aeng.cpp**. Удалить старый флаг.
+**Phase 5 (✅ DONE — verified 2026-05-03):** Full cleanup OLD path (Variant B по плану выше). Сделано:
 
-**Phase 6 — частично переехал в Phase 4:** Shadow path интегрирован в Phase 4 (см. выше). Если найдутся другие render paths которые используют per-bone pose (ANIM_obj_draw для animals/bats, gun/muzzle path) — расширить аналогично.
+**Pre-cleanup миграция (B-1, B-2a, B-3) — все render-path consumers переведены на pose snapshot:**
+- **Gun + muzzle flash** ([figure.cpp `FIGURE_draw_prim_tween_person_only`](../../../new_game/src/engine/graphics/geometry/figure.cpp)): override `(off_x/y/z, mat_final, fmatrix)` из snapshot перед `POLY_set_local_rotation`. Когда вызывается для гана/вспышки в руке, `recurse_level` указывает на HAND, gun наследует interpolated hand transform.
+- **Flat skeleton (бат / Bane / Balrog / Gargoyle + non-15 person fallback)** — расширение всей snapshot-инфраструктуры:
+  - `POSE_MAX_BONES` 15 → 20 ([pose_composer.h](../../../new_game/src/engine/graphics/geometry/pose_composer.h)) — соответствует `MAX_NUM_BODY_PARTS_AT_ONCE`.
+  - Новая функция `compose_flat_skeletal_pose()` ([pose_composer.cpp](../../../new_game/src/engine/graphics/geometry/pose_composer.cpp)) — pure func, mirrors `FIGURE_draw_prim_tween` parent==NULL ветку.
+  - `PoseSnap` расширен `bone_count` + `flat_skeleton` флагом. Capture/apply ветвятся по флагу; skeleton-type change → invalidate.
+  - Override в `FIGURE_draw_prim_tween` гейтится `parent_base_mat == NULL && part_number >= 0`.
+  - Flat-fallback callsite в [figure.cpp `FIGURE_draw`](../../../new_game/src/engine/graphics/geometry/figure.cpp) теперь передаёт `i` как `part_number` (был default `0xffffffff`).
+- **calc_sub_objects_position render-path consumers** мигрированы на чтение из `pose[bone_idx].pos_*`:
+  - Pelvis NIGHT_find в main draw ([figure.cpp](../../../new_game/src/engine/graphics/geometry/figure.cpp))
+  - Grenade в левой руке ([figure.cpp](../../../new_game/src/engine/graphics/geometry/figure.cpp))
+  - Pelvis NIGHT_find в reflection ([figure.cpp](../../../new_game/src/engine/graphics/geometry/figure.cpp))
+  - HUD selection oval at pelvis ([aeng.cpp](../../../new_game/src/engine/graphics/pipeline/aeng.cpp))
+  - Darci torso lens flare ([aeng.cpp](../../../new_game/src/engine/graphics/pipeline/aeng.cpp))
+  - HUD gun sights at head ([overlay.cpp](../../../new_game/src/ui/hud/overlay.cpp))
+  - Все имеют fallback на `calc_sub_objects_position` если pose snapshot недоступен.
+- **calc_sub_objects_position physics-tick consumers** (combat, collide, person, pcom, AI, fc — всего ~80 callsites) — НЕ мигрировались, они читают сырой post-tick state корректно.
+
+**Cleanup OLD path — удалено:**
+- Substitution `dt->Angle/Tilt/Roll/AnimTween/CurrentFrame/NextFrame` в `RenderInterpFrame::ctor` + restore в dtor.
+- Virtual-extended-coord trick (frame_diff/is_loop_wrap/snap-on-backward).
+- Cross-anim blend полностью: `RenderInterpBlend` struct, `render_interp_get_blend()`, `figure_morph_root_offset`/`figure_morph_matrix` blend ветки, `BLEND_DURATION_*` константы, blend setup в `render_interp_capture`.
+- Поля `ThingSnap`: `angle_*`, `tilt_*`, `roll_*`, `anim_tween_*`, `frame_index_*`, `current_frame_*`, `next_frame_*`, `has_angles`, `anim_tween_applied`, `skip_once`, `blend_*`, `saved_angle/tilt/roll/anim_tween/current_frame/next_frame`.
+- Флаги `INTERP_THING_TWEEN_ANGLE`, `INTERP_THING_ANIM_MORPH`, `INTERP_THING_CROSS_ANIM_BLEND`, `DEBUG_POSE_LABELS`.
+- Debug API: `render_interp_debug_get_pelvis_world()` + соответствующие debug labels (PEL/ROOT/PEL_NEW/PEL_SNAP) в aeng.cpp.
+
+**Что НЕ удалено (нужно для других readers):**
+- Substitution `Thing.WorldPos` в ctor — нужно для NIGHT_find lighting, shadows projection origin, EWAY targets, audio listener tracking. Гейтится `INTERP_THING_POS`.
+- `render_interp_invalidate` / `render_interp_mark_teleport` / `render_interp_mark_camera_teleport` / `render_interp_mark_dirt_teleport` — teleport mechanism полностью независим от substitution и работает через wipe snapshot ⇒ next capture идёт по `!valid` пути с `prev = curr = current state`.
+- Vehicle yaw/tilt/roll path (`Genus.Vehicle->Angle/Tilt/Roll`, гейт `INTERP_VEHICLE_ANGLE`) — отдельный от Tween path.
+- Camera (`FC_cam`, `EWAY_cam`), DIRT pool — отдельные snapshot'ы.
+
+**Итого:** ~600 строк удалено из render_interp.cpp + ~150 из figure.cpp + ~50 из header'ов. Substitution path полностью убран; единственный путь рендеринга person/animal/bat теперь — pose snapshot. Master toggle key `3` отключает интерполяцию полностью (raw post-tick snap'ы, как до Phase 0).
+
+**Phase 6 (✅ DONE — verified 2026-05-03, разъехался по Phase 4 и Phase 5):** Shadow path интегрирован в Phase 4. ANIM_obj_draw (animals/bats/Bane/Balrog/Gargoyle, flat skeleton) + gun/muzzle path интегрированы в Phase 5 (cleanup migration B-1, B-2a) — `compose_flat_skeletal_pose()` для flat skeletons + override в `FIGURE_draw_prim_tween` + override в `FIGURE_draw_prim_tween_person_only`. Все render-path consumers `calc_sub_objects_position` (lighting NIGHT_find, grenade-in-hand, HUD selection oval, gun sights, lens flare) тоже мигрированы в Phase 5. Дальнейшие render paths не выявлены.
 
 ## Test scenarios (success criteria)
 

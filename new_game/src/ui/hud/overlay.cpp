@@ -6,6 +6,7 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "things/core/interact.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/render_interp.h" // render_interp_get_cached_pose
 #include "ui/hud/overlay.h"
 #include "ui/hud/overlay_globals.h"
 
@@ -150,10 +151,19 @@ void OVERLAY_draw_gun_sights(void)
         switch (p_thing->Class) {
         case CLASS_PERSON:
             // Bone 11 is the head.
-            calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, 11, &hx, &hy, &hz);
-            hx += p_thing->WorldPos.X >> 8;
-            hy += p_thing->WorldPos.Y >> 8;
-            hz += p_thing->WorldPos.Z >> 8;
+            {
+                const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+                if (pose) {
+                    hx = SLONG(pose[11].pos_x);
+                    hy = SLONG(pose[11].pos_y);
+                    hz = SLONG(pose[11].pos_z);
+                } else {
+                    calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, 11, &hx, &hy, &hz);
+                    hx += p_thing->WorldPos.X >> 8;
+                    hy += p_thing->WorldPos.Y >> 8;
+                    hz += p_thing->WorldPos.Z >> 8;
+                }
+            }
             PANEL_draw_gun_sight(hx, hy, hz, panel_gun_sight[c0].Timer, 256);
             break;
         case CLASS_SPECIAL:

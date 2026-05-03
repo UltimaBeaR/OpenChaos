@@ -25,21 +25,6 @@
 struct Thing;
 struct GameKeyFrameElement;
 
-// Cross-anim blend state queried by the render path. When `active` is true
-// the renderer composes the displayed pose as
-//   lerp(  lerp(old_ae1[i], old_ae2[i], old_tween),
-//          live_new_pose_for_part_i,
-//          blend_t  )
-// for each body part `i`. live_new_pose comes from the live (post-
-// RenderInterpFrame) DrawTween fields the caller already has.
-struct RenderInterpBlend {
-    bool active;
-    GameKeyFrameElement* old_ae1;  // FirstElement of pre-transition CurrentFrame
-    GameKeyFrameElement* old_ae2;  // FirstElement of pre-transition NextFrame
-    SLONG old_tween;               // pre-transition AnimTween, [0, 256)
-    float blend_t;                 // [0, 1] — 0=fully old pose, 1=fully new pose
-};
-
 // Interpolation factor in [0, 1). 0 = at previous tick, ~1 = just before next.
 // Recomputed by the game loop after the physics-tick while-loop.
 extern float g_render_alpha;
@@ -116,21 +101,6 @@ bool render_interp_apply_eway_camera(
 
 // Mark camera teleport (cutscene cut, sudden focus change).
 void render_interp_mark_camera_teleport(FC_Cam* fc);
-
-// Query cross-anim blend state for `p_thing`. Sets out->active=false if the
-// thing is not currently in a blend. Otherwise fills the four fields the
-// renderer needs to mix the pre-transition pose with the live post-transition
-// pose for each body part. Safe to call any time during render path.
-void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out);
-
-// Phase 2 debug: retrieve the captured PELVIS world position from the per-
-// bone pose snapshot (curr value, not lerped). Returns true and writes
-// (x, y, z) iff the snapshot is valid and bones_curr[0] holds usable data.
-// Used by the PEL_SNAP debug label in aeng.cpp to verify capture round-trip
-// matches PEL_NEW (live compose) — both come from the same composer output
-// path, so the labels should overlap exactly. TODO: remove once Phase 3
-// apply path consumes the snapshot directly.
-bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* out_y, SLONG* out_z);
 
 // Phase 3 apply API: per-bone interpolated world transform — exactly the
 // (off_x/y/z, mat_final) pair that figure.cpp's draw functions feed to

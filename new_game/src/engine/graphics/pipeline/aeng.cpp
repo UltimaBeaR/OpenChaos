@@ -39,9 +39,7 @@ extern SLONG ScreenWidth;
 extern SLONG ScreenHeight;
 
 #include "engine/graphics/geometry/figure.h"
-#include "engine/graphics/geometry/pose_composer.h" // Phase 1 debug: PEL_NEW label golden test
 #include "engine/graphics/render_interp.h" // Phase 2 debug: PEL_SNAP label (snapshot round-trip verify)
-#include "debug_interpolation_config.h" // ri_cfg::DEBUG_POSE_LABELS gate
 #include "engine/graphics/geometry/figure_globals.h" // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
@@ -4043,91 +4041,6 @@ void AENG_draw_city()
                                     PCOM_person_state_debug(p_thing));
                             }
 
-                            // Per-character debug labels for world-pose-snapshot
-                            // work (new_game_devlog/fps_unlock/render_interpolation/
-                            // world_pose_snapshot_plan.md). Gated by
-                            // ri_cfg::DEBUG_POSE_LABELS — off by default in
-                            // release; flip true to inspect:
-                            //   PEL       — calc_sub_objects_position pelvis
-                            //               (Phase 0 anchor verification)
-                            //   _____ROOT — raw Thing.WorldPos (snap reference)
-                            //   __________PEL_NEW — pure pose composer output
-                            //               (Phase 1 golden test)
-                            //   _________________________PEL_SNAP — captured
-                            //               raw post-tick (Phase 2 round-trip)
-                            // All four share per-character colour for easy
-                            // association.
-                            if constexpr (ri_cfg::DEBUG_POSE_LABELS)
-                            {
-                                SLONG ppx, ppy, ppz;
-                                calc_sub_objects_position(
-                                    p_thing,
-                                    p_thing->Draw.Tweened->AnimTween,
-                                    SUB_OBJECT_PELVIS,
-                                    &ppx, &ppy, &ppz);
-                                ppx += p_thing->WorldPos.X >> 8;
-                                ppy += p_thing->WorldPos.Y >> 8;
-                                ppz += p_thing->WorldPos.Z >> 8;
-
-                                UBYTE pel_r, pel_b, pel_g;
-                                if (p_thing->Genus.Person->PlayerID) {
-                                    pel_r = 255; pel_b = 255; pel_g = 255;
-                                } else {
-                                    UWORD pel_idx = (UWORD)(p_thing - THINGS);
-                                    pel_r = (UBYTE)(((pel_idx * 37)  & 0x7f) + 0x80);
-                                    pel_b = (UBYTE)(((pel_idx * 67)  & 0x7f) + 0x80);
-                                    pel_g = (UBYTE)(((pel_idx * 113) & 0x7f) + 0x80);
-                                }
-                                AENG_world_text(
-                                    ppx, ppy, ppz,
-                                    pel_r, pel_b, pel_g,
-                                    UC_TRUE,
-                                    (CBYTE*)"PEL");
-                                AENG_world_text(
-                                    p_thing->WorldPos.X >> 8,
-                                    p_thing->WorldPos.Y >> 8,
-                                    p_thing->WorldPos.Z >> 8,
-                                    pel_r, pel_b, pel_g,
-                                    UC_TRUE,
-                                    (CBYTE*)"_____ROOT");
-
-                                // Phase 1 golden test: render bone[0] world
-                                // position computed by compose_full_skeletal_pose
-                                // and compare with PEL above. Should overlay
-                                // exactly (composer mirrors figure.cpp's per-
-                                // bone math). TODO: remove when Phase 2 ships
-                                // and snapshot reads compose output directly.
-                                {
-                                    ComposedSkeletalPose pose;
-                                    if (compose_full_skeletal_pose(p_thing, &pose) && pose.bone_count > 0) {
-                                        AENG_world_text(
-                                            (SLONG)pose.bones[0].pos_x,
-                                            (SLONG)pose.bones[0].pos_y,
-                                            (SLONG)pose.bones[0].pos_z,
-                                            pel_r, pel_b, pel_g,
-                                            UC_TRUE,
-                                            (CBYTE*)"__________PEL_NEW");
-                                    }
-                                }
-
-                                // Phase 2 verification: read pelvis world pos
-                                // from g_pose_snaps[idx].bones_curr[0] (captured
-                                // last physics tick). Should overlay PEL_NEW
-                                // exactly when alpha=0 (= just past tick boundary)
-                                // — both come from the same composer output, just
-                                // one is stored and one is recomputed. Drift =
-                                // capture bug. TODO: remove after Phase 3.
-                                {
-                                    SLONG sx, sy, sz;
-                                    if (render_interp_debug_get_pelvis_world(p_thing, &sx, &sy, &sz)) {
-                                        AENG_world_text(
-                                            sx, sy, sz,
-                                            pel_r, pel_b, pel_g,
-                                            UC_TRUE,
-                                            (CBYTE*)"_________________________PEL_SNAP");
-                                    }
-                                }
-                            }
                         }
 
                             if (p_thing->State == STATE_DEAD) {
@@ -4298,23 +4211,21 @@ void AENG_draw_city()
                             SLONG py;
                             SLONG pz;
 
-                            calc_sub_objects_position(
-                                p_thing,
-                                p_thing->Draw.Tweened->AnimTween,
-                                SUB_OBJECT_PELVIS,
-                                &px,
-                                &py,
-                                &pz);
+                            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+                            if (pose) {
+                                px = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
+                                py = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
+                                pz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
+                            } else {
+                                calc_sub_objects_position(p_thing,
+                                    p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS,
+                                    &px, &py, &pz);
+                                px += p_thing->WorldPos.X >> 8;
+                                py += p_thing->WorldPos.Y >> 8;
+                                pz += p_thing->WorldPos.Z >> 8;
+                            }
 
-                            px += p_thing->WorldPos.X >> 8;
-                            py += p_thing->WorldPos.Y >> 8;
-                            pz += p_thing->WorldPos.Z >> 8;
-
-                            OVAL_add(
-                                px,
-                                py,
-                                pz,
-                                130);
+                            OVAL_add(px, py, pz, 130);
                         }
 
                         break;
@@ -4496,17 +4407,19 @@ void AENG_draw_city()
         SLONG y;
         SLONG z;
 
-        calc_sub_objects_position(
-            darci,
-            darci->Draw.Tweened->AnimTween,
-            0, // Torso?
-            &x,
-            &y,
-            &z);
-
-        x += darci->WorldPos.X >> 8;
-        y += darci->WorldPos.Y >> 8;
-        z += darci->WorldPos.Z >> 8;
+        {
+            const BoneInterpTransform* pose = render_interp_get_cached_pose(darci);
+            if (pose) {
+                x = SLONG(pose[0].pos_x);
+                y = SLONG(pose[0].pos_y);
+                z = SLONG(pose[0].pos_z);
+            } else {
+                calc_sub_objects_position(darci, darci->Draw.Tweened->AnimTween, 0, &x, &y, &z);
+                x += darci->WorldPos.X >> 8;
+                y += darci->WorldPos.Y >> 8;
+                z += darci->WorldPos.Z >> 8;
+            }
+        }
 
         angle = float(darci->Draw.Tweened->Angle);
         angle *= 2.0F * PI / 2048.0F;
@@ -5419,80 +5332,6 @@ void AENG_draw_warehouse()
                                 50,
                                 UC_TRUE,
                                 PCOM_person_state_debug(p_thing));
-                        }
-
-                        // Per-character debug labels for world-pose-snapshot
-                        // work (see outdoor branch above for full description).
-                        // Gated by ri_cfg::DEBUG_POSE_LABELS — off by default.
-                        if constexpr (ri_cfg::DEBUG_POSE_LABELS)
-                        {
-                            SLONG ppx, ppy, ppz;
-                            calc_sub_objects_position(
-                                p_thing,
-                                p_thing->Draw.Tweened->AnimTween,
-                                SUB_OBJECT_PELVIS,
-                                &ppx, &ppy, &ppz);
-                            ppx += p_thing->WorldPos.X >> 8;
-                            ppy += p_thing->WorldPos.Y >> 8;
-                            ppz += p_thing->WorldPos.Z >> 8;
-
-                            UBYTE pel_r, pel_b, pel_g;
-                            if (p_thing->Genus.Person->PlayerID) {
-                                pel_r = 255; pel_b = 255; pel_g = 255;
-                            } else {
-                                UWORD pel_idx = (UWORD)(p_thing - THINGS);
-                                pel_r = (UBYTE)(((pel_idx * 37)  & 0x7f) + 0x80);
-                                pel_b = (UBYTE)(((pel_idx * 67)  & 0x7f) + 0x80);
-                                pel_g = (UBYTE)(((pel_idx * 113) & 0x7f) + 0x80);
-                            }
-                            AENG_world_text(
-                                ppx, ppy, ppz,
-                                pel_r, pel_b, pel_g,
-                                UC_TRUE,
-                                (CBYTE*)"PEL");
-                            AENG_world_text(
-                                p_thing->WorldPos.X >> 8,
-                                p_thing->WorldPos.Y >> 8,
-                                p_thing->WorldPos.Z >> 8,
-                                pel_r, pel_b, pel_g,
-                                UC_TRUE,
-                                (CBYTE*)"_____ROOT");
-
-                            // Phase 1 golden test: render bone[0] world position
-                            // computed by compose_full_skeletal_pose and compare
-                            // with PEL above. Should overlay exactly (composer
-                            // mirrors figure.cpp's per-bone math). TODO: remove
-                            // when Phase 2 ships and snapshot reads compose
-                            // output directly.
-                            {
-                                ComposedSkeletalPose pose;
-                                if (compose_full_skeletal_pose(p_thing, &pose) && pose.bone_count > 0) {
-                                    AENG_world_text(
-                                        (SLONG)pose.bones[0].pos_x,
-                                        (SLONG)pose.bones[0].pos_y,
-                                        (SLONG)pose.bones[0].pos_z,
-                                        pel_r, pel_b, pel_g,
-                                        UC_TRUE,
-                                        (CBYTE*)"__________PEL_NEW");
-                                }
-                            }
-
-                            // Phase 2 verification: read pelvis world pos from
-                            // g_pose_snaps[idx].bones_curr[0] (captured last
-                            // physics tick). Should overlay PEL_NEW exactly
-                            // when alpha=0 — both come from same composer output,
-                            // just one stored and one recomputed. Drift = capture
-                            // bug. TODO: remove after Phase 3.
-                            {
-                                SLONG sx, sy, sz;
-                                if (render_interp_debug_get_pelvis_world(p_thing, &sx, &sy, &sz)) {
-                                    AENG_world_text(
-                                        sx, sy, sz,
-                                        pel_r, pel_b, pel_g,
-                                        UC_TRUE,
-                                        (CBYTE*)"_________________________PEL_SNAP");
-                                }
-                            }
                         }
 
                         if ((p_thing->State == STATE_DEAD) && (p_thing->Genus.Person->Timer1 > 10)) {

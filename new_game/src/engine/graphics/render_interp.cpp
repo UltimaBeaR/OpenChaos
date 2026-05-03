@@ -58,81 +58,15 @@ namespace {
 
 struct ThingSnap {
     GameCoord pos_prev, pos_curr;
-    SWORD angle_prev, angle_curr;
-    SWORD tilt_prev, tilt_curr;
-    SWORD roll_prev, roll_curr;
     bool valid;
-    bool skip_once;
-    bool has_angles;       // captured Draw.Tweened angles (Tween-based drawables)
 
-    // Anim-transition detection. When MeshID or CurrentAnim change between
-    // captures, the pose has discontinuously jumped — interpolating across
-    // that boundary produces visual squashing. Detected at capture time and
-    // converted into skip_once.
+    // Anim-transition / mesh / anim id tracking — used by capture_pose to
+    // invalidate the per-bone snapshot (g_pose_snaps[idx]) when the skeleton
+    // structure changes. last_seen_class is for RENDER_INTERP_LOG slot-reuse
+    // diagnostics.
     UBYTE last_mesh_id;
     SLONG last_anim;
-
-    // Class observed at the previous capture. Used by RENDER_INTERP_LOG
-    // diagnostics to detect Thing slot reuse (e.g. CLASS_VEHICLE car
-    // despawn → CLASS_PERSON spawn into the same slot). Slot reuse for
-    // vehicles bypasses free_thing (THING_kill is a no-op for
-    // CLASS_VEHICLE), so render_interp_invalidate is never hit and the
-    // previous occupant's snapshot lingers.
     UBYTE last_seen_class;
-
-    // Vertex-morph fraction (Draw.Tweened->AnimTween, range [0, 256)) plus
-    // the morph-endpoint keyframe pointers it indexes. AnimTween is advanced
-    // once per physics tick by anim handlers (e.g. person_normal_animate_speed
-    // scales by TICK_RATIO), so without interpolation the morph judders at
-    // physics rate while body position is smooth.
-    //
-    // We snapshot the keyframe pointers (CurrentFrame/NextFrame) too so that
-    // when a tick crosses a keyframe boundary (`tween_step` >= 256-AnimTween),
-    // the render path can lerp through the boundary in a virtual extended
-    // coordinate: v = prev_AT + alpha * ((256 - prev_AT) + curr_AT). For
-    // v < 256 we render with prev's keyframe pair, for v >= 256 with curr's
-    // pair (AnimTween = v - 256). FrameIndex is captured purely as the cheap
-    // boundary-detector — its diff selects the apply branch.
-    SLONG anim_tween_prev, anim_tween_curr;
-    UBYTE frame_index_prev, frame_index_curr;
-    struct GameKeyFrame* current_frame_prev;
-    struct GameKeyFrame* current_frame_curr;
-    struct GameKeyFrame* next_frame_prev;
-    struct GameKeyFrame* next_frame_curr;
-
-    // Cross-anim blend (variant A "snap-aligned blend", multi-segment).
-    // Activated when CurrentAnim or MeshID change is detected and same-mesh
-    // blend is possible. Overrides the standard AnimTween logic for the
-    // duration of the blend window.
-    //
-    // We snapshot the old anim's full state at the moment of transition
-    // (CF/NF/AT) and morph in two segments using a virtual extended
-    // coordinate v = blend_old_at + blend_t * total where
-    // total = (256 - blend_old_at) + 256:
-    //
-    //   v < 256   — first segment: render(blend_old_cf, blend_old_nf, v)
-    //               i.e. complete the old anim's pending morph through
-    //               its NextFrame. Starts at v=blend_old_at which equals
-    //               the actual pre-transition pose — no start-snap.
-    //   v >= 256  — second segment: render(blend_old_nf, live_new_cf, v-256)
-    //               morph from old's NextFrame to live new-anim's
-    //               CurrentFrame. live_new_cf tracks physics so the new
-    //               anim's keyframe progression during the blend is
-    //               followed.
-    //
-    // At v=512 the morph lands at live_new_cf and the standard path
-    // resumes. Hand-off discontinuity is bounded by live_at/256 of one
-    // keyframe distance — small after only ~2 physics ticks of blend.
-    //
-    // Skipped when MeshID changes — different vertex layouts cannot be
-    // morphed safely.
-    bool blend_active;
-    uint64_t blend_start_ms;
-    uint64_t blend_duration_ms;     // captured at transition based on then-current
-                                    // g_physics_hz; constant for the whole blend.
-    struct GameKeyFrame* blend_old_cf;
-    struct GameKeyFrame* blend_old_nf;
-    SLONG blend_old_at;
 
     // Vehicle yaw/tilt/roll. CLASS_VEHICLE stores these in Genus.Vehicle->
     // Angle/Tilt/Roll (SLONG), separate from Draw.Tweened. Angle is normalised
@@ -160,41 +94,12 @@ struct ThingSnap {
     // ctor and restored by dtor. applied=false means this entry was not
     // touched this frame and dtor must skip it.
     GameCoord saved_pos;
-    SWORD saved_angle, saved_tilt, saved_roll;
-    SLONG saved_anim_tween;
-    struct GameKeyFrame* saved_current_frame;
-    struct GameKeyFrame* saved_next_frame;
     SLONG saved_veh_angle, saved_veh_tilt, saved_veh_roll;
     bool applied;
-    bool anim_tween_applied;  // covers AnimTween + CurrentFrame + NextFrame
-                              // override. Skipped on >1-keyframe jumps where
-                              // we lack the intermediate pointer history.
     bool veh_angles_applied;  // set when ctor wrote interpolated values into
                               // Genus.Vehicle->Angle/Tilt/Roll; tells dtor to
                               // restore them.
 };
-
-// Cross-anim blend duration (wall-clock ms). Computed adaptively per
-// transition as exactly 1 physics-tick interval, clamped to [MIN, MAX]:
-//   5Hz physics  → 200ms (= 1 tick, hits cap from above only at <=5Hz)
-//   10Hz physics → 100ms (= 1 tick)
-//   20Hz physics → 50ms  (= 1 tick, hits floor)
-//   60Hz physics → 50ms  (floor; 1 tick = 16.7ms < MIN)
-// Why exactly 1 tick: live new-anim pose advances on every physics tick
-// inside the blend window. If blend > 1 tick, an extra tick fires mid-
-// blend and the new pose jumps mid-cross-fade — visible as the off_final
-// trajectory bending non-monotonically (jump-up apex dip, landing
-// "sharpness"). The 5Hz case happens to land on exactly 1 tick for free;
-// keeping that ratio at every rate reproduces the smooth feel.
-//
-// Earlier iterations: 1.5× tick (3/2) — fixed jump-up at 20Hz but
-// landing transitions still showed sharpness because the half-extra
-// tick still advanced the new pose mid-blend. MIN=100 — gave more
-// visible blend on jump-kick but reintroduced jump-landing U-shape.
-static constexpr uint64_t BLEND_DURATION_MIN_MS = 50;
-static constexpr uint64_t BLEND_DURATION_MAX_MS = 200;
-static constexpr int BLEND_DURATION_TICK_FACTOR_NUM = 1;
-static constexpr int BLEND_DURATION_TICK_FACTOR_DEN = 1;
 
 // Indexed by (p_thing - &THINGS[0]). MAX_THINGS == 701.
 ThingSnap g_thing_snaps[MAX_THINGS] = {};
@@ -715,62 +620,13 @@ void render_interp_capture(Thing* p_thing)
 #endif
     s.last_seen_class = p_thing->Class;
 
-    // Detect anim transitions: if MeshID or CurrentAnim changed since last
-    // capture, the pose jumped and lerping in the standard tween path
-    // would visibly squash the model across the change. Treat as a
-    // teleport, AND attempt to start a render-side cross-anim blend if
-    // the mesh structure stayed the same.
-    //
-    // When DrawType is not Tween-based (dt == nullptr) we drop the cached
-    // mesh/anim — otherwise on a later return to Tween the comparison would
-    // run against a stale pre-leave value and could miss a real anim
-    // transition if the new MeshID happened to match the old one.
+    // Track skeleton id for per-bone snapshot invalidation in capture_pose.
     if (dt) {
-        if (s.last_mesh_id != dt->MeshID || s.last_anim != dt->CurrentAnim) {
-            // Pre-transition state is currently in s.*_curr (set by the
-            // previous tick's capture, not yet shifted to *_prev). Use it
-            // to seed the blend's "from" representative keyframe.
-            //
-            // Conditions to start a blend:
-            //   - MeshID unchanged across the transition (same vertex
-            //     layout — morph between arbitrary keyframes is meaningful)
-            //   - We had valid pre-transition keyframe state
-            bool mesh_stable = (s.last_mesh_id == dt->MeshID);
-            if (mesh_stable && s.valid && s.has_angles
-                && s.current_frame_curr && s.next_frame_curr) {
-                // Snapshot old anim's pose state (CF, NF, AT) AND pre-
-                // transition WorldPos. The pose snapshot lets figure.cpp
-                // morph cross-fade per body part; the pos snapshot lets
-                // the frame-scope tween position from old→new in lockstep
-                // with the pose blend, preventing the "feet under ground"
-                // artifact on dramatic transitions like jump→land where
-                // physics snaps WorldPos to ground in one tick while the
-                // pose still tweens from airborne to grounded.
-                s.blend_old_cf = s.current_frame_curr;
-                s.blend_old_nf = s.next_frame_curr;
-                s.blend_old_at = s.anim_tween_curr;
-                s.blend_active = true;
-                s.blend_start_ms = sdl3_get_ticks();
-                // Compute adaptive blend duration based on the current
-                // physics rate. See comment above BLEND_DURATION_MIN_MS.
-                SLONG hz = (g_physics_hz > 0) ? g_physics_hz : 20;
-                uint64_t tick_ms = uint64_t(1000) / uint64_t(hz);
-                uint64_t dur = (tick_ms * BLEND_DURATION_TICK_FACTOR_NUM)
-                             /  BLEND_DURATION_TICK_FACTOR_DEN;
-                if (dur < BLEND_DURATION_MIN_MS) dur = BLEND_DURATION_MIN_MS;
-                if (dur > BLEND_DURATION_MAX_MS) dur = BLEND_DURATION_MAX_MS;
-                s.blend_duration_ms = dur;
-            } else {
-                s.blend_active = false;
-            }
-            s.skip_once = true;
-            s.last_mesh_id = dt->MeshID;
-            s.last_anim = dt->CurrentAnim;
-        }
+        s.last_mesh_id = dt->MeshID;
+        s.last_anim = dt->CurrentAnim;
     } else {
         s.last_mesh_id = 0;
         s.last_anim = 0;
-        s.blend_active = false;
     }
 
     if (!s.valid) {
@@ -783,25 +639,6 @@ void render_interp_capture(Thing* p_thing)
 #endif
         s.pos_curr = p_thing->WorldPos;
         s.pos_prev = s.pos_curr;
-        if (dt) {
-            s.angle_curr = dt->Angle;
-            s.tilt_curr = dt->Tilt;
-            s.roll_curr = dt->Roll;
-            s.anim_tween_curr = dt->AnimTween;
-            s.frame_index_curr = dt->FrameIndex;
-            s.current_frame_curr = dt->CurrentFrame;
-            s.next_frame_curr = dt->NextFrame;
-            s.has_angles = true;
-        } else {
-            s.has_angles = false;
-        }
-        s.angle_prev = s.angle_curr;
-        s.tilt_prev = s.tilt_curr;
-        s.roll_prev = s.roll_curr;
-        s.anim_tween_prev = s.anim_tween_curr;
-        s.frame_index_prev = s.frame_index_curr;
-        s.current_frame_prev = s.current_frame_curr;
-        s.next_frame_prev = s.next_frame_curr;
         if (vp) {
             s.veh_ptr_curr = vp;
             s.veh_angle_curr = vp->Angle;
@@ -817,18 +654,11 @@ void render_interp_capture(Thing* p_thing)
             s.veh_ptr_curr = nullptr;
         }
         s.valid = true;
-        s.skip_once = false;
+        capture_pose(idx, p_thing);
         return;
     }
 
     s.pos_prev = s.pos_curr;
-    s.angle_prev = s.angle_curr;
-    s.tilt_prev = s.tilt_curr;
-    s.roll_prev = s.roll_curr;
-    s.anim_tween_prev = s.anim_tween_curr;
-    s.frame_index_prev = s.frame_index_curr;
-    s.current_frame_prev = s.current_frame_curr;
-    s.next_frame_prev = s.next_frame_curr;
     s.veh_angle_prev = s.veh_angle_curr;
     s.veh_tilt_prev  = s.veh_tilt_curr;
     s.veh_roll_prev  = s.veh_roll_curr;
@@ -855,19 +685,6 @@ void render_interp_capture(Thing* p_thing)
     }
 #endif
 
-    if (dt) {
-        s.angle_curr = dt->Angle;
-        s.tilt_curr = dt->Tilt;
-        s.roll_curr = dt->Roll;
-        s.anim_tween_curr = dt->AnimTween;
-        s.frame_index_curr = dt->FrameIndex;
-        s.current_frame_curr = dt->CurrentFrame;
-        s.next_frame_curr = dt->NextFrame;
-        s.has_angles = true;
-    } else {
-        // DrawType changed away from Tween — drop angle interpolation.
-        s.has_angles = false;
-    }
     if (vp) {
         // Vehicle pointer changed (cutscene rebind, slot's vehicle pool
         // entry reallocated) — treat as a fresh capture so we don't lerp
@@ -895,26 +712,7 @@ void render_interp_capture(Thing* p_thing)
         s.veh_ptr_curr = nullptr;
     }
 
-    if (s.skip_once) {
-        // Anim-only skip: keyframe-pair / AnimTween / FrameIndex were
-        // discontinuously reset by an anim transition (set_anim/MeshID
-        // change). Without this, the standard tween path would lerp
-        // across two unrelated keyframe pairs and visibly squash the
-        // model. Position and angles are NOT skipped — set_anim leaves
-        // WorldPos/Angle/Tilt/Roll alone, so they keep lerping smoothly
-        // across the transition. (Previously this skipped everything,
-        // freezing position for one tick interval at every transition.)
-        s.anim_tween_prev = s.anim_tween_curr;
-        s.frame_index_prev = s.frame_index_curr;
-        s.current_frame_prev = s.current_frame_curr;
-        s.next_frame_prev = s.next_frame_curr;
-        s.skip_once = false;
-    }
-
-    // Phase 2: world-space per-bone pose capture. Walks the skeleton
-    // hierarchy, computes parent-local representation, stores in
-    // g_pose_snaps[idx] for use by Phase 3 apply path. No-op for non-person
-    // Things (handled in a later phase).
+    // World-space per-bone pose capture (writes g_pose_snaps[idx]).
     capture_pose(idx, p_thing);
 }
 
@@ -1164,52 +962,6 @@ void render_interp_capture_dirt(void)
     }
 }
 
-void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out)
-{
-    if (!out) return;
-    out->active = false;
-    out->old_ae1 = nullptr;
-    out->old_ae2 = nullptr;
-    out->old_tween = 0;
-    out->blend_t = 0.0f;
-    if (!p_thing || !g_render_interp_enabled) return;
-    if constexpr (!ri_cfg::INTERP_THING_CROSS_ANIM_BLEND) return;
-
-    UWORD idx = thing_index(p_thing);
-    if (idx >= MAX_THINGS) return;
-    ThingSnap& s = g_thing_snaps[idx];
-    if (!s.blend_active) return;
-    // Canonicity check before dereferencing — same defence as the AnimTween
-    // branch in ctor. Stale blend_old_cf/_nf survives slot/state transitions
-    // similarly to current_frame_prev and would crash on FirstElement read.
-    if (!render_interp_addr_looks_valid(s.blend_old_cf)
-        || !render_interp_addr_looks_valid(s.blend_old_nf)) return;
-    if (!s.blend_old_cf->FirstElement || !s.blend_old_nf->FirstElement) return;
-
-    uint64_t now_ms = sdl3_get_ticks();
-    uint64_t elapsed = now_ms - s.blend_start_ms;
-    if (elapsed >= s.blend_duration_ms) return;
-
-    out->active   = true;
-    out->old_ae1  = s.blend_old_cf->FirstElement;
-    out->old_ae2  = s.blend_old_nf->FirstElement;
-    out->old_tween = s.blend_old_at;
-    out->blend_t  = float(elapsed) / float(s.blend_duration_ms);
-}
-
-bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* out_y, SLONG* out_z)
-{
-    if (!p_thing || !out_x || !out_y || !out_z) return false;
-    UWORD idx = thing_index(p_thing);
-    if (idx >= MAX_THINGS) return false;
-    PoseSnap& s = g_pose_snaps[idx];
-    if (!s.valid) return false;
-    *out_x = s.bones_curr[0].x;
-    *out_y = s.bones_curr[0].y;
-    *out_z = s.bones_curr[0].z;
-    return true;
-}
-
 // Per-frame pose cache shared by all render-path consumers (figure.cpp body
 // draw, FIGURE_draw_prim_tween_reflection, SMAP_add_tweened_points). Keyed
 // by (Thing*, g_render_interp_frame_counter) so the same Thing drawn through
@@ -1329,133 +1081,6 @@ RenderInterpFrame::RenderInterpFrame()
             p->WorldPos.X = lerp_i32(s.pos_prev.X, s.pos_curr.X, alpha);
             p->WorldPos.Y = lerp_i32(s.pos_prev.Y, s.pos_curr.Y, alpha);
             p->WorldPos.Z = lerp_i32(s.pos_prev.Z, s.pos_curr.Z, alpha);
-        }
-
-        if (s.has_angles && draw_type_uses_tween(p->DrawType) && p->Draw.Tweened) {
-            DrawTween* dt = p->Draw.Tweened;
-            s.saved_angle = dt->Angle;
-            s.saved_tilt = dt->Tilt;
-            s.saved_roll = dt->Roll;
-            if constexpr (ri_cfg::INTERP_THING_TWEEN_ANGLE) {
-                dt->Angle = lerp_angle_2048(s.angle_prev, s.angle_curr, alpha);
-                dt->Tilt  = lerp_angle_2048(s.tilt_prev,  s.tilt_curr,  alpha);
-                dt->Roll  = lerp_angle_2048(s.roll_prev,  s.roll_curr,  alpha);
-            }
-
-            // Cross-anim blend now operates per-body-part inside figure.cpp's
-            // morph functions (queried via render_interp_get_blend). We just
-            // expire the blend window here when its wall-clock duration is
-            // up — the per-tick AnimTween logic below continues to interpolate
-            // the new anim's playback during the blend in parallel.
-            if (s.blend_active) {
-                uint64_t now_ms = sdl3_get_ticks();
-                uint64_t elapsed = now_ms - s.blend_start_ms;
-                if (elapsed >= s.blend_duration_ms) {
-                    s.blend_active = false;
-                }
-            }
-
-            // Vertex-morph: AnimTween + the keyframe pointers it indexes.
-            // Two cases:
-            //   (a) FrameIndex stable across tick — same morph endpoints,
-            //       straight lerp on AnimTween.
-            //   (b) FrameIndex advanced by exactly 1 (or wrapped via
-            //       LAST_FRAME) — span the keyframe boundary using a virtual
-            //       extended coordinate, switching keyframe pointers when
-            //       v crosses 256.
-            // Cases >1 keyframes per tick: no intermediate pointer history,
-            // skip lerp (rare — needs very fast TweenStep).
-            bool apply_anim = false;
-            SLONG new_anim_tween = 0;
-            struct GameKeyFrame* new_current = nullptr;
-            struct GameKeyFrame* new_next = nullptr;
-            UBYTE frame_diff = (UBYTE)(s.frame_index_curr - s.frame_index_prev);
-            // Loop wrap: anim with LAST_FRAME-flagged terminal keyframe resets
-            // FrameIndex to 0 instead of incrementing. UBYTE diff is then
-            // (0 - N) wrapping to 256-N, not 1. Detect via the prev-tick's
-            // CurrentFrame->Flags — that frame *was* the last-frame terminal,
-            // so a single keyframe transition still happened semantically.
-            // The new CurrentFrame is the loop's start frame and prev's
-            // NextFrame should point to the same keyframe (loop continuity),
-            // so the v=256 boundary lines up visually.
-            //
-            // Tightened from "frame_diff != 0 && != 1" to "frame_diff >= 200":
-            // a real loop wrap on an animation with terminal index N produces
-            // UBYTE-wrapped diff = 256 - N, and N is bounded by anim length
-            // (usually 5-50, never close to 200+). frame_diff in [2, 199] is
-            // either an unhandled multi-keyframe-per-tick advance (fall
-            // through, not a loop wrap) OR snapshot corruption (cutscene
-            // edge cases where stale current_frame_prev/curr survive across
-            // a slot/state transition). Either way we should NOT dereference
-            // current_frame_prev — combined with the canonicity check it
-            // protects against crashes like the cutscene access-violation
-            // observed reading a 0xff00007800000000 sentinel out of
-            // current_frame_prev.
-            bool is_loop_wrap = (frame_diff >= 200
-                                 && render_interp_addr_looks_valid(s.current_frame_prev)
-                                 && (s.current_frame_prev->Flags & ANIM_FLAG_LAST_FRAME));
-            if (frame_diff == 0) {
-                // Backward AnimTween between physics ticks (combat anims
-                // sometimes write AnimTween directly via gameplay code,
-                // including negative values — see person.cpp:7513/7545/
-                // 10898). A naïve forward lerp here renders the anim
-                // playing in reverse, which is visually a glitch ("smooth
-                // backwards interpolation"). Snap to curr instead — keeps
-                // forward AT smoothly interpolated, gives discrete (but
-                // not reversed) appearance for backward AT segments.
-                //
-                // (An earlier iteration tried direction-reversal-only
-                // snap — i.e. lerp consistent backward play, snap only
-                // on direction flip. That brought the punch glitches
-                // back: the natural smooth-backward of subsequent
-                // backward ticks looked like reverse playback. Combat
-                // anims really do need any-backward-snap.)
-                if (s.anim_tween_curr < s.anim_tween_prev) {
-                    new_anim_tween = s.anim_tween_curr;
-                } else {
-                    new_anim_tween = lerp_i32(s.anim_tween_prev, s.anim_tween_curr, alpha);
-                }
-                new_current = s.current_frame_curr;
-                new_next = s.next_frame_curr;
-                apply_anim = render_interp_addr_looks_valid(new_current)
-                          && render_interp_addr_looks_valid(new_next);
-            } else if ((frame_diff == 1 || is_loop_wrap)
-                       && render_interp_addr_looks_valid(s.current_frame_prev)
-                       && render_interp_addr_looks_valid(s.next_frame_prev)
-                       && render_interp_addr_looks_valid(s.current_frame_curr)
-                       && render_interp_addr_looks_valid(s.next_frame_curr)) {
-                // Total fractional advancement from prev to curr (unitless,
-                // 256 = one full keyframe). Always > 0 because frame
-                // advanced.
-                SLONG total = (256 - s.anim_tween_prev) + s.anim_tween_curr;
-                SLONG v = s.anim_tween_prev + SLONG(float(total) * alpha);
-                if (v < 256) {
-                    new_current = s.current_frame_prev;
-                    new_next = s.next_frame_prev;
-                    new_anim_tween = v;
-                } else {
-                    new_current = s.current_frame_curr;
-                    new_next = s.next_frame_curr;
-                    new_anim_tween = v - 256;
-                }
-                apply_anim = true;
-            }
-
-            if (apply_anim && ri_cfg::INTERP_THING_ANIM_MORPH) {
-                s.saved_anim_tween = dt->AnimTween;
-                s.saved_current_frame = dt->CurrentFrame;
-                s.saved_next_frame = dt->NextFrame;
-                dt->AnimTween = new_anim_tween;
-                dt->CurrentFrame = new_current;
-                dt->NextFrame = new_next;
-                s.anim_tween_applied = true;
-            } else {
-                s.anim_tween_applied = false;
-            }
-        } else {
-            // No angle apply; but mark applied so dtor restores position.
-            s.has_angles = false;  // local guard for restore path
-            s.anim_tween_applied = false;
         }
 
         // Vehicle yaw/tilt/roll apply. Independent of the Tween branch above —
@@ -1594,18 +1219,6 @@ RenderInterpFrame::~RenderInterpFrame()
         if (!s.applied) continue;
         Thing* p = TO_THING(THING_INDEX(i));
         p->WorldPos = s.saved_pos;
-        if (s.has_angles && p->Draw.Tweened) {
-            DrawTween* dt = p->Draw.Tweened;
-            dt->Angle = s.saved_angle;
-            dt->Tilt  = s.saved_tilt;
-            dt->Roll  = s.saved_roll;
-            if (s.anim_tween_applied) {
-                dt->AnimTween = s.saved_anim_tween;
-                dt->CurrentFrame = s.saved_current_frame;
-                dt->NextFrame = s.saved_next_frame;
-                s.anim_tween_applied = false;
-            }
-        }
         // Restore through the same pointer ctor wrote to (cached at capture
         // time and identity-checked in ctor). Using p->Genus.Vehicle here
         // would risk restoring into a different Vehicle if the pointer was

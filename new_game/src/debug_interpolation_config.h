@@ -25,42 +25,13 @@ namespace ri_cfg {
 // snap on each physics tick (judder at 20 Hz).
 static constexpr bool INTERP_THING_POS = true;
 
-// Lerp Draw.Tweened->Angle/Tilt/Roll (whole-body orientation for the Tween
-// DrawType family — DT_ROT_MULTI for persons, DT_ANIM_PRIM for animals/
-// bats, DT_TWEEN generic). Without this, body orientation snaps each tick.
-static constexpr bool INTERP_THING_TWEEN_ANGLE = true;
-
-// Substitute Draw.Tweened->AnimTween + CurrentFrame + NextFrame so vertex
-// morph between keyframes follows render-time alpha instead of stepping
-// per physics tick. Without this, anim playback judders at physics rate
-// (visible especially on 60+ FPS render with 20 Hz physics).
-static constexpr bool INTERP_THING_ANIM_MORPH = true;
-
-// Cross-anim per-body-part blend during animation transitions
-// (render_interp_get_blend, queried by figure.cpp morph functions). Without
-// this, anim transition is a discrete pose swap (no fade between old and
-// new pose's body parts).
-static constexpr bool INTERP_THING_CROSS_ANIM_BLEND = true;
-
-// World-space per-bone pose snapshot (Phase 3 of world_pose_snapshot_plan.md).
-// When true, figure.cpp queries the per-bone snapshot in render_interp.cpp and
-// overrides the per-bone (off_x/y/z, mat_final) computed via the legacy
-// AnimTween/keyframe substitution path. This is the "render the lerp of two
-// physics-tick world poses" architecture that supersedes the AnimTween virtual-
-// extended-coordinate trick + cross-anim blend hacks. False = legacy path
-// (current dt->* substitution behaviour). True = new path. Phase 5 will delete
-// the legacy code entirely once this flag has been validated.
+// World-space per-bone pose snapshot. figure.cpp queries the per-bone
+// snapshot in render_interp.cpp and overrides the per-bone (off_x/y/z,
+// mat_final) — the rendered pose is the lerp of two physics-tick captured
+// world poses (PELVIS world transform anchor + parent-local for descendants
+// in the person hierarchy; per-element world transforms for flat skeletons
+// like bats / Bane / Balrog / Gargoyle).
 static constexpr bool INTERP_THING_WORLD_POSE = true;
-
-// === Debug visualisation (off by default in normal play) ===
-
-// Per-character debug labels in 3D world (PEL, ROOT, PEL_NEW, PEL_SNAP).
-// Used during Phase 0/1/2 verification to confirm the visible pelvis bone is
-// a smooth interpolation anchor, the pure pose composer matches figure.cpp's
-// render output, and snapshot capture round-trips correctly. Off by default —
-// turn on to inspect again. Render path skips them at compile time when false
-// (zero release-build cost).
-static constexpr bool DEBUG_POSE_LABELS = false;
 
 // === Vehicles ===
 

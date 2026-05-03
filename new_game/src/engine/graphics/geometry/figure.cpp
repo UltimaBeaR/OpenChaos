@@ -22,7 +22,7 @@
 #include "engine/core/quaternion.h"
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/render_interp.h" // RenderInterpBlend, render_interp_get_blend, BoneInterpTransform
+#include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (Phase 3 pose-snapshot override)
 #include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
 #include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
@@ -1645,141 +1645,42 @@ void FIGURE_generate_D3D_object(SLONG prim)
 }
 
 // ----------------------------------------------------------------------
-// Cross-anim blend helpers (render-interp variant A1).
+// Per-bone keyframe lerp helpers — used by FIGURE_draw_prim_tween* variants.
 //
-// During a cross-anim blend (queried via render_interp_get_blend), each
-// body part's pose is composed as
-//   pose = lerp(  lerp(old_ae1[i], old_ae2[i], old_tween),
-//                 lerp(new_ae1[i], new_ae2[i], new_tween),
-//                 blend_t  )
-// where old_* are the pre-transition keyframes snapshotted by render_interp
-// and new_* are the live (post-transition) keyframes the existing morph
-// already uses. These helpers replace the inline offset-lerp and matrix-
-// slerp blocks in each FIGURE_draw_prim_tween* variant; when no blend is
-// active they reproduce the original single-pair formulas exactly.
-//
-// Body-part index is derived by pointer arithmetic against
-// p_thing->Draw.Tweened->CurrentFrame->FirstElement — every caller builds
-// `anim_info` as `&dt->CurrentFrame->FirstElement[i]` so the subtraction
-// gives back `i`.
+// Pose cache lives in render_interp.cpp (render_interp_get_cached_pose) so
+// the body, reflection, and shadow paths share it. With INTERP_THING_WORLD_POSE
+// active, the per-bone (off, mat) values produced by these helpers are
+// overridden by the snapshot lerp in each draw function; the math here only
+// runs when the snapshot is unavailable (interp off, slot invalid, etc).
 // ----------------------------------------------------------------------
 
-// Pose cache moved to render_interp.cpp (render_interp_get_cached_pose) so
-// reflection (FIGURE_draw_prim_tween_reflection) and shadow projection
-// (SMAP_add_tweened_points) can share it. All consumers within one render
-// frame hit the same cached data; hierarchy walk runs at most once per
-// Thing per frame.
-
-// Root-style offset (with parent matrix == nullptr): linearly interpolated
-// between anim_info and anim_info_next (with off_dx/dy/dz delta). Output is
-// in the same fixed-point form the original inline code produced
-// (M[i] = (OffsetI << 8) + ((OffsetI_next + off_di - OffsetI) * tween)).
+// Root-style offset (parent_base_mat == nullptr): linear lerp of (anim_info,
+// anim_info_next) by `tween`, plus (off_dx, off_dy, off_dz) delta on the
+// "next" side. Output in fixed-point ×256 form
+// (M[i] = (OffsetI << 8) + (OffsetI_next + off_di - OffsetI) * tween).
 static void figure_morph_root_offset(
-    Thing* p_thing,
     GameKeyFrameElement* anim_info,
     GameKeyFrameElement* anim_info_next,
     SLONG tween,
     SLONG off_dx, SLONG off_dy, SLONG off_dz,
     Matrix31* out_offset)
 {
-    Matrix31 new_offset;
-    new_offset.M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
-    new_offset.M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
-    new_offset.M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
-
-    RenderInterpBlend bs;
-    render_interp_get_blend(p_thing, &bs);
-
-    Matrix31 old_offset = {};
-    DrawTween* dt = p_thing->Draw.Tweened;
-    bool blended = false;
-
-    if (bs.active && dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
-        SLONG part_index = SLONG(anim_info - dt->CurrentFrame->FirstElement);
-
-        GameKeyFrameElement* old_a1 = &bs.old_ae1[part_index];
-        GameKeyFrameElement* old_a2 = &bs.old_ae2[part_index];
-        old_offset.M[0] = (old_a1->OffsetX << 8) + ((old_a2->OffsetX - old_a1->OffsetX) * bs.old_tween);
-        old_offset.M[1] = (old_a1->OffsetY << 8) + ((old_a2->OffsetY - old_a1->OffsetY) * bs.old_tween);
-        old_offset.M[2] = (old_a1->OffsetZ << 8) + ((old_a2->OffsetZ - old_a1->OffsetZ) * bs.old_tween);
-
-        SLONG t256 = SLONG(bs.blend_t * 256.0f);
-        if (t256 < 0) t256 = 0; else if (t256 > 256) t256 = 256;
-        out_offset->M[0] = old_offset.M[0] + ((new_offset.M[0] - old_offset.M[0]) * t256) / 256;
-        out_offset->M[1] = old_offset.M[1] + ((new_offset.M[1] - old_offset.M[1]) * t256) / 256;
-        out_offset->M[2] = old_offset.M[2] + ((new_offset.M[2] - old_offset.M[2]) * t256) / 256;
-        blended = true;
-    } else {
-        *out_offset = new_offset;
-    }
-
-#if FIGURE_MORPH_LOG
-    // Log only the player's ROOT body part (part_index == 0). One CSV row
-    // per render call. Columns:
-    //   t_ms, phys_hz, blend_act, blend_t, anim, frame_idx, anim_tween,
-    //   wpY, off_new_y, off_old_y, off_final_y
-    if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement
-        && anim_info == dt->CurrentFrame->FirstElement
-        && p_thing == NET_PERSON(0))
-    {
-        fprintf(stderr,
-            "FML,%llu,%d,%d,%.4f,%ld,%u,%ld,%d,%ld,%ld,%ld\n",
-            (unsigned long long)sdl3_get_ticks(),
-            (int)g_physics_hz,
-            blended ? 1 : 0,
-            (double)bs.blend_t,
-            (long)dt->CurrentAnim,
-            (unsigned)dt->FrameIndex,
-            (long)dt->AnimTween,
-            (int)p_thing->WorldPos.Y,
-            (long)new_offset.M[1],
-            (long)old_offset.M[1],
-            (long)out_offset->M[1]);
-    }
-#endif
+    out_offset->M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
+    out_offset->M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
+    out_offset->M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
 }
 
-// Rotation matrix slerp. Used by both root and child branches (children's
-// matrices are slerped per-keyframe and combined with parent's transforms
-// upstream via matrix_mult33 — children inherit the blend through their
-// parent, but their own local rotation also blends here).
+// Per-bone rotation slerp.
 static void figure_morph_matrix(
-    Thing* p_thing,
     GameKeyFrameElement* anim_info,
     GameKeyFrameElement* anim_info_next,
     SLONG tween,
     Matrix33* out_matrix)
 {
-    RenderInterpBlend bs;
-    render_interp_get_blend(p_thing, &bs);
-    if (!bs.active) {
-        CMatrix33 m1, m2;
-        GetCMatrix(anim_info, &m1);
-        GetCMatrix(anim_info_next, &m2);
-        CQuaternion::BuildTween(out_matrix, &m1, &m2, tween);
-        return;
-    }
-
-    DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt || !dt->CurrentFrame || !dt->CurrentFrame->FirstElement) {
-        CMatrix33 m1, m2;
-        GetCMatrix(anim_info, &m1);
-        GetCMatrix(anim_info_next, &m2);
-        CQuaternion::BuildTween(out_matrix, &m1, &m2, tween);
-        return;
-    }
-    SLONG part_index = SLONG(anim_info - dt->CurrentFrame->FirstElement);
-
-    CMatrix33 old_cm1, old_cm2, new_cm1, new_cm2;
-    GetCMatrix(&bs.old_ae1[part_index], &old_cm1);
-    GetCMatrix(&bs.old_ae2[part_index], &old_cm2);
-    GetCMatrix(anim_info, &new_cm1);
-    GetCMatrix(anim_info_next, &new_cm2);
-    CQuaternion::BuildBlendTween(
-        out_matrix,
-        &old_cm1, &old_cm2, bs.old_tween,
-        &new_cm1, &new_cm2, tween,
-        bs.blend_t);
+    CMatrix33 m1, m2;
+    GetCMatrix(anim_info, &m1);
+    GetCMatrix(anim_info_next, &m2);
+    CQuaternion::BuildTween(out_matrix, &m1, &m2, tween);
 }
 
 // uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
@@ -1864,7 +1765,7 @@ void FIGURE_draw_prim_tween(
             *end_pos = offset;
     } else {
         // Lerp offset between keyframe A and B (or cross-anim blend when active).
-        figure_morph_root_offset(p_thing, anim_info, anim_info_next, tween,
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
             off_dx, off_dy, off_dz, &offset);
 
         if (end_pos) {
@@ -1894,7 +1795,7 @@ void FIGURE_draw_prim_tween(
     {
         // Slerp rotation between keyframe A and B (or cross-anim blend), then
         // combine with parent/world matrix.
-        figure_morph_matrix(p_thing, anim_info, anim_info_next, tween, &mat2);
+        figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
         if (end_mat)
             *end_mat = mat2;
@@ -3113,7 +3014,7 @@ void FIGURE_draw_prim_tween_reflection(
         // form used by the main path; >>8 brings it into reflection's units
         // and applies blend in the same step.
         Matrix31 fixed_offset;
-        figure_morph_root_offset(p_thing, anim_info, anim_info_next, tween,
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
             off_dx, off_dy, off_dz, &fixed_offset);
         offset.M[0] = fixed_offset.M[0] >> 8;
         offset.M[1] = fixed_offset.M[1] >> 8;
@@ -3137,7 +3038,7 @@ void FIGURE_draw_prim_tween_reflection(
     // single-pair fallback inside figure_morph_matrix uses CQuaternion::
     // BuildTween which produces visually equivalent results to the original
     // linear+normalise path for valid keyframes.
-    figure_morph_matrix(p_thing, anim_info, anim_info_next, tween, &mat2);
+    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
     matrix_mult33(&mat_final, rot_mat, &mat2);
 
@@ -3578,7 +3479,7 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
             *end_pos = offset;
     } else {
         // Root-body offset (or cross-anim blend if active).
-        figure_morph_root_offset(p_thing, anim_info, anim_info_next, tween,
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
             off_dx, off_dy, off_dz, &offset);
 
         if (end_pos) {
@@ -3605,7 +3506,7 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
 
     float fmatrix[9];
 
-    figure_morph_matrix(p_thing, anim_info, anim_info_next, tween, &mat2);
+    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
     // pass data up the hierarchy
     if (end_mat)
@@ -3881,7 +3782,7 @@ void FIGURE_draw_prim_tween_person_only(
             *end_pos = offset;
     } else {
         // Root-body offset (or cross-anim blend if active).
-        figure_morph_root_offset(p_thing, anim_info, anim_info_next, tween,
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
             off_dx, off_dy, off_dz, &offset);
 
         if (end_pos) {
@@ -3908,7 +3809,7 @@ void FIGURE_draw_prim_tween_person_only(
 
     float fmatrix[9];
 
-    figure_morph_matrix(p_thing, anim_info, anim_info_next, tween, &mat2);
+    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
     // pass data up the hierarchy
     if (end_mat)
