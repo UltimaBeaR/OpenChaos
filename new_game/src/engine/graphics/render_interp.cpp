@@ -90,15 +90,33 @@ struct ThingSnap {
     SLONG veh_roll_prev,  veh_roll_curr;
     SLONG veh_velr_curr;
 
+    // DT_MESH props (barrels, cones, traffic items): orientation lives in
+    // Draw.Mesh->Angle/Tilt/Roll (UWORD 0..2047) instead of Genus.* like
+    // vehicles. Vel hints are signed unwrapped per-tick deltas (in [-1024,
+    // 1024]) — used by lerp_angle_2048_directed when |delta| > 1024 (very
+    // fast spin, e.g. tumbling barrel post-impact) so short-path lerp
+    // doesn't rotate backwards through the wrap point.
+    //
+    // mesh_ptr_curr cached at capture so dtor restores the same DrawMesh
+    // even if Draw.Mesh got rebound between ctor/dtor (mirror of veh_ptr).
+    bool      has_mesh_angles;
+    DrawMesh* mesh_ptr_curr;
+    UWORD     mesh_angle_prev, mesh_angle_curr;
+    UWORD     mesh_tilt_prev,  mesh_tilt_curr;
+    UWORD     mesh_roll_prev,  mesh_roll_curr;
+    SLONG     mesh_angle_vel_hint, mesh_tilt_vel_hint, mesh_roll_vel_hint;
+
     // Frame-scope save: live Thing values overwritten by RenderInterpFrame
     // ctor and restored by dtor. applied=false means this entry was not
     // touched this frame and dtor must skip it.
     GameCoord saved_pos;
     SLONG saved_veh_angle, saved_veh_tilt, saved_veh_roll;
+    UWORD saved_mesh_angle, saved_mesh_tilt, saved_mesh_roll;
     bool applied;
     bool veh_angles_applied;  // set when ctor wrote interpolated values into
                               // Genus.Vehicle->Angle/Tilt/Roll; tells dtor to
                               // restore them.
+    bool mesh_angles_applied; // mirror for Draw.Mesh->Angle/Tilt/Roll.
 };
 
 // Indexed by (p_thing - &THINGS[0]). MAX_THINGS == 701.
@@ -629,6 +647,8 @@ void render_interp_capture(Thing* p_thing)
         s.last_anim = 0;
     }
 
+    DrawMesh* mp = (p_thing->DrawType == DT_MESH) ? p_thing->Draw.Mesh : nullptr;
+
     if (!s.valid) {
 #if RENDER_INTERP_LOG
         fprintf(stderr,
@@ -652,6 +672,22 @@ void render_interp_capture(Thing* p_thing)
         } else {
             s.has_vehicle_angles = false;
             s.veh_ptr_curr = nullptr;
+        }
+        if (mp) {
+            s.mesh_ptr_curr = mp;
+            s.mesh_angle_curr = mp->Angle;
+            s.mesh_tilt_curr  = mp->Tilt;
+            s.mesh_roll_curr  = mp->Roll;
+            s.mesh_angle_prev = s.mesh_angle_curr;
+            s.mesh_tilt_prev  = s.mesh_tilt_curr;
+            s.mesh_roll_prev  = s.mesh_roll_curr;
+            s.mesh_angle_vel_hint = 0;
+            s.mesh_tilt_vel_hint  = 0;
+            s.mesh_roll_vel_hint  = 0;
+            s.has_mesh_angles = true;
+        } else {
+            s.has_mesh_angles = false;
+            s.mesh_ptr_curr = nullptr;
         }
         s.valid = true;
         capture_pose(idx, p_thing);
@@ -710,6 +746,45 @@ void render_interp_capture(Thing* p_thing)
         // angle interpolation; will re-establish on next CLASS_VEHICLE capture.
         s.has_vehicle_angles = false;
         s.veh_ptr_curr = nullptr;
+    }
+
+    if (mp) {
+        // DT_MESH props (barrels, cones, …). Mirror of vehicle path: identity
+        // check on the DrawMesh pointer, collapse prev=curr on first capture
+        // or pointer change so we don't lerp across two unrelated meshes.
+        const bool mp_changed = (s.mesh_ptr_curr != mp);
+        s.mesh_ptr_curr = mp;
+        s.mesh_angle_prev = s.mesh_angle_curr;
+        s.mesh_tilt_prev  = s.mesh_tilt_curr;
+        s.mesh_roll_prev  = s.mesh_roll_curr;
+        s.mesh_angle_curr = mp->Angle;
+        s.mesh_tilt_curr  = mp->Tilt;
+        s.mesh_roll_curr  = mp->Roll;
+        if (!s.has_mesh_angles || mp_changed) {
+            s.mesh_angle_prev = s.mesh_angle_curr;
+            s.mesh_tilt_prev  = s.mesh_tilt_curr;
+            s.mesh_roll_prev  = s.mesh_roll_curr;
+            s.mesh_angle_vel_hint = 0;
+            s.mesh_tilt_vel_hint  = 0;
+            s.mesh_roll_vel_hint  = 0;
+            s.has_mesh_angles = true;
+        } else {
+            // Signed unwrapped per-tick delta in [-1024, 1024]. Used by
+            // lerp_angle_2048_directed to disambiguate fast spin (|delta|
+            // close to 1024) where short-path lerp would otherwise rotate
+            // backwards through the wrap point.
+            auto unwrap = [](SLONG diff) -> SLONG {
+                if (diff >  1024) diff -= 2048;
+                else if (diff < -1024) diff += 2048;
+                return diff;
+            };
+            s.mesh_angle_vel_hint = unwrap(SLONG(s.mesh_angle_curr) - SLONG(s.mesh_angle_prev));
+            s.mesh_tilt_vel_hint  = unwrap(SLONG(s.mesh_tilt_curr)  - SLONG(s.mesh_tilt_prev));
+            s.mesh_roll_vel_hint  = unwrap(SLONG(s.mesh_roll_curr)  - SLONG(s.mesh_roll_prev));
+        }
+    } else {
+        s.has_mesh_angles = false;
+        s.mesh_ptr_curr = nullptr;
     }
 
     // World-space per-bone pose capture (writes g_pose_snaps[idx]).
@@ -1121,6 +1196,31 @@ RenderInterpFrame::RenderInterpFrame()
             s.veh_angles_applied = false;
         }
 
+        // DT_MESH props (barrels, cones). Identity-check Draw.Mesh same way
+        // as Genus.Vehicle above. Each axis carries its own vel_hint computed
+        // at capture (signed unwrapped delta) so fast tumbling doesn't
+        // reverse-rotate through the wrap point.
+        if (s.has_mesh_angles
+            && p->DrawType == DT_MESH
+            && p->Draw.Mesh
+            && p->Draw.Mesh == s.mesh_ptr_curr) {
+            DrawMesh* m = p->Draw.Mesh;
+            s.saved_mesh_angle = m->Angle;
+            s.saved_mesh_tilt  = m->Tilt;
+            s.saved_mesh_roll  = m->Roll;
+            if constexpr (ri_cfg::INTERP_MESH_ANGLE) {
+                m->Angle = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_angle_prev), SLONG(s.mesh_angle_curr),
+                                                          alpha, s.mesh_angle_vel_hint));
+                m->Tilt  = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_tilt_prev),  SLONG(s.mesh_tilt_curr),
+                                                          alpha, s.mesh_tilt_vel_hint));
+                m->Roll  = UWORD(lerp_angle_2048_directed(SLONG(s.mesh_roll_prev),  SLONG(s.mesh_roll_curr),
+                                                          alpha, s.mesh_roll_vel_hint));
+            }
+            s.mesh_angles_applied = true;
+        } else {
+            s.mesh_angles_applied = false;
+        }
+
         s.applied = true;
     }
 
@@ -1230,6 +1330,13 @@ RenderInterpFrame::~RenderInterpFrame()
             v->Tilt  = s.saved_veh_tilt;
             v->Roll  = s.saved_veh_roll;
             s.veh_angles_applied = false;
+        }
+        if (s.mesh_angles_applied && s.mesh_ptr_curr) {
+            DrawMesh* m = s.mesh_ptr_curr;
+            m->Angle = s.saved_mesh_angle;
+            m->Tilt  = s.saved_mesh_tilt;
+            m->Roll  = s.saved_mesh_roll;
+            s.mesh_angles_applied = false;
         }
         s.applied = false;
     }

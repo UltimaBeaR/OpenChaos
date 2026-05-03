@@ -41,6 +41,15 @@ static constexpr bool INTERP_THING_WORLD_POSE = true;
 // turns at 20 Hz physics).
 static constexpr bool INTERP_VEHICLE_ANGLE = true;
 
+// === DT_MESH props (barrels, cones, traffic items, etc.) ===
+
+// Lerp Draw.Mesh->Angle/Tilt/Roll on DT_MESH things. Barrels/cones tumble
+// at high angular velocity when knocked over — the per-axis vel_hint
+// (signed unwrapped diff between prev and curr) prevents short-path lerp
+// from rotating backwards through the wrap point. Position is already
+// lerped via INTERP_THING_POS.
+static constexpr bool INTERP_MESH_ANGLE = true;
+
 // === Cameras ===
 
 // Lerp FC_cam[0] x/y/z/yaw/pitch/roll. Without this, the player camera

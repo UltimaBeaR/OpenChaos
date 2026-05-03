@@ -206,3 +206,23 @@ bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
 **Фикс:** в [`person.cpp:4868`](../../../new_game/src/things/characters/person.cpp#L4868) после `move_thing_on_map(p_person, &newpos)` добавлен вызов `render_interp_mark_teleport(p_person)`. Помечает next capture как "prev = curr → snap к новой позиции, лерпа нет".
 
 **Подтверждено пользователем 2026-05-03:** работает корректно. **Парный кейс — вход в машину** — пользователь решил не трогать (там анимация входа маскирует discontinuity, проблемы не было видно).
+
+---
+
+## ✅ DT_MESH props (бочки/конусы) — рывковая ориентация при отбрасывании — 2026-05-04
+
+**Был:** бочки и конусы (один и тот же `Barrel` struct, типы BARREL_TYPE_NORMAL/CONE/BURNING/BIN) при ударе/взрыве/толчке быстро крутятся в воздухе с tumble. Position уже интерполировалась через `INTERP_THING_POS` (общий путь), а ориентация (`Draw.Mesh->Angle/Tilt/Roll`) обновлялась только на physics tick → видимый stutter на render rate, особенно заметный на быстрой крутке. Дополнительный риск: fast spin (>180°/тик) с short-path lerp реверсировался через 0/2048 wrap.
+
+**Корень:** до фикса `render_interp` интерполировал angle/tilt/roll только для CLASS_VEHICLE (через `Genus.Vehicle->`). DT_MESH things (barrels, cones, bikes, choppers, статичные props) не имели capture/apply пути для mesh angles. См. `draw_type_uses_tween()` — DT_MESH намеренно не там (mesh вращение независимо от Tween).
+
+**Место:** [`render_interp.cpp`](../../../new_game/src/engine/graphics/render_interp.cpp), [`debug_interpolation_config.h`](../../../new_game/src/debug_interpolation_config.h).
+
+**Фикс (2026-05-04):** расширил `ThingSnap` полями `mesh_angle/tilt/roll_prev/curr`, `mesh_*_vel_hint` (signed unwrapped per-tick delta в [-1024, 1024]), `mesh_ptr_curr` (cached `DrawMesh*` для restore через identity check, mirror of vehicle pattern). Capture для `DrawType == DT_MESH` в обоих ветках (first capture + regular). Apply через `lerp_angle_2048_directed(prev, curr, alpha, vel_hint)` — **per-axis** vel_hint предотвращает backward-rotation через wrap при fast tumble. В dtor — restore через cached ptr. Compile-time flag `INTERP_MESH_ANGLE` (default true) → `if constexpr` drops dead branch в release.
+
+Static DT_MESH (specials, неподвижные платформы): vel_hint=0, prev==curr → lerp returns curr → unchanged behavior, нулевая стоимость в release.
+
+Slot-reuse safe: при смене DrawType (DT_MESH → other) `mp = nullptr` → `has_mesh_angles = false` → apply пропускается. `mark_teleport` сбрасывает `s.valid` → next capture идёт в first-capture branch → `prev = curr` для mesh angles тоже → no spurious lerp через teleport.
+
+**Подтверждено пользователем 2026-05-04:** работает корректно, проблем нет.
+
+Покрытые DrawType'ы: DT_MESH (CLASS_BARREL, CLASS_SPECIAL, CLASS_PLAT), DT_BIKE, DT_CHOPPER. Не покрыто: DT_PYRO (state в `Genus.Pyro`, нужен отдельный путь если будет видно дёрганье).

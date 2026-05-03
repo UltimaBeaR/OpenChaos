@@ -26,21 +26,28 @@
 
 **Рекомендация:** начать с А (наименее инвазивно), проверить по логу что промельки исчезли. Если останутся — добавить C как safety net.
 
-### Расширение углов на DrawMesh
+### Расширение углов на DrawMesh — ✅ СДЕЛАНО (2026-05-04)
 
-**Vehicle уже сделан** — закрыт отдельной веткой `Genus.Vehicle->Angle/Tilt/Roll` с direction-aware lerp по `Vehicle->VelR`. См. [`known_issues.md`](known_issues.md) → «Закрытые баги».
+**Vehicle** закрыт отдельной веткой `Genus.Vehicle->Angle/Tilt/Roll` с
+direction-aware lerp по `Vehicle->VelR` (раньше).
 
-Что ещё не покрыто:
-- **DT_MESH** — статичные mesh-объекты. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Большинство таких объектов не вращаются вообще, но некоторые могут (вращающиеся pickup'ы / эффекты).
-- **DT_BIKE** — велосипеды. Также через DrawMesh.
-- **DT_CHOPPER** — вертолёты. `alloc_chopper` ставит `Draw.Mesh = dm`, формат тот же DrawMesh. Раньше ошибочно числились в Tween-семействе (см. `known_issues.md` → «Закрытые баги», cutscene crash). Если потребуется плавность поворотов вертолёта — расширить DrawMesh-ветку.
-- **DT_PYRO** — pyro-эффекты. `alloc_pyro` не ставит `Draw.X` вообще, state в `Genus.Pyro`. Если будет видимое дёрганье — нужен отдельный путь через Genus-структуру (аналогично Vehicle).
+**DT_MESH / DT_BIKE / DT_CHOPPER** теперь покрыты через `Draw.Mesh->Angle/Tilt/Roll`
+(UWORD): расширил `ThingSnap` полями `mesh_angle/tilt/roll_prev/curr`,
+`mesh_*_vel_hint`, `mesh_ptr_curr`. Capture в обоих ветках (first capture +
+regular path) с identity check на `DrawMesh*`. Apply через
+`lerp_angle_2048_directed` — **per-axis** vel_hint (signed unwrapped diff
+`curr - prev`) предотвращает backward-rotation через 0/2048 wrap при fast
+tumble (>180°/тик у бочек после удара). В dtor restore через cached ptr.
+Compile-time flag `INTERP_MESH_ANGLE` в
+[`debug_interpolation_config.h`](../../../new_game/src/debug_interpolation_config.h)
+(default true). Static DT_MESH (specials, неподвижные платформы): vel_hint=0,
+prev==curr → lerp returns curr → unchanged behavior. Подтверждено
+пользователем на бочках/конусах.
 
-Если потребуется — единая инфраструктура: в `ThingSnap` добавить `mesh_angle/tilt/roll_prev/curr` + флаг `has_mesh_angles`, ветку в capture для `DrawType == DT_MESH/DT_BIKE/DT_CHOPPER`, ветку в ctor/dtor.
-
-**Связанная задача:** короткий путь lerp ломается при быстром вращении (>180°/тик). См. [`known_issues.md`](known_issues.md) баг #4 — для Vehicle закрыто через VelR; для других классов остаётся открытым (актуально для CLASS_PROJECTILE/CLASS_PYRO/CLASS_BARREL если они начнут крутиться слишком быстро).
-
-**Приоритет:** низкий. DT_MESH объекты в большинстве статичны, видимых дёрганий пока не наблюдается.
+**Не покрыто:**
+- **DT_PYRO** — pyro-эффекты. `alloc_pyro` не ставит `Draw.X` вообще, state в
+  `Genus.Pyro`. Если будет видимое дёрганье — нужен отдельный путь через
+  Genus-структуру (аналогично Vehicle).
 
 ### Партиклы (если потребуется)
 

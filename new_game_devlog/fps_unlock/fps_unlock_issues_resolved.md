@@ -223,3 +223,37 @@ draw'e). В `TRACKS_DrawTrack` `walk->splut += delta` где
 затронуты — они z-fight'а не дают.
 
 Подтверждено пользователем 2026-05-04.
+
+---
+
+## 10. ✅ Бочки и конусы (DT_MESH props): рывковая ориентация при отбрасывании
+
+**Симптом:** бочки и конусы (один и тот же `Barrel` struct, типы
+BARREL_TYPE_NORMAL/CONE/BURNING/BIN) при ударе/взрыве/толчке быстро
+крутятся в воздухе с tumble. Position уже интерполировалась через
+`INTERP_THING_POS` (общий путь для всех Things), а ориентация
+(`Draw.Mesh->Angle`/`Tilt`/`Roll`) обновлялась только на physics tick →
+видимый stutter на render rate, особенно заметный на быстрой crутке.
+
+**Причина:** до фикса `render_interp` интерполировал angle/tilt/roll
+только для CLASS_VEHICLE (через `Genus.Vehicle->`). DT_MESH things
+(barrels, cones, ряд static props) не имели capture/apply пути для
+mesh angles. См. `draw_type_uses_tween()` — там DT_MESH намеренно не
+включён (mesh вращение независимо от Tween).
+
+**Место:** [`render_interp.cpp`](../../new_game/src/engine/graphics/render_interp.cpp),
+[`debug_interpolation_config.h`](../../new_game/src/debug_interpolation_config.h).
+
+**Фикс:** расширил `ThingSnap` полями `mesh_angle/tilt/roll_prev/curr`,
+`mesh_*_vel_hint` (signed unwrapped per-tick delta в [-1024, 1024]) и
+`mesh_ptr_curr` (для restore через cached pointer аналогично vehicle).
+В `render_interp_capture` добавлен путь для DT_MESH с identity check
+на `DrawMesh*`. В `RenderInterpFrame::ctor` apply через
+`lerp_angle_2048_directed(prev, curr, alpha, vel_hint)` — каждая ось
+со своим vel_hint, что предотвращает backward-rotation через 0/2048
+wrap при fast tumble (>180°/tick). В dtor — restore через cached ptr.
+Добавлен compile-time flag `INTERP_MESH_ANGLE` (default true).
+
+Static DT_MESH (specials, platforms): vel_hint=0, prev==curr → lerp
+возвращает curr → unchanged behavior. Slot-reuse safe (DT_MESH→другое
+сбрасывает `has_mesh_angles`). Подтверждено пользователем 2026-05-04.

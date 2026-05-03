@@ -17,11 +17,11 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 | `CLASS_PROJECTILE` | Пули | WorldPos |
 | `CLASS_ANIMAL` | Собаки (мёртвый код в pre-release, dispatch закомментирован) | WorldPos + per-element world pose (flat skeleton через pose snapshot) если когда-нибудь оживёт |
 | `CLASS_PYRO` | Огонь, immolation. State в Genus.Pyro, не Tween | WorldPos. Углов нет |
-| `CLASS_CHOPPER` | Вертолёты. Углы в Draw.Mesh, не Tween | WorldPos. Углы не интерполируются |
-| `CLASS_PLAT` | Движущиеся платформы | WorldPos |
-| `CLASS_BARREL` | Катящиеся бочки | WorldPos |
+| `CLASS_CHOPPER` | Вертолёты. Углы в Draw.Mesh, не Tween | WorldPos + Draw.Mesh->Angle/Tilt/Roll (DrawMesh-ветка) |
+| `CLASS_PLAT` | Движущиеся платформы | WorldPos + Draw.Mesh->Angle/Tilt/Roll |
+| `CLASS_BARREL` | Катящиеся бочки и конусы | WorldPos + Draw.Mesh->Angle/Tilt/Roll (DrawMesh-ветка с per-axis vel_hint для fast tumble) |
 | `CLASS_BAT` | Bat / Gargoyle / Balrog / Bane (DT_ANIM_PRIM, flat skeleton) | WorldPos + per-element world pose (flat skeleton через pose snapshot) |
-| `CLASS_BIKE` | Велосипеды | WorldPos. Угол через DrawMesh, не интерполируется |
+| `CLASS_BIKE` | Велосипеды | WorldPos + Draw.Mesh->Angle/Tilt/Roll (DrawMesh-ветка) |
 | `CLASS_SPECIAL` | Pickup'ы (обычно статичные, но granates thrown — двигаются) | WorldPos |
 
 **Почему именно эти классы:** `THING_FIND_MOVING` в [thing.h:241](../../../new_game/src/things/core/thing.h#L241) использует похожий список (`PERSON | ANIMAL | PROJECTILE`) — это «классы которые двигаются по сцене». Расширили до 11 классов на основе фактических игровых сущностей, у которых WorldPos меняется во время игры.
@@ -66,14 +66,23 @@ Pose snapshot capture'ит world transform каждой кости (per-tick), a
 
 `Vehicle->Angle` использует **direction-aware lerp**: знак `Vehicle->VelR` (rotational velocity) служит hint'ом, чтобы при очень быстром вращении (>180°/тик) короткий путь не выбирал обратное направление. Для Tilt/Roll — обычный short-path.
 
+### DrawMesh-семейство — отдельная ветка mesh angles (2026-05-04)
+
+`Draw.Mesh->Angle/Tilt/Roll` (UWORD, 0..2047 циклически):
+
+| DrawType | Класс/назначение |
+|---|---|
+| `DT_MESH` | CLASS_BARREL (бочки + конусы — один struct), CLASS_SPECIAL (pickup'ы), CLASS_PLAT (платформы) |
+| `DT_BIKE` | Велосипеды (через DrawMesh, тот же путь) |
+| `DT_CHOPPER` | Вертолёты (через DrawMesh) |
+
+Расширено `ThingSnap` полями `mesh_angle/tilt/roll_prev/curr`, `mesh_*_vel_hint`, `mesh_ptr_curr` (для restore через cached pointer аналогично Vehicle). Capture в обоих ветках (first capture + regular path) с identity check на `DrawMesh*`. Apply через `lerp_angle_2048_directed(prev, curr, alpha, vel_hint)` — **per-axis** vel_hint (signed unwrapped diff `curr-prev`), что предотвращает backward-rotation через 0/2048 wrap при fast tumble (>180°/тик у бочек/конусов после удара). Compile-time flag `INTERP_MESH_ANGLE` в [`debug_interpolation_config.h`](../../../new_game/src/debug_interpolation_config.h).
+
+**Static DT_MESH** (specials, неподвижные платформы): vel_hint=0, prev==curr → lerp возвращает curr → unchanged behavior, нулевой стоимость в release-build.
+
 ### Не покрыто (требует расширения системы)
 
-- **`DT_MESH`** — статичные mesh-объекты. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Большинство не вращаются.
-- **`DT_BIKE`** — велосипеды. Через DrawMesh.
-- **`DT_CHOPPER`** — вертолёты. `alloc_chopper` ставит `Draw.Mesh = dm` (DrawMesh), не Tween. Раньше ошибочно числился в Tween-семействе — приводило к чтению DrawMesh-памяти как DrawTween и появлению non-canonical pointer'ов (catscene crash на slot=143). Сейчас в `draw_type_uses_tween()` НЕ входит. Если потребуется плавность поворотов — расширить DrawMesh-ветку аналогично Vehicle.
 - **`DT_PYRO`** — pyro-эффекты. `alloc_pyro` не присваивает `Draw.X` вообще (state в `Genus.Pyro`). Раньше ошибочно числился в Tween-семействе, читал stale memory.
-
-См. [`plans.md`](plans.md) — задача расширения на DrawMesh-углы.
 
 ## Что НЕ нужно интерполировать (уже плавно)
 
@@ -131,7 +140,8 @@ Physics-rate state (нужна интерполяция):
   ├── Camera (FC_cam) → x/y/z/yaw/pitch/roll
   ├── EWAY катсценная камера → EWAY_cam_x/y/z/yaw/pitch/lens (отдельный snapshot)
   ├── DIRT pool (leaves, brass, cans, blood, snow, etc — DIRT_dirt[1024]) → x/y/z/yaw/pitch/roll (SWORD)
-  └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE/DT_CHOPPER), particles (PARTICLE_* pool)
+  ├── DrawMesh углы (DT_MESH / DT_BIKE / DT_CHOPPER) → Draw.Mesh->Angle/Tilt/Roll (UWORD, отдельная ветка с per-axis vel_hint)
+  └── НЕ покрыто: particles (PARTICLE_* pool)
 
 Покрыто pose snapshot'ом автоматически (через композицию post-tick pose):
   ├── Vertex morph (AnimTween) — composer включает в pose composition
