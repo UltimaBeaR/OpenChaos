@@ -28,6 +28,7 @@
 #include "camera/fc_globals.h"
 #include "things/items/balloon.h"
 #include "engine/io/env.h"
+#include "engine/platform/ds_bridge.h" // DualSense touchpad click duplicates FPS toggle (key 2)
 #include "navigation/wmove.h"
 #include "engine/console/console.h" // CONSOLE_draw, CONSOLE_font
 #include "engine/graphics/pipeline/poly.h" // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
@@ -636,7 +637,11 @@ void check_debug_timing_keys(void)
     constexpr SLONG PHYS_HZ_FINE_MIN     = 1;
     constexpr SLONG PHYS_HZ_FINE_MAX     = UC_PHYSICS_DESIGN_HZ;
 
-    constexpr SLONG RENDER_FPS_TOGGLE_LOW = 25;
+    // 30 deliberately: matches UC_VISUAL_CADENCE_HZ (PS1 hardware lock) so the
+    // throttled debug mode reproduces the original visual cadence. Do not
+    // change to a "rounder" number like 25 without checking with the user —
+    // 30 is the meaningful value here.
+    constexpr SLONG RENDER_FPS_TOGGLE_LOW = 30;
 
     static bool k1_prev = false, k2_prev = false, k3_prev = false, k9_prev = false, k0_prev = false;
 
@@ -648,13 +653,25 @@ void check_debug_timing_keys(void)
     }
     k1_prev = k1;
 
+    // DualSense touchpad click duplicates key 2 — same FPS-cap toggle without
+    // reaching for the keyboard during gamepad debugging.
+    static bool tp_prev = false;
+    bool tp_click = false;
+    if (ds_is_connected()) {
+        DS_InputState ds_in;
+        if (ds_get_input(&ds_in))
+            tp_click = ds_in.touchpad_click;
+    }
+
     bool k2 = Keys[KB_2] != 0;
-    if (k2 && !k2_prev) {
+    bool fps_toggle_edge = (k2 && !k2_prev) || (tp_click && !tp_prev);
+    if (fps_toggle_edge) {
         g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
             : RENDER_FPS_DEFAULT_CAP;
     }
     k2_prev = k2;
+    tp_prev = tp_click;
 
     bool k3 = Keys[KB_3] != 0;
     if (k3 && !k3_prev) {

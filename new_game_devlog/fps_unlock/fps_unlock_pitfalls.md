@@ -195,5 +195,6 @@ SLONG radius = 90 + SLONG(h & 0x1f);  // меняется 15 Hz wall-clock
 | SPARK zigzag wiggle | форма меняется с FPS | `rand()` в `SPARK_find_midpoint` per render frame | bucket-based deterministic hash, seed = identity |
 | PYRO_TWANGER lens flare overdraw на низкой физике | over-bright на 5 Hz | lifetime physics-tick-bound, spawn wall-clock | `counter += (K * TICK_RATIO) >> TICK_SHIFT` |
 | PYRO_BONFIRE smoke spawn | density растёт с render FPS (8× на 240 FPS vs 30 FPS) | `if (!(Random() & 7))` per-frame — probabilistic level-trigger | edge-detect через `Pyro::LastSmokeSpawn` UBYTE field, bucket = ~33ms (UC_VISUAL_CADENCE_TICK_MS) |
+| MIST UV wibble (ground fog) | скорость анимации scales с render FPS (8× на 240 FPS) | `MIST_get_turn += 1` per render frame в `MIST_get_start`, фаза = `MIST_get_turn / divisor` | заменён frame counter на `sdl3_get_ticks() / UC_VISUAL_CADENCE_TICK_MS` (smooth wall-clock phase, мёртвый глобал удалён) |
 
 См. также [`fps_unlock_issues.md`](fps_unlock_issues.md) Issue #19 для полной хронологии MIB destruct.

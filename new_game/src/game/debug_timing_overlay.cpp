@@ -86,7 +86,16 @@ void debug_timing_overlay_render_font2d(void)
             g_physics_hz, g_render_fps_cap, ip_str, s_fps_value);
     }
     POLY_frame_init(UC_FALSE, UC_FALSE);
-    FONT2D_DrawString((CBYTE*)tbuf, 4, 4, 0xffff00, DEBUG_FONT_SCALE);
+
+    // Red when an artificial render cap is active (debug low-FPS mode via key
+    // 2 / touchpad click), yellow otherwise. Lets you tell at a glance whether
+    // you're in the throttled debug mode without reading the number.
+    constexpr SLONG OVERLAY_COLOR_NORMAL = 0xffff00; // yellow
+    constexpr SLONG OVERLAY_COLOR_CAPPED = 0xff4040; // red
+    const SLONG overlay_color = (g_render_fps_cap > 0 && g_render_fps_cap < RENDER_FPS_DEFAULT_CAP)
+        ? OVERLAY_COLOR_CAPPED
+        : OVERLAY_COLOR_NORMAL;
+    FONT2D_DrawString((CBYTE*)tbuf, 4, 4, overlay_color, DEBUG_FONT_SCALE);
 
     // Second line — Darci's current animation state. Useful for diagnosing
     // render-interp issues at keyframe / loop / anim-change boundaries.

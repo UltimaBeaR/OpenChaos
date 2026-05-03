@@ -33,7 +33,7 @@ SLONG g_render_fps_cap = 0;                     // рендер: 0 = unlimited (
 Клавиши (без `bangunsnotgames`, доступны всегда — в игре, главном меню, attract,
 cutscenes, outro и FMV):
 - **1** — toggle physics 20 ↔ 5 (по умолчанию `UC_PHYSICS_DESIGN_HZ` = 20)
-- **2** — toggle render cap unlimited ↔ 25 (по умолчанию unlimited, `0` в `g_render_fps_cap`)
+- **2** — toggle render cap unlimited ↔ 30 (по умолчанию unlimited, `0` в `g_render_fps_cap`). Также дублируется нажатием на тачпад DualSense.
 - **3** — toggle render interpolation on/off (по умолчанию on, `g_render_interp_enabled`)
 - **9** — physics −1 (мин. 1)
 - **0** — physics +1 (макс. `UC_PHYSICS_DESIGN_HZ`)

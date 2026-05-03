@@ -26,8 +26,6 @@ extern SLONG MIST_get_dz;
 extern float MIST_get_du;
 // uc_orig: MIST_get_dv (fallen/Source/mist.cpp)
 extern float MIST_get_dv;
-// uc_orig: MIST_get_turn (fallen/Source/mist.cpp)
-extern SLONG MIST_get_turn;
 // uc_orig: MIST_get_base_u (fallen/Source/mist.cpp)
 extern float MIST_get_base_u;
 // uc_orig: MIST_get_base_v (fallen/Source/mist.cpp)

@@ -86,3 +86,27 @@ wall-clock edge-detect: bucket = 33 ms (~UC_VISUAL_CADENCE_TICK_MS, 30 Hz),
 render FPS, идентично оригиналу на 30 FPS. Per-pyro state — несколько
 костров в сцене не делят bucket. `init_pyros` делает `memset(0)` → корректная
 начальная инициализация. Подтверждено пользователем 2026-05-03.
+
+---
+
+## 5. ✅ Белый туман на земле (MIST): скорость UV wibble зависит от render FPS
+
+**Симптом:** анимация низкого стелющегося тумана — движение/wibble UV-смещений
+текстуры ускорялась при увеличении `g_render_fps_cap`. На 30 FPS — нормальная
+скорость, на 240 FPS — в 8× быстрее.
+
+**Причина:** в `MIST_get_start()` ([mist.cpp](../../new_game/src/effects/weather/mist.cpp))
+был чистый per-render-frame counter: `MIST_get_turn += 1;`. Функция зовётся
+из render-path в `aeng.cpp`. Затем в `MIST_get_detail()` фаза вычислялась как
+`yaw_odd = float(MIST_get_turn) / (...)` → sin/cos для UV offsets. Прямой
+линейный scaling с FPS.
+
+**Место:** [`MIST_get_start`](../../new_game/src/effects/weather/mist.cpp) и
+[`MIST_get_detail`](../../new_game/src/effects/weather/mist.cpp).
+
+**Фикс:** убран per-frame инкремент, `MIST_get_turn` глобал удалён (был мёртвый
+код). Фаза теперь считается из wall-clock:
+`turn_phase = float(sdl3_get_ticks()) / UC_VISUAL_CADENCE_TICK_MS`. Эквивалентно
+оригинальному 30 Hz frame counter, но wall-clock-bound и **smooth** (не stepped)
+— на high FPS получаем sub-tick interpolation бесплатно. Подтверждено
+пользователем 2026-05-03.

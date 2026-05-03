@@ -297,7 +297,9 @@ bool video_play(const char* filename, bool allow_skip)
                         g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
                         break;
                     case SDL_SCANCODE_2:
-                        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP) ? 25 : RENDER_FPS_DEFAULT_CAP;
+                        // 30 mirrors RENDER_FPS_TOGGLE_LOW in check_debug_timing_keys
+                        // (PS1 hardware lock / UC_VISUAL_CADENCE_HZ).
+                        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP) ? 30 : RENDER_FPS_DEFAULT_CAP;
                         break;
                     case SDL_SCANCODE_3:
                         g_render_interp_enabled = !g_render_interp_enabled;
