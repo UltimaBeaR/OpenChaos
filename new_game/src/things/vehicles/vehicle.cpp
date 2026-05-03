@@ -23,6 +23,7 @@
 #include "map/ob.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for engine smoke spawn gate
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
@@ -620,6 +621,7 @@ void reinit_vehicle(Thing* p_thing)
     vp->Health = 300;
     vp->Siren = 0;
     vp->GrabAction = 0;
+    vp->LastSmokeSpawn = 0;
 
     for (int ii = 0; ii < 6; ii++) {
         vp->damage[ii] = 0;
@@ -745,36 +747,47 @@ void draw_car(Thing* p_car)
         }
     }
 
-    // engine smoke — probability increases as health drops
+    // engine smoke — probability increases as health drops.
+    // Wall-clock edge-detect (~30 Hz) so spawn density doesn't scale with
+    // render FPS. Original gated only on `Random() & 0x7f > Health` per
+    // render frame: at Health=0 that fired ~99% of frames, so on 240 FPS
+    // smoke density was 8× that of the 30 FPS baseline. Per-vehicle phase
+    // (LastSmokeSpawn) so multiple destroyed cars don't share a bucket.
+    // See pyro.cpp PYRO_BONFIRE for the same pattern.
     {
-        if ((Random() & 0x7f) > p_car->Genus.Vehicle->Health) {
-            vector[2] = info->HLX * 0.7f;
-            vector[1] = info->HLY;
-            vector[0] = 0;
-            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-            PARTICLE_Add(
-                p_car->WorldPos.X + (vector[0] << 8) + (Random() & 0x3fff) - 0x1fff,
-                p_car->WorldPos.Y + (vector[1] << 8),
-                p_car->WorldPos.Z + (vector[2] << 8) + (Random() & 0x3fff) - 0x1fff,
-                vp->VelX + (Random() & 0xff) - 0x7f,
-                0x3ff + (Random() & 0xff),
-                vp->VelZ + (Random() & 0xff) - 0x7f,
-                POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
-                PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
-                75, 40 + (rand() & 31), 1, 4, 1);
-
-            if (p_car->Genus.Vehicle->Health <= 0) {
-                // additional smoke from rear when health exhausted
+        constexpr SLONG SMOKE_BUCKET_MS = 33; // ≈ UC_VISUAL_CADENCE_TICK_MS (30 Hz)
+        const UBYTE cur_phase = UBYTE(sdl3_get_ticks() / SMOKE_BUCKET_MS);
+        if (cur_phase != p_car->Genus.Vehicle->LastSmokeSpawn) {
+            p_car->Genus.Vehicle->LastSmokeSpawn = cur_phase;
+            if ((Random() & 0x7f) > p_car->Genus.Vehicle->Health) {
+                vector[2] = info->HLX * 0.7f;
+                vector[1] = info->HLY;
+                vector[0] = 0;
+                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
                 PARTICLE_Add(
-                    p_car->WorldPos.X - (vector[0] << 8) + (Random() & 0x7fff) - 0x3fff,
-                    p_car->WorldPos.Y - (vector[1] << 8),
-                    p_car->WorldPos.Z - (vector[2] << 8) + (Random() & 0x7fff) - 0x3fff,
+                    p_car->WorldPos.X + (vector[0] << 8) + (Random() & 0x3fff) - 0x1fff,
+                    p_car->WorldPos.Y + (vector[1] << 8),
+                    p_car->WorldPos.Z + (vector[2] << 8) + (Random() & 0x3fff) - 0x1fff,
                     vp->VelX + (Random() & 0xff) - 0x7f,
                     0x3ff + (Random() & 0xff),
                     vp->VelZ + (Random() & 0xff) - 0x7f,
                     POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                     PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
                     75, 40 + (rand() & 31), 1, 4, 1);
+
+                if (p_car->Genus.Vehicle->Health <= 0) {
+                    // additional smoke from rear when health exhausted
+                    PARTICLE_Add(
+                        p_car->WorldPos.X - (vector[0] << 8) + (Random() & 0x7fff) - 0x3fff,
+                        p_car->WorldPos.Y - (vector[1] << 8),
+                        p_car->WorldPos.Z - (vector[2] << 8) + (Random() & 0x7fff) - 0x3fff,
+                        vp->VelX + (Random() & 0xff) - 0x7f,
+                        0x3ff + (Random() & 0xff),
+                        vp->VelZ + (Random() & 0xff) - 0x7f,
+                        POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
+                        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
+                        75, 40 + (rand() & 31), 1, 4, 1);
+                }
             }
         }
     }

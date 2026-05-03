@@ -115,6 +115,8 @@ typedef struct
 
     SLONG oldX[4], oldZ[4]; // previous wheel positions for skidmark rendering
 
+    UBYTE LastSmokeSpawn; // wall-clock phase for engine smoke spawn edge-detect (FPS-independent)
+
 } Vehicle;
 
 typedef Vehicle* VehiclePtr;

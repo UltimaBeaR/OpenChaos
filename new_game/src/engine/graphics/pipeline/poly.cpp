@@ -16,6 +16,7 @@ extern SLONG ScreenHeight;
 #include <algorithm>
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/pipeline/poly_globals.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for wall-clock wibble phase
 #include "engine/graphics/pipeline/poly_render_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/polypage_globals.h"
@@ -108,7 +109,10 @@ void POLY_ClearAllPages(void)
 // — globals now in poly_globals.cpp, but wibble values are set here:
 
 // uc_orig: POLY_set_wibble (fallen/DDEngine/Headers/poly.h)
-// Sets wibble (sinusoidal water-shimmer) parameters and advances the phase accumulator.
+// Sets wibble (sinusoidal water-shimmer) parameters and computes the phase
+// from wall-clock. Original incremented POLY_wibble_turn per render frame
+// (× TICK_RATIO), so wibble speed scaled with both render FPS and inverse
+// physics rate. Wibble is a pure visual effect — must be wall-clock-bound.
 void POLY_set_wibble(
     UBYTE wibble_y1,
     UBYTE wibble_y2,
@@ -124,7 +128,15 @@ void POLY_set_wibble(
     POLY_wibble_s1 = wibble_s1;
     POLY_wibble_s2 = wibble_s2;
 
-    POLY_wibble_turn += 256 * TICK_RATIO >> TICK_SHIFT;
+    // Original 30 FPS render × 256 increments/frame = 7680 increments/sec.
+    // Modulo by 1024 × 2048 = 2097152: sin(turn * g >> 9) for any integer g
+    // has period 2048 × 512 = 1048576 in `turn`, so 2097152 (= 2 × 1048576)
+    // is a clean wrap point — sin/cos values are continuous across the wrap.
+    // Wrap happens every ~273 sec at 7680/sec; well within int32, no jitter.
+    constexpr uint64_t WIBBLE_INC_PER_SEC = 7680;
+    constexpr SLONG    WIBBLE_PERIOD      = 1024 * 2048;
+    const uint64_t total_inc = sdl3_get_ticks() * WIBBLE_INC_PER_SEC / 1000;
+    POLY_wibble_turn = SLONG(total_inc % uint64_t(WIBBLE_PERIOD));
 
     POLY_wibble_dangle1 = POLY_wibble_turn * POLY_wibble_g1 >> 9;
     POLY_wibble_dangle2 = POLY_wibble_turn * POLY_wibble_g2 >> 9;

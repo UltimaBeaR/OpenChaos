@@ -109,6 +109,34 @@ population 11 vs 45 → 4x lens flare brightness.
   вызов в physics tick loop в game.cpp. **НЕ для визуала** —
   CORE_PRINCIPLE требует чтобы визуал был render-attached.
 
+#### 3a. Маскировка под dt: переменная-«тактовая константа» в render-frame accumulator'е
+
+**Особо коварная подформа #3.** Код выглядит как корректный wall-clock
+accumulator (`var += dt`), но на деле `dt` — не реальный wall-clock delta,
+а **constant** physics-tick value, обновляемый раз в physics tick. На
+render-frame частоте `var += K` (фиксированный K), значит accumulation rate
+= render_fps × K → масштабируется с render FPS.
+
+**Пример:** `sea_offset += tick_tock_unclipped` в `AENG_draw_city`. Имя
+`tick_tock_unclipped` звучит как dt, но это TICK_TOCK = `tick_diff` физики
+(= 50 ms на 20 Hz, не меняется между render frames). На 30 FPS оригинала
+= 1500 inc/sec, на 240 FPS = 12000 inc/sec. Также зависело от physics rate
+(на 5 Hz physics tick_tock = 200 → 4× быстрее).
+
+**Распознавание:** если `XYZ += K_per_tick` происходит в render-path коде,
+а K — physics-tick константа (TICK_TOCK / tick_tock_unclipped / TICK_RATIO /
+любая «per-tick» переменная) — это баг. Имя обманывает.
+
+**Фикс:** прямой wall-clock derivation, без накопления:
+```cpp
+// На 30 FPS оригинала: 30 × K_per_tick increments/sec.
+// Заменяем накопитель на функцию от sdl3_get_ticks().
+constexpr SLONG PERIOD = ...; // период sin/cos в единицах var
+const SLONG var = SLONG((sdl3_get_ticks() * RATE_PER_SEC / 1000) % PERIOD);
+```
+Modulo выбрать так, чтобы `var % PERIOD` сохранял phase identity (для формул
+`(var >> N) & MASK` это PERIOD = (MASK+1) << N).
+
 ### 4. Render-time `rand()`
 
 **Симптом:** форма / цвет / позиция эффекта «дрожит» с FPS-частотой.
@@ -196,5 +224,8 @@ SLONG radius = 90 + SLONG(h & 0x1f);  // меняется 15 Hz wall-clock
 | PYRO_TWANGER lens flare overdraw на низкой физике | over-bright на 5 Hz | lifetime physics-tick-bound, spawn wall-clock | `counter += (K * TICK_RATIO) >> TICK_SHIFT` |
 | PYRO_BONFIRE smoke spawn | density растёт с render FPS (8× на 240 FPS vs 30 FPS) | `if (!(Random() & 7))` per-frame — probabilistic level-trigger | edge-detect через `Pyro::LastSmokeSpawn` UBYTE field, bucket = ~33ms (UC_VISUAL_CADENCE_TICK_MS) |
 | MIST UV wibble (ground fog) | скорость анимации scales с render FPS (8× на 240 FPS) | `MIST_get_turn += 1` per render frame в `MIST_get_start`, фаза = `MIST_get_turn / divisor` | заменён frame counter на `sdl3_get_ticks() / UC_VISUAL_CADENCE_TICK_MS` (smooth wall-clock phase, мёртвый глобал удалён) |
+| Vehicle engine smoke (взорванная машина) | density растёт с render FPS (8× на 240 FPS) | `if ((Random() & 0x7f) > Health)` per render frame — probabilistic level-trigger | edge-detect через `Vehicle::LastSmokeSpawn` UBYTE field, bucket = ~33 ms (UC_VISUAL_CADENCE_TICK_MS) |
+| Water surface waves (Stern's Revenge sea_offset) | скорость волн scales с render FPS И с inverse physics rate | `sea_offset += tick_tock_unclipped` per render frame — accumulator с physics-tick constant маскированный под dt (см. #3a) | заменён на `sdl3_get_ticks() * 3 / 2 % 4096` (1500 inc/sec wall-clock = 30 FPS оригинала, modulo гладкий) |
+| POLY_wibble (underwater distortion) | скорость scales с render FPS, зависела от physics rate через TICK_RATIO | `POLY_wibble_turn += 256 * TICK_RATIO >> TICK_SHIFT` per render frame | `sdl3_get_ticks() * 7680 / 1000 % (1024*2048)` — wall-clock, modulo = clean wrap для любого integer g |
 
 См. также [`fps_unlock_issues.md`](fps_unlock_issues.md) Issue #19 для полной хронологии MIB destruct.

@@ -2034,14 +2034,23 @@ void AENG_draw_city()
     ULONG colour;
     ULONG specular;
     static int outside = 1;
-    static int sea_offset = 0;
 
     AENG_total_polys_drawn = 0;
     void draw_all_boxes(void);
     draw_all_boxes();
 
-    extern SLONG tick_tock_unclipped;
-    sea_offset += (tick_tock_unclipped);
+    // Water surface wave phase. Original was `sea_offset += tick_tock_unclipped`
+    // per render frame — `tick_tock_unclipped` is a physics-tick constant
+    // (50 ms at 20 Hz physics), so accumulation rate scaled with both render
+    // FPS and inverse physics rate (8× faster at 240 FPS, 4× faster at 5 Hz
+    // physics). Now derived from wall-clock.
+    //
+    // Original 30 FPS render × 50 ms tick = 1500 increments/sec → 3 ms-incs / 2.
+    // Modulo 4096 = 2 full sin/cos cycles in (sea_offset >> 1), wraps cleanly
+    // (the formula uses `& 2047` after `>> 1`, so a 4096 step is identity).
+    constexpr SLONG SEA_PERIOD = 4096;
+    extern uint64_t sdl3_get_ticks();
+    const SLONG sea_offset = SLONG((sdl3_get_ticks() * 3 / 2) % uint64_t(SEA_PERIOD));
 
     //
     // Work out which things are in view.
