@@ -382,30 +382,24 @@ drip/puddle) с фиксированным периодом ~300-500ms. Либо
 
 ### Симптомы
 
-**Симптом 1 — анимация молний быстрее на high render rate.**
-При unlimited render эффекты "движутся быстрее" чем при 25 fps cap. Проявляется как ускоренная анимация электрических разрядов.
+**Симптом 1 — анимация молний быстрее на high render rate.** ✅ Частично закрыто (2026-05-03).
 
-Попытка фикса (откачена для дальнейшего разбора) — gap-detect для SPARK_create (>= 2 visual ticks) и PYRO_TWANGER+dlight (>= 1 visual tick), индексированный per Thing slot. **Не закрыл** проблему: пользователь сообщает что молнии всё ещё двигаются быстрее. Корень не локализован — может быть в самой PYRO_TWANGER state machine, или в линии (1) которая вообще не gated, или в чём-то ещё.
+При unlimited render эффекты "движутся быстрее" чем при 25 fps cap. Проявлялось как ускоренная анимация электрических разрядов.
 
-Test plan для дальнейшего разбора:
-- Нажать debug-key 1 (physics 20→5). Если эффект **замедляется** — корень привязан к physics rate (PYRO state machine, anim, или что-то на physics-tick'е).
-- Сравнить unlimited vs 25 fps cap. Если на unlimited эффект **завершается** быстрее (= MIB destruct'ится за меньшее время) — render-rate-bound bug, искать в render path.
+**Что исправлено:** PYRO_TWANGER + dlight спавн в `DRAWXTRA_MIB_destruct` ([`person.cpp`](../../new_game/src/things/characters/person.cpp)) был gated через self-throttle на `ammo_packs_pistol` который срабатывал per render frame → плотность спавна линейно росла с FPS. Заменено на `VISUAL_TURN & 1` gate (15 Hz wall-clock cadence). Длительность destruct'а и плотность спавна теперь FPS-независимы (подтверждено пользователем). Lightning line (`POLY_add_line_tex_uv` с `POLY_PAGE_LITE_BOLT`) — статичная текстура, на тестировании не показала визуального ускорения и оставлена без gate'а.
 
-**Симптом 2 — тело MIB не поднимается с включённой интерполяцией (debug-key 3 ON).**
-В оригинальной анимации тело MIB при destruct'е поднимается вверх. С render interpolation выключенной (key 3) — поднимается. С включённой — **не поднимается**.
+**Что осталось:** возможный остаточный эффект на graphics-стороне сложно подтвердить визуально (короткое окно). Если в дальнейшем будет видно — копать в самой PYRO_TWANGER state machine или в render path для других эффектов destruct.
 
-Возможная причина — `WorldPos.Y += SIN(ctr >> 2) >> 7` в строке 13608 модифицирует `WorldPos.Y` уже после того как RenderInterpFrame применил интерполяцию (lerp(prev_y, curr_y, alpha)). dtor RenderInterpFrame восстанавливает `saved_pos.Y` (= ORIGINAL physics value до lerp), затирая накопительные модификации. Если "поднятие тела" реализовано через накопительный `+=` (а не через physics velocity / position update в physics tick), интерполяция перетирает прогресс на каждом dtor.
+**Симптом 2 — тело MIB не поднимается с включённой интерполяцией.** ✅ ЗАКРЫТО (2026-05-03).
 
-Если это так — фикс: либо переделать "поднятие" через physics-tick velocity (накопление в physics, не в render), либо вынести модификацию `WorldPos.Y` за пределы RenderInterpFrame scope (но тогда теряем интерполяцию для линии/spark'ов).
+В оригинальной анимации тело MIB при destruct'е поднимается вверх. До фикса: с render interpolation OFF — поднималось но скорость взлёта зависела от FPS (быстрее на unlimited). С interp ON — лежало на месте.
 
-**2026-05-03 — проверено после Phase 3 world-pose snapshot** ([`render_interpolation/world_pose_snapshot_plan.md`](render_interpolation/world_pose_snapshot_plan.md)):
-Phase 3 НЕ закрыл этот баг. С интерполяцией ON: тело MIB лежит на месте, оба debug label (ROOT и PEL_NEW) тоже на месте. С интерполяцией OFF: тело взлетает, **скорость взлёта зависит от FPS lock** (быстрее на unlimited, медленнее на cap).
+**Корневая причина:** `WorldPos.Y += SIN(ctr >> 2) >> 7` в `DRAWXTRA_MIB_destruct` (render-path) — per render frame аккумулировался asymmetric integer shift (`SIN >> 7` дает bias на отрицательных значениях), создавал drift вверх. Скорость drift пропорциональна FPS. С interp ON `RenderInterpFrame::dtor` восстанавливал saved_pos.Y из снапшота → wipe модификаций каждый кадр.
 
-Скорость-зависимость от FPS подтверждает что "поднятие" вычисляется в render-path коде (per-frame инкремент), не в physics-tick. С интерполяцией ON эти render-side модификации затираются substitute path в `RenderInterpFrame::ctor`/`dtor` (substitution `WorldPos` восстанавливает оригинал в dtor).
+**Фикс:** перенесли `WorldPos.Y +=` в `fn_person_dead` ([`person.cpp:10785`](../../new_game/src/things/characters/person.cpp#L10785)) — physics-tick handler. Шаг скейлится через `* TICK_RATIO >> TICK_SHIFT` чтобы скорость drift'а соответствовала оригинальной 30 Hz cadence независимо от `g_physics_hz`. Render-interp теперь захватывает уже обновлённый WorldPos авторитетно, лерпит между prev/curr → плавный подъём независимо от render rate. Подтверждено пользователем что работает корректно с interp ON и OFF на любом FPS.
 
-Phase 3 (per-bone pose snapshot) не относится к этому пути — он работает на уровне (off_x, mat_final) после WorldPos. WorldPos substitution в ctor — отдельный механизм, который затирает render-path '+=' инкременты как и раньше.
-
-**Фикс остаётся открытым:** нужно либо найти render-path код который инкрементирует WorldPos и переделать через physics velocity, либо специально не substitute'ить WorldPos для MIB в `state == STATE_DEAD && PersonType ∈ {MIB1, MIB2, MIB3}`.
+**Симптом 4 — Lens flare во время destruct рисуется FPS-зависимо (overdraw).**
+После фикса lens flares (2026-05-03, см. issue #55 в `known_issues_and_bugs.md`) на машине Дарси работает корректно, но на MIB destruct **на unlimited FPS эффект слишком яркий** (накопительный overdraw). Если включить FPS cap (debug-key 2) — рисуется нормально. Гипотеза: `BLOOM_flare_draw` вызывается per render frame от MIB destruct сорса (вероятно из `BLOOM_draw` через PYRO_TWANGER lens flare option), и на высоком render rate каждый дополнительный кадр добавляет ещё одну порцию аддитивно-блендящихся квадов поверх предыдущих. Те же effects уже gated по `VISUAL_TURN & 1` для PYRO+dlight спавна (см. фикс выше) — нужно гейтить аналогично lens-flare сторону. **Фиксить ПОСЛЕ:** (1) полного закрытия Симптома 1 (анимация молний FPS-bound), (2) удаления временной debug-кнопки 6 (сейчас она в `process_controls` под комментарием "TEMPORARY DEBUG"). Возможно Симптом 1 + это — один и тот же корень (общий render-path source).
 
 **Симптом 3 — анимация ментов в Urban Shakedown дёргается на 20 Hz physics.** ✅ ЗАКРЫТО ранее (подтверждено пользователем 2026-05-03 что проблемы нет).
 

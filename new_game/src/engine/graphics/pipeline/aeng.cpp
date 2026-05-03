@@ -2882,10 +2882,19 @@ void AENG_draw_city()
                                         // Create a new bounding box
                                         //
 
+                                        // Clamp to POLY_screen_width/height — same coord
+                                        // space as FIGURE_reflect_x1/x2/y1/y2 (collected
+                                        // from POLY_Point.X/Y in figure.cpp). Original code
+                                        // used DisplayWidth/Height (640×480 virtual canvas)
+                                        // which only matches POLY_screen_width on a 4:3
+                                        // window; on widescreen POLY_screen_width ≈ 853 and
+                                        // the bbox right edge was being truncated to 640,
+                                        // cropping wibble effect on reflections that
+                                        // extended past the 4:3 region.
                                         bbox[bbox_upto].x1 = MAX(FIGURE_reflect_x1 - AENG_BBOX_PUSH_OUT, AENG_BBOX_PUSH_IN);
                                         bbox[bbox_upto].y1 = MAX(FIGURE_reflect_y1, 0);
-                                        bbox[bbox_upto].x2 = MIN(FIGURE_reflect_x2 + AENG_BBOX_PUSH_OUT, DisplayWidth - AENG_BBOX_PUSH_IN);
-                                        bbox[bbox_upto].y2 = MIN(FIGURE_reflect_y2, DisplayHeight);
+                                        bbox[bbox_upto].x2 = MIN(FIGURE_reflect_x2 + AENG_BBOX_PUSH_OUT, SLONG(POLY_screen_width) - AENG_BBOX_PUSH_IN);
+                                        bbox[bbox_upto].y2 = MIN(FIGURE_reflect_y2, SLONG(POLY_screen_height));
 
                                         bbox[bbox_upto].water_box = ph->Flags & PAP_FLAG_WATER;
 

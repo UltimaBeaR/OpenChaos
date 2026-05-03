@@ -2032,9 +2032,17 @@ void process_controls(void)
             SLONG world_y;
             SLONG world_z;
 
+            // MouseX/Y are scene-FBO pixels (Stage 6 FBO refactor) — scale
+            // into the 640×480 virtual UI canvas that AENG_raytraced_position
+            // expects, mirroring the KB_G "teleport Darci to mouse" handler
+            // below. Without this, on non-native / non-4:3 windows the mine
+            // spawns at the wrong world point.
+            float hitx = float(MouseX) * float(DisplayWidth) / float(ScreenWidth);
+            float hity = float(MouseY) * float(DisplayHeight) / float(ScreenHeight);
+
             AENG_raytraced_position(
-                MouseX,
-                MouseY,
+                SLONG(hitx + 0.5f),
+                SLONG(hity + 0.5f),
                 &world_x,
                 &world_y,
                 &world_z);

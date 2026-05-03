@@ -1,7 +1,6 @@
 // uc_orig: drawxtra.cpp (fallen/DDEngine/Source/drawxtra.cpp)
 // Light bloom and lens flare rendering: BLOOM_flare_draw + BLOOM_draw.
 
-#include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/physics/collide.h"
 #include "camera/fc.h"
@@ -53,8 +52,16 @@ void BLOOM_flare_draw(SLONG x, SLONG y, SLONG z, SLONG str)
     if ((pt1.X < 0) || (pt1.X > POLY_screen_width) || (pt1.Y < 0) || (pt1.Y > POLY_screen_height))
         return;
 
-    cx = ge_get_screen_width() >> 1;
-    cy = ge_get_screen_height() >> 1;
+    // Must be in the same coord space as pt1.X/pt1.Y (set by POLY_transform
+    // and bounds-checked above against POLY_screen_width/height). Stage 7
+    // commit 35363cf8 replaced these with ge_get_screen_width/height(), which
+    // returns physical-window / UI-viewport pixels — a different space from
+    // POLY_screen_*. Result: dx/dy were calculated with mismatched origins,
+    // flare quads landed off-screen and the effect was invisible. Use
+    // POLY_screen_* directly so the math survives FBO virtualisation and
+    // physical-window scaling regardless of backend (D3D/OpenGL).
+    cx = SLONG(POLY_screen_width) >> 1;
+    cy = SLONG(POLY_screen_height) >> 1;
     dx = pt1.X - cx;
     dy = pt1.Y - cy;
 
