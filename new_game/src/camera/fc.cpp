@@ -894,7 +894,17 @@ void FC_process()
             // Right stick: continuous camera orbit and height adjustment.
             // X axis: horizontal orbit (same math as L2/R2 rotate, proportional to deflection).
             // Y axis: camera height offset (stick up = higher, stick down = lower).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.connected) {
+            //
+            // Disabled during the vehicle-entry animation: that anim auto-rotates
+            // the camera so the (visually closed) door isn't seen from a bad
+            // angle; letting the player override with the right stick exposes
+            // the trick. Released as soon as SubState transitions out of
+            // ENTERING_VEHICLE (anim end).
+            const bool entering_vehicle = fc->focus
+                && fc->focus->Class == CLASS_PERSON
+                && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+
+            if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.connected) {
                 SLONG stick_x = gamepad_state.rX - 32768; // signed, -32768..+32767
                 SLONG stick_y = gamepad_state.rY - 32768;
 

@@ -41,6 +41,7 @@
 #include "assets/xlat_str.h"
 #include "ui/frontend/frontend_globals.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/render_interp.h" // render_interp_mark_teleport — WorldPos discontinuities (vehicle exit, etc.)
 #include "ui/hud/panel.h"
 #include "engine/physics/collide.h"
 #include "engine/physics/collide_globals.h"
@@ -4860,6 +4861,11 @@ try_again:;
     newpos.Z = door_z << 8;
 
     move_thing_on_map(p_person, &newpos);
+
+    // WorldPos jumped from inside-the-vehicle to door-side. Without a teleport
+    // mark render-interp would lerp between the two positions across render
+    // frames, making the character "fly out" of the car instead of snapping.
+    render_interp_mark_teleport(p_person);
 
     if (p_person->Genus.Person->Flags & FLAG_PERSON_PASSENGER) {
         remove_person_from_passenger_list(p_person, p_vehicle);

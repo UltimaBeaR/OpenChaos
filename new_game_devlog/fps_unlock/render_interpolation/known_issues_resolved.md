@@ -194,3 +194,15 @@ bool is_loop_wrap = (frame_diff != 0 && frame_diff != 1
 **API:** новый `render_interp_mark_dirt_teleport(int idx)` в [`render_interp.h`](../../../new_game/src/engine/graphics/render_interp.h) — wipes `g_dirt_snaps[idx]`, на следующем capture идёт `!valid` (first-capture) path, prev=curr=new. Аналог `render_interp_mark_teleport(Thing*)` для Things.
 
 **Подтверждено пользователем 2026-05-02:** дёргания "блоков" листьев исчезли. Bounce-back collision pos write'ы (line 1080/1265/1395 в dirt.cpp) — small per-cell bounce, не teleport, mark не нужен. Held-can/head positioning (line 1340) — отдельный потенциальный body-vs-held-item desync, не наблюдался, не трогаем.
+
+---
+
+## ✅ Выход из машины — персонаж "проезжает по воздуху" к новой позиции — 2026-05-03
+
+**Был:** при выходе персонажа из машины он **плавно сдвигался** от позиции в машине к позиции на земле сбоку — render interpolation лерпил между prev (внутри машины) и curr (на земле). Должен быть резкий snap, не движение.
+
+**Корень:** в момент `set_person_exit_vehicle` физика делает `move_thing_on_map(p_person, &newpos)` — `WorldPos` меняется скачком за один тик с in-car позиции на door-side позицию. Снапшот `prev` имеет старое (в машине), `curr` — новое (на земле), render-кадры между physics-тиками лерпят alpha 0→1 → персонаж "проезжает" по воздуху.
+
+**Фикс:** в [`person.cpp:4868`](../../../new_game/src/things/characters/person.cpp#L4868) после `move_thing_on_map(p_person, &newpos)` добавлен вызов `render_interp_mark_teleport(p_person)`. Помечает next capture как "prev = curr → snap к новой позиции, лерпа нет".
+
+**Подтверждено пользователем 2026-05-03:** работает корректно. **Парный кейс — вход в машину** — пользователь решил не трогать (там анимация входа маскирует discontinuity, проблемы не было видно).
