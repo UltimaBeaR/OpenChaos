@@ -46,6 +46,7 @@ struct Track {
     UBYTE flags; // TRACK_FLAGS_*
     UBYTE splut; // current splut fade counter
     UBYTE splutmax; // max splut value (fades alpha over time)
+    UBYTE LastSplutPhase; // wall-clock phase for FPS-independent splut grow
 };
 
 // uc_orig: TrackPtr (fallen/Headers/tracks.h)

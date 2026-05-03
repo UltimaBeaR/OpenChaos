@@ -3,12 +3,19 @@
 #include "effects/environment/tracks.h"
 #include "effects/environment/tracks_globals.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for wall-clock splut grow
 
 #include "map/pap.h"
 #include "map/pap_globals.h"
 #include "things/characters/anim_ids.h"
 #include "world_objects/puddle.h"
 #include "things/core/interact.h"
+
+// Wall-clock bucket size for splut growth pacing — 50 ms = 20 Hz, matches
+// UC_PHYSICS_DESIGN_HZ (the rate the original blood-pool grow speed was
+// calibrated under). Used both to seed Track::LastSplutPhase at creation and
+// to advance `splut` in TRACKS_DrawTrack — keep them in sync.
+static constexpr SLONG TRACKS_SPLUT_BUCKET_MS = 50;
 
 // world_type is in Sound.cpp; WORLD_TYPE_SNOW from sound.h (pulled via game.h chain indirectly)
 // but we use extern to avoid the sound.h → Structs.h → anim.h inclusion issues
@@ -71,6 +78,9 @@ void TRACKS_AddQuad(SLONG x, SLONG y, SLONG z, SLONG dx, SLONG dy, SLONG dz, SLO
         track.flags = flags;
         track.splut = 0;
         track.splutmax = 1 + (width >> 1);
+        // Init splut phase to current bucket so the first draw sees delta=0;
+        // splut then grows by 1 per bucket wall-clock regardless of render FPS.
+        track.LastSplutPhase = UBYTE(sdl3_get_ticks() / TRACKS_SPLUT_BUCKET_MS);
         TRACKS_CalcDiffs(track, width);
         TRACKS_AddTrack(track);
     }
@@ -335,31 +345,51 @@ void TRACKS_DrawTrack(Thing* p_thing)
     sx = walk->sx;
     sz = walk->sz;
     if (walk->flags & TRACK_FLAGS_SPLUTTING) {
-        walk->splut++;
-        if (walk->splut == walk->splutmax) {
-            walk->flags &= ~TRACK_FLAGS_SPLUTTING;
-        } else {
+        // Splut grow rate = 1 unit per TRACKS_SPLUT_BUCKET_MS wall-clock
+        // bucket (20 Hz, design physics rate), independent of render FPS.
+        // Original was `splut++` per render frame, so blood pool spread 8×
+        // faster on 240 FPS than on 30 FPS оригинала. UBYTE delta wraps
+        // modulo 256 buckets ≈ 12.8 sec, well above splutmax grow window
+        // (~2.8 sec at max width).
+        const UBYTE cur_phase = UBYTE(sdl3_get_ticks() / TRACKS_SPLUT_BUCKET_MS);
+        const UBYTE delta = UBYTE(cur_phase - walk->LastSplutPhase);
+        if (delta > 0) {
+            walk->LastSplutPhase = cur_phase;
+            const SLONG new_splut = SLONG(walk->splut) + SLONG(delta);
+            if (new_splut >= SLONG(walk->splutmax)) {
+                walk->splut = walk->splutmax;
+                walk->flags &= ~TRACK_FLAGS_SPLUTTING;
+            } else {
+                walk->splut = UBYTE(new_splut);
+            }
+        }
+        if (walk->flags & TRACK_FLAGS_SPLUTTING) {
             sx *= walk->splut;
             sx /= walk->splutmax;
             sz *= walk->splut;
             sz /= walk->splutmax;
         }
     }
+    // Lift blood quads slightly off the ground plane to break z-fight with
+    // ground / leaves / trash / puddles. Other track types (tyre marks, foot
+    // prints) already sit on ground without visible z-fight, leave them alone.
+    constexpr SLONG BLOOD_Y_LIFT = 4;
+    SLONG y_lift = (walk->page == POLY_PAGE_BLOODSPLAT) ? BLOOD_Y_LIFT : 0;
     x = wpx + sx;
     z = wpz + sz;
-    y = wpy;
+    y = wpy + y_lift;
     POLY_transform(x, y, z, &pp[0]);
     x = wpx - sx;
     z = wpz - sz;
-    y = wpy;
+    y = wpy + y_lift;
     POLY_transform(x, y, z, &pp[1]);
     x = wpx + walk->dx + sx;
     z = wpz + walk->dz + sz;
-    y = wpy + walk->dy;
+    y = wpy + walk->dy + y_lift;
     POLY_transform(x, y, z, &pp[2]);
     x = wpx + walk->dx - sx;
     z = wpz + walk->dz - sz;
-    y = wpy + walk->dy;
+    y = wpy + walk->dy + y_lift;
     POLY_transform(x, y, z, &pp[3]);
 
     if (walk->flags & TRACK_FLAGS_FLIPABLE) {
