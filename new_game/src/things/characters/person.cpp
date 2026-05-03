@@ -10771,6 +10771,19 @@ void fn_person_dead(Thing* p_person)
             p_person->Genus.Person->Timer1 = 0xffff;
         } else {
             p_person->Genus.Person->Timer1 += 16 * TICK_RATIO >> TICK_SHIFT;
+
+            // Body bobbing / slow lift during destruct. Moved here from
+            // DRAWXTRA_MIB_destruct (render path) so accumulation runs once
+            // per physics tick instead of per render frame: per-frame +=
+            // made lift speed scale with render FPS, and render-interp's
+            // dtor wiped WorldPos modifications entirely when interp was on
+            // (body stayed flat). TICK_RATIO normalises the step against
+            // the original 30 Hz visual cadence so total drift matches
+            // regardless of g_physics_hz. The asymmetric arithmetic shift
+            // on negative SIN values produces the small upward bias that
+            // gives the iconic "levitating corpse" feel.
+            p_person->WorldPos.Y += (SIN(p_person->Genus.Person->Timer1 >> 2) >> 7)
+                * TICK_RATIO >> TICK_SHIFT;
         }
     } else if (try_respawn) { // MIB don't respawn
         SLONG vanish_time;
@@ -13593,10 +13606,12 @@ void push_people_apart(Thing* p_person, Thing* p_avoid)
 
 // Render-time logic for the MIB (Men In Black) self-destruct sequence.
 // Called every frame while a MIB is in their electrocution death state.
-// Bobbing: oscillates WorldPos.Y using a sine wave based on Timer1.
 // Lightning bolt: draws a line-texture from pelvis to ground once Timer1 exceeds threshold.
-// Dynamic light: creates a per-frame flash dlight that auto-removes.
+// Dynamic light + PYRO_TWANGER: gated by VISUAL_TURN (15 Hz wall-clock) so
+// spawn rate stays FPS-independent.
 // Sparks: emits SPARK_create sparks between pelvis and a ground point every other frame.
+// Body bobbing/lift is handled in fn_person_dead (physics tick) so accumulation
+// is FPS-independent and survives render_interp's frame-scope WorldPos restore.
 // uc_orig: DRAWXTRA_MIB_destruct (fallen/DDEngine/Source/drawxtra.cpp)
 void DRAWXTRA_MIB_destruct(Thing* p_thing)
 {
@@ -13604,8 +13619,6 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
     GameCoord posn;
     Thing* thing;
     SLONG j;
-
-    p_thing->WorldPos.Y += SIN(ctr >> 2) >> 7;
 
     calc_sub_objects_position(
         p_thing,
@@ -13638,7 +13651,12 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
             POLY_add_line_tex_uv(&pt1, &pt2, 142, 142, POLY_PAGE_LITE_BOLT, 0);
     }
 
-    if (ctr > 1200 + p_thing->Genus.Person->ammo_packs_pistol) {
+    // Spawn dlight + PYRO_TWANGER once Timer1 has ramped past the destruct
+    // threshold. Throttled by VISUAL_TURN (15 Hz wall-clock cadence) so the
+    // spawn rate is independent of render FPS — uc_orig used a self-throttle
+    // through ammo_packs_pistol that fired every render frame and scaled
+    // density of effects with FPS.
+    if (ctr > 1200 && (VISUAL_TURN & 1)) {
 
         // A single-frame dynamic light flash for the lightning effect.
         UBYTE dlight;
@@ -13656,7 +13674,6 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
             NIGHT_dlight[dlight].flag |= NIGHT_DLIGHT_FLAG_REMOVE;
         }
 
-        p_thing->Genus.Person->ammo_packs_pistol = (3200 - ctr) >> 3;
         thing = PYRO_create(posn, PYRO_TWANGER);
         if (thing) {
             thing->StateFn(thing);
@@ -13672,8 +13689,7 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
                 j = 400;
             thing->Genus.Pyro->scale = j;
         }
-    } else
-        p_thing->Genus.Person->ammo_packs_pistol = 0;
+    }
 
     if (VISUAL_TURN & 1) {
 
