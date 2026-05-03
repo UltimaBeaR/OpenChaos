@@ -309,6 +309,8 @@ struct PoseSnap {
     BoneSnap bones_prev[POSE_MAX_BONES];
     BoneSnap bones_curr[POSE_MAX_BONES];
     UBYTE last_mesh_id;     // invalidate when this changes (different skeleton)
+    UBYTE bone_count;       // number of valid bones (15 person; 1..20 flat)
+    bool  flat_skeleton;    // true: bones[i] = world transform; false: bone[0]=world, [1..N]=parent-local
     bool  valid;            // false until first successful capture
 };
 
@@ -537,47 +539,24 @@ CamSnap* cam_find_or_alloc(FC_Cam* fc)
 // On MeshID change the snapshot is invalidated — next capture re-seeds; the
 // skeleton may have a different bone count or layout, so previous bone
 // data is meaningless.
-void capture_pose(int idx, Thing* p_thing)
+// Hierarchical capture for 15-bone person rig. bone[0] = visible PELVIS world
+// transform; bones[1..14] = parent-local (derived from composer's body-local
+// intermediates so R_body / WorldPos cancel out and the data lerps smoothly
+// across body rotations while preserving rigid joint connections).
+static bool capture_pose_hierarchical(PoseSnap& s, DrawTween* dt, Thing* p_thing,
+                                      BoneSnap (&new_bones)[POSE_MAX_BONES])
 {
-    PoseSnap& s = g_pose_snaps[idx];
-
-    // Phase 2 covers persons only (15-bone hierarchical skeleton). Other
-    // DT_TWEEN family (DT_ANIM_PRIM animals/bats, generic DT_TWEEN with
-    // flat skeletons) handled in a later phase via a separate path.
-    if (p_thing->Class != CLASS_PERSON || p_thing->DrawType != DT_ROT_MULTI) {
-        s.valid = false;
-        return;
-    }
-    DrawTween* dt = p_thing->Draw.Tweened;
-    if (!dt) { s.valid = false; return; }
-
-    // MeshID change → skeleton may differ → invalidate.
-    if (s.valid && s.last_mesh_id != dt->MeshID) {
-        s.valid = false;
-    }
-
     ComposedSkeletalPose pose;
-    if (!compose_full_skeletal_pose(p_thing, &pose) || pose.bone_count != POSE_MAX_BONES) {
-        s.valid = false;
-        return;
+    if (!compose_full_skeletal_pose(p_thing, &pose) || pose.bone_count != POSE_PERSON_BONE_COUNT) {
+        return false;
     }
 
-    BoneSnap new_bones[POSE_MAX_BONES];
-
-    // Bone 0 (PELVIS): WORLD transform — copy directly from composer.
     new_bones[0].x = SLONG(pose.bones[0].pos_x);
     new_bones[0].y = SLONG(pose.bones[0].pos_y);
     new_bones[0].z = SLONG(pose.bones[0].pos_z);
     compress_matrix(&pose.bones[0].rot, &new_bones[0].cmat);
 
-    // Bones 1..14: parent-local transform. Derived from composer's body-local
-    // intermediates (end_pos / end_mat) using the identities:
-    //   local_pos[i] = end_mat[parent]^T × (end_pos[i] - end_pos[parent])
-    //   local_rot[i] = end_mat[parent]^T × end_mat[i]
-    // Both R_body and WorldPos cancel out — parent-local data is purely a
-    // function of anim keyframes, so it lerps smoothly across body rotations
-    // and translations without breaking rigid bone connections.
-    for (int i = 1; i < POSE_MAX_BONES; i++) {
+    for (int i = 1; i < POSE_PERSON_BONE_COUNT; i++) {
         int p = body_part_parent[i];
 
         // Transpose parent's body-local rotation in-place (= inverse for
@@ -588,7 +567,6 @@ void capture_pose(int idx, Thing* p_thing)
         SWAP(parent_rot_inv.M[0][2], parent_rot_inv.M[2][0]);
         SWAP(parent_rot_inv.M[1][2], parent_rot_inv.M[2][1]);
 
-        // local_pos = parent_rot_inv × (end_pos[i] - end_pos[p])
         Matrix31 diff;
         diff.M[0] = pose.bones[i].body_local_pos.M[0] - pose.bones[p].body_local_pos.M[0];
         diff.M[1] = pose.bones[i].body_local_pos.M[1] - pose.bones[p].body_local_pos.M[1];
@@ -599,27 +577,89 @@ void capture_pose(int idx, Thing* p_thing)
         new_bones[i].y = local_pos.M[1];
         new_bones[i].z = local_pos.M[2];
 
-        // local_rot = parent_rot_inv × end_mat[i]
         Matrix33 local_rot;
         matrix_mult33(&local_rot, &parent_rot_inv, &pose.bones[i].body_local_rot);
         compress_matrix(&local_rot, &new_bones[i].cmat);
     }
+    return true;
+}
+
+// Flat capture for DT_ANIM_PRIM (bats / Bane / Balrog / Gargoyle) and DT_TWEEN
+// with non-15 ElementCount. Each element stored as world transform directly
+// — no parent walk, no parent-local derivation. Apply path lerps world pos /
+// slerps world rot per element independently.
+static bool capture_pose_flat(BoneSnap (&new_bones)[POSE_MAX_BONES], int* out_count, Thing* p_thing)
+{
+    ComposedFlatPose pose;
+    if (!compose_flat_skeletal_pose(p_thing, &pose) || pose.bone_count <= 0) {
+        return false;
+    }
+
+    for (int i = 0; i < pose.bone_count; i++) {
+        new_bones[i].x = SLONG(pose.bones[i].pos_x);
+        new_bones[i].y = SLONG(pose.bones[i].pos_y);
+        new_bones[i].z = SLONG(pose.bones[i].pos_z);
+        compress_matrix(&pose.bones[i].rot, &new_bones[i].cmat);
+    }
+
+    *out_count = pose.bone_count;
+    return true;
+}
+
+void capture_pose(int idx, Thing* p_thing)
+{
+    PoseSnap& s = g_pose_snaps[idx];
+
+    if (!draw_type_uses_tween(p_thing->DrawType)) {
+        s.valid = false;
+        return;
+    }
+    DrawTween* dt = p_thing->Draw.Tweened;
+    if (!dt) { s.valid = false; return; }
+
+    // Path selection: 15-bone person hierarchy vs flat skeleton.
+    bool is_hierarchical = (p_thing->Class == CLASS_PERSON
+                            && p_thing->DrawType == DT_ROT_MULTI
+                            && dt->TheChunk
+                            && dt->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT);
+
+    // Skeleton type or MeshID change → previous bone data is meaningless.
+    if (s.valid && (s.last_mesh_id != dt->MeshID || s.flat_skeleton == is_hierarchical)) {
+        s.valid = false;
+    }
+
+    BoneSnap new_bones[POSE_MAX_BONES];
+    int new_count = 0;
+    bool ok = false;
+    if (is_hierarchical) {
+        ok = capture_pose_hierarchical(s, dt, p_thing, new_bones);
+        if (ok) new_count = POSE_PERSON_BONE_COUNT;
+    } else {
+        ok = capture_pose_flat(new_bones, &new_count, p_thing);
+    }
+    if (!ok) {
+        s.valid = false;
+        return;
+    }
 
     if (!s.valid) {
         // First capture: prev = curr = new — apply lerps to identity.
-        for (int i = 0; i < POSE_MAX_BONES; i++) {
+        for (int i = 0; i < new_count; i++) {
             s.bones_prev[i] = new_bones[i];
             s.bones_curr[i] = new_bones[i];
         }
         s.valid = true;
     } else {
-        // Standard window shift.
-        for (int i = 0; i < POSE_MAX_BONES; i++) {
+        // Standard window shift. bone_count is stable across captures (mesh-id
+        // change above invalidates the slot if the skeleton size changed).
+        for (int i = 0; i < new_count; i++) {
             s.bones_prev[i] = s.bones_curr[i];
             s.bones_curr[i] = new_bones[i];
         }
     }
     s.last_mesh_id = dt->MeshID;
+    s.bone_count = (UBYTE)new_count;
+    s.flat_skeleton = !is_hierarchical;
 }
 
 }  // namespace
@@ -1193,7 +1233,7 @@ const BoneInterpTransform* render_interp_get_cached_pose(Thing* p_thing)
     return g_pose_cache_valid ? g_pose_cache : nullptr;
 }
 
-bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15])
+bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX_BONES])
 {
     if (!p_thing || !out) return false;
     if (!g_render_interp_enabled) return false;
@@ -1209,6 +1249,20 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15])
     if (slerp_t <   0) slerp_t =   0;
     if (slerp_t > 256) slerp_t = 256;
 
+    if (s.flat_skeleton) {
+        // Flat skeleton (DT_ANIM_PRIM bats / Bane / Balrog / Gargoyle, or
+        // DT_TWEEN with non-15 ElementCount). Each bone stored as world
+        // transform — lerp pos, slerp rot, no hierarchy chain.
+        int n = s.bone_count;
+        for (int i = 0; i < n; i++) {
+            out[i].pos_x = float(lerp_i32(s.bones_prev[i].x, s.bones_curr[i].x, alpha));
+            out[i].pos_y = float(lerp_i32(s.bones_prev[i].y, s.bones_curr[i].y, alpha));
+            out[i].pos_z = float(lerp_i32(s.bones_prev[i].z, s.bones_curr[i].z, alpha));
+            CQuaternion::BuildTween(&out[i].rot, &s.bones_prev[i].cmat, &s.bones_curr[i].cmat, slerp_t);
+        }
+        return true;
+    }
+
     // Bone 0 (PELVIS): WORLD pos + WORLD rot directly from snapshot.
     out[0].pos_x = float(lerp_i32(s.bones_prev[0].x, s.bones_curr[0].x, alpha));
     out[0].pos_y = float(lerp_i32(s.bones_prev[0].y, s.bones_curr[0].y, alpha));
@@ -1218,7 +1272,7 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15])
     // Bones 1..14: lerp parent-local pos, slerp parent-local rot, then chain
     // through parent's interpolated world transform. Hierarchy walk in index
     // order is safe because body_part_parent[i] < i for all i (pre-order DFS).
-    for (int i = 1; i < POSE_MAX_BONES; i++) {
+    for (int i = 1; i < POSE_PERSON_BONE_COUNT; i++) {
         int p = body_part_parent[i];
 
         Matrix31 local_pos;

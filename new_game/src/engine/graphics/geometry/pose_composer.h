@@ -44,19 +44,23 @@ struct ComposedBone {
     Matrix33 body_local_rot;        // end_mat: per-bone body-frame rotation (slerp result, no character_scale)
 };
 
-// Bounded by the person rig in anim_ids.h (PELVIS..RIGHT_FOOT = 15 bones).
-// Other DT_TWEEN family (animals, bats, generic) use a flat skeleton with
-// different bone counts — handled via a separate path in later phases.
-constexpr int POSE_MAX_BONES = 15;
+// Storage upper bound across all skeleton types. Person rig is 15 bones
+// (PELVIS..RIGHT_FOOT, hierarchical). DT_ANIM_PRIM bats / Bane / Balrog /
+// Gargoyle use a flat skeleton with up to MAX_NUM_BODY_PARTS_AT_ONCE = 20
+// elements (figure_globals.h). The hierarchical composer below only
+// populates the first POSE_PERSON_BONE_COUNT entries.
+constexpr int POSE_MAX_BONES = 20;
+constexpr int POSE_PERSON_BONE_COUNT = 15;
 
-// Parent index per bone, derived from body_part_children[][] (hierarchy_globals.cpp).
-// PELVIS (0) is root with parent = -1.
-extern const int body_part_parent[POSE_MAX_BONES];
+// Parent index per bone in the person rig (PELVIS..RIGHT_FOOT). Derived from
+// body_part_children[][] (hierarchy_globals.cpp). PELVIS (0) is root with
+// parent = -1. Only valid for the hierarchical (15-bone) path.
+extern const int body_part_parent[POSE_PERSON_BONE_COUNT];
 
 struct ComposedSkeletalPose {
-    int  bone_count;                       // 15 for persons; 0 if invalid
-    ComposedBone bones[POSE_MAX_BONES];
-    bool valid;                            // true iff composition succeeded
+    int  bone_count;                              // 15 for persons; 0 if invalid
+    ComposedBone bones[POSE_PERSON_BONE_COUNT];
+    bool valid;                                   // true iff composition succeeded
 };
 
 // Compose full per-bone pose for a person Thing using current Draw.Tweened state.
@@ -64,5 +68,22 @@ struct ComposedSkeletalPose {
 // or has no valid keyframe data. Outputs identical math to FIGURE_draw_prim_tween's
 // per-bone computation including HIERARCHY_Get_Body_Part_Offset for child bones.
 bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out);
+
+// Composed pose for a flat-skeleton Thing (DT_ANIM_PRIM bats / Bane / Balrog
+// / Gargoyle, plus DT_TWEEN with non-15 ElementCount). Each element is
+// independent — no parent/child relationship. World transforms are produced
+// by mirroring FIGURE_draw_prim_tween's parent_base_mat==NULL branch:
+//   pos[i] = WorldPos + R(body_angles) * keyframe_offset_lerped * scale
+//   rot[i] = R(body_angles) * keyframe_rot_slerped * scale
+struct ComposedFlatPose {
+    int  bone_count;                       // 1..POSE_MAX_BONES; 0 if invalid
+    ComposedBone bones[POSE_MAX_BONES];    // body_local_pos/rot unused for flat
+    bool valid;
+};
+
+// Compose flat-skeleton pose. Returns false (and sets out->valid = false) if
+// Thing isn't a tween-family Thing, has no keyframe data, or its element
+// count exceeds POSE_MAX_BONES (the storage upper bound).
+bool compose_flat_skeletal_pose(Thing* p_thing, ComposedFlatPose* out);
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_POSE_COMPOSER_H

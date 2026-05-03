@@ -442,3 +442,13 @@ Phase 3 (per-bone pose snapshot) не относится к этому пути 
 **Где искать:** `input_actions.cpp` — обработчики смены weapon (поиск по "weapon", "switch_weapon", "next_weapon", "change_weapon"). Также проверить wiring через game_tick.cpp (process_controls) или main loop'е.
 
 **Фикс:** перевести обработку нажатия в physics-tick (если actions are gameplay-state), либо добавить корректный edge-detect через static prev-state, как уже делается для debug-клавиш в `check_debug_timing_keys`.
+
+---
+
+## 21. Анимация колышущейся воды на миссии Stern's Revenge зависит от render FPS
+
+**Симптом:** в самом начале миссии Stern's Revenge есть водная гладь — её колыхание (волны / искажение поверхности) ускоряется с ростом render FPS и замедляется при падении. Должно идти по wall-clock, не по числу render-кадров.
+
+**Где искать:** рендер водной поверхности — где-то в `aeng.cpp` / графическом пайплайне рисования воды (поиск по "water", "ripple", "wave", "FIGURE_reflect_height", или специфичной для миссии setup-функции). Скорее всего таймер/фаза волны инкрементится на 1 каждый render-кадр без учёта dt — типичный паттерн как у #10 (туман), #13 (кровь), #11 (меню).
+
+**Фикс:** заменить per-frame инкремент таймера/фазы анимации на dt-based (`dt_ms` × множитель), либо привязать к `sdl3_get_ticks()` modulo period.

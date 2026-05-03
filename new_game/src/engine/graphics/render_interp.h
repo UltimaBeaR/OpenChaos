@@ -18,6 +18,7 @@
 #include "camera/fc.h"
 #include "engine/core/types.h" // SLONG
 #include "engine/core/fmatrix.h" // Matrix33 (BoneInterpTransform)
+#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES
 
 #include <stdint.h> // uint32_t (g_render_interp_frame_counter)
 
@@ -157,7 +158,7 @@ extern uint32_t g_render_interp_frame_counter;
 // Returns false if the snapshot is invalid or master interp toggle is off
 // or the world-pose flag is disabled — caller should fall back to the legacy
 // figure.cpp pose-composition path.
-bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15]);
+bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX_BONES]);
 
 // Cached variant of render_interp_compute_pose. Returns a pointer to internal
 // storage holding the interpolated pose for this Thing in the current render

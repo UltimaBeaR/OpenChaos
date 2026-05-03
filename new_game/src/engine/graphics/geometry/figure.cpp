@@ -1933,6 +1933,37 @@ void FIGURE_draw_prim_tween(
         imatrix[8] = mat_final.M[2][2] * 2;
     }
 
+    // Pose-snapshot override for the flat-skeleton path (parent_base_mat==NULL).
+    // Covers DT_ANIM_PRIM (bats / Bane / Balrog / Gargoyle) via ANIM_obj_draw
+    // and the non-15 ElementCount person fallback in FIGURE_draw. Skipped when
+    // called recursively with hierarchy info (parent_base_mat != NULL) — that
+    // path doesn't currently exist via this function (recurse uses the
+    // _person_only variants), but the gate keeps the override safe if the
+    // shared signature is reused later. part_number defaults to 0xffffffff
+    // when the caller doesn't pass it (negative when treated as signed) — the
+    // bound check excludes that case.
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        if (!parent_base_mat && part_number >= 0 && part_number < POSE_MAX_BONES) {
+            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+            if (pose) {
+                const BoneInterpTransform& xf = pose[part_number];
+                off_x = xf.pos_x;
+                off_y = xf.pos_y;
+                off_z = xf.pos_z;
+                mat_final = xf.rot;
+                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+            }
+        }
+    }
+
     POLY_set_local_rotation(
         off_x,
         off_y,
@@ -2766,15 +2797,24 @@ void FIGURE_draw(Thing* p_thing)
     SLONG ly;
     SLONG lz;
 
-    calc_sub_objects_position(
-        p_thing,
-        dt->AnimTween,
-        0,
-        &lx, &ly, &lz);
-
-    lx += p_thing->WorldPos.X >> 8;
-    ly += p_thing->WorldPos.Y >> 8;
-    lz += p_thing->WorldPos.Z >> 8;
+    {
+        // Pelvis world position for NIGHT_find lighting lookup. Prefer the
+        // interpolated pose snapshot — keeps lighting stable across physics
+        // ticks. Falls back to legacy calc_sub_objects_position when the
+        // snapshot is unavailable (interp off, world-pose flag off, slot
+        // invalid right after teleport).
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            lx = SLONG(pose[0].pos_x);
+            ly = SLONG(pose[0].pos_y);
+            lz = SLONG(pose[0].pos_z);
+        } else {
+            calc_sub_objects_position(p_thing, dt->AnimTween, 0, &lx, &ly, &lz);
+            lx += p_thing->WorldPos.X >> 8;
+            ly += p_thing->WorldPos.Y >> 8;
+            lz += p_thing->WorldPos.Z >> 8;
+        }
+    }
 
     NIGHT_find(lx, ly, lz);
 
@@ -2854,7 +2894,8 @@ void FIGURE_draw(Thing* p_thing)
                 NULL,
                 NULL,
                 NULL,
-                p_thing);
+                p_thing,
+                i);
         }
     }
 
@@ -2870,17 +2911,22 @@ void FIGURE_draw(Thing* p_thing)
             SLONG py;
             SLONG pz;
 
-            calc_sub_objects_position(
-                p_person,
-                p_person->Draw.Tweened->AnimTween,
-                SUB_OBJECT_LEFT_HAND,
-                &px,
-                &py,
-                &pz);
-
-            px += p_person->WorldPos.X >> 8;
-            py += p_person->WorldPos.Y >> 8;
-            pz += p_person->WorldPos.Z >> 8;
+            // Left hand world position for grenade-in-hand draw. Pose snapshot
+            // path keeps the grenade tracking the interpolated hand smoothly
+            // across physics ticks (otherwise the grenade dèrgaет independently
+            // of the body). Falls back to legacy when snapshot unavailable.
+            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_person);
+            if (pose) {
+                px = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_x);
+                py = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_y);
+                pz = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_z);
+            } else {
+                calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween,
+                                          SUB_OBJECT_LEFT_HAND, &px, &py, &pz);
+                px += p_person->WorldPos.X >> 8;
+                py += p_person->WorldPos.Y >> 8;
+                pz += p_person->WorldPos.Z >> 8;
+            }
 
             kludge_shrink = UC_TRUE;
 
@@ -3400,15 +3446,25 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
 
     NIGHT_Colour col;
 
-    calc_sub_objects_position(
-        p_thing,
-        dt->AnimTween,
-        0, // 0 is Pelvis
-        &lx, &ly, &lz);
-
-    lx += p_thing->WorldPos.X >> 8;
-    ly += p_thing->WorldPos.Y >> 8;
-    lz += p_thing->WorldPos.Z >> 8;
+    {
+        // Pelvis world position for reflection lighting lookup. Same pose-
+        // snapshot pattern as the main draw above — keeps the reflection's
+        // colour stable across physics ticks. Reflection geometry itself uses
+        // the snapshot via the per-bone override later in the function;
+        // sampling the light at the same lerped pelvis ensures the colour
+        // matches the body the reflection is rendering.
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            lx = SLONG(pose[0].pos_x);
+            ly = SLONG(pose[0].pos_y);
+            lz = SLONG(pose[0].pos_z);
+        } else {
+            calc_sub_objects_position(p_thing, dt->AnimTween, 0, &lx, &ly, &lz);
+            lx += p_thing->WorldPos.X >> 8;
+            ly += p_thing->WorldPos.Y >> 8;
+            lz += p_thing->WorldPos.Z >> 8;
+        }
+    }
 
     col = NIGHT_get_light_at(lx, ly, lz);
 
@@ -3879,6 +3935,29 @@ void FIGURE_draw_prim_tween_person_only(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+            if (part >= 0 && part < POSE_MAX_BONES) {
+                const BoneInterpTransform& xf = pose[part];
+                off_x = xf.pos_x;
+                off_y = xf.pos_y;
+                off_z = xf.pos_z;
+                mat_final = xf.rot;
+                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+            }
+        }
+    }
 
     POLY_set_local_rotation(
         off_x,

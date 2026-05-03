@@ -14,7 +14,7 @@
 // Verified by walking body_part_children entries in hierarchy_globals.cpp:
 //   0 → [1, 4, 12]; 1 → [2]; 2 → [3]; 4 → [5, 8, 11]; 5 → [6]; 6 → [7];
 //   8 → [9]; 9 → [10]; 12 → [13]; 13 → [14]. Leaves: 3, 7, 10, 11, 14.
-const int body_part_parent[POSE_MAX_BONES] = {
+const int body_part_parent[POSE_PERSON_BONE_COUNT] = {
     -1,  // 0  PELVIS (root)
      0,  // 1  LEFT_FEMUR
      1,  // 2  LEFT_TIBIA
@@ -240,6 +240,114 @@ bool compose_full_skeletal_pose(Thing* p_thing, ComposedSkeletalPose* out)
     }
 
     out->bone_count = 15;
+    out->valid = true;
+    return true;
+}
+
+// Mirrors FIGURE_draw_prim_tween's parent_base_mat==NULL branch (figure.cpp:1852)
+// for each element of a flat skeleton. Used by DT_ANIM_PRIM (bats / Bane /
+// Balrog / Gargoyle) and DT_TWEEN with non-15 ElementCount. character_scale
+// returns 256 for non-persons, so the math is identical to person flat-fallback
+// (figure.cpp:2836-2858) and ANIM_obj_draw (figure.cpp:2965-2986).
+bool compose_flat_skeletal_pose(Thing* p_thing, ComposedFlatPose* out)
+{
+    if (!out) return false;
+    out->valid = false;
+    out->bone_count = 0;
+
+    if (!p_thing) return false;
+
+    DrawTween* dt = p_thing->Draw.Tweened;
+    if (!dt) return false;
+    if (!dt->CurrentFrame || !dt->NextFrame) return false;
+    if (!dt->TheChunk) return false;
+
+    GameKeyFrameElement* ae1 = dt->CurrentFrame->FirstElement;
+    GameKeyFrameElement* ae2 = dt->NextFrame->FirstElement;
+    if (!ae1 || !ae2) return false;
+
+    SLONG ele_count = dt->TheChunk->ElementCount;
+    if (ele_count <= 0 || ele_count > POSE_MAX_BONES) return false;
+
+    SLONG character_scale = person_get_scale(p_thing);
+    float character_scalef = float(character_scale) / 256.f;
+    SLONG tween = dt->AnimTween;
+
+    // Body world rotation R_body. Same arg order as ANIM_obj_draw (figure.cpp:
+    // 2936-2940) and FIGURE_draw (figure.cpp:2730).
+    Matrix33 body_rot;
+    FIGURE_rotate_obj(dt->Tilt, dt->Angle, (dt->Roll + 2048) & 2047, &body_rot);
+
+    SLONG world_x = p_thing->WorldPos.X >> 8;
+    SLONG world_y = p_thing->WorldPos.Y >> 8;
+    SLONG world_z = p_thing->WorldPos.Z >> 8;
+
+    float r00 = float(body_rot.M[0][0]) / 32768.f;
+    float r01 = float(body_rot.M[0][1]) / 32768.f;
+    float r02 = float(body_rot.M[0][2]) / 32768.f;
+    float r10 = float(body_rot.M[1][0]) / 32768.f;
+    float r11 = float(body_rot.M[1][1]) / 32768.f;
+    float r12 = float(body_rot.M[1][2]) / 32768.f;
+    float r20 = float(body_rot.M[2][0]) / 32768.f;
+    float r21 = float(body_rot.M[2][1]) / 32768.f;
+    float r22 = float(body_rot.M[2][2]) / 32768.f;
+
+    for (int i = 0; i < ele_count; i++) {
+        // Per-element offset lerp. Mirrors figure_morph_root_offset(figure.cpp:
+        // 1678) — base case (no cross-anim blend, no off_dx/dy/dz).
+        Matrix31 bone_offset;
+        bone_offset.M[0] = (SLONG(ae1[i].OffsetX) << 8)
+                         + (SLONG(ae2[i].OffsetX - ae1[i].OffsetX) * tween);
+        bone_offset.M[1] = (SLONG(ae1[i].OffsetY) << 8)
+                         + (SLONG(ae2[i].OffsetY - ae1[i].OffsetY) * tween);
+        bone_offset.M[2] = (SLONG(ae1[i].OffsetZ) << 8)
+                         + (SLONG(ae2[i].OffsetZ - ae1[i].OffsetZ) * tween);
+
+        float ox = float(bone_offset.M[0]) / 256.f;
+        float oy = float(bone_offset.M[1]) / 256.f;
+        float oz = float(bone_offset.M[2]) / 256.f;
+
+        float off_x = ox * r00 + oy * r01 + oz * r02;
+        float off_y = ox * r10 + oy * r11 + oz * r12;
+        float off_z = ox * r20 + oy * r21 + oz * r22;
+
+        off_x *= character_scalef;
+        off_y *= character_scalef;
+        off_z *= character_scalef;
+
+        off_x += float(world_x);
+        off_y += float(world_y);
+        off_z += float(world_z);
+
+        out->bones[i].pos_x = off_x;
+        out->bones[i].pos_y = off_y;
+        out->bones[i].pos_z = off_z;
+
+        // Per-element rotation slerp. Mirrors figure_morph_matrix (figure.cpp:1747).
+        CMatrix33 cm1, cm2;
+        GetCMatrix(&ae1[i], &cm1);
+        GetCMatrix(&ae2[i], &cm2);
+        Matrix33 bone_rot;
+        CQuaternion::BuildTween(&bone_rot, &cm1, &cm2, tween);
+
+        // World rotation = R_body × bone_rot, scaled by character_scale.
+        Matrix33 mat_final;
+        matrix_mult33(&mat_final, &body_rot, &bone_rot);
+        mat_final.M[0][0] = (mat_final.M[0][0] * character_scale) / 256;
+        mat_final.M[0][1] = (mat_final.M[0][1] * character_scale) / 256;
+        mat_final.M[0][2] = (mat_final.M[0][2] * character_scale) / 256;
+        mat_final.M[1][0] = (mat_final.M[1][0] * character_scale) / 256;
+        mat_final.M[1][1] = (mat_final.M[1][1] * character_scale) / 256;
+        mat_final.M[1][2] = (mat_final.M[1][2] * character_scale) / 256;
+        mat_final.M[2][0] = (mat_final.M[2][0] * character_scale) / 256;
+        mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
+        mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
+        out->bones[i].rot = mat_final;
+
+        // body_local_pos / body_local_rot are unused for flat (no parent walk).
+    }
+
+    out->bone_count = ele_count;
     out->valid = true;
     return true;
 }
