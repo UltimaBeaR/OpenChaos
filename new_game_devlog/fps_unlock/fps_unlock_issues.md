@@ -405,6 +405,15 @@ Test plan для дальнейшего разбора:
 
 Если это так — фикс: либо переделать "поднятие" через physics-tick velocity (накопление в physics, не в render), либо вынести модификацию `WorldPos.Y` за пределы RenderInterpFrame scope (но тогда теряем интерполяцию для линии/spark'ов).
 
+**2026-05-03 — проверено после Phase 3 world-pose snapshot** ([`render_interpolation/world_pose_snapshot_plan.md`](render_interpolation/world_pose_snapshot_plan.md)):
+Phase 3 НЕ закрыл этот баг. С интерполяцией ON: тело MIB лежит на месте, оба debug label (ROOT и PEL_NEW) тоже на месте. С интерполяцией OFF: тело взлетает, **скорость взлёта зависит от FPS lock** (быстрее на unlimited, медленнее на cap).
+
+Скорость-зависимость от FPS подтверждает что "поднятие" вычисляется в render-path коде (per-frame инкремент), не в physics-tick. С интерполяцией ON эти render-side модификации затираются substitute path в `RenderInterpFrame::ctor`/`dtor` (substitution `WorldPos` восстанавливает оригинал в dtor).
+
+Phase 3 (per-bone pose snapshot) не относится к этому пути — он работает на уровне (off_x, mat_final) после WorldPos. WorldPos substitution в ctor — отдельный механизм, который затирает render-path '+=' инкременты как и раньше.
+
+**Фикс остаётся открытым:** нужно либо найти render-path код который инкрементирует WorldPos и переделать через physics velocity, либо специально не substitute'ить WorldPos для MIB в `state == STATE_DEAD && PersonType ∈ {MIB1, MIB2, MIB3}`.
+
 **Симптом 3 — анимация ментов в Urban Shakedown дёргается на 20 Hz physics.**
 Это связанная общая проблема animation system, не специфичная для MIB.
 

@@ -17,6 +17,9 @@
 
 #include "camera/fc.h"
 #include "engine/core/types.h" // SLONG
+#include "engine/core/fmatrix.h" // Matrix33 (BoneInterpTransform)
+
+#include <stdint.h> // uint32_t (g_render_interp_frame_counter)
 
 struct Thing;
 struct GameKeyFrameElement;
@@ -127,6 +130,34 @@ void render_interp_get_blend(Thing* p_thing, RenderInterpBlend* out);
 // path, so the labels should overlap exactly. TODO: remove once Phase 3
 // apply path consumes the snapshot directly.
 bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* out_y, SLONG* out_z);
+
+// Phase 3 apply API: per-bone interpolated world transform — exactly the
+// (off_x/y/z, mat_final) pair that figure.cpp's draw functions feed to
+// POLY_set_local_rotation per body part.
+struct BoneInterpTransform {
+    float pos_x, pos_y, pos_z;     // world position in figure.cpp's "off_x/y/z" space
+    Matrix33 rot;                   // world rotation matrix (mat_final equivalent, fixed-point ×32768)
+};
+
+// Frame counter, incremented on every RenderInterpFrame ctor. Used as a
+// cache invalidation key by consumers (e.g. figure.cpp's per-Thing pose
+// cache) so they refresh their cached data each render frame regardless
+// of whether g_render_alpha happens to repeat across frames.
+extern uint32_t g_render_interp_frame_counter;
+
+// Phase 3 apply: compute interpolated world transform for every bone.
+// Walks the per-bone snapshot (g_pose_snaps[idx]) at g_render_alpha:
+//   bone[0] (PELVIS): lerp(prev, curr) world pos, slerp world rot.
+//   bones[1..14]: lerp(prev, curr) parent-local pos + slerp parent-local rot,
+//                 then chain through parent's interpolated world transform.
+//                 Hierarchy reconstruction preserves rigid bone connections
+//                 even at large rotational deltas per tick.
+//
+// `out` must point to an array of 15 BoneInterpTransform.
+// Returns false if the snapshot is invalid or master interp toggle is off
+// or the world-pose flag is disabled — caller should fall back to the legacy
+// figure.cpp pose-composition path.
+bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15]);
 
 // Frame-scope: at construction, walks all valid snapshots and writes
 // interpolated values directly into the live Thing.WorldPos / Tweened

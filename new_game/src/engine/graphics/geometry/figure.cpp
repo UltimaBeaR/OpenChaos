@@ -22,7 +22,9 @@
 #include "engine/core/quaternion.h"
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/graphics/render_interp.h" // RenderInterpBlend, render_interp_get_blend
+#include "engine/graphics/render_interp.h" // RenderInterpBlend, render_interp_get_blend, BoneInterpTransform
+#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (Phase 3 pose-snapshot override)
+#include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
 #include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
 #include "things/core/drawtype.h"
 #include "game/game_types.h" // NET_PERSON (player Thing*) for figure-morph debug log
@@ -1661,6 +1663,44 @@ void FIGURE_generate_D3D_object(SLONG prim)
 // `anim_info` as `&dt->CurrentFrame->FirstElement[i]` so the subtraction
 // gives back `i`.
 // ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+// Phase 3 pose-snapshot override cache (world_pose_snapshot_plan.md).
+//
+// One render frame may invoke FIGURE_draw_prim_tween_person_only_just_set_matrix
+// up to 15× per Thing (one per bone) via the recurse loop. Calling
+// render_interp_compute_pose 15 times would re-walk the hierarchy on every
+// bone — wasted work. Cache by Thing pointer; first call per Thing populates,
+// subsequent calls within the same Thing reuse. Cross-Thing transitions
+// invalidate naturally because the pointer changes.
+//
+// `g_figure_pose_valid` is false when the snapshot is unavailable (master
+// IP off, world-pose flag off, snapshot not yet captured, MeshID mid-change),
+// in which case the legacy figure_morph_*-based mat_final / off_x/y/z values
+// are used as-is and the override step is skipped.
+//
+// Cache invalidates per render frame via g_render_interp_frame_counter
+// (bumped in RenderInterpFrame::ctor), so even if g_render_alpha happens
+// to repeat across frames the cache picks up new physics-tick captures.
+// Cross-Thing transitions invalidate naturally because the pointer changes.
+// ----------------------------------------------------------------------
+static Thing*  g_figure_pose_cached_thing = nullptr;
+static uint32_t g_figure_pose_cached_frame = 0xffffffff;
+static bool   g_figure_pose_valid        = false;
+static BoneInterpTransform g_figure_pose[POSE_MAX_BONES];
+
+static inline void figure_pose_cache_for(Thing* p_thing)
+{
+    if constexpr (!ri_cfg::INTERP_THING_WORLD_POSE) {
+        g_figure_pose_valid = false;
+        return;
+    }
+    if (g_figure_pose_cached_thing == p_thing
+        && g_figure_pose_cached_frame == g_render_interp_frame_counter) return;
+    g_figure_pose_cached_thing = p_thing;
+    g_figure_pose_cached_frame = g_render_interp_frame_counter;
+    g_figure_pose_valid = render_interp_compute_pose(p_thing, g_figure_pose);
+}
 
 // Root-style offset (with parent matrix == nullptr): linearly interpolated
 // between anim_info and anim_info_next (with off_dx/dy/dz delta). Output is
@@ -3526,6 +3566,35 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+
+    // === Phase 3 pose-snapshot override ===
+    // Replace per-bone (off_x/y/z, mat_final, fmatrix) computed from the
+    // legacy AnimTween/keyframe substitution path with the world-space lerp
+    // of prev/curr per-bone snapshots. This is the architectural fix for
+    // ladder-jerk and similar cancel-out cases (see
+    // world_pose_snapshot_plan.md). The legacy math above runs in full —
+    // wasted work in Phase 3, but kept for fallback. Phase 5 will short-
+    // circuit when the override is active.
+    figure_pose_cache_for(p_thing);
+    if (g_figure_pose_valid) {
+        SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+        if (part >= 0 && part < POSE_MAX_BONES) {
+            const BoneInterpTransform& xf = g_figure_pose[part];
+            off_x = xf.pos_x;
+            off_y = xf.pos_y;
+            off_z = xf.pos_z;
+            mat_final = xf.rot;
+            fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+            fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+            fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+            fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+            fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+            fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+            fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+            fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+            fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+        }
+    }
 
     // NOT portable: stores off/fmatrix into global transform state used by D3D MultiMatrix upload.
     POLY_set_local_rotation(

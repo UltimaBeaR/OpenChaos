@@ -42,6 +42,26 @@ static constexpr bool INTERP_THING_ANIM_MORPH = true;
 // new pose's body parts).
 static constexpr bool INTERP_THING_CROSS_ANIM_BLEND = true;
 
+// World-space per-bone pose snapshot (Phase 3 of world_pose_snapshot_plan.md).
+// When true, figure.cpp queries the per-bone snapshot in render_interp.cpp and
+// overrides the per-bone (off_x/y/z, mat_final) computed via the legacy
+// AnimTween/keyframe substitution path. This is the "render the lerp of two
+// physics-tick world poses" architecture that supersedes the AnimTween virtual-
+// extended-coordinate trick + cross-anim blend hacks. False = legacy path
+// (current dt->* substitution behaviour). True = new path. Phase 5 will delete
+// the legacy code entirely once this flag has been validated.
+static constexpr bool INTERP_THING_WORLD_POSE = true;
+
+// === Debug visualisation (off by default in normal play) ===
+
+// Per-character debug labels in 3D world (PEL, ROOT, PEL_NEW, PEL_SNAP).
+// Used during Phase 0/1/2 verification to confirm the visible pelvis bone is
+// a smooth interpolation anchor, the pure pose composer matches figure.cpp's
+// render output, and snapshot capture round-trips correctly. Off by default —
+// turn on to inspect again. Render path skips them at compile time when false
+// (zero release-build cost).
+static constexpr bool DEBUG_POSE_LABELS = false;
+
 // === Vehicles ===
 
 // Lerp Genus.Vehicle->Angle/Tilt/Roll (separate from Tweened angles —

@@ -10,6 +10,7 @@
 #include "missions/eway_globals.h" // EWAY_cam_* — cutscene camera globals
 #include "world_objects/dirt.h" // DIRT_dirt pool — leaves, brass, cans, etc.
 #include "engine/graphics/geometry/pose_composer.h" // Phase 2: per-bone world-pose capture
+#include "engine/core/quaternion.h" // Phase 3 apply: BuildTween for per-bone slerp
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
@@ -51,6 +52,7 @@
 
 float g_render_alpha = 0.0f;
 bool  g_render_interp_enabled = true;
+uint32_t g_render_interp_frame_counter = 0;
 
 namespace {
 
@@ -316,20 +318,38 @@ struct PoseSnap {
 PoseSnap g_pose_snaps[MAX_THINGS] = {};
 
 // Inverse of uncompress_matrix (hierarchy.cpp): pack a Matrix33 into a
-// CMatrix33 via 10-bit-per-component packing. Each input element (range
-// [-32768, 32767], scale 32768) is divided by 64 to fit signed 10-bit.
-// Masks must match CMAT0/1/2_MASK in fmatrix.h.
+// CMatrix33 via 10-bit-per-component packing. Each input element (scale
+// 32768) is divided by 64 then clamped to signed 10-bit [-512, 511].
+//
+// ⚠️ Clamping is critical at the upper boundary: an unclamped 32768 → /64 = 512
+// → packed as 0x200 → uncompresses (per hierarchy.cpp uncompress_matrix's
+// arithmetic-shift sign extension) to -512 → ×64 = -32768. Sign-flipped
+// identity = reflection — bones project on opposite side of pelvis. The
+// identity case is hit any time mat_final has a unit diagonal (Darci standing
+// still with no body angles). Clamp to 511 → uncompresses to 32704 (off by
+// 0.2% from true 1.0 — imperceptible). Negative boundary is safe: -32768/64 =
+// -512 fits exactly.
+inline SLONG clamp_10bit_signed(SLONG v)
+{
+    if (v >  511) return  511;
+    if (v < -512) return -512;
+    return v;
+}
+
 inline void compress_matrix(const Matrix33* m, CMatrix33* cm)
 {
-    cm->M[0] = (((m->M[0][0] >> 6) & 0x3ff) << 20)
-             | (((m->M[0][1] >> 6) & 0x3ff) << 10)
-             |  ((m->M[0][2] >> 6) & 0x3ff);
-    cm->M[1] = (((m->M[1][0] >> 6) & 0x3ff) << 20)
-             | (((m->M[1][1] >> 6) & 0x3ff) << 10)
-             |  ((m->M[1][2] >> 6) & 0x3ff);
-    cm->M[2] = (((m->M[2][0] >> 6) & 0x3ff) << 20)
-             | (((m->M[2][1] >> 6) & 0x3ff) << 10)
-             |  ((m->M[2][2] >> 6) & 0x3ff);
+    SLONG r0c0 = clamp_10bit_signed(m->M[0][0] >> 6);
+    SLONG r0c1 = clamp_10bit_signed(m->M[0][1] >> 6);
+    SLONG r0c2 = clamp_10bit_signed(m->M[0][2] >> 6);
+    SLONG r1c0 = clamp_10bit_signed(m->M[1][0] >> 6);
+    SLONG r1c1 = clamp_10bit_signed(m->M[1][1] >> 6);
+    SLONG r1c2 = clamp_10bit_signed(m->M[1][2] >> 6);
+    SLONG r2c0 = clamp_10bit_signed(m->M[2][0] >> 6);
+    SLONG r2c1 = clamp_10bit_signed(m->M[2][1] >> 6);
+    SLONG r2c2 = clamp_10bit_signed(m->M[2][2] >> 6);
+    cm->M[0] = ((r0c0 & 0x3ff) << 20) | ((r0c1 & 0x3ff) << 10) | (r0c2 & 0x3ff);
+    cm->M[1] = ((r1c0 & 0x3ff) << 20) | ((r1c1 & 0x3ff) << 10) | (r1c2 & 0x3ff);
+    cm->M[2] = ((r2c0 & 0x3ff) << 20) | ((r2c1 & 0x3ff) << 10) | (r2c2 & 0x3ff);
 }
 
 inline SLONG lerp_i32(SLONG a, SLONG b, float t)
@@ -1150,8 +1170,65 @@ bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* o
     return true;
 }
 
+bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15])
+{
+    if (!p_thing || !out) return false;
+    if (!g_render_interp_enabled) return false;
+    if constexpr (!ri_cfg::INTERP_THING_WORLD_POSE) return false;
+
+    UWORD idx = thing_index(p_thing);
+    if (idx >= MAX_THINGS) return false;
+    PoseSnap& s = g_pose_snaps[idx];
+    if (!s.valid) return false;
+
+    const float alpha = g_render_alpha;
+    SLONG slerp_t = SLONG(alpha * 256.0f);
+    if (slerp_t <   0) slerp_t =   0;
+    if (slerp_t > 256) slerp_t = 256;
+
+    // Bone 0 (PELVIS): WORLD pos + WORLD rot directly from snapshot.
+    out[0].pos_x = float(lerp_i32(s.bones_prev[0].x, s.bones_curr[0].x, alpha));
+    out[0].pos_y = float(lerp_i32(s.bones_prev[0].y, s.bones_curr[0].y, alpha));
+    out[0].pos_z = float(lerp_i32(s.bones_prev[0].z, s.bones_curr[0].z, alpha));
+    CQuaternion::BuildTween(&out[0].rot, &s.bones_prev[0].cmat, &s.bones_curr[0].cmat, slerp_t);
+
+    // Bones 1..14: lerp parent-local pos, slerp parent-local rot, then chain
+    // through parent's interpolated world transform. Hierarchy walk in index
+    // order is safe because body_part_parent[i] < i for all i (pre-order DFS).
+    for (int i = 1; i < POSE_MAX_BONES; i++) {
+        int p = body_part_parent[i];
+
+        Matrix31 local_pos;
+        local_pos.M[0] = lerp_i32(s.bones_prev[i].x, s.bones_curr[i].x, alpha);
+        local_pos.M[1] = lerp_i32(s.bones_prev[i].y, s.bones_curr[i].y, alpha);
+        local_pos.M[2] = lerp_i32(s.bones_prev[i].z, s.bones_curr[i].z, alpha);
+
+        Matrix33 local_rot;
+        CQuaternion::BuildTween(&local_rot, &s.bones_prev[i].cmat, &s.bones_curr[i].cmat, slerp_t);
+
+        // world_pos[i] = world_pos[parent] + (world_rot[parent] × local_pos) / 256.
+        // matrix_transformZMY does (mat × vec) / 32768. With world_rot at scale
+        // 32768 and local_pos at body-frame ×256 scale, output is at ×256 scale.
+        // Convert to inches for figure.cpp's float pos space by dividing by 256.
+        Matrix31 rotated_local;
+        matrix_transformZMY(&rotated_local, &out[p].rot, &local_pos);
+        out[i].pos_x = out[p].pos_x + float(rotated_local.M[0]) / 256.0f;
+        out[i].pos_y = out[p].pos_y + float(rotated_local.M[1]) / 256.0f;
+        out[i].pos_z = out[p].pos_z + float(rotated_local.M[2]) / 256.0f;
+
+        // world_rot[i] = world_rot[parent] × local_rot, both at scale 32768 →
+        // matrix_mult33 outputs at scale 32768 (its >>15 normalises).
+        matrix_mult33(&out[i].rot, &out[p].rot, &local_rot);
+    }
+    return true;
+}
+
 RenderInterpFrame::RenderInterpFrame()
 {
+    // Bump the frame counter unconditionally (even when the master toggle
+    // is off) so consumer caches always invalidate each render frame.
+    ++g_render_interp_frame_counter;
+
     // Master toggle — when off, no apply happens and the dtor has nothing
     // to restore (every entry stays applied=false from previous cleanup
     // or initial zero state).

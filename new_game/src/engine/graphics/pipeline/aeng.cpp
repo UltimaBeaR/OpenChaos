@@ -41,6 +41,7 @@ extern SLONG ScreenHeight;
 #include "engine/graphics/geometry/figure.h"
 #include "engine/graphics/geometry/pose_composer.h" // Phase 1 debug: PEL_NEW label golden test
 #include "engine/graphics/render_interp.h" // Phase 2 debug: PEL_SNAP label (snapshot round-trip verify)
+#include "debug_interpolation_config.h" // ri_cfg::DEBUG_POSE_LABELS gate
 #include "engine/graphics/geometry/figure_globals.h" // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
@@ -4042,16 +4043,21 @@ void AENG_draw_city()
                                     PCOM_person_state_debug(p_thing));
                             }
 
-                            // Phase 0 debug for world-pose-snapshot work (see
-                            // new_game_devlog/fps_unlock/render_interpolation/
-                            // world_pose_snapshot_plan.md). Always-on labels:
-                            //   "PEL"      — visible pelvis world position
-                            //                (= WorldPos + R(angles) * bone_local).
-                            //                Smooth anchor candidate for snapshot.
-                            //   "_____ROOT" — raw Thing.WorldPos. Snaps during
-                            //                anim-cycle wraps; reference point.
-                            // Both labels share per-character colour so they're
-                            // easy to associate. TODO: remove after Phase 0.
+                            // Per-character debug labels for world-pose-snapshot
+                            // work (new_game_devlog/fps_unlock/render_interpolation/
+                            // world_pose_snapshot_plan.md). Gated by
+                            // ri_cfg::DEBUG_POSE_LABELS — off by default in
+                            // release; flip true to inspect:
+                            //   PEL       — calc_sub_objects_position pelvis
+                            //               (Phase 0 anchor verification)
+                            //   _____ROOT — raw Thing.WorldPos (snap reference)
+                            //   __________PEL_NEW — pure pose composer output
+                            //               (Phase 1 golden test)
+                            //   _________________________PEL_SNAP — captured
+                            //               raw post-tick (Phase 2 round-trip)
+                            // All four share per-character colour for easy
+                            // association.
+                            if constexpr (ri_cfg::DEBUG_POSE_LABELS)
                             {
                                 SLONG ppx, ppy, ppz;
                                 calc_sub_objects_position(
@@ -5415,16 +5421,10 @@ void AENG_draw_warehouse()
                                 PCOM_person_state_debug(p_thing));
                         }
 
-                        // Phase 0 debug for world-pose-snapshot work (see
-                        // new_game_devlog/fps_unlock/render_interpolation/
-                        // world_pose_snapshot_plan.md). Always-on labels:
-                        //   "PEL"      — visible pelvis world position
-                        //                (= WorldPos + R(angles) * bone_local).
-                        //                Smooth anchor candidate for snapshot.
-                        //   "_____ROOT" — raw Thing.WorldPos. Snaps during
-                        //                anim-cycle wraps; reference point.
-                        // Both labels share per-character colour so they're
-                        // easy to associate. TODO: remove after Phase 0.
+                        // Per-character debug labels for world-pose-snapshot
+                        // work (see outdoor branch above for full description).
+                        // Gated by ri_cfg::DEBUG_POSE_LABELS — off by default.
+                        if constexpr (ri_cfg::DEBUG_POSE_LABELS)
                         {
                             SLONG ppx, ppy, ppz;
                             calc_sub_objects_position(

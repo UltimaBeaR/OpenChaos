@@ -142,7 +142,27 @@ Golden test через `__________PEL_NEW` debug label в [`aeng.cpp`](../../../
 
 **Phase 2:** Snapshot extension + capture call. На этом этапе snapshot захватывается per-tick, но render path его не читает — продолжает работать через старый substitution path.
 
-**Phase 3:** New apply path за флагом `INTERP_THING_WORLD_POSE`. Когда флаг on, figure.cpp читает from snapshot. Когда off — старый путь (для отката).
+**Phase 3 (✅ DONE — verified 2026-05-03):** New apply path за флагом `INTERP_THING_WORLD_POSE` в [`debug_interpolation_config.h`](../../../new_game/src/debug_interpolation_config.h). Реализация:
+- `render_interp_compute_pose()` в [`render_interp.cpp`](../../../new_game/src/engine/graphics/render_interp.cpp) — лерпит per-bone из snapshot (bone[0] world pos+rot, bones[1..14] parent-local + hierarchy reconstruction).
+- `g_render_interp_frame_counter` — bumped в `RenderInterpFrame::ctor`, для cache invalidation в figure.cpp.
+- В [`figure.cpp`](../../../new_game/src/engine/graphics/geometry/figure.cpp#L3520) `FIGURE_draw_prim_tween_person_only_just_set_matrix` — override `(off_x/y/z, mat_final, fmatrix)` из snapshot перед `POLY_set_local_rotation`.
+- Bug fix `compress_matrix`: clamp 10-bit signed (избегает sign-flip identity matrix → reflected body).
+- Debug labels (PEL/ROOT/PEL_NEW/PEL_SNAP) переехали под `ri_cfg::DEBUG_POSE_LABELS` (off by default).
+
+**Тесты пройдены:**
+- Лестница вверх/вниз — тело движется плавно, никаких jerk'ов.
+- Прыжки (включая phase transitions) — плавно, без снапов root.
+- Ходьба/бег — без регрессий.
+- PEL_NEW и тело синхронны (оба читают через snapshot).
+
+**Известные нерешённые баги ВНЕ scope Phase 3** (нужны отдельные фазы):
+- Shadow desync ([`known_issues.md`](known_issues.md) #2b) — shadow rendering path не вызывает render_interp_compute_pose, использует legacy. Phase 6.
+- MIB destruct body rise ([`../fps_unlock_issues.md` #19](../fps_unlock_issues.md)) — render-path '+=' в WorldPos затирается substitute path. Не относится к pose snapshot — отдельный фикс нужен.
+
+**Что НЕ покрыто в Phase 3** (legacy path остался, выглядит как раньше):
+- `FIGURE_draw_prim_tween` (animals/bats/generic DT_TWEEN, не 15-bone).
+- `FIGURE_draw_prim_tween_reflection` (water reflections).
+- `FIGURE_draw_prim_tween_person_only` (gun + muzzle flash).
 
 **Phase 4:** Test (см. ниже).
 
