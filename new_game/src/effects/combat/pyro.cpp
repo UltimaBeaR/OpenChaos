@@ -639,10 +639,23 @@ void PYRO_fn_normal(Thing* thing)
             free_pyro(thing);
         break;
     case PYRO_TWANGER:
-        if (pyro->counter < 240)
-            pyro->counter += 16;
-        else
+        // counter advance scaled by tick_tock_unclipped (raw physics tick
+        // duration in ms, NOT clamped by TICK_RATIO's [128..384] saturation
+        // in thing.cpp). Target = 16 advance per 50 ms wall-clock so
+        // lifetime is constant 0.75 sec regardless of g_physics_hz, even at
+        // very low physics rates where TICK_RATIO clamping would otherwise
+        // make the previous `* TICK_RATIO >> TICK_SHIFT` undershoot and
+        // the lifetime stretched to several seconds — populations of
+        // 15 spawn/sec accumulated dozens of alive twangers, each drawing
+        // an additive lens flare per render frame, causing visible
+        // over-bright bloom on low physics.
+        if (pyro->counter < 240) {
+            extern SLONG tick_tock_unclipped;
+            constexpr SLONG TWANGER_BASE_MS = 50;  // = 1000 / 20 Hz design
+            pyro->counter += (16 * tick_tock_unclipped) / TWANGER_BASE_MS;
+        } else {
             free_pyro(thing);
+        }
         break;
 
     case PYRO_NEWDOME:
@@ -1655,6 +1668,13 @@ void PYRO_draw_pyro(Thing* p_pyro)
                 str = (285 - pyro->counter * 2);
                 str >>= 1;
             }
+            // Halve the flare strength — uc_orig peak (~145) was 2-3× the
+            // FLENSFLARE-attenuated peak that BLOOM_draw uses for car
+            // headlights / streetlamps (~63), so MIB destruct flares looked
+            // disproportionately blown out next to the rest of the scene.
+            // Bringing the peak to ~72 puts it in the same range as those
+            // light sources without losing the lightning effect's emphasis.
+            str >>= 1;
             if (str > 0)
                 BLOOM_flare_draw(pyro->thing->WorldPos.X >> 8, pyro->thing->WorldPos.Y >> 8, pyro->thing->WorldPos.Z >> 8, str);
         }

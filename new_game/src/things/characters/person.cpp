@@ -10691,7 +10691,14 @@ void fn_person_dead(Thing* p_person)
     }
 
     if (PersonIsMIB(p_person)) {
-        if (p_person->Genus.Person->Timer1 >= 20 * 20 * 5) {
+        // Threshold matches release PC build (32*20*5 = 3200) — pre-release
+        // sources we copied had it lowered to 20*20*5 = 2000 with the comment
+        // "Was 32 * 20 * 5 for the PC, less time for the DC..." (i.e. that
+        // snapshot was tuned for the Dreamcast cut, not the PC retail).
+        // At 20 Hz physics with TICK_RATIO normalisation Timer1 advances ~320/sec,
+        // so 3200 → ~10 sec wall-clock destruct (matches release PC ~11 sec
+        // observation), 2000 → ~6.25 sec (matches our previous ~7 sec).
+        if (p_person->Genus.Person->Timer1 >= 32 * 20 * 5) {
             if (p_person->Genus.Person->Timer1 != 0xffff) {
                 SLONG px;
                 SLONG py;
@@ -13613,9 +13620,13 @@ void push_people_apart(Thing* p_person, Thing* p_avoid)
 // Render-time logic for the MIB (Men In Black) self-destruct sequence.
 // Called every frame while a MIB is in their electrocution death state.
 // Lightning bolt: draws a line-texture from pelvis to ground once Timer1 exceeds threshold.
-// Dynamic light + PYRO_TWANGER: gated by VISUAL_TURN (15 Hz wall-clock) so
-// spawn rate stays FPS-independent.
-// Sparks: emits SPARK_create sparks between pelvis and a ground point every other frame.
+// Dynamic light + PYRO_TWANGER + SPARK spawns: gated by a wall-clock phase
+// edge-detect (sdl3_get_ticks()/SPAWN_INTERVAL_MS, stored in
+// Person->LastDestructSpawn). Fires once per phase tick on any FPS — the
+// previous (VISUAL_TURN & 1) check was level-triggered and re-fired every
+// render frame inside the "1" half-cycle, so density of spawned effects
+// (and thus per-frame additive overdraw of lens flares + lightning ribbons)
+// scaled with render rate.
 // Body bobbing/lift is handled in fn_person_dead (physics tick) so accumulation
 // is FPS-independent and survives render_interp's frame-scope WorldPos restore.
 // uc_orig: DRAWXTRA_MIB_destruct (fallen/DDEngine/Source/drawxtra.cpp)
@@ -13625,6 +13636,18 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
     GameCoord posn;
     Thing* thing;
     SLONG j;
+
+    // ~15 Hz cadence (one phase per 67 ms wall-clock). Tunable; controls
+    // density of MIB destruct lightning bolts (PYRO_TWANGER + SPARK_create
+    // calls). Not the wiggle speed of an individual bolt — that's set by
+    // SPARK_NOISE_BUCKET_MS in spark.cpp. Wall-clock edge-detect,
+    // independent of render FPS and physics rate.
+    constexpr SLONG SPAWN_INTERVAL_MS = 67;
+    UBYTE cur_phase = UBYTE(sdl3_get_ticks() / SPAWN_INTERVAL_MS);
+    bool spawn_fire = (cur_phase != p_thing->Genus.Person->LastDestructSpawn);
+    if (spawn_fire) {
+        p_thing->Genus.Person->LastDestructSpawn = cur_phase;
+    }
 
     calc_sub_objects_position(
         p_thing,
@@ -13657,21 +13680,31 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
             POLY_add_line_tex_uv(&pt1, &pt2, 142, 142, POLY_PAGE_LITE_BOLT, 0);
     }
 
-    // Spawn dlight + PYRO_TWANGER once Timer1 has ramped past the destruct
-    // threshold. Throttled by VISUAL_TURN (15 Hz wall-clock cadence) so the
-    // spawn rate is independent of render FPS — uc_orig used a self-throttle
-    // through ammo_packs_pistol that fired every render frame and scaled
-    // density of effects with FPS.
-    if (ctr > 1200 && (VISUAL_TURN & 1)) {
+    // dlight is created EVERY render frame (no spawn_fire gate) — it's a
+    // self-contained 1-frame flash (squares_up applies to scene, squares_down
+    // destroys it via NIGHT_DLIGHT_FLAG_REMOVE). One dlight per frame on any
+    // FPS = constant per-frame illumination = constant lit time.
+    //
+    // The radius is bucket-stable at 15 Hz wall-clock (DLIGHT_BUCKET_MS).
+    // Originally was per-render Random() — world illumination then
+    // "flickered" at render FPS (30 changes/sec on 30 FPS, 300/sec on 300
+    // FPS, looked visibly faster on high FPS). Hash of bucket index gives
+    // deterministic radius that only changes ~15 times/sec on any render
+    // rate, matching the rest of the MIB destruct visual cadence.
+    if (ctr > 1200) {
+        constexpr SLONG DLIGHT_BUCKET_MS = 67;
+        const SLONG dlight_bucket = SLONG(sdl3_get_ticks() / DLIGHT_BUCKET_MS);
+        uint32_t h = uint32_t(dlight_bucket) * 0x9E3779B1u;
+        h ^= h >> 16;
+        h *= 0x85EBCA77u;
 
-        // A single-frame dynamic light flash for the lightning effect.
         UBYTE dlight;
 
         dlight = NIGHT_dlight_create(
             (posn.X >> 8),
             (posn.Y >> 8) + 0x80,
             (posn.Z >> 8),
-            90 + (Random() & 0x1f),
+            UBYTE(90 + (h & 0x1f)),
             5,
             25,
             30);
@@ -13679,6 +13712,13 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
         if (dlight) {
             NIGHT_dlight[dlight].flag |= NIGHT_DLIGHT_FLAG_REMOVE;
         }
+    }
+
+    // Spawn PYRO_TWANGER (lightning visual) once Timer1 has ramped past the
+    // destruct threshold. PYRO has multi-tick lifetime (~750 ms) — without
+    // the gate population would scale with FPS and lens flares + ribbons
+    // would additively over-brighten on high FPS.
+    if (ctr > 1200 && spawn_fire) {
 
         thing = PYRO_create(posn, PYRO_TWANGER);
         if (thing) {
@@ -13697,7 +13737,7 @@ void DRAWXTRA_MIB_destruct(Thing* p_thing)
         }
     }
 
-    if (VISUAL_TURN & 1) {
+    if (spawn_fire) {
 
         SPARK_Pinfo p1;
         SPARK_Pinfo p2;

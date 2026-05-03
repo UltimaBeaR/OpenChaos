@@ -32,7 +32,7 @@
 #include "assets/formats/tga.h"
 
 #include "engine/io/file.h"
-#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (temporary KB_6 MIB-spawn debug timer)
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (SPARK_process wall-clock gate)
 #include "map/level_pools.h"
 #include "map/supermap.h"
 #include "map/supermap_globals.h"
@@ -1143,54 +1143,6 @@ void process_controls(void)
 {
     Thing* darci = NET_PERSON(0);
 
-    // TEMPORARY DEBUG (FPS unlock issue #19): KB_6 spawns a live MIB1 near
-    // Darci, scheduled to die ~1 second later. Lets us observe the MIB self-
-    // destruct visual sequence (lightning, sparks, body lift) under varying
-    // render rates without needing to find a real MIB. Not gated by
-    // allow_debug_keys — direct hotkey. Remove once the destruct path is
-    // fully validated.
-    {
-        static THING_INDEX pending_mib = 0;
-        static uint32_t pending_kill_at_ms = 0;
-        static bool k6_prev = false;
-
-        bool k6 = Keys[KB_6] != 0;
-        if (k6 && !k6_prev) {
-            // Consume so the gameplay weapon-switch handler doesn't also fire.
-            Keys[KB_6] = 0;
-
-            // Spawn ~100 tile-units in front of Darci (same forward-vector
-            // formula as person_normal_move: dx = -(SIN(angle)*dist) >> 8).
-            constexpr SLONG SPAWN_FWD_DIST = 100;
-            SLONG angle = darci->Draw.Tweened->Angle;
-            SLONG dx = -(SIN(angle) * SPAWN_FWD_DIST) >> 8;
-            SLONG dz = -(COS(angle) * SPAWN_FWD_DIST) >> 8;
-
-            THING_INDEX idx = PCOM_create_person(
-                PERSON_MIB1,
-                0, 0, PCOM_AI_GANG, 0, 8,
-                PCOM_MOVE_WANDER, 0, PCOM_BENT_FIGHT_BACK,
-                0, 0, 0,
-                darci->WorldPos.X + dx,
-                darci->WorldPos.Y,
-                darci->WorldPos.Z + dz,
-                0, 0);
-            if (idx) {
-                pending_mib = idx;
-                pending_kill_at_ms = (uint32_t)sdl3_get_ticks() + 1000;
-            }
-        }
-        k6_prev = k6;
-
-        if (pending_mib && (uint32_t)sdl3_get_ticks() >= pending_kill_at_ms) {
-            Thing* mib = TO_THING(pending_mib);
-            if (mib->Class == CLASS_PERSON && mib->State != STATE_DEAD) {
-                set_person_dead(mib, NULL, PERSON_DEATH_TYPE_COMBAT, 0, 0);
-            }
-            pending_mib = 0;
-        }
-    }
-
     //	if (Keys[KB_D])
 
     if (GAME_TURN <= 1) {
@@ -1302,7 +1254,27 @@ void process_controls(void)
     MIST_process();
     //	WATER_process();
     //	BANG_process();
-    SPARK_process();
+
+    // SPARK_process is a pure visual tick — it decrements ss->die by 1 and
+    // moves spark points by Pos+=dx>>4 each call. Originally called every
+    // render frame (PS1 30 FPS, PC retail ~22-50 FPS) so the cadence was
+    // render-rate-bound. With unlimited render that means sparks die in
+    // ~0.1 s on 280 FPS vs ~1.5 s on 25 FPS, and the per-call Pos advance
+    // makes them visibly "wiggle" much faster on high FPS (visible as MIB
+    // destruct lightning bolts running fast/short on unlimited).
+    // Stays in the render path (it's a visual effect, not gameplay state)
+    // but gated to ~15 Hz wall-clock via sdl3_get_ticks edge-detect (same
+    // cadence as the MIB destruct spawn / SPARK noise wiggle, so all
+    // visual subsystems share one timeline). See FPS unlock issue #19.
+    {
+        constexpr SLONG SPARK_TICK_INTERVAL_MS = 67;  // ~15 Hz visual cadence
+        static UBYTE last_spark_phase = 0;
+        UBYTE cur_spark_phase = UBYTE(sdl3_get_ticks() / SPARK_TICK_INTERVAL_MS);
+        if (cur_spark_phase != last_spark_phase) {
+            last_spark_phase = cur_spark_phase;
+            SPARK_process();
+        }
+    }
     GLITTER_process();
     //	LIGHT_process();
     HOOK_process();

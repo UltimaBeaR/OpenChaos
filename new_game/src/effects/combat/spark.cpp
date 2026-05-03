@@ -8,6 +8,7 @@
 #include "map/level_pools.h"
 #include "engine/physics/collide.h"
 #include "things/core/interact.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for spark_bucket wall-clock noise
 
 // uc_orig: SPARK_init (fallen/Source/spark.cpp)
 void SPARK_init()
@@ -417,8 +418,52 @@ void SPARK_process()
 
 // Calculates a perturbed midpoint between two world-space endpoints.
 // Used to build the jagged lightning polyline.
+// Deterministic noise for the lightning zigzag. The original used rand()
+// which was called from the render path (SPARK_get_next per frame), so the
+// midpoints rerolled every frame — the bolt visibly "twitched" at render
+// FPS rate. We pick a deterministic 32-bit hash over (identity,
+// wall-clock bucket, salt). Within one bucket the hash is stable, so the
+// bolt shape is fixed; the bucket increments at SPARK_NOISE_BUCKET_MS
+// (67 ms ≈ 15 Hz) so the same wiggle frequency is produced on any render
+// rate. Identity (not endpoint coords) is the seed because SPARK_TYPE_LIMB
+// endpoints come from render-interp'd Draw.Tweened — using them as seed
+// would re-roll the hash every render frame.
+//
+// Hash constants are the standard splitmix64 / xxhash mixers — any
+// reasonable integer hash works, point is full avalanche on each input.
+constexpr SLONG SPARK_NOISE_BUCKET_MS = 67;  // ~15 Hz wiggle — visual cadence, tunable
+
+static SLONG spark_noise(SLONG s1, SLONG s2, SLONG s3, SLONG salt)
+{
+    uint32_t h = uint32_t(s1) * 0x9E3779B1u;
+    h ^= uint32_t(s2) * 0x85EBCA77u;
+    h ^= uint32_t(s3) * 0xC2B2AE3Du;
+    h ^= uint32_t(salt) * 0x27D4EB2Fu;
+    h ^= h >> 16;
+    h *= 0x85EBCA77u;
+    h ^= h >> 13;
+    return SLONG(h & 0x7FFFFFFFu);
+}
+
+static SLONG spark_bucket()
+{
+    return SLONG(sdl3_get_ticks() / SPARK_NOISE_BUCKET_MS);
+}
+
 // uc_orig: SPARK_find_midpoint (fallen/Source/spark.cpp)
+//
+// `identity` uniquely identifies WHICH spark + segment + midpoint we're
+// computing — must NOT depend on the endpoint coordinates, because for
+// SPARK_TYPE_LIMB endpoints (e.g. MIB destruct sparks attached to the
+// pelvis) those coords come from `Draw.Tweened->AnimTween` which is
+// interpolated per render frame. Using endpoint coords as the hash seed
+// made the random offset reroll every frame on top of the endpoint
+// motion, so the bolt visibly twitched at render FPS rate. Identity is
+// passed in from SPARK_get_next as (spark_index, point_index, midpoint_idx)
+// so the hash output is stable within a wall-clock bucket regardless of
+// how the endpoints move smoothly with the pelvis.
 static void SPARK_find_midpoint(
+    SLONG identity,
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2,
     SLONG* mx, SLONG* my, SLONG* mz)
@@ -433,14 +478,19 @@ static void SPARK_find_midpoint(
         dist = 4;
     }
 
-    *mx = (x1 + dx) + (rand() % (dist >> 1)) - (dist >> 2);
-    *my = (y1 + dy) + (rand() % (dist >> 2));
-    *mz = (z1 + dz) + (rand() % (dist >> 1)) - (dist >> 2);
+    const SLONG bucket = spark_bucket();
+
+    *mx = (x1 + dx) + (spark_noise(identity, 0, bucket, 0) % (dist >> 1)) - (dist >> 2);
+    *my = (y1 + dy) + (spark_noise(identity, 0, bucket, 1) % (dist >> 2));
+    *mz = (z1 + dz) + (spark_noise(identity, 0, bucket, 2) % (dist >> 1)) - (dist >> 2);
 }
 
 // Fills si with a 5-point jagged lightning path between the two endpoints.
+// `seg_identity` is a stable per-(spark, segment) value — see SPARK_find_midpoint
+// docs for why endpoint coords cannot be used as the hash seed.
 // uc_orig: SPARK_build_spark (fallen/Source/spark.cpp)
 static void SPARK_build_spark(
+    SLONG seg_identity,
     SPARK_Info* si,
     SLONG x1, SLONG y1, SLONG z1,
     SLONG x2, SLONG y2, SLONG z2)
@@ -453,17 +503,22 @@ static void SPARK_build_spark(
     si->y[4] = y2;
     si->z[4] = z2;
 
+    // Encode midpoint sub-index in the identity so each of the 3 midpoint
+    // generations within one segment gets a distinct hash output.
     SPARK_find_midpoint(
+        (seg_identity << 2) | 0,
         si->x[0], si->y[0], si->z[0],
         si->x[4], si->y[4], si->z[4],
         &si->x[2], &si->y[2], &si->z[2]);
 
     SPARK_find_midpoint(
+        (seg_identity << 2) | 1,
         si->x[0], si->y[0], si->z[0],
         si->x[2], si->y[2], si->z[2],
         &si->x[1], &si->y[1], &si->z[1]);
 
     SPARK_find_midpoint(
+        (seg_identity << 2) | 2,
         si->x[2], si->y[2], si->z[2],
         si->x[4], si->y[4], si->z[4],
         &si->x[3], &si->y[3], &si->z[3]);
@@ -532,7 +587,10 @@ tail_recurse:;
         SPARK_get_info.colour = 0x002233ff;
         SPARK_get_info.size = 40;
 
+        // Identity: spark slot + segment "0" (first hop). Stable per
+        // render frame within a wall-clock bucket → bolt shape stable.
         SPARK_build_spark(
+            (SPARK_get_spark << 8) | 0,
             &SPARK_get_info,
             x1, y1, z1,
             x2, y2, z2);
@@ -545,7 +603,12 @@ tail_recurse:;
         SPARK_get_y2 = SPARK_get_info.y[3];
         SPARK_get_z2 = SPARK_get_info.z[3];
     } else {
-        if ((rand() & 0xf) > ss->die) {
+        // Branch-skip probability for spark sub-segments: as ss->die counts
+        // down toward zero the spark fades by skipping more sub-segments.
+        // Replaced rand() with bucket-based noise — render-frame rand() here
+        // also caused FPS-bound flicker (which sub-points are visible
+        // changed every frame).
+        if ((spark_noise(SPARK_get_spark, SPARK_get_point, spark_bucket(), 3) & 0xf) > ss->die) {
             SPARK_get_point += 1;
 
             goto tail_recurse;
@@ -569,7 +632,10 @@ tail_recurse:;
         SPARK_get_info.colour = 0x001825dd;
         SPARK_get_info.size = 20;
 
+        // Identity: spark slot + branch point. SPARK_get_point >= 2
+        // distinguishes branches from the primary segment.
         SPARK_build_spark(
+            (SPARK_get_spark << 8) | UBYTE(SPARK_get_point),
             &SPARK_get_info,
             x1, y1, z1,
             x2, y2, z2);
