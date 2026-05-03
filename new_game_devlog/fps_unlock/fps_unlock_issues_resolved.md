@@ -60,3 +60,29 @@ wall-clock как чисто визуальный эффект.
 **Связанная open-проблема:** toggle сирены (нажатие пробела) на низких
 physics Hz регистрируется хуже —
 помечено won't fix в [fps_unlock_issues.md #5](fps_unlock_issues.md).
+
+---
+
+## 4. ✅ Костёр (PYRO_BONFIRE): плотность дыма растёт с render FPS
+
+**Симптом:** дым над костром (smoke particles) спавнится плотнее на высоком
+render FPS. На 30 FPS — нормальная редкая россыпь, на 240 FPS — заметно гуще
+и больше клубов одновременно. Сама анимация пламени костра (`draw_flames`)
+от FPS не зависит — там фиксированное `iNumFlames`.
+
+**Причина:** в `PYRO_draw_pyro` case `PYRO_BONFIRE` спавн smoke particles был
+гейтован через `if (!(Random() & 7)) PARTICLE_Add(...)` per render frame.
+Это **probabilistic level-trigger** (см. [fps_unlock_pitfalls.md #1](fps_unlock_pitfalls.md)
+пример B): каждый render frame — новая попытка с вероятностью 1/8 успеха.
+Density = render_fps × P(success) = render_fps / 8. На 30 FPS оригинала
+≈ 3.75 spawn/sec, на 240 FPS ≈ 30 spawn/sec.
+
+**Место:** [`pyro.cpp` PYRO_draw_pyro](../../new_game/src/effects/combat/pyro.cpp), case `PYRO_BONFIRE`.
+
+**Фикс:** добавлено per-pyro поле `UBYTE LastSmokeSpawn` в `struct Pyro`
+([pyro.h](../../new_game/src/effects/combat/pyro.h)). Гейт обёрнут в
+wall-clock edge-detect: bucket = 33 ms (~UC_VISUAL_CADENCE_TICK_MS, 30 Hz),
+`Random() & 7` теперь делается ровно раз в bucket → ~3.75 spawn/sec на любом
+render FPS, идентично оригиналу на 30 FPS. Per-pyro state — несколько
+костров в сцене не делят bucket. `init_pyros` делает `memset(0)` → корректная
+начальная инициализация. Подтверждено пользователем 2026-05-03.

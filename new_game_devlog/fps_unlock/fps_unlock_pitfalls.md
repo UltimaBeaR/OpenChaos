@@ -49,10 +49,21 @@
 **Симптом:** на high FPS spawn density растёт линейно с FPS, lens flares
 overdraw, plotность объектов растёт.
 
-**Пример:** `if (VISUAL_TURN & 1) spawn();` — `VISUAL_TURN` тикает
-30 Hz wall-clock, гейт true в течение ~33ms каждые 67ms. На render 60 FPS
-гейт виден 2 кадрами per cycle → 2 спавна. На 280 FPS — ~5 спавнов per
-cycle. Density = render_fps / 2.
+**Пример A — counter-based level gate:** `if (VISUAL_TURN & 1) spawn();` —
+`VISUAL_TURN` тикает 30 Hz wall-clock, гейт true в течение ~33ms каждые 67ms.
+На render 60 FPS гейт виден 2 кадрами per cycle → 2 спавна. На 280 FPS —
+~5 спавнов per cycle. Density = render_fps / 2.
+
+**Пример B — probabilistic per-frame gate:** `if (!(Random() & 7)) spawn();` —
+выглядит как throttle ("1/8 attempts"), но это **тоже** level-trigger, просто
+со стохастическим успехом. На каждом render frame делается **новая** попытка.
+Density = render_fps × P(success) = render_fps / 8. На 30 FPS оригинала
+≈ 3.75 spawn/sec; на 240 FPS ≈ 30 spawn/sec (8× больше).
+Канонический пример — PYRO_BONFIRE smoke spawn в `pyro.cpp` PYRO_draw_pyro.
+
+**Распознавание:** любое условие в render-path функции, которое управляет
+spawn'ом и зависит **только** от random/per-frame counter (не от wall-clock,
+не от per-instance edge-detect state) — level-trigger. Чинится одинаково.
 
 **Фикс:** edge-detect через UBYTE per-thing field:
 ```cpp
@@ -183,5 +194,6 @@ SLONG radius = 90 + SLONG(h & 0x1f);  // меняется 15 Hz wall-clock
 | SPARK lifetime + Pos motion | искры на 280 FPS живут 0.1s, на 25 FPS 1.5s | `SPARK_process` per render frame | wall-clock-gate (15 Hz) в render path |
 | SPARK zigzag wiggle | форма меняется с FPS | `rand()` в `SPARK_find_midpoint` per render frame | bucket-based deterministic hash, seed = identity |
 | PYRO_TWANGER lens flare overdraw на низкой физике | over-bright на 5 Hz | lifetime physics-tick-bound, spawn wall-clock | `counter += (K * TICK_RATIO) >> TICK_SHIFT` |
+| PYRO_BONFIRE smoke spawn | density растёт с render FPS (8× на 240 FPS vs 30 FPS) | `if (!(Random() & 7))` per-frame — probabilistic level-trigger | edge-detect через `Pyro::LastSmokeSpawn` UBYTE field, bucket = ~33ms (UC_VISUAL_CADENCE_TICK_MS) |
 
 См. также [`fps_unlock_issues.md`](fps_unlock_issues.md) Issue #19 для полной хронологии MIB destruct.

@@ -95,6 +95,7 @@ typedef struct
     SLONG soundid; // active sound handle (thing number used as ID)
     SWORD Timer1; // legacy per-thing timer
     UWORD Dummy; // overloaded field: ribbon handle (FLICKER), burn stage (IMMOLATE), etc.
+    UBYTE LastSmokeSpawn; // PYRO_BONFIRE: wall-clock phase for smoke spawn edge-detect (FPS-independent)
 } Pyro;
 
 // uc_orig: PyroPtr (fallen/Headers/pyro.h)

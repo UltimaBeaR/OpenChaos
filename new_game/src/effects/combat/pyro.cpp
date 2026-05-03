@@ -26,6 +26,7 @@
 #include "engine/graphics/geometry/sprite.h"
 #include "map/pap.h"
 #include "engine/graphics/postprocess/bloom.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for wall-clock smoke spawn gate
 
 // uc_orig: init_pyros (fallen/Source/pyro.cpp)
 void init_pyros(void)
@@ -1427,15 +1428,28 @@ void PYRO_draw_pyro(Thing* p_pyro)
             iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave(iNumFlames);
             draw_flames(fx >> 8, fy / 256, fz >> 8, iNumFlames, (SLONG)(uintptr_t)p_pyro);
 
-            if (AENG_detail_skyline)
-                if (!(Random() & 7))
-                    PARTICLE_Add(fx + ((Random() & 0x9ff) - 0x4ff),
-                        fy + ((Random() & 0x9ff) - 0x4ff),
-                        fz + ((Random() & 0x9ff) - 0x4ff),
-                        (Random() & 0xff) - 0x7f, 256 + (Random() & 0x1ff), (Random() & 0xff) - 0x7f,
-                        POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
-                        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
-                        300, 70, 1, 1, 2);
+            // Wall-clock edge-detect for smoke spawn. Original gated `Random() & 7`
+            // per render frame, so spawn density scaled with FPS (~3.75/sec at 30 FPS,
+            // ~30/sec at 240 FPS). Now bucketed at ~30 Hz wall-clock (one phase per
+            // ~33 ms): one Random gate attempt per bucket on any FPS, matching the
+            // original rate at the 30 FPS render path it was tuned for. Per-pyro
+            // state (LastSmokeSpawn) so multiple bonfires in scene don't share a
+            // phase.
+            if (AENG_detail_skyline) {
+                constexpr SLONG SMOKE_BUCKET_MS = 33; // ≈ UC_VISUAL_CADENCE_TICK_MS (30 Hz)
+                const UBYTE cur_phase = UBYTE(sdl3_get_ticks() / SMOKE_BUCKET_MS);
+                if (cur_phase != pyro->LastSmokeSpawn) {
+                    pyro->LastSmokeSpawn = cur_phase;
+                    if (!(Random() & 7))
+                        PARTICLE_Add(fx + ((Random() & 0x9ff) - 0x4ff),
+                            fy + ((Random() & 0x9ff) - 0x4ff),
+                            fz + ((Random() & 0x9ff) - 0x4ff),
+                            (Random() & 0xff) - 0x7f, 256 + (Random() & 0x1ff), (Random() & 0xff) - 0x7f,
+                            POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
+                            PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
+                            300, 70, 1, 1, 2);
+                }
+            }
         }
         break;
 
