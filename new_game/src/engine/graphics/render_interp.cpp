@@ -1170,6 +1170,29 @@ bool render_interp_debug_get_pelvis_world(Thing* p_thing, SLONG* out_x, SLONG* o
     return true;
 }
 
+// Per-frame pose cache shared by all render-path consumers (figure.cpp body
+// draw, FIGURE_draw_prim_tween_reflection, SMAP_add_tweened_points). Keyed
+// by (Thing*, g_render_interp_frame_counter) so the same Thing drawn through
+// multiple paths within one render frame walks the hierarchy only once.
+namespace {
+Thing* g_pose_cache_thing = nullptr;
+uint32_t g_pose_cache_frame = 0xffffffffu;
+bool g_pose_cache_valid = false;
+BoneInterpTransform g_pose_cache[POSE_MAX_BONES];
+}  // namespace
+
+const BoneInterpTransform* render_interp_get_cached_pose(Thing* p_thing)
+{
+    if (!p_thing) return nullptr;
+    if (g_pose_cache_thing == p_thing && g_pose_cache_frame == g_render_interp_frame_counter) {
+        return g_pose_cache_valid ? g_pose_cache : nullptr;
+    }
+    g_pose_cache_thing = p_thing;
+    g_pose_cache_frame = g_render_interp_frame_counter;
+    g_pose_cache_valid = render_interp_compute_pose(p_thing, g_pose_cache);
+    return g_pose_cache_valid ? g_pose_cache : nullptr;
+}
+
 bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15])
 {
     if (!p_thing || !out) return false;

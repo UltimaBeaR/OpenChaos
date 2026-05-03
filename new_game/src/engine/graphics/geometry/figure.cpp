@@ -1664,43 +1664,11 @@ void FIGURE_generate_D3D_object(SLONG prim)
 // gives back `i`.
 // ----------------------------------------------------------------------
 
-// ----------------------------------------------------------------------
-// Phase 3 pose-snapshot override cache (world_pose_snapshot_plan.md).
-//
-// One render frame may invoke FIGURE_draw_prim_tween_person_only_just_set_matrix
-// up to 15× per Thing (one per bone) via the recurse loop. Calling
-// render_interp_compute_pose 15 times would re-walk the hierarchy on every
-// bone — wasted work. Cache by Thing pointer; first call per Thing populates,
-// subsequent calls within the same Thing reuse. Cross-Thing transitions
-// invalidate naturally because the pointer changes.
-//
-// `g_figure_pose_valid` is false when the snapshot is unavailable (master
-// IP off, world-pose flag off, snapshot not yet captured, MeshID mid-change),
-// in which case the legacy figure_morph_*-based mat_final / off_x/y/z values
-// are used as-is and the override step is skipped.
-//
-// Cache invalidates per render frame via g_render_interp_frame_counter
-// (bumped in RenderInterpFrame::ctor), so even if g_render_alpha happens
-// to repeat across frames the cache picks up new physics-tick captures.
-// Cross-Thing transitions invalidate naturally because the pointer changes.
-// ----------------------------------------------------------------------
-static Thing*  g_figure_pose_cached_thing = nullptr;
-static uint32_t g_figure_pose_cached_frame = 0xffffffff;
-static bool   g_figure_pose_valid        = false;
-static BoneInterpTransform g_figure_pose[POSE_MAX_BONES];
-
-static inline void figure_pose_cache_for(Thing* p_thing)
-{
-    if constexpr (!ri_cfg::INTERP_THING_WORLD_POSE) {
-        g_figure_pose_valid = false;
-        return;
-    }
-    if (g_figure_pose_cached_thing == p_thing
-        && g_figure_pose_cached_frame == g_render_interp_frame_counter) return;
-    g_figure_pose_cached_thing = p_thing;
-    g_figure_pose_cached_frame = g_render_interp_frame_counter;
-    g_figure_pose_valid = render_interp_compute_pose(p_thing, g_figure_pose);
-}
+// Pose cache moved to render_interp.cpp (render_interp_get_cached_pose) so
+// reflection (FIGURE_draw_prim_tween_reflection) and shadow projection
+// (SMAP_add_tweened_points) can share it. All consumers within one render
+// frame hit the same cached data; hierarchy walk runs at most once per
+// Thing per frame.
 
 // Root-style offset (with parent matrix == nullptr): linearly interpolated
 // between anim_info and anim_info_next (with off_dx/dy/dz delta). Output is
@@ -3156,6 +3124,48 @@ void FIGURE_draw_prim_tween_reflection(
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
+    // === Phase 4 reflection: pose-snapshot override with water mirror ===
+    // Snapshot pose is in normal (non-mirrored) world space. To draw the
+    // reflection we apply geometric reflection through the water plane y = H:
+    //   - position: y_reflected = 2 * FIGURE_reflect_height - y_world
+    //   - rotation: M_reflect × mat_final, where M_reflect = diag(1, -1, 1).
+    //     Left-multiply by diag(1,-1,1) negates the Y ROW (M[1][*]) — NOT
+    //     the Y column. (The legacy reflection negates Y column of R_BODY
+    //     before composing mat_final = R_body × end_mat; algebraically
+    //     equivalent to negating Y row of the final world-rot matrix —
+    //     verified numerically. Negating Y column of the per-bone WORLD
+    //     mat_final does NOT give geometric reflection — it bakes a wrong
+    //     vertex transform that puts feet/legs in a separate location from
+    //     the rest of the body, observed in initial implementation.)
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            DrawTween* dt = p_thing->Draw.Tweened;
+            if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
+                SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
+                if (part >= 0 && part < POSE_MAX_BONES) {
+                    const BoneInterpTransform& xf = pose[part];
+                    off_x = xf.pos_x;
+                    off_y = 2.0f * FIGURE_reflect_height - xf.pos_y;
+                    off_z = xf.pos_z;
+                    mat_final = xf.rot;
+                    mat_final.M[1][0] = -mat_final.M[1][0];
+                    mat_final.M[1][1] = -mat_final.M[1][1];
+                    mat_final.M[1][2] = -mat_final.M[1][2];
+                    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+                }
+            }
+        }
+    }
+
     POLY_set_local_rotation(
         off_x,
         off_y,
@@ -3575,24 +3585,26 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     // world_pose_snapshot_plan.md). The legacy math above runs in full —
     // wasted work in Phase 3, but kept for fallback. Phase 5 will short-
     // circuit when the override is active.
-    figure_pose_cache_for(p_thing);
-    if (g_figure_pose_valid) {
-        SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
-        if (part >= 0 && part < POSE_MAX_BONES) {
-            const BoneInterpTransform& xf = g_figure_pose[part];
-            off_x = xf.pos_x;
-            off_y = xf.pos_y;
-            off_z = xf.pos_z;
-            mat_final = xf.rot;
-            fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-            fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-            fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-            fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-            fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-            fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-            fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-            fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-            fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+            if (part >= 0 && part < POSE_MAX_BONES) {
+                const BoneInterpTransform& xf = pose[part];
+                off_x = xf.pos_x;
+                off_y = xf.pos_y;
+                off_z = xf.pos_z;
+                mat_final = xf.rot;
+                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+            }
         }
     }
 

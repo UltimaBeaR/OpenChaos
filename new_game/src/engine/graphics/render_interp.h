@@ -159,6 +159,23 @@ extern uint32_t g_render_interp_frame_counter;
 // figure.cpp pose-composition path.
 bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[15]);
 
+// Cached variant of render_interp_compute_pose. Returns a pointer to internal
+// storage holding the interpolated pose for this Thing in the current render
+// frame, or nullptr if the pose is unavailable (interp off, world-pose flag
+// off, snapshot invalid for this Thing).
+//
+// Cache is keyed by (Thing*, g_render_interp_frame_counter). Multiple
+// consumers within one render frame (main body, water reflection, shadow
+// projection) all hit the same cached data — hierarchy walk happens at
+// most once per Thing per frame regardless of how many draw paths consume
+// it. Cross-Thing transitions invalidate naturally because the pointer
+// changes; cross-frame transitions invalidate via the frame counter bumped
+// in RenderInterpFrame::ctor.
+//
+// Returned pointer is valid until the next call with a different Thing or
+// the next render frame, whichever comes first. Treat as read-only.
+const BoneInterpTransform* render_interp_get_cached_pose(Thing* p_thing);
+
 // Frame-scope: at construction, walks all valid snapshots and writes
 // interpolated values directly into the live Thing.WorldPos / Tweened
 // angles and into FC_cam[0]. At destruction, restores the captured-at-tick

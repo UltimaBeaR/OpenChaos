@@ -15,6 +15,9 @@
 #include "things/characters/person_types.h" // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
 #include "things/characters/person.h" // person_get_scale
 #include "things/core/interact.h" // calc_sub_objects_position_global
+#include "engine/graphics/render_interp.h" // Phase 4: per-bone snapshot pose for shadow
+#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES
+#include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
 
 // SMAP_vector_normalise: normalise a 3D float vector in-place.
 // uc_orig: SMAP_vector_normalise (fallen/DDEngine/Source/smap.cpp)
@@ -328,6 +331,30 @@ static UWORD SMAP_add_tweened_points(
     mat2.M[2][2] = (mat2.M[2][2] * character_scale) / 256;
 
     matrix_mult33(&mat_final, rot_mat, &mat2);
+
+    // === Phase 4 shadow: pose-snapshot override ===
+    // Replace per-bone (x/y/z, mat_final) with the world-space lerp from the
+    // shared pose cache so the shadow projection of each bone tracks the
+    // same interpolated body the main draw renders. Without this override
+    // the shadow uses build_tween_matrix on raw post-tick AnimTween — which
+    // visibly desyncs from the body during anim transitions and on ladder
+    // cancel-out (bug 2b in render_interpolation/known_issues.md).
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            DrawTween* dt = p_thing->Draw.Tweened;
+            if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
+                SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
+                if (part >= 0 && part < POSE_MAX_BONES) {
+                    const BoneInterpTransform& xf = pose[part];
+                    x = SLONG(xf.pos_x);
+                    y = SLONG(xf.pos_y);
+                    z = SLONG(xf.pos_z);
+                    mat_final = xf.rot;
+                }
+            }
+        }
+    }
 
     p_obj = &prim_objects[prim];
 

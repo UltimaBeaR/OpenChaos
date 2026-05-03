@@ -164,11 +164,18 @@ Golden test через `__________PEL_NEW` debug label в [`aeng.cpp`](../../../
 - `FIGURE_draw_prim_tween_reflection` (water reflections).
 - `FIGURE_draw_prim_tween_person_only` (gun + muzzle flash).
 
-**Phase 4:** Test (см. ниже).
+**Phase 4 (✅ DONE — verified 2026-05-03):** Расширение snapshot path на reflection + shadow.
+- **Refactor:** общий per-frame pose cache переехал из figure.cpp в render_interp.cpp как `render_interp_get_cached_pose(Thing*)` API. Все потребители (main draw, reflection, shadow) ходят через один кэш — hierarchy walk выполняется не более одного раза на Thing на render frame регардлесс сколько путей рендеринга.
+- **Reflection** ([figure.cpp `FIGURE_draw_prim_tween_reflection`](../../../new_game/src/engine/graphics/geometry/figure.cpp)): override pose из snapshot + геометрическое water mirror через y=H плоскость:
+  - position: `y_reflected = 2 * FIGURE_reflect_height - y_world`.
+  - rotation: `M_reflect × mat_final` где `M_reflect = diag(1, -1, 1)`. Левое умножение = негирование **Y row** (M[1][*]) в финальной world rotation. ⚠️ Не Y col — это сначала пробовал, давало visual desync (ноги отдельно от тела); legacy негирует Y col у R_BODY (body-frame matrix) что работает для upright тел но не для пер-кости WORLD rotation.
+- **Shadow** ([smap.cpp `SMAP_add_tweened_points`](../../../new_game/src/engine/graphics/lighting/smap.cpp)): override (x, y, z, mat_final) из snapshot перед vertex transform. Закрывает [bug 2b](known_issues.md#2b-тень-дарси-не-синхронизирована-с-телом-на-сменах-анимации) полностью — тень теперь читает тот же snapshot что и тело, синхронизирована во всех transitions.
+
+Тесты пройдены: тень синхронна с телом во всех scenarios. Reflection корректное и плавное во всех направлениях (после fix Y row vs Y col).
 
 **Phase 5:** Cleanup всех hacks (см. таблицу выше) **+ debug visualisation в aeng.cpp**. Удалить старый флаг.
 
-**Phase 6:** Подключить shadow rendering path к тому же snapshot API. Закрывает [bug 2b](known_issues.md#2b).
+**Phase 6 — частично переехал в Phase 4:** Shadow path интегрирован в Phase 4 (см. выше). Если найдутся другие render paths которые используют per-bone pose (ANIM_obj_draw для animals/bats, gun/muzzle path) — расширить аналогично.
 
 ## Test scenarios (success criteria)
 
