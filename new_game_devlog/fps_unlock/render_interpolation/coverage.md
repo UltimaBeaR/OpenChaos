@@ -12,15 +12,15 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 
 | Класс | Что это | Что интерполируется |
 |---|---|---|
-| `CLASS_PERSON` | Дарси, NPC всех типов (cops, thugs, MIB, civilians) | WorldPos + Tweened Angle/Tilt/Roll |
+| `CLASS_PERSON` | Дарси, NPC всех типов (cops, thugs, MIB, civilians) | WorldPos + per-bone world pose (15-bone hierarchy через pose snapshot) |
 | `CLASS_VEHICLE` | Машины (car, police, ambulance, jeep) | WorldPos + `Genus.Vehicle->Angle/Tilt/Roll` (отдельная ветка снапшота, не через DrawTween) |
 | `CLASS_PROJECTILE` | Пули | WorldPos |
-| `CLASS_ANIMAL` | Крысы, собаки, кошки | WorldPos + Tweened углы (через DT_ANIM_PRIM) |
-| `CLASS_PYRO` | Огонь, immolation | WorldPos + Tweened углы |
-| `CLASS_CHOPPER` | Вертолёты | WorldPos + Tweened углы |
+| `CLASS_ANIMAL` | Собаки (мёртвый код в pre-release, dispatch закомментирован) | WorldPos + per-element world pose (flat skeleton через pose snapshot) если когда-нибудь оживёт |
+| `CLASS_PYRO` | Огонь, immolation. State в Genus.Pyro, не Tween | WorldPos. Углов нет |
+| `CLASS_CHOPPER` | Вертолёты. Углы в Draw.Mesh, не Tween | WorldPos. Углы не интерполируются |
 | `CLASS_PLAT` | Движущиеся платформы | WorldPos |
 | `CLASS_BARREL` | Катящиеся бочки | WorldPos |
-| `CLASS_BAT` | Bane (летающие) | WorldPos + Tweened углы (DT_ANIM_PRIM) |
+| `CLASS_BAT` | Bat / Gargoyle / Balrog / Bane (DT_ANIM_PRIM, flat skeleton) | WorldPos + per-element world pose (flat skeleton через pose snapshot) |
 | `CLASS_BIKE` | Велосипеды | WorldPos. Угол через DrawMesh, не интерполируется |
 | `CLASS_SPECIAL` | Pickup'ы (обычно статичные, но granates thrown — двигаются) | WorldPos |
 
@@ -40,57 +40,52 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 
 `EWAY_cam_roll` всегда константа `1024 << 8` (хардкод в `EWAY_grab_camera`); lerp по нему не делается, apply пишет ту же константу.
 
-## Углы по DrawType
+## Pose / углы по DrawType
 
-Углы хранятся в разных местах в зависимости от DrawType — поэтому интерполируются избирательно.
+Поза персонажей и углы Things хранятся в разных местах в зависимости от DrawType.
 
-### Покрыто (Tween-семейство)
+### Tween-семейство — через pose snapshot (per-bone world transforms)
 
-`Draw.Tweened->Angle/Tilt/Roll` (SWORD, диапазон 0..2047 циклически):
+| DrawType | Класс/назначение | Skeleton | Pose path |
+|---|---|---|---|
+| `DT_ROT_MULTI` | CLASS_PERSON (Дарси, NPC) | Hierarchical 15-bone | `compose_full_skeletal_pose` — DFS walk по `body_part_children[][]` (PELVIS → TORSO → HEAD; PELVIS → FEMUR → TIBIA → FOOT; etc) |
+| `DT_ANIM_PRIM` | CLASS_BAT (Bat / Gargoyle / Balrog / Bane), CLASS_ANIMAL (собаки, мёртвый код) | Flat (1..20 elements) | `compose_flat_skeletal_pose` — каждый element body-frame, mirrors `FIGURE_draw_prim_tween` parent==NULL ветку |
+| `DT_TWEEN` | Generic tween-mesh | Hierarchical если ElementCount==15, иначе flat | По ElementCount |
 
-| DrawType | Класс/назначение |
-|---|---|
-| `DT_TWEEN` | Generic tween-mesh |
-| `DT_ROT_MULTI` | CLASS_PERSON (Дарси, NPC) |
-| `DT_ANIM_PRIM` | CLASS_ANIMAL, CLASS_BAT |
+Pose snapshot capture'ит world transform каждой кости (per-tick), apply лерпит world pos / slerps world rot per render frame. Это **архитектурно корректно** для cancel-out cases (лестница, прыжки) и anim transitions — composer выдаёт post-tick pose независимо от того сколько keyframes между prev и curr; render лerp'ит prev/curr world transforms плавно.
 
-### Покрыто (Vehicle — отдельная ветка)
+Подробно → [`architecture.md`](architecture.md), секция «Pose snapshot — character body».
 
-`Genus.Vehicle->Angle/Tilt/Roll` (SLONG, диапазон 0..2047 циклически для Angle; Tilt/Roll обычно небольшие и не нормализованы):
+### Vehicle — отдельная ветка
+
+`Genus.Vehicle->Angle/Tilt/Roll` (SLONG, диапазон 0..2047 циклически для Angle; Tilt/Roll не нормализованы):
 
 | DrawType | Класс/назначение |
 |---|---|
 | `DT_VEHICLE` | CLASS_VEHICLE (car, police, ambulance, jeep, ...) |
 
-`Vehicle->Angle` использует **direction-aware lerp**: знак `Vehicle->VelR` (rotational velocity) служит hint'ом, чтобы при очень быстром вращении (>180°/тик, например конусы/мусор после удара машиной — если бы они были vehicles) короткий путь не выбирал обратное направление. Для Tilt/Roll — обычный short-path (нет per-axis angular velocity в Vehicle struct, но они и не накапливаются за полный круг).
+`Vehicle->Angle` использует **direction-aware lerp**: знак `Vehicle->VelR` (rotational velocity) служит hint'ом, чтобы при очень быстром вращении (>180°/тик) короткий путь не выбирал обратное направление. Для Tilt/Roll — обычный short-path.
 
 ### Не покрыто (требует расширения системы)
 
-- **`DT_MESH`** — статичные mesh-объекты. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Часть таких объектов (`CLASS_SPECIAL` static pickups) — не вращаются вообще; часть — вращается (барабанящие предметы, эффекты). Сейчас не покрыто.
+- **`DT_MESH`** — статичные mesh-объекты. Углы в `Draw.Mesh->Angle/Tilt/Roll` (UWORD). Большинство не вращаются.
 - **`DT_BIKE`** — велосипеды. Через DrawMesh.
-- **`DT_CHOPPER`** — вертолёты. `alloc_chopper` ставит `Draw.Mesh = dm` (DrawMesh), не Tween. Углы в `Draw.Mesh->Angle/Roll/Tilt` (UWORD). Раньше ошибочно числился в Tween-семействе — приводило к чтению DrawMesh-памяти как DrawTween и появлению non-canonical pointer'ов в snapshot (catscene crash на slot=143). Если потребуется плавность поворотов вертолёта — нужно расширение DrawMesh-ветки аналогично Vehicle.
-- **`DT_PYRO`** — pyro-эффекты. `alloc_pyro` не присваивает `Draw.X` вообще (state в `Genus.Pyro`). Раньше ошибочно числился в Tween-семействе, читал stale memory предыдущего жильца slot'а.
+- **`DT_CHOPPER`** — вертолёты. `alloc_chopper` ставит `Draw.Mesh = dm` (DrawMesh), не Tween. Раньше ошибочно числился в Tween-семействе — приводило к чтению DrawMesh-памяти как DrawTween и появлению non-canonical pointer'ов (catscene crash на slot=143). Сейчас в `draw_type_uses_tween()` НЕ входит. Если потребуется плавность поворотов — расширить DrawMesh-ветку аналогично Vehicle.
+- **`DT_PYRO`** — pyro-эффекты. `alloc_pyro` не присваивает `Draw.X` вообще (state в `Genus.Pyro`). Раньше ошибочно числился в Tween-семействе, читал stale memory.
 
 См. [`plans.md`](plans.md) — задача расширения на DrawMesh-углы.
 
 ## Что НЕ нужно интерполировать (уже плавно)
 
-### AnimTween (вертексный morph) — теперь интерполируется
+### AnimTween / vertex morph — покрыты pose snapshot'ом
 
-Анимации персонажей в Urban Chaos — это **per-vertex morph между keyframes**, не skeletal. Tween-фракция `dt->AnimTween` определяет где на оси `[CurrentFrame, NextFrame]` мы сейчас.
+Анимации персонажей в Urban Chaos — **per-vertex morph между keyframes** (не skeletal). Tween-фракция `dt->AnimTween` определяет где на оси `[CurrentFrame, NextFrame]` мы сейчас. AnimTween продвигается на physics-тике, при 20 Hz physics + 60 Hz render значение держится 3 кадра подряд → морф рывками.
 
-> ⚠️ Раньше тут было написано «AnimTween обновляется per render-frame, плавная сама по себе» — **это было неверно**. AnimTween продвигается анимационными хендлерами **на physics-тике** (e.g. [`person_normal_animate_speed` person.cpp:2848](../../../new_game/src/things/characters/person.cpp#L2848) масштабирует `tween_step` на `TICK_RATIO`). При 20 Hz physics + 60 Hz render значение держится 3 кадра подряд → морф рывками.
+Pose snapshot решает это **на уровне выше**: composer выполняет full pose composition в physics tick (включая vertex morph between AnimTween keyframes) и капчит world transform каждой кости. Render видит уже-композированную позу — два snapshot'а на границах physics ticks, между которыми лерпится `world_pose(t-1)` → `world_pose(t)`. AnimTween явно подменять не нужно.
 
-`AnimTween` (фракция [0, 256) внутри keyframe пары) + указатели `CurrentFrame`/`NextFrame` теперь capture'ятся и подменяются в frame-scope:
-- Capture рядом с Angle/Tilt/Roll (когда `dt = Draw.Tweened` валиден)
-- Apply: при стабильном FrameIndex — прямой lerp; при продвижении на 1 keyframe за тик — virtual extended coordinate с переключением пары указателей; при >1 keyframes за тик — пропуск (редко)
-- Это нужно потому что на быстрых анимациях (running, sprint) FrameIndex меняется почти каждый тик и одного только лерпа AnimTween недостаточно
+То же касается **anim transitions** (idle→sprint, jump-kick, jump landing) — composer выдаёт корректную post-tick pose независимо от того что произошло между prev и curr; render лerp'ит между двумя valid composed poses плавно. Старые hacks (cross-anim blend, virtual extended coordinate, skip-on-backward) удалены.
 
-Подробнее → [`architecture.md`](architecture.md), секция «AnimTween».
-
-Углы (`Angle/Tilt/Roll`, общий поворот меша) интерполируются параллельно. Сами вершины не трогаем — этим занимается morph-pipeline в `FIGURE_draw`, ему достаточно правильного `AnimTween`.
-
-**Не покрывает:** cross-fade между **разными** анимациями (`CurrentAnim`/`MeshID` change). На таком переходе срабатывает `skip_once` — поза дискретно скачет с старой на новую. Отдельный баг → [`known_issues.md`](known_issues.md) #2.
+Подробнее → [`architecture.md`](architecture.md), секция «Pose snapshot — character body».
 
 ### Wall-clock эффекты (см. `CORE_PRINCIPLE.md`)
 
@@ -128,15 +123,22 @@ Capture идёт по `thing_class_head[CLASS_X]` linked list, для класс
 
 ```
 Physics-rate state (нужна интерполяция):
-  ├── Things (movement classes) → WorldPos + Tween-углы (DT_TWEEN family)
+  ├── Things WorldPos (movement classes, ~11 классов)
+  ├── Persons / bats / animals → per-bone world pose snapshot (g_pose_snaps)
+  │   ├── Hierarchical: 15-bone person rig (Дарси, NPC), parent-local + chain
+  │   └── Flat: bat / Bane / Balrog / Gargoyle, world transform per element
   ├── Vehicles → Genus.Vehicle->Angle/Tilt/Roll (SLONG, отдельная ветка с VelR direction hint)
   ├── Camera (FC_cam) → x/y/z/yaw/pitch/roll
-  ├── EWAY катсценная камера → EWAY_cam_x/y/z/yaw/pitch/lens (отдельный snapshot, render-time substitution после EWAY_grab_camera)
-  ├── DIRT pool (leaves, brass, cans, blood, snow, etc — DIRT_dirt[1024]) → x/y/z/yaw/pitch/roll (SWORD), отдельный DirtSnap pool
-  └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE), particles (PARTICLE_* pool)
+  ├── EWAY катсценная камера → EWAY_cam_x/y/z/yaw/pitch/lens (отдельный snapshot)
+  ├── DIRT pool (leaves, brass, cans, blood, snow, etc — DIRT_dirt[1024]) → x/y/z/yaw/pitch/roll (SWORD)
+  └── НЕ покрыто: DrawMesh углы (DT_MESH/DT_BIKE/DT_CHOPPER), particles (PARTICLE_* pool)
+
+Покрыто pose snapshot'ом автоматически (через композицию post-tick pose):
+  ├── Vertex morph (AnimTween) — composer включает в pose composition
+  ├── Anim transitions — composer выдаёт correct post-tick pose
+  └── Cancel-out cases (ladder up/down, jump phases) — visible pelvis world stable
 
 Wall-clock state (уже плавно, не трогаем):
-  ├── AnimTween (vertex morph)
   ├── Эффекты погоды/окружения (rain, drip, ribbon, sparks, sky, fire)
   ├── Аудио listener
   ├── HUD/UI/menu

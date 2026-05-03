@@ -23,9 +23,9 @@
 - Debug-инструмент (клавиши 1/2/3/9/0) — runtime смена physics/render Hz и тогл интерполяции
 - Physics 20 Hz (дизайновая частота оригинала) — таймер миссий 1:1 с реальным временем
 
-**Цель частично достигнута** — render interpolation реализован для Things и камеры.
-Дарси, NPC, машины и камера интерполируются на render-rate, движение плавное.
-Остаточные баги (мельтешащие педестрианы, поворот машин рывками) — отлаживаются.
+**Цель достигнута** — render interpolation реализован полностью для Things, тела персонажей (через per-bone world-space pose snapshot), машин и камеры. Дарси, NPC, bat'ы / Bane / Balrog / Gargoyle, машины, камера и DIRT pool — все интерполируются на render-rate, движение плавное. Anim transitions, ladder, jumps работают архитектурно корректно через pose composer.
+
+Остаточные открытые баги: мельтешащие педестрианы (#1) — spawn-stale issue, не связан с pose path. Прочие — низкоприоритетные (партиклы, short-path edge cases).
 
 Подробности подзадачи → [`render_interpolation/`](render_interpolation/README.md).
 

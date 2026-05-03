@@ -55,14 +55,18 @@
 
 ### Mark teleport — где должен срабатывать
 
-Сейчас функции `render_interp_mark_teleport(Thing*)` и `render_interp_mark_camera_teleport(FC_Cam*)` существуют в API, но **нигде не вызываются**. Кандидаты для будущих hook'ов (когда вылезут видимые баги):
+Большинство известных кейсов закрыто:
+- EWAY scene transitions (`EWAY_DO_CREATE_ENEMY`, `EWAY_DO_MOVE_THING`) → `render_interp_mark_teleport` вызывается в [`eway.cpp`](../../../new_game/src/missions/eway.cpp).
+- PCOM wander recycle (machines/pedestrians teleporting across map) → `render_interp_mark_teleport` в [`pcom.cpp`](../../../new_game/src/ai/pcom.cpp) (5 callsites).
+- Camera warehouse boundary → `render_interp_mark_camera_teleport` в [`fc.cpp`](../../../new_game/src/camera/fc.cpp).
+- DIRT pool recycle → `render_interp_mark_dirt_teleport` в [`dirt.cpp`](../../../new_game/src/world_objects/dirt.cpp) (2 callsites).
 
-- **Cutscene cut'ы**: `AENG_set_camera` в [`playcuts.cpp`](../../../new_game/src/missions/playcuts.cpp) — между разными кадрами катсцены камера резко скачет. Текущий ctor `RenderInterpFrame` не ловит cutscene-телепорт.
+Возможные оставшиеся кандидаты для hook'ов (если всплывут визуальные баги):
+- **Cutscene cut'ы**: `AENG_set_camera` в [`playcuts.cpp`](../../../new_game/src/missions/playcuts.cpp) — между разными кадрами катсцены камера резко скачет.
 - **Смена focus камеры**: в `FC_*` модуле, когда `fc->focus` переключается на другой Thing.
 - **Загрузка чекпойнта** / переключение миссии.
 - **Респаун Дарси после смерти**.
-- **Выход из машины** — Дарси резко позиционируется рядом с машиной. Сейчас, скорее всего, ловится anim-transition детектором (state меняется) — но если есть кейсы без смены state, нужен явный mark.
-- **Скриптовые телепорты в EWAY**.
+- **Выход из машины** — Дарси резко позиционируется рядом с машиной.
 
 Стратегия: добавлять `mark_teleport` по факту обнаружения визуальных багов в этих сценариях.
 

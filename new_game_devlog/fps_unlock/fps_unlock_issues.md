@@ -414,20 +414,11 @@ Phase 3 (per-bone pose snapshot) не относится к этому пути 
 
 **Фикс остаётся открытым:** нужно либо найти render-path код который инкрементирует WorldPos и переделать через physics velocity, либо специально не substitute'ить WorldPos для MIB в `state == STATE_DEAD && PersonType ∈ {MIB1, MIB2, MIB3}`.
 
-**Симптом 3 — анимация ментов в Urban Shakedown дёргается на 20 Hz physics.**
-Это связанная общая проблема animation system, не специфичная для MIB.
+**Симптом 3 — анимация ментов в Urban Shakedown дёргается на 20 Hz physics.** ✅ ЗАКРЫТО ранее (подтверждено пользователем 2026-05-03 что проблемы нет).
 
-Воспроизводится на любом render cap (включая 25 fps cap + интерполяция выкл, даже на physics=20). На версии Piero (наш старый D3D код, physics=render lockstep 30 Hz) анимация ровная. То есть проблема введена расцеплением physics/render и переходом на 20 Hz physics.
+Конкретно: в начале катсцены где мёртвые менты — они интерполировались перед тем как упасть. Закрыто отдельным фиксом раньше Phase 5 pose snapshot work; точная commit-точка не зафиксирована, но сейчас не воспроизводится.
 
-Корень — `Draw.Tweened->FrameIndex` (индекс кадра анимации) обновляется на physics tick (20 Hz), не интерполируется в render-interp. Между physics ticks render показывает один и тот же frame. На render 25+ fps это видно как ступенчатая анимация.
-
-С render-interpolation **on** интерполируются position и angles, но не FrameIndex — поэтому персонажи "плавно скользят", но pose остаётся на дискретных physics кадрах = всё равно дёргается на animation frame transitions.
-
-Также возможна ускоренная/замедленная скорость animation playback из-за смены physics rate с 30 → 20 Hz (см. issue #16). Animation duration constants (frames per anim) могли калиброваться под 30 Hz.
-
-**Замечание про Piero baseline:** там менты сразу в lying state (правильно), но кровь и звук смерти проигрываются в начале сцены — другой Piero-specific bug, не связан с этим issue. На наших правках поведение ещё не такое же.
-
-**Расширение интерполяции на FrameIndex** — отдельная задача, потенциально нетривиальная (интерполяция между frame N и frame N+1 в Tweened animation требует доступа к kostно-skin'овой структуре между двумя key frames).
+Также возможна ускоренная/замедленная скорость animation playback из-за смены physics rate с 30 → 20 Hz (см. issue #16) — это **отдельная** проблема (animation duration constants могли калиброваться под 30 Hz), не связана с интерполяцией.
 
 ---
 
