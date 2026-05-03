@@ -98,23 +98,138 @@ bool render_interp_get_bone_world_transform(Thing*, int bone_idx,
                                             BoneTransform* out);
 ```
 
-## Что вырезаем (финальный cleanup)
+## Phase 5 — Cleanup (детальный план для следующего агента)
 
-После того как новый путь работает и протестирован:
+> **Текущее состояние (после Phase 0-4):** snapshot path покрывает body + reflection + shadow для DT_ROT_MULTI persons (15-bone hierarchy). Substitution dt->* и legacy figure_morph_* пути по-прежнему живут — потому что есть НЕ интегрированные потребители которые на них опираются.
+>
+> **Полный cleanup за один заход НЕ безопасен** — вырезание substitution сломает не интегрированные пути. Сначала надо ИЛИ интегрировать оставшиеся пути, ИЛИ принять регрессии на них.
 
-| Файл | Что |
+### Зависимости substitution dt->* — что сломается
+
+| Что сломается | Где использует | Visible impact |
+|---|---|---|
+| Gun + muzzle flash | [`figure.cpp` `FIGURE_draw_prim_tween_person_only`](../../../new_game/src/engine/graphics/geometry/figure.cpp) (line ~3676), вызывается из recurse loop при `DT_FLAG_GUNFLASH` | Gun джиттерит на каждом физ-тике — ствол прыгает на render frames между ticks |
+| Animals/bats vertex morph | [`figure.cpp` `ANIM_obj_draw`](../../../new_game/src/engine/graphics/geometry/figure.cpp) (~line 2896), DT_ANIM_PRIM с ele_count != 15 (плоский skeleton) | Animals/bats body angles + vertex morph дёргаются на keyframe boundaries |
+| Pelvis position для NIGHT_find lighting | [`figure.cpp:2767`](../../../new_game/src/engine/graphics/geometry/figure.cpp#L2767) (main draw), `figure.cpp:3393` (reflection), вызывают `calc_sub_objects_position(p_thing, dt->AnimTween, SUB_OBJECT_PELVIS, ...)` | Освещение тела чуть мерцает (минор) |
+| Grenade в руке | [`figure.cpp:2865`](../../../new_game/src/engine/graphics/geometry/figure.cpp#L2865) `calc_sub_objects_position(p_person, dt->AnimTween, SUB_OBJECT_LEFT_HAND, ...)` для рендера гранаты в руке | Граната дёргается во время держания |
+
+### Зависимости cross-anim blend
+
+| Что сломается | Где использует |
+|---|---|
+| Animals/bats anim transitions становятся discrete pose swap (без cross-fade) | `figure_morph_root_offset` blend ветка (figure.cpp:~1682-1706), `figure_morph_matrix` blend ветка (figure.cpp:~1745-1775) — вызываются для всех путей включая ANIM_obj_draw |
+
+Person body больше не нуждается в cross-anim blend — snapshot path обрабатывает transitions автоматически (lerp между prev/curr captured world poses плавно интерполирует через смену анимации).
+
+### Три варианта Phase 5
+
+#### Вариант A — Mini-cleanup (РЕКОМЕНДУЕТСЯ если время ограничено)
+
+Удалить только то что **точно мертво** + debug-инфраструктуру. Оставить substitution + blend для legacy paths.
+
+**Что удалять:**
+1. `aeng.cpp` outdoor + indoor draw paths: блок `if constexpr (ri_cfg::DEBUG_POSE_LABELS) { ... }` целиком (PEL/ROOT/PEL_NEW/PEL_SNAP labels). Включает `compose_full_skeletal_pose()` callsite + `render_interp_debug_get_pelvis_world()` callsite.
+2. `render_interp.h` + `.cpp`: декларация и определение `render_interp_debug_get_pelvis_world()`.
+3. `debug_interpolation_config.h`: `DEBUG_POSE_LABELS` флаг.
+4. Removed `#include` directives которые стали не нужны после удаления debug блоков (если были добавлены только для них).
+
+**Что оставлять:**
+- Всё остальное (substitution, blend, legacy figure_morph_* ветки).
+- `INTERP_THING_TWEEN_ANGLE`, `INTERP_THING_ANIM_MORPH`, `INTERP_THING_CROSS_ANIM_BLEND` флаги — нужны для legacy paths (animals, gun, grenade).
+
+**Документировать:** в этом файле что Phase 5 в варианте A сделан, full cleanup — Phase 6+ задача после интеграции остальных путей.
+
+**Объём:** ~50-100 строк удалить. Низкий риск.
+
+#### Вариант B — Full cleanup со последовательной интеграцией
+
+Сначала интегрировать ВСЕ оставшиеся пути на snapshot, потом удалить substitution + blend.
+
+**Шаги (in order):**
+
+**B-1. Integrate `FIGURE_draw_prim_tween_person_only` (gun/muzzle).**
+Вызывается из `FIGURE_draw_hierarchical_prim_recurse` (figure.cpp:2425, 2436) для рендера gun primitive AT hand position.
+
+Подход: похож на `_just_set_matrix` integration (Phase 3). Перед `POLY_set_local_rotation` добавить override блок:
+```cpp
+if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+    if (pose) {
+        SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+        if (part >= 0 && part < POSE_MAX_BONES) {
+            // override off_x/y/z/mat_final/fmatrix from pose[part], same as
+            // _just_set_matrix block. Gun primitive will inherit hand bone
+            // world transform.
+        }
+    }
+}
+```
+
+Verify: gun должен следовать за рукой плавно во всех transitions, без джиттера на физ-тиках.
+
+**B-2. Integrate `ANIM_obj_draw` (animals/bats).**
+Сложнее — animals/bats имеют **flat skeleton** (не hierarchical 15-bone). ele_count != 15.
+
+Опции:
+- **B-2a:** Расширить `compose_full_skeletal_pose` для flat skeletons. Добавить новый код path для DT_ANIM_PRIM в pose_composer.cpp. Snapshot хранит per-bone world transforms без иерархической композиции (каждая кость body-relative независимо).
+- **B-2b:** Принять что animals остаются на legacy. Они мелкие в кадре, jerk на 20Hz physics редко visible. Оставить substitution + blend для них специально.
+
+Если B-2a: расширить `PoseSnap` чтобы поддерживать переменное количество костей (или sized-buffer за max). Capture в `render_interp_capture` для DT_ANIM_PRIM thing'ов — отдельная ветка. Apply через тот же `render_interp_get_cached_pose` API.
+
+**B-3. Integrate `calc_sub_objects_position` callsites.**
+Используется в:
+- [`figure.cpp:2761`](../../../new_game/src/engine/graphics/geometry/figure.cpp#L2761) `calc_sub_objects_position(p_thing, dt->AnimTween, 0, ...)` — pelvis position для `NIGHT_find` lookup в FIGURE_draw.
+- [`figure.cpp:2865`](../../../new_game/src/engine/graphics/geometry/figure.cpp#L2865) `calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween, SUB_OBJECT_LEFT_HAND, ...)` — позиция руки для grenade.
+- [`figure.cpp:3393`](../../../new_game/src/engine/graphics/geometry/figure.cpp#L3393) `calc_sub_objects_position(p_thing, dt->AnimTween, 0, ...)` — pelvis для NIGHT_find в reflection.
+- [`smap.cpp:383`, `:384`](../../../new_game/src/engine/graphics/lighting/smap.cpp) `calc_sub_objects_position_global(...)` — `dt->Locked` anchor offset.
+- Возможно еще места — grep `calc_sub_objects_position` по всему src.
+
+Подход: для каждого callsite в render-path где нужна интерполированная позиция, читать `render_interp_get_cached_pose(p_thing)[bone_idx].pos_x/y/z` вместо вызова `calc_sub_objects_position`. Snapshot bone[0] = pelvis, bone[7] = LEFT_HAND, etc (см. anim_ids.h SUB_OBJECT_*).
+
+calc_sub_objects_position_global не зависит от Thing — оно takes raw keyframes. Может оставаться как есть.
+
+**B-4. Только теперь cleanup substitution + blend.**
+
+| Файл | Что удалить |
 |---|---|
 | `figure.cpp` | `figure_morph_root_offset` blend branch (~lines 1682-1706) |
 | `figure.cpp` | `figure_morph_matrix` blend branch (~lines 1745-1775) |
 | `render_interp.h` | `RenderInterpBlend` struct + `render_interp_get_blend` decl |
-| `render_interp.cpp` | `render_interp_get_blend` impl |
-| `render_interp.cpp` | ThingSnap.blend_active/blend_old_cf/_nf/_at/blend_start_ms/blend_duration_ms |
-| `render_interp.cpp` | Anim-transition blend setup в `render_interp_capture` (~lines 518-564) |
-| `render_interp.cpp` | AnimTween virtual-extended-coord cases 1/2/3 + snap-on-backward в ctor (~lines 1044-1131) |
-| `render_interp.cpp` | Substitution `dt->Angle/Tilt/Roll/AnimTween/CF/NF` в ctor + restore в dtor |
-| `render_interp.cpp` | ThingSnap.angle/tilt/roll_prev/curr, anim_tween_*, frame_index_*, current_frame_*, next_frame_*, has_angles, anim_tween_applied |
-| `render_interp.cpp` | `skip_once` для anim-only fields (для teleport остаётся отдельно) |
-| `debug_interpolation_config.h` | `INTERP_THING_TWEEN_ANGLE`, `INTERP_THING_ANIM_MORPH`, `INTERP_THING_CROSS_ANIM_BLEND` flags + dead branches |
+| `render_interp.cpp` | `render_interp_get_blend` impl + `g_pose_cache_*` debug accessor если не нужен |
+| `render_interp.cpp` | `ThingSnap.blend_active/blend_old_cf/_nf/_at/blend_start_ms/blend_duration_ms` поля |
+| `render_interp.cpp` | Anim-transition blend setup в `render_interp_capture` (~lines 518-564, see code "blend_active"/"blend_start_ms" assignments) |
+| `render_interp.cpp` | AnimTween virtual-extended-coord cases 1/2/3 + snap-on-backward в `RenderInterpFrame::ctor` (~lines 1044-1131, see frame_diff/is_loop_wrap logic) |
+| `render_interp.cpp` | Substitution `dt->Angle/Tilt/Roll/AnimTween/CF/NF` в ctor (~line 1010-1135) + restore в dtor (~line 1273-1284) |
+| `render_interp.cpp` | `ThingSnap.angle/tilt/roll_prev/curr`, `anim_tween_*`, `frame_index_*`, `current_frame_*`, `next_frame_*`, `has_angles`, `anim_tween_applied` поля |
+| `render_interp.cpp` | `skip_once` для anim-only fields в `render_interp_capture` (но НЕ удалять `skip_once` для teleport — оно используется в EWAY camera) |
+| `debug_interpolation_config.h` | `INTERP_THING_TWEEN_ANGLE`, `INTERP_THING_ANIM_MORPH`, `INTERP_THING_CROSS_ANIM_BLEND` флаги + все callsites которые их проверяли |
+| `aeng.cpp` | DEBUG_POSE_LABELS блоки + flag |
+
+**Что НЕ удалять (нужно для других readers):**
+- Substitution `Thing.WorldPos` в ctor — нужно для NIGHT_find lighting, shadows projection origin, EWAY targets, audio listener tracking.
+- `render_interp_mark_teleport` (full snapshot wipe — корректно при настоящем телепорте).
+- `INTERP_THING_POS` флаг — гейтит WorldPos substitution.
+- `INTERP_THING_WORLD_POSE` флаг — это и есть наш новый snapshot path флаг.
+
+**Объём B:** ~500-800 строк, +1-2 недели работы. Высокий риск регрессий — каждая интеграция требует визуальный тест.
+
+#### Вариант C — Pragmatic halfway
+
+Удалить cross-anim blend (animals переживут discrete transitions, они короткие) + debug labels. Оставить substitution + virtual-extended-coord — animals/gun/grenade остаются smooth.
+
+**Что удалять:**
+- Всё из варианта A.
+- `figure_morph_root_offset` blend branch.
+- `figure_morph_matrix` blend branch.
+- `render_interp_get_blend` API.
+- `ThingSnap.blend_*` поля + setup в render_interp_capture.
+- `INTERP_THING_CROSS_ANIM_BLEND` флаг.
+
+**Объём:** ~150-300 строк. Средний риск (animals на anim transitions могут стать чуть worse).
+
+### Моя рекомендация (на момент окончания контекста)
+
+Идти **Вариант A**. Pragmatic, быстро, риск нулевой. Phase 6 (full cleanup) — отдельная задача когда будет время.
 
 `render_interp_mark_teleport` остаётся (full snapshot wipe — корректно).
 Substitution `Thing.WorldPos` остаётся (нужно для других render readers — NIGHT_find lighting, shadows projection origin, EWAY targets, etc).
