@@ -4218,6 +4218,13 @@ void EWAY_process()
 
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
         // Don't process waypoints after the game is lost or won.
+        // Clear the on-screen countdown value too: in the original it was
+        // queued inline from EWAY_evaluate_condition each tick into a global
+        // (slPANEL_draw_timer_time) that auto-cleared each draw. Our refactor
+        // persists the value across render frames (to avoid flicker when
+        // render > physics), so we must explicitly clear it here — otherwise
+        // the timer lingers frozen at its last value after level complete.
+        EWAY_hud_countdown_value = -1;
     } else {
         for (i = 1 + (offset); i < eway_max; i += step) {
 

@@ -257,3 +257,227 @@ wrap при fast tumble (>180°/tick). В dtor — restore через cached ptr
 Static DT_MESH (specials, platforms): vel_hint=0, prev==curr → lerp
 возвращает curr → unchanged behavior. Slot-reuse safe (DT_MESH→другое
 сбрасывает `has_mesh_angles`). Подтверждено пользователем 2026-05-04.
+
+---
+
+## 11. ✅ HUD-маркер прицела: дребезжание + анимация ускоряется от physics Hz
+
+**Симптом (был):**
+- **Дребезжание:** маркер прицела на HUD пропадал на один-несколько кадров
+  и возвращался, как у таймера миссии. Зависело от `g_physics_hz` и
+  `g_render_fps_cap`.
+- **Скорость анимации маркера:** при увеличении `g_physics_hz` анимация
+  (поворот/мерцание/смена кадров) ускорялась. На штатных 20 Hz — норма.
+
+**Статус:** проверено пользователем 2026-05-04 — не воспроизводится. Закрыто
+прошлыми фиксами (вероятно частью миграции визуальных `GAME_TURN`-gated сайтов
+на `VISUAL_TURN` либо общими render-interpolation работами). Точная commit-точка
+не зафиксирована.
+
+---
+
+## 12. ✅ Игровой таймер миссии (время на HUD) зависит от physics Hz
+
+**Симптом (был):** скорость декремента mission timer масштабировалась с
+`g_physics_hz` — на нестандартной физике таймер шёл быстрее или медленнее
+реального времени.
+
+**Статус:** работает как задумано. При штатной физике `g_physics_hz = 20`
+(дизайновая частота оригинала) таймер идёт **1:1 с реальным временем** — это
+лучше, чем у PS1 (~90%) или PC retail (~88%). Миссионные тайм-ауты
+рассчитывались под "кривое" оригинальное железо, не под идеальные 1:1 — баланс
+может немного отличаться, но принципиально не ломается.
+
+**Замеры (2026-04-29):** миссия с машинкой, таймер 1:30.
+- Наша версия (20 Hz): таймер 1:1 с реальным временем.
+- PS1 (эмулятор, ~30 Hz): таймер на ~5-9 сек медленнее реального.
+- PC retail (Steam) и PieroZ v0.2.0: таймер заканчивается на ~5 сек позже нашей
+  (PC физика тикала медленнее из-за рендерной нагрузки).
+
+**Почему безопасно менять `g_physics_hz` (debug-режим):** TICK_RATIO компенсирует
+скорость физики (movement per second = BASE × TICK_RATIO × Hz ≈ const).
+На скорость таймера влияет integer truncation в `5 * TICK_RATIO >> 8` —
+именно этим и можно точечно калибровать таймер, не ломая gameplay.
+
+**Место:** `EWAY_process` в `eway.cpp`, формула `EWAY_tick = 5 * TICK_RATIO >> TICK_SHIFT`.
+Default physics Hz: `g_physics_hz = 20` в `game_globals.cpp`.
+
+Подтверждено пользователем 2026-05-04: на штатной 20 Hz физике таймер 1:1 с
+реальным временем — закрыто.
+
+---
+
+## 13. ✅ Сирена/мигалка машины: реакция на пробел зависит от physics Hz
+
+**Симптом (был):** при низком `g_physics_hz` нажатие пробела часто не
+срабатывало — игра как будто не видит ввод. При штатной физике (20 Hz) —
+реагирует. FPS рендера на это не влияет.
+
+**Причина:** опрос кнопки сирены делается в physics-тике (`process_controls`
+или vehicle-обработка в `process_things`). При замедленной физике пробел
+нажат и отпущен между тиками — edge не регистрируется.
+
+**Статус:** работает как задумано на штатной физике. Управление калибруется под
+20 Hz (дизайновая частота). На 20 Hz toggle сирены работает корректно. На низких
+physics Hz (debug-клавиша 1 → 5 Hz) регистрация хуже — нажатия часто проскакивают
+между тиками, но удержанием можно переключить (проверено 2026-05-03). Низкие Hz —
+debug-режим, на них поведение ввода не оптимизируется.
+
+**Анимация мерцания сирены** — закрыта прошлыми фиксами, см. #3 выше.
+
+**Архитектурно решится** новой системой управления — см. [`input_system.md`](input_system.md)
+(edge-detect + event queue в render-tick'е снимут зависимость от physics Hz).
+Это часть общей задачи #15 — input привязан к physics-тику. Точечный фикс toggle
+сирены не делаем; всё закроется input_system task'ом.
+
+Подтверждено пользователем 2026-05-04.
+
+---
+
+## 14. ✅ Таймер HUD: дребезжание при изменении physics/render Hz (вне красного состояния)
+
+**Симптом (был):** UI HUD таймер миссии дребезжал — пропадал на 1 или более
+кадров и возвращался. Скорость дребезжания зависела от обеих переменных:
+`g_physics_hz` и `g_render_fps_cap`.
+
+**Гипотеза причины:** числовая рассинхронизация между physics-тиком который
+декрементирует таймер и рендер-кадром который его рисует. При нестандартных Hz
+соотношение кадров/тиков неравномерное — таймер иногда оказывался в нуле
+(или отрицательным) на момент отрисовки.
+
+**Статус:** проверено пользователем 2026-05-04 — не воспроизводится. Закрыто
+прошлыми фиксами (вероятно частью render-interpolation работ либо миграции на
+`VISUAL_TURN`). Точная commit-точка не зафиксирована.
+
+**Остаточная проблема (была):** скорость красно-белого мерцания таймера когда время
+истекло — это был **отдельный** issue, закрыт ниже как #15.
+
+---
+
+## 15. ✅ Таймер HUD: скорость мерцания (когда истёк, красный) зависит от FPS
+
+**Симптом (был):** когда mission timer истекал и становился красным, он начинал
+мерцать красный↔pink-white. Скорость мерцания зависела и от `g_physics_hz`,
+и от `g_render_fps_cap` — на высоком FPS мерцал быстрее, на низком — медленнее.
+
+**Корневая причина:** в [`PANEL_draw_buffered`](../../new_game/src/ui/hud/panel.cpp)
+на time<30 sec был per-render-frame accumulator: `static unsigned short pulse = 0;
+pulse += (TICK_RATIO * 80) >> TICK_SHIFT;`. Функция зовётся per render frame, поэтому
+pulse advances scaled с render FPS. Дополнительно `TICK_RATIO` clamp'ится в
+`[128..384]` → шаг зависит от physics Hz на нестандартных частотах. SIN(pulse & 2047)
+циклится за 2048 единиц → период мерцания = render_fps × physics-tied step.
+
+**Фикс:** заменён accumulator на wall-clock derivation — `pulse` теперь считается
+из `sdl3_get_ticks()` с фиксированной cadence 80 × `UC_VISUAL_CADENCE_HZ` =
+2400 units/sec (= оригинальная 30 Hz render-rate × 80 unit/frame). Период мерцания
+≈ 0.85 sec wall-clock на любом render FPS / physics Hz. Маска `& 2047` перенесена
+ДО cast'а в SLONG чтобы избежать implementation-defined unsigned→signed на длинном
+аптайме (>~10 дней).
+
+Подтверждено пользователем 2026-05-04.
+
+---
+
+## 16. ✅ MIB destruct (электрический эффект смерти Men in Black)
+
+**Где:** [`person.cpp:13601 DRAWXTRA_MIB_destruct`](../../new_game/src/things/characters/person.cpp). Вызывается из render path (`AENG_draw_city`) per render frame пока MIB в state электрической смерти. Содержит несколько визуальных компонентов:
+
+1. **Зигзагообразная синяя/белая линия "молния"** от пелвиса до земли — `POLY_add_line_tex_uv` с `POLY_PAGE_LITE_BOLT`. Без VT/time gate.
+2. **Dynamic light flash + PYRO_TWANGER spawn** — gated `if (ctr > 1200 + ammo_packs_pistol)` (где `ctr = Timer1`). Самотротль через ammo_packs_pistol после первого spawn остаётся вечно открытым → spawn на каждом render frame.
+3. **SPARK_create** "электрические искры" — gated `if (VISUAL_TURN & 1)`.
+4. **WorldPos.Y oscillation** через `+= SIN(ctr >> 2) >> 7` — модификация позиции для "вибрации" тела.
+
+### Симптомы (все закрыты)
+
+**Симптом 1 — анимация молний быстрее на high render rate.** ✅ ЗАКРЫТО (2026-05-03).
+
+При unlimited render эффекты "движутся быстрее" чем при 25 fps cap. Проявлялось как ускоренная анимация электрических разрядов и накопительный overdraw lens flare на высоком FPS.
+
+**Что исправлено (этап 1):** PYRO_TWANGER + dlight спавн в `DRAWXTRA_MIB_destruct` ([`person.cpp`](../../new_game/src/things/characters/person.cpp)) был gated через self-throttle на `ammo_packs_pistol` который срабатывал per render frame → плотность спавна линейно росла с FPS. Заменено на `VISUAL_TURN & 1` gate.
+
+**Что исправлено (этап 2):** `VISUAL_TURN & 1` оказался **level-triggered** — внутри "1"-полуфазы фаерил каждый render frame, поэтому на render > 30 Hz плотность всё ещё росла с FPS (60 FPS ≈ 30 спавнов/сек, 144 FPS ≈ 75/сек, unlimited ≈ сотни/сек). Каждый PYRO_TWANGER рисует свою lens flare в `PYRO_draw_pyro` per render frame → накопление популяции = накопительная additively-blended яркость. Заменено на честный wall-clock edge-detect: `cur_phase = (sdl3_get_ticks() / SPAWN_INTERVAL_MS) & 0xff`, фаерим только когда `cur_phase != Person->LastDestructSpawn`. `LastDestructSpawn` — UBYTE поле в Person ([person_types.h](../../new_game/src/things/characters/person_types.h)). Один `spawn_fire` гейт используется для обоих блоков (dlight+PYRO_TWANGER и SPARK_create) — синхронизирует все эффекты. SPAWN_INTERVAL_MS = 67ms (~15 Hz cadence) — тюнится отдельным параметром.
+
+Lightning line (`POLY_add_line_tex_uv` с `POLY_PAGE_LITE_BOLT`) — single line per frame, не зависит от FPS по яркости (даже без гейта).
+
+**Симптом 2 — тело MIB не поднимается с включённой интерполяцией.** ✅ ЗАКРЫТО (2026-05-03).
+
+В оригинальной анимации тело MIB при destruct'е поднимается вверх. До фикса: с render interpolation OFF — поднималось но скорость взлёта зависела от FPS (быстрее на unlimited). С interp ON — лежало на месте.
+
+**Корневая причина:** `WorldPos.Y += SIN(ctr >> 2) >> 7` в `DRAWXTRA_MIB_destruct` (render-path) — per render frame аккумулировался asymmetric integer shift (`SIN >> 7` дает bias на отрицательных значениях), создавал drift вверх. Скорость drift пропорциональна FPS. С interp ON `RenderInterpFrame::dtor` восстанавливал saved_pos.Y из снапшота → wipe модификаций каждый кадр.
+
+**Фикс:** перенесли `WorldPos.Y +=` в `fn_person_dead` ([`person.cpp:10785`](../../new_game/src/things/characters/person.cpp#L10785)) — physics-tick handler. Шаг скейлится через `* TICK_RATIO >> TICK_SHIFT` чтобы скорость drift'а соответствовала оригинальной 30 Hz cadence независимо от `g_physics_hz`. Render-interp теперь захватывает уже обновлённый WorldPos авторитетно, лерпит между prev/curr → плавный подъём независимо от render rate. Подтверждено пользователем что работает корректно с interp ON и OFF на любом FPS.
+
+**Симптом 4 — Lens flare во время destruct рисуется FPS-зависимо (overdraw).** ✅ ЗАКРЫТО (2026-05-03) — оказался один и тот же корень с Симптомом 1 (level-triggered VISUAL_TURN gate → FPS-scaled population PYRO_TWANGER → каждый рисует lens flare per render frame через `BLOOM_flare_draw` в `PYRO_draw_pyro` → суммарная яркость = N*per-frame, N растёт с FPS). Чинится тем же edge-detect фиксом — см. этап 2 в Симптоме 1.
+
+**Симптом 3 — анимация ментов в Urban Shakedown дёргается на 20 Hz physics.** ✅ ЗАКРЫТО ранее (подтверждено пользователем 2026-05-03 что проблемы нет).
+
+Конкретно: в начале катсцены где мёртвые менты — они интерполировались перед тем как упасть. Закрыто отдельным фиксом раньше Phase 5 pose snapshot work; точная commit-точка не зафиксирована, но сейчас не воспроизводится.
+
+Также возможна ускоренная/замедленная скорость animation playback из-за смены physics rate с 30 → 20 Hz (см. [fps_unlock_issues.md #16](fps_unlock_issues.md) — ревизия таймингов) — это **отдельная** проблема (animation duration constants могли калиброваться под 30 Hz), не связана с интерполяцией.
+
+**Симптом 5 — Длительность destruct'а 7 сек у нас vs 11 сек на release PC.** ✅ ЗАКРЫТО (2026-05-03).
+
+Pre-release исходники (которые мы используем) содержат `Timer1 >= 20 * 20 * 5` (= 2000) с комментарием **«Was 32 * 20 * 5 for the PC, less time for the DC...»** ([original_game/fallen/Source/Person.cpp:17640](../../original_game/fallen/Source/Person.cpp#L17640)). То есть pre-release был сборкой под Dreamcast — там специально укоротили эффект. Release PC использовал 3200. Наша математика: при 20 Hz физики Timer1 += 16/тик × 20 = 320/sec → 2000 / 320 = **6.25 сек**. С threshold 3200: 3200 / 320 = **10 сек**, что близко к наблюдаемым 11 сек на release PC.
+
+**Фикс:** заменено `20 * 20 * 5` на `32 * 20 * 5` в `fn_person_dead` ([person.cpp:10700](../../new_game/src/things/characters/person.cpp#L10700)) с комментарием объясняющим происхождение DC value. Подтверждено пользователем.
+
+**Симптом 6 — Тело взлетает ~2x ниже чем на release PC.** ✅ ЗАКРЫТО (2026-05-03) — фикс Симптома 5 покрыл (увеличение длительности с 6.25→10 сек дало +70% к суммарному drift'у, чего хватило). Подтверждено пользователем.
+
+**Симптом 7 — «Синяя хрень» (lightning ribbons SPARK) рисуется FPS-зависимо, форма дёргается с render rate.** ✅ ЗАКРЫТО (2026-05-03).
+
+**Корневая причина:** `SPARK_find_midpoint` ([spark.cpp:485](../../new_game/src/effects/combat/spark.cpp#L485)) использовал `rand()` для случайного смещения зигзаг-midpoint'ов. Вызывался из `SPARK_get_next` в render path → midpoints перегенерировались каждый render frame с новыми случайными значениями → форма bolt'а дёргалась с FPS-частотой.
+
+Дополнительно: `SPARK_get_next` имел второй `rand()` для skip-логики sub-segments при `ss->die` countdown.
+
+**Фикс:** заменены оба `rand()` на детерминированный hash `spark_noise(identity, 0, bucket, salt)`:
+- **identity** = `(SPARK_get_spark << 8) | segment_idx` — стабильный per-(spark, segment), НЕ endpoint coords (важно: endpoints SPARK_TYPE_LIMB интерполируются render_interp'ом per render frame; использовать их как seed → hash меняется per frame → wiggle FPS-bound)
+- **bucket** = `sdl3_get_ticks() / 67ms` (~15 Hz cadence) — wall-clock-bound, одинаков на любом FPS
+- **salt** различает 3 вызова midpoint в одном segment'е и x/y/z оси
+
+**Также фиксы в render path SPARK:**
+- `SPARK_process` ([game_tick.cpp:1257](../../new_game/src/game/game_tick.cpp#L1257)) обёрнут в wall-clock gate (15 Hz). Раньше `process_controls` per render frame вызывал `SPARK_process`, который делал `Pos += dx>>4` и `--die` per call → искры умирали за 0.1 сек на 280 FPS, за 1.5 сек на 25 FPS, и Pos двигался FPS-кратно.
+
+**Симптом 8 — На уменьшенной физике lens flare overdraw'ит, эффект слишком яркий.** ✅ ЗАКРЫТО (2026-05-03).
+
+**Корневая причина:** PYRO_TWANGER lifetime был physics-tick-bound (`counter += 16` per tick, free at 240 = 15 ticks). При снижении physics rate lifetime растягивался → spawn (15 Hz wall-clock) накапливал больше одновременно живых twanger'ов → каждый рисует additive lens flare per render frame → over-bright bloom.
+
+При первой попытке использовать `* TICK_RATIO >> TICK_SHIFT` оказалось что `TICK_RATIO` зажимается в `[128..384]` ([thing.cpp:478-479](../../new_game/src/things/core/thing.cpp#L478-L479)) — на 5 Hz физики реальный множитель должен был быть 1024, но clamp давал 384 → недокомпенсация.
+
+**Фикс:** использован **uncompressed** `tick_tock_unclipped` ([pyro.cpp:653](../../new_game/src/effects/combat/pyro.cpp#L653)) — `pyro->counter += (16 * tick_tock_unclipped) / 50` где 50 = THING_TICK_BASE_MS (1000/20). Lifetime теперь ~0.75 сек wall-clock на любом physics rate (включая 5 Hz). Population стабильно ~11 alive.
+
+Дополнительно: яркость lens flare'а PYRO_TWANGER уменьшена в 2x (`str >>= 1` в [pyro.cpp:1675](../../new_game/src/effects/combat/pyro.cpp#L1675)) чтобы попасть в диапазон обычных light source'ов сцены (фары/лампы), а не выглядеть disproportionately blown out.
+
+**Симптом 9 — `POLY_PAGE_LITE_BOLT` rendering glitch: тёмные ректангулы где transparent texels одной молнии перекрывают другие.** ✅ ЗАКРЫТО (2026-05-03).
+
+**Корневая причина:** в setup'е POLY_PAGE_LITE_BOLT ([poly_render.cpp:253](../../new_game/src/engine/graphics/pipeline/poly_render.cpp#L253)) была опечатка — `SetDstBlend` вызывался дважды, `SetSrcBlend` вообще не вызывался. И `SetDepthWrite(false)` отсутствовал → каждый additive quad молнии писал в depth buffer, блокируя последующие overlapping quad'ы.
+
+**Фикс:** добавлен `SetSrcBlend(One)` (additive blending как и задумывалось) + `SetDepthWrite(false)` (transparent additive primitives не должны писать depth). Подтверждено пользователем.
+
+**Симптом 10 — Анимация текстуры LITE_BOLT слишком быстрая.** ✅ ЗАКРЫТО (2026-05-03) — `SHAPE_sparky_line` ([shape.cpp:344](../../new_game/src/engine/graphics/geometry/shape.cpp#L344)) циклит `which = (VISUAL_TURN + i) & 3` — VISUAL_TURN тикает 30 Hz wall-clock. Замедлено в 2x: `vt_for_anim = VISUAL_TURN >> 1` → ~15 Hz cadence, в один темп с остальными MIB destruct визуалами.
+
+---
+
+## 17. ✅ Mission timer залипает на экране после level complete (regression)
+
+**Симптом (был):** после прохождения миссии (level complete / level fail) HUD-таймер
+миссии оставался на экране замороженным на последнем значении. Время не тикало,
+но если таймер был красным на момент завершения — pulse-анимация продолжала
+работать (она wall-clock-derived, см. resolved #15). В оригинале такого не было —
+таймер исчезал сразу при level complete.
+
+**Корневая причина (regression нашей итерации):** оригинал звал `PANEL_draw_timer`
+**inline** из waypoint-кода каждый physics tick, и значение хранилось в глобале
+`slPANEL_draw_timer_time` который **автосбрасывался в -1 после каждой отрисовки**.
+Если waypoint код не вызвал — таймер исчезал сам.
+
+В нашем рефакторе (видимо для устранения дребезжания на render > physics, см.
+resolved #14) вынесли draw в отдельную функцию `EWAY_draw_hud_timers` с
+персистентной переменной `EWAY_hud_countdown_value` (в [eway.cpp:4187](../../new_game/src/missions/eway.cpp#L4187),
+гейт `>= 0`). Декремент остался в waypoint processing — но при level
+won/lost оно скипается ([eway.cpp:4219](../../new_game/src/missions/eway.cpp#L4219)),
+поэтому значение замораживалось без сброса.
+
+**Фикс:** в ветке `if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON))` добавлено
+явное `EWAY_hud_countdown_value = -1;` — компенсирует потерю автосброса оригинала.
+
+Подтверждено пользователем 2026-05-04.

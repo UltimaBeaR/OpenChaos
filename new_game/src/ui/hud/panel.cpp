@@ -12,6 +12,7 @@
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "game/game_types.h" // UC_VISUAL_CADENCE_HZ — original render-tied calibration rate
 
 // Scene FBO dimensions (defined in d3d/display_globals.cpp).
 extern SLONG ScreenWidth;
@@ -195,9 +196,15 @@ void PANEL_draw_buffered()
         sprintf(countdown, "%02d:%02d", mins, (int)time);
 
         if ((time < 30) && !mins) {
-            static unsigned short pulse = 0;
-            pulse += (TICK_RATIO * 80) >> TICK_SHIFT;
-            int colour = (SIN(pulse & 2047) >> 9) + 128;
+            // Pulse calibrated against original render-tied rate UC_VISUAL_CADENCE_HZ
+            // (PS1 hardware lock + PC retail default = 30 Hz render). Original was
+            // pulse += 80 per render frame → 80 × 30 = 2400 units/sec. Derived from
+            // wall-clock so cycle rate is independent of render FPS and physics Hz.
+            // SIN cycles every 2048 units → 2048 / 2400 ≈ 0.85 sec/pulse. Mask before
+            // cast: at long uptime the multiplied value exceeds SLONG range.
+            constexpr ULONG PULSE_UNITS_PER_SEC = 80U * UC_VISUAL_CADENCE_HZ;
+            SLONG pulse = SLONG((sdl3_get_ticks() * PULSE_UNITS_PER_SEC / 1000U) & 2047U);
+            int colour = (SIN(pulse) >> 9) + 128;
             colour = colour | (colour << 8);
             FONT2D_DrawStringCentred(countdown, m_iPanelXPos + 171, m_iPanelYPos - 118, 0xff0000 | colour, 256 + 64);
         } else {
