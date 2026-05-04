@@ -32,3 +32,35 @@
 - Phase 2 — stick virtual directions с hysteresis. Нужны для меню (stick-as-arrows).
 - Phase 3 — universal auto-repeat (`input_*_just_pressed_or_repeat`).
 - Phase 4-N — миграция потребителей (vehicle siren, gamemenu, frontend, debug-keys, weapon switch).
+
+---
+
+## 2026-05-05 — Phase 2 + 3: stick virtual directions + universal auto-repeat
+
+Заглушки заменены реальной логикой. Билд проходит, поведение игры не меняется (потребители ещё не мигрированы).
+
+**Phase 2 — stick virtual directions:**
+
+В `input_frame_update` добавлен пересчёт `s_stick_dir_curr[2][4]` после snapshot'а геймпада:
+- Каждое направление (Up/Down/Left/Right для левого и правого стика) рассчитывается из post-deadzone float значения с **hysteresis**: для входа в pressed нужно отклонение `STICK_DIR_PRESS_THRESHOLD = 0.5f`, для выхода — `STICK_DIR_RELEASE_THRESHOLD = 0.25f`. Это устраняет дребезг на границе порога.
+- **Mutual exclusion:** одновременное Up+Down или Left+Right → оба → false (cancel). Стик отклонённый по диагонали Up+Left даёт оба направления одновременно — это ОК, не отрицание.
+- `input_stick_held / just_pressed / just_released` — теперь работают по реальным данным.
+
+**Phase 3 — universal auto-repeat:**
+
+Константы `INPUT_REPEAT_INITIAL_MS = 400` и `INPUT_REPEAT_PERIOD_MS = 150` — единые для всех меню (взяты из текущего gamemenu.cpp чтобы миграция не меняла ощущение).
+
+Реализованы `input_key_just_pressed_or_repeat`, `input_btn_just_pressed_or_repeat`, `input_stick_just_pressed_or_repeat` через массивы `s_*_next_fire` (uint64_t timestamps от `sdl3_get_ticks`). Pattern: rising edge → set next_fire = now + initial. На каждом fire после — advance на repeat period.
+
+**Изменения:**
+- [`input_frame.cpp`](../../new_game/src/engine/input/input_frame.cpp) — добавлены массивы состояний, helper `compute_dir`, расширены init/update, реализованы Phase 2/3 функции взамен заглушек.
+
+Включён `#include "engine/platform/sdl3_bridge.h"` для `sdl3_get_ticks`.
+
+**Что дальше:**
+- Phase 4-N — миграция потребителей. Каждый — отдельный коммит с тестом. Порядок:
+  1. `gamemenu.cpp` — самое наглядное место для проверки Phase 2+3 (stick navigation + auto-repeat). Заменяет ad-hoc `gm_last_*` + `gm_dir_next_fire` + `kb_next_fire` на единый API.
+  2. `vehicle.cpp` siren toggle (#5).
+  3. `frontend.cpp` навигация.
+  4. `check_debug_timing_keys`.
+  5. `game_tick.cpp` weapon switch (#20) — сначала верифицировать что баг ещё актуален.
