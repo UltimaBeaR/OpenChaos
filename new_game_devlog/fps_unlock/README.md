@@ -39,7 +39,7 @@
 | [CORE_PRINCIPLE.md](CORE_PRINCIPLE.md) | **⚠️ Основной принцип задачи — читать ПЕРЕД любым кодом** |
 | [fps_unlock_pitfalls.md](fps_unlock_pitfalls.md) | **⚠️ Памятка по типичным граблям** при отвязке эффектов от FPS — чеклист, истории фиксов. **Дописывать сразу** при нахождении нового класса бага. |
 | [fps_unlock.md](fps_unlock.md) | Главный документ: почему всё сложно, пути вперёд, технические детали |
-| [input_system.md](input_system.md) | **Подзадача:** унификация системы управления — отдельный input-модуль на render-tick'е. Закрывает класс input-багов (#5/#15/#20) разом, плюс actions/ремап/контексты |
+| [`../input_system/`](../input_system/README.md) | **Подзадача:** переработка управления — модуль `input_frame` (edge-detect, sticky press, stick-as-direction, universal auto-repeat). Папка переехала из fps_unlock т.к. задача шире. Текущий план → [current_plan.md](../input_system/current_plan.md), отложенный полный план с actions/ремапом → [full_plan_deferred.md](../input_system/full_plan_deferred.md). |
 | [render_interpolation/](render_interpolation/README.md) | **Подзадача:** render-side интерполяция (lerp между physics-снапшотами) — отдельная папка с архитектурой, coverage, известными багами и планами |
 | [debug_physics_render_rate.md](debug_physics_render_rate.md) | Реализация debug-инструмента: глобалы, клавиши, код, нерешённые проблемы |
 | [fps_unlock_issues.md](fps_unlock_issues.md) | Баги найденные при тестировании инструмента |
