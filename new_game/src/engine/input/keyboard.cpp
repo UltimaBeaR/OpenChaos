@@ -61,6 +61,12 @@ void keyboard_key_up(UBYTE scancode)
         Keys[scancode] = 0;
     }
 
+    // input_frame's held-state tracking is independent of Keys[]'s same-turn
+    // latching: it always reflects the actual hardware state, since input_frame
+    // tracks rising/falling edges itself and uses pressed_during_frame for
+    // same-frame visibility.
+    input_frame_on_key_up(scancode);
+
     SetFlagsFromKeyArray();
 }
 

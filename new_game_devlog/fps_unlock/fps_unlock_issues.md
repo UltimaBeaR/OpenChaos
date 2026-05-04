@@ -215,3 +215,41 @@ graphics performance diagnostics, инструменты для **временн
 
 **Приоритет:** средний. Не блокер 1.0, но желателен ДО релиза — чтобы оптимизировать
 перф финально перед выходом, имея на руках инструмент для локализации проблем.
+
+---
+
+## 23. DualSense LED siren strobe: частота мигания зависит от render FPS
+
+**Симптом:** при езде в полицейской машине с включённой сиреной светодиодная подсветка
+DualSense мигает красный↔синий — на штатных 30 FPS render строб ~7.5 Hz (соответствует
+комментарию в коде "fast strobe"), но на высоких render rate'ах мигает в N раз быстрее
+(на 60 FPS ≈ 15 Hz, на 240 FPS ≈ 60 Hz). Эффект только на DualSense (Xbox/keyboard
+не имеют LED'а).
+
+**Причина:** [`gamepad_led_update`](../../new_game/src/engine/input/gamepad.cpp#L583)
+зовётся per render frame из game.cpp:1193. Внутри:
+
+```c
+static int siren_counter = 0;
+siren_counter++;                       // per render frame
+bool phase = (siren_counter / 4) & 1;  // фаза переключается каждые 4 кадра
+```
+
+Per-frame инкремент → флип-период линейно зависит от FPS. Тот же класс бага что и
+resolved #11 (gamemenu paused animations) — counter без dt-компенсации.
+
+**Место:** [`gamepad.cpp` `gamepad_led_update` siren branch](../../new_game/src/engine/input/gamepad.cpp#L590-L603).
+
+**Фикс:** заменить per-frame counter на wall-clock derivation. Целевая частота —
+~7.5 Hz (= 4 frames при 30 FPS оригинала). Например:
+
+```c
+constexpr ULONG SIREN_STROBE_PERIOD_MS = 1000 / 15; // 67ms на полупериод (~7.5 Hz full cycle)
+bool phase = ((sdl3_get_ticks() / SIREN_STROBE_PERIOD_MS) & 1) != 0;
+```
+
+Либо привязать к `VISUAL_TURN` (30 Hz wall-clock counter) — `(VISUAL_TURN / 4) & 1`
+эквивалент оригинальной 30 FPS cadence.
+
+**Приоритет:** низкий — косметика, влияет только на пользователей DualSense в патрульных
+миссиях. Не блокер 1.0.

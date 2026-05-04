@@ -3,6 +3,8 @@
 
 #include "engine/core/types.h"
 
+#include <cstdint>
+
 // =============================================================================
 // Per-frame input state — captured at start of each render frame, exposed to
 // all consumers as a unified API. Replaces ad-hoc edge-detect / sticky / auto-
@@ -91,9 +93,61 @@ float input_stick_y(InputStickId stick);
 
 float input_trigger(SLONG trigger_idx);
 
-// ---- Internal: SDL event hook ----------------------------------------------
-// Called from keyboard_key_down() on key press to set sticky press_pending.
+// ---- Combined-source auto-repeat -------------------------------------------
+//
+// Single auto-repeat throttle on a caller-supplied "any held" boolean.
+// Use when one logical action has multiple physical sources (e.g. menu nav
+// down = keyboard down OR stick down OR D-pad down) and you want exactly one
+// auto-repeat cadence on the combined input — not separate per-source timers
+// that could interleave to a 2× rate when several sources are held at once.
+//
+// Treats all sources as one combined entity:
+//   any_held: rising → fire + start initial delay
+//   any_held: falling → disarm (next press starts fresh)
+//   any_held stays true while sources change (one held, second pressed,
+//   first released, etc.) → no edge, timer continues uninterrupted
+//
+// Caller computes the combined bool by OR'ing input_*_held() results.
+// One InputAutoRepeat instance per logical action, typically a static local
+// or a member of the consumer's state.
+//
+//   static InputAutoRepeat ar_down;
+//   bool nav_down = ar_down.tick_combined(
+//       input_key_held(KB_DOWN)
+//    || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN));
+struct InputAutoRepeat {
+    bool     was_held  = false;
+    bool     armed     = false;
+    uint64_t next_fire = 0;
+
+    // Returns true on a genuine combined rising edge AND on each auto-repeat
+    // tick while combined input is held. Cadence: INPUT_REPEAT_INITIAL_MS for
+    // the first auto-repeat after rising edge, INPUT_REPEAT_PERIOD_MS for
+    // subsequent ticks (single source of truth for menu auto-repeat).
+    //
+    // Caller passes two booleans:
+    //   any_just_pressed — OR of input_*_just_pressed() across sources, i.e.
+    //                      "did any source see a rising edge in this frame's
+    //                      snapshot". From input_frame snapshot, NOT from
+    //                      tick_combined's own state.
+    //   any_held         — OR of input_*_held() across sources.
+    //
+    // Logic uses (any_just_pressed && !was_held) as the rising edge of the
+    // COMBINED input — so adding a second source while one is already held
+    // doesn't restart the timer (was_held is already true), and a held-from-
+    // before-context input doesn't fire on first call (any_just_pressed is
+    // false because no rising edge happened in this frame's snapshot).
+    bool tick_combined(bool any_just_pressed, bool any_held);
+};
+
+// ---- Internal: SDL event hooks ---------------------------------------------
+// Called from keyboard event handlers. Maintain an independent held-state
+// array driven only by these events, decoupled from the public Keys[] array
+// which consumers may mutate (e.g. menu handlers clearing Keys[KB_X] = 0
+// after consume). Without that decoupling, a consumer's clear leaks into
+// the next frame's snapshot and breaks auto-repeat for held keys.
 
 void input_frame_on_key_down(UBYTE scancode);
+void input_frame_on_key_up(UBYTE scancode);
 
 #endif // ENGINE_INPUT_INPUT_FRAME_H

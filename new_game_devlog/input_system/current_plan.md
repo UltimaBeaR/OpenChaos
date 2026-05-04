@@ -1,6 +1,9 @@
 # Input System — текущая работа: модуль `input_frame`
 
-> **Статус:** в работе. Прогресс → [changelog.md](changelog.md).
+> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **gamemenu мигрирован**.
+> Остаются миграции frontend, vehicle siren, debug-keys, weapon switch.
+> Детальная хронология → [changelog.md](changelog.md), грабли при миграции →
+> [migration_checklist.md](migration_checklist.md).
 > **Большой план с actions/ремапом** → [full_plan_deferred.md](full_plan_deferred.md) (отложен).
 
 ## Зачем
@@ -78,33 +81,71 @@ void input_key_consume(SLONG kb_code);
 void input_btn_consume(SLONG gamepad_btn_idx);
 ```
 
-### Auto-repeat
+### Auto-repeat (single source)
 
 ```cpp
 // Возвращает true:
 //  - на первое нажатие (just_pressed)
-//  - и далее каждые ~150 ms если клавиша зажата и прошёл initial delay 400 ms.
-// Параметры (initial_delay_ms, repeat_period_ms) — единые для всех менюшек,
-// настраиваются константами в input_frame.cpp.
+//  - и далее каждые INPUT_REPEAT_PERIOD_MS если клавиша зажата и прошёл
+//    INPUT_REPEAT_INITIAL_MS.
+// Константы — единые для всех меню (`INPUT_REPEAT_INITIAL_MS = 400`,
+// `INPUT_REPEAT_PERIOD_MS = 150`) в input_frame.cpp.
+//
+// "Armed" флаг: auto-repeat стреляет только если just_pressed был ЗАХВАЧЕН
+// в этой функции — т.е. в этом потребителе была rising edge. Если клавиша
+// зажата с другого контекста (gameplay → меню), held=true но armed=false →
+// не стреляет до release+repress.
 bool input_key_just_pressed_or_repeat(SLONG kb_code);
 bool input_btn_just_pressed_or_repeat(SLONG gamepad_btn_idx);
 ```
+
+### Auto-repeat (combined sources) — `InputAutoRepeat` struct
+
+Когда одно логическое действие имеет **несколько физических источников** (menu nav down = клава ↓ ИЛИ стик ↓ ИЛИ D-pad ↓): использовать единый throttle на OR'нутом combined input. **Не** OR'ить два single-source `_just_pressed_or_repeat` — у них независимые timer'ы, combined OR'ит на ~2× rate из-за фазового сдвига.
+
+```cpp
+struct InputAutoRepeat {
+    bool was_held = false;
+    bool armed = false;
+    uint64_t next_fire = 0;
+    bool tick_combined(bool any_just_pressed, bool any_held);
+};
+```
+
+Использование:
+
+```cpp
+static InputAutoRepeat ar_down;
+
+const bool any_dn_jp   = input_key_just_pressed(KB_DOWN)
+                      || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
+const bool any_dn_held = input_key_held(KB_DOWN)
+                      || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
+
+const bool nav_down = ar_down.tick_combined(any_dn_jp, any_dn_held);
+```
+
+Combined rising edge = `any_just_pressed && !was_held`. Это:
+- НЕ стреляет если combined уже был зажат с другого контекста (was_held набрался до того как мы захотели его прочитать — wait, нет, was_held стартует false; защита через `any_just_pressed` который от snapshot-level rising edge).
+- НЕ перезапускает timer когда добавляется второй источник пока первый ещё зажат.
+- Для antagonist (up + down оба зажаты) — suppression делается на стороне consumer'а (см. [`migration_checklist.md`](migration_checklist.md) пункт 5).
 
 ### Stick-as-direction (виртуальные стрелки)
 
 ```cpp
 // Виртуальные направления стика — для меню/UI, где нужны discrete events.
-// Threshold с гистерезисом: один раз стик отклоняется > inner_threshold —
-// считается "нажат" в этом направлении до возврата в < outer_threshold.
-// Одновременное Up + Down → нет нажатия (cancel).
+// Threshold с гистерезисом: вход в pressed при > STICK_DIR_PRESS_RAW (4096)
+// от центра, выход в released при < STICK_DIR_RELEASE_RAW (2048).
+// Одновременное Up + Down (или Left + Right) → cancel оба (в одном стике).
 
-enum StickDir { STICK_UP = 0, STICK_DOWN, STICK_LEFT, STICK_RIGHT };
-enum StickId  { STICK_LEFT_PAD = 0, STICK_RIGHT_PAD };
+enum InputStickId  { INPUT_STICK_LEFT = 0, INPUT_STICK_RIGHT };
+enum InputStickDir { INPUT_STICK_DIR_UP = 0, INPUT_STICK_DIR_DOWN,
+                     INPUT_STICK_DIR_LEFT, INPUT_STICK_DIR_RIGHT };
 
-bool input_stick_held(StickId stick, StickDir dir);
-bool input_stick_just_pressed(StickId stick, StickDir dir);
-bool input_stick_just_released(StickId stick, StickDir dir);
-bool input_stick_just_pressed_or_repeat(StickId stick, StickDir dir);
+bool input_stick_held(InputStickId stick, InputStickDir dir);
+bool input_stick_just_pressed(InputStickId stick, InputStickDir dir);
+bool input_stick_just_released(InputStickId stick, InputStickDir dir);
+bool input_stick_just_pressed_or_repeat(InputStickId stick, InputStickDir dir);
 ```
 
 Continuous-доступ к стикам тоже есть (для движения и камеры) — но он по сути обёртка вокруг `the_state.lX/lY/lRx/lRy`:
@@ -126,58 +167,77 @@ float input_trigger(SLONG trigger_idx);  // 15=L2, 16=R2 в the_state.rgbButtons
 
 Цель — не пропускать fast presses когда между двумя render frame'ами клавиша успела пойти вниз и обратно.
 
-**Где set'ится:** в SDL event handler'е (где сейчас пишется `Keys[X] = 1`). Параллельно с записью в `Keys[]` ставится `input_key_press_pending_[X] = 1`.
+**Где set'ится:** в SDL event handler'е (`keyboard_key_down` → `input_frame_on_key_down(scancode)`). Параллельно с записью в `Keys[]` ставится `s_keys_press_pending[X] = 1`.
 
-**Где clear'ится:** только при `input_key_consume(X)` — никогда не сбрасывается автоматически. Это значит pending живёт до тех пор пока кто-то не обработал. Если несколько потребителей читают один и тот же ключ — первый кто consume'ит, очистит для всех остальных в **этом** frame'е (но если новое нажатие придёт после consume и до конца frame'а — sticky снова поднимется).
+**Где clear'ится:** только при `input_key_consume(X)` — никогда не сбрасывается автоматически. Это значит pending живёт до тех пор пока кто-то не обработал.
 
 **Правило для потребителей:** если ты обрабатываешь pending-press → consume сразу после обработки. Если только смотришь "был ли press" без действия → не consume.
 
-**Поведение `just_pressed`:** рассчитывается из snapshot'а и prev-snapshot'а на render frame, не из sticky-флага. То есть `just_pressed` отражает edge "видимый из render frame", `pending` — edge "случившийся хоть когда-то с прошлого consume".
+**Поведение `just_pressed`:** рассчитывается из snapshot'а и prev-snapshot'а на render frame, не из sticky-флага. `just_pressed` отражает edge "видимый из render frame", `pending` — edge "случившийся хоть когда-то с прошлого consume".
 
 Различие важно: `just_pressed` ловит edge ровно на одном frame'е (как Unity GetKeyDown), `pending` — sticky catch-up для медленных потребителей (физика которая может прийти на следующий frame).
 
+## Источник истины snapshot'ов — независим от `Keys[]`
+
+input_frame **не читает** `Keys[]` для своего snapshot'а. Вместо этого хранит свои собственные `s_keys_event_held[]` (set в `keyboard_key_down`, clear в `keyboard_key_up`) и `s_keys_pressed_during_frame[]` (для same-frame press+release visibility).
+
+**Почему так:** потребители (меню) делают `Keys[KB_X] = 0` после consume — это leak'ало бы в snapshot следующего кадра, ломая auto-repeat для зажатых клавиш. См. [changelog.md](changelog.md) "Баг 1: keyboard auto-repeat не работал".
+
+Геймпад snapshot'ится из `gamepad_state.rgbButtons[]` — там никто не консьюмит, поэтому проблемы нет.
+
 ## Implementation phases
 
-### Phase 1 — Скелет модуля (коммит 1)
+### ✅ Phase 1 — Скелет модуля
 
-- [ ] `input_frame.h` — API
-- [ ] `input_frame.cpp` — реализация с заглушками для stick/auto-repeat (остальное работает)
-- [ ] `input_frame_globals.{h,cpp}` если нужны globals
-- [ ] Hook в SDL event handler — найти где ставится `Keys[X] = 1` и добавить sticky set
-- [ ] Hook в gamepad handler — аналогично для button events
-- [ ] Вызов `input_frame_update()` в начале game loop'а (game.cpp), до `GAMEMENU_process`
-- [ ] Build pass — никаких изменений в поведении, только новая инфраструктура
+- [x] `input_frame.h` — API
+- [x] `input_frame.cpp` — реализация со снапшотами и edge-detect
+- [x] Hook в SDL event handler (`keyboard.cpp` → `input_frame_on_key_down/up`)
+- [x] Геймпад snapshot из `gamepad_state.rgbButtons[]` (polling, не events)
+- [x] Вызов `input_frame_update()` в `LibShellActive` после `sdl3_poll_events`
+- [x] Build pass — поведение не менялось
 
-### Phase 2 — Stick-as-direction (коммит 2)
+### ✅ Phase 2 — Stick virtual directions
 
-- [ ] Реализация виртуальных направлений с hysteresis для левого и правого стика
-- [ ] Edge-detect для них
-- [ ] Build + ручное тестирование что стик корректно отдаёт just_pressed_up etc
+- [x] Реализация виртуальных направлений с hysteresis (press 4096 raw, release 2048 raw — distance from center 32768)
+- [x] Edge-detect через prev/curr snapshot
+- [x] Mutual exclusion: одновременное Up+Down или Left+Right в одном стике → cancel
+- [x] D-pad покрыт автоматически (миррорится в `lY/lX` на gamepad layer)
 
-### Phase 3 — Universal auto-repeat (коммит 3)
+### ✅ Phase 3 — Universal auto-repeat
 
-- [ ] Реализация `just_pressed_or_repeat` для клавиш, кнопок, stick-направлений
-- [ ] Единые константы `INPUT_REPEAT_INITIAL_DELAY_MS` и `INPUT_REPEAT_PERIOD_MS`
+- [x] `input_*_just_pressed_or_repeat` для клавиш / кнопок / stick-направлений
+- [x] Константы `INPUT_REPEAT_INITIAL_MS = 400`, `INPUT_REPEAT_PERIOD_MS = 150` (взяты из gamemenu.cpp)
+- [x] Armed-флаг — auto-repeat стреляет только если `just_pressed` был захвачен в этой call-chain
+- [x] `InputAutoRepeat` struct для combined-source auto-repeat'а с `tick_combined(any_just_pressed, any_held)`
 
-### Phase 4-N — Миграция потребителей (по одному коммиту на место)
+### Phase 4 — Миграция потребителей
 
-Порядок (от наиболее болезненного к наименее):
+⚠️ **Перед каждой миграцией сверяться с** [`migration_checklist.md`](migration_checklist.md).
 
-1. **`vehicle.cpp` siren toggle** — закрывает архитектурную часть #5. Использовать `input_btn_press_pending` или `_just_pressed` для соответствующих физических кнопок.
-2. **`gamemenu.cpp`** — заменить ad-hoc `gm_last_start/triangle/cross/dir` + `gm_dir_next_fire` + `kb_next_fire/kb_last_dir` на `just_pressed`/`just_pressed_or_repeat`/`stick_just_pressed_or_repeat`.
-3. **`frontend.cpp`** — главное меню навигация (`dir_next_fire` → universal repeat).
-4. **`check_debug_timing_keys`** — debug-клавиши.
-5. **`game_tick.cpp` weapon switch (#20)** — сначала эмпирически проверить что баг ещё актуален; если да — мигрировать на новый API.
-6. Прочие места (по обнаружении).
+- [x] **`gamemenu.cpp`** (2026-05-05) — pause menu. Triangle/Cross/Start через `input_btn_just_pressed`, Up/Down nav через `InputAutoRepeat::tick_combined` с OR'ом kb+stick, antagonist suppression для одновременного UP+DOWN.
 
-Каждая миграция — отдельный коммит, отдельное тестирование. Если что-то ломается — коммит откатывается без затрагивания инфраструктуры.
+Остаётся:
 
-## Open questions
+- [ ] **`frontend.cpp`** — главное меню. Своя ad-hoc логика с `dir_next_fire` для навигации. Аналогично gamemenu — `InputAutoRepeat` + antagonist suppression.
+- [ ] **`vehicle.cpp` siren toggle** (#5 в fps_unlock_issues_resolved). Sticky-pattern: `input_btn_press_pending(SIREN_BTN_IDX)` + `input_btn_consume(...)` чтобы не пропускать fast tap'ы между physics tick'ами на низких Hz. ИЛИ переход на edge-detect через `input_btn_just_pressed`. Проверить что именно лучше.
+- [ ] **`check_debug_timing_keys`** — debug-клавиши с собственным static prev-state. Самая простая миграция — просто `input_key_just_pressed`.
+- [ ] **`game_tick.cpp` weapon switch (#20)** — **сначала эмпирически проверить** что баг актуален. `Player->Pressed` уже edge-detect, теоретически OK. Если воспроизводится — мигрировать.
+- [ ] **Прочие места** (по обнаружении).
 
-- **Что точно считать "одним нажатием" на стике** — порог? hysteresis ширина? Подобрать эмпирически на тестировании.
-- **Auto-repeat константы** — текущие `400ms initial / 150ms repeat` (из gamemenu.cpp) — проверить что одинаково ок для всех меню после миграции.
-- **Sticky pending — нужен ли он для геймпад-кнопок?** Геймпад опрашивается через DirectInput / SDL gamepad polling — не event-driven, состояние читается. Если poll cadence = render rate, то fast press между двумя poll'ами **не виден вообще**. То есть sticky для геймпада возможно бесполезен (всё равно его не словить если poll < event rate). Изучить при Phase 1 hook.
-- **Где живёт SDL event handler для key down/up** — найти в Phase 1.
+Каждая миграция — **отдельный коммит** с тестированием. Если что-то ломается — коммит откатывается без затрагивания инфраструктуры.
+
+## Resolved questions (бывшие open)
+
+- ✅ **Stick threshold** — эмпирически использовали `STICK_DIR_PRESS_RAW = 4096` raw distance from center (= оригинальный gamemenu `GM_NOISE_TOLERANCE`), `STICK_DIR_RELEASE_RAW = 2048` (hysteresis). Подтверждено тестированием на gamemenu — ощущается идентично оригиналу.
+- ✅ **Auto-repeat константы** — `400ms initial / 150ms repeat` оставлены (из gamemenu). Подтверждено что ок на gamemenu. Если будут жалобы при миграции frontend — пересмотреть.
+- ✅ **Sticky pending для геймпад-кнопок** — НЕ реализован (бесполезен): геймпад polling-based, fast press между poll'ами невидим в принципе. API-symmetry `input_btn_consume` оставлен как no-op. Для siren toggle (low Hz physics) sticky pending не поможет — `gamepad_consume_until_released` в gamepad layer'е уже частично закрывает; полное решение через event-queue выходит за scope.
+- ✅ **SDL event handler location** — `keyboard_key_down/up` в `engine/input/keyboard.cpp`. Геймпад через `gamepad_poll()` в `gamepad.cpp` (polling, не events для button state).
+
+## Текущие open questions
+
+- **Frontend миграция** — frontend.cpp имеет более сложную логику чем gamemenu (множество экранов, отдельные input modes). Подход: миграция в отдельных коммитах по одной функции (`FRONTEND_input` сначала). Будут нюансы — записывать в migration_checklist.
+- **Vehicle siren** — sticky pending vs edge-detect, выбрать после первого тестирования.
+- **Weapon switch (#20)** — actual reproducibility unverified. Сначала проверить что баг ещё на месте.
 
 ## Связь с FPS unlock
 
