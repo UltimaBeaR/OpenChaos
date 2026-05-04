@@ -3168,21 +3168,29 @@ SBYTE FRONTEND_loop()
     millisecs = now - last;
     last = now;
 
-    // How fast should the fade state fade?
-    // Max cap = 4: one full 30 Hz step (33 ms >> 3). Prevents instant fade
-    // on first frame after load, when elapsed time may be up to 250 ms (the
-    // clamp above). NOTE: this does NOT fix issue #12 (fade speeds up at
-    // very high render FPS) — at 240+ FPS millisecs<8 still floors to 1
-    // giving ~240/sec instead of the design 120/sec. Real fix needs float
-    // accumulation of fractional fade_speed; deferred.
+    // Design rate: 4 fade units per 33 ms tick (UC_VISUAL_CADENCE_HZ = 30 Hz)
+    // → ~120 units/sec. Two pieces:
+    // (1) Input clamp at one design tick (33 ms) prevents first-frame fade
+    //     overshoot when elapsed time may be up to 250 ms (the clamp above).
+    //     Equivalent to the original FADE_SPEED_MAX = 4 cap on the output.
+    // (2) Fractional accumulator keeps per-frame increments smaller than
+    //     1 unit from being lost on high-FPS frames (sub-step time is
+    //     carried into the next frame). Without it, a previous floor of 1
+    //     caused fade to advance ~240/sec at 240 FPS. The accumulator runs
+    //     even at 30 FPS so per-frame fractional remainders don't drop.
     static const SLONG FADE_SPEED_MAX = 4;
-    SLONG fade_speed = (millisecs >> 3);
+    constexpr SLONG FADE_DESIGN_TICK_MS = 1000 / UC_VISUAL_CADENCE_HZ;          // 33
+    constexpr float FADE_UNITS_PER_MS = float(FADE_SPEED_MAX) / float(FADE_DESIGN_TICK_MS);
 
-    if (fade_speed < 1) {
-        fade_speed = 1;
-    } else if (fade_speed > FADE_SPEED_MAX) {
-        fade_speed = FADE_SPEED_MAX;
+    SLONG fade_dt = millisecs;
+    if (fade_dt > FADE_DESIGN_TICK_MS) {
+        fade_dt = FADE_DESIGN_TICK_MS;
     }
+
+    static float fade_acc = 0.0f;
+    fade_acc += float(fade_dt) * FADE_UNITS_PER_MS;
+    SLONG fade_speed = SLONG(fade_acc);
+    fade_acc -= float(fade_speed);
 
     switch (fade_mode & 3) {
     case 1:
