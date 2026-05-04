@@ -481,3 +481,36 @@ won/lost оно скипается ([eway.cpp:4219](../../new_game/src/missions/
 явное `EWAY_hud_countdown_value = -1;` — компенсирует потерю автосброса оригинала.
 
 Подтверждено пользователем 2026-05-04.
+
+---
+
+## 18. ✅ Меню паузы: анимация фона и появления букв зависят от render FPS
+
+**Симптом (был):** при открытии меню паузы анимация появления backdrop'а и
+побуквенного fade-in текста пунктов меню ускорялись с ростом `g_render_fps_cap`.
+На штатных 30-100 FPS — нормальная скорость, выше 100 FPS — заметно быстрее.
+
+**Корневая причина:** в [`GAMEMENU_process`](../../new_game/src/ui/menus/gamemenu.cpp)
+delta вычисляется как wall-clock `millisecs = sdl3_get_ticks() - tick_last`, что
+правильно. Но затем `SATURATE(millisecs, 10, 200)` поднимает значение **до 10ms**
+если оно меньше. На render > 100 FPS реальный per-frame delta < 10ms (8ms на
+120 FPS, 4ms на 240 FPS) — clamp поднимает его, и `GAMEMENU_background +=
+millisecs` / `_fadein_x += millisecs << 7` накапливают больше времени чем прошло
+по wall-clock:
+
+| render FPS | real ms/frame | после clamp | "ms"/sec |
+|-----------|---------------|-------------|----------|
+| 30        | 33            | 33          | 1000 ✓   |
+| 100       | 10            | 10          | 1000 ✓   |
+| 120       | 8.3           | **10**      | 1200 ✗   |
+| 240       | 4.2           | **10**      | 2400 ✗   |
+
+Floor 10ms — пережиток времён когда unlimited FPS не было. Нижняя граница как
+guard от sub-ms delta была нужна на оригинальном железе; сейчас мешает.
+
+**Фикс:** в [gamemenu.cpp:106](../../new_game/src/ui/menus/gamemenu.cpp#L106)
+clamp изменён на `SATURATE(millisecs, 0, 200)`. Sub-ms кадры дают delta=0 —
+анимация не двигается на этом кадре, на следующем подкатит. Верхний clamp 200ms
+сохранён (alt-tab / breakpoint guard).
+
+Подтверждено пользователем 2026-05-04.

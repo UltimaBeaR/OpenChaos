@@ -103,7 +103,12 @@ SLONG GAMEMENU_process()
     millisecs = tick_now - tick_last;
     tick_last = tick_now;
 
-    SATURATE(millisecs, 10, 200);
+    // Lower clamp at 0 (was 10): on render > 100 FPS the per-frame wall-clock
+    // delta drops below 10 ms, so a floor of 10 caused the menu animations
+    // (background fade, text fade-in) to advance faster than real time
+    // (e.g. 240 FPS × 10 ms = 2400 ms/sec instead of 1000). Sub-ms frames now
+    // contribute 0 — next frame catches up. Upper clamp 200 ms guards alt-tab.
+    SATURATE(millisecs, 0, 200);
 
     // Automatically count up a delay before showing won/lost menu.
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
