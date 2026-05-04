@@ -194,6 +194,7 @@ set(SOURCES_NEW
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
     src/engine/input/weapon_feel.cpp
+    src/engine/input/input_frame.cpp
 
     # === Engine: debug ===
     src/engine/debug/input_debug/input_debug.cpp

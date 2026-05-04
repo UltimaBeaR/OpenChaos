@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "engine/input/keyboard.h"
+#include "engine/input/input_frame.h" // input_frame_on_key_down — sticky press flag
 
 // uc_orig: SetFlagsFromKeyArray (fallen/DDLibrary/Source/GKeyboard.cpp)
 static void SetFlagsFromKeyArray()
@@ -40,6 +41,11 @@ void keyboard_key_down(UBYTE scancode)
     key_turn[scancode] = game_turn;
     Keys[scancode] = 1;
     LastKey = scancode;
+
+    // Set sticky press_pending flag for input_frame consumers (survives across
+    // frames until consumed). Snapshot-based just_pressed in input_frame still
+    // computes from Keys[] separately.
+    input_frame_on_key_down(scancode);
 
     SetFlagsFromKeyArray();
 }
