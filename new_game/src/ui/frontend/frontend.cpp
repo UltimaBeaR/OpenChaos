@@ -2531,30 +2531,21 @@ static UBYTE FRONTEND_input(void)
         return 0;
     }
     if (allow_debug_keys) {
-        if (Keys[KB_1] || Keys[KB_2] || Keys[KB_3] || Keys[KB_4]) {
-            if (Keys[KB_1]) {
-                Keys[KB_1] = 0;
-                menu_theme = 0;
-            }
-            if (Keys[KB_2]) {
-                Keys[KB_2] = 0;
-                menu_theme = 1;
-            }
-            if (Keys[KB_3]) {
-                Keys[KB_3] = 0;
-                menu_theme = 2;
-            }
-            if (Keys[KB_4]) {
-                Keys[KB_4] = 0;
-                menu_theme = 3;
-            }
+        const bool theme1 = input_key_just_pressed(KB_1);
+        const bool theme2 = input_key_just_pressed(KB_2);
+        const bool theme3 = input_key_just_pressed(KB_3);
+        const bool theme4 = input_key_just_pressed(KB_4);
+        if (theme1 || theme2 || theme3 || theme4) {
+            if (theme1) menu_theme = 0;
+            if (theme2) menu_theme = 1;
+            if (theme3) menu_theme = 2;
+            if (theme4) menu_theme = 3;
             ge_set_background_override(screenfull_back);
             FRONTEND_kibble_init();
         }
     }
 
-    if (Keys[KB_END]) {
-        Keys[KB_END] = 0;
+    if (input_key_just_pressed(KB_END)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = menu_state.items - 1;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2562,8 +2553,7 @@ static UBYTE FRONTEND_input(void)
         while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
             menu_state.selected--;
     }
-    if (Keys[KB_HOME]) {
-        Keys[KB_HOME] = 0;
+    if (input_key_just_pressed(KB_HOME)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = 0;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2602,10 +2592,7 @@ static UBYTE FRONTEND_input(void)
             mission_selected++;
     }
 
-    if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER] || any_button) {
-        Keys[KB_ENTER] = 0;
-        Keys[KB_SPACE] = 0;
-        Keys[KB_PENTER] = 0;
+    if (input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_PENTER) || any_button) {
         MenuData* item = menu_data + menu_state.selected;
 
         if (fade_mode != 2)
@@ -2813,8 +2800,7 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
     }
-    if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
-        Keys[KB_ESC] = 0;
+    if (input_key_just_pressed(KB_ESC) || (input & INPUT_MASK_CANCEL)) {
         if (fade_mode != 6)
             MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
         if (fade_mode == 2) // cancel a transition
@@ -3234,14 +3220,12 @@ SBYTE FRONTEND_loop()
 
     // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
     if (ControlFlag && ShiftFlag) {
-        if (Keys[KB_PPLUS]) {
-            Keys[KB_PPLUS] = 0;
+        if (input_key_just_pressed(KB_PPLUS)) {
             complete_point++;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;
         }
-        if (Keys[KB_ASTERISK]) {
-            Keys[KB_ASTERISK] = 0;
+        if (input_key_just_pressed(KB_ASTERISK)) {
             complete_point = 40;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;

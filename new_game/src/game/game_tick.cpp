@@ -1171,7 +1171,9 @@ void process_controls(void)
     //	if (Keys[KB_D])
 
     if (GAME_TURN <= 1) {
-        Keys[KB_D] = 0;
+        // (Keys[KB_D] = 0 init reset removed: input_key_just_pressed below
+        // doesn't trigger on a held-from-before key — no rising edge in
+        // snapshot — so the protection it gave is now automatic.)
 
         //
         // Find an MIB...
@@ -1187,9 +1189,7 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_D]) {
-        Keys[KB_D] = 0;
-
+    if (input_key_just_pressed(KB_D)) {
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
         if (is_there_room_behind_person(darci, UC_FALSE)) {
@@ -1228,8 +1228,7 @@ void process_controls(void)
         static SLONG index_cam = 0;
         Thing* p_thing;
 
-        if (Keys[KB_RBRACE]) {
-            Keys[KB_RBRACE] = 0;
+        if (input_key_just_pressed(KB_RBRACE)) {
             while (1) {
                 index_cam++;
                 if (index_cam >= MAX_THINGS)
@@ -1242,8 +1241,7 @@ void process_controls(void)
                 }
             }
         }
-        if (Keys[KB_LBRACE]) {
-            Keys[KB_LBRACE] = 0;
+        if (input_key_just_pressed(KB_LBRACE)) {
             while (1) {
                 index_cam--;
                 if (index_cam < 0)
@@ -1257,9 +1255,7 @@ void process_controls(void)
             }
         }
 
-        if (Keys[KB_P]) {
-            Keys[KB_P] = 0;
-
+        if (input_key_just_pressed(KB_P)) {
             if (FC_cam[1].focus) {
                 FC_cam[1].focus = NULL;
             } else {
@@ -1316,11 +1312,11 @@ void process_controls(void)
     if (is_inputing) {
         static CBYTE input_text[MAX_PATH] = "] ";
 
-        if ((Keys[KB_ESC]) || (Keys[KB_ENTER])) {
-            if (Keys[KB_ENTER])
+        const bool console_esc   = input_key_just_pressed(KB_ESC);
+        const bool console_enter = input_key_just_pressed(KB_ENTER);
+        if (console_esc || console_enter) {
+            if (console_enter)
                 parse_console(input_text + 2); // +2 to skip the "] "
-            Keys[KB_ESC] = 0;
-            Keys[KB_ENTER] = 0;
             is_inputing = 0;
             CONSOLE_status("");
             strcpy(input_text, "] ");
@@ -1331,7 +1327,12 @@ void process_controls(void)
             if (LastKey) {
                 UWORD len = strlen(input_text);
                 CBYTE key;
-                key = (Keys[KB_LSHIFT] || Keys[KB_RSHIFT]) ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
+                // ShiftFlag is the level-state Shift modifier maintained by
+                // the keyboard event hook (keyboard.cpp). It mirrors the
+                // Keys[KB_LSHIFT] || Keys[KB_RSHIFT] OR but is the idiomatic
+                // way to read modifiers in this codebase — direct Keys[]
+                // reads here would be a back-door bypass of input_frame.
+                key = ShiftFlag ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
                 if (key == 8) {
                     if (len > 2)
                         input_text[len - 1] = 0;
@@ -1349,7 +1350,7 @@ void process_controls(void)
         }
         return;
     } else {
-        if (Keys[KB_F9])
+        if (input_key_just_pressed(KB_F9))
             is_inputing = 1;
     }
 
@@ -1466,9 +1467,7 @@ void process_controls(void)
 
     // Shift+F12: toggle cheat mode (prints FPS in the top-left corner).
     // Gated along with the rest of the debug keys.
-    if (Keys[KB_F12] && ShiftFlag) {
-        Keys[KB_F12] = 0;
-
+    if (input_key_just_pressed(KB_F12) && ShiftFlag) {
         extern UBYTE cheat;
 
         if (cheat) {
@@ -1485,11 +1484,10 @@ void process_controls(void)
         RecenterMouse();
     }
 
-    if (Keys[KB_F3]) {
+    if (input_key_just_pressed(KB_F3)) {
         void save_whole_game(CBYTE * gamename);
         void load_whole_game(CBYTE * gamename);
 
-        Keys[KB_F3] = 0;
         if (ShiftFlag) {
             save_whole_game("poo.sav");
         } else {
@@ -1501,8 +1499,7 @@ void process_controls(void)
     // debug panel (F11 → panel opens, covers the screen, making it
     // impossible to actually see whether clouds disappeared). Moved to
     // F4 — previously unbound.
-    if (Keys[KB_F4]) {
-        Keys[KB_F4] = 0;
+    if (input_key_just_pressed(KB_F4)) {
         if (aeng_draw_cloud_flag) {
             aeng_draw_cloud_flag = 0;
             CONSOLE_text("clouds off");
@@ -1530,9 +1527,7 @@ void process_controls(void)
         return;
     }
 
-    if (Keys[KB_TILD]) {
-        Keys[KB_TILD] = 0;
-
+    if (input_key_just_pressed(KB_TILD)) {
         if (DETAIL_LEVEL)
             DETAIL_LEVEL = 0;
         else
@@ -1547,7 +1542,7 @@ void process_controls(void)
 
     void set_person_idle(Thing * p_person);
 
-    if (Keys[KB_P]) {
+    if (input_key_just_pressed(KB_P)) {
         void save_whole_game(CBYTE * gamename);
         save_whole_game("save.me");
     }
@@ -1555,7 +1550,9 @@ void process_controls(void)
     //	TRACE("danger numbers: %d\n",(NET_PLAYER(0)->Genus.Player->Danger));
 
     if (!ShiftFlag) {
-        if (Keys[KB_J]) {
+        // J / I — debug overlay draws (MAV, WAND). Drawn every frame the key
+        // is held (continuous overlay), so input_key_held — not just_pressed.
+        if (input_key_held(KB_J)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1564,7 +1561,7 @@ void process_controls(void)
                 mx + 5, mz + 5);
         }
 
-        if (Keys[KB_I]) {
+        if (input_key_held(KB_I)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1572,13 +1569,11 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_E]) {
+    if (input_key_just_pressed(KB_E)) {
         SLONG y;
         SLONG index;
 
         static UBYTE type = 0;
-
-        Keys[KB_E] = 0;
 
         y = PAP_calc_height_at(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8);
         index = VEH_create((darci->WorldPos.X) + (400 << 8), (y + 65) << 8, (darci->WorldPos.Z), 0, 0, 0, type, 0, 0);
@@ -1598,7 +1593,9 @@ void process_controls(void)
     // Enter and leave the sewers if Darci does.
     //
 
-    if (Keys[KB_W]) {
+    // KB_W: continuous water particle spawn while held (no consume in
+    // original) — input_key_held, not just_pressed.
+    if (input_key_held(KB_W)) {
         SLONG px = darci->WorldPos.X >> 8;
         SLONG py = darci->WorldPos.Y >> 8;
         SLONG pz = darci->WorldPos.Z >> 8;
@@ -1636,21 +1633,19 @@ void process_controls(void)
         static UBYTE which_pyro = 0;
         GameCoord posn;
 
-        if (Keys[KB_P7]) {
+        if (input_key_just_pressed(KB_P7)) {
             CBYTE* names[] = { "flicker", "ribbon", "explosion", "sparklies", "bonfire", "immolate", "testrib", "firewall", "new sploje", "new dome", "whoomph" };
-            Keys[KB_P7] = 0;
             which_pyro++;
             if (which_pyro == (sizeof(names) / sizeof(names[0])))
                 which_pyro = 0;
             CONSOLE_text(names[which_pyro], 1500);
         }
 
-        if (Keys[KB_P5]) {
+        if (input_key_just_pressed(KB_P5)) {
             static UBYTE line = 0;
             static GameCoord oldposn = { 0, 0, 0 };
             Thing* pyro;
 
-            Keys[KB_P5] = 0;
             posn.X = darci->WorldPos.X;
             posn.Z = darci->WorldPos.Z;
             posn.Y = (PAP_calc_height_at(posn.X >> 8, posn.Z >> 8) * 256);
@@ -1760,9 +1755,7 @@ void process_controls(void)
     {
         static UBYTE dlight = NULL;
 
-        if (Keys[KB_L]) {
-            Keys[KB_L] = 0;
-
+        if (input_key_just_pressed(KB_L)) {
             if (dlight) {
                 NIGHT_dlight_destroy(dlight);
 
@@ -1798,9 +1791,8 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_P2]) {
+    if (input_key_just_pressed(KB_P2)) {
         // this is to test immolation of a thing
-        Keys[KB_P2] = 0;
         if (TO_CHOPPER(1)->ChopperType != CHOPPER_NONE) {
             Thing* pyro;
             GameCoord anyoldposn; // dont care, updated by thing
@@ -1811,13 +1803,12 @@ void process_controls(void)
             pyro->Genus.Pyro->Flags = PYRO_FLAGS_FLICKER;
         }
     }
-    if (Keys[KB_P3]) {
+    if (input_key_just_pressed(KB_P3)) {
         static UBYTE line = 0;
         static GameCoord oldposn = { 0, 0, 0 };
         Thing* pyro;
         GameCoord posn;
 
-        Keys[KB_P3] = 0;
         if (line) {
             posn.X = darci->WorldPos.X;
             posn.Z = darci->WorldPos.Z;
@@ -1841,9 +1832,7 @@ void process_controls(void)
         }
     }
     static UBYTE smokin = 0;
-    if (Keys[KB_FORESLASH]) {
-        Keys[KB_FORESLASH] = 0;
-
+    if (input_key_just_pressed(KB_FORESLASH)) {
         stealth_debug = !stealth_debug;
         if (stealth_debug)
             CONSOLE_text("STEALTH DEBUG MODE ON");
@@ -1851,7 +1840,9 @@ void process_controls(void)
             CONSOLE_text("STEALTH DEBUG MODE OFF");
     }
 
-    if (Keys[KB_POINT]) {
+    // KB_POINT: continuous smoke spawn while held — no consume in original
+    // (level read fires every frame). input_key_held preserves that.
+    if (input_key_held(KB_POINT)) {
         PARTICLE_Add(
             darci->WorldPos.X,
             darci->WorldPos.Y + 0x4000,
@@ -1898,9 +1889,7 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_O] && !ShiftFlag) {
-        Keys[KB_O] = 0;
-
+    if (input_key_just_pressed(KB_O) && !ShiftFlag) {
         OB_create(
             darci->WorldPos.X >> 8,
             darci->WorldPos.Y >> 8,
@@ -1913,9 +1902,8 @@ void process_controls(void)
 
     if (ShiftFlag) {
         static int skill = 0;
-        if (Keys[KB_A]) {
+        if (input_key_just_pressed(KB_A)) {
             UWORD index;
-            Keys[KB_A] = 0;
 
             //
             // Create a fight test dummy.
@@ -1945,9 +1933,7 @@ void process_controls(void)
             skill += 2;
         }
 
-        if (Keys[KB_I]) {
-            Keys[KB_I] = 0;
-
+        if (input_key_just_pressed(KB_I)) {
             //
             // Create a bodyguard. First we must create a DUD waypoint that
             // pretends it created Darci!
@@ -1977,9 +1963,7 @@ void process_controls(void)
             // remove_thing_from_map(darci);
         }
 
-        if (Keys[KB_J]) {
-            Keys[KB_J] = 0;
-
+        if (input_key_just_pressed(KB_J)) {
             MAV_precalculate();
 
             switch (Random() % 3) {
@@ -1998,15 +1982,18 @@ void process_controls(void)
             darci->Genus.Person->Action = ACTION_SIT_BENCH;
         }
 
-        if (Keys[KB_Y]) {
+        // KB_Y: continuous fastnav debug overlay while held — no consume in
+        // original (level read fires every frame). input_key_held preserves.
+        if (input_key_held(KB_Y)) {
             COLLIDE_debug_fastnav(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Z >> 8);
         }
 
-        if (Keys[KB_D] && !ShiftFlag) {
-            Keys[KB_D] = 0;
-
+        // Note: this block is gated by `if (ShiftFlag)` above, so the
+        // `&& !ShiftFlag` here is dead code (always false). Pre-existing
+        // bug, preserved verbatim — not addressed by input migration.
+        if (input_key_just_pressed(KB_D) && !ShiftFlag) {
             NIGHT_slight_create(
                 (darci->WorldPos.X >> 8),
                 (darci->WorldPos.Y >> 8) + 0x80,
@@ -2021,31 +2008,24 @@ void process_controls(void)
             NIGHT_generate_walkable_lighting();
         }
 
-        if (Keys[KB_D] && ShiftFlag) {
-            Keys[KB_D] = 0;
+        if (input_key_just_pressed(KB_D) && ShiftFlag) {
             //
             // shift D to leap into the debugger
             //
             ASSERT(2 + 2 == 5);
         }
 
-        if (Keys[KB_G]) {
-
-            Keys[KB_G] = 0;
+        if (input_key_just_pressed(KB_G)) {
             darci->Flags |= FLAGS_HAS_GUN;
         }
 
-        if (Keys[KB_H]) {
-            Keys[KB_H] = 0;
-
+        if (input_key_just_pressed(KB_H)) {
             plan_view_shot();
         }
 
-        if (Keys[KB_O]) {
+        if (input_key_just_pressed(KB_O)) {
             Thing* chopper;
             GameCoord posn;
-
-            Keys[KB_O] = 0;
 
             posn.X = darci->WorldPos.X;
             posn.Z = darci->WorldPos.Z;
@@ -2055,9 +2035,7 @@ void process_controls(void)
             chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
         }
 
-        if (Keys[KB_M]) {
-            Keys[KB_M] = 0;
-
+        if (input_key_just_pressed(KB_M)) {
             //
             // Create a mine at the mouse.
             //
@@ -2099,9 +2077,7 @@ void process_controls(void)
         // Shift not held down.
         //
 
-        if (Keys[KB_F12]) {
-            Keys[KB_F12] = 0;
-
+        if (input_key_just_pressed(KB_F12)) {
             SLONG wx, wy, wz, dx, dz;
             SLONG angle;
 
@@ -2146,9 +2122,7 @@ void process_controls(void)
             }
         }
 
-        if (Keys[KB_G]) {
-            Keys[KB_G] = 0;
-
+        if (input_key_just_pressed(KB_G)) {
             SLONG world_x;
             SLONG world_y;
             SLONG world_z;
@@ -2190,7 +2164,9 @@ void process_controls(void)
             }
         }
 
-        if (Keys[KB_U]) {
+        // KB_U / KB_Q: continuous debug effects while held (no consume in
+        // original). input_key_held preserves level-read intent.
+        if (input_key_held(KB_U)) {
             BARREL_hit_with_sphere(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Y >> 8,
@@ -2198,7 +2174,7 @@ void process_controls(void)
                 0x80);
         }
 
-        if (Keys[KB_Q]) {
+        if (input_key_held(KB_Q)) {
             ROAD_debug();
         }
     }

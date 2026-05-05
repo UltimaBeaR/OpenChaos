@@ -451,3 +451,52 @@ CONTROLS_inventory_mode -= (SLONG)g_frame_dt_ms;
 `ControlFlag` (level-state Ctrl modifier) **не трогается** — это отдельный механизм отслеживания модификатора, не discrete-event input. Будет рассмотрен отдельно если понадобится.
 
 Все 6 действий — debug-only (`allow_debug_keys` гейт на 5 из 6, только Ctrl+Q использует ControlFlag для гейта). Влияние на обычный геймплей нулевое.
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 2: `process_controls` (game_tick.cpp) — массовая миграция
+
+Большая партия — ~30 разных edge-detect и level-read паттернов в одной функции, преимущественно debug-клавиши и cheat-комбинации.
+
+**Категории миграции:**
+
+| Паттерн до | Паттерн после | Использовалось в |
+|---|---|---|
+| `if (Keys[X]) { Keys[X] = 0; ... }` (consume) | `if (input_key_just_pressed(X)) { ... }` | RBRACE/LBRACE (camera switch), P (camera focus, save game), F12+Shift (cheat), F3 (load/save), F4 (clouds), TILD (detail), E (vehicle spawn), P7/P5/P2/P3 (pyrotest), L (dlight), FORESLASH (stealth), O (object), A/I/J (PCOM), D+Shift/D!Shift (slight/debugger), G (gun/teleport), H (plan view), M (mine), и т.д. |
+| `if (Keys[X])` без consume (level-read intent) | `if (input_key_held(X)) { ... }` | J/I (continuous overlay draw), W (continuous water spawn), POINT (continuous smoke), Y (continuous fastnav debug), U (continuous barrel hit), Q (continuous road debug) |
+| `Keys[X] = 0` init reset | удалить | KB_D на GAME_TURN<=1 (input_frame не leak'ает held-from-before) |
+| `Keys[KB_LSHIFT] \|\| Keys[KB_RSHIFT]` direct read | `ShiftFlag` | console text input shift modifier check |
+
+**Edge-cases которые сохранены verbatim** (pre-existing quirks):
+- KB_D handler вне `allow_debug_keys` гейта (line 1190+) — debug-сообщение для не-debug пользователей. Pre-existing scope leak, не задача миграции.
+- KB_D с `&& !ShiftFlag` внутри `if (ShiftFlag)` блока — dead code (всегда false). Comment добавлен, код preserved.
+
+**Изменения:** [`game_tick.cpp::process_controls`](../../new_game/src/game/game_tick.cpp) — net –24 строки (62 insertions, 86 deletions).
+
+**Проверка**: `grep "Keys\[KB_" game_tick.cpp` после миграции находит только matches в комментариях. Чтения старого API из этой функции — нет.
+
+**Что НЕ закрыто:**
+- ShiftFlag/ControlFlag — derived модификаторные обёртки maintained event hook'ом из `Keys[KB_LSHIFT/RSHIFT/LCONTROL]`. Это легитимный backing-store слой (по плану), потребители читают именно ShiftFlag, не Keys[]. Не трогаем.
+- Console input area — `LastKey` (text-input source-of-truth), `InkeyToAscii[]` table — это text-input mechanism, не discrete-event input. Не миграция input_frame'а.
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 3: `frontend.cpp` (oбщие меню-handler'ы)
+
+Помимо уже мигрированной `FRONTEND_input` (Phase 4.2), были 22 остаточных `Keys[KB_]` чтения в FRONTEND-related функциях. Все мигрированы.
+
+| Клавиши | Действие | Паттерн до | Паттерн после |
+|---|---|---|---|
+| KB_1/2/3/4 | menu_theme select (debug-only) | `if (Keys[X]) { Keys[X]=0; ... }` consume | `if (input_key_just_pressed(X)) { ... }` |
+| KB_END / KB_HOME | jump к last/first menu item | consume | just_pressed |
+| KB_ENTER / KB_SPACE / KB_PENTER | confirm | consume | just_pressed (по OR на 3 источника) |
+| KB_ESC (regular nav) | cancel/back | consume | just_pressed |
+| KB_PPLUS / KB_ASTERISK (Ctrl+Shift) | debug cheat (advance complete_point) | consume | just_pressed |
+
+**Изменения:** [`frontend.cpp`](../../new_game/src/ui/frontend/frontend.cpp) — net –16 строк.
+
+**Оставшиеся `Keys[]` writes** (legitimate legacy bridges, не reads):
+- [`frontend.cpp:2383`](../../new_game/src/ui/frontend/frontend.cpp#L2383) — `Keys[KB_ESC] = 0` consume в `grabbing_pad` ESC handler'е (предотвращает double-fire в regular nav на следующем кадре). Уже задокументирован комментарием.
+- [`frontend.cpp:2529`](../../new_game/src/ui/frontend/frontend.cpp#L2529) — `Keys[LastKey] = 0` в grabbing_key text-input path (после ребинда). Text-input mechanism, не discrete-event input.
+
+**Проверка**: `grep "Keys\[KB_"` в frontend.cpp находит только 1 match (line 2383, legitimate legacy bridge).
