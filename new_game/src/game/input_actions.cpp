@@ -33,7 +33,6 @@
 #include "things/core/statedef.h"
 #include "engine/physics/collide.h"
 #include "combat/combat.h"
-#include "engine/input/joystick_globals.h" // the_state (GamepadState) — used by transitional reads in apply_button_input_car / apply_button_input_first_person; will go away once those are migrated to input_frame too
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/weapon_feel.h" // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
@@ -2943,8 +2942,11 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             veh->DControl |= VEH_FASTER;
     } else {
         // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
-        bool r2 = the_state.rgbButtons[16] != 0;
-        bool l2 = the_state.rgbButtons[15] != 0;
+        // rgbButtons[15/16] are the DIGITAL trigger bits (set when analog trigger
+        // crosses ~half-deflection inside the gamepad layer); btn_held below
+        // reads exactly those bits, not the analog uint8_t triggers.
+        bool r2 = input_btn_held(16);
+        bool l2 = input_btn_held(15);
 
         if ((input & INPUT_CAR_PAD_ACCELERATE) || r2)
             veh->DControl |= VEH_ACCEL;
@@ -3418,8 +3420,6 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    // the_state (GamepadState) for the 1st-person button check.
-
     if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_1STPERSON])
         || input_btn_held(joypad_button_use[JOYPAD_BUTTON_1STPERSON])) {
         fpm = UC_TRUE;
@@ -3475,9 +3475,9 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // Right stick — gamepad. Only consume it while a controller is
             // the active input device, so a stuck/idle stick on a connected
             // controller doesn't fight keyboard input.
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && the_state.connected) {
-                SLONG sx = (SLONG)the_state.rX - 32768;
-                SLONG sy = (SLONG)the_state.rY - 32768;
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
+                SLONG sx = (SLONG)input_stick_x_axis(INPUT_STICK_RIGHT) - 32768;
+                SLONG sy = (SLONG)input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
 
                 if (abs(sy) > STICK_DEAD) {
                     // sy > 0 (stick down) → look UP   (look_pitch += step)

@@ -90,7 +90,6 @@
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/input_frame.h"
 #include "engine/input/joystick.h" // GetInputDevice, JOYSTICK
-#include "engine/input/joystick_globals.h"
 
 #include <math.h>
 #include <string.h> // strstr
@@ -601,11 +600,9 @@ void playback_game_keys(void)
         GAME_STATE = 0;
     }
 
-    if (ReadInputDevice()) {
-        SLONG i;
-
-        for (i = 0; i <= 9; i++) {
-            if (the_state.rgbButtons[i]) {
+    if (input_gamepad_connected()) {
+        for (SLONG i = 0; i <= 9; i++) {
+            if (input_btn_held(i)) {
                 GAME_STATE = 0;
             }
         }
