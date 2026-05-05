@@ -430,3 +430,24 @@ CONTROLS_inventory_mode -= (SLONG)g_frame_dt_ms;
 Полная миграция всех discrete + continuous input'ов на input_frame для унификации (см. [`current_plan.md`](current_plan.md) раздел "Phase 4-Wide"). Не блокер, можно делать после стабилизации текущего стека миграционных фиксов.
 
 Финальный пункт после Wide-миграции — аудит что `Keys[]` / `rgbButtons[]` / `the_state.l*/r*/trigger_*` не используются как источник истины потребителями (только как legacy backing-store).
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 1: `special_keys` (game.cpp) — debug F-клавиши
+
+Начало Phase 4-Wide migration. 6 edge-detect патернов мигрированы в одной функции — все либо static `was_pressed`, либо `Keys[X] = 0` consume-паттерны.
+
+| Клавиша | Действие | До | После |
+|---|---|---|---|
+| Ctrl+Q | quit | `if (Keys[KB_Q])` (level) | `input_key_just_pressed(KB_Q)` |
+| F2 | CRT shader toggle | static `f2_was_pressed` | `input_key_just_pressed(KB_F2)` |
+| F8 | single-step toggle | `Keys[X] = 0` consume | `input_key_just_pressed(KB_F8)` |
+| F10 | farfacet debug | static `f10_was_pressed` | `input_key_just_pressed(KB_F10)` |
+| F11 | input debug panel | static + consume | `input_key_just_pressed(KB_F11)` |
+| KB_INS | step-once | `Keys[X] = 0` consume | `input_key_just_pressed(KB_INS)` |
+
+**Изменения:** [`game.cpp::special_keys`](../../new_game/src/game/game.cpp) — 78 строк → 27 (–24 строки).
+
+`ControlFlag` (level-state Ctrl modifier) **не трогается** — это отдельный механизм отслеживания модификатора, не discrete-event input. Будет рассмотрен отдельно если понадобится.
+
+Все 6 действий — debug-only (`allow_debug_keys` гейт на 5 из 6, только Ctrl+Q использует ControlFlag для гейта). Влияние на обычный геймплей нулевое.

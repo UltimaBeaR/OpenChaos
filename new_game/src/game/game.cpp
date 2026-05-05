@@ -691,69 +691,49 @@ SLONG special_keys(void)
         playback_game_keys();
     }
 
-    if (allow_debug_keys && ControlFlag && Keys[KB_Q]) {
+    // Ctrl+Q quit: edge-trigger via input_frame so a held Ctrl+Q triggers
+    // exactly one quit attempt (was level-trigger — would loop returning 1
+    // every frame while held, but caller exits on first 1, so behaviour
+    // identical in practice). ControlFlag stays as the modifier source —
+    // it's a separate level-state Ctrl tracker, out of scope for this
+    // discrete-event migration.
+    if (allow_debug_keys && ControlFlag && input_key_just_pressed(KB_Q)) {
         return 1;
     }
+
     // F2: toggle CRT scanline shader. Gated behind bangunsnotgames.
-    {
-        static bool f2_was_pressed = false;
-        if (Keys[KB_F2] && allow_debug_keys) {
-            if (!f2_was_pressed) {
-                f2_was_pressed = true;
-                g_crt_enabled ^= 1;
-                if (g_crt_enabled)
-                    CONSOLE_text((CBYTE*)"CRT shader on", 3000);
-                else
-                    CONSOLE_text((CBYTE*)"CRT shader off", 3000);
-            }
-        } else if (!Keys[KB_F2]) {
-            f2_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F2)) {
+        g_crt_enabled ^= 1;
+        if (g_crt_enabled)
+            CONSOLE_text((CBYTE*)"CRT shader on", 3000);
+        else
+            CONSOLE_text((CBYTE*)"CRT shader off", 3000);
     }
 
     // F8 toggles single-step mode. Originally bound to the quote key
     // (') — rebound because punctuation keys are opaque in the help
     // legend ("what does ' even mean?"). F8 is the usual debugger
     // "pause/continue" key, which matches intent.
-    if (allow_debug_keys)
-        if (Keys[KB_F8]) {
-            Keys[KB_F8] = 0;
-            single_step ^= 1;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F8)) {
+        single_step ^= 1;
+    }
 
     // F10: toggle far-facet debug mode (skip level geometry + shader
     // debug-split colours on far-facets). Only active after bangunsnotgames
     // cheat. See stage12_farfacets.md.
-    {
-        static bool f10_was_pressed = false;
-        if (Keys[KB_F10] && allow_debug_keys) {
-            if (!f10_was_pressed) {
-                f10_was_pressed = true;
-                g_farfacet_debug ^= 1;
-                if (g_farfacet_debug)
-                    CONSOLE_text("farfacet debug on", 3000);
-                else
-                    CONSOLE_text("farfacet debug off", 3000);
-            }
-        } else if (!Keys[KB_F10]) {
-            f10_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F10)) {
+        g_farfacet_debug ^= 1;
+        if (g_farfacet_debug)
+            CONSOLE_text("farfacet debug on", 3000);
+        else
+            CONSOLE_text("farfacet debug off", 3000);
     }
 
     // F11: toggle modal input debug panel. Gated behind bangunsnotgames
     // so only developers hit it — regular players never see the panel
     // even by accident.
-    if (allow_debug_keys) {
-        static bool f11_was_pressed = false;
-        if (Keys[KB_F11]) {
-            if (!f11_was_pressed) {
-                f11_was_pressed = true;
-                input_debug_toggle();
-            }
-            Keys[KB_F11] = 0;
-        } else {
-            f11_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F11)) {
+        input_debug_toggle();
     }
 
     // Drive the panel's own input (ESC exit, future page controls) before
@@ -770,12 +750,8 @@ SLONG special_keys(void)
 
     // Step once while in single-step mode. Was comma (`,`) — rebound to
     // Insert for the same legend-readability reason as the F8 toggle.
-    if (allow_debug_keys && single_step) {
-        if (Keys[KB_INS]) {
-            Keys[KB_INS] = 0;
-
-            process_things(0);
-        }
+    if (allow_debug_keys && single_step && input_key_just_pressed(KB_INS)) {
+        process_things(0);
     }
 
     // Keys 1/2/9/0: debug timing hotkeys — see check_debug_timing_keys.
