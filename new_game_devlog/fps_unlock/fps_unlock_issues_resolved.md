@@ -546,3 +546,51 @@ accumulator для дробных per-frame инкрементов — sub-step 
 | 240       | ~0.485    | ~116 ✓    |
 
 Подтверждено пользователем 2026-05-04.
+
+---
+
+## 23. ✅ DualSense LED siren strobe + low-HP blink: частота мигания зависит от render FPS
+
+**Симптом (был):**
+- **Сирена** (полицейская машина): RGB-подсветка DualSense моргала красный↔синий с частотой пропорциональной render FPS — на штатных 30 FPS строб ~7.5 Hz (как в оригинале), на 240 FPS ≈ 60 Hz (в 8× быстрее).
+- **Low-HP blink** (HP < 25%): RGB-подсветка моргала красным с тем же классом бага — частота линейно с FPS.
+
+Оба эффекта только на DualSense (Xbox/keyboard не имеют lightbar'а).
+
+**Причина:** в [`gamepad_led_update`](../../new_game/src/engine/input/gamepad.cpp) обе ветки использовали per-frame counter:
+
+```c
+// siren branch:
+static int siren_counter = 0;
+siren_counter++;
+bool phase = (siren_counter / 4) & 1;
+
+// low-HP branch:
+static int blink_counter = 0;
+blink_counter++;
+bool on = (blink_counter / 15) & 1;
+```
+
+`gamepad_led_update` зовётся per render frame — счётчик инкрементится с render FPS, а делитель константный → флип-период зависит от FPS. Тот же класс бага что resolved #11 (HUD-маркер прицела) и #18 (gamemenu animations).
+
+**Фикс:** оба counter'а заменены на wall-clock derivation через `sdl3_get_ticks()`. Период точно матчит оригинальную 30 FPS cadence:
+- Siren: `4 * 1000 / 30 = 133 ms` на flip (8 frames на полный цикл red↔blue↔red).
+- Blink: `15 * 1000 / 30 = 500 ms` на flip (1 Hz full cycle).
+
+```c
+// siren:
+constexpr uint64_t SIREN_FLIP_PERIOD_MS = 4 * 1000 / 30;
+bool phase = ((sdl3_get_ticks() / SIREN_FLIP_PERIOD_MS) & 1) != 0;
+
+// low-HP:
+constexpr uint64_t BLINK_FLIP_PERIOD_MS = 15 * 1000 / 30;
+bool on = ((sdl3_get_ticks() / BLINK_FLIP_PERIOD_MS) & 1) != 0;
+```
+
+Static counter'ы удалены.
+
+**Место:** [gamepad.cpp:606-620 (siren) и :645-657 (low-HP)](../../new_game/src/engine/input/gamepad.cpp).
+
+**Расширение scope:** issue #23 в `fps_unlock_issues.md` описывал только сирену. Low-HP blink был обнаружен попутно при подготовке фикса — тот же класс бага в той же функции, починен в одном коммите.
+
+Подтверждено пользователем 2026-05-05.

@@ -604,10 +604,13 @@ void gamepad_led_update(float health_fraction, bool siren)
     uint8_t r, g, b;
 
     if (siren) {
-        // Police siren: fast red/blue alternation
-        static int siren_counter = 0;
-        siren_counter++;
-        bool phase = (siren_counter / 4) & 1; // ~7.5 Hz at 30fps — fast strobe
+        // Police siren: fast red/blue alternation. Phase derived from wall-clock
+        // ms so the strobe rate stays constant regardless of render FPS — without
+        // this, a per-frame counter would scale linearly with FPS (~7.5 Hz at
+        // 30 FPS, ~60 Hz at 240 FPS). Period matches the original 30 FPS cadence:
+        // 4 render frames per phase flip = 4 × 1000 / 30 ≈ 133 ms.
+        constexpr uint64_t SIREN_FLIP_PERIOD_MS = 4 * 1000 / 30;
+        bool phase = ((sdl3_get_ticks() / SIREN_FLIP_PERIOD_MS) & 1) != 0;
         if (phase) {
             r = 255;
             g = 0;
@@ -642,10 +645,11 @@ void gamepad_led_update(float health_fraction, bool siren)
             g = static_cast<uint8_t>(200 * t);
             b = 0;
         } else {
-            // <25%: red, blinking
-            static int blink_counter = 0;
-            blink_counter++;
-            bool on = (blink_counter / 15) & 1;
+            // <25%: red, blinking. Wall-clock based for the same reason as the
+            // siren above — original 30 FPS cadence: 15 frames per phase flip =
+            // 15 × 1000 / 30 = 500 ms (1 Hz full cycle).
+            constexpr uint64_t BLINK_FLIP_PERIOD_MS = 15 * 1000 / 30;
+            bool on = ((sdl3_get_ticks() / BLINK_FLIP_PERIOD_MS) & 1) != 0;
             r = on ? 255 : 40;
             g = 0;
             b = 0;
