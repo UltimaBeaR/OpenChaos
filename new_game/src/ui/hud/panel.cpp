@@ -50,9 +50,8 @@ extern SLONG ScreenHeight;
 // XLAT_str, X_COMPLETE, X_SEARCHING for search-mode text
 #include "assets/xlat_str.h"
 
-// Keys[], KB_V for version number display
+// KB_V for version number display
 #include "engine/input/keyboard.h"
-#include "engine/input/keyboard_globals.h"
 #include "engine/input/input_frame.h"
 
 // ENV_get_value_number for PSX-mode check

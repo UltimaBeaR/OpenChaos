@@ -28,7 +28,6 @@
 #include "camera/fc_globals.h"
 #include "things/items/balloon.h"
 #include "engine/io/env.h"
-#include "engine/platform/ds_bridge.h" // DualSense touchpad click duplicates FPS toggle (key 2)
 #include "navigation/wmove.h"
 #include "engine/console/console.h" // CONSOLE_draw, CONSOLE_font
 #include "engine/graphics/pipeline/poly.h" // POLY_frame_init, POLY_frame_draw, POLY_reset_render_states
@@ -86,10 +85,9 @@
 #include "engine/graphics/ui_coords.h" // ui_coords::recompute (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_screen_shot, AENG_draw_messages
 #include "engine/graphics/render_interp.h" // g_render_alpha, render_interp_capture, render_interp_reset
-#include "engine/input/keyboard.h" // Keys, LastKey, KB_*
+#include "engine/input/keyboard.h" // Keys, KB_*
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/input_frame.h"
-#include "engine/input/joystick.h" // GetInputDevice, JOYSTICK
 
 #include <math.h>
 #include <string.h> // strstr
@@ -235,10 +233,10 @@ void game_startup(void)
     init_joypad_config();
     ANIM_init();
 
-    GetInputDevice(JOYSTICK, 0, UC_TRUE);
+    gamepad_init();
 
     // Play intro FMV (Eidos, Mucky Foot, intro) — skippable, respects play_movie config.
-    // Must be after GetInputDevice so DualSense is initialized for skip.
+    // Must be after gamepad_init so DualSense is initialized for skip.
     {
         extern void video_play_intro(void);
         video_play_intro();
@@ -636,23 +634,14 @@ void check_debug_timing_keys(void)
     }
 
     // DualSense touchpad click duplicates key 2 — same FPS-cap toggle without
-    // reaching for the keyboard during gamepad debugging. Touchpad isn't part
-    // of the rgbButtons[] mirror so input_frame doesn't track it; keep a local
-    // edge-detect static for the touchpad source only.
-    static bool tp_prev = false;
-    bool tp_click = false;
-    if (ds_is_connected()) {
-        DS_InputState ds_in;
-        if (ds_get_input(&ds_in))
-            tp_click = ds_in.touchpad_click;
-    }
-    bool fps_toggle_edge = input_key_just_pressed(KB_2) || (tp_click && !tp_prev);
-    if (fps_toggle_edge) {
+    // reaching for the keyboard during gamepad debugging. The DS gamepad path
+    // mirrors touchpad_click into rgbButtons[17], so input_btn_just_pressed
+    // gives the rising-edge directly with no local edge-detect needed.
+    if (input_key_just_pressed(KB_2) || input_btn_just_pressed(17)) {
         g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
             : RENDER_FPS_DEFAULT_CAP;
     }
-    tp_prev = tp_click;
 
     if (input_key_just_pressed(KB_3)) {
         g_render_interp_enabled = !g_render_interp_enabled;
@@ -816,8 +805,9 @@ SLONG hardware_input_continue(void)
 {
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
-        if (LastKey == KB_SPACE || LastKey == KB_ESC || LastKey == KB_Z || LastKey == KB_X || LastKey == KB_C || LastKey == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
-            LastKey = 0;
+        const UBYTE last_key = input_last_key();
+        if (last_key == KB_SPACE || last_key == KB_ESC || last_key == KB_Z || last_key == KB_X || last_key == KB_C || last_key == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
+            input_last_key_consume();
 
             return (1);
         }
@@ -842,7 +832,7 @@ round_again:;
         draw_map_screen = UC_FALSE;
         form_leave_map = NULL;
         form_left_map = 0;
-        LastKey = 0;
+        input_last_key_consume();
         last_fudge_message = 0;
         last_fudge_camera = 0;
 
@@ -1358,14 +1348,10 @@ round_again:;
 
                         // Clear any pending press carried in from the previous
                         // screen so the warning loop doesn't dismiss instantly.
-                        // input_key_just_pressed naturally requires a rising
-                        // edge in this loop's snapshot — these writes update
-                        // the legacy Keys[] backing store for any still-Keys[]-
-                        // reading consumers (e.g. FORM_KeyProc bridge).
-                        Keys[KB_ESC] = 0;
-                        Keys[KB_SPACE] = 0;
-                        Keys[KB_ENTER] = 0;
-                        Keys[KB_PENTER] = 0;
+                        input_key_force_release(KB_ESC);
+                        input_key_force_release(KB_SPACE);
+                        input_key_force_release(KB_ENTER);
+                        input_key_force_release(KB_PENTER);
 
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
@@ -1412,10 +1398,10 @@ round_again:;
 
                         ge_reset_back_image();
 
-                        Keys[KB_ESC] = 0;
-                        Keys[KB_SPACE] = 0;
-                        Keys[KB_ENTER] = 0;
-                        Keys[KB_PENTER] = 0;
+                        input_key_force_release(KB_ESC);
+                        input_key_force_release(KB_SPACE);
+                        input_key_force_release(KB_ENTER);
+                        input_key_force_release(KB_PENTER);
 
                         the_game.DarciDeadCivWarnings += 1;
                     }

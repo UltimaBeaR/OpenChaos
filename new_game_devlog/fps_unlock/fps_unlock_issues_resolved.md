@@ -678,3 +678,19 @@ Static counter'ы удалены.
 **Расширение scope:** issue #23 в `fps_unlock_issues.md` описывал только сирену. Low-HP blink был обнаружен попутно при подготовке фикса — тот же класс бага в той же функции, починен в одном коммите.
 
 Подтверждено пользователем 2026-05-05.
+
+---
+
+## 24. ✅ Отзывчивость управления зависит от physics Hz (раньше fps_unlock #15)
+
+**Симптом (был):** при physics 20 Hz управление ощущалось менее отзывчивым — нажатие кнопки регистрировалось только на следующем physics-тике, до которого могло быть до 50ms. Особенно заметно на **левом стике при беге** — резкая смена направления, персонаж поворачивался медленнее чем ожидается; при вращении стиком по кругу был «накапливающийся» эффект поворота.
+
+**Корневые причины (все три устранены):**
+
+1. **`max_angle = 128` в [`player_turn_left_right_analogue`](../../new_game/src/game/input_actions.cpp)** не масштабировался с physics Hz. При 20 Hz давал 2560 единиц/сек поворота — субъективно медленно. **Фикс 2026-04-29:** значение поднято до 192 + добавлено TICK_RATIO-масштабирование → 3840 единиц/сек, как ощущается в оригинале.
+
+2. **Edge-detect нажатий теряется между physics-тиками.** Render frame на 240 FPS при physics 20 Hz даёт 12+ render frame'ов между physics-тиками — fast press мог попасть полностью между двумя тиками и stale level-state не показывал rising edge физике. **Фикс 2026-05-05** в рамках [Phase 4-Wide миграции на input_frame](../input_system/changelog.md): sticky `press_pending` в input_frame защищает physics-tick consumer'ов от пропуска edge'ей (см. drain pattern в [input_frame.h](../../new_game/src/engine/input/input_frame.h) для siren/weapon switch и т.п.).
+
+3. **Визуальная ступенчатость на 20 Hz physics.** Без интерполяции render frame'ы между physics-тиками показывали идентичные позиции — субъективно "тормозно". **Фикс через render interpolation** ([new_game_devlog/fps_unlock/render_interpolation/](render_interpolation/)) — все движущиеся объекты лерпятся между physics snapshot'ами на render rate, движение плавное независимо от physics Hz.
+
+**Подтверждено пользователем 2026-05-06:** управление субъективно отзывчивое на 20 Hz physics, остаточная latency не ощущается. 50ms теоретический потолок до следующего physics-тика остаётся (фундаментальный предел discrete-physics архитектуры), но edge-detect через input_frame + render interpolation скрывают это от игрока.

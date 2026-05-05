@@ -3,8 +3,10 @@
 #include "engine/input/input_frame.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/gamepad.h" // gamepad_poll
-#include "engine/input/joystick.h" // ReadInputDevice
+#include "engine/input/mouse_globals.h" // mouse state for input_mouse_*
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
+
+extern SLONG mouse_input; // input_actions_globals: legacy mouse-active gate
 
 #include <string.h>
 
@@ -33,6 +35,14 @@ UBYTE s_keys_pressed_during_frame[INPUT_KEY_COUNT];
 // input_key_consume(). Survives across frames. For consumers that may not
 // run every frame (e.g. physics tick).
 UBYTE s_keys_press_pending[INPUT_KEY_COUNT];
+
+// Most recent keyboard scancode pressed since last consume. Used by
+// text-input consumers (rebind UI, debug console, skip detection) that
+// need the exact scancode of the latest keydown. Hardware events update
+// this; synthetic presses (input_frame_inject_key_press) intentionally
+// do not, so a gamepad-bridged synth press doesn't masquerade as a real
+// keyboard event for text input.
+UBYTE s_last_key = 0;
 
 // Gamepad button snapshots — derived from gamepad_state.rgbButtons[] each
 // input_frame_update call.
@@ -153,16 +163,15 @@ void input_frame_init()
     memset(s_keys_repeat_armed, 0, sizeof(s_keys_repeat_armed));
     memset(s_btns_repeat_armed, 0, sizeof(s_btns_repeat_armed));
     memset(s_stick_dir_repeat_armed, 0, sizeof(s_stick_dir_repeat_armed));
+    s_last_key = 0;
 }
 
 void input_frame_update()
 {
-    // Refresh gamepad state. ReadInputDevice() drains gamepad events and
-    // updates gamepad_state. Other call sites still call this themselves
-    // (game.cpp, gamemenu.cpp, frontend.cpp, input_actions.cpp) — those calls
-    // become near-no-ops after this one because the event queue is already
-    // drained, but they continue to work for backward compatibility.
-    ReadInputDevice();
+    // Refresh gamepad state. gamepad_poll drains gamepad events and updates
+    // gamepad_state. Single source of truth — all leaf consumers read via
+    // input_frame, no other call site polls.
+    gamepad_poll();
 
     memcpy(s_keys_prev, s_keys_curr, sizeof(s_keys_curr));
     for (SLONG i = 0; i < INPUT_KEY_COUNT; i++) {
@@ -223,6 +232,7 @@ void input_frame_on_key_down(UBYTE scancode)
     s_keys_event_held[scancode] = 1;
     s_keys_pressed_during_frame[scancode] = 1;
     s_keys_press_pending[scancode] = 1;
+    s_last_key = scancode;
 }
 
 void input_frame_on_key_up(UBYTE scancode)
@@ -230,11 +240,25 @@ void input_frame_on_key_up(UBYTE scancode)
     s_keys_event_held[scancode] = 0;
 }
 
+void input_frame_inject_key_press(SLONG kb_code)
+{
+    if (!key_in_range(kb_code)) return;
+    s_keys_event_held[kb_code] = 1;
+    s_keys_pressed_during_frame[kb_code] = 1;
+    s_keys_press_pending[kb_code] = 1;
+    s_keys_curr[kb_code] = 1;
+}
+
 // ---- Keyboard ---------------------------------------------------------------
 
 bool input_key_held(SLONG kb_code)
 {
     return key_in_range(kb_code) && s_keys_curr[kb_code];
+}
+
+bool input_key_event_held(SLONG kb_code)
+{
+    return key_in_range(kb_code) && s_keys_event_held[kb_code];
 }
 
 bool input_key_just_pressed(SLONG kb_code)
@@ -267,6 +291,16 @@ void input_key_force_release(SLONG kb_code)
         s_keys_pressed_during_frame[kb_code] = 0;
         s_keys_press_pending[kb_code] = 0;
     }
+}
+
+UBYTE input_last_key()
+{
+    return s_last_key;
+}
+
+void input_last_key_consume()
+{
+    s_last_key = 0;
 }
 
 // ---- Gamepad buttons --------------------------------------------------------
@@ -443,6 +477,43 @@ int input_trigger_raw(SLONG trigger_idx)
     if (trigger_idx == 15) return gamepad_state.trigger_left;
     if (trigger_idx == 16) return gamepad_state.trigger_right;
     return 0;
+}
+
+// ---- Mouse ------------------------------------------------------------------
+
+bool input_mouse_active()
+{
+    return mouse_input != 0;
+}
+
+SLONG input_mouse_dx()
+{
+    return MouseDX;
+}
+
+SLONG input_mouse_dy()
+{
+    return MouseDY;
+}
+
+SLONG input_mouse_x()
+{
+    return MouseX;
+}
+
+SLONG input_mouse_y()
+{
+    return MouseY;
+}
+
+bool input_mouse_button_held(SLONG btn_idx)
+{
+    switch (btn_idx) {
+    case 0: return LeftButton != 0;
+    case 1: return RightButton != 0;
+    case 2: return MiddleButton != 0;
+    default: return false;
+    }
 }
 
 // ---- InputAutoRepeat --------------------------------------------------------

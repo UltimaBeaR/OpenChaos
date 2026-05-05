@@ -190,7 +190,6 @@ set(SOURCES_NEW
     src/engine/input/keyboard_globals.cpp
     src/engine/input/mouse.cpp
     src/engine/input/mouse_globals.cpp
-    src/engine/input/joystick.cpp
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
     src/engine/input/weapon_feel.cpp

@@ -8,6 +8,7 @@
 
 #include "assets/formats/elev.h"
 #include "assets/formats/elev_globals.h"
+#include "engine/input/input_frame.h"
 
 #include "missions/eway.h"
 #include "missions/mission.h"
@@ -1959,17 +1960,19 @@ SLONG ELEV_game_init(
 
     insert_collision_facets();
 
-    Keys[KB_SPACE] = 0;
-    Keys[KB_ENTER] = 0;
-    Keys[KB_A] = 0;
-    Keys[KB_Z] = 0;
-    Keys[KB_X] = 0;
-    Keys[KB_C] = 0;
-    Keys[KB_V] = 0;
-    Keys[KB_LEFT] = 0;
-    Keys[KB_RIGHT] = 0;
-    Keys[KB_UP] = 0;
-    Keys[KB_DOWN] = 0;
+    // Force-release any keys held across the level transition so the first
+    // frame of gameplay doesn't see a stale press from the loading screen.
+    input_key_force_release(KB_SPACE);
+    input_key_force_release(KB_ENTER);
+    input_key_force_release(KB_A);
+    input_key_force_release(KB_Z);
+    input_key_force_release(KB_X);
+    input_key_force_release(KB_C);
+    input_key_force_release(KB_V);
+    input_key_force_release(KB_LEFT);
+    input_key_force_release(KB_RIGHT);
+    input_key_force_release(KB_UP);
+    input_key_force_release(KB_DOWN);
 
     ATTRACT_loadscreen_draw(100 * 256 / 100);
 

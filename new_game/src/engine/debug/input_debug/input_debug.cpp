@@ -8,7 +8,6 @@
 #include "engine/graphics/pipeline/polypage.h" // FullscreenUIModeScope
 #include "engine/graphics/text/font.h"
 #include "engine/input/keyboard.h"
-#include "engine/input/keyboard_globals.h"
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/input_frame.h"
@@ -182,10 +181,9 @@ void input_debug_tick()
     if (!s_active)
         return;
 
-    // Re-poll the gamepad ourselves. While the panel is open, the normal
-    // callers of ReadInputDevice (GAMEMENU_process, get_hardware_input,
-    // PAUSE_handler) are gated off — so without this explicit call the
-    // gamepad state would freeze and the panel would show stale input.
+    // Re-poll the gamepad ourselves. While the panel is open the normal
+    // input_frame_update path is gated off — so without this explicit call
+    // gamepad_state would freeze and the panel would show stale input.
     // gamepad_poll internally captures the pre-scrub snapshot for us.
     gamepad_poll();
 
@@ -193,12 +191,12 @@ void input_debug_tick()
     // through input_debug_nav().
     refresh_nav();
 
-    // ESC closes the panel. Consume Keys[KB_ESC]=0 so the pause-menu / other
-    // legacy ESC handlers don't also fire on the next frame while ESC is held;
-    // input_frame's just_pressed has already self-cleared but Keys[] backing
-    // store is independent and might leak into still-Keys[]-reading paths.
+    // ESC closes the panel. Force-release in input_frame so the same-frame
+    // pause-menu ESC handler (FORM_KeyProc / GAMEMENU_process) doesn't also
+    // fire and immediately re-open / open a different menu after the panel
+    // closes.
     if (input_key_just_pressed(KB_ESC)) {
-        Keys[KB_ESC] = 0;
+        input_key_force_release(KB_ESC);
         input_debug_close();
         return;
     }

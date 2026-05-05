@@ -494,7 +494,7 @@ void PLAYCUTS_Play(CPData* cutscene)
     // resets press_pending too, which is needed if any consumer of pending
     // raced ahead.
     input_key_consume(KB_SPACE);
-    LastKey = 0;
+    input_last_key_consume();
     no_more_packets = 0;
 
     remove_thing_from_map(darci);

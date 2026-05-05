@@ -6,7 +6,7 @@
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/weapon_feel.h"
 #include "engine/debug/input_debug/input_debug.h"
-#include "engine/input/keyboard_globals.h" // Keys[] for active device detection
+#include "engine/input/input_frame.h" // input_key_event_held for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
 #include "game/input_actions_globals.h"
@@ -383,9 +383,11 @@ static void poll_sdl3()
 
 void gamepad_poll()
 {
-    // Detect keyboard activity.
+    // Detect keyboard activity via input_frame's event-tracked held state
+    // (level-true while any key is physically held, regardless of consume
+    // mutations elsewhere).
     for (int i = 0; i < 256; i++) {
-        if (Keys[i]) {
+        if (input_key_event_held(i)) {
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
             break;
         }

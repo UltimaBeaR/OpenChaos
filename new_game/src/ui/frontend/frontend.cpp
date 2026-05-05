@@ -26,7 +26,7 @@ extern SLONG ScreenHeight;
 #include "engine/audio/mfx.h" // MFX_play_stereo, MFX_stop, MFX_set_volumes, etc.
 #include "engine/audio/sound.h" // WEATHER_REF, SIREN_REF
 #include "assets/sound_id.h" // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
-#include "engine/input/keyboard_globals.h" // Keys[], LastKey, ControlFlag, ShiftFlag
+#include "engine/input/keyboard_globals.h" // ControlFlag, ShiftFlag
 #include "engine/input/input_frame.h"
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
@@ -2378,7 +2378,7 @@ static UBYTE FRONTEND_input(void)
         if (input_key_just_pressed(KB_ESC)) {
             // Consume so the regular-nav ESC handler below doesn't also fire
             // FE_BACK / FE_QUIT on a subsequent frame while ESC stays held.
-            Keys[KB_ESC] = 0;
+            input_key_force_release(KB_ESC);
             grabbing_pad = 0;
         } else {
             for (i = 0; i < 32; i++) {
@@ -2517,18 +2517,22 @@ static UBYTE FRONTEND_input(void)
         last_input = input;
     }
 
-    if (grabbing_key && LastKey) {
-        MenuData* item = menu_data + menu_state.selected;
-        if (LastKey != KB_ESC) {
-            UBYTE j;
-            for (j = 0; j < menu_state.items; j++)
-                if (menu_data[j].Data == LastKey)
-                    menu_data[j].Data = 0;
-            item->Data = LastKey;
+    if (grabbing_key) {
+        const UBYTE last_key = input_last_key();
+        if (last_key) {
+            MenuData* item = menu_data + menu_state.selected;
+            if (last_key != KB_ESC) {
+                UBYTE j;
+                for (j = 0; j < menu_state.items; j++)
+                    if (menu_data[j].Data == last_key)
+                        menu_data[j].Data = 0;
+                item->Data = last_key;
+            }
+            input_key_force_release(last_key);
+            input_last_key_consume();
+            grabbing_key = 0;
+            return 0;
         }
-        Keys[LastKey] = 0;
-        grabbing_key = 0;
-        return 0;
     }
     if (allow_debug_keys) {
         const bool theme1 = input_key_just_pressed(KB_1);
@@ -2684,7 +2688,7 @@ static UBYTE FRONTEND_input(void)
             break;
         case OT_KEYPRESS:
             grabbing_key = 1;
-            LastKey = 0;
+            input_last_key_consume();
             break;
         case OT_PADPRESS:
             if (bCanChangeJoypadButtons) {

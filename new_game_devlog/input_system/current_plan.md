@@ -1,6 +1,8 @@
-# Input System — текущая работа: модуль `input_frame`
+# Input System — модуль `input_frame` (✅ ЗАВЕРШЕНО)
 
-> **Статус (2026-05-06):** **Phase 4-Wide миграция полностью завершена.** Все hardware input reads (Keys[], rgbButtons[], lX/lY/rX/rY, trigger_*) во всех consumer'ах идут через input_frame API, включая central pipeline `get_hardware_input` и все leaf consumers (vehicle triggers, fc.cpp camera, outro_os.cpp, FPS look). Прямые reads gamepad_state остались только в трёх legitimate слоях: `gamepad.cpp` (writer), `input_frame.cpp` (single reader), `joystick.cpp` (legacy compat). **Полное состояние и handoff для следующего агента** → последняя секция [changelog.md](changelog.md) "ТЕКУЩЕЕ СОСТОЯНИЕ (для handoff)".
+> **Статус (2026-05-06): задача полностью закрыта.** Полная миграция завершена. Старая система input удалена. Phase D (D1-D7) убрала legacy слой целиком: `Keys[256]`, `LastKey`, `joystick.{cpp,h}`, `ReadInputDevice/GetInputDevice`, same-turn release latching (`ClearLatchedKeys/Released/release_count/game_turn/key_turn`) — всё удалено. Mouse и DualSense touchpad обёрнуты в input_frame API. Все consumer reads идут через `input_frame.h`. Backing-store (SDL event sinks) остался только в `gamepad.cpp` и `mouse.cpp` — потребители его не читают. **Полное состояние** → последняя секция [changelog.md](changelog.md) "Phase D — финальная зачистка".
+>
+> **Что НЕ входит в эту задачу** (опциональное расширение): система actions, переназначение клавиш (remap UI), контекстные группы (на ходу / в машине), reverse-lookup glyph'ов для подсказок UI. План этих фич — [`full_plan_deferred.md`](full_plan_deferred.md). API `input_frame` совместим с этим расширением (actions надстраиваются слоем сверху).
 > Детальная хронология → [changelog.md](changelog.md), грабли при миграции →
 > [migration_checklist.md](migration_checklist.md).
 > **Большой план с actions/ремапом** → [full_plan_deferred.md](full_plan_deferred.md) (отложен).
@@ -347,18 +349,23 @@ input_frame **не читает** `Keys[]` для своего snapshot'а. Вм
 
 ## Текущие open questions
 
-Все известные баги связанные с input-системой закрыты. Следующий шаг — Phase 4-Wide миграция всего, которая описана выше.
+Нет. Задача полностью закрыта.
 
 ## Связь с FPS unlock
 
-Этот модуль закрывает архитектурную часть нескольких open issue'ев:
+Все input-related issue в `fps_unlock_issues.md` закрыты этой задачей и переехали в `fps_unlock_issues_resolved.md`:
 
-- **#5** (siren toggle) — когда мигрируем `vehicle.cpp` (Phase 4 шаг 1), архитектурно решается: edge-detect / sticky pending не зависит от physics Hz.
-- **#15** (input latency) — частично закрывается через sticky pending: physics tick не теряет edge'и которые произошли между его сэмплами. Не решает continuous-state latency, но это и не входит в scope (см. выше).
-- **#20** (weapon switch) — после Phase 1+2+3 готова инфраструктура; миграция в Phase 4 шаг 5 закрывает любой остаточный bug если он есть.
+- **#5** (siren toggle) ✅ resolved
+- **#15** (input latency) ✅ resolved (2026-05-06)
+- **#20** (weapon switch) ✅ resolved
+- **#23** (DualSense LED siren strobe) ✅ resolved
 
-Все три issue остаются open в `fps_unlock_issues.md` пока соответствующие миграции не завершены и не подтверждены пользователем. После — переезжают в resolved с ссылкой на input_system.
+## Возможное расширение в будущем
 
-## Что писать в changelog
+Не блокеры, опционально (см. [`full_plan_deferred.md`](full_plan_deferred.md)):
 
-Каждый коммит / итерация → запись в [changelog.md](changelog.md) с датой, фазой и описанием. Чтобы при возврате в задачу через сколько-то времени или из нового агентского контекста было видно где остановились.
+- Слой actions поверх physical-key API (для remap UI / контекстных групп / glyph reverse-lookup).
+- Mouse extensions (drag, double-click, scroll).
+- DualSense touchpad finger tracking (если потребуется).
+
+`input_frame` API спроектирован чтобы эти расширения были аддитивными — не требуют переписывания существующих consumer'ов.

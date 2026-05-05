@@ -13,7 +13,8 @@
 // Runs inside LibShellActive() once per render frame after SDL events have
 // been pumped, so:
 //   - keyboard snapshot reflects this-frame events (incl. same-frame
-//     press+release latching from keyboard.cpp's Released[] mechanism)
+//     press+release latching via s_keys_pressed_during_frame, set by the
+//     SDL key-down hook and OR'd into curr inside input_frame_update)
 //   - gamepad poll happens here too, then snapshot is captured
 //
 // Computes:
@@ -40,6 +41,16 @@ bool input_key_held(SLONG kb_code);
 bool input_key_just_pressed(SLONG kb_code);
 bool input_key_just_released(SLONG kb_code);
 
+// Live event-tracked held state: reflects the most recent SDL key-down /
+// key-up event immediately, without waiting for the next
+// input_frame_update() snapshot. Use ONLY from inside SDL event handlers
+// where the just-applied event must be visible to subsequent code in the
+// same call (e.g. keyboard.cpp::SetFlagsFromKeyArray recomputing
+// ShiftFlag/ControlFlag/AltFlag). Most consumers should use
+// input_key_held instead — it's snapshot-stable across the frame and
+// won't see mid-frame state flips.
+bool input_key_event_held(SLONG kb_code);
+
 // Sticky: was there a key-down event since the last consume? Survives across
 // frames (unlike just_pressed which is true for exactly one frame). Use when
 // the consumer may not run every frame (e.g. physics tick which can be skipped
@@ -56,6 +67,32 @@ void input_key_consume(SLONG kb_code);
 // the same frame). The next physical key-down event from SDL re-arms
 // normally — synthesis only suppresses CURRENT held-state, not future presses.
 void input_key_force_release(SLONG kb_code);
+
+// Returns the scancode of the most recent SDL key-down event since the
+// last input_last_key_consume(). Returns 0 if no press is pending.
+//
+// For text-input use cases that care about WHICH scancode was pressed
+// (rebind UI, debug console text entry, skip-detection that compares the
+// scancode against a list). Standard action / hotkey checks should use
+// input_key_just_pressed which is per-key edge-detect.
+UBYTE input_last_key();
+void input_last_key_consume();
+
+// Synthesise a key-press event for the current frame from non-hardware
+// sources. Sets curr / event_held / pressed_during_frame / press_pending
+// for the given scancode immediately so subsequent reads in the SAME frame
+// see the press (just_pressed/held/press_pending all return true).
+//
+// Use ONLY for internal synthetic-input channels — currently the
+// gamepad→keyboard bridge in widget.cpp::FORM_KeyProc and
+// gamemenu.cpp's ESC bridge, where a controller button must drive a
+// keyboard handler that reads via input_key_just_pressed.
+//
+// Does NOT update input_last_key (synthetic presses must not look like
+// real keyboard presses for text-input consumers).
+//
+// Hardware events go through input_frame_on_key_down, NOT this function.
+void input_frame_inject_key_press(SLONG kb_code);
 
 // ---- Gamepad buttons --------------------------------------------------------
 // btn_idx = index into gamepad_state.rgbButtons[] (0..31).
@@ -118,6 +155,25 @@ float input_stick_y(InputStickId stick);
 // Returns float [0.0, 1.0].
 
 float input_trigger(SLONG trigger_idx);
+
+// ---- Mouse ------------------------------------------------------------------
+// Wrappers around the mouse_globals state (MouseDX/MouseDY/LeftButton/etc.)
+// filled by mouse.cpp from SDL3 events. Single source of truth for mouse
+// reads in game/UI code so consumers don't touch mouse_globals directly.
+//
+// mouse-input flag (input_mouse_active): legacy `mouse_input` global —
+// non-zero when the mouse is the active input source for character look /
+// movement (toggled by config). Consumer-side gate; mouse_globals always
+// receives events regardless of this flag.
+
+bool input_mouse_active();
+SLONG input_mouse_dx();
+SLONG input_mouse_dy();
+// Cursor position in scene-FBO pixel coordinates (post-composition mapping).
+SLONG input_mouse_x();
+SLONG input_mouse_y();
+// btn_idx: 0 = left, 1 = right, 2 = middle (matches mouse_on_button order).
+bool input_mouse_button_held(SLONG btn_idx);
 
 // ---- Raw axis / trigger / connection accessors -----------------------------
 // Lower-level wrappers around gamepad_state for callers that need integer /

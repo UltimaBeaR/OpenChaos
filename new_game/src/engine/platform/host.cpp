@@ -215,8 +215,6 @@ void ResetHost(void)
 // Returns UC_TRUE while the app is alive.
 BOOL LibShellActive(void)
 {
-    ClearLatchedKeys();
-
     if (!sdl3_poll_events()) {
         ShellActive = UC_FALSE;
     }

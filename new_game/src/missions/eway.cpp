@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include "feature_flags.h"
 #include "missions/eway.h"
+#include "engine/input/input_frame.h"
 
 #include "things/characters/person.h" // can_a_see_b, set_person_idle and other person functions used in this file
 #include "map/ob.h"
@@ -3345,7 +3346,7 @@ void EWAY_set_active(EWAY_Way* ew)
                         MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SEARCH_END);
                         MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SLIDE_START);
 
-                        LastKey = 0;
+                        input_last_key_consume();
                     } else {
                         Thing* who_says = NULL;
 

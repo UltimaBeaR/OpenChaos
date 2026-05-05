@@ -16,7 +16,7 @@
 #include "ui/frontend/frontend.h"
 #include "things/core/statedef.h"
 #include "engine/input/input_frame.h"
-#include "engine/input/keyboard_globals.h" // ControlFlag, LastKey
+#include "engine/input/keyboard_globals.h" // ControlFlag
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)
@@ -85,7 +85,7 @@ reinit_because_of_language_change:
 
         if (ControlFlag && input_key_just_pressed(KB_Q)) {
             GAME_STATE = 0;
-            LastKey = 0;
+            input_last_key_consume();
         }
 
         if (y < 57.0F) {
@@ -145,7 +145,7 @@ reinit_because_of_language_change:
                     break;
                 case STARTS_EXIT:
                     GAME_STATE = 0;
-                    LastKey = 0;
+                    input_last_key_consume();
                     break;
                 case STARTS_HOST:
                     break;

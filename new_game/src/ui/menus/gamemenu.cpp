@@ -163,7 +163,7 @@ SLONG GAMEMENU_process()
     {
         // Start → ESC (toggle pause).
         if (input_btn_just_pressed(6))
-            Keys[KB_ESC] = 1;
+            input_frame_inject_key_press(KB_ESC);
 
         if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
             // Triangle/Y (button 3) → ESC (back/cancel). Drain press_pending
@@ -174,7 +174,7 @@ SLONG GAMEMENU_process()
             // tick after resume.
             if (input_btn_just_pressed(3)) {
                 input_btn_consume(3);
-                Keys[KB_ESC] = 1;
+                input_frame_inject_key_press(KB_ESC);
             }
 
             // Cross/A (button 0) → Enter (confirm). No current consumer of
@@ -183,7 +183,7 @@ SLONG GAMEMENU_process()
             // would otherwise see the menu-confirm press as a pending input.
             if (input_btn_just_pressed(0)) {
                 input_btn_consume(0);
-                Keys[KB_ENTER] = 1;
+                input_frame_inject_key_press(KB_ENTER);
             }
 
             // Up/Down nav (keyboard and stick) is handled below inside the
@@ -192,29 +192,19 @@ SLONG GAMEMENU_process()
         }
     }
 
-    // **Internal bridge consumer** — Keys[KB_ESC] is the message channel for
-    // the gamepad-to-keyboard bridge above (Start/Triangle button presses
-    // synthesise Keys[KB_ESC]=1). Reading Keys[] here picks up both real
-    // keyboard ESC and the synthesised gamepad presses. Migrating to
-    // input_frame would require either an "inject synthesised key event"
-    // API (with subtle ordering caveats — input_frame_update has already
-    // run for this frame) or replacing the bridge with direct input_frame
-    // state mutation. Internal closed channel — kept on Keys[] for now,
-    // analogous to widget.cpp::FORM_KeyProc.
-    if (Keys[KB_ESC]) {
+    // Pause-toggle channel: real keyboard ESC presses (event hook sets
+    // press_pending) and synthesised gamepad presses (Start / Triangle
+    // bridge above calls input_frame_inject_key_press(KB_ESC)) both land
+    // on the same input_frame slot. Single read picks up either source.
+    if (input_key_press_pending(KB_ESC)) {
         // Force a synthesised release in input_frame's CURRENT snapshot so
         // same-frame downstream consumers (e.g. weapon switch reading
         // input_key_just_pressed(KB_ENTER) in process_controls, or JUMP
         // level read in get_hardware_input) don't see the menu-consumed
-        // press leak into gameplay. `keyboard_key_up` alone wouldn't help
-        // — it updates event_held, but s_keys_curr was already snapshotted
-        // by input_frame_update at the top of THIS LibShellActive call,
-        // and downstream reads still see curr=1 → leak. force_release
-        // clears curr/event_held/pressed_during_frame/press_pending all
-        // at once. Subsequent Keys[KB_X]=0 consume keeps the legacy
-        // backing-store in sync for any still-Keys[]-reading consumer.
+        // press leak into gameplay. force_release clears
+        // curr/event_held/pressed_during_frame/press_pending all at once
+        // — subsumes input_key_consume.
         input_key_force_release(KB_ESC);
-        Keys[KB_ESC] = 0;
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -305,12 +295,7 @@ SLONG GAMEMENU_process()
                 nav_down = false;
             }
 
-            Keys[KB_UP]   = nav_up   ? 1 : 0;
-            Keys[KB_DOWN] = nav_down ? 1 : 0;
-
-            if (Keys[KB_UP]) {
-                Keys[KB_UP] = 0;
-
+            if (nav_up) {
                 GAMEMENU_menu_selection -= 1;
 
                 if (GAMEMENU_menu_selection < 1) {
@@ -324,9 +309,7 @@ SLONG GAMEMENU_process()
                 MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
             }
 
-            if (Keys[KB_DOWN]) {
-                Keys[KB_DOWN] = 0;
-
+            if (nav_down) {
                 GAMEMENU_menu_selection += 1;
 
                 if ((GAMEMENU_menu_selection > 7) || (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection] == NULL)) {
@@ -346,7 +329,7 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER]) {
+            if (input_key_press_pending(KB_ENTER) || input_key_press_pending(KB_SPACE) || input_key_press_pending(KB_PENTER)) {
                 // Force-release in input_frame's CURRENT snapshot — see
                 // comment in the ESC handler above. Otherwise SPACE held for
                 // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
@@ -354,9 +337,6 @@ SLONG GAMEMENU_process()
                 input_key_force_release(KB_ENTER);
                 input_key_force_release(KB_SPACE);
                 input_key_force_release(KB_PENTER);
-                Keys[KB_ENTER] = 0;
-                Keys[KB_SPACE] = 0;
-                Keys[KB_PENTER] = 0;
 
                 MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
 

@@ -83,7 +83,6 @@ extern UWORD fade_black;
 extern void reload_level(void);
 extern SLONG plant_feet(Thing* p_person);
 extern UWORD count_gang(Thing* p_target);
-extern SLONG mouse_input; // defined in interfac.cpp
 extern UBYTE aeng_draw_cloud_flag; // defined in aeng.cpp
 
 // tga[] is file-local, used only by tga_dump and plan_view_shot.
@@ -1324,15 +1323,13 @@ void process_controls(void)
 
             POLY_frame_init(UC_FALSE, UC_FALSE);
 
-            if (LastKey) {
+            const UBYTE last_key = input_last_key();
+            if (last_key) {
                 UWORD len = strlen(input_text);
                 CBYTE key;
-                // ShiftFlag is the level-state Shift modifier maintained by
-                // the keyboard event hook (keyboard.cpp). It mirrors the
-                // Keys[KB_LSHIFT] || Keys[KB_RSHIFT] OR but is the idiomatic
-                // way to read modifiers in this codebase — direct Keys[]
-                // reads here would be a back-door bypass of input_frame.
-                key = ShiftFlag ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
+                // ShiftFlag is the level-state Shift modifier mirrored from
+                // input_frame's event-tracked KB_LSHIFT || KB_RSHIFT.
+                key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
                 if (key == 8) {
                     if (len > 2)
                         input_text[len - 1] = 0;
@@ -1342,7 +1339,7 @@ void process_controls(void)
                         input_text[len + 1] = 0;
                     }
                 }
-                LastKey = 0;
+                input_last_key_consume();
             }
 
             CONSOLE_status(input_text);
@@ -1477,7 +1474,7 @@ void process_controls(void)
         }
     }
 
-    if (mouse_input) {
+    if (input_mouse_active()) {
         //
         // put the mouse in the center of the screen so we can always get a mousedx,mousedy
         //
@@ -2049,8 +2046,8 @@ void process_controls(void)
             // expects, mirroring the KB_G "teleport Darci to mouse" handler
             // below. Without this, on non-native / non-4:3 windows the mine
             // spawns at the wrong world point.
-            float hitx = float(MouseX) * float(DisplayWidth) / float(ScreenWidth);
-            float hity = float(MouseY) * float(DisplayHeight) / float(ScreenHeight);
+            float hitx = float(input_mouse_x()) * float(DisplayWidth) / float(ScreenWidth);
+            float hity = float(input_mouse_y()) * float(DisplayHeight) / float(ScreenHeight);
 
             AENG_raytraced_position(
                 SLONG(hitx + 0.5f),
@@ -2134,8 +2131,8 @@ void process_controls(void)
             // MouseX/Y are in scene-FBO pixels after Stage 6 of the
             // FBO-as-virtual-screen refactor; scale into the 640×480
             // virtual UI canvas that AENG_raytraced_position expects.
-            float hitx = float(MouseX) * float(DisplayWidth) / float(ScreenWidth);
-            float hity = float(MouseY) * float(DisplayHeight) / float(ScreenHeight);
+            float hitx = float(input_mouse_x()) * float(DisplayWidth) / float(ScreenWidth);
+            float hity = float(input_mouse_y()) * float(DisplayHeight) / float(ScreenHeight);
 
             AENG_raytraced_position(
                 SLONG(hitx + 0.5f),

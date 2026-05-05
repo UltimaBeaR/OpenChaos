@@ -6,6 +6,75 @@
 
 ---
 
+## 2026-05-06 — Phase D (D1-D7): финальная зачистка legacy input system
+
+После Phase 4-Wide миграции (2026-05-05/06) hardware reads consumer'ов уже шли через input_frame. Эта сессия — **полное удаление** legacy слоя из кодовой базы. Цель: не должно остаться ни одного потребителя, читающего MFStdLib globals напрямую.
+
+**Phase D1 — Modifier flags через input_frame:**
+- Добавлен `input_key_event_held(scancode)` — live event-tracked held state (не snapshot-based) для использования внутри SDL event handler'ов.
+- [`keyboard.cpp::SetFlagsFromKeyArray`](../../new_game/src/engine/input/keyboard.cpp): `Keys[KB_LSHIFT]` → `input_key_event_held(KB_LSHIFT)` etc. ShiftFlag/ControlFlag/AltFlag теперь computed from input_frame, не из Keys[].
+
+**Phase D2 — `LastKey` удалён:**
+- Добавлен `input_last_key()` / `input_last_key_consume()` — latched в `input_frame_on_key_down` (synthetic injection НЕ обновляет latch, чтобы gamepad bridge не masquerade'ил под keyboard для text input).
+- Migrated consumers: [widget.cpp](../../new_game/src/ui/menus/widget.cpp), [frontend.cpp rebind](../../new_game/src/ui/frontend/frontend.cpp), [game_tick.cpp debug console](../../new_game/src/game/game_tick.cpp), [game.cpp skip detection](../../new_game/src/game/game.cpp), [attract.cpp](../../new_game/src/ui/frontend/attract.cpp), [eway.cpp](../../new_game/src/missions/eway.cpp), [playcuts.cpp](../../new_game/src/missions/playcuts.cpp).
+- `LastKey` global удалён из [keyboard_globals.{h,cpp}](../../new_game/src/engine/input/keyboard_globals.h) и из `keyboard_key_down`.
+
+**Phase D3 — Internal gamepad→keyboard bridges через synth API:**
+- Добавлен `input_frame_inject_key_press(scancode)` — synthesises a key-press event in current frame (sets curr/event_held/pressed_during_frame/press_pending). Не обновляет s_last_key.
+- Migrated bridges: [widget.cpp::FORM_KeyProc](../../new_game/src/ui/menus/widget.cpp) (gamepad→keyboard для form widgets) и [gamemenu.cpp ESC bridge](../../new_game/src/ui/menus/gamemenu.cpp) (Start/Triangle/Cross→Keys[]).
+- Все bridge writes `Keys[KB_X] = 1` → `input_frame_inject_key_press(KB_X)`. Все bridge consumer reads `if (Keys[KB_X])` → `if (input_key_press_pending(KB_X))`. Keys[X]=0 consume → `input_key_force_release(KB_X)` или `input_key_consume(KB_X)`.
+
+**Phase D4 — `Keys[256]` array удалён:**
+- Удалены все `Keys[X] = 0` consume writes из [game.cpp](../../new_game/src/game/game.cpp), [input_debug.cpp](../../new_game/src/engine/debug/input_debug/input_debug.cpp), [frontend.cpp](../../new_game/src/ui/frontend/frontend.cpp).
+- Удалены [`elev.cpp` bulk Keys[X]=0 reset](../../new_game/src/assets/formats/elev.cpp) (lines 1962-1972) → заменены на `input_key_force_release` calls.
+- Удалён `Keys[256]` array целиком из [keyboard_globals.{h,cpp}](../../new_game/src/engine/input/keyboard_globals.h).
+- Удалены event hook writes `Keys[scancode]=1/0` в [keyboard.cpp](../../new_game/src/engine/input/keyboard.cpp).
+- Удалена same-turn release latching machinery (`Released[]`, `release_count`, `key_turn[]`, `game_turn` global, `ClearLatchedKeys()`) — input_frame's `s_keys_pressed_during_frame` решает same-frame visibility independently. Удалён вызов `ClearLatchedKeys()` из [host.cpp::LibShellActive](../../new_game/src/engine/platform/host.cpp).
+- [`gamepad.cpp:gamepad_poll`](../../new_game/src/engine/input/gamepad.cpp) активность keyboard detection: `Keys[i]` → `input_key_event_held(i)`.
+
+**Phase D5 — `joystick.{cpp,h}` удалены:**
+- `GetInputDevice(JOYSTICK, ...)` и `ReadInputDevice()` были thin wrappers над `gamepad_init` / `gamepad_poll`.
+- [`game.cpp:game_init`](../../new_game/src/game/game.cpp): `GetInputDevice(JOYSTICK, 0, UC_TRUE)` → `gamepad_init()` direct.
+- [`input_frame.cpp:input_frame_update`](../../new_game/src/engine/input/input_frame.cpp): `ReadInputDevice()` → `gamepad_poll()` direct.
+- Файлы `engine/input/joystick.{cpp,h}` удалены. `CMakeLists.txt` обновлён.
+
+**Phase D6 — Mouse wrapped через input_frame:**
+- Добавлены `input_mouse_active() / input_mouse_dx() / input_mouse_dy() / input_mouse_x() / input_mouse_y() / input_mouse_button_held(idx)`.
+- Migrated consumers: [input_actions.cpp](../../new_game/src/game/input_actions.cpp) (FPS look + INPUT_MOVEMENT_MASK gate), [game_tick.cpp](../../new_game/src/game/game_tick.cpp) (RecenterMouse + KB_G teleport hit testing), [widget.cpp](../../new_game/src/ui/menus/widget.cpp) (LeftButton click).
+- `mouse_globals.{cpp,h}` остаётся как backing-store (filled from SDL events by `mouse.cpp`) — analogous к `gamepad_state` / `gamepad.cpp`.
+
+**Phase D7 — DualSense touchpad через rgbButtons:**
+- Touchpad click уже mirrored gamepad layer'ом в `gamepad_state.rgbButtons[17]`.
+- [`game.cpp:check_debug_timing_keys`](../../new_game/src/game/game.cpp): локальный edge-detect (`tp_prev` static + `ds_get_input` direct call) → `input_btn_just_pressed(17)`. Удалён include `engine/platform/ds_bridge.h` из game.cpp.
+
+**Build:** `make build-release` 297/297 PASS (-1 from 298 — joystick.cpp removed).
+
+**Финальный grep аудит** (`Keys\[|LastKey|ReadInputDevice|GetInputDevice` по всему `new_game/src/`):
+- Реальных read/write — **0 hits**.
+- Все остающиеся hits — historical comment'ы (документируют что было).
+
+**Полный список того что удалено:**
+
+| Файл / символ | Статус |
+|---|---|
+| `Keys[256]` array | удалён |
+| `LastKey` global | удалён |
+| `key_turn[256]`, `Released[]`, `release_count`, `game_turn` (UBYTE global) | удалены |
+| `ClearLatchedKeys()` | удалён |
+| `joystick.cpp`, `joystick.h` | файлы удалены |
+| `ReadInputDevice()`, `GetInputDevice(...)` | удалены |
+| `JOYSTICK`, `DI_DRIVER_INIT`, `DI_DEVICE_VALID`, `ENABLE_REMAPPING` constants | удалены вместе с joystick.h |
+
+**Что осталось как backing-store** (mirror'ится из SDL events внутри `engine/input/` слоя, потребители НЕ читают напрямую):
+- `gamepad_state` (struct GamepadState) в `gamepad.cpp` — gamepad layer.
+- `mouse_globals.cpp`'s `MouseDX/DY/MouseX/Y/LeftButton/...` — mouse layer.
+- `mouse_input` flag в `input_actions_globals.cpp` — legacy gate.
+- `ShiftFlag/ControlFlag/AltFlag` в `keyboard_globals.cpp` — convenience modifier globals (computed from input_frame в `keyboard.cpp::update_modifier_flags`).
+
+Все consumer reads идут через `input_frame.h` API: `input_key_*`, `input_btn_*`, `input_stick_*`, `input_trigger*`, `input_mouse_*`, `input_last_key`, `input_gamepad_connected`, `input_dpad_active`.
+
+---
+
 ## 2026-05-06 — Phase 4-Wide Commits B+C: leaf consumers + финальный аудит
 
 После Commit A (миграция `get_hardware_input`) остались мелкие потребители читающие `gamepad_state` напрямую — все мигрированы в этой сессии.
@@ -732,7 +801,20 @@ ENTER bug: ENTER в меню paus close menu → процесс_controls в то
 
 ---
 
-## 2026-05-06 — ТЕКУЩЕЕ СОСТОЯНИЕ (для handoff)
+## 2026-05-06 — ✅ ЗАДАЧА ПОЛНОСТЬЮ ЗАКРЫТА
+
+Все цели задачи `input_system` достигнуты. Старая система input удалена, единый API `input_frame` покрывает все consumer'ы. Все input-related issue в `fps_unlock_issues.md` закрыты и переехали в resolved.
+
+**НЕ входит в скоуп задачи** (опциональное расширение, описано в [`full_plan_deferred.md`](full_plan_deferred.md), не блокирует):
+- Слой actions / переназначение клавиш / контекстные группы / reverse-lookup glyph'ов.
+- Mouse extensions (drag, double-click, scroll).
+- DualSense touchpad finger tracking.
+
+API `input_frame` спроектирован совместимым с этими расширениями — actions надстраиваются слоем сверху, существующие consumer'ы не требуют переписывания.
+
+---
+
+## 2026-05-06 — Финальное состояние (для handoff / возврата к задаче)
 
 ### ✅ Phase 4-Wide миграция завершена
 
