@@ -1,7 +1,6 @@
 # Input System — текущая работа: модуль `input_frame`
 
-> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **все известные баги input-системы закрыты** (gamemenu, frontend, vehicle siren, debug timing, weapon switch).
-> Дальше — Phase 4-Wide: полная унификация всех discrete + continuous input'ов на input_frame (см. ниже).
+> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **Phase 4-Wide миграция выполнена в большинстве потребителей** — все hardware input reads (Keys[], rgbButtons[], the_state.l*/r*) в leaf consumer'ах через input_frame. Остаются legitimate exceptions (документированы) + central pipeline `get_hardware_input`. **Полное состояние и handoff для следующего агента** → последняя секция [changelog.md](changelog.md) "ТЕКУЩЕЕ СОСТОЯНИЕ (для handoff)".
 > Детальная хронология → [changelog.md](changelog.md), грабли при миграции →
 > [migration_checklist.md](migration_checklist.md).
 > **Большой план с actions/ремапом** → [full_plan_deferred.md](full_plan_deferred.md) (отложен).

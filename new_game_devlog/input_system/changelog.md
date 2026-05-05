@@ -6,6 +6,40 @@
 
 ---
 
+## 2026-05-05 — Phase 4-Wide Commit A: миграция `get_hardware_input` + расширение API
+
+**Задача:** последний крупный потребитель который читал hardware напрямую — central pipeline `get_hardware_input` в [`input_actions.cpp`](../../new_game/src/game/input_actions.cpp) (lines ~3020-3275). До этой сессии это было задокументированное exception #3 в "ТЕКУЩЕЕ СОСТОЯНИЕ" секции ниже — теперь закрыто.
+
+**Расширен API в [`input_frame.h`](../../new_game/src/engine/input/input_frame.h) / [`.cpp`](../../new_game/src/engine/input/input_frame.cpp):**
+
+- `input_gamepad_connected()` — обёртка над `gamepad_state.connected`.
+- `input_dpad_active()` — обёртка над `gamepad_state.dpad_active`.
+- `input_stick_x_axis(stick)` / `input_stick_y_axis(stick)` — `int` 0..65535 (post-override, D-Pad clamp включён). Для bit-packing в `Player->Pressed` биты 18-31 (analog magnitude) и для уровневой digital direction detection в `get_hardware_input`. Дополняет `input_stick_x/y` (float -1..1, deadzone, для magnitude) и `input_stick_held` (pre-override + 4096 menu threshold) — три use case'а, три API.
+- `input_trigger_raw(idx)` — `int` 0..255. Для `weapon_feel_evaluate_fire` который оперирует byte-resolution thresholds; float `input_trigger()` теряет precision через round-trip.
+
+**Миграция [`get_hardware_input`](../../new_game/src/game/input_actions.cpp) (1:1, поведение не меняется):**
+
+- `the_state.connected` / `the_state.dpad_active` → `input_gamepad_connected()` / `input_dpad_active()`.
+- `the_state.lX/lY` (3+3 чтения для packing + digital flags) → `input_stick_x_axis(LEFT)` / `_y_axis(LEFT)` через локальный `axis_x/y`.
+- `the_state.rgbButtons[N]` (~13 чтений: JUMP, Triangle, R1 kick, START, R3 select, CAMERA, ACTION, cheat combo Select/L1/L2/D-pad) → `input_btn_held(N)`.
+- `the_state.trigger_left/right` → `input_trigger_raw(15/16)`.
+- `if (ReadInputDevice())` → `if (input_gamepad_connected())`. `ReadInputDevice` теперь зовётся **только** из `input_frame_update` — gamepad polling централизован.
+- Удалены: macro `BUTTON_IS_PRESSED(value) (value)` (рудимент, identity-обёртка над DirectInput-style read), include `engine/input/joystick.h` (`ReadInputDevice` больше не нужен здесь).
+
+**Не входит в этот коммит (отдельные шаги):**
+
+- `apply_button_input_car` lines 2947-2948 (R2/L2 для accel/brake) — Commit B.
+- `apply_button_input_first_person` lines ~3479-3481 (rX/rY для look-around) — Commit B.
+- `game.cpp:608` playback skip loop (`rgbButtons[0..9]`) — Commit B.
+- `fc.cpp` rX/rY camera, `vehicle.cpp` triggers, `outro_os.cpp` lX/lY/buttons — Commit C.
+- Финальный grep-аудит и обновление "ТЕКУЩЕЕ СОСТОЯНИЕ" handoff-секции — Commit D.
+
+**Build:** `make build-release` 298/298 PASS, link OK.
+
+**Тестовые сценарии:** не тестировано пользователем — миграция чисто механическая (1:1 substitution через input_frame layer который уже свежий — `input_frame_update` зовётся раньше `get_hardware_input`). Любая регрессия указала бы на расхождение между `gamepad_state` reads через input_frame vs прямое чтение, но input_frame accessors — straight-line wrappers без логики.
+
+---
+
 ## 2026-05-05 — Phase 1: скелет модуля `input_frame`
 
 Инфраструктура есть, потребители ещё не мигрировали. Билд проходит, поведение игры не меняется.
@@ -651,3 +685,62 @@ ENTER bug: ENTER в меню paus close menu → процесс_controls в то
 ### Bonus: подтверждено пользователем
 
 - Баг "геймпадный стик не работает в первые секунды миссии" из known_issues_and_bugs.md — пользователь подтвердил что Phase 4-Wide миграция случайно его пофикcила (точная причина не изолирована, но архитектурный pipeline теперь правильно инициализируется). Перенесён в resolved.
+
+---
+
+## 2026-05-05 — ТЕКУЩЕЕ СОСТОЯНИЕ (для handoff)
+
+### ✅ Полностью мигрировано (потребители читают через input_frame)
+
+- Все `Keys[KB_*]` reads в потребительских функциях. Подтверждено grep'ом: `grep "Keys\[KB_"` без legitimate exceptions возвращает только writes (legacy backing-store).
+- Все `the_state.rgbButtons[]` reads вне `get_hardware_input` слоя.
+- Меню навигация (gamemenu, frontend), debug-клавиши, weapon switch, vehicle siren, video player, cutscene skip, attract loop.
+- Menu close leak fixed через новый API `input_key_force_release(scancode)` — обнуляет CURRENT snapshot чтобы same-frame downstream consumers видели released сразу.
+
+### ⚠️ Documented exceptions (НЕ мигрированы, легитимно)
+
+1. **`keyboard.cpp` event hook** (lines 12-14): `ShiftFlag = Keys[KB_LSHIFT] || Keys[KB_RSHIFT]; ControlFlag = Keys[KB_LCONTROL]; AltFlag = Keys[KB_LALT] || Keys[KB_RALT];` — это **layer который поддерживает legacy backing-store**. Source-of-truth слой, не consumer.
+2. **Internal Keys[]-as-message-bus** в [`widget.cpp::FORM_KeyProc`](../../new_game/src/ui/menus/widget.cpp) и [`gamemenu.cpp` ESC handler](../../new_game/src/ui/menus/gamemenu.cpp) — gamepad→keyboard bridge synthesises `Keys[KB_X]=1`, тот же файл читает обратно. Замкнутый канал, не hardware input.
+3. **`get_hardware_input` в `input_actions.cpp`** (lines ~3026-3263): central input pipeline. Читает `the_state.rgbButtons[]`, `the_state.lX/lY/rX/rY`, `the_state.trigger_left/right` напрямую для агрегации в `INPUT_MASK_*` биты. Это **implementation слой input_frame'а соседствующий**, не leaf consumer. Однако строго говоря **тоже потребитель** — может быть мигрирован на `input_btn_held` / `input_stick_x_raw` / `input_trigger_raw` если расширить input_frame API.
+4. **`game.cpp:608`** `for (i=0; i<=9; i++) if (the_state.rgbButtons[i])` — playback skip detection, читает все кнопки. Легко мигрируется на цикл `input_btn_held(i)`.
+5. **`elev.cpp` lines 1962-1972** — bulk `Keys[X] = 0` writes (cleanup), не reads. Не критично.
+6. **`outro_main.cpp`, `farfacet.cpp`, `pcom.cpp`** — только comment'ы.
+
+### 🚧 Что можно ещё сделать (если пользователь хочет 100% покрытия)
+
+1. **Migrate `get_hardware_input` core**:
+   - Добавить в input_frame API: `input_btn_held(N)` уже есть, использовать вместо `the_state.rgbButtons[N]`.
+   - Добавить `input_stick_x_raw(stick) / y_raw(stick)` returning raw int 0..65535 — для packing в bits 18-31 которое использует get_hardware_input.
+   - Добавить `input_trigger_raw(idx)` returning byte 0..255 — для weapon_feel (currently reads `the_state.trigger_left/right`).
+   - Добавить `input_gamepad_connected()` / `input_gamepad_dpad_active()` accessors.
+   - Заменить ~25 чтений в get_hardware_input на новые APIs.
+2. **Migrate `game.cpp:608`** playback skip — `for (i=0; i<=9; i++) if (input_btn_held(i))`.
+3. **Migrate widget.cpp / gamemenu.cpp internal bridge** — потребует "synthesize input event" API в input_frame с правильным timing'ом (поскольку input_frame_update уже прошёл в текущем кадре). Архитектурно сложнее.
+
+### Не Phase 4-Wide, отдельные задачи
+
+- Mouse buttons не в input_frame — добавить если будет необходимо (пока не блокер).
+- DualSense touchpad — отдельный источник через `ds_get_input`, не через rgbButtons.
+
+### API расширения этой сессии
+
+- **`InputAutoRepeat::tick_combined(any_jp, any_held)`** — combined-source auto-repeat (gamemenu/frontend nav).
+- **`input_btn_press_pending(idx)` / `input_btn_consume(idx)`** — gamepad sticky pending для physics-tick consumer'ов (vehicle siren).
+- **`input_key_force_release(scancode)`** — обнуляет CURRENT snapshot для same-frame consumed-press suppression (menu close).
+- **`gamepad_state.lX_raw/lY_raw/rX_raw/rY_raw`** — pre-D-Pad-override stick values (for menu antagonist stick+D-pad).
+
+### Связь с fps_unlock
+
+Все open issue'ы которые решались миграцией закрыты:
+- #5 (siren toggle) ✅
+- #20 (weapon switch responsiveness) ✅
+- #23 (DualSense LED) ✅
+- Ranking PCOM #15 (общая отзывчивость управления зависит от physics Hz) частично закрыт через push в input_frame, но lost-press на extreme low Hz остаётся теоретическим — не репродуцится в обычном диапазоне.
+
+Open в fps_unlock_issues.md:
+- #14 (визуальный статтер при переключении render cap) — не input.
+- #15 (общая latency physics-bound input) — частично закрыто.
+- #17 (spiral of death) — не input.
+- #16 (ревизия таймингов после 20 Hz) — не input.
+- #22 (perf-diag режим) — не input.
+- #24 (граната не интерполируется) — записан в этой сессии, не Phase 4 work.

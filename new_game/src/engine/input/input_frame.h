@@ -119,6 +119,43 @@ float input_stick_y(InputStickId stick);
 
 float input_trigger(SLONG trigger_idx);
 
+// ---- Raw axis / trigger / connection accessors -----------------------------
+// Lower-level wrappers around gamepad_state for callers that need integer /
+// byte semantics (bit-packing into Player->Pressed, weapon_feel byte
+// thresholds) rather than float / virtual-direction APIs.
+//
+// Use these instead of touching gamepad_state directly so that input_frame
+// remains the single source of truth for hardware input reads. See
+// input_system/migration_checklist.md for the wider migration policy.
+
+bool input_gamepad_connected();
+
+// True iff the D-Pad is currently held in any direction. When true, the
+// gamepad layer clamps lX/lY to 0/65535 so input_stick_*_axis below picks up
+// the D-Pad as full-deflection movement. Use this to gate analog-mode logic
+// (bit-packing, proportional speed) which only makes sense for the actual
+// stick, not for D-Pad-as-stick.
+bool input_dpad_active();
+
+// Raw axis value 0..65535 (centre 32768), POST-override — the D-Pad clamps
+// lX/lY to 0 / 65535 when held, so this value reflects D-Pad-as-stick.
+//   - Bit-packing into Player->Pressed bits 18-31 (analog magnitude consumed
+//     by process_analogue_movement).
+//   - Level-trigger digital movement flags (LEFT/RIGHT/FORWARDS/BACKWARDS)
+//     where the same threshold applies for both stick and D-Pad-as-stick.
+// Distinct from input_stick_x/y (float -1..1, deadzone applied — for
+// proportional movement) and from input_stick_held (pre-override raw + 4096
+// menu threshold — for menu nav where stick + D-Pad must be independent
+// signals for antagonist suppression).
+int input_stick_x_axis(InputStickId stick);
+int input_stick_y_axis(InputStickId stick);
+
+// Raw trigger byte 0..255 (idx 15 = L2, 16 = R2). Same units as
+// gamepad_state.trigger_left/right. For weapon_feel_evaluate_fire which
+// uses byte-resolution thresholds; float input_trigger() loses precision
+// through round-trip.
+int input_trigger_raw(SLONG trigger_idx);
+
 // ---- Combined-source auto-repeat -------------------------------------------
 //
 // Single auto-repeat throttle on a caller-supplied "any held" boolean.

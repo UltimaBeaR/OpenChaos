@@ -406,6 +406,35 @@ float input_trigger(SLONG trigger_idx)
     return 0.0f;
 }
 
+// ---- Raw axis / trigger / connection accessors -----------------------------
+
+bool input_gamepad_connected()
+{
+    return gamepad_state.connected != 0;
+}
+
+bool input_dpad_active()
+{
+    return gamepad_state.dpad_active != 0;
+}
+
+int input_stick_x_axis(InputStickId stick)
+{
+    return (stick == INPUT_STICK_LEFT) ? gamepad_state.lX : gamepad_state.rX;
+}
+
+int input_stick_y_axis(InputStickId stick)
+{
+    return (stick == INPUT_STICK_LEFT) ? gamepad_state.lY : gamepad_state.rY;
+}
+
+int input_trigger_raw(SLONG trigger_idx)
+{
+    if (trigger_idx == 15) return gamepad_state.trigger_left;
+    if (trigger_idx == 16) return gamepad_state.trigger_right;
+    return 0;
+}
+
 // ---- InputAutoRepeat --------------------------------------------------------
 
 bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held)
