@@ -56,6 +56,22 @@ bool input_btn_held(SLONG btn_idx);
 bool input_btn_just_pressed(SLONG btn_idx);
 bool input_btn_just_released(SLONG btn_idx);
 
+// Sticky: was there a rising edge on this gamepad button since the last
+// consume? Survives across frames (unlike just_pressed which is true for
+// exactly one render frame). Use when the consumer runs on physics tick
+// (NOT render frame): at low physics Hz a render-frame-only just_pressed
+// may have already cleared by the time the next physics tick samples it.
+//
+// Drain rule: a consumer that wants pending semantics must consume() the
+// flag in EVERY relevant frame whether or not it acted on it, otherwise
+// stale flags from outside the consumer's active window leak in. Typical
+// pattern: drain at every physics tick during the consumer's active state
+// (e.g. while driving for siren), drain at every tick when NOT in active
+// state too if the same physical button has another use elsewhere
+// (Triangle = menu cancel + car siren; SPACE = jump + car siren).
+bool input_btn_press_pending(SLONG btn_idx);
+void input_btn_consume(SLONG btn_idx);
+
 // ---- Auto-repeat (Phase 3 — currently stubbed to just_pressed only) --------
 
 bool input_key_just_pressed_or_repeat(SLONG kb_code);

@@ -1,7 +1,7 @@
 # Input System — текущая работа: модуль `input_frame`
 
-> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **gamemenu и frontend мигрированы**.
-> Остаются миграции vehicle siren, debug-keys, weapon switch.
+> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **gamemenu, frontend, vehicle siren мигрированы**.
+> Остаются миграции debug-keys, weapon switch.
 > Детальная хронология → [changelog.md](changelog.md), грабли при миграции →
 > [migration_checklist.md](migration_checklist.md).
 > **Большой план с actions/ремапом** → [full_plan_deferred.md](full_plan_deferred.md) (отложен).
@@ -217,10 +217,9 @@ input_frame **не читает** `Keys[]` для своего snapshot'а. Вм
 - [x] **`gamemenu.cpp`** (2026-05-05) — pause menu. Triangle/Cross/Start через `input_btn_just_pressed`, Up/Down nav через `InputAutoRepeat::tick_combined` с OR'ом kb+stick+D-pad, antagonist suppression для одновременного UP+DOWN.
 - [x] **`frontend.cpp`** (2026-05-05) — главное меню. 4× `InputAutoRepeat` (UP/DOWN/LEFT/RIGHT), все 3 источника (kb + stick + D-pad), antagonist на обеих осях, dominant-axis pick для stick-only диагоналей через `lX_raw/lY_raw`. Confirm/cancel через `input_btn_just_pressed(0/3)`.
 - [x] **D-Pad как независимый источник** (2026-05-05) — архитектурный фикс gamepad layer'а: добавлены `lX_raw/lY_raw/rX_raw/rY_raw` в `GamepadState` (snapshot ДО D-Pad override'а). `input_stick_*` API теперь читает raw, D-Pad через `rgbButtons[11..14]`. Исправлен баг "стик + D-pad opposite directions: второй overrid'ит первый, antagonist не работает". См. [`migration_checklist.md`](migration_checklist.md) пункт 3 для актуальной guidance.
+- [x] **`vehicle.cpp` siren toggle** (2026-05-05) — sticky press_pending для гейпада добавлен в input_frame. `apply_button_input_car` ставит VEH_SIREN только если `input_*_press_pending` true (siren-кнопки на kb и pad). Consume безусловный → drain каждый физтик во время вождения. `do_packets` else-ветка дренит pending'и каждый физтик когда не в машине → нет leak'а от Triangle (menu cancel) / SPACE (jump). Чинит multi-toggle на любых Hz **И** lost-press на низких physics Hz (1 Hz debug). Drain rule зафиксирован в [input_frame.h](../../new_game/src/engine/input/input_frame.h).
 
 Остаётся:
-
-- [ ] **`vehicle.cpp` siren toggle** (#5 в fps_unlock_issues_resolved). Sticky-pattern: `input_btn_press_pending(SIREN_BTN_IDX)` + `input_btn_consume(...)` чтобы не пропускать fast tap'ы между physics tick'ами на низких Hz. ИЛИ переход на edge-detect через `input_btn_just_pressed`. Проверить что именно лучше.
 - [ ] **`check_debug_timing_keys`** — debug-клавиши с собственным static prev-state. Самая простая миграция — просто `input_key_just_pressed`.
 - [ ] **`game_tick.cpp` weapon switch (#20)** — **сначала эмпирически проверить** что баг актуален. `Player->Pressed` уже edge-detect, теоретически OK. Если воспроизводится — мигрировать.
 - [ ] **Прочие места** (по обнаружении).
@@ -236,7 +235,6 @@ input_frame **не читает** `Keys[]` для своего snapshot'а. Вм
 
 ## Текущие open questions
 
-- **Vehicle siren** — sticky pending vs edge-detect, выбрать после первого тестирования.
 - **Weapon switch (#20)** — actual reproducibility unverified. Сначала проверить что баг ещё на месте.
 
 ## Связь с FPS unlock

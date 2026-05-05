@@ -293,7 +293,56 @@ if (ds.dpad_right) gamepad_state.lX = 65535;
 
 ---
 
-## 2026-05-05 — Точка остановки: frontend готов, остальные потребители ждут
+## 2026-05-05 — Phase 4 шаг 3: vehicle siren — sticky press_pending для гейпада + drain pattern
+
+Закрыт класс багов "сирена переключается несколько раз при зажатии" + lost-press на низких physics Hz.
+
+**До:**
+```cpp
+if (input & INPUT_CAR_KB_SIREN)  veh->DControl |= VEH_SIREN;  // ← level-trigger каждый physics tick
+if (input & INPUT_CAR_PAD_SIREN) veh->DControl |= VEH_SIREN;
+```
+`do_car_input` каждый тик: `if (veh->DControl & VEH_SIREN) siren(veh, !veh->Siren);` → toggle на каждом тике пока зажата → конечное состояние зависит от physics_hz × hold_duration.
+
+**Эволюция фикса:**
+
+**Попытка 1 (отвергнута):** local static edge-detect на level-сигнале (`was_kb_siren`, `was_pad_siren`) внутри `apply_button_input_car`. Чинит multi-toggle на любых Hz. **НО:** не ловит tap'ы целиком уместившиеся между двумя physics-тиками. На 1 Hz physics (debug-mode) обычное нажатие 150ms полностью между тиками → level signal на обоих тиках = "не зажата" → нажатие потеряно. Пользователь в тестировании это поймал.
+
+**Попытка 2 (принята):** sticky press_pending для гейпада в input_frame + drain pattern в каждом physics-тике (даже когда не в машине).
+
+**Реализация:**
+
+1. **Gamepad sticky press_pending в input_frame** (раньше был только для клавиатуры):
+   - `s_btns_press_pending[]` массив. Latched на rising edge каждого render-frame snapshot'а в `input_frame_update`.
+   - `input_btn_press_pending(idx)` / `input_btn_consume(idx)` — API mirrored с keyboard версией.
+   - Семантика: "был ли rising edge с момента последнего consume" — survives across render frames.
+
+2. **`apply_button_input_car`** — siren bit ставится только если `input_*_press_pending` true. Consume вызывается **безусловно** (drain каждый physics tick во время вождения).
+
+3. **`do_packets` else-ветка (когда игрок не в машине)** — также консьюмит pending обеих кнопок каждый physics tick. Это решает leak'и: Triangle для menu cancel или SPACE для jump action ставят pending где угодно, но если apply_button_input_car не запущен (не в машине) — некому consume'ить → flag сидел бы навсегда. С drain'ом каждый physics tick (вне машины) flag успевает очиститься до того как игрок сядет в машину → нет spurious toggle на первом тике вождения.
+
+**Drain rule (общий принцип для будущих consumer'ов press_pending):**
+
+Если потребитель имеет "active state" (когда обрабатывает pending) и "inactive state" (когда не обрабатывает), а кнопка которой он слушает — dual-use (используется ещё кем-то для другого), то в inactive state потребитель должен **тоже** consume'ить pending'и каждый physics tick. Это превращает "sticky flag indefinitely" в "sticky flag только на 1 physics tick" — достаточно для физического consumer'а, не достаточно для накопления leak'а через context switches.
+
+Этот паттерн задокументирован в `input_frame.h` для будущих consumer'ов.
+
+**Почему именно press_pending, а не just_pressed:**
+
+`just_pressed` true ровно один render frame. Если physics tick запускается на render frame'е без rising edge — пропуск. На 240 FPS render + 20 Hz physics = только 1 из 12 render frame'ов имеет физтик → 1/12 шанс что физтик попадёт ровно на frame с rising edge → большая вероятность пропуска. Sticky pending устраняет этот race.
+
+**Что закрыто:**
+- Issue #13 в [`fps_unlock_issues_resolved.md`](../fps_unlock/fps_unlock_issues_resolved.md) — multi-toggle на любых Hz **И** lost-press на низких Hz.
+
+**Изменения:**
+- [`input_frame.h`](../../new_game/src/engine/input/input_frame.h) — `input_btn_press_pending` / `input_btn_consume` API.
+- [`input_frame.cpp`](../../new_game/src/engine/input/input_frame.cpp) — `s_btns_press_pending[]` array, latch в update, getter/consumer.
+- [`apply_button_input_car`](../../new_game/src/game/input_actions.cpp) — siren-bit setting через press_pending+consume.
+- [`do_packets` else-branch](../../new_game/src/game/input_actions.cpp) — drain pending'ов каждый физтик когда не в машине.
+
+---
+
+## 2026-05-05 — Точка остановки: frontend + vehicle siren готовы, остальные потребители ждут
 
 **Состояние коммита (стейб):**
 
@@ -302,16 +351,16 @@ if (ds.dpad_right) gamepad_state.lX = 65535;
 - Phase 3 (universal auto-repeat + InputAutoRepeat для combined sources) ✅
 - Phase 4.1 (gamemenu) ✅ — все edge-cases отработаны (4 бага найдены и пофикшены в процессе тестирования)
 - Phase 4.2 (frontend) ✅ — миграция + архитектурный D-pad-as-separate-source фикс (gamepad layer raw stick + consumer reads rgbButtons[11..14])
+- Phase 4.3 (vehicle siren multi-toggle) ✅ — local edge-detect на level-сигнале в `apply_button_input_car`, исправлен класс багов "siren переключается N раз при зажатии"
 - `migration_checklist.md` написан со всеми граблями (пункт 3 обновлён после D-pad фикса) ✅
 
-**Что готово:** инфраструктура, паттерн миграции отлажен на gamemenu+frontend. D-pad теперь честный третий источник, antagonist suppression работает на всех парах (kb/stick/D-pad). Будущий потребитель + чеклист = должно идти гладко.
+**Что готово:** инфраструктура, паттерн миграции отлажен на gamemenu+frontend. D-pad теперь честный третий источник, antagonist suppression работает на всех парах (kb/stick/D-pad). Vehicle siren — фиксирован local edge-detect (architectural pattern для других physics-side consumer'ов). Будущий потребитель + чеклист = должно идти гладко.
 
 **Список оставшихся потребителей (по убыванию приоритета):**
 
-1. **`vehicle.cpp`** siren toggle (#5 уже won't-fix → resolved, но архитектурно через input_frame будет нормально работать на любых Hz).
-2. **`check_debug_timing_keys`** — debug-клавиши, простая миграция (только `input_key_just_pressed`).
-3. **`game_tick.cpp`** weapon switch (#20) — проверить актуальность бага сначала.
-4. Прочие места по обнаружении.
+1. **`check_debug_timing_keys`** — debug-клавиши, простая миграция (только `input_key_just_pressed`).
+2. **`game_tick.cpp`** weapon switch (#20) — проверить актуальность бага сначала.
+3. Прочие места по обнаружении.
 
 **Каждая миграция = отдельный коммит** с тестированием. Сверяться с [migration_checklist.md](migration_checklist.md) перед каждой.
 

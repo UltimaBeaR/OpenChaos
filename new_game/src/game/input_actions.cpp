@@ -43,6 +43,7 @@
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
+#include "engine/input/input_frame.h"
 #include "engine/input/mouse_globals.h"
 #include "game/game_globals.h"
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
@@ -2941,8 +2942,6 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             veh->DControl |= VEH_DECEL;
         if (input & INPUT_CAR_KB_GOFASTER)
             veh->DControl |= VEH_FASTER;
-        if (input & INPUT_CAR_KB_SIREN)
-            veh->DControl |= VEH_SIREN;
     } else {
         // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
         bool r2 = the_state.rgbButtons[16] != 0;
@@ -2954,8 +2953,36 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             veh->DControl |= VEH_DECEL;
         if ((input & INPUT_CAR_PAD_GOFASTER) || r2 || l2)
             veh->DControl |= VEH_FASTER;
-        if (input & INPUT_CAR_PAD_SIREN)
+    }
+
+    // Siren toggle: edge-triggered via input_frame's sticky press_pending.
+    // do_car_input reads VEH_SIREN and calls siren(veh, !veh->Siren) — without
+    // edge-detect, holding the button toggles the siren every physics tick,
+    // giving unpredictable on/off depending on hold duration × physics Hz
+    // (issue #13 in fps_unlock_issues_resolved).
+    //
+    // press_pending (rather than just_pressed or a local level-edge tracker)
+    // is required because this code runs on physics tick, not render frame.
+    // At low physics Hz a tap can fit entirely between two ticks — the level
+    // signal sampled at each tick shows "not held" both times → tap missed.
+    // press_pending is latched on rising edge by every render-frame snapshot
+    // and survives until consumed → physics tick reliably sees the press
+    // even if its sampling window doesn't overlap the held window.
+    //
+    // Drain rule: the call site (`do_packets` else-branch when not driving)
+    // also consumes both pendings every physics tick to prevent stale flags
+    // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
+    // into the first car-entry tick as a spurious toggle.
+    {
+        const SLONG kb_siren_key  = keybrd_button_use[JOYPAD_BUTTON_JUMP];
+        constexpr SLONG pad_siren_btn = 3; // Triangle/Y, see comment around rgbButtons[3] above
+        const bool kb_siren  = input_key_press_pending(kb_siren_key);
+        const bool pad_siren = input_btn_press_pending(pad_siren_btn);
+        input_key_consume(kb_siren_key);
+        input_btn_consume(pad_siren_btn);
+        if (kb_siren || pad_siren) {
             veh->DControl |= VEH_SIREN;
+        }
     }
 
     return (processed_input);
@@ -3776,6 +3803,16 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                 processed = apply_button_input_car(TO_THING(p_person->Genus.Person->InCar), input);
                 processed |= apply_button_input(p_player, p_person, 0);
+            } else {
+                // Not driving — drain the car-siren press_pending flags every
+                // physics tick so that a press of these buttons outside the
+                // car (Triangle = menu cancel, SPACE = jump) doesn't leak into
+                // the first car-entry tick as a spurious siren toggle. Both
+                // sources are dual-use, and apply_button_input_car is the only
+                // consumer of their press_pending flag — without this drain,
+                // the flag would sit set indefinitely from any outside press.
+                input_key_consume(keybrd_button_use[JOYPAD_BUTTON_JUMP]);
+                input_btn_consume(3); // Triangle/Y
             }
             {
                 // Main input dispatcher: fight mode vs normal run mode.

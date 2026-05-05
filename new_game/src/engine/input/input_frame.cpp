@@ -35,11 +35,17 @@ UBYTE s_keys_pressed_during_frame[INPUT_KEY_COUNT];
 UBYTE s_keys_press_pending[INPUT_KEY_COUNT];
 
 // Gamepad button snapshots — derived from gamepad_state.rgbButtons[] each
-// input_frame_update call. No sticky for gamepad: it is polled, not event-
-// driven, so events between two polls are invisible regardless of any
-// sticky scheme.
+// input_frame_update call.
 UBYTE s_btns_curr[INPUT_BTN_COUNT];
 UBYTE s_btns_prev[INPUT_BTN_COUNT];
+
+// Sticky press flag for gamepad — set whenever a rising edge is seen by
+// a render-frame snapshot, cleared only by input_btn_consume(). Lets a
+// physics-tick consumer (e.g. vehicle siren toggle at 1..20 Hz physics +
+// any render rate) catch a rising edge that occurred on a render frame
+// where its tick wasn't running. At low physics Hz the press window can
+// be entirely between two ticks — sticky pending closes that gap.
+UBYTE s_btns_press_pending[INPUT_BTN_COUNT];
 
 // Virtual stick directions — boolean per (stick, dir). Computed from
 // continuous stick values with hysteresis so wobbling near the threshold
@@ -138,6 +144,7 @@ void input_frame_init()
     memset(s_keys_press_pending, 0, sizeof(s_keys_press_pending));
     memset(s_btns_curr, 0, sizeof(s_btns_curr));
     memset(s_btns_prev, 0, sizeof(s_btns_prev));
+    memset(s_btns_press_pending, 0, sizeof(s_btns_press_pending));
     memset(s_stick_dir_curr, 0, sizeof(s_stick_dir_curr));
     memset(s_stick_dir_prev, 0, sizeof(s_stick_dir_prev));
     memset(s_keys_next_fire, 0, sizeof(s_keys_next_fire));
@@ -169,6 +176,10 @@ void input_frame_update()
     memcpy(s_btns_prev, s_btns_curr, sizeof(s_btns_curr));
     for (SLONG i = 0; i < INPUT_BTN_COUNT; i++) {
         s_btns_curr[i] = (gamepad_state.rgbButtons[i] & 0x80) ? 1 : 0;
+        // Sticky: latch on rising edge, only cleared by input_btn_consume.
+        if (s_btns_curr[i] && !s_btns_prev[i]) {
+            s_btns_press_pending[i] = 1;
+        }
     }
 
     // Virtual stick directions — recompute from continuous stick values with
@@ -263,6 +274,18 @@ bool input_btn_just_pressed(SLONG btn_idx)
 bool input_btn_just_released(SLONG btn_idx)
 {
     return btn_in_range(btn_idx) && !s_btns_curr[btn_idx] && s_btns_prev[btn_idx];
+}
+
+bool input_btn_press_pending(SLONG btn_idx)
+{
+    return btn_in_range(btn_idx) && s_btns_press_pending[btn_idx];
+}
+
+void input_btn_consume(SLONG btn_idx)
+{
+    if (btn_in_range(btn_idx)) {
+        s_btns_press_pending[btn_idx] = 0;
+    }
 }
 
 // ---- Auto-repeat ------------------------------------------------------------
