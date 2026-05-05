@@ -1081,6 +1081,11 @@ round_again:;
                         // can lerp between ticks instead of showing them
                         // judder-stepping at physics rate.
                         render_interp_capture_dirt();
+                        // Grenade pool (GrenadeArray) — separate from THINGS[]
+                        // and DIRT, rendered directly via DrawGrenades().
+                        // ProcessGrenades above has already advanced positions
+                        // and angles for this tick.
+                        render_interp_capture_grenades();
                     }
 
                     physics_acc_ms -= phys_step_ms;

@@ -102,6 +102,12 @@ bool render_interp_apply_eway_camera(
 // Mark camera teleport (cutscene cut, sudden focus change).
 void render_interp_mark_camera_teleport(FC_Cam* fc);
 
+// Capture the entire grenade pool (GrenadeArray[MAX_GRENADES]).
+// Call once per physics tick after ProcessGrenades so the most recent
+// post-tick positions and angles are snapshotted. RenderInterpFrame
+// substitutes lerped values into the live pool during render.
+void render_interp_capture_grenades(void);
+
 // Phase 3 apply API: per-bone interpolated world transform — exactly the
 // (off_x/y/z, mat_final) pair that figure.cpp's draw functions feed to
 // POLY_set_local_rotation per body part.

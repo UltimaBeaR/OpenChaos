@@ -69,4 +69,10 @@ static constexpr bool INTERP_EWAY_CAM = true;
 // rate.
 static constexpr bool INTERP_DIRT = true;
 
+// === Grenade pool (GrenadeArray[MAX_GRENADES=6]) ===
+
+// Lerp GrenadeArray[i].x/y/z/yaw/pitch for active grenades. Without this,
+// thrown grenades judder at physics rate even at high render FPS.
+static constexpr bool INTERP_GRENADE = true;
+
 } // namespace ri_cfg

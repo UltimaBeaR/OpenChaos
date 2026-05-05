@@ -9,6 +9,7 @@
 #include "game/game_globals.h" // g_physics_hz (adaptive blend duration)
 #include "missions/eway_globals.h" // EWAY_cam_* — cutscene camera globals
 #include "world_objects/dirt.h" // DIRT_dirt pool — leaves, brass, cans, etc.
+#include "things/items/grenade_globals.h" // GrenadeArray, MAX_GRENADES
 #include "engine/graphics/geometry/pose_composer.h" // Phase 2: per-bone world-pose capture
 #include "engine/core/quaternion.h" // Phase 3 apply: BuildTween for per-bone slerp
 
@@ -205,6 +206,35 @@ struct DirtSnap {
 };
 
 DirtSnap g_dirt_snaps[DIRT_MAX_DIRT] = {};
+
+// Grenade pool snapshot (GrenadeArray[MAX_GRENADES]).
+// Thrown grenades live in a separate pool outside the Thing system and are
+// rendered via DrawGrenades() which reads x/y/z/yaw/pitch directly. Without
+// interpolation they judder at physics rate like DIRT. Same pattern: capture
+// post-tick state, substitute lerped values in frame-scope, restore on dtor.
+//
+// Coordinates are SLONG (unlike DIRT's SWORD — grenade coords are world-space
+// in sub-pixel units without the DIRT local-focus rescaling). Angles are SWORD
+// with no 0..2047 masking in physics (gp->yaw += gp->dyaw plain wrap);
+// dpitch=50/tick means a grenade never traverses the full SWORD range during
+// its brief flight, so lerp_i16 (linear) is correct — no short-path needed.
+//
+// Slot liveness: gp->owner != NULL means active, same role as DIRT_TYPE_UNUSED.
+struct GrenadeSnap {
+    SLONG x_prev, x_curr;
+    SLONG y_prev, y_curr;
+    SLONG z_prev, z_curr;
+    SWORD yaw_prev,   yaw_curr;
+    SWORD pitch_prev, pitch_curr;
+    bool  valid;
+
+    // Frame-scope save.
+    SLONG saved_x, saved_y, saved_z;
+    SWORD saved_yaw, saved_pitch;
+    bool  applied;
+};
+
+GrenadeSnap g_grenade_snaps[MAX_GRENADES] = {};
 
 // Per-bone snapshot (Phase 2 of world-pose-snapshot work). Stored format
 // matches the architecture decision in
@@ -592,6 +622,7 @@ void render_interp_reset(void)
     for (int i = 0; i < MAX_THINGS; ++i) g_thing_snaps[i] = {};
     for (int i = 0; i < FC_MAX_CAMS; ++i) g_cam_snaps[i] = {};
     for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i] = {};
+    for (int i = 0; i < MAX_GRENADES; ++i) g_grenade_snaps[i] = {};
     for (int i = 0; i < MAX_THINGS; ++i) g_pose_snaps[i] = {};
     g_eway_cam_snap = {};
 }
@@ -1037,6 +1068,38 @@ void render_interp_capture_dirt(void)
     }
 }
 
+void render_interp_capture_grenades(void)
+{
+    for (int i = 0; i < MAX_GRENADES; ++i) {
+        const Grenade& g = GrenadeArray[i];
+        GrenadeSnap& s = g_grenade_snaps[i];
+
+        if (!g.owner) {
+            s.valid = false;
+            continue;
+        }
+
+        if (!s.valid) {
+            // First capture after slot became active — collapse prev=curr=live
+            // so the first render frame doesn't lerp from stale/zero state.
+            s.x_curr = g.x;     s.x_prev = s.x_curr;
+            s.y_curr = g.y;     s.y_prev = s.y_curr;
+            s.z_curr = g.z;     s.z_prev = s.z_curr;
+            s.yaw_curr = g.yaw;     s.yaw_prev = s.yaw_curr;
+            s.pitch_curr = g.pitch; s.pitch_prev = s.pitch_curr;
+            s.valid = true;
+            continue;
+        }
+
+        // Standard window-shift.
+        s.x_prev = s.x_curr;     s.x_curr = g.x;
+        s.y_prev = s.y_curr;     s.y_curr = g.y;
+        s.z_prev = s.z_curr;     s.z_curr = g.z;
+        s.yaw_prev = s.yaw_curr;     s.yaw_curr = g.yaw;
+        s.pitch_prev = s.pitch_curr; s.pitch_curr = g.pitch;
+    }
+}
+
 // Per-frame pose cache shared by all render-path consumers (figure.cpp body
 // draw, FIGURE_draw_prim_tween_reflection, SMAP_add_tweened_points). Keyed
 // by (Thing*, g_render_interp_frame_counter) so the same Thing drawn through
@@ -1282,12 +1345,51 @@ RenderInterpFrame::RenderInterpFrame()
         // Mark all snaps as not-applied so dtor doesn't try to restore.
         for (int i = 0; i < DIRT_MAX_DIRT; ++i) g_dirt_snaps[i].applied = false;
     }
+
+    // Grenade pool (thrown grenades, MAX_GRENADES=6 slots).
+    if constexpr (ri_cfg::INTERP_GRENADE) {
+        for (int i = 0; i < MAX_GRENADES; ++i) {
+            GrenadeSnap& s = g_grenade_snaps[i];
+            if (!s.valid) { s.applied = false; continue; }
+
+            Grenade& g = GrenadeArray[i];
+            if (!g.owner) { s.applied = false; continue; }
+
+            s.saved_x = g.x;
+            s.saved_y = g.y;
+            s.saved_z = g.z;
+            s.saved_yaw   = g.yaw;
+            s.saved_pitch = g.pitch;
+
+            g.x = lerp_i32(s.x_prev, s.x_curr, alpha);
+            g.y = lerp_i32(s.y_prev, s.y_curr, alpha);
+            g.z = lerp_i32(s.z_prev, s.z_curr, alpha);
+            g.yaw   = lerp_i16(s.yaw_prev,   s.yaw_curr,   alpha);
+            g.pitch = lerp_i16(s.pitch_prev, s.pitch_curr, alpha);
+
+            s.applied = true;
+        }
+    } else {
+        for (int i = 0; i < MAX_GRENADES; ++i) g_grenade_snaps[i].applied = false;
+    }
 }
 
 RenderInterpFrame::~RenderInterpFrame()
 {
-    // Restore in reverse order (DIRT, camera, Things) just to mirror ctor —
-    // ordering doesn't actually matter since the saves are independent.
+    // Restore in reverse order (grenades, DIRT, camera, Things) just to mirror
+    // ctor — ordering doesn't actually matter since the saves are independent.
+    for (int i = 0; i < MAX_GRENADES; ++i) {
+        GrenadeSnap& s = g_grenade_snaps[i];
+        if (!s.applied) continue;
+        Grenade& g = GrenadeArray[i];
+        g.x = s.saved_x;
+        g.y = s.saved_y;
+        g.z = s.saved_z;
+        g.yaw   = s.saved_yaw;
+        g.pitch = s.saved_pitch;
+        s.applied = false;
+    }
+
     for (int i = 0; i < DIRT_MAX_DIRT; ++i) {
         DirtSnap& s = g_dirt_snaps[i];
         if (!s.applied) continue;
