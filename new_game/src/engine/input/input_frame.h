@@ -150,6 +150,15 @@ bool input_dpad_active();
 int input_stick_x_axis(InputStickId stick);
 int input_stick_y_axis(InputStickId stick);
 
+// Same units as input_stick_*_axis, but PRE-D-Pad-override (i.e. lX_raw /
+// lY_raw / rX_raw / rY_raw). Use when stick and D-Pad must be treated as
+// independent input sources — typically menu code that ORs all three sources
+// (keyboard + stick + D-Pad) for navigation and reads the physical stick
+// deflection separately for dominant-axis disambiguation. Game movement
+// should use input_stick_*_axis (post-override) so D-Pad-as-stick works.
+int input_stick_x_axis_raw(InputStickId stick);
+int input_stick_y_axis_raw(InputStickId stick);
+
 // Raw trigger byte 0..255 (idx 15 = L2, 16 = R2). Same units as
 // gamepad_state.trigger_left/right. For weapon_feel_evaluate_fire which
 // uses byte-resolution thresholds; float input_trigger() loses precision

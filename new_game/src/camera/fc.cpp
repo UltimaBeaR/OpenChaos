@@ -13,7 +13,8 @@
 #include "camera/fc_globals.h"
 #include "map/pap.h"
 #include "engine/input/gamepad.h" // gamepad_set_shock
-#include "engine/input/gamepad_globals.h" // gamepad_state (right stick camera)
+#include "engine/input/gamepad_globals.h" // active_input_device
+#include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
@@ -904,9 +905,9 @@ void FC_process()
                 && fc->focus->Class == CLASS_PERSON
                 && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
 
-            if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.connected) {
-                SLONG stick_x = gamepad_state.rX - 32768; // signed, -32768..+32767
-                SLONG stick_y = gamepad_state.rY - 32768;
+            if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
+                SLONG stick_x = input_stick_x_axis(INPUT_STICK_RIGHT) - 32768; // signed, -32768..+32767
+                SLONG stick_y = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
 
                 if (abs(stick_x) > 8000) {
                     SLONG rot_speed = (stick_x * 0x600) / 32767;

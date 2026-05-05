@@ -6,6 +6,50 @@
 
 ---
 
+## 2026-05-06 — Phase 4-Wide Commits B+C: leaf consumers + финальный аудит
+
+После Commit A (миграция `get_hardware_input`) остались мелкие потребители читающие `gamepad_state` напрямую — все мигрированы в этой сессии.
+
+**Commit B — близкие к `get_hardware_input` consumers:**
+
+- [`input_actions.cpp:apply_button_input_car`](../../new_game/src/game/input_actions.cpp) — R2/L2 digital для accel/brake: `the_state.rgbButtons[15/16]` → `input_btn_held(15/16)`. Уточнён комментарий: это **digital** trigger bits (gamepad layer выставляет их при ~half-deflection), не analog uint8_t.
+- [`input_actions.cpp:apply_button_input_first_person`](../../new_game/src/game/input_actions.cpp) — FPS look правым стиком: `the_state.connected/rX/rY` → `input_gamepad_connected()/input_stick_x_axis(RIGHT)/y_axis(RIGHT)`.
+- [`game.cpp:playback_game_keys`](../../new_game/src/game/game.cpp) — playback skip detection: `if (ReadInputDevice())` + `the_state.rgbButtons[i]` цикл → `input_gamepad_connected()` + `input_btn_held(i)`.
+- Удалены unused includes: `joystick_globals.h` из `input_actions.cpp` и `game.cpp`.
+
+**Commit C — leaf consumers вне input pipeline:**
+
+- [`fc.cpp` правая стик-камера](../../new_game/src/camera/fc.cpp) — `gamepad_state.connected/rX/rY` → `input_gamepad_connected()/input_stick_x_axis(RIGHT)/y_axis(RIGHT)`.
+- [`vehicle.cpp` analog throttle/brake](../../new_game/src/things/vehicles/vehicle.cpp) — `gamepad_state.trigger_right/left` → `input_trigger_raw(16/15)`.
+- [`outro_os.cpp::OS_joy_poll`](../../new_game/src/outro/core/outro_os.cpp) — `gamepad_state.connected/lX/lY/rgbButtons[i]` → input_frame API. Удалён unused include `gamepad_globals.h`.
+- [`frontend.cpp` dominant-axis pick](../../new_game/src/ui/frontend/frontend.cpp) — `the_state.connected/lX_raw/lY_raw` (pre-D-Pad-override для antagonist suppression) → `input_gamepad_connected()/input_stick_x_axis_raw(LEFT)/y_axis_raw(LEFT)`. Удалены unused includes `joystick.h` и `joystick_globals.h`.
+
+**Расширение API (для frontend dominant-axis):**
+
+- [`input_stick_x_axis_raw(stick) / y_axis_raw(stick)`](../../new_game/src/engine/input/input_frame.h) — int 0..65535 PRE-D-Pad-override. Зеркало `_axis` (post-override) для consumer'ов которым нужно различать stick и D-Pad как независимые источники.
+
+**Build:** `make build-release` 298/298 PASS.
+
+**Финальный аудит (grep по `new_game/src/`):**
+
+Поиск `the_state\.|gamepad_state\.` в потребительских читающих позициях:
+- ✅ `the_state.X` — **0 hits** во всём проекте.
+- ✅ `gamepad_state.X` — все hits только в трёх legitimate местах:
+  - [`engine/input/gamepad.cpp`](../../new_game/src/engine/input/gamepad.cpp) — слой который **fills** state (write side, OK).
+  - [`engine/input/input_frame.cpp`](../../new_game/src/engine/input/input_frame.cpp) — единственный reader, source of truth для всех consumers.
+  - [`engine/input/joystick.cpp:14,21`](../../new_game/src/engine/input/joystick.cpp) — `ReadInputDevice/GetInputDevice` legacy compat layer возвращающий `gamepad_state.connected ? UC_TRUE : UC_FALSE`. Не consumer, обёртка над state.
+- ✅ `weapon_feel.cpp:37` — comment only.
+
+`Keys[KB_*]` — все остающиеся hits (read-side) — задокументированные exceptions:
+- `keyboard.cpp:12-14` — ShiftFlag/ControlFlag/AltFlag event hook layer.
+- `gamemenu.cpp` Keys[KB_ESC/UP/DOWN/ENTER/...] — internal gamepad→keyboard bridge channel.
+- `widget.cpp` FORM_KeyProc gamepad→synth keyboard.
+- Все остальные hits — writes (consume `Keys[X]=0` или bridge `Keys[X]=1`) либо comments.
+
+**Итог Phase 4-Wide миграции:** 100% hardware input reads (kbrd, gamepad buttons, gamepad sticks, gamepad triggers, D-Pad) идут через input_frame API во всех потребителях. Прямые reads `gamepad_state.X` / `Keys[X]` остались только в трёх legitimate слоях (gamepad layer, input_frame layer, keyboard event hook).
+
+---
+
 ## 2026-05-05 — Phase 4-Wide Commit A: миграция `get_hardware_input` + расширение API
 
 **Задача:** последний крупный потребитель который читал hardware напрямую — central pipeline `get_hardware_input` в [`input_actions.cpp`](../../new_game/src/game/input_actions.cpp) (lines ~3020-3275). До этой сессии это было задокументированное exception #3 в "ТЕКУЩЕЕ СОСТОЯНИЕ" секции ниже — теперь закрыто.
@@ -688,46 +732,73 @@ ENTER bug: ENTER в меню paus close menu → процесс_controls в то
 
 ---
 
-## 2026-05-05 — ТЕКУЩЕЕ СОСТОЯНИЕ (для handoff)
+## 2026-05-06 — ТЕКУЩЕЕ СОСТОЯНИЕ (для handoff)
 
-### ✅ Полностью мигрировано (потребители читают через input_frame)
+### ✅ Phase 4-Wide миграция завершена
 
-- Все `Keys[KB_*]` reads в потребительских функциях. Подтверждено grep'ом: `grep "Keys\[KB_"` без legitimate exceptions возвращает только writes (legacy backing-store).
-- Все `the_state.rgbButtons[]` reads вне `get_hardware_input` слоя.
-- Меню навигация (gamemenu, frontend), debug-клавиши, weapon switch, vehicle siren, video player, cutscene skip, attract loop.
-- Menu close leak fixed через новый API `input_key_force_release(scancode)` — обнуляет CURRENT snapshot чтобы same-frame downstream consumers видели released сразу.
+Все hardware input reads (klавy, gamepad buttons, sticks, triggers, D-Pad) идут через `input_frame` API во всех потребителях. Прямые reads `gamepad_state.X` / `Keys[X]` остались только в трёх legitimate слоях.
+
+**Полностью мигрировано:**
+- Меню навигация (gamemenu, frontend) с combined-source auto-repeat и antagonist suppression.
+- Все debug-клавиши, weapon switch, vehicle siren, video player FMV skip, cutscene skip, attract loop.
+- Central input pipeline `get_hardware_input` (Commit A 2026-05-05).
+- Leaf consumers: vehicle triggers, fc.cpp camera, outro_os.cpp, FPS look (Commits B+C 2026-05-06).
+- Menu close leak fixed через `input_key_force_release(scancode)`.
 
 ### ⚠️ Documented exceptions (НЕ мигрированы, легитимно)
 
-1. **`keyboard.cpp` event hook** (lines 12-14): `ShiftFlag = Keys[KB_LSHIFT] || Keys[KB_RSHIFT]; ControlFlag = Keys[KB_LCONTROL]; AltFlag = Keys[KB_LALT] || Keys[KB_RALT];` — это **layer который поддерживает legacy backing-store**. Source-of-truth слой, не consumer.
+1. **`keyboard.cpp:12-14` event hook** — `ShiftFlag/ControlFlag/AltFlag = Keys[X]`. Layer который поддерживает legacy backing-store; source-of-truth слой, не consumer.
 2. **Internal Keys[]-as-message-bus** в [`widget.cpp::FORM_KeyProc`](../../new_game/src/ui/menus/widget.cpp) и [`gamemenu.cpp` ESC handler](../../new_game/src/ui/menus/gamemenu.cpp) — gamepad→keyboard bridge synthesises `Keys[KB_X]=1`, тот же файл читает обратно. Замкнутый канал, не hardware input.
-3. **`get_hardware_input` в `input_actions.cpp`** (lines ~3026-3263): central input pipeline. Читает `the_state.rgbButtons[]`, `the_state.lX/lY/rX/rY`, `the_state.trigger_left/right` напрямую для агрегации в `INPUT_MASK_*` биты. Это **implementation слой input_frame'а соседствующий**, не leaf consumer. Однако строго говоря **тоже потребитель** — может быть мигрирован на `input_btn_held` / `input_stick_x_raw` / `input_trigger_raw` если расширить input_frame API.
-4. **`game.cpp:608`** `for (i=0; i<=9; i++) if (the_state.rgbButtons[i])` — playback skip detection, читает все кнопки. Легко мигрируется на цикл `input_btn_held(i)`.
-5. **`elev.cpp` lines 1962-1972** — bulk `Keys[X] = 0` writes (cleanup), не reads. Не критично.
-6. **`outro_main.cpp`, `farfacet.cpp`, `pcom.cpp`** — только comment'ы.
+3. **`elev.cpp:1962-1972`** — bulk `Keys[X] = 0` writes (pre-elevator cleanup), не reads. Не критично.
+4. **`joystick.cpp:14,21`** — `ReadInputDevice/GetInputDevice` legacy compat layer возвращающий `gamepad_state.connected ? UC_TRUE : UC_FALSE`. Внутренний адаптер, не consumer.
+5. **`outro_main.cpp`, `farfacet.cpp`, `pcom.cpp`, `aeng.cpp:4410`** — только закомментированные ссылки на Keys[].
 
-### 🚧 Что можно ещё сделать (если пользователь хочет 100% покрытия)
+### 🚧 Что можно сделать дальше (не блокеры)
 
-1. **Migrate `get_hardware_input` core**:
-   - Добавить в input_frame API: `input_btn_held(N)` уже есть, использовать вместо `the_state.rgbButtons[N]`.
-   - Добавить `input_stick_x_raw(stick) / y_raw(stick)` returning raw int 0..65535 — для packing в bits 18-31 которое использует get_hardware_input.
-   - Добавить `input_trigger_raw(idx)` returning byte 0..255 — для weapon_feel (currently reads `the_state.trigger_left/right`).
-   - Добавить `input_gamepad_connected()` / `input_gamepad_dpad_active()` accessors.
-   - Заменить ~25 чтений в get_hardware_input на новые APIs.
-2. **Migrate `game.cpp:608`** playback skip — `for (i=0; i<=9; i++) if (input_btn_held(i))`.
-3. **Migrate widget.cpp / gamemenu.cpp internal bridge** — потребует "synthesize input event" API в input_frame с правильным timing'ом (поскольку input_frame_update уже прошёл в текущем кадре). Архитектурно сложнее.
+1. **Migrate widget.cpp / gamemenu.cpp internal bridge** (exception #2) — потребует "synthesize input event" API в input_frame с правильным timing'ом (input_frame_update уже прошёл в текущем кадре). Архитектурно сложнее, не блокер.
+2. **Migrate `joystick.cpp`** legacy `ReadInputDevice/GetInputDevice` (exception #4) — чисто косметика, эти функции — leaf compat-обёртки, без consumer'ов которые могли бы leak'нуть.
+3. **Mouse buttons** в input_frame — добавить если потребуется. Сейчас video_player/menu используют raw SDL events.
+4. **DualSense touchpad** — отдельный источник через `ds_get_input`, не через rgbButtons. Расширение API возможно если возникнет нужда в edge-detect для touchpad.
 
 ### Не Phase 4-Wide, отдельные задачи
 
 - Mouse buttons не в input_frame — добавить если будет необходимо (пока не блокер).
 - DualSense touchpad — отдельный источник через `ds_get_input`, не через rgbButtons.
 
-### API расширения этой сессии
+### Полный API input_frame (на 2026-05-06)
 
-- **`InputAutoRepeat::tick_combined(any_jp, any_held)`** — combined-source auto-repeat (gamemenu/frontend nav).
-- **`input_btn_press_pending(idx)` / `input_btn_consume(idx)`** — gamepad sticky pending для physics-tick consumer'ов (vehicle siren).
-- **`input_key_force_release(scancode)`** — обнуляет CURRENT snapshot для same-frame consumed-press suppression (menu close).
-- **`gamepad_state.lX_raw/lY_raw/rX_raw/rY_raw`** — pre-D-Pad-override stick values (for menu antagonist stick+D-pad).
+**Keyboard:**
+- `input_key_held / just_pressed / just_released` — edge-detect.
+- `input_key_press_pending / consume` — sticky press для physics-tick consumer'ов.
+- `input_key_force_release(scancode)` — обнуляет CURRENT snapshot для same-frame suppression (menu close).
+- `input_key_just_pressed_or_repeat` — single-source auto-repeat.
+
+**Gamepad buttons:**
+- `input_btn_held / just_pressed / just_released / press_pending / consume / just_pressed_or_repeat`.
+
+**Stick virtual directions** (для menu nav, threshold 4096 от центра, hysteresis):
+- `input_stick_held / just_pressed / just_released / just_pressed_or_repeat (stick, dir)`.
+
+**Stick continuous** (для движения, deadzone applied):
+- `input_stick_x / y(stick)` — float -1..1, post-D-Pad-override.
+
+**Stick raw axis** (int 0..65535) — для bit-packing и других int-resolution use cases:
+- `input_stick_x_axis / y_axis(stick)` — POST-override (D-Pad clamps lX/lY).
+- `input_stick_x_axis_raw / y_axis_raw(stick)` — PRE-override (для antagonist suppression в frontend).
+
+**Triggers:**
+- `input_trigger(idx)` — float 0..1.
+- `input_trigger_raw(idx)` — int 0..255 (для weapon_feel byte thresholds).
+
+**Connection / D-Pad state:**
+- `input_gamepad_connected()`.
+- `input_dpad_active()`.
+
+**Combined-source auto-repeat** (multi-source nav: kb + stick + D-Pad):
+- `InputAutoRepeat::tick_combined(any_just_pressed, any_held)` — single throttle на OR'нутом combined input.
+
+**Internal — gamepad layer state:**
+- `gamepad_state.lX_raw/lY_raw/rX_raw/rY_raw` — pre-D-Pad-override stick values. Читается **только** через `input_stick_x_axis_raw/y_axis_raw` или внутри `input_frame.cpp` (для virtual direction computation).
 
 ### Связь с fps_unlock
 

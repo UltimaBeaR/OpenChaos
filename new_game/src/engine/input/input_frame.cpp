@@ -428,6 +428,16 @@ int input_stick_y_axis(InputStickId stick)
     return (stick == INPUT_STICK_LEFT) ? gamepad_state.lY : gamepad_state.rY;
 }
 
+int input_stick_x_axis_raw(InputStickId stick)
+{
+    return (stick == INPUT_STICK_LEFT) ? gamepad_state.lX_raw : gamepad_state.rX_raw;
+}
+
+int input_stick_y_axis_raw(InputStickId stick)
+{
+    return (stick == INPUT_STICK_LEFT) ? gamepad_state.lY_raw : gamepad_state.rY_raw;
+}
+
 int input_trigger_raw(SLONG trigger_idx)
 {
     if (trigger_idx == 15) return gamepad_state.trigger_left;

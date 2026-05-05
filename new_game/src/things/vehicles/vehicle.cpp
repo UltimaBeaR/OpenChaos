@@ -30,6 +30,7 @@
 #include "game/input_actions.h"
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
+#include "engine/input/input_frame.h" // input_trigger_raw
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "things/items/barrel.h"
@@ -2391,8 +2392,9 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
             // Analog throttle: scale accel by R2 trigger position (gamepad only).
             // Full press = full accel, partial press = proportional.
             // Cross button always gives full accel (digital).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.trigger_right > 0 && gamepad_state.trigger_right < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_right) / 255);
+            const int r2 = input_trigger_raw(16);
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
             }
 
             if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
@@ -2409,8 +2411,9 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
 
             // Analog brake: scale braking force by L2 trigger position (gamepad only).
             // Square button always gives full brake (digital).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.trigger_left > 0 && gamepad_state.trigger_left < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_left) / 255);
+            const int l2 = input_trigger_raw(15);
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && l2 > 0 && l2 < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * l2) / 255);
             }
 
             if (!veh->Skid) {

@@ -27,8 +27,6 @@ extern SLONG ScreenHeight;
 #include "engine/audio/sound.h" // WEATHER_REF, SIREN_REF
 #include "assets/sound_id.h" // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
 #include "engine/input/keyboard_globals.h" // Keys[], LastKey, ControlFlag, ShiftFlag
-#include "engine/input/joystick.h" // ReadInputDevice
-#include "engine/input/joystick_globals.h" // the_state (DIJOYSTATE)
 #include "engine/input/input_frame.h"
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
@@ -2440,12 +2438,14 @@ static UBYTE FRONTEND_input(void)
         // physical stick deflection.
         const bool kb_any_dir = kb_up || kb_dn || kb_lt || kb_rt;
         const bool dp_any_dir = dp_up || dp_dn || dp_lt || dp_rt;
-        if (!kb_any_dir && !dp_any_dir && the_state.connected) {
+        if (!kb_any_dir && !dp_any_dir && input_gamepad_connected()) {
             const bool st_y = st_up || st_dn;
             const bool st_x = st_lt || st_rt;
             if (st_y && st_x) {
-                const int32_t dx = (the_state.lX_raw > 32768) ? (int32_t)the_state.lX_raw - 32768 : 32768 - (int32_t)the_state.lX_raw;
-                const int32_t dy = (the_state.lY_raw > 32768) ? (int32_t)the_state.lY_raw - 32768 : 32768 - (int32_t)the_state.lY_raw;
+                const int32_t lx_raw = input_stick_x_axis_raw(INPUT_STICK_LEFT);
+                const int32_t ly_raw = input_stick_y_axis_raw(INPUT_STICK_LEFT);
+                const int32_t dx = (lx_raw > 32768) ? lx_raw - 32768 : 32768 - lx_raw;
+                const int32_t dy = (ly_raw > 32768) ? ly_raw - 32768 : 32768 - ly_raw;
                 if (dy >= dx) {
                     st_lt = false;
                     st_rt = false;
