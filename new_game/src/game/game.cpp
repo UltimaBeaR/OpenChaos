@@ -582,16 +582,8 @@ void screen_flip(void)
     // FONT_buffer flush moved to ui_render_post_composition — they draw
     // text that must land on the default FB at native resolution, after
     // composition, so FXAA / bilinear upscale don't soften the glyphs.
-    {
-        static bool ctrl_was_pressed = false;
-        if (Keys[KB_LCONTROL] && allow_debug_keys) {
-            if (!ctrl_was_pressed) {
-                ctrl_was_pressed = true;
-                debug_overlay_locked_on = !debug_overlay_locked_on;
-            }
-        } else if (!Keys[KB_LCONTROL]) {
-            ctrl_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_LCONTROL)) {
+        debug_overlay_locked_on = !debug_overlay_locked_on;
     }
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.
@@ -605,11 +597,7 @@ void screen_flip(void)
 // uc_orig: playback_game_keys (fallen/Source/Game.cpp)
 void playback_game_keys(void)
 {
-    if (Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
-        Keys[KB_SPACE] = 0;
-        Keys[KB_ENTER] = 0;
-        Keys[KB_PENTER] = 0;
-
+    if (input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
         GAME_STATE = 0;
     }
 
@@ -1371,6 +1359,12 @@ round_again:;
 
                         ge_init_back_image("deadcivs.tga");
 
+                        // Clear any pending press carried in from the previous
+                        // screen so the warning loop doesn't dismiss instantly.
+                        // input_key_just_pressed naturally requires a rising
+                        // edge in this loop's snapshot — these writes update
+                        // the legacy Keys[] backing store for any still-Keys[]-
+                        // reading consumers (e.g. FORM_KeyProc bridge).
                         Keys[KB_ESC] = 0;
                         Keys[KB_SPACE] = 0;
                         Keys[KB_ENTER] = 0;
@@ -1413,7 +1407,8 @@ round_again:;
                             POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
-                            if (Keys[KB_ESC] || Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
+                            if (input_key_just_pressed(KB_ESC) || input_key_just_pressed(KB_SPACE)
+                                || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
                                 break;
                             }
                         }

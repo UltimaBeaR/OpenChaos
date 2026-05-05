@@ -15,6 +15,8 @@
 #include "assets/xlat_str.h"
 #include "ui/frontend/frontend.h"
 #include "things/core/statedef.h"
+#include "engine/input/input_frame.h"
+#include "engine/input/keyboard_globals.h" // ControlFlag, LastKey
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)
@@ -81,7 +83,7 @@ reinit_because_of_language_change:
             dont_leave_for_a_while -= 1;
         }
 
-        if (ControlFlag && Keys[KB_Q]) {
+        if (ControlFlag && input_key_just_pressed(KB_Q)) {
             GAME_STATE = 0;
             LastKey = 0;
         }
@@ -92,7 +94,12 @@ reinit_because_of_language_change:
 
         text_fudge = UC_TRUE;
 
-        if (Keys[KB_LEFT] || Keys[KB_RIGHT] || Keys[KB_UP] || Keys[KB_DOWN] || Keys[KB_SPACE] || Keys[KB_ENTER])
+        // Any nav/confirm key held — wake the attract screen (reset y so
+        // the menu stays visible). Level-state read (input_key_held), not
+        // edge: as long as user is interacting we keep the screen alive.
+        if (input_key_held(KB_LEFT) || input_key_held(KB_RIGHT)
+            || input_key_held(KB_UP) || input_key_held(KB_DOWN)
+            || input_key_held(KB_SPACE) || input_key_held(KB_ENTER))
             y = 500;
 
         {
@@ -100,8 +107,11 @@ reinit_because_of_language_change:
 
             res = FRONTEND_loop();
 
-            // Debug timing keys: must run AFTER FRONTEND_loop because ReadInputDevice
-            // is called inside it — Keys[] is stale before that call.
+            // Debug timing keys: input_frame snapshot is refreshed at top of
+            // SHELL_ACTIVE (LibShellActive → input_frame_update) before this
+            // loop body runs, so check_debug_timing_keys can read it any time.
+            // Order kept after FRONTEND_loop for historical reasons (no longer
+            // matters for correctness).
             extern void check_debug_timing_keys(void);
             check_debug_timing_keys();
 

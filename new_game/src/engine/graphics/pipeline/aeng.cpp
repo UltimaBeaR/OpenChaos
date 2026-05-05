@@ -3,6 +3,7 @@
 // All Direct3D rendering will be replaced in Stage 7; for now this is a 1:1 port.
 
 #include "engine/graphics/pipeline/aeng_globals.h"
+#include "engine/input/input_frame.h"
 #include "engine/console/message.h" // MSG_draw
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
@@ -2108,7 +2109,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (Keys[KB_L] && ControlFlag && allow_debug_keys) {
+    if (input_key_just_pressed(KB_L) && ControlFlag && allow_debug_keys) {
         outside ^= 1;
     }
 
@@ -5433,8 +5434,7 @@ void AENG_draw_warehouse()
 void AENG_screen_shot(void)
 {
     if (allow_debug_keys)
-        if (Keys[KB_S] || record_video) {
-            Keys[KB_S] = 0;
+        if (input_key_just_pressed(KB_S) || record_video) {
             if (ShiftFlag) {
                 record_video ^= 1;
             }

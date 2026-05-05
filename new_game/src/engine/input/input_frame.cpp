@@ -259,6 +259,16 @@ void input_key_consume(SLONG kb_code)
     }
 }
 
+void input_key_force_release(SLONG kb_code)
+{
+    if (key_in_range(kb_code)) {
+        s_keys_curr[kb_code] = 0;
+        s_keys_event_held[kb_code] = 0;
+        s_keys_pressed_during_frame[kb_code] = 0;
+        s_keys_press_pending[kb_code] = 0;
+    }
+}
+
 // ---- Gamepad buttons --------------------------------------------------------
 
 bool input_btn_held(SLONG btn_idx)

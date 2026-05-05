@@ -3,6 +3,7 @@
 #include "engine/core/types.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
+#include "engine/input/input_frame.h"
 #include "engine/graphics/text/font.h"
 #include <cstdio>
 #include <cstdarg>
@@ -61,11 +62,12 @@ void MSG_draw(void)
 
     if (ShiftFlag)
         size = 20;
-    if (Keys[KB_PPLUS])
+    // Continuous level reads: scrolling speed = while-held rate.
+    if (input_key_held(KB_PPLUS))
         draw_message_offset += size;
-    if (Keys[KB_PMINUS])
+    if (input_key_held(KB_PMINUS))
         draw_message_offset -= size;
-    if (Keys[KB_PENTER])
+    if (input_key_held(KB_PENTER))
         draw_message_offset = 0;
 
     for (i = 0; i < SCREEN_SIZE; i++) {

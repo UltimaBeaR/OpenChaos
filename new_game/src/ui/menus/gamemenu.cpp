@@ -19,6 +19,7 @@
 #include "ui/menus/gamemenu_globals.h"
 #include "engine/input/gamepad.h"
 #include "engine/input/input_frame.h"
+#include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 
 // Stick navigation thresholds and auto-repeat live in input_frame
 // (STICK_DIR_PRESS_RAW / RELEASE_RAW + INPUT_REPEAT_INITIAL_MS / PERIOD_MS).
@@ -165,13 +166,25 @@ SLONG GAMEMENU_process()
             Keys[KB_ESC] = 1;
 
         if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
-            // Triangle/Y (button 3) → ESC (back/cancel).
-            if (input_btn_just_pressed(3))
+            // Triangle/Y (button 3) → ESC (back/cancel). Drain press_pending
+            // so the press doesn't leak into car siren toggle (which reads
+            // input_btn_press_pending(3)) when the menu closes — physics
+            // doesn't run during pause, so apply_button_input_car can't drain
+            // the pending itself, and a stale flag would fire on the first
+            // tick after resume.
+            if (input_btn_just_pressed(3)) {
+                input_btn_consume(3);
                 Keys[KB_ESC] = 1;
+            }
 
-            // Cross/A (button 0) → Enter (confirm).
-            if (input_btn_just_pressed(0))
+            // Cross/A (button 0) → Enter (confirm). No current consumer of
+            // input_btn_press_pending(0), but consume defensively for symmetry
+            // with Triangle — any future physics-tick consumer of that flag
+            // would otherwise see the menu-confirm press as a pending input.
+            if (input_btn_just_pressed(0)) {
+                input_btn_consume(0);
                 Keys[KB_ENTER] = 1;
+            }
 
             // Up/Down nav (keyboard and stick) is handled below inside the
             // GAMEMENU_background > 200 gate — single unified auto-repeat
@@ -179,7 +192,28 @@ SLONG GAMEMENU_process()
         }
     }
 
+    // **Internal bridge consumer** — Keys[KB_ESC] is the message channel for
+    // the gamepad-to-keyboard bridge above (Start/Triangle button presses
+    // synthesise Keys[KB_ESC]=1). Reading Keys[] here picks up both real
+    // keyboard ESC and the synthesised gamepad presses. Migrating to
+    // input_frame would require either an "inject synthesised key event"
+    // API (with subtle ordering caveats — input_frame_update has already
+    // run for this frame) or replacing the bridge with direct input_frame
+    // state mutation. Internal closed channel — kept on Keys[] for now,
+    // analogous to widget.cpp::FORM_KeyProc.
     if (Keys[KB_ESC]) {
+        // Force a synthesised release in input_frame's CURRENT snapshot so
+        // same-frame downstream consumers (e.g. weapon switch reading
+        // input_key_just_pressed(KB_ENTER) in process_controls, or JUMP
+        // level read in get_hardware_input) don't see the menu-consumed
+        // press leak into gameplay. `keyboard_key_up` alone wouldn't help
+        // — it updates event_held, but s_keys_curr was already snapshotted
+        // by input_frame_update at the top of THIS LibShellActive call,
+        // and downstream reads still see curr=1 → leak. force_release
+        // clears curr/event_held/pressed_during_frame/press_pending all
+        // at once. Subsequent Keys[KB_X]=0 consume keeps the legacy
+        // backing-store in sync for any still-Keys[]-reading consumer.
+        input_key_force_release(KB_ESC);
         Keys[KB_ESC] = 0;
 
         switch (GAMEMENU_menu_type) {
@@ -313,6 +347,13 @@ SLONG GAMEMENU_process()
             }
 
             if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER]) {
+                // Force-release in input_frame's CURRENT snapshot — see
+                // comment in the ESC handler above. Otherwise SPACE held for
+                // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
+                // INPUT_MASK_SELECT (weapon switch popup opens), etc.
+                input_key_force_release(KB_ENTER);
+                input_key_force_release(KB_SPACE);
+                input_key_force_release(KB_PENTER);
                 Keys[KB_ENTER] = 0;
                 Keys[KB_SPACE] = 0;
                 Keys[KB_PENTER] = 0;

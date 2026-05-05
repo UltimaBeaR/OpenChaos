@@ -10,6 +10,8 @@
 #include "engine/platform/host.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
+#include "engine/input/keyboard.h" // keyboard_key_down/up — dispatch SDL key events into the regular input pipeline
+#include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
 #include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
 
@@ -268,20 +270,31 @@ bool video_play(const char* filename, bool allow_skip)
     int16_t* audio_buf = nullptr;
     int audio_buf_cap = 0;
 
-    // DualSense: capture current state. Edge detection starts from this snapshot —
-    // any button already held is ignored until released and pressed again.
-    DS_InputState ds_prev = {};
+    // Calibrate input_frame snapshot with one update so any buttons / keys
+    // held coming into the video don't fire as "rising edges" on the first
+    // input_frame_update inside the loop. After this call, prev=curr — the
+    // first real edge happens only on a fresh press during playback.
     ds_poll_registry(0.0f);
     ds_update_input();
-    if (ds_is_connected()) {
-        ds_get_input(&ds_prev);
-    }
+    input_frame_update();
 
     while (!done) {
         // --- Skip check: keyboard/mouse/gamepad/DualSense ---
+        // We use raw SDL_PollEvent (not sdl3_poll_events) so the regular
+        // on_window_resized callback never fires here — instead the SDL
+        // event watcher latches s_resize_pending in the bridge layer, and
+        // host_process_pending_resize below drains it into a real
+        // ge_resize_display. Without that, a resize during a video would
+        // leave the scene FBO at the pre-video size and the first menu
+        // frame after the video would render with the wrong composition
+        // letterbox.
+        //
+        // SDL keyboard events are dispatched manually into keyboard_key_down/up
+        // (which set both legacy Keys[] and input_frame's event-tracked state)
+        // so input_frame snapshot stays consistent. Skip checks then read
+        // through input_*_just_pressed instead of switching on raw SDL events.
         {
-            extern SLONG g_physics_hz;
-            extern SLONG g_render_fps_cap;
+            bool mouse_skip = false;
             SDL_Event ev;
             while (SDL_PollEvent(&ev)) {
                 if (ev.type == SDL_EVENT_QUIT) {
@@ -289,70 +302,70 @@ bool video_play(const char* filename, bool allow_skip)
                     break;
                 }
                 if (ev.type == SDL_EVENT_KEY_DOWN && !ev.key.repeat) {
-                    // Mirror of game.cpp::check_debug_timing_keys for FMV
-                    // playback. Values must match the constants there.
-                    extern bool g_render_interp_enabled;
-                    switch (ev.key.scancode) {
-                    case SDL_SCANCODE_1:
-                        g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
-                        break;
-                    case SDL_SCANCODE_2:
-                        // 30 mirrors RENDER_FPS_TOGGLE_LOW in check_debug_timing_keys
-                        // (PS1 hardware lock / UC_VISUAL_CADENCE_HZ).
-                        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP) ? 30 : RENDER_FPS_DEFAULT_CAP;
-                        break;
-                    case SDL_SCANCODE_3:
-                        g_render_interp_enabled = !g_render_interp_enabled;
-                        break;
-                    case SDL_SCANCODE_9:
-                        g_physics_hz -= 1;
-                        if (g_physics_hz < 1) g_physics_hz = 1;
-                        break;
-                    case SDL_SCANCODE_0:
-                        g_physics_hz += 1;
-                        if (g_physics_hz > 20) g_physics_hz = 20;
-                        break;
-                    default: break;
-                    }
+                    uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
+                    if (sc) keyboard_key_down(sc);
                 }
-                if (allow_skip) {
-                    if (ev.type == SDL_EVENT_KEY_DOWN) {
-                        SDL_Keycode key = ev.key.key;
-                        if (key == SDLK_ESCAPE || key == SDLK_RETURN || key == SDLK_SPACE) {
+                if (ev.type == SDL_EVENT_KEY_UP) {
+                    uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
+                    if (sc) keyboard_key_up(sc);
+                }
+                // Mouse buttons aren't yet in input_frame — keep raw SDL
+                // event check until input_frame grows mouse-button support.
+                if (allow_skip && ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                    mouse_skip = true;
+                }
+            }
+
+            host_process_pending_resize();
+            // Refresh DualSense + gamepad + keyboard snapshot AFTER events
+            // are dispatched so the snapshot reflects this iteration.
+            ds_poll_registry(0.033f);
+            ds_update_input();
+            input_frame_update();
+
+            // --- Debug timing keys (mirror of game.cpp::check_debug_timing_keys) ---
+            extern SLONG g_physics_hz;
+            extern SLONG g_render_fps_cap;
+            extern bool g_render_interp_enabled;
+            if (input_key_just_pressed(KB_1))
+                g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
+            if (input_key_just_pressed(KB_2)) {
+                // 30 mirrors RENDER_FPS_TOGGLE_LOW in check_debug_timing_keys
+                // (PS1-only render rate; PC retail ran at ~22 Hz — see
+                // game_types.h UC_VISUAL_CADENCE_HZ comment).
+                g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP) ? 30 : RENDER_FPS_DEFAULT_CAP;
+            }
+            if (input_key_just_pressed(KB_3))
+                g_render_interp_enabled = !g_render_interp_enabled;
+            if (input_key_just_pressed(KB_9)) {
+                g_physics_hz -= 1;
+                if (g_physics_hz < 1) g_physics_hz = 1;
+            }
+            if (input_key_just_pressed(KB_0)) {
+                g_physics_hz += 1;
+                if (g_physics_hz > 20) g_physics_hz = 20;
+            }
+
+            // --- Skip on any user input ---
+            if (allow_skip) {
+                if (input_key_just_pressed(KB_ESC)
+                    || input_key_just_pressed(KB_ENTER)
+                    || input_key_just_pressed(KB_SPACE)) {
+                    done = true;
+                }
+                // Any gamepad / DualSense button rising edge = skip. Cross,
+                // Circle, Start are at indices 0/1/6 (rgbButtons mirror).
+                // Loop covers the standard 0..16 button range to catch any
+                // controller layout.
+                if (!done) {
+                    for (int i = 0; i < 17; i++) {
+                        if (input_btn_just_pressed(i)) {
                             done = true;
                             break;
                         }
                     }
-                    if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                        done = true;
-                        break;
-                    }
-                    if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-                        done = true;
-                        break;
-                    }
                 }
-            }
-
-            // Apply any pending window resize that arrived while we were
-            // pumping. We use raw SDL_PollEvent (not sdl3_poll_events) so
-            // the regular on_window_resized callback never fires here —
-            // instead the SDL event watcher latches s_resize_pending in
-            // the bridge layer, and this call drains it into a real
-            // ge_resize_display. Without it, a resize during a video
-            // would leave the scene FBO at the pre-video size and the
-            // first menu frame after the video would render with the
-            // wrong composition letterbox.
-            host_process_pending_resize();
-            // DualSense: edge-triggered skip (new press only, not hold)
-            ds_poll_registry(0.033f);
-            ds_update_input();
-            if (allow_skip && ds_is_connected()) {
-                DS_InputState ds = {};
-                ds_get_input(&ds);
-                if ((!ds_prev.cross && ds.cross) || (!ds_prev.circle && ds.circle) || (!ds_prev.start && ds.start))
-                    done = true;
-                ds_prev = ds;
+                if (mouse_skip) done = true;
             }
             if (done)
                 break;

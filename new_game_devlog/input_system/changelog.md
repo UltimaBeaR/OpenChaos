@@ -500,3 +500,154 @@ CONTROLS_inventory_mode -= (SLONG)g_frame_dt_ms;
 - [`frontend.cpp:2529`](../../new_game/src/ui/frontend/frontend.cpp#L2529) — `Keys[LastKey] = 0` в grabbing_key text-input path (после ребинда). Text-input mechanism, не discrete-event input.
 
 **Проверка**: `grep "Keys\[KB_"` в frontend.cpp находит только 1 match (line 2383, legitimate legacy bridge).
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 4: cutscene / attract loops (playcuts.cpp, attract.cpp)
+
+Custom render loops которые крутятся отдельно от основного game_loop, но через `SHELL_ACTIVE` (= `LibShellActive`) вызывают `input_frame_update` каждую итерацию → snapshot fresh.
+
+**playcuts.cpp::PLAYCUTS_Play** (dev-only test cutscene player):
+- `Keys[KB_SPACE] = 0` (init и post) → `input_key_consume(KB_SPACE)` (init) + drop (post — input_key_just_pressed self-clears).
+- `!Keys[KB_SPACE]` (loop exit condition) → `!input_key_just_pressed(KB_SPACE)`.
+
+**attract.cpp** (главный attract loop):
+- `if (ControlFlag && Keys[KB_Q])` (debug quit) → `if (ControlFlag && input_key_just_pressed(KB_Q))`.
+- `if (Keys[KB_LEFT] || Keys[KB_RIGHT] || Keys[KB_UP] || Keys[KB_DOWN] || Keys[KB_SPACE] || Keys[KB_ENTER])` (wake screen) → 6× `input_key_held(X)` (level intent — экран остаётся пока юзер взаимодействует).
+- Обновлён комментарий про стейл `Keys[]` — больше не актуален т.к. input_frame snapshot обновляется в начале каждой итерации `SHELL_ACTIVE`.
+
+**Проверка**: `grep "Keys\["` находит 0 matches кода (только комментарий в attract.cpp).
+
+**outro_main.cpp** не трогаем — там grep'ом нашёлся только comment, никаких реальных reads.
+
+**video_player.cpp** — вынесен в шаг 5 (мигрирован).
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 5: input_actions.cpp + video_player.cpp
+
+**input_actions.cpp** — массовая миграция central input layer'а.
+
+`get_hardware_input` (keyboard side, ~lines 3290-3373):
+- Movement (FORWARDS/BACK/LEFT/RIGHT) → `input_key_held` per direction (continuous level intent).
+- SELECT, JUMP, PUNCH, KICK, ACTION → `input_key_held` (level masks).
+- F5/F6/F7 (camera type 1/2/3) → `input_key_just_pressed` (consume pattern).
+- JOYPAD_BUTTON_CAMERA (CAM_BEHIND), CAM_LEFT, CAM_RIGHT → `input_key_just_pressed` (consume pattern).
+- Pre-existing typo dropped: `Keys[JOYPAD_BUTTON_CAM_LEFT] = 0` (line 3348, missing keybrd_button_use indirection — would clear scancode equal to enum value, dead consume).
+
+`apply_button_input_first_person`:
+- 1stPerson toggle → `input_key_held` + `input_btn_held(joypad_button_use[JOYPAD_BUTTON_1STPERSON])` (replaced `the_state.rgbButtons[]` direct read).
+- Aim mode pitch/yaw arrow keys (4×) → `input_key_held`.
+
+`apply_button_input` weapon hotkeys KB_1..KB_8 → `input_key_just_pressed` (consume pattern, 8 patterns collapsed into oneliners).
+
+**video_player.cpp** — FMV playback custom event loop. Раньше использовал raw SDL events напрямую (бypassed input_frame entirely). Теперь:
+
+1. Добавлен `sdl3_to_game_scancode` (public wrapper в sdl3_bridge.h) для перевода SDL scancode → game KB_*.
+2. В custom SDL_PollEvent loop key-events диспатчатся через `keyboard_key_down/up` (которые в свою очередь обновляют input_frame через `input_frame_on_key_down/up` event hook).
+3. `input_frame_update()` вызывается per loop iteration после event drain → snapshot fresh.
+4. SDL_SCANCODE_X switch (debug timing keys 1/2/3/9/0) → `input_key_just_pressed(KB_X)`.
+5. Skip-on-key (ESC/Enter/Space) → `input_key_just_pressed`.
+6. SDL_EVENT_GAMEPAD_BUTTON_DOWN + DualSense ds_prev edge-detect → unified `input_btn_just_pressed(0..16)` loop. Cross/Circle/Start (DualSense) попадают в индексы 0/1/6 через rgbButtons mirror.
+7. **Mouse skip остался на raw SDL_EVENT_MOUSE_BUTTON_DOWN** — input_frame ещё не отслеживает mouse buttons. Помечено как future work.
+
+При входе в loop вызывается одно `input_frame_update()` чтобы baseline snapshot был установлен → buttons/keys held coming into video не fire'ят как rising edge.
+
+**Изменения:**
+- [`input_actions.cpp`](../../new_game/src/game/input_actions.cpp) — get_hardware_input + first_person + weapon hotkeys.
+- [`sdl3_bridge.h/.cpp`](../../new_game/src/engine/platform/sdl3_bridge.h) — экспорт `sdl3_to_game_scancode`.
+- [`video_player.cpp`](../../new_game/src/engine/video/video_player.cpp) — полная миграция FMV loop на input_frame.
+
+**Что ещё не закрыто (выявлено grep'ом):**
+- `panel.cpp`, `aeng.cpp`, `person.cpp`, `widget.cpp`, `thing.cpp`, `outro_os.cpp`, `outro_main.cpp`, `farfacet.cpp`, `debug_help.cpp`, `input_debug.cpp`, `message.cpp`, `ware.cpp`, `elev.cpp`, `pcom.cpp` — ещё имеют чтения `Keys[]`. Будут мигрированы следующими шагами.
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 6: финальный массовый pass по оставшимся файлам
+
+Большой batch: все остальные потребители `Keys[KB_*]` мигрированы на input_frame. После этого pass `Keys[KB_*]` reads встречаются **только в внутренних message-bus каналах** (gamemenu, widget) — это документированное исключение с пояснением в коде.
+
+| Файл | Что мигрировано |
+|---|---|
+| [`panel.cpp`](../../new_game/src/ui/hud/panel.cpp) | KB_V version overlay → `input_key_held` (continuous level read) |
+| [`aeng.cpp`](../../new_game/src/engine/graphics/pipeline/aeng.cpp) | Ctrl+L outside toggle → `input_key_just_pressed`, KB_S screenshot → `input_key_just_pressed` |
+| [`person.cpp`](../../new_game/src/things/characters/person.cpp) | Shift+Q debug speed multiplier → `input_key_held` |
+| [`thing.cpp`](../../new_game/src/things/core/thing.cpp) | KB_COLON slow-mo → `input_key_just_pressed` |
+| [`outro_os.cpp`](../../new_game/src/outro/core/outro_os.cpp) | KB_ESC outro skip → `input_key_just_pressed` |
+| [`debug_help.cpp`](../../new_game/src/engine/debug/debug_help/debug_help.cpp) | KB_F1 helper overlay → `input_key_just_pressed` |
+| [`input_debug.cpp`](../../new_game/src/engine/debug/input_debug/input_debug.cpp) | refresh_nav (custom prev-state edge detect) → `input_key_just_pressed`. Page switch keys (1/2/3), TAB, ESC → `input_key_just_pressed`. `input_debug_key_held()` helper → `input_key_held`. |
+| [`message.cpp`](../../new_game/src/engine/console/message.cpp) | Numpad +/- /Enter scroll → `input_key_held` (continuous) |
+| [`ware.cpp`](../../new_game/src/buildings/ware.cpp) | KB_T early-return gate → `input_key_held` |
+| [`game.cpp`](../../new_game/src/game/game.cpp) (missed in earlier pass) | Ctrl press toggle (debug_overlay_locked_on) → `input_key_just_pressed`; playback_game_keys SPACE/ENTER/PENTER → `input_key_just_pressed`; deadcivs warning loop break condition → `input_key_just_pressed` |
+
+**Файлы где Keys[] осталось как комментарий или legacy bridge write — не мигрировано:**
+- `outro_main.cpp` — только comment.
+- `farfacet.cpp` — только comment.
+- `pcom.cpp` — только закомментированный код.
+- `elev.cpp` (lines 1962-1972) — bulk write `Keys[X] = 0` для cleanup перед elevator action. Write-only, no read. Legacy backing-store maintenance, оставлен.
+
+**Внутренние message-bus каналы через Keys[] (legitimate exception, документированы в коде):**
+- [`widget.cpp::FORM_KeyProc`](../../new_game/src/ui/menus/widget.cpp) — gamepad→keyboard bridge для menu forms. Bridge pишет `Keys[KB_ENTER]=1`, FORM_KeyProc читает. Замкнутый внутренний канал.
+- [`gamemenu.cpp`](../../new_game/src/ui/menus/gamemenu.cpp) — gamepad→ESC/ENTER bridge (Start/Triangle/Cross → синтезированный keyboard press). Тот же паттерн.
+
+См. [current_plan.md](current_plan.md) раздел "Документированное исключение — внутренние message-bus каналы".
+
+**Архитектурное решение:** для миграции этих оставшихся каналов нужен "synthesize input event" API в input_frame (с правильным timing'ом, поскольку input_frame_update уже прошёл для текущего кадра). Это отдельная задача — пока не блокер.
+
+**Всего после этого pass:**
+- Hardware input reads через input_frame: ✅ полностью.
+- Internal bridges Keys[] message-bus: ⚠️ остаются 2 места (widget, gamemenu) — задокументированы.
+- Legacy backing-store writes (`Keys[X] = 0` cleanup): остаются как pre-existing maintenance.
+
+---
+
+## 2026-05-05 — Phase 4-Wide шаг 7: фиксы по результатам тестирования
+
+Найдены 2 связанных бага по итогам пользовательского теста:
+
+### Bug 1: Triangle для закрытия pause menu в полицейской машине → siren toggle
+
+**Симптом:** в pause menu Triangle закрывает меню → выходишь обратно в гейплей за рулём патрульной машины → siren сразу включается/выключается.
+
+**Причина:** gamemenu's gamepad bridge видит `input_btn_just_pressed(3)` → пишет `Keys[KB_ESC]=1` для закрытия меню. Но **не дренит** `input_btn_press_pending(3)` который был set'нут на rising edge Triangle. Pause-menu fade-out фаза → physics всё ещё тикает (slow-motion) → `apply_button_input_car` читает press_pending(3) (всё ещё set) → siren toggle.
+
+**Фикс:** в gamemenu's gamepad bridge добавлены `input_btn_consume(3)` и `input_btn_consume(0)` при потреблении Triangle/Cross для menu action. Pending дренится сразу, физика после resume не видит stale flag'а.
+
+### Bug 2: SPACE/ENTER/PENTER/ESC для menu confirm/cancel → действие в гейплее после resume
+
+**Симптом:** SPACE в меню паузы → выбирается "Resume" → меню закрывается → перс прыгает (SPACE = JUMP key для геймплея).
+
+**Причина:** SPACE = `keybrd_button_use[JOYPAD_BUTTON_JUMP]`. INPUT_MASK_JUMP set'ится в `get_hardware_input` через **level read** `input_key_held(KB_SPACE)`. Меню закрывается мгновенно (`GAMEMENU_initialise(NONE)` сразу сбрасывает slowdown в 0x10000 — fade-out НЕТ, проверено grep'ом). Физика возобновляется на следующем тике. SPACE всё ещё физически держится → level read = true → INPUT_MASK_JUMP → jump.
+
+Та же проблема для ENTER/PENTER (если они привязаны к чему-то в геймплее) и ESC. Общий класс: **любая кнопка которой меню "закрылось" остаётся held → её level read leak'ит в гейплей до физического release**.
+
+**Сначала пробовала "fade-out gate" в get_hardware_input** (`if (GAMEMENU_menu_type == NONE && GAMEMENU_slowdown < FULL) return 0`) — но обнаружила что `GAMEMENU_initialise` сбрасывает `slowdown = 0x10000` мгновенно, gate никогда не срабатывает. Откатила.
+
+**Попытка 1 (отвергнута) — `keyboard_key_up(KB_X)`** при menu consume:
+Идея: вызвать стандартный `keyboard_key_up` для синтеза release. Но он только обновляет `s_keys_event_held = 0`. Snapshot `s_keys_curr` уже зафиксирован в начале текущего `LibShellActive` (перед запуском GAMEMENU_process). Downstream consumers (например `process_controls` weapon switch reading `input_key_just_pressed(KB_ENTER)`) **в этом же кадре** видят `s_keys_curr = 1` → just_pressed остаётся true → action триггерится.
+
+ENTER bug: ENTER в меню paus close menu → процесс_controls в том же кадре читает `input_key_just_pressed(kb_select_key)` (KB_ENTER) → попап выбора оружия открывается.
+
+**Правильный фикс — `input_key_force_release(KB_X)`:**
+Новая API в input_frame, которая обнуляет ВСЁ:
+- `s_keys_curr[X] = 0` — текущий snapshot (immediate effect для same-frame reads).
+- `s_keys_event_held[X] = 0` — для следующего кадра.
+- `s_keys_pressed_during_frame[X] = 0` — same-frame press marker.
+- `s_keys_press_pending[X] = 0` — sticky pending.
+
+После force_release `input_key_held(X)` и `input_key_just_pressed(X)` сразу возвращают false. Дополнительные SDL key_down events при физическом release+repress нормально сбросят и поднимут event_held.
+
+Реализовано для:
+- KB_ESC (toggle pause / back/cancel).
+- KB_ENTER, KB_SPACE, KB_PENTER (confirm).
+
+Для геймпада (Triangle/Cross) — отдельно через press_pending drain (см. Bug 1 выше). Между keyboard и gamepad механики разные: keyboard event-driven (force_release работает на event-tracked state), gamepad polled (rgbButtons обновляются каждый input_frame_update, force_release не имеет смысла; press_pending drain — правильный механизм).
+
+**Изменения:**
+- [`input_frame.h/.cpp`](../../new_game/src/engine/input/input_frame.h) — новая API `input_key_force_release(scancode)`.
+- [`gamemenu.cpp`](../../new_game/src/ui/menus/gamemenu.cpp) — gamepad bridge: drain `input_btn_press_pending(3/0)`. Keyboard consume: вызов `input_key_force_release(KB_X)` параллельно `Keys[KB_X] = 0`.
+- Гейт в get_hardware_input откачен (был мёртвый код — slowdown сбрасывается мгновенно).
+
+### Bonus: подтверждено пользователем
+
+- Баг "геймпадный стик не работает в первые секунды миссии" из known_issues_and_bugs.md — пользователь подтвердил что Phase 4-Wide миграция случайно его пофикcила (точная причина не изолирована, но архитектурный pipeline теперь правильно инициализируется). Перенесён в resolved.

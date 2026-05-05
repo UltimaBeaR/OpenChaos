@@ -17,8 +17,8 @@
 #include "outro/core/outro_tga.h"
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/outro_graphics_engine.h"
-#include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"
+#include "engine/input/input_frame.h"
 #include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
@@ -135,8 +135,7 @@ SLONG OS_process_messages()
     gamepad_poll();
     OS_joy_poll();
 
-    if (Keys[KB_ESC]) {
-        Keys[KB_ESC] = 0;
+    if (input_key_just_pressed(KB_ESC)) {
         KEY_on[KEY_ESCAPE] = UC_TRUE;
     }
 

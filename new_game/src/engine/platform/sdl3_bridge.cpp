@@ -400,6 +400,12 @@ void sdl3_delay_ms(uint32_t ms)
 
 // Map SDL_Scancode (USB HID) → game KB_* code (Windows Set 1 scancodes).
 // Extended keys get +0x80 in the game's scheme.
+//
+// `sdl3_to_game_scancode` is the public wrapper (declared in sdl3_bridge.h)
+// for callers that drain SDL events with raw SDL_PollEvent and want to feed
+// them through the same keyboard_key_down / input_frame pipeline.
+uint8_t sdl3_to_game_scancode(int sdl_scancode);
+
 static uint8_t sdl_to_game_scancode(SDL_Scancode sc)
 {
     switch (sc) {
@@ -626,6 +632,11 @@ static uint8_t sdl_to_game_scancode(SDL_Scancode sc)
     default:
         return 0;
     }
+}
+
+uint8_t sdl3_to_game_scancode(int sdl_scancode)
+{
+    return sdl_to_game_scancode((SDL_Scancode)sdl_scancode);
 }
 
 // ===========================================================================

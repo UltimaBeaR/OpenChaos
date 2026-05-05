@@ -5,6 +5,7 @@
 
 #include "game/game_types.h" // Game types, PEOPLE/VEHICLES pool macros, TICK_RATIO, etc.
 #include "engine/platform/sdl3_bridge.h"
+#include "engine/input/input_frame.h"
 #include "things/characters/cop.h"
 #include "things/characters/darci.h"
 #include "things/characters/roper.h"
@@ -2621,7 +2622,7 @@ void person_normal_move_dxdz(Thing* p_person, SLONG dx, SLONG dz)
     dz = dz * ratio >> TICK_SHIFT;
 
     if (allow_debug_keys)
-        if (ShiftFlag && Keys[KB_Q]) {
+        if (ShiftFlag && input_key_held(KB_Q)) {
             dx <<= 2;
             dz <<= 2;
         }

@@ -47,6 +47,16 @@ bool input_key_just_released(SLONG kb_code);
 bool input_key_press_pending(SLONG kb_code);
 void input_key_consume(SLONG kb_code);
 
+// Force a synthesised release: clear the current snapshot, event-held flag,
+// and press_pending — so subsequent `input_key_held` / `input_key_just_pressed`
+// reads in the SAME frame see the key as not held. Use when one consumer
+// "consumes" a key for its action and wants downstream consumers in the same
+// render frame to NOT see the press leak (e.g. pause menu's SPACE confirm
+// must not also fire INPUT_MASK_JUMP via get_hardware_input level read on
+// the same frame). The next physical key-down event from SDL re-arms
+// normally — synthesis only suppresses CURRENT held-state, not future presses.
+void input_key_force_release(SLONG kb_code);
+
 // ---- Gamepad buttons --------------------------------------------------------
 // btn_idx = index into gamepad_state.rgbButtons[] (0..31).
 // Common indices: 0=Cross/A, 1=Circle/B, 2=Square/X, 3=Triangle/Y, 6=Start,

@@ -3287,87 +3287,97 @@ ULONG get_hardware_input(UWORD type)
 
     if (type & INPUT_TYPE_KEY) {
 
+        // Movement / action buttons: level reads through input_key_held
+        // (continuous "while held" semantic — these drive INPUT_MASK_* bits
+        // that downstream consumers sample as level state per physics tick).
+        // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
+        // toggles → just_pressed (edge-detect via input_frame).
+
+        const bool kb_fwd   = input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS]);
+        const bool kb_back  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK]);
+        const bool kb_left  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT]);
+        const bool kb_right = input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT]);
+
         // If any movement key is pressed, switch to digital mode
         // (analog mode only makes sense with a stick).
         // Also clear analog bits 18-31 — otherwise player_turn_left_right sees
         // non-zero upper bits and treats centered stick (value 0) as analog input.
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]] || Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]] || Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]] || Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+        if (kb_fwd || kb_back || kb_left || kb_right) {
             analogue = 0;
             input &= 0x0003FFFF;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+        if (kb_fwd) {
             input |= INPUT_MASK_FORWARDS;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]])
+        if (kb_back)
             input |= INPUT_MASK_BACKWARDS;
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
+        if (kb_left) {
             if (ShiftFlag)
                 input |= INPUT_MASK_STEP_LEFT;
             else
                 input |= INPUT_MASK_LEFT;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+        if (kb_right) {
             if (ShiftFlag)
                 input |= INPUT_MASK_STEP_RIGHT;
             else
                 input |= INPUT_MASK_RIGHT;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_SELECT]])
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_SELECT]))
             input |= INPUT_MASK_SELECT;
 
-        if (Keys[KB_F5]) {
+        if (input_key_just_pressed(KB_F5)) {
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM1;
-            Keys[KB_F5] = 0;
         }
-        if (Keys[KB_F6]) {
+        if (input_key_just_pressed(KB_F6)) {
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM2;
-            Keys[KB_F6] = 0;
         }
-        if (Keys[KB_F7]) {
+        if (input_key_just_pressed(KB_F7)) {
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM3;
-            Keys[KB_F7] = 0;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]]) {
-            Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]] = 0;
+        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAMERA])) {
             input |= INPUT_MASK_CAM_BEHIND;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]]) {
-            Keys[JOYPAD_BUTTON_CAM_LEFT] = 0;
+        // Note: original cleared `Keys[JOYPAD_BUTTON_CAM_LEFT]` (no
+        // keybrd_button_use indirection — typo, would clear scancode equal to
+        // the action enum value, not the bound key). Pre-existing dead-write,
+        // dropped along with the rest of the consume — input_frame edge-detect
+        // doesn't need consume.
+        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT])) {
             input |= INPUT_MASK_CAM_LEFT;
         }
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]]) {
-            Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]] = 0;
+        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
             input |= INPUT_MASK_CAM_RIGHT;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_JUMP]])
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_JUMP]))
             input |= INPUT_MASK_JUMP;
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]])
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_PUNCH]))
             input |= INPUT_MASK_PUNCH;
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_KICK]]) {
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_KICK])) {
             MSG_add(" HARDWARE KICK");
             input |= INPUT_MASK_KICK;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_ACTION]]) {
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_ACTION])) {
             input |= INPUT_MASK_ACTION;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+        if (kb_fwd) {
             input |= INPUT_MASK_MOVE;
         }
     }
@@ -3407,7 +3417,8 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     // the_state (GamepadState) for the 1st-person button check.
 
-    if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]]) {
+    if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_1STPERSON])
+        || input_btn_held(joypad_button_use[JOYPAD_BUTTON_1STPERSON])) {
         fpm = UC_TRUE;
     }
 
@@ -3482,17 +3493,17 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // convention above (Up arrow → look DOWN). Yaw direction
             // unchanged: Left arrow turns the character left, Right turns
             // right (same as pre-rework).
-            if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS])) {
                 look_pitch -= STICK_PITCH_MAX;
             }
-            if (Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]]) {
+            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK])) {
                 look_pitch += STICK_PITCH_MAX;
             }
             if (!CONTROLS_inventory_mode) {
-                if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
+                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT])) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
-                if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT])) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
@@ -3731,19 +3742,16 @@ void process_hardware_level_input_for_player(Thing* p_player)
         if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
             // Can't draw weapons while driving.
         } else {
-            // Keyboard weapon hotkeys (PC only).
+            // Keyboard weapon hotkeys (PC only). Edge-detect via input_frame
+            // — single press = single switch, regardless of FPS.
             if (can_darci_change_weapon(p_person)) {
-                if (Keys[KB_1]) {
-                    Keys[KB_1] = 0;
-
+                if (input_key_just_pressed(KB_1)) {
                     if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
                         set_person_gun_away(p_person);
                     }
                 }
 
-                if (Keys[KB_2]) {
-                    Keys[KB_2] = 0;
-
+                if (input_key_just_pressed(KB_2)) {
                     if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
                         if (p_person->Flags & FLAGS_HAS_GUN) {
                             if (p_person->Genus.Person->SpecialUse) {
@@ -3758,30 +3766,12 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                 SLONG special_type = SPECIAL_NONE;
 
-                if (Keys[KB_3]) {
-                    Keys[KB_3] = 0;
-                    special_type = SPECIAL_SHOTGUN;
-                }
-                if (Keys[KB_4]) {
-                    Keys[KB_4] = 0;
-                    special_type = SPECIAL_AK47;
-                }
-                if (Keys[KB_5]) {
-                    Keys[KB_5] = 0;
-                    special_type = SPECIAL_GRENADE;
-                }
-                if (Keys[KB_6]) {
-                    Keys[KB_6] = 0;
-                    special_type = SPECIAL_EXPLOSIVES;
-                }
-                if (Keys[KB_7]) {
-                    Keys[KB_7] = 0;
-                    special_type = SPECIAL_KNIFE;
-                }
-                if (Keys[KB_8]) {
-                    Keys[KB_8] = 0;
-                    special_type = SPECIAL_BASEBALLBAT;
-                }
+                if (input_key_just_pressed(KB_3)) special_type = SPECIAL_SHOTGUN;
+                if (input_key_just_pressed(KB_4)) special_type = SPECIAL_AK47;
+                if (input_key_just_pressed(KB_5)) special_type = SPECIAL_GRENADE;
+                if (input_key_just_pressed(KB_6)) special_type = SPECIAL_EXPLOSIVES;
+                if (input_key_just_pressed(KB_7)) special_type = SPECIAL_KNIFE;
+                if (input_key_just_pressed(KB_8)) special_type = SPECIAL_BASEBALLBAT;
 
                 if (special_type) {
                     if (person_has_special(p_person, special_type)) {

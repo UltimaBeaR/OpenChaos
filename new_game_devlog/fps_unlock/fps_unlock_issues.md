@@ -206,3 +206,17 @@ graphics performance diagnostics, инструменты для **временн
 ## 23. ✅ DualSense LED siren strobe: частота мигания зависит от render FPS
 
 **Решено** 2026-05-05 — см. [fps_unlock_issues_resolved.md #23](fps_unlock_issues_resolved.md). Попутно зафикшен low-HP blink (тот же класс бага в той же функции).
+
+---
+
+## 24. Граната при полёте не интерполируется
+
+**Симптом:** брошенная граната во время полёта рендерится **не интерполировано** — на высоком render FPS видно ступенчатое движение по physics-тикам (~20 Hz). Аналогичный механизм броска используется для **банки пепси** (бросаемого предмета) — она **интерполируется корректно**, движение плавное.
+
+**Приоритет:** Низкий — гранаты сравнительно редко в кадре, но визуально заметно когда есть.
+
+**Где искать:** render interpolation путь в `things/items/grenade.cpp` vs аналог для банки. Скорее всего grenade thing не вписан в `render_interp_*` пайплайн (нет `render_interp_capture` для grenade WorldPos / Angle / etc.) — банка вписана. Сравнить два thing-class'а pyhsics→render паты, найти что у банки есть и нет у гранаты.
+
+Возможно общая система (e.g. THING-level interp) пропускает gren-class из-за специфичного pyrotechnic flag'а или kraft mass / velocity update path не переписан на physics-tick boundary. Проверить `process_things` дисплей grenade — если она движется в render-frame path вместо physics-tick path, нет данных для lerp'а между snapshot'ами.
+
+**Связь:** часть общей render interpolation работы — см. `new_game_devlog/fps_unlock/render_interpolation/`.

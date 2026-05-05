@@ -53,6 +53,7 @@ extern SLONG ScreenHeight;
 // Keys[], KB_V for version number display
 #include "engine/input/keyboard.h"
 #include "engine/input/keyboard_globals.h"
+#include "engine/input/input_frame.h"
 
 // ENV_get_value_number for PSX-mode check
 #include "engine/io/env.h"
@@ -2290,7 +2291,7 @@ void PANEL_last(void)
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (Keys[KB_V] && allow_debug_keys) {
+        if (input_key_held(KB_V) && allow_debug_keys) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

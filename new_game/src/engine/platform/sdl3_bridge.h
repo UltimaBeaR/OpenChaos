@@ -128,6 +128,14 @@ void sdl3_set_callbacks(const SDL3_Callbacks* cb);
 // Returns false when SDL_QUIT is received (app should exit).
 bool sdl3_poll_events();
 
+// Translate an SDL3 SDL_Scancode (USB HID code) to the game's KB_* code
+// (Windows Set 1 scancodes; extended keys get +0x80). Returns 0 for keys
+// the game does not recognise. Exposed for custom event-pump loops (e.g.
+// video_player) that drain SDL events themselves but still need to feed
+// keyboard state into the regular input pipeline (keyboard_key_down →
+// input_frame_on_key_down).
+uint8_t sdl3_to_game_scancode(int sdl_scancode);
+
 // ---------------------------------------------------------------------------
 // Timer
 // ---------------------------------------------------------------------------

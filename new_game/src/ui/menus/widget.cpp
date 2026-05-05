@@ -57,6 +57,15 @@ void WIDGET_snd(SLONG snd)
 }
 
 // uc_orig: FORM_KeyProc (fallen/Source/widget.cpp)
+//
+// **Internal bridge consumer** — reads Keys[] as a private communication
+// channel within FORM_Process: the gamepad-to-keyboard bridge below
+// synthesizes "virtual key presses" by writing Keys[KB_ENTER]=1 etc., and
+// FORM_KeyProc consumes them via Keys[X]=0. This is NOT an input_frame
+// consumer; it's a self-contained widget-system channel that happens to
+// use Keys[] as its message bus. Migration to input_frame would require
+// adding a synthesise-key-event API and isn't worth the scope for this
+// closed system.
 static BOOL FORM_KeyProc(SLONG key)
 {
     if (Keys[key]) {
@@ -86,7 +95,11 @@ SLONG FORM_Process(Form* form)
     form->age++;
 
     if (LastKey) {
-        key = (Keys[KB_LSHIFT] || Keys[KB_RSHIFT]) ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
+        // ShiftFlag is the level-state Shift modifier maintained by the
+        // keyboard event hook (mirrors KB_LSHIFT || KB_RSHIFT). Idiomatic
+        // way to read modifiers — direct Keys[KB_LSHIFT] reads would be a
+        // back-door bypass of input_frame.
+        key = ShiftFlag ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
         if (key == 8)
             key = 127;
         if (!key)

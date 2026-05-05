@@ -8,7 +8,7 @@
 #include "map/pap_globals.h"
 #include "engine/input/keyboard.h"
 #include "engine/audio/mfx.h"
-#include "engine/input/keyboard_globals.h" // Keys[] (volatile UBYTE[256])
+#include "engine/input/input_frame.h"
 #include "game/input_actions.h"
 #include "things/core/statedef.h"
 
@@ -453,14 +453,12 @@ void process_things_tick(SLONG frame_rate_independant, SLONG tick_diff_override)
     if (frame_rate_independant == 0)
         tick_diff = 1000 / 25; // assume 25 fps
 
-    if (allow_debug_keys)
-        if (Keys[KB_COLON]) {
-            if (slow_mo)
-                slow_mo = 0;
-            else
-                slow_mo = 32000;
-            Keys[KB_COLON] = 0;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_COLON)) {
+        if (slow_mo)
+            slow_mo = 0;
+        else
+            slow_mo = 32000;
+    }
 
     if (record_video)
         tick_diff = 40;

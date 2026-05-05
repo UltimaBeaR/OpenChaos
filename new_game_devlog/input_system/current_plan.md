@@ -249,9 +249,32 @@ input_frame **не читает** `Keys[]` для своего snapshot'а. Вм
 - Single API для всех типов ввода.
 - Любое будущее улучшение infrastructure (record-replay, network input, glyph-reverse-lookup, remap UI) — через input_frame, доступно всем consumer'ам автоматически.
 
-**Вне скоупа (НЕ мигрируется):**
-- **DualSense touchpad / microphone / accelerometer / прочие специфичные источники**: не покрыты `rgbButtons[]` / стик / триггер mirror'ом. Их потребители (если появятся) живут на `ds_get_input` напрямую. Это **legitimate exception** — input_frame не претендует на универсальное покрытие всего что DualSense может выдать, только на стандартные controls.
-- **Игровые `Player->Pressed`-маски** (`INPUT_MASK_*` через `apply_button_input` цепочку): это уже edge-detected layer поверх level-state, легитимный architectural уровень. Trigger'ы action'ов — через эти маски, не через input_frame напрямую (за исключением случаев где есть конкретный баг как с siren).
+**⚠️ Принцип: МИГРИРУЕТСЯ ВСЁ, без исключений.**
+
+Каждое место в коде где обрабатывается **внешний** (от пользователя) ввод **должно идти через input_frame**. Не через `Keys[]`, не через `the_state.rgbButtons[]`, не через raw SDL events напрямую, не через `LastKey` для action-входов, **никак**. Только `input_key_*` / `input_btn_*` / `input_stick_*` / `input_trigger`. Если место читает hardware input — оно мигрируется.
+
+**Документированное исключение — внутренние message-bus каналы через `Keys[]`:**
+В нескольких местах `Keys[]` используется как **внутренний канал коммуникации** между двумя пишущим/читающим путями в одной функции (НЕ для чтения hardware input). Эти кейсы остаются на `Keys[]` потому что:
+- Запись синтезируется кодом (не от hardware), её нужно прочитать в той же call-chain.
+- Миграция требует "inject synthesized key event" API в input_frame с subtle timing (input_frame_update уже прошёл, событие будет видно только на следующем кадре — ломает immediacy).
+- Каналы локально замкнутые: bridge writer и consumer reader в одной функции, никто извне не задействован.
+
+Известные такие каналы (по состоянию на 2026-05-05):
+- `widget.cpp::FORM_KeyProc` — gamepad→keyboard bridge для меню форм. Bridge пишет `Keys[KB_ENTER]=1` etc., FORM_KeyProc читает.
+- `gamemenu.cpp` — gamepad→ESC/ENTER bridge (Start/Triangle/Cross → синтезированный keyboard press). Тот же паттерн.
+- `elev.cpp` (lines 1962+) — bulk reset Keys[] в pre-elevator state (write-only, no read).
+
+Эти места задокументированы комментарием в коде. Миграция возможна позже через "synthesized input event" API в input_frame, но scope этого добавления отдельный — не блокер.
+
+Это означает в т.ч.:
+- **video_player.cpp** (FMV playback custom event loop) — переписать на input_frame, добавить `input_frame_update` вызов в его loop.
+- **CONSOLE_check_event** (F9 console) — на input_frame.
+- **DualSense touchpad** в check_debug_timing_keys — оставлен на собственном edge-detect, но при возможности тоже добавить в input_frame через расширение API (если потребуется).
+- **Любое место** найденное при аудите.
+
+**Единственное legitimate исключение** — keyboard event hooks в `keyboard.cpp` (set Keys[] / set ShiftFlag/ControlFlag / call input_frame_on_key_down/up). Это **слой который поддерживает legacy backing-store**, не consumer.
+
+`Player->Pressed` маски остаются как уровень поверх get_hardware_input (после миграции get_hardware_input на input_frame, всё что в Pressed автоматически основано на input_frame). Это не отдельный source-of-truth — derived layer.
 
 **Зачем это делается:**
 - **Унификация таймингов**: единые auto-repeat константы (`INPUT_REPEAT_INITIAL_MS = 400`, `PERIOD_MS = 150`) для всех меню/хоткеев. Сейчас разные места имеют разные значения.
