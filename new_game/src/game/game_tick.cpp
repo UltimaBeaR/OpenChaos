@@ -43,6 +43,8 @@
 #include "things/characters/anim_ids.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "engine/input/input_frame.h"
+#include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
@@ -973,13 +975,36 @@ SBYTE CONTROLS_get_best_item(Thing* darci, Thing* player)
 SLONG CONTROLS_new_inventory(Thing* darci, Thing* player)
 {
     UWORD temp = player->Genus.Player->PopupFade;
-    if (!temp)
-        player->Genus.Player->ItemFocus = -1;
 
-    temp += INVENTORY_FADE_SPEED;
+    // Wall-clock fade-in. Original `temp += INVENTORY_FADE_SPEED` was per
+    // render frame, so on high FPS the popup fade-in finished in tens of
+    // ms (visually instant). Scaling by frame_dt / design_tick gives a
+    // constant fade duration regardless of render rate. Static float
+    // accumulator preserves sub-unit precision at non-integer ratios
+    // (e.g. 100 FPS gives non-integer units/frame — truncation alone
+    // would lose precision each frame, accumulating to ~5% error over
+    // the fade). Single-player only — static is safe since CNET multi-
+    // player is dead.
+    //
+    // Reference rate: 20 Hz (UC_PHYSICS_DESIGN_HZ). See game_types.h —
+    // 30 Hz is a PS1-only rate; PC retail ran at ~22 Hz, and most
+    // engine tick arithmetic is built around 20 Hz.
+    constexpr float DESIGN_TICK_MS = 1000.0f / float(UC_PHYSICS_DESIGN_HZ);
+    static float fade_in_accum = 0.0f;
+    if (!temp) {
+        player->Genus.Player->ItemFocus = -1;
+        fade_in_accum = 0.0f; // reset accumulator on fade restart
+    }
+
+    const float fade_step_f = (float)INVENTORY_FADE_SPEED * g_frame_dt_ms / DESIGN_TICK_MS
+        + fade_in_accum;
+    const SLONG fade_step_int = (SLONG)fade_step_f;
+    fade_in_accum = fade_step_f - (float)fade_step_int;
+
+    temp += fade_step_int;
 
     if (temp < 256)
-        player->Genus.Player->PopupFade = temp;
+        player->Genus.Player->PopupFade = (UBYTE)temp;
 
     if (player->Genus.Player->ItemFocus == -1) {
 
@@ -1343,7 +1368,22 @@ void process_controls(void)
         //		if (can_darci_change_weapon(darci))
         {
 
-            if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT) {
+            // Weapon-switch trigger: edge-detect via input_frame (render-frame
+            // snapshot). Reading Player->Pressed here was unreliable because
+            // process_controls runs per render frame but Player->Pressed is
+            // only refreshed inside process_things (per physics tick) — so
+            // at high render rate the same edge would be visible across many
+            // render frames between two physics ticks, firing the rotation
+            // multiple times per single press (issue #20 in fps_unlock).
+            //
+            // Mapping (mirrors get_hardware_input):
+            //   keyboard: keybrd_button_use[JOYPAD_BUTTON_SELECT]
+            //   gamepad : rgbButtons[8] (R3 / right-stick click; the SELECT
+            //             alias was rebound from Share/Back to R3 — see the
+            //             matching comment in get_hardware_input).
+            const SLONG kb_select_key = keybrd_button_use[JOYPAD_BUTTON_SELECT];
+            constexpr SLONG pad_select_btn = 8;
+            if (input_key_just_pressed(kb_select_key) || input_btn_just_pressed(pad_select_btn)) {
                 CONTROLS_new_inventory(darci, the_player);
 
                 if (CONTROLS_inventory_mode == 0 && darci->Genus.Person->SpecialUse == 0 && !(darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) && the_player->Genus.Player->ItemFocus == 0) {
@@ -1364,10 +1404,16 @@ void process_controls(void)
             if (CONTROLS_inventory_mode) {
                 //				Keys[KB_ENTER] = 0;
 
-                //
-                // tick down the panel display
-                //
-                CONTROLS_inventory_mode -= TICK_TOCK;
+                // Tick down the panel display in wall-clock milliseconds.
+                // process_controls runs per render frame, but TICK_TOCK is
+                // the per-physics-tick interval (~50 ms at default 20 Hz,
+                // saturated to 25..100 ms range) — using TICK_TOCK here gave
+                // a per-frame decrement that scaled with render rate (more
+                // FPS → faster popup disappear) AND with physics rate (lower
+                // physics Hz → larger TICK_TOCK due to saturation → faster
+                // disappear). Wall-clock delta keeps the 3000 ms timeout
+                // identical regardless of either rate.
+                CONTROLS_inventory_mode -= (SLONG)g_frame_dt_ms;
                 if (CONTROLS_inventory_mode < 0)
                     CONTROLS_inventory_mode = 0;
 
@@ -1391,7 +1437,23 @@ void process_controls(void)
         //		if (the_player->Genus.Player->PopupFade&&!(NET_PLAYER(0)->Genus.Player->ThisInput & INPUT_MASK_SELECT)) {
 
         if (the_player->Genus.Player->PopupFade && !CONTROLS_inventory_mode) {
-            the_player->Genus.Player->PopupFade -= INVENTORY_FADE_SPEED;
+            // Wall-clock fade-out. Same rationale as the fade-in above —
+            // raw `-= INVENTORY_FADE_SPEED` per render frame finished too
+            // fast on high FPS (felt abrupt). Scale by frame_dt / design
+            // tick (20 Hz). Static float accumulator preserves sub-unit
+            // precision at non-integer ratios. Underflow protection on
+            // UBYTE PopupFade (raw `-=` could wrap below 0).
+            constexpr float DESIGN_TICK_MS = 1000.0f / float(UC_PHYSICS_DESIGN_HZ);
+            static float fade_out_accum = 0.0f;
+            const float fade_step_f = (float)INVENTORY_FADE_SPEED * g_frame_dt_ms / DESIGN_TICK_MS
+                + fade_out_accum;
+            const SLONG fade_step_int = (SLONG)fade_step_f;
+            fade_out_accum = fade_step_f - (float)fade_step_int;
+
+            const SLONG new_fade = (SLONG)the_player->Genus.Player->PopupFade - fade_step_int;
+            the_player->Genus.Player->PopupFade = (UBYTE)(new_fade > 0 ? new_fade : 0);
+            if (new_fade <= 0) fade_out_accum = 0.0f; // reset on hitting zero
+
             if (the_player->Genus.Player->ItemFocus > -1) {
                 //				CONTROLS_set_inventory(darci,the_player);
                 the_player->Genus.Player->ItemFocus = -1;

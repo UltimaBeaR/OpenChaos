@@ -11,10 +11,12 @@
 | Hz | Что | Природа |
 |---|---|---|
 | **20 Hz** | Физика, геймплей, EWAY, Thing, Vehicle, Bat, Pow, mission timer | **Design rate**, hardcoded в формулах (`Vehicle.cpp` GRAVITY, `bat.cpp` `/20`, `pow.cpp` `/20`, `Thing.cpp` `NORMAL_TICK_TOCK`, PSX gamemenu `50ms`, network override) |
-| **30 Hz** | Drip, puddle, mist, vehicle siren flash, wheel rotation, GAME_TURN-gated визуалы, rain bucket-strobe | **Render-tied legacy** — `env_frame_rate = 30` default из config.ini, под этим тестировались wall-clock эффекты на PS1 |
+| **30 Hz** | Drip, puddle, mist, vehicle siren flash, wheel rotation, GAME_TURN-gated визуалы, rain bucket-strobe | **PS1-only render rate** — PS1 hardware lock = 30 Hz. **PC retail НЕ работал на 30** (измеренный FPS ~22, см. research.md). `env_frame_rate = 30` в config.ini был *target*, не реальностью. Эти эффекты подтверждённо тестировались под 30 Hz на PS1 путях / GAME_TURN-визуалах |
 | **15 Hz** | Particle velocity (`psystem.cpp`) | **Scaling artefact** — глобальный `NORMAL_TICK_TOCK = 1000/15` который не подтянули после введения 20 Hz override |
 
-**"20 Hz везде" в new_game** — корректное упрощение для физики, **некорректное** для wall-clock визуалов и GAME_TURN-gated эффектов (они станут 1.5× медленнее PS1).
+**"20 Hz везде" в new_game** — корректное упрощение для физики, **возможно некорректное** для wall-clock визуалов и GAME_TURN-gated эффектов (они станут 1.5× медленнее **PS1**, но с PC-релизом ~22 Hz разница меньше).
+
+> **⚠️ Default reference rate для нового кода — 20 Hz.** При сомнении бери `UC_PHYSICS_DESIGN_HZ` как делитель wall-clock-конверсий, **не** 30 Hz. PC retail работал на ~22 Hz (близко к 20), и tick arithmetic движка построена вокруг 20. Использовать `UC_VISUAL_CADENCE_HZ = 30` стоит **только** при наличии визуального доказательства что эффект тюнился под PS1 rate (side-by-side с PS1 longplay показывает что 20 Hz reference даёт медленнее чем нужно). Это recurring mistake — несколько раз подряд агенты дефолтили на 30 Hz и получали fade'ы которые быстрее оригинала. Подробности в [`game_types.h`](../../../new_game/src/game/game_types.h) `UC_VISUAL_CADENCE_HZ` комменте.
 
 ---
 

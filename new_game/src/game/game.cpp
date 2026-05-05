@@ -88,6 +88,7 @@
 #include "engine/graphics/render_interp.h" // g_render_alpha, render_interp_capture, render_interp_reset
 #include "engine/input/keyboard.h" // Keys, LastKey, KB_*
 #include "engine/input/keyboard_globals.h"
+#include "engine/input/input_frame.h"
 #include "engine/input/joystick.h" // GetInputDevice, JOYSTICK
 #include "engine/input/joystick_globals.h"
 
@@ -643,18 +644,16 @@ void check_debug_timing_keys(void)
     // 30 is the meaningful value here.
     constexpr SLONG RENDER_FPS_TOGGLE_LOW = 30;
 
-    static bool k1_prev = false, k2_prev = false, k3_prev = false, k9_prev = false, k0_prev = false;
-
-    bool k1 = Keys[KB_1] != 0;
-    if (k1 && !k1_prev) {
+    if (input_key_just_pressed(KB_1)) {
         g_physics_hz = (g_physics_hz == UC_PHYSICS_DESIGN_HZ)
             ? PHYS_HZ_TOGGLE_LOW
             : UC_PHYSICS_DESIGN_HZ;
     }
-    k1_prev = k1;
 
     // DualSense touchpad click duplicates key 2 — same FPS-cap toggle without
-    // reaching for the keyboard during gamepad debugging.
+    // reaching for the keyboard during gamepad debugging. Touchpad isn't part
+    // of the rgbButtons[] mirror so input_frame doesn't track it; keep a local
+    // edge-detect static for the touchpad source only.
     static bool tp_prev = false;
     bool tp_click = false;
     if (ds_is_connected()) {
@@ -662,36 +661,27 @@ void check_debug_timing_keys(void)
         if (ds_get_input(&ds_in))
             tp_click = ds_in.touchpad_click;
     }
-
-    bool k2 = Keys[KB_2] != 0;
-    bool fps_toggle_edge = (k2 && !k2_prev) || (tp_click && !tp_prev);
+    bool fps_toggle_edge = input_key_just_pressed(KB_2) || (tp_click && !tp_prev);
     if (fps_toggle_edge) {
         g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
             ? RENDER_FPS_TOGGLE_LOW
             : RENDER_FPS_DEFAULT_CAP;
     }
-    k2_prev = k2;
     tp_prev = tp_click;
 
-    bool k3 = Keys[KB_3] != 0;
-    if (k3 && !k3_prev) {
+    if (input_key_just_pressed(KB_3)) {
         g_render_interp_enabled = !g_render_interp_enabled;
     }
-    k3_prev = k3;
 
-    bool k9 = Keys[KB_9] != 0;
-    if (k9 && !k9_prev) {
+    if (input_key_just_pressed(KB_9)) {
         g_physics_hz -= 1;
         if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
     }
-    k9_prev = k9;
 
-    bool k0 = Keys[KB_0] != 0;
-    if (k0 && !k0_prev) {
+    if (input_key_just_pressed(KB_0)) {
         g_physics_hz += 1;
         if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
     }
-    k0_prev = k0;
 }
 
 // uc_orig: special_keys (fallen/Source/Game.cpp)

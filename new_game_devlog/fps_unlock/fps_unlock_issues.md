@@ -147,24 +147,9 @@ issue [#17](#17-накопление-physics-тиков-при-просадке-
 
 ---
 
-## 20. Отзывчивость кнопки смены оружия зависит от render FPS
+## 20. ✅ Отзывчивость кнопки смены оружия зависит от render FPS
 
-> **Архитектурно решится** переработкой управления — см. [`../input_system/current_plan.md`](../input_system/current_plan.md)
-> (edge-detect через `input_just_pressed` в input-слое триггерит ровно одно событие на нажатие независимо от render rate).
->
-> Также **возможно already-fixed** — `Player->Pressed` в process_controls per render frame с edge-detect'ом
-> (`ThisInput & ~LastInput`) теоретически уже даёт ровно один fire на нажатие. Перед миграцией стоит
-> эмпирически проверить что баг ещё актуален.
-
-**Симптом:** нажатие кнопки смены оружия ощущается как обрабатываемое **в render-кадре**, а не на physics-tick'е. На разных render rate'ах поведение отличается — на высоком FPS реакция другая (предположительно срабатывает несколько раз за одно нажатие, либо ощутимо чувствительнее), на низком render — иначе.
-
-**Отличие от #15 ("Отзывчивость управления зависит от physics Hz"):** issue #15 — про **physics-tick-bound** input (latency ≤ 50ms на 20 Hz). Здесь же наоборот — input привязан к render rate (= action может фигачить чаще должного на unlimited render).
-
-**Гипотеза:** обработчик нажатия кнопки смены оружия вызывается из render path или из place which runs per render frame. Без edge-detect'а или physics-tick gate'а удержание кнопки может вызывать multiple actions per nominal tap. Либо обработчик читает `Keys[]` без edge-detect, и render frame видит "key pressed" несколько кадров подряд.
-
-**Где искать:** `input_actions.cpp` — обработчики смены weapon (поиск по "weapon", "switch_weapon", "next_weapon", "change_weapon"). Также проверить wiring через game_tick.cpp (process_controls) или main loop'е.
-
-**Фикс:** перевести обработку нажатия в physics-tick (если actions are gameplay-state), либо добавить корректный edge-detect через static prev-state, как уже делается для debug-клавиш в `check_debug_timing_keys`.
+**Решено** 2026-05-05 — см. [fps_unlock_issues_resolved.md #20](fps_unlock_issues_resolved.md).
 
 ---
 

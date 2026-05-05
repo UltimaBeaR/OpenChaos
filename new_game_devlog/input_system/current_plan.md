@@ -1,7 +1,7 @@
 # Input System — текущая работа: модуль `input_frame`
 
-> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **gamemenu, frontend, vehicle siren мигрированы**.
-> Остаются миграции debug-keys, weapon switch.
+> **Статус (2026-05-05):** инфраструктура (Phases 1–3) готова; **все известные баги input-системы закрыты** (gamemenu, frontend, vehicle siren, debug timing, weapon switch).
+> Дальше — Phase 4-Wide: полная унификация всех discrete + continuous input'ов на input_frame (см. ниже).
 > Детальная хронология → [changelog.md](changelog.md), грабли при миграции →
 > [migration_checklist.md](migration_checklist.md).
 > **Большой план с actions/ремапом** → [full_plan_deferred.md](full_plan_deferred.md) (отложен).
@@ -219,12 +219,102 @@ input_frame **не читает** `Keys[]` для своего snapshot'а. Вм
 - [x] **D-Pad как независимый источник** (2026-05-05) — архитектурный фикс gamepad layer'а: добавлены `lX_raw/lY_raw/rX_raw/rY_raw` в `GamepadState` (snapshot ДО D-Pad override'а). `input_stick_*` API теперь читает raw, D-Pad через `rgbButtons[11..14]`. Исправлен баг "стик + D-pad opposite directions: второй overrid'ит первый, antagonist не работает". См. [`migration_checklist.md`](migration_checklist.md) пункт 3 для актуальной guidance.
 - [x] **`vehicle.cpp` siren toggle** (2026-05-05) — sticky press_pending для гейпада добавлен в input_frame. `apply_button_input_car` ставит VEH_SIREN только если `input_*_press_pending` true (siren-кнопки на kb и pad). Consume безусловный → drain каждый физтик во время вождения. `do_packets` else-ветка дренит pending'и каждый физтик когда не в машине → нет leak'а от Triangle (menu cancel) / SPACE (jump). Чинит multi-toggle на любых Hz **И** lost-press на низких physics Hz (1 Hz debug). Drain rule зафиксирован в [input_frame.h](../../new_game/src/engine/input/input_frame.h).
 
-Остаётся:
-- [ ] **`check_debug_timing_keys`** — debug-клавиши с собственным static prev-state. Самая простая миграция — просто `input_key_just_pressed`.
-- [ ] **`game_tick.cpp` weapon switch (#20)** — **сначала эмпирически проверить** что баг актуален. `Player->Pressed` уже edge-detect, теоретически OK. Если воспроизводится — мигрировать.
-- [ ] **Прочие места** (по обнаружении).
+- [x] **`check_debug_timing_keys`** (2026-05-05) — 5 static prev-state'ов для KB_1/2/3/9/0 заменены на `input_key_just_pressed`. Touchpad оставлен на собственном edge-detect (он не в input_frame).
+- [x] **`game_tick.cpp` weapon switch** (2026-05-05) — closed #20 в fps_unlock. `Player->Pressed & INPUT_MASK_SELECT` (level-trigger sticky между physics-тиками) заменён на `input_key_just_pressed(kb_select_key) || input_btn_just_pressed(8)`. Edge-detect теперь на render-frame уровне, одно нажатие = одна прокрутка независимо от render rate.
 
-Каждая миграция — **отдельный коммит** с тестированием. Если что-то ломается — коммит откатывается без затрагивания инфраструктуры.
+Все известные баги input-системы закрыты. Следующий этап — Phase 4-Wide ниже.
+
+### Phase 4-Wide: полная миграция ВСЕГО input'а на input_frame
+
+После того как закроем все известные баги, **продолжаем миграцию для унификации всего кода**. Цель — убрать `Keys[]` и `the_state.rgbButtons[]`/`the_state.lX..rY`/`the_state.trigger_*` как источник истины из ВСЕХ потребителей в проекте, оставить их только как legacy backing-store за input_frame'ом.
+
+**В скоупе — ВСЁ что input:**
+
+| Тип | Текущее API | Новое API |
+|---|---|---|
+| Дискретный press (toggle/confirm/hotkey) | `if (Keys[KB_X])` | `input_key_just_pressed(KB_X)` |
+| Дискретный press геймпад | `if (rgbButtons[N] & 0x80)` | `input_btn_just_pressed(N)` |
+| Уровень клавиши (continuous) | `if (Keys[KB_X])` | `input_key_held(KB_X)` |
+| Уровень кнопки (continuous) | `if (rgbButtons[N] & 0x80)` | `input_btn_held(N)` |
+| Стик direction (menu nav) | (custom thresholds) | `input_stick_held(...)` / `_just_pressed` |
+| Стик continuous-axis | `the_state.lX/lY/rX/rY` | `input_stick_x/y(stick)` (float -1..1, deadzone applied) |
+| Триггер analog | `the_state.trigger_left/right` | `input_trigger(idx)` (float 0..1) |
+| Auto-repeat single source | (custom timer) | `input_*_just_pressed_or_repeat` |
+| Auto-repeat combined sources | (OR of timers — баг 2× rate) | `InputAutoRepeat::tick_combined` |
+| Sticky press для физики | (custom edge tracker) | `input_*_press_pending` + `_consume` + drain pattern |
+
+**Зачем тотально:** функционально идентично текущему (input_frame в основном level-mirror'ит `Keys[]` и `rgbButtons[]`), но:
+- Один источник истины — input_frame snapshot.
+- `Keys[]` мутации потребителями (`Keys[X] = 0` consume) перестают leak'ать в чьи-то ещё чтения.
+- Single API для всех типов ввода.
+- Любое будущее улучшение infrastructure (record-replay, network input, glyph-reverse-lookup, remap UI) — через input_frame, доступно всем consumer'ам автоматически.
+
+**Вне скоупа (НЕ мигрируется):**
+- **DualSense touchpad / microphone / accelerometer / прочие специфичные источники**: не покрыты `rgbButtons[]` / стик / триггер mirror'ом. Их потребители (если появятся) живут на `ds_get_input` напрямую. Это **legitimate exception** — input_frame не претендует на универсальное покрытие всего что DualSense может выдать, только на стандартные controls.
+- **Игровые `Player->Pressed`-маски** (`INPUT_MASK_*` через `apply_button_input` цепочку): это уже edge-detected layer поверх level-state, легитимный architectural уровень. Trigger'ы action'ов — через эти маски, не через input_frame напрямую (за исключением случаев где есть конкретный баг как с siren).
+
+**Зачем это делается:**
+- **Унификация таймингов**: единые auto-repeat константы (`INPUT_REPEAT_INITIAL_MS = 400`, `PERIOD_MS = 150`) для всех меню/хоткеев. Сейчас разные места имеют разные значения.
+- **Единый источник истины**: `Keys[]` мутируется потребителями (`Keys[X] = 0` consume); это leak'ает в snapshot других потребителей. input_frame snapshot independent.
+- **Architectural patterns**: edge-detect + sticky pending + combined-source — стандартные паттерны, доступные всем consumer'ам, без дублирования.
+- **Maintenance**: меньше скрытых багов из-за разных edge-detect реализаций. Любой новый код использует один паттерн.
+
+**Подход к миграции:**
+- Каждое место — **отдельный коммит**.
+- Перед миграцией: понять класс действия (toggle / confirm / nav / hotkey / sticky physics / auto-repeat menu / etc.) и выбрать соответствующий API из migration_checklist.
+- Если поведение неоднозначное — **сначала спросить пользователя**.
+- После каждого коммита — пользователь тестирует.
+- При обнаружении нового класса бага — записать в migration_checklist и в changelog.
+
+**Список мест для последующих коммитов** (предварительный, заполняется по мере обнаружения):
+- `special_keys` в `game.cpp` — F2 CRT, F8 single-step, F10 farfacet, F11 input debug panel, F12, KB_INS step-once, KB_Q quit (с Ctrl gate), Shift+M mine-at-mouse, и т.п.
+- `process_controls` / `apply_button_input` / `apply_button_input_fight` — game-action кнопки (jump, kick, punch, special, weapon switch, drop, etc.)
+- `frontend.cpp` остальные функции (rebind grabbing_key, FRONTEND_loop, прочие поля где обрабатываются клавиши)
+- `gamemenu.cpp` остальные пункты если есть (помимо уже мигрированной нав)
+- Outro / cutscene skip handlers
+- `playcuts.cpp`, `attract.cpp`, `outro_main.cpp` — debug timing keys уже покрыты, проверить остальное
+- `video_player.cpp` mirror `check_debug_timing_keys` — мигрировать или унифицировать с game.cpp версией
+- `CONSOLE_check_event` (F9) — открытие debug-консоли
+- Прочие хоткеи для cheat'ов (`bangunsnotgames` режим)
+- Все debug-clавиши (`Ctrl+L`, `Ctrl+Q`, и т.п.)
+- ASSERT / cheat triggers
+
+**Важно:** этот wide-migration делается **после** закрытия всех багов из таблицы выше. Не сейчас, не блокер. Просто записан как план.
+
+### Финальный пункт: аудит legacy input API после миграции
+
+После того как Wide-миграция завершена — **аудит** что старая input-система больше нигде не используется как источник истины потребителями. Это финальная проверка завершённости миграции.
+
+**Что аудировать (grep по всему `new_game/src/`):**
+
+| Старое API | Где может остаться (легитимно) | Где НЕ должно остаться |
+|---|---|---|
+| `Keys[KB_X]` | `input_frame.cpp` internal use; legacy bridges (`Keys[KB_ESC] = 1` чтобы разбудить старый handler); event hooks в `keyboard.cpp` | Любые потребительские `if (Keys[X])` чтения вне input_frame |
+| `the_state.rgbButtons[N]` / `gamepad_state.rgbButtons[N]` | `input_frame.cpp` internal use; gamepad layer fill | Любые потребительские чтения вне input_frame |
+| `the_state.lX/lY/rX/rY` (или `lX_raw/lY_raw/rX_raw/rY_raw`) | `input_frame.cpp` internal; gamepad layer fill | Потребительские чтения continuous axes (должны быть через `input_stick_x/y`) |
+| `the_state.trigger_left/right` | input_frame internal; gamepad layer fill | Потребительские (должны быть через `input_trigger`) |
+| `the_state.dpad_active` | gamepad layer для D-pad-as-stick logic; legitimate diagnostic | Потребительские pure-read'ы для action'ов (D-pad — через `input_btn_held(11..14)`) |
+| `LastKey` | text-input cases (rebind, console) — где нужен ровно один пришедший keycode | Потребительские для action mapping |
+| `ControlFlag`, `ShiftFlag` | модификаторы для рассмотрения отдельно — это **уровневые флаги**, не дискретные events. По типу — continuous read'ы. Возможно их легче оставить как есть | Если есть edge-detect на этих модификаторах вручную |
+| `ReadInputDevice()` явные вызовы | оставлен только в `input_frame_update`; backward-compat дубликаты в game.cpp / input_actions.cpp / playcuts.cpp / outro_main.cpp / attract.cpp — их **тоже удалить** в этот аудит, idempotent но не нужны | Везде кроме input_frame |
+
+**Что искать grep'ом:**
+- `Keys[` в любом файле кроме `input_frame.{cpp,h}` и `keyboard*.cpp` (где event hooks).
+- `rgbButtons[` вне `input_frame.cpp` и `gamepad.cpp`.
+- `\.lX\b|\.lY\b|\.rX\b|\.rY\b` (или с `_raw`) для axis чтений.
+- `\.trigger_left|\.trigger_right` для триггер чтений.
+- `LastKey` — отдельно решить про text-input usecase.
+- `ReadInputDevice` — должен остаться только в `input_frame_update`.
+
+**Что делать с находками:**
+1. **Каждый hit** — оценить: это legacy bridge (легитимно) или потребительский read (мигрировать)?
+2. Legacy bridges — задокументировать в комментарии "// legacy bridge to old X handler — read for migration would mean migrating handler too".
+3. Потребительские reads — мигрировать на input_frame API.
+4. После — повторный аудит чтобы все hits были explicitly justified.
+
+**Итоговый критерий завершения миграции:** grep по `new_game/src/` (исключая `input_frame.{cpp,h}`, `keyboard*.cpp`, `gamepad.cpp`) не находит ни одного **читающего** обращения к `Keys[]` / `rgbButtons[]` / `the_state.l*/r*/trigger_*` для discrete-event action'ов. Записи (`Keys[X] = 0` consume или `Keys[X] = 1` legacy bridge) допустимы, но каждая должна быть прокомментирована.
+
+**Когда делать:** только после Wide-миграции. Если делать раньше — найдёшь не закрытые потребители (это не ошибка, это просто незавершённая миграция).
 
 ## Resolved questions (бывшие open)
 
@@ -235,7 +325,7 @@ input_frame **не читает** `Keys[]` для своего snapshot'а. Вм
 
 ## Текущие open questions
 
-- **Weapon switch (#20)** — actual reproducibility unverified. Сначала проверить что баг ещё на месте.
+Все известные баги связанные с input-системой закрыты. Следующий шаг — Phase 4-Wide миграция всего, которая описана выше.
 
 ## Связь с FPS unlock
 

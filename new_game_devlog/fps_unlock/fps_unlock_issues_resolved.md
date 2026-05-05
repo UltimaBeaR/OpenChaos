@@ -591,6 +591,48 @@ accumulator для дробных per-frame инкрементов — sub-step 
 
 ---
 
+## 20. ✅ Отзывчивость кнопки смены оружия зависит от render FPS
+
+**Симптом (был):** на высоком render FPS одно нажатие кнопки смены оружия (R3 на гейпаде / `keybrd_button_use[JOYPAD_BUTTON_SELECT]` на клаве) могло прокручивать инвентарь несколько раз. На низком render rate ощущалось иначе.
+
+**Причина:** в [`process_controls` (game_tick.cpp:1346)](../../new_game/src/game/game_tick.cpp#L1346) триггер был
+```cpp
+if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT) { ... }
+```
+
+`Player->Pressed` обновляется в [`process_hardware_level_input_for_player` (input_actions.cpp:3669)](../../new_game/src/game/input_actions.cpp#L3669) как `ThisInput & ~LastInput` — корректный edge-detect, **но per physics tick** (process_things → StateFn).
+
+`process_controls` запускается per **render frame** (game.cpp:1027). При render rate сильно выше physics rate, между двумя физтиками могут пройти 12+ render frames (на 240 FPS render + 20 Hz physics). Все эти render frames видят одно и то же `Player->Pressed=SELECT` (флаг "залип" между physics-тиками) → каждый render frame фаерит `CONTROLS_rot_inventory` → инвентарь прокручивается N раз за одно нажатие.
+
+**Фикс:** edge-detect перенесён на render-frame уровень через input_frame:
+
+```cpp
+const SLONG kb_select_key = keybrd_button_use[JOYPAD_BUTTON_SELECT];
+constexpr SLONG pad_select_btn = 8; // R3 / right stick click
+if (input_key_just_pressed(kb_select_key) || input_btn_just_pressed(pad_select_btn)) {
+    CONTROLS_new_inventory(...);
+    CONTROLS_rot_inventory(...);
+    CONTROLS_inventory_mode = 3000;
+}
+```
+
+`input_*_just_pressed` true ровно один render frame на rising edge → одно нажатие = одна прокрутка, независимо от render rate.
+
+**Место:** [`game_tick.cpp::process_controls`](../../new_game/src/game/game_tick.cpp), вокруг строки 1346 (раньше — `Player->Pressed & INPUT_MASK_SELECT`, теперь — `input_key_just_pressed` / `input_btn_just_pressed`).
+
+Это часть Phase 4 миграции на input_frame (см. [`input_system/changelog.md`](../input_system/changelog.md)).
+
+**Связанный фикс — `CONTROLS_inventory_mode` timer + `PopupFade` fade анимация:**
+В процессе тестирования #20 пользователь заметил что popup меню оружия пропадает быстрее на высоком FPS (timer countdown был на TICK_TOCK per render frame) и анимация fade-in/out резкая на 240 FPS (PopupFade декремент per render frame). Оба фикса в одном коммите с #20:
+- Timer: `CONTROLS_inventory_mode -= TICK_TOCK` → `-= g_frame_dt_ms` (3000ms = 3 сек wall-clock на любом FPS).
+- Fade: `PopupFade ± INVENTORY_FADE_SPEED` → wall-clock scaled с float accumulator, reference rate 20 Hz (UC_PHYSICS_DESIGN_HZ).
+
+Заодно обновлена документация в [`game_types.h::UC_VISUAL_CADENCE_HZ`](../../new_game/src/game/game_types.h) и [`original_tick_rates/summary.md`](original_tick_rates/summary.md): default reference rate для wall-clock конверсий — **20 Hz**, не 30. 30 Hz — это PS1-only (PC retail ран на ~22 Hz, не на config target 30).
+
+Подтверждено пользователем 2026-05-05 (single-press = single rotation на любом FPS, popup timer стабильно 3 сек, fade плавный на 240 FPS).
+
+---
+
 ## 23. ✅ DualSense LED siren strobe + low-HP blink: частота мигания зависит от render FPS
 
 **Симптом (был):**

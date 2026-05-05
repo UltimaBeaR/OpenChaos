@@ -342,28 +342,91 @@ if (input & INPUT_CAR_PAD_SIREN) veh->DControl |= VEH_SIREN;
 
 ---
 
-## 2026-05-05 — Точка остановки: frontend + vehicle siren готовы, остальные потребители ждут
+## 2026-05-05 — Phase 4 шаг 4: миграция `check_debug_timing_keys` (game.cpp)
+
+Простая миграция — debug-клавиши со своими static prev-state'ами на унифицированный API. Не было бага, просто чище.
+
+**До:**
+5 static prev переменных (`k1_prev`, `k2_prev`, `k3_prev`, `k9_prev`, `k0_prev`), у каждой паттерн `bool kN = Keys[KB_N] != 0; if (kN && !kN_prev) { ... } kN_prev = kN;`.
+
+**После:**
+`if (input_key_just_pressed(KB_N)) { ... }` для каждой клавиши. 5 static удалены.
+
+**Touchpad оставлен на static prev (`tp_prev`)** — DualSense touchpad click читается через `ds_get_input` напрямую, не через `gamepad_state.rgbButtons[]`, так что input_frame его не видит. Это **legitimate exception**, не leak — input_frame не претендует на полный покрытие всех источников DualSense, только rgbButtons + axes.
+
+**Функционально идентично** (rising edge → action), плюс слегка устойчивее в edge-кейсах: input_frame snapshot независим от мутаций `Keys[]` другими consumer'ами (если кто-то консьюмит `Keys[KB_N] = 0` между двумя вызовами check_debug_timing_keys, статический prev пропустит rising edge — input_frame нет).
+
+**Изменения:**
+- [`game.cpp::check_debug_timing_keys`](../../new_game/src/game/game.cpp) — миграция 5 keyboard edge-detect'ов.
+
+---
+
+## 2026-05-05 — Phase 4 шаг 5: миграция weapon switch (game_tick.cpp::process_controls)
+
+Закрыт #20 в fps_unlock — "одно нажатие кнопки смены оружия прокручивает инвентарь несколько раз на высоком render FPS".
+
+**До:**
+```cpp
+if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT) {
+    CONTROLS_new_inventory(...);
+    CONTROLS_rot_inventory(...);
+    CONTROLS_inventory_mode = 3000;
+}
+```
+
+`Player->Pressed = ThisInput & ~LastInput` — корректный edge-detect, но обновляется per physics tick (внутри `process_things` → `process_hardware_level_input_for_player`). `process_controls` где это читается — per render frame. При 240 FPS render + 20 Hz physics между физтиками 12 render frames → все они видят залипший edge-флаг → 12 прокруток за одно нажатие.
+
+**После:**
+Edge-detect перенесён на render-frame уровень через input_frame:
+```cpp
+const SLONG kb_select_key = keybrd_button_use[JOYPAD_BUTTON_SELECT];
+constexpr SLONG pad_select_btn = 8; // R3 / right stick click
+if (input_key_just_pressed(kb_select_key) || input_btn_just_pressed(pad_select_btn)) {
+    ...
+}
+```
+
+`input_*_just_pressed` true ровно один render frame на rising edge → одно нажатие = одна прокрутка, независимо от render rate.
+
+**Изменения:**
+- [`game_tick.cpp::process_controls`](../../new_game/src/game/game_tick.cpp) — триггер weapon switch на input_frame edge-detect.
+- Issue #20 [перенесён в resolved](../fps_unlock/fps_unlock_issues_resolved.md).
+
+**Bonus fix — `CONTROLS_inventory_mode` timer FPS-dependence:**
+
+При тестировании выявлен второй связанный баг: popup меню оружия пропадало быстрее на высоком render FPS и на низком physics Hz. Было:
+```cpp
+CONTROLS_inventory_mode -= TICK_TOCK;
+```
+`TICK_TOCK` — per-physics-tick interval (~50ms на 20 Hz, saturated 25..100ms range). Декремент происходил per render frame в `process_controls` → 240 FPS × 50ms = 12000 units/sec → 3000-unit timer expire за 0.25 сек вместо ~3 сек.
+
+Фикс — использовать `g_frame_dt_ms` (wall-clock per-render-frame delta):
+```cpp
+CONTROLS_inventory_mode -= (SLONG)g_frame_dt_ms;
+```
+Теперь 3000 ms всегда занимает 3 секунды реального времени, независимо от render FPS и physics Hz. Также фиксит "при пропадании меню меняется логика выбора оружия" — это было следствием слишком быстрого expire'а timer'а.
+
+---
+
+## 2026-05-05 — Точка остановки: все известные баги input-системы закрыты
 
 **Состояние коммита (стейб):**
 
-- Phase 1 (skeleton) ✅
-- Phase 2 (stick virtual directions) ✅
-- Phase 3 (universal auto-repeat + InputAutoRepeat для combined sources) ✅
-- Phase 4.1 (gamemenu) ✅ — все edge-cases отработаны (4 бага найдены и пофикшены в процессе тестирования)
-- Phase 4.2 (frontend) ✅ — миграция + архитектурный D-pad-as-separate-source фикс (gamepad layer raw stick + consumer reads rgbButtons[11..14])
-- Phase 4.3 (vehicle siren multi-toggle) ✅ — local edge-detect на level-сигнале в `apply_button_input_car`, исправлен класс багов "siren переключается N раз при зажатии"
-- `migration_checklist.md` написан со всеми граблями (пункт 3 обновлён после D-pad фикса) ✅
+- Phase 1-3 (infrastructure) ✅
+- Phase 4.1 (gamemenu pause menu) ✅
+- Phase 4.2 (frontend main menu + D-pad-as-separate-source archi fix) ✅
+- Phase 4.3 (vehicle siren — sticky press_pending + drain pattern) ✅
+- Phase 4.4 (debug timing keys) ✅
+- Phase 4.5 (weapon switch render-frame edge-detect) ✅
 
-**Что готово:** инфраструктура, паттерн миграции отлажен на gamemenu+frontend. D-pad теперь честный третий источник, antagonist suppression работает на всех парах (kb/stick/D-pad). Vehicle siren — фиксирован local edge-detect (architectural pattern для других physics-side consumer'ов). Будущий потребитель + чеклист = должно идти гладко.
+**Все issue'ы из fps_unlock связанные с input закрыты:**
+- #5 (siren toggle) ✅
+- #20 (weapon switch) ✅
+- #23 (DualSense LED siren / low-HP blink) ✅
+- #13 в resolved дополнен описанием siren architectural fix.
 
-**Список оставшихся потребителей (по убыванию приоритета):**
+**Что дальше — Phase 4-Wide:**
 
-1. **`check_debug_timing_keys`** — debug-клавиши, простая миграция (только `input_key_just_pressed`).
-2. **`game_tick.cpp`** weapon switch (#20) — проверить актуальность бага сначала.
-3. Прочие места по обнаружении.
+Полная миграция всех discrete + continuous input'ов на input_frame для унификации (см. [`current_plan.md`](current_plan.md) раздел "Phase 4-Wide"). Не блокер, можно делать после стабилизации текущего стека миграционных фиксов.
 
-**Каждая миграция = отдельный коммит** с тестированием. Сверяться с [migration_checklist.md](migration_checklist.md) перед каждой.
-
-**Связь с fps_unlock:**
-- #5, #15, #20 в `fps_unlock_issues.md` остаются открытыми пока соответствующие миграции не подтверждены пользователем.
-- При завершении миграции потребителя который закрывает один из issue'ев — переносить issue в `fps_unlock_issues_resolved.md` со ссылкой на input_system commit.
+Финальный пункт после Wide-миграции — аудит что `Keys[]` / `rgbButtons[]` / `the_state.l*/r*/trigger_*` не используются как источник истины потребителями (только как legacy backing-store).
