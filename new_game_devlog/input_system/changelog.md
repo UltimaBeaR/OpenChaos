@@ -225,7 +225,75 @@ if (any_up_held && any_dn_held) {
 
 ---
 
-## 2026-05-05 — Точка остановки: gamemenu готов, остальные потребители ждут
+## 2026-05-05 — Phase 4 шаг 2: миграция `frontend.cpp::FRONTEND_input`
+
+Главное меню (frontend) переехало на `input_frame`. Паттерн идентичен gamemenu, расширен на 4 направления (UP/DOWN/LEFT/RIGHT — слайдеры громкости в Audio settings, переключение районов на карте миссий, multi-choice пункты).
+
+**До:**
+- `held_x / held_y` — собственный hysteresis stick→direction (4096 press / 2048 release). Идентичные пороги уже есть в input_frame.
+- `dir_next_fire` — единый таймер auto-repeat'а на combined `dir_input` (400/150ms).
+- `last_input` xor edge-detect для buttons; `last_button` post-bind suppression; `first_pad` carry-over guard.
+- Чтение `Keys[KB_UP/DOWN/LEFT/RIGHT]` напрямую; чтение Triangle/Y через `get_hardware_input(INPUT_TYPE_JOY) & INPUT_MASK_CANCEL`.
+- Dominant-axis pick (no diagonals on stick) реализован вручную через сравнение `dx vs dy`.
+
+**После:**
+- 4× `InputAutoRepeat` (`ar_up/dn/lt/rt`) — combined-source throttle на kb + stick + D-pad одновременно.
+- Antagonist suppression на UP+DOWN и LEFT+RIGHT (3 источника одновременно зажаты в противоположные стороны → cancel).
+- Dominant-axis pick для **stick-only** диагоналей сохранён (small Y wobble не должен перебивать намеренный X), читает `lX_raw / lY_raw` (см. фикс ниже).
+- Buttons: `input_btn_just_pressed(0)` для Cross/A confirm, `input_btn_just_pressed(3)` для Triangle/Y cancel — natural rising-edge снимает `first_pad` и `last_button` статики (carry-over пресс не даёт rising edge в snapshot'е).
+- `grabbing_pad` режим биндинга: ESC через `input_key_just_pressed(KB_ESC)` + явный `Keys[KB_ESC] = 0` consume (иначе следующий кадр FE_BACK триггернётся в обычной нав-ветке). Биндинг — через `input_btn_held(i)` (любая зажатая gamepad-кнопка).
+- `last_input` static оставлен как gate для `grabbing_pad && !last_input` (vestigial — с edge semantics практически всегда 0, но семантика сохранена).
+- Удалены: `held_x`, `held_y`, `dir_next_fire`, `last_button`, `first_pad`, локальные `#define AXIS_CENTRE/ACTIVATE_ZONE/RELEASE_ZONE`, явный `ReadInputDevice()`.
+
+**Изменения:**
+- [`frontend.cpp::FRONTEND_input`](../../new_game/src/ui/frontend/frontend.cpp) — миграция input-обработки.
+
+**Открытые вопросы при тестировании:** обнаружен баг "стик + D-pad одновременно в противоположные стороны = второй overrid'ит первый, antagonist не работает". См. следующую запись.
+
+---
+
+## 2026-05-05 — Архитектурный фикс: D-Pad как отдельный input source
+
+**Симптом** (найден тестированием frontend): зажать стик UP + D-pad DOWN (или наоборот) → второй нажатый направление становится приоритетным, первый "теряется", antagonist suppression не срабатывает. Только при паре stick+D-pad — kb+kb / kb+stick / kb+D-pad работают корректно.
+
+**Причина:** в `gamepad.cpp` D-pad **деструктивно** перезаписывает `lX/lY`:
+```cpp
+if (ds.dpad_left)  gamepad_state.lX = 0;
+if (ds.dpad_right) gamepad_state.lX = 65535;
+// и т.д.
+```
+Так что когда D-pad нажат — стик физически невидим (axis уже override'нут). `input_stick_held` читал post-override `lX/lY`, и стик-сигнал в противоположную D-pad сторону пропадал.
+
+**Фикс:** дать input_frame отдельные raw-каналы стика, и читать D-pad независимо через `rgbButtons[11..14]`:
+
+1. **`GamepadState`** — добавлены поля `lX_raw / lY_raw / rX_raw / rY_raw`. Заполняются в обоих gamepad poll paths (DualSense, SDL3) **до** D-pad override'а.
+2. **`gamepad_globals.cpp`** — initializer расширен с 4 до 8 значений (4 stick + 4 raw, все centered = 32768).
+3. **`input_frame.cpp::input_frame_update`** — стик-виртуальные направления читают `lX_raw / lY_raw` (pre-override). D-pad mirror через `lX/lY` больше не покрывает стик автоматически.
+4. **`gamemenu.cpp` + `frontend.cpp`** — D-pad добавлен как **третий независимый источник** в `any_*_held / any_*_jp`:
+   ```cpp
+   const bool any_up_held = input_key_held(KB_UP)
+       || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+       || input_btn_held(11);   // D-pad UP
+   ```
+5. **frontend.cpp::FRONTEND_input** — dominant-axis pick читает `the_state.lX_raw/lY_raw` (актуальное физическое отклонение стика, не override'нутое D-pad'ом).
+
+После фикса все пары источников проходят antagonist: kb+kb, kb+stick, kb+D-pad, **stick+D-pad**.
+
+**Геймплей не затронут.** `input_actions.cpp`, `fc.cpp`, `outro_os.cpp` читают `lX/lY` напрямую — D-pad-as-full-deflection семантика для движения и камеры сохраняется ровно как раньше. `input_stick_x/y` continuous getters в input_frame тоже остались на post-override `lX/lY` (они для геймплейного continuous-чтения, не для меню).
+
+**Изменения:**
+- [`gamepad.h`](../../new_game/src/engine/input/gamepad.h) — `GamepadState` + 4 raw-поля.
+- [`gamepad_globals.cpp`](../../new_game/src/engine/input/gamepad_globals.cpp) — расширенный initializer.
+- [`gamepad.cpp`](../../new_game/src/engine/input/gamepad.cpp) — копия raw до override'а в обоих путях (DS, SDL3).
+- [`input_frame.cpp`](../../new_game/src/engine/input/input_frame.cpp) — чтение raw для stick virtual directions.
+- [`gamemenu.cpp`](../../new_game/src/ui/menus/gamemenu.cpp), [`frontend.cpp`](../../new_game/src/ui/frontend/frontend.cpp) — D-pad как третий источник.
+- [`migration_checklist.md`](migration_checklist.md) пункт 3 — обновлено правило про D-pad: ЧИТАТЬ через `rgbButtons[11..14]` параллельно стику, **НЕ** полагаться на стик-mirror (он деструктивный).
+
+**Подтверждено пользователем:** все четыре пары источников теперь корректно гасят друг друга, нав плавная.
+
+---
+
+## 2026-05-05 — Точка остановки: frontend готов, остальные потребители ждут
 
 **Состояние коммита (стейб):**
 
@@ -233,17 +301,17 @@ if (any_up_held && any_dn_held) {
 - Phase 2 (stick virtual directions) ✅
 - Phase 3 (universal auto-repeat + InputAutoRepeat для combined sources) ✅
 - Phase 4.1 (gamemenu) ✅ — все edge-cases отработаны (4 бага найдены и пофикшены в процессе тестирования)
-- `migration_checklist.md` написан со всеми граблями ✅
+- Phase 4.2 (frontend) ✅ — миграция + архитектурный D-pad-as-separate-source фикс (gamepad layer raw stick + consumer reads rgbButtons[11..14])
+- `migration_checklist.md` написан со всеми граблями (пункт 3 обновлён после D-pad фикса) ✅
 
-**Что готово:** инфраструктура, паттерн миграции отлажен на gamemenu. Будущий потребитель + чеклист = должно идти гладко.
+**Что готово:** инфраструктура, паттерн миграции отлажен на gamemenu+frontend. D-pad теперь честный третий источник, antagonist suppression работает на всех парах (kb/stick/D-pad). Будущий потребитель + чеклист = должно идти гладко.
 
 **Список оставшихся потребителей (по убыванию приоритета):**
 
-1. **`frontend.cpp`** — главное меню (своя ad-hoc nav через `dir_next_fire`). Аналогично gamemenu — InputAutoRepeat + antagonist suppression. Закрывает unification "залипаний" во всех меню.
-2. **`vehicle.cpp`** siren toggle (#5 уже won't-fix → resolved, но архитектурно через input_frame будет нормально работать на любых Hz).
-3. **`check_debug_timing_keys`** — debug-клавиши, простая миграция (только `input_key_just_pressed`).
-4. **`game_tick.cpp`** weapon switch (#20) — проверить актуальность бага сначала.
-5. Прочие места по обнаружении.
+1. **`vehicle.cpp`** siren toggle (#5 уже won't-fix → resolved, но архитектурно через input_frame будет нормально работать на любых Hz).
+2. **`check_debug_timing_keys`** — debug-клавиши, простая миграция (только `input_key_just_pressed`).
+3. **`game_tick.cpp`** weapon switch (#20) — проверить актуальность бага сначала.
+4. Прочие места по обнаружении.
 
 **Каждая миграция = отдельный коммит** с тестированием. Сверяться с [migration_checklist.md](migration_checklist.md) перед каждой.
 

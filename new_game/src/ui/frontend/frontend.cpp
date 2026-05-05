@@ -29,6 +29,7 @@ extern SLONG ScreenHeight;
 #include "engine/input/keyboard_globals.h" // Keys[], LastKey, ControlFlag, ShiftFlag
 #include "engine/input/joystick.h" // ReadInputDevice
 #include "engine/input/joystick_globals.h" // the_state (DIJOYSTATE)
+#include "engine/input/input_frame.h"
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
 #include "game/input_actions.h" // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
@@ -2366,32 +2367,30 @@ static BOOL FRONTEND_ValidMission(SWORD sel)
 static UBYTE FRONTEND_input(void)
 {
     UBYTE scan, any_button = 0;
+    // Tracks the previous frame's resolved input mask. Used as a one-frame
+    // settle gate for grabbing_pad so a confirm press doesn't immediately
+    // re-trigger a bind on the same frame.
     static SLONG last_input = 0;
-    static UBYTE last_button = 0;
-    static UBYTE first_pad = 1;
-    static uint64_t dir_next_fire = 0;
-    static int held_x = 0; // hysteresis state: -1=LEFT, 0=center, 1=RIGHT
-    static int held_y = 0; // hysteresis state: -1=UP, 0=center, 1=DOWN
 
     SLONG input = 0;
 
     if (grabbing_pad && !last_input) {
         UBYTE i, j;
         MenuData* item = menu_data + menu_state.selected;
-        ReadInputDevice();
-        if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
+        if (input_key_just_pressed(KB_ESC)) {
+            // Consume so the regular-nav ESC handler below doesn't also fire
+            // FE_BACK / FE_QUIT on a subsequent frame while ESC stays held.
             Keys[KB_ESC] = 0;
             grabbing_pad = 0;
         } else {
             for (i = 0; i < 32; i++) {
-                if (the_state.rgbButtons[i] & 0x80) {
+                if (input_btn_held(i)) {
                     for (j = 0; j < menu_state.items; j++) {
                         if (menu_data[j].Data == i) {
                             menu_data[j].Data = 31;
                         }
                     }
                     item->Data = i;
-                    last_button = 1;
                     grabbing_pad = 0;
                     break;
                 }
@@ -2399,142 +2398,123 @@ static UBYTE FRONTEND_input(void)
         }
         return 0;
     } else {
-        // Axis reading with hysteresis to prevent stick wobble near threshold.
-        // Activation zone is wider, release zone is tighter — once a direction is detected,
-        // small oscillations around the threshold don't flip it on/off.
-#define AXIS_CENTRE 32768
-#define ACTIVATE_ZONE 4096
-#define RELEASE_ZONE 2048
+        // Unified menu navigation through input_frame. Three independent
+        // input sources per direction: keyboard arrows, left-stick virtual
+        // directions, D-Pad buttons. They are merged into one combined "any
+        // held / any just-pressed" boolean per direction with a SINGLE
+        // auto-repeat throttle (independent per-source timers would
+        // interleave to ~2× rate when several sources are held at once).
+        //
+        // D-Pad must be read separately via rgbButtons[11..14] — the gamepad
+        // layer mirrors D-Pad into lX/lY destructively (D-Pad held → axis
+        // clamped to 0 / 65535, hiding any concurrent stick deflection).
+        // input_stick_held now reads lX_raw / lY_raw (pre-override) so the
+        // stick signal survives even when the D-Pad is also held; the D-Pad
+        // signal comes from rgbButtons. Antagonist suppression on the
+        // combined OR catches stick+D-Pad-opposite-directions.
+        //
+        // Confirm/cancel buttons via just_pressed edge-detect: a button held
+        // from a previous screen produces no rising edge in the snapshot, so
+        // a stale press cannot leak into the menu.
 
-        input = get_hardware_input(INPUT_TYPE_JOY);
+        const bool kb_up = input_key_held(KB_UP);
+        const bool kb_dn = input_key_held(KB_DOWN);
+        const bool kb_lt = input_key_held(KB_LEFT);
+        const bool kb_rt = input_key_held(KB_RIGHT);
 
-        input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS);
+        bool st_up = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
+        bool st_dn = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
+        bool st_lt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT);
+        bool st_rt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT);
 
-        // Gamepad axes — only process if connected (disconnected state has lX/lY=0 which
-        // would be misread as far-up-left).
-        if (the_state.connected) {
-            // X axis hysteresis.
-            if (held_x == 0) {
-                if (the_state.lX > AXIS_CENTRE + ACTIVATE_ZONE)
-                    held_x = 1;
-                else if (the_state.lX < AXIS_CENTRE - ACTIVATE_ZONE)
-                    held_x = -1;
-            } else if (held_x > 0) {
-                if (the_state.lX < AXIS_CENTRE + RELEASE_ZONE)
-                    held_x = 0;
-            } else {
-                if (the_state.lX > AXIS_CENTRE - RELEASE_ZONE)
-                    held_x = 0;
-            }
+        const bool dp_up = input_btn_held(11);
+        const bool dp_dn = input_btn_held(12);
+        const bool dp_lt = input_btn_held(13);
+        const bool dp_rt = input_btn_held(14);
 
-            // Y axis hysteresis.
-            if (held_y == 0) {
-                if (the_state.lY > AXIS_CENTRE + ACTIVATE_ZONE)
-                    held_y = 1;
-                else if (the_state.lY < AXIS_CENTRE - ACTIVATE_ZONE)
-                    held_y = -1;
-            } else if (held_y > 0) {
-                if (the_state.lY < AXIS_CENTRE + RELEASE_ZONE)
-                    held_y = 0;
-            } else {
-                if (the_state.lY > AXIS_CENTRE - RELEASE_ZONE)
-                    held_y = 0;
-            }
-
-            // No diagonals — dominant axis wins (prevents Y wobble from overriding X).
-            int32_t dx = the_state.lX > AXIS_CENTRE ? the_state.lX - AXIS_CENTRE : AXIS_CENTRE - the_state.lX;
-            int32_t dy = the_state.lY > AXIS_CENTRE ? the_state.lY - AXIS_CENTRE : AXIS_CENTRE - the_state.lY;
-
-            if (held_y != 0 && (dy >= dx || held_x == 0)) {
-                if (held_y > 0)
-                    input |= INPUT_MASK_BACKWARDS;
-                else
-                    input |= INPUT_MASK_FORWARDS;
-            } else if (held_x != 0) {
-                if (held_x > 0)
-                    input |= INPUT_MASK_RIGHT;
-                else
-                    input |= INPUT_MASK_LEFT;
-            } else if (held_y != 0) {
-                if (held_y > 0)
-                    input |= INPUT_MASK_BACKWARDS;
-                else
-                    input |= INPUT_MASK_FORWARDS;
-            }
-        } else {
-            held_x = 0;
-            held_y = 0;
-        }
-
-        {
-            // Merge keyboard arrows into the gamepad direction path — one unified repeat.
-            // Don't clear Keys[] — it's populated by async keyboard hook, clearing causes
-            // gaps between auto-repeat events that make the ticker stutter.
-            if (Keys[KB_UP])
-                input |= INPUT_MASK_FORWARDS;
-            if (Keys[KB_DOWN])
-                input |= INPUT_MASK_BACKWARDS;
-            if (Keys[KB_LEFT])
-                input |= INPUT_MASK_LEFT;
-            if (Keys[KB_RIGHT])
-                input |= INPUT_MASK_RIGHT;
-
-            // Split into directions (need auto-repeat) and buttons (edge-detect only).
-            SLONG dir_mask = INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS;
-            SLONG dir_input = input & dir_mask;
-            SLONG btn_input = input & ~dir_mask;
-            SLONG last_dir = last_input & dir_mask;
-            SLONG last_btn = last_input & ~dir_mask;
-
-            // Buttons: edge-detect only — fire once per press.
-            any_button = 0;
-            if (btn_input != last_btn) {
-                // Cross/A (index 0) = confirm. Triangle/Y = cancel (via INPUT_MASK_CANCEL).
-                any_button = the_state.rgbButtons[0];
-            } else {
-                btn_input = 0;
-            }
-
-            // Directions: time-based auto-repeat (wall-clock ms, not frames).
-            if (dir_input) {
-                uint64_t now = sdl3_get_ticks();
-                if (dir_input != last_dir) {
-                    // New direction or first press — fire immediately, set initial delay.
-                    dir_next_fire = now + 400;
-                } else if (now < dir_next_fire) {
-                    // Waiting for repeat — suppress.
-                    dir_input = 0;
+        // Stick-only diagonal: pick the dominant axis by raw distance from
+        // centre so a small Y wobble doesn't override an intended X flick.
+        // Keyboard and D-Pad inputs keep independent diagonals — explicit
+        // multi-source combos are intentional, not noise. Read raw axis
+        // values (pre-D-Pad override) so the comparison reflects the actual
+        // physical stick deflection.
+        const bool kb_any_dir = kb_up || kb_dn || kb_lt || kb_rt;
+        const bool dp_any_dir = dp_up || dp_dn || dp_lt || dp_rt;
+        if (!kb_any_dir && !dp_any_dir && the_state.connected) {
+            const bool st_y = st_up || st_dn;
+            const bool st_x = st_lt || st_rt;
+            if (st_y && st_x) {
+                const int32_t dx = (the_state.lX_raw > 32768) ? (int32_t)the_state.lX_raw - 32768 : 32768 - (int32_t)the_state.lX_raw;
+                const int32_t dy = (the_state.lY_raw > 32768) ? (int32_t)the_state.lY_raw - 32768 : 32768 - (int32_t)the_state.lY_raw;
+                if (dy >= dx) {
+                    st_lt = false;
+                    st_rt = false;
                 } else {
-                    // Repeat fired — schedule next.
-                    dir_next_fire = now + 150;
-                }
-            } else {
-                // Released — reset so next tap fires cleanly.
-                dir_next_fire = 0;
-            }
-
-            last_input = input;
-            input = dir_input | btn_input;
-
-            // Suppress carry-over button presses from the previous screen (e.g. X used
-            // to skip the intro video landing on a menu item). Wait until the button is
-            // released before accepting any button actions. Directional input is always
-            // allowed immediately so first-frame navigation works.
-            if (first_pad) {
-                if (!any_button) {
-                    first_pad = 0;
-                } else {
-                    input = 0;
-                    any_button = 0;
+                    st_up = false;
+                    st_dn = false;
                 }
             }
-            if (last_button) {
-                if (!any_button)
-                    last_button = 0;
-                else
-                    any_button = 0;
-            }
         }
+
+        const bool any_up_held = kb_up || st_up || dp_up;
+        const bool any_dn_held = kb_dn || st_dn || dp_dn;
+        const bool any_lt_held = kb_lt || st_lt || dp_lt;
+        const bool any_rt_held = kb_rt || st_rt || dp_rt;
+
+        const bool any_up_jp = input_key_just_pressed(KB_UP)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+            || input_btn_just_pressed(11);
+        const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
+            || input_btn_just_pressed(12);
+        const bool any_lt_jp = input_key_just_pressed(KB_LEFT)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT)
+            || input_btn_just_pressed(13);
+        const bool any_rt_jp = input_key_just_pressed(KB_RIGHT)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT)
+            || input_btn_just_pressed(14);
+
+        static InputAutoRepeat ar_up;
+        static InputAutoRepeat ar_dn;
+        static InputAutoRepeat ar_lt;
+        static InputAutoRepeat ar_rt;
+
+        bool nav_up = ar_up.tick_combined(any_up_jp, any_up_held);
+        bool nav_dn = ar_dn.tick_combined(any_dn_jp, any_dn_held);
+        bool nav_lt = ar_lt.tick_combined(any_lt_jp, any_lt_held);
+        bool nav_rt = ar_rt.tick_combined(any_rt_jp, any_rt_held);
+
+        // Antagonist suppression: opposite directions held simultaneously =
+        // no clear intent, suppress output. Timers keep ticking so releasing
+        // one direction immediately resumes the other without a fresh initial
+        // delay.
+        if (any_up_held && any_dn_held) {
+            nav_up = false;
+            nav_dn = false;
+        }
+        if (any_lt_held && any_rt_held) {
+            nav_lt = false;
+            nav_rt = false;
+        }
+
+        if (nav_up) input |= INPUT_MASK_FORWARDS;
+        if (nav_dn) input |= INPUT_MASK_BACKWARDS;
+        if (nav_lt) input |= INPUT_MASK_LEFT;
+        if (nav_rt) input |= INPUT_MASK_RIGHT;
+
+        // Cross/A (index 0) = confirm, Triangle/Y (index 3) = cancel.
+        // just_pressed gives both carry-over protection (e.g. X mashed during
+        // an intro skip and still held when entering a menu) and post-bind
+        // protection (Cross held to bind a slot, then released): no rising
+        // edge until release + re-press.
+        if (input_btn_just_pressed(0)) {
+            any_button = 1;
+        }
+        if (input_btn_just_pressed(3)) {
+            input |= INPUT_MASK_CANCEL;
+        }
+
+        last_input = input;
     }
 
     if (grabbing_key && LastKey) {

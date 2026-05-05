@@ -157,6 +157,15 @@ static bool poll_dualsense()
     gamepad_state.rX = static_cast<int32_t>(ds.right_stick_x * 32767.0f) + 32768;
     gamepad_state.rY = static_cast<int32_t>(-ds.right_stick_y * 32767.0f) + 32768;
 
+    // Snapshot raw stick values BEFORE the D-Pad override below. Menu code
+    // reads these to keep stick and D-Pad as independent input sources, so
+    // antagonist suppression (stick UP + D-Pad DOWN ⇒ cancel) sees both
+    // signals instead of just whichever overwrote the axis last.
+    gamepad_state.lX_raw = gamepad_state.lX;
+    gamepad_state.lY_raw = gamepad_state.lY;
+    gamepad_state.rX_raw = gamepad_state.rX;
+    gamepad_state.rY_raw = gamepad_state.rY;
+
     // D-Pad overrides axes — skipped while the input debug panel is
     // active so its raw-stick readout doesn't move whenever the user
     // presses the d-pad. The panel already shows D / U / L / R as
@@ -318,6 +327,13 @@ static void poll_sdl3()
     gamepad_state.lY = static_cast<int32_t>(sdl_state.axis_left_y) + 32768;
     gamepad_state.rX = static_cast<int32_t>(sdl_state.axis_right_x) + 32768;
     gamepad_state.rY = static_cast<int32_t>(sdl_state.axis_right_y) + 32768;
+
+    // Snapshot raw stick values BEFORE the D-Pad override below — see the
+    // matching comment on the DS path above for rationale.
+    gamepad_state.lX_raw = gamepad_state.lX;
+    gamepad_state.lY_raw = gamepad_state.lY;
+    gamepad_state.rX_raw = gamepad_state.rX;
+    gamepad_state.rY_raw = gamepad_state.rY;
 
     // D-Pad overrides axes — see the matching comment on the DS path
     // above. Skipped while the debug panel is active.

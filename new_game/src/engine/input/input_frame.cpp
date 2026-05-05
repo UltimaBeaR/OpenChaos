@@ -176,9 +176,15 @@ void input_frame_update()
     // state.
     memcpy(s_stick_dir_prev, s_stick_dir_curr, sizeof(s_stick_dir_curr));
     for (SLONG s = 0; s < INPUT_STICK_COUNT; s++) {
-        // Raw axis values (0..65535, center 32768). lY=0 is up.
-        int raw_x = (s == INPUT_STICK_LEFT) ? gamepad_state.lX : gamepad_state.rX;
-        int raw_y = (s == INPUT_STICK_LEFT) ? gamepad_state.lY : gamepad_state.rY;
+        // Read PRE-override stick values (lX_raw / lY_raw etc). lX/lY get
+        // clamped to 0/65535 when the D-Pad is held, which would otherwise
+        // hide a stick deflected in the opposite direction. Menu consumers
+        // that need both signals (for antagonist suppression on stick + D-Pad)
+        // OR D-Pad rgbButtons[11..14] alongside this virtual direction —
+        // see migration_checklist.md, rule 3. Game code keeps reading lX/lY
+        // directly where the D-Pad-as-full-deflection semantic is desired.
+        int raw_x = (s == INPUT_STICK_LEFT) ? gamepad_state.lX_raw : gamepad_state.rX_raw;
+        int raw_y = (s == INPUT_STICK_LEFT) ? gamepad_state.lY_raw : gamepad_state.rY_raw;
 
         bool was_up    = s_stick_dir_curr[s][INPUT_STICK_DIR_UP];
         bool was_down  = s_stick_dir_curr[s][INPUT_STICK_DIR_DOWN];

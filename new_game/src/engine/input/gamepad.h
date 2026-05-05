@@ -9,10 +9,21 @@
 // uc_orig: DIJOYSTATE (DirectInput) — GamepadState mirrors the fields that game code uses,
 // with the same value ranges (lX/lY: 0..65535, center 32768; rgbButtons: 0x80 = pressed).
 struct GamepadState {
-    int32_t lX; // left stick X, 0..65535 (center 32768)
-    int32_t lY; // left stick Y, 0..65535 (center 32768)
+    int32_t lX; // left stick X, 0..65535 (center 32768) — D-Pad override applied
+    int32_t lY; // left stick Y, 0..65535 (center 32768) — D-Pad override applied
     int32_t rX; // right stick X, 0..65535 (center 32768)
     int32_t rY; // right stick Y, 0..65535 (center 32768)
+    // Raw left-stick values BEFORE the D-Pad override (lX/lY get clamped to
+    // 0/65535 when D-Pad is held, which is destructive — pressing D-Pad in
+    // one direction hides any concurrent stick deflection in the opposite
+    // direction). Menu code that needs to treat stick and D-Pad as separate
+    // input sources (for antagonist suppression) reads these instead. Game
+    // code keeps reading lX/lY where the D-Pad-as-full-deflection semantic
+    // is the intended behaviour.
+    int32_t lX_raw;
+    int32_t lY_raw;
+    int32_t rX_raw; // right stick has no D-Pad mirror; equals rX, kept for symmetry
+    int32_t rY_raw;
     uint8_t rgbButtons[32]; // 0x80 = pressed, compatible with DIJOYSTATE
     uint8_t trigger_left; // L2 analog: 0 (released) .. 255 (fully pressed)
     uint8_t trigger_right; // R2 analog: 0 (released) .. 255 (fully pressed)

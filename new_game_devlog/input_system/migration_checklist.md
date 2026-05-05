@@ -28,13 +28,22 @@
 
 **Допустимое исключение:** оставлять запись в `Keys[KB_X] = 1/0` если это **bridge** к существующему unmigrated handler'у (как в gamemenu — gamepad input → Keys[KB_ESC] → существующая ESC-логика). Запись в Keys нормальна — это **чтение** Keys как источника истины проблематично.
 
-## 3. D-pad НЕ читать как rgbButtons[11..14]
+## 3. D-pad — ЧИТАТЬ через `rgbButtons[11..14]`, НЕ полагаться на стик-mirror
 
-❌ **Не делать:** `input_btn_held(11)` для D-pad up.
+✅ **Делать:** D-pad — отдельный третий источник параллельно стику и клаве:
 
-✅ **Делать:** `input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)`.
+```cpp
+const bool any_up_held = input_key_held(KB_UP)
+    || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+    || input_btn_held(11);   // D-pad UP
+// 12 = DOWN, 13 = LEFT, 14 = RIGHT
+```
 
-Почему: D-pad миррорится в `lY/lX` левого стика на gamepad layer'е (DualSense + SDL3 paths). Stick virtual direction покрывает D-pad автоматически + получаешь hysteresis. Если читать rgbButtons отдельно — баг с двойным срабатыванием когда стик и D-pad оба отклонены, плюс отдельный throttle.
+Все три источника OR'ятся в один combined-source boolean, который идёт в `InputAutoRepeat::tick_combined`. Один throttle на combined OR — не "double-rate" как было бы при OR'е независимых `_just_pressed_or_repeat`.
+
+❌ **Не делать:** полагаться что D-pad покрывается стиком "автоматически" через mirror в `lX/lY`. Mirror **деструктивный**: gamepad layer (`gamepad.cpp`) при нажатом D-pad клампит `lX/lY` в 0/65535, прячет конкурентное отклонение стика в противоположном направлении. Сейчас `input_stick_held` читает `lX_raw / lY_raw` (pre-override), а D-pad через `rgbButtons[11..14]` — два независимых сигнала. Это нужно для antagonist suppression на пары kb+kb / kb+stick / kb+D-pad / **stick+D-pad** (последняя пара ломалась когда D-pad покрывался через стик-mirror).
+
+**Историческая справка:** в первой версии этого пункта рекомендовалось читать D-pad **только** через `input_stick_held` потому что mirror казался удобным "автоматическим" покрытием. Тестирование gamemenu+frontend (2026-05-05) выявило что зажатие стика и D-pad в противоположные стороны теряет один из сигналов — фикс: `lX_raw / lY_raw` в `GamepadState` + явное чтение D-pad'а в каждом consumer'е.
 
 ## 4. Combined-source auto-repeat ⇒ один `InputAutoRepeat`
 

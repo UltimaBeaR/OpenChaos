@@ -229,10 +229,17 @@ SLONG GAMEMENU_process()
             // than any single source, even when several are held at once
             // (independent per-source throttles would interleave to ~2× rate).
             //
-            // Sources combined:
+            // Three independent sources per direction:
             //  - keyboard up/down
-            //  - left stick up/down virtual direction (D-pad mirrors to left
-            //    stick on DualSense / SDL3, so it's covered automatically)
+            //  - left-stick virtual up/down (reads pre-D-Pad-override raw axis)
+            //  - D-Pad up/down via rgbButtons[11]/[12]
+            //
+            // D-Pad must be read separately, NOT taken implicitly through the
+            // stick mirror: the gamepad layer clamps lX/lY when the D-Pad is
+            // held, which would hide a concurrent stick deflection in the
+            // opposite direction (breaking antagonist suppression for the
+            // stick + D-Pad case). With three independent signals OR'd into
+            // the combined held bool, antagonist works for every pair.
             //
             // Static instances persist between calls — InputAutoRepeat tracks
             // its own rising/falling edge of the combined boolean and timer.
@@ -240,13 +247,17 @@ SLONG GAMEMENU_process()
             static InputAutoRepeat ar_down;
 
             const bool any_up_jp = input_key_just_pressed(KB_UP)
-                || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
+                || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+                || input_btn_just_pressed(11);
             const bool any_up_held = input_key_held(KB_UP)
-                || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
+                || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+                || input_btn_held(11);
             const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
-                || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
+                || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
+                || input_btn_just_pressed(12);
             const bool any_dn_held = input_key_held(KB_DOWN)
-                || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
+                || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
+                || input_btn_held(12);
 
             bool nav_up   = ar_up.tick_combined(any_up_jp, any_up_held);
             bool nav_down = ar_down.tick_combined(any_dn_jp, any_dn_held);
