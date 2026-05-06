@@ -1,5 +1,7 @@
 #include "game/debug_timing_overlay.h"
 
+#if OC_DEBUG_PHYSICS_TIMING
+
 #include <stdio.h>
 
 #include "engine/core/types.h"
@@ -8,10 +10,6 @@
 #include "engine/graphics/text/font2d.h" // FONT2D_DrawString
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks
 #include "game/game_globals.h" // g_physics_hz / g_render_fps_cap
-#include "game/game_types.h" // NET_PERSON
-#include "things/core/thing.h" // Thing, CLASS_PERSON
-#include "things/core/drawtype.h" // DrawTween
-#include "engine/animation/anim_types.h" // GameKeyFrame, ANIM_FLAG_LAST_FRAME
 
 // FONT2D scale: 384 = 1.5× normal (256). Keeps overlay readable on small
 // windows without dominating the screen.
@@ -98,46 +96,9 @@ void debug_timing_overlay_render_font2d(void)
         : OVERLAY_COLOR_NORMAL;
     FONT2D_DrawString((CBYTE*)tbuf, 4, 4, overlay_color, DEBUG_FONT_SCALE);
 
-    // Second line — Darci's current animation state. Useful for diagnosing
-    // render-interp issues at keyframe / loop / anim-change boundaries.
-    // Reads net_persons[0] which is Darci in single-player. Reads from live
-    // dt fields — the overlay callback fires from ge_flip (post-draw_screen),
-    // so RenderInterpFrame dtor has already restored the actual physics
-    // state.
-    Thing* p_darci = NET_PERSON(0);
-    if (p_darci && p_darci->Class == CLASS_PERSON && p_darci->Draw.Tweened) {
-        DrawTween* dt = p_darci->Draw.Tweened;
-
-        // Walk forward via NextFrame from the current keyframe to count
-        // remaining frames in the anim (until ANIM_FLAG_LAST_FRAME). Total
-        // = FrameIndex (0-based, frames already played) + remaining frames
-        // including the current one and the LAST_FRAME terminus.
-        SLONG remaining = 0;
-        const SLONG SAFETY_CAP = 64; // anims in this game are far shorter
-        struct GameKeyFrame* f = dt->CurrentFrame;
-        while (f && remaining < SAFETY_CAP) {
-            remaining++;
-            if (f->Flags & ANIM_FLAG_LAST_FRAME) break;
-            f = f->NextFrame;
-        }
-        SLONG total = SLONG(dt->FrameIndex) + remaining;
-
-        char dbuf[160];
-        snprintf(dbuf, sizeof(dbuf),
-            "darci anim=%ld mesh=%u frame=%d/%ld tw=%ld",
-            (long)dt->CurrentAnim,
-            unsigned(dt->MeshID),
-            int(dt->FrameIndex) + 1,
-            (long)total,
-            (long)dt->AnimTween);
-        // 1.5× font ≈ 24 px line height; 28 leaves a tiny breather under
-        // the timing line.
-        FONT2D_DrawString((CBYTE*)dbuf, 4, 28, 0xffff00, DEBUG_FONT_SCALE);
-    }
-
-    // Third line — physics ticks this frame. Shown only when > 1 (multi-tick
-    // frame means either low FPS or stall-test active). Red when the cap
-    // fired (= MAX_PHYSICS_TICKS_PER_FRAME = 4), orange when approaching.
+    // Second line — physics ticks this frame. Shown only when > 1 (multi-tick
+    // frame means the machine is under load). Red when the cap fired (= 4),
+    // orange when approaching.
     if (g_last_phys_tick_count > 1) {
         char tks[64];
         snprintf(tks, sizeof(tks), "ticks/frame: %d", g_last_phys_tick_count);
@@ -146,10 +107,11 @@ void debug_timing_overlay_render_font2d(void)
         constexpr int   MAX_TICKS_SHOWN  = 4;        // mirrors MAX_PHYSICS_TICKS_PER_FRAME
         const SLONG color = (g_last_phys_tick_count >= MAX_TICKS_SHOWN)
             ? TICKS_CAP_COLOR : TICKS_WARN_COLOR;
-        // 1.5× font ≈ 24 px line height; 52 places this below the darci-anim line.
-        FONT2D_DrawString((CBYTE*)tks, 4, 52, color, DEBUG_FONT_SCALE);
+        FONT2D_DrawString((CBYTE*)tks, 4, 28, color, DEBUG_FONT_SCALE);
     }
 
     POLY_frame_draw(UC_FALSE, UC_FALSE);
     ge_set_ui_mode(false);
 }
+
+#endif // OC_DEBUG_PHYSICS_TIMING

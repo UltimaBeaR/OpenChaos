@@ -107,14 +107,6 @@ reinit_because_of_language_change:
 
             res = FRONTEND_loop();
 
-            // Debug timing keys: input_frame snapshot is refreshed at top of
-            // SHELL_ACTIVE (LibShellActive → input_frame_update) before this
-            // loop body runs, so check_debug_timing_keys can read it any time.
-            // Order kept after FRONTEND_loop for historical reasons (no longer
-            // matters for correctness).
-            extern void check_debug_timing_keys(void);
-            check_debug_timing_keys();
-
             if (res) {
                 switch (res) {
                 case STARTS_PSX:

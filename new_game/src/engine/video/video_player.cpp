@@ -323,29 +323,6 @@ bool video_play(const char* filename, bool allow_skip)
             ds_update_input();
             input_frame_update();
 
-            // --- Debug timing keys (mirror of game.cpp::check_debug_timing_keys) ---
-            extern SLONG g_physics_hz;
-            extern SLONG g_render_fps_cap;
-            extern bool g_render_interp_enabled;
-            if (input_key_just_pressed(KB_1))
-                g_physics_hz = (g_physics_hz == 20) ? 5 : 20;
-            if (input_key_just_pressed(KB_2)) {
-                // 30 mirrors RENDER_FPS_TOGGLE_LOW in check_debug_timing_keys
-                // (PS1-only render rate; PC retail ran at ~22 Hz — see
-                // game_types.h UC_VISUAL_CADENCE_HZ comment).
-                g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP) ? 30 : RENDER_FPS_DEFAULT_CAP;
-            }
-            if (input_key_just_pressed(KB_3))
-                g_render_interp_enabled = !g_render_interp_enabled;
-            if (input_key_just_pressed(KB_9)) {
-                g_physics_hz -= 1;
-                if (g_physics_hz < 1) g_physics_hz = 1;
-            }
-            if (input_key_just_pressed(KB_0)) {
-                g_physics_hz += 1;
-                if (g_physics_hz > 20) g_physics_hz = 20;
-            }
-
             // --- Skip on any user input ---
             if (allow_skip) {
                 if (input_key_just_pressed(KB_ESC)

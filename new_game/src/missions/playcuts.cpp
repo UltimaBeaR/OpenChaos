@@ -556,9 +556,6 @@ void PLAYCUTS_Play(CPData* cutscene)
 
         screen_flip();
 
-        extern void check_debug_timing_keys(void);
-        check_debug_timing_keys();
-
         // PLAYCUTS_Play is used only by dev / test maps (cutstest, smoketest,
         // moo) — no shipped mission references it. The cutscene packet stream
         // advances by one packet per loop iteration via `read_head++` below,

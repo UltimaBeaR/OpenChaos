@@ -49,7 +49,7 @@
 #include "ui/menus/gamemenu.h"
 #include "ui/hud/overlay.h" // OVERLAY_handle
 #include "game/ui_render.h" // ui_render_post_composition
-#include "game/debug_timing_overlay.h" // debug_timing_overlay_render_font2d
+#include "game/debug_timing_overlay.h" // debug_timing_overlay_render_font2d (no-op when OC_DEBUG_PHYSICS_TIMING=false)
 #include "engine/input/gamepad.h" // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
@@ -212,7 +212,9 @@ void game_startup(void)
     // calls mode_change_callback, and Flip() calls pre_flip_callback.
     ge_set_pre_flip_callback(game_pre_flip);
     ge_set_post_composition_callback(ui_render_post_composition);
+#if OC_DEBUG_PHYSICS_TIMING
     ge_set_diagnostic_overlay_callback(debug_timing_overlay_render_font2d);
+#endif
     ge_set_mode_change_callback(game_mode_changed);
     ge_set_polys_drawn_callback(game_polys_drawn);
     ge_set_render_states_reset_callback(game_render_states_reset);
@@ -612,14 +614,7 @@ void playback_game_keys(void)
     }
 }
 
-// Debug timing hotkeys.
-//   1 — toggle physics 20<->5 (default 20, design rate)
-//   2 — toggle render fps cap unlimited<->25 (default unlimited; 0 = no cap)
-//   3 — toggle render interpolation on/off (default on)
-//   9 — physics -1 (clamped to 1)
-//   0 — physics +1 (clamped to 20)
-// Called from both special_keys (in-game) and game_attract_mode (main menu)
-// so the hotkeys work at all times without bangunsnotgames gate.
+#if OC_DEBUG_PHYSICS_TIMING
 void check_debug_timing_keys(void)
 {
     constexpr SLONG PHYS_HZ_TOGGLE_LOW   = 5;
@@ -662,6 +657,7 @@ void check_debug_timing_keys(void)
         if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
     }
 }
+#endif // OC_DEBUG_PHYSICS_TIMING
 
 // uc_orig: special_keys (fallen/Source/Game.cpp)
 SLONG special_keys(void)
@@ -733,8 +729,9 @@ SLONG special_keys(void)
         process_things(0);
     }
 
-    // Keys 1/2/9/0: debug timing hotkeys — see check_debug_timing_keys.
+#if OC_DEBUG_PHYSICS_TIMING
     check_debug_timing_keys();
+#endif
 
     return (0);
 }

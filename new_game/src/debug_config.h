@@ -23,3 +23,21 @@
 // caused busy AL_INVALID_OPERATION spin in update paths and tanked FPS)
 // — this is the cheap mute knob.
 #define OC_DEBUG_SOUND_DISABLED false
+
+// Physics / render timing debug overlay and hotkeys.
+//
+// When true, enables:
+//   Overlay (top-left, yellow text, always visible during gameplay):
+//     "phys: <hz>  lock: <fps|unlim>  IP: <on|off>  fps: <N.N>"
+//     "ticks/frame: <N>"  — shown in orange/red only when > 1 tick/frame
+//
+//   Hotkeys (no bangunsnotgames required, gameplay only):
+//     1              — toggle physics Hz between 20 Hz (design) and 5 Hz (slow-mo debug)
+//     9 / 0          — fine-tune physics Hz ±1 (range 1..20)
+//     2              — toggle render FPS cap: unlimited ↔ 30 fps
+//     DualSense touchpad click — same as key 2 (render cap toggle)
+//     3              — toggle render interpolation on/off
+//
+// When false: no overlay, no hotkeys, no runtime state changes possible.
+// Always keep false in shipping builds.
+#define OC_DEBUG_PHYSICS_TIMING true
