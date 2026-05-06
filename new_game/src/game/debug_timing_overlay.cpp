@@ -75,6 +75,7 @@ void debug_timing_overlay_render_font2d(void)
     // FB where the composed scene already lives.
     ge_set_ui_mode(true);
     extern bool g_render_interp_enabled;
+    extern int  g_last_phys_tick_count;
     const char* ip_str = g_render_interp_enabled ? "on" : "off";
 
     char tbuf[128];
@@ -132,6 +133,21 @@ void debug_timing_overlay_render_font2d(void)
         // 1.5× font ≈ 24 px line height; 28 leaves a tiny breather under
         // the timing line.
         FONT2D_DrawString((CBYTE*)dbuf, 4, 28, 0xffff00, DEBUG_FONT_SCALE);
+    }
+
+    // Third line — physics ticks this frame. Shown only when > 1 (multi-tick
+    // frame means either low FPS or stall-test active). Red when the cap
+    // fired (= MAX_PHYSICS_TICKS_PER_FRAME = 4), orange when approaching.
+    if (g_last_phys_tick_count > 1) {
+        char tks[64];
+        snprintf(tks, sizeof(tks), "ticks/frame: %d", g_last_phys_tick_count);
+        constexpr SLONG TICKS_WARN_COLOR = 0xff8000; // orange: >1 but below cap
+        constexpr SLONG TICKS_CAP_COLOR  = 0xff2020; // red: cap fired (4 ticks)
+        constexpr int   MAX_TICKS_SHOWN  = 4;        // mirrors MAX_PHYSICS_TICKS_PER_FRAME
+        const SLONG color = (g_last_phys_tick_count >= MAX_TICKS_SHOWN)
+            ? TICKS_CAP_COLOR : TICKS_WARN_COLOR;
+        // 1.5× font ≈ 24 px line height; 52 places this below the darci-anim line.
+        FONT2D_DrawString((CBYTE*)tks, 4, 52, color, DEBUG_FONT_SCALE);
     }
 
     POLY_frame_draw(UC_FALSE, UC_FALSE);

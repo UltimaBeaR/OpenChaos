@@ -103,6 +103,11 @@ extern SLONG BARREL_fx_rate;
 extern UBYTE combo_display;
 extern UBYTE stealth_debug;
 
+// Physics-tick count executed in the most recent render frame. Written by
+// the main game loop, read by the debug timing overlay. Zero outside the
+// game loop.
+int  g_last_phys_tick_count = 0;
+
 // uc_orig: stop_all_fx_and_music (fallen/Source/Game.cpp)
 void stop_all_fx_and_music(void)
 {
@@ -860,6 +865,19 @@ round_again:;
         // machines on the first tick) are visible for one frame in their
         // pre-tick state. Cost: mission timer / EWAY scripted events start
         // ~50 ms earlier — within frame margin, not gameplay-significant.
+        // Cap on frame_dt_ms — limits physics_acc_ms growth so a long stall
+        // (debugger pause, thermal throttle, OS preemption) does not enqueue
+        // more than MAX_PHYSICS_TICKS_PER_FRAME physics ticks on recovery.
+        static constexpr double FRAME_DT_MAX_MS = 200.0;
+
+        // Maximum physics ticks per render frame. Derived:
+        // FRAME_DT_MAX_MS / (1000 / UC_PHYSICS_DESIGN_HZ) = 200 / 50 = 4.
+        // An explicit counter below makes the cap visible in the timing
+        // overlay and guarantees it even when g_physics_hz is tuned at
+        // runtime (debug keys 9/0).
+        static constexpr int MAX_PHYSICS_TICKS_PER_FRAME =
+            static_cast<int>(FRAME_DT_MAX_MS / (1000.0 / UC_PHYSICS_DESIGN_HZ));
+
         double   physics_acc_ms = 1000.0 / double(g_physics_hz);
 
         // Drop any stale interpolation snapshots from the previous mission
@@ -871,7 +889,7 @@ round_again:;
             {
                 uint64_t now_ms = sdl3_get_ticks();
                 double frame_dt_ms = double(now_ms - prev_frame_ms);
-                if (frame_dt_ms > 200.0) frame_dt_ms = 200.0; // cap to prevent spiral-of-death on stalls
+                if (frame_dt_ms > FRAME_DT_MAX_MS) frame_dt_ms = FRAME_DT_MAX_MS;
                 prev_frame_ms = now_ms;
                 physics_acc_ms += frame_dt_ms;
                 // Publish wall-clock dt for render-side effects (rain
@@ -985,7 +1003,10 @@ round_again:;
                 const SLONG  phys_tick_diff = 1000 / g_physics_hz;
                 const float  phys_dt_ms    = float(phys_step_ms);
 
-                while (should_i_process_game() && physics_acc_ms >= phys_step_ms) {
+                g_last_phys_tick_count = 0;
+                while (should_i_process_game() && physics_acc_ms >= phys_step_ms
+                       && g_last_phys_tick_count < MAX_PHYSICS_TICKS_PER_FRAME) {
+                    g_last_phys_tick_count++;
 
                     OVERLAY_begin_physics_tick();
 
@@ -1090,6 +1111,14 @@ round_again:;
 
                     physics_acc_ms -= phys_step_ms;
                 }
+                // If the per-frame tick cap fired, discard leftover accumulator
+                // so it does not carry over as an extra burst next frame.
+                // (At design rate this is belt-and-suspenders alongside the
+                // FRAME_DT_MAX_MS clamp; it matters if g_physics_hz is tuned
+                // to a higher rate via debug keys while a stall is in progress.)
+                if (g_last_phys_tick_count >= MAX_PHYSICS_TICKS_PER_FRAME)
+                    physics_acc_ms = 0.0;
+
                 const bool game_frozen = !should_i_process_game();
                 if (game_frozen) physics_acc_ms = 0.0;
 
