@@ -4375,7 +4375,8 @@ void set_person_idle(Thing* p_person)
         return;
     }
 
-    p_person->Genus.Person->Timer1 = (Random() & 0x1ff) + 400;
+    // Calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+    p_person->Genus.Person->Timer1 = ((Random() & 0x1ff) + 400) * UC_PHYSICS_DESIGN_HZ / UC_VISUAL_CADENCE_HZ;
     set_generic_person_state_function(p_person, STATE_IDLE);
     p_person->Genus.Person->Action = ACTION_IDLE;
     p_person->Genus.Person->Flags &= ~(FLAG_PERSON_NON_INT_M | FLAG_PERSON_NON_INT_C);
@@ -4421,7 +4422,8 @@ void set_person_locked_idle_ready(Thing* p_person)
         return;
     }
 
-    p_person->Genus.Person->Timer1 = (Random() & 0x1ff) + 400;
+    // Calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+    p_person->Genus.Person->Timer1 = ((Random() & 0x1ff) + 400) * UC_PHYSICS_DESIGN_HZ / UC_VISUAL_CADENCE_HZ;
     if (p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) {
         if (p_person->Genus.Person->PlayerID) {
             camera_shoot();
@@ -7077,7 +7079,8 @@ void set_person_random_idle(Thing* p_person)
         queue_anim(p_person, anim);
     }
 
-    p_person->Genus.Person->Timer1 = (Random() & 0xff) + 400;
+    // Calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+    p_person->Genus.Person->Timer1 = ((Random() & 0xff) + 400) * UC_PHYSICS_DESIGN_HZ / UC_VISUAL_CADENCE_HZ;
 
     switch (p_person->Genus.Person->PersonType) {
     case PERSON_ROPER:
@@ -10459,7 +10462,9 @@ void fn_person_dying(Thing* p_person)
             p_person->Genus.Person->Timer1 += 2;
         }
 
-        if (p_person->Genus.Person->Timer1++ > 200 - (GET_SKILL(p_person) * 8)) {
+        // Threshold calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+        // 200 * 20/30 = 133, 8 * 20/30 = 5.
+        if (p_person->Genus.Person->Timer1++ > (200 * UC_PHYSICS_DESIGN_HZ / UC_VISUAL_CADENCE_HZ) - (GET_SKILL(p_person) * (8 * UC_PHYSICS_DESIGN_HZ / UC_VISUAL_CADENCE_HZ))) {
             p_person->SubState = SUB_STATE_DYING_GET_UP_AGAIN;
 
             // Pick the get-up animation based on how the person is lying.
@@ -13331,7 +13336,8 @@ void fn_person_circle(Thing* p_person)
 
         //				if(dist<hit_distance-20 || dist>hit_distance+20)
         {
-            if (p_person->Genus.Person->Timer1++ > 10) {
+            // Threshold calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+            if (p_person->Genus.Person->Timer1++ > (10 * UC_PHYSICS_DESIGN_HZ / UC_VISUAL_CADENCE_HZ)) {
                 SLONG gang;
                 void push_into_attack_group_at_angle(Thing * p_person, SLONG gang, SLONG reqd_angle);
                 gang = p_target->Genus.Person->GangAttack;

@@ -910,7 +910,9 @@ void PYRO_fn_normal_ex(Thing* thing)
         if (pyro->points[i].radius < 0)
             dead = 1;
     }
-    thing->Genus.Pyro->Timer1 += 7;
+    // Step calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+    // 7 * 30/20 = 10.5 → 11 (rounds to match original ~1.21s lifetime).
+    thing->Genus.Pyro->Timer1 += (7 * UC_VISUAL_CADENCE_HZ + UC_PHYSICS_DESIGN_HZ / 2) / UC_PHYSICS_DESIGN_HZ;
     if (dead || (thing->Genus.Pyro->Timer1 >= 255))
         free_pyro(thing);
 }
