@@ -9,9 +9,6 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "things/core/statedef.h"
-#include "engine/graphics/pipeline/aeng.h" // AENG_world_line_nondebug
-#include "engine/input/keyboard_globals.h" // ControlFlag
-#include "game/game_tick_globals.h" // allow_debug_keys
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/effects/psystem.h" // PFLAG_* particle flags
 #include "things/items/grenade.h"
@@ -243,11 +240,13 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
 
     MFX_play_xyz(0, S_EXPLODE_START, MFX_OVERLAP, x, y, z);
 
+    // Additive central flash. Pre-release size=190+(rand&0x3f) with grow=20 hit UWORD cap=255
+    // immediately and persisted ~12 sec; reduced to a brief shrinking flash.
     PARTICLE_Add(x, y, z, 0, 0, 0, (Random() & 1) ? POLY_PAGE_EXPLODE1_ADDITIVE : POLY_PAGE_EXPLODE2_ADDITIVE, 2,
-        0x00FFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE | PFLAG_BOUNCE, 120, 190 + (Random() & 0x3f), 1, 0, 20);
+        0x00FFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE | PFLAG_BOUNCE, 10, 20, 1, 0, -3);
     PARTICLE_Add(x + (((Random() & 0xff) - 0x7f) << 4), y + (((Random() & 0xff) - 0x7f) << 4), z + (((Random() & 0xff) - 0x7f) << 4),
         0, 0, 0, (Random() & 1) ? POLY_PAGE_EXPLODE1_ADDITIVE : POLY_PAGE_EXPLODE2_ADDITIVE, 2,
-        0x7fFFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE, 70, 120 + (Random() & 0x7f), 1, 0, 40);
+        0x7fFFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE, 8, 15, 1, 0, -3);
 
     int iNumParticles = IWouldLikeSomePyroSpritesHowManyCanIHave(20 * 4);
     iNumParticles /= 4;
@@ -256,15 +255,17 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
         PARTICLE_Add(x + (((Random() & 0x7f) - 0x3f) << 9), y + (((Random() & 0x3f) - 0x1f) << 6), z + (((Random() & 0x7f) - 0x3f) << 9),
             ((Random() & 0x1f) - 0xf) << 1, (1 + (Random() & 0xf)) << 6, ((Random() & 0x1f) - 0xf) << 1,
             POLY_PAGE_SMOKECLOUD, 2, 0xFFFFFFFF, PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
-            150, 20 + (Random() & 0x7f), 1, 2 + (Random() & 3), 3);
+            150, 20 + (Random() & 0x7f), 1, 2 + (Random() & 3), 6);
         PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 6, (Random() & 0x1f) << 6, ((Random() & 0x1f) - 0xf) << 6,
             POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
             240, 20 + (Random() & 0x1f), 1, 3 + (Random() & 3), 0);
 
         if (Random() & 3)
-            PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 8, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 8,
+            // Bounce shrapnel — close-range bouncing particles. Velocity reduced (<<8 → <<5),
+            // size 5 → 3 (1.5× smaller), fade rate doubled (2+rand&3 → 4+rand&7) → ~2.5 sec life.
+            PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 5, (Random() & 0x1f) << 5, ((Random() & 0x1f) - 0xf) << 5,
                 POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 1) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA | PFLAG_BOUNCE,
-                240, 5, 1, 2 + (Random() & 3), 0);
+                240, 3, 1, 4 + (Random() & 7), 0);
         else
             PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 12, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 12,
                 POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
@@ -312,15 +313,19 @@ void show_grenade_path(Thing* p_person)
                     y1 = gp->y >> 8;
                     z1 = gp->z >> 8;
 
-                    if (ControlFlag && allow_debug_keys && (((count & 7) == 0) || ((count & 7) == 1))) {
-                        AENG_world_line_nondebug(
-                            x, y, z,
-                            3,
-                            0x8000af00,
-                            x1, y1, z1,
-                            3,
-                            0x8000af00,
-                            UC_TRUE);
+                    if ((count & 7) == 0 || (count & 7) == 1) {
+                        // Inline POLY_PAGE_COLOUR_ALPHA path so alpha byte actually blends —
+                        // AENG_world_line_nondebug uses POLY_PAGE_COLOUR which ignores alpha.
+                        POLY_Point pp1, pp2;
+                        POLY_transform(float(x), float(y), float(z), &pp1);
+                        POLY_transform(float(x1), float(y1), float(z1), &pp2);
+                        if (POLY_valid_line(&pp1, &pp2)) {
+                            pp1.colour = 0x6000a000;
+                            pp1.specular = 0xff000000;
+                            pp2.colour = 0x6000a000;
+                            pp2.specular = 0xff000000;
+                            POLY_add_line(&pp1, &pp2, 3.0f, 3.0f, POLY_PAGE_COLOUR_ALPHA, UC_TRUE);
+                        }
                     }
 
                     count++;

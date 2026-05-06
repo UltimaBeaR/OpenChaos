@@ -45,6 +45,11 @@
 #define PFLAG_EXPLODE_ON_IMPACT 65536
 // uc_orig: PFLAG_LEAVE_TRAIL (fallen/Headers/PSystem.h)
 #define PFLAG_LEAVE_TRAIL 131072
+// OpenChaos extension: exponential alpha fade — alpha *= (256 - fade)/256 per logic tick.
+// Drops fast initially, lingers at low alpha. Matches retail smoke behavior where the
+// dark cloud quickly becomes barely visible then takes longer to fully disappear.
+// Linear PFLAG_FADE cannot reproduce this two-phase look.
+#define PFLAG_FADE_EXP 262144
 
 // ---- Convenience flag combinations ----
 

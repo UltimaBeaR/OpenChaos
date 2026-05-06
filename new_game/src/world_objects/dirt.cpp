@@ -988,12 +988,14 @@ void DIRT_new_sparks(SLONG px, SLONG py, SLONG pz, UBYTE dir)
         }
         if (!nodrip)
             DIRT_new_water(px, py, pz, dx, dy, dz, DIRT_TYPE_SPARKS);
-        PARTICLE_Add(px << 8, py << 8, pz << 8, dx << 9, dy << 9, dz << 9, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 10, 1, 2 + (Random() & 7), 0);
+        // Bouncing additive sparks. Pre-release size=10 was visually too large; reduced to 1.
+        PARTICLE_Add(px << 8, py << 8, pz << 8, dx << 9, dy << 9, dz << 9, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 1, 1, 2 + (Random() & 7), 0);
     }
+    // Central additive flash. Pre-release size=15+(rand&0x3f) (=15-78) was the largest blob source.
     if (Random() & 1)
-        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0xFFffffff, PFLAG_FADE, 2, 15 + (Random() & 0x3f), 1, 0x7f, 0);
+        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0xFFffffff, PFLAG_FADE, 2, 2 + (Random() & 0x03), 1, 0x7f, 0);
     else
-        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE2_ADDITIVE, 2 + ((Random() & 1) << 2), 0xFFffffff, PFLAG_FADE, 2, 15 + (Random() & 0x3f), 1, 0x7f, 0);
+        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE2_ADDITIVE, 2 + ((Random() & 1) << 2), 0xFFffffff, PFLAG_FADE, 2, 2 + (Random() & 0x03), 1, 0x7f, 0);
 }
 
 // Emits a shower of particle sparks from the given spark dirt entry's position.
@@ -1006,10 +1008,11 @@ static void DIRT_spark_shower(DIRT_Dirt* dd)
 
     UBYTE i;
     for (i = 0; i < 5; i++) {
+        // Bouncing additive sparks spawned on spark-bounce. Same size class as DIRT_new_sparks bouncing.
         if (Random() & 1)
-            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, ((Random() & 0x3f) + 0x1f) << 4, ((Random() & 0x3f) - 0x2f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 10, 1, 2 + (Random() & 7), 0);
+            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, ((Random() & 0x3f) + 0x1f) << 4, ((Random() & 0x3f) - 0x2f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 1, 1, 2 + (Random() & 7), 0);
         else
-            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, dd->dy >> 4, ((Random() & 0x3f) - 0x1f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 10, 1, 2 + (Random() & 7), 0);
+            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, dd->dy >> 4, ((Random() & 0x3f) - 0x1f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 1, 1, 2 + (Random() & 7), 0);
     }
 }
 
