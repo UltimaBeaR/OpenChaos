@@ -627,6 +627,15 @@ void ge_set_pre_flip_callback(GEPreFlipCallback callback);
 using GEPostCompositionCallback = void (*)();
 void ge_set_post_composition_callback(GEPostCompositionCallback callback);
 
+// Diagnostic overlay callback: like post-composition but fires from EVERY
+// present path — main flip, back-buffer blit, and the video player's draw.
+// Game registers a tiny FPS / cap overlay here so it stays visible during
+// cutscenes (FMV) and the outro sequence too, without dragging the full
+// HUD pipeline into those code paths. Runs AFTER post-composition so the
+// overlay sits on top of any UI the post-composition pass drew.
+using GEDiagnosticOverlayCallback = void (*)();
+void ge_set_diagnostic_overlay_callback(GEDiagnosticOverlayCallback callback);
+
 // Redirect ge_begin_scene() to the default framebuffer instead of the scene
 // FBO. Used by the post-composition UI pass: UI code that calls
 // POLY_frame_init transitively calls ge_begin_scene, which would otherwise

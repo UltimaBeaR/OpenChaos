@@ -26,9 +26,8 @@ extern SLONG ScreenHeight;
 #include "engine/audio/mfx.h" // MFX_play_stereo, MFX_stop, MFX_set_volumes, etc.
 #include "engine/audio/sound.h" // WEATHER_REF, SIREN_REF
 #include "assets/sound_id.h" // S_TUNE_BONUS, S_MENU_CLICK_START, etc.
-#include "engine/input/keyboard_globals.h" // Keys[], LastKey, ControlFlag, ShiftFlag
-#include "engine/input/joystick.h" // ReadInputDevice
-#include "engine/input/joystick_globals.h" // the_state (DIJOYSTATE)
+#include "engine/input/keyboard_globals.h" // ControlFlag, ShiftFlag
+#include "engine/input/input_frame.h"
 #include "engine/graphics/text/font2d_globals.h" // FONT2D_leftmost_x, FONT2D_rightmost_x
 #include "engine/graphics/text/menufont_globals.h" // FontPage
 #include "game/input_actions.h" // get_hardware_input, INPUT_TYPE_JOY, INPUT_MASK_*
@@ -2366,32 +2365,30 @@ static BOOL FRONTEND_ValidMission(SWORD sel)
 static UBYTE FRONTEND_input(void)
 {
     UBYTE scan, any_button = 0;
+    // Tracks the previous frame's resolved input mask. Used as a one-frame
+    // settle gate for grabbing_pad so a confirm press doesn't immediately
+    // re-trigger a bind on the same frame.
     static SLONG last_input = 0;
-    static UBYTE last_button = 0;
-    static UBYTE first_pad = 1;
-    static int dir_ticker = 0;
-    static int held_x = 0; // hysteresis state: -1=LEFT, 0=center, 1=RIGHT
-    static int held_y = 0; // hysteresis state: -1=UP, 0=center, 1=DOWN
 
     SLONG input = 0;
 
     if (grabbing_pad && !last_input) {
         UBYTE i, j;
         MenuData* item = menu_data + menu_state.selected;
-        ReadInputDevice();
-        if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
-            Keys[KB_ESC] = 0;
+        if (input_key_just_pressed(KB_ESC)) {
+            // Consume so the regular-nav ESC handler below doesn't also fire
+            // FE_BACK / FE_QUIT on a subsequent frame while ESC stays held.
+            input_key_force_release(KB_ESC);
             grabbing_pad = 0;
         } else {
             for (i = 0; i < 32; i++) {
-                if (the_state.rgbButtons[i] & 0x80) {
+                if (input_btn_held(i)) {
                     for (j = 0; j < menu_state.items; j++) {
                         if (menu_data[j].Data == i) {
                             menu_data[j].Data = 31;
                         }
                     }
                     item->Data = i;
-                    last_button = 1;
                     grabbing_pad = 0;
                     break;
                 }
@@ -2399,180 +2396,160 @@ static UBYTE FRONTEND_input(void)
         }
         return 0;
     } else {
-        // Axis reading with hysteresis to prevent stick wobble near threshold.
-        // Activation zone is wider, release zone is tighter — once a direction is detected,
-        // small oscillations around the threshold don't flip it on/off.
-#define AXIS_CENTRE 32768
-#define ACTIVATE_ZONE 4096
-#define RELEASE_ZONE 2048
+        // Unified menu navigation through input_frame. Three independent
+        // input sources per direction: keyboard arrows, left-stick virtual
+        // directions, D-Pad buttons. They are merged into one combined "any
+        // held / any just-pressed" boolean per direction with a SINGLE
+        // auto-repeat throttle (independent per-source timers would
+        // interleave to ~2× rate when several sources are held at once).
+        //
+        // D-Pad must be read separately via rgbButtons[11..14] — the gamepad
+        // layer mirrors D-Pad into lX/lY destructively (D-Pad held → axis
+        // clamped to 0 / 65535, hiding any concurrent stick deflection).
+        // input_stick_held now reads lX_raw / lY_raw (pre-override) so the
+        // stick signal survives even when the D-Pad is also held; the D-Pad
+        // signal comes from rgbButtons. Antagonist suppression on the
+        // combined OR catches stick+D-Pad-opposite-directions.
+        //
+        // Confirm/cancel buttons via just_pressed edge-detect: a button held
+        // from a previous screen produces no rising edge in the snapshot, so
+        // a stale press cannot leak into the menu.
 
-        input = get_hardware_input(INPUT_TYPE_JOY);
+        const bool kb_up = input_key_held(KB_UP);
+        const bool kb_dn = input_key_held(KB_DOWN);
+        const bool kb_lt = input_key_held(KB_LEFT);
+        const bool kb_rt = input_key_held(KB_RIGHT);
 
-        input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS);
+        bool st_up = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP);
+        bool st_dn = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN);
+        bool st_lt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT);
+        bool st_rt = input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT);
 
-        // Gamepad axes — only process if connected (disconnected state has lX/lY=0 which
-        // would be misread as far-up-left).
-        if (the_state.connected) {
-            // X axis hysteresis.
-            if (held_x == 0) {
-                if (the_state.lX > AXIS_CENTRE + ACTIVATE_ZONE)
-                    held_x = 1;
-                else if (the_state.lX < AXIS_CENTRE - ACTIVATE_ZONE)
-                    held_x = -1;
-            } else if (held_x > 0) {
-                if (the_state.lX < AXIS_CENTRE + RELEASE_ZONE)
-                    held_x = 0;
-            } else {
-                if (the_state.lX > AXIS_CENTRE - RELEASE_ZONE)
-                    held_x = 0;
-            }
+        const bool dp_up = input_btn_held(11);
+        const bool dp_dn = input_btn_held(12);
+        const bool dp_lt = input_btn_held(13);
+        const bool dp_rt = input_btn_held(14);
 
-            // Y axis hysteresis.
-            if (held_y == 0) {
-                if (the_state.lY > AXIS_CENTRE + ACTIVATE_ZONE)
-                    held_y = 1;
-                else if (the_state.lY < AXIS_CENTRE - ACTIVATE_ZONE)
-                    held_y = -1;
-            } else if (held_y > 0) {
-                if (the_state.lY < AXIS_CENTRE + RELEASE_ZONE)
-                    held_y = 0;
-            } else {
-                if (the_state.lY > AXIS_CENTRE - RELEASE_ZONE)
-                    held_y = 0;
-            }
-
-            // No diagonals — dominant axis wins (prevents Y wobble from overriding X).
-            int32_t dx = the_state.lX > AXIS_CENTRE ? the_state.lX - AXIS_CENTRE : AXIS_CENTRE - the_state.lX;
-            int32_t dy = the_state.lY > AXIS_CENTRE ? the_state.lY - AXIS_CENTRE : AXIS_CENTRE - the_state.lY;
-
-            if (held_y != 0 && (dy >= dx || held_x == 0)) {
-                if (held_y > 0)
-                    input |= INPUT_MASK_BACKWARDS;
-                else
-                    input |= INPUT_MASK_FORWARDS;
-            } else if (held_x != 0) {
-                if (held_x > 0)
-                    input |= INPUT_MASK_RIGHT;
-                else
-                    input |= INPUT_MASK_LEFT;
-            } else if (held_y != 0) {
-                if (held_y > 0)
-                    input |= INPUT_MASK_BACKWARDS;
-                else
-                    input |= INPUT_MASK_FORWARDS;
-            }
-        } else {
-            held_x = 0;
-            held_y = 0;
-        }
-
-        {
-            // Merge keyboard arrows into the gamepad direction path — one unified repeat.
-            // Don't clear Keys[] — it's populated by async keyboard hook, clearing causes
-            // gaps between auto-repeat events that make the ticker stutter.
-            if (Keys[KB_UP])
-                input |= INPUT_MASK_FORWARDS;
-            if (Keys[KB_DOWN])
-                input |= INPUT_MASK_BACKWARDS;
-            if (Keys[KB_LEFT])
-                input |= INPUT_MASK_LEFT;
-            if (Keys[KB_RIGHT])
-                input |= INPUT_MASK_RIGHT;
-
-            // Split into directions (need auto-repeat) and buttons (edge-detect only).
-            SLONG dir_mask = INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS;
-            SLONG dir_input = input & dir_mask;
-            SLONG btn_input = input & ~dir_mask;
-            SLONG last_dir = last_input & dir_mask;
-            SLONG last_btn = last_input & ~dir_mask;
-
-            // Buttons: edge-detect only — fire once per press.
-            any_button = 0;
-            if (btn_input != last_btn) {
-                // Cross/A (index 0) = confirm. Triangle/Y = cancel (via INPUT_MASK_CANCEL).
-                any_button = the_state.rgbButtons[0];
-            } else {
-                btn_input = 0;
-            }
-
-            // Directions: ticker-based auto-repeat. Reset on release for clean quick taps.
-            if (dir_input) {
-                if (dir_input != last_dir) {
-                    // New direction or first press — fire immediately.
-                    dir_ticker = 12;
-                } else if (dir_ticker < 1) {
-                    // Same direction held long enough — repeat.
-                    dir_ticker = 5;
+        // Stick-only diagonal: pick the dominant axis by raw distance from
+        // centre so a small Y wobble doesn't override an intended X flick.
+        // Keyboard and D-Pad inputs keep independent diagonals — explicit
+        // multi-source combos are intentional, not noise. Read raw axis
+        // values (pre-D-Pad override) so the comparison reflects the actual
+        // physical stick deflection.
+        const bool kb_any_dir = kb_up || kb_dn || kb_lt || kb_rt;
+        const bool dp_any_dir = dp_up || dp_dn || dp_lt || dp_rt;
+        if (!kb_any_dir && !dp_any_dir && input_gamepad_connected()) {
+            const bool st_y = st_up || st_dn;
+            const bool st_x = st_lt || st_rt;
+            if (st_y && st_x) {
+                const int32_t lx_raw = input_stick_x_axis_raw(INPUT_STICK_LEFT);
+                const int32_t ly_raw = input_stick_y_axis_raw(INPUT_STICK_LEFT);
+                const int32_t dx = (lx_raw > 32768) ? lx_raw - 32768 : 32768 - lx_raw;
+                const int32_t dy = (ly_raw > 32768) ? ly_raw - 32768 : 32768 - ly_raw;
+                if (dy >= dx) {
+                    st_lt = false;
+                    st_rt = false;
                 } else {
-                    // Waiting for repeat — suppress.
-                    dir_input = 0;
-                    dir_ticker--;
+                    st_up = false;
+                    st_dn = false;
                 }
-            } else {
-                // Released — reset immediately so next tap fires cleanly.
-                dir_ticker = 0;
-            }
-
-            last_input = input;
-            input = dir_input | btn_input;
-
-            // Suppress very first movement: PC joysticks have a strange habit of doing
-            // one spurious movement on boot-up for some reason.
-            if (first_pad) {
-                if (any_button)
-                    first_pad = 0;
-                else if (dir_input) {
-                    first_pad = 0;
-                    input = 0;
-                }
-            }
-            if (last_button) {
-                if (!any_button)
-                    last_button = 0;
-                else
-                    any_button = 0;
             }
         }
+
+        const bool any_up_held = kb_up || st_up || dp_up;
+        const bool any_dn_held = kb_dn || st_dn || dp_dn;
+        const bool any_lt_held = kb_lt || st_lt || dp_lt;
+        const bool any_rt_held = kb_rt || st_rt || dp_rt;
+
+        const bool any_up_jp = input_key_just_pressed(KB_UP)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+            || input_btn_just_pressed(11);
+        const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
+            || input_btn_just_pressed(12);
+        const bool any_lt_jp = input_key_just_pressed(KB_LEFT)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_LEFT)
+            || input_btn_just_pressed(13);
+        const bool any_rt_jp = input_key_just_pressed(KB_RIGHT)
+            || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_RIGHT)
+            || input_btn_just_pressed(14);
+
+        static InputAutoRepeat ar_up;
+        static InputAutoRepeat ar_dn;
+        static InputAutoRepeat ar_lt;
+        static InputAutoRepeat ar_rt;
+
+        bool nav_up = ar_up.tick_combined(any_up_jp, any_up_held);
+        bool nav_dn = ar_dn.tick_combined(any_dn_jp, any_dn_held);
+        bool nav_lt = ar_lt.tick_combined(any_lt_jp, any_lt_held);
+        bool nav_rt = ar_rt.tick_combined(any_rt_jp, any_rt_held);
+
+        // Antagonist suppression: opposite directions held simultaneously =
+        // no clear intent, suppress output. Timers keep ticking so releasing
+        // one direction immediately resumes the other without a fresh initial
+        // delay.
+        if (any_up_held && any_dn_held) {
+            nav_up = false;
+            nav_dn = false;
+        }
+        if (any_lt_held && any_rt_held) {
+            nav_lt = false;
+            nav_rt = false;
+        }
+
+        if (nav_up) input |= INPUT_MASK_FORWARDS;
+        if (nav_dn) input |= INPUT_MASK_BACKWARDS;
+        if (nav_lt) input |= INPUT_MASK_LEFT;
+        if (nav_rt) input |= INPUT_MASK_RIGHT;
+
+        // Cross/A (index 0) = confirm, Triangle/Y (index 3) = cancel.
+        // just_pressed gives both carry-over protection (e.g. X mashed during
+        // an intro skip and still held when entering a menu) and post-bind
+        // protection (Cross held to bind a slot, then released): no rising
+        // edge until release + re-press.
+        if (input_btn_just_pressed(0)) {
+            any_button = 1;
+        }
+        if (input_btn_just_pressed(3)) {
+            input |= INPUT_MASK_CANCEL;
+        }
+
+        last_input = input;
     }
 
-    if (grabbing_key && LastKey) {
-        MenuData* item = menu_data + menu_state.selected;
-        if (LastKey != KB_ESC) {
-            UBYTE j;
-            for (j = 0; j < menu_state.items; j++)
-                if (menu_data[j].Data == LastKey)
-                    menu_data[j].Data = 0;
-            item->Data = LastKey;
+    if (grabbing_key) {
+        const UBYTE last_key = input_last_key();
+        if (last_key) {
+            MenuData* item = menu_data + menu_state.selected;
+            if (last_key != KB_ESC) {
+                UBYTE j;
+                for (j = 0; j < menu_state.items; j++)
+                    if (menu_data[j].Data == last_key)
+                        menu_data[j].Data = 0;
+                item->Data = last_key;
+            }
+            input_key_force_release(last_key);
+            input_last_key_consume();
+            grabbing_key = 0;
+            return 0;
         }
-        Keys[LastKey] = 0;
-        grabbing_key = 0;
-        return 0;
     }
     if (allow_debug_keys) {
-        if (Keys[KB_1] || Keys[KB_2] || Keys[KB_3] || Keys[KB_4]) {
-            if (Keys[KB_1]) {
-                Keys[KB_1] = 0;
-                menu_theme = 0;
-            }
-            if (Keys[KB_2]) {
-                Keys[KB_2] = 0;
-                menu_theme = 1;
-            }
-            if (Keys[KB_3]) {
-                Keys[KB_3] = 0;
-                menu_theme = 2;
-            }
-            if (Keys[KB_4]) {
-                Keys[KB_4] = 0;
-                menu_theme = 3;
-            }
+        const bool theme1 = input_key_just_pressed(KB_1);
+        const bool theme2 = input_key_just_pressed(KB_2);
+        const bool theme3 = input_key_just_pressed(KB_3);
+        const bool theme4 = input_key_just_pressed(KB_4);
+        if (theme1 || theme2 || theme3 || theme4) {
+            if (theme1) menu_theme = 0;
+            if (theme2) menu_theme = 1;
+            if (theme3) menu_theme = 2;
+            if (theme4) menu_theme = 3;
             ge_set_background_override(screenfull_back);
             FRONTEND_kibble_init();
         }
     }
 
-    if (Keys[KB_END]) {
-        Keys[KB_END] = 0;
+    if (input_key_just_pressed(KB_END)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = menu_state.items - 1;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2580,8 +2557,7 @@ static UBYTE FRONTEND_input(void)
         while (((menu_data + menu_state.selected)->Type == OT_LABEL) || (((menu_data + menu_state.selected)->Type == OT_BUTTON) && ((menu_data + menu_state.selected)->Choices == (CBYTE*)1)))
             menu_state.selected--;
     }
-    if (Keys[KB_HOME]) {
-        Keys[KB_HOME] = 0;
+    if (input_key_just_pressed(KB_HOME)) {
         MFX_play_stereo(1, S_MENU_CLICK_START, MFX_REPLACE);
         menu_state.selected = 0;
         if (menu_state.mode == FE_MAPSCREEN)
@@ -2620,10 +2596,7 @@ static UBYTE FRONTEND_input(void)
             mission_selected++;
     }
 
-    if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER] || any_button) {
-        Keys[KB_ENTER] = 0;
-        Keys[KB_SPACE] = 0;
-        Keys[KB_PENTER] = 0;
+    if (input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_PENTER) || any_button) {
         MenuData* item = menu_data + menu_state.selected;
 
         if (fade_mode != 2)
@@ -2715,7 +2688,7 @@ static UBYTE FRONTEND_input(void)
             break;
         case OT_KEYPRESS:
             grabbing_key = 1;
-            LastKey = 0;
+            input_last_key_consume();
             break;
         case OT_PADPRESS:
             if (bCanChangeJoypadButtons) {
@@ -2831,8 +2804,7 @@ static UBYTE FRONTEND_input(void)
             MFX_play_stereo(1, S_TRAFFIC_CONE, 0);
         }
     }
-    if (Keys[KB_ESC] || (input & INPUT_MASK_CANCEL)) {
-        Keys[KB_ESC] = 0;
+    if (input_key_just_pressed(KB_ESC) || (input & INPUT_MASK_CANCEL)) {
         if (fade_mode != 6)
             MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
         if (fade_mode == 2) // cancel a transition
@@ -2940,6 +2912,8 @@ void FRONTEND_init(bool bGoToTitleScreen)
     if (!complete_point)
         memset(mission_hierarchy, 0, 60);
     menu_state.mode = -1;
+    fade_state = 0;
+    fade_mode = 1;
 
     FRONTEND_CacheMissionList(MISSION_SCRIPT);
 
@@ -2977,6 +2951,13 @@ void FRONTEND_init(bool bGoToTitleScreen)
     } else {
         // Frontend menu.
         FRONTEND_mode(FE_MAINMENU);
+    }
+
+    // On first launch there is no previous screen to wipe from — skip the xition.
+    if (bFirstTime) {
+        fade_state = 63;
+        fade_mode = 0;
+        FRONTEND_stop_xition();
     }
 
     // Stop all the music - about to start it again, properly.
@@ -3157,12 +3138,29 @@ SBYTE FRONTEND_loop()
     millisecs = now - last;
     last = now;
 
-    // How fast should the fade state fade?
-    SLONG fade_speed = (millisecs >> 3);
+    // Design rate: 4 fade units per 33 ms tick (UC_VISUAL_CADENCE_HZ = 30 Hz)
+    // → ~120 units/sec. Two pieces:
+    // (1) Input clamp at one design tick (33 ms) prevents first-frame fade
+    //     overshoot when elapsed time may be up to 250 ms (the clamp above).
+    //     Equivalent to the original FADE_SPEED_MAX = 4 cap on the output.
+    // (2) Fractional accumulator keeps per-frame increments smaller than
+    //     1 unit from being lost on high-FPS frames (sub-step time is
+    //     carried into the next frame). Without it, a previous floor of 1
+    //     caused fade to advance ~240/sec at 240 FPS. The accumulator runs
+    //     even at 30 FPS so per-frame fractional remainders don't drop.
+    static const SLONG FADE_SPEED_MAX = 4;
+    constexpr SLONG FADE_DESIGN_TICK_MS = 1000 / UC_VISUAL_CADENCE_HZ;          // 33
+    constexpr float FADE_UNITS_PER_MS = float(FADE_SPEED_MAX) / float(FADE_DESIGN_TICK_MS);
 
-    if (fade_speed < 1) {
-        fade_speed = 1;
+    SLONG fade_dt = millisecs;
+    if (fade_dt > FADE_DESIGN_TICK_MS) {
+        fade_dt = FADE_DESIGN_TICK_MS;
     }
+
+    static float fade_acc = 0.0f;
+    fade_acc += float(fade_dt) * FADE_UNITS_PER_MS;
+    SLONG fade_speed = SLONG(fade_acc);
+    fade_acc -= float(fade_speed);
 
     switch (fade_mode & 3) {
     case 1:
@@ -3226,14 +3224,12 @@ SBYTE FRONTEND_loop()
 
     // Debug cheat shortcuts: Ctrl+Shift+Numpad+/Numpad* advance complete_point.
     if (ControlFlag && ShiftFlag) {
-        if (Keys[KB_PPLUS]) {
-            Keys[KB_PPLUS] = 0;
+        if (input_key_just_pressed(KB_PPLUS)) {
             complete_point++;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;
         }
-        if (Keys[KB_ASTERISK]) {
-            Keys[KB_ASTERISK] = 0;
+        if (input_key_just_pressed(KB_ASTERISK)) {
             complete_point = 40;
             FRONTEND_MissionHierarchy(MISSION_SCRIPT);
             cheating = 1;

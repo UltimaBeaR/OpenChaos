@@ -73,7 +73,7 @@ void SPARK_create(SPARK_Pinfo* point1, SPARK_Pinfo* point2, UBYTE max_life);
 
 // uc_orig: SPARK_show_electric_fences (fallen/Headers/spark.h)
 // Creates sparks along electrified DFacets on the map (called once per 32 ticks).
-void SPARK_show_electric_fences(void);
+void SPARK_show_electric_fences(float dt_ms);
 
 // uc_orig: SPARK_process (fallen/Headers/spark.h)
 // Advances all active sparks: moves points, ages, re-branches, spawns GLITTER.

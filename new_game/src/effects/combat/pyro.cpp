@@ -26,6 +26,7 @@
 #include "engine/graphics/geometry/sprite.h"
 #include "map/pap.h"
 #include "engine/graphics/postprocess/bloom.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for wall-clock smoke spawn gate
 
 // uc_orig: init_pyros (fallen/Source/pyro.cpp)
 void init_pyros(void)
@@ -479,7 +480,7 @@ void PYRO_fn_normal(Thing* thing)
         break;
     case PYRO_BONFIRE:
         // Update dynamic light with flickering colour.
-        if ((((THING_NUMBER(thing)) + GAME_TURN) & 7) == 0)
+        if ((((THING_NUMBER(thing)) + VISUAL_TURN) & 7) == 0)
             MFX_play_thing(99, S_FIRE, MFX_LOOPED | MFX_QUEUED, thing);
 
         if (pyro->dlight) {
@@ -639,10 +640,23 @@ void PYRO_fn_normal(Thing* thing)
             free_pyro(thing);
         break;
     case PYRO_TWANGER:
-        if (pyro->counter < 240)
-            pyro->counter += 16;
-        else
+        // counter advance scaled by tick_tock_unclipped (raw physics tick
+        // duration in ms, NOT clamped by TICK_RATIO's [128..384] saturation
+        // in thing.cpp). Target = 16 advance per 50 ms wall-clock so
+        // lifetime is constant 0.75 sec regardless of g_physics_hz, even at
+        // very low physics rates where TICK_RATIO clamping would otherwise
+        // make the previous `* TICK_RATIO >> TICK_SHIFT` undershoot and
+        // the lifetime stretched to several seconds — populations of
+        // 15 spawn/sec accumulated dozens of alive twangers, each drawing
+        // an additive lens flare per render frame, causing visible
+        // over-bright bloom on low physics.
+        if (pyro->counter < 240) {
+            extern SLONG tick_tock_unclipped;
+            constexpr SLONG TWANGER_BASE_MS = 50;  // = 1000 / 20 Hz design
+            pyro->counter += (16 * tick_tock_unclipped) / TWANGER_BASE_MS;
+        } else {
             free_pyro(thing);
+        }
         break;
 
     case PYRO_NEWDOME:
@@ -896,7 +910,9 @@ void PYRO_fn_normal_ex(Thing* thing)
         if (pyro->points[i].radius < 0)
             dead = 1;
     }
-    thing->Genus.Pyro->Timer1 += 7;
+    // Step calibrated for UC_VISUAL_CADENCE_HZ; scale to current physics rate.
+    // 7 * 30/20 = 10.5 → 11 (rounds to match original ~1.21s lifetime).
+    thing->Genus.Pyro->Timer1 += (7 * UC_VISUAL_CADENCE_HZ + UC_PHYSICS_DESIGN_HZ / 2) / UC_PHYSICS_DESIGN_HZ;
     if (dead || (thing->Genus.Pyro->Timer1 >= 255))
         free_pyro(thing);
 }
@@ -1192,7 +1208,7 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
         page = POLY_PAGE_SMOKE;
 
     dy = get_pyro_rand() & 0x1ff;
-    dy += (GAME_TURN * 5);
+    dy += (VISUAL_TURN * 5);
     dy %= 256;
     dx = (((get_pyro_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
     dz = (((get_pyro_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
@@ -1339,7 +1355,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         id &= 2047;
                         pyro->radii[i] += abs(SIN(id) / 4095);
                     } else {
-                        id = ((GAME_TURN << 1) + (i << 8));
+                        id = ((VISUAL_TURN << 1) + (i << 8));
                         id &= 2047;
                         pyro->radii[i] = radius + 256 + (SIN(id) / 256);
                     }
@@ -1414,15 +1430,28 @@ void PYRO_draw_pyro(Thing* p_pyro)
             iNumFlames = IWouldLikeSomePyroSpritesHowManyCanIHave(iNumFlames);
             draw_flames(fx >> 8, fy / 256, fz >> 8, iNumFlames, (SLONG)(uintptr_t)p_pyro);
 
-            if (AENG_detail_skyline)
-                if (!(Random() & 7))
-                    PARTICLE_Add(fx + ((Random() & 0x9ff) - 0x4ff),
-                        fy + ((Random() & 0x9ff) - 0x4ff),
-                        fz + ((Random() & 0x9ff) - 0x4ff),
-                        (Random() & 0xff) - 0x7f, 256 + (Random() & 0x1ff), (Random() & 0xff) - 0x7f,
-                        POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
-                        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
-                        300, 70, 1, 1, 2);
+            // Wall-clock edge-detect for smoke spawn. Original gated `Random() & 7`
+            // per render frame, so spawn density scaled with FPS (~3.75/sec at 30 FPS,
+            // ~30/sec at 240 FPS). Now bucketed at ~30 Hz wall-clock (one phase per
+            // ~33 ms): one Random gate attempt per bucket on any FPS, matching the
+            // original rate at the 30 FPS render path it was tuned for. Per-pyro
+            // state (LastSmokeSpawn) so multiple bonfires in scene don't share a
+            // phase.
+            if (AENG_detail_skyline) {
+                constexpr SLONG SMOKE_BUCKET_MS = 33; // ≈ UC_VISUAL_CADENCE_TICK_MS (30 Hz)
+                const UBYTE cur_phase = UBYTE(sdl3_get_ticks() / SMOKE_BUCKET_MS);
+                if (cur_phase != pyro->LastSmokeSpawn) {
+                    pyro->LastSmokeSpawn = cur_phase;
+                    if (!(Random() & 7))
+                        PARTICLE_Add(fx + ((Random() & 0x9ff) - 0x4ff),
+                            fy + ((Random() & 0x9ff) - 0x4ff),
+                            fz + ((Random() & 0x9ff) - 0x4ff),
+                            (Random() & 0xff) - 0x7f, 256 + (Random() & 0x1ff), (Random() & 0xff) - 0x7f,
+                            POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
+                            PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
+                            300, 70, 1, 1, 2);
+                }
+            }
         }
         break;
 
@@ -1655,6 +1684,13 @@ void PYRO_draw_pyro(Thing* p_pyro)
                 str = (285 - pyro->counter * 2);
                 str >>= 1;
             }
+            // Halve the flare strength — uc_orig peak (~145) was 2-3× the
+            // FLENSFLARE-attenuated peak that BLOOM_draw uses for car
+            // headlights / streetlamps (~63), so MIB destruct flares looked
+            // disproportionately blown out next to the rest of the scene.
+            // Bringing the peak to ~72 puts it in the same range as those
+            // light sources without losing the lightning effect's emphasis.
+            str >>= 1;
             if (str > 0)
                 BLOOM_flare_draw(pyro->thing->WorldPos.X >> 8, pyro->thing->WorldPos.Y >> 8, pyro->thing->WorldPos.Z >> 8, str);
         }

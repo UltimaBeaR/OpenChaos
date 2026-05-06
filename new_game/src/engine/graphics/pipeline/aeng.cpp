@@ -3,6 +3,7 @@
 // All Direct3D rendering will be replaced in Stage 7; for now this is a 1:1 port.
 
 #include "engine/graphics/pipeline/aeng_globals.h"
+#include "engine/input/input_frame.h"
 #include "engine/console/message.h" // MSG_draw
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
@@ -39,12 +40,14 @@ extern SLONG ScreenWidth;
 extern SLONG ScreenHeight;
 
 #include "engine/graphics/geometry/figure.h"
+#include "engine/graphics/render_interp.h" // Phase 2 debug: PEL_SNAP label (snapshot round-trip verify)
 #include "engine/graphics/geometry/figure_globals.h" // kludge_shrink
 #include "engine/graphics/geometry/shape.h"
 #include "engine/graphics/lighting/smap.h"
 #include "engine/audio/sound.h" // WORLD_TYPE_SNOW
 #include "engine/audio/sound_globals.h" // world_type
 #include "assets/formats/anim_globals.h" // estate
+#include "game/game_globals.h" // g_frame_dt_ms (rain/drip wall-clock pacing)
 #include "effects/weather/drip.h"
 #include "effects/environment/fire.h"
 #include "effects/combat/spark.h"
@@ -770,26 +773,67 @@ void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 }
 
 // uc_orig: AENG_NUM_RAINDROPS (fallen/DDEngine/Source/aeng.cpp)
-// Number of rain droplets drawn per frame.
+// Number of rain droplets visible on screen in steady state. The original
+// game spawned this many drops per render frame at UC_VISUAL_CADENCE_HZ
+// (= 30 Hz, the visual calibration rate); each drop was visible for
+// exactly one frame, so the on-screen count was also AENG_NUM_RAINDROPS.
+// We preserve the on-screen count via persistence (drops live for
+// UC_VISUAL_CADENCE_TICK_MS wall-clock) instead.
 #define AENG_NUM_RAINDROPS 128
 
+// SHAPE_droplet renders each drop as a fixed-size sprite quad whose dy
+// argument is the sprite's vertical extent in world units. Original
+// used -64 — keep that for sprite shape.
+#define AENG_RAIN_DROP_SPRITE_DY (-64)
+
+// Bucket length in ms — drops are regenerated only when the wall-clock
+// crosses a bucket boundary, otherwise the previous bucket's drops are
+// redrawn unchanged. Using UC_VISUAL_CADENCE_TICK_MS as the bucket size
+// reproduces the original 30 Hz "frame" cadence exactly:
+//   - At 30 FPS the bucket changes every render frame ⇒ drops are fresh
+//     every frame, identical to the original.
+//   - At higher render FPS the same 128 drops stay fixed in place for
+//     several frames until the next 33 ms boundary, then snap to 128
+//     fresh random positions all at once. No interpolation, no smoothing
+//     — the visual cadence is the original 30 Hz strobe at any FPS.
+//
+// Cast to integer ms once so the bucket index is a stable uint64_t —
+// avoids float drift in bucket comparison.
+#define AENG_RAIN_BUCKET_MS uint64_t(UC_VISUAL_CADENCE_TICK_MS)
+
+// One cached raindrop. Position stored in camera-space unit-cube
+// coordinates [-1..1] — re-transformed each frame via the current camera
+// matrix, matching the original "drops in front of the camera" behaviour
+// (drops follow the camera). Colour is sampled from NIGHT_cache once at
+// bucket regeneration and frozen until the next bucket.
+typedef struct
+{
+    float u;        // [-1..1] camera-space x
+    float v;        // [-0.5..0.5] camera-space y
+    float w;        // [0.1..1.1] camera-space z
+    ULONG colour;
+} AENG_RainDrop;
+
+static AENG_RainDrop AENG_rain_drops[AENG_NUM_RAINDROPS];
+static SLONG         AENG_rain_drops_count = 0;
+static uint64_t      AENG_rain_last_bucket = ~uint64_t(0);
+
 // uc_orig: AENG_draw_rain (fallen/DDEngine/Source/aeng.cpp)
-// Draws rain as 3-D world-space droplets placed in front of the camera.
-// Droplets are lit using the cached night-lighting colour at their grid position.
+// Draws rain as 3-D camera-relative droplets, locked to the original
+// 30 Hz "frame" cadence regardless of render FPS — see AENG_RAIN_BUCKET_MS
+// for the rationale. At 30 FPS this is identical to the original's
+// per-render-frame regeneration; at higher FPS the same 128 drops are
+// redrawn for several frames between bucket boundaries.
 void AENG_draw_rain()
 {
-    SLONG i;
+    extern uint64_t sdl3_get_ticks();
+    const uint64_t now_ms     = sdl3_get_ticks();
+    const uint64_t cur_bucket = now_ms / AENG_RAIN_BUCKET_MS;
+    const bool     regenerate = (cur_bucket != AENG_rain_last_bucket);
 
-    float x1;
-    float y1;
-    float z1;
-
+    // 1. Build the camera matrix. Used for both regeneration (NIGHT
+    //    lookup at the spawn world position) and drawing.
     float matrix[9];
-
-    float fade;
-    SLONG bright;
-    ULONG colour;
-
     MATRIX_calc(
         matrix,
         AENG_cam_yaw,
@@ -811,10 +855,6 @@ void AENG_draw_rain()
     matrix[5] /= AENG_LENS;
 
     // Rain lasts 8 squares into the distance.
-
-    // #undef AENG_NUM_RAINDROPS
-    // #define AENG_NUM_RAINDROPS	500
-
     matrix[0] *= 256.0F * 8.0F;
     matrix[1] *= 256.0F * 8.0F;
     matrix[2] *= 256.0F * 8.0F;
@@ -827,61 +867,75 @@ void AENG_draw_rain()
     matrix[7] *= 256.0F * 8.0F;
     matrix[8] *= 256.0F * 8.0F;
 
-    for (i = 0; i < AENG_NUM_RAINDROPS; i++) {
-        // Pick a random place in world space in front of the camera.
+    // 2. On a bucket boundary: regenerate the entire drop set in random
+    //    positions, mirroring the original's per-frame behaviour. Drops
+    //    that fall outside the night cache are skipped — same as the
+    //    original (matching the original's "varies between ~120-128
+    //    visible drops" feel from random NIGHT-cache misses).
+    if (regenerate) {
+        AENG_rain_drops_count = 0;
 
-        x1 = float(rand()) * (1.0F / float(RAND_MAX >> 1)) - 1.0F;
-        y1 = float(rand()) * (1.0F / float(RAND_MAX >> 1)) - 0.5F;
-        z1 = float(rand()) * (1.0F / float(RAND_MAX)) + 0.1F;
+        for (SLONG s = 0; s < AENG_NUM_RAINDROPS; s++) {
+            const float u = float(rand()) * (1.0F / float(RAND_MAX >> 1)) - 1.0F;
+            const float v = float(rand()) * (1.0F / float(RAND_MAX >> 1)) - 0.5F;
+            const float w = float(rand()) * (1.0F / float(RAND_MAX)) + 0.1F;
 
-        fade = 1.0F - z1 * 0.8F;
-        bright = SLONG(fade * 256.0F);
+            float wx = u, wy = v, wz = w;
+            MATRIX_MUL_BY_TRANSPOSE(matrix, wx, wy, wz);
+            wx += AENG_cam_x;
+            wy += AENG_cam_y;
+            wz += AENG_cam_z;
 
-        colour = (bright << 24) | ((69 << 16) | (74 << 8) | (98 << 0));
+            const SLONG px = SLONG(wx) >> 10;
+            const SLONG pz = SLONG(wz) >> 10;
+            const SLONG dx = (SLONG(wx) >> 8) & 3;
+            const SLONG dz = (SLONG(wz) >> 8) & 3;
 
-        MATRIX_MUL_BY_TRANSPOSE(
-            matrix,
-            x1,
-            y1,
-            z1);
+            if ((px < 0) || (px >= PAP_SIZE_LO)) continue;
+            if ((pz < 0) || (pz >= PAP_SIZE_LO)) continue;
 
-        x1 += AENG_cam_x;
-        y1 += AENG_cam_y;
-        z1 += AENG_cam_z;
+            const SLONG square = NIGHT_cache[px][pz];
+            if (!square) continue;
 
-        SLONG px = SLONG(x1) >> 10;
-        SLONG pz = SLONG(z1) >> 10;
-        SLONG dx = (SLONG(x1) >> 8) & 3;
-        SLONG dz = (SLONG(z1) >> 8) & 3;
+            ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
+            ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
 
-        if ((px < 0) || (px >= PAP_SIZE_LO))
-            continue;
-        if ((pz < 0) || (pz >= PAP_SIZE_LO))
-            continue;
+            NIGHT_Square* nq = &NIGHT_square[square];
+            ULONG col, spec;
+            NIGHT_get_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
 
-        SLONG square = NIGHT_cache[px][pz];
+            AENG_RainDrop* drop = &AENG_rain_drops[AENG_rain_drops_count++];
+            drop->u      = u;
+            drop->v      = v;
+            drop->w      = w;
+            drop->colour = col;
+        }
 
-        if (!square)
-            continue;
+        AENG_rain_last_bucket = cur_bucket;
+    }
 
-        ASSERT(WITHIN(square, 1, NIGHT_MAX_SQUARES - 1));
-        ASSERT(NIGHT_square[square].flag & NIGHT_SQUARE_FLAG_USED);
+    // 3. Draw all cached drops at their stored camera-space positions
+    //    transformed through the current camera matrix (drops follow
+    //    the camera even between bucket boundaries). No motion offset —
+    //    drops sit in place until the next bucket regenerates them, so
+    //    the visual cadence is the original 30 Hz strobe at any FPS.
+    for (SLONG i = 0; i < AENG_rain_drops_count; i++) {
+        const AENG_RainDrop* drop = &AENG_rain_drops[i];
 
-        NIGHT_Square* nq = &NIGHT_square[square];
-        ULONG col, spec;
-
-        NIGHT_get_colour(nq->colour[dx + dz * PAP_BLOCKS], &col, &spec);
-
-        colour = col;
+        float wx = drop->u, wy = drop->v, wz = drop->w;
+        MATRIX_MUL_BY_TRANSPOSE(matrix, wx, wy, wz);
+        wx += AENG_cam_x;
+        wy += AENG_cam_y;
+        wz += AENG_cam_z;
 
         SHAPE_droplet(
-            SLONG(x1),
-            SLONG(y1),
-            SLONG(z1),
+            SLONG(wx),
+            SLONG(wy),
+            SLONG(wz),
             8,
-            -64,
+            AENG_RAIN_DROP_SPRITE_DY,
             8,
-            colour,
+            drop->colour,
             POLY_PAGE_RAINDROP);
     }
 }
@@ -1981,14 +2035,23 @@ void AENG_draw_city()
     ULONG colour;
     ULONG specular;
     static int outside = 1;
-    static int sea_offset = 0;
 
     AENG_total_polys_drawn = 0;
     void draw_all_boxes(void);
     draw_all_boxes();
 
-    extern SLONG tick_tock_unclipped;
-    sea_offset += (tick_tock_unclipped);
+    // Water surface wave phase. Original was `sea_offset += tick_tock_unclipped`
+    // per render frame — `tick_tock_unclipped` is a physics-tick constant
+    // (50 ms at 20 Hz physics), so accumulation rate scaled with both render
+    // FPS and inverse physics rate (8× faster at 240 FPS, 4× faster at 5 Hz
+    // physics). Now derived from wall-clock.
+    //
+    // Original 30 FPS render × 50 ms tick = 1500 increments/sec → 3 ms-incs / 2.
+    // Modulo 4096 = 2 full sin/cos cycles in (sea_offset >> 1), wraps cleanly
+    // (the formula uses `& 2047` after `>> 1`, so a 4096 step is identity).
+    constexpr SLONG SEA_PERIOD = 4096;
+    extern uint64_t sdl3_get_ticks();
+    const SLONG sea_offset = SLONG((sdl3_get_ticks() * 3 / 2) % uint64_t(SEA_PERIOD));
 
     //
     // Work out which things are in view.
@@ -2046,7 +2109,7 @@ void AENG_draw_city()
     // Points out of the ambient light.
     //
 
-    if (Keys[KB_L] && ControlFlag && allow_debug_keys) {
+    if (input_key_just_pressed(KB_L) && ControlFlag && allow_debug_keys) {
         outside ^= 1;
     }
 
@@ -2829,10 +2892,19 @@ void AENG_draw_city()
                                         // Create a new bounding box
                                         //
 
+                                        // Clamp to POLY_screen_width/height — same coord
+                                        // space as FIGURE_reflect_x1/x2/y1/y2 (collected
+                                        // from POLY_Point.X/Y in figure.cpp). Original code
+                                        // used DisplayWidth/Height (640×480 virtual canvas)
+                                        // which only matches POLY_screen_width on a 4:3
+                                        // window; on widescreen POLY_screen_width ≈ 853 and
+                                        // the bbox right edge was being truncated to 640,
+                                        // cropping wibble effect on reflections that
+                                        // extended past the 4:3 region.
                                         bbox[bbox_upto].x1 = MAX(FIGURE_reflect_x1 - AENG_BBOX_PUSH_OUT, AENG_BBOX_PUSH_IN);
                                         bbox[bbox_upto].y1 = MAX(FIGURE_reflect_y1, 0);
-                                        bbox[bbox_upto].x2 = MIN(FIGURE_reflect_x2 + AENG_BBOX_PUSH_OUT, DisplayWidth - AENG_BBOX_PUSH_IN);
-                                        bbox[bbox_upto].y2 = MIN(FIGURE_reflect_y2, DisplayHeight);
+                                        bbox[bbox_upto].x2 = MIN(FIGURE_reflect_x2 + AENG_BBOX_PUSH_OUT, SLONG(POLY_screen_width) - AENG_BBOX_PUSH_IN);
+                                        bbox[bbox_upto].y2 = MIN(FIGURE_reflect_y2, SLONG(POLY_screen_height));
 
                                         bbox[bbox_upto].water_box = ph->Flags & PAP_FLAG_WATER;
 
@@ -2935,39 +3007,56 @@ void AENG_draw_city()
                 }
 
                 if (POLY_valid_quad(quad)) {
-                    if ((GAME_FLAGS & GF_RAINING) && (rand() & 0x100)) {
-                        float drip_along_x;
-                        float drip_along_z;
+                    // Original: 0.5 chance per puddle per render frame at
+                    // UC_VISUAL_CADENCE_HZ = 15 drip-spawns/sec/puddle.
+                    // Convert to a per-frame expected count using wall-clock
+                    // dt; spawn the whole part directly, the fractional part
+                    // probabilistically. This is RAND_MAX-safe even for
+                    // long frames (200 ms cap → expected ≤ 3) where a
+                    // straight `rand() < threshold` overflows.
+                    constexpr float PUDDLE_RAIN_DRIP_HZ = 0.5f * float(UC_VISUAL_CADENCE_HZ);
+                    float expected_drips = PUDDLE_RAIN_DRIP_HZ * g_frame_dt_ms * (1.0f / 1000.0f);
+                    SLONG drip_spawn_count = SLONG(expected_drips);
+                    expected_drips -= float(drip_spawn_count);
+                    if (rand() < SLONG(expected_drips * float(RAND_MAX))) {
+                        drip_spawn_count += 1;
+                    }
 
-                        //
-                        // Choose somewhere in the puddle to put a drip.
-                        //
+                    if ((GAME_FLAGS & GF_RAINING) && drip_spawn_count > 0) {
+                        for (SLONG s = 0; s < drip_spawn_count; s++) {
+                            float drip_along_x;
+                            float drip_along_z;
 
-                        drip_along_x = float(rand() & 0xff) * (1.0F / 256.0F);
-                        drip_along_z = float(rand() & 0xff) * (1.0F / 256.0F);
-
-                        world_x = px1 + (px2 - px1) * drip_along_x;
-                        world_z = pz1 + (pz2 - pz1) * drip_along_z;
-
-                        DRIP_create(
-                            UWORD(world_x),
-                            SWORD(world_y),
-                            UWORD(world_z),
-                            1);
-
-                        if (rand() & 0x11) {
                             //
-                            // Don't splash.
-                            //
-                        } else {
-                            //
-                            // Splash the puddle.
+                            // Choose somewhere in the puddle to put a drip.
                             //
 
-                            PUDDLE_splash(
-                                SLONG(world_x),
-                                SLONG(world_y),
-                                SLONG(world_z));
+                            drip_along_x = float(rand() & 0xff) * (1.0F / 256.0F);
+                            drip_along_z = float(rand() & 0xff) * (1.0F / 256.0F);
+
+                            world_x = px1 + (px2 - px1) * drip_along_x;
+                            world_z = pz1 + (pz2 - pz1) * drip_along_z;
+
+                            DRIP_create(
+                                UWORD(world_x),
+                                SWORD(world_y),
+                                UWORD(world_z),
+                                1);
+
+                            if (rand() & 0x11) {
+                                //
+                                // Don't splash.
+                                //
+                            } else {
+                                //
+                                // Splash the puddle.
+                                //
+
+                                PUDDLE_splash(
+                                    SLONG(world_x),
+                                    SLONG(world_y),
+                                    SLONG(world_z));
+                            }
                         }
                     }
 
@@ -3698,8 +3787,20 @@ void AENG_draw_city()
                             //
                             // This prim slowly rotates...
                             //
-
-                            oi->yaw = (GAME_TURN << 1) & 2047;
+                            // FIXME-ARCHITECTURE: writing oi->yaw from the
+                            // render path while collide.cpp / mav.cpp / pcom.cpp
+                            // read it from physics-side code is a layering
+                            // violation — render is mutating game-state. When
+                            // the object is off-screen (no render call) yaw
+                            // freezes, so collisions and NPC pathing read a
+                            // stale value. Pre-existing in the original;
+                            // visually invisible (yaw is in lockstep with the
+                            // draw that uses it). Real fix is non-trivial:
+                            // either compute yaw at every collide/mav/pcom
+                            // read site, or add a parallel physics-tick writer
+                            // and accept duplication. Not done — left as a
+                            // pre-existing pre-1.0 concern.
+                            oi->yaw = (VISUAL_TURN << 1) & 2047;
                         }
 
                         UBYTE fade = 0xff;
@@ -3958,6 +4059,7 @@ void AENG_draw_city()
                                     UC_TRUE,
                                     PCOM_person_state_debug(p_thing));
                             }
+
                         }
 
                             if (p_thing->State == STATE_DEAD) {
@@ -4128,23 +4230,21 @@ void AENG_draw_city()
                             SLONG py;
                             SLONG pz;
 
-                            calc_sub_objects_position(
-                                p_thing,
-                                p_thing->Draw.Tweened->AnimTween,
-                                SUB_OBJECT_PELVIS,
-                                &px,
-                                &py,
-                                &pz);
+                            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+                            if (pose) {
+                                px = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
+                                py = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
+                                pz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
+                            } else {
+                                calc_sub_objects_position(p_thing,
+                                    p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS,
+                                    &px, &py, &pz);
+                                px += p_thing->WorldPos.X >> 8;
+                                py += p_thing->WorldPos.Y >> 8;
+                                pz += p_thing->WorldPos.Z >> 8;
+                            }
 
-                            px += p_thing->WorldPos.X >> 8;
-                            py += p_thing->WorldPos.Y >> 8;
-                            pz += p_thing->WorldPos.Z >> 8;
-
-                            OVAL_add(
-                                px,
-                                py,
-                                pz,
-                                130);
+                            OVAL_add(px, py, pz, 130);
                         }
 
                         break;
@@ -4326,23 +4426,25 @@ void AENG_draw_city()
         SLONG y;
         SLONG z;
 
-        calc_sub_objects_position(
-            darci,
-            darci->Draw.Tweened->AnimTween,
-            0, // Torso?
-            &x,
-            &y,
-            &z);
-
-        x += darci->WorldPos.X >> 8;
-        y += darci->WorldPos.Y >> 8;
-        z += darci->WorldPos.Z >> 8;
+        {
+            const BoneInterpTransform* pose = render_interp_get_cached_pose(darci);
+            if (pose) {
+                x = SLONG(pose[0].pos_x);
+                y = SLONG(pose[0].pos_y);
+                z = SLONG(pose[0].pos_z);
+            } else {
+                calc_sub_objects_position(darci, darci->Draw.Tweened->AnimTween, 0, &x, &y, &z);
+                x += darci->WorldPos.X >> 8;
+                y += darci->WorldPos.Y >> 8;
+                z += darci->WorldPos.Z >> 8;
+            }
+        }
 
         angle = float(darci->Draw.Tweened->Angle);
         angle *= 2.0F * PI / 2048.0F;
 
-        float dyaw = ((float)sin(float(GAME_TURN) * 0.025F)) * 0.25F;
-        float dpitch = ((float)cos(float(GAME_TURN) * 0.020F) - 0.5F) * 0.25F;
+        float dyaw = ((float)sin(float(VISUAL_TURN) * 0.025F)) * 0.25F;
+        float dpitch = ((float)cos(float(VISUAL_TURN) * 0.020F) - 0.5F) * 0.25F;
 
         float matrix[3];
 
@@ -5101,7 +5203,11 @@ void AENG_draw_warehouse()
                 // Only draw objects that are in buildings (assume that means our warehouse!).
                 if (oi->flags & OB_FLAG_WAREHOUSE) {
                     if (oi->prim == 235) {
-                        oi->yaw = GAME_TURN;
+                        // FIXME-ARCHITECTURE: render path writes oi->yaw,
+                        // physics-side collide / mav / pcom reads it. See
+                        // the longer comment in AENG_draw_city for the full
+                        // explanation. Pre-existing pre-1.0 concern.
+                        oi->yaw = VISUAL_TURN;
                     }
 
                     col = MESH_draw_poly(
@@ -5328,8 +5434,7 @@ void AENG_draw_warehouse()
 void AENG_screen_shot(void)
 {
     if (allow_debug_keys)
-        if (Keys[KB_S] || record_video) {
-            Keys[KB_S] = 0;
+        if (input_key_just_pressed(KB_S) || record_video) {
             if (ShiftFlag) {
                 record_video ^= 1;
             }
@@ -5340,31 +5445,14 @@ void AENG_screen_shot(void)
 }
 
 // uc_orig: AENG_draw_messages (fallen/DDEngine/Source/aeng.cpp)
-// Legacy FPS display using direct screen lock (mostly superseded by AENG_draw_FPS).
+// Original printed a legacy "FPS: NN" string here from a clock()-based delta
+// of GAME_TURN (later VISUAL_TURN). The readout was superseded by the
+// debug_timing_overlay (lock toggle: Ctrl) which shows the real wall-clock
+// render rate via a sliding-window perf-counter measurement, so the legacy
+// FPS print was dropped. The function now just flushes the debug message
+// queue.
 void AENG_draw_messages()
 {
-    static SLONG fps = 0;
-    static SLONG last_game_turn = 0;
-    static clock_t last_time = 0;
-    clock_t this_time = 0;
-
-    this_time = clock() / CLOCKS_PER_SEC;
-
-    if (this_time != last_time) {
-        if (this_time - last_time > 1) {
-            // Only work out the new frames per second if there hasn't been a major delay.
-        } else {
-            fps = GAME_TURN - last_game_turn;
-        }
-
-        last_time = this_time;
-        last_game_turn = GAME_TURN;
-    }
-
-    // Text now emits textured quads through the TL pipeline — no backbuffer
-    // lock/unlock. Wrapping the draws in ge_lock_screen/ge_unlock_screen would
-    // unconditionally overwrite them with the pre-draw framebuffer contents.
-    FONT_draw(DisplayWidth >> 1, 10, "FPS: %d", fps);
     MSG_draw();
 }
 
@@ -5857,6 +5945,16 @@ void AENG_draw(SLONG draw_3d)
                 &fc->pitch,
                 &fc->roll,
                 &fc->lens)) {
+            // EWAY_grab_camera just wrote raw post-tick state from the
+            // EWAY_cam_* globals into fc->*. Substitute interpolated values
+            // from the EWAY snapshot — without this, render reads camera
+            // state at physics rate and the cutscene camera judders even
+            // though FC_cam interpolation is otherwise active.
+            extern bool render_interp_apply_eway_camera(SLONG*, SLONG*, SLONG*,
+                                                        SLONG*, SLONG*, SLONG*, SLONG*);
+            render_interp_apply_eway_camera(&fc->x, &fc->y, &fc->z,
+                                            &fc->yaw, &fc->pitch, &fc->roll,
+                                            &fc->lens);
             warehouse = EWAY_camera_warehouse();
         } else {
             warehouse = (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Ware);

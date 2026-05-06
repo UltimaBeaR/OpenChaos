@@ -16,6 +16,7 @@
 #include "engine/debug/debug_help/debug_help.h"
 #include "engine/graphics/text/font.h" // FONT_buffer_draw
 #include "engine/graphics/text/font2d.h" // FONT2D_DrawString (cheat==2 FPS overlay)
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (real render-frame timer)
 #include "engine/graphics/pipeline/aeng.h" // AENG_draw_messages
 #include "engine/input/keyboard_globals.h" // ControlFlag
 #include "missions/eway.h" // EWAY_stop_player_moving
@@ -28,8 +29,6 @@
 extern BOOL allow_debug_keys;
 // cheat == 2 enables the FPS / position overlay (was inside OVERLAY_handle).
 extern UBYTE cheat;
-// Per-frame integer ms delta from sdl3_get_ticks (used by FPS overlay).
-extern SLONG tick_tock_unclipped;
 
 void ui_render_post_composition(void)
 {
@@ -127,6 +126,7 @@ void ui_render_post_composition(void)
         PANEL_start();
 
         if (!EWAY_stop_player_moving()) {
+            EWAY_draw_hud_timers();
             PANEL_draw_buffered();
         }
 
@@ -137,32 +137,53 @@ void ui_render_post_composition(void)
         PANEL_inventory(darci, player);
 
         if (cheat == 2) {
-            CBYTE str[50];
+            // Measure real render-frame interval via a sliding wall-clock
+            // window, same algorithm as debug_timing_overlay. ui_render_post_composition
+            // is called exactly once per presented frame, so each call is a
+            // valid sample regardless of how many physics ticks ran in the
+            // frame. Window 500 ms — short enough to react quickly, long
+            // enough to average out integer-ms granularity (33/34 ms
+            // alternation at 30 fps).
+            static constexpr uint64_t FPS_WINDOW_MS = 500;
+            static constexpr SLONG    FPS_RING_SIZE = 256; // 240+ fps × 0.5 s with headroom
+            static constexpr SLONG    FPS_RING_MASK = FPS_RING_SIZE - 1;
+            static uint64_t s_ring[FPS_RING_SIZE] = { 0 };
+            static SLONG    s_head  = 0;
+            static SLONG    s_count = 0;
+            static float    s_value = 0.0f;
 
-            if (tick_tock_unclipped == 0)
-                tick_tock_unclipped = 1;
+            const uint64_t now = sdl3_get_ticks();
+            s_ring[s_head] = now;
+            s_head = (s_head + 1) & FPS_RING_MASK;
+            if (s_count < FPS_RING_SIZE) s_count += 1;
 
-            // tick_tock_unclipped is the raw per-frame delta in integer
-            // milliseconds from sdl3_get_ticks. At 30 FPS it toggles between
-            // 33 and 34 ms (true period 33.333), so 1000/33 = 30 and
-            // 1000/34 = 29 alternate. Smooth with an EMA so the displayed
-            // value doesn't flicker between 29 and 30 every frame.
-            static float fps_ema = 0.0f;
-            float fps_instant = 1000.0f / float(tick_tock_unclipped);
-            if (fps_ema == 0.0f) {
-                fps_ema = fps_instant; // seed on first frame
-            } else {
-                // α = 0.05 → ~20-frame time constant (~0.67 s at 30 FPS).
-                fps_ema = 0.95f * fps_ema + 0.05f * fps_instant;
+            const uint64_t cutoff = (now > FPS_WINDOW_MS) ? (now - FPS_WINDOW_MS) : 0;
+            SLONG    in_window     = 0;
+            uint64_t oldest_in_win = now;
+            for (SLONG i = 0; i < s_count; i++) {
+                const SLONG    idx = (s_head - 1 - i) & FPS_RING_MASK;
+                const uint64_t ts  = s_ring[idx];
+                if (ts < cutoff) break;
+                oldest_in_win = ts;
+                in_window    += 1;
             }
 
-            sprintf(str, "(%d,%d,%d) fps %.2f",
-                darci->WorldPos.X >> 16,
-                darci->WorldPos.Y >> 16,
-                darci->WorldPos.Z >> 16,
-                fps_ema);
+            if (in_window >= 2) {
+                const uint64_t span_ms = now - oldest_in_win;
+                if (span_ms > 0) {
+                    s_value = float(in_window - 1) * 1000.0f / float(span_ms);
+                }
+            }
 
-            FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
+            if (s_value > 0.0f) {
+                CBYTE str[50];
+                snprintf((char*)str, sizeof(str), "(%d,%d,%d) fps %.2f",
+                         darci->WorldPos.X >> 16,
+                         darci->WorldPos.Y >> 16,
+                         darci->WorldPos.Z >> 16,
+                         s_value);
+                FONT2D_DrawString(str, 2, 2, 0xffffff, 256);
+            }
         }
 
         PANEL_finish();
@@ -212,6 +233,10 @@ void ui_render_post_composition(void)
     if (g_frontend_overlay_pending) {
         FRONTEND_display_overlay();
     }
+
+    // Debug timing overlay (phys / lock / fps) lives in the engine's
+    // diagnostic overlay callback so it also fires from the FMV and outro
+    // present paths — see debug_timing_overlay.cpp.
     // ──────────────────────────────────────────────
 
     ge_set_ui_mode(false);

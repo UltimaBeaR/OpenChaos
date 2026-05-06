@@ -33,8 +33,6 @@
 #include "things/core/statedef.h"
 #include "engine/physics/collide.h"
 #include "combat/combat.h"
-#include "engine/input/joystick.h" // ReadInputDevice
-#include "engine/input/joystick_globals.h" // the_state (GamepadState)
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/weapon_feel.h" // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
@@ -43,7 +41,7 @@
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
-#include "engine/input/mouse_globals.h"
+#include "engine/input/input_frame.h"
 #include "game/game_globals.h"
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/console/console.h" // CONSOLE_text_at
@@ -1524,7 +1522,15 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
 
         if (angle >= 0) {
             SLONG ca;
-            SLONG max_angle = 128;
+            // Turn-rate caps in angle-units/tick at 20 Hz design rate.
+            // Values scaled ×1.5 vs original (128/16/64) so that 20 Hz × cap
+            // = 3840/480/1920 units/sec — presumably matching the original feel
+            // (original source has 128/16/64; at what Hz it was tuned is unknown).
+            static const SLONG TURN_CAP_RUN    = 192; // 192×20 = 3840 = 128×30
+            static const SLONG TURN_CAP_JUMP   =  24; //  24×20 =  480 =  16×30
+            static const SLONG TURN_CAP_CRAWL  =  96; //  96×20 = 1920 =  64×30
+
+            SLONG max_angle = TURN_CAP_RUN;
             SLONG dangle;
 
             ca = get_camera_angle();
@@ -1540,9 +1546,9 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
             angle = (angle + 2048) & 2047;
 
             if (p_thing->State == STATE_JUMPING || p_thing->SubState == SUB_STATE_RUNNING_SKID_STOP)
-                max_angle = 16;
+                max_angle = TURN_CAP_JUMP;
             if (p_thing->SubState == SUB_STATE_CRAWLING)
-                max_angle = 64;
+                max_angle = TURN_CAP_CRAWL;
 
             if (player_relative) {
                 max_angle >>= 1;
@@ -1552,6 +1558,10 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
                 if (p_thing->State == STATE_IDLE || (p_thing->SubState == SUB_STATE_AIM_GUN))
                     max_angle = 1024;
             }
+
+            // Scale turn-rate cap from ticks to seconds so angular velocity
+            // stays constant if physics Hz is changed from the 20 Hz design rate.
+            max_angle = (max_angle * TICK_RATIO) >> TICK_SHIFT;
 
             if (reduce_turn) {
                 max_angle -= (reduce_turn << 5);
@@ -2445,7 +2455,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             }
         }
     }
-    if ((input & INPUT_MOVEMENT_MASK) || (mouse_input && MouseDX)) {
+    if ((input & INPUT_MOVEMENT_MASK) || (input_mouse_active() && input_mouse_dx())) {
         if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)) {
             switch (p_person->State) {
             case STATE_HIT_RECOIL:
@@ -2929,12 +2939,13 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             veh->DControl |= VEH_DECEL;
         if (input & INPUT_CAR_KB_GOFASTER)
             veh->DControl |= VEH_FASTER;
-        if (input & INPUT_CAR_KB_SIREN)
-            veh->DControl |= VEH_SIREN;
     } else {
         // R2 = alternative accelerate, L2 = alternative brake (in addition to Cross/Square).
-        bool r2 = the_state.rgbButtons[16] != 0;
-        bool l2 = the_state.rgbButtons[15] != 0;
+        // rgbButtons[15/16] are the DIGITAL trigger bits (set when analog trigger
+        // crosses ~half-deflection inside the gamepad layer); btn_held below
+        // reads exactly those bits, not the analog uint8_t triggers.
+        bool r2 = input_btn_held(16);
+        bool l2 = input_btn_held(15);
 
         if ((input & INPUT_CAR_PAD_ACCELERATE) || r2)
             veh->DControl |= VEH_ACCEL;
@@ -2942,8 +2953,36 @@ ULONG apply_button_input_car(Thing* p_furn, ULONG input)
             veh->DControl |= VEH_DECEL;
         if ((input & INPUT_CAR_PAD_GOFASTER) || r2 || l2)
             veh->DControl |= VEH_FASTER;
-        if (input & INPUT_CAR_PAD_SIREN)
+    }
+
+    // Siren toggle: edge-triggered via input_frame's sticky press_pending.
+    // do_car_input reads VEH_SIREN and calls siren(veh, !veh->Siren) — without
+    // edge-detect, holding the button toggles the siren every physics tick,
+    // giving unpredictable on/off depending on hold duration × physics Hz
+    // (issue #13 in fps_unlock_issues_resolved).
+    //
+    // press_pending (rather than just_pressed or a local level-edge tracker)
+    // is required because this code runs on physics tick, not render frame.
+    // At low physics Hz a tap can fit entirely between two ticks — the level
+    // signal sampled at each tick shows "not held" both times → tap missed.
+    // press_pending is latched on rising edge by every render-frame snapshot
+    // and survives until consumed → physics tick reliably sees the press
+    // even if its sampling window doesn't overlap the held window.
+    //
+    // Drain rule: the call site (`do_packets` else-branch when not driving)
+    // also consumes both pendings every physics tick to prevent stale flags
+    // from outside-car presses (Triangle = menu cancel, SPACE = jump) leaking
+    // into the first car-entry tick as a spurious toggle.
+    {
+        const SLONG kb_siren_key  = keybrd_button_use[JOYPAD_BUTTON_JUMP];
+        constexpr SLONG pad_siren_btn = 3; // Triangle/Y, see comment around rgbButtons[3] above
+        const bool kb_siren  = input_key_press_pending(kb_siren_key);
+        const bool pad_siren = input_btn_press_pending(pad_siren_btn);
+        input_key_consume(kb_siren_key);
+        input_btn_consume(pad_siren_btn);
+        if (kb_siren || pad_siren) {
             veh->DControl |= VEH_SIREN;
+        }
     }
 
     return (processed_input);
@@ -2965,34 +3004,38 @@ ULONG get_hardware_input(UWORD type)
 
     static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
 
-#define BUTTON_IS_PRESSED(value) (value)
-
-    // Deadzone constants for the DirectInput analogue stick (PC path: 0..65535, centre 32768).
-    // Replace with SDL_GetGamepadAxis deadzone equivalent when porting to SDL3.
+    // Deadzone constants for the analogue stick: raw axis 0..65535, centre 32768.
+    // Threshold is wider than the input_stick_held menu threshold (4096 from
+    // centre) — gameplay needs more deadzone than menu nav so light drift
+    // doesn't produce spurious INPUT_MASK_FORWARDS / INPUT_MASK_MOVE bits.
 #define AXIS_CENTRE 32768
 #define NOISE_TOLERANCE 8192
 #define AXIS_MIN (AXIS_CENTRE - NOISE_TOLERANCE)
 #define AXIS_MAX (AXIS_CENTRE + NOISE_TOLERANCE)
 
-    // the_state (GamepadState) is filled by ReadInputDevice() → gamepad_poll() each frame.
+    // gamepad_state is filled by input_frame_update() → gamepad_poll() each
+    // render frame; we read it through the input_frame API below.
 
     DWORD dwCurrentTime = 0;
 
     if (type & INPUT_TYPE_JOY) {
-        if (ReadInputDevice()) {
+        if (input_gamepad_connected()) {
             {
                 ULONG ulAxisMax = AXIS_MAX;
                 ULONG ulAxisMin = AXIS_MIN;
 
-                if (the_state.connected && !the_state.dpad_active) {
+                const SLONG axis_x = input_stick_x_axis(INPUT_STICK_LEFT);
+                const SLONG axis_y = input_stick_y_axis(INPUT_STICK_LEFT);
+
+                if (input_gamepad_connected() && !input_dpad_active()) {
                     // Analog stick mode: pack position into bits 18-31.
                     // process_analogue_movement() uses these for proportional speed.
                     // Digital direction flags set only for menus (not movement).
                     analogue = 1;
                     // Apply deadzone before packing — stick drift within NOISE_TOLERANCE
                     // must pack as centre, otherwise continue_moveing() sees phantom input.
-                    SLONG pack_x = the_state.lX;
-                    SLONG pack_y = the_state.lY;
+                    SLONG pack_x = axis_x;
+                    SLONG pack_y = axis_y;
                     if (pack_x >= (SLONG)ulAxisMin && pack_x <= (SLONG)ulAxisMax)
                         pack_x = AXIS_CENTRE;
                     if (pack_y >= (SLONG)ulAxisMin && pack_y <= (SLONG)ulAxisMax)
@@ -3006,18 +3049,18 @@ ULONG get_hardware_input(UWORD type)
                 }
 
                 // Always set digital direction flags from axes (needed for menus, D-Pad).
-                if (the_state.lX > ulAxisMax) {
+                if (axis_x > (SLONG)ulAxisMax) {
                     g_dwLastInputChangeTime = dwCurrentTime;
                     input |= INPUT_MASK_RIGHT;
-                } else if (the_state.lX < ulAxisMin) {
+                } else if (axis_x < (SLONG)ulAxisMin) {
                     g_dwLastInputChangeTime = dwCurrentTime;
                     input |= INPUT_MASK_LEFT;
                 }
 
-                if (the_state.lY > ulAxisMax) {
+                if (axis_y > (SLONG)ulAxisMax) {
                     g_dwLastInputChangeTime = dwCurrentTime;
                     input |= INPUT_MASK_BACKWARDS;
-                } else if (the_state.lY < ulAxisMin) {
+                } else if (axis_y < (SLONG)ulAxisMin) {
                     input |= INPUT_MASK_FORWARDS;
                     input |= INPUT_MASK_MOVE;
                     g_dwLastInputChangeTime = dwCurrentTime;
@@ -3027,7 +3070,7 @@ ULONG get_hardware_input(UWORD type)
                 // deflection produces walking speed, no dedicated button needed.
                 // m_bForceWalk stays false (its global init).
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_JUMP]])) {
+                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_JUMP])) {
                     input |= INPUT_MASK_JUMP;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3039,7 +3082,7 @@ ULONG get_hardware_input(UWORD type)
                 // INPUT_CAR_PAD_SIREN == INPUT_MASK_KICK, so while driving
                 // the triangle press must also emit INPUT_MASK_KICK to flip
                 // the siren / lights.
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[3])) {
+                if (input_btn_held(3)) {
                     input |= INPUT_MASK_CANCEL;
                     {
                         Thing* p_darci = NET_PERSON(0);
@@ -3056,7 +3099,7 @@ ULONG get_hardware_input(UWORD type)
                 // by the Triangle path above; firing it again from R1 would
                 // toggle siren on every R1 press, which the player does not
                 // expect in-car).
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_KICK]])) {
+                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_KICK])) {
                     Thing* p_darci = NET_PERSON(0);
                     const bool driving = p_darci && p_darci->Genus.Person && (p_darci->Genus.Person->Flags & FLAG_PERSON_DRIVING);
                     if (!driving) {
@@ -3069,7 +3112,7 @@ ULONG get_hardware_input(UWORD type)
                 // punch & shoot live only on R2. Keep the button unbound in
                 // gameplay — nothing to do here.
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_START]])) {
+                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_START])) {
                     input |= INPUT_MASK_START;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3078,12 +3121,12 @@ ULONG get_hardware_input(UWORD type)
                 // (JOYPAD_BUTTON_SELECT) to R3 (right stick click). Index 8
                 // in rgbButtons matches SDL3_BTN_RIGHT_STICK and the DualSense
                 // R3 mapping.
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[8])) {
+                if (input_btn_held(8)) {
                     input |= INPUT_MASK_SELECT;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_CAMERA]])) {
+                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_CAMERA])) {
                     input |= INPUT_MASK_CAMERA;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3149,8 +3192,8 @@ ULONG get_hardware_input(UWORD type)
                                 mag_empty = true;
                         }
                         WeaponFireDecision fd = weapon_feel_evaluate_fire(
-                            current_weapon, the_state.trigger_right,
-                            the_state.trigger_left, weapon_drawn, mag_empty);
+                            current_weapon, input_trigger_raw(16),
+                            input_trigger_raw(15), weapon_drawn, mag_empty);
                         if (fd.shoot) {
                             input |= INPUT_MASK_PUNCH;
                             g_dwLastInputChangeTime = dwCurrentTime;
@@ -3168,7 +3211,7 @@ ULONG get_hardware_input(UWORD type)
                 // an L2-bound ACTION couldn't coexist with the in-car brake
                 // (every brake tap would fire ACTION mid-drive), but Circle
                 // doesn't double as a vehicle control, so it can fire freely.
-                if (BUTTON_IS_PRESSED(the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_ACTION]])) {
+                if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_ACTION])) {
                     input |= INPUT_MASK_ACTION;
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
@@ -3178,12 +3221,12 @@ ULONG get_hardware_input(UWORD type)
                 // Works on DualSense (Share+L1+L2) and Xbox (Back+LB+LT).
                 {
                     static bool bCheatLastFrame = false;
-                    bool cheat_combo = BUTTON_IS_PRESSED(the_state.rgbButtons[4]) // Select/Back
-                        && BUTTON_IS_PRESSED(the_state.rgbButtons[9]) // L1/LB
-                        && BUTTON_IS_PRESSED(the_state.rgbButtons[15]); // L2/LT (digital)
+                    bool cheat_combo = input_btn_held(4)  // Select/Back
+                        && input_btn_held(9)              // L1/LB
+                        && input_btn_held(15);            // L2/LT (digital)
 
                     if (cheat_combo) {
-                        if (BUTTON_IS_PRESSED(the_state.rgbButtons[11])) {
+                        if (input_btn_held(11)) {
                             // D-pad Up: toggle immortality (invulnerability flag on player).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
@@ -3193,14 +3236,14 @@ ULONG get_hardware_input(UWORD type)
                                 else
                                     CONSOLE_text((CBYTE*)"I'm just a mortal after all.");
                             }
-                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[12])) {
+                        } else if (input_btn_held(12)) {
                             // D-pad Down: full health.
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
                                 NET_PERSON(0)->Genus.Person->Health = 1000;
                                 CONSOLE_text((CBYTE*)"My wings are as a shield of steel.");
                             }
-                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[13])) {
+                        } else if (input_btn_held(13)) {
                             // D-pad Left: spawn weapons around player (AK47, shotgun, pistol, 3 grenades).
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
@@ -3214,7 +3257,7 @@ ULONG get_hardware_input(UWORD type)
 #undef CHEAT_RING_SIZE
                                 CONSOLE_text((CBYTE*)"We need guns. Lots of guns.");
                             }
-                        } else if (BUTTON_IS_PRESSED(the_state.rgbButtons[14])) {
+                        } else if (input_btn_held(14)) {
                             // D-pad Right: max ammo for all weapon types.
                             if (!bCheatLastFrame) {
                                 bCheatLastFrame = true;
@@ -3248,87 +3291,97 @@ ULONG get_hardware_input(UWORD type)
 
     if (type & INPUT_TYPE_KEY) {
 
+        // Movement / action buttons: level reads through input_key_held
+        // (continuous "while held" semantic — these drive INPUT_MASK_* bits
+        // that downstream consumers sample as level state per physics tick).
+        // Camera-switch and CAM_BEHIND/CAM_LEFT/CAM_RIGHT are one-shot
+        // toggles → just_pressed (edge-detect via input_frame).
+
+        const bool kb_fwd   = input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS]);
+        const bool kb_back  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK]);
+        const bool kb_left  = input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT]);
+        const bool kb_right = input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT]);
+
         // If any movement key is pressed, switch to digital mode
         // (analog mode only makes sense with a stick).
         // Also clear analog bits 18-31 — otherwise player_turn_left_right sees
         // non-zero upper bits and treats centered stick (value 0) as analog input.
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]] || Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]] || Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]] || Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+        if (kb_fwd || kb_back || kb_left || kb_right) {
             analogue = 0;
             input &= 0x0003FFFF;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+        if (kb_fwd) {
             input |= INPUT_MASK_FORWARDS;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]])
+        if (kb_back)
             input |= INPUT_MASK_BACKWARDS;
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
+        if (kb_left) {
             if (ShiftFlag)
                 input |= INPUT_MASK_STEP_LEFT;
             else
                 input |= INPUT_MASK_LEFT;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+        if (kb_right) {
             if (ShiftFlag)
                 input |= INPUT_MASK_STEP_RIGHT;
             else
                 input |= INPUT_MASK_RIGHT;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_SELECT]])
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_SELECT]))
             input |= INPUT_MASK_SELECT;
 
-        if (Keys[KB_F5]) {
+        if (input_key_just_pressed(KB_F5)) {
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM1;
-            Keys[KB_F5] = 0;
         }
-        if (Keys[KB_F6]) {
+        if (input_key_just_pressed(KB_F6)) {
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM2;
-            Keys[KB_F6] = 0;
         }
-        if (Keys[KB_F7]) {
+        if (input_key_just_pressed(KB_F7)) {
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM3;
-            Keys[KB_F7] = 0;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]]) {
-            Keys[keybrd_button_use[JOYPAD_BUTTON_CAMERA]] = 0;
+        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAMERA])) {
             input |= INPUT_MASK_CAM_BEHIND;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]]) {
-            Keys[JOYPAD_BUTTON_CAM_LEFT] = 0;
+        // Note: original cleared `Keys[JOYPAD_BUTTON_CAM_LEFT]` (no
+        // keybrd_button_use indirection — typo, would clear scancode equal to
+        // the action enum value, not the bound key). Pre-existing dead-write,
+        // dropped along with the rest of the consume — input_frame edge-detect
+        // doesn't need consume.
+        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT])) {
             input |= INPUT_MASK_CAM_LEFT;
         }
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]]) {
-            Keys[keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]] = 0;
+        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
             input |= INPUT_MASK_CAM_RIGHT;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_JUMP]])
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_JUMP]))
             input |= INPUT_MASK_JUMP;
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_PUNCH]])
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_PUNCH]))
             input |= INPUT_MASK_PUNCH;
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_KICK]]) {
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_KICK])) {
             MSG_add(" HARDWARE KICK");
             input |= INPUT_MASK_KICK;
         }
 
-        if (Keys[keybrd_button_use[JOYPAD_BUTTON_ACTION]]) {
+        if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_ACTION])) {
             input |= INPUT_MASK_ACTION;
         }
 
-        if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+        if (kb_fwd) {
             input |= INPUT_MASK_MOVE;
         }
     }
@@ -3366,9 +3419,8 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
     *processed = 0;
 
-    // the_state (GamepadState) for the 1st-person button check.
-
-    if ((Keys[keybrd_button_use[JOYPAD_BUTTON_1STPERSON]]) || the_state.rgbButtons[joypad_button_use[JOYPAD_BUTTON_1STPERSON]]) {
+    if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_1STPERSON])
+        || input_btn_held(joypad_button_use[JOYPAD_BUTTON_1STPERSON])) {
         fpm = UC_TRUE;
     }
 
@@ -3392,12 +3444,14 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             look_pitch &= 2047;
         }
 
-        if (mouse_input) {
-            if (MouseDY) {
-                look_pitch -= MouseDY;
+        if (input_mouse_active()) {
+            const SLONG mdy = input_mouse_dy();
+            const SLONG mdx = input_mouse_dx();
+            if (mdy) {
+                look_pitch -= mdy;
             }
-            if (MouseDX) {
-                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - MouseDX) & 2047;
+            if (mdx) {
+                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - mdx) & 2047;
             }
         }
 
@@ -3422,9 +3476,9 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // Right stick — gamepad. Only consume it while a controller is
             // the active input device, so a stuck/idle stick on a connected
             // controller doesn't fight keyboard input.
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && the_state.connected) {
-                SLONG sx = (SLONG)the_state.rX - 32768;
-                SLONG sy = (SLONG)the_state.rY - 32768;
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
+                SLONG sx = (SLONG)input_stick_x_axis(INPUT_STICK_RIGHT) - 32768;
+                SLONG sy = (SLONG)input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
 
                 if (abs(sy) > STICK_DEAD) {
                     // sy > 0 (stick down) → look UP   (look_pitch += step)
@@ -3443,17 +3497,17 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             // convention above (Up arrow → look DOWN). Yaw direction
             // unchanged: Left arrow turns the character left, Right turns
             // right (same as pre-rework).
-            if (Keys[keybrd_button_use[KEYBRD_BUTTON_FORWARDS]]) {
+            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_FORWARDS])) {
                 look_pitch -= STICK_PITCH_MAX;
             }
-            if (Keys[keybrd_button_use[KEYBRD_BUTTON_BACK]]) {
+            if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_BACK])) {
                 look_pitch += STICK_PITCH_MAX;
             }
             if (!CONTROLS_inventory_mode) {
-                if (Keys[keybrd_button_use[KEYBRD_BUTTON_LEFT]]) {
+                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_LEFT])) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle + STICK_YAW_MAX) & 2047;
                 }
-                if (Keys[keybrd_button_use[KEYBRD_BUTTON_RIGHT]]) {
+                if (input_key_held(keybrd_button_use[KEYBRD_BUTTON_RIGHT])) {
                     p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - STICK_YAW_MAX) & 2047;
                 }
             }
@@ -3692,19 +3746,16 @@ void process_hardware_level_input_for_player(Thing* p_player)
         if (p_person->Genus.Person->Flags & FLAG_PERSON_DRIVING) {
             // Can't draw weapons while driving.
         } else {
-            // Keyboard weapon hotkeys (PC only).
+            // Keyboard weapon hotkeys (PC only). Edge-detect via input_frame
+            // — single press = single switch, regardless of FPS.
             if (can_darci_change_weapon(p_person)) {
-                if (Keys[KB_1]) {
-                    Keys[KB_1] = 0;
-
+                if (input_key_just_pressed(KB_1)) {
                     if ((p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) || (p_person->Genus.Person->SpecialUse)) {
                         set_person_gun_away(p_person);
                     }
                 }
 
-                if (Keys[KB_2]) {
-                    Keys[KB_2] = 0;
-
+                if (input_key_just_pressed(KB_2)) {
                     if (!(p_person->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)) {
                         if (p_person->Flags & FLAGS_HAS_GUN) {
                             if (p_person->Genus.Person->SpecialUse) {
@@ -3719,30 +3770,12 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                 SLONG special_type = SPECIAL_NONE;
 
-                if (Keys[KB_3]) {
-                    Keys[KB_3] = 0;
-                    special_type = SPECIAL_SHOTGUN;
-                }
-                if (Keys[KB_4]) {
-                    Keys[KB_4] = 0;
-                    special_type = SPECIAL_AK47;
-                }
-                if (Keys[KB_5]) {
-                    Keys[KB_5] = 0;
-                    special_type = SPECIAL_GRENADE;
-                }
-                if (Keys[KB_6]) {
-                    Keys[KB_6] = 0;
-                    special_type = SPECIAL_EXPLOSIVES;
-                }
-                if (Keys[KB_7]) {
-                    Keys[KB_7] = 0;
-                    special_type = SPECIAL_KNIFE;
-                }
-                if (Keys[KB_8]) {
-                    Keys[KB_8] = 0;
-                    special_type = SPECIAL_BASEBALLBAT;
-                }
+                if (input_key_just_pressed(KB_3)) special_type = SPECIAL_SHOTGUN;
+                if (input_key_just_pressed(KB_4)) special_type = SPECIAL_AK47;
+                if (input_key_just_pressed(KB_5)) special_type = SPECIAL_GRENADE;
+                if (input_key_just_pressed(KB_6)) special_type = SPECIAL_EXPLOSIVES;
+                if (input_key_just_pressed(KB_7)) special_type = SPECIAL_KNIFE;
+                if (input_key_just_pressed(KB_8)) special_type = SPECIAL_BASEBALLBAT;
 
                 if (special_type) {
                     if (person_has_special(p_person, special_type)) {
@@ -3764,6 +3797,16 @@ void process_hardware_level_input_for_player(Thing* p_player)
 
                 processed = apply_button_input_car(TO_THING(p_person->Genus.Person->InCar), input);
                 processed |= apply_button_input(p_player, p_person, 0);
+            } else {
+                // Not driving — drain the car-siren press_pending flags every
+                // physics tick so that a press of these buttons outside the
+                // car (Triangle = menu cancel, SPACE = jump) doesn't leak into
+                // the first car-entry tick as a spurious siren toggle. Both
+                // sources are dual-use, and apply_button_input_car is the only
+                // consumer of their press_pending flag — without this drain,
+                // the flag would sit set indefinitely from any outside press.
+                input_key_consume(keybrd_button_use[JOYPAD_BUTTON_JUMP]);
+                input_btn_consume(3); // Triangle/Y
             }
             {
                 // Main input dispatcher: fight mode vs normal run mode.

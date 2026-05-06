@@ -315,10 +315,10 @@ static NIGHT_Colour* MESH_draw_guts(
 
                     if (p_f4->FaceFlags & FACE_FLAG_WALKABLE) {
                         // Debug: highlight walkable faces with animated colour.
-                        quad[0]->colour = (GAME_TURN * 55);
-                        quad[1]->colour = (GAME_TURN * 35);
-                        quad[2]->colour = (GAME_TURN * 25);
-                        quad[3]->colour = (GAME_TURN * 15);
+                        quad[0]->colour = (VISUAL_TURN * 55);
+                        quad[1]->colour = (VISUAL_TURN * 35);
+                        quad[2]->colour = (VISUAL_TURN * 25);
+                        quad[3]->colour = (VISUAL_TURN * 15);
                         POLY_add_quad(quad, POLY_PAGE_COLOUR, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
                     } else {
                         POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));

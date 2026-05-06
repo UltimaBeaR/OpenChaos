@@ -218,6 +218,11 @@ void EWAY_process_penalties(void);
 // uc_orig: EWAY_process (fallen/Source/eway.cpp)
 void EWAY_process(void);
 
+// Queues HUD mission timers for this render frame. Call once per render frame, before
+// PANEL_draw_buffered(). Uses persistent globals so the display is stable even on frames
+// where no physics tick ran.
+void EWAY_draw_hud_timers(void);
+
 // Returns world-space position of a waypoint.
 // uc_orig: EWAY_get_position (fallen/Source/eway.cpp)
 void EWAY_get_position(

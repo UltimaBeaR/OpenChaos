@@ -53,6 +53,7 @@ static bool s_uniforms_ever_uploaded = false;
 // Callbacks registered by game code.
 static GEPreFlipCallback s_pre_flip_callback = nullptr;
 static GEPostCompositionCallback s_post_composition_callback = nullptr;
+static GEDiagnosticOverlayCallback s_diagnostic_overlay_callback = nullptr;
 static GEModeChangeCallback s_mode_change_callback = nullptr;
 static GERenderStatesResetCallback s_render_states_reset_callback = nullptr;
 static GETGALoadCallback s_tga_load_callback = nullptr;
@@ -672,6 +673,7 @@ static void set_frag_uniforms(
 
 void ge_set_pre_flip_callback(GEPreFlipCallback callback) { s_pre_flip_callback = callback; }
 void ge_set_post_composition_callback(GEPostCompositionCallback callback) { s_post_composition_callback = callback; }
+void ge_set_diagnostic_overlay_callback(GEDiagnosticOverlayCallback callback) { s_diagnostic_overlay_callback = callback; }
 void ge_set_ui_mode(bool active) { s_ui_mode_active = active; }
 
 void ge_enter_ui_viewport(int32_t x, int32_t y, int32_t w, int32_t h)
@@ -851,6 +853,10 @@ void ge_flip()
     // on top at native resolution, untouched by the composition shader.
     if (s_post_composition_callback)
         s_post_composition_callback();
+
+    // Mirrored across every present path — see ge_set_diagnostic_overlay_callback.
+    if (s_diagnostic_overlay_callback)
+        s_diagnostic_overlay_callback();
 
     present_and_swap(win_w, win_h);
 
@@ -1527,6 +1533,10 @@ void ge_blit_back_buffer()
     if (s_post_composition_callback)
         s_post_composition_callback();
 
+    // Mirrored across every present path — see ge_set_diagnostic_overlay_callback.
+    if (s_diagnostic_overlay_callback)
+        s_diagnostic_overlay_callback();
+
     present_and_swap(win_w, win_h);
 
     // Re-bind scene FBO for the next frame — see OpenDisplay for rationale.
@@ -1891,6 +1901,12 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     composition_bind_default();
     composition_blit(win_w, win_h);
     crt_effect_apply();
+
+    // Only the lightweight diagnostic overlay — never the full post-
+    // composition UI pass, since that draws HUD/menus that don't belong
+    // on top of FMV. See ge_set_diagnostic_overlay_callback.
+    if (s_diagnostic_overlay_callback)
+        s_diagnostic_overlay_callback();
 
     present_and_swap(win_w, win_h);
 

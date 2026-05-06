@@ -110,5 +110,10 @@ void MAIN_main()
 
         OS_scene_end();
         OS_show();
+
+        // Render cap — same g_render_fps_cap the main game and FMV honour.
+        extern void lock_frame_rate(SLONG fps);
+        extern SLONG g_render_fps_cap;
+        lock_frame_rate(g_render_fps_cap);
     }
 }

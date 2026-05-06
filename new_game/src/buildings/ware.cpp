@@ -10,6 +10,7 @@
 #include "buildings/ware.h"
 #include "buildings/ware_globals.h"
 #include "map/pap.h"
+#include "engine/input/input_frame.h"
 
 // uc_orig: WARE_OFFSET_TO_ROOFTEXTURES (fallen/Source/ware.cpp)
 // Byte offset into the .map file where the rooftop texture table begins.
@@ -584,7 +585,8 @@ void WARE_debug(void)
     SLONG x1, y1, z1, x2, y2, z2;
     WARE_Ware* ww;
 
-    if (!Keys[KB_T])
+    // Continuous level read: WARE_debug overlay drawn every frame T is held.
+    if (!input_key_held(KB_T))
         return;
 
     for (i = 1; i < WARE_ware_upto; i++) {

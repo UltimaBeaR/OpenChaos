@@ -12,6 +12,7 @@
 #include "engine/graphics/pipeline/poly_globals.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "game/game_types.h" // UC_VISUAL_CADENCE_HZ — original render-tied calibration rate
 
 // Scene FBO dimensions (defined in d3d/display_globals.cpp).
 extern SLONG ScreenWidth;
@@ -49,9 +50,9 @@ extern SLONG ScreenHeight;
 // XLAT_str, X_COMPLETE, X_SEARCHING for search-mode text
 #include "assets/xlat_str.h"
 
-// Keys[], KB_V for version number display
+// KB_V for version number display
 #include "engine/input/keyboard.h"
-#include "engine/input/keyboard_globals.h"
+#include "engine/input/input_frame.h"
 
 // ENV_get_value_number for PSX-mode check
 #include "engine/io/env.h"
@@ -195,9 +196,15 @@ void PANEL_draw_buffered()
         sprintf(countdown, "%02d:%02d", mins, (int)time);
 
         if ((time < 30) && !mins) {
-            static unsigned short pulse = 0;
-            pulse += (TICK_RATIO * 80) >> TICK_SHIFT;
-            int colour = (SIN(pulse & 2047) >> 9) + 128;
+            // Pulse calibrated against original render-tied rate UC_VISUAL_CADENCE_HZ
+            // (PS1 hardware lock + PC retail default = 30 Hz render). Original was
+            // pulse += 80 per render frame → 80 × 30 = 2400 units/sec. Derived from
+            // wall-clock so cycle rate is independent of render FPS and physics Hz.
+            // SIN cycles every 2048 units → 2048 / 2400 ≈ 0.85 sec/pulse. Mask before
+            // cast: at long uptime the multiplied value exceeds SLONG range.
+            constexpr ULONG PULSE_UNITS_PER_SEC = 80U * UC_VISUAL_CADENCE_HZ;
+            SLONG pulse = SLONG((sdl3_get_ticks() * PULSE_UNITS_PER_SEC / 1000U) & 2047U);
+            int colour = (SIN(pulse) >> 9) + 128;
             colour = colour | (colour << 8);
             FONT2D_DrawStringCentred(countdown, m_iPanelXPos + 171, m_iPanelYPos - 118, 0xff0000 | colour, 256 + 64);
         } else {
@@ -210,6 +217,13 @@ void PANEL_draw_buffered()
 
 // Draws an in-world health bar floating above position (mx, my, mz).
 // The bar moves towards the camera so it sorts in front of the character.
+//
+// Uses POLY_PAGE_COLOUR_ALPHA + sort_to_front so the bar is always drawn on
+// top of all 3D world geometry (last alpha pass before UI). The original
+// release also had this z-order bug — terrain occluded HP bars — but we fix
+// it as an improvement over the original. Gun sight (PANEL_draw_gun_sight)
+// keeps depth-tested behaviour: getting occluded by world geometry is
+// correct for an aim marker (you should not see it through walls).
 // uc_orig: PANEL_draw_local_health (fallen/DDEngine/Source/panel.cpp)
 void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLONG radius)
 {
@@ -231,6 +245,12 @@ void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLO
         percentage = 100;
     }
 
+    // ARGB. Alpha 0xc0 on the dark background lets the world bleed through
+    // slightly (so the bar doesn't feel like a solid sticker) and full 0xff
+    // on the red fill keeps it visibly bright — at lower alpha the fill
+    // looked washed-out against varied backgrounds since switching to
+    // POLY_PAGE_COLOUR_ALPHA (which honours alpha as true blend rather than
+    // the original COLOUR-page fade tint).
     p1.X -= 27.0f;
     p1.colour = 0xc0000000 | 0x0f;
     p1.specular = 0xff000000;
@@ -238,17 +258,17 @@ void PANEL_draw_local_health(SLONG mx, SLONG my, SLONG mz, SLONG percentage, SLO
     extern void POLY_add_rect(POLY_Point * p1, SLONG width, SLONG height, SLONG page, unsigned char sort_to_front);
 
     if (p1.IsValid()) {
-        POLY_add_rect(&p1, 54, 4, POLY_PAGE_COLOUR, 0);
+        POLY_add_rect(&p1, 54, 4, POLY_PAGE_COLOUR_ALPHA, 1);
     } else {
         return;
     }
 
     p1.X += 2.0f;
-    p1.colour = 0x40000000 | 0xff0000;
+    p1.colour = 0xff000000 | 0xff0000;
     p1.specular = 0xff000000;
 
     if (p1.IsValid()) {
-        POLY_add_rect(&p1, (50 * percentage) / 100, 4, POLY_PAGE_COLOUR, 0);
+        POLY_add_rect(&p1, (50 * percentage) / 100, 4, POLY_PAGE_COLOUR_ALPHA, 1);
     }
 }
 
@@ -1975,7 +1995,7 @@ void PANEL_last(void)
             float dist;
             float dangle;
             float size;
-            float flash = fabs(sin(float(GAME_TURN) * 0.2F));
+            float flash = fabs(sin(float(VISUAL_TURN) * 0.2F));
             SLONG display;
             ULONG colour;
 
@@ -2270,7 +2290,7 @@ void PANEL_last(void)
         static ULONG timestamp_colour = 0;
         static CBYTE version_number[128];
 
-        if (Keys[KB_V] && allow_debug_keys) {
+        if (input_key_held(KB_V) && allow_debug_keys) {
             timestamp_colour = 0xf0f0f0f0;
         }
 

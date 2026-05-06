@@ -49,6 +49,7 @@
 #include "ui/menus/gamemenu.h"
 #include "ui/hud/overlay.h" // OVERLAY_handle
 #include "game/ui_render.h" // ui_render_post_composition
+#include "game/debug_timing_overlay.h" // debug_timing_overlay_render_font2d (no-op when OC_DEBUG_PHYSICS_TIMING=false)
 #include "engine/input/gamepad.h" // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
@@ -83,10 +84,10 @@
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::SetScaling (mode change callback)
 #include "engine/graphics/ui_coords.h" // ui_coords::recompute (mode change callback)
 #include "engine/graphics/pipeline/aeng.h" // AENG_init, AENG_fini, AENG_draw, AENG_flip, AENG_blit, AENG_screen_shot, AENG_draw_messages
-#include "engine/input/keyboard.h" // Keys, LastKey, KB_*
+#include "engine/graphics/render_interp.h" // g_render_alpha, render_interp_capture, render_interp_reset
+#include "engine/input/keyboard.h" // Keys, KB_*
 #include "engine/input/keyboard_globals.h"
-#include "engine/input/joystick.h" // GetInputDevice, JOYSTICK
-#include "engine/input/joystick_globals.h"
+#include "engine/input/input_frame.h"
 
 #include <math.h>
 #include <string.h> // strstr
@@ -101,6 +102,11 @@ extern SLONG GAMEMENU_menu_type;
 extern SLONG BARREL_fx_rate;
 extern UBYTE combo_display;
 extern UBYTE stealth_debug;
+
+// Physics-tick count executed in the most recent render frame. Written by
+// the main game loop, read by the debug timing overlay. Zero outside the
+// game loop.
+int  g_last_phys_tick_count = 0;
 
 // uc_orig: stop_all_fx_and_music (fallen/Source/Game.cpp)
 void stop_all_fx_and_music(void)
@@ -206,6 +212,9 @@ void game_startup(void)
     // calls mode_change_callback, and Flip() calls pre_flip_callback.
     ge_set_pre_flip_callback(game_pre_flip);
     ge_set_post_composition_callback(ui_render_post_composition);
+#if OC_DEBUG_PHYSICS_TIMING
+    ge_set_diagnostic_overlay_callback(debug_timing_overlay_render_font2d);
+#endif
     ge_set_mode_change_callback(game_mode_changed);
     ge_set_polys_drawn_callback(game_polys_drawn);
     ge_set_render_states_reset_callback(game_render_states_reset);
@@ -231,10 +240,10 @@ void game_startup(void)
     init_joypad_config();
     ANIM_init();
 
-    GetInputDevice(JOYSTICK, 0, UC_TRUE);
+    gamepad_init();
 
     // Play intro FMV (Eidos, Mucky Foot, intro) — skippable, respects play_movie config.
-    // Must be after GetInputDevice so DualSense is initialized for skip.
+    // Must be after gamepad_init so DualSense is initialized for skip.
     {
         extern void video_play_intro(void);
         video_play_intro();
@@ -325,8 +334,10 @@ BOOL game_init(void)
         PLAYER_ID = 0;
     }
 
-    // TICK_RATIO is scaled each frame by the real frame time: (real_ms << TICK_SHIFT) / NORMAL_TICK_TOCK.
-    // NORMAL_TICK_TOCK = 66.67ms (15 FPS base). Smoothed over 4 frames via SmoothTicks().
+    // TICK_RATIO is scaled each frame by the real frame time:
+    // (real_ms << TICK_SHIFT) / THING_TICK_BASE_MS, where THING_TICK_BASE_MS
+    // = 1000 / UC_PHYSICS_DESIGN_HZ = 50 ms (20 Hz reference, see thing.cpp).
+    // Smoothed over 4 frames via SmoothTicks().
     TICK_RATIO = (1 << TICK_SHIFT);
     DETAIL_LEVEL = 0xffff;
 
@@ -484,6 +495,13 @@ void lock_frame_rate(SLONG fps)
     // BUGFIX-OC-TICK-OVERFLOW: SLONG → DWORD → uint64_t
     static uint64_t tick1 = 0;
 
+    // fps <= 0 means "unlimited" — no cap, just record the timestamp so the
+    // next call has a fresh baseline if a cap gets re-enabled mid-session.
+    if (fps <= 0) {
+        tick1 = sdl3_get_performance_counter();
+        return;
+    }
+
     const uint64_t pc_freq = sdl3_get_performance_frequency(); // counter ticks per second
     const uint64_t target_pc = pc_freq / (uint32_t)fps; // ticks per frame, exact
 
@@ -568,16 +586,8 @@ void screen_flip(void)
     // FONT_buffer flush moved to ui_render_post_composition — they draw
     // text that must land on the default FB at native resolution, after
     // composition, so FXAA / bilinear upscale don't soften the glyphs.
-    {
-        static bool ctrl_was_pressed = false;
-        if (Keys[KB_LCONTROL] && allow_debug_keys) {
-            if (!ctrl_was_pressed) {
-                ctrl_was_pressed = true;
-                debug_overlay_locked_on = !debug_overlay_locked_on;
-            }
-        } else if (!Keys[KB_LCONTROL]) {
-            ctrl_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_LCONTROL)) {
+        debug_overlay_locked_on = !debug_overlay_locked_on;
     }
 
     // Blitting is faster than flipping, but 3DFX hardware has no video-to-video blitter.
@@ -591,24 +601,63 @@ void screen_flip(void)
 // uc_orig: playback_game_keys (fallen/Source/Game.cpp)
 void playback_game_keys(void)
 {
-    if (Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
-        Keys[KB_SPACE] = 0;
-        Keys[KB_ENTER] = 0;
-        Keys[KB_PENTER] = 0;
-
+    if (input_key_just_pressed(KB_SPACE) || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
         GAME_STATE = 0;
     }
 
-    if (ReadInputDevice()) {
-        SLONG i;
-
-        for (i = 0; i <= 9; i++) {
-            if (the_state.rgbButtons[i]) {
+    if (input_gamepad_connected()) {
+        for (SLONG i = 0; i <= 9; i++) {
+            if (input_btn_held(i)) {
                 GAME_STATE = 0;
             }
         }
     }
 }
+
+#if OC_DEBUG_PHYSICS_TIMING
+void check_debug_timing_keys(void)
+{
+    constexpr SLONG PHYS_HZ_TOGGLE_LOW   = 5;
+    constexpr SLONG PHYS_HZ_FINE_MIN     = 1;
+    constexpr SLONG PHYS_HZ_FINE_MAX     = UC_PHYSICS_DESIGN_HZ;
+
+    // 30 deliberately: matches UC_VISUAL_CADENCE_HZ (PS1 hardware lock) so the
+    // throttled debug mode reproduces the original visual cadence. Do not
+    // change to a "rounder" number like 25 without checking with the user —
+    // 30 is the meaningful value here.
+    constexpr SLONG RENDER_FPS_TOGGLE_LOW = 30;
+
+    if (input_key_just_pressed(KB_1)) {
+        g_physics_hz = (g_physics_hz == UC_PHYSICS_DESIGN_HZ)
+            ? PHYS_HZ_TOGGLE_LOW
+            : UC_PHYSICS_DESIGN_HZ;
+    }
+
+    // DualSense touchpad click duplicates key 2 — same FPS-cap toggle without
+    // reaching for the keyboard during gamepad debugging. The DS gamepad path
+    // mirrors touchpad_click into rgbButtons[17], so input_btn_just_pressed
+    // gives the rising-edge directly with no local edge-detect needed.
+    if (input_key_just_pressed(KB_2) || input_btn_just_pressed(17)) {
+        g_render_fps_cap = (g_render_fps_cap == RENDER_FPS_DEFAULT_CAP)
+            ? RENDER_FPS_TOGGLE_LOW
+            : RENDER_FPS_DEFAULT_CAP;
+    }
+
+    if (input_key_just_pressed(KB_3)) {
+        g_render_interp_enabled = !g_render_interp_enabled;
+    }
+
+    if (input_key_just_pressed(KB_9)) {
+        g_physics_hz -= 1;
+        if (g_physics_hz < PHYS_HZ_FINE_MIN) g_physics_hz = PHYS_HZ_FINE_MIN;
+    }
+
+    if (input_key_just_pressed(KB_0)) {
+        g_physics_hz += 1;
+        if (g_physics_hz > PHYS_HZ_FINE_MAX) g_physics_hz = PHYS_HZ_FINE_MAX;
+    }
+}
+#endif // OC_DEBUG_PHYSICS_TIMING
 
 // uc_orig: special_keys (fallen/Source/Game.cpp)
 SLONG special_keys(void)
@@ -617,69 +666,49 @@ SLONG special_keys(void)
         playback_game_keys();
     }
 
-    if (allow_debug_keys && ControlFlag && Keys[KB_Q]) {
+    // Ctrl+Q quit: edge-trigger via input_frame so a held Ctrl+Q triggers
+    // exactly one quit attempt (was level-trigger — would loop returning 1
+    // every frame while held, but caller exits on first 1, so behaviour
+    // identical in practice). ControlFlag stays as the modifier source —
+    // it's a separate level-state Ctrl tracker, out of scope for this
+    // discrete-event migration.
+    if (allow_debug_keys && ControlFlag && input_key_just_pressed(KB_Q)) {
         return 1;
     }
+
     // F2: toggle CRT scanline shader. Gated behind bangunsnotgames.
-    {
-        static bool f2_was_pressed = false;
-        if (Keys[KB_F2] && allow_debug_keys) {
-            if (!f2_was_pressed) {
-                f2_was_pressed = true;
-                g_crt_enabled ^= 1;
-                if (g_crt_enabled)
-                    CONSOLE_text((CBYTE*)"CRT shader on", 3000);
-                else
-                    CONSOLE_text((CBYTE*)"CRT shader off", 3000);
-            }
-        } else if (!Keys[KB_F2]) {
-            f2_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F2)) {
+        g_crt_enabled ^= 1;
+        if (g_crt_enabled)
+            CONSOLE_text((CBYTE*)"CRT shader on", 3000);
+        else
+            CONSOLE_text((CBYTE*)"CRT shader off", 3000);
     }
 
     // F8 toggles single-step mode. Originally bound to the quote key
     // (') — rebound because punctuation keys are opaque in the help
     // legend ("what does ' even mean?"). F8 is the usual debugger
     // "pause/continue" key, which matches intent.
-    if (allow_debug_keys)
-        if (Keys[KB_F8]) {
-            Keys[KB_F8] = 0;
-            single_step ^= 1;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F8)) {
+        single_step ^= 1;
+    }
 
     // F10: toggle far-facet debug mode (skip level geometry + shader
     // debug-split colours on far-facets). Only active after bangunsnotgames
     // cheat. See stage12_farfacets.md.
-    {
-        static bool f10_was_pressed = false;
-        if (Keys[KB_F10] && allow_debug_keys) {
-            if (!f10_was_pressed) {
-                f10_was_pressed = true;
-                g_farfacet_debug ^= 1;
-                if (g_farfacet_debug)
-                    CONSOLE_text("farfacet debug on", 3000);
-                else
-                    CONSOLE_text("farfacet debug off", 3000);
-            }
-        } else if (!Keys[KB_F10]) {
-            f10_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F10)) {
+        g_farfacet_debug ^= 1;
+        if (g_farfacet_debug)
+            CONSOLE_text("farfacet debug on", 3000);
+        else
+            CONSOLE_text("farfacet debug off", 3000);
     }
 
     // F11: toggle modal input debug panel. Gated behind bangunsnotgames
     // so only developers hit it — regular players never see the panel
     // even by accident.
-    if (allow_debug_keys) {
-        static bool f11_was_pressed = false;
-        if (Keys[KB_F11]) {
-            if (!f11_was_pressed) {
-                f11_was_pressed = true;
-                input_debug_toggle();
-            }
-            Keys[KB_F11] = 0;
-        } else {
-            f11_was_pressed = false;
-        }
+    if (allow_debug_keys && input_key_just_pressed(KB_F11)) {
+        input_debug_toggle();
     }
 
     // Drive the panel's own input (ESC exit, future page controls) before
@@ -696,13 +725,13 @@ SLONG special_keys(void)
 
     // Step once while in single-step mode. Was comma (`,`) — rebound to
     // Insert for the same legend-readability reason as the F8 toggle.
-    if (allow_debug_keys && single_step) {
-        if (Keys[KB_INS]) {
-            Keys[KB_INS] = 0;
-
-            process_things(0);
-        }
+    if (allow_debug_keys && single_step && input_key_just_pressed(KB_INS)) {
+        process_things(0);
     }
+
+#if OC_DEBUG_PHYSICS_TIMING
+    check_debug_timing_keys();
+#endif
 
     return (0);
 }
@@ -756,6 +785,12 @@ SLONG should_i_process_game(void)
 // uc_orig: draw_screen (fallen/Source/Game.cpp)
 void draw_screen(void)
 {
+    // Render-side interpolation: writes interpolated WorldPos / Tweened
+    // angles / FC_cam[0] into the live structs for the duration of the draw,
+    // then restores authoritative values on scope exit. Every reader inside
+    // the render path sees interpolated state without per-call-site plumbing.
+    RenderInterpFrame interp_frame;
+
     if (draw_map_screen) {
         // MAP_draw() was here — removed in original
     } else {
@@ -772,8 +807,9 @@ SLONG hardware_input_continue(void)
 {
     if (GAMEMENU_menu_type == 0 /*GAMEMENU_MENU_TYPE_NONE*/) {
         SLONG input = get_hardware_input(INPUT_TYPE_ALL);
-        if (LastKey == KB_SPACE || LastKey == KB_ESC || LastKey == KB_Z || LastKey == KB_X || LastKey == KB_C || LastKey == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
-            LastKey = 0;
+        const UBYTE last_key = input_last_key();
+        if (last_key == KB_SPACE || last_key == KB_ESC || last_key == KB_Z || last_key == KB_X || last_key == KB_C || last_key == KB_ENTER || (input & (INPUT_MASK_SELECT | INPUT_MASK_PUNCH | INPUT_MASK_JUMP))) {
+            input_last_key_consume();
 
             return (1);
         }
@@ -798,7 +834,7 @@ round_again:;
         draw_map_screen = UC_FALSE;
         form_leave_map = NULL;
         form_left_map = 0;
-        LastKey = 0;
+        input_last_key_consume();
         last_fudge_message = 0;
         last_fudge_camera = 0;
 
@@ -818,7 +854,49 @@ round_again:;
         extern void envmap_specials(void);
         envmap_specials();
 
+        uint64_t prev_frame_ms = sdl3_get_ticks();
+        // Pre-charge the accumulator with one physics step so the first
+        // iteration of the loop runs a physics tick BEFORE the first render
+        // frame. Without this, mission_init's spawn poses (e.g. arrested
+        // cops in Urban Shakedown set up standing-then-fall by their state
+        // machines on the first tick) are visible for one frame in their
+        // pre-tick state. Cost: mission timer / EWAY scripted events start
+        // ~50 ms earlier — within frame margin, not gameplay-significant.
+        // Cap on frame_dt_ms — limits physics_acc_ms growth so a long stall
+        // (debugger pause, thermal throttle, OS preemption) does not enqueue
+        // more than MAX_PHYSICS_TICKS_PER_FRAME physics ticks on recovery.
+        static constexpr double FRAME_DT_MAX_MS = 200.0;
+
+        // Maximum physics ticks per render frame. Derived:
+        // FRAME_DT_MAX_MS / (1000 / UC_PHYSICS_DESIGN_HZ) = 200 / 50 = 4.
+        // An explicit counter below makes the cap visible in the timing
+        // overlay and guarantees it even when g_physics_hz is tuned at
+        // runtime (debug keys 9/0).
+        static constexpr int MAX_PHYSICS_TICKS_PER_FRAME =
+            static_cast<int>(FRAME_DT_MAX_MS / (1000.0 / UC_PHYSICS_DESIGN_HZ));
+
+        double   physics_acc_ms = 1000.0 / double(g_physics_hz);
+
+        // Drop any stale interpolation snapshots from the previous mission
+        // so the first capture re-seeds prev = curr (no startup judder).
+        render_interp_reset();
+
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
+
+            {
+                uint64_t now_ms = sdl3_get_ticks();
+                double frame_dt_ms = double(now_ms - prev_frame_ms);
+                if (frame_dt_ms > FRAME_DT_MAX_MS) frame_dt_ms = FRAME_DT_MAX_MS;
+                prev_frame_ms = now_ms;
+                physics_acc_ms += frame_dt_ms;
+                // Publish wall-clock dt for render-side effects (rain
+                // density, per-puddle drip spawn) — see g_frame_dt_ms.
+                g_frame_dt_ms = float(frame_dt_ms);
+                // Tick the 30 Hz visual cadence counter for GAME_TURN-
+                // gated visuals (siren flash, wheel rotation, etc.) —
+                // see VISUAL_TURN.
+                visual_turn_tick(g_frame_dt_ms);
+            }
 
             if (!exit_game_loop && !input_debug_is_active()) {
                 exit_game_loop = GAMEMENU_process();
@@ -917,30 +995,145 @@ round_again:;
             void check_pows(void);
             check_pows();
 
-            if (should_i_process_game()) {
+            {
+                const double phys_step_ms  = 1000.0 / double(g_physics_hz);
+                const SLONG  phys_tick_diff = 1000 / g_physics_hz;
+                const float  phys_dt_ms    = float(phys_step_ms);
 
-                if (!single_step) {
-                    process_things(1);
+                g_last_phys_tick_count = 0;
+                while (should_i_process_game() && physics_acc_ms >= phys_step_ms
+                       && g_last_phys_tick_count < MAX_PHYSICS_TICKS_PER_FRAME) {
+                    g_last_phys_tick_count++;
+
+                    OVERLAY_begin_physics_tick();
+
+                    if (!single_step) {
+                        process_things(1, phys_tick_diff);
+                    }
+
+                    PARTICLE_Run();
+                    OB_process();
+                    TRIP_process();
+                    DOOR_process();
+
+                    EWAY_process();
+
+                    // SPARK_show_electric_fences and RIBBON_process are
+                    // called once per render frame (below, after the
+                    // physics loop) with the wall-clock frame dt — both
+                    // are pure visual effects calibrated against the
+                    // 30 Hz visual cadence, must be independent of
+                    // physics rate. Same with DRIP_process / PUDDLE_process.
+                    DIRT_process();
+                    ProcessGrenades();
+                    WMOVE_draw();
+                    BALLOON_process();
+                    MAP_process();
+                    POW_process();
+                    FC_process();
+
+                    GAME_TURN++;
+                    // GAME_TURN ticks once per physics tick (= UC_PHYSICS_DESIGN_HZ
+                    // = 20/sec by default). Original ticked GAME_TURN per render
+                    // frame (PS1 = 30/sec, PC config default = 30/sec, PC retail
+                    // ~22/sec) — moving it here makes it strictly game-state
+                    // (paused on pause, decoupled from render). Visual effects
+                    // that used GAME_TURN as a "render cadence" counter are
+                    // migrated to VISUAL_TURN (separate 30/sec wall-clock
+                    // counter) — see new_game_devlog/fps_unlock/original_tick_rates/.
+                    //
+                    // Bench-health re-enable: 1024 GAME_TURN cycle = ~51 sec at
+                    // 20 Hz (was ~34 sec at 30 Hz on PS1). 314 magic constant is
+                    // an arbitrary phase offset, not load-bearing.
+                    if ((GAME_TURN & 0x3ff) == 314) {
+                        GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH;
+                    }
+
+                    // Render-side interpolation: snapshot post-tick state of
+                    // moving Things and the camera. Done at the end of each
+                    // physics tick so that on multi-tick frames snap.prev/curr
+                    // always span the most recent tick boundary.
+                    //
+                    // Camera is captured so body-vs-camera stay on the same
+                    // render-time clock — without this, the interpolated body
+                    // snaps relative to the discretely-updated camera at every
+                    // tick boundary.
+                    {
+                        // Walk per-class linked lists for movement-bearing
+                        // classes only. Each class is a small list (<400
+                        // entries combined), much cheaper than scanning all
+                        // 701 Thing slots.
+                        const UBYTE moving_classes[] = {
+                            CLASS_PERSON,
+                            CLASS_VEHICLE,
+                            CLASS_PROJECTILE,
+                            CLASS_ANIMAL,
+                            CLASS_PYRO,
+                            CLASS_CHOPPER,
+                            CLASS_PLAT,
+                            CLASS_BARREL,
+                            CLASS_BAT,
+                            CLASS_BIKE,
+                            CLASS_SPECIAL,  // grenades thrown can move
+                        };
+                        for (UBYTE c : moving_classes) {
+                            UWORD t_idx = thing_class_head[c];
+                            while (t_idx) {
+                                Thing* p = TO_THING(t_idx);
+                                render_interp_capture(p);
+                                t_idx = p->NextLink;
+                            }
+                        }
+                        render_interp_capture_camera(&FC_cam[0]);
+                        // Cutscene camera lives in EWAY_cam_* globals (separate
+                        // from FC_cam), and EWAY_grab_camera copies them into
+                        // fc->* inside the renderer, overwriting our FC_cam apply
+                        // with raw post-tick state. Snapshot them too so the
+                        // renderer can substitute interpolated values right after
+                        // EWAY_grab_camera writes. EWAY_process inside this same
+                        // physics tick has already updated EWAY_cam_*.
+                        render_interp_capture_eway_camera();
+                        // DIRT pool (leaves, brass, cans, etc) — separate from
+                        // THINGS[]. DIRT_process above advanced positions /
+                        // angles for this tick; snapshot them so the renderer
+                        // can lerp between ticks instead of showing them
+                        // judder-stepping at physics rate.
+                        render_interp_capture_dirt();
+                        // Grenade pool (GrenadeArray) — separate from THINGS[]
+                        // and DIRT, rendered directly via DrawGrenades().
+                        // ProcessGrenades above has already advanced positions
+                        // and angles for this tick.
+                        render_interp_capture_grenades();
+                    }
+
+                    physics_acc_ms -= phys_step_ms;
                 }
+                // If the per-frame tick cap fired, discard leftover accumulator
+                // so it does not carry over as an extra burst next frame.
+                // (At design rate this is belt-and-suspenders alongside the
+                // FRAME_DT_MAX_MS clamp; it matters if g_physics_hz is tuned
+                // to a higher rate via debug keys while a stall is in progress.)
+                if (g_last_phys_tick_count >= MAX_PHYSICS_TICKS_PER_FRAME)
+                    physics_acc_ms = 0.0;
 
-                PARTICLE_Run();
-                OB_process();
-                TRIP_process();
-                DOOR_process();
+                const bool game_frozen = !should_i_process_game();
+                if (game_frozen) physics_acc_ms = 0.0;
 
-                EWAY_process();
-
-                SPARK_show_electric_fences();
-                RIBBON_process();
-                DIRT_process();
-                ProcessGrenades();
-                WMOVE_draw();
-                BALLOON_process();
-                MAP_process();
-                POW_process();
-                FC_process();
-
-            } else {
+                // Alpha = how far we are between the last and next physics
+                // tick. Read by RenderInterpFrame at draw time. Clamped to
+                // [0, 1] so lerp never overshoots curr.
+                //
+                // On pause: clamp to 1 so the world is rendered at the latest
+                // captured snapshot instead of falling back to the older
+                // "prev" tick (acc=0 → alpha=0 → lerp returns prev). Without
+                // this, the moment of pausing visibly snaps moving objects
+                // back ~50 ms (one physics tick).
+                {
+                    double a = game_frozen ? 1.0 : (physics_acc_ms / phys_step_ms);
+                    if (a < 0.0) a = 0.0;
+                    else if (a > 1.0) a = 1.0;
+                    g_render_alpha = float(a);
+                }
             }
 
             // Gamepad output (rumble, LED, adaptive triggers) is fully
@@ -1104,10 +1297,14 @@ round_again:;
 
             } // end of "!input_debug_is_active()" block — gamepad outputs
 
-            {
-                PUDDLE_process();
-                DRIP_process();
-            }
+            // Render-side wall-clock animation: puddle splash blobs,
+            // drip ripples, ribbons (electric wires / convect smoke
+            // tendrils) and electric-fence spark bursts all run at a
+            // fixed 30 Hz cadence regardless of physics or render rate.
+            PUDDLE_process(g_frame_dt_ms);
+            DRIP_process(g_frame_dt_ms);
+            RIBBON_process(g_frame_dt_ms);
+            SPARK_show_electric_fences(g_frame_dt_ms);
 
             BreakTime("Done thing processing");
 
@@ -1132,20 +1329,13 @@ round_again:;
             extern void AENG_set_render_pass(bool active);
             AENG_set_render_pass(false);
 
-            lock_frame_rate(env_frame_rate);
+            lock_frame_rate(g_render_fps_cap);
 
             BreakTime("Done flip");
 
             BreakFrame();
 
             handle_sfx();
-
-            GAME_TURN++;
-
-            // Every ~34 seconds at 30 FPS (1024 frames), re-enable bench healing.
-            if ((GAME_TURN & 0x3ff) == 314) {
-                GAME_FLAGS &= ~GF_DISABLE_BENCH_HEALTH;
-            }
 
             if (i_want_to_exit) {
                 break;
@@ -1187,10 +1377,12 @@ round_again:;
 
                         ge_init_back_image("deadcivs.tga");
 
-                        Keys[KB_ESC] = 0;
-                        Keys[KB_SPACE] = 0;
-                        Keys[KB_ENTER] = 0;
-                        Keys[KB_PENTER] = 0;
+                        // Clear any pending press carried in from the previous
+                        // screen so the warning loop doesn't dismiss instantly.
+                        input_key_force_release(KB_ESC);
+                        input_key_force_release(KB_SPACE);
+                        input_key_force_release(KB_ENTER);
+                        input_key_force_release(KB_PENTER);
 
                         while (SHELL_ACTIVE) {
                             ge_show_back_image();
@@ -1229,17 +1421,18 @@ round_again:;
                             POLY_frame_draw(UC_TRUE, UC_TRUE);
                             AENG_flip();
 
-                            if (Keys[KB_ESC] || Keys[KB_SPACE] || Keys[KB_ENTER] || Keys[KB_PENTER]) {
+                            if (input_key_just_pressed(KB_ESC) || input_key_just_pressed(KB_SPACE)
+                                || input_key_just_pressed(KB_ENTER) || input_key_just_pressed(KB_PENTER)) {
                                 break;
                             }
                         }
 
                         ge_reset_back_image();
 
-                        Keys[KB_ESC] = 0;
-                        Keys[KB_SPACE] = 0;
-                        Keys[KB_ENTER] = 0;
-                        Keys[KB_PENTER] = 0;
+                        input_key_force_release(KB_ESC);
+                        input_key_force_release(KB_SPACE);
+                        input_key_force_release(KB_ENTER);
+                        input_key_force_release(KB_PENTER);
 
                         the_game.DarciDeadCivWarnings += 1;
                     }

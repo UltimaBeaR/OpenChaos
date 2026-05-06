@@ -255,8 +255,18 @@ void POLY_init_render_states()
                 pa->RS.SetTextureBlend(GETextureBlend::Modulate);
                 pa->RS.SetFogEnabled(false);
                 pa->RS.SetAlphaBlendEnabled(true);
+                // Additive blending (One,One) is what the original aimed for
+                // — the second SetDstBlend in the source was a typo; the
+                // SetSrcBlend was missing, so SrcBlend silently inherited
+                // whatever the previous polypage left.
+                pa->RS.SetSrcBlend(GEBlendFactor::One);
                 pa->RS.SetDstBlend(GEBlendFactor::One);
-                pa->RS.SetDstBlend(GEBlendFactor::One);
+                // Transparent additive primitives must NOT write depth —
+                // otherwise each LITE_BOLT quad's full bounding rectangle
+                // (including the texture's transparent texels) z-occluded
+                // later overlapping LITE_BOLT quads, producing the
+                // rectangular dark "bites" through MIB destruct lightning.
+                pa->RS.SetDepthWrite(false);
                 pa->RS.SetTextureAddress(GETextureAddress::Wrap);
                 break;
 

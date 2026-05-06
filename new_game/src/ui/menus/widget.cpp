@@ -4,6 +4,7 @@
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"
+#include "engine/input/input_frame.h"
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "game/input_actions.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
@@ -57,10 +58,16 @@ void WIDGET_snd(SLONG snd)
 }
 
 // uc_orig: FORM_KeyProc (fallen/Source/widget.cpp)
+//
+// Internal bridge consumer for the gamepad-to-keyboard channel: the
+// gamepad-to-keyboard bridge below synthesizes virtual key presses via
+// input_frame_inject_key_press(KB_ENTER) etc., and FORM_KeyProc consumes
+// them via input_key_press_pending + input_key_consume. Same pattern as
+// hardware key consumers — input_frame is the single message bus.
 static BOOL FORM_KeyProc(SLONG key)
 {
-    if (Keys[key]) {
-        Keys[key] = 0;
+    if (input_key_press_pending(key)) {
+        input_key_consume(key);
         EatenKey = 1;
         return 1;
     }
@@ -85,12 +92,15 @@ SLONG FORM_Process(Form* form)
     WidgetTick++;
     form->age++;
 
-    if (LastKey) {
-        key = (Keys[KB_LSHIFT] || Keys[KB_RSHIFT]) ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
+    const UBYTE last_key = input_last_key();
+    if (last_key) {
+        // ShiftFlag is the level-state Shift modifier mirrored from
+        // input_frame's event-tracked state (KB_LSHIFT || KB_RSHIFT).
+        key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
         if (key == 8)
             key = 127;
         if (!key)
-            switch (LastKey) {
+            switch (last_key) {
             case KB_UP:
                 key = 11;
                 break;
@@ -132,31 +142,36 @@ SLONG FORM_Process(Form* form)
 
     input = get_hardware_input(INPUT_TYPE_JOY);
     if (input && (input != lastinput) && (ticker < 1)) {
+        // Gamepad → keyboard bridge: synthesise key-press events into
+        // input_frame so FORM_KeyProc (and any other pending-press consumer)
+        // sees the gamepad press as if it were a keyboard press. Internal
+        // closed channel — no leak to physical-keyboard text input because
+        // input_frame_inject_key_press deliberately doesn't update LastKey.
         // Cross/A = confirm (JUMP maps to Cross in PS1 Config 0).
         if (input & INPUT_MASK_JUMP) {
             key = 13;
-            Keys[KB_ENTER] = 1;
+            input_frame_inject_key_press(KB_ENTER);
         }
         // Triangle/Y = cancel/back (KICK+CANCEL maps to Triangle).
         if (input & INPUT_MASK_CANCEL) {
             key = 27;
-            Keys[KB_ESC] = 1;
+            input_frame_inject_key_press(KB_ESC);
         }
         if (input & INPUT_MASK_FORWARDS) {
             key = 11;
-            Keys[KB_UP] = 1;
+            input_frame_inject_key_press(KB_UP);
         }
         if (input & INPUT_MASK_BACKWARDS) {
             key = 10;
-            Keys[KB_DOWN] = 1;
+            input_frame_inject_key_press(KB_DOWN);
         }
         if (input & INPUT_MASK_LEFT) {
             key = 8;
-            Keys[KB_LEFT] = 1;
+            input_frame_inject_key_press(KB_LEFT);
         }
         if (input & INPUT_MASK_RIGHT) {
             key = 9;
-            Keys[KB_RIGHT] = 1;
+            input_frame_inject_key_press(KB_RIGHT);
         }
         if (input & INPUT_MASK_START) {
             form->returncode = -69;
@@ -198,7 +213,7 @@ SLONG FORM_Process(Form* form)
             }
             if (lastfocus != form->focus)
                 form->proc(form, 0, WFN_FOCUS);
-            if (LastKey && form->proc && !EatenKey)
+            if (input_last_key() && form->proc && !EatenKey)
                 form->proc(form, 0, WFN_CHAR);
         }
     } else {
@@ -221,8 +236,7 @@ SLONG FORM_Process(Form* form)
                 FORM_Focus(form, scan, 0);
             }
         }
-        extern volatile UBYTE LeftButton;
-        if (LeftButton) {
+        if (input_mouse_button_held(0)) {
             Widget* scan = FORM_GetWidgetFromPoint(form, TO_WIDGETPNT(lastx, lasty));
             if (scan && scan->methods->Push)
                 scan->methods->Push(scan);
@@ -231,7 +245,7 @@ SLONG FORM_Process(Form* form)
         }
     }
 
-    LastKey = 0;
+    input_last_key_consume();
 
     return form->returncode;
 }

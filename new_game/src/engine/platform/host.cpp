@@ -6,6 +6,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
+#include "engine/input/input_frame.h"
 
 #include <stdio.h>
 #include <signal.h>
@@ -152,6 +153,10 @@ BOOL SetupHost(ULONG flags)
     if (!SetupKeyboard())
         return UC_FALSE;
 
+    // Per-frame input aggregator: zeros snapshots and sticky press flags.
+    // Call site for input_frame_update is at the bottom of LibShellActive.
+    input_frame_init();
+
     // Create the SDL3 window (hidden until GL context is ready).
     bool fullscreen = OC_CONFIG_get_int("video", "fullscreen", 0) != 0;
     if (!sdl3_window_create("Urban Chaos",
@@ -210,8 +215,6 @@ void ResetHost(void)
 // Returns UC_TRUE while the app is alive.
 BOOL LibShellActive(void)
 {
-    ClearLatchedKeys();
-
     if (!sdl3_poll_events()) {
         ShellActive = UC_FALSE;
     }
@@ -230,6 +233,12 @@ BOOL LibShellActive(void)
 
         restore_surfaces = UC_FALSE;
     }
+
+    // Per-frame input aggregator: snapshot keyboard + gamepad after SDL events
+    // pumped, compute edges. All consumers (game / menu / frontend / debug)
+    // can read unified state via input_key_*/input_btn_*. Sticky press_pending
+    // for keyboard is set inline in keyboard_key_down → input_frame_on_key_down.
+    input_frame_update();
 
     return ShellActive;
 }

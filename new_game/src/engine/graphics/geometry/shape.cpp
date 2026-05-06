@@ -338,6 +338,13 @@ void SHAPE_sparky_line(
         }
     }
 
+    // The texture-frame index `which` cycles through 4 vertical tiles in
+    // POLY_PAGE_LITE_BOLT — each tile is a different lightning shape, so
+    // cycling = animated bolt squiggle. `>> 1` slows the cycle to ~15 Hz
+    // (was 30 Hz from raw VISUAL_TURN); felt too frenetic at unlocked
+    // render rates. Wall-clock-driven — identical on any FPS by design.
+    const SLONG vt_for_anim = VISUAL_TURN >> 1;
+
     // Submit quads along the ribbon
     for (i = 0; i < num_points - 1; i++) {
         if (pp[i + 0].IsValid() && pp[i + 1].IsValid()) {
@@ -359,7 +366,7 @@ void SHAPE_sparky_line(
             pp2.X += nx[i + 1];
             pp2.Y += ny[i + 1];
 
-            UBYTE which = (GAME_TURN + i) & 3;
+            UBYTE which = (vt_for_anim + i) & 3;
             float which_v = (float)which * 0.25f;
 
             pp[i + 0].colour = colour | 0xff000000;

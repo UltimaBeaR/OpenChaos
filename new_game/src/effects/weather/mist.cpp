@@ -1,6 +1,7 @@
 #include "engine/platform/uc_common.h"
 #include <math.h>
-#include "game/game_types.h" // for TICK_INV_RATIO, TICK_SHIFT macros
+#include "game/game_types.h" // for TICK_INV_RATIO, TICK_SHIFT macros, UC_VISUAL_CADENCE_TICK_MS
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for wall-clock UV wibble phase
 #include "effects/weather/mist.h"
 #include "effects/weather/mist_globals.h"
 
@@ -223,11 +224,12 @@ void MIST_process()
 }
 
 // uc_orig: MIST_get_start (fallen/Source/mist.cpp)
-// Initialise renderer iterator; increments turn counter for animated UV wibble.
+// Initialise renderer iterator. UV wibble phase is now derived from wall-clock
+// in MIST_get_detail (was previously a per-render-frame counter — caused the
+// wibble to speed up with render FPS).
 void MIST_get_start()
 {
     MIST_get_upto = 0;
-    MIST_get_turn += 1;
 }
 
 // uc_orig: MIST_get_detail (fallen/Source/mist.cpp)
@@ -257,8 +259,13 @@ SLONG MIST_get_detail()
         MIST_get_base_u = float(mm->type & 1) * 0.5f;
         MIST_get_base_v = float(mm->type >> 1) * 0.5f;
 
-        // Rotate wibble phase per layer and per turn for animated variation
-        yaw_odd = float(MIST_get_turn) / (float(mm->type + 1) * 15.0F);
+        // Rotate wibble phase per layer and per turn for animated variation.
+        // turn_phase = wall-clock ms / UC_VISUAL_CADENCE_TICK_MS — equivalent to
+        // a 30 Hz frame counter on any render FPS. Smooth (not stepped) so high
+        // FPS gets sub-tick interpolation; phase is wall-clock-bound, so wibble
+        // speed is FPS-independent.
+        const float turn_phase = float(sdl3_get_ticks()) / UC_VISUAL_CADENCE_TICK_MS;
+        yaw_odd = turn_phase / (float(mm->type + 1) * 15.0F);
         yaw_odd += MIST_get_upto;
         yaw_even = yaw_odd + (PI / 1.75F);
 

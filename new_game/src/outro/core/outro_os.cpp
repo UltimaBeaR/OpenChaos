@@ -9,7 +9,6 @@
 
 #include "engine/input/gamepad.h"
 #include "engine/platform/sdl3_bridge.h"
-#include "engine/input/gamepad_globals.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
 #include "outro/core/outro_key.h"
@@ -17,8 +16,8 @@
 #include "outro/core/outro_tga.h"
 #include "engine/platform/uc_common.h"
 #include "engine/graphics/graphics_engine/outro_graphics_engine.h"
-#include "engine/input/keyboard_globals.h"
 #include "engine/input/keyboard.h"
+#include "engine/input/input_frame.h"
 #include "engine/audio/mfx.h"
 #include "engine/audio/music.h"
 #include "assets/sound_id.h"
@@ -31,10 +30,11 @@ extern void MAIN_main(void);
 // ========================================================
 
 // uc_orig: OS_joy_poll (fallen/outro/os.cpp)
-// Rewritten: reads from gamepad_state (filled by gamepad_poll) instead of DirectInput.
+// Rewritten: reads via input_frame (which mirrors gamepad_state filled by
+// gamepad_poll) instead of DirectInput.
 void OS_joy_poll(void)
 {
-    if (!gamepad_state.connected) {
+    if (!input_gamepad_connected()) {
         OS_joy_x = 0.0F;
         OS_joy_y = 0.0F;
         OS_joy_button = 0;
@@ -43,15 +43,15 @@ void OS_joy_poll(void)
         return;
     }
 
-    // gamepad_state.lX/lY are 0..65535 (centre 32768). Convert to -1..+1.
-    OS_joy_x = (float(gamepad_state.lX) / 32768.0F) - 1.0F;
-    OS_joy_y = (float(gamepad_state.lY) / 32768.0F) - 1.0F;
+    // Stick axis is 0..65535 (centre 32768). Convert to -1..+1.
+    OS_joy_x = (float(input_stick_x_axis(INPUT_STICK_LEFT)) / 32768.0F) - 1.0F;
+    OS_joy_y = (float(input_stick_y_axis(INPUT_STICK_LEFT)) / 32768.0F) - 1.0F;
 
     ULONG last = OS_joy_button;
     ULONG now = 0;
 
     for (SLONG i = 0; i < 32; i++) {
-        if (gamepad_state.rgbButtons[i] & 0x80) {
+        if (input_btn_held(i)) {
             now |= 1 << i;
         }
     }
@@ -135,8 +135,7 @@ SLONG OS_process_messages()
     gamepad_poll();
     OS_joy_poll();
 
-    if (Keys[KB_ESC]) {
-        Keys[KB_ESC] = 0;
+    if (input_key_just_pressed(KB_ESC)) {
         KEY_on[KEY_ESCAPE] = UC_TRUE;
     }
 

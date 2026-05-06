@@ -73,12 +73,19 @@ void PARTICLE_Run()
     cur_tick = sdl3_get_ticks();
     tick_diff = (SLONG)(cur_tick - prev_tick);
 
+    // Tick-base reference in milliseconds for local_ratio fixed-point
+    // scaling. Particle velocity formulas in PARTICLE_Add were calibrated
+    // against the original global NORMAL_TICK_TOCK = 1000/15 = 66.67 ms
+    // (15 Hz reference) — see UC_PARTICLE_SCALING_HZ in game_types.h for
+    // why this is 15 and not 20 or 30. Wall-clock-correct via local_ratio.
+    static constexpr SLONG PSYSTEM_TICK_BASE_MS = 1000 / UC_PARTICLE_SCALING_HZ;
+
     if (first_pass) {
-        tick_diff = NORMAL_TICK_TOCK; // pretend exactly one tick elapsed on first call
+        tick_diff = PSYSTEM_TICK_BASE_MS; // pretend exactly one tick elapsed on first call
         first_pass = 0;
     }
     local_shift = TICK_SHIFT;
-    local_ratio = (tick_diff << local_shift) / (NORMAL_TICK_TOCK);
+    local_ratio = (tick_diff << local_shift) / (PSYSTEM_TICK_BASE_MS);
 
     if (local_ratio < 256) {
         // Frame was too short — skip logic updates this frame; position still integrates via constant TICK_RATIO.
@@ -155,6 +162,19 @@ void PARTICLE_Run()
                         p->colour -= diff;
                     else
                         p->life = 1;
+                }
+            }
+
+            // PFLAG_FADE_EXP: exponential decay — alpha *= (256 - fade)/256 per logic tick.
+            // Non-linear: drops fast at high alpha, slow at low alpha. Used by smoke so it
+            // quickly becomes barely visible then lingers in the faint phase before dying.
+            if (p->flags & PFLAG_FADE_EXP) {
+                ULONG alpha = (p->colour & 0xFF000000) >> 24;
+                alpha = (alpha * (256 - (p->fade & 0xff))) >> 8;
+                if (alpha < 2) {
+                    p->life = 1;
+                } else {
+                    p->colour = (p->colour & 0x00FFFFFF) | (alpha << 24);
                 }
             }
 
@@ -236,6 +256,8 @@ void PARTICLE_Run()
 
             // PFLAG_RESIZE: grow/shrink size each tick. Kills particle if size drops to 0.
             // resize is signed: positive = grow, negative = shrink.
+            // Pre-release capped size at 255; raised to 383 (1.5×) so smoke clouds reach
+            // retail-matching sizes without uncapped growth bleeding into other PFLAG_RESIZE users.
             if (p->flags & PFLAG_RESIZE) {
                 SLONG temp = p->size;
                 temp += (p->resize * local_ratio) >> local_shift;
@@ -243,8 +265,8 @@ void PARTICLE_Run()
                     temp = 1;
                     p->life = 1;
                 }
-                if (temp > 255)
-                    temp = 255;
+                if (temp > 383)
+                    temp = 383;
                 p->size = temp;
             }
 
@@ -484,7 +506,8 @@ void PARTICLE_Draw()
         }
         sz = float(p->size);
         if (p->flags & PFLAG_RESIZE2)
-            sz *= 0.00390625f;
+            sz *= 0.000244140625f; // 1/4096; pre-release used 1/256 which produced 16× too-large
+                                   // shrapnel sprites at close-camera distances (grenade explosions).
         SPRITE_draw_tex(
             float(p->x >> 8),
             float(p->y >> 8),

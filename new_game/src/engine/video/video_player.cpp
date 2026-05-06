@@ -10,6 +10,9 @@
 #include "engine/platform/host.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
+#include "engine/input/keyboard.h" // keyboard_key_down/up — dispatch SDL key events into the regular input pipeline
+#include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
+#include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
 
 #include <AL/al.h>
@@ -267,62 +270,79 @@ bool video_play(const char* filename, bool allow_skip)
     int16_t* audio_buf = nullptr;
     int audio_buf_cap = 0;
 
-    // DualSense: capture current state. Edge detection starts from this snapshot —
-    // any button already held is ignored until released and pressed again.
-    DS_InputState ds_prev = {};
+    // Calibrate input_frame snapshot with one update so any buttons / keys
+    // held coming into the video don't fire as "rising edges" on the first
+    // input_frame_update inside the loop. After this call, prev=curr — the
+    // first real edge happens only on a fresh press during playback.
     ds_poll_registry(0.0f);
     ds_update_input();
-    if (ds_is_connected()) {
-        ds_get_input(&ds_prev);
-    }
+    input_frame_update();
 
     while (!done) {
         // --- Skip check: keyboard/mouse/gamepad/DualSense ---
+        // We use raw SDL_PollEvent (not sdl3_poll_events) so the regular
+        // on_window_resized callback never fires here — instead the SDL
+        // event watcher latches s_resize_pending in the bridge layer, and
+        // host_process_pending_resize below drains it into a real
+        // ge_resize_display. Without that, a resize during a video would
+        // leave the scene FBO at the pre-video size and the first menu
+        // frame after the video would render with the wrong composition
+        // letterbox.
+        //
+        // SDL keyboard events are dispatched manually into keyboard_key_down/up
+        // (which set both legacy Keys[] and input_frame's event-tracked state)
+        // so input_frame snapshot stays consistent. Skip checks then read
+        // through input_*_just_pressed instead of switching on raw SDL events.
         {
+            bool mouse_skip = false;
             SDL_Event ev;
             while (SDL_PollEvent(&ev)) {
                 if (ev.type == SDL_EVENT_QUIT) {
                     done = true;
                     break;
                 }
-                if (allow_skip) {
-                    if (ev.type == SDL_EVENT_KEY_DOWN) {
-                        SDL_Keycode key = ev.key.key;
-                        if (key == SDLK_ESCAPE || key == SDLK_RETURN || key == SDLK_SPACE) {
+                if (ev.type == SDL_EVENT_KEY_DOWN && !ev.key.repeat) {
+                    uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
+                    if (sc) keyboard_key_down(sc);
+                }
+                if (ev.type == SDL_EVENT_KEY_UP) {
+                    uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
+                    if (sc) keyboard_key_up(sc);
+                }
+                // Mouse buttons aren't yet in input_frame — keep raw SDL
+                // event check until input_frame grows mouse-button support.
+                if (allow_skip && ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+                    mouse_skip = true;
+                }
+            }
+
+            host_process_pending_resize();
+            // Refresh DualSense + gamepad + keyboard snapshot AFTER events
+            // are dispatched so the snapshot reflects this iteration.
+            ds_poll_registry(0.033f);
+            ds_update_input();
+            input_frame_update();
+
+            // --- Skip on any user input ---
+            if (allow_skip) {
+                if (input_key_just_pressed(KB_ESC)
+                    || input_key_just_pressed(KB_ENTER)
+                    || input_key_just_pressed(KB_SPACE)) {
+                    done = true;
+                }
+                // Any gamepad / DualSense button rising edge = skip. Cross,
+                // Circle, Start are at indices 0/1/6 (rgbButtons mirror).
+                // Loop covers the standard 0..16 button range to catch any
+                // controller layout.
+                if (!done) {
+                    for (int i = 0; i < 17; i++) {
+                        if (input_btn_just_pressed(i)) {
                             done = true;
                             break;
                         }
                     }
-                    if (ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                        done = true;
-                        break;
-                    }
-                    if (ev.type == SDL_EVENT_GAMEPAD_BUTTON_DOWN) {
-                        done = true;
-                        break;
-                    }
                 }
-            }
-
-            // Apply any pending window resize that arrived while we were
-            // pumping. We use raw SDL_PollEvent (not sdl3_poll_events) so
-            // the regular on_window_resized callback never fires here —
-            // instead the SDL event watcher latches s_resize_pending in
-            // the bridge layer, and this call drains it into a real
-            // ge_resize_display. Without it, a resize during a video
-            // would leave the scene FBO at the pre-video size and the
-            // first menu frame after the video would render with the
-            // wrong composition letterbox.
-            host_process_pending_resize();
-            // DualSense: edge-triggered skip (new press only, not hold)
-            ds_poll_registry(0.033f);
-            ds_update_input();
-            if (allow_skip && ds_is_connected()) {
-                DS_InputState ds = {};
-                ds_get_input(&ds);
-                if ((!ds_prev.cross && ds.cross) || (!ds_prev.circle && ds.circle) || (!ds_prev.start && ds.start))
-                    done = true;
-                ds_prev = ds;
+                if (mouse_skip) done = true;
             }
             if (done)
                 break;
@@ -342,9 +362,25 @@ bool video_play(const char* filename, bool allow_skip)
         if (pkt->stream_index == video_idx) {
             avcodec_send_packet(vctx, pkt);
             while (avcodec_receive_frame(vctx, frame) == 0) {
-                // Sync video to wall clock
+                // Wall-clock-driven presentation. Three cases:
+                //  1. pts > elapsed → frame is in the future, wait for it.
+                //  2. pts < elapsed - DROP_THRESHOLD → frame is too late
+                //     (renderer fell behind, e.g. slow GPU or debug
+                //     `lock_frame_rate(g_render_fps_cap)` artificially
+                //     throttling the outer loop). Skip drawing — keeps the
+                //     video timeline tied to real time instead of to render
+                //     cadence. Audio plays independently via the OpenAL
+                //     accumulator, so no resync needed.
+                //  3. otherwise → on time, draw.
                 double pts = frame->pts * video_timebase;
                 double elapsed = (double)(sdl3_get_ticks() - start_ticks) / 1000.0;
+                // Half a 30-fps frame period — frames within this window of
+                // current wall clock are considered "on time".
+                static constexpr double DROP_THRESHOLD = 0.016;
+                if (pts < elapsed - DROP_THRESHOLD) {
+                    // Drop this decoded frame, move on to the next one.
+                    continue;
+                }
                 if (pts > elapsed + 0.005) {
                     uint32_t wait_ms = (uint32_t)((pts - elapsed) * 1000.0);
                     if (wait_ms > 100)
@@ -362,6 +398,9 @@ bool video_play(const char* filename, bool allow_skip)
                 // Upload and render via graphics engine
                 ge_video_texture_upload(tex, vctx->width, vctx->height, rgb_data, rgb_linesize);
                 ge_video_draw_and_swap(tex, vctx->width, vctx->height);
+                extern void lock_frame_rate(SLONG fps);
+                extern SLONG g_render_fps_cap;
+                lock_frame_rate(g_render_fps_cap);
             }
         } else if (pkt->stream_index == audio_idx && has_audio) {
             avcodec_send_packet(actx, pkt);

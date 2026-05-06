@@ -32,6 +32,7 @@
 #include "assets/formats/tga.h"
 
 #include "engine/io/file.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (SPARK_process wall-clock gate)
 #include "map/level_pools.h"
 #include "map/supermap.h"
 #include "map/supermap_globals.h"
@@ -42,6 +43,8 @@
 #include "things/characters/anim_ids.h"
 #include "game/input_actions.h"
 #include "game/input_actions_globals.h"
+#include "engine/input/input_frame.h"
+#include "game/game_globals.h" // g_frame_dt_ms (wall-clock per-render-frame delta)
 
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
@@ -80,7 +83,6 @@ extern UWORD fade_black;
 extern void reload_level(void);
 extern SLONG plant_feet(Thing* p_person);
 extern UWORD count_gang(Thing* p_target);
-extern SLONG mouse_input; // defined in interfac.cpp
 extern UBYTE aeng_draw_cloud_flag; // defined in aeng.cpp
 
 // tga[] is file-local, used only by tga_dump and plan_view_shot.
@@ -972,13 +974,36 @@ SBYTE CONTROLS_get_best_item(Thing* darci, Thing* player)
 SLONG CONTROLS_new_inventory(Thing* darci, Thing* player)
 {
     UWORD temp = player->Genus.Player->PopupFade;
-    if (!temp)
-        player->Genus.Player->ItemFocus = -1;
 
-    temp += INVENTORY_FADE_SPEED;
+    // Wall-clock fade-in. Original `temp += INVENTORY_FADE_SPEED` was per
+    // render frame, so on high FPS the popup fade-in finished in tens of
+    // ms (visually instant). Scaling by frame_dt / design_tick gives a
+    // constant fade duration regardless of render rate. Static float
+    // accumulator preserves sub-unit precision at non-integer ratios
+    // (e.g. 100 FPS gives non-integer units/frame — truncation alone
+    // would lose precision each frame, accumulating to ~5% error over
+    // the fade). Single-player only — static is safe since CNET multi-
+    // player is dead.
+    //
+    // Reference rate: 20 Hz (UC_PHYSICS_DESIGN_HZ). See game_types.h —
+    // 30 Hz is a PS1-only rate; PC retail ran at ~22 Hz, and most
+    // engine tick arithmetic is built around 20 Hz.
+    constexpr float DESIGN_TICK_MS = 1000.0f / float(UC_PHYSICS_DESIGN_HZ);
+    static float fade_in_accum = 0.0f;
+    if (!temp) {
+        player->Genus.Player->ItemFocus = -1;
+        fade_in_accum = 0.0f; // reset accumulator on fade restart
+    }
+
+    const float fade_step_f = (float)INVENTORY_FADE_SPEED * g_frame_dt_ms / DESIGN_TICK_MS
+        + fade_in_accum;
+    const SLONG fade_step_int = (SLONG)fade_step_f;
+    fade_in_accum = fade_step_f - (float)fade_step_int;
+
+    temp += fade_step_int;
 
     if (temp < 256)
-        player->Genus.Player->PopupFade = temp;
+        player->Genus.Player->PopupFade = (UBYTE)temp;
 
     if (player->Genus.Player->ItemFocus == -1) {
 
@@ -1145,7 +1170,9 @@ void process_controls(void)
     //	if (Keys[KB_D])
 
     if (GAME_TURN <= 1) {
-        Keys[KB_D] = 0;
+        // (Keys[KB_D] = 0 init reset removed: input_key_just_pressed below
+        // doesn't trigger on a held-from-before key — no rising edge in
+        // snapshot — so the protection it gave is now automatic.)
 
         //
         // Find an MIB...
@@ -1161,9 +1188,7 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_D]) {
-        Keys[KB_D] = 0;
-
+    if (input_key_just_pressed(KB_D)) {
         SLONG is_there_room_behind_person(Thing * p_person, SLONG hit_from_behind);
 
         if (is_there_room_behind_person(darci, UC_FALSE)) {
@@ -1202,8 +1227,7 @@ void process_controls(void)
         static SLONG index_cam = 0;
         Thing* p_thing;
 
-        if (Keys[KB_RBRACE]) {
-            Keys[KB_RBRACE] = 0;
+        if (input_key_just_pressed(KB_RBRACE)) {
             while (1) {
                 index_cam++;
                 if (index_cam >= MAX_THINGS)
@@ -1216,8 +1240,7 @@ void process_controls(void)
                 }
             }
         }
-        if (Keys[KB_LBRACE]) {
-            Keys[KB_LBRACE] = 0;
+        if (input_key_just_pressed(KB_LBRACE)) {
             while (1) {
                 index_cam--;
                 if (index_cam < 0)
@@ -1231,9 +1254,7 @@ void process_controls(void)
             }
         }
 
-        if (Keys[KB_P]) {
-            Keys[KB_P] = 0;
-
+        if (input_key_just_pressed(KB_P)) {
             if (FC_cam[1].focus) {
                 FC_cam[1].focus = NULL;
             } else {
@@ -1253,7 +1274,27 @@ void process_controls(void)
     MIST_process();
     //	WATER_process();
     //	BANG_process();
-    SPARK_process();
+
+    // SPARK_process is a pure visual tick — it decrements ss->die by 1 and
+    // moves spark points by Pos+=dx>>4 each call. Originally called every
+    // render frame (PS1 30 FPS, PC retail ~22-50 FPS) so the cadence was
+    // render-rate-bound. With unlimited render that means sparks die in
+    // ~0.1 s on 280 FPS vs ~1.5 s on 25 FPS, and the per-call Pos advance
+    // makes them visibly "wiggle" much faster on high FPS (visible as MIB
+    // destruct lightning bolts running fast/short on unlimited).
+    // Stays in the render path (it's a visual effect, not gameplay state)
+    // but gated to ~15 Hz wall-clock via sdl3_get_ticks edge-detect (same
+    // cadence as the MIB destruct spawn / SPARK noise wiggle, so all
+    // visual subsystems share one timeline). See FPS unlock issue #19.
+    {
+        constexpr SLONG SPARK_TICK_INTERVAL_MS = 67;  // ~15 Hz visual cadence
+        static UBYTE last_spark_phase = 0;
+        UBYTE cur_spark_phase = UBYTE(sdl3_get_ticks() / SPARK_TICK_INTERVAL_MS);
+        if (cur_spark_phase != last_spark_phase) {
+            last_spark_phase = cur_spark_phase;
+            SPARK_process();
+        }
+    }
     GLITTER_process();
     //	LIGHT_process();
     HOOK_process();
@@ -1270,11 +1311,11 @@ void process_controls(void)
     if (is_inputing) {
         static CBYTE input_text[MAX_PATH] = "] ";
 
-        if ((Keys[KB_ESC]) || (Keys[KB_ENTER])) {
-            if (Keys[KB_ENTER])
+        const bool console_esc   = input_key_just_pressed(KB_ESC);
+        const bool console_enter = input_key_just_pressed(KB_ENTER);
+        if (console_esc || console_enter) {
+            if (console_enter)
                 parse_console(input_text + 2); // +2 to skip the "] "
-            Keys[KB_ESC] = 0;
-            Keys[KB_ENTER] = 0;
             is_inputing = 0;
             CONSOLE_status("");
             strcpy(input_text, "] ");
@@ -1282,10 +1323,13 @@ void process_controls(void)
 
             POLY_frame_init(UC_FALSE, UC_FALSE);
 
-            if (LastKey) {
+            const UBYTE last_key = input_last_key();
+            if (last_key) {
                 UWORD len = strlen(input_text);
                 CBYTE key;
-                key = (Keys[KB_LSHIFT] || Keys[KB_RSHIFT]) ? InkeyToAsciiShift[LastKey] : InkeyToAscii[LastKey];
+                // ShiftFlag is the level-state Shift modifier mirrored from
+                // input_frame's event-tracked KB_LSHIFT || KB_RSHIFT.
+                key = ShiftFlag ? InkeyToAsciiShift[last_key] : InkeyToAscii[last_key];
                 if (key == 8) {
                     if (len > 2)
                         input_text[len - 1] = 0;
@@ -1295,7 +1339,7 @@ void process_controls(void)
                         input_text[len + 1] = 0;
                     }
                 }
-                LastKey = 0;
+                input_last_key_consume();
             }
 
             CONSOLE_status(input_text);
@@ -1303,7 +1347,7 @@ void process_controls(void)
         }
         return;
     } else {
-        if (Keys[KB_F9])
+        if (input_key_just_pressed(KB_F9))
             is_inputing = 1;
     }
 
@@ -1322,7 +1366,22 @@ void process_controls(void)
         //		if (can_darci_change_weapon(darci))
         {
 
-            if (NET_PLAYER(0)->Genus.Player->Pressed & INPUT_MASK_SELECT) {
+            // Weapon-switch trigger: edge-detect via input_frame (render-frame
+            // snapshot). Reading Player->Pressed here was unreliable because
+            // process_controls runs per render frame but Player->Pressed is
+            // only refreshed inside process_things (per physics tick) — so
+            // at high render rate the same edge would be visible across many
+            // render frames between two physics ticks, firing the rotation
+            // multiple times per single press (issue #20 in fps_unlock).
+            //
+            // Mapping (mirrors get_hardware_input):
+            //   keyboard: keybrd_button_use[JOYPAD_BUTTON_SELECT]
+            //   gamepad : rgbButtons[8] (R3 / right-stick click; the SELECT
+            //             alias was rebound from Share/Back to R3 — see the
+            //             matching comment in get_hardware_input).
+            const SLONG kb_select_key = keybrd_button_use[JOYPAD_BUTTON_SELECT];
+            constexpr SLONG pad_select_btn = 8;
+            if (input_key_just_pressed(kb_select_key) || input_btn_just_pressed(pad_select_btn)) {
                 CONTROLS_new_inventory(darci, the_player);
 
                 if (CONTROLS_inventory_mode == 0 && darci->Genus.Person->SpecialUse == 0 && !(darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT) && the_player->Genus.Player->ItemFocus == 0) {
@@ -1343,10 +1402,16 @@ void process_controls(void)
             if (CONTROLS_inventory_mode) {
                 //				Keys[KB_ENTER] = 0;
 
-                //
-                // tick down the panel display
-                //
-                CONTROLS_inventory_mode -= TICK_TOCK;
+                // Tick down the panel display in wall-clock milliseconds.
+                // process_controls runs per render frame, but TICK_TOCK is
+                // the per-physics-tick interval (~50 ms at default 20 Hz,
+                // saturated to 25..100 ms range) — using TICK_TOCK here gave
+                // a per-frame decrement that scaled with render rate (more
+                // FPS → faster popup disappear) AND with physics rate (lower
+                // physics Hz → larger TICK_TOCK due to saturation → faster
+                // disappear). Wall-clock delta keeps the 3000 ms timeout
+                // identical regardless of either rate.
+                CONTROLS_inventory_mode -= (SLONG)g_frame_dt_ms;
                 if (CONTROLS_inventory_mode < 0)
                     CONTROLS_inventory_mode = 0;
 
@@ -1370,7 +1435,23 @@ void process_controls(void)
         //		if (the_player->Genus.Player->PopupFade&&!(NET_PLAYER(0)->Genus.Player->ThisInput & INPUT_MASK_SELECT)) {
 
         if (the_player->Genus.Player->PopupFade && !CONTROLS_inventory_mode) {
-            the_player->Genus.Player->PopupFade -= INVENTORY_FADE_SPEED;
+            // Wall-clock fade-out. Same rationale as the fade-in above —
+            // raw `-= INVENTORY_FADE_SPEED` per render frame finished too
+            // fast on high FPS (felt abrupt). Scale by frame_dt / design
+            // tick (20 Hz). Static float accumulator preserves sub-unit
+            // precision at non-integer ratios. Underflow protection on
+            // UBYTE PopupFade (raw `-=` could wrap below 0).
+            constexpr float DESIGN_TICK_MS = 1000.0f / float(UC_PHYSICS_DESIGN_HZ);
+            static float fade_out_accum = 0.0f;
+            const float fade_step_f = (float)INVENTORY_FADE_SPEED * g_frame_dt_ms / DESIGN_TICK_MS
+                + fade_out_accum;
+            const SLONG fade_step_int = (SLONG)fade_step_f;
+            fade_out_accum = fade_step_f - (float)fade_step_int;
+
+            const SLONG new_fade = (SLONG)the_player->Genus.Player->PopupFade - fade_step_int;
+            the_player->Genus.Player->PopupFade = (UBYTE)(new_fade > 0 ? new_fade : 0);
+            if (new_fade <= 0) fade_out_accum = 0.0f; // reset on hitting zero
+
             if (the_player->Genus.Player->ItemFocus > -1) {
                 //				CONTROLS_set_inventory(darci,the_player);
                 the_player->Genus.Player->ItemFocus = -1;
@@ -1383,9 +1464,7 @@ void process_controls(void)
 
     // Shift+F12: toggle cheat mode (prints FPS in the top-left corner).
     // Gated along with the rest of the debug keys.
-    if (Keys[KB_F12] && ShiftFlag) {
-        Keys[KB_F12] = 0;
-
+    if (input_key_just_pressed(KB_F12) && ShiftFlag) {
         extern UBYTE cheat;
 
         if (cheat) {
@@ -1395,18 +1474,17 @@ void process_controls(void)
         }
     }
 
-    if (mouse_input) {
+    if (input_mouse_active()) {
         //
         // put the mouse in the center of the screen so we can always get a mousedx,mousedy
         //
         RecenterMouse();
     }
 
-    if (Keys[KB_F3]) {
+    if (input_key_just_pressed(KB_F3)) {
         void save_whole_game(CBYTE * gamename);
         void load_whole_game(CBYTE * gamename);
 
-        Keys[KB_F3] = 0;
         if (ShiftFlag) {
             save_whole_game("poo.sav");
         } else {
@@ -1418,8 +1496,7 @@ void process_controls(void)
     // debug panel (F11 → panel opens, covers the screen, making it
     // impossible to actually see whether clouds disappeared). Moved to
     // F4 — previously unbound.
-    if (Keys[KB_F4]) {
-        Keys[KB_F4] = 0;
+    if (input_key_just_pressed(KB_F4)) {
         if (aeng_draw_cloud_flag) {
             aeng_draw_cloud_flag = 0;
             CONSOLE_text("clouds off");
@@ -1447,9 +1524,7 @@ void process_controls(void)
         return;
     }
 
-    if (Keys[KB_TILD]) {
-        Keys[KB_TILD] = 0;
-
+    if (input_key_just_pressed(KB_TILD)) {
         if (DETAIL_LEVEL)
             DETAIL_LEVEL = 0;
         else
@@ -1464,7 +1539,7 @@ void process_controls(void)
 
     void set_person_idle(Thing * p_person);
 
-    if (Keys[KB_P]) {
+    if (input_key_just_pressed(KB_P)) {
         void save_whole_game(CBYTE * gamename);
         save_whole_game("save.me");
     }
@@ -1472,7 +1547,9 @@ void process_controls(void)
     //	TRACE("danger numbers: %d\n",(NET_PLAYER(0)->Genus.Player->Danger));
 
     if (!ShiftFlag) {
-        if (Keys[KB_J]) {
+        // J / I — debug overlay draws (MAV, WAND). Drawn every frame the key
+        // is held (continuous overlay), so input_key_held — not just_pressed.
+        if (input_key_held(KB_J)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1481,7 +1558,7 @@ void process_controls(void)
                 mx + 5, mz + 5);
         }
 
-        if (Keys[KB_I]) {
+        if (input_key_held(KB_I)) {
             SLONG mx = darci->WorldPos.X >> 16;
             SLONG mz = darci->WorldPos.Z >> 16;
 
@@ -1489,13 +1566,11 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_E]) {
+    if (input_key_just_pressed(KB_E)) {
         SLONG y;
         SLONG index;
 
         static UBYTE type = 0;
-
-        Keys[KB_E] = 0;
 
         y = PAP_calc_height_at(darci->WorldPos.X >> 8, darci->WorldPos.Z >> 8);
         index = VEH_create((darci->WorldPos.X) + (400 << 8), (y + 65) << 8, (darci->WorldPos.Z), 0, 0, 0, type, 0, 0);
@@ -1515,7 +1590,9 @@ void process_controls(void)
     // Enter and leave the sewers if Darci does.
     //
 
-    if (Keys[KB_W]) {
+    // KB_W: continuous water particle spawn while held (no consume in
+    // original) — input_key_held, not just_pressed.
+    if (input_key_held(KB_W)) {
         SLONG px = darci->WorldPos.X >> 8;
         SLONG py = darci->WorldPos.Y >> 8;
         SLONG pz = darci->WorldPos.Z >> 8;
@@ -1525,10 +1602,10 @@ void process_controls(void)
         pz += 0x80;
 
         if (ControlFlag) {
-            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
-            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, -1 + (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
-            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, 1 + (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
-            DIRT_new_water(px, py, pz, -1 + (SIN(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((GAME_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, -1 + (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, 1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, 1 + (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
+            DIRT_new_water(px, py, pz, -1 + (SIN(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12), 14, (COS(darci->Draw.Tweened->Angle + ((VISUAL_TURN * 7) & 15)) >> 12));
         } else {
             DIRT_new_water(px + 2, py, pz, -1, 28, 0);
             DIRT_new_water(px, py, pz + 2, 0, 29, -1);
@@ -1553,21 +1630,19 @@ void process_controls(void)
         static UBYTE which_pyro = 0;
         GameCoord posn;
 
-        if (Keys[KB_P7]) {
+        if (input_key_just_pressed(KB_P7)) {
             CBYTE* names[] = { "flicker", "ribbon", "explosion", "sparklies", "bonfire", "immolate", "testrib", "firewall", "new sploje", "new dome", "whoomph" };
-            Keys[KB_P7] = 0;
             which_pyro++;
             if (which_pyro == (sizeof(names) / sizeof(names[0])))
                 which_pyro = 0;
             CONSOLE_text(names[which_pyro], 1500);
         }
 
-        if (Keys[KB_P5]) {
+        if (input_key_just_pressed(KB_P5)) {
             static UBYTE line = 0;
             static GameCoord oldposn = { 0, 0, 0 };
             Thing* pyro;
 
-            Keys[KB_P5] = 0;
             posn.X = darci->WorldPos.X;
             posn.Z = darci->WorldPos.Z;
             posn.Y = (PAP_calc_height_at(posn.X >> 8, posn.Z >> 8) * 256);
@@ -1677,9 +1752,7 @@ void process_controls(void)
     {
         static UBYTE dlight = NULL;
 
-        if (Keys[KB_L]) {
-            Keys[KB_L] = 0;
-
+        if (input_key_just_pressed(KB_L)) {
             if (dlight) {
                 NIGHT_dlight_destroy(dlight);
 
@@ -1703,7 +1776,7 @@ void process_controls(void)
                 (darci->WorldPos.Y >> 8) + 0x80,
                 (darci->WorldPos.Z >> 8));
 
-            if (GAME_TURN & 0x20) {
+            if (VISUAL_TURN & 0x20) {
                 NIGHT_dlight_colour(
                     dlight,
                     60, 20, 20);
@@ -1715,9 +1788,8 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_P2]) {
+    if (input_key_just_pressed(KB_P2)) {
         // this is to test immolation of a thing
-        Keys[KB_P2] = 0;
         if (TO_CHOPPER(1)->ChopperType != CHOPPER_NONE) {
             Thing* pyro;
             GameCoord anyoldposn; // dont care, updated by thing
@@ -1728,13 +1800,12 @@ void process_controls(void)
             pyro->Genus.Pyro->Flags = PYRO_FLAGS_FLICKER;
         }
     }
-    if (Keys[KB_P3]) {
+    if (input_key_just_pressed(KB_P3)) {
         static UBYTE line = 0;
         static GameCoord oldposn = { 0, 0, 0 };
         Thing* pyro;
         GameCoord posn;
 
-        Keys[KB_P3] = 0;
         if (line) {
             posn.X = darci->WorldPos.X;
             posn.Z = darci->WorldPos.Z;
@@ -1758,9 +1829,7 @@ void process_controls(void)
         }
     }
     static UBYTE smokin = 0;
-    if (Keys[KB_FORESLASH]) {
-        Keys[KB_FORESLASH] = 0;
-
+    if (input_key_just_pressed(KB_FORESLASH)) {
         stealth_debug = !stealth_debug;
         if (stealth_debug)
             CONSOLE_text("STEALTH DEBUG MODE ON");
@@ -1768,7 +1837,9 @@ void process_controls(void)
             CONSOLE_text("STEALTH DEBUG MODE OFF");
     }
 
-    if (Keys[KB_POINT]) {
+    // KB_POINT: continuous smoke spawn while held — no consume in original
+    // (level read fires every frame). input_key_held preserves that.
+    if (input_key_held(KB_POINT)) {
         PARTICLE_Add(
             darci->WorldPos.X,
             darci->WorldPos.Y + 0x4000,
@@ -1815,9 +1886,7 @@ void process_controls(void)
         }
     }
 
-    if (Keys[KB_O] && !ShiftFlag) {
-        Keys[KB_O] = 0;
-
+    if (input_key_just_pressed(KB_O) && !ShiftFlag) {
         OB_create(
             darci->WorldPos.X >> 8,
             darci->WorldPos.Y >> 8,
@@ -1830,9 +1899,8 @@ void process_controls(void)
 
     if (ShiftFlag) {
         static int skill = 0;
-        if (Keys[KB_A]) {
+        if (input_key_just_pressed(KB_A)) {
             UWORD index;
-            Keys[KB_A] = 0;
 
             //
             // Create a fight test dummy.
@@ -1862,9 +1930,7 @@ void process_controls(void)
             skill += 2;
         }
 
-        if (Keys[KB_I]) {
-            Keys[KB_I] = 0;
-
+        if (input_key_just_pressed(KB_I)) {
             //
             // Create a bodyguard. First we must create a DUD waypoint that
             // pretends it created Darci!
@@ -1894,9 +1960,7 @@ void process_controls(void)
             // remove_thing_from_map(darci);
         }
 
-        if (Keys[KB_J]) {
-            Keys[KB_J] = 0;
-
+        if (input_key_just_pressed(KB_J)) {
             MAV_precalculate();
 
             switch (Random() % 3) {
@@ -1915,15 +1979,18 @@ void process_controls(void)
             darci->Genus.Person->Action = ACTION_SIT_BENCH;
         }
 
-        if (Keys[KB_Y]) {
+        // KB_Y: continuous fastnav debug overlay while held — no consume in
+        // original (level read fires every frame). input_key_held preserves.
+        if (input_key_held(KB_Y)) {
             COLLIDE_debug_fastnav(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Z >> 8);
         }
 
-        if (Keys[KB_D] && !ShiftFlag) {
-            Keys[KB_D] = 0;
-
+        // Note: this block is gated by `if (ShiftFlag)` above, so the
+        // `&& !ShiftFlag` here is dead code (always false). Pre-existing
+        // bug, preserved verbatim — not addressed by input migration.
+        if (input_key_just_pressed(KB_D) && !ShiftFlag) {
             NIGHT_slight_create(
                 (darci->WorldPos.X >> 8),
                 (darci->WorldPos.Y >> 8) + 0x80,
@@ -1938,31 +2005,24 @@ void process_controls(void)
             NIGHT_generate_walkable_lighting();
         }
 
-        if (Keys[KB_D] && ShiftFlag) {
-            Keys[KB_D] = 0;
+        if (input_key_just_pressed(KB_D) && ShiftFlag) {
             //
             // shift D to leap into the debugger
             //
             ASSERT(2 + 2 == 5);
         }
 
-        if (Keys[KB_G]) {
-
-            Keys[KB_G] = 0;
+        if (input_key_just_pressed(KB_G)) {
             darci->Flags |= FLAGS_HAS_GUN;
         }
 
-        if (Keys[KB_H]) {
-            Keys[KB_H] = 0;
-
+        if (input_key_just_pressed(KB_H)) {
             plan_view_shot();
         }
 
-        if (Keys[KB_O]) {
+        if (input_key_just_pressed(KB_O)) {
             Thing* chopper;
             GameCoord posn;
-
-            Keys[KB_O] = 0;
 
             posn.X = darci->WorldPos.X;
             posn.Z = darci->WorldPos.Z;
@@ -1972,9 +2032,7 @@ void process_controls(void)
             chopper->Draw.Mesh->Angle = darci->Draw.Tweened->Angle;
         }
 
-        if (Keys[KB_M]) {
-            Keys[KB_M] = 0;
-
+        if (input_key_just_pressed(KB_M)) {
             //
             // Create a mine at the mouse.
             //
@@ -1983,9 +2041,17 @@ void process_controls(void)
             SLONG world_y;
             SLONG world_z;
 
+            // MouseX/Y are scene-FBO pixels (Stage 6 FBO refactor) — scale
+            // into the 640×480 virtual UI canvas that AENG_raytraced_position
+            // expects, mirroring the KB_G "teleport Darci to mouse" handler
+            // below. Without this, on non-native / non-4:3 windows the mine
+            // spawns at the wrong world point.
+            float hitx = float(input_mouse_x()) * float(DisplayWidth) / float(ScreenWidth);
+            float hity = float(input_mouse_y()) * float(DisplayHeight) / float(ScreenHeight);
+
             AENG_raytraced_position(
-                MouseX,
-                MouseY,
+                SLONG(hitx + 0.5f),
+                SLONG(hity + 0.5f),
                 &world_x,
                 &world_y,
                 &world_z);
@@ -2008,9 +2074,7 @@ void process_controls(void)
         // Shift not held down.
         //
 
-        if (Keys[KB_F12]) {
-            Keys[KB_F12] = 0;
-
+        if (input_key_just_pressed(KB_F12)) {
             SLONG wx, wy, wz, dx, dz;
             SLONG angle;
 
@@ -2055,9 +2119,7 @@ void process_controls(void)
             }
         }
 
-        if (Keys[KB_G]) {
-            Keys[KB_G] = 0;
-
+        if (input_key_just_pressed(KB_G)) {
             SLONG world_x;
             SLONG world_y;
             SLONG world_z;
@@ -2069,8 +2131,8 @@ void process_controls(void)
             // MouseX/Y are in scene-FBO pixels after Stage 6 of the
             // FBO-as-virtual-screen refactor; scale into the 640×480
             // virtual UI canvas that AENG_raytraced_position expects.
-            float hitx = float(MouseX) * float(DisplayWidth) / float(ScreenWidth);
-            float hity = float(MouseY) * float(DisplayHeight) / float(ScreenHeight);
+            float hitx = float(input_mouse_x()) * float(DisplayWidth) / float(ScreenWidth);
+            float hity = float(input_mouse_y()) * float(DisplayHeight) / float(ScreenHeight);
 
             AENG_raytraced_position(
                 SLONG(hitx + 0.5f),
@@ -2099,7 +2161,9 @@ void process_controls(void)
             }
         }
 
-        if (Keys[KB_U]) {
+        // KB_U / KB_Q: continuous debug effects while held (no consume in
+        // original). input_key_held preserves level-read intent.
+        if (input_key_held(KB_U)) {
             BARREL_hit_with_sphere(
                 darci->WorldPos.X >> 8,
                 darci->WorldPos.Y >> 8,
@@ -2107,7 +2171,7 @@ void process_controls(void)
                 0x80);
         }
 
-        if (Keys[KB_Q]) {
+        if (input_key_held(KB_Q)) {
             ROAD_debug();
         }
     }

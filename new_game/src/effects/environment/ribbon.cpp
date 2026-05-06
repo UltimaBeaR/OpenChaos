@@ -2,6 +2,22 @@
 #include "effects/environment/ribbon.h"
 #include "effects/environment/ribbon_globals.h"
 #include "engine/graphics/pipeline/poly.h"
+#include "game/game_types.h" // UC_VISUAL_CADENCE_TICK_MS — 30 Hz visual cadence
+
+// Per-tick changes applied in RIBBON_process. One tick = UC_VISUAL_CADENCE_TICK_MS
+// of wall-clock time (= 33.33 ms = 30 Hz). Scroll/Y/Life increments were
+// calibrated against the original 30 Hz visual cadence (PS1 hardware lock /
+// PC config default — see game_types.h). The original called this from the
+// physics-block which was identical to render-rate on PS1; we accumulate
+// wall-clock dt explicitly so the animation stays at 30 Hz regardless of
+// physics or render rate.
+#define RIBBON_CONVECT_DY 22
+
+// Cap for the accumulator after a long stall — same 200 ms cap as drip /
+// puddle / main render loop frame_dt_ms.
+#define RIBBON_ACC_MAX_MS 200.0f
+
+static float RIBBON_tick_acc_ms = 0.0f;
 
 // Helper: constructs a GameCoord inline.
 // uc_orig: Coord (fallen/Source/ribbon.cpp)
@@ -79,18 +95,33 @@ void RIBBON_draw()
 }
 
 // uc_orig: RIBBON_process (fallen/Source/ribbon.cpp)
-void RIBBON_process()
+void RIBBON_process(float dt_ms)
 {
+    if (dt_ms <= 0.0f)
+        return;
+
+    RIBBON_tick_acc_ms += dt_ms;
+    if (RIBBON_tick_acc_ms > RIBBON_ACC_MAX_MS)
+        RIBBON_tick_acc_ms = RIBBON_ACC_MAX_MS;
+
+    SLONG ticks = SLONG(RIBBON_tick_acc_ms / UC_VISUAL_CADENCE_TICK_MS);
+    if (ticks <= 0)
+        return;
+    RIBBON_tick_acc_ms -= float(ticks) * UC_VISUAL_CADENCE_TICK_MS;
+
     SLONG i, j;
 
     for (i = 0; i < MAX_RIBBONS; i++)
         if (ribbon_Ribbons[i].Flags & RIBBON_FLAG_USED) {
-            ribbon_Ribbons[i].Scroll += ribbon_Ribbons[i].SlideSpeed;
+            ribbon_Ribbons[i].Scroll += ribbon_Ribbons[i].SlideSpeed * ticks;
             if (ribbon_Ribbons[i].Flags & RIBBON_FLAG_CONVECT)
                 for (j = 0; j < ribbon_Ribbons[i].Size; j++)
-                    ribbon_Ribbons[i].Points[j].Y += 22;
-            if (ribbon_Ribbons[i].Life > 0)
-                ribbon_Ribbons[i].Life--;
+                    ribbon_Ribbons[i].Points[j].Y += RIBBON_CONVECT_DY * ticks;
+            if (ribbon_Ribbons[i].Life > 0) {
+                ribbon_Ribbons[i].Life -= ticks;
+                if (ribbon_Ribbons[i].Life < 0)
+                    ribbon_Ribbons[i].Life = 0;
+            }
             if (!ribbon_Ribbons[i].Life)
                 RIBBON_free(i);
         }

@@ -8,9 +8,9 @@
 #include "engine/graphics/pipeline/polypage.h" // FullscreenUIModeScope
 #include "engine/graphics/text/font.h"
 #include "engine/input/keyboard.h"
-#include "engine/input/keyboard_globals.h"
 #include "engine/input/gamepad.h"
 #include "engine/input/gamepad_globals.h"
+#include "engine/input/input_frame.h"
 #include "engine/platform/ds_bridge.h"
 #include "engine/platform/uc_common.h" // DisplayWidth, DisplayHeight
 #include "ui/hud/panel.h"
@@ -67,29 +67,16 @@ const GamepadState s_idle_state = make_idle_state();
 // frame so we emit a single edge on each press rather than one per frame
 // while held.
 InputDebugNav s_nav = {};
-bool s_prev_up = false, s_prev_down = false;
-bool s_prev_left = false, s_prev_right = false;
-bool s_prev_enter = false;
-
 void refresh_nav()
 {
-    const bool up = Keys[KB_UP] != 0;
-    const bool down = Keys[KB_DOWN] != 0;
-    const bool left = Keys[KB_LEFT] != 0;
-    const bool right = Keys[KB_RIGHT] != 0;
-    const bool ent = Keys[KB_ENTER] != 0;
-
-    s_nav.up = up && !s_prev_up;
-    s_nav.down = down && !s_prev_down;
-    s_nav.left = left && !s_prev_left;
-    s_nav.right = right && !s_prev_right;
-    s_nav.enter = ent && !s_prev_enter;
-
-    s_prev_up = up;
-    s_prev_down = down;
-    s_prev_left = left;
-    s_prev_right = right;
-    s_prev_enter = ent;
+    // Per-frame edge detection — input_frame's just_pressed gives ровно the
+    // same "rising edge in this snapshot" semantic as the previous static-
+    // prev pattern.
+    s_nav.up    = input_key_just_pressed(KB_UP);
+    s_nav.down  = input_key_just_pressed(KB_DOWN);
+    s_nav.left  = input_key_just_pressed(KB_LEFT);
+    s_nav.right = input_key_just_pressed(KB_RIGHT);
+    s_nav.enter = input_key_just_pressed(KB_ENTER);
 }
 
 // Rumble test state. Motor amplitudes are shared across gamepad +
@@ -194,10 +181,9 @@ void input_debug_tick()
     if (!s_active)
         return;
 
-    // Re-poll the gamepad ourselves. While the panel is open, the normal
-    // callers of ReadInputDevice (GAMEMENU_process, get_hardware_input,
-    // PAUSE_handler) are gated off — so without this explicit call the
-    // gamepad state would freeze and the panel would show stale input.
+    // Re-poll the gamepad ourselves. While the panel is open the normal
+    // input_frame_update path is gated off — so without this explicit call
+    // gamepad_state would freeze and the panel would show stale input.
     // gamepad_poll internally captures the pre-scrub snapshot for us.
     gamepad_poll();
 
@@ -205,38 +191,28 @@ void input_debug_tick()
     // through input_debug_nav().
     refresh_nav();
 
-    // ESC closes the panel. Consume so pause menu doesn't see it.
-    // Route through input_debug_close so all cleanup (rumble_stop +
-    // DS widget reset) runs — matches F11 close path.
-    if (Keys[KB_ESC]) {
-        Keys[KB_ESC] = 0;
+    // ESC closes the panel. Force-release in input_frame so the same-frame
+    // pause-menu ESC handler (FORM_KeyProc / GAMEMENU_process) doesn't also
+    // fire and immediately re-open / open a different menu after the panel
+    // closes.
+    if (input_key_just_pressed(KB_ESC)) {
+        input_key_force_release(KB_ESC);
         input_debug_close();
         return;
     }
 
-    // 1 / 2 / 3 — switch page. Consume to keep the game clean.
-    if (Keys[KB_1]) {
-        Keys[KB_1] = 0;
-        s_page = INPUT_DEBUG_PAGE_KEYBOARD;
-    }
-    if (Keys[KB_2]) {
-        Keys[KB_2] = 0;
-        s_page = INPUT_DEBUG_PAGE_GAMEPAD;
-    }
-    if (Keys[KB_3]) {
-        Keys[KB_3] = 0;
-        s_page = INPUT_DEBUG_PAGE_DUALSENSE;
-    }
+    // 1 / 2 / 3 — switch page.
+    if (input_key_just_pressed(KB_1)) s_page = INPUT_DEBUG_PAGE_KEYBOARD;
+    if (input_key_just_pressed(KB_2)) s_page = INPUT_DEBUG_PAGE_GAMEPAD;
+    if (input_key_just_pressed(KB_3)) s_page = INPUT_DEBUG_PAGE_DUALSENSE;
 
     // TAB cycles the current page through its sub-views (controller
     // viz → tests / triggers → back). Only pages that define sub-views
     // react — keyboard page has none.
-    if (Keys[KB_TAB]) {
+    if (input_key_just_pressed(KB_TAB)) {
         if (s_page == INPUT_DEBUG_PAGE_DUALSENSE) {
-            Keys[KB_TAB] = 0;
             input_debug_dualsense_toggle_sub();
         } else if (s_page == INPUT_DEBUG_PAGE_GAMEPAD) {
-            Keys[KB_TAB] = 0;
             input_debug_gamepad_toggle_sub();
         }
     }
@@ -506,7 +482,7 @@ bool input_debug_key_held(unsigned char scancode)
 {
     if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE)
         return false;
-    return Keys[scancode] != 0;
+    return input_key_held(scancode);
 }
 
 uint8_t input_debug_read_ds_feedback(bool right_trigger)

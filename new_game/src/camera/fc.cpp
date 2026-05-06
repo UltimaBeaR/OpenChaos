@@ -13,7 +13,8 @@
 #include "camera/fc_globals.h"
 #include "map/pap.h"
 #include "engine/input/gamepad.h" // gamepad_set_shock
-#include "engine/input/gamepad_globals.h" // gamepad_state (right stick camera)
+#include "engine/input/gamepad_globals.h" // active_input_device
+#include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
@@ -847,6 +848,11 @@ void FC_process()
             } else {
                 FC_setup_initial_camera(cam);
             }
+            // FC_cam was just hard-snapped to a new position — collapse
+            // render-interp prev=curr so the renderer doesn't lerp across
+            // the warehouse boundary jump.
+            extern void render_interp_mark_camera_teleport(FC_Cam*);
+            render_interp_mark_camera_teleport(fc);
         }
 
         // lookabove: height the camera looks above the focus.
@@ -889,9 +895,19 @@ void FC_process()
             // Right stick: continuous camera orbit and height adjustment.
             // X axis: horizontal orbit (same math as L2/R2 rotate, proportional to deflection).
             // Y axis: camera height offset (stick up = higher, stick down = lower).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.connected) {
-                SLONG stick_x = gamepad_state.rX - 32768; // signed, -32768..+32767
-                SLONG stick_y = gamepad_state.rY - 32768;
+            //
+            // Disabled during the vehicle-entry animation: that anim auto-rotates
+            // the camera so the (visually closed) door isn't seen from a bad
+            // angle; letting the player override with the right stick exposes
+            // the trick. Released as soon as SubState transitions out of
+            // ENTERING_VEHICLE (anim end).
+            const bool entering_vehicle = fc->focus
+                && fc->focus->Class == CLASS_PERSON
+                && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+
+            if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
+                SLONG stick_x = input_stick_x_axis(INPUT_STICK_RIGHT) - 32768; // signed, -32768..+32767
+                SLONG stick_y = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
 
                 if (abs(stick_x) > 8000) {
                     SLONG rot_speed = (stick_x * 0x600) / 32767;

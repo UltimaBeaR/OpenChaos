@@ -190,10 +190,10 @@ set(SOURCES_NEW
     src/engine/input/keyboard_globals.cpp
     src/engine/input/mouse.cpp
     src/engine/input/mouse_globals.cpp
-    src/engine/input/joystick.cpp
     src/engine/input/gamepad.cpp
     src/engine/input/gamepad_globals.cpp
     src/engine/input/weapon_feel.cpp
+    src/engine/input/input_frame.cpp
 
     # === Engine: debug ===
     src/engine/debug/input_debug/input_debug.cpp
@@ -240,6 +240,7 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/poly_render_globals.cpp
     src/engine/graphics/pipeline/aeng.cpp
     src/engine/graphics/pipeline/aeng_globals.cpp
+    src/engine/graphics/render_interp.cpp
     src/engine/graphics/pipeline/poly.cpp
     src/engine/graphics/pipeline/poly_globals.cpp
     src/engine/graphics/pipeline/draw2d.cpp
@@ -264,6 +265,7 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/superfacet_globals.cpp
     src/engine/graphics/geometry/figure.cpp
     src/engine/graphics/geometry/figure_globals.cpp
+    src/engine/graphics/geometry/pose_composer.cpp
     src/engine/graphics/geometry/mesh.cpp
     src/engine/graphics/geometry/mesh_globals.cpp
     src/engine/graphics/geometry/shape.cpp
@@ -510,6 +512,7 @@ set(SOURCES_NEW
     src/game/input_actions.cpp
     src/game/input_actions_globals.cpp
     src/game/ui_render.cpp
+    src/game/debug_timing_overlay.cpp
 )
 
 # ---------------------------------------------------------------------------

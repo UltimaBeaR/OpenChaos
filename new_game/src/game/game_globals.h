@@ -53,6 +53,56 @@ extern UBYTE the_end;
 // uc_orig: env_frame_rate (fallen/Source/Game.cpp)
 extern UWORD env_frame_rate;
 
+// Runtime-adjustable physics tick rate. Default = UC_PHYSICS_DESIGN_HZ
+// (= 20 Hz, the design rate hardcoded into Vehicle GRAVITY, EWAY mission
+// timer, network sync, etc — see game_types.h). Diagnostic hotkeys
+// (1/9/0) wiggle this value at runtime to verify physics<->render
+// decoupling: visual wall-clock effects (rain, drip, puddle, mist, ribbon,
+// sparks, VISUAL_TURN-gated visuals) MUST remain unchanged when this
+// varies — any deviation is a decoupling bug. Production logic must read
+// this variable (not the constant directly) so diagnostic changes
+// propagate. Clamped 1..UC_PHYSICS_DESIGN_HZ.
+//
+// TODO(fps_unlock): once decoupling is fully verified across the whole
+// codebase and all rate-dependent code is honest about which rate it
+// uses, this variable can either be removed (replaced everywhere by
+// UC_PHYSICS_DESIGN_HZ) or hidden behind a debug-build flag while the
+// hotkeys stay as a dev-only diagnostic aid.
+extern SLONG g_physics_hz;
+
+// Default production render fps cap. We don't ship "unlimited" because
+// unbounded redraws in the main menu/attract burn the GPU for nothing on
+// some setups. 300 is well above any reasonable display refresh, so
+// gameplay still feels uncapped while the GPU stays well-behaved when the
+// scene is trivial. lock_frame_rate(0) still means "no cap" in the API —
+// a debug overlay or future config could opt back into 0 if desired.
+static constexpr SLONG RENDER_FPS_DEFAULT_CAP = 300;
+
+// Runtime-adjustable render frame cap in fps. Default = RENDER_FPS_DEFAULT_CAP;
+// 0 = unlimited (no cap) is still supported by lock_frame_rate() but not
+// the production default. Diagnostic hotkey 2 toggles default<->25 to test
+// how visuals behave at low render rate (interpolation correctness, stutter
+// on cap transitions). Used by lock_frame_rate() in every render loop
+// (main game, FMV, attract, outro, cutscenes).
+extern SLONG g_render_fps_cap;
+
+// VISUAL_TURN is declared in game_types.h alongside GAME_TURN so any
+// consumer of GAME_TURN already sees both counters through the same
+// include. Helper to advance it lives here.
+
+// Advance VISUAL_TURN by one or more ticks based on wall-clock dt. Call
+// once per render frame from any render loop that displays game-world
+// visuals (main game loop, cutscene playback). Free-running across
+// loops — never reset between frames or scenes.
+void visual_turn_tick(float dt_ms);
+
+// Wall-clock dt of the current render frame in milliseconds. Updated each
+// iteration of every render loop (game.cpp main loop, playcuts.cpp cutscene
+// loop). Read by render-side visual effects that must remain frame-rate
+// independent: rain droplet density, per-puddle rain-drip spawn probability.
+// Default 33.33 ms (one 30 Hz frame) — used before the first render tick.
+extern float g_frame_dt_ms;
+
 // Ring buffer of the last 4 TICK_RATIO values for smooth tick averaging (vehicle movement).
 // In the original these were file-scope statics in Game.cpp.
 // uc_orig: tick_ratios (fallen/Source/Game.cpp)

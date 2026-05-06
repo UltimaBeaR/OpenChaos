@@ -229,8 +229,18 @@ void SPRITE_draw_rotated(
             // Off screen.
         } else {
             if (rotate == 0xffffff) {
-                opp = (DisplayWidth >> 1) - mid.X;
-                adj = (DisplayHeight >> 1) - mid.Y;
+                // Auto-billboard: rotate so the sprite faces away from the
+                // visual screen centre. mid.X/Y come from POLY_transform —
+                // they live in POLY_screen_width/height space (see the
+                // bounds-check above). The original code used DisplayWidth
+                // (=640 virtual canvas) which only matches POLY_screen_width
+                // on a 4:3 window; on widescreen POLY_screen_width ≈ 853 and
+                // the angle was computed against a false centre. Sister bug
+                // to the lens-flare regression in bloom.cpp; same coord-space
+                // class. Use POLY_screen_* so the rotation stays correct on
+                // any aspect.
+                opp = (SLONG(POLY_screen_width) >> 1) - mid.X;
+                adj = (SLONG(POLY_screen_height) >> 1) - mid.Y;
                 angle = -Arctan(opp, adj);
                 angle &= 2047;
             } else

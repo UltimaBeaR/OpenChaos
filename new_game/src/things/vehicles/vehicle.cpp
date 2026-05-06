@@ -23,12 +23,14 @@
 #include "map/ob.h"
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for engine smoke spawn gate
 #include "engine/graphics/postprocess/bloom.h"
 #include "engine/graphics/pipeline/aeng.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "game/input_actions.h"
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
+#include "engine/input/input_frame.h" // input_trigger_raw
 #include "world_objects/dirt.h"
 #include "effects/weather/mist.h"
 #include "things/items/barrel.h"
@@ -620,6 +622,7 @@ void reinit_vehicle(Thing* p_thing)
     vp->Health = 300;
     vp->Siren = 0;
     vp->GrabAction = 0;
+    vp->LastSmokeSpawn = 0;
 
     for (int ii = 0; ii < 6; ii++) {
         vp->damage[ii] = 0;
@@ -724,8 +727,8 @@ void draw_car(Thing* p_car)
         if (info->FLZ && (vp->Siren == 1)) {
             SLONG rx, rz;
 
-            rx = SIN(((SLONG)(uintptr_t)(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
-            rz = COS(((SLONG)(uintptr_t)(p_car) + (GAME_TURN << 7)) & 2047) >> 8;
+            rx = SIN(((SLONG)(uintptr_t)(p_car) + (VISUAL_TURN << 7)) & 2047) >> 8;
+            rz = COS(((SLONG)(uintptr_t)(p_car) + (VISUAL_TURN << 7)) & 2047) >> 8;
 
             vector[2] = info->FLX + (rx >> 6);
             vector[1] = info->FLY;
@@ -745,36 +748,47 @@ void draw_car(Thing* p_car)
         }
     }
 
-    // engine smoke — probability increases as health drops
+    // engine smoke — probability increases as health drops.
+    // Wall-clock edge-detect (~30 Hz) so spawn density doesn't scale with
+    // render FPS. Original gated only on `Random() & 0x7f > Health` per
+    // render frame: at Health=0 that fired ~99% of frames, so on 240 FPS
+    // smoke density was 8× that of the 30 FPS baseline. Per-vehicle phase
+    // (LastSmokeSpawn) so multiple destroyed cars don't share a bucket.
+    // See pyro.cpp PYRO_BONFIRE for the same pattern.
     {
-        if ((Random() & 0x7f) > p_car->Genus.Vehicle->Health) {
-            vector[2] = info->HLX * 0.7f;
-            vector[1] = info->HLY;
-            vector[0] = 0;
-            FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
-            PARTICLE_Add(
-                p_car->WorldPos.X + (vector[0] << 8) + (Random() & 0x3fff) - 0x1fff,
-                p_car->WorldPos.Y + (vector[1] << 8),
-                p_car->WorldPos.Z + (vector[2] << 8) + (Random() & 0x3fff) - 0x1fff,
-                vp->VelX + (Random() & 0xff) - 0x7f,
-                0x3ff + (Random() & 0xff),
-                vp->VelZ + (Random() & 0xff) - 0x7f,
-                POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
-                PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
-                75, 40 + (rand() & 31), 1, 4, 1);
-
-            if (p_car->Genus.Vehicle->Health <= 0) {
-                // additional smoke from rear when health exhausted
+        constexpr SLONG SMOKE_BUCKET_MS = 33; // ≈ UC_VISUAL_CADENCE_TICK_MS (30 Hz)
+        const UBYTE cur_phase = UBYTE(sdl3_get_ticks() / SMOKE_BUCKET_MS);
+        if (cur_phase != p_car->Genus.Vehicle->LastSmokeSpawn) {
+            p_car->Genus.Vehicle->LastSmokeSpawn = cur_phase;
+            if ((Random() & 0x7f) > p_car->Genus.Vehicle->Health) {
+                vector[2] = info->HLX * 0.7f;
+                vector[1] = info->HLY;
+                vector[0] = 0;
+                FMATRIX_MUL(car_matrix, vector[0], vector[1], vector[2]);
                 PARTICLE_Add(
-                    p_car->WorldPos.X - (vector[0] << 8) + (Random() & 0x7fff) - 0x3fff,
-                    p_car->WorldPos.Y - (vector[1] << 8),
-                    p_car->WorldPos.Z - (vector[2] << 8) + (Random() & 0x7fff) - 0x3fff,
+                    p_car->WorldPos.X + (vector[0] << 8) + (Random() & 0x3fff) - 0x1fff,
+                    p_car->WorldPos.Y + (vector[1] << 8),
+                    p_car->WorldPos.Z + (vector[2] << 8) + (Random() & 0x3fff) - 0x1fff,
                     vp->VelX + (Random() & 0xff) - 0x7f,
                     0x3ff + (Random() & 0xff),
                     vp->VelZ + (Random() & 0xff) - 0x7f,
                     POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                     PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
                     75, 40 + (rand() & 31), 1, 4, 1);
+
+                if (p_car->Genus.Vehicle->Health <= 0) {
+                    // additional smoke from rear when health exhausted
+                    PARTICLE_Add(
+                        p_car->WorldPos.X - (vector[0] << 8) + (Random() & 0x7fff) - 0x3fff,
+                        p_car->WorldPos.Y - (vector[1] << 8),
+                        p_car->WorldPos.Z - (vector[2] << 8) + (Random() & 0x7fff) - 0x3fff,
+                        vp->VelX + (Random() & 0xff) - 0x7f,
+                        0x3ff + (Random() & 0xff),
+                        vp->VelZ + (Random() & 0xff) - 0x7f,
+                        POLY_PAGE_SMOKECLOUD, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
+                        PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
+                        75, 40 + (rand() & 31), 1, 4, 1);
+                }
             }
         }
     }
@@ -898,7 +912,7 @@ void draw_car(Thing* p_car)
                     MFX_play_thing(THING_NUMBER(p_car), S_SKID_END, MFX_MOVING, p_car);
             }
 
-            if ((speed > 200) && (GAME_TURN & 1)) {
+            if ((speed > 200) && (VISUAL_TURN & 1)) {
                 SLONG dx, dz;
                 if (vp->oldX[c0] && vp->oldZ[c0]) {
                     dx = (vp->oldX[c0] - wx) >> 8;
@@ -2378,8 +2392,9 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
             // Analog throttle: scale accel by R2 trigger position (gamepad only).
             // Full press = full accel, partial press = proportional.
             // Cross button always gives full accel (digital).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.trigger_right > 0 && gamepad_state.trigger_right < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_right) / 255);
+            const int r2 = input_trigger_raw(16);
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && r2 > 0 && r2 < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * r2) / 255);
             }
 
             if ((velocity < -200) || ((veh->DControl & VEH_FASTER) && (velocity < 400))) {
@@ -2396,8 +2411,9 @@ static void pedals(Vehicle* veh, VehInfo* vinfo, SLONG velocity, UBYTE& friction
 
             // Analog brake: scale braking force by L2 trigger position (gamepad only).
             // Square button always gives full brake (digital).
-            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && gamepad_state.trigger_left > 0 && gamepad_state.trigger_left < 240) {
-                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * gamepad_state.trigger_left) / 255);
+            const int l2 = input_trigger_raw(15);
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && l2 > 0 && l2 < 240) {
+                accel = static_cast<SWORD>((static_cast<SLONG>(accel) * l2) / 255);
             }
 
             if (!veh->Skid) {

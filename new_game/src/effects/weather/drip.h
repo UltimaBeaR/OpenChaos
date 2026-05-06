@@ -36,7 +36,7 @@ void DRIP_create_if_in_puddle(UWORD x, SWORD y, UWORD z);
 
 // uc_orig: DRIP_process (fallen/Headers/drip.h)
 // Expands drips and fades them out each tick.
-void DRIP_process(void);
+void DRIP_process(float dt_ms);
 
 // uc_orig: DRIP_get_start (fallen/Headers/drip.h)
 void DRIP_get_start(void);

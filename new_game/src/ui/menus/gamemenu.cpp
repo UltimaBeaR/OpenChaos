@@ -17,16 +17,13 @@
 
 #include "ui/menus/gamemenu.h"
 #include "ui/menus/gamemenu_globals.h"
-#include "engine/input/joystick.h"
 #include "engine/input/gamepad.h"
+#include "engine/input/input_frame.h"
+#include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
 
-// Joystick axis deadzone for menu navigation.
-#define GM_AXIS_CENTRE 32768
-#define GM_NOISE_TOLERANCE 4096
-#define GM_AXIS_MIN (GM_AXIS_CENTRE - GM_NOISE_TOLERANCE)
-#define GM_AXIS_MAX (GM_AXIS_CENTRE + GM_NOISE_TOLERANCE)
-
-extern void process_things_tick(SLONG frame_rate_independant);
+// Stick navigation thresholds and auto-repeat live in input_frame
+// (STICK_DIR_PRESS_RAW / RELEASE_RAW + INPUT_REPEAT_INITIAL_MS / PERIOD_MS).
+// Single source of truth — same cadence across every menu now.
 
 // Menu type constants — file private.
 // uc_orig: GAMEMENU_MENU_TYPE_NONE (fallen/Source/gamemenu.cpp)
@@ -105,7 +102,12 @@ SLONG GAMEMENU_process()
     millisecs = tick_now - tick_last;
     tick_last = tick_now;
 
-    SATURATE(millisecs, 10, 200);
+    // Lower clamp at 0 (was 10): on render > 100 FPS the per-frame wall-clock
+    // delta drops below 10 ms, so a floor of 10 caused the menu animations
+    // (background fade, text fade-in) to advance faster than real time
+    // (e.g. 240 FPS × 10 ms = 2400 ms/sec instead of 1000). Sub-ms frames now
+    // contribute 0 — next frame catches up. Upper clamp 200 ms guards alt-tab.
+    SATURATE(millisecs, 0, 200);
 
     // Automatically count up a delay before showing won/lost menu.
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
@@ -146,74 +148,63 @@ SLONG GAMEMENU_process()
         GAME_cut_scene = UC_FALSE;
     }
 
-    // Poll gamepad and translate to keyboard keys for menu input.
+    // Gamepad → keyboard event bridge for the existing menu handler below.
+    // Edge-detect (just_pressed) and auto-repeat (just_pressed_or_repeat) are
+    // managed centrally in input_frame — set in LibShellActive each render
+    // frame, identical cadence across menus.
+    //
+    // Start (button 6) is always active to open the menu from gameplay; the
+    // rest fire only while a menu is shown so gameplay buttons (Triangle =
+    // KICK, Cross = JUMP) don't leak into menu actions when no menu is up.
+    //
+    // No prev-state reset on menu open is needed: input_frame's just_pressed
+    // requires a rising edge in the snapshot, so a button held across the
+    // menu transition won't fire until released and re-pressed.
     {
-        static UBYTE gm_last_start = 0;
-        static UBYTE gm_last_triangle = 0;
-        static UBYTE gm_last_cross = 0;
-        static SLONG gm_last_dir = 0;
-        static uint64_t gm_dir_next_fire = 0;
+        // Start → ESC (toggle pause).
+        if (input_btn_just_pressed(6))
+            input_frame_inject_key_press(KB_ESC);
 
-        ReadInputDevice();
-
-        // Start button (index 6) → ESC (toggle pause). Always active (even during gameplay).
-        UBYTE start_now = the_state.rgbButtons[6] ? 1 : 0;
-        if (start_now && !gm_last_start)
-            Keys[KB_ESC] = 1;
-        gm_last_start = start_now;
-
-        // Navigation/confirm/cancel — only when a menu is actually active.
-        // Setting Keys[] during gameplay would cause infinite walking (Keys never auto-clear).
         if (GAMEMENU_menu_type != GAMEMENU_MENU_TYPE_NONE) {
-            // Triangle/Y (index 3) → ESC (back/cancel). Edge-detect.
-            UBYTE triangle_now = the_state.rgbButtons[3] ? 1 : 0;
-            if (triangle_now && !gm_last_triangle)
-                Keys[KB_ESC] = 1;
-            gm_last_triangle = triangle_now;
-
-            // Cross/A (index 0) → Enter (confirm). Edge-detect.
-            UBYTE cross_now = the_state.rgbButtons[0] ? 1 : 0;
-            if (cross_now && !gm_last_cross)
-                Keys[KB_ENTER] = 1;
-            gm_last_cross = cross_now;
-
-            // Stick/D-Pad → Up/Down with time-based auto-repeat.
-            SLONG dir = 0;
-            if (the_state.lY < GM_AXIS_MIN)
-                dir = 1; // up
-            else if (the_state.lY > GM_AXIS_MAX)
-                dir = 2; // down
-
-            {
-                uint64_t now = sdl3_get_ticks();
-                if (dir) {
-                    if (dir != gm_last_dir) {
-                        if (dir == 1)
-                            Keys[KB_UP] = 1;
-                        else
-                            Keys[KB_DOWN] = 1;
-                        gm_dir_next_fire = now + 400;
-                    } else if (now >= gm_dir_next_fire) {
-                        if (dir == 1)
-                            Keys[KB_UP] = 1;
-                        else
-                            Keys[KB_DOWN] = 1;
-                        gm_dir_next_fire = now + 150;
-                    }
-                }
+            // Triangle/Y (button 3) → ESC (back/cancel). Drain press_pending
+            // so the press doesn't leak into car siren toggle (which reads
+            // input_btn_press_pending(3)) when the menu closes — physics
+            // doesn't run during pause, so apply_button_input_car can't drain
+            // the pending itself, and a stale flag would fire on the first
+            // tick after resume.
+            if (input_btn_just_pressed(3)) {
+                input_btn_consume(3);
+                input_frame_inject_key_press(KB_ESC);
             }
-            gm_last_dir = dir;
-        } else {
-            // Menu not active — reset edge-detect state so first press is clean on menu open.
-            gm_last_triangle = the_state.rgbButtons[3] ? 1 : 0;
-            gm_last_cross = the_state.rgbButtons[0] ? 1 : 0;
-            gm_last_dir = 0;
-            gm_dir_next_fire = 0;
+
+            // Cross/A (button 0) → Enter (confirm). No current consumer of
+            // input_btn_press_pending(0), but consume defensively for symmetry
+            // with Triangle — any future physics-tick consumer of that flag
+            // would otherwise see the menu-confirm press as a pending input.
+            if (input_btn_just_pressed(0)) {
+                input_btn_consume(0);
+                input_frame_inject_key_press(KB_ENTER);
+            }
+
+            // Up/Down nav (keyboard and stick) is handled below inside the
+            // GAMEMENU_background > 200 gate — single unified auto-repeat
+            // for both sources, no double-throttle.
         }
     }
 
-    if (Keys[KB_ESC]) {
-        Keys[KB_ESC] = 0;
+    // Pause-toggle channel: real keyboard ESC presses (event hook sets
+    // press_pending) and synthesised gamepad presses (Start / Triangle
+    // bridge above calls input_frame_inject_key_press(KB_ESC)) both land
+    // on the same input_frame slot. Single read picks up either source.
+    if (input_key_press_pending(KB_ESC)) {
+        // Force a synthesised release in input_frame's CURRENT snapshot so
+        // same-frame downstream consumers (e.g. weapon switch reading
+        // input_key_just_pressed(KB_ENTER) in process_controls, or JUMP
+        // level read in get_hardware_input) don't see the menu-consumed
+        // press leak into gameplay. force_release clears
+        // curr/event_held/pressed_during_frame/press_pending all at once
+        // — subsumes input_key_consume.
+        input_key_force_release(KB_ESC);
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
@@ -256,28 +247,55 @@ SLONG GAMEMENU_process()
         SATURATE(GAMEMENU_fadein_x, 0, 800 << 8);
 
         if (GAMEMENU_background > 200) {
-            // Keyboard repeat delay (time-based, same values as controller).
-            {
-                static uint64_t kb_next_fire = 0;
-                static UBYTE kb_last_dir = 0;
-                UBYTE kb_dir = (Keys[KB_UP] ? 1 : 0) | (Keys[KB_DOWN] ? 2 : 0);
-                uint64_t now = sdl3_get_ticks();
+            // Unified up/down navigation: all sources treated as one logical
+            // input. InputAutoRepeat applies a SINGLE auto-repeat throttle on
+            // the OR of source held-states — combined doesn't fire faster
+            // than any single source, even when several are held at once
+            // (independent per-source throttles would interleave to ~2× rate).
+            //
+            // Three independent sources per direction:
+            //  - keyboard up/down
+            //  - left-stick virtual up/down (reads pre-D-Pad-override raw axis)
+            //  - D-Pad up/down via rgbButtons[11]/[12]
+            //
+            // D-Pad must be read separately, NOT taken implicitly through the
+            // stick mirror: the gamepad layer clamps lX/lY when the D-Pad is
+            // held, which would hide a concurrent stick deflection in the
+            // opposite direction (breaking antagonist suppression for the
+            // stick + D-Pad case). With three independent signals OR'd into
+            // the combined held bool, antagonist works for every pair.
+            //
+            // Static instances persist between calls — InputAutoRepeat tracks
+            // its own rising/falling edge of the combined boolean and timer.
+            static InputAutoRepeat ar_up;
+            static InputAutoRepeat ar_down;
 
-                if (kb_dir) {
-                    if (kb_dir != kb_last_dir) {
-                        kb_next_fire = now + 400;
-                    } else if (now < kb_next_fire) {
-                        Keys[KB_UP] = Keys[KB_DOWN] = 0;
-                    } else {
-                        kb_next_fire = now + 150;
-                    }
-                }
-                kb_last_dir = kb_dir;
+            const bool any_up_jp = input_key_just_pressed(KB_UP)
+                || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+                || input_btn_just_pressed(11);
+            const bool any_up_held = input_key_held(KB_UP)
+                || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_UP)
+                || input_btn_held(11);
+            const bool any_dn_jp = input_key_just_pressed(KB_DOWN)
+                || input_stick_just_pressed(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
+                || input_btn_just_pressed(12);
+            const bool any_dn_held = input_key_held(KB_DOWN)
+                || input_stick_held(INPUT_STICK_LEFT, INPUT_STICK_DIR_DOWN)
+                || input_btn_held(12);
+
+            bool nav_up   = ar_up.tick_combined(any_up_jp, any_up_held);
+            bool nav_down = ar_down.tick_combined(any_dn_jp, any_dn_held);
+
+            // Antagonist suppression: both opposite directions held = no clear
+            // intent, suppress output. Timers continue ticking normally so that
+            // releasing one direction immediately resumes navigation in the
+            // other without a fresh 400ms initial delay.
+            if (any_up_held && any_dn_held) {
+                nav_up = false;
+                nav_down = false;
             }
 
-            if (Keys[KB_UP]) {
-                Keys[KB_UP] = 0;
-
+            if (nav_up) {
                 GAMEMENU_menu_selection -= 1;
 
                 if (GAMEMENU_menu_selection < 1) {
@@ -291,9 +309,7 @@ SLONG GAMEMENU_process()
                 MFX_play_stereo(0, S_MENU_CLICK_START, MFX_REPLACE);
             }
 
-            if (Keys[KB_DOWN]) {
-                Keys[KB_DOWN] = 0;
-
+            if (nav_down) {
                 GAMEMENU_menu_selection += 1;
 
                 if ((GAMEMENU_menu_selection > 7) || (GAMEMENU_menu[GAMEMENU_menu_type].word[GAMEMENU_menu_selection] == NULL)) {
@@ -313,10 +329,14 @@ SLONG GAMEMENU_process()
                 }
             }
 
-            if (Keys[KB_ENTER] || Keys[KB_SPACE] || Keys[KB_PENTER]) {
-                Keys[KB_ENTER] = 0;
-                Keys[KB_SPACE] = 0;
-                Keys[KB_PENTER] = 0;
+            if (input_key_press_pending(KB_ENTER) || input_key_press_pending(KB_SPACE) || input_key_press_pending(KB_PENTER)) {
+                // Force-release in input_frame's CURRENT snapshot — see
+                // comment in the ESC handler above. Otherwise SPACE held for
+                // confirm leaks INPUT_MASK_JUMP (player jumps), ENTER leaks
+                // INPUT_MASK_SELECT (weapon switch popup opens), etc.
+                input_key_force_release(KB_ENTER);
+                input_key_force_release(KB_SPACE);
+                input_key_force_release(KB_PENTER);
 
                 MFX_play_stereo(1, S_MENU_CLICK_END, MFX_REPLACE);
 

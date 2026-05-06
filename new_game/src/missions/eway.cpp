@@ -1,6 +1,7 @@
 #include <ctype.h>
 #include "feature_flags.h"
 #include "missions/eway.h"
+#include "engine/input/input_frame.h"
 
 #include "things/characters/person.h" // can_a_see_b, set_person_idle and other person functions used in this file
 #include "map/ob.h"
@@ -20,6 +21,7 @@
 #include "things/core/statedef.h"
 #include "navigation/wmove.h"
 #include "engine/graphics/pipeline/aeng.h"
+#include "engine/graphics/render_interp.h"
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
 #include "engine/audio/mfx.h"
@@ -1421,6 +1423,7 @@ void EWAY_created_last_waypoint()
     EWAY_time_accurate = 0;
     EWAY_time = 0;
     EWAY_count_up = 0;
+    EWAY_hud_countdown_value = -1;
 
     EWAY_count_up_add_penalties = 0;
     EWAY_count_up_num_penalties = 0;
@@ -1606,7 +1609,8 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                             music_mode_override = 0;
                     }
                 }
-                PANEL_draw_timer(ec->arg2, 320, 50);
+                // Persist value for the render path. -1 when done so the HUD clears.
+                EWAY_hud_countdown_value = ans ? -1 : ec->arg2;
             }
         } else {
             // Not counting down.
@@ -3011,6 +3015,9 @@ void EWAY_process_conversation(void)
         // Swap who's talking for next line.
         SWAP(EWAY_conv_person_a, EWAY_conv_person_b);
         EWAY_cam_jumped = 10;
+        // (render-interp uses delta-based cut detection on the EWAY camera
+        // snapshot — see render_interp_capture_eway_camera. No explicit
+        // teleport-mark needed here.)
     }
 
     // If either person gets attacked, knocked over, or otherwise disrupted, abort.
@@ -3339,7 +3346,7 @@ void EWAY_set_active(EWAY_Way* ew)
                         MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SEARCH_END);
                         MFX_stop(THING_NUMBER(NET_PERSON(0)), S_SLIDE_START);
 
-                        LastKey = 0;
+                        input_last_key_consume();
                     } else {
                         Thing* who_says = NULL;
 
@@ -3549,6 +3556,13 @@ void EWAY_set_active(EWAY_Way* ew)
                     p_person->WorldPos.Z = 0x8000;
 
                     p_person->WorldPos.Y = PAP_calc_map_height_at(0x80, 0x80);
+
+                    // Tell render-interp not to lerp from the previous
+                    // WorldPos to (0x8000, _, 0x8000) — the actor was just
+                    // teleported off-stage; without this the next render
+                    // frame draws the body sliding from its last on-stage
+                    // position to the corner of the map.
+                    render_interp_mark_teleport(p_person);
 
                     set_person_idle(p_person);
 
@@ -3968,6 +3982,17 @@ void EWAY_set_active(EWAY_Way* ew)
                     p_thing->WorldPos = newpos;
                 }
 
+                // EWAY scene transitions teleport actors / vehicles between
+                // scenes (entire-map jumps, ~millions of sub-units). Without
+                // this hint the next render frame would lerp the model
+                // smoothly across the whole map for one tick — visually a
+                // huge "fly across the world" artifact each cinematic cut.
+                // Covers both the on-map (move_thing_on_map) and off-map
+                // (direct WorldPos assign) paths above. Person yaw is
+                // overwritten below as well, so the same teleport mark
+                // also collapses the angle interpolation discontinuity.
+                render_interp_mark_teleport(p_thing);
+
                 if (p_thing->Class == CLASS_PERSON) {
                     plant_feet(p_thing);
                     p_thing->Draw.Tweened->Angle = ew->yaw << 3;
@@ -4113,8 +4138,6 @@ void EWAY_process_penalties()
 
     EWAY_count_up_penalty_timer += EWAY_tick;
 
-    PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
-
     if (EWAY_count_up_penalty_timer > 100) {
         CBYTE str[64];
 
@@ -4155,6 +4178,18 @@ void EWAY_process_penalties()
     }
 }
 
+// Queues HUD mission timers for drawing. Called once per render frame (not per physics tick)
+// so the display is stable even when render outruns physics (no flicker at high FPS).
+void EWAY_draw_hud_timers()
+{
+    if (EWAY_count_up_visible || EWAY_count_up_add_penalties) {
+        PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
+    }
+    if (EWAY_hud_countdown_value >= 0) {
+        PANEL_draw_timer(EWAY_hud_countdown_value, 320, 50);
+    }
+}
+
 // extern forward declaration: defined in Person.cpp, used here to count NPC spawn types.
 // uc_orig: people_types (fallen/Source/Person.cpp)
 extern SWORD people_types[50];
@@ -4184,6 +4219,13 @@ void EWAY_process()
 
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
         // Don't process waypoints after the game is lost or won.
+        // Clear the on-screen countdown value too: in the original it was
+        // queued inline from EWAY_evaluate_condition each tick into a global
+        // (slPANEL_draw_timer_time) that auto-cleared each draw. Our refactor
+        // persists the value across render frames (to avoid flicker when
+        // render > physics), so we must explicitly clear it here — otherwise
+        // the timer lingers frozen at its last value after level complete.
+        EWAY_hud_countdown_value = -1;
     } else {
         for (i = 1 + (offset); i < eway_max; i += step) {
 
@@ -4202,8 +4244,6 @@ void EWAY_process()
                     }
                 } else if (ew->ed.type == EWAY_DO_VISIBLE_COUNT_UP) {
                     EWAY_count_up += (50 * TICK_RATIO >> TICK_SHIFT) * step; // 50 * 20 ticks/sec = 1000 units/sec
-
-                    PANEL_draw_timer(EWAY_count_up / 10, 320, 50);
 
                     EWAY_count_up_visible = UC_TRUE;
 

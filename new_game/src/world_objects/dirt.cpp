@@ -1,5 +1,6 @@
 #include "world_objects/dirt.h"
 #include "world_objects/dirt_globals.h"
+#include "engine/graphics/render_interp.h" // render_interp_mark_dirt_teleport — recycle hint
 #include "effects/weather/drip.h"
 #include "effects/combat/pyro.h"
 #include "engine/effects/psystem.h"
@@ -321,6 +322,13 @@ void DIRT_set_focus(
                                 dd->dyaw = 0;
                                 dd->dpitch = 0;
                                 dd->droll = 0;
+                                // DIRT_FLAG_DELETE_OK reuse path: prior LEAF
+                                // (about to be deleted) is reincarnated at a
+                                // different position around a newly-in-range
+                                // tree. Type stays LEAF so the capture-side
+                                // last_type comparison wouldn't catch this;
+                                // explicit mark.
+                                render_interp_mark_dirt_teleport(int(dd - DIRT_dirt));
                             }
                         }
 
@@ -469,6 +477,20 @@ void DIRT_set_focus(
                 default:
                     ASSERT(0);
                     break;
+                }
+
+                // The slot was just relocated to a new (cx, cz, ground_y)
+                // around the focus point — typically several thousand
+                // sub-units away from where it sat last tick. Render-interp
+                // would otherwise lerp the leaf/can/etc. across that delta
+                // for one tick, which produces visible "block of leaves
+                // teleports across the screen" jitter when the player runs
+                // and many slots recycle in the same tick. Tell render-interp
+                // to skip the lerp on the next capture. UNUSED outcome (slot
+                // freed) is detected automatically by capture; only mark the
+                // non-UNUSED relocation paths.
+                if (dd->type != DIRT_TYPE_UNUSED) {
+                    render_interp_mark_dirt_teleport(int(dd - DIRT_dirt));
                 }
             } else {
                 dd->type = DIRT_TYPE_UNUSED;
@@ -966,12 +988,14 @@ void DIRT_new_sparks(SLONG px, SLONG py, SLONG pz, UBYTE dir)
         }
         if (!nodrip)
             DIRT_new_water(px, py, pz, dx, dy, dz, DIRT_TYPE_SPARKS);
-        PARTICLE_Add(px << 8, py << 8, pz << 8, dx << 9, dy << 9, dz << 9, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 10, 1, 2 + (Random() & 7), 0);
+        // Bouncing additive sparks. Pre-release size=10 was visually too large; reduced to 1.
+        PARTICLE_Add(px << 8, py << 8, pz << 8, dx << 9, dy << 9, dz << 9, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 1, 1, 2 + (Random() & 7), 0);
     }
+    // Central additive flash. Pre-release size=15+(rand&0x3f) (=15-78) was the largest blob source.
     if (Random() & 1)
-        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0xFFffffff, PFLAG_FADE, 2, 15 + (Random() & 0x3f), 1, 0x7f, 0);
+        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE1_ADDITIVE, 2 + ((Random() & 3) << 2), 0xFFffffff, PFLAG_FADE, 2, 2 + (Random() & 0x03), 1, 0x7f, 0);
     else
-        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE2_ADDITIVE, 2 + ((Random() & 1) << 2), 0xFFffffff, PFLAG_FADE, 2, 15 + (Random() & 0x3f), 1, 0x7f, 0);
+        PARTICLE_Add(px << 8, py << 8, pz << 8, 0, 0, 0, POLY_PAGE_EXPLODE2_ADDITIVE, 2 + ((Random() & 1) << 2), 0xFFffffff, PFLAG_FADE, 2, 2 + (Random() & 0x03), 1, 0x7f, 0);
 }
 
 // Emits a shower of particle sparks from the given spark dirt entry's position.
@@ -984,10 +1008,11 @@ static void DIRT_spark_shower(DIRT_Dirt* dd)
 
     UBYTE i;
     for (i = 0; i < 5; i++) {
+        // Bouncing additive sparks spawned on spark-bounce. Same size class as DIRT_new_sparks bouncing.
         if (Random() & 1)
-            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, ((Random() & 0x3f) + 0x1f) << 4, ((Random() & 0x3f) - 0x2f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 10, 1, 2 + (Random() & 7), 0);
+            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, ((Random() & 0x3f) + 0x1f) << 4, ((Random() & 0x3f) - 0x2f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 1, 1, 2 + (Random() & 7), 0);
         else
-            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, dd->dy >> 4, ((Random() & 0x3f) - 0x1f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 10, 1, 2 + (Random() & 7), 0);
+            PARTICLE_Add(dd->x << 8, (dd->y + 10) << 8, dd->z << 8, ((Random() & 0x3f) - 0x1f) << 4, dd->dy >> 4, ((Random() & 0x3f) - 0x1f) << 4, POLY_PAGE_EXPLODE1_ADDITIVE, 2 | ((Random() & 3) << 2), 0x7Fffffff, PFLAG_FADE | PFLAG_GRAVITY | PFLAG_BOUNCE, 20, 1, 1, 2 + (Random() & 7), 0);
     }
 }
 

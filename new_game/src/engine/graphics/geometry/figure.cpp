@@ -22,6 +22,21 @@
 #include "engine/core/quaternion.h"
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
+#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (Phase 3 pose-snapshot override)
+#include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
+#include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
+#include "things/core/drawtype.h"
+#include "game/game_types.h" // NET_PERSON (player Thing*) for figure-morph debug log
+#include "game/game_globals.h" // g_physics_hz for log
+#include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for log timestamp
+#include <stdio.h>
+#include <stdint.h>
+
+// Enable per-render-frame CSV log of player root body part morph state.
+// Lines go to stderr (and stderr.log via Makefile redirect). Use to compare
+// blend behaviour at different physics rates.
+#define FIGURE_MORPH_LOG 0
 
 // Note: animation depends on lighting (BuildMMLightingTable reads NIGHT_* globals).
 // This cross-engine coupling exists in the original; will be resolved in Stage 7.
@@ -488,7 +503,7 @@ void draw_steam(SLONG x, SLONG y, SLONG z, SLONG lod)
             v = 0.5;
 
         dy = get_steam_rand() & 0x1ff;
-        dy += (GAME_TURN * ((c0 & 3) + 2));
+        dy += (VISUAL_TURN * ((c0 & 3) + 2));
         dy %= 500;
         dx = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 80)) >> 9;
         dz = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 80)) >> 9;
@@ -579,7 +594,7 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
                 page = POLY_PAGE_FLAMES2;
             else
                 page = POLY_PAGE_PCFLAMER;
-            dy = (GAME_TURN + c0) / 2;
+            dy = (VISUAL_TURN + c0) / 2;
             u = 0.25f * (dy & 3);
             v = 0.25f * ((dy & !3) / 3);
             v += 0.002f;
@@ -588,7 +603,7 @@ void draw_flames(SLONG x, SLONG y, SLONG z, SLONG lod, SLONG offset)
         }
 
         dy = get_steam_rand() & 0x1ff;
-        dy += (GAME_TURN * 5);
+        dy += (VISUAL_TURN * 5);
         dy %= 500;
         dx = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
         dz = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
@@ -678,7 +693,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
             page = POLY_PAGE_FLAMES;
         } else {
             page = POLY_PAGE_FLAMES2;
-            dy = (GAME_TURN + c0) / 2;
+            dy = (VISUAL_TURN + c0) / 2;
             u = 0.25f * (dy & 3);
             v = 0.25f * ((dy >> 2) & 3);
             w = h = 0.25f;
@@ -686,7 +701,7 @@ void draw_flame_element(SLONG x, SLONG y, SLONG z, SLONG c0, UBYTE base, UBYTE r
     }
 
     dy = get_steam_rand() & 0x1ff;
-    dy += (GAME_TURN * 5);
+    dy += (VISUAL_TURN * 5);
     dy %= 500;
     dx = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
     dz = (((get_steam_rand() & 0xff) - 128) * ((dy >> 2) + 150)) >> 9;
@@ -955,7 +970,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
             int iOldestSlot = -1;
             for (int i = 0; i < m_iLRUQueueSize; i++) {
                 if (ptpoLRUQueue[i] != NULL) {
-                    DWORD dwTurnsAgo = (GAME_TURN - dwGameTurnLastUsed[i]);
+                    DWORD dwTurnsAgo = (VISUAL_TURN - dwGameTurnLastUsed[i]);
                     if (dwMostTurns <= dwTurnsAgo) {
                         dwMostTurns = dwTurnsAgo;
                         iOldestSlot = i;
@@ -977,7 +992,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
             int iOldestSlot = -1;
             for (int i = 0; i < m_iLRUQueueSize; i++) {
                 if (ptpoLRUQueue[i] != NULL) {
-                    DWORD dwTurnsAgo = (GAME_TURN - dwGameTurnLastUsed[i]);
+                    DWORD dwTurnsAgo = (VISUAL_TURN - dwGameTurnLastUsed[i]);
                     if (dwMostTurns <= dwTurnsAgo) {
                         dwMostTurns = dwTurnsAgo;
                         iOldestSlot = i;
@@ -1013,7 +1028,7 @@ void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrash
 
     ptpoLRUQueue[iQueuePos] = pPrimObj;
     pPrimObj->bLRUQueueNumber = iQueuePos;
-    dwGameTurnLastUsed[iQueuePos] = GAME_TURN;
+    dwGameTurnLastUsed[iQueuePos] = VISUAL_TURN;
     m_dwSizeOfQueue += (DWORD)pPrimObj->wTotalSizeOfObj;
     ASSERT(m_dwSizeOfQueue < PRIM_LRU_QUEUE_SIZE);
 }
@@ -1024,7 +1039,7 @@ void FIGURE_touch_LRU_of_object(TomsPrimObject* pPrimObj)
 {
     ASSERT((pPrimObj->bLRUQueueNumber >= 0) && (pPrimObj->bLRUQueueNumber < m_iLRUQueueSize));
     ASSERT(ptpoLRUQueue[pPrimObj->bLRUQueueNumber] == pPrimObj);
-    dwGameTurnLastUsed[pPrimObj->bLRUQueueNumber] = GAME_TURN;
+    dwGameTurnLastUsed[pPrimObj->bLRUQueueNumber] = VISUAL_TURN;
 }
 
 // uc_orig: FIGURE_TPO_init_3d_object (fallen/DDEngine/Source/figure.cpp)
@@ -1629,6 +1644,45 @@ void FIGURE_generate_D3D_object(SLONG prim)
     FIGURE_TPO_finish_3d_object(pPrimObj);
 }
 
+// ----------------------------------------------------------------------
+// Per-bone keyframe lerp helpers — used by FIGURE_draw_prim_tween* variants.
+//
+// Pose cache lives in render_interp.cpp (render_interp_get_cached_pose) so
+// the body, reflection, and shadow paths share it. With INTERP_THING_WORLD_POSE
+// active, the per-bone (off, mat) values produced by these helpers are
+// overridden by the snapshot lerp in each draw function; the math here only
+// runs when the snapshot is unavailable (interp off, slot invalid, etc).
+// ----------------------------------------------------------------------
+
+// Root-style offset (parent_base_mat == nullptr): linear lerp of (anim_info,
+// anim_info_next) by `tween`, plus (off_dx, off_dy, off_dz) delta on the
+// "next" side. Output in fixed-point ×256 form
+// (M[i] = (OffsetI << 8) + (OffsetI_next + off_di - OffsetI) * tween).
+static void figure_morph_root_offset(
+    GameKeyFrameElement* anim_info,
+    GameKeyFrameElement* anim_info_next,
+    SLONG tween,
+    SLONG off_dx, SLONG off_dy, SLONG off_dz,
+    Matrix31* out_offset)
+{
+    out_offset->M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
+    out_offset->M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
+    out_offset->M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
+}
+
+// Per-bone rotation slerp.
+static void figure_morph_matrix(
+    GameKeyFrameElement* anim_info,
+    GameKeyFrameElement* anim_info_next,
+    SLONG tween,
+    Matrix33* out_matrix)
+{
+    CMatrix33 m1, m2;
+    GetCMatrix(anim_info, &m1);
+    GetCMatrix(anim_info_next, &m2);
+    CQuaternion::BuildTween(out_matrix, &m1, &m2, tween);
+}
+
 // uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
 // Software-path body-part renderer (used when D3D MultiMatrix is active for matrix setup
 // but the per-face submission still goes through here for the non-person-only path).
@@ -1710,10 +1764,9 @@ void FIGURE_draw_prim_tween(
         if (end_pos)
             *end_pos = offset;
     } else {
-        // Lerp offset between keyframe A and B.
-        offset.M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
-        offset.M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
-        offset.M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
+        // Lerp offset between keyframe A and B (or cross-anim blend when active).
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
+            off_dx, off_dy, off_dz, &offset);
 
         if (end_pos) {
             *end_pos = offset;
@@ -1740,12 +1793,9 @@ void FIGURE_draw_prim_tween(
     SLONG imatrix[9];
 
     {
-        // Slerp rotation between keyframe A and B, then combine with parent/world matrix.
-        CMatrix33 m1, m2;
-        GetCMatrix(anim_info, &m1);
-        GetCMatrix(anim_info_next, &m2);
-
-        CQuaternion::BuildTween(&mat2, &m1, &m2, tween);
+        // Slerp rotation between keyframe A and B (or cross-anim blend), then
+        // combine with parent/world matrix.
+        figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
         if (end_mat)
             *end_mat = mat2;
@@ -1782,6 +1832,37 @@ void FIGURE_draw_prim_tween(
         imatrix[6] = mat_final.M[2][0] * 2;
         imatrix[7] = mat_final.M[2][1] * 2;
         imatrix[8] = mat_final.M[2][2] * 2;
+    }
+
+    // Pose-snapshot override for the flat-skeleton path (parent_base_mat==NULL).
+    // Covers DT_ANIM_PRIM (bats / Bane / Balrog / Gargoyle) via ANIM_obj_draw
+    // and the non-15 ElementCount person fallback in FIGURE_draw. Skipped when
+    // called recursively with hierarchy info (parent_base_mat != NULL) — that
+    // path doesn't currently exist via this function (recurse uses the
+    // _person_only variants), but the gate keeps the override safe if the
+    // shared signature is reused later. part_number defaults to 0xffffffff
+    // when the caller doesn't pass it (negative when treated as signed) — the
+    // bound check excludes that case.
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        if (!parent_base_mat && part_number >= 0 && part_number < POSE_MAX_BONES) {
+            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+            if (pose) {
+                const BoneInterpTransform& xf = pose[part_number];
+                off_x = xf.pos_x;
+                off_y = xf.pos_y;
+                off_z = xf.pos_z;
+                mat_final = xf.rot;
+                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+            }
+        }
     }
 
     POLY_set_local_rotation(
@@ -2617,15 +2698,24 @@ void FIGURE_draw(Thing* p_thing)
     SLONG ly;
     SLONG lz;
 
-    calc_sub_objects_position(
-        p_thing,
-        dt->AnimTween,
-        0,
-        &lx, &ly, &lz);
-
-    lx += p_thing->WorldPos.X >> 8;
-    ly += p_thing->WorldPos.Y >> 8;
-    lz += p_thing->WorldPos.Z >> 8;
+    {
+        // Pelvis world position for NIGHT_find lighting lookup. Prefer the
+        // interpolated pose snapshot — keeps lighting stable across physics
+        // ticks. Falls back to legacy calc_sub_objects_position when the
+        // snapshot is unavailable (interp off, world-pose flag off, slot
+        // invalid right after teleport).
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            lx = SLONG(pose[0].pos_x);
+            ly = SLONG(pose[0].pos_y);
+            lz = SLONG(pose[0].pos_z);
+        } else {
+            calc_sub_objects_position(p_thing, dt->AnimTween, 0, &lx, &ly, &lz);
+            lx += p_thing->WorldPos.X >> 8;
+            ly += p_thing->WorldPos.Y >> 8;
+            lz += p_thing->WorldPos.Z >> 8;
+        }
+    }
 
     NIGHT_find(lx, ly, lz);
 
@@ -2705,7 +2795,8 @@ void FIGURE_draw(Thing* p_thing)
                 NULL,
                 NULL,
                 NULL,
-                p_thing);
+                p_thing,
+                i);
         }
     }
 
@@ -2721,17 +2812,22 @@ void FIGURE_draw(Thing* p_thing)
             SLONG py;
             SLONG pz;
 
-            calc_sub_objects_position(
-                p_person,
-                p_person->Draw.Tweened->AnimTween,
-                SUB_OBJECT_LEFT_HAND,
-                &px,
-                &py,
-                &pz);
-
-            px += p_person->WorldPos.X >> 8;
-            py += p_person->WorldPos.Y >> 8;
-            pz += p_person->WorldPos.Z >> 8;
+            // Left hand world position for grenade-in-hand draw. Pose snapshot
+            // path keeps the grenade tracking the interpolated hand smoothly
+            // across physics ticks (otherwise the grenade dèrgaет independently
+            // of the body). Falls back to legacy when snapshot unavailable.
+            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_person);
+            if (pose) {
+                px = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_x);
+                py = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_y);
+                pz = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_z);
+            } else {
+                calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween,
+                                          SUB_OBJECT_LEFT_HAND, &px, &py, &pz);
+                px += p_person->WorldPos.X >> 8;
+                py += p_person->WorldPos.Y >> 8;
+                pz += p_person->WorldPos.Z >> 8;
+            }
 
             kludge_shrink = UC_TRUE;
 
@@ -2912,9 +3008,18 @@ void FIGURE_draw_prim_tween_reflection(
     void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
     void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
 
-    offset.M[0] = anim_info->OffsetX + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween >> 8);
-    offset.M[1] = anim_info->OffsetY + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween >> 8);
-    offset.M[2] = anim_info->OffsetZ + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween >> 8);
+    {
+        // Reflection's offset is in plain SWORD units (one /256 less than the
+        // main morph). figure_morph_root_offset returns the fixed-point ×256
+        // form used by the main path; >>8 brings it into reflection's units
+        // and applies blend in the same step.
+        Matrix31 fixed_offset;
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
+            off_dx, off_dy, off_dz, &fixed_offset);
+        offset.M[0] = fixed_offset.M[0] >> 8;
+        offset.M[1] = fixed_offset.M[1] >> 8;
+        offset.M[2] = fixed_offset.M[2] >> 8;
+    }
 
     matrix_transformZMY((struct Matrix31*)&temp, rot_mat, &offset);
 
@@ -2927,12 +3032,13 @@ void FIGURE_draw_prim_tween_reflection(
     y += temp.Y;
     z += temp.Z;
 
-    CMatrix33 m1, m2;
-    GetCMatrix(anim_info, &m1);
-    GetCMatrix(anim_info_next, &m2);
-
-    build_tween_matrix(&mat2, &m1, &m2, tween);
-    normalise_matrix(&mat2);
+    // Reflection used build_tween_matrix + normalise_matrix (cheap linear
+    // matrix lerp + renormalisation) rather than quaternion SLERP. We
+    // upgrade to the quaternion-based helper for blend correctness — the
+    // single-pair fallback inside figure_morph_matrix uses CQuaternion::
+    // BuildTween which produces visually equivalent results to the original
+    // linear+normalise path for valid keyframes.
+    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
     matrix_mult33(&mat_final, rot_mat, &mat2);
 
@@ -2964,6 +3070,48 @@ void FIGURE_draw_prim_tween_reflection(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+
+    // === Phase 4 reflection: pose-snapshot override with water mirror ===
+    // Snapshot pose is in normal (non-mirrored) world space. To draw the
+    // reflection we apply geometric reflection through the water plane y = H:
+    //   - position: y_reflected = 2 * FIGURE_reflect_height - y_world
+    //   - rotation: M_reflect × mat_final, where M_reflect = diag(1, -1, 1).
+    //     Left-multiply by diag(1,-1,1) negates the Y ROW (M[1][*]) — NOT
+    //     the Y column. (The legacy reflection negates Y column of R_BODY
+    //     before composing mat_final = R_body × end_mat; algebraically
+    //     equivalent to negating Y row of the final world-rot matrix —
+    //     verified numerically. Negating Y column of the per-bone WORLD
+    //     mat_final does NOT give geometric reflection — it bakes a wrong
+    //     vertex transform that puts feet/legs in a separate location from
+    //     the rest of the body, observed in initial implementation.)
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            DrawTween* dt = p_thing->Draw.Tweened;
+            if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
+                SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
+                if (part >= 0 && part < POSE_MAX_BONES) {
+                    const BoneInterpTransform& xf = pose[part];
+                    off_x = xf.pos_x;
+                    off_y = 2.0f * FIGURE_reflect_height - xf.pos_y;
+                    off_z = xf.pos_z;
+                    mat_final = xf.rot;
+                    mat_final.M[1][0] = -mat_final.M[1][0];
+                    mat_final.M[1][1] = -mat_final.M[1][1];
+                    mat_final.M[1][2] = -mat_final.M[1][2];
+                    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+                }
+            }
+        }
+    }
 
     POLY_set_local_rotation(
         off_x,
@@ -3199,15 +3347,25 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
 
     NIGHT_Colour col;
 
-    calc_sub_objects_position(
-        p_thing,
-        dt->AnimTween,
-        0, // 0 is Pelvis
-        &lx, &ly, &lz);
-
-    lx += p_thing->WorldPos.X >> 8;
-    ly += p_thing->WorldPos.Y >> 8;
-    lz += p_thing->WorldPos.Z >> 8;
+    {
+        // Pelvis world position for reflection lighting lookup. Same pose-
+        // snapshot pattern as the main draw above — keeps the reflection's
+        // colour stable across physics ticks. Reflection geometry itself uses
+        // the snapshot via the per-bone override later in the function;
+        // sampling the light at the same lerped pelvis ensures the colour
+        // matches the body the reflection is rendering.
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            lx = SLONG(pose[0].pos_x);
+            ly = SLONG(pose[0].pos_y);
+            lz = SLONG(pose[0].pos_z);
+        } else {
+            calc_sub_objects_position(p_thing, dt->AnimTween, 0, &lx, &ly, &lz);
+            lx += p_thing->WorldPos.X >> 8;
+            ly += p_thing->WorldPos.Y >> 8;
+            lz += p_thing->WorldPos.Z >> 8;
+        }
+    }
 
     col = NIGHT_get_light_at(lx, ly, lz);
 
@@ -3320,10 +3478,9 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
         if (end_pos)
             *end_pos = offset;
     } else {
-        // process at highter resolution
-        offset.M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
-        offset.M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
-        offset.M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
+        // Root-body offset (or cross-anim blend if active).
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
+            off_dx, off_dy, off_dz, &offset);
 
         if (end_pos) {
             *end_pos = offset;
@@ -3349,11 +3506,7 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
 
     float fmatrix[9];
 
-    CMatrix33 m1, m2;
-    GetCMatrix(anim_info, &m1);
-    GetCMatrix(anim_info_next, &m2);
-
-    CQuaternion::BuildTween(&mat2, &m1, &m2, tween);
+    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
     // pass data up the hierarchy
     if (end_mat)
@@ -3380,6 +3533,37 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+
+    // === Phase 3 pose-snapshot override ===
+    // Replace per-bone (off_x/y/z, mat_final, fmatrix) computed from the
+    // legacy AnimTween/keyframe substitution path with the world-space lerp
+    // of prev/curr per-bone snapshots. This is the architectural fix for
+    // ladder-jerk and similar cancel-out cases (see
+    // world_pose_snapshot_plan.md). The legacy math above runs in full —
+    // wasted work in Phase 3, but kept for fallback. Phase 5 will short-
+    // circuit when the override is active.
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+            if (part >= 0 && part < POSE_MAX_BONES) {
+                const BoneInterpTransform& xf = pose[part];
+                off_x = xf.pos_x;
+                off_y = xf.pos_y;
+                off_z = xf.pos_z;
+                mat_final = xf.rot;
+                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+            }
+        }
+    }
 
     // NOT portable: stores off/fmatrix into global transform state used by D3D MultiMatrix upload.
     POLY_set_local_rotation(
@@ -3597,10 +3781,9 @@ void FIGURE_draw_prim_tween_person_only(
         if (end_pos)
             *end_pos = offset;
     } else {
-        // process at highter resolution
-        offset.M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
-        offset.M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
-        offset.M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
+        // Root-body offset (or cross-anim blend if active).
+        figure_morph_root_offset(anim_info, anim_info_next, tween,
+            off_dx, off_dy, off_dz, &offset);
 
         if (end_pos) {
             *end_pos = offset;
@@ -3626,11 +3809,7 @@ void FIGURE_draw_prim_tween_person_only(
 
     float fmatrix[9];
 
-    CMatrix33 m1, m2;
-    GetCMatrix(anim_info, &m1);
-    GetCMatrix(anim_info_next, &m2);
-
-    CQuaternion::BuildTween(&mat2, &m1, &m2, tween);
+    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
 
     // pass data up the hierarchy
     if (end_mat)
@@ -3657,6 +3836,29 @@ void FIGURE_draw_prim_tween_person_only(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+
+    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
+        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+        if (pose) {
+            SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+            if (part >= 0 && part < POSE_MAX_BONES) {
+                const BoneInterpTransform& xf = pose[part];
+                off_x = xf.pos_x;
+                off_y = xf.pos_y;
+                off_z = xf.pos_z;
+                mat_final = xf.rot;
+                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
+            }
+        }
+    }
 
     POLY_set_local_rotation(
         off_x,

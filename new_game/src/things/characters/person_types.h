@@ -349,6 +349,13 @@ typedef struct
     UBYTE Flags2;
     UBYTE SlideOdd;
 
+    // Wall-clock phase tracker for DRAWXTRA_MIB_destruct render-side spawn
+    // edge-detect (dlight + PYRO_TWANGER + SPARK). Holds low byte of
+    // sdl3_get_ticks()/SPAWN_INTERVAL_MS at last fire. New value differs ⇒
+    // fire once, update. Without this, the level-triggered VISUAL_TURN gate
+    // fired per render frame and effect density scaled with FPS.
+    UBYTE LastDestructSpawn;
+
     // World position of gun muzzle (PC-only). Updated during aiming. Used for bullet raycasts.
     GameCoord GunMuzzle;
 

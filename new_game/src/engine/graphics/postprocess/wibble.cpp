@@ -41,7 +41,7 @@ void WIBBLE_simple(
     p.wibble_g2 = wibble_g2;
     p.wibble_s1 = wibble_s1;
     p.wibble_s2 = wibble_s2;
-    p.game_turn = GAME_TURN;
+    p.game_turn = VISUAL_TURN;
 
     ge_apply_wibble(x1, y1, x2, y2, p);
 }

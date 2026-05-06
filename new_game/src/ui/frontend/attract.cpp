@@ -15,6 +15,8 @@
 #include "assets/xlat_str.h"
 #include "ui/frontend/frontend.h"
 #include "things/core/statedef.h"
+#include "engine/input/input_frame.h"
+#include "engine/input/keyboard_globals.h" // ControlFlag
 
 // Enable the new frontend menu system (vs old attract demo playback).
 // uc_orig: NEW_FRONTEND (fallen/Source/Attract.cpp)
@@ -81,9 +83,9 @@ reinit_because_of_language_change:
             dont_leave_for_a_while -= 1;
         }
 
-        if (ControlFlag && Keys[KB_Q]) {
+        if (ControlFlag && input_key_just_pressed(KB_Q)) {
             GAME_STATE = 0;
-            LastKey = 0;
+            input_last_key_consume();
         }
 
         if (y < 57.0F) {
@@ -92,7 +94,12 @@ reinit_because_of_language_change:
 
         text_fudge = UC_TRUE;
 
-        if (Keys[KB_LEFT] || Keys[KB_RIGHT] || Keys[KB_UP] || Keys[KB_DOWN] || Keys[KB_SPACE] || Keys[KB_ENTER])
+        // Any nav/confirm key held — wake the attract screen (reset y so
+        // the menu stays visible). Level-state read (input_key_held), not
+        // edge: as long as user is interacting we keep the screen alive.
+        if (input_key_held(KB_LEFT) || input_key_held(KB_RIGHT)
+            || input_key_held(KB_UP) || input_key_held(KB_DOWN)
+            || input_key_held(KB_SPACE) || input_key_held(KB_ENTER))
             y = 500;
 
         {
@@ -130,7 +137,7 @@ reinit_because_of_language_change:
                     break;
                 case STARTS_EXIT:
                     GAME_STATE = 0;
-                    LastKey = 0;
+                    input_last_key_consume();
                     break;
                 case STARTS_HOST:
                     break;
@@ -149,7 +156,8 @@ reinit_because_of_language_change:
         }
 
         extern void lock_frame_rate(SLONG fps);
-        lock_frame_rate(60);
+        extern SLONG g_render_fps_cap;
+        lock_frame_rate(g_render_fps_cap);
 
         if ((GAME_STATE & GS_PLAY_GAME) == 0) {
             AENG_flip();

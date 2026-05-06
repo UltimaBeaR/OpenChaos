@@ -224,8 +224,6 @@
 BOOL SetupKeyboard(void);
 // uc_orig: ResetKeyboard (fallen/DDLibrary/Source/GKeyboard.cpp)
 void ResetKeyboard(void);
-// uc_orig: ClearLatchedKeys (fallen/DDLibrary/Source/GKeyboard.cpp)
-void ClearLatchedKeys(void);
 
 // Direct input callbacks (called from SDL3 event loop).
 // scancode is a KB_* scancode (Set 1, extended keys have 0x80 added).

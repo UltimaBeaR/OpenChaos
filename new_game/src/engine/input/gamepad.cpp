@@ -6,7 +6,7 @@
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/weapon_feel.h"
 #include "engine/debug/input_debug/input_debug.h"
-#include "engine/input/keyboard_globals.h" // Keys[] for active device detection
+#include "engine/input/input_frame.h" // input_key_event_held for active device detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
 #include "game/input_actions_globals.h"
@@ -156,6 +156,15 @@ static bool poll_dualsense()
     gamepad_state.lY = static_cast<int32_t>(-ds.left_stick_y * 32767.0f) + 32768; // invert Y
     gamepad_state.rX = static_cast<int32_t>(ds.right_stick_x * 32767.0f) + 32768;
     gamepad_state.rY = static_cast<int32_t>(-ds.right_stick_y * 32767.0f) + 32768;
+
+    // Snapshot raw stick values BEFORE the D-Pad override below. Menu code
+    // reads these to keep stick and D-Pad as independent input sources, so
+    // antagonist suppression (stick UP + D-Pad DOWN ⇒ cancel) sees both
+    // signals instead of just whichever overwrote the axis last.
+    gamepad_state.lX_raw = gamepad_state.lX;
+    gamepad_state.lY_raw = gamepad_state.lY;
+    gamepad_state.rX_raw = gamepad_state.rX;
+    gamepad_state.rY_raw = gamepad_state.rY;
 
     // D-Pad overrides axes — skipped while the input debug panel is
     // active so its raw-stick readout doesn't move whenever the user
@@ -319,6 +328,13 @@ static void poll_sdl3()
     gamepad_state.rX = static_cast<int32_t>(sdl_state.axis_right_x) + 32768;
     gamepad_state.rY = static_cast<int32_t>(sdl_state.axis_right_y) + 32768;
 
+    // Snapshot raw stick values BEFORE the D-Pad override below — see the
+    // matching comment on the DS path above for rationale.
+    gamepad_state.lX_raw = gamepad_state.lX;
+    gamepad_state.lY_raw = gamepad_state.lY;
+    gamepad_state.rX_raw = gamepad_state.rX;
+    gamepad_state.rY_raw = gamepad_state.rY;
+
     // D-Pad overrides axes — see the matching comment on the DS path
     // above. Skipped while the debug panel is active.
     uint32_t btns = sdl_state.buttons;
@@ -367,9 +383,11 @@ static void poll_sdl3()
 
 void gamepad_poll()
 {
-    // Detect keyboard activity.
+    // Detect keyboard activity via input_frame's event-tracked held state
+    // (level-true while any key is physically held, regardless of consume
+    // mutations elsewhere).
     for (int i = 0; i < 256; i++) {
-        if (Keys[i]) {
+        if (input_key_event_held(i)) {
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
             break;
         }
@@ -588,10 +606,13 @@ void gamepad_led_update(float health_fraction, bool siren)
     uint8_t r, g, b;
 
     if (siren) {
-        // Police siren: fast red/blue alternation
-        static int siren_counter = 0;
-        siren_counter++;
-        bool phase = (siren_counter / 4) & 1; // ~7.5 Hz at 30fps — fast strobe
+        // Police siren: fast red/blue alternation. Phase derived from wall-clock
+        // ms so the strobe rate stays constant regardless of render FPS — without
+        // this, a per-frame counter would scale linearly with FPS (~7.5 Hz at
+        // 30 FPS, ~60 Hz at 240 FPS). Period matches the original 30 FPS cadence:
+        // 4 render frames per phase flip = 4 × 1000 / 30 ≈ 133 ms.
+        constexpr uint64_t SIREN_FLIP_PERIOD_MS = 4 * 1000 / 30;
+        bool phase = ((sdl3_get_ticks() / SIREN_FLIP_PERIOD_MS) & 1) != 0;
         if (phase) {
             r = 255;
             g = 0;
@@ -626,10 +647,11 @@ void gamepad_led_update(float health_fraction, bool siren)
             g = static_cast<uint8_t>(200 * t);
             b = 0;
         } else {
-            // <25%: red, blinking
-            static int blink_counter = 0;
-            blink_counter++;
-            bool on = (blink_counter / 15) & 1;
+            // <25%: red, blinking. Wall-clock based for the same reason as the
+            // siren above — original 30 FPS cadence: 15 frames per phase flip =
+            // 15 × 1000 / 30 = 500 ms (1 Hz full cycle).
+            constexpr uint64_t BLINK_FLIP_PERIOD_MS = 15 * 1000 / 30;
+            bool on = ((sdl3_get_ticks() / BLINK_FLIP_PERIOD_MS) & 1) != 0;
             r = on ? 255 : 40;
             g = 0;
             b = 0;

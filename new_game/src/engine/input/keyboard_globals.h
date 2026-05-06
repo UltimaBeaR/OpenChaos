@@ -3,7 +3,13 @@
 
 #include "engine/core/types.h"
 
-// Public keyboard state.
+// Public keyboard state — the legacy Keys[256] array and LastKey have been
+// removed. Use input_frame.h API:
+//   input_key_held / input_key_just_pressed / input_key_press_pending
+//   input_key_consume / input_key_force_release
+//   input_last_key / input_last_key_consume
+// Modifier flags below are kept as convenience shortcuts (mirrored from
+// input_frame's event-tracked state on every keyboard event in keyboard.cpp).
 
 // uc_orig: AltFlag (MFStdLib/Headers/StdKeybd.h)
 extern volatile UBYTE AltFlag;
@@ -13,22 +19,5 @@ extern volatile UBYTE ControlFlag;
 extern bool debug_overlay_locked_on;
 // uc_orig: ShiftFlag (MFStdLib/Headers/StdKeybd.h)
 extern volatile UBYTE ShiftFlag;
-// uc_orig: Keys (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE Keys[256];
-// uc_orig: LastKey (MFStdLib/Headers/StdKeybd.h)
-extern volatile UBYTE LastKey;
-
-// Internal keyboard state (used by keyboard.cpp, exposed for host.cpp access).
-
-// uc_orig: key_turn (fallen/DDLibrary/Source/GKeyboard.cpp)
-extern UBYTE key_turn[256];
-// uc_orig: MAX_RELEASE (fallen/DDLibrary/Source/GKeyboard.cpp)
-#define MAX_RELEASE 10
-// uc_orig: Released (fallen/DDLibrary/Source/GKeyboard.cpp)
-extern UBYTE Released[MAX_RELEASE];
-// uc_orig: release_count (fallen/DDLibrary/Source/GKeyboard.cpp)
-extern SWORD release_count;
-// uc_orig: game_turn (fallen/DDLibrary/Source/GKeyboard.cpp)
-extern UBYTE game_turn;
 
 #endif // ENGINE_INPUT_KEYBOARD_GLOBALS_H

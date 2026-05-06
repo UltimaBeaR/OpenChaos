@@ -584,7 +584,7 @@ BOOL	game_init(void)
 	}
 	// claude-ai: TICK_RATIO — коэффициент масштабирования времени. Инициализируется как 1<<TICK_SHIFT (нормальная скорость).
 	// claude-ai: В process_things_tick() пересчитывается каждый кадр: TICK_RATIO = (реальный_мс << TICK_SHIFT) / NORMAL_TICK_TOCK
-	// claude-ai: NORMAL_TICK_TOCK = 1000/15 = 66.67мс (базовый тик 15 FPS). Усредняется по 4 кадрам через SmoothTicks().
+	// claude-ai: Глобальный NORMAL_TICK_TOCK = 1000/15 = 66.67мс (15 FPS reference base) из Headers/Game.h. Однако Thing.cpp:535-536 переопределяет его локально как 1000/20 = 50мс — и именно там TICK_RATIO реально считается, так что эффективная база = 50мс (20 FPS дизайновая частота). Усредняется по 4 кадрам через SmoothTicks().
 	TICK_RATIO = (1 << TICK_SHIFT);
 	DETAIL_LEVEL=0xffff;
 
