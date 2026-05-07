@@ -2,6 +2,7 @@
 #define ENGINE_AUDIO_MFX_H
 
 #include "engine/core/types.h"
+#include <cstdint>
 
 struct Thing;
 
@@ -96,5 +97,16 @@ void MFX_QUICK_wait(void);
 void MFX_QUICK_stop();
 // uc_orig: MFX_QUICK_still_playing (fallen/DDLibrary/Headers/MFX.h)
 SLONG MFX_QUICK_still_playing(void);
+
+// Returns 1 if the voice slot for (channel_id, wave) is currently playing,
+// 0 otherwise. Used by playcuts.cpp to gate cutscene advancement on the
+// previous PT_WAVE finishing — no original-game equivalent.
+SLONG MFX_voice_still_playing(UWORD channel_id, ULONG wave);
+
+// Trailing silence enforced after a cutscene voice line before the scene may
+// advance to the next packet/waypoint/conversation entry. Shared by every
+// cutscene mechanism (EWAY MESSAGE/CONVERSATION, EWAY camera waypoint,
+// PLAYCUTS_Play loop) so cinematics breathe consistently across the game.
+constexpr uint64_t MFX_CUTSCENE_VOICE_TAIL_MS = 500;
 
 #endif // ENGINE_AUDIO_MFX_H

@@ -1040,6 +1040,18 @@ void MFX_QUICK_stop()
     MFX_stop(0, NumSamples);
 }
 
+// Voice-slot-specific "still playing" check. Mirrors MFX_QUICK_still_playing
+// but for an arbitrary (channel_id, wave) pair. Used by playcuts to track the
+// current PT_WAVE voice line.
+SLONG MFX_voice_still_playing(UWORD channel_id, ULONG wave)
+{
+    MFX_Voice* vptr = GetVoiceForWave(channel_id, wave, 0);
+    if (!vptr || !vptr->smp) {
+        return 0;
+    }
+    return IsVoiceDone(vptr) ? 0 : 1;
+}
+
 // uc_orig: MFX_QUICK_wait (fallen/DDLibrary/Source/MFX.cpp)
 void MFX_QUICK_wait()
 {

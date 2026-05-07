@@ -20,6 +20,7 @@
 #include "engine/input/gamepad.h"
 #include "engine/input/input_frame.h"
 #include "engine/input/keyboard.h" // keyboard_key_up — synthesize release of menu-consumed keys
+#include "missions/eway.h"         // EWAY_reset_cutscene_voice_tail on pause-resume
 
 // Stick navigation thresholds and auto-repeat live in input_frame
 // (STICK_DIR_PRESS_RAW / RELEASE_RAW + INPUT_REPEAT_INITIAL_MS / PERIOD_MS).
@@ -50,6 +51,12 @@ void GAMEMENU_initialise(SLONG menu)
         gamepad_consume_until_released(0); // Cross/A
         gamepad_consume_until_released(3); // Triangle/Y
         gamepad_consume_until_released(6); // Start
+        // Clear the cutscene voice-tail timestamp. Wall-clock kept advancing
+        // through the pause while the EWAY tick that updates it didn't, so
+        // the stored timestamp would now read as "voice ended just now" and
+        // make the post-voice silence window block another half second on the
+        // first tick after resume, even though the line finished mid-pause.
+        EWAY_reset_cutscene_voice_tail();
     }
 
     if (GAMEMENU_menu_type == GAMEMENU_MENU_TYPE_NONE || menu == GAMEMENU_MENU_TYPE_NONE) {
@@ -208,7 +215,12 @@ SLONG GAMEMENU_process()
 
         switch (GAMEMENU_menu_type) {
         case GAMEMENU_MENU_TYPE_NONE:
-            MFX_stop(MFX_CHANNEL_ALL, MFX_WAVE_ALL);
+            // Don't stop sounds when entering pause: in pre-release MuckyFoot
+            // called MFX_stop(MFX_CHANNEL_ALL, MFX_WAVE_ALL) here with their
+            // own "Which one of these should I use?" comment, but in retail PC
+            // they dropped it — pausing during a cutscene must not cut the
+            // voice line off. Ambient gameplay sounds keep humming through
+            // the pause as a side effect; matches retail behaviour.
             GAMEMENU_initialise(GAMEMENU_MENU_TYPE_PAUSE);
             break;
 

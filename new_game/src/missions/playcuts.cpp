@@ -392,6 +392,15 @@ static void LERPCamera(CPChannel* chan, SLONG cell, SLONG sub_ctr)
     PLAYCUTS_fade_level = LERPValue(pktA->length >> 8, pktB->length >> 8, mult);
 }
 
+// Tracks the most recent PT_WAVE packet's MFX channel/wave so the PLAYCUTS_Play
+// loop can defer read_head advancement until the line finishes playing plus the
+// MFX_CUTSCENE_VOICE_TAIL_MS silent tail. Without this, packet-stream cadence
+// (read_head++ per loop iter @ 20 Hz lock) can flip the camera through PT_CAM
+// packets while the previous PT_WAVE is still being rendered, cutting the line
+// off mid-word.
+static UWORD s_playcuts_last_wave_channel = 0;
+static ULONG s_playcuts_last_wave_id = 0;
+
 // Process one channel for the current frame, dispatching to anim/camera/wave handlers.
 // uc_orig: PLAYCUTS_Update (fallen/Source/playcuts.cpp)
 static void PLAYCUTS_Update(CPChannel* chan, Thing* thing, SLONG read_head, SLONG sub_ctr)
@@ -443,7 +452,10 @@ static void PLAYCUTS_Update(CPChannel* chan, Thing* thing, SLONG read_head, SLON
         break;
 
     case PT_WAVE:
-        MFX_play_xyz(MUSIC_REF + 10, pkt->index - 2048, 0, pkt->pos.X << 8, pkt->pos.Y << 8, pkt->pos.Z << 8);
+        s_playcuts_last_wave_channel = MUSIC_REF + 10;
+        s_playcuts_last_wave_id = pkt->index - 2048;
+        MFX_play_xyz(s_playcuts_last_wave_channel, s_playcuts_last_wave_id, 0,
+            pkt->pos.X << 8, pkt->pos.Y << 8, pkt->pos.Z << 8);
         break;
 
     case PT_TEXT:
@@ -471,6 +483,9 @@ void PLAYCUTS_Play(CPData* cutscene)
     PLAYCUTS_slomo = 0;
     PLAYCUTS_slomo_ctr = 0;
     PLAYCUTS_playing = 1;
+    s_playcuts_last_wave_channel = 0;
+    s_playcuts_last_wave_id = 0;
+    uint64_t playcuts_voice_last_seen_ms = 0;
 
     cs_things = new ThingPtr[cutscene->channelcount];
     for (channum = 0, chan = cutscene->channels; channum < cutscene->channelcount; channum++, chan++) {
@@ -567,7 +582,27 @@ void PLAYCUTS_Play(CPData* cutscene)
 
         GAME_TURN++;
 
-        if (PLAYCUTS_slomo) {
+        // Hold read_head while the most recent PT_WAVE voice line is still
+        // playing (or inside MFX_CUTSCENE_VOICE_TAIL_MS of trailing silence)
+        // so PT_CAM packets further down the stream can't switch the camera
+        // mid-line. Without this, packet cadence (1 read_head step per 50 ms
+        // loop iter at the 20 Hz lock) cuts borderline lines off — same class
+        // of bug as the EWAY-side fix in eway.cpp's MESSAGE handler.
+        bool hold_for_voice = false;
+        if (s_playcuts_last_wave_channel != 0 || s_playcuts_last_wave_id != 0) {
+            if (MFX_voice_still_playing(s_playcuts_last_wave_channel, s_playcuts_last_wave_id)) {
+                playcuts_voice_last_seen_ms = sdl3_get_ticks();
+                hold_for_voice = true;
+            } else if (playcuts_voice_last_seen_ms != 0
+                       && (sdl3_get_ticks() - playcuts_voice_last_seen_ms) < MFX_CUTSCENE_VOICE_TAIL_MS) {
+                hold_for_voice = true;
+            }
+        }
+
+        if (hold_for_voice) {
+            // Skip read_head++ this iteration — re-render the same packet
+            // window so the camera stays put and the line completes.
+        } else if (PLAYCUTS_slomo) {
             PLAYCUTS_slomo_ctr++;
             if (PLAYCUTS_slomo_ctr == SLOMO_RATE) {
                 read_head++;

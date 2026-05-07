@@ -219,6 +219,29 @@ CBYTE* EWAY_get_mess(SLONG index)
     return (EWAY_mess[index]);
 }
 
+// Wall-clock timestamp (sdl3_get_ticks ms) of the most recent physics tick where
+// MFX_QUICK_still_playing() was true. Updated once per EWAY_process tick. Used by
+// the cutscene MESSAGE-deferral logic to add a fixed silent tail after a voice
+// line before the next MESSAGE may activate. Sentinel 0 = never seen.
+static uint64_t s_eway_voice_last_seen_ms = 0;
+
+void EWAY_reset_cutscene_voice_tail(void)
+{
+    s_eway_voice_last_seen_ms = 0;
+
+    // For a voiced conversation line, drop the read-time minimum timer to zero
+    // on resume. The text was already on screen long enough during the pause
+    // (wall-clock didn't stop), so what gates the advance now is purely the
+    // voice line: still playing → wait for it to finish + the silence tail;
+    // already finished → advance on the next tick (tail timestamp was cleared
+    // above, so the post-voice-tail window doesn't fire stale either). Leaves
+    // silent lines (no wav, EWAY_conv_talk == 0) alone — those still need
+    // their timer to expire normally to give the player time to read.
+    if (EWAY_conv_active && EWAY_conv_talk != 0) {
+        EWAY_conv_timer = 0;
+    }
+}
+
 // Resets all EWAY state at the start of a level. Memory is pre-allocated; this zeroes it.
 // Index 0 is intentionally skipped in all arrays.
 // uc_orig: EWAY_init (fallen/Source/eway.cpp)
@@ -248,6 +271,12 @@ void EWAY_init()
 
     EWAY_cam_active = UC_FALSE;
     EWAY_conv_active = UC_FALSE;
+
+    // Defensive: clear the cutscene voice-tail tracker so a stale timestamp
+    // from the previous level can't shave time off the next level's first
+    // cutscene tick. EWAY_conv_active was just set to FALSE so the timer
+    // branch inside this helper is a no-op here.
+    EWAY_reset_cutscene_voice_tail();
 
     memset(EWAY_counter, 0, sizeof(UBYTE) * EWAY_MAX_COUNTERS);
 }
@@ -2379,6 +2408,24 @@ SLONG EWAY_evaluate_condition(EWAY_Way* ew, EWAY_Cond* ec, SLONG EWAY_sub_condit
                         ans = UC_FALSE;
                     }
                 }
+            } else if (EWAY_cam_active) {
+                // In scripted cutscenes (EWAY-driven camera) chained MESSAGE
+                // waypoints would otherwise cut off the previous voice line
+                // through EWAY_talk's MFX_QUICK_wait/stop sequence. Defer the
+                // next MESSAGE until the current voice finishes plus a tail
+                // of silence so the line lands cleanly instead of jamming
+                // into the next sentence. Music is left running — the
+                // EWAY_used_thing branch above stops music via MFX_QUICK_stop
+                // but that actually stops the QUICK voice slot (the very voice
+                // we want to preserve), so we don't mirror that behaviour here.
+                // s_eway_voice_last_seen_ms is updated once per EWAY_process
+                // tick (independent of which waypoint type is being evaluated)
+                // so the timestamp is fresh even on the first MESSAGE check.
+                extern uint64_t sdl3_get_ticks();
+                if (s_eway_voice_last_seen_ms != 0
+                    && (sdl3_get_ticks() - s_eway_voice_last_seen_ms) < MFX_CUTSCENE_VOICE_TAIL_MS) {
+                    ans = UC_FALSE;
+                }
             }
         }
     }
@@ -2712,6 +2759,10 @@ void EWAY_process_camera(void)
                 if (!EWAY_conv_ambient)
                     if (NET_PLAYER(0)->Genus.Player->Pressed & (INPUT_MASK_JUMP | INPUT_MASK_KICK | INPUT_MASK_ACTION | INPUT_MASK_PUNCH)) {
                         MFX_QUICK_stop();
+                        // Clear post-voice tail so the skip is instant rather
+                        // than waiting out the silence window from the voice
+                        // we just killed.
+                        s_eway_voice_last_seen_ms = 0;
                         // Mark all waypoints that this camera _would_ go to as arrived at.
                         while (1) {
                             // Mark this waypoint as active... if it is a CAMERA_WAYPOINT.
@@ -2770,6 +2821,24 @@ void EWAY_process_camera(void)
             } else {
                 // Count down the delay.
                 EWAY_cam_delay -= EWAY_tick;
+
+                // Hold the camera on the current waypoint while a voice line is
+                // still playing (or inside MFX_CUTSCENE_VOICE_TAIL_MS of trailing
+                // silence). Without this, cam_delay can expire and switch the
+                // camera to the next scene before the line lands — pairs with
+                // the matching MESSAGE deferral in EWAY_evaluate_condition so
+                // the whole "scene = camera + line" stays glued together. Only
+                // applies inside an EWAY-driven cutscene; ambient gameplay
+                // cameras never reach here without cam_active set.
+                {
+                    extern uint64_t sdl3_get_ticks();
+                    if (s_eway_voice_last_seen_ms != 0
+                        && (sdl3_get_ticks() - s_eway_voice_last_seen_ms) < MFX_CUTSCENE_VOICE_TAIL_MS) {
+                        if (EWAY_cam_delay < 0) {
+                            EWAY_cam_delay = 0;
+                        }
+                    }
+                }
 
                 if (EWAY_cam_delay < 0) {
                     // Mark this waypoint as active... if it is a CAMERA_WAYPOINT.
@@ -2958,6 +3027,8 @@ void EWAY_process_conversation(void)
                 MFX_QUICK_stop();
 
                 EWAY_conv_timer = 0;
+                // Clear post-voice tail so the skip is instant.
+                s_eway_voice_last_seen_ms = 0;
             }
         }
     } else {
@@ -2968,7 +3039,18 @@ void EWAY_process_conversation(void)
             }
     }
 
-    if (EWAY_conv_timer <= 0 || (EWAY_conv_talk && MFX_QUICK_still_playing() == 0)) {
+    // Advance to the next conversation line only when the read-time minimum
+    // (EWAY_conv_timer derived from string length) has elapsed AND, if a wave
+    // was actually started, it has finished playing AND the post-voice silence
+    // tail has elapsed. Original used OR (timer expiry was an independent
+    // trigger), so a long voice line with a short text-derived timer would be
+    // cut off mid-word. EWAY_conv_talk == 0 covers silent lines (no wav, play
+    // failed) — those still advance by timer alone.
+    extern uint64_t sdl3_get_ticks();
+    bool wave_quiet = (EWAY_conv_talk == 0) || (MFX_QUICK_still_playing() == 0);
+    bool tail_passed = (s_eway_voice_last_seen_ms == 0)
+                       || ((sdl3_get_ticks() - s_eway_voice_last_seen_ms) >= MFX_CUTSCENE_VOICE_TAIL_MS);
+    if (EWAY_conv_timer <= 0 && wave_quiet && tail_passed) {
         str = &EWAY_mess_buffer[EWAY_conv_str];
 
         // Reached the end of the conversation?
@@ -4215,6 +4297,15 @@ void EWAY_process()
     EWAY_time_accurate += 80 * TICK_RATIO >> TICK_SHIFT;
     EWAY_time = EWAY_time_accurate >> 4;
     EWAY_tick = 5 * TICK_RATIO >> TICK_SHIFT;
+
+    // Refresh the wall-clock timestamp of the most recent voice playback every
+    // physics tick so the cutscene MESSAGE-deferral check (in
+    // EWAY_evaluate_condition) sees an accurate "voice still going / just
+    // ended" reading regardless of which waypoint type is being evaluated.
+    if (MFX_QUICK_still_playing()) {
+        extern uint64_t sdl3_get_ticks();
+        s_eway_voice_last_seen_ms = sdl3_get_ticks();
+    }
 
     if (GAME_STATE & (GS_LEVEL_LOST | GS_LEVEL_WON)) {
         // Don't process waypoints after the game is lost or won.

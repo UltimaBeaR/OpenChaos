@@ -2953,12 +2953,13 @@ void FRONTEND_init(bool bGoToTitleScreen)
         FRONTEND_mode(FE_MAINMENU);
     }
 
-    // On first launch there is no previous screen to wipe from — skip the xition.
-    if (bFirstTime) {
-        fade_state = 63;
-        fade_mode = 0;
-        FRONTEND_stop_xition();
-    }
+    // Skip the menu transition wipe whenever FRONTEND_init runs: on first
+    // launch there's no previous screen, and on re-entry after a mission the
+    // leftover game frame in the buffer is meaningless as a wipe source — the
+    // wipe just produces a visual artefact in both cases.
+    fade_state = 63;
+    fade_mode = 0;
+    FRONTEND_stop_xition();
 
     // Stop all the music - about to start it again, properly.
     stop_all_fx_and_music();

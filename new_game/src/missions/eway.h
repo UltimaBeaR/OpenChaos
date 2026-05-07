@@ -194,6 +194,12 @@ void EWAY_finish_conversation(void);
 // uc_orig: EWAY_process_conversation (fallen/Source/eway.cpp)
 void EWAY_process_conversation(void);
 
+// Clears the cutscene voice-tail timestamp. Used when the game leaves a state
+// where the timestamp could be stale (e.g. resuming from pause): the fixed
+// post-voice silence window should only fire when a voice is actually still
+// playing or just finished, not after wall-clock has been frozen on a pause.
+void EWAY_reset_cutscene_voice_tail(void);
+
 // Emits steam particles from an active EWAY_DO_EMIT_STEAM waypoint.
 // uc_orig: EWAY_process_emit_steam (fallen/Source/eway.cpp)
 void EWAY_process_emit_steam(EWAY_Way* ew);

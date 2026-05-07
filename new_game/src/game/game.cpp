@@ -835,6 +835,10 @@ round_again:;
         form_leave_map = NULL;
         form_left_map = 0;
         input_last_key_consume();
+        // Drain a stale KB_ESC press_pending carried over from the frontend so
+        // GAMEMENU_process can't open the pause menu on the very first tick of
+        // the level just because the user closed a frontend dialog with ESC.
+        input_key_force_release(KB_ESC);
         last_fudge_message = 0;
         last_fudge_camera = 0;
 
