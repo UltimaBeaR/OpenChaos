@@ -2822,24 +2822,6 @@ void EWAY_process_camera(void)
                 // Count down the delay.
                 EWAY_cam_delay -= EWAY_tick;
 
-                // Hold the camera on the current waypoint while a voice line is
-                // still playing (or inside MFX_CUTSCENE_VOICE_TAIL_MS of trailing
-                // silence). Without this, cam_delay can expire and switch the
-                // camera to the next scene before the line lands — pairs with
-                // the matching MESSAGE deferral in EWAY_evaluate_condition so
-                // the whole "scene = camera + line" stays glued together. Only
-                // applies inside an EWAY-driven cutscene; ambient gameplay
-                // cameras never reach here without cam_active set.
-                {
-                    extern uint64_t sdl3_get_ticks();
-                    if (s_eway_voice_last_seen_ms != 0
-                        && (sdl3_get_ticks() - s_eway_voice_last_seen_ms) < MFX_CUTSCENE_VOICE_TAIL_MS) {
-                        if (EWAY_cam_delay < 0) {
-                            EWAY_cam_delay = 0;
-                        }
-                    }
-                }
-
                 if (EWAY_cam_delay < 0) {
                     // Mark this waypoint as active... if it is a CAMERA_WAYPOINT.
                     if (ew_go->ec.type == EWAY_COND_CAMERA_AT) {
