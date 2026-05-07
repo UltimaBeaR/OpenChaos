@@ -2556,7 +2556,6 @@ void EWAY_process_camera(void)
     if (EWAY_cam_goinactive) {
         EWAY_cam_goinactive--;
         if (EWAY_cam_goinactive == 0) {
-            EWAY_cam_jumped = 10;
             EWAY_cam_active = UC_FALSE;
             EWAY_cam_goinactive = UC_FALSE;
         }
