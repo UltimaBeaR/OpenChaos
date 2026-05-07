@@ -4192,46 +4192,63 @@ void PCOM_process_driving_wander(Thing* p_person)
     Thing* p_vehicle;
 
     if (p_person->Genus.Person->Flags2 & FLAG2_PERSON_FAKE_WANDER) {
-        p_vehicle = TO_THING(p_person->Genus.Person->InCar);
+        // Wander-traffic recycle: when a fake-wander car has been off-screen
+        // for ~50 ticks AND is far from the player, it gets teleported to a
+        // fresh spawn point at DRAW_DIST around the player. In cutscenes the
+        // camera is detached from the player, so spawn anchored on the player
+        // routinely lands inside the cutscene camera's view → cars pop in/out
+        // on screen (and the simultaneous old-position vacate looks like the
+        // same car teleporting across the frame). Pause recycle entirely while
+        // a cutscene is playing — also don't increment sewerbits, otherwise a
+        // long cutscene accumulates and fires a burst of recycles the moment
+        // the player regains control.
+        // (Same class of bug as the detailed-shadow distance check that was
+        // computed against the player instead of the camera and stayed at the
+        // simplified LOD throughout cutscenes.)
+        extern SLONG EWAY_cam_active;
+        extern BOOL PLAYCUTS_playing;
+        if (!EWAY_cam_active && !PLAYCUTS_playing) {
+            p_vehicle = TO_THING(p_person->Genus.Person->InCar);
 
-        if (p_vehicle->Flags & FLAGS_IN_VIEW) {
-            p_person->Genus.Person->sewerbits = 0;
-        } else {
-            p_person->Genus.Person->sewerbits++;
-            if (p_person->Genus.Person->sewerbits > 50) {
-                SLONG dx, dz;
-                Thing* p_darci = NET_PERSON(0);
-                dx = abs((p_person->WorldPos.X - p_darci->WorldPos.X) >> 8);
-                dz = abs((p_person->WorldPos.Z - p_darci->WorldPos.Z) >> 8);
-                if (QDIST2(dx, dz) >= (DRAW_DIST << 8)) {
-                    SLONG x, z, yaw;
+            if (p_vehicle->Flags & FLAGS_IN_VIEW) {
+                p_person->Genus.Person->sewerbits = 0;
+            } else {
+                p_person->Genus.Person->sewerbits++;
+                if (p_person->Genus.Person->sewerbits > 50) {
+                    SLONG dx, dz;
+                    Thing* p_darci = NET_PERSON(0);
+                    dx = abs((p_person->WorldPos.X - p_darci->WorldPos.X) >> 8);
+                    dz = abs((p_person->WorldPos.Z - p_darci->WorldPos.Z) >> 8);
+                    if (QDIST2(dx, dz) >= (DRAW_DIST << 8)) {
+                        SLONG x, z, yaw;
 
-                    extern SLONG WAND_find_good_start_point_for_car(SLONG * posx, SLONG * posz, SLONG * yaw, SLONG anywhere);
+                        extern SLONG WAND_find_good_start_point_for_car(SLONG * posx, SLONG * posz, SLONG * yaw, SLONG anywhere);
 
-                    if (WAND_find_good_start_point_for_car(&x, &z, &yaw, 0)) {
-                        GameCoord newpos;
+                        if (WAND_find_good_start_point_for_car(&x, &z, &yaw, 0)) {
+                            GameCoord newpos;
 
-                        newpos.X = x << 8;
-                        newpos.Y = 0; // calculated properly in reinit_vehicle()
-                        newpos.Z = z << 8;
-                        move_thing_on_map(p_vehicle, &newpos);
-                        p_person->Genus.Person->sewerbits = Random() & 15;
-                        p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL; // re-init the wander
+                            newpos.X = x << 8;
+                            newpos.Y = 0; // calculated properly in reinit_vehicle()
+                            newpos.Z = z << 8;
+                            move_thing_on_map(p_vehicle, &newpos);
+                            p_person->Genus.Person->sewerbits = Random() & 15;
+                            p_person->Genus.Person->pcom_move_state = PCOM_MOVE_STATE_STILL; // re-init the wander
 
-                        p_person->WorldPos = newpos;
+                            p_person->WorldPos = newpos;
 
-                        Vehicle* veh = p_vehicle->Genus.Vehicle;
-                        veh->Angle = yaw ^ 1024;
+                            Vehicle* veh = p_vehicle->Genus.Vehicle;
+                            veh->Angle = yaw ^ 1024;
 
-                        reinit_vehicle(p_vehicle);
+                            reinit_vehicle(p_vehicle);
 
-                        // Wander-traffic recycle: car + driver get teleported
-                        // off-screen-far → near-player. Without this the next
-                        // render frame lerps the model across the whole map
-                        // for one tick — exactly the "fly across the world"
-                        // jitter we hunted with bracket diagnostics.
-                        render_interp_mark_teleport(p_vehicle);
-                        render_interp_mark_teleport(p_person);
+                            // Wander-traffic recycle: car + driver get teleported
+                            // off-screen-far → near-player. Without this the next
+                            // render frame lerps the model across the whole map
+                            // for one tick — exactly the "fly across the world"
+                            // jitter we hunted with bracket diagnostics.
+                            render_interp_mark_teleport(p_vehicle);
+                            render_interp_mark_teleport(p_person);
+                        }
                     }
                 }
             }
@@ -4637,13 +4654,24 @@ void PCOM_process_wander(Thing* p_person)
                 if ((p_person->Flags & FLAGS_IN_VIEW)) {
                     p_person->Genus.Person->InsideRoom = 0;
                 } else {
-                    p_person->Genus.Person->InsideRoom++;
+                    // Mirror of the FAKE_WANDER vehicle recycle gate above:
+                    // pedestrian recycle anchors `WAND_find_good_start_point`
+                    // at DRAW_DIST around the player, so in a cutscene the
+                    // detached camera will see the new spawn pop into frame.
+                    // Pause both InsideRoom++ and the regen call until the
+                    // cutscene ends — accumulating the counter would fire a
+                    // burst the moment the player regains control.
+                    extern SLONG EWAY_cam_active;
+                    extern BOOL PLAYCUTS_playing;
+                    if (!EWAY_cam_active && !PLAYCUTS_playing) {
+                        p_person->Genus.Person->InsideRoom++;
 
-                    if (should_person_regen(p_person)) {
-                        p_person->Genus.Person->InsideRoom = 240;
+                        if (should_person_regen(p_person)) {
+                            p_person->Genus.Person->InsideRoom = 240;
 
-                        if (PCOM_do_regen(p_person))
-                            return;
+                            if (PCOM_do_regen(p_person))
+                                return;
+                        }
                     }
                 }
             }
