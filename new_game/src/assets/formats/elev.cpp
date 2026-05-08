@@ -2004,7 +2004,13 @@ SLONG ELEV_load_name(CBYTE* fname_level)
             stop_all_fx_and_music();
             {
                 extern void video_play_cutscene(int);
-                video_play_cutscene(2);
+                // Cutscenes 2 and 3 are swapped vs. prerelease code: in retail PC
+                // resources, New_PCcutscene3_300.bik is the Day of Reckoning intro
+                // (Bane setup) and New_PCcutscene2_300.bik is the game-end outro.
+                // Prerelease code called RunCutscene(2) here / RunCutscene(3) at
+                // mission complete; with retail files those calls play the wrong
+                // videos. Swap to match the actual retail FMV content.
+                video_play_cutscene(3);
             }
 
             // Reshow the "loading" screen.

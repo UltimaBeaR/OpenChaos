@@ -1360,11 +1360,13 @@ round_again:;
                     video_play_cutscene(1);
                 }
             } else if (strstr(ELEV_fname_level, "Finale1.ucm")) {
-                // Final credits cutscene.
+                // Final credits cutscene. See note in elev.cpp Finale1 load:
+                // cutscene 2/3 are swapped vs. prerelease — retail files have
+                // outro in New_PCcutscene2_300.bik.
                 stop_all_fx_and_music();
                 {
                     extern void video_play_cutscene(int);
-                    video_play_cutscene(3);
+                    video_play_cutscene(2);
                 }
 
                 extern void OS_hack(void);
