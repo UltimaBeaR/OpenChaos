@@ -633,6 +633,37 @@ void build_fence_poles(float sx, float sy, float sz, float fdx, float fdz, SLONG
     }
 }
 
+// Linearly interpolate a cable segment between an endpoint behind the near
+// plane and one in front, producing a screen-projected POLY_Point right at
+// the near plane (z == POLY_ZCLIP_PLANE). Without this, the original code
+// skipped any cable segment with one NEAR-clipped endpoint — visible as
+// cables flickering and disappearing as they approached the camera.
+// Decorated cables (festival garlands hanging lower over the street) hit
+// this far more often than rooftop cables, hence the bug only showed there.
+static void cable_clip_to_near(const POLY_Point* outside, const POLY_Point* inside, POLY_Point* dst)
+{
+    float t = (POLY_ZCLIP_PLANE - outside->z) / (inside->z - outside->z);
+    dst->x = outside->x + t * (inside->x - outside->x);
+    dst->y = outside->y + t * (inside->y - outside->y);
+    dst->z = POLY_ZCLIP_PLANE;
+    dst->Z = 1.0F; // POLY_ZCLIP_PLANE / dst->z = 1 by construction
+    dst->X = POLY_screen_mid_x - POLY_screen_mul_x * dst->x;
+    dst->Y = POLY_screen_mid_y - POLY_screen_mul_y * dst->y;
+    dst->clip = POLY_CLIP_TRANSFORMED;
+    if (dst->X < POLY_screen_clip_left)
+        dst->clip |= POLY_CLIP_LEFT;
+    else if (dst->X > POLY_screen_clip_right)
+        dst->clip |= POLY_CLIP_RIGHT;
+    if (dst->Y < POLY_screen_clip_top)
+        dst->clip |= POLY_CLIP_TOP;
+    else if (dst->Y > POLY_screen_clip_bottom)
+        dst->clip |= POLY_CLIP_BOTTOM;
+    dst->u = outside->u + t * (inside->u - outside->u);
+    dst->v = inside->v;
+    dst->colour = inside->colour;
+    dst->specular = inside->specular;
+}
+
 // uc_orig: cable_draw (fallen/DDEngine/Source/facet.cpp)
 // Renders a hanging cable/wire as billboard quads with catenary sag.
 // Two render passes: first solid black (shadow), then POLY_PAGE_ENVMAP (metallic sheen).
@@ -723,44 +754,74 @@ void cable_draw(struct DFacet* p_facet)
     bool old_set = false;
 
     for (ii = 0; ii < count; ii++) {
-        if (pp[0].IsValid() && pp[1].IsValid()) {
-            POLY_create_cylinder_points(&pp[0], &pp[1], width, &qp[0]);
+        bool left_valid = pp[0].IsValid();
+        bool right_valid = pp[1].IsValid();
+        bool left_near = pp[0].NearClip();
+        bool right_near = pp[1].NearClip();
 
-            qp[0].v = 0.0F;
-            qp[1].v = 1.0F;
-            qp[2].v = 0.0F;
-            qp[3].v = 1.0F;
+        // POLY_perspective sets exactly one of TRANSFORMED / NEAR / FAR.
+        // We only know how to handle TRANSFORMED + NEAR-plane interpolation —
+        // FAR-clipped (or any unexpected state) is treated as skip, same as
+        // the original code which fell through `IsValid()` for those.
+        bool left_ok = left_valid || left_near;
+        bool right_ok = right_valid || right_near;
 
-            if (old_set) {
-                qp[0].X = old[0].X;
-                qp[0].Y = old[0].Y;
-                qp[1].X = old[1].X;
-                qp[1].Y = old[1].Y;
-            }
-
-            if (POLY_valid_quad(pqp)) {
-                qp[0].colour = 0;
-                qp[1].colour = 0;
-                qp[2].colour = 0;
-                qp[3].colour = 0;
-
-                POLY_add_quad(pqp, POLY_PAGE_COLOUR, false, true);
-
-                qp[0].colour = pp[0].colour | 0xFF000000;
-                qp[1].colour = pp[0].colour | 0xFF000000;
-                qp[2].colour = pp[1].colour | 0xFF000000;
-                qp[3].colour = pp[1].colour | 0xFF000000;
-                POLY_add_quad(pqp, POLY_PAGE_ENVMAP, false, true);
-            }
-
-            old[0].X = qp[2].X;
-            old[0].Y = qp[2].Y;
-            old[1].X = qp[3].X;
-            old[1].Y = qp[3].Y;
-            old_set = true;
-        } else {
+        if (!left_ok || !right_ok || (left_near && right_near)) {
             old_set = false;
+            pp++;
+            continue;
         }
+
+        // Either both endpoints are TRANSFORMED, or one is NEAR-clipped and
+        // we replace it with the segment-vs-near-plane intersection so that
+        // the visible portion of the segment still renders.
+        POLY_Point near_clip_left, near_clip_right;
+        POLY_Point* p_left = &pp[0];
+        POLY_Point* p_right = &pp[1];
+
+        if (left_near) {
+            cable_clip_to_near(&pp[0], &pp[1], &near_clip_left);
+            p_left = &near_clip_left;
+        }
+        if (right_near) {
+            cable_clip_to_near(&pp[1], &pp[0], &near_clip_right);
+            p_right = &near_clip_right;
+        }
+
+        POLY_create_cylinder_points(p_left, p_right, width, &qp[0]);
+
+        qp[0].v = 0.0F;
+        qp[1].v = 1.0F;
+        qp[2].v = 0.0F;
+        qp[3].v = 1.0F;
+
+        if (old_set) {
+            qp[0].X = old[0].X;
+            qp[0].Y = old[0].Y;
+            qp[1].X = old[1].X;
+            qp[1].Y = old[1].Y;
+        }
+
+        if (POLY_valid_quad(pqp)) {
+            qp[0].colour = 0;
+            qp[1].colour = 0;
+            qp[2].colour = 0;
+            qp[3].colour = 0;
+
+            POLY_add_quad(pqp, POLY_PAGE_COLOUR, false, true);
+
+            qp[0].colour = p_left->colour | 0xFF000000;
+            qp[1].colour = p_left->colour | 0xFF000000;
+            qp[2].colour = p_right->colour | 0xFF000000;
+            qp[3].colour = p_right->colour | 0xFF000000;
+            POLY_add_quad(pqp, POLY_PAGE_ENVMAP, false, true);
+        }
+
+        old[0].X = qp[2].X;
+        old[0].Y = qp[2].Y;
+        old[1].X = qp[3].X;
+        old[1].Y = qp[3].Y;
+        old_set = true;
         pp++;
     }
 }
@@ -1474,6 +1535,17 @@ void FACET_draw_rare(SLONG facet, UBYTE alpha)
         float y2 = float(p_facet->Y[1]) + float(p_facet->Height * 64);
         float z2 = float(p_facet->z[1] << 8);
 
+        // Foundation extension — see FACET_draw for the rationale. Mirroring
+        // here so non-NORMAL facets that go through this rare path don't suffer
+        // the same false-reject on hill-built buildings.
+        if (p_facet->FHeight) {
+            SLONG alt0 = PAP_2HI(p_facet->x[0], p_facet->z[0]).Alt << 3;
+            SLONG alt1 = PAP_2HI(p_facet->x[1], p_facet->z[1]).Alt << 3;
+            float min_alt = float(MIN(alt0, alt1));
+            if (min_alt < y1)
+                y1 = min_alt;
+        }
+
         clip_or = 0x00000000;
         clip_and = 0xffffffff;
 
@@ -2098,6 +2170,21 @@ void FACET_draw(SLONG facet, UBYTE alpha)
         float x2 = float(p_facet->x[1] << 8);
         float y2 = float(p_facet->Y[1]) + float(p_facet->Height * 64);
         float z2 = float(p_facet->z[1] << 8);
+
+        // When the wall has a foundation (FHeight != 0) MakeFacetPointsCommon
+        // draws the bottom row at the PAP ground altitude, not at Y[0]. On
+        // sloped terrain the actual rendered geometry can extend well below
+        // Y[0]. Without this extension the AABB falsely rejects walls whose
+        // foundation strip is on-screen but whose Y[0]..Y[1]+H*64 range
+        // projects above the screen — visible as missing wall (skybox shows
+        // through) on hill-built buildings (Target UC garages bug).
+        if (p_facet->FHeight) {
+            SLONG alt0 = PAP_2HI(p_facet->x[0], p_facet->z[0]).Alt << 3;
+            SLONG alt1 = PAP_2HI(p_facet->x[1], p_facet->z[1]).Alt << 3;
+            float min_alt = float(MIN(alt0, alt1));
+            if (min_alt < y1)
+                y1 = min_alt;
+        }
 
         clip_or = 0x00000000;
         clip_and = 0xffffffff;
