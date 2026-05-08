@@ -548,13 +548,16 @@ void special_normal(Thing* s_thing)
         return;
     }
 
-    if (s_thing->Genus.Special->OwnerThing) {
+    // EXPLOSIVES is excluded here because after SPECIAL_set_explosives() plants
+    // the bomb in the world its OwnerThing is set for blame attribution (who
+    // placed it), not because it is being held. Without this exclusion the
+    // planted bomb would take the carried branch and return early — fuse timer
+    // would never tick down and the bomb would never detonate.
+    if (s_thing->Genus.Special->OwnerThing && s_thing->Genus.Special->SpecialType != SPECIAL_EXPLOSIVES) {
         // Carried item: track owner's position.
         Thing* p_person = TO_THING(s_thing->Genus.Special->OwnerThing);
 
-        if (s_thing->Genus.Special->SpecialType != SPECIAL_EXPLOSIVES) {
-            s_thing->WorldPos = p_person->WorldPos;
-        }
+        s_thing->WorldPos = p_person->WorldPos;
 
         // Grenade fuse countdown while carried.
         if (s_thing->Genus.Special->SpecialType == SPECIAL_GRENADE && s_thing->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
