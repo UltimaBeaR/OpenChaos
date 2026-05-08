@@ -3021,18 +3021,28 @@ void EWAY_process_conversation(void)
             }
     }
 
-    // Advance to the next conversation line only when the read-time minimum
-    // (EWAY_conv_timer derived from string length) has elapsed AND, if a wave
-    // was actually started, it has finished playing AND the post-voice silence
-    // tail has elapsed. Original used OR (timer expiry was an independent
-    // trigger), so a long voice line with a short text-derived timer would be
-    // cut off mid-word. EWAY_conv_talk == 0 covers silent lines (no wav, play
-    // failed) — those still advance by timer alone.
+    // Advance to the next conversation line. The first advance ("setup") must
+    // fire on the very first tick (timer=0 immediately after conv setup) so
+    // PCOM_make_people_talk_to_eachother runs and puts both speakers into
+    // SubState=SIMPLE_ANIM — without it the abort check at the bottom of this
+    // function fires immediately because Darci/NPC are still in their
+    // pre-cutscene State (e.g. STATE_GUN after combat), and the conversation
+    // ends within ~50ms (Roper appearance in Psycho Park).
+    //
+    // On subsequent advances we still defer until the previous voice fully
+    // finished plus the silence tail — otherwise a long voice line with a
+    // shorter text-derived timer is cut off mid-word (Insane Assault dialogues).
+    //
+    // Setup is detected by EWAY_conv_talk == 0 (no voice started yet for this
+    // conversation). Reset of conv_talk on conv start (in EWAY_set_active for
+    // DO_CONVERSATION/DO_AMBIENT_CONV) makes this reliable across multiple
+    // conversations in the same level.
     extern uint64_t sdl3_get_ticks();
-    bool wave_quiet = (EWAY_conv_talk == 0) || (MFX_QUICK_still_playing() == 0);
+    bool is_setup = (EWAY_conv_talk == 0);
+    bool wave_quiet = (MFX_QUICK_still_playing() == 0);
     bool tail_passed = (s_eway_voice_last_seen_ms == 0)
                        || ((sdl3_get_ticks() - s_eway_voice_last_seen_ms) >= MFX_CUTSCENE_VOICE_TAIL_MS);
-    if (EWAY_conv_timer <= 0 && wave_quiet && tail_passed) {
+    if (EWAY_conv_timer <= 0 && (is_setup || (wave_quiet && tail_passed))) {
         str = &EWAY_mess_buffer[EWAY_conv_str];
 
         // Reached the end of the conversation?
@@ -3792,6 +3802,12 @@ void EWAY_set_active(EWAY_Way* ew)
                 EWAY_conv_str_count = 0;
                 EWAY_conv_skip = 100;
                 EWAY_conv_ambient = (ew->ed.type == EWAY_DO_AMBIENT_CONV);
+                // Reset wave handle so the conv-advance gate in
+                // EWAY_process_conversation reliably treats the very first
+                // tick as setup (allowing PCOM_make_people_talk_to_eachother
+                // to fire and put speakers into SubState=SIMPLE_ANIM before
+                // the abort check sees their pre-cutscene State).
+                EWAY_conv_talk = 0;
 
                 if (!WITHIN(ew->ed.subtype, 0, EWAY_MAX_MESSES - 1)) {
                     CONSOLE_text("Too many messages for the waypoint system! Tell Mark!", 8000);
