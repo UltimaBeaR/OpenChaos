@@ -51,6 +51,17 @@ typedef struct {
     SLONG toonear_roll;
     SLONG toonear_focus_yaw;
     SLONG smooth_transition;
+
+    // OpenChaos addition (not in uc_orig FC_Cam): rigidly inherit vehicle
+    // motion when the focus person stands on a moving vehicle, so the
+    // camera stays glued to the vehicle's reference frame. Without this,
+    // get-behind position lag during acceleration/turning makes the
+    // camera world-yaw drift even when the player isn't moving.
+    // platform_thing == 0 means "not currently tracking a platform".
+    UWORD platform_thing;
+    SLONG platform_last_x;
+    SLONG platform_last_z;
+    SLONG platform_last_yaw;
 } FC_Cam;
 
 // uc_orig: FC_MAX_CAMS (fallen/Headers/fc.h)

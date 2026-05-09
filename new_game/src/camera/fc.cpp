@@ -16,6 +16,7 @@
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
+#include "navigation/wmove.h" // WMOVE_face for rigid platform inheritance
 
 // CAM_MORE_IN: PC camera is 25% closer to the player than the PSX version.
 // Applied to cam_dist and camera height offsets.
@@ -281,8 +282,38 @@ void FC_calc_focus(FC_Cam* fc)
             }
 
             fc->focus_yaw = yaw_car & 2047;
+            fc->platform_thing = 0;
         } else {
             fc->focus_yaw = fc->focus->Draw.Tweened->Angle;
+
+            // Detect "standing on a moving vehicle" so FC_process can
+            // rigidly inherit the vehicle's motion onto the camera (keeps
+            // the camera glued to the vehicle's reference frame).
+            UBYTE on_vehicle_platform = UC_FALSE;
+            if (fc->focus->OnFace > 0) {
+                ASSERT(WITHIN(fc->focus->OnFace, 1, next_prim_face4 - 1));
+                PrimFace4* f4 = &prim_faces4[fc->focus->OnFace];
+                if (f4->FaceFlags & FACE_FLAG_WMOVE) {
+                    SLONG wmove_index = f4->ThingIndex;
+                    ASSERT(WITHIN(wmove_index, 1, WMOVE_face_upto - 1));
+                    WMOVE_Face* wf = &WMOVE_face[wmove_index];
+                    if (wf->thing && TO_THING(wf->thing)->Class == CLASS_VEHICLE) {
+                        Thing* p_vehicle = TO_THING(wf->thing);
+                        if (fc->platform_thing != wf->thing) {
+                            // Just boarded — snapshot vehicle pose; first
+                            // tick produces zero delta in FC_process.
+                            fc->platform_thing = wf->thing;
+                            fc->platform_last_x = p_vehicle->WorldPos.X;
+                            fc->platform_last_z = p_vehicle->WorldPos.Z;
+                            fc->platform_last_yaw = p_vehicle->Genus.Vehicle->Angle;
+                        }
+                        on_vehicle_platform = UC_TRUE;
+                    }
+                }
+            }
+            if (!on_vehicle_platform) {
+                fc->platform_thing = 0;
+            }
 
             if (fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE) {
                 if (fc->focus->Draw.Tweened->CurrentAnim == ANIM_ENTER_TAXI) {
@@ -354,6 +385,7 @@ void FC_calc_focus(FC_Cam* fc)
 
         fc->focus_yaw = yaw_car + dyaw * 4;
         fc->focus_yaw &= 2047;
+        fc->platform_thing = 0;
     } break;
 
     default:
@@ -839,6 +871,56 @@ void FC_process()
         used_to_be_in_warehouse = fc->focus_in_warehouse;
 
         FC_calc_focus(fc);
+
+        // Rigidly inherit vehicle motion when the focus person stands on
+        // a moving vehicle: translate camera by vehicle's per-tick world
+        // delta and rotate it around the vehicle's pivot by the per-tick
+        // yaw delta. Result: camera is glued to the vehicle's reference
+        // frame, so standing still on a moving/turning vehicle gives the
+        // exact same camera behaviour as standing still on the ground.
+        if (fc->platform_thing) {
+            Thing* p_vehicle = TO_THING(fc->platform_thing);
+            SLONG cur_x = p_vehicle->WorldPos.X;
+            SLONG cur_z = p_vehicle->WorldPos.Z;
+            SLONG cur_yaw = p_vehicle->Genus.Vehicle->Angle;
+
+            SLONG dx_plat = cur_x - fc->platform_last_x;
+            SLONG dz_plat = cur_z - fc->platform_last_z;
+            SLONG dyaw = (cur_yaw - fc->platform_last_yaw) & 2047;
+            SLONG dyaw_signed = (dyaw > 1024) ? dyaw - 2048 : dyaw;
+
+            if (dx_plat || dz_plat || dyaw_signed) {
+                SLONG s = SIN(dyaw);
+                SLONG c = COS(dyaw);
+
+                // Rotate (px, pz) around (last_x, last_z) by dyaw, then
+                // translate to new pivot. Game yaw is clockwise-positive
+                // (matching `behind_x = focus_x + SIN(yaw)*dist`), so the
+                // rotation matrix is the CW form: new_x = rx*c + rz*s,
+                // new_z = rz*c - rx*s. Pre-shift by 4 to keep the
+                // intermediate product within SLONG range (max camera
+                // offset ~120000; 120000>>4 * 65536 = 4.9e8 < 2^31).
+                SLONG rx, rz;
+#define INHERIT_PT(px, pz) \
+    rx = (px) - fc->platform_last_x; \
+    rz = (pz) - fc->platform_last_z; \
+    (px) = cur_x + (((rx >> 4) * c + (rz >> 4) * s) >> 12); \
+    (pz) = cur_z + (((rz >> 4) * c - (rx >> 4) * s) >> 12)
+
+                INHERIT_PT(fc->x, fc->z);
+                INHERIT_PT(fc->want_x, fc->want_z);
+#undef INHERIT_PT
+
+                // Yaw stored as angle << 8.
+                SLONG yaw_mask = (2048 << 8) - 1;
+                fc->yaw = (fc->yaw + (dyaw_signed << 8)) & yaw_mask;
+                fc->want_yaw = (fc->want_yaw + (dyaw_signed << 8)) & yaw_mask;
+            }
+
+            fc->platform_last_x = cur_x;
+            fc->platform_last_z = cur_z;
+            fc->platform_last_yaw = cur_yaw;
+        }
 
         // Warehouse transition: snap camera on entry/exit.
         if (used_to_be_in_warehouse != fc->focus_in_warehouse) {
