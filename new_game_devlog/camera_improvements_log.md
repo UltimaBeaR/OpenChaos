@@ -2,7 +2,8 @@
 
 Devlog по работам над камерой. Все находки и решения по проблемам камеры из
 [`new_game_planning/known_issues_and_bugs.md`](../new_game_planning/known_issues_and_bugs.md)
-(секция «Камера», строки 65-72) фиксируются здесь.
+(секция «Камера») фиксируются здесь. Уже закрытые задачи мигрируют в
+[`known_issues_and_bugs_resolved.md`](../new_game_planning/known_issues_and_bugs_resolved.md).
 
 Связанные проблемы (решаются по очереди):
 
