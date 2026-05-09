@@ -22,3 +22,13 @@ OB_Hydrant OB_hydrant[OB_MAX_HYDRANTS];
 
 // uc_orig: OB_hydrant_last (fallen/Source/ob.cpp)
 UBYTE OB_hydrant_last = 0;
+
+// Extended-objects fix: storage for per-object info, per-cell index
+// references, and a per-cell linked-list head. Reset at level load via
+// OB_extended_build() (which clears everything before re-populating).
+OB_Extended g_ob_extended[OB_MAX_EXTENDED];
+SLONG g_ob_extended_count = 0;
+OB_ExtRef g_ob_ext_refs[OB_MAX_EXT_REFS];
+SLONG g_ob_ext_refs_count = 0;
+UWORD g_ob_ext_cell_first[OB_SIZE][OB_SIZE];
+SLONG g_ob_ext_draws_this_frame = 0;

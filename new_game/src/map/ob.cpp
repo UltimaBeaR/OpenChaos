@@ -17,6 +17,9 @@
 #include "engine/graphics/pipeline/poly.h"
 #include "assets/texture.h"
 #include "assets/formats/level_loader.h"
+#include "engine/graphics/lighting/ngamut.h"
+#include "engine/graphics/lighting/ngamut_globals.h"
+#include <math.h>
 #include "things/items/special.h"
 #include "things/items/special_globals.h"
 #include "things/items/barrel.h"
@@ -47,6 +50,11 @@ void OB_init()
     OB_ob_upto = 1;
     memset((UBYTE*)OB_mapwho, 0, sizeof(OB_Mapwho) * OB_SIZE * OB_SIZE);
     memset((UBYTE*)OB_hydrant, 0, sizeof(OB_Hydrant) * OB_MAX_HYDRANTS);
+
+    // Reset extended-objects state. Filled later by OB_extended_build().
+    g_ob_extended_count = 0;
+    g_ob_ext_refs_count = 0;
+    memset(g_ob_ext_cell_first, 0, sizeof(g_ob_ext_cell_first));
 }
 
 // Defragments OB_ob[] by rebuilding it in mapsquare order.
@@ -944,4 +952,274 @@ void OB_make_all_the_switches_be_at_the_proper_height()
                 }
             }
         }
+}
+
+// ---- Extended-objects fix (OpenChaos addition) ----
+//
+// See ob.h above the OB_Extended struct for the design rationale.
+
+// Compute the local mesh AABB (in mesh-space, unrotated) for prim_id.
+// Output sets *min_x..*max_z. If prim_id is invalid, all outputs are 0.
+static void OB_extended_compute_local_bbox(SLONG prim_id,
+    SLONG* min_x, SLONG* max_x,
+    SLONG* min_y, SLONG* max_y,
+    SLONG* min_z, SLONG* max_z)
+{
+    *min_x = *max_x = *min_y = *max_y = *min_z = *max_z = 0;
+
+    if (prim_id <= 0 || prim_id >= (SLONG)next_prim_object) {
+        return;
+    }
+
+    PrimObject* po = &prim_objects[prim_id];
+    if (po->StartPoint >= po->EndPoint) {
+        return;
+    }
+
+    SLONG mn_x = 0x7fffffff, mx_x = -0x7fffffff;
+    SLONG mn_y = 0x7fffffff, mx_y = -0x7fffffff;
+    SLONG mn_z = 0x7fffffff, mx_z = -0x7fffffff;
+    bool any = false;
+
+    for (UWORD i = po->StartPoint; i < po->EndPoint; i++) {
+        PrimPoint* p = &prim_points[i];
+        if (p->X < mn_x) mn_x = p->X;
+        if (p->X > mx_x) mx_x = p->X;
+        if (p->Y < mn_y) mn_y = p->Y;
+        if (p->Y > mx_y) mx_y = p->Y;
+        if (p->Z < mn_z) mn_z = p->Z;
+        if (p->Z > mx_z) mx_z = p->Z;
+        any = true;
+    }
+
+    if (any) {
+        *min_x = mn_x; *max_x = mx_x;
+        *min_y = mn_y; *max_y = mx_y;
+        *min_z = mn_z; *max_z = mx_z;
+    }
+}
+
+// Build the extended-objects table from current OB_ob[]/OB_mapwho state.
+// Walks every (anchor_lo_x, anchor_lo_z, ob_index) triplet, computes a
+// yaw-conservative world bbox for each object, and registers any that
+// extend past their anchor cell. Designed to be cheap — runs once at
+// level load — and idempotent (it resets state at the top so multiple
+// calls are safe).
+void OB_extended_build(void)
+{
+    // Reset state — also makes this safe to call again on level reload.
+    g_ob_extended_count = 0;
+    g_ob_ext_refs_count = 0;
+    memset(g_ob_ext_cell_first, 0, sizeof(g_ob_ext_cell_first));
+
+    for (SLONG lo_x = 0; lo_x < OB_SIZE; lo_x++) {
+        for (SLONG lo_z = 0; lo_z < OB_SIZE; lo_z++) {
+            OB_Mapwho* om = &OB_mapwho[lo_x][lo_z];
+            UWORD num = om->num;
+            UWORD index = om->index;
+
+            while (num--) {
+                SLONG ob_idx = (SLONG)index;
+                index++;
+
+                if (ob_idx <= 0 || ob_idx >= OB_ob_upto) {
+                    continue;
+                }
+                OB_Ob* oo = &OB_ob[ob_idx];
+                if (oo->prim == 0) {
+                    continue;
+                }
+
+                // Local mesh bbox
+                SLONG mn_x, mx_x, mn_y, mx_y, mn_z, mx_z;
+                OB_extended_compute_local_bbox(oo->prim, &mn_x, &mx_x, &mn_y, &mx_y, &mn_z, &mx_z);
+
+                // Conservative half-extent for yaw rotation around Y: any rotation
+                // of (X,Z) is bounded by max(|min|,|max|) on each axis. Take the
+                // maximum so the world bbox is correct for any yaw.
+                SLONG half = 0;
+                if (mx_x > half) half = mx_x;
+                if (-mn_x > half) half = -mn_x;
+                if (mx_z > half) half = mx_z;
+                if (-mn_z > half) half = -mn_z;
+
+                // World position from anchor lo-cell + sub-cell offset
+                // (matches the decompression in OB_find at ob.cpp:215).
+                SLONG wx = (lo_x << 10) + (oo->x << 2);
+                SLONG wz = (lo_z << 10) + (oo->z << 2);
+                SLONG wy = oo->y;
+
+                // World bbox (XZ, conservative for yaw)
+                SLONG bbox_min_wx = wx - half;
+                SLONG bbox_max_wx = wx + half;
+                SLONG bbox_min_wz = wz - half;
+                SLONG bbox_max_wz = wz + half;
+
+                // To lo-cells. Floor-divide via arithmetic shift; clamp to valid
+                // range so out-of-map meshes don't escape.
+                SLONG cell_min_x = bbox_min_wx >> 10;
+                SLONG cell_max_x = bbox_max_wx >> 10;
+                SLONG cell_min_z = bbox_min_wz >> 10;
+                SLONG cell_max_z = bbox_max_wz >> 10;
+
+                if (cell_min_x < 0) cell_min_x = 0;
+                if (cell_max_x >= OB_SIZE) cell_max_x = OB_SIZE - 1;
+                if (cell_min_z < 0) cell_min_z = 0;
+                if (cell_max_z >= OB_SIZE) cell_max_z = OB_SIZE - 1;
+
+                // Every static object is registered (including FITS_IN_CELL).
+                // The pre-pass picks per-frame whether the anchor or a guest
+                // gamut cell renders the object. The previous "FITS_IN_CELL"
+                // filter dropped objects whose mesh AABB stayed inside the
+                // anchor cell, but that missed the case where the anchor
+                // falls out of the gamut and the camera can still see the
+                // object in the air — e.g. PRIM 215 garlands hung high
+                // above ground at Y≈2304. Pool sizes bumped to OB_MAX_OBS
+                // to fit them all.
+
+                if (g_ob_extended_count >= OB_MAX_EXTENDED) {
+                    // Pool exhausted — silently drop. If this ever fires
+                    // on a real level, raise OB_MAX_EXTENDED in ob.h.
+                    continue;
+                }
+
+                SLONG ext_idx = g_ob_extended_count++;
+                OB_Extended* ext = &g_ob_extended[ext_idx];
+                ext->prim = oo->prim;
+                ext->ob_idx = (UWORD)ob_idx;
+                ext->x = wx;
+                ext->y = wy;
+                ext->z = wz;
+                ext->yaw = (UWORD)(oo->yaw << 3);
+                ext->pitch = 0;
+                ext->roll = 0;
+                ext->crumple = 0;
+                ext->InsideIndex = oo->InsideIndex;
+                ext->flags = oo->flags;
+                ext->anchor_lo_x = (UBYTE)lo_x;
+                ext->anchor_lo_z = (UBYTE)lo_z;
+                ext->bbox_lo_x_min = (UBYTE)cell_min_x;
+                ext->bbox_lo_x_max = (UBYTE)cell_max_x;
+                ext->bbox_lo_z_min = (UBYTE)cell_min_z;
+                ext->bbox_lo_z_max = (UBYTE)cell_max_z;
+
+                // Geometric centre of the rotated mesh, in world coords.
+                // Used by the bbox frustum check in the render loop and
+                // by the debug dump. The object's stored origin can sit
+                // inside a wall (one end of a cable etc), the centre of
+                // the AABB is reliably out in the open.
+                SLONG cl_x = (mn_x + mx_x) / 2;
+                SLONG cl_y = (mn_y + mx_y) / 2;
+                SLONG cl_z = (mn_z + mx_z) / 2;
+                float fyaw = (float)(oo->yaw << 3) * (2.0F * 3.14159265F / 2048.0F);
+                float cy = cosf(fyaw);
+                float sy = sinf(fyaw);
+                ext->center_x = wx + (SLONG)((float)cl_x * cy - (float)cl_z * sy);
+                ext->center_y = wy + cl_y;
+                ext->center_z = wz + (SLONG)((float)cl_x * sy + (float)cl_z * cy);
+
+                ext->half_xz = half;
+                ext->min_wy = wy + mn_y;
+                ext->max_wy = wy + mx_y;
+
+                ext->responsible_lo_x = 0;
+                ext->responsible_lo_z = 0;
+                ext->responsible_valid = 0;
+                // Per-cell guest list is rebuilt every frame in
+                // OB_extended_pre_pass() — responsible cell depends on the
+                // live gamut, not on the static mesh bbox. No registration
+                // here.
+            }
+        }
+    }
+}
+
+// Per-frame pre-pass: pick the responsible cell for each extended object
+// and rebuild the per-cell guest list from scratch. Runs after the gamut
+// is computed for the frame and before the main PRIM-loop.
+//
+// - Anchor cell in gamut → leave responsible_valid=0; the normal PRIM-loop
+//   will draw the object through OB_mapwho on the anchor cell.
+// - Anchor cell outside gamut → scan EVERY in-gamut cell, pick the one
+//   closest to the anchor in Chebyshev distance as the responsible cell,
+//   and push the object onto that cell's guest list. The extended-draw
+//   block then re-tests the actual screen-space AABB (outcode-AND cull)
+//   before drawing — so picking a wide search area here is safe: misses
+//   get culled cheaply.
+//
+// Why scan the whole gamut, not just the mesh bbox: a long-distance
+// bug example — PRIM 215 garland at lo (21,17), bbox spilling only into
+// (22,17). At common camera angles cell (22,17) is also outside the
+// gamut while (24,17) IS in. The old "first bbox cell in gamut" logic
+// returned no responsible cell → the garland disappeared even though
+// the camera frustum was looking right at it. Picking the closest gamut
+// cell as guest lets the AABB cull see it and draw.
+//
+// Per-cell guest list is rebuilt every frame: the responsible cell is
+// computed from the live gamut, not statically from the mesh bbox, so
+// the list can't be precomputed at level load.
+void OB_extended_pre_pass(void)
+{
+    g_ob_ext_draws_this_frame = 0;
+
+    // Rebuild per-cell guest list from scratch every frame.
+    g_ob_ext_refs_count = 0;
+    memset(g_ob_ext_cell_first, 0, sizeof(g_ob_ext_cell_first));
+
+    for (SLONG i = 0; i < g_ob_extended_count; i++) {
+        OB_Extended* ext = &g_ob_extended[i];
+        ext->responsible_valid = 0;
+        ext->drawn_this_frame = 0;
+
+        SLONG ax = ext->anchor_lo_x;
+        SLONG az = ext->anchor_lo_z;
+
+        // Anchor in gamut → normal PRIM-loop draws it. Skip.
+        if (az >= NGAMUT_lo_zmin && az <= NGAMUT_lo_zmax &&
+            ax >= NGAMUT_lo_gamut[az].xmin && ax <= NGAMUT_lo_gamut[az].xmax) {
+            continue;
+        }
+
+        // Anchor outside gamut. Find the in-gamut cell closest to the
+        // anchor (Chebyshev distance — picks an adjacent cell when one
+        // exists, otherwise the nearest gamut edge cell).
+        SLONG best_dist = 0x7fffffff;
+        SLONG best_cx = 0, best_cz = 0;
+        for (SLONG cz = NGAMUT_lo_zmin; cz <= NGAMUT_lo_zmax; cz++) {
+            SLONG row_xmin = NGAMUT_lo_gamut[cz].xmin;
+            SLONG row_xmax = NGAMUT_lo_gamut[cz].xmax;
+            if (row_xmin > row_xmax) continue; // empty row sentinel
+
+            // Closest x in [row_xmin, row_xmax] to ax.
+            SLONG cx;
+            if (ax < row_xmin)      cx = row_xmin;
+            else if (ax > row_xmax) cx = row_xmax;
+            else                    cx = ax;
+
+            SLONG dx = cx - ax; if (dx < 0) dx = -dx;
+            SLONG dz = cz - az; if (dz < 0) dz = -dz;
+            SLONG d  = (dx > dz) ? dx : dz;
+
+            if (d < best_dist) {
+                best_dist = d;
+                best_cx = cx;
+                best_cz = cz;
+            }
+        }
+
+        if (best_dist == 0x7fffffff) continue; // gamut empty
+
+        ext->responsible_lo_x = (UBYTE)best_cx;
+        ext->responsible_lo_z = (UBYTE)best_cz;
+        ext->responsible_valid = 1;
+
+        // Push onto the responsible cell's guest list.
+        if (g_ob_ext_refs_count < OB_MAX_EXT_REFS) {
+            SLONG slot = g_ob_ext_refs_count++;
+            OB_ExtRef* ref = &g_ob_ext_refs[slot];
+            ref->ext_idx = (UWORD)(i + 1); // 1-based
+            ref->next_in_cell = g_ob_ext_cell_first[best_cx][best_cz];
+            g_ob_ext_cell_first[best_cx][best_cz] = (UWORD)(slot + 1);
+        }
+    }
 }

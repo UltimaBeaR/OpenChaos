@@ -1920,6 +1920,11 @@ SLONG ELEV_game_init(
 
     calc_slide_edges();
 
+    // Build the extended-objects table from the now-populated OB_mapwho/OB_ob.
+    // This is the fix for objects whose mesh extends across multiple lo-cells
+    // (e.g. PRIM 215 garlands strung between buildings) — see ob.h for design.
+    OB_extended_build();
+
     ATTRACT_loadscreen_draw(100 * 256 / 100);
 
     if (CNET_network_game) {

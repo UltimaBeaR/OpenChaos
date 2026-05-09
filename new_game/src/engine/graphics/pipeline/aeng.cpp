@@ -5,6 +5,7 @@
 #include "engine/graphics/pipeline/aeng_globals.h"
 #include "engine/input/input_frame.h"
 #include "engine/console/message.h" // MSG_draw
+#include "engine/console/console.h" // CONSOLE_text_at (debug overlay)
 #include "engine/graphics/pipeline/poly.h"
 #include "engine/graphics/geometry/mesh.h"
 #include "engine/graphics/lighting/ngamut.h"
@@ -3752,6 +3753,11 @@ void AENG_draw_city()
 
     dfacets_drawn_this_gameturn = 0;
     {
+        // Pre-pass: pick the responsible cell for each extended object based
+        // on the gamut just computed for this frame. Must run before the main
+        // PRIM-loop below so the per-cell extended-draw block can rely on it.
+        // See ob.h / ob.cpp for the rationale.
+        OB_extended_pre_pass();
 
         for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
             for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
@@ -3847,6 +3853,128 @@ void AENG_draw_city()
 
                     oi += 1;
                 }
+
+                // ---- Extended-objects fix: per-cell guest draws ----
+                //
+                // For each lo-cell visited by the main PRIM-loop above, we
+                // additionally walk the per-cell linked list of "guest"
+                // extended objects whose mesh extends into this cell from
+                // a different anchor cell.
+                //
+                // OB_extended_pre_pass() (called at the top of this PRIM-
+                // pass) has already picked one "responsible" cell per
+                // extended object. We only draw the guest if the current
+                // (x,z) is exactly that responsible cell — guarantees one
+                // draw per object per frame, by construction (no need for
+                // any "already drawn" bookkeeping).
+                //
+                // A strict bbox-frustum check then drops draws whose entire
+                // bounding box is off-screen. Pre-pass uses the 2D gamut
+                // (ground-plane projection) which over-includes — without
+                // this check the counter would inflate with objects that
+                // can't contribute pixels.
+                {
+                    UWORD ref_idx = g_ob_ext_cell_first[x][z];
+                    while (ref_idx) {
+                        OB_ExtRef* ref = &g_ob_ext_refs[ref_idx - 1];
+                        OB_Extended* ext = &g_ob_extended[ref->ext_idx - 1];
+                        ref_idx = ref->next_in_cell;
+
+                        if (!ext->responsible_valid) continue;
+                        if ((SLONG)ext->responsible_lo_x != x) continue;
+                        if ((SLONG)ext->responsible_lo_z != z) continue;
+
+                        // Bounding-sphere vs frustum cull.
+                        //
+                        // Tests sphere center (with radius margin) against
+                        // each of the 6 frustum planes in view space. If
+                        // the sphere is fully on the outside of any one
+                        // plane → cull. Correct for all geometry: handles
+                        // FAR-clipped objects (POLY_sphere_visible misses
+                        // those — no FAR check), and straddle cases that
+                        // broke the previous outcode-AND cull (some AABB
+                        // corners on different clip planes share no
+                        // common off-screen bit).
+                        //
+                        // Plane math: NEAR z=ZCLIP, FAR z=1.0 (axis-
+                        // aligned, no sqrt(2) factor). LEFT x=-z, RIGHT
+                        // x=+z, TOP y=+z, BOTTOM y=-z (45° planes through
+                        // origin assuming ~90° symmetric FOV — matches
+                        // POLY_perspective's screen mapping); their
+                        // signed-distance form is (x±z)/sqrt(2), so the
+                        // sphere-radius margin gets multiplied by sqrt(2)
+                        // (≈1.4142) for those four.
+                        //
+                        // Bounding sphere: centre at AABB centre, radius
+                        // = sqrt(2·half_xz² + half_y²) (cube diagonal /2).
+                        SLONG half_y = (ext->max_wy - ext->min_wy) / 2;
+                        float r_world = sqrtf(
+                            2.0F * float(ext->half_xz) * float(ext->half_xz)
+                            + float(half_y) * float(half_y));
+
+                        float vx = (float)ext->center_x - POLY_cam_x;
+                        float vy = (float)ext->center_y - POLY_cam_y;
+                        float vz = (float)ext->center_z - POLY_cam_z;
+                        MATRIX_MUL(POLY_cam_matrix, vx, vy, vz);
+
+                        // Scale radius to view space. POLY_cam_matrix bakes in
+                        // a non-unit scale (rows magnitude ~0.0002-0.0003),
+                        // so the world-space sphere becomes an ellipsoid.
+                        // Conservative cull: use max row magnitude as the
+                        // effective scale (sphere appears largest possible
+                        // → keeps borderline cases). Without this, r is in
+                        // world units while vx/vy/vz are in view units (off
+                        // by ~3000×) and every plane check is broken.
+                        float row0_sq = POLY_cam_matrix[0]*POLY_cam_matrix[0]
+                                      + POLY_cam_matrix[1]*POLY_cam_matrix[1]
+                                      + POLY_cam_matrix[2]*POLY_cam_matrix[2];
+                        float row1_sq = POLY_cam_matrix[3]*POLY_cam_matrix[3]
+                                      + POLY_cam_matrix[4]*POLY_cam_matrix[4]
+                                      + POLY_cam_matrix[5]*POLY_cam_matrix[5];
+                        float row2_sq = POLY_cam_matrix[6]*POLY_cam_matrix[6]
+                                      + POLY_cam_matrix[7]*POLY_cam_matrix[7]
+                                      + POLY_cam_matrix[8]*POLY_cam_matrix[8];
+                        float max_row_sq = (row0_sq > row1_sq) ? row0_sq : row1_sq;
+                        if (row2_sq > max_row_sq) max_row_sq = row2_sq;
+                        float r = r_world * sqrtf(max_row_sq);
+
+                        const float SQRT2 = 1.41421356F;
+                        if (vz + r < POLY_ZCLIP_PLANE) continue; // behind near
+                        if (vz - r > 1.0F)             continue; // past far
+                        if (vx + vz < -r * SQRT2)      continue; // off left
+                        if (vx - vz > +r * SQRT2)      continue; // off right
+                        if (vy - vz > +r * SQRT2)      continue; // off top
+                        if (vy + vz < -r * SQRT2)      continue; // off bottom
+
+                        // Compute proper per-vertex lighting on the fly.
+                        // We can't reuse the NIGHT cache here: the anchor
+                        // cell of an extended object is by definition out
+                        // of the gamut, so its cache may be stale (or never
+                        // populated). NIGHT_light_prim recomputes from
+                        // scratch for the prim's world transform. The
+                        // buffer must be large enough for the prim's
+                        // vertex count — 1024 is well above any prim mesh
+                        // we have on this game.
+                        static NIGHT_Colour s_ext_light_buf[1024];
+                        NIGHT_light_prim(
+                            ext->prim,
+                            ext->x, ext->y, ext->z,
+                            ext->yaw, ext->pitch, ext->roll,
+                            ext->InsideIndex,
+                            s_ext_light_buf);
+
+                        MESH_draw_poly(
+                            ext->prim,
+                            ext->x, ext->y, ext->z,
+                            ext->yaw, ext->pitch, ext->roll,
+                            s_ext_light_buf,
+                            /*fade*/ 0xff,
+                            ext->crumple);
+
+                        g_ob_ext_draws_this_frame++;
+                        ext->drawn_this_frame = 1;
+                    }
+                }
             }
         }
 
@@ -3854,6 +3982,7 @@ void AENG_draw_city()
         //		POLY_frame_draw(UC_FALSE,UC_FALSE);
         //		POLY_frame_init(UC_TRUE,UC_TRUE);
         //		BreakTime("Flushed prims");
+
 
         POLY_set_local_rotation_none();
 
