@@ -1,5 +1,9 @@
 # OpenChaos — Urban Chaos Modernization
 
+<div align="center">
+  <img src="./openchaos_logo_animated.gif" alt="OpenChaos - Urban Chaos Modernization">
+</div>
+
 Unofficial modernization of Urban Chaos (1999, MuckyFoot Productions) — built with AI on top of the
 [original source code](https://github.com/dizzy2003/MuckyFoot-UrbanChaos).
 
