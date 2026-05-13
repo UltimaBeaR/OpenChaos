@@ -99,3 +99,77 @@
 ### Открытые вопросы
 
 Пока нет.
+
+---
+
+## Запись 2 — 2026-05-13 — аудит существующих ограничителей камеры
+
+Прочитан целиком [`new_game/src/camera/fc.cpp`](../../new_game/src/camera/fc.cpp) (1550 строк) — основной файл камеры. Также прочитаны [`fc.h`](../../new_game/src/camera/fc.h), [`cam.h`](../../new_game/src/camera/cam.h), [`cam_globals.h`](../../new_game/src/camera/cam_globals.h), [`fc_globals.h`](../../new_game/src/camera/fc_globals.h).
+
+Проверены callers ключевых функций — [`game_tick.cpp`](../../new_game/src/game/game_tick.cpp), [`input_actions.cpp`](../../new_game/src/game/input_actions.cpp), [`memory.cpp`](../../new_game/src/missions/memory.cpp), [`eway.cpp`](../../new_game/src/missions/eway.cpp), [`elev.cpp`](../../new_game/src/assets/formats/elev.cpp).
+
+Замечание: `cam.h` декларирует `CAM_process` / `CAM_set_mode` / `CAM_set_focus` / `CAM_set_collision` и т.д., но реализаций нигде в `new_game/src` нет (только outro имеет свой одноимённый `CAM_process`). Это мёртвый header, его не трогаем — вне scope задачи. Реальная камера живёт в `fc.cpp` (Final Camera, FC_*).
+
+### Чёткие кандидаты на удаление (wall-vs-camera / wall-vs-ground ограничители)
+
+**A. fc.cpp 1059–1203 — 8-шаговый raycast collision push (внутри `FC_process`)**
+- Блок `if (!fc->toonear) { ... }`, содержит xforce/yforce/zforce, проверки `MAV_inside`, fence detection через `there_is_a_los`, `WARE_get_caps`, `MAV_get_caps`, `MAVHEIGHT` (крыша).
+- Две ветки: warehouse (1075–1112) и outdoor (1113–1198).
+- Эффект: текущая камера упирается в стены/заборы/крышу.
+- Удаление чистое: блок самоизолирован, после него идёт другой `if (!fc->toonear)`.
+
+**B. fc.cpp 1229–1239 — wall-reactive get-behind boost (внутри get-behind в `FC_process`)**
+- `if (xforce || zforce) { ...сильное прижатие... } else { ...обычное... }` — усиление get-behind когда камера ударилась о стену.
+- После удаления A, xforce/zforce всегда 0 → всегда else. Эти переменные станут не нужны.
+- Удаляем if/else, оставляем тело else.
+
+**C. fc.cpp 684–746 — `FC_allowed_to_rotate` + использование в L1/R1 rotate**
+- Функция проверяет 4 угла позиции после поворота через `MAV_inside` (warehouse наоборот).
+- Используется в `FC_rotate_left` (755) и `FC_rotate_right` (767).
+- Это и есть «камера блокируется стенами и перестаёт вращаться по L1/R1».
+- Удаляем функцию; в rotate_left/right убираем `if(allowed_to_rotate)`, всегда выставляем `fc->rotate = ±0x600`.
+
+**D. fc.cpp 546–638 — `FC_force_camera_behind`: внутренняя wall-aware логика**
+- Функция вызывается извне (`game_tick.cpp` x2, `input_actions.cpp` x5, `memory.cpp` x1, и внутри `FC_setup_initial_camera`). **Саму функцию не удаляем.**
+- Внутри неё: `MAV_height_los_slow` проверка, fallback на 4 альтернативных угла (±100, ±200), emergency toonear setup с saved state.
+- Удаляем wall-collision части: LOS check + 4 альтернативы + emergency toonear setup.
+- Остаётся: посчитать gox/goy/goz behind focus и присвоить fc->want_x/y/z. Простое присваивание.
+
+**E. fc.cpp 641–680 — `FC_setup_initial_camera`: initial LOS check + fallback**
+- На старте миссии: вызывает `there_is_a_los(...)`. Если OK — ставит в default behind. Если нет — `FC_force_camera_behind`.
+- Удаляем LOS check + fallback. Всегда ставим в default behind position (тело then-ветки).
+
+### Что НЕ трогаем (это не wall-vs-camera)
+
+- `FC_calc_focus` (focus position, не camera position)
+- `FC_look_at_focus` (aim yaw/pitch/roll)
+- `FC_can_see_person`, `FC_can_see_point` — это **gameplay-LOS** (используется gameplay-кодом «виден ли NPC из камеры»), камеру не двигает
+- `FC_explosion`, shake-блок
+- Get-behind core (1213–1248 за вычетом wall-reactive части B)
+- Height tracking Y (1252–1300)
+- Distance clamp FC_DIST_MIN/MAX (1302–1342)
+- Smoothing position/angles (1344–1389)
+- Vehicle platform inheritance (881–923)
+- Warehouse transition snap (925–938)
+- `FC_setup_camera_for_warehouse` (entry positioning, не collision)
+- `FC_position_for_lookaround` (first-person look — отдельный режим, не wall avoidance)
+- `FC_alter_for_pos`, `FC_focus_above` — distance/height presets
+- `toonear` механизм в целом — он используется first-person look'ом
+
+### Спорное / вынести в отдельную итерацию
+
+**F. fc.cpp 1256–1260 — `GAME_FLAGS & GF_NO_FLOOR` Y floor clamp**
+- `if (goto_y < 0x28000) goto_y = 0x28000;` — не даёт камере опуститься ниже на уровнях без пола.
+- Это не «wall vs camera», это safety против ухода под землю на специальных уровнях.
+- Не уверен что это надо удалять — спросить пользователя. По умолчанию **оставляю.**
+
+### План удаления
+
+Можно одной итерацией — все A–E. Пользователь сказал «можешь хоть сразу все удалить, главное не гадай». А–E чётко идентифицированы. F отдельно (или вообще оставляем).
+
+### Текущее состояние
+
+- Этап 1: ✅
+- Этап 2: аудит сделан, жду ack пользователя на удаление A–E одной итерацией. По F — отдельный вопрос пользователю.
+- Этап 3 (pipeline analysis): не начат.
+- Этап 4: не начат.
