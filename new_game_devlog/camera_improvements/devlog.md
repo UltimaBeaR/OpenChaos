@@ -528,3 +528,195 @@ Rate mismatch между render frame и physics tick:
 - Bugfix edge-triggered camera keys: ✅
 - Этап 3 (pipeline analysis): ✅ — анализ выше. Точка интеграции найдена, render-time перезаписей в gameplay нет.
 - Этап 4 (новая система): не начат, ждём ack по Варианту A/B.
+
+---
+
+## Запись 9 — решение по архитектуре, план шага 1 (скаффолд)
+
+### Решение пользователя
+
+**Вариант A в строгом виде. Никаких перетираний fc->x/y/z (или других полей старой системы).**
+
+Ключевое уточнение пользователя:
+> «там может быть накапливаемый эффект когда прошлая итерация зависит от результатов предыдущей»
+
+Это важный нюанс который я не сформулировал явно в Варианте A: FC_process **использует свои fc->x/y/z как accumulator между tick'ами** (smoothing `actual += (want - actual) >> 2` читает actual из прошлого тика). Если перетереть fc->x/y/z своими значениями — следующий тик FC_process получит мои значения как стартовую точку smoothing'а, и его накапливаемая траектория сломается.
+
+**Следствие:** fc->x/y/z/yaw/pitch/roll/lens — это **read-only для моей системы**, и **read-only для всех read'еров на render-вне-substitution** (handle_sfx, MFX_CAMERA voices, etc) тоже должны постепенно мигрировать на мои поля — но не в первом шаге.
+
+### Архитектура (финал)
+
+**Новые поля** — добавляю в `FC_Cam` (или nested struct внутри неё). Рабочее имя — `fc->vis.*` («visible / output camera», то что реально видно игроку):
+
+```cpp
+struct FC_Cam {
+    // ... existing fields (не трогаем) ...
+    struct {
+        SLONG x, y, z;
+        SLONG yaw, pitch, roll;
+        SLONG lens;
+    } vis;  // computed by FC_collision_process, snapshotted/lerped by render-interp
+};
+```
+
+(Имя `vis` обсуждаемо. Альтернативы: `out`, `final`, `coll`, отдельный массив `g_vis_cam[FC_MAX_CAMS]`. Я склоняюсь к nested struct внутри FC_Cam для удобства передачи.)
+
+**Pipeline новой системы:**
+
+1. **Physics tick:**
+   - FC_process отрабатывает как раньше → пишет в fc->x/y/z и т.д. Никаких изменений в fc.cpp кроме добавления полей в struct.
+   - **`FC_collision_process()`** (новая функция, чистая, без побочных эффектов на FC_process state) читает fc->x/y/z и focus + другие данные, считает collision-aware значения, пишет в fc->vis.x/y/z и т.д.
+   - На шаге 1 (скаффолд) — просто копирует fc->x/y/z → fc->vis.x/y/z. Алгоритм коллизии — отдельным шагом потом.
+   - `render_interp_capture_camera` модифицируется: снэпшотит fc->vis.* (не fc->x/y/z).
+
+2. **Render frame:**
+   - `RenderInterpFrame` ctor — substitutes interpolated моих snap'ов в **fc->x/y/z** (там где их читают render-time consumers).
+   - **`RenderInterpFrame` dtor — НЕ restores к старым FC_process значениям.** Restore к **моим non-interp** (fc->vis.x/y/z). Это «правильное» состояние «снаружи» — мои значения.
+   - **ВАЖНО — это всё ещё не нарушает накапливание FC_process**, потому что FC_process читает **только fc->x/y/z**, и **на следующем physics tick'е** перед FC_process'ом старые значения нужны.
+   - Подожди. Перечитываю свой план — это **противоречие**. dtor restores к моим = fc->x/y/z = mine. Следующий physics tick FC_process читает fc->x/y/z = mine = НЕ его accumulator. Сломал.
+
+### Re-thinking
+
+Чтобы НЕ перетирать FC_process accumulator, fc->x/y/z **должны** оставаться значениями FC_process даже после render. То есть:
+- В RenderInterpFrame ctor: **save** старые fc->x/y/z в temp, **substitute** fc->x/y/z = lerp(my_prev, my_curr).
+- В RenderInterpFrame dtor: **restore** fc->x/y/z = saved (старые FC_process значения).
+
+Это **ровно как сейчас работает RenderInterpFrame** — только snap'ы теперь мои.
+
+После dtor: fc->x/y/z = FC_process значения (нетронуты, accumulator работает).
+Между ctor и dtor (внутри draw_screen): fc->x/y/z = lerp(my) — render видит мои.
+
+**Что с handle_sfx, MFX и др.?** Они вне substitution (после dtor) → читают FC_process значения, не мои. Это **расхождение** между визуальной камерой (мои) и audio/HUD-yaw (FC_process).
+
+Для шага 1 (скаффолд) — расхождения нет (мои = копия FC_process). Тестируется идентичное поведение.
+
+Для будущих шагов (с реальной collision logic) — расхождение появится. **Решение** — на тот момент менять отдельных читателей чтобы читали fc->vis.* вместо fc->x/y/z. Это правка существующего кода, но это правка **читателей-адаптеров** (audio/HUD), не FC_process логики. Уточню с пользователем в момент когда понадобится.
+
+### План шага 1 — скаффолд (без collision algorithm)
+
+Цель — построить инфраструктуру, в которой моя система **присутствует** и работает в pipeline, но **функционально идентична** старой (потому что копирует значения). Билд + игровой тест должны показать **неизменное** поведение камеры.
+
+Конкретные изменения:
+
+1. **`new_game/src/camera/fc.h`** — добавить nested struct `vis` в `FC_Cam`:
+   ```cpp
+   struct {
+       SLONG x, y, z, yaw, pitch, roll, lens;
+   } vis;
+   ```
+
+2. **`new_game/src/camera/fc.cpp`** — добавить функцию `FC_collision_process()`:
+   ```cpp
+   void FC_collision_process(void) {
+       for (SLONG cam = 0; cam < FC_MAX_CAMS; cam++) {
+           FC_Cam* fc = &FC_cam[cam];
+           if (fc->focus == NULL) continue;
+           // Scaffold: identity copy. Collision logic will go here.
+           fc->vis.x = fc->x;
+           fc->vis.y = fc->y;
+           fc->vis.z = fc->z;
+           fc->vis.yaw = fc->yaw;
+           fc->vis.pitch = fc->pitch;
+           fc->vis.roll = fc->roll;
+           fc->vis.lens = fc->lens;
+       }
+   }
+   ```
+
+3. **`new_game/src/camera/fc.h`** — задекларировать `FC_collision_process`.
+
+4. **`new_game/src/game/game.cpp`** — вызвать `FC_collision_process()` сразу после `FC_process()` (строка 1037-1038).
+
+5. **`new_game/src/engine/graphics/render_interp.cpp`** — модифицировать:
+   - `render_interp_capture_camera(fc)`: снэпшотить fc->vis.x/y/z/yaw/pitch/roll/lens вместо fc->x/y/z/...
+   - `RenderInterpFrame` ctor: substitutes lerp(prev_vis, curr_vis) в fc->x/y/z/yaw/pitch/roll/lens (как сейчас, но из моих snap'ов).
+   - `RenderInterpFrame` dtor: restore fc->x/y/z/etc к saved-original (как сейчас, не меняется).
+   - `render_interp_mark_camera_teleport(fc)`: использует мои snap'ы.
+
+6. **Билд + тест.** Поведение должно быть **визуально идентично** до и после. Если есть расхождение — баг в скаффолде, не в алгоритме.
+
+### Что НЕ делается в шаге 1
+
+- Никакого реального collision algorithm.
+- Не трогаем handle_sfx / MFX / HUD compass / другие читатели FC_cam[0].x/y/z. Расхождения нет.
+- Не трогаем fc->shake / accumulator поля FC_process.
+
+### Scope ограничение от пользователя
+
+**Камера новой системы — только gameplay-режим (где управляется правым стиком, включая driving / in-car).**
+
+Вне scope:
+- EWAY cutscenes (in-game cinematics) — EWAY camera ходит своим pipeline через `EWAY_grab_camera` + `render_interp_apply_eway_camera`. Не трогаем.
+- PLAYCUTS cutscenes (videos / story scenes) — пишет в FC_cam через `AENG_set_camera`. Не трогаем.
+- Outro — отдельная подсистема. Не трогаем.
+- Frontend / menus — камера не активна.
+
+**Следствие для FC_collision_process:** когда `EWAY_grab_camera` возвращает true (cutscene активна) — collision logic skip'ается (или сводится к identity copy). В скаффолде (шаг 1) — копируем безусловно, потому что cutscene path всё равно перетрёт fc->x/y/z через AENG_set_camera/EWAY_grab_camera уже после моей системы → значения моего vis в этом случае «безвредны», просто не используются. Cutscene gate можно добавить во втором шаге когда появится реальная логика и важно её **не выполнять** в cutscene.
+
+### Текущее состояние
+
+- Этап 1–3: ✅
+- Этап 4, шаг 1 (скаффолд): план описан, жду ack пользователя.
+- Этап 4, шаг 2+ (реальная collision logic): после ack по шагу 1 и подтверждения что скаффолд работает.
+
+---
+
+## Запись 10 — инфраструктура vis_cam готова + test toggle
+
+### Файлы
+
+**Новые:**
+- [`new_game/src/camera/vis_cam.h`](../../new_game/src/camera/vis_cam.h) — API: `VC_State` struct, `VC_state[FC_MAX_CAMS]`, `VC_test_offset_enabled`, `VC_process()`, `VC_toggle_test_offset()`.
+- [`new_game/src/camera/vis_cam.cpp`](../../new_game/src/camera/vis_cam.cpp) — реализация: identity copy `FC_cam[*]` → `VC_state[*]` + опциональный Y offset.
+
+**Изменения в существующих:**
+- [`render_interp.cpp`](../../new_game/src/engine/graphics/render_interp.cpp) — `render_interp_capture_camera` теперь читает из `VC_state[idx]` (где `idx = fc - &FC_cam[0]`) вместо `fc->*`. RenderInterpFrame ctor/dtor не тронуты — substitution цели остаются `fc->x/y/z` и restore теми же saved values.
+- [`game.cpp`](../../new_game/src/game/game.cpp) — `#include "camera/vis_cam.h"` + вызов `VC_process()` сразу после `FC_process()` ([строка 1037 + 5](../../new_game/src/game/game.cpp#L1037)).
+- [`input_actions.cpp`](../../new_game/src/game/input_actions.cpp) — `#include "camera/vis_cam.h"` + обработка `KB_BACKSLASH` (`\\`) через `press_pending + consume` → `VC_toggle_test_offset()`. Безусловная, без debug-key gate (тест временный).
+- [`CMakeLists.txt`](../../new_game/CMakeLists.txt) — добавлен `src/camera/vis_cam.cpp`.
+
+**НЕ тронуто:** `fc.h`, `fc.cpp`, `fc_globals.*`, `FC_Cam` struct, RenderInterpFrame ctor/dtor, handle_sfx, panel, mfx, bloom — никаких расхождений в скаффолде, читатели вне substitution path продолжают видеть значения FC_process.
+
+### Что произошло в pipeline
+
+```
+─── Physics tick ───
+FC_process()         // legacy, без изменений; пишет в FC_cam[*]
+VC_process()         // НОВОЕ: читает FC_cam[*], пишет в VC_state[*]
+                     //  - identity copy (+ test Y offset если toggle on)
+GAME_TURN++
+...
+render_interp_capture_camera(&FC_cam[0])
+                     // ИЗМЕНЕНО: снэпшотит VC_state[0], не FC_cam[0]
+
+─── Render frame ───
+RenderInterpFrame ctor:
+  // БЕЗ ИЗМЕНЕНИЙ: substitutes lerp(prev,curr) в fc->x/y/z
+  // Источник lerp — теперь мой VC_state snapshot, цели те же fc->*
+draw_screen
+RenderInterpFrame dtor:
+  // БЕЗ ИЗМЕНЕНИЙ: restore fc->* к saved-original (FC_process values)
+```
+
+### Test toggle
+
+**Клавиша:** `\` (backslash).
+**Поведение:** нажатие → `VC_test_offset_enabled` toggled.
+**Эффект когда включён:** `VC_process` добавляет `+0x8000` к `VC_state[*].y` → визуальная камера лифтится на ~0.5m вверх в мировых координатах.
+**Плавность:** благодаря render-interp lerp моих VC_state значений.
+
+**Значение offset 0x8000** — оценка «полметра» по grep'ам world unit масштабов. Точное соответствие — на глаз пользователя. Если визуально слишком много/мало — корректируем числом.
+
+### Что протестить
+
+1. Запустить миссию (или загрузить save).
+2. Камера должна вести себя как раньше — `VC_test_offset_enabled = false` при старте, identity copy в VC_state → render видит то же что и при отсутствии моей системы.
+3. Нажать `\` — камера плавно но быстро поднимается на ~0.5m вверх в мировых координатах. Все механики (вращение, get-behind, право-стик) продолжают работать поверх — просто всё сдвинуто наверх.
+4. Нажать `\` ещё раз — плавно возвращается на исходную высоту.
+5. Поведение должно работать **независимо от FPS** (тот же фикс press_pending+consume что для F5/F6/F7).
+
+### Текущее состояние
+
+- Этап 1–3: ✅
+- Этап 4 шаг 1 (скаффолд + тест): ✅ инфраструктура сделана, билд OK, ждём результат игрового теста.
+- Этап 4 шаг 2+ (реальная collision logic): после успешного теста скаффолда и описания алгоритма пользователем.

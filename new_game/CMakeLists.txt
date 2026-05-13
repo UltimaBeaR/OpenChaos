@@ -464,6 +464,7 @@ set(SOURCES_NEW
     # === Camera ===
     src/camera/fc.cpp
     src/camera/fc_globals.cpp
+    src/camera/vis_cam.cpp
 
     # === UI ===
     src/ui/frontend/startscr_globals.cpp

@@ -1,6 +1,8 @@
 #include "engine/graphics/render_interp.h"
 #include "debug_interpolation_config.h"
 
+#include "camera/vis_cam.h" // VC_state — source of camera snapshots
+#include "camera/fc_globals.h" // FC_cam — for VC_state index from FC_Cam pointer
 #include "things/core/thing.h"
 #include "things/core/drawtype.h"
 #include "engine/animation/anim_types.h" // GameKeyFrame layout, ANIM_FLAG_LAST_FRAME
@@ -859,13 +861,22 @@ void render_interp_capture_camera(FC_Cam* fc)
 {
     CamSnap* s = cam_find_or_alloc(fc);
     if (!s) return;
+
+    // Source of truth for camera snapshots is VC_state (computed by
+    // VC_process after FC_process), not fc->* directly. fc->* stays as
+    // FC_process's accumulator; VC_state is the post-physics layer the
+    // player actually sees.
+    SLONG idx = (SLONG)(fc - &FC_cam[0]);
+    if (idx < 0 || idx >= FC_MAX_CAMS) return;
+    const VC_State& vc = VC_state[idx];
+
     if (!s->valid) {
-        s->x_curr = fc->x;     s->x_prev = s->x_curr;
-        s->y_curr = fc->y;     s->y_prev = s->y_curr;
-        s->z_curr = fc->z;     s->z_prev = s->z_curr;
-        s->yaw_curr = fc->yaw; s->yaw_prev = s->yaw_curr;
-        s->pitch_curr = fc->pitch; s->pitch_prev = s->pitch_curr;
-        s->roll_curr = fc->roll;   s->roll_prev = s->roll_curr;
+        s->x_curr = vc.x;     s->x_prev = s->x_curr;
+        s->y_curr = vc.y;     s->y_prev = s->y_curr;
+        s->z_curr = vc.z;     s->z_prev = s->z_curr;
+        s->yaw_curr = vc.yaw; s->yaw_prev = s->yaw_curr;
+        s->pitch_curr = vc.pitch; s->pitch_prev = s->pitch_curr;
+        s->roll_curr = vc.roll;   s->roll_prev = s->roll_curr;
         s->valid = true;
         s->skip_once = false;
         return;
@@ -878,12 +889,12 @@ void render_interp_capture_camera(FC_Cam* fc)
     s->pitch_prev = s->pitch_curr;
     s->roll_prev = s->roll_curr;
 
-    s->x_curr = fc->x;
-    s->y_curr = fc->y;
-    s->z_curr = fc->z;
-    s->yaw_curr = fc->yaw;
-    s->pitch_curr = fc->pitch;
-    s->roll_curr = fc->roll;
+    s->x_curr = vc.x;
+    s->y_curr = vc.y;
+    s->z_curr = vc.z;
+    s->yaw_curr = vc.yaw;
+    s->pitch_curr = vc.pitch;
+    s->roll_curr = vc.roll;
 
     if (s->skip_once) {
         s->x_prev = s->x_curr;
