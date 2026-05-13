@@ -427,3 +427,104 @@ Rate mismatch между render frame и physics tick:
 - Bugfix edge-triggered camera keys: ✅
 - Этап 3 (pipeline analysis): не начат
 - Этап 4 (новая система): не начат
+
+---
+
+## Запись 8 — анализ pipeline камеры (Этап 3, блокер перед Этапом 4)
+
+### Карта pipeline
+
+**Physics tick (30Hz design, `g_physics_hz`):**
+
+Внутри [`game.cpp:1008-1114`](../../new_game/src/game/game.cpp#L1008) — `while (physics_acc_ms >= phys_step_ms)` loop:
+
+1. `process_things(1, phys_tick_diff)` — внутри `do_packets()` → `get_hardware_input()` → опрос F5/Del/PgDn/End и т.д. Также: AI, физика, движение.
+2. PARTICLE_Run / OB_process / TRIP_process / DOOR_process / EWAY_process.
+3. WMOVE_draw / BALLOON_process / MAP_process / POW_process.
+4. **`FC_process();`** ([`game.cpp:1037`](../../new_game/src/game/game.cpp#L1037)) — **физический шаг камеры**, вся старая логика FC_Cam в [`fc.cpp`](../../new_game/src/camera/fc.cpp). Включает: FC_calc_focus, vehicle inheritance, warehouse transition, get-behind, right-stick orbit, Y-tracking, distance clamp, smoothing want→actual для xz и углов, lens, shake apply + decay.
+5. GAME_TURN++.
+6. **render-interp snapshot block** ([`game.cpp:1056-1111`](../../new_game/src/game/game.cpp#L1056-L1111)):
+   - `render_interp_capture(p)` для каждого moving Thing (CLASS_PERSON, VEHICLE, PROJECTILE и т.д.).
+   - **`render_interp_capture_camera(&FC_cam[0])`** ([`game.cpp:1091`](../../new_game/src/game/game.cpp#L1091)) — snapshot CURR состояния FC_cam[0] (x/y/z/yaw/pitch/roll/etc).
+   - `render_interp_capture_eway_camera()` — snap EWAY_cam_* globals (cutscene camera).
+   - `render_interp_capture_dirt()`, `render_interp_capture_grenades()`.
+7. `physics_acc_ms -= phys_step_ms`.
+
+После цикла:
+- `g_render_alpha = physics_acc_ms / phys_step_ms` (clamped [0,1]).
+
+**Render frame (free-running, render_fps_cap):**
+
+8. `draw_screen()`:
+   - **`RenderInterpFrame` ctor** ([`render_interp.h`](../../new_game/src/engine/graphics/render_interp.h)):
+     - Walks all valid snapshots.
+     - Writes interpolated `lerp(prev, curr, g_render_alpha)` directly into `Thing.WorldPos / Tweened` angles AND **directly into FC_cam[0] fields** (x/y/z/yaw/pitch/roll).
+   - All render code (AENG_draw, FIGURE_draw, panel HUD, bloom, etc) читает FC_cam[0] как обычно — видит интерполированные значения.
+   - **EWAY/PLAYCUTS path** на render-тике (cutscene only):
+     - `aeng.cpp:6069` — `EWAY_grab_camera` overrides fc->x/y/z в FC_cam (cutscene).
+     - `render_interp_apply_eway_camera` substitutes EWAY raw values с интерполированными EWAY values.
+     - `playcuts.cpp:374,448` — пишет fc->lens (PLAYCUTS only).
+     - `aeng.cpp:559-565` (`AENG_set_camera`) — пишет в FC_cam (PLAYCUTS only).
+   - **`RenderInterpFrame` dtor** — restores authoritative post-tick values back в FC_cam[0].
+
+9. `handle_sfx()` ([`game.cpp:1342`](../../new_game/src/game/game.cpp#L1342)):
+   - `MFX_set_listener` использует `FC_cam[0].yaw/pitch/roll` (authoritative, post-RenderInterpFrame-dtor).
+   - `MFX_update()` → внутри для `MFX_CAMERA` voices читает `FC_cam[0].x/y/z` ([`mfx.cpp:1003-1006`](../../new_game/src/engine/audio/mfx.cpp#L1003-L1006)).
+
+### Ответ на ключевой вопрос пользователя: «есть ли расчёты камеры на render-тике вне интерполяции?»
+
+**В обычном gameplay — нет.** Все write'ы в FC_cam[0] на render-тике принадлежат cutscene-path'у (EWAY / PLAYCUTS), и они уже корректно обрабатываются через `render_interp_apply_eway_camera`. Read'еры на render-тике (panel HUD, MFX, bloom) — это только чтения, не двигают камеру.
+
+**В cutscenes — да**, но пользователь явно сказал «кинематики не трогать», и их substitution path уже работает корректно отдельной системой.
+
+**Вывод: точка интеграции для новой системы существует и чистая.**
+
+### Точка интеграции для Этапа 4
+
+**Между [`FC_process()` (game.cpp:1037)](../../new_game/src/game/game.cpp#L1037) и [`render_interp_capture_camera(&FC_cam[0])` (game.cpp:1091)](../../new_game/src/game/game.cpp#L1091).**
+
+Любая строка в диапазоне 1038-1090 подойдёт. Самая чистая — сразу после `FC_process();`. На этой точке:
+- FC_process уже записал свои значения в `FC_cam[0].x/y/z/yaw/pitch/roll/etc` (включая shake, smoothing, get-behind, всё).
+- render-interp ещё не сделал snapshot — значит мои записи попадут в snapshot.
+
+### Архитектурный вопрос на ack пользователя
+
+Пользователь явно сказал: «отдельный набор переменных» + «интерполяция от своих переменных».
+
+Я вижу два варианта реализации этого:
+
+**Вариант A — отдельные поля в FC_Cam (или отдельная struct):**
+- Старая система FC_process пишет в fc->x/y/z (как сейчас).
+- Моя логика читает fc->x/y/z (результат старой), пишет в fc->cam_x/y/z (новые поля).
+- `render_interp_capture_camera` модифицирован: снэпшотит мои fc->cam_x/y/z, **не** fc->x/y/z.
+- `RenderInterpFrame` ctor: substitutes interpolated моих snap'ов в **fc->x/y/z** (там где их читают render / MFX / panel).
+- `RenderInterpFrame` dtor: восстанавливает fc->x/y/z **к моим non-interp значениям**, не к старым (значениям FC_process).
+- Между render frame'ами `handle_sfx`/`MFX_update` читают мои non-interp значения через fc->x/y/z.
+
+Эффект: «снаружи» FC_cam[0].x/y/z всегда мои (collision-aware) значения. Старая система продолжает работать в своих параллельных полях — её логика не сломается потому что она читает свои.
+
+**Вариант B — перетирание fc->x/y/z поверх FC_process:**
+- Старая система FC_process пишет в fc->x/y/z.
+- Моя логика читает fc->x/y/z, считает свою позицию, **перетирает** fc->x/y/z своими значениями.
+- Никаких изменений в render-interp / RenderInterpFrame не нужно.
+- Старые промежуточные значения теряются (никому не нужны).
+
+Эффект тот же что и Вариант A снаружи. Но **формально нарушает** правило «отдельные переменные».
+
+Я бы предложил **Вариант A** (формально соответствует тому что ты сказал), но он требует менять `render_interp.cpp` (модификация существующего render-interp кода). Вариант B проще, но нарушает буквальное «отдельные переменные».
+
+### План работы по Этапу 4 (после ack)
+
+1. Решить Вариант A или B (после твоего ответа).
+2. Создать каркас новой системы (имена полей / функции / файл — fc_collision.cpp или внутри fc.cpp отдельным блоком). Только подменяет fc->x/y/z своими значениями, идентичными результату FC_process. Билд + тест — поведение не меняется.
+3. Только потом начинаем строить collision algorithm (ты опишешь как должна работать).
+
+### Текущее состояние
+
+- Этап 1: ✅
+- Этап 2: ✅
+- Этап 2bis: ✅
+- Bugfix вертикального стика: ✅
+- Bugfix edge-triggered camera keys: ✅
+- Этап 3 (pipeline analysis): ✅ — анализ выше. Точка интеграции найдена, render-time перезаписей в gameplay нет.
+- Этап 4 (новая система): не начат, ждём ack по Варианту A/B.
