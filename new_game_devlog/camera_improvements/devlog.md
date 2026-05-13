@@ -343,3 +343,87 @@ A–E удалены, тест пройден, F оставлен. Этап 2 з
 - Bugfix вертикального стика: ✅
 - Этап 3 (pipeline analysis): не начат
 - Этап 4 (новая система): не начат
+
+---
+
+## Запись 7 — фикс класса бага «edge-triggered camera keys теряются на FPS > physics rate»
+
+### Симптом
+
+F5/F6/F7 (set camera type 1/2/3 + behind) на 60+ FPS с интерполяцией срабатывали 1 из 10–15 нажатий. На 30 FPS cap без интерполяции — стабильно. То же касается Delete/PgDn (rotate left/right на клаве) и End (force behind на клаве) — но они нажимаются часто, потеря одного клика не замечалась.
+
+### Причина (architecture-level)
+
+Rate mismatch между render frame и physics tick:
+
+- [`input_frame_update`](../../new_game/src/engine/input/input_frame.cpp#L169) копирует `prev = curr` и обновляет `curr` **каждый render frame** (через `LibShellActive` в [host.cpp:241](../../new_game/src/engine/platform/host.cpp#L241)).
+- [`input_key_just_pressed(k)`](../../new_game/src/engine/input/input_frame.cpp#L264) = `curr[k] && !prev[k]` — true только на одном snapshot'е.
+- F5/F6/F7 опрашиваются внутри [`get_hardware_input`](../../new_game/src/game/input_actions.cpp#L3338), которая вызывается из `do_packets` ([thing.cpp:506](../../new_game/src/things/core/thing.cpp#L506)) **только когда physics accumulator дотягивает до tick** ([game.cpp:1008-1015](../../new_game/src/game/game.cpp#L1008-L1015)).
+
+Сценарий потери: нажал F5 на render frame N → `prev=0, curr=1`. Physics accumulator < tick → process_things пропущен → клик не прочитан. Render frame N+1 → `input_frame_update` → `prev=1, curr=1` или `0`. Edge стёрт. Когда physics tick наконец отработает — `just_pressed = false`. Клик потерян.
+
+При physics_hz=30, render=60+ → ~50% кадров без physics tick → ~50% кликов теряется.
+
+### Решение
+
+Заменено `input_key_just_pressed` на `input_key_press_pending` + `input_key_consume` (известный паттерн в проекте — уже используется в [siren](../../new_game/src/game/input_actions.cpp#L2979-L2981), [JUMP](../../new_game/src/game/input_actions.cpp#L3808) в той же функции, в [widget.cpp](../../new_game/src/ui/menus/widget.cpp#L69-L70), [gamemenu.cpp](../../new_game/src/ui/menus/gamemenu.cpp#L206), [playcuts.cpp](../../new_game/src/missions/playcuts.cpp#L511)).
+
+`s_keys_press_pending` латчит rising edge и **переживает** frame_update'ы, сбрасывается только явным `input_key_consume`. Подходит для consumer'а, работающего на ритме отличном от frame_update.
+
+### Affected — 6 клавиатурных edge-triggered camera actions
+
+Все в `get_hardware_input`, [`input_actions.cpp:3338-3375`](../../new_game/src/game/input_actions.cpp#L3338-L3375):
+
+| Клавиша | Действие | Default scancode |
+|---------|----------|------------------|
+| F5 | set camera type 1 + behind | hard-coded `KB_F5` |
+| F6 | set camera type 2 + behind | hard-coded `KB_F6` |
+| F7 | set camera type 3 + behind | hard-coded `KB_F7` |
+| End | camera behind (без смены type) | `keybrd_button_use[JOYPAD_BUTTON_CAMERA]`, default 207 (KB_END), config.ini `[Keyboard] camera` |
+| Delete | rotate left (как L1) | `keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]`, default 211, config.ini `[Keyboard] cam_left` |
+| PgDn | rotate right (как R1) | `keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]`, default 209, config.ini `[Keyboard] cam_right` |
+
+### НЕ affected (по архитектуре)
+
+- **Геймпад LB (L1, button 9)** — set type 0 + behind через [`input_btn_held`](../../new_game/src/game/input_actions.cpp#L3129). Level semantic, не edge, race нет.
+- **Геймпад L2/R2** — для камеры не маппятся (комментарий [input_actions.cpp:3134](../../new_game/src/game/input_actions.cpp#L3134) «L2/R2 no longer map to camera rotation on gamepad»). На foot — PUNCH/KICK, в машине — gas/brake.
+- **Правый стик геймпада** — отдельный код в [fc.cpp:806-836](../../new_game/src/camera/fc.cpp#L806-L836). Не трогался.
+- На геймпаде установка type 1/2/3 (как F5/F6/F7) не реализована — нет.
+
+### Удалён неверный комментарий
+
+В [input_actions.cpp:3358-3362](../../new_game/src/game/input_actions.cpp) (до фикса) был комментарий:
+> «input_frame edge-detect doesn't need consume»
+
+Это утверждение **ложно** в условиях decoupled physics/render rate и фактически являлось источником этого бага — кто-то (видимо я в прошлой миграции) предполагал что не нужно. Удалён, заменён комментарием объясняющим почему нужен press_pending+consume.
+
+### Валидация
+
+Пользователь протестировал:
+- F5, F6, F7 — работают каждое нажатие. ✅
+- Delete, PgDn — работают каждое нажатие. ✅
+- End — «делает то же самое что F5, разницы не увидел; считаем что ок». ✅
+  - Note: по коду F5 = `FC_change_camera_type(1)` + force behind (меняет presets cam_dist/cam_height на type 1: dist=0x280, height=0x20000), End = только force behind (type не меняется). Если type уже был 1 после F5 — эффекты идентичны. Если был дефолт type 0 — должны отличаться. Тонкая разница которую пользователь не стал разбирать, не блокер.
+- Регрессы (правый стик, LB геймпад) — не проверены отдельно, но архитектурно не affected.
+
+### Note для будущего агента
+
+**Любое новое edge-triggered key input в `get_hardware_input` (или другом коде, читаемом из `do_packets`/physics tick) ДОЛЖНО использовать `input_key_press_pending + input_key_consume`, не `input_key_just_pressed`.**
+
+`input_key_just_pressed` корректно только если consumer работает на том же ритме что `input_frame_update` (т.е. на render-тике). Для game-tick / physics-tick consumer'ов — потеря edges гарантирована при render_fps > physics_fps.
+
+Тот же паттерн распространяется на `input_btn_just_pressed` для gamepad button — там есть `input_btn_press_pending` + `input_btn_consume`. Применять симметрично, если есть gamepad-кнопки опрашиваемые на physics tick через edge.
+
+### Связь с предыдущей задачей
+
+Этот баг **не** связан с удалением wall-collision (Этап 2) и не связан с bugfix вертикального стика (Запись 6). Это отдельная архитектурная проблема в input-слое, которая просто всплыла по дороге.
+
+### Текущее состояние
+
+- Этап 1: ✅
+- Этап 2: ✅
+- Этап 2bis: ✅
+- Bugfix вертикального стика: ✅
+- Bugfix edge-triggered camera keys: ✅
+- Этап 3 (pipeline analysis): не начат
+- Этап 4 (новая система): не начат
