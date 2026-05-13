@@ -267,3 +267,32 @@ A–E удалены, тест пройден, F оставлен. Этап 2 з
 - Этап 2bis (reference doc по удалённым системам): не начат
 - Этап 3 (pipeline analysis): не начат
 - Этап 4 (новая система): не начат
+
+---
+
+## Запись 5 — reference doc по удалённым системам создан
+
+Создан [`legacy_wall_collision_reference.md`](legacy_wall_collision_reference.md) — справочник по системам A–E (плюс описание F которая не удалена, и список того что не тронуто и почему).
+
+Структура файла:
+- Архитектура «want vs actual» (фундамент)
+- Toonear режим (общая инфра, использовалась в wall-collision и first-person)
+- A: 8-шаговый raycast push (outdoor + warehouse ветки, fence detection)
+- B: wall-reactive get-behind boost
+- C: FC_allowed_to_rotate + L1/R1 lock
+- D: FC_force_camera_behind wall-aware часть (LOS + 4 альтернативы + emergency toonear)
+- E: FC_setup_initial_camera LOS + fallback (с упоминанием бага MuckyFoot `focus_x` вместо `focus_y` во втором аргументе)
+- F: GF_NO_FLOOR Y floor clamp (НЕ удалено)
+- Что не тронуто и почему: gameplay-LOS, first-person, camera core
+- Подсказки для построения новой системы (чего переиспользовать, чего избегать)
+
+Назначение — справочник для будущих сессий когда понадобится «как старое решало X»: открыть файл, найти нужную секцию, прочитать алгоритм + магические числа + зависимости.
+
+### Текущее состояние
+
+- Этап 1: ✅
+- Этап 2: ✅ (удаление A–E, F оставлен)
+- Этап 2bis: ✅ (reference doc создан)
+- **Промежуточная задача от пользователя:** «один мерзкий баг в камере» — детали ещё не сказаны, ждём от пользователя
+- Этап 3 (pipeline analysis): не начат
+- Этап 4 (новая система): не начат
