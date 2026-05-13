@@ -832,6 +832,8 @@ void FC_process()
                         fc->want_y = min_y;
                     if (fc->want_y > max_y)
                         fc->want_y = max_y;
+
+                    fc->nobehind = 0x2000;
                 }
             }
         } else {
