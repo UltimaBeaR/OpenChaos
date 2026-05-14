@@ -19,6 +19,48 @@
 static bool s_vc_dump_pending = false;
 static SLONG s_vc_dump_counter = 0;
 
+// Camera-position smoothing — explicit three-mode state machine.
+//
+//   OFF: nothing — vc passes through as fc identity copy. No lerp, no
+//        offset, no state. This is the dominant case in normal play.
+//   COLLISION: a wall is currently shifting vc toward focus. Per-tick lerp
+//        prev_vc → computed_vc with constant alpha smooths the jitter of
+//        min_d_hit as the player slides along the wall. Entry from OFF is
+//        a hard snap (no lerp on the entry tick) so the wall visibly stops
+//        the camera.
+//   EXIT: wall just cleared. We keep the SAME lerp mechanism but with
+//        target = fc (identity, since vc_process_one didn't shift vc) and
+//        the "keep" weight shrinking linearly from its COLLISION value
+//        toward 0 over VC_EXIT_TICKS ticks. As keep → 0 the lerp degenerates
+//        into vc = fc, fading our smoothing out continuously. Using the same
+//        lerp formula as COLLISION (only changing target and weight) keeps
+//        the camera's velocity continuous across the COL→EXIT boundary —
+//        a static offset-taper here would create a velocity discontinuity
+//        visible as a 1–2-frame jerk at the moment of separation.
+enum VC_SmoothMode {
+    VC_SM_OFF,
+    VC_SM_COLLISION,
+    VC_SM_EXIT,
+};
+
+struct VC_Smooth {
+    VC_SmoothMode mode;
+    // Previous tick's final vc, blended into current tick by both
+    // COLLISION and EXIT modes.
+    SLONG prev_x, prev_y, prev_z;
+    // EXIT countdown. Drops from VC_EXIT_TICKS to 0; reaching 0 returns to
+    // OFF. Scales the "keep" weight of the lerp linearly so smoothing
+    // strength tapers from full to none over the fade.
+    SLONG exit_ticks_left;
+};
+
+static VC_Smooth s_smooth[FC_MAX_CAMS] = {};
+
+// Length of the EXIT fade in physics ticks. Physics runs at
+// UC_PHYSICS_DESIGN_HZ = 20 Hz by default, so 10 ≈ 0.5 s — short enough
+// to feel responsive, long enough that the lerp visibly tapers.
+static const SLONG VC_EXIT_TICKS = 10;
+
 // Cutscene gates — these globals live in other subsystems and we only need
 // to read them. Local extern declarations avoid pulling EWAY/PLAYCUTS
 // headers into the camera layer for two flags.
@@ -64,6 +106,14 @@ static const SLONG VC_NEAR_CLIP_PAD = 0x800;
 // what the original 8-step push covered with much wider steps; 32 gives ~1
 // MAV cell of resolution along a typical 3–4m third-person distance.
 static const SLONG VC_RAY_SAMPLES = 32;
+
+// Lerp weight applied to the freshly computed camera position when both the
+// previous and current physics tick were in collision. Lower = smoother
+// (and laggier). Applied per-tick: vc = lerp(prev_vc, computed_vc, num/den).
+// Only kicks in for sustained collision — entry into and exit from collision
+// stay snap-responsive on purpose.
+static const SLONG VC_SMOOTH_ALPHA_NUM = 6;
+static const SLONG VC_SMOOTH_ALPHA_DEN = 10;
 
 // MAVHEIGHT delta above the focus cell needed to count a sample as "wall".
 // Without this, MAV_inside returns true on every step along flat ground —
@@ -155,7 +205,10 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 
 // Processing layer for one camera. Reads the identity-copy `vc` plus the
 // focus point and mutates `vc.*` to push the visible camera in toward the
-// focus when geometry would otherwise punch into the frame.
+// focus when geometry would otherwise punch into the frame. Returns true
+// if `vc` was actually shifted (i.e. a wall was detected and acted upon).
+// Smoothing is applied later, in VC_process — this function only computes
+// the raw target position.
 //
 // Sampling model: camera treated as a sphere of radius VC_CAMERA_RADIUS.
 // Five rays are sampled from focus — one to the centre, four to side offsets
@@ -169,16 +222,8 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 // horizontal-right approximation is accurate enough, and ignoring pitch
 // keeps the side rays in a stable horizontal band rather than rolling
 // across the frame).
-static void vc_process_one(FC_Cam* fc, VC_State& vc, const VC_FocusPoint& focus)
+static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus)
 {
-    // Cutscenes run their camera through EWAY_grab_camera / PLAYCUTS and own
-    // their framing — we leave vc as identity in that case.
-    if (EWAY_cam_active || PLAYCUTS_playing) return;
-
-    // No focus → vc stays as identity copy of fc->* (which is itself stale,
-    // but we don't have a meaningful raycast origin without focus).
-    if (fc->focus == NULL) return;
-
     // PSX angle index 0..2047. vc.yaw is in shifted units (PSX angle × 256).
     SLONG yaw_psx = (vc.yaw >> 8) & 2047;
 
@@ -269,13 +314,13 @@ static void vc_process_one(FC_Cam* fc, VC_State& vc, const VC_FocusPoint& focus)
         fflush(stderr);
     }
 
-    if (fail_count == 0) return;
+    if (fail_count == 0) return false;
 
     SLONG dx = vc.x - focus.x;
     SLONG dy = vc.y - focus.y;
     SLONG dz = vc.z - focus.z;
     SLONG d_now = QDIST3(std::abs(dx), std::abs(dy), std::abs(dz));
-    if (d_now <= 0) return; // degenerate — camera coincident with focus
+    if (d_now <= 0) return false; // degenerate — camera coincident with focus
 
     SLONG d_new = min_d_hit - VC_WALL_OFFSET;
 
@@ -287,7 +332,7 @@ static void vc_process_one(FC_Cam* fc, VC_State& vc, const VC_FocusPoint& focus)
     // (d_new == d_now) is where the wall first enters its NEAR_PAD margin;
     // a fraction past that, d_new < d_now and we start pulling the camera
     // in smoothly.
-    if (d_new >= d_now) return;
+    if (d_new >= d_now) return false;
 
     if (d_new <= 0) {
         // Hit closer than the wall-offset clearance — slide the camera all
@@ -296,15 +341,15 @@ static void vc_process_one(FC_Cam* fc, VC_State& vc, const VC_FocusPoint& focus)
         vc.x = focus.x;
         vc.y = focus.y;
         vc.z = focus.z;
-        return;
+    } else {
+        // Scale (vc - focus) by d_new/d_now. 64-bit intermediate to avoid
+        // overflow — dx and d_new can each reach hundreds of thousands in
+        // shifted units, and their product can exceed 2^31.
+        vc.x = focus.x + (SLONG)((std::int64_t)dx * d_new / d_now);
+        vc.y = focus.y + (SLONG)((std::int64_t)dy * d_new / d_now);
+        vc.z = focus.z + (SLONG)((std::int64_t)dz * d_new / d_now);
     }
-
-    // Scale (vc - focus) by d_new/d_now. 64-bit intermediate to avoid
-    // overflow — dx and d_new can each reach hundreds of thousands in
-    // shifted units, and their product can exceed 2^31.
-    vc.x = focus.x + (SLONG)((std::int64_t)dx * d_new / d_now);
-    vc.y = focus.y + (SLONG)((std::int64_t)dy * d_new / d_now);
-    vc.z = focus.z + (SLONG)((std::int64_t)dz * d_new / d_now);
+    return true;
 }
 
 void VC_process(void)
@@ -331,17 +376,90 @@ void VC_process(void)
         vc.roll = fc->roll;
         vc.lens = fc->lens;
 
-        // Focus point passed into processing. Currently the FC_look_at_focus
-        // want-target: focus_x/z (object position) and focus_y + lookabove
-        // (Y-target the camera aims at). Treated as opaque by vc_process_one
-        // — if a better focus source is found, only this construction
-        // changes.
+        VC_Smooth& s = s_smooth[cam];
+
+        // Cutscenes own their framing through EWAY/PLAYCUTS — leave vc as
+        // identity copy and force OFF, so that on return to gameplay the
+        // first tick is treated as a fresh start.
+        if (EWAY_cam_active || PLAYCUTS_playing || fc->focus == NULL) {
+            s.mode = VC_SM_OFF;
+            continue;
+        }
+
+        // Focus point passed into processing.
         VC_FocusPoint focus = {
             fc->focus_x,
             fc->focus_y + fc->lookabove,
             fc->focus_z,
         };
 
-        vc_process_one(fc, vc, focus);
+        bool in_collision = vc_process_one(vc, focus);
+
+        if (in_collision) {
+            // COLLISION mode. First tick of contact is a snap (no lerp);
+            // sustained ticks blend prev → freshly computed vc.
+            if (s.mode == VC_SM_COLLISION) {
+                SLONG keep = VC_SMOOTH_ALPHA_DEN - VC_SMOOTH_ALPHA_NUM;
+                vc.x = (SLONG)(((std::int64_t)s.prev_x * keep
+                        + (std::int64_t)vc.x * VC_SMOOTH_ALPHA_NUM)
+                    / VC_SMOOTH_ALPHA_DEN);
+                vc.y = (SLONG)(((std::int64_t)s.prev_y * keep
+                        + (std::int64_t)vc.y * VC_SMOOTH_ALPHA_NUM)
+                    / VC_SMOOTH_ALPHA_DEN);
+                vc.z = (SLONG)(((std::int64_t)s.prev_z * keep
+                        + (std::int64_t)vc.z * VC_SMOOTH_ALPHA_NUM)
+                    / VC_SMOOTH_ALPHA_DEN);
+            } else {
+                s.mode = VC_SM_COLLISION;
+            }
+            s.prev_x = vc.x;
+            s.prev_y = vc.y;
+            s.prev_z = vc.z;
+        } else {
+            // No collision this tick.
+            if (s.mode == VC_SM_COLLISION) {
+                // Just exited — start the smoothing fade-out. prev_vc is
+                // already up to date from the last COLLISION tick.
+                s.exit_ticks_left = VC_EXIT_TICKS;
+                s.mode = VC_SM_EXIT;
+            }
+            if (s.mode == VC_SM_EXIT) {
+                s.exit_ticks_left--;
+                if (s.exit_ticks_left <= 0) {
+                    s.mode = VC_SM_OFF;
+                    // vc already equals fc (identity copy); prev_vc no longer used.
+                } else {
+                    // Same lerp formula as COLLISION mode, but
+                    //   (a) target = fc (vc was left as identity by
+                    //       vc_process_one since in_collision is false), and
+                    //   (b) keep weight is linearly scaled by ticks_left so
+                    //       it fades from the COLLISION base value to 0.
+                    // Net effect: lerp converges toward fc as keep → 0,
+                    // exactly degenerating to vc = fc at timer end. No
+                    // velocity discontinuity at the COL→EXIT boundary
+                    // because the lerp mechanism is unchanged — only the
+                    // target switched (from collision-shifted to identity)
+                    // and the weight started shrinking.
+                    SLONG keep_num = (VC_SMOOTH_ALPHA_DEN - VC_SMOOTH_ALPHA_NUM)
+                                     * s.exit_ticks_left;
+                    SLONG keep_den = VC_EXIT_TICKS * VC_SMOOTH_ALPHA_DEN;
+                    SLONG drop_num = keep_den - keep_num;
+                    SLONG fc_x = vc.x, fc_y = vc.y, fc_z = vc.z;
+                    vc.x = (SLONG)(((std::int64_t)s.prev_x * keep_num
+                                    + (std::int64_t)fc_x * drop_num)
+                                   / keep_den);
+                    vc.y = (SLONG)(((std::int64_t)s.prev_y * keep_num
+                                    + (std::int64_t)fc_y * drop_num)
+                                   / keep_den);
+                    vc.z = (SLONG)(((std::int64_t)s.prev_z * keep_num
+                                    + (std::int64_t)fc_z * drop_num)
+                                   / keep_den);
+                    s.prev_x = vc.x;
+                    s.prev_y = vc.y;
+                    s.prev_z = vc.z;
+                }
+            }
+            // mode == OFF: vc stays as identity copy of fc, nothing to do.
+        }
     }
 }
