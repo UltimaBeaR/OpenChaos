@@ -34,9 +34,20 @@ static inline int ftol(float f)
 
 // uc_orig: POLY_ZCLIP_PLANE (fallen/DDEngine/Headers/poly.h)
 // Near clip plane distance. Used in projection, depth remap, viewport, effects, characters.
-// WARNING: do not change this value — many hardcoded constants throughout the codebase
-// (e.g. bounding sphere radii, 32768 scale factors in figure.cpp) were calibrated for 1/64.
-#define POLY_ZCLIP_PLANE (1.0F / 64.0F)
+//
+// 2026-05-15: lowered from the original 1/64 to 1/512 (×8 closer to the camera)
+// to stop the renderer's near-clip plane from cutting into wall geometry at
+// shallow-angle corners — visible as "guts/back-faces" appearing on the side of
+// the screen when the camera-collision system pinned the camera flush against
+// a wall. On PC with a float reverse-z depth buffer this leaves plenty of
+// precision (no z-fighting at the horizon was observed during testing). All
+// known callers either use this macro directly (so they rescale automatically)
+// or have been updated to derive their constants from it. If this is ever
+// re-tuned, watch out for: shader uniform u_view_z_tl_scale in core.cpp
+// (driven from POLY_ZCLIP_PLANE), sprite sort z-bias in sprite.cpp (uses the
+// macro directly), and ge_set_depth_bias's empirical "*512" polygon-offset
+// multiplier which is calibrated for the current z-buffer precision.
+#define POLY_ZCLIP_PLANE (1.0F / 512.0F)
 
 // uc_orig: POLY_init (fallen/DDEngine/Headers/poly.h)
 // One-time init for the polygon renderer. Call once at program startup.

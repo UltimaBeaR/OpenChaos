@@ -276,8 +276,13 @@ void SPRITE_draw_rotated(
             switch (sort) {
             case SPRITE_SORT_NORMAL:
 
-                mid.z -= 1.0F / 64.0F;
-                mid.Z += 1.0F / 64.0F;
+                // Sprite z-bias: nudge by one near-plane unit toward the camera
+                // to keep sprites sorting correctly against geometry. The
+                // original game hardcoded 1/64 here because POLY_ZCLIP_PLANE
+                // happened to be 1/64; using the macro keeps this in sync if
+                // the near plane is tuned.
+                mid.z -= POLY_ZCLIP_PLANE;
+                mid.Z += POLY_ZCLIP_PLANE;
 
                 if (mid.z < 0.0F) {
                     mid.z = 0.0F;

@@ -1233,3 +1233,92 @@ Wall-collision сейчас работает только на стенах зд
 - Диагностика кишек: ✅ near plane подтверждён.
 - План работ по near plane: ✅ записан выше.
 - Готово к коммиту (1 файл: `vis_cam.cpp`).
+
+---
+
+## Запись 16 — 2026-05-15 — снижение POLY_ZCLIP_PLANE 1/64 → 1/512 + калибровка зависимостей
+
+### Решение
+
+Глобально снизили `POLY_ZCLIP_PLANE` с `1/64` до `1/512` (×8 ближе к камере). Это:
+1. Закрывает «кишки на углах стен» (главная цель — обнаружено диагностикой в Записи 15).
+2. Само по себе улучшение поверх оригинала: оригинальные 1/64 — наследие PSX z-precision ограничений; на PC с float reverse-z buffer'ом мы можем позволить себе значительно меньший near.
+
+Пользователь визуально не наблюдал z-fighting на дальних объектах при тесте 1/4096 (потолок), так что 1/512 — со значительным запасом по precision.
+
+### Бинарный поиск значения
+
+- **1/256 (×4):** обычные стены чистые, но при «Дарси на выступе» (близкая позиция focus к стене) ещё видны кишки.
+- **1/512 (×8):** все известные углы чистые. ← **выбрано**
+- 1/4096 (×64) был тестовым потолком, не нужен.
+
+### Калибровка зависимостей
+
+**Прямые usages `POLY_ZCLIP_PLANE`** (grep по всему `new_game/src`) — все 30+ мест уже derived: `aeng.cpp` (sz clamp), `polypage.cpp` (z-buffer encode), `glow.cpp` (glow z clamp), `facet.cpp` (near clip), `poly.cpp` (projection / screen mul / sprite scale / fog uniforms / clip vertex / dist buffer). **Автоматически масштабируются.**
+
+**Hardcoded `1/64` или `64.0` в формулах** — найден один прямой:
+
+| Файл | Что было | Что стало |
+|---|---|---|
+| `sprite.cpp:279-280` | `mid.z -= 1.0F / 64.0F; mid.Z += 1.0F / 64.0F` (z-bias для SPRITE_SORT_NORMAL) | `POLY_ZCLIP_PLANE` directly |
+
+**Far facets fade (lit-path):**
+
+Шейдер `common_frag.glsl:114` имел hardcoded `* 64.0` для приведения lit-path `v_view_z` (raw world z) к TL-path scale (`z / POLY_ZCLIP_PLANE`), чтобы сравнить с `u_fog_near/u_fog_far` которые калиброваны в TL units. Это и было причиной «far facets резко прыгают» на тесте 1/4096.
+
+Заменено на uniform `u_view_z_tl_scale`, выставляемый из C++ как `1.0f / POLY_ZCLIP_PLANE` один раз в `init_shaders` ([core.cpp](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp)). Шейдер автоматически синхронизируется при любом изменении `POLY_ZCLIP_PLANE` в `poly.h`.
+
+**Не near-plane related (проверено, не трогали):**
+- `vehicle.cpp:694` — `shad_elongate / 64` (fixed-point integer→float conversion)
+- `ribbon.cpp:45` — texture V scroll scaling
+- `facet.cpp:2909` — facet Y → texcoord
+- `figure.cpp:163-165` — color scaling
+- `crinkle.cpp:352` — color scaling
+- `frontend.cpp:362-363` — UI scaling
+- `sky.cpp:72` — pitch random angle
+- `polypage.cpp:519` — table index
+- `figure.cpp` `32768`-ки — fixed-point matrix scaling (×32768 = fixed-point 1.0)
+
+**Косвенные зависимости через z-precision (не lockstep с POLY_ZCLIP_PLANE):**
+
+`ge_set_depth_bias` в [core.cpp:1039](../../new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp#L1039) — `glPolygonOffset(-1.0f, (float)(-bias * 512))`. Empirical mapping D3D6 ZBIAS (16-bit Z) → GL polygon offset (24-bit Z). При изменении near plane z-precision GL buffer перераспределяется, тот же polygon offset даёт другой визуальный сдвиг. На 1/4096 пользователь видел shadow offset — на 1/512 визуально OK, не трогали. Если регрессии появятся, надо подбирать `512`-множитель эмпирически.
+
+### Прогресс по known_issues
+
+«Объекты прорезаемые near clipping plane» — **значительно уменьшено**, но не полностью устранено. Кишки на углах **зданий** ушли (wall-collision покрывает MAV_inside-стены и держит камеру в `WALL_OFFSET` от них; в зазор 0.5м near plane 1/512 теперь не пролазит). **Остаётся:** для геометрии не покрытой wall-collision (машины, бордюры, мебель, склоны) камера всё ещё может оказаться вплотную → near plane задевает. Плюс overshoot в модель Дарси при `d_new <= 0` оставляет камеру внутри её модели — там near plane всегда режет, нужно скрытие модели (отдельная задача).
+
+### Что в коммите этой итерации
+
+```
+M new_game/src/engine/graphics/pipeline/poly.h
+    POLY_ZCLIP_PLANE 1/64 → 1/512 + расширенный комментарий
+
+M new_game/src/engine/graphics/graphics_engine/backend_opengl/shaders/common_frag.glsl
+    + uniform u_view_z_tl_scale (заменяет hardcoded * 64.0)
+
+M new_game/src/engine/graphics/graphics_engine/backend_opengl/game/core.cpp
+    + s_tl_u_view_z_tl_scale: location + setup в init_shaders
+    + #include poly.h
+
+M new_game/src/engine/graphics/geometry/sprite.cpp
+    1/64 → POLY_ZCLIP_PLANE для SPRITE_SORT_NORMAL z-bias
+
+M new_game_planning/known_issues_and_bugs.md
+    "Объекты прорезаемые near clipping plane" — закрыто.
+
+M new_game_devlog/camera_improvements/devlog.md
+    +Запись 16 (эта).
+```
+
+### Проверки которые прошёл пользователь
+
+- Углы стен — кишки ушли.
+- Дарси на выступе — кишки ушли.
+- Far facets — плавный fade-in.
+- Тени, спрайты, z-fighting вдалеке, UI, эффекты — визуально OK.
+
+### Текущее состояние
+
+- Near plane fix: ✅ закоммичено в плане.
+- Калибровка зависимостей: ✅ найдены и поправлены прямые.
+- Дальше — возврат к камере: расширение wall-collision на бордюры / землю / машины / интерьеры (записи 13/14 список открытых проблем).

@@ -16,6 +16,7 @@
 #include "engine/graphics/aspect_clamp.h" // FOV_CAP_ASPECT / FOV_MIN_ASPECT
 #include "engine/core/memory.h"
 #include "engine/graphics/pipeline/polypage.h"
+#include "engine/graphics/pipeline/poly.h" // POLY_ZCLIP_PLANE — drives u_view_z_tl_scale
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -467,6 +468,7 @@ static GLint s_tl_u_fog_enabled = -1;
 static GLint s_tl_u_fog_color = -1;
 static GLint s_tl_u_fog_near = -1;
 static GLint s_tl_u_fog_far = -1;
+static GLint s_tl_u_view_z_tl_scale = -1;
 static GLint s_tl_u_specular_enabled = -1;
 static GLint s_tl_u_color_key_enabled = -1;
 static GLint s_tl_u_tex_has_alpha = -1;
@@ -564,6 +566,13 @@ static bool init_shaders()
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha,
         &s_tl_u_farfacet_mode);
+    s_tl_u_view_z_tl_scale = glGetUniformLocation(s_program_tl, "u_view_z_tl_scale");
+    // 1.0 / POLY_ZCLIP_PLANE — constant for the lifetime of the program, set once.
+    // Used in the fragment shader to bring lit-path v_view_z (raw world z) into
+    // TL-path scale (z / POLY_ZCLIP_PLANE) for the far-facet fade comparison.
+    glUseProgram(s_program_tl);
+    glUniform1f(s_tl_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
+    glUseProgram(0);
 
     // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
     // (glBufferData with different sizes) which can trigger NVIDIA driver bugs.
