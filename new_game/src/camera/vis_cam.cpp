@@ -4,20 +4,9 @@
 #include "camera/fc_globals.h"
 #include "engine/core/macros.h"       // QDIST3, WITHIN
 #include "engine/core/math.h"         // SIN / COS
-#include "engine/input/input_frame.h" // input_key_press_pending / consume
-#include "engine/input/keyboard.h"    // KB_BACKSLASH
 #include "map/map.h"                  // MAP_WIDTH, MAP_HEIGHT
 #include <cstdint>
-#include <cstdio>  // fprintf, stderr — dump-on-key
 #include <cstdlib> // abs
-
-// \  key dumps detailed per-sample state for the centre ray into stderr
-// (which the Makefile pipes into stderr.log next to the exe). Useful for
-// chasing issues with the obstacle-detection heuristic — e.g. small bumps
-// that aren't being caught, or false positives. Set by the input poll in
-// VC_process, consumed by vc_process_one once it has all the data.
-static bool s_vc_dump_pending = false;
-static SLONG s_vc_dump_counter = 0;
 
 // Camera-position smoothing — explicit three-mode state machine.
 //
@@ -266,54 +255,6 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus)
 
 #undef VC_PROBE
 
-    // \  press: log per-sample detail for the centre ray to stderr.log.
-    // Captures MAV_inside / MAVHEIGHT readouts at each step so we can see
-    // where (and why) the algorithm decided clear vs hit — useful for
-    // tracking down small obstacles the heuristic misses.
-    if (s_vc_dump_pending) {
-        s_vc_dump_pending = false;
-        s_vc_dump_counter++;
-        fprintf(stderr,
-            "=== VC dump #%d ===\n"
-            "  focus=(%d,%d,%d) cell=(%d,%d) mavh=%d\n"
-            "  vc=(%d,%d,%d)\n"
-            "  yaw_psx=%d  rx=%d rz=%d ry=%d\n"
-            "  threshold=%d  fails=%d min_d=0x%X\n",
-            (int)s_vc_dump_counter,
-            (int)focus.x, (int)focus.y, (int)focus.z,
-            (int)focus_cell_x, (int)focus_cell_z, (int)focus_mavh,
-            (int)vc.x, (int)vc.y, (int)vc.z,
-            (int)yaw_psx, (int)rx, (int)rz, (int)ry,
-            (int)VC_OBSTACLE_MAVH_THRESHOLD, (int)fail_count, (unsigned)min_d_hit);
-
-        SLONG sx = focus.x;
-        SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
-        SLONG sz = focus.z;
-        SLONG step_x = (vc.x - sx) / VC_RAY_SAMPLES;
-        SLONG step_y = (vc.y - sy) / VC_RAY_SAMPLES;
-        SLONG step_z = (vc.z - sz) / VC_RAY_SAMPLES;
-        for (SLONG step = 1; step <= VC_RAY_SAMPLES; step++) {
-            sx += step_x;
-            sy += step_y;
-            sz += step_z;
-            SLONG mi = MAV_inside(sx >> 8, sy >> 8, sz >> 8);
-            SLONG cx_dbg = sx >> 16;
-            SLONG cz_dbg = sz >> 16;
-            SLONG mavh_dbg = 0;
-            if (WITHIN(cx_dbg, 0, MAP_WIDTH - 1) && WITHIN(cz_dbg, 0, MAP_HEIGHT - 1)) {
-                mavh_dbg = MAVHEIGHT(cx_dbg, cz_dbg);
-            }
-            const char* verdict = (mi && mavh_dbg > focus_mavh + VC_OBSTACLE_MAVH_THRESHOLD)
-                ? "HIT"
-                : (mi ? "inside-but-filtered" : "outside");
-            fprintf(stderr,
-                "  [%02d] s=(%d,%d,%d) cell=(%d,%d) MAV_inside=%d mavh=%d %s\n",
-                (int)step, (int)sx, (int)sy, (int)sz,
-                (int)cx_dbg, (int)cz_dbg, (int)mi, (int)mavh_dbg, verdict);
-        }
-        fflush(stderr);
-    }
-
     if (fail_count == 0) return false;
 
     SLONG dx = vc.x - focus.x;
@@ -354,14 +295,6 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus)
 
 void VC_process(void)
 {
-    // Latch \  press here so the dump captures the same tick as the user
-    // pressing it. Press-pending+consume survives FPS > physics rate
-    // (same pattern as F5/F6/F7).
-    if (input_key_press_pending(KB_BACKSLASH)) {
-        input_key_consume(KB_BACKSLASH);
-        s_vc_dump_pending = true;
-    }
-
     for (SLONG cam = 0; cam < FC_MAX_CAMS; cam++) {
         FC_Cam* fc = &FC_cam[cam];
         VC_State& vc = VC_state[cam];
