@@ -21,10 +21,6 @@
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 
-// TEMPORARY: forward decl of debug focus marker (defined in vis_cam.cpp).
-// Kept out of vis_cam.h since it's a render-only debug helper that will
-// disappear with the rest of the scaffold once real collision logic lands.
-extern void VC_debug_draw_focus(void);
 #include "game/game_types.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.
@@ -4750,11 +4746,6 @@ void AENG_draw_city()
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
-    // TEMPORARY: 3D marker at the FC_cam focus point to verify focus
-    // position before wiring up new collision raycast. Remove together
-    // with the rest of the VisCam debug scaffold when real logic lands.
-    VC_debug_draw_focus();
-
     POLY_frame_draw(UC_TRUE, UC_TRUE);
 
     BreakTime("Done final polygon flush");
@@ -5560,11 +5551,6 @@ void AENG_draw_warehouse()
     PARTICLE_Draw();
     RIBBON_draw();
     AENG_draw_sparks();
-
-    // TEMPORARY: 3D marker at the FC_cam focus point to verify focus
-    // position before wiring up new collision raycast. Remove together
-    // with the rest of the VisCam debug scaffold when real logic lands.
-    VC_debug_draw_focus();
 
     // Now actually draw everything!
     POLY_frame_draw(UC_TRUE, UC_TRUE);
