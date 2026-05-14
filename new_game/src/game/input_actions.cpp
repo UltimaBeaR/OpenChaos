@@ -23,7 +23,6 @@
 #include "missions/eway_globals.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
-#include "camera/vis_cam.h" // VC_toggle_test_offset — temporary test toggle
 #include "world_objects/dirt.h"
 
 #include "map/supermap.h"
@@ -3373,14 +3372,6 @@ ULONG get_hardware_input(UWORD type)
         if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
             input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]);
             input |= INPUT_MASK_CAM_RIGHT;
-        }
-
-        // TEMPORARY: VisCam test offset toggle. Lifts the visible camera by
-        // ~half a Darci height when on. Remove together with VC_test_offset_*
-        // when real collision logic replaces the scaffold.
-        if (input_key_press_pending(KB_BACKSLASH)) {
-            input_key_consume(KB_BACKSLASH);
-            VC_toggle_test_offset();
         }
 
         if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_JUMP]))

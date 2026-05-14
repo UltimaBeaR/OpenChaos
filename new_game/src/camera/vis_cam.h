@@ -23,9 +23,7 @@
 // overwritten — its accumulator-based smoothing in FC_process keeps working
 // across ticks unchanged.
 //
-// Currently identity copy (no real collision logic yet). VC_test_offset_enabled
-// is a temporary toggle that adds an upward Y offset for testing the pipeline;
-// remove together with the toggle when real logic lands.
+// Currently identity copy (no real collision logic yet).
 
 struct VC_State {
     SLONG x, y, z;
@@ -35,16 +33,8 @@ struct VC_State {
 
 extern VC_State VC_state[FC_MAX_CAMS];
 
-// Temporary test toggle (bound to \ key). Adds upward Y offset to VC_state.y
-// so the visible camera floats above its FC_process position. Lets us verify
-// the post-physics → interpolation pipeline before real logic exists.
-extern bool VC_test_offset_enabled;
-
 // Run once per physics tick, after FC_process. Reads FC_cam[*], writes
 // VC_state[*].
 void VC_process(void);
-
-// Toggle the test offset on/off.
-void VC_toggle_test_offset(void);
 
 #endif // CAMERA_VIS_CAM_H
