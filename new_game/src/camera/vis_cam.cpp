@@ -118,6 +118,19 @@ static const SLONG VC_OBSTACLE_MAVH_THRESHOLD = 4;
 // Same value the baseline used.
 static const SLONG VC_RAY_START_Y_OFFSET = 0x80;
 
+// Vertical lift applied to the focus point on top of fc->lookabove
+// (Darci ≈ 0x10000 ≈ 1.7 m, so 0x2000 ≈ 0.21 m).
+//
+// Why: when Darci is hanging on a ledge (pre-pull-up) and the player rotates
+// the camera around to her face, an unlifted focus sits at her head height,
+// which on these poses is at or below the ledge's top edge. Rays from focus
+// to the camera then intersect the ledge corner, the wall-collision pulls
+// the camera onto focus, and we end up framed into her body. Lifting focus
+// just above the ledge surface keeps the rays clear of the corner. Value
+// is the smallest lift that empirically removes the artefact — bigger
+// would also work but starts visibly shifting the gameplay framing.
+static const SLONG VC_FOCUS_LIFT = 0x2000;
+
 // Sample-based ray from focus toward (tx,ty,tz). Walks VC_RAY_SAMPLES points
 // along the segment, asking MAV_inside at each. A sample counts as a wall
 // hit only if its cell's MAVHEIGHT is meaningfully above focus's own cell
@@ -322,7 +335,7 @@ void VC_process(void)
         // Focus point passed into processing.
         VC_FocusPoint focus = {
             fc->focus_x,
-            fc->focus_y + fc->lookabove,
+            fc->focus_y + fc->lookabove + VC_FOCUS_LIFT,
             fc->focus_z,
         };
 
