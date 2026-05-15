@@ -110,8 +110,13 @@ static const SLONG VC_SMOOTH_ALPHA_DEN = 10;
 // the surface is everywhere at ground level, so every below-surface point
 // looks like an obstacle. A real wall/building/curb raises MAVHEIGHT enough
 // in its own cell to clear this threshold. Units are raw MAVHEIGHT (1 unit
-// = 64 shifted Y).
-static const SLONG VC_OBSTACLE_MAVH_THRESHOLD = 4;
+// ≈ 0.42 m).
+//
+// Threshold = 1 catches decorative outdoor platforms / large steps
+// (≈ 1 m tall → MAVHEIGHT ≈ 2-3 units) in addition to full-height buildings
+// (MAVHEIGHT = 127). Tighter than this risks false positives on uneven
+// ground; looser misses the platforms.
+static const SLONG VC_OBSTACLE_MAVH_THRESHOLD = 1;
 
 // Ray-start Y offset above focus — lifts the first sample just out of
 // focus's own body so the very first step doesn't read its own cell.

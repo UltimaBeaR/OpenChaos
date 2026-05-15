@@ -40,4 +40,4 @@
 //
 // When false: no overlay, no hotkeys, no runtime state changes possible.
 // Always keep false in shipping builds.
-#define OC_DEBUG_PHYSICS_TIMING true
+#define OC_DEBUG_PHYSICS_TIMING false
