@@ -25,6 +25,7 @@
 #include "ui/hud/panel.h"
 #include "engine/audio/sound.h"
 #include "engine/graphics/postprocess/bloom.h"
+#include "engine/graphics/render_interp.h" // render_interp_mark_teleport — fresh-spawn / drop WorldPos discontinuities
 
 // Prototype: free_special is used before its definition in this file.
 // uc_orig: free_special (fallen/Source/Special.cpp)
@@ -101,6 +102,12 @@ void special_drop(Thing* p_special, Thing* p_person)
             }
 
             add_thing_to_map(p_special);
+
+            // The special was carried (rendered following the person); its
+            // WorldPos now jumps discontinuously to the ground drop spot.
+            // Collapse the interp snapshot so it doesn't lerp from the
+            // carrier's position into the landing spot over the first frames.
+            render_interp_mark_teleport(p_special);
 
             // Player-dropped weapons get reduced ammo to discourage drop/pickup cycling.
             if (p_person->Genus.Person->PlayerID == 0) {
@@ -1072,6 +1079,13 @@ Thing* alloc_special(
     special_thing->WorldPos.Z = world_z << 8;
 
     add_thing_to_map(special_thing);
+
+    // Fresh special reuses a pooled Thing slot whose previous occupant had an
+    // unrelated WorldPos. Without this the render interpolator lerps the first
+    // post-spawn frame from that stale position to the real spawn point — a
+    // dropped knife / gun visibly "flies in" to where it landed. Collapse the
+    // interp snapshot so frame one draws at the final position.
+    render_interp_mark_teleport(special_thing);
 
     // If spawned above terrain, start dropping.
     if (world_y > PAP_calc_map_height_at(world_x, world_z) + 0x50) {
