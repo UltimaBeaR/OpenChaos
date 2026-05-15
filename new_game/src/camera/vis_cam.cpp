@@ -1,9 +1,11 @@
 #include "camera/vis_cam.h"
 #include "ai/mav.h"                   // MAV_inside, MAVHEIGHT
+#include "buildings/ware.h"           // WARE_inside (indoor sampler)
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
 #include "engine/core/macros.h"       // QDIST3, WITHIN
 #include "engine/core/math.h"         // SIN / COS
+#include "engine/physics/collide.h"   // there_is_a_los, LOS_FLAG_*
 #include "map/map.h"                  // MAP_WIDTH, MAP_HEIGHT
 #include "map/pap.h"                  // PAP_calc_map_height_at
 #include <cstdint>
@@ -214,6 +216,12 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
         }
 
         // Condition 2: sample below local ground (slope/hill).
+        // NOTE: don't try to skip PAP_FLAG_HIDDEN cells here — outdoor raised
+        // geometry (decorative platforms, steps) sets that flag too, and
+        // those cells are precisely the ones whose elevation we need.
+        // Indoor focus uses vc_probe_ware instead, so this path won't fire
+        // inside warehouses where PAP_calc_map_height_at would return a
+        // ceiling-height sentinel.
         if (!hit) {
             SLONG ground_y = PAP_calc_map_height_at(sx >> 8, sz >> 8) << 8;
             if (sy < ground_y) hit = true;
@@ -233,12 +241,170 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
     return true;
 }
 
+// Indoor (warehouse) version of vc_probe_mav. Walks a ray from focus toward
+// (tx,ty,tz) and reports the first sample that is NOT inside the warehouse's
+// passable volume (i.e. inside a wall or above ceiling). Uses the WARE_*
+// system instead of MAV_inside/MAVHEIGHT, which don't represent warehouse
+// interiors usefully — MAVHEIGHT inside a building is a sentinel and
+// PAP_calc_map_height_at falls back to MAVHEIGHT << 6 (ceiling height),
+// neither of which discriminates walls from air.
+//
+// WARE_inside semantics (same as MAV_inside — TRUE = blocked / inside an
+// obstacle, FALSE = passable air). Cross-checked against MAV_height_los_slow
+// which calls WARE_inside as the LOS-blocked predicate. Outside-footprint
+// also returns TRUE (LOS treats stepping outside the warehouse as blocked,
+// preventing the line of sight from leaking through the building shell).
+// We treat TRUE the same way: any sample reporting "blocked" is a wall hit.
+//
+// Coordinate convention: WARE_inside expects **unshifted** world coords
+// (see uc_orig fc.cpp wall-collision call site, which passes focus_x >> 8).
+// Our `sx`, `sy`, `sz` are shifted-world (FC_cam space), so we right-shift
+// by 8 at the call. MAV_inside in the outdoor probe takes the same
+// convention but we shifted at the call there too.
+//
+// Same ray-extension trick as vc_probe_mav: walk past the camera by
+// WALL_OFFSET + NEAR_CLIP_PAD so first contact is smooth rather than
+// jumping the camera in by the offset on the first hit frame.
+static bool vc_probe_ware(const VC_FocusPoint& focus,
+    SLONG tx, SLONG ty, SLONG tz,
+    UBYTE ware, SLONG* d_hit_out)
+{
+    SLONG cdx = tx - focus.x;
+    SLONG cdy = ty - focus.y;
+    SLONG cdz = tz - focus.z;
+    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
+    SLONG extended_tx = tx;
+    SLONG extended_ty = ty;
+    SLONG extended_tz = tz;
+    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
+    if (corner_len > 0) {
+        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
+        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
+        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
+    }
+
+    SLONG sx = focus.x;
+    SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
+    SLONG sz = focus.z;
+    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+
+    // LOS flags for the DFacet-aware check below. Some interior walls (e.g.
+    // RTA police station) aren't in the WARE height grid — they're DFacets.
+    // Physics blocks Darci through there_is_a_los; we mirror that here so
+    // the camera sees the same walls.
+    //   IGNORE_PRIMS              — small objects (lamps, bins) shouldn't block.
+    //   IGNORE_SEETHROUGH_FENCE_FLAG — see-through fences must not block.
+    //   IGNORE_UNDERGROUND_CHECK  — mandatory indoors: the default underground
+    //     guard inside there_is_a_los calls PAP_calc_map_height_at, which in
+    //     PAP_FLAG_HIDDEN cells returns the MAVHEIGHT<<6 sentinel (ceiling
+    //     height) and reports every sample "below ground" — every LOS call
+    //     would then be blocked and camera glued to focus.
+    const SLONG LOS_FLAGS = LOS_FLAG_IGNORE_PRIMS
+        | LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG
+        | LOS_FLAG_IGNORE_UNDERGROUND_CHECK;
+
+    // Phase 1 — WARE_inside sample walk. Catches walls represented in the
+    // warehouse height grid (most interior walls of standard warehouses).
+    SLONG ware_hit_step = 0;
+    bool ware_hit = false;
+
+    SLONG sample_x[VC_RAY_SAMPLES + 1]; // index 0 = focus start, 1..N = each step
+    SLONG sample_y[VC_RAY_SAMPLES + 1];
+    SLONG sample_z[VC_RAY_SAMPLES + 1];
+    sample_x[0] = sx;
+    sample_y[0] = sy;
+    sample_z[0] = sz;
+
+    for (SLONG step = 1; step <= VC_RAY_SAMPLES; step++) {
+        sx += step_x;
+        sy += step_y;
+        sz += step_z;
+        sample_x[step] = sx;
+        sample_y[step] = sy;
+        sample_z[step] = sz;
+
+        if (WARE_inside(ware, sx >> 8, sy >> 8, sz >> 8)) {
+            ware_hit = true;
+            ware_hit_step = step;
+            break;
+        }
+    }
+
+    // Phase 2 — full-ray DFacet LOS check. Catches walls that exist as
+    // DFacets but not in WARE_height (some boundary walls). One full-length
+    // call rather than per-segment calls because there_is_a_los bypasses
+    // segments shorter than 16 unshifted units (our per-sample step is
+    // ~12), which would silently skip the DFacet test. If blocked,
+    // binary-search the sample steps for the first one where LOS becomes
+    // blocked — log2(N) ≈ 5 calls per blocked ray.
+    SLONG los_hit_step = 0;
+    bool los_hit = false;
+
+    bool full_los_clear = there_is_a_los(
+        focus.x >> 8, focus.y >> 8, focus.z >> 8,
+        extended_tx >> 8, extended_ty >> 8, extended_tz >> 8,
+        LOS_FLAGS);
+
+    if (!full_los_clear) {
+        // Step 0 (focus itself) is trivially clear; the full ray is known
+        // blocked. Invariant: LOS(focus, sample[lo]) clear, LOS(focus,
+        // sample[hi]) blocked. Converges with `hi` being the smallest step
+        // where LOS first fails.
+        SLONG lo = 0;
+        SLONG hi = VC_RAY_SAMPLES;
+        while (hi - lo > 1) {
+            SLONG mid = (lo + hi) / 2;
+            bool clear = there_is_a_los(
+                focus.x >> 8, focus.y >> 8, focus.z >> 8,
+                sample_x[mid] >> 8, sample_y[mid] >> 8, sample_z[mid] >> 8,
+                LOS_FLAGS);
+            if (clear) {
+                lo = mid;
+            } else {
+                hi = mid;
+            }
+        }
+        los_hit = true;
+        los_hit_step = hi;
+    }
+
+    // Combine — take the closer of the two hits, if any.
+    SLONG hit_step = 0;
+    bool hit_found = false;
+    if (ware_hit && los_hit) {
+        hit_step = (ware_hit_step < los_hit_step) ? ware_hit_step : los_hit_step;
+        hit_found = true;
+    } else if (ware_hit) {
+        hit_step = ware_hit_step;
+        hit_found = true;
+    } else if (los_hit) {
+        hit_step = los_hit_step;
+        hit_found = true;
+    }
+
+    if (!hit_found) return true;
+
+    SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
+        std::abs(extended_ty - focus.y),
+        std::abs(extended_tz - focus.z));
+    *d_hit_out = (SLONG)((std::int64_t)full_len * hit_step / VC_RAY_SAMPLES);
+    return false;
+}
+
 // Processing layer for one camera. Reads the identity-copy `vc` plus the
 // focus point and mutates `vc.*` to push the visible camera in toward the
 // focus when geometry would otherwise punch into the frame. Returns true
 // if `vc` was actually shifted (i.e. a wall was detected and acted upon).
 // Smoothing is applied later, in VC_process — this function only computes
 // the raw target position.
+//
+// `ware` selects the geometry source:
+//   ware == 0  → outdoor probe (MAV_inside + MAVHEIGHT + PAP ground check).
+//   ware != 0  → indoor probe (WARE_inside against that warehouse id).
+// The dispatch is per-camera (one branch picked for all five rays) rather
+// than per-sample, because focus_in_warehouse is fixed per tick.
 //
 // Sampling model: camera treated as a sphere of radius VC_CAMERA_RADIUS.
 // Five rays are sampled from focus — one to the centre, four to side offsets
@@ -252,7 +418,7 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 // horizontal-right approximation is accurate enough, and ignoring pitch
 // keeps the side rays in a stable horizontal band rather than rolling
 // across the frame).
-static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus)
+static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus, UBYTE ware)
 {
     // PSX angle index 0..2047. vc.yaw is in shifted units (PSX angle × 256).
     SLONG yaw_psx = (vc.yaw >> 8) & 2047;
@@ -266,19 +432,43 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus)
     SLONG rz = -(SIN(yaw_psx) * VC_CAMERA_RADIUS) >> 16;
     SLONG ry = VC_CAMERA_RADIUS; // world up; Y grows upward in this engine
 
-    // Focus cell's MAVHEIGHT — the baseline that ray samples are compared
-    // against. Without this filter, MAV_inside fires on every sample along
-    // flat ground (see VC_OBSTACLE_MAVH_THRESHOLD comment).
-    SLONG focus_cell_x = focus.x >> 16;
-    SLONG focus_cell_z = focus.z >> 16;
-    SLONG focus_mavh = 0;
-    if (WITHIN(focus_cell_x, 0, MAP_WIDTH - 1) && WITHIN(focus_cell_z, 0, MAP_HEIGHT - 1)) {
-        focus_mavh = MAVHEIGHT(focus_cell_x, focus_cell_z);
-    }
-
     SLONG min_d_hit = 0;
     SLONG fail_count = 0;
     SLONG d_hit;
+
+    // Indoor (warehouse) branch uses WARE_inside; outdoor branch uses the
+    // MAV/MAVHEIGHT + PAP ground combo. They probe different data so each
+    // gets its own per-ray dispatch macro to avoid a runtime test inside
+    // the probe loop (32 samples × 5 rays per tick).
+    if (ware != 0) {
+
+#define VC_PROBE(SX, SY, SZ)                                                   \
+    do {                                                                       \
+        if (!vc_probe_ware(focus, (SX), (SY), (SZ), ware, &d_hit)) {           \
+            if (fail_count == 0 || d_hit < min_d_hit) min_d_hit = d_hit;       \
+            fail_count++;                                                      \
+        }                                                                      \
+    } while (0)
+
+        VC_PROBE(vc.x, vc.y, vc.z);            // centre
+        VC_PROBE(vc.x + rx, vc.y, vc.z + rz);  // right
+        VC_PROBE(vc.x - rx, vc.y, vc.z - rz);  // left
+        VC_PROBE(vc.x, vc.y + ry, vc.z);       // up
+        VC_PROBE(vc.x, vc.y - ry, vc.z);       // down
+
+#undef VC_PROBE
+
+    } else {
+
+        // Focus cell's MAVHEIGHT — the baseline that ray samples are compared
+        // against. Without this filter, MAV_inside fires on every sample along
+        // flat ground (see VC_OBSTACLE_MAVH_THRESHOLD comment).
+        SLONG focus_cell_x = focus.x >> 16;
+        SLONG focus_cell_z = focus.z >> 16;
+        SLONG focus_mavh = 0;
+        if (WITHIN(focus_cell_x, 0, MAP_WIDTH - 1) && WITHIN(focus_cell_z, 0, MAP_HEIGHT - 1)) {
+            focus_mavh = MAVHEIGHT(focus_cell_x, focus_cell_z);
+        }
 
 #define VC_PROBE(SX, SY, SZ)                                                   \
     do {                                                                       \
@@ -288,13 +478,15 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus)
         }                                                                      \
     } while (0)
 
-    VC_PROBE(vc.x, vc.y, vc.z);            // centre
-    VC_PROBE(vc.x + rx, vc.y, vc.z + rz);  // right
-    VC_PROBE(vc.x - rx, vc.y, vc.z - rz);  // left
-    VC_PROBE(vc.x, vc.y + ry, vc.z);       // up
-    VC_PROBE(vc.x, vc.y - ry, vc.z);       // down
+        VC_PROBE(vc.x, vc.y, vc.z);            // centre
+        VC_PROBE(vc.x + rx, vc.y, vc.z + rz);  // right
+        VC_PROBE(vc.x - rx, vc.y, vc.z - rz);  // left
+        VC_PROBE(vc.x, vc.y + ry, vc.z);       // up
+        VC_PROBE(vc.x, vc.y - ry, vc.z);       // down
 
 #undef VC_PROBE
+
+    }
 
     if (fail_count == 0) return false;
 
@@ -367,7 +559,7 @@ void VC_process(void)
             fc->focus_z,
         };
 
-        bool in_collision = vc_process_one(vc, focus);
+        bool in_collision = vc_process_one(vc, focus, fc->focus_in_warehouse);
 
         if (in_collision) {
             // COLLISION mode. First tick of contact is a snap (no lerp);

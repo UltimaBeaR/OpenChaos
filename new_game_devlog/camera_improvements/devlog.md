@@ -1406,3 +1406,72 @@ M new_game/src/engine/graphics/pipeline/poly.cpp
 M new_game_devlog/camera_improvements/devlog.md
     + Запись 17 (эта — описание всей сессии целиком)
 ```
+
+---
+
+## Запись 18 — 2026-05-15 — indoor wall-collision
+
+### Что сделано
+
+Wall-collision внутри зданий (warehouse / building interior).
+
+**Разделение outdoor / indoor в `vc_process_one`:**
+- Outdoor (`ware == 0`) — существующий путь: `vc_probe_mav` (MAV_inside + MAVHEIGHT threshold + PAP ground check). Не тронут.
+- Indoor (`ware != 0`) — новый путь: `vc_probe_ware`. Гейтинг на основе `fc->focus_in_warehouse` — единственный надёжный маркер «Дарси внутри здания» (PAP_FLAG_HIDDEN сам по себе ставится и на outdoor raised cells типа декоративных платформ, его использовать для гейта нельзя — сломает outdoor ступени, проверено).
+
+**`vc_probe_ware` — гибридный probe:**
+
+1. **Phase 1: WARE sample walk.** Берёт 32 сэмпла вдоль луча, на каждом проверяет `WARE_inside(ware, sx>>8, sy>>8, sz>>8)`. Если TRUE → blocked (сэмпл внутри стены здания, представленной в WARE_height grid). Координаты передаются unshifted (после `>> 8`) — это conventional convention для `WARE_inside` (см. uc_orig fc.cpp, вызов с `focus_x >> 8`).
+
+2. **Phase 2: full-ray DFacet LOS check.** Некоторые внутренние стены (RTA полицейский участок и т.п.) не представлены в WARE_height grid — они DFacet'ы. Физика блокирует Дарси через `there_is_a_los`; зеркалим тот же чек для камеры. Один full-length вызов `there_is_a_los(focus, extended_target)` — потому что per-sample short-segment вызовы (`abs(dx)+abs(dz) < 16`) внутри `there_is_a_los` имеют bypass `return UC_TRUE`, и проверка DFacet'ов скипается. Наш per-sample step ≈ 12 unshifted → попадает под bypass. Один полный вызов > 16 единиц всегда → bypass не активируется.
+
+3. **Binary search для hit step** если full LOS blocked. Log₂(32) ≈ 5 LOS-вызовов на blocked ray. Разрешение совпадает с per-sample WARE walk → hit-distance метрика когерентна.
+
+4. **Combine:** `hit_step = min(ware_hit_step, los_hit_step)`. Если оба нашли — берём ближайший.
+
+**Флаги для `there_is_a_los`:**
+- `IGNORE_PRIMS` — мелкие объекты (лампы, мусорки) не блокируют.
+- `IGNORE_SEETHROUGH_FENCE_FLAG` — see-through заборы не блокируют.
+- `IGNORE_UNDERGROUND_CHECK` — **обязательно indoor**. Default underground guard внутри `there_is_a_los` вызывает `PAP_calc_map_height_at` — а в HIDDEN-клетках это возвращает sentinel `MAVHEIGHT<<6` (≈ ceiling height в 2M shifted). Каждый сэмпл «под землёй» → LOS постоянно blocked → камера в focus. Тот же фундаментальный класс багов что indoor ground check.
+
+### Грабли по дороге
+
+1. **Coord convention WARE_inside.** Сначала передавал shifted (FC_cam space) — функция внутри делает `x >>= 8` и сравнивает против ww->minx/maxx (cell indices). Shifted x был в 256× больше → outside footprint → `UC_TRUE` (special «outside building» return, в семантике LOS = blocked) → постоянный zoom. Проверил оригинал `fc.cpp:846`: там вызов с `focus_x >> 8`. Поправил, передаю unshifted.
+
+2. **Семантика `WARE_inside`.** Сначала написал `if (WARE_inside(...)) continue;` (думая TRUE = passable). Реально `WARE_inside` возвращает `UC_TRUE` = **blocked** (обстракл / outside footprint), `UC_FALSE` = passable air. Подтверждено по `MAV_height_los_slow` где она используется как LOS-blocked предикат. Поправил на `if (!WARE_inside(...)) continue;`.
+
+3. **DFacet walls не ловятся WARE_inside.** В RTA полицейском участке несколько стен (внешние, ограничивающие комнату от недоступной зоны) — это DFacet'ы, не WARE_height. WARE_inside их игнорирует, но физика Дарси блокирует через there_is_a_los. Добавлен Phase 2.
+
+4. **Per-sample LOS бесполезен из-за short-segment bypass.** Перешёл на full-ray LOS + binary search.
+
+5. **Underground check.** `there_is_a_los` по умолчанию валидирует через `PAP_calc_map_height_at` чтобы луч не уходил под terrain. Indoor этот guard всегда фейлит (sentinel ceiling-as-ground). Нужен `IGNORE_UNDERGROUND_CHECK`. Это **архитектурное допущение нашего слоя** — у нас сейчас вертикальные перемещения камеры всё равно небольшие, реальный underground-check не нужен. Если когда-то будем гонять камеру глубоко под terrain — пересмотреть.
+
+### Что закрыто из открытых пунктов
+
+| № | Что | Через что |
+|---|-----|-----------|
+| Indoor | Wall-collision в warehouse'ах/building interiors | новый indoor branch (vc_probe_ware) с WARE_inside + LOS hybrid |
+
+### Что ещё открыто в задаче
+
+- Машины (CLASS_VEHICLE).
+- DFacet-only объекты outdoor (заборы, мебель — на текущей итерации забили).
+- Скрытие модели Дарси / машины при близкой камере (overshoot).
+
+### Файлы под коммит этой итерации
+
+```
+M new_game/src/camera/vis_cam.cpp
+    + #include "buildings/ware.h", "engine/physics/collide.h"
+    + vc_probe_ware (новая функция, indoor sampler)
+    + ware != 0 branch в vc_process_one
+    + ware параметр у vc_process_one (берётся из fc->focus_in_warehouse)
+
+M new_game_planning/known_issues_and_bugs.md
+    Outro чёрный экран: обновлён до стабильного репро (после RTA →
+    чёрный, cold start → ok). Приоритет 1.0. Гипотезы: stale GL state /
+    uniforms / texture binding от RTA рендера.
+
+M new_game_devlog/camera_improvements/devlog.md
+    + Запись 18 (эта)
+```
