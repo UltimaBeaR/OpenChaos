@@ -30,7 +30,8 @@ new_game_planning/                  — планирование новой иг
   phases.md                         — фазы разработки и текущий статус
   stages.md                         — этапы Фазы 3 с критериями
   prerelease_fixes.md               — пре-релизные баги оригинала (выполненные фиксы)
-  known_issues_and_bugs.md          — известные проблемы и баги (бессрочный список, не привязан к этапу)
+  known_issues_and_bugs.md          — АКТИВНЫЕ известные проблемы и баги (бессрочный список, не привязан к этапу)
+  known_issues_and_bugs_resolved.md — АРХИВ решённых/закрытых проблем. ⚠️ Когда проблема решена/won't-do — ПЕРЕНОСИТЬ запись СЮДА из known_issues_and_bugs.md (физически вырезать строку и вставить в соответствующую `## … (исправленные)` секцию), НЕ оставлять в активном файле и НЕ просто менять статус
   tech_and_architecture.md          — стек, архитектура, все принятые решения
   testing.md                        — стратегия тестирования, чеклисты, replay
   stage7_renderer_rules.md          — ⚠️ 3 ОБЯЗАТЕЛЬНЫХ правила переноса графического API (Этап 7)
@@ -75,7 +76,8 @@ CLAUDE.md                           — этот файл
 | ~~Работа на Этапе 4~~ (ЗАВЕРШЁН) | Скиллы `.claude/skills/stage4-migrate/` и `.claude/skills/stage4-review/` |
 | ~~Работа на Этапе 7 (рендерер)~~ (ЗАВЕРШЁН) | `new_game_planning/stage7_renderer_rules.md` + `new_game_planning/stage7.md` |
 | Пре-релизные баги (выполненные фиксы) | `new_game_planning/prerelease_fixes.md` |
-| Известные проблемы и баги (бессрочный список) | `new_game_planning/known_issues_and_bugs.md` |
+| Известные проблемы и баги (активные) | `new_game_planning/known_issues_and_bugs.md` |
+| Решённые/закрытые проблемы (архив, + куда ПЕРЕНОСИТЬ закрытое) | `new_game_planning/known_issues_and_bugs_resolved.md` |
 | Технологии, архитектура, стек | `new_game_planning/tech_and_architecture.md` |
 | Тестирование | `new_game_planning/testing.md` |
 | DualSense (протокол, либы, trigger effects, packing'и) | `new_game_devlog/dualsense_libs_reference/README.md` (навигация) — вся DualSense-специфичная документация собрана в этой подпапке |
@@ -182,7 +184,8 @@ CLAUDE.md                           — этот файл
   - Фазы разработки → `new_game_planning/phases.md`
   - Этапы Фазы 3 → `new_game_planning/stages.md` (индекс) + `new_game_planning/stage*.md`
   - Пре-релизные баги (фиксы) → `new_game_planning/prerelease_fixes.md`
-  - Известные проблемы и баги → `new_game_planning/known_issues_and_bugs.md`
+  - Известные проблемы и баги (активные) → `new_game_planning/known_issues_and_bugs.md`
+  - ⚠️ Решённое/won't-do → ПЕРЕНОСИТЬ (вырезать из активного, вставить) в `new_game_planning/known_issues_and_bugs_resolved.md` в нужную `## … (исправленные)` секцию. Не оставлять в активном файле, не ограничиваться сменой статуса. Проверять этот файл при расследовании регрессий (баг мог уже быть решён)
   - Всё про DualSense (протокол, либы, trigger effects, packing'и, PR notes) → `new_game_devlog/dualsense_libs_reference/`. Игровая weapon система которая использует DualSense — `new_game_devlog/weapon_haptic_and_adaptive_trigger.md`.
   - Соответствия старых/новых имён сущностей → `new_game_planning/entity_mapping.json` (управляется через `tools/entity_map.py`, Этап 4+)
     - `new_game_planning/entity_mapping.md` — **LEGACY, только чтение**: человекочитаемый файл с Этапа 2, данные уже перенесены в JSON

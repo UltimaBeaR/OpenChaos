@@ -1475,3 +1475,151 @@ M new_game_planning/known_issues_and_bugs.md
 M new_game_devlog/camera_improvements/devlog.md
     + Запись 18 (эта)
 ```
+
+---
+
+## Запись 19 — 2026-05-15 — коллизия камеры с машинами (CLASS_VEHICLE)
+
+### Что сделано
+
+Машины теперь участвуют в коллизии камеры — закрыт пункт «Машины» из списка
+открытого в Записях 13/17/18. Всё в [`vis_cam.cpp`](../../new_game/src/camera/vis_cam.cpp),
+`fc.cpp`/`FC_Cam`/render-interp не тронуты.
+
+**Почему отдельная проба:** машины — динамические `Thing` класса
+`CLASS_VEHICLE`, не в MAV/WARE/PAP-сетках, текущие пробы их не видят.
+`there_is_a_los(LOS_FLAG_INCLUDE_CARS)` не подошёл — флаг работает только
+когда prims НЕ игнорируются, а нам нужен `IGNORE_PRIMS` (мелочёвку игнорить).
+
+**Гибридная модель (повторяет фиделити самого движка):**
+- **Бока/footprint/низ** — OBB: центр `WorldPos`, yaw `Vehicle.Angle`,
+  габариты `PrimInfo` min/max. Та же модель что движок использует для
+  блокировки машин (`collide_box_with_line`/`slide_around_box`). Конвенция
+  поворота побитово как `collide_box_with_line` (`useangle=(-yaw)&2047`,
+  matrix `{cos,sin,-sin,cos}`).
+- **Верх** — реальная авторская поверхность: WMOVE walkable-грани машины
+  (по которым персонаж бегает по крыше). Берутся **живыми** из
+  `WMOVE_face`/`prim_points` (текущий тик, `WMOVE_process` уже трансформировал
+  их полной матрицей yaw/tilt/roll **до** FC_process/VC_process — порядок
+  game.cpp подтверждён). Таблицы `tri_vehicle[]` не дублируются.
+- **WMOVE-грань — параллелограм (4 точки)**, не треугольник: точка [3] =
+  P1+P2−P0. Тестируется как **два** треугольника `{P0,P1,P2}` и `{P1,P3,P2}`
+  (разрез по диагонали P1–P2, как `get_height_on_face_quad64_at`). Иначе
+  половина крыши не детектилась (Запись-фикс по ходу — баг найден визуально
+  через debug-маркеры).
+- Где WMOVE-поверхность не покрывает (x,z) — fallback на плоский box-top
+  → гибрид никогда не хуже box-only.
+
+**Вертикальный датум (важный баг, найден по ходу):** OBB сначала брал
+`WorldPos.Y>>8` — но движковая формула вертикальных границ машины
+([vehicle.cpp:2136-2137](../../new_game/src/things/vehicles/vehicle.cpp#L2136),
+run-over) использует `((WorldPos.Y − get_vehicle_body_offset(type))>>8) − 0x80`.
+WMOVE-поверхность уже включает `−body_offset` (WMOVE_get_pos: `y -= offy>>8`),
+а мой `y_bottom` — нет → слой коллизии был раздут ≈ на высоту кузова (≈ «2x»,
+как заметил пользователь визуально). Исправлено: датум зеркалит движковую
+формулу, `0x80` → `VC_VEHICLE_BODY_Y_BIAS`. Эмпирический костыль `/2`
+(`VC_VEHICLE_TOP_HEIGHT`), которым это маскировалось, **удалён**.
+
+**Исключение своей машины:** `Person.InCar` ставится тем же вызовом что
+запускает анимацию входа ([person.cpp:4742-4743](../../new_game/src/things/characters/person.cpp#L4742)).
+Машина из `fc->focus->Genus.Person->InCar` (и focus-машина при вождении)
+исключается из проб → камера не липнет к машине **с первого кадра анимации
+входа** через вождение/пассажира до выхода. Решает «глючный зум при заходе».
+
+**Перф (Steam Deck):** broad-phase сфера раз/тик, кап 8 кандидатов,
+SIN/COS yaw кэшируются при сборе, проба только по кандидатам.
+
+### Решение по скрытию модели Дарси/машины
+
+**НЕ делаем** (пункт закрыт как won't-do для 1.0). Снижение
+`POLY_ZCLIP_PLANE` до `1/512` (Запись 16) достаточно — пользователь играя
+не ощущает проблем с near-clip даже при overshoot камеры в модель. Если
+когда-то понадобится — отдельная задача, не в этой.
+
+### Debug-инфраструктура
+
+По ходу был временный debug-оверлей: «X» (`AENG_world_text`) на каждой
+вершине коллизионных WMOVE-квадов всех машин — для визуальной сверки
+коллизии с графикой. Помог найти баг датума (`/2`) и баг «половина крыши»
+(треугольник вместо квада). **Удалён перед коммитом** целиком: функция
+`VC_debug_draw_vehicle_tris` из vis_cam.cpp, include aeng.h, forward-decl и
+2 call-site в aeng.cpp (aeng.cpp net-zero — без изменений).
+
+### Состояние задачи camera_improvements
+
+Закрыто: wall-collision (outdoor/indoor), плавность, near-plane, машины.
+Won't-do для 1.0: скрытие модели Дарси/машины (near-clip достаточно).
+Открыто (мелочь, не блокер 1.0): DFacet-only outdoor объекты (заборы,
+мебель) — сознательно забили (Запись 17). Машинная итерация по сути
+закрывает основную задачу камеры.
+
+### Файлы под коммит
+
+```
+M new_game/src/camera/vis_cam.cpp
+    + vehicle hybrid collision: VC_VehicleTri/Quad, vc_tri_surface_y,
+      vc_quad_surface_y, vc_gather_vehicles, vc_probe_vehicles
+    + VC_VEHICLE_* константы; датум через get_vehicle_body_offset
+    + #2 exclude Person.InCar; vc_process_one +incar_vehicle param
+    + includes: buildings/prim.h, prim_types.h, map/level_pools.h,
+      navigation/wmove.h, things/characters/person_types.h,
+      engine/core/fixed_math.h, game/game_types.h
+M new_game_planning/known_issues_and_bugs.md
+    Камера: машины закрыты; скрытие модели — won't-do (near-clip)
+M new_game_devlog/camera_improvements/devlog.md
+    + Запись 19 (эта)
+```
+
+---
+
+## Запись 20 — 2026-05-15 — ЗАДАЧА ЗАВЕРШЕНА
+
+`camera_improvements` **полностью закрыта**. Эта запись — финальная точка;
+дальнейших итераций по этой задаче не планируется.
+
+### Итоговый расклад по всем пунктам
+
+| Пункт | Итог |
+|-------|------|
+| Удаление старых ограничителей (wall-vs-camera/ground, L1/R1 lock, emergency toonear) | ✅ сделано (Записи 2–5) |
+| Инфраструктура vis_cam поверх FC_process (отдельный слой, FC не тронут) | ✅ сделано (Записи 8–11) |
+| Wall-collision outdoor (MAV_inside + MAVHEIGHT + PAP ground) | ✅ сделано (Записи 12, 17) |
+| Wall-collision indoor (WARE_inside + DFacet LOS гибрид) | ✅ сделано (Запись 18) |
+| Небольшие выступы / декор-платформы / Дарси на выступе | ✅ закрыто (threshold 4→1, Запись 17) |
+| Земля/склоны/горы (ground-pass через PAP) | ✅ сделано (Запись 17) |
+| Плавность: lerp в коллизии + плавный EXIT-fade без velocity-разрыва | ✅ сделано (Записи 12, 14) |
+| First-contact jump | ✅ сделано (ray-extension, Запись 12) |
+| Continuum плавности после первого контакта | ✅ проверено пользователем (закрыто) |
+| near-clip «кишки» (POLY_ZCLIP_PLANE 1/64→1/512 + калибровка) | ✅ сделано (Записи 15–17) |
+| Коллизия с машинами (CLASS_VEHICLE) — гибрид OBB + WMOVE-квады | ✅ сделано (Запись 19) |
+| Глючный зум при заходе в машину (exclude Person.InCar) | ✅ сделано (Запись 19) |
+| Скрытие модели Дарси/машины при близкой камере | ⛔ won't-do для 1.0 — near-clip 1/512 достаточно, проблем не ощущается даже при overshoot (решение пользователя 2026-05-15) |
+| DFacet-only outdoor объекты (заборы/мебель не в MAV-сетке) | ⛔ won't-do — решение пользователя «не делаем» |
+
+Незакрытых пунктов нет: всё либо реализовано, либо осознанный won't-do.
+
+### Нерушимое правило соблюдено
+
+`FC_process` / `fc.cpp` / `FC_Cam` struct / render-interp ctor/dtor — за всю
+задачу не тронуты. Вся новая логика в [`vis_cam.cpp`](../../new_game/src/camera/vis_cam.cpp)
+поверх результата FC_process. Откат тривиален (вернуть render-interp snapshot
+на FC_cam) — но не требуется.
+
+### Доки синхронизированы
+
+- Все 3 строки секции «Камера» (улучшенная камера, «заходит за объекты»,
+  near-clip «кишки») **перенесены** из `known_issues_and_bugs.md` в
+  `known_issues_and_bugs_resolved.md` → `## Камера (исправленные)` с
+  пометкой won't-do по (a) скрытию модели и (b) DFacet-only. Секция
+  «Камера» в активном файле удалена (пуста).
+- README — по указанию пользователя не трогаем.
+
+### Финальное состояние кода под коммит
+
+```
+M new_game/src/camera/vis_cam.cpp                       — вся фича (отладка убрана)
+M new_game_planning/known_issues_and_bugs.md            — секция «Камера» удалена (перенесена)
+M new_game_planning/known_issues_and_bugs_resolved.md   — + 3 строки в «Камера (исправленные)»
+M new_game_devlog/camera_improvements/devlog.md         — Записи 19, 20
+```
+Билд `[298/298]` зелёный. Коммитит пользователь вручную.
