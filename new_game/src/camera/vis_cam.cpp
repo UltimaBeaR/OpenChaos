@@ -5,6 +5,7 @@
 #include "engine/core/macros.h"       // QDIST3, WITHIN
 #include "engine/core/math.h"         // SIN / COS
 #include "map/map.h"                  // MAP_WIDTH, MAP_HEIGHT
+#include "map/pap.h"                  // PAP_calc_map_height_at
 #include <cstdint>
 #include <cstdlib> // abs
 
@@ -137,20 +138,29 @@ static const SLONG VC_RAY_START_Y_OFFSET = 0x80;
 static const SLONG VC_FOCUS_LIFT = 0x2000;
 
 // Sample-based ray from focus toward (tx,ty,tz). Walks VC_RAY_SAMPLES points
-// along the segment, asking MAV_inside at each. A sample counts as a wall
-// hit only if its cell's MAVHEIGHT is meaningfully above focus's own cell
-// (see VC_OBSTACLE_MAVH_THRESHOLD). On hit, *d_hit is the distance from
-// focus to the hit sample. Returns true if no hit was found.
+// along the segment, testing two conditions at each sample:
+//   1. Wall/platform — MAV_inside is true AND the cell's MAVHEIGHT is
+//      meaningfully above focus's own cell (see VC_OBSTACLE_MAVH_THRESHOLD).
+//   2. Ground/slope — the sample's Y is below the local ground height
+//      (PAP_calc_map_height_at). Catches the camera diving under the
+//      terrain on rising slopes / hills.
+// Either match counts as a hit. On hit, *d_hit is the distance from focus
+// to the hit sample. Returns true if no hit was found.
 //
-// Why this and not there_is_a_los: outdoor city buildings in Urban Chaos
-// are encoded as raised cells in the MAV/PAP height grid, not as mesh
-// DFacets. The DFacet-based LOS functions return CLEAR through such walls,
-// while MAV_inside + MAVHEIGHT does see them correctly.
+// Why MAV_inside in addition to ground check: outdoor city buildings in
+// Urban Chaos are encoded as raised cells in the MAV/PAP height grid, not
+// as mesh DFacets. The DFacet-based LOS functions return CLEAR through
+// such walls. MAV_inside + MAVHEIGHT sees them. PAP_calc_map_height_at
+// fills in the terrain side of the picture (slopes and hills, which are
+// stored in PAP_Hi.Alt corner heights rather than MAVHEIGHT outcrops).
 //
 // Coordinate convention: focus and target are in shifted world units
 // (the same as FC_cam fields). MAV_inside expects its args already shifted
 // right by 8 (i.e. world/256) — we apply that at the call site. MAVHEIGHT
 // is a 2D array indexed by PAP-HI cell, which is world >> 16.
+// PAP_calc_map_height_at takes (x, z) in world/256 units and returns the
+// ground height in the same units, so we shift its result up by 8 to
+// compare against shifted sy.
 static bool vc_probe_mav(const VC_FocusPoint& focus,
     SLONG tx, SLONG ty, SLONG tz,
     SLONG focus_mavh, SLONG* d_hit_out)
@@ -189,14 +199,27 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
         sy += step_y;
         sz += step_z;
 
-        if (!MAV_inside(sx >> 8, sy >> 8, sz >> 8)) continue;
+        bool hit = false;
 
-        SLONG cell_x = sx >> 16;
-        SLONG cell_z = sz >> 16;
-        if (!WITHIN(cell_x, 0, MAP_WIDTH - 1) || !WITHIN(cell_z, 0, MAP_HEIGHT - 1)) continue;
+        // Condition 1: wall/platform via MAVHEIGHT outcrop.
+        if (MAV_inside(sx >> 8, sy >> 8, sz >> 8)) {
+            SLONG cell_x = sx >> 16;
+            SLONG cell_z = sz >> 16;
+            if (WITHIN(cell_x, 0, MAP_WIDTH - 1) && WITHIN(cell_z, 0, MAP_HEIGHT - 1)) {
+                SLONG sample_mavh = MAVHEIGHT(cell_x, cell_z);
+                if (sample_mavh > focus_mavh + VC_OBSTACLE_MAVH_THRESHOLD) {
+                    hit = true;
+                }
+            }
+        }
 
-        SLONG sample_mavh = MAVHEIGHT(cell_x, cell_z);
-        if (sample_mavh <= focus_mavh + VC_OBSTACLE_MAVH_THRESHOLD) continue;
+        // Condition 2: sample below local ground (slope/hill).
+        if (!hit) {
+            SLONG ground_y = PAP_calc_map_height_at(sx >> 8, sz >> 8) << 8;
+            if (sy < ground_y) hit = true;
+        }
+
+        if (!hit) continue;
 
         // Hit. Distance is the fraction of the full focus→extended-target
         // span we traversed, mapped back to QDIST3 of that extended vector
