@@ -20,6 +20,7 @@
 #include "engine/core/fmatrix.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
+
 #include "game/game_types.h"
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, FACE_FLAG_*, etc.
 #include "buildings/building_types.h" // STOREY_TYPE_*, FACET_FLAG_*, FBuilding, etc.

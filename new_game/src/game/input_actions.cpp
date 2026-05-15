@@ -3335,35 +3335,42 @@ ULONG get_hardware_input(UWORD type)
         if (input_key_held(keybrd_button_use[JOYPAD_BUTTON_SELECT]))
             input |= INPUT_MASK_SELECT;
 
-        if (input_key_just_pressed(KB_F5)) {
+        // Edge-triggered camera actions: use press_pending + consume.
+        // just_pressed loses presses when render fps > physics fps (input_frame
+        // snapshot updates per render frame, but get_hardware_input runs only on
+        // physics tick — edges latched in skipped-physics frames vanish before
+        // they're read). press_pending latches the edge until explicit consume,
+        // so it survives across frames regardless of tick cadence.
+        if (input_key_press_pending(KB_F5)) {
+            input_key_consume(KB_F5);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM1;
         }
-        if (input_key_just_pressed(KB_F6)) {
+        if (input_key_press_pending(KB_F6)) {
+            input_key_consume(KB_F6);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM2;
         }
-        if (input_key_just_pressed(KB_F7)) {
+        if (input_key_press_pending(KB_F7)) {
+            input_key_consume(KB_F7);
             input |= INPUT_MASK_CAMERA;
             input &= ~INPUT_MASKM_CAM_TYPE;
             input |= INPUT_MASKM_CAM3;
         }
 
-        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAMERA])) {
+        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAMERA])) {
+            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAMERA]);
             input |= INPUT_MASK_CAM_BEHIND;
         }
 
-        // Note: original cleared `Keys[JOYPAD_BUTTON_CAM_LEFT]` (no
-        // keybrd_button_use indirection — typo, would clear scancode equal to
-        // the action enum value, not the bound key). Pre-existing dead-write,
-        // dropped along with the rest of the consume — input_frame edge-detect
-        // doesn't need consume.
-        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT])) {
+        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT])) {
+            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_LEFT]);
             input |= INPUT_MASK_CAM_LEFT;
         }
-        if (input_key_just_pressed(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
+        if (input_key_press_pending(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT])) {
+            input_key_consume(keybrd_button_use[JOYPAD_BUTTON_CAM_RIGHT]);
             input |= INPUT_MASK_CAM_RIGHT;
         }
 

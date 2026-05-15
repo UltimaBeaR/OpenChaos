@@ -1287,7 +1287,18 @@ void POLY_create_cylinder_points(POLY_Point* p1, POLY_Point* p2, float width, PO
     ASSERT(p1->IsValid());
     ASSERT(p2->IsValid());
 
-    width *= POLY_cam_over_view_dist;
+    // The on-screen half-width below is computed as `width * cam_over_view_dist
+    // * pt->Z`. Since pt->Z = POLY_ZCLIP_PLANE / view_z, the result is
+    // proportional to POLY_ZCLIP_PLANE — so when POLY_ZCLIP_PLANE was lowered
+    // from the legacy 1/64 to 1/512 (×8 closer to the camera), cable lines
+    // became ×8 thinner on screen (visible as ~1 px wires). Sibling line APIs
+    // (POLY_add_line / POLY_add_line_tex_uv) avoid this because they multiply
+    // by POLY_sprite_scale, which already contains a 1/POLY_ZCLIP_PLANE that
+    // cancels the one inside pt->Z. POLY_create_cylinder_points does not, so
+    // we explicitly compensate. Keeps current visual width invariant under
+    // any future POLY_ZCLIP_PLANE tuning.
+    static const float POLY_LINE_LEGACY_NEAR = 1.0F / 64.0F;
+    width *= POLY_cam_over_view_dist * (POLY_LINE_LEGACY_NEAR / POLY_ZCLIP_PLANE);
 
     dx = p2->X - p1->X;
     dy = p2->Y - p1->Y;

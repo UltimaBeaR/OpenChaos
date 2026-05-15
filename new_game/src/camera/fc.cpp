@@ -1,7 +1,6 @@
 // Camera and player control logic.
 #include "engine/platform/uc_common.h"
 #include "game/game_types.h"
-#include "engine/physics/collide.h" // LOS_FLAG_* constants
 #include "things/characters/anim_ids.h"
 #include "engine/core/fmatrix.h"
 #include "buildings/ware.h"
@@ -11,7 +10,6 @@
 #include "map/level_pools.h"
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
-#include "map/pap.h"
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis
@@ -30,27 +28,10 @@
 // uc_orig: CAM_AT_FEET (fallen/Source/fc.cpp)
 #define CAM_AT_FEET 3
 
-// uc_orig: FC_ROTATE_DIR_LEFT (fallen/Source/fc.cpp)
-#define FC_ROTATE_DIR_LEFT 0
-// uc_orig: FC_ROTATE_DIR_RIGHT (fallen/Source/fc.cpp)
-#define FC_ROTATE_DIR_RIGHT 1
-
-// uc_orig: FC_PUSH_XS (fallen/Source/fc.cpp)
-#define FC_PUSH_XS (1 << 0)
-// uc_orig: FC_PUSH_XL (fallen/Source/fc.cpp)
-#define FC_PUSH_XL (1 << 1)
-// uc_orig: FC_PUSH_ZS (fallen/Source/fc.cpp)
-#define FC_PUSH_ZS (1 << 2)
-// uc_orig: FC_PUSH_ZL (fallen/Source/fc.cpp)
-#define FC_PUSH_ZL (1 << 3)
-
 // uc_orig: FC_CSP_HEIGHT (fallen/Source/fc.cpp)
 #define FC_CSP_HEIGHT 0xa0
 // uc_orig: FC_CSP_RADIUS (fallen/Source/fc.cpp)
 #define FC_CSP_RADIUS 0x30
-
-// uc_orig: FC_ROTATE_NEAR (fallen/Source/fc.cpp)
-#define FC_ROTATE_NEAR (0x40)
 
 // uc_orig: FC_DIST_MIN (fallen/Source/fc.cpp)
 #define FC_DIST_MIN ((fc->cam_dist * offset_dist))
@@ -539,9 +520,7 @@ void FC_look_at_focus(FC_Cam* fc)
     }
 }
 
-// Immediately snaps want_x/y/z to behind the focus character, running collision avoidance.
-// If the ideal behind-position is blocked, tries 4 rotated alternatives.
-// Sets toonear=UC_TRUE with saved pre-collision state if all alternatives fail (emergency mode).
+// Immediately snaps want_x/y/z to behind the focus character.
 // uc_orig: FC_force_camera_behind (fallen/Source/fc.cpp)
 void FC_force_camera_behind(SLONG cam)
 {
@@ -560,77 +539,6 @@ void FC_force_camera_behind(SLONG cam)
     goy = fc->focus_y + FC_focus_above(fc);
 
     fc->toonear = UC_FALSE;
-
-    if (!MAV_height_los_slow(
-            fc->focus_in_warehouse,
-            fc->focus_x >> 8,
-            fc->focus_y + 0x10000 >> 8,
-            fc->focus_z >> 8,
-            gox >> 8,
-            goy >> 8,
-            goz >> 8)) {
-        SLONG abort_x = MAV_height_los_fail_x << 8;
-        SLONG abort_y = MAV_height_los_fail_y << 8;
-        SLONG abort_z = MAV_height_los_fail_z << 8;
-
-        SLONG i;
-        SLONG dangle;
-
-        for (i = 0; i < 4; i++) {
-            switch (i) {
-            case 0:
-                dangle = +100;
-                break;
-            case 1:
-                dangle = -100;
-                break;
-            case 2:
-                dangle = +200;
-                break;
-            case 3:
-                dangle = -200;
-                break;
-            }
-
-            gox = fc->focus_x + (SIN((fc->focus_yaw + dangle) & 2047) * fc->cam_dist >> 8);
-            goz = fc->focus_z + (COS((fc->focus_yaw + dangle) & 2047) * fc->cam_dist >> 8);
-
-            if (MAV_height_los_slow(
-                    fc->focus_in_warehouse,
-                    fc->focus_x >> 8,
-                    fc->focus_y + 0x10000 >> 8,
-                    fc->focus_z >> 8,
-                    gox >> 8,
-                    goy >> 8,
-                    goz >> 8)) {
-                goto found_place;
-            }
-        }
-
-        // Emergency: use the last collision point, move slightly below it.
-        gox = abort_x;
-        goy = abort_y;
-        goz = abort_z;
-        goy -= 0x6000;
-
-        SLONG dx;
-        SLONG dz;
-
-        dx = abs(gox - fc->focus_x);
-        dz = abs(goz - fc->focus_z);
-
-        fc->toonear = UC_TRUE;
-        fc->toonear_dist = QDIST2(dx, dz);
-        fc->toonear_x = fc->want_x;
-        fc->toonear_y = fc->want_y;
-        fc->toonear_z = fc->want_z;
-        fc->toonear_yaw = fc->want_yaw;
-        fc->toonear_pitch = fc->want_pitch;
-        fc->toonear_roll = fc->want_roll;
-        fc->toonear_focus_yaw = fc->focus_yaw;
-    }
-
-found_place:;
 
     fc->want_x = gox;
     fc->want_y = goy;
@@ -652,23 +560,9 @@ void FC_setup_initial_camera(SLONG cam)
     dx = -SIN(fc->focus_yaw);
     dz = -COS(fc->focus_yaw);
 
-    if (there_is_a_los(
-            fc->focus_x >> 8,
-            fc->focus_y + 0xa000 >> 8,
-            fc->focus_z >> 8,
-            fc->focus_x + dx + dx + dx >> 8,
-            fc->focus_x + 0xa000 >> 8,
-            fc->focus_z + dz + dz + dz >> 8,
-            LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG)) {
-        fc->x = fc->want_x = fc->focus_x + dx + dx + dx;
-        fc->y = fc->want_y = fc->focus_y + 0xa000;
-        fc->z = fc->want_z = fc->focus_z + dz + dz + dz;
-    } else {
-        FC_force_camera_behind(cam);
-        fc->x = fc->want_x;
-        fc->y = fc->want_y;
-        fc->z = fc->want_z;
-    }
+    fc->x = fc->want_x = fc->focus_x + dx + dx + dx;
+    fc->y = fc->want_y = fc->focus_y + 0xa000;
+    fc->z = fc->want_z = fc->focus_z + dz + dz + dz;
 
     FC_look_at_focus(fc);
 
@@ -679,82 +573,12 @@ void FC_setup_initial_camera(SLONG cam)
     fc->toonear = UC_FALSE;
 }
 
-// Returns UC_TRUE if the camera can rotate in the given direction without clipping into geometry.
-// Checks 4 corners of the rotated camera position against MAV_inside (or warehouse bounds).
-// uc_orig: FC_allowed_to_rotate (fallen/Source/fc.cpp)
-SLONG FC_allowed_to_rotate(FC_Cam* fc, SLONG rotate_dir)
-{
-    SLONG i;
-    SLONG dx, dz;
-    SLONG mx, my, mz;
-    SLONG cx, cy, cz;
-
-    dx = fc->focus_x - fc->want_x >> 2;
-    dz = fc->focus_z - fc->want_z >> 2;
-
-    switch (rotate_dir) {
-    case FC_ROTATE_DIR_LEFT:
-        mx = fc->x - (-dz) >> 8;
-        my = fc->y >> 8;
-        mz = fc->z - (+dx) >> 8;
-        break;
-    case FC_ROTATE_DIR_RIGHT:
-        mx = fc->x + (-dz) >> 8;
-        my = fc->y >> 8;
-        mz = fc->z + (+dx) >> 8;
-        break;
-    default:
-        ASSERT(0);
-        break;
-    }
-
-    for (i = 0; i < 4; i++) {
-        dx = 0;
-        dz = 0;
-
-        switch (i) {
-        case 0:
-            dx = +FC_ROTATE_NEAR;
-            break;
-        case 1:
-            dx = -FC_ROTATE_NEAR;
-            break;
-        case 2:
-            dz = +FC_ROTATE_NEAR;
-            break;
-        case 3:
-            dz = -FC_ROTATE_NEAR;
-            break;
-        }
-
-        cx = mx + dx;
-        cy = my;
-        cz = mz + dz;
-
-        if (fc->focus_in_warehouse) {
-            if (!MAV_inside(cx, cy, cz)) {
-                return UC_FALSE;
-            }
-        } else {
-            if (MAV_inside(cx, cy, cz)) {
-                return UC_FALSE;
-            }
-        }
-    }
-
-    return UC_TRUE;
-}
-
 // uc_orig: FC_rotate_left (fallen/Source/fc.cpp)
 void FC_rotate_left(SLONG cam)
 {
     ASSERT(WITHIN(cam, 0, FC_MAX_CAMS - 1));
 
-    FC_Cam* fc = &FC_cam[cam];
-
-    if (FC_allowed_to_rotate(fc, FC_ROTATE_DIR_LEFT)) {
-        fc->rotate = +0x600;
-    }
+    FC_cam[cam].rotate = +0x600;
 }
 
 // uc_orig: FC_rotate_right (fallen/Source/fc.cpp)
@@ -762,11 +586,7 @@ void FC_rotate_right(SLONG cam)
 {
     ASSERT(WITHIN(cam, 0, FC_MAX_CAMS - 1));
 
-    FC_Cam* fc = &FC_cam[cam];
-
-    if (FC_allowed_to_rotate(fc, FC_ROTATE_DIR_RIGHT)) {
-        fc->rotate = -0x600;
-    }
+    FC_cam[cam].rotate = -0x600;
 }
 
 // Positions the camera just inside the warehouse, in front of the door closest to the player.
@@ -834,24 +654,20 @@ void FC_setup_camera_for_warehouse(SLONG cam)
 //   5. lookabove: 0xa000 normally, decays on death.
 //   6. Rotate: L1/R1 camera orbit; nobehind suppresses get-behind logic.
 //   7. toonear cancel: exit first-person mode if angle diverges > 200.
-//   8. Collision: 8-step raycast pushing camera away from walls/fences/roof.
-//   9. Get-behind: push camera behind Darci with configurable strength.
-//   10. Y position: track FC_focus_above with clamped delta.
-//   11. Distance clamp: keep camera between FC_DIST_MIN and FC_DIST_MAX.
-//   12. Position smoothing: want → actual (x/z >>2, y >>3).
-//   13. Angle smoothing: want_yaw/pitch/roll → actual >>2.
-//   14. Lens: fixed FOV = 0x28000 * CAM_MORE_IN.
-//   15. Shake: random offset decays each frame.
+//   8. Get-behind: push camera behind Darci.
+//   9. Y position: track FC_focus_above with clamped delta.
+//   10. Distance clamp: keep camera between FC_DIST_MIN and FC_DIST_MAX.
+//   11. Position smoothing: want → actual (x/z >>2, y >>3).
+//   12. Angle smoothing: want_yaw/pitch/roll → actual >>2.
+//   13. Lens: fixed FOV = 0x28000 * CAM_MORE_IN.
+//   14. Shake: random offset decays each frame.
 // uc_orig: FC_process (fallen/Source/fc.cpp)
 void FC_process()
 {
-    SLONG i;
-    SLONG x, y, z;
     SLONG dx, dy, dz;
     SLONG cam;
     SLONG dist;
     SLONG ddist;
-    SLONG xforce, yforce, zforce;
     SLONG behind_x, behind_z;
 
     UBYTE used_to_be_in_warehouse;
@@ -1016,6 +832,8 @@ void FC_process()
                         fc->want_y = min_y;
                     if (fc->want_y > max_y)
                         fc->want_y = max_y;
+
+                    fc->nobehind = 0x2000;
                 }
             }
         } else {
@@ -1057,152 +875,6 @@ void FC_process()
         }
 
         if (!fc->toonear) {
-            // 8-step raycast collision: push camera away from walls, fences, and roof.
-            x = fc->want_x >> 8;
-            y = fc->want_y >> 8;
-            z = fc->want_z >> 8;
-
-            y += 0x50;
-
-            xforce = 0;
-            yforce = 0;
-            zforce = 0;
-
-            dx = fc->focus_x - fc->want_x >> 11;
-            dy = fc->focus_y - fc->want_y >> 11;
-            dz = fc->focus_z - fc->want_z >> 11;
-
-            if (fc->focus_in_warehouse) {
-                for (i = 0; i < 8; i++) {
-                    if (WARE_inside(fc->focus_in_warehouse, x, y, z)) {
-                        // Inside warehouse bounds — no push.
-                    } else {
-                        // Push away from warehouse walls.
-                        if (!(WARE_get_caps(fc->focus_in_warehouse, x >> 8, z >> 8, MAV_DIR_XS) & MAV_CAPS_GOTO)) {
-                            xforce += 0x100 - (x & 0xff);
-                        }
-                        if (!(WARE_get_caps(fc->focus_in_warehouse, x >> 8, z >> 8, MAV_DIR_XL) & MAV_CAPS_GOTO)) {
-                            xforce -= (x & 0xff);
-                        }
-                        if (!(WARE_get_caps(fc->focus_in_warehouse, x >> 8, z >> 8, MAV_DIR_ZS) & MAV_CAPS_GOTO)) {
-                            zforce += 0x100 - (z & 0xff);
-                        }
-                        if (!(WARE_get_caps(fc->focus_in_warehouse, x >> 8, z >> 8, MAV_DIR_ZL) & MAV_CAPS_GOTO)) {
-                            zforce -= (z & 0xff);
-                        }
-
-                        if (i < 4) {
-                            if (WARE_inside(fc->focus_in_warehouse, x, y - 0x100, z)) {
-                                yforce += (y & 0xff);
-                            }
-
-                            // Don't go above the roof.
-                            {
-                                SLONG roof = MAVHEIGHT(x >> 8, z >> 8) << 6;
-                                if (y > roof - 0x100) {
-                                    yforce -= y & 0xff;
-                                }
-                            }
-                        }
-                    }
-
-                    x += dx;
-                    y += dy;
-                    z += dz;
-                }
-            } else {
-                for (i = 0; i < 8; i++) {
-                    if (i < 4) {
-                        if (!MAV_inside(x, y, z)) {
-                            if (MAV_inside(x, y - 0x100, z)) {
-                                yforce += 256 - (y & 0xff);
-                            }
-                        }
-                    }
-
-                    // Push away from fences.
-                    UBYTE push;
-
-                    push = 0;
-
-                    if (MAV_inside(x - 0x100, y, z)) {
-                        push |= FC_PUSH_XS;
-                    }
-                    if (MAV_inside(x + 0x100, y, z)) {
-                        push |= FC_PUSH_XL;
-                    }
-                    if (MAV_inside(x, y, z - 0x100)) {
-                        push |= FC_PUSH_ZS;
-                    }
-                    if (MAV_inside(x, y, z + 0x100)) {
-                        push |= FC_PUSH_ZL;
-                    }
-
-                    if (!MAV_inside(x, y, z)) {
-                        SLONG ground = PAP_calc_map_height_at(x, z);
-
-                        if (y <= ground + 0x240) {
-                            // Fence detection: same height but can't walk through → push.
-                            if (!(push & FC_PUSH_XS)) {
-                                if (abs(PAP_calc_map_height_at(x - 0x100, z) - ground) <= 0x40) {
-                                    if (!(MAV_get_caps(x >> 8, z >> 8, MAV_DIR_XS) & MAV_CAPS_GOTO)) {
-                                        if (!there_is_a_los((x & 0xffffff00) + 128, y, z, (x & 0xffffff00) - 128, ground + 200, z, LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK | LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG))
-                                            push |= FC_PUSH_XS;
-                                    }
-                                }
-                            }
-                            if (!(push & FC_PUSH_XL)) {
-                                if (abs(PAP_calc_map_height_at(x + 0x100, z) - ground) <= 0x40) {
-                                    if (!(MAV_get_caps(x >> 8, z >> 8, MAV_DIR_XL) & MAV_CAPS_GOTO)) {
-                                        if (!there_is_a_los((x & 0xffffff00) + 128, y, z, (x & 0xffffff00) + 256 + 128, ground + 200, z, LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK | LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG))
-                                            push |= FC_PUSH_XL;
-                                    }
-                                }
-                            }
-                            if (!(push & FC_PUSH_ZS)) {
-                                if (abs(PAP_calc_map_height_at(x, z - 0x100) - ground) <= 0x40) {
-                                    if (!(MAV_get_caps(x >> 8, z >> 8, MAV_DIR_ZS) & MAV_CAPS_GOTO)) {
-                                        if (!there_is_a_los(x, y, (z & 0xffffff00) + 128, x, ground + 200, (z & 0xffffff00) - 128, LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK | LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG))
-                                            push |= FC_PUSH_ZS;
-                                    }
-                                }
-                            }
-                            if (!(push & FC_PUSH_ZL)) {
-                                if (abs(PAP_calc_map_height_at(x, z + 0x100) - ground) <= 0x40) {
-                                    if (!(MAV_get_caps(x >> 8, z >> 8, MAV_DIR_ZL) & MAV_CAPS_GOTO)) {
-                                        if (!there_is_a_los(x, y, (z & 0xffffff00) + 128, x, ground + 200, (z & 0xffffff00) + 256 + 128, LOS_FLAG_IGNORE_PRIMS | LOS_FLAG_IGNORE_UNDERGROUND_CHECK | LOS_FLAG_IGNORE_SEETHROUGH_FENCE_FLAG))
-                                            push |= FC_PUSH_ZL;
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    if (push & FC_PUSH_XS) {
-                        xforce += 0x100 - (x & 0xff);
-                    }
-                    if (push & FC_PUSH_XL) {
-                        xforce -= (x & 0xff);
-                    }
-                    if (push & FC_PUSH_ZS) {
-                        zforce += 0x100 - (z & 0xff);
-                    }
-                    if (push & FC_PUSH_ZL) {
-                        zforce -= (z & 0xff);
-                    }
-
-                    x += dx;
-                    y += dy;
-                    z += dz;
-                }
-            }
-
-            fc->want_x += xforce << 4;
-            fc->want_y += yforce << 4;
-            fc->want_z += zforce << 4;
-        }
-
-        if (!fc->toonear) {
             if (fc->nobehind) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
@@ -1226,25 +898,12 @@ void FC_process()
                     fc->want_z += dz >> 5;
                 }
 
-                if (xforce || zforce) {
-                    // Stronger get-behind when near walls.
-                    fc->want_x += dx >> 6;
-                    fc->want_z += dz >> 6;
-                    fc->want_x += dx >> 5;
-                    fc->want_z += dz >> 5;
+                fc->want_x += dx >> 3;
+                fc->want_z += dz >> 3;
 
-                    if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING))) {
-                        fc->want_x += dx >> 4;
-                        fc->want_z += dz >> 4;
-                    }
-                } else {
-                    fc->want_x += dx >> 3;
-                    fc->want_z += dz >> 3;
-
-                    if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING))) {
-                        fc->want_x += dx >> 4;
-                        fc->want_z += dz >> 4;
-                    }
+                if (person_has_gun_out(fc->focus) && !(fc->focus->Genus.Person->Flags & (FLAG_PERSON_DRIVING | FLAG_PERSON_BIKING))) {
+                    fc->want_x += dx >> 4;
+                    fc->want_z += dz >> 4;
                 }
             }
         }

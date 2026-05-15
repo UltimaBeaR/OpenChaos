@@ -19,6 +19,11 @@ uniform int       u_fog_enabled;
 uniform vec3      u_fog_color;
 uniform float     u_fog_near;
 uniform float     u_fog_far;
+// Scale factor 1.0 / POLY_ZCLIP_PLANE — converts lit-path v_view_z (world
+// units) to TL-path scale (z / POLY_ZCLIP_PLANE) so the fog/far-facet logic
+// can compare against u_fog_near/u_fog_far which are calibrated in TL units.
+// Driven from C++ so this shader tracks POLY_ZCLIP_PLANE automatically.
+uniform float     u_view_z_tl_scale;
 uniform int       u_specular_enabled;
 uniform int       u_color_key_enabled;
 uniform int       u_tex_has_alpha;
@@ -109,9 +114,11 @@ void main()
         // of the skybox" — no depth read/write. Alpha mirrors fog density:
         // where walls are still un-fogged → transparent (real geometry
         // dominates), where walls are fully fogged → opaque silhouette.
-        // Lit v_view_z is ~64x smaller than TL-path, scale to compare.
+        // Lit v_view_z is in world units, TL v_view_z = world_z / POLY_ZCLIP_PLANE.
+        // u_view_z_tl_scale = 1.0 / POLY_ZCLIP_PLANE, set from C++ side so this
+        // shader stays in sync when POLY_ZCLIP_PLANE changes.
         if (u_farfacet_mode != 0) {
-            float vz_tl = v_view_z * 64.0;
+            float vz_tl = v_view_z * u_view_z_tl_scale;
             float ff = clamp((u_fog_far - vz_tl) / (u_fog_far - u_fog_near), 0.0, 1.0);
             color.a = 1.0 - ff;
             if (u_farfacet_mode == 2) {

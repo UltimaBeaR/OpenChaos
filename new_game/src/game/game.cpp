@@ -26,6 +26,7 @@
 #include "missions/memory.h" // MEMORY_quick_init, init_memory
 #include "camera/fc.h"
 #include "camera/fc_globals.h"
+#include "camera/vis_cam.h" // VC_process — post-physics camera layer
 #include "things/items/balloon.h"
 #include "engine/io/env.h"
 #include "navigation/wmove.h"
@@ -1035,6 +1036,11 @@ round_again:;
                     MAP_process();
                     POW_process();
                     FC_process();
+
+                    // VisCam layer: post-physics camera computation.
+                    // Reads FC_cam[*], writes VC_state[*]. Render-interp
+                    // snapshots VC_state for the visible frame.
+                    VC_process();
 
                     GAME_TURN++;
                     // GAME_TURN ticks once per physics tick (= UC_PHYSICS_DESIGN_HZ
