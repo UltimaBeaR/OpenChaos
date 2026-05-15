@@ -11349,18 +11349,6 @@ SLONG person_new_combat_node(Thing* p_person)
 
     node = p_person->Genus.Person->CombatNode;
 
-    if (node > 0)
-        if (get_combat_type_for_node(node) != COMBAT_NONE)
-            if (p_person->Genus.Person->PlayerID) {
-                if (p_person->Genus.Person->pcom_ai_counter > COMBO_ACCURACY) {
-                    // Too slow -- break the combo chain.
-                    p_person->Genus.Person->CombatNode = -p_person->Genus.Person->CombatNode;
-                    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH);
-                }
-
-                p_person->Genus.Person->pcom_ai_counter = 0;
-            }
-
     if (node) {
         if (node > 0) {
             if (!p_person->Genus.Person->PlayerID) {
@@ -11500,11 +11488,6 @@ void fn_person_fighting(Thing* p_person)
 
             break;
         }
-        if (p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) {
-            if (p_person->Genus.Person->PlayerID) {
-                p_person->Genus.Person->pcom_ai_counter += TICK_TOCK;
-            }
-        }
         end = person_normal_animate(p_person);
 
         if (end == 1) {
@@ -11529,11 +11512,6 @@ void fn_person_fighting(Thing* p_person)
                 }
         }
 
-        if (p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH)) {
-            if (p_person->Genus.Person->PlayerID) {
-                p_person->Genus.Person->pcom_ai_counter += TICK_TOCK;
-            }
-        }
         end = person_normal_animate(p_person);
 
         if (end == 1) {

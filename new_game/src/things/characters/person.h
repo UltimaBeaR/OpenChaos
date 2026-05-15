@@ -820,10 +820,6 @@ void fn_person_gun(Thing* p_person);
 
 // --- chunk 11: person_new_combat_node..fn_person_goto ---
 
-// Combo accuracy threshold: number of game ticks allowed between combo inputs.
-// uc_orig: COMBO_ACCURACY (fallen/Source/Person.cpp)
-#define COMBO_ACCURACY 300
-
 // Selects and queues the next combo animation node after the current attack completes.
 // Returns 1 if a follow-on combo exists, 0 if the combo chain ends.
 // uc_orig: person_new_combat_node (fallen/Source/Person.cpp)

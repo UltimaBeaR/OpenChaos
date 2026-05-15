@@ -2864,16 +2864,12 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         if (pl->Pressed & INPUT_MASK_PUNCH) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH)) {
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
-
-                // Timer used to check if the gap between combo stages is short enough.
-                p_person->Genus.Person->pcom_ai_counter = 0;
             }
         }
 
         if (pl->Pressed & INPUT_MASK_KICK) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK)) {
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
-                p_person->Genus.Person->pcom_ai_counter = 0;
             }
         }
     }
