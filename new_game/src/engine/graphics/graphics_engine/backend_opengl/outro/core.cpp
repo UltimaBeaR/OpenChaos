@@ -281,6 +281,16 @@ void oge_scene_begin()
     // render into the wrong rect.
     apply_outro_viewport();
 
+    // The outro reuses the game backend's TL path, which carries global fog
+    // state. If the previous mission enabled fog (e.g. RTA's night fog) it
+    // stays set — the outro never touches fog. Outro vertices are built with
+    // specular=0, so in common_frag the vert_fog (= v_specular.a) path yields
+    // fog_factor=0 and mix(u_fog_color, color, 0) paints every pixel the
+    // leftover fog colour → whole screen the mission's fog colour (black on
+    // dark missions). Outro wants no fog ever; clear it here every frame so
+    // any mission's leftover fog state can't bleed in.
+    ge_set_fog_enabled(false);
+
     ge_begin_scene();
     // Outro's main loop calls OS_clear_screen exactly once at startup; the
     // design relied on BACK_draw fully repainting the framebuffer every
