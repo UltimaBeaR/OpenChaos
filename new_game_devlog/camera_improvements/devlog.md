@@ -1378,10 +1378,10 @@ M new_game_devlog/camera_improvements/devlog.md
    - Гипотеза: какая-то часть outro pipeline'а зависит от старого значения near plane — возможно camera setup в outro, или 2D/3D-проекция полностью клипается ближним планом.
    - Где смотреть: `outro/` модуль, проверить какие POLY_*/projection функции дёргаются на outro path, есть ли где hardcoded numerator под near plane.
 
-2. **Провода между домов — в 1 пиксель толщиной.**
-   - Electric/phone lines между зданиями рисуются буквально в 1 пиксель — раньше были толще.
-   - Гипотеза: линии рисуются через TL-path с шириной задаваемой в z-shifted-by-near-plane единицах, и при меньшем near plane пересчёт даёт меньшую экранную толщину. Возможно `POLY_world_length_to_screen` где-то используется с hardcoded множителем привязанным к старому 1/64.
-   - Где смотреть: cable/wire/ribbon drawing path. Возможно `ribbon.cpp`, или какой-то POLY_add_line с hardcoded thickness.
+2. ~~**Провода между домов — в 1 пиксель толщиной.**~~ **Закрыто 2026-05-15.**
+   - Корневая причина: `POLY_create_cylinder_points` (используется только `cable_draw`) считает on-screen half-width как `width * POLY_cam_over_view_dist * pt->Z`, где `pt->Z = POLY_ZCLIP_PLANE / view_z`. То есть результат **линейно пропорционален POLY_ZCLIP_PLANE**. При снижении near plane 1/64 → 1/512 (×8 меньше) экранная толщина стала ×8 меньше.
+   - Sibling line APIs (`POLY_add_line` / `POLY_add_line_tex_uv`) этой проблемы не имеют — они умножают на `POLY_sprite_scale`, в котором уже есть `1/POLY_ZCLIP_PLANE`, и он компенсирует `POLY_ZCLIP_PLANE` из `pt->Z`. У `POLY_create_cylinder_points` этой компенсации не было.
+   - Фикс: добавлен компенсирующий множитель `(POLY_LINE_LEGACY_NEAR / POLY_ZCLIP_PLANE)` где `POLY_LINE_LEGACY_NEAR = 1/64`. Сохраняет текущий вид независимо от любых будущих тюнингов POLY_ZCLIP_PLANE.
 
 3. **Тёмный полупрозрачный силуэт вокруг светящихся вывесок.**
    - На RTA (и других миссиях) светящиеся круглые вывески рисуются с тёмным полупрозрачным ореолом вокруг. В релизной PC-версии такого нет. В PieroZ — либо нет, либо очень слабо.
@@ -1392,7 +1392,7 @@ M new_game_devlog/camera_improvements/devlog.md
 
 - Открытые пункты Записи 13/14 закрыты на 3 из 4 (DFacet-объекты отложены, скрытие модели — отдельная задача).
 - Indoor — wall-collision внутри зданий работает плохо (zoom-in, прижатие к focus). Зафиксировано как отдельная задача, не трогаем в этой итерации.
-- **3 регрессии от near plane выше открыты** — фиксить до коммита этой итерации.
+- Регрессии от near plane: 1 закрыта (провода), 2 открыты (outro, силуэты вокруг вывесок) — фиксить до коммита всей задачи.
 
 ### Файлы
 
@@ -1402,6 +1402,10 @@ M new_game_devlog/camera_improvements/devlog.md
 M new_game/src/camera/vis_cam.cpp
     + ground check (PAP_calc_map_height_at) в vc_probe_mav
     + #include "map/pap.h"
+
+M new_game/src/engine/graphics/pipeline/poly.cpp
+    + компенсирующий множитель в POLY_create_cylinder_points для cable thickness
+      (фикс «провода в 1 пиксель» — регрессия от снижения POLY_ZCLIP_PLANE)
 
 M new_game_devlog/camera_improvements/devlog.md
     + Запись 17 (эта — описание всей сессии целиком)
