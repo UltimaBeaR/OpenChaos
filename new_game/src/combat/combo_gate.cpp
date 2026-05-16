@@ -22,9 +22,9 @@ static float s_chance[COMBO_NODE_COUNT] = {
     1.0f,  //  0  root/idle (never gated)
     1.0f,  //  1  PUNCH 1            -- 1st hit
     1.0f,  //  2  punch return 1
-    0.85f, //  3  PUNCH 2            -- 2nd hit
+    0.70f, //  3  PUNCH 2            -- 2nd hit (hand-only: lowered, hands can't be dodged)
     1.0f,  //  4  punch return 2
-    0.50f, //  5  PUNCH 3            -- 3rd hit, same button (punch x3)
+    0.40f, //  5  PUNCH 3            -- 3rd hit (hand-only: lowered, hands can't be dodged)
     1.0f,  //  6  KICK 1             -- 1st hit
     1.0f,  //  7  kick return 1
     0.85f, //  8  KICK 2             -- 2nd hit

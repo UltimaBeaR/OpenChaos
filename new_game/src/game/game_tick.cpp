@@ -69,6 +69,7 @@
 #include "ui/menus/widget.h" // Form type for form_leave_map extern decl
 #include "game/game_tick.h"
 #include "game/game_tick_globals.h"
+#include "combat/combat_test_mode.h" // debug combat-testing harness (bangunsnotgames)
 #include "engine/graphics/pipeline/aeng.h" // AENG_world_line, AENG_raytraced_position
 
 // Forward declarations for functions not yet migrated from old/
@@ -1473,6 +1474,16 @@ void process_controls(void)
             cheat = 2;
         }
     }
+
+    // Combat-testing harness (OpenChaos). '-' fewer enemies, '=' more,
+    // '\' cycle armament tier. update() keeps the wave topped up.
+    if (input_key_just_pressed(KB_PLUS))
+        combat_test_inc();
+    if (input_key_just_pressed(KB_MINUS))
+        combat_test_dec();
+    if (input_key_just_pressed(KB_BACKSLASH))
+        combat_test_cycle_armament();
+    combat_test_update();
 
     if (input_mouse_active()) {
         //

@@ -1,4 +1,5 @@
 #include "combat/combat.h"
+#include "combat/combat_test_mode.h" // combat_test_reset on level (re)load
 
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h" // track_enemy (already migrated)
@@ -120,6 +121,7 @@ SLONG get_combat_type_for_node(UBYTE current_node)
 void init_gangattack(void)
 {
     memset((UBYTE*)gang_attacks, 0, sizeof(GangAttack) * MAX_HISTORY);
+    combat_test_reset(); // OpenChaos: drop debug combat-test state on level (re)load
 }
 
 // uc_orig: get_gangattack (fallen/Source/Combat.cpp)
