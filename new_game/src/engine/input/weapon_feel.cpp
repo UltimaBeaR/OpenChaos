@@ -708,6 +708,11 @@ void weapon_feel_init()
     weapon_feel_register(SPECIAL_GUN, pistol);
     weapon_feel_register(SPECIAL_NONE, pistol); // SpecialUse==null reads SpecialType as 0
     weapon_feel_register(SPECIAL_SHOTGUN, shotgun);
+    // Grenade reuses the pistol profile so priming the fuse feels like a
+    // pistol click (DualSense Weapon25 click + Xbox rumble). The effect is
+    // gated to phase 1 (un-primed) in game.cpp via weapon_ready; phase 2
+    // (primed, waiting to throw) gets no effect — just a light trigger.
+    weapon_feel_register(SPECIAL_GRENADE, pistol);
 
     s_playing = false;
     s_active_env = nullptr;
@@ -1042,14 +1047,21 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 
     // ---- R2 fire channel ----
 
-    // Melee / non-firearm path (bare hand, knife, bat, grenade, C4, mine —
-    // anything that is NOT pistol / shotgun / AK47). No DualSense effect.
+    // Melee / non-firearm path (bare hand, knife, bat, C4, mine — anything
+    // that is NOT a firearm and NOT the grenade). No DualSense effect.
     // Plain analog: fire near the very end of trigger travel (jam it to
     // the bottom = "click"), then a short rearm so the player can ease up
     // just a little and jam it again rapidly. Pure analog → behaves
-    // identically on DualSense and Xbox. Firearms keep their own analog /
+    // identically on DualSense and Xbox.
+    //
+    // Grenade is excluded: it must feel like a light pistol trigger (not
+    // the bottom-of-travel melee click), so it falls through to the
+    // firearm-style threshold path below. Its profile is the pistol clone
+    // (fire 200 / reset 80, no act-path since weapon_drawn is false), and
+    // the phase-1 click/rumble is driven separately via weapon_ready in
+    // game.cpp + the prime-time haptic. Firearms keep their own analog /
     // adaptive-click path below, completely unchanged.
-    if (!weapon_drawn) {
+    if (!weapon_drawn && current_weapon != SPECIAL_GRENADE) {
         if (r2 <= MELEE_RESET_THRESHOLD_R2) {
             s_r2_armed = true;
         }

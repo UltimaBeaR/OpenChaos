@@ -1194,11 +1194,19 @@ round_again:;
                         // Also compute current_weapon here so we can look up the
                         // WeaponFeelProfile early and branch on auto-fire below.
                         int32_t current_weapon = SPECIAL_NONE;
+                        // Grenade phase-1 = a grenade is in hand but not yet
+                        // primed (SubState != ACTIVATED). In that phase the
+                        // trigger should feel like a pistol click (DualSense
+                        // Weapon25 + Xbox rumble); once primed (phase 2) the
+                        // effect is off and only a light trigger remains.
+                        bool grenade_phase1 = false;
                         if (darci_t->Genus.Person->SpecialUse) {
                             Thing* p_su = TO_THING(darci_t->Genus.Person->SpecialUse);
                             if (p_su) {
                                 current_weapon = p_su->Genus.Special->SpecialType;
                                 has_heavy_out = (current_weapon == SPECIAL_AK47 || current_weapon == SPECIAL_SHOTGUN);
+                                grenade_phase1 = (current_weapon == SPECIAL_GRENADE
+                                    && p_su->SubState != SPECIAL_SUBSTATE_ACTIVATED);
                             }
                         }
                         bool has_gun = has_pistol_out || has_heavy_out;
@@ -1285,7 +1293,11 @@ round_again:;
                         // in_shot_cycle is the existing on_cooldown signal
                         // (Timer1 > pre_release AND matching state).
                         const bool trigger_effect_active = weapon_feel_trigger_effect_should_run(current_weapon, on_cooldown, mag_empty);
-                        bool weapon_ready = has_gun && !non_firing_state && trigger_effect_active;
+                        // grenade_phase1 enables the pistol-style trigger
+                        // effect for an un-primed grenade (its profile is the
+                        // pistol clone). Phase 2 (primed) → grenade_phase1
+                        // false → effect off, light trigger only.
+                        bool weapon_ready = (has_gun || grenade_phase1) && !non_firing_state && trigger_effect_active;
                         const bool is_running = (darci_t->State == STATE_MOVEING);
                         if (weapon_ready && !is_running && darci_t->Genus.Person->Target) {
                             Thing* tgt = TO_THING(darci_t->Genus.Person->Target);

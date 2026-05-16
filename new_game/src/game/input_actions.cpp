@@ -427,6 +427,17 @@ SLONG player_activate_in_hand(Thing* p_person)
                     //
 
                     SPECIAL_prime_grenade(p_special);
+
+                    // Phase-1 feedback: play the pistol-style burst so the
+                    // prime press has a tactile "click". On DualSense the
+                    // continuous Weapon25 effect (enabled via weapon_ready
+                    // for an un-primed grenade) supplies the trigger click;
+                    // this adds the same rumble/haptic the pistol gives on
+                    // a shot. On Xbox (no adaptive trigger) this short
+                    // rumble IS the click simulation. Player only.
+                    if (p_person->Genus.Person->PlayerID) {
+                        weapon_feel_on_shot_fired(SPECIAL_GRENADE, 0);
+                    }
                 }
 
                 return (1);
