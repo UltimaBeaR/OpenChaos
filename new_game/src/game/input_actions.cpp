@@ -33,11 +33,13 @@
 #include "things/core/statedef.h"
 #include "engine/physics/collide.h"
 #include "combat/combat.h"
+#include "combat/combat_cooldown.h" // OpenChaos: player arrest cooldown
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/weapon_feel.h" // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
+#include "assets/xlat_str.h" // OpenChaos: X_FAILED for arrest-on-cooldown message
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
@@ -889,8 +891,22 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
                 extern UWORD find_arrestee(Thing * p_person);
 
+                // OpenChaos: player arrest cooldown. PlayerID 0 is never
+                // gated, so the cop AI arrest path (pcom.cpp) is
+                // unaffected.
                 if (p_thing->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_thing))) {
-                    set_person_arrest(p_thing, index);
+                    if (combat_cooldown_ready(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST)) {
+                        combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", true);
+                        combat_cooldown_arm(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST);
+                        set_person_arrest(p_thing, index);
+                    } else {
+                        // Still on cooldown: refuse, but tell the player
+                        // via the same HUD info message used for "the
+                        // car is locked". Reuses the existing X_FAILED
+                        // string -- no new localised text needed.
+                        combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", false);
+                        PANEL_new_info_message(XLAT_str(X_FAILED));
+                    }
 
                     return INPUT_MASK_ACTION;
                 }
@@ -1094,8 +1110,16 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
             extern UWORD find_arrestee(Thing * p_person);
 
+            // OpenChaos: player arrest cooldown (see note above).
             if (p_thing->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_thing))) {
-                set_person_arrest(p_thing, index);
+                if (combat_cooldown_ready(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST)) {
+                    combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", true);
+                    combat_cooldown_arm(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST);
+                    set_person_arrest(p_thing, index);
+                } else {
+                    combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", false);
+                    PANEL_new_info_message(XLAT_str(X_FAILED));
+                }
 
                 return INPUT_MASK_ACTION;
             }
@@ -2598,6 +2622,13 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
 
     extern SLONG get_combat_type_for_node(UBYTE current_node);
 
+    // OpenChaos: a fresh "back" press arms exactly one defensive block
+    // for this hold (consumed in set_person_block). This does NOT touch
+    // the back-step movement -- it still works exactly as before; only
+    // the block/duck engage is gated. Player only.
+    if (p_person->Genus.Person->PlayerID && (pl->Pressed & INPUT_MASK_BACKWARDS))
+        player_block_arm(p_person);
+
     if ((pl->Pressed & INPUT_MASK_PUNCH) == 0 && (pl->Pressed & INPUT_MASK_KICK) == 0)
         if (p_person->State == STATE_IDLE || (p_person->State == STATE_HIT_RECOIL && p_person->Draw.Tweened->FrameIndex > 2) || ((p_person->SubState == SUB_STATE_STEP_FORWARD || p_person->SubState == SUB_STATE_PUNCH || p_person->SubState == SUB_STATE_KICK)))
             if (p_person->Draw.Tweened->CurrentAnim != ANIM_KICK_NAD)
@@ -2754,8 +2785,16 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             if (p_person->State == STATE_IDLE || p_person->State == STATE_FIGHTING || p_person->SubState == SUB_STATE_RUN_STOP) {
                 UWORD index;
 
+                // OpenChaos: player arrest cooldown (see note in do_an_action).
                 if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
-                    set_person_arrest(p_person, index);
+                    if (combat_cooldown_ready(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST)) {
+                        combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", true);
+                        combat_cooldown_arm(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST);
+                        set_person_arrest(p_person, index);
+                    } else {
+                        combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", false);
+                        PANEL_new_info_message(XLAT_str(X_FAILED));
+                    }
                     pl->DoneSomething = UC_TRUE;
                     return INPUT_MASK_ACTION;
                 }

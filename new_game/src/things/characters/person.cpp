@@ -12,7 +12,9 @@
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 #include "combat/combat.h"
+#include "combat/combat_cooldown.h" // OpenChaos: 2s block cooldown (on top of the arm-latch)
 #include "combat/combo_gate.h"
+#include "engine/debug/dbglog/dbglog.h" // OC_DEBUG_LOG (no-op when off)
 #include "assets/sound_id.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
@@ -105,6 +107,89 @@ extern SLONG sprint_speed;
 // Sized for the game's MAX_PLAYERS (=2 at time of writing, see player.h);
 // literal to avoid adding an include just for this constant.
 static UWORD s_player_anim_linger_timer[2] = { 0 };
+
+// OpenChaos (not in the original): cap how long the player can hold the
+// defensive duck/block pose. Holding "back" used to freeze the block
+// animation at frame 2 forever; now after this long Darci finishes the
+// block and returns to fight-idle on her own, exactly as if "back" had
+// been released. A fresh block (next attack window / press) re-arms it.
+// Stored as the GAME_TURN deadline per player (indexed by PlayerID - 1).
+// Same file-local-array rationale as the timer above (save-file binary
+// compat). NPCs are never affected.
+#define BLOCK_HOLD_MAX_SECONDS 1
+#define BLOCK_HOLD_MAX_TURNS (BLOCK_HOLD_MAX_SECONDS * UC_PHYSICS_DESIGN_HZ)
+static SLONG s_player_block_deadline[2] = { 0 };
+
+// Valid player index (0..1), or -1 for an NPC / out-of-range id.
+// Person.PlayerID is 1-based.
+static inline SLONG player_block_idx(Thing* p_person)
+{
+    SLONG pidx = p_person->Genus.Person->PlayerID - 1;
+    return (pidx >= 0 && pidx < 2) ? pidx : -1;
+}
+
+// Arm the block-hold cap when the player enters the block pose. No-op
+// for NPCs so their blocking is unchanged.
+static inline void player_block_arm_timeout(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    if (pidx >= 0)
+        s_player_block_deadline[pidx] = (SLONG)GAME_TURN + BLOCK_HOLD_MAX_TURNS;
+}
+
+// True while the player may still freeze the block at frame 2 (inside
+// the cap). False once the hold time elapsed -> the block animation is
+// allowed to play out and she stands. NPCs: not applicable (their path
+// never reaches this -- continue_blocking returns 0 for PlayerID 0).
+static inline bool player_block_hold_ok(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    return pidx >= 0 && (SLONG)GAME_TURN < s_player_block_deadline[pidx];
+}
+
+// OpenChaos: one block per "back" hold. A fresh "back" press (rising
+// edge, detected in the fight input code) arms exactly one block;
+// engaging the block consumes it. Holding "back" no longer auto-blocks
+// every incoming attack -> you must release and press "back" again.
+// The "being hit" gate (should_i_block) and the back-step movement
+// itself are NOT changed. NPCs are never gated.
+static bool s_player_block_armed[2] = { false, false };
+
+// Called from the fight input on a fresh "back" press.
+void player_block_arm(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    if (pidx >= 0)
+        s_player_block_armed[pidx] = true;
+}
+
+static inline bool player_block_is_armed(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    return pidx >= 0 && s_player_block_armed[pidx];
+}
+
+static inline void player_block_consume(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    if (pidx >= 0)
+        s_player_block_armed[pidx] = false;
+}
+
+// OC_DEBUG_LOG line: BLOCK engaged (green) vs refused because the hold
+// already used its one block (red). No-op unless OC_DEBUG_LOG.
+#if OC_DEBUG_LOG
+static void player_block_log(bool fired)
+{
+    DBGLOG_begin();
+    DBGLOG_seg(DBGLOG_color("white"), "BLOCK\t\t");
+    DBGLOG_seg(fired ? DBGLOG_color("green") : DBGLOG_color("red"),
+        fired ? "FIRED" : "BLOCKED");
+    DBGLOG_commit();
+}
+#else
+static inline void player_block_log(bool) { }
+#endif
 // find_face_for_this_pos declared via fallen/Headers/walkable.h above
 extern void add_thing_to_map(Thing* p_thing);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
@@ -139,6 +224,15 @@ extern void input_actions_clear_ak47_reload_gate(); // input_actions.cpp
 extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 
 // MAX_COL_WITH defined in engine/physics/collide_globals.h
+
+// OpenChaos (not in the original): the player's grab-arm "throw to the
+// ground" finisher succeeds only part of the time. Rolled for the
+// player only (NPCs always throw, unchanged). On a failed roll the
+// grapple is released through the game's existing escape transition --
+// Darci just shoves the victim off, no visual glitch. Roll: a value in
+// [0, GRAPPLE_THROW_ROLL_RANGE) below GRAPPLE_THROW_CHANCE_PCT passes.
+#define GRAPPLE_THROW_ROLL_RANGE 100
+#define GRAPPLE_THROW_CHANCE_PCT 60 // 60% throw, 40% clean release
 
 // uc_orig: set_stats (fallen/Source/Person.cpp)
 void set_stats(void)
@@ -5196,6 +5290,21 @@ void set_person_block(Thing* p_person)
 {
     SLONG anim = ANIM_BLOCK_HIGH;
 
+    // OpenChaos: the player's block only engages if BOTH hold true:
+    //  1) a fresh "back" press armed it (one block per hold), and
+    //  2) at least COOLDOWN_BLOCK_SECONDS passed since the last block.
+    // Otherwise it is refused (she takes the hit) so you can't hold
+    // "back" and auto-block every incoming attack -> effectively immune.
+    // Checked before ANY state change. The back-step movement and the
+    // "being hit" gate (should_i_block) are unchanged. NPCs (PlayerID 0)
+    // are never gated.
+    if (p_person->Genus.Person->PlayerID
+        && (!player_block_is_armed(p_person)
+            || !combat_cooldown_ready(p_person->Genus.Person->PlayerID, COOLDOWN_BLOCK))) {
+        player_block_log(false);
+        return;
+    }
+
     set_generic_person_state_function(p_person, STATE_FIGHTING);
 
     if (p_person->Genus.Person->SpecialUse) {
@@ -5220,6 +5329,15 @@ void set_person_block(Thing* p_person)
         p_person->Velocity = 0;
         p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
         p_person->SubState = SUB_STATE_BLOCK;
+        player_block_arm_timeout(p_person); // OpenChaos: cap the hold time
+        // OpenChaos: a block actually engaged -> consume the one-shot
+        // arm for this "back" hold, start the 2s cooldown, and log it
+        // (no-op for NPCs).
+        if (p_person->Genus.Person->PlayerID) {
+            player_block_consume(p_person);
+            combat_cooldown_arm(p_person->Genus.Person->PlayerID, COOLDOWN_BLOCK);
+            player_block_log(true);
+        }
         p_person->Draw.Tweened->Locked = 0;
         p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
     }
@@ -11509,7 +11627,13 @@ void fn_person_fighting(Thing* p_person)
             }
 
             if (p_person->Genus.Person->PlayerID) {
-                if (continue_blocking(p_person)) {
+                // OpenChaos: freeze the block at frame 2 while "back" is
+                // held, but only up to BLOCK_HOLD_MAX_SECONDS. After that
+                // the block animation plays out and she returns to
+                // fight-idle on her own, exactly as if "back" had been
+                // released. A fresh block (next attack window / press)
+                // re-arms the cap. NPCs are unaffected.
+                if (continue_blocking(p_person) && player_block_hold_ok(p_person)) {
                     goto skip_animate;
                 }
             }
@@ -11760,10 +11884,38 @@ void fn_person_fighting(Thing* p_person)
         } else if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH) {
             p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
 
-            set_anim(p_person, ANIM_GRAB_ARM_THROW);
-            set_anim(TO_THING(p_person->Genus.Person->Target), ANIM_GRAB_ARM_THROWV);
+            Thing* p_victim = TO_THING(p_person->Genus.Person->Target);
 
-            p_person->SubState = SUB_STATE_GRAPPLE_ATTACK;
+            // OpenChaos: player-only throw-to-ground proc. NPCs never
+            // roll (Random() is not consumed for them) so AI behaviour
+            // and the RNG stream stay byte-identical to the original.
+            bool throw_ok = true;
+            if (p_person->Genus.Person->PlayerID) {
+                throw_ok = (SLONG)(Random() % GRAPPLE_THROW_ROLL_RANGE) < GRAPPLE_THROW_CHANCE_PCT;
+                DBGLOG_begin();
+                DBGLOG_seg(DBGLOG_color("white"), "GRAB THROW\t\t");
+                DBGLOG_seg(DBGLOG_color("cyan"), "%d%%\t\t", (int)GRAPPLE_THROW_CHANCE_PCT);
+                DBGLOG_seg(throw_ok ? DBGLOG_color("green") : DBGLOG_color("red"),
+                    throw_ok ? "SUCCESS" : "FAIL");
+                DBGLOG_commit();
+            }
+
+            if (!throw_ok) {
+                // Failed roll: release the grapple cleanly exactly the
+                // way the game does when the victim breaks free (attacker
+                // plays the shove anim, victim the escape anim, both ->
+                // ESCAPE). No glitch.
+                p_victim->Genus.Person->Escape = 0;
+                set_anim(p_person, ANIM_GRAB_ARM_ESCAPE);
+                p_person->SubState = SUB_STATE_ESCAPE;
+                set_anim(p_victim, ANIM_GRAB_ARM_ESCAPEV);
+                p_victim->SubState = SUB_STATE_ESCAPE;
+            } else {
+                set_anim(p_person, ANIM_GRAB_ARM_THROW);
+                set_anim(p_victim, ANIM_GRAB_ARM_THROWV);
+
+                p_person->SubState = SUB_STATE_GRAPPLE_ATTACK;
+            }
         }
     }
 

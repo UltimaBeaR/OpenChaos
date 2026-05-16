@@ -444,6 +444,7 @@ set(SOURCES_NEW
     src/combat/combat.cpp
     src/combat/combat_globals.cpp
     src/combat/combo_gate.cpp
+    src/combat/combat_cooldown.cpp
     src/combat/combat_test_mode.cpp
     src/shooting/guns.cpp
     src/shooting/projectile.cpp

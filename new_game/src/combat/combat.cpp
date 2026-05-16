@@ -1,4 +1,5 @@
 #include "combat/combat.h"
+#include "combat/combat_cooldown.h" // combat_cooldown_reset on level (re)load
 #include "combat/combat_test_mode.h" // combat_test_reset on level (re)load
 
 #include "ai/pcom.h"
@@ -121,6 +122,7 @@ SLONG get_combat_type_for_node(UBYTE current_node)
 void init_gangattack(void)
 {
     memset((UBYTE*)gang_attacks, 0, sizeof(GangAttack) * MAX_HISTORY);
+    combat_cooldown_reset(); // OpenChaos: clear player action cooldowns on level (re)load
     combat_test_reset(); // OpenChaos: drop debug combat-test state on level (re)load
 }
 
@@ -335,6 +337,17 @@ SLONG find_best_grapple(Thing* p_person)
         iam = 2;
     }
 
+    // OpenChaos: player grapple cooldown. While on cooldown no grapple
+    // is offered, so the punch button just does a normal punch (the
+    // existing "no grapple found" fallback in set_person_punch) -- no
+    // glitch. PlayerID 0 (NPC AI) is never gated, so AI grapples are
+    // unchanged.
+    if (p_person->Genus.Person->PlayerID
+        && !combat_cooldown_ready(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE)) {
+        combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE, "GRAPPLE", false);
+        return (0);
+    }
+
     if (!p_person->Genus.Person->PlayerID || p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
         // Skip neck snap for non-players
         c0 = 1;
@@ -383,6 +396,10 @@ SLONG find_best_grapple(Thing* p_person)
                 }
             }
 
+            // OpenChaos: a grapple actually started -> arm the player's
+            // grapple cooldown (no-op for NPCs / PlayerID 0).
+            combat_cooldown_arm(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE);
+            combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE, "GRAPPLE", true);
             set_grapple(p_person, best_target, grapples[best].Anim, best);
             return (1);
         }
