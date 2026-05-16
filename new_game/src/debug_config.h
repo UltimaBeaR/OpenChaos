@@ -41,3 +41,11 @@
 // When false: no overlay, no hotkeys, no runtime state changes possible.
 // Always keep false in shipping builds.
 #define OC_DEBUG_PHYSICS_TIMING false
+
+// Generic on-screen debug log (engine/debug/dbglog). When false, DBGLOG /
+// DBGLOG_draw / DBGLOG_clear become compile-time no-ops (arguments are
+// not even evaluated) — zero cost, nothing drawn, even if call sites
+// remain in the code. When true the log writes and draws unconditionally
+// — this flag is the ONLY gate (no bangunsnotgames / runtime toggle).
+// A dev-only build flag; keep false in shipping builds.
+#define OC_DEBUG_LOG true

@@ -14,6 +14,7 @@
 #include "engine/console/console.h"
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/debug/debug_help/debug_help.h"
+#include "engine/debug/dbglog/dbglog.h" // DBGLOG_draw (generic debug log)
 #include "engine/graphics/text/font.h" // FONT_buffer_draw
 #include "engine/graphics/text/font2d.h" // FONT2D_DrawString (cheat==2 FPS overlay)
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (real render-frame timer)
@@ -190,6 +191,7 @@ void ui_render_post_composition(void)
     }
 
     input_debug_render();
+    DBGLOG_draw(); // generic debug log (own batch); no-op unless OC_DEBUG_LOG
     debug_help_render();
     if (!(GAME_FLAGS & GF_PAUSED)) {
         CONSOLE_draw();

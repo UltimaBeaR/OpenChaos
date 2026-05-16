@@ -201,6 +201,7 @@ set(SOURCES_NEW
     src/engine/debug/input_debug/input_debug_gamepad.cpp
     src/engine/debug/input_debug/input_debug_dualsense.cpp
     src/engine/debug/debug_help/debug_help.cpp
+    src/engine/debug/dbglog/dbglog.cpp
 
     # === Engine: video ===
     src/engine/video/video_player.cpp
