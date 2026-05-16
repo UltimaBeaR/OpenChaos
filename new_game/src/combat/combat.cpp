@@ -44,6 +44,8 @@ extern SLONG is_person_ko(Thing* p_person);
 extern SLONG set_person_kick_near(Thing* p_person, SLONG dist);
 // uc_orig: dist_to_target (fallen/Source/Person.cpp)
 extern SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b);
+// uc_orig: dist_to_target_pelvis (fallen/Source/Person.cpp)
+extern SLONG dist_to_target_pelvis(Thing* p_person_a, Thing* p_person_b);
 // uc_orig: is_person_ko_and_lay_down (fallen/Source/Person.cpp)
 extern SLONG is_person_ko_and_lay_down(Thing* p_person);
 // uc_orig: person_on_floor (fallen/Source/Person.cpp)
@@ -1419,7 +1421,8 @@ SLONG find_attack_stance(
     SLONG attack_range,
     Thing** stance_target,
     GameCoord* stance_position,
-    SLONG* stance_angle)
+    SLONG* stance_angle,
+    SLONG allow_downed_reach)
 {
     SLONG i;
     SLONG dx, dz;
@@ -1454,6 +1457,19 @@ SLONG find_attack_stance(
 
     min_dist = attack_distance - attack_range;
     max_dist = attack_distance + attack_range;
+
+    // OpenChaos: lenient reach used ONLY for a downed (KO + lying flat)
+    // candidate when allow_downed_reach is set (player forward-kick ->
+    // stomp). Roughly double the normal melee far reach and no near
+    // limit, so standing right over the body counts. ~176 deg facing
+    // cone -> angle barely matters, but the score still subtracts
+    // dist + angle so among equals the nearest/most-faced still wins
+    // (priority stays equal -- no standing/lying preference).
+    // uc_orig: none -- not in the original game.
+#define STANCE_DOWNED_MIN_DIST 0
+#define STANCE_DOWNED_MAX_DIST 0x100  // 256 (normal melee far reach is 224)
+#define STANCE_FRONT_MAX_DANGLE 300   // original literal: ~52 deg cone
+#define STANCE_DOWNED_MAX_DANGLE 1000 // ~176 deg: facing barely matters
 
     wangle = p_person->Draw.Tweened->Angle;
 
@@ -1500,8 +1516,20 @@ SLONG find_attack_stance(
 
         dist = QDIST2(abs(dx), abs(dz));
 
-        if (!WITHIN(dist, min_dist, max_dist)) {
-            continue;
+        // OpenChaos: only this candidate is treated leniently, and only
+        // when the caller asked for it (player stomp). Everyone else
+        // (standing targets, other attacks, all NPCs -> flag 0) keeps
+        // the original band/cone exactly.
+        bool downed_lenient = (allow_downed_reach && is_person_ko_and_lay_down(p_target));
+
+        if (downed_lenient) {
+            if (!WITHIN(dist, STANCE_DOWNED_MIN_DIST, STANCE_DOWNED_MAX_DIST)) {
+                continue;
+            }
+        } else {
+            if (!WITHIN(dist, min_dist, max_dist)) {
+                continue;
+            }
         }
 
         angle = calc_angle(dx, dz) + 1024;
@@ -1516,7 +1544,7 @@ SLONG find_attack_stance(
         case FIND_DIR_BACK:
         case FIND_DIR_LEFT:
         case FIND_DIR_RIGHT:
-            if (abs(dangle) > 300) {
+            if (abs(dangle) > (downed_lenient ? STANCE_DOWNED_MAX_DANGLE : STANCE_FRONT_MAX_DANGLE)) {
                 score = -UC_INFINITY;
             } else {
                 score = 0;
@@ -1616,7 +1644,8 @@ SLONG find_attack_stance(
 // Calls find_attack_stance then rotates p_person to face the best target.
 // Returns THING_NUMBER of target if found, negative value if none.
 // uc_orig: turn_to_target (fallen/Source/Combat.cpp)
-SLONG turn_to_target(Thing* p_person, SLONG find_dir)
+SLONG turn_to_target(Thing* p_person, SLONG find_dir, SLONG allow_downed_reach,
+    GameCoord* out_stance)
 {
     Thing* stance_target;
     GameCoord stance_position;
@@ -1630,7 +1659,8 @@ SLONG turn_to_target(Thing* p_person, SLONG find_dir)
         0x60, // Hard-coded melee fight range
         &stance_target,
         &stance_position,
-        &stance_angle);
+        &stance_angle,
+        allow_downed_reach);
 
     p_person->Draw.Tweened->Angle = stance_angle & 2047;
     if (stance_target) {
@@ -1641,8 +1671,11 @@ SLONG turn_to_target(Thing* p_person, SLONG find_dir)
         }
     }
 
-    if (stance_target)
+    if (stance_target) {
+        if (out_stance)
+            *out_stance = stance_position; // designed stand spot for this target
         return (THING_NUMBER(stance_target));
+    }
     return (-ret);
 }
 
@@ -1662,7 +1695,8 @@ SLONG turn_to_direction_and_find_target(Thing* p_person, SLONG find_dir)
         0xd0, // Hard-coded extended fight range
         &stance_target,
         &stance_position,
-        &stance_angle);
+        &stance_angle,
+        0); // never lenient: directional attacks don't stomp
 
     switch (find_dir & FIND_DIR_MASK) {
     case FIND_DIR_LEFT:
@@ -1718,10 +1752,50 @@ SLONG turn_to_target_and_kick(Thing* p_person)
     SLONG anim;
     Thing* p_target;
 
-    ret = turn_to_target(p_person, FIND_DIR_FRONT);
+    // OpenChaos: make stomping a downed enemy forgiving, but ONLY when
+    // it can't hijack a real fight. Lenient reach is allowed only for
+    // the player and only when there is no locked target, or the locked
+    // target itself is the downed body. If the player is locked onto a
+    // standing enemy (fight mode), reach stays original so the kick
+    // can't suddenly snap to a bystander on the ground. NPCs: flag
+    // stays 0 -> identical to the original.
+    SLONG allow_downed_reach = 0;
+    if (p_person->Genus.Person->PlayerID) {
+        UWORD i_cur = p_person->Genus.Person->Target;
+        if (i_cur == 0)
+            allow_downed_reach = 1; // free roam, no lock -> easy stomp
+        else if (is_person_ko_and_lay_down(TO_THING(i_cur)))
+            allow_downed_reach = 1; // locked target is the downed body itself
+    }
+
+    GameCoord stance;
+    ret = turn_to_target(p_person, FIND_DIR_FRONT, allow_downed_reach, &stance);
 
     p_target = TO_THING(ret);
     if (ret && is_person_ko_and_lay_down(p_target)) {
+        // OpenChaos: the stomp only connects from close (its foot-strike
+        // window is tight, ~0x53). The lenient reach above can target a
+        // body that's too far for the foot to land -> visible whiff.
+        // Fix: ONLY for the player, and ONLY when she is currently out
+        // of reach, glide her straight to the search's own designed
+        // stand spot (exactly STOMP_REACH_DIST from the body -- the
+        // distance the stomp anim is tuned to connect from). Nothing
+        // happens when she is already within range, and we travel just
+        // the shortfall, never more. move_thing_on_map keeps her off
+        // walls; we deliberately DON'T mark a teleport, so render-interp
+        // turns the move into a quick smooth step on its own. NPCs are
+        // never moved (their path keeps the original behaviour).
+        //
+        // STOMP_REACH_DIST mirrors find_attack_stance's melee
+        // attack_distance (0x80) -- keep them the same. SLACK avoids a
+        // pointless sub-step right at the boundary.
+        // uc_orig: none -- not in the original game.
+#define STOMP_REACH_DIST 0x80
+#define STOMP_REACH_SLACK 0x08
+        if (p_person->Genus.Person->PlayerID
+            && dist_to_target_pelvis(p_person, p_target) > STOMP_REACH_DIST + STOMP_REACH_SLACK) {
+            move_thing_on_map(p_person, &stance);
+        }
         set_person_stomp(p_person);
     } else {
         SLONG dist = 0;
