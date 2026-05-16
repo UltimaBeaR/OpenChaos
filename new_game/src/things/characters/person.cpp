@@ -11370,7 +11370,30 @@ SLONG person_new_combat_node(Thing* p_person)
             }
         }
 
-        if ((p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) && node > 0) {
+        // The last hit of ANY combo chain ends the combo.
+        //
+        // Structural rule (data-driven, works for combos of any length):
+        // every fight_tree attack node has a "finish/return" entry in column 1
+        // (FIGHT_TREE_FINISH). Non-final hits point it at a RETURN node; the
+        // final hit of every chain (punch/kick 3rd, knife 3rd, bat 2nd, the
+        // 2-hit cross-combo finishers, etc.) has column 1 == 0 -- it goes
+        // straight to idle, never to a deeper attack.
+        //
+        // Originally the per-move COMBO_ACCURACY timing gate stopped buffered
+        // input from walking a finisher's continuation column; we deliberately
+        // removed that gate. Without this check a buffered/mashed press would
+        // re-trigger e.g. KICK_COMBO3's continuation (node 6) and spawn an
+        // unwanted fresh chain. Treat the last hit as terminal for every combo
+        // type uniformly and drop any buffered punch/kick request.
+        UWORD finish_anim_unused;
+        SLONG combo_finished = (node > 0)
+            && get_combat_type_for_node((UBYTE)node) != COMBAT_NONE
+            && get_anim_and_node_for_action((UBYTE)node, FIGHT_TREE_FINISH, &finish_anim_unused) == 0;
+        if (combo_finished) {
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK);
+        }
+
+        if ((p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) && node > 0 && !combo_finished) {
             if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH) {
                 new_node = get_anim_and_node_for_action(node, 2, &anim);
                 p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;

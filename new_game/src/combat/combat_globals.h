@@ -46,6 +46,10 @@ struct Grapples {
 };
 
 // Column indices into fight_tree[][10].
+// Finish/return column: non-final combo hits point this at a RETURN node;
+// the last hit of every chain has 0 here (goes straight to idle, never to a
+// deeper attack). Not named in the original -- added for the combo-end check.
+#define FIGHT_TREE_FINISH 1
 // uc_orig: FIGHT_TREE_DAMAGE (fallen/Source/Combat.cpp)
 #define FIGHT_TREE_DAMAGE 8
 // uc_orig: FIGHT_TREE_HIT_TYPE (fallen/Source/Combat.cpp)
