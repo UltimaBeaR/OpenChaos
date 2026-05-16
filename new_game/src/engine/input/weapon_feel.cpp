@@ -58,7 +58,17 @@
 // Current fire-detection design (final)
 // ===========================================================================
 //
-// Two paths share one evaluator, picked at runtime per weapon+device:
+// Paths share one evaluator, picked at runtime per weapon+device:
+//
+//   * MELEE path — used whenever no firearm is drawn
+//     (weapon_drawn == false): bare hand, knife, bat, grenade, C4,
+//     mine — everything that is not pistol / shotgun / AK47. No
+//     adaptive-trigger effect. Plain analog with the actuation point
+//     near the very end of travel (MELEE_FIRE_THRESHOLD_R2) and a short
+//     rearm (MELEE_RESET_THRESHOLD_R2): the player jams the trigger to
+//     the bottom ("click"), eases up a little, jams again — fast
+//     repeated melee. Same on DualSense and Xbox (both analog 0..255).
+//     The firearm 200/80 thresholds are not used here.
 //
 //   * ADAPTIVE-CLICK path — used when the device is a DualSense AND the
 //     effective effect is Weapon25 (single-shot or auto-fire in reload-
@@ -72,10 +82,10 @@
 //     armed gate on this path; hardware naturally enforces one click
 //     per press cycle. Game Timer1 still rate-limits.
 //
-//   * THRESHOLD fallback — used for auto-fire weapons during normal
-//     firing (AK47 with Machine effect, mag not empty), effect-less
-//     profiles (shotgun today), bare-hand melee (no gun out), and all
-//     non-DualSense devices (Xbox, keyboard-as-gamepad). Plain rising-
+//   * THRESHOLD fallback — used for FIREARMS only: auto-fire weapons
+//     during normal firing (AK47 with Machine effect, mag not empty),
+//     effect-less profiles (shotgun today), and non-DualSense devices
+//     (Xbox, keyboard-as-gamepad). Plain rising-
 //     edge: r2 ≤ reset_threshold arms, r2 > fire_threshold fires. Auto-
 //     fire ignores the armed gate. For weapons with a Machine effect,
 //     fire_threshold is derived from trigger_start_zone so the game
@@ -197,8 +207,9 @@ constexpr int R2_UNITS_PER_ZONE = 256 / WEAPON25_ZONE_COUNT; // = 28
 
 // Threshold-path defaults for single-shot weapons. The act-bit click path
 // (DualSense + Weapon25 effect) ignores these and fires on zone crossing;
-// the threshold fallback uses them for keyboard, Xbox, bare-hand melee,
-// and weapons with no adaptive click.
+// the threshold fallback uses them for firearms on keyboard/Xbox and
+// firearms with no adaptive click. (Melee uses MELEE_FIRE/RESET_
+// THRESHOLD_R2 instead, not these.)
 //   FIRE:  r2 at which a press is counted as a shot (well past the click
 //          zone so a weak squeeze doesn't fire).
 //   RESET: r2 at which rising-edge rearms (player must release this deep
@@ -207,6 +218,17 @@ constexpr int R2_UNITS_PER_ZONE = 256 / WEAPON25_ZONE_COUNT; // = 28
 // (~112..168 r2) so the fallback still feels similar to the hardware click.
 constexpr uint8_t DEFAULT_FIRE_THRESHOLD_R2 = 200;
 constexpr uint8_t DEFAULT_RESET_THRESHOLD_R2 = 80;
+
+// Melee / non-firearm thresholds (bare hand, knife, bat, grenade, C4,
+// mine). No adaptive-trigger effect — plain analog with the actuation
+// point near the very end of travel and a short rearm, so the player
+// jams the trigger to the bottom ("click"), eases up only a little, and
+// jams it again for fast repeated melee. FIRE high (~88% of 255) =
+// "almost at the end"; RESET ~24 units below FIRE = short recovery
+// stroke. Same on DualSense and Xbox (both analog 0..255). Tunable by
+// feel.
+constexpr uint8_t MELEE_FIRE_THRESHOLD_R2 = 225;
+constexpr uint8_t MELEE_RESET_THRESHOLD_R2 = 200;
 
 struct HapticEnvelope {
     std::vector<uint8_t> samples; // 0..255, one per ENV_STEP_SECONDS window
@@ -1020,6 +1042,28 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
 
     // ---- R2 fire channel ----
 
+    // Melee / non-firearm path (bare hand, knife, bat, grenade, C4, mine —
+    // anything that is NOT pistol / shotgun / AK47). No DualSense effect.
+    // Plain analog: fire near the very end of trigger travel (jam it to
+    // the bottom = "click"), then a short rearm so the player can ease up
+    // just a little and jam it again rapidly. Pure analog → behaves
+    // identically on DualSense and Xbox. Firearms keep their own analog /
+    // adaptive-click path below, completely unchanged.
+    if (!weapon_drawn) {
+        if (r2 <= MELEE_RESET_THRESHOLD_R2) {
+            s_r2_armed = true;
+        }
+        if (r2 >= MELEE_FIRE_THRESHOLD_R2 && s_r2_armed) {
+            out.shoot = true;
+            s_r2_armed = false;
+        }
+        // Keep the analog snapshot coherent so the firearm act-path has
+        // a sane prev value if the player draws a gun mid-press.
+        s_prev_r2 = r2;
+
+        // L2 kick channel (analog, unchanged) still runs below.
+    } else {
+
     // Rising-edge rearm for the threshold path — R2 dipping at or
     // below reset_threshold counts as a "release" and rearms the
     // rising-edge detector so the next press fires.
@@ -1054,18 +1098,15 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
     const uint8_t eff_strength = reload_press_mode ? p->reload_click_strength : p->trigger_strength;
     const bool eff_auto = reload_press_mode ? false : p->auto_fire;
 
-    // Pick fire-detection path. The act-bit path requires all of:
+    // This whole branch is firearm-only (weapon_drawn == true); melee
+    // was handled by the digital path above. Pick the firearm fire-
+    // detection path. The act-bit path requires all of:
     //   * DualSense device (act bit is a DualSense-specific signal).
     //   * Profile declares a Weapon25 click (trigger_strength > 0).
     //   * Not auto-fire (auto-fire holds instead of edge-triggering).
-    //   * Weapon is currently drawn — gamepad.cpp only turns the
-    //     Weapon25 effect on when the player has a gun out. With no
-    //     gun drawn (bare-hand punch via R2) the hardware emits no
-    //     click, so the adaptive-trigger path would block fire
-    //     forever. Threshold fallback handles bare-hand punch.
-    // Note: SPECIAL_NONE is registered with the pistol profile, so we
-    // CANNOT distinguish bare-hand from pistol by current_weapon
-    // alone — the caller passes weapon_drawn (FLAG_PERSON_GUN_OUT).
+    // gamepad.cpp only turns the Weapon25 effect on when a gun is out,
+    // which is guaranteed here. weapon_drawn stays in the predicate as a
+    // defensive guard / intent marker.
     const bool device_is_ds = (gamepad_get_device_type() == INPUT_DEVICE_DUALSENSE);
     const bool weapon_has_click = (eff_effect == TriggerEffectType::Weapon && eff_strength != 0);
     const bool use_act_path = device_is_ds && weapon_has_click && !eff_auto && weapon_drawn;
@@ -1097,6 +1138,7 @@ WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int
             }
         }
     }
+    } // end firearm R2 path (else of the !weapon_drawn melee branch)
 
     // ---- L2 kick channel — same plain rising-edge, never auto-fires ----
 
