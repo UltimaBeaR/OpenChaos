@@ -15,6 +15,15 @@
 #define COMBO_GATE_ROLL_RANGE 1024
 #define COMBO_GATE_ROLL_MASK (COMBO_GATE_ROLL_RANGE - 1)
 
+// "Pity" / bad-luck protection. Every time a gated combo node FAILS
+// its roll, that node's effective chance is bumped by COMBO_PITY_STEP
+// for THIS player's next attempt of the SAME node, stacking on every
+// further fail until it finally lands -- at which point it snaps back
+// to the base s_chance[]. Per-player, per-node. +0.20 over a 0.40
+// base reaches a guaranteed land by the 4th try (0.40 -> 0.60 ->
+// 0.80 -> 1.00).
+#define COMBO_PITY_STEP 0.20f
+
 // Per-node proc chance (0.0..1.0 probability the hit lands), indexed by
 // fight_tree node. 1.0 -> behaviour is 1:1 with the pre-gate combat.
 // Tune individual rows from here.
@@ -45,6 +54,14 @@ static float s_chance[COMBO_NODE_COUNT] = {
     0.85f, // 21  BAT 2              -- 2nd hit (bat1 -> bat2, 2-hit combo)
 };
 
+// Accumulated pity bonus added on top of s_chance[node], one slot per
+// (player, node). Zero = that node is at its base chance. Cleared back
+// to zero the instant that node's roll succeeds. It self-clears on the
+// first success after a level (re)load, so no explicit reset hook is
+// needed (a stale bonus only makes the very first post-load attempt
+// slightly easier, then it's gone).
+static float s_fail_bonus[MAX_PLAYERS][COMBO_NODE_COUNT];
+
 // Short human-readable names for the on-screen debug log. Return/idle
 // nodes are never logged (they are not attack nodes) so "" is fine.
 #if OC_DEBUG_LOG
@@ -69,21 +86,27 @@ static ULONG combo_chance_rgb(float c)
 }
 
 // One line per attack: NAME (white)  CHANCE% (gradient)  result
-// (green/red). Column alignment is done in the text with trailing tabs
-// (the log itself adds no spacing) -- two tab stops per field is wide
-// enough for the longest name ("PUNCH2b") and "100%".
-static void combo_log(SLONG node, bool pass)
+// (green/red). `chance` is the ACTUAL chance used for the roll (base +
+// pity bonus); `base` is the unmodified s_chance[]. When the pity
+// bonus is active they differ, so we print "actual% (base%)" -- when
+// equal we print just "actual%". The gradient colour follows the
+// actual chance. Column alignment is done with trailing tabs.
+static void combo_log(SLONG node, bool pass, float base, float chance)
 {
+    int cur = (int)(chance * 100.0f + 0.5f);
+    int bas = (int)(base * 100.0f + 0.5f);
     DBGLOG_begin();
     DBGLOG_seg(DBGLOG_color("white"), "%s\t\t", s_name[node]);
-    DBGLOG_seg(combo_chance_rgb(s_chance[node]), "%d%%\t\t",
-        (int)(s_chance[node] * 100.0f + 0.5f));
+    if (cur != bas)
+        DBGLOG_seg(combo_chance_rgb(chance), "%d%% (%d%%)\t\t", cur, bas);
+    else
+        DBGLOG_seg(combo_chance_rgb(chance), "%d%%\t\t", cur);
     DBGLOG_seg(pass ? DBGLOG_color("green") : DBGLOG_color("red"),
         "%s", pass ? "SUCCESS" : "FAIL");
     DBGLOG_commit();
 }
 #else
-static inline void combo_log(SLONG, bool) {}
+static inline void combo_log(SLONG, bool, float, float) {}
 #endif
 
 bool combo_gate_try(SLONG player_id, SLONG node)
@@ -97,10 +120,19 @@ bool combo_gate_try(SLONG player_id, SLONG node)
     if (node <= 0 || node >= COMBO_NODE_COUNT)
         return true;
 
+    float base = s_chance[node];
+    float chance = base + s_fail_bonus[pidx][node];
+    if (chance > 1.0f) chance = 1.0f; // >=1.0 already always passes
+
     SLONG roll = Random() & COMBO_GATE_ROLL_MASK;
-    SLONG thresh = (SLONG)(s_chance[node] * (float)COMBO_GATE_ROLL_RANGE);
+    SLONG thresh = (SLONG)(chance * (float)COMBO_GATE_ROLL_RANGE);
     bool pass = roll < thresh;
 
-    combo_log(node, pass);
+    if (pass)
+        s_fail_bonus[pidx][node] = 0.0f;             // landed -> back to base
+    else
+        s_fail_bonus[pidx][node] += COMBO_PITY_STEP; // missed -> easier next time
+
+    combo_log(node, pass, base, chance);
     return pass;
 }

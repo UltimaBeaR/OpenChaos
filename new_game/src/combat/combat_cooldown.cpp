@@ -6,7 +6,7 @@
 // Cooldown lengths in real in-game seconds. UC_PHYSICS_DESIGN_HZ is the
 // fixed rate GAME_TURN advances at, so seconds * HZ = tick count.
 #define COOLDOWN_SLIDE_SECONDS 5
-#define COOLDOWN_ARREST_SECONDS 15
+#define COOLDOWN_ARREST_SECONDS 12
 #define COOLDOWN_GRAPPLE_SECONDS 7
 #define COOLDOWN_BLOCK_SECONDS 2
 

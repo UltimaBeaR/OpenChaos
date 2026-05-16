@@ -234,6 +234,17 @@ extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 #define GRAPPLE_THROW_ROLL_RANGE 100
 #define GRAPPLE_THROW_CHANCE_PCT 60 // 60% throw, 40% clean release
 
+// OpenChaos: same "pity" / bad-luck protection as the combo gate. Each
+// FAILED throw roll bumps THIS player's throw chance by
+// GRAPPLE_THROW_PITY_STEP_PCT for the next throw, stacking on every
+// further fail until it finally lands -- then it snaps back to
+// GRAPPLE_THROW_CHANCE_PCT. Per-player ([2], indexed by PlayerID - 1;
+// same save-file-binary-compat rationale as the block helpers above).
+// NPCs never roll so this is never touched for them; it also
+// self-clears on the first success after a level (re)load.
+#define GRAPPLE_THROW_PITY_STEP_PCT 20
+static SLONG s_player_throw_bonus[2] = { 0, 0 };
+
 // uc_orig: set_stats (fallen/Source/Person.cpp)
 void set_stats(void)
 {
@@ -11891,10 +11902,28 @@ void fn_person_fighting(Thing* p_person)
             // and the RNG stream stay byte-identical to the original.
             bool throw_ok = true;
             if (p_person->Genus.Person->PlayerID) {
-                throw_ok = (SLONG)(Random() % GRAPPLE_THROW_ROLL_RANGE) < GRAPPLE_THROW_CHANCE_PCT;
+                SLONG pidx = p_person->Genus.Person->PlayerID - 1;
+                bool ok_idx = (pidx >= 0 && pidx < 2);
+                SLONG base = GRAPPLE_THROW_CHANCE_PCT;
+                SLONG chance = base + (ok_idx ? s_player_throw_bonus[pidx] : 0);
+                if (chance > GRAPPLE_THROW_ROLL_RANGE) // >=range already always passes
+                    chance = GRAPPLE_THROW_ROLL_RANGE;
+
+                throw_ok = (SLONG)(Random() % GRAPPLE_THROW_ROLL_RANGE) < chance;
+
+                if (ok_idx) {
+                    if (throw_ok)
+                        s_player_throw_bonus[pidx] = 0;                       // landed -> base
+                    else
+                        s_player_throw_bonus[pidx] += GRAPPLE_THROW_PITY_STEP_PCT; // easier next time
+                }
+
                 DBGLOG_begin();
                 DBGLOG_seg(DBGLOG_color("white"), "GRAB THROW\t\t");
-                DBGLOG_seg(DBGLOG_color("cyan"), "%d%%\t\t", (int)GRAPPLE_THROW_CHANCE_PCT);
+                if (chance != base)
+                    DBGLOG_seg(DBGLOG_color("cyan"), "%d%% (%d%%)\t\t", (int)chance, (int)base);
+                else
+                    DBGLOG_seg(DBGLOG_color("cyan"), "%d%%\t\t", (int)chance);
                 DBGLOG_seg(throw_ok ? DBGLOG_color("green") : DBGLOG_color("red"),
                     throw_ok ? "SUCCESS" : "FAIL");
                 DBGLOG_commit();
