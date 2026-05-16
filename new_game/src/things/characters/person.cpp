@@ -12,6 +12,7 @@
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 #include "combat/combat.h"
+#include "combat/combo_gate.h"
 #include "assets/sound_id.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
@@ -5616,6 +5617,21 @@ SLONG set_person_punch(Thing* p_person)
         }
     }
 
+    // OpenChaos anti-mash gate for the player's FIRST hit (NPCs never
+    // gated). Done before any state change so a blocked press simply
+    // does nothing -- the player stays as they were, no glitch. Knife
+    // starts its own chain (node 14); punch/bat use the punch chain.
+    if (p_person->Genus.Person->PlayerID) {
+        SLONG first_node = 1; // ANIM_PUNCH_COMBO1
+        if (p_person->Genus.Person->SpecialUse) {
+            Thing* p_sp = TO_THING(p_person->Genus.Person->SpecialUse);
+            if (p_sp->Genus.Special->SpecialType == SPECIAL_KNIFE)
+                first_node = 14; // ANIM_KNIFE_ATTACK1
+        }
+        if (!combo_gate_try(p_person->Genus.Person->PlayerID, first_node))
+            return (0);
+    }
+
     if (find_best_grapple(p_person)) {
         return (0);
     }
@@ -5755,6 +5771,14 @@ SLONG set_person_kick(Thing* p_person)
                 return 0;
             }
         }
+    }
+
+    // OpenChaos anti-mash gate for the player's FIRST kick (node 6;
+    // NPCs never gated). Before any state change -> a blocked press
+    // simply does nothing.
+    if (p_person->Genus.Person->PlayerID) {
+        if (!combo_gate_try(p_person->Genus.Person->PlayerID, 6)) // ANIM_KICK_COMBO1
+            return (0);
     }
 
     if (p_person == NET_PERSON(0)) {
@@ -11407,6 +11431,20 @@ SLONG person_new_combat_node(Thing* p_person)
             }
         } else {
             // Negative node means missed -- cannot continue the combo.
+            new_node = get_anim_and_node_for_action(abs(node), 1, &anim);
+        }
+
+        // OpenChaos anti-mash gate (PLAYER ONLY -- NPCs untouched).
+        // If the chosen continuation is a real attack but fails its
+        // proc/cooldown roll, drop it and fall back to the current
+        // attack's return node -> fight idle. This is exactly the path
+        // the removed 300ms COMBO_ACCURACY gate used, so the combo ends
+        // cleanly with no visual glitch.
+        if (p_person->Genus.Person->PlayerID
+            && new_node
+            && get_combat_type_for_node((UBYTE)new_node) != COMBAT_NONE
+            && !combo_gate_try(p_person->Genus.Person->PlayerID, new_node)) {
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK);
             new_node = get_anim_and_node_for_action(abs(node), 1, &anim);
         }
 

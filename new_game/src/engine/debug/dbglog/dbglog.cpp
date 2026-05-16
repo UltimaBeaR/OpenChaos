@@ -19,15 +19,29 @@
 // MAX (screen_h / line height) we'd ever hit, otherwise the buffer — not
 // the screen — caps the visible count and the bottom of a tall window
 // stays empty while the log scrolls. 256 covers ~3300 px of height at
-// the 13 px line step (well past 4K). ~25 KB static — fine.
+// the 13 px line step (well past 4K). Fine as static.
 #define DBGLOG_LINES 256
-#define DBGLOG_TEXTLEN 96
 
-static char s_txt[DBGLOG_LINES][DBGLOG_TEXTLEN];
-static ULONG s_rgb[DBGLOG_LINES];
+// A line is up to DBGLOG_MAX_SEGS independently-coloured pieces. Each
+// piece is laid out in its own fixed-width column so columns align
+// across lines. Single-colour DBGLOG() lines are just one segment.
+#define DBGLOG_MAX_SEGS 6
+#define DBGLOG_SEGLEN 40
+
+struct DbgSeg {
+    char txt[DBGLOG_SEGLEN];
+    ULONG rgb;
+};
+
+static DbgSeg s_seg[DBGLOG_LINES][DBGLOG_MAX_SEGS];
+static UBYTE s_nseg[DBGLOG_LINES];
 static uint64_t s_ms[DBGLOG_LINES]; // sdl3_get_ticks() at write time
 static SLONG s_count = 0; // valid entries (0..DBGLOG_LINES)
 static SLONG s_pos = 0; // next write slot
+
+// Line currently being assembled by DBGLOG_begin/seg/commit.
+static DbgSeg s_build[DBGLOG_MAX_SEGS];
+static SLONG s_build_n = 0;
 
 // First-ever log time — message timestamps are offsets from this, so the
 // clock reads ~from game start. Deliberately NOT reset by DBGLOG_clear
@@ -45,7 +59,7 @@ static bool s_base_set = false;
 #define DBGLOG_LINE_PX 13 // fixed gap between lines (px)
 #define DBGLOG_TS_W_PX 64 // fixed pixel width of the "mm:ss:mmm " stamp
 
-static ULONG dbglog_colour(const char* name)
+unsigned long DBGLOG_color(const char* name)
 {
     if (!name) return 0xffffff;
     if (strcmp(name, "red") == 0) return 0xff3030;
@@ -57,18 +71,35 @@ static ULONG dbglog_colour(const char* name)
     return 0xffffff; // "white" / unknown
 }
 
-void DBGLOG(const char* color, const char* fmt, ...)
+void DBGLOG_begin(void)
 {
-    char* slot = s_txt[s_pos];
+    s_build_n = 0;
+}
+
+void DBGLOG_seg(unsigned long rgb, const char* fmt, ...)
+{
+    if (s_build_n >= DBGLOG_MAX_SEGS)
+        return;
+
+    char* slot = s_build[s_build_n].txt;
 
     va_list ap;
     va_start(ap, fmt);
-    vsnprintf(slot, DBGLOG_TEXTLEN, fmt, ap);
+    vsnprintf(slot, DBGLOG_SEGLEN, fmt, ap);
     va_end(ap);
 
     // Uppercase for a consistent debug-readout look (matches CONSOLE).
     for (char* c = slot; *c; ++c)
         *c = (char)toupper((unsigned char)*c);
+
+    s_build[s_build_n].rgb = (ULONG)rgb;
+    s_build_n++;
+}
+
+void DBGLOG_commit(void)
+{
+    if (s_build_n <= 0)
+        return;
 
     const uint64_t now = sdl3_get_ticks();
     if (!s_base_set) {
@@ -76,17 +107,36 @@ void DBGLOG(const char* color, const char* fmt, ...)
         s_base_set = true;
     }
 
-    s_rgb[s_pos] = dbglog_colour(color);
+    for (SLONG i = 0; i < s_build_n; i++)
+        s_seg[s_pos][i] = s_build[i];
+    s_nseg[s_pos] = (UBYTE)s_build_n;
     s_ms[s_pos] = now;
+
     s_pos = (s_pos + 1) % DBGLOG_LINES;
     if (s_count < DBGLOG_LINES)
         s_count++;
+    s_build_n = 0;
+}
+
+void DBGLOG(const char* color, const char* fmt, ...)
+{
+    // One-segment line built on the segment path.
+    char buf[DBGLOG_SEGLEN];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+
+    DBGLOG_begin();
+    DBGLOG_seg(DBGLOG_color(color), "%s", buf);
+    DBGLOG_commit();
 }
 
 void DBGLOG_clear(void)
 {
     s_count = 0;
     s_pos = 0;
+    s_build_n = 0;
 }
 
 void DBGLOG_draw(void)
@@ -161,10 +211,21 @@ void DBGLOG_draw(void)
         FONT_buffer_add(text_x_px, y, 150, 150, 150, 1,
             (CBYTE*)"%02llu:%02llu:%03llu", mm, ss, ms);
 
-        const ULONG rgb = s_rgb[idx];
-        FONT_buffer_add(text_x_px + DBGLOG_TS_W_PX, y,
-            (UBYTE)((rgb >> 16) & 0xff), (UBYTE)((rgb >> 8) & 0xff),
-            (UBYTE)(rgb & 0xff), 1, (CBYTE*)"%s", s_txt[idx]);
+        // Segments flow consecutively on one line; each starts exactly
+        // where the previous ended (its measured pixel width). The log
+        // adds NO implicit spacing — callers do column alignment with
+        // spaces/tabs in the segment text (lx is the line-local cursor
+        // so '\t' tab stops snap on a consistent grid).
+        const SLONG seg_x0 = text_x_px + DBGLOG_TS_W_PX;
+        SLONG lx = 0;
+        for (SLONG k = 0; k < (SLONG)s_nseg[idx]; k++) {
+            const ULONG rgb = s_seg[idx][k].rgb;
+            char* txt = s_seg[idx][k].txt;
+            FONT_buffer_add(seg_x0 + lx, y,
+                (UBYTE)((rgb >> 16) & 0xff), (UBYTE)((rgb >> 8) & 0xff),
+                (UBYTE)(rgb & 0xff), 1, (CBYTE*)"%s", txt);
+            lx += FONT_string_width(lx, (CBYTE*)txt);
+        }
     }
 }
 

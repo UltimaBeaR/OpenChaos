@@ -443,6 +443,7 @@ set(SOURCES_NEW
     # === Combat ===
     src/combat/combat.cpp
     src/combat/combat_globals.cpp
+    src/combat/combo_gate.cpp
     src/shooting/guns.cpp
     src/shooting/projectile.cpp
 
