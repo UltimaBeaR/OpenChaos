@@ -1,6 +1,7 @@
 #include "combat/combat.h"
 #include "combat/combat_cooldown.h" // combat_cooldown_reset on level (re)load
 #include "combat/combat_test_mode.h" // combat_test_reset on level (re)load
+#include "engine/debug/dbglog/dbglog.h" // OC_DEBUG_LOG (no-op when off)
 
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h" // track_enemy (already migrated)
@@ -386,6 +387,32 @@ SLONG find_best_grapple(Thing* p_person)
             if (grapples[best].Anim == ANIM_PISTOL_WHIP) {
                 if (best_target->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
                     return UC_FALSE;
+                }
+                // OpenChaos: the from-behind pistol-whip stun only lands
+                // on a target that is standing still. A moving target
+                // (walking / running / fleeing) gives no grapple, so the
+                // punch button just does a normal punch instead. This
+                // stops stunning civilians who merely turned their back
+                // while walking off. Movement is read from physical
+                // speed (set_person_walking uses velocity 5, a person
+                // standing still is 0) -- robust regardless of the AI
+                // State the wandering NPC happens to be in. Darci's
+                // fight stance already prevents this grapple (grapple
+                // index 0 is skipped when Mode == PERSON_MODE_FIGHT,
+                // above). Player only; NPC pistol-whips are unchanged.
+                //
+                // <= this speed counts as "standing still" (0 = idle;
+                // walking is 5). Small margin against any residual.
+                static const SLONG BACKSTUN_STILL_MAX_SPEED = 2;
+                if (p_person->Genus.Person->PlayerID) {
+                    bool moving = (abs((SLONG)best_target->Velocity) > BACKSTUN_STILL_MAX_SPEED);
+                    DBGLOG_begin();
+                    DBGLOG_seg(DBGLOG_color("white"), "BACKSTUN\t\t");
+                    DBGLOG_seg(moving ? DBGLOG_color("red") : DBGLOG_color("green"),
+                        moving ? "BLOCKED" : "FIRED");
+                    DBGLOG_commit();
+                    if (moving)
+                        return UC_FALSE;
                 }
             }
 
