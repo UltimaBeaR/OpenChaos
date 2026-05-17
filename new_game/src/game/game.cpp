@@ -51,6 +51,7 @@
 #include "ui/hud/overlay.h" // OVERLAY_handle
 #include "game/ui_render.h" // ui_render_post_composition
 #include "game/debug_timing_overlay.h" // debug_timing_overlay_render_font2d (no-op when OC_DEBUG_PHYSICS_TIMING=false)
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_* (no-op unless OC_DEBUG_PERF / _LOG)
 #include "engine/input/gamepad.h" // gamepad_rumble_tick, gamepad_triggers_update
 #include "engine/debug/input_debug/input_debug.h" // modal input debug panel (F11)
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
@@ -734,6 +735,8 @@ SLONG special_keys(void)
     check_debug_timing_keys();
 #endif
 
+    PERF_HANDLE_KEYS();
+
     return (0);
 }
 
@@ -829,7 +832,9 @@ round_again:;
 
     MEMORY_quick_init();
 
-    if (game_init()) {
+    BOOL _level_init_ok;
+    { PERF_SCOPE("io.level_init"); _level_init_ok = game_init(); }
+    if (_level_init_ok) {
 
         already_warned_about_leaving_map = sdl3_get_ticks();
         draw_map_screen = UC_FALSE;
@@ -887,6 +892,8 @@ round_again:;
         render_interp_reset();
 
         while (SHELL_ACTIVE && (GAME_STATE & (GS_PLAY_GAME | GS_LEVEL_LOST | GS_LEVEL_WON))) {
+
+            PERF_FRAME_BEGIN();
 
             {
                 uint64_t now_ms = sdl3_get_ticks();
@@ -1001,6 +1008,7 @@ round_again:;
             check_pows();
 
             {
+                PERF_SCOPE("physics.total");
                 const double phys_step_ms  = 1000.0 / double(g_physics_hz);
                 const SLONG  phys_tick_diff = 1000 / g_physics_hz;
                 const float  phys_dt_ms    = float(phys_step_ms);
@@ -1125,6 +1133,8 @@ round_again:;
                 // to a higher rate via debug keys while a stall is in progress.)
                 if (g_last_phys_tick_count >= MAX_PHYSICS_TICKS_PER_FRAME)
                     physics_acc_ms = 0.0;
+
+                PERF_COUNT("physics.ticks", g_last_phys_tick_count);
 
                 const bool game_frozen = !should_i_process_game();
                 if (game_frozen) physics_acc_ms = 0.0;
@@ -1330,9 +1340,9 @@ round_again:;
 
             BreakTime("Done thing processing");
 
-            draw_screen();
+            { PERF_SCOPE("render.draw_screen"); draw_screen(); }
 
-            OVERLAY_handle();
+            { PERF_SCOPE("render.overlay"); OVERLAY_handle(); }
 
             SLONG i_want_to_exit = UC_FALSE;
 
@@ -1344,20 +1354,22 @@ round_again:;
 
             BreakTime("About to flip");
 
-            screen_flip();
+            { PERF_SCOPE("render.present"); screen_flip(); }
 
             // End render pass — geometry added after this point (next game tick)
             // will be dropped by AENG_world_line to prevent VB pool corruption.
             extern void AENG_set_render_pass(bool active);
             AENG_set_render_pass(false);
 
-            lock_frame_rate(g_render_fps_cap);
+            { PERF_SCOPE("idle.wait"); lock_frame_rate(g_render_fps_cap); }
 
             BreakTime("Done flip");
 
             BreakFrame();
 
             handle_sfx();
+
+            PERF_FRAME_END();
 
             if (i_want_to_exit) {
                 break;

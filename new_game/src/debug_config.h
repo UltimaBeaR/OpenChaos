@@ -42,6 +42,38 @@
 // Always keep false in shipping builds.
 #define OC_DEBUG_PHYSICS_TIMING false
 
+// Built-in performance diagnostics (engine/debug/perf_diag). When false,
+// PERF_SCOPE / PERF_COUNT / perf_frame_* / perf_diag_draw become
+// compile-time no-ops (arguments not evaluated, no symbols emitted) — zero
+// cost even with call sites left in the code. When true: per-stage
+// wall-clock timers + value counters accumulate every frame, a left-side
+// panel (dark backdrop + text, mirrors dbglog but on the left, covers the
+// HUD). Fixed top block = FPS + averaging window + the general "frame.*"
+// stats. Below it the per-stage metrics, grouped by first-level name with
+// blank lines between groups and the group "*.total" pinned at the
+// bottom of its group; each row underlined to tie the far-apart name and
+// value together. The value column shows % of frame time, colour-graded
+// white→red (nonlinear) by that %. Hotkeys (gameplay, no
+// bangunsnotgames): KB_4 toggle panel, KB_5 cycle averaging window, KB_6
+// reset history. The MASTER switch for the perf-diag panel and
+// instrumentation. A dev-only build flag; keep false in shipping builds.
+//
+// ⚠️ To understand what each line measures, the hotkeys, the colours and
+// the file log — READ new_game_devlog/perf_diag/panel_guide.md (usage
+// manual). Architecture/history: new_game_devlog/perf_diag/design.md.
+#define OC_DEBUG_PERF true
+
+// CSV file log of the perf-diag metrics (perf_log.csv next to the exe,
+// like crash_log.txt). Independent of OC_DEBUG_PERF so it can be enabled
+// alone to capture the LOAD PHASE from process start (before the panel /
+// hotkeys exist). Rows are averaged over N frames (per-frame can't be
+// written fast enough and is hard to analyse). When OC_DEBUG_PERF is also
+// on, KB_5's window control also sets the file-log averaging N. Requires
+// the instrumentation, so if this is true the perf_diag implementation is
+// compiled in even when OC_DEBUG_PERF is false. Keep false in shipping.
+// CSV format / averaging details: new_game_devlog/perf_diag/panel_guide.md.
+#define OC_DEBUG_PERF_LOG true
+
 // Generic on-screen debug log (engine/debug/dbglog). When false, DBGLOG /
 // DBGLOG_draw / DBGLOG_clear become compile-time no-ops (arguments are
 // not even evaluated) — zero cost, nothing drawn, even if call sites
@@ -57,7 +89,7 @@
 // are true. So while debugging one system you turn on just its flag and
 // everything else stays a stripped no-op. Add a new OC_DEBUG_LOG_<SYS>
 // flag here per subsystem as it gets instrumented.
-#define OC_DEBUG_LOG false
+#define OC_DEBUG_LOG true
 
 // --- Per-subsystem debug-log gates (see note above) ---------------------
 
@@ -66,4 +98,4 @@
 // throw-to-ground roll, behind-stun gate. Turn on ONLY while debugging
 // combat; off by default so unrelated debugging sessions aren't flooded
 // with combat lines. (Combat work is done — leave false until needed.)
-#define OC_DEBUG_LOG_COMBAT false
+#define OC_DEBUG_LOG_COMBAT true

@@ -22,12 +22,16 @@ SLONG FONT_draw_coloured_char(
     UBYTE red,
     UBYTE green,
     UBYTE blue,
-    CBYTE ch)
+    CBYTE ch,
+    SLONG scale)
 {
     FONT_Char* fc;
 
+    if (scale < 1)
+        scale = 1;
+
     if (ch == ' ') {
-        return 3;
+        return 3 * scale;
     }
     if (ch >= 'A' && ch <= 'Z') {
         fc = &FONT_upper[ch - 'A'];
@@ -118,15 +122,15 @@ SLONG FONT_draw_coloured_char(
         }
     }
 
-    if (sy < -FONT_HEIGHT || sy >= ge_get_screen_height() || sx < -FONT_WIDTH || sx >= ge_get_screen_width()) {
+    if (sy < -FONT_HEIGHT * scale || sy >= ge_get_screen_height() || sx < -FONT_WIDTH * scale || sx >= ge_get_screen_width()) {
         // Off-screen — skip drawing but still return width.
     } else {
         FONT_atlas_begin_batch();
-        FONT_atlas_draw_glyph(sx, sy, red, green, blue, ch);
+        FONT_atlas_draw_glyph(sx, sy, red, green, blue, ch, scale);
         FONT_atlas_end_batch();
     }
 
-    return fc->width;
+    return fc->width * scale;
 }
 
 // OpenChaos addition: measure-only counterpart of FONT_draw_coloured_text.
@@ -134,15 +138,25 @@ SLONG FONT_draw_coloured_char(
 // comes from FONT_draw_coloured_char called far off-screen: it skips the
 // actual draw (and the atlas batch) for off-screen glyphs yet still
 // returns the glyph width, so there are no side effects.
-SLONG FONT_string_width(SLONG x, CBYTE* str)
+SLONG FONT_string_width(SLONG x, CBYTE* str, SLONG scale)
 {
+    if (scale < 1)
+        scale = 1;
     SLONG xstart = x;
     for (CBYTE* ch = str; *ch; ch++) {
         if (*ch == '\t') {
-            x += FONT_TAB;
-            x &= ~(FONT_TAB - 1);
+            if (scale == 1) {
+                x += FONT_TAB;
+                x &= ~(FONT_TAB - 1);
+            } else {
+                // Scaled tab grid (the &~ snap only works for the
+                // pow-of-two FONT_TAB); must match the flush loop.
+                const SLONG tab = FONT_TAB * scale;
+                x += tab;
+                x -= x % tab;
+            }
         } else {
-            x += FONT_draw_coloured_char(-100000, -100000, 0, 0, 0, *ch) + 1;
+            x += FONT_draw_coloured_char(-100000, -100000, 0, 0, 0, *ch, scale) + scale;
         }
     }
     return x - xstart;
@@ -215,6 +229,7 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...)
 static void font_buffer_add_impl(
     SLONG x, SLONG y,
     UBYTE r, UBYTE g, UBYTE b, UBYTE s,
+    UBYTE gs,
     float scale_x, float scale_y,
     const CBYTE* message)
 {
@@ -240,6 +255,7 @@ static void font_buffer_add_impl(
     fm->g = g;
     fm->b = b;
     fm->s = s;
+    fm->gs = (gs < 1) ? 1 : gs;
     fm->scale_x = scale_x;
     fm->scale_y = scale_y;
     fm->m = FONT_buffer_upto;
@@ -264,7 +280,27 @@ void FONT_buffer_add(
     va_end(ap);
 
     // scale 0/0 → literal-pixel path; FONT_buffer_draw will use (x, y) as-is.
-    font_buffer_add_impl(x, y, r, g, b, s, 0.0f, 0.0f, message);
+    font_buffer_add_impl(x, y, r, g, b, s, 1, 0.0f, 0.0f, message);
+}
+
+void FONT_buffer_add_scaled(
+    SLONG x,
+    SLONG y,
+    UBYTE r,
+    UBYTE g,
+    UBYTE b,
+    UBYTE s,
+    UBYTE glyph_scale,
+    CBYTE* fmt, ...)
+{
+    CBYTE message[FONT_MAX_LENGTH];
+    va_list ap;
+    va_start(ap, fmt);
+    vsprintf(message, fmt, ap);
+    va_end(ap);
+
+    // Literal-pixel path with a glyph-size multiplier.
+    font_buffer_add_impl(x, y, r, g, b, s, glyph_scale, 0.0f, 0.0f, message);
 }
 
 void FONT_buffer_add_virtual(
@@ -286,7 +322,7 @@ void FONT_buffer_add_virtual(
     // FONT_buffer_draw flushes, any FullscreenUIModeScope / push_ui_mode
     // the caller may have used will already have been popped, so reading
     // PolyPage::s_X/YScale at flush would pick up the wrong scope.
-    font_buffer_add_impl(x, y, r, g, b, s,
+    font_buffer_add_impl(x, y, r, g, b, s, 1,
         PolyPage::s_XScale, PolyPage::s_YScale,
         message);
 }
@@ -326,10 +362,19 @@ void FONT_buffer_draw()
         }
         x = line_start_x;
 
+        // Integer glyph-size multiplier for this message (1 = original).
+        const SLONG gs = (fm->gs < 1) ? 1 : fm->gs;
+
         for (ch = fm->m; *ch; ch++) {
             if (*ch == '\t') {
-                x += FONT_TAB;
-                x &= ~(FONT_TAB - 1);
+                if (gs == 1) {
+                    x += FONT_TAB;
+                    x &= ~(FONT_TAB - 1);
+                } else {
+                    const SLONG tab = FONT_TAB * gs;
+                    x += tab;
+                    x -= x % tab;
+                }
             } else if (*ch == '\n') {
                 // Reset to the resolved line-start x — for virtual_coords
                 // messages this is the SCALED x. Earlier code used fm->x
@@ -338,18 +383,18 @@ void FONT_buffer_draw()
                 // line 1 at the right place but lines 2+ snapped to the
                 // upper-left of the framebuffer.
                 x = line_start_x;
-                // Line height stays unscaled — glyphs render at fixed
-                // pixel size (5×9), so a non-uniform percentage scope
-                // mustn't stretch the gap between lines independently of
-                // the glyph height.
-                y += 10;
+                // Line height: base 10 px (one more than the 9 px glyph)
+                // multiplied by the glyph scale so multi-line scaled text
+                // doesn't overlap. gs==1 → 10, identical to before.
+                y += 10 * gs;
             } else {
                 if (fm->s) {
-                    // Shadowed: draw darker copy at +1,+1 first.
-                    FONT_draw_coloured_char(x + 1, y + 1, fm->r >> 1, fm->g >> 1, fm->b >> 1, *ch);
-                    x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch) + 1;
+                    // Shadowed: draw darker copy offset by the scale so the
+                    // shadow tracks the bigger glyph (gs==1 → +1,+1).
+                    FONT_draw_coloured_char(x + gs, y + gs, fm->r >> 1, fm->g >> 1, fm->b >> 1, *ch, gs);
+                    x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch, gs) + gs;
                 } else {
-                    x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch) + 1;
+                    x += FONT_draw_coloured_char(x + 0, y + 0, fm->r, fm->g, fm->b, *ch, gs) + gs;
                 }
             }
         }

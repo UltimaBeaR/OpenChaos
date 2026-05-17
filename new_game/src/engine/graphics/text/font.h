@@ -43,6 +43,23 @@ void FONT_buffer_add_virtual(
     UBYTE shadowed_or_not,
     CBYTE* fmt, ...);
 
+// Literal-pixel path (like FONT_buffer_add) but with an integer glyph
+// size multiplier `glyph_scale` (≥1). Everything — glyph footprint,
+// advance, inter-char gap, '\t' grid, '\n' line height, shadow offset —
+// scales together so a debug panel can draw chunky readable text. Used
+// by the perf-diag and dbglog panels. glyph_scale==1 is identical to
+// FONT_buffer_add. Pair on-screen layout (line step, column x, panel
+// width) with FONT_string_width(... , glyph_scale) so columns line up.
+void FONT_buffer_add_scaled(
+    SLONG x,
+    SLONG y,
+    UBYTE red,
+    UBYTE green,
+    UBYTE blue,
+    UBYTE shadowed_or_not,
+    UBYTE glyph_scale,
+    CBYTE* fmt, ...);
+
 // Renders all queued messages and clears the queue.
 // Locks and unlocks the screen internally.
 // uc_orig: FONT_buffer_draw (fallen/DDEngine/Headers/Font.h)
@@ -54,7 +71,9 @@ void FONT_buffer_draw(void);
 // tab grid) but draws nothing. `x` is passed so '\t' tab stops line up
 // with the real on-screen position. Used to flow differently-coloured
 // text pieces on one line without reimplementing font metrics.
-SLONG FONT_string_width(SLONG x, CBYTE* str);
+// `scale` must match the glyph_scale the string is drawn with so the
+// measured advance matches the rendered advance (default 1).
+SLONG FONT_string_width(SLONG x, CBYTE* str, SLONG scale = 1);
 
 // Direct screen-pixel rendering functions.
 // Caller is responsible for locking the screen via the_display.screen_lock().
@@ -75,12 +94,15 @@ SLONG FONT_draw_coloured_text(
 
 // Draws a single character at (x,y) in the specified colour. Returns pixel width.
 // uc_orig: FONT_draw_coloured_char (fallen/DDEngine/Headers/Font.h)
+// `scale` (≥1) enlarges the glyph and its returned advance by that
+// integer factor (default 1 = original 5×9 size).
 SLONG FONT_draw_coloured_char(
     SLONG x,
     SLONG y,
     UBYTE red,
     UBYTE green,
     UBYTE blue,
-    CBYTE ch);
+    CBYTE ch,
+    SLONG scale = 1);
 
 #endif // ENGINE_GRAPHICS_TEXT_FONT_H

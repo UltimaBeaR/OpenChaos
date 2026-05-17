@@ -3,10 +3,9 @@
 #if OC_DEBUG_LOG
 
 #include "engine/platform/uc_common.h" // SLONG / ULONG / CBYTE
-#include "engine/graphics/text/font.h" // FONT_buffer_add (literal pixels)
-#include "engine/graphics/pipeline/aeng.h" // AENG_draw_rect
-#include "engine/graphics/pipeline/poly.h" // POLY_PAGE_*, POLY_screen_*
-#include "ui/hud/panel.h" // PANEL_start / PANEL_finish (own batch)
+#include "engine/graphics/text/font.h" // FONT_buffer_add_scaled (literal pixels)
+#include "engine/graphics/text/font_atlas.h" // FONT_atlas_fill_* (literal-px backdrop)
+#include "engine/debug/debug_panel_text_scale.h" // DBG_PANEL_TEXT_SCALE
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_get_screen_*
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks (message timestamps)
 #include <stdio.h>
@@ -53,11 +52,20 @@ static bool s_base_set = false;
 // same space FONT_buffer_add literal coords use). Nothing here scales with
 // resolution: the panel is always the same pixel width, the line gap is
 // always the same pixel height. A bigger window just fits more lines.
-#define DBGLOG_PANEL_W_PX 630 // wide panel (1.5x of the previous 420)
+// Chunky integer text size — shared with the perf-diag panel via the one
+// code constant DBG_PANEL_TEXT_SCALE so the two panels can never drift
+// apart. The whole bitmap-text path scales with this (see
+// FONT_buffer_add_scaled); the panel geometry below multiplies by it so
+// columns stay aligned.
+#define DBGLOG_TEXT_SCALE DBG_PANEL_TEXT_SCALE
+// Base 420 px (the pre-scale narrow width); ×scale tracks the bigger
+// font. 630 here made the panel eat most of the screen at 2× — 420 keeps
+// it about the same on-screen footprint as the old 1× panel.
+#define DBGLOG_PANEL_W_PX (420 * DBGLOG_TEXT_SCALE)
 #define DBGLOG_PAD_PX 6 // left text inset inside the panel
 #define DBGLOG_TOP_PX 8 // top/bottom margin
-#define DBGLOG_LINE_PX 13 // fixed gap between lines (px)
-#define DBGLOG_TS_W_PX 64 // fixed pixel width of the "mm:ss:mmm " stamp
+#define DBGLOG_LINE_PX (13 * DBGLOG_TEXT_SCALE) // fixed gap between lines (px)
+#define DBGLOG_TS_W_PX (64 * DBGLOG_TEXT_SCALE) // fixed pixel width of the "mm:ss:mmm " stamp
 
 unsigned long DBGLOG_color(const char* name)
 {
@@ -142,19 +150,15 @@ void DBGLOG_clear(void)
 void DBGLOG_draw(void)
 {
     // Called from the top UI layer (ui_render, after input_debug_render)
-    // so it sits above the HUD / enemy HP bars. Not inside an existing
-    // batch there, so we open our own PANEL_start/PANEL_finish around the
-    // backdrop rect (same as input_debug_render). Gated purely by the
+    // so it sits above the HUD / enemy HP bars. Gated purely by the
     // OC_DEBUG_LOG compile flag (no bangunsnotgames).
     //
-    // Everything is computed in FIXED framebuffer pixels (ge_get_screen_*
-    // space). Text uses FONT_buffer_add (literal, scale 0 -> as-is) so the
-    // 5x9 glyphs and the line gap never scale with resolution. The
-    // backdrop is AENG_draw_rect which works in logical 640x480 and the
-    // pipeline scales it by screen/640 — so to get a FIXED pixel rect we
-    // pass logical = px * POLY_screen_width / screen_px (the inverse of
-    // that scale). FONT_buffer_add is flushed after all poly pages, so
-    // text always lands on top of the alpha backdrop.
+    // Everything is in FIXED framebuffer pixels. Both the backdrop and
+    // the text use the literal-pixel TL path (FONT_atlas_fill_rect /
+    // FONT_buffer_add), so they line up in every render mode (gameplay /
+    // menu / cutscene) — no AENG_draw_rect logical-letterbox dependence,
+    // no overshoot hack. Text is flushed by FONT_buffer_draw after our
+    // rect, so it lands on top of the alpha backdrop.
 
     const SLONG screen_w = (SLONG)ge_get_screen_width();
     const SLONG screen_h = (SLONG)ge_get_screen_height();
@@ -165,25 +169,11 @@ void DBGLOG_draw(void)
     const SLONG panel_x_px = screen_w - DBGLOG_PANEL_W_PX;
     const SLONG text_x_px = panel_x_px + DBGLOG_PAD_PX;
 
-    // px -> logical (inverse of the pipeline's logical->px scale) so the
-    // rect ends up exactly DBGLOG_PANEL_W_PX pixels wide on any window.
-    const float lx = (float)POLY_screen_width / (float)screen_w;
-
-    // Vertically: the text uses the literal-pixel path (GEVertexTL,
-    // normalised by the UI dst-rect viewport) while AENG_draw_rect goes
-    // through PolyPage scaling + letterbox offsets — during in-game
-    // cutscenes those two vertical mappings diverge, so a logical 0..480
-    // rect no longer covers the full text column. Rather than reproduce
-    // the pipeline's offset math, overshoot far past the top and bottom
-    // in logical space; the viewport clips it, so the panel is a full
-    // column in every mode (normal play and cutscene).
-    const SLONG over = (SLONG)POLY_screen_height;
-    PANEL_start();
-    AENG_draw_rect(
-        (SLONG)(panel_x_px * lx), -over,
-        (SLONG)(DBGLOG_PANEL_W_PX * lx), (SLONG)POLY_screen_height + 2 * over,
-        (SLONG)0xE6000000u, 8, POLY_PAGE_COLOUR_ALPHA); // ~90% black
-    PANEL_finish();
+    // Literal-pixel backdrop — exact panel rect, full screen height, in
+    // the same space as the text.
+    FONT_atlas_fill_begin();
+    FONT_atlas_fill_rect(panel_x_px, 0, DBGLOG_PANEL_W_PX, screen_h, 0xE6000000u); // ~90% black
+    FONT_atlas_fill_end();
 
     // How many lines fit on this screen (more on bigger windows).
     SLONG max_lines = (screen_h - 2 * DBGLOG_TOP_PX) / DBGLOG_LINE_PX;
@@ -208,7 +198,7 @@ void DBGLOG_draw(void)
         const unsigned long long ms = (unsigned long long)(t % 1000ull);
 
         // Grey timestamp prefix (computed here, never part of the message).
-        FONT_buffer_add(text_x_px, y, 150, 150, 150, 1,
+        FONT_buffer_add_scaled(text_x_px, y, 150, 150, 150, 1, DBGLOG_TEXT_SCALE,
             (CBYTE*)"%02llu:%02llu:%03llu", mm, ss, ms);
 
         // Segments flow consecutively on one line; each starts exactly
@@ -221,10 +211,10 @@ void DBGLOG_draw(void)
         for (SLONG k = 0; k < (SLONG)s_nseg[idx]; k++) {
             const ULONG rgb = s_seg[idx][k].rgb;
             char* txt = s_seg[idx][k].txt;
-            FONT_buffer_add(seg_x0 + lx, y,
+            FONT_buffer_add_scaled(seg_x0 + lx, y,
                 (UBYTE)((rgb >> 16) & 0xff), (UBYTE)((rgb >> 8) & 0xff),
-                (UBYTE)(rgb & 0xff), 1, (CBYTE*)"%s", txt);
-            lx += FONT_string_width(lx, (CBYTE*)txt);
+                (UBYTE)(rgb & 0xff), 1, DBGLOG_TEXT_SCALE, (CBYTE*)"%s", txt);
+            lx += FONT_string_width(lx, (CBYTE*)txt, DBGLOG_TEXT_SCALE);
         }
     }
 }

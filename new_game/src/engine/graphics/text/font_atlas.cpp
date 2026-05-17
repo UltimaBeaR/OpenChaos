@@ -168,10 +168,12 @@ void FONT_atlas_ensure()
     free(atlas);
 }
 
-void FONT_atlas_draw_glyph(SLONG sx, SLONG sy, UBYTE r, UBYTE g, UBYTE b, CBYTE ch)
+void FONT_atlas_draw_glyph(SLONG sx, SLONG sy, UBYTE r, UBYTE g, UBYTE b, CBYTE ch, SLONG scale)
 {
     if (ch == ' ')
         return;
+    if (scale < 1)
+        scale = 1;
 
     FONT_atlas_ensure();
     if (s_atlas == GE_TEXTURE_NONE)
@@ -212,8 +214,10 @@ void FONT_atlas_draw_glyph(SLONG sx, SLONG sy, UBYTE r, UBYTE g, UBYTE b, CBYTE 
     const float ox = 0.5f, oy = 0.5f;
     const float x0f = (float)sx + ox;
     const float y0f = (float)sy + oy;
-    const float x1f = (float)(sx + GLYPH_COLS) + ox;
-    const float y1f = (float)(sy + FONT_HEIGHT) + oy;
+    // Same atlas UVs, but the screen quad spans scale× the pixel footprint
+    // → blocky upscale (no extra texels sampled).
+    const float x1f = (float)(sx + GLYPH_COLS * scale) + ox;
+    const float y1f = (float)(sy + FONT_HEIGHT * scale) + oy;
     const float z = 0.0f;
     const float rhw = 1.0f;
 
@@ -282,4 +286,58 @@ void FONT_atlas_begin_batch()
 void FONT_atlas_end_batch()
 {
     ge_pop_render_state();
+}
+
+void FONT_atlas_fill_begin()
+{
+    ge_push_render_state();
+    // Untextured, alpha-blended, no depth — same screen-space TL setup as
+    // the glyph batch but with no texture (vertex colour only) and real
+    // alpha blending instead of the colour-key trick.
+    ge_set_depth_mode(GEDepthMode::Off);
+    ge_set_color_key_enabled(false);
+    ge_set_alpha_test_enabled(false);
+    ge_set_specular_enabled(false);
+    ge_set_fog_enabled(false);
+    ge_set_texture_blend(GETextureBlend::Modulate);
+    ge_bind_texture(GE_TEXTURE_NONE);
+    ge_set_bound_texture_has_alpha(false);
+    ge_set_blend_enabled(true);
+    ge_set_blend_factors(GEBlendFactor::SrcAlpha, GEBlendFactor::InvSrcAlpha);
+}
+
+void FONT_atlas_fill_end()
+{
+    ge_pop_render_state();
+}
+
+void FONT_atlas_fill_rect(SLONG x, SLONG y, SLONG w, SLONG h, ULONG argb)
+{
+    if (w <= 0 || h <= 0)
+        return;
+
+    // D3D6 colour layout (matches FONT_atlas_draw_glyph): 0xAARRGGBB.
+    const uint32_t color = (uint32_t)argb;
+
+    // +0.5 so quad edges land on pixel boundaries (same half-pixel fix as
+    // the glyph quad — see the comment in FONT_atlas_draw_glyph).
+    const float x0 = (float)x + 0.5f;
+    const float y0 = (float)y + 0.5f;
+    const float x1 = (float)(x + w) + 0.5f;
+    const float y1 = (float)(y + h) + 0.5f;
+    const float z = 0.0f;
+    const float rhw = 1.0f;
+
+    GEVertexTL v[4];
+    v[0].x = x0; v[0].y = y0; v[0].z = z; v[0].rhw = rhw;
+    v[0].color = color; v[0].specular = 0xFF000000; v[0].u = 0.0f; v[0].v = 0.0f;
+    v[1].x = x1; v[1].y = y0; v[1].z = z; v[1].rhw = rhw;
+    v[1].color = color; v[1].specular = 0xFF000000; v[1].u = 0.0f; v[1].v = 0.0f;
+    v[2].x = x0; v[2].y = y1; v[2].z = z; v[2].rhw = rhw;
+    v[2].color = color; v[2].specular = 0xFF000000; v[2].u = 0.0f; v[2].v = 0.0f;
+    v[3].x = x1; v[3].y = y1; v[3].z = z; v[3].rhw = rhw;
+    v[3].color = color; v[3].specular = 0xFF000000; v[3].u = 0.0f; v[3].v = 0.0f;
+
+    uint16_t indices[6] = { 0, 1, 2, 2, 1, 3 };
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, v, 4, indices, 6);
 }

@@ -7,6 +7,7 @@
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "ui/hud/panel.h"
 #include "ui/frontend/startscr.h"
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_* (no-op unless OC_DEBUG_PERF/_LOG)
 #define DEMO
 #include "ui/frontend/attract.h"
 #include "engine/audio/mfx.h"
@@ -79,6 +80,13 @@ reinit_because_of_language_change:
 
     y = 500;
     while (SHELL_ACTIVE && (GAME_STATE & GS_ATTRACT_MODE)) {
+
+        // Perf-diag: the main-menu loop is separate from the in-game
+        // game_loop, so without its own frame markers the panel (drawn
+        // via the post-composition callback on every flip) shows no data
+        // here. No-op unless OC_DEBUG_PERF/_LOG.
+        PERF_FRAME_BEGIN();
+
         if (dont_leave_for_a_while > 0) {
             dont_leave_for_a_while -= 1;
         }
@@ -105,7 +113,7 @@ reinit_because_of_language_change:
         {
             SLONG res;
 
-            res = FRONTEND_loop();
+            { PERF_SCOPE("render.frontend"); res = FRONTEND_loop(); }
 
             if (res) {
                 switch (res) {
@@ -157,11 +165,13 @@ reinit_because_of_language_change:
 
         extern void lock_frame_rate(SLONG fps);
         extern SLONG g_render_fps_cap;
-        lock_frame_rate(g_render_fps_cap);
+        { PERF_SCOPE("idle.wait"); lock_frame_rate(g_render_fps_cap); }
 
         if ((GAME_STATE & GS_PLAY_GAME) == 0) {
-            AENG_flip();
+            { PERF_SCOPE("render.present"); AENG_flip(); }
         }
+
+        PERF_FRAME_END();
 
         if (bReinitBecauseOfLanguageChange) {
             break;

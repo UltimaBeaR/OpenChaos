@@ -110,6 +110,13 @@ struct FONT_Message {
     UBYTE g;
     UBYTE b;
     UBYTE s;
+    // Integer glyph-size multiplier (1 = original 5×9 pixel font). The
+    // whole bitmap-text path (advance, line height, tab grid, shadow
+    // offset, atlas quad footprint) is multiplied by this so a panel can
+    // ask for chunky 2×/3× text without touching unrelated callers
+    // (default 1 keeps every existing call byte-identical). Used by the
+    // perf-diag and dbglog panels via FONT_buffer_add_scaled.
+    UBYTE gs;
     float scale_x;
     float scale_y;
     CBYTE* m;
