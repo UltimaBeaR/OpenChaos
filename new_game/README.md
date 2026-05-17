@@ -18,6 +18,12 @@ make copy-resources     # copy game assets into build folders (once)
 make r                  # build + run Release
 ```
 
+> **Windows:** the Makefile needs `bash` and Unix tools (`uname`, `sed`, `zip`).
+> Install [Git for Windows](https://gitforwindows.org/) and **run the `make`
+> commands from the Git Bash shell** (not plain `cmd`/PowerShell, unless you
+> selected the "Unix tools on PATH" option during Git install — see SETUP.md).
+> Without it `make` fails immediately on `uname` before any compilation.
+
 Prerequisites and detailed instructions: [SETUP.md](SETUP.md).
 
 ---

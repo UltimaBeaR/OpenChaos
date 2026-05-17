@@ -47,11 +47,22 @@ The build scripts auto-detect the installation via `vswhere`.
 
 #### Git for Windows
 
-Required — the Makefile uses `bash` and Unix utilities (`sed`, `zip`, etc.) which come bundled with Git for Windows.
+Required — the Makefile uses `bash` and Unix utilities (`uname`, `sed`, `zip`, etc.) which come bundled with Git for Windows.
 
 Download: [gitforwindows.org](https://gitforwindows.org/)
 
-During installation, select **"Use Git and optional Unix tools from the Command Prompt"** — this adds `bash`, `sed`, `zip` and other tools to PATH, making them available from `cmd`.
+**Run all `make` commands from the Git Bash shell.** Git Bash always has
+`bash` and the Unix tools on PATH, so the Makefile works there out of the box.
+
+If you instead want to run `make` from plain `cmd`/PowerShell, you must select
+**"Use Git and optional Unix tools from the Command Prompt"** during Git
+installation — this adds `bash`, `uname`, `sed`, `zip` and other tools to the
+system PATH so they're available from any shell.
+
+Symptom of a missing/incorrect setup: `make` fails immediately with
+`CreateProcess(NULL, uname -s, ...) failed` and `Error 255` — it never reaches
+compilation, it dies on the platform-detection step (`uname`) because `bash`
+and the Unix tools aren't on PATH in that shell.
 
 #### GNU make
 
