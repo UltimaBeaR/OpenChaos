@@ -2591,6 +2591,31 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
     if (p_person->SubState == SUB_STATE_IDLE_CROUTCH_ARREST)
         return (0);
 
+    // OpenChaos: allow switching the combat target in two cases the
+    // normal target-switch path below cannot handle:
+    //   1. Hit-recoil (taking damage) -- that path's state gate only
+    //      accepts IDLE / FIGHTING / RUN_STOP, never STATE_HIT_RECOIL.
+    //   2. A fight-stance STEP (moving in any direction, all
+    //      SUB_STATE_STEP_FORWARD) -- the directional step handler
+    //      further down does `return(0)` whenever a move direction is
+    //      held, swallowing the ACTION press before the target-switch
+    //      block is ever reached.
+    // Both are brief, safe moves where re-targeting must stay live, so
+    // handle them up here, before the step handler. Scoped to the
+    // target switch only: arrest / item pickup keep their original
+    // state requirements. oc_combat_busy stays respected so a grapple/
+    // throw still can't be interrupted (a recoil/step never overlaps
+    // one, but keep the guard for safety). Flips/rolls are a different
+    // substate and are deliberately NOT included.
+    if ((pl->Pressed & INPUT_MASK_ACTION) && p_person->Genus.Person->PlayerID
+        && (p_person->State == STATE_HIT_RECOIL
+            || p_person->SubState == SUB_STATE_STEP_FORWARD)
+        && !oc_combat_busy(p_person->SubState)) {
+        person_pick_best_target(p_person, 1);
+        pl->DoneSomething = UC_TRUE;
+        return INPUT_MASK_ACTION;
+    }
+
     if (pl->Pressed & INPUT_MASK_PUNCH)
         if (person_has_gun_out(p_person)) {
             set_player_shoot(p_person, 0);
@@ -2865,6 +2890,9 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
                 // by every committed action and cleared by fight-idle,
                 // so it's exactly "busy vs ready". When busy we still
                 // consume the press (no fall-through) but don't reselect.
+                // (Hit-recoil and fight-stance steps are handled in an
+                // earlier block, before this state-gated path is even
+                // reached.)
                 if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
                     && !oc_combat_busy(p_person->SubState)) {
                     person_pick_best_target(p_person, 1);

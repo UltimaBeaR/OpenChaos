@@ -15,6 +15,7 @@
 #include "combat/combat_cooldown.h" // OpenChaos: 2s block cooldown (on top of the arm-latch)
 #include "combat/combo_gate.h"
 #include "engine/debug/dbglog/dbglog.h" // OC_DEBUG_LOG (no-op when off)
+#include "camera/fc_globals.h" // FC_cam[0].last_manual_cam_turn — detect manual camera rotation for the melee target cycle
 #include "assets/sound_id.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
@@ -94,6 +95,8 @@ extern void set_action_used(Thing* p_person);
 extern UBYTE stealth_debug;
 extern SLONG plant_feet(Thing* p_person);
 extern SLONG calc_angle(SLONG dx, SLONG dz);
+// Camera look azimuth (0..2047), same angle convention as Thing Angle.
+extern SLONG get_camera_angle(void);
 extern SLONG slide_ladder;
 extern SLONG yomp_speed;
 extern SLONG sprint_speed;
@@ -2246,92 +2249,145 @@ void general_process_player(Thing* p_person)
     }
 }
 
-// Selects the best attack target for the player from nearby persons who want to kill them.
-// dir=1 cycles forward (next higher thing index), dir=-1 cycles backward.
+// Hard cap on melee targets considered for the circle-button cycle.
+// Far more than ever realistically present inside the pick range; it
+// only bounds the local sort arrays.
+#define COMBAT_TARGET_MAX_CANDIDATES 64
+
+// Pick range for the circle-button target cycle, in >>8 world units
+// (~768). Unchanged from the original combat sphere query radius.
+#define COMBAT_TARGET_PICK_RANGE 0x300
+
+// Targeting is driven by the camera look ray: the enemy closest to
+// the ray wins. Distance to Darci is only a tie-breaker between
+// enemies that sit within this angular tolerance of each other (their
+// deviation from the ray is quantized into buckets of this size, then
+// each bucket is ordered by distance). dangle units: 2048 == 360 deg.
+#define COMBAT_TARGET_RAY_TOLERANCE_DEG 6
+#define COMBAT_TARGET_RAY_TOLERANCE ((COMBAT_TARGET_RAY_TOLERANCE_DEG * 2048) / 360)
+
+// GAME_TURN of the previous circle-button target switch. Compared
+// against the camera's last_manual_cam_turn to tell "the player
+// rotated the camera by hand since the last switch" apart from "the
+// camera moved on its own" (auto-focus / Darci motion). -1 = none yet.
+// Player-only feature (combat targeting is player-driven), so a single
+// static is enough — FC_cam[1] is unused in the shipped game.
+static SLONG s_last_target_switch_turn = -1;
+
+// Selects/cycles the player's melee target among nearby persons who want
+// to kill them. Targets are ordered by closeness to the camera look ray
+// (primary) and by distance to Darci within a small angular tolerance
+// (tie-breaker), then sorted; the press walks that order circularly
+// (dir=1 forward, else backward). If
+// the player rotated the camera by hand since the last switch, the
+// press instead restarts from the best-scored target (or steps to #2
+// when already on #1, so a press is never a no-op). With no/stale
+// current target it jumps straight to the best.
 // uc_orig: person_pick_best_target (fallen/Source/Person.cpp)
 void person_pick_best_target(Thing* p_person, SLONG dir)
 {
-    SLONG i;
+    UWORD cand_thing[COMBAT_TARGET_MAX_CANDIDATES];
+    SLONG cand_bucket[COMBAT_TARGET_MAX_CANDIDATES]; // angular tolerance bucket (primary key)
+    SLONG cand_dist[COMBAT_TARGET_MAX_CANDIDATES];   // distance to Darci (tie-breaker)
+    SLONG cand_count = 0;
 
-    SLONG dx;
-    SLONG dz;
-    SLONG dist;
-    SLONG best_dist = UC_INFINITY;
-
-    UWORD lowest_person = 0xffff;
-    UWORD highest_person = 0;
-    UWORD next_person = 0xffff;
-    UWORD prev_person = 0;
+    SLONG cam_angle = get_camera_angle();
 
     SLONG num_found = THING_find_sphere(
         p_person->WorldPos.X >> 8,
         p_person->WorldPos.Y >> 8,
         p_person->WorldPos.Z >> 8,
-        0x300,
+        COMBAT_TARGET_PICK_RANGE,
         THING_array,
         THING_ARRAY_SIZE,
         1 << CLASS_PERSON);
 
-    for (i = 0; i < num_found; i++) {
+    for (SLONG i = 0; i < num_found && cand_count < COMBAT_TARGET_MAX_CANDIDATES; i++) {
         Thing* p_found = TO_THING(THING_array[i]);
 
-        if (p_found == p_person) {
+        if (p_found == p_person)
             continue;
-        }
-
-        if (p_found->State == STATE_DEAD) {
+        if (p_found->State == STATE_DEAD)
             continue;
+        if (PCOM_person_wants_to_kill(p_found) != THING_NUMBER(p_person))
+            continue;
+
+        SLONG dx = (p_found->WorldPos.X - p_person->WorldPos.X) >> 8;
+        SLONG dz = (p_found->WorldPos.Z - p_person->WorldPos.Z) >> 8;
+
+        // Distance Darci -> enemy in >>8 world units.
+        SLONG dist = QDIST2(abs(dx), abs(dz));
+
+        // Angular deviation of the (Darci -> enemy) direction from the
+        // camera look ray, folded to 0..1024 (1024 == 180 deg). Same
+        // azimuth convention as Thing Angle / get_camera_angle (see
+        // get_dangle above).
+        SLONG ang = (Arctan(dx, -dz) + 1024) & 2047;
+        SLONG dangle = (ang - cam_angle) & 2047;
+        if (dangle > 1024)
+            dangle = 2048 - dangle;
+
+        // Quantize deviation from the ray: enemies within one tolerance
+        // band share a bucket and are then ordered by distance.
+        SLONG bucket = dangle / COMBAT_TARGET_RAY_TOLERANCE;
+
+        // Insertion sort: by bucket (closest to the ray first), then by
+        // distance to Darci, then by thing index so the cycle order is
+        // fully deterministic across presses.
+        SLONG ins = cand_count;
+        while (ins > 0
+            && (cand_bucket[ins - 1] > bucket
+                || (cand_bucket[ins - 1] == bucket && cand_dist[ins - 1] > dist)
+                || (cand_bucket[ins - 1] == bucket && cand_dist[ins - 1] == dist
+                    && cand_thing[ins - 1] > THING_array[i]))) {
+            cand_thing[ins] = cand_thing[ins - 1];
+            cand_bucket[ins] = cand_bucket[ins - 1];
+            cand_dist[ins] = cand_dist[ins - 1];
+            ins--;
         }
+        cand_thing[ins] = THING_array[i];
+        cand_bucket[ins] = bucket;
+        cand_dist[ins] = dist;
+        cand_count++;
+    }
 
-        if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(p_person)) {
-            if (p_person->Genus.Person->Target == NULL) {
-                dx = abs(p_found->WorldPos.X - p_person->WorldPos.X);
-                dz = abs(p_found->WorldPos.Z - p_person->WorldPos.Z);
+    if (cand_count == 0)
+        return; // nothing valid to target -- leave the current one alone
 
-                dist = QDIST2(dx, dz);
-
-                if (dist < best_dist) {
-                    best_dist = dist;
-                    next_person = THING_array[i];
-                }
-            } else {
-                if (THING_array[i] < lowest_person) {
-                    lowest_person = THING_array[i];
-                }
-                if (THING_array[i] > highest_person) {
-                    highest_person = THING_array[i];
-                }
-
-                if (THING_array[i] > p_person->Genus.Person->Target) {
-                    if (THING_array[i] < next_person) {
-                        next_person = THING_array[i];
-                    }
-                } else if (THING_array[i] < p_person->Genus.Person->Target) {
-                    if (THING_array[i] > prev_person) {
-                        prev_person = THING_array[i];
-                    }
-                }
-            }
+    // Rank of the current target within the sorted list (-1 if it is
+    // no longer a valid candidate -> treated as "no current target").
+    UWORD cur = p_person->Genus.Person->Target;
+    SLONG rank = -1;
+    for (SLONG i = 0; i < cand_count; i++) {
+        if (cand_thing[i] == cur) {
+            rank = i;
+            break;
         }
     }
 
-    if (dir == 1) {
-        if (next_person != 0xffff) {
-            p_person->Genus.Person->Target = next_person;
-        } else if (lowest_person != 0xffff) {
-            p_person->Genus.Person->Target = lowest_person;
-        }
+    // Did the player rotate the camera by hand since the last switch
+    // (or is this the very first switch)? If so, snap to the best
+    // scored target rather than advancing -- unless already on #1, in
+    // which case still step to #2 so the press is never a no-op.
+    bool cam_rotated = (s_last_target_switch_turn < 0)
+        || (FC_cam[0].last_manual_cam_turn >= s_last_target_switch_turn);
+
+    SLONG pick;
+    if (rank < 0) {
+        pick = 0; // no / stale target -> best scored
+    } else if (cam_rotated) {
+        pick = (rank == 0) ? (cand_count > 1 ? 1 : 0) : 0;
+    } else if (dir == 1) {
+        pick = (rank + 1) % cand_count; // forward circular
     } else {
-        if (prev_person != 0xffff) {
-            p_person->Genus.Person->Target = prev_person;
-        } else if (highest_person != 0xffff) {
-            p_person->Genus.Person->Target = highest_person;
-        }
+        pick = (rank - 1 + cand_count) % cand_count; // backward circular
     }
 
-    if (p_person->Genus.Person->Target) {
+    p_person->Genus.Person->Target = cand_thing[pick];
+    s_last_target_switch_turn = (SLONG)GAME_TURN;
+
+    if (p_person->Genus.Person->Target)
         turn_to_face_thing(p_person, TO_THING(p_person->Genus.Person->Target), 0);
-    }
 }
 
 // Per-frame person update called after the state function.
