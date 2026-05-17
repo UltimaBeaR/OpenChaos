@@ -48,4 +48,22 @@
 // remain in the code. When true the log writes and draws unconditionally
 // — this flag is the ONLY gate (no bangunsnotgames / runtime toggle).
 // A dev-only build flag; keep false in shipping builds.
-#define OC_DEBUG_LOG true
+//
+// This is the MASTER switch for the shared log infrastructure. The log
+// itself is generic and meant to be reused by many subsystems. To avoid
+// flooding the panel with every instrumented subsystem at once, each
+// subsystem ALSO has its own compile-time gate below: a call site is
+// compiled in only when BOTH the master flag and that subsystem's flag
+// are true. So while debugging one system you turn on just its flag and
+// everything else stays a stripped no-op. Add a new OC_DEBUG_LOG_<SYS>
+// flag here per subsystem as it gets instrumented.
+#define OC_DEBUG_LOG false
+
+// --- Per-subsystem debug-log gates (see note above) ---------------------
+
+// Melee combat tuning log: combo proc/pity rolls, the per-action
+// cooldowns (arrest/grapple/block/roll), block arm-latch, grapple
+// throw-to-ground roll, behind-stun gate. Turn on ONLY while debugging
+// combat; off by default so unrelated debugging sessions aren't flooded
+// with combat lines. (Combat work is done — leave false until needed.)
+#define OC_DEBUG_LOG_COMBAT false

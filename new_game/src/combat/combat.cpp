@@ -19,6 +19,7 @@
 #include "things/characters/person.h" // can_a_see_b, set_anim
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/physics/collide.h" // LOS_FLAG_IGNORE_*
+#include "game/input_actions.h" // INPUT_MASK_FORWARDS (player grapple intent)
 #include "engine/input/gamepad.h" // gamepad_set_shock
 
 // Functions not yet in any header: declared here as in the original.
@@ -355,7 +356,32 @@ SLONG find_best_grapple(Thing* p_person)
         // Skip neck snap for non-players
         c0 = 1;
     }
-    if ((p_person->Genus.Person->PlayerID && p_person->SubState == SUB_STATE_STEP_FORWARD && p_person->Draw.Tweened->FrameIndex < 3) || ((!p_person->Genus.Person->PlayerID) && ((GAME_TURN + THING_NUMBER(p_person)) & 0x3) == 0)) {
+    // OpenChaos: the player's grapple ("forward + punch") no longer
+    // requires the forward STEP. We're already in the punch path here;
+    // the grapple is attempted whenever the player pushes FORWARD (in or
+    // out of fight mode, step or no step). "Forward" must cover ALL
+    // input devices: keyboard and D-pad set the digital
+    // INPUT_MASK_FORWARDS bit, but the analog stick does NOT -- its
+    // deflection is packed into the high bits of Input instead, so we
+    // also decode the packed stick Y and treat a forward push as intent.
+    // The grapple-cooldown gate above already turns this into a plain
+    // punch while on cooldown. NPC branch (periodic tick) is unchanged.
+    //
+    // GET_JOYY / ANALOGUE_MIN_VELOCITY mirror the input packing in
+    // input_actions.cpp (uc_orig GET_JOYY / ANALOGUE_MIN_VELOCITY):
+    // stick Y is bits 25-31, range -128..+127, NEGATIVE = pushed
+    // forward/up; |value| <= deadzone is treated as centred.
+    bool player_grapple_intent = false;
+    if (p_person->Genus.Person->PlayerID) {
+        ULONG pin = NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Input;
+        const SLONG STICK_DEADZONE = 8;          // ANALOGUE_MIN_VELOCITY
+        SLONG stick_y = (SLONG)(((pin >> 24) & 0xfe) - 128); // GET_JOYY
+        bool fwd_digital = (pin & INPUT_MASK_FORWARDS) != 0;  // keyboard / D-pad
+        bool fwd_stick = stick_y < -STICK_DEADZONE;           // analog stick up
+        player_grapple_intent = fwd_digital || fwd_stick;
+    }
+    if (player_grapple_intent
+        || ((!p_person->Genus.Person->PlayerID) && ((GAME_TURN + THING_NUMBER(p_person)) & 0x3) == 0)) {
         only_kneck = 0;
     } else {
         only_kneck = 1;
@@ -408,11 +434,13 @@ SLONG find_best_grapple(Thing* p_person)
                 static const SLONG BACKSTUN_STILL_MAX_SPEED = 2;
                 if (p_person->Genus.Person->PlayerID) {
                     bool moving = (abs((SLONG)best_target->Velocity) > BACKSTUN_STILL_MAX_SPEED);
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
                     DBGLOG_begin();
                     DBGLOG_seg(DBGLOG_color("white"), "BACKSTUN\t\t");
                     DBGLOG_seg(moving ? DBGLOG_color("red") : DBGLOG_color("green"),
                         moving ? "BLOCKED" : "FIRED");
                     DBGLOG_commit();
+#endif
                     if (moving)
                         return UC_FALSE;
                 }
@@ -433,8 +461,9 @@ SLONG find_best_grapple(Thing* p_person)
             return (1);
         }
         return (0);
-    } else
+    } else {
         return (0);
+    }
 }
 
 // Walks keyframes of 'anim' and returns the Height field of the first GameFightCol.
@@ -651,7 +680,37 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
 
     dist = QDIST2(adx, adz);
 
-    if (abs(dist - pg->Dist) < pg->Range) {
+    // OpenChaos: make the PLAYER's front grab ("forward + punch", anim
+    // ANIM_GRAB_ARM) forgiving and reliable on ANY target -- the
+    // original ring (Dist +/- Range, e.g. 60 +/- 20) plus tight facing
+    // windows meant it only connected from one exact spot, so it
+    // "didn't grab the first time". We widen ONLY this case: player
+    // aggressor + ANIM_GRAB_ARM. The from-behind pistol-whip stun, the
+    // Roper grapples, and every NPC keep the EXACT original thresholds
+    // (back-stun behaviour unchanged, AI unchanged).
+    //
+    // Tunables: reach beyond pg->Dist, and the two facing windows
+    // (victim orientation vs attacker, and attacker aim at victim).
+    const bool player_grab =
+        p_agressor->Genus.Person->PlayerID && pg->Anim == ANIM_GRAB_ARM;
+// REACH_BONUS measured from real play: the player punch-engages a
+// target from ~150..180 units, so the original ring (Dist 60 +/- 20)
+// never lined up and the grab "missed the first presses". +144 ->
+// accept dist 0 .. Dist+144 = 204, comfortably above punch-engage
+// range so "forward + punch" grabs first time. A wide reach is safe
+// here only because long-range chain-grab across a gang is held back
+// separately by the "not already grappling" gate (oc_combat_busy) --
+// NOT by distance. FACE/AIM widen the original tight facing windows so
+// no pixel-perfect aim is needed; still much tighter than a free grab.
+#define GRAPPLE_PLAYER_REACH_BONUS 0x90 // +144: accept 0 .. Dist+144 (covers punch range)
+#define GRAPPLE_PLAYER_FACE_WINDOW 400  // victim orientation loose (~70 deg, vs orig ~28)
+#define GRAPPLE_PLAYER_AIM_RANGE 800    // attacker just roughly faces target (~70 deg, vs orig ~35)
+
+    bool dist_ok = player_grab
+        ? (dist < pg->Dist + GRAPPLE_PLAYER_REACH_BONUS)
+        : (abs(dist - pg->Dist) < pg->Range);
+
+    if (dist_ok) {
         SLONG angle;
 
         // Angle between victim's and attacker's facing directions
@@ -660,7 +719,8 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
 
         angle += (pg->Angle - 1024) & 2047;
 
-        if (angle > 160 && angle < 2048 - 160)
+        SLONG face_win = player_grab ? GRAPPLE_PLAYER_FACE_WINDOW : 160;
+        if (angle > face_win && angle < 2048 - face_win)
             return (0);
 
         angle = Arctan(-dx, dz);
@@ -678,7 +738,8 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
             angle = 2048 + angle;
         angle = angle & 2047;
 
-        if (angle < (FIGHT_ANGLE_RANGE >> 1) || angle > 2048 - (FIGHT_ANGLE_RANGE >> 1)) {
+        SLONG aim_half = (player_grab ? GRAPPLE_PLAYER_AIM_RANGE : FIGHT_ANGLE_RANGE) >> 1;
+        if (angle < aim_half || angle > 2048 - aim_half) {
             return (1);
         } else {
             return (0);

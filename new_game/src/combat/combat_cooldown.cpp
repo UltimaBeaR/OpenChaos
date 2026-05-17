@@ -56,7 +56,7 @@ void combat_cooldown_reset(void)
             s_next_ready[p][a] = 0;
 }
 
-#if OC_DEBUG_LOG
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
 void combat_cooldown_note(SLONG player_id, SLONG action, const char* name, bool fired)
 {
     SLONG pidx = player_id - 1;

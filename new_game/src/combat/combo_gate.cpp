@@ -64,7 +64,7 @@ static float s_fail_bonus[MAX_PLAYERS][COMBO_NODE_COUNT];
 
 // Short human-readable names for the on-screen debug log. Return/idle
 // nodes are never logged (they are not attack nodes) so "" is fine.
-#if OC_DEBUG_LOG
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
 static const char* s_name[COMBO_NODE_COUNT] = {
     "", "PUNCH1", "", "PUNCH2", "", "PUNCH3",
     "KICK1", "", "KICK2", "", "KICK3",

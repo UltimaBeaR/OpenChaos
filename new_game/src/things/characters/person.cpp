@@ -177,8 +177,9 @@ static inline void player_block_consume(Thing* p_person)
 }
 
 // OC_DEBUG_LOG line: BLOCK engaged (green) vs refused because the hold
-// already used its one block (red). No-op unless OC_DEBUG_LOG.
-#if OC_DEBUG_LOG
+// already used its one block (red). No-op unless the combat debug-log
+// gate (master + per-subsystem) is on.
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
 static void player_block_log(bool fired)
 {
     DBGLOG_begin();
@@ -5260,15 +5261,19 @@ void set_person_fight_step(Thing* p_person, SLONG dir)
 {
     SLONG anim;
 
-    // OpenChaos: one combat step at a time. A new fight-step is refused
-    // until the current one has fully played out (SubState leaves
-    // SUB_STATE_STEP_FORWARD on its own when the step anim finishes),
-    // and a step can never cancel the player's own attack
-    // (SUB_STATE_PUNCH / SUB_STATE_KICK). This kills, with no timer:
-    //   - fast left<->right (and any direction) back-and-forth spam;
+    // OpenChaos: one combat step at a time, and a step can never cancel
+    // the player's own strike. A new fight-step is refused while the
+    // current step is still playing (SubState leaves SUB_STATE_STEP_FORWARD
+    // on its own when the step anim ends) or while a punch/kick is in
+    // progress. This kills, with no timer:
+    //   - fast left<->right (any direction) back-and-forth step spam
+    //     (direction-independent, so alternating can't dodge it);
     //   - "step + punch + step + punch" combo-reset machine-gunning
-    //     (the step no longer resets the combo between hits).
-    // Direction-independent, so alternating directions can't dodge it.
+    //     and the punch-on-the-move that came with it.
+    // This is now safe for grappling: the grapple ("forward + punch")
+    // no longer needs the forward STEP -- find_best_grapple keys off the
+    // held FORWARD input instead -- so blocking the step here does NOT
+    // break grabs (incl. civilians, where Darci never enters fight mode).
     // The post-step turn-toward-target is a SEPARATE path
     // (set_person_fight_idle), so it is NOT affected. Hit-recoil from
     // being hit is deliberately NOT blocked -- stepping out of an enemy
@@ -11956,6 +11961,7 @@ void fn_person_fighting(Thing* p_person)
                         s_player_throw_bonus[pidx] += GRAPPLE_THROW_PITY_STEP_PCT; // easier next time
                 }
 
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
                 DBGLOG_begin();
                 DBGLOG_seg(DBGLOG_color("white"), "GRAB THROW\t\t");
                 if (chance != base)
@@ -11965,6 +11971,7 @@ void fn_person_fighting(Thing* p_person)
                 DBGLOG_seg(throw_ok ? DBGLOG_color("green") : DBGLOG_color("red"),
                     throw_ok ? "SUCCESS" : "FAIL");
                 DBGLOG_commit();
+#endif
             }
 
             if (!throw_ok) {
