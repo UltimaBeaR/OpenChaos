@@ -4566,6 +4566,22 @@ void set_person_locked_idle_ready(Thing* p_person)
 // uc_orig: set_person_flip (fallen/Source/Person.cpp)
 void set_person_flip(Thing* p_person, SLONG dir)
 {
+    // OpenChaos: per-player cooldown on the evasive side flip/roll so it
+    // can't be spammed. Gated for the player only (every flip the
+    // player initiates -- out of combat and in fight mode -- comes
+    // through here); NPC/vehicle-driven flips have PlayerID 0 and are
+    // never gated, so AI behaviour is unchanged. Checked before any
+    // state change: a blocked press simply does nothing.
+    if (p_person->Genus.Person->PlayerID) {
+        SLONG pid = p_person->Genus.Person->PlayerID;
+        if (!combat_cooldown_ready(pid, COOLDOWN_ROLL)) {
+            combat_cooldown_note(pid, COOLDOWN_ROLL, "ROLL", false);
+            return;
+        }
+        combat_cooldown_note(pid, COOLDOWN_ROLL, "ROLL", true);
+        combat_cooldown_arm(pid, COOLDOWN_ROLL);
+    }
+
     MSG_add(" start flipping");
     switch (dir) {
     case 0:

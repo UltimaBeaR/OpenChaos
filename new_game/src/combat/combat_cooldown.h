@@ -19,6 +19,7 @@ enum CombatCooldown {
     COOLDOWN_ARREST,    // arresting a downed person
     COOLDOWN_GRAPPLE,   // initiating a grapple
     COOLDOWN_BLOCK,     // entering the defensive block/duck
+    COOLDOWN_ROLL,      // evasive side flip/roll (jump + direction)
     COOLDOWN_COUNT,
 };
 
