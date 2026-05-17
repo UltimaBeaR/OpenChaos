@@ -12,6 +12,10 @@
 #include "things/core/statedef.h"
 #include "things/characters/anim_ids.h"
 #include "combat/combat.h"
+#include "combat/combat_cooldown.h" // OpenChaos: 2s block cooldown (on top of the arm-latch)
+#include "combat/combo_gate.h"
+#include "engine/debug/dbglog/dbglog.h" // OC_DEBUG_LOG (no-op when off)
+#include "camera/fc_globals.h" // FC_cam[0].last_manual_cam_turn — detect manual camera rotation for the melee target cycle
 #include "assets/sound_id.h"
 #include "ai/mav.h"
 #include "engine/audio/sound.h"
@@ -91,6 +95,8 @@ extern void set_action_used(Thing* p_person);
 extern UBYTE stealth_debug;
 extern SLONG plant_feet(Thing* p_person);
 extern SLONG calc_angle(SLONG dx, SLONG dz);
+// Camera look azimuth (0..2047), same angle convention as Thing Angle.
+extern SLONG get_camera_angle(void);
 extern SLONG slide_ladder;
 extern SLONG yomp_speed;
 extern SLONG sprint_speed;
@@ -104,6 +110,90 @@ extern SLONG sprint_speed;
 // Sized for the game's MAX_PLAYERS (=2 at time of writing, see player.h);
 // literal to avoid adding an include just for this constant.
 static UWORD s_player_anim_linger_timer[2] = { 0 };
+
+// OpenChaos (not in the original): cap how long the player can hold the
+// defensive duck/block pose. Holding "back" used to freeze the block
+// animation at frame 2 forever; now after this long Darci finishes the
+// block and returns to fight-idle on her own, exactly as if "back" had
+// been released. A fresh block (next attack window / press) re-arms it.
+// Stored as the GAME_TURN deadline per player (indexed by PlayerID - 1).
+// Same file-local-array rationale as the timer above (save-file binary
+// compat). NPCs are never affected.
+#define BLOCK_HOLD_MAX_SECONDS 1
+#define BLOCK_HOLD_MAX_TURNS (BLOCK_HOLD_MAX_SECONDS * UC_PHYSICS_DESIGN_HZ)
+static SLONG s_player_block_deadline[2] = { 0 };
+
+// Valid player index (0..1), or -1 for an NPC / out-of-range id.
+// Person.PlayerID is 1-based.
+static inline SLONG player_block_idx(Thing* p_person)
+{
+    SLONG pidx = p_person->Genus.Person->PlayerID - 1;
+    return (pidx >= 0 && pidx < 2) ? pidx : -1;
+}
+
+// Arm the block-hold cap when the player enters the block pose. No-op
+// for NPCs so their blocking is unchanged.
+static inline void player_block_arm_timeout(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    if (pidx >= 0)
+        s_player_block_deadline[pidx] = (SLONG)GAME_TURN + BLOCK_HOLD_MAX_TURNS;
+}
+
+// True while the player may still freeze the block at frame 2 (inside
+// the cap). False once the hold time elapsed -> the block animation is
+// allowed to play out and she stands. NPCs: not applicable (their path
+// never reaches this -- continue_blocking returns 0 for PlayerID 0).
+static inline bool player_block_hold_ok(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    return pidx >= 0 && (SLONG)GAME_TURN < s_player_block_deadline[pidx];
+}
+
+// OpenChaos: one block per "back" hold. A fresh "back" press (rising
+// edge, detected in the fight input code) arms exactly one block;
+// engaging the block consumes it. Holding "back" no longer auto-blocks
+// every incoming attack -> you must release and press "back" again.
+// The "being hit" gate (should_i_block) and the back-step movement
+// itself are NOT changed. NPCs are never gated.
+static bool s_player_block_armed[2] = { false, false };
+
+// Called from the fight input on a fresh "back" press.
+void player_block_arm(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    if (pidx >= 0)
+        s_player_block_armed[pidx] = true;
+}
+
+static inline bool player_block_is_armed(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    return pidx >= 0 && s_player_block_armed[pidx];
+}
+
+static inline void player_block_consume(Thing* p_person)
+{
+    SLONG pidx = player_block_idx(p_person);
+    if (pidx >= 0)
+        s_player_block_armed[pidx] = false;
+}
+
+// OC_DEBUG_LOG line: BLOCK engaged (green) vs refused because the hold
+// already used its one block (red). No-op unless the combat debug-log
+// gate (master + per-subsystem) is on.
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
+static void player_block_log(bool fired)
+{
+    DBGLOG_begin();
+    DBGLOG_seg(DBGLOG_color("white"), "BLOCK\t\t");
+    DBGLOG_seg(fired ? DBGLOG_color("green") : DBGLOG_color("red"),
+        fired ? "FIRED" : "BLOCKED");
+    DBGLOG_commit();
+}
+#else
+static inline void player_block_log(bool) { }
+#endif
 // find_face_for_this_pos declared via fallen/Headers/walkable.h above
 extern void add_thing_to_map(Thing* p_thing);
 extern SLONG people_allowed_to_hit_each_other(Thing* p_victim, Thing* p_agressor);
@@ -138,6 +228,26 @@ extern void input_actions_clear_ak47_reload_gate(); // input_actions.cpp
 extern SLONG continue_blocking(Thing* p_person); // interfac.cpp
 
 // MAX_COL_WITH defined in engine/physics/collide_globals.h
+
+// OpenChaos (not in the original): the player's grab-arm "throw to the
+// ground" finisher succeeds only part of the time. Rolled for the
+// player only (NPCs always throw, unchanged). On a failed roll the
+// grapple is released through the game's existing escape transition --
+// Darci just shoves the victim off, no visual glitch. Roll: a value in
+// [0, GRAPPLE_THROW_ROLL_RANGE) below GRAPPLE_THROW_CHANCE_PCT passes.
+#define GRAPPLE_THROW_ROLL_RANGE 100
+#define GRAPPLE_THROW_CHANCE_PCT 60 // 60% throw, 40% clean release
+
+// OpenChaos: same "pity" / bad-luck protection as the combo gate. Each
+// FAILED throw roll bumps THIS player's throw chance by
+// GRAPPLE_THROW_PITY_STEP_PCT for the next throw, stacking on every
+// further fail until it finally lands -- then it snaps back to
+// GRAPPLE_THROW_CHANCE_PCT. Per-player ([2], indexed by PlayerID - 1;
+// same save-file-binary-compat rationale as the block helpers above).
+// NPCs never roll so this is never touched for them; it also
+// self-clears on the first success after a level (re)load.
+#define GRAPPLE_THROW_PITY_STEP_PCT 20
+static SLONG s_player_throw_bonus[2] = { 0, 0 };
 
 // uc_orig: set_stats (fallen/Source/Person.cpp)
 void set_stats(void)
@@ -2139,92 +2249,145 @@ void general_process_player(Thing* p_person)
     }
 }
 
-// Selects the best attack target for the player from nearby persons who want to kill them.
-// dir=1 cycles forward (next higher thing index), dir=-1 cycles backward.
+// Hard cap on melee targets considered for the circle-button cycle.
+// Far more than ever realistically present inside the pick range; it
+// only bounds the local sort arrays.
+#define COMBAT_TARGET_MAX_CANDIDATES 64
+
+// Pick range for the circle-button target cycle, in >>8 world units
+// (~768). Unchanged from the original combat sphere query radius.
+#define COMBAT_TARGET_PICK_RANGE 0x300
+
+// Targeting is driven by the camera look ray: the enemy closest to
+// the ray wins. Distance to Darci is only a tie-breaker between
+// enemies that sit within this angular tolerance of each other (their
+// deviation from the ray is quantized into buckets of this size, then
+// each bucket is ordered by distance). dangle units: 2048 == 360 deg.
+#define COMBAT_TARGET_RAY_TOLERANCE_DEG 6
+#define COMBAT_TARGET_RAY_TOLERANCE ((COMBAT_TARGET_RAY_TOLERANCE_DEG * 2048) / 360)
+
+// GAME_TURN of the previous circle-button target switch. Compared
+// against the camera's last_manual_cam_turn to tell "the player
+// rotated the camera by hand since the last switch" apart from "the
+// camera moved on its own" (auto-focus / Darci motion). -1 = none yet.
+// Player-only feature (combat targeting is player-driven), so a single
+// static is enough — FC_cam[1] is unused in the shipped game.
+static SLONG s_last_target_switch_turn = -1;
+
+// Selects/cycles the player's melee target among nearby persons who want
+// to kill them. Targets are ordered by closeness to the camera look ray
+// (primary) and by distance to Darci within a small angular tolerance
+// (tie-breaker), then sorted; the press walks that order circularly
+// (dir=1 forward, else backward). If
+// the player rotated the camera by hand since the last switch, the
+// press instead restarts from the best-scored target (or steps to #2
+// when already on #1, so a press is never a no-op). With no/stale
+// current target it jumps straight to the best.
 // uc_orig: person_pick_best_target (fallen/Source/Person.cpp)
 void person_pick_best_target(Thing* p_person, SLONG dir)
 {
-    SLONG i;
+    UWORD cand_thing[COMBAT_TARGET_MAX_CANDIDATES];
+    SLONG cand_bucket[COMBAT_TARGET_MAX_CANDIDATES]; // angular tolerance bucket (primary key)
+    SLONG cand_dist[COMBAT_TARGET_MAX_CANDIDATES];   // distance to Darci (tie-breaker)
+    SLONG cand_count = 0;
 
-    SLONG dx;
-    SLONG dz;
-    SLONG dist;
-    SLONG best_dist = UC_INFINITY;
-
-    UWORD lowest_person = 0xffff;
-    UWORD highest_person = 0;
-    UWORD next_person = 0xffff;
-    UWORD prev_person = 0;
+    SLONG cam_angle = get_camera_angle();
 
     SLONG num_found = THING_find_sphere(
         p_person->WorldPos.X >> 8,
         p_person->WorldPos.Y >> 8,
         p_person->WorldPos.Z >> 8,
-        0x300,
+        COMBAT_TARGET_PICK_RANGE,
         THING_array,
         THING_ARRAY_SIZE,
         1 << CLASS_PERSON);
 
-    for (i = 0; i < num_found; i++) {
+    for (SLONG i = 0; i < num_found && cand_count < COMBAT_TARGET_MAX_CANDIDATES; i++) {
         Thing* p_found = TO_THING(THING_array[i]);
 
-        if (p_found == p_person) {
+        if (p_found == p_person)
             continue;
-        }
-
-        if (p_found->State == STATE_DEAD) {
+        if (p_found->State == STATE_DEAD)
             continue;
+        if (PCOM_person_wants_to_kill(p_found) != THING_NUMBER(p_person))
+            continue;
+
+        SLONG dx = (p_found->WorldPos.X - p_person->WorldPos.X) >> 8;
+        SLONG dz = (p_found->WorldPos.Z - p_person->WorldPos.Z) >> 8;
+
+        // Distance Darci -> enemy in >>8 world units.
+        SLONG dist = QDIST2(abs(dx), abs(dz));
+
+        // Angular deviation of the (Darci -> enemy) direction from the
+        // camera look ray, folded to 0..1024 (1024 == 180 deg). Same
+        // azimuth convention as Thing Angle / get_camera_angle (see
+        // get_dangle above).
+        SLONG ang = (Arctan(dx, -dz) + 1024) & 2047;
+        SLONG dangle = (ang - cam_angle) & 2047;
+        if (dangle > 1024)
+            dangle = 2048 - dangle;
+
+        // Quantize deviation from the ray: enemies within one tolerance
+        // band share a bucket and are then ordered by distance.
+        SLONG bucket = dangle / COMBAT_TARGET_RAY_TOLERANCE;
+
+        // Insertion sort: by bucket (closest to the ray first), then by
+        // distance to Darci, then by thing index so the cycle order is
+        // fully deterministic across presses.
+        SLONG ins = cand_count;
+        while (ins > 0
+            && (cand_bucket[ins - 1] > bucket
+                || (cand_bucket[ins - 1] == bucket && cand_dist[ins - 1] > dist)
+                || (cand_bucket[ins - 1] == bucket && cand_dist[ins - 1] == dist
+                    && cand_thing[ins - 1] > THING_array[i]))) {
+            cand_thing[ins] = cand_thing[ins - 1];
+            cand_bucket[ins] = cand_bucket[ins - 1];
+            cand_dist[ins] = cand_dist[ins - 1];
+            ins--;
         }
+        cand_thing[ins] = THING_array[i];
+        cand_bucket[ins] = bucket;
+        cand_dist[ins] = dist;
+        cand_count++;
+    }
 
-        if (PCOM_person_wants_to_kill(p_found) == THING_NUMBER(p_person)) {
-            if (p_person->Genus.Person->Target == NULL) {
-                dx = abs(p_found->WorldPos.X - p_person->WorldPos.X);
-                dz = abs(p_found->WorldPos.Z - p_person->WorldPos.Z);
+    if (cand_count == 0)
+        return; // nothing valid to target -- leave the current one alone
 
-                dist = QDIST2(dx, dz);
-
-                if (dist < best_dist) {
-                    best_dist = dist;
-                    next_person = THING_array[i];
-                }
-            } else {
-                if (THING_array[i] < lowest_person) {
-                    lowest_person = THING_array[i];
-                }
-                if (THING_array[i] > highest_person) {
-                    highest_person = THING_array[i];
-                }
-
-                if (THING_array[i] > p_person->Genus.Person->Target) {
-                    if (THING_array[i] < next_person) {
-                        next_person = THING_array[i];
-                    }
-                } else if (THING_array[i] < p_person->Genus.Person->Target) {
-                    if (THING_array[i] > prev_person) {
-                        prev_person = THING_array[i];
-                    }
-                }
-            }
+    // Rank of the current target within the sorted list (-1 if it is
+    // no longer a valid candidate -> treated as "no current target").
+    UWORD cur = p_person->Genus.Person->Target;
+    SLONG rank = -1;
+    for (SLONG i = 0; i < cand_count; i++) {
+        if (cand_thing[i] == cur) {
+            rank = i;
+            break;
         }
     }
 
-    if (dir == 1) {
-        if (next_person != 0xffff) {
-            p_person->Genus.Person->Target = next_person;
-        } else if (lowest_person != 0xffff) {
-            p_person->Genus.Person->Target = lowest_person;
-        }
+    // Did the player rotate the camera by hand since the last switch
+    // (or is this the very first switch)? If so, snap to the best
+    // scored target rather than advancing -- unless already on #1, in
+    // which case still step to #2 so the press is never a no-op.
+    bool cam_rotated = (s_last_target_switch_turn < 0)
+        || (FC_cam[0].last_manual_cam_turn >= s_last_target_switch_turn);
+
+    SLONG pick;
+    if (rank < 0) {
+        pick = 0; // no / stale target -> best scored
+    } else if (cam_rotated) {
+        pick = (rank == 0) ? (cand_count > 1 ? 1 : 0) : 0;
+    } else if (dir == 1) {
+        pick = (rank + 1) % cand_count; // forward circular
     } else {
-        if (prev_person != 0xffff) {
-            p_person->Genus.Person->Target = prev_person;
-        } else if (highest_person != 0xffff) {
-            p_person->Genus.Person->Target = highest_person;
-        }
+        pick = (rank - 1 + cand_count) % cand_count; // backward circular
     }
 
-    if (p_person->Genus.Person->Target) {
+    p_person->Genus.Person->Target = cand_thing[pick];
+    s_last_target_switch_turn = (SLONG)GAME_TURN;
+
+    if (p_person->Genus.Person->Target)
         turn_to_face_thing(p_person, TO_THING(p_person->Genus.Person->Target), 0);
-    }
 }
 
 // Per-frame person update called after the state function.
@@ -4460,6 +4623,22 @@ void set_person_locked_idle_ready(Thing* p_person)
 // uc_orig: set_person_flip (fallen/Source/Person.cpp)
 void set_person_flip(Thing* p_person, SLONG dir)
 {
+    // OpenChaos: per-player cooldown on the evasive side flip/roll so it
+    // can't be spammed. Gated for the player only (every flip the
+    // player initiates -- out of combat and in fight mode -- comes
+    // through here); NPC/vehicle-driven flips have PlayerID 0 and are
+    // never gated, so AI behaviour is unchanged. Checked before any
+    // state change: a blocked press simply does nothing.
+    if (p_person->Genus.Person->PlayerID) {
+        SLONG pid = p_person->Genus.Person->PlayerID;
+        if (!combat_cooldown_ready(pid, COOLDOWN_ROLL)) {
+            combat_cooldown_note(pid, COOLDOWN_ROLL, "ROLL", false);
+            return;
+        }
+        combat_cooldown_note(pid, COOLDOWN_ROLL, "ROLL", true);
+        combat_cooldown_arm(pid, COOLDOWN_ROLL);
+    }
+
     MSG_add(" start flipping");
     switch (dir) {
     case 0:
@@ -5137,6 +5316,32 @@ void set_person_fight_idle(Thing* p_person)
 void set_person_fight_step(Thing* p_person, SLONG dir)
 {
     SLONG anim;
+
+    // OpenChaos: one combat step at a time, and a step can never cancel
+    // the player's own strike. A new fight-step is refused while the
+    // current step is still playing (SubState leaves SUB_STATE_STEP_FORWARD
+    // on its own when the step anim ends) or while a punch/kick is in
+    // progress. This kills, with no timer:
+    //   - fast left<->right (any direction) back-and-forth step spam
+    //     (direction-independent, so alternating can't dodge it);
+    //   - "step + punch + step + punch" combo-reset machine-gunning
+    //     and the punch-on-the-move that came with it.
+    // This is now safe for grappling: the grapple ("forward + punch")
+    // no longer needs the forward STEP -- find_best_grapple keys off the
+    // held FORWARD input instead -- so blocking the step here does NOT
+    // break grabs (incl. civilians, where Darci never enters fight mode).
+    // The post-step turn-toward-target is a SEPARATE path
+    // (set_person_fight_idle), so it is NOT affected. Hit-recoil from
+    // being hit is deliberately NOT blocked -- stepping out of an enemy
+    // beatdown is a defensive move and must stay. Player only; NPCs
+    // never reach here (player-input path) and are never gated.
+    if (p_person->Genus.Person->PlayerID
+        && (p_person->SubState == SUB_STATE_STEP_FORWARD
+            || p_person->SubState == SUB_STATE_PUNCH
+            || p_person->SubState == SUB_STATE_KICK)) {
+        return;
+    }
+
     p_person->Genus.Person->Timer1 = 0;
     if (person_holding_bat(p_person)) {
         switch (dir) {
@@ -5195,6 +5400,21 @@ void set_person_block(Thing* p_person)
 {
     SLONG anim = ANIM_BLOCK_HIGH;
 
+    // OpenChaos: the player's block only engages if BOTH hold true:
+    //  1) a fresh "back" press armed it (one block per hold), and
+    //  2) at least COOLDOWN_BLOCK_SECONDS passed since the last block.
+    // Otherwise it is refused (she takes the hit) so you can't hold
+    // "back" and auto-block every incoming attack -> effectively immune.
+    // Checked before ANY state change. The back-step movement and the
+    // "being hit" gate (should_i_block) are unchanged. NPCs (PlayerID 0)
+    // are never gated.
+    if (p_person->Genus.Person->PlayerID
+        && (!player_block_is_armed(p_person)
+            || !combat_cooldown_ready(p_person->Genus.Person->PlayerID, COOLDOWN_BLOCK))) {
+        player_block_log(false);
+        return;
+    }
+
     set_generic_person_state_function(p_person, STATE_FIGHTING);
 
     if (p_person->Genus.Person->SpecialUse) {
@@ -5219,6 +5439,15 @@ void set_person_block(Thing* p_person)
         p_person->Velocity = 0;
         p_person->Genus.Person->Action = ACTION_FIGHT_PUNCH;
         p_person->SubState = SUB_STATE_BLOCK;
+        player_block_arm_timeout(p_person); // OpenChaos: cap the hold time
+        // OpenChaos: a block actually engaged -> consume the one-shot
+        // arm for this "back" hold, start the 2s cooldown, and log it
+        // (no-op for NPCs).
+        if (p_person->Genus.Person->PlayerID) {
+            player_block_consume(p_person);
+            combat_cooldown_arm(p_person->Genus.Person->PlayerID, COOLDOWN_BLOCK);
+            player_block_log(true);
+        }
         p_person->Draw.Tweened->Locked = 0;
         p_person->Genus.Person->Flags |= FLAG_PERSON_NON_INT_M;
     }
@@ -5616,6 +5845,21 @@ SLONG set_person_punch(Thing* p_person)
         }
     }
 
+    // OpenChaos anti-mash gate for the player's FIRST hit (NPCs never
+    // gated). Done before any state change so a blocked press simply
+    // does nothing -- the player stays as they were, no glitch. Knife
+    // starts its own chain (node 14); punch/bat use the punch chain.
+    if (p_person->Genus.Person->PlayerID) {
+        SLONG first_node = 1; // ANIM_PUNCH_COMBO1
+        if (p_person->Genus.Person->SpecialUse) {
+            Thing* p_sp = TO_THING(p_person->Genus.Person->SpecialUse);
+            if (p_sp->Genus.Special->SpecialType == SPECIAL_KNIFE)
+                first_node = 14; // ANIM_KNIFE_ATTACK1
+        }
+        if (!combo_gate_try(p_person->Genus.Person->PlayerID, first_node))
+            return (0);
+    }
+
     if (find_best_grapple(p_person)) {
         return (0);
     }
@@ -5755,6 +5999,14 @@ SLONG set_person_kick(Thing* p_person)
                 return 0;
             }
         }
+    }
+
+    // OpenChaos anti-mash gate for the player's FIRST kick (node 6;
+    // NPCs never gated). Before any state change -> a blocked press
+    // simply does nothing.
+    if (p_person->Genus.Person->PlayerID) {
+        if (!combo_gate_try(p_person->Genus.Person->PlayerID, 6)) // ANIM_KICK_COMBO1
+            return (0);
     }
 
     if (p_person == NET_PERSON(0)) {
@@ -11349,18 +11601,6 @@ SLONG person_new_combat_node(Thing* p_person)
 
     node = p_person->Genus.Person->CombatNode;
 
-    if (node > 0)
-        if (get_combat_type_for_node(node) != COMBAT_NONE)
-            if (p_person->Genus.Person->PlayerID) {
-                if (p_person->Genus.Person->pcom_ai_counter > COMBO_ACCURACY) {
-                    // Too slow -- break the combo chain.
-                    p_person->Genus.Person->CombatNode = -p_person->Genus.Person->CombatNode;
-                    p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH);
-                }
-
-                p_person->Genus.Person->pcom_ai_counter = 0;
-            }
-
     if (node) {
         if (node > 0) {
             if (!p_person->Genus.Person->PlayerID) {
@@ -11382,7 +11622,30 @@ SLONG person_new_combat_node(Thing* p_person)
             }
         }
 
-        if ((p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) && node > 0) {
+        // The last hit of ANY combo chain ends the combo.
+        //
+        // Structural rule (data-driven, works for combos of any length):
+        // every fight_tree attack node has a "finish/return" entry in column 1
+        // (FIGHT_TREE_FINISH). Non-final hits point it at a RETURN node; the
+        // final hit of every chain (punch/kick 3rd, knife 3rd, bat 2nd, the
+        // 2-hit cross-combo finishers, etc.) has column 1 == 0 -- it goes
+        // straight to idle, never to a deeper attack.
+        //
+        // Originally the per-move COMBO_ACCURACY timing gate stopped buffered
+        // input from walking a finisher's continuation column; we deliberately
+        // removed that gate. Without this check a buffered/mashed press would
+        // re-trigger e.g. KICK_COMBO3's continuation (node 6) and spawn an
+        // unwanted fresh chain. Treat the last hit as terminal for every combo
+        // type uniformly and drop any buffered punch/kick request.
+        UWORD finish_anim_unused;
+        SLONG combo_finished = (node > 0)
+            && get_combat_type_for_node((UBYTE)node) != COMBAT_NONE
+            && get_anim_and_node_for_action((UBYTE)node, FIGHT_TREE_FINISH, &finish_anim_unused) == 0;
+        if (combo_finished) {
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK);
+        }
+
+        if ((p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) && node > 0 && !combo_finished) {
             if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH) {
                 new_node = get_anim_and_node_for_action(node, 2, &anim);
                 p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
@@ -11396,6 +11659,20 @@ SLONG person_new_combat_node(Thing* p_person)
             }
         } else {
             // Negative node means missed -- cannot continue the combo.
+            new_node = get_anim_and_node_for_action(abs(node), 1, &anim);
+        }
+
+        // OpenChaos anti-mash gate (PLAYER ONLY -- NPCs untouched).
+        // If the chosen continuation is a real attack but fails its
+        // proc/cooldown roll, drop it and fall back to the current
+        // attack's return node -> fight idle. This is exactly the path
+        // the removed 300ms COMBO_ACCURACY gate used, so the combo ends
+        // cleanly with no visual glitch.
+        if (p_person->Genus.Person->PlayerID
+            && new_node
+            && get_combat_type_for_node((UBYTE)new_node) != COMBAT_NONE
+            && !combo_gate_try(p_person->Genus.Person->PlayerID, new_node)) {
+            p_person->Genus.Person->Flags &= ~(FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK);
             new_node = get_anim_and_node_for_action(abs(node), 1, &anim);
         }
 
@@ -11460,7 +11737,13 @@ void fn_person_fighting(Thing* p_person)
             }
 
             if (p_person->Genus.Person->PlayerID) {
-                if (continue_blocking(p_person)) {
+                // OpenChaos: freeze the block at frame 2 while "back" is
+                // held, but only up to BLOCK_HOLD_MAX_SECONDS. After that
+                // the block animation plays out and she returns to
+                // fight-idle on her own, exactly as if "back" had been
+                // released. A fresh block (next attack window / press)
+                // re-arms the cap. NPCs are unaffected.
+                if (continue_blocking(p_person) && player_block_hold_ok(p_person)) {
                     goto skip_animate;
                 }
             }
@@ -11500,11 +11783,6 @@ void fn_person_fighting(Thing* p_person)
 
             break;
         }
-        if (p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_PUNCH | FLAG_PERSON_REQUEST_KICK)) {
-            if (p_person->Genus.Person->PlayerID) {
-                p_person->Genus.Person->pcom_ai_counter += TICK_TOCK;
-            }
-        }
         end = person_normal_animate(p_person);
 
         if (end == 1) {
@@ -11529,11 +11807,6 @@ void fn_person_fighting(Thing* p_person)
                 }
         }
 
-        if (p_person->Genus.Person->Flags & (FLAG_PERSON_REQUEST_KICK | FLAG_PERSON_REQUEST_PUNCH)) {
-            if (p_person->Genus.Person->PlayerID) {
-                p_person->Genus.Person->pcom_ai_counter += TICK_TOCK;
-            }
-        }
         end = person_normal_animate(p_person);
 
         if (end == 1) {
@@ -11721,10 +11994,58 @@ void fn_person_fighting(Thing* p_person)
         } else if (p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH) {
             p_person->Genus.Person->Flags &= ~FLAG_PERSON_REQUEST_PUNCH;
 
-            set_anim(p_person, ANIM_GRAB_ARM_THROW);
-            set_anim(TO_THING(p_person->Genus.Person->Target), ANIM_GRAB_ARM_THROWV);
+            Thing* p_victim = TO_THING(p_person->Genus.Person->Target);
 
-            p_person->SubState = SUB_STATE_GRAPPLE_ATTACK;
+            // OpenChaos: player-only throw-to-ground proc. NPCs never
+            // roll (Random() is not consumed for them) so AI behaviour
+            // and the RNG stream stay byte-identical to the original.
+            bool throw_ok = true;
+            if (p_person->Genus.Person->PlayerID) {
+                SLONG pidx = p_person->Genus.Person->PlayerID - 1;
+                bool ok_idx = (pidx >= 0 && pidx < 2);
+                SLONG base = GRAPPLE_THROW_CHANCE_PCT;
+                SLONG chance = base + (ok_idx ? s_player_throw_bonus[pidx] : 0);
+                if (chance > GRAPPLE_THROW_ROLL_RANGE) // >=range already always passes
+                    chance = GRAPPLE_THROW_ROLL_RANGE;
+
+                throw_ok = (SLONG)(Random() % GRAPPLE_THROW_ROLL_RANGE) < chance;
+
+                if (ok_idx) {
+                    if (throw_ok)
+                        s_player_throw_bonus[pidx] = 0;                       // landed -> base
+                    else
+                        s_player_throw_bonus[pidx] += GRAPPLE_THROW_PITY_STEP_PCT; // easier next time
+                }
+
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
+                DBGLOG_begin();
+                DBGLOG_seg(DBGLOG_color("white"), "GRAB THROW\t\t");
+                if (chance != base)
+                    DBGLOG_seg(DBGLOG_color("cyan"), "%d%% (%d%%)\t\t", (int)chance, (int)base);
+                else
+                    DBGLOG_seg(DBGLOG_color("cyan"), "%d%%\t\t", (int)chance);
+                DBGLOG_seg(throw_ok ? DBGLOG_color("green") : DBGLOG_color("red"),
+                    throw_ok ? "SUCCESS" : "FAIL");
+                DBGLOG_commit();
+#endif
+            }
+
+            if (!throw_ok) {
+                // Failed roll: release the grapple cleanly exactly the
+                // way the game does when the victim breaks free (attacker
+                // plays the shove anim, victim the escape anim, both ->
+                // ESCAPE). No glitch.
+                p_victim->Genus.Person->Escape = 0;
+                set_anim(p_person, ANIM_GRAB_ARM_ESCAPE);
+                p_person->SubState = SUB_STATE_ESCAPE;
+                set_anim(p_victim, ANIM_GRAB_ARM_ESCAPEV);
+                p_victim->SubState = SUB_STATE_ESCAPE;
+            } else {
+                set_anim(p_person, ANIM_GRAB_ARM_THROW);
+                set_anim(p_victim, ANIM_GRAB_ARM_THROWV);
+
+                p_person->SubState = SUB_STATE_GRAPPLE_ATTACK;
+            }
         }
     }
 
@@ -11871,6 +12192,18 @@ void fn_person_fighting(Thing* p_person)
             person_normal_move(p_person);
             p_person->Draw.Tweened->Angle = old_angle;
         }
+        // aim_at_victim's 2nd arg is the max gang size for which the
+        // turn-toward-target is still allowed (1000 == "always turn").
+        // It is internally player-only, so this never affects NPCs.
+        //
+        // Originally side steps (E/W, default case) used 1 -> in a gang
+        // (>1 enemy) the player did NOT re-face during the step and only
+        // snapped to the target once the step anim ended, which feels
+        // like a sluggish delay. OpenChaos: side steps now also always
+        // turn (1000), matching the forward/back steps, so the enemy
+        // stays in view through the whole side step -- no post-step
+        // facing lag. Confirmed original/retail behaviour, intentionally
+        // changed for combat feel.
         switch (p_person->Draw.Tweened->CurrentAnim) {
         case ANIM_FIGHT_STEP_N:
         case ANIM_FIGHT_STEP_N_BAT:
@@ -11879,7 +12212,7 @@ void fn_person_fighting(Thing* p_person)
             aim_at_victim(p_person, 1000);
             break;
         default:
-            aim_at_victim(p_person, 1);
+            aim_at_victim(p_person, 1000);
             break;
         }
         end = person_normal_animate(p_person);

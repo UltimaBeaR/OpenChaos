@@ -568,21 +568,35 @@ void special_normal(Thing* s_thing)
 
         // Grenade fuse countdown while carried.
         if (s_thing->Genus.Special->SpecialType == SPECIAL_GRENADE && s_thing->SubState == SPECIAL_SUBSTATE_ACTIVATED) {
-            if (s_thing->Genus.Special->timer <= (UWORD)(16 * TICK_RATIO >> TICK_SHIFT)) {
-                // Grenade cooked off in hand — detonate.
-                if (s_thing->Genus.Special->ammo > 1) {
-                    s_thing->Genus.Special->ammo -= 1;
-                    s_thing->SubState = SPECIAL_SUBSTATE_NONE;
-                } else {
-                    CreateGrenadeExplosion(p_person->WorldPos.X, p_person->WorldPos.Y, p_person->WorldPos.Z, p_person);
+            // One game tick's worth of fuse. uc_orig: Special.cpp grenade
+            // carried cook-off (ticks = 16 * TICK_RATIO >> TICK_SHIFT).
+            const SLONG ticks = 16 * TICK_RATIO >> TICK_SHIFT;
+            // Hand/waist height offset for the in-hand detonation point.
+            // uc_orig: literal 2256 added to WorldPos.Y (Special.cpp).
+            const SLONG GRENADE_HAND_HEIGHT_Y = 2256;
 
+            if (s_thing->Genus.Special->timer < ticks) {
+                // Grenade cooked off in the carrier's hand. Original
+                // ALWAYS detonates here regardless of ammo count; the
+                // earlier port only exploded when ammo==1, so a carrier
+                // holding more than one grenade had it silently fizzle
+                // (the "doesn't explode in hands" bug). Explode first,
+                // then handle the remaining inventory.
+                CreateGrenadeExplosion(s_thing->WorldPos.X, s_thing->WorldPos.Y + GRENADE_HAND_HEIGHT_Y, s_thing->WorldPos.Z, p_person);
+
+                p_person->Genus.Person->SpecialUse = NULL;
+
+                if (s_thing->Genus.Special->ammo == 1) {
                     special_drop(s_thing, p_person);
                     free_special(s_thing);
-                    p_person->Genus.Person->SpecialUse = NULL;
+                } else {
+                    // Reset so the next grenade in the stack can be primed.
+                    s_thing->SubState = SPECIAL_SUBSTATE_NONE;
+                    s_thing->Genus.Special->ammo -= 1;
                 }
                 return;
             } else {
-                s_thing->Genus.Special->timer -= 16 * TICK_RATIO >> TICK_SHIFT;
+                s_thing->Genus.Special->timer -= ticks;
             }
         }
 

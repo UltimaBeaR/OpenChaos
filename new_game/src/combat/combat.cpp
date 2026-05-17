@@ -1,4 +1,7 @@
 #include "combat/combat.h"
+#include "combat/combat_cooldown.h" // combat_cooldown_reset on level (re)load
+#include "combat/combat_test_mode.h" // combat_test_reset on level (re)load
+#include "engine/debug/dbglog/dbglog.h" // OC_DEBUG_LOG (no-op when off)
 
 #include "ai/pcom.h"
 #include "ui/hud/overlay.h" // track_enemy (already migrated)
@@ -16,6 +19,7 @@
 #include "things/characters/person.h" // can_a_see_b, set_anim
 #include "engine/graphics/pipeline/aeng.h" // MSG_add
 #include "engine/physics/collide.h" // LOS_FLAG_IGNORE_*
+#include "game/input_actions.h" // INPUT_MASK_FORWARDS (player grapple intent)
 #include "engine/input/gamepad.h" // gamepad_set_shock
 
 // Functions not yet in any header: declared here as in the original.
@@ -41,6 +45,8 @@ extern SLONG is_person_ko(Thing* p_person);
 extern SLONG set_person_kick_near(Thing* p_person, SLONG dist);
 // uc_orig: dist_to_target (fallen/Source/Person.cpp)
 extern SLONG dist_to_target(Thing* p_person_a, Thing* p_person_b);
+// uc_orig: dist_to_target_pelvis (fallen/Source/Person.cpp)
+extern SLONG dist_to_target_pelvis(Thing* p_person_a, Thing* p_person_b);
 // uc_orig: is_person_ko_and_lay_down (fallen/Source/Person.cpp)
 extern SLONG is_person_ko_and_lay_down(Thing* p_person);
 // uc_orig: person_on_floor (fallen/Source/Person.cpp)
@@ -120,6 +126,8 @@ SLONG get_combat_type_for_node(UBYTE current_node)
 void init_gangattack(void)
 {
     memset((UBYTE*)gang_attacks, 0, sizeof(GangAttack) * MAX_HISTORY);
+    combat_cooldown_reset(); // OpenChaos: clear player action cooldowns on level (re)load
+    combat_test_reset(); // OpenChaos: drop debug combat-test state on level (re)load
 }
 
 // uc_orig: get_gangattack (fallen/Source/Combat.cpp)
@@ -333,11 +341,47 @@ SLONG find_best_grapple(Thing* p_person)
         iam = 2;
     }
 
+    // OpenChaos: player grapple cooldown. While on cooldown no grapple
+    // is offered, so the punch button just does a normal punch (the
+    // existing "no grapple found" fallback in set_person_punch) -- no
+    // glitch. PlayerID 0 (NPC AI) is never gated, so AI grapples are
+    // unchanged.
+    if (p_person->Genus.Person->PlayerID
+        && !combat_cooldown_ready(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE)) {
+        combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE, "GRAPPLE", false);
+        return (0);
+    }
+
     if (!p_person->Genus.Person->PlayerID || p_person->Genus.Person->Mode == PERSON_MODE_FIGHT) {
         // Skip neck snap for non-players
         c0 = 1;
     }
-    if ((p_person->Genus.Person->PlayerID && p_person->SubState == SUB_STATE_STEP_FORWARD && p_person->Draw.Tweened->FrameIndex < 3) || ((!p_person->Genus.Person->PlayerID) && ((GAME_TURN + THING_NUMBER(p_person)) & 0x3) == 0)) {
+    // OpenChaos: the player's grapple ("forward + punch") no longer
+    // requires the forward STEP. We're already in the punch path here;
+    // the grapple is attempted whenever the player pushes FORWARD (in or
+    // out of fight mode, step or no step). "Forward" must cover ALL
+    // input devices: keyboard and D-pad set the digital
+    // INPUT_MASK_FORWARDS bit, but the analog stick does NOT -- its
+    // deflection is packed into the high bits of Input instead, so we
+    // also decode the packed stick Y and treat a forward push as intent.
+    // The grapple-cooldown gate above already turns this into a plain
+    // punch while on cooldown. NPC branch (periodic tick) is unchanged.
+    //
+    // GET_JOYY / ANALOGUE_MIN_VELOCITY mirror the input packing in
+    // input_actions.cpp (uc_orig GET_JOYY / ANALOGUE_MIN_VELOCITY):
+    // stick Y is bits 25-31, range -128..+127, NEGATIVE = pushed
+    // forward/up; |value| <= deadzone is treated as centred.
+    bool player_grapple_intent = false;
+    if (p_person->Genus.Person->PlayerID) {
+        ULONG pin = NET_PLAYER(p_person->Genus.Person->PlayerID - 1)->Genus.Player->Input;
+        const SLONG STICK_DEADZONE = 8;          // ANALOGUE_MIN_VELOCITY
+        SLONG stick_y = (SLONG)(((pin >> 24) & 0xfe) - 128); // GET_JOYY
+        bool fwd_digital = (pin & INPUT_MASK_FORWARDS) != 0;  // keyboard / D-pad
+        bool fwd_stick = stick_y < -STICK_DEADZONE;           // analog stick up
+        player_grapple_intent = fwd_digital || fwd_stick;
+    }
+    if (player_grapple_intent
+        || ((!p_person->Genus.Person->PlayerID) && ((GAME_TURN + THING_NUMBER(p_person)) & 0x3) == 0)) {
         only_kneck = 0;
     } else {
         only_kneck = 1;
@@ -372,6 +416,34 @@ SLONG find_best_grapple(Thing* p_person)
                 if (best_target->Genus.Person->pcom_ai == PCOM_AI_FIGHT_TEST) {
                     return UC_FALSE;
                 }
+                // OpenChaos: the from-behind pistol-whip stun only lands
+                // on a target that is standing still. A moving target
+                // (walking / running / fleeing) gives no grapple, so the
+                // punch button just does a normal punch instead. This
+                // stops stunning civilians who merely turned their back
+                // while walking off. Movement is read from physical
+                // speed (set_person_walking uses velocity 5, a person
+                // standing still is 0) -- robust regardless of the AI
+                // State the wandering NPC happens to be in. Darci's
+                // fight stance already prevents this grapple (grapple
+                // index 0 is skipped when Mode == PERSON_MODE_FIGHT,
+                // above). Player only; NPC pistol-whips are unchanged.
+                //
+                // <= this speed counts as "standing still" (0 = idle;
+                // walking is 5). Small margin against any residual.
+                static const SLONG BACKSTUN_STILL_MAX_SPEED = 2;
+                if (p_person->Genus.Person->PlayerID) {
+                    bool moving = (abs((SLONG)best_target->Velocity) > BACKSTUN_STILL_MAX_SPEED);
+#if OC_DEBUG_LOG && OC_DEBUG_LOG_COMBAT
+                    DBGLOG_begin();
+                    DBGLOG_seg(DBGLOG_color("white"), "BACKSTUN\t\t");
+                    DBGLOG_seg(moving ? DBGLOG_color("red") : DBGLOG_color("green"),
+                        moving ? "BLOCKED" : "FIRED");
+                    DBGLOG_commit();
+#endif
+                    if (moving)
+                        return UC_FALSE;
+                }
             }
 
             if (grapples[best].Anim == ANIM_STRANGLE || grapples[best].Anim == ANIM_HEADBUTT) {
@@ -381,12 +453,17 @@ SLONG find_best_grapple(Thing* p_person)
                 }
             }
 
+            // OpenChaos: a grapple actually started -> arm the player's
+            // grapple cooldown (no-op for NPCs / PlayerID 0).
+            combat_cooldown_arm(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE);
+            combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_GRAPPLE, "GRAPPLE", true);
             set_grapple(p_person, best_target, grapples[best].Anim, best);
             return (1);
         }
         return (0);
-    } else
+    } else {
         return (0);
+    }
 }
 
 // Walks keyframes of 'anim' and returns the Height field of the first GameFightCol.
@@ -603,7 +680,37 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
 
     dist = QDIST2(adx, adz);
 
-    if (abs(dist - pg->Dist) < pg->Range) {
+    // OpenChaos: make the PLAYER's front grab ("forward + punch", anim
+    // ANIM_GRAB_ARM) forgiving and reliable on ANY target -- the
+    // original ring (Dist +/- Range, e.g. 60 +/- 20) plus tight facing
+    // windows meant it only connected from one exact spot, so it
+    // "didn't grab the first time". We widen ONLY this case: player
+    // aggressor + ANIM_GRAB_ARM. The from-behind pistol-whip stun, the
+    // Roper grapples, and every NPC keep the EXACT original thresholds
+    // (back-stun behaviour unchanged, AI unchanged).
+    //
+    // Tunables: reach beyond pg->Dist, and the two facing windows
+    // (victim orientation vs attacker, and attacker aim at victim).
+    const bool player_grab =
+        p_agressor->Genus.Person->PlayerID && pg->Anim == ANIM_GRAB_ARM;
+// REACH_BONUS measured from real play: the player punch-engages a
+// target from ~150..180 units, so the original ring (Dist 60 +/- 20)
+// never lined up and the grab "missed the first presses". +144 ->
+// accept dist 0 .. Dist+144 = 204, comfortably above punch-engage
+// range so "forward + punch" grabs first time. A wide reach is safe
+// here only because long-range chain-grab across a gang is held back
+// separately by the "not already grappling" gate (oc_combat_busy) --
+// NOT by distance. FACE/AIM widen the original tight facing windows so
+// no pixel-perfect aim is needed; still much tighter than a free grab.
+#define GRAPPLE_PLAYER_REACH_BONUS 0x90 // +144: accept 0 .. Dist+144 (covers punch range)
+#define GRAPPLE_PLAYER_FACE_WINDOW 400  // victim orientation loose (~70 deg, vs orig ~28)
+#define GRAPPLE_PLAYER_AIM_RANGE 800    // attacker just roughly faces target (~70 deg, vs orig ~35)
+
+    bool dist_ok = player_grab
+        ? (dist < pg->Dist + GRAPPLE_PLAYER_REACH_BONUS)
+        : (abs(dist - pg->Dist) < pg->Range);
+
+    if (dist_ok) {
         SLONG angle;
 
         // Angle between victim's and attacker's facing directions
@@ -612,7 +719,8 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
 
         angle += (pg->Angle - 1024) & 2047;
 
-        if (angle > 160 && angle < 2048 - 160)
+        SLONG face_win = player_grab ? GRAPPLE_PLAYER_FACE_WINDOW : 160;
+        if (angle > face_win && angle < 2048 - face_win)
             return (0);
 
         angle = Arctan(-dx, dz);
@@ -630,7 +738,8 @@ SLONG check_combat_grapple_with_person(Thing* p_victim, MAPCO16 x, MAPCO16 y, MA
             angle = 2048 + angle;
         angle = angle & 2047;
 
-        if (angle < (FIGHT_ANGLE_RANGE >> 1) || angle > 2048 - (FIGHT_ANGLE_RANGE >> 1)) {
+        SLONG aim_half = (player_grab ? GRAPPLE_PLAYER_AIM_RANGE : FIGHT_ANGLE_RANGE) >> 1;
+        if (angle < aim_half || angle > 2048 - aim_half) {
             return (1);
         } else {
             return (0);
@@ -1373,7 +1482,8 @@ SLONG find_attack_stance(
     SLONG attack_range,
     Thing** stance_target,
     GameCoord* stance_position,
-    SLONG* stance_angle)
+    SLONG* stance_angle,
+    SLONG allow_downed_reach)
 {
     SLONG i;
     SLONG dx, dz;
@@ -1408,6 +1518,19 @@ SLONG find_attack_stance(
 
     min_dist = attack_distance - attack_range;
     max_dist = attack_distance + attack_range;
+
+    // OpenChaos: lenient reach used ONLY for a downed (KO + lying flat)
+    // candidate when allow_downed_reach is set (player forward-kick ->
+    // stomp). Roughly double the normal melee far reach and no near
+    // limit, so standing right over the body counts. ~176 deg facing
+    // cone -> angle barely matters, but the score still subtracts
+    // dist + angle so among equals the nearest/most-faced still wins
+    // (priority stays equal -- no standing/lying preference).
+    // uc_orig: none -- not in the original game.
+#define STANCE_DOWNED_MIN_DIST 0
+#define STANCE_DOWNED_MAX_DIST 0x100  // 256 (normal melee far reach is 224)
+#define STANCE_FRONT_MAX_DANGLE 300   // original literal: ~52 deg cone
+#define STANCE_DOWNED_MAX_DANGLE 1000 // ~176 deg: facing barely matters
 
     wangle = p_person->Draw.Tweened->Angle;
 
@@ -1454,8 +1577,20 @@ SLONG find_attack_stance(
 
         dist = QDIST2(abs(dx), abs(dz));
 
-        if (!WITHIN(dist, min_dist, max_dist)) {
-            continue;
+        // OpenChaos: only this candidate is treated leniently, and only
+        // when the caller asked for it (player stomp). Everyone else
+        // (standing targets, other attacks, all NPCs -> flag 0) keeps
+        // the original band/cone exactly.
+        bool downed_lenient = (allow_downed_reach && is_person_ko_and_lay_down(p_target));
+
+        if (downed_lenient) {
+            if (!WITHIN(dist, STANCE_DOWNED_MIN_DIST, STANCE_DOWNED_MAX_DIST)) {
+                continue;
+            }
+        } else {
+            if (!WITHIN(dist, min_dist, max_dist)) {
+                continue;
+            }
         }
 
         angle = calc_angle(dx, dz) + 1024;
@@ -1470,7 +1605,7 @@ SLONG find_attack_stance(
         case FIND_DIR_BACK:
         case FIND_DIR_LEFT:
         case FIND_DIR_RIGHT:
-            if (abs(dangle) > 300) {
+            if (abs(dangle) > (downed_lenient ? STANCE_DOWNED_MAX_DANGLE : STANCE_FRONT_MAX_DANGLE)) {
                 score = -UC_INFINITY;
             } else {
                 score = 0;
@@ -1570,7 +1705,8 @@ SLONG find_attack_stance(
 // Calls find_attack_stance then rotates p_person to face the best target.
 // Returns THING_NUMBER of target if found, negative value if none.
 // uc_orig: turn_to_target (fallen/Source/Combat.cpp)
-SLONG turn_to_target(Thing* p_person, SLONG find_dir)
+SLONG turn_to_target(Thing* p_person, SLONG find_dir, SLONG allow_downed_reach,
+    GameCoord* out_stance)
 {
     Thing* stance_target;
     GameCoord stance_position;
@@ -1584,7 +1720,8 @@ SLONG turn_to_target(Thing* p_person, SLONG find_dir)
         0x60, // Hard-coded melee fight range
         &stance_target,
         &stance_position,
-        &stance_angle);
+        &stance_angle,
+        allow_downed_reach);
 
     p_person->Draw.Tweened->Angle = stance_angle & 2047;
     if (stance_target) {
@@ -1595,8 +1732,11 @@ SLONG turn_to_target(Thing* p_person, SLONG find_dir)
         }
     }
 
-    if (stance_target)
+    if (stance_target) {
+        if (out_stance)
+            *out_stance = stance_position; // designed stand spot for this target
         return (THING_NUMBER(stance_target));
+    }
     return (-ret);
 }
 
@@ -1616,7 +1756,8 @@ SLONG turn_to_direction_and_find_target(Thing* p_person, SLONG find_dir)
         0xd0, // Hard-coded extended fight range
         &stance_target,
         &stance_position,
-        &stance_angle);
+        &stance_angle,
+        0); // never lenient: directional attacks don't stomp
 
     switch (find_dir & FIND_DIR_MASK) {
     case FIND_DIR_LEFT:
@@ -1672,10 +1813,50 @@ SLONG turn_to_target_and_kick(Thing* p_person)
     SLONG anim;
     Thing* p_target;
 
-    ret = turn_to_target(p_person, FIND_DIR_FRONT);
+    // OpenChaos: make stomping a downed enemy forgiving, but ONLY when
+    // it can't hijack a real fight. Lenient reach is allowed only for
+    // the player and only when there is no locked target, or the locked
+    // target itself is the downed body. If the player is locked onto a
+    // standing enemy (fight mode), reach stays original so the kick
+    // can't suddenly snap to a bystander on the ground. NPCs: flag
+    // stays 0 -> identical to the original.
+    SLONG allow_downed_reach = 0;
+    if (p_person->Genus.Person->PlayerID) {
+        UWORD i_cur = p_person->Genus.Person->Target;
+        if (i_cur == 0)
+            allow_downed_reach = 1; // free roam, no lock -> easy stomp
+        else if (is_person_ko_and_lay_down(TO_THING(i_cur)))
+            allow_downed_reach = 1; // locked target is the downed body itself
+    }
+
+    GameCoord stance;
+    ret = turn_to_target(p_person, FIND_DIR_FRONT, allow_downed_reach, &stance);
 
     p_target = TO_THING(ret);
     if (ret && is_person_ko_and_lay_down(p_target)) {
+        // OpenChaos: the stomp only connects from close (its foot-strike
+        // window is tight, ~0x53). The lenient reach above can target a
+        // body that's too far for the foot to land -> visible whiff.
+        // Fix: ONLY for the player, and ONLY when she is currently out
+        // of reach, glide her straight to the search's own designed
+        // stand spot (exactly STOMP_REACH_DIST from the body -- the
+        // distance the stomp anim is tuned to connect from). Nothing
+        // happens when she is already within range, and we travel just
+        // the shortfall, never more. move_thing_on_map keeps her off
+        // walls; we deliberately DON'T mark a teleport, so render-interp
+        // turns the move into a quick smooth step on its own. NPCs are
+        // never moved (their path keeps the original behaviour).
+        //
+        // STOMP_REACH_DIST mirrors find_attack_stance's melee
+        // attack_distance (0x80) -- keep them the same. SLACK avoids a
+        // pointless sub-step right at the boundary.
+        // uc_orig: none -- not in the original game.
+#define STOMP_REACH_DIST 0x80
+#define STOMP_REACH_SLACK 0x08
+        if (p_person->Genus.Person->PlayerID
+            && dist_to_target_pelvis(p_person, p_target) > STOMP_REACH_DIST + STOMP_REACH_SLACK) {
+            move_thing_on_map(p_person, &stance);
+        }
         set_person_stomp(p_person);
     } else {
         SLONG dist = 0;

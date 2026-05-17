@@ -129,6 +129,25 @@ SLONG FONT_draw_coloured_char(
     return fc->width;
 }
 
+// OpenChaos addition: measure-only counterpart of FONT_draw_coloured_text.
+// Uses the same advance rule (glyph width + 1, '\t' -> tab grid). Width
+// comes from FONT_draw_coloured_char called far off-screen: it skips the
+// actual draw (and the atlas batch) for off-screen glyphs yet still
+// returns the glyph width, so there are no side effects.
+SLONG FONT_string_width(SLONG x, CBYTE* str)
+{
+    SLONG xstart = x;
+    for (CBYTE* ch = str; *ch; ch++) {
+        if (*ch == '\t') {
+            x += FONT_TAB;
+            x &= ~(FONT_TAB - 1);
+        } else {
+            x += FONT_draw_coloured_char(-100000, -100000, 0, 0, 0, *ch) + 1;
+        }
+    }
+    return x - xstart;
+}
+
 // uc_orig: FONT_draw_coloured_text (fallen/DDEngine/Source/Font.cpp)
 SLONG FONT_draw_coloured_text(
     SLONG x,

@@ -33,11 +33,13 @@
 #include "things/core/statedef.h"
 #include "engine/physics/collide.h"
 #include "combat/combat.h"
+#include "combat/combat_cooldown.h" // OpenChaos: player arrest cooldown
 #include "engine/input/gamepad_globals.h" // active_input_device
 #include "engine/input/weapon_feel.h" // weapon_feel_evaluate_fire
 // Engine.h removed: SIN/COS/QDIST2 come transitively via MFStdLib→StdMaths→core/math.h.
 #include "ui/hud/panel.h"
 #include "ui/hud/panel_globals.h"
+#include "assets/xlat_str.h" // OpenChaos: X_FAILED for arrest-on-cooldown message
 #include "engine/audio/mfx.h"
 #include "assets/sound_id.h"
 #include "engine/input/keyboard_globals.h"
@@ -427,6 +429,17 @@ SLONG player_activate_in_hand(Thing* p_person)
                     //
 
                     SPECIAL_prime_grenade(p_special);
+
+                    // Phase-1 feedback: play the pistol-style burst so the
+                    // prime press has a tactile "click". On DualSense the
+                    // continuous Weapon25 effect (enabled via weapon_ready
+                    // for an un-primed grenade) supplies the trigger click;
+                    // this adds the same rumble/haptic the pistol gives on
+                    // a shot. On Xbox (no adaptive trigger) this short
+                    // rumble IS the click simulation. Player only.
+                    if (p_person->Genus.Person->PlayerID) {
+                        weapon_feel_on_shot_fired(SPECIAL_GRENADE, 0);
+                    }
                 }
 
                 return (1);
@@ -878,8 +891,22 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
                 extern UWORD find_arrestee(Thing * p_person);
 
+                // OpenChaos: player arrest cooldown. PlayerID 0 is never
+                // gated, so the cop AI arrest path (pcom.cpp) is
+                // unaffected.
                 if (p_thing->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_thing))) {
-                    set_person_arrest(p_thing, index);
+                    if (combat_cooldown_ready(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST)) {
+                        combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", true);
+                        combat_cooldown_arm(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST);
+                        set_person_arrest(p_thing, index);
+                    } else {
+                        // Still on cooldown: refuse, but tell the player
+                        // via the same HUD info message used for "the
+                        // car is locked". Reuses the existing X_FAILED
+                        // string -- no new localised text needed.
+                        combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", false);
+                        PANEL_new_info_message(XLAT_str(X_FAILED));
+                    }
 
                     return INPUT_MASK_ACTION;
                 }
@@ -1083,8 +1110,16 @@ ULONG do_an_action(Thing* p_thing, ULONG input)
 
             extern UWORD find_arrestee(Thing * p_person);
 
+            // OpenChaos: player arrest cooldown (see note above).
             if (p_thing->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_thing))) {
-                set_person_arrest(p_thing, index);
+                if (combat_cooldown_ready(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST)) {
+                    combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", true);
+                    combat_cooldown_arm(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST);
+                    set_person_arrest(p_thing, index);
+                } else {
+                    combat_cooldown_note(p_thing->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", false);
+                    PANEL_new_info_message(XLAT_str(X_FAILED));
+                }
 
                 return INPUT_MASK_ACTION;
             }
@@ -2530,6 +2565,22 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 // uc_orig: count_gang (fallen/Source/pcom.cpp)
 extern UWORD count_gang(Thing* p_target);
 
+// OpenChaos: true while Darci is mid a GRAPPLE/throw/escape. A new
+// grapple (forward+punch hook) or a target switch (circle) must NOT be
+// started while one of these is running -- re-grappling there
+// chain-teleports her between victims and corrupts the animation; she
+// has to finish the grapple first. Deliberately does NOT include
+// PUNCH/KICK/STEP_FORWARD: the grab is MEANT to interrupt a punch/kick
+// combo (that's how "forward+punch" grabs at all), and punch/kick
+// already set FLAG_PERSON_NON_INT_M which the target-switch gate checks
+// separately. Values from statedef.h.
+static inline bool oc_combat_busy(SLONG sub)
+{
+    return sub == SUB_STATE_GRAPPLE
+        || sub == SUB_STATE_GRAPPLE_HOLD || sub == SUB_STATE_GRAPPLE_HELD
+        || sub == SUB_STATE_ESCAPE || sub == SUB_STATE_GRAPPLE_ATTACK;
+}
+
 // uc_orig: apply_button_input_fight (fallen/Source/interfac.cpp)
 // Input handler for PERSON_MODE_FIGHT. Handles punch/kick direction combos, target selection,
 // fight stepping, flip, and exit from fight mode (MOVE without FORWARDS).
@@ -2540,11 +2591,60 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
     if (p_person->SubState == SUB_STATE_IDLE_CROUTCH_ARREST)
         return (0);
 
+    // OpenChaos: allow switching the combat target in two cases the
+    // normal target-switch path below cannot handle:
+    //   1. Hit-recoil (taking damage) -- that path's state gate only
+    //      accepts IDLE / FIGHTING / RUN_STOP, never STATE_HIT_RECOIL.
+    //   2. A fight-stance STEP (moving in any direction, all
+    //      SUB_STATE_STEP_FORWARD) -- the directional step handler
+    //      further down does `return(0)` whenever a move direction is
+    //      held, swallowing the ACTION press before the target-switch
+    //      block is ever reached.
+    // Both are brief, safe moves where re-targeting must stay live, so
+    // handle them up here, before the step handler. Scoped to the
+    // target switch only: arrest / item pickup keep their original
+    // state requirements. oc_combat_busy stays respected so a grapple/
+    // throw still can't be interrupted (a recoil/step never overlaps
+    // one, but keep the guard for safety). Flips/rolls are a different
+    // substate and are deliberately NOT included.
+    if ((pl->Pressed & INPUT_MASK_ACTION) && p_person->Genus.Person->PlayerID
+        && (p_person->State == STATE_HIT_RECOIL
+            || p_person->SubState == SUB_STATE_STEP_FORWARD)
+        && !oc_combat_busy(p_person->SubState)) {
+        person_pick_best_target(p_person, 1);
+        pl->DoneSomething = UC_TRUE;
+        return INPUT_MASK_ACTION;
+    }
+
     if (pl->Pressed & INPUT_MASK_PUNCH)
         if (person_has_gun_out(p_person)) {
             set_player_shoot(p_person, 0);
             return (INPUT_MASK_PUNCH);
         }
+
+    // OpenChaos: forward + punch = GRAPPLE attempt, intercepted right
+    // here at the input level -- BEFORE the combo system swallows the
+    // punch press (the trace showed in-fight punches never reach
+    // set_person_punch, so a grapple check buried there can never fire).
+    // Works regardless of substate / combo, in any input device:
+    // keyboard & D-pad set the digital INPUT_MASK_FORWARDS bit, the
+    // analog stick packs its deflection into the high Input bits so we
+    // also decode stick Y (negative = pushed forward). find_best_grapple
+    // self-gates on the grapple cooldown (while on CD it returns 0 and
+    // we just fall through to the normal punch/combo) and finds its own
+    // target; if nothing grabs we also fall through. Player only; this
+    // handler is the player's fight input path.
+    if ((pl->Pressed & INPUT_MASK_PUNCH) && p_person->Genus.Person->PlayerID
+        && !oc_combat_busy(p_person->SubState)) {
+        ULONG pin = pl->Input;
+        const SLONG STICK_DEADZONE = 8;                      // ANALOGUE_MIN_VELOCITY
+        SLONG sy = (SLONG)(((pin >> 24) & 0xfe) - 128);      // GET_JOYY (<0 = fwd)
+        bool fwd = (pin & INPUT_MASK_FORWARDS) || (sy < -STICK_DEADZONE);
+        if (fwd && find_best_grapple(p_person)) {
+            pl->DoneSomething = UC_TRUE;
+            return (INPUT_MASK_PUNCH);
+        }
+    }
 
     // Move button (without FORWARDS) exits combat mode.
     if (!analogue) {
@@ -2586,6 +2686,13 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
     }
 
     extern SLONG get_combat_type_for_node(UBYTE current_node);
+
+    // OpenChaos: a fresh "back" press arms exactly one defensive block
+    // for this hold (consumed in set_person_block). This does NOT touch
+    // the back-step movement -- it still works exactly as before; only
+    // the block/duck engage is gated. Player only.
+    if (p_person->Genus.Person->PlayerID && (pl->Pressed & INPUT_MASK_BACKWARDS))
+        player_block_arm(p_person);
 
     if ((pl->Pressed & INPUT_MASK_PUNCH) == 0 && (pl->Pressed & INPUT_MASK_KICK) == 0)
         if (p_person->State == STATE_IDLE || (p_person->State == STATE_HIT_RECOIL && p_person->Draw.Tweened->FrameIndex > 2) || ((p_person->SubState == SUB_STATE_STEP_FORWARD || p_person->SubState == SUB_STATE_PUNCH || p_person->SubState == SUB_STATE_KICK)))
@@ -2743,8 +2850,16 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             if (p_person->State == STATE_IDLE || p_person->State == STATE_FIGHTING || p_person->SubState == SUB_STATE_RUN_STOP) {
                 UWORD index;
 
+                // OpenChaos: player arrest cooldown (see note in do_an_action).
                 if (p_person->Genus.Person->PersonType == PERSON_DARCI && (index = find_arrestee(p_person))) {
-                    set_person_arrest(p_person, index);
+                    if (combat_cooldown_ready(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST)) {
+                        combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", true);
+                        combat_cooldown_arm(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST);
+                        set_person_arrest(p_person, index);
+                    } else {
+                        combat_cooldown_note(p_person->Genus.Person->PlayerID, COOLDOWN_ARREST, "ARREST", false);
+                        PANEL_new_info_message(XLAT_str(X_FAILED));
+                    }
                     pl->DoneSomething = UC_TRUE;
                     return INPUT_MASK_ACTION;
                 }
@@ -2766,7 +2881,22 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
                     }
                 }
 
-                person_pick_best_target(p_person, 1);
+                // OpenChaos: only let the ACTION button switch the
+                // combat target while Darci is at rest -- NOT mid
+                // punch/kick/grapple/throw/arrest. Switching the target
+                // while a committed action animation is running corrupts
+                // that animation and (combined with the grapple) makes
+                // her dart between targets. FLAG_PERSON_NON_INT_M is set
+                // by every committed action and cleared by fight-idle,
+                // so it's exactly "busy vs ready". When busy we still
+                // consume the press (no fall-through) but don't reselect.
+                // (Hit-recoil and fight-stance steps are handled in an
+                // earlier block, before this state-gated path is even
+                // reached.)
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    person_pick_best_target(p_person, 1);
+                }
                 pl->DoneSomething = UC_TRUE;
                 return INPUT_MASK_ACTION;
             }
@@ -2864,16 +2994,12 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         if (pl->Pressed & INPUT_MASK_PUNCH) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH)) {
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
-
-                // Timer used to check if the gap between combo stages is short enough.
-                p_person->Genus.Person->pcom_ai_counter = 0;
             }
         }
 
         if (pl->Pressed & INPUT_MASK_KICK) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK)) {
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
-                p_person->Genus.Person->pcom_ai_counter = 0;
             }
         }
     }

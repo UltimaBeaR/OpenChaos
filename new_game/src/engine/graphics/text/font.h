@@ -48,6 +48,14 @@ void FONT_buffer_add_virtual(
 // uc_orig: FONT_buffer_draw (fallen/DDEngine/Headers/Font.h)
 void FONT_buffer_draw(void);
 
+// OpenChaos addition: pixel width `str` would occupy if drawn starting
+// at pixel `x`. Mirrors FONT_draw_coloured_text's advance exactly
+// (variable per-glyph width + 1px inter-char gap, '\t' snaps to the
+// tab grid) but draws nothing. `x` is passed so '\t' tab stops line up
+// with the real on-screen position. Used to flow differently-coloured
+// text pieces on one line without reimplementing font metrics.
+SLONG FONT_string_width(SLONG x, CBYTE* str);
+
 // Direct screen-pixel rendering functions.
 // Caller is responsible for locking the screen via the_display.screen_lock().
 

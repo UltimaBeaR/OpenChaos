@@ -101,6 +101,20 @@ SLONG FC_alter_for_pos(FC_Cam* fc, SLONG* dheight, SLONG* ddist)
 }
 
 // uc_orig: FC_init (fallen/Source/fc.cpp)
+// OpenChaos: a fight-mode target change triggers ONE smooth get-behind
+// swing that stays active this many GAME_TURN ticks -- enough for the
+// existing get-behind smoothing to complete even a full 180, after
+// which the fight camera goes static again until the next change.
+#define FC_FIGHT_BEHIND_TURNS (UC_PHYSICS_DESIGN_HZ * 3 / 2) // ~1.5s
+// Manual camera rotation locks BOTH triggers (target change and the
+// periodic inactivity one) out for this long, so the camera doesn't
+// fight the player right after they moved it by hand.
+#define FC_FIGHT_BEHIND_LOCK_TURNS (UC_PHYSICS_DESIGN_HZ * 3) // 3s
+// While fighting (and outside the lockout), re-arm the get-behind
+// swing this often even without a target change -> the camera keeps
+// drifting back behind Darci ~this fast when the enemy circles around.
+#define FC_FIGHT_AUTO_PERIOD UC_PHYSICS_DESIGN_HZ // 1s
+
 void FC_init(void)
 {
     SLONG i;
@@ -111,6 +125,9 @@ void FC_init(void)
         FC_cam[i].lens = 0x24000;
         FC_cam[i].cam_dist = 0x280 * CAM_MORE_IN;
         FC_cam[i].cam_height = 0x16000;
+        // Start with the manual-rotation lockout long expired so the
+        // very first fight at level start can still trigger.
+        FC_cam[i].last_manual_cam_turn = -FC_FIGHT_BEHIND_LOCK_TURNS - 1;
     }
 
     GAME_cut_scene = 0;
@@ -788,6 +805,7 @@ void FC_process()
                 }
 
                 fc->nobehind = 0x2000;
+                fc->last_manual_cam_turn = (SLONG)GAME_TURN; // hand rotate -> lock fight trigger
             }
 
             // Right stick: continuous camera orbit and height adjustment.
@@ -817,6 +835,7 @@ void FC_process()
                     fc->want_z -= dx * (rot_speed >> 4) * TICK_RATIO >> (TICK_SHIFT + 6);
 
                     fc->nobehind = 0x2000;
+                    fc->last_manual_cam_turn = (SLONG)GAME_TURN; // hand rotate -> lock fight trigger
                 }
 
                 // Height: directly move want_y (bypasses the slow Y smoothing).
@@ -874,14 +893,60 @@ void FC_process()
             }
         }
 
+        // OpenChaos: in fight mode the original never gets behind the
+        // player. We re-enable it as a one-shot smooth swing whenever
+        // the HUD's selected target changes (fight start, manual switch
+        // with circle, or the old target dying and auto-reselecting) --
+        // but ONLY while actually in fight stance, never on losing the
+        // target (-> none), and not within the manual-rotation lockout.
+        // A focus swap just resyncs (no swing). Re-triggering mid-swing
+        // simply re-arms the window so it keeps smoothing to the new
+        // behind. Manual camera input still interrupts via `nobehind`.
+        {
+            UWORD cur_t = (fc->focus->Class == CLASS_PERSON)
+                ? fc->focus->Genus.Person->Target : 0;
+            bool in_fight = (fc->focus->Class == CLASS_PERSON
+                && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT);
+
+            if (fc->fight_track_focus != fc->focus) {
+                fc->fight_track_focus = fc->focus; // new focus -> resync only
+            } else if (in_fight && cur_t != 0 && cur_t != fc->fight_prev_target) {
+                if ((SLONG)GAME_TURN - fc->last_manual_cam_turn >= FC_FIGHT_BEHIND_LOCK_TURNS)
+                    fc->fight_behind_until = (SLONG)GAME_TURN + FC_FIGHT_BEHIND_TURNS;
+            }
+            fc->fight_prev_target = cur_t;
+
+            // Inactivity auto-trigger: every FC_FIGHT_AUTO_PERIOD while
+            // fighting (and outside the manual-rotation lockout) re-arm
+            // the swing, so the camera keeps coming back behind Darci
+            // even with no target change (enemy circled to the side).
+            // When ineligible (not fighting / inside the lockout) the
+            // next-due time is deferred so the period restarts cleanly
+            // once eligible again.
+            if (in_fight
+                && (SLONG)GAME_TURN - fc->last_manual_cam_turn >= FC_FIGHT_BEHIND_LOCK_TURNS) {
+                if ((SLONG)GAME_TURN >= fc->fight_auto_next) {
+                    fc->fight_behind_until = (SLONG)GAME_TURN + FC_FIGHT_BEHIND_TURNS;
+                    fc->fight_auto_next = (SLONG)GAME_TURN + FC_FIGHT_AUTO_PERIOD;
+                }
+            } else {
+                fc->fight_auto_next = (SLONG)GAME_TURN + FC_FIGHT_AUTO_PERIOD;
+            }
+        }
+
         if (!fc->toonear) {
             if (fc->nobehind) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
                 if (fc->nobehind < 0) {
                     fc->nobehind = 0;
                 }
-            } else if (fc->focus->Class == CLASS_PERSON && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT) {
-                // Don't get behind fighting people.
+            } else if (fc->focus->Class == CLASS_PERSON
+                && fc->focus->Genus.Person->Mode == PERSON_MODE_FIGHT
+                && (SLONG)GAME_TURN >= fc->fight_behind_until) {
+                // Don't get behind fighting people -- except briefly
+                // after a target change (while GAME_TURN is still below
+                // fight_behind_until, the else-branch runs the normal
+                // smooth get-behind for one swing).
             } else {
                 // Get-behind: gently push camera to behind Darci.
                 behind_x = fc->focus_x + (SIN(fc->focus_yaw) * ((fc->cam_dist * offset_dist) >> 8) >> 8);

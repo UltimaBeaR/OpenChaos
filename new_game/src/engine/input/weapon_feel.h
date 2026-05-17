@@ -286,22 +286,26 @@ struct WeaponFireDecision {
     bool kick; // L2 produced a kick event this frame
 };
 
-// Run one tick of fire detection for the given analog trigger positions.
+// Run one tick of fire detection for the given trigger state.
 // current_weapon picks the profile (auto_fire vs rising-edge, thresholds).
-// weapon_drawn: true iff the player's gun/weapon is currently out
-// (FLAG_PERSON_GUN_OUT). When false, the adaptive trigger click is not
-// active on hardware regardless of profile, and fire detection falls
-// back to the threshold path (so R2 still triggers bare-hand melee).
+// r2 / l2: analog trigger positions (0..255).
+// weapon_drawn: true iff a firearm (pistol / shotgun / AK47) is currently
+// out (FLAG_PERSON_GUN_OUT or AK47/shotgun in SpecialUse).
 // L2 (kick) always uses the current profile's thresholds but never auto-fires.
 //
-// R2 fire detection picks a path per tick based on device + profile +
-// weapon state:
-//   * DualSense + trigger_strength>0 + !auto_fire + weapon_drawn →
+// R2 fire detection picks a path per tick based on weapon + device + profile:
+//   * !weapon_drawn (bare hand, knife, bat, grenade, C4, mine — anything
+//     that is not a firearm) → MELEE analog path: no adaptive-trigger
+//     effect; fires near the very end of travel (MELEE_FIRE_THRESHOLD_R2)
+//     with a short rearm (MELEE_RESET_THRESHOLD_R2) so the player jams
+//     the trigger to the bottom and clicks it rapidly. Same on DualSense
+//     and Xbox; robust to slow presses.
+//   * Firearm + DualSense + trigger_strength>0 + !auto_fire →
 //     adaptive-click path (fires on analog crossing the upper edge of
 //     the weapon's Weapon25 zone, which aligns with where the motor
 //     physically clicks).
-//   * Otherwise → threshold path (r2 rising past fire_threshold with
-//     armed gate, auto-fire bypasses the gate). Covers bare-hand melee,
-//     auto-fire weapons, click-less weapons, and non-DualSense devices.
+//   * Firearm otherwise → analog threshold path (r2 rising past
+//     fire_threshold with armed gate, auto-fire bypasses the gate).
+//     Covers auto-fire weapons, click-less weapons, non-DualSense devices.
 // See the design section at the top of weapon_feel.cpp for details.
 WeaponFireDecision weapon_feel_evaluate_fire(int32_t current_weapon, int r2, int l2, bool weapon_drawn, bool mag_empty);

@@ -292,6 +292,11 @@ void drop_all_items(Thing* p_person, UBYTE is_being_searched);
 // uc_orig: set_person_idle_uncroutch (fallen/Source/Person.cpp)
 void set_person_idle_uncroutch(Thing* p_person);
 
+// OpenChaos (not in the original): a fresh "back" press arms exactly
+// one defensive block for that hold. Called from the fight input code.
+// NPCs are never affected.
+void player_block_arm(Thing* p_person);
+
 // Starts the turn-to-face-wall animation (entering hug-wall mode from front).
 // uc_orig: set_person_turn_to_hug_wall (fallen/Source/Person.cpp)
 void set_person_turn_to_hug_wall(Thing* p_person);
@@ -819,10 +824,6 @@ void highlight_gun_target(Thing* p_person, Thing* p_target);
 void fn_person_gun(Thing* p_person);
 
 // --- chunk 11: person_new_combat_node..fn_person_goto ---
-
-// Combo accuracy threshold: number of game ticks allowed between combo inputs.
-// uc_orig: COMBO_ACCURACY (fallen/Source/Person.cpp)
-#define COMBO_ACCURACY 300
 
 // Selects and queues the next combo animation node after the current attack completes.
 // Returns 1 if a follow-on combo exists, 0 if the combo chain ends.

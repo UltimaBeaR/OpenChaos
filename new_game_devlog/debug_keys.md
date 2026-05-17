@@ -37,6 +37,9 @@ F9 — единственная клавиша которая работает *
 | F11          | input debug panel                        |
 | F12          | spawn weapons around player + heal 9999  |
 | Shift+F12    | cheat toggle (FPS печатается вверху)     |
+| =            | combat test: +1 враг (включает режим)    |
+| -            | combat test: -1 враг (0 = выкл)          |
+| \            | combat test: цикл уровня вооружённости   |
 | Insert       | step once (в single-step)                |
 | Ctrl         | lock debug overlay (force-visible)       |
 | Ctrl+L       | toggle outside / ambient lighting        |
@@ -46,6 +49,22 @@ F9 — единственная клавиша которая работает *
 | L            | toggle dynamic light at player           |
 | T            | warehouse debug (двери, MAV arrows)      |
 | V            | show version string (fade-out)           |
+
+## Combat test mode (`-` / `=` / `\`)
+
+Стенд для тестирования боёвки. Модуль
+[`new_game/src/combat/combat_test_mode.cpp`](../new_game/src/combat/combat_test_mode.cpp).
+
+- `=` — +1 к целевому числу врагов (включает режим, спавнит сразу).
+- `-` — −1 (живых сверх цели не убивает, просто перестаёт респавнить;
+  0 = режим выключен).
+- `\` — цикл уровня вооружённости 0..4 (влияет на будущие спавны):
+  0 без оружия, 1 ножи/биты, 2 +иногда пистолет, 3 пистолеты/реже
+  дробаш-автомат + гранаты, 4 дробаш/автомат + гранаты, 30% MIB.
+
+Бандиты спавнятся в небольшом кольце вокруг игрока, сразу заагрены.
+Убил — через ~5 сек (игровое время) доспавнивается до цели. Состояние
+сбрасывается на перезагрузке уровня. Всё под `bangunsnotgames`.
 
 ## История рефакторинга (2026-04-17)
 

@@ -201,6 +201,7 @@ set(SOURCES_NEW
     src/engine/debug/input_debug/input_debug_gamepad.cpp
     src/engine/debug/input_debug/input_debug_dualsense.cpp
     src/engine/debug/debug_help/debug_help.cpp
+    src/engine/debug/dbglog/dbglog.cpp
 
     # === Engine: video ===
     src/engine/video/video_player.cpp
@@ -442,6 +443,9 @@ set(SOURCES_NEW
     # === Combat ===
     src/combat/combat.cpp
     src/combat/combat_globals.cpp
+    src/combat/combo_gate.cpp
+    src/combat/combat_cooldown.cpp
+    src/combat/combat_test_mode.cpp
     src/shooting/guns.cpp
     src/shooting/projectile.cpp
 

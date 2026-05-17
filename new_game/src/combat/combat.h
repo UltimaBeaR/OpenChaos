@@ -98,6 +98,13 @@ SLONG apply_hit_to_person(Thing* p_thing, SLONG angle, SLONG type, SLONG damage,
 // attack_distance: desired distance to target in 8-bit map units.
 // Returns 1 if a target was found; fills stance_target, stance_position, stance_angle.
 // uc_orig: find_attack_stance (fallen/Source/Combat.cpp)
+// allow_downed_reach (OpenChaos, not in the original): when non-zero,
+// a candidate that is a KO'd body lying flat gets a much more generous
+// distance band and a relaxed facing cone, so the player can stomp a
+// downed enemy without standing in one exact spot. 0 = original
+// behaviour for every candidate. Only ever set from the player's
+// forward-kick path; standing targets, all other attacks and every
+// NPC pass 0, so their targeting is byte-identical to the original.
 SLONG find_attack_stance(
     Thing* p_person,
     SLONG attack_direction,
@@ -105,12 +112,20 @@ SLONG find_attack_stance(
     SLONG attack_range,
     Thing** stance_target,
     GameCoord* stance_position,
-    SLONG* stance_angle);
+    SLONG* stance_angle,
+    SLONG allow_downed_reach);
 
 // Calls find_attack_stance then rotates p_person to face the best target.
 // Returns THING_NUMBER of target if found, negative value if none.
+// allow_downed_reach: forwarded to find_attack_stance (see above);
+// defaults to 0 so all existing callers are unchanged.
+// out_stance (OpenChaos): if non-null and a target is found, receives
+// the search's own "where the attacker should stand" point (exactly
+// the designed attack distance from the target). nullptr by default so
+// existing callers are unchanged.
 // uc_orig: turn_to_target (fallen/Source/Combat.cpp)
-SLONG turn_to_target(Thing* p_person, SLONG find_dir);
+SLONG turn_to_target(Thing* p_person, SLONG find_dir, SLONG allow_downed_reach = 0,
+    GameCoord* out_stance = nullptr);
 
 // Like turn_to_target but also adjusts facing for left/right/back direction modes.
 // Used by interfac.cpp for directional attack input.
