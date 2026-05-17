@@ -5259,6 +5259,28 @@ void set_person_fight_idle(Thing* p_person)
 void set_person_fight_step(Thing* p_person, SLONG dir)
 {
     SLONG anim;
+
+    // OpenChaos: one combat step at a time. A new fight-step is refused
+    // until the current one has fully played out (SubState leaves
+    // SUB_STATE_STEP_FORWARD on its own when the step anim finishes),
+    // and a step can never cancel the player's own attack
+    // (SUB_STATE_PUNCH / SUB_STATE_KICK). This kills, with no timer:
+    //   - fast left<->right (and any direction) back-and-forth spam;
+    //   - "step + punch + step + punch" combo-reset machine-gunning
+    //     (the step no longer resets the combo between hits).
+    // Direction-independent, so alternating directions can't dodge it.
+    // The post-step turn-toward-target is a SEPARATE path
+    // (set_person_fight_idle), so it is NOT affected. Hit-recoil from
+    // being hit is deliberately NOT blocked -- stepping out of an enemy
+    // beatdown is a defensive move and must stay. Player only; NPCs
+    // never reach here (player-input path) and are never gated.
+    if (p_person->Genus.Person->PlayerID
+        && (p_person->SubState == SUB_STATE_STEP_FORWARD
+            || p_person->SubState == SUB_STATE_PUNCH
+            || p_person->SubState == SUB_STATE_KICK)) {
+        return;
+    }
+
     p_person->Genus.Person->Timer1 = 0;
     if (person_holding_bat(p_person)) {
         switch (dir) {
@@ -12107,6 +12129,18 @@ void fn_person_fighting(Thing* p_person)
             person_normal_move(p_person);
             p_person->Draw.Tweened->Angle = old_angle;
         }
+        // aim_at_victim's 2nd arg is the max gang size for which the
+        // turn-toward-target is still allowed (1000 == "always turn").
+        // It is internally player-only, so this never affects NPCs.
+        //
+        // Originally side steps (E/W, default case) used 1 -> in a gang
+        // (>1 enemy) the player did NOT re-face during the step and only
+        // snapped to the target once the step anim ended, which feels
+        // like a sluggish delay. OpenChaos: side steps now also always
+        // turn (1000), matching the forward/back steps, so the enemy
+        // stays in view through the whole side step -- no post-step
+        // facing lag. Confirmed original/retail behaviour, intentionally
+        // changed for combat feel.
         switch (p_person->Draw.Tweened->CurrentAnim) {
         case ANIM_FIGHT_STEP_N:
         case ANIM_FIGHT_STEP_N_BAT:
@@ -12115,7 +12149,7 @@ void fn_person_fighting(Thing* p_person)
             aim_at_victim(p_person, 1000);
             break;
         default:
-            aim_at_victim(p_person, 1);
+            aim_at_victim(p_person, 1000);
             break;
         }
         end = person_normal_animate(p_person);
