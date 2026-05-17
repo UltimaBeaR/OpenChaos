@@ -62,6 +62,24 @@ typedef struct {
     SLONG platform_last_x;
     SLONG platform_last_z;
     SLONG platform_last_yaw;
+
+    // OpenChaos addition (not in uc_orig FC_Cam): triggered get-behind
+    // in fight mode. The original disables auto get-behind while
+    // fighting; we re-enable it as a one-shot smooth swing whenever the
+    // focus person's combat target changes (fight start / target switch
+    // / target died -> auto-reselect), unless the player rotated the
+    // camera by hand recently. fight_prev_target + fight_track_focus
+    // detect the change; fight_behind_until is the GAME_TURN the
+    // one-shot swing stays active until; last_manual_cam_turn is when
+    // the player last rotated the camera by hand (lockout source).
+    UWORD fight_prev_target;
+    Thing* fight_track_focus;
+    SLONG fight_behind_until;
+    SLONG last_manual_cam_turn;
+    // GAME_TURN at which the next periodic "inactivity" auto get-behind
+    // may fire while fighting (re-arms the swing every ~1s so the
+    // camera keeps returning behind even without a target change).
+    SLONG fight_auto_next;
 } FC_Cam;
 
 // uc_orig: FC_MAX_CAMS (fallen/Headers/fc.h)
