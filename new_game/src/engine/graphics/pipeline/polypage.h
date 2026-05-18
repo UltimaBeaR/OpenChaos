@@ -227,4 +227,8 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 // as POLY_Point::z in POLY_fadeout_point.
 extern float g_mm_fog_view_z;
 
+// A/B toggle for the GPU character-transform path (skeletal_skinning_plan.md,
+// Milestone 1A). false = legacy CPU transform. Flipped by a debug hotkey.
+extern bool g_skin_gpu_path;
+
 #endif // ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H

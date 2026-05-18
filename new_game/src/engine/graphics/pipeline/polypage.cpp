@@ -447,7 +447,33 @@ inline void mm_flush_batch()
     s_mm_verts.clear();
     s_mm_inds.clear();
 }
+
+// Skeletal-skinning Milestone 1A (skeletal_skinning_plan.md): A/B path.
+// Same accumulate-per-MM-call shape as above, but stores MODEL-space
+// position + the CPU-computed color/specular/uv, and the single per-call
+// matrix; the GPU (skin_vert.glsl) does the transform. Toggle: g_skin_gpu_path.
+std::vector<GESkinVertex> s_skin_verts;
+std::vector<uint16_t>     s_skin_inds;
+const GEMatrix*           s_skin_palette = nullptr; // = mm->matrices
+uint32_t                  s_skin_palette_n = 0;     // max bone index + 1
+
+inline void mm_flush_skin()
+{
+    if (s_skin_inds.empty() || !s_skin_palette || !s_skin_palette_n)
+        return;
+    ge_draw_skinned(s_skin_palette, s_skin_palette_n,
+        s_skin_verts.data(), uint32_t(s_skin_verts.size()),
+        s_skin_inds.data(), uint32_t(s_skin_inds.size()));
+    s_skin_verts.clear();
+    s_skin_inds.clear();
+    s_skin_palette = nullptr;
+    s_skin_palette_n = 0;
+}
 } // namespace
+
+// A/B toggle for the GPU character-transform path (Milestone 1A). Off =
+// legacy CPU transform (ge_draw_multi_matrix). Flipped by a debug hotkey.
+bool g_skin_gpu_path = false;
 
 // uc_orig: DrawIndPrimMM (fallen/DDEngine/Source/polypage.cpp)
 // Software emulation of the Dreamcast's DrawPrimitiveMM.
@@ -466,6 +492,7 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
     bool unlit = (vertex_type == GEMMVertexType::Unlit);
 
     GEVertexTL pTLVert[3];
+    GESkinVertex skinTmp[3]; // Milestone 1A: model-space verts when g_skin_gpu_path
     GEVertexLit* pLVert = (GEVertexLit*)mm->lpvVertices;
     // For unlit (character) path the buffer actually contains GEVertex with packed
     // normals; x/y/z/u/v offsets match GEVertexLit so position/UV reads are shared.
@@ -567,6 +594,25 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                     pTLVert[i].color = pLVert[wIndex[i]].color;
                     pTLVert[i].specular = fog_specular | (pLVert[wIndex[i]].specular & 0x00FFFFFF);
                 }
+
+                // Milestone 1A: capture MODEL-space pos + the CPU-computed
+                // color/specular/uv; the GPU does the transform. pmCur is
+                // the single per-call matrix (MM_pMatrix storage = 1 slot).
+                if (g_skin_gpu_path) {
+                    skinTmp[i].x = pLVertCur->x;
+                    skinTmp[i].y = pLVertCur->y;
+                    skinTmp[i].z = pLVertCur->z;
+                    skinTmp[i].bone = (uint32_t)bMatIndex;
+                    skinTmp[i].color = pTLVert[i].color;
+                    skinTmp[i].specular = pTLVert[i].specular;
+                    skinTmp[i].u = pTLVert[i].u;
+                    skinTmp[i].v = pTLVert[i].v;
+                    // Palette = the call's matrix array (constant per call).
+                    // Track how many matrices it actually references.
+                    s_skin_palette = mm->matrices;
+                    if ((uint32_t)bMatIndex + 1 > s_skin_palette_n)
+                        s_skin_palette_n = (uint32_t)bMatIndex + 1;
+                }
             }
 
             uint16_t wMyIndices[3];
@@ -581,20 +627,37 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
             }
             // Stage-1: accumulate this triangle instead of submitting it
             // on its own. Verts/winding identical to the per-triangle path;
-            // flushed in one draw per MM call after the loop.
-            if (s_mm_verts.size() > MM_FLUSH_VERT_THRESHOLD)
-                mm_flush_batch();
-            uint16_t base = (uint16_t)s_mm_verts.size();
-            s_mm_verts.push_back(pTLVert[0]);
-            s_mm_verts.push_back(pTLVert[1]);
-            s_mm_verts.push_back(pTLVert[2]);
-            s_mm_inds.push_back((uint16_t)(base + wMyIndices[0]));
-            s_mm_inds.push_back((uint16_t)(base + wMyIndices[1]));
-            s_mm_inds.push_back((uint16_t)(base + wMyIndices[2]));
+            // flushed in one draw per MM call after the loop. Milestone 1A:
+            // when g_skin_gpu_path, accumulate model-space skin verts instead
+            // (same winding) for the GPU-transform draw.
+            if (g_skin_gpu_path) {
+                if (s_skin_verts.size() > MM_FLUSH_VERT_THRESHOLD)
+                    mm_flush_skin();
+                uint16_t base = (uint16_t)s_skin_verts.size();
+                s_skin_verts.push_back(skinTmp[0]);
+                s_skin_verts.push_back(skinTmp[1]);
+                s_skin_verts.push_back(skinTmp[2]);
+                s_skin_inds.push_back((uint16_t)(base + wMyIndices[0]));
+                s_skin_inds.push_back((uint16_t)(base + wMyIndices[1]));
+                s_skin_inds.push_back((uint16_t)(base + wMyIndices[2]));
+            } else {
+                if (s_mm_verts.size() > MM_FLUSH_VERT_THRESHOLD)
+                    mm_flush_batch();
+                uint16_t base = (uint16_t)s_mm_verts.size();
+                s_mm_verts.push_back(pTLVert[0]);
+                s_mm_verts.push_back(pTLVert[1]);
+                s_mm_verts.push_back(pTLVert[2]);
+                s_mm_inds.push_back((uint16_t)(base + wMyIndices[0]));
+                s_mm_inds.push_back((uint16_t)(base + wMyIndices[1]));
+                s_mm_inds.push_back((uint16_t)(base + wMyIndices[2]));
+            }
         }
         if (num_indices == 0) {
             break;
         }
     }
-    mm_flush_batch(); // Stage-1: single draw call for the whole MM call
+    if (g_skin_gpu_path)
+        mm_flush_skin(); // Milestone 1A: one GPU-transform draw per MM call
+    else
+        mm_flush_batch(); // Stage-1: single draw call for the whole MM call
 }

@@ -491,6 +491,32 @@ void* ge_vb_prepare(void* vb);
 // Draw indexed triangles from a prepared vertex buffer.
 void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count);
 
+// Skinned character vertex (model/bone-local space). GPU-transform path
+// for the figure system — see skeletal_skinning_plan.md, Milestone 1A.
+// 28 bytes: pos(12) + color(4) + specular(4) + uv(8). color/specular are
+// the CPU-computed per-vertex lighting/fog (BGRA, D3D 0xAARRGGBB order).
+struct GESkinVertex {
+    float    x, y, z;   // model (bone-local) space
+    uint32_t bone;      // matrix-palette index (the CPU path's bMatIndex)
+    uint32_t color;     // BGRA (CPU per-vertex lighting)
+    uint32_t specular;  // BGRA (CPU fog)
+    float    u, v;
+};
+
+// Max matrices in one skinned draw's palette (ge_draw_multi_matrix is the
+// D3D MultiMatrix extension — a call may reference several bone matrices
+// via per-vertex index). Calls exceeding this fall back to the CPU path.
+#define GE_SKIN_MAX_BONES 32
+
+// Draw one ge_draw_multi_matrix call's geometry with the transform done on
+// the GPU (skin_vert.glsl): model-space verts, each transformed by
+// palette[vertex.bone]. `palette` is the call's mm->matrices, `palette_n`
+// = matrices actually referenced (≤ GE_SKIN_MAX_BONES). Reproduces the CPU
+// transform 1:1. One draw call per ge_draw_multi_matrix call.
+void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
+    const GESkinVertex* verts, uint32_t vert_count,
+    const uint16_t* indices, uint32_t index_count);
+
 // ---------------------------------------------------------------------------
 // Texture pixel access
 // ---------------------------------------------------------------------------
