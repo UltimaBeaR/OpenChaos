@@ -135,7 +135,15 @@
 | Строка | Что это | CPU / GPU |
 |--------|---------|-----------|
 | `physics` | Весь игровой тик за кадр (0..N catch-up тиков): `process_things`, частицы, OB/TRIP/DOOR, скрипт миссии, DIRT, гранаты, MAP/POW/FC + интерп-снапшоты. | **100% CPU**, GPU нет. |
-| `render.scene` | Отрисовка 3D-сцены (мир, персонажи, транспорт). | CPU: куллинг/сборка/сабмит. GPU: растеризация сцены. |
+| `render.scene` | Обёртка отрисовки 3D-сцены (`draw_screen`→`AENG_draw`). Разбита на фазы (ниже). | CPU: куллинг/сборка/сабмит. GPU: растеризация сцены. |
+| `render.scene.setup` | `draw_all_boxes` + расчёт видимости things (куллинг/rejection). | В осн. CPU. |
+| `render.scene.transform` | Ambient-свет + трансформ всех точек мира + звёзды. | В осн. CPU (трансформы). |
+| `render.scene.shadows` | Детальные тени персонажей. | CPU+GPU. |
+| `render.scene.reflect` | Отражения людей + лужи + небо + первый/второй poly-flush. | CPU+GPU. |
+| `render.scene.world` | Дальние фасады (skyline) + геометрия уровня (квадраты/полы). Обычно топ-1. | CPU+GPU. |
+| `render.scene.things` | Prim'ы + фасады + объекты/things. Обычно топ-2. | CPU+GPU. |
+| `render.scene.fx` | Oval-тени, POWs, туман, дождь, факел, tripwires, hook, частицы, грязь, финальный flush. | CPU+GPU. |
+| `render.scene.other` | Остаток `render.scene` (= обёртка − фазы): камера-сетап в `AENG_draw`, NIGHT-teardown, `POLY_frame_init`, **весь warehouse-путь** (склады фазами не размечены). | CPU+GPU. |
 | `render.hud` | Игровой 2D-интерфейс (HUD) — `OVERLAY_handle`. | CPU+GPU 2D. |
 | `render.post` | Пост-обработка: FXAA + апскейл (composition). | В основном **GPU** (полноэкранные проходы). |
 | `render.ui.dbglog` | Правая debug-панель: подложка + накопление текста (буквы — в textflush). | CPU+GPU мелкие. |

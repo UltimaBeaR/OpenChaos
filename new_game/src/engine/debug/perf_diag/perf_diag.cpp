@@ -295,6 +295,62 @@ OverheadTimer::~OverheadTimer()
     s_overhead_accum += after - t0;
 }
 
+// ---- Sequential phase timer ---------------------------------------------
+
+// One active phase at a time (not nestable). Snapshots mirror ScopeTimer:
+// the close path is byte-for-byte the same wall / ge_* / GPU contract.
+static Slot*    s_phase_slot  = nullptr;
+static uint64_t s_phase_t0    = 0;
+static uint64_t s_phase_ge0   = 0;
+static uint64_t s_phase_gf0   = 0;
+static uint64_t s_phase_ov0   = 0;
+static uint64_t s_phase_ovge0 = 0;
+
+// Close the open phase, booking it exactly as ScopeTimer::~ScopeTimer
+// does (strip glFinish-wait + perf-panel overhead from wall and ge_*,
+// then drain the GPU and book this phase's real GPU time, feeding the
+// drain back into s_gfinish_accum so the enclosing wrapper stays pure).
+static void phase_close()
+{
+    Slot* slot = s_phase_slot;
+    s_phase_slot = nullptr;
+    if (!slot || s_freq == 0)
+        return;
+    const uint64_t now = sdl3_get_performance_counter();
+    double wall = (double)(now - s_phase_t0);
+    wall -= (double)(s_gfinish_accum  - s_phase_gf0);
+    wall -= (double)(s_overhead_accum - s_phase_ov0);
+    if (wall < 0.0) wall = 0.0;
+    slot->accum += wall * 1000.0 / (double)s_freq;
+    double ge_t = (double)(s_ge_accum         - s_phase_ge0)
+                - (double)(s_overhead_ge_accum - s_phase_ovge0);
+    if (ge_t < 0.0) ge_t = 0.0;
+    slot->ge_accum += ge_t * 1000.0 / (double)s_freq;
+    ge_gpu_finish();
+    const uint64_t after = sdl3_get_performance_counter();
+    const uint64_t fwait = after - now;
+    slot->gpu_accum += (double)fwait * 1000.0 / (double)s_freq;
+    s_gfinish_accum += fwait;
+}
+
+void phase_begin(Slot* s)
+{
+    phase_close();              // close the previous phase, if any
+    ensure_freq();
+    s_phase_slot  = s;
+    s_phase_t0    = sdl3_get_performance_counter();
+    s_phase_ge0   = s_ge_accum;
+    s_phase_gf0   = s_gfinish_accum;
+    s_phase_ov0   = s_overhead_accum;
+    s_phase_ovge0 = s_overhead_ge_accum;
+    touch_slot(s);
+}
+
+void phase_end()
+{
+    phase_close();
+}
+
 // Drain the GPU right before the buffer swap and book the wait into the
 // "GPU wait" bucket — so ALL real GPU-wait is captured here regardless
 // of which stage ran last, and the swap then waits ~0. The drain is
@@ -371,6 +427,11 @@ void frame_begin()
     if (!s_frame_total)
         s_frame_total = get_slot("frame.total", KIND_TIME);
     s_frame_began = true;
+    // Drop a phase still open from the previous frame (e.g. the F10
+    // far-facet-debug early return inside AENG_draw_city skips
+    // PERF_PHASE_END). Its partial, frame-crossing time is intentionally
+    // NOT booked — kept out of every figure rather than corrupting one.
+    s_phase_slot = nullptr;
     s_seq_counter = 0; // restart per-frame call-order numbering
     s_frame_gf0 = s_gfinish_accum;
     s_frame_ov0    = s_overhead_accum;

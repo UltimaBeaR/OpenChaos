@@ -29,6 +29,7 @@
 #include "ai/mav.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "map/level_pools.h"
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_PHASE — render.scene breakdown
 
 #include "engine/platform/uc_common.h"
 #include "config.h"
@@ -2039,6 +2040,14 @@ void AENG_draw_city()
     static int outside = 1;
 
     AENG_total_polys_drawn = 0;
+
+    // Perf-diag breakdown of "render.scene" — sequential phases tracking
+    // the original BreakTime() markers below. Phases are siblings under
+    // the render.scene PERF_SCOPE wrapper; whatever is not covered
+    // (camera setup, NIGHT teardown, POLY_frame_init) lands in
+    // render.scene.other automatically. PERF_PHASE_END is at the bottom.
+    PERF_PHASE("render.scene.setup");
+
     void draw_all_boxes(void);
     draw_all_boxes();
 
@@ -2106,6 +2115,7 @@ void AENG_draw_city()
     }
 
     BreakTime("Worked out things in view");
+    PERF_PHASE("render.scene.transform"); // ambient + rotate all points + stars
 
     //
     // Points out of the ambient light.
@@ -2288,6 +2298,7 @@ void AENG_draw_city()
     }
 
     BreakTime("Done stars");
+    PERF_PHASE("render.scene.shadows"); // detailed character shadows
 
     //
     // Shadows.
@@ -2786,6 +2797,7 @@ void AENG_draw_city()
     }
 
     BreakTime("Done shadows");
+    PERF_PHASE("render.scene.reflect"); // reflections + puddles + sky + flush
 
     // No reflections on DC.
 
@@ -3307,6 +3319,7 @@ void AENG_draw_city()
         POLY_frame_init(UC_TRUE, UC_TRUE);
     }
     BreakTime("Done second polygon flush");
+    PERF_PHASE("render.scene.world"); // far facets + level squares/floors
 
     //
     // FAR FACETS!!!!!!!!!!!!!
@@ -3743,6 +3756,7 @@ void AENG_draw_city()
             }
     }
     BreakTime("Drawn floors");
+    PERF_PHASE("render.scene.things"); // prims + facets + objects/things
 
     //	POLY_frame_draw(UC_FALSE,UC_FALSE);
     //	POLY_frame_init(UC_TRUE,UC_TRUE);
@@ -4317,6 +4331,7 @@ void AENG_draw_city()
     }
 
     BreakTime("Drawn things");
+    PERF_PHASE("render.scene.fx"); // oval shadows, pows, mist, rain, fx, final flush
 
     //	POLY_frame_draw(UC_FALSE,UC_FALSE);
     //	POLY_frame_init(UC_TRUE,UC_TRUE);
@@ -4755,6 +4770,10 @@ void AENG_draw_city()
 
     // Tell the pyros we've done a frame.
     Pyros_EndOfFrameMarker();
+
+    // Close the last render.scene phase. Anything in AENG_draw after this
+    // (NIGHT teardown, POLY_frame_init) falls into render.scene.other.
+    PERF_PHASE_END();
 
     //	ANEG_draw_messages();
 

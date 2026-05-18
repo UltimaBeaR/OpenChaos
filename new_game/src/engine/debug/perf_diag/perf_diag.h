@@ -69,6 +69,20 @@ struct ScopeTimer {
     ScopeTimer& operator=(const ScopeTimer&) = delete;
 };
 
+// Sequential phase timer for ONE huge linear function with many phases
+// where wrapping each phase in an RAII block scope is impractical /
+// risky (variable lifetimes crossing phase boundaries). phase_begin
+// closes the currently-open phase (books its wall / ge_* / GPU exactly
+// like ScopeTimer — same glFinish-and-accumulator contract) and opens a
+// new one; phase_end closes the last one. Phases are siblings under the
+// enclosing PERF_SCOPE wrapper, so that wrapper's ".other" auto-captures
+// any unphased remainder. One glFinish per phase switch (same cost as a
+// scope boundary). NOT nestable / not re-entrant — one active phase at a
+// time; a phase dangling across a frame (early return) is dropped at the
+// next frame_begin (its time is not booked, kept out of every figure).
+void phase_begin(Slot* s);
+void phase_end();
+
 // Perf-panel overhead bracket. Wrap each chunk of work that exists ONLY
 // to draw the diagnostics panel itself (queue its glyphs + flush them) —
 // the cost of measuring, not the game. Handled exactly like GPU-wait:
@@ -155,6 +169,18 @@ void draw();
 #define PERF_OVERHEAD_SCOPE()                                                  \
     ::perf::OverheadTimer OC_PERF_CONCAT(perf_ovh_, __LINE__)
 
+// Sequential phase markers for one big linear function (see phase_begin).
+// PERF_PHASE("a.b.c") closes the previous phase and opens this one;
+// PERF_PHASE_END() closes the last phase. Place inside a PERF_SCOPE
+// wrapper so the wrapper's ".other" soaks up any unphased remainder.
+#define PERF_PHASE(name)                                                       \
+    do {                                                                       \
+        static ::perf::Slot* OC_PERF_CONCAT(perf_phase_, __LINE__) =           \
+            ::perf::get_slot((name), ::perf::KIND_TIME);                        \
+        ::perf::phase_begin(OC_PERF_CONCAT(perf_phase_, __LINE__));             \
+    } while (0)
+#define PERF_PHASE_END() ::perf::phase_end()
+
 // Deprecated: GPU is measured by PERF_SCOPE itself (per-scope glFinish).
 #define PERF_GPU_SCOPE(name) ((void)0)
 
@@ -176,6 +202,8 @@ void draw();
 #define PERF_SCOPE(name)      ((void)0)
 #define PERF_COUNT(name, val) ((void)0)
 #define PERF_OVERHEAD_SCOPE() ((void)0)
+#define PERF_PHASE(name)      ((void)0)
+#define PERF_PHASE_END()      ((void)0)
 #define PERF_GPU_SCOPE(name)  ((void)0)
 #define PERF_GE_CALL()        ((void)0)
 #define PERF_PRE_SWAP_GPU_DRAIN() ((void)0)
