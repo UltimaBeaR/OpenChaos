@@ -833,7 +833,7 @@ round_again:;
     MEMORY_quick_init();
 
     BOOL _level_init_ok;
-    { PERF_SCOPE("io.level_init"); _level_init_ok = game_init(); }
+    { PERF_SCOPE("io.levelload"); _level_init_ok = game_init(); }
     if (_level_init_ok) {
 
         already_warned_about_leaving_map = sdl3_get_ticks();
@@ -1008,7 +1008,7 @@ round_again:;
             check_pows();
 
             {
-                PERF_SCOPE("physics.total");
+                PERF_SCOPE("physics");
                 const double phys_step_ms  = 1000.0 / double(g_physics_hz);
                 const SLONG  phys_tick_diff = 1000 / g_physics_hz;
                 const float  phys_dt_ms    = float(phys_step_ms);
@@ -1340,10 +1340,6 @@ round_again:;
 
             BreakTime("Done thing processing");
 
-            { PERF_SCOPE("render.draw_screen"); draw_screen(); }
-
-            { PERF_SCOPE("render.overlay"); OVERLAY_handle(); }
-
             SLONG i_want_to_exit = UC_FALSE;
 
             // input_debug_render, debug_help_render, CONSOLE_draw,
@@ -1352,16 +1348,33 @@ round_again:;
             // so their text/graphics aren't softened by FXAA.
             // See split_ui_from_scene_plan.md.
 
-            BreakTime("About to flip");
+            {
+                // Render wrapper. CPU/ge_*/GPU all measured here; the
+                // synthetic "render.other" = this minus the children
+                // (glue: AENG_blit, GL state resets, screenshot,
+                // pre-flip/diagnostic callbacks) — same formula for every
+                // channel. All GPU-wait (per-stage glFinish + the
+                // explicit pre-swap drain) is pulled out into the single
+                // "GPU wait (glFinish)" line, so these numbers are clean.
+                PERF_SCOPE("render");
 
-            { PERF_SCOPE("render.present"); screen_flip(); }
+                { PERF_SCOPE("render.scene"); draw_screen(); }
+
+                { PERF_SCOPE("render.hud"); OVERLAY_handle(); }
+
+                BreakTime("About to flip");
+
+                // screen_flip() → ge_flip(): split inside into
+                // render.post / render.ui / render.present.
+                screen_flip();
+            }
 
             // End render pass — geometry added after this point (next game tick)
             // will be dropped by AENG_world_line to prevent VB pool corruption.
             extern void AENG_set_render_pass(bool active);
             AENG_set_render_pass(false);
 
-            { PERF_SCOPE("idle.wait"); lock_frame_rate(g_render_fps_cap); }
+            { PERF_SCOPE("idle"); lock_frame_rate(g_render_fps_cap); }
 
             BreakTime("Done flip");
 

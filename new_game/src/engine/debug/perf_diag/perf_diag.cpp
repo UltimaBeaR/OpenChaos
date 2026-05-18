@@ -4,6 +4,7 @@
 
 #include "engine/platform/uc_common.h"            // SLONG / ULONG / UBYTE / CBYTE
 #include "engine/platform/sdl3_bridge.h"          // perf counter / get_ticks
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_gpu_finish / ge_draw_call_*
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
@@ -13,9 +14,8 @@
 #include "engine/graphics/text/font.h"            // FONT_buffer_add_scaled
 #include "engine/graphics/text/font_atlas.h"      // FONT_atlas_fill_* (literal-px rects)
 #include "engine/debug/debug_panel_text_scale.h"  // DBG_PANEL_TEXT_SCALE
-#include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_get_screen_*
 #include "engine/input/input_frame.h"             // input_key_just_pressed
-#include "engine/input/keyboard.h"                // KB_4 / KB_5 / KB_6
+#include "engine/input/keyboard.h"                // KB_4 / KB_5
 #endif
 
 namespace perf {
@@ -50,12 +50,33 @@ static int s_log_avg_n = 60;
 struct Slot {
     char     name[64];
     SlotKind kind;
+    // CPU / value channel.
     double   accum;             // current-frame accumulator
     double   ring[RING];
     int      head;              // next write
     int      count;             // valid entries (≤ RING)
     double   short_avg;
     double   long_avg;
+    // GPU channel — real GPU time of this stage (ScopeTimer dtor
+    // glFinishes on exit and times the drain).
+    double   gpu_accum;
+    double   gpu_ring[RING];
+    int      gpu_head;
+    int      gpu_count;
+    double   gpu_short_avg;
+    // Graphics-API CPU channel (CPU wall spent inside ge_* draws/
+    // composition/swap — driver/submit/state-changes). Own column.
+    double   ge_accum;
+    double   ge_ring[RING];
+    int      ge_head;
+    int      ge_count;
+    double   ge_short_avg;
+    // Display order + liveness. seq = order this slot was first entered
+    // THIS frame (so rows list in real frame call order). seen_frame =
+    // last frame the slot was hit (stale → hidden, so menu/gameplay don't
+    // leave each other's dead rows hanging).
+    int      seq;
+    uint64_t seen_frame;
 };
 
 static Slot s_slot[MAX_SLOTS];
@@ -67,6 +88,45 @@ static uint64_t s_freq        = 0;    // perf counter frequency (Hz)
 static uint64_t s_frame_t0    = 0;    // perf counter at frame_begin
 static uint64_t s_frame_idx   = 0;
 static bool     s_frame_began = false; // a frame_begin has run at least once
+static uint32_t s_seq_counter = 0;    // reset each frame_begin; ++ per first slot hit
+
+// Graphics-API CPU accumulator (perf-counter ticks), depth-counted so
+// nested ge_* calls don't double-count. Monotonic; scopes snapshot it.
+static uint64_t s_ge_accum = 0;
+static int      s_ge_depth = 0;
+static uint64_t s_ge_t0    = 0;
+
+// glFinish GPU measurement is ALWAYS on while perf is compiled in (no
+// toggle): each scope glFinishes on exit and the CPU clock measures that
+// stage's real GPU drain. This serialises CPU/GPU so the displayed FPS
+// is synthetically lower than a normal run — accepted on purpose: a
+// debug build that clearly shows what is CPU vs GPU is worth more than a
+// realistic FPS here. Fully compiled out when perf is off (zero cost).
+
+// Global monotonic accumulator (ticks) of time spent blocked in
+// ge_gpu_finish(). Every ScopeTimer subtracts the finish-wait that
+// elapsed inside it from its own wall, so all CPU/wall figures (incl.
+// wrapper ".other") stay PURE — free of the synthetic glFinish cost.
+// The total is shown as one separate "glfinish" row (ignore it; it's the
+// price of the measurement, not the game).
+static uint64_t s_gfinish_accum = 0;
+static uint64_t s_frame_gf0     = 0; // snapshot at frame_begin
+
+// The single "all CPU-side GPU-wait" row (per-stage glFinish drains +
+// pre-swap drain). CPU blocked draining the GPU — the measurement cost.
+// Kept out of s_ord/roots and out of EVERY column's 100%; drawn as its
+// own muted ms-only line AFTER the total so the percentages reflect
+// only the real work.
+static const char* const PERF_GPU_WAIT_NAME = "GPU wait (glFinish)";
+
+// Stamp a slot's frame call order + liveness on its first hit this frame.
+static void touch_slot(Slot* s)
+{
+    if (!s || s->seen_frame == s_frame_idx)
+        return;
+    s->seq = (int)s_seq_counter++;
+    s->seen_frame = s_frame_idx;
+}
 
 static void ensure_freq()
 {
@@ -104,33 +164,89 @@ Slot* get_slot(const char* name, SlotKind kind)
 
 void add_value(Slot* s, double v)
 {
-    if (s) s->accum += v;
+    if (s) { touch_slot(s); s->accum += v; }
 }
 
 ScopeTimer::ScopeTimer(Slot* s)
-    : slot(s), t0((ensure_freq(), sdl3_get_performance_counter()))
-{}
+    : slot(s), t0((ensure_freq(), sdl3_get_performance_counter())),
+      ge0(s_ge_accum), gf0(s_gfinish_accum)
+{
+    touch_slot(s);
+}
 
 ScopeTimer::~ScopeTimer()
 {
     if (!slot || s_freq == 0)
         return;
     const uint64_t now = sdl3_get_performance_counter();
-    slot->accum += (double)(now - t0) * 1000.0 / (double)s_freq;
+    // Wall = entry→here, MINUS any glFinish-wait that elapsed inside this
+    // scope (descendants' finishes ran on the CPU thread during it). So
+    // every CPU/wall figure — incl. wrapper ".other" — stays pure, free
+    // of the synthetic glFinish cost (which is shown as its own row).
+    double wall = (double)(now - t0);
+    wall -= (double)(s_gfinish_accum - gf0);
+    if (wall < 0.0) wall = 0.0;
+    slot->accum += wall * 1000.0 / (double)s_freq;
+    slot->ge_accum += (double)(s_ge_accum - ge0) * 1000.0 / (double)s_freq;
+
+    // Drain the GPU now. The previous (sequential) scope already drained
+    // its work, so this wait = THIS scope's real GPU time. Wrappers
+    // naturally read ~0 (children already drained). The wait is added to
+    // the global glFinish accumulator AFTER measuring it, so the
+    // enclosing (parent) scope subtracts it from its own wall too.
+    ge_gpu_finish();
+    const uint64_t after = sdl3_get_performance_counter();
+    const uint64_t fwait = after - now;
+    slot->gpu_accum += (double)fwait * 1000.0 / (double)s_freq;
+    s_gfinish_accum += fwait;
+}
+
+// ---- Graphics-API CPU bracket -------------------------------------------
+
+GeCallTimer::GeCallTimer()
+{
+    ensure_freq();
+    if (s_ge_depth++ == 0)               // outermost of a nested group
+        s_ge_t0 = sdl3_get_performance_counter();
+}
+
+GeCallTimer::~GeCallTimer()
+{
+    if (--s_ge_depth == 0)
+        s_ge_accum += sdl3_get_performance_counter() - s_ge_t0;
+}
+
+// Drain the GPU right before the buffer swap and book the wait into the
+// "GPU wait" bucket — so ALL real GPU-wait is captured here regardless
+// of which stage ran last, and the swap then waits ~0. The drain is
+// inside the render.present scope, so the existing s_gfinish_accum
+// subtraction keeps CPU/ge_*/render.other pure.
+void pre_swap_gpu_drain()
+{
+    if (s_freq == 0)
+        return;
+    const uint64_t t = sdl3_get_performance_counter();
+    ge_gpu_finish();
+    s_gfinish_accum += sdl3_get_performance_counter() - t;
 }
 
 // ---- Averaging ----------------------------------------------------------
 
-static double avg_last(const Slot* s, int n)
+static double avg_ring(const double* ring, int head, int count, int n)
 {
-    int m = s->count < n ? s->count : n;
+    int m = count < n ? count : n;
     if (m <= 0) return 0.0;
     double sum = 0.0;
     for (int i = 0; i < m; i++) {
-        int idx = (s->head - 1 - i + RING) % RING;
-        sum += s->ring[idx];
+        int idx = (head - 1 - i + RING) % RING;
+        sum += ring[idx];
     }
     return sum / (double)m;
+}
+
+static double avg_last(const Slot* s, int n)
+{
+    return avg_ring(s->ring, s->head, s->count, n);
 }
 
 // ---- File log -----------------------------------------------------------
@@ -176,6 +292,8 @@ void frame_begin()
     if (!s_frame_total)
         s_frame_total = get_slot("frame.total", KIND_TIME);
     s_frame_began = true;
+    s_seq_counter = 0; // restart per-frame call-order numbering
+    s_frame_gf0 = s_gfinish_accum;
     s_frame_t0 = sdl3_get_performance_counter();
 }
 
@@ -188,6 +306,34 @@ void frame_end()
     const double   total = (double)(now - s_frame_t0) * 1000.0 / (double)s_freq;
     if (s_frame_total) s_frame_total->accum = total;
 
+    // GPU draw-call count for the frame just finished (a value metric —
+    // shows under "render" as a counter; not a time, so not part of the
+    // CPU 100% sum).
+    static Slot* s_drawcalls = nullptr;
+    if (!s_drawcalls)
+        s_drawcalls = get_slot("render.drawcalls", KIND_VALUE);
+    if (s_drawcalls) {
+        touch_slot(s_drawcalls); // order it right after the render scopes
+        s_drawcalls->accum += (double)ge_draw_call_count();
+    }
+    ge_draw_call_count_reset();
+
+    // ALL CPU-side GPU-wait in ONE row: per-stage glFinish drains +
+    // pre-swap drain. It's "CPU stuck waiting on the GPU" — graphics-side
+    // CPU wall, shown separately so it can be discounted. Routed here &
+    // subtracted from every stage's wall, so CPU/ge_*/render.other stay
+    // pure.
+    {
+        static Slot* s_gf = nullptr;
+        if (!s_gf)
+            s_gf = get_slot(PERF_GPU_WAIT_NAME, KIND_TIME);
+        if (s_gf) {
+            touch_slot(s_gf);
+            s_gf->accum += (double)(s_gfinish_accum - s_frame_gf0)
+                * 1000.0 / (double)s_freq;
+        }
+    }
+
     for (int i = 0; i < s_slot_count; i++) {
         Slot* s = &s_slot[i];
         const double sample = s->accum;
@@ -199,6 +345,21 @@ void frame_end()
         s->short_avg = avg_last(s, short_w());
         s->long_avg  = avg_last(s, LONG_W);
         s->accum = 0.0;
+
+        // GPU channel (per-scope glFinish drain = real GPU time).
+        s->gpu_ring[s->gpu_head] = s->gpu_accum;
+        s->gpu_head = (s->gpu_head + 1) % RING;
+        if (s->gpu_count < RING) s->gpu_count++;
+        s->gpu_short_avg =
+            avg_ring(s->gpu_ring, s->gpu_head, s->gpu_count, short_w());
+        s->gpu_accum = 0.0;
+
+        // Graphics-API CPU channel (rolled like the others).
+        s->ge_ring[s->ge_head] = s->ge_accum;
+        s->ge_head = (s->ge_head + 1) % RING;
+        if (s->ge_count < RING) s->ge_count++;
+        s->ge_short_avg = avg_ring(s->ge_ring, s->ge_head, s->ge_count, short_w());
+        s->ge_accum = 0.0;
     }
 
     s_frame_idx++;
@@ -220,15 +381,6 @@ void handle_keys()
     if (input_key_just_pressed(KB_5)) {
         s_short_w_idx = (s_short_w_idx + 1) % SHORT_W_OPT_COUNT;
         s_log_avg_n = short_w(); // file-log window follows the panel window
-    }
-
-    if (input_key_just_pressed(KB_6)) {
-        for (int i = 0; i < s_slot_count; i++) {
-            s_slot[i].count = 0;
-            s_slot[i].head = 0;
-            s_slot[i].short_avg = 0.0;
-            s_slot[i].long_avg = 0.0;
-        }
     }
 #endif
 }
@@ -253,14 +405,14 @@ static constexpr SLONG PERF_PAD_PX     = 6;
 static constexpr SLONG PERF_TOP_PX     = 8;
 static constexpr SLONG PERF_LINE_PX    = 13 * PERF_TEXT_SCALE;
 static constexpr SLONG PERF_GLYPH_H_PX = 9  * PERF_TEXT_SCALE;  // FONT_HEIGHT * scale
-static constexpr SLONG PERF_COL_GAP_PX = 70 * PERF_TEXT_SCALE;  // name→value gap (tunable)
+static constexpr SLONG PERF_COL_GAP_PX  = 70 * PERF_TEXT_SCALE; // name→CPU% gap (tunable)
+static constexpr SLONG PERF_COL_GAP2_PX = 24 * PERF_TEXT_SCALE; // CPU%→GPU ms gap (tunable)
 
-// Row-underline colours (AARRGGBB, alpha-blended). Normal rows get a
-// clearly-visible grey; a "*.total" row gets a brighter near-white line
-// so at a glance you know that single line summarises the whole group —
-// only dive into the group's members when the total looks off.
+// Row-underline colour (AARRGGBB, alpha-blended) — a thin grey rule under
+// every row so the eye doesn't mis-pair a name with a far value. No
+// "total" rows any more (they confused more than helped), so a single
+// uniform rule — no special bright/thick line.
 static constexpr SLONG PERF_RULE_NORMAL = (SLONG)0x80909090u;
-static constexpr SLONG PERF_RULE_TOTAL  = (SLONG)0xC8F0F0F0u;
 
 // First-level group of a dotted metric name ("render.shadows" → "render").
 // Writes into buf; returns it. No '.' → whole name is the group.
@@ -271,12 +423,6 @@ static const char* group_of(const char* name, char* buf, int bufsz)
         buf[i] = name[i];
     buf[i] = '\0';
     return buf;
-}
-
-static bool is_total(const char* name)
-{
-    const char* dot = strchr(name, '.');
-    return dot && strcmp(dot + 1, "total") == 0;
 }
 
 // % of frame time → text colour. White-ish at ~0, red at 100%. Nonlinear
@@ -293,47 +439,199 @@ static void pct_color(double pct, UBYTE& r, UBYTE& g, UBYTE& b)
     b = (UBYTE)(210 + t * (40  - 210));
 }
 
-// A "countable" leaf = a time metric that is part of the disjoint
-// partition of the frame: has a group.sub name, isn't a "*.total"
-// summary, and isn't an info sub-metric (sub starting with '_', e.g.
-// render._perf_panel which is nested inside render.overlay and would
-// double-count). Group totals are built from these so all group totals
-// + "(other)" sum to exactly 100% of the frame.
-static bool is_countable(const Slot* s)
+// ---- Hierarchy helpers --------------------------------------------------
+// Metric names are dot-paths ("render.scene"). The panel is a tree:
+//  - a LEAF (no measured time child) prints its own row;
+//  - a CONTAINER (has measured time children) does NOT print itself —
+//    it prints its children then a synthetic "<name>.other" row =
+//    (container measured) − Σ(direct time children). So children + .other
+//    always reconstruct the container exactly → the whole table's CPU%
+//    sums to exactly 100% (top "(other)" = frame − Σ roots).
+// Rows appear in FRAME CALL order (per-frame seq stamped on first hit),
+// so the list reads top-to-bottom exactly as the frame runs. Stale slots
+// (a stage not run for a while — e.g. gameplay metrics after returning to
+// the menu) are hidden. Level-1 groups (first dotted token) are separated
+// by a blank line; deeper levels are not.
+
+// Parent path = name minus its last ".segment" ("" if no dot).
+static void parent_path(const char* name, char* buf, int bufsz)
 {
-    if (s->kind != KIND_TIME)
-        return false;
-    const char* d = strchr(s->name, '.');
-    if (!d)
-        return false;
-    const char* sub = d + 1;
-    return strcmp(sub, "total") != 0 && sub[0] != '_';
+    int n = (int)strlen(name), cut = -1;
+    for (int i = n - 1; i >= 0; i--)
+        if (name[i] == '.') { cut = i; break; }
+    int len = cut < 0 ? 0 : cut;
+    if (len > bufsz - 1) len = bufsz - 1;
+    memcpy(buf, name, (size_t)len);
+    buf[len] = '\0';
 }
 
-// Group's % of the frame: an explicit "<group>.total" probe if one was
-// registered (e.g. physics.total — a measured block), otherwise the sum
-// of the group's countable leaves (e.g. render = draw_screen + overlay +
-// present).
-static double group_total_pct(const char* grp, double frame_ms)
+// Frames-of-inactivity after which a slot is considered stale and hidden
+// (set to the averaging window in draw()): once a stage stops running —
+// e.g. gameplay scopes after returning to the menu — its averaged value
+// is all-zero anyway, so don't leave a dead empty row hanging.
+static uint64_t s_stale_win = 30;
+
+static bool slot_stale(int i)
 {
-    if (frame_ms <= 1e-6)
-        return 0.0;
+    return (s_frame_idx - s_slot[i].seen_frame) > s_stale_win;
+}
+
+// Sorted-by-frame-call-order view of the live, non-"frame" slots, rebuilt
+// each draw(). Iterating this (instead of registration order) makes rows
+// list exactly in the order the stages run in a frame, and drops stale
+// rows.
+static int s_ord[MAX_SLOTS];
+static int s_ordn = 0;
+
+static int find_time_slot(const char* name)
+{
+    for (int i = 0; i < s_slot_count; i++)
+        if (s_slot[i].kind == KIND_TIME && !slot_stale(i)
+            && strcmp(s_slot[i].name, name) == 0)
+            return i;
+    return -1;
+}
+
+static bool is_frame_group(const char* name)
+{
+    char g[16];
+    return strcmp(group_of(name, g, sizeof(g)), "frame") == 0;
+}
+
+// A root = a time metric whose parent path is not itself a measured time
+// metric (so it's a top-level frame stage: physics, render, idle, …).
+static bool is_root(int idx)
+{
+    if (s_slot[idx].kind != KIND_TIME || is_frame_group(s_slot[idx].name))
+        return false;
+    char pp[64];
+    parent_path(s_slot[idx].name, pp, sizeof(pp));
+    return pp[0] == '\0' || find_time_slot(pp) < 0;
+}
+
+
+static bool has_time_children(int idx)
+{
+    char pp[64];
     for (int i = 0; i < s_slot_count; i++) {
-        char gb[16];
-        if (strcmp(group_of(s_slot[i].name, gb, sizeof(gb)), grp) != 0)
-            continue;
-        if (s_slot[i].kind == KIND_TIME && is_total(s_slot[i].name))
-            return s_slot[i].short_avg / frame_ms * 100.0;
+        if (s_slot[i].kind != KIND_TIME || slot_stale(i)) continue;
+        parent_path(s_slot[i].name, pp, sizeof(pp));
+        if (strcmp(pp, s_slot[idx].name) == 0) return true;
     }
-    double sum = 0.0;
-    for (int i = 0; i < s_slot_count; i++) {
-        char gb[16];
-        if (strcmp(group_of(s_slot[i].name, gb, sizeof(gb)), grp) != 0)
-            continue;
-        if (is_countable(&s_slot[i]))
-            sum += s_slot[i].short_avg / frame_ms * 100.0;
+    return false;
+}
+
+struct DrawCtx {
+    // Each column is normalised by its OWN total → every column sums to
+    // 100% on its own (no "add two columns" needed): cpu% = stage pure
+    // CPU / total CPU; ge% = stage ge_* / total ge_*; gpu% = stage GPU /
+    // total GPU. frame_ms kept only for the header split.
+    double frame_ms, cpu_total, ge_total, gpu_total;
+    SLONG  cpu_col_x, ge_col_x, gpu_col_x, max_y, y;
+    SLONG* uy;
+    int*   un;
+    int    ucap;
+};
+
+// Total-row highlight colour (bright amber) — set apart from the
+// load-graded data cells and the cyan section headings.
+static const UBYTE PERF_TOTAL_R = 255, PERF_TOTAL_G = 215, PERF_TOTAL_B = 70;
+
+// One value cell: "PCT% (MSms)". In the total row the colour is the
+// fixed highlight; otherwise it's load-graded by the percentage.
+static void emit_cell(SLONG x, SLONG yy, double pct, double ms,
+                      bool is_total)
+{
+    UBYTE r, g, b;
+    if (is_total) { r = PERF_TOTAL_R; g = PERF_TOTAL_G; b = PERF_TOTAL_B; }
+    else          pct_color(pct, r, g, b);
+    FONT_buffer_add_scaled(x, yy, r, g, b, 1, PERF_TEXT_SCALE,
+        (CBYTE*)"%05.2f%% (%05.2fms)", pct, ms);
+}
+
+// One row. Counter → name + raw value (cpu column, neutral). Time row →
+// name + per-column "pct% (msms)". is_total → whole row in the fixed
+// highlight colour (the bottom "total" row, always 100% per column).
+static void emit_row(DrawCtx& c, const char* nm, bool is_counter,
+                     double counter_val,
+                     double cpu_pct, double ge_pct, double gpu_pct,
+                     double cpu_ms, double ge_ms, double gpu_ms,
+                     bool is_total = false)
+{
+    if (c.y > c.max_y)
+        return;
+    const UBYTE nr = is_total ? PERF_TOTAL_R : 200;
+    const UBYTE ng = is_total ? PERF_TOTAL_G : 200;
+    const UBYTE nb = is_total ? PERF_TOTAL_B : 200;
+    FONT_buffer_add_scaled(PERF_PAD_PX, c.y, nr, ng, nb, 1,
+        PERF_TEXT_SCALE, (CBYTE*)"%s", nm);
+    if (is_counter) {
+        // Counters are window-averaged: a small value (e.g. physics.ticks
+        // decoupled from render → ~0.2/frame) needs decimals or it rounds
+        // to 0. Big counts (drawcalls, thousands) stay integer. Threshold
+        // 1000 separates "rate-ish small" from "bulk count".
+        const char* cfmt = (counter_val < 1000.0 && counter_val > -1000.0)
+            ? "%.2f" : "%.0f";
+        FONT_buffer_add_scaled(c.cpu_col_x, c.y, 200, 200, 200, 1,
+            PERF_TEXT_SCALE, (CBYTE*)cfmt, counter_val);
+    } else {
+        emit_cell(c.ge_col_x,  c.y, ge_pct,  ge_ms,  is_total);
+        emit_cell(c.cpu_col_x, c.y, cpu_pct, cpu_ms, is_total);
+        emit_cell(c.gpu_col_x, c.y, gpu_pct, gpu_ms, is_total);
     }
-    return sum;
+    if (*c.un < c.ucap)
+        c.uy[(*c.un)++] = c.y + PERF_GLYPH_H_PX;
+    c.y += PERF_LINE_PX;
+}
+
+// Print a node's subtree (children in frame call order, then the node's
+// ".other" if it's a container). Leaves print themselves.
+static void emit_node(DrawCtx& c, int idx)
+{
+    const Slot* s = &s_slot[idx];
+    char pp[64];
+
+    if (!has_time_children(idx)) {
+        double ge   = s->ge_short_avg;
+        double pure = s->short_avg - ge;        // wall − graphics-API CPU
+        if (pure < 0.0) pure = 0.0;
+        const double cpu_pct = c.cpu_total > 1e-6 ? pure / c.cpu_total * 100.0 : 0.0;
+        const double ge_pct  = c.ge_total  > 1e-6 ? ge   / c.ge_total  * 100.0 : 0.0;
+        const double gpu_pct = c.gpu_total > 1e-6
+            ? s->gpu_short_avg / c.gpu_total * 100.0 : 0.0;
+        emit_row(c, s->name, false, 0.0, cpu_pct, ge_pct, gpu_pct,
+                 pure, ge, s->gpu_short_avg);
+        // Counters (KIND_VALUE) go in their own list at the bottom.
+        return;
+    }
+
+    // Children in frame call order (s_ord = seq-sorted, stale dropped).
+    // Only KIND_TIME children — counters are listed separately below.
+    double child_cpu = 0.0, child_ge = 0.0, child_gpu = 0.0;
+    for (int o = 0; o < s_ordn; o++) {
+        int i = s_ord[o];
+        if (s_slot[i].kind != KIND_TIME)
+            continue;
+        parent_path(s_slot[i].name, pp, sizeof(pp));
+        if (strcmp(pp, s->name) != 0)
+            continue;
+        child_cpu += s_slot[i].short_avg;
+        child_ge  += s_slot[i].ge_short_avg;
+        child_gpu += s_slot[i].gpu_short_avg;
+        emit_node(c, i);
+    }
+    char on[80];
+    snprintf(on, sizeof(on), "%s.other", s->name);
+    double o_wall = s->short_avg     - child_cpu; if (o_wall < 0.0) o_wall = 0.0;
+    double o_ge   = s->ge_short_avg  - child_ge;  if (o_ge   < 0.0) o_ge   = 0.0;
+    double o_gpu  = s->gpu_short_avg - child_gpu; if (o_gpu < 0.0) o_gpu = 0.0;
+    double o_pure = o_wall - o_ge; if (o_pure < 0.0) o_pure = 0.0;
+    const double cpu_pct = c.cpu_total > 1e-6 ? o_pure / c.cpu_total * 100.0 : 0.0;
+    const double ge_pct  = c.ge_total  > 1e-6 ? o_ge   / c.ge_total  * 100.0 : 0.0;
+    const double gpu_pct = c.gpu_total > 1e-6
+        ? o_gpu / c.gpu_total * 100.0 : 0.0;
+    emit_row(c, on, false, 0.0, cpu_pct, ge_pct, gpu_pct,
+             o_pure, o_ge, o_gpu);
 }
 
 void draw()
@@ -347,205 +645,275 @@ void draw()
         return;
 
     const double frame_ms = s_frame_total ? s_frame_total->short_avg : 0.0;
-    const SLONG max_y = screen_h - PERF_LINE_PX;
+    const SLONG  max_y = screen_h - PERF_LINE_PX;
     const double fps = frame_ms > 1e-6 ? 1000.0 / frame_ms : 0.0;
 
-    char hdr[48];
-    snprintf(hdr, sizeof(hdr), "FPS %3.0f (%d last frames)", fps, short_w());
-    // Width is measured from a FIXED template (FPS digits as a constant
-    // "000"), not the live value — otherwise the changing FPS number
-    // makes the measured header width (and thus the panel) jitter by a
-    // pixel every frame. short_w() only changes on a KB_5 toggle.
-    char hdr_tmpl[48];
-    snprintf(hdr_tmpl, sizeof(hdr_tmpl), "FPS 000 (%d last frames)", short_w());
-
-    // ---- Measure layout from the actual text (auto-hug, no slack) -----
-    // value column x = pad + longest displayed name + small gap; panel
-    // width = column + value field + pad (or the header, whichever is
-    // wider). So the panel always tightly fits its content regardless of
-    // which metrics are registered.
-    SLONG name_w = 0;
-    for (int i = 0; i < s_slot_count; i++) {
-        char gb[16];
-        group_of(s_slot[i].name, gb, sizeof(gb));
-        if (!(strcmp(gb, "frame") == 0 && is_total(s_slot[i].name))) {
-            SLONG w = FONT_string_width(0, (CBYTE*)s_slot[i].name, PERF_TEXT_SCALE);
-            if (w > name_w) name_w = w;
+    // Slot is stale after the averaging window of inactivity (its average
+    // is all-zero by then anyway). Build the ordered live view: non-frame,
+    // non-stale slots sorted by frame-call seq.
+    // The GPU-wait row is kept OUT of s_ord (not a stage/root) and out
+    // of every column total — drawn as its own ms-only line after the
+    // total. Captured here for that line, the header, and to subtract
+    // from cpu_total/(other).
+    double gpu_wait_ms = 0.0;
+    for (int i = 0; i < s_slot_count; i++)
+        if (strcmp(s_slot[i].name, PERF_GPU_WAIT_NAME) == 0) {
+            gpu_wait_ms = s_slot[i].short_avg;
+            break;
         }
-        if (strcmp(gb, "frame") != 0) {
-            char tl[32];
-            snprintf(tl, sizeof(tl), "%s .total", gb);
-            SLONG w = FONT_string_width(0, (CBYTE*)tl, PERF_TEXT_SCALE);
+
+    s_stale_win = (uint64_t)short_w();
+    s_ordn = 0;
+    for (int i = 0; i < s_slot_count; i++) {
+        // Skip the whole-frame total, stale slots, internal scopes (name
+        // starts with '_'), and the GPU-wait row (drawn separately
+        // after the total — must not also be a stage/root here).
+        if (is_frame_group(s_slot[i].name) || slot_stale(i)
+            || s_slot[i].name[0] == '_'
+            || strcmp(s_slot[i].name, PERF_GPU_WAIT_NAME) == 0)
+            continue;
+        s_ord[s_ordn++] = i;
+    }
+    for (int a = 0; a < s_ordn; a++) // small N, simple insertion sort by seq
+        for (int b = a + 1; b < s_ordn; b++)
+            if (s_slot[s_ord[b]].seq < s_slot[s_ord[a]].seq) {
+                int t = s_ord[a]; s_ord[a] = s_ord[b]; s_ord[b] = t;
+            }
+
+    // GPU "pie" total = Σ of the LEAF GPU stages (real submission bursts:
+    // scene/hud/post/ui.* …), NOT the `render` wrapper. A wrapper's
+    // begin/end span swallows GPU-idle while the CPU is busy inside it
+    // (e.g. a CPU-bound stage) — that idle isn't the swap, can't be
+    // auto-subtracted, and would balloon the total (header GPU → ~whole
+    // frame, every real GPU% collapsing as a share of it). Leaves bracket
+    // only their own command bursts → not idle-inflated. Each GPU% is a
+    // share of this leaf sum.
+    double gpu_total = 0.0;
+    for (int o = 0; o < s_ordn; o++) {
+        int i = s_ord[o];
+        if (s_slot[i].kind == KIND_TIME && !has_time_children(i))
+            gpu_total += s_slot[i].gpu_short_avg;
+    }
+
+    // Per-column totals so EACH column sums to 100% on its own — and
+    // GPU-wait is NOT in any of them. The frame partitions into: ge_*
+    // CPU (real submit) + pure non-ge CPU + GPU-wait (its own line after
+    // the total, no %). Excluding GPU-wait from the 100% makes the
+    // percentages reflect ONLY the real work:
+    //   ge_total  = Σ ge_* over roots (real submit, NO GPU-wait);
+    //   cpu_total = frame − ge_total − GPU-wait (pure non-ge incl
+    //               "(other)").
+    double ge_total = 0.0;
+    for (int o = 0; o < s_ordn; o++) {
+        int i = s_ord[o];
+        if (is_root(i))
+            ge_total += s_slot[i].ge_short_avg;
+    }
+    double cpu_total = frame_ms - ge_total - gpu_wait_ms;
+    if (cpu_total < 1e-6) cpu_total = 1e-6;
+
+    // Header is just the FPS line now (the CPU/GPU breakdown moved into
+    // the "split" footer row of the table).
+    char hdr[64];
+    snprintf(hdr, sizeof(hdr), "FPS %3.0f (%d last frames)", fps, short_w());
+    // Width from a FIXED template (digits as constants) so neither the
+    // FPS value nor the averaging-window value (key 5 cycles 10/30/60/120
+    // — different digit counts) changes the measured width.
+    char hdr_tmpl[64];
+    snprintf(hdr_tmpl, sizeof(hdr_tmpl), "FPS 000 (000 last frames)");
+
+    // ---- Measure layout (auto-hug): name | CPU% | GPU% ---------------
+    SLONG name_w = 0;
+    for (int o = 0; o < s_ordn; o++) {
+        int i = s_ord[o];
+        SLONG w = FONT_string_width(0, (CBYTE*)s_slot[i].name, PERF_TEXT_SCALE);
+        if (w > name_w) name_w = w;
+        if (s_slot[i].kind == KIND_TIME && has_time_children(i)) {
+            char on[80];
+            snprintf(on, sizeof(on), "%s.other", s_slot[i].name);
+            w = FONT_string_width(0, (CBYTE*)on, PERF_TEXT_SCALE);
             if (w > name_w) name_w = w;
         }
     }
     {
-        SLONG w = FONT_string_width(0, (CBYTE*)"(other) .total", PERF_TEXT_SCALE);
+        SLONG w = FONT_string_width(0, (CBYTE*)"(other)", PERF_TEXT_SCALE);
         if (w > name_w) name_w = w;
     }
-    const SLONG val_w     = FONT_string_width(0, (CBYTE*)"100.00%", PERF_TEXT_SCALE);
-    const SLONG val_col_x = PERF_PAD_PX + name_w + PERF_COL_GAP_PX;
-    SLONG panel_w = val_col_x + val_w + PERF_PAD_PX;
+    // Three value columns: CPU | ge_* | GPU. Width auto-hugs (panel
+    // widens to fit the extra column).
+    // Order: ge_* | CPU | GPU (CPU and GPU adjacent for easy compare).
+    // Column stride must fit BOTH the widest value cell
+    // ("100.00% (0000.00ms)") and the widest column title
+    // ("non-ge_* CPU") — otherwise text bleeds into the next column.
+    SLONG colw = FONT_string_width(0, (CBYTE*)"100.00% (0000.00ms)",
+                                   PERF_TEXT_SCALE);
+    {
+        static const char* const col_titles[] = {
+            "ge_* CPU", "non-ge_* CPU", "GPU"
+        };
+        for (const char* t : col_titles) {
+            SLONG w = FONT_string_width(0, (CBYTE*)t, PERF_TEXT_SCALE);
+            if (w > colw) colw = w;
+        }
+    }
+    const SLONG ge_col_x  = PERF_PAD_PX + name_w + PERF_COL_GAP_PX;
+    const SLONG cpu_col_x = ge_col_x  + colw + PERF_COL_GAP2_PX;
+    const SLONG gpu_col_x = cpu_col_x + colw + PERF_COL_GAP2_PX;
+    SLONG panel_w = gpu_col_x + colw + PERF_PAD_PX;
     {
         const SLONG hw = PERF_PAD_PX
             + FONT_string_width(0, (CBYTE*)hdr_tmpl, PERF_TEXT_SCALE) + PERF_PAD_PX;
         if (hw > panel_w) panel_w = hw;
     }
 
-    // ---- Pass 1: queue all text, remember row-underline Y positions ----
-    // Everything is in literal framebuffer pixels. Text is queued now and
-    // flushed by FONT_buffer_draw later (after our rects) so it lands on
-    // top of the backdrop/underlines. Both use the same literal-pixel TL
-    // path → aligned in every render mode.
     SLONG underline_y[MAX_SLOTS * 2];
-    bool  underline_tot[MAX_SLOTS * 2];
     int   underline_n = 0;
-
     SLONG y = PERF_TOP_PX;
 
-    // Fixed top block: FPS + averaging window, then the "frame.*" group
-    // (general per-frame stuff) — never part of the dynamic list.
+    // Header: FPS line only (cyan). The CPU/GPU breakdown lives in the
+    // "split" footer row of the table now.
     FONT_buffer_add_scaled(PERF_PAD_PX, y, 90, 230, 230, 1, PERF_TEXT_SCALE,
         (CBYTE*)"%s", hdr);
     y += PERF_LINE_PX;
 
-    for (int i = 0; i < s_slot_count; i++) {
-        const Slot* s = &s_slot[i];
-        char gb[16];
-        if (strcmp(group_of(s->name, gb, sizeof(gb)), "frame") != 0)
+    // Hotkey legend (these are the perf-panel keys; see handle_keys).
+    FONT_buffer_add_scaled(PERF_PAD_PX, y, 120, 170, 170, 1, PERF_TEXT_SCALE,
+        (CBYTE*)"keys: 4 show/hide  5 avg window");
+    y += PERF_LINE_PX;
+    y += PERF_LINE_PX; // blank line under the legend
+
+    // Column titles. "ge_* CPU" = CPU wall spent INSIDE the graphics API
+    // (driver/submit; never GPU execution, never GPU-wait — that's the
+    // separate line after the total). "non-ge_* CPU" = CPU outside the
+    // API (game logic + engine render-prep). "GPU" = real GPU execution
+    // (per-scope glFinish). Each column normalised to its own 100%.
+    FONT_buffer_add_scaled(PERF_PAD_PX, y, 150, 200, 230, 1, PERF_TEXT_SCALE,
+        (CBYTE*)"stages");
+    FONT_buffer_add_scaled(ge_col_x, y, 150, 200, 230, 1, PERF_TEXT_SCALE,
+        (CBYTE*)"ge_* CPU");
+    FONT_buffer_add_scaled(cpu_col_x, y, 150, 200, 230, 1, PERF_TEXT_SCALE,
+        (CBYTE*)"non-ge_* CPU");
+    FONT_buffer_add_scaled(gpu_col_x, y, 150, 200, 230, 1, PERF_TEXT_SCALE,
+        (CBYTE*)"GPU");
+    if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0])))
+        underline_y[underline_n++] = y + PERF_GLYPH_H_PX;
+    y += PERF_LINE_PX; // no blank under titles — header glued to its rows
+
+    DrawCtx ctx;
+    ctx.frame_ms  = frame_ms;
+    ctx.cpu_total = cpu_total;
+    ctx.ge_total  = ge_total;
+    ctx.gpu_total = gpu_total;
+    ctx.cpu_col_x = cpu_col_x;
+    ctx.ge_col_x  = ge_col_x;
+    ctx.gpu_col_x = gpu_col_x;
+    ctx.max_y     = max_y;
+    ctx.y         = y;
+    ctx.uy        = underline_y;
+    ctx.un        = &underline_n;
+    ctx.ucap      = (int)(sizeof(underline_y) / sizeof(underline_y[0]));
+
+    // Roots in frame call order — contiguous, NO blank lines between
+    // level-1 groups (only ~2 levels; the spacing was clutter and made
+    // the counters list blend in).
+    double root_cpu_sum = 0.0;
+    for (int o = 0; o < s_ordn; o++) {
+        int i = s_ord[o];
+        if (!is_root(i))
             continue;
-        if (is_total(s->name))
-            continue; // frame.total == whole frame == FPS above
-        const double pct = (s->kind == KIND_TIME && frame_ms > 1e-6)
-            ? s->short_avg / frame_ms * 100.0 : 0.0;
+        root_cpu_sum += s_slot[i].short_avg;
+        emit_node(ctx, i);
+    }
+
+    // Top "(other)" = frame − Σ roots wall − GPU-wait: unmeasured gaps
+    // (input, sfx, …) — all pure CPU. GPU-wait is subtracted here too
+    // (it's NOT in s_ord/roots, so it would otherwise leak into this
+    // remainder). Normalised by cpu_total so the column sums to 100%.
+    double other_ms = frame_ms - root_cpu_sum - gpu_wait_ms;
+    if (other_ms < 0.0) other_ms = 0.0;
+    const double other_pct = other_ms / cpu_total * 100.0;
+    emit_row(ctx, "(other)", false, 0.0, other_pct, 0.0, 0.0,
+             other_ms, 0.0, 0.0);
+
+    // Bottom "total" row: each column is its own 100% by construction —
+    // show the absolute ms each column sums to (ge_* CPU real submit,
+    // non-ge_* CPU, GPU) — GPU-wait NOT included. Highlighted colour so
+    // it reads as a footer, not a stage.
+    emit_row(ctx, "total", false, 0.0,
+             cpu_total > 1e-6 ? 100.0 : 0.0,
+             ge_total  > 1e-6 ? 100.0 : 0.0,
+             gpu_total > 1e-6 ? 100.0 : 0.0,
+             cpu_total, ge_total, gpu_total, /*is_total=*/true);
+
+    // "split" row — AFTER total, name yellow like total. Distributes the
+    // measured frame across the 3 columns: each column's total ms as a
+    // share of (ge_total + cpu_total + gpu_total). Left→right the three
+    // sum to 100%. Percentages load-graded red/white like the cells.
+    if (ctx.y <= max_y) {
+        const double split_sum = ge_total + cpu_total + gpu_total;
+        const double inv = split_sum > 1e-6 ? 100.0 / split_sum : 0.0;
+        const double ge_sp  = ge_total  * inv;
+        const double cpu_sp = cpu_total * inv;
+        const double gpu_sp = gpu_total * inv;
         UBYTE r, g, b;
-        pct_color(pct, r, g, b);
-        FONT_buffer_add_scaled(PERF_PAD_PX, y, 200, 200, 200, 1, PERF_TEXT_SCALE,
-            (CBYTE*)"%s", s->name);
-        FONT_buffer_add_scaled(val_col_x, y, r, g, b, 1, PERF_TEXT_SCALE,
-            (CBYTE*)"%05.2f%%", pct);
-        y += PERF_LINE_PX;
+        FONT_buffer_add_scaled(PERF_PAD_PX, ctx.y, PERF_TOTAL_R,
+            PERF_TOTAL_G, PERF_TOTAL_B, 1, PERF_TEXT_SCALE,
+            (CBYTE*)"split");
+        pct_color(ge_sp, r, g, b);
+        FONT_buffer_add_scaled(ctx.ge_col_x, ctx.y, r, g, b, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2f%%", ge_sp);
+        pct_color(cpu_sp, r, g, b);
+        FONT_buffer_add_scaled(ctx.cpu_col_x, ctx.y, r, g, b, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2f%%", cpu_sp);
+        pct_color(gpu_sp, r, g, b);
+        FONT_buffer_add_scaled(ctx.gpu_col_x, ctx.y, r, g, b, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2f%%", gpu_sp);
+        if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0])))
+            underline_y[underline_n++] = ctx.y + PERF_GLYPH_H_PX;
+        ctx.y += PERF_LINE_PX;
     }
-    y += PERF_LINE_PX; // blank line under the fixed block
 
-    // ---- Dynamic groups (everything except "frame") -------------------
-    // First-seen group order. Per group: members listed, then a synthetic
-    // "<group> .total" row (bright underline) — its % is the group's
-    // share of the frame. All group totals + a final "(other)" remainder
-    // sum to exactly 100%, so reading just the .total lines gives the
-    // whole-frame picture; dive into a group only if its total looks off.
-    char   seen[MAX_SLOTS][16];
-    int    seen_n = 0;
-    double sum_groups_pct = 0.0;
+    // glFinish-wait line — AFTER total/split, deliberately OUTSIDE every
+    // column's 100% and with NO percentage (ms only, no parens). It's
+    // the CPU blocked draining the GPU (graphics-side measurement cost);
+    // kept off the percentages so they show only the real work. Muted
+    // amber. Context for "why this FPS", not a thing to optimise.
+    if (ctx.y <= max_y) {
+        FONT_buffer_add_scaled(PERF_PAD_PX, ctx.y, 185, 150, 80, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%s", PERF_GPU_WAIT_NAME);
+        FONT_buffer_add_scaled(ctx.ge_col_x, ctx.y, 185, 150, 80, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", gpu_wait_ms);
+        if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0])))
+            underline_y[underline_n++] = ctx.y + PERF_GLYPH_H_PX;
+        ctx.y += PERF_LINE_PX;
+    }
 
-    for (int gi = 0; gi < s_slot_count; gi++) {
-        char gb[16];
-        group_of(s_slot[gi].name, gb, sizeof(gb));
-        if (strcmp(gb, "frame") == 0)
+    // ---- Counters: separate list (different shape — name + raw value,
+    // no %, no CPU/GPU columns). drawcalls / physics.ticks / … live here.
+    bool any_counter = false;
+    for (int o = 0; o < s_ordn; o++) {
+        const Slot* s = &s_slot[s_ord[o]];
+        if (s->kind != KIND_VALUE)
             continue;
-
-        bool already = false;
-        for (int k = 0; k < seen_n; k++)
-            if (strcmp(seen[k], gb) == 0) { already = true; break; }
-        if (already)
-            continue;
-        snprintf(seen[seen_n++], 16, "%s", gb);
-
-        // Member rows (skip the explicit "<group>.total" — it's the
-        // synthetic total row below).
-        for (int i = 0; i < s_slot_count; i++) {
-            const Slot* s = &s_slot[i];
-            char ig[16];
-            if (strcmp(group_of(s->name, ig, sizeof(ig)), gb) != 0)
-                continue;
-            if (s->kind == KIND_TIME && is_total(s->name))
-                continue;
-            if (y > max_y)
-                break;
-
-            if (s->kind == KIND_TIME) {
-                const double pct = frame_ms > 1e-6
-                    ? s->short_avg / frame_ms * 100.0 : 0.0;
-                UBYTE r, g, b;
-                pct_color(pct, r, g, b);
-                FONT_buffer_add_scaled(PERF_PAD_PX, y, 200, 200, 200, 1,
-                    PERF_TEXT_SCALE, (CBYTE*)"%s", s->name);
-                FONT_buffer_add_scaled(val_col_x, y, r, g, b, 1,
-                    PERF_TEXT_SCALE, (CBYTE*)"%05.2f%%", pct);
-            } else {
-                // Counter (e.g. physics.ticks) — raw value, neutral.
-                FONT_buffer_add_scaled(PERF_PAD_PX, y, 200, 200, 200, 1,
-                    PERF_TEXT_SCALE, (CBYTE*)"%s", s->name);
-                FONT_buffer_add_scaled(val_col_x, y, 200, 200, 200, 1,
-                    PERF_TEXT_SCALE, (CBYTE*)"%.0f", s->short_avg);
-            }
-            if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0]))) {
-                underline_y[underline_n]   = y + PERF_GLYPH_H_PX;
-                underline_tot[underline_n] = false;
-                underline_n++;
-            }
-            y += PERF_LINE_PX;
+        if (!any_counter) {
+            ctx.y += PERF_LINE_PX; // one blank line; heading makes it clear
+            FONT_buffer_add_scaled(PERF_PAD_PX, ctx.y, 150, 200, 230, 1,
+                PERF_TEXT_SCALE, (CBYTE*)"counters");
+            if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0])))
+                underline_y[underline_n++] = ctx.y + PERF_GLYPH_H_PX;
+            ctx.y += PERF_LINE_PX; // no blank — heading glued to its rows
+            any_counter = true;
         }
-
-        // Synthetic group total row.
-        if (y <= max_y) {
-            const double gt = group_total_pct(gb, frame_ms);
-            sum_groups_pct += gt;
-            char tl[32];
-            snprintf(tl, sizeof(tl), "%s .total", gb);
-            // Same colours as a normal row (name neutral, % graded by
-            // load). The ONLY thing that marks a total is the thicker
-            // brighter underline (pass 2).
-            UBYTE r, g, b;
-            pct_color(gt, r, g, b);
-            FONT_buffer_add_scaled(PERF_PAD_PX, y, 200, 200, 200, 1,
-                PERF_TEXT_SCALE, (CBYTE*)"%s", tl);
-            FONT_buffer_add_scaled(val_col_x, y, r, g, b, 1,
-                PERF_TEXT_SCALE, (CBYTE*)"%05.2f%%", gt);
-            if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0]))) {
-                underline_y[underline_n]   = y + PERF_GLYPH_H_PX;
-                underline_tot[underline_n] = true;
-                underline_n++;
-            }
-            y += PERF_LINE_PX;
-        }
-        y += PERF_LINE_PX; // blank line between groups
+        emit_row(ctx, s->name, true, s->short_avg, 0.0, 0.0, 0.0,
+                 0.0, 0.0, 0.0);
     }
 
-    // "(other)" = unmeasured remainder so every .total above + this one
-    // add up to exactly 100% of the frame (gaps between instrumented
-    // blocks: input, sfx, gamepad output, etc.).
-    if (y <= max_y) {
-        double other = 100.0 - sum_groups_pct;
-        if (other < 0.0) other = 0.0;
-        else if (other > 100.0) other = 100.0;
-        UBYTE r, g, b;
-        pct_color(other, r, g, b);
-        FONT_buffer_add_scaled(PERF_PAD_PX, y, 200, 200, 200, 1,
-            PERF_TEXT_SCALE, (CBYTE*)"(other) .total");
-        FONT_buffer_add_scaled(val_col_x, y, r, g, b, 1,
-            PERF_TEXT_SCALE, (CBYTE*)"%05.2f%%", other);
-        if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0]))) {
-            underline_y[underline_n]   = y + PERF_GLYPH_H_PX;
-            underline_tot[underline_n] = true;
-            underline_n++;
-        }
-        y += PERF_LINE_PX;
-    }
-
-    // ---- Pass 2: backdrop + row underlines (literal-pixel layer) ------
-    // Same coordinate space as the text → aligned in gameplay, menu and
-    // cutscenes alike (no AENG_draw_rect / POLY logical-letterbox path).
+    // ---- Pass 2: backdrop + uniform thin row underlines --------------
     FONT_atlas_fill_begin();
     FONT_atlas_fill_rect(0, 0, panel_w, screen_h, 0xE6000000u); // ~90% black
-    for (int i = 0; i < underline_n; i++) {
-        // Total rows: a thicker, brighter rule so the group summary line
-        // stands out from its members.
-        const ULONG col = (ULONG)(underline_tot[i] ? PERF_RULE_TOTAL : PERF_RULE_NORMAL);
-        const SLONG th  = underline_tot[i] ? (2 * PERF_TEXT_SCALE + 1)
-                                           : (PERF_TEXT_SCALE + 1);
-        FONT_atlas_fill_rect(0, underline_y[i], panel_w, th, col);
-    }
+    for (int i = 0; i < underline_n; i++)
+        FONT_atlas_fill_rect(0, underline_y[i], panel_w,
+            PERF_TEXT_SCALE + 1, (ULONG)PERF_RULE_NORMAL);
     FONT_atlas_fill_end();
 }
 

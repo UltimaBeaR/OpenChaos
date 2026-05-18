@@ -79,10 +79,16 @@ extern FONT_Char FONT_number[10];
 extern FONT_Char FONT_punct[FONT_PUNCT_NUMBER];
 
 // Message queue for deferred rendering (filled by FONT_buffer_add, flushed by FONT_buffer_draw).
-// uc_orig: FONT_BUFFER_SIZE (fallen/DDEngine/Source/Font.cpp)
-#define FONT_BUFFER_SIZE (1024 * 8)
-// uc_orig: FONT_MAX_MESSAGES (fallen/DDEngine/Source/Font.cpp)
-#define FONT_MAX_MESSAGES 256
+// uc_orig: FONT_BUFFER_SIZE / FONT_MAX_MESSAGES (fallen/DDEngine/Source/Font.cpp)
+// Enlarged vs original (8K / 256). The OpenChaos debug overlays
+// (dbglog + perf panel) share this single per-frame buffer; a full
+// dbglog emits ~1500-1800 messages/frame (timestamp + up to 6 segments
+// per visible line, ~250 lines) — far over the original 256, which
+// silently dropped everything queued after it (perf-panel values blanked
+// out as the log filled). Sized for that worst case + headroom. Cost is
+// static RAM only (~tens of KB); no effect on the original game paths.
+#define FONT_BUFFER_SIZE (1024 * 64)
+#define FONT_MAX_MESSAGES 2048
 
 // uc_orig: FONT_buffer (fallen/DDEngine/Source/Font.cpp)
 extern CBYTE FONT_buffer[FONT_BUFFER_SIZE];

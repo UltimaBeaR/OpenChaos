@@ -7,6 +7,7 @@
 #include "engine/io/oc_config.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/crt_effect.h"
 #include "debug_config.h" // OC_DEBUG_COMPOSITION_BARS_RED / OC_DEBUG_HIGHLIGHT_NON_UI
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_GE_CALL (no-op when off)
 
 #include <stdio.h>
 
@@ -366,6 +367,7 @@ void draw_composite(int32_t dst_x, int32_t dst_y, int32_t dst_w, int32_t dst_h,
 
 void composition_blit(int32_t window_w, int32_t window_h)
 {
+    PERF_GE_CALL(); // FXAA + upscale = graphics-API CPU (ge_*)
     if (!s_program || !s_color_tex || window_w <= 0 || window_h <= 0)
         return;
 

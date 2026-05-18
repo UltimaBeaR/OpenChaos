@@ -17,6 +17,7 @@
 #include "engine/core/memory.h"
 #include "engine/graphics/pipeline/polypage.h"
 #include "engine/graphics/pipeline/poly.h" // POLY_ZCLIP_PLANE — drives u_view_z_tl_scale
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_SCOPE/GE_CALL/PRE_SWAP (no-op when off)
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -827,11 +828,19 @@ void ge_clear(bool color, bool depth)
 // had its own swap site that I forgot to update).
 static void present_and_swap(int win_w, int win_h)
 {
+    // No PERF_GE_CALL: the swap is GPU/vsync wait, not graphics-API CPU.
+    // The explicit PERF_PRE_SWAP_GPU_DRAIN() below books all GPU-wait
+    // into the separate "GPU wait (glFinish)" line, so render.present
+    // itself reads ~0.
     // Snapshot the finished default-FB into a backing texture so an
     // OS-level drag-resize (which pauses the game's main loop and
     // therefore can't refresh per-tick UI state) has a frame to scale
     // visually. See composition.h's "Last-frame snapshot" section.
     composition_capture_last_frame(win_w, win_h);
+    // Drain & book ALL GPU work here (glFinish mode) so the swap below
+    // waits ~0 and every real GPU-wait is captured, regardless of which
+    // stage ran last. Compiled out entirely when perf is off.
+    PERF_PRE_SWAP_GPU_DRAIN();
     gl_context_swap();
 }
 
@@ -856,18 +865,32 @@ void ge_flip()
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
-    composition_blit(win_w, win_h);
+    { PERF_SCOPE("render.post");
+      composition_blit(win_w, win_h); }
 
     // Default FB is bound and contains the composed scene. UI pass draws
     // on top at native resolution, untouched by the composition shader.
-    if (s_post_composition_callback)
+    // This callback (ui_render_post_composition) is the whole post-
+    // composition UI: HUD console/menu + the debug panels + text flush.
+    // render.ui wrapper (CPU+GPU). Concrete pieces (render.ui.dbglog /
+    // perfpanel / textflush) are scoped inside; "render.ui.other" =
+    // wrapper − those, same formula for CPU and GPU (console/menu/help).
+    // No swap here, and any incidental idle is auto-handled system-wide.
+    if (s_post_composition_callback) {
+        PERF_SCOPE("render.ui");
         s_post_composition_callback();
+    }
 
     // Mirrored across every present path — see ge_set_diagnostic_overlay_callback.
     if (s_diagnostic_overlay_callback)
         s_diagnostic_overlay_callback();
 
-    present_and_swap(win_w, win_h);
+    // render.present = CPU wait on the swap. present_and_swap() does an
+    // explicit glFinish first (PERF_PRE_SWAP_GPU_DRAIN) so all GPU-wait
+    // is booked into the single "GPU wait (glFinish)" line, leaving this
+    // stage ~0 and the per-stage CPU/ge_*/GPU numbers clean.
+    { PERF_SCOPE("render.present");
+      present_and_swap(win_w, win_h); }
 
     // Re-bind the scene FBO for the next frame — see OpenDisplay for why
     // the scene FBO is kept bound between frames (some clears fire before
@@ -1119,9 +1142,21 @@ void ge_set_bound_texture_has_alpha(bool has_alpha)
 // Drawing
 // ---------------------------------------------------------------------------
 
+// Per-frame GPU draw-call counter (perf diagnostics). Bumped at every
+// real glDrawElements below; perf_diag samples + resets it once per
+// frame. Plain counter — no cost worth gating.
+static uint32_t s_draw_calls = 0;
+
+uint32_t ge_draw_call_count()       { return s_draw_calls; }
+void     ge_draw_call_count_reset() { s_draw_calls = 0; }
+
+// Block CPU until the GPU drains (perf_diag "glFinish GPU" mode only).
+void ge_gpu_finish() { glFinish(); }
+
 void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, uint32_t vert_count,
     const uint16_t* indices, uint32_t index_count)
 {
+    PERF_GE_CALL(); // graphics-API CPU (submit + driver + back-pressure)
     if (!index_count || !vert_count)
         return;
     if (!init_shaders())
@@ -1158,11 +1193,13 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
 
     GLenum gl_mode = (type == GEPrimitiveType::TriangleFan) ? GL_TRIANGLE_FAN : GL_TRIANGLES;
     glDrawElements(gl_mode, index_count, GL_UNSIGNED_SHORT, nullptr);
+    s_draw_calls++;
 }
 
 void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* verts, uint32_t vert_count,
     const uint16_t* indices, uint32_t index_count)
 {
+    PERF_GE_CALL(); // (calls ge_draw_indexed_primitive — depth-nested, no double-count)
     if (!index_count || !vert_count)
         return;
 
@@ -1531,22 +1568,37 @@ void ge_blit_back_buffer()
 {
     // Legacy D3D "non-flipping present" path. In GL both flip and blit
     // reduce to the same thing — run composition into the default FB,
-    // then swap. Main game loop (game.cpp:681) uses this, not ge_flip.
+    // then swap. Main game loop (game.cpp:681) uses this, not ge_flip —
+    // so the perf split below must mirror ge_flip's exactly.
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
-    composition_blit(win_w, win_h);
+    { PERF_SCOPE("render.post");
+      composition_blit(win_w, win_h); }
 
     // Default FB is bound and contains the composed scene. UI pass draws
     // on top at native resolution, untouched by the composition shader.
-    if (s_post_composition_callback)
+    // This callback (ui_render_post_composition) is the whole post-
+    // composition UI: HUD console/menu + the debug panels + text flush.
+    // render.ui wrapper (CPU+GPU). Concrete pieces (render.ui.dbglog /
+    // perfpanel / textflush) are scoped inside; "render.ui.other" =
+    // wrapper − those, same formula for CPU and GPU (console/menu/help).
+    // No swap here, and any incidental idle is auto-handled system-wide.
+    if (s_post_composition_callback) {
+        PERF_SCOPE("render.ui");
         s_post_composition_callback();
+    }
 
     // Mirrored across every present path — see ge_set_diagnostic_overlay_callback.
     if (s_diagnostic_overlay_callback)
         s_diagnostic_overlay_callback();
 
-    present_and_swap(win_w, win_h);
+    // render.present = CPU wait on the swap. present_and_swap() does an
+    // explicit glFinish first (PERF_PRE_SWAP_GPU_DRAIN) so all GPU-wait
+    // is booked into the single "GPU wait (glFinish)" line, leaving this
+    // stage ~0 and the per-stage CPU/ge_*/GPU numbers clean.
+    { PERF_SCOPE("render.present");
+      present_and_swap(win_w, win_h); }
 
     // Re-bind scene FBO for the next frame — see OpenDisplay for rationale.
     composition_bind_scene();
@@ -1908,8 +1960,9 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     int win_w = 0, win_h = 0;
     sdl3_window_get_drawable_size(&win_w, &win_h);
     composition_bind_default();
-    composition_blit(win_w, win_h);
-    crt_effect_apply();
+    { PERF_SCOPE("render.post");
+      composition_blit(win_w, win_h);
+      crt_effect_apply(); }
 
     // Only the lightweight diagnostic overlay — never the full post-
     // composition UI pass, since that draws HUD/menus that don't belong
@@ -1917,7 +1970,12 @@ void ge_video_draw_and_swap(GEVideoTexture tex, int video_w, int video_h)
     if (s_diagnostic_overlay_callback)
         s_diagnostic_overlay_callback();
 
-    present_and_swap(win_w, win_h);
+    // render.present = CPU wait on the swap. present_and_swap() does an
+    // explicit glFinish first (PERF_PRE_SWAP_GPU_DRAIN) so all GPU-wait
+    // is booked into the single "GPU wait (glFinish)" line, leaving this
+    // stage ~0 and the per-stage CPU/ge_*/GPU numbers clean.
+    { PERF_SCOPE("render.present");
+      present_and_swap(win_w, win_h); }
 
     // Restore scissor state captured before the video draw.
     glScissor(saved_scissor[0], saved_scissor[1], saved_scissor[2], saved_scissor[3]);
@@ -2290,6 +2348,7 @@ void* ge_vb_prepare(void* vb)
 
 void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count)
 {
+    PERF_GE_CALL(); // graphics-API CPU (submit + driver + back-pressure)
     if (!prepared_vb || !indices || !index_count)
         return;
     if (!init_shaders())
@@ -2331,6 +2390,7 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
 
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
+    s_draw_calls++;
 
     // No unbind — next draw will rebind its own VAO.
 

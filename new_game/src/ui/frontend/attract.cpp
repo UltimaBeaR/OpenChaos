@@ -165,10 +165,12 @@ reinit_because_of_language_change:
 
         extern void lock_frame_rate(SLONG fps);
         extern SLONG g_render_fps_cap;
-        { PERF_SCOPE("idle.wait"); lock_frame_rate(g_render_fps_cap); }
+        { PERF_SCOPE("idle"); lock_frame_rate(g_render_fps_cap); }
 
         if ((GAME_STATE & GS_PLAY_GAME) == 0) {
-            { PERF_SCOPE("render.present"); AENG_flip(); }
+            // AENG_flip() → ge_flip(): split inside into
+            // render.post / render.ui / render.present.
+            AENG_flip();
         }
 
         PERF_FRAME_END();

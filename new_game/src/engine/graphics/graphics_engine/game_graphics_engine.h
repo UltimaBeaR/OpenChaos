@@ -171,6 +171,28 @@ void ge_clear(bool color, bool depth);
 void ge_flip();
 
 // ---------------------------------------------------------------------------
+// Diagnostics (debug perf only — see engine/debug/perf_diag)
+// ---------------------------------------------------------------------------
+//
+// These have a real backend implementation but are ONLY ever called from
+// OC_DEBUG_PERF / OC_DEBUG_PERF_LOG-gated code (perf_diag). When the perf
+// flags are off, perf_diag's macros compile to nothing, so none of these
+// are invoked — zero runtime cost (only the unused code bytes remain).
+//
+// Block the CPU until the GPU has finished all submitted commands
+// (glFinish). perf_diag uses this in its optional "glFinish GPU" mode:
+// finishing at a stage boundary lets the CPU clock measure that stage's
+// real GPU time (no idle counted). DELIBERATELY serialises CPU/GPU →
+// distorts FPS while the mode is on; that's the point (compare realistic
+// vs synchronised). Only called from OC_DEBUG_PERF-gated perf code.
+void     ge_gpu_finish();
+
+// Per-frame GPU draw-call counter (number of draw submissions since the
+// last reset). perf_diag samples then resets it once per frame.
+uint32_t ge_draw_call_count();
+void     ge_draw_call_count_reset();
+
+// ---------------------------------------------------------------------------
 // Render state
 // ---------------------------------------------------------------------------
 

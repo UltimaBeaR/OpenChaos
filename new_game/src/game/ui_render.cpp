@@ -192,14 +192,15 @@ void ui_render_post_composition(void)
     }
 
     input_debug_render();
-    DBGLOG_draw(); // generic debug log (own batch); no-op unless OC_DEBUG_LOG
-    // Perf-diag panel — measures its OWN draw cost so a slow panel can't
-    // hide behind the metrics it shows. Named render._perf_panel: it runs
-    // inside the overlay (render.overlay) so the leading '_' marks it as
-    // an info sub-metric — shown, but NOT summed into render's group total
-    // (it's already inside render.overlay; counting it would double up).
-    // No-op unless OC_DEBUG_PERF.
-    { PERF_SCOPE("render._perf_panel"); PERF_DRAW(); }
+
+    // render.ui detail. NOTE: DBGLOG_draw / PERF_DRAW only QUEUE glyphs
+    // into the shared FONT buffer (+ draw their own backdrop). The heavy
+    // glyph rasterisation for ALL panels happens together in the one
+    // FONT_buffer_draw below → render.ui.textflush. So dbglog/perfpanel
+    // rows are small (backdrop+queue); the real cost is the shared
+    // textflush (can't be split per panel — one buffer, one flush).
+    { PERF_SCOPE("render.ui.dbglog"); DBGLOG_draw(); } // no-op unless OC_DEBUG_LOG
+    { PERF_SCOPE("render.ui.perfpanel"); PERF_DRAW(); } // no-op unless OC_DEBUG_PERF
     debug_help_render();
     if (!(GAME_FLAGS & GF_PAUSED)) {
         CONSOLE_draw();
@@ -218,7 +219,12 @@ void ui_render_post_composition(void)
     // resolution, untouched by the composition shader. Before the split
     // this flush ran inside screen_flip() before AENG_blit, so the text
     // landed in the scene FBO and got softened by FXAA / bilinear upscale.
-    FONT_buffer_draw();
+    // All debug text (dbglog right panel, perf left panel, FPS overlay,
+    // gamepad/help text) is queued into the shared FONT buffer and
+    // submitted to the GPU here in ONE flush — this is where the real
+    // per-glyph cost of every panel lands (shared; not splittable per
+    // panel). Watch render.ui.textflush grow with the dbglog line count.
+    { PERF_SCOPE("render.ui.textflush"); FONT_buffer_draw(); }
 
     // Frontend menu overlay (text + map markers + corner tab buttons + title
     // wibble + mission select + moving-panel preview). Drawn LAST so it sits
