@@ -1059,7 +1059,20 @@ void ge_set_depth_bias(int32_t bias)
         // GL polygon offset: offset = factor * slope + units * min_resolvable.
         // With 24-bit Z-buffer, min_resolvable is ~1/2^24 ≈ 6e-8, much finer
         // than D3D6's 16-bit Z, so we need large unit values to match.
-        glPolygonOffset(-1.0f, (float)(-bias * 512));
+        //
+        // The depth buffer is 1/z (z_buf = 1 - P/view_z, P = POLY_ZCLIP_PLANE),
+        // so a fixed window-depth units offset maps to a view-space pull that
+        // scales linearly with P. The "512" multiplier was empirically
+        // calibrated against the original near plane P = 1/64. When
+        // POLY_ZCLIP_PLANE moved 1/64 -> 1/512 the 1/z curve flattened 8x and
+        // this fixed offset began over-pulling distant decals toward the
+        // camera — a far character's ground shadow drew over a nearer
+        // character's body. Derive the multiplier from POLY_ZCLIP_PLANE
+        // (poly.h explicitly flags this constant as one that must track it):
+        // reproduces 512 exactly at P = 1/64 and scales to 64 at P = 1/512.
+        const float UNITS_PER_BIAS_STEP =
+            512.0f * (POLY_ZCLIP_PLANE / (1.0f / 64.0f));
+        glPolygonOffset(-1.0f, -(float)bias * UNITS_PER_BIAS_STEP);
     } else {
         glDisable(GL_POLYGON_OFFSET_FILL);
     }

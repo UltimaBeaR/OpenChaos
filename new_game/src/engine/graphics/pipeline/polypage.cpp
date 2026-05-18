@@ -5,6 +5,7 @@
 #include "assets/texture.h"
 
 #include <math.h>
+#include <vector>
 
 // Callback for reporting drawn poly count to game code.
 static GEPolysDrawnCallback s_polys_drawn_callback = nullptr;
@@ -410,6 +411,44 @@ void PolyPage::Clear()
     m_PolyBufUsed = 0;
 }
 
+namespace {
+// Stage-1 draw-call batching for the character/figure path.
+//
+// ge_draw_multi_matrix used to submit ONE draw call per triangle, so 130 MM
+// calls exploded into ~4187 GL draws (×32). We now accumulate the whole MM
+// call's CPU-transformed triangles and submit them in a single
+// ge_draw_indexed_primitive. Vertex data and winding are byte-identical to
+// the old per-triangle path — pure draw-call reduction, no visual change.
+// State (texture/blend/fog) is constant across one MM call (set by the
+// caller before the call), so collapsing it into one draw is
+// state-equivalent. Cross-call merging (by texture) is a later stage.
+//
+// Render-thread singletons; std::vector capacity is retained across calls so
+// steady state has no per-frame malloc/free (same proven pattern as the
+// sky.cpp star batching). This accumulator is intentionally local for now;
+// the later effects/UI work (Stage 3) will factor a shared batcher out.
+std::vector<GEVertexTL> s_mm_verts;
+std::vector<uint16_t>   s_mm_inds;
+
+// One triangle = 3 unique verts (transform is per-vertex via the bone
+// matrix, so verts cannot be deduplicated). Flush before a triangle that
+// would push the vertex count past the uint16_t index limit. 65532/3 = 21844
+// triangles — far above any single body part, so in practice there is
+// exactly one flush per MM call.
+constexpr uint32_t MM_FLUSH_VERT_THRESHOLD = 65535 - 3;
+
+inline void mm_flush_batch()
+{
+    if (s_mm_inds.empty())
+        return;
+    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
+        s_mm_verts.data(), uint32_t(s_mm_verts.size()),
+        s_mm_inds.data(), uint32_t(s_mm_inds.size()));
+    s_mm_verts.clear();
+    s_mm_inds.clear();
+}
+} // namespace
+
 // uc_orig: DrawIndPrimMM (fallen/DDEngine/Source/polypage.cpp)
 // Software emulation of the Dreamcast's DrawPrimitiveMM.
 // Transforms vertices using per-vertex matrix indices, then submits as indexed triangles.
@@ -540,10 +579,22 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 wMyIndices[1] = 1;
                 wMyIndices[2] = 2;
             }
-            ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, pTLVert, 3, wMyIndices, 3);
+            // Stage-1: accumulate this triangle instead of submitting it
+            // on its own. Verts/winding identical to the per-triangle path;
+            // flushed in one draw per MM call after the loop.
+            if (s_mm_verts.size() > MM_FLUSH_VERT_THRESHOLD)
+                mm_flush_batch();
+            uint16_t base = (uint16_t)s_mm_verts.size();
+            s_mm_verts.push_back(pTLVert[0]);
+            s_mm_verts.push_back(pTLVert[1]);
+            s_mm_verts.push_back(pTLVert[2]);
+            s_mm_inds.push_back((uint16_t)(base + wMyIndices[0]));
+            s_mm_inds.push_back((uint16_t)(base + wMyIndices[1]));
+            s_mm_inds.push_back((uint16_t)(base + wMyIndices[2]));
         }
         if (num_indices == 0) {
             break;
         }
     }
+    mm_flush_batch(); // Stage-1: single draw call for the whole MM call
 }
