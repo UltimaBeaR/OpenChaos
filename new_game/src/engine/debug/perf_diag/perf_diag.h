@@ -60,11 +60,32 @@ struct ScopeTimer {
     Slot* slot;
     unsigned long long t0;
     unsigned long long ge0; // graphics-API accumulator snapshot at entry
-    unsigned long long gf0; // glFinish-wait accumulator snapshot at entry
+    unsigned long long gf0;   // glFinish-wait accumulator snapshot at entry
+    unsigned long long ov0;   // perf-overhead wall accumulator snapshot
+    unsigned long long ovge0; // perf-overhead ge_* accumulator snapshot
     explicit ScopeTimer(Slot* s);
     ~ScopeTimer();
     ScopeTimer(const ScopeTimer&) = delete;
     ScopeTimer& operator=(const ScopeTimer&) = delete;
+};
+
+// Perf-panel overhead bracket. Wrap each chunk of work that exists ONLY
+// to draw the diagnostics panel itself (queue its glyphs + flush them) —
+// the cost of measuring, not the game. Handled exactly like GPU-wait:
+// each instance's wall (incl. its own GPU drain) is added to a global
+// accumulator that every enclosing ScopeTimer subtracts from its wall,
+// so render.ui.other / render.other / the percentages stay PURE — free
+// of the panel's cost. The per-frame sum is shown as one separate
+// "perfpanel" line next to "GPU wait", outside every 100%. Multiple
+// instances per frame (queue site + flush site) SUM into that one line
+// (shared accumulator — no overwrite). No slot, no hierarchy.
+struct OverheadTimer {
+    unsigned long long t0;
+    unsigned long long ge0; // s_ge_accum snapshot at entry
+    OverheadTimer();
+    ~OverheadTimer();
+    OverheadTimer(const OverheadTimer&) = delete;
+    OverheadTimer& operator=(const OverheadTimer&) = delete;
 };
 
 // GPU per-stage time is measured by ScopeTimer itself: each scope drains
@@ -128,6 +149,12 @@ void draw();
                           (double)(val));                                      \
     } while (0)
 
+// RAII bracket marking diagnostics-only overhead (perf-panel queue +
+// flush). Books its cost to the separate "perfpanel" line, kept out of
+// every stage and every 100% (see OverheadTimer).
+#define PERF_OVERHEAD_SCOPE()                                                  \
+    ::perf::OverheadTimer OC_PERF_CONCAT(perf_ovh_, __LINE__)
+
 // Deprecated: GPU is measured by PERF_SCOPE itself (per-scope glFinish).
 #define PERF_GPU_SCOPE(name) ((void)0)
 
@@ -148,6 +175,7 @@ void draw();
 
 #define PERF_SCOPE(name)      ((void)0)
 #define PERF_COUNT(name, val) ((void)0)
+#define PERF_OVERHEAD_SCOPE() ((void)0)
 #define PERF_GPU_SCOPE(name)  ((void)0)
 #define PERF_GE_CALL()        ((void)0)
 #define PERF_PRE_SWAP_GPU_DRAIN() ((void)0)

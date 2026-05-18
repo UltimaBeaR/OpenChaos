@@ -194,13 +194,16 @@ void ui_render_post_composition(void)
     input_debug_render();
 
     // render.ui detail. NOTE: DBGLOG_draw / PERF_DRAW only QUEUE glyphs
-    // into the shared FONT buffer (+ draw their own backdrop). The heavy
-    // glyph rasterisation for ALL panels happens together in the one
-    // FONT_buffer_draw below → render.ui.textflush. So dbglog/perfpanel
-    // rows are small (backdrop+queue); the real cost is the shared
-    // textflush (can't be split per panel — one buffer, one flush).
+    // (+ draw their own backdrop). The heavy glyph rasterisation happens
+    // later in the flush. dbglog + game text share the MAIN queue (one
+    // FONT_buffer_draw → render.ui.textflush, still not splittable
+    // per-panel). The perf panel is pure diagnostics overhead, NOT game
+    // work: both its queue site (here) and its flush site (below) are
+    // wrapped in PERF_OVERHEAD_SCOPE — summed into one standalone
+    // "perfpanel" line, subtracted from every stage so it never skews
+    // the real percentages (mirrors the GPU-wait line).
     { PERF_SCOPE("render.ui.dbglog"); DBGLOG_draw(); } // no-op unless OC_DEBUG_LOG
-    { PERF_SCOPE("render.ui.perfpanel"); PERF_DRAW(); } // no-op unless OC_DEBUG_PERF
+    { PERF_OVERHEAD_SCOPE(); PERF_DRAW(); }            // no-op unless OC_DEBUG_PERF
     debug_help_render();
     if (!(GAME_FLAGS & GF_PAUSED)) {
         CONSOLE_draw();
@@ -219,12 +222,21 @@ void ui_render_post_composition(void)
     // resolution, untouched by the composition shader. Before the split
     // this flush ran inside screen_flip() before AENG_blit, so the text
     // landed in the scene FBO and got softened by FXAA / bilinear upscale.
-    // All debug text (dbglog right panel, perf left panel, FPS overlay,
-    // gamepad/help text) is queued into the shared FONT buffer and
-    // submitted to the GPU here in ONE flush — this is where the real
-    // per-glyph cost of every panel lands (shared; not splittable per
-    // panel). Watch render.ui.textflush grow with the dbglog line count.
+    // All debug text EXCEPT the perf panel (dbglog right panel, FPS
+    // overlay, gamepad/help text) is queued into the shared MAIN FONT
+    // buffer and submitted to the GPU here in ONE flush — the real
+    // per-glyph cost of these lands here (shared; not splittable among
+    // them). Watch render.ui.textflush grow with the dbglog line count.
+    // The perf panel uses its own queue, flushed separately just below.
     { PERF_SCOPE("render.ui.textflush"); FONT_buffer_draw(); }
+
+    // The perf panel queues its glyphs into a SEPARATE queue (see
+    // FONT_buffer_select in PERF_DRAW). Flush it on its own AFTER the main
+    // flush so the panel still draws on top. PERF_OVERHEAD_SCOPE books
+    // this flush together with the queue site above into the single
+    // "perfpanel" overhead line (not a game stage). No-op (empty queue)
+    // unless OC_DEBUG_PERF and the panel is visible.
+    { PERF_OVERHEAD_SCOPE(); FONT_buffer_draw_perf(); }
 
     // Frontend menu overlay (text + map markers + corner tab buttons + title
     // wibble + mission select + moving-panel preview). Drawn LAST so it sits

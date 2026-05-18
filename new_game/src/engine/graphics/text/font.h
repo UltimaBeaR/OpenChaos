@@ -60,10 +60,35 @@ void FONT_buffer_add_scaled(
     UBYTE glyph_scale,
     CBYTE* fmt, ...);
 
+// Deferred-text queue selector (OpenChaos addition — not in the original).
+// There are two independent queues sharing the same submit/flush code:
+//
+//   FONT_QUEUE_MAIN (0) — the default. Everything (game text, dbglog,
+//                         FPS/help overlays, console, …) goes here and is
+//                         flushed by FONT_buffer_draw().
+//   FONT_QUEUE_PERF (1) — used ONLY by the perf-diag panel so its own
+//                         glyph rasterisation can be measured separately
+//                         from game/dbglog text. Flushed by
+//                         FONT_buffer_draw_perf().
+//
+// FONT_buffer_select switches which queue subsequent FONT_buffer_add*
+// calls land in. The perf panel brackets its emission with
+// select(PERF) … select(MAIN). Every other caller leaves it at MAIN and
+// is byte-identical to before this split.
+#define FONT_QUEUE_MAIN 0
+#define FONT_QUEUE_PERF 1
+#define FONT_QUEUE_COUNT 2
+void FONT_buffer_select(int queue);
+
 // Renders all queued messages and clears the queue.
 // Locks and unlocks the screen internally.
 // uc_orig: FONT_buffer_draw (fallen/DDEngine/Headers/Font.h)
 void FONT_buffer_draw(void);
+
+// Flush ONLY the perf-panel queue (FONT_QUEUE_PERF). Call after
+// FONT_buffer_draw() so the panel still draws on top. No-op if the perf
+// queue is empty. OpenChaos addition (perf-diag).
+void FONT_buffer_draw_perf(void);
 
 // OpenChaos addition: pixel width `str` would occupy if drawn starting
 // at pixel `x`. Mirrors FONT_draw_coloured_text's advance exactly

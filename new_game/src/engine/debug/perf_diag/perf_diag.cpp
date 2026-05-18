@@ -119,6 +119,45 @@ static uint64_t s_frame_gf0     = 0; // snapshot at frame_begin
 // only the real work.
 static const char* const PERF_GPU_WAIT_NAME = "GPU wait (glFinish)";
 
+// Global monotonic accumulator (ticks) of time spent inside
+// PERF_OVERHEAD_SCOPE — the cost of drawing the perf panel itself
+// (glyph queue + flush). Treated exactly like s_gfinish_accum: every
+// ScopeTimer subtracts the overhead that elapsed inside it from its own
+// wall, so EVERY stage / wrapper ".other" / percentage stays pure (the
+// diagnostics cost never pollutes the game's numbers). The per-frame
+// total is booked into the slot below and drawn as one standalone line
+// next to "GPU wait", outside every 100%. The queue site and the flush
+// site both add here → they SUM (no overwrite).
+static uint64_t s_overhead_accum = 0;
+static uint64_t s_frame_ov0      = 0; // snapshot at frame_begin
+
+// Companion accumulator: graphics-API CPU (s_ge_accum ticks) spent INSIDE
+// PERF_OVERHEAD_SCOPE. The panel's glyph flush issues real ge_* draws, so
+// without this their ge_* CPU would leak into the enclosing scope's ge_*
+// channel (render.ui.other) and inflate the "ge_* CPU" column with
+// diagnostics. ScopeTimer subtracts this from its ge attribution exactly
+// as it does for the wall, keeping that column pure too.
+static uint64_t s_overhead_ge_accum = 0;
+
+// Companion accumulator: GPU drain (ge_gpu_finish ticks) done INSIDE
+// PERF_OVERHEAD_SCOPE — the panel's own GPU work. Display-only: lets the
+// "perfpanel" row split honestly into ge_* / non-ge / GPU. NOT subtracted
+// from enclosing scopes' GPU channel (the panel drains its own GPU here,
+// so a parent's glFinish already reads ~0 for it — no leak to strip).
+static uint64_t s_overhead_gpu_accum = 0;
+
+// Frame-start snapshots for the per-frame perfpanel split (mirrors
+// s_frame_ov0 for the wall, added so ge_* / GPU parts are per-frame too).
+static uint64_t s_frame_ovge0  = 0;
+static uint64_t s_frame_ovgpu0 = 0;
+
+// The single "perf panel draw cost" row. Kept out of s_ord/roots and out
+// of every column total; drawn as its own muted ms-only line by the
+// total, like GPU-wait. Shown short ("perfpanel") so it reads as a
+// thing apart, not as render.ui internals (even though that's physically
+// where it runs).
+static const char* const PERF_PERFPANEL_NAME = "perfpanel";
+
 // Stamp a slot's frame call order + liveness on its first hit this frame.
 static void touch_slot(Slot* s)
 {
@@ -169,7 +208,8 @@ void add_value(Slot* s, double v)
 
 ScopeTimer::ScopeTimer(Slot* s)
     : slot(s), t0((ensure_freq(), sdl3_get_performance_counter())),
-      ge0(s_ge_accum), gf0(s_gfinish_accum)
+      ge0(s_ge_accum), gf0(s_gfinish_accum), ov0(s_overhead_accum),
+      ovge0(s_overhead_ge_accum)
 {
     touch_slot(s);
 }
@@ -185,9 +225,19 @@ ScopeTimer::~ScopeTimer()
     // of the synthetic glFinish cost (which is shown as its own row).
     double wall = (double)(now - t0);
     wall -= (double)(s_gfinish_accum - gf0);
+    // Also strip the perf-panel overhead that ran inside this scope, so
+    // every stage / wrapper ".other" stays free of the diagnostics cost
+    // (same contract as the glFinish subtraction above).
+    wall -= (double)(s_overhead_accum - ov0);
     if (wall < 0.0) wall = 0.0;
     slot->accum += wall * 1000.0 / (double)s_freq;
-    slot->ge_accum += (double)(s_ge_accum - ge0) * 1000.0 / (double)s_freq;
+    // ge_* spent inside this scope, MINUS the perf-panel's own ge_* that
+    // ran within it (same isolation as the wall above) so the "ge_* CPU"
+    // column never includes the diagnostics flush.
+    double ge_t = (double)(s_ge_accum - ge0)
+                - (double)(s_overhead_ge_accum - ovge0);
+    if (ge_t < 0.0) ge_t = 0.0;
+    slot->ge_accum += ge_t * 1000.0 / (double)s_freq;
 
     // Drain the GPU now. The previous (sequential) scope already drained
     // its work, so this wait = THIS scope's real GPU time. Wrappers
@@ -214,6 +264,35 @@ GeCallTimer::~GeCallTimer()
 {
     if (--s_ge_depth == 0)
         s_ge_accum += sdl3_get_performance_counter() - s_ge_t0;
+}
+
+// ---- Perf-panel overhead bracket ----------------------------------------
+
+OverheadTimer::OverheadTimer()
+    : t0((ensure_freq(), sdl3_get_performance_counter())), ge0(s_ge_accum)
+{
+}
+
+OverheadTimer::~OverheadTimer()
+{
+    if (s_freq == 0)
+        return;
+    // Drain the GPU so the panel's own draw cost (incl. its GPU work) is
+    // fully attributed here, not leaked into a later stage's glFinish.
+    // Deliberately NOT added to s_gfinish_accum — this is perf-panel
+    // overhead, booked to the "perfpanel" line, never the "GPU wait" one.
+    // Time the drain on its own so the perfpanel row can split into
+    // ge_* / non-ge / GPU.
+    const uint64_t pre_finish = sdl3_get_performance_counter();
+    ge_gpu_finish();
+    const uint64_t after = sdl3_get_performance_counter();
+    s_overhead_gpu_accum += after - pre_finish;
+    // Book this instance's ge_* (the flush's real draws) so every
+    // enclosing ScopeTimer strips it from its ge_* channel, then its
+    // wall (incl. the drain just above) so they strip that too. ge first
+    // — the wall add must come last so a parent's snapshot diff is exact.
+    s_overhead_ge_accum += s_ge_accum - ge0;
+    s_overhead_accum += after - t0;
 }
 
 // Drain the GPU right before the buffer swap and book the wait into the
@@ -294,6 +373,9 @@ void frame_begin()
     s_frame_began = true;
     s_seq_counter = 0; // restart per-frame call-order numbering
     s_frame_gf0 = s_gfinish_accum;
+    s_frame_ov0    = s_overhead_accum;
+    s_frame_ovge0  = s_overhead_ge_accum;
+    s_frame_ovgpu0 = s_overhead_gpu_accum;
     s_frame_t0 = sdl3_get_performance_counter();
 }
 
@@ -331,6 +413,26 @@ void frame_end()
             touch_slot(s_gf);
             s_gf->accum += (double)(s_gfinish_accum - s_frame_gf0)
                 * 1000.0 / (double)s_freq;
+        }
+    }
+
+    // Perf-panel draw cost for the frame just finished (queue + flush
+    // sites summed via s_overhead_accum). One standalone "perfpanel"
+    // row, like GPU-wait: out of s_ord and every 100%, drawn by the
+    // footer. Already subtracted from every stage's wall by ScopeTimer.
+    {
+        static Slot* s_ovh = nullptr;
+        if (!s_ovh)
+            s_ovh = get_slot(PERF_PERFPANEL_NAME, KIND_TIME);
+        if (s_ovh) {
+            touch_slot(s_ovh);
+            const double k = 1000.0 / (double)s_freq;
+            // wall total (= ge_* submit + non-ge build + GPU drain),
+            // plus the ge_* and GPU parts so the row splits honestly.
+            // The generic roll below averages all three channels.
+            s_ovh->accum     += (double)(s_overhead_accum    - s_frame_ov0)    * k;
+            s_ovh->ge_accum  += (double)(s_overhead_ge_accum  - s_frame_ovge0) * k;
+            s_ovh->gpu_accum += (double)(s_overhead_gpu_accum - s_frame_ovgpu0)* k;
         }
     }
 
@@ -644,6 +746,14 @@ void draw()
     if (screen_w <= 0 || screen_h <= 0)
         return;
 
+    // Route this panel's glyphs into the dedicated PERF queue so its
+    // rasterisation is flushed (and timed) on its own — separate from
+    // game/dbglog text. Restored to MAIN before returning. No early
+    // returns between here and the end of the function (the ctx.y guards
+    // only skip emission). The FONT_atlas_fill_* backdrop path is
+    // immediate, not queued, so the selector does not affect it.
+    FONT_buffer_select(FONT_QUEUE_PERF);
+
     const double frame_ms = s_frame_total ? s_frame_total->short_avg : 0.0;
     const SLONG  max_y = screen_h - PERF_LINE_PX;
     const double fps = frame_ms > 1e-6 ? 1000.0 / frame_ms : 0.0;
@@ -662,6 +772,23 @@ void draw()
             break;
         }
 
+    // Perf-panel draw cost — same treatment as GPU-wait: captured for
+    // its own line + subtracted from cpu_total/(other) so it stays out
+    // of every 100%.
+    double perfpanel_ms = 0.0;   // wall total (removed from the 100%)
+    double perfpanel_ge = 0.0;   // ge_* part   (flush draws)
+    double perfpanel_gpu = 0.0;  // GPU part    (its glFinish drain)
+    for (int i = 0; i < s_slot_count; i++)
+        if (strcmp(s_slot[i].name, PERF_PERFPANEL_NAME) == 0) {
+            perfpanel_ms  = s_slot[i].short_avg;
+            perfpanel_ge  = s_slot[i].ge_short_avg;
+            perfpanel_gpu = s_slot[i].gpu_short_avg;
+            break;
+        }
+    // non-ge CPU = wall − ge_* − GPU drain (the CPU glyph build / queue).
+    double perfpanel_nonge = perfpanel_ms - perfpanel_ge - perfpanel_gpu;
+    if (perfpanel_nonge < 0.0) perfpanel_nonge = 0.0;
+
     s_stale_win = (uint64_t)short_w();
     s_ordn = 0;
     for (int i = 0; i < s_slot_count; i++) {
@@ -670,7 +797,8 @@ void draw()
         // after the total — must not also be a stage/root here).
         if (is_frame_group(s_slot[i].name) || slot_stale(i)
             || s_slot[i].name[0] == '_'
-            || strcmp(s_slot[i].name, PERF_GPU_WAIT_NAME) == 0)
+            || strcmp(s_slot[i].name, PERF_GPU_WAIT_NAME) == 0
+            || strcmp(s_slot[i].name, PERF_PERFPANEL_NAME) == 0)
             continue;
         s_ord[s_ordn++] = i;
     }
@@ -709,7 +837,10 @@ void draw()
         if (is_root(i))
             ge_total += s_slot[i].ge_short_avg;
     }
-    double cpu_total = frame_ms - ge_total - gpu_wait_ms;
+    // perfpanel subtracted too: ScopeTimer already strips it from every
+    // stage's wall, but frame.total is raw (incl. it), so the non-ge
+    // denominator must drop it as well or the rows wouldn't sum to 100%.
+    double cpu_total = frame_ms - ge_total - gpu_wait_ms - perfpanel_ms;
     if (cpu_total < 1e-6) cpu_total = 1e-6;
 
     // Header is just the FPS line now (the CPU/GPU breakdown moved into
@@ -825,11 +956,12 @@ void draw()
         emit_node(ctx, i);
     }
 
-    // Top "(other)" = frame − Σ roots wall − GPU-wait: unmeasured gaps
-    // (input, sfx, …) — all pure CPU. GPU-wait is subtracted here too
-    // (it's NOT in s_ord/roots, so it would otherwise leak into this
-    // remainder). Normalised by cpu_total so the column sums to 100%.
-    double other_ms = frame_ms - root_cpu_sum - gpu_wait_ms;
+    // Top "(other)" = frame − Σ roots wall − GPU-wait − perfpanel:
+    // unmeasured gaps (input, sfx, …) — all pure CPU. GPU-wait and the
+    // perf-panel cost are subtracted here too (neither is in s_ord/roots,
+    // so they'd otherwise leak into this remainder). Normalised by
+    // cpu_total so the column sums to 100%.
+    double other_ms = frame_ms - root_cpu_sum - gpu_wait_ms - perfpanel_ms;
     if (other_ms < 0.0) other_ms = 0.0;
     const double other_pct = other_ms / cpu_total * 100.0;
     emit_row(ctx, "(other)", false, 0.0, other_pct, 0.0, 0.0,
@@ -873,16 +1005,47 @@ void draw()
         ctx.y += PERF_LINE_PX;
     }
 
+    // perf-panel cost line — AFTER total/split, next to GPU-wait. Pure
+    // diagnostics overhead (this panel's own glyph queue + flush), kept
+    // OUTSIDE every column's 100% (already subtracted from every stage's
+    // wall + from cpu_total/(other)). ms-only, muted slate so it reads
+    // as "not the game" and is distinct from the amber GPU-wait line.
+    if (ctx.y <= max_y) {
+        const UBYTE pr = 150, pg = 160, pb = 185; // muted slate
+        FONT_buffer_add_scaled(PERF_PAD_PX, ctx.y, pr, pg, pb, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%s", PERF_PERFPANEL_NAME);
+        // Honest 3-way split (ge_* draws / CPU glyph build / GPU drain),
+        // ms only — no %, there's nothing to take a share OF (it's
+        // outside every 100%). Σ of the three = the wall on the line.
+        FONT_buffer_add_scaled(ctx.ge_col_x, ctx.y, pr, pg, pb, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", perfpanel_ge);
+        FONT_buffer_add_scaled(ctx.cpu_col_x, ctx.y, pr, pg, pb, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", perfpanel_nonge);
+        FONT_buffer_add_scaled(ctx.gpu_col_x, ctx.y, pr, pg, pb, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", perfpanel_gpu);
+        if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0])))
+            underline_y[underline_n++] = ctx.y + PERF_GLYPH_H_PX;
+        ctx.y += PERF_LINE_PX;
+    }
+
     // glFinish-wait line — AFTER total/split, deliberately OUTSIDE every
     // column's 100% and with NO percentage (ms only, no parens). It's
     // the CPU blocked draining the GPU (graphics-side measurement cost);
     // kept off the percentages so they show only the real work. Muted
     // amber. Context for "why this FPS", not a thing to optimise.
     if (ctx.y <= max_y) {
-        FONT_buffer_add_scaled(PERF_PAD_PX, ctx.y, 185, 150, 80, 1,
+        const UBYTE wr = 185, wg = 150, wb = 80; // muted amber
+        FONT_buffer_add_scaled(PERF_PAD_PX, ctx.y, wr, wg, wb, 1,
             PERF_TEXT_SCALE, (CBYTE*)"%s", PERF_GPU_WAIT_NAME);
-        FONT_buffer_add_scaled(ctx.ge_col_x, ctx.y, 185, 150, 80, 1,
+        // It's a glFinish (a graphics-API call) → the real number lives
+        // in the ge_* column. non-ge / GPU have no meaningful split here;
+        // shown as artificial 00.00ms just so all 3 columns line up.
+        FONT_buffer_add_scaled(ctx.ge_col_x, ctx.y, wr, wg, wb, 1,
             PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", gpu_wait_ms);
+        FONT_buffer_add_scaled(ctx.cpu_col_x, ctx.y, wr, wg, wb, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", 0.0);
+        FONT_buffer_add_scaled(ctx.gpu_col_x, ctx.y, wr, wg, wb, 1,
+            PERF_TEXT_SCALE, (CBYTE*)"%05.2fms", 0.0);
         if (underline_n < (int)(sizeof(underline_y) / sizeof(underline_y[0])))
             underline_y[underline_n++] = ctx.y + PERF_GLYPH_H_PX;
         ctx.y += PERF_LINE_PX;
@@ -915,6 +1078,8 @@ void draw()
         FONT_atlas_fill_rect(0, underline_y[i], panel_w,
             PERF_TEXT_SCALE + 1, (ULONG)PERF_RULE_NORMAL);
     FONT_atlas_fill_end();
+
+    FONT_buffer_select(FONT_QUEUE_MAIN);
 }
 
 #else // !OC_DEBUG_PERF — log-only build: panel is a no-op

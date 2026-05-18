@@ -10,6 +10,7 @@
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::s_XScale / s_YScale (virtual → pixel scale)
 
 #include "engine/core/macros.h"
+#include "debug_config.h" // OC_DEBUG_PERF — gates the perf-panel text queue
 #include <math.h>
 
 // uc_orig: FONT_TAB (fallen/DDEngine/Source/Font.cpp)
@@ -222,10 +223,77 @@ SLONG FONT_draw(SLONG x, SLONG y, CBYTE* fmt, ...)
     return x - xstart;
 }
 
+// --- Deferred-text queues -------------------------------------------------
+//
+// Queue 0 (MAIN) reuses the original globals (FONT_buffer / FONT_message
+// / *_upto) so its behaviour is byte-identical to before this split.
+// Queue 1 (PERF) exists ONLY when the perf-diag panel is compiled in
+// (OC_DEBUG_PERF) — used solely by that panel so its glyph rasterisation
+// is timed separately. When OC_DEBUG_PERF is off the PERF queue and its
+// backing storage are NOT compiled in at all (no static RAM spent on a
+// feature that can't run): only the MAIN queue exists, select() is a
+// no-op, and FONT_buffer_draw_perf() does nothing. See font.h.
+namespace {
+
+struct FontQueue {
+    CBYTE*        buf_base;  // backing string storage
+    SLONG         buf_size;
+    CBYTE**       buf_upto;  // -> this queue's write cursor variable
+    FONT_Message* msgs;      // message records
+    SLONG         max_msgs;
+    SLONG*        msg_upto;  // -> this queue's message-count variable
+};
+
+#if OC_DEBUG_PERF
+
+// Perf-panel queue storage. Sized for the panel's worst case (~stage
+// rows × up to 4 cells + header/legend/counters) with headroom — much
+// smaller than the shared main queue (the panel is a few dozen short
+// lines, nothing like a full dbglog). Static RAM only, and only when
+// the panel is compiled in.
+constexpr SLONG PERF_FONT_BUFFER_SIZE  = 1024 * 8;
+constexpr SLONG PERF_FONT_MAX_MESSAGES = 384;
+CBYTE        s_perf_font_buffer[PERF_FONT_BUFFER_SIZE];
+CBYTE*       s_perf_font_buffer_upto = nullptr;
+FONT_Message s_perf_font_message[PERF_FONT_MAX_MESSAGES];
+SLONG        s_perf_font_message_upto = 0;
+
+constexpr int FONT_QUEUE_N = 2;
+
+#else
+
+constexpr int FONT_QUEUE_N = 1; // PERF queue not built — MAIN only
+
+#endif // OC_DEBUG_PERF
+
+FontQueue s_queues[FONT_QUEUE_N] = {
+    { &FONT_buffer[0], FONT_BUFFER_SIZE, &FONT_buffer_upto,
+      &FONT_message[0], FONT_MAX_MESSAGES, &FONT_message_upto },
+#if OC_DEBUG_PERF
+    { &s_perf_font_buffer[0], PERF_FONT_BUFFER_SIZE, &s_perf_font_buffer_upto,
+      &s_perf_font_message[0], PERF_FONT_MAX_MESSAGES,
+      &s_perf_font_message_upto },
+#endif
+};
+
+int s_active_queue = FONT_QUEUE_MAIN;
+
+} // namespace
+
+void FONT_buffer_select(int queue)
+{
+    // Only the PERF queue is ever selected by callers (the panel); when
+    // it isn't compiled in, stay on MAIN. Bounds-checked against the
+    // queues that actually exist.
+    if (queue >= 0 && queue < FONT_QUEUE_N)
+        s_active_queue = queue;
+}
+
 // Shared queue helper — both FONT_buffer_add variants funnel through here.
 // `scale_x` / `scale_y` are stored on the message; FONT_buffer_draw
 // resolves them as `(x * scale_x, y * scale_y)` at flush time. Pass
 // (0, 0) for the literal-pixel path. See FONT_Message in font_globals.h.
+// Routes to whichever queue FONT_buffer_select last picked.
 static void font_buffer_add_impl(
     SLONG x, SLONG y,
     UBYTE r, UBYTE g, UBYTE b, UBYTE s,
@@ -233,22 +301,24 @@ static void font_buffer_add_impl(
     float scale_x, float scale_y,
     const CBYTE* message)
 {
+    FontQueue& q = s_queues[s_active_queue];
+
     // Lazy initialisation — avoids needing an explicit init call.
-    if (FONT_buffer_upto == NULL) {
-        FONT_buffer_upto = &FONT_buffer[0];
+    if (*q.buf_upto == NULL) {
+        *q.buf_upto = q.buf_base;
     }
 
-    if (!WITHIN(FONT_message_upto, 0, FONT_MAX_MESSAGES - 1)) {
+    if (!WITHIN(*q.msg_upto, 0, q.max_msgs - 1)) {
         return;
     }
 
-    if (FONT_buffer_upto + strlen(message) + 1 > &FONT_buffer[FONT_BUFFER_SIZE]) {
+    if (*q.buf_upto + strlen(message) + 1 > q.buf_base + q.buf_size) {
         return;
     }
 
-    strcpy(FONT_buffer_upto, message);
+    strcpy(*q.buf_upto, message);
 
-    FONT_Message* fm = &FONT_message[FONT_message_upto++];
+    FONT_Message* fm = &q.msgs[(*q.msg_upto)++];
     fm->x = x;
     fm->y = y;
     fm->r = r;
@@ -258,9 +328,9 @@ static void font_buffer_add_impl(
     fm->gs = (gs < 1) ? 1 : gs;
     fm->scale_x = scale_x;
     fm->scale_y = scale_y;
-    fm->m = FONT_buffer_upto;
+    fm->m = *q.buf_upto;
 
-    FONT_buffer_upto += strlen(message) + 1;
+    *q.buf_upto += strlen(message) + 1;
 }
 
 // uc_orig: FONT_buffer_add (fallen/DDEngine/Source/Font.cpp)
@@ -327,8 +397,9 @@ void FONT_buffer_add_virtual(
         message);
 }
 
-// uc_orig: FONT_buffer_draw (fallen/DDEngine/Source/Font.cpp)
-void FONT_buffer_draw()
+// Render every queued message in `q`, then clear the queue. Shared by
+// the MAIN (FONT_buffer_draw) and PERF (FONT_buffer_draw_perf) flushes.
+static void font_flush_queue(FontQueue& q)
 {
     SLONG i;
     SLONG x;
@@ -336,7 +407,8 @@ void FONT_buffer_draw()
     CBYTE* ch;
     FONT_Message* fm;
 
-    if (FONT_message_upto == 0) {
+    const SLONG count = *q.msg_upto;
+    if (count == 0) {
         return;
     }
 
@@ -345,8 +417,8 @@ void FONT_buffer_draw()
     // pattern the legacy path relied on is exactly what triggers the WDDM
     // throttle investigated in new_game_devlog/startup_hang_investigation.
     FONT_atlas_begin_batch();
-    for (i = 0; i < FONT_message_upto; i++) {
-        fm = &FONT_message[i];
+    for (i = 0; i < count; i++) {
+        fm = &q.msgs[i];
 
         // Resolve virtual-coords messages to live FB pixels using the scale
         // captured at SUBMIT time (see FONT_Message in font_globals.h). A
@@ -401,6 +473,20 @@ void FONT_buffer_draw()
     }
     FONT_atlas_end_batch();
 
-    FONT_buffer_upto = &FONT_buffer[0];
-    FONT_message_upto = 0;
+    *q.buf_upto = q.buf_base;
+    *q.msg_upto = 0;
+}
+
+// uc_orig: FONT_buffer_draw (fallen/DDEngine/Source/Font.cpp)
+void FONT_buffer_draw()
+{
+    font_flush_queue(s_queues[FONT_QUEUE_MAIN]);
+}
+
+void FONT_buffer_draw_perf()
+{
+#if OC_DEBUG_PERF
+    font_flush_queue(s_queues[FONT_QUEUE_PERF]);
+#endif
+    // Else: the PERF queue does not exist — nothing queued, nothing to do.
 }
