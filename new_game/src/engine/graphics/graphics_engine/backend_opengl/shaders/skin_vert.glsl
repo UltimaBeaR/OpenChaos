@@ -28,8 +28,18 @@
 //   idx  = clamp(int(wrap*64), 0, 63)           (C cast truncates → int())
 //   color = fade_table[idx]                     (0x00RRGGBB, ULONG)
 // Same numbers in → same color out. When !u_skin_unlit (lit path) the
-// per-vertex color is used as-is (Milestone 1A behaviour). Fog/specular
-// stays CPU-computed (a_specular) — that is Milestone 1C, not 1B.
+// per-vertex color is used as-is (Milestone 1A behaviour).
+//
+// KEY 1:1 (fog, 1C): the CPU packed a flat per-character fog factor into
+// specular.a from a single scalar g_mm_fog_view_z (view-Z of the
+// character, constant for the whole MM call — NOT per-vertex). Replicated
+// byte-exact here:
+//   e     = int((fog_view_z - fade_start) * fade_scale)  (SLONG cast)
+//   multi = clamp(255 - e, 0, 255)
+//   spec.a = multi / 255
+// a_specular now carries only the original specular RGB (lit highlight;
+// 0 for the character path); the .a is computed here. The fragment
+// shader's existing fog/table-fog select then runs unchanged → 1:1.
 
 const int MAX_BONES = 32; // = GE_SKIN_MAX_BONES (game_graphics_engine.h)
 
@@ -46,6 +56,9 @@ uniform uint  u_fadetable[64];        // ULONG ramp, 0x00RRGGBB
 uniform int   u_skin_unlit;           // 1 = derive color from ramp
 uniform vec4  u_viewport;             // D3D viewport (x,y,w,h) as tl_vert
 uniform float u_zclip;                // POLY_ZCLIP_PLANE
+uniform float u_fog_view_z;           // g_mm_fog_view_z (per MM call)
+uniform float u_fog_fade_start;       // POLY_FADEOUT_START (set once)
+uniform float u_fog_fade_scale;       // 256/(FADE_END-FADE_START) (once)
 
 out vec4  v_color;
 out vec4  v_specular;
@@ -74,8 +87,14 @@ void main()
     } else {
         v_color = a_color.zyxw; // lit path: per-vertex color (1A behaviour)
     }
-    v_specular = a_specular.zyxw; // fog still CPU (1C)
-    v_texcoord = a_texcoord;
+    // Fog (1C): flat per-character factor from g_mm_fog_view_z, exact
+    // replica of the CPU specular.a packing. a_specular carries only the
+    // original RGB (lit highlight; 0 for characters); .a computed here.
+    int   fe    = int((u_fog_view_z - u_fog_fade_start) * u_fog_fade_scale);
+    int   fmul  = clamp(255 - fe, 0, 255);
+    float fog_a = float(fmul) * (1.0 / 255.0);
+    v_specular  = vec4(a_specular.z, a_specular.y, a_specular.x, fog_a);
+    v_texcoord  = a_texcoord;
 
     // --- Transform (1A, unchanged) ---
     int b = bone * 4;

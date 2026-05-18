@@ -1464,14 +1464,15 @@ void process_controls(void)
     // TEMPORARY key — deliberately NOT gated behind allow_debug_keys so
     // it works without entering debug mode (this key is removed once the
     // GPU path is verified and made default). K toggles GPU character
-    // transform vs the legacy CPU path; verify they look identical.
-    if (input_key_just_pressed(KB_K)) {
+    // transform (NEW) vs the legacy CPU path (OLD). A persistent corner
+    // readout shows the current path every frame (set each tick so it
+    // stays on screen and always reflects the live state).
+    {
         extern bool g_skin_gpu_path;
-        g_skin_gpu_path = !g_skin_gpu_path;
-        if (g_skin_gpu_path)
-            CONSOLE_text("skin: GPU path");
-        else
-            CONSOLE_text("skin: CPU path");
+        if (input_key_just_pressed(KB_K))
+            g_skin_gpu_path = !g_skin_gpu_path;
+        CONSOLE_status(g_skin_gpu_path ? (CBYTE*)"skin: NEW"
+                                       : (CBYTE*)"skin: OLD");
     }
 
     if (!allow_debug_keys)

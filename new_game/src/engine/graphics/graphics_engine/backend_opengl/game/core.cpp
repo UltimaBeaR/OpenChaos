@@ -499,6 +499,9 @@ static GLint s_sk_u_view_z_tl_scale = -1;
 static GLint s_sk_u_lightdir = -1;   // 1B: per-bone light dir palette
 static GLint s_sk_u_fadetable = -1;  // 1B: 64-entry ramp (ULONG)
 static GLint s_sk_u_skin_unlit = -1; // 1B: 1 = derive color from ramp
+static GLint s_sk_u_fog_view_z = -1;     // 1C: g_mm_fog_view_z (per call)
+static GLint s_sk_u_fog_fade_start = -1; // 1C: POLY_FADEOUT_START (once)
+static GLint s_sk_u_fog_fade_scale = -1; // 1C: fade scale (once)
 static GLuint s_vao_skin = 0;
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
@@ -641,6 +644,9 @@ static bool init_shaders()
     s_sk_u_lightdir = glGetUniformLocation(s_program_skin, "u_lightdir");
     s_sk_u_fadetable = glGetUniformLocation(s_program_skin, "u_fadetable");
     s_sk_u_skin_unlit = glGetUniformLocation(s_program_skin, "u_skin_unlit");
+    s_sk_u_fog_view_z = glGetUniformLocation(s_program_skin, "u_fog_view_z");
+    s_sk_u_fog_fade_start = glGetUniformLocation(s_program_skin, "u_fog_fade_start");
+    s_sk_u_fog_fade_scale = glGetUniformLocation(s_program_skin, "u_fog_fade_scale");
     cache_frag_uniforms(s_program_skin,
         &s_sk_u_has_texture, &s_sk_u_texture, &s_sk_u_texture_blend,
         &s_sk_u_alpha_test_enabled, &s_sk_u_alpha_ref, &s_sk_u_alpha_func,
@@ -651,6 +657,10 @@ static bool init_shaders()
     glUseProgram(s_program_skin);
     glUniform1f(s_sk_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
     glUniform1f(s_sk_u_zclip, POLY_ZCLIP_PLANE); // constant — set once
+    // 1C fog constants — single source is poly.h, set once like u_zclip.
+    glUniform1f(s_sk_u_fog_fade_start, POLY_FADEOUT_START);
+    glUniform1f(s_sk_u_fog_fade_scale,
+        256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
     glUseProgram(0);
 
     // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
@@ -1335,6 +1345,11 @@ void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
             reinterpret_cast<const GLuint*>(fade_table));
     }
     glUniform1i(s_sk_u_skin_unlit, do_ramp ? 1 : 0);
+
+    // 1C fog: g_mm_fog_view_z is the view-Z of the character, set by
+    // figure.cpp before this MM call (constant for the whole call) —
+    // the exact scalar the CPU packed into specular.a.
+    glUniform1f(s_sk_u_fog_view_z, g_mm_fog_view_z);
 
     // Skin frag/viewport uniforms — always uploaded. Skin draws are a
     // small fraction of the frame, and this keeps the skin program off

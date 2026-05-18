@@ -622,7 +622,12 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                     }
                     skinTmp[i].bone = (uint32_t)bMatIndex;
                     skinTmp[i].color = pTLVert[i].color;
-                    skinTmp[i].specular = pTLVert[i].specular;
+                    // 1C: shader computes fog into specular.a from
+                    // g_mm_fog_view_z. a_specular carries only the
+                    // original RGB highlight (lit), 0 for characters.
+                    skinTmp[i].specular = unlit
+                        ? 0u
+                        : (pLVert[wIndex[i]].specular & 0x00FFFFFFu);
                     skinTmp[i].u = pTLVert[i].u;
                     skinTmp[i].v = pTLVert[i].v;
                     // Palette + lighting inputs = the call's arrays
