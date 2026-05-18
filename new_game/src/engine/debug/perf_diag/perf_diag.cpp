@@ -869,18 +869,22 @@ void draw()
                 int t = s_ord[a]; s_ord[a] = s_ord[b]; s_ord[b] = t;
             }
 
-    // GPU "pie" total = Σ of the LEAF GPU stages (real submission bursts:
-    // scene/hud/post/ui.* …), NOT the `render` wrapper. A wrapper's
-    // begin/end span swallows GPU-idle while the CPU is busy inside it
-    // (e.g. a CPU-bound stage) — that idle isn't the swap, can't be
-    // auto-subtracted, and would balloon the total (header GPU → ~whole
-    // frame, every real GPU% collapsing as a share of it). Leaves bracket
-    // only their own command bursts → not idle-inflated. Each GPU% is a
-    // share of this leaf sum.
+    // GPU "pie" total = Σ of EVERY time stage's GPU, wrappers included.
+    // GPU is not span-measured: each scope glFinishes on exit and books
+    // only the drain of its OWN as-yet-undrained submissions — children
+    // already drained at their own exits, so a wrapper's gpu_accum holds
+    // just its direct residual (exactly its ".other"). The slots'
+    // GPU therefore partition the frame with no overlap, and summing all
+    // of them (leaves + wrappers) double-counts nothing. The old
+    // leaf-only sum DROPPED every wrapper residual: when GPU work is done
+    // directly inside a wrapper past its named sub-scopes (e.g. the whole
+    // menu/console draw lands in render.ui.other), `total` under-counted
+    // and that ".other" row blew past 100%. GPU-wait / perfpanel are
+    // already kept out of s_ord, so they stay out of this sum.
     double gpu_total = 0.0;
     for (int o = 0; o < s_ordn; o++) {
         int i = s_ord[o];
-        if (s_slot[i].kind == KIND_TIME && !has_time_children(i))
+        if (s_slot[i].kind == KIND_TIME)
             gpu_total += s_slot[i].gpu_short_avg;
     }
 
