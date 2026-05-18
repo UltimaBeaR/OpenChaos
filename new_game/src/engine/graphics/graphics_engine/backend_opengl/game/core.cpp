@@ -496,6 +496,9 @@ static GLint s_sk_u_color_key_enabled = -1;
 static GLint s_sk_u_tex_has_alpha = -1;
 static GLint s_sk_u_farfacet_mode = -1;
 static GLint s_sk_u_view_z_tl_scale = -1;
+static GLint s_sk_u_lightdir = -1;   // 1B: per-bone light dir palette
+static GLint s_sk_u_fadetable = -1;  // 1B: 64-entry ramp (ULONG)
+static GLint s_sk_u_skin_unlit = -1; // 1B: 1 = derive color from ramp
 static GLuint s_vao_skin = 0;
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
@@ -564,28 +567,30 @@ static void setup_vao_tl(GLuint vao, GLuint vbo, GLuint ebo)
     glBindVertexArray(0);
 }
 
-// Set up VAO for GESkinVertex layout: 32 bytes per vertex.
-// [0..11] vec3 position (model)  [12..15] uint bone (palette index)
-// [16..19] u8x4 color (BGRA)     [20..23] u8x4 specular (BGRA)
-// [24..31] vec2 texcoord (u,v)
+// Set up VAO for GESkinVertex layout: 44 bytes per vertex.
+// [0..11]  vec3 position (model)   [12..23] vec3 normal (model)
+// [24..27] uint bone (palette idx) [28..31] u8x4 color (BGRA)
+// [32..35] u8x4 specular (BGRA)    [36..43] vec2 texcoord (u,v)
 static void setup_vao_skin(GLuint vao, GLuint vbo, GLuint ebo)
 {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-    const GLsizei stride = 32; // sizeof(GESkinVertex)
+    const GLsizei stride = 44; // sizeof(GESkinVertex)
 
     glEnableVertexAttribArray(0); // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(1); // color (BGRA)
-    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)16);
+    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)28);
     glEnableVertexAttribArray(2); // specular (BGRA)
-    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)20);
+    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)32);
     glEnableVertexAttribArray(3); // texcoord
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)24);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)36);
     glEnableVertexAttribArray(4); // bone palette index (integer)
-    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, stride, (void*)12);
+    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, stride, (void*)24);
+    glEnableVertexAttribArray(5); // normal (model space)
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, stride, (void*)12);
 
     glBindVertexArray(0);
 }
@@ -633,6 +638,9 @@ static bool init_shaders()
     s_sk_u_viewport = glGetUniformLocation(s_program_skin, "u_viewport");
     s_sk_u_xform = glGetUniformLocation(s_program_skin, "u_xform");
     s_sk_u_zclip = glGetUniformLocation(s_program_skin, "u_zclip");
+    s_sk_u_lightdir = glGetUniformLocation(s_program_skin, "u_lightdir");
+    s_sk_u_fadetable = glGetUniformLocation(s_program_skin, "u_fadetable");
+    s_sk_u_skin_unlit = glGetUniformLocation(s_program_skin, "u_skin_unlit");
     cache_frag_uniforms(s_program_skin,
         &s_sk_u_has_texture, &s_sk_u_texture, &s_sk_u_texture_blend,
         &s_sk_u_alpha_test_enabled, &s_sk_u_alpha_ref, &s_sk_u_alpha_func,
@@ -1281,12 +1289,14 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     s_draw_calls++;
 }
 
-// GPU character transform — skeletal_skinning_plan.md, Milestone 1A.
-// One body part: model-space verts transformed by one matrix on the GPU
-// (skin_vert.glsl), fragment pipeline shared with the TL path.
+// GPU character transform + lighting — skeletal_skinning_plan.md, 1A/1B.
+// One ge_draw_multi_matrix call: model-space verts transformed (and, for
+// the unlit character path, lit) on the GPU (skin_vert.glsl); fragment
+// pipeline shared with the TL path.
 void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
     const GESkinVertex* verts, uint32_t vert_count,
-    const uint16_t* indices, uint32_t index_count)
+    const uint16_t* indices, uint32_t index_count,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table)
 {
     PERF_GE_CALL();
     if (!palette || !palette_n || !verts || !vert_count || !indices || !index_count)
@@ -1306,6 +1316,25 @@ void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
     // order (_r1.._r4). skin_vert.glsl picks columns to match the CPU path.
     glUniform4fv(s_sk_u_xform, (GLsizei)(palette_n * 4),
         reinterpret_cast<const float*>(palette));
+
+    // 1B lighting: the unlit (character) path derives color in-shader from
+    // the per-bone light dir + the fade ramp. Both come from the MM call;
+    // only do it when present (lit calls pass them null and keep a_color).
+    bool do_ramp = unlit && light_dirs && fade_table;
+    if (do_ramp) {
+        // CPU read light_dirs[bone*4 + 1..3]; pack to vec3 per bone.
+        float ld[GE_SKIN_MAX_BONES * 3];
+        for (uint32_t bn = 0; bn < palette_n; bn++) {
+            ld[bn * 3 + 0] = light_dirs[bn * 4 + 1];
+            ld[bn * 3 + 1] = light_dirs[bn * 4 + 2];
+            ld[bn * 3 + 2] = light_dirs[bn * 4 + 3];
+        }
+        glUniform3fv(s_sk_u_lightdir, (GLsizei)palette_n, ld);
+        // Ramp uses only entries [0..63] (idx is clamped there CPU-side).
+        glUniform1uiv(s_sk_u_fadetable, 64,
+            reinterpret_cast<const GLuint*>(fade_table));
+    }
+    glUniform1i(s_sk_u_skin_unlit, do_ramp ? 1 : 0);
 
     // Skin frag/viewport uniforms — always uploaded. Skin draws are a
     // small fraction of the frame, and this keeps the skin program off

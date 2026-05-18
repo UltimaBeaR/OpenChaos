@@ -454,8 +454,11 @@ inline void mm_flush_batch()
 // matrix; the GPU (skin_vert.glsl) does the transform. Toggle: g_skin_gpu_path.
 std::vector<GESkinVertex> s_skin_verts;
 std::vector<uint16_t>     s_skin_inds;
-const GEMatrix*           s_skin_palette = nullptr; // = mm->matrices
-uint32_t                  s_skin_palette_n = 0;     // max bone index + 1
+const GEMatrix*           s_skin_palette = nullptr;   // = mm->matrices
+uint32_t                  s_skin_palette_n = 0;       // max bone index + 1
+const float*              s_skin_lightdirs = nullptr; // = mm->lpvLightDirs
+const uint32_t*           s_skin_fadetable = nullptr; // = mm->lpLightTable
+bool                      s_skin_unlit = false;       // character path
 
 inline void mm_flush_skin()
 {
@@ -463,11 +466,15 @@ inline void mm_flush_skin()
         return;
     ge_draw_skinned(s_skin_palette, s_skin_palette_n,
         s_skin_verts.data(), uint32_t(s_skin_verts.size()),
-        s_skin_inds.data(), uint32_t(s_skin_inds.size()));
+        s_skin_inds.data(), uint32_t(s_skin_inds.size()),
+        s_skin_unlit, s_skin_lightdirs, s_skin_fadetable);
     s_skin_verts.clear();
     s_skin_inds.clear();
     s_skin_palette = nullptr;
     s_skin_palette_n = 0;
+    s_skin_lightdirs = nullptr;
+    s_skin_fadetable = nullptr;
+    s_skin_unlit = false;
 }
 } // namespace
 
@@ -595,21 +602,35 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                     pTLVert[i].specular = fog_specular | (pLVert[wIndex[i]].specular & 0x00FFFFFF);
                 }
 
-                // Milestone 1A: capture MODEL-space pos + the CPU-computed
-                // color/specular/uv; the GPU does the transform. pmCur is
-                // the single per-call matrix (MM_pMatrix storage = 1 slot).
+                // Milestone 1A/1B: capture MODEL-space pos + normal; the
+                // GPU does the transform and (unlit path) the lighting.
+                // color/specular/uv are still the CPU values — used by the
+                // lit path and for fog (1C); the unlit path overrides color
+                // in-shader from normal + bone light dir + fade table.
                 if (g_skin_gpu_path) {
                     skinTmp[i].x = pLVertCur->x;
                     skinTmp[i].y = pLVertCur->y;
                     skinTmp[i].z = pLVertCur->z;
+                    if (unlit) {
+                        // Same raw normal the CPU lighting block reads.
+                        GEVertex* pVertCur = pVert + wVertIndex;
+                        skinTmp[i].nx = pVertCur->nx;
+                        skinTmp[i].ny = pVertCur->ny;
+                        skinTmp[i].nz = pVertCur->nz;
+                    } else {
+                        skinTmp[i].nx = skinTmp[i].ny = skinTmp[i].nz = 0.0f;
+                    }
                     skinTmp[i].bone = (uint32_t)bMatIndex;
                     skinTmp[i].color = pTLVert[i].color;
                     skinTmp[i].specular = pTLVert[i].specular;
                     skinTmp[i].u = pTLVert[i].u;
                     skinTmp[i].v = pTLVert[i].v;
-                    // Palette = the call's matrix array (constant per call).
-                    // Track how many matrices it actually references.
+                    // Palette + lighting inputs = the call's arrays
+                    // (constant per MM call). Track max bone referenced.
                     s_skin_palette = mm->matrices;
+                    s_skin_lightdirs = (const float*)mm->lpvLightDirs;
+                    s_skin_fadetable = (const uint32_t*)mm->lpLightTable;
+                    s_skin_unlit = unlit;
                     if ((uint32_t)bMatIndex + 1 > s_skin_palette_n)
                         s_skin_palette_n = (uint32_t)bMatIndex + 1;
                 }

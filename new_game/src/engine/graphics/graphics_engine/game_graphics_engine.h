@@ -492,14 +492,19 @@ void* ge_vb_prepare(void* vb);
 void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count);
 
 // Skinned character vertex (model/bone-local space). GPU-transform path
-// for the figure system — see skeletal_skinning_plan.md, Milestone 1A.
-// 28 bytes: pos(12) + color(4) + specular(4) + uv(8). color/specular are
-// the CPU-computed per-vertex lighting/fog (BGRA, D3D 0xAARRGGBB order).
+// for the figure system — see skeletal_skinning_plan.md, Milestones 1A/1B.
+// 44 bytes: pos(12) + normal(12) + bone(4) + color(4) + specular(4) + uv(8).
+// 1B: normal is the raw model-space normal the CPU path read (GEVertex
+// nx/ny/nz); the shader does the half-Lambert ramp lookup. `color` is now
+// only used by the lit (non-character) path; the unlit (character) path
+// derives color in-shader from normal + bone light dir + fade table.
+// specular is still the CPU-computed fog (BGRA, D3D 0xAARRGGBB order).
 struct GESkinVertex {
-    float    x, y, z;   // model (bone-local) space
-    uint32_t bone;      // matrix-palette index (the CPU path's bMatIndex)
-    uint32_t color;     // BGRA (CPU per-vertex lighting)
-    uint32_t specular;  // BGRA (CPU fog)
+    float    x, y, z;    // model (bone-local) space
+    float    nx, ny, nz; // model-space normal (raw, as CPU path read it)
+    uint32_t bone;       // matrix-palette index (the CPU path's bMatIndex)
+    uint32_t color;      // BGRA (lit path only; unlit derives in-shader)
+    uint32_t specular;   // BGRA (CPU fog)
     float    u, v;
 };
 
@@ -512,10 +517,20 @@ struct GESkinVertex {
 // the GPU (skin_vert.glsl): model-space verts, each transformed by
 // palette[vertex.bone]. `palette` is the call's mm->matrices, `palette_n`
 // = matrices actually referenced (≤ GE_SKIN_MAX_BONES). Reproduces the CPU
-// transform 1:1. One draw call per ge_draw_multi_matrix call.
+// transform + lighting 1:1. One draw call per ge_draw_multi_matrix call.
+//
+// 1B lighting (skeletal_skinning_plan.md): when `unlit` (character path),
+// the shader computes per-vertex color exactly like the CPU did —
+//   cos = dot(normal, light_dirs[bone]) / 251; wrap = cos*0.5 + 0.5;
+//   idx = clamp(int(wrap*64), 0, 63); color = fade_table[idx].
+// `light_dirs` = mm->lpvLightDirs (4 floats per bone, [1..3] = dir, same
+// layout the CPU indexed); `fade_table` = mm->lpLightTable (first 64
+// ULONG entries, the only ones this ramp uses). Both are NULL/ignored
+// when !unlit (lit path keeps the per-vertex color in GESkinVertex).
 void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
     const GESkinVertex* verts, uint32_t vert_count,
-    const uint16_t* indices, uint32_t index_count);
+    const uint16_t* indices, uint32_t index_count,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table);
 
 // ---------------------------------------------------------------------------
 // Texture pixel access
