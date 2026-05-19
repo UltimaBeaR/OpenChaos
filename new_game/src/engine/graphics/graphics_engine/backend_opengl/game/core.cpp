@@ -504,6 +504,13 @@ static GLint s_sk_u_fog_fade_start = -1; // 1C: POLY_FADEOUT_START (once)
 static GLint s_sk_u_fog_fade_scale = -1; // 1C: fade scale (once)
 static GLuint s_vao_skin = 0;
 
+// Shadow-silhouette program — skeletal_skinning_plan.md 1E. Renders the
+// persistent skin meshes into the shadow texture with a pure world palette
+// + sun ortho projection (replaces the SMAP software rasteriser).
+static GLuint s_program_shadow_sil = 0;
+static GLint s_ss_u_xform = -1;       // per-bone world affine (3 vec4/bone)
+static GLint s_ss_u_shadow_proj = -1; // world -> shadow-clip (per person)
+
 // VAO for each vertex format. VBO/EBO are shared (streaming).
 static GLuint s_vao_tl = 0;
 static GLuint s_vbo = 0; // streaming vertex buffer
@@ -662,6 +669,17 @@ static bool init_shaders()
     glUniform1f(s_sk_u_fog_fade_scale,
         256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
     glUseProgram(0);
+
+    // Shadow-silhouette program — skeletal_skinning_plan.md 1E.
+    s_program_shadow_sil =
+        gl_shader_create_program(SHADER_SHADOW_SIL_VERT, SHADER_SHADOW_SIL_FRAG);
+    if (!s_program_shadow_sil) {
+        fprintf(stderr, "Failed to create shadow-silhouette shader program\n");
+        return false;
+    }
+    s_ss_u_xform = glGetUniformLocation(s_program_shadow_sil, "u_xform");
+    s_ss_u_shadow_proj =
+        glGetUniformLocation(s_program_shadow_sil, "u_shadow_proj");
 
     // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
     // (glBufferData with different sizes) which can trigger NVIDIA driver bugs.
@@ -1490,6 +1508,220 @@ void ge_skin_mesh_destroy(GESkinMesh* mesh)
     if (mesh->ebo)
         glDeleteBuffers(1, &mesh->ebo);
     delete mesh;
+}
+
+// --- GPU shadow-silhouette render-to-texture (Milestone 1E) ------------
+// Replaces the SMAP software rasteriser: render the persistent skin meshes
+// into a sub-rect of a user texture page, using a pure WORLD bone palette
+// (no camera) + a world->shadow-clip matrix. Output is a flat coverage
+// mask; the unchanged SMAP ground projection then samples this page.
+//
+// Anti-aliasing (Milestone 1E): the original SMAP software rasteriser
+// produced soft, anti-aliased shadow edges. Rendering a hard binary
+// silhouette straight into a 32x32 page sub-rect looks pixelated AND
+// shimmers temporally. Instead the silhouette is rendered into a private
+// MULTISAMPLED, SUPERSAMPLED off-screen target, then resolved + box-
+// downscaled into the page sub-rect — giving fractional-coverage soft
+// edges (≈ the original look) and killing the temporal shimmer.
+#define SHADOW_SS 2            // supersample factor (sub-rect res × this)
+#define SHADOW_MS_SAMPLES 4    // MSAA samples of the off-screen target
+
+static GLuint s_shadow_fbo = 0;       // single-sample, target = page texture
+static GLuint s_shadow_ms_fbo = 0;    // multisampled render target
+static GLuint s_shadow_ms_rbo = 0;    // its colour renderbuffer
+static GLuint s_shadow_rs_fbo = 0;    // single-sample MSAA-resolve target
+static GLuint s_shadow_rs_tex = 0;    // its colour texture
+static int s_shadow_ss_w = 0;         // current off-screen size (w*SS)
+static int s_shadow_ss_h = 0;
+// NOTE: the shadow page texture is destroyed+recreated on every level
+// load and GL may REUSE the freed texture name, so the page FBO's colour
+// attachment is ALWAYS re-pointed at the current texture (never cached).
+
+// Saved caller GL state + this pass's target (begin -> end).
+struct ShadowSavedState {
+    GLint draw_fbo;
+    GLint viewport[4];
+    GLint scissor_box[4];
+    GLboolean scissor_on;
+    GLboolean depth_on;
+    GLboolean cull_on;
+    GLboolean blend_on;
+    GLfloat clear_col[4];
+    GLuint page_tex;              // destination page texture
+    int dst_x, dst_y, dst_w, dst_h; // destination sub-rect
+};
+static ShadowSavedState s_shadow_saved;
+// True between a successful begin() and its end(). If begin() bails (FBO
+// incomplete / no texture) this stays false so draw()/end() no-op —
+// otherwise the shadow program would render into the caller's framebuffer.
+static bool s_shadow_pass_active = false;
+
+// Lazily (re)create the MSAA + resolve off-screen targets at ssw×ssh.
+static bool shadow_ss_targets_ensure(int ssw, int ssh)
+{
+    if (s_shadow_ms_fbo && s_shadow_ss_w == ssw && s_shadow_ss_h == ssh)
+        return true;
+    if (s_shadow_ms_rbo) { glDeleteRenderbuffers(1, &s_shadow_ms_rbo); s_shadow_ms_rbo = 0; }
+    if (s_shadow_rs_tex) { glDeleteTextures(1, &s_shadow_rs_tex); s_shadow_rs_tex = 0; }
+    if (!s_shadow_ms_fbo) glGenFramebuffers(1, &s_shadow_ms_fbo);
+    if (!s_shadow_rs_fbo) glGenFramebuffers(1, &s_shadow_rs_fbo);
+
+    glGenRenderbuffers(1, &s_shadow_ms_rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, s_shadow_ms_rbo);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, SHADOW_MS_SAMPLES,
+        GL_RGBA8, ssw, ssh);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, s_shadow_ms_fbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_RENDERBUFFER, s_shadow_ms_rbo);
+    bool ok = (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+
+    glGenTextures(1, &s_shadow_rs_tex);
+    glBindTexture(GL_TEXTURE_2D, s_shadow_rs_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ssw, ssh, 0,
+        GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, s_shadow_rs_fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D, s_shadow_rs_tex, 0);
+    ok = ok && (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (ok) { s_shadow_ss_w = ssw; s_shadow_ss_h = ssh; }
+    else { s_shadow_ss_w = s_shadow_ss_h = 0; }
+    return ok;
+}
+
+void ge_shadow_silhouette_begin(int32_t tex_page,
+    int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    s_shadow_pass_active = false;
+    if (tex_page < 0 || tex_page >= GL_TEX_MAX)
+        return;
+    GLuint page_tex = s_textures[tex_page].gl_id;
+    if (!page_tex)
+        return;
+    if (!init_shaders())
+        return;
+    if (w <= 0 || h <= 0)
+        return;
+    if (!shadow_ss_targets_ensure(w * SHADOW_SS, h * SHADOW_SS))
+        return; // off-screen target unavailable — skip (no CPU fallback)
+
+    // Save everything we touch + this pass's destination.
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &s_shadow_saved.draw_fbo);
+    glGetIntegerv(GL_VIEWPORT, s_shadow_saved.viewport);
+    glGetIntegerv(GL_SCISSOR_BOX, s_shadow_saved.scissor_box);
+    s_shadow_saved.scissor_on = glIsEnabled(GL_SCISSOR_TEST);
+    s_shadow_saved.depth_on = glIsEnabled(GL_DEPTH_TEST);
+    s_shadow_saved.cull_on = glIsEnabled(GL_CULL_FACE);
+    s_shadow_saved.blend_on = glIsEnabled(GL_BLEND);
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, s_shadow_saved.clear_col);
+    s_shadow_saved.page_tex = page_tex;
+    s_shadow_saved.dst_x = x;
+    s_shadow_saved.dst_y = y;
+    s_shadow_saved.dst_w = w;
+    s_shadow_saved.dst_h = h;
+
+    // Render the silhouette into the supersampled MSAA off-screen target
+    // (resolved + box-downscaled into the page sub-rect in end()).
+    glBindFramebuffer(GL_FRAMEBUFFER, s_shadow_ms_fbo);
+
+    // Flat coverage mask: no depth, no cull (rendering ALL triangles makes
+    // the silhouette a solid union — no holes from back-face removal; the
+    // user's hard requirement is "shadow must never be clipped/holed").
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
+
+    glViewport(0, 0, w * SHADOW_SS, h * SHADOW_SS);
+    glDisable(GL_SCISSOR_TEST); // whole off-screen target is one person
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(s_program_shadow_sil);
+    s_cached_program = 0;            // force rebind on next normal draw
+    s_uniforms_ever_uploaded = false;
+    s_shadow_pass_active = true;
+}
+
+void ge_shadow_silhouette_draw(GESkinMesh* mesh,
+    const float* world_palette, uint32_t palette_n, const float* shadow_proj16)
+{
+    if (!s_shadow_pass_active)
+        return; // begin() bailed (FBO not ready) — don't touch caller FBO
+    if (!mesh || !mesh->index_count || !world_palette || !shadow_proj16)
+        return;
+    if (palette_n == 0)
+        palette_n = 1;
+    if (palette_n > GE_SKIN_MAX_BONES)
+        palette_n = GE_SKIN_MAX_BONES;
+
+    // 3 vec4 rows per bone (world affine).
+    glUniform4fv(s_ss_u_xform, (GLsizei)(palette_n * 3), world_palette);
+    glUniformMatrix4fv(s_ss_u_shadow_proj, 1, GL_FALSE, shadow_proj16);
+
+    glBindVertexArray(mesh->vao);
+    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_SHORT, nullptr);
+    glBindVertexArray(0);
+    s_draw_calls++;
+}
+
+void ge_shadow_silhouette_end(void)
+{
+    if (!s_shadow_pass_active)
+        return; // begin() bailed; state was already restored there
+    s_shadow_pass_active = false;
+
+    const int ssw = s_shadow_saved.dst_w * SHADOW_SS;
+    const int ssh = s_shadow_saved.dst_h * SHADOW_SS;
+
+    // Resolve MSAA -> single-sample (same size, must be NEAREST).
+    glDisable(GL_SCISSOR_TEST);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, s_shadow_ms_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_shadow_rs_fbo);
+    glBlitFramebuffer(0, 0, ssw, ssh, 0, 0, ssw, ssh,
+        GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // Downscale-resolve into the page sub-rect (LINEAR = box-ish average
+    // → soft fractional-coverage edges, like the original AA rasteriser).
+    // ALWAYS re-point the page FBO at the current texture (freed+recreated
+    // each level load; GL may reuse the name → never cache the attach).
+    if (!s_shadow_fbo)
+        glGenFramebuffers(1, &s_shadow_fbo);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, s_shadow_fbo);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D, s_shadow_saved.page_tex, 0);
+    if (glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, s_shadow_rs_fbo);
+        glBlitFramebuffer(0, 0, ssw, ssh,
+            s_shadow_saved.dst_x, s_shadow_saved.dst_y,
+            s_shadow_saved.dst_x + s_shadow_saved.dst_w,
+            s_shadow_saved.dst_y + s_shadow_saved.dst_h,
+            GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)s_shadow_saved.draw_fbo);
+    glViewport(s_shadow_saved.viewport[0], s_shadow_saved.viewport[1],
+        s_shadow_saved.viewport[2], s_shadow_saved.viewport[3]);
+    glScissor(s_shadow_saved.scissor_box[0], s_shadow_saved.scissor_box[1],
+        s_shadow_saved.scissor_box[2], s_shadow_saved.scissor_box[3]);
+    if (s_shadow_saved.scissor_on) glEnable(GL_SCISSOR_TEST);
+    else glDisable(GL_SCISSOR_TEST);
+    if (s_shadow_saved.depth_on) glEnable(GL_DEPTH_TEST);
+    else glDisable(GL_DEPTH_TEST);
+    if (s_shadow_saved.cull_on) glEnable(GL_CULL_FACE);
+    else glDisable(GL_CULL_FACE);
+    if (s_shadow_saved.blend_on) glEnable(GL_BLEND);
+    else glDisable(GL_BLEND);
+    glClearColor(s_shadow_saved.clear_col[0], s_shadow_saved.clear_col[1],
+        s_shadow_saved.clear_col[2], s_shadow_saved.clear_col[3]);
+    // Program/uniform cache already invalidated in begin(); next normal
+    // draw rebinds its program and re-uploads uniforms.
 }
 
 void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* verts, uint32_t vert_count,

@@ -489,6 +489,14 @@ void POLY_init_render_states()
             case POLY_PAGE_SHADOW:
                 pa->RS.SetAlphaBlendEnabled(true);
 
+                // The character shadow is a soft coverage mask projected
+                // (magnified) over the ground — sample it BILINEAR always,
+                // independent of the global pixel-art texture filter
+                // (AENG_detail_filter). Point sampling here makes the
+                // shadow blocky no matter the silhouette resolution.
+                pa->RS.SetTextureMag(GETextureFilter::Linear);
+                pa->RS.SetTextureMin(GETextureFilter::Linear);
+
                 if (ge_supports_dest_inv_src_color()) {
                     // use a density greyscale shadowmap
                     pa->RS.SetTextureBlend(GETextureBlend::Modulate);

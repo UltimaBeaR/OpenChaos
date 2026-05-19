@@ -37,28 +37,6 @@ extern UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
 // Currently active texture world set number.
 extern SLONG TEXTURE_set;
 
-// Shadow texture locked pixel data (set by TEXTURE_shadow_lock).
-// uc_orig: TEXTURE_shadow_bitmap (fallen/DDEngine/Source/texture.cpp)
-extern UWORD* TEXTURE_shadow_bitmap;
-// uc_orig: TEXTURE_shadow_pitch (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_pitch;
-// uc_orig: TEXTURE_shadow_mask_red (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_mask_red;
-// uc_orig: TEXTURE_shadow_mask_green (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_mask_green;
-// uc_orig: TEXTURE_shadow_mask_blue (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_mask_blue;
-// uc_orig: TEXTURE_shadow_mask_alpha (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_mask_alpha;
-// uc_orig: TEXTURE_shadow_shift_red (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_shift_red;
-// uc_orig: TEXTURE_shadow_shift_green (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_shift_green;
-// uc_orig: TEXTURE_shadow_shift_blue (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_shift_blue;
-// uc_orig: TEXTURE_shadow_shift_alpha (fallen/DDEngine/Source/texture.cpp)
-extern SLONG TEXTURE_shadow_shift_alpha;
-
 // Directory paths set by TEXTURE_choose_set().
 // uc_orig: TEXTURE_shared_dir (fallen/DDEngine/Source/texture.cpp)
 extern CBYTE TEXTURE_shared_dir[_MAX_PATH];

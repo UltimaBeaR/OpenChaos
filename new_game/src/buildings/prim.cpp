@@ -24,6 +24,7 @@
 // Anim types needed for expand_anim_prim_bbox / fn_anim_prim_normal
 #include "engine/animation/anim_types.h" // GameKeyFrameElement, GetCMatrix, CMatrix33, Matrix33, KeyFrameChunk
 #include "buildings/prim_types.h" // PrimObject, PrimFace3/4, PrimPoint, PrimMultiObject, RoofFace4, RFACE_FLAG_*, ROOF_SHIFT, PrimInfo, FACE_FLAG_*, PRIM_COLLIDE_*, PRIM_FLAG_*, PRIM_OBJ_*, PRIM_DAMAGE_*, ANIM_PRIM_TYPE_*
+#include "engine/graphics/lighting/smap.h" // Milestone 1E: SMAP_shadow_prim_cache_reset (prim pools reloaded here)
 #include "buildings/building_types.h" // BoundBox, MAX_BUILDINGS, STOREY_TYPE_*, FACET_FLAG_*
 #include "map/supermap.h"
 #include "game/game_types.h"
@@ -65,6 +66,10 @@ SLONG advance_keyframe(DrawTween* draw_info);
 void clear_prims(void)
 {
     SLONG c0;
+
+    // Milestone 1E: the per-prim GPU shadow meshes are built from these
+    // pools — invalidate them before the pools are wiped/reloaded.
+    SMAP_shadow_prim_cache_reset();
 
     memset((UBYTE*)&prim_objects[0], 0, sizeof(PrimObject) * MAX_PRIM_OBJECTS);
     memset((UBYTE*)&prim_multi_objects[0], 0, sizeof(PrimMultiObject) * MAX_PRIM_MOBJECTS);

@@ -547,6 +547,22 @@ void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
     bool unlit, const float* light_dirs, const uint32_t* fade_table);
 void ge_skin_mesh_destroy(GESkinMesh* mesh);
 
+// GPU shadow-silhouette render-to-texture — skeletal_skinning_plan.md 1E.
+// Renders the persistent skin meshes into a sub-rect (x,y,w,h, GL pixel
+// coords, bottom-left origin) of user texture page `tex_page`, using a
+// pure WORLD bone palette (12 floats/bone = 3 vec4 rows: rotation rows
+// with translation packed in .w) and a world->shadow-clip matrix
+// (`shadow_proj16`, 16 floats, column-major). Replaces the SMAP software
+// rasteriser; the unchanged SMAP ground projection samples the result.
+// begin() clears only the sub-rect and saves caller GL state; end()
+// restores it. One draw() per body-part mesh between begin/end.
+void ge_shadow_silhouette_begin(int32_t tex_page,
+    int32_t x, int32_t y, int32_t w, int32_t h);
+void ge_shadow_silhouette_draw(GESkinMesh* mesh,
+    const float* world_palette, uint32_t palette_n,
+    const float* shadow_proj16);
+void ge_shadow_silhouette_end(void);
+
 // ---------------------------------------------------------------------------
 // Texture pixel access
 // ---------------------------------------------------------------------------

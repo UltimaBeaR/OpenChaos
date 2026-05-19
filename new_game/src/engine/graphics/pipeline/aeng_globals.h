@@ -145,11 +145,6 @@ extern float AENG_project_fadeout_x;
 // uc_orig: AENG_project_fadeout_z (fallen/DDEngine/Source/aeng.cpp)
 extern float AENG_project_fadeout_z;
 
-// uc_orig: GetShadowPixelMapping (fallen/DDEngine/Source/aeng.cpp)
-// Returns a 256-entry UBYTE->UWORD table mapping shadow density values to
-// the correct 16-bit pixel format for the shadow texture surface.
-UWORD* GetShadowPixelMapping();
-
 // uc_orig: move_clouds (fallen/DDEngine/Source/aeng.cpp)
 // Advances the cloud scroll offsets by a fixed amount each call.
 void move_clouds(void);
@@ -250,11 +245,12 @@ void AENG_draw_pows(void);
 // uc_orig: AENG_AA_PIX_SIZE (fallen/DDEngine/Source/aeng.cpp)
 #define AENG_AA_PIX_SIZE 4
 // uc_orig: AENG_AA_BUF_SIZE (fallen/DDEngine/Source/aeng.cpp)
+// Per-person shadow-silhouette sub-rect resolution (original value). GPU
+// path renders supersampled+MSAA and the page is sampled bilinear. The
+// shadow page packs AENG_NUM_SHADOWS persons 2×2, so the page texture
+// must be 2× this (TEXTURE_SHADOW_SIZE).
 #define AENG_AA_BUF_SIZE 32
 
-// uc_orig: AENG_aa_buffer (fallen/DDEngine/Source/aeng.cpp)
-// Scratch buffer for the anti-aliasing test (32x32 pixel coverage grid).
-extern UBYTE AENG_aa_buffer[AENG_AA_BUF_SIZE][AENG_AA_BUF_SIZE];
 
 // uc_orig: MAP_SIZE_TWEAK (fallen/DDEngine/Source/aeng.cpp)
 // Extra padding on MAP_WIDTH/2 and MAP_HEIGHT/2 for vertex arrays.

@@ -191,37 +191,6 @@ static void init_clouds(void)
     }
 }
 
-// uc_orig: GetShadowPixelMapping (fallen/DDEngine/Source/aeng.cpp)
-// Returns a 256-entry UBYTE->UWORD lookup table mapping shadow density to
-// the correct 16-bit pixel format for the current display mode.
-UWORD* GetShadowPixelMapping()
-{
-    static UWORD mapping[256];
-    static int mapping_state = -1;
-
-    if ((mapping_state == -1) || (mapping_state != (int)ge_supports_dest_inv_src_color())) {
-        mapping_state = ge_supports_dest_inv_src_color();
-
-        if (mapping_state) {
-            for (int ii = 0; ii < 256; ii++) {
-                int val = ii >> 1;
-
-                mapping[ii] = ((val >> TEXTURE_shadow_mask_red) << TEXTURE_shadow_shift_red)
-                    | ((val >> TEXTURE_shadow_mask_green) << TEXTURE_shadow_shift_green)
-                    | ((val >> TEXTURE_shadow_mask_blue) << TEXTURE_shadow_shift_blue);
-            }
-        } else {
-            for (int ii = 0; ii < 256; ii++) {
-                int val = ii >> 1;
-
-                mapping[ii] = (val >> TEXTURE_shadow_mask_alpha) << TEXTURE_shadow_shift_alpha;
-            }
-        }
-    }
-
-    return mapping;
-}
-
 // uc_orig: AENG_init (fallen/DDEngine/Source/aeng.cpp)
 // One-time engine startup: inits meshes, cloud data, sky, polygon system, textures.
 void AENG_init(void)
@@ -703,8 +672,13 @@ void AENG_add_projected_shadow_poly(SMAP_Link* sl)
 }
 
 // uc_orig: AENG_add_projected_fadeout_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
-// Like AENG_add_projected_shadow_poly but alpha fades out beyond 64 units from the
-// light origin (fully transparent at 256 units).
+// Original character-shadow distance fade: full opacity within 64 world
+// units of the person, linearly to zero by 256. This gives the soft far
+// edge the original had. It only "breathes" if the silhouette is loose
+// and sits broadly in the gradient — fixed by the vertex-tight projection
+// box (smap.cpp), which keeps the shadow near the feet like the original.
+#define SHADOW_FADE_FULL_DIST 64.0F  // |dx|+|dz|: full opacity within this
+#define SHADOW_FADE_ZERO_DIST 256.0F // fully transparent beyond this
 void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 {
     float dx;
@@ -735,13 +709,14 @@ void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 
             dist = fabs(dx) + fabs(dz);
 
-            if (dist < 64.0F) {
+            if (dist < SHADOW_FADE_FULL_DIST) {
                 alpha = 0xff;
             } else {
-                if (dist > 256.0F) {
+                if (dist > SHADOW_FADE_ZERO_DIST) {
                     alpha = 0;
                 } else {
-                    alpha = 0xff - SLONG((dist - 64.0F) * (255.0F / 192.0F));
+                    alpha = 0xff - SLONG((dist - SHADOW_FADE_FULL_DIST)
+                        * (255.0F / (SHADOW_FADE_ZERO_DIST - SHADOW_FADE_FULL_DIST)));
                 }
             }
 
@@ -2304,13 +2279,10 @@ void AENG_draw_city()
     // Shadows.
     //
 
-    // Max number of simultaneous detailed character shadows. Can't be bumped
-    // on its own — the shadow bitmap is TEXTURE_SHADOW_SIZE (64) and each
-    // shadow occupies a 32x32 quadrant, so only 4 slots fit. To raise this:
-    // grow TEXTURE_SHADOW_SIZE (and the shadow texture in the renderer),
-    // fix the offset_x/offset_y mapping (currently hardcoded 2x2 via i&1 / i&2),
-    // update the ASSERTs on TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE, then bump
-    // this value. Both shadow code paths use the same layout.
+    // Max number of simultaneous detailed character shadows. Persons are
+    // packed 2×2 into the shadow page (AENG_AA_BUF_SIZE per person,
+    // TEXTURE_SHADOW_SIZE = 2× that). Raising past 4 needs a bigger page
+    // and a packing scheme beyond 2×2 (offset_x/offset_y below).
 #define AENG_NUM_SHADOWS 4
 
     // Max distance (|dx|+|dz|, raw world units) from the camera at which a
@@ -2429,48 +2401,27 @@ void AENG_draw_city()
         for (i = 0; i < shadow_person_upto; i++) {
             darci = shadow_person[i].p_person;
 
-            memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
-
-            SMAP_person(
-                darci,
-                (UBYTE*)AENG_aa_buffer,
-                AENG_AA_BUF_SIZE,
-                AENG_AA_BUF_SIZE,
-                147,
-                -148,
-                -147);
-
             //
             // Where do we put it in the shadow texture page? Hard code everything!
             //
 
-            ASSERT(AENG_AA_BUF_SIZE == 32);
-            ASSERT(TEXTURE_SHADOW_SIZE == 64);
+            // 4 persons packed 2×2 in the shadow page.
+            ASSERT(TEXTURE_SHADOW_SIZE == AENG_AA_BUF_SIZE * 2);
+            ASSERT(AENG_NUM_SHADOWS <= 4);
 
-            offset_x = (i & 1) << 5;
-            offset_y = (i & 2) << 4;
+            offset_x = (i & 1) * AENG_AA_BUF_SIZE;
+            offset_y = ((i >> 1) & 1) * AENG_AA_BUF_SIZE;
 
-            //
-            // Plonk it into the shadow texture page.
-            //
-
-            if (TEXTURE_shadow_lock()) {
-                SLONG x;
-                SLONG y;
-                UWORD* line;
-                UBYTE* buf = (UBYTE*)AENG_aa_buffer;
-                UWORD* mapping = GetShadowPixelMapping();
-
-                for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
-                    line = &TEXTURE_shadow_bitmap[((y + offset_y) * TEXTURE_shadow_pitch >> 1) + offset_x];
-
-                    for (x = AENG_AA_BUF_SIZE - 1; x >= 0; x--) {
-                        *line++ = mapping[*buf++];
-                    }
-                }
-
-                TEXTURE_shadow_unlock();
-            }
+            // Milestone 1E: GPU silhouette into the texture sub-rect. Also
+            // sets the SMAP_* projection globals the ground projection
+            // below needs. No CPU fallback (shadows are 100% GPU). If the
+            // model isn't ready yet (only the first frame it appears) this
+            // person simply has no detailed shadow that one frame — rare
+            // and transient. Skipping also avoids projecting onto the
+            // ground with stale SMAP_* globals.
+            if (!SMAP_person_gpu(darci, TEXTURE_page_shadow,
+                    offset_x, offset_y, AENG_AA_BUF_SIZE, 147, -148, -147))
+                continue;
 
             //
             // How we map floating points coordinates from 0 to 1 onto
@@ -5023,41 +4974,19 @@ void AENG_draw_warehouse()
         for (i = 0; i < shadow_person_upto; i++) {
             darci = shadow_person[i].p_person;
 
-            memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
+            // 4 persons packed 2×2 in the shadow page.
+            ASSERT(TEXTURE_SHADOW_SIZE == AENG_AA_BUF_SIZE * 2);
+            ASSERT(AENG_NUM_SHADOWS <= 4);
 
-            SMAP_person(
-                darci,
-                (UBYTE*)AENG_aa_buffer,
-                AENG_AA_BUF_SIZE,
-                AENG_AA_BUF_SIZE,
-                0,
-                -255,
-                -0);
+            offset_x = (i & 1) * AENG_AA_BUF_SIZE;
+            offset_y = ((i >> 1) & 1) * AENG_AA_BUF_SIZE;
 
-            ASSERT(AENG_AA_BUF_SIZE == 32);
-            ASSERT(TEXTURE_SHADOW_SIZE == 64);
-
-            offset_x = (i & 1) << 5;
-            offset_y = (i & 2) << 4;
-
-            // Plonk it into the shadow texture page.
-            if (TEXTURE_shadow_lock()) {
-                SLONG x;
-                SLONG y;
-                UWORD* line;
-                UBYTE* buf = (UBYTE*)AENG_aa_buffer;
-                UWORD* mapping = GetShadowPixelMapping();
-
-                for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
-                    line = &TEXTURE_shadow_bitmap[((y + offset_y) * TEXTURE_shadow_pitch >> 1) + offset_x];
-
-                    for (x = AENG_AA_BUF_SIZE - 1; x >= 0; x--) {
-                        *line++ = mapping[*buf++];
-                    }
-                }
-
-                TEXTURE_shadow_unlock();
-            }
+            // Milestone 1E: GPU silhouette (top-down light for indoors).
+            // No CPU fallback (100% GPU). Not ready → no detailed shadow
+            // this one frame; skip (also avoids stale-globals projection).
+            if (!SMAP_person_gpu(darci, TEXTURE_page_shadow,
+                    offset_x, offset_y, AENG_AA_BUF_SIZE, 0, -255, 0))
+                continue;
 
             // How we map floating points coordinates from 0 to 1 onto
             // where we plonked the shadow map in the texture page.
