@@ -196,6 +196,12 @@ struct GEMultiMatrix {
     GEMatrix* matrices; // Pointer to matrix array, must be 32-byte aligned
     void* lpvLightDirs; // Pointer to light direction array (NULL if unlit), 8-byte aligned
     ULONG* lpLightTable; // Pointer to fade table (NULL if unlit), 4-byte aligned
+    // Milestone 1D (skeletal_skinning_plan.md): persistent GPU-mesh cache
+    // slot owned by the model (one per TomsPrimObject material). NULL =
+    // no cache → streaming path. *skin_cache == NULL = not built yet;
+    // non-NULL = a GESkinMesh* to reuse. MUST be set at every
+    // GEMultiMatrix construction site (uninitialised = garbage deref).
+    void** skin_cache;
 };
 
 // uc_orig: SET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
@@ -226,9 +232,5 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 // ge_draw_multi_matrix call. Used for CPU fog (0=near, 1=far), same scale
 // as POLY_Point::z in POLY_fadeout_point.
 extern float g_mm_fog_view_z;
-
-// A/B toggle for the GPU character-transform path (skeletal_skinning_plan.md,
-// Milestone 1A). false = legacy CPU transform. Flipped by a debug hotkey.
-extern bool g_skin_gpu_path;
 
 #endif // ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H

@@ -903,6 +903,22 @@ UWORD FIGURE_find_face_D3D_texture_page(int iFaceNum, bool bTri)
     return (wTexturePage);
 }
 
+// Milestone 1D (skeletal_skinning_plan.md): return the persistent GPU-mesh
+// cache slot for one model material, lazily allocating the per-material
+// array on the model. Returns NULL only on allocation failure (→ caller
+// streams). The array is freed in FIGURE_clean_LRU_slot.
+static void** figure_skin_cache_slot(TomsPrimObject* po, PrimObjectMaterial* pMat)
+{
+    if (po->skin_gpu == NULL) {
+        po->skin_gpu = (void**)MemAlloc(po->wNumMaterials * sizeof(void*));
+        if (po->skin_gpu == NULL)
+            return NULL;
+        for (int i = 0; i < (int)po->wNumMaterials; i++)
+            po->skin_gpu[i] = NULL;
+    }
+    return &po->skin_gpu[pMat - po->pMaterials];
+}
+
 // uc_orig: FIGURE_clean_LRU_slot (fallen/DDEngine/Source/figure.cpp)
 // Frees vertex/index memory for one LRU cache slot and clears its metadata.
 void FIGURE_clean_LRU_slot(int iSlot)
@@ -922,6 +938,18 @@ void FIGURE_clean_LRU_slot(int iSlot)
     ASSERT(ptpo->wNumMaterials > 0);
     ASSERT(ptpo->pMaterials != NULL);
     ASSERT(ptpo->pwListIndices != NULL);
+    // Milestone 1D: free the persistent GPU skin meshes alongside the CPU
+    // mesh — buffer lifetime is tied to the model's lifetime. Done before
+    // wNumMaterials is zeroed (it sizes the array).
+    if (ptpo->skin_gpu != NULL) {
+        for (int iMat = 0; iMat < (int)ptpo->wNumMaterials; iMat++) {
+            if (ptpo->skin_gpu[iMat] != NULL)
+                ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_gpu[iMat]);
+        }
+        MemFree(ptpo->skin_gpu);
+        ptpo->skin_gpu = NULL;
+    }
+
     MemFree(ptpo->pMaterials);
     MemFree(ptpo->pwListIndices);
 
@@ -1098,6 +1126,12 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     ASSERT(pPrimObj->pwListIndices == NULL);
     ASSERT(pPrimObj->pwStripIndices == NULL);
     ASSERT(pPrimObj->wNumMaterials == 0);
+
+    // Milestone 1D: every TPO that can reach the LRU/clean path is init'd
+    // here first, so NULL the skin-mesh cache here — removes any reliance
+    // on the struct's memory being zero-initialised (the asserts above
+    // guarantee a fresh object, so this never leaks an existing array).
+    pPrimObj->skin_gpu = NULL;
 
     TPO_pPrimObj = pPrimObj;
 
@@ -2122,6 +2156,7 @@ no_muzzle_calcs:
     GEMultiMatrix mm;
     mm.matrices = MM_pMatrix;
     mm.lpvLightDirs = MM_pNormal;
+    mm.skin_cache = nullptr; // 1D: set per-material before each draw
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
@@ -2152,6 +2187,7 @@ no_muzzle_calcs:
                 mm.lpLightTable = MM_pcFadeTable;
             }
             mm.lpvVertices = pVertex;
+            mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
 
             pa->RS.SetCullMode(GECullMode::CCW);
             pa->RS.SetAlphaBlendEnabled(false);
@@ -2444,6 +2480,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     GEMultiMatrix mm;
     mm.matrices = MMBodyParts_pMatrix;
     mm.lpvLightDirs = MMBodyParts_pNormal;
+    mm.skin_cache = nullptr; // 1D: set per-material before each draw
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
@@ -2473,6 +2510,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                 mm.lpLightTable = MM_pcFadeTable;
             }
             mm.lpvVertices = pVertex;
+            mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
 
             pa->RS.SetCullMode(GECullMode::CCW);
             pa->RS.SetAlphaBlendEnabled(false);
@@ -4108,6 +4146,7 @@ no_muzzle_calcs:
     GEMultiMatrix mm;
     mm.matrices = MM_pMatrix;
     mm.lpvLightDirs = MM_pNormal;
+    mm.skin_cache = nullptr; // 1D: set per-material before each draw
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
@@ -4142,6 +4181,7 @@ no_muzzle_calcs:
             mm.lpLightTable = MM_pcFadeTable;
         }
         mm.lpvVertices = pVertex;
+        mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
 
         pa->RS.SetCullMode(GECullMode::CCW);
         pa->RS.SetAlphaBlendEnabled(false);

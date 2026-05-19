@@ -1460,21 +1460,6 @@ void process_controls(void)
         }
     }
 
-    // Skeletal-skinning A/B (skeletal_skinning_plan.md, Milestone 1A).
-    // TEMPORARY key — deliberately NOT gated behind allow_debug_keys so
-    // it works without entering debug mode (this key is removed once the
-    // GPU path is verified and made default). K toggles GPU character
-    // transform (NEW) vs the legacy CPU path (OLD). A persistent corner
-    // readout shows the current path every frame (set each tick so it
-    // stays on screen and always reflects the live state).
-    {
-        extern bool g_skin_gpu_path;
-        if (input_key_just_pressed(KB_K))
-            g_skin_gpu_path = !g_skin_gpu_path;
-        CONSOLE_status(g_skin_gpu_path ? (CBYTE*)"skin: NEW"
-                                       : (CBYTE*)"skin: OLD");
-    }
-
     if (!allow_debug_keys)
         return;
 

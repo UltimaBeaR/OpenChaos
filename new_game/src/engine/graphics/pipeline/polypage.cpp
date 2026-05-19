@@ -427,31 +427,18 @@ namespace {
 // steady state has no per-frame malloc/free (same proven pattern as the
 // sky.cpp star batching). This accumulator is intentionally local for now;
 // the later effects/UI work (Stage 3) will factor a shared batcher out.
-std::vector<GEVertexTL> s_mm_verts;
-std::vector<uint16_t>   s_mm_inds;
-
 // One triangle = 3 unique verts (transform is per-vertex via the bone
 // matrix, so verts cannot be deduplicated). Flush before a triangle that
 // would push the vertex count past the uint16_t index limit. 65532/3 = 21844
-// triangles — far above any single body part, so in practice there is
-// exactly one flush per MM call.
+// triangles — far above any single body part, so in the streaming fallback
+// there is in practice exactly one flush per MM call.
 constexpr uint32_t MM_FLUSH_VERT_THRESHOLD = 65535 - 3;
 
-inline void mm_flush_batch()
-{
-    if (s_mm_inds.empty())
-        return;
-    ge_draw_indexed_primitive(GEPrimitiveType::TriangleList,
-        s_mm_verts.data(), uint32_t(s_mm_verts.size()),
-        s_mm_inds.data(), uint32_t(s_mm_inds.size()));
-    s_mm_verts.clear();
-    s_mm_inds.clear();
-}
-
-// Skeletal-skinning Milestone 1A (skeletal_skinning_plan.md): A/B path.
-// Same accumulate-per-MM-call shape as above, but stores MODEL-space
-// position + the CPU-computed color/specular/uv, and the single per-call
-// matrix; the GPU (skin_vert.glsl) does the transform. Toggle: g_skin_gpu_path.
+// Skeletal-skinning accumulator (skeletal_skinning_plan.md). Stores
+// MODEL-space position + normal + per-vertex bone index + uv (and, for the
+// lit path, colour/specular); the GPU (skin_vert.glsl) does the transform,
+// lighting and fog. One persistent mesh is built per model material (1D),
+// or streamed when no cache slot is provided.
 std::vector<GESkinVertex> s_skin_verts;
 std::vector<uint16_t>     s_skin_inds;
 const GEMatrix*           s_skin_palette = nullptr;   // = mm->matrices
@@ -459,15 +446,37 @@ uint32_t                  s_skin_palette_n = 0;       // max bone index + 1
 const float*              s_skin_lightdirs = nullptr; // = mm->lpvLightDirs
 const uint32_t*           s_skin_fadetable = nullptr; // = mm->lpLightTable
 bool                      s_skin_unlit = false;       // character path
+void**                    s_skin_cache_slot = nullptr; // = mm->skin_cache
 
 inline void mm_flush_skin()
 {
     if (s_skin_inds.empty() || !s_skin_palette || !s_skin_palette_n)
         return;
-    ge_draw_skinned(s_skin_palette, s_skin_palette_n,
-        s_skin_verts.data(), uint32_t(s_skin_verts.size()),
-        s_skin_inds.data(), uint32_t(s_skin_inds.size()),
-        s_skin_unlit, s_skin_lightdirs, s_skin_fadetable);
+    if (s_skin_cache_slot) {
+        // Milestone 1D: first time this model-material is drawn — build a
+        // persistent GPU mesh from the (verified-static) geometry, store
+        // it on the model, draw it. Subsequent frames hit the early-out
+        // in ge_draw_multi_matrix and skip the whole accumulation loop.
+        GESkinMesh* mesh = ge_skin_mesh_create(
+            s_skin_verts.data(), uint32_t(s_skin_verts.size()),
+            s_skin_inds.data(), uint32_t(s_skin_inds.size()),
+            s_skin_palette_n);
+        if (mesh) {
+            *s_skin_cache_slot = mesh;
+            ge_skin_mesh_draw(mesh, s_skin_palette,
+                s_skin_unlit, s_skin_lightdirs, s_skin_fadetable);
+        } else {
+            ge_draw_skinned(s_skin_palette, s_skin_palette_n,
+                s_skin_verts.data(), uint32_t(s_skin_verts.size()),
+                s_skin_inds.data(), uint32_t(s_skin_inds.size()),
+                s_skin_unlit, s_skin_lightdirs, s_skin_fadetable);
+        }
+    } else {
+        ge_draw_skinned(s_skin_palette, s_skin_palette_n,
+            s_skin_verts.data(), uint32_t(s_skin_verts.size()),
+            s_skin_inds.data(), uint32_t(s_skin_inds.size()),
+            s_skin_unlit, s_skin_lightdirs, s_skin_fadetable);
+    }
     s_skin_verts.clear();
     s_skin_inds.clear();
     s_skin_palette = nullptr;
@@ -475,16 +484,15 @@ inline void mm_flush_skin()
     s_skin_lightdirs = nullptr;
     s_skin_fadetable = nullptr;
     s_skin_unlit = false;
+    s_skin_cache_slot = nullptr;
 }
 } // namespace
 
-// A/B toggle for the GPU character-transform path (Milestone 1A). Off =
-// legacy CPU transform (ge_draw_multi_matrix). Flipped by a debug hotkey.
-bool g_skin_gpu_path = false;
-
 // uc_orig: DrawIndPrimMM (fallen/DDEngine/Source/polypage.cpp)
-// Software emulation of the Dreamcast's DrawPrimitiveMM.
-// Transforms vertices using per-vertex matrix indices, then submits as indexed triangles.
+// Software emulation of the Dreamcast's DrawPrimitiveMM. Captures the
+// model-space verts + per-vertex bone index and submits them for the GPU
+// skinning path (skin_vert.glsl): the GPU does transform, lighting and
+// fog. One persistent mesh per model material (1D), reused every frame.
 void ge_draw_multi_matrix(GEMMVertexType vertex_type,
     GEMultiMatrix* mm,
     uint16_t num_vertices,
@@ -498,14 +506,22 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
 
     bool unlit = (vertex_type == GEMMVertexType::Unlit);
 
-    GEVertexTL pTLVert[3];
-    GESkinVertex skinTmp[3]; // Milestone 1A: model-space verts when g_skin_gpu_path
+    // Milestone 1D fast path: if this model-material already has a
+    // persistent GPU mesh, skip the entire per-vertex accumulation loop —
+    // geometry is static (verified), only the bone palette / lighting
+    // changes. This is where the per-frame CPU cost of characters drops.
+    if (mm->skin_cache && *mm->skin_cache) {
+        ge_skin_mesh_draw((GESkinMesh*)*mm->skin_cache, mm->matrices,
+            unlit, (const float*)mm->lpvLightDirs,
+            (const uint32_t*)mm->lpLightTable);
+        return;
+    }
+
+    GESkinVertex skinTmp[3]; // model-space verts captured for the GPU path
     GEVertexLit* pLVert = (GEVertexLit*)mm->lpvVertices;
     // For unlit (character) path the buffer actually contains GEVertex with packed
     // normals; x/y/z/u/v offsets match GEVertexLit so position/UV reads are shared.
     GEVertex* pVert = (GEVertex*)mm->lpvVertices;
-    const float* pLightDirs = (const float*)mm->lpvLightDirs;
-    const uint32_t* pLightTable = (const uint32_t*)mm->lpLightTable;
 
     uint16_t* pwCurIndex = indices;
     while (UC_TRUE) {
@@ -527,118 +543,50 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 break;
             }
 
-            // CPU fog for characters: ge_draw_multi_matrix receives pre-projected
-            // vertices (World*Projection baked into bone matrices), so clip-space Z
-            // can't be used for table fog. Compute vertex fog from the character's
-            // view-space Z (same scale as POLY_Point::z) using POLY_fadeout_point formula.
-            uint32_t fog_specular;
-            {
-                SLONG multi = 255 - (SLONG)((g_mm_fog_view_z - POLY_FADEOUT_START) * (256.0F / (POLY_FADEOUT_END - POLY_FADEOUT_START)));
-                if (multi > 255)
-                    multi = 255;
-                if (multi < 0)
-                    multi = 0;
-                fog_specular = (uint32_t)multi << 24;
-            }
-
             for (int i = 0; i < 3; i++) {
                 uint16_t wVertIndex = wIndex[i];
                 ASSERT(wVertIndex < num_vertices);
                 GEVertexLit* pLVertCur = pLVert + wVertIndex;
 
                 BYTE bMatIndex = ((unsigned char*)(pLVertCur))[12];
+                // Sanity: mm->matrices[bMatIndex] must be a valid MM matrix
+                // (the bone slot's _41 carries the DC MultiMatrix sentinel).
+                ASSERT(*((uint32_t*)(&(mm->matrices[bMatIndex]._41))) == 0xe0001000);
 
-                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(mm->matrices[bMatIndex]));
-                ASSERT(*((uint32_t*)(&(pmCur->_41))) == 0xe0001000);
-
-                pTLVert[i].x = pLVertCur->x * pmCur->_12 + pLVertCur->y * pmCur->_22 + pLVertCur->z * pmCur->_32 + pmCur->_42;
-                pTLVert[i].y = pLVertCur->x * pmCur->_13 + pLVertCur->y * pmCur->_23 + pLVertCur->z * pmCur->_33 + pmCur->_43;
-                pTLVert[i].z = pLVertCur->x * pmCur->_14 + pLVertCur->y * pmCur->_24 + pLVertCur->z * pmCur->_34 + pmCur->_44;
-                if (pTLVert[i].z < 0.001f)
-                    pTLVert[i].z = 0.001f; // div/0 guard for near-plane vertices
-                pTLVert[i].rhw = 1.0f / pTLVert[i].z;
-                pTLVert[i].x *= pTLVert[i].rhw;
-                pTLVert[i].y *= pTLVert[i].rhw;
-                pTLVert[i].z = 1.0f - POLY_ZCLIP_PLANE / pTLVert[i].z; // BUGFIX-OC-ZBUF-MISMATCH: match POLY path's inverse-z space
-
-                pTLVert[i].u = pLVert[wIndex[i]].u;
-                pTLVert[i].v = pLVert[wIndex[i]].v;
-
+                // Capture MODEL-space pos + normal + bone index; the GPU
+                // (skin_vert.glsl) does transform, lighting and fog.
+                skinTmp[i].x = pLVertCur->x;
+                skinTmp[i].y = pLVertCur->y;
+                skinTmp[i].z = pLVertCur->z;
                 if (unlit) {
-                    // Per-vertex character lighting: dot(normal, bone-local light dir) →
-                    // index into the 128-entry fade table (MM_pcFadeTable) built by
-                    // BuildMMLightingTable. Normals are unit vectors, light dirs are unit
-                    // scaled by fNormScale = 251 (figure.cpp), so we divide dot by 251 to
-                    // get a clean cosine in [-1, 1]. Uses half-Lambert wrap
-                    // (wrap = cos × 0.5 + 0.5) so back-facing vertices still get partial
-                    // lighting from the ramp instead of dropping into flat-ambient idx 64;
-                    // this avoids the hard shadow cutoff that made characters read as too
-                    // dark against the environment geometry. Full background, data-scale
-                    // derivation and contrast-tuning notes:
-                    // new_game_planning/stage12_character_lighting_investigation.md
+                    // Raw model normal — shader does the half-Lambert ramp.
                     GEVertex* pVertCur = pVert + wVertIndex;
-                    float nx = pVertCur->nx;
-                    float ny = pVertCur->ny;
-                    float nz = pVertCur->nz;
-
-                    float lx = pLightDirs[bMatIndex * 4 + 1];
-                    float ly = pLightDirs[bMatIndex * 4 + 2];
-                    float lz = pLightDirs[bMatIndex * 4 + 3];
-
-                    float dot_raw = nx * lx + ny * ly + nz * lz;
-                    float cos_nl = dot_raw * (1.0f / 251.0f); // undo fNormScale
-
-                    float wrap = cos_nl * 0.5f + 0.5f; // half-Lambert [0,1]
-                    int idx = (int)(wrap * 64.0f);
-                    if (idx < 0)
-                        idx = 0;
-                    if (idx > 63)
-                        idx = 63;
-
-                    pTLVert[i].color = pLightTable[idx];
-                    pTLVert[i].specular = fog_specular;
+                    skinTmp[i].nx = pVertCur->nx;
+                    skinTmp[i].ny = pVertCur->ny;
+                    skinTmp[i].nz = pVertCur->nz;
                 } else {
-                    pTLVert[i].color = pLVert[wIndex[i]].color;
-                    pTLVert[i].specular = fog_specular | (pLVert[wIndex[i]].specular & 0x00FFFFFF);
+                    skinTmp[i].nx = skinTmp[i].ny = skinTmp[i].nz = 0.0f;
                 }
-
-                // Milestone 1A/1B: capture MODEL-space pos + normal; the
-                // GPU does the transform and (unlit path) the lighting.
-                // color/specular/uv are still the CPU values — used by the
-                // lit path and for fog (1C); the unlit path overrides color
-                // in-shader from normal + bone light dir + fade table.
-                if (g_skin_gpu_path) {
-                    skinTmp[i].x = pLVertCur->x;
-                    skinTmp[i].y = pLVertCur->y;
-                    skinTmp[i].z = pLVertCur->z;
-                    if (unlit) {
-                        // Same raw normal the CPU lighting block reads.
-                        GEVertex* pVertCur = pVert + wVertIndex;
-                        skinTmp[i].nx = pVertCur->nx;
-                        skinTmp[i].ny = pVertCur->ny;
-                        skinTmp[i].nz = pVertCur->nz;
-                    } else {
-                        skinTmp[i].nx = skinTmp[i].ny = skinTmp[i].nz = 0.0f;
-                    }
-                    skinTmp[i].bone = (uint32_t)bMatIndex;
-                    skinTmp[i].color = pTLVert[i].color;
-                    // 1C: shader computes fog into specular.a from
-                    // g_mm_fog_view_z. a_specular carries only the
-                    // original RGB highlight (lit), 0 for characters.
-                    skinTmp[i].specular = unlit
-                        ? 0u
-                        : (pLVert[wIndex[i]].specular & 0x00FFFFFFu);
-                    skinTmp[i].u = pTLVert[i].u;
-                    skinTmp[i].v = pTLVert[i].v;
-                    // Palette + lighting inputs = the call's arrays
-                    // (constant per MM call). Track max bone referenced.
-                    s_skin_palette = mm->matrices;
-                    s_skin_lightdirs = (const float*)mm->lpvLightDirs;
-                    s_skin_fadetable = (const uint32_t*)mm->lpLightTable;
-                    s_skin_unlit = unlit;
-                    if ((uint32_t)bMatIndex + 1 > s_skin_palette_n)
-                        s_skin_palette_n = (uint32_t)bMatIndex + 1;
-                }
+                skinTmp[i].bone = (uint32_t)bMatIndex;
+                // Unlit (character) colour is derived in-shader from the
+                // ramp, so the stored colour is unused there. Lit path
+                // keeps the per-vertex colour. Fog → specular.a in-shader
+                // (1C); a_specular carries only the original RGB (lit).
+                skinTmp[i].color = unlit ? 0u : pLVert[wIndex[i]].color;
+                skinTmp[i].specular = unlit
+                    ? 0u
+                    : (pLVert[wIndex[i]].specular & 0x00FFFFFFu);
+                skinTmp[i].u = pLVert[wIndex[i]].u;
+                skinTmp[i].v = pLVert[wIndex[i]].v;
+                // Palette + lighting inputs = the call's arrays (constant
+                // per MM call). Track the max bone index referenced.
+                s_skin_palette = mm->matrices;
+                s_skin_lightdirs = (const float*)mm->lpvLightDirs;
+                s_skin_fadetable = (const uint32_t*)mm->lpLightTable;
+                s_skin_unlit = unlit;
+                s_skin_cache_slot = mm->skin_cache; // 1D: build target
+                if ((uint32_t)bMatIndex + 1 > s_skin_palette_n)
+                    s_skin_palette_n = (uint32_t)bMatIndex + 1;
             }
 
             uint16_t wMyIndices[3];
@@ -651,39 +599,29 @@ void ge_draw_multi_matrix(GEMMVertexType vertex_type,
                 wMyIndices[1] = 1;
                 wMyIndices[2] = 2;
             }
-            // Stage-1: accumulate this triangle instead of submitting it
-            // on its own. Verts/winding identical to the per-triangle path;
-            // flushed in one draw per MM call after the loop. Milestone 1A:
-            // when g_skin_gpu_path, accumulate model-space skin verts instead
-            // (same winding) for the GPU-transform draw.
-            if (g_skin_gpu_path) {
-                if (s_skin_verts.size() > MM_FLUSH_VERT_THRESHOLD)
-                    mm_flush_skin();
-                uint16_t base = (uint16_t)s_skin_verts.size();
-                s_skin_verts.push_back(skinTmp[0]);
-                s_skin_verts.push_back(skinTmp[1]);
-                s_skin_verts.push_back(skinTmp[2]);
-                s_skin_inds.push_back((uint16_t)(base + wMyIndices[0]));
-                s_skin_inds.push_back((uint16_t)(base + wMyIndices[1]));
-                s_skin_inds.push_back((uint16_t)(base + wMyIndices[2]));
-            } else {
-                if (s_mm_verts.size() > MM_FLUSH_VERT_THRESHOLD)
-                    mm_flush_batch();
-                uint16_t base = (uint16_t)s_mm_verts.size();
-                s_mm_verts.push_back(pTLVert[0]);
-                s_mm_verts.push_back(pTLVert[1]);
-                s_mm_verts.push_back(pTLVert[2]);
-                s_mm_inds.push_back((uint16_t)(base + wMyIndices[0]));
-                s_mm_inds.push_back((uint16_t)(base + wMyIndices[1]));
-                s_mm_inds.push_back((uint16_t)(base + wMyIndices[2]));
-            }
+            // Accumulate this triangle (same winding as the per-triangle
+            // path); flushed once per MM call after the loop. Milestone 1D:
+            // while building a persistent cache the WHOLE material must end
+            // up in ONE mesh — the threshold flush would split it across
+            // several mm_flush_skin() calls, each overwriting the cache
+            // slot (missing-polygons bug). So suppress the mid-call flush
+            // while building a cache; a character material is far below the
+            // 16-bit index limit. Streaming fallback (no cache slot) keeps
+            // the threshold.
+            if (!mm->skin_cache && s_skin_verts.size() > MM_FLUSH_VERT_THRESHOLD)
+                mm_flush_skin();
+            ASSERT(s_skin_verts.size() < 0xFFFF); // 16-bit index base
+            uint16_t base = (uint16_t)s_skin_verts.size();
+            s_skin_verts.push_back(skinTmp[0]);
+            s_skin_verts.push_back(skinTmp[1]);
+            s_skin_verts.push_back(skinTmp[2]);
+            s_skin_inds.push_back((uint16_t)(base + wMyIndices[0]));
+            s_skin_inds.push_back((uint16_t)(base + wMyIndices[1]));
+            s_skin_inds.push_back((uint16_t)(base + wMyIndices[2]));
         }
         if (num_indices == 0) {
             break;
         }
     }
-    if (g_skin_gpu_path)
-        mm_flush_skin(); // Milestone 1A: one GPU-transform draw per MM call
-    else
-        mm_flush_batch(); // Stage-1: single draw call for the whole MM call
+    mm_flush_skin(); // one GPU draw per MM call (cached mesh or streamed)
 }

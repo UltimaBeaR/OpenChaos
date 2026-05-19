@@ -665,6 +665,12 @@ struct TomsPrimObject {
     UWORD* pwListIndices;
     UWORD* pwStripIndices;
     float fBoundingSphereRadius;
+    // Milestone 1D (skeletal_skinning_plan.md): lazily-allocated array of
+    // wNumMaterials persistent GPU skin meshes (GESkinMesh*), one per
+    // material. NULL until first GPU-path draw; freed with the CPU mesh in
+    // FIGURE_clean_LRU_slot. Runtime-only (TomsPrimObjects are static
+    // arrays, zero-initialised — not loaded from resource files).
+    void** skin_gpu;
 };
 
 // Legacy prim object header (includes name field, pre-D3D).

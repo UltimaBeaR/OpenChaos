@@ -1299,23 +1299,16 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     s_draw_calls++;
 }
 
-// GPU character transform + lighting — skeletal_skinning_plan.md, 1A/1B.
-// One ge_draw_multi_matrix call: model-space verts transformed (and, for
-// the unlit character path, lit) on the GPU (skin_vert.glsl); fragment
-// pipeline shared with the TL path.
-void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
-    const GESkinVertex* verts, uint32_t vert_count,
-    const uint16_t* indices, uint32_t index_count,
-    bool unlit, const float* light_dirs, const uint32_t* fade_table)
+// GPU character transform + lighting — skeletal_skinning_plan.md, 1A–1D.
+// Bind the skin program and upload all per-draw uniforms (bone palette,
+// 1B lighting, 1C fog, frag/viewport state). Shared by the streaming path
+// (ge_draw_skinned) and the persistent path (ge_skin_mesh_draw) — the only
+// difference between them is where the geometry comes from. palette_n must
+// already be clamped to GE_SKIN_MAX_BONES.
+static void skin_bind_and_set_uniforms(const struct GEMatrix* palette,
+    uint32_t palette_n, bool unlit, const float* light_dirs,
+    const uint32_t* fade_table)
 {
-    PERF_GE_CALL();
-    if (!palette || !palette_n || !verts || !vert_count || !indices || !index_count)
-        return;
-    if (palette_n > GE_SKIN_MAX_BONES)
-        palette_n = GE_SKIN_MAX_BONES; // caller falls back before this, guard anyway
-    if (!init_shaders())
-        return;
-
     if (s_cached_program != s_program_skin) {
         glUseProgram(s_program_skin);
         s_cached_program = s_program_skin;
@@ -1392,6 +1385,26 @@ void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
     glUniform1i(s_sk_u_specular_enabled, s_specular_enabled ? 1 : 0);
     glUniform1i(s_sk_u_color_key_enabled, s_color_key_enabled ? 1 : 0);
     glUniform1i(s_sk_u_farfacet_mode, s_farfacet_mode);
+}
+
+// Streaming skinned draw — one ge_draw_multi_matrix call's geometry
+// uploaded to the shared stream VBO this frame. Used as the build-time /
+// fallback path; the persistent path (ge_skin_mesh_*) is preferred once a
+// model has been cached (Milestone 1D).
+void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
+    const GESkinVertex* verts, uint32_t vert_count,
+    const uint16_t* indices, uint32_t index_count,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table)
+{
+    PERF_GE_CALL();
+    if (!palette || !palette_n || !verts || !vert_count || !indices || !index_count)
+        return;
+    if (palette_n > GE_SKIN_MAX_BONES)
+        palette_n = GE_SKIN_MAX_BONES; // caller falls back before this, guard anyway
+    if (!init_shaders())
+        return;
+
+    skin_bind_and_set_uniforms(palette, palette_n, unlit, light_dirs, fade_table);
 
     glBindVertexArray(s_vao_skin);
     glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
@@ -1400,6 +1413,83 @@ void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
     glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
     s_draw_calls++;
+}
+
+// --- Persistent skinned mesh (Milestone 1D) ---------------------------
+// Model-space geometry is static, so it lives in its own GPU buffers for
+// the model's whole lifetime. Per frame only uniforms change.
+struct GESkinMesh {
+    GLuint vbo = 0;
+    GLuint ebo = 0;
+    GLuint vao = 0;
+    GLsizei index_count = 0;
+    uint32_t palette_n = 0; // max bone index referenced (model-static)
+};
+
+GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
+    const uint16_t* indices, uint32_t index_count, uint32_t palette_n)
+{
+    if (!verts || !vert_count || !indices || !index_count)
+        return nullptr;
+    if (!init_shaders())
+        return nullptr;
+    if (palette_n > GE_SKIN_MAX_BONES)
+        palette_n = GE_SKIN_MAX_BONES;
+
+    GESkinMesh* m = new GESkinMesh();
+    m->index_count = (GLsizei)index_count;
+    m->palette_n = palette_n ? palette_n : 1;
+
+    glGenBuffers(1, &m->vbo);
+    glGenBuffers(1, &m->ebo);
+    glGenVertexArrays(1, &m->vao);
+    // CRITICAL: bind THIS mesh's VAO before touching GL_ELEMENT_ARRAY_BUFFER.
+    // The element-buffer binding is per-VAO state. If we bound m->ebo while
+    // some OTHER (persistent) mesh's VAO was still bound (ge_skin_mesh_draw
+    // leaves a VAO bound), we would clobber that mesh's index buffer — the
+    // "half the triangles vanish but the rest animate fine" bug. Binding
+    // our VAO first contains the element binding to m->vao only.
+    glBindVertexArray(m->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+    glBufferData(GL_ARRAY_BUFFER, vert_count * sizeof(GESkinVertex), verts, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STATIC_DRAW);
+    // Same vertex layout as the streaming path (sets attrib pointers on the
+    // already-bound m->vao, records m->ebo into it, leaves VAO 0 bound).
+    setup_vao_skin(m->vao, m->vbo, m->ebo);
+    return m;
+}
+
+void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table)
+{
+    PERF_GE_CALL();
+    if (!mesh || !palette || !mesh->index_count)
+        return;
+    if (!init_shaders())
+        return;
+
+    skin_bind_and_set_uniforms(palette, mesh->palette_n, unlit, light_dirs, fade_table);
+
+    glBindVertexArray(mesh->vao);
+    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_SHORT, nullptr);
+    // Don't leave this mesh's VAO bound — a later ge_skin_mesh_create
+    // touching GL_ELEMENT_ARRAY_BUFFER would otherwise corrupt it.
+    glBindVertexArray(0);
+    s_draw_calls++;
+}
+
+void ge_skin_mesh_destroy(GESkinMesh* mesh)
+{
+    if (!mesh)
+        return;
+    if (mesh->vao)
+        glDeleteVertexArrays(1, &mesh->vao);
+    if (mesh->vbo)
+        glDeleteBuffers(1, &mesh->vbo);
+    if (mesh->ebo)
+        glDeleteBuffers(1, &mesh->ebo);
+    delete mesh;
 }
 
 void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* verts, uint32_t vert_count,

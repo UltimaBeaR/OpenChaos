@@ -61,7 +61,7 @@
 // ⚠️ To understand what each line measures, the hotkeys, the colours and
 // the file log — READ new_game_devlog/perf_diag/panel_guide.md (usage
 // manual). Architecture/history: new_game_devlog/perf_diag/design.md.
-#define OC_DEBUG_PERF false
+#define OC_DEBUG_PERF true
 
 // CSV file log of the perf-diag metrics (perf_log.csv next to the exe,
 // like crash_log.txt). Independent of OC_DEBUG_PERF so it can be enabled

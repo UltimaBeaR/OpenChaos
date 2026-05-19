@@ -532,6 +532,21 @@ void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
     const uint16_t* indices, uint32_t index_count,
     bool unlit, const float* light_dirs, const uint32_t* fade_table);
 
+// Persistent skinned mesh — skeletal_skinning_plan.md, Milestone 1D.
+// The model-space geometry of a character body part is static (it never
+// changes between frames; only the bone matrices do). So it is uploaded
+// to its own GPU buffer ONCE and reused every frame — owned by the model
+// (TomsPrimObject), freed when the model's CPU mesh is freed. palette_n
+// (max bone index referenced) is also model-static, stored in the mesh.
+struct GESkinMesh;
+GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
+    const uint16_t* indices, uint32_t index_count, uint32_t palette_n);
+// Draw with the current frame's bone palette + lighting inputs. Geometry
+// comes from the persistent buffer; only uniforms change per frame.
+void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table);
+void ge_skin_mesh_destroy(GESkinMesh* mesh);
+
 // ---------------------------------------------------------------------------
 // Texture pixel access
 // ---------------------------------------------------------------------------
