@@ -35,6 +35,15 @@ extern float g_render_alpha;
 // re-enabling at runtime gives instant smooth motion. Toggle hotkey: 3.
 extern bool g_render_interp_enabled;
 
+// TEMP — debug T-pose override for the player character (Darci) only.
+// When true, render_interp_compute_pose rebuilds the player's per-bone
+// pose using identity local rotations on every child bone and identity
+// world rotation on the pelvis (rest pose dictated purely by the rig's
+// parent-local offsets). Visual sanity-check for the auto-rig step in
+// skeletal_skinning_plan.md §«Итерация 2». Toggle: K (debug mode).
+// Will be removed once the rig weights are computed and verified.
+extern bool g_tpose_override_enabled;
+
 // Reset all snapshots. Call when the world resets (mission load, map change)
 // to prevent lerping from a stale previous position.
 void render_interp_reset(void);

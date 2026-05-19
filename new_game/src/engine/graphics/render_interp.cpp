@@ -14,6 +14,7 @@
 #include "things/items/grenade_globals.h" // GrenadeArray, MAX_GRENADES
 #include "engine/graphics/geometry/pose_composer.h" // Phase 2: per-bone world-pose capture
 #include "engine/core/quaternion.h" // Phase 3 apply: BuildTween for per-bone slerp
+#include "things/core/player.h" // PlayerPerson (T-pose override Darci-only gate)
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
@@ -56,6 +57,7 @@
 float g_render_alpha = 0.0f;
 bool  g_render_interp_enabled = true;
 uint32_t g_render_interp_frame_counter = 0;
+bool  g_tpose_override_enabled = false;
 
 namespace {
 
@@ -1209,6 +1211,68 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
         // world_rot[i] = world_rot[parent] × local_rot, both at scale 32768 →
         // matrix_mult33 outputs at scale 32768 (its >>15 normalises).
         matrix_mult33(&out[i].rot, &out[p].rot, &local_rot);
+    }
+
+    // TEMP — T-pose override for Darci (visual rest-pose check for the
+    // upcoming auto-rig step). Pelvis pinned to identity world rotation,
+    // children use identity parent-local rotation EXCEPT the two upper-
+    // arm bones which get a ±90° turn to spread the arms out into the
+    // T shape. Parent-local positions taken straight from the snapshot
+    // (the rig's bone offsets in the current keyframe).
+    //
+    // Axis/sign of the shoulder rotation is engine-convention-dependent
+    // — iterating visually until Darci stands arms-out, palms-down.
+    if (g_tpose_override_enabled) {
+        Thing* player_t = NET_PLAYER(0);
+        Thing* darci_person = (player_t && player_t->Genus.Player)
+            ? player_t->Genus.Player->PlayerPerson : nullptr;
+        if (darci_person == p_thing) {
+            // Identity rotation matrix at fixed-point scale 32768.
+            Matrix33 ident = {};
+            ident.M[0][0] = 32768;
+            ident.M[1][1] = 32768;
+            ident.M[2][2] = 32768;
+
+            // Upper-arm spread rotations. UC angles: 0..2047 = full turn,
+            // so 30° = 171. A-pose (30° instead of full 90° T) — at full
+            // horizontal the rigid shoulder-pad chunks overlap the upper-
+            // arm chunks; 30° keeps them separated for clean auto-rig.
+            constexpr SWORD TPOSE_SHOULDER_ANGLE = 171; // 30°
+            Matrix33 rot_left_shoulder, rot_right_shoulder;
+            rotate_obj(0, 0, -TPOSE_SHOULDER_ANGLE, &rot_left_shoulder);
+            rotate_obj(0, 0,  TPOSE_SHOULDER_ANGLE, &rot_right_shoulder);
+
+            // Pelvis: keep world position, world rot = identity.
+            out[0].rot = ident;
+
+            // Children: parent-local pos from snapshot's curr (no lerp —
+            // fixed pose), parent-local rot = identity (or shoulder rot
+            // for the two upper-arm bones), FK chain through parent's
+            // just-overridden world transform.
+            for (int i = 1; i < POSE_PERSON_BONE_COUNT; i++) {
+                int p = body_part_parent[i];
+
+                Matrix31 local_pos;
+                local_pos.M[0] = s.bones_curr[i].x;
+                local_pos.M[1] = s.bones_curr[i].y;
+                local_pos.M[2] = s.bones_curr[i].z;
+
+                Matrix31 rotated_local;
+                matrix_transformZMY(&rotated_local, &out[p].rot, &local_pos);
+                out[i].pos_x = out[p].pos_x + float(rotated_local.M[0]) / 256.0f;
+                out[i].pos_y = out[p].pos_y + float(rotated_local.M[1]) / 256.0f;
+                out[i].pos_z = out[p].pos_z + float(rotated_local.M[2]) / 256.0f;
+
+                // Local rotation: identity for everything except the two
+                // upper arms (bones 5 and 8). Body part indices: see
+                // pose_composer.cpp body_part_parent[] table.
+                Matrix33* local_rot;
+                if      (i == 5) local_rot = &rot_left_shoulder;
+                else if (i == 8) local_rot = &rot_right_shoulder;
+                else             local_rot = &ident;
+                matrix_mult33(&out[i].rot, &out[p].rot, local_rot);
+            }
+        }
     }
     return true;
 }

@@ -41,6 +41,7 @@ const Row s_rows[] = {
     { "Shift+M", "spawn mine at mouse cursor" },
     { "/", "toggle stealth debug" },
     { "L", "toggle dynamic light at player" },
+    { "N", "cycle Darci's visual model (15 person types)" },
     { "T", "warehouse debug (doors, MAV arrows)" },
     { "V", "show version string" },
 };

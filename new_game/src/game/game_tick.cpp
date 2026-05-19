@@ -15,12 +15,15 @@
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
+#include "engine/graphics/render_interp.h" // g_tpose_override_enabled (TEMP debug toggle)
 #include "map/pap.h"
 #include "map/road.h"
 #include "missions/eway.h"
 #include "missions/eway_globals.h"
 #include "effects/combat/pyro.h"
 #include "things/characters/person.h"
+#include "things/characters/person_globals.h" // anim_type[], mesh_type[] (TEMP model cycler)
+#include "things/characters/anim_ids.h" // ANIM_STAND_HIP (TEMP model cycler reset anim)
 #include "things/core/thing.h"
 #include "things/core/statedef.h"
 // ANIM_TYPE_DARCI, ANIM_TYPE_ROPER come from fallen/Headers/Person.h via actors/characters/person.h
@@ -1224,6 +1227,63 @@ void process_controls(void)
                 GAME_STATE = GS_LEVEL_LOST;
             }
         }
+    // TEMP — T-pose override on Darci's Thing. K toggles A-pose; NOT
+    // gated by allow_debug_keys (throw-away, removed once auto-rig
+    // weights are computed and verified).
+    if (input_key_just_pressed(KB_K)) {
+        g_tpose_override_enabled = !g_tpose_override_enabled;
+    }
+
+    // Model cycler — N steps Darci's visual through all 15 person types
+    // (Darci → Roper → Cop → Civ → … → MIB3 → wrap). Gated by
+    // allow_debug_keys (bangunsnotgames mode) — this is a keeper debug
+    // feature, listed in F1 legend / debug_keys.md.
+    static int s_model_cycle_type = PERSON_DARCI;
+    if (allow_debug_keys && input_key_just_pressed(KB_N)) {
+        s_model_cycle_type = (s_model_cycle_type + 1) % PERSON_NUM_TYPES;
+        Thing* darci_thing = NET_PERSON(0);
+        if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
+            UBYTE new_anim_type = anim_type[s_model_cycle_type];
+            // Mirror the existing PERSON_DARCI↔PERSON_ROPER console-
+            // command swap (parse_console case 21/22) so the swap takes:
+            // PersonType + AnimType + TheChunk + MeshID + PersonID, then
+            // let set_person_idle pick a valid anim for the new type.
+            darci_thing->Genus.Person->PersonType = s_model_cycle_type;
+            darci_thing->Genus.Person->AnimType = new_anim_type;
+            darci_thing->Draw.Tweened->TheChunk = &game_chunk[new_anim_type];
+            darci_thing->Draw.Tweened->MeshID = mesh_type[s_model_cycle_type];
+            darci_thing->Draw.Tweened->PersonID = 0;
+            set_person_idle(darci_thing);
+        }
+    }
+    // Persistent status line. T-pose label takes priority over the
+    // model name; "Model: X" only shown in debug mode and when the
+    // current selection isn't the default Darci. When neither applies
+    // we clear the status iff we wrote it last tick (CONSOLE_status is
+    // a shared slot — only stomp our own message, not someone else's).
+    {
+        static const char* const k_person_names[PERSON_NUM_TYPES] = {
+            "DARCI", "ROPER", "COP", "CIV", "THUG_RASTA", "THUG_GREY",
+            "THUG_RED", "SLAG_TART", "SLAG_FATUGLY", "HOSTAGE",
+            "MECHANIC", "TRAMP", "MIB1", "MIB2", "MIB3"
+        };
+        static bool s_wrote_status = false;
+        if (g_tpose_override_enabled) {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "T-pose: %s", k_person_names[s_model_cycle_type]);
+            CONSOLE_status((CBYTE*)buf);
+            s_wrote_status = true;
+        } else if (allow_debug_keys && s_model_cycle_type != PERSON_DARCI) {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "Model: %s", k_person_names[s_model_cycle_type]);
+            CONSOLE_status((CBYTE*)buf);
+            s_wrote_status = true;
+        } else if (s_wrote_status) {
+            CONSOLE_status((CBYTE*)"");
+            s_wrote_status = false;
+        }
+    }
+
     if (allow_debug_keys) {
         static SLONG index_cam = 0;
         Thing* p_thing;

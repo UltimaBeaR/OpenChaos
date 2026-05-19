@@ -47,6 +47,7 @@ F9 — единственная клавиша которая работает *
 | Shift+M      | spawn mine at mouse cursor               |
 | /            | toggle stealth debug                     |
 | L            | toggle dynamic light at player           |
+| N            | сменить модельку Дарси (цикл по 15 типам)|
 | T            | warehouse debug (двери, MAV arrows)      |
 | V            | show version string (fade-out)           |
 
