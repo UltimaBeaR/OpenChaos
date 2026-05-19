@@ -142,29 +142,14 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 // uc_orig: FIGURE_generate_D3D_object (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_generate_D3D_object(SLONG prim);
 
-// Software-path body-part renderer with keyframe interpolation (lerp offsets, slerp rotations).
-// Also sets up the D3D MultiMatrix for the GPU hardware path on opaque non-clipped materials.
+// Flat-skeleton body-part renderer. Per-part WORLD transform comes from the
+// interpolation pose snapshot (single source of pose); sets up the GPU
+// MultiMatrix path on opaque non-clipped materials and the muzzle-flash prims.
 // uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw_prim_tween(
     SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
     ULONG colour,
     ULONG specular,
-    CMatrix33* parent_base_mat,
-    Matrix31* parent_base_pos,
-    Matrix33* parent_curr_mat,
-    Matrix31* parent_curr_pos,
-    Matrix33* end_mat,
-    Matrix31* end_pos,
     Thing* p_thing,
     SLONG part_number = 0xffffffff,
     ULONG colour_and = 0xffffffff);

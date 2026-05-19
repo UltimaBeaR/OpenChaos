@@ -113,9 +113,6 @@ structFIGURE_dhpr_data FIGURE_dhpr_data;
 // uc_orig: FIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
 structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
 
-// uc_orig: FIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
-structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
-
 // uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
 GEMatrix* MMBodyParts_pMatrix = NULL;
 

@@ -17,7 +17,6 @@
 #include "things/core/interact.h" // calc_sub_objects_position_global
 #include "engine/graphics/render_interp.h" // Phase 4: per-bone snapshot pose for shadow
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES
-#include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // Milestone 1E: GESkinMesh, ge_skin_mesh_*, ge_shadow_silhouette_*
 #include "buildings/prim_types.h" // Milestone 1E: PrimObject/PrimFace3/4, MAX_PRIM_OBJECTS
 #include <vector> // Milestone 1E: per-prim shadow mesh build scratch

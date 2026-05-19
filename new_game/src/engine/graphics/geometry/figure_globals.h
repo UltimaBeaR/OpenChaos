@@ -196,21 +196,11 @@ struct structFIGURE_dhpr_rdata1 {
     Matrix31 pos;
 };
 
-// uc_orig: structFIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
-// Per-level recursion state block 2 (end position/matrix for parent-to-child transform).
-struct structFIGURE_dhpr_rdata2 {
-    Matrix31 end_pos;
-    Matrix33 end_mat;
-};
-
 // uc_orig: FIGURE_dhpr_data (fallen/DDEngine/Source/figure.cpp)
 extern structFIGURE_dhpr_data FIGURE_dhpr_data;
 
 // uc_orig: FIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
 extern structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
-
-// uc_orig: FIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
-extern structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
 
 // uc_orig: PART_FACE (fallen/DDEngine/Source/figure.cpp)
 #define PART_FACE 1

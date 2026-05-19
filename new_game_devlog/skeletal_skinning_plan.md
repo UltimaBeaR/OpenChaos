@@ -272,13 +272,26 @@
 - **Этап «безопасный» (этот шаг):** ядро + тень (`smap_bone_world`) +
   9 рантайм-фолбэков (свет тела/отражения, гранаты, прицел, хелсбары,
   OVAL, факел) — везде удалена ветка легаси-пересчёта.
-- **Этап figure.cpp (отдельно, позже):** 4 constexpr-сайта
-  (`FIGURE_draw_prim_tween` / `_reflection` / `_person_only*`) — там
-  Path B попутно прокидывает `end_pos`/`end_mat` вверх по иерархии
-  рекурсии отрисовки тела; вырезать аккуратно по одному, с визуальной
-  проверкой тела/отражений/врагов (это «Phase 5» из комментариев кода).
-- `ri_cfg::INTERP_THING_WORLD_POSE` будет удалён после этапа figure.cpp
-  (пока ещё используется там).
+- **Этап figure.cpp (СДЕЛАН, подтверждён в игре по одной функции):**
+  4 функции (`FIGURE_draw_prim_tween` flat, `_reflection`,
+  `_person_only_just_set_matrix`, `_person_only`) — Path B + прокидка
+  `end_pos`/`end_mat` по иерархии вырезаны полностью; зеркальная
+  математика отражения сохранена. Доказано анализом: `end_*` читались
+  только дочерним `HIERARCHY_Get_Body_Part_Offset`, чей результат всегда
+  перезаписывался снимком → dead-effect. Проверено: тело, оружие/muzzle,
+  отражения в лужах, Balrog/Bane/летучие мыши — ок.
+- **Финальная зачистка (СДЕЛАНА):** удалены мёртвые `figure_morph_root_offset`/
+  `figure_morph_matrix`; `ri_cfg::INTERP_THING_WORLD_POSE` удалён;
+  убрана подготовка `parent_*`/`GetCMatrix`/`tmat` в обоих драйверах
+  рекурсии (`FIGURE_draw_hierarchical_prim_recurse[_individual_cull]`)
+  + init `FIGURE_dhpr_rdata1[0].parent_*`. Сборка 301/301.
+- Глобал `structFIGURE_dhpr_rdata2[]` + его struct в `figure_globals.*`
+  удалён (был без читателей/писателей). Сборка 301/301.
+- Сигнатура `FIGURE_draw_prim_tween` подрезана (СДЕЛАНО): 22→6 параметров
+  (`prim, colour, specular, p_thing, part_number, colour_and`); удалены 16
+  мёртвых (`x,y,z,tween,anim_info,anim_info_next,rot_mat,off_dx/dy/dz,
+  parent_*,end_*`). Обновлены figure.h, оба call-site, комментарии.
+  Сборка 301/301. **Унификация полностью закрыта, мусора нет.**
 
 ### 2026-05-19 — 1E ЗАВЕРШЁН ✓ (подтверждено пользователем, ждёт коммита)
 

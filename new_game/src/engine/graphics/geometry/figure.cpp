@@ -23,8 +23,7 @@
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
-#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (Phase 3 pose-snapshot override)
-#include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
+#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (pose snapshot)
 #include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
 #include "things/core/drawtype.h"
 #include "game/game_types.h" // NET_PERSON (player Thing*) for figure-morph debug log
@@ -1678,74 +1677,18 @@ void FIGURE_generate_D3D_object(SLONG prim)
     FIGURE_TPO_finish_3d_object(pPrimObj);
 }
 
-// ----------------------------------------------------------------------
-// Per-bone keyframe lerp helpers — used by FIGURE_draw_prim_tween* variants.
-//
-// Pose cache lives in render_interp.cpp (render_interp_get_cached_pose) so
-// the body, reflection, and shadow paths share it. With INTERP_THING_WORLD_POSE
-// active, the per-bone (off, mat) values produced by these helpers are
-// overridden by the snapshot lerp in each draw function; the math here only
-// runs when the snapshot is unavailable (interp off, slot invalid, etc).
-// ----------------------------------------------------------------------
-
-// Root-style offset (parent_base_mat == nullptr): linear lerp of (anim_info,
-// anim_info_next) by `tween`, plus (off_dx, off_dy, off_dz) delta on the
-// "next" side. Output in fixed-point ×256 form
-// (M[i] = (OffsetI << 8) + (OffsetI_next + off_di - OffsetI) * tween).
-static void figure_morph_root_offset(
-    GameKeyFrameElement* anim_info,
-    GameKeyFrameElement* anim_info_next,
-    SLONG tween,
-    SLONG off_dx, SLONG off_dy, SLONG off_dz,
-    Matrix31* out_offset)
-{
-    out_offset->M[0] = (anim_info->OffsetX << 8) + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween);
-    out_offset->M[1] = (anim_info->OffsetY << 8) + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween);
-    out_offset->M[2] = (anim_info->OffsetZ << 8) + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween);
-}
-
-// Per-bone rotation slerp.
-static void figure_morph_matrix(
-    GameKeyFrameElement* anim_info,
-    GameKeyFrameElement* anim_info_next,
-    SLONG tween,
-    Matrix33* out_matrix)
-{
-    CMatrix33 m1, m2;
-    GetCMatrix(anim_info, &m1);
-    GetCMatrix(anim_info_next, &m2);
-    CQuaternion::BuildTween(out_matrix, &m1, &m2, tween);
-}
-
 // uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
-// Software-path body-part renderer (used when D3D MultiMatrix is active for matrix setup
-// but the per-face submission still goes through here for the non-person-only path).
-// Interpolates keyframe A→B via lerp (offsets) and slerp (rotations), transforms all vertices
-// via the combined world matrix, then draws each face via POLY_add_quad / POLY_add_triangle
-// for the software rasteriser.  The GPU MultiMatrix path (DrawIndPrimMM) is also triggered here
-// for opaque, non-near-clipped materials.
+// Flat-skeleton body-part renderer (DT_ANIM_PRIM: bats / Bane / Balrog /
+// Gargoyle via ANIM_obj_draw, plus the non-15 ElementCount person fallback).
+// Per-part WORLD transform comes from the interpolation pose snapshot (the
+// single source of pose). Submits faces via POLY_add_quad/POLY_add_triangle
+// and the GPU MultiMatrix path on opaque non-near-clipped materials.
 // part_number: which skeleton slot this prim represents (0xffffffff = unknown).
 // colour_and: multiplied into the tint fade table.
 void FIGURE_draw_prim_tween(
     SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
     ULONG colour,
     ULONG specular,
-    CMatrix33* parent_base_mat,
-    Matrix31* parent_base_pos,
-    Matrix33* parent_curr_mat,
-    Matrix31* parent_curr_pos,
-    Matrix33* end_mat,
-    Matrix31* end_pos,
     Thing* p_thing,
     SLONG part_number,
     ULONG colour_and)
@@ -1763,8 +1706,6 @@ void FIGURE_draw_prim_tween(
 
     SLONG page;
 
-    Matrix31 offset;
-    Matrix33 mat2;
     Matrix33 mat_final;
 
     PrimFace4* p_f4;
@@ -1779,125 +1720,30 @@ void FIGURE_draw_prim_tween(
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
-    // Forward declarations of matrix helpers used below.
-    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
+    // Per-part WORLD transform read straight from the interpolation pose
+    // snapshot — the SINGLE always-available source of pose. No legacy
+    // keyframe recompute. Flat, non-recursive path; part_number is the
+    // element index.
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+    if (!pose || part_number < 0 || part_number >= POSE_MAX_BONES)
+        return;
 
-    if (parent_base_mat) {
-        // Hierarchical body part: compute offset in parent space.
-        Matrix31 p;
-        p.M[0] = anim_info->OffsetX;
-        p.M[1] = anim_info->OffsetY;
-        p.M[2] = anim_info->OffsetZ;
-
-        HIERARCHY_Get_Body_Part_Offset(&offset, &p,
-            parent_base_mat, parent_base_pos,
-            parent_curr_mat, parent_curr_pos);
-
-        if (end_pos)
-            *end_pos = offset;
-    } else {
-        // Lerp offset between keyframe A and B (or cross-anim blend when active).
-        figure_morph_root_offset(anim_info, anim_info_next, tween,
-            off_dx, off_dy, off_dz, &offset);
-
-        if (end_pos) {
-            *end_pos = offset;
-        }
-    }
-
-    // Convert offset to float world-space position via rot_mat (fixed-point ×32768).
-    float off_x = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[0][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[0][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[0][2]) / 32768.f);
-    float off_y = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[1][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[1][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[1][2]) / 32768.f);
-    float off_z = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[2][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[2][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[2][2]) / 32768.f);
-
-    SLONG character_scale = person_get_scale(p_thing);
-    float character_scalef = float(character_scale) / 256.f;
-
-    off_x *= character_scalef;
-    off_y *= character_scalef;
-    off_z *= character_scalef;
-
-    off_x += float(x);
-    off_y += float(y);
-    off_z += float(z);
+    const BoneInterpTransform& xf = pose[part_number];
+    float off_x = xf.pos_x;
+    float off_y = xf.pos_y;
+    float off_z = xf.pos_z;
+    mat_final = xf.rot;
 
     float fmatrix[9];
-    SLONG imatrix[9];
-
-    {
-        // Slerp rotation between keyframe A and B (or cross-anim blend), then
-        // combine with parent/world matrix.
-        figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
-
-        if (end_mat)
-            *end_mat = mat2;
-
-        matrix_mult33(&mat_final, rot_mat, &mat2);
-
-        // Scale the combined matrix by character_scale (256-based fixed point).
-        mat_final.M[0][0] = (mat_final.M[0][0] * character_scale) / 256;
-        mat_final.M[0][1] = (mat_final.M[0][1] * character_scale) / 256;
-        mat_final.M[0][2] = (mat_final.M[0][2] * character_scale) / 256;
-        mat_final.M[1][0] = (mat_final.M[1][0] * character_scale) / 256;
-        mat_final.M[1][1] = (mat_final.M[1][1] * character_scale) / 256;
-        mat_final.M[1][2] = (mat_final.M[1][2] * character_scale) / 256;
-        mat_final.M[2][0] = (mat_final.M[2][0] * character_scale) / 256;
-        mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
-        mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
-
-        fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-        fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-        fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-        fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-        fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-        fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-        fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-        fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-        fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-        imatrix[0] = mat_final.M[0][0] * 2;
-        imatrix[1] = mat_final.M[0][1] * 2;
-        imatrix[2] = mat_final.M[0][2] * 2;
-        imatrix[3] = mat_final.M[1][0] * 2;
-        imatrix[4] = mat_final.M[1][1] * 2;
-        imatrix[5] = mat_final.M[1][2] * 2;
-        imatrix[6] = mat_final.M[2][0] * 2;
-        imatrix[7] = mat_final.M[2][1] * 2;
-        imatrix[8] = mat_final.M[2][2] * 2;
-    }
-
-    // Pose-snapshot override for the flat-skeleton path (parent_base_mat==NULL).
-    // Covers DT_ANIM_PRIM (bats / Bane / Balrog / Gargoyle) via ANIM_obj_draw
-    // and the non-15 ElementCount person fallback in FIGURE_draw. Skipped when
-    // called recursively with hierarchy info (parent_base_mat != NULL) — that
-    // path doesn't currently exist via this function (recurse uses the
-    // _person_only variants), but the gate keeps the override safe if the
-    // shared signature is reused later. part_number defaults to 0xffffffff
-    // when the caller doesn't pass it (negative when treated as signed) — the
-    // bound check excludes that case.
-    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
-        if (!parent_base_mat && part_number >= 0 && part_number < POSE_MAX_BONES) {
-            const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-            if (pose) {
-                const BoneInterpTransform& xf = pose[part_number];
-                off_x = xf.pos_x;
-                off_y = xf.pos_y;
-                off_z = xf.pos_z;
-                mat_final = xf.rot;
-                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-            }
-        }
-    }
+    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
+    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
+    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
+    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
+    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
+    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
+    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
+    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
+    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
     POLY_set_local_rotation(
         off_x,
@@ -2178,7 +2024,6 @@ no_muzzle_calcs:
         extern GEMatrix g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
-        ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
         if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
             // Opaque: use fast MultiMatrix path. z guard in ge_draw_multi_matrix handles near vertices.
             if (wPage & TEXTURE_PAGE_FLAG_TINT) {
@@ -2245,7 +2090,6 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     SLONG dx, dy, dz;
     UWORD f1, f2;
     struct Matrix33* rot_mat;
-    CMatrix33 tmat[MAX_RECURSION]; // one per recursion level (pointer stored in pDHPR1Inc)
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -2435,11 +2279,10 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             ASSERT(iPartNumber >= 0);
             ASSERT(iPartNumber <= 14);
             pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat[recurse_level]);
-            pDHPR1Inc->parent_base_mat = &tmat[recurse_level];
-            pDHPR1Inc->parent_base_pos = &(pDHPR1->pos);
-            pDHPR1Inc->parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
-            pDHPR1Inc->parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
+            // Hierarchy parent-matrix propagation removed: the pose snapshot
+            // is the single source of each bone's world transform, so the
+            // leaf draw functions no longer read parent_*/end_* — see
+            // skeletal_skinning_plan.md.
             pDHPR1Inc->current_child_number = 0;
 
             pDHPR1->current_child_number++;
@@ -2552,7 +2395,6 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
     SLONG dx, dy, dz;
     UWORD f1, f2;
     struct Matrix33* rot_mat;
-    CMatrix33 tmat[MAX_RECURSION]; // one per recursion level (pointer stored in pDHPR1Inc)
 
     f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
     f2 = p_person->Draw.Tweened->NextFrame->Flags;
@@ -2666,11 +2508,10 @@ void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
             ASSERT(iPartNumber >= 0);
             ASSERT(iPartNumber <= 14);
             pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-            GetCMatrix(&FIGURE_dhpr_data.ae1[iPartNumber], &tmat[recurse_level]);
-            pDHPR1Inc->parent_base_mat = &tmat[recurse_level];
-            pDHPR1Inc->parent_base_pos = &(pDHPR1->pos);
-            pDHPR1Inc->parent_current_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
-            pDHPR1Inc->parent_current_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
+            // Hierarchy parent-matrix propagation removed: the pose snapshot
+            // is the single source of each bone's world transform, so the
+            // leaf draw functions no longer read parent_*/end_* — see
+            // skeletal_skinning_plan.md.
             pDHPR1Inc->current_child_number = 0;
 
             pDHPR1->current_child_number++;
@@ -2777,10 +2618,8 @@ void FIGURE_draw(Thing* p_thing)
 
         FIGURE_dhpr_rdata1[0].part_number = 0;
         FIGURE_dhpr_rdata1[0].current_child_number = 0;
-        FIGURE_dhpr_rdata1[0].parent_base_mat = NULL;
-        FIGURE_dhpr_rdata1[0].parent_base_pos = NULL;
-        FIGURE_dhpr_rdata1[0].parent_current_mat = NULL;
-        FIGURE_dhpr_rdata1[0].parent_current_pos = NULL;
+        // parent_*/end_* fields no longer used — pose snapshot is the single
+        // source of each bone's world transform (skeletal_skinning_plan.md).
 
         FIGURE_dhpr_data.start_object = start_object;
         if (p_thing->Genus.Person->PersonType == PERSON_ROPER)
@@ -2808,22 +2647,8 @@ void FIGURE_draw(Thing* p_thing)
 
             FIGURE_draw_prim_tween(
                 start_object + object_offset,
-                p_thing->WorldPos.X >> 8,
-                (p_thing->WorldPos.Y >> 8),
-                p_thing->WorldPos.Z >> 8,
-                dt->AnimTween,
-                &ae1[i],
-                &ae2[i],
-                &r_matrix,
-                dx, dy, dz,
                 colour,
                 specular,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
                 p_thing,
                 i);
         }
@@ -2931,22 +2756,8 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
         object_offset = i;
         FIGURE_draw_prim_tween(
             start_object + object_offset,
-            p_thing->WorldPos.X >> 8,
-            (p_thing->WorldPos.Y >> 8),
-            p_thing->WorldPos.Z >> 8,
-            dt->AnimTween,
-            &ae1[i],
-            &ae2[i],
-            &r_matrix,
-            dx, dy, dz,
             colour,
             specular,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
             p_thing,
             i,
             0xffff00ff);
@@ -3000,11 +2811,7 @@ void FIGURE_draw_prim_tween_reflection(
 
     SLONG page;
 
-    Matrix31 offset;
-    Matrix33 mat2;
     Matrix33 mat_final;
-
-    SVector temp;
 
     PrimFace4* p_f4;
     PrimFace3* p_f3;
@@ -3024,63 +2831,38 @@ void FIGURE_draw_prim_tween_reflection(
     colour |= 0xff000000;
     specular |= 0xff000000;
 
-    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
-
-    {
-        // Reflection's offset is in plain SWORD units (one /256 less than the
-        // main morph). figure_morph_root_offset returns the fixed-point ×256
-        // form used by the main path; >>8 brings it into reflection's units
-        // and applies blend in the same step.
-        Matrix31 fixed_offset;
-        figure_morph_root_offset(anim_info, anim_info_next, tween,
-            off_dx, off_dy, off_dz, &fixed_offset);
-        offset.M[0] = fixed_offset.M[0] >> 8;
-        offset.M[1] = fixed_offset.M[1] >> 8;
-        offset.M[2] = fixed_offset.M[2] >> 8;
-    }
-
-    matrix_transformZMY((struct Matrix31*)&temp, rot_mat, &offset);
-
-    SLONG character_scale = person_get_scale(p_thing);
-    temp.X = (temp.X * character_scale) / 256;
-    temp.Y = (temp.Y * character_scale) / 256;
-    temp.Z = (temp.Z * character_scale) / 256;
-
-    x += temp.X;
-    y += temp.Y;
-    z += temp.Z;
-
-    // Reflection used build_tween_matrix + normalise_matrix (cheap linear
-    // matrix lerp + renormalisation) rather than quaternion SLERP. We
-    // upgrade to the quaternion-based helper for blend correctness — the
-    // single-pair fallback inside figure_morph_matrix uses CQuaternion::
-    // BuildTween which produces visually equivalent results to the original
-    // linear+normalise path for valid keyframes.
-    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
-
-    matrix_mult33(&mat_final, rot_mat, &mat2);
-
-    mat_final.M[0][0] = (mat_final.M[0][0] * character_scale) / 256;
-    mat_final.M[0][1] = (mat_final.M[0][1] * character_scale) / 256;
-    mat_final.M[0][2] = (mat_final.M[0][2] * character_scale) / 256;
-    mat_final.M[1][0] = (mat_final.M[1][0] * character_scale) / 256;
-    mat_final.M[1][1] = (mat_final.M[1][1] * character_scale) / 256;
-    mat_final.M[1][2] = (mat_final.M[1][2] * character_scale) / 256;
-    mat_final.M[2][0] = (mat_final.M[2][0] * character_scale) / 256;
-    mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
-    mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
-
+    // === Reflection: pose-snapshot, mirrored about the water plane ===
+    // The pose snapshot is the SINGLE always-available source of pose (no
+    // legacy keyframe recompute). Snapshot is in normal (non-mirrored)
+    // world space; apply geometric reflection through the water plane y = H:
+    //   - position: y_reflected = 2 * FIGURE_reflect_height - y_world
+    //   - rotation: left-multiply by diag(1,-1,1) → negate the Y ROW
+    //     (M[1][*]). (Algebraically equivalent to the legacy "negate Y
+    //     column of R_body before composing mat_final = R_body × end_mat" —
+    //     verified numerically. Negating the Y column of the per-bone WORLD
+    //     mat_final instead does NOT give geometric reflection — see
+    //     skeletal_skinning_plan.md.)
     float off_x;
     float off_y;
     float off_z;
     float fmatrix[9];
 
-    off_x = float(x);
-    off_y = float(y);
-    off_z = float(z);
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+    DrawTween* dt = p_thing->Draw.Tweened;
+    if (!pose || !dt || !dt->CurrentFrame || !dt->CurrentFrame->FirstElement)
+        return;
+    SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
+    if (part < 0 || part >= POSE_MAX_BONES)
+        return;
 
+    const BoneInterpTransform& xf = pose[part];
+    off_x = xf.pos_x;
+    off_y = 2.0f * FIGURE_reflect_height - xf.pos_y;
+    off_z = xf.pos_z;
+    mat_final = xf.rot;
+    mat_final.M[1][0] = -mat_final.M[1][0];
+    mat_final.M[1][1] = -mat_final.M[1][1];
+    mat_final.M[1][2] = -mat_final.M[1][2];
     fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
     fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
     fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
@@ -3090,48 +2872,6 @@ void FIGURE_draw_prim_tween_reflection(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-    // === Phase 4 reflection: pose-snapshot override with water mirror ===
-    // Snapshot pose is in normal (non-mirrored) world space. To draw the
-    // reflection we apply geometric reflection through the water plane y = H:
-    //   - position: y_reflected = 2 * FIGURE_reflect_height - y_world
-    //   - rotation: M_reflect × mat_final, where M_reflect = diag(1, -1, 1).
-    //     Left-multiply by diag(1,-1,1) negates the Y ROW (M[1][*]) — NOT
-    //     the Y column. (The legacy reflection negates Y column of R_BODY
-    //     before composing mat_final = R_body × end_mat; algebraically
-    //     equivalent to negating Y row of the final world-rot matrix —
-    //     verified numerically. Negating Y column of the per-bone WORLD
-    //     mat_final does NOT give geometric reflection — it bakes a wrong
-    //     vertex transform that puts feet/legs in a separate location from
-    //     the rest of the body, observed in initial implementation.)
-    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
-        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            DrawTween* dt = p_thing->Draw.Tweened;
-            if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
-                SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
-                if (part >= 0 && part < POSE_MAX_BONES) {
-                    const BoneInterpTransform& xf = pose[part];
-                    off_x = xf.pos_x;
-                    off_y = 2.0f * FIGURE_reflect_height - xf.pos_y;
-                    off_z = xf.pos_z;
-                    mat_final = xf.rot;
-                    mat_final.M[1][0] = -mat_final.M[1][0];
-                    mat_final.M[1][1] = -mat_final.M[1][1];
-                    mat_final.M[1][2] = -mat_final.M[1][2];
-                    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-                    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-                    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-                    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-                    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-                    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-                    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-                    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-                    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-                }
-            }
-        }
-    }
 
     POLY_set_local_rotation(
         off_x,
@@ -3444,97 +3184,35 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     SLONG recurse_level,
     Thing* p_thing)
 {
-    SLONG x = FIGURE_dhpr_data.world_pos->M[0];
-    SLONG y = FIGURE_dhpr_data.world_pos->M[1];
-    SLONG z = FIGURE_dhpr_data.world_pos->M[2];
-    SLONG tween = FIGURE_dhpr_data.tween;
-    struct GameKeyFrameElement* anim_info = &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number];
-    struct GameKeyFrameElement* anim_info_next = &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number];
-    CMatrix33* parent_base_mat = FIGURE_dhpr_rdata1[recurse_level].parent_base_mat;
-    Matrix31* parent_base_pos = FIGURE_dhpr_rdata1[recurse_level].parent_base_pos;
-    Matrix33* parent_curr_mat = FIGURE_dhpr_rdata1[recurse_level].parent_current_mat;
-    Matrix31* parent_curr_pos = FIGURE_dhpr_rdata1[recurse_level].parent_current_pos;
-    Matrix33* end_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
-    Matrix31* end_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
-
     SLONG i;
 
     SLONG sp;
 
-    Matrix31 offset;
-    Matrix33 mat2;
     Matrix33 mat_final;
 
     PrimObject* p_obj;
 
     POLY_Point* pp;
 
-    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
+    // Per-body-part WORLD transform read straight from the interpolation
+    // pose snapshot — the SINGLE always-available source of pose. No legacy
+    // keyframe / hierarchy recompute: the snapshot already bakes body
+    // rotation, character scale and the inter-bone hierarchy, so each bone
+    // is read directly by its part index. (The old end_mat/end_pos hierarchy
+    // propagation only ever fed HIERARCHY_Get_Body_Part_Offset, whose result
+    // was always overwritten by this snapshot — see skeletal_skinning_plan.md.)
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+    SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+    if (!pose || part < 0 || part >= POSE_MAX_BONES)
+        return UC_FALSE;
 
-    if (parent_base_mat) {
-        // we've got hierarchy info!
-
-        Matrix31 p;
-        p.M[0] = anim_info->OffsetX;
-        p.M[1] = anim_info->OffsetY;
-        p.M[2] = anim_info->OffsetZ;
-
-        HIERARCHY_Get_Body_Part_Offset(&offset, &p,
-            parent_base_mat, parent_base_pos,
-            parent_curr_mat, parent_curr_pos);
-
-        // pass data up the hierarchy
-        if (end_pos)
-            *end_pos = offset;
-    } else {
-        // Root-body offset (or cross-anim blend if active).
-        figure_morph_root_offset(anim_info, anim_info_next, tween,
-            off_dx, off_dy, off_dz, &offset);
-
-        if (end_pos) {
-            *end_pos = offset;
-        }
-    }
-
-    // convert pos to floating point here to preserve accuracy and prevent overflow.
-    // It's also a shitload faster on P2 and SH4.
-    float off_x = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[0][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[0][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[0][2]) / 32768.f);
-    float off_y = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[1][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[1][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[1][2]) / 32768.f);
-    float off_z = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[2][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[2][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[2][2]) / 32768.f);
-
-    SLONG character_scale = person_get_scale(p_thing);
-    float character_scalef = float(character_scale) / 256.f;
-
-    off_x *= character_scalef;
-    off_y *= character_scalef;
-    off_z *= character_scalef;
-
-    off_x += float(x);
-    off_y += float(y);
-    off_z += float(z);
+    const BoneInterpTransform& xf = pose[part];
+    float off_x = xf.pos_x;
+    float off_y = xf.pos_y;
+    float off_z = xf.pos_z;
+    mat_final = xf.rot;
 
     float fmatrix[9];
-
-    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
-
-    // pass data up the hierarchy
-    if (end_mat)
-        *end_mat = mat2;
-
-    matrix_mult33(&mat_final, rot_mat, &mat2);
-
-    mat_final.M[0][0] = (mat_final.M[0][0] * character_scale) / 256;
-    mat_final.M[0][1] = (mat_final.M[0][1] * character_scale) / 256;
-    mat_final.M[0][2] = (mat_final.M[0][2] * character_scale) / 256;
-    mat_final.M[1][0] = (mat_final.M[1][0] * character_scale) / 256;
-    mat_final.M[1][1] = (mat_final.M[1][1] * character_scale) / 256;
-    mat_final.M[1][2] = (mat_final.M[1][2] * character_scale) / 256;
-    mat_final.M[2][0] = (mat_final.M[2][0] * character_scale) / 256;
-    mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
-    mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
-
     fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
     fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
     fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
@@ -3545,45 +3223,12 @@ bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
 
-    // === Phase 3 pose-snapshot override ===
-    // Replace per-bone (off_x/y/z, mat_final, fmatrix) computed from the
-    // legacy AnimTween/keyframe substitution path with the world-space lerp
-    // of prev/curr per-bone snapshots. This is the architectural fix for
-    // ladder-jerk and similar cancel-out cases (see
-    // world_pose_snapshot_plan.md). The legacy math above runs in full —
-    // wasted work in Phase 3, but kept for fallback. Phase 5 will short-
-    // circuit when the override is active.
-    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
-        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
-            if (part >= 0 && part < POSE_MAX_BONES) {
-                const BoneInterpTransform& xf = pose[part];
-                off_x = xf.pos_x;
-                off_y = xf.pos_y;
-                off_z = xf.pos_z;
-                mat_final = xf.rot;
-                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-            }
-        }
-    }
-
     // NOT portable: stores off/fmatrix into global transform state used by D3D MultiMatrix upload.
     POLY_set_local_rotation(
         off_x,
         off_y,
         off_z,
         fmatrix);
-
-    ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
 
     // Near-Z bounding sphere cull per body part removed — frustum cull in
     // POLY_sphere_visible handles visibility, z guard in ge_draw_multi_matrix
@@ -3731,19 +3376,6 @@ void FIGURE_draw_prim_tween_person_only(
     SLONG recurse_level,
     Thing* p_thing)
 {
-    SLONG x = FIGURE_dhpr_data.world_pos->M[0];
-    SLONG y = FIGURE_dhpr_data.world_pos->M[1];
-    SLONG z = FIGURE_dhpr_data.world_pos->M[2];
-    SLONG tween = FIGURE_dhpr_data.tween;
-    struct GameKeyFrameElement* anim_info = &FIGURE_dhpr_data.ae1[FIGURE_dhpr_rdata1[recurse_level].part_number];
-    struct GameKeyFrameElement* anim_info_next = &FIGURE_dhpr_data.ae2[FIGURE_dhpr_rdata1[recurse_level].part_number];
-    CMatrix33* parent_base_mat = FIGURE_dhpr_rdata1[recurse_level].parent_base_mat;
-    Matrix31* parent_base_pos = FIGURE_dhpr_rdata1[recurse_level].parent_base_pos;
-    Matrix33* parent_curr_mat = FIGURE_dhpr_rdata1[recurse_level].parent_current_mat;
-    Matrix31* parent_curr_pos = FIGURE_dhpr_rdata1[recurse_level].parent_current_pos;
-    Matrix33* end_mat = &FIGURE_dhpr_rdata2[recurse_level].end_mat;
-    Matrix31* end_pos = &FIGURE_dhpr_rdata2[recurse_level].end_pos;
-
     SLONG i;
 
     SLONG sp;
@@ -3754,8 +3386,6 @@ void FIGURE_draw_prim_tween_person_only(
     SLONG p2;
     SLONG p3;
 
-    Matrix31 offset;
-    Matrix33 mat2;
     Matrix33 mat_final;
 
     SLONG page;
@@ -3772,72 +3402,25 @@ void FIGURE_draw_prim_tween_person_only(
 
     tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
 
-    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
+    // Per-body-part WORLD transform read straight from the interpolation
+    // pose snapshot — the SINGLE always-available source of pose. No legacy
+    // keyframe / hierarchy recompute: the snapshot already bakes body
+    // rotation, character scale and the inter-bone hierarchy. (The old
+    // end_mat/end_pos propagation only fed HIERARCHY_Get_Body_Part_Offset,
+    // whose result was always overwritten by this snapshot — see
+    // skeletal_skinning_plan.md.)
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+    SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
+    if (!pose || part < 0 || part >= POSE_MAX_BONES)
+        return;
 
-    if (parent_base_mat) {
-        // we've got hierarchy info!
-
-        Matrix31 p;
-        p.M[0] = anim_info->OffsetX;
-        p.M[1] = anim_info->OffsetY;
-        p.M[2] = anim_info->OffsetZ;
-
-        HIERARCHY_Get_Body_Part_Offset(&offset, &p,
-            parent_base_mat, parent_base_pos,
-            parent_curr_mat, parent_curr_pos);
-
-        // pass data up the hierarchy
-        if (end_pos)
-            *end_pos = offset;
-    } else {
-        // Root-body offset (or cross-anim blend if active).
-        figure_morph_root_offset(anim_info, anim_info_next, tween,
-            off_dx, off_dy, off_dz, &offset);
-
-        if (end_pos) {
-            *end_pos = offset;
-        }
-    }
-
-    // convert pos to floating point here to preserve accuracy and prevent overflow.
-    // It's also a shitload faster on P2 and SH4.
-    float off_x = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[0][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[0][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[0][2]) / 32768.f);
-    float off_y = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[1][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[1][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[1][2]) / 32768.f);
-    float off_z = (float(offset.M[0]) / 256.f) * (float(rot_mat->M[2][0]) / 32768.f) + (float(offset.M[1]) / 256.f) * (float(rot_mat->M[2][1]) / 32768.f) + (float(offset.M[2]) / 256.f) * (float(rot_mat->M[2][2]) / 32768.f);
-
-    SLONG character_scale = person_get_scale(p_thing);
-    float character_scalef = float(character_scale) / 256.f;
-
-    off_x *= character_scalef;
-    off_y *= character_scalef;
-    off_z *= character_scalef;
-
-    off_x += float(x);
-    off_y += float(y);
-    off_z += float(z);
+    const BoneInterpTransform& xf = pose[part];
+    float off_x = xf.pos_x;
+    float off_y = xf.pos_y;
+    float off_z = xf.pos_z;
+    mat_final = xf.rot;
 
     float fmatrix[9];
-
-    figure_morph_matrix(anim_info, anim_info_next, tween, &mat2);
-
-    // pass data up the hierarchy
-    if (end_mat)
-        *end_mat = mat2;
-
-    matrix_mult33(&mat_final, rot_mat, &mat2);
-
-    mat_final.M[0][0] = (mat_final.M[0][0] * character_scale) / 256;
-    mat_final.M[0][1] = (mat_final.M[0][1] * character_scale) / 256;
-    mat_final.M[0][2] = (mat_final.M[0][2] * character_scale) / 256;
-    mat_final.M[1][0] = (mat_final.M[1][0] * character_scale) / 256;
-    mat_final.M[1][1] = (mat_final.M[1][1] * character_scale) / 256;
-    mat_final.M[1][2] = (mat_final.M[1][2] * character_scale) / 256;
-    mat_final.M[2][0] = (mat_final.M[2][0] * character_scale) / 256;
-    mat_final.M[2][1] = (mat_final.M[2][1] * character_scale) / 256;
-    mat_final.M[2][2] = (mat_final.M[2][2] * character_scale) / 256;
-
     fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
     fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
     fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
@@ -3847,29 +3430,6 @@ void FIGURE_draw_prim_tween_person_only(
     fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
     fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
     fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
-        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
-            if (part >= 0 && part < POSE_MAX_BONES) {
-                const BoneInterpTransform& xf = pose[part];
-                off_x = xf.pos_x;
-                off_y = xf.pos_y;
-                off_z = xf.pos_z;
-                mat_final = xf.rot;
-                fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-                fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-                fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-                fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-                fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-                fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-                fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-                fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-                fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-            }
-        }
-    }
 
     POLY_set_local_rotation(
         off_x,
@@ -4141,7 +3701,6 @@ no_muzzle_calcs:
         extern GEMatrix g_matWorld;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
-        ASSERT((character_scalef < 1.2f) && (character_scalef > 0.8f));
         ASSERT(!pa->RS.NeedsSorting() && (FIGURE_alpha == 255));
 
         // Originally had a distance check here that skipped near-plane geometry (with an empty
