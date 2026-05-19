@@ -40,7 +40,7 @@
 //
 // When false: no overlay, no hotkeys, no runtime state changes possible.
 // Always keep false in shipping builds.
-#define OC_DEBUG_PHYSICS_TIMING true
+#define OC_DEBUG_PHYSICS_TIMING false
 
 // Built-in performance diagnostics (engine/debug/perf_diag). When false,
 // PERF_SCOPE / PERF_COUNT / perf_frame_* / perf_diag_draw become
@@ -61,7 +61,7 @@
 // ⚠️ To understand what each line measures, the hotkeys, the colours and
 // the file log — READ new_game_devlog/perf_diag/panel_guide.md (usage
 // manual). Architecture/history: new_game_devlog/perf_diag/design.md.
-#define OC_DEBUG_PERF true
+#define OC_DEBUG_PERF false
 
 // CSV file log of the perf-diag metrics (perf_log.csv next to the exe,
 // like crash_log.txt). Independent of OC_DEBUG_PERF so it can be enabled

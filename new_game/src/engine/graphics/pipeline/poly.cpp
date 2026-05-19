@@ -1702,13 +1702,28 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
     ge_end_scene();
 
-    // Incrementally clear a few pages' VBs/IBs per frame to reclaim memory from inactive pages.
+    // Incrementally clear a few pages' VBs/IBs per frame to reclaim memory
+    // from inactive pages.
+    //
+    // uc_orig fix: the original MuckyFoot loop Clear()'d the round-robin
+    // page unconditionally. When the cursor landed on a page that still
+    // held buffered geometry for the CURRENT frame but had not been drawn
+    // yet (POLY_PAGE_SHADOW is built early in AENG_draw_city and drawn at a
+    // late flush; also the keep_shadow_page/keep_text_page pages persist
+    // across the multi-flush sequence), the page was wiped before its draw
+    // → every character shadow vanished for that one frame at an irregular
+    // interval (the cursor phase drifts vs the frame boundary). Reproduced
+    // in the PieroZ D3D build too — original bug. Fix: only reclaim a page
+    // that has no pending geometry this frame (matches the loop's stated
+    // intent: reclaim *inactive* pages). See prerelease_fixes.md.
     for (i = 0; i < 3; i++) {
         iPageNumberToClear++;
         if (iPageNumberToClear >= POLY_NUM_PAGES) {
             iPageNumberToClear = 0;
         }
-        POLY_Page[iPageNumberToClear].Clear();
+        if (!POLY_Page[iPageNumberToClear].NeedsRendering()) {
+            POLY_Page[iPageNumberToClear].Clear();
+        }
     }
 }
 
