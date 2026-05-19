@@ -10,8 +10,10 @@
 // share this flat index space (max TEXTURE_MAX_TEXTURES = 22*64 + 160 entries).
 
 // uc_orig: TEXTURE_SHADOW_SIZE (fallen/DDEngine/Headers/texture.h)
-// Shadow page texture size = 2 × AENG_AA_BUF_SIZE (4 persons packed 2×2).
-#define TEXTURE_SHADOW_SIZE 64
+// Shared detailed-shadow page. Square; holds (SIZE/AENG_AA_BUF_SIZE)^2
+// AENG_AA_BUF_SIZE tiles. Original was 64 (4 persons, 2×2). Enlarged to
+// 128 (4×4 = up to 16 tiles) so OC_MAX_DETAILED_SHADOWS can exceed 4.
+#define TEXTURE_SHADOW_SIZE 128
 
 // uc_orig: TEXTURE_VIDEO_SIZE (fallen/DDEngine/Headers/texture.h)
 #define TEXTURE_VIDEO_SIZE 64
