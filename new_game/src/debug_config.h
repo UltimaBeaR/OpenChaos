@@ -40,7 +40,7 @@
 //
 // When false: no overlay, no hotkeys, no runtime state changes possible.
 // Always keep false in shipping builds.
-#define OC_DEBUG_PHYSICS_TIMING false
+#define OC_DEBUG_PHYSICS_TIMING true
 
 // Built-in performance diagnostics (engine/debug/perf_diag). When false,
 // PERF_SCOPE / PERF_COUNT / perf_frame_* / perf_diag_draw become

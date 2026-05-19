@@ -302,83 +302,34 @@ static GESkinMesh* smap_get_prim_shadow_mesh(SLONG prim)
 }
 
 // --- Per-bone WORLD transform ----------------------------------------
-// The interpolated per-bone world transform (mat_final, x/y/z) incl. the
-// Phase-4 pose-snapshot override — same math the body draw uses, so the
-// shadow silhouette matches the rendered body.
-static void smap_bone_world(
-    SLONG x, SLONG y, SLONG z,
-    SLONG tween,
+// Per-body-part WORLD transform read straight from the shared interpolation
+// pose snapshot — the SINGLE always-available source of pose. No legacy
+// keyframe recompute (the snapshot already bakes the same math the body
+// draw uses, so the shadow silhouette matches the rendered body). Returns
+// false if this part has no pose entry; the caller then skips it.
+static bool smap_bone_world(
     struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx, SLONG off_dy, SLONG off_dz,
     Thing* p_thing,
     Matrix33* out_mat, SLONG* out_x, SLONG* out_y, SLONG* out_z)
 {
-    Matrix31 offset;
-    Matrix33 mat2;
-    Matrix33 mat_final;
-    SVector temp;
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
+    if (!pose)
+        return false;
 
-    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
+    DrawTween* dt = p_thing->Draw.Tweened;
+    if (!dt || !dt->CurrentFrame || !dt->CurrentFrame->FirstElement)
+        return false;
 
-    offset.M[0] = anim_info->OffsetX + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween >> 8);
-    offset.M[1] = anim_info->OffsetY + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween >> 8);
-    offset.M[2] = anim_info->OffsetZ + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween >> 8);
+    SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
+    if (part < 0 || part >= POSE_MAX_BONES)
+        return false;
 
-    matrix_transformZMY((struct Matrix31*)&temp, rot_mat, &offset);
-
-    SLONG character_scale = person_get_scale(p_thing);
-
-    temp.X = (temp.X * character_scale) / 256;
-    temp.Y = (temp.Y * character_scale) / 256;
-    temp.Z = (temp.Z * character_scale) / 256;
-
-    x += temp.X;
-    y += temp.Y;
-    z += temp.Z;
-
-    CMatrix33 m1, m2;
-    GetCMatrix(anim_info, &m1);
-    GetCMatrix(anim_info_next, &m2);
-
-    build_tween_matrix(&mat2, &m1, &m2, tween);
-    normalise_matrix(&mat2);
-
-    mat2.M[0][0] = (mat2.M[0][0] * character_scale) / 256;
-    mat2.M[0][1] = (mat2.M[0][1] * character_scale) / 256;
-    mat2.M[0][2] = (mat2.M[0][2] * character_scale) / 256;
-    mat2.M[1][0] = (mat2.M[1][0] * character_scale) / 256;
-    mat2.M[1][1] = (mat2.M[1][1] * character_scale) / 256;
-    mat2.M[1][2] = (mat2.M[1][2] * character_scale) / 256;
-    mat2.M[2][0] = (mat2.M[2][0] * character_scale) / 256;
-    mat2.M[2][1] = (mat2.M[2][1] * character_scale) / 256;
-    mat2.M[2][2] = (mat2.M[2][2] * character_scale) / 256;
-
-    matrix_mult33(&mat_final, rot_mat, &mat2);
-
-    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
-        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            DrawTween* dt = p_thing->Draw.Tweened;
-            if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
-                SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
-                if (part >= 0 && part < POSE_MAX_BONES) {
-                    const BoneInterpTransform& xf = pose[part];
-                    x = SLONG(xf.pos_x);
-                    y = SLONG(xf.pos_y);
-                    z = SLONG(xf.pos_z);
-                    mat_final = xf.rot;
-                }
-            }
-        }
-    }
-
-    *out_mat = mat_final;
-    *out_x = x;
-    *out_y = y;
-    *out_z = z;
+    const BoneInterpTransform& xf = pose[part];
+    *out_x = SLONG(xf.pos_x);
+    *out_y = SLONG(xf.pos_y);
+    *out_z = SLONG(xf.pos_z);
+    *out_mat = xf.rot;
+    return true;
 }
 
 // SMAP_* globals + world->shadow-clip matrix from a TIGHT shadow-plane
@@ -469,28 +420,9 @@ bool SMAP_person_gpu(
     if (!dt || dt->CurrentFrame == 0 || dt->NextFrame == 0)
         return false;
 
-    SLONG dx, dy, dz;
-    if (dt->Locked) {
-        SLONG x1, y1, z1, x2, y2, z2;
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 0, dt->Locked, &x1, &y1, &z1);
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 256, dt->Locked, &x2, &y2, &z2);
-        dx = x1 - x2;
-        dy = y1 - y2;
-        dz = z1 - z2;
-    } else {
-        dx = 0;
-        dy = 0;
-        dz = 0;
-    }
-
     GameKeyFrameElement* ae1 = dt->CurrentFrame->FirstElement;
-    GameKeyFrameElement* ae2 = dt->NextFrame->FirstElement;
-    if (!ae1 || !ae2)
+    if (!ae1)
         return false;
-
-    Matrix33 r_matrix;
-    void FIGURE_rotate_obj(SLONG xangle, SLONG yangle, SLONG zangle, Matrix33 * r3);
-    FIGURE_rotate_obj(dt->Tilt, dt->Angle, dt->Roll, &r_matrix);
 
     SLONG ele_count = dt->TheChunk->ElementCount;
     SLONG start_object = prim_multi_objects[dt->TheChunk->MultiObject[0]].StartObject;
@@ -517,14 +449,8 @@ bool SMAP_person_gpu(
 
         Matrix33 m;
         SLONG wx, wy, wz;
-        smap_bone_world(
-            p_thing->WorldPos.X >> 8,
-            p_thing->WorldPos.Y >> 8,
-            p_thing->WorldPos.Z >> 8,
-            dt->AnimTween,
-            &ae1[i], &ae2[i], &r_matrix,
-            dx, dy, dz, p_thing,
-            &m, &wx, &wy, &wz);
+        if (!smap_bone_world(&ae1[i], p_thing, &m, &wx, &wy, &wz))
+            continue;
 
         m_arr[n_parts] = m;
         wx_arr[n_parts] = wx;

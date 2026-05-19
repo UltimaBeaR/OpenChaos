@@ -2737,22 +2737,13 @@ void FIGURE_draw(Thing* p_thing)
     SLONG lz;
 
     {
-        // Pelvis world position for NIGHT_find lighting lookup. Prefer the
-        // interpolated pose snapshot — keeps lighting stable across physics
-        // ticks. Falls back to legacy calc_sub_objects_position when the
-        // snapshot is unavailable (interp off, world-pose flag off, slot
-        // invalid right after teleport).
+        // Pelvis world position for NIGHT_find lighting lookup, from the
+        // interpolated pose snapshot — the single always-available source
+        // (lazily captured on first use; no legacy recompute path).
         const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            lx = SLONG(pose[0].pos_x);
-            ly = SLONG(pose[0].pos_y);
-            lz = SLONG(pose[0].pos_z);
-        } else {
-            calc_sub_objects_position(p_thing, dt->AnimTween, 0, &lx, &ly, &lz);
-            lx += p_thing->WorldPos.X >> 8;
-            ly += p_thing->WorldPos.Y >> 8;
-            lz += p_thing->WorldPos.Z >> 8;
-        }
+        lx = SLONG(pose[0].pos_x);
+        ly = SLONG(pose[0].pos_y);
+        lz = SLONG(pose[0].pos_z);
     }
 
     NIGHT_find(lx, ly, lz);
@@ -2850,22 +2841,13 @@ void FIGURE_draw(Thing* p_thing)
             SLONG py;
             SLONG pz;
 
-            // Left hand world position for grenade-in-hand draw. Pose snapshot
-            // path keeps the grenade tracking the interpolated hand smoothly
-            // across physics ticks (otherwise the grenade dèrgaет independently
-            // of the body). Falls back to legacy when snapshot unavailable.
+            // Left hand world position for grenade-in-hand draw, from the
+            // interpolated pose snapshot — the single always-available source
+            // (keeps the grenade tracking the hand smoothly; no legacy path).
             const BoneInterpTransform* pose = render_interp_get_cached_pose(p_person);
-            if (pose) {
-                px = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_x);
-                py = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_y);
-                pz = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_z);
-            } else {
-                calc_sub_objects_position(p_person, p_person->Draw.Tweened->AnimTween,
-                                          SUB_OBJECT_LEFT_HAND, &px, &py, &pz);
-                px += p_person->WorldPos.X >> 8;
-                py += p_person->WorldPos.Y >> 8;
-                pz += p_person->WorldPos.Z >> 8;
-            }
+            px = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_x);
+            py = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_y);
+            pz = SLONG(pose[SUB_OBJECT_LEFT_HAND].pos_z);
 
             kludge_shrink = UC_TRUE;
 
@@ -3386,23 +3368,14 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     NIGHT_Colour col;
 
     {
-        // Pelvis world position for reflection lighting lookup. Same pose-
-        // snapshot pattern as the main draw above — keeps the reflection's
-        // colour stable across physics ticks. Reflection geometry itself uses
-        // the snapshot via the per-bone override later in the function;
-        // sampling the light at the same lerped pelvis ensures the colour
-        // matches the body the reflection is rendering.
+        // Pelvis world position for reflection lighting lookup, from the
+        // interpolated pose snapshot — the single always-available source.
+        // Sampling the light at the same lerped pelvis the reflection
+        // geometry uses keeps the colour matched (no legacy recompute path).
         const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            lx = SLONG(pose[0].pos_x);
-            ly = SLONG(pose[0].pos_y);
-            lz = SLONG(pose[0].pos_z);
-        } else {
-            calc_sub_objects_position(p_thing, dt->AnimTween, 0, &lx, &ly, &lz);
-            lx += p_thing->WorldPos.X >> 8;
-            ly += p_thing->WorldPos.Y >> 8;
-            lz += p_thing->WorldPos.Z >> 8;
-        }
+        lx = SLONG(pose[0].pos_x);
+        ly = SLONG(pose[0].pos_y);
+        lz = SLONG(pose[0].pos_z);
     }
 
     col = NIGHT_get_light_at(lx, ly, lz);

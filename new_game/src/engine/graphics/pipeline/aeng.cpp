@@ -4326,19 +4326,12 @@ void AENG_draw_city()
                             SLONG py;
                             SLONG pz;
 
+                            // Pelvis world position from the interpolated
+                            // pose snapshot — single always-available source.
                             const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-                            if (pose) {
-                                px = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
-                                py = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
-                                pz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
-                            } else {
-                                calc_sub_objects_position(p_thing,
-                                    p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS,
-                                    &px, &py, &pz);
-                                px += p_thing->WorldPos.X >> 8;
-                                py += p_thing->WorldPos.Y >> 8;
-                                pz += p_thing->WorldPos.Z >> 8;
-                            }
+                            px = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
+                            py = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
+                            pz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
 
                             OVAL_add(px, py, pz, 130);
                         }
@@ -4523,17 +4516,12 @@ void AENG_draw_city()
         SLONG z;
 
         {
+            // Pelvis world position from the interpolated pose snapshot —
+            // single always-available source (no legacy recompute path).
             const BoneInterpTransform* pose = render_interp_get_cached_pose(darci);
-            if (pose) {
-                x = SLONG(pose[0].pos_x);
-                y = SLONG(pose[0].pos_y);
-                z = SLONG(pose[0].pos_z);
-            } else {
-                calc_sub_objects_position(darci, darci->Draw.Tweened->AnimTween, 0, &x, &y, &z);
-                x += darci->WorldPos.X >> 8;
-                y += darci->WorldPos.Y >> 8;
-                z += darci->WorldPos.Z >> 8;
-            }
+            x = SLONG(pose[0].pos_x);
+            y = SLONG(pose[0].pos_y);
+            z = SLONG(pose[0].pos_z);
         }
 
         angle = float(darci->Draw.Tweened->Angle);
