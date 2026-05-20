@@ -127,13 +127,20 @@ struct PaletteCache {
 
 static PaletteCache s_cache[MAX_GAME_CHUNKS] = {};
 
-// Debug A/B toggle — see bind_palette.h. Default off so the released build
-// keeps the baked-palette path until the visual gate signs off.
-bool g_skin_world_path_enabled = false;
+// Debug A/B toggle — see bind_palette.h. Default ON so the NEW world path
+// is what runs by default while P2-E tuning is in progress. G key flips
+// back to the legacy baked path for visual comparison.
+bool g_skin_world_path_enabled = true;
 
-// Debug A/B toggle for soft rigging (P2-E). Default off — hard skinning
-// (P2-D behaviour) until the visual gate signs off on the soft variant.
-bool g_skin_soft_rig_enabled = false;
+// Debug A/B toggle for soft rigging (P2-E). Default ON so the development
+// build runs the soft auto-rig by default. F key flips back to hard for
+// visual comparison.
+bool g_skin_soft_rig_enabled = true;
+
+// Live-tunable soft rig parameters — see bind_palette.h. Defaults match
+// the §4.5 starting picks plus the W_MAX bump from the early tuning pass.
+float g_skin_soft_band_fraction = 0.8f;
+float g_skin_soft_w_max         = 0.7f;
 
 // Build the palette for one anim_type slot. Returns false if the slot
 // doesn't hold a 15-bone person rig (chunk not loaded, wrong element

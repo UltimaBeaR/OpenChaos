@@ -66,7 +66,23 @@ extern bool g_skin_world_path_enabled;
 // the bind-space VBO is BUILT, so caches must be invalidated — see
 // FIGURE_invalidate_all_skin_consolidated_world() in figure.h.
 //
-// Default: false (hard rig matches what P2-D shipped).
+// Default: true (NEW soft path is the development default until P2-J
+// removes the toggle and the old path entirely).
 extern bool g_skin_soft_rig_enabled;
+
+// TEMP — live-tunable soft rig parameters (P2-E).
+//
+// Both are unitless fractions in [0, 1]:
+//   - g_skin_soft_band_fraction: width of the parent→child blending band
+//     as a fraction of the child bone's max vertex distance from its
+//     joint (bone_length). 0.4 = narrow seam, 0.8 = broad blend.
+//   - g_skin_soft_w_max: maximum parent contribution at the joint itself
+//     (dist=0). 0.5 = 50/50, 0.7 = parent dominates near the joint.
+//
+// Changing either invalidates the bind-space VBO cache (weights are
+// baked at build time). See FIGURE_invalidate_all_skin_consolidated_world.
+// Removed together with the rest of the toggle infrastructure at P2-J.
+extern float g_skin_soft_band_fraction;
+extern float g_skin_soft_w_max;
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_BIND_PALETTE_H

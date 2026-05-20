@@ -1236,46 +1236,86 @@ void process_controls(void)
         g_tpose_override_enabled = !g_tpose_override_enabled;
     }
 
-    // TEMP — skinning A/B/C cycle. One key (F) walks through three states:
-    //   0: OLD skinning - hard rig   (legacy baked path, P2-A)
-    //   1: NEW skinning - hard rig   (world path + trivial single-bone weights, P2-C/D)
-    //   2: NEW skinning - soft rig   (world path + auto-rigged soft weights, P2-E)
+    // TEMP — skinning debug toggles. Two independent flags drive the
+    // current state, plus four keys to live-tune the soft-rig parameters:
+    //   F : hard ↔ soft       (flips g_skin_soft_rig_enabled)
+    //   G : OLD ↔ NEW path    (flips g_skin_world_path_enabled)
+    //   [ : band -0.05        \  Together control the bind-space weight
+    //   ] : band +0.05        /  build. Both clamped to [0, 1].
+    //   ; : w_max -0.05       \  ;/' are physical key positions on a
+    //   ' : w_max +0.05       /  US layout (KB_COLON / KB_QUOTE).
     //
-    // The two underlying booleans (g_skin_world_path_enabled,
-    // g_skin_soft_rig_enabled) are set together so they always reflect
-    // a valid combination. Whenever the soft flag flips, the bind-space
-    // VBOs need a rebuild (weights are baked at build time), so we
-    // invalidate the cached world meshes on those transitions.
+    // Any of these six keys re-emits one combined status line and (when
+    // it touched anything that affects per-vertex weights) invalidates
+    // the bind-space VBO cache so the rebuild picks up new values.
     //
-    // NOT gated by allow_debug_keys for quick visual cycling. The whole
-    // cycle (and its key handler) is removed at P2-J once the world+soft
-    // path becomes the only one.
-    if (input_key_just_pressed(KB_F)) {
-        // Encode current state from the two flags.
-        int state = 0;
-        if (g_skin_world_path_enabled) state = g_skin_soft_rig_enabled ? 2 : 1;
-        const bool prev_soft = g_skin_soft_rig_enabled;
-        state = (state + 1) % 3;
-        switch (state) {
-            case 0: // OLD baked path
-                g_skin_world_path_enabled = false;
-                g_skin_soft_rig_enabled   = false;
-                CONSOLE_status((CBYTE*)"OLD skinning - hard rig");
-                break;
-            case 1: // NEW world path, hard weights
-                g_skin_world_path_enabled = true;
-                g_skin_soft_rig_enabled   = false;
-                CONSOLE_status((CBYTE*)"NEW skinning - hard rig");
-                break;
-            case 2: // NEW world path, soft weights
-                g_skin_world_path_enabled = true;
-                g_skin_soft_rig_enabled   = true;
-                CONSOLE_status((CBYTE*)"NEW skinning - soft rig");
-                break;
+    // Not gated by allow_debug_keys — quick iteration. The whole block
+    // (and its includes) is removed at P2-J together with the legacy
+    // baked path.
+    {
+        // Snapshot pre-change values to decide whether weights changed.
+        const bool  prev_soft = g_skin_soft_rig_enabled;
+        const float prev_band = g_skin_soft_band_fraction;
+        const float prev_wmax = g_skin_soft_w_max;
+
+        bool changed = false;
+        bool weights_changed = false;
+
+        if (input_key_just_pressed(KB_F)) {
+            g_skin_soft_rig_enabled = !g_skin_soft_rig_enabled;
+            changed = true;
         }
-        // Weight regime changed → bind-space VBO is stale.
-        if (g_skin_soft_rig_enabled != prev_soft) {
-            FIGURE_invalidate_all_skin_consolidated_world();
+        if (input_key_just_pressed(KB_G)) {
+            g_skin_world_path_enabled = !g_skin_world_path_enabled;
+            changed = true;
+        }
+        // Tuning step — small enough that one tap is a visible-but-subtle
+        // delta, large enough that walking 0→1 doesn't take 60 taps.
+        constexpr float TUNE_STEP = 0.05f;
+        auto clamp01 = [](float v) {
+            if (v < 0.0f) return 0.0f;
+            if (v > 1.0f) return 1.0f;
+            return v;
+        };
+        if (input_key_just_pressed(KB_LBRACE)) { // [
+            g_skin_soft_band_fraction = clamp01(g_skin_soft_band_fraction - TUNE_STEP);
+            changed = true;
+        }
+        if (input_key_just_pressed(KB_RBRACE)) { // ]
+            g_skin_soft_band_fraction = clamp01(g_skin_soft_band_fraction + TUNE_STEP);
+            changed = true;
+        }
+        if (input_key_just_pressed(KB_COLON)) {  // ;
+            g_skin_soft_w_max = clamp01(g_skin_soft_w_max - TUNE_STEP);
+            changed = true;
+        }
+        if (input_key_just_pressed(KB_QUOTE)) {  // '
+            g_skin_soft_w_max = clamp01(g_skin_soft_w_max + TUNE_STEP);
+            changed = true;
+        }
+
+        if (changed) {
+            // Weights are baked into the bind-space VBO. Anything that
+            // changes them — soft flag, band, w_max — needs an invalidate
+            // so the next draw rebuilds with current values. Flipping
+            // OLD/NEW alone doesn't touch weights and doesn't need it,
+            // but invalidating defensively when soft changes is enough
+            // to cover the cases that matter.
+            weights_changed = (g_skin_soft_rig_enabled  != prev_soft)
+                           || (g_skin_soft_band_fraction != prev_band)
+                           || (g_skin_soft_w_max         != prev_wmax);
+            if (weights_changed) {
+                FIGURE_invalidate_all_skin_consolidated_world();
+            }
+
+            // One combined status line: path / rig / params.
+            char msg[96];
+            sprintf(msg, "%s %s  band=%.2f w_max=%.2f",
+                    g_skin_world_path_enabled ? "NEW" : "OLD",
+                    g_skin_soft_rig_enabled   ? "soft" : "hard",
+                    (double)g_skin_soft_band_fraction,
+                    (double)g_skin_soft_w_max);
+            CONSOLE_status((CBYTE*)msg);
         }
     }
 

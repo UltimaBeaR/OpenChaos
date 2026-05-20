@@ -1331,13 +1331,11 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
     //     it captures the bone's geometry extent so its `band` is sane.
     //   - Pass B: write soft (w_own, w_parent) for non-root bones.
     if (g_skin_soft_rig_enabled) {
-        // Fraction of bone_length used as the blending band width.
-        // 0.4 is the starting value picked in §4.5 — tune by eye if a
-        // joint shows a visible seam or, conversely, looks too rubbery.
-        constexpr float SOFT_BAND_FRACTION = 0.4f;
-        // Max parent contribution at the joint itself (dist=0).
-        // 0.5 = 50/50 blend at the joint, falling linearly to 0 over band.
-        constexpr float SOFT_W_MAX         = 0.5f;
+        // Read live-tunable parameters once at the top of the pass so the
+        // value is consistent within this build (debug keys can flip them
+        // mid-frame, but each rebuild snapshots the value here).
+        const float SOFT_BAND_FRACTION = g_skin_soft_band_fraction;
+        const float SOFT_W_MAX         = g_skin_soft_w_max;
         // Guard against div-by-zero on degenerate bones (one vert at the
         // origin and no geometry around it). 0.001 inches is below any
         // realistic vertex distance, so degenerate cases hard-bind.
