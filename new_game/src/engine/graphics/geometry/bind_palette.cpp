@@ -1,18 +1,18 @@
 #include "engine/graphics/geometry/bind_palette.h"
 
-#include "assets/formats/anim_globals.h"                      // game_chunk[], MAX_GAME_CHUNKS
 #include "engine/animation/anim_types.h"                      // GameKeyFrameChunk, GameKeyFrameElement
 #include "engine/core/fmatrix.h"                              // Matrix33/31, matrix_mult33, matrix_transformZMY, rotate_obj
 #include "engine/core/macros.h"                               // SWAP
-#include "engine/graphics/geometry/pose_composer.h"           // POSE_PERSON_BONE_COUNT, body_part_parent
+#include "engine/graphics/geometry/pose_composer.h"           // POSE_PERSON_BONE_COUNT, POSE_MAX_BONES, body_part_parent
 #include "engine/graphics/graphics_engine/game_graphics_engine.h" // GEMatrix
 
 // ----------------------------------------------------------------------------
 // Constants
 // ----------------------------------------------------------------------------
 
-// 15-bone person rig — animals, bats, Bane, Balrog use the legacy rigid path.
-static constexpr int BONES = POSE_PERSON_BONE_COUNT; // 15
+// 15-bone person rig — animals, bats, Bane, Balrog use the flat-skeleton
+// branch (chunk->ElementCount != PERSON_BONES).
+static constexpr int PERSON_BONES = POSE_PERSON_BONE_COUNT; // 15
 
 // UC engine angle convention: 0..2047 == one full turn.
 // 30 degrees = round(2048 * 30 / 360) = 171. A-pose at 30 deg (not full 90 T)
@@ -116,16 +116,24 @@ static void rigid_inv_to_ge(const Matrix33& R, float tx, float ty, float tz, GEM
 }
 
 // ----------------------------------------------------------------------------
-// Per-anim-type cache
+// Per-chunk cache
 // ----------------------------------------------------------------------------
 
+// Variable-length palette (up to POSE_MAX_BONES). bone_count tells how many
+// of the slots are populated; the rest are uninitialised garbage and must
+// not be indexed.
 struct PaletteCache {
-    bool     valid;
-    GEMatrix world   [BONES];
-    GEMatrix inv_bind[BONES];
+    const GameKeyFrameChunk* chunk;    // ptr-key; NULL = empty slot
+    int                      bone_count;
+    GEMatrix                 world   [POSE_MAX_BONES];
+    GEMatrix                 inv_bind[POSE_MAX_BONES];
 };
 
-static PaletteCache s_cache[MAX_GAME_CHUNKS] = {};
+// Linear-scan table. The game has ~5 anim chunks total (4 person types +
+// each non-person creature has its own chunk), so a small fixed array is
+// fine — way cheaper than a hash map for this size.
+static constexpr int MAX_PALETTE_CACHE = 16;
+static PaletteCache  s_cache[MAX_PALETTE_CACHE] = {};
 
 // Per-group soft rig parameters — see bind_palette.h. Only the HEAD
 // parent slot is non-zero (band=20, w_max=1.0) — slightly softens the
@@ -145,62 +153,43 @@ SkinTuneGroup g_skin_tune_groups[SKIN_TUNE_GROUP_COUNT] = {
 // per-frame cost when disabled).
 bool g_skin_debug_draw_skeleton = false;
 
-// Build the palette for one anim_type slot. Returns false if the slot
-// doesn't hold a 15-bone person rig (chunk not loaded, wrong element
-// count, or missing keyframe data).
-static bool build_palette(int anim_type, PaletteCache& cache)
+// First keyframe in the chunk that actually carries element data.
+// AnimKeyFrames[0] is a reserved sentinel (FirstElement=NULL) in the
+// chunk's disk format — same "slot 0 invalid" pattern as next_prim_point
+// and friends. Scan forward to the first keyframe with element data;
+// gives us a reference rest-pose skeleton. The exact keyframe doesn't
+// matter for the bind palette math — the same bind pose is used at mesh
+// build time and at per-frame skin palette build (skin = current *
+// inv_bind), so any consistent reference cancels out.
+//
+// Returns NULL when no keyframe in the chunk has element data.
+static GameKeyFrameElement* first_valid_keyframe_elements(const GameKeyFrameChunk& chunk)
 {
-    // ⚠️ TEMP P2-E diagnostic.
-    auto bp_diag = [anim_type](const char* msg) {
-        fprintf(stderr, "[P2-E] bind_palette build_palette FAIL: %s (anim_type=%d)\n",
-            msg, anim_type);
-    };
-
-    if (anim_type < 0 || anim_type >= MAX_GAME_CHUNKS) {
-        bp_diag("anim_type out of range");
-        return false;
-    }
-    const GameKeyFrameChunk& chunk = game_chunk[anim_type];
-
-    // Gate: only 15-bone person rigs. Other chunks (animals, bats, Bane,
-    // Balrog, Gargoyle) keep the legacy rigid path.
-    if (chunk.ElementCount != BONES) {
-        fprintf(stderr, "[P2-E] bind_palette build_palette FAIL: ElementCount=%d (want %d), anim_type=%d\n",
-            (int)chunk.ElementCount, BONES, anim_type);
-        return false;
-    }
-    if (!chunk.AnimKeyFrames) {
-        bp_diag("AnimKeyFrames=NULL");
-        return false;
-    }
-    // AnimKeyFrames[0] is a reserved sentinel (FirstElement=NULL) in the
-    // chunk's disk format — same "slot 0 invalid" pattern as next_prim_point
-    // and friends. Scan forward to the first keyframe that actually has
-    // element data; that gives us a reference rest-pose skeleton. The exact
-    // keyframe doesn't matter for the bind palette math — the same bind
-    // pose is used at mesh build time and at per-frame skin palette build
-    // (skin = current * inv_bind), so any consistent reference cancels out.
-    GameKeyFrameElement* ae0 = NULL;
+    if (!chunk.AnimKeyFrames) return NULL;
     for (SLONG kf = 0; kf < chunk.MaxKeyFrames; ++kf) {
-        if (chunk.AnimKeyFrames[kf].FirstElement) {
-            ae0 = chunk.AnimKeyFrames[kf].FirstElement;
-            break;
-        }
+        if (chunk.AnimKeyFrames[kf].FirstElement)
+            return chunk.AnimKeyFrames[kf].FirstElement;
     }
-    if (!ae0) {
-        bp_diag("no keyframe with FirstElement");
-        return false;
-    }
+    return NULL;
+}
 
+// Build the palette for a 15-bone person rig with the A-pose. PELVIS at
+// origin, identity locals everywhere except the two upper-arms (±30° Z),
+// then forward-kinematic the chain — same parent-local derivation that
+// capture_pose_hierarchical (render_interp.cpp) uses.
+static void build_palette_person(const GameKeyFrameChunk& chunk,
+                                 GameKeyFrameElement* ae0,
+                                 PaletteCache& cache)
+{
     // ----- 1. Read keyframe-0 rotations and offsets ------------------------
     //
     // ae0[i].Offset* are signed shorts in skeleton-model units; the renderer
     // shifts them <<8 to align with the body_local_pos / BoneSnap convention
     // (scale x256). See pose_composer.cpp:132 for the root case and
     // render_interp.cpp:516-535 for the parent-local derivation we mirror.
-    Matrix33 kf0_rot[BONES];
-    Matrix31 kf0_off[BONES];
-    for (int i = 0; i < BONES; ++i) {
+    Matrix33 kf0_rot[PERSON_BONES];
+    Matrix31 kf0_off[PERSON_BONES];
+    for (int i = 0; i < PERSON_BONES; ++i) {
         uncompress_cmatrix(ae0[i].CMatrix, kf0_rot[i]);
         kf0_off[i].M[0] = SLONG(ae0[i].OffsetX) << 8;
         kf0_off[i].M[1] = SLONG(ae0[i].OffsetY) << 8;
@@ -218,8 +207,8 @@ static bool build_palette(int anim_type, PaletteCache& cache)
     // Output scale is x256 (same as input). matrix_transformZMY divides by
     // 32768 internally, so with parent_rot at scale 32768 and diff at x256
     // the result lands back at x256.
-    Matrix31 parent_local_offset[BONES] = {};
-    for (int i = 1; i < BONES; ++i) {
+    Matrix31 parent_local_offset[PERSON_BONES] = {};
+    for (int i = 1; i < PERSON_BONES; ++i) {
         const int p = body_part_parent[i];
 
         // Inverse of an orthogonal rotation matrix is its transpose
@@ -252,10 +241,10 @@ static bool build_palette(int anim_type, PaletteCache& cache)
     rotate_obj(0, 0, -A_POSE_SHOULDER_ANGLE, &rot_left_shoulder);
     rotate_obj(0, 0,  A_POSE_SHOULDER_ANGLE, &rot_right_shoulder);
 
-    Matrix33 bind_rot[BONES];
-    float    bind_pos[BONES][3];
+    Matrix33 bind_rot[PERSON_BONES];
+    float    bind_pos[PERSON_BONES][3];
 
-    bind_rot[0]  = ident;
+    bind_rot[0]    = ident;
     bind_pos[0][0] = 0.0f;
     bind_pos[0][1] = 0.0f;
     bind_pos[0][2] = 0.0f;
@@ -263,7 +252,7 @@ static bool build_palette(int anim_type, PaletteCache& cache)
     // body_part_parent[i] < i holds for all i (the table is laid out in
     // pre-order DFS — pose_composer.cpp:17). So a plain ascending walk is
     // safe: each bone's parent is already resolved when we get to it.
-    for (int i = 1; i < BONES; ++i) {
+    for (int i = 1; i < PERSON_BONES; ++i) {
         const int p = body_part_parent[i];
 
         // matrix_mult33 takes non-const pointers; the operands aren't
@@ -287,11 +276,63 @@ static bool build_palette(int anim_type, PaletteCache& cache)
     //
     // Rigid body (rotation + translation, no scale) — inverse is the
     // transpose-and-back-translate form (see rigid_inv_to_ge comment).
-    for (int i = 0; i < BONES; ++i) {
+    for (int i = 0; i < PERSON_BONES; ++i) {
         rigid_to_ge    (bind_rot[i], bind_pos[i][0], bind_pos[i][1], bind_pos[i][2], cache.world   [i]);
         rigid_inv_to_ge(bind_rot[i], bind_pos[i][0], bind_pos[i][1], bind_pos[i][2], cache.inv_bind[i]);
     }
-    cache.valid = true;
+    cache.bone_count = PERSON_BONES;
+    (void)chunk; // unused (kept for symmetry with build_palette_flat)
+}
+
+// Build the palette for a flat-skeleton rig (no parent/child hierarchy —
+// Bane, Balrog, bats, Gargoyle). Each bone gets identity rotation, and
+// its bind position is the raw keyframe-0 offset in float inches. This
+// matches the per-frame world transform produced by render_interp's
+// compose_flat_skeletal_pose:
+//
+//   pos[i] = WorldPos + R(body_angles) * (kf_offset * scale)
+//
+// `current[i] * inv_bind[i]` collapses to a transform that takes a
+// bone-local authored vertex straight to world — equivalent to the old
+// per-bone POLY_set_local_rotation path, just expressed inside the
+// shared soft-skinning shader.
+static void build_palette_flat(const GameKeyFrameChunk& chunk,
+                               GameKeyFrameElement* ae0,
+                               PaletteCache& cache)
+{
+    Matrix33 ident = {};
+    ident.M[0][0] = 32768;
+    ident.M[1][1] = 32768;
+    ident.M[2][2] = 32768;
+
+    const int n = chunk.ElementCount;
+    for (int i = 0; i < n; ++i) {
+        // Keyframe offsets are SWORD scale-x1 inches here (the per-frame
+        // pose path multiplies by character_scale; the bind reference is
+        // the unscaled rest-pose value — scale lives only in `current`).
+        const float tx = float(ae0[i].OffsetX);
+        const float ty = float(ae0[i].OffsetY);
+        const float tz = float(ae0[i].OffsetZ);
+        rigid_to_ge    (ident, tx, ty, tz, cache.world   [i]);
+        rigid_inv_to_ge(ident, tx, ty, tz, cache.inv_bind[i]);
+    }
+    cache.bone_count = n;
+}
+
+// Build the palette for a chunk. Returns false if the chunk has no usable
+// keyframe data or its element count is outside the supported range.
+static bool build_palette(const GameKeyFrameChunk& chunk, PaletteCache& cache)
+{
+    if (chunk.ElementCount <= 0 || chunk.ElementCount > POSE_MAX_BONES)
+        return false;
+
+    GameKeyFrameElement* ae0 = first_valid_keyframe_elements(chunk);
+    if (!ae0) return false;
+
+    if (chunk.ElementCount == PERSON_BONES)
+        build_palette_person(chunk, ae0, cache);
+    else
+        build_palette_flat  (chunk, ae0, cache);
     return true;
 }
 
@@ -299,23 +340,45 @@ static bool build_palette(int anim_type, PaletteCache& cache)
 // Public API
 // ----------------------------------------------------------------------------
 
-bool bind_palette_get(int anim_type,
+bool bind_palette_get(const GameKeyFrameChunk* chunk,
                       const GEMatrix** out_world,
-                      const GEMatrix** out_inv_bind)
+                      const GEMatrix** out_inv_bind,
+                      int*             out_bone_count)
 {
-    if (anim_type < 0 || anim_type >= MAX_GAME_CHUNKS) return false;
-    PaletteCache& cache = s_cache[anim_type];
-    if (!cache.valid) {
-        if (!build_palette(anim_type, cache)) return false;
+    if (!chunk) return false;
+
+    // 1) Existing slot for this chunk?
+    int free_slot = -1;
+    for (int i = 0; i < MAX_PALETTE_CACHE; ++i) {
+        if (s_cache[i].chunk == chunk) {
+            if (out_world)      *out_world      = s_cache[i].world;
+            if (out_inv_bind)   *out_inv_bind   = s_cache[i].inv_bind;
+            if (out_bone_count) *out_bone_count = s_cache[i].bone_count;
+            return true;
+        }
+        if (free_slot < 0 && s_cache[i].chunk == NULL)
+            free_slot = i;
     }
-    if (out_world)    *out_world    = cache.world;
-    if (out_inv_bind) *out_inv_bind = cache.inv_bind;
+
+    // 2) No slot? Cache is full — caller bug or hard misconfiguration. The
+    // game has ~5 anim chunks; running out of slots means MAX_PALETTE_CACHE
+    // is too small for the current data. Fail loudly in release as `false`.
+    if (free_slot < 0) return false;
+
+    // 3) Build into the free slot.
+    PaletteCache& slot = s_cache[free_slot];
+    if (!build_palette(*chunk, slot)) return false;
+    slot.chunk = chunk;
+    if (out_world)      *out_world      = slot.world;
+    if (out_inv_bind)   *out_inv_bind   = slot.inv_bind;
+    if (out_bone_count) *out_bone_count = slot.bone_count;
     return true;
 }
 
 void bind_palette_invalidate_all(void)
 {
-    for (int i = 0; i < MAX_GAME_CHUNKS; ++i) {
-        s_cache[i].valid = false;
+    for (int i = 0; i < MAX_PALETTE_CACHE; ++i) {
+        s_cache[i].chunk      = NULL;
+        s_cache[i].bone_count = 0;
     }
 }

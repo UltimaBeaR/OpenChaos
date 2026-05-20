@@ -27,6 +27,11 @@ float m_fObjectBoundingSphereRadius[MAX_NUMBER_D3D_PRIMS];
 // uc_orig: D3DPeopleObj (fallen/DDEngine/Source/figure.cpp)
 TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 
+// Non-person consolidated rig cache. Empty slot = chunk==NULL. See
+// figure_globals.h for the lookup scheme.
+AnimObjKey     D3DAnimObjKeys[MAX_NUMBER_D3D_ANIMALS] = {};
+TomsPrimObject D3DAnimObj    [MAX_NUMBER_D3D_ANIMALS];
+
 // uc_orig: m_iLRUQueueSize (fallen/DDEngine/Source/figure.cpp)
 int m_iLRUQueueSize = 0;
 

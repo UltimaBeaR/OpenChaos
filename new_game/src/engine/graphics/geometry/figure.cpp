@@ -932,10 +932,11 @@ static void** figure_skin_cache_slot(TomsPrimObject* po, PrimObjectMaterial* pMa
 static void figure_build_skin_world_palette(
     const BoneInterpTransform* current,
     const GEMatrix*            inv_bind,
-    float                      out_palette[POSE_PERSON_BONE_COUNT * 12])
+    int                        bone_count,
+    float*                     out_palette)
 {
     constexpr float S = 1.0f / 32768.0f;
-    for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
+    for (int i = 0; i < bone_count; ++i) {
         const Matrix33& cR  = current[i].rot;
         const GEMatrix& bi  = inv_bind[i];
         const float pos[3]  = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
@@ -973,7 +974,11 @@ static void figure_build_skin_world_palette(
     // Restoring afterwards is mandatory — the per-material fog calc in
     // the caller reads g_matWorld._43 (same gotcha figure_build_screen_xform_bake
     // handles for fog).
-    if (g_skin_debug_draw_skeleton) {
+    // Skeleton overlay is hard-coded to the 15-bone person rig
+    // (body_part_parent[], BONE_COLOURS[]); skip for flat-skeleton
+    // creatures (Bane / Balrog / bats / Gargoyle) where the parent
+    // table is meaningless.
+    if (g_skin_debug_draw_skeleton && bone_count == POSE_PERSON_BONE_COUNT) {
         extern GEMatrix g_matWorld;
         const GEMatrix saved_world = g_matWorld;
         POLY_set_local_rotation_none();
@@ -1177,20 +1182,27 @@ static void figure_build_screen_xform_bake(GEMatrix* out)
     ge_set_transform(GETransform::World, &g_matWorld);
 }
 
-// Build the world-skin consolidated GPU mesh for one person's
-// TomsPrimObject. Every vertex (and normal) is pre-multiplied by
-// bind_palette[bMatIndex] of the matching anim_type, so the resulting
-// mesh lives in a single shared bind-space and is ready for the
-// world-skin shader (skin_world_vert.glsl).
+// Build the world-skin consolidated GPU mesh for one TomsPrimObject.
+// Every vertex (and normal) is pre-multiplied by bind_world[bMatIndex]
+// of the rig's chunk, so the resulting mesh lives in a single shared
+// bind-space and is ready for the world-skin shader
+// (skin_world_vert.glsl).
+//
+// Works for both 15-bone person rigs (DARCI/ROPER/ROPER2/CIV) and flat
+// skeletons (Bane, Balrog, bats, Gargoyle, ...). The chunk pointer
+// identifies which rig — the bind palette infers the right derivation
+// internally (A-pose FK for 15-bone, identity-rot + raw offsets for
+// flat). On flat rigs the per-leaf-joint auto-rig further down is a
+// no-op because none of the parent_part / leaf_part indices appear in
+// the mesh's bone references.
 //
 // One VBO + per-material index slices stored as 2 × wNumMaterials
 // uint32 (index_start, index_count) pairs in skin_consolidated_ranges.
 // On success stores the GPU mesh on pPrimObj->skin_consolidated_world;
 // failure (alloc, > 65535 verts, missing bind palette) leaves it NULL —
-// caller falls back to the per-material multi-matrix path. Currently
-// only 15-bone person rigs reach here; non-person rigs are tracked as
-// P2-G in skeletal_skinning_phase2_plan.md.
-static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int anim_type)
+// caller falls back to the per-material multi-matrix path.
+static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
+                                                 const GameKeyFrameChunk* chunk)
 {
     if (pPrimObj->skin_consolidated_world != NULL)
         return true;
@@ -1198,11 +1210,9 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
         || pPrimObj->pD3DVertices == NULL || pPrimObj->pwStripIndices == NULL)
         return false;
 
-    // Bind palette gates the build: only 15-bone person rigs participate
-    // in the world path. Other chunks (animals, bats, Bane, Balrog) fall
-    // through to the baked path here.
     const GEMatrix* bind_world = NULL;
-    if (!bind_palette_get(anim_type, &bind_world, NULL) || !bind_world)
+    int             bone_count = 0;
+    if (!bind_palette_get(chunk, &bind_world, NULL, &bone_count) || !bind_world)
         return false;
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
@@ -1224,12 +1234,11 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
         GEVertexLit* pMatVertsLit = (GEVertexLit*)pMatVerts;
         for (uint32_t v = 0; v < pMat->wNumVertices; v++) {
             BYTE bMatIndex = ((unsigned char*)(pMatVertsLit + v))[12];
-            // Skin world path is only valid for 15-bone person rigs.
-            // Out-of-range bone index here means the loader produced
-            // something this rig can't handle; bail rather than indexing
-            // beyond bind_world[15]. ASSERT in debug, fail cleanly in release.
-            ASSERT(bMatIndex < 15);
-            if (bMatIndex >= 15)
+            // Out-of-range bone index means the loader produced something
+            // this rig can't handle; bail rather than indexing beyond
+            // bind_world[bone_count]. ASSERT in debug, fail cleanly in release.
+            ASSERT(bMatIndex < bone_count);
+            if (bMatIndex >= bone_count)
                 return false;
 
             // Bind transform: v_bind = R * v_local + t.
@@ -1313,6 +1322,12 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
 
     // ----- P2-E auto-rig: soft weights at leaf joints --------------------
     //
+    // 15-bone-person-only. Non-people (Bane, Balrog, bats, ...) keep the
+    // trivial single-bone weights written above — same shader path, no
+    // anatomy assumptions. The pair indices below (HEAD=11, HAND=7/10,
+    // FOOT=3/14) are pose_composer.cpp body_part_parent[] indices that
+    // exist only on the person rig.
+    //
     // Bidirectional targeted blend over 5 (parent_part, leaf_part) pairs.
     // Each pair belongs to a tuning GROUP (mirror pairs share params):
     //   group 0 HEAD:   TORSO       ↔ HEAD
@@ -1343,7 +1358,7 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
     //
     // Cost: per pair we scan `verts` up to twice (one side per direction).
     // Build-time only — once per mesh; result baked into the VBO weights.
-    {
+    if (bone_count == POSE_PERSON_BONE_COUNT) {
         struct LeafPair { int8_t parent_part; int8_t leaf_part; int8_t group; };
         constexpr int LEAF_PAIRS_N = 5;
         // Indices match pose_composer.cpp body_part_parent[] table.
@@ -2856,8 +2871,10 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     // person rig and aren't covered by the bind palette.
     bool        use_world_path = false;
     GESkinMesh* worldMesh      = NULL;
-    // 15 bones × 3 vec4 each = 180 floats.
-    float       skin_palette_world[POSE_PERSON_BONE_COUNT * 12];
+    // 20 bones × 3 vec4 each = 240 floats. Persons use 15; sized to
+    // POSE_MAX_BONES so the same buffer works for any rig the world-skin
+    // path may see in the future.
+    float       skin_palette_world[POSE_MAX_BONES * 12];
     GEMatrix    screen_xform_world = {};
     float       lightdir_world[3]  = { 0.0f, 0.0f, 0.0f };
 
@@ -2865,18 +2882,20 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         && p_person->Draw.Tweened
         && p_person->Draw.Tweened->TheChunk
         && p_person->Draw.Tweened->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT) {
-        const int       anim_type = p_person->Genus.Person->AnimType;
-        const GEMatrix* bind_inv  = NULL;
-        if (bind_palette_get(anim_type, NULL, &bind_inv) && bind_inv) {
+        const GameKeyFrameChunk* chunk    = p_person->Draw.Tweened->TheChunk;
+        const GEMatrix*          bind_inv = NULL;
+        if (bind_palette_get(chunk, NULL, &bind_inv, NULL) && bind_inv) {
             // Lazy build of the bind-space mesh on first use of this rig.
             if (pPrimObj->skin_consolidated_world == NULL) {
-                figure_build_consolidated_skin_world(pPrimObj, anim_type);
+                figure_build_consolidated_skin_world(pPrimObj, chunk);
             }
             worldMesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
             if (worldMesh) {
                 const BoneInterpTransform* current = render_interp_get_cached_pose(p_person);
                 if (current) {
-                    figure_build_skin_world_palette(current, bind_inv, skin_palette_world);
+                    figure_build_skin_world_palette(current, bind_inv,
+                                                    POSE_PERSON_BONE_COUNT,
+                                                    skin_palette_world);
                     figure_build_screen_xform_bake(&screen_xform_world);
                     // Half-Lambert ramp divides dot(normal, L) by
                     // fNormScale = 251 to land cos in [-1,1]. Pre-scale
@@ -3288,78 +3307,191 @@ void FIGURE_draw(Thing* p_thing)
     p_thing->Flags &= ~FLAGS_PERSON_AIM_AND_RUN;
 }
 
+// Resolve or build the consolidated TomsPrimObject for one
+// (chunk, start_object) rig. Returns NULL if the cache is full or any of
+// the constituent prim_objects[] can't be compiled. Slot reuse is keyed
+// by chunk+start_object so different rigs never share a slot.
+//
+// Walks parts 0..ele_count-1, calling FIGURE_TPO_add_prim_to_current_object
+// with ubSubObjectNumber = i so each merged vertex carries its origin
+// part as its bone index — same shape as D3DPeopleObj for persons.
+static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk* chunk,
+                                                       SLONG start_object,
+                                                       SLONG ele_count)
+{
+    int free_slot = -1;
+    for (int i = 0; i < MAX_NUMBER_D3D_ANIMALS; ++i) {
+        if (D3DAnimObjKeys[i].chunk == chunk && D3DAnimObjKeys[i].start_object == start_object) {
+            return &D3DAnimObj[i];
+        }
+        if (free_slot < 0 && D3DAnimObjKeys[i].chunk == NULL)
+            free_slot = i;
+    }
+    if (free_slot < 0) return NULL;
+
+    TomsPrimObject* pPrimObj = &D3DAnimObj[free_slot];
+    FIGURE_TPO_init_3d_object(pPrimObj);
+    for (SLONG i = 0; i < ele_count; ++i) {
+        FIGURE_TPO_add_prim_to_current_object(start_object + i, (UBYTE)i);
+    }
+    FIGURE_TPO_finish_3d_object(pPrimObj, 1);
+
+    D3DAnimObjKeys[free_slot].chunk        = chunk;
+    D3DAnimObjKeys[free_slot].start_object = start_object;
+    return pPrimObj;
+}
+
 // uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
-// Draws an animated non-character object using the DrawTween keyframe system.
-// Uses flat body-part loop (no hierarchical dispatch). Calls NIGHT_find() for lighting.
+// Draws a flat-skeleton creature (DT_ANIM_PRIM: bats, Bane, Balrog,
+// Gargoyle) through the same world-skin path persons use — a single
+// consolidated VBO per (chunk, start_object), one ge_skin_world_draw_range
+// call per material, per-frame palette = current world transforms from
+// the interpolated pose snapshot. The bind palette is identity-rotation
+// + raw keyframe-0 offsets (built by bind_palette_get's flat branch);
+// vertex weights are the trivial single-bone w0=255 the consolidated
+// build writes by default — auto-rig is people-anatomy-specific and not
+// applied here. Falls through silently with no draw if the rig can't be
+// resolved (missing chunk data, etc.).
 void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
 {
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-
-    ULONG colour;
-    ULONG specular;
-
-    Matrix33 r_matrix;
-
-    GameKeyFrameElement* ae1;
-    GameKeyFrameElement* ae2;
-
-    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
+    if (!dt || dt->CurrentFrame == 0 || dt->NextFrame == 0) {
         MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure");
         return;
     }
-
-    dx = 0;
-    dy = 0;
-    dz = 0;
-
-    ae1 = dt->CurrentFrame->FirstElement;
-    ae2 = dt->NextFrame->FirstElement;
-
-    if (!ae1 || !ae2) {
+    if (!dt->CurrentFrame->FirstElement || !dt->NextFrame->FirstElement) {
         MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
+        return;
+    }
+    const GameKeyFrameChunk* chunk = dt->TheChunk;
+    if (!chunk) return;
 
+    // Lighting — same as the legacy per-part path: night-tinted fade
+    // table sampled at a point slightly above the thing's foot world
+    // pos so foot-level shadow doesn't dominate.
+    {
+        SLONG lx = (p_thing->WorldPos.X >> 8);
+        SLONG ly = (p_thing->WorldPos.Y >> 8) + 0x60;
+        SLONG lz = (p_thing->WorldPos.Z >> 8);
+        NIGHT_find(lx, ly, lz);
+    }
+    BuildMMLightingTable(NULL, 0xffff00ff);
+    MM_bLightTableAlreadySetUp = UC_TRUE;
+
+    // Per-frame world bone transforms (with body angles + character_scale
+    // baked in — see compose_flat_skeletal_pose). Skipping the draw is
+    // safe: the pose snapshot is lazily captured on first use, so this
+    // is only NULL for a Thing that genuinely can't produce a pose.
+    const BoneInterpTransform* current = render_interp_get_cached_pose(p_thing);
+    if (!current) {
+        MM_bLightTableAlreadySetUp = UC_FALSE;
         return;
     }
 
-    FIGURE_rotate_obj(
-        dt->Tilt,
-        dt->Angle,
-        (dt->Roll + 2048) & 2047,
-        &r_matrix);
-
-    colour = 0;
-    specular = 0;
-
-    SLONG lx;
-    SLONG ly;
-    SLONG lz;
-
-    lx = (p_thing->WorldPos.X >> 8);
-    ly = (p_thing->WorldPos.Y >> 8) + 0x60;
-    lz = (p_thing->WorldPos.Z >> 8);
-
-    NIGHT_find(lx, ly, lz);
-
-    SLONG i;
-    SLONG ele_count;
-    SLONG start_object;
-    SLONG object_offset;
-
-    ele_count = dt->TheChunk->ElementCount;
-    start_object = prim_multi_objects[dt->TheChunk->MultiObject[0]].StartObject;
-
-    for (i = 0; i < ele_count; i++) {
-        object_offset = i;
-        FIGURE_draw_prim_tween(
-            start_object + object_offset,
-            colour,
-            specular,
-            p_thing,
-            i,
-            0xffff00ff);
+    // Bind palette (identity rotation + raw keyframe-0 offsets for flat
+    // rigs — see bind_palette.cpp build_palette_flat). Cached per chunk.
+    const GEMatrix* bind_inv   = NULL;
+    int             bone_count = 0;
+    if (!bind_palette_get(chunk, NULL, &bind_inv, &bone_count) || !bind_inv) {
+        MM_bLightTableAlreadySetUp = UC_FALSE;
+        return;
     }
+
+    // Mesh: lazy consolidated build per (chunk, start_object) slot.
+    // ANIM_obj_draw historically hard-codes MultiObject[0] (animals don't
+    // use the MeshID variant indexing that persons do), so the slot key
+    // is (chunk, MultiObject[0].StartObject).
+    const SLONG start_object = prim_multi_objects[chunk->MultiObject[0]].StartObject;
+    TomsPrimObject* pPrimObj = figure_anim_obj_get_consolidated(chunk, start_object,
+                                                                chunk->ElementCount);
+    if (!pPrimObj) {
+        MM_bLightTableAlreadySetUp = UC_FALSE;
+        return;
+    }
+    FIGURE_touch_LRU_of_object(pPrimObj);
+
+    // Bind-space VBO build (one-shot per slot — figure_build_consolidated_skin_world
+    // is a no-op if already built).
+    if (pPrimObj->skin_consolidated_world == NULL) {
+        figure_build_consolidated_skin_world(pPrimObj, chunk);
+    }
+    GESkinMesh* worldMesh  = (GESkinMesh*)pPrimObj->skin_consolidated_world;
+    uint32_t*   skinRanges = pPrimObj->skin_consolidated_ranges;
+    if (!worldMesh || !skinRanges) {
+        MM_bLightTableAlreadySetUp = UC_FALSE;
+        return;
+    }
+
+    // Anchor g_matWorld at the root bone in world space so fog view-Z
+    // is meaningful (the per-material loop below reads g_matWorld._43
+    // as the per-character fog distance). Identity local rotation: only
+    // the translation matters for fog. figure_build_screen_xform_bake
+    // save/restores around its camera-only override, so the value we
+    // set here survives that call and the loop sees it.
+    {
+        float ident_mat[9] = { 1, 0, 0,  0, 1, 0,  0, 0, 1 };
+        POLY_set_local_rotation(current[0].pos_x, current[0].pos_y, current[0].pos_z, ident_mat);
+    }
+
+    // Pre-character setup for the shared world-skin shader:
+    //   skin_palette[i] = current[i] × inv_bind[i]    (one row per bone)
+    //   screen_xform    = camera × projection × viewport (no model)
+    //   lightdir        = MM_vLightDir × 251 (matches legacy fNormScale)
+    //
+    // Buffer is sized to POSE_MAX_BONES so the same per-frame allocation
+    // fits every rig we might see.
+    float    skin_palette[POSE_MAX_BONES * 12];
+    GEMatrix screen_xform = {};
+    float    lightdir[3]  = { 0.0f, 0.0f, 0.0f };
+    figure_build_skin_world_palette(current, bind_inv, bone_count, skin_palette);
+    figure_build_screen_xform_bake(&screen_xform);
+    {
+        constexpr float MM_LIGHT_SCALE = 251.0f;
+        lightdir[0] = MM_vLightDir.x * MM_LIGHT_SCALE;
+        lightdir[1] = MM_vLightDir.y * MM_LIGHT_SCALE;
+        lightdir[2] = MM_vLightDir.z * MM_LIGHT_SCALE;
+    }
+
+    extern GEMatrix g_matWorld;
+    g_mm_fog_view_z = g_matWorld._43;
+
+    ge_set_specular_enabled(false);
+
+    // Per-material draw — slice the shared VBO by skinRanges[mat*2 + {0,1}].
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+    const int n_mats = (int)pPrimObj->wNumMaterials;
+    for (int iMat = 0; iMat < n_mats; iMat++, pMat++) {
+        UWORD wPage     = pMat->wTexturePage;
+        UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
+        // Skin/jacket flags are person-only; non-person rigs don't carry
+        // them. Drop the FACE_PAGE_OFFSET that the legacy per-part path
+        // applied by default — same effective texture page as the OLD
+        // pipeline through pa = &POLY_Page[wRealPage] below.
+        const uint32_t* fadeTable = (const uint32_t*)((wPage & TEXTURE_PAGE_FLAG_TINT)
+            ? MM_pcFadeTableTint : MM_pcFadeTable);
+
+        PolyPage* pa = &(POLY_Page[wRealPage]);
+        pa->RS.SetCullMode(GECullMode::CCW);
+        pa->RS.SetAlphaBlendEnabled(false);
+        pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+        pa->RS.SetChanged();
+
+        const uint32_t index_start = skinRanges[iMat * 2 + 0];
+        const uint32_t index_count = skinRanges[iMat * 2 + 1];
+        if (index_count > 0) {
+            ge_skin_world_draw_range(
+                worldMesh, index_start, index_count,
+                skin_palette,
+                (uint32_t)bone_count,
+                &screen_xform,
+                lightdir,
+                g_mm_fog_view_z,
+                /*unlit=*/ true,
+                fadeTable);
+        }
+    }
+
+    ge_set_specular_enabled(true);
+    MM_bLightTableAlreadySetUp = UC_FALSE;
 }
 
 // uc_orig: FIGURE_MAX_DY (fallen/DDEngine/Source/figure.cpp)

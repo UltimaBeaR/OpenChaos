@@ -48,6 +48,26 @@ extern float m_fObjectBoundingSphereRadius[MAX_NUMBER_D3D_PRIMS];
 // Pre-compiled D3D representations of all character-specific prim meshes.
 extern TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 
+// Pre-compiled consolidated D3D meshes for ANIM_obj_draw rigs (non-person
+// skeletons: Bane, Balrog, bats, Gargoyle, ...). A "rig" here is the
+// (chunk, MultiObject-start_object) pair — each such pair gets its own
+// consolidated TomsPrimObject so the whole creature is one mesh + one
+// draw call per material, same shape as D3DPeopleObj for persons.
+//
+// 32 slots is comfortable headroom: the game has ~4 non-person chunks
+// and each chunk realistically uses a handful of MultiObjects max.
+//
+// Built lazily on first draw of a given rig (see ANIM_obj_draw); slot
+// reuse is keyed by chunk pointer + start_object, so different rigs
+// land in different slots and there is no false sharing.
+#define MAX_NUMBER_D3D_ANIMALS 32
+struct AnimObjKey {
+    const struct GameKeyFrameChunk* chunk;
+    SLONG                           start_object;
+};
+extern AnimObjKey     D3DAnimObjKeys[MAX_NUMBER_D3D_ANIMALS];
+extern TomsPrimObject D3DAnimObj    [MAX_NUMBER_D3D_ANIMALS];
+
 // uc_orig: m_iLRUQueueSize (fallen/DDEngine/Source/figure.cpp)
 // Current number of entries in the TomsPrimObject LRU cache.
 extern int m_iLRUQueueSize;
@@ -103,7 +123,11 @@ extern int TPO_iNumStripIndices;
 extern int TPO_iNumVertices;
 
 // uc_orig: TPO_MAX_NUMBER_PRIMS (fallen/DDEngine/Source/figure.cpp)
-#define TPO_MAX_NUMBER_PRIMS 16
+// Was 16 originally — enough for the 15-bone person rig. Bumped to 20
+// (= POSE_MAX_BONES, matches MAX_NUM_BODY_PARTS_AT_ONCE) so the same
+// TPO machinery can consolidate flat-skeleton creatures (Balrog uses
+// more than 16 parts).
+#define TPO_MAX_NUMBER_PRIMS 20
 
 // uc_orig: TPO_iNumPrims (fallen/DDEngine/Source/figure.cpp)
 extern int TPO_iNumPrims;

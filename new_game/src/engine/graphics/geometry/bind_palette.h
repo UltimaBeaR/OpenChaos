@@ -1,47 +1,62 @@
 #ifndef ENGINE_GRAPHICS_GEOMETRY_BIND_PALETTE_H
 #define ENGINE_GRAPHICS_GEOMETRY_BIND_PALETTE_H
 
-// Static A-pose bind palette for the 15-bone person rig.
-// Per-(anim-type) cache, computed once at first use.
+// Static bind palette for any skeletally-animated rig — both the 15-bone
+// person rig and flat-skeleton creatures (Bane, Balrog, bats, Gargoyle).
+// Per-(chunk) cache, computed once at first use.
 //
-// Consumed by the consolidated-skin world-space draw path
-// (skeletal_skinning_phase2_plan.md, step P2-C) for two purposes:
+// Two rig flavours:
+//
+//  - 15-bone person rig (DARCI / ROPER / ROPER2 / CIV).
+//    Hierarchical FK in an A-pose: PELVIS at origin with identity world
+//    rotation; every bone gets an identity parent-local rotation except
+//    LEFT_HUMORUS (5) and RIGHT_HUMORUS (8) which get +/-30 degrees about
+//    Z to spread the arms.
+//
+//  - Flat skeleton (any chunk with ElementCount != 15).
+//    No parent/child relationship between bones; each bone independently
+//    sits at its keyframe-0 offset with identity world rotation. No FK
+//    chain. bind_world[i] = (identity rot, translation = float-inch
+//    offset from keyframe 0).
+//
+// Consumed by the consolidated-skin world-space draw path for two purposes:
 //
 //   1. Mesh-build: convert authored bone-local vertex positions into a
 //      shared bind-space:    vert_bind = bind_world[bMatIndex] * vert_local
 //
 //   2. Per frame, per character: build skin matrices
-//                                skin[i] = current[i] * bind_inv[i]
+//                                skin[i] = current[i] * inv_bind[i]
 //      and let the shader compute  world_pos = skin[bone] * vert_bind.
 //
-// Bind pose: PELVIS at origin with identity world rotation; every bone gets
-// an identity parent-local rotation except LEFT_HUMORUS (5) and RIGHT_HUMORUS
-// (8) which get +/-30 degrees about Z to spread the arms into the A-pose.
-// Bone parent-local offsets are derived from chunk->AnimKeyFrames[0] of the
-// matching ANIM_TYPE_* slot (the rest keyframe), in the same way
-// capture_pose_hierarchical (render_interp.cpp) extracts parent-local data
-// from a composed pose.
-//
-// Only valid for the 15-bone person rig (chunk->ElementCount == 15). The
-// accessor returns false for non-human animation chunks (animals, bats,
-// Bane, Balrog, ...) — those keep the legacy single-bone rigid path.
+// The auto-rig (soft weights at leaf joints) is a 15-bone-person-only
+// concept and lives in figure_build_consolidated_skin_world; it is not
+// the bind palette's responsibility. Non-people get trivial (single-bone,
+// w0=255) weights — same shader, same draw path, no anatomy assumptions.
+
+#include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (storage upper bound)
 
 struct GEMatrix;
+struct GameKeyFrameChunk;
 
-// Look up the cached bind palette for one anim_type
-// (ANIM_TYPE_DARCI / ROPER / ROPER2 / CIV). On first hit per anim_type the
-// palette is built from game_chunk[anim_type].AnimKeyFrames[0] and cached.
+// Look up the cached bind palette for one animation chunk. On first hit
+// per chunk the palette is built from `chunk->AnimKeyFrames[<first valid
+// keyframe>]` and cached.
 //
-// Returns false (and leaves out params untouched) when anim_type is out of
-// range, the chunk isn't loaded, or the chunk isn't a 15-bone person rig.
-// On success: *out_world and *out_inv_bind point at arrays of 15 GEMatrix
-// owned by the cache — read-only, valid until bind_palette_invalidate_all().
-bool bind_palette_get(int anim_type,
+// Returns false (and leaves out params untouched) when chunk is NULL,
+// has no AnimKeyFrames, has no keyframe with element data, or has an
+// element count outside [1, POSE_MAX_BONES].
+//
+// On success: *out_world and *out_inv_bind point at arrays of
+// *out_bone_count GEMatrix owned by the cache — read-only, valid until
+// bind_palette_invalidate_all(). Out params may individually be NULL if
+// the caller only needs a subset.
+bool bind_palette_get(const GameKeyFrameChunk* chunk,
                       const GEMatrix** out_world,
-                      const GEMatrix** out_inv_bind);
+                      const GEMatrix** out_inv_bind,
+                      int*             out_bone_count);
 
-// Drop the entire cache. Call on level transition if game_chunk[] gets
-// reloaded with different rig data.
+// Drop the entire cache. Call on level transition if animation chunks
+// get reloaded with different rig data.
 void bind_palette_invalidate_all(void);
 
 
