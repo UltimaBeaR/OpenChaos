@@ -671,26 +671,20 @@ struct TomsPrimObject {
     // FIGURE_clean_LRU_slot. Runtime-only (TomsPrimObjects are static
     // arrays, zero-initialised — not loaded from resource files).
     void** skin_gpu;
-    // Phase 2 P2-A (skeletal_skinning_phase2_plan.md): consolidated
-    // single-VBO skin mesh holding geometry of ALL materials in one
-    // GESkinMesh, drawn as N range-slices (one per material). Replaces
-    // the per-material skin_gpu[] array for the full-visibility person
-    // path. Lazily built on first character draw, freed in
-    // FIGURE_clean_LRU_slot. skin_consolidated_ranges is an array of
-    // 2 × wNumMaterials uint32 (index_start, index_count pairs).
-    void* skin_consolidated;          // GESkinMesh* (bone-local positions)
-    uint32_t* skin_consolidated_ranges;
 
-    // Phase 2 P2-C (skeletal_skinning_phase2_plan.md): parallel mesh with
-    // every vertex pre-multiplied by bind_palette[bMatIndex] — geometry
-    // lives in shared bind-space, ready for the world-space skin path
-    // (skin_world_vert.glsl). Same index buffer / topology / per-material
-    // ranges as skin_consolidated, only the positions and normals differ.
-    // Lazily built when the world path toggle is on AND a valid bind
-    // palette exists for the character's anim_type. NULL = build pending /
-    // skip world path / non-15-bone rig. Reuses skin_consolidated_ranges
-    // (identical material layout).
-    void* skin_consolidated_world;    // GESkinMesh* (bind-space positions)
+    // World-skin consolidated mesh: every vertex pre-multiplied by
+    // bind_palette[bMatIndex] so the whole rig lives in shared bind-space.
+    // Drawn via skin_world_vert.glsl with a per-frame skin palette
+    // (= current × inv_bind). One VBO holds ALL materials; the ranges
+    // array stores 2 × wNumMaterials uint32 (index_start, index_count)
+    // pairs so each material draws one slice of the shared index buffer.
+    //
+    // Lazily built on first character draw for 15-bone person rigs with
+    // a valid bind palette. NULL = not built / skip world-skin path /
+    // non-15-bone rig (animals, Bane, Balrog, bats — those go through
+    // ge_draw_multi_matrix instead). Freed in FIGURE_clean_LRU_slot.
+    uint32_t* skin_consolidated_ranges;
+    void*     skin_consolidated_world; // GESkinMesh* (bind-space positions)
 };
 
 // Legacy prim object header (includes name field, pre-D3D).

@@ -44,46 +44,41 @@ bool bind_palette_get(int anim_type,
 // reloaded with different rig data.
 void bind_palette_invalidate_all(void);
 
-// Debug A/B toggle (P2-C.5): when true, the consolidated-skin draw path
-// in figure.cpp uses the world-skin shader (skin_world_vert.glsl) with
-// bind-space verts + per-frame  skin = current * inv_bind  uniforms.
-// When false, the existing baked-palette path (skin_vert.glsl) is used.
-// Only effective for 15-bone person rigs with a valid bind palette;
-// other rigs ignore the toggle and stay on the legacy path.
-//
-// Toggled by a debug key (see game_tick.cpp). Default: false (baseline
-// path) so a build with this disabled is identical to the P2-A artifact.
-extern bool g_skin_world_path_enabled;
 
-// Debug A/B toggle (P2-E): when true, figure_build_consolidated_skin_world
-// emits soft per-vertex weights via the auto-rig (parent-bone falloff
-// near joints, see skeletal_skinning_phase2_plan.md §4). When false,
-// trivial single-bone weights (w0=1, rest=0) are emitted — math
-// collapses to hard rigid skin.
+// Soft rig per-joint blend parameters. Five (parent, leaf) skin pairs
+// (TORSO↔HEAD, L_RADIUS↔L_HAND, R_RADIUS↔R_HAND, L_TIBIA↔L_FOOT,
+// R_TIBIA↔R_FOOT) collapse into 3 GROUPS — left/right mirrors share:
+//   group 0: HEAD   (1 pair)
+//   group 1: HANDS  (L + R, 2 pairs share params)
+//   group 2: FEET   (L + R, 2 pairs share params)
 //
-// Has effect only when g_skin_world_path_enabled is also true (the world
-// path is what reads the multi-bone palette). Toggling this changes how
-// the bind-space VBO is BUILT, so caches must be invalidated — see
-// FIGURE_invalidate_all_skin_consolidated_world() in figure.h.
+// Each group exposes 4 constants:
+//   parent_band / parent_wmax  — pull on the PARENT body part's verts
+//                                (TORSO, RADIUS, TIBIA) toward the leaf
+//                                joint. parent_band is in absolute world
+//                                units; parent_wmax is a 0..1 fraction.
+//   child_band  / child_wmax   — pull on the LEAF body part's verts
+//                                (HEAD, HAND, FOOT) toward the same
+//                                leaf joint, blending TOWARD parent.
 //
-// Default: true (NEW soft path is the development default until P2-J
-// removes the toggle and the old path entirely).
-extern bool g_skin_soft_rig_enabled;
+// Values are eyeballed once and live in bind_palette.cpp — only
+// HEAD parent is non-zero (band=20, w_max=1.0); HANDS and FEET stay
+// zero (collapses to hard binding) because no universal tune works
+// across all character meshes (see known_issues_and_bugs.md). Removed
+// at P2-J: when soft becomes the only path, these get inlined as
+// constants in figure_build_consolidated_skin_world.
+struct SkinTuneGroup {
+    float parent_band;
+    float parent_wmax;
+    float child_band;
+    float child_wmax;
+};
+constexpr int SKIN_TUNE_GROUP_COUNT = 3;
+constexpr int SKIN_TUNE_GROUP_HEAD  = 0;
+constexpr int SKIN_TUNE_GROUP_HANDS = 1;
+constexpr int SKIN_TUNE_GROUP_FEET  = 2;
 
-// TEMP — live-tunable soft rig parameters (P2-E).
-//
-// Both are unitless fractions in [0, 1]:
-//   - g_skin_soft_band_fraction: width of the parent→child blending band
-//     as a fraction of the child bone's max vertex distance from its
-//     joint (bone_length). 0.4 = narrow seam, 0.8 = broad blend.
-//   - g_skin_soft_w_max: maximum parent contribution at the joint itself
-//     (dist=0). 0.5 = 50/50, 0.7 = parent dominates near the joint.
-//
-// Changing either invalidates the bind-space VBO cache (weights are
-// baked at build time). See FIGURE_invalidate_all_skin_consolidated_world.
-// Removed together with the rest of the toggle infrastructure at P2-J.
-extern float g_skin_soft_band_fraction;
-extern float g_skin_soft_w_max;
+extern SkinTuneGroup g_skin_tune_groups[SKIN_TUNE_GROUP_COUNT];
 
 // Debug overlay (kept past P2-J — useful diagnostic for all future
 // skinning work, not specifically tied to P2-E tuning).

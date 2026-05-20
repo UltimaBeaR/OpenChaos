@@ -35,62 +35,6 @@ extern float g_render_alpha;
 // re-enabling at runtime gives instant smooth motion. Toggle hotkey: 3.
 extern bool g_render_interp_enabled;
 
-// TEMP — debug T-pose override for the player character (Darci) only.
-// When true, render_interp_compute_pose rebuilds the player's per-bone
-// pose using identity local rotations on every child bone and identity
-// world rotation on the pelvis (rest pose dictated purely by the rig's
-// parent-local offsets). Visual sanity-check for the auto-rig step in
-// skeletal_skinning_plan.md §«Итерация 2». Toggle: K (debug mode).
-// Will be removed once the rig weights are computed and verified.
-extern bool g_tpose_override_enabled;
-
-// TEMP — per-bone manipulator (for exploring how the rig deforms the
-// mesh by hand-perturbing one bone at a time). Affects only the player
-// character (Darci). All inputs are bare data: render_interp_compute_pose
-// reads them inside the FK walk and substitutes the local rotation /
-// parent-local position for the listed bone(s) before chaining through
-// the parent's world transform.
-//
-//   g_skin_debug_manip_selected      — currently selected bone, 0..14;
-//                                       -1 means "nothing selected".
-//   g_skin_debug_manip_rot_override  — per-bone replacement local rotation.
-//   g_skin_debug_manip_rot_active[i] — true if rot override is in effect.
-//   g_skin_debug_manip_pos_override  — per-bone replacement parent-local
-//                                       position (×256, same scale as
-//                                       snapshot bone offsets).
-//   g_skin_debug_manip_pos_active[i] — true if pos override is in effect.
-//   g_skin_debug_manip_pos_pending[i]— set by the key handler when the
-//                                       user requests a "random point on
-//                                       the sphere of the current rest
-//                                       distance" — the FK loop samples
-//                                       the live rest distance there and
-//                                       fills override + clears pending.
-//
-// All zero / false by default → no-op pass-through, used only via the
-// Shift+R / Shift+F / Shift+, / Shift+' debug keys in bangunsnotgames.
-extern int      g_skin_debug_manip_selected;
-extern bool     g_skin_debug_manip_rot_active[15];
-extern bool     g_skin_debug_manip_pos_active[15];
-extern bool     g_skin_debug_manip_pos_pending[15];
-extern Matrix33 g_skin_debug_manip_rot_override[15];
-extern Matrix31 g_skin_debug_manip_pos_override[15];
-
-// Helpers driven by the debug-key handlers — see game_tick.cpp.
-//
-// skin_debug_manip_cycle_bone  — advance selected bone (0..14 → 0 wrap).
-// skin_debug_manip_random_rot  — install a random Euler rotation as the
-//                                 selected bone's local rot override.
-// skin_debug_manip_random_pos  — queue a "random direction at current
-//                                 rest length" pos override on the
-//                                 selected bone (FK loop completes the
-//                                 sampling — it knows the rest length).
-// skin_debug_manip_clear       — drop all overrides + deselect.
-// skin_debug_manip_bone_name   — human-readable name for status line.
-void        skin_debug_manip_cycle_bone(void);
-void        skin_debug_manip_random_rot(void);
-void        skin_debug_manip_random_pos(void);
-void        skin_debug_manip_clear(void);
-const char* skin_debug_manip_bone_name(int bone);
 
 // Reset all snapshots. Call when the world resets (mission load, map change)
 // to prevent lerping from a stale previous position.

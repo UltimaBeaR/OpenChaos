@@ -15,9 +15,9 @@
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
-#include "engine/graphics/render_interp.h" // g_tpose_override_enabled (TEMP debug toggle)
-#include "engine/graphics/geometry/bind_palette.h" // g_skin_world_path_enabled (TEMP P2-C toggle)
-#include "engine/graphics/geometry/figure.h" // FIGURE_invalidate_all_skin_consolidated_world (P2-E toggle)
+#include "engine/graphics/render_interp.h"
+#include "engine/graphics/geometry/bind_palette.h"
+#include "engine/graphics/geometry/figure.h"
 #include "map/pap.h"
 #include "map/road.h"
 #include "missions/eway.h"
@@ -1229,121 +1229,59 @@ void process_controls(void)
                 GAME_STATE = GS_LEVEL_LOST;
             }
         }
-    // TEMP — T-pose override on Darci's Thing. K toggles A-pose; NOT
-    // gated by allow_debug_keys (throw-away, removed once auto-rig
-    // weights are computed and verified).
-    if (input_key_just_pressed(KB_K)) {
-        g_tpose_override_enabled = !g_tpose_override_enabled;
-    }
-
-    // TEMP — skinning debug toggles. Two independent flags drive the
-    // current state, plus four keys to live-tune the soft-rig parameters:
-    //   F : hard ↔ soft       (flips g_skin_soft_rig_enabled)
-    //   R : OLD ↔ NEW path    (flips g_skin_world_path_enabled)
-    //   , : band -0.05        \  Together control the bind-space weight
-    //   M : band +0.05        /  build. Both clamped to [0, 1].
-    //   Y : w_max -0.05       \  Same idea — clamped to [0, 1].
-    //   ' : w_max +0.05       /
+    // Model cycler — N walks a hardcoded per-PersonType list of
+    // (MeshID, PersonID) variants. Each PersonType only supports
+    // certain combinations because:
+    //   • set_person_idle / set_anim_walking / set_anim_running ASSERT
+    //     in person.cpp for CIV with MeshID outside {7,8,9} (and
+    //     similar gates for other types).
+    //   • Each chunk's MultiObject[] only has meshes for the IDs
+    //     gameplay actually uses (mesh_type[] default + pcom.cpp
+    //     spawn-time overrides).
+    //   • PersonID also picks a BodyDef variant (e.g. CIV uses
+    //     PersonID 6..9 for clothing/skin from alloc_person).
     //
-    // Any of these six keys re-emits one combined status line and (when
-    // it touched anything that affects per-vertex weights) invalidates
-    // the bind-space VBO cache so the rebuild picks up new values.
-    //
-    // Key choice notes: all six are bare keys (no Shift / Ctrl) that are
-    // free in both gameplay and bangunsnotgames-debug paths. Earlier
-    // attempts at F/G/[/]/;/' collided with debug handlers (G=give-gun,
-    // [/]=camera-2 cycle, ;=slow-mo). Bare Y and M only have Shift+Y
-    // (fastnav held) and Shift+M (spawn mine) bound, so the unmodified
-    // keys are conflict-free. Tuner stays available whether or not
-    // bangunsnotgames mode is on — so band/w_max can be tuned while the
-    // skeleton overlay (key B, bangunsnotgames-gated) is visible. P2-J
-    // removes the whole tuner together with the legacy baked path.
-    {
-        // Snapshot pre-change values to decide whether weights changed.
-        const bool  prev_soft = g_skin_soft_rig_enabled;
-        const float prev_band = g_skin_soft_band_fraction;
-        const float prev_wmax = g_skin_soft_w_max;
-
-        bool changed = false;
-        bool weights_changed = false;
-
-        if (input_key_just_pressed(KB_F) && !ShiftFlag) {
-            g_skin_soft_rig_enabled = !g_skin_soft_rig_enabled;
-            changed = true;
-        }
-        if (input_key_just_pressed(KB_R) && !ShiftFlag) {
-            g_skin_world_path_enabled = !g_skin_world_path_enabled;
-            changed = true;
-        }
-        // Tuning step — small enough that one tap is a visible-but-subtle
-        // delta, large enough that walking 0→1 doesn't take 60 taps.
-        constexpr float TUNE_STEP = 0.05f;
-        auto clamp01 = [](float v) {
-            if (v < 0.0f) return 0.0f;
-            if (v > 1.0f) return 1.0f;
-            return v;
-        };
-        if (input_key_just_pressed(KB_COMMA) && !ShiftFlag) { // ,
-            g_skin_soft_band_fraction = clamp01(g_skin_soft_band_fraction - TUNE_STEP);
-            changed = true;
-        }
-        if (input_key_just_pressed(KB_M) && !ShiftFlag) {     // M (Shift+M = spawn mine)
-            g_skin_soft_band_fraction = clamp01(g_skin_soft_band_fraction + TUNE_STEP);
-            changed = true;
-        }
-        if (input_key_just_pressed(KB_Y) && !ShiftFlag) {     // Y (Shift+Y-held = fastnav)
-            g_skin_soft_w_max = clamp01(g_skin_soft_w_max - TUNE_STEP);
-            changed = true;
-        }
-        if (input_key_just_pressed(KB_QUOTE) && !ShiftFlag) { // '
-            g_skin_soft_w_max = clamp01(g_skin_soft_w_max + TUNE_STEP);
-            changed = true;
-        }
-
-        if (changed) {
-            // Weights are baked into the bind-space VBO. Anything that
-            // changes them — soft flag, band, w_max — needs an invalidate
-            // so the next draw rebuilds with current values. Flipping
-            // OLD/NEW alone doesn't touch weights and doesn't need it,
-            // but invalidating defensively when soft changes is enough
-            // to cover the cases that matter.
-            weights_changed = (g_skin_soft_rig_enabled  != prev_soft)
-                           || (g_skin_soft_band_fraction != prev_band)
-                           || (g_skin_soft_w_max         != prev_wmax);
-            if (weights_changed) {
-                FIGURE_invalidate_all_skin_consolidated_world();
-            }
-
-            // One combined status line: path / rig / params.
-            char msg[96];
-            sprintf(msg, "%s %s  band=%.2f w_max=%.2f",
-                    g_skin_world_path_enabled ? "NEW" : "OLD",
-                    g_skin_soft_rig_enabled   ? "soft" : "hard",
-                    (double)g_skin_soft_band_fraction,
-                    (double)g_skin_soft_w_max);
-            CONSOLE_status((CBYTE*)msg);
-        }
-    }
-
-    // Model cycler — N steps Darci's visual through all 15 person types
-    // (Darci → Roper → Cop → Civ → … → MIB3 → wrap). Gated by
-    // allow_debug_keys (bangunsnotgames mode) — this is a keeper debug
-    // feature, listed in F1 legend / debug_keys.md.
-    static int s_model_cycle_type = PERSON_DARCI;
+    // The list below mirrors the (MeshID, PersonID) pairs the original
+    // game produces at spawn (mesh_type[] + pcom.cpp + alloc_person CIV
+    // randomisation). Press N walks within a type, wrap to next type.
+    struct ModelVariant { int8_t mesh_id; int8_t person_id; };
+    struct ModelVariantSet { int n; ModelVariant v[8]; };
+    constexpr ModelVariantSet VARIANTS[PERSON_NUM_TYPES] = {
+        { 1, {{0,0}} },                                   // DARCI
+        { 1, {{0,0}} },                                   // ROPER
+        { 1, {{4,0}} },                                   // COP
+        { 6, {{7,6},{7,7},{7,8},{7,9},{8,0},{9,0}} },     // CIV — 4 BodyDef × MeshID=7 + MeshID 8/9
+        { 3, {{0,0},{1,0},{2,0}} },                       // THUG_RASTA (pcom Random()%3)
+        { 1, {{1,0}} },                                   // THUG_GREY
+        { 1, {{2,0}} },                                   // THUG_RED
+        { 1, {{1,0}} },                                   // SLAG_TART
+        { 1, {{2,0}} },                                   // SLAG_FATUGLY
+        { 1, {{3,0}} },                                   // HOSTAGE
+        { 1, {{3,0}} },                                   // MECHANIC
+        { 1, {{6,0}} },                                   // TRAMP
+        { 1, {{5,0}} },                                   // MIB1
+        { 1, {{5,0}} },                                   // MIB2
+        { 1, {{5,0}} },                                   // MIB3
+    };
+    static int s_model_cycle_type     = PERSON_DARCI;
+    static int s_model_cycle_variant  = 0;
     if (allow_debug_keys && input_key_just_pressed(KB_N)) {
-        s_model_cycle_type = (s_model_cycle_type + 1) % PERSON_NUM_TYPES;
         Thing* darci_thing = NET_PERSON(0);
         if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
-            UBYTE new_anim_type = anim_type[s_model_cycle_type];
-            // Mirror the existing PERSON_DARCI↔PERSON_ROPER console-
-            // command swap (parse_console case 21/22) so the swap takes:
-            // PersonType + AnimType + TheChunk + MeshID + PersonID, then
-            // let set_person_idle pick a valid anim for the new type.
+            // Advance variant within type; wrap to next type when out.
+            s_model_cycle_variant++;
+            if (s_model_cycle_variant >= VARIANTS[s_model_cycle_type].n) {
+                s_model_cycle_variant = 0;
+                s_model_cycle_type = (s_model_cycle_type + 1) % PERSON_NUM_TYPES;
+            }
+            const ModelVariant& mv = VARIANTS[s_model_cycle_type].v[s_model_cycle_variant];
+
+            const UBYTE new_anim_type = anim_type[s_model_cycle_type];
             darci_thing->Genus.Person->PersonType = s_model_cycle_type;
-            darci_thing->Genus.Person->AnimType = new_anim_type;
-            darci_thing->Draw.Tweened->TheChunk = &game_chunk[new_anim_type];
-            darci_thing->Draw.Tweened->MeshID = mesh_type[s_model_cycle_type];
-            darci_thing->Draw.Tweened->PersonID = 0;
+            darci_thing->Genus.Person->AnimType   = new_anim_type;
+            darci_thing->Draw.Tweened->TheChunk   = &game_chunk[new_anim_type];
+            darci_thing->Draw.Tweened->MeshID     = (UBYTE)mv.mesh_id;
+            darci_thing->Draw.Tweened->PersonID   = (UBYTE)mv.person_id;
             set_person_idle(darci_thing);
         }
     }
@@ -1364,50 +1302,6 @@ void process_controls(void)
             : (CBYTE*)"Skeleton overlay: OFF");
     }
 
-    // Per-bone manipulator — Shift+R/F/,/' walk through bones and
-    // apply random local rotation / random parent-local-position-on-
-    // sphere to the selected bone, so the rig structure can be probed
-    // by eye. Each press emits a status line "Bone i NAME  rot=on pos=on"
-    // so it's obvious which bone is selected and which overrides are
-    // active. Temp skin-debug tool — unconditional (no allow_debug_keys
-    // gate), same as the F-tuner; ShiftFlag is the only gate so bare
-    // gameplay key presses don't trigger it accidentally. Not listed in
-    // the bangunsnotgames F1 legend — keeper bone-related entry there
-    // is just the B skeleton overlay. P2-J cleanup removes this block
-    // together with the rest of the skin-debug toggles.
-    if (ShiftFlag) {
-        bool manip_changed = false;
-        if (input_key_just_pressed(KB_R)) {
-            skin_debug_manip_cycle_bone();
-            manip_changed = true;
-        }
-        if (input_key_just_pressed(KB_F)) {
-            skin_debug_manip_random_rot();
-            manip_changed = true;
-        }
-        if (input_key_just_pressed(KB_COMMA)) {
-            skin_debug_manip_random_pos();
-            manip_changed = true;
-        }
-        if (input_key_just_pressed(KB_QUOTE)) {
-            skin_debug_manip_clear();
-            manip_changed = true;
-        }
-        if (manip_changed) {
-            char msg[96];
-            const int b = g_skin_debug_manip_selected;
-            if (b < 0) {
-                sprintf(msg, "Manip: cleared");
-            } else {
-                sprintf(msg, "Bone %d %s  rot=%s pos=%s", b,
-                        skin_debug_manip_bone_name(b),
-                        g_skin_debug_manip_rot_active[b] ? "ON" : "off",
-                        g_skin_debug_manip_pos_active[b] ? "ON" : "off");
-            }
-            CONSOLE_status((CBYTE*)msg);
-        }
-    }
-
     // Persistent status line. "Model: X" only shown in debug mode and
     // when the current selection isn't the default Darci. T-pose used to
     // also write a label here but it's gone now — the per-frame stomp
@@ -1421,9 +1315,12 @@ void process_controls(void)
             "MECHANIC", "TRAMP", "MIB1", "MIB2", "MIB3"
         };
         static bool s_wrote_status = false;
-        if (allow_debug_keys && s_model_cycle_type != PERSON_DARCI) {
+        const bool non_default = (s_model_cycle_type != PERSON_DARCI)
+                              || (s_model_cycle_variant != 0);
+        if (allow_debug_keys && non_default) {
             char buf[64];
-            snprintf(buf, sizeof(buf), "Model: %s", k_person_names[s_model_cycle_type]);
+            snprintf(buf, sizeof(buf), "Model: %s (var %d)",
+                     k_person_names[s_model_cycle_type], s_model_cycle_variant);
             CONSOLE_status((CBYTE*)buf);
             s_wrote_status = true;
         } else if (s_wrote_status) {

@@ -22,7 +22,7 @@
 #include "engine/core/quaternion.h"
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include <vector>  // figure_build_consolidated_skin scratch buffers (P2-A)
+#include <vector>  // figure_build_consolidated_skin_world scratch buffers
 #include <cstring> // memcpy
 #include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (pose snapshot)
@@ -921,146 +921,6 @@ static void** figure_skin_cache_slot(TomsPrimObject* po, PrimObjectMaterial* pMa
     return &po->skin_gpu[pMat - po->pMaterials];
 }
 
-// Phase 2 P2-A (skeletal_skinning_phase2_plan.md): build one consolidated
-// GESkinMesh holding the geometry of ALL materials of a person's
-// TomsPrimObject. Replaces per-material GPU caching with one VBO + N
-// index slices (one per material) drawn via ge_skin_mesh_draw_range.
-//
-// Mirrors the ge_draw_multi_matrix accumulation in polypage.cpp:
-//  - GEVertex stream per material → GESkinVertex with model-space pos,
-//    raw normal, bMatIndex bone, color/specular zeroed (unlit path
-//    re-derives them in-shader).
-//  - Strip indices (UC_TRUE-init even/odd winding flip, 0xFFFF terminator)
-//    → triangle list, with per-material base-vertex offset so all
-//    materials share one VBO.
-//
-// On success stores the mesh and a 2 × wNumMaterials uint32 ranges array
-// (index_start, index_count pairs) on pPrimObj. Failure (alloc, > 65535
-// verts) leaves consolidated = NULL; caller falls back to per-material
-// path.
-static bool figure_build_consolidated_skin(TomsPrimObject* pPrimObj)
-{
-    if (pPrimObj->skin_consolidated != NULL)
-        return true;
-    if (pPrimObj->wNumMaterials == 0 || pPrimObj->pMaterials == NULL
-        || pPrimObj->pD3DVertices == NULL || pPrimObj->pwStripIndices == NULL)
-        return false;
-
-    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
-    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
-    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
-
-    std::vector<GESkinVertex> verts;
-    std::vector<uint16_t>     inds;
-    const int n_mats = (int)pPrimObj->wNumMaterials;
-    std::vector<uint32_t>     ranges(n_mats * 2, 0u);
-
-    uint32_t palette_n = 0; // max bone index referenced + 1
-
-    for (int iMat = 0; iMat < n_mats; iMat++) {
-        const uint16_t base_vertex = (uint16_t)verts.size();
-        const uint32_t range_start = (uint32_t)inds.size();
-
-        // Copy this material's vertices to the shared VBO.
-        // GEVertex view gives normals; the GEVertexLit view (same memory)
-        // is used only to read the MM index byte (offset 12).
-        GEVertex* pMatVerts = pVertex;
-        GEVertexLit* pMatVertsLit = (GEVertexLit*)pMatVerts;
-        for (uint32_t v = 0; v < pMat->wNumVertices; v++) {
-            GESkinVertex sv;
-            sv.x  = pMatVerts[v].x;
-            sv.y  = pMatVerts[v].y;
-            sv.z  = pMatVerts[v].z;
-            sv.nx = pMatVerts[v].nx;
-            sv.ny = pMatVerts[v].ny;
-            sv.nz = pMatVerts[v].nz;
-            BYTE bMatIndex = ((unsigned char*)(pMatVertsLit + v))[12];
-            sv.bone = (uint32_t)bMatIndex;
-            sv.color    = 0u; // unlit: derived in-shader
-            sv.specular = 0u; // fog computed in-shader (1C)
-            sv.u = pMatVertsLit[v].u;
-            sv.v = pMatVertsLit[v].v;
-            // P2-D: trivial single-bone weights for the world-skin path.
-            // Math identical to single-bone when read by skin_world_vert.glsl;
-            // P2-E auto-rig fills real soft weights here without any
-            // shader change. Baked shader (skin_vert.glsl) reads sv.bone
-            // above and ignores these.
-            sv.bones[0]   = bMatIndex; sv.bones[1]   = 0; sv.bones[2]   = 0; sv.bones[3]   = 0;
-            sv.weights[0] = 255;       sv.weights[1] = 0; sv.weights[2] = 0; sv.weights[3] = 0;
-            verts.push_back(sv);
-
-            if ((uint32_t)bMatIndex + 1 > palette_n)
-                palette_n = (uint32_t)bMatIndex + 1;
-        }
-
-        // Decode strip indices to triangle list — same walk as
-        // ge_draw_multi_matrix (polypage.cpp): read 2, then loop reading
-        // 1 at a time, emit triangle with even/odd winding, 0xFFFF
-        // terminates the strip. Multiple strips per material are
-        // separated by 0xFFFF and walked until indices run out.
-        UWORD* p = pwStripIndices;
-        uint32_t remaining = pMat->wNumStripIndices;
-        while (remaining >= 3) {
-            uint16_t wi[3];
-            wi[1] = *p++;
-            wi[2] = *p++;
-            remaining -= 2;
-            bool bEven = true; // matches UC_TRUE init in polypage.cpp
-            while (remaining > 0) {
-                bEven = !bEven;
-                wi[0] = wi[1];
-                wi[1] = wi[2];
-                wi[2] = *p++;
-                remaining--;
-                if (wi[2] == 0xffff)
-                    break;
-                uint16_t a, b, c;
-                if (bEven) {
-                    a = wi[0]; b = wi[2]; c = wi[1]; // {0,2,1}
-                } else {
-                    a = wi[0]; b = wi[1]; c = wi[2]; // {0,1,2}
-                }
-                inds.push_back((uint16_t)(base_vertex + a));
-                inds.push_back((uint16_t)(base_vertex + b));
-                inds.push_back((uint16_t)(base_vertex + c));
-            }
-        }
-
-        ranges[iMat * 2 + 0] = range_start;
-        ranges[iMat * 2 + 1] = (uint32_t)inds.size() - range_start;
-
-        pVertex += pMat->wNumVertices;
-        pwStripIndices += pMat->wNumStripIndices;
-        pMat++;
-    }
-
-    if (verts.empty() || inds.empty())
-        return false;
-    if (verts.size() > 0xFFFFu) {
-        // Index range exceeds uint16. Caller falls back to per-material
-        // path. Unlikely for a person (~hundreds of verts/material).
-        return false;
-    }
-
-    GESkinMesh* mesh = ge_skin_mesh_create(
-        verts.data(), (uint32_t)verts.size(),
-        inds.data(), (uint32_t)inds.size(),
-        palette_n);
-    if (!mesh)
-        return false;
-
-    uint32_t* ranges_storage = (uint32_t*)MemAlloc(ranges.size() * sizeof(uint32_t));
-    if (!ranges_storage) {
-        ge_skin_mesh_destroy(mesh);
-        return false;
-    }
-    std::memcpy(ranges_storage, ranges.data(), ranges.size() * sizeof(uint32_t));
-
-    pPrimObj->skin_consolidated = mesh;
-    pPrimObj->skin_consolidated_ranges = ranges_storage;
-    return true;
-}
-
 // Phase 2 P2-C helper: build the per-frame world-skin palette.
 //   skin[i] = current[i] * inv_bind[i]
 // in "M * v" convention, output as 3 vec4 per bone (rotation rows with
@@ -1317,18 +1177,19 @@ static void figure_build_screen_xform_bake(GEMatrix* out)
     ge_set_transform(GETransform::World, &g_matWorld);
 }
 
-// Phase 2 P2-C (skeletal_skinning_phase2_plan.md): build the bind-space
-// counterpart to skin_consolidated. Every vertex (and normal) is
-// pre-multiplied by bind_palette[bMatIndex] of the matching anim_type, so
-// the resulting mesh lives in a single shared bind-space and is ready for
-// the world-space skin path (skin_world_vert.glsl).
+// Build the world-skin consolidated GPU mesh for one person's
+// TomsPrimObject. Every vertex (and normal) is pre-multiplied by
+// bind_palette[bMatIndex] of the matching anim_type, so the resulting
+// mesh lives in a single shared bind-space and is ready for the
+// world-skin shader (skin_world_vert.glsl).
 //
-// Same topology / per-material ranges as figure_build_consolidated_skin —
-// reuses the existing skin_consolidated_ranges (so this must be called
-// AFTER the bone-local mesh build). On success stores the GPU mesh on
-// pPrimObj->skin_consolidated_world; failure (alloc, > 65535 verts,
-// missing bind palette) leaves it NULL — caller falls back to the
-// baked-palette path.
+// One VBO + per-material index slices stored as 2 × wNumMaterials
+// uint32 (index_start, index_count) pairs in skin_consolidated_ranges.
+// On success stores the GPU mesh on pPrimObj->skin_consolidated_world;
+// failure (alloc, > 65535 verts, missing bind palette) leaves it NULL —
+// caller falls back to the per-material multi-matrix path. Currently
+// only 15-bone person rigs reach here; non-person rigs are tracked as
+// P2-G in skeletal_skinning_phase2_plan.md.
 static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int anim_type)
 {
     if (pPrimObj->skin_consolidated_world != NULL)
@@ -1396,7 +1257,9 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
             sv.specular = 0u;
             sv.u = pMatVertsLit[v].u;
             sv.v = pMatVertsLit[v].v;
-            // P2-D: same trivial weights as the bone-local build above.
+            // Initial trivial weights (single bone, full weight). The soft
+            // auto-rig pass below overwrites these for verts within a leaf
+            // joint's blend zone.
             sv.bones[0]   = bMatIndex; sv.bones[1]   = 0; sv.bones[2]   = 0; sv.bones[3]   = 0;
             sv.weights[0] = 255;       sv.weights[1] = 0; sv.weights[2] = 0; sv.weights[3] = 0;
             verts.push_back(sv);
@@ -1448,138 +1311,100 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
     if (verts.size() > 0xFFFFu)
         return false;
 
-    // ----- P2-E auto-rig: soft weights at joints --------------------------
+    // ----- P2-E auto-rig: soft weights at leaf joints --------------------
     //
-    // Algorithm — skeletal_skinning_phase2_plan.md §4.4-4.6. For each
-    // vertex of bone B with parent P, distance to the joint (= bone B's
-    // origin in bind-space, which is bind_world[B].pos) drives a linear
-    // falloff that blends a fraction W_MAX of bone P's contribution near
-    // the joint, decaying to 0 at distance `band` from it. PELVIS verts
-    // keep w0=1 (root has no parent).
+    // Bidirectional targeted blend over 5 (parent_part, leaf_part) pairs.
+    // Each pair belongs to a tuning GROUP (mirror pairs share params):
+    //   group 0 HEAD:   TORSO       ↔ HEAD
+    //   group 1 HANDS:  L/R RADIUS  ↔ L/R HAND
+    //   group 2 FEET:   L/R TIBIA   ↔ L/R FOOT
     //
-    // Gated by g_skin_soft_rig_enabled — when off, the trivial weights
-    // already written in the per-vert loop above (w0=255 for own bone)
-    // stay in place and skinning collapses to hard rigid binding (same
-    // result as P2-D).
+    // For each pair, the leaf JOINT POSITION (in bind space) is the
+    // single blend centre. Two independent linear-falloff blends use it:
     //
-    // Two extra passes over `verts`:
-    //   - Pass A: per-bone `bone_length` = max(vert distance from bind
-    //     origin). For non-leaf bones this matches the distance to the
-    //     child joint within rounding; for leaf bones (head, hands, feet)
-    //     it captures the bone's geometry extent so its `band` is sane.
-    //   - Pass B: write soft (w_own, w_parent) for non-root bones.
-    if (g_skin_soft_rig_enabled) {
-        // Read live-tunable parameters once at the top of the pass so the
-        // value is consistent within this build (debug keys can flip them
-        // mid-frame, but each rebuild snapshots the value here).
-        const float SOFT_BAND_FRACTION = g_skin_soft_band_fraction;
-        const float SOFT_W_MAX         = g_skin_soft_w_max;
-        // Guard against div-by-zero on degenerate bones (one vert at the
-        // origin and no geometry around it). 0.001 inches is below any
-        // realistic vertex distance, so degenerate cases hard-bind.
-        constexpr float MIN_BAND           = 0.001f;
+    //   PARENT-side blend: parent_part verts within parent_band of the
+    //     joint pick up share parent_wmax×(1 − d/parent_band) of the
+    //     leaf bone's transform. Closes the wrist/ankle/neck "stub
+    //     sticking out of body" gap when the leaf moves.
+    //
+    //   CHILD-side blend: leaf_part verts within child_band of the
+    //     joint pick up share child_wmax×(1 − d/child_band) of the
+    //     parent bone's transform. Pulls the head/hand/foot mesh
+    //     toward the parent so e.g. the bottom of the head model
+    //     follows the torso a little when the neck twists.
+    //
+    // All other joints (shoulders, elbows, hips, knees, pelvis ↔ torso)
+    // stay HARD-bound. Keeps the change set small and focused on the
+    // seams that actually crease on screen.
+    //
+    // Defaults are zero → no-op (full hard binding). Per-character mesh
+    // calibration happens live via debug keys, then good values land
+    // back in bind_palette.cpp as the new defaults.
+    //
+    // Cost: per pair we scan `verts` up to twice (one side per direction).
+    // Build-time only — once per mesh; result baked into the VBO weights.
+    {
+        struct LeafPair { int8_t parent_part; int8_t leaf_part; int8_t group; };
+        constexpr int LEAF_PAIRS_N = 5;
+        // Indices match pose_composer.cpp body_part_parent[] table.
+        // PELVIS=0, LEFT_FEMUR=1, LEFT_TIBIA=2, LEFT_FOOT=3,
+        // TORSO=4, LEFT_HUMORUS=5, LEFT_RADIUS=6, LEFT_HAND=7,
+        // RIGHT_HUMORUS=8, RIGHT_RADIUS=9, RIGHT_HAND=10, HEAD=11,
+        // RIGHT_FEMUR=12, RIGHT_TIBIA=13, RIGHT_FOOT=14.
+        constexpr LeafPair PAIRS[LEAF_PAIRS_N] = {
+            {  4, 11, SKIN_TUNE_GROUP_HEAD  }, // TORSO        ↔ HEAD
+            {  6,  7, SKIN_TUNE_GROUP_HANDS }, // LEFT_RADIUS  ↔ LEFT_HAND
+            {  9, 10, SKIN_TUNE_GROUP_HANDS }, // RIGHT_RADIUS ↔ RIGHT_HAND
+            {  2,  3, SKIN_TUNE_GROUP_FEET  }, // LEFT_TIBIA   ↔ LEFT_FOOT
+            { 13, 14, SKIN_TUNE_GROUP_FEET  }, // RIGHT_TIBIA  ↔ RIGHT_FOOT
+        };
 
-        float bone_length[POSE_PERSON_BONE_COUNT] = {};
+        for (int k = 0; k < LEAF_PAIRS_N; ++k) {
+            const LeafPair& pair = PAIRS[k];
+            const SkinTuneGroup& gp = g_skin_tune_groups[pair.group];
+            const int parent_part = pair.parent_part;
+            const int leaf_part   = pair.leaf_part;
 
-        // Pass A: per-bone maximum vertex distance from its joint.
-        for (const GESkinVertex& sv : verts) {
-            const uint32_t b = sv.bones[0];
-            if (b >= POSE_PERSON_BONE_COUNT) continue;
-            const float jx = bind_world[b]._14;
-            const float jy = bind_world[b]._24;
-            const float jz = bind_world[b]._34;
-            const float dx = sv.x - jx;
-            const float dy = sv.y - jy;
-            const float dz = sv.z - jz;
-            const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
-            if (d > bone_length[b]) bone_length[b] = d;
-        }
+            // Both sides centre on the leaf joint position.
+            const float jx = bind_world[leaf_part]._14;
+            const float jy = bind_world[leaf_part]._24;
+            const float jz = bind_world[leaf_part]._34;
 
-        float band[POSE_PERSON_BONE_COUNT];
-        for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
-            band[i] = bone_length[i] * SOFT_BAND_FRACTION;
-            if (band[i] < MIN_BAND) band[i] = MIN_BAND;
-        }
-
-        // Pass B: child→parent blend. PELVIS (parent == -1) keeps w0=255 as
-        // already written.
-        for (GESkinVertex& sv : verts) {
-            const uint32_t B = sv.bones[0];
-            if (B >= POSE_PERSON_BONE_COUNT) continue;
-            const int P = body_part_parent[B];
-            if (P < 0) continue; // PELVIS — already hard-bound
-
-            const float jx = bind_world[B]._14;
-            const float jy = bind_world[B]._24;
-            const float jz = bind_world[B]._34;
-            const float dx = sv.x - jx;
-            const float dy = sv.y - jy;
-            const float dz = sv.z - jz;
-            const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
-
-            float t = d / band[B];
-            if (t > 1.0f) t = 1.0f;
-            const float w_parent = (1.0f - t) * SOFT_W_MAX;
-            const float w_own    = 1.0f - w_parent;
-
-            // Encode to uint8 with round-to-nearest; reserve full 255 for
-            // exact w=1 so trivial cases match P2-D bit-for-bit.
-            sv.bones[0]   = (uint8_t)B;
-            sv.bones[1]   = (uint8_t)P;
-            sv.weights[0] = (uint8_t)(w_own    * 255.0f + 0.5f);
-            sv.weights[1] = (uint8_t)(w_parent * 255.0f + 0.5f);
-            // bones[2..3] and weights[2..3] stay 0 from the per-vert loop.
-        }
-
-        // Pass C: parent→child blend (§4.7). For each vert in bone B, look
-        // at B's children and find the nearest joint within its band. If
-        // found, redirect a fraction of weights[0] (own bone) into
-        // weights[2] toward that child. Fixes seams the one-way Pass B
-        // can't close (e.g. neck verts in TORSO that don't pull toward
-        // HEAD because HEAD is a CHILD of TORSO, not its parent).
-        //
-        // Single best (= nearest) child per vert — body_part_children has
-        // up to 3 children for a single bone (PELVIS, TORSO) but in
-        // practice a given vert is close to at most one child joint, so
-        // picking nearest avoids splitting one bonename across too many
-        // partial weights.
-        for (GESkinVertex& sv : verts) {
-            const uint32_t B = sv.bones[0];
-            if (B >= POSE_PERSON_BONE_COUNT) continue;
-
-            int   best_child = -1;
-            float best_dist  = 0.0f;
-            for (int ci = 0; ci < 5; ++ci) {
-                const int C = body_part_children[B][ci];
-                if (C == -1) break;
-                if (C < 0 || C >= POSE_PERSON_BONE_COUNT) continue;
-                const float jx = bind_world[C]._14;
-                const float jy = bind_world[C]._24;
-                const float jz = bind_world[C]._34;
-                const float dx = sv.x - jx;
-                const float dy = sv.y - jy;
-                const float dz = sv.z - jz;
-                const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
-                if (d >= band[C]) continue; // outside this child's blend zone
-                if (best_child == -1 || d < best_dist) {
-                    best_child = C;
-                    best_dist  = d;
+            // PARENT side: parent_part verts blend toward leaf.
+            if (gp.parent_band > 0.0f && gp.parent_wmax > 0.0f) {
+                for (GESkinVertex& sv : verts) {
+                    if ((int)sv.bones[0] != parent_part) continue;
+                    const float dx = sv.x - jx;
+                    const float dy = sv.y - jy;
+                    const float dz = sv.z - jz;
+                    const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
+                    if (d >= gp.parent_band) continue;
+                    const float t      = d / gp.parent_band;
+                    const float w_leaf = (1.0f - t) * gp.parent_wmax;
+                    const float w_own  = 1.0f - w_leaf;
+                    sv.bones[1]   = (uint8_t)leaf_part;
+                    sv.weights[0] = (uint8_t)(w_own  * 255.0f + 0.5f);
+                    sv.weights[1] = (uint8_t)(w_leaf * 255.0f + 0.5f);
                 }
             }
-            if (best_child < 0) continue;
 
-            const float t       = best_dist / band[best_child];
-            const float w_child = (1.0f - t) * SOFT_W_MAX;
-            const int   w_child_u8 = (int)(w_child * 255.0f + 0.5f);
-            if (w_child_u8 <= 0) continue;
-
-            // Take from weights[0] (own). weights[1] (parent blend, if
-            // any) stays untouched — these accumulate.
-            int w0_new = (int)sv.weights[0] - w_child_u8;
-            if (w0_new < 0) w0_new = 0;
-            sv.weights[0] = (uint8_t)w0_new;
-            sv.bones[2]   = (uint8_t)best_child;
-            sv.weights[2] = (uint8_t)w_child_u8;
+            // CHILD side: leaf_part verts blend toward parent.
+            if (gp.child_band > 0.0f && gp.child_wmax > 0.0f) {
+                for (GESkinVertex& sv : verts) {
+                    if ((int)sv.bones[0] != leaf_part) continue;
+                    const float dx = sv.x - jx;
+                    const float dy = sv.y - jy;
+                    const float dz = sv.z - jz;
+                    const float d  = sqrtf(dx * dx + dy * dy + dz * dz);
+                    if (d >= gp.child_band) continue;
+                    const float t        = d / gp.child_band;
+                    const float w_parent = (1.0f - t) * gp.child_wmax;
+                    const float w_own    = 1.0f - w_parent;
+                    sv.bones[1]   = (uint8_t)parent_part;
+                    sv.weights[0] = (uint8_t)(w_own    * 255.0f + 0.5f);
+                    sv.weights[1] = (uint8_t)(w_parent * 255.0f + 0.5f);
+                }
+            }
         }
     }
 
@@ -1590,11 +1415,19 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
     if (!mesh)
         return false;
 
-    pPrimObj->skin_consolidated_world = mesh;
-    // Ranges array is identical to the bone-local mesh — make sure it
-    // exists. The caller is expected to drive both builds, so this is
-    // a defensive check; if missing we still keep the mesh and the draw
-    // path can produce ranges on demand from the bone-local build.
+    // Per-material index ranges (2 × n_mats uint32 pairs) — needed by the
+    // draw loop to slice the shared VBO. Previously this was populated by
+    // the OLD bone-local consolidated build (deleted at P2-J cleanup);
+    // now this is the only place that fills it for the world-skin path.
+    uint32_t* ranges_storage = (uint32_t*)MemAlloc(ranges.size() * sizeof(uint32_t));
+    if (!ranges_storage) {
+        ge_skin_mesh_destroy(mesh);
+        return false;
+    }
+    std::memcpy(ranges_storage, ranges.data(), ranges.size() * sizeof(uint32_t));
+
+    pPrimObj->skin_consolidated_world  = mesh;
+    pPrimObj->skin_consolidated_ranges = ranges_storage;
     return true;
 }
 
@@ -1628,18 +1461,13 @@ void FIGURE_clean_LRU_slot(int iSlot)
         MemFree(ptpo->skin_gpu);
         ptpo->skin_gpu = NULL;
     }
-    // Phase 2 P2-A: consolidated single-VBO mesh + per-material ranges.
-    if (ptpo->skin_consolidated != NULL) {
-        ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_consolidated);
-        ptpo->skin_consolidated = NULL;
-    }
+    // Per-material index ranges array (shared layout used by the world-
+    // skin GPU mesh below).
     if (ptpo->skin_consolidated_ranges != NULL) {
         MemFree(ptpo->skin_consolidated_ranges);
         ptpo->skin_consolidated_ranges = NULL;
     }
-    // Phase 2 P2-C: parallel bind-space mesh shares the ranges array with
-    // the bone-local mesh above (freed there), only the GPU buffer is
-    // separate.
+    // World-skin GPU mesh (bind-space verts, NEW path).
     if (ptpo->skin_consolidated_world != NULL) {
         ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_consolidated_world);
         ptpo->skin_consolidated_world = NULL;
@@ -1657,20 +1485,6 @@ void FIGURE_clean_LRU_slot(int iSlot)
     ptpo->wTotalSizeOfObj = 0;
 
     ptpoLRUQueue[iSlot] = NULL;
-}
-
-// Phase 2 P2-E: invalidate every cached bind-space mesh so the next draw
-// rebuilds it under the current g_skin_soft_rig_enabled regime. See
-// figure.h for the rationale.
-void FIGURE_invalidate_all_skin_consolidated_world(void)
-{
-    for (int i = 0; i < m_iLRUQueueSize; ++i) {
-        TomsPrimObject* ptpo = ptpoLRUQueue[i];
-        if (ptpo && ptpo->skin_consolidated_world) {
-            ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_consolidated_world);
-            ptpo->skin_consolidated_world = NULL;
-        }
-    }
 }
 
 // uc_orig: FIGURE_clean_all_LRU_slots (fallen/DDEngine/Source/figure.cpp)
@@ -1841,12 +1655,10 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     // on the struct's memory being zero-initialised (the asserts above
     // guarantee a fresh object, so this never leaks an existing array).
     pPrimObj->skin_gpu = NULL;
-    // Phase 2 P2-A: consolidated single-VBO + per-material ranges.
-    pPrimObj->skin_consolidated = NULL;
+    // World-skin consolidated VBO + per-material index ranges (built on
+    // demand for 15-bone person rigs).
     pPrimObj->skin_consolidated_ranges = NULL;
-    // Phase 2 P2-C: parallel bind-space mesh (built on demand when the
-    // world-skin path is enabled).
-    pPrimObj->skin_consolidated_world = NULL;
+    pPrimObj->skin_consolidated_world  = NULL;
 
     TPO_pPrimObj = pPrimObj;
 
@@ -3036,89 +2848,50 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
-    // Phase 2 P2-A (skeletal_skinning_phase2_plan.md): build one
-    // consolidated skin mesh for the whole person on first use, then
-    // each material is one range-slice of the shared VBO. Falls back
-    // to per-material ge_draw_multi_matrix path if the build fails
-    // (alloc, > 65535 verts; very unlikely for a person).
-    bool consolidated = (pPrimObj->skin_consolidated != NULL)
-        || figure_build_consolidated_skin(pPrimObj);
-    GESkinMesh* skinMesh = (GESkinMesh*)pPrimObj->skin_consolidated;
-    uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
-    if (!skinMesh || !skinRanges) consolidated = false;
+    // World-skin path: bind-space verts + per-frame skin palette
+    // (= current * inv_bind) + per-character screen bake. Used for
+    // 15-bone person rigs with a valid bind palette. Non-person rigs
+    // (animals, Bane, Balrog, bats) fall through to the generic
+    // ge_draw_multi_matrix path further down — they don't have a 15-bone
+    // person rig and aren't covered by the bind palette.
+    bool        use_world_path = false;
+    GESkinMesh* worldMesh      = NULL;
+    // 15 bones × 3 vec4 each = 180 floats.
+    float       skin_palette_world[POSE_PERSON_BONE_COUNT * 12];
+    GEMatrix    screen_xform_world = {};
+    float       lightdir_world[3]  = { 0.0f, 0.0f, 0.0f };
 
-    // Phase 2 P2-C (skeletal_skinning_phase2_plan.md): when the world-skin
-    // toggle is on and we have a valid bind palette + a built bind-space
-    // mesh, draw via the world-skin shader instead. Per-frame skin
-    // palette (= current * inv_bind) + per-character screen bake are
-    // computed once below and reused by every material's draw range.
-    bool use_world_path = false;
-    GESkinMesh* worldMesh = NULL;
-    // 15 bones × 3 vec4 each = 180 floats. Bumping to GE_SKIN_MAX_BONES
-    // would be wasteful (we only use the first 15) but harmless if needed
-    // for non-person rigs later — for now stay tight.
-    float skin_palette_world[POSE_PERSON_BONE_COUNT * 12];
-    GEMatrix screen_xform_world = {};
-    float lightdir_world[3] = {0.0f, 0.0f, 0.0f};
-    // ⚠️ TEMP P2-E diagnostic: log to stderr WHY the world path was
-    // skipped (or "ok" if it was taken). One log line per
-    // (TomsPrimObject*, failure reason) pair — repeated reasons for the
-    // same model are suppressed to keep the log readable.
-    auto diag_log = [pPrimObj](const char* msg) {
-        struct LastReason { TomsPrimObject* ptpo; const char* msg; };
-        static LastReason s_last[8] = {};
-        for (int i = 0; i < 8; ++i) {
-            if (s_last[i].ptpo == pPrimObj && s_last[i].msg == msg) return;
-        }
-        for (int i = 7; i > 0; --i) s_last[i] = s_last[i - 1];
-        s_last[0].ptpo = pPrimObj;
-        s_last[0].msg  = msg;
-        fprintf(stderr, "[P2-E] world path %s for TPO %p\n", msg, (void*)pPrimObj);
-    };
-
-    if (!consolidated)               diag_log("SKIP: not consolidated");
-    else if (!g_skin_world_path_enabled) diag_log("SKIP: toggle off");
-    else if (!p_person->Genus.Person)    diag_log("SKIP: no Person");
-    else if (!p_person->Draw.Tweened)    diag_log("SKIP: no Draw.Tweened");
-    else if (!p_person->Draw.Tweened->TheChunk) diag_log("SKIP: no TheChunk");
-    else if (p_person->Draw.Tweened->TheChunk->ElementCount != POSE_PERSON_BONE_COUNT)
-        diag_log("SKIP: ElementCount != 15");
-    else {
-        const int anim_type = p_person->Genus.Person->AnimType;
-        const GEMatrix* bind_inv = NULL;
-        if (!bind_palette_get(anim_type, NULL, &bind_inv) || !bind_inv) {
-            diag_log("SKIP: bind_palette_get failed");
-        } else {
+    if (p_person->Genus.Person
+        && p_person->Draw.Tweened
+        && p_person->Draw.Tweened->TheChunk
+        && p_person->Draw.Tweened->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT) {
+        const int       anim_type = p_person->Genus.Person->AnimType;
+        const GEMatrix* bind_inv  = NULL;
+        if (bind_palette_get(anim_type, NULL, &bind_inv) && bind_inv) {
             // Lazy build of the bind-space mesh on first use of this rig.
             if (pPrimObj->skin_consolidated_world == NULL) {
                 figure_build_consolidated_skin_world(pPrimObj, anim_type);
             }
             worldMesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
-            if (!worldMesh) {
-                diag_log("SKIP: build_consolidated_skin_world failed");
-            } else {
+            if (worldMesh) {
                 const BoneInterpTransform* current = render_interp_get_cached_pose(p_person);
-                if (!current) {
-                    diag_log("SKIP: render_interp_get_cached_pose null");
-                } else {
+                if (current) {
                     figure_build_skin_world_palette(current, bind_inv, skin_palette_world);
                     figure_build_screen_xform_bake(&screen_xform_world);
-                    // The shader's half-Lambert ramp divides dot(normal,L)
-                    // by fNormScale = 251 to land cos in [-1,1]. The baked
-                    // path scales L by 251 via MMBodyParts_pNormal
-                    // (figure.cpp:3976-3978); the world path replicates
-                    // that pre-scale here so the same ramp index falls
-                    // out for the same world-space geometry.
+                    // Half-Lambert ramp divides dot(normal, L) by
+                    // fNormScale = 251 to land cos in [-1,1]. Pre-scale
+                    // L by 251 here so the ramp index matches the legacy
+                    // baked path's MMBodyParts_pNormal scaling.
                     constexpr float MM_LIGHT_SCALE = 251.0f;
                     lightdir_world[0] = MM_vLightDir.x * MM_LIGHT_SCALE;
                     lightdir_world[1] = MM_vLightDir.y * MM_LIGHT_SCALE;
                     lightdir_world[2] = MM_vLightDir.z * MM_LIGHT_SCALE;
                     use_world_path = true;
-                    diag_log("OK: world path");
                 }
             }
         }
     }
+    uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
 
     GEMultiMatrix mm;
     mm.matrices = MMBodyParts_pMatrix;
@@ -3163,38 +2936,31 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             // Set view-space Z for CPU fog (same scalar both paths).
             g_mm_fog_view_z = g_matWorld._43;
 
-            if (consolidated) {
-                // P2-A consolidated path: one shared VBO, this material
-                // is one slice [start, count) of the index buffer.
+            if (use_world_path && skinRanges) {
+                // World-skin path: one shared VBO, this material is one
+                // slice [start, count) of the index buffer. Per-frame
+                // skin palette + per-character screen bake set up above.
                 const uint32_t index_start = skinRanges[iMatIndex * 2 + 0];
                 const uint32_t index_count = skinRanges[iMatIndex * 2 + 1];
                 if (index_count > 0) {
-                    if (use_world_path) {
-                        // P2-C world path: bind-space verts + per-frame
-                        // skin palette + per-character screen bake.
-                        ge_skin_world_draw_range(
-                            worldMesh, index_start, index_count,
-                            skin_palette_world,
-                            POSE_PERSON_BONE_COUNT,
-                            &screen_xform_world,
-                            lightdir_world,
-                            g_mm_fog_view_z,
-                            /*unlit=*/ true,
-                            fadeTable);
-                    } else {
-                        ge_skin_mesh_draw_range(
-                            skinMesh, index_start, index_count,
-                            MMBodyParts_pMatrix,
-                            /*unlit=*/ true,
-                            (const float*)MMBodyParts_pNormal,
-                            fadeTable);
-                    }
+                    ge_skin_world_draw_range(
+                        worldMesh, index_start, index_count,
+                        skin_palette_world,
+                        POSE_PERSON_BONE_COUNT,
+                        &screen_xform_world,
+                        lightdir_world,
+                        g_mm_fog_view_z,
+                        /*unlit=*/ true,
+                        fadeTable);
                 }
             } else {
-                // Fallback: original per-material accumulation path.
+                // Fallback for non-person rigs (animals / Bane / Balrog /
+                // bats): per-material accumulation through the generic
+                // multi-matrix path. The world-skin shader only supports
+                // 15-bone person rigs.
                 mm.lpLightTable = (ULONG*)fadeTable;
-                mm.lpvVertices = pVertex;
-                mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
+                mm.lpvVertices  = pVertex;
+                mm.skin_cache   = figure_skin_cache_slot(pPrimObj, pMat);
 
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,

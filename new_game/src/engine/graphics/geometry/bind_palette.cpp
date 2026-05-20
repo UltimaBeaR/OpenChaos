@@ -127,20 +127,19 @@ struct PaletteCache {
 
 static PaletteCache s_cache[MAX_GAME_CHUNKS] = {};
 
-// Debug A/B toggle — see bind_palette.h. Default ON so the NEW world path
-// is what runs by default while P2-E tuning is in progress. G key flips
-// back to the legacy baked path for visual comparison.
-bool g_skin_world_path_enabled = true;
-
-// Debug A/B toggle for soft rigging (P2-E). Default ON so the development
-// build runs the soft auto-rig by default. F key flips back to hard for
-// visual comparison.
-bool g_skin_soft_rig_enabled = true;
-
-// Live-tunable soft rig parameters — see bind_palette.h. Defaults match
-// the §4.5 starting picks plus the W_MAX bump from the early tuning pass.
-float g_skin_soft_band_fraction = 0.8f;
-float g_skin_soft_w_max         = 0.7f;
+// Per-group soft rig parameters — see bind_palette.h. Only the HEAD
+// parent slot is non-zero (band=20, w_max=1.0) — slightly softens the
+// neck seam on most character meshes. HANDS and FEET stay at zero
+// because mesh layouts vary too much across characters for a single
+// universal tune (one model puts the neck in TORSO, another in HEAD;
+// same story for wrists/ankles). Tracked as a Post-1.0 issue in
+// known_issues_and_bugs.md (the rig is missing a dedicated upper-
+// body / neck bone which would let this be solved properly).
+SkinTuneGroup g_skin_tune_groups[SKIN_TUNE_GROUP_COUNT] = {
+    /* HEAD  */ { /*parent_band*/ 20.0f, /*parent_wmax*/ 1.0f, /*child_band*/ 0.0f, /*child_wmax*/ 0.0f },
+    /* HANDS */ { 0.0f, 0.0f, 0.0f, 0.0f },
+    /* FEET  */ { 0.0f, 0.0f, 0.0f, 0.0f },
+};
 
 // Skeleton debug overlay — see bind_palette.h. Default off (no
 // per-frame cost when disabled).
