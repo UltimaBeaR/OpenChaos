@@ -55,4 +55,18 @@ void bind_palette_invalidate_all(void);
 // path) so a build with this disabled is identical to the P2-A artifact.
 extern bool g_skin_world_path_enabled;
 
+// Debug A/B toggle (P2-E): when true, figure_build_consolidated_skin_world
+// emits soft per-vertex weights via the auto-rig (parent-bone falloff
+// near joints, see skeletal_skinning_phase2_plan.md §4). When false,
+// trivial single-bone weights (w0=1, rest=0) are emitted — math
+// collapses to hard rigid skin.
+//
+// Has effect only when g_skin_world_path_enabled is also true (the world
+// path is what reads the multi-bone palette). Toggling this changes how
+// the bind-space VBO is BUILT, so caches must be invalidated — see
+// FIGURE_invalidate_all_skin_consolidated_world() in figure.h.
+//
+// Default: false (hard rig matches what P2-D shipped).
+extern bool g_skin_soft_rig_enabled;
+
 #endif // ENGINE_GRAPHICS_GEOMETRY_BIND_PALETTE_H

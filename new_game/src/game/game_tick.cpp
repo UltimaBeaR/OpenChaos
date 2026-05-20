@@ -17,6 +17,7 @@
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/render_interp.h" // g_tpose_override_enabled (TEMP debug toggle)
 #include "engine/graphics/geometry/bind_palette.h" // g_skin_world_path_enabled (TEMP P2-C toggle)
+#include "engine/graphics/geometry/figure.h" // FIGURE_invalidate_all_skin_consolidated_world (P2-E toggle)
 #include "map/pap.h"
 #include "map/road.h"
 #include "missions/eway.h"
@@ -1235,18 +1236,47 @@ void process_controls(void)
         g_tpose_override_enabled = !g_tpose_override_enabled;
     }
 
-    // TEMP — P2-C A/B toggle: F flips the consolidated-skin path between
-    // the baked-palette baseline (g_skin_world_path_enabled = false) and
-    // the new world-skin shader (bind-space verts + per-frame skin =
-    // current * inv_bind). Affects only 15-bone person rigs; everything
-    // else ignores the toggle. NOT gated by allow_debug_keys for fast
-    // visual A/B comparison. Removed when P2-C gate signs off and the
-    // world path becomes the default.
+    // TEMP — skinning A/B/C cycle. One key (F) walks through three states:
+    //   0: OLD skinning - hard rig   (legacy baked path, P2-A)
+    //   1: NEW skinning - hard rig   (world path + trivial single-bone weights, P2-C/D)
+    //   2: NEW skinning - soft rig   (world path + auto-rigged soft weights, P2-E)
+    //
+    // The two underlying booleans (g_skin_world_path_enabled,
+    // g_skin_soft_rig_enabled) are set together so they always reflect
+    // a valid combination. Whenever the soft flag flips, the bind-space
+    // VBOs need a rebuild (weights are baked at build time), so we
+    // invalidate the cached world meshes on those transitions.
+    //
+    // NOT gated by allow_debug_keys for quick visual cycling. The whole
+    // cycle (and its key handler) is removed at P2-J once the world+soft
+    // path becomes the only one.
     if (input_key_just_pressed(KB_F)) {
-        g_skin_world_path_enabled = !g_skin_world_path_enabled;
-        CONSOLE_status(g_skin_world_path_enabled
-            ? (CBYTE*)"Skin path: world (P2-C)"
-            : (CBYTE*)"Skin path: baked (P2-A)");
+        // Encode current state from the two flags.
+        int state = 0;
+        if (g_skin_world_path_enabled) state = g_skin_soft_rig_enabled ? 2 : 1;
+        const bool prev_soft = g_skin_soft_rig_enabled;
+        state = (state + 1) % 3;
+        switch (state) {
+            case 0: // OLD baked path
+                g_skin_world_path_enabled = false;
+                g_skin_soft_rig_enabled   = false;
+                CONSOLE_status((CBYTE*)"OLD skinning - hard rig");
+                break;
+            case 1: // NEW world path, hard weights
+                g_skin_world_path_enabled = true;
+                g_skin_soft_rig_enabled   = false;
+                CONSOLE_status((CBYTE*)"NEW skinning - hard rig");
+                break;
+            case 2: // NEW world path, soft weights
+                g_skin_world_path_enabled = true;
+                g_skin_soft_rig_enabled   = true;
+                CONSOLE_status((CBYTE*)"NEW skinning - soft rig");
+                break;
+        }
+        // Weight regime changed → bind-space VBO is stale.
+        if (g_skin_soft_rig_enabled != prev_soft) {
+            FIGURE_invalidate_all_skin_consolidated_world();
+        }
     }
 
     // Model cycler — N steps Darci's visual through all 15 person types

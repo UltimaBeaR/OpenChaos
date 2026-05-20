@@ -116,6 +116,16 @@ void FIGURE_clean_LRU_slot(int iSlot);
 // uc_orig: FIGURE_clean_all_LRU_slots (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_clean_all_LRU_slots(void);
 
+// Phase 2 P2-E: drop every cached `skin_consolidated_world` GPU mesh so
+// the next draw rebuilds it from scratch. Used when the hard/soft toggle
+// (g_skin_soft_rig_enabled) flips — the weight regime is baked into the
+// VBO at build time, so a flip needs a rebuild.
+//
+// Light-weight: only the bind-space VBO is freed; the bone-local mesh
+// (skin_consolidated) and the underlying CPU vertex/material data stay
+// intact. ~one frame of hitch on first redraw of each affected character.
+void FIGURE_invalidate_all_skin_consolidated_world(void);
+
 // Adds pPrimObj to the LRU cache, evicting the oldest entry if there is no room.
 // uc_orig: FIGURE_find_and_clean_prim_queue_item (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_find_and_clean_prim_queue_item(TomsPrimObject* pPrimObj, int iThrashIndex = 0);

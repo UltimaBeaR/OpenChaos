@@ -474,6 +474,7 @@ static GLint s_tl_u_specular_enabled = -1;
 static GLint s_tl_u_color_key_enabled = -1;
 static GLint s_tl_u_tex_has_alpha = -1;
 static GLint s_tl_u_farfacet_mode = -1;
+static GLint s_tl_u_diagnostic_color = -1; // P2-E diagnostic — see common_frag.glsl
 
 // Skin (GPU character transform) program — skeletal_skinning_plan.md 1A.
 // Same fragment shader as TL (common_frag), different vertex shader.
@@ -495,6 +496,7 @@ static GLint s_sk_u_specular_enabled = -1;
 static GLint s_sk_u_color_key_enabled = -1;
 static GLint s_sk_u_tex_has_alpha = -1;
 static GLint s_sk_u_farfacet_mode = -1;
+static GLint s_sk_u_diagnostic_color = -1; // P2-E diagnostic
 static GLint s_sk_u_view_z_tl_scale = -1;
 static GLint s_sk_u_lightdir = -1;   // 1B: per-bone light dir palette
 static GLint s_sk_u_fadetable = -1;  // 1B: 64-entry ramp (ULONG)
@@ -542,6 +544,7 @@ static GLint s_sw_u_specular_enabled = -1;
 static GLint s_sw_u_color_key_enabled = -1;
 static GLint s_sw_u_tex_has_alpha = -1;
 static GLint s_sw_u_farfacet_mode = -1;
+static GLint s_sw_u_diagnostic_color = -1; // P2-E diagnostic
 static GLint s_sw_u_view_z_tl_scale = -1;
 
 // VAO for each vertex format. VBO/EBO are shared (streaming).
@@ -677,11 +680,15 @@ static bool init_shaders()
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha,
         &s_tl_u_farfacet_mode);
     s_tl_u_view_z_tl_scale = glGetUniformLocation(s_program_tl, "u_view_z_tl_scale");
+    s_tl_u_diagnostic_color = glGetUniformLocation(s_program_tl, "u_diagnostic_color");
     // 1.0 / POLY_ZCLIP_PLANE — constant for the lifetime of the program, set once.
     // Used in the fragment shader to bring lit-path v_view_z (raw world z) into
     // TL-path scale (z / POLY_ZCLIP_PLANE) for the far-facet fade comparison.
     glUseProgram(s_program_tl);
     glUniform1f(s_tl_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
+    // P2-E diagnostic: TL path stays neutral (no override) — only skin
+    // paths get tinted. Set once and leave at zero.
+    glUniform4f(s_tl_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUseProgram(0);
 
     // Skin (GPU character transform) program — skeletal_skinning_plan.md 1A.
@@ -706,6 +713,7 @@ static bool init_shaders()
         &s_sk_u_specular_enabled, &s_sk_u_color_key_enabled, &s_sk_u_tex_has_alpha,
         &s_sk_u_farfacet_mode);
     s_sk_u_view_z_tl_scale = glGetUniformLocation(s_program_skin, "u_view_z_tl_scale");
+    s_sk_u_diagnostic_color = glGetUniformLocation(s_program_skin, "u_diagnostic_color");
     glUseProgram(s_program_skin);
     glUniform1f(s_sk_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
     glUniform1f(s_sk_u_zclip, POLY_ZCLIP_PLANE); // constant — set once
@@ -713,6 +721,10 @@ static bool init_shaders()
     glUniform1f(s_sk_u_fog_fade_start, POLY_FADEOUT_START);
     glUniform1f(s_sk_u_fog_fade_scale,
         256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
+    // P2-E diagnostic infrastructure stays plumbed but disabled — alpha=0
+    // makes the fragment-shader early-exit not trigger so the normal
+    // pipeline runs. Re-arm by setting alpha>0.5 for solid debug tinting.
+    glUniform4f(s_sk_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUseProgram(0);
 
     // Shadow-silhouette program — skeletal_skinning_plan.md 1E.
@@ -754,6 +766,8 @@ static bool init_shaders()
         &s_sw_u_farfacet_mode);
     s_sw_u_view_z_tl_scale =
         glGetUniformLocation(s_program_skin_world, "u_view_z_tl_scale");
+    s_sw_u_diagnostic_color =
+        glGetUniformLocation(s_program_skin_world, "u_diagnostic_color");
     glUseProgram(s_program_skin_world);
     glUniform1f(s_sw_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
     glUniform1f(s_sw_u_zclip, POLY_ZCLIP_PLANE);
@@ -1656,6 +1670,11 @@ static void skin_world_bind_and_set_uniforms(
     }
     glUniform1i(s_sw_u_skin_unlit, do_ramp ? 1 : 0);
     glUniform1f(s_sw_u_fog_view_z, fog_view_z);
+
+    // P2-E diagnostic infrastructure stays plumbed but disabled — alpha=0
+    // makes the fragment-shader early-exit not trigger. Re-arm by setting
+    // alpha>0.5 to confirm visually that the world path is the one drawing.
+    glUniform4f(s_sw_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
 
     glUniform4f(s_sw_u_viewport,
         (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);

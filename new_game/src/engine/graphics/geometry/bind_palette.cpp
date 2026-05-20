@@ -131,20 +131,56 @@ static PaletteCache s_cache[MAX_GAME_CHUNKS] = {};
 // keeps the baked-palette path until the visual gate signs off.
 bool g_skin_world_path_enabled = false;
 
+// Debug A/B toggle for soft rigging (P2-E). Default off — hard skinning
+// (P2-D behaviour) until the visual gate signs off on the soft variant.
+bool g_skin_soft_rig_enabled = false;
+
 // Build the palette for one anim_type slot. Returns false if the slot
 // doesn't hold a 15-bone person rig (chunk not loaded, wrong element
 // count, or missing keyframe data).
 static bool build_palette(int anim_type, PaletteCache& cache)
 {
-    if (anim_type < 0 || anim_type >= MAX_GAME_CHUNKS) return false;
+    // ⚠️ TEMP P2-E diagnostic.
+    auto bp_diag = [anim_type](const char* msg) {
+        fprintf(stderr, "[P2-E] bind_palette build_palette FAIL: %s (anim_type=%d)\n",
+            msg, anim_type);
+    };
+
+    if (anim_type < 0 || anim_type >= MAX_GAME_CHUNKS) {
+        bp_diag("anim_type out of range");
+        return false;
+    }
     const GameKeyFrameChunk& chunk = game_chunk[anim_type];
 
     // Gate: only 15-bone person rigs. Other chunks (animals, bats, Bane,
     // Balrog, Gargoyle) keep the legacy rigid path.
-    if (chunk.ElementCount != BONES)  return false;
-    if (!chunk.AnimKeyFrames)         return false;
-    GameKeyFrameElement* ae0 = chunk.AnimKeyFrames[0].FirstElement;
-    if (!ae0)                         return false;
+    if (chunk.ElementCount != BONES) {
+        fprintf(stderr, "[P2-E] bind_palette build_palette FAIL: ElementCount=%d (want %d), anim_type=%d\n",
+            (int)chunk.ElementCount, BONES, anim_type);
+        return false;
+    }
+    if (!chunk.AnimKeyFrames) {
+        bp_diag("AnimKeyFrames=NULL");
+        return false;
+    }
+    // AnimKeyFrames[0] is a reserved sentinel (FirstElement=NULL) in the
+    // chunk's disk format — same "slot 0 invalid" pattern as next_prim_point
+    // and friends. Scan forward to the first keyframe that actually has
+    // element data; that gives us a reference rest-pose skeleton. The exact
+    // keyframe doesn't matter for the bind palette math — the same bind
+    // pose is used at mesh build time and at per-frame skin palette build
+    // (skin = current * inv_bind), so any consistent reference cancels out.
+    GameKeyFrameElement* ae0 = NULL;
+    for (SLONG kf = 0; kf < chunk.MaxKeyFrames; ++kf) {
+        if (chunk.AnimKeyFrames[kf].FirstElement) {
+            ae0 = chunk.AnimKeyFrames[kf].FirstElement;
+            break;
+        }
+    }
+    if (!ae0) {
+        bp_diag("no keyframe with FirstElement");
+        return false;
+    }
 
     // ----- 1. Read keyframe-0 rotations and offsets ------------------------
     //

@@ -166,7 +166,18 @@ void main()
         // lines 73-86). Single difference: dot is taken in WORLD space here,
         // and the CPU baker for u_lightdir_world skipped the per-bone
         // inverse-rotation transform that the bone-local path did.
-        float dot_raw = dot(world_normal, u_lightdir_world);
+        //
+        // Normalise: weighted blend of unit normals isn't unit in general
+        // (Σ w_i × n_i has length ≤ 1), and integer-fixed-point matrix
+        // multiplication in skin = current × inv_bind can introduce drift
+        // > 1. Without this normalize, wrap can exceed [0,1] at certain
+        // bone orientations and clamp to idx 0 (ambient) — visible as the
+        // character going black at specific viewing angles. The legacy
+        // baked path didn't have this issue because it dotted unit a_normal
+        // directly against per-bone (unit × 251) light without going through
+        // a multi-matrix product.
+        vec3  N       = normalize(world_normal);
+        float dot_raw = dot(N, u_lightdir_world);
         float cos_nl  = dot_raw * (1.0 / 251.0); // undo fNormScale = 251
         float wrap    = cos_nl * 0.5 + 0.5;      // half-Lambert [0,1]
         int   idx     = int(wrap * 64.0);        // C (int) cast: truncate
