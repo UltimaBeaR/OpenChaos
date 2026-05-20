@@ -665,12 +665,6 @@ struct TomsPrimObject {
     UWORD* pwListIndices;
     UWORD* pwStripIndices;
     float fBoundingSphereRadius;
-    // Milestone 1D (skeletal_skinning_plan.md): lazily-allocated array of
-    // wNumMaterials persistent GPU skin meshes (GESkinMesh*), one per
-    // material. NULL until first GPU-path draw; freed with the CPU mesh in
-    // FIGURE_clean_LRU_slot. Runtime-only (TomsPrimObjects are static
-    // arrays, zero-initialised — not loaded from resource files).
-    void** skin_gpu;
 
     // World-skin consolidated mesh: every vertex pre-multiplied by
     // bind_palette[bMatIndex] so the whole rig lives in shared bind-space.
@@ -679,10 +673,10 @@ struct TomsPrimObject {
     // array stores 2 × wNumMaterials uint32 (index_start, index_count)
     // pairs so each material draws one slice of the shared index buffer.
     //
-    // Lazily built on first character draw for 15-bone person rigs with
-    // a valid bind palette. NULL = not built / skip world-skin path /
-    // non-15-bone rig (animals, Bane, Balrog, bats — those go through
-    // ge_draw_multi_matrix instead). Freed in FIGURE_clean_LRU_slot.
+    // Lazily built on first character draw — works for both the 15-bone
+    // person rigs (D3DPeopleObj[]) and flat-skeleton creatures (D3DAnimObj[]
+    // for Bane / Balrog / bats / Gargoyle). NULL = not built yet. Freed
+    // in FIGURE_clean_LRU_slot.
     uint32_t* skin_consolidated_ranges;
     void*     skin_consolidated_world; // GESkinMesh* (bind-space positions)
 };

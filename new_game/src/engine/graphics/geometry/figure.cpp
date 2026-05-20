@@ -68,9 +68,7 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
 {
     ASSERT(MM_pcFadeTable != NULL);
     ASSERT(MM_pcFadeTableTint != NULL);
-    ASSERT(MM_pMatrix != NULL);
     ASSERT(MM_Vertex != NULL);
-    ASSERT(MM_pNormal != NULL);
 
     // Find the dominant light direction by summing all weighted light vectors.
     float fBright = NIGHT_amb_red * 0.35f + NIGHT_amb_green * 0.45f + NIGHT_amb_blue * 0.2f;
@@ -905,22 +903,6 @@ UWORD FIGURE_find_face_D3D_texture_page(int iFaceNum, bool bTri)
     return (wTexturePage);
 }
 
-// Milestone 1D (skeletal_skinning_plan.md): return the persistent GPU-mesh
-// cache slot for one model material, lazily allocating the per-material
-// array on the model. Returns NULL only on allocation failure (→ caller
-// streams). The array is freed in FIGURE_clean_LRU_slot.
-static void** figure_skin_cache_slot(TomsPrimObject* po, PrimObjectMaterial* pMat)
-{
-    if (po->skin_gpu == NULL) {
-        po->skin_gpu = (void**)MemAlloc(po->wNumMaterials * sizeof(void*));
-        if (po->skin_gpu == NULL)
-            return NULL;
-        for (int i = 0; i < (int)po->wNumMaterials; i++)
-            po->skin_gpu[i] = NULL;
-    }
-    return &po->skin_gpu[pMat - po->pMaterials];
-}
-
 // Phase 2 P2-C helper: build the per-frame world-skin palette.
 //   skin[i] = current[i] * inv_bind[i]
 // in "M * v" convention, output as 3 vec4 per bone (rotation rows with
@@ -1100,9 +1082,8 @@ static void figure_build_skin_world_palette(
 
 // Phase 2 P2-C helper: build the per-character screen-xform bake — the
 // camera*projection*viewport matrix shared by every bone (no per-bone
-// transform baked in; skin handles that). Same column layout as
-// MMBodyParts_pMatrix per FIGURE_draw_prim_tween_person_only_just_set_matrix
-// (figure.cpp:3470-3516), but the input matTemp uses CAMERA-ONLY g_matWorld.
+// transform baked in; the skin palette handles per-bone). Uses
+// CAMERA-ONLY g_matWorld (via POLY_set_local_rotation_none).
 //
 // Saves & restores g_matWorld around the camera-only reset: the
 // per-material loop in the caller reads g_matWorld._43 to set
@@ -1154,10 +1135,8 @@ static void figure_build_screen_xform_bake(GEMatrix* out)
     const DWORD dwX      = g_viewData.dwX;
     const DWORD dwY      = g_dw3DStuffY;
 
-    // Viewport bake — identical column layout to MMBodyParts_pMatrix in
-    // figure.cpp:3499-3516. Column 1 is unused (._{1,1}=._{2,1}=._{3,1}=0,
-    // ._{4,1} is the EVAL validation pattern in the baked path; the new
-    // shader doesn't validate, so 0 is fine here).
+    // Viewport bake — column 1 (._{1,1}/._{2,1}/._{3,1}/._{4,1}) is unused
+    // by the shader (column-pick reads columns 2/3/4), keep at 0.
     out->_11 = 0.0f;
     out->_12 = matTemp._11 * (float)dwWidth  + matTemp._14 * (float)(dwX + dwWidth);
     out->_13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
@@ -1465,17 +1444,6 @@ void FIGURE_clean_LRU_slot(int iSlot)
     ASSERT(ptpo->wNumMaterials > 0);
     ASSERT(ptpo->pMaterials != NULL);
     ASSERT(ptpo->pwListIndices != NULL);
-    // Milestone 1D: free the persistent GPU skin meshes alongside the CPU
-    // mesh — buffer lifetime is tied to the model's lifetime. Done before
-    // wNumMaterials is zeroed (it sizes the array).
-    if (ptpo->skin_gpu != NULL) {
-        for (int iMat = 0; iMat < (int)ptpo->wNumMaterials; iMat++) {
-            if (ptpo->skin_gpu[iMat] != NULL)
-                ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_gpu[iMat]);
-        }
-        MemFree(ptpo->skin_gpu);
-        ptpo->skin_gpu = NULL;
-    }
     // Per-material index ranges array (shared layout used by the world-
     // skin GPU mesh below).
     if (ptpo->skin_consolidated_ranges != NULL) {
@@ -1665,13 +1633,8 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     ASSERT(pPrimObj->pwStripIndices == NULL);
     ASSERT(pPrimObj->wNumMaterials == 0);
 
-    // Milestone 1D: every TPO that can reach the LRU/clean path is init'd
-    // here first, so NULL the skin-mesh cache here — removes any reliance
-    // on the struct's memory being zero-initialised (the asserts above
-    // guarantee a fresh object, so this never leaks an existing array).
-    pPrimObj->skin_gpu = NULL;
     // World-skin consolidated VBO + per-material index ranges (built on
-    // demand for 15-bone person rigs).
+    // demand once per rig).
     pPrimObj->skin_consolidated_ranges = NULL;
     pPrimObj->skin_consolidated_world  = NULL;
 
@@ -2220,434 +2183,190 @@ void FIGURE_generate_D3D_object(SLONG prim)
     FIGURE_TPO_finish_3d_object(pPrimObj);
 }
 
-// uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
-// Flat-skeleton body-part renderer (DT_ANIM_PRIM: bats / Bane / Balrog /
-// Gargoyle via ANIM_obj_draw, plus the non-15 ElementCount person fallback).
-// Per-part WORLD transform comes from the interpolation pose snapshot (the
-// single source of pose). Submits faces via POLY_add_quad/POLY_add_triangle
-// and the GPU MultiMatrix path on opaque non-near-clipped materials.
-// part_number: which skeleton slot this prim represents (0xffffffff = unknown).
-// colour_and: multiplied into the tint fade table.
-void FIGURE_draw_prim_tween(
-    SLONG prim,
-    ULONG colour,
-    ULONG specular,
-    Thing* p_thing,
-    SLONG part_number,
-    ULONG colour_and)
-{
-
-    SLONG i;
-
-    SLONG sp;
-    SLONG ep;
-
-    SLONG p0;
-    SLONG p1;
-    SLONG p2;
-    SLONG p3;
-
-    SLONG page;
-
-    Matrix33 mat_final;
-
-    PrimFace4* p_f4;
-    PrimFace3* p_f3;
-    PrimObject* p_obj;
-
-    POLY_Point* pp;
-
-    POLY_Point* tri[3];
-    POLY_Point* quad[4];
-    SLONG tex_page_offset;
-
-    tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
-
-    // Per-part WORLD transform read straight from the interpolation pose
-    // snapshot — the SINGLE always-available source of pose. No legacy
-    // keyframe recompute. Flat, non-recursive path; part_number is the
-    // element index.
-    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-    if (!pose || part_number < 0 || part_number >= POSE_MAX_BONES)
-        return;
-
-    const BoneInterpTransform& xf = pose[part_number];
-    float off_x = xf.pos_x;
-    float off_y = xf.pos_y;
-    float off_z = xf.pos_z;
-    mat_final = xf.rot;
-
-    float fmatrix[9];
-    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-    POLY_set_local_rotation(
-        off_x,
-        off_y,
-        off_z,
-        fmatrix);
-
-    p_obj = &prim_objects[prim];
-
-    sp = p_obj->StartPoint;
-    ep = p_obj->EndPoint;
-
-    POLY_buffer_upto = 0;
-
-    // Gun muzzle position extraction: vertex 0 of each gun prim is the muzzle point.
-    if (prim == 256) {
-        i = sp;
-    } else if (prim == 258) {
-        i = sp + 15;
-    } else if (prim == 260) {
-        i = sp + 32;
-    } else
-        goto no_muzzle_calcs;
-
-    pp = &POLY_buffer[POLY_buffer_upto]; // reused (no ++)
-    pp->x = AENG_dx_prim_points[i].X;
-    pp->y = AENG_dx_prim_points[i].Y;
-    pp->z = AENG_dx_prim_points[i].Z;
-    MATRIX_MUL(
-        fmatrix,
-        pp->x,
-        pp->y,
-        pp->z);
-
-    pp->x += off_x;
-    pp->y += off_y;
-    pp->z += off_z;
-    p_thing->Genus.Person->GunMuzzle.X = pp->x * 256;
-    p_thing->Genus.Person->GunMuzzle.Y = pp->y * 256;
-    p_thing->Genus.Person->GunMuzzle.Z = pp->z * 256;
-
-no_muzzle_calcs:
-
-    if (!MM_bLightTableAlreadySetUp) {
-    }
-
-    if (WITHIN(prim, 261, 263)) {
-        // Muzzle flash prims: no lighting, flat grey colour.
-
-        for (i = sp; i < ep; i++) {
-            ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
-
-            pp = &POLY_buffer[POLY_buffer_upto++];
-
-            POLY_transform_using_local_rotation(
-                AENG_dx_prim_points[i].X,
-                AENG_dx_prim_points[i].Y,
-                AENG_dx_prim_points[i].Z,
-                pp);
-
-            pp->colour = 0xff808080;
-            pp->specular = 0xff000000;
-        }
-
-        for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-            p_f4 = &prim_faces4[i];
-
-            p0 = p_f4->Points[0] - sp;
-            p1 = p_f4->Points[1] - sp;
-            p2 = p_f4->Points[2] - sp;
-            p3 = p_f4->Points[3] - sp;
-
-            ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
-
-            quad[0] = &POLY_buffer[p0];
-            quad[1] = &POLY_buffer[p1];
-            quad[2] = &POLY_buffer[p2];
-            quad[3] = &POLY_buffer[p3];
-
-            if (POLY_valid_quad(quad)) {
-                quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
-                quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
-                quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
-                quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
-                quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
-                quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
-                quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
-
-                page = p_f4->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f4->TexturePage;
-
-                if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
-                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-                } else
-                    page += FACE_PAGE_OFFSET;
-
-                POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
-            }
-        }
-
-        for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-            p_f3 = &prim_faces3[i];
-
-            p0 = p_f3->Points[0] - sp;
-            p1 = p_f3->Points[1] - sp;
-            p2 = p_f3->Points[2] - sp;
-
-            ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-
-            tri[0] = &POLY_buffer[p0];
-            tri[1] = &POLY_buffer[p1];
-            tri[2] = &POLY_buffer[p2];
-
-            if (POLY_valid_triangle(tri)) {
-                tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
-
-                tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
-                tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
-
-                tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
-                tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
-
-                page = p_f3->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f3->TexturePage;
-
-                if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
-                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-                } else
-                    page += FACE_PAGE_OFFSET;
-
-                POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
-            }
-        }
-
-        return;
-    } else {
-
-        if (!MM_bLightTableAlreadySetUp) {
-            // Build lighting table if not already done (lazy for this character).
-            Pyro* p = NULL;
-            if (p_thing->Class == CLASS_PERSON && p_thing->Genus.Person->BurnIndex) {
-                p = TO_PYRO(p_thing->Genus.Person->BurnIndex - 1);
-                if (p->PyroType != PYRO_IMMOLATE) {
-                    p = NULL;
-                }
-            }
-            BuildMMLightingTable(p, colour_and);
-        }
-
-        extern float POLY_cam_matrix_comb[9];
-        extern float POLY_cam_off_x;
-        extern float POLY_cam_off_y;
-        extern float POLY_cam_off_z;
-
-        extern GEMatrix g_matProjection;
-        extern GEMatrix g_matWorld;
-        extern GEViewport g_viewData;
-
-        GEMatrix matTemp;
-
-        {
-            matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
-            matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
-            matTemp._13 = g_matWorld._11 * g_matProjection._13 + g_matWorld._12 * g_matProjection._23 + g_matWorld._13 * g_matProjection._33 + g_matWorld._14 * g_matProjection._43;
-            matTemp._14 = g_matWorld._11 * g_matProjection._14 + g_matWorld._12 * g_matProjection._24 + g_matWorld._13 * g_matProjection._34 + g_matWorld._14 * g_matProjection._44;
-
-            matTemp._21 = g_matWorld._21 * g_matProjection._11 + g_matWorld._22 * g_matProjection._21 + g_matWorld._23 * g_matProjection._31 + g_matWorld._24 * g_matProjection._41;
-            matTemp._22 = g_matWorld._21 * g_matProjection._12 + g_matWorld._22 * g_matProjection._22 + g_matWorld._23 * g_matProjection._32 + g_matWorld._24 * g_matProjection._42;
-            matTemp._23 = g_matWorld._21 * g_matProjection._13 + g_matWorld._22 * g_matProjection._23 + g_matWorld._23 * g_matProjection._33 + g_matWorld._24 * g_matProjection._43;
-            matTemp._24 = g_matWorld._21 * g_matProjection._14 + g_matWorld._22 * g_matProjection._24 + g_matWorld._23 * g_matProjection._34 + g_matWorld._24 * g_matProjection._44;
-
-            matTemp._31 = g_matWorld._31 * g_matProjection._11 + g_matWorld._32 * g_matProjection._21 + g_matWorld._33 * g_matProjection._31 + g_matWorld._34 * g_matProjection._41;
-            matTemp._32 = g_matWorld._31 * g_matProjection._12 + g_matWorld._32 * g_matProjection._22 + g_matWorld._33 * g_matProjection._32 + g_matWorld._34 * g_matProjection._42;
-            matTemp._33 = g_matWorld._31 * g_matProjection._13 + g_matWorld._32 * g_matProjection._23 + g_matWorld._33 * g_matProjection._33 + g_matWorld._34 * g_matProjection._43;
-            matTemp._34 = g_matWorld._31 * g_matProjection._14 + g_matWorld._32 * g_matProjection._24 + g_matWorld._33 * g_matProjection._34 + g_matWorld._34 * g_matProjection._44;
-
-            matTemp._41 = g_matWorld._41 * g_matProjection._11 + g_matWorld._42 * g_matProjection._21 + g_matWorld._43 * g_matProjection._31 + g_matWorld._44 * g_matProjection._41;
-            matTemp._42 = g_matWorld._41 * g_matProjection._12 + g_matWorld._42 * g_matProjection._22 + g_matWorld._43 * g_matProjection._32 + g_matWorld._44 * g_matProjection._42;
-            matTemp._43 = g_matWorld._41 * g_matProjection._13 + g_matWorld._42 * g_matProjection._23 + g_matWorld._43 * g_matProjection._33 + g_matWorld._44 * g_matProjection._43;
-            matTemp._44 = g_matWorld._41 * g_matProjection._14 + g_matWorld._42 * g_matProjection._24 + g_matWorld._43 * g_matProjection._34 + g_matWorld._44 * g_matProjection._44;
-        }
-
-        // Build the MM matrix from the projection*world combined matrix and viewport.
-        // Uses letterbox-mode height/Y override (g_dw3DStuffHeight / g_dw3DStuffY).
-        extern DWORD g_dw3DStuffHeight;
-        extern DWORD g_dw3DStuffY;
-        DWORD dwWidth = g_viewData.dwWidth >> 1;
-        DWORD dwHeight = g_dw3DStuffHeight >> 1;
-        DWORD dwX = g_viewData.dwX;
-        DWORD dwY = g_dw3DStuffY;
-        MM_pMatrix[0]._11 = 0.0f;
-        MM_pMatrix[0]._12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._14 = matTemp._14;
-        MM_pMatrix[0]._21 = 0.0f;
-        MM_pMatrix[0]._22 = matTemp._21 * (float)dwWidth + matTemp._24 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._23 = matTemp._22 * -(float)dwHeight + matTemp._24 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._24 = matTemp._24;
-        MM_pMatrix[0]._31 = 0.0f;
-        MM_pMatrix[0]._32 = matTemp._31 * (float)dwWidth + matTemp._34 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._34 = matTemp._34;
-        // Validation magic number required by the MM driver.
-        ULONG EVal = 0xe0001000;
-        MM_pMatrix[0]._41 = *(float*)&EVal;
-        MM_pMatrix[0]._42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._44 = matTemp._44;
-
-        // 251 is a magic number for the DIP call.
-        const float fNormScale = 251.0f;
-
-        // Transform light direction into object space (inverse = transpose for orthonormal matrices).
-        GEVector vTemp;
-        vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
-        vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
-        vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
-
-        MM_pNormal[0] = 0.0f;
-        MM_pNormal[1] = vTemp.x * fNormScale;
-        MM_pNormal[2] = vTemp.y * fNormScale;
-        MM_pNormal[3] = vTemp.z * fNormScale;
-    }
-
-    // Disable specular — MM extension requires it off.
-    ge_set_specular_enabled(false);
-
-    // Lazy-compile the D3D representation of this prim if it hasn't been done yet.
-    TomsPrimObject* pPrimObj = &(D3DObj[prim]);
-    if (pPrimObj->wNumMaterials == 0) {
-        FIGURE_generate_D3D_object(prim);
-    }
-
-    FIGURE_touch_LRU_of_object(pPrimObj);
-
-    ASSERT(pPrimObj->pD3DVertices != NULL);
-    ASSERT(pPrimObj->pMaterials != NULL);
-    ASSERT(pPrimObj->pwListIndices != NULL);
-    ASSERT(pPrimObj->pwStripIndices != NULL);
-    ASSERT(pPrimObj->wNumMaterials != 0);
-
-    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
-
-    GEMultiMatrix mm;
-    mm.matrices = MM_pMatrix;
-    mm.lpvLightDirs = MM_pNormal;
-    mm.skin_cache = nullptr; // 1D: set per-material before each draw
-
-    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
-    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
-    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
-        UWORD wPage = pMat->wTexturePage;
-        UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
-
-        if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
-            wRealPage = jacket_lookup[wRealPage][GET_SKILL(p_thing) >> 2];
-            wRealPage += FACE_PAGE_OFFSET;
-        } else if (wPage & TEXTURE_PAGE_FLAG_OFFSET) {
-            if (tex_page_offset == 0) {
-                wRealPage += FACE_PAGE_OFFSET;
-            } else {
-                wRealPage = alt_texture[wRealPage - (10 * 64)] + tex_page_offset - 1;
-            }
-        }
-
-        extern GEMatrix g_matWorld;
-
-        PolyPage* pa = &(POLY_Page[wRealPage]);
-        if (!pa->RS.NeedsSorting() && (FIGURE_alpha == 255)) {
-            // Opaque: use fast MultiMatrix path. z guard in ge_draw_multi_matrix handles near vertices.
-            if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-                mm.lpLightTable = MM_pcFadeTableTint;
-            } else {
-                mm.lpLightTable = MM_pcFadeTable;
-            }
-            mm.lpvVertices = pVertex;
-            mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
-
-            pa->RS.SetCullMode(GECullMode::CCW);
-            pa->RS.SetAlphaBlendEnabled(false);
-            pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
-            pa->RS.SetChanged();
-
-            {
-                // Set view-space Z for CPU fog in ge_draw_multi_matrix.
-                g_mm_fog_view_z = g_matWorld._43;
-
-                ge_draw_multi_matrix(
-                    GEMMVertexType::Unlit,
-                    &mm,
-                    pMat->wNumVertices,
-                    pwStripIndices,
-                    pMat->wNumStripIndices);
-            }
-
-        } else {
-            // Alpha or near-clipped path: currently unimplemented (fast-reject instead).
-        }
-
-        pVertex += pMat->wNumVertices;
-        pwStripIndices += pMat->wNumStripIndices;
-
-        pMat++;
-    }
-
-    ge_set_specular_enabled(true);
-
-    // uc_orig: Environment mapping for CLASS_VEHICLE exists in the original (figure.cpp:5130-5260)
-    // but is dead code: CLASS_VEHICLE things use DT_VEHICLE → draw_car() → MESH_draw_poly(),
-    // which has its own envmap handling in mesh.cpp. They never reach FIGURE_draw_prim_tween.
-    // CLASS_BIKE also exists in the codebase but bikes are not present in any shipping level.
-    // Envmap for vehicles via mesh.cpp already works (visible on windshields and chrome bumpers).
-
-    if (!MM_bLightTableAlreadySetUp) {
-    }
-}
 
 #include "things/items/special.h"
 #include "things/core/interact.h"
 #include "engine/input/keyboard_globals.h"
 #include "things/core/hierarchy.h"
 
+// Draw the muzzle-flash prim (261/262/263) as flat-grey unlit polys via
+// the POLY_buffer software pipeline — matches the legacy
+// FIGURE_draw_prim_tween_person_only branch for muzzle prims. Lit
+// rendering through MESH_draw_guts is wrong for muzzle flash: the flame
+// texture relies on a fixed 0xff808080 vertex colour modulated against
+// an additive texture page, so per-vertex NIGHT lighting darkens the
+// flame to invisibility in night scenes. (Shotgun flash happens to use
+// a brighter texture so MESH path looked OK, but pistol/AK went dark.)
+//
+// Assumes POLY_set_local_rotation has already been called with the
+// hand-bone transform — figure_draw_held_item does that before calling
+// us via MESH_draw_poly_at_matrix when the prim is non-muzzle, or
+// directly via the inline POLY_set_local_rotation here when prim is a
+// muzzle flash.
+static void figure_draw_muzzle_flash(SLONG prim)
+{
+    PrimObject* p_obj = &prim_objects[prim];
+    const SLONG sp    = p_obj->StartPoint;
+    const SLONG ep    = p_obj->EndPoint;
+
+    POLY_buffer_upto = 0;
+
+    // All muzzle verts get the same flat grey colour — flame brightness
+    // lives in the texture, which is added on top via the texture page's
+    // additive blend mode.
+    for (SLONG i = sp; i < ep; i++) {
+        ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
+        POLY_Point* pp = &POLY_buffer[POLY_buffer_upto++];
+        POLY_transform_using_local_rotation(
+            AENG_dx_prim_points[i].X,
+            AENG_dx_prim_points[i].Y,
+            AENG_dx_prim_points[i].Z,
+            pp);
+        pp->colour   = 0xff808080;
+        pp->specular = 0xff000000;
+    }
+
+    POLY_Point* quad[4];
+    for (SLONG i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
+        PrimFace4* p_f4 = &prim_faces4[i];
+        const SLONG p0 = p_f4->Points[0] - sp;
+        const SLONG p1 = p_f4->Points[1] - sp;
+        const SLONG p2 = p_f4->Points[2] - sp;
+        const SLONG p3 = p_f4->Points[3] - sp;
+        ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
+        quad[0] = &POLY_buffer[p0];
+        quad[1] = &POLY_buffer[p1];
+        quad[2] = &POLY_buffer[p2];
+        quad[3] = &POLY_buffer[p3];
+        if (POLY_valid_quad(quad)) {
+            quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+            quad[0]->v = float(p_f4->UV[0][1])        * (1.0F / 32.0F);
+            quad[1]->u = float(p_f4->UV[1][0])        * (1.0F / 32.0F);
+            quad[1]->v = float(p_f4->UV[1][1])        * (1.0F / 32.0F);
+            quad[2]->u = float(p_f4->UV[2][0])        * (1.0F / 32.0F);
+            quad[2]->v = float(p_f4->UV[2][1])        * (1.0F / 32.0F);
+            quad[3]->u = float(p_f4->UV[3][0])        * (1.0F / 32.0F);
+            quad[3]->v = float(p_f4->UV[3][1])        * (1.0F / 32.0F);
+            SLONG page = p_f4->UV[0][0] & 0xc0;
+            page <<= 2;
+            page |= p_f4->TexturePage;
+            page += FACE_PAGE_OFFSET;
+            POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
+        }
+    }
+
+    POLY_Point* tri[3];
+    for (SLONG i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
+        PrimFace3* p_f3 = &prim_faces3[i];
+        const SLONG p0 = p_f3->Points[0] - sp;
+        const SLONG p1 = p_f3->Points[1] - sp;
+        const SLONG p2 = p_f3->Points[2] - sp;
+        ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
+        ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
+        tri[0] = &POLY_buffer[p0];
+        tri[1] = &POLY_buffer[p1];
+        tri[2] = &POLY_buffer[p2];
+        if (POLY_valid_triangle(tri)) {
+            tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
+            tri[0]->v = float(p_f3->UV[0][1])        * (1.0F / 32.0F);
+            tri[1]->u = float(p_f3->UV[1][0])        * (1.0F / 32.0F);
+            tri[1]->v = float(p_f3->UV[1][1])        * (1.0F / 32.0F);
+            tri[2]->u = float(p_f3->UV[2][0])        * (1.0F / 32.0F);
+            tri[2]->v = float(p_f3->UV[2][1])        * (1.0F / 32.0F);
+            SLONG page = p_f3->UV[0][0] & 0xc0;
+            page <<= 2;
+            page |= p_f3->TexturePage;
+            page += FACE_PAGE_OFFSET;
+            POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
+        }
+    }
+}
+
+// Draw a held item (gun or muzzle flash) attached to a character's hand
+// bone. Renders the static prim at the bone's world transform from the
+// pose snapshot.
+//
+// Two flavours of static prim live on the hand:
+//
+//   - Gun mesh (prim 256/258/260): drawn lit through MESH_draw_poly_at_matrix
+//     (same path as held grenades, vehicles etc — proper NIGHT lighting).
+//     Side effect: writes the muzzle vertex's world position into
+//     p_person->Genus.Person->GunMuzzle, consumed by gunfire FX (bullet
+//     spawn / particle emit point).
+//
+//   - Muzzle flash (prim 261/262/263): drawn UNLIT via figure_draw_muzzle_flash
+//     (flat 0xff808080 colour + additive texture page) — see that
+//     function's comment for why MESH_draw_guts can't render these
+//     correctly.
+static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part)
+{
+    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_person);
+    if (!pose || hand_part < 0 || hand_part >= POSE_MAX_BONES) return;
+
+    const BoneInterpTransform& xf = pose[hand_part];
+
+    // Bone rotation matrix in row-major M*v form, scale 1.0
+    // (POLY_set_local_rotation expects exactly this layout).
+    constexpr float S = 1.0f / 32768.0f;
+    float fmatrix[9];
+    fmatrix[0] = float(xf.rot.M[0][0]) * S;
+    fmatrix[1] = float(xf.rot.M[0][1]) * S;
+    fmatrix[2] = float(xf.rot.M[0][2]) * S;
+    fmatrix[3] = float(xf.rot.M[1][0]) * S;
+    fmatrix[4] = float(xf.rot.M[1][1]) * S;
+    fmatrix[5] = float(xf.rot.M[1][2]) * S;
+    fmatrix[6] = float(xf.rot.M[2][0]) * S;
+    fmatrix[7] = float(xf.rot.M[2][1]) * S;
+    fmatrix[8] = float(xf.rot.M[2][2]) * S;
+
+    // Muzzle-point side effect for the three known gun prims. The muzzle
+    // vertex index inside each gun's prim_objects[] data is hard-coded:
+    // prim 256 = pistol (muzzle = vertex 0), prim 258 = shotgun (vertex 15),
+    // prim 260 = AK (vertex 32). Carried over from the legacy per-bone path.
+    if (prim == 256 || prim == 258 || prim == 260) {
+        const SLONG sp  = prim_objects[prim].StartPoint;
+        const SLONG idx = sp + ((prim == 256) ? 0
+                              : (prim == 258) ? 15
+                              :                 32);
+        float vx = AENG_dx_prim_points[idx].X;
+        float vy = AENG_dx_prim_points[idx].Y;
+        float vz = AENG_dx_prim_points[idx].Z;
+        MATRIX_MUL(fmatrix, vx, vy, vz);
+        p_person->Genus.Person->GunMuzzle.X = SLONG((vx + xf.pos_x) * 256.0f);
+        p_person->Genus.Person->GunMuzzle.Y = SLONG((vy + xf.pos_y) * 256.0f);
+        p_person->Genus.Person->GunMuzzle.Z = SLONG((vz + xf.pos_z) * 256.0f);
+    }
+
+    if (prim == 261 || prim == 262 || prim == 263) {
+        // Muzzle flash: unlit, flat-grey path. Need POLY_set_local_rotation
+        // ourselves (MESH_draw_poly_at_matrix would do it, but we go
+        // through the manual POLY_buffer pipeline below).
+        POLY_set_local_rotation(xf.pos_x, xf.pos_y, xf.pos_z, fmatrix);
+        figure_draw_muzzle_flash(prim);
+    } else {
+        MESH_draw_poly_at_matrix(prim,
+                                 SLONG(xf.pos_x), SLONG(xf.pos_y), SLONG(xf.pos_z),
+                                 fmatrix, NULL, 0xff);
+    }
+}
+
 // uc_orig: FIGURE_draw_hierarchical_prim_recurse (fallen/DDEngine/Source/figure.cpp)
-// Optimised 15-body-part character renderer using D3D MultiMatrix batching.
-// First pass: builds D3D mesh (if not cached) via FIGURE_TPO_*.
-// Second pass: calls FIGURE_draw_prim_tween_person_only_just_set_matrix per part,
-// then issues one DrawIndPrimMM call. Falls back to individual-cull variant if
-// partial visibility is detected.
+// 15-body-part character renderer. Builds a consolidated TomsPrimObject
+// on first use (one walk of the body-part hierarchy via FIGURE_TPO_*),
+// then draws the whole rig in one pass through the world-skin shader
+// (skin_world_vert.glsl) — one ge_skin_world_draw_range call per
+// material. Held items (gun / muzzle flash) for armed characters are
+// drawn separately as rigid meshes at the hand bone's world transform
+// (figure_draw_held_item).
 void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 {
     SLONG recurse_level = 0;
-    SLONG dx, dy, dz;
-    UWORD f1, f2;
-    struct Matrix33* rot_mat;
-
-    f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
-    f2 = p_person->Draw.Tweened->NextFrame->Flags;
-
-    dx = ((f1 & 0xe) << (28)) >> 21;
-    dx -= ((f2 & 0xe) << (28)) >> 21;
-
-    dy = ((f1 & 0xff00) << (16)) >> 16;
-    dy -= ((f2 & 0xff00) << (16)) >> 16;
-
-    dz = ((f1 & 0x70) << (25)) >> 21;
-    dz -= ((f1 & 0x70) << (25)) >> 21;
 
     ASSERT(p_person->Class == CLASS_PERSON);
-
     ASSERT(recurse_level == 0);
     ASSERT(FIGURE_dhpr_rdata1[0].current_child_number == 0);
 
@@ -2662,12 +2381,16 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     }
 
     structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1_0_copy = FIGURE_dhpr_rdata1[0];
-    structFIGURE_dhpr_data FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;
 
     ASSERT(iIndex < MAX_NUMBER_D3D_PEOPLE);
     ASSERT((PERSON_NUM_TYPES + 32 + NUM_ROPERS_THINGIES) <= MAX_NUMBER_D3D_PEOPLE);
     TomsPrimObject* pPrimObj = &(D3DPeopleObj[iIndex]);
     if (pPrimObj->wNumMaterials == 0) {
+        // Lazy first-time build of the consolidated body mesh. Walk the
+        // body-part hierarchy (pre-order DFS via body_part_children[]),
+        // calling FIGURE_TPO_add_prim_to_current_object for each part —
+        // ubSubObjectNumber = visit index so each merged vertex carries
+        // its body-part index as its bone reference.
         FIGURE_TPO_init_3d_object(pPrimObj);
         int iTPOPartNumber = 0;
 
@@ -2676,14 +2399,11 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
             int iPartNumber = pDHPR1->part_number;
             if (pDHPR1->current_child_number == 0) {
-                SLONG body_part;
-
                 ASSERT(iPartNumber >= 0);
                 ASSERT(iPartNumber <= 14);
 
-                body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
-
-                SLONG prim = FIGURE_dhpr_data.start_object + body_part;
+                SLONG body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
+                SLONG prim      = FIGURE_dhpr_data.start_object + body_part;
 
                 FIGURE_TPO_add_prim_to_current_object(prim, iTPOPartNumber);
                 iTPOPartNumber++;
@@ -2691,17 +2411,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
             if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
                 structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
-
                 pDHPR1Inc->current_child_number = 0;
-
-                ASSERT(iPartNumber >= 0);
-                ASSERT(iPartNumber <= 14);
                 pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-
-                pDHPR1Inc->current_child_number = 0;
-
                 pDHPR1->current_child_number++;
-
                 recurse_level++;
             } else {
                 recurse_level--;
@@ -2709,146 +2421,10 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         }
 
         FIGURE_TPO_finish_3d_object(pPrimObj, 1);
-
         FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
-        FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;
     }
-
-    int iTPOPartNumber = -1;
-    bool bWholePersonVisible = UC_TRUE;
-    bool bBitsOfPersonVisible = UC_FALSE;
-
-    recurse_level = 0;
-    while (recurse_level >= 0) {
-
-        structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
-        int iPartNumber = pDHPR1->part_number;
-
-        if (pDHPR1->current_child_number == 0) {
-            {
-                SLONG body_part;
-                SLONG id;
-
-                ASSERT(iPartNumber >= 0);
-                ASSERT(iPartNumber <= 14);
-
-                body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
-                rot_mat = FIGURE_dhpr_data.world_mat;
-
-                iTPOPartNumber++;
-                ASSERT(iTPOPartNumber < MAX_NUM_BODY_PARTS_AT_ONCE);
-                bool bVisible = FIGURE_draw_prim_tween_person_only_just_set_matrix(
-                    iTPOPartNumber,
-                    FIGURE_dhpr_data.start_object + body_part,
-                    rot_mat,
-                    FIGURE_dhpr_data.dx + dx,
-                    FIGURE_dhpr_data.dy + dy,
-                    FIGURE_dhpr_data.dz + dz,
-                    recurse_level,
-                    p_person);
-
-                bWholePersonVisible &= bVisible;
-                bBitsOfPersonVisible |= bVisible;
-
-                if (p_person->Genus.Person->PersonType != PERSON_ROPER)
-                    if ((id = (p_person->Draw.Tweened->PersonID >> 5))) {
-
-                        SLONG hand;
-                        if (id == 2)
-                            hand = SUB_OBJECT_RIGHT_HAND;
-                        else
-                            hand = SUB_OBJECT_LEFT_HAND;
-
-                        if (iPartNumber == hand) {
-                            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
-                                SLONG prim;
-                                bool bDrawMuzzleFlash = UC_FALSE;
-                                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
-                                switch (p_person->Draw.Tweened->PersonID >> 5) {
-                                case 1:
-                                    prim = 261;
-                                    bDrawMuzzleFlash = UC_TRUE;
-                                    break;
-
-                                case 3:
-                                    prim = 262;
-                                    bDrawMuzzleFlash = UC_TRUE;
-                                    break;
-
-                                case 5:
-                                    prim = 263;
-                                    bDrawMuzzleFlash = UC_TRUE;
-                                    break;
-
-                                default:
-                                    break;
-                                }
-
-                                if (bDrawMuzzleFlash) {
-                                    FIGURE_draw_prim_tween_person_only(
-                                        prim,
-                                        FIGURE_dhpr_data.world_mat,
-                                        FIGURE_dhpr_data.dx + dx,
-                                        FIGURE_dhpr_data.dy + dy,
-                                        FIGURE_dhpr_data.dz + dz,
-                                        recurse_level,
-                                        p_person);
-                                }
-                            }
-
-                            FIGURE_draw_prim_tween_person_only(
-                                255 + (p_person->Draw.Tweened->PersonID >> 5),
-                                FIGURE_dhpr_data.world_mat,
-                                FIGURE_dhpr_data.dx + dx,
-                                FIGURE_dhpr_data.dy + dy,
-                                FIGURE_dhpr_data.dz + dz,
-                                recurse_level,
-                                p_person);
-                        }
-                    }
-            }
-        }
-
-        if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
-
-            structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
-
-            pDHPR1Inc->current_child_number = 0;
-
-            pDHPR1->pos.M[0] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetX;
-            pDHPR1->pos.M[1] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetY;
-            pDHPR1->pos.M[2] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetZ;
-
-            ASSERT(iPartNumber >= 0);
-            ASSERT(iPartNumber <= 14);
-            pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-            // Hierarchy parent-matrix propagation removed: the pose snapshot
-            // is the single source of each bone's world transform, so the
-            // leaf draw functions no longer read parent_*/end_* — see
-            // skeletal_skinning_plan.md.
-            pDHPR1Inc->current_child_number = 0;
-
-            pDHPR1->current_child_number++;
-            recurse_level++;
-        } else {
-            recurse_level--;
-        }
-    };
-
-    if (!bWholePersonVisible) {
-        if (bBitsOfPersonVisible) {
-            FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
-            FIGURE_dhpr_data_copy = FIGURE_dhpr_data_copy;
-            FIGURE_draw_hierarchical_prim_recurse_individual_cull(p_person);
-        }
-        return;
-    }
-
-    iTPOPartNumber++;
-    ASSERT(iTPOPartNumber <= MAX_NUM_BODY_PARTS_AT_ONCE);
 
     SLONG tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
-
     ASSERT(MM_bLightTableAlreadySetUp);
 
     ge_set_specular_enabled(false);
@@ -2861,68 +2437,116 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     ASSERT(pPrimObj->pwStripIndices != NULL);
     ASSERT(pPrimObj->wNumMaterials != 0);
 
-    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+    // ---- Held items (gun + optional muzzle flash) ------------------------
+    //
+    // Armed non-ROPER characters carry one of three guns in either hand.
+    // Drawn as rigid prims at the hand bone's world transform. The gun
+    // draw also writes back the muzzle world position for gunfire FX.
+    // Muzzle flash is fired by DT_FLAG_GUNFLASH and consumes the flag.
+    //
+    // The hand is determined by (PersonID >> 5) — id==2 = right hand,
+    // anything else (1/3/5) = left hand. id==0 = unarmed → no held items.
+    if (p_person->Genus.Person->PersonType != PERSON_ROPER) {
+        const SLONG id = p_person->Draw.Tweened->PersonID >> 5;
+        if (id) {
+            const int hand_part = (id == 2) ? SUB_OBJECT_RIGHT_HAND
+                                            : SUB_OBJECT_LEFT_HAND;
 
-    // World-skin path: bind-space verts + per-frame skin palette
-    // (= current * inv_bind) + per-character screen bake. Used for
-    // 15-bone person rigs with a valid bind palette. Non-person rigs
-    // (animals, Bane, Balrog, bats) fall through to the generic
-    // ge_draw_multi_matrix path further down — they don't have a 15-bone
-    // person rig and aren't covered by the bind palette.
-    bool        use_world_path = false;
-    GESkinMesh* worldMesh      = NULL;
+            // Muzzle flash — one of three prims depending on which gun
+            // ID is in use. Fired by DT_FLAG_GUNFLASH (consumed here).
+            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
+                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
+                SLONG mf_prim = -1;
+                if      (id == 1) mf_prim = 261;
+                else if (id == 3) mf_prim = 262;
+                else if (id == 5) mf_prim = 263;
+                if (mf_prim > 0) {
+                    figure_draw_held_item(p_person, mf_prim, hand_part);
+                }
+            }
+
+            // Gun mesh (prim 256/258/260 for id 1/3/5). figure_draw_held_item
+            // also writes p_person->Genus.Person->GunMuzzle for these prims.
+            figure_draw_held_item(p_person, 255 + id, hand_part);
+        }
+    }
+
+    // ---- Body draw: one VBO, world-skin shader, palette = current × inv_bind ----
+    //
+    // 15-bone person bind palette is built lazily per chunk; once that
+    // exists the consolidated bind-space VBO is built lazily per
+    // TomsPrimObject. Per-frame: build the skin palette (current × inv_bind)
+    // and the camera-only screen bake, then draw each material as a slice
+    // of the shared index buffer.
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
     // 20 bones × 3 vec4 each = 240 floats. Persons use 15; sized to
-    // POSE_MAX_BONES so the same buffer works for any rig the world-skin
-    // path may see in the future.
+    // POSE_MAX_BONES so the same buffer works for any rig (matches the
+    // ANIM_obj_draw flat-rig variant for code-shape consistency).
     float       skin_palette_world[POSE_MAX_BONES * 12];
     GEMatrix    screen_xform_world = {};
     float       lightdir_world[3]  = { 0.0f, 0.0f, 0.0f };
 
-    if (p_person->Genus.Person
-        && p_person->Draw.Tweened
-        && p_person->Draw.Tweened->TheChunk
-        && p_person->Draw.Tweened->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT) {
-        const GameKeyFrameChunk* chunk    = p_person->Draw.Tweened->TheChunk;
-        const GEMatrix*          bind_inv = NULL;
-        if (bind_palette_get(chunk, NULL, &bind_inv, NULL) && bind_inv) {
-            // Lazy build of the bind-space mesh on first use of this rig.
-            if (pPrimObj->skin_consolidated_world == NULL) {
-                figure_build_consolidated_skin_world(pPrimObj, chunk);
-            }
-            worldMesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
-            if (worldMesh) {
-                const BoneInterpTransform* current = render_interp_get_cached_pose(p_person);
-                if (current) {
-                    figure_build_skin_world_palette(current, bind_inv,
-                                                    POSE_PERSON_BONE_COUNT,
-                                                    skin_palette_world);
-                    figure_build_screen_xform_bake(&screen_xform_world);
-                    // Half-Lambert ramp divides dot(normal, L) by
-                    // fNormScale = 251 to land cos in [-1,1]. Pre-scale
-                    // L by 251 here so the ramp index matches the legacy
-                    // baked path's MMBodyParts_pNormal scaling.
-                    constexpr float MM_LIGHT_SCALE = 251.0f;
-                    lightdir_world[0] = MM_vLightDir.x * MM_LIGHT_SCALE;
-                    lightdir_world[1] = MM_vLightDir.y * MM_LIGHT_SCALE;
-                    lightdir_world[2] = MM_vLightDir.z * MM_LIGHT_SCALE;
-                    use_world_path = true;
-                }
-            }
-        }
+    ASSERT(p_person->Genus.Person);
+    ASSERT(p_person->Draw.Tweened);
+    ASSERT(p_person->Draw.Tweened->TheChunk);
+    ASSERT(p_person->Draw.Tweened->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT);
+    const GameKeyFrameChunk* chunk    = p_person->Draw.Tweened->TheChunk;
+    const GEMatrix*          bind_inv = NULL;
+    if (!bind_palette_get(chunk, NULL, &bind_inv, NULL) || !bind_inv) {
+        ge_set_specular_enabled(true);
+        return;
     }
-    uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
+    if (pPrimObj->skin_consolidated_world == NULL) {
+        figure_build_consolidated_skin_world(pPrimObj, chunk);
+    }
+    GESkinMesh* worldMesh  = (GESkinMesh*)pPrimObj->skin_consolidated_world;
+    uint32_t*   skinRanges = pPrimObj->skin_consolidated_ranges;
+    if (!worldMesh || !skinRanges) {
+        ge_set_specular_enabled(true);
+        return;
+    }
+    const BoneInterpTransform* current = render_interp_get_cached_pose(p_person);
+    if (!current) {
+        ge_set_specular_enabled(true);
+        return;
+    }
 
-    GEMultiMatrix mm;
-    mm.matrices = MMBodyParts_pMatrix;
-    mm.lpvLightDirs = MMBodyParts_pNormal;
-    mm.skin_cache = nullptr; // 1D: set per-material before each draw (fallback only)
+    // Anchor g_matWorld at the root bone (pelvis) so the per-material
+    // fog read further down (g_mm_fog_view_z = g_matWorld._43) sees this
+    // character's view-Z and not stale leftover from a previous draw.
+    // figure_build_screen_xform_bake save/restores g_matWorld around
+    // its camera-only override, so the value we set here survives that
+    // call. Held-item draws above (gun / muzzle flash) also touched
+    // g_matWorld, leaving the hand bone transform there for ARMED
+    // characters — unarmed characters would otherwise inherit fog Z
+    // from whatever the last frame's last draw left in g_matWorld, and
+    // come out black at random camera angles (regression introduced when
+    // P2-G.7 removed the per-bone _just_set_matrix walk).
+    {
+        float ident_mat[9] = { 1, 0, 0,  0, 1, 0,  0, 0, 1 };
+        POLY_set_local_rotation(current[0].pos_x, current[0].pos_y, current[0].pos_z, ident_mat);
+    }
 
-    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
-    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
+    figure_build_skin_world_palette(current, bind_inv,
+                                    POSE_PERSON_BONE_COUNT,
+                                    skin_palette_world);
+    figure_build_screen_xform_bake(&screen_xform_world);
+    // Half-Lambert ramp divides dot(normal, L) by fNormScale = 251 to
+    // land cos in [-1,1]. Pre-scale L by 251 here so the ramp index
+    // matches the same scaling the original CPU lit path used.
+    {
+        constexpr float MM_LIGHT_SCALE = 251.0f;
+        lightdir_world[0] = MM_vLightDir.x * MM_LIGHT_SCALE;
+        lightdir_world[1] = MM_vLightDir.y * MM_LIGHT_SCALE;
+        lightdir_world[2] = MM_vLightDir.z * MM_LIGHT_SCALE;
+    }
+
+    extern GEMatrix g_matWorld;
+    g_mm_fog_view_z = g_matWorld._43;
+
     int iMatIndex = 0;
     for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--, iMatIndex++) {
-
-        UWORD wPage = pMat->wTexturePage;
+        UWORD wPage     = pMat->wTexturePage;
         UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
 
         if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
@@ -2936,62 +2560,32 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
         }
 
-        extern GEMatrix g_matWorld;
+        // Explicit cast: MM_pcFadeTable is ULONG* (= unsigned long*).
+        // ULONG is 32-bit on Win but 64-bit on Linux/Mac — same bit
+        // pattern as uint32_t on our targets but the pointer types
+        // differ. Cast keeps things portable.
+        const uint32_t* fadeTable = (const uint32_t*)((wPage & TEXTURE_PAGE_FLAG_TINT)
+            ? MM_pcFadeTableTint : MM_pcFadeTable);
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
-        {
-            // Explicit cast: MM_pcFadeTable is ULONG* (= unsigned long*).
-            // ULONG is 32-bit on Win but 64-bit on Linux/Mac — same bit
-            // pattern as uint32_t on our targets but the pointer types
-            // differ. Cast keeps things portable.
-            const uint32_t* fadeTable = (const uint32_t*)((wPage & TEXTURE_PAGE_FLAG_TINT)
-                ? MM_pcFadeTableTint : MM_pcFadeTable);
+        pa->RS.SetCullMode(GECullMode::CCW);
+        pa->RS.SetAlphaBlendEnabled(false);
+        pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+        pa->RS.SetChanged();
 
-            pa->RS.SetCullMode(GECullMode::CCW);
-            pa->RS.SetAlphaBlendEnabled(false);
-            pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
-            pa->RS.SetChanged();
-
-            // Set view-space Z for CPU fog (same scalar both paths).
-            g_mm_fog_view_z = g_matWorld._43;
-
-            if (use_world_path && skinRanges) {
-                // World-skin path: one shared VBO, this material is one
-                // slice [start, count) of the index buffer. Per-frame
-                // skin palette + per-character screen bake set up above.
-                const uint32_t index_start = skinRanges[iMatIndex * 2 + 0];
-                const uint32_t index_count = skinRanges[iMatIndex * 2 + 1];
-                if (index_count > 0) {
-                    ge_skin_world_draw_range(
-                        worldMesh, index_start, index_count,
-                        skin_palette_world,
-                        POSE_PERSON_BONE_COUNT,
-                        &screen_xform_world,
-                        lightdir_world,
-                        g_mm_fog_view_z,
-                        /*unlit=*/ true,
-                        fadeTable);
-                }
-            } else {
-                // Fallback for non-person rigs (animals / Bane / Balrog /
-                // bats): per-material accumulation through the generic
-                // multi-matrix path. The world-skin shader only supports
-                // 15-bone person rigs.
-                mm.lpLightTable = (ULONG*)fadeTable;
-                mm.lpvVertices  = pVertex;
-                mm.skin_cache   = figure_skin_cache_slot(pPrimObj, pMat);
-
-                ge_draw_multi_matrix(
-                    GEMMVertexType::Unlit,
-                    &mm,
-                    pMat->wNumVertices,
-                    pwStripIndices,
-                    pMat->wNumStripIndices);
-            }
+        const uint32_t index_start = skinRanges[iMatIndex * 2 + 0];
+        const uint32_t index_count = skinRanges[iMatIndex * 2 + 1];
+        if (index_count > 0) {
+            ge_skin_world_draw_range(
+                worldMesh, index_start, index_count,
+                skin_palette_world,
+                POSE_PERSON_BONE_COUNT,
+                &screen_xform_world,
+                lightdir_world,
+                g_mm_fog_view_z,
+                /*unlit=*/ true,
+                fadeTable);
         }
-
-        pVertex += pMat->wNumVertices;
-        pwStripIndices += pMat->wNumStripIndices;
 
         pMat++;
     }
@@ -2999,144 +2593,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     ge_set_specular_enabled(true);
 
     ASSERT(p_person && (p_person->Class != CLASS_VEHICLE));
-
     ASSERT(MM_bLightTableAlreadySetUp);
-}
-
-// uc_orig: FIGURE_draw_hierarchical_prim_recurse_individual_cull (fallen/DDEngine/Source/figure.cpp)
-// Slower fallback that culls individual body parts separately (when the fast-path full-person
-// visibility test fails). Calls FIGURE_draw_prim_tween_person_only per body part.
-void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person)
-{
-    SLONG recurse_level = 0;
-    SLONG dx, dy, dz;
-    UWORD f1, f2;
-    struct Matrix33* rot_mat;
-
-    f1 = p_person->Draw.Tweened->CurrentFrame->Flags;
-    f2 = p_person->Draw.Tweened->NextFrame->Flags;
-
-    dx = ((f1 & 0xe) << (28)) >> 21;
-    dx -= ((f2 & 0xe) << (28)) >> 21;
-
-    dy = ((f1 & 0xff00) << (16)) >> 16;
-    dy -= ((f2 & 0xff00) << (16)) >> 16;
-
-    dz = ((f1 & 0x70) << (25)) >> 21;
-    dz -= ((f1 & 0x70) << (25)) >> 21;
-
-    ASSERT(p_person->Class == CLASS_PERSON);
-
-    recurse_level = 0;
-    while (recurse_level >= 0) {
-
-        structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
-        int iPartNumber = pDHPR1->part_number;
-
-        if (pDHPR1->current_child_number == 0) {
-            {
-                SLONG body_part;
-                SLONG id;
-
-                ASSERT(iPartNumber >= 0);
-                ASSERT(iPartNumber <= 14);
-
-                body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
-                rot_mat = FIGURE_dhpr_data.world_mat;
-
-                FIGURE_draw_prim_tween_person_only(
-                    FIGURE_dhpr_data.start_object + body_part,
-                    rot_mat,
-                    FIGURE_dhpr_data.dx + dx,
-                    FIGURE_dhpr_data.dy + dy,
-                    FIGURE_dhpr_data.dz + dz,
-                    recurse_level,
-                    p_person);
-
-                if (p_person->Genus.Person->PersonType != PERSON_ROPER)
-                    if ((id = (p_person->Draw.Tweened->PersonID >> 5))) {
-
-                        SLONG hand;
-                        if (id == 2)
-                            hand = SUB_OBJECT_RIGHT_HAND;
-                        else
-                            hand = SUB_OBJECT_LEFT_HAND;
-
-                        if (iPartNumber == hand) {
-                            if (p_person->Draw.Tweened->Flags & DT_FLAG_GUNFLASH) {
-                                SLONG prim;
-                                bool bDrawMuzzleFlash = UC_FALSE;
-                                p_person->Draw.Tweened->Flags &= ~DT_FLAG_GUNFLASH;
-                                switch (p_person->Draw.Tweened->PersonID >> 5) {
-                                case 1:
-                                    prim = 261;
-                                    bDrawMuzzleFlash = UC_TRUE;
-                                    break;
-
-                                case 3:
-                                    prim = 262;
-                                    bDrawMuzzleFlash = UC_TRUE;
-                                    break;
-
-                                case 5:
-                                    prim = 263;
-                                    bDrawMuzzleFlash = UC_TRUE;
-                                    break;
-
-                                default:
-                                    break;
-                                }
-
-                                if (bDrawMuzzleFlash) {
-                                    FIGURE_draw_prim_tween_person_only(
-                                        prim,
-                                        FIGURE_dhpr_data.world_mat,
-                                        FIGURE_dhpr_data.dx + dx,
-                                        FIGURE_dhpr_data.dy + dy,
-                                        FIGURE_dhpr_data.dz + dz,
-                                        recurse_level,
-                                        p_person);
-                                }
-                            }
-
-                            FIGURE_draw_prim_tween_person_only(
-                                255 + (p_person->Draw.Tweened->PersonID >> 5),
-                                FIGURE_dhpr_data.world_mat,
-                                FIGURE_dhpr_data.dx + dx,
-                                FIGURE_dhpr_data.dy + dy,
-                                FIGURE_dhpr_data.dz + dz,
-                                recurse_level,
-                                p_person);
-                        }
-                    }
-            }
-        }
-
-        if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
-
-            structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
-
-            pDHPR1Inc->current_child_number = 0;
-
-            pDHPR1->pos.M[0] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetX;
-            pDHPR1->pos.M[1] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetY;
-            pDHPR1->pos.M[2] = FIGURE_dhpr_data.ae1[iPartNumber].OffsetZ;
-
-            ASSERT(iPartNumber >= 0);
-            ASSERT(iPartNumber <= 14);
-            pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-            // Hierarchy parent-matrix propagation removed: the pose snapshot
-            // is the single source of each bone's world transform, so the
-            // leaf draw functions no longer read parent_*/end_* — see
-            // skeletal_skinning_plan.md.
-            pDHPR1Inc->current_child_number = 0;
-
-            pDHPR1->current_child_number++;
-            recurse_level++;
-        } else {
-            recurse_level--;
-        }
-    };
 }
 
 // uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
@@ -3227,7 +2684,12 @@ void FIGURE_draw(Thing* p_thing)
     ele_count = dt->TheChunk->ElementCount;
     start_object = prim_multi_objects[dt->TheChunk->MultiObject[dt->MeshID]].StartObject;
 
-    if (ele_count == 15) {
+    // Persons always have a 15-bone rig (the world-skin path is built on
+    // that assumption). A non-15 ElementCount on a CLASS_PERSON Thing
+    // would mean corrupted/unexpected data — fail loud in debug, skip
+    // the body draw cleanly in release.
+    ASSERT(ele_count == POSE_PERSON_BONE_COUNT);
+    if (ele_count == POSE_PERSON_BONE_COUNT) {
         Matrix31 pos;
         pos.M[0] = (p_thing->WorldPos.X >> 8) + wx;
         pos.M[1] = (p_thing->WorldPos.Y >> 8) + wy;
@@ -3235,8 +2697,6 @@ void FIGURE_draw(Thing* p_thing)
 
         FIGURE_dhpr_rdata1[0].part_number = 0;
         FIGURE_dhpr_rdata1[0].current_child_number = 0;
-        // parent_*/end_* fields no longer used — pose snapshot is the single
-        // source of each bone's world transform (skeletal_skinning_plan.md).
 
         FIGURE_dhpr_data.start_object = start_object;
         if (p_thing->Genus.Person->PersonType == PERSON_ROPER)
@@ -3258,18 +2718,11 @@ void FIGURE_draw(Thing* p_thing)
         FIGURE_dhpr_data.bPersonID = dt->PersonID;
 
         FIGURE_draw_hierarchical_prim_recurse(p_thing);
-    } else {
-        for (int i = 0; i < ele_count; i++) {
-            object_offset = dt->TheChunk->PeopleTypes[(dt->PersonID & 0x1f)].BodyPart[i];
-
-            FIGURE_draw_prim_tween(
-                start_object + object_offset,
-                colour,
-                specular,
-                p_thing,
-                i);
-        }
     }
+    // object_offset declared above is now unused with the legacy
+    // non-15-bone person fallback removed; left in place rather than
+    // churning the local-variable list.
+    (void)object_offset;
 
     ASSERT(MM_bLightTableAlreadySetUp);
     MM_bLightTableAlreadySetUp = UC_FALSE;
@@ -3898,582 +3351,3 @@ void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
     }
 }
 
-// uc_orig: FIGURE_draw_prim_tween_person_only_just_set_matrix (fallen/DDEngine/Source/figure.cpp)
-// "Matrix-only" body-part step for the D3D MultiMatrix fast path.
-// Computes the interpolated bone transform and stores it in MMBodyParts_pMatrix[iMatrixNum].
-// Also computes the per-bone light direction vector for MMBodyParts_pNormal.
-// Does NOT emit geometry — that comes in a single DrawIndPrimMM call from the caller.
-// Returns UC_FALSE if this body part is entirely behind the near-Z clip plane.
-bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
-    int iMatrixNum,
-    SLONG prim,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    SLONG recurse_level,
-    Thing* p_thing)
-{
-    SLONG i;
-
-    SLONG sp;
-
-    Matrix33 mat_final;
-
-    PrimObject* p_obj;
-
-    POLY_Point* pp;
-
-    // Per-body-part WORLD transform read straight from the interpolation
-    // pose snapshot — the SINGLE always-available source of pose. No legacy
-    // keyframe / hierarchy recompute: the snapshot already bakes body
-    // rotation, character scale and the inter-bone hierarchy, so each bone
-    // is read directly by its part index. (The old end_mat/end_pos hierarchy
-    // propagation only ever fed HIERARCHY_Get_Body_Part_Offset, whose result
-    // was always overwritten by this snapshot — see skeletal_skinning_plan.md.)
-    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-    SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
-    if (!pose || part < 0 || part >= POSE_MAX_BONES)
-        return UC_FALSE;
-
-    const BoneInterpTransform& xf = pose[part];
-    float off_x = xf.pos_x;
-    float off_y = xf.pos_y;
-    float off_z = xf.pos_z;
-    mat_final = xf.rot;
-
-    float fmatrix[9];
-    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-    // NOT portable: stores off/fmatrix into global transform state used by D3D MultiMatrix upload.
-    POLY_set_local_rotation(
-        off_x,
-        off_y,
-        off_z,
-        fmatrix);
-
-    // Near-Z bounding sphere cull per body part removed — frustum cull in
-    // POLY_sphere_visible handles visibility, z guard in ge_draw_multi_matrix
-    // prevents artifacts for near vertices.
-
-    p_obj = &prim_objects[prim];
-
-    sp = p_obj->StartPoint;
-
-    POLY_buffer_upto = 0;
-
-    // Check for being a gun
-    if (prim == 256) {
-        i = sp;
-    } else if (prim == 258) {
-        // Or a shotgun
-        i = sp + 15;
-    } else if (prim == 260) {
-        // or an AK
-        i = sp + 32;
-    } else {
-        goto no_muzzle_calcs; // which skips...
-    }
-
-    // this bit, which only executes if one of the above tests is true.
-    pp = &POLY_buffer[POLY_buffer_upto]; // no ++, so reused
-    pp->x = AENG_dx_prim_points[i].X;
-    pp->y = AENG_dx_prim_points[i].Y;
-    pp->z = AENG_dx_prim_points[i].Z;
-    MATRIX_MUL(
-        fmatrix,
-        pp->x,
-        pp->y,
-        pp->z);
-
-    pp->x += off_x;
-    pp->y += off_y;
-    pp->z += off_z;
-    p_thing->Genus.Person->GunMuzzle.X = pp->x * 256;
-    p_thing->Genus.Person->GunMuzzle.Y = pp->y * 256;
-    p_thing->Genus.Person->GunMuzzle.Z = pp->z * 256;
-
-no_muzzle_calcs:
-
-    ASSERT(MM_bLightTableAlreadySetUp);
-
-    ASSERT(!WITHIN(prim, 261, 263));
-
-    {
-        ASSERT(MM_bLightTableAlreadySetUp);
-
-        extern float POLY_cam_matrix_comb[9];
-        extern float POLY_cam_off_x;
-        extern float POLY_cam_off_y;
-        extern float POLY_cam_off_z;
-
-        extern GEMatrix g_matProjection;
-        extern GEMatrix g_matWorld;
-        extern GEViewport g_viewData;
-
-        GEMatrix matTemp;
-
-        matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
-        matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
-        matTemp._13 = g_matWorld._11 * g_matProjection._13 + g_matWorld._12 * g_matProjection._23 + g_matWorld._13 * g_matProjection._33 + g_matWorld._14 * g_matProjection._43;
-        matTemp._14 = g_matWorld._11 * g_matProjection._14 + g_matWorld._12 * g_matProjection._24 + g_matWorld._13 * g_matProjection._34 + g_matWorld._14 * g_matProjection._44;
-
-        matTemp._21 = g_matWorld._21 * g_matProjection._11 + g_matWorld._22 * g_matProjection._21 + g_matWorld._23 * g_matProjection._31 + g_matWorld._24 * g_matProjection._41;
-        matTemp._22 = g_matWorld._21 * g_matProjection._12 + g_matWorld._22 * g_matProjection._22 + g_matWorld._23 * g_matProjection._32 + g_matWorld._24 * g_matProjection._42;
-        matTemp._23 = g_matWorld._21 * g_matProjection._13 + g_matWorld._22 * g_matProjection._23 + g_matWorld._23 * g_matProjection._33 + g_matWorld._24 * g_matProjection._43;
-        matTemp._24 = g_matWorld._21 * g_matProjection._14 + g_matWorld._22 * g_matProjection._24 + g_matWorld._23 * g_matProjection._34 + g_matWorld._24 * g_matProjection._44;
-
-        matTemp._31 = g_matWorld._31 * g_matProjection._11 + g_matWorld._32 * g_matProjection._21 + g_matWorld._33 * g_matProjection._31 + g_matWorld._34 * g_matProjection._41;
-        matTemp._32 = g_matWorld._31 * g_matProjection._12 + g_matWorld._32 * g_matProjection._22 + g_matWorld._33 * g_matProjection._32 + g_matWorld._34 * g_matProjection._42;
-        matTemp._33 = g_matWorld._31 * g_matProjection._13 + g_matWorld._32 * g_matProjection._23 + g_matWorld._33 * g_matProjection._33 + g_matWorld._34 * g_matProjection._43;
-        matTemp._34 = g_matWorld._31 * g_matProjection._14 + g_matWorld._32 * g_matProjection._24 + g_matWorld._33 * g_matProjection._34 + g_matWorld._34 * g_matProjection._44;
-
-        matTemp._41 = g_matWorld._41 * g_matProjection._11 + g_matWorld._42 * g_matProjection._21 + g_matWorld._43 * g_matProjection._31 + g_matWorld._44 * g_matProjection._41;
-        matTemp._42 = g_matWorld._41 * g_matProjection._12 + g_matWorld._42 * g_matProjection._22 + g_matWorld._43 * g_matProjection._32 + g_matWorld._44 * g_matProjection._42;
-        matTemp._43 = g_matWorld._41 * g_matProjection._13 + g_matWorld._42 * g_matProjection._23 + g_matWorld._43 * g_matProjection._33 + g_matWorld._44 * g_matProjection._43;
-        matTemp._44 = g_matWorld._41 * g_matProjection._14 + g_matWorld._42 * g_matProjection._24 + g_matWorld._43 * g_matProjection._34 + g_matWorld._44 * g_matProjection._44;
-
-        extern DWORD g_dw3DStuffHeight;
-        extern DWORD g_dw3DStuffY;
-        DWORD dwWidth = g_viewData.dwWidth >> 1;
-        DWORD dwHeight = g_dw3DStuffHeight >> 1;
-        DWORD dwX = g_viewData.dwX;
-        DWORD dwY = g_dw3DStuffY;
-
-        // Set up the bone transform matrix in screen-space projection form.
-        GEMatrix* pmat = &(MMBodyParts_pMatrix[iMatrixNum]);
-        pmat->_11 = 0.0f;
-        pmat->_12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
-        pmat->_13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
-        pmat->_14 = matTemp._14;
-        pmat->_21 = 0.0f;
-        pmat->_22 = matTemp._21 * (float)dwWidth + matTemp._24 * (float)(dwX + dwWidth);
-        pmat->_23 = matTemp._22 * -(float)dwHeight + matTemp._24 * (float)(dwY + dwHeight);
-        pmat->_24 = matTemp._24;
-        pmat->_31 = 0.0f;
-        pmat->_32 = matTemp._31 * (float)dwWidth + matTemp._34 * (float)(dwX + dwWidth);
-        pmat->_33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
-        pmat->_34 = matTemp._34;
-        // Validation magic number.
-        ULONG EVal = 0xe0001000;
-        pmat->_41 = *(float*)&EVal;
-        pmat->_42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
-        pmat->_43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
-        pmat->_44 = matTemp._44;
-
-        // 251 is a magic number for the DIP call.
-        const float fNormScale = 251.0f;
-
-        // Transform light direction by inverse (=transpose) object matrix to get object-space light.
-        GEVector vTemp;
-        vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
-        vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
-        vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
-
-        float* pnorm = &(MMBodyParts_pNormal[iMatrixNum << 2]);
-        pnorm[0] = 0.0f;
-        pnorm[1] = vTemp.x * fNormScale;
-        pnorm[2] = vTemp.y * fNormScale;
-        pnorm[3] = vTemp.z * fNormScale;
-    }
-
-    // No environment mapping.
-    ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));
-
-    ASSERT(MM_bLightTableAlreadySetUp);
-
-    return UC_TRUE;
-}
-
-// uc_orig: FIGURE_draw_prim_tween_person_only (fallen/DDEngine/Source/figure.cpp)
-// Full software-renderer fallback for one body part in person-only mode (D3D MultiMatrix not available).
-// Unlike _just_set_matrix, this also iterates all faces, transforms vertices in software,
-// computes per-face lighting via dot product, and submits to the software polygon rasteriser.
-void FIGURE_draw_prim_tween_person_only(
-    SLONG prim,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    SLONG recurse_level,
-    Thing* p_thing)
-{
-    SLONG i;
-
-    SLONG sp;
-    SLONG ep;
-
-    SLONG p0;
-    SLONG p1;
-    SLONG p2;
-    SLONG p3;
-
-    Matrix33 mat_final;
-
-    SLONG page;
-
-    PrimFace4* p_f4;
-    PrimFace3* p_f3;
-    PrimObject* p_obj;
-
-    POLY_Point* pp;
-
-    POLY_Point* tri[3];
-    POLY_Point* quad[4];
-    SLONG tex_page_offset;
-
-    tex_page_offset = p_thing->Genus.Person->pcom_colour & 0x3;
-
-    // Per-body-part WORLD transform read straight from the interpolation
-    // pose snapshot — the SINGLE always-available source of pose. No legacy
-    // keyframe / hierarchy recompute: the snapshot already bakes body
-    // rotation, character scale and the inter-bone hierarchy. (The old
-    // end_mat/end_pos propagation only fed HIERARCHY_Get_Body_Part_Offset,
-    // whose result was always overwritten by this snapshot — see
-    // skeletal_skinning_plan.md.)
-    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-    SLONG part = FIGURE_dhpr_rdata1[recurse_level].part_number;
-    if (!pose || part < 0 || part >= POSE_MAX_BONES)
-        return;
-
-    const BoneInterpTransform& xf = pose[part];
-    float off_x = xf.pos_x;
-    float off_y = xf.pos_y;
-    float off_z = xf.pos_z;
-    mat_final = xf.rot;
-
-    float fmatrix[9];
-    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-    POLY_set_local_rotation(
-        off_x,
-        off_y,
-        off_z,
-        fmatrix);
-
-    p_obj = &prim_objects[prim];
-
-    sp = p_obj->StartPoint;
-    ep = p_obj->EndPoint;
-
-    POLY_buffer_upto = 0;
-
-    // Check for being a gun
-    if (prim == 256) {
-        i = sp;
-    } else if (prim == 258) {
-        // Or a shotgun
-        i = sp + 15;
-    } else if (prim == 260) {
-        // or an AK
-        i = sp + 32;
-    } else {
-        goto no_muzzle_calcs; // which skips...
-    }
-
-    // this bit, which only executes if one of the above tests is true.
-    pp = &POLY_buffer[POLY_buffer_upto]; // no ++, so reused
-    pp->x = AENG_dx_prim_points[i].X;
-    pp->y = AENG_dx_prim_points[i].Y;
-    pp->z = AENG_dx_prim_points[i].Z;
-    MATRIX_MUL(
-        fmatrix,
-        pp->x,
-        pp->y,
-        pp->z);
-
-    pp->x += off_x;
-    pp->y += off_y;
-    pp->z += off_z;
-    p_thing->Genus.Person->GunMuzzle.X = pp->x * 256;
-    p_thing->Genus.Person->GunMuzzle.Y = pp->y * 256;
-    p_thing->Genus.Person->GunMuzzle.Z = pp->z * 256;
-
-no_muzzle_calcs:
-
-    ASSERT(MM_bLightTableAlreadySetUp);
-
-    if (WITHIN(prim, 261, 263)) {
-        // This is a muzzle flash — no lighting.
-
-        for (i = sp; i < ep; i++) {
-            ASSERT(WITHIN(POLY_buffer_upto, 0, POLY_BUFFER_SIZE - 1));
-
-            pp = &POLY_buffer[POLY_buffer_upto++];
-
-            POLY_transform_using_local_rotation(
-                AENG_dx_prim_points[i].X,
-                AENG_dx_prim_points[i].Y,
-                AENG_dx_prim_points[i].Z,
-                pp);
-
-            pp->colour = 0xff808080;
-            pp->specular = 0xff000000;
-        }
-
-        for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-            p_f4 = &prim_faces4[i];
-
-            p0 = p_f4->Points[0] - sp;
-            p1 = p_f4->Points[1] - sp;
-            p2 = p_f4->Points[2] - sp;
-            p3 = p_f4->Points[3] - sp;
-
-            ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p3, 0, POLY_buffer_upto - 1));
-
-            quad[0] = &POLY_buffer[p0];
-            quad[1] = &POLY_buffer[p1];
-            quad[2] = &POLY_buffer[p2];
-            quad[3] = &POLY_buffer[p3];
-
-            if (POLY_valid_quad(quad)) {
-                quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
-                quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
-                quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
-                quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
-                quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
-                quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
-                quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
-
-                page = p_f4->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f4->TexturePage;
-
-                if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
-                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-                } else
-                    page += FACE_PAGE_OFFSET;
-
-                POLY_add_quad(quad, page, !(p_f4->DrawFlags & POLY_FLAG_DOUBLESIDED));
-            }
-        }
-
-        for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-            p_f3 = &prim_faces3[i];
-
-            p0 = p_f3->Points[0] - sp;
-            p1 = p_f3->Points[1] - sp;
-            p2 = p_f3->Points[2] - sp;
-
-            ASSERT(WITHIN(p0, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p1, 0, POLY_buffer_upto - 1));
-            ASSERT(WITHIN(p2, 0, POLY_buffer_upto - 1));
-
-            tri[0] = &POLY_buffer[p0];
-            tri[1] = &POLY_buffer[p1];
-            tri[2] = &POLY_buffer[p2];
-
-            if (POLY_valid_triangle(tri)) {
-                tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
-
-                tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
-                tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
-
-                tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
-                tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
-
-                page = p_f3->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f3->TexturePage;
-
-                if (tex_page_offset && page > 10 * 64 && alt_texture[page - 10 * 64]) {
-                    page = alt_texture[page - 10 * 64] + tex_page_offset - 1;
-                } else
-                    page += FACE_PAGE_OFFSET;
-
-                POLY_add_triangle(tri, page, !(p_f3->DrawFlags & POLY_FLAG_DOUBLESIDED));
-            }
-        }
-
-        return;
-    } else {
-
-        ASSERT(MM_bLightTableAlreadySetUp);
-
-        extern float POLY_cam_matrix_comb[9];
-        extern float POLY_cam_off_x;
-        extern float POLY_cam_off_y;
-        extern float POLY_cam_off_z;
-
-        extern GEMatrix g_matProjection;
-        extern GEMatrix g_matWorld;
-        extern GEViewport g_viewData;
-
-        GEMatrix matTemp;
-
-        matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
-        matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
-        matTemp._13 = g_matWorld._11 * g_matProjection._13 + g_matWorld._12 * g_matProjection._23 + g_matWorld._13 * g_matProjection._33 + g_matWorld._14 * g_matProjection._43;
-        matTemp._14 = g_matWorld._11 * g_matProjection._14 + g_matWorld._12 * g_matProjection._24 + g_matWorld._13 * g_matProjection._34 + g_matWorld._14 * g_matProjection._44;
-
-        matTemp._21 = g_matWorld._21 * g_matProjection._11 + g_matWorld._22 * g_matProjection._21 + g_matWorld._23 * g_matProjection._31 + g_matWorld._24 * g_matProjection._41;
-        matTemp._22 = g_matWorld._21 * g_matProjection._12 + g_matWorld._22 * g_matProjection._22 + g_matWorld._23 * g_matProjection._32 + g_matWorld._24 * g_matProjection._42;
-        matTemp._23 = g_matWorld._21 * g_matProjection._13 + g_matWorld._22 * g_matProjection._23 + g_matWorld._23 * g_matProjection._33 + g_matWorld._24 * g_matProjection._43;
-        matTemp._24 = g_matWorld._21 * g_matProjection._14 + g_matWorld._22 * g_matProjection._24 + g_matWorld._23 * g_matProjection._34 + g_matWorld._24 * g_matProjection._44;
-
-        matTemp._31 = g_matWorld._31 * g_matProjection._11 + g_matWorld._32 * g_matProjection._21 + g_matWorld._33 * g_matProjection._31 + g_matWorld._34 * g_matProjection._41;
-        matTemp._32 = g_matWorld._31 * g_matProjection._12 + g_matWorld._32 * g_matProjection._22 + g_matWorld._33 * g_matProjection._32 + g_matWorld._34 * g_matProjection._42;
-        matTemp._33 = g_matWorld._31 * g_matProjection._13 + g_matWorld._32 * g_matProjection._23 + g_matWorld._33 * g_matProjection._33 + g_matWorld._34 * g_matProjection._43;
-        matTemp._34 = g_matWorld._31 * g_matProjection._14 + g_matWorld._32 * g_matProjection._24 + g_matWorld._33 * g_matProjection._34 + g_matWorld._34 * g_matProjection._44;
-
-        matTemp._41 = g_matWorld._41 * g_matProjection._11 + g_matWorld._42 * g_matProjection._21 + g_matWorld._43 * g_matProjection._31 + g_matWorld._44 * g_matProjection._41;
-        matTemp._42 = g_matWorld._41 * g_matProjection._12 + g_matWorld._42 * g_matProjection._22 + g_matWorld._43 * g_matProjection._32 + g_matWorld._44 * g_matProjection._42;
-        matTemp._43 = g_matWorld._41 * g_matProjection._13 + g_matWorld._42 * g_matProjection._23 + g_matWorld._43 * g_matProjection._33 + g_matWorld._44 * g_matProjection._43;
-        matTemp._44 = g_matWorld._41 * g_matProjection._14 + g_matWorld._42 * g_matProjection._24 + g_matWorld._43 * g_matProjection._34 + g_matWorld._44 * g_matProjection._44;
-
-        extern DWORD g_dw3DStuffHeight;
-        extern DWORD g_dw3DStuffY;
-        DWORD dwWidth = g_viewData.dwWidth >> 1;
-        DWORD dwHeight = g_dw3DStuffHeight >> 1;
-        DWORD dwX = g_viewData.dwX;
-        DWORD dwY = g_dw3DStuffY;
-        MM_pMatrix[0]._11 = 0.0f;
-        MM_pMatrix[0]._12 = matTemp._11 * (float)dwWidth + matTemp._14 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._14 = matTemp._14;
-        MM_pMatrix[0]._21 = 0.0f;
-        MM_pMatrix[0]._22 = matTemp._21 * (float)dwWidth + matTemp._24 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._23 = matTemp._22 * -(float)dwHeight + matTemp._24 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._24 = matTemp._24;
-        MM_pMatrix[0]._31 = 0.0f;
-        MM_pMatrix[0]._32 = matTemp._31 * (float)dwWidth + matTemp._34 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._34 = matTemp._34;
-        // Validation magic number.
-        ULONG EVal = 0xe0001000;
-        MM_pMatrix[0]._41 = *(float*)&EVal;
-        MM_pMatrix[0]._42 = matTemp._41 * (float)dwWidth + matTemp._44 * (float)(dwX + dwWidth);
-        MM_pMatrix[0]._43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
-        MM_pMatrix[0]._44 = matTemp._44;
-
-        // 251 is a magic number for the DIP call.
-        const float fNormScale = 251.0f;
-
-        // Transform light direction by inverse (=transpose) object matrix.
-        GEVector vTemp;
-        vTemp.x = MM_vLightDir.x * fmatrix[0] + MM_vLightDir.y * fmatrix[3] + MM_vLightDir.z * fmatrix[6];
-        vTemp.y = MM_vLightDir.x * fmatrix[1] + MM_vLightDir.y * fmatrix[4] + MM_vLightDir.z * fmatrix[7];
-        vTemp.z = MM_vLightDir.x * fmatrix[2] + MM_vLightDir.y * fmatrix[5] + MM_vLightDir.z * fmatrix[8];
-
-        MM_pNormal[0] = 0.0f;
-        MM_pNormal[1] = vTemp.x * fNormScale;
-        MM_pNormal[2] = vTemp.y * fNormScale;
-        MM_pNormal[3] = vTemp.z * fNormScale;
-    }
-
-    // The MM stuff doesn't like specular to be enabled.
-    ge_set_specular_enabled(false);
-
-    // For now, just calculate as-and-when.
-    TomsPrimObject* pPrimObj = &(D3DObj[prim]);
-    if (pPrimObj->wNumMaterials == 0) {
-        // Not initialised. Do so.
-        FIGURE_generate_D3D_object(prim);
-    }
-
-    // Tell the LRU cache we used this one.
-    FIGURE_touch_LRU_of_object(pPrimObj);
-
-    ASSERT(pPrimObj->pD3DVertices != NULL);
-    ASSERT(pPrimObj->pMaterials != NULL);
-    ASSERT(pPrimObj->pwListIndices != NULL);
-    ASSERT(pPrimObj->pwStripIndices != NULL);
-    ASSERT(pPrimObj->wNumMaterials != 0);
-
-    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
-
-    GEMultiMatrix mm;
-    mm.matrices = MM_pMatrix;
-    mm.lpvLightDirs = MM_pNormal;
-    mm.skin_cache = nullptr; // 1D: set per-material before each draw
-
-    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
-    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
-    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
-        UWORD wPage = pMat->wTexturePage;
-        UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
-
-        if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
-            wRealPage = jacket_lookup[wRealPage][GET_SKILL(p_thing) >> 2];
-            wRealPage += FACE_PAGE_OFFSET;
-        } else if (wPage & TEXTURE_PAGE_FLAG_OFFSET) {
-            if (tex_page_offset == 0) {
-                wRealPage += FACE_PAGE_OFFSET;
-            } else {
-                wRealPage = alt_texture[wRealPage - (10 * 64)] + tex_page_offset - 1;
-            }
-        }
-
-        extern GEMatrix g_matWorld;
-
-        PolyPage* pa = &(POLY_Page[wRealPage]);
-        ASSERT(!pa->RS.NeedsSorting() && (FIGURE_alpha == 255));
-
-        // Originally had a distance check here that skipped near-plane geometry (with an empty
-        // else branch — the fallback was never implemented). Now always renders via MultiMatrix;
-        // z guard in ge_draw_multi_matrix prevents div/0 for near vertices, GPU clips the rest.
-
-        if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-            mm.lpLightTable = MM_pcFadeTableTint;
-        } else {
-            mm.lpLightTable = MM_pcFadeTable;
-        }
-        mm.lpvVertices = pVertex;
-        mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
-
-        pa->RS.SetCullMode(GECullMode::CCW);
-        pa->RS.SetAlphaBlendEnabled(false);
-        pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
-        pa->RS.SetChanged();
-
-        {
-            // Set view-space Z for CPU fog in ge_draw_multi_matrix.
-            g_mm_fog_view_z = g_matWorld._43;
-
-            ge_draw_multi_matrix(
-                GEMMVertexType::Unlit,
-                &mm,
-                pMat->wNumVertices,
-                pwStripIndices,
-                pMat->wNumStripIndices);
-        }
-
-        // Next material
-        pVertex += pMat->wNumVertices;
-        pwStripIndices += pMat->wNumStripIndices;
-
-        pMat++;
-    }
-
-    // The MM stuff doesn't like specular to be enabled.
-    ge_set_specular_enabled(true);
-
-    // No environment mapping.
-    ASSERT(p_thing && (p_thing->Class != CLASS_VEHICLE));
-
-    ASSERT(MM_bLightTableAlreadySetUp);
-}

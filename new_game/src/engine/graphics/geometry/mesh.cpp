@@ -541,6 +541,26 @@ NIGHT_Colour* MESH_draw_poly(
     return MESH_draw_guts(prim, at_x, at_y, at_z, matrix, lpc, alpha_bits, crumple);
 }
 
+// Variant of MESH_draw_poly that takes an already-built world rotation
+// matrix (D3D-row-vector form, same as POLY_set_local_rotation expects)
+// instead of yaw/pitch/roll. Used by held-item draw paths (gun in hand,
+// muzzle flash) where the orientation comes straight from a character
+// bone's world rotation in the pose snapshot — no Euler decomposition
+// needed.
+NIGHT_Colour* MESH_draw_poly_at_matrix(
+    SLONG prim,
+    MAPCO16 at_x,
+    MAPCO16 at_y,
+    MAPCO16 at_z,
+    float matrix[9],
+    NIGHT_Colour* lpc,
+    UBYTE fade)
+{
+    ULONG alpha_bits = fade << 24;
+    POLY_set_local_rotation(float(at_x), float(at_y), float(at_z), matrix);
+    return MESH_draw_guts(prim, at_x, at_y, at_z, matrix, lpc, alpha_bits, 0);
+}
+
 // uc_orig: MESH_draw_poly_inv_matrix (fallen/DDEngine/Source/mesh.cpp)
 NIGHT_Colour* MESH_draw_poly_inv_matrix(
     SLONG prim,

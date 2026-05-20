@@ -144,32 +144,27 @@ extern int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 // uc_orig: MAX_INDICES (fallen/DDEngine/Source/figure.cpp)
 #define MAX_INDICES (MAX_VERTS * 4)
 
-// --- D3D MultiMatrix lighting working state ---
-// These pointers point into aligned static arrays allocated in figure.cpp.
-// Used by BuildMMLightingTable (chunk 1) and FIGURE_draw_prim_tween_person_only (chunk 5).
+// --- Lighting working state (consumed by the world-skin shader) ---
 
 // uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
 // 128-entry ULONG fade table: 0-63=lit ramp, 64-127=flat ambient.
+// Built per character in BuildMMLightingTable; uploaded to the shader
+// as the unlit fade ramp (no per-vertex CPU lighting).
 extern ULONG* MM_pcFadeTable;
 
 // uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
 // Same as MM_pcFadeTable but with colour_and mask applied (for tinted textures).
 extern ULONG* MM_pcFadeTableTint;
 
-// uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
-// One GEMatrix slot for the MultiMatrix draw extension.
-extern GEMatrix* MM_pMatrix;
-
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
-// Scratch GEVertex array for MultiMatrix vertex submission.
+// Scratch GEVertex array used by BuildMMLightingTable.
 extern GEVertex* MM_Vertex;
 
-// uc_orig: MM_pNormal (fallen/DDEngine/Source/figure.cpp)
-// Light direction in object space (4 floats: padding + x + y + z).
-extern float* MM_pNormal;
-
 // uc_orig: MM_vLightDir (fallen/DDEngine/Source/figure.cpp)
-// Dominant light direction vector (unit), computed per character in BuildMMLightingTable.
+// Dominant light direction vector (unit), computed per character in
+// BuildMMLightingTable. Uploaded to the world-skin shader pre-scaled
+// by 251 (= legacy fNormScale) so the per-vertex half-Lambert math
+// in the shader matches the original CPU path.
 extern GEVector MM_vLightDir;
 
 // uc_orig: MM_bLightTableAlreadySetUp (fallen/DDEngine/Source/figure.cpp)
@@ -240,18 +235,10 @@ extern structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
 #define PART_HANDS 6
 
 // uc_orig: MAX_NUM_BODY_PARTS_AT_ONCE (fallen/DDEngine/Source/figure.cpp)
-// Maximum number of body parts batched in one DrawIndPrimMM call.
+// Maximum number of body parts in one consolidated character mesh.
+// Was originally the cap on a D3D DrawIndPrimMM draw; today this is
+// the upper bound on bones in the world-skin palette per character.
 #define MAX_NUM_BODY_PARTS_AT_ONCE 20
-
-// uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
-// Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE GEMatrix objects.
-// Initialised at startup by MMBodyPartsInit. Passed as matrices in GEMultiMatrix.
-extern GEMatrix* MMBodyParts_pMatrix;
-
-// uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
-// Pointer to aligned float storage for MAX_NUM_BODY_PARTS_AT_ONCE * 4 light direction floats.
-// Initialised at startup by MMBodyPartsInit. Passed as lpvLightDirs in GEMultiMatrix.
-extern float* MMBodyParts_pNormal;
 
 // --- Misc character draw state ---
 

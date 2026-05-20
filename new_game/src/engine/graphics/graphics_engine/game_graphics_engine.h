@@ -493,70 +493,46 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
 
 // Skinned character vertex. GPU-transform path for the figure system —
 // see skeletal_skinning_plan.md and skeletal_skinning_phase2_plan.md.
-// 52 bytes (P2-D): pos(12) + normal(12) + bone(4) + color(4) + specular(4)
-//                + uv(8) + bones[4](4) + weights[4](4).
-// Position is bone-local for the baked path (skin_vert.glsl) or shared
-// bind-space for the world path (skin_world_vert.glsl) — both flavours
-// share the same VBO struct, the chosen path decides interpretation.
+// 52 bytes: pos(12) + normal(12) + bone(4) + color(4) + specular(4)
+//         + uv(8) + bones[4](4) + weights[4](4).
+// Position is in shared bind-space (consumed by skin_world_vert.glsl) —
+// figure_build_consolidated_skin_world pre-multiplies authored bone-local
+// positions by bind_world[bMatIndex] when building the VBO. `bone` is the
+// single-bone index used by the shadow-silhouette shader; `bones` /
+// `weights` are the multi-bone palette consumed by the world-skin shader.
 // `color` is used by the lit (non-character) path only; the unlit
 // (character) path derives color in-shader from normal + bone light dir
-// + fade table. `specular` is the CPU-computed fog (BGRA, D3D 0xAARRGGBB
-// order). `bones`/`weights` (P2-D) are used by the world path only.
+// + fade table. `specular` is the CPU-computed fog (BGRA, D3D 0xAARRGGBB).
 struct GESkinVertex {
-    float    x, y, z;    // model (bone-local) or bind-space, depending on the path that built this VBO
-    float    nx, ny, nz; // normal in matching space
-    uint32_t bone;       // legacy single-bone index (bMatIndex). Read by skin_vert.glsl and shadow_sil_vert.glsl. Removed at P2-J when those shaders go away.
+    float    x, y, z;    // bind-space position
+    float    nx, ny, nz; // bind-space normal
+    uint32_t bone;       // single-bone index — read by shadow_sil_vert.glsl
     uint32_t color;      // BGRA (lit path only; unlit derives in-shader)
     uint32_t specular;   // BGRA (CPU fog)
     float    u, v;
-    // Phase 2 P2-D: multi-bone palette for the world-skin path. Up to
-    // 4 bones per vertex with normalized uint8 weights (0..255 → 0..1).
-    // Consumed by skin_world_vert.glsl only — the legacy shaders still
-    // read .bone above. At P2-D the build writes trivial weights
-    // (bones[0]=own, weights[0]=255, rest=0) so multi-bone math is
-    // identical to single-bone; P2-E auto-rig then populates real
-    // weights without further shader changes.
+    // Multi-bone palette for the world-skin path. Up to 4 bones per
+    // vertex with normalised uint8 weights (0..255 → 0..1). Consumed by
+    // skin_world_vert.glsl only — the shadow-silhouette path reads .bone
+    // above. Trivial weights (bones[0]=own, weights[0]=255, rest=0) give
+    // single-bone behaviour; the auto-rig (people only, in
+    // figure_build_consolidated_skin_world) populates real soft weights
+    // at leaf joints without further shader changes.
     uint8_t  bones[4];
     uint8_t  weights[4];
 };
 
-// Max matrices in one skinned draw's palette (ge_draw_multi_matrix is the
-// D3D MultiMatrix extension — a call may reference several bone matrices
-// via per-vertex index). Calls exceeding this fall back to the CPU path.
+// Max bones in a single skinned palette. The world-skin shader fits up
+// to GE_SKIN_MAX_BONES bones in its `u_skin` uniform array.
 #define GE_SKIN_MAX_BONES 32
 
-// Draw one ge_draw_multi_matrix call's geometry with the transform done on
-// the GPU (skin_vert.glsl): model-space verts, each transformed by
-// palette[vertex.bone]. `palette` is the call's mm->matrices, `palette_n`
-// = matrices actually referenced (≤ GE_SKIN_MAX_BONES). Reproduces the CPU
-// transform + lighting 1:1. One draw call per ge_draw_multi_matrix call.
-//
-// 1B lighting (skeletal_skinning_plan.md): when `unlit` (character path),
-// the shader computes per-vertex color exactly like the CPU did —
-//   cos = dot(normal, light_dirs[bone]) / 251; wrap = cos*0.5 + 0.5;
-//   idx = clamp(int(wrap*64), 0, 63); color = fade_table[idx].
-// `light_dirs` = mm->lpvLightDirs (4 floats per bone, [1..3] = dir, same
-// layout the CPU indexed); `fade_table` = mm->lpLightTable (first 64
-// ULONG entries, the only ones this ramp uses). Both are NULL/ignored
-// when !unlit (lit path keeps the per-vertex color in GESkinVertex).
-void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
-    const GESkinVertex* verts, uint32_t vert_count,
-    const uint16_t* indices, uint32_t index_count,
-    bool unlit, const float* light_dirs, const uint32_t* fade_table);
-
-// Persistent skinned mesh — skeletal_skinning_plan.md, Milestone 1D.
-// The model-space geometry of a character body part is static (it never
-// changes between frames; only the bone matrices do). So it is uploaded
-// to its own GPU buffer ONCE and reused every frame — owned by the model
-// (TomsPrimObject), freed when the model's CPU mesh is freed. palette_n
-// (max bone index referenced) is also model-static, stored in the mesh.
+// Persistent skinned mesh. The bind-space geometry of a character is
+// static (never changes between frames; only the per-frame skin palette
+// does) — uploaded to its own GPU buffer ONCE and reused every frame.
+// Owned by the model (TomsPrimObject::skin_consolidated_world), freed
+// when the model's CPU mesh is freed.
 struct GESkinMesh;
 GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
     const uint16_t* indices, uint32_t index_count, uint32_t palette_n);
-// Draw with the current frame's bone palette + lighting inputs. Geometry
-// comes from the persistent buffer; only uniforms change per frame.
-void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
-    bool unlit, const float* light_dirs, const uint32_t* fade_table);
 void ge_skin_mesh_destroy(GESkinMesh* mesh);
 
 // World-skin draw — skeletal_skinning_phase2_plan.md P2-C.
@@ -570,14 +546,15 @@ void ge_skin_mesh_destroy(GESkinMesh* mesh);
 //                 (same layout as ge_shadow_silhouette_draw). Rotation
 //                 already pre-divided by 32768 — caller responsibility.
 //   screen_xform: one GEMatrix, the camera*projection*viewport bake
-//                 (figure.cpp's MMBodyParts_pMatrix layout, but the
-//                 per-bone transform is identity — the skin handles
-//                 that). Validation magic ._41 = 0xe0001000u not
-//                 required here.
+//                 with per-bone transform = identity (the skin handles
+//                 per-bone transform).
 //   lightdir_world: 3 floats — MM_vLightDir, world space (NOT the
 //                 bone-local pre-transform the baked path needed).
 //   fog_view_z:   per-character view-Z (g_mm_fog_view_z).
-//   unlit/fade:   same semantics as ge_skin_mesh_draw.
+//   unlit/fade:   when unlit, the shader computes per-vertex colour as
+//                 idx = clamp(int(((dot(N, L)/251)*0.5 + 0.5)*64), 0, 63);
+//                 color = fade_table[idx]. Lit path keeps per-vertex
+//                 colour from GESkinVertex.
 void ge_skin_world_draw_range(GESkinMesh* mesh,
     uint32_t index_start, uint32_t index_count,
     const float* skin_palette, uint32_t bone_count,

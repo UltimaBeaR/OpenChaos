@@ -1,43 +1,41 @@
 #version 410 core
 
-// World-space skinned character vertex shader — skeletal_skinning_phase2_plan.md,
-// step P2-C (consolidated mesh, bind-pose + skin matrices).
+// World-space skinned character vertex shader — the single GPU skinning
+// path for all skeletally-animated things (people and animals/Bane/
+// Balrog/bats/Gargoyle alike). See skeletal_skinning_phase2_plan.md.
 //
-// Differences from the baked-palette path (skin_vert.glsl):
+// Inputs:
 //
-//   - a_position is in SHARED BIND-SPACE (mesh-build multiplied each bone-
-//     local position by bind_palette[bMatIndex]). So a single fixed reference
-//     frame holds the whole character.
+//   - a_position is in SHARED BIND-SPACE (mesh-build multiplied each
+//     bone-local authored position by bind_palette[bMatIndex]). So a
+//     single fixed reference frame holds the whole character.
 //
 //   - Per-bone palette (u_skin) carries the CLEAN world-space transform
-//     skin[i] = current[i] * bind_inv[i] — same structure as the shadow
-//     silhouette path (shadow_sil_vert.glsl): 3 vec4 per bone with the row's
-//     translation packed into .w.  Output of  skin * bind_pos  is WORLD space.
+//     skin[i] = current[i] * inverse(bind[i]) — same structure as the
+//     shadow silhouette path: 3 vec4 per bone with the row's translation
+//     packed into .w. Output of skin * bind_pos is WORLD space.
 //
 //   - A single u_screen_xform (per character, not per bone) carries the
-//     camera*projection*viewport bake — exactly the matrix the existing
-//     skin_vert.glsl receives PER bone with the per-bone transform baked in.
-//     With world-space input we only need the shared screen-projection part.
+//     camera*projection*viewport bake — the per-bone transform lives in
+//     u_skin so this stays shared.
 //
-// The perspective-divide + screen->NDC math is COPIED VERBATIM from
-// skin_vert.glsl so the on-screen result for w0=1 single-bone matches the
-// baked path pixel-for-pixel — that's the P2-C gate (skeletal_skinning_
-// phase2_plan.md section 6, "Гейт: визуально 1:1").
-//
-// Multi-bone (P2-E) lights up naturally:
+// Multi-bone blend (auto-rig at people leaf joints — 5-pair bidirectional
+// in figure_build_consolidated_skin_world):
 //   world_pos    = Σ w_i * (skin[bone_i] * bind_pos)
 //   world_normal = Σ w_i * (skin[bone_i].rot * bind_normal)
-// Same world*projection pipeline applies after the blend.
+// Same world*projection pipeline applies after the blend. Single-bone
+// rigs (animals, plus people parts outside leaf-joint blend zones) use
+// trivial weights w0=1, rest=0 — math collapses to a single transform.
 
 const int MAX_BONES = 32; // = GE_SKIN_MAX_BONES (game_graphics_engine.h)
 
-layout(location = 0) in vec3  a_position; // BIND-space (was bone-local in skin_vert)
+layout(location = 0) in vec3  a_position; // BIND-space
 layout(location = 1) in vec4  a_color;    // BGRA — lit path only
 layout(location = 2) in vec4  a_specular; // BGRA — CPU specular (only RGB used; .a built here)
 layout(location = 3) in vec2  a_texcoord;
-// location 4 (legacy single-bone `a_bone`) is consumed by skin_vert.glsl
-// and shadow_sil_vert.glsl, kept in the VBO for those paths. The world
-// path uses the multi-bone palette at locations 6/7 below.
+// location 4 (single-bone `a_bone`) is consumed by shadow_sil_vert.glsl,
+// kept in the VBO for that path. The world-skin path uses the multi-bone
+// palette at locations 6/7 below.
 layout(location = 5) in vec3  a_normal;   // BIND-space normal
 layout(location = 6) in uvec4 a_bones;    // multi-bone palette indices (P2-D)
 layout(location = 7) in vec4  a_weights;  // multi-bone weights, normalized 0..1 (P2-D)
@@ -52,16 +50,13 @@ layout(location = 7) in vec4  a_weights;  // multi-bone weights, normalized 0..1
 // shadow_sil_vert.glsl's layout exactly).
 uniform vec4 u_skin[MAX_BONES * 3];
 
-// Camera-projection-viewport bake, shared by every bone (only depends on the
-// camera + render target, not on the character's skeleton). Same column
-// layout as MMBodyParts_pMatrix in the baked path: row 1 (.x lane) is a
-// validation pattern not used by the shader; columns 2/3/4 carry the
-// screen-x / screen-y / view-z bases the same way (see figure.cpp lines
-// 3497-3516 for the CPU baker, skin_vert.glsl lines 99-117 for the matching
-// shader-side column-pick).
-uniform vec4 u_screen_xform[4]; // 4 rows; column 1 unused (matches MMBodyParts_pMatrix bake)
+// Camera-projection-viewport bake, shared by every bone (only depends
+// on the camera + render target, not on the character's skeleton).
+// Column 1 (.x lane) is unused; columns 2/3/4 carry the screen-x /
+// screen-y / view-z bases. See figure_build_screen_xform_bake.
+uniform vec4 u_screen_xform[4]; // 4 rows; column 1 unused
 
-uniform vec3  u_lightdir_world; // MM_vLightDir directly — world space (was bone-local in skin_vert.glsl)
+uniform vec3  u_lightdir_world; // MM_vLightDir, world space
 uniform uint  u_fadetable[64];  // ULONG ramp, 0x00RRGGBB
 uniform int   u_skin_unlit;     // 1 = derive color from ramp (character path)
 uniform vec4  u_viewport;       // D3D viewport (x, y, w, h)
@@ -162,20 +157,16 @@ void main()
 
     // --- Color (1B): half-Lambert ramp lookup, world-space dot ----------------
     if (u_skin_unlit != 0) {
-        // Exact replica of the CPU half-Lambert ramp lookup (skin_vert.glsl
-        // lines 73-86). Single difference: dot is taken in WORLD space here,
-        // and the CPU baker for u_lightdir_world skipped the per-bone
-        // inverse-rotation transform that the bone-local path did.
+        // Replica of the legacy CPU half-Lambert ramp lookup, but with
+        // the dot taken in WORLD space (u_lightdir_world is uploaded
+        // pre-scaled by 251 = fNormScale, matching the CPU table).
         //
         // Normalise: weighted blend of unit normals isn't unit in general
         // (Σ w_i × n_i has length ≤ 1), and integer-fixed-point matrix
         // multiplication in skin = current × inv_bind can introduce drift
         // > 1. Without this normalize, wrap can exceed [0,1] at certain
         // bone orientations and clamp to idx 0 (ambient) — visible as the
-        // character going black at specific viewing angles. The legacy
-        // baked path didn't have this issue because it dotted unit a_normal
-        // directly against per-bone (unit × 251) light without going through
-        // a multi-matrix product.
+        // character going black at specific viewing angles.
         vec3  N       = normalize(world_normal);
         float dot_raw = dot(N, u_lightdir_world);
         float cos_nl  = dot_raw * (1.0 / 251.0); // undo fNormScale = 251
@@ -200,10 +191,9 @@ void main()
     v_texcoord  = a_texcoord;
 
     // --- Screen transform: world_pos × u_screen_xform ---------------------
-    // Same column-pick pattern as skin_vert.glsl lines 99-117: take columns
-    // 2/3/4 (.y/.z/.w) of the camera*projection*viewport bake to get
-    // screen-x / screen-y / view-z directly. Column 1 is the validation
-    // EVAL pattern (0xe0001000) and is not consumed.
+    // Column-pick: take columns 2/3/4 (.y/.z/.w) of the
+    // camera*projection*viewport bake to get screen-x / screen-y /
+    // view-z directly. Column 1 (.x lane) is unused.
     vec4 r0 = u_screen_xform[0];
     vec4 r1 = u_screen_xform[1];
     vec4 r2 = u_screen_xform[2];

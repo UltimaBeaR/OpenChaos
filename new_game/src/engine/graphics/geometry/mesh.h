@@ -35,6 +35,19 @@ NIGHT_Colour* MESH_draw_poly(
     UBYTE fade,
     SLONG crumple = 0);
 
+// Variant of MESH_draw_poly that takes an already-built rotation matrix
+// (D3D-row-vector form) instead of yaw/pitch/roll. Used for held items
+// attached to a character bone (gun in hand, muzzle flash) — the matrix
+// is read directly from the pose snapshot, no Euler conversion needed.
+NIGHT_Colour* MESH_draw_poly_at_matrix(
+    SLONG prim,
+    SLONG at_x,
+    SLONG at_y,
+    SLONG at_z,
+    float matrix[9],
+    NIGHT_Colour* lpc,
+    UBYTE fade);
+
 // uc_orig: MESH_draw_poly_inv_matrix (fallen/DDEngine/Headers/mesh.h)
 // Same as MESH_draw_poly but uses a non-transposed rotation matrix.
 // Used for helicopters where the standard D3D transpose convention is skipped.

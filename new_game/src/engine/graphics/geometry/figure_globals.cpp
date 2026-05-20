@@ -90,14 +90,8 @@ ULONG* MM_pcFadeTable = NULL;
 // uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
 ULONG* MM_pcFadeTableTint = NULL;
 
-// uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
-GEMatrix* MM_pMatrix = NULL;
-
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
 GEVertex* MM_Vertex = NULL;
-
-// uc_orig: MM_pNormal (fallen/DDEngine/Source/figure.cpp)
-float* MM_pNormal = NULL;
 
 // uc_orig: MM_vLightDir (fallen/DDEngine/Source/figure.cpp)
 GEVector MM_vLightDir;
@@ -117,12 +111,6 @@ structFIGURE_dhpr_data FIGURE_dhpr_data;
 
 // uc_orig: FIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
 structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
-
-// uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
-GEMatrix* MMBodyParts_pMatrix = NULL;
-
-// uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
-float* MMBodyParts_pNormal = NULL;
 
 // --- Misc character draw state ---
 
@@ -152,32 +140,24 @@ SLONG FIGURE_reflect_y2 = 0;
 // uc_orig: FIGURE_reflect_height (fallen/DDEngine/Source/figure.cpp)
 float FIGURE_reflect_height = 0.0f;
 
-// Backing storage for the aligned MM_* pointers (not original entities — these replace
-// the ALIGNED_STATIC_ARRAY macro from figure.cpp which generated equivalent static storage).
-// Kept here so all global state is visible in _globals files per project rules.
+// Backing storage for the aligned MM_pcFadeTable*/MM_Vertex pointers (not
+// original entities — these replace the ALIGNED_STATIC_ARRAY macro from
+// figure.cpp which generated equivalent static storage). Kept here so
+// all global state is visible in _globals files per project rules.
 static char cMM_pcFadeTableStorage[4 + 128 * sizeof(ULONG)];
 static char cMM_pcFadeTableTintStorage[4 + 128 * sizeof(ULONG)];
-static char cMM_pMatrixStorage[32 + 1 * sizeof(GEMatrix)];
 static char cMM_VertexStorage[32 + 4 * sizeof(GEVertex)];
-static char cMM_pNormalStorage[8 + 4 * sizeof(float)];
-static char cMMBodyParts_pMatrixStorage[32 + MAX_NUM_BODY_PARTS_AT_ONCE * sizeof(GEMatrix)];
-static char cMMBodyParts_pNormalStorage[8 + MAX_NUM_BODY_PARTS_AT_ONCE * 4 * sizeof(float)];
 
-// Initialises MM_* global pointers to aligned addresses within the above storage.
-// Replaces ALIGNED_STATIC_ARRAY(static ...) declarations from the original figure.cpp.
-// This constructor runs before main, guaranteeing MM_* are valid for any code that calls
-// BuildMMLightingTable or FIGURE_draw_prim_tween_*.
+// Initialises the lighting-table global pointers to aligned addresses
+// within the above storage. Runs before main, guaranteeing they're valid
+// for any code that calls BuildMMLightingTable.
 namespace {
 struct MMLightingTableInit {
     MMLightingTableInit()
     {
-        MM_pcFadeTable = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage + 3) & ~(uintptr_t)3);
+        MM_pcFadeTable     = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage     + 3) & ~(uintptr_t)3);
         MM_pcFadeTableTint = (ULONG*)(((uintptr_t)cMM_pcFadeTableTintStorage + 3) & ~(uintptr_t)3);
-        MM_pMatrix = (GEMatrix*)(((uintptr_t)cMM_pMatrixStorage + 31) & ~(uintptr_t)31);
-        MM_Vertex = (GEVertex*)(((uintptr_t)cMM_VertexStorage + 31) & ~(uintptr_t)31);
-        MM_pNormal = (float*)(((uintptr_t)cMM_pNormalStorage + 7) & ~(uintptr_t)7);
-        MMBodyParts_pMatrix = (GEMatrix*)(((uintptr_t)cMMBodyParts_pMatrixStorage + 31) & ~(uintptr_t)31);
-        MMBodyParts_pNormal = (float*)(((uintptr_t)cMMBodyParts_pNormalStorage + 7) & ~(uintptr_t)7);
+        MM_Vertex          = (GEVertex*)(((uintptr_t)cMM_VertexStorage      + 31) & ~(uintptr_t)31);
     }
 } g_MMLightingTableInit;
 }

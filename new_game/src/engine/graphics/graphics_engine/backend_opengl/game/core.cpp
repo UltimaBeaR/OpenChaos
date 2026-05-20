@@ -476,36 +476,6 @@ static GLint s_tl_u_tex_has_alpha = -1;
 static GLint s_tl_u_farfacet_mode = -1;
 static GLint s_tl_u_diagnostic_color = -1; // P2-E diagnostic — see common_frag.glsl
 
-// Skin (GPU character transform) program — skeletal_skinning_plan.md 1A.
-// Same fragment shader as TL (common_frag), different vertex shader.
-static GLuint s_program_skin = 0;
-static GLint s_sk_u_viewport = -1;
-static GLint s_sk_u_xform = -1;
-static GLint s_sk_u_zclip = -1;
-static GLint s_sk_u_has_texture = -1;
-static GLint s_sk_u_texture = -1;
-static GLint s_sk_u_texture_blend = -1;
-static GLint s_sk_u_alpha_test_enabled = -1;
-static GLint s_sk_u_alpha_ref = -1;
-static GLint s_sk_u_alpha_func = -1;
-static GLint s_sk_u_fog_enabled = -1;
-static GLint s_sk_u_fog_color = -1;
-static GLint s_sk_u_fog_near = -1;
-static GLint s_sk_u_fog_far = -1;
-static GLint s_sk_u_specular_enabled = -1;
-static GLint s_sk_u_color_key_enabled = -1;
-static GLint s_sk_u_tex_has_alpha = -1;
-static GLint s_sk_u_farfacet_mode = -1;
-static GLint s_sk_u_diagnostic_color = -1; // P2-E diagnostic
-static GLint s_sk_u_view_z_tl_scale = -1;
-static GLint s_sk_u_lightdir = -1;   // 1B: per-bone light dir palette
-static GLint s_sk_u_fadetable = -1;  // 1B: 64-entry ramp (ULONG)
-static GLint s_sk_u_skin_unlit = -1; // 1B: 1 = derive color from ramp
-static GLint s_sk_u_fog_view_z = -1;     // 1C: g_mm_fog_view_z (per call)
-static GLint s_sk_u_fog_fade_start = -1; // 1C: POLY_FADEOUT_START (once)
-static GLint s_sk_u_fog_fade_scale = -1; // 1C: fade scale (once)
-static GLuint s_vao_skin = 0;
-
 // Shadow-silhouette program — skeletal_skinning_plan.md 1E. Renders the
 // persistent skin meshes into the shadow texture with a pure world palette
 // + sun ortho projection (replaces the SMAP software rasteriser).
@@ -613,16 +583,15 @@ static void setup_vao_tl(GLuint vao, GLuint vbo, GLuint ebo)
     glBindVertexArray(0);
 }
 
-// Set up VAO for GESkinVertex layout: 52 bytes per vertex (P2-D).
+// Set up VAO for GESkinVertex layout: 52 bytes per vertex.
 // [0..11]  vec3 position           [12..23] vec3 normal
-// [24..27] uint bone (legacy idx)  [28..31] u8x4 color (BGRA)
+// [24..27] uint bone (single-idx)  [28..31] u8x4 color (BGRA)
 // [32..35] u8x4 specular (BGRA)    [36..43] vec2 texcoord (u,v)
-// [44..47] u8x4 bones (P2-D)       [48..51] u8x4 weights (P2-D, normalized)
+// [44..47] u8x4 bones              [48..51] u8x4 weights (normalised)
 //
-// `bone` (location 4) is the legacy single-bone index consumed by
-// skin_vert.glsl and shadow_sil_vert.glsl until P2-J removes both.
-// `bones` / `weights` (locations 6, 7) are the multi-bone palette for the
-// world-skin shader skin_world_vert.glsl.
+// `bone` (location 4) is the single-bone index consumed by
+// shadow_sil_vert.glsl. `bones` / `weights` (locations 6, 7) are the
+// multi-bone palette for the world-skin shader skin_world_vert.glsl.
 static void setup_vao_skin(GLuint vao, GLuint vbo, GLuint ebo)
 {
     glBindVertexArray(vao);
@@ -691,42 +660,6 @@ static bool init_shaders()
     glUniform4f(s_tl_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUseProgram(0);
 
-    // Skin (GPU character transform) program — skeletal_skinning_plan.md 1A.
-    s_program_skin = gl_shader_create_program(SHADER_SKIN_VERT, SHADER_FRAG);
-    if (!s_program_skin) {
-        fprintf(stderr, "Failed to create skin shader program\n");
-        return false;
-    }
-    s_sk_u_viewport = glGetUniformLocation(s_program_skin, "u_viewport");
-    s_sk_u_xform = glGetUniformLocation(s_program_skin, "u_xform");
-    s_sk_u_zclip = glGetUniformLocation(s_program_skin, "u_zclip");
-    s_sk_u_lightdir = glGetUniformLocation(s_program_skin, "u_lightdir");
-    s_sk_u_fadetable = glGetUniformLocation(s_program_skin, "u_fadetable");
-    s_sk_u_skin_unlit = glGetUniformLocation(s_program_skin, "u_skin_unlit");
-    s_sk_u_fog_view_z = glGetUniformLocation(s_program_skin, "u_fog_view_z");
-    s_sk_u_fog_fade_start = glGetUniformLocation(s_program_skin, "u_fog_fade_start");
-    s_sk_u_fog_fade_scale = glGetUniformLocation(s_program_skin, "u_fog_fade_scale");
-    cache_frag_uniforms(s_program_skin,
-        &s_sk_u_has_texture, &s_sk_u_texture, &s_sk_u_texture_blend,
-        &s_sk_u_alpha_test_enabled, &s_sk_u_alpha_ref, &s_sk_u_alpha_func,
-        &s_sk_u_fog_enabled, &s_sk_u_fog_color, &s_sk_u_fog_near, &s_sk_u_fog_far,
-        &s_sk_u_specular_enabled, &s_sk_u_color_key_enabled, &s_sk_u_tex_has_alpha,
-        &s_sk_u_farfacet_mode);
-    s_sk_u_view_z_tl_scale = glGetUniformLocation(s_program_skin, "u_view_z_tl_scale");
-    s_sk_u_diagnostic_color = glGetUniformLocation(s_program_skin, "u_diagnostic_color");
-    glUseProgram(s_program_skin);
-    glUniform1f(s_sk_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
-    glUniform1f(s_sk_u_zclip, POLY_ZCLIP_PLANE); // constant — set once
-    // 1C fog constants — single source is poly.h, set once like u_zclip.
-    glUniform1f(s_sk_u_fog_fade_start, POLY_FADEOUT_START);
-    glUniform1f(s_sk_u_fog_fade_scale,
-        256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
-    // P2-E diagnostic infrastructure stays plumbed but disabled — alpha=0
-    // makes the fragment-shader early-exit not trigger so the normal
-    // pipeline runs. Re-arm by setting alpha>0.5 for solid debug tinting.
-    glUniform4f(s_sk_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
-    glUseProgram(0);
-
     // Shadow-silhouette program — skeletal_skinning_plan.md 1E.
     s_program_shadow_sil =
         gl_shader_create_program(SHADER_SHADOW_SIL_VERT, SHADER_SHADOW_SIL_FRAG);
@@ -791,8 +724,6 @@ static bool init_shaders()
     // Create VAO.
     glGenVertexArrays(1, &s_vao_tl);
     setup_vao_tl(s_vao_tl, s_vbo, s_ebo);
-    glGenVertexArrays(1, &s_vao_skin);
-    setup_vao_skin(s_vao_skin, s_vbo, s_ebo);
 
     s_shaders_ready = true;
     fprintf(stderr, "OpenGL shaders initialized (TL + skin programs)\n");
@@ -1412,121 +1343,6 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
     s_draw_calls++;
 }
 
-// GPU character transform + lighting — skeletal_skinning_plan.md, 1A–1D.
-// Bind the skin program and upload all per-draw uniforms (bone palette,
-// 1B lighting, 1C fog, frag/viewport state). Shared by the streaming path
-// (ge_draw_skinned) and the persistent path (ge_skin_mesh_draw) — the only
-// difference between them is where the geometry comes from. palette_n must
-// already be clamped to GE_SKIN_MAX_BONES.
-static void skin_bind_and_set_uniforms(const struct GEMatrix* palette,
-    uint32_t palette_n, bool unlit, const float* light_dirs,
-    const uint32_t* fade_table)
-{
-    if (s_cached_program != s_program_skin) {
-        glUseProgram(s_program_skin);
-        s_cached_program = s_program_skin;
-        s_uniforms_ever_uploaded = false; // shared TL snapshot now stale
-    }
-
-    // Matrix palette: palette_n GEMatrix, each = 4 vec4 rows in memory
-    // order (_r1.._r4). skin_vert.glsl picks columns to match the CPU path.
-    glUniform4fv(s_sk_u_xform, (GLsizei)(palette_n * 4),
-        reinterpret_cast<const float*>(palette));
-
-    // 1B lighting: the unlit (character) path derives color in-shader from
-    // the per-bone light dir + the fade ramp. Both come from the MM call;
-    // only do it when present (lit calls pass them null and keep a_color).
-    bool do_ramp = unlit && light_dirs && fade_table;
-    if (do_ramp) {
-        // CPU read light_dirs[bone*4 + 1..3]; pack to vec3 per bone.
-        float ld[GE_SKIN_MAX_BONES * 3];
-        for (uint32_t bn = 0; bn < palette_n; bn++) {
-            ld[bn * 3 + 0] = light_dirs[bn * 4 + 1];
-            ld[bn * 3 + 1] = light_dirs[bn * 4 + 2];
-            ld[bn * 3 + 2] = light_dirs[bn * 4 + 3];
-        }
-        glUniform3fv(s_sk_u_lightdir, (GLsizei)palette_n, ld);
-        // Ramp uses only entries [0..63] (idx is clamped there CPU-side).
-        glUniform1uiv(s_sk_u_fadetable, 64,
-            reinterpret_cast<const GLuint*>(fade_table));
-    }
-    glUniform1i(s_sk_u_skin_unlit, do_ramp ? 1 : 0);
-
-    // 1C fog: g_mm_fog_view_z is the view-Z of the character, set by
-    // figure.cpp before this MM call (constant for the whole call) —
-    // the exact scalar the CPU packed into specular.a.
-    glUniform1f(s_sk_u_fog_view_z, g_mm_fog_view_z);
-
-    // Skin frag/viewport uniforms — always uploaded. Skin draws are a
-    // small fraction of the frame, and this keeps the skin program off
-    // the shared TL uniform snapshot (set_frag_uniforms) entirely.
-    glUniform4f(s_sk_u_viewport,
-        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
-
-    bool has_tex = (s_bound_texture != GE_TEXTURE_NONE);
-    glUniform1i(s_sk_u_tex_has_alpha, s_bound_texture_has_alpha ? 1 : 0);
-    glUniform1i(s_sk_u_has_texture, has_tex ? 1 : 0);
-    if (has_tex) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, s_bound_texture);
-        glUniform1i(s_sk_u_texture, 0);
-        GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
-        GLint gl_min;
-        if (s_bound_texture_has_mipmaps)
-            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
-        else
-            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
-        GLint gl_wrap = (s_tex_address == GETextureAddress::Clamp) ? GL_CLAMP_TO_EDGE : GL_REPEAT;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
-    }
-    glUniform1i(s_sk_u_texture_blend, static_cast<int>(s_texture_blend));
-    glUniform1i(s_sk_u_alpha_test_enabled, s_alpha_test_enabled ? 1 : 0);
-    glUniform1f(s_sk_u_alpha_ref, s_alpha_ref / 255.0f);
-    glUniform1i(s_sk_u_alpha_func, static_cast<int>(s_alpha_func));
-    glUniform1i(s_sk_u_fog_enabled, s_fog_enabled ? 1 : 0);
-    if (s_fog_enabled) {
-        float fr = ((s_fog_color >> 16) & 0xFF) / 255.0f;
-        float fg = ((s_fog_color >> 8) & 0xFF) / 255.0f;
-        float fb = ((s_fog_color >> 0) & 0xFF) / 255.0f;
-        glUniform3f(s_sk_u_fog_color, fr, fg, fb);
-        glUniform1f(s_sk_u_fog_near, s_fog_near);
-        glUniform1f(s_sk_u_fog_far, s_fog_far);
-    }
-    glUniform1i(s_sk_u_specular_enabled, s_specular_enabled ? 1 : 0);
-    glUniform1i(s_sk_u_color_key_enabled, s_color_key_enabled ? 1 : 0);
-    glUniform1i(s_sk_u_farfacet_mode, s_farfacet_mode);
-}
-
-// Streaming skinned draw — one ge_draw_multi_matrix call's geometry
-// uploaded to the shared stream VBO this frame. Used as the build-time /
-// fallback path; the persistent path (ge_skin_mesh_*) is preferred once a
-// model has been cached (Milestone 1D).
-void ge_draw_skinned(const struct GEMatrix* palette, uint32_t palette_n,
-    const GESkinVertex* verts, uint32_t vert_count,
-    const uint16_t* indices, uint32_t index_count,
-    bool unlit, const float* light_dirs, const uint32_t* fade_table)
-{
-    PERF_GE_CALL();
-    if (!palette || !palette_n || !verts || !vert_count || !indices || !index_count)
-        return;
-    if (palette_n > GE_SKIN_MAX_BONES)
-        palette_n = GE_SKIN_MAX_BONES; // caller falls back before this, guard anyway
-    if (!init_shaders())
-        return;
-
-    skin_bind_and_set_uniforms(palette, palette_n, unlit, light_dirs, fade_table);
-
-    glBindVertexArray(s_vao_skin);
-    glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-    glBufferData(GL_ARRAY_BUFFER, vert_count * sizeof(GESkinVertex), verts, GL_STREAM_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, s_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, index_count * sizeof(uint16_t), indices, GL_STREAM_DRAW);
-    glDrawElements(GL_TRIANGLES, index_count, GL_UNSIGNED_SHORT, nullptr);
-    s_draw_calls++;
-}
 
 // --- Persistent skinned mesh (Milestone 1D) ---------------------------
 // Model-space geometry is static, so it lives in its own GPU buffers for
@@ -1558,8 +1374,8 @@ GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
     glGenVertexArrays(1, &m->vao);
     // CRITICAL: bind THIS mesh's VAO before touching GL_ELEMENT_ARRAY_BUFFER.
     // The element-buffer binding is per-VAO state. If we bound m->ebo while
-    // some OTHER (persistent) mesh's VAO was still bound (ge_skin_mesh_draw
-    // leaves a VAO bound), we would clobber that mesh's index buffer — the
+    // some OTHER mesh's VAO was still bound (a previous draw could leave
+    // one bound), we would clobber that mesh's index buffer — the
     // "half the triangles vanish but the rest animate fine" bug. Binding
     // our VAO first contains the element binding to m->vao only.
     glBindVertexArray(m->vao);
@@ -1571,25 +1387,6 @@ GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
     // already-bound m->vao, records m->ebo into it, leaves VAO 0 bound).
     setup_vao_skin(m->vao, m->vbo, m->ebo);
     return m;
-}
-
-void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
-    bool unlit, const float* light_dirs, const uint32_t* fade_table)
-{
-    PERF_GE_CALL();
-    if (!mesh || !palette || !mesh->index_count)
-        return;
-    if (!init_shaders())
-        return;
-
-    skin_bind_and_set_uniforms(palette, mesh->palette_n, unlit, light_dirs, fade_table);
-
-    glBindVertexArray(mesh->vao);
-    glDrawElements(GL_TRIANGLES, mesh->index_count, GL_UNSIGNED_SHORT, nullptr);
-    // Don't leave this mesh's VAO bound — a later ge_skin_mesh_create
-    // touching GL_ELEMENT_ARRAY_BUFFER would otherwise corrupt it.
-    glBindVertexArray(0);
-    s_draw_calls++;
 }
 
 void ge_skin_mesh_destroy(GESkinMesh* mesh)
@@ -1942,9 +1739,9 @@ void ge_draw_indexed_primitive_lit(GEPrimitiveType type, const GEVertexLit* vert
 
     // TECH DEBT: CPU-transform. A GPU lit vertex shader would be faster but D3D
     // matrices use different clip space conventions than OpenGL (Z [0,1] vs [-1,1],
-    // viewport Y). All other geometry already uses CPU-transform → TL path
-    // (ge_draw_multi_matrix), so this is consistent. Performance is fine for ~200
-    // leaf/dirt vertices per frame. See known_issues_and_bugs.md.
+    // viewport Y). All other geometry already uses CPU-transform → TL path,
+    // so this is consistent. Performance is fine for ~200 leaf/dirt vertices
+    // per frame. See known_issues_and_bugs.md.
 
     // Compute combined WVP matrix (row-major, D3D convention: v' = v * WVP).
     // View is identity in this engine, so WVP = World * Projection.

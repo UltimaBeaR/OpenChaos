@@ -142,36 +142,24 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 // uc_orig: FIGURE_generate_D3D_object (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_generate_D3D_object(SLONG prim);
 
-// Flat-skeleton body-part renderer. Per-part WORLD transform comes from the
-// interpolation pose snapshot (single source of pose); sets up the GPU
-// MultiMatrix path on opaque non-clipped materials and the muzzle-flash prims.
-// uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween(
-    SLONG prim,
-    ULONG colour,
-    ULONG specular,
-    Thing* p_thing,
-    SLONG part_number = 0xffffffff,
-    ULONG colour_and = 0xffffffff);
-
-// Optimised hierarchical 15-body-part character renderer using D3D MultiMatrix extension.
-// Batches all 15 body part transforms, then issues a single DrawIndPrimMM call.
-// Falls back to FIGURE_draw_hierarchical_prim_recurse_individual_cull on partial visibility.
+// 15-body-part character renderer. Builds a consolidated TomsPrimObject
+// on first use, then draws the whole rig in one pass through the
+// world-skin shader (one ge_skin_world_draw_range call per material).
+// Held items (gun / muzzle flash) for armed characters are drawn as
+// rigid meshes at the hand bone's world transform.
 // uc_orig: FIGURE_draw_hierarchical_prim_recurse (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person);
 
-// Slower fallback that culls individual body parts separately.
-// Called when not all 15 body parts pass the near-Z test together.
-// uc_orig: FIGURE_draw_hierarchical_prim_recurse_individual_cull (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person);
-
-// Top-level entry point: renders one character Thing* for the current frame.
-// Dispatches to hierarchical (15-part D3D path) or flat loop depending on ElementCount.
+// Top-level entry point: renders one character Thing* for the current
+// frame. Calls FIGURE_draw_hierarchical_prim_recurse for the 15-bone
+// person rig (the only person rig that ships).
 // uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw(Thing* p_thing);
 
-// Draws an animated non-character object using the DrawTween keyframe system.
-// Uses flat body-part loop (no hierarchical dispatch). Calls NIGHT_find() for lighting.
+// Draws a flat-skeleton creature (DT_ANIM_PRIM: bats, Bane, Balrog,
+// Gargoyle) through the same world-skin path persons use — a single
+// consolidated VBO per (chunk, start_object) cached in D3DAnimObj[],
+// one ge_skin_world_draw_range call per material.
 // uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
 void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
 
@@ -197,31 +185,5 @@ void FIGURE_draw_prim_tween_reflection(
 // Top-level water reflection renderer: reflects all body parts about the given Y height.
 // uc_orig: FIGURE_draw_reflection (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw_reflection(Thing* p_thing, SLONG height);
-
-// "Matrix-only" body-part step for the D3D MultiMatrix fast path.
-// Computes and stores the transform matrix + light vector for one body part without emitting geometry.
-// Returns UC_TRUE if the body part passes the near-Z cull, UC_FALSE if it should be skipped.
-// uc_orig: FIGURE_draw_prim_tween_person_only_just_set_matrix (fallen/DDEngine/Source/figure.cpp)
-bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
-    int iMatrixNum,
-    SLONG prim,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    SLONG recurse_level,
-    Thing* p_thing);
-
-// Full software-renderer fallback for one body part in person-only mode.
-// Transforms all vertices and submits quads/tris to the software rasteriser.
-// uc_orig: FIGURE_draw_prim_tween_person_only (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween_person_only(
-    SLONG prim,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    SLONG recurse_level,
-    Thing* p_thing);
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_FIGURE_H

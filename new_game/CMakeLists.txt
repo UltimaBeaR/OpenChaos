@@ -89,7 +89,6 @@ set(SHADER_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h")
 set(SHADER_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_shaders.cmake")
 file(WRITE "${SHADER_EMBED_SCRIPT}" "
 file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
-file(READ \"\${SHADER_DIR}/skin_vert.glsl\" SKIN_VERT)
 file(READ \"\${SHADER_DIR}/skin_world_vert.glsl\" SKIN_WORLD_VERT)
 file(READ \"\${SHADER_DIR}/shadow_sil_vert.glsl\" SHADOW_SIL_VERT)
 file(READ \"\${SHADER_DIR}/shadow_sil_frag.glsl\" SHADOW_SIL_FRAG)
@@ -103,7 +102,6 @@ file(READ \"\${SHADER_DIR}/crt_frag.glsl\" CRT_FRAG)
 file(WRITE \"\${OUT}\"
     \"// Auto-generated from .glsl files — do not edit.\\n\"
     \"static const char* const SHADER_TL_VERT = R\\\"glsl(\\n\${TL})glsl\\\";\\n\\n\"
-    \"static const char* const SHADER_SKIN_VERT = R\\\"glsl(\\n\${SKIN_VERT})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_SKIN_WORLD_VERT = R\\\"glsl(\\n\${SKIN_WORLD_VERT})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_SHADOW_SIL_VERT = R\\\"glsl(\\n\${SHADOW_SIL_VERT})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_SHADOW_SIL_FRAG = R\\\"glsl(\\n\${SHADOW_SIL_FRAG})glsl\\\";\\n\\n\"
@@ -121,7 +119,6 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -DSHADER_DIR="${SHADER_DIR}" -DOUT="${SHADER_HEADER}" -P "${SHADER_EMBED_SCRIPT}"
     DEPENDS
         "${SHADER_DIR}/tl_vert.glsl"
-        "${SHADER_DIR}/skin_vert.glsl"
         "${SHADER_DIR}/skin_world_vert.glsl"
         "${SHADER_DIR}/shadow_sil_vert.glsl"
         "${SHADER_DIR}/shadow_sil_frag.glsl"

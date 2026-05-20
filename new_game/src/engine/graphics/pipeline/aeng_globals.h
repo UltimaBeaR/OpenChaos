@@ -315,9 +315,6 @@ extern SLONG next_rrect;
 // Debug stub for visualising lo-res gamut cells.
 void show_gamut_lo(SLONG x, SLONG z);
 
-// Forward declaration — full definition in polypage.h.
-struct GEMultiMatrix;
-
 // uc_orig: AENG_draw_released_balloons (fallen/DDEngine/Source/aeng.cpp)
 void AENG_draw_released_balloons(void);
 
