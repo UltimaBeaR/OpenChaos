@@ -556,6 +556,33 @@ void ge_skin_mesh_draw_range(GESkinMesh* mesh,
     bool unlit, const float* light_dirs, const uint32_t* fade_table);
 void ge_skin_mesh_destroy(GESkinMesh* mesh);
 
+// World-skin draw — skeletal_skinning_phase2_plan.md P2-C.
+// Bind-space mesh + world-space skin palette (= current * inv_bind) +
+// per-character camera*projection*viewport bake. Skips the per-bone
+// matrix bake the baked path needs, and outputs single-bone or (later)
+// multi-bone blended world positions.
+//
+//   skin_palette: bone_count * 12 floats. Each bone is 3 vec4 rows in
+//                 the "M*v" form r0=(R00,R01,R02,tx), r1=..., r2=...
+//                 (same layout as ge_shadow_silhouette_draw). Rotation
+//                 already pre-divided by 32768 — caller responsibility.
+//   screen_xform: one GEMatrix, the camera*projection*viewport bake
+//                 (figure.cpp's MMBodyParts_pMatrix layout, but the
+//                 per-bone transform is identity — the skin handles
+//                 that). Validation magic ._41 = 0xe0001000u not
+//                 required here.
+//   lightdir_world: 3 floats — MM_vLightDir, world space (NOT the
+//                 bone-local pre-transform the baked path needed).
+//   fog_view_z:   per-character view-Z (g_mm_fog_view_z).
+//   unlit/fade:   same semantics as ge_skin_mesh_draw.
+void ge_skin_world_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    const float* lightdir_world,
+    float fog_view_z,
+    bool unlit, const uint32_t* fade_table);
+
 // GPU shadow-silhouette render-to-texture — skeletal_skinning_plan.md 1E.
 // Renders the persistent skin meshes into a sub-rect (x,y,w,h, GL pixel
 // coords, bottom-left origin) of user texture page `tex_page`, using a

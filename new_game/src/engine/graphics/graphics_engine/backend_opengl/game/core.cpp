@@ -511,6 +511,39 @@ static GLuint s_program_shadow_sil = 0;
 static GLint s_ss_u_xform = -1;       // per-bone world affine (3 vec4/bone)
 static GLint s_ss_u_shadow_proj = -1; // world -> shadow-clip (per person)
 
+// World-skin program — skeletal_skinning_phase2_plan.md P2-C.
+// Bind-space verts + clean world skin palette (skin = current * inv_bind),
+// projected by a per-character camera*projection*viewport bake.
+// Shares the same fragment shader as TL/skin (common_frag.glsl).
+static GLuint s_program_skin_world = 0;
+static GLint s_sw_u_skin = -1;            // 15 * 3 vec4 = world skin (M*v form)
+static GLint s_sw_u_screen_xform = -1;    // 1 GEMatrix (camera*proj*viewport bake)
+static GLint s_sw_u_lightdir_world = -1;  // vec3 (MM_vLightDir, world space)
+static GLint s_sw_u_fadetable = -1;       // 64 ULONG ramp (shared shape with skin path)
+static GLint s_sw_u_skin_unlit = -1;
+static GLint s_sw_u_viewport = -1;
+static GLint s_sw_u_zclip = -1;
+static GLint s_sw_u_fog_view_z = -1;
+static GLint s_sw_u_fog_fade_start = -1;
+static GLint s_sw_u_fog_fade_scale = -1;
+// Frag-shader uniform locations (texture, alpha, fog, ...). Same fragment
+// shader as the other skin programs — same set of uniforms.
+static GLint s_sw_u_has_texture = -1;
+static GLint s_sw_u_texture = -1;
+static GLint s_sw_u_texture_blend = -1;
+static GLint s_sw_u_alpha_test_enabled = -1;
+static GLint s_sw_u_alpha_ref = -1;
+static GLint s_sw_u_alpha_func = -1;
+static GLint s_sw_u_fog_enabled = -1;
+static GLint s_sw_u_fog_color = -1;
+static GLint s_sw_u_fog_near = -1;
+static GLint s_sw_u_fog_far = -1;
+static GLint s_sw_u_specular_enabled = -1;
+static GLint s_sw_u_color_key_enabled = -1;
+static GLint s_sw_u_tex_has_alpha = -1;
+static GLint s_sw_u_farfacet_mode = -1;
+static GLint s_sw_u_view_z_tl_scale = -1;
+
 // VAO for each vertex format. VBO/EBO are shared (streaming).
 static GLuint s_vao_tl = 0;
 static GLuint s_vbo = 0; // streaming vertex buffer
@@ -680,6 +713,42 @@ static bool init_shaders()
     s_ss_u_xform = glGetUniformLocation(s_program_shadow_sil, "u_xform");
     s_ss_u_shadow_proj =
         glGetUniformLocation(s_program_shadow_sil, "u_shadow_proj");
+
+    // World-skin program — skeletal_skinning_phase2_plan.md P2-C. Same
+    // fragment shader as TL / baked-skin; the only thing the new vertex
+    // shader changes is how positions/normals/colors reach the fragment
+    // stage.
+    s_program_skin_world =
+        gl_shader_create_program(SHADER_SKIN_WORLD_VERT, SHADER_FRAG);
+    if (!s_program_skin_world) {
+        fprintf(stderr, "Failed to create world-skin shader program\n");
+        return false;
+    }
+    s_sw_u_skin           = glGetUniformLocation(s_program_skin_world, "u_skin");
+    s_sw_u_screen_xform   = glGetUniformLocation(s_program_skin_world, "u_screen_xform");
+    s_sw_u_lightdir_world = glGetUniformLocation(s_program_skin_world, "u_lightdir_world");
+    s_sw_u_fadetable      = glGetUniformLocation(s_program_skin_world, "u_fadetable");
+    s_sw_u_skin_unlit     = glGetUniformLocation(s_program_skin_world, "u_skin_unlit");
+    s_sw_u_viewport       = glGetUniformLocation(s_program_skin_world, "u_viewport");
+    s_sw_u_zclip          = glGetUniformLocation(s_program_skin_world, "u_zclip");
+    s_sw_u_fog_view_z     = glGetUniformLocation(s_program_skin_world, "u_fog_view_z");
+    s_sw_u_fog_fade_start = glGetUniformLocation(s_program_skin_world, "u_fog_fade_start");
+    s_sw_u_fog_fade_scale = glGetUniformLocation(s_program_skin_world, "u_fog_fade_scale");
+    cache_frag_uniforms(s_program_skin_world,
+        &s_sw_u_has_texture, &s_sw_u_texture, &s_sw_u_texture_blend,
+        &s_sw_u_alpha_test_enabled, &s_sw_u_alpha_ref, &s_sw_u_alpha_func,
+        &s_sw_u_fog_enabled, &s_sw_u_fog_color, &s_sw_u_fog_near, &s_sw_u_fog_far,
+        &s_sw_u_specular_enabled, &s_sw_u_color_key_enabled, &s_sw_u_tex_has_alpha,
+        &s_sw_u_farfacet_mode);
+    s_sw_u_view_z_tl_scale =
+        glGetUniformLocation(s_program_skin_world, "u_view_z_tl_scale");
+    glUseProgram(s_program_skin_world);
+    glUniform1f(s_sw_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
+    glUniform1f(s_sw_u_zclip, POLY_ZCLIP_PLANE);
+    glUniform1f(s_sw_u_fog_fade_start, POLY_FADEOUT_START);
+    glUniform1f(s_sw_u_fog_fade_scale,
+        256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
+    glUseProgram(0);
 
     // Create shared VBO and EBO. Pre-allocate to avoid repeated orphaning
     // (glBufferData with different sizes) which can trigger NVIDIA driver bugs.
@@ -1531,6 +1600,115 @@ void ge_skin_mesh_destroy(GESkinMesh* mesh)
     if (mesh->ebo)
         glDeleteBuffers(1, &mesh->ebo);
     delete mesh;
+}
+
+// World-skin path — skeletal_skinning_phase2_plan.md P2-C. Bind-space
+// vertices + world-space per-bone skin (current * inv_bind) + a per-
+// character camera*projection*viewport bake. All else (frag uniforms,
+// texture, alpha test, fog) shared with the baked-palette path.
+static void skin_world_bind_and_set_uniforms(
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    const float* lightdir_world,
+    float fog_view_z,
+    bool unlit, const uint32_t* fade_table)
+{
+    if (s_cached_program != s_program_skin_world) {
+        glUseProgram(s_program_skin_world);
+        s_cached_program = s_program_skin_world;
+        s_uniforms_ever_uploaded = false; // shared TL snapshot now stale
+    }
+
+    if (bone_count > GE_SKIN_MAX_BONES)
+        bone_count = GE_SKIN_MAX_BONES;
+
+    // Per-bone WORLD skin: 3 vec4 per bone (rotation rows with translation
+    // in .w). Caller builds  skin = current * inv_bind  with the rotation
+    // already pre-divided by 32768 (so it lands at scale 1.0 here).
+    glUniform4fv(s_sw_u_skin, (GLsizei)(bone_count * 3), skin_palette);
+
+    // Per-character screen bake (camera * projection * viewport), 1 GEMatrix.
+    glUniform4fv(s_sw_u_screen_xform, 4,
+        reinterpret_cast<const float*>(screen_xform));
+
+    // Light direction in WORLD space (MM_vLightDir directly). The bone-local
+    // pre-transform the baked path needed is unnecessary here — the shader
+    // dots normal with this in world space.
+    if (lightdir_world) {
+        glUniform3fv(s_sw_u_lightdir_world, 1, lightdir_world);
+    }
+    bool do_ramp = unlit && fade_table;
+    if (do_ramp) {
+        glUniform1uiv(s_sw_u_fadetable, 64,
+            reinterpret_cast<const GLuint*>(fade_table));
+    }
+    glUniform1i(s_sw_u_skin_unlit, do_ramp ? 1 : 0);
+    glUniform1f(s_sw_u_fog_view_z, fog_view_z);
+
+    glUniform4f(s_sw_u_viewport,
+        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
+
+    bool has_tex = (s_bound_texture != GE_TEXTURE_NONE);
+    glUniform1i(s_sw_u_tex_has_alpha, s_bound_texture_has_alpha ? 1 : 0);
+    glUniform1i(s_sw_u_has_texture, has_tex ? 1 : 0);
+    if (has_tex) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, s_bound_texture);
+        glUniform1i(s_sw_u_texture, 0);
+        GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        GLint gl_min;
+        if (s_bound_texture_has_mipmaps)
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+        else
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
+        GLint gl_wrap = (s_tex_address == GETextureAddress::Clamp) ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
+    }
+    glUniform1i(s_sw_u_texture_blend, static_cast<int>(s_texture_blend));
+    glUniform1i(s_sw_u_alpha_test_enabled, s_alpha_test_enabled ? 1 : 0);
+    glUniform1f(s_sw_u_alpha_ref, s_alpha_ref / 255.0f);
+    glUniform1i(s_sw_u_alpha_func, static_cast<int>(s_alpha_func));
+    glUniform1i(s_sw_u_fog_enabled, s_fog_enabled ? 1 : 0);
+    if (s_fog_enabled) {
+        float fr = ((s_fog_color >> 16) & 0xFF) / 255.0f;
+        float fg = ((s_fog_color >> 8) & 0xFF) / 255.0f;
+        float fb = ((s_fog_color >> 0) & 0xFF) / 255.0f;
+        glUniform3f(s_sw_u_fog_color, fr, fg, fb);
+        glUniform1f(s_sw_u_fog_near, s_fog_near);
+        glUniform1f(s_sw_u_fog_far, s_fog_far);
+    }
+    glUniform1i(s_sw_u_specular_enabled, s_specular_enabled ? 1 : 0);
+    glUniform1i(s_sw_u_color_key_enabled, s_color_key_enabled ? 1 : 0);
+    glUniform1i(s_sw_u_farfacet_mode, s_farfacet_mode);
+}
+
+void ge_skin_world_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    const float* lightdir_world,
+    float fog_view_z,
+    bool unlit, const uint32_t* fade_table)
+{
+    PERF_GE_CALL();
+    if (!mesh || !skin_palette || !screen_xform || !index_count)
+        return;
+    if (index_start + index_count > (uint32_t)mesh->index_count)
+        return;
+    if (!init_shaders())
+        return;
+
+    skin_world_bind_and_set_uniforms(skin_palette, bone_count, screen_xform,
+        lightdir_world, fog_view_z, unlit, fade_table);
+
+    glBindVertexArray(mesh->vao);
+    const GLvoid* offset = (const GLvoid*)(uintptr_t)(index_start * sizeof(uint16_t));
+    glDrawElements(GL_TRIANGLES, (GLsizei)index_count, GL_UNSIGNED_SHORT, offset);
+    glBindVertexArray(0);
+    s_draw_calls++;
 }
 
 // --- GPU shadow-silhouette render-to-texture (Milestone 1E) ------------

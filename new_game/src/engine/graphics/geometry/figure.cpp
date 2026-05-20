@@ -26,6 +26,7 @@
 #include <cstring> // memcpy
 #include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (pose snapshot)
+#include "engine/graphics/geometry/bind_palette.h" // bind_palette_get (P2-C world-skin build)
 #include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
 #include "things/core/drawtype.h"
 #include "game/game_types.h" // NET_PERSON (player Thing*) for figure-morph debug log
@@ -1053,6 +1054,252 @@ static bool figure_build_consolidated_skin(TomsPrimObject* pPrimObj)
     return true;
 }
 
+// Phase 2 P2-C helper: build the per-frame world-skin palette.
+//   skin[i] = current[i] * inv_bind[i]
+// in "M * v" convention, output as 3 vec4 per bone (rotation rows with
+// translation packed in .w) — same layout the shadow-silhouette path
+// uploads. current[i] is the interpolated world transform from the pose
+// snapshot (Matrix33 ×32768, float pos); inv_bind[i] is a GEMatrix in
+// "M * v" form (R top-left at scale 1.0, t in column 4 — bind_palette.cpp).
+// Output rotation lands at scale 1.0 (we divide current's ×32768 here).
+static void figure_build_skin_world_palette(
+    const BoneInterpTransform* current,
+    const GEMatrix*            inv_bind,
+    float                      out_palette[POSE_PERSON_BONE_COUNT * 12])
+{
+    constexpr float S = 1.0f / 32768.0f;
+    for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
+        const Matrix33& cR  = current[i].rot;
+        const GEMatrix& bi  = inv_bind[i];
+        const float pos[3]  = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
+
+        for (int r = 0; r < 3; ++r) {
+            float* o = &out_palette[(i * 3 + r) * 4];
+            // R_skin[r][c] = (1/32768) * sum_k cR.M[r][k] * bi.m[k][c]
+            const float cR0 = float(cR.M[r][0]);
+            const float cR1 = float(cR.M[r][1]);
+            const float cR2 = float(cR.M[r][2]);
+            o[0] = S * (cR0 * bi.m[0][0] + cR1 * bi.m[1][0] + cR2 * bi.m[2][0]);
+            o[1] = S * (cR0 * bi.m[0][1] + cR1 * bi.m[1][1] + cR2 * bi.m[2][1]);
+            o[2] = S * (cR0 * bi.m[0][2] + cR1 * bi.m[1][2] + cR2 * bi.m[2][2]);
+            // t_skin[r] = (1/32768) * sum_k cR.M[r][k] * bi.m[k][3] + current.pos[r]
+            o[3] = S * (cR0 * bi.m[0][3] + cR1 * bi.m[1][3] + cR2 * bi.m[2][3]) + pos[r];
+        }
+    }
+}
+
+// Phase 2 P2-C helper: build the per-character screen-xform bake — the
+// camera*projection*viewport matrix shared by every bone (no per-bone
+// transform baked in; skin handles that). Same column layout as
+// MMBodyParts_pMatrix per FIGURE_draw_prim_tween_person_only_just_set_matrix
+// (figure.cpp:3470-3516), but the input matTemp uses CAMERA-ONLY g_matWorld.
+//
+// Caller responsibility: g_matWorld must hold the camera-only transform
+// when this is called — POLY_set_local_rotation_none() resets it to that
+// state. After this returns, g_matWorld retains the camera-only state
+// (the caller should not depend on a particular value past this point).
+static void figure_build_screen_xform_bake(GEMatrix* out)
+{
+    extern GEMatrix g_matProjection;
+    extern GEMatrix g_matWorld;
+    extern GEViewport g_viewData;
+    extern DWORD g_dw3DStuffHeight;
+    extern DWORD g_dw3DStuffY;
+
+    // Camera-only world matrix — wipes any per-bone offset/rotation left in
+    // g_matWorld from a previous _just_set_matrix call.
+    POLY_set_local_rotation_none();
+
+    // matTemp = g_matWorld * g_matProjection. Same byte-for-byte expression
+    // as figure.cpp:3470-3488.
+    GEMatrix matTemp;
+    matTemp._11 = g_matWorld._11 * g_matProjection._11 + g_matWorld._12 * g_matProjection._21 + g_matWorld._13 * g_matProjection._31 + g_matWorld._14 * g_matProjection._41;
+    matTemp._12 = g_matWorld._11 * g_matProjection._12 + g_matWorld._12 * g_matProjection._22 + g_matWorld._13 * g_matProjection._32 + g_matWorld._14 * g_matProjection._42;
+    matTemp._13 = g_matWorld._11 * g_matProjection._13 + g_matWorld._12 * g_matProjection._23 + g_matWorld._13 * g_matProjection._33 + g_matWorld._14 * g_matProjection._43;
+    matTemp._14 = g_matWorld._11 * g_matProjection._14 + g_matWorld._12 * g_matProjection._24 + g_matWorld._13 * g_matProjection._34 + g_matWorld._14 * g_matProjection._44;
+    matTemp._21 = g_matWorld._21 * g_matProjection._11 + g_matWorld._22 * g_matProjection._21 + g_matWorld._23 * g_matProjection._31 + g_matWorld._24 * g_matProjection._41;
+    matTemp._22 = g_matWorld._21 * g_matProjection._12 + g_matWorld._22 * g_matProjection._22 + g_matWorld._23 * g_matProjection._32 + g_matWorld._24 * g_matProjection._42;
+    matTemp._23 = g_matWorld._21 * g_matProjection._13 + g_matWorld._22 * g_matProjection._23 + g_matWorld._23 * g_matProjection._33 + g_matWorld._24 * g_matProjection._43;
+    matTemp._24 = g_matWorld._21 * g_matProjection._14 + g_matWorld._22 * g_matProjection._24 + g_matWorld._23 * g_matProjection._34 + g_matWorld._24 * g_matProjection._44;
+    matTemp._31 = g_matWorld._31 * g_matProjection._11 + g_matWorld._32 * g_matProjection._21 + g_matWorld._33 * g_matProjection._31 + g_matWorld._34 * g_matProjection._41;
+    matTemp._32 = g_matWorld._31 * g_matProjection._12 + g_matWorld._32 * g_matProjection._22 + g_matWorld._33 * g_matProjection._32 + g_matWorld._34 * g_matProjection._42;
+    matTemp._33 = g_matWorld._31 * g_matProjection._13 + g_matWorld._32 * g_matProjection._23 + g_matWorld._33 * g_matProjection._33 + g_matWorld._34 * g_matProjection._43;
+    matTemp._34 = g_matWorld._31 * g_matProjection._14 + g_matWorld._32 * g_matProjection._24 + g_matWorld._33 * g_matProjection._34 + g_matWorld._34 * g_matProjection._44;
+    matTemp._41 = g_matWorld._41 * g_matProjection._11 + g_matWorld._42 * g_matProjection._21 + g_matWorld._43 * g_matProjection._31 + g_matWorld._44 * g_matProjection._41;
+    matTemp._42 = g_matWorld._41 * g_matProjection._12 + g_matWorld._42 * g_matProjection._22 + g_matWorld._43 * g_matProjection._32 + g_matWorld._44 * g_matProjection._42;
+    matTemp._43 = g_matWorld._41 * g_matProjection._13 + g_matWorld._42 * g_matProjection._23 + g_matWorld._43 * g_matProjection._33 + g_matWorld._44 * g_matProjection._43;
+    matTemp._44 = g_matWorld._41 * g_matProjection._14 + g_matWorld._42 * g_matProjection._24 + g_matWorld._43 * g_matProjection._34 + g_matWorld._44 * g_matProjection._44;
+
+    const DWORD dwWidth  = g_viewData.dwWidth  >> 1;
+    const DWORD dwHeight = g_dw3DStuffHeight   >> 1;
+    const DWORD dwX      = g_viewData.dwX;
+    const DWORD dwY      = g_dw3DStuffY;
+
+    // Viewport bake — identical column layout to MMBodyParts_pMatrix in
+    // figure.cpp:3499-3516. Column 1 is unused (._{1,1}=._{2,1}=._{3,1}=0,
+    // ._{4,1} is the EVAL validation pattern in the baked path; the new
+    // shader doesn't validate, so 0 is fine here).
+    out->_11 = 0.0f;
+    out->_12 = matTemp._11 * (float)dwWidth  + matTemp._14 * (float)(dwX + dwWidth);
+    out->_13 = matTemp._12 * -(float)dwHeight + matTemp._14 * (float)(dwY + dwHeight);
+    out->_14 = matTemp._14;
+    out->_21 = 0.0f;
+    out->_22 = matTemp._21 * (float)dwWidth  + matTemp._24 * (float)(dwX + dwWidth);
+    out->_23 = matTemp._22 * -(float)dwHeight + matTemp._24 * (float)(dwY + dwHeight);
+    out->_24 = matTemp._24;
+    out->_31 = 0.0f;
+    out->_32 = matTemp._31 * (float)dwWidth  + matTemp._34 * (float)(dwX + dwWidth);
+    out->_33 = matTemp._32 * -(float)dwHeight + matTemp._34 * (float)(dwY + dwHeight);
+    out->_34 = matTemp._34;
+    out->_41 = 0.0f;
+    out->_42 = matTemp._41 * (float)dwWidth  + matTemp._44 * (float)(dwX + dwWidth);
+    out->_43 = matTemp._42 * -(float)dwHeight + matTemp._44 * (float)(dwY + dwHeight);
+    out->_44 = matTemp._44;
+}
+
+// Phase 2 P2-C (skeletal_skinning_phase2_plan.md): build the bind-space
+// counterpart to skin_consolidated. Every vertex (and normal) is
+// pre-multiplied by bind_palette[bMatIndex] of the matching anim_type, so
+// the resulting mesh lives in a single shared bind-space and is ready for
+// the world-space skin path (skin_world_vert.glsl).
+//
+// Same topology / per-material ranges as figure_build_consolidated_skin —
+// reuses the existing skin_consolidated_ranges (so this must be called
+// AFTER the bone-local mesh build). On success stores the GPU mesh on
+// pPrimObj->skin_consolidated_world; failure (alloc, > 65535 verts,
+// missing bind palette) leaves it NULL — caller falls back to the
+// baked-palette path.
+static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int anim_type)
+{
+    if (pPrimObj->skin_consolidated_world != NULL)
+        return true;
+    if (pPrimObj->wNumMaterials == 0 || pPrimObj->pMaterials == NULL
+        || pPrimObj->pD3DVertices == NULL || pPrimObj->pwStripIndices == NULL)
+        return false;
+
+    // Bind palette gates the build: only 15-bone person rigs participate
+    // in the world path. Other chunks (animals, bats, Bane, Balrog) fall
+    // through to the baked path here.
+    const GEMatrix* bind_world = NULL;
+    if (!bind_palette_get(anim_type, &bind_world, NULL) || !bind_world)
+        return false;
+
+    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
+    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+
+    std::vector<GESkinVertex> verts;
+    std::vector<uint16_t>     inds;
+    const int n_mats = (int)pPrimObj->wNumMaterials;
+    std::vector<uint32_t>     ranges(n_mats * 2, 0u);
+
+    uint32_t palette_n = 0; // max bone index referenced + 1
+
+    for (int iMat = 0; iMat < n_mats; iMat++) {
+        const uint16_t base_vertex = (uint16_t)verts.size();
+        const uint32_t range_start = (uint32_t)inds.size();
+
+        GEVertex*    pMatVerts    = pVertex;
+        GEVertexLit* pMatVertsLit = (GEVertexLit*)pMatVerts;
+        for (uint32_t v = 0; v < pMat->wNumVertices; v++) {
+            BYTE bMatIndex = ((unsigned char*)(pMatVertsLit + v))[12];
+            // Skin world path is only valid for 15-bone person rigs.
+            // Out-of-range bone index here means the loader produced
+            // something this rig can't handle; bail rather than indexing
+            // beyond bind_world[15]. ASSERT in debug, fail cleanly in release.
+            ASSERT(bMatIndex < 15);
+            if (bMatIndex >= 15)
+                return false;
+
+            // Bind transform: v_bind = R * v_local + t.
+            // bind_world[bone] uses the "M * v" convention with R in the
+            // top-left 3x3 and t in column 4 (see bind_palette.cpp comment
+            // on rigid_to_ge). Position uses the full affine, normal uses
+            // the rotation-only part.
+            const GEMatrix& M = bind_world[bMatIndex];
+            const float lx = pMatVerts[v].x;
+            const float ly = pMatVerts[v].y;
+            const float lz = pMatVerts[v].z;
+            const float lnx = pMatVerts[v].nx;
+            const float lny = pMatVerts[v].ny;
+            const float lnz = pMatVerts[v].nz;
+
+            GESkinVertex sv;
+            sv.x  = M._11 * lx + M._12 * ly + M._13 * lz + M._14;
+            sv.y  = M._21 * lx + M._22 * ly + M._23 * lz + M._24;
+            sv.z  = M._31 * lx + M._32 * ly + M._33 * lz + M._34;
+            sv.nx = M._11 * lnx + M._12 * lny + M._13 * lnz;
+            sv.ny = M._21 * lnx + M._22 * lny + M._23 * lnz;
+            sv.nz = M._31 * lnx + M._32 * lny + M._33 * lnz;
+            sv.bone     = (uint32_t)bMatIndex;
+            sv.color    = 0u;
+            sv.specular = 0u;
+            sv.u = pMatVertsLit[v].u;
+            sv.v = pMatVertsLit[v].v;
+            verts.push_back(sv);
+
+            if ((uint32_t)bMatIndex + 1 > palette_n)
+                palette_n = (uint32_t)bMatIndex + 1;
+        }
+
+        // Strip → triangle list decode is identical to the bone-local
+        // build; same data source, same winding rules.
+        UWORD* p = pwStripIndices;
+        uint32_t remaining = pMat->wNumStripIndices;
+        while (remaining >= 3) {
+            uint16_t wi[3];
+            wi[1] = *p++;
+            wi[2] = *p++;
+            remaining -= 2;
+            bool bEven = true;
+            while (remaining > 0) {
+                bEven = !bEven;
+                wi[0] = wi[1];
+                wi[1] = wi[2];
+                wi[2] = *p++;
+                remaining--;
+                if (wi[2] == 0xffff)
+                    break;
+                uint16_t a, b, c;
+                if (bEven) {
+                    a = wi[0]; b = wi[2]; c = wi[1];
+                } else {
+                    a = wi[0]; b = wi[1]; c = wi[2];
+                }
+                inds.push_back((uint16_t)(base_vertex + a));
+                inds.push_back((uint16_t)(base_vertex + b));
+                inds.push_back((uint16_t)(base_vertex + c));
+            }
+        }
+
+        ranges[iMat * 2 + 0] = range_start;
+        ranges[iMat * 2 + 1] = (uint32_t)inds.size() - range_start;
+
+        pVertex += pMat->wNumVertices;
+        pwStripIndices += pMat->wNumStripIndices;
+        pMat++;
+    }
+
+    if (verts.empty() || inds.empty())
+        return false;
+    if (verts.size() > 0xFFFFu)
+        return false;
+
+    GESkinMesh* mesh = ge_skin_mesh_create(
+        verts.data(), (uint32_t)verts.size(),
+        inds.data(), (uint32_t)inds.size(),
+        palette_n);
+    if (!mesh)
+        return false;
+
+    pPrimObj->skin_consolidated_world = mesh;
+    // Ranges array is identical to the bone-local mesh — make sure it
+    // exists. The caller is expected to drive both builds, so this is
+    // a defensive check; if missing we still keep the mesh and the draw
+    // path can produce ranges on demand from the bone-local build.
+    return true;
+}
+
 // uc_orig: FIGURE_clean_LRU_slot (fallen/DDEngine/Source/figure.cpp)
 // Frees vertex/index memory for one LRU cache slot and clears its metadata.
 void FIGURE_clean_LRU_slot(int iSlot)
@@ -1091,6 +1338,13 @@ void FIGURE_clean_LRU_slot(int iSlot)
     if (ptpo->skin_consolidated_ranges != NULL) {
         MemFree(ptpo->skin_consolidated_ranges);
         ptpo->skin_consolidated_ranges = NULL;
+    }
+    // Phase 2 P2-C: parallel bind-space mesh shares the ranges array with
+    // the bone-local mesh above (freed there), only the GPU buffer is
+    // separate.
+    if (ptpo->skin_consolidated_world != NULL) {
+        ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_consolidated_world);
+        ptpo->skin_consolidated_world = NULL;
     }
 
     MemFree(ptpo->pMaterials);
@@ -1278,6 +1532,9 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     // Phase 2 P2-A: consolidated single-VBO + per-material ranges.
     pPrimObj->skin_consolidated = NULL;
     pPrimObj->skin_consolidated_ranges = NULL;
+    // Phase 2 P2-C: parallel bind-space mesh (built on demand when the
+    // world-skin path is enabled).
+    pPrimObj->skin_consolidated_world = NULL;
 
     TPO_pPrimObj = pPrimObj;
 
@@ -2478,6 +2735,46 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
     uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
     if (!skinMesh || !skinRanges) consolidated = false;
 
+    // Phase 2 P2-C (skeletal_skinning_phase2_plan.md): when the world-skin
+    // toggle is on and we have a valid bind palette + a built bind-space
+    // mesh, draw via the world-skin shader instead. Per-frame skin
+    // palette (= current * inv_bind) + per-character screen bake are
+    // computed once below and reused by every material's draw range.
+    bool use_world_path = false;
+    GESkinMesh* worldMesh = NULL;
+    // 15 bones × 3 vec4 each = 180 floats. Bumping to GE_SKIN_MAX_BONES
+    // would be wasteful (we only use the first 15) but harmless if needed
+    // for non-person rigs later — for now stay tight.
+    float skin_palette_world[POSE_PERSON_BONE_COUNT * 12];
+    GEMatrix screen_xform_world = {};
+    float lightdir_world[3] = {0.0f, 0.0f, 0.0f};
+    if (consolidated && g_skin_world_path_enabled
+        && p_person->Genus.Person
+        && p_person->Draw.Tweened
+        && p_person->Draw.Tweened->TheChunk
+        && p_person->Draw.Tweened->TheChunk->ElementCount == POSE_PERSON_BONE_COUNT) {
+
+        const int anim_type = p_person->Genus.Person->AnimType;
+        const GEMatrix* bind_inv = NULL;
+        if (bind_palette_get(anim_type, NULL, &bind_inv) && bind_inv) {
+            // Lazy build of the bind-space mesh on first use of this rig.
+            if (pPrimObj->skin_consolidated_world == NULL) {
+                figure_build_consolidated_skin_world(pPrimObj, anim_type);
+            }
+            worldMesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
+            const BoneInterpTransform* current =
+                worldMesh ? render_interp_get_cached_pose(p_person) : NULL;
+            if (current) {
+                figure_build_skin_world_palette(current, bind_inv, skin_palette_world);
+                figure_build_screen_xform_bake(&screen_xform_world);
+                lightdir_world[0] = MM_vLightDir.x;
+                lightdir_world[1] = MM_vLightDir.y;
+                lightdir_world[2] = MM_vLightDir.z;
+                use_world_path = true;
+            }
+        }
+    }
+
     GEMultiMatrix mm;
     mm.matrices = MMBodyParts_pMatrix;
     mm.lpvLightDirs = MMBodyParts_pNormal;
@@ -2527,12 +2824,26 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                 const uint32_t index_start = skinRanges[iMatIndex * 2 + 0];
                 const uint32_t index_count = skinRanges[iMatIndex * 2 + 1];
                 if (index_count > 0) {
-                    ge_skin_mesh_draw_range(
-                        skinMesh, index_start, index_count,
-                        MMBodyParts_pMatrix,
-                        /*unlit=*/ true,
-                        (const float*)MMBodyParts_pNormal,
-                        fadeTable);
+                    if (use_world_path) {
+                        // P2-C world path: bind-space verts + per-frame
+                        // skin palette + per-character screen bake.
+                        ge_skin_world_draw_range(
+                            worldMesh, index_start, index_count,
+                            skin_palette_world,
+                            POSE_PERSON_BONE_COUNT,
+                            &screen_xform_world,
+                            lightdir_world,
+                            g_mm_fog_view_z,
+                            /*unlit=*/ true,
+                            fadeTable);
+                    } else {
+                        ge_skin_mesh_draw_range(
+                            skinMesh, index_start, index_count,
+                            MMBodyParts_pMatrix,
+                            /*unlit=*/ true,
+                            (const float*)MMBodyParts_pNormal,
+                            fadeTable);
+                    }
                 }
             } else {
                 // Fallback: original per-material accumulation path.

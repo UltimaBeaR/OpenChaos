@@ -678,8 +678,19 @@ struct TomsPrimObject {
     // path. Lazily built on first character draw, freed in
     // FIGURE_clean_LRU_slot. skin_consolidated_ranges is an array of
     // 2 × wNumMaterials uint32 (index_start, index_count pairs).
-    void* skin_consolidated;          // GESkinMesh*
+    void* skin_consolidated;          // GESkinMesh* (bone-local positions)
     uint32_t* skin_consolidated_ranges;
+
+    // Phase 2 P2-C (skeletal_skinning_phase2_plan.md): parallel mesh with
+    // every vertex pre-multiplied by bind_palette[bMatIndex] — geometry
+    // lives in shared bind-space, ready for the world-space skin path
+    // (skin_world_vert.glsl). Same index buffer / topology / per-material
+    // ranges as skin_consolidated, only the positions and normals differ.
+    // Lazily built when the world path toggle is on AND a valid bind
+    // palette exists for the character's anim_type. NULL = build pending /
+    // skip world path / non-15-bone rig. Reuses skin_consolidated_ranges
+    // (identical material layout).
+    void* skin_consolidated_world;    // GESkinMesh* (bind-space positions)
 };
 
 // Legacy prim object header (includes name field, pre-D3D).

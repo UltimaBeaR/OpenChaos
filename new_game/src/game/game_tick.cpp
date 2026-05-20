@@ -16,6 +16,7 @@
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
 #include "engine/graphics/render_interp.h" // g_tpose_override_enabled (TEMP debug toggle)
+#include "engine/graphics/geometry/bind_palette.h" // g_skin_world_path_enabled (TEMP P2-C toggle)
 #include "map/pap.h"
 #include "map/road.h"
 #include "missions/eway.h"
@@ -1232,6 +1233,20 @@ void process_controls(void)
     // weights are computed and verified).
     if (input_key_just_pressed(KB_K)) {
         g_tpose_override_enabled = !g_tpose_override_enabled;
+    }
+
+    // TEMP — P2-C A/B toggle: F flips the consolidated-skin path between
+    // the baked-palette baseline (g_skin_world_path_enabled = false) and
+    // the new world-skin shader (bind-space verts + per-frame skin =
+    // current * inv_bind). Affects only 15-bone person rigs; everything
+    // else ignores the toggle. NOT gated by allow_debug_keys for fast
+    // visual A/B comparison. Removed when P2-C gate signs off and the
+    // world path becomes the default.
+    if (input_key_just_pressed(KB_F)) {
+        g_skin_world_path_enabled = !g_skin_world_path_enabled;
+        CONSOLE_status(g_skin_world_path_enabled
+            ? (CBYTE*)"Skin path: world (P2-C)"
+            : (CBYTE*)"Skin path: baked (P2-A)");
     }
 
     // Model cycler — N steps Darci's visual through all 15 person types
