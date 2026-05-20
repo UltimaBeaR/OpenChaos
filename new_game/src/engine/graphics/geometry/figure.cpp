@@ -24,6 +24,7 @@
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include <vector>  // figure_build_consolidated_skin_world scratch buffers
 #include <cstring> // memcpy
+#include <cfloat>  // FLT_MAX (reflection screen-bbox accumulator)
 #include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (pose snapshot)
 #include "engine/graphics/geometry/bind_palette.h" // bind_palette_get (P2-C world-skin build)
@@ -2507,7 +2508,8 @@ bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
                                     const float**            out_bone_aabb,
                                     int*                     out_bone_count,
                                     const GameKeyFrameChunk** out_chunk,
-                                    const GEMatrix**         out_bind_inv)
+                                    const GEMatrix**         out_bind_inv,
+                                    TomsPrimObject**         out_prim_obj)
 {
     if (!p_thing) return false;
     DrawTween* dt = p_thing->Draw.Tweened;
@@ -2558,6 +2560,7 @@ bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
     if (out_bone_count) *out_bone_count = bone_count;
     if (out_chunk)      *out_chunk      = chunk;
     if (out_bind_inv)   *out_bind_inv   = bind_inv;
+    if (out_prim_obj)   *out_prim_obj   = pPrimObj;
     return true;
 }
 
@@ -3133,402 +3136,186 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
 // uc_orig: FIGURE_255_DIVIDED_BY_MAX_DY (fallen/DDEngine/Source/figure.cpp)
 #define FIGURE_255_DIVIDED_BY_MAX_DY (255.0F / FIGURE_MAX_DY)
 
-// uc_orig: FIGURE_draw_prim_tween_reflection (fallen/DDEngine/Source/figure.cpp)
-// Renders one body-part mesh into the FIGURE_rpoint[] buffer for the water reflection effect.
-// Identical tween/slerp pipeline to FIGURE_draw_prim_tween, but projects vertices to screen space,
-// mirrors them about FIGURE_reflect_height, fades by distance, and stores in FIGURE_rpoint[].
-// Updates the FIGURE_reflect_x1/y1/x2/y2 bounding box for each valid reflected point.
-void FIGURE_draw_prim_tween_reflection(
-    SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    ULONG colour,
-    ULONG specular,
-    Thing* p_thing)
-{
-    SLONG i;
+// Water-reflection renderer (P2-I). One draw call per material through
+// the shared bind-space skinning path (skin_reflect_vert.glsl) — same
+// per-frame skin palette the body and shadow use, so any soft weights
+// from P2-E deform the reflection in lock-step with the body. The shader
+// mirrors Y about the water plane and adds a height-above-water fade to
+// the fog alpha. Replaces the legacy CPU rasteriser that walked every
+// vertex through Matrix33 + POLY_transform on the host.
+//
+// Limits (matches the legacy filter): 15-bone people only. Non-people
+// reflections (Balrog etc.) are extremely rare in puddle-bearing levels
+// and never reflected in the original code either; FIGURE_get_skin_mesh_for_thing
+// returns a flat skeleton mesh for those that we explicitly skip below.
+//
+// height — world-space Y of the water surface to reflect about.
 
-    SLONG sp;
-    SLONG ep;
-
-    SLONG p0;
-    SLONG p1;
-    SLONG p2;
-    SLONG p3;
-
-    SLONG px;
-    SLONG py;
-
-    SLONG fog;
-
-    float world_x;
-    float world_y;
-    float world_z;
-
-    SLONG page;
-
-    Matrix33 mat_final;
-
-    PrimFace4* p_f4;
-    PrimFace3* p_f3;
-    PrimObject* p_obj;
-
-    POLY_Point* tri[3];
-    POLY_Point* quad[4];
-
-    FIGURE_Rpoint* frp;
-
-    colour >>= 1;
-    specular >>= 1;
-
-    colour &= 0x7f7f7f7f;
-    specular &= 0x7f7f7f7f;
-
-    colour |= 0xff000000;
-    specular |= 0xff000000;
-
-    // === Reflection: pose-snapshot, mirrored about the water plane ===
-    // The pose snapshot is the SINGLE always-available source of pose (no
-    // legacy keyframe recompute). Snapshot is in normal (non-mirrored)
-    // world space; apply geometric reflection through the water plane y = H:
-    //   - position: y_reflected = 2 * FIGURE_reflect_height - y_world
-    //   - rotation: left-multiply by diag(1,-1,1) → negate the Y ROW
-    //     (M[1][*]). (Algebraically equivalent to the legacy "negate Y
-    //     column of R_body before composing mat_final = R_body × end_mat" —
-    //     verified numerically. Negating the Y column of the per-bone WORLD
-    //     mat_final instead does NOT give geometric reflection — see
-    //     skeletal_skinning_plan.md.)
-    float off_x;
-    float off_y;
-    float off_z;
-    float fmatrix[9];
-
-    const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-    DrawTween* dt = p_thing->Draw.Tweened;
-    if (!pose || !dt || !dt->CurrentFrame || !dt->CurrentFrame->FirstElement)
-        return;
-    SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
-    if (part < 0 || part >= POSE_MAX_BONES)
-        return;
-
-    const BoneInterpTransform& xf = pose[part];
-    off_x = xf.pos_x;
-    off_y = 2.0f * FIGURE_reflect_height - xf.pos_y;
-    off_z = xf.pos_z;
-    mat_final = xf.rot;
-    mat_final.M[1][0] = -mat_final.M[1][0];
-    mat_final.M[1][1] = -mat_final.M[1][1];
-    mat_final.M[1][2] = -mat_final.M[1][2];
-    fmatrix[0] = float(mat_final.M[0][0]) * (1.0F / 32768.0F);
-    fmatrix[1] = float(mat_final.M[0][1]) * (1.0F / 32768.0F);
-    fmatrix[2] = float(mat_final.M[0][2]) * (1.0F / 32768.0F);
-    fmatrix[3] = float(mat_final.M[1][0]) * (1.0F / 32768.0F);
-    fmatrix[4] = float(mat_final.M[1][1]) * (1.0F / 32768.0F);
-    fmatrix[5] = float(mat_final.M[1][2]) * (1.0F / 32768.0F);
-    fmatrix[6] = float(mat_final.M[2][0]) * (1.0F / 32768.0F);
-    fmatrix[7] = float(mat_final.M[2][1]) * (1.0F / 32768.0F);
-    fmatrix[8] = float(mat_final.M[2][2]) * (1.0F / 32768.0F);
-
-    POLY_set_local_rotation(
-        off_x,
-        off_y,
-        off_z,
-        fmatrix);
-
-    p_obj = &prim_objects[prim];
-
-    sp = p_obj->StartPoint;
-    ep = p_obj->EndPoint;
-
-    FIGURE_rpoint_upto = 0;
-
-    for (i = sp; i < ep; i++) {
-        ASSERT(WITHIN(FIGURE_rpoint_upto, 0, FIGURE_MAX_RPOINTS - 1));
-
-        frp = &FIGURE_rpoint[FIGURE_rpoint_upto++];
-
-        POLY_transform_using_local_rotation(
-            AENG_dx_prim_points[i].X,
-            AENG_dx_prim_points[i].Y,
-            AENG_dx_prim_points[i].Z,
-            &frp->pp);
-
-        if (frp->pp.MaybeValid()) {
-            frp->pp.colour = colour;
-            frp->pp.specular = specular;
-
-            world_x = AENG_dx_prim_points[i].X;
-            world_y = AENG_dx_prim_points[i].Y;
-            world_z = AENG_dx_prim_points[i].Z;
-
-            MATRIX_MUL(
-                fmatrix,
-                world_x,
-                world_y,
-                world_z);
-
-            world_x += off_x;
-            world_y += off_y;
-            world_z += off_z;
-
-            frp->distance = FIGURE_reflect_height - world_y;
-
-            if (frp->distance >= 0.0F) {
-                px = SLONG(frp->pp.X);
-                py = SLONG(frp->pp.Y);
-
-                if (px < FIGURE_reflect_x1) {
-                    FIGURE_reflect_x1 = px;
-                }
-                if (px > FIGURE_reflect_x2) {
-                    FIGURE_reflect_x2 = px;
-                }
-                if (py < FIGURE_reflect_y1) {
-                    FIGURE_reflect_y1 = py;
-                }
-                if (py > FIGURE_reflect_y2) {
-                    FIGURE_reflect_y2 = py;
-                }
-
-                fog = frp->pp.specular >> 24;
-                fog += SLONG(frp->distance * FIGURE_255_DIVIDED_BY_MAX_DY);
-
-                if (fog > 255) {
-                    fog = 255;
-                }
-
-                frp->pp.specular &= 0x00ffffff;
-                frp->pp.specular |= fog << 24;
-            } else {
-                frp->pp.clip = 0;
-            }
-        }
-    }
-
-    for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-        p_f4 = &prim_faces4[i];
-
-        p0 = p_f4->Points[0] - sp;
-        p1 = p_f4->Points[1] - sp;
-        p2 = p_f4->Points[2] - sp;
-        p3 = p_f4->Points[3] - sp;
-
-        ASSERT(WITHIN(p0, 0, FIGURE_rpoint_upto - 1));
-        ASSERT(WITHIN(p1, 0, FIGURE_rpoint_upto - 1));
-        ASSERT(WITHIN(p2, 0, FIGURE_rpoint_upto - 1));
-        ASSERT(WITHIN(p3, 0, FIGURE_rpoint_upto - 1));
-
-        // Add the quads in reverse winding for the mirror effect.
-        quad[0] = &FIGURE_rpoint[p0].pp;
-        quad[2] = &FIGURE_rpoint[p1].pp;
-        quad[1] = &FIGURE_rpoint[p2].pp;
-        quad[3] = &FIGURE_rpoint[p3].pp;
-
-        if (POLY_valid_quad(quad)) {
-            if (p_f4->DrawFlags & POLY_FLAG_TEXTURED) {
-                quad[0]->u = float(p_f4->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                quad[0]->v = float(p_f4->UV[0][1]) * (1.0F / 32.0F);
-
-                quad[1]->u = float(p_f4->UV[1][0]) * (1.0F / 32.0F);
-                quad[1]->v = float(p_f4->UV[1][1]) * (1.0F / 32.0F);
-
-                quad[2]->u = float(p_f4->UV[2][0]) * (1.0F / 32.0F);
-                quad[2]->v = float(p_f4->UV[2][1]) * (1.0F / 32.0F);
-
-                quad[3]->u = float(p_f4->UV[3][0]) * (1.0F / 32.0F);
-                quad[3]->v = float(p_f4->UV[3][1]) * (1.0F / 32.0F);
-
-                page = p_f4->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f4->TexturePage;
-                page += FACE_PAGE_OFFSET;
-
-                if (ge_supports_adami_lighting()) {
-                    POLY_add_quad(quad, POLY_PAGE_COLOUR, UC_TRUE);
-                }
-                POLY_add_quad(quad, page, UC_TRUE);
-            } else {
-            }
-        }
-    }
-
-    for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-        p_f3 = &prim_faces3[i];
-
-        p0 = p_f3->Points[0] - sp;
-        p1 = p_f3->Points[1] - sp;
-        p2 = p_f3->Points[2] - sp;
-
-        ASSERT(WITHIN(p0, 0, FIGURE_rpoint_upto - 1));
-        ASSERT(WITHIN(p1, 0, FIGURE_rpoint_upto - 1));
-        ASSERT(WITHIN(p2, 0, FIGURE_rpoint_upto - 1));
-
-        // Add the triangles in reverse winding for the mirror effect.
-        tri[0] = &FIGURE_rpoint[p0].pp;
-        tri[2] = &FIGURE_rpoint[p1].pp;
-        tri[1] = &FIGURE_rpoint[p2].pp;
-
-        if (POLY_valid_triangle(tri)) {
-            if (p_f3->DrawFlags & POLY_FLAG_TEXTURED) {
-                tri[0]->u = float(p_f3->UV[0][0] & 0x3f) * (1.0F / 32.0F);
-                tri[0]->v = float(p_f3->UV[0][1]) * (1.0F / 32.0F);
-
-                tri[1]->u = float(p_f3->UV[1][0]) * (1.0F / 32.0F);
-                tri[1]->v = float(p_f3->UV[1][1]) * (1.0F / 32.0F);
-
-                tri[2]->u = float(p_f3->UV[2][0]) * (1.0F / 32.0F);
-                tri[2]->v = float(p_f3->UV[2][1]) * (1.0F / 32.0F);
-
-                page = p_f3->UV[0][0] & 0xc0;
-                page <<= 2;
-                page |= p_f3->TexturePage;
-                page += FACE_PAGE_OFFSET;
-
-                if (ge_supports_adami_lighting()) {
-                    POLY_add_triangle(tri, POLY_PAGE_COLOUR, UC_TRUE);
-                }
-                POLY_add_triangle(tri, page, UC_TRUE);
-            } else {
-            }
-        }
-    }
-}
-
-// uc_orig: FIGURE_draw_reflection (fallen/DDEngine/Source/figure.cpp)
-// Top-level water reflection renderer for one character.
-// Iterates all body parts (same loop as FIGURE_draw) but calls FIGURE_draw_prim_tween_reflection
-// instead of the normal draw function to accumulate reflected screen-space points.
-// height: world-space Y coordinate of the water surface to reflect about.
 void FIGURE_draw_reflection(Thing* p_thing, SLONG height)
 {
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
-
-    ULONG colour;
-    ULONG specular;
-
-    Matrix33 r_matrix;
-
-    GameKeyFrameElement* ae1;
-    GameKeyFrameElement* ae2;
-
     DrawTween* dt = p_thing->Draw.Tweened;
-
-    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
+    if (!dt || dt->CurrentFrame == 0 || dt->NextFrame == 0) {
         MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR FIGURE_draw_reflection");
         return;
     }
 
-    dx = 0;
-    dy = 0;
-    dz = 0;
-
-    ae1 = dt->CurrentFrame->FirstElement;
-    ae2 = dt->NextFrame->FirstElement;
-
-    if (!ae1 || !ae2) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR AENG_draw_figure has no animation elements");
+    // Resolve the consolidated bind-space VBO + bone AABB + chunk + bind
+    // inverse + the underlying TomsPrimObject (for materials / ranges).
+    // Lazy-built on first use, shared with the body and shadow draws.
+    GESkinMesh*              worldMesh  = NULL;
+    const float*             bone_aabb  = NULL;
+    int                      bone_count = 0;
+    const GameKeyFrameChunk* chunk      = NULL;
+    const GEMatrix*          bind_inv   = NULL;
+    TomsPrimObject*          pPrimObj   = NULL;
+    if (!FIGURE_get_skin_mesh_for_thing(p_thing, &worldMesh, &bone_aabb,
+            &bone_count, &chunk, &bind_inv, &pPrimObj)) {
         return;
     }
+    // Reflection is only meaningful for 15-bone people (matches the legacy
+    // PeopleTypes / PersonID-driven filter). Flat-skeleton creatures never
+    // reflected in the original game either.
+    if (bone_count != POSE_PERSON_BONE_COUNT) return;
+    if (!worldMesh || !bone_aabb || !bind_inv || !pPrimObj) return;
+    if (!pPrimObj->skin_consolidated_ranges) return;
 
-    FIGURE_rotate_obj(
-        dt->Tilt,
-        dt->Angle,
-        -dt->Roll, // - = JCL
-        &r_matrix);
+    const BoneInterpTransform* current = render_interp_get_cached_pose(p_thing);
+    if (!current) return;
 
-    SLONG posx = p_thing->WorldPos.X >> 8;
-    SLONG posy = p_thing->WorldPos.Y >> 8;
-    SLONG posz = p_thing->WorldPos.Z >> 8;
-
-    // Reflect about y = height.
-    posy = height - (posy - height);
-    dy = -dy;
-
-    r_matrix.M[0][1] = -r_matrix.M[0][1];
-    r_matrix.M[1][1] = -r_matrix.M[1][1];
-    r_matrix.M[2][1] = -r_matrix.M[2][1];
-
-    FIGURE_reflect_x1 = +UC_INFINITY;
-    FIGURE_reflect_y1 = +UC_INFINITY;
-    FIGURE_reflect_x2 = -UC_INFINITY;
-    FIGURE_reflect_y2 = -UC_INFINITY;
-
-    FIGURE_reflect_height = float(height);
-
-    SLONG lx;
-    SLONG ly;
-    SLONG lz;
-
-    NIGHT_Colour col;
-
-    {
-        // Pelvis world position for reflection lighting lookup, from the
-        // interpolated pose snapshot — the single always-available source.
-        // Sampling the light at the same lerped pelvis the reflection
-        // geometry uses keeps the colour matched (no legacy recompute path).
-        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        lx = SLONG(pose[0].pos_x);
-        ly = SLONG(pose[0].pos_y);
-        lz = SLONG(pose[0].pos_z);
-    }
-
-    col = NIGHT_get_light_at(lx, ly, lz);
-
+    // --- NIGHT lighting at pelvis (flat per-character colour) -----------
+    // Identical to the legacy reflection path: sample the NIGHT light at
+    // the pelvis position, optionally brighten if too dark (unless we're
+    // in cutscene `ControlFlag` mode), pack via NIGHT_get_colour. The
+    // halve / force-alpha-FF that the legacy per-bone path did is folded
+    // in here so the shader receives the final per-character colour.
+    NIGHT_Colour col = NIGHT_get_light_at(SLONG(current[0].pos_x),
+                                          SLONG(current[0].pos_y),
+                                          SLONG(current[0].pos_z));
     if (!ControlFlag) {
-        // Brighten up the person if he is going to be drawn too dark.
-        if (col.red < 32) {
-            col.red += 32 - col.red >> 1;
-        }
-        if (col.green < 32) {
-            col.green += 32 - col.green >> 1;
-        }
-        if (col.blue < 32) {
-            col.blue += 32 - col.blue >> 1;
-        }
+        if (col.red   < 32) col.red   += (32 - col.red)   >> 1;
+        if (col.green < 32) col.green += (32 - col.green) >> 1;
+        if (col.blue  < 32) col.blue  += (32 - col.blue)  >> 1;
+    }
+    ULONG colour   = 0;
+    ULONG specular = 0;
+    NIGHT_get_colour(col, &colour, &specular);
+    colour   &= ~POLY_colour_restrict;
+    specular &= ~POLY_colour_restrict;
+    // Halve + force opaque alpha (legacy `>>= 1; |= 0xff000000`).
+    colour   = ((colour   >> 1) & 0x7f7f7f7f) | 0xff000000;
+    specular = ((specular >> 1) & 0x7f7f7f7f) | 0xff000000;
+
+    // --- Per-frame skin palette + screen-xform bake (same as body) ------
+    // Anchor g_matWorld at the pelvis so figure_build_screen_xform_bake's
+    // save/restore preserves a valid per-character view-Z for fog (same
+    // gotcha the body draw deals with).
+    {
+        float ident_mat[9] = { 1, 0, 0,  0, 1, 0,  0, 0, 1 };
+        POLY_set_local_rotation(current[0].pos_x, current[0].pos_y,
+                                current[0].pos_z, ident_mat);
     }
 
-    NIGHT_get_colour(
-        col,
-        &colour,
-        &specular);
+    float skin_palette[POSE_MAX_BONES * 3 * 4];
+    figure_build_skin_world_palette(current, bind_inv, bone_count, skin_palette);
 
-    colour &= ~POLY_colour_restrict;
-    specular &= ~POLY_colour_restrict;
+    GEMatrix screen_xform;
+    figure_build_screen_xform_bake(&screen_xform);
 
-    SLONG i;
-    SLONG ele_count;
-    SLONG start_object;
-    SLONG object_offset;
+    extern GEMatrix g_matWorld;
+    const float fog_view_z = g_matWorld._43;
 
-    ele_count = dt->TheChunk->ElementCount;
-    start_object = prim_multi_objects[dt->TheChunk->MultiObject[dt->MeshID]].StartObject;
+    // --- Screen-space bbox for wibble (replaces FIGURE_rpoint walk) -----
+    // The wibble post-process in aeng.cpp intersects each puddle's screen
+    // bbox (POLY_Point.X/Y from POLY_transform) with the reflection's
+    // bbox (FIGURE_reflect_x1/x2/y1/y2). Both must live in the SAME pixel
+    // scale — POLY_screen_width / _height (display coords), NOT the FBO
+    // viewport scale that figure_build_screen_xform_bake outputs. Hence
+    // POLY_transform per corner here, not the bake-matrix math we use for
+    // the GPU draw itself (the shader's NDC step normalises the scale
+    // difference, but POLY_Point.X for puddles already lives in display
+    // coords). 8 corners × 15 bones = 120 calls per character — cheap.
+    {
+        SLONG x1 = +UC_INFINITY;
+        SLONG y1 = +UC_INFINITY;
+        SLONG x2 = -UC_INFINITY;
+        SLONG y2 = -UC_INFINITY;
+        const float H2 = 2.0f * float(height);
+        for (int b = 0; b < bone_count; ++b) {
+            const float* aabb = &bone_aabb[b * 6]; // min.xyz, max.xyz
+            // Bones with no vertices stay at min=+1e30 / max=-1e30 from
+            // figure_build_consolidated_skin_world. Transforming those
+            // corners through skin[b] yields infinities, blowing up the
+            // bbox. Skip same way SMAP_person_gpu does.
+            if (aabb[0] > aabb[3]) continue;
+            const float* sk = &skin_palette[b * 3 * 4];
+            for (int c = 0; c < 8; ++c) {
+                const float lx = (c & 1) ? aabb[3] : aabb[0];
+                const float ly = (c & 2) ? aabb[4] : aabb[1];
+                const float lz = (c & 4) ? aabb[5] : aabb[2];
+                // skin: bind-space corner → world.
+                const float wx = sk[0]*lx + sk[1]*ly + sk[2]*lz  + sk[3];
+                float       wy = sk[4]*lx + sk[5]*ly + sk[6]*lz  + sk[7];
+                const float wz = sk[8]*lx + sk[9]*ly + sk[10]*lz + sk[11];
+                wy = H2 - wy; // mirror Y about water plane (matches shader)
+                POLY_Point pt;
+                POLY_transform(wx, wy, wz, &pt);
+                if (!pt.MaybeValid()) continue;
+                const SLONG px = SLONG(pt.X);
+                const SLONG py = SLONG(pt.Y);
+                if (px < x1) x1 = px;
+                if (px > x2) x2 = px;
+                if (py < y1) y1 = py;
+                if (py > y2) y2 = py;
+            }
+        }
+        FIGURE_reflect_x1 = x1;
+        FIGURE_reflect_y1 = y1;
+        FIGURE_reflect_x2 = x2;
+        FIGURE_reflect_y2 = y2;
+    }
 
-    for (i = 0; i < ele_count; i++) {
-        object_offset = dt->TheChunk->PeopleTypes[dt->PersonID & 0x1f].BodyPart[i];
+    // --- Per-material draw ---------------------------------------------
+    // Same material loop as the body. ranges[] are shared with the body's
+    // consolidated mesh (one bind-space VBO per (chunk, MeshID)). Texture
+    // page resolve (jacket / offset / face) is identical to body draw.
+    constexpr float REFLECT_DY_SCALE = 255.0f / FIGURE_MAX_DY;
+    const uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
+    const SLONG tex_page_offset =
+        p_thing->Genus.Person->pcom_colour & 0x3;
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+    int iMatIndex = 0;
+    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0;
+         iMatNum--, iMatIndex++, pMat++)
+    {
+        UWORD wPage     = pMat->wTexturePage;
+        UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
+        if (wPage & TEXTURE_PAGE_FLAG_JACKET) {
+            wRealPage = jacket_lookup[wRealPage][GET_SKILL(p_thing) >> 2];
+            wRealPage += FACE_PAGE_OFFSET;
+        } else if (wPage & TEXTURE_PAGE_FLAG_OFFSET) {
+            if (tex_page_offset == 0) {
+                wRealPage += FACE_PAGE_OFFSET;
+            } else {
+                wRealPage = alt_texture[wRealPage - (10 * 64)] + tex_page_offset - 1;
+            }
+        }
 
-        FIGURE_draw_prim_tween_reflection(
-            start_object + object_offset,
-            posx,
-            posy,
-            posz,
-            dt->AnimTween,
-            &ae1[i],
-            &ae2[i],
-            &r_matrix,
-            dx, dy, dz,
-            colour,
-            specular,
-            p_thing);
+        PolyPage* pa = &(POLY_Page[wRealPage]);
+        pa->RS.SetCullMode(GECullMode::CCW);
+        pa->RS.SetAlphaBlendEnabled(false);
+        pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
+        pa->RS.SetChanged();
+
+        const uint32_t index_start = skinRanges[iMatIndex * 2 + 0];
+        const uint32_t index_count = skinRanges[iMatIndex * 2 + 1];
+        if (index_count > 0) {
+            ge_skin_reflect_draw_range(
+                worldMesh, index_start, index_count,
+                skin_palette, bone_count,
+                &screen_xform,
+                float(height), REFLECT_DY_SCALE,
+                colour, specular, fog_view_z);
+        }
     }
 }
 

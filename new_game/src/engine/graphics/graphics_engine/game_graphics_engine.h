@@ -566,6 +566,30 @@ void ge_skin_world_draw_range(GESkinMesh* mesh,
     float fog_view_z,
     bool unlit, const uint32_t* fade_table);
 
+// Reflection-skin draw — P2-I. Same bind-space VBO + skin palette as the
+// body, but the vertex shader mirrors Y about the water plane before the
+// screen-xform bake and adds a height-above-water term to v_specular.a
+// so reflections taper off the further the original was above the water
+// surface. Internally toggles glFrontFace to GL_CCW for the duration of
+// the draw (mirror Y inverts polygon winding; body's D3D-convention
+// GL_CW would cull outer faces) and restores it after — back-face culling
+// stays on so we render outer surface only, not both sides.
+//
+//   reflect_height        World Y of the water plane.
+//   reflect_dy_scale      255 / FIGURE_MAX_DY (legacy CPU constant).
+//   reflect_color_bgra    Packed 0xAARRGGBB for v_color, BGRA-order
+//                         (already halved by the caller — see legacy
+//                         `colour >>= 1`).
+//   reflect_specular_bgra Packed 0xAARRGGBB for v_specular, BGRA-order.
+//   fog_view_z            Per-character camera-distance fog (g_mm_fog_view_z).
+void ge_skin_reflect_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    float reflect_height, float reflect_dy_scale,
+    uint32_t reflect_color_bgra, uint32_t reflect_specular_bgra,
+    float fog_view_z);
+
 // GPU shadow-silhouette render-to-texture — P2-H. Renders the
 // consolidated bind-space character mesh (the same one the body draws
 // later this frame) into a sub-rect (x,y,w,h, GL pixel coords, bottom-

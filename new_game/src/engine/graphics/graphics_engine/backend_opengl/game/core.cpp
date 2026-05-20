@@ -519,6 +519,43 @@ static GLint s_sw_u_farfacet_mode = -1;
 static GLint s_sw_u_diagnostic_color = -1; // P2-E diagnostic
 static GLint s_sw_u_view_z_tl_scale = -1;
 
+// Reflection-skin program — skeletal_skinning_phase2_plan.md P2-I.
+// Bind-space verts + clean world skin palette (shared with body and
+// shadow), then mirror Y about the water plane in the vertex shader and
+// run the same screen-xform bake the body uses. Distance-from-water fog
+// fade per vertex. Fragment shader shared with TL / world-skin
+// (common_frag.glsl).
+static GLuint s_program_skin_reflect = 0;
+static GLint s_sr_u_skin             = -1; // shared multi-bone palette (M*v form)
+static GLint s_sr_u_reflect_color    = -1; // per-character flat colour (BGRA)
+static GLint s_sr_u_reflect_specular = -1; // per-character flat specular (BGRA)
+static GLint s_sr_u_reflect_height   = -1; // World Y of the water plane
+static GLint s_sr_u_reflect_dy_scale = -1; // 255 / FIGURE_MAX_DY
+static GLint s_sr_u_screen_xform     = -1; // 1 GEMatrix (camera*proj*viewport bake)
+static GLint s_sr_u_viewport         = -1;
+static GLint s_sr_u_zclip            = -1;
+static GLint s_sr_u_fog_view_z       = -1;
+static GLint s_sr_u_fog_fade_start   = -1;
+static GLint s_sr_u_fog_fade_scale   = -1;
+// Fragment-shader uniform locations (texture, alpha, fog, ...). Same
+// fragment shader as the other skin programs.
+static GLint s_sr_u_has_texture        = -1;
+static GLint s_sr_u_texture            = -1;
+static GLint s_sr_u_texture_blend      = -1;
+static GLint s_sr_u_alpha_test_enabled = -1;
+static GLint s_sr_u_alpha_ref          = -1;
+static GLint s_sr_u_alpha_func         = -1;
+static GLint s_sr_u_fog_enabled        = -1;
+static GLint s_sr_u_fog_color          = -1;
+static GLint s_sr_u_fog_near           = -1;
+static GLint s_sr_u_fog_far            = -1;
+static GLint s_sr_u_specular_enabled   = -1;
+static GLint s_sr_u_color_key_enabled  = -1;
+static GLint s_sr_u_tex_has_alpha      = -1;
+static GLint s_sr_u_farfacet_mode      = -1;
+static GLint s_sr_u_diagnostic_color   = -1;
+static GLint s_sr_u_view_z_tl_scale    = -1;
+
 // VAO for each vertex format. VBO/EBO are shared (streaming).
 static GLuint s_vao_tl = 0;
 static GLuint s_vbo = 0; // streaming vertex buffer
@@ -712,6 +749,44 @@ static bool init_shaders()
     glUniform1f(s_sw_u_zclip, POLY_ZCLIP_PLANE);
     glUniform1f(s_sw_u_fog_fade_start, POLY_FADEOUT_START);
     glUniform1f(s_sw_u_fog_fade_scale,
+        256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
+    glUseProgram(0);
+
+    // Reflection-skin program — P2-I. Shares the fragment shader and frag
+    // uniform set with body / TL. The vertex shader mirrors Y about the
+    // water plane and adds the height-above-water fade to v_specular.a.
+    s_program_skin_reflect =
+        gl_shader_create_program(SHADER_SKIN_REFLECT_VERT, SHADER_FRAG);
+    if (!s_program_skin_reflect) {
+        fprintf(stderr, "Failed to create reflect-skin shader program\n");
+        return false;
+    }
+    s_sr_u_skin             = glGetUniformLocation(s_program_skin_reflect, "u_skin");
+    s_sr_u_reflect_color    = glGetUniformLocation(s_program_skin_reflect, "u_reflect_color");
+    s_sr_u_reflect_specular = glGetUniformLocation(s_program_skin_reflect, "u_reflect_specular");
+    s_sr_u_reflect_height   = glGetUniformLocation(s_program_skin_reflect, "u_reflect_height");
+    s_sr_u_reflect_dy_scale = glGetUniformLocation(s_program_skin_reflect, "u_reflect_dy_scale");
+    s_sr_u_screen_xform     = glGetUniformLocation(s_program_skin_reflect, "u_screen_xform");
+    s_sr_u_viewport         = glGetUniformLocation(s_program_skin_reflect, "u_viewport");
+    s_sr_u_zclip            = glGetUniformLocation(s_program_skin_reflect, "u_zclip");
+    s_sr_u_fog_view_z       = glGetUniformLocation(s_program_skin_reflect, "u_fog_view_z");
+    s_sr_u_fog_fade_start   = glGetUniformLocation(s_program_skin_reflect, "u_fog_fade_start");
+    s_sr_u_fog_fade_scale   = glGetUniformLocation(s_program_skin_reflect, "u_fog_fade_scale");
+    cache_frag_uniforms(s_program_skin_reflect,
+        &s_sr_u_has_texture, &s_sr_u_texture, &s_sr_u_texture_blend,
+        &s_sr_u_alpha_test_enabled, &s_sr_u_alpha_ref, &s_sr_u_alpha_func,
+        &s_sr_u_fog_enabled, &s_sr_u_fog_color, &s_sr_u_fog_near, &s_sr_u_fog_far,
+        &s_sr_u_specular_enabled, &s_sr_u_color_key_enabled, &s_sr_u_tex_has_alpha,
+        &s_sr_u_farfacet_mode);
+    s_sr_u_view_z_tl_scale =
+        glGetUniformLocation(s_program_skin_reflect, "u_view_z_tl_scale");
+    s_sr_u_diagnostic_color =
+        glGetUniformLocation(s_program_skin_reflect, "u_diagnostic_color");
+    glUseProgram(s_program_skin_reflect);
+    glUniform1f(s_sr_u_view_z_tl_scale, 1.0f / POLY_ZCLIP_PLANE);
+    glUniform1f(s_sr_u_zclip, POLY_ZCLIP_PLANE);
+    glUniform1f(s_sr_u_fog_fade_start, POLY_FADEOUT_START);
+    glUniform1f(s_sr_u_fog_fade_scale,
         256.0f / (POLY_FADEOUT_END - POLY_FADEOUT_START));
     glUseProgram(0);
 
@@ -1519,6 +1594,141 @@ void ge_skin_world_draw_range(GESkinMesh* mesh,
     const GLvoid* offset = (const GLvoid*)(uintptr_t)(index_start * sizeof(uint16_t));
     glDrawElements(GL_TRIANGLES, (GLsizei)index_count, GL_UNSIGNED_SHORT, offset);
     glBindVertexArray(0);
+    s_draw_calls++;
+}
+
+// --- Reflection-skin path (P2-I) ---------------------------------------
+// Same bind-space VBO and skin palette as the body. The vertex shader
+// mirrors Y about the water plane and adds a height-above-water term to
+// v_specular.a so reflections taper off the further the original was
+// above the water surface — see skin_reflect_vert.glsl.
+//
+// Mirror Y flips the polygon winding, so the body's D3D-convention
+// glFrontFace(GL_CW) would now cull what should be visible (outer faces
+// become CCW in screen after mirror). We toggle to glFrontFace(GL_CCW)
+// for the duration of the draw and restore after — back-face culling
+// stays on, so only the outer side gets drawn (no double-side cost).
+static void skin_reflect_bind_and_set_uniforms(
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    float reflect_height, float reflect_dy_scale,
+    uint32_t reflect_color_bgra, uint32_t reflect_specular_bgra,
+    float fog_view_z)
+{
+    if (s_cached_program != s_program_skin_reflect) {
+        glUseProgram(s_program_skin_reflect);
+        s_cached_program = s_program_skin_reflect;
+        s_uniforms_ever_uploaded = false; // shared TL snapshot now stale
+    }
+
+    if (bone_count > GE_SKIN_MAX_BONES)
+        bone_count = GE_SKIN_MAX_BONES;
+
+    glUniform4fv(s_sr_u_skin, (GLsizei)(bone_count * 3), skin_palette);
+    glUniform4fv(s_sr_u_screen_xform, 4,
+        reinterpret_cast<const float*>(screen_xform));
+
+    // Unpack BGRA (0xAARRGGBB or 0xAABBGGRR depending on packing) — the CPU
+    // path packs colours as `0xAABBGGRR` and the body shader reads from
+    // a_color via `.zyxw` to land in RGBA. We do the same swap in the
+    // vertex shader from u_reflect_color, so just hand the 4 bytes through
+    // in BGRA order matching the legacy `a_color` convention.
+    float rc_b = ((reflect_color_bgra >>  0) & 0xFF) / 255.0f;
+    float rc_g = ((reflect_color_bgra >>  8) & 0xFF) / 255.0f;
+    float rc_r = ((reflect_color_bgra >> 16) & 0xFF) / 255.0f;
+    float rc_a = ((reflect_color_bgra >> 24) & 0xFF) / 255.0f;
+    glUniform4f(s_sr_u_reflect_color, rc_b, rc_g, rc_r, rc_a);
+    float rs_b = ((reflect_specular_bgra >>  0) & 0xFF) / 255.0f;
+    float rs_g = ((reflect_specular_bgra >>  8) & 0xFF) / 255.0f;
+    float rs_r = ((reflect_specular_bgra >> 16) & 0xFF) / 255.0f;
+    float rs_a = ((reflect_specular_bgra >> 24) & 0xFF) / 255.0f;
+    glUniform4f(s_sr_u_reflect_specular, rs_b, rs_g, rs_r, rs_a);
+
+    glUniform1f(s_sr_u_reflect_height, reflect_height);
+    glUniform1f(s_sr_u_reflect_dy_scale, reflect_dy_scale);
+    glUniform1f(s_sr_u_fog_view_z, fog_view_z);
+
+    glUniform4f(s_sr_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
+
+    glUniform4f(s_sr_u_viewport,
+        (float)s_vp_x, (float)s_vp_y, (float)s_vp_w, (float)s_vp_h);
+
+    bool has_tex = (s_bound_texture != GE_TEXTURE_NONE);
+    glUniform1i(s_sr_u_tex_has_alpha, s_bound_texture_has_alpha ? 1 : 0);
+    glUniform1i(s_sr_u_has_texture, has_tex ? 1 : 0);
+    if (has_tex) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, s_bound_texture);
+        glUniform1i(s_sr_u_texture, 0);
+        GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        GLint gl_min;
+        if (s_bound_texture_has_mipmaps)
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+        else
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest) ? GL_NEAREST : GL_LINEAR;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
+        GLint gl_wrap = (s_tex_address == GETextureAddress::Clamp) ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
+    }
+    glUniform1i(s_sr_u_texture_blend, static_cast<int>(s_texture_blend));
+    glUniform1i(s_sr_u_alpha_test_enabled, s_alpha_test_enabled ? 1 : 0);
+    glUniform1f(s_sr_u_alpha_ref, s_alpha_ref / 255.0f);
+    glUniform1i(s_sr_u_alpha_func, static_cast<int>(s_alpha_func));
+    glUniform1i(s_sr_u_fog_enabled, s_fog_enabled ? 1 : 0);
+    if (s_fog_enabled) {
+        float fr = ((s_fog_color >> 16) & 0xFF) / 255.0f;
+        float fg = ((s_fog_color >>  8) & 0xFF) / 255.0f;
+        float fb = ((s_fog_color >>  0) & 0xFF) / 255.0f;
+        glUniform3f(s_sr_u_fog_color, fr, fg, fb);
+        glUniform1f(s_sr_u_fog_near, s_fog_near);
+        glUniform1f(s_sr_u_fog_far,  s_fog_far);
+    }
+    glUniform1i(s_sr_u_specular_enabled, s_specular_enabled ? 1 : 0);
+    glUniform1i(s_sr_u_color_key_enabled, s_color_key_enabled ? 1 : 0);
+    glUniform1i(s_sr_u_farfacet_mode, s_farfacet_mode);
+}
+
+void ge_skin_reflect_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    float reflect_height, float reflect_dy_scale,
+    uint32_t reflect_color_bgra, uint32_t reflect_specular_bgra,
+    float fog_view_z)
+{
+    PERF_GE_CALL();
+    if (!mesh || !skin_palette || !screen_xform || !index_count)
+        return;
+    if (index_start + index_count > (uint32_t)mesh->index_count)
+        return;
+    if (!init_shaders())
+        return;
+
+    skin_reflect_bind_and_set_uniforms(skin_palette, bone_count, screen_xform,
+        reflect_height, reflect_dy_scale,
+        reflect_color_bgra, reflect_specular_bgra, fog_view_z);
+
+    // Mirror Y flips polygon winding. Body draws with glFrontFace(GL_CW)
+    // (D3D-convention: UC meshes are authored CW-out, ge_set_cull_mode(CCW)
+    // maps to glFrontFace(GL_CW)). After mirror, an originally-CW outer
+    // face becomes CCW in screen; with the body's GL_CW-front setting that
+    // counts as back and gets culled — and we'd see the model inside-out.
+    // Toggle to glFrontFace(GL_CCW) so the now-CCW outer faces become
+    // front again, and back-face culling still removes the actual inner
+    // side. Restored to GL_CW after the draw — next body / shadow draw
+    // sees the normal D3D-convention state.
+    GLint prev_front_face = 0;
+    glGetIntegerv(GL_FRONT_FACE, &prev_front_face);
+    glFrontFace(GL_CCW);
+
+    glBindVertexArray(mesh->vao);
+    const GLvoid* offset = (const GLvoid*)(uintptr_t)(index_start * sizeof(uint16_t));
+    glDrawElements(GL_TRIANGLES, (GLsizei)index_count, GL_UNSIGNED_SHORT, offset);
+    glBindVertexArray(0);
+
+    glFrontFace((GLenum)prev_front_face);
     s_draw_calls++;
 }
 

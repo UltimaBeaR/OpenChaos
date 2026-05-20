@@ -20,13 +20,10 @@
 // Then u_shadow_proj maps world → shadow-clip (orthographic onto the
 // sun plane, into the shadow texture sub-rect). Standard mat4.
 
-const int MAX_BONES = 32; // = GE_SKIN_MAX_BONES (game_graphics_engine.h)
+// Shared layout (MAX_BONES, a_position / a_bones / a_weights, u_skin)
+// substituted in at shader-embed time — see _skin_common.glsl.
+#include "_skin_common.glsl"
 
-layout(location = 0) in vec3  a_position; // BIND-space
-layout(location = 6) in uvec4 a_bones;    // multi-bone palette indices
-layout(location = 7) in vec4  a_weights;  // multi-bone weights, normalised 0..1
-
-uniform vec4 u_skin[MAX_BONES * 3];
 uniform mat4 u_shadow_proj;
 
 vec3 skin_one(int b, vec3 p)

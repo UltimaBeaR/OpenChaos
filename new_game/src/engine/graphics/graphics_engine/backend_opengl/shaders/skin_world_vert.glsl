@@ -27,29 +27,19 @@
 // rigs (animals, plus people parts outside leaf-joint blend zones) use
 // trivial weights w0=1, rest=0 — math collapses to a single transform.
 
-const int MAX_BONES = 32; // = GE_SKIN_MAX_BONES (game_graphics_engine.h)
+// Shared layout (MAX_BONES, a_position / a_bones / a_weights, u_skin)
+// substituted in at shader-embed time — see _skin_common.glsl.
+#include "_skin_common.glsl"
 
-layout(location = 0) in vec3  a_position; // BIND-space
+// Body-specific attributes (color, specular, texcoord, normal). Shadow /
+// reflection don't need these.
 layout(location = 1) in vec4  a_color;    // BGRA — lit path only
 layout(location = 2) in vec4  a_specular; // BGRA — CPU specular (only RGB used; .a built here)
 layout(location = 3) in vec2  a_texcoord;
 // location 4 (single-bone `a_bone`) is a legacy slot — not consumed by
 // any current shader. Kept in the VBO layout for now; the world-skin
-// path uses the multi-bone palette at locations 6/7 below.
+// path uses the multi-bone palette at locations 6/7 (in _skin_common.glsl).
 layout(location = 5) in vec3  a_normal;   // BIND-space normal
-layout(location = 6) in uvec4 a_bones;    // multi-bone palette indices (P2-D)
-layout(location = 7) in vec4  a_weights;  // multi-bone weights, normalized 0..1 (P2-D)
-
-// Per-bone WORLD skin: 3 vec4 per bone, rotation rows with translation in .w.
-//   skin[bone] = current_palette[bone] * inverse(bind_palette[bone])
-//   world_pos  = (r0.xyz * bind_pos + r0.w,
-//                 r1.xyz * bind_pos + r1.w,
-//                 r2.xyz * bind_pos + r2.w)
-// rotation already pre-divided by 32768 on the CPU (Matrix33 is fixed-point;
-// CPU baker handles the divide so the shader stays branch-free). Layout
-// matches skin_shadow_vert.glsl exactly so the same per-frame palette can
-// be shared between body and shadow draws.
-uniform vec4 u_skin[MAX_BONES * 3];
 
 // Camera-projection-viewport bake, shared by every bone (only depends
 // on the camera + render target, not on the character's skeleton).

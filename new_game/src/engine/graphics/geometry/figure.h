@@ -177,34 +177,19 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
 // Out params may individually be NULL if the caller doesn't need them.
 // Returns false (leaving outs untouched) on missing pose / chunk data.
 struct GESkinMesh;
+struct TomsPrimObject;
 bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
                                     GESkinMesh**             out_mesh,
                                     const float**            out_bone_aabb,
                                     int*                     out_bone_count,
                                     const GameKeyFrameChunk** out_chunk,
-                                    const GEMatrix**         out_bind_inv);
+                                    const GEMatrix**         out_bind_inv,
+                                    TomsPrimObject**         out_prim_obj = nullptr);
 
-// Renders one body-part mesh into FIGURE_rpoint[] for the water reflection effect.
-// Mirrors and fades vertices relative to FIGURE_reflect_height.
-// uc_orig: FIGURE_draw_prim_tween_reflection (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween_reflection(
-    SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    ULONG colour,
-    ULONG specular,
-    Thing* p_thing);
-
-// Top-level water reflection renderer: reflects all body parts about the given Y height.
-// uc_orig: FIGURE_draw_reflection (fallen/DDEngine/Source/figure.cpp)
+// Top-level water reflection renderer (P2-I, GPU). One ge_skin_reflect_draw_range
+// call per material — uses the same bind-space VBO + skin palette the body
+// and shadow share, with mirror Y applied in the vertex shader.
+// 15-bone people only (matches the legacy filter).
 void FIGURE_draw_reflection(Thing* p_thing, SLONG height);
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_FIGURE_H
