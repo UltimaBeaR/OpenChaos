@@ -1167,7 +1167,7 @@ static void figure_build_skin_world_palette(
         // debug AENG_world_sphere primitive (3 perpendicular great
         // circles). Radius 7 in MS units — small bead per joint, doesn't
         // fuse into a blob when limbs are bent close together.
-        constexpr SLONG JOINT_BALL_RADIUS  = 7;
+        constexpr SLONG JOINT_BALL_RADIUS  = 4;
         constexpr SLONG JOINT_BALL_LINE_PX = 1;
         for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
             AENG_world_sphere(
@@ -1177,6 +1177,56 @@ static void figure_build_skin_world_palette(
                 JOINT_BALL_RADIUS,
                 JOINT_BALL_LINE_PX,
                 BONE_COLOURS[i]);
+        }
+
+        // Per-bone orientation gizmo — three short axis lines at each
+        // joint show the bone's full local frame, so twist (rotation
+        // around the bone direction) is visible, not just the bone
+        // direction. Standard convention: local X = red, Y = green,
+        // Z = blue. Basis vectors are the columns of current[i].rot
+        // (M·v form, ×32768 scaled — divide before use). Length 30 in
+        // MS units, a bit longer than the joint ball radius (7) so the
+        // axes stick out clearly. 1 px width.
+        constexpr SLONG AXIS_LENGTH    = 10;
+        constexpr SLONG AXIS_LINE_PX   = 1;
+        constexpr float AXIS_INV_SCALE = 1.0f / 32768.0f;
+        for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
+            const Matrix33& R = current[i].rot;
+            const float cx = current[i].pos_x;
+            const float cy = current[i].pos_y;
+            const float cz = current[i].pos_z;
+
+            // Columns of R = world directions of local X / Y / Z axes.
+            const float ax = float(R.M[0][0]) * AXIS_INV_SCALE;
+            const float ay = float(R.M[1][0]) * AXIS_INV_SCALE;
+            const float az = float(R.M[2][0]) * AXIS_INV_SCALE;
+            const float bx = float(R.M[0][1]) * AXIS_INV_SCALE;
+            const float by = float(R.M[1][1]) * AXIS_INV_SCALE;
+            const float bz = float(R.M[2][1]) * AXIS_INV_SCALE;
+            const float gx = float(R.M[0][2]) * AXIS_INV_SCALE;
+            const float gy = float(R.M[1][2]) * AXIS_INV_SCALE;
+            const float gz = float(R.M[2][2]) * AXIS_INV_SCALE;
+
+            const float L = float(AXIS_LENGTH);
+
+            // Local X — red
+            AENG_world_line(
+                (SLONG)cx, (SLONG)cy, (SLONG)cz, AXIS_LINE_PX, 0xffff0000,
+                (SLONG)(cx + ax * L), (SLONG)(cy + ay * L), (SLONG)(cz + az * L),
+                AXIS_LINE_PX, 0xffff0000,
+                UC_TRUE);
+            // Local Y — green
+            AENG_world_line(
+                (SLONG)cx, (SLONG)cy, (SLONG)cz, AXIS_LINE_PX, 0xff00ff00,
+                (SLONG)(cx + bx * L), (SLONG)(cy + by * L), (SLONG)(cz + bz * L),
+                AXIS_LINE_PX, 0xff00ff00,
+                UC_TRUE);
+            // Local Z — blue
+            AENG_world_line(
+                (SLONG)cx, (SLONG)cy, (SLONG)cz, AXIS_LINE_PX, 0xff0000ff,
+                (SLONG)(cx + gx * L), (SLONG)(cy + gy * L), (SLONG)(cz + gz * L),
+                AXIS_LINE_PX, 0xff0000ff,
+                UC_TRUE);
         }
 
         g_matWorld = saved_world;

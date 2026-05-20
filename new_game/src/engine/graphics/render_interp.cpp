@@ -19,6 +19,7 @@
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
 #include <stdlib.h> // abs — Manhattan distance for diagnostic delta detector
+#include <math.h>   // sqrtf — random-direction sphere sampling in bone manipulator
 
 // Set to 1 to write slot-reuse / teleport-class events to stderr (which
 // the Makefile redirects to stderr.log next to the exe). Default 0 —
@@ -58,6 +59,74 @@ float g_render_alpha = 0.0f;
 bool  g_render_interp_enabled = true;
 uint32_t g_render_interp_frame_counter = 0;
 bool  g_tpose_override_enabled = false;
+
+// Per-bone manipulator overrides — see render_interp.h.
+int       g_skin_debug_manip_selected = -1;
+bool      g_skin_debug_manip_rot_active[15]   = {};
+bool      g_skin_debug_manip_pos_active[15]   = {};
+bool      g_skin_debug_manip_pos_pending[15]  = {};
+Matrix33  g_skin_debug_manip_rot_override[15] = {};
+Matrix31  g_skin_debug_manip_pos_override[15] = {};
+
+static const char* const k_bone_names[15] = {
+    "PELVIS",         //  0
+    "LEFT_FEMUR",     //  1
+    "LEFT_TIBIA",     //  2
+    "LEFT_FOOT",      //  3
+    "TORSO",          //  4
+    "LEFT_HUMORUS",   //  5
+    "LEFT_RADIUS",    //  6
+    "LEFT_HAND",      //  7
+    "RIGHT_HUMORUS",  //  8
+    "RIGHT_RADIUS",   //  9
+    "RIGHT_HAND",     // 10
+    "HEAD",           // 11
+    "RIGHT_FEMUR",    // 12
+    "RIGHT_TIBIA",    // 13
+    "RIGHT_FOOT",     // 14
+};
+
+const char* skin_debug_manip_bone_name(int bone)
+{
+    if (bone < 0 || bone >= 15) return "(none)";
+    return k_bone_names[bone];
+}
+
+void skin_debug_manip_cycle_bone(void)
+{
+    g_skin_debug_manip_selected = (g_skin_debug_manip_selected + 1) % 15;
+}
+
+void skin_debug_manip_random_rot(void)
+{
+    const int b = g_skin_debug_manip_selected;
+    if (b < 0) return;
+    // UC angle convention: 0..2047 = full turn. Random Euler.
+    const SWORD yaw   = SWORD(rand() & 0x7ff);
+    const SWORD pitch = SWORD(rand() & 0x7ff);
+    const SWORD roll  = SWORD(rand() & 0x7ff);
+    rotate_obj(yaw, pitch, roll, &g_skin_debug_manip_rot_override[b]);
+    g_skin_debug_manip_rot_active[b] = true;
+}
+
+void skin_debug_manip_random_pos(void)
+{
+    const int b = g_skin_debug_manip_selected;
+    if (b < 0 || b == 0) return; // root PELVIS has no parent-local pos
+    // Mark pending; the FK loop samples the live rest distance and fills
+    // override with a same-length random direction.
+    g_skin_debug_manip_pos_pending[b] = true;
+}
+
+void skin_debug_manip_clear(void)
+{
+    g_skin_debug_manip_selected = -1;
+    for (int i = 0; i < 15; ++i) {
+        g_skin_debug_manip_rot_active[i]  = false;
+        g_skin_debug_manip_pos_active[i]  = false;
+        g_skin_debug_manip_pos_pending[i] = false;
+    }
+}
 
 namespace {
 
@@ -1184,6 +1253,16 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
     out[0].pos_z = float(lerp_i32(s.bones_prev[0].z, s.bones_curr[0].z, alpha));
     CQuaternion::BuildTween(&out[0].rot, &s.bones_prev[0].cmat, &s.bones_curr[0].cmat, slerp_t);
 
+    // Resolve Darci once — the per-bone manipulator (see below) is gated on
+    // p_thing being the player so other characters animate normally.
+    Thing* darci_for_manip = nullptr;
+    if (Thing* player_t = NET_PLAYER(0)) {
+        if (player_t->Genus.Player) {
+            darci_for_manip = player_t->Genus.Player->PlayerPerson;
+        }
+    }
+    const bool is_darci = (p_thing == darci_for_manip);
+
     // Bones 1..14: lerp parent-local pos, slerp parent-local rot, then chain
     // through parent's interpolated world transform. Hierarchy walk in index
     // order is safe because body_part_parent[i] < i for all i (pre-order DFS).
@@ -1197,6 +1276,45 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
 
         Matrix33 local_rot;
         CQuaternion::BuildTween(&local_rot, &s.bones_prev[i].cmat, &s.bones_curr[i].cmat, slerp_t);
+
+        // Per-bone debug manipulator overrides (Darci only). Replace
+        // local_pos / local_rot for this bone with the user-set debug
+        // value; descendants automatically pick up the change through
+        // the FK chain below.
+        if (is_darci) {
+            // Pending pos: user requested a random direction at the
+            // current rest length. Sample now (we have live local_pos)
+            // and freeze into override so the bone stays put across
+            // frames until the user re-presses.
+            if (g_skin_debug_manip_pos_pending[i]) {
+                const float lx = float(local_pos.M[0]);
+                const float ly = float(local_pos.M[1]);
+                const float lz = float(local_pos.M[2]);
+                const float len = sqrtf(lx*lx + ly*ly + lz*lz);
+                // Uniform random direction on sphere (Marsaglia).
+                float u1, u2, ssq;
+                do {
+                    u1 = (float(rand()) / float(RAND_MAX)) * 2.0f - 1.0f;
+                    u2 = (float(rand()) / float(RAND_MAX)) * 2.0f - 1.0f;
+                    ssq = u1*u1 + u2*u2;
+                } while (ssq >= 1.0f || ssq < 1e-6f);
+                const float factor = 2.0f * sqrtf(1.0f - ssq);
+                const float dx = u1 * factor;
+                const float dy = u2 * factor;
+                const float dz = 1.0f - 2.0f * ssq;
+                g_skin_debug_manip_pos_override[i].M[0] = SLONG(dx * len);
+                g_skin_debug_manip_pos_override[i].M[1] = SLONG(dy * len);
+                g_skin_debug_manip_pos_override[i].M[2] = SLONG(dz * len);
+                g_skin_debug_manip_pos_active[i]  = true;
+                g_skin_debug_manip_pos_pending[i] = false;
+            }
+            if (g_skin_debug_manip_pos_active[i]) {
+                local_pos = g_skin_debug_manip_pos_override[i];
+            }
+            if (g_skin_debug_manip_rot_active[i]) {
+                local_rot = g_skin_debug_manip_rot_override[i];
+            }
+        }
 
         // world_pos[i] = world_pos[parent] + (world_rot[parent] × local_pos) / 256.
         // matrix_transformZMY does (mat × vec) / 32768. With world_rot at scale
@@ -1257,20 +1375,56 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
                 local_pos.M[1] = s.bones_curr[i].y;
                 local_pos.M[2] = s.bones_curr[i].z;
 
+                // Local rotation: identity for everything except the two
+                // upper arms (bones 5 and 8). Body part indices: see
+                // pose_composer.cpp body_part_parent[] table.
+                Matrix33* local_rot_src;
+                if      (i == 5) local_rot_src = &rot_left_shoulder;
+                else if (i == 8) local_rot_src = &rot_right_shoulder;
+                else             local_rot_src = &ident;
+                Matrix33 local_rot = *local_rot_src;
+
+                // Per-bone debug manipulator overrides (same logic as the
+                // standard FK loop above — A-pose path needs the same
+                // hooks or pressing Shift+F/, while A-pose is on does
+                // nothing). pos pending path samples local_pos length
+                // first; rot override drops a random rotation in place
+                // of the A-pose default.
+                if (g_skin_debug_manip_pos_pending[i]) {
+                    const float lx = float(local_pos.M[0]);
+                    const float ly = float(local_pos.M[1]);
+                    const float lz = float(local_pos.M[2]);
+                    const float len = sqrtf(lx*lx + ly*ly + lz*lz);
+                    float u1, u2, ssq;
+                    do {
+                        u1 = (float(rand()) / float(RAND_MAX)) * 2.0f - 1.0f;
+                        u2 = (float(rand()) / float(RAND_MAX)) * 2.0f - 1.0f;
+                        ssq = u1*u1 + u2*u2;
+                    } while (ssq >= 1.0f || ssq < 1e-6f);
+                    const float factor = 2.0f * sqrtf(1.0f - ssq);
+                    const float dx = u1 * factor;
+                    const float dy = u2 * factor;
+                    const float dz = 1.0f - 2.0f * ssq;
+                    g_skin_debug_manip_pos_override[i].M[0] = SLONG(dx * len);
+                    g_skin_debug_manip_pos_override[i].M[1] = SLONG(dy * len);
+                    g_skin_debug_manip_pos_override[i].M[2] = SLONG(dz * len);
+                    g_skin_debug_manip_pos_active[i]  = true;
+                    g_skin_debug_manip_pos_pending[i] = false;
+                }
+                if (g_skin_debug_manip_pos_active[i]) {
+                    local_pos = g_skin_debug_manip_pos_override[i];
+                }
+                if (g_skin_debug_manip_rot_active[i]) {
+                    local_rot = g_skin_debug_manip_rot_override[i];
+                }
+
                 Matrix31 rotated_local;
                 matrix_transformZMY(&rotated_local, &out[p].rot, &local_pos);
                 out[i].pos_x = out[p].pos_x + float(rotated_local.M[0]) / 256.0f;
                 out[i].pos_y = out[p].pos_y + float(rotated_local.M[1]) / 256.0f;
                 out[i].pos_z = out[p].pos_z + float(rotated_local.M[2]) / 256.0f;
 
-                // Local rotation: identity for everything except the two
-                // upper arms (bones 5 and 8). Body part indices: see
-                // pose_composer.cpp body_part_parent[] table.
-                Matrix33* local_rot;
-                if      (i == 5) local_rot = &rot_left_shoulder;
-                else if (i == 8) local_rot = &rot_right_shoulder;
-                else             local_rot = &ident;
-                matrix_mult33(&out[i].rot, &out[p].rot, local_rot);
+                matrix_mult33(&out[i].rot, &out[p].rot, &local_rot);
             }
         }
     }

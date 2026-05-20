@@ -1267,11 +1267,11 @@ void process_controls(void)
         bool changed = false;
         bool weights_changed = false;
 
-        if (input_key_just_pressed(KB_F)) {
+        if (input_key_just_pressed(KB_F) && !ShiftFlag) {
             g_skin_soft_rig_enabled = !g_skin_soft_rig_enabled;
             changed = true;
         }
-        if (input_key_just_pressed(KB_R)) {
+        if (input_key_just_pressed(KB_R) && !ShiftFlag) {
             g_skin_world_path_enabled = !g_skin_world_path_enabled;
             changed = true;
         }
@@ -1295,7 +1295,7 @@ void process_controls(void)
             g_skin_soft_w_max = clamp01(g_skin_soft_w_max - TUNE_STEP);
             changed = true;
         }
-        if (input_key_just_pressed(KB_QUOTE)) {               // '
+        if (input_key_just_pressed(KB_QUOTE) && !ShiftFlag) { // '
             g_skin_soft_w_max = clamp01(g_skin_soft_w_max + TUNE_STEP);
             changed = true;
         }
@@ -1364,11 +1364,56 @@ void process_controls(void)
             : (CBYTE*)"Skeleton overlay: OFF");
     }
 
-    // Persistent status line. T-pose label takes priority over the
-    // model name; "Model: X" only shown in debug mode and when the
-    // current selection isn't the default Darci. When neither applies
-    // we clear the status iff we wrote it last tick (CONSOLE_status is
-    // a shared slot — only stomp our own message, not someone else's).
+    // Per-bone manipulator — Shift+R/F/,/' walk through bones and
+    // apply random local rotation / random parent-local-position-on-
+    // sphere to the selected bone, so the rig structure can be probed
+    // by eye. Each press emits a status line "Bone i NAME  rot=on pos=on"
+    // so it's obvious which bone is selected and which overrides are
+    // active. Temp skin-debug tool — unconditional (no allow_debug_keys
+    // gate), same as the F-tuner; ShiftFlag is the only gate so bare
+    // gameplay key presses don't trigger it accidentally. Not listed in
+    // the bangunsnotgames F1 legend — keeper bone-related entry there
+    // is just the B skeleton overlay. P2-J cleanup removes this block
+    // together with the rest of the skin-debug toggles.
+    if (ShiftFlag) {
+        bool manip_changed = false;
+        if (input_key_just_pressed(KB_R)) {
+            skin_debug_manip_cycle_bone();
+            manip_changed = true;
+        }
+        if (input_key_just_pressed(KB_F)) {
+            skin_debug_manip_random_rot();
+            manip_changed = true;
+        }
+        if (input_key_just_pressed(KB_COMMA)) {
+            skin_debug_manip_random_pos();
+            manip_changed = true;
+        }
+        if (input_key_just_pressed(KB_QUOTE)) {
+            skin_debug_manip_clear();
+            manip_changed = true;
+        }
+        if (manip_changed) {
+            char msg[96];
+            const int b = g_skin_debug_manip_selected;
+            if (b < 0) {
+                sprintf(msg, "Manip: cleared");
+            } else {
+                sprintf(msg, "Bone %d %s  rot=%s pos=%s", b,
+                        skin_debug_manip_bone_name(b),
+                        g_skin_debug_manip_rot_active[b] ? "ON" : "off",
+                        g_skin_debug_manip_pos_active[b] ? "ON" : "off");
+            }
+            CONSOLE_status((CBYTE*)msg);
+        }
+    }
+
+    // Persistent status line. "Model: X" only shown in debug mode and
+    // when the current selection isn't the default Darci. T-pose used to
+    // also write a label here but it's gone now — the per-frame stomp
+    // was overwriting the bone-manipulator status line. When neither
+    // applies we clear the status iff we wrote it last tick (CONSOLE_status
+    // is a shared slot — only stomp our own message, not someone else's).
     {
         static const char* const k_person_names[PERSON_NUM_TYPES] = {
             "DARCI", "ROPER", "COP", "CIV", "THUG_RASTA", "THUG_GREY",
@@ -1376,12 +1421,7 @@ void process_controls(void)
             "MECHANIC", "TRAMP", "MIB1", "MIB2", "MIB3"
         };
         static bool s_wrote_status = false;
-        if (g_tpose_override_enabled) {
-            char buf[64];
-            snprintf(buf, sizeof(buf), "T-pose: %s", k_person_names[s_model_cycle_type]);
-            CONSOLE_status((CBYTE*)buf);
-            s_wrote_status = true;
-        } else if (allow_debug_keys && s_model_cycle_type != PERSON_DARCI) {
+        if (allow_debug_keys && s_model_cycle_type != PERSON_DARCI) {
             char buf[64];
             snprintf(buf, sizeof(buf), "Model: %s", k_person_names[s_model_cycle_type]);
             CONSOLE_status((CBYTE*)buf);
