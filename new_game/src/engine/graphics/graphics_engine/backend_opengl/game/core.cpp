@@ -610,17 +610,23 @@ static void setup_vao_tl(GLuint vao, GLuint vbo, GLuint ebo)
     glBindVertexArray(0);
 }
 
-// Set up VAO for GESkinVertex layout: 44 bytes per vertex.
-// [0..11]  vec3 position (model)   [12..23] vec3 normal (model)
-// [24..27] uint bone (palette idx) [28..31] u8x4 color (BGRA)
+// Set up VAO for GESkinVertex layout: 52 bytes per vertex (P2-D).
+// [0..11]  vec3 position           [12..23] vec3 normal
+// [24..27] uint bone (legacy idx)  [28..31] u8x4 color (BGRA)
 // [32..35] u8x4 specular (BGRA)    [36..43] vec2 texcoord (u,v)
+// [44..47] u8x4 bones (P2-D)       [48..51] u8x4 weights (P2-D, normalized)
+//
+// `bone` (location 4) is the legacy single-bone index consumed by
+// skin_vert.glsl and shadow_sil_vert.glsl until P2-J removes both.
+// `bones` / `weights` (locations 6, 7) are the multi-bone palette for the
+// world-skin shader skin_world_vert.glsl.
 static void setup_vao_skin(GLuint vao, GLuint vbo, GLuint ebo)
 {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-    const GLsizei stride = 44; // sizeof(GESkinVertex)
+    const GLsizei stride = 52; // sizeof(GESkinVertex)
 
     glEnableVertexAttribArray(0); // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
@@ -630,10 +636,16 @@ static void setup_vao_skin(GLuint vao, GLuint vbo, GLuint ebo)
     glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)32);
     glEnableVertexAttribArray(3); // texcoord
     glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, stride, (void*)36);
-    glEnableVertexAttribArray(4); // bone palette index (integer)
+    glEnableVertexAttribArray(4); // legacy single-bone palette index
     glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, stride, (void*)24);
-    glEnableVertexAttribArray(5); // normal (model space)
+    glEnableVertexAttribArray(5); // normal
     glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, stride, (void*)12);
+    // P2-D: multi-bone indices (uvec4, integer attribute — no normalize).
+    glEnableVertexAttribArray(6);
+    glVertexAttribIPointer(6, 4, GL_UNSIGNED_BYTE, stride, (void*)44);
+    // P2-D: per-bone weights normalized to [0, 1] from uint8 [0, 255].
+    glEnableVertexAttribArray(7);
+    glVertexAttribPointer(7, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)48);
 
     glBindVertexArray(0);
 }

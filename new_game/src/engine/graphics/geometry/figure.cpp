@@ -980,6 +980,13 @@ static bool figure_build_consolidated_skin(TomsPrimObject* pPrimObj)
             sv.specular = 0u; // fog computed in-shader (1C)
             sv.u = pMatVertsLit[v].u;
             sv.v = pMatVertsLit[v].v;
+            // P2-D: trivial single-bone weights for the world-skin path.
+            // Math identical to single-bone when read by skin_world_vert.glsl;
+            // P2-E auto-rig fills real soft weights here without any
+            // shader change. Baked shader (skin_vert.glsl) reads sv.bone
+            // above and ignores these.
+            sv.bones[0]   = bMatIndex; sv.bones[1]   = 0; sv.bones[2]   = 0; sv.bones[3]   = 0;
+            sv.weights[0] = 255;       sv.weights[1] = 0; sv.weights[2] = 0; sv.weights[3] = 0;
             verts.push_back(sv);
 
             if ((uint32_t)bMatIndex + 1 > palette_n)
@@ -1236,6 +1243,9 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj, int a
             sv.specular = 0u;
             sv.u = pMatVertsLit[v].u;
             sv.v = pMatVertsLit[v].v;
+            // P2-D: same trivial weights as the bone-local build above.
+            sv.bones[0]   = bMatIndex; sv.bones[1]   = 0; sv.bones[2]   = 0; sv.bones[3]   = 0;
+            sv.weights[0] = 255;       sv.weights[1] = 0; sv.weights[2] = 0; sv.weights[3] = 0;
             verts.push_back(sv);
 
             if ((uint32_t)bMatIndex + 1 > palette_n)

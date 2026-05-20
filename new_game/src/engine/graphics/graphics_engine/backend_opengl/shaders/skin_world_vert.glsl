@@ -31,12 +31,16 @@
 
 const int MAX_BONES = 32; // = GE_SKIN_MAX_BONES (game_graphics_engine.h)
 
-layout(location = 0) in vec3 a_position; // BIND-space (was bone-local in skin_vert)
-layout(location = 1) in vec4 a_color;    // BGRA — lit path only
-layout(location = 2) in vec4 a_specular; // BGRA — CPU specular (only RGB used; .a built here)
-layout(location = 3) in vec2 a_texcoord;
-layout(location = 4) in uint a_bone;     // single-bone palette index (multi-bone via weights in P2-D)
-layout(location = 5) in vec3 a_normal;   // BIND-space normal
+layout(location = 0) in vec3  a_position; // BIND-space (was bone-local in skin_vert)
+layout(location = 1) in vec4  a_color;    // BGRA — lit path only
+layout(location = 2) in vec4  a_specular; // BGRA — CPU specular (only RGB used; .a built here)
+layout(location = 3) in vec2  a_texcoord;
+// location 4 (legacy single-bone `a_bone`) is consumed by skin_vert.glsl
+// and shadow_sil_vert.glsl, kept in the VBO for those paths. The world
+// path uses the multi-bone palette at locations 6/7 below.
+layout(location = 5) in vec3  a_normal;   // BIND-space normal
+layout(location = 6) in uvec4 a_bones;    // multi-bone palette indices (P2-D)
+layout(location = 7) in vec4  a_weights;  // multi-bone weights, normalized 0..1 (P2-D)
 
 // Per-bone WORLD skin: 3 vec4 per bone, rotation rows with translation in .w.
 //   skin[bone] = current_palette[bone] * inverse(bind_palette[bone])
@@ -73,25 +77,88 @@ out float v_view_z;
 
 void main()
 {
-    int bone = int(a_bone);
-    int s    = bone * 3;
-    vec4 sr0 = u_skin[s + 0];
-    vec4 sr1 = u_skin[s + 1];
-    vec4 sr2 = u_skin[s + 2];
+    // Multi-bone skinning (P2-D). Accumulate the contribution of every bone
+    // weighted by a_weights. With trivial weights (w0=1, w1..w3=0) — which
+    // is what figure_build_consolidated_skin_world emits before P2-E — only
+    // the i=0 iteration contributes and the math collapses to single-bone.
+    // Once P2-E auto-rig populates real weights, this same loop produces
+    // the soft-skinned result without any shader edit.
+    //
+    // Unrolled (instead of `for (int i = 0; i < 4; ++i)`) because GLSL
+    // compilers may not constant-fold the indexed swizzle of uvec4/vec4,
+    // and the unrolled form keeps the cost predictable and branchless on
+    // the integrated GPUs we target (Steam Deck, low-end laptops).
+    vec3 world_pos    = vec3(0.0);
+    vec3 world_normal = vec3(0.0);
 
-    // Skin -> world. With w_0 = 1 single-bone (P2-C) this is just a rigid
-    // transform; P2-D/E re-add the weight sum here.
-    vec3 world_pos;
-    world_pos.x = dot(sr0.xyz, a_position) + sr0.w;
-    world_pos.y = dot(sr1.xyz, a_position) + sr1.w;
-    world_pos.z = dot(sr2.xyz, a_position) + sr2.w;
-
-    // World-space normal: rotation part of skin only. Bind-space normal -> world.
-    // Lighting (1B) is then world-space.
-    vec3 world_normal;
-    world_normal.x = dot(sr0.xyz, a_normal);
-    world_normal.y = dot(sr1.xyz, a_normal);
-    world_normal.z = dot(sr2.xyz, a_normal);
+    // Bone 0 — always contributes (weight 1 for trivial, < 1 for soft).
+    {
+        int s = int(a_bones.x) * 3;
+        vec4 sr0 = u_skin[s + 0];
+        vec4 sr1 = u_skin[s + 1];
+        vec4 sr2 = u_skin[s + 2];
+        vec3 p = vec3(
+            dot(sr0.xyz, a_position) + sr0.w,
+            dot(sr1.xyz, a_position) + sr1.w,
+            dot(sr2.xyz, a_position) + sr2.w);
+        vec3 n = vec3(
+            dot(sr0.xyz, a_normal),
+            dot(sr1.xyz, a_normal),
+            dot(sr2.xyz, a_normal));
+        world_pos    += a_weights.x * p;
+        world_normal += a_weights.x * n;
+    }
+    // Bones 1..3 — contribute only when their weight is non-zero. The
+    // weight gate also skips work for the trivial-weights case where these
+    // three lanes are always zero, keeping P2-D performance equal to P2-C.
+    if (a_weights.y > 0.0) {
+        int s = int(a_bones.y) * 3;
+        vec4 sr0 = u_skin[s + 0];
+        vec4 sr1 = u_skin[s + 1];
+        vec4 sr2 = u_skin[s + 2];
+        vec3 p = vec3(
+            dot(sr0.xyz, a_position) + sr0.w,
+            dot(sr1.xyz, a_position) + sr1.w,
+            dot(sr2.xyz, a_position) + sr2.w);
+        vec3 n = vec3(
+            dot(sr0.xyz, a_normal),
+            dot(sr1.xyz, a_normal),
+            dot(sr2.xyz, a_normal));
+        world_pos    += a_weights.y * p;
+        world_normal += a_weights.y * n;
+    }
+    if (a_weights.z > 0.0) {
+        int s = int(a_bones.z) * 3;
+        vec4 sr0 = u_skin[s + 0];
+        vec4 sr1 = u_skin[s + 1];
+        vec4 sr2 = u_skin[s + 2];
+        vec3 p = vec3(
+            dot(sr0.xyz, a_position) + sr0.w,
+            dot(sr1.xyz, a_position) + sr1.w,
+            dot(sr2.xyz, a_position) + sr2.w);
+        vec3 n = vec3(
+            dot(sr0.xyz, a_normal),
+            dot(sr1.xyz, a_normal),
+            dot(sr2.xyz, a_normal));
+        world_pos    += a_weights.z * p;
+        world_normal += a_weights.z * n;
+    }
+    if (a_weights.w > 0.0) {
+        int s = int(a_bones.w) * 3;
+        vec4 sr0 = u_skin[s + 0];
+        vec4 sr1 = u_skin[s + 1];
+        vec4 sr2 = u_skin[s + 2];
+        vec3 p = vec3(
+            dot(sr0.xyz, a_position) + sr0.w,
+            dot(sr1.xyz, a_position) + sr1.w,
+            dot(sr2.xyz, a_position) + sr2.w);
+        vec3 n = vec3(
+            dot(sr0.xyz, a_normal),
+            dot(sr1.xyz, a_normal),
+            dot(sr2.xyz, a_normal));
+        world_pos    += a_weights.w * p;
+        world_normal += a_weights.w * n;
+    }
 
     // --- Color (1B): half-Lambert ramp lookup, world-space dot ----------------
     if (u_skin_unlit != 0) {

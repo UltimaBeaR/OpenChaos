@@ -491,21 +491,33 @@ void* ge_vb_prepare(void* vb);
 // Draw indexed triangles from a prepared vertex buffer.
 void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count);
 
-// Skinned character vertex (model/bone-local space). GPU-transform path
-// for the figure system — see skeletal_skinning_plan.md, Milestones 1A/1B.
-// 44 bytes: pos(12) + normal(12) + bone(4) + color(4) + specular(4) + uv(8).
-// 1B: normal is the raw model-space normal the CPU path read (GEVertex
-// nx/ny/nz); the shader does the half-Lambert ramp lookup. `color` is now
-// only used by the lit (non-character) path; the unlit (character) path
-// derives color in-shader from normal + bone light dir + fade table.
-// specular is still the CPU-computed fog (BGRA, D3D 0xAARRGGBB order).
+// Skinned character vertex. GPU-transform path for the figure system —
+// see skeletal_skinning_plan.md and skeletal_skinning_phase2_plan.md.
+// 52 bytes (P2-D): pos(12) + normal(12) + bone(4) + color(4) + specular(4)
+//                + uv(8) + bones[4](4) + weights[4](4).
+// Position is bone-local for the baked path (skin_vert.glsl) or shared
+// bind-space for the world path (skin_world_vert.glsl) — both flavours
+// share the same VBO struct, the chosen path decides interpretation.
+// `color` is used by the lit (non-character) path only; the unlit
+// (character) path derives color in-shader from normal + bone light dir
+// + fade table. `specular` is the CPU-computed fog (BGRA, D3D 0xAARRGGBB
+// order). `bones`/`weights` (P2-D) are used by the world path only.
 struct GESkinVertex {
-    float    x, y, z;    // model (bone-local) space
-    float    nx, ny, nz; // model-space normal (raw, as CPU path read it)
-    uint32_t bone;       // matrix-palette index (the CPU path's bMatIndex)
+    float    x, y, z;    // model (bone-local) or bind-space, depending on the path that built this VBO
+    float    nx, ny, nz; // normal in matching space
+    uint32_t bone;       // legacy single-bone index (bMatIndex). Read by skin_vert.glsl and shadow_sil_vert.glsl. Removed at P2-J when those shaders go away.
     uint32_t color;      // BGRA (lit path only; unlit derives in-shader)
     uint32_t specular;   // BGRA (CPU fog)
     float    u, v;
+    // Phase 2 P2-D: multi-bone palette for the world-skin path. Up to
+    // 4 bones per vertex with normalized uint8 weights (0..255 → 0..1).
+    // Consumed by skin_world_vert.glsl only — the legacy shaders still
+    // read .bone above. At P2-D the build writes trivial weights
+    // (bones[0]=own, weights[0]=255, rest=0) so multi-bone math is
+    // identical to single-bone; P2-E auto-rig then populates real
+    // weights without further shader changes.
+    uint8_t  bones[4];
+    uint8_t  weights[4];
 };
 
 // Max matrices in one skinned draw's palette (ge_draw_multi_matrix is the
