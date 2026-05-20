@@ -1420,8 +1420,56 @@ static bool figure_build_consolidated_skin_world(TomsPrimObject* pPrimObj,
     }
     std::memcpy(ranges_storage, ranges.data(), ranges.size() * sizeof(uint32_t));
 
-    pPrimObj->skin_consolidated_world  = mesh;
-    pPrimObj->skin_consolidated_ranges = ranges_storage;
+    // Per-bone bind-space AABB — used by the shadow-silhouette path to
+    // build a tight world-space shadow box (transform each bone's 8
+    // AABB corners by skin[bone] = current × inv_bind at frame time;
+    // see SMAP_person_gpu for the projection code).
+    //
+    // Vertices grouped by their PRIMARY bone (bones[0]) — for trivial
+    // weights this is exact; for soft auto-rigged seam verts the
+    // primary bone is still the body part the vertex authored on, so
+    // it stays in the right bucket. Soft-blended secondary contributions
+    // remain inside the convex hull of the influencing bones' boxes,
+    // so the union of per-bone AABBs transformed by skin[*] still
+    // bounds the world geometry.
+    const size_t aabb_bytes = (size_t)bone_count * 6 * sizeof(float);
+    float* bone_aabb = (float*)MemAlloc(aabb_bytes);
+    if (!bone_aabb) {
+        MemFree(ranges_storage);
+        ge_skin_mesh_destroy(mesh);
+        return false;
+    }
+    for (int b = 0; b < bone_count; ++b) {
+        bone_aabb[b * 6 + 0] = +1e30f; // min.x
+        bone_aabb[b * 6 + 1] = +1e30f; // min.y
+        bone_aabb[b * 6 + 2] = +1e30f; // min.z
+        bone_aabb[b * 6 + 3] = -1e30f; // max.x
+        bone_aabb[b * 6 + 4] = -1e30f; // max.y
+        bone_aabb[b * 6 + 5] = -1e30f; // max.z
+    }
+    for (const GESkinVertex& sv : verts) {
+        const int b = (int)sv.bones[0];
+        if (b < 0 || b >= bone_count) continue;
+        float* mn = &bone_aabb[b * 6 + 0];
+        float* mx = &bone_aabb[b * 6 + 3];
+        if (sv.x < mn[0]) mn[0] = sv.x;
+        if (sv.y < mn[1]) mn[1] = sv.y;
+        if (sv.z < mn[2]) mn[2] = sv.z;
+        if (sv.x > mx[0]) mx[0] = sv.x;
+        if (sv.y > mx[1]) mx[1] = sv.y;
+        if (sv.z > mx[2]) mx[2] = sv.z;
+    }
+    // Bones with no vertices stay at min=+inf / max=-inf; the shadow box
+    // code must skip those (min > max → unreferenced bone). For
+    // bind-space inv_bind to skin = current × inv_bind to be valid we
+    // need bind_palette[bone] anyway, which exists for every bone in
+    // the rig — but a body variant might not use every body part, e.g.
+    // a head-only model. Skipping unreferenced bones is correct.
+
+    pPrimObj->skin_consolidated_world      = mesh;
+    pPrimObj->skin_consolidated_ranges     = ranges_storage;
+    pPrimObj->skin_consolidated_bone_aabb  = bone_aabb;
+    pPrimObj->skin_consolidated_bone_count = bone_count;
     return true;
 }
 
@@ -1450,11 +1498,17 @@ void FIGURE_clean_LRU_slot(int iSlot)
         MemFree(ptpo->skin_consolidated_ranges);
         ptpo->skin_consolidated_ranges = NULL;
     }
-    // World-skin GPU mesh (bind-space verts, NEW path).
+    // World-skin GPU mesh (bind-space verts).
     if (ptpo->skin_consolidated_world != NULL) {
         ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_consolidated_world);
         ptpo->skin_consolidated_world = NULL;
     }
+    // Per-bone bind-space AABB (for shadow box).
+    if (ptpo->skin_consolidated_bone_aabb != NULL) {
+        MemFree(ptpo->skin_consolidated_bone_aabb);
+        ptpo->skin_consolidated_bone_aabb = NULL;
+    }
+    ptpo->skin_consolidated_bone_count = 0;
 
     MemFree(ptpo->pMaterials);
     MemFree(ptpo->pwListIndices);
@@ -1482,6 +1536,22 @@ void FIGURE_clean_all_LRU_slots(void)
     m_iLRUQueueSize = 0;
 
     ASSERT(m_dwSizeOfQueue == 0);
+
+    // Clear our consolidated-mesh look-up keys. FIGURE_clean_LRU_slot
+    // already zeroed each TomsPrimObject's per-mesh state, but the
+    // D3DAnimObjKeys[] entries (a side cache outside the LRU machinery)
+    // would otherwise keep pointing at stale chunk pointers — the next
+    // mission's reload of game data may put DIFFERENT contents at the
+    // SAME chunk address, and figure_anim_obj_get_consolidated would
+    // then return a slot whose wNumMaterials is 0 but whose key looks
+    // valid. Resetting here avoids that race.
+    for (int i = 0; i < MAX_NUMBER_D3D_ANIMALS; ++i) {
+        D3DAnimObjKeys[i].chunk        = NULL;
+        D3DAnimObjKeys[i].start_object = 0;
+    }
+    // Bind-palette cache is also chunk-pointer-keyed — same staleness
+    // concern after a reload.
+    bind_palette_invalidate_all();
 }
 
 // uc_orig: FIGURE_find_and_clean_prim_queue_item (fallen/DDEngine/Source/figure.cpp)
@@ -1635,8 +1705,10 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
 
     // World-skin consolidated VBO + per-material index ranges (built on
     // demand once per rig).
-    pPrimObj->skin_consolidated_ranges = NULL;
-    pPrimObj->skin_consolidated_world  = NULL;
+    pPrimObj->skin_consolidated_ranges     = NULL;
+    pPrimObj->skin_consolidated_world      = NULL;
+    pPrimObj->skin_consolidated_bone_aabb  = NULL;
+    pPrimObj->skin_consolidated_bone_count = 0;
 
     TPO_pPrimObj = pPrimObj;
 
@@ -2354,6 +2426,141 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part)
     }
 }
 
+// Forward declaration — defined later in this file (used by
+// FIGURE_get_skin_mesh_for_thing's non-person branch).
+static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk* chunk,
+                                                       SLONG start_object,
+                                                       SLONG ele_count);
+
+// Compute the D3DPeopleObj[] index used to cache the consolidated mesh
+// for one person Thing. Same indexing as FIGURE_draw_hierarchical_prim_recurse:
+//   - PERSON_ROPER  : (PersonID >> 5) + PERSON_NUM_TYPES + 32
+//   - PERSON_CIV    : (PersonID & 0x1f) + PERSON_NUM_TYPES
+//   - everything else: PersonType
+static int figure_person_iIndex(Thing* p_person)
+{
+    DrawTween* dt = p_person->Draw.Tweened;
+    const BYTE person_type = (BYTE)p_person->Genus.Person->PersonType;
+    const BYTE person_id   = (BYTE)dt->PersonID;
+    ASSERT(person_type < PERSON_NUM_TYPES);
+    if (person_type == PERSON_CIV)
+        return (int)(person_id & 0x1f) + PERSON_NUM_TYPES;
+    if (person_type == PERSON_ROPER) {
+        ASSERT((person_id >> 5) < NUM_ROPERS_THINGIES);
+        return (int)(person_id >> 5) + PERSON_NUM_TYPES + 32;
+    }
+    return (int)person_type;
+}
+
+// Lazy TPO build for one person rig. Walks the 15-bone body-part hierarchy
+// (pre-order DFS via body_part_children[]) and adds each part's prim to
+// the consolidated TomsPrimObject. Same shape as the inline walk that
+// used to live in FIGURE_draw_hierarchical_prim_recurse — factored out so
+// the shadow path (SMAP_person_gpu) can trigger it too when it runs
+// BEFORE the body draw in a frame.
+static void figure_tpo_build_person(TomsPrimObject* pPrimObj, BodyDef* body_def, SLONG start_object)
+{
+    structFIGURE_dhpr_rdata1 saved_root = FIGURE_dhpr_rdata1[0];
+    FIGURE_dhpr_rdata1[0].part_number          = 0;
+    FIGURE_dhpr_rdata1[0].current_child_number = 0;
+
+    FIGURE_TPO_init_3d_object(pPrimObj);
+    int iTPOPartNumber = 0;
+    SLONG recurse_level = 0;
+    while (recurse_level >= 0) {
+        structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
+        int iPartNumber = pDHPR1->part_number;
+        if (pDHPR1->current_child_number == 0) {
+            ASSERT(iPartNumber >= 0);
+            ASSERT(iPartNumber <= 14);
+            SLONG body_part = body_def->BodyPart[iPartNumber];
+            SLONG prim      = start_object + body_part;
+            FIGURE_TPO_add_prim_to_current_object(prim, iTPOPartNumber);
+            iTPOPartNumber++;
+        }
+        if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
+            structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
+            pDHPR1Inc->current_child_number = 0;
+            pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
+            pDHPR1->current_child_number++;
+            recurse_level++;
+        } else {
+            recurse_level--;
+        }
+    }
+    FIGURE_TPO_finish_3d_object(pPrimObj, 1);
+    FIGURE_dhpr_rdata1[0] = saved_root;
+}
+
+// Public helper: get the consolidated skin mesh for any skinned Thing
+// (CLASS_PERSON 15-bone rig OR DT_ANIM_PRIM flat skeleton). Lazily builds
+// the TomsPrimObject (TPO walk) AND the bind-space VBO if neither is
+// built yet. Returns false (leaving out_* untouched) if the Thing isn't
+// skinned, has no valid pose data, or bind palette is unavailable.
+//
+// out_bind_inv is the inverse-bind matrix array (bone_count entries) the
+// caller uses to build the per-frame skin palette. out_bone_aabb points
+// at the per-bone bind-space AABB array (bone_count × 6 floats) stored
+// on the consolidated TomsPrimObject.
+bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
+                                    GESkinMesh**             out_mesh,
+                                    const float**            out_bone_aabb,
+                                    int*                     out_bone_count,
+                                    const GameKeyFrameChunk** out_chunk,
+                                    const GEMatrix**         out_bind_inv)
+{
+    if (!p_thing) return false;
+    DrawTween* dt = p_thing->Draw.Tweened;
+    if (!dt || !dt->CurrentFrame || !dt->NextFrame) return false;
+    if (!dt->CurrentFrame->FirstElement || !dt->NextFrame->FirstElement) return false;
+    const GameKeyFrameChunk* chunk = dt->TheChunk;
+    if (!chunk) return false;
+
+    // Resolve the per-Thing consolidated TomsPrimObject (built lazily).
+    TomsPrimObject* pPrimObj = NULL;
+    const bool is_person = (p_thing->Class == CLASS_PERSON
+                            && chunk->ElementCount == POSE_PERSON_BONE_COUNT);
+    if (is_person) {
+        const int iIndex = figure_person_iIndex(p_thing);
+        ASSERT(iIndex < MAX_NUMBER_D3D_PEOPLE);
+        pPrimObj = &(D3DPeopleObj[iIndex]);
+        if (pPrimObj->wNumMaterials == 0) {
+            const BYTE person_type = (BYTE)p_thing->Genus.Person->PersonType;
+            const BYTE person_id   = (BYTE)dt->PersonID;
+            BodyDef* body_def = (person_type == PERSON_ROPER)
+                ? &chunk->PeopleTypes[person_id >> 5]
+                : &chunk->PeopleTypes[person_id & 0x1f];
+            const SLONG start_object = prim_multi_objects[chunk->MultiObject[dt->MeshID]].StartObject;
+            figure_tpo_build_person(pPrimObj, body_def, start_object);
+        }
+    } else {
+        // Flat-skeleton creature (DT_ANIM_PRIM: bats / Bane / Balrog /
+        // Gargoyle). Same consolidation strategy as ANIM_obj_draw uses.
+        const SLONG start_object = prim_multi_objects[chunk->MultiObject[0]].StartObject;
+        pPrimObj = figure_anim_obj_get_consolidated(chunk, start_object, chunk->ElementCount);
+    }
+    if (!pPrimObj) return false;
+
+    // Resolve bind palette.
+    const GEMatrix* bind_inv   = NULL;
+    int             bone_count = 0;
+    if (!bind_palette_get(chunk, NULL, &bind_inv, &bone_count) || !bind_inv) return false;
+
+    // Lazy-build the bind-space VBO + per-bone AABB if absent.
+    if (pPrimObj->skin_consolidated_world == NULL) {
+        figure_build_consolidated_skin_world(pPrimObj, chunk);
+    }
+    GESkinMesh* mesh = (GESkinMesh*)pPrimObj->skin_consolidated_world;
+    if (!mesh || !pPrimObj->skin_consolidated_bone_aabb) return false;
+
+    if (out_mesh)       *out_mesh       = mesh;
+    if (out_bone_aabb)  *out_bone_aabb  = pPrimObj->skin_consolidated_bone_aabb;
+    if (out_bone_count) *out_bone_count = bone_count;
+    if (out_chunk)      *out_chunk      = chunk;
+    if (out_bind_inv)   *out_bind_inv   = bind_inv;
+    return true;
+}
+
 // uc_orig: FIGURE_draw_hierarchical_prim_recurse (fallen/DDEngine/Source/figure.cpp)
 // 15-body-part character renderer. Builds a consolidated TomsPrimObject
 // on first use (one walk of the body-part hierarchy via FIGURE_TPO_*),
@@ -2364,10 +2571,7 @@ static void figure_draw_held_item(Thing* p_person, SLONG prim, int hand_part)
 // (figure_draw_held_item).
 void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 {
-    SLONG recurse_level = 0;
-
     ASSERT(p_person->Class == CLASS_PERSON);
-    ASSERT(recurse_level == 0);
     ASSERT(FIGURE_dhpr_rdata1[0].current_child_number == 0);
 
     int iIndex = (int)(FIGURE_dhpr_data.bPersonType);
@@ -2380,48 +2584,13 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
         iIndex = (int)(FIGURE_dhpr_data.bPersonID >> 5) + PERSON_NUM_TYPES + 32;
     }
 
-    structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1_0_copy = FIGURE_dhpr_rdata1[0];
-
     ASSERT(iIndex < MAX_NUMBER_D3D_PEOPLE);
     ASSERT((PERSON_NUM_TYPES + 32 + NUM_ROPERS_THINGIES) <= MAX_NUMBER_D3D_PEOPLE);
     TomsPrimObject* pPrimObj = &(D3DPeopleObj[iIndex]);
     if (pPrimObj->wNumMaterials == 0) {
-        // Lazy first-time build of the consolidated body mesh. Walk the
-        // body-part hierarchy (pre-order DFS via body_part_children[]),
-        // calling FIGURE_TPO_add_prim_to_current_object for each part —
-        // ubSubObjectNumber = visit index so each merged vertex carries
-        // its body-part index as its bone reference.
-        FIGURE_TPO_init_3d_object(pPrimObj);
-        int iTPOPartNumber = 0;
-
-        recurse_level = 0;
-        while (recurse_level >= 0) {
-            structFIGURE_dhpr_rdata1* pDHPR1 = FIGURE_dhpr_rdata1 + recurse_level;
-            int iPartNumber = pDHPR1->part_number;
-            if (pDHPR1->current_child_number == 0) {
-                ASSERT(iPartNumber >= 0);
-                ASSERT(iPartNumber <= 14);
-
-                SLONG body_part = FIGURE_dhpr_data.body_def->BodyPart[iPartNumber];
-                SLONG prim      = FIGURE_dhpr_data.start_object + body_part;
-
-                FIGURE_TPO_add_prim_to_current_object(prim, iTPOPartNumber);
-                iTPOPartNumber++;
-            }
-
-            if (body_part_children[iPartNumber][pDHPR1->current_child_number] != -1) {
-                structFIGURE_dhpr_rdata1* pDHPR1Inc = FIGURE_dhpr_rdata1 + recurse_level + 1;
-                pDHPR1Inc->current_child_number = 0;
-                pDHPR1Inc->part_number = body_part_children[iPartNumber][pDHPR1->current_child_number];
-                pDHPR1->current_child_number++;
-                recurse_level++;
-            } else {
-                recurse_level--;
-            }
-        }
-
-        FIGURE_TPO_finish_3d_object(pPrimObj, 1);
-        FIGURE_dhpr_rdata1[0] = FIGURE_dhpr_rdata1_0_copy;
+        figure_tpo_build_person(pPrimObj,
+                                FIGURE_dhpr_data.body_def,
+                                FIGURE_dhpr_data.start_object);
     }
 
     SLONG tex_page_offset = p_person->Genus.Person->pcom_colour & 0x3;
@@ -2772,25 +2941,37 @@ static TomsPrimObject* figure_anim_obj_get_consolidated(const GameKeyFrameChunk*
                                                        SLONG start_object,
                                                        SLONG ele_count)
 {
+    // Scan: prefer an exact-key match (chunk + start_object). Cached
+    // slot may be in EVICTED state — `wNumMaterials == 0` after
+    // FIGURE_clean_LRU_slot cleared the TPO data but our key here stayed
+    // pointing at the chunk. Re-build into that same slot below.
+    int slot = -1;
     int free_slot = -1;
     for (int i = 0; i < MAX_NUMBER_D3D_ANIMALS; ++i) {
         if (D3DAnimObjKeys[i].chunk == chunk && D3DAnimObjKeys[i].start_object == start_object) {
-            return &D3DAnimObj[i];
+            slot = i;
+            break;
         }
         if (free_slot < 0 && D3DAnimObjKeys[i].chunk == NULL)
             free_slot = i;
     }
-    if (free_slot < 0) return NULL;
+    if (slot < 0) slot = free_slot;
+    if (slot < 0) return NULL;
 
-    TomsPrimObject* pPrimObj = &D3DAnimObj[free_slot];
-    FIGURE_TPO_init_3d_object(pPrimObj);
-    for (SLONG i = 0; i < ele_count; ++i) {
-        FIGURE_TPO_add_prim_to_current_object(start_object + i, (UBYTE)i);
+    TomsPrimObject* pPrimObj = &D3DAnimObj[slot];
+    if (pPrimObj->wNumMaterials == 0) {
+        // First use of this slot OR the slot was LRU-evicted (TPO data
+        // freed). Either way, (re)build the consolidated TPO. After
+        // FIGURE_TPO_finish_3d_object the slot is LRU-registered again
+        // with a valid bLRUQueueNumber.
+        FIGURE_TPO_init_3d_object(pPrimObj);
+        for (SLONG i = 0; i < ele_count; ++i) {
+            FIGURE_TPO_add_prim_to_current_object(start_object + i, (UBYTE)i);
+        }
+        FIGURE_TPO_finish_3d_object(pPrimObj, 1);
     }
-    FIGURE_TPO_finish_3d_object(pPrimObj, 1);
-
-    D3DAnimObjKeys[free_slot].chunk        = chunk;
-    D3DAnimObjKeys[free_slot].start_object = start_object;
+    D3DAnimObjKeys[slot].chunk        = chunk;
+    D3DAnimObjKeys[slot].start_object = start_object;
     return pPrimObj;
 }
 

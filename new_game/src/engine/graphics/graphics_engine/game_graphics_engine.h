@@ -506,7 +506,10 @@ void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, ui
 struct GESkinVertex {
     float    x, y, z;    // bind-space position
     float    nx, ny, nz; // bind-space normal
-    uint32_t bone;       // single-bone index — read by shadow_sil_vert.glsl
+    uint32_t bone;       // legacy single-bone index — unused by current shaders
+                         // (skin_world_vert / skin_shadow_vert read bones[]/weights[]
+                         // instead). Kept in the layout for now; can be dropped
+                         // when GESkinVertex is next reshaped.
     uint32_t color;      // BGRA (lit path only; unlit derives in-shader)
     uint32_t specular;   // BGRA (CPU fog)
     float    u, v;
@@ -563,19 +566,24 @@ void ge_skin_world_draw_range(GESkinMesh* mesh,
     float fog_view_z,
     bool unlit, const uint32_t* fade_table);
 
-// GPU shadow-silhouette render-to-texture — skeletal_skinning_plan.md 1E.
-// Renders the persistent skin meshes into a sub-rect (x,y,w,h, GL pixel
-// coords, bottom-left origin) of user texture page `tex_page`, using a
-// pure WORLD bone palette (12 floats/bone = 3 vec4 rows: rotation rows
-// with translation packed in .w) and a world->shadow-clip matrix
-// (`shadow_proj16`, 16 floats, column-major). Replaces the SMAP software
-// rasteriser; the unchanged SMAP ground projection samples the result.
-// begin() clears only the sub-rect and saves caller GL state; end()
-// restores it. One draw() per body-part mesh between begin/end.
+// GPU shadow-silhouette render-to-texture — P2-H. Renders the
+// consolidated bind-space character mesh (the same one the body draws
+// later this frame) into a sub-rect (x,y,w,h, GL pixel coords, bottom-
+// left origin) of user texture page `tex_page`, projected by a
+// world->shadow-clip matrix (`shadow_proj16`, 16 floats, column-major).
+// One draw call per character (not per body part).
+//
+// `skin_palette` has the SAME layout as the body world-skin shader's
+// u_skin — 3 vec4 per bone in M*v form (`skin[i] = current[i] *
+// inverse(bind[i])`, translation packed in .w of each row). SMAP_person_gpu
+// computes it once per character and shares it with the body draw.
+//
+// begin() clears the sub-rect and saves caller GL state; end() restores
+// it. ONE draw() per character between begin/end.
 void ge_shadow_silhouette_begin(int32_t tex_page,
     int32_t x, int32_t y, int32_t w, int32_t h);
 void ge_shadow_silhouette_draw(GESkinMesh* mesh,
-    const float* world_palette, uint32_t palette_n,
+    const float* skin_palette, uint32_t bone_count,
     const float* shadow_proj16);
 void ge_shadow_silhouette_end(void);
 

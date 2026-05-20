@@ -679,6 +679,17 @@ struct TomsPrimObject {
     // in FIGURE_clean_LRU_slot.
     uint32_t* skin_consolidated_ranges;
     void*     skin_consolidated_world; // GESkinMesh* (bind-space positions)
+
+    // Per-bone AABB of the consolidated mesh in bind-space. Layout:
+    // `skin_consolidated_bone_count` bones, each occupying 6 floats
+    // (min.x, min.y, min.z, max.x, max.y, max.z). NULL = not built.
+    // Used by the shadow-silhouette path (SMAP_person_gpu): transform
+    // the 8 corners of each bone's AABB by skin[bone] (= current ×
+    // inv_bind), project onto the sun plane, accumulate the tight
+    // world-space shadow box. Allocated alongside skin_consolidated_world
+    // and freed together.
+    float*    skin_consolidated_bone_aabb;
+    int       skin_consolidated_bone_count;
 };
 
 // Legacy prim object header (includes name field, pre-D3D).

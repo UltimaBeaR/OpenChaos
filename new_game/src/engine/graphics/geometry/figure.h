@@ -163,6 +163,27 @@ void FIGURE_draw(Thing* p_thing);
 // uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
 void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
 
+// Get the consolidated skin mesh for any skinned Thing — both the
+// 15-bone person rig (D3DPeopleObj[]) and flat-skeleton creatures
+// (D3DAnimObj[]). Lazily builds the TomsPrimObject AND bind-space VBO
+// if neither is built yet, so callers running BEFORE the body draw
+// (notably SMAP_person_gpu for character shadows) get the same mesh
+// the body draw will use later this frame.
+//
+// On success: *out_mesh = the consolidated GESkinMesh*; *out_bone_aabb =
+// pointer to bone_count × 6 floats (per-bone bind-space AABB) for shadow
+// projection box; *out_bone_count = number of bones; *out_chunk = the
+// thing's anim chunk; *out_bind_inv = bone_count inverse-bind matrices.
+// Out params may individually be NULL if the caller doesn't need them.
+// Returns false (leaving outs untouched) on missing pose / chunk data.
+struct GESkinMesh;
+bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
+                                    GESkinMesh**             out_mesh,
+                                    const float**            out_bone_aabb,
+                                    int*                     out_bone_count,
+                                    const GameKeyFrameChunk** out_chunk,
+                                    const GEMatrix**         out_bind_inv);
+
 // Renders one body-part mesh into FIGURE_rpoint[] for the water reflection effect.
 // Mirrors and fades vertices relative to FIGURE_reflect_height.
 // uc_orig: FIGURE_draw_prim_tween_reflection (fallen/DDEngine/Source/figure.cpp)

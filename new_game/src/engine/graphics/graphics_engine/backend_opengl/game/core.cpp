@@ -476,11 +476,13 @@ static GLint s_tl_u_tex_has_alpha = -1;
 static GLint s_tl_u_farfacet_mode = -1;
 static GLint s_tl_u_diagnostic_color = -1; // P2-E diagnostic — see common_frag.glsl
 
-// Shadow-silhouette program — skeletal_skinning_plan.md 1E. Renders the
-// persistent skin meshes into the shadow texture with a pure world palette
-// + sun ortho projection (replaces the SMAP software rasteriser).
+// Shadow-silhouette program — P2-H. Renders the consolidated bind-space
+// character mesh (the same one the body draw uses) into the shadow
+// texture, projected by an orthographic shadow-clip matrix. Skin palette
+// has the SAME layout as the body's world-skin shader's u_skin so the
+// SMAP pass can reuse the per-frame palette the body draw will use.
 static GLuint s_program_shadow_sil = 0;
-static GLint s_ss_u_xform = -1;       // per-bone world affine (3 vec4/bone)
+static GLint s_ss_u_skin        = -1; // 3 vec4 per bone (current × inv_bind, M*v)
 static GLint s_ss_u_shadow_proj = -1; // world -> shadow-clip (per person)
 
 // World-skin program — skeletal_skinning_phase2_plan.md P2-C.
@@ -589,9 +591,11 @@ static void setup_vao_tl(GLuint vao, GLuint vbo, GLuint ebo)
 // [32..35] u8x4 specular (BGRA)    [36..43] vec2 texcoord (u,v)
 // [44..47] u8x4 bones              [48..51] u8x4 weights (normalised)
 //
-// `bone` (location 4) is the single-bone index consumed by
-// shadow_sil_vert.glsl. `bones` / `weights` (locations 6, 7) are the
-// multi-bone palette for the world-skin shader skin_world_vert.glsl.
+// `bone` (location 4) is the legacy single-bone index — unused by the
+// current shaders (kept in the VBO layout for now; can be dropped when
+// GESkinVertex is next reshaped). `bones` / `weights` (locations 6, 7)
+// are the multi-bone palette for skin_world_vert.glsl (body) and
+// skin_shadow_vert.glsl (shadow silhouette).
 static void setup_vao_skin(GLuint vao, GLuint vbo, GLuint ebo)
 {
     glBindVertexArray(vao);
@@ -660,16 +664,18 @@ static bool init_shaders()
     glUniform4f(s_tl_u_diagnostic_color, 0.0f, 0.0f, 0.0f, 0.0f);
     glUseProgram(0);
 
-    // Shadow-silhouette program — skeletal_skinning_plan.md 1E.
+    // Shadow-silhouette program — P2-H. New vertex shader reads the
+    // bind-space VBO + multi-bone skin palette (same layout as the body
+    // world-skin shader's u_skin) so the SMAP pass renders the SAME
+    // consolidated mesh the body will draw later this frame.
     s_program_shadow_sil =
-        gl_shader_create_program(SHADER_SHADOW_SIL_VERT, SHADER_SHADOW_SIL_FRAG);
+        gl_shader_create_program(SHADER_SKIN_SHADOW_VERT, SHADER_SHADOW_SIL_FRAG);
     if (!s_program_shadow_sil) {
         fprintf(stderr, "Failed to create shadow-silhouette shader program\n");
         return false;
     }
-    s_ss_u_xform = glGetUniformLocation(s_program_shadow_sil, "u_xform");
-    s_ss_u_shadow_proj =
-        glGetUniformLocation(s_program_shadow_sil, "u_shadow_proj");
+    s_ss_u_skin        = glGetUniformLocation(s_program_shadow_sil, "u_skin");
+    s_ss_u_shadow_proj = glGetUniformLocation(s_program_shadow_sil, "u_shadow_proj");
 
     // World-skin program — skeletal_skinning_phase2_plan.md P2-C. Same
     // fragment shader as TL / baked-skin; the only thing the new vertex
@@ -1656,19 +1662,22 @@ void ge_shadow_silhouette_begin(int32_t tex_page,
 }
 
 void ge_shadow_silhouette_draw(GESkinMesh* mesh,
-    const float* world_palette, uint32_t palette_n, const float* shadow_proj16)
+    const float* skin_palette, uint32_t bone_count, const float* shadow_proj16)
 {
     if (!s_shadow_pass_active)
         return; // begin() bailed (FBO not ready) — don't touch caller FBO
-    if (!mesh || !mesh->index_count || !world_palette || !shadow_proj16)
+    if (!mesh || !mesh->index_count || !skin_palette || !shadow_proj16)
         return;
-    if (palette_n == 0)
-        palette_n = 1;
-    if (palette_n > GE_SKIN_MAX_BONES)
-        palette_n = GE_SKIN_MAX_BONES;
+    if (bone_count == 0)
+        bone_count = 1;
+    if (bone_count > GE_SKIN_MAX_BONES)
+        bone_count = GE_SKIN_MAX_BONES;
 
-    // 3 vec4 rows per bone (world affine).
-    glUniform4fv(s_ss_u_xform, (GLsizei)(palette_n * 3), world_palette);
+    // Skin palette: same layout as the body world-skin shader's u_skin —
+    // 3 vec4 per bone in M*v form (translation packed in .w of each row).
+    // SMAP_person_gpu builds this once per character and shares it with
+    // the body draw (figure_build_skin_world_palette).
+    glUniform4fv(s_ss_u_skin, (GLsizei)(bone_count * 3), skin_palette);
     glUniformMatrix4fv(s_ss_u_shadow_proj, 1, GL_FALSE, shadow_proj16);
 
     glBindVertexArray(mesh->vao);

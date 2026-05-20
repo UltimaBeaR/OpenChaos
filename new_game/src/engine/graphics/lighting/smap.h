@@ -42,11 +42,6 @@ bool SMAP_person_gpu(
     SLONG light_dy,
     SLONG light_dz);
 
-// Milestone 1E: destroy all cached per-prim shadow meshes. MUST be called
-// when the prim pools are reloaded (clear_prims) — stale GPU meshes after
-// a level load were a corruption source. uc_orig: none.
-void SMAP_shadow_prim_cache_reset(void);
-
 // Projects the shadow map rendered by SMAP_person_gpu() onto a convex polygon in world space.
 // poly must be given in clockwise order. Returns NULL if the polygon is behind the light
 // or outside the shadow map's bounds. The returned linked list is valid only until the

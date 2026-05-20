@@ -57,7 +57,7 @@ static void uncompress_cmatrix(const CMatrix33& cm, Matrix33& m)
 // Write a rigid-body (rotation R + translation t) transform into a GEMatrix.
 //
 // Convention here is the "M * v" (column-vector) form used by the engine's
-// matrix_transformZMY, matrix_mult33, and shadow_sil_vert.glsl skin path:
+// matrix_transformZMY, matrix_mult33, and the world/shadow skin shaders:
 //   v_out = R * v_in + t            with R in the top-left 3x3 directly,
 //                                   t  in COLUMN 4 (._14, ._24, ._34).
 // Bottom row (._41, ._42, ._43, ._44) is the homogeneous (0,0,0,1) row,
