@@ -85,6 +85,20 @@ void AENG_world_line_infinite(
     SLONG x2, SLONG y2, SLONG z2, SLONG width2, ULONG colour2,
     SLONG sort_to_front);
 
+// Debug wireframe sphere — three perpendicular great circles (XY/XZ/YZ
+// planes) made of AENG_world_line segments. Pure diagnostic primitive,
+// not used by any gameplay rendering. Naming follows AENG_world_line
+// convention: bare name = debug, _nondebug suffix = gameplay.
+//
+// width_px = pixel width of the constituent line segments.
+// colour   = 0xAARRGGBB (alpha currently ignored on POLY_PAGE_COLOUR).
+// Always rendered sort_to_front (visible through scene geometry).
+void AENG_world_sphere(
+    SLONG cx, SLONG cy, SLONG cz,
+    SLONG radius,
+    SLONG width_px,
+    ULONG colour);
+
 // uc_orig: AENG_draw_rect (fallen/DDEngine/Headers/aeng.h)
 void AENG_draw_rect(SLONG x, SLONG y, SLONG w, SLONG h, SLONG col, SLONG layer, SLONG page);
 

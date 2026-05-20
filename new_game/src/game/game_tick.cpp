@@ -1239,19 +1239,25 @@ void process_controls(void)
     // TEMP — skinning debug toggles. Two independent flags drive the
     // current state, plus four keys to live-tune the soft-rig parameters:
     //   F : hard ↔ soft       (flips g_skin_soft_rig_enabled)
-    //   G : OLD ↔ NEW path    (flips g_skin_world_path_enabled)
-    //   [ : band -0.05        \  Together control the bind-space weight
-    //   ] : band +0.05        /  build. Both clamped to [0, 1].
-    //   ; : w_max -0.05       \  ;/' are physical key positions on a
-    //   ' : w_max +0.05       /  US layout (KB_COLON / KB_QUOTE).
+    //   R : OLD ↔ NEW path    (flips g_skin_world_path_enabled)
+    //   , : band -0.05        \  Together control the bind-space weight
+    //   M : band +0.05        /  build. Both clamped to [0, 1].
+    //   Y : w_max -0.05       \  Same idea — clamped to [0, 1].
+    //   ' : w_max +0.05       /
     //
     // Any of these six keys re-emits one combined status line and (when
     // it touched anything that affects per-vertex weights) invalidates
     // the bind-space VBO cache so the rebuild picks up new values.
     //
-    // Not gated by allow_debug_keys — quick iteration. The whole block
-    // (and its includes) is removed at P2-J together with the legacy
-    // baked path.
+    // Key choice notes: all six are bare keys (no Shift / Ctrl) that are
+    // free in both gameplay and bangunsnotgames-debug paths. Earlier
+    // attempts at F/G/[/]/;/' collided with debug handlers (G=give-gun,
+    // [/]=camera-2 cycle, ;=slow-mo). Bare Y and M only have Shift+Y
+    // (fastnav held) and Shift+M (spawn mine) bound, so the unmodified
+    // keys are conflict-free. Tuner stays available whether or not
+    // bangunsnotgames mode is on — so band/w_max can be tuned while the
+    // skeleton overlay (key B, bangunsnotgames-gated) is visible. P2-J
+    // removes the whole tuner together with the legacy baked path.
     {
         // Snapshot pre-change values to decide whether weights changed.
         const bool  prev_soft = g_skin_soft_rig_enabled;
@@ -1265,7 +1271,7 @@ void process_controls(void)
             g_skin_soft_rig_enabled = !g_skin_soft_rig_enabled;
             changed = true;
         }
-        if (input_key_just_pressed(KB_G)) {
+        if (input_key_just_pressed(KB_R)) {
             g_skin_world_path_enabled = !g_skin_world_path_enabled;
             changed = true;
         }
@@ -1277,19 +1283,19 @@ void process_controls(void)
             if (v > 1.0f) return 1.0f;
             return v;
         };
-        if (input_key_just_pressed(KB_LBRACE)) { // [
+        if (input_key_just_pressed(KB_COMMA) && !ShiftFlag) { // ,
             g_skin_soft_band_fraction = clamp01(g_skin_soft_band_fraction - TUNE_STEP);
             changed = true;
         }
-        if (input_key_just_pressed(KB_RBRACE)) { // ]
+        if (input_key_just_pressed(KB_M) && !ShiftFlag) {     // M (Shift+M = spawn mine)
             g_skin_soft_band_fraction = clamp01(g_skin_soft_band_fraction + TUNE_STEP);
             changed = true;
         }
-        if (input_key_just_pressed(KB_COLON)) {  // ;
+        if (input_key_just_pressed(KB_Y) && !ShiftFlag) {     // Y (Shift+Y-held = fastnav)
             g_skin_soft_w_max = clamp01(g_skin_soft_w_max - TUNE_STEP);
             changed = true;
         }
-        if (input_key_just_pressed(KB_QUOTE)) {  // '
+        if (input_key_just_pressed(KB_QUOTE)) {               // '
             g_skin_soft_w_max = clamp01(g_skin_soft_w_max + TUNE_STEP);
             changed = true;
         }
@@ -1341,6 +1347,23 @@ void process_controls(void)
             set_person_idle(darci_thing);
         }
     }
+    // Skeleton overlay — B toggles the per-bone debug skeleton draw
+    // (lines + per-bone wireframe spheres at joints). Keeper debug
+    // feature, gated by allow_debug_keys, listed in F1 legend /
+    // debug_keys.md. When off, the entire render block in figure.cpp
+    // is skipped behind a single branch — zero per-frame cost.
+    //
+    // Originally bound to H, but H already triggers plan_view_shot()
+    // (top-down map TGA dump) in the allow_debug_keys block below —
+    // pressing H would fire both handlers. B avoids that and reads as
+    // "Bones".
+    if (allow_debug_keys && input_key_just_pressed(KB_B)) {
+        g_skin_debug_draw_skeleton = !g_skin_debug_draw_skeleton;
+        CONSOLE_status(g_skin_debug_draw_skeleton
+            ? (CBYTE*)"Skeleton overlay: ON"
+            : (CBYTE*)"Skeleton overlay: OFF");
+    }
+
     // Persistent status line. T-pose label takes priority over the
     // model name; "Model: X" only shown in debug mode and when the
     // current selection isn't the default Darci. When neither applies

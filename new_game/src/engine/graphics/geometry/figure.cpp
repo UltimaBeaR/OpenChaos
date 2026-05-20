@@ -1093,6 +1093,94 @@ static void figure_build_skin_world_palette(
             o[3] = S * (cR0 * bi.m[0][3] + cR1 * bi.m[1][3] + cR2 * bi.m[2][3]) + pos[r];
         }
     }
+
+    // Skeleton debug overlay — see g_skin_debug_draw_skeleton declaration
+    // in bind_palette.h. Single early gate: when the toggle is off the
+    // entire block is skipped, costing exactly one branch per call (zero
+    // POLY_transform, zero AENG_world_*, zero matrix save/restore).
+    //
+    // Draws the animated skeleton on top of the model: bone lines
+    // parent → child plus per-bone wireframe spheres at each joint.
+    // `current[i].pos_*` is the world-space joint position in the current
+    // pose, so connecting it to `current[body_part_parent[i]]` gives the
+    // bone segment directly.
+    //
+    // g_matWorld save/restore: at this point in the FK recurse, g_matWorld
+    // holds the last-bone local transform. POLY_transform inside
+    // AENG_world_line multiplies its inputs by g_matWorld, so absolute
+    // world coords would be double-transformed. POLY_set_local_rotation_none
+    // writes the camera-only matrix (object at world identity).
+    // Restoring afterwards is mandatory — the per-material fog calc in
+    // the caller reads g_matWorld._43 (same gotcha figure_build_screen_xform_bake
+    // handles for fog).
+    if (g_skin_debug_draw_skeleton) {
+        extern GEMatrix g_matWorld;
+        const GEMatrix saved_world = g_matWorld;
+        POLY_set_local_rotation_none();
+
+        // Per-bone colour palette. Symmetric bones share a hue with
+        // brightness paired LEFT = bright, RIGHT = dark, so it's obvious
+        // at a glance which side you're looking at. Center-line bones
+        // (pelvis, torso, head) get distinct neutral / high-contrast
+        // colours so they don't get confused with the pairs. Indices
+        // match body_part_parent[] in pose_composer.cpp.
+        //
+        // Pairing key:
+        //   femur  (1/12) red       tibia (2/13) green   foot  (3/14) orange
+        //   humer  (5/8)  blue      radius(6/9)  cyan    hand  (7/10) magenta
+        //   pelvis(0)  white         torso(4)  light gray         head(11) yellow
+        static const ULONG BONE_COLOURS[POSE_PERSON_BONE_COUNT] = {
+            0xffffffff, //  0 PELVIS         — white (root)
+            0xffff5050, //  1 LEFT_FEMUR     — bright red
+            0xff50ff50, //  2 LEFT_TIBIA     — bright green
+            0xffffaa00, //  3 LEFT_FOOT      — bright orange
+            0xffaaaaaa, //  4 TORSO          — light gray
+            0xff5080ff, //  5 LEFT_HUMORUS   — bright blue
+            0xff50ffff, //  6 LEFT_RADIUS    — bright cyan
+            0xffff50ff, //  7 LEFT_HAND      — bright magenta
+            0xff002080, //  8 RIGHT_HUMORUS  — dark blue
+            0xff008080, //  9 RIGHT_RADIUS   — dark cyan
+            0xff800080, // 10 RIGHT_HAND     — dark magenta
+            0xffffff00, // 11 HEAD           — yellow
+            0xff800000, // 12 RIGHT_FEMUR    — dark red
+            0xff008000, // 13 RIGHT_TIBIA    — dark green
+            0xff804400, // 14 RIGHT_FOOT     — dark orange / brown
+        };
+
+        // Bones — thin lines parent → child, coloured by the CHILD bone
+        // (so each line carries its own bone's identity, not the parent's).
+        // 1 px width — minimal, doesn't clutter the model silhouette.
+        constexpr SLONG BONE_LINE_PX = 1;
+        for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
+            const int p = body_part_parent[i];
+            if (p < 0) continue; // root (PELVIS) — no parent line to draw
+            const ULONG colour = BONE_COLOURS[i];
+            AENG_world_line(
+                (SLONG)current[p].pos_x, (SLONG)current[p].pos_y, (SLONG)current[p].pos_z,
+                BONE_LINE_PX, colour,
+                (SLONG)current[i].pos_x, (SLONG)current[i].pos_y, (SLONG)current[i].pos_z,
+                BONE_LINE_PX, colour,
+                UC_TRUE);
+        }
+
+        // Joints — wireframe spheres at each bone's pivot via the pure-
+        // debug AENG_world_sphere primitive (3 perpendicular great
+        // circles). Radius 7 in MS units — small bead per joint, doesn't
+        // fuse into a blob when limbs are bent close together.
+        constexpr SLONG JOINT_BALL_RADIUS  = 7;
+        constexpr SLONG JOINT_BALL_LINE_PX = 1;
+        for (int i = 0; i < POSE_PERSON_BONE_COUNT; ++i) {
+            AENG_world_sphere(
+                (SLONG)current[i].pos_x,
+                (SLONG)current[i].pos_y,
+                (SLONG)current[i].pos_z,
+                JOINT_BALL_RADIUS,
+                JOINT_BALL_LINE_PX,
+                BONE_COLOURS[i]);
+        }
+
+        g_matWorld = saved_world;
+    }
 }
 
 // Phase 2 P2-C helper: build the per-character screen-xform bake — the

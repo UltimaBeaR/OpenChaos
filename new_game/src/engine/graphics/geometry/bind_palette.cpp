@@ -142,6 +142,10 @@ bool g_skin_soft_rig_enabled = true;
 float g_skin_soft_band_fraction = 0.8f;
 float g_skin_soft_w_max         = 0.7f;
 
+// Skeleton debug overlay — see bind_palette.h. Default off (no
+// per-frame cost when disabled).
+bool g_skin_debug_draw_skeleton = false;
+
 // Build the palette for one anim_type slot. Returns false if the slot
 // doesn't hold a 15-bone person rig (chunk not loaded, wrong element
 // count, or missing keyframe data).

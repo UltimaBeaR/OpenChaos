@@ -228,22 +228,23 @@ void AENG_create_dx_prim_points()
 
 // uc_orig: AENG_world_line (fallen/DDEngine/Source/aeng.cpp)
 // Draws a world-space line segment between two 3D points with per-endpoint width and colour.
-// Flag: true when inside AENG_draw (after POLY_frame_init). Geometry added
-// outside the render pass gets cleared by POLY_frame_init and causes VB pool
-// corruption (shadow artifacts). Gate AENG_world_line on this flag.
-static bool s_in_render_pass = false;
-void AENG_set_render_pass(bool active) { s_in_render_pass = active; }
+//
+// AENG_set_render_pass() is kept as a no-op API for call-site compatibility
+// — earlier this file gated AENG_world_line on a `s_in_render_pass` flag
+// (set true only at the very end of AENG_draw, after POLY_frame_draw had
+// already submitted POLY_Page to GL). The gate silently dropped every
+// debug-line call that happened during scene rendering, which is exactly
+// when AI/nav/ware/figure overlays want to add them. POLY_frame_draw
+// inside AENG_draw flushes any lines added during the scene, so there's
+// no buffer-corruption hazard for the normal case — the gate was an
+// over-zealous guard. Removed; AENG_world_line now always emits directly.
+void AENG_set_render_pass(bool /*active*/) {}
 
 void AENG_world_line(
     SLONG x1, SLONG y1, SLONG z1, SLONG width1, ULONG colour1,
     SLONG x2, SLONG y2, SLONG z2, SLONG width2, ULONG colour2,
     SLONG sort_to_front)
 {
-    // Drop geometry added outside render pass — it would be cleared by
-    // POLY_frame_init and the freed VB slot causes shadow corruption.
-    if (!s_in_render_pass)
-        return;
-
     POLY_Point p1;
     POLY_Point p2;
 
@@ -251,12 +252,10 @@ void AENG_world_line(
     POLY_transform(float(x2), float(y2), float(z2), &p2);
 
     if (POLY_valid_line(&p1, &p2)) {
-        p1.colour = colour1;
+        p1.colour   = colour1;
         p1.specular = 0xff000000;
-
-        p2.colour = colour2;
+        p2.colour   = colour2;
         p2.specular = 0xff000000;
-
         POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_COLOUR, sort_to_front);
     }
 }
@@ -282,6 +281,57 @@ void AENG_world_line_nondebug(
         p2.specular = 0xff000000;
 
         POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_COLOUR, sort_to_front);
+    }
+}
+
+// Debug wireframe sphere — see aeng.h. Renders as three perpendicular
+// great circles (XY/XZ/YZ planes) tessellated into AENG_world_line
+// segments. SEGMENTS = 6 → 18 short lines per sphere; cheap enough to
+// pepper a frame with markers without thinking about cost. The 6-segment
+// hexagon still reads as a recognisable orb at typical screen sizes,
+// while 12 gets visually noisy when many spheres overlap.
+void AENG_world_sphere(
+    SLONG cx, SLONG cy, SLONG cz,
+    SLONG radius,
+    SLONG width_px,
+    ULONG colour)
+{
+    constexpr int SEGMENTS = 6;
+    constexpr float TWO_PI = 6.28318530717958647692f;
+    const float r = float(radius);
+
+    // Precompute the ring's vertex offsets once. Sphere has three
+    // identical-shape circles, just rotated into different planes, so we
+    // share one (cos, sin) table across all three.
+    float ring_c[SEGMENTS + 1];
+    float ring_s[SEGMENTS + 1];
+    for (int i = 0; i <= SEGMENTS; ++i) {
+        const float a = float(i) * (TWO_PI / float(SEGMENTS));
+        ring_c[i] = r * cosf(a);
+        ring_s[i] = r * sinf(a);
+    }
+
+    for (int i = 0; i < SEGMENTS; ++i) {
+        const SLONG c0 = (SLONG)ring_c[i];
+        const SLONG s0 = (SLONG)ring_s[i];
+        const SLONG c1 = (SLONG)ring_c[i + 1];
+        const SLONG s1 = (SLONG)ring_s[i + 1];
+
+        // XY-plane ring (constant z)
+        AENG_world_line(
+            cx + c0, cy + s0, cz, width_px, colour,
+            cx + c1, cy + s1, cz, width_px, colour,
+            UC_TRUE);
+        // XZ-plane ring (constant y)
+        AENG_world_line(
+            cx + c0, cy, cz + s0, width_px, colour,
+            cx + c1, cy, cz + s1, width_px, colour,
+            UC_TRUE);
+        // YZ-plane ring (constant x)
+        AENG_world_line(
+            cx, cy + c0, cz + s0, width_px, colour,
+            cx, cy + c1, cz + s1, width_px, colour,
+            UC_TRUE);
     }
 }
 

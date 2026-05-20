@@ -85,4 +85,16 @@ extern bool g_skin_soft_rig_enabled;
 extern float g_skin_soft_band_fraction;
 extern float g_skin_soft_w_max;
 
+// Debug overlay (kept past P2-J — useful diagnostic for all future
+// skinning work, not specifically tied to P2-E tuning).
+//
+// When true, FIGURE_draw paths render the animated skeleton on top of
+// the model: bone lines parent→child plus a per-bone wireframe ball at
+// each joint. Per-bone colours pair symmetric bones (left/right same
+// hue, left bright vs right darker) so the rig is readable at a glance.
+//
+// When false, the entire debug-draw block is skipped — zero per-frame
+// cost. Toggled by B in bangunsnotgames mode (see game_tick.cpp).
+extern bool g_skin_debug_draw_skeleton;
+
 #endif // ENGINE_GRAPHICS_GEOMETRY_BIND_PALETTE_H
