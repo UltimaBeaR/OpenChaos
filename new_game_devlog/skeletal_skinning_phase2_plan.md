@@ -374,11 +374,46 @@ Skin-матрицы дешевле инвертировать **в bind-позе
   одного VBO. Это позволяет изолировать корректность консолидации.
 - Гейт: визуально 1:1 со старым рендером.
 
-### Этап P2-B: texture array, **1 draw на персонажа**
+### Этап P2-B: ⏸️ ОТЛОЖЕНО (но **БУДЕТ НУЖНО ВЕРНУТЬСЯ**)
 
-- Собрать texture array per (chunk, MeshID).
-- Per-vertex `layer` атрибут.
-- Шейдер: `sampler2DArray`.
+**Решение 2026-05-20:** скипаем P2-B и идём сразу в soft rig (P2-C → E),
+потому что:
+- P2-A уже сократил draws на персонажа с ~15-30 до ~3-5 (5-10×).
+- P2-B = **чистый перф**, не требуется архитектурно для soft rig
+  (multi-bone skinning спокойно ложится на P2-A напрямую).
+- В P2-B оказалась нетривиальная сложность: разные размеры текстур на
+  материалах требуют либо ресэмпла (потеря качества) либо паддинга +
+  UV-скейл uniform; плюс flag-материалы (JACKET/OFFSET) с runtime-
+  резолвом по skill/colour. Это полноценная итерация на 1-2 дня.
+
+**⚠️ ОБЯЗАТЕЛЬНО ВЕРНУТЬСЯ.** Это не «может быть» — это плановый шаг
+после soft rig'а. На целевом железе (Steam Deck, интегр. графика) каждые
+сэкономленные 2-3 draws на персонажа × 10-15 персонажей в кадре = 20-45
+draws/кадр меньше, существенно. Не забывать про этот пункт.
+
+**Когда вернёмся — оценить два варианта:**
+
+1. **Texture array (GL_TEXTURE_2D_ARRAY).** Каждая текстура = слой массива.
+   Per-vertex layer index. Все слои одного размера (паддинг/ресэмпл).
+   Универсально, не требует пересборки атласа при изменении текстур.
+2. **Texture atlas** (одна большая текстура с под-ректами на каждую
+   материальную текстуру). Per-material UV-смещение + размер. Текстуры
+   разных размеров укладываются без потери качества. Но требует
+   ребилда атласа при изменениях и аккуратной упаковки.
+
+**Что оценить перед стартом:** сколько уникальных текстур у персонажа в
+сцене (для типичной сцены RTA/Urban Shakedown — посчитать), какие
+размеры (паддинг ×4 для array vs упаковка для атласа), сколько flag-
+материалов (для array их вариантов = доп. слои; для атласа = доп. под-
+ректы). Если уникальных текстур мало (<10) и размеры близкие — array
+проще. Если разнородные размеры — атлас может выйти эффективнее по
+памяти. Выбрать по факту замеров.
+
+Изначальная заметка плана (актуальна когда вернёмся):
+- Собрать texture array/atlas per (chunk, MeshID).
+- Per-vertex `layer` атрибут (для array) или per-vertex UV-сдвиг (для
+  атласа).
+- Шейдер: `sampler2DArray` или одинарный `sampler2D` с UV-маппингом.
 - Гейт: визуально 1:1 + замер числа draw'ов (должно резко упасть).
 
 ### Этап P2-C: bind-pose & skin matrices, всё ещё **single-bone**
@@ -491,6 +526,132 @@ Skin-матрицы дешевле инвертировать **в bind-позе
 
 > Журнал самого свежего сверху. Каждая запись = короткий блок: что
 > сделано, что ждёт верификации, что подписано.
+
+### 2026-05-20 — Handoff на P2-C (для следующей сессии)
+
+**Старт следующей сессии:** прочитать этот документ целиком (особенно §3
+наработки, §4 алгоритм, §5 архитектура, §6 этапность, §7 риски).
+Состояние репо: P2-A закоммичен, ветка `optimize-fps`. Идём в **P2-C**.
+
+**Что разведано в этой сессии при подходе к P2-C (важные находки):**
+
+1. **`MMBodyParts_pMatrix` — это BAKED матрица «World × Projection ×
+   Viewport»**, не чистый world. Это видно по существующему
+   `skin_vert.glsl` (`new_game/src/engine/graphics/graphics_engine/backend_opengl/shaders/skin_vert.glsl`)
+   который делает странный `zbuf = 1 - ZCLIP/sw` потому что палитра
+   уже спроецировала вершину. **Для multi-bone это не годится** —
+   блендить вершины в screen-space нельзя (проекция нелинейна).
+   Нужны чистые world-матрицы + проекция в конце.
+
+2. **Источник чистых world-матриц — `render_interp_get_cached_pose(Thing*)`**
+   (render_interp.cpp:1127). Возвращает `BoneInterpTransform[15]`
+   (pos + Matrix33 rot, всё в world space, БЕЗ проекции). Уже
+   используется тенями (smap_bone_world). Идеальный источник для
+   `current_palette` в новом пути.
+
+3. **Глобалы для view × projection доступны:** `g_matWorld` (= view
+   matrix в обычной терминологии, см. poly.cpp:596+), `g_matProjection`
+   (см. poly.cpp:362-377). Это то что нужно в новый шейдер uniform'ом
+   вместо baked palette.
+
+4. **Bind-палитра считается per-chunk один раз.** Источник: per-bone
+   offsets из любого keyframe чанка (`chunk->AnimKeyFrames[0].FirstElement[i].OffsetX/Y/Z`),
+   локальные повороты = identity для всех костей кроме плеч (5, 8) где
+   ±30° по Z (см. §3.2). FK от PELVIS в model-space (origin = 0).
+
+5. **Существующий код T-позы override** в render_interp.cpp
+   (ветка `if (g_tpose_override_enabled)` в `render_interp_compute_pose`)
+   делает РОВНО ту FK что нужна для bind-палитры — A-поза с identity +
+   ±30° на плечах. **Можно почти дословно скопировать математику**
+   при написании `compute_bind_palette()`.
+
+**Конкретный план первого шага P2-C:**
+
+P2-C.1 (изолированный, тестируемый):
+- Новая функция `compute_bind_palette(int anim_type, GEMatrix out_world[15], GEMatrix out_inv_bind[15])`.
+- Источник offsets: `game_chunk[anim_type].AnimKeyFrames[0].FirstElement[i].Offset*`.
+- A-поза: identity local rot для всех + ±30° Z для 5 и 8.
+- FK от пелвиса в (0,0,0), identity world rot.
+- inv_bind[i] = инверсия (для rigid body: inv_R = R^T, inv_T = -R^T × T).
+- Кэш per (anim_type), 3 слота (DARCI/ROPER/CIV).
+- Применять только когда `chunk->ElementCount == 15` (отбраковать
+  балрога и пр. — у них своя структура).
+
+P2-C.2 (новый шейдер, существенный):
+- Новый файл `skin_world_vert.glsl` — принимает `u_skin_matrix[15]`
+  (3 vec4 каждая = mat3 rot + vec3 pos, 60 floats), `u_view` (mat4),
+  `u_projection` (mat4). Логика: `world_pos = skin_matrix[bone] × bind_pos`,
+  `clip_pos = projection × view × world_pos`. Лайтинг/туман — копия
+  существующего `skin_vert.glsl` с поправкой что direction теперь в
+  world space.
+- Нормаль: тоже трансформ скин-матрицы (rot часть).
+- Подключить в core.cpp как `s_program_skin_world`.
+
+P2-C.3 (vert format + build):
+- Расширить `GESkinVertex`: вершины теперь в **bind-space**, не
+  bone-local. Удобно сохранить старое поле `bone` (= bMatIndex) для
+  выбора матрицы в шейдере.
+- В `figure_build_consolidated_skin`: после копирования vert'a из
+  pPrimObj, домножить позицию на `bind_palette[bMatIndex]` → теперь
+  vert в общем bind-space. Нормаль тоже трансформ.
+- НЕ менять размер struct если можно (44 байт остаются). Просто
+  семантика поля `position` меняется с bone-local на bind-space.
+
+P2-C.4 (draw path):
+- Per-frame compute `skin_matrix[15] = current[i] × inv_bind[i]` на
+  CPU. Источник current — `render_interp_get_cached_pose(p_person)`.
+- Передать в шейдер uniform'ом.
+- Передать `g_matWorld` (view) и `g_matProjection`.
+- Заменить вызов `ge_skin_mesh_draw_range` на новый `ge_skin_world_draw_range`
+  (новый API, использует новый шейдер).
+
+P2-C.5 (A/B тумблер):
+- Debug-флаг `g_skin_world_path_enabled` (или клавиша) — переключает
+  между старым baked-путём (P2-A) и новым world-путём (P2-C).
+- Гейт: визуально 1:1. Особенно проверить: перекрытия со стенами/
+  машинами вблизи (z-precision), персонаж в катсцене, ночь/туман.
+
+**Минимальный test sequence для подписи 1:1:**
+- Дарси стоит — должна выглядеть идентично.
+- Дарси бежит — должна выглядеть идентично.
+- В катсцене (RTA intro) — идентично.
+- Ночью в тумане — идентично.
+- Близкий план с перекрытиями стен — без z-fight'а.
+
+**Риски (что наиболее вероятно сломается):**
+- Порядок умножения матриц (column vs row major у `Matrix33`).
+- Z-precision при новой проекции — может не совпасть с inverse-Z из
+  старого шейдера. Возможно понадобится sync'нуть z-write конвенцию.
+- Нормали: если в bind-палитре есть scale (не должно быть, но
+  проверить) — нужен inverse-transpose. Иначе rot достаточно.
+
+**Что НЕ менять в P2-C:**
+- Геометрию vert format размер: 44 байт остаются (P2-D расширит).
+- Веса/риг: single-bone, w0=1 эффективно. Это P2-E.
+- Тени/отражения: не трогать (они идут через `SMAP_person_gpu` и
+  отдельный CPU-путь, не зависят от skin-палитры).
+
+### 2026-05-20 — P2-A сделан и подписан + P2-B отложен
+
+**P2-A сделан и подписан** пользователем («Вроде все ок»). Что вошло:
+- Новое API `ge_skin_mesh_draw_range` (core.cpp + game_graphics_engine.h).
+- Поля `skin_consolidated` + `skin_consolidated_ranges` на `TomsPrimObject`
+  ([prim_types.h](../new_game/src/buildings/prim_types.h)); init в
+  `FIGURE_TPO_init_3d_object`, free в `FIGURE_clean_LRU_slot`.
+- Функция `figure_build_consolidated_skin` (figure.cpp) — собирает все
+  материалы pPrimObj в один VBO/EBO; декодирует strip-индексы в triangle
+  list, оффсетит вершины по материалам, записывает per-material
+  `(start, count)` диапазоны.
+- Draw-loop в `FIGURE_draw_hierarchical_prim_recurse` — пробует
+  консолидированный путь, fallback на старый `ge_draw_multi_matrix` если
+  build провалился. Каждый материал: `pa->RS.SetChanged()` биндит свою
+  текстуру, потом `ge_skin_mesh_draw_range` со своим диапазоном из
+  общего меша. Эффект: draws на персонажа упали с ~15-30 до ~3-5.
+- `individual_cull` путь, тени, отражения — НЕ тронуты (остались на
+  старой схеме).
+
+**P2-B отложен (см. этап выше).** Идём в P2-C (bind-pose & skin
+matrices) — это первая ступень к soft rig'у, не требует texture array.
 
 ### 2026-05-20 — План создан
 

@@ -671,6 +671,15 @@ struct TomsPrimObject {
     // FIGURE_clean_LRU_slot. Runtime-only (TomsPrimObjects are static
     // arrays, zero-initialised — not loaded from resource files).
     void** skin_gpu;
+    // Phase 2 P2-A (skeletal_skinning_phase2_plan.md): consolidated
+    // single-VBO skin mesh holding geometry of ALL materials in one
+    // GESkinMesh, drawn as N range-slices (one per material). Replaces
+    // the per-material skin_gpu[] array for the full-visibility person
+    // path. Lazily built on first character draw, freed in
+    // FIGURE_clean_LRU_slot. skin_consolidated_ranges is an array of
+    // 2 × wNumMaterials uint32 (index_start, index_count pairs).
+    void* skin_consolidated;          // GESkinMesh*
+    uint32_t* skin_consolidated_ranges;
 };
 
 // Legacy prim object header (includes name field, pre-D3D).

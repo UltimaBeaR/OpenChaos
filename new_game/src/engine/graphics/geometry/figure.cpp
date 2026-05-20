@@ -22,6 +22,8 @@
 #include "engine/core/quaternion.h"
 #include "things/characters/person.h"
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
+#include <vector>  // figure_build_consolidated_skin scratch buffers (P2-A)
+#include <cstring> // memcpy
 #include "engine/graphics/render_interp.h" // BoneInterpTransform, render_interp_get_cached_pose
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES (pose snapshot)
 #include "engine/animation/anim_types.h" // GameKeyFrame layout (FirstElement)
@@ -918,6 +920,139 @@ static void** figure_skin_cache_slot(TomsPrimObject* po, PrimObjectMaterial* pMa
     return &po->skin_gpu[pMat - po->pMaterials];
 }
 
+// Phase 2 P2-A (skeletal_skinning_phase2_plan.md): build one consolidated
+// GESkinMesh holding the geometry of ALL materials of a person's
+// TomsPrimObject. Replaces per-material GPU caching with one VBO + N
+// index slices (one per material) drawn via ge_skin_mesh_draw_range.
+//
+// Mirrors the ge_draw_multi_matrix accumulation in polypage.cpp:
+//  - GEVertex stream per material → GESkinVertex with model-space pos,
+//    raw normal, bMatIndex bone, color/specular zeroed (unlit path
+//    re-derives them in-shader).
+//  - Strip indices (UC_TRUE-init even/odd winding flip, 0xFFFF terminator)
+//    → triangle list, with per-material base-vertex offset so all
+//    materials share one VBO.
+//
+// On success stores the mesh and a 2 × wNumMaterials uint32 ranges array
+// (index_start, index_count pairs) on pPrimObj. Failure (alloc, > 65535
+// verts) leaves consolidated = NULL; caller falls back to per-material
+// path.
+static bool figure_build_consolidated_skin(TomsPrimObject* pPrimObj)
+{
+    if (pPrimObj->skin_consolidated != NULL)
+        return true;
+    if (pPrimObj->wNumMaterials == 0 || pPrimObj->pMaterials == NULL
+        || pPrimObj->pD3DVertices == NULL || pPrimObj->pwStripIndices == NULL)
+        return false;
+
+    GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
+    UWORD* pwStripIndices = pPrimObj->pwStripIndices;
+    PrimObjectMaterial* pMat = pPrimObj->pMaterials;
+
+    std::vector<GESkinVertex> verts;
+    std::vector<uint16_t>     inds;
+    const int n_mats = (int)pPrimObj->wNumMaterials;
+    std::vector<uint32_t>     ranges(n_mats * 2, 0u);
+
+    uint32_t palette_n = 0; // max bone index referenced + 1
+
+    for (int iMat = 0; iMat < n_mats; iMat++) {
+        const uint16_t base_vertex = (uint16_t)verts.size();
+        const uint32_t range_start = (uint32_t)inds.size();
+
+        // Copy this material's vertices to the shared VBO.
+        // GEVertex view gives normals; the GEVertexLit view (same memory)
+        // is used only to read the MM index byte (offset 12).
+        GEVertex* pMatVerts = pVertex;
+        GEVertexLit* pMatVertsLit = (GEVertexLit*)pMatVerts;
+        for (uint32_t v = 0; v < pMat->wNumVertices; v++) {
+            GESkinVertex sv;
+            sv.x  = pMatVerts[v].x;
+            sv.y  = pMatVerts[v].y;
+            sv.z  = pMatVerts[v].z;
+            sv.nx = pMatVerts[v].nx;
+            sv.ny = pMatVerts[v].ny;
+            sv.nz = pMatVerts[v].nz;
+            BYTE bMatIndex = ((unsigned char*)(pMatVertsLit + v))[12];
+            sv.bone = (uint32_t)bMatIndex;
+            sv.color    = 0u; // unlit: derived in-shader
+            sv.specular = 0u; // fog computed in-shader (1C)
+            sv.u = pMatVertsLit[v].u;
+            sv.v = pMatVertsLit[v].v;
+            verts.push_back(sv);
+
+            if ((uint32_t)bMatIndex + 1 > palette_n)
+                palette_n = (uint32_t)bMatIndex + 1;
+        }
+
+        // Decode strip indices to triangle list — same walk as
+        // ge_draw_multi_matrix (polypage.cpp): read 2, then loop reading
+        // 1 at a time, emit triangle with even/odd winding, 0xFFFF
+        // terminates the strip. Multiple strips per material are
+        // separated by 0xFFFF and walked until indices run out.
+        UWORD* p = pwStripIndices;
+        uint32_t remaining = pMat->wNumStripIndices;
+        while (remaining >= 3) {
+            uint16_t wi[3];
+            wi[1] = *p++;
+            wi[2] = *p++;
+            remaining -= 2;
+            bool bEven = true; // matches UC_TRUE init in polypage.cpp
+            while (remaining > 0) {
+                bEven = !bEven;
+                wi[0] = wi[1];
+                wi[1] = wi[2];
+                wi[2] = *p++;
+                remaining--;
+                if (wi[2] == 0xffff)
+                    break;
+                uint16_t a, b, c;
+                if (bEven) {
+                    a = wi[0]; b = wi[2]; c = wi[1]; // {0,2,1}
+                } else {
+                    a = wi[0]; b = wi[1]; c = wi[2]; // {0,1,2}
+                }
+                inds.push_back((uint16_t)(base_vertex + a));
+                inds.push_back((uint16_t)(base_vertex + b));
+                inds.push_back((uint16_t)(base_vertex + c));
+            }
+        }
+
+        ranges[iMat * 2 + 0] = range_start;
+        ranges[iMat * 2 + 1] = (uint32_t)inds.size() - range_start;
+
+        pVertex += pMat->wNumVertices;
+        pwStripIndices += pMat->wNumStripIndices;
+        pMat++;
+    }
+
+    if (verts.empty() || inds.empty())
+        return false;
+    if (verts.size() > 0xFFFFu) {
+        // Index range exceeds uint16. Caller falls back to per-material
+        // path. Unlikely for a person (~hundreds of verts/material).
+        return false;
+    }
+
+    GESkinMesh* mesh = ge_skin_mesh_create(
+        verts.data(), (uint32_t)verts.size(),
+        inds.data(), (uint32_t)inds.size(),
+        palette_n);
+    if (!mesh)
+        return false;
+
+    uint32_t* ranges_storage = (uint32_t*)MemAlloc(ranges.size() * sizeof(uint32_t));
+    if (!ranges_storage) {
+        ge_skin_mesh_destroy(mesh);
+        return false;
+    }
+    std::memcpy(ranges_storage, ranges.data(), ranges.size() * sizeof(uint32_t));
+
+    pPrimObj->skin_consolidated = mesh;
+    pPrimObj->skin_consolidated_ranges = ranges_storage;
+    return true;
+}
+
 // uc_orig: FIGURE_clean_LRU_slot (fallen/DDEngine/Source/figure.cpp)
 // Frees vertex/index memory for one LRU cache slot and clears its metadata.
 void FIGURE_clean_LRU_slot(int iSlot)
@@ -947,6 +1082,15 @@ void FIGURE_clean_LRU_slot(int iSlot)
         }
         MemFree(ptpo->skin_gpu);
         ptpo->skin_gpu = NULL;
+    }
+    // Phase 2 P2-A: consolidated single-VBO mesh + per-material ranges.
+    if (ptpo->skin_consolidated != NULL) {
+        ge_skin_mesh_destroy((GESkinMesh*)ptpo->skin_consolidated);
+        ptpo->skin_consolidated = NULL;
+    }
+    if (ptpo->skin_consolidated_ranges != NULL) {
+        MemFree(ptpo->skin_consolidated_ranges);
+        ptpo->skin_consolidated_ranges = NULL;
     }
 
     MemFree(ptpo->pMaterials);
@@ -1131,6 +1275,9 @@ void FIGURE_TPO_init_3d_object(TomsPrimObject* pPrimObj)
     // on the struct's memory being zero-initialised (the asserts above
     // guarantee a fresh object, so this never leaks an existing array).
     pPrimObj->skin_gpu = NULL;
+    // Phase 2 P2-A: consolidated single-VBO + per-material ranges.
+    pPrimObj->skin_consolidated = NULL;
+    pPrimObj->skin_consolidated_ranges = NULL;
 
     TPO_pPrimObj = pPrimObj;
 
@@ -2320,14 +2467,26 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
     PrimObjectMaterial* pMat = pPrimObj->pMaterials;
 
+    // Phase 2 P2-A (skeletal_skinning_phase2_plan.md): build one
+    // consolidated skin mesh for the whole person on first use, then
+    // each material is one range-slice of the shared VBO. Falls back
+    // to per-material ge_draw_multi_matrix path if the build fails
+    // (alloc, > 65535 verts; very unlikely for a person).
+    bool consolidated = (pPrimObj->skin_consolidated != NULL)
+        || figure_build_consolidated_skin(pPrimObj);
+    GESkinMesh* skinMesh = (GESkinMesh*)pPrimObj->skin_consolidated;
+    uint32_t* skinRanges = pPrimObj->skin_consolidated_ranges;
+    if (!skinMesh || !skinRanges) consolidated = false;
+
     GEMultiMatrix mm;
     mm.matrices = MMBodyParts_pMatrix;
     mm.lpvLightDirs = MMBodyParts_pNormal;
-    mm.skin_cache = nullptr; // 1D: set per-material before each draw
+    mm.skin_cache = nullptr; // 1D: set per-material before each draw (fallback only)
 
     GEVertex* pVertex = (GEVertex*)pPrimObj->pD3DVertices;
     UWORD* pwStripIndices = pPrimObj->pwStripIndices;
-    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--) {
+    int iMatIndex = 0;
+    for (int iMatNum = pPrimObj->wNumMaterials; iMatNum > 0; iMatNum--, iMatIndex++) {
 
         UWORD wPage = pMat->wTexturePage;
         UWORD wRealPage = wPage & TEXTURE_PAGE_MASK;
@@ -2347,22 +2506,39 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         {
-            if (wPage & TEXTURE_PAGE_FLAG_TINT) {
-                mm.lpLightTable = MM_pcFadeTableTint;
-            } else {
-                mm.lpLightTable = MM_pcFadeTable;
-            }
-            mm.lpvVertices = pVertex;
-            mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
+            // Explicit cast: MM_pcFadeTable is ULONG* (= unsigned long*).
+            // ULONG is 32-bit on Win but 64-bit on Linux/Mac — same bit
+            // pattern as uint32_t on our targets but the pointer types
+            // differ. Cast keeps things portable.
+            const uint32_t* fadeTable = (const uint32_t*)((wPage & TEXTURE_PAGE_FLAG_TINT)
+                ? MM_pcFadeTableTint : MM_pcFadeTable);
 
             pa->RS.SetCullMode(GECullMode::CCW);
             pa->RS.SetAlphaBlendEnabled(false);
             pa->RS.SetTextureBlend(GETextureBlend::ModulateAlpha);
             pa->RS.SetChanged();
 
-            {
-                // Set view-space Z for CPU fog in ge_draw_multi_matrix.
-                g_mm_fog_view_z = g_matWorld._43;
+            // Set view-space Z for CPU fog (same scalar both paths).
+            g_mm_fog_view_z = g_matWorld._43;
+
+            if (consolidated) {
+                // P2-A consolidated path: one shared VBO, this material
+                // is one slice [start, count) of the index buffer.
+                const uint32_t index_start = skinRanges[iMatIndex * 2 + 0];
+                const uint32_t index_count = skinRanges[iMatIndex * 2 + 1];
+                if (index_count > 0) {
+                    ge_skin_mesh_draw_range(
+                        skinMesh, index_start, index_count,
+                        MMBodyParts_pMatrix,
+                        /*unlit=*/ true,
+                        (const float*)MMBodyParts_pNormal,
+                        fadeTable);
+                }
+            } else {
+                // Fallback: original per-material accumulation path.
+                mm.lpLightTable = (ULONG*)fadeTable;
+                mm.lpvVertices = pVertex;
+                mm.skin_cache = figure_skin_cache_slot(pPrimObj, pMat);
 
                 ge_draw_multi_matrix(
                     GEMMVertexType::Unlit,

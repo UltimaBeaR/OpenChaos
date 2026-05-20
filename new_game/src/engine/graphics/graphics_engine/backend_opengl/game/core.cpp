@@ -1497,6 +1497,29 @@ void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
     s_draw_calls++;
 }
 
+void ge_skin_mesh_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const struct GEMatrix* palette,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table)
+{
+    PERF_GE_CALL();
+    if (!mesh || !palette || !index_count)
+        return;
+    if (index_start + index_count > (uint32_t)mesh->index_count)
+        return;
+    if (!init_shaders())
+        return;
+
+    skin_bind_and_set_uniforms(palette, mesh->palette_n, unlit, light_dirs, fade_table);
+
+    glBindVertexArray(mesh->vao);
+    // GL_UNSIGNED_SHORT → 2 bytes per index. Offset is in bytes.
+    const GLvoid* offset = (const GLvoid*)(uintptr_t)(index_start * sizeof(uint16_t));
+    glDrawElements(GL_TRIANGLES, (GLsizei)index_count, GL_UNSIGNED_SHORT, offset);
+    glBindVertexArray(0);
+    s_draw_calls++;
+}
+
 void ge_skin_mesh_destroy(GESkinMesh* mesh)
 {
     if (!mesh)

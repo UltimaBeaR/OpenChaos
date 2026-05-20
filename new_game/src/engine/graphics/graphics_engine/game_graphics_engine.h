@@ -545,6 +545,15 @@ GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
 // comes from the persistent buffer; only uniforms change per frame.
 void ge_skin_mesh_draw(GESkinMesh* mesh, const struct GEMatrix* palette,
     bool unlit, const float* light_dirs, const uint32_t* fade_table);
+// Draw a contiguous slice [index_start, index_start + index_count) of the
+// persistent index buffer. Used for the consolidated-person path
+// (skeletal_skinning_phase2_plan.md P2-A) where one mesh holds geometry
+// for the whole character and each material is one slice of the index
+// buffer. Vertices are shared across slices (one VBO).
+void ge_skin_mesh_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const struct GEMatrix* palette,
+    bool unlit, const float* light_dirs, const uint32_t* fade_table);
 void ge_skin_mesh_destroy(GESkinMesh* mesh);
 
 // GPU shadow-silhouette render-to-texture — skeletal_skinning_plan.md 1E.
