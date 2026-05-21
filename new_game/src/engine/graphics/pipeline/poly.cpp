@@ -1663,6 +1663,38 @@ static const char* poly_page_short_name(int idx)
 }
 #endif // OC_DEBUG_PERF
 
+// ─── Near/far split sort tuning (render_batching_plan.md Step 3.3) ────────
+//
+// These two constants define the trade-off between alpha-sort performance
+// (via poly grouping into buckets) and visible transparent-object sort
+// artefacts. Hand-tuned by visual A/B in typical city scenes. If you
+// change either, re-verify visually.
+//
+// FAR_START_VIEW_Z — boundary in linear view-z (world units, FAR_clip=1.0):
+//   • smaller (e.g. 0.20) — boundary closer to camera → more polys land
+//     in the FAR zone → more grouping → better perf, but artefacts may
+//     become visible at mid-distance.
+//   • larger (e.g. 0.50) — boundary further → fewer polys in the FAR zone
+//     → less perf gain, but fewer chances of seeing artefacts.
+//   • Current 0.35 — last ~65% of visible depth is bucketed.
+//
+// FAR_BUCKETS — number of buckets across the FAR zone:
+//   • fewer (e.g. 32) — each bucket wider → more aggressive grouping →
+//     better perf, BUT when a poly hops across a bucket boundary (due
+//     to tiny sort_z jitter from camera/object motion) it jumps over a
+//     larger crowd of neighbours → large VISIBLE swap (flicker).
+//   • more (e.g. 256) — narrow buckets → swaps tiny, imperceptible,
+//     BUT less grouping per bucket → worse perf.
+//   • Current 128 — compromise: stable under camera motion and still
+//     meaningfully cuts draw-call count in the alpha sort.
+//
+// Related diagnostic in the perf panel: `flush.alpha_batches` (total
+// alpha-sort draw-call count). Pre-3.1 was ~259; after 3.1 + 3.3 it sits
+// at ~25-50 in a typical city scene.
+static constexpr float POLY_ALPHA_FAR_START_VIEW_Z = 0.35f;
+static constexpr int   POLY_ALPHA_FAR_BUCKETS      = 128;
+// ──────────────────────────────────────────────────────────────────────────
+
 // uc_orig: POLY_frame_draw (fallen/DDEngine/Headers/poly.h)
 // Flushes all polygon buckets to Direct3D for the current frame.
 // draw_shadow_page/draw_text_page: UC_FALSE to suppress those pages.
@@ -1828,16 +1860,43 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 #endif
         }
 
-        // Strict back-to-front sort by sort_z. Tried bucket-then-page
-        // grouping (render_batching_plan.md Этап 3) but it broke z-order
-        // for alpha geometry in dense scenes (tree leaves, bushes) where
-        // strict per-poly ordering is required. Now batch-safe pages
-        // (POLY_PAGE_SHADOW_SQUARE/OVAL — subtract-blend ground shadows
-        // whose intra-page ordering doesn't visually conflict) bypass
-        // the sort entirely via the dedicated pre-sort batch path above
-        // — see `batch_safe_pages` block. Everything else stays strict.
+        // Near/far split sort (render_batching_plan.md Step 3.3):
+        // - NEAR zone (sort_z >= NEAR_THRESHOLD) — strict back-to-front
+        //   by sort_z. Where transparency artefacts are visible: dense
+        //   tree leaves, bushes, fences, anything stacking near the
+        //   camera. Global bucket sort here breaks leaves/bushes —
+        //   already verified in earlier attempts.
+        // - FAR zone (sort_z < NEAR_THRESHOLD) — bucket-then-page
+        //   grouping. Far polys small on screen, perspective makes
+        //   depth gaps visually tiny → bucket grouping invisible.
+        //   Same-page polys cluster → DrawBatchedPolys batches them.
+        //
+        // Tuning constants — see POLY_ALPHA_FAR_START_VIEW_Z and
+        // POLY_ALPHA_FAR_BUCKETS at file scope above the function for
+        // the trade-off rationale.
+        static constexpr float NEAR_THRESHOLD     = POLY_ZCLIP_PLANE / POLY_ALPHA_FAR_START_VIEW_Z;
+        static constexpr float FAR_BUCKET_SCALE   = (float)POLY_ALPHA_FAR_BUCKETS / NEAR_THRESHOLD;
         std::stable_sort(sort_array, sort_array + sort_count,
-            [](const PolyPoly* a, const PolyPoly* b) { return a->sort_z < b->sort_z; });
+            [](const PolyPoly* a, const PolyPoly* b) {
+                const bool a_near = a->sort_z >= NEAR_THRESHOLD;
+                const bool b_near = b->sort_z >= NEAR_THRESHOLD;
+                // Cross-zone: far sorts before near (back-to-front,
+                // far has smaller sort_z).
+                if (a_near != b_near) return b_near; // a far → a<b
+                if (a_near) {
+                    // Both near: strict sort_z. stable_sort preserves
+                    // insertion order on ties (avoids fir-tree-foliage flicker).
+                    return a->sort_z < b->sort_z;
+                }
+                // Both far: bucket primary, page-pointer secondary
+                // (groups same-page polys inside one bucket → one batch).
+                const int ba = (int)(a->sort_z * FAR_BUCKET_SCALE);
+                const int bb = (int)(b->sort_z * FAR_BUCKET_SCALE);
+                if (ba != bb) return ba < bb;
+                if (a->page != b->page)
+                    return (uintptr_t)a->page < (uintptr_t)b->page;
+                return false; // stable preserves insertion within bucket+page
+            });
 
         // Perf counters: alpha-sorted poly count + total polys (alpha part).
         PERF_COUNT("flush.alpha_polys", (double)sort_count);
