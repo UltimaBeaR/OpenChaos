@@ -1044,6 +1044,14 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         }
 
         if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
+            // Diagnostic (Этап 3.2 plan): count how many polys re-submit
+            // via the 2PASS mechanism. Splits by overlay kind so we know
+            // SELF_ILLUM vs WINDOW objemy in typical scenes — drives
+            // decision whether to port these in the multi-texture shader.
+            PERF_COUNT("flush.2pass_polys", 1.0);
+            PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
+                ? "flush.2pass_window_polys"
+                : "flush.2pass_illum_polys", 1.0);
             page += 1;
 
             goto second_page;
@@ -1121,6 +1129,11 @@ second_page:;
     pv->SetSpecular(ppt->specular);
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
+        // Diagnostic (Этап 3.2 plan): see header comment in nearclipped path.
+        PERF_COUNT("flush.2pass_polys", 1.0);
+        PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
+            ? "flush.2pass_window_polys"
+            : "flush.2pass_illum_polys", 1.0);
         page += 1;
 
         goto second_page;
@@ -1243,6 +1256,11 @@ second_page:;
     pv[2] = pv[-2];
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
+        // Diagnostic (Этап 3.2 plan): see header comment in nearclipped path.
+        PERF_COUNT("flush.2pass_polys", 1.0);
+        PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
+            ? "flush.2pass_window_polys"
+            : "flush.2pass_illum_polys", 1.0);
         page += 1;
 
         goto second_page;
