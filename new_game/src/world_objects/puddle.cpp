@@ -375,13 +375,17 @@ SLONG PUDDLE_in(SLONG x, SLONG z)
 }
 
 // Iterates the puddle spatial index for (x, z) — same scan pattern as
-// PUDDLE_in but returns the rect of the hit puddle (and a hit bool).
-// Used by the splash effect to fade out sprites near the puddle's rect
-// edge, where the rectangle includes "cut-away" dry corners that the
-// alpha-cut texture removes (STRIP/CORNER puddle types).
+// PUDDLE_in but returns the rect of the hit puddle (+ water Y and
+// hit bool). Callers:
+//  - splash sprite uses the rect to fade out near rect edges (corners
+//    are dry asphalt for STRIP/CORNER puddle types).
+//  - reflection uses water_y as the mirror plane Y so reflections
+//    anchor to the actual water surface even when the character is
+//    standing on a curb / step / object slightly above the puddle.
 bool PUDDLE_get_rect_at(SLONG x, SLONG z,
     SLONG* out_x1, SLONG* out_z1,
-    SLONG* out_x2, SLONG* out_z2)
+    SLONG* out_x2, SLONG* out_z2,
+    SLONG* out_water_y)
 {
     SLONG mx = x >> 8;
     SLONG mz = z >> 8;
@@ -408,6 +412,7 @@ bool PUDDLE_get_rect_at(SLONG x, SLONG z,
             if (WITHIN(x, px1, px2) && WITHIN(z, pz1, pz2)) {
                 *out_x1 = px1; *out_z1 = pz1;
                 *out_x2 = px2; *out_z2 = pz2;
+                if (out_water_y) *out_water_y = SLONG(pp->y);
                 return true;
             }
         }

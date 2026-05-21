@@ -3071,7 +3071,37 @@ void AENG_draw_city()
                                     //
 
                                     if (ph->Flags & PAP_FLAG_REFLECTIVE) {
-                                        reflect_height = PAP_calc_height_at(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+                                        // Mirror plane = min(terrain Y, puddle water Y).
+                                        // Two cases to satisfy with one expression:
+                                        //   * Character on a curb / step ABOVE the puddle:
+                                        //     terrain Y is high (curb), water Y is low.
+                                        //     Pre-release used terrain Y → mirror across
+                                        //     foot height → reflection grew downward from
+                                        //     the foot, floating above the actual water
+                                        //     (visible bug: reflection detached from puddle,
+                                        //     see active known_issues "Отражение упавшего
+                                        //     рядом с лужей NPC «сочится»"). min picks
+                                        //     water Y here → reflection anchors to water.
+                                        //   * Character STANDING IN the puddle: puddle.y is
+                                        //     `terrain + ~8` (see PUDDLE_create_do line 193)
+                                        //     — water surface a few units ABOVE foot Y;
+                                        //     mirroring across water put reflected feet
+                                        //     above the water surface. min picks terrain
+                                        //     here → reflection anchors below feet, hidden
+                                        //     under water as expected.
+                                        // Fall back to terrain alone if no puddle entry is
+                                        // found for this XZ (shouldn't happen since the
+                                        // REFLECTIVE flag implies a puddle covers this
+                                        // tile, but defensive).
+                                        SLONG terrain_y = PAP_calc_height_at(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+                                        SLONG _x1, _z1, _x2, _z2, water_y;
+                                        if (PUDDLE_get_rect_at(p_thing->WorldPos.X >> 8,
+                                                p_thing->WorldPos.Z >> 8,
+                                                &_x1, &_z1, &_x2, &_z2, &water_y)) {
+                                            reflect_height = (terrain_y < water_y) ? terrain_y : water_y;
+                                        } else {
+                                            reflect_height = terrain_y;
+                                        }
                                     } else {
                                         //
                                         // The height of the water is given by the lo-res mapsquare corresponding

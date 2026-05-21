@@ -113,7 +113,7 @@ void DRIP_create_if_in_puddle(
 
                 SLONG lift_y = PUDDLE_SPLASH_LIFT_Y_CENTER;
                 SLONG px1, pz1, px2, pz2;
-                if (PUDDLE_get_rect_at(x, z, &px1, &pz1, &px2, &pz2)) {
+                if (PUDDLE_get_rect_at(x, z, &px1, &pz1, &px2, &pz2, nullptr)) {
                     SLONG cx = (px1 + px2) >> 1;
                     SLONG cz = (pz1 + pz2) >> 1;
                     SLONG halfw = (px2 - px1) >> 1;
