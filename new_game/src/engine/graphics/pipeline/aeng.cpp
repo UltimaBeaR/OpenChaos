@@ -4627,7 +4627,16 @@ void AENG_draw_city()
     }
 
     BreakTime("Drawn things");
-    PERF_PHASE("render.scene.fx"); // oval shadows, pows, mist, rain, fx, final flush
+    // fx split into 3 sibling phases for attribution (see render_batching_plan.md
+    // Этап 3): the catch-all rest, the dirt subsystem (flying leaves/debris —
+    // suspected CPU hot spot), and the final POLY_frame_draw that flushes
+    // every deferred polygon accumulated this frame (not just from fx —
+    // also things/world that went through POLY_add_*). Underscore (not dot)
+    // suffix is intentional: `.dirt`/`.flush` as dotted children would need
+    // a `render.scene.fx` SCOPE container to render correctly (auto-`.other`
+    // works only with a SCOPE that measures the whole region). Keeping them
+    // as 3 simple siblings under `render.scene` avoids that wiring.
+    PERF_PHASE("render.scene.fx_other"); // oval shadows, pows, mist, rain, pyro, particles, ...
 
     //	POLY_frame_draw(UC_FALSE,UC_FALSE);
     //	POLY_frame_init(UC_TRUE,UC_TRUE);
@@ -5041,10 +5050,12 @@ void AENG_draw_city()
     // rendered over additive effects.
     //
 
+    PERF_PHASE("render.scene.fx_dirt"); // flying leaves / cans / brass / debris
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
+    PERF_PHASE("render.scene.fx_flush"); // POLY_frame_draw — drains ALL deferred polys
     POLY_frame_draw(UC_TRUE, UC_TRUE);
 
     BreakTime("Done final polygon flush");

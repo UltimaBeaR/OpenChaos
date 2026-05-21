@@ -3,6 +3,7 @@
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include "engine/platform/uc_common.h"
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_COUNT — flush attribution (Этап 3)
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/aspect_clamp.h" // FOV_MIN_ASPECT
 #include "config.h"
@@ -1571,10 +1572,19 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
     static int iPageNumberToClear = 0;
 
+    // Перф-атрибуция flush'а (Этап 3 — render_batching_plan.md). Снимок
+    // глобального draw-call счётчика до начала, чтобы получить дельту
+    // draw'ов именно за flush (а не за весь кадр). PERF_COUNT no-op'ится
+    // при выключенных перф-флагах, поэтому здесь тоже под #if.
+#if OC_PERF_ACTIVE
+    const uint32_t flush_draws_before = ge_draw_call_count();
+#endif
+
     // Draw sky page first (always rendered at the back).
     pa = &POLY_Page[POLY_PAGE_SKY];
 
     if (pa->NeedsRendering()) {
+        PERF_COUNT("flush.polys", (double)pa->m_PolyBufUsed);
         pa->RS.SetChanged();
         pa->Render();
     }
@@ -1607,6 +1617,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             }
 
             if (!pa->RS.NeedsSorting() || (k == POLY_PAGE_PUDDLE)) {
+                PERF_COUNT("flush.polys", (double)pa->m_PolyBufUsed);
                 pa->RS.SetChanged();
 
                 if (POLY_force_additive_alpha) {
@@ -1645,6 +1656,10 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         std::stable_sort(sort_array, sort_array + sort_count,
             [](const PolyPoly* a, const PolyPoly* b) { return a->sort_z < b->sort_z; });
 
+        // Perf counters: alpha-sorted poly count + total polys (alpha part).
+        PERF_COUNT("flush.alpha_polys", (double)sort_count);
+        PERF_COUNT("flush.polys", (double)sort_count);
+
         {
             PolyPage* cur_page = NULL;
             UWORD* dst = IxBuffer;
@@ -1656,6 +1671,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     if (cur_page && dst != IxBuffer) {
                         cur_page->RS.SetChanged();
                         cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
+                        PERF_COUNT("flush.alpha_batches", 1.0);
                         dst = IxBuffer;
                     }
                     cur_page = p->page;
@@ -1673,6 +1689,7 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             if (cur_page && dst != IxBuffer) {
                 cur_page->RS.SetChanged();
                 cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
+                PERF_COUNT("flush.alpha_batches", 1.0);
             }
         }
 
@@ -1694,11 +1711,19 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 continue;
             }
 
+            PERF_COUNT("flush.polys", (double)pa->m_PolyBufUsed);
             pa->RS.SetChanged();
 
             pa->Render();
         }
     }
+
+    // Перф-атрибуция: дельта draw-call'ов именно за время flush'а
+    // (а не за весь кадр — глобальный render.drawcalls покрывает всё).
+#if OC_PERF_ACTIVE
+    PERF_COUNT("flush.draws",
+        (double)(ge_draw_call_count() - flush_draws_before));
+#endif
 
     ge_end_scene();
 
