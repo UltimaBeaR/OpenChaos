@@ -3390,6 +3390,13 @@ int32_t ge_texture_get_type(int32_t page)
     return s_textures[page].type;
 }
 
+int32_t ge_texture_get_size(int32_t page)
+{
+    if (page < 0 || page >= GL_TEX_MAX)
+        return 0;
+    return s_textures[page].size;
+}
+
 void ge_texture_set_type(int32_t page, int32_t type)
 {
     if (page < 0 || page >= GL_TEX_MAX)

@@ -1070,7 +1070,12 @@ void POLY_init_render_states()
                 pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
                 pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_splash));
-                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
+                // Clamp (was Wrap): splash texture is a 4×4 sprite atlas;
+                // sampling just past a frame's UV range with Wrap reads
+                // neighbouring frames at the edge — visible as a bright
+                // 1-pixel line on the billboard border. Clamp pins to
+                // the last in-range texel and the line disappears.
+                pa->RS.SetTextureAddress(GETextureAddress::Clamp);
                 SET_EFFECT(RS_InvAlphaPremult);
                 break;
 

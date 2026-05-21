@@ -14,6 +14,7 @@
 #include "engine/physics/collide.h"
 
 #include "engine/effects/psystem_globals.h"
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // ge_texture_get_size
 #include "map/pap.h" // PAP_calc_map_height_at
 
 // fire_pal is a 256-entry RGB palette (768 bytes) loaded from data\flames1.pal by figure.cpp.
@@ -481,10 +482,19 @@ void PARTICLE_Draw()
             h = 1;
         } else {
             ndx = p->sprite >> 2;
+            // Frame index past end of atlas: with PFLAG_SPRITELOOP wrap
+            // around (original behaviour); without it pin to the last
+            // frame so the animation freezes instead of sliding UVs off
+            // the texture. Pre-release relied on Wrap address mode to
+            // mask this — Wrap silently sampled neighbouring atlas
+            // frames when UVs went past 1.0, which looked like an
+            // unintended-but-tolerable extended animation. With Clamp
+            // (needed to kill edge bleed between atlas frames) UVs pin
+            // to the last texel row → bright smear across the sprite
+            // ("white square" after splash animation ends).
             switch (p->sprite & 3) {
             case 1: // split in half each way
-                if (p->flags & PFLAG_SPRITELOOP)
-                    ndx &= 3;
+                ndx = (p->flags & PFLAG_SPRITELOOP) ? (ndx & 3) : (ndx > 3 ? 3 : ndx);
                 u = ndx & 1;
                 v = ndx >> 1;
                 u *= 0.5f;
@@ -493,8 +503,7 @@ void PARTICLE_Draw()
                 h = 0.5f;
                 break;
             case 2: // split in quarters each way
-                if (p->flags & PFLAG_SPRITELOOP)
-                    ndx &= 0xf;
+                ndx = (p->flags & PFLAG_SPRITELOOP) ? (ndx & 0xf) : (ndx > 15 ? 15 : ndx);
                 u = ndx & 3;
                 v = ndx >> 2;
                 u *= 0.25f;
@@ -502,6 +511,23 @@ void PARTICLE_Draw()
                 w = 0.25f;
                 h = 0.25f;
                 break;
+            }
+            // Half-texel UV inset to kill bilinear-filter bleed between
+            // atlas frames. Without inset, sampling at exactly the
+            // frame boundary blends a pixel from the neighbouring frame
+            // into the edge — visible as a bright 1-pixel line along
+            // sprite borders (e.g., top of splash billboard). Inset
+            // shrinks each frame's UV range inward by 0.5 texels on
+            // every side. Clamp address mode would not help here:
+            // Clamp acts only at the OUTER texture edge (uv=0 or 1),
+            // not at sub-region boundaries inside the atlas.
+            int32_t tex_size = ge_texture_get_size(p->page);
+            if (tex_size > 0) {
+                float half_texel = 0.5f / float(tex_size);
+                u += half_texel;
+                v += half_texel;
+                w -= 2.0f * half_texel;
+                h -= 2.0f * half_texel;
             }
         }
         sz = float(p->size);

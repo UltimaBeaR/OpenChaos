@@ -374,6 +374,47 @@ SLONG PUDDLE_in(SLONG x, SLONG z)
     return UC_FALSE;
 }
 
+// Iterates the puddle spatial index for (x, z) — same scan pattern as
+// PUDDLE_in but returns the rect of the hit puddle (and a hit bool).
+// Used by the splash effect to fade out sprites near the puddle's rect
+// edge, where the rectangle includes "cut-away" dry corners that the
+// alpha-cut texture removes (STRIP/CORNER puddle types).
+bool PUDDLE_get_rect_at(SLONG x, SLONG z,
+    SLONG* out_x1, SLONG* out_z1,
+    SLONG* out_x2, SLONG* out_z2)
+{
+    SLONG mx = x >> 8;
+    SLONG mz = z >> 8;
+
+    if (!WITHIN(mx, 0, MAP_WIDTH - 1) || !WITHIN(mz, 0, MAP_HEIGHT - 1))
+        return false;
+    if (!(PAP_2HI(mx, mz).Flags & PAP_FLAG_REFLECTIVE))
+        return false;
+
+    for (SLONG lz = -1; lz <= 1; lz++) {
+        SLONG pz = mz + lz;
+        if (!WITHIN(pz, 0, PUDDLE_MAPWHO_SIZE - 1))
+            continue;
+
+        for (UBYTE next = PUDDLE_mapwho[pz]; next; next = PUDDLE_puddle[next].next) {
+            ASSERT(WITHIN(next, 1, PUDDLE_puddle_upto - 1));
+            PUDDLE_Puddle* pp = &PUDDLE_puddle[next];
+
+            SLONG px1 = pp->x1, pz1 = pp->z1;
+            SLONG px2 = pp->x2, pz2 = pp->z2;
+            if (px1 > px2) SWAP(px1, px2);
+            if (pz1 > pz2) SWAP(pz1, pz2);
+
+            if (WITHIN(x, px1, px2) && WITHIN(z, pz1, pz2)) {
+                *out_x1 = px1; *out_z1 = pz1;
+                *out_x2 = px2; *out_z2 = pz2;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 // uc_orig: PUDDLE_splash (fallen/Source/puddle.cpp)
 void PUDDLE_splash(SLONG x, SLONG y, SLONG z)
 {

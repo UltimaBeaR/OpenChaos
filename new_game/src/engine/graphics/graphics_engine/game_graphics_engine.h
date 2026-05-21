@@ -694,6 +694,10 @@ void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* v
 int32_t ge_texture_get_type(int32_t page);
 void ge_texture_set_type(int32_t page, int32_t type);
 
+// Return the texture size in pixels (textures are square, power of two).
+// Returns 0 for invalid pages.
+int32_t ge_texture_get_size(int32_t page);
+
 // Get the opaque texture handle for a page (for binding).
 GETextureHandle ge_get_texture_handle(int32_t page);
 
