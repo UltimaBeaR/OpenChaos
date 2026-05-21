@@ -43,9 +43,8 @@
 >       ресетит overlay state в 0 — защита от утечки между PolyPage и
 >       внешними draw'ами.
 >     - `POLY_add_quad_fast` / `triangle_fast` / `nearclipped_triangle`
->       — `goto second_page` удалён. Диагностические счётчики
->       `flush.2pass_*` оставлены — теперь "виртуальные" (показывают
->       «сколько polys БЫЛИ бы re-submitted» без фактической работы).
+>       — `goto second_page` удалён вместе с диагностическими счётчиками
+>       `flush.2pass_*` (Phase D cleanup завершён).
 >     - **Подсистемы перенесены:** SELF_ILLUM (буква `I` — подсвеченные
 >       окна, неон, фары — ~736-758 polys/frame). WINDOW (буква `D` —
 >       стёкла зданий) — **в игровых данных не используется** (проверены
@@ -78,10 +77,12 @@
 >    (1 batch уже после 3.1 batch-safe, остаётся только cost второго
 >    прохода растеризации). Перенести когда будет время на инвазивный
 >    рефакторинг vertex format.
-> 2. **Phase D полный cleanup**: убрать диагностические `flush.2pass_*`
->    счётчики, мёртвые ветки `POLY_PAGE_FLAG_WINDOW_2ND`/`_WINDOW` в
->    poly_render.cpp default-case (если WINDOW нигде не активируется в
->    данных). Косметика, win = меньше шума в коде.
+> 2. **Phase D — СДЕЛАНО.** Удалены `flush.2pass_*` счётчики, dead
+>    `[2P]` overlay-marker в alpha overlay (overlay-страницы больше не
+>    submitting), обновлены комментарии. Флаги `POLY_PAGE_FLAG_2PASS`
+>    оставлены — используются как идентификатор страницы-базы в
+>    `is_2pass_base` и `[2P-base]` маркере. WINDOW_2ND флаг инертен
+>    (page+1 нет polys), не трогаем.
 > 3. **Opaque path optimization** (из 3.4 разведки): 102 уникальных
 >    opaque-страниц = 102 state changes/draws. Возможный путь —
 >    texture-array / atlas для группировки building-текстур (page#33,

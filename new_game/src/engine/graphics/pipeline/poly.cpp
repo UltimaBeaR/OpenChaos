@@ -1041,21 +1041,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             ppoly->sort_z = zsum / 3.0f;
         }
 
-        if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-            // Phase C migration: the second submit to page+1 (legacy
-            // SELF_ILLUM / WINDOW overlay mechanism) is now handled by
-            // single-pass fragment-shader composition. PolyPage::Render
-            // / DrawBatchedPolys read m_OverlayMode + m_OverlayTexture on
-            // the BASE page and bind the overlay to texture unit 1; the
-            // fragment shader samples it at the same UV and composites.
-            // The counter stays for diagnostic continuity — it now
-            // reports how many polys WOULD have re-submitted under the
-            // legacy path. Removed entirely in Phase D.
-            PERF_COUNT("flush.2pass_polys", 1.0);
-            PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
-                ? "flush.2pass_window_polys"
-                : "flush.2pass_illum_polys", 1.0);
-        }
     }
 
     return;
@@ -1126,13 +1111,6 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
     pv->SetColour(ppt->colour);
     pv->SetSpecular(ppt->specular);
 
-    if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-        // Phase C migration: see POLY_add_nearclipped_triangle header.
-        PERF_COUNT("flush.2pass_polys", 1.0);
-        PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
-            ? "flush.2pass_window_polys"
-            : "flush.2pass_illum_polys", 1.0);
-    }
 }
 
 // uc_orig: POLY_add_quad_fast (fallen/DDEngine/Source/poly.cpp)
@@ -1248,13 +1226,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
     pv[1] = pv[-1];
     pv[2] = pv[-2];
 
-    if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-        // Phase C migration: see POLY_add_nearclipped_triangle header.
-        PERF_COUNT("flush.2pass_polys", 1.0);
-        PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
-            ? "flush.2pass_window_polys"
-            : "flush.2pass_illum_polys", 1.0);
-    }
 }
 
 // uc_orig: POLY_add_quad (fallen/DDEngine/Headers/poly.h)
@@ -2060,20 +2031,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     snprintf(buf, sizeof(buf), "page#%d", top[kk].idx);
                     nm = buf;
                 }
-                // 2PASS-overlay marker: a page is a 2pass overlay if the
-                // PRECEDING page has the POLY_PAGE_FLAG_2PASS flag (which
-                // means submissions to that base page auto-duplicate onto
-                // this page+1 via goto second_page in POLY_add_*). These
-                // are candidates to disappear from the alpha sort entirely
-                // after the multi-pass → shader port (Шаг 3.2).
-                const bool is_2pass_overlay =
-                    top[kk].idx > 0
-                    && (POLY_page_flag[top[kk].idx - 1] & POLY_PAGE_FLAG_2PASS);
-                char tagged[48];
-                if (is_2pass_overlay) {
-                    snprintf(tagged, sizeof(tagged), "%s [2P]", nm);
-                    nm = tagged;
-                }
                 FONT_buffer_add(x0, y, 200, 200, 200, 1,
                     (CBYTE*)"  %-22s  %5u  %5u",
                     nm, top[kk].polys, top[kk].batches);
@@ -2125,24 +2082,18 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                     nm = buf;
                 }
                 // [2P-base] marker: this opaque page is the BASE of a
-                // 2PASS pair (its overlay sibling page+1 receives the
-                // auto-second submit via goto second_page in POLY_add_*).
-                // [2P] marker: this opaque page IS a 2pass overlay page —
-                // SELF_ILLUM/WINDOW-flagged overlays end up in the alpha
-                // sort, but additive SELF_ILLUM with NeedsSorting=false
-                // can also reach the opaque loop. Either marker is a
-                // candidate for the multi-pass → shader port (Шаг 3.2).
+                // 2PASS pair (it has POLY_PAGE_FLAG_2PASS set and an
+                // overlay texture is composited in the fragment shader
+                // — see PolyPage::m_OverlayPage / m_OverlayMode and the
+                // u_overlay_mode path in common_frag.glsl). The overlay
+                // sibling page+1 receives no submissions, so an opaque
+                // page tagged here counts ALL polys (base diffuse +
+                // composited overlay) under one draw.
                 const bool is_2pass_base =
                     (POLY_page_flag[optop[kk].idx] & POLY_PAGE_FLAG_2PASS) != 0;
-                const bool is_2pass_overlay =
-                    optop[kk].idx > 0
-                    && (POLY_page_flag[optop[kk].idx - 1] & POLY_PAGE_FLAG_2PASS);
                 char tagged[48];
                 if (is_2pass_base) {
                     snprintf(tagged, sizeof(tagged), "%s [2P-base]", nm);
-                    nm = tagged;
-                } else if (is_2pass_overlay) {
-                    snprintf(tagged, sizeof(tagged), "%s [2P]", nm);
                     nm = tagged;
                 }
                 FONT_buffer_add(x0, y, 200, 200, 200, 1,
