@@ -48,7 +48,14 @@ layout(location = 5) in vec3  a_normal;   // BIND-space normal
 uniform vec4 u_screen_xform[4]; // 4 rows; column 1 unused
 
 uniform vec3  u_lightdir_world; // MM_vLightDir, world space
-uniform uint  u_fadetable[64];  // ULONG ramp, 0x00RRGGBB
+// Half-Lambert ramp compressed to its two endpoints: start = ramp[0]
+// (ambient end), step = per-index delta (so ramp[i] = start + i*step,
+// then floored to bytes — matches the legacy 64-entry table because
+// that table was itself built as a linear float ramp truncated per
+// step). RGB in 0..255 float scale, alpha is implicit zero (legacy
+// table had a=0 in every entry).
+uniform vec3  u_fade_start;     // ramp[0] in 0..255
+uniform vec3  u_fade_step;      // per-index delta in 0..255
 uniform int   u_skin_unlit;     // 1 = derive color from ramp (character path)
 uniform vec4  u_viewport;       // D3D viewport (x, y, w, h)
 uniform float u_zclip;          // POLY_ZCLIP_PLANE
@@ -164,12 +171,12 @@ void main()
         float wrap    = cos_nl * 0.5 + 0.5;      // half-Lambert [0,1]
         int   idx     = int(wrap * 64.0);        // C (int) cast: truncate
         idx           = clamp(idx, 0, 63);
-        uint  c       = u_fadetable[idx];        // 0x00RRGGBB
-        float r = float((c >> 16) & 0xFFu);
-        float g = float((c >>  8) & 0xFFu);
-        float b = float( c        & 0xFFu);
-        float a = float((c >> 24) & 0xFFu);      // table has A = 0
-        v_color = vec4(r, g, b, a) * (1.0 / 255.0);
+        // Compressed-ramp lookup: ramp[i] = start + i*step, clamped to
+        // [0,255], floored (matches the legacy CPU `(unsigned char)cvCur`
+        // truncation at every step). Alpha = 0 (legacy table convention).
+        vec3 c = floor(clamp(u_fade_start + float(idx) * u_fade_step,
+                             0.0, 255.0));
+        v_color = vec4(c * (1.0 / 255.0), 0.0);
     } else {
         v_color = a_color.zyxw; // lit path: per-vertex color (1A behaviour)
     }

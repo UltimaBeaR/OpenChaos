@@ -79,16 +79,14 @@ UBYTE TPO_ubPrimObjMMIndex[TPO_MAX_NUMBER_PRIMS];
 int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 
 // --- D3D MultiMatrix lighting working state ---
-// Note: MM_pcFadeTable/Tint/pMatrix/Vertex/pNormal are POINTERS into aligned static arrays
-// allocated in figure.cpp (ALIGNED_STATIC_ARRAY macro). They are exported here so that
-// chunk 2+ code in old/figure.cpp can access them across translation units.
-// They are initialised at file startup before any code runs.
 
-// uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
-ULONG* MM_pcFadeTable = NULL;
-
-// uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
-ULONG* MM_pcFadeTableTint = NULL;
+// Compressed half-Lambert ramp endpoints (see figure_globals.h). Zero-
+// initialised — BuildMMLightingTable writes them every frame per character
+// before any draw call that reads them.
+float MM_FadeStart[3]     = { 0.0f, 0.0f, 0.0f };
+float MM_FadeStep[3]      = { 0.0f, 0.0f, 0.0f };
+float MM_FadeStartTint[3] = { 0.0f, 0.0f, 0.0f };
+float MM_FadeStepTint[3]  = { 0.0f, 0.0f, 0.0f };
 
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
 GEVertex* MM_Vertex = NULL;
@@ -133,24 +131,17 @@ SLONG FIGURE_reflect_x2 = 0;
 // uc_orig: FIGURE_reflect_y2 (fallen/DDEngine/Source/figure.cpp)
 SLONG FIGURE_reflect_y2 = 0;
 
-// Backing storage for the aligned MM_pcFadeTable*/MM_Vertex pointers (not
-// original entities — these replace the ALIGNED_STATIC_ARRAY macro from
-// figure.cpp which generated equivalent static storage). Kept here so
-// all global state is visible in _globals files per project rules.
-static char cMM_pcFadeTableStorage[4 + 128 * sizeof(ULONG)];
-static char cMM_pcFadeTableTintStorage[4 + 128 * sizeof(ULONG)];
+// Backing storage for the aligned MM_Vertex pointer (not an original
+// entity — replaces the ALIGNED_STATIC_ARRAY macro from figure.cpp).
+// Kept here so all global state is visible in _globals files per project
+// rules.
 static char cMM_VertexStorage[32 + 4 * sizeof(GEVertex)];
 
-// Initialises the lighting-table global pointers to aligned addresses
-// within the above storage. Runs before main, guaranteeing they're valid
-// for any code that calls BuildMMLightingTable.
 namespace {
 struct MMLightingTableInit {
     MMLightingTableInit()
     {
-        MM_pcFadeTable     = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage     + 3) & ~(uintptr_t)3);
-        MM_pcFadeTableTint = (ULONG*)(((uintptr_t)cMM_pcFadeTableTintStorage + 3) & ~(uintptr_t)3);
-        MM_Vertex          = (GEVertex*)(((uintptr_t)cMM_VertexStorage      + 31) & ~(uintptr_t)31);
+        MM_Vertex = (GEVertex*)(((uintptr_t)cMM_VertexStorage + 31) & ~(uintptr_t)31);
     }
 } g_MMLightingTableInit;
 }

@@ -492,7 +492,8 @@ static GLuint s_program_skin_world = 0;
 static GLint s_sw_u_skin = -1;            // 15 * 3 vec4 = world skin (M*v form)
 static GLint s_sw_u_screen_xform = -1;    // 1 GEMatrix (camera*proj*viewport bake)
 static GLint s_sw_u_lightdir_world = -1;  // vec3 (MM_vLightDir, world space)
-static GLint s_sw_u_fadetable = -1;       // 64 ULONG ramp (shared shape with skin path)
+static GLint s_sw_u_fade_start = -1;      // ramp endpoint at idx 0 (vec3, 0..255)
+static GLint s_sw_u_fade_step = -1;       // per-index delta (vec3, 0..255)
 static GLint s_sw_u_skin_unlit = -1;
 static GLint s_sw_u_viewport = -1;
 static GLint s_sw_u_zclip = -1;
@@ -720,7 +721,8 @@ static bool init_shaders()
     s_sw_u_skin           = glGetUniformLocation(s_program_skin_world, "u_skin");
     s_sw_u_screen_xform   = glGetUniformLocation(s_program_skin_world, "u_screen_xform");
     s_sw_u_lightdir_world = glGetUniformLocation(s_program_skin_world, "u_lightdir_world");
-    s_sw_u_fadetable      = glGetUniformLocation(s_program_skin_world, "u_fadetable");
+    s_sw_u_fade_start     = glGetUniformLocation(s_program_skin_world, "u_fade_start");
+    s_sw_u_fade_step      = glGetUniformLocation(s_program_skin_world, "u_fade_step");
     s_sw_u_skin_unlit     = glGetUniformLocation(s_program_skin_world, "u_skin_unlit");
     s_sw_u_viewport       = glGetUniformLocation(s_program_skin_world, "u_viewport");
     s_sw_u_zclip          = glGetUniformLocation(s_program_skin_world, "u_zclip");
@@ -1481,7 +1483,7 @@ static void skin_world_bind_and_set_uniforms(
     const struct GEMatrix* screen_xform,
     const float* lightdir_world,
     float fog_view_z,
-    bool unlit, const uint32_t* fade_table)
+    bool unlit, const float* fade_start, const float* fade_step)
 {
     if (s_cached_program != s_program_skin_world) {
         glUseProgram(s_program_skin_world);
@@ -1507,10 +1509,10 @@ static void skin_world_bind_and_set_uniforms(
     if (lightdir_world) {
         glUniform3fv(s_sw_u_lightdir_world, 1, lightdir_world);
     }
-    bool do_ramp = unlit && fade_table;
+    bool do_ramp = unlit && fade_start && fade_step;
     if (do_ramp) {
-        glUniform1uiv(s_sw_u_fadetable, 64,
-            reinterpret_cast<const GLuint*>(fade_table));
+        glUniform3fv(s_sw_u_fade_start, 1, fade_start);
+        glUniform3fv(s_sw_u_fade_step,  1, fade_step);
     }
     glUniform1i(s_sw_u_skin_unlit, do_ramp ? 1 : 0);
     glUniform1f(s_sw_u_fog_view_z, fog_view_z);
@@ -1561,7 +1563,8 @@ void ge_skin_world_draw_range(GESkinMesh* mesh,
     const struct GEMatrix* screen_xform,
     const float* lightdir_world,
     float fog_view_z,
-    bool unlit, const uint32_t* fade_table)
+    bool unlit,
+    const float* fade_start, const float* fade_step)
 {
     PERF_GE_CALL();
     if (!mesh || !skin_palette || !screen_xform || !index_count)
@@ -1572,7 +1575,7 @@ void ge_skin_world_draw_range(GESkinMesh* mesh,
         return;
 
     skin_world_bind_and_set_uniforms(skin_palette, bone_count, screen_xform,
-        lightdir_world, fog_view_z, unlit, fade_table);
+        lightdir_world, fog_view_z, unlit, fade_start, fade_step);
 
     glBindVertexArray(mesh->vao);
     const GLvoid* offset = (const GLvoid*)(uintptr_t)(index_start * sizeof(uint16_t));

@@ -68,9 +68,13 @@ void DeadAndBuried(DWORD dwColour);
 // uc_orig: MSOptimizeIndexedList (fallen/DDEngine/Source/figure.cpp)
 BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles);
 
-// Builds MM_pcFadeTable and MM_pcFadeTableTint for the current frame's lighting.
+// Builds the compressed half-Lambert ramp endpoints (MM_FadeStart/Step
+// plus MM_FadeStartTint/StepTint) for the current frame's lighting —
+// see figure_globals.h.
 // p: if non-null, the character is on fire (darkens with soot).
-// colour_and: applied to MM_pcFadeTableTint for tinted texture materials.
+// colour_and: per-byte tint mask applied to the tint endpoints (each
+// byte must be 0x00 or 0xFF — the masks the game actually passes
+// satisfy this).
 // uc_orig: BuildMMLightingTable (fallen/DDEngine/Source/figure.cpp)
 void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff);
 

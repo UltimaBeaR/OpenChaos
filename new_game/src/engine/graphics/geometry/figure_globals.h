@@ -146,15 +146,22 @@ extern int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 
 // --- Lighting working state (consumed by the world-skin shader) ---
 
-// uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
-// 128-entry ULONG fade table: 0-63=lit ramp, 64-127=flat ambient.
-// Built per character in BuildMMLightingTable; uploaded to the shader
-// as the unlit fade ramp (no per-vertex CPU lighting).
-extern ULONG* MM_pcFadeTable;
+// Compressed half-Lambert ramp endpoints — the legacy 64-entry table
+// (uc_orig: MM_pcFadeTable, fallen/DDEngine/Source/figure.cpp) was built
+// as a linear float ramp truncated to bytes per step, so two RGB-float
+// endpoints fully describe it: ramp[i] = clamp(start + i*step, 0, 255),
+// floored. The shader reconstructs the byte-truncated value at the
+// queried index (see skin_world_vert.glsl `u_fade_start`/`u_fade_step`).
+// Built per character in BuildMMLightingTable.
+extern float MM_FadeStart[3];     // ambient end (idx 0)
+extern float MM_FadeStep[3];      // per-index delta
 
-// uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
-// Same as MM_pcFadeTable but with colour_and mask applied (for tinted textures).
-extern ULONG* MM_pcFadeTableTint;
+// Tint variant — the legacy table applied a per-byte colour_and mask
+// to each entry; for the masks we actually use (each byte is 0x00 or
+// 0xFF, never partial) that's equivalent to zeroing the corresponding
+// start/step channels here. (uc_orig: MM_pcFadeTableTint).
+extern float MM_FadeStartTint[3];
+extern float MM_FadeStepTint[3];
 
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
 // Scratch GEVertex array used by BuildMMLightingTable.

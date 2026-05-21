@@ -556,15 +556,21 @@ void ge_skin_mesh_destroy(GESkinMesh* mesh);
 //   fog_view_z:   per-character view-Z (g_mm_fog_view_z).
 //   unlit/fade:   when unlit, the shader computes per-vertex colour as
 //                 idx = clamp(int(((dot(N, L)/251)*0.5 + 0.5)*64), 0, 63);
-//                 color = fade_table[idx]. Lit path keeps per-vertex
-//                 colour from GESkinVertex.
+//                 color = floor(clamp(fade_start + idx*fade_step, 0, 255))
+//                 / 255. Two RGB-float endpoints (3+3 floats) replace the
+//                 legacy 64-entry uint ramp — the original CPU table was
+//                 itself built as a linear float ramp truncated per step,
+//                 so this is exact for the values we use (drift in the
+//                 LSB is possible but not visible in A/B). Lit path keeps
+//                 per-vertex colour from GESkinVertex.
 void ge_skin_world_draw_range(GESkinMesh* mesh,
     uint32_t index_start, uint32_t index_count,
     const float* skin_palette, uint32_t bone_count,
     const struct GEMatrix* screen_xform,
     const float* lightdir_world,
     float fog_view_z,
-    bool unlit, const uint32_t* fade_table);
+    bool unlit,
+    const float* fade_start, const float* fade_step);
 
 // Reflection-skin draw — P2-I. Same bind-space VBO + skin palette as the
 // body, but the vertex shader mirrors Y about the water plane before the

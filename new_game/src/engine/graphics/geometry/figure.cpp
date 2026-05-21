@@ -58,19 +58,21 @@ void DeadAndBuried(DWORD dwColour)
 //  state in _globals files per project rules.)
 
 // uc_orig: BuildMMLightingTable (fallen/DDEngine/Source/figure.cpp)
-// Pre-computes a 128-entry ULONG lookup table used by the D3D MultiMatrix extension.
-// Index 0..63: ramp from ambient to full directional lighting.
-// Index 64..127: flat ambient colour (back-face / shadow side).
+// Computes the per-character half-Lambert lighting endpoints used by the
+// world-skin shader. The original wrote a 128-entry ULONG ramp; that ramp
+// was itself built as a linear float interpolation between ambient (idx 0)
+// and fully-lit (idx 63), truncated to bytes per step, so two RGB
+// endpoints fully describe it. We store them in MM_FadeStart / MM_FadeStep
+// (and the masked tint variant in MM_FadeStart/StepTint) — the shader
+// reconstructs ramp[i] = floor(clamp(start + i*step, 0, 255)).
 // p: if non-null, the character is on fire (darkens with soot).
-// colour_and: applied to MM_pcFadeTableTint for tinted texture materials.
+// colour_and: tint mask — each byte must be 0x00 or 0xFF (the masks the
+// game actually passes, 0 and 0xffff00ff, satisfy this); a 0x00 byte
+// zeroes the corresponding RGB channel in the tint endpoints.
 // uc_orig: AMBIENT_FACTOR (fallen/DDEngine/Source/figure.cpp)
 #define AMBIENT_FACTOR (0.5f * 256.0f)
 void BuildMMLightingTable(Pyro* p, DWORD colour_and)
 {
-    ASSERT(MM_pcFadeTable != NULL);
-    ASSERT(MM_pcFadeTableTint != NULL);
-    ASSERT(MM_Vertex != NULL);
-
     // Find the dominant light direction by summing all weighted light vectors.
     float fBright = NIGHT_amb_red * 0.35f + NIGHT_amb_green * 0.45f + NIGHT_amb_blue * 0.2f;
     GEVector vTotal;
@@ -165,66 +167,33 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
     cvLight.g *= (fColourScale / 64.0f);
     cvLight.b *= (fColourScale / 64.0f);
 
-    // Fill slots 64..127 with flat ambient colour.
-    unsigned char cR, cG, cB;
-    if (cvCur.r > 255.0f) {
-        cR = 255;
-    } else if (cvCur.r < 0.0f) {
-        cR = 0;
-    } else {
-        cR = (unsigned char)(cvCur.r);
-    }
-    if (cvCur.g > 255.0f) {
-        cG = 255;
-    } else if (cvCur.g < 0.0f) {
-        cG = 0;
-    } else {
-        cG = (unsigned char)(cvCur.g);
-    }
-    if (cvCur.b > 255.0f) {
-        cB = 255;
-    } else if (cvCur.b < 0.0f) {
-        cB = 0;
-    } else {
-        cB = (unsigned char)(cvCur.b);
-    }
+    // Store the two endpoints — cvCur is the ambient end (ramp[0]),
+    // cvLight is the per-step delta. The shader applies the same
+    // clamp+floor as the legacy CPU loop did per-step, so values match
+    // 1:1 modulo single-LSB float precision drift.
+    MM_FadeStart[0] = cvCur.r;
+    MM_FadeStart[1] = cvCur.g;
+    MM_FadeStart[2] = cvCur.b;
+    MM_FadeStep[0]  = cvLight.r;
+    MM_FadeStep[1]  = cvLight.g;
+    MM_FadeStep[2]  = cvLight.b;
 
-    DWORD dwColour2 = ((DWORD)cR << 16) | ((DWORD)cG << 8) | ((DWORD)cB);
-    for (int i = 64; i < 128; i++) {
-        MM_pcFadeTable[i] = dwColour2;
-        MM_pcFadeTableTint[i] = dwColour2 & colour_and;
-    }
-
-    // Fill slots 0..63 with a ramp from ambient to fully lit.
-    for (int i = 0; i < 64; i++) {
-        if (cvCur.r > 255.0f) {
-            cR = 255;
-        } else if (cvCur.r < 0.0f) {
-            cR = 0;
-        } else {
-            cR = (unsigned char)(cvCur.r);
-        }
-        if (cvCur.g > 255.0f) {
-            cG = 255;
-        } else if (cvCur.g < 0.0f) {
-            cG = 0;
-        } else {
-            cG = (unsigned char)(cvCur.g);
-        }
-        if (cvCur.b > 255.0f) {
-            cB = 255;
-        } else if (cvCur.b < 0.0f) {
-            cB = 0;
-        } else {
-            cB = (unsigned char)(cvCur.b);
-        }
-        DWORD dwColour3 = ((DWORD)cR << 16) | ((DWORD)cG << 8) | ((DWORD)cB);
-        MM_pcFadeTable[i] = dwColour3;
-        MM_pcFadeTableTint[i] = dwColour3 & colour_and;
-        cvCur.r += cvLight.r;
-        cvCur.g += cvLight.g;
-        cvCur.b += cvLight.b;
-    }
+    // Tint variant: legacy code applied `colour_and` as a per-byte mask
+    // to each table entry. For the masks the game actually passes (0,
+    // 0xffff00ff) each byte is 0x00 or 0xFF, so masking commutes with
+    // the linear-then-floor pipeline — zeroing a channel here gives the
+    // same shader output as ANDing every byte the CPU loop produced.
+    // Bit order matches the original packing: R in bits 16..23, G in
+    // 8..15, B in 0..7.
+    const float mR = ((colour_and >> 16) & 0xFFu) ? 1.0f : 0.0f;
+    const float mG = ((colour_and >>  8) & 0xFFu) ? 1.0f : 0.0f;
+    const float mB = ( colour_and        & 0xFFu) ? 1.0f : 0.0f;
+    MM_FadeStartTint[0] = cvCur.r   * mR;
+    MM_FadeStartTint[1] = cvCur.g   * mG;
+    MM_FadeStartTint[2] = cvCur.b   * mB;
+    MM_FadeStepTint[0]  = cvLight.r * mR;
+    MM_FadeStepTint[1]  = cvLight.g * mG;
+    MM_FadeStepTint[2]  = cvLight.b * mB;
 }
 
 // --- Microsoft Index List Optimizer (optlist.cpp, 1998-1999) ---
@@ -2732,12 +2701,9 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
             }
         }
 
-        // Explicit cast: MM_pcFadeTable is ULONG* (= unsigned long*).
-        // ULONG is 32-bit on Win but 64-bit on Linux/Mac — same bit
-        // pattern as uint32_t on our targets but the pointer types
-        // differ. Cast keeps things portable.
-        const uint32_t* fadeTable = (const uint32_t*)((wPage & TEXTURE_PAGE_FLAG_TINT)
-            ? MM_pcFadeTableTint : MM_pcFadeTable);
+        const bool tinted = (wPage & TEXTURE_PAGE_FLAG_TINT) != 0;
+        const float* fadeStart = tinted ? MM_FadeStartTint : MM_FadeStart;
+        const float* fadeStep  = tinted ? MM_FadeStepTint  : MM_FadeStep;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         pa->RS.SetCullMode(GECullMode::CCW);
@@ -2756,7 +2722,7 @@ void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person)
                 lightdir_world,
                 g_mm_fog_view_z,
                 /*unlit=*/ true,
-                fadeTable);
+                fadeStart, fadeStep);
         }
 
         pMat++;
@@ -3103,8 +3069,9 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
         // them. Drop the FACE_PAGE_OFFSET that the legacy per-part path
         // applied by default — same effective texture page as the OLD
         // pipeline through pa = &POLY_Page[wRealPage] below.
-        const uint32_t* fadeTable = (const uint32_t*)((wPage & TEXTURE_PAGE_FLAG_TINT)
-            ? MM_pcFadeTableTint : MM_pcFadeTable);
+        const bool tinted = (wPage & TEXTURE_PAGE_FLAG_TINT) != 0;
+        const float* fadeStart = tinted ? MM_FadeStartTint : MM_FadeStart;
+        const float* fadeStep  = tinted ? MM_FadeStepTint  : MM_FadeStep;
 
         PolyPage* pa = &(POLY_Page[wRealPage]);
         pa->RS.SetCullMode(GECullMode::CCW);
@@ -3123,7 +3090,7 @@ void ANIM_obj_draw(Thing* p_thing, DrawTween* dt)
                 lightdir,
                 g_mm_fog_view_z,
                 /*unlit=*/ true,
-                fadeTable);
+                fadeStart, fadeStep);
         }
     }
 
