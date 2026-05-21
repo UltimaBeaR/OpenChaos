@@ -741,6 +741,30 @@ struct GEWibbleParams {
     uint8_t wibble_s1; // amplitude 1
     uint8_t wibble_s2; // amplitude 2
     int32_t game_turn; // current GAME_TURN — phase animates with it
+
+    // World-XZ phase support (issue #67 fix). Pixel → world-XZ math
+    // inverts POLY's forward pipeline analytically (POLY's view matrix
+    // is identity, MATRIX_skew bakes scale into the world matrix —
+    // standard inv(view×proj) ray-cast doesn't work because the result
+    // would be near-singular). The shader anchors the ray-cast to the
+    // ground plane Y=0 rather than each puddle's water_height — see
+    // wibble_frag.glsl for why fixed Y avoids per-puddle pattern jumps.
+    //
+    // inv_poly_cam     : inverse of MATRIX_MUL operator (POLY_cam_matrix),
+    //                    row-major (double-precision invert on the CPU).
+    // poly_cam_pos     : POLY_cam_x / _y / _z (camera world position).
+    // poly_screen_mid  : POLY_screen_mid_x / _y × fbo_scale.
+    // poly_screen_mul  : POLY_screen_mul_x / _y × fbo_scale.
+    // poly_zclip       : POLY_ZCLIP_PLANE.
+    // viewport         : (vx, vy, vw, vh) framebuffer-pixel viewport.
+    //                    .w used to flip gl_FragCoord.y bottom-up → POLY
+    //                    top-down convention in the shader.
+    float inv_poly_cam[9];
+    float poly_cam_pos[3];
+    float poly_screen_mid[2];
+    float poly_screen_mul[2];
+    float poly_zclip;
+    float viewport[4];
 };
 
 // Apply the wibble effect to the rectangle (x1,y1)-(x2,y2) in game screen

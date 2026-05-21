@@ -3168,6 +3168,37 @@ void AENG_draw_city()
         quad[2] = &pp[2];
         quad[3] = &pp[3];
 
+        // Accumulator: per reflection bbox, union of all overlapping puddle
+        // intersections. After the puddle iteration, WIBBLE_simple is
+        // called ONCE per reflection bbox with the unioned wibble rect.
+        // Why: every per-puddle WIBBLE_simple call (1) copies the current
+        // framebuffer to a scratch texture, (2) draws a warped quad
+        // sampling that scratch, (3) writes back. Two calls whose bboxes
+        // overlap → the second copies the already-wibbled output of the
+        // first → applies its own offset on top → DOUBLE-OFFSET in the
+        // overlap region. With multiple puddles' bboxes converging on
+        // the same character reflection (different camera angles brings
+        // different sets into overlap), the visible distortion jumps
+        // between "single", "double", "triple" wibble dramatically as
+        // overlap regions change. Single union pass eliminates this.
+        struct WibbleAccum {
+            SLONG x1, y1, x2, y2;
+            // First overlapping puddle's params — used when wibble is
+            // finally called. Subsequent overlaps don't change params
+            // (we accept that the union's per-puddle param mixing is not
+            // strictly correct — the visual effect is dominated by the
+            // wibble math itself, not the per-puddle ripple tuning).
+            UBYTE y1_param, y2_param, g1_param, g2_param, s1_param, s2_param;
+            bool active;
+        };
+        WibbleAccum wacc[AENG_MAX_BBOXES] = {};
+        for (i = 0; i < AENG_MAX_BBOXES; i++) {
+            wacc[i].x1 = +UC_INFINITY;
+            wacc[i].y1 = +UC_INFINITY;
+            wacc[i].x2 = -UC_INFINITY;
+            wacc[i].y2 = -UC_INFINITY;
+        }
+
         // Iterate all map cells instead of gamut range — puddles are flat quads
         // visible at grazing angles well beyond the wall/floor gamut. Empty cells
         // are nearly free (just a linked-list head check), and puddles are sparse.
@@ -3331,20 +3362,29 @@ void AENG_draw_city()
                             iy2 = MIN(py2, bbox[i].y2);
 
                             if (ix1 < ix2 && iy1 < iy2) {
-                                //
-                                // Wibble away! Runs as a GPU post-process
-                                // (copy-texture + fragment shader) — no lock.
-                                //
-
-                                WIBBLE_simple(
-                                    ix1, iy1,
-                                    ix2, iy2,
-                                    pi->puddle_y1,
-                                    pi->puddle_y2,
-                                    pi->puddle_g1,
-                                    pi->puddle_g2,
-                                    pi->puddle_s1,
-                                    pi->puddle_s2);
+                                // Accumulate into the union for THIS
+                                // reflection bbox. WIBBLE_simple is
+                                // called ONCE per reflection bbox below,
+                                // after the puddle loop ends, with the
+                                // unioned rect — see the WibbleAccum
+                                // declaration comment for why per-puddle
+                                // calls would compound the warp.
+                                WibbleAccum& w = wacc[i];
+                                if (ix1 < w.x1) w.x1 = ix1;
+                                if (iy1 < w.y1) w.y1 = iy1;
+                                if (ix2 > w.x2) w.x2 = ix2;
+                                if (iy2 > w.y2) w.y2 = iy2;
+                                if (!w.active) {
+                                    // First overlapping puddle defines
+                                    // wibble params for this reflection.
+                                    w.y1_param = pi->puddle_y1;
+                                    w.y2_param = pi->puddle_y2;
+                                    w.g1_param = pi->puddle_g1;
+                                    w.g2_param = pi->puddle_g2;
+                                    w.s1_param = pi->puddle_s1;
+                                    w.s2_param = pi->puddle_s2;
+                                    w.active   = true;
+                                }
                             }
                         }
                     }
@@ -3352,6 +3392,42 @@ void AENG_draw_city()
 
             ignore_this_puddle:;
             }
+        }
+
+        // P2-I: single WIBBLE_simple call per reflection bbox using the
+        // accumulated union of all overlapping puddle intersections.
+        // Eliminates compound-wibble (double/triple offset) where puddle
+        // screen bboxes overlap — see the comment near `WibbleAccum`
+        // declaration above for why per-puddle calls were the cause.
+        //
+        // Fallback for "wibble pops off during camera rotation": when no
+        // puddle's screen bbox overlaps a non-water reflection bbox this
+        // frame (camera turn shifted puddles out of the way), still
+        // wibble over the reflection itself with the legacy splash
+        // preset. Otherwise a few rotation frames show clean (no-wibble)
+        // reflection — visually jarring.
+        for (i = 0; i < bbox_upto; i++) {
+            WibbleAccum& w = wacc[i];
+            if (bbox[i].water_box) continue;
+            if (!w.active) {
+                // No puddle overlapped — fall back to the reflection
+                // bbox itself with default ripple preset. Param values
+                // tuned by eye (least visible glitching on rotation
+                // frames where puddle has slipped out of overlap).
+                w.x1 = bbox[i].x1; w.y1 = bbox[i].y1;
+                w.x2 = bbox[i].x2; w.y2 = bbox[i].y2;
+                w.y1_param = 62;  w.y2_param = 137;
+                w.g1_param = 17;  w.g2_param = 178;
+                w.s1_param = 40;  w.s2_param = 45;
+                w.active = true;
+            }
+            if (w.x1 >= w.x2 || w.y1 >= w.y2) continue;
+
+            WIBBLE_simple(
+                w.x1, w.y1, w.x2, w.y2,
+                w.y1_param, w.y2_param,
+                w.g1_param, w.g2_param,
+                w.s1_param, w.s2_param);
         }
     }
 
