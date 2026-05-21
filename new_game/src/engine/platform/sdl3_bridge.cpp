@@ -4,6 +4,8 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <string.h>
+// Needed for linux build
+#include <ctype.h>
 
 #ifdef _WIN32
 #include <dwmapi.h>
