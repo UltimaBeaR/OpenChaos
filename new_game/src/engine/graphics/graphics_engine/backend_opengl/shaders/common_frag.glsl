@@ -35,25 +35,10 @@ uniform int       u_tex_has_alpha;
 //       exactly where the silhouette is solid vs faded.
 uniform int       u_farfacet_mode;
 
-// TEMP DIAGNOSTIC (P2-E). When .a > 0.5 the fragment short-circuits to this
-// RGBA value, bypassing texture/lighting/fog. Used to verify which shader
-// program/state is reaching the screen for a given draw. Set from C++:
-//   skin baked path → solid blue
-//   skin world hard → solid red
-//   skin world soft → solid green
-//   everything else → vec4(0,0,0,0) (no override, normal pipeline)
-// Removed when the soft-rig pipeline is confirmed working.
-uniform vec4      u_diagnostic_color;
-
 out vec4 frag_color;
 
 void main()
 {
-    if (u_diagnostic_color.a > 0.5) {
-        frag_color = u_diagnostic_color;
-        return;
-    }
-
     vec4 color = v_color;
 
     if (u_has_texture != 0) {
