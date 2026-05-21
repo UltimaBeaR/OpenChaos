@@ -3,7 +3,7 @@
 // In the new renderer this whole file will be replaced by a GPU pipeline.
 
 #include "engine/platform/uc_common.h"
-#include "engine/debug/perf_diag/perf_diag.h" // PERF_COUNT — flush attribution (Этап 3)
+#include "engine/debug/perf_diag/perf_diag.h" // PERF_COUNT — flush attribution (Step 3)
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/aspect_clamp.h" // FOV_MIN_ASPECT
 #include "debug_config.h"                  // OC_DEBUG_PERF — flush top-pages overlay
@@ -1044,10 +1044,10 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         }
 
         if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-            // Diagnostic (Этап 3.2 plan): count how many polys re-submit
-            // via the 2PASS mechanism. Splits by overlay kind so we know
-            // SELF_ILLUM vs WINDOW objemy in typical scenes — drives
-            // decision whether to port these in the multi-texture shader.
+            // Diagnostic (Step 3.2 plan): count how many polys re-submit
+            // via the 2PASS mechanism. Split by overlay kind so we know
+            // SELF_ILLUM vs WINDOW volumes in typical scenes — drives the
+            // decision whether to port these into the multi-texture shader.
             PERF_COUNT("flush.2pass_polys", 1.0);
             PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
                 ? "flush.2pass_window_polys"
@@ -1129,7 +1129,7 @@ second_page:;
     pv->SetSpecular(ppt->specular);
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-        // Diagnostic (Этап 3.2 plan): see header comment in nearclipped path.
+        // Diagnostic (Step 3.2 plan): see header comment in nearclipped path.
         PERF_COUNT("flush.2pass_polys", 1.0);
         PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
             ? "flush.2pass_window_polys"
@@ -1256,7 +1256,7 @@ second_page:;
     pv[2] = pv[-2];
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-        // Diagnostic (Этап 3.2 plan): see header comment in nearclipped path.
+        // Diagnostic (Step 3.2 plan): see header comment in nearclipped path.
         PERF_COUNT("flush.2pass_polys", 1.0);
         PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
             ? "flush.2pass_window_polys"
@@ -1707,10 +1707,11 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 
     static int iPageNumberToClear = 0;
 
-    // Перф-атрибуция flush'а (Этап 3 — render_batching_plan.md). Снимок
-    // глобального draw-call счётчика до начала, чтобы получить дельту
-    // draw'ов именно за flush (а не за весь кадр). PERF_COUNT no-op'ится
-    // при выключенных перф-флагах, поэтому здесь тоже под #if.
+    // Perf attribution for the flush (Step 3, render_batching_plan.md).
+    // Snapshot the global draw-call counter at entry so we can report the
+    // delta — i.e. draws issued during THIS flush, not total frame draws.
+    // PERF_COUNT compiles to no-op when perf flags are off, so the snapshot
+    // is also gated by #if to avoid an idle function call in release.
 #if OC_PERF_ACTIVE
     const uint32_t flush_draws_before = ge_draw_call_count();
 #endif
@@ -1974,18 +1975,19 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
         }
     }
 
-    // Перф-атрибуция: дельта draw-call'ов именно за время flush'а
-    // (а не за весь кадр — глобальный render.drawcalls покрывает всё).
+    // Perf attribution: report draw-call delta for THIS flush only
+    // (the global `render.drawcalls` counter spans the whole frame).
 #if OC_PERF_ACTIVE
     PERF_COUNT("flush.draws",
         (double)(ge_draw_call_count() - flush_draws_before));
 #endif
 
-    // Топ-5 страниц альфа-сорта по поликаунту + сводка фрагментации.
-    // Выводится только для «большого» flush'а (alpha_polys >= 100):
-    // мелкие промежуточные flush'и (тени, текст) — единицы полигонов,
-    // overlay для них бесполезен и FONT_buffer стэкает строки от каждого
-    // вызова за кадр. Порог 100 надёжно отделяет финальный flush.
+    // Top-5 alpha-sort pages by poly count + fragmentation summary.
+    // Only emitted for the "big" flush (alpha_polys >= 100): small
+    // intermediate flushes (shadow, text) carry only a handful of polys,
+    // the overlay would be useless there, and FONT_buffer would stack
+    // duplicate lines across each per-frame call. Threshold 100 reliably
+    // separates the final whole-scene flush from those.
 #if OC_DEBUG_PERF
     {
         // Sum total alpha polys to gate the overlay.
@@ -2042,13 +2044,27 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 if (top[kk].polys == 0)
                     break;
                 const char* nm = poly_page_short_name(top[kk].idx);
-                char buf[32];
+                char buf[40];
                 if (!nm) {
                     snprintf(buf, sizeof(buf), "page#%d", top[kk].idx);
                     nm = buf;
                 }
+                // 2PASS-overlay marker: a page is a 2pass overlay if the
+                // PRECEDING page has the POLY_PAGE_FLAG_2PASS flag (which
+                // means submissions to that base page auto-duplicate onto
+                // this page+1 via goto second_page in POLY_add_*). These
+                // are candidates to disappear from the alpha sort entirely
+                // after the multi-pass → shader port (Шаг 3.2).
+                const bool is_2pass_overlay =
+                    top[kk].idx > 0
+                    && (POLY_page_flag[top[kk].idx - 1] & POLY_PAGE_FLAG_2PASS);
+                char tagged[48];
+                if (is_2pass_overlay) {
+                    snprintf(tagged, sizeof(tagged), "%s [2P]", nm);
+                    nm = tagged;
+                }
                 FONT_buffer_add(x0, y, 200, 200, 200, 1,
-                    (CBYTE*)"  %-18s  %5u  %5u",
+                    (CBYTE*)"  %-22s  %5u  %5u",
                     nm, top[kk].polys, top[kk].batches);
                 y += LINE_STEP;
             }
