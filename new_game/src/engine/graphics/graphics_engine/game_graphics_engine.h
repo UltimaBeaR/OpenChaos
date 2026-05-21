@@ -220,6 +220,28 @@ void ge_set_farfacet_mode(int mode);
 void ge_set_specular_enabled(bool enabled);
 void ge_set_perspective_correction(bool enabled);
 
+// Multi-pass overlay composition state (render_batching_plan.md Phase A —
+// Шаг 3.2 scaffolding). Lets a draw composite a SECOND texture on top
+// of the diffuse texture in a single pass, replacing the legacy
+// "submit on page+1 with overlay texture" mechanism (goto second_page
+// in POLY_add_*_fast).
+//
+// mode:
+//   0 = OFF (no overlay sampling — default, identical to legacy
+//            single-texture path)
+//   1 = SELF_ILLUM (additive: emissive overlay — lit windows, neon)
+//   2 = WINDOW    (alpha-blend: building glass overlay)
+//
+// `page` is the texture-page INDEX (the same integer game code uses for
+// the diffuse slot — passed to ge_bind_texture / TEXTURE_load_page).
+// The backend resolves it via its texture table at draw time so the
+// page+1 overlay can be set up before the level actually loads its
+// texture into the GL slot. Ignored when mode == 0. Sampler is bound
+// to texture unit 1; the diffuse texture stays on unit 0.
+// State is sticky across draws — call with mode=0 to clear before any
+// draw that should NOT composite an overlay.
+void ge_set_overlay_state(int32_t page, int mode);
+
 // ---------------------------------------------------------------------------
 // Textures
 // ---------------------------------------------------------------------------

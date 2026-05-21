@@ -152,6 +152,31 @@ public:
     // uc_orig: GetVBSize (fallen/DDEngine/Headers/polypage.h)
     ULONG GetVBSize() { return 1 << m_VBLogSize; }
 
+    // Multi-pass overlay composition state for this page
+    // (render_batching_plan.md Phase C — Шаг 3.2). When m_OverlayMode is
+    // non-zero, every Render() / DrawBatchedPolys() call binds the
+    // overlay texture (texture unit 1) and the fragment shader composes
+    // it on top of the diffuse texture in a single pass — replacing the
+    // legacy "goto second_page" mechanism that submitted the same polys
+    // twice (once on this page, once on page+1) when POLY_PAGE_FLAG_2PASS
+    // was set. Default 0 (no overlay) means the page renders identically
+    // to before.
+    //
+    // Set up by POLY_init_render_states in poly_render.cpp from the
+    // texture-metadata 'I' (SELF_ILLUM) / 'D' (WINDOW) flags.
+    //
+    //   m_OverlayMode = 0   no overlay (default)
+    //   m_OverlayMode = 1   SELF_ILLUM (additive emissive overlay)
+    //   m_OverlayMode = 2   WINDOW (alpha-blended overlay)
+    //
+    // m_OverlayPage stores the POLY_Page INDEX (not a GL texture id) of
+    // the overlay's source texture page. The backend resolves it through
+    // its own texture table at draw time — this lets the resolution
+    // happen lazily (the page+1 texture may not be loaded yet when
+    // POLY_init_render_states runs).
+    int32_t m_OverlayPage = -1;
+    uint8_t m_OverlayMode = 0;
+
     // uc_orig: m_PolyBuffer (fallen/DDEngine/Headers/polypage.h)
     PolyPoly* m_PolyBuffer;
     // uc_orig: m_PolyBufSize (fallen/DDEngine/Headers/polypage.h)

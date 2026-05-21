@@ -354,6 +354,13 @@ void PolyPage::Render()
         src++;
     }
 
+    // Multi-pass overlay (Phase C). Always set the state — including
+    // mode=0 — so the next draw's overlay doesn't leak from whatever
+    // page rendered last. ge_set_overlay_state is a couple of MOVs +
+    // a snapshot compare in the upload path, so the cost when off
+    // (the vast majority of pages) is trivial.
+    ge_set_overlay_state(m_OverlayPage, m_OverlayMode);
+
     ge_draw_indexed_primitive_vb(prepared, IxBuffer, dst - IxBuffer);
 
     if (s_polys_drawn_callback) {
@@ -367,6 +374,8 @@ void PolyPage::Render()
 // Draw pre-sorted polygons in one batched call using this page's prepared VB.
 void PolyPage::DrawBatchedPolys(const UWORD* indices, uint32_t index_count)
 {
+    // Phase C — see PolyPage::Render() for rationale.
+    ge_set_overlay_state(m_OverlayPage, m_OverlayMode);
     ge_draw_indexed_primitive_vb(m_VB, indices, index_count);
 }
 

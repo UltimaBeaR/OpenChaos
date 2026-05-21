@@ -48,6 +48,12 @@ struct UniformSnapshot {
     bool color_key_enabled;
     int32_t vp_x, vp_y, vp_w, vp_h;
     int farfacet_mode;
+    // Multi-pass overlay composition state (render_batching_plan.md Phase A).
+    // overlay_mode: 0=off, 1=SELF_ILLUM (additive), 2=WINDOW (alpha-blend).
+    // overlay_page: texture-page INDEX (resolved to gl_id at draw time
+    // via s_textures[page].gl_id) bound to texture unit 1 when mode != 0.
+    int overlay_mode;
+    int32_t overlay_page;
 };
 static UniformSnapshot s_last_uniforms = {};
 static bool s_uniforms_ever_uploaded = false;
@@ -103,6 +109,23 @@ static float s_fog_near = 0.0f, s_fog_far = 1.0f;
 // silhouettes, alpha fade tied to fog density), 2 = debug split
 // (opaque pixels painted purple, semi-transparent pixels green).
 static int s_farfacet_mode = 0;
+
+// Multi-pass overlay composition (render_batching_plan.md Phase A —
+// Шаг 3.2 scaffolding). Set via ge_set_overlay_state(). When mode != 0,
+// the fragment shader samples u_overlay_tex (texture unit 1) at the same
+// UV as the diffuse texture and composites it (additive for SELF_ILLUM,
+// alpha-blend for WINDOW). When mode == 0, the composition path is
+// skipped and the shader behaves identically to the legacy single-texture
+// path. Default 0 keeps every existing draw untouched until callers opt in.
+//
+// s_overlay_page stores a texture-page INDEX (not a GL id) and is
+// resolved through s_textures[page] at draw time — this matters because
+// the overlay's page+1 texture may not be loaded yet when the
+// game-side render-state setup caches the field, and we want
+// the binding to track the current GL id (which can be reloaded /
+// reassigned).
+static int s_overlay_mode = 0;
+static int32_t s_overlay_page = -1;
 
 float g_mm_fog_view_z = 0.0f;
 
@@ -474,6 +497,9 @@ static GLint s_tl_u_specular_enabled = -1;
 static GLint s_tl_u_color_key_enabled = -1;
 static GLint s_tl_u_tex_has_alpha = -1;
 static GLint s_tl_u_farfacet_mode = -1;
+// Phase A overlay scaffolding.
+static GLint s_tl_u_overlay_mode = -1;
+static GLint s_tl_u_overlay_tex  = -1;
 
 // Shadow-silhouette program — P2-H. Renders the consolidated bind-space
 // character mesh (the same one the body draw uses) into the shadow
@@ -583,6 +609,21 @@ static void cache_frag_uniforms(GLuint prog,
     *u_color_key_enabled = glGetUniformLocation(prog, "u_color_key_enabled");
     *u_tex_has_alpha = glGetUniformLocation(prog, "u_tex_has_alpha");
     *u_farfacet_mode = glGetUniformLocation(prog, "u_farfacet_mode");
+
+    // Phase A overlay scaffolding — point the overlay sampler at texture
+    // unit 1 once at init time. If the shader compiler optimised
+    // u_overlay_tex out (because u_overlay_mode == 0 is the only path it
+    // sees as reachable in this program), glGetUniformLocation returns -1
+    // and glUniform1i silently no-ops. Same for u_overlay_mode itself —
+    // set_frag_uniforms tries to upload it every relevant frame; -1
+    // location is a harmless no-op.
+    GLint u_overlay_tex_loc = glGetUniformLocation(prog, "u_overlay_tex");
+    if (u_overlay_tex_loc != -1) {
+        GLuint prev_prog = s_cached_program;
+        glUseProgram(prog);
+        glUniform1i(u_overlay_tex_loc, 1);
+        glUseProgram(prev_prog);
+    }
 }
 
 // Set up VAO for GEVertexTL layout: 32 bytes per vertex.
@@ -687,6 +728,12 @@ static bool init_shaders()
         &s_tl_u_fog_enabled, &s_tl_u_fog_color, &s_tl_u_fog_near, &s_tl_u_fog_far,
         &s_tl_u_specular_enabled, &s_tl_u_color_key_enabled, &s_tl_u_tex_has_alpha,
         &s_tl_u_farfacet_mode);
+    // Phase A overlay scaffolding — query u_overlay_mode location for TL
+    // (the only program that uses overlays in the current design — skin
+    // and reflect characters don't have overlays). The sampler location
+    // is set by cache_frag_uniforms above.
+    s_tl_u_overlay_mode = glGetUniformLocation(s_program_tl, "u_overlay_mode");
+    s_tl_u_overlay_tex  = glGetUniformLocation(s_program_tl, "u_overlay_tex");
     s_tl_u_view_z_tl_scale = glGetUniformLocation(s_program_tl, "u_view_z_tl_scale");
     // 1.0 / POLY_ZCLIP_PLANE — constant for the lifetime of the program, set once.
     // Used in the fragment shader to bring lit-path v_view_z (raw world z) into
@@ -819,7 +866,8 @@ static void set_frag_uniforms(
         s_fog_enabled, s_fog_color, s_fog_near, s_fog_far,
         s_specular_enabled, s_color_key_enabled,
         s_vp_x, s_vp_y, s_vp_w, s_vp_h,
-        s_farfacet_mode
+        s_farfacet_mode,
+        s_overlay_mode, s_overlay_page
     };
 
     if (s_uniforms_ever_uploaded && memcmp(&cur, &s_last_uniforms, sizeof(cur)) == 0)
@@ -881,6 +929,45 @@ static void set_frag_uniforms(
     glUniform1i(u_specular_enabled, s_specular_enabled ? 1 : 0);
     glUniform1i(u_color_key_enabled, s_color_key_enabled ? 1 : 0);
     glUniform1i(u_farfacet_mode, s_farfacet_mode);
+
+    // Phase A overlay composition — upload mode + bind overlay texture
+    // to unit 1 when enabled. The location is queried only for the TL
+    // program (the only one that uses overlays); for skin / reflect
+    // programs the location is -1, which makes glUniform1i a silent
+    // no-op. Set after the regular uniforms so any GL_TEXTURE0 binding
+    // above (regular diffuse) isn't disturbed — we restore active unit
+    // to GL_TEXTURE0 at the end.
+    if (s_tl_u_overlay_mode != -1) {
+        glUniform1i(s_tl_u_overlay_mode, s_overlay_mode);
+    }
+    if (s_overlay_mode != 0 && s_overlay_page >= 0 && s_overlay_page < GL_TEX_MAX) {
+        // Resolve overlay page-index to GL id via the texture table —
+        // analogous to ge_bind_texture's path for the diffuse slot.
+        // This is done at draw time (not at PolyPage init) so the binding
+        // tracks the current gl_id even if the texture was reloaded.
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, s_textures[s_overlay_page].gl_id);
+        // Match the diffuse texture's filter / address — overlay UVs
+        // are in the same space as diffuse so the same sampling rules
+        // apply.
+        GLint gl_mag = (s_tex_filter_mag == GETextureFilter::Nearest)
+            ? GL_NEAREST : GL_LINEAR;
+        GLint gl_min;
+        if (s_textures[s_overlay_page].has_mipmaps) {
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest)
+                ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR;
+        } else {
+            gl_min = (s_tex_filter_min == GETextureFilter::Nearest)
+                ? GL_NEAREST : GL_LINEAR;
+        }
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_mag);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_min);
+        GLint gl_wrap = (s_tex_address == GETextureAddress::Clamp)
+            ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gl_wrap);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gl_wrap);
+        glActiveTexture(GL_TEXTURE0);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1331,6 +1418,15 @@ void ge_set_perspective_correction(bool)
     // Always perspective-correct on modern GPUs — no-op.
 }
 
+void ge_set_overlay_state(int32_t page, int mode)
+{
+    // Phase A scaffolding — see header docstring. The composition runs
+    // in the fragment shader (common_frag.glsl); this just records state
+    // that set_frag_uniforms uploads on the next draw.
+    s_overlay_mode = mode;
+    s_overlay_page = (mode != 0) ? page : -1;
+}
+
 // ---------------------------------------------------------------------------
 // Textures
 // ---------------------------------------------------------------------------
@@ -1394,6 +1490,14 @@ void ge_draw_indexed_primitive(GEPrimitiveType type, const GEVertexTL* verts, ui
         s_cached_program = s_program_tl;
         s_uniforms_ever_uploaded = false;
     }
+
+    // Phase A — clear overlay composition state on direct TL draws (the
+    // path used by fonts, sky, outro and outside callers that don't
+    // expect overlay composition). PolyPage::Render and DrawBatchedPolys
+    // go through ge_draw_indexed_primitive_vb instead and set their own
+    // overlay state per page, so they're unaffected.
+    s_overlay_mode = 0;
+    s_overlay_page = -1;
 
     set_frag_uniforms(
         s_tl_u_has_texture, s_tl_u_texture, s_tl_u_texture_blend,

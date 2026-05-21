@@ -35,6 +35,31 @@ uniform int       u_tex_has_alpha;
 //       exactly where the silhouette is solid vs faded.
 uniform int       u_farfacet_mode;
 
+// ──────────────────────────────────────────────────────────────────────────
+// Multi-pass overlay composition (render_batching_plan.md Шаг 3.2 / Phase A).
+//
+// Replaces the legacy "submit the same polygon twice on page+1 with an
+// overlay texture" mechanism (POLY_PAGE_FLAG_2PASS / goto second_page in
+// POLY_add_quad_fast etc.) with a single-pass composition in the fragment
+// shader.
+//
+// u_overlay_mode:
+//   0 = OFF      (no overlay sampling — default; identical to legacy
+//                 single-texture behaviour)
+//   1 = SELF_ILLUM (additive emissive overlay: lit windows, neon, fares)
+//   2 = WINDOW   (alpha-blended overlay: building glass)
+//
+// u_overlay_tex is bound to texture unit 1 (see set_frag_uniforms in
+// core.cpp). UV is shared with the diffuse texture — overlay textures
+// are authored in the same UV space as their base page (per legacy
+// goto-second_page mechanism).
+//
+// When u_overlay_mode == 0 the composition path is skipped entirely and
+// the shader runs the legacy path. So adding these uniforms is a no-op
+// for every draw that doesn't explicitly opt in.
+uniform int       u_overlay_mode;
+uniform sampler2D u_overlay_tex;
+
 out vec4 frag_color;
 
 void main()
@@ -65,6 +90,47 @@ void main()
         } else {
             // Decal: texture only, ignore vertex color.
             color = tex;
+        }
+    }
+
+    // Multi-pass overlay composition (Phase A scaffolding — render_batching_plan.md
+    // Шаг 3.2). Composited BEFORE color-key/alpha-test/fog so the overlay
+    // contributes the same way it would have if it had been a separate
+    // second submit (which is what the legacy 2PASS mechanism did).
+    //
+    // Branchless paths skip the texture sample entirely via the if-guard
+    // around `u_overlay_mode != 0`: when overlay isn't in use (default)
+    // the shader runs identically to the legacy single-texture path.
+    if (u_overlay_mode != 0) {
+        vec4 overlay = texture(u_overlay_tex, v_texcoord);
+        if (u_overlay_mode == 1) {
+            // SELF_ILLUM (lit windows, neon, brake-lights, fares).
+            //
+            // Legacy mechanism: second submit on page+1 with Decal blend
+            // (color.rgb = overlay.rgb, no vertex-color modulation) +
+            // alpha-test (alpha > 7/255 → write, otherwise discard).
+            // Visually: emissive overlay REPLACES diffuse where the
+            // overlay's alpha is above ref; diffuse shows through where
+            // overlay alpha is at/below ref. No additive blending.
+            //
+            // Single-pass equivalent: hard step on overlay.a around the
+            // same 7/255 threshold. Branchless via mix(diffuse, overlay,
+            // step(thr, overlay.a)). step() returns 0 or 1, so the
+            // result is exactly either color or overlay — matches legacy
+            // pixel-perfect on textures with binary-alpha edges (which
+            // is the common case for SELF_ILLUM overlays).
+            const float kAlphaRef = 7.0 / 255.0;
+            float mask = step(kAlphaRef, overlay.a);
+            color.rgb = mix(color.rgb, overlay.rgb, mask);
+        } else {
+            // WINDOW (building glass overlay): alpha-blend on top of
+            // diffuse. Legacy used additive (One/One) on the base page
+            // with alpha-test — modern equivalent is a true alpha mix
+            // by overlay alpha which is smoother and more physically
+            // correct for translucent glass. Visually very similar
+            // because window overlays are usually authored with low to
+            // mid alpha (glass tints) over an opaque wall.
+            color.rgb = mix(color.rgb, overlay.rgb, overlay.a);
         }
     }
 

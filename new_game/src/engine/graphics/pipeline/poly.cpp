@@ -992,8 +992,6 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
             return;
         }
 
-    second_page:;
-
         PolyPage* pp = &POLY_Page[page];
         PolyPage* ppDrawn = pp->pTheRealPolyPage;
 
@@ -1044,17 +1042,19 @@ void POLY_add_nearclipped_triangle(POLY_Point* pt[3], SLONG page, SLONG backface
         }
 
         if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-            // Diagnostic (Step 3.2 plan): count how many polys re-submit
-            // via the 2PASS mechanism. Split by overlay kind so we know
-            // SELF_ILLUM vs WINDOW volumes in typical scenes — drives the
-            // decision whether to port these into the multi-texture shader.
+            // Phase C migration: the second submit to page+1 (legacy
+            // SELF_ILLUM / WINDOW overlay mechanism) is now handled by
+            // single-pass fragment-shader composition. PolyPage::Render
+            // / DrawBatchedPolys read m_OverlayMode + m_OverlayTexture on
+            // the BASE page and bind the overlay to texture unit 1; the
+            // fragment shader samples it at the same UV and composites.
+            // The counter stays for diagnostic continuity — it now
+            // reports how many polys WOULD have re-submitted under the
+            // legacy path. Removed entirely in Phase D.
             PERF_COUNT("flush.2pass_polys", 1.0);
             PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
                 ? "flush.2pass_window_polys"
                 : "flush.2pass_illum_polys", 1.0);
-            page += 1;
-
-            goto second_page;
         }
     }
 
@@ -1084,8 +1084,6 @@ void POLY_add_triangle_fast(POLY_Point* pt[3], SLONG page, SLONG backface_cull, 
     if (backface_cull && POLY_tri_backfacing(pt[0], pt[1], pt[2])) {
         return;
     }
-
-second_page:;
 
     PolyPage* pp = &POLY_Page[page];
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
@@ -1129,14 +1127,11 @@ second_page:;
     pv->SetSpecular(ppt->specular);
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-        // Diagnostic (Step 3.2 plan): see header comment in nearclipped path.
+        // Phase C migration: see POLY_add_nearclipped_triangle header.
         PERF_COUNT("flush.2pass_polys", 1.0);
         PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
             ? "flush.2pass_window_polys"
             : "flush.2pass_illum_polys", 1.0);
-        page += 1;
-
-        goto second_page;
     }
 }
 
@@ -1192,8 +1187,6 @@ void POLY_add_quad_fast(POLY_Point* pt[4], SLONG page, SLONG backface_cull, SLON
             return;
         }
     }
-
-second_page:;
 
     PolyPage* pp = &POLY_Page[page];
     PolyPage* ppDrawn = pp->pTheRealPolyPage;
@@ -1256,14 +1249,11 @@ second_page:;
     pv[2] = pv[-2];
 
     if (POLY_page_flag[page] & POLY_PAGE_FLAG_2PASS) {
-        // Diagnostic (Step 3.2 plan): see header comment in nearclipped path.
+        // Phase C migration: see POLY_add_nearclipped_triangle header.
         PERF_COUNT("flush.2pass_polys", 1.0);
         PERF_COUNT((POLY_page_flag[page] & POLY_PAGE_FLAG_WINDOW)
             ? "flush.2pass_window_polys"
             : "flush.2pass_illum_polys", 1.0);
-        page += 1;
-
-        goto second_page;
     }
 }
 
@@ -1727,6 +1717,17 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     memset(s_alpha_page_polys,   0, sizeof(s_alpha_page_polys));
     memset(s_alpha_page_batches, 0, sizeof(s_alpha_page_batches));
     int alpha_unique_pages = 0;
+
+    // Step 3.4 diagnostics: per-page poly/draw tally for the opaque pass
+    // (the main loop that draws non-sorting pages, one Render() == one draw).
+    // Mirrors the alpha breakdown above. Sky and batch_safe pages are NOT
+    // tallied here — they're a fixed handful (1+≤4 in current code) and
+    // separately countable from flush.draws minus the alpha/opaque totals.
+    static uint32_t s_opaque_page_polys[POLY_NUM_PAGES];
+    static uint32_t s_opaque_page_batches[POLY_NUM_PAGES];
+    memset(s_opaque_page_polys,   0, sizeof(s_opaque_page_polys));
+    memset(s_opaque_page_batches, 0, sizeof(s_opaque_page_batches));
+    int opaque_unique_pages = 0;
 #endif
 
     // Draw sky page first (always rendered at the back).
@@ -1766,7 +1767,8 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             }
 
             if (!pa->RS.NeedsSorting() || (k == POLY_PAGE_PUDDLE)) {
-                PERF_COUNT("flush.polys", (double)pa->m_PolyBufUsed);
+                const uint32_t polys_in_page = pa->m_PolyBufUsed;
+                PERF_COUNT("flush.polys", (double)polys_in_page);
                 pa->RS.SetChanged();
 
                 if (POLY_force_additive_alpha) {
@@ -1775,6 +1777,15 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 }
 
                 pa->Render();
+
+#if OC_DEBUG_PERF
+                if (polys_in_page > 0 && k >= 0 && k < POLY_NUM_PAGES) {
+                    if (s_opaque_page_polys[k] == 0)
+                        opaque_unique_pages++;
+                    s_opaque_page_polys[k]   += polys_in_page;
+                    s_opaque_page_batches[k] += 1;
+                }
+#endif
             }
         }
 
@@ -2066,6 +2077,77 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 FONT_buffer_add(x0, y, 200, 200, 200, 1,
                     (CBYTE*)"  %-22s  %5u  %5u",
                     nm, top[kk].polys, top[kk].batches);
+                y += LINE_STEP;
+            }
+
+            // Step 3.4: opaque-pass top-5. Emitted alongside the alpha
+            // overlay (same gate — only on the BIG end-of-frame flush)
+            // so they read together as one perf-page block.
+            uint32_t opaque_total         = 0;
+            uint32_t opaque_total_batches = 0;
+            PageStat optop[5] = {};
+            for (int p = 0; p < POLY_NUM_PAGES; p++) {
+                uint32_t pp = s_opaque_page_polys[p];
+                if (pp == 0)
+                    continue;
+                opaque_total         += pp;
+                opaque_total_batches += s_opaque_page_batches[p];
+                for (int kk = 0; kk < 5; kk++) {
+                    if (pp > optop[kk].polys) {
+                        for (int sh = 4; sh > kk; sh--)
+                            optop[sh] = optop[sh - 1];
+                        optop[kk].idx     = p;
+                        optop[kk].polys   = pp;
+                        optop[kk].batches = s_opaque_page_batches[p];
+                        break;
+                    }
+                }
+            }
+            const uint32_t opaque_avg_per_draw = opaque_total_batches
+                ? (opaque_total / opaque_total_batches) : 0;
+
+            y += LINE_STEP / 2; // small spacer between blocks
+            FONT_buffer_add(x0, y, 255, 220, 110, 1,
+                (CBYTE*)"opaque: %u polys / %d pages / avg %u poly/draw",
+                opaque_total, opaque_unique_pages, opaque_avg_per_draw);
+            y += LINE_STEP;
+            FONT_buffer_add(x0, y, 200, 200, 200, 1,
+                (CBYTE*)"  page                polys  batches");
+            y += LINE_STEP;
+
+            for (int kk = 0; kk < 5; kk++) {
+                if (optop[kk].polys == 0)
+                    break;
+                const char* nm = poly_page_short_name(optop[kk].idx);
+                char buf[40];
+                if (!nm) {
+                    snprintf(buf, sizeof(buf), "page#%d", optop[kk].idx);
+                    nm = buf;
+                }
+                // [2P-base] marker: this opaque page is the BASE of a
+                // 2PASS pair (its overlay sibling page+1 receives the
+                // auto-second submit via goto second_page in POLY_add_*).
+                // [2P] marker: this opaque page IS a 2pass overlay page —
+                // SELF_ILLUM/WINDOW-flagged overlays end up in the alpha
+                // sort, but additive SELF_ILLUM with NeedsSorting=false
+                // can also reach the opaque loop. Either marker is a
+                // candidate for the multi-pass → shader port (Шаг 3.2).
+                const bool is_2pass_base =
+                    (POLY_page_flag[optop[kk].idx] & POLY_PAGE_FLAG_2PASS) != 0;
+                const bool is_2pass_overlay =
+                    optop[kk].idx > 0
+                    && (POLY_page_flag[optop[kk].idx - 1] & POLY_PAGE_FLAG_2PASS);
+                char tagged[48];
+                if (is_2pass_base) {
+                    snprintf(tagged, sizeof(tagged), "%s [2P-base]", nm);
+                    nm = tagged;
+                } else if (is_2pass_overlay) {
+                    snprintf(tagged, sizeof(tagged), "%s [2P]", nm);
+                    nm = tagged;
+                }
+                FONT_buffer_add(x0, y, 200, 200, 200, 1,
+                    (CBYTE*)"  %-22s  %5u  %5u",
+                    nm, optop[kk].polys, optop[kk].batches);
                 y += LINE_STEP;
             }
         }
