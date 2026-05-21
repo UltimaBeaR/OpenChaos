@@ -8,7 +8,7 @@
 > вернётся к итоговому результату, не к ходу работы. Жёстко не следовать
 > плану — следовать здравому смыслу с использованием плана как контекста.
 >
-> **СТАТУС (обновлено 2026-05-21, autonomous run):**
+> **СТАТУС (обновлено 2026-05-22):**
 > - **Этап 1** (дешёвый батчинг персонажей) — **ЗАВЕРШЁН**.
 > - **Этап 2** (полный GPU-скиннинг, персистентный VBO, тени и отражения
 >   на GPU, авто-риг) — **ЗАВЕРШЁН**.
@@ -17,76 +17,117 @@
 >   - **3.3** near/far split альфа-сорта — **СДЕЛАНО**.
 >   - **3.4** opaque-pass diagnostics — **СДЕЛАНО**: в `poly.cpp`
 >     добавлены `s_opaque_page_polys` / `s_opaque_page_batches` +
->     top-5 overlay с маркерами `[2P-base]` / `[2P]`. Городская сцена:
->     ~102 уникальных opaque-страниц, в среднем 55 poly/draw — батчи
->     жирные, фрагментации нет. Топ: LEAF 733, page#220 [2P-base] 649,
->     page#33 616, page#32 478, page#280 200. Дальнейшая оптимизация
->     opaque потребует texture-array / atlas (большой рефакторинг
->     ассет-pipeline'а).
->   - **3.2 SELF_ILLUM + WINDOW в шейдер** — **СДЕЛАНО** (визуально
->     проверено, перф подтверждён). Реализовано через **per-page overlay
->     binding + композиция в общем фрагмент-шейдере**, БЕЗ расширения
->     vertex формата:
->     - `common_frag.glsl` принимает `u_overlay_mode` (0/1/2) + сэмплер
->       `u_overlay_tex` (texture unit 1); композирует overlay поверх
->       diffuse в одном проходе. Для SELF_ILLUM — `step(7/255, alpha)`
->       mask + mix (эквивалент легаси Decal+alpha-test). Для WINDOW —
->       стандартный alpha-blend mix.
->     - `ge_set_overlay_state(page, mode)` — public API; принимает
->       PAGE INDEX (не GL handle), резолвится через `s_textures[page].gl_id`
->       на момент draw'а.
->     - `PolyPage::m_OverlayPage` / `m_OverlayMode` — per-page метаданные,
->       выставляются в `POLY_init_render_states` для всех 2PASS базовых
->       страниц. `PolyPage::Render` и `DrawBatchedPolys` биндят их перед
->       draw call'ом.
->     - `ge_draw_indexed_primitive` (TL direct path: fonts/sky/outro)
->       ресетит overlay state в 0 — защита от утечки между PolyPage и
->       внешними draw'ами.
->     - `POLY_add_quad_fast` / `triangle_fast` / `nearclipped_triangle`
->       — `goto second_page` удалён вместе с диагностическими счётчиками
->       `flush.2pass_*` (Phase D cleanup завершён).
->     - **Подсистемы перенесены:** SELF_ILLUM (буква `I` — подсвеченные
->       окна, неон, фары — ~736-758 polys/frame). WINDOW (буква `D` —
->       стёкла зданий) — **в игровых данных не используется** (проверены
->       все textype.txt по world1-world20, ни одной 'D' метки); код
->       поддерживает на случай custom-контента.
->     - **НЕ перенесено:** ENVMAP — требует per-vertex env_uv от нормали,
->       что требует расширения vertex формата. Отдельный шаг, отложен.
+>     top-5 overlay с маркером `[2P-base]`. Городская сцена:
+>     ~100-120 уникальных opaque-страниц, в среднем 50-55 poly/draw —
+>     батчи жирные, фрагментации нет. Топ: LEAF, page#220 [2P-base],
+>     page#33, page#32, page#280 — все по 200-700 polys в 1 batch.
+>     Дальнейшая оптимизация opaque потребует texture-array/atlas
+>     (большой рефакторинг ассет-pipeline'а — пробовали, см. ниже).
 >
-> **Подтверждённый перф (городская сцена, до/после):**
+> ---
 >
-> | Метрика | До | После | Δ |
-> |---|---|---|---|
-> | `fx_flush` total CPU | 0.69 ms | 0.62 ms | **−10%** |
-> | `fx_flush` ge-CPU | 0.19 ms | 0.15 ms | **−21%** |
-> | `fx_flush` GPU | 0.71 ms | 0.50 ms | **−30%** |
-> | `flush.draws` | 179 | 169 | −10 |
-> | `flush.polys` | 7300 | 6536 | **−764** (матчит ~736 SELF_ILLUM убранных из 2-го прохода) |
-> | `flush.alpha_batches` | 62 | 58 | −4 |
-> | `flush.alpha_polys` | 196 | 191 | −5 |
+> ## Сессия 2026-05-22 — попытки и откат
 >
-> **Зафикшено в процессе:** была критичная ошибка с типом `m_OverlayTexture`
-> — `TEXTURE_get_handle()` возвращает уже GL gl_id, а не page index, но
-> я индексировал `s_textures[handle]` (массив по page index). Это давало
-> чёрные квадраты на месте окон. Фикс: PolyPage хранит **page index**
-> (`m_OverlayPage` типа `int32_t`), backend резолвит на момент draw'а.
+> В рамках сессии 2026-05-22 были реализованы и **откачены**
+> (нулевой измеримый выигрыш на перф-панели):
 >
-> **Следующие возможные шаги (по приоритету):**
-> 1. **Phase B — ENVMAP в шейдер** (~381 polys/frame): требует per-vertex
->    env_uv → расширение vertex формата. Меньший win чем SELF_ILLUM
->    (1 batch уже после 3.1 batch-safe, остаётся только cost второго
->    прохода растеризации). Перенести когда будет время на инвазивный
->    рефакторинг vertex format.
-> 2. **Phase D — СДЕЛАНО.** Удалены `flush.2pass_*` счётчики, dead
->    `[2P]` overlay-marker в alpha overlay (overlay-страницы больше не
->    submitting), обновлены комментарии. Флаги `POLY_PAGE_FLAG_2PASS`
->    оставлены — используются как идентификатор страницы-базы в
->    `is_2pass_base` и `[2P-base]` маркере. WINDOW_2ND флаг инертен
->    (page+1 нет polys), не трогаем.
-> 3. **Opaque path optimization** (из 3.4 разведки): 102 уникальных
->    opaque-страниц = 102 state changes/draws. Возможный путь —
->    texture-array / atlas для группировки building-текстур (page#33,
->    #32, #220, #280 etc.). Большой рефакторинг ассет-pipeline'а.
+> ### Шаг 3.2 — SELF_ILLUM / WINDOW в шейдер (ОТКАЧЕН)
+>
+> **Что делалось:** per-page overlay binding + композиция в общем
+> фрагмент-шейдере, БЕЗ расширения vertex формата.
+> - `common_frag.glsl` — uniform `u_overlay_mode` (0/1/2) + сэмплер
+>   `u_overlay_tex` (unit 1). Композиция: SELF_ILLUM = `step(7/255, a)`
+>   mask + mix (эквивалент легаси Decal+alpha-test). WINDOW = alpha-blend mix.
+> - `ge_set_overlay_state(page, mode)` — public API; принимает PAGE INDEX
+>   (НЕ GL handle, на этом был баг — `TEXTURE_get_handle()` возвращает
+>   уже gl_id, не индекс; результат был чёрные квадраты вместо окон).
+> - `PolyPage::m_OverlayPage` / `m_OverlayMode` — per-page метаданные.
+> - `POLY_add_quad_fast` / `triangle_fast` / `nearclipped_triangle` —
+>   `goto second_page` удалён, диагностические счётчики `flush.2pass_*`
+>   удалены.
+> - **Подсистемы перенесены:** SELF_ILLUM (буква `I`, ~736 polys/frame).
+>   WINDOW (буква `D`) — в данных уровней не используется, проверены все
+>   textype.txt по world1-world20, ни одной 'D' метки.
+>
+> **На замере выглядело так:** −764 polys, −10 draws, −30% GPU в `fx_flush`.
+> **Реальность:** цифры скачут ±100 draws и ±0.2ms при движении камеры
+> по той же сцене. Win утонул в шуме, на глаз изменений нет.
+>
+> ### Texture-array opaque consolidation TA-1...TA-4 (ОТКАЧЕН)
+>
+> **Что делалось:** 3 шейдерных `sampler2DArray` (256/128/64), куда
+> при загрузке копируются eligible-текстуры; PolyPage source-страницы
+> через `pTheRealPolyPage` редиректят submissions в 3 master-страницы
+> (POLY_PAGE_ARRAY_256/128/64); per-vertex `array_layer` атрибут
+> (расширение `GEVertexTL` с 32 до 36 байт) указывает шейдеру slice.
+>
+> - `GLTexture::array_slot` + `array_layer` — куда уехала текстура.
+> - `ta_allocate_layer()` — монотонный аллокатор слотов.
+> - `glTexImage3D` для array storage (glad capped at GL 4.1, нет
+>   `glTexStorage3D`).
+> - Расширение `GEVertexTL` (+`uint32_t array_layer`), VAO attrib 5,
+>   шейдеры `tl_vert.glsl` / `skin_world_vert.glsl` / `skin_reflect_vert.glsl`
+>   эмитят `flat out uint v_array_layer`.
+> - `common_frag.glsl` — sampler2DArray sampling при `u_array_mode != 0`.
+> - Eligibility filter: `POLY_page_flag == 0` или только `POLY_PAGE_FLAG_TRANSPARENT`,
+>   текстура 256/128/64 square, `page_type == GL_PAGE_NONE`.
+> - Master pages с `AlphaTestEnabled=true` (форсированно alpha=0xff на
+>   opaque текстурах при upload в array).
+>
+> **Зафикшено в процессе:** legacy bug в `POLY_add_quad_fast` — второй
+> треугольник quad'а аллочился на `pp->PolyBufAlloc()` (source) вместо
+> `ppDrawn->PolyBufAlloc()` (master). До TA-4 невидимо (ghost-pages
+> просто теряли свои polys без последствий), с TA-4 половина каждого
+> quad'а перестала отрисовываться.
+>
+> **Результат:** TA wired = 39-40 страниц консолидируется в 3 master.
+> Большая часть жирных страниц (LEAF, building walls с WRAP, 2PASS-base)
+> не консолидируется — они уже эффективны как индивидуальные draws.
+> Реальный win: maybe −15-20 draws в этой сцене. **В шуме перф-панели
+> не виден.**
+>
+> ### Итог сессии 2026-05-22 — НУЛЬ
+>
+> Архитектура была реализована и работала. Перф-цифры на конкретном
+> замере выглядели лучше. Но **наблюдаемого выигрыша на перф-панели в
+> игре НЕТ** — флуктуация ±100 draws и ±0.2ms при движении камеры
+> поглощает любые наши оптимизации этого уровня.
+>
+> **Все изменения сессии откачены пользователем**: SELF_ILLUM/WINDOW
+> shader composition, TA-1..TA-4 texture array, расширение GEVertexTL,
+> диагностика opaque distribution, диагностика unique gl_ids, диагностика
+> bottom-5 thin tail. Состояние = pre-сессия (только 3.1 batch-safe и
+> 3.3 near/far split, которые были до того).
+>
+> ### Уроки и выводы
+>
+> 1. **Опитимизации draw-call консолидации на этой архитектуре дают
+>    win-y в пределах шума.** Bottleneck — не в количестве draw calls
+>    при текущих ~150-250 за кадр. CPU draw call overhead не
+>    доминирует на этом уровне.
+> 2. **Жирные страницы (top-5)** уже отлично батчатся — 500+ polys в
+>    1 batch. Консолидировать ИХ дальше — нечего.
+> 3. **Тонкий хвост** (страницы с 1-20 polys) — много, но даёт малую
+>    долю общих polys. Усилия по их группировке не окупаются.
+> 4. **Перф-флуктуация ±100 draws** — следствие реальной геометрии
+>    сцены, разной видимости объектов, динамики (пешеходы, машины).
+>    Без устойчивого репро на скрипте сложно различать win от шума.
+> 5. **Архитектурная сложность за нулевой реальный win** — плохой
+>    обмен. Откат правильный.
+>
+> ### Следующая возможная сторона (НЕ оптимизация draw calls)
+>
+> Если возвращаться к перфу — копать в:
+> - **GPU pixel-fill** в `fx_flush` (0.5-0.7ms). Что именно столько
+>   ест? Возможно лишний overdraw в альфа-сорте или избыточный
+>   rasterization. Профилировать через GPU debugger (RenderDoc).
+> - **Другие стадии кадра** — possibly `render.scene.things` или
+>   `render.scene.world` имеют большие куски кота которые мы ещё не
+>   трогали. После Stage 2 GPU skinning things должна быть дешевле,
+>   но в актуальных замерах не смотрели.
+> - **Тестирование на Steam Deck** — может на слабом железе картина
+>   bottleneck'а другая чем на desktop'е, и draw call оптимизации там
+>   дадут видимый эффект.
 
 Рабочий план оптимизации рендера. Без правок кода — только анализ, риски,
 этапность. Связанные записи (не дублировать, только ссылки):
