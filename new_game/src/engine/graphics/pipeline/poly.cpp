@@ -6,6 +6,12 @@
 #include "engine/debug/perf_diag/perf_diag.h" // PERF_COUNT — flush attribution (Этап 3)
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/graphics/aspect_clamp.h" // FOV_MIN_ASPECT
+#include "debug_config.h"                  // OC_DEBUG_PERF — flush top-pages overlay
+#if OC_DEBUG_PERF
+#include "engine/graphics/text/font.h"     // FONT_buffer_add — top-pages overlay
+#include <stdio.h>                         // snprintf — page#N fallback
+#include <string.h>                        // memset — per-page tally reset
+#endif
 #include "config.h"
 
 // uc_orig: ScreenWidth/Height (fallen/DDLibrary/Source/GDisplay.cpp)
@@ -1560,6 +1566,85 @@ void POLY_add_rect(POLY_Point* p1, SLONG width, SLONG height, SLONG page, UBYTE 
     POLY_add_quad(ppt, page, UC_FALSE, UC_TRUE);
 }
 
+#if OC_DEBUG_PERF
+// Human-readable name for the well-known alpha-sortable POLY_PAGE_* IDs.
+// Anything not in this list (mostly textured world pages and rarely used
+// special pages) falls back to a numeric "page#N" tag in the overlay.
+// Update the table when investigating a new dominant page that prints as
+// page#N — the goal is fast subsystem identification at a glance.
+static const char* poly_page_short_name(int idx)
+{
+    switch (idx) {
+        // Named alpha-sortable / commonly-active pages from poly.h.
+        case POLY_PAGE_SKY:               return "SKY";
+        case POLY_PAGE_SHADOW:            return "SHADOW";
+        case POLY_PAGE_SHADOW_OVAL:       return "SHADOW_OVAL";
+        case POLY_PAGE_SHADOW_SQUARE:     return "SHADOW_SQ";
+        case POLY_PAGE_PUDDLE:            return "PUDDLE";
+        case POLY_PAGE_CLOUDS:            return "CLOUDS";
+        case POLY_PAGE_ALPHA:             return "ALPHA";
+        case POLY_PAGE_ADDITIVE:          return "ADDITIVE";
+        case POLY_PAGE_MOON:              return "MOON";
+        case POLY_PAGE_MANONMOON:         return "MANONMOON";
+        case POLY_PAGE_MASKED:            return "MASKED";
+        case POLY_PAGE_ENVMAP:            return "ENVMAP";
+        case POLY_PAGE_WATER:             return "WATER";
+        case POLY_PAGE_DRIP:              return "DRIP";
+        case POLY_PAGE_FOG:               return "FOG";
+        case POLY_PAGE_STEAM:             return "STEAM";
+        case POLY_PAGE_BANG:              return "BANG";
+        case POLY_PAGE_TEXT:              return "TEXT";
+        case POLY_PAGE_LOGO:              return "LOGO";
+        case POLY_PAGE_DROPLET:           return "DROPLET";
+        case POLY_PAGE_RAINDROP:          return "RAINDROP";
+        case POLY_PAGE_SPARKLE:           return "SPARKLE";
+        case POLY_PAGE_EXPLODE1:          return "EXPLODE1";
+        case POLY_PAGE_EXPLODE2:          return "EXPLODE2";
+        case POLY_PAGE_COLOUR_ALPHA:      return "COLOUR_ALPHA";
+        case POLY_PAGE_TEST_SHADOWMAP:    return "TEST_SMAP";
+        case POLY_PAGE_SEWATER:           return "SEWATER";
+        case POLY_PAGE_FLAMES:            return "FLAMES";
+        case POLY_PAGE_SMOKE:             return "SMOKE";
+        case POLY_PAGE_LEAF:              return "LEAF";
+        case POLY_PAGE_BIG_LEAF:          return "BIG_LEAF";
+        case POLY_PAGE_RUBBISH:           return "RUBBISH";
+        case POLY_PAGE_FLAMES2:           return "FLAMES2";
+        case POLY_PAGE_FLAMES3:           return "FLAMES3";
+        case POLY_PAGE_SMOKECLOUD:        return "SMOKECLOUD";
+        case POLY_PAGE_SMOKECLOUD2:       return "SMOKECLOUD2";
+        case POLY_PAGE_BIGBANG:           return "BIGBANG";
+        case POLY_PAGE_DUSTWAVE:          return "DUSTWAVE";
+        case POLY_PAGE_HITSPANG:          return "HITSPANG";
+        case POLY_PAGE_BLOOM1:            return "BLOOM1";
+        case POLY_PAGE_BLOOM2:            return "BLOOM2";
+        case POLY_PAGE_FINALGLOW:         return "FINALGLOW";
+        case POLY_PAGE_BLOODSPLAT:        return "BLOODSPLAT";
+        case POLY_PAGE_TYRESKID:          return "TYRESKID";
+        case POLY_PAGE_TYRETRACK:         return "TYRETRACK";
+        case POLY_PAGE_FOOTPRINT:         return "FOOTPRINT";
+        case POLY_PAGE_SPLASH:            return "SPLASH";
+        case POLY_PAGE_COLOUR:            return "COLOUR";
+        case POLY_PAGE_COLOUR_WITH_FOG:   return "COLOUR_FOG";
+        case POLY_PAGE_BARBWIRE:          return "BARBWIRE";
+        case POLY_PAGE_LADDER:            return "LADDER";
+        case POLY_PAGE_LADSHAD:           return "LADSHAD";
+        case POLY_PAGE_METEOR:            return "METEOR";
+        case POLY_PAGE_LITE_BOLT:         return "LITE_BOLT";
+        case POLY_PAGE_SNOWFLAKE:         return "SNOWFLAKE";
+        case POLY_PAGE_FADECAT:           return "FADECAT";
+        case POLY_PAGE_PCFLAMER:          return "PCFLAMER";
+        case POLY_PAGE_EXPLODE1_ADDITIVE: return "EXPL1_ADD";
+        case POLY_PAGE_EXPLODE2_ADDITIVE: return "EXPL2_ADD";
+        case POLY_PAGE_LENSFLARE:         return "LENSFLARE";
+        case POLY_PAGE_SIGN:              return "SIGN";
+        case POLY_PAGE_ALPHA_OVERLAY:     return "ALPHA_OVRLY";
+        case POLY_PAGE_ADDITIVEALPHA:     return "ADD_ALPHA";
+        case POLY_PAGE_SUBTRACTIVEALPHA:  return "SUB_ALPHA";
+        default:                          return nullptr;
+    }
+}
+#endif // OC_DEBUG_PERF
+
 // uc_orig: POLY_frame_draw (fallen/DDEngine/Headers/poly.h)
 // Flushes all polygon buckets to Direct3D for the current frame.
 // draw_shadow_page/draw_text_page: UC_FALSE to suppress those pages.
@@ -1578,6 +1663,19 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     // при выключенных перф-флагах, поэтому здесь тоже под #if.
 #if OC_PERF_ACTIVE
     const uint32_t flush_draws_before = ge_draw_call_count();
+#endif
+
+    // Per-page alpha-sort breakdown for the top-pages overlay. Reset per
+    // call: only the BIG end-of-frame flush has 100+ alpha polys; mid-frame
+    // shadow/text flushes have <10 and we skip the overlay for them so
+    // FONT_buffer_add isn't called multiple times per frame with stacking
+    // text. ~12KB×2 of static memory, only when OC_DEBUG_PERF is on.
+#if OC_DEBUG_PERF
+    static uint32_t s_alpha_page_polys[POLY_NUM_PAGES];
+    static uint32_t s_alpha_page_batches[POLY_NUM_PAGES];
+    memset(s_alpha_page_polys,   0, sizeof(s_alpha_page_polys));
+    memset(s_alpha_page_batches, 0, sizeof(s_alpha_page_batches));
+    int alpha_unique_pages = 0;
 #endif
 
     // Draw sky page first (always rendered at the back).
@@ -1629,6 +1727,49 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
             }
         }
 
+        // Batch-safe pages — alpha-blended, but whose polys' internal
+        // ordering doesn't visibly conflict. Rendered as single batches
+        // here, bypassing the per-poly sort. Order matters:
+        //   • AFTER opaque pass (so ground/buildings exist underneath —
+        //     otherwise opaque would paint over these and they'd vanish)
+        //   • BEFORE alpha-sort (so leaves/smoke/fx land on top of the
+        //     batched layer — intended layering, e.g. shadow darkens
+        //     ground, leaf blends over the darkened ground).
+        //
+        // Strict per-poly z-order between a batched-here page and any
+        // alpha-sorted page is lost — acceptable for ground shadows and
+        // env-mapped car glass in typical scenes. DO NOT add pages here
+        // whose polys can be visually interleaved with sorted alpha
+        // geometry on the same screen-space pixels (leaves, dust, smoke).
+        static const int batch_safe_pages[] = {
+            POLY_PAGE_SHADOW,         // detailed-shadow silhouette projections
+            POLY_PAGE_SHADOW_SQUARE,
+            POLY_PAGE_SHADOW_OVAL,
+            // ENVMAP = car windows / reflective glass. Heavy contributor
+            // (58+ batches in city scenes) because env-mapped quads from
+            // many cars interleave in Z with the alpha-sorted geometry.
+            // Risk: if a transparent object (leaf, smoke, another env-map
+            // glass) is BEHIND a car window visually, drawing the window
+            // first will cause the transparent object to render OVER the
+            // window — wrong layering. Usually rare in city scenes (car
+            // windows mostly back onto buildings/roads, not foliage). If
+            // visible artefacts appear, remove this line.
+            POLY_PAGE_ENVMAP,
+        };
+        for (size_t bi = 0; bi < sizeof(batch_safe_pages) / sizeof(batch_safe_pages[0]); bi++) {
+            const int bk = batch_safe_pages[bi];
+            pa = &POLY_Page[bk];
+            if (!pa->NeedsRendering())
+                continue;
+            // Respect the caller's request to suppress shadow output
+            // (matches the existing guard in the alpha-sort collect loop).
+            if (bk == POLY_PAGE_SHADOW && !draw_shadow_page)
+                continue;
+            PERF_COUNT("flush.polys", (double)pa->m_PolyBufUsed);
+            pa->RS.SetChanged();
+            pa->Render();
+        }
+
         // Alpha-sort phase: collect sorted polys, sort by depth, render back-to-front.
         // Replaces the original 2048-bucket approximate sort with precise std::stable_sort.
         // stable_sort preserves insertion order for equal sort_z (prevents flicker on
@@ -1648,17 +1789,44 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 continue;
             if (i == POLY_PAGE_PUDDLE)
                 continue;
+            // Already drawn via batch_safe_pages loop above (SHADOW is
+            // also guarded by !draw_shadow_page in the standard check
+            // above, so we don't double-skip it here).
+            if (i == POLY_PAGE_SHADOW
+             || i == POLY_PAGE_SHADOW_SQUARE
+             || i == POLY_PAGE_SHADOW_OVAL
+             || i == POLY_PAGE_ENVMAP)
+                continue;
 
+#if OC_DEBUG_PERF
+            const int polys_before = sort_count;
+#endif
             pa->CollectForSort(sort_array, sort_count, SORT_ARRAY_MAX);
+#if OC_DEBUG_PERF
+            if (sort_count > polys_before) {
+                s_alpha_page_polys[i] = (uint32_t)(sort_count - polys_before);
+                alpha_unique_pages++;
+            }
+#endif
         }
 
-        // Sort ascending by sort_z (small Z = far, large Z = near) = back-to-front.
+        // Strict back-to-front sort by sort_z. Tried bucket-then-page
+        // grouping (render_batching_plan.md Этап 3) but it broke z-order
+        // for alpha geometry in dense scenes (tree leaves, bushes) where
+        // strict per-poly ordering is required. Now batch-safe pages
+        // (POLY_PAGE_SHADOW_SQUARE/OVAL — subtract-blend ground shadows
+        // whose intra-page ordering doesn't visually conflict) bypass
+        // the sort entirely via the dedicated pre-sort batch path above
+        // — see `batch_safe_pages` block. Everything else stays strict.
         std::stable_sort(sort_array, sort_array + sort_count,
             [](const PolyPoly* a, const PolyPoly* b) { return a->sort_z < b->sort_z; });
 
         // Perf counters: alpha-sorted poly count + total polys (alpha part).
         PERF_COUNT("flush.alpha_polys", (double)sort_count);
         PERF_COUNT("flush.polys", (double)sort_count);
+#if OC_DEBUG_PERF
+        PERF_COUNT("flush.alpha_pages_unique", (double)alpha_unique_pages);
+#endif
 
         {
             PolyPage* cur_page = NULL;
@@ -1672,6 +1840,12 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                         cur_page->RS.SetChanged();
                         cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
                         PERF_COUNT("flush.alpha_batches", 1.0);
+#if OC_DEBUG_PERF
+                        // POLY_Page is a global array — pointer diff gives the page index.
+                        const int pi = (int)(cur_page - &POLY_Page[0]);
+                        if (pi >= 0 && pi < POLY_NUM_PAGES)
+                            s_alpha_page_batches[pi]++;
+#endif
                         dst = IxBuffer;
                     }
                     cur_page = p->page;
@@ -1690,6 +1864,11 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 cur_page->RS.SetChanged();
                 cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
                 PERF_COUNT("flush.alpha_batches", 1.0);
+#if OC_DEBUG_PERF
+                const int pi = (int)(cur_page - &POLY_Page[0]);
+                if (pi >= 0 && pi < POLY_NUM_PAGES)
+                    s_alpha_page_batches[pi]++;
+#endif
             }
         }
 
@@ -1723,6 +1902,81 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 #if OC_PERF_ACTIVE
     PERF_COUNT("flush.draws",
         (double)(ge_draw_call_count() - flush_draws_before));
+#endif
+
+    // Топ-5 страниц альфа-сорта по поликаунту + сводка фрагментации.
+    // Выводится только для «большого» flush'а (alpha_polys >= 100):
+    // мелкие промежуточные flush'и (тени, текст) — единицы полигонов,
+    // overlay для них бесполезен и FONT_buffer стэкает строки от каждого
+    // вызова за кадр. Порог 100 надёжно отделяет финальный flush.
+#if OC_DEBUG_PERF
+    {
+        // Sum total alpha polys to gate the overlay.
+        uint32_t alpha_total = 0;
+        for (int p = 0; p < POLY_NUM_PAGES; p++)
+            alpha_total += s_alpha_page_polys[p];
+
+        if (alpha_total >= 100) {
+            // Totals + selection-style top-5 by poly count in one pass per
+            // visited slot. Compact, single pass over the active pages.
+            uint32_t alpha_total_batches = 0;
+            struct PageStat { int idx; uint32_t polys; uint32_t batches; };
+            PageStat top[5] = {};
+            for (int p = 0; p < POLY_NUM_PAGES; p++) {
+                uint32_t pp = s_alpha_page_polys[p];
+                if (pp == 0)
+                    continue;
+                alpha_total_batches += s_alpha_page_batches[p];
+                for (int kk = 0; kk < 5; kk++) {
+                    if (pp > top[kk].polys) {
+                        for (int sh = 4; sh > kk; sh--)
+                            top[sh] = top[sh - 1];
+                        top[kk].idx     = p;
+                        top[kk].polys   = pp;
+                        top[kk].batches = s_alpha_page_batches[p];
+                        break;
+                    }
+                }
+            }
+            // Avg polys per draw in the alpha sort — golden metric for
+            // fragmentation. Guard against 0 to keep the format clean.
+            const uint32_t avg_per_draw = alpha_total_batches
+                ? (alpha_total / alpha_total_batches) : 0;
+
+            // Position: top-right corner, literal window pixels (matches
+            // FONT_buffer_add coord space). 320px reserve, line step 14
+            // — empirical: at 10px the 5×7 font + (+1,+1) shadow overlaps
+            // between lines, 14px gives a clean gap matching the perf-panel
+            // PERF_LINE_PX=13 spacing.
+            const SLONG screen_w  = (SLONG)ge_get_screen_width();
+            const SLONG x0        = screen_w - 320;
+            SLONG y                = 30;
+            const SLONG LINE_STEP = 14;
+
+            FONT_buffer_add(x0, y, 255, 220, 110, 1,
+                (CBYTE*)"alpha: %u polys / %d pages / avg %u poly/draw",
+                alpha_total, alpha_unique_pages, avg_per_draw);
+            y += LINE_STEP;
+            FONT_buffer_add(x0, y, 200, 200, 200, 1,
+                (CBYTE*)"  page                polys  batches");
+            y += LINE_STEP;
+
+            for (int kk = 0; kk < 5; kk++) {
+                if (top[kk].polys == 0)
+                    break;
+                const char* nm = poly_page_short_name(top[kk].idx);
+                char buf[32];
+                if (!nm) {
+                    snprintf(buf, sizeof(buf), "page#%d", top[kk].idx);
+                    nm = buf;
+                }
+                FONT_buffer_add(x0, y, 200, 200, 200, 1,
+                    (CBYTE*)"  %-18s  %5u  %5u",
+                    nm, top[kk].polys, top[kk].batches);
+                y += LINE_STEP;
+            }
+        }
+    }
 #endif
 
     ge_end_scene();
