@@ -1654,6 +1654,113 @@ static const char* poly_page_short_name(int idx)
 // at ~25-50 in a typical city scene.
 static constexpr float POLY_ALPHA_FAR_START_VIEW_Z = 0.35f;
 static constexpr int   POLY_ALPHA_FAR_BUCKETS      = 128;
+
+// Derived sort constants — file scope so the alpha-sort key helper below
+// can reach them. NEAR_THRESHOLD splits the strict near zone from the
+// bucketed far zone; FAR_BUCKET_SCALE turns a sort_z into a far bucket index.
+static constexpr float POLY_ALPHA_NEAR_THRESHOLD   = POLY_ZCLIP_PLANE / POLY_ALPHA_FAR_START_VIEW_Z;
+static constexpr float POLY_ALPHA_FAR_BUCKET_SCALE = (float)POLY_ALPHA_FAR_BUCKETS / POLY_ALPHA_NEAR_THRESHOLD;
+// ──────────────────────────────────────────────────────────────────────────
+
+// ─── Sprite depth-layer batching ──────────────────────────────────────────
+//
+// Particle sprites from one source (e.g. a burning car) occupy the same
+// volume but are spread across several POLY pages. With a strict per-poly
+// depth sort consecutive sorted polys keep switching page — ~3 polys per
+// draw call (measured: 1187 alpha polys → 332 batches next to a burning car).
+//
+// Fix: quantise these sprites onto a coarse depth grid ("layers"). Polys of
+// one page that fall in the same layer become consecutive in the sorted
+// stream and merge into one batch. The sprites stay IN the shared alpha sort,
+// so they still interleave — layer by layer — with foliage and with each
+// other.
+//
+// Layers are uniform in linear view-depth (∝ real distance), NOT in the
+// sort's internal depth units (sort_z = POLY_ZCLIP_PLANE / view_z, so a
+// fixed sort_z slab balloons in real size with distance). A view-depth slab
+// keeps a constant world size at any range, so one burning source always
+// spans the same number of layers — it neither under-resolves up close nor
+// balloons far away to swallow distant foliage. One formula over the whole
+// range: nothing jumps at the near/far zone boundary.
+//
+// s_sprite_layers is the dictionary of which pages are batched and how.
+// Per page:
+//   layer_depth — layer thickness in linear view-depth: 1.0 spans the whole
+//            view (near clip → far clip). Bigger = thicker layer, fewer draw
+//            calls, but coarser depth: more flicker when a poly crosses a
+//            layer boundary on camera motion, and separate sources merge
+//            sooner. Tune per page next to a burning source while watching
+//            flush.alpha_batches.
+//   rank   — draw order inside a layer; higher = drawn later = on top.
+//            Fire is additive and reads best over smoke → fire pages get 1.
+// A page not listed is not batched — it keeps the ordinary alpha sort.
+struct SpriteLayerDef { int page; float layer_depth; int rank; };
+static const SpriteLayerDef s_sprite_layers[] = {
+    //  page                   layer_depth  rank
+    { POLY_PAGE_FLAMES,         0.05f,       1 },
+    { POLY_PAGE_FLAMES2,        0.05f,       1 },
+    { POLY_PAGE_FLAMES3,        0.05f,       1 },
+    { POLY_PAGE_PCFLAMER,       0.05f,       1 },
+    { POLY_PAGE_SMOKE,          0.05f,       0 },
+    { POLY_PAGE_SMOKECLOUD,     0.05f,       0 },
+    { POLY_PAGE_SMOKECLOUD2,    0.05f,       0 },
+};
+
+// Resolved settings for one page. layer_depth 0 → page not batched.
+struct SpriteLayer { float layer_depth; int rank; };
+
+// Per-page lookup, built once from s_sprite_layers into an array indexed by
+// page number — the sort calls this once per poly, so it is a single array
+// index, not a search or a std::map.
+static const SpriteLayer& sprite_layer(int page)
+{
+    static SpriteLayer lut[POLY_NUM_PAGES] = {};
+    static bool built = false;
+    if (!built) {
+        for (const SpriteLayerDef& d : s_sprite_layers)
+            lut[d.page] = { d.layer_depth, d.rank };
+        built = true;
+    }
+    return lut[page];
+}
+
+// Sort key for one alpha poly — see the near/far + layer notes above.
+// Compared lexicographically: (zone, depth, rank, page).
+struct PolyAlphaKey {
+    int             zone;  // 0 = far, 1 = near — far drawn first
+    float           depth; // effective sort depth; smaller drawn first
+    int             rank;  // tie inside a layer: higher drawn later (on top)
+    const PolyPage* page;  // groups same-page polys → one batch
+};
+static PolyAlphaKey poly_alpha_key(const PolyPoly* p)
+{
+    const int          k  = (int)(p->page - POLY_Page);
+    const SpriteLayer& sl = sprite_layer(k);
+    const bool layered = (sl.layer_depth != 0.0f);
+
+    PolyAlphaKey key;
+    key.zone = (p->sort_z >= POLY_ALPHA_NEAR_THRESHOLD) ? 1 : 0;
+    key.rank = sl.rank;
+    key.page = p->page;
+
+    if (layered) {
+        // Batched sprite: snap to a layer uniform in linear view-depth
+        // (view_z = POLY_ZCLIP_PLANE / sort_z). Layer index and the snapped
+        // depth are computed in view-depth, then converted back to a sort_z
+        // value so the key stays comparable with the ordinary polys below.
+        const float sz    = (p->sort_z >= POLY_ZCLIP_PLANE) ? p->sort_z : POLY_ZCLIP_PLANE;
+        const int   layer = (int)(POLY_ZCLIP_PLANE / (sz * sl.layer_depth));
+        key.depth = POLY_ZCLIP_PLANE / (((float)layer + 0.5f) * sl.layer_depth);
+    } else if (key.zone == 1) {
+        // Ordinary near poly: strict per-poly depth.
+        key.depth = p->sort_z;
+    } else {
+        // Ordinary far poly: snap to a far-zone bucket.
+        const int bucket = (int)(p->sort_z * POLY_ALPHA_FAR_BUCKET_SCALE);
+        key.depth = ((float)bucket + 0.5f) / POLY_ALPHA_FAR_BUCKET_SCALE;
+    }
+    return key;
+}
 // ──────────────────────────────────────────────────────────────────────────
 
 // uc_orig: POLY_frame_draw (fallen/DDEngine/Headers/poly.h)
@@ -1677,28 +1784,10 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
     const uint32_t flush_draws_before = ge_draw_call_count();
 #endif
 
-    // Per-page alpha-sort breakdown for the top-pages overlay. Reset per
-    // call: only the BIG end-of-frame flush has 100+ alpha polys; mid-frame
-    // shadow/text flushes have <10 and we skip the overlay for them so
-    // FONT_buffer_add isn't called multiple times per frame with stacking
-    // text. ~12KB×2 of static memory, only when OC_DEBUG_PERF is on.
+    // Count of unique alpha-sorted pages this flush — feeds the
+    // flush.alpha_pages_unique perf counter.
 #if OC_DEBUG_PERF
-    static uint32_t s_alpha_page_polys[POLY_NUM_PAGES];
-    static uint32_t s_alpha_page_batches[POLY_NUM_PAGES];
-    memset(s_alpha_page_polys,   0, sizeof(s_alpha_page_polys));
-    memset(s_alpha_page_batches, 0, sizeof(s_alpha_page_batches));
     int alpha_unique_pages = 0;
-
-    // Step 3.4 diagnostics: per-page poly/draw tally for the opaque pass
-    // (the main loop that draws non-sorting pages, one Render() == one draw).
-    // Mirrors the alpha breakdown above. Sky and batch_safe pages are NOT
-    // tallied here — they're a fixed handful (1+≤4 in current code) and
-    // separately countable from flush.draws minus the alpha/opaque totals.
-    static uint32_t s_opaque_page_polys[POLY_NUM_PAGES];
-    static uint32_t s_opaque_page_batches[POLY_NUM_PAGES];
-    memset(s_opaque_page_polys,   0, sizeof(s_opaque_page_polys));
-    memset(s_opaque_page_batches, 0, sizeof(s_opaque_page_batches));
-    int opaque_unique_pages = 0;
 #endif
 
     // Draw sky page first (always rendered at the back).
@@ -1748,15 +1837,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 }
 
                 pa->Render();
-
-#if OC_DEBUG_PERF
-                if (polys_in_page > 0 && k >= 0 && k < POLY_NUM_PAGES) {
-                    if (s_opaque_page_polys[k] == 0)
-                        opaque_unique_pages++;
-                    s_opaque_page_polys[k]   += polys_in_page;
-                    s_opaque_page_batches[k] += 1;
-                }
-#endif
             }
         }
 
@@ -1836,49 +1916,32 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 #endif
             pa->CollectForSort(sort_array, sort_count, SORT_ARRAY_MAX);
 #if OC_DEBUG_PERF
-            if (sort_count > polys_before) {
-                s_alpha_page_polys[i] = (uint32_t)(sort_count - polys_before);
+            if (sort_count > polys_before)
                 alpha_unique_pages++;
-            }
 #endif
         }
 
-        // Near/far split sort (render_batching_plan.md Step 3.3):
-        // - NEAR zone (sort_z >= NEAR_THRESHOLD) — strict back-to-front
-        //   by sort_z. Where transparency artefacts are visible: dense
-        //   tree leaves, bushes, fences, anything stacking near the
-        //   camera. Global bucket sort here breaks leaves/bushes —
-        //   already verified in earlier attempts.
-        // - FAR zone (sort_z < NEAR_THRESHOLD) — bucket-then-page
-        //   grouping. Far polys small on screen, perspective makes
-        //   depth gaps visually tiny → bucket grouping invisible.
-        //   Same-page polys cluster → DrawBatchedPolys batches them.
-        //
-        // Tuning constants — see POLY_ALPHA_FAR_START_VIEW_Z and
-        // POLY_ALPHA_FAR_BUCKETS at file scope above the function for
-        // the trade-off rationale.
-        static constexpr float NEAR_THRESHOLD     = POLY_ZCLIP_PLANE / POLY_ALPHA_FAR_START_VIEW_Z;
-        static constexpr float FAR_BUCKET_SCALE   = (float)POLY_ALPHA_FAR_BUCKETS / NEAR_THRESHOLD;
+        // Depth sort — see poly_alpha_key + the near/far/pyro-layer notes at
+        // file scope. Each poly reduces to (zone, depth, rank, page) and the
+        // array is sorted lexicographically on that key:
+        // - NEAR zone — ordinary polys keep a strict per-poly depth (dense
+        //   foliage near the camera must not be bucket-reordered).
+        // - FAR zone — ordinary polys snap to a bucket (Step 3.3); far polys
+        //   are small on screen so the coarse depth is invisible.
+        // - Batched sprites (fire/smoke) — snap to a coarse real-distance
+        //   layer so a burning source's polys batch per page, not fragment.
+        // - rank puts fire last within a layer (drawn on top).
+        // stable_sort keeps insertion order on a full tie (no foliage flicker).
         std::stable_sort(sort_array, sort_array + sort_count,
             [](const PolyPoly* a, const PolyPoly* b) {
-                const bool a_near = a->sort_z >= NEAR_THRESHOLD;
-                const bool b_near = b->sort_z >= NEAR_THRESHOLD;
-                // Cross-zone: far sorts before near (back-to-front,
-                // far has smaller sort_z).
-                if (a_near != b_near) return b_near; // a far → a<b
-                if (a_near) {
-                    // Both near: strict sort_z. stable_sort preserves
-                    // insertion order on ties (avoids fir-tree-foliage flicker).
-                    return a->sort_z < b->sort_z;
-                }
-                // Both far: bucket primary, page-pointer secondary
-                // (groups same-page polys inside one bucket → one batch).
-                const int ba = (int)(a->sort_z * FAR_BUCKET_SCALE);
-                const int bb = (int)(b->sort_z * FAR_BUCKET_SCALE);
-                if (ba != bb) return ba < bb;
-                if (a->page != b->page)
-                    return (uintptr_t)a->page < (uintptr_t)b->page;
-                return false; // stable preserves insertion within bucket+page
+                const PolyAlphaKey ka = poly_alpha_key(a);
+                const PolyAlphaKey kb = poly_alpha_key(b);
+                if (ka.zone  != kb.zone)  return ka.zone  < kb.zone;
+                if (ka.depth != kb.depth) return ka.depth < kb.depth;
+                if (ka.rank  != kb.rank)  return ka.rank  < kb.rank;
+                if (ka.page  != kb.page)
+                    return (uintptr_t)ka.page < (uintptr_t)kb.page;
+                return false;
             });
 
         // Perf counters: alpha-sorted poly count + total polys (alpha part).
@@ -1900,12 +1963,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                         cur_page->RS.SetChanged();
                         cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
                         PERF_COUNT("flush.alpha_batches", 1.0);
-#if OC_DEBUG_PERF
-                        // POLY_Page is a global array — pointer diff gives the page index.
-                        const int pi = (int)(cur_page - &POLY_Page[0]);
-                        if (pi >= 0 && pi < POLY_NUM_PAGES)
-                            s_alpha_page_batches[pi]++;
-#endif
                         dst = IxBuffer;
                     }
                     cur_page = p->page;
@@ -1924,11 +1981,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
                 cur_page->RS.SetChanged();
                 cur_page->DrawBatchedPolys(IxBuffer, (uint32_t)(dst - IxBuffer));
                 PERF_COUNT("flush.alpha_batches", 1.0);
-#if OC_DEBUG_PERF
-                const int pi = (int)(cur_page - &POLY_Page[0]);
-                if (pi >= 0 && pi < POLY_NUM_PAGES)
-                    s_alpha_page_batches[pi]++;
-#endif
             }
         }
 
@@ -1962,147 +2014,6 @@ void POLY_frame_draw(SLONG draw_shadow_page, SLONG draw_text_page)
 #if OC_PERF_ACTIVE
     PERF_COUNT("flush.draws",
         (double)(ge_draw_call_count() - flush_draws_before));
-#endif
-
-    // Top-5 alpha-sort pages by poly count + fragmentation summary.
-    // Only emitted for the "big" flush (alpha_polys >= 100): small
-    // intermediate flushes (shadow, text) carry only a handful of polys,
-    // the overlay would be useless there, and FONT_buffer would stack
-    // duplicate lines across each per-frame call. Threshold 100 reliably
-    // separates the final whole-scene flush from those.
-#if OC_DEBUG_PERF
-    {
-        // Sum total alpha polys to gate the overlay.
-        uint32_t alpha_total = 0;
-        for (int p = 0; p < POLY_NUM_PAGES; p++)
-            alpha_total += s_alpha_page_polys[p];
-
-        if (alpha_total >= 100) {
-            // Totals + selection-style top-5 by poly count in one pass per
-            // visited slot. Compact, single pass over the active pages.
-            uint32_t alpha_total_batches = 0;
-            struct PageStat { int idx; uint32_t polys; uint32_t batches; };
-            PageStat top[5] = {};
-            for (int p = 0; p < POLY_NUM_PAGES; p++) {
-                uint32_t pp = s_alpha_page_polys[p];
-                if (pp == 0)
-                    continue;
-                alpha_total_batches += s_alpha_page_batches[p];
-                for (int kk = 0; kk < 5; kk++) {
-                    if (pp > top[kk].polys) {
-                        for (int sh = 4; sh > kk; sh--)
-                            top[sh] = top[sh - 1];
-                        top[kk].idx     = p;
-                        top[kk].polys   = pp;
-                        top[kk].batches = s_alpha_page_batches[p];
-                        break;
-                    }
-                }
-            }
-            // Avg polys per draw in the alpha sort — golden metric for
-            // fragmentation. Guard against 0 to keep the format clean.
-            const uint32_t avg_per_draw = alpha_total_batches
-                ? (alpha_total / alpha_total_batches) : 0;
-
-            // Position: top-right corner, literal window pixels (matches
-            // FONT_buffer_add coord space). 320px reserve, line step 14
-            // — empirical: at 10px the 5×7 font + (+1,+1) shadow overlaps
-            // between lines, 14px gives a clean gap matching the perf-panel
-            // PERF_LINE_PX=13 spacing.
-            const SLONG screen_w  = (SLONG)ge_get_screen_width();
-            const SLONG x0        = screen_w - 320;
-            SLONG y                = 30;
-            const SLONG LINE_STEP = 14;
-
-            FONT_buffer_add(x0, y, 255, 220, 110, 1,
-                (CBYTE*)"alpha: %u polys / %d pages / avg %u poly/draw",
-                alpha_total, alpha_unique_pages, avg_per_draw);
-            y += LINE_STEP;
-            FONT_buffer_add(x0, y, 200, 200, 200, 1,
-                (CBYTE*)"  page                polys  batches");
-            y += LINE_STEP;
-
-            for (int kk = 0; kk < 5; kk++) {
-                if (top[kk].polys == 0)
-                    break;
-                const char* nm = poly_page_short_name(top[kk].idx);
-                char buf[40];
-                if (!nm) {
-                    snprintf(buf, sizeof(buf), "page#%d", top[kk].idx);
-                    nm = buf;
-                }
-                FONT_buffer_add(x0, y, 200, 200, 200, 1,
-                    (CBYTE*)"  %-22s  %5u  %5u",
-                    nm, top[kk].polys, top[kk].batches);
-                y += LINE_STEP;
-            }
-
-            // Step 3.4: opaque-pass top-5. Emitted alongside the alpha
-            // overlay (same gate — only on the BIG end-of-frame flush)
-            // so they read together as one perf-page block.
-            uint32_t opaque_total         = 0;
-            uint32_t opaque_total_batches = 0;
-            PageStat optop[5] = {};
-            for (int p = 0; p < POLY_NUM_PAGES; p++) {
-                uint32_t pp = s_opaque_page_polys[p];
-                if (pp == 0)
-                    continue;
-                opaque_total         += pp;
-                opaque_total_batches += s_opaque_page_batches[p];
-                for (int kk = 0; kk < 5; kk++) {
-                    if (pp > optop[kk].polys) {
-                        for (int sh = 4; sh > kk; sh--)
-                            optop[sh] = optop[sh - 1];
-                        optop[kk].idx     = p;
-                        optop[kk].polys   = pp;
-                        optop[kk].batches = s_opaque_page_batches[p];
-                        break;
-                    }
-                }
-            }
-            const uint32_t opaque_avg_per_draw = opaque_total_batches
-                ? (opaque_total / opaque_total_batches) : 0;
-
-            y += LINE_STEP / 2; // small spacer between blocks
-            FONT_buffer_add(x0, y, 255, 220, 110, 1,
-                (CBYTE*)"opaque: %u polys / %d pages / avg %u poly/draw",
-                opaque_total, opaque_unique_pages, opaque_avg_per_draw);
-            y += LINE_STEP;
-            FONT_buffer_add(x0, y, 200, 200, 200, 1,
-                (CBYTE*)"  page                polys  batches");
-            y += LINE_STEP;
-
-            for (int kk = 0; kk < 5; kk++) {
-                if (optop[kk].polys == 0)
-                    break;
-                const char* nm = poly_page_short_name(optop[kk].idx);
-                char buf[40];
-                if (!nm) {
-                    snprintf(buf, sizeof(buf), "page#%d", optop[kk].idx);
-                    nm = buf;
-                }
-                // [2P-base] marker: this opaque page is the BASE of a
-                // 2PASS pair (it has POLY_PAGE_FLAG_2PASS set and an
-                // overlay texture is composited in the fragment shader
-                // — see PolyPage::m_OverlayPage / m_OverlayMode and the
-                // u_overlay_mode path in common_frag.glsl). The overlay
-                // sibling page+1 receives no submissions, so an opaque
-                // page tagged here counts ALL polys (base diffuse +
-                // composited overlay) under one draw.
-                const bool is_2pass_base =
-                    (POLY_page_flag[optop[kk].idx] & POLY_PAGE_FLAG_2PASS) != 0;
-                char tagged[48];
-                if (is_2pass_base) {
-                    snprintf(tagged, sizeof(tagged), "%s [2P-base]", nm);
-                    nm = tagged;
-                }
-                FONT_buffer_add(x0, y, 200, 200, 200, 1,
-                    (CBYTE*)"  %-22s  %5u  %5u",
-                    nm, optop[kk].polys, optop[kk].batches);
-                y += LINE_STEP;
-            }
-        }
-    }
 #endif
 
     ge_end_scene();

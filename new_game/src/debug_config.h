@@ -61,18 +61,7 @@
 // ⚠️ To understand what each line measures, the hotkeys, the colours and
 // the file log — READ new_game_devlog/perf_diag/panel_guide.md (usage
 // manual). Architecture/history: new_game_devlog/perf_diag/design.md.
-#define OC_DEBUG_PERF false
-
-// CSV file log of the perf-diag metrics (perf_log.csv next to the exe,
-// like crash_log.txt). Independent of OC_DEBUG_PERF so it can be enabled
-// alone to capture the LOAD PHASE from process start (before the panel /
-// hotkeys exist). Rows are averaged over N frames (per-frame can't be
-// written fast enough and is hard to analyse). When OC_DEBUG_PERF is also
-// on, KB_5's window control also sets the file-log averaging N. Requires
-// the instrumentation, so if this is true the perf_diag implementation is
-// compiled in even when OC_DEBUG_PERF is false. Keep false in shipping.
-// CSV format / averaging details: new_game_devlog/perf_diag/panel_guide.md.
-#define OC_DEBUG_PERF_LOG false
+#define OC_DEBUG_PERF true
 
 // Generic on-screen debug log (engine/debug/dbglog). When false, DBGLOG /
 // DBGLOG_draw / DBGLOG_clear become compile-time no-ops (arguments are

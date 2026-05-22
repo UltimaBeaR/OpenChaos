@@ -1,7 +1,7 @@
 #ifndef ENGINE_DEBUG_PERF_DIAG_PERF_DIAG_H
 #define ENGINE_DEBUG_PERF_DIAG_PERF_DIAG_H
 
-#include "debug_config.h" // OC_DEBUG_PERF / OC_DEBUG_PERF_LOG
+#include "debug_config.h" // OC_DEBUG_PERF
 
 // Built-in performance diagnostics (OpenChaos addition — not in the
 // original). Per-stage wall-clock timers and value counters, windowed
@@ -13,15 +13,11 @@
 // metrics + red-tinting of whatever deviated sharply makes the culprit
 // pop out of the corner of your eye.
 //
-// Gating: the instrumentation/macros are compiled in when EITHER
-// OC_DEBUG_PERF or OC_DEBUG_PERF_LOG is true (logging needs the same
-// probes; the log flag alone exists to capture the load phase from
-// process start). The panel + hotkeys are OC_DEBUG_PERF only; the file
-// log is OC_DEBUG_PERF_LOG only. When both flags are false EVERY entry
-// point below is a preprocessor no-op — arguments are not evaluated, no
-// symbols emitted, zero cost; safe to leave PERF_* calls in shipping
-// code. Dev-only build flags, kept false in shipping builds. Design:
-// new_game_devlog/perf_diag/design.md.
+// Gating: the instrumentation/macros are compiled in when OC_DEBUG_PERF
+// is true. When it is false EVERY entry point below is a preprocessor
+// no-op — arguments are not evaluated, no symbols emitted, zero cost;
+// safe to leave PERF_* calls in shipping code. Dev-only build flag, kept
+// false in shipping builds. Design: new_game_devlog/perf_diag/design.md.
 //
 // Adding a metric is one line anywhere — the name auto-registers a slot
 // on first execution (string path, dotted for grouping):
@@ -36,7 +32,7 @@
 // (a slot hit several times in a frame sums). PERF_COUNT records a value
 // for the slot this frame (repeated calls in a frame sum, e.g. counting).
 
-#define OC_PERF_ACTIVE (OC_DEBUG_PERF || OC_DEBUG_PERF_LOG)
+#define OC_PERF_ACTIVE (OC_DEBUG_PERF)
 
 #if OC_PERF_ACTIVE
 

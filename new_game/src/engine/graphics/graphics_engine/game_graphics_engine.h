@@ -175,8 +175,8 @@ void ge_flip();
 // ---------------------------------------------------------------------------
 //
 // These have a real backend implementation but are ONLY ever called from
-// OC_DEBUG_PERF / OC_DEBUG_PERF_LOG-gated code (perf_diag). When the perf
-// flags are off, perf_diag's macros compile to nothing, so none of these
+// OC_DEBUG_PERF-gated code (perf_diag). When the perf
+// flag is off, perf_diag's macros compile to nothing, so none of these
 // are invoked — zero runtime cost (only the unused code bytes remain).
 //
 // Block the CPU until the GPU has finished all submitted commands
