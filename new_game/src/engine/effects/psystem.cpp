@@ -166,19 +166,6 @@ void PARTICLE_Run()
                 }
             }
 
-            // PFLAG_FADE_EXP: exponential decay — alpha *= (256 - fade)/256 per logic tick.
-            // Non-linear: drops fast at high alpha, slow at low alpha. Used by smoke so it
-            // quickly becomes barely visible then lingers in the faint phase before dying.
-            if (p->flags & PFLAG_FADE_EXP) {
-                ULONG alpha = (p->colour & 0xFF000000) >> 24;
-                alpha = (alpha * (256 - (p->fade & 0xff))) >> 8;
-                if (alpha < 2) {
-                    p->life = 1;
-                } else {
-                    p->colour = (p->colour & 0x00FFFFFF) | (alpha << 24);
-                }
-            }
-
             // PFLAG_FIRE: colour cycles through the fire palette based on alpha value.
             // As alpha decreases (particle fades), colour shifts from white-hot to dark red.
             if (p->flags & PFLAG_FIRE) {
@@ -485,19 +472,17 @@ void PARTICLE_Draw()
             h = 1;
         } else {
             ndx = p->sprite >> 2;
-            // Frame index past end of atlas: with PFLAG_SPRITELOOP wrap
-            // around (original behaviour); without it pin to the last
-            // frame so the animation freezes instead of sliding UVs off
-            // the texture. Pre-release relied on Wrap address mode to
-            // mask this — Wrap silently sampled neighbouring atlas
-            // frames when UVs went past 1.0, which looked like an
-            // unintended-but-tolerable extended animation. With Clamp
-            // (needed to kill edge bleed between atlas frames) UVs pin
-            // to the last texel row → bright smear across the sprite
-            // ("white square" after splash animation ends).
+            // Frame index always wraps within the atlas. Original code masked
+            // ndx only under PFLAG_SPRITELOOP and relied on Wrap address mode
+            // for the no-SPRITELOOP case — UVs past 1.0 silently wrapped at
+            // the sampler. We render with Clamp (to kill edge bleed between
+            // atlas frames), so the wrap has to happen here instead — without
+            // it short atlas anims (grenade explosion flash, etc.) freeze on
+            // the last frame for the rest of their life. Sample bleed between
+            // adjacent frames is already handled by the half-texel inset below.
             switch (p->sprite & 3) {
             case 1: // split in half each way
-                ndx = (p->flags & PFLAG_SPRITELOOP) ? (ndx & 3) : (ndx > 3 ? 3 : ndx);
+                ndx &= 3;
                 u = ndx & 1;
                 v = ndx >> 1;
                 u *= 0.5f;
@@ -506,7 +491,7 @@ void PARTICLE_Draw()
                 h = 0.5f;
                 break;
             case 2: // split in quarters each way
-                ndx = (p->flags & PFLAG_SPRITELOOP) ? (ndx & 0xf) : (ndx > 15 ? 15 : ndx);
+                ndx &= 0xf;
                 u = ndx & 3;
                 v = ndx >> 2;
                 u *= 0.25f;
@@ -535,8 +520,7 @@ void PARTICLE_Draw()
         }
         sz = float(p->size);
         if (p->flags & PFLAG_RESIZE2)
-            sz *= 0.000244140625f; // 1/4096; pre-release used 1/256 which produced 16× too-large
-                                   // shrapnel sprites at close-camera distances (grenade explosions).
+            sz *= 0.00390625f; // 1/256: undo the <<8 fixed-point pre-shift applied at spawn.
         SPRITE_draw_tex(
             float(p->x >> 8),
             float(p->y >> 8),

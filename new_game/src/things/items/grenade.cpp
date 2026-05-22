@@ -240,13 +240,15 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
 
     MFX_play_xyz(0, S_EXPLODE_START, MFX_OVERLAP, x, y, z);
 
-    // Additive central flash. Pre-release size=190+(rand&0x3f) with grow=20 hit UWORD cap=255
-    // immediately and persisted ~12 sec; reduced to a brief shrinking flash.
+    // Central additive flashes — life shortened from pre-release values (120 / 70 → 15 / 12,
+    // i.e. ~1 sec instead of ~8 sec). Pre-release values give a multi-second freeze-frame in
+    // our build even with correct atlas wrap; PieroZ with identical params shows ~1 sec, but
+    // we couldn't isolate what kills the particles early there. Not worth more time digging.
     PARTICLE_Add(x, y, z, 0, 0, 0, (Random() & 1) ? POLY_PAGE_EXPLODE1_ADDITIVE : POLY_PAGE_EXPLODE2_ADDITIVE, 2,
-        0x00FFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE | PFLAG_BOUNCE, 10, 20, 1, 0, -3);
+        0x00FFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE | PFLAG_BOUNCE, 15, 190 + (Random() & 0x3f), 1, 0, 20);
     PARTICLE_Add(x + (((Random() & 0xff) - 0x7f) << 4), y + (((Random() & 0xff) - 0x7f) << 4), z + (((Random() & 0xff) - 0x7f) << 4),
         0, 0, 0, (Random() & 1) ? POLY_PAGE_EXPLODE1_ADDITIVE : POLY_PAGE_EXPLODE2_ADDITIVE, 2,
-        0x7fFFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE, 8, 15, 1, 0, -3);
+        0x7fFFFFFF, PFLAG_SPRITEANI | PFLAG_RESIZE, 12, 120 + (Random() & 0x7f), 1, 0, 40);
 
     int iNumParticles = IWouldLikeSomePyroSpritesHowManyCanIHave(20 * 4);
     iNumParticles /= 4;
@@ -255,17 +257,15 @@ void CreateGrenadeExplosion(SLONG x, SLONG y, SLONG z, Thing* owner)
         PARTICLE_Add(x + (((Random() & 0x7f) - 0x3f) << 9), y + (((Random() & 0x3f) - 0x1f) << 6), z + (((Random() & 0x7f) - 0x3f) << 9),
             ((Random() & 0x1f) - 0xf) << 1, (1 + (Random() & 0xf)) << 6, ((Random() & 0x1f) - 0xf) << 1,
             POLY_PAGE_SMOKECLOUD, 2, 0xFFFFFFFF, PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE | PFLAG_RESIZE,
-            150, 20 + (Random() & 0x7f), 1, 2 + (Random() & 3), 6);
+            150, 20 + (Random() & 0x7f), 1, 2 + (Random() & 3), 3);
         PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 6, (Random() & 0x1f) << 6, ((Random() & 0x1f) - 0xf) << 6,
             POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
             240, 20 + (Random() & 0x1f), 1, 3 + (Random() & 3), 0);
 
         if (Random() & 3)
-            // Bounce shrapnel — close-range bouncing particles. Velocity reduced (<<8 → <<5),
-            // size 5 → 3 (1.5× smaller), fade rate doubled (2+rand&3 → 4+rand&7) → ~2.5 sec life.
-            PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 5, (Random() & 0x1f) << 5, ((Random() & 0x1f) - 0xf) << 5,
+            PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 8, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 8,
                 POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 1) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA | PFLAG_BOUNCE,
-                240, 3, 1, 4 + (Random() & 7), 0);
+                240, 5, 1, 2 + (Random() & 3), 0);
         else
             PARTICLE_Add(x, y, z, ((Random() & 0x1f) - 0xf) << 12, (Random() & 0x1f) << 8, ((Random() & 0x1f) - 0xf) << 12,
                 POLY_PAGE_EXPLODE1 - (Random() & 1), 2 + ((Random() & 3) << 2), 0xFFFFFF, PFLAG_GRAVITY | PFLAG_RESIZE2 | PFLAG_FADE | PFLAG_INVALPHA,
