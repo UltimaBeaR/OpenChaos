@@ -48,6 +48,26 @@ extern float m_fObjectBoundingSphereRadius[MAX_NUMBER_D3D_PRIMS];
 // Pre-compiled D3D representations of all character-specific prim meshes.
 extern TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 
+// Pre-compiled consolidated D3D meshes for ANIM_obj_draw rigs (non-person
+// skeletons: Bane, Balrog, bats, Gargoyle, ...). A "rig" here is the
+// (chunk, MultiObject-start_object) pair — each such pair gets its own
+// consolidated TomsPrimObject so the whole creature is one mesh + one
+// draw call per material, same shape as D3DPeopleObj for persons.
+//
+// 32 slots is comfortable headroom: the game has ~4 non-person chunks
+// and each chunk realistically uses a handful of MultiObjects max.
+//
+// Built lazily on first draw of a given rig (see ANIM_obj_draw); slot
+// reuse is keyed by chunk pointer + start_object, so different rigs
+// land in different slots and there is no false sharing.
+#define MAX_NUMBER_D3D_ANIMALS 32
+struct AnimObjKey {
+    const struct GameKeyFrameChunk* chunk;
+    SLONG                           start_object;
+};
+extern AnimObjKey     D3DAnimObjKeys[MAX_NUMBER_D3D_ANIMALS];
+extern TomsPrimObject D3DAnimObj    [MAX_NUMBER_D3D_ANIMALS];
+
 // uc_orig: m_iLRUQueueSize (fallen/DDEngine/Source/figure.cpp)
 // Current number of entries in the TomsPrimObject LRU cache.
 extern int m_iLRUQueueSize;
@@ -103,7 +123,11 @@ extern int TPO_iNumStripIndices;
 extern int TPO_iNumVertices;
 
 // uc_orig: TPO_MAX_NUMBER_PRIMS (fallen/DDEngine/Source/figure.cpp)
-#define TPO_MAX_NUMBER_PRIMS 16
+// Was 16 originally — enough for the 15-bone person rig. Bumped to 20
+// (= POSE_MAX_BONES, matches MAX_NUM_BODY_PARTS_AT_ONCE) so the same
+// TPO machinery can consolidate flat-skeleton creatures (Balrog uses
+// more than 16 parts).
+#define TPO_MAX_NUMBER_PRIMS 20
 
 // uc_orig: TPO_iNumPrims (fallen/DDEngine/Source/figure.cpp)
 extern int TPO_iNumPrims;
@@ -120,32 +144,34 @@ extern int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 // uc_orig: MAX_INDICES (fallen/DDEngine/Source/figure.cpp)
 #define MAX_INDICES (MAX_VERTS * 4)
 
-// --- D3D MultiMatrix lighting working state ---
-// These pointers point into aligned static arrays allocated in figure.cpp.
-// Used by BuildMMLightingTable (chunk 1) and FIGURE_draw_prim_tween_person_only (chunk 5).
+// --- Lighting working state (consumed by the world-skin shader) ---
 
-// uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
-// 128-entry ULONG fade table: 0-63=lit ramp, 64-127=flat ambient.
-extern ULONG* MM_pcFadeTable;
+// Compressed half-Lambert ramp endpoints — the legacy 64-entry table
+// (uc_orig: MM_pcFadeTable, fallen/DDEngine/Source/figure.cpp) was built
+// as a linear float ramp truncated to bytes per step, so two RGB-float
+// endpoints fully describe it: ramp[i] = clamp(start + i*step, 0, 255),
+// floored. The shader reconstructs the byte-truncated value at the
+// queried index (see skin_world_vert.glsl `u_fade_start`/`u_fade_step`).
+// Built per character in BuildMMLightingTable.
+extern float MM_FadeStart[3];     // ambient end (idx 0)
+extern float MM_FadeStep[3];      // per-index delta
 
-// uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
-// Same as MM_pcFadeTable but with colour_and mask applied (for tinted textures).
-extern ULONG* MM_pcFadeTableTint;
-
-// uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
-// One GEMatrix slot for the MultiMatrix draw extension.
-extern GEMatrix* MM_pMatrix;
+// Tint variant — the legacy table applied a per-byte colour_and mask
+// to each entry; for the masks we actually use (each byte is 0x00 or
+// 0xFF, never partial) that's equivalent to zeroing the corresponding
+// start/step channels here. (uc_orig: MM_pcFadeTableTint).
+extern float MM_FadeStartTint[3];
+extern float MM_FadeStepTint[3];
 
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
-// Scratch GEVertex array for MultiMatrix vertex submission.
+// Scratch GEVertex array used by BuildMMLightingTable.
 extern GEVertex* MM_Vertex;
 
-// uc_orig: MM_pNormal (fallen/DDEngine/Source/figure.cpp)
-// Light direction in object space (4 floats: padding + x + y + z).
-extern float* MM_pNormal;
-
 // uc_orig: MM_vLightDir (fallen/DDEngine/Source/figure.cpp)
-// Dominant light direction vector (unit), computed per character in BuildMMLightingTable.
+// Dominant light direction vector (unit), computed per character in
+// BuildMMLightingTable. Uploaded to the world-skin shader pre-scaled
+// by 251 (= legacy fNormScale) so the per-vertex half-Lambert math
+// in the shader matches the original CPU path.
 extern GEVector MM_vLightDir;
 
 // uc_orig: MM_bLightTableAlreadySetUp (fallen/DDEngine/Source/figure.cpp)
@@ -196,21 +222,11 @@ struct structFIGURE_dhpr_rdata1 {
     Matrix31 pos;
 };
 
-// uc_orig: structFIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
-// Per-level recursion state block 2 (end position/matrix for parent-to-child transform).
-struct structFIGURE_dhpr_rdata2 {
-    Matrix31 end_pos;
-    Matrix33 end_mat;
-};
-
 // uc_orig: FIGURE_dhpr_data (fallen/DDEngine/Source/figure.cpp)
 extern structFIGURE_dhpr_data FIGURE_dhpr_data;
 
 // uc_orig: FIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
 extern structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
-
-// uc_orig: FIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
-extern structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
 
 // uc_orig: PART_FACE (fallen/DDEngine/Source/figure.cpp)
 #define PART_FACE 1
@@ -226,18 +242,10 @@ extern structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
 #define PART_HANDS 6
 
 // uc_orig: MAX_NUM_BODY_PARTS_AT_ONCE (fallen/DDEngine/Source/figure.cpp)
-// Maximum number of body parts batched in one DrawIndPrimMM call.
+// Maximum number of body parts in one consolidated character mesh.
+// Was originally the cap on a D3D DrawIndPrimMM draw; today this is
+// the upper bound on bones in the world-skin palette per character.
 #define MAX_NUM_BODY_PARTS_AT_ONCE 20
-
-// uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
-// Pointer to aligned storage block for MAX_NUM_BODY_PARTS_AT_ONCE GEMatrix objects.
-// Initialised at startup by MMBodyPartsInit. Passed as matrices in GEMultiMatrix.
-extern GEMatrix* MMBodyParts_pMatrix;
-
-// uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
-// Pointer to aligned float storage for MAX_NUM_BODY_PARTS_AT_ONCE * 4 light direction floats.
-// Initialised at startup by MMBodyPartsInit. Passed as lpvLightDirs in GEMultiMatrix.
-extern float* MMBodyParts_pNormal;
 
 // --- Misc character draw state ---
 
@@ -245,29 +253,12 @@ extern float* MMBodyParts_pNormal;
 // When true, scales down the next MESH_draw_poly call (used for grenade-in-hand rendering).
 extern UBYTE kludge_shrink;
 
-// --- Reflection draw state ---
-// Used by FIGURE_draw_prim_tween_reflection and FIGURE_draw_reflection.
-
-// uc_orig: FIGURE_Rpoint (fallen/DDEngine/Source/figure.cpp)
-// One entry in the screen-space reflection point buffer: distance from reflection plane + projected POLY_Point.
-struct FIGURE_Rpoint {
-    union {
-        float distance;
-        ULONG clip;
-    };
-    POLY_Point pp;
-};
-
-// uc_orig: FIGURE_MAX_RPOINTS (fallen/DDEngine/Source/figure.cpp)
-#define FIGURE_MAX_RPOINTS 256
-
-// uc_orig: FIGURE_rpoint (fallen/DDEngine/Source/figure.cpp)
-// Per-body-part screen-space reflection point buffer, filled by FIGURE_draw_prim_tween_reflection.
-extern FIGURE_Rpoint FIGURE_rpoint[FIGURE_MAX_RPOINTS];
-
-// uc_orig: FIGURE_rpoint_upto (fallen/DDEngine/Source/figure.cpp)
-// Number of valid entries in FIGURE_rpoint[].
-extern SLONG FIGURE_rpoint_upto;
+// --- Reflection draw state (P2-I, GPU) ---
+// FIGURE_draw_reflection now uses the bind-space skinning path and computes
+// the screen-space bbox from per-bone AABB corners (no per-vertex CPU walk).
+// The legacy FIGURE_rpoint[] / FIGURE_Rpoint / FIGURE_MAX_RPOINTS storage
+// is gone — only the bbox + water-plane height globals remain (consumed by
+// aeng.cpp's wibble intersection step).
 
 // uc_orig: FIGURE_reflect_x1 (fallen/DDEngine/Source/figure.cpp)
 // Screen-space bounding box of reflected points: left edge.
@@ -284,9 +275,5 @@ extern SLONG FIGURE_reflect_x2;
 // uc_orig: FIGURE_reflect_y2 (fallen/DDEngine/Source/figure.cpp)
 // Screen-space bounding box of reflected points: bottom edge.
 extern SLONG FIGURE_reflect_y2;
-
-// uc_orig: FIGURE_reflect_height (fallen/DDEngine/Source/figure.cpp)
-// World-space Y coordinate of the water reflection plane.
-extern float FIGURE_reflect_height;
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_FIGURE_GLOBALS_H

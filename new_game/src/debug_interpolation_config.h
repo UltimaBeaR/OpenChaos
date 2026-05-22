@@ -25,13 +25,10 @@ namespace ri_cfg {
 // snap on each physics tick (judder at 20 Hz).
 static constexpr bool INTERP_THING_POS = true;
 
-// World-space per-bone pose snapshot. figure.cpp queries the per-bone
-// snapshot in render_interp.cpp and overrides the per-bone (off_x/y/z,
-// mat_final) — the rendered pose is the lerp of two physics-tick captured
-// world poses (PELVIS world transform anchor + parent-local for descendants
-// in the person hierarchy; per-element world transforms for flat skeletons
-// like bats / Bane / Balrog / Gargoyle).
-static constexpr bool INTERP_THING_WORLD_POSE = true;
+// Note: the per-bone world-pose snapshot is no longer a toggle. It is the
+// SINGLE always-available source of skeletal pose for the body, reflection,
+// shadow and overlay paths (lazily captured on first use; the master toggle
+// only disables smoothing, never the pose). See skeletal_skinning_plan.md.
 
 // === Vehicles ===
 

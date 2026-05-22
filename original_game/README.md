@@ -37,7 +37,7 @@ implemented by Guy Simmons, the code is included in the Editor folder
 
 MFlib1 and MFStdLib are some generic libraries shared across Urban Chaos and possibly Startopia
 MuckyBasic is a inhouse scripting language written by Mark Adami
-Thrust is a side project by Mark Adami
+Thrust is a side project by Mark AdamiV
 
 Note no data is included, and the source data used by the editor/Engine is likely somewhat different to the data used by the final disk image
 (all though much of it is probably identical)

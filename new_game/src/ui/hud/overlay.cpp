@@ -153,17 +153,12 @@ void OVERLAY_draw_gun_sights(void)
         case CLASS_PERSON:
             // Bone 11 is the head.
             {
+                // Head from the interpolated pose snapshot — single
+                // always-available source (no legacy recompute path).
                 const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-                if (pose) {
-                    hx = SLONG(pose[11].pos_x);
-                    hy = SLONG(pose[11].pos_y);
-                    hz = SLONG(pose[11].pos_z);
-                } else {
-                    calc_sub_objects_position(p_thing, p_thing->Draw.Tweened->AnimTween, 11, &hx, &hy, &hz);
-                    hx += p_thing->WorldPos.X >> 8;
-                    hy += p_thing->WorldPos.Y >> 8;
-                    hz += p_thing->WorldPos.Z >> 8;
-                }
+                hx = SLONG(pose[11].pos_x);
+                hy = SLONG(pose[11].pos_y);
+                hz = SLONG(pose[11].pos_z);
             }
             PANEL_draw_gun_sight(hx, hy, hz, panel_gun_sight[c0].Timer, 256);
             break;
@@ -238,35 +233,18 @@ void OVERLAY_draw_enemy_health(void)
                 //   bone positions track the actual visual pose so the bar
                 //   stays anchored to the body. Y is up here (foundations
                 //   use -= 256 to extend below ground), so min = lowest.
-                // Fallback to calc_sub_objects_position when no cached pose
-                // is available (e.g. target has no Tweened draw).
+                // Pose snapshot is the single always-available source (no
+                // legacy recompute path).
                 SLONG hx, hy, hz;
                 const BoneInterpTransform* pose = render_interp_get_cached_pose(p_target);
-                if (pose) {
-                    hx = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
-                    hz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
-                    SLONG y_pelvis = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
-                    SLONG y_lfoot  = SLONG(pose[SUB_OBJECT_LEFT_FOOT].pos_y);
-                    SLONG y_rfoot  = SLONG(pose[SUB_OBJECT_RIGHT_FOOT].pos_y);
-                    hy = y_pelvis;
-                    if (y_lfoot < hy) hy = y_lfoot;
-                    if (y_rfoot < hy) hy = y_rfoot;
-                } else {
-                    SLONG fx, fy, fz;
-                    const SLONG tween = p_target->Draw.Tweened->AnimTween;
-                    calc_sub_objects_position(p_target, tween, SUB_OBJECT_PELVIS, &fx, &fy, &fz);
-                    hx = fx + (p_target->WorldPos.X >> 8);
-                    hz = fz + (p_target->WorldPos.Z >> 8);
-                    SLONG y_pelvis = fy;
-                    calc_sub_objects_position(p_target, tween, SUB_OBJECT_LEFT_FOOT, &fx, &fy, &fz);
-                    SLONG y_lfoot = fy;
-                    calc_sub_objects_position(p_target, tween, SUB_OBJECT_RIGHT_FOOT, &fx, &fy, &fz);
-                    SLONG y_rfoot = fy;
-                    SLONG min_local_y = y_pelvis;
-                    if (y_lfoot < min_local_y) min_local_y = y_lfoot;
-                    if (y_rfoot < min_local_y) min_local_y = y_rfoot;
-                    hy = min_local_y + (p_target->WorldPos.Y >> 8);
-                }
+                hx = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
+                hz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
+                SLONG y_pelvis = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
+                SLONG y_lfoot  = SLONG(pose[SUB_OBJECT_LEFT_FOOT].pos_y);
+                SLONG y_rfoot  = SLONG(pose[SUB_OBJECT_RIGHT_FOOT].pos_y);
+                hy = y_pelvis;
+                if (y_lfoot < hy) hy = y_lfoot;
+                if (y_rfoot < hy) hy = y_rfoot;
                 PANEL_draw_local_health(hx, hy, hz, percent, 60);
             } break;
             }

@@ -1071,37 +1071,6 @@ void TEXTURE_set_colour_key(SLONG page)
     return;
 }
 
-// uc_orig: TEXTURE_shadow_lock (fallen/DDEngine/Source/texture.cpp)
-// Locks the shadow texture for CPU write. Returns UC_TRUE if successful.
-// Sets TEXTURE_shadow_bitmap/pitch/mask/shift globals on success.
-SLONG TEXTURE_shadow_lock(void)
-{
-    int32_t pitch;
-    if (!ge_lock_texture_pixels(TEXTURE_page_shadow, &TEXTURE_shadow_bitmap, &pitch)) {
-        TEXTURE_shadow_bitmap = NULL;
-        TEXTURE_shadow_pitch = 0;
-        return UC_FALSE;
-    }
-    TEXTURE_shadow_pitch = pitch;
-    int32_t mr, mg, mb, ma, sr, sg, sb, sa;
-    ge_get_texture_pixel_format(TEXTURE_page_shadow, &mr, &mg, &mb, &ma, &sr, &sg, &sb, &sa);
-    TEXTURE_shadow_mask_red = mr;
-    TEXTURE_shadow_mask_green = mg;
-    TEXTURE_shadow_mask_blue = mb;
-    TEXTURE_shadow_mask_alpha = ma;
-    TEXTURE_shadow_shift_red = sr;
-    TEXTURE_shadow_shift_green = sg;
-    TEXTURE_shadow_shift_blue = sb;
-    TEXTURE_shadow_shift_alpha = sa;
-    return UC_TRUE;
-}
-
-// uc_orig: TEXTURE_shadow_unlock (fallen/DDEngine/Source/texture.cpp)
-void TEXTURE_shadow_unlock()
-{
-    ge_unlock_texture_pixels(TEXTURE_page_shadow);
-}
-
 // uc_orig: TEXTURE_shadow_update (fallen/DDEngine/Source/texture.cpp)
 // No-op stub — shadow texture update is handled by D3D internally.
 void TEXTURE_shadow_update(void)

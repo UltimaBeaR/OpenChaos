@@ -19,6 +19,16 @@ void PUDDLE_splash(SLONG x, SLONG y, SLONG z);
 // Returns UC_TRUE if (x,z) is inside any puddle or water square.
 SLONG PUDDLE_in(SLONG x, SLONG z);
 
+// Returns true if (x, z) is inside some PUDDLE_Puddle entry and writes
+// the puddle's rectangle bounds and water surface Y. out_water_y is
+// optional (pass NULL if not needed). NOTE: does NOT match infinite
+// water tiles (MAV_SPARE_FLAG_WATER) — those have no rect entry and
+// the caller must handle them separately.
+bool PUDDLE_get_rect_at(SLONG x, SLONG z,
+    SLONG* out_x1, SLONG* out_z1,
+    SLONG* out_x2, SLONG* out_z2,
+    SLONG* out_water_y);
+
 // uc_orig: PUDDLE_process (fallen/Headers/puddle.h)
 // Decays ripple splash blobs (s1/s2) at a fixed 30 Hz cadence driven by
 // wall-clock dt — must be frame-rate independent. dt_ms is the caller's

@@ -35,6 +35,7 @@ extern float g_render_alpha;
 // re-enabling at runtime gives instant smooth motion. Toggle hotkey: 3.
 extern bool g_render_interp_enabled;
 
+
 // Reset all snapshots. Call when the world resets (mission load, map change)
 // to prevent lerping from a stale previous position.
 void render_interp_reset(void);

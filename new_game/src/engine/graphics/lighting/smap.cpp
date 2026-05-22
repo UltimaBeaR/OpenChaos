@@ -1,23 +1,21 @@
-// Shadow map generator: projects a character's skeleton into a texture bitmap
-// to use as a blob shadow. SMAP_person() builds the map; SMAP_project_onto_poly()
-// maps it onto a ground quad in world space.
+// Character shadow generator (Milestone 1E, GPU). SMAP_person_gpu()
+// renders the skinned silhouette into the shared shadow texture on the
+// GPU; SMAP_project_onto_poly() maps it onto ground quads in world space.
+// The legacy CPU software rasteriser (SMAP_person + AA_draw) was removed.
 
 #include "engine/platform/uc_common.h"
 #include <math.h>
 #include "engine/graphics/lighting/smap.h"
 #include "engine/graphics/lighting/smap_globals.h"
-#include "engine/graphics/geometry/aa.h"
 #include "engine/core/matrix.h"
 #include "engine/core/fmatrix.h"
 #include "map/level_pools.h"
 #include "game/game_types.h"
-#include "engine/animation/anim_types.h" // GameKeyFrame, GameKeyFrameElement, GameKeyFrameChunk, GetCMatrix
-#include "things/characters/person_types.h" // Person struct, FLAG_PERSON_*, ANIM_TYPE_*
-#include "things/characters/person.h" // person_get_scale
-#include "things/core/interact.h" // calc_sub_objects_position_global
-#include "engine/graphics/render_interp.h" // Phase 4: per-bone snapshot pose for shadow
+#include "engine/animation/anim_types.h" // GameKeyFrameChunk (used in SMAP_person_gpu)
+#include "engine/graphics/render_interp.h" // render_interp_get_cached_pose, BoneInterpTransform
 #include "engine/graphics/geometry/pose_composer.h" // POSE_MAX_BONES
-#include "debug_interpolation_config.h" // ri_cfg::INTERP_THING_WORLD_POSE
+#include "engine/graphics/graphics_engine/game_graphics_engine.h" // GESkinMesh, ge_shadow_silhouette_*
+#include "engine/graphics/geometry/figure.h" // P2-H: FIGURE_get_skin_mesh_for_thing
 
 // SMAP_vector_normalise: normalise a 3D float vector in-place.
 // uc_orig: SMAP_vector_normalise (fallen/DDEngine/Source/smap.cpp)
@@ -179,320 +177,182 @@ void SMAP_point_finished()
     }
 }
 
-// uc_orig: SMAP_tri_add (fallen/DDEngine/Source/smap.cpp)
-// Draws one triangle into the shadow bitmap using anti-aliased rasterisation.
-// Points are specified by index into the SMAP_point[] array.
-static void SMAP_tri_add(
-    SLONG p1,
-    SLONG p2,
-    SLONG p3)
-{
-    SLONG du1;
-    SLONG dv1;
+// ----------------------------------------------------------------------
+// GPU shadow-silhouette path — P2-H.
+//
+// SMAP_person_gpu renders the SAME consolidated bind-space character
+// mesh the body draw uses (FIGURE_get_skin_mesh_for_thing) with the
+// SAME per-frame skin palette, but projected to an orthographic
+// shadow-clip instead of the camera. One draw per character (used to be
+// N per body part). Soft-skin weights for the body apply to the shadow
+// automatically because they share the VBO.
+//
+// The projection box is a tight shadow-plane fit derived from per-bone
+// bind-space AABBs (stored on the consolidated TomsPrimObject by
+// figure_build_consolidated_skin_world): each bone's 8 AABB corners are
+// transformed by skin[bone] (= current × inv_bind) and projected onto
+// the sun plane. This bounds the body almost exactly so the silhouette
+// fills the texture (crisp) and stays near the feet, which makes the
+// original 64/256 distance fade behave like the original (soft far edge,
+// no global "breathing").
+// ----------------------------------------------------------------------
 
-    SLONG du2;
-    SLONG dv2;
+// Scratch the (unused) SMAP_init bitmap memset writes into (res*res bytes;
+// res = AENG_AA_BUF_SIZE). Content is never read. MUST be >= the largest
+// res ever passed — undersizing here overruns it and corrupts adjacent
+// statics (was the level-load crash when res went 64 -> 128). Guarded by
+// an ASSERT(res <= SMAP_SCRATCH_DIM) at every SMAP_init call site.
+#define SMAP_SCRATCH_DIM 256
+static UBYTE SMAP_setup_scratch[SMAP_SCRATCH_DIM * SMAP_SCRATCH_DIM];
 
-    ASSERT(WITHIN(p1, 0, SMAP_point_upto - 1));
-    ASSERT(WITHIN(p2, 0, SMAP_point_upto - 1));
-    ASSERT(WITHIN(p3, 0, SMAP_point_upto - 1));
 
-    du1 = SMAP_point[p2].u - SMAP_point[p1].u;
-    dv1 = SMAP_point[p2].v - SMAP_point[p1].v;
-
-    du2 = SMAP_point[p3].u - SMAP_point[p1].u;
-    dv2 = SMAP_point[p3].v - SMAP_point[p1].v;
-
-    if (MUL64(du1, dv2) - MUL64(dv1, du2) <= 0) {
-        // Backface culled — skip.
-    } else {
-        AA_draw(
-            SMAP_bitmap,
-            SMAP_res_u,
-            SMAP_res_v,
-            SMAP_res_v,
-            SMAP_point[p1].u,
-            SMAP_point[p1].v,
-            SMAP_point[p2].u,
-            SMAP_point[p2].v,
-            SMAP_point[p3].u,
-            SMAP_point[p3].v);
-    }
-}
-
-// uc_orig: SMAP_add_prim_triangles (fallen/DDEngine/Source/smap.cpp)
-// Submits all faces of a prim object to the shadow rasteriser.
-static void SMAP_add_prim_triangles(
-    SLONG prim,
-    SLONG index)
-{
-    PrimFace4* p_f4;
-    PrimFace3* p_f3;
-    PrimObject* p_obj;
-
-    p_obj = &prim_objects[prim];
-
-    SLONG i;
-
-    index -= p_obj->StartPoint;
-
-    for (i = p_obj->StartFace3; i < p_obj->EndFace3; i++) {
-        p_f3 = &prim_faces3[i];
-
-        SMAP_tri_add(
-            p_f3->Points[0] + index,
-            p_f3->Points[1] + index,
-            p_f3->Points[2] + index);
-    }
-
-    for (i = p_obj->StartFace4; i < p_obj->EndFace4; i++) {
-        p_f4 = &prim_faces4[i];
-
-        SMAP_tri_add(
-            p_f4->Points[0] + index,
-            p_f4->Points[1] + index,
-            p_f4->Points[2] + index);
-
-        SMAP_tri_add(
-            p_f4->Points[1] + index,
-            p_f4->Points[3] + index,
-            p_f4->Points[2] + index);
-    }
-}
-
-// uc_orig: SMAP_add_tweened_points (fallen/DDEngine/Source/smap.cpp)
-// Adds all shadow-map points for one body part at a tweened position.
-// Returns the index of the last point added.
-static UWORD SMAP_add_tweened_points(
-    SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    Thing* p_thing)
-{
-    SLONG i;
-
-    SLONG sp;
-    SLONG ep;
-
-    Matrix31 offset;
-    Matrix33 mat2;
-    Matrix33 mat_final;
-
-    UWORD ans;
-
-    SVector temp;
-
-    PrimObject* p_obj;
-
-    void matrix_transform(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_transformZMY(Matrix31 * result, Matrix33 * trans, Matrix31 * mat2);
-    void matrix_mult33(Matrix33 * result, Matrix33 * mat1, Matrix33 * mat2);
-
-    offset.M[0] = anim_info->OffsetX + ((anim_info_next->OffsetX + off_dx - anim_info->OffsetX) * tween >> 8);
-    offset.M[1] = anim_info->OffsetY + ((anim_info_next->OffsetY + off_dy - anim_info->OffsetY) * tween >> 8);
-    offset.M[2] = anim_info->OffsetZ + ((anim_info_next->OffsetZ + off_dz - anim_info->OffsetZ) * tween >> 8);
-
-    matrix_transformZMY((struct Matrix31*)&temp, rot_mat, &offset);
-
-    SLONG character_scale = person_get_scale(p_thing);
-
-    temp.X = (temp.X * character_scale) / 256;
-    temp.Y = (temp.Y * character_scale) / 256;
-    temp.Z = (temp.Z * character_scale) / 256;
-
-    x += temp.X;
-    y += temp.Y;
-    z += temp.Z;
-
-    CMatrix33 m1, m2;
-    GetCMatrix(anim_info, &m1);
-    GetCMatrix(anim_info_next, &m2);
-
-    build_tween_matrix(&mat2, &m1, &m2, tween);
-
-    normalise_matrix(&mat2);
-
-    mat2.M[0][0] = (mat2.M[0][0] * character_scale) / 256;
-    mat2.M[0][1] = (mat2.M[0][1] * character_scale) / 256;
-    mat2.M[0][2] = (mat2.M[0][2] * character_scale) / 256;
-    mat2.M[1][0] = (mat2.M[1][0] * character_scale) / 256;
-    mat2.M[1][1] = (mat2.M[1][1] * character_scale) / 256;
-    mat2.M[1][2] = (mat2.M[1][2] * character_scale) / 256;
-    mat2.M[2][0] = (mat2.M[2][0] * character_scale) / 256;
-    mat2.M[2][1] = (mat2.M[2][1] * character_scale) / 256;
-    mat2.M[2][2] = (mat2.M[2][2] * character_scale) / 256;
-
-    matrix_mult33(&mat_final, rot_mat, &mat2);
-
-    // === Phase 4 shadow: pose-snapshot override ===
-    // Replace per-bone (x/y/z, mat_final) with the world-space lerp from the
-    // shared pose cache so the shadow projection of each bone tracks the
-    // same interpolated body the main draw renders. Without this override
-    // the shadow uses build_tween_matrix on raw post-tick AnimTween — which
-    // visibly desyncs from the body during anim transitions and on ladder
-    // cancel-out (bug 2b in render_interpolation/known_issues.md).
-    if constexpr (ri_cfg::INTERP_THING_WORLD_POSE) {
-        const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-        if (pose) {
-            DrawTween* dt = p_thing->Draw.Tweened;
-            if (dt && dt->CurrentFrame && dt->CurrentFrame->FirstElement) {
-                SLONG part = SLONG(anim_info - dt->CurrentFrame->FirstElement);
-                if (part >= 0 && part < POSE_MAX_BONES) {
-                    const BoneInterpTransform& xf = pose[part];
-                    x = SLONG(xf.pos_x);
-                    y = SLONG(xf.pos_y);
-                    z = SLONG(xf.pos_z);
-                    mat_final = xf.rot;
-                }
-            }
-        }
-    }
-
-    p_obj = &prim_objects[prim];
-
-    sp = p_obj->StartPoint;
-    ep = p_obj->EndPoint;
-
-    for (i = sp; i < ep; i++) {
-        matrix_transform_small((struct Matrix31*)&temp, &mat_final, (struct SMatrix31*)&prim_points[i]);
-
-        temp.X += x;
-        temp.Y += y;
-        temp.Z += z;
-
-        ans = SMAP_point_add(
-            float(temp.X),
-            float(temp.Y),
-            float(temp.Z));
-    }
-
-    return ans;
-}
-
-// uc_orig: SMAP_person (fallen/DDEngine/Source/smap.cpp)
-void SMAP_person(
+// P2-H GPU character shadow: one draw per character using the SAME
+// consolidated bind-space mesh + per-frame skin palette the body will
+// draw later this frame. Soft-skin weights deform the shadow naturally
+// because we share the body's VBO. Returns false (doing nothing) if the
+// model isn't ready for this frame (no shadow that frame, no fallback).
+bool SMAP_person_gpu(
     Thing* p_thing,
-    UBYTE* bitmap,
-    UBYTE u_res,
-    UBYTE v_res,
+    SLONG tex_page,
+    SLONG off_x,
+    SLONG off_y,
+    UBYTE res,
     SLONG light_dx,
     SLONG light_dy,
     SLONG light_dz)
 {
-    SLONG dx;
-    SLONG dy;
-    SLONG dz;
+    // Resolve consolidated mesh + per-bone bind-space AABB + bind palette.
+    // FIGURE_get_skin_mesh_for_thing builds whatever is missing — so when
+    // SMAP runs BEFORE the body draw, this triggers the TPO walk and the
+    // bind-space VBO build, and the later body draw just reuses them.
+    GESkinMesh*              mesh       = NULL;
+    const float*             bone_aabb  = NULL;
+    int                      bone_count = 0;
+    const GameKeyFrameChunk* chunk      = NULL;
+    const GEMatrix*          bind_inv   = NULL;
+    if (!FIGURE_get_skin_mesh_for_thing(p_thing,
+                                        &mesh, &bone_aabb, &bone_count,
+                                        &chunk, &bind_inv))
+        return false;
+    if (!mesh || !bone_aabb || bone_count <= 0)
+        return false;
+    if (bone_count > POSE_MAX_BONES)
+        bone_count = POSE_MAX_BONES;
 
-    Matrix33 r_matrix;
+    // Pose snapshot — per-bone interpolated world transforms.
+    const BoneInterpTransform* current = render_interp_get_cached_pose(p_thing);
+    if (!current)
+        return false;
 
-    GameKeyFrameElement* ae1;
-    GameKeyFrameElement* ae2;
-
-    DrawTween* dt = p_thing->Draw.Tweened;
-
-    if (dt->CurrentFrame == 0 || dt->NextFrame == 0) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!!!!!!ERROR SMAP_person");
-        return;
+    // Build the skin palette (3 vec4 / bone in M*v form). Layout EXACTLY
+    // matches skin_world_vert.glsl's u_skin and skin_shadow_vert.glsl's
+    // u_skin — the same per-frame value the body draw will upload, so
+    // shadow and body share their world-space pose.
+    //
+    //   skin[i] = current[i] × inv_bind[i]
+    //
+    // Inlined here (instead of calling figure_build_skin_world_palette)
+    // because that helper is static in figure.cpp; the math is short and
+    // bone_count is variable enough that exposing the helper would just
+    // add a forwarding seam.
+    float skin_palette[POSE_MAX_BONES * 12];
+    {
+        constexpr float S = 1.0F / 32768.0F;
+        for (int i = 0; i < bone_count; ++i) {
+            const Matrix33& cR  = current[i].rot;
+            const GEMatrix& bi  = bind_inv[i];
+            const float     pos[3] = { current[i].pos_x, current[i].pos_y, current[i].pos_z };
+            for (int r = 0; r < 3; ++r) {
+                float* o = &skin_palette[(i * 3 + r) * 4];
+                const float cR0 = float(cR.M[r][0]);
+                const float cR1 = float(cR.M[r][1]);
+                const float cR2 = float(cR.M[r][2]);
+                o[0] = S * (cR0 * bi.m[0][0] + cR1 * bi.m[1][0] + cR2 * bi.m[2][0]);
+                o[1] = S * (cR0 * bi.m[0][1] + cR1 * bi.m[1][1] + cR2 * bi.m[2][1]);
+                o[2] = S * (cR0 * bi.m[0][2] + cR1 * bi.m[1][2] + cR2 * bi.m[2][2]);
+                o[3] = S * (cR0 * bi.m[0][3] + cR1 * bi.m[1][3] + cR2 * bi.m[2][3]) + pos[r];
+            }
+        }
     }
 
-    if (dt->Locked) {
-        SLONG x1, y1, z1;
-        SLONG x2, y2, z2;
+    // Shadow-plane projection box. For each bone with a non-empty
+    // bind-space AABB, transform its 8 corners by skin[bone] (= world
+    // matrix for that bone) and project onto the sun plane. This is the
+    // same shape as the legacy per-prim AABB approach, just expressed in
+    // bind space — gives a tight world bound that keeps the silhouette
+    // crisp in the texture and "stays near the feet" so the original
+    // 64/256 distance fade behaves like the original.
+    ASSERT(res <= SMAP_SCRATCH_DIM);
+    SMAP_init(float(light_dx), float(light_dy), float(light_dz),
+        SMAP_setup_scratch, res, res);
 
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 0, dt->Locked, &x1, &y1, &z1);
-        calc_sub_objects_position_global(dt->CurrentFrame, dt->NextFrame, 256, dt->Locked, &x2, &y2, &z2);
+    int parts_used = 0;
+    for (int b = 0; b < bone_count; ++b) {
+        const float* mn = &bone_aabb[b * 6 + 0];
+        const float* mx = &bone_aabb[b * 6 + 3];
+        if (mn[0] > mx[0]) continue; // bone unreferenced by any vertex
 
-        dx = x1 - x2;
-        dy = y1 - y2;
-        dz = z1 - z2;
-    } else {
-        dx = 0;
-        dy = 0;
-        dz = 0;
+        const float* sp = &skin_palette[b * 12];
+        for (int c = 0; c < 8; ++c) {
+            float lx = (c & 1) ? mx[0] : mn[0];
+            float ly = (c & 2) ? mx[1] : mn[1];
+            float lz = (c & 4) ? mx[2] : mn[2];
+            // world = skin[bone] × bind_corner (M*v form, .w = translation)
+            float wxf = sp[0] * lx + sp[1] * ly + sp[2]  * lz + sp[3];
+            float wyf = sp[4] * lx + sp[5] * ly + sp[6]  * lz + sp[7];
+            float wzf = sp[8] * lx + sp[9] * ly + sp[10] * lz + sp[11];
+            float au = wxf * SMAP_plane_ux + wyf * SMAP_plane_uy + wzf * SMAP_plane_uz;
+            float av = wxf * SMAP_plane_vx + wyf * SMAP_plane_vy + wzf * SMAP_plane_vz;
+            float an = wxf * SMAP_plane_nx + wyf * SMAP_plane_ny + wzf * SMAP_plane_nz;
+            if (au < SMAP_u_min) SMAP_u_min = au;
+            if (au > SMAP_u_max) SMAP_u_max = au;
+            if (av < SMAP_v_min) SMAP_v_min = av;
+            if (av > SMAP_v_max) SMAP_v_max = av;
+            if (an < SMAP_n_min) SMAP_n_min = an;
+            if (an > SMAP_n_max) SMAP_n_max = an;
+        }
+        parts_used++;
     }
-
-    ae1 = dt->CurrentFrame->FirstElement;
-    ae2 = dt->NextFrame->FirstElement;
-
-    if (!ae1 || !ae2) {
-        MSG_add("!!!!!!!!!!!!!!!!!!!ERROR SMAP_person has no animation elements");
-
-        return;
-    }
-
-    void FIGURE_rotate_obj(
-        SLONG xangle,
-        SLONG yangle,
-        SLONG zangle,
-        Matrix33 * r3);
-
-    FIGURE_rotate_obj(
-        dt->Tilt,
-        dt->Angle,
-        dt->Roll,
-        &r_matrix);
-
-    SMAP_init(
-        float(light_dx),
-        float(light_dy),
-        float(light_dz),
-        bitmap,
-        u_res,
-        v_res);
-
-    SLONG i;
-    SLONG ele_count;
-    SLONG start_object;
-    SLONG object_offset;
-
-    ele_count = dt->TheChunk->ElementCount;
-    start_object = prim_multi_objects[dt->TheChunk->MultiObject[0]].StartObject;
-
-// uc_orig: SMAP_MAX_PARTS (fallen/DDEngine/Source/smap.cpp)
-#define SMAP_MAX_PARTS 20
-
-    SLONG indices[SMAP_MAX_PARTS];
-
-    for (i = 0; i < ele_count; i++) {
-        ASSERT(WITHIN(i, 0, SMAP_MAX_PARTS - 1));
-
-        object_offset = dt->TheChunk->PeopleTypes[dt->PersonID & 0x1f].BodyPart[i];
-
-        indices[i] = SMAP_add_tweened_points(
-            start_object + object_offset,
-            p_thing->WorldPos.X >> 8,
-            p_thing->WorldPos.Y >> 8,
-            p_thing->WorldPos.Z >> 8,
-            dt->AnimTween,
-            &ae1[i],
-            &ae2[i],
-            &r_matrix,
-            dx, dy, dz, p_thing);
-    }
-
+    if (parts_used == 0)
+        return false; // no bone with valid AABB (model variant uses none of the rig)
     SMAP_point_finished();
 
-    SLONG index = 0;
+    // Orthographic world -> shadow-clip (w=1, z=0). Places a world point
+    // at the SAME bitmap texel SMAP_point_finished/SMAP_project_onto_poly
+    // use: pixel = 1 + (along - min)*(res-2)/(max-min); ndc = 2*pixel/res-1.
+    float proj16[16];
+    {
+        float resf = float(res);
+        float k    = 2.0F / resf;
+        float du   = SMAP_u_max - SMAP_u_min;
+        float dv   = SMAP_v_max - SMAP_v_min;
+        if (fabsf(du) < 1e-6F) du = 1e-6F;
+        if (fabsf(dv) < 1e-6F) dv = 1e-6F;
+        float su   = (resf - 2.0F) / du;
+        float sv   = (resf - 2.0F) / dv;
 
-    for (i = 0; i < ele_count; i++) {
-        ASSERT(WITHIN(i, 0, SMAP_MAX_PARTS - 1));
+        float Aux = k * su * SMAP_plane_ux;
+        float Auy = k * su * SMAP_plane_uy;
+        float Auz = k * su * SMAP_plane_uz;
+        float bu  = k * (1.0F - SMAP_u_min * su) - 1.0F;
 
-        object_offset = dt->TheChunk->PeopleTypes[dt->PersonID & 0x1f].BodyPart[i];
+        float Avx = k * sv * SMAP_plane_vx;
+        float Avy = k * sv * SMAP_plane_vy;
+        float Avz = k * sv * SMAP_plane_vz;
+        float bv  = k * (1.0F - SMAP_v_min * sv) - 1.0F;
 
-        SMAP_add_prim_triangles(
-            start_object + object_offset,
-            index);
-
-        index = indices[i] + 1;
+        proj16[0] = Aux; proj16[4] = Auy; proj16[8]  = Auz; proj16[12] = bu;
+        proj16[1] = Avx; proj16[5] = Avy; proj16[9]  = Avz; proj16[13] = bv;
+        proj16[2] = 0;   proj16[6] = 0;   proj16[10] = 0;   proj16[14] = 0;
+        proj16[3] = 0;   proj16[7] = 0;   proj16[11] = 0;   proj16[15] = 1;
     }
+
+    // One draw per character — whole consolidated mesh through the
+    // skin-shadow shader, sharing the body's per-frame skin palette.
+    ge_shadow_silhouette_begin(tex_page, off_x, off_y, res, res);
+    ge_shadow_silhouette_draw(mesh, skin_palette, (uint32_t)bone_count, proj16);
+    ge_shadow_silhouette_end();
+    return true;
 }
 
 // Clip-flag bits used by SMAP_project_onto_poly.

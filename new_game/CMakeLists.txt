@@ -89,6 +89,10 @@ set(SHADER_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/gl_shaders_embedded.h")
 set(SHADER_EMBED_SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/embed_shaders.cmake")
 file(WRITE "${SHADER_EMBED_SCRIPT}" "
 file(READ \"\${SHADER_DIR}/tl_vert.glsl\" TL)
+file(READ \"\${SHADER_DIR}/skin_world_vert.glsl\" SKIN_WORLD_VERT)
+file(READ \"\${SHADER_DIR}/skin_shadow_vert.glsl\" SKIN_SHADOW_VERT)
+file(READ \"\${SHADER_DIR}/skin_reflect_vert.glsl\" SKIN_REFLECT_VERT)
+file(READ \"\${SHADER_DIR}/shadow_sil_frag.glsl\" SHADOW_SIL_FRAG)
 file(READ \"\${SHADER_DIR}/common_frag.glsl\" FRAG)
 file(READ \"\${SHADER_DIR}/video_vert.glsl\" VID_VERT)
 file(READ \"\${SHADER_DIR}/video_frag.glsl\" VID_FRAG)
@@ -96,9 +100,20 @@ file(READ \"\${SHADER_DIR}/fullscreen_quad_vert.glsl\" FSQ_VERT)
 file(READ \"\${SHADER_DIR}/wibble_frag.glsl\" WIBBLE_FRAG)
 file(READ \"\${SHADER_DIR}/composite_frag.glsl\" COMPOSITE_FRAG)
 file(READ \"\${SHADER_DIR}/crt_frag.glsl\" CRT_FRAG)
+# Resolve `#include \\\"_skin_common.glsl\\\"` in skin shaders via plain text
+# substitution. GLSL has no preprocessor for #include, so we do it here at
+# embed time — keeps shared layout/uniform declarations in one file.
+file(READ \"\${SHADER_DIR}/_skin_common.glsl\" SKIN_COMMON)
+string(REPLACE \"#include \\\"_skin_common.glsl\\\"\" \"\${SKIN_COMMON}\" SKIN_WORLD_VERT \"\${SKIN_WORLD_VERT}\")
+string(REPLACE \"#include \\\"_skin_common.glsl\\\"\" \"\${SKIN_COMMON}\" SKIN_SHADOW_VERT \"\${SKIN_SHADOW_VERT}\")
+string(REPLACE \"#include \\\"_skin_common.glsl\\\"\" \"\${SKIN_COMMON}\" SKIN_REFLECT_VERT \"\${SKIN_REFLECT_VERT}\")
 file(WRITE \"\${OUT}\"
     \"// Auto-generated from .glsl files — do not edit.\\n\"
     \"static const char* const SHADER_TL_VERT = R\\\"glsl(\\n\${TL})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_SKIN_WORLD_VERT = R\\\"glsl(\\n\${SKIN_WORLD_VERT})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_SKIN_SHADOW_VERT = R\\\"glsl(\\n\${SKIN_SHADOW_VERT})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_SKIN_REFLECT_VERT = R\\\"glsl(\\n\${SKIN_REFLECT_VERT})glsl\\\";\\n\\n\"
+    \"static const char* const SHADER_SHADOW_SIL_FRAG = R\\\"glsl(\\n\${SHADOW_SIL_FRAG})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_FRAG = R\\\"glsl(\\n\${FRAG})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_VIDEO_VERT = R\\\"glsl(\\n\${VID_VERT})glsl\\\";\\n\\n\"
     \"static const char* const SHADER_VIDEO_FRAG = R\\\"glsl(\\n\${VID_FRAG})glsl\\\";\\n\\n\"
@@ -113,6 +128,11 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -DSHADER_DIR="${SHADER_DIR}" -DOUT="${SHADER_HEADER}" -P "${SHADER_EMBED_SCRIPT}"
     DEPENDS
         "${SHADER_DIR}/tl_vert.glsl"
+        "${SHADER_DIR}/skin_world_vert.glsl"
+        "${SHADER_DIR}/skin_shadow_vert.glsl"
+        "${SHADER_DIR}/skin_reflect_vert.glsl"
+        "${SHADER_DIR}/_skin_common.glsl"
+        "${SHADER_DIR}/shadow_sil_frag.glsl"
         "${SHADER_DIR}/common_frag.glsl"
         "${SHADER_DIR}/video_vert.glsl"
         "${SHADER_DIR}/video_frag.glsl"
@@ -248,8 +268,6 @@ set(SOURCES_NEW
     src/engine/graphics/pipeline/draw2d.cpp
 
     # === Engine: graphics — geometry ===
-    src/engine/graphics/geometry/aa.cpp
-    src/engine/graphics/geometry/aa_globals.cpp
     src/engine/graphics/geometry/sprite.cpp
     src/engine/graphics/geometry/cone.cpp
     src/engine/graphics/geometry/cone_globals.cpp
@@ -268,6 +286,7 @@ set(SOURCES_NEW
     src/engine/graphics/geometry/figure.cpp
     src/engine/graphics/geometry/figure_globals.cpp
     src/engine/graphics/geometry/pose_composer.cpp
+    src/engine/graphics/geometry/bind_palette.cpp
     src/engine/graphics/geometry/mesh.cpp
     src/engine/graphics/geometry/mesh_globals.cpp
     src/engine/graphics/geometry/shape.cpp

@@ -41,10 +41,6 @@ static const int SHORT_W_OPTS[] = { 10, 30, 60, 120 };
 static constexpr int SHORT_W_OPT_COUNT =
     (int)(sizeof(SHORT_W_OPTS) / sizeof(SHORT_W_OPTS[0]));
 
-// File-log averaging window (frames per CSV row). Default; when
-// OC_DEBUG_PERF is also on, KB_5 sets this to the chosen short window.
-static int s_log_avg_n = 60;
-
 // ---- Slot ---------------------------------------------------------------
 
 struct Slot {
@@ -384,41 +380,6 @@ static double avg_last(const Slot* s, int n)
     return avg_ring(s->ring, s->head, s->count, n);
 }
 
-// ---- File log -----------------------------------------------------------
-
-#if OC_DEBUG_PERF_LOG
-static FILE* s_log     = nullptr;
-static int   s_log_cols = 0;       // slot count covered by the last header
-
-static void log_write_header()
-{
-    fprintf(s_log, "#frame,time_ms");
-    for (int i = 0; i < s_slot_count; i++)
-        fprintf(s_log, ",%s", s_slot[i].name);
-    fprintf(s_log, "\n");
-    s_log_cols = s_slot_count;
-}
-
-static void log_row()
-{
-    if (!s_log) {
-        s_log = fopen("perf_log.csv", "w"); // next to the exe, like crash_log.txt
-        if (!s_log) return;
-    }
-    // Re-emit the header whenever new slots appeared (lazy registration).
-    if (s_slot_count != s_log_cols)
-        log_write_header();
-
-    fprintf(s_log, "%llu,%llu",
-        (unsigned long long)s_frame_idx,
-        (unsigned long long)sdl3_get_ticks());
-    for (int i = 0; i < s_slot_count; i++)
-        fprintf(s_log, ",%.4f", avg_last(&s_slot[i], s_log_avg_n));
-    fprintf(s_log, "\n");
-    fflush(s_log);
-}
-#endif // OC_DEBUG_PERF_LOG
-
 // ---- Frame boundary -----------------------------------------------------
 
 void frame_begin()
@@ -526,11 +487,6 @@ void frame_end()
     }
 
     s_frame_idx++;
-
-#if OC_DEBUG_PERF_LOG
-    if (s_log_avg_n > 0 && (s_frame_idx % (uint64_t)s_log_avg_n) == 0)
-        log_row();
-#endif
 }
 
 // ---- Hotkeys ------------------------------------------------------------
@@ -543,7 +499,6 @@ void handle_keys()
 
     if (input_key_just_pressed(KB_5)) {
         s_short_w_idx = (s_short_w_idx + 1) % SHORT_W_OPT_COUNT;
-        s_log_avg_n = short_w(); // file-log window follows the panel window
     }
 #endif
 }

@@ -152,6 +152,31 @@ public:
     // uc_orig: GetVBSize (fallen/DDEngine/Headers/polypage.h)
     ULONG GetVBSize() { return 1 << m_VBLogSize; }
 
+    // Multi-pass overlay composition state for this page
+    // (render_batching_plan.md Phase C — Шаг 3.2). When m_OverlayMode is
+    // non-zero, every Render() / DrawBatchedPolys() call binds the
+    // overlay texture (texture unit 1) and the fragment shader composes
+    // it on top of the diffuse texture in a single pass — replacing the
+    // legacy "goto second_page" mechanism that submitted the same polys
+    // twice (once on this page, once on page+1) when POLY_PAGE_FLAG_2PASS
+    // was set. Default 0 (no overlay) means the page renders identically
+    // to before.
+    //
+    // Set up by POLY_init_render_states in poly_render.cpp from the
+    // texture-metadata 'I' (SELF_ILLUM) / 'D' (WINDOW) flags.
+    //
+    //   m_OverlayMode = 0   no overlay (default)
+    //   m_OverlayMode = 1   SELF_ILLUM (additive emissive overlay)
+    //   m_OverlayMode = 2   WINDOW (alpha-blended overlay)
+    //
+    // m_OverlayPage stores the POLY_Page INDEX (not a GL texture id) of
+    // the overlay's source texture page. The backend resolves it through
+    // its own texture table at draw time — this lets the resolution
+    // happen lazily (the page+1 texture may not be loaded yet when
+    // POLY_init_render_states runs).
+    int32_t m_OverlayPage = -1;
+    uint8_t m_OverlayMode = 0;
+
     // uc_orig: m_PolyBuffer (fallen/DDEngine/Headers/polypage.h)
     PolyPoly* m_PolyBuffer;
     // uc_orig: m_PolyBufSize (fallen/DDEngine/Headers/polypage.h)
@@ -189,42 +214,21 @@ extern GEMatrix g_matWorld;
 // uc_orig: g_viewData (fallen/DDEngine/Headers/polypage.h)
 extern GEViewport g_viewData;
 
-// uc_orig: GEMultiMatrix (fallen/DDEngine/Headers/polypage.h)
-// Multi-matrix vertex draw block for batched character/object rendering.
-struct GEMultiMatrix {
-    void* lpvVertices; // Pointer to vertex data, must be 32-byte aligned
-    GEMatrix* matrices; // Pointer to matrix array, must be 32-byte aligned
-    void* lpvLightDirs; // Pointer to light direction array (NULL if unlit), 8-byte aligned
-    ULONG* lpLightTable; // Pointer to fade table (NULL if unlit), 4-byte aligned
-};
-
 // uc_orig: SET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
 // Writes the matrix index byte into byte 12 of a vertex. Must be called after
 // all other vertex data is set, as byte 12 is the LSB of the N.X mantissa.
+// (Originally for the D3D MultiMatrix extension byte-12 slot; today the
+// world-skin path reads the same byte for its bone index, so the
+// authoring layout is unchanged.)
 #define SET_MM_INDEX(v, i) (((unsigned char*)&v)[12] = (unsigned char)i)
-
-// Vertex type for DrawMultiMatrix: determines whether vertex colors are used or forced to white.
-enum class GEMMVertexType {
-    Lit, // GEVertexLit — use vertex dcColor/dcSpecular (D3DFVF_LVERTEX equivalent)
-    Unlit, // GEVertex — force white color (D3DFVF_VERTEX equivalent)
-};
-
-// uc_orig: DrawIndPrimMM (fallen/DDEngine/Headers/polypage.h)
-// Software emulation of the DC's DrawPrimitiveMM on PC.
-// CPU-side multi-matrix transform: reads per-vertex matrix index from byte 12,
-// transforms to screen space, then submits via ge_draw_indexed_primitive.
-void ge_draw_multi_matrix(GEMMVertexType vertex_type,
-    GEMultiMatrix* mm,
-    uint16_t num_vertices,
-    uint16_t* indices,
-    uint32_t num_indices);
 
 // uc_orig: GET_MM_INDEX (fallen/DDEngine/Headers/polypage.h)
 #define GET_MM_INDEX(v) (((unsigned char*)&v)[12])
 
-// View-space Z of the current character, set by figure.cpp before each
-// ge_draw_multi_matrix call. Used for CPU fog (0=near, 1=far), same scale
-// as POLY_Point::z in POLY_fadeout_point.
+// View-space Z of the current character. Set by figure.cpp before each
+// ge_skin_world_draw_range call so the world-skin shader can match the
+// legacy CPU fog formula (0=near, 1=far, same scale as POLY_Point::z in
+// POLY_fadeout_point).
 extern float g_mm_fog_view_z;
 
 #endif // ENGINE_GRAPHICS_PIPELINE_POLYPAGE_H

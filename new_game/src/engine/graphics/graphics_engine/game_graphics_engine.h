@@ -175,8 +175,8 @@ void ge_flip();
 // ---------------------------------------------------------------------------
 //
 // These have a real backend implementation but are ONLY ever called from
-// OC_DEBUG_PERF / OC_DEBUG_PERF_LOG-gated code (perf_diag). When the perf
-// flags are off, perf_diag's macros compile to nothing, so none of these
+// OC_DEBUG_PERF-gated code (perf_diag). When the perf
+// flag is off, perf_diag's macros compile to nothing, so none of these
 // are invoked — zero runtime cost (only the unused code bytes remain).
 //
 // Block the CPU until the GPU has finished all submitted commands
@@ -219,6 +219,28 @@ void ge_set_fog_params(uint32_t color, float near_dist, float far_dist);
 void ge_set_farfacet_mode(int mode);
 void ge_set_specular_enabled(bool enabled);
 void ge_set_perspective_correction(bool enabled);
+
+// Multi-pass overlay composition state (render_batching_plan.md Phase A —
+// Шаг 3.2 scaffolding). Lets a draw composite a SECOND texture on top
+// of the diffuse texture in a single pass, replacing the legacy
+// "submit on page+1 with overlay texture" mechanism (goto second_page
+// in POLY_add_*_fast).
+//
+// mode:
+//   0 = OFF (no overlay sampling — default, identical to legacy
+//            single-texture path)
+//   1 = SELF_ILLUM (additive: emissive overlay — lit windows, neon)
+//   2 = WINDOW    (alpha-blend: building glass overlay)
+//
+// `page` is the texture-page INDEX (the same integer game code uses for
+// the diffuse slot — passed to ge_bind_texture / TEXTURE_load_page).
+// The backend resolves it via its texture table at draw time so the
+// page+1 overlay can be set up before the level actually loads its
+// texture into the GL slot. Ignored when mode == 0. Sampler is bound
+// to texture unit 1; the diffuse texture stays on unit 0.
+// State is sticky across draws — call with mode=0 to clear before any
+// draw that should NOT composite an overlay.
+void ge_set_overlay_state(int32_t page, int mode);
 
 // ---------------------------------------------------------------------------
 // Textures
@@ -491,6 +513,132 @@ void* ge_vb_prepare(void* vb);
 // Draw indexed triangles from a prepared vertex buffer.
 void ge_draw_indexed_primitive_vb(void* prepared_vb, const uint16_t* indices, uint32_t index_count);
 
+// Skinned character vertex. GPU-transform path for the figure system —
+// see skeletal_skinning_plan.md and skeletal_skinning_phase2_plan.md.
+// 52 bytes: pos(12) + normal(12) + bone(4) + color(4) + specular(4)
+//         + uv(8) + bones[4](4) + weights[4](4).
+// Position is in shared bind-space (consumed by skin_world_vert.glsl) —
+// figure_build_consolidated_skin_world pre-multiplies authored bone-local
+// positions by bind_world[bMatIndex] when building the VBO. `bone` is the
+// single-bone index used by the shadow-silhouette shader; `bones` /
+// `weights` are the multi-bone palette consumed by the world-skin shader.
+// `color` is used by the lit (non-character) path only; the unlit
+// (character) path derives color in-shader from normal + bone light dir
+// + fade table. `specular` is the CPU-computed fog (BGRA, D3D 0xAARRGGBB).
+struct GESkinVertex {
+    float    x, y, z;    // bind-space position
+    float    nx, ny, nz; // bind-space normal
+    uint32_t bone;       // legacy single-bone index — unused by current shaders
+                         // (skin_world_vert / skin_shadow_vert read bones[]/weights[]
+                         // instead). Kept in the layout for now; can be dropped
+                         // when GESkinVertex is next reshaped.
+    uint32_t color;      // BGRA (lit path only; unlit derives in-shader)
+    uint32_t specular;   // BGRA (CPU fog)
+    float    u, v;
+    // Multi-bone palette for the world-skin path. Up to 4 bones per
+    // vertex with normalised uint8 weights (0..255 → 0..1). Consumed by
+    // skin_world_vert.glsl only — the shadow-silhouette path reads .bone
+    // above. Trivial weights (bones[0]=own, weights[0]=255, rest=0) give
+    // single-bone behaviour; the auto-rig (people only, in
+    // figure_build_consolidated_skin_world) populates real soft weights
+    // at leaf joints without further shader changes.
+    uint8_t  bones[4];
+    uint8_t  weights[4];
+};
+
+// Max bones in a single skinned palette. The world-skin shader fits up
+// to GE_SKIN_MAX_BONES bones in its `u_skin` uniform array.
+#define GE_SKIN_MAX_BONES 32
+
+// Persistent skinned mesh. The bind-space geometry of a character is
+// static (never changes between frames; only the per-frame skin palette
+// does) — uploaded to its own GPU buffer ONCE and reused every frame.
+// Owned by the model (TomsPrimObject::skin_consolidated_world), freed
+// when the model's CPU mesh is freed.
+struct GESkinMesh;
+GESkinMesh* ge_skin_mesh_create(const GESkinVertex* verts, uint32_t vert_count,
+    const uint16_t* indices, uint32_t index_count, uint32_t palette_n);
+void ge_skin_mesh_destroy(GESkinMesh* mesh);
+
+// World-skin draw — skeletal_skinning_phase2_plan.md P2-C.
+// Bind-space mesh + world-space skin palette (= current * inv_bind) +
+// per-character camera*projection*viewport bake. Skips the per-bone
+// matrix bake the baked path needs, and outputs single-bone or (later)
+// multi-bone blended world positions.
+//
+//   skin_palette: bone_count * 12 floats. Each bone is 3 vec4 rows in
+//                 the "M*v" form r0=(R00,R01,R02,tx), r1=..., r2=...
+//                 (same layout as ge_shadow_silhouette_draw). Rotation
+//                 already pre-divided by 32768 — caller responsibility.
+//   screen_xform: one GEMatrix, the camera*projection*viewport bake
+//                 with per-bone transform = identity (the skin handles
+//                 per-bone transform).
+//   lightdir_world: 3 floats — MM_vLightDir, world space (NOT the
+//                 bone-local pre-transform the baked path needed).
+//   fog_view_z:   per-character view-Z (g_mm_fog_view_z).
+//   unlit/fade:   when unlit, the shader computes per-vertex colour as
+//                 idx = clamp(int(((dot(N, L)/251)*0.5 + 0.5)*64), 0, 63);
+//                 color = floor(clamp(fade_start + idx*fade_step, 0, 255))
+//                 / 255. Two RGB-float endpoints (3+3 floats) replace the
+//                 legacy 64-entry uint ramp — the original CPU table was
+//                 itself built as a linear float ramp truncated per step,
+//                 so this is exact for the values we use (drift in the
+//                 LSB is possible but not visible in A/B). Lit path keeps
+//                 per-vertex colour from GESkinVertex.
+void ge_skin_world_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    const float* lightdir_world,
+    float fog_view_z,
+    bool unlit,
+    const float* fade_start, const float* fade_step);
+
+// Reflection-skin draw — P2-I. Same bind-space VBO + skin palette as the
+// body, but the vertex shader mirrors Y about the water plane before the
+// screen-xform bake and adds a height-above-water term to v_specular.a
+// so reflections taper off the further the original was above the water
+// surface. Internally toggles glFrontFace to GL_CCW for the duration of
+// the draw (mirror Y inverts polygon winding; body's D3D-convention
+// GL_CW would cull outer faces) and restores it after — back-face culling
+// stays on so we render outer surface only, not both sides.
+//
+//   reflect_height        World Y of the water plane.
+//   reflect_dy_scale      255 / FIGURE_MAX_DY (legacy CPU constant).
+//   reflect_color_bgra    Packed 0xAARRGGBB for v_color, BGRA-order
+//                         (already halved by the caller — see legacy
+//                         `colour >>= 1`).
+//   reflect_specular_bgra Packed 0xAARRGGBB for v_specular, BGRA-order.
+//   fog_view_z            Per-character camera-distance fog (g_mm_fog_view_z).
+void ge_skin_reflect_draw_range(GESkinMesh* mesh,
+    uint32_t index_start, uint32_t index_count,
+    const float* skin_palette, uint32_t bone_count,
+    const struct GEMatrix* screen_xform,
+    float reflect_height, float reflect_dy_scale,
+    uint32_t reflect_color_bgra, uint32_t reflect_specular_bgra,
+    float fog_view_z);
+
+// GPU shadow-silhouette render-to-texture — P2-H. Renders the
+// consolidated bind-space character mesh (the same one the body draws
+// later this frame) into a sub-rect (x,y,w,h, GL pixel coords, bottom-
+// left origin) of user texture page `tex_page`, projected by a
+// world->shadow-clip matrix (`shadow_proj16`, 16 floats, column-major).
+// One draw call per character (not per body part).
+//
+// `skin_palette` has the SAME layout as the body world-skin shader's
+// u_skin — 3 vec4 per bone in M*v form (`skin[i] = current[i] *
+// inverse(bind[i])`, translation packed in .w of each row). SMAP_person_gpu
+// computes it once per character and shares it with the body draw.
+//
+// begin() clears the sub-rect and saves caller GL state; end() restores
+// it. ONE draw() per character between begin/end.
+void ge_shadow_silhouette_begin(int32_t tex_page,
+    int32_t x, int32_t y, int32_t w, int32_t h);
+void ge_shadow_silhouette_draw(GESkinMesh* mesh,
+    const float* skin_palette, uint32_t bone_count,
+    const float* shadow_proj16);
+void ge_shadow_silhouette_end(void);
+
 // ---------------------------------------------------------------------------
 // Texture pixel access
 // ---------------------------------------------------------------------------
@@ -574,6 +722,10 @@ void ge_get_texture_offset(int32_t page, float* uScale, float* uOffset, float* v
 int32_t ge_texture_get_type(int32_t page);
 void ge_texture_set_type(int32_t page, int32_t type);
 
+// Return the texture size in pixels (textures are square, power of two).
+// Returns 0 for invalid pages.
+int32_t ge_texture_get_size(int32_t page);
+
 // Get the opaque texture handle for a page (for binding).
 GETextureHandle ge_get_texture_handle(int32_t page);
 
@@ -621,6 +773,30 @@ struct GEWibbleParams {
     uint8_t wibble_s1; // amplitude 1
     uint8_t wibble_s2; // amplitude 2
     int32_t game_turn; // current GAME_TURN — phase animates with it
+
+    // World-XZ phase support (issue #67 fix). Pixel → world-XZ math
+    // inverts POLY's forward pipeline analytically (POLY's view matrix
+    // is identity, MATRIX_skew bakes scale into the world matrix —
+    // standard inv(view×proj) ray-cast doesn't work because the result
+    // would be near-singular). The shader anchors the ray-cast to the
+    // ground plane Y=0 rather than each puddle's water_height — see
+    // wibble_frag.glsl for why fixed Y avoids per-puddle pattern jumps.
+    //
+    // inv_poly_cam     : inverse of MATRIX_MUL operator (POLY_cam_matrix),
+    //                    row-major (double-precision invert on the CPU).
+    // poly_cam_pos     : POLY_cam_x / _y / _z (camera world position).
+    // poly_screen_mid  : POLY_screen_mid_x / _y × fbo_scale.
+    // poly_screen_mul  : POLY_screen_mul_x / _y × fbo_scale.
+    // poly_zclip       : POLY_ZCLIP_PLANE.
+    // viewport         : (vx, vy, vw, vh) framebuffer-pixel viewport.
+    //                    .w used to flip gl_FragCoord.y bottom-up → POLY
+    //                    top-down convention in the shader.
+    float inv_poly_cam[9];
+    float poly_cam_pos[3];
+    float poly_screen_mid[2];
+    float poly_screen_mul[2];
+    float poly_zclip;
+    float viewport[4];
 };
 
 // Apply the wibble effect to the rectangle (x1,y1)-(x2,y2) in game screen

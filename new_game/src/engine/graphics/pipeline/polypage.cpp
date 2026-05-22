@@ -5,6 +5,7 @@
 #include "assets/texture.h"
 
 #include <math.h>
+#include <vector>
 
 // Callback for reporting drawn poly count to game code.
 static GEPolysDrawnCallback s_polys_drawn_callback = nullptr;
@@ -353,6 +354,13 @@ void PolyPage::Render()
         src++;
     }
 
+    // Multi-pass overlay (Phase C). Always set the state — including
+    // mode=0 — so the next draw's overlay doesn't leak from whatever
+    // page rendered last. ge_set_overlay_state is a couple of MOVs +
+    // a snapshot compare in the upload path, so the cost when off
+    // (the vast majority of pages) is trivial.
+    ge_set_overlay_state(m_OverlayPage, m_OverlayMode);
+
     ge_draw_indexed_primitive_vb(prepared, IxBuffer, dst - IxBuffer);
 
     if (s_polys_drawn_callback) {
@@ -366,6 +374,8 @@ void PolyPage::Render()
 // Draw pre-sorted polygons in one batched call using this page's prepared VB.
 void PolyPage::DrawBatchedPolys(const UWORD* indices, uint32_t index_count)
 {
+    // Phase C — see PolyPage::Render() for rationale.
+    ge_set_overlay_state(m_OverlayPage, m_OverlayMode);
     ge_draw_indexed_primitive_vb(m_VB, indices, index_count);
 }
 
@@ -410,140 +420,3 @@ void PolyPage::Clear()
     m_PolyBufUsed = 0;
 }
 
-// uc_orig: DrawIndPrimMM (fallen/DDEngine/Source/polypage.cpp)
-// Software emulation of the Dreamcast's DrawPrimitiveMM.
-// Transforms vertices using per-vertex matrix indices, then submits as indexed triangles.
-void ge_draw_multi_matrix(GEMMVertexType vertex_type,
-    GEMultiMatrix* mm,
-    uint16_t num_vertices,
-    uint16_t* indices,
-    uint32_t num_indices)
-{
-    ASSERT(((uintptr_t)(mm->matrices) & 31) == 0);
-    ASSERT(((uintptr_t)(mm->lpvVertices) & 31) == 0);
-    ASSERT(((uintptr_t)(mm->lpLightTable) & 3) == 0);
-    ASSERT(((uintptr_t)(mm->lpvLightDirs) & 7) == 0);
-
-    bool unlit = (vertex_type == GEMMVertexType::Unlit);
-
-    GEVertexTL pTLVert[3];
-    GEVertexLit* pLVert = (GEVertexLit*)mm->lpvVertices;
-    // For unlit (character) path the buffer actually contains GEVertex with packed
-    // normals; x/y/z/u/v offsets match GEVertexLit so position/UV reads are shared.
-    GEVertex* pVert = (GEVertex*)mm->lpvVertices;
-    const float* pLightDirs = (const float*)mm->lpvLightDirs;
-    const uint32_t* pLightTable = (const uint32_t*)mm->lpLightTable;
-
-    uint16_t* pwCurIndex = indices;
-    while (UC_TRUE) {
-        uint16_t wIndex[3];
-        wIndex[1] = *pwCurIndex++;
-        wIndex[2] = *pwCurIndex++;
-        ASSERT(num_indices > 1);
-        num_indices -= 2;
-        bool bEven = UC_TRUE;
-        while (UC_TRUE) {
-            bEven = !bEven;
-            wIndex[0] = wIndex[1];
-            wIndex[1] = wIndex[2];
-            wIndex[2] = *pwCurIndex++;
-            ASSERT(num_indices > 0);
-            num_indices--;
-
-            if (wIndex[2] == 0xffff) {
-                break;
-            }
-
-            // CPU fog for characters: ge_draw_multi_matrix receives pre-projected
-            // vertices (World*Projection baked into bone matrices), so clip-space Z
-            // can't be used for table fog. Compute vertex fog from the character's
-            // view-space Z (same scale as POLY_Point::z) using POLY_fadeout_point formula.
-            uint32_t fog_specular;
-            {
-                SLONG multi = 255 - (SLONG)((g_mm_fog_view_z - POLY_FADEOUT_START) * (256.0F / (POLY_FADEOUT_END - POLY_FADEOUT_START)));
-                if (multi > 255)
-                    multi = 255;
-                if (multi < 0)
-                    multi = 0;
-                fog_specular = (uint32_t)multi << 24;
-            }
-
-            for (int i = 0; i < 3; i++) {
-                uint16_t wVertIndex = wIndex[i];
-                ASSERT(wVertIndex < num_vertices);
-                GEVertexLit* pLVertCur = pLVert + wVertIndex;
-
-                BYTE bMatIndex = ((unsigned char*)(pLVertCur))[12];
-
-                GEMatrix* pmCur = reinterpret_cast<GEMatrix*>(&(mm->matrices[bMatIndex]));
-                ASSERT(*((uint32_t*)(&(pmCur->_41))) == 0xe0001000);
-
-                pTLVert[i].x = pLVertCur->x * pmCur->_12 + pLVertCur->y * pmCur->_22 + pLVertCur->z * pmCur->_32 + pmCur->_42;
-                pTLVert[i].y = pLVertCur->x * pmCur->_13 + pLVertCur->y * pmCur->_23 + pLVertCur->z * pmCur->_33 + pmCur->_43;
-                pTLVert[i].z = pLVertCur->x * pmCur->_14 + pLVertCur->y * pmCur->_24 + pLVertCur->z * pmCur->_34 + pmCur->_44;
-                if (pTLVert[i].z < 0.001f)
-                    pTLVert[i].z = 0.001f; // div/0 guard for near-plane vertices
-                pTLVert[i].rhw = 1.0f / pTLVert[i].z;
-                pTLVert[i].x *= pTLVert[i].rhw;
-                pTLVert[i].y *= pTLVert[i].rhw;
-                pTLVert[i].z = 1.0f - POLY_ZCLIP_PLANE / pTLVert[i].z; // BUGFIX-OC-ZBUF-MISMATCH: match POLY path's inverse-z space
-
-                pTLVert[i].u = pLVert[wIndex[i]].u;
-                pTLVert[i].v = pLVert[wIndex[i]].v;
-
-                if (unlit) {
-                    // Per-vertex character lighting: dot(normal, bone-local light dir) →
-                    // index into the 128-entry fade table (MM_pcFadeTable) built by
-                    // BuildMMLightingTable. Normals are unit vectors, light dirs are unit
-                    // scaled by fNormScale = 251 (figure.cpp), so we divide dot by 251 to
-                    // get a clean cosine in [-1, 1]. Uses half-Lambert wrap
-                    // (wrap = cos × 0.5 + 0.5) so back-facing vertices still get partial
-                    // lighting from the ramp instead of dropping into flat-ambient idx 64;
-                    // this avoids the hard shadow cutoff that made characters read as too
-                    // dark against the environment geometry. Full background, data-scale
-                    // derivation and contrast-tuning notes:
-                    // new_game_planning/stage12_character_lighting_investigation.md
-                    GEVertex* pVertCur = pVert + wVertIndex;
-                    float nx = pVertCur->nx;
-                    float ny = pVertCur->ny;
-                    float nz = pVertCur->nz;
-
-                    float lx = pLightDirs[bMatIndex * 4 + 1];
-                    float ly = pLightDirs[bMatIndex * 4 + 2];
-                    float lz = pLightDirs[bMatIndex * 4 + 3];
-
-                    float dot_raw = nx * lx + ny * ly + nz * lz;
-                    float cos_nl = dot_raw * (1.0f / 251.0f); // undo fNormScale
-
-                    float wrap = cos_nl * 0.5f + 0.5f; // half-Lambert [0,1]
-                    int idx = (int)(wrap * 64.0f);
-                    if (idx < 0)
-                        idx = 0;
-                    if (idx > 63)
-                        idx = 63;
-
-                    pTLVert[i].color = pLightTable[idx];
-                    pTLVert[i].specular = fog_specular;
-                } else {
-                    pTLVert[i].color = pLVert[wIndex[i]].color;
-                    pTLVert[i].specular = fog_specular | (pLVert[wIndex[i]].specular & 0x00FFFFFF);
-                }
-            }
-
-            uint16_t wMyIndices[3];
-            if (bEven) {
-                wMyIndices[0] = 0;
-                wMyIndices[1] = 2;
-                wMyIndices[2] = 1;
-            } else {
-                wMyIndices[0] = 0;
-                wMyIndices[1] = 1;
-                wMyIndices[2] = 2;
-            }
-            ge_draw_indexed_primitive(GEPrimitiveType::TriangleList, pTLVert, 3, wMyIndices, 3);
-        }
-        if (num_indices == 0) {
-            break;
-        }
-    }
-}

@@ -23,19 +23,26 @@ typedef struct smap_link {
 
 } SMAP_Link;
 
-// Generates a shadow bitmap for a person's body at the given light direction.
-// bitmap: caller-allocated UBYTE[u_res*v_res] — 0 = transparent, 255 = opaque.
-// uc_orig: SMAP_person (fallen/DDEngine/Headers/smap.h)
-void SMAP_person(
+// Milestone 1E (Phase B): GPU character shadow silhouette. Self-contained
+// (own bone walk, works in any situation incl. cutscenes), sets the
+// SMAP_* projection globals (so SMAP_project_onto_poly stays consistent)
+// from a STABLE box (model bounding radius, pelvis-centred —
+// pose-independent), and renders the silhouette on the GPU into texture
+// page `tex_page` sub-rect (off_x,off_y,res,res). Returns false (doing
+// nothing) if the model is not ready that frame (no shadow that frame —
+// rare/transient; there is NO CPU fallback, shadows are 100% GPU).
+// uc_orig: none (replaced the removed CPU SMAP_person).
+bool SMAP_person_gpu(
     Thing* person,
-    UBYTE* bitmap,
-    UBYTE u_res,
-    UBYTE v_res,
+    SLONG tex_page,
+    SLONG off_x,
+    SLONG off_y,
+    UBYTE res,
     SLONG light_dx,
     SLONG light_dy,
     SLONG light_dz);
 
-// Projects the shadow map computed by SMAP_person() onto a convex polygon in world space.
+// Projects the shadow map rendered by SMAP_person_gpu() onto a convex polygon in world space.
 // poly must be given in clockwise order. Returns NULL if the polygon is behind the light
 // or outside the shadow map's bounds. The returned linked list is valid only until the
 // next call to this function.

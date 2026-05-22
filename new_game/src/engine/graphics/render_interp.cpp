@@ -14,6 +14,7 @@
 #include "things/items/grenade_globals.h" // GrenadeArray, MAX_GRENADES
 #include "engine/graphics/geometry/pose_composer.h" // Phase 2: per-bone world-pose capture
 #include "engine/core/quaternion.h" // Phase 3 apply: BuildTween for per-bone slerp
+#include "things/core/player.h" // PlayerPerson (T-pose override Darci-only gate)
 
 #include <stdint.h> // uint64_t
 #include <stdio.h>  // fprintf — used by RENDER_INTERP_LOG diagnostic gates
@@ -56,6 +57,7 @@
 float g_render_alpha = 0.0f;
 bool  g_render_interp_enabled = true;
 uint32_t g_render_interp_frame_counter = 0;
+
 
 namespace {
 
@@ -1137,15 +1139,27 @@ const BoneInterpTransform* render_interp_get_cached_pose(Thing* p_thing)
 bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX_BONES])
 {
     if (!p_thing || !out) return false;
-    if (!g_render_interp_enabled) return false;
-    if constexpr (!ri_cfg::INTERP_THING_WORLD_POSE) return false;
 
     UWORD idx = thing_index(p_thing);
     if (idx >= MAX_THINGS) return false;
     PoseSnap& s = g_pose_snaps[idx];
-    if (!s.valid) return false;
+    if (!s.valid) {
+        // Snapshot not taken yet for this Thing (just spawned / after mesh
+        // change / teleport / level reload). Capture it now from the current
+        // pose — first capture seeds prev = curr = now, so this frame renders
+        // the current pose with no interpolation. This makes the pose the
+        // SINGLE always-available source: there is no legacy recompute path
+        // anywhere. Subsequent physics ticks shift the window normally and
+        // interpolation resumes.
+        capture_pose(idx, p_thing);
+        if (!s.valid) return false; // genuinely not a tween-posed Thing
+    }
 
-    const float alpha = g_render_alpha;
+    // The debug interpolation toggle disables only the smoothing between
+    // physics ticks — never the pose itself. Snapshots are captured every
+    // tick regardless of the toggle, so when it is off we use the current
+    // snapshot directly (alpha = 1 → lerp/slerp return curr).
+    const float alpha = g_render_interp_enabled ? g_render_alpha : 1.0f;
     SLONG slerp_t = SLONG(alpha * 256.0f);
     if (slerp_t <   0) slerp_t =   0;
     if (slerp_t > 256) slerp_t = 256;
@@ -1198,6 +1212,7 @@ bool render_interp_compute_pose(Thing* p_thing, BoneInterpTransform out[POSE_MAX
         // matrix_mult33 outputs at scale 32768 (its >>15 normalises).
         matrix_mult33(&out[i].rot, &out[p].rot, &local_rot);
     }
+
     return true;
 }
 

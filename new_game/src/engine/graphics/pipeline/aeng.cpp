@@ -191,37 +191,6 @@ static void init_clouds(void)
     }
 }
 
-// uc_orig: GetShadowPixelMapping (fallen/DDEngine/Source/aeng.cpp)
-// Returns a 256-entry UBYTE->UWORD lookup table mapping shadow density to
-// the correct 16-bit pixel format for the current display mode.
-UWORD* GetShadowPixelMapping()
-{
-    static UWORD mapping[256];
-    static int mapping_state = -1;
-
-    if ((mapping_state == -1) || (mapping_state != (int)ge_supports_dest_inv_src_color())) {
-        mapping_state = ge_supports_dest_inv_src_color();
-
-        if (mapping_state) {
-            for (int ii = 0; ii < 256; ii++) {
-                int val = ii >> 1;
-
-                mapping[ii] = ((val >> TEXTURE_shadow_mask_red) << TEXTURE_shadow_shift_red)
-                    | ((val >> TEXTURE_shadow_mask_green) << TEXTURE_shadow_shift_green)
-                    | ((val >> TEXTURE_shadow_mask_blue) << TEXTURE_shadow_shift_blue);
-            }
-        } else {
-            for (int ii = 0; ii < 256; ii++) {
-                int val = ii >> 1;
-
-                mapping[ii] = (val >> TEXTURE_shadow_mask_alpha) << TEXTURE_shadow_shift_alpha;
-            }
-        }
-    }
-
-    return mapping;
-}
-
 // uc_orig: AENG_init (fallen/DDEngine/Source/aeng.cpp)
 // One-time engine startup: inits meshes, cloud data, sky, polygon system, textures.
 void AENG_init(void)
@@ -259,22 +228,23 @@ void AENG_create_dx_prim_points()
 
 // uc_orig: AENG_world_line (fallen/DDEngine/Source/aeng.cpp)
 // Draws a world-space line segment between two 3D points with per-endpoint width and colour.
-// Flag: true when inside AENG_draw (after POLY_frame_init). Geometry added
-// outside the render pass gets cleared by POLY_frame_init and causes VB pool
-// corruption (shadow artifacts). Gate AENG_world_line on this flag.
-static bool s_in_render_pass = false;
-void AENG_set_render_pass(bool active) { s_in_render_pass = active; }
+//
+// AENG_set_render_pass() is kept as a no-op API for call-site compatibility
+// — earlier this file gated AENG_world_line on a `s_in_render_pass` flag
+// (set true only at the very end of AENG_draw, after POLY_frame_draw had
+// already submitted POLY_Page to GL). The gate silently dropped every
+// debug-line call that happened during scene rendering, which is exactly
+// when AI/nav/ware/figure overlays want to add them. POLY_frame_draw
+// inside AENG_draw flushes any lines added during the scene, so there's
+// no buffer-corruption hazard for the normal case — the gate was an
+// over-zealous guard. Removed; AENG_world_line now always emits directly.
+void AENG_set_render_pass(bool /*active*/) {}
 
 void AENG_world_line(
     SLONG x1, SLONG y1, SLONG z1, SLONG width1, ULONG colour1,
     SLONG x2, SLONG y2, SLONG z2, SLONG width2, ULONG colour2,
     SLONG sort_to_front)
 {
-    // Drop geometry added outside render pass — it would be cleared by
-    // POLY_frame_init and the freed VB slot causes shadow corruption.
-    if (!s_in_render_pass)
-        return;
-
     POLY_Point p1;
     POLY_Point p2;
 
@@ -282,12 +252,10 @@ void AENG_world_line(
     POLY_transform(float(x2), float(y2), float(z2), &p2);
 
     if (POLY_valid_line(&p1, &p2)) {
-        p1.colour = colour1;
+        p1.colour   = colour1;
         p1.specular = 0xff000000;
-
-        p2.colour = colour2;
+        p2.colour   = colour2;
         p2.specular = 0xff000000;
-
         POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_COLOUR, sort_to_front);
     }
 }
@@ -313,6 +281,57 @@ void AENG_world_line_nondebug(
         p2.specular = 0xff000000;
 
         POLY_add_line(&p1, &p2, float(width1), float(width2), POLY_PAGE_COLOUR, sort_to_front);
+    }
+}
+
+// Debug wireframe sphere — see aeng.h. Renders as three perpendicular
+// great circles (XY/XZ/YZ planes) tessellated into AENG_world_line
+// segments. SEGMENTS = 6 → 18 short lines per sphere; cheap enough to
+// pepper a frame with markers without thinking about cost. The 6-segment
+// hexagon still reads as a recognisable orb at typical screen sizes,
+// while 12 gets visually noisy when many spheres overlap.
+void AENG_world_sphere(
+    SLONG cx, SLONG cy, SLONG cz,
+    SLONG radius,
+    SLONG width_px,
+    ULONG colour)
+{
+    constexpr int SEGMENTS = 6;
+    constexpr float TWO_PI = 6.28318530717958647692f;
+    const float r = float(radius);
+
+    // Precompute the ring's vertex offsets once. Sphere has three
+    // identical-shape circles, just rotated into different planes, so we
+    // share one (cos, sin) table across all three.
+    float ring_c[SEGMENTS + 1];
+    float ring_s[SEGMENTS + 1];
+    for (int i = 0; i <= SEGMENTS; ++i) {
+        const float a = float(i) * (TWO_PI / float(SEGMENTS));
+        ring_c[i] = r * cosf(a);
+        ring_s[i] = r * sinf(a);
+    }
+
+    for (int i = 0; i < SEGMENTS; ++i) {
+        const SLONG c0 = (SLONG)ring_c[i];
+        const SLONG s0 = (SLONG)ring_s[i];
+        const SLONG c1 = (SLONG)ring_c[i + 1];
+        const SLONG s1 = (SLONG)ring_s[i + 1];
+
+        // XY-plane ring (constant z)
+        AENG_world_line(
+            cx + c0, cy + s0, cz, width_px, colour,
+            cx + c1, cy + s1, cz, width_px, colour,
+            UC_TRUE);
+        // XZ-plane ring (constant y)
+        AENG_world_line(
+            cx + c0, cy, cz + s0, width_px, colour,
+            cx + c1, cy, cz + s1, width_px, colour,
+            UC_TRUE);
+        // YZ-plane ring (constant x)
+        AENG_world_line(
+            cx, cy + c0, cz + s0, width_px, colour,
+            cx, cy + c1, cz + s1, width_px, colour,
+            UC_TRUE);
     }
 }
 
@@ -703,8 +722,13 @@ void AENG_add_projected_shadow_poly(SMAP_Link* sl)
 }
 
 // uc_orig: AENG_add_projected_fadeout_shadow_poly (fallen/DDEngine/Source/aeng.cpp)
-// Like AENG_add_projected_shadow_poly but alpha fades out beyond 64 units from the
-// light origin (fully transparent at 256 units).
+// Original character-shadow distance fade: full opacity within 64 world
+// units of the person, linearly to zero by 256. This gives the soft far
+// edge the original had. It only "breathes" if the silhouette is loose
+// and sits broadly in the gradient — fixed by the vertex-tight projection
+// box (smap.cpp), which keeps the shadow near the feet like the original.
+#define SHADOW_FADE_FULL_DIST 64.0F  // |dx|+|dz|: full opacity within this
+#define SHADOW_FADE_ZERO_DIST 256.0F // fully transparent beyond this
 void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 {
     float dx;
@@ -735,13 +759,14 @@ void AENG_add_projected_fadeout_shadow_poly(SMAP_Link* sl)
 
             dist = fabs(dx) + fabs(dz);
 
-            if (dist < 64.0F) {
+            if (dist < SHADOW_FADE_FULL_DIST) {
                 alpha = 0xff;
             } else {
-                if (dist > 256.0F) {
+                if (dist > SHADOW_FADE_ZERO_DIST) {
                     alpha = 0;
                 } else {
-                    alpha = 0xff - SLONG((dist - 64.0F) * (255.0F / 192.0F));
+                    alpha = 0xff - SLONG((dist - SHADOW_FADE_FULL_DIST)
+                        * (255.0F / (SHADOW_FADE_ZERO_DIST - SHADOW_FADE_FULL_DIST)));
                 }
             }
 
@@ -1979,6 +2004,254 @@ void AENG_get_detail_levels(int* stars,
 // Alpha threshold used in first-person mode blending.
 #define MAX_FPM_ALPHA 160
 
+// Detailed-shadow priority selection (shared by AENG_draw_city /
+// AENG_draw_warehouse). Eligible = CLASS_PERSON, FLAGS_IN_VIEW, within
+// max_dist of the camera. The focus character (player) is always reserved
+// a slot if eligible. Among the rest the score is the camera distance
+// inflated by how far the person sits OFF the ray from the focus along the
+// camera-look direction: on that line (front OR back) = no penalty,
+// perpendicular/side = max penalty. Lowest score wins. Distance dominates;
+// the ray only nudges (weight AENG_SHADOW_RAY_WEIGHT_PCT). Replaces the
+// original "nearest-4 to camera" which popped as the camera rotated.
+// uc_orig: none — rework of the original shadow_person selection.
+namespace {
+// Hysteresis: who got a detailed shadow last frame (one scene = one of
+// city/warehouse per frame, so a single shared set is fine). A previous
+// holder keeps its slot unless a contender beats it by more than
+// SHADOW_STICKY_MARGIN — so small per-frame score wiggles from camera
+// rotation no longer reshuffle the set, while real changes still do.
+Thing* s_prev_shadow_sel[8] = { nullptr };
+SLONG s_prev_shadow_cnt = 0;
+
+SLONG AENG_select_shadow_persons(Thing* out[], SLONG nmax,
+    SLONG cam_x, SLONG cam_z, SLONG max_dist, Thing* focus)
+{
+    // 1-D depth model (no angle yet — added later once this feels right).
+    // Project each person onto the camera->Darci axis to get depth from the
+    // camera PLANE:  r = ((person - cam) . (focus - cam)) / |focus - cam|^2
+    // so r = 0 at the camera plane, r = 1 exactly at Darci's depth.
+    // Priority pri(r) is a smooth spline hump:
+    //   r in [0..1]      : smoothstep CAM_FLOOR -> DARCI_LEVEL (cam->Darci)
+    //   r in [1..PEAK_R] : smoothstep DARCI_LEVEL -> 1 (Darci -> peak)
+    //   r in [PEAK_R .. PEAK_R+PLATEAU_R] : gentle shoulder, 1.0 eases
+    //                 down to (1-SHOULDER_DROP) — a broad near-flat
+    //                 extremum range just past the peak.
+    //   r beyond that  : pri = (1-SHOULDER_DROP)*exp(-(d)/FALL_TAU) — the
+    //                 long gentle tail to 0 (bigger TAU = longer).
+    // DARCI_LEVEL and PEAK_R are independent (value AT Darci vs WHERE the
+    // 1.0 peak sits); PLATEAU_R/SHOULDER_DROP shape the flat-ish top.
+    // i.e. low right at the camera (CAM_FLOOR, not 0), rising toward Darci,
+    // MAX a bit past Darci (PEAK_R, ~just beyond her), then falling to 0
+    // far away. Higher pri = more important. score = (1 - pri) * max_dist
+    // (lowest score wins; norm shown = pri). smoothstep = no snapping.
+    // Tunables (tuned by feel; see skeletal_skinning_plan.md):
+    const float SHADOW_PEAK_R = 1.40f;     // depth of the 1.0 peak (1=Darci)
+    const float SHADOW_DARCI_LEVEL = 0.92f; // pri exactly at Darci's depth
+    const float SHADOW_PLATEAU_R = 0.60f;  // r-width of the gentle top after peak
+    const float SHADOW_SHOULDER_DROP = 0.10f; // how far 1.0 eases over plateau
+    const float SHADOW_FALL_TAU = 1.50f;   // exp tail length after the shoulder
+                                           // (bigger = longer/gentler tail)
+    const float SHADOW_CAM_FLOOR = 0.05f;  // pri right at the camera plane
+
+    // Lateral (screen-X) formula. lat = |perp offset from the camera axis|
+    // / depth  -> perspective-correct screen horizontal position (same
+    // screen-X = same lat at any distance). Symmetric L/R. sidePri is a
+    // smooth centred HUMP: exactly 1.0 dead-centre (on the camera normal),
+    // easing non-linearly to 0.0 toward the screen edges (cosine bell,
+    // zero slope at both centre and edge).
+    //   u = clamp(|lat| / SIDE_EDGE, 0, 1)
+    //   sidePri = (0.5 + 0.5*cos(PI*u)) ^ SIDE_POW
+    //   lat in [0..SIDE_KNEE] : smoothstep 1.0 -> SIDE_KNEE_LEVEL (hump)
+    //   lat >  SIDE_KNEE      : KNEE_LEVEL * exp(-(lat-KNEE)/SIDE_TAU)
+    //                           (long gentle tail to ~0 out past the
+    //                           screen edges — no hard zero)
+    const float SHADOW_SIDE_KNEE = 0.50f;       // lat where the tail starts
+    const float SHADOW_SIDE_KNEE_LEVEL = 0.30f; // value at the knee (~0.3)
+    const float SHADOW_SIDE_TAU = 0.60f;        // tail length (bigger=gentler)
+    // Mix: 0 = depth only, 1 = side only, 2 = depth * side (combined).
+    const int SHADOW_MIX = 2;
+
+    // Tie-break: scores within one bucket count as equal; the closer to
+    // Darci wins. DSHIFT keeps the dist term < one bucket (pure sub-order).
+    const SLONG SHADOW_TIE_BUCKET = 0xC000; // ~max_dist/16 = "almost equal"
+    const SLONG SHADOW_TIE_DSHIFT = 6;      // dDarci>>this < one bucket
+
+    // Score discount for a person that already had a detailed shadow last
+    // frame (anti-flicker / temporal stability). In score units (~camera
+    // distance, raw world units; max_dist = 0xC0000). Tune by feel.
+    const SLONG SHADOW_STICKY_MARGIN = 0x30000;
+
+    SLONG fx = focus ? focus->WorldPos.X : cam_x;
+    SLONG fz = focus ? focus->WorldPos.Z : cam_z;
+
+    SLONG scores[8];
+    ASSERT(nmax <= 8);
+
+    SLONG count = 0;
+    SLONG worst_score = -UC_INFINITY;
+    SLONG worst_i = 0;
+
+    for (SLONG z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++)
+        for (SLONG x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            SLONG ti = PAP_2LO(x, z).MapWho;
+            while (ti) {
+                Thing* p = TO_THING(ti);
+                if (p->Class == CLASS_PERSON && (p->Flags & FLAGS_IN_VIEW)) {
+                    SLONG dcam = abs(p->WorldPos.X - cam_x)
+                        + abs(p->WorldPos.Z - cam_z);
+                    if (dcam < max_dist) {
+                        SLONG score;
+                        SLONG base = 0; // pre-sticky score
+                        if (p == focus) {
+                            // Reserved: always kept, never evicted.
+                            score = -UC_INFINITY;
+                            base = -UC_INFINITY;
+                        } else {
+                            // Depth along the camera->Darci axis.
+                            // F = focus - camera (the view axis).
+                            float Fx = float(fx - cam_x);
+                            float Fz = float(fz - cam_z);
+                            float Vx = float(p->WorldPos.X - cam_x);
+                            float Vz = float(p->WorldPos.Z - cam_z);
+                            float f2 = Fx * Fx + Fz * Fz;
+                            // r = 0 at camera plane, 1 at Darci's depth.
+                            float r = (f2 < 1.0f)
+                                ? 1.0f
+                                : (Vx * Fx + Vz * Fz) / f2;
+                            // ---- Depth (forward) spline: depthPri ----
+                            float depthPri;
+                            if (r <= 1.0f) {
+                                // Camera plane -> Darci.
+                                float t = r;
+                                if (t < 0.0f) t = 0.0f;
+                                t = t * t * (3.0f - 2.0f * t); // smoothstep
+                                depthPri = SHADOW_CAM_FLOOR
+                                    + (SHADOW_DARCI_LEVEL
+                                          - SHADOW_CAM_FLOOR) * t;
+                            } else if (r <= SHADOW_PEAK_R) {
+                                // Darci -> peak.
+                                float t = (r - 1.0f)
+                                    / (SHADOW_PEAK_R - 1.0f);
+                                t = t * t * (3.0f - 2.0f * t); // smoothstep
+                                depthPri = SHADOW_DARCI_LEVEL
+                                    + (1.0f - SHADOW_DARCI_LEVEL) * t;
+                            } else {
+                                float d = r - SHADOW_PEAK_R; // >= 0
+                                if (d <= SHADOW_PLATEAU_R) {
+                                    // Gentle near-flat shoulder.
+                                    float t = d / SHADOW_PLATEAU_R;
+                                    t = t * t * (3.0f - 2.0f * t);
+                                    depthPri = 1.0f
+                                        - SHADOW_SHOULDER_DROP * t;
+                                } else {
+                                    // Long gentle exponential tail.
+                                    float q = (d - SHADOW_PLATEAU_R)
+                                        / SHADOW_FALL_TAU;
+                                    depthPri = (1.0f - SHADOW_SHOULDER_DROP)
+                                        * expf(-q);
+                                }
+                            }
+                            if (depthPri < 0.0f) depthPri = 0.0f;
+                            if (depthPri > 1.0f) depthPri = 1.0f;
+
+                            // ---- Lateral hump: sidePri ----
+                            // True screen X via the engine projection (FOV/
+                            // zoom/lens/aspect already baked in -> stays
+                            // correct if FOV changes in settings). Coords
+                            // must be in >>8 world units (POLY_cam_* scale).
+                            // lat = |xn|: 0 = dead centre, 1.0 = LITERAL
+                            // screen edge at any FOV. knee + long exp tail.
+                            POLY_Point spp;
+                            POLY_transform(
+                                float(p->WorldPos.X >> 8),
+                                float(p->WorldPos.Y >> 8),
+                                float(p->WorldPos.Z >> 8), &spp);
+                            float lat;
+                            if (!spp.MaybeValid()) {
+                                lat = 9.9f; // behind camera
+                            } else {
+                                float cx = POLY_screen_width * 0.5f;
+                                lat = (cx > 1.0f)
+                                    ? fabsf((spp.X - cx) / cx)
+                                    : 0.0f;
+                            }
+                            float sidePri;
+                            if (lat <= SHADOW_SIDE_KNEE) {
+                                // Central hump down to the knee.
+                                float t = lat / SHADOW_SIDE_KNEE;
+                                t = t * t * (3.0f - 2.0f * t);
+                                sidePri = 1.0f
+                                    - (1.0f - SHADOW_SIDE_KNEE_LEVEL) * t;
+                            } else {
+                                // Long gentle tail toward / past the edges.
+                                float q = (lat - SHADOW_SIDE_KNEE)
+                                    / SHADOW_SIDE_TAU;
+                                sidePri = SHADOW_SIDE_KNEE_LEVEL
+                                    * expf(-q);
+                            }
+                            // ---- Mix ----
+                            float pri = (SHADOW_MIX == 0) ? depthPri
+                                : (SHADOW_MIX == 1)        ? sidePri
+                                : depthPri * sidePri;
+                            if (pri < 0.0f) pri = 0.0f;
+                            if (pri > 1.0f) pri = 1.0f;
+                            // Higher pri = more important; lowest score
+                            // wins. base = primary score before the
+                            // tie-break / stickiness adjustments.
+                            base = (SLONG)((1.0f - pri) * float(max_dist));
+                            // Tie-break: quantise the primary score into
+                            // SHADOW_TIE_BUCKET steps so near-equal scores
+                            // collapse together, then add a small
+                            // distance-to-Darci term (always < one bucket,
+                            // so it only orders WITHIN a tie) — closer to
+                            // Darci wins ties.
+                            SLONG dDarci = abs(p->WorldPos.X - fx)
+                                + abs(p->WorldPos.Z - fz);
+                            score = (base / SHADOW_TIE_BUCKET)
+                                    * SHADOW_TIE_BUCKET
+                                + (dDarci >> SHADOW_TIE_DSHIFT);
+                            for (SLONG pj = 0; pj < s_prev_shadow_cnt; pj++)
+                                if (s_prev_shadow_sel[pj] == p) {
+                                    score -= SHADOW_STICKY_MARGIN;
+                                    break;
+                                }
+                        }
+
+                        if (count < nmax) {
+                            out[count] = p;
+                            scores[count] = score;
+                            if (score > worst_score) {
+                                worst_score = score;
+                                worst_i = count;
+                            }
+                            count++;
+                        } else if (score < worst_score) {
+                            out[worst_i] = p;
+                            scores[worst_i] = score;
+                            worst_score = -UC_INFINITY;
+                            for (SLONG k = 0; k < nmax; k++)
+                                if (scores[k] > worst_score) {
+                                    worst_score = scores[k];
+                                    worst_i = k;
+                                }
+                        }
+                    }
+                }
+                ti = p->Child;
+            }
+        }
+
+    // Remember this frame's chosen set so next frame's stickiness discount
+    // (SHADOW_STICKY_MARGIN) actually applies — without this write-back the
+    // anti-flicker was inert.
+    s_prev_shadow_cnt = (count < 8) ? count : 8;
+    for (SLONG si = 0; si < s_prev_shadow_cnt; si++)
+        s_prev_shadow_sel[si] = out[si];
+
+    return count;
+}
+} // namespace
+
 // uc_orig: AENG_draw_city (fallen/DDEngine/Source/aeng.cpp)
 // Main outdoor city scene renderer. Draws sky, terrain, buildings, Things, effects, and HUD.
 // This is the primary render path for exterior gameplay (not used for indoor/sewer sections).
@@ -2304,14 +2577,11 @@ void AENG_draw_city()
     // Shadows.
     //
 
-    // Max number of simultaneous detailed character shadows. Can't be bumped
-    // on its own — the shadow bitmap is TEXTURE_SHADOW_SIZE (64) and each
-    // shadow occupies a 32x32 quadrant, so only 4 slots fit. To raise this:
-    // grow TEXTURE_SHADOW_SIZE (and the shadow texture in the renderer),
-    // fix the offset_x/offset_y mapping (currently hardcoded 2x2 via i&1 / i&2),
-    // update the ASSERTs on TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE, then bump
-    // this value. Both shadow code paths use the same layout.
-#define AENG_NUM_SHADOWS 4
+    // Max simultaneous detailed character shadows (config.h). Persons are
+    // packed as AENG_AA_BUF_SIZE tiles in a square grid inside the shadow
+    // page (cols = TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE; offset_x/_y
+    // below). Bounded by cols^2; the page size must keep that >= the count.
+#define AENG_NUM_SHADOWS OC_MAX_DETAILED_SHADOWS
 
     // Max distance (|dx|+|dz|, raw world units) from the camera at which a
     // character gets a detailed shadow. Original: 0x60000. Bumped for 1.0 so
@@ -2344,76 +2614,15 @@ void AENG_draw_city()
         // How many people do we generate shadows for?
         //
 
-        SLONG shadow_person_worst_dist = -UC_INFINITY;
-        SLONG shadow_person_worst_person;
-
-        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
-            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
-                t_index = PAP_2LO(x, z).MapWho;
-
-                while (t_index) {
-                    p_thing = TO_THING(t_index);
-
-                    if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
-                        //
-                        // Distance from the reference point (camera position —
-                        // see above).
-                        //
-
-                        dx = p_thing->WorldPos.X - ref_x;
-                        dz = p_thing->WorldPos.Z - ref_z;
-
-                        dist = abs(dx) + abs(dz);
-
-                        if (dist < AENG_SHADOW_MAX_DIST) {
-                            if (shadow_person_upto < AENG_NUM_SHADOWS) {
-                                //
-                                // Put this person in the shadow array.
-                                //
-
-                                shadow_person[shadow_person_upto].p_person = p_thing;
-                                shadow_person[shadow_person_upto].dist = dist;
-
-                                //
-                                // Keep track of the furthest person away.
-                                //
-
-                                if (dist > shadow_person_worst_dist) {
-                                    shadow_person_worst_dist = dist;
-                                    shadow_person_worst_person = shadow_person_upto;
-                                }
-
-                                shadow_person_upto += 1;
-                            } else {
-                                if (dist < shadow_person_worst_dist) {
-                                    //
-                                    // Replace the worst person.
-                                    //
-
-                                    ASSERT(WITHIN(shadow_person_worst_person, 0, AENG_NUM_SHADOWS - 1));
-
-                                    shadow_person[shadow_person_worst_person].p_person = p_thing;
-                                    shadow_person[shadow_person_worst_person].dist = dist;
-
-                                    //
-                                    // Find the worst person
-                                    //
-
-                                    shadow_person_worst_dist = -UC_INFINITY;
-
-                                    for (i = 0; i < AENG_NUM_SHADOWS; i++) {
-                                        if (shadow_person[i].dist > shadow_person_worst_dist) {
-                                            shadow_person_worst_dist = shadow_person[i].dist;
-                                            shadow_person_worst_person = i;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    t_index = p_thing->Child;
-                }
+        {
+            // Priority selection (ray-from-focus scoring + reserved player
+            // slot). darci = FC_cam[].focus is the player in gameplay.
+            Thing* sel[AENG_NUM_SHADOWS];
+            shadow_person_upto = AENG_select_shadow_persons(
+                sel, AENG_NUM_SHADOWS, ref_x, ref_z, AENG_SHADOW_MAX_DIST, darci);
+            for (SLONG si = 0; si < shadow_person_upto; si++) {
+                shadow_person[si].p_person = sel[si];
+                shadow_person[si].dist = 0; // unused post-selection
             }
         }
 
@@ -2429,48 +2638,29 @@ void AENG_draw_city()
         for (i = 0; i < shadow_person_upto; i++) {
             darci = shadow_person[i].p_person;
 
-            memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
-
-            SMAP_person(
-                darci,
-                (UBYTE*)AENG_aa_buffer,
-                AENG_AA_BUF_SIZE,
-                AENG_AA_BUF_SIZE,
-                147,
-                -148,
-                -147);
-
             //
             // Where do we put it in the shadow texture page? Hard code everything!
             //
 
-            ASSERT(AENG_AA_BUF_SIZE == 32);
-            ASSERT(TEXTURE_SHADOW_SIZE == 64);
+            // Persons packed as AENG_AA_BUF_SIZE tiles in a square grid.
+            const SLONG SHADOW_COLS =
+                TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE;
+            ASSERT(TEXTURE_SHADOW_SIZE % AENG_AA_BUF_SIZE == 0);
+            ASSERT(AENG_NUM_SHADOWS <= SHADOW_COLS * SHADOW_COLS);
 
-            offset_x = (i & 1) << 5;
-            offset_y = (i & 2) << 4;
+            offset_x = (i % SHADOW_COLS) * AENG_AA_BUF_SIZE;
+            offset_y = (i / SHADOW_COLS) * AENG_AA_BUF_SIZE;
 
-            //
-            // Plonk it into the shadow texture page.
-            //
-
-            if (TEXTURE_shadow_lock()) {
-                SLONG x;
-                SLONG y;
-                UWORD* line;
-                UBYTE* buf = (UBYTE*)AENG_aa_buffer;
-                UWORD* mapping = GetShadowPixelMapping();
-
-                for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
-                    line = &TEXTURE_shadow_bitmap[((y + offset_y) * TEXTURE_shadow_pitch >> 1) + offset_x];
-
-                    for (x = AENG_AA_BUF_SIZE - 1; x >= 0; x--) {
-                        *line++ = mapping[*buf++];
-                    }
-                }
-
-                TEXTURE_shadow_unlock();
-            }
+            // Milestone 1E: GPU silhouette into the texture sub-rect. Also
+            // sets the SMAP_* projection globals the ground projection
+            // below needs. No CPU fallback (shadows are 100% GPU). If the
+            // model isn't ready yet (only the first frame it appears) this
+            // person simply has no detailed shadow that one frame — rare
+            // and transient. Skipping also avoids projecting onto the
+            // ground with stale SMAP_* globals.
+            if (!SMAP_person_gpu(darci, TEXTURE_page_shadow,
+                    offset_x, offset_y, AENG_AA_BUF_SIZE, 147, -148, -147))
+                continue;
 
             //
             // How we map floating points coordinates from 0 to 1 onto
@@ -2881,7 +3071,37 @@ void AENG_draw_city()
                                     //
 
                                     if (ph->Flags & PAP_FLAG_REFLECTIVE) {
-                                        reflect_height = PAP_calc_height_at(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+                                        // Mirror plane = min(terrain Y, puddle water Y).
+                                        // Two cases to satisfy with one expression:
+                                        //   * Character on a curb / step ABOVE the puddle:
+                                        //     terrain Y is high (curb), water Y is low.
+                                        //     Pre-release used terrain Y → mirror across
+                                        //     foot height → reflection grew downward from
+                                        //     the foot, floating above the actual water
+                                        //     (visible bug: reflection detached from puddle,
+                                        //     see active known_issues "Отражение упавшего
+                                        //     рядом с лужей NPC «сочится»"). min picks
+                                        //     water Y here → reflection anchors to water.
+                                        //   * Character STANDING IN the puddle: puddle.y is
+                                        //     `terrain + ~8` (see PUDDLE_create_do line 193)
+                                        //     — water surface a few units ABOVE foot Y;
+                                        //     mirroring across water put reflected feet
+                                        //     above the water surface. min picks terrain
+                                        //     here → reflection anchors below feet, hidden
+                                        //     under water as expected.
+                                        // Fall back to terrain alone if no puddle entry is
+                                        // found for this XZ (shouldn't happen since the
+                                        // REFLECTIVE flag implies a puddle covers this
+                                        // tile, but defensive).
+                                        SLONG terrain_y = PAP_calc_height_at(p_thing->WorldPos.X >> 8, p_thing->WorldPos.Z >> 8);
+                                        SLONG _x1, _z1, _x2, _z2, water_y;
+                                        if (PUDDLE_get_rect_at(p_thing->WorldPos.X >> 8,
+                                                p_thing->WorldPos.Z >> 8,
+                                                &_x1, &_z1, &_x2, &_z2, &water_y)) {
+                                            reflect_height = (terrain_y < water_y) ? terrain_y : water_y;
+                                        } else {
+                                            reflect_height = terrain_y;
+                                        }
                                     } else {
                                         //
                                         // The height of the water is given by the lo-res mapsquare corresponding
@@ -2977,6 +3197,37 @@ void AENG_draw_city()
         quad[1] = &pp[1];
         quad[2] = &pp[2];
         quad[3] = &pp[3];
+
+        // Accumulator: per reflection bbox, union of all overlapping puddle
+        // intersections. After the puddle iteration, WIBBLE_simple is
+        // called ONCE per reflection bbox with the unioned wibble rect.
+        // Why: every per-puddle WIBBLE_simple call (1) copies the current
+        // framebuffer to a scratch texture, (2) draws a warped quad
+        // sampling that scratch, (3) writes back. Two calls whose bboxes
+        // overlap → the second copies the already-wibbled output of the
+        // first → applies its own offset on top → DOUBLE-OFFSET in the
+        // overlap region. With multiple puddles' bboxes converging on
+        // the same character reflection (different camera angles brings
+        // different sets into overlap), the visible distortion jumps
+        // between "single", "double", "triple" wibble dramatically as
+        // overlap regions change. Single union pass eliminates this.
+        struct WibbleAccum {
+            SLONG x1, y1, x2, y2;
+            // First overlapping puddle's params — used when wibble is
+            // finally called. Subsequent overlaps don't change params
+            // (we accept that the union's per-puddle param mixing is not
+            // strictly correct — the visual effect is dominated by the
+            // wibble math itself, not the per-puddle ripple tuning).
+            UBYTE y1_param, y2_param, g1_param, g2_param, s1_param, s2_param;
+            bool active;
+        };
+        WibbleAccum wacc[AENG_MAX_BBOXES] = {};
+        for (i = 0; i < AENG_MAX_BBOXES; i++) {
+            wacc[i].x1 = +UC_INFINITY;
+            wacc[i].y1 = +UC_INFINITY;
+            wacc[i].x2 = -UC_INFINITY;
+            wacc[i].y2 = -UC_INFINITY;
+        }
 
         // Iterate all map cells instead of gamut range — puddles are flat quads
         // visible at grazing angles well beyond the wall/floor gamut. Empty cells
@@ -3141,20 +3392,29 @@ void AENG_draw_city()
                             iy2 = MIN(py2, bbox[i].y2);
 
                             if (ix1 < ix2 && iy1 < iy2) {
-                                //
-                                // Wibble away! Runs as a GPU post-process
-                                // (copy-texture + fragment shader) — no lock.
-                                //
-
-                                WIBBLE_simple(
-                                    ix1, iy1,
-                                    ix2, iy2,
-                                    pi->puddle_y1,
-                                    pi->puddle_y2,
-                                    pi->puddle_g1,
-                                    pi->puddle_g2,
-                                    pi->puddle_s1,
-                                    pi->puddle_s2);
+                                // Accumulate into the union for THIS
+                                // reflection bbox. WIBBLE_simple is
+                                // called ONCE per reflection bbox below,
+                                // after the puddle loop ends, with the
+                                // unioned rect — see the WibbleAccum
+                                // declaration comment for why per-puddle
+                                // calls would compound the warp.
+                                WibbleAccum& w = wacc[i];
+                                if (ix1 < w.x1) w.x1 = ix1;
+                                if (iy1 < w.y1) w.y1 = iy1;
+                                if (ix2 > w.x2) w.x2 = ix2;
+                                if (iy2 > w.y2) w.y2 = iy2;
+                                if (!w.active) {
+                                    // First overlapping puddle defines
+                                    // wibble params for this reflection.
+                                    w.y1_param = pi->puddle_y1;
+                                    w.y2_param = pi->puddle_y2;
+                                    w.g1_param = pi->puddle_g1;
+                                    w.g2_param = pi->puddle_g2;
+                                    w.s1_param = pi->puddle_s1;
+                                    w.s2_param = pi->puddle_s2;
+                                    w.active   = true;
+                                }
                             }
                         }
                     }
@@ -3162,6 +3422,42 @@ void AENG_draw_city()
 
             ignore_this_puddle:;
             }
+        }
+
+        // P2-I: single WIBBLE_simple call per reflection bbox using the
+        // accumulated union of all overlapping puddle intersections.
+        // Eliminates compound-wibble (double/triple offset) where puddle
+        // screen bboxes overlap — see the comment near `WibbleAccum`
+        // declaration above for why per-puddle calls were the cause.
+        //
+        // Fallback for "wibble pops off during camera rotation": when no
+        // puddle's screen bbox overlaps a non-water reflection bbox this
+        // frame (camera turn shifted puddles out of the way), still
+        // wibble over the reflection itself with the legacy splash
+        // preset. Otherwise a few rotation frames show clean (no-wibble)
+        // reflection — visually jarring.
+        for (i = 0; i < bbox_upto; i++) {
+            WibbleAccum& w = wacc[i];
+            if (bbox[i].water_box) continue;
+            if (!w.active) {
+                // No puddle overlapped — fall back to the reflection
+                // bbox itself with default ripple preset. Param values
+                // tuned by eye (least visible glitching on rotation
+                // frames where puddle has slipped out of overlap).
+                w.x1 = bbox[i].x1; w.y1 = bbox[i].y1;
+                w.x2 = bbox[i].x2; w.y2 = bbox[i].y2;
+                w.y1_param = 62;  w.y2_param = 137;
+                w.g1_param = 17;  w.g2_param = 178;
+                w.s1_param = 40;  w.s2_param = 45;
+                w.active = true;
+            }
+            if (w.x1 >= w.x2 || w.y1 >= w.y2) continue;
+
+            WIBBLE_simple(
+                w.x1, w.y1, w.x2, w.y2,
+                w.y1_param, w.y2_param,
+                w.g1_param, w.g2_param,
+                w.s1_param, w.s2_param);
         }
     }
 
@@ -4331,7 +4627,16 @@ void AENG_draw_city()
     }
 
     BreakTime("Drawn things");
-    PERF_PHASE("render.scene.fx"); // oval shadows, pows, mist, rain, fx, final flush
+    // fx split into 3 sibling phases for attribution (see render_batching_plan.md
+    // Этап 3): the catch-all rest, the dirt subsystem (flying leaves/debris —
+    // suspected CPU hot spot), and the final POLY_frame_draw that flushes
+    // every deferred polygon accumulated this frame (not just from fx —
+    // also things/world that went through POLY_add_*). Underscore (not dot)
+    // suffix is intentional: `.dirt`/`.flush` as dotted children would need
+    // a `render.scene.fx` SCOPE container to render correctly (auto-`.other`
+    // works only with a SCOPE that measures the whole region). Keeping them
+    // as 3 simple siblings under `render.scene` avoids that wiring.
+    PERF_PHASE("render.scene.fx_other"); // oval shadows, pows, mist, rain, pyro, particles, ...
 
     //	POLY_frame_draw(UC_FALSE,UC_FALSE);
     //	POLY_frame_init(UC_TRUE,UC_TRUE);
@@ -4375,19 +4680,12 @@ void AENG_draw_city()
                             SLONG py;
                             SLONG pz;
 
+                            // Pelvis world position from the interpolated
+                            // pose snapshot — single always-available source.
                             const BoneInterpTransform* pose = render_interp_get_cached_pose(p_thing);
-                            if (pose) {
-                                px = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
-                                py = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
-                                pz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
-                            } else {
-                                calc_sub_objects_position(p_thing,
-                                    p_thing->Draw.Tweened->AnimTween, SUB_OBJECT_PELVIS,
-                                    &px, &py, &pz);
-                                px += p_thing->WorldPos.X >> 8;
-                                py += p_thing->WorldPos.Y >> 8;
-                                pz += p_thing->WorldPos.Z >> 8;
-                            }
+                            px = SLONG(pose[SUB_OBJECT_PELVIS].pos_x);
+                            py = SLONG(pose[SUB_OBJECT_PELVIS].pos_y);
+                            pz = SLONG(pose[SUB_OBJECT_PELVIS].pos_z);
 
                             OVAL_add(px, py, pz, 130);
                         }
@@ -4572,17 +4870,12 @@ void AENG_draw_city()
         SLONG z;
 
         {
+            // Pelvis world position from the interpolated pose snapshot —
+            // single always-available source (no legacy recompute path).
             const BoneInterpTransform* pose = render_interp_get_cached_pose(darci);
-            if (pose) {
-                x = SLONG(pose[0].pos_x);
-                y = SLONG(pose[0].pos_y);
-                z = SLONG(pose[0].pos_z);
-            } else {
-                calc_sub_objects_position(darci, darci->Draw.Tweened->AnimTween, 0, &x, &y, &z);
-                x += darci->WorldPos.X >> 8;
-                y += darci->WorldPos.Y >> 8;
-                z += darci->WorldPos.Z >> 8;
-            }
+            x = SLONG(pose[0].pos_x);
+            y = SLONG(pose[0].pos_y);
+            z = SLONG(pose[0].pos_z);
         }
 
         angle = float(darci->Draw.Tweened->Angle);
@@ -4757,10 +5050,12 @@ void AENG_draw_city()
     // rendered over additive effects.
     //
 
+    PERF_PHASE("render.scene.fx_dirt"); // flying leaves / cans / brass / debris
     if (!INDOORS_INDEX || outside)
         if (AENG_detail_dirt)
             AENG_draw_dirt();
 
+    PERF_PHASE("render.scene.fx_flush"); // POLY_frame_draw — drains ALL deferred polys
     POLY_frame_draw(UC_TRUE, UC_TRUE);
 
     BreakTime("Done final polygon flush");
@@ -4927,6 +5222,27 @@ void AENG_draw_warehouse()
         }
     }
 
+    // How many people do we generate detailed shadows for?
+    // uc_orig: AENG_NUM_SHADOWS (fallen/DDEngine/Source/aeng.cpp)
+#define AENG_NUM_SHADOWS OC_MAX_DETAILED_SHADOWS
+    // See AENG_draw_city for rationale; redefined here for self-containment.
+#define AENG_SHADOW_MAX_DIST 0xC0000
+
+    // Hoisted out of `if (AENG_shadows_on)` so the unconditional oval pass
+    // below can skip the persons that received a detailed shadow. When
+    // AENG_shadows_on is false the detailed block is skipped and
+    // shadow_person_upto stays 0 → every in-view thing gets an oval (the
+    // original `else` behaviour). uc_orig fix: original interiors had NO
+    // oval fallback for persons beyond the 4 detailed slots — they got no
+    // shadow at all and it popped with the camera. See prerelease_fixes.md.
+    struct
+    {
+        Thing* p_person;
+        SLONG dist;
+
+    } shadow_person[AENG_NUM_SHADOWS];
+    SLONG shadow_person_upto = 0;
+
     // Who shall we generate shadows for?
     if (AENG_shadows_on) {
         Thing* darci = NET_PERSON(0);
@@ -4942,77 +5258,15 @@ void AENG_draw_warehouse()
         SLONG ref_x = FC_cam[AENG_cur_fc_cam].x;
         SLONG ref_z = FC_cam[AENG_cur_fc_cam].z;
 
-        // How many people do we generate shadows for?
-        // See AENG_draw_city for the full comment on why this can't be bumped
-        // on its own.
-        // uc_orig: AENG_NUM_SHADOWS (fallen/DDEngine/Source/aeng.cpp)
-#define AENG_NUM_SHADOWS 4
-
-        // See AENG_draw_city for rationale; redefined here for self-containment.
-#define AENG_SHADOW_MAX_DIST 0xC0000
-
-        struct
         {
-            Thing* p_person;
-            SLONG dist;
-
-        } shadow_person[AENG_NUM_SHADOWS];
-        SLONG shadow_person_upto = 0;
-        SLONG shadow_person_worst_dist = -UC_INFINITY;
-        SLONG shadow_person_worst_person;
-
-        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
-            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
-                t_index = PAP_2LO(x, z).MapWho;
-
-                while (t_index) {
-                    p_thing = TO_THING(t_index);
-
-                    if (p_thing->Class == CLASS_PERSON && (p_thing->Flags & FLAGS_IN_VIEW)) {
-                        // Distance from the reference point (Darci in gameplay,
-                        // cine camera in cutscenes — see above).
-                        dx = p_thing->WorldPos.X - ref_x;
-                        dz = p_thing->WorldPos.Z - ref_z;
-
-                        dist = abs(dx) + abs(dz);
-
-                        if (dist < AENG_SHADOW_MAX_DIST) {
-                            if (shadow_person_upto < AENG_NUM_SHADOWS) {
-                                // Put this person in the shadow array.
-                                shadow_person[shadow_person_upto].p_person = p_thing;
-                                shadow_person[shadow_person_upto].dist = dist;
-
-                                // Keep track of the furthest person away.
-                                if (dist > shadow_person_worst_dist) {
-                                    shadow_person_worst_dist = dist;
-                                    shadow_person_worst_person = shadow_person_upto;
-                                }
-
-                                shadow_person_upto += 1;
-                            } else {
-                                if (dist < shadow_person_worst_dist) {
-                                    // Replace the worst person.
-                                    ASSERT(WITHIN(shadow_person_worst_person, 0, AENG_NUM_SHADOWS - 1));
-
-                                    shadow_person[shadow_person_worst_person].p_person = p_thing;
-                                    shadow_person[shadow_person_worst_person].dist = dist;
-
-                                    // Find the worst person
-                                    shadow_person_worst_dist = -UC_INFINITY;
-
-                                    for (i = 0; i < AENG_NUM_SHADOWS; i++) {
-                                        if (shadow_person[i].dist > shadow_person_worst_dist) {
-                                            shadow_person_worst_dist = shadow_person[i].dist;
-                                            shadow_person_worst_person = i;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    t_index = p_thing->Child;
-                }
+            // Priority selection (ray-from-focus scoring + reserved player
+            // slot). darci = NET_PERSON(0) is the player.
+            Thing* sel[AENG_NUM_SHADOWS];
+            shadow_person_upto = AENG_select_shadow_persons(
+                sel, AENG_NUM_SHADOWS, ref_x, ref_z, AENG_SHADOW_MAX_DIST, darci);
+            for (SLONG si = 0; si < shadow_person_upto; si++) {
+                shadow_person[si].p_person = sel[si];
+                shadow_person[si].dist = 0; // unused post-selection
             }
         }
 
@@ -5023,41 +5277,21 @@ void AENG_draw_warehouse()
         for (i = 0; i < shadow_person_upto; i++) {
             darci = shadow_person[i].p_person;
 
-            memset(AENG_aa_buffer, 0, sizeof(AENG_aa_buffer));
+            // Persons packed as AENG_AA_BUF_SIZE tiles in a square grid.
+            const SLONG SHADOW_COLS =
+                TEXTURE_SHADOW_SIZE / AENG_AA_BUF_SIZE;
+            ASSERT(TEXTURE_SHADOW_SIZE % AENG_AA_BUF_SIZE == 0);
+            ASSERT(AENG_NUM_SHADOWS <= SHADOW_COLS * SHADOW_COLS);
 
-            SMAP_person(
-                darci,
-                (UBYTE*)AENG_aa_buffer,
-                AENG_AA_BUF_SIZE,
-                AENG_AA_BUF_SIZE,
-                0,
-                -255,
-                -0);
+            offset_x = (i % SHADOW_COLS) * AENG_AA_BUF_SIZE;
+            offset_y = (i / SHADOW_COLS) * AENG_AA_BUF_SIZE;
 
-            ASSERT(AENG_AA_BUF_SIZE == 32);
-            ASSERT(TEXTURE_SHADOW_SIZE == 64);
-
-            offset_x = (i & 1) << 5;
-            offset_y = (i & 2) << 4;
-
-            // Plonk it into the shadow texture page.
-            if (TEXTURE_shadow_lock()) {
-                SLONG x;
-                SLONG y;
-                UWORD* line;
-                UBYTE* buf = (UBYTE*)AENG_aa_buffer;
-                UWORD* mapping = GetShadowPixelMapping();
-
-                for (y = 0; y < AENG_AA_BUF_SIZE; y++) {
-                    line = &TEXTURE_shadow_bitmap[((y + offset_y) * TEXTURE_shadow_pitch >> 1) + offset_x];
-
-                    for (x = AENG_AA_BUF_SIZE - 1; x >= 0; x--) {
-                        *line++ = mapping[*buf++];
-                    }
-                }
-
-                TEXTURE_shadow_unlock();
-            }
+            // Milestone 1E: GPU silhouette (top-down light for indoors).
+            // No CPU fallback (100% GPU). Not ready → no detailed shadow
+            // this one frame; skip (also avoids stale-globals projection).
+            if (!SMAP_person_gpu(darci, TEXTURE_page_shadow,
+                    offset_x, offset_y, AENG_AA_BUF_SIZE, 0, -255, 0))
+                continue;
 
             // How we map floating points coordinates from 0 to 1 onto
             // where we plonked the shadow map in the texture page.
@@ -5243,16 +5477,31 @@ void AENG_draw_warehouse()
 
             TEXTURE_shadow_update();
         }
-    } else {
-        // Do oval shadows instead!
-        for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
-            for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
-                t_index = PAP_2LO(x, z).MapWho;
+    }
 
-                while (t_index) {
-                    p_thing = TO_THING(t_index);
+    // Oval (blob) shadows for everything in view that did NOT get a
+    // detailed shadow. Unconditional, mirroring AENG_draw_city: with
+    // detailed shadows on, the ≤4 nearest get silhouettes and everyone
+    // else still gets a blob; with AENG_shadows_on off, shadow_person_upto
+    // is 0 so every in-view thing gets a blob (original `else` behaviour
+    // preserved). uc_orig fix — see prerelease_fixes.md.
+    for (z = NGAMUT_lo_zmin; z <= NGAMUT_lo_zmax; z++) {
+        for (x = NGAMUT_lo_gamut[z].xmin; x <= NGAMUT_lo_gamut[z].xmax; x++) {
+            t_index = PAP_2LO(x, z).MapWho;
 
-                    if (p_thing->Flags & FLAGS_IN_VIEW) {
+            while (t_index) {
+                p_thing = TO_THING(t_index);
+
+                if (p_thing->Flags & FLAGS_IN_VIEW) {
+                    bool draw = true;
+                    for (int ii = 0; ii < shadow_person_upto; ii++) {
+                        if (shadow_person[ii].p_person == p_thing) {
+                            draw = false;
+                            break;
+                        }
+                    }
+
+                    if (draw) {
                         switch (p_thing->Class) {
                         case CLASS_PERSON:
 
@@ -5288,9 +5537,9 @@ void AENG_draw_warehouse()
                             break;
                         }
                     }
-
-                    t_index = p_thing->Child;
                 }
+
+                t_index = p_thing->Child;
             }
         }
     }

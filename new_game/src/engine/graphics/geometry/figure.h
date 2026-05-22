@@ -68,9 +68,13 @@ void DeadAndBuried(DWORD dwColour);
 // uc_orig: MSOptimizeIndexedList (fallen/DDEngine/Source/figure.cpp)
 BOOL MSOptimizeIndexedList(WORD* pwIndices, int nTriangles);
 
-// Builds MM_pcFadeTable and MM_pcFadeTableTint for the current frame's lighting.
+// Builds the compressed half-Lambert ramp endpoints (MM_FadeStart/Step
+// plus MM_FadeStartTint/StepTint) for the current frame's lighting —
+// see figure_globals.h.
 // p: if non-null, the character is on fire (darkens with soot).
-// colour_and: applied to MM_pcFadeTableTint for tinted texture materials.
+// colour_and: per-byte tint mask applied to the tint endpoints (each
+// byte must be 0x00 or 0xFF — the masks the game actually passes
+// satisfy this).
 // uc_orig: BuildMMLightingTable (fallen/DDEngine/Source/figure.cpp)
 void BuildMMLightingTable(Pyro* p, DWORD colour_and = 0xffffffff);
 
@@ -142,101 +146,54 @@ void FIGURE_TPO_finish_3d_object(TomsPrimObject* pPrimObj, int iThrashIndex = 0)
 // uc_orig: FIGURE_generate_D3D_object (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_generate_D3D_object(SLONG prim);
 
-// Software-path body-part renderer with keyframe interpolation (lerp offsets, slerp rotations).
-// Also sets up the D3D MultiMatrix for the GPU hardware path on opaque non-clipped materials.
-// uc_orig: FIGURE_draw_prim_tween (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween(
-    SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    ULONG colour,
-    ULONG specular,
-    CMatrix33* parent_base_mat,
-    Matrix31* parent_base_pos,
-    Matrix33* parent_curr_mat,
-    Matrix31* parent_curr_pos,
-    Matrix33* end_mat,
-    Matrix31* end_pos,
-    Thing* p_thing,
-    SLONG part_number = 0xffffffff,
-    ULONG colour_and = 0xffffffff);
-
-// Optimised hierarchical 15-body-part character renderer using D3D MultiMatrix extension.
-// Batches all 15 body part transforms, then issues a single DrawIndPrimMM call.
-// Falls back to FIGURE_draw_hierarchical_prim_recurse_individual_cull on partial visibility.
+// 15-body-part character renderer. Builds a consolidated TomsPrimObject
+// on first use, then draws the whole rig in one pass through the
+// world-skin shader (one ge_skin_world_draw_range call per material).
+// Held items (gun / muzzle flash) for armed characters are drawn as
+// rigid meshes at the hand bone's world transform.
 // uc_orig: FIGURE_draw_hierarchical_prim_recurse (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw_hierarchical_prim_recurse(Thing* p_person);
 
-// Slower fallback that culls individual body parts separately.
-// Called when not all 15 body parts pass the near-Z test together.
-// uc_orig: FIGURE_draw_hierarchical_prim_recurse_individual_cull (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_hierarchical_prim_recurse_individual_cull(Thing* p_person);
-
-// Top-level entry point: renders one character Thing* for the current frame.
-// Dispatches to hierarchical (15-part D3D path) or flat loop depending on ElementCount.
+// Top-level entry point: renders one character Thing* for the current
+// frame. Calls FIGURE_draw_hierarchical_prim_recurse for the 15-bone
+// person rig (the only person rig that ships).
 // uc_orig: FIGURE_draw (fallen/DDEngine/Source/figure.cpp)
 void FIGURE_draw(Thing* p_thing);
 
-// Draws an animated non-character object using the DrawTween keyframe system.
-// Uses flat body-part loop (no hierarchical dispatch). Calls NIGHT_find() for lighting.
+// Draws a flat-skeleton creature (DT_ANIM_PRIM: bats, Bane, Balrog,
+// Gargoyle) through the same world-skin path persons use — a single
+// consolidated VBO per (chunk, start_object) cached in D3DAnimObj[],
+// one ge_skin_world_draw_range call per material.
 // uc_orig: ANIM_obj_draw (fallen/DDEngine/Source/figure.cpp)
 void ANIM_obj_draw(Thing* p_thing, DrawTween* dt);
 
-// Renders one body-part mesh into FIGURE_rpoint[] for the water reflection effect.
-// Mirrors and fades vertices relative to FIGURE_reflect_height.
-// uc_orig: FIGURE_draw_prim_tween_reflection (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween_reflection(
-    SLONG prim,
-    SLONG x,
-    SLONG y,
-    SLONG z,
-    SLONG tween,
-    struct GameKeyFrameElement* anim_info,
-    struct GameKeyFrameElement* anim_info_next,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    ULONG colour,
-    ULONG specular,
-    Thing* p_thing);
+// Get the consolidated skin mesh for any skinned Thing — both the
+// 15-bone person rig (D3DPeopleObj[]) and flat-skeleton creatures
+// (D3DAnimObj[]). Lazily builds the TomsPrimObject AND bind-space VBO
+// if neither is built yet, so callers running BEFORE the body draw
+// (notably SMAP_person_gpu for character shadows) get the same mesh
+// the body draw will use later this frame.
+//
+// On success: *out_mesh = the consolidated GESkinMesh*; *out_bone_aabb =
+// pointer to bone_count × 6 floats (per-bone bind-space AABB) for shadow
+// projection box; *out_bone_count = number of bones; *out_chunk = the
+// thing's anim chunk; *out_bind_inv = bone_count inverse-bind matrices.
+// Out params may individually be NULL if the caller doesn't need them.
+// Returns false (leaving outs untouched) on missing pose / chunk data.
+struct GESkinMesh;
+struct TomsPrimObject;
+bool FIGURE_get_skin_mesh_for_thing(Thing* p_thing,
+                                    GESkinMesh**             out_mesh,
+                                    const float**            out_bone_aabb,
+                                    int*                     out_bone_count,
+                                    const GameKeyFrameChunk** out_chunk,
+                                    const GEMatrix**         out_bind_inv,
+                                    TomsPrimObject**         out_prim_obj = nullptr);
 
-// Top-level water reflection renderer: reflects all body parts about the given Y height.
-// uc_orig: FIGURE_draw_reflection (fallen/DDEngine/Source/figure.cpp)
+// Top-level water reflection renderer (P2-I, GPU). One ge_skin_reflect_draw_range
+// call per material — uses the same bind-space VBO + skin palette the body
+// and shadow share, with mirror Y applied in the vertex shader.
+// 15-bone people only (matches the legacy filter).
 void FIGURE_draw_reflection(Thing* p_thing, SLONG height);
-
-// "Matrix-only" body-part step for the D3D MultiMatrix fast path.
-// Computes and stores the transform matrix + light vector for one body part without emitting geometry.
-// Returns UC_TRUE if the body part passes the near-Z cull, UC_FALSE if it should be skipped.
-// uc_orig: FIGURE_draw_prim_tween_person_only_just_set_matrix (fallen/DDEngine/Source/figure.cpp)
-bool FIGURE_draw_prim_tween_person_only_just_set_matrix(
-    int iMatrixNum,
-    SLONG prim,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    SLONG recurse_level,
-    Thing* p_thing);
-
-// Full software-renderer fallback for one body part in person-only mode.
-// Transforms all vertices and submits quads/tris to the software rasteriser.
-// uc_orig: FIGURE_draw_prim_tween_person_only (fallen/DDEngine/Source/figure.cpp)
-void FIGURE_draw_prim_tween_person_only(
-    SLONG prim,
-    struct Matrix33* rot_mat,
-    SLONG off_dx,
-    SLONG off_dy,
-    SLONG off_dz,
-    SLONG recurse_level,
-    Thing* p_thing);
 
 #endif // ENGINE_GRAPHICS_GEOMETRY_FIGURE_H

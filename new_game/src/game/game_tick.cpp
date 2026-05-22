@@ -15,12 +15,17 @@
 #include "engine/debug/debug_help/debug_help.h" // F1 debug hotkey legend
 #include "engine/graphics/lighting/night.h"
 #include "engine/graphics/lighting/night_globals.h"
+#include "engine/graphics/render_interp.h"
+#include "engine/graphics/geometry/bind_palette.h"
+#include "engine/graphics/geometry/figure.h"
 #include "map/pap.h"
 #include "map/road.h"
 #include "missions/eway.h"
 #include "missions/eway_globals.h"
 #include "effects/combat/pyro.h"
 #include "things/characters/person.h"
+#include "things/characters/person_globals.h" // anim_type[], mesh_type[] (TEMP model cycler)
+#include "things/characters/anim_ids.h" // ANIM_STAND_HIP (TEMP model cycler reset anim)
 #include "things/core/thing.h"
 #include "things/core/statedef.h"
 // ANIM_TYPE_DARCI, ANIM_TYPE_ROPER come from fallen/Headers/Person.h via actors/characters/person.h
@@ -1224,6 +1229,106 @@ void process_controls(void)
                 GAME_STATE = GS_LEVEL_LOST;
             }
         }
+    // Model cycler — N walks a hardcoded per-PersonType list of
+    // (MeshID, PersonID) variants. Each PersonType only supports
+    // certain combinations because:
+    //   • set_person_idle / set_anim_walking / set_anim_running ASSERT
+    //     in person.cpp for CIV with MeshID outside {7,8,9} (and
+    //     similar gates for other types).
+    //   • Each chunk's MultiObject[] only has meshes for the IDs
+    //     gameplay actually uses (mesh_type[] default + pcom.cpp
+    //     spawn-time overrides).
+    //   • PersonID also picks a BodyDef variant (e.g. CIV uses
+    //     PersonID 6..9 for clothing/skin from alloc_person).
+    //
+    // The list below mirrors the (MeshID, PersonID) pairs the original
+    // game produces at spawn (mesh_type[] + pcom.cpp + alloc_person CIV
+    // randomisation). Press N walks within a type, wrap to next type.
+    struct ModelVariant { int8_t mesh_id; int8_t person_id; };
+    struct ModelVariantSet { int n; ModelVariant v[8]; };
+    constexpr ModelVariantSet VARIANTS[PERSON_NUM_TYPES] = {
+        { 1, {{0,0}} },                                   // DARCI
+        { 1, {{0,0}} },                                   // ROPER
+        { 1, {{4,0}} },                                   // COP
+        { 6, {{7,6},{7,7},{7,8},{7,9},{8,0},{9,0}} },     // CIV — 4 BodyDef × MeshID=7 + MeshID 8/9
+        { 3, {{0,0},{1,0},{2,0}} },                       // THUG_RASTA (pcom Random()%3)
+        { 1, {{1,0}} },                                   // THUG_GREY
+        { 1, {{2,0}} },                                   // THUG_RED
+        { 1, {{1,0}} },                                   // SLAG_TART
+        { 1, {{2,0}} },                                   // SLAG_FATUGLY
+        { 1, {{3,0}} },                                   // HOSTAGE
+        { 1, {{3,0}} },                                   // MECHANIC
+        { 1, {{6,0}} },                                   // TRAMP
+        { 1, {{5,0}} },                                   // MIB1
+        { 1, {{5,0}} },                                   // MIB2
+        { 1, {{5,0}} },                                   // MIB3
+    };
+    static int s_model_cycle_type     = PERSON_DARCI;
+    static int s_model_cycle_variant  = 0;
+    if (allow_debug_keys && input_key_just_pressed(KB_N)) {
+        Thing* darci_thing = NET_PERSON(0);
+        if (darci_thing && darci_thing->Genus.Person && darci_thing->Draw.Tweened) {
+            // Advance variant within type; wrap to next type when out.
+            s_model_cycle_variant++;
+            if (s_model_cycle_variant >= VARIANTS[s_model_cycle_type].n) {
+                s_model_cycle_variant = 0;
+                s_model_cycle_type = (s_model_cycle_type + 1) % PERSON_NUM_TYPES;
+            }
+            const ModelVariant& mv = VARIANTS[s_model_cycle_type].v[s_model_cycle_variant];
+
+            const UBYTE new_anim_type = anim_type[s_model_cycle_type];
+            darci_thing->Genus.Person->PersonType = s_model_cycle_type;
+            darci_thing->Genus.Person->AnimType   = new_anim_type;
+            darci_thing->Draw.Tweened->TheChunk   = &game_chunk[new_anim_type];
+            darci_thing->Draw.Tweened->MeshID     = (UBYTE)mv.mesh_id;
+            darci_thing->Draw.Tweened->PersonID   = (UBYTE)mv.person_id;
+            set_person_idle(darci_thing);
+        }
+    }
+    // Skeleton overlay — B toggles the per-bone debug skeleton draw
+    // (lines + per-bone wireframe spheres at joints). Keeper debug
+    // feature, gated by allow_debug_keys, listed in F1 legend /
+    // debug_keys.md. When off, the entire render block in figure.cpp
+    // is skipped behind a single branch — zero per-frame cost.
+    //
+    // Originally bound to H, but H already triggers plan_view_shot()
+    // (top-down map TGA dump) in the allow_debug_keys block below —
+    // pressing H would fire both handlers. B avoids that and reads as
+    // "Bones".
+    if (allow_debug_keys && input_key_just_pressed(KB_B)) {
+        g_skin_debug_draw_skeleton = !g_skin_debug_draw_skeleton;
+        CONSOLE_status(g_skin_debug_draw_skeleton
+            ? (CBYTE*)"Skeleton overlay: ON"
+            : (CBYTE*)"Skeleton overlay: OFF");
+    }
+
+    // Persistent status line. "Model: X" only shown in debug mode and
+    // when the current selection isn't the default Darci. T-pose used to
+    // also write a label here but it's gone now — the per-frame stomp
+    // was overwriting the bone-manipulator status line. When neither
+    // applies we clear the status iff we wrote it last tick (CONSOLE_status
+    // is a shared slot — only stomp our own message, not someone else's).
+    {
+        static const char* const k_person_names[PERSON_NUM_TYPES] = {
+            "DARCI", "ROPER", "COP", "CIV", "THUG_RASTA", "THUG_GREY",
+            "THUG_RED", "SLAG_TART", "SLAG_FATUGLY", "HOSTAGE",
+            "MECHANIC", "TRAMP", "MIB1", "MIB2", "MIB3"
+        };
+        static bool s_wrote_status = false;
+        const bool non_default = (s_model_cycle_type != PERSON_DARCI)
+                              || (s_model_cycle_variant != 0);
+        if (allow_debug_keys && non_default) {
+            char buf[64];
+            snprintf(buf, sizeof(buf), "Model: %s (var %d)",
+                     k_person_names[s_model_cycle_type], s_model_cycle_variant);
+            CONSOLE_status((CBYTE*)buf);
+            s_wrote_status = true;
+        } else if (s_wrote_status) {
+            CONSOLE_status((CBYTE*)"");
+            s_wrote_status = false;
+        }
+    }
+
     if (allow_debug_keys) {
         static SLONG index_cam = 0;
         Thing* p_thing;

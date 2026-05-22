@@ -489,6 +489,14 @@ void POLY_init_render_states()
             case POLY_PAGE_SHADOW:
                 pa->RS.SetAlphaBlendEnabled(true);
 
+                // The character shadow is a soft coverage mask projected
+                // (magnified) over the ground — sample it BILINEAR always,
+                // independent of the global pixel-art texture filter
+                // (AENG_detail_filter). Point sampling here makes the
+                // shadow blocky no matter the silhouette resolution.
+                pa->RS.SetTextureMag(GETextureFilter::Linear);
+                pa->RS.SetTextureMin(GETextureFilter::Linear);
+
                 if (ge_supports_dest_inv_src_color()) {
                     // use a density greyscale shadowmap
                     pa->RS.SetTextureBlend(GETextureBlend::Modulate);
@@ -1062,7 +1070,12 @@ void POLY_init_render_states()
                 pa->RS.SetSrcBlend(GEBlendFactor::InvSrcAlpha);
                 pa->RS.SetDstBlend(GEBlendFactor::One);
                 SET_TEXTURE((TEXTURE_page_splash));
-                pa->RS.SetTextureAddress(GETextureAddress::Wrap);
+                // Clamp (was Wrap): splash texture is a 4×4 sprite atlas;
+                // sampling just past a frame's UV range with Wrap reads
+                // neighbouring frames at the edge — visible as a bright
+                // 1-pixel line on the billboard border. Clamp pins to
+                // the last in-range texel and the line disappears.
+                pa->RS.SetTextureAddress(GETextureAddress::Clamp);
                 SET_EFFECT(RS_InvAlphaPremult);
                 break;
 
@@ -1165,6 +1178,37 @@ void POLY_init_render_states()
                 if (ii < TEXTURE_page_num_standard && !(draw_3d && (ii == 510 || ii == 511))) {
                     SET_TEXTURE((ii));
 
+                    // Phase C migration (render_batching_plan.md Шаг 3.2):
+                    // when this page is the BASE of a 2PASS pair (the
+                    // legacy mechanism that auto-duplicated submissions
+                    // onto page+1 to overlay an emissive / window texture),
+                    // wire the overlay metadata so the fragment shader
+                    // composes the overlay in a single draw. POLY_add_*_fast
+                    // no longer performs the second submit; the overlay
+                    // texture is sampled at the same UV as the diffuse and
+                    // composited per m_OverlayMode (1=SELF_ILLUM additive,
+                    // 2=WINDOW alpha-blend).
+                    //
+                    // The WINDOW base also has POLY_PAGE_FLAG_WINDOW set;
+                    // that flag's legacy render-state side-effects (alpha
+                    // test + additive blend on the BASE itself) were ONLY
+                    // needed for the 2-pass mechanism — after migration the
+                    // base draws as a plain opaque page and the overlay
+                    // contributes via the shader. We suppress the WINDOW
+                    // block below for 2PASS bases.
+                    const bool is_2pass_base =
+                        (POLY_page_flag[ii] & POLY_PAGE_FLAG_2PASS) != 0
+                        && ii + 1 < POLY_NUM_PAGES;
+                    if (is_2pass_base) {
+                        pa->m_OverlayMode =
+                            (POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW) ? 2 : 1;
+                        // Store the overlay's PAGE INDEX (not a GL
+                        // handle) — the backend resolves it at draw time
+                        // so the binding survives texture reloads and
+                        // doesn't require page+1 to be loaded yet.
+                        pa->m_OverlayPage = ii + 1;
+                    }
+
                     if (POLY_page_flag[ii]) {
                         if (POLY_page_flag[ii] & POLY_PAGE_FLAG_TRANSPARENT) {
                             bool use_chroma = false;
@@ -1204,7 +1248,12 @@ void POLY_init_render_states()
                             pa->RS.SetFogEnabled(false);
                         }
 
-                        if (POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW) {
+                        if ((POLY_page_flag[ii] & POLY_PAGE_FLAG_WINDOW) && !is_2pass_base) {
+                            // After Phase C migration this branch is
+                            // unreachable in practice (the parser only
+                            // sets WINDOW together with 2PASS on a base
+                            // page). Kept as a defensive guard in case a
+                            // future metadata path sets WINDOW alone.
                             pa->RS.SetAlphaTestEnabled(true);
 
                             pa->RS.SetAlphaBlendEnabled(true);

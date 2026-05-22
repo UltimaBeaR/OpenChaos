@@ -27,6 +27,11 @@ float m_fObjectBoundingSphereRadius[MAX_NUMBER_D3D_PRIMS];
 // uc_orig: D3DPeopleObj (fallen/DDEngine/Source/figure.cpp)
 TomsPrimObject D3DPeopleObj[MAX_NUMBER_D3D_PEOPLE];
 
+// Non-person consolidated rig cache. Empty slot = chunk==NULL. See
+// figure_globals.h for the lookup scheme.
+AnimObjKey     D3DAnimObjKeys[MAX_NUMBER_D3D_ANIMALS] = {};
+TomsPrimObject D3DAnimObj    [MAX_NUMBER_D3D_ANIMALS];
+
 // uc_orig: m_iLRUQueueSize (fallen/DDEngine/Source/figure.cpp)
 int m_iLRUQueueSize = 0;
 
@@ -74,25 +79,17 @@ UBYTE TPO_ubPrimObjMMIndex[TPO_MAX_NUMBER_PRIMS];
 int TPO_iPrimObjIndexOffset[TPO_MAX_NUMBER_PRIMS + 1];
 
 // --- D3D MultiMatrix lighting working state ---
-// Note: MM_pcFadeTable/Tint/pMatrix/Vertex/pNormal are POINTERS into aligned static arrays
-// allocated in figure.cpp (ALIGNED_STATIC_ARRAY macro). They are exported here so that
-// chunk 2+ code in old/figure.cpp can access them across translation units.
-// They are initialised at file startup before any code runs.
 
-// uc_orig: MM_pcFadeTable (fallen/DDEngine/Source/figure.cpp)
-ULONG* MM_pcFadeTable = NULL;
-
-// uc_orig: MM_pcFadeTableTint (fallen/DDEngine/Source/figure.cpp)
-ULONG* MM_pcFadeTableTint = NULL;
-
-// uc_orig: MM_pMatrix (fallen/DDEngine/Source/figure.cpp)
-GEMatrix* MM_pMatrix = NULL;
+// Compressed half-Lambert ramp endpoints (see figure_globals.h). Zero-
+// initialised — BuildMMLightingTable writes them every frame per character
+// before any draw call that reads them.
+float MM_FadeStart[3]     = { 0.0f, 0.0f, 0.0f };
+float MM_FadeStep[3]      = { 0.0f, 0.0f, 0.0f };
+float MM_FadeStartTint[3] = { 0.0f, 0.0f, 0.0f };
+float MM_FadeStepTint[3]  = { 0.0f, 0.0f, 0.0f };
 
 // uc_orig: MM_Vertex (fallen/DDEngine/Source/figure.cpp)
 GEVertex* MM_Vertex = NULL;
-
-// uc_orig: MM_pNormal (fallen/DDEngine/Source/figure.cpp)
-float* MM_pNormal = NULL;
 
 // uc_orig: MM_vLightDir (fallen/DDEngine/Source/figure.cpp)
 GEVector MM_vLightDir;
@@ -113,27 +110,14 @@ structFIGURE_dhpr_data FIGURE_dhpr_data;
 // uc_orig: FIGURE_dhpr_rdata1 (fallen/DDEngine/Source/figure.cpp)
 structFIGURE_dhpr_rdata1 FIGURE_dhpr_rdata1[MAX_RECURSION];
 
-// uc_orig: FIGURE_dhpr_rdata2 (fallen/DDEngine/Source/figure.cpp)
-structFIGURE_dhpr_rdata2 FIGURE_dhpr_rdata2[MAX_RECURSION];
-
-// uc_orig: MMBodyParts_pMatrix (fallen/DDEngine/Source/figure.cpp)
-GEMatrix* MMBodyParts_pMatrix = NULL;
-
-// uc_orig: MMBodyParts_pNormal (fallen/DDEngine/Source/figure.cpp)
-float* MMBodyParts_pNormal = NULL;
-
 // --- Misc character draw state ---
 
 // uc_orig: kludge_shrink (fallen/DDEngine/Source/figure.cpp)
 UBYTE kludge_shrink = UC_FALSE;
 
-// --- Reflection draw state ---
-
-// uc_orig: FIGURE_rpoint (fallen/DDEngine/Source/figure.cpp)
-FIGURE_Rpoint FIGURE_rpoint[FIGURE_MAX_RPOINTS];
-
-// uc_orig: FIGURE_rpoint_upto (fallen/DDEngine/Source/figure.cpp)
-SLONG FIGURE_rpoint_upto = 0;
+// --- Reflection draw state (P2-I, GPU) ---
+// FIGURE_rpoint[] / FIGURE_rpoint_upto removed — the bind-space GPU path
+// computes screen-space bbox directly from per-bone AABB (figure.cpp).
 
 // uc_orig: FIGURE_reflect_x1 (fallen/DDEngine/Source/figure.cpp)
 SLONG FIGURE_reflect_x1 = 0;
@@ -147,35 +131,17 @@ SLONG FIGURE_reflect_x2 = 0;
 // uc_orig: FIGURE_reflect_y2 (fallen/DDEngine/Source/figure.cpp)
 SLONG FIGURE_reflect_y2 = 0;
 
-// uc_orig: FIGURE_reflect_height (fallen/DDEngine/Source/figure.cpp)
-float FIGURE_reflect_height = 0.0f;
-
-// Backing storage for the aligned MM_* pointers (not original entities — these replace
-// the ALIGNED_STATIC_ARRAY macro from figure.cpp which generated equivalent static storage).
-// Kept here so all global state is visible in _globals files per project rules.
-static char cMM_pcFadeTableStorage[4 + 128 * sizeof(ULONG)];
-static char cMM_pcFadeTableTintStorage[4 + 128 * sizeof(ULONG)];
-static char cMM_pMatrixStorage[32 + 1 * sizeof(GEMatrix)];
+// Backing storage for the aligned MM_Vertex pointer (not an original
+// entity — replaces the ALIGNED_STATIC_ARRAY macro from figure.cpp).
+// Kept here so all global state is visible in _globals files per project
+// rules.
 static char cMM_VertexStorage[32 + 4 * sizeof(GEVertex)];
-static char cMM_pNormalStorage[8 + 4 * sizeof(float)];
-static char cMMBodyParts_pMatrixStorage[32 + MAX_NUM_BODY_PARTS_AT_ONCE * sizeof(GEMatrix)];
-static char cMMBodyParts_pNormalStorage[8 + MAX_NUM_BODY_PARTS_AT_ONCE * 4 * sizeof(float)];
 
-// Initialises MM_* global pointers to aligned addresses within the above storage.
-// Replaces ALIGNED_STATIC_ARRAY(static ...) declarations from the original figure.cpp.
-// This constructor runs before main, guaranteeing MM_* are valid for any code that calls
-// BuildMMLightingTable or FIGURE_draw_prim_tween_*.
 namespace {
 struct MMLightingTableInit {
     MMLightingTableInit()
     {
-        MM_pcFadeTable = (ULONG*)(((uintptr_t)cMM_pcFadeTableStorage + 3) & ~(uintptr_t)3);
-        MM_pcFadeTableTint = (ULONG*)(((uintptr_t)cMM_pcFadeTableTintStorage + 3) & ~(uintptr_t)3);
-        MM_pMatrix = (GEMatrix*)(((uintptr_t)cMM_pMatrixStorage + 31) & ~(uintptr_t)31);
         MM_Vertex = (GEVertex*)(((uintptr_t)cMM_VertexStorage + 31) & ~(uintptr_t)31);
-        MM_pNormal = (float*)(((uintptr_t)cMM_pNormalStorage + 7) & ~(uintptr_t)7);
-        MMBodyParts_pMatrix = (GEMatrix*)(((uintptr_t)cMMBodyParts_pMatrixStorage + 31) & ~(uintptr_t)31);
-        MMBodyParts_pNormal = (float*)(((uintptr_t)cMMBodyParts_pNormalStorage + 7) & ~(uintptr_t)7);
     }
 } g_MMLightingTableInit;
 }

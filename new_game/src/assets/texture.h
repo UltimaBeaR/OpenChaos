@@ -10,7 +10,10 @@
 // share this flat index space (max TEXTURE_MAX_TEXTURES = 22*64 + 160 entries).
 
 // uc_orig: TEXTURE_SHADOW_SIZE (fallen/DDEngine/Headers/texture.h)
-#define TEXTURE_SHADOW_SIZE 64
+// Shared detailed-shadow page. Square; holds (SIZE/AENG_AA_BUF_SIZE)^2
+// AENG_AA_BUF_SIZE tiles. Original was 64 (4 persons, 2×2). Enlarged to
+// 128 (4×4 = up to 16 tiles) so OC_MAX_DETAILED_SHADOWS can exceed 4.
+#define TEXTURE_SHADOW_SIZE 128
 
 // uc_orig: TEXTURE_VIDEO_SIZE (fallen/DDEngine/Headers/texture.h)
 #define TEXTURE_VIDEO_SIZE 64
@@ -203,32 +206,6 @@ void TEXTURE_get_tex_offset(SLONG page, float* uScale, float* uOffset, float* vS
 // Per-page crinkle handle. NULL => no crinkle for that page.
 extern CRINKLE_Handle TEXTURE_crinkle[22 * 64];
 
-// uc_orig: TEXTURE_shadow_bitmap (fallen/DDEngine/Headers/texture.h)
-// Pointer to locked shadow texture pixels (valid only between lock/unlock).
-extern UWORD* TEXTURE_shadow_bitmap;
-// uc_orig: TEXTURE_shadow_pitch (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_pitch;
-// uc_orig: TEXTURE_shadow_mask_red (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_mask_red;
-// uc_orig: TEXTURE_shadow_mask_green (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_mask_green;
-// uc_orig: TEXTURE_shadow_mask_blue (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_mask_blue;
-// uc_orig: TEXTURE_shadow_mask_alpha (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_mask_alpha;
-// uc_orig: TEXTURE_shadow_shift_red (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_shift_red;
-// uc_orig: TEXTURE_shadow_shift_green (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_shift_green;
-// uc_orig: TEXTURE_shadow_shift_blue (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_shift_blue;
-// uc_orig: TEXTURE_shadow_shift_alpha (fallen/DDEngine/Headers/texture.h)
-extern SLONG TEXTURE_shadow_shift_alpha;
-
-// uc_orig: TEXTURE_shadow_lock (fallen/DDEngine/Headers/texture.h)
-SLONG TEXTURE_shadow_lock(void);
-// uc_orig: TEXTURE_shadow_unlock (fallen/DDEngine/Headers/texture.h)
-void TEXTURE_shadow_unlock(void);
 // uc_orig: TEXTURE_shadow_update (fallen/DDEngine/Headers/texture.h)
 void TEXTURE_shadow_update(void);
 

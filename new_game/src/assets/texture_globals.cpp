@@ -12,26 +12,6 @@ UBYTE TEXTURE_needed[TEXTURE_MAX_TEXTURES];
 // uc_orig: TEXTURE_set (fallen/DDEngine/Source/texture.cpp)
 SLONG TEXTURE_set = 0;
 
-// uc_orig: TEXTURE_shadow_bitmap (fallen/DDEngine/Source/texture.cpp)
-UWORD* TEXTURE_shadow_bitmap = nullptr;
-// uc_orig: TEXTURE_shadow_pitch (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_pitch = 0;
-// uc_orig: TEXTURE_shadow_mask_red (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_mask_red = 0;
-// uc_orig: TEXTURE_shadow_mask_green (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_mask_green = 0;
-// uc_orig: TEXTURE_shadow_mask_blue (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_mask_blue = 0;
-// uc_orig: TEXTURE_shadow_mask_alpha (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_mask_alpha = 0;
-// uc_orig: TEXTURE_shadow_shift_red (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_shift_red = 0;
-// uc_orig: TEXTURE_shadow_shift_green (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_shift_green = 0;
-// uc_orig: TEXTURE_shadow_shift_blue (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_shift_blue = 0;
-// uc_orig: TEXTURE_shadow_shift_alpha (fallen/DDEngine/Source/texture.cpp)
-SLONG TEXTURE_shadow_shift_alpha = 0;
 
 // uc_orig: TEXTURE_shared_dir (fallen/DDEngine/Source/texture.cpp)
 CBYTE TEXTURE_shared_dir[_MAX_PATH] = "";

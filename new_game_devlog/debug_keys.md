@@ -29,6 +29,7 @@ F9 — единственная клавиша которая работает *
 | Клавиша      | Действие                                 |
 |--------------|------------------------------------------|
 | F1           | показать эту легенду (5 сек)             |
+| F2           | toggle CRT scanline shader               |
 | F3           | load game (Shift+F3 = save, `poo.sav`)   |
 | F4           | toggle clouds                            |
 | F8           | toggle single-step mode                  |
@@ -37,18 +38,45 @@ F9 — единственная клавиша которая работает *
 | F11          | input debug panel                        |
 | F12          | spawn weapons around player + heal 9999  |
 | Shift+F12    | cheat toggle (FPS печатается вверху)     |
-| =            | combat test: +1 враг (включает режим)    |
-| -            | combat test: -1 враг (0 = выкл)          |
-| \            | combat test: цикл уровня вооружённости   |
 | Insert       | step once (в single-step)                |
 | Ctrl         | lock debug overlay (force-visible)       |
 | Ctrl+L       | toggle outside / ambient lighting        |
 | Ctrl+Q       | quit                                     |
-| Shift+M      | spawn mine at mouse cursor               |
-| /            | toggle stealth debug                     |
+| ~            | toggle detail level (low / high)         |
+| ;            | toggle slow-motion                       |
+| =            | combat test: +1 враг (включает режим)    |
+| -            | combat test: -1 враг (0 = выкл)          |
+| \            | combat test: цикл уровня вооружённости   |
+| B            | toggle отладочного скелета (линии + шарики, парные цвета L/R) |
 | L            | toggle dynamic light at player           |
+| N            | сменить модельку Дарси (цикл по 15 типам)|
 | T            | warehouse debug (двери, MAV arrows)      |
 | V            | show version string (fade-out)           |
+| P            | save game в `save.me` (+ ещё: camera-2 follow toggle — оба хендлера) |
+| /            | toggle stealth debug                     |
+| `[` / `]`    | camera-2: focus prev / next person (включает splitscreen) |
+| O            | spawn random object перед Дарси          |
+| E            | spawn vehicle (цикл по VEH типам)        |
+| G            | teleport Дарси к курсору мыши            |
+| Shift+A      | spawn fight-test thug (цикл по skill)    |
+| Shift+I      | spawn bodyguard следующего за Дарси      |
+| Shift+J      | Дарси: рандомный танец + сесть на скамью |
+| Shift+G      | дать Дарси пушку (FLAGS_HAS_GUN)         |
+| Shift+H      | сохранить top-down карту в TGA (`plan_view_shot`) |
+| Shift+O      | spawn civilian chopper над Дарси         |
+| Shift+M      | spawn mine at mouse cursor               |
+| Shift+D      | debugger trap (`ASSERT(2+2==5)`)         |
+| J (hold)     | MAV navigation overlay вокруг Дарси      |
+| I (hold)     | WAND navigation overlay вокруг Дарси     |
+| W (hold)     | spawn water particles перед Дарси        |
+| . (hold)     | spawn smoke particles над Дарси          |
+| U (hold)     | barrel-hit sphere damage at Darci        |
+| Q (hold)     | ROAD_debug overlay                       |
+| Shift+Y (h)  | fastnav debug overlay у Дарси            |
+| Num 7        | цикл pyro типа (для Num5)                |
+| Num 5        | spawn текущий pyro у Дарси               |
+| Num 2        | immolate chopper 1                       |
+| Num 3        | place / connect fire-pool line marker    |
 
 ## Combat test mode (`-` / `=` / `\`)
 

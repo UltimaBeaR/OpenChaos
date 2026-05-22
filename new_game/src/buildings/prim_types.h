@@ -665,6 +665,31 @@ struct TomsPrimObject {
     UWORD* pwListIndices;
     UWORD* pwStripIndices;
     float fBoundingSphereRadius;
+
+    // World-skin consolidated mesh: every vertex pre-multiplied by
+    // bind_palette[bMatIndex] so the whole rig lives in shared bind-space.
+    // Drawn via skin_world_vert.glsl with a per-frame skin palette
+    // (= current × inv_bind). One VBO holds ALL materials; the ranges
+    // array stores 2 × wNumMaterials uint32 (index_start, index_count)
+    // pairs so each material draws one slice of the shared index buffer.
+    //
+    // Lazily built on first character draw — works for both the 15-bone
+    // person rigs (D3DPeopleObj[]) and flat-skeleton creatures (D3DAnimObj[]
+    // for Bane / Balrog / bats / Gargoyle). NULL = not built yet. Freed
+    // in FIGURE_clean_LRU_slot.
+    uint32_t* skin_consolidated_ranges;
+    void*     skin_consolidated_world; // GESkinMesh* (bind-space positions)
+
+    // Per-bone AABB of the consolidated mesh in bind-space. Layout:
+    // `skin_consolidated_bone_count` bones, each occupying 6 floats
+    // (min.x, min.y, min.z, max.x, max.y, max.z). NULL = not built.
+    // Used by the shadow-silhouette path (SMAP_person_gpu): transform
+    // the 8 corners of each bone's AABB by skin[bone] (= current ×
+    // inv_bind), project onto the sun plane, accumulate the tight
+    // world-space shadow box. Allocated alongside skin_consolidated_world
+    // and freed together.
+    float*    skin_consolidated_bone_aabb;
+    int       skin_consolidated_bone_count;
 };
 
 // Legacy prim object header (includes name field, pre-D3D).
