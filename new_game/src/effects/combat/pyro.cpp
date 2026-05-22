@@ -1284,6 +1284,13 @@ constexpr UBYTE FIREBOMB_FLAME_BURST_SIZE = 160; // main radial burst flames
 constexpr UBYTE FIREBOMB_FLAME_SPARK_SIZE = 160; // extra flame flung upward each clock
 constexpr UBYTE FIREBOMB_FLAME_LATE_SIZE  = 255; // sustained late flame (counter 110-140)
 constexpr UBYTE FIREBOMB_SMOKE_SIZE       = 100; // rising smoke (counter 4-110)
+
+// Per-tick growth rate (`resize` arg) for the growing flame/smoke particles
+// of the explosion. Pre-release uc_orig values; kept as named knobs alongside
+// the sizes above for consistent per-effect tuning.
+constexpr SBYTE FIREBOMB_FLAME_WAVE_GROW = 4;
+constexpr SBYTE FIREBOMB_FLAME_LATE_GROW = 5;
+constexpr SBYTE FIREBOMB_SMOKE_GROW      = 4; // SMOKE call adds + (Random() & 3) for variance
 // uc_orig: DUSTWAVE_MULTIPLY (fallen/DDEngine/Source/drawxtra.cpp)
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_SECTORS)
 
@@ -1753,7 +1760,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                             x, (Random() & 0xff), z,
                             POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                             PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
-                            55 + (Random() & 0x3f), FIREBOMB_FLAME_WAVE_SIZE, 1, 8 - (Random() & 3), 4);
+                            55 + (Random() & 0x3f), FIREBOMB_FLAME_WAVE_SIZE, 1, 8 - (Random() & 3), FIREBOMB_FLAME_WAVE_GROW);
                     }
 
                     x = SIN(iAngle) >> 4;
@@ -1802,7 +1809,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         0, 0, 0,
                         POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), 0xffFFFFFF,
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE,
-                        100, FIREBOMB_FLAME_LATE_SIZE, 1, 20, 5);
+                        100, FIREBOMB_FLAME_LATE_SIZE, 1, 20, FIREBOMB_FLAME_LATE_GROW);
                 }
                 if ((pyro->counter > 4) && (pyro->counter < 110)) {
                     d = Random() & 2047;
@@ -1820,7 +1827,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         x, y, z,
                         POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), h,
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE | PFLAG_DAMPING,
-                        70 + (Random() & 0x3f), FIREBOMB_SMOKE_SIZE, 1, 2, 4 + (Random() & 3));
+                        70 + (Random() & 0x3f), FIREBOMB_SMOKE_SIZE, 1, 2, FIREBOMB_SMOKE_GROW + (Random() & 3));
                 }
             }
         }

@@ -257,24 +257,27 @@ void PARTICLE_Run()
 
             // PFLAG_RESIZE: grow/shrink size each tick. Kills particle if size drops to 0.
             // resize is signed: positive = grow, negative = shrink.
-            // Pre-release capped size at 255; raised to 383 (1.5×) so smoke clouds reach
-            // retail-matching sizes without uncapped growth bleeding into other PFLAG_RESIZE users.
             if (p->flags & PFLAG_RESIZE) {
                 SLONG temp = p->size;
-                temp += (p->resize * local_ratio) >> local_shift;
+                // (SLONG) casts: local_ratio is ULONG — without them a negative
+                // resize wraps to a huge unsigned value and the particle
+                // balloons to the size cap instead of shrinking.
+                temp += ((SLONG)p->resize * (SLONG)local_ratio) >> local_shift;
                 if (temp < 1) {
                     temp = 1;
                     p->life = 1;
                 }
-                if (temp > 383)
-                    temp = 383;
+                if (temp > 255)
+                    temp = 255;
                 p->size = temp;
             }
 
             // PFLAG_RESIZE2: same as PFLAG_RESIZE but size is 16-bit fixed-point (pre-shifted <<8 at spawn).
             if (p->flags & PFLAG_RESIZE2) {
                 SLONG temp = p->size;
-                temp += (p->resize * local_ratio) >> local_shift;
+                // (SLONG) casts: see PFLAG_RESIZE above — negative resize must
+                // not wrap against the unsigned local_ratio.
+                temp += ((SLONG)p->resize * (SLONG)local_ratio) >> local_shift;
                 if (temp < 1)
                     p->life = 1;
                 SATURATE(temp, 1, 65535);
