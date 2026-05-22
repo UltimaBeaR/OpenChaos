@@ -1471,7 +1471,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                             (Random() & 0xff) - 0x7f, 256 + (Random() & 0x1ff), (Random() & 0xff) - 0x7f,
                             POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                             PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE,
-                            300, 70, 1, 1, 2);
+                            300, 70, 1, 1, 1);
                 }
             }
         }

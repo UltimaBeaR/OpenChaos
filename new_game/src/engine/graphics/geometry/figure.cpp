@@ -147,8 +147,8 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
     if (p != NULL) {
         // counter value at which the character is fully charred. Lower =
         // faster blackening; the immolate counter climbs ~1/tick and caps
-        // at 255, so 30 ≈ a 1 s burn to full char (matches retail pacing).
-        constexpr float BURN_CHAR_FULL_COUNTER = 30.0f;
+        // at 255, so 60 ≈ a 2 s burn to full char.
+        constexpr float BURN_CHAR_FULL_COUNTER = 60.0f;
         constexpr float SOOT_R = 10.0f, SOOT_G = 4.0f, SOOT_B = 3.0f;
         float t = (float)p->counter / BURN_CHAR_FULL_COUNTER;
         if (t > 1.0f)
