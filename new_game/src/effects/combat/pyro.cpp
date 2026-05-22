@@ -1270,6 +1270,20 @@ static void draw_flame_element2(SLONG x, SLONG y, SLONG z, SLONG c0)
 #define DUSTWAVE_SECTORS 16
 // uc_orig: FIREBOMB_SPRITES (fallen/DDEngine/Source/drawxtra.cpp)
 #define FIREBOMB_SPRITES 16
+
+// ─── Explosion (PYRO_FIREBOMB) sprite sizes — per-effect tuning knobs ──────
+// Passed as the `size` argument of PARTICLE_Add; the particle then grows or
+// shrinks each tick by its own `resize` rate. Values are the original
+// pre-release ones (uc_orig: fallen/DDEngine/Source/drawxtra.cpp). Tuning
+// these affects ONLY car/barrel/mine explosions: sprite size is per-particle,
+// so bonfires, burning characters, etc. (which spawn their own particles with
+// their own sizes) are untouched even though they share the flame/smoke
+// texture pages.
+constexpr UBYTE FIREBOMB_FLAME_WAVE_SIZE  = 80;  // expanding ground-wave flames (PYRO_FLAGS_WAVE)
+constexpr UBYTE FIREBOMB_FLAME_BURST_SIZE = 160; // main radial burst flames
+constexpr UBYTE FIREBOMB_FLAME_SPARK_SIZE = 160; // extra flame flung upward each clock
+constexpr UBYTE FIREBOMB_FLAME_LATE_SIZE  = 255; // sustained late flame (counter 110-140)
+constexpr UBYTE FIREBOMB_SMOKE_SIZE       = 100; // rising smoke (counter 4-110)
 // uc_orig: DUSTWAVE_MULTIPLY (fallen/DDEngine/Source/drawxtra.cpp)
 #define DUSTWAVE_MULTIPLY (2048 / DUSTWAVE_SECTORS)
 
@@ -1739,7 +1753,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                             x, (Random() & 0xff), z,
                             POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                             PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING,
-                            55 + (Random() & 0x3f), 80, 1, 8 - (Random() & 3), 4);
+                            55 + (Random() & 0x3f), FIREBOMB_FLAME_WAVE_SIZE, 1, 8 - (Random() & 3), 4);
                     }
 
                     x = SIN(iAngle) >> 4;
@@ -1766,7 +1780,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         x, y, z,
                         POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), h,
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING | PFLAG_GRAVITY,
-                        70 + (Random() & 0x3f), 160, 1, 6, -4);
+                        70 + (Random() & 0x3f), FIREBOMB_FLAME_BURST_SIZE, 1, 6, -4);
                 }
                 d = Random() & 2047;
                 x = SIN(d) >> 4;
@@ -1780,7 +1794,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                     x, (128 + (Random() & 0xff)) << 4, z,
                     POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), 0x7FFFFFFF,
                     PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE | PFLAG_DAMPING | PFLAG_GRAVITY,
-                    75 + (Random() & 0x3f), 160, 1, 5 + (Random() & 3), -(2 + (Random() & 3)));
+                    75 + (Random() & 0x3f), FIREBOMB_FLAME_SPARK_SIZE, 1, 5 + (Random() & 3), -(2 + (Random() & 3)));
             }
             if (pyro->counter < 240) {
                 if ((pyro->counter > 110) && (pyro->counter < 140)) {
@@ -1788,7 +1802,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         0, 0, 0,
                         POLY_PAGE_FLAMES2, 2 + ((Random() & 3) << 2), 0xffFFFFFF,
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FADE2 | PFLAG_RESIZE,
-                        100, 255, 1, 20, 5);
+                        100, FIREBOMB_FLAME_LATE_SIZE, 1, 20, 5);
                 }
                 if ((pyro->counter > 4) && (pyro->counter < 110)) {
                     d = Random() & 2047;
@@ -1806,7 +1820,7 @@ void PYRO_draw_pyro(Thing* p_pyro)
                         x, y, z,
                         POLY_PAGE_SMOKECLOUD2, 2 + ((Random() & 3) << 2), h,
                         PFLAG_SPRITEANI | PFLAG_SPRITELOOP | PFLAG_FIRE | PFLAG_FADE | PFLAG_RESIZE | PFLAG_DAMPING,
-                        70 + (Random() & 0x3f), 100, 1, 2, 4 + (Random() & 3));
+                        70 + (Random() & 0x3f), FIREBOMB_SMOKE_SIZE, 1, 2, 4 + (Random() & 3));
                 }
             }
         }

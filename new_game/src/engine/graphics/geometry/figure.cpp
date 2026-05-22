@@ -137,14 +137,28 @@ void BuildMMLightingTable(Pyro* p, DWORD colour_and)
 
     MM_vLightDir = vTotal;
 
-    // Darken on-fire characters with soot.
+    // Darken on-fire characters with soot. The immolate pyro's `counter`
+    // climbs 0..255 over the burn; lerp the character's lighting from full
+    // toward a dark soot colour as it climbs, so a burning character chars
+    // to near-black. The legacy `cvX - counter` form is a no-op here:
+    // cvLight/cvAmb are in the thousands while counter caps at 255, so it
+    // darkened by under 3% — invisible. The dark target keeps the legacy
+    // 10/4/3 floor (a faintly warm ember-dark, not pure black).
     if (p != NULL) {
-        cvLight.r = (cvLight.r > p->counter) ? (cvLight.r - p->counter) : 10;
-        cvLight.g = (cvLight.g > p->counter) ? (cvLight.g - p->counter) : 4;
-        cvLight.b = (cvLight.b > p->counter) ? (cvLight.b - p->counter) : 3;
-        cvAmb.r = (cvAmb.r > p->counter) ? (cvAmb.r - p->counter) : 10;
-        cvAmb.g = (cvAmb.g > p->counter) ? (cvAmb.g - p->counter) : 4;
-        cvAmb.b = (cvAmb.b > p->counter) ? (cvAmb.b - p->counter) : 3;
+        // counter value at which the character is fully charred. Lower =
+        // faster blackening; the immolate counter climbs ~1/tick and caps
+        // at 255, so 30 ≈ a 1 s burn to full char (matches retail pacing).
+        constexpr float BURN_CHAR_FULL_COUNTER = 30.0f;
+        constexpr float SOOT_R = 10.0f, SOOT_G = 4.0f, SOOT_B = 3.0f;
+        float t = (float)p->counter / BURN_CHAR_FULL_COUNTER;
+        if (t > 1.0f)
+            t = 1.0f;
+        cvLight.r += (SOOT_R - cvLight.r) * t;
+        cvLight.g += (SOOT_G - cvLight.g) * t;
+        cvLight.b += (SOOT_B - cvLight.b) * t;
+        cvAmb.r += (SOOT_R - cvAmb.r) * t;
+        cvAmb.g += (SOOT_G - cvAmb.g) * t;
+        cvAmb.b += (SOOT_B - cvAmb.b) * t;
     }
 
     // PC people are lit x2.
