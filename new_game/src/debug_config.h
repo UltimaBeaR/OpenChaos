@@ -61,7 +61,7 @@
 // ⚠️ To understand what each line measures, the hotkeys, the colours and
 // the file log — READ new_game_devlog/perf_diag/panel_guide.md (usage
 // manual). Architecture/history: new_game_devlog/perf_diag/design.md.
-#define OC_DEBUG_PERF true
+#define OC_DEBUG_PERF false
 
 // Generic on-screen debug log (engine/debug/dbglog). When false, DBGLOG /
 // DBGLOG_draw / DBGLOG_clear become compile-time no-ops (arguments are

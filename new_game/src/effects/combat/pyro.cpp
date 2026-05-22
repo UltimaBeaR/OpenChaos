@@ -248,6 +248,7 @@ void PYRO_fn_init(Thing* thing)
     pyro->counter = 0;
     pyro->radius = 0;
     pyro->soundid = 0;
+    pyro->LastDrawCounter = -1; // -1 != any counter value, so the first in-view FIREBOMB draw always spawns
     for (i = 0; i < 8; i++)
         pyro->radii[i] = 0;
 
@@ -1707,6 +1708,17 @@ void PYRO_draw_pyro(Thing* p_pyro)
     case PYRO_FIREBOMB:
         if (!(pyro->thing->Flags & FLAGS_IN_VIEW))
             break;
+        // FIREBOMB spawns its particles from this per-render-frame draw
+        // function (uc_orig quirk), gated only on the tick `counter`. Above
+        // the ~30 FPS the original was tuned for, the burst therefore spawned
+        // several times per counter step (~3x the particles on a 90 FPS
+        // handheld). `counter` is the effect's game clock: it advances per
+        // physics tick scaled by TICK_RATIO, so it is FPS-independent and
+        // also freezes on pause / slows in slow-mo. Spawn at most once per
+        // counter step to restore the original 30 FPS particle density.
+        if (pyro->counter == pyro->LastDrawCounter)
+            break;
+        pyro->LastDrawCounter = pyro->counter;
         {
             SLONG x, y, z, d, h, i;
 

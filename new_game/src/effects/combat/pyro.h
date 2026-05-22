@@ -96,6 +96,7 @@ typedef struct
     SWORD Timer1; // legacy per-thing timer
     UWORD Dummy; // overloaded field: ribbon handle (FLICKER), burn stage (IMMOLATE), etc.
     UBYTE LastSmokeSpawn; // PYRO_BONFIRE: wall-clock phase for smoke spawn edge-detect (FPS-independent)
+    SLONG LastDrawCounter; // PYRO_FIREBOMB: last `counter` value the draw-time particle burst spawned at (FPS-independent spawn gate)
 } Pyro;
 
 // uc_orig: PyroPtr (fallen/Headers/pyro.h)
