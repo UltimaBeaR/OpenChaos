@@ -20,4 +20,5 @@
 | [stage7_review_results.md](stage7_review_results.md) | Этап 7 — результаты построчной сверки |
 | [stage7_c5_investigation.md](stage7_c5_investigation.md) | Этап 7 — расследование бага C5 (loading screen bleed) |
 | [camera_improvements_log.md](camera_improvements_log.md) | Работы по камере: автоповорот на машине, wall collision, «кишки» через near-plane |
+| [controls_overhaul.md](controls_overhaul.md) | Переработка управления (1.0): геймпад перекаты/jump-back через L2-tactical, клавиатура+мышь, опции |
 
