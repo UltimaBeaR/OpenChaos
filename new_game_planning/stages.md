@@ -22,4 +22,4 @@
 
 ---
 
-Бессрочный список багов и проблем (не привязан к этапам): [known_issues_and_bugs.md](known_issues_and_bugs.md)
+Активные баги/задачи для релиза 1.0: [known_issues_and_bugs_1_0.md](known_issues_and_bugs_1_0.md). Сознательно отложенные после 1.0: [known_issues_and_bugs_post_1_0.md](known_issues_and_bugs_post_1_0.md).

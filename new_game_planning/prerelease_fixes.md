@@ -3,7 +3,7 @@
 Пре-релизная кодовая база содержала баги которых нет в финальной игре.
 Фиксы применялись на **Этапе 5**.
 
-Незафикшенные баги и другие проблемы → [`known_issues_and_bugs.md`](known_issues_and_bugs.md)
+Незафикшенные баги и другие проблемы → [`known_issues_and_bugs_1_0.md`](known_issues_and_bugs_1_0.md) (для 1.0) или [`known_issues_and_bugs_post_1_0.md`](known_issues_and_bugs_post_1_0.md) (после 1.0)
 
 ---
 
