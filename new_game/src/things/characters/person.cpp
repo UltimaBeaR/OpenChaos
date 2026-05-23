@@ -2312,6 +2312,20 @@ void person_pick_best_target(Thing* p_person, SLONG dir)
         if (PCOM_person_wants_to_kill(p_found) != THING_NUMBER(p_person))
             continue;
 
+        // OpenChaos: skip targets the player isn't allowed to hit
+        // (innocent cops, civilians in non-violence mode, gang
+        // mates, bodyguard clients...). Without this the circle
+        // button would happily lock onto an innocent cop fighting
+        // alongside the player, and the next attack would whiff
+        // (hit-resolution rejects the same victim downstream).
+        // people_allowed_to_hit_each_other is the canonical
+        // predicate used by hit resolution itself, driven by
+        // PersonType + flags (FLAG2_PERSON_GUILTY etc.), so this
+        // stays correct under debug "play as X", flag toggles, and
+        // VIOLENCE-off levels.
+        if (!people_allowed_to_hit_each_other(p_found, p_person))
+            continue;
+
         SLONG dx = (p_found->WorldPos.X - p_person->WorldPos.X) >> 8;
         SLONG dz = (p_found->WorldPos.Z - p_person->WorldPos.Z) >> 8;
 

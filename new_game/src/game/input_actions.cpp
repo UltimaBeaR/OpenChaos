@@ -2929,6 +2929,24 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             ...directional punch code (commented out in original)...
             */
             {
+                // OpenChaos: before a forward punch fires, re-target onto
+                // whatever the player is actually looking at (closest
+                // enemy inside a narrow cone around the camera ray). The
+                // original game only re-aims through the body-cone search
+                // once the attack runs, so the locked target stuck around
+                // even after the player had turned the camera onto a
+                // different enemy. snap_body == 1 also points Darci at
+                // the new target so the punch animation starts already
+                // facing it -- consistent with how the forward-kick path
+                // (turn_to_target_and_kick) snaps via find_attack_stance.
+                // No-op when nothing is in the cone -- existing flow
+                // resumes unchanged. Same busy-gate as the Circle target
+                // switch above: mid-grapple/throw/arrest we leave the
+                // locked target alone so the committed action plays out.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 1 /*snap_body*/);
+                }
                 // Forward punch.
                 set_player_punch(p_person);
             }
@@ -2975,6 +2993,16 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
             }
 
             if (p_person->State != STATE_JUMPING) {
+                // OpenChaos: see the matching note in the forward-punch
+                // branch above. Camera-cone re-target also runs before
+                // the forward kick. Directional kicks (left/right/back)
+                // intentionally skip this -- those are an explicit
+                // off-camera input and should not be hijacked back
+                // toward whatever the camera is on.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 1 /*snap_body*/);
+                }
                 // Forward kick.
                 turn_to_target_and_kick(p_person);
             }
@@ -2993,12 +3021,29 @@ ULONG apply_button_input_fight(Thing* p_player, Thing* p_person, ULONG input)
         // Combo queuing: set REQUEST flags when buttons pressed during a fighting animation.
         if (pl->Pressed & INPUT_MASK_PUNCH) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_PUNCH)) {
+                // OpenChaos: re-target on every queued punch in a combo,
+                // same camera-cone logic as the fresh-attack branches.
+                // snap_body == 0: Darci is already mid-animation, so the
+                // next combo node's aim_at_victim handles the smooth
+                // turn toward the new target. A snap here would visibly
+                // pop her mid-anim. Same busy-gate as Circle / fresh
+                // attacks: grapple/throw/arrest keep the locked target.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 0 /*no snap*/);
+                }
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_PUNCH;
             }
         }
 
         if (pl->Pressed & INPUT_MASK_KICK) {
             if (!(p_person->Genus.Person->Flags & FLAG_PERSON_REQUEST_KICK)) {
+                // OpenChaos: same camera-cone re-target for queued kicks.
+                // See the note in the matching punch branch above.
+                if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)
+                    && !oc_combat_busy(p_person->SubState)) {
+                    player_pick_attack_target_by_camera(p_person, 0 /*no snap*/);
+                }
                 p_person->Genus.Person->Flags |= FLAG_PERSON_REQUEST_KICK;
             }
         }
