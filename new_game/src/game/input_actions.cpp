@@ -86,9 +86,12 @@ extern SLONG find_searchable_person(Thing* p_person);
 // Action tables: each array lists valid transitions from a specific player action/state.
 // Indexed via action_tree[] below.
 // uc_orig: action_idle (fallen/Source/interfac.cpp)
+// OpenChaos: removed priority-entries that routed JUMP+LEFT/RIGHT directly to
+// ACTION_FLIP_LEFT/RIGHT (original entries 0-1). All JUMP presses now route
+// through ACTION_STANDING_JUMP, whose body picks roll-vs-jump per analogue flag
+// (see body for details). D-pad / keyboard path still produces rolls; stick
+// path no longer does (stick rolls will return as an L2 chord later).
 struct ActionInfo action_idle[] = {
-    { ACTION_FLIP_LEFT, 1, INPUT_MASK_JUMP | INPUT_MASK_LEFT },
-    { ACTION_FLIP_RIGHT, 1, INPUT_MASK_JUMP | INPUT_MASK_RIGHT },
     { ACTION_STANDING_JUMP, 0, INPUT_MASK_JUMP },
     { ACTION_FIGHT_PUNCH, 0, INPUT_MASK_PUNCH },
     { ACTION_FIGHT_KICK, 0, INPUT_MASK_KICK },
@@ -122,9 +125,14 @@ struct ActionInfo action_run[] = {
 };
 
 // uc_orig: action_standing_jump (fallen/Source/interfac.cpp)
+// OpenChaos: removed mid-jump switch to FLIP_LEFT/RIGHT (original entries 0-1).
+// A short side-tap during a jump used to instantly switch the action to a roll.
+// Body now produces only forward / vertical jumps for stick; for D-pad /
+// keyboard the body still triggers rolls on side+jump at press time. The
+// mid-jump-tap switch path is gone for all inputs (minor original-behavior
+// loss; cleaner UX), all roll triggering happens at the entry of
+// ACTION_STANDING_JUMP. Will be replaced by L2-chord scheme later.
 struct ActionInfo action_standing_jump[] = {
-    { ACTION_FLIP_LEFT, 1, INPUT_MASK_LEFT },
-    { ACTION_FLIP_RIGHT, 1, INPUT_MASK_RIGHT },
     { ACTION_FIGHT_KICK, 0, INPUT_MASK_KICK },
     { 0, 0, 0 }
 };
@@ -2411,25 +2419,71 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 
                 break;
             case ACTION_STANDING_JUMP:
-
+                // OpenChaos: auto side-roll / backflip behavior split by input source.
+                //
+                // Analog stick (analogue == 1): light side / back stick taps produced
+                // unwanted rolls / backflips — including right after a climb (player
+                // mashes side + jump while still in pull-up, gets a roll and falls off
+                // the ledge). Stick path now produces only forward-jump (on FORWARDS)
+                // or vertical-jump (anything else). Tactical actions on stick will
+                // return later as explicit L2 chords.
+                //
+                // D-pad / keyboard arrows (analogue == 0): legacy auto-roll /
+                // auto-backflip on side / back + jump is kept intact until the L2
+                // modifier scheme replaces it across all input sources. The action
+                // priority entries in action_idle / action_standing_jump tables were
+                // removed so all routes (stick and digital) flow through this body
+                // with a single analogue gate.
+                //
+                // can_jump (should_i_jump): false in warehouse-doorway-like tiles
+                // and right after climb — for stick that means do nothing (avoid
+                // climb-edge rolls); for D-pad/keyboard, legacy roll-anyway path
+                // is preserved.
                 if (should_i_jump(p_person)) {
                     if (input & INPUT_MASK_FORWARDS)
                         set_person_standing_jump_forwards(p_person);
-                    else if ((input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
+                    else if (analogue && (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT | INPUT_MASK_BACKWARDS))) {
+                        // Stick: any movement direction → forward jump in stick
+                        // direction (same end-call as running jump). Without
+                        // this, slow-walk side/back + jump produced a feel-wrong
+                        // vertical jump on spot, while slow-walk forward + jump
+                        // already did a directional jump.
+                        //
+                        // Snap the character facing to stick direction first.
+                        // In most cases analog rotation has already aligned them
+                        // (running and slow-walk both continuously rotate the
+                        // character to face the stick), so the snap is a no-op.
+                        // But in transitional states where rotation was suppressed
+                        // — e.g. character just finished a climb-up, was locked
+                        // facing forward throughout the pull-up anim — the
+                        // character is still facing the old direction at the
+                        // instant the buffered jump fires. Without snap,
+                        // running_jump propels them in that old direction
+                        // instead of where the player is holding the stick.
+                        //
+                        // Same stick → world angle formula as
+                        // process_analogue_movement.
+                        const SLONG dx = GET_JOYX(input);
+                        const SLONG dz = GET_JOYY(input);
+                        SLONG target_angle = Arctan(-dx, dz) + get_camera_angle();
+                        target_angle = (target_angle + 2048) & 2047;
+                        p_person->Draw.Tweened->Angle = target_angle;
+                        set_person_standing_jump_forwards(p_person);
+                    }
+                    else if (!analogue && (input & INPUT_MASK_BACKWARDS) && should_person_backflip(p_person))
                         set_person_standing_jump_backwards(p_person);
-                    else if (input & INPUT_MASK_LEFT)
+                    else if (!analogue && (input & INPUT_MASK_LEFT))
                         set_person_flip(p_person, 0);
-                    else if (input & INPUT_MASK_RIGHT)
+                    else if (!analogue && (input & INPUT_MASK_RIGHT))
                         set_person_flip(p_person, 1);
                     else
                         set_person_standing_jump(p_person);
-                } else {
+                } else if (!analogue) {
                     if (input & INPUT_MASK_LEFT)
                         set_person_flip(p_person, 0);
                     else if (input & INPUT_MASK_RIGHT)
                         set_person_flip(p_person, 1);
                 }
-
                 break;
             case ACTION_RUNNING_JUMP:
                 if (p_person->SubState == SUB_STATE_RUNNING_SKID_STOP) {

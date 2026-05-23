@@ -202,10 +202,58 @@ D-pad перепрофилируется отдельно (вероятно — 
 
 ## Находки и решения
 
-*Заполняется по ходу — какие функции/файлы трогаем, какие неочевидные
-зависимости всплыли, какие пороги/числа выбрали и почему.*
+### Триггеры авто-перекатов и авто-backflip (2026-05-24)
 
-(пусто пока)
+Перекаты (side-roll) и backflip триггерились в **трёх местах** независимо
+от амплитуды стика — только по digital-флагу `INPUT_MASK_LEFT/RIGHT/BACKWARDS`
+(порог в `get_hardware_input` — раскладка раньше 4096 raw от центра):
+
+1. **`action_idle[]`** entries 0-1 — прямой путь idle + JUMP + LEFT/RIGHT
+   → `ACTION_FLIP_LEFT/RIGHT` (минуя STANDING_JUMP).
+2. **`action_standing_jump[]`** entries 0-1 — mid-jump переключение, любой
+   side-tap во время прыжка переводил в roll.
+3. **`case ACTION_STANDING_JUMP:` body** (input_actions.cpp:2413-2431) —
+   обе ветки `should_i_jump` true/false вызывали `set_person_flip()`
+   на LEFT/RIGHT. Backflip — тоже отсюда: BACKWARDS + `should_person_backflip`
+   → `set_person_standing_jump_backwards`.
+
+Гипотеза «низкая амплитуда стика → roll» оказалась неточной: roll
+триггерился **всегда** на digital-флаг, независимо от амплитуды и состояния.
+
+`should_i_jump()` — это **не** про скорость или климб. Проверяет 4 точки
+вокруг персонажа в warehouse-карте: если мапятся в разные тайлы (стоишь
+в дверном проёме склада) → false. То есть это редкий гейт; в основном
+true. Climb-exit попадает в false-branch потому что 4 точки спанят край
+warehouse-тайла.
+
+### Орфанная инфраструктура slow-walk и tanky-controls
+
+Готовое к переиспользованию под L2:
+
+- `m_bForceWalk` (`game/input_actions_globals.h:24`) — глобальный флаг
+  slow-walk. Читается в `process_analogue_movement()`. Не пишется никем.
+- `player_relative` (`game/input_actions_globals.h:10`) — глобальный флаг
+  tank-controls (повороты вместо strafe). Читается в анимационном/движенческом
+  коде. Инициализируется 0, не пишется.
+- `Person.Mode` enum: RUN/WALK/SNEAK/FIGHT/SPRINT — уже переходит между
+  состояниями через `process_analogue_movement` по velocity и `m_bForceWalk`.
+- Старая кнопка `JOYPAD_BUTTON_MOVE = 31` — toggle slow walk, помечена
+  `unbound; walk mode removed`. Историческое название отвязанного слота.
+
+Под L2 будем писать `m_bForceWalk` и `player_relative` — никакой новой
+state-машины делать не надо.
+
+### L2 свободна на ногах (проверено)
+
+L2 (физическая кнопка index 15) используется только в:
+- Тормоз машины (`apply_button_input_car`, vehicle.cpp:2414).
+- Старый kick-эвалуатор (kick result intentionally discarded —
+  комментарий «kick moved from L2 to R1»).
+- Cheat-комбо `Select + L1 + L2 + D-pad`.
+
+Комментарий «L2 is the ACTION button on foot now» — **stale**. Реальная
+привязка ACTION идёт на физическую кнопку index 1 (◯/B) через
+`joypad_button_use[JOYPAD_BUTTON_ACTION] = 1`.
 
 ---
 
@@ -219,6 +267,52 @@ D-pad перепрофилируется отдельно (вероятно — 
 
 ## Связанные коммиты
 
-*Заполняется по ходу.*
+- **2026-05-24** — баг-фикс авто-перекатов и авто-backflip
+  (`new_game/src/game/input_actions.cpp`), source-aware вариант:
+  - Удалены entries 0-1 из `action_idle[]` — priority-маршрут к
+    ACTION_FLIP_LEFT/RIGHT мимо STANDING_JUMP больше не нужен.
+  - Удалены entries 0-1 из `action_standing_jump[]` — mid-jump side-tap
+    → roll switch убран для всех источников (мелкая потеря оригинального
+    поведения, цена унификации).
+  - В `case ACTION_STANDING_JUMP:` маршрутизация теперь по `analogue`
+    глобалу:
+    - **analogue == 1 (стик):** FORWARDS / LEFT / RIGHT / BACKWARDS →
+      `set_person_standing_jump_forwards` (прыжок в facing-направление,
+      тот же путь что running-jump). Перед вызовом — **снап Angle перса
+      под направление стика** (`Arctan(-dx, dz) + camera_angle`, та же
+      формула что в `process_analogue_movement`). Снап нужен потому что
+      в переходных состояниях (например, сразу после climb-up) перс
+      ещё не повёрнут под стик — анимация подтягивания блокирует
+      аналоговую ротацию. Без снапа running-jump бросал бы перса в
+      старое facing-направление, а не туда куда жмёт стик. В running /
+      slow-walk снап — no-op (перс уже выровнен по стику). Стик в
+      нейтрале → vertical jump. Никаких авто-roll/backflip.
+    - **analogue == 0 (D-pad / клавиатурные стрелки):** старое поведение
+      сохранено — LEFT/RIGHT → roll, BACKWARDS → backflip, climb-exit
+      `should_i_jump=false` тоже даёт roll (как было).
+  - Источник истины `analogue`: глобал в
+    `game/input_actions_globals.cpp:25`, выставляется в `get_hardware_input`
+    (1 при использовании стика, 0 при D-pad / клавиатурных стрелках).
+  - Результат: на стике — без авто-roll/backflip, climb-exit без roll.
+    На D-pad/клаве — поведение как было. Унификация всех источников под
+    L2-схему придёт в Phase A.1.
+  - Бой не тронут (`ACTION_FIGHT_KICK` в action_standing_jump остался).
+  - `set_person_flip`, `set_person_standing_jump_backwards`,
+    `should_person_backflip`, switch-case'ы `ACTION_FLIP_LEFT/RIGHT` —
+    **оставлены живыми** (переиспользуем под L2).
 
-(пусто пока)
+  ⚠️ **Регрессия первой версии правки** (зафиксировано в той же
+  сессии): первая попытка убрала LEFT/RIGHT/BACKWARDS-ветки безусловно
+  → сломала D-pad/клавиатуру (на них тоже пропали roll/backflip).
+  Источники D-pad/keyboard сливаются с стиком в один `INPUT_MASK_*`
+  набор через `get_hardware_input`, дискриминатор — отдельный глобал
+  `analogue`. Урок: при изменениях в action handler всегда проверять
+  что вход — это композитная маска от всех источников, и при
+  source-specific поведении нужен явный гейт.
+
+## TODO к концу всей переработки управления
+
+- Добавить запись в `GAMEPLAY_CHANGES.md` единым блоком когда полный
+  цикл управления приземлится (баг-фикс + L2 + клавиатура + опции).
+  Промежуточные коммиты в GAMEPLAY_CHANGES.md не идут — там
+  кумулятивный «vs original» взгляд.
