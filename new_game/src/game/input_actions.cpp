@@ -1900,7 +1900,15 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
             case SUB_STATE_RUNNING:
                 if (p_thing->Genus.Person->Mode != PERSON_MODE_SPRINT) {
                     if (p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
-                        p_thing->Velocity = (velocity * 60) >> 8;
+                        // OpenChaos: was scaled by stick magnitude
+                        // (`(velocity * 60) >> 8`), which gave slow running
+                        // for partial stick deflection. With slow-walk by
+                        // magnitude removed and slow walk now exclusively
+                        // L2-gated, partial stick should give full-speed
+                        // running. Constant matches max of the old formula
+                        // (full diagonal: QDIST2(128,128) * 60 / 256 ≈ 42).
+                        // L2 path still scales below via the walking branch.
+                        p_thing->Velocity = 42;
                     } else {
                         p_thing->Velocity = (velocity * 51) >> 8;
                     }
@@ -1908,11 +1916,7 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
                     // OpenChaos: removed Velocity < 20 from the running →
                     // walking transition. Slow walking is now only triggered
                     // by the L2 modifier (m_bForceWalk), not by weak stick
-                    // deflection. Without L2 the character stays in running
-                    // at whatever speed the stick gives — keeps the analog
-                    // feel of "slow stick = slow run" but never auto-drops to
-                    // step-walking, which felt inconsistent (player gets
-                    // walking just because they nudged the stick a bit).
+                    // deflection.
                     if (m_bForceWalk && p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
                         if (!(p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING)) {
                             if (p_thing->Velocity > 20)
