@@ -1523,6 +1523,22 @@ enum {
 };
 static int l2_regime = L2_REGIME_NONE;
 
+// File-scope flag: was the player character in STATE_MOVEING + RUNNING/WALKING
+// at the start of the current tick? Updated by apply_button_input (it has
+// p_person access). Read by get_hardware_input regime classification — when L2
+// engages while the character is already running, regime is forced to FORWARD
+// regardless of stick direction. Otherwise running sideways then pressing L2
+// classified as ROTATE (character abruptly stopped to rotate in place), and
+// running toward camera then pressing L2 classified as BACKWARD (character
+// switched to walk-back mid-stride). Both felt jarring; user expects the run
+// to continue smoothly into slow-walk mode.
+//
+// WALKING_BACKWARDS / CRAWLING / etc. are intentionally NOT included — a
+// player just exiting walk-back and immediately re-engaging L2 with stick
+// back should re-enter BACKWARD regime via stick classification, not get
+// forced to FORWARD.
+static bool g_player_thing_is_running_or_walking = false;
+
 // Post-climb jump suppression counter. Set when pull_up animation ends (in
 // person.cpp), decremented in apply_button_input. While > 0, INPUT_MASK_JUMP
 // is cleared so no jump action fires.
@@ -1813,7 +1829,15 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
                         p_thing->Velocity = (velocity * 51) >> 8;
                     }
 
-                    if ((p_thing->Velocity < 20 || m_bForceWalk) && p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
+                    // OpenChaos: removed Velocity < 20 from the running →
+                    // walking transition. Slow walking is now only triggered
+                    // by the L2 modifier (m_bForceWalk), not by weak stick
+                    // deflection. Without L2 the character stays in running
+                    // at whatever speed the stick gives — keeps the analog
+                    // feel of "slow stick = slow run" but never auto-drops to
+                    // step-walking, which felt inconsistent (player gets
+                    // walking just because they nudged the stick a bit).
+                    if (m_bForceWalk && p_thing->Genus.Person->AnimType != ANIM_TYPE_ROPER) {
                         if (!(p_thing->Genus.Person->Flags2 & FLAG2_PERSON_CARRYING)) {
                             if (p_thing->Velocity > 20)
                                 p_thing->Velocity = 20;
@@ -1835,7 +1859,13 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
                 } else {
                     p_thing->Velocity = (velocity * 51) >> 8;
                 }
-                if ((p_thing->Velocity > 24 || p_thing->Genus.Person->AnimType == ANIM_TYPE_ROPER) && !m_bForceWalk) {
+                // OpenChaos: removed Velocity > 24 from the walking → running
+                // transition. Walking is now exclusively an L2-modifier mode,
+                // so as soon as L2 is released we want to leave walking
+                // regardless of stick magnitude — otherwise releasing L2 with
+                // a weakly-deflected stick would leave the character stuck
+                // walking until the stick passed the run threshold.
+                if (p_thing->Genus.Person->AnimType == ANIM_TYPE_ROPER || !m_bForceWalk) {
                     set_person_running(p_thing);
                     p_thing->Genus.Person->Mode = PERSON_MODE_RUN;
                 } else {
@@ -2374,6 +2404,13 @@ void person_enter_fight_mode(Thing* p_person)
 // Returns the bitmask of inputs consumed/processed this frame.
 ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 {
+    // Publish player character locomotion state for get_hardware_input's L2
+    // regime classification. See g_player_thing_is_running_or_walking comment.
+    g_player_thing_is_running_or_walking =
+        (p_person->State == STATE_MOVEING
+         && (p_person->SubState == SUB_STATE_RUNNING
+             || p_person->SubState == SUB_STATE_WALKING));
+
     // Post-climb jump suppression — see g_post_climb_jump_block_ticks comment.
     // Suppress JUMP for a few ticks after climb-up so the buffered jump press
     // fires from running state (RUNNING_JUMP, facing-aligned) rather than the
@@ -3464,19 +3501,45 @@ ULONG get_hardware_input(UWORD type)
                     const bool dy_past_deadzone = (abs(dy_c) > (SLONG)NOISE_TOLERANCE);
                     const bool stick_in_deadzone = !dx_past_deadzone && !dy_past_deadzone;
 
+                    const bool dx_dominates_dy = (abs(dy_c) * 2 < abs(dx_c));
+                    const bool stick_pure_side = dx_past_deadzone && dx_dominates_dy;
+
                     if (!l2_engaged || stick_in_deadzone) {
                         l2_regime = L2_REGIME_NONE;
                     } else if (l2_regime == L2_REGIME_NONE) {
-                        // Stick just exited neutral while L2 held → classify
-                        // the initial regime and lock it.
-                        const bool dx_dominates_dy = (abs(dy_c) * 2 < abs(dx_c));
-                        const bool stick_pure_side = dx_past_deadzone && dx_dominates_dy;
-                        if (stick_pure_side)
-                            l2_regime = L2_REGIME_ROTATE;
-                        else if (dy_c < 0)
+                        // Stick just exited neutral while L2 held (or L2 just
+                        // engaged with stick already held) → classify the
+                        // initial regime and lock it.
+                        if (g_player_thing_is_running_or_walking) {
+                            // Character is already in mid-locomotion. Force
+                            // FORWARD regardless of stick — running sideways
+                            // or toward camera + L2 should smoothly become
+                            // slow-walk in the same direction, not snap into
+                            // ROTATE / BACKWARD.
                             l2_regime = L2_REGIME_FORWARD;
-                        else
+                        } else if (stick_pure_side) {
+                            l2_regime = L2_REGIME_ROTATE;
+                        } else if (dy_c < 0) {
+                            l2_regime = L2_REGIME_FORWARD;
+                        } else {
                             l2_regime = L2_REGIME_BACKWARD;
+                        }
+                    } else if (l2_regime == L2_REGIME_ROTATE && !stick_pure_side) {
+                        // ROTATE persists only while stick stays in the pure-
+                        // side cone. As soon as stick gets a significant
+                        // forward/back component, the player intent shifts
+                        // from "rotate in place" to "walk somewhere" → enter
+                        // FORWARD (camera-relative face-forward walking). We
+                        // intentionally pick FORWARD for both forward AND back
+                        // stick here (not BACKWARD on dy>0), because the user
+                        // who's rotating with L2 and rolls the stick into a
+                        // non-side direction wants smooth locomotion, not the
+                        // "commit to backward walk" semantics of starting
+                        // BACKWARD from idle. To intentionally enter BACKWARD,
+                        // the player can release the stick to neutral first.
+                        // FORWARD and BACKWARD themselves remain sticky (no
+                        // re-classification once entered).
+                        l2_regime = L2_REGIME_FORWARD;
                     }
                     // Else: regime persists from previous tick (sticky).
 
