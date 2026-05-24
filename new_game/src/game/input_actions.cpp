@@ -1523,6 +1523,18 @@ enum {
 };
 static int l2_regime = L2_REGIME_NONE;
 
+// L2 just-engaged window. Set to N ticks when L2 transitions from
+// not-held → held. Decremented each tick in get_hardware_input. While > 0,
+// pressing ✕ fires a tactical action (roll / backflip / forward jump) based
+// purely on stick zone, bypassing the current regime — covers the case where
+// the player is running forward and quickly presses L2 + side stick + ✕
+// expecting a roll. Without this window the regime is forced to FORWARD
+// (because the character was already in STATE_MOVEING + RUNNING), and ✕
+// produces a directional forward jump instead of a roll. ~6 ticks at 20 Hz
+// = ~300 ms — enough to catch a rapid roll input, short enough that holding
+// L2 + side without ✕ produces normal slow-walk behavior.
+static SLONG g_l2_engage_window_ticks = 0;
+
 // File-scope flag: was the player character in STATE_MOVEING + RUNNING/WALKING
 // at the start of the current tick? Updated by apply_button_input (it has
 // p_person access). Read by get_hardware_input regime classification — when L2
@@ -1672,7 +1684,15 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
             }
 
             angle += ca;
-            if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+            // OpenChaos: +1024 offset for backflip too. Backflip enters with
+            // a snap to (stick + cam + 1024) (see ACTION_STANDING_JUMP body,
+            // BACKWARD branch); during the backflip flight player_turn_left_
+            // right_analogue still runs and rotates toward target. Without
+            // the +1024 here, target = stick + cam → 180° away from snap →
+            // capped rotation (TURN_CAP_JUMP=24/tick × ~10 ticks of backflip)
+            // curves the trajectory off the intended direction.
+            if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS
+                || p_thing->SubState == SUB_STATE_STANDING_JUMP_BACKWARDS) {
                 angle += 1024;
             }
             angle = (angle + 2048) & 2047;
@@ -2545,21 +2565,122 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 
                 break;
             case ACTION_STANDING_JUMP:
-                // OpenChaos: auto side-roll / backflip behavior split by input source.
+                // L2 just-engaged window: if ✕ is pressed within ~300 ms of
+                // L2 engaging, classify the tactical action by stick zone
+                // directly (roll / backflip), bypassing the regime. Covers
+                // every "L2 then quickly side / back + ✕" intent regardless
+                // of what the character was doing — standing for ages, mid-
+                // run, running camera-relative-sideways, etc. Without this
+                // window ✕ falls into regime-based logic which is forced to
+                // FORWARD when the character was already in MOVEING +
+                // RUNNING/WALKING → forward jump instead of roll.
+                //
+                // Side detection is PERMISSIVE: any LEFT or RIGHT component
+                // wins, even with diagonal forward/back mixed in. Player who
+                // pressed L2 + side intent gets the roll they want; the
+                // dominant-axis nuance for diagonal back+side belongs to the
+                // explicit ROTATE / BACKWARD regimes, not the rapid-tap
+                // window.
+                if (should_i_jump(p_person) && g_l2_engage_window_ticks > 0) {
+                    const bool has_side = (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) != 0;
+                    const bool has_back = (input & INPUT_MASK_BACKWARDS) != 0;
+                    if (has_side) {
+                        if (input & INPUT_MASK_LEFT)
+                            set_person_flip(p_person, 0);
+                        else
+                            set_person_flip(p_person, 1);
+                        break;
+                    }
+                    if (has_back && should_person_backflip(p_person)) {
+                        // Same snap-and-backflip math as the BACKWARD regime
+                        // branch (see comment there for the convention).
+                        const SLONG dx = GET_JOYX(input);
+                        const SLONG dz = GET_JOYY(input);
+                        SLONG target_angle = Arctan(-dx, dz) + get_camera_angle() + 1024;
+                        target_angle = (target_angle + 2048) & 2047;
+                        p_person->Draw.Tweened->Angle = target_angle;
+                        set_person_standing_jump_backwards(p_person);
+                        break;
+                    }
+                    // For pure-forward, diagonal forward-only, or no-direction:
+                    // fall through to regime-based logic (FORWARD path = snap +
+                    // standing_jump_forwards = directional jump).
+                }
+
+                // Tactical L2 actions take priority — these are explicit chords
+                // (the L2 regime was entered intentionally by the player), so they
+                // override the source-aware fallback path below:
+                //   * L2 ROTATE regime + ✕ → side roll in the held-stick direction.
+                //     ROTATE puts analogue=0 + INPUT_MASK_LEFT/RIGHT set, so the
+                //     legacy D-pad branch below would already pick this up — but
+                //     gating explicitly on l2_regime is clearer and won't break if
+                //     ROTATE's input transformations change.
+                //   * L2 BACKWARD regime + ✕ → backflip. should_person_backflip
+                //     guards against unsafe spots (warehouse roof, no LOS); falls
+                //     back to a vertical jump if blocked.
+                //   * L2 FORWARD regime + ✕ → falls through to the source-aware
+                //     path: running gives ACTION_RUNNING_JUMP (handled separately,
+                //     not here), walking hits the snap-and-jump-forwards branch
+                //     below which already lands in stick direction. So no special
+                //     case needed for FORWARD here.
+                if (should_i_jump(p_person) && l2_regime == L2_REGIME_ROTATE) {
+                    if (input & INPUT_MASK_LEFT)
+                        set_person_flip(p_person, 0);
+                    else if (input & INPUT_MASK_RIGHT)
+                        set_person_flip(p_person, 1);
+                    else
+                        set_person_standing_jump(p_person); // shouldn't reach — ROTATE always has LEFT/RIGHT
+                    break;
+                }
+                if (should_i_jump(p_person) && l2_regime == L2_REGIME_BACKWARD) {
+                    if (should_person_backflip(p_person)) {
+                        // Snap facing so the backflip propels in stick direction.
+                        // `set_person_standing_jump_backwards` doesn't touch Angle
+                        // — it just sets state/anim, and the movement handler at
+                        // SUB_STATE_STANDING_JUMP_BACKWARDS applies Velocity = -32
+                        // via projectile_move_thing.
+                        //
+                        // ⚠ Convention: projectile_move_thing uses
+                        // `dx = (SIN(angle) * Velocity)` (NO negation). With
+                        // Velocity = -32 the character moves in
+                        // (-SIN(angle), -COS(angle)) direction = 180° opposite
+                        // of facing. To move TOWARD stick direction, facing must
+                        // be set 180° AWAY from stick — same as walk_back's
+                        // `+1024` offset trick in player_turn_left_right_analogue
+                        // at line ~1587. Snap formula matches walk_back target
+                        // exactly: `Arctan(-dx, dz) + cam_angle + 1024`.
+                        //
+                        // The same +1024 offset is also applied to the rotation
+                        // target during STANDING_JUMP_BACKWARDS (see that line)
+                        // so player_turn_left_right_analogue's continuous capped
+                        // rotation during the backflip flight aims at the same
+                        // target and doesn't curve the trajectory.
+                        const SLONG dx = GET_JOYX(input);
+                        const SLONG dz = GET_JOYY(input);
+                        SLONG target_angle = Arctan(-dx, dz) + get_camera_angle() + 1024;
+                        target_angle = (target_angle + 2048) & 2047;
+                        p_person->Draw.Tweened->Angle = target_angle;
+                        set_person_standing_jump_backwards(p_person);
+                    } else {
+                        set_person_standing_jump(p_person); // backflip blocked → vertical jump
+                    }
+                    break;
+                }
+
+                // Source-aware fallback (no L2 tactical regime active).
                 //
                 // Analog stick (analogue == 1): light side / back stick taps produced
                 // unwanted rolls / backflips — including right after a climb (player
                 // mashes side + jump while still in pull-up, gets a roll and falls off
                 // the ledge). Stick path now produces only forward-jump (on FORWARDS)
-                // or vertical-jump (anything else). Tactical actions on stick will
-                // return later as explicit L2 chords.
+                // or snap-and-forward (any movement direction).
                 //
                 // D-pad / keyboard arrows (analogue == 0): legacy auto-roll /
                 // auto-backflip on side / back + jump is kept intact until the L2
-                // modifier scheme replaces it across all input sources. The action
-                // priority entries in action_idle / action_standing_jump tables were
-                // removed so all routes (stick and digital) flow through this body
-                // with a single analogue gate.
+                // modifier scheme replaces it across all input sources too. The
+                // action priority entries in action_idle / action_standing_jump
+                // tables were removed so all routes (stick and digital) flow
+                // through this body with a single analogue gate.
                 //
                 // can_jump (should_i_jump): false in warehouse-doorway-like tiles
                 // and right after climb — for stick that means do nothing (avoid
@@ -2615,6 +2736,40 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 if (p_person->SubState == SUB_STATE_RUNNING_SKID_STOP) {
                     p_person->Genus.Person->Flags &= ~FLAG_PERSON_SLIDING;
                     MFX_stop(THING_NUMBER(p_person), S_SLIDE_START);
+                }
+                // L2 just-engaged window: same tactical override as in
+                // ACTION_STANDING_JUMP body. Needed here because when the
+                // character is in SUB_STATE_RUNNING the action_run table
+                // picks ACTION_RUNNING_JUMP (not ACTION_STANDING_JUMP), so
+                // the window-roll override there is never reached. Normally
+                // (non-sprint running) L2 transitions the character to
+                // walking via m_bForceWalk → action_walk → STANDING_JUMP
+                // and the override fires. But during SPRINT (Mode ==
+                // PERSON_MODE_SPRINT) `process_analogue_movement` skips the
+                // running → walking transition, so the character stays in
+                // RUNNING and only this branch sees the ✕. Without this
+                // override, sprint + L2 + side + ✕ produces a running jump
+                // instead of the expected roll.
+                if (should_i_jump(p_person) && g_l2_engage_window_ticks > 0) {
+                    const bool has_side = (input & (INPUT_MASK_LEFT | INPUT_MASK_RIGHT)) != 0;
+                    const bool has_back = (input & INPUT_MASK_BACKWARDS) != 0;
+                    if (has_side) {
+                        if (input & INPUT_MASK_LEFT)
+                            set_person_flip(p_person, 0);
+                        else
+                            set_person_flip(p_person, 1);
+                        break;
+                    }
+                    if (has_back && should_person_backflip(p_person)) {
+                        const SLONG dx = GET_JOYX(input);
+                        const SLONG dz = GET_JOYY(input);
+                        SLONG target_angle = Arctan(-dx, dz) + get_camera_angle() + 1024;
+                        target_angle = (target_angle + 2048) & 2047;
+                        p_person->Draw.Tweened->Angle = target_angle;
+                        set_person_standing_jump_backwards(p_person);
+                        break;
+                    }
+                    // Forward / no direction: fall through to normal running jump.
                 }
                 if (should_i_jump(p_person)) {
                     set_person_running_jump(p_person);
@@ -3490,10 +3645,23 @@ ULONG get_hardware_input(UWORD type)
                     // can read it for walk_back force-keep in BACKWARD regime.
 
                     const SLONG l2_raw = input_trigger_raw(15); // L2 / LT, 0..255
+                    const bool l2_was_engaged = l2_engaged;
                     if (!l2_engaged && l2_raw > 89)        // ~35 % engage
                         l2_engaged = true;
                     else if (l2_engaged && l2_raw < 51)    // ~20 % release
                         l2_engaged = false;
+
+                    // L2-engage window: starts on transition not-held → held,
+                    // ticks down each call. ✕ pressed within the window fires
+                    // tactical actions by stick zone regardless of regime
+                    // (see ACTION_STANDING_JUMP body). Reset on L2 release.
+                    if (!l2_was_engaged && l2_engaged) {
+                        g_l2_engage_window_ticks = 6; // ~300 ms at 20 Hz
+                    } else if (!l2_engaged) {
+                        g_l2_engage_window_ticks = 0;
+                    } else if (g_l2_engage_window_ticks > 0) {
+                        --g_l2_engage_window_ticks;
+                    }
 
                     const SLONG dx_c = axis_x - AXIS_CENTRE;
                     const SLONG dy_c = axis_y - AXIS_CENTRE;
