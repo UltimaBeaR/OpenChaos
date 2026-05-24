@@ -1512,6 +1512,38 @@ SLONG get_joy_angle(ULONG input, UWORD flags)
     return (angle);
 }
 
+// L2 modifier regime — written in get_hardware_input, read by
+// player_turn_left_right_analogue (for walk_back force-keep). See the L2 block
+// in get_hardware_input for full semantics.
+enum {
+    L2_REGIME_NONE = 0,
+    L2_REGIME_FORWARD,
+    L2_REGIME_BACKWARD,
+    L2_REGIME_ROTATE,
+};
+static int l2_regime = L2_REGIME_NONE;
+
+// Post-climb jump suppression counter. Set when pull_up animation ends (in
+// person.cpp), decremented in apply_button_input. While > 0, INPUT_MASK_JUMP
+// is cleared so no jump action fires.
+//
+// Purpose: without this, JUMP pressed during a climb (commonly spammed
+// because player wants to immediately leap off the ledge) would fire as
+// ACTION_STANDING_JUMP the instant pull_up animation ends — character is
+// still facing the climb direction (analog rotation toward stick hasn't
+// caught up yet) and standing-jump direction logic misses for stick
+// deflections below the digital threshold, so the jump goes forward (climb
+// direction) instead of where the player is holding the stick. By delaying
+// JUMP a few ticks the character has time to (a) enter STATE_MOVEING via
+// process_analogue_movement and (b) rotate toward the stick direction. When
+// JUMP unblocks, ACTION_RUNNING_JUMP fires from MOVEING state and jumps in
+// the (now-aligned) facing direction. Held JUMP press just feels slightly
+// delayed; player doesn't perceive a lost input.
+//
+// Exposed via `extern SLONG g_post_climb_jump_block_ticks` from person.cpp
+// (no shared header — minimal touching).
+SLONG g_post_climb_jump_block_ticks = 0;
+
 // uc_orig: player_turn_left_right_analogue (fallen/Source/interfac.cpp)
 // Legacy analog-stick rotation system (used on PSX/DC). On PC, player_turn_left_right() is used instead.
 // Reads GET_JOYX/GET_JOYY from input, computes angle via Arctan(-dx, dz) relative to camera.
@@ -1530,6 +1562,47 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
     }
     if (reduce_turn) {
         --reduce_turn;
+    }
+
+    // L2 BACKWARD regime: explicit walk_back entry/exit.
+    //
+    // Why not use the existing tank-mode entry below (~line 1626): that path
+    // is gated on player_relative=1, where target_angle = stick_angle +
+    // char.Angle. In tank mode the target FOLLOWS the character — the angular
+    // delta between stick and facing stays constant, so the character keeps
+    // rotating tank-style while walking back instead of converging on a fixed
+    // backing direction (the "tanky rotation while backing up" feel).
+    //
+    // With player_relative=0 (camera-relative — used in BACKWARD regime),
+    // target_angle is in world space; character converges after a few ticks
+    // of rotation, then walks at -velocity opposite to facing = into stick
+    // direction. But the camera-relative path doesn't auto-enter walk_back,
+    // so we force-enter here from STATE_IDLE; and force-exit when the regime
+    // changes (stick released / L2 off) so the character doesn't get stuck
+    // in walk_back.
+    if (l2_regime == L2_REGIME_BACKWARD) {
+        // Allow force-entry from both IDLE and MOVEING — STATE_IDLE alone
+        // misses the case where the player releases the stick to neutral,
+        // engages L2, then pushes back before the character has fully
+        // decelerated from a prior run (State still MOVEING). Result was
+        // "L2+back → character walks face-forward toward stick" because
+        // walk_back wasn't entered and camera-relative analog took over.
+        // Exclude only walk_back itself (no-op re-entry) and JUMPING /
+        // climbing / fight / dying states implicitly via the fact that
+        // get_hardware_input is only called when the player has control of
+        // a normal on-foot person.
+        if ((p_thing->State == STATE_IDLE || p_thing->State == STATE_MOVEING)
+            && p_thing->SubState != SUB_STATE_WALKING_BACKWARDS) {
+            set_person_walk_backwards(p_thing);
+            return (0);
+        }
+    } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
+        // Regime no longer BACKWARD → exit walk_back. Safe because under the
+        // current scheme the only entry into walk_back for the player is via
+        // this regime (tank-mode auto-entry is gated on player_relative=1
+        // which is no longer set anywhere).
+        set_person_running(p_thing);
+        return (0);
     }
 
     if (p_thing->State == STATE_SEARCH) {
@@ -1631,7 +1704,14 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
                         }
 
                     } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
-                        if (abs(dangle) > 600) {
+                        // L2 BACKWARD regime: keep character in walk_back even when
+                        // stick angle pulls dangle below the exit threshold.
+                        // Without this gate, rotating the stick from straight back
+                        // toward forward (e.g. full circle) drops |dangle| below
+                        // 600 and the engine switches to forward running mid-back-
+                        // walk — user perceives "stick forward → suddenly walking
+                        // forward" mid-backing.
+                        if (l2_regime != L2_REGIME_BACKWARD && abs(dangle) > 600) {
                             set_person_running(p_thing);
                             return (0);
                         }
@@ -2294,6 +2374,15 @@ void person_enter_fight_mode(Thing* p_person)
 // Returns the bitmask of inputs consumed/processed this frame.
 ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
 {
+    // Post-climb jump suppression — see g_post_climb_jump_block_ticks comment.
+    // Suppress JUMP for a few ticks after climb-up so the buffered jump press
+    // fires from running state (RUNNING_JUMP, facing-aligned) rather than the
+    // standing-jump path immediately on climb-end (still facing climb direction).
+    if (g_post_climb_jump_block_ticks > 0) {
+        input &= ~INPUT_MASK_JUMP;
+        --g_post_climb_jump_block_ticks;
+    }
+
     ULONG input_used = 0;
     ULONG processed = 0;
 
@@ -3227,6 +3316,15 @@ ULONG get_hardware_input(UWORD type)
 
     ULONG input = 0;
 
+    // On-foot modifier flags are re-evaluated from scratch every tick.
+    // L2-held on the gamepad (below) may set m_bForceWalk (in any L2 regime
+    // except NONE). player_relative is currently never set to 1 by anything —
+    // it's reset here to keep the orphan global at a known value. BACKWARD
+    // regime uses player_relative=0 (camera-relative) plus explicit walk_back
+    // entry/exit in player_turn_left_right_analogue, not tank-mode auto-entry.
+    m_bForceWalk = UC_FALSE;
+    player_relative = 0;
+
     static bool bLastInputWasntAnInputCozThereWasNoController = UC_TRUE;
 
     // Deadzone constants for the analogue stick: raw axis 0..65535, centre 32768.
@@ -3291,9 +3389,133 @@ ULONG get_hardware_input(UWORD type)
                     g_dwLastInputChangeTime = dwCurrentTime;
                 }
 
-                // Walk-mode toggle (was R1 hold) removed — partial left-stick
-                // deflection produces walking speed, no dedicated button needed.
-                // m_bForceWalk stays false (its global init).
+                // L2 hold = on-foot tactical modifier (Phase A.0 of the controls
+                // overhaul, see new_game_devlog/controls_overhaul.md).
+                //
+                // Movement under L2 uses a sticky REGIME state machine: the
+                // regime is classified ONCE when the stick exits neutral while
+                // L2 is held, then persists until the stick returns to neutral
+                // (or L2 is released). Sticky behaviour prevents mid-walk
+                // regime flips that broke the walk animation tick advancement
+                // when the stick smoothly crossed the side-zone boundary.
+                //
+                //   REGIME      | Trigger (on stick exit from neutral)
+                //   FORWARD     | any forward component (dy_c < 0)
+                //   BACKWARD    | any back component (dy_c > 0)
+                //   ROTATE      | pure-side zone (|dy| < |dx|/2, ~27° cone)
+                //
+                //   FORWARD     | Camera-relative slow walk. Default
+                //               | player_relative=0, default analog handling.
+                //               | Stick rotation → character rotates and walks
+                //               | in the new direction (same feel as running).
+                //   BACKWARD    | player_relative=0 (camera-relative angle math).
+                //               | Walk_back entry is forced from STATE_IDLE in
+                //               | player_turn_left_right_analogue when l2_regime
+                //               | == L2_REGIME_BACKWARD, bypassing the tank-mode
+                //               | (player_relative=1) dangle threshold. Force-exit
+                //               | when regime leaves BACKWARD. Camera-relative
+                //               | target is fixed in world space so character
+                //               | converges (faces opposite of stick after a few
+                //               | ticks, then backs up into stick direction) —
+                //               | as opposed to tank-mode where target follows
+                //               | char.Angle, producing continuous rotation
+                //               | ("tanky-on-the-move" feel). +1024 walk_back
+                //               | offset at line ~1587 still applies, ensuring
+                //               | backing-direction follows stick. set_person_
+                //               | walk_backwards sets Velocity = -5.
+                //   ROTATE      | analogue=0 routes input through the digital
+                //               | player_turn_left_right handler (same path D-pad
+                //               | LEFT/RIGHT alone uses). The digital handler
+                //               | has a built-in analog branch (line ~1970) that
+                //               | scales rotation rate by GET_JOYX when the packed
+                //               | analog bits 18-31 are non-zero — so we LEAVE
+                //               | those bits intact and get analog rotation speed
+                //               | proportional to stick X deflection automatically.
+                //               | We DO clear stale FWD/BACK/MOVE flags so a
+                //               | slightly-diagonal stick can't trigger walk-back
+                //               | or other transitions while just rotating.
+                //
+                // Zone classification thresholds (1:2 minor/major axis = ±27°
+                // cone, NOISE_TOLERANCE deadzone) are the SAME used in Phase
+                // A.1 for tactical action selection (which action fires when ✕
+                // is pressed: side roll / backflip / forward jump / etc.).
+                // Consistency: a stick angle that gives "rotate in place" here
+                // should also give "side roll" when ✕ is pressed in A.1.
+                //
+                // Hysteresis on the L2 value (engage at ~35%, release at ~20%)
+                // avoids dithering at the threshold. l2_engaged static is
+                // automatically driven down to false when input_trigger_raw
+                // returns 0 (gamepad gone).
+                {
+                    static bool l2_engaged = false;
+                    // l2_regime is a file-scope static (declared near
+                    // player_turn_left_right_analogue) so the analog turn handler
+                    // can read it for walk_back force-keep in BACKWARD regime.
+
+                    const SLONG l2_raw = input_trigger_raw(15); // L2 / LT, 0..255
+                    if (!l2_engaged && l2_raw > 89)        // ~35 % engage
+                        l2_engaged = true;
+                    else if (l2_engaged && l2_raw < 51)    // ~20 % release
+                        l2_engaged = false;
+
+                    const SLONG dx_c = axis_x - AXIS_CENTRE;
+                    const SLONG dy_c = axis_y - AXIS_CENTRE;
+                    const bool dx_past_deadzone = (abs(dx_c) > (SLONG)NOISE_TOLERANCE);
+                    const bool dy_past_deadzone = (abs(dy_c) > (SLONG)NOISE_TOLERANCE);
+                    const bool stick_in_deadzone = !dx_past_deadzone && !dy_past_deadzone;
+
+                    if (!l2_engaged || stick_in_deadzone) {
+                        l2_regime = L2_REGIME_NONE;
+                    } else if (l2_regime == L2_REGIME_NONE) {
+                        // Stick just exited neutral while L2 held → classify
+                        // the initial regime and lock it.
+                        const bool dx_dominates_dy = (abs(dy_c) * 2 < abs(dx_c));
+                        const bool stick_pure_side = dx_past_deadzone && dx_dominates_dy;
+                        if (stick_pure_side)
+                            l2_regime = L2_REGIME_ROTATE;
+                        else if (dy_c < 0)
+                            l2_regime = L2_REGIME_FORWARD;
+                        else
+                            l2_regime = L2_REGIME_BACKWARD;
+                    }
+                    // Else: regime persists from previous tick (sticky).
+
+                    switch (l2_regime) {
+                        case L2_REGIME_NONE:
+                            break;
+                        case L2_REGIME_FORWARD:
+                            m_bForceWalk = UC_TRUE;
+                            // player_relative stays 0 (camera-relative).
+                            break;
+                        case L2_REGIME_BACKWARD:
+                            m_bForceWalk = UC_TRUE;
+                            // player_relative stays 0 (camera-relative). With
+                            // tank-mode (=1), target_angle = stick + char.Angle
+                            // follows the character → continuous rotation while
+                            // walking back ("tanky on the move" feel). Camera-
+                            // relative target is in world space, character
+                            // converges. Walk_back entry/exit handled by
+                            // player_turn_left_right_analogue (force-entry on
+                            // regime active, force-exit on regime change).
+                            break;
+                        case L2_REGIME_ROTATE:
+                            m_bForceWalk = UC_TRUE;
+                            // analogue = 0 routes input through player_turn_left_right
+                            // (digital handler). The digital handler has a built-in
+                            // analog branch at line ~1970 that uses GET_JOYX from the
+                            // packed analog bits when they are non-zero — so we LEAVE
+                            // analog bits 18-31 intact and get an analog rotation rate
+                            // proportional to stick X deflection automatically.
+                            // (Keyboard path will hit the cumulative-turn branch above
+                            // it instead, since keyboard sets analog bits to zero.)
+                            analogue = 0;
+                            // Clear residual movement flags so a slightly-diagonal stick
+                            // doesn't trigger walk-back or other action transitions
+                            // while we just want to rotate.
+                            input &= ~(INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS | INPUT_MASK_MOVE);
+                            break;
+                    }
+                }
 
                 if (input_btn_held(joypad_button_use[JOYPAD_BUTTON_JUMP])) {
                     input |= INPUT_MASK_JUMP;

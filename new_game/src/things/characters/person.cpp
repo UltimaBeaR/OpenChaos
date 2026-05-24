@@ -9264,6 +9264,20 @@ void fn_person_dangling(Thing* p_person)
 
             // This is a subset of set_person_idle (the set_anim stuff is removed).
             set_person_idle(p_person);
+
+            // Post-climb jump suppression: block JUMP for a short window so a
+            // held / spammed jump press doesn't fire ACTION_STANDING_JUMP the
+            // instant pull_up ends (character is still facing the climb
+            // direction and hasn't had time to rotate toward the stick → jump
+            // lands in the wrong direction). After the block expires the
+            // character has typically transitioned to RUNNING via analog stick
+            // input, and the jump fires as a running-jump in the correctly
+            // aligned facing direction. See g_post_climb_jump_block_ticks
+            // comment in input_actions.cpp for details. ~8 ticks = ~0.4s at
+            // 20 Hz physics — enough for analog rotation to catch up but
+            // short enough not to feel like a missed input.
+            extern SLONG g_post_climb_jump_block_ticks;
+            g_post_climb_jump_block_ticks = 8;
         }
         break;
 
