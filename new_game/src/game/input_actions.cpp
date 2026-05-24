@@ -1609,17 +1609,23 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
     // changes (stick released / L2 off) so the character doesn't get stuck
     // in walk_back.
     if (l2_regime == L2_REGIME_BACKWARD) {
-        // Allow force-entry from both IDLE and MOVEING — STATE_IDLE alone
-        // misses the case where the player releases the stick to neutral,
-        // engages L2, then pushes back before the character has fully
-        // decelerated from a prior run (State still MOVEING). Result was
-        // "L2+back → character walks face-forward toward stick" because
-        // walk_back wasn't entered and camera-relative analog took over.
-        // Exclude only walk_back itself (no-op re-entry) and JUMPING /
-        // climbing / fight / dying states implicitly via the fact that
-        // get_hardware_input is only called when the player has control of
-        // a normal on-foot person.
-        if ((p_thing->State == STATE_IDLE || p_thing->State == STATE_MOVEING)
+        // Allow force-entry from any normal locomotion state. STATE_IDLE
+        // alone misses the deceleration window (State still MOVEING when
+        // player engages L2+back fast after a run). STATE_GUN must also be
+        // included — character with a firearm out (pistol / AK / shotgun)
+        // sits in STATE_GUN at rest; without this entry, BACKWARD regime
+        // forces m_bForceWalk + player_relative=0 but walk_back is never
+        // entered, so process_analogue_movement falls through to
+        // set_person_running and the character spins to face the camera
+        // (back-stick in camera-relative analog = "go toward camera") before
+        // actually moving. Matches the keyboard-back handler in
+        // apply_button_input which also includes STATE_GUN as a walk_back
+        // entry point. STATE_HIT_RECOIL covered for symmetry with that
+        // handler's set_person_running default.
+        if ((p_thing->State == STATE_IDLE
+             || p_thing->State == STATE_MOVEING
+             || p_thing->State == STATE_GUN
+             || p_thing->State == STATE_HIT_RECOIL)
             && p_thing->SubState != SUB_STATE_WALKING_BACKWARDS) {
             set_person_walk_backwards(p_thing);
             return (0);
@@ -1809,14 +1815,34 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
 
     if (velocity > ANALOGUE_MIN_VELOCITY) {
         switch (p_thing->State) {
+        case STATE_HUG_WALL:
+            // OpenChaos: side-dominant analog stick stays in the hug and
+            // lets ACTION_HUG_LEFT/RIGHT (from action_hug_wall, fed by
+            // INPUT_MASK_LEFT/RIGHT) step along the wall. Forward/back-
+            // dominant stick breaks out of the hug into normal movement —
+            // matches the D-pad / keyboard behaviour where forward/back
+            // arrows leave the hug and only side arrows step along it.
+            // (Original behaviour broke out on ANY stick input, including
+            // pure side, which made the hug-step impossible on the stick.)
+            //
+            // We call set_person_running directly rather than fall through
+            // to the default path because the case-fallthrough chain below
+            // hits STATE_CARRY which has its own `if (SubState != STAND_CARRY)
+            // return;` gate — hug-wall's SubState is never STAND_CARRY so
+            // that path swallows the input.
+            //
+            // HUG_WALL_TURN sub-state is the turn-into-wall animation; never
+            // interrupt it.
+            if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
+                return;
+            if (abs(dx) > abs(dz))
+                return; // side-dominant → stay in hug, action_hug_wall walks along
+            set_person_running(p_thing); // forward/back-dominant → break out
+            return;
         case STATE_CARRY:
             if (p_thing->SubState != SUB_STATE_STAND_CARRY)
                 return;
         case STATE_IDLE:
-        case STATE_HUG_WALL:
-            if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
-                return;
-
         case STATE_HIT_RECOIL:
         case STATE_GUN:
             switch (p_thing->SubState) {
@@ -3539,10 +3565,16 @@ ULONG get_hardware_input(UWORD type)
                 ULONG ulAxisMax = AXIS_MAX;
                 ULONG ulAxisMin = AXIS_MIN;
 
-                const SLONG axis_x = input_stick_x_axis(INPUT_STICK_LEFT);
-                const SLONG axis_y = input_stick_y_axis(INPUT_STICK_LEFT);
+                // OpenChaos: D-Pad no longer drives on-foot movement. Use the
+                // raw (pre-D-Pad-override) stick axes — D-Pad presses don't
+                // mirror into the stick reading, so the D-Pad alone produces
+                // no character movement here. D-Pad buttons themselves are
+                // still readable via input_btn_held(11..14) for menu nav and
+                // any other consumer that wants them.
+                const SLONG axis_x = input_stick_x_axis_raw(INPUT_STICK_LEFT);
+                const SLONG axis_y = input_stick_y_axis_raw(INPUT_STICK_LEFT);
 
-                if (input_gamepad_connected() && !input_dpad_active()) {
+                if (input_gamepad_connected()) {
                     // Analog stick mode: pack position into bits 18-31.
                     // process_analogue_movement() uses these for proportional speed.
                     // Digital direction flags set only for menus (not movement).
@@ -3557,13 +3589,13 @@ ULONG get_hardware_input(UWORD type)
                         pack_y = AXIS_CENTRE;
                     input |= ((pack_x >> 9) + 0) << 18;
                     input |= ((pack_y >> 9) + 0) << 25;
-
                 } else {
-                    // D-Pad or no gamepad: digital mode (full speed).
+                    // No gamepad: digital mode (full speed). Keyboard branch
+                    // below also sets analogue=0 if movement keys are pressed.
                     analogue = 0;
                 }
 
-                // Always set digital direction flags from axes (needed for menus, D-Pad).
+                // Always set digital direction flags from axes (needed for menus).
                 if (axis_x > (SLONG)ulAxisMax) {
                     g_dwLastInputChangeTime = dwCurrentTime;
                     input |= INPUT_MASK_RIGHT;
