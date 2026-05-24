@@ -164,6 +164,14 @@ float input_trigger(SLONG trigger_idx);
 SLONG input_mouse_x();
 SLONG input_mouse_y();
 
+// Read and reset the accumulated relative mouse-motion delta. Window-
+// pixel units, signed. Call once per tick from the camera (or any other
+// per-frame consumer); subsequent calls within the same tick return 0
+// until the next mouse event fires. Consumers MUST gate this on
+// mouse_capture_is_active() — when capture is off the delta is OS
+// cursor motion, not gameplay input.
+void input_mouse_consume_rel(SLONG* out_dx, SLONG* out_dy);
+
 // ---- Raw axis / trigger / connection accessors -----------------------------
 // Lower-level wrappers around gamepad_state for callers that need integer /
 // byte semantics (bit-packing into Player->Pressed, weapon_feel byte

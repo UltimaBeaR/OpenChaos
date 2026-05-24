@@ -6,8 +6,14 @@
 #include "engine/input/mouse.h"
 #include "engine/graphics/graphics_engine/backend_opengl/postprocess/composition.h"
 
-void mouse_on_move(int x, int y)
+void mouse_on_move(int x, int y, int xrel, int yrel)
 {
+    // Relative deltas are always accumulated — capture / position are
+    // the consumer's concern. The mouse camera reads this when capture
+    // is active, debug mine-spawn etc. ignore it.
+    MouseRelDX += xrel;
+    MouseRelDY += yrel;
+
     int fbo_x = 0, fbo_y = 0;
     if (!composition_window_to_fbo(x, y, &fbo_x, &fbo_y))
         return;

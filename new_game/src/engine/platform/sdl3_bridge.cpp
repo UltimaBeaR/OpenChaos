@@ -746,7 +746,9 @@ bool sdl3_poll_events()
 
         case SDL_EVENT_MOUSE_MOTION:
             if (s_callbacks.on_mouse_move)
-                s_callbacks.on_mouse_move((int)e.motion.x, (int)e.motion.y);
+                s_callbacks.on_mouse_move(
+                    (int)e.motion.x, (int)e.motion.y,
+                    (int)e.motion.xrel, (int)e.motion.yrel);
             break;
 
         case SDL_EVENT_MOUSE_BUTTON_DOWN:

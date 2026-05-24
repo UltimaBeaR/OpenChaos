@@ -489,6 +489,16 @@ SLONG input_mouse_y()
     return MouseY;
 }
 
+void input_mouse_consume_rel(SLONG* out_dx, SLONG* out_dy)
+{
+    if (out_dx)
+        *out_dx = MouseRelDX;
+    if (out_dy)
+        *out_dy = MouseRelDY;
+    MouseRelDX = 0;
+    MouseRelDY = 0;
+}
+
 // ---- InputAutoRepeat --------------------------------------------------------
 
 bool InputAutoRepeat::tick_combined(bool any_just_pressed, bool any_held)

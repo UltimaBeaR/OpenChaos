@@ -12,7 +12,8 @@
 #include "camera/fc_globals.h"
 #include "engine/input/gamepad.h" // gamepad_set_shock
 #include "engine/input/gamepad_globals.h" // active_input_device
-#include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis
+#include "engine/input/input_frame.h" // input_gamepad_connected, input_stick_*_axis, input_mouse_consume_rel
+#include "engine/input/mouse_capture.h" // mouse_capture_is_active
 #include "assets/formats/anim_globals.h" // next_prim_face4 (for ASSERTs)
 #include "navigation/wmove.h" // WMOVE_face for rigid platform inheritance
 
@@ -820,6 +821,80 @@ void FC_process()
             const bool entering_vehicle = fc->focus
                 && fc->focus->Class == CLASS_PERSON
                 && fc->focus->SubState == SUB_STATE_ENTERING_VEHICLE;
+
+            // Mouse-driven orbital camera. Mirrors the right-stick block
+            // below — same orbit-around-focus math, same height-delta
+            // adjustment — but the input is mouse-relative-motion in
+            // window pixels instead of stick deflection. Two differences:
+            //
+            //   1. No TICK_RATIO scaling. Mouse delta is already per-
+            //      tick motion (events accumulate between consumes), so
+            //      the value is naturally frame-rate independent. The
+            //      stick path scales by TICK_RATIO because stick
+            //      deflection is constant — without the scale the rotation
+            //      rate would track the render frame rate.
+            //
+            //   2. Gated on mouse_capture_is_active() — that's the
+            //      single source of truth for "mouse is gameplay input
+            //      right now". Capture engages on click in the window
+            //      during active gameplay; see engine/input/mouse_capture.h.
+            //
+            // TODO (next-agent work):
+            //   - Tune MOUSE_YAW_SCALE / MOUSE_HEIGHT_SCALE by feel.
+            //     Initial values are guesses; they should match the
+            //     feel of a fast stick-flick at typical desktop mouse
+            //     sensitivity (~5-10 px/frame for casual motion,
+            //     ~30-50 for a sharp flick).
+            //   - Sensitivity option in the menu (post-1.0 maybe, or
+            //     part of stage12 controls config).
+            //   - Y-axis inversion option.
+            //   - Mouse-driven aim mode (post-1.0).
+            //   - Per-axis dead zone (probably unnecessary — mice don't
+            //     drift like sticks — but might want a 1-pixel ignore to
+            //     suppress micro-tremor).
+            if (!entering_vehicle && mouse_capture_is_active()) {
+                // Sensitivity constants. mdx/mdy are window-pixel deltas
+                // per tick. rot_speed and height_delta then go into the
+                // same orbital / height math as the stick path. Picked
+                // by analogy with the stick magnitudes (right-stick max
+                // = 0x600 / 0x3100); a casual 5px mouse move maps to
+                // roughly a half-stick deflection.
+                constexpr SLONG MOUSE_YAW_SCALE    = 0x80;  // 128: ~1.5x stick max at 50px/tick
+                constexpr SLONG MOUSE_HEIGHT_SCALE = 0x400; // 1024: ~1.6x stick max at 50px/tick
+
+                SLONG mdx = 0, mdy = 0;
+                input_mouse_consume_rel(&mdx, &mdy);
+
+                if (mdx != 0) {
+                    SLONG rot_speed = mdx * MOUSE_YAW_SCALE;
+
+                    dx = fc->focus_x - fc->want_x >> 3;
+                    dz = fc->focus_z - fc->want_z >> 3;
+
+                    fc->want_x += dz * (rot_speed >> 4) >> 6;
+                    fc->want_z -= dx * (rot_speed >> 4) >> 6;
+
+                    fc->nobehind = 0x2000;
+                    fc->last_manual_cam_turn = (SLONG)GAME_TURN;
+                }
+
+                if (mdy != 0) {
+                    // Mouse up (mdy negative) = raise camera, matching
+                    // the right-stick convention where stick up =
+                    // higher camera. Same min/max clamps.
+                    SLONG height_delta = -mdy * MOUSE_HEIGHT_SCALE;
+                    fc->want_y += height_delta;
+
+                    SLONG min_y = fc->focus_y + 0x2000;
+                    SLONG max_y = fc->focus_y + 0x28000;
+                    if (fc->want_y < min_y)
+                        fc->want_y = min_y;
+                    if (fc->want_y > max_y)
+                        fc->want_y = max_y;
+
+                    fc->nobehind = 0x2000;
+                }
+            }
 
             if (!entering_vehicle && active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
                 SLONG stick_x = input_stick_x_axis(INPUT_STICK_RIGHT) - 32768; // signed, -32768..+32767

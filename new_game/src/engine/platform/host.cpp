@@ -36,9 +36,9 @@ static void on_key_up(uint8_t scancode)
     keyboard_key_up(scancode);
 }
 
-static void on_mouse_move(int x, int y)
+static void on_mouse_move(int x, int y, int xrel, int yrel)
 {
-    mouse_on_move(x, y);
+    mouse_on_move(x, y, xrel, yrel);
 }
 
 static void on_mouse_button(int button, bool down, int /*x*/, int /*y*/)

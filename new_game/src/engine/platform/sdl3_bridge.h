@@ -118,7 +118,11 @@ void sdl3_gl_configure_vsync(bool vsync_enabled);
 struct SDL3_Callbacks {
     void (*on_key_down)(uint8_t scancode); // scancode = game KB_* code
     void (*on_key_up)(uint8_t scancode);
-    void (*on_mouse_move)(int x, int y);
+    // x, y: absolute window-pixel coordinates of the cursor. xrel, yrel:
+    // relative motion delta since the previous event (signed). In SDL3
+    // relative-mouse-mode the absolute coords are pinned but xrel/yrel
+    // keep flowing — that's how the mouse camera reads infinite motion.
+    void (*on_mouse_move)(int x, int y, int xrel, int yrel);
     void (*on_mouse_button)(int button, bool down, int x, int y); // 0=left, 1=right, 2=middle
     void (*on_focus_gained)();
     void (*on_focus_lost)();
