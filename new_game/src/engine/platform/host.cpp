@@ -155,6 +155,12 @@ static void on_window_resize_live()
 
 static void on_close()
 {
+    // Tear down everything immediately. ShellActive=FALSE breaks any
+    // `while (SHELL_ACTIVE)` loop (top-level game(), mission loop,
+    // outro). GAME_STATE=0 kept for legacy paths that branched on it.
+    // Without this, Alt+F4 / window-X used to drop the player back into
+    // the main menu instead of exiting on the first try.
+    ShellActive = UC_FALSE;
     GAME_STATE = 0;
 }
 

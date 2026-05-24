@@ -22,6 +22,12 @@ bool s_currently_applied = false;
 // non-gameplay → gameplay transition that auto-engages capture.
 bool s_was_in_gameplay = false;
 
+// When true, all engage paths are blocked and any active capture is
+// kept released. Used by the video player for the playback duration —
+// videos aren't gameplay even during a cutscene, and a click on the
+// window must not engage the camera path.
+bool s_suppressed = false;
+
 bool is_in_active_gameplay()
 {
     // GS_PLAY_GAME is the bit set while a mission is running. Any overlay
@@ -81,6 +87,12 @@ void apply_capture(bool capture)
 
 void mouse_capture_update()
 {
+    if (s_suppressed) {
+        s_capture_requested = false;
+        apply_capture(false);
+        return;
+    }
+
     const bool now_in_gameplay = is_in_active_gameplay();
     const bool focused = !app_inactive;
     const bool visible = !sdl3_window_is_minimized();
@@ -106,20 +118,11 @@ void mouse_capture_update()
     apply_capture(s_capture_requested);
 }
 
-void mouse_capture_release()
-{
-    s_capture_requested = false;
-    // Reset the gameplay-edge tracker so that returning to gameplay
-    // after the release (e.g. after a cutscene video ends) registers as
-    // a fresh non-gameplay → gameplay transition — that's the path the
-    // auto-engage logic in mouse_capture_update relies on.
-    s_was_in_gameplay = false;
-    apply_capture(false);
-}
-
 bool mouse_capture_on_button(int /*button*/, bool down)
 {
     if (!down)
+        return false;
+    if (s_suppressed)
         return false;
     if (!is_in_active_gameplay())
         return false;
@@ -139,4 +142,14 @@ bool mouse_capture_on_button(int /*button*/, bool down)
 bool mouse_capture_is_active()
 {
     return s_currently_applied;
+}
+
+void mouse_capture_set_suppressed(bool suppressed)
+{
+    s_suppressed = suppressed;
+    if (suppressed) {
+        s_capture_requested = false;
+        s_was_in_gameplay = false;
+        apply_capture(false);
+    }
 }

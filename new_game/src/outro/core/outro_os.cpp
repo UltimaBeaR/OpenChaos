@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "engine/input/gamepad.h"
+#include "engine/platform/host_globals.h" // ShellActive
 #include "engine/platform/sdl3_bridge.h"
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
@@ -125,12 +126,16 @@ void OS_ticks_reset()
 // ========================================================
 
 // Processes Windows messages and maps keyboard/joystick input.
-// Note: the function returns early at OS_CARRY_ON before the message pump —
-// the message pump code below is unreachable dead code from the original.
+// Returns OS_QUIT_GAME on app exit (Alt+F4 / window-X → on_close set
+// ShellActive=FALSE) so MAIN_main bails out of the outro loop on the
+// first try. Returns OS_CARRY_ON otherwise.
 // uc_orig: OS_process_messages (fallen/outro/os.cpp)
 SLONG OS_process_messages()
 {
     SHELL_ACTIVE;
+
+    if (!ShellActive)
+        return OS_QUIT_GAME;
 
     gamepad_poll();
     OS_joy_poll();

@@ -23,13 +23,12 @@
 
 void mouse_capture_update();
 
-// Force-release capture immediately. Used by code paths that bypass
-// mouse_capture_update — notably the video player's secondary event
-// loop, which doesn't pump the regular per-frame update. Without this
-// the internal "currently captured" state would drift away from the
-// SDL relative-mode state, and mouse_capture_is_active() would lie to
-// consumers (camera, shooting).
-void mouse_capture_release();
+// Suppress capture engagement entirely (used by the video player —
+// videos aren't gameplay even if GS_PLAY_GAME stays set during a
+// cutscene, so clicks during a video must not engage the camera-
+// capture path). Setting true also releases any current capture;
+// setting false re-enables the normal engage path.
+void mouse_capture_set_suppressed(bool suppressed);
 
 // Mouse button event hook. Returns true when the click is consumed to
 // engage capture (so the caller should NOT propagate it as gameplay

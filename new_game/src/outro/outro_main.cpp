@@ -9,6 +9,9 @@
 #include "outro/core/outro_os.h"
 #include "outro/core/outro_os_globals.h"
 
+#include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
+#include "engine/input/keyboard.h" // KB_ESC / KB_ENTER / KB_SPACE
+
 // uc_orig: MAIN_main (fallen/outro/outroMain.cpp)
 void MAIN_main()
 {
@@ -53,10 +56,15 @@ void MAIN_main()
     CREDITS_init();
     WIRE_init();
 
-    // Keep "THE END" visible for at least 4 seconds before starting the sequence.
+    // Keep "THE END" visible for at least 4 seconds before starting the
+    // sequence. Pump events while waiting so Alt+F4 / window-close gets
+    // processed — without that, on_close sets ShellActive=FALSE but the
+    // busy-wait kept spinning until the 4s elapsed.
     if (the_end) {
-        while (OS_ticks() < time1 + 4000)
-            ;
+        while (OS_ticks() < time1 + 4000) {
+            if (OS_process_messages() == OS_QUIT_GAME)
+                return;
+        }
     }
 
     OS_ticks_reset();
@@ -69,8 +77,15 @@ void MAIN_main()
             return;
         }
 
-        // Cross/A (button 0) or ESC skips the outro (PS1: Cross only).
-        if (KEY_on[KEY_ESCAPE] || (OS_joy_button_down & (1 << 0))) {
+        // Skip the outro on any of: ESC, Enter, Space, Cross/A (button 0),
+        // Triangle/Y (button 3). (Original PS1 was Cross only; we accept
+        // a wider set so the player can always close the outro with what
+        // their hand is on.)
+        if (input_key_just_pressed(KB_ESC)
+            || input_key_just_pressed(KB_ENTER)
+            || input_key_just_pressed(KB_SPACE)
+            || input_btn_just_pressed(0)
+            || input_btn_just_pressed(3)) {
             return;
         }
 
