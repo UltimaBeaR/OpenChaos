@@ -68,6 +68,21 @@ extern SLONG find_searchable_person(Thing* p_person);
 // uc_orig: ANALOGUE_MIN_VELOCITY (fallen/Source/interfac.cpp)
 #define ANALOGUE_MIN_VELOCITY 8
 
+// OpenChaos: stick "pure axis" cone — the dominant axis must be at least
+// STICK_AXIS_DOMINANCE_RATIO times bigger than the minor axis for the stick
+// to count as "pure" (horizontal or vertical). 2 = ~27° cone around the
+// dominant axis. Used in several places to discriminate intentional axis-
+// dominant input from diagonal mix-ins:
+//   - L2 ROTATE classification (pure-side → ROTATE, else → walk)
+//   - L2 forward↔back zone tracker (PURE_FORWARD / PURE_BACK / SIDE_ISH)
+//   - hug-wall stick handling (pure-side → step along, else → break out)
+//   - dangling stick handling (pure-vertical → pull up / drop, else → side
+//     traverse)
+//
+// The ratio is paired with NOISE_TOLERANCE (8192 raw, defined inside
+// get_hardware_input) for the "stick past deadzone" test.
+#define STICK_AXIS_DOMINANCE_RATIO 2
+
 // uc_orig: INPUT_KEYS (fallen/Source/interfac.cpp)
 #define INPUT_KEYS 0
 // uc_orig: INPUT_JOYPAD (fallen/Source/interfac.cpp)
@@ -1835,9 +1850,12 @@ void process_analogue_movement(Thing* p_thing, SLONG input)
             // interrupt it.
             if (p_thing->SubState == SUB_STATE_HUG_WALL_TURN)
                 return;
-            if (abs(dx) > abs(dz))
-                return; // side-dominant → stay in hug, action_hug_wall walks along
-            set_person_running(p_thing); // forward/back-dominant → break out
+            // Pure-side cone (|dx| > ratio*|dz|, same as L2 ROTATE
+            // classification) → stay in hug. Outside the cone (diagonals,
+            // pure forward, pure back) → break out into running.
+            if (abs(dx) > STICK_AXIS_DOMINANCE_RATIO * abs(dz))
+                return;
+            set_person_running(p_thing); // forward/back/diagonal-dominant → break out
             return;
         case STATE_CARRY:
             if (p_thing->SubState != SUB_STATE_STAND_CARRY)
@@ -2464,6 +2482,36 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
     if (g_post_climb_jump_block_ticks > 0) {
         input &= ~INPUT_MASK_JUMP;
         --g_post_climb_jump_block_ticks;
+    }
+
+    // Dangling pre-filter: when the character is hanging on a ledge before a
+    // climb-up, action_dangling priority is { PULL_UP on FWD, DROP on BACK,
+    // TRAVERSE_LEFT, TRAVERSE_RIGHT }. With raw INPUT_MASK_* from the stick
+    // any slight forward tilt sets FORWARDS → PULL_UP wins and the player
+    // can't side-traverse when they want to. Filter the input here to a
+    // single dominant axis using the L2 pure-axis cone
+    // (STICK_AXIS_DOMINANCE_RATIO):
+    //
+    //   stick pure-vertical (|dy| > ratio*|dx|) → keep FWD/BACK, clear LEFT/RIGHT
+    //   else (diagonal or pure-side past deadzone) → keep LEFT/RIGHT, clear FWD/BACK/MOVE
+    //
+    // Gated on stick being past the deadzone so keyboard input still flows
+    // through unchanged (when stick is centred, dx_c/dy_c are ~0 and the
+    // dominance check would mis-classify centred-stick as side-ish).
+    if (p_person->State == STATE_DANGLING && input_gamepad_connected()) {
+        const SLONG axis_x = input_stick_x_axis_raw(INPUT_STICK_LEFT);
+        const SLONG axis_y = input_stick_y_axis_raw(INPUT_STICK_LEFT);
+        const SLONG dx_c = axis_x - 32768;
+        const SLONG dy_c = axis_y - 32768;
+        const bool stick_active = (abs(dx_c) > 8192) || (abs(dy_c) > 8192);
+        if (stick_active) {
+            const bool dy_dominates_dx = abs(dy_c) > STICK_AXIS_DOMINANCE_RATIO * abs(dx_c);
+            if (dy_dominates_dx) {
+                input &= ~(INPUT_MASK_LEFT | INPUT_MASK_RIGHT);
+            } else {
+                input &= ~(INPUT_MASK_FORWARDS | INPUT_MASK_BACKWARDS | INPUT_MASK_MOVE);
+            }
+        }
     }
 
     ULONG input_used = 0;
@@ -3676,6 +3724,29 @@ ULONG get_hardware_input(UWORD type)
                     // player_turn_left_right_analogue) so the analog turn handler
                     // can read it for walk_back force-keep in BACKWARD regime.
 
+                    // Tracks the last non-neutral stick zone — used for sharp
+                    // FORWARD ↔ BACKWARD re-classification. If the new zone
+                    // is PURE_BACK and the previous non-neutral zone was
+                    // PURE_FORWARD (or vice versa), the player went direct
+                    // forward → back without rolling through the side, so we
+                    // re-classify the regime. Rolling through the side zone
+                    // updates the previous zone to SIDE_ISH first, so the
+                    // later forward → back doesn't trigger re-classification.
+                    //
+                    // This zone-based approach is more robust than single-
+                    // tick sign-flip detection: at 20 Hz physics a stick
+                    // slam can take 1-3 ticks and may briefly drop into the
+                    // deadzone in transit. The "last non-neutral zone" is
+                    // preserved across deadzone ticks until the stick reaches
+                    // a new zone.
+                    enum {
+                        STICK_ZONE_NEUTRAL = 0,
+                        STICK_ZONE_PURE_FORWARD,
+                        STICK_ZONE_PURE_BACK,
+                        STICK_ZONE_SIDE_ISH,
+                    };
+                    static int prev_stick_zone = STICK_ZONE_NEUTRAL;
+
                     const SLONG l2_raw = input_trigger_raw(15); // L2 / LT, 0..255
                     const bool l2_was_engaged = l2_engaged;
                     if (!l2_engaged && l2_raw > 89)        // ~35 % engage
@@ -3701,7 +3772,7 @@ ULONG get_hardware_input(UWORD type)
                     const bool dy_past_deadzone = (abs(dy_c) > (SLONG)NOISE_TOLERANCE);
                     const bool stick_in_deadzone = !dx_past_deadzone && !dy_past_deadzone;
 
-                    const bool dx_dominates_dy = (abs(dy_c) * 2 < abs(dx_c));
+                    const bool dx_dominates_dy = (abs(dy_c) * STICK_AXIS_DOMINANCE_RATIO < abs(dx_c));
                     const bool stick_pure_side = dx_past_deadzone && dx_dominates_dy;
 
                     if (!l2_engaged || stick_in_deadzone) {
@@ -3737,11 +3808,47 @@ ULONG get_hardware_input(UWORD type)
                         // "commit to backward walk" semantics of starting
                         // BACKWARD from idle. To intentionally enter BACKWARD,
                         // the player can release the stick to neutral first.
-                        // FORWARD and BACKWARD themselves remain sticky (no
-                        // re-classification once entered).
                         l2_regime = L2_REGIME_FORWARD;
                     }
-                    // Else: regime persists from previous tick (sticky).
+                    // Sharp FORWARD ↔ BACKWARD re-classification via stick
+                    // zone tracking (see prev_stick_zone comment above).
+                    // Pure-forward / pure-back cone: |dy| > 2*|dx| (~27° from
+                    // vertical). Anything else past the deadzone is SIDE_ISH
+                    // (pure side, or any diagonal where dx and dy are
+                    // comparable). Rolling the stick from forward to back
+                    // always passes through SIDE_ISH (the diagonals), so the
+                    // previous-zone marker updates to SIDE_ISH before the
+                    // stick reaches the back zone → no re-classification.
+                    // A direct slam goes from PURE_FORWARD to PURE_BACK
+                    // without an intervening SIDE_ISH tick (transit through
+                    // the deadzone doesn't reset prev_stick_zone).
+                    int cur_stick_zone;
+                    if (stick_in_deadzone) {
+                        cur_stick_zone = STICK_ZONE_NEUTRAL;
+                    } else {
+                        const bool dy_dominates_dx = abs(dy_c) > STICK_AXIS_DOMINANCE_RATIO * abs(dx_c);
+                        if (dy_dominates_dx && dy_c < 0)
+                            cur_stick_zone = STICK_ZONE_PURE_FORWARD;
+                        else if (dy_dominates_dx && dy_c > 0)
+                            cur_stick_zone = STICK_ZONE_PURE_BACK;
+                        else
+                            cur_stick_zone = STICK_ZONE_SIDE_ISH;
+                    }
+                    if (l2_regime == L2_REGIME_FORWARD
+                        && cur_stick_zone == STICK_ZONE_PURE_BACK
+                        && prev_stick_zone == STICK_ZONE_PURE_FORWARD) {
+                        l2_regime = L2_REGIME_BACKWARD;
+                    } else if (l2_regime == L2_REGIME_BACKWARD
+                        && cur_stick_zone == STICK_ZONE_PURE_FORWARD
+                        && prev_stick_zone == STICK_ZONE_PURE_BACK) {
+                        l2_regime = L2_REGIME_FORWARD;
+                    }
+                    // Update prev_stick_zone only if current is non-neutral.
+                    // Neutral ticks (deadzone transit) don't overwrite the
+                    // previous direction.
+                    if (cur_stick_zone != STICK_ZONE_NEUTRAL) {
+                        prev_stick_zone = cur_stick_zone;
+                    }
 
                     switch (l2_regime) {
                         case L2_REGIME_NONE:
