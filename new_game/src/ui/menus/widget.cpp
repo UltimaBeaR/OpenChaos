@@ -7,8 +7,6 @@
 #include "engine/input/input_frame.h"
 #include "engine/graphics/pipeline/polypage.h" // PolyPage::UIModeScope
 #include "game/input_actions.h"
-#include "engine/graphics/graphics_engine/game_graphics_engine.h"
-#include "engine/platform/sdl3_bridge.h"
 
 // Sound-to-wave ID mapping for widget events. Uses S_MENU_START/S_MENU_END from sound_id.h.
 // uc_orig: _WS_MOVE (fallen/Source/widget.cpp)
@@ -79,7 +77,6 @@ SLONG FORM_Process(Form* form)
 {
     CBYTE key;
     Widget* lastfocus;
-    static int lastx = 0, lasty = 0;
     static int input = 0, lastinput = 0;
     static int ticker = 0;
 
@@ -215,33 +212,6 @@ SLONG FORM_Process(Form* form)
                 form->proc(form, 0, WFN_FOCUS);
             if (input_last_key() && form->proc && !EatenKey)
                 form->proc(form, 0, WFN_CHAR);
-        }
-    } else {
-        SLONG res;
-        int ptx, pty;
-        sdl3_get_global_mouse_pos(&ptx, &pty);
-        if (!ge_is_fullscreen()) {
-            int wx, wy;
-            sdl3_window_get_position(&wx, &wy);
-            ptx -= wx;
-            pty -= wy;
-        }
-        if ((ptx != lastx) || (pty != lasty)) {
-            lastx = ptx;
-            lasty = pty;
-            Widget* scan = FORM_GetWidgetFromPoint(form, TO_WIDGETPNT(lastx, lasty));
-            if (scan && (scan != form->focus)) {
-                if (form->focus && form->focus->methods->Char)
-                    form->focus->methods->Char(form->focus, 27);
-                FORM_Focus(form, scan, 0);
-            }
-        }
-        if (input_mouse_button_held(0)) {
-            Widget* scan = FORM_GetWidgetFromPoint(form, TO_WIDGETPNT(lastx, lasty));
-            if (scan && scan->methods->Push)
-                scan->methods->Push(scan);
-            else if (scan && scan->methods->Char)
-                scan->methods->Char(scan, 13);
         }
     }
 

@@ -1816,13 +1816,6 @@ void process_controls(void)
         combat_test_cycle_armament();
     combat_test_update();
 
-    if (input_mouse_active()) {
-        //
-        // put the mouse in the center of the screen so we can always get a mousedx,mousedy
-        //
-        RecenterMouse();
-    }
-
     if (input_key_just_pressed(KB_F3)) {
         void save_whole_game(CBYTE * gamename);
         void load_whole_game(CBYTE * gamename);

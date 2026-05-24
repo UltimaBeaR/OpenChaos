@@ -15,10 +15,6 @@ bool g_bPunishMePleaseICheatedOnThisLevel = UC_FALSE;
 // uc_orig: input_mode (fallen/Source/interfac.cpp)
 SLONG input_mode = 0;
 
-// uc_orig: mouse_input (fallen/Source/interfac.cpp)
-// Set to 1 when mouse input is active (PC only).
-SLONG mouse_input = 0;
-
 // uc_orig: analogue (fallen/Source/interfac.cpp)
 // Analog stick mode: smooth movement speed based on stick deflection.
 // Dynamically set to 1 when gamepad is active, 0 for keyboard.

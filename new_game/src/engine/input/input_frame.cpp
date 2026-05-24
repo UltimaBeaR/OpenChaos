@@ -3,10 +3,8 @@
 #include "engine/input/input_frame.h"
 #include "engine/input/gamepad_globals.h"
 #include "engine/input/gamepad.h" // gamepad_poll
-#include "engine/input/mouse_globals.h" // mouse state for input_mouse_*
+#include "engine/input/mouse_globals.h" // MouseX/MouseY for input_mouse_x/y
 #include "engine/platform/sdl3_bridge.h" // sdl3_get_ticks for auto-repeat
-
-extern SLONG mouse_input; // input_actions_globals: legacy mouse-active gate
 
 #include <string.h>
 
@@ -481,21 +479,6 @@ int input_trigger_raw(SLONG trigger_idx)
 
 // ---- Mouse ------------------------------------------------------------------
 
-bool input_mouse_active()
-{
-    return mouse_input != 0;
-}
-
-SLONG input_mouse_dx()
-{
-    return MouseDX;
-}
-
-SLONG input_mouse_dy()
-{
-    return MouseDY;
-}
-
 SLONG input_mouse_x()
 {
     return MouseX;
@@ -504,16 +487,6 @@ SLONG input_mouse_x()
 SLONG input_mouse_y()
 {
     return MouseY;
-}
-
-bool input_mouse_button_held(SLONG btn_idx)
-{
-    switch (btn_idx) {
-    case 0: return LeftButton != 0;
-    case 1: return RightButton != 0;
-    case 2: return MiddleButton != 0;
-    default: return false;
-    }
 }
 
 // ---- InputAutoRepeat --------------------------------------------------------

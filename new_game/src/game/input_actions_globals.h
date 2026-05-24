@@ -14,8 +14,6 @@ extern UBYTE cheat;
 extern bool g_bPunishMePleaseICheatedOnThisLevel;
 // uc_orig: input_mode (fallen/Source/interfac.cpp)
 extern SLONG input_mode;
-// uc_orig: mouse_input (fallen/Source/interfac.cpp)
-extern SLONG mouse_input;
 // uc_orig: analogue (fallen/Source/interfac.cpp)
 extern SLONG analogue;
 // uc_orig: g_bEngineVibrations (fallen/Source/interfac.cpp)

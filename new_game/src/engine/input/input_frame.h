@@ -157,23 +157,12 @@ float input_stick_y(InputStickId stick);
 float input_trigger(SLONG trigger_idx);
 
 // ---- Mouse ------------------------------------------------------------------
-// Wrappers around the mouse_globals state (MouseDX/MouseDY/LeftButton/etc.)
-// filled by mouse.cpp from SDL3 events. Single source of truth for mouse
-// reads in game/UI code so consumers don't touch mouse_globals directly.
-//
-// mouse-input flag (input_mouse_active): legacy `mouse_input` global —
-// non-zero when the mouse is the active input source for character look /
-// movement (toggled by config). Consumer-side gate; mouse_globals always
-// receives events regardless of this flag.
+// Wrappers around mouse_globals (cursor position) filled by mouse.cpp from
+// SDL3 events. Single source of truth for mouse reads.
 
-bool input_mouse_active();
-SLONG input_mouse_dx();
-SLONG input_mouse_dy();
 // Cursor position in scene-FBO pixel coordinates (post-composition mapping).
 SLONG input_mouse_x();
 SLONG input_mouse_y();
-// btn_idx: 0 = left, 1 = right, 2 = middle (matches mouse_on_button order).
-bool input_mouse_button_held(SLONG btn_idx);
 
 // ---- Raw axis / trigger / connection accessors -----------------------------
 // Lower-level wrappers around gamepad_state for callers that need integer /

@@ -3,11 +3,9 @@
 
 #include "engine/input/mouse_globals.h"
 
-// uc_orig: RecenterMouse (fallen/DDLibrary/Source/GMouse.cpp)
-void RecenterMouse(void);
-
-// Direct input callbacks (called from SDL3 event loop).
+// SDL3 mouse-motion event entry point. (x, y) are real client-area
+// pixels — composition_window_to_fbo() maps them to MouseX/MouseY in
+// scene-FBO coordinates.
 void mouse_on_move(int x, int y);
-void mouse_on_button(int button, bool down, int x, int y);
 
 #endif // ENGINE_INPUT_MOUSE_H

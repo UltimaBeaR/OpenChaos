@@ -2918,7 +2918,7 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
             }
         }
     }
-    if ((input & INPUT_MOVEMENT_MASK) || (input_mouse_active() && input_mouse_dx())) {
+    if (input & INPUT_MOVEMENT_MASK) {
         if (!(p_person->Genus.Person->Flags & FLAG_PERSON_NON_INT_M)) {
             switch (p_person->State) {
             case STATE_HIT_RECOIL:
@@ -4285,17 +4285,6 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
 
             look_pitch >>= 4;
             look_pitch &= 2047;
-        }
-
-        if (input_mouse_active()) {
-            const SLONG mdy = input_mouse_dy();
-            const SLONG mdx = input_mouse_dx();
-            if (mdy) {
-                look_pitch -= mdy;
-            }
-            if (mdx) {
-                p_person->Draw.Tweened->Angle = (p_person->Draw.Tweened->Angle - mdx) & 2047;
-            }
         }
 
         // Aim-mode look is now driven by the RIGHT stick (gamepad) and the

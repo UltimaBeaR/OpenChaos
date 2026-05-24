@@ -40,11 +40,6 @@ static void on_mouse_move(int x, int y)
     mouse_on_move(x, y);
 }
 
-static void on_mouse_button(int button, bool down, int x, int y)
-{
-    mouse_on_button(button, down, x, y);
-}
-
 static void on_focus_gained()
 {
     app_inactive = UC_FALSE;
@@ -177,7 +172,6 @@ BOOL SetupHost(ULONG flags)
     cb.on_key_down = on_key_down;
     cb.on_key_up = on_key_up;
     cb.on_mouse_move = on_mouse_move;
-    cb.on_mouse_button = on_mouse_button;
     cb.on_focus_gained = on_focus_gained;
     cb.on_focus_lost = on_focus_lost;
     cb.on_window_moved = on_window_moved;
