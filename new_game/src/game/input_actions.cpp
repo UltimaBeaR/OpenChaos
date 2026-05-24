@@ -4190,12 +4190,29 @@ ULONG apply_button_input_first_person(Thing* p_player, Thing* p_person, ULONG in
             constexpr SLONG STICK_PITCH_MAX = 13; // per-frame pitch step at full deflection
             constexpr SLONG STICK_YAW_MAX = 32; // per-frame angle delta at full deflection
 
-            // Right stick — gamepad. Only consume it while a controller is
-            // the active input device, so a stuck/idle stick on a connected
-            // controller doesn't fight keyboard input.
+            // Gamepad sticks — both LEFT and RIGHT drive yaw + pitch in aim
+            // mode. Right stick takes priority per-axis: if the right stick
+            // is past the deadzone on a given axis we use the right axis,
+            // otherwise we fall back to the left axis. This way deflecting
+            // both sticks doesn't sum their rates — only the dominant input
+            // is applied. (Per-axis pick rather than per-stick so the player
+            // can e.g. yaw with one stick and pitch with the other if they
+            // want.) Left stick is also still used for movement via
+            // INPUT_MASK_MOVE — these coexist: left stick LEFT both rotates
+            // AND moves the character.
+            //
+            // Only consume sticks while a controller is the active input
+            // device, so an idle stick on a connected controller doesn't
+            // fight keyboard input. Left stick uses _raw to skip the D-Pad
+            // override (D-Pad doesn't drive on-foot movement in OpenChaos).
             if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE && input_gamepad_connected()) {
-                SLONG sx = (SLONG)input_stick_x_axis(INPUT_STICK_RIGHT) - 32768;
-                SLONG sy = (SLONG)input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                const SLONG sx_r = (SLONG)input_stick_x_axis(INPUT_STICK_RIGHT) - 32768;
+                const SLONG sy_r = (SLONG)input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                const SLONG sx_l = (SLONG)input_stick_x_axis_raw(INPUT_STICK_LEFT) - 32768;
+                const SLONG sy_l = (SLONG)input_stick_y_axis_raw(INPUT_STICK_LEFT) - 32768;
+
+                const SLONG sx = (abs(sx_r) > STICK_DEAD) ? sx_r : sx_l;
+                const SLONG sy = (abs(sy_r) > STICK_DEAD) ? sy_r : sy_l;
 
                 if (abs(sy) > STICK_DEAD) {
                     // sy > 0 (stick down) → look UP   (look_pitch += step)
