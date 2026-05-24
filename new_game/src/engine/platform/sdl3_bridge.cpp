@@ -9,6 +9,7 @@
 
 #ifdef _WIN32
 #include <dwmapi.h>
+#include <windows.h>
 #endif
 
 // ===========================================================================
@@ -244,6 +245,33 @@ bool sdl3_window_is_maximized()
     return (SDL_GetWindowFlags(s_window) & SDL_WINDOW_MAXIMIZED) != 0;
 }
 
+bool sdl3_window_is_minimized()
+{
+    if (!s_window)
+        return true;
+    const Uint32 flags = SDL_GetWindowFlags(s_window);
+    return (flags & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_HIDDEN)) != 0;
+}
+
+bool sdl3_window_has_focus()
+{
+    if (!s_window)
+        return false;
+#ifdef _WIN32
+    // SDL_WINDOW_INPUT_FOCUS has been observed to lag the actual OS focus
+    // state in fullscreen-desktop mode on Windows 11 (Win-key press, Start
+    // menu over the game) — the SDL flag stayed set despite the shell
+    // having stolen focus. GetForegroundWindow is authoritative.
+    SDL_PropertiesID props = SDL_GetWindowProperties(s_window);
+    HWND hwnd = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    if (!hwnd)
+        return false;
+    return GetForegroundWindow() == hwnd;
+#else
+    return (SDL_GetWindowFlags(s_window) & SDL_WINDOW_INPUT_FOCUS) != 0;
+#endif
+}
+
 void sdl3_window_maximize()
 {
     if (s_window)
@@ -267,12 +295,42 @@ void sdl3_get_global_mouse_pos(int* x, int* y)
 
 void sdl3_show_cursor()
 {
+    // Explicitly set the default arrow cursor before calling ShowCursor.
+    // SDL3 (and its predecessors) can leave the window-class cursor in a
+    // NULL state after a relative-mouse-mode toggle — once that happens
+    // every WM_SETCURSOR landing on our window hides the pointer on hover
+    // despite the global SDL_ShowCursor flag being set. Re-binding to the
+    // default cursor here restores per-window visibility.
+    SDL_Cursor* def = SDL_GetDefaultCursor();
+    if (def)
+        SDL_SetCursor(def);
     SDL_ShowCursor();
+
+#ifdef _WIN32
+    // Defensive: directly reset the Win32 window-class cursor too. SDL3's
+    // SetCursor / ShowCursor flags don't always reach the GCLP_HCURSOR
+    // slot that Windows consults on each WM_SETCURSOR — observed as
+    // cursor-disappears-on-hover over an unfocused window after the
+    // capture had been on. Re-binding IDC_ARROW guarantees the on-hover
+    // pointer is visible.
+    if (s_window) {
+        SDL_PropertiesID props = SDL_GetWindowProperties(s_window);
+        HWND hwnd = (HWND)SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+        if (hwnd)
+            SetClassLongPtrW(hwnd, GCLP_HCURSOR, (LONG_PTR)LoadCursor(nullptr, IDC_ARROW));
+    }
+#endif
 }
 
 void sdl3_hide_cursor()
 {
     SDL_HideCursor();
+}
+
+void sdl3_set_relative_mouse_mode(bool enabled)
+{
+    if (s_window)
+        SDL_SetWindowRelativeMouseMode(s_window, enabled);
 }
 
 // ===========================================================================

@@ -30,4 +30,14 @@ BOOL LibShellActive(void);
 // is pending.
 void host_process_pending_resize(void);
 
+// Single source of truth for "the window's OS focus state changed".
+// Updates app_inactive and the OS cursor visibility (the latter only
+// in fullscreen — windowed mode lets the cursor stay visible at the
+// desktop level). Mouse capture release on focus loss is handled
+// separately via mouse_capture_update reading app_inactive. Called
+// from the SDL3 focus-event callbacks AND from any secondary event
+// loop that bypasses LibShellActive (video player) — both must route
+// focus transitions here so the cursor stays consistent.
+void host_on_focus_changed(bool focused);
+
 #endif // ENGINE_PLATFORM_HOST_H

@@ -12,6 +12,7 @@
 #include "engine/platform/ds_bridge.h"
 #include "engine/input/keyboard.h" // keyboard_key_down/up — dispatch SDL key events into the regular input pipeline
 #include "engine/input/input_frame.h" // input_key_just_pressed / input_btn_just_pressed
+#include "engine/input/mouse_capture.h" // mouse_capture_release
 #include "game/game_globals.h" // RENDER_FPS_DEFAULT_CAP, g_render_fps_cap
 #include <SDL3/SDL.h>
 
@@ -179,6 +180,13 @@ static void audio_destroy(AudioStream* a)
 
 bool video_play(const char* filename, bool allow_skip)
 {
+    // Videos aren't gameplay — release mouse capture for the playback's
+    // duration. Goes through the capture module (not SDL directly) so
+    // the module's internal state stays in sync with the actual SDL
+    // relative-mode state. Cursor visibility continues to follow OS
+    // focus state via the polling block in the video loop below.
+    mouse_capture_release();
+
     // Open file
     AVFormatContext* fmt_ctx = nullptr;
     if (avformat_open_input(&fmt_ctx, filename, nullptr, nullptr) < 0) {
@@ -294,7 +302,6 @@ bool video_play(const char* filename, bool allow_skip)
         // so input_frame snapshot stays consistent. Skip checks then read
         // through input_*_just_pressed instead of switching on raw SDL events.
         {
-            bool mouse_skip = false;
             SDL_Event ev;
             while (SDL_PollEvent(&ev)) {
                 if (ev.type == SDL_EVENT_QUIT) {
@@ -309,10 +316,24 @@ bool video_play(const char* filename, bool allow_skip)
                     uint8_t sc = sdl3_to_game_scancode((int)ev.key.scancode);
                     if (sc) keyboard_key_up(sc);
                 }
-                // Mouse buttons aren't yet in input_frame — keep raw SDL
-                // event check until input_frame grows mouse-button support.
-                if (allow_skip && ev.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                    mouse_skip = true;
+            }
+
+            // Cursor visibility / app_inactive polled from the live
+            // OS focus flag each frame rather than driven by SDL focus
+            // events. In fullscreen click-to-refocus during playback,
+            // SDL was observed to need multiple clicks before a clean
+            // FOCUS_GAINED edge actually fired through — polling the
+            // flag side-steps that, the cursor hides on the first
+            // re-focus regardless of which (or how many) events SDL
+            // dispatched. host_on_focus_changed is idempotent: it does
+            // the right Hide/Show even when called repeatedly with the
+            // same focus state.
+            {
+                static bool s_last_focused = true;
+                const bool focused_now = sdl3_window_has_focus();
+                if (focused_now != s_last_focused) {
+                    host_on_focus_changed(focused_now);
+                    s_last_focused = focused_now;
                 }
             }
 
@@ -342,7 +363,6 @@ bool video_play(const char* filename, bool allow_skip)
                         }
                     }
                 }
-                if (mouse_skip) done = true;
             }
             if (done)
                 break;

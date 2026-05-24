@@ -2,10 +2,11 @@
 #include "engine/platform/host_globals.h"
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/io/oc_config.h"
-#include "engine/platform/wind_procs_globals.h" // app_inactive, restore_surfaces
+#include "engine/platform/wind_procs_globals.h" // app_inactive
 #include "engine/graphics/graphics_engine/game_graphics_engine.h"
 #include "engine/input/keyboard.h"
 #include "engine/input/mouse.h"
+#include "engine/input/mouse_capture.h"
 #include "engine/input/input_frame.h"
 
 #include <stdio.h>
@@ -40,26 +41,46 @@ static void on_mouse_move(int x, int y)
     mouse_on_move(x, y);
 }
 
+static void on_mouse_button(int button, bool down, int /*x*/, int /*y*/)
+{
+    // Capture state machine consumes the engagement click. Any click
+    // beyond that is left untouched here — gameplay-side consumers
+    // (camera, shooting) will read mouse buttons via their own path and
+    // are required to gate on mouse_capture_is_active().
+    if (mouse_capture_on_button(button, down))
+        return;
+}
+
+void host_on_focus_changed(bool focused)
+{
+    if (focused) {
+        app_inactive = UC_FALSE;
+        // In fullscreen there's no reason for the OS cursor to be
+        // visible — the game covers the entire screen. In windowed
+        // mode the cursor stays visible by default so the user can
+        // interact with the title bar / desktop without alt-tabbing.
+        // (Capture for camera control toggles SDL relative mouse mode
+        // independently — that hides the cursor regardless of this
+        // setting.)
+        if (ge_is_fullscreen())
+            sdl3_hide_cursor();
+    } else {
+        app_inactive = UC_TRUE;
+        // Show the cursor while focus is elsewhere so the user can
+        // interact with whatever they alt-tabbed into.
+        if (ge_is_fullscreen())
+            sdl3_show_cursor();
+    }
+}
+
 static void on_focus_gained()
 {
-    app_inactive = UC_FALSE;
-    restore_surfaces = UC_TRUE;
-
-    // Re-hide the cursor when returning from alt-tab etc. SDL is supposed
-    // to persist the hidden state across focus changes, but being explicit
-    // here avoids driver/platform quirks.
-    if (ge_is_fullscreen())
-        sdl3_hide_cursor();
+    host_on_focus_changed(true);
 }
 
 static void on_focus_lost()
 {
-    app_inactive = UC_TRUE;
-
-    // Show the cursor while focus is elsewhere so the user can interact
-    // with whatever they alt-tabbed into, even if our window overlaps it.
-    if (ge_is_fullscreen())
-        sdl3_show_cursor();
+    host_on_focus_changed(false);
 }
 
 static void on_window_moved()
@@ -172,6 +193,7 @@ BOOL SetupHost(ULONG flags)
     cb.on_key_down = on_key_down;
     cb.on_key_up = on_key_up;
     cb.on_mouse_move = on_mouse_move;
+    cb.on_mouse_button = on_mouse_button;
     cb.on_focus_gained = on_focus_gained;
     cb.on_focus_lost = on_focus_lost;
     cb.on_window_moved = on_window_moved;
@@ -213,26 +235,39 @@ BOOL LibShellActive(void)
         ShellActive = UC_FALSE;
     }
 
+    // Authoritative focus polling. SDL3 focus events in fullscreen-desktop
+    // on Windows 11 have been observed to lag the OS state (Win-key press
+    // didn't deliver FOCUS_LOST cleanly; click-to-refocus took multiple
+    // attempts before FOCUS_GAINED fired). sdl3_window_has_focus reads
+    // GetForegroundWindow directly on Windows — same edge-detection here
+    // as in the video player's secondary loop. SDL event-driven path
+    // (on_focus_gained / on_focus_lost) stays as a no-cost redundancy:
+    // host_on_focus_changed is idempotent on identical state.
+    {
+        static bool s_last_focused = true;
+        const bool focused_now = sdl3_window_has_focus();
+        if (focused_now != s_last_focused) {
+            host_on_focus_changed(focused_now);
+            s_last_focused = focused_now;
+        }
+    }
+
     // After pumping events, apply any debounced window resize. Running this
     // here — at the top of the frame, before game logic / rendering begins —
     // guarantees the scene FBO is not destroyed mid-frame (see Risk #2 in
     // new_game_devlog/fullscreen_transition/runtime_window_resize_plan.md).
     host_process_pending_resize();
 
-    if (restore_surfaces) {
-        ge_restore_all_surfaces();
-
-        extern void FRONTEND_restore_screenfull_surfaces(void);
-        FRONTEND_restore_screenfull_surfaces();
-
-        restore_surfaces = UC_FALSE;
-    }
-
     // Per-frame input aggregator: snapshot keyboard + gamepad after SDL events
     // pumped, compute edges. All consumers (game / menu / frontend / debug)
     // can read unified state via input_key_*/input_btn_*. Sticky press_pending
     // for keyboard is set inline in keyboard_key_down → input_frame_on_key_down.
     input_frame_update();
+
+    // Apply mouse-capture state for the upcoming frame. One-frame lag after
+    // game-state transitions (pause/resume, mission end) is fine: cursor
+    // re-appears next frame, imperceptible to the user.
+    mouse_capture_update();
 
     return ShellActive;
 }

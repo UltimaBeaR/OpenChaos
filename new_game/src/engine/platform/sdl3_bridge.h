@@ -42,6 +42,17 @@ void* sdl3_window_get_native_handle();
 // Returns true if the window is currently maximized.
 bool sdl3_window_is_maximized();
 
+// Returns true if the window is currently minimized OR hidden (not on
+// screen). False when it's just unfocused but still visible.
+bool sdl3_window_is_minimized();
+
+// Returns true if the window currently has keyboard / mouse input focus
+// at the OS level. Polled state — useful when event delivery is suspect
+// (e.g. inside the video player's secondary event loop, where SDL focus
+// events have been observed to arrive coalesced or out of order during
+// fullscreen click-to-refocus).
+bool sdl3_window_has_focus();
+
 // Maximize the window. Safe to call on hidden windows.
 void sdl3_window_maximize();
 
@@ -54,6 +65,11 @@ void sdl3_get_global_mouse_pos(int* x, int* y);
 // Show / hide the system cursor.
 void sdl3_show_cursor();
 void sdl3_hide_cursor();
+
+// Toggle SDL3 relative mouse mode. When enabled, the cursor is hidden,
+// pinned to the window, and SDL delivers infinite relative motion via
+// mouse-motion events (cursor never reaches a screen edge).
+void sdl3_set_relative_mouse_mode(bool enabled);
 
 // ---------------------------------------------------------------------------
 // Keyboard
