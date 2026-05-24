@@ -1036,6 +1036,197 @@ void CONTROLS_rot_inventory(Thing* darci, Thing* player, SBYTE dir, SLONG pull_i
         CONTROLS_set_inventory(darci, player, player->Genus.Player->ItemFocus);
 }
 
+// OpenChaos: D-pad direct weapon select (stage13_gamepad.md).
+// ===========================================================
+// Replaces / complements R3 cycle:
+//   D-pad ↑ = pistol
+//   D-pad ← = AK47 (called "AK47" in source; visually M16 in retail)
+//   D-pad → = shotgun
+//   D-pad ↓ = melee toggle (non-melee → fist; fist/melee → cycle
+//             fist → bat → knife → fist, owned-only)
+// R3 cycle path is left untouched.
+
+// Returns the SpecialType currently equipped by Darci. Synthesises
+// SPECIAL_GUN for the pistol (which has no Thing in SpecialList — it sits
+// in FLAGS_HAS_GUN/FLAG_PERSON_GUN_OUT). Returns SPECIAL_NONE for an empty
+// hand (fist / nothing drawn). Used by the D-pad weapon select to detect
+// "already equipped" (no-op) and melee-toggle state.
+static SLONG dpad_current_weapon_type(Thing* darci)
+{
+    if (darci->Genus.Person->Flags & FLAG_PERSON_GUN_OUT)
+        return SPECIAL_GUN;
+    if (!darci->Genus.Person->SpecialUse)
+        return SPECIAL_NONE;
+    Thing* p_su = TO_THING(darci->Genus.Person->SpecialUse);
+    if (!p_su)
+        return SPECIAL_NONE;
+    return p_su->Genus.Special->SpecialType;
+}
+
+// Walks Darci's SpecialList counting drawable items (matching
+// can_i_draw_this_special, same predicate CONTROLS_set_inventory and
+// CONTROLS_get_selected_item use). Returns the 1-based slot index of the
+// first item with the requested SpecialType, or -1 if not in inventory.
+// Slot 0 is reserved for fist; pistol (when owned) lives at slot N+1
+// where N is the drawable-count returned by this walk — caller handles
+// the pistol separately.
+static SLONG dpad_find_inventory_slot_by_type(Thing* darci, SLONG target_type)
+{
+    if (!darci->Genus.Person->SpecialList)
+        return -1;
+    SLONG slot = 1; // slot 0 = fist
+    Thing* p_special = TO_THING(darci->Genus.Person->SpecialList);
+    while (p_special) {
+        ASSERT(p_special->Class == CLASS_SPECIAL);
+        if (can_i_draw_this_special(p_special)) {
+            if (p_special->Genus.Special->SpecialType == target_type)
+                return slot;
+            slot++;
+        }
+        if (!p_special->Genus.Special->NextSpecial)
+            break;
+        p_special = TO_THING(p_special->Genus.Special->NextSpecial);
+    }
+    return -1;
+}
+
+// Counts the drawable-special slots in Darci's inventory (slots 1..N).
+// The pistol, if owned (FLAGS_HAS_GUN), sits at slot N+1 — this helper is
+// used only to compute that pistol slot for the ↑ direct-select path.
+static SLONG dpad_count_drawable_specials(Thing* darci)
+{
+    SLONG count = 0;
+    if (!darci->Genus.Person->SpecialList)
+        return 0;
+    Thing* p_special = TO_THING(darci->Genus.Person->SpecialList);
+    while (p_special) {
+        ASSERT(p_special->Class == CLASS_SPECIAL);
+        if (can_i_draw_this_special(p_special))
+            count++;
+        if (!p_special->Genus.Special->NextSpecial)
+            break;
+        p_special = TO_THING(p_special->Genus.Special->NextSpecial);
+    }
+    return count;
+}
+
+// Equips a specific weapon by SpecialType (or pistol via the synthetic
+// SPECIAL_GUN value). Behaviour:
+//   - Weapon not owned (or pistol flag clear): popup opens with the
+//     CURRENTLY-equipped weapon highlighted (no slot change). Gives
+//     the player visible "button registered, just nothing to swap to"
+//     feedback instead of a silent no-op.
+//   - Weapon already equipped: popup shows current slot (i.e. the
+//     target), CONTROLS_set_inventory is skipped to avoid re-triggering
+//     the draw animation.
+//   - Otherwise: popup + equip, same UI feedback as the R3 cycle path.
+// Uses CONTROLS_set_inventory for the actual equip so the put-away /
+// draw bookkeeping matches the R3 path exactly. Sets ItemFocus to the
+// target slot so the popup highlights the new selection.
+static void controls_dpad_select_weapon(Thing* darci, Thing* player, SLONG target_type)
+{
+    SLONG slot = -1;
+    if (target_type == SPECIAL_GUN) {
+        // Pistol lives outside SpecialList; its slot is "after the last
+        // drawable special". Owning the pistol is the FLAGS_HAS_GUN bit.
+        if (darci->Flags & FLAGS_HAS_GUN)
+            slot = dpad_count_drawable_specials(darci) + 1;
+    } else {
+        slot = dpad_find_inventory_slot_by_type(darci, target_type);
+    }
+
+    // Open the popup HUD regardless of whether the weapon is owned —
+    // even an "I don't have that" press should give visible feedback so
+    // the player knows the button registered. CONTROLS_new_inventory
+    // re-initialises ItemFocus to the current slot when reopening from
+    // closed; for the not-owned path we leave it pointing there so the
+    // popup highlights what's actually in hand.
+    CONTROLS_new_inventory(darci, player);
+    if (slot >= 0)
+        player->Genus.Player->ItemFocus = slot;
+    else
+        // Refresh focus to the current selection in case the popup was
+        // already mid-fade with a stale ItemFocus from a previous press.
+        player->Genus.Player->ItemFocus = CONTROLS_get_selected_item(darci, player);
+    CONTROLS_inventory_mode = 3000;
+
+    if (slot < 0)
+        return; // not owned — popup-only, no equip
+    if (dpad_current_weapon_type(darci) != target_type)
+        CONTROLS_set_inventory(darci, player, slot);
+}
+
+// D-pad ↓ melee toggle. Two-stage behaviour from stage13_gamepad.md:
+//   1. If holding any non-melee weapon (pistol / AK47 / shotgun /
+//      grenade / etc.) — switch to fist. Single press, no cycling yet.
+//   2. If already holding fist or a melee weapon — cycle forward:
+//      fist → bat → knife → fist (owned-only; fist is always available).
+// Slot 0 is the fist (CONTROLS_set_inventory's set_person_item_away path).
+// Popup HUD opens on every press (even if the cycle lands on the same
+// weapon when nothing else is owned), matching the ↑/←/→ feedback —
+// without it the player can't tell which slot got selected before the
+// draw animation finishes.
+static void controls_dpad_select_melee(Thing* darci, Thing* player)
+{
+    const SLONG cur = dpad_current_weapon_type(darci);
+    const bool holding_melee_or_fist =
+        cur == SPECIAL_NONE || cur == SPECIAL_KNIFE || cur == SPECIAL_BASEBALLBAT;
+
+    SLONG target_slot = -1;
+    SLONG target_type = SPECIAL_NONE;
+
+    if (!holding_melee_or_fist) {
+        // Stage 1: bare-hand switch from any non-melee.
+        target_slot = 0;
+        target_type = SPECIAL_NONE;
+    } else {
+        // Stage 2: cycle through melee/fist. Order is fixed
+        // (stage13_gamepad.md); SPECIAL_NONE represents the fist slot.
+        constexpr SLONG cycle[] = { SPECIAL_NONE, SPECIAL_BASEBALLBAT, SPECIAL_KNIFE };
+        constexpr SLONG cycle_len = (SLONG)(sizeof(cycle) / sizeof(cycle[0]));
+
+        SLONG idx = 0;
+        for (SLONG i = 0; i < cycle_len; ++i) {
+            if (cycle[i] == cur) {
+                idx = i;
+                break;
+            }
+        }
+
+        // Walk forward skipping un-owned entries. Fist is always
+        // reachable, so the loop is guaranteed to terminate within
+        // cycle_len steps. If no other melee is owned the cycle lands
+        // back on fist (same as current); we still show the popup as
+        // press feedback but skip the re-equip.
+        for (SLONG step = 1; step <= cycle_len; ++step) {
+            const SLONG next_type = cycle[(idx + step) % cycle_len];
+            if (next_type == SPECIAL_NONE) {
+                target_slot = 0;
+                target_type = SPECIAL_NONE;
+                break;
+            }
+            const SLONG s = dpad_find_inventory_slot_by_type(darci, next_type);
+            if (s >= 0) {
+                target_slot = s;
+                target_type = next_type;
+                break;
+            }
+        }
+    }
+
+    // Defensive: the cycle always finds at least the fist, but guard
+    // against future edits accidentally falling through.
+    if (target_slot < 0)
+        return;
+
+    CONTROLS_new_inventory(darci, player);
+    player->Genus.Player->ItemFocus = target_slot;
+    CONTROLS_inventory_mode = 3000;
+
+    if (dpad_current_weapon_type(darci) != target_type)
+        CONTROLS_set_inventory(darci, player, target_slot);
+}
+
 // uc_orig: context_music (fallen/Source/Controls.cpp)
 // Selects background music each frame based on Darci's current mode.
 // Priority order: neutral → driving → crawling → fighting → sprinting.
@@ -1503,6 +1694,41 @@ void process_controls(void)
                 } else
                     CONTROLS_rot_inventory(darci, the_player, 1, 1);
                 CONTROLS_inventory_mode = 3000;
+            }
+
+            // D-pad direct weapon select (stage13_gamepad.md).
+            // ↑ pistol, ← AK47, → shotgun, ↓ melee toggle (fist ↔ bat/knife).
+            // Gating: shares the enclosing can_darci_change_weapon /
+            // GF_PAUSED / form_leave_map check with the R3 cycle above.
+            // Skipped while the gamepad cheat modifier (Select + L1 + L2)
+            // is held, because the D-pad keys (indices 11..14) are also
+            // used as the cheat-direction selector in get_hardware_input —
+            // without this gate, a cheat press would simultaneously swap
+            // the weapon. The R3 cycle path above is intentionally left
+            // unmodified.
+            {
+                constexpr SLONG pad_dpad_up    = 11;
+                constexpr SLONG pad_dpad_down  = 12;
+                constexpr SLONG pad_dpad_left  = 13;
+                constexpr SLONG pad_dpad_right = 14;
+                constexpr SLONG pad_select     = 4;  // Back / Share
+                constexpr SLONG pad_l1         = 9;  // LB / L1
+                constexpr SLONG pad_l2_digital = 15; // LT / L2 digital
+                const bool cheat_combo_active =
+                    input_btn_held(pad_select)
+                    && input_btn_held(pad_l1)
+                    && input_btn_held(pad_l2_digital);
+
+                if (!cheat_combo_active) {
+                    if (input_btn_just_pressed(pad_dpad_up))
+                        controls_dpad_select_weapon(darci, the_player, SPECIAL_GUN);
+                    else if (input_btn_just_pressed(pad_dpad_left))
+                        controls_dpad_select_weapon(darci, the_player, SPECIAL_AK47);
+                    else if (input_btn_just_pressed(pad_dpad_right))
+                        controls_dpad_select_weapon(darci, the_player, SPECIAL_SHOTGUN);
+                    else if (input_btn_just_pressed(pad_dpad_down))
+                        controls_dpad_select_melee(darci, the_player);
+                }
             }
 
             if (CONTROLS_inventory_mode) {
