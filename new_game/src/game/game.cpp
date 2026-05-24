@@ -1250,6 +1250,16 @@ round_again:;
                         SLONG st = darci_t->State;
                         bool non_firing_state = st == STATE_JUMPING || st == STATE_FALLING || st == STATE_DYING || st == STATE_DEAD || st == STATE_DOWN || st == STATE_HIT || st == STATE_HIT_RECOIL || st == STATE_CLIMBING || st == STATE_CLIMB_LADDER || st == STATE_DANGLING || st == STATE_GRAPPLING || st == STATE_USE_SCENERY || st == STATE_CHANGE_LOCATION || st == STATE_STAND_UP || st == STATE_FIGHTING || st == STATE_FIGHT;
 
+                        // OpenChaos: walking backwards is a SubState within
+                        // STATE_MOVEING (not its own State), so the chain above
+                        // misses it. Shooting is blocked during walk_back (see
+                        // set_player_shoot) — so no trigger effect / haptic
+                        // either, otherwise the player feels rumble per pull
+                        // with no shot firing.
+                        if (darci_t->SubState == SUB_STATE_WALKING_BACKWARDS) {
+                            non_firing_state = true;
+                        }
+
                         // Disable weapon trigger effect when target has surrendered (hands up)
                         // or is an innocent cop — game will "talk" instead of shoot.
                         // Only applies when the player is standing still: set_person_shoot

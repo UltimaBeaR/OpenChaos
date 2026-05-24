@@ -486,6 +486,18 @@ SLONG player_activate_in_hand(Thing* p_person)
 // uc_orig: set_player_shoot (fallen/Source/interfac.cpp)
 void set_player_shoot(Thing* p_person, SLONG param)
 {
+    // OpenChaos: shooting during walk_back is fully blocked. Several
+    // attempts to "exit walk_back then shoot cleanly" produced
+    // anim glitches (frozen walk-back pose with fire effect, no shoot
+    // anim playing for pistol, single shot then stuck for AK / shotgun).
+    // Walk_back + shoot anim/state combinations are messy across weapons —
+    // simpler to disallow firing entirely while backing up. Player
+    // releases the back stick to shoot. Applies to all call sites
+    // (apply_button_input ACTION_SHOOT body, PUNCH-while-gun-out path,
+    // aim-mode first-person shoot path).
+    if (p_person->SubState == SUB_STATE_WALKING_BACKWARDS)
+        return;
+
     if (person_has_gun_out(p_person)) {
         set_person_shoot(p_person, param);
         return;
@@ -1646,10 +1658,10 @@ SLONG player_turn_left_right_analogue(Thing* p_thing, SLONG input)
             return (0);
         }
     } else if (p_thing->SubState == SUB_STATE_WALKING_BACKWARDS) {
-        // Regime no longer BACKWARD → exit walk_back. Safe because under the
-        // current scheme the only entry into walk_back for the player is via
-        // this regime (tank-mode auto-entry is gated on player_relative=1
-        // which is no longer set anywhere).
+        // Regime no longer BACKWARD → exit walk_back. Safe because under
+        // the current scheme the only entry into walk_back for the player
+        // is via this regime (tank-mode auto-entry is gated on
+        // player_relative=1 which is no longer set anywhere).
         set_person_running(p_thing);
         return (0);
     }
@@ -2885,6 +2897,13 @@ ULONG apply_button_input(Thing* p_player, Thing* p_person, ULONG input)
                 break;
             case ACTION_FIGHT_PUNCH:
                 if (person_has_gun_out(p_person)) {
+                    // OpenChaos: shooting blocked during walk_back (see
+                    // set_player_shoot for rationale). action_walk_back
+                    // maps PUNCH to ACTION_FIGHT_PUNCH which calls
+                    // set_person_shoot directly here, bypassing
+                    // set_player_shoot — so the gate has to repeat here.
+                    if (p_person->SubState == SUB_STATE_WALKING_BACKWARDS)
+                        break;
                     set_person_shoot(p_person, 0);
                 } else if (!player_activate_in_hand(p_person))
                     if (turn_to_target_and_punch(p_person)) {
