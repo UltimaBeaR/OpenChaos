@@ -1139,6 +1139,34 @@ void FC_process()
             }
         }
 
+        // Translation tracking: keep want_x/z anchored to the focus's
+        // XZ position by adding focus translation deltas each tick.
+        //
+        // Without this, want_x/z lives in WORLD coordinates while
+        // focus translates freely. At high speeds (driving), the
+        // focus runs away from want each tick faster than the stick
+        // rotation can orbit around it — the camera drifts behind in
+        // the car's reference frame and the player can never reach
+        // the front of the car with the stick. With delta-tracking,
+        // want_x/z lives in the focus's reference frame: stick
+        // rotation is angular orbit around focus, get-behind below
+        // handles pure angular catch-up, and translation is no
+        // longer mixed into either.
+        //
+        // Guard against huge deltas (focus teleport on level load /
+        // mission start / first frame from zero-init) so we don't
+        // launch want_x/z across the map.
+        static SLONG s_prev_focus_x[FC_MAX_CAMS] = {};
+        static SLONG s_prev_focus_z[FC_MAX_CAMS] = {};
+        SLONG focus_dx_xz = fc->focus_x - s_prev_focus_x[cam];
+        SLONG focus_dz_xz = fc->focus_z - s_prev_focus_z[cam];
+        if (abs(focus_dx_xz) < 0x40000 && abs(focus_dz_xz) < 0x40000) {
+            fc->want_x += focus_dx_xz;
+            fc->want_z += focus_dz_xz;
+        }
+        s_prev_focus_x[cam] = fc->focus_x;
+        s_prev_focus_z[cam] = fc->focus_z;
+
         if (!fc->toonear) {
             if (fc->nobehind) {
                 fc->nobehind -= 0x80 * TICK_RATIO >> TICK_SHIFT;
