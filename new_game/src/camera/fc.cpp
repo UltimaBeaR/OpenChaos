@@ -24,12 +24,18 @@
 
 // Mouse-driven camera orbit sensitivity (OpenChaos -- no original).
 //
-// MOUSE_YAW_SCALE_NUM / MOUSE_YAW_SCALE_DEN: per-pixel angle delta
-//   in game-angle units (2048 = full circle), as a fraction so we can
-//   tune below 1.0 per pixel. Effective scale = NUM/DEN. At 3/5 (=0.6)
-//   a 100px flick rotates ~10.5 degrees.
-// MOUSE_HEIGHT_SCALE: per-pixel height delta. Same magnitude as the
-//   right-stick height path at typical mouse-flick speeds.
+// MOUSE_SENSITIVITY: 0..100 (= 0.0..1.0 user slider, just in percent
+//   so it stays integer). Maps linearly between two compile-time
+//   bounds expressed in Q8 fixed-point game-angle units per pixel:
+//     0   -> MOUSE_SENS_MIN_Q8 (slow / comfortable feel)
+//     100 -> MOUSE_SENS_MAX_Q8 (fast / original default)
+//   When the settings UI lands, this becomes a runtime variable;
+//   the conversion stays the same (slider * 100 -> this value).
+// MOUSE_HEIGHT_SCALE (per-pixel height delta) is fully derived below
+//   from MOUSE_YAW_SCALE_Q8 using the right stick's height-to-yaw
+//   ratio, so vertical and horizontal mouse motion feel proportionally
+//   consistent across sensitivity values, and the proportion itself
+//   matches the right stick.
 // MOUSE_INVERT_Y: 1 = mouse-up lowers the camera (FPS-style "inverted
 //   look"), 0 = mouse-up raises the camera. Mouse only -- the right
 //   stick keeps its own convention.
@@ -42,12 +48,28 @@
 //   setting this to 61 means the rotation path is identical to the
 //   legacy gamepad feel (no sync, full smoothing tail) while still
 //   using exact rotation math (no distance inflation).
-#define MOUSE_YAW_SCALE_NUM 3
-#define MOUSE_YAW_SCALE_DEN 5
-#define MOUSE_HEIGHT_SCALE  0x400
+#define MOUSE_SENS_MIN_Q8   51     // ~0.2 game-units/px
+#define MOUSE_SENS_MAX_Q8   768    // ~3.0 game-units/px
+#define MOUSE_SENSITIVITY   22     // 0..100, see comment above.
 #define MOUSE_INVERT_Y      1
 #define MOUSE_ORBIT_LAG     50
 #define STICK_ORBIT_LAG     61
+
+// Compile-time resolved scales. When MOUSE_SENSITIVITY becomes a
+// runtime variable, lift these inline into the call site.
+#define MOUSE_YAW_SCALE_Q8 \
+    (MOUSE_SENS_MIN_Q8 + (MOUSE_SENS_MAX_Q8 - MOUSE_SENS_MIN_Q8) * MOUSE_SENSITIVITY / 100)
+
+// Height scale derived from yaw scale using the right stick's own
+// height/yaw ratio: STICK_HEIGHT_MAX (0x3100, height-units per tick at
+// full stick deflection) / STICK_YAW_MAX (61, game-angle units per
+// tick at full stick deflection) ~ 205.6 height-units per game-unit.
+// Multiplied by per-pixel yaw scale in game-units (= MOUSE_YAW_SCALE_Q8
+// / 256) gives per-pixel height scale that mirrors the stick feel at
+// any sensitivity. Result for sens=100: ~617 (vs the previous 1024,
+// which made vertical feel too aggressive relative to horizontal).
+#define MOUSE_HEIGHT_SCALE \
+    (MOUSE_YAW_SCALE_Q8 * 0x3100 / (61 * 256))
 
 // uc_orig: CAM_AT_HEAD (fallen/Source/fc.cpp)
 #define CAM_AT_HEAD 1
@@ -898,7 +920,7 @@ void FC_process()
                     //   - Fast flick: nearly all synced, leaving only
                     //     LAG as residual -- so no chord dive through
                     //     Darci, but rubber band feel is preserved.
-                    SLONG angle = mdx * MOUSE_YAW_SCALE_NUM / MOUSE_YAW_SCALE_DEN;
+                    SLONG angle = mdx * MOUSE_YAW_SCALE_Q8 / 256;
                     SLONG sync_angle;
                     if (angle >  MOUSE_ORBIT_LAG)  sync_angle = angle - MOUSE_ORBIT_LAG;
                     else if (angle < -MOUSE_ORBIT_LAG) sync_angle = angle + MOUSE_ORBIT_LAG;
