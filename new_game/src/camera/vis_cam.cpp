@@ -754,10 +754,20 @@ static bool vc_process_one(VC_State& vc, const VC_FocusPoint& focus,
 
     // Focus→camera vector and distance. Needed both as the broad-phase reach
     // for vehicle gathering and, later, to scale the camera toward focus.
+    // OpenChaos: was QDIST3 (fast |max|+|mid|/4+|min|/4 approximation). Its
+    // 3-15% error depends on the dx/dy/dz ratio, so as the camera orbits,
+    // d_now wobbled per-tick at constant true distance. Through the scale
+    // `vc = focus + delta * d_new / d_now` (line below) that wobble became
+    // visible per-tick camera position jitter -- the "tremor during
+    // rotation" feel that survived all the FC-side fixes. Real sqrt is
+    // marginally more expensive but removes the wobble entirely. 64-bit
+    // intermediate to avoid overflow (dx etc reach hundreds of thousands).
     SLONG dx = vc.x - focus.x;
     SLONG dy = vc.y - focus.y;
     SLONG dz = vc.z - focus.z;
-    SLONG d_now = QDIST3(std::abs(dx), std::abs(dy), std::abs(dz));
+    SLONG d_now = (SLONG)sqrt((double)((std::int64_t)dx * dx
+                                     + (std::int64_t)dy * dy
+                                     + (std::int64_t)dz * dz));
     if (d_now <= 0) return false; // degenerate — camera coincident with focus
 
     // Nearby vehicles, gathered once per tick (not per ray/sample) to keep

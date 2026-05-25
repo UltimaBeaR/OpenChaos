@@ -136,6 +136,14 @@ struct CamSnap {
     SLONG yaw_prev, yaw_curr;
     SLONG pitch_prev, pitch_curr;
     SLONG roll_prev, roll_curr;
+    // Focus position snapshot. Needed for arc-based XZ interpolation
+    // around the focus: linear lerp of (x, z) between snapshots cuts a
+    // chord across the camera's orbital arc, producing visible per-
+    // frame "dip" toward focus during rotation -- the camera-tremor
+    // jitter felt at low physics-Hz / fast rotation. Lerping (x, z)
+    // along the arc around (focus_x, focus_z) instead removes this.
+    SLONG focus_x_prev, focus_x_curr;
+    SLONG focus_z_prev, focus_z_curr;
     bool valid;
     bool skip_once;
 
@@ -879,6 +887,8 @@ void render_interp_capture_camera(FC_Cam* fc)
         s->yaw_curr = vc.yaw; s->yaw_prev = s->yaw_curr;
         s->pitch_curr = vc.pitch; s->pitch_prev = s->pitch_curr;
         s->roll_curr = vc.roll;   s->roll_prev = s->roll_curr;
+        s->focus_x_curr = fc->focus_x; s->focus_x_prev = s->focus_x_curr;
+        s->focus_z_curr = fc->focus_z; s->focus_z_prev = s->focus_z_curr;
         s->valid = true;
         s->skip_once = false;
         return;
@@ -890,6 +900,8 @@ void render_interp_capture_camera(FC_Cam* fc)
     s->yaw_prev = s->yaw_curr;
     s->pitch_prev = s->pitch_curr;
     s->roll_prev = s->roll_curr;
+    s->focus_x_prev = s->focus_x_curr;
+    s->focus_z_prev = s->focus_z_curr;
 
     s->x_curr = vc.x;
     s->y_curr = vc.y;
@@ -897,6 +909,8 @@ void render_interp_capture_camera(FC_Cam* fc)
     s->yaw_curr = vc.yaw;
     s->pitch_curr = vc.pitch;
     s->roll_curr = vc.roll;
+    s->focus_x_curr = fc->focus_x;
+    s->focus_z_curr = fc->focus_z;
 
     if (s->skip_once) {
         s->x_prev = s->x_curr;
@@ -905,6 +919,8 @@ void render_interp_capture_camera(FC_Cam* fc)
         s->yaw_prev = s->yaw_curr;
         s->pitch_prev = s->pitch_curr;
         s->roll_prev = s->roll_curr;
+        s->focus_x_prev = s->focus_x_curr;
+        s->focus_z_prev = s->focus_z_curr;
         s->skip_once = false;
     }
 }
@@ -1327,12 +1343,49 @@ RenderInterpFrame::RenderInterpFrame()
         s.saved_roll = fc->roll;
 
         if constexpr (ri_cfg::INTERP_FC_CAM) {
-            fc->x     = lerp_i32(s.x_prev, s.x_curr, alpha);
+            // Y, yaw, pitch, roll: linear lerp (yaw uses wraparound-
+            // safe variant). Linear is correct for these.
             fc->y     = lerp_i32(s.y_prev, s.y_curr, alpha);
-            fc->z     = lerp_i32(s.z_prev, s.z_curr, alpha);
             fc->yaw   = lerp_angle_cam(s.yaw_prev,   s.yaw_curr,   alpha);
             fc->pitch = lerp_angle_cam(s.pitch_prev, s.pitch_curr, alpha);
             fc->roll  = lerp_angle_cam(s.roll_prev,  s.roll_curr,  alpha);
+
+            // XZ: arc-interpolate around the focus instead of linear
+            // lerp. The camera orbits the focus in the XZ plane, so a
+            // linear chord between two snapshots cuts CLOSER to focus
+            // than the arc. At low physics-Hz / fast rotation the dip
+            // is visible per-frame as camera tremor. Arc interp
+            // preserves the orbital distance.
+            //
+            // Focus is also interpolated (it moves with the
+            // character). Math: angle of (cam - focus) at prev and
+            // curr; lerp angle and radius independently in double.
+            // Fallback to linear when prev/curr radius is tiny (any
+            // toonear/cutscene snap state that put fc near focus).
+            double fx_p = double(s.focus_x_prev), fz_p = double(s.focus_z_prev);
+            double fx_c = double(s.focus_x_curr), fz_c = double(s.focus_z_curr);
+            double rx_p = double(s.x_prev) - fx_p, rz_p = double(s.z_prev) - fz_p;
+            double rx_c = double(s.x_curr) - fx_c, rz_c = double(s.z_curr) - fz_c;
+            double r_p = sqrt(rx_p * rx_p + rz_p * rz_p);
+            double r_c = sqrt(rx_c * rx_c + rz_c * rz_c);
+
+            constexpr double R_MIN = 256.0;
+            if (r_p < R_MIN || r_c < R_MIN) {
+                fc->x = lerp_i32(s.x_prev, s.x_curr, alpha);
+                fc->z = lerp_i32(s.z_prev, s.z_curr, alpha);
+            } else {
+                double a_p = atan2(rz_p, rx_p);
+                double a_c = atan2(rz_c, rx_c);
+                double da = a_c - a_p;
+                if      (da >  3.14159265358979) da -= 2.0 * 3.14159265358979;
+                else if (da < -3.14159265358979) da += 2.0 * 3.14159265358979;
+                double a = a_p + da * double(alpha);
+                double r = r_p + (r_c - r_p) * double(alpha);
+                double fx = fx_p + (fx_c - fx_p) * double(alpha);
+                double fz = fz_p + (fz_c - fz_p) * double(alpha);
+                fc->x = (SLONG)(fx + cos(a) * r);
+                fc->z = (SLONG)(fz + sin(a) * r);
+            }
         }
 
         s.applied = true;

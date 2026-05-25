@@ -864,7 +864,16 @@ round_again:;
         extern void envmap_specials(void);
         envmap_specials();
 
-        uint64_t prev_frame_ms = sdl3_get_ticks();
+        // High-resolution frame timing. SDL_GetTicks() (integer ms) was
+        // quantizing frame_dt_ms to 1ms steps, which at high FPS (>100)
+        // produced visible alpha-jitter in render-interp (camera tremor
+        // during rotation, etc.). Performance counter gives sub-us
+        // precision -- monotonic, suitable for frame deltas. Affects
+        // all render-interp layers (camera, things, animations, ...)
+        // since they all read g_render_alpha which is derived from
+        // frame_dt_ms.
+        uint64_t prev_frame_pc = sdl3_get_performance_counter();
+        const double perf_freq_d = double(sdl3_get_performance_frequency());
         // Pre-charge the accumulator with one physics step so the first
         // iteration of the loop runs a physics tick BEFORE the first render
         // frame. Without this, mission_init's spawn poses (e.g. arrested
@@ -896,10 +905,10 @@ round_again:;
             PERF_FRAME_BEGIN();
 
             {
-                uint64_t now_ms = sdl3_get_ticks();
-                double frame_dt_ms = double(now_ms - prev_frame_ms);
+                uint64_t now_pc = sdl3_get_performance_counter();
+                double frame_dt_ms = double(now_pc - prev_frame_pc) * 1000.0 / perf_freq_d;
                 if (frame_dt_ms > FRAME_DT_MAX_MS) frame_dt_ms = FRAME_DT_MAX_MS;
-                prev_frame_ms = now_ms;
+                prev_frame_pc = now_pc;
                 physics_acc_ms += frame_dt_ms;
                 // Publish wall-clock dt for render-side effects (rain
                 // density, per-puddle drip spawn) — see g_frame_dt_ms.

@@ -91,7 +91,6 @@
 extern UBYTE GAME_cut_scene;
 extern SLONG analogue;
 
-
 // uc_orig: person_has_gun_out (fallen/Source/fc.cpp)
 extern SLONG person_has_gun_out(Thing* p_person);
 
@@ -566,7 +565,18 @@ void FC_look_at_focus(FC_Cam* fc)
         dz -= COS(angle) >> 8;
     }
 
-    SLONG dxz = QDIST2(abs(dx), abs(dz));
+    // OpenChaos: was QDIST2 (fast |a|+|b|/2 approximation), which
+    // has 3-11% error depending on the dx/dz ratio. As the camera
+    // orbits around the focus, dx and dz swap dominance each tick,
+    // so the QDIST2 result oscillates by ~40 units at constant true
+    // distance. Through Arctan(dy, dxz) that translates into a
+    // per-tick pitch swing of ~0.4 degrees -- the source of the
+    // "camera trembles vertically while rotating" feel. Using a
+    // real square-root removes the oscillation. Tiny mean pitch
+    // shift (a few degrees more down-tilt) is the unavoidable
+    // side-effect: QDIST2 systematically over-estimated by ~6%, so
+    // pitch was systematically biased toward horizontal.
+    SLONG dxz = Root(dx * dx + dz * dz);
 
     fc->want_yaw = -Arctan(dx, dz);
     fc->want_pitch = Arctan(dy, dxz);
