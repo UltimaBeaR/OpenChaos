@@ -55,6 +55,15 @@
 #define MOUSE_ORBIT_LAG     50
 #define STICK_ORBIT_LAG     61
 
+// Camera Y range, relative to focus_y (the character's vertical position).
+// Same numbers for mouse and gamepad — the camera-elevation range must
+// not depend on which input device is active. Lower bound is kept well
+// above the character's feet so the camera doesn't dip into ground
+// geometry and trigger the wall-collision system on the floor (whose
+// EXIT fade then produces a visible jerk on liftoff).
+#define FC_CAM_Y_MIN_ABOVE_FOCUS  0x6000   // ~3/4 m above feet
+#define FC_CAM_Y_MAX_ABOVE_FOCUS  0x28000  // ~5 m above feet
+
 // Compile-time resolved scales. When MOUSE_SENSITIVITY becomes a
 // runtime variable, lift these inline into the call site.
 #define MOUSE_YAW_SCALE_Q8 \
@@ -977,15 +986,15 @@ void FC_process()
                     // inverted look), 0 = mouse-up raises camera.
                     // mdy is positive when mouse moves down (SDL
                     // convention).
+                    //
+                    // NOTE: no min/max clamp here. The character-
+                    // tracking block below clamps want_y once per
+                    // frame; clamping here too produced a double-step
+                    // jerk when want_y was at the clamp AND focus_y
+                    // moved (clamp here drops want_y by Δ, then the
+                    // delta-tracking block adds Δ → net -2Δ).
                     SLONG height_delta = (MOUSE_INVERT_Y ? mdy : -mdy) * MOUSE_HEIGHT_SCALE;
                     fc->want_y += height_delta;
-
-                    SLONG min_y = fc->focus_y + 0x2000;
-                    SLONG max_y = fc->focus_y + 0x28000;
-                    if (fc->want_y < min_y)
-                        fc->want_y = min_y;
-                    if (fc->want_y > max_y)
-                        fc->want_y = max_y;
 
                     fc->nobehind = 0x2000;
                 }
@@ -1041,9 +1050,8 @@ void FC_process()
                     SLONG height_delta = (stick_y * 0x3100) / 32767 * TICK_RATIO >> TICK_SHIFT;
                     fc->want_y += height_delta;
 
-                    // Clamp: don't go below character feet, don't go too high above.
-                    SLONG min_y = fc->focus_y + 0x2000;
-                    SLONG max_y = fc->focus_y + 0x28000;
+                    SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
+                    SLONG max_y = fc->focus_y + FC_CAM_Y_MAX_ABOVE_FOCUS;
                     if (fc->want_y < min_y)
                         fc->want_y = min_y;
                     if (fc->want_y > max_y)
@@ -1171,53 +1179,84 @@ void FC_process()
         }
 
         if (!fc->toonear) {
-            // Track the desired Y height above the focus character.
-            SLONG goto_y = fc->focus_y + FC_focus_above(fc) + offset_height;
+            // Track focus character vertically.
+            //
+            // Mouse and gamepad need different semantics here:
+            //   • Gamepad: stick has a neutral position. When the
+            //     player releases the right stick, the camera should
+            //     drift back to a default height above the character.
+            //     This is the original convergence toward
+            //     goto_y = focus_y + FC_focus_above + offset_height.
+            //   • Mouse: there is no "released" position. Once the
+            //     player moves the mouse to set a height, that height
+            //     should PERSIST — no drift toward a default. We still
+            //     have to track the character's own vertical motion
+            //     (jumps, stairs, platforms) so the camera doesn't
+            //     get left behind, so we apply only the focus_y
+            //     DELTA from the previous tick, not absolute
+            //     convergence.
+            static SLONG s_prev_focus_y[FC_MAX_CAMS] = {};
+            SLONG focus_y_delta = fc->focus_y - s_prev_focus_y[cam];
 
-            if (GAME_FLAGS & GF_NO_FLOOR) {
-                if (goto_y < 0x28000) {
-                    goto_y = 0x28000;
-                }
-            }
-
-            dy = goto_y - fc->want_y;
-
-            if (dy > 0x10000) {
-                // Well below target: move faster.
-                dy >>= 3;
-                if (dy > 0x2000) {
-                    dy = 0x2000;
-                }
+            if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+                fc->want_y += focus_y_delta;
+                // Clamp to the unified mouse/gamepad Y range.
+                SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
+                SLONG max_y = fc->focus_y + FC_CAM_Y_MAX_ABOVE_FOCUS;
+                if (fc->want_y < min_y)
+                    fc->want_y = min_y;
+                if (fc->want_y > max_y)
+                    fc->want_y = max_y;
             } else {
-                dy >>= 3;
-                if (dy > 0x0d00) {
-                    dy = 0x0d00;
+                SLONG goto_y = fc->focus_y + FC_focus_above(fc) + offset_height;
+
+                if (GAME_FLAGS & GF_NO_FLOOR) {
+                    if (goto_y < 0x28000) {
+                        goto_y = 0x28000;
+                    }
                 }
-                if (dy < -0x0c00) {
-                    dy = -0x0c00;
+
+                dy = goto_y - fc->want_y;
+
+                if (dy > 0x10000) {
+                    // Well below target: move faster.
+                    dy >>= 3;
+                    if (dy > 0x2000) {
+                        dy = 0x2000;
+                    }
+                } else {
+                    dy >>= 3;
+                    if (dy > 0x0d00) {
+                        dy = 0x0d00;
+                    }
+                    if (dy < -0x0c00) {
+                        dy = -0x0c00;
+                    }
                 }
-            }
 
-            if (dy > 0) {
-                if (fc->focus->Class == CLASS_PERSON) {
-                    Thing* p_person = fc->focus;
+                if (dy > 0) {
+                    if (fc->focus->Class == CLASS_PERSON) {
+                        Thing* p_person = fc->focus;
 
-                    // Moving platform: follow the platform much faster.
-                    if (p_person->OnFace > 0) {
-                        ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
+                        // Moving platform: follow the platform much faster.
+                        if (p_person->OnFace > 0) {
+                            ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
 
-                        PrimFace4* f4 = &prim_faces4[p_person->OnFace];
+                            PrimFace4* f4 = &prim_faces4[p_person->OnFace];
 
-                        ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
+                            ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
 
-                        if (f4->FaceFlags & FACE_FLAG_WMOVE) {
-                            dy <<= 5;
+                            if (f4->FaceFlags & FACE_FLAG_WMOVE) {
+                                dy <<= 5;
+                            }
                         }
                     }
                 }
+
+                fc->want_y += dy;
             }
 
-            fc->want_y += dy;
+            s_prev_focus_y[cam] = fc->focus_y;
         }
 
         // Distance clamp: keep camera within [FC_DIST_MIN, FC_DIST_MAX] from focus XZ.

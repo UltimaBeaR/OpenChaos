@@ -7,6 +7,7 @@
 #include "engine/input/weapon_feel.h"
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/input/input_frame.h" // input_key_event_held for active device detection
+#include "engine/input/mouse_globals.h" // MouseRelDX/DY for mouse activity detection
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
 #include "game/input_actions_globals.h"
@@ -391,6 +392,15 @@ void gamepad_poll()
             active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
             break;
         }
+    }
+
+    // Mouse motion counts as keyboard+mouse activity too (mouse is not a
+    // separate device from the keyboard's perspective — together they
+    // form the KEYBOARD_MOUSE input source). Peek at the accumulated
+    // relative delta without consuming it: the mouse-camera consumer
+    // does the consume later in the same frame.
+    if (MouseRelDX != 0 || MouseRelDY != 0) {
+        active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
     }
 
     // Always scan for DualSense connect/disconnect (registry has 1s internal cooldown).
