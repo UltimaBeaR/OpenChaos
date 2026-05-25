@@ -95,14 +95,6 @@ static const SLONG VC_CAMERA_RADIUS = 0x4000;
 // near edge of the frame.
 static const SLONG VC_WALL_OFFSET = 0x5000;
 
-// Extra padding subtracted on top of VC_WALL_OFFSET to account for the
-// near-clip plane: the renderer's frustum extends slightly past the camera
-// position toward focus (POLY_ZCLIP_PLANE), so a wall that is exactly at
-// the offset distance can still clip through the near plane and show
-// back-faces. Small padding gives a numerical safety margin without
-// noticeably changing the camera distance.
-static const SLONG VC_NEAR_CLIP_PAD = 0x800;
-
 // Sample count per ray. 32 is what the previous baseline (013b1e82) used and
 // what the original 8-step push covered with much wider steps; 32 gives ~1
 // MAV cell of resolution along a typical 3–4m third-person distance.
@@ -176,9 +168,8 @@ static const SLONG VC_MAX_VEHICLE_CANDIDATES = 8;
 // Extra slack (world>>8 units) added to (camera distance + vehicle bounding
 // radius) when deciding whether a vehicle is close enough to bother probing.
 // 0x100 ≈ one map cell — comfortably covers the camera sphere radius
-// (VC_CAMERA_RADIUS>>8 = 0x40) plus the ray extension
-// ((VC_WALL_OFFSET+VC_NEAR_CLIP_PAD)>>8 = 0x58) with margin, so the
-// broad-phase never rejects a vehicle the ray walk could still hit.
+// (VC_CAMERA_RADIUS>>8 = 0x40) with margin, so the broad-phase never
+// rejects a vehicle the ray walk could still hit.
 static const SLONG VC_VEHICLE_REACH_MARGIN = 0x100;
 
 // Max WMOVE top-surface quads kept per vehicle. The authored tables top out
@@ -383,29 +374,17 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
 {
     if (ncands == 0) return true;
 
-    // Same ray-extension trick as vc_probe_mav: walk past the camera by
-    // WALL_OFFSET + NEAR_CLIP_PAD so first contact is smooth instead of
-    // jumping the camera in by the offset on the first hit frame.
-    SLONG cdx = tx - focus.x;
-    SLONG cdy = ty - focus.y;
-    SLONG cdz = tz - focus.z;
-    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
-    SLONG extended_tx = tx;
-    SLONG extended_ty = ty;
-    SLONG extended_tz = tz;
-    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
-    if (corner_len > 0) {
-        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
-        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
-        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
-    }
-
+    // Probe ray runs from focus to the target (the camera sample point).
+    // Camera edges/corners are handled by the caller via 5 separate
+    // probe calls offset by VC_CAMERA_RADIUS in each direction, so this
+    // function only needs to walk to the target — no extra "look-ahead
+    // past the target" buffer.
     SLONG sx = focus.x;
     SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
     SLONG sz = focus.z;
-    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
-    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
-    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+    SLONG step_x = (tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (tz - sz) / VC_RAY_SAMPLES;
 
     for (SLONG step = 1; step <= VC_RAY_SAMPLES; step++) {
         sx += step_x;
@@ -444,9 +423,9 @@ static bool vc_probe_vehicles(const VC_FocusPoint& focus,
             }
             if (py > ceil_y) continue;
 
-            SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
-                std::abs(extended_ty - focus.y),
-                std::abs(extended_tz - focus.z));
+            SLONG full_len = QDIST3(std::abs(tx - focus.x),
+                std::abs(ty - focus.y),
+                std::abs(tz - focus.z));
             *d_hit_out = (SLONG)((std::int64_t)full_len * step / VC_RAY_SAMPLES);
             return false;
         }
@@ -482,34 +461,17 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
     SLONG tx, SLONG ty, SLONG tz,
     SLONG focus_mavh, SLONG* d_hit_out)
 {
-    // Extend the ray past the target by (VC_WALL_OFFSET + VC_NEAR_CLIP_PAD)
-    // along focus→target. Without this extension, the first time a wall
-    // enters contact with the camera (d_hit ≈ d_now) the response immediately
-    // pulls the camera in by VC_WALL_OFFSET — a visible jump on the first
-    // contact frame. Extending the ray lets us detect the wall earlier (when
-    // it's still WALL_OFFSET past the camera), so d_hit ≈ d_now + OFFSET and
-    // d_new ≈ d_now: contact starts smooth. As the wall keeps approaching,
-    // d_new shrinks continuously.
-    SLONG cdx = tx - focus.x;
-    SLONG cdy = ty - focus.y;
-    SLONG cdz = tz - focus.z;
-    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
-    SLONG extended_tx = tx;
-    SLONG extended_ty = ty;
-    SLONG extended_tz = tz;
-    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
-    if (corner_len > 0) {
-        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
-        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
-        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
-    }
-
+    // Probe ray runs from focus to the target (the camera sample point).
+    // Camera edges/corners are handled by the caller via 5 separate
+    // probe calls offset by VC_CAMERA_RADIUS in each direction, so this
+    // function only needs to walk to the target — no extra "look-ahead
+    // past the target" buffer.
     SLONG sx = focus.x;
     SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
     SLONG sz = focus.z;
-    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
-    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
-    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+    SLONG step_x = (tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (tz - sz) / VC_RAY_SAMPLES;
 
     for (SLONG step = 1; step <= VC_RAY_SAMPLES; step++) {
         sx += step_x;
@@ -531,12 +493,6 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
         }
 
         // Condition 2: sample below local ground (slope/hill).
-        // NOTE: don't try to skip PAP_FLAG_HIDDEN cells here — outdoor raised
-        // geometry (decorative platforms, steps) sets that flag too, and
-        // those cells are precisely the ones whose elevation we need.
-        // Indoor focus uses vc_probe_ware instead, so this path won't fire
-        // inside warehouses where PAP_calc_map_height_at would return a
-        // ceiling-height sentinel.
         if (!hit) {
             SLONG ground_y = PAP_calc_map_height_at(sx >> 8, sz >> 8) << 8;
             if (sy < ground_y) hit = true;
@@ -544,12 +500,12 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 
         if (!hit) continue;
 
-        // Hit. Distance is the fraction of the full focus→extended-target
-        // span we traversed, mapped back to QDIST3 of that extended vector
-        // (so the hit-distance metric matches the per-sample step length).
-        SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
-            std::abs(extended_ty - focus.y),
-            std::abs(extended_tz - focus.z));
+        // Hit. Distance is the fraction of the full focus→target span we
+        // traversed, mapped back to QDIST3 of that vector (so the hit-
+        // distance metric matches the per-sample step length).
+        SLONG full_len = QDIST3(std::abs(tx - focus.x),
+            std::abs(ty - focus.y),
+            std::abs(tz - focus.z));
         *d_hit_out = (SLONG)((std::int64_t)full_len * step / VC_RAY_SAMPLES);
         return false;
     }
@@ -577,33 +533,21 @@ static bool vc_probe_mav(const VC_FocusPoint& focus,
 // by 8 at the call. MAV_inside in the outdoor probe takes the same
 // convention but we shifted at the call there too.
 //
-// Same ray-extension trick as vc_probe_mav: walk past the camera by
-// WALL_OFFSET + NEAR_CLIP_PAD so first contact is smooth rather than
-// jumping the camera in by the offset on the first hit frame.
 static bool vc_probe_ware(const VC_FocusPoint& focus,
     SLONG tx, SLONG ty, SLONG tz,
     UBYTE ware, SLONG* d_hit_out)
 {
-    SLONG cdx = tx - focus.x;
-    SLONG cdy = ty - focus.y;
-    SLONG cdz = tz - focus.z;
-    SLONG corner_len = QDIST3(std::abs(cdx), std::abs(cdy), std::abs(cdz));
-    SLONG extended_tx = tx;
-    SLONG extended_ty = ty;
-    SLONG extended_tz = tz;
-    SLONG full_extension = VC_WALL_OFFSET + VC_NEAR_CLIP_PAD;
-    if (corner_len > 0) {
-        extended_tx = tx + (SLONG)((std::int64_t)cdx * full_extension / corner_len);
-        extended_ty = ty + (SLONG)((std::int64_t)cdy * full_extension / corner_len);
-        extended_tz = tz + (SLONG)((std::int64_t)cdz * full_extension / corner_len);
-    }
-
+    // Probe ray runs from focus to the target (the camera sample point).
+    // Camera edges/corners are handled by the caller via 5 separate
+    // probe calls offset by VC_CAMERA_RADIUS in each direction, so this
+    // function only needs to walk to the target — no extra "look-ahead
+    // past the target" buffer.
     SLONG sx = focus.x;
     SLONG sy = focus.y + VC_RAY_START_Y_OFFSET;
     SLONG sz = focus.z;
-    SLONG step_x = (extended_tx - sx) / VC_RAY_SAMPLES;
-    SLONG step_y = (extended_ty - sy) / VC_RAY_SAMPLES;
-    SLONG step_z = (extended_tz - sz) / VC_RAY_SAMPLES;
+    SLONG step_x = (tx - sx) / VC_RAY_SAMPLES;
+    SLONG step_y = (ty - sy) / VC_RAY_SAMPLES;
+    SLONG step_z = (tz - sz) / VC_RAY_SAMPLES;
 
     // LOS flags for the DFacet-aware check below. Some interior walls (e.g.
     // RTA police station) aren't in the WARE height grid — they're DFacets.
@@ -659,7 +603,7 @@ static bool vc_probe_ware(const VC_FocusPoint& focus,
 
     bool full_los_clear = there_is_a_los(
         focus.x >> 8, focus.y >> 8, focus.z >> 8,
-        extended_tx >> 8, extended_ty >> 8, extended_tz >> 8,
+        tx >> 8, ty >> 8, tz >> 8,
         LOS_FLAGS);
 
     if (!full_los_clear) {
@@ -701,9 +645,9 @@ static bool vc_probe_ware(const VC_FocusPoint& focus,
 
     if (!hit_found) return true;
 
-    SLONG full_len = QDIST3(std::abs(extended_tx - focus.x),
-        std::abs(extended_ty - focus.y),
-        std::abs(extended_tz - focus.z));
+    SLONG full_len = QDIST3(std::abs(tx - focus.x),
+        std::abs(ty - focus.y),
+        std::abs(tz - focus.z));
     *d_hit_out = (SLONG)((std::int64_t)full_len * hit_step / VC_RAY_SAMPLES);
     return false;
 }

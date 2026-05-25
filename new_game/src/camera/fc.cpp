@@ -1182,11 +1182,18 @@ void FC_process()
             // Track focus character vertically.
             //
             // Mouse and gamepad need different semantics here:
-            //   • Gamepad: stick has a neutral position. When the
-            //     player releases the right stick, the camera should
-            //     drift back to a default height above the character.
-            //     This is the original convergence toward
+            //   • Gamepad with stick Y idle: stick is at neutral. The
+            //     camera should drift back to a default height above
+            //     the character — original convergence toward
             //     goto_y = focus_y + FC_focus_above + offset_height.
+            //   • Gamepad with stick Y deflected: stick is actively
+            //     setting the height. Convergence would fight the
+            //     input — every tick the stick subtracts ~3000 from
+            //     want_y and the convergence's 0xd00 cap adds it
+            //     right back, so the camera doesn't move (and jerks
+            //     between the two values). Use the same delta-track
+            //     path as mouse — want_y stays where the stick puts
+            //     it, only character vertical motion is tracked.
             //   • Mouse: there is no "released" position. Once the
             //     player moves the mouse to set a height, that height
             //     should PERSIST — no drift toward a default. We still
@@ -1198,7 +1205,17 @@ void FC_process()
             static SLONG s_prev_focus_y[FC_MAX_CAMS] = {};
             SLONG focus_y_delta = fc->focus_y - s_prev_focus_y[cam];
 
-            if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE) {
+            // Detect actively-deflected stick Y (same threshold the
+            // stick-input block uses to apply height_delta).
+            bool stick_y_active = false;
+            if (active_input_device != INPUT_DEVICE_KEYBOARD_MOUSE
+                && input_gamepad_connected()) {
+                SLONG sy = input_stick_y_axis(INPUT_STICK_RIGHT) - 32768;
+                if (abs(sy) > 8000) stick_y_active = true;
+            }
+
+            if (active_input_device == INPUT_DEVICE_KEYBOARD_MOUSE
+                || stick_y_active) {
                 fc->want_y += focus_y_delta;
                 // Clamp to the unified mouse/gamepad Y range.
                 SLONG min_y = fc->focus_y + FC_CAM_Y_MIN_ABOVE_FOCUS;
@@ -1234,24 +1251,23 @@ void FC_process()
                     }
                 }
 
-                if (dy > 0) {
-                    if (fc->focus->Class == CLASS_PERSON) {
-                        Thing* p_person = fc->focus;
-
-                        // Moving platform: follow the platform much faster.
-                        if (p_person->OnFace > 0) {
-                            ASSERT(WITHIN(p_person->OnFace, 1, next_prim_face4 - 1));
-
-                            PrimFace4* f4 = &prim_faces4[p_person->OnFace];
-
-                            ASSERT(f4->FaceFlags & FACE_FLAG_WALKABLE);
-
-                            if (f4->FaceFlags & FACE_FLAG_WMOVE) {
-                                dy <<= 5;
-                            }
-                        }
-                    }
-                }
+                // Removed: WMOVE-platform ×32 multiplier on dy. The
+                // original engine had a hack that multiplied the
+                // convergence step by 32 when the character was
+                // standing on a face flagged FACE_FLAG_WMOVE
+                // (escalators, moving lifts, cars). Intended to keep
+                // the camera caught up to a rising platform, but the
+                // flag is set in level data regardless of whether
+                // the platform is actually moving — so a parked car
+                // (also WMOVE-flagged in its walkable face) triggers
+                // the ×32 multiplier and produces an overshoot when
+                // the camera converges back to default after a stick
+                // height-down input. Camera-convergence rate should
+                // depend only on want/goto/time, not on what's
+                // underfoot; if a real moving lift later looks too
+                // laggy, tune the base convergence rate (dy >> 3 /
+                // 0xd00 cap) instead of re-introducing surface-
+                // dependent speed bumps.
 
                 fc->want_y += dy;
             }

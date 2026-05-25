@@ -8,6 +8,7 @@
 #include "engine/debug/input_debug/input_debug.h"
 #include "engine/input/input_frame.h" // input_key_event_held for active device detection
 #include "engine/input/mouse_globals.h" // MouseRelDX/DY for mouse activity detection
+#include "engine/input/mouse_capture.h" // mouse_capture_is_active — gate the above
 #include "engine/platform/sdl3_bridge.h"
 #include "engine/platform/ds_bridge.h"
 #include "game/input_actions_globals.h"
@@ -399,7 +400,16 @@ void gamepad_poll()
     // form the KEYBOARD_MOUSE input source). Peek at the accumulated
     // relative delta without consuming it: the mouse-camera consumer
     // does the consume later in the same frame.
-    if (MouseRelDX != 0 || MouseRelDY != 0) {
+    //
+    // Gated on mouse_capture_is_active(): while the game is paused
+    // (ESC menu open), the mouse-camera input block is disabled and no
+    // longer consumes MouseRelDX/DY, so any cursor motion in the menu
+    // accumulates indefinitely. Without this gate, that accumulation
+    // would keep flipping active_input_device back to KEYBOARD_MOUSE
+    // every poll even while the player is using the gamepad, which
+    // disables the gamepad-specific convergence and other branches
+    // downstream.
+    if (mouse_capture_is_active() && (MouseRelDX != 0 || MouseRelDY != 0)) {
         active_input_device = INPUT_DEVICE_KEYBOARD_MOUSE;
     }
 
