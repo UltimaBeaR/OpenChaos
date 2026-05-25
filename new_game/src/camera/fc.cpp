@@ -1145,33 +1145,46 @@ void FC_process()
             }
         }
 
-        // Translation tracking: keep want_x/z anchored to the focus's
-        // XZ position by adding focus translation deltas each tick.
+        // Excess-speed translation tracking: when the focus moves
+        // faster than VC_FOCUS_SPEED_CAP per tick (= when driving),
+        // anchor want_x/z to the EXCESS portion of the focus motion
+        // (everything above the cap). Below the cap nothing is
+        // applied — the camera-relative-to-focus geometry then sees
+        // an effective focus motion of at most the cap value.
         //
-        // Without this, want_x/z lives in WORLD coordinates while
-        // focus translates freely. At high speeds (driving), the
-        // focus runs away from want each tick faster than the stick
-        // rotation can orbit around it — the camera drifts behind in
-        // the car's reference frame and the player can never reach
-        // the front of the car with the stick. With delta-tracking,
-        // want_x/z lives in the focus's reference frame: stick
-        // rotation is angular orbit around focus, get-behind below
-        // handles pure angular catch-up, and translation is no
-        // longer mixed into either.
+        // Two outcomes:
+        //   • Running / walking (focus speed below cap): tracking
+        //     contributes 0, default get-behind/orbit behaviour kept
+        //     verbatim → "snap to behind on movement" feel preserved.
+        //   • Driving fast (focus speed above cap): tracking absorbs
+        //     the excess, so the camera follows the car closely AND
+        //     stick rotation only fights against `cap`-per-tick drag
+        //     instead of full vehicle speed → manual orbit reaches
+        //     the front of the car.
         //
         // Guard against huge deltas (focus teleport on level load /
-        // mission start / first frame from zero-init) so we don't
-        // launch want_x/z across the map.
+        // mission start) so we don't launch want across the map.
         static SLONG s_prev_focus_x[FC_MAX_CAMS] = {};
         static SLONG s_prev_focus_z[FC_MAX_CAMS] = {};
-        SLONG focus_dx_xz = fc->focus_x - s_prev_focus_x[cam];
-        SLONG focus_dz_xz = fc->focus_z - s_prev_focus_z[cam];
-        if (abs(focus_dx_xz) < 0x40000 && abs(focus_dz_xz) < 0x40000) {
-            fc->want_x += focus_dx_xz;
-            fc->want_z += focus_dz_xz;
+        {
+            SLONG focus_dx = fc->focus_x - s_prev_focus_x[cam];
+            SLONG focus_dz = fc->focus_z - s_prev_focus_z[cam];
+            const SLONG VC_FOCUS_SPEED_CAP   = 0x3000;   // ~9 cm/tick
+            const SLONG TELEPORT_THRESHOLD   = 0x40000;
+            if (abs(focus_dx) < TELEPORT_THRESHOLD
+                && abs(focus_dz) < TELEPORT_THRESHOLD) {
+                SLONG track_dx = 0;
+                SLONG track_dz = 0;
+                if      (focus_dx >  VC_FOCUS_SPEED_CAP) track_dx = focus_dx - VC_FOCUS_SPEED_CAP;
+                else if (focus_dx < -VC_FOCUS_SPEED_CAP) track_dx = focus_dx + VC_FOCUS_SPEED_CAP;
+                if      (focus_dz >  VC_FOCUS_SPEED_CAP) track_dz = focus_dz - VC_FOCUS_SPEED_CAP;
+                else if (focus_dz < -VC_FOCUS_SPEED_CAP) track_dz = focus_dz + VC_FOCUS_SPEED_CAP;
+                fc->want_x += track_dx;
+                fc->want_z += track_dz;
+            }
+            s_prev_focus_x[cam] = fc->focus_x;
+            s_prev_focus_z[cam] = fc->focus_z;
         }
-        s_prev_focus_x[cam] = fc->focus_x;
-        s_prev_focus_z[cam] = fc->focus_z;
 
         if (!fc->toonear) {
             if (fc->nobehind) {
